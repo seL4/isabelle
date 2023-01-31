@@ -76,6 +76,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private def show_page(page: TabbedPane.Page): Unit = GUI_Thread.later {
+    show_state()
     message_pane.selection.page = page
   }
 
@@ -108,7 +109,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       Delay.first(PIDE.session.output_delay) {
         if (!stopped) {
           output_process(progress)
-          GUI_Thread.later { show_state() }
+          show_state()
         }
       }
 
@@ -186,17 +187,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         finish_process(Nil)
         GUI_Thread.later {
           refresh_theories()
-          show_state()
           show_page(input_page)
         }
       }
       catch {
         case exn: Throwable if !Exn.is_interrupt(exn) =>
           finish_process(List(Protocol.error_message(Exn.print(exn))))
-          GUI_Thread.later {
-            show_state()
-            show_page(output_page)
-          }
+          show_page(output_page)
       }
     }
   }
@@ -250,7 +247,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         progress.stop()
         finish_process(Pretty.separate(msgs))
 
-        show_state()
         show_page(output_page)
       }
       true
