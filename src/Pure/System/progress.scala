@@ -127,7 +127,7 @@ object Program_Progress {
   }
 }
 
-abstract class Program_Progress extends Progress {
+abstract class Program_Progress(default_program: String = "program") extends Progress {
   private var _finished_programs: List[Program_Progress.Program] = Nil
   private var _running_program: Option[Program_Progress.Program] = None
 
@@ -161,7 +161,7 @@ abstract class Program_Progress extends Progress {
         stop_program()
         start_program(title)
       case None =>
-        if (_running_program.isEmpty) start_program("program")
+        if (_running_program.isEmpty) start_program(default_program)
         _running_program.get.echo(msg)
     }
   }

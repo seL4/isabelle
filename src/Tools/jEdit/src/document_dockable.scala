@@ -105,7 +105,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* progress */
 
-  class Log_Progress extends Program_Progress {
+  class Log_Progress extends Program_Progress(default_program = "build") {
     progress =>
 
     override def detect_program(s: String): Option[String] =
