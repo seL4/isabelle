@@ -2296,7 +2296,17 @@ qed
 lemma continuous_within_Arg: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within S) Arg"
   using continuous_at_Arg continuous_at_imp_continuous_within by blast
 
+lemma Arg_Re_pos: "\<bar>Arg z\<bar> < pi / 2 \<longleftrightarrow> Re z > 0 \<or> z = 0"
+  using Arg_def Re_Ln_pos_lt by auto
 
+lemma Arg_Re_nonneg: "\<bar>Arg z\<bar> \<le> pi / 2 \<longleftrightarrow> Re z \<ge> 0"
+  using Re_Ln_pos_le[of z] by (cases "z = 0") (auto simp: Arg_eq_Im_Ln Arg_zero)
+
+lemma Arg_times:
+  assumes "Arg z + Arg w \<in> {-pi<..pi}" "z \<noteq> 0" "w \<noteq> 0"
+  shows   "Arg (z * w) = Arg z + Arg w"
+  using Arg_eq_Im_Ln Ln_times_simple assms by auto
+  
 subsection\<open>The Unwinding Number and the Ln product Formula\<close>
 
 text\<open>Note that in this special case the unwinding number is -1, 0 or 1. But it's always an integer.\<close>

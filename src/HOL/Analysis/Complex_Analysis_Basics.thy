@@ -250,39 +250,56 @@ proof (rule holomorphic_on_balls_imp_entire)
     by (auto simp: not_le)
 qed (insert assms, auto)
 
-lemma holomorphic_on_minus [holomorphic_intros]: "f holomorphic_on s \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on s"
+lemma holomorphic_on_minus [holomorphic_intros]: "f holomorphic_on A \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on A"
   by (metis field_differentiable_minus holomorphic_on_def)
 
 lemma holomorphic_on_add [holomorphic_intros]:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) holomorphic_on s"
+  "\<lbrakk>f holomorphic_on A; g holomorphic_on A\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_add)
 
 lemma holomorphic_on_diff [holomorphic_intros]:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) holomorphic_on s"
+  "\<lbrakk>f holomorphic_on A; g holomorphic_on A\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_diff)
 
 lemma holomorphic_on_mult [holomorphic_intros]:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z * g z) holomorphic_on s"
+  "\<lbrakk>f holomorphic_on A; g holomorphic_on A\<rbrakk> \<Longrightarrow> (\<lambda>z. f z * g z) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_mult)
 
 lemma holomorphic_on_inverse [holomorphic_intros]:
-  "\<lbrakk>f holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> f z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. inverse (f z)) holomorphic_on s"
+  "\<lbrakk>f holomorphic_on A; \<And>z. z \<in> A \<Longrightarrow> f z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. inverse (f z)) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_inverse)
 
 lemma holomorphic_on_divide [holomorphic_intros]:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> g z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. f z / g z) holomorphic_on s"
+  "\<lbrakk>f holomorphic_on A; g holomorphic_on A; \<And>z. z \<in> A \<Longrightarrow> g z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. f z / g z) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_divide)
 
 lemma holomorphic_on_power [holomorphic_intros]:
-  "f holomorphic_on s \<Longrightarrow> (\<lambda>z. (f z)^n) holomorphic_on s"
+  "f holomorphic_on A \<Longrightarrow> (\<lambda>z. (f z)^n) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_power)
 
+lemma holomorphic_on_power_int [holomorphic_intros]:
+  assumes nz: "n \<ge> 0 \<or> (\<forall>x\<in>A. f x \<noteq> 0)" and f: "f holomorphic_on A"
+  shows   "(\<lambda>x. f x powi n) holomorphic_on A"
+proof (cases "n \<ge> 0")
+  case True
+  have "(\<lambda>x. f x ^ nat n) holomorphic_on A"
+    by (simp add: f holomorphic_on_power)
+  with True show ?thesis
+    by (simp add: power_int_def)
+next
+  case False
+  hence "(\<lambda>x. inverse (f x ^ nat (-n))) holomorphic_on A"
+    using nz by (auto intro!: holomorphic_intros f)
+  with False show ?thesis
+    by (simp add: power_int_def power_inverse)
+qed
+
 lemma holomorphic_on_sum [holomorphic_intros]:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) holomorphic_on s"
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on A) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) holomorphic_on A"
   unfolding holomorphic_on_def by (metis field_differentiable_sum)
 
 lemma holomorphic_on_prod [holomorphic_intros]:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. prod (\<lambda>i. f i x) I) holomorphic_on s"
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on A) \<Longrightarrow> (\<lambda>x. prod (\<lambda>i. f i x) I) holomorphic_on A"
   by (induction I rule: infinite_finite_induct) (auto intro: holomorphic_intros)
 
 lemma holomorphic_pochhammer [holomorphic_intros]:
@@ -327,6 +344,17 @@ lemma complex_derivative_transform_within_open:
   by (rule DERIV_imp_deriv)
      (metis DERIV_deriv_iff_field_differentiable has_field_derivative_transform_within_open at_within_open)
 
+lemma holomorphic_on_compose_cnj_cnj:
+  assumes "f holomorphic_on cnj ` A" "open A"
+  shows   "cnj \<circ> f \<circ> cnj holomorphic_on A"
+proof -
+  have [simp]: "open (cnj ` A)"
+    unfolding image_cnj_conv_vimage_cnj using assms by (intro open_vimage) auto
+  show ?thesis
+    using assms unfolding holomorphic_on_def
+    by (auto intro!: field_differentiable_cnj_cnj simp: at_within_open_NO_MATCH)
+qed
+  
 lemma holomorphic_nonconstant:
   assumes holf: "f holomorphic_on S" and "open S" "\<xi> \<in> S" "deriv f \<xi> \<noteq> 0"
     shows "\<not> f constant_on S"
@@ -527,6 +555,23 @@ by (metis analytic_on_inverse analytic_on_mult f g nz)
 lemma analytic_on_power [analytic_intros]:
   "f analytic_on S \<Longrightarrow> (\<lambda>z. (f z) ^ n) analytic_on S"
 by (induct n) (auto simp: analytic_on_mult)
+
+lemma analytic_on_power_int [analytic_intros]:
+  assumes nz: "n \<ge> 0 \<or> (\<forall>x\<in>A. f x \<noteq> 0)" and f: "f analytic_on A"
+  shows   "(\<lambda>x. f x powi n) analytic_on A"
+proof (cases "n \<ge> 0")
+  case True
+  have "(\<lambda>x. f x ^ nat n) analytic_on A"
+    using analytic_on_power f by blast
+  with True show ?thesis
+    by (simp add: power_int_def)
+next
+  case False
+  hence "(\<lambda>x. inverse (f x ^ nat (-n))) analytic_on A"
+    using nz by (auto intro!: analytic_intros f)
+  with False show ?thesis
+    by (simp add: power_int_def power_inverse)
+qed
 
 lemma analytic_on_sum [analytic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on S) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on S"
