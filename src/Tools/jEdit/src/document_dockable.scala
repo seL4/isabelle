@@ -109,7 +109,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     progress =>
 
     override def detect_program(s: String): Option[String] =
-      Document_Build.detect_running_script(s)
+      Document_Build.detect_program_start(s)
 
     private val delay: Delay =
       Delay.first(PIDE.session.output_delay) {

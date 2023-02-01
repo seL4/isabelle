@@ -132,12 +132,15 @@ object Document_Build {
     List("isabelle.sty", "isabellesym.sty", "pdfsetup.sty", "railsetup.sty").
       map(name => texinputs + Path.basic(name))
 
-  def running_script(title: String): String =
-    "echo " + Bash.string("Running program \"" + title + "\" ...") + ";"
+  def program_start(title: String): String =
+    "PROGRAM START \"" + title + "\" ..."
 
-  def detect_running_script(s: String): Option[String] =
+  def program_start_script(title: String): String =
+    "echo " + Bash.string(program_start(title)) + ";"
+
+  def detect_program_start(s: String): Option[String] =
     for {
-      s1 <- Library.try_unprefix("Running program \"", s)
+      s1 <- Library.try_unprefix("PROGRAM START \"", s)
       s2 <- Library.try_unsuffix("\" ...", s1)
     } yield s2
 
@@ -345,7 +348,7 @@ object Document_Build {
     ): String = {
       "if [ -f " + root_name_script(ext) + " ]\n" +
       "then\n" +
-      "  " + (if (title.nonEmpty) running_script(title) else "") +
+      "  " + (if (title.nonEmpty) program_start_script(title) else "") +
         exe + " " + root_name_script() + "\n" +
       (if (after.isEmpty) "" else "  " + after) +
       "fi\n"
@@ -390,9 +393,9 @@ object Document_Build {
       context.prepare_directory(dir, doc, new Latex.Output(context.options))
 
     def use_pdflatex: Boolean = false
-    def running_latex: String = running_script(if (use_pdflatex) "pdflatex" else "lualatex")
+    def start_latex: String = program_start_script(if (use_pdflatex) "pdflatex" else "lualatex")
     def latex_script(context: Context, directory: Directory): String =
-      running_latex + (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
+      start_latex + (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
         " " + directory.root_name_script() + "\n"
 
     def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String = {
