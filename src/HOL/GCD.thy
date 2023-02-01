@@ -2011,7 +2011,7 @@ text \<open>\<^medskip> Multiplication laws.\<close>
 
 lemma gcd_mult_distrib_nat: "k * gcd m n = gcd (k * m) (k * n)"
   for k m n :: nat
-  \<comment> \<open>@{cite \<open>page 27\<close> davenport92}\<close>
+  \<comment> \<open>\<^cite>\<open>\<open>page 27\<close> in davenport92\<close>\<close>
   by (simp add: gcd_mult_left)
 
 lemma gcd_mult_distrib_int: "\<bar>k\<bar> * gcd m n = gcd (k * m) (k * n)"

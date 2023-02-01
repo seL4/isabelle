@@ -617,7 +617,7 @@ subsection \<open>Accessible Part\<close>
 
 text \<open>
   Inductive definition of the accessible part \<open>acc r\<close> of a
-  relation; see also @{cite "paulin-tlca"}.
+  relation; see also \<^cite>\<open>"paulin-tlca"\<close>.
 \<close>
 
 inductive_set acc :: "('a \<times> 'a) set \<Rightarrow> 'a set" for r :: "('a \<times> 'a) set"
