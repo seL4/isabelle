@@ -330,7 +330,7 @@ object Build {
               val tail = job.info.options.int("process_output_tail")
               process_result.copy(
                 out_lines =
-                  "(see also " + store.output_log(session_name).file.toString + ")" ::
+                  "(more details via \"isabelle log -H Error " + session_name + "\")" ::
                   (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
