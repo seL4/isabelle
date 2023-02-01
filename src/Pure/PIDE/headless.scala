@@ -647,8 +647,7 @@ object Headless {
           if (!node_name.is_theory) error("Not a theory file: " + path)
 
           progress.expose_interrupt()
-          val text0 = File.read(path)
-          val text = if (unicode_symbols) Symbol.decode(text0) else text0
+          val text = Symbol.output(unicode_symbols, File.read(path))
           val node_header = resources.check_thy(node_name, Scan.char_reader(text))
           new Resources.Theory(node_name, node_header, text, true)
         }
