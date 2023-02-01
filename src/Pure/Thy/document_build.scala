@@ -275,7 +275,7 @@ object Document_Build {
     def build_document(doc: Document_Variant, verbose: Boolean = false): Document_Output = {
       Isabelle_System.with_tmp_dir("document") { tmp_dir =>
         val engine = get_engine()
-        val directory = engine.prepare_directory(context, tmp_dir, doc)
+        val directory = engine.prepare_directory(context, tmp_dir, doc, verbose)
         engine.build_document(context, directory, verbose)
       }
     }
@@ -289,11 +289,12 @@ object Document_Build {
     def prepare_directory(
       dir: Path,
       doc: Document_Variant,
-      latex_output: Latex.Output
+      latex_output: Latex.Output,
+      verbose: Boolean
     ): Directory = {
       val doc_dir = make_directory(dir, doc)
 
-      progress.echo(program_start("Creating directory"))
+      if (verbose) progress.echo(program_start("Creating directory"))
 
 
       /* actual sources: with SHA1 digest */
@@ -324,10 +325,12 @@ object Document_Build {
       isabelle_logo.foreach(_.write(doc_dir))
       session_graph.write(doc_dir)
 
-      progress.bash("ls -alR", echo = true, cwd = doc_dir.file).check
-      progress match {
-        case program_progress: Program_Progress => program_progress.stop_program()
-        case _ =>
+      if (verbose) {
+        progress.bash("ls -alR", echo = true, cwd = doc_dir.file).check
+        progress match {
+          case program_progress: Program_Progress => program_progress.stop_program()
+          case _ =>
+        }
       }
 
       Directory(doc_dir, doc, root_name, sources)
@@ -392,13 +395,13 @@ object Document_Build {
   abstract class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
 
-    def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory
+    def prepare_directory(context: Context, dir: Path, doc: Document_Variant, verbose: Boolean): Directory
     def build_document(context: Context, directory: Directory, verbose: Boolean): Document_Output
   }
 
   abstract class Bash_Engine(name: String) extends Engine(name) {
-    def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory =
-      context.prepare_directory(dir, doc, new Latex.Output(context.options))
+    def prepare_directory(context: Context, dir: Path, doc: Document_Variant, verbose: Boolean): Directory =
+      context.prepare_directory(dir, doc, new Latex.Output(context.options), verbose)
 
     def use_pdflatex: Boolean = false
     def running_latex: String = program_running_script(if (use_pdflatex) "pdflatex" else "lualatex")
@@ -471,12 +474,14 @@ object Document_Build {
 
     override def use_pdflatex: Boolean = true
 
-    override def prepare_directory(context: Context, dir: Path, doc: Document_Variant): Directory = {
+    override def prepare_directory(
+      context: Context, dir: Path, doc: Document_Variant, verbose: Boolean
+    ): Directory = {
       val doc_dir = context.make_directory(dir, doc)
       Build_LIPIcs.document_files.foreach(Latex.copy_file(_, doc_dir))
 
       val latex_output = new Latex.Output(lipics_options(context.options))
-      context.prepare_directory(dir, doc, latex_output)
+      context.prepare_directory(dir, doc, latex_output, verbose)
     }
   }
   class LIPIcs_LuaLaTeX_Engine extends LIPIcs_Engine("lipics")
@@ -508,8 +513,8 @@ object Document_Build {
           progress.echo("Preparing " + context.session + "/" + doc.name + " ...")
           val start = Time.now()
 
-          output_sources.foreach(engine.prepare_directory(context, _, doc))
-          val directory = engine.prepare_directory(context, tmp_dir, doc)
+          output_sources.foreach(engine.prepare_directory(context, _, doc, false))
+          val directory = engine.prepare_directory(context, tmp_dir, doc, verbose)
 
           val document =
             context.old_document(directory) getOrElse
