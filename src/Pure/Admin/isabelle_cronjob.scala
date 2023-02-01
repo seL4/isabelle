@@ -376,7 +376,7 @@ object Isabelle_Cronjob {
       List(
         Remote_Build("AFP", "lrzcloud2",
           java_heap = "8g",
-          options = "-m32 -M1x6 -t AFP" +
+          options = "-m32 -M1x5 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +

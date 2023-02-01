@@ -447,10 +447,7 @@ object Export {
         for {
           name <- theory_context.files0(permissive = true).headOption
           file <- get_source_file(name)
-        } yield {
-          val text0 = file.bytes.text
-          if (unicode_symbols) Symbol.decode(text0) else text0
-        }
+        } yield Symbol.output(unicode_symbols, file.bytes.text)
       }
 
       snapshot_source orElse db_source getOrElse ""

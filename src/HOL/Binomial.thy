@@ -718,7 +718,7 @@ lemma gbinomial_of_nat_symmetric: "k \<le> n \<Longrightarrow> (of_nat n) gchoos
   using binomial_symmetric[of k n] by (simp add: binomial_gbinomial [symmetric])
 
 
-text \<open>The absorption identity (equation 5.5 @{cite \<open>p.~157\<close> GKP_CM}):
+text \<open>The absorption identity (equation 5.5 \<^cite>\<open>\<open>p.~157\<close> in GKP_CM\<close>):
 \[
 {r \choose k} = \frac{r}{k}{r - 1 \choose k - 1},\quad \textnormal{integer } k \neq 0.
 \]\<close>
@@ -728,7 +728,7 @@ lemma gbinomial_absorption': "k > 0 \<Longrightarrow> a gchoose k = (a / of_nat 
 
 text \<open>The absorption identity is written in the following form to avoid
 division by $k$ (the lower index) and therefore remove the $k \neq 0$
-restriction @{cite \<open>p.~157\<close> GKP_CM}:
+restriction \<^cite>\<open>\<open>p.~157\<close> in GKP_CM\<close>:
 \[
 k{r \choose k} = r{r - 1 \choose k - 1}, \quad \textnormal{integer } k.
 \]\<close>
@@ -740,7 +740,7 @@ lemma binomial_absorption: "Suc k * (n choose Suc k) = n * ((n - 1) choose k)"
   by (cases n) (simp_all add: binomial_eq_0 Suc_times_binomial del: binomial_Suc_Suc mult_Suc)
 
 text \<open>The absorption companion identity for natural number coefficients,
-  following the proof by GKP @{cite \<open>p.~157\<close> GKP_CM}:\<close>
+  following the proof by GKP \<^cite>\<open>\<open>p.~157\<close> in GKP_CM\<close>:\<close>
 lemma binomial_absorb_comp: "(n - k) * (n choose k) = n * ((n - 1) choose k)"
   (is "?lhs = ?rhs")
 proof (cases "n \<le> k")
@@ -771,7 +771,7 @@ lemma binomial_addition_formula:
   by (subst choose_reduce_nat) simp_all
 
 text \<open>
-  Equation 5.9 of the reference material @{cite \<open>p.~159\<close> GKP_CM} is a useful
+  Equation 5.9 of the reference material \<^cite>\<open>\<open>p.~159\<close> in GKP_CM\<close> is a useful
   summation formula, operating on both indices:
   \[
    \sum\limits_{k \leq n}{r + k \choose k} = {r + n + 1 \choose n},
@@ -793,7 +793,7 @@ qed
 subsubsection \<open>Summation on the upper index\<close>
 
 text \<open>
-  Another summation formula is equation 5.10 of the reference material @{cite \<open>p.~160\<close> GKP_CM},
+  Another summation formula is equation 5.10 of the reference material \<^cite>\<open>\<open>p.~160\<close> in GKP_CM\<close>,
   aptly named \emph{summation on the upper index}:\[\sum_{0 \leq k \leq n} {k \choose m} =
   {n + 1 \choose m + 1}, \quad \textnormal{integers } m, n \geq 0.\]
 \<close>

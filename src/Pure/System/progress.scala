@@ -85,7 +85,7 @@ class File_Progress(path: Path, verbose: Boolean = false) extends Progress {
 /* structured program progress */
 
 object Program_Progress {
-  class Program private[Program_Progress](title: String) {
+  class Program private[Program_Progress](heading: String, title: String) {
     private val output_buffer = new StringBuffer(256)  // synchronized
 
     def echo(msg: String): Unit = synchronized {
@@ -97,7 +97,7 @@ object Program_Progress {
     private var stop_time: Option[Time] = None
     def stop_now(): Unit = synchronized { stop_time = Some(Time.now()) }
 
-    def output(heading: String): (Command.Results, XML.Body) = synchronized {
+    def output(): (Command.Results, XML.Body) = synchronized {
       val output_text = output_buffer.toString
       val elapsed_time = stop_time.map(t => t - start_time)
 
@@ -127,20 +127,23 @@ object Program_Progress {
   }
 }
 
-abstract class Program_Progress(default_program: String = "program") extends Progress {
+abstract class Program_Progress(
+  default_heading: String = "Running",
+  default_title: String = "program"
+) extends Progress {
   private var _finished_programs: List[Program_Progress.Program] = Nil
   private var _running_program: Option[Program_Progress.Program] = None
 
-  def output(heading: String = "Running"): (Command.Results, XML.Body) = synchronized {
+  def output(): (Command.Results, XML.Body) = synchronized {
     val programs = (_running_program.toList ::: _finished_programs).reverse
-    val programs_output = programs.map(_.output(heading))
+    val programs_output = programs.map(_.output())
     val results = Command.Results.merge(programs_output.map(_._1))
     val body = Library.separate(Pretty.Separator, programs_output.map(_._2)).flatten
     (results, body)
   }
 
-  private def start_program(title: String): Unit = synchronized {
-    _running_program = Some(new Program_Progress.Program(title))
+  private def start_program(heading: String, title: String): Unit = synchronized {
+    _running_program = Some(new Program_Progress.Program(heading, title))
   }
 
   def stop_program(): Unit = synchronized {
@@ -156,12 +159,12 @@ abstract class Program_Progress(default_program: String = "program") extends Pro
   def detect_program(s: String): Option[String]
 
   override def echo(msg: String): Unit = synchronized {
-    detect_program(msg) match {
-      case Some(title) =>
+    detect_program(msg).map(Word.explode) match {
+      case Some(a :: bs) =>
         stop_program()
-        start_program(title)
-      case None =>
-        if (_running_program.isEmpty) start_program(default_program)
+        start_program(a, Word.implode(bs))
+      case _ =>
+        if (_running_program.isEmpty) start_program(default_heading, default_title)
         _running_program.get.echo(msg)
     }
   }
