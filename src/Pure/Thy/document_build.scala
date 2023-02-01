@@ -135,8 +135,8 @@ object Document_Build {
   def program_start(title: String): String =
     "PROGRAM START \"" + title + "\" ..."
 
-  def program_start_script(title: String): String =
-    "echo " + Bash.string(program_start(title)) + ";"
+  def program_running_script(title: String): String =
+    "echo " + Bash.string(program_start("Running " + title)) + ";"
 
   def detect_program_start(s: String): Option[String] =
     for {
@@ -293,6 +293,8 @@ object Document_Build {
     ): Directory = {
       val doc_dir = make_directory(dir, doc)
 
+      progress.echo(program_start("Creating directory"))
+
 
       /* actual sources: with SHA1 digest */
 
@@ -322,6 +324,8 @@ object Document_Build {
       isabelle_logo.foreach(_.write(doc_dir))
       session_graph.write(doc_dir)
 
+      progress.bash("ls -alR", echo = true, cwd = doc_dir.file).check
+
       Directory(doc_dir, doc, root_name, sources)
     }
 
@@ -348,7 +352,7 @@ object Document_Build {
     ): String = {
       "if [ -f " + root_name_script(ext) + " ]\n" +
       "then\n" +
-      "  " + (if (title.nonEmpty) program_start_script(title) else "") +
+      "  " + (if (title.nonEmpty) program_running_script(title) else "") +
         exe + " " + root_name_script() + "\n" +
       (if (after.isEmpty) "" else "  " + after) +
       "fi\n"
@@ -393,9 +397,9 @@ object Document_Build {
       context.prepare_directory(dir, doc, new Latex.Output(context.options))
 
     def use_pdflatex: Boolean = false
-    def start_latex: String = program_start_script(if (use_pdflatex) "pdflatex" else "lualatex")
+    def running_latex: String = program_running_script(if (use_pdflatex) "pdflatex" else "lualatex")
     def latex_script(context: Context, directory: Directory): String =
-      start_latex + (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
+      running_latex + (if (use_pdflatex) "$ISABELLE_PDFLATEX" else "$ISABELLE_LUALATEX") +
         " " + directory.root_name_script() + "\n"
 
     def bibtex_script(context: Context, directory: Directory, latex: Boolean = false): String = {
