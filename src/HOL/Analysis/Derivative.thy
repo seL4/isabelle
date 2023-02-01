@@ -2104,6 +2104,12 @@ lemma field_differentiable_power [derivative_intros]:
   using assms unfolding field_differentiable_def
   by (metis DERIV_power)
 
+lemma field_differentiable_cnj_cnj:
+  assumes "f field_differentiable (at (cnj z))"
+  shows   "(cnj \<circ> f \<circ> cnj) field_differentiable (at z)"
+  using has_field_derivative_cnj_cnj assms
+  by (auto simp: field_differentiable_def)
+ 
 lemma field_differentiable_transform_within:
   "0 < d \<Longrightarrow>
         x \<in> S \<Longrightarrow>

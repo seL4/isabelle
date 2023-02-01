@@ -671,6 +671,22 @@ lemma has_vector_derivative_cnj [derivative_intros]:
   shows   "((\<lambda>z. cnj (f z)) has_vector_derivative cnj f') (at z within A)"
   using assms by (auto simp: has_vector_derivative_complex_iff intro: derivative_intros)
 
+lemma has_field_derivative_cnj_cnj:
+  assumes "(f has_field_derivative F) (at (cnj z))"
+  shows   "((cnj \<circ> f \<circ> cnj) has_field_derivative cnj F) (at z)"
+proof -
+  have "cnj \<midarrow>0\<rightarrow> cnj 0"
+    by (subst lim_cnj) auto
+  also have "cnj 0 = 0"
+    by simp
+  finally have *: "filterlim cnj (at 0) (at 0)"
+    by (auto simp: filterlim_at eventually_at_filter)
+  have "(\<lambda>h. (f (cnj z + cnj h) - f (cnj z)) / cnj h) \<midarrow>0\<rightarrow> F"
+    by (rule filterlim_compose[OF _ *]) (use assms in \<open>auto simp: DERIV_def\<close>)
+  thus ?thesis
+    by (subst (asm) lim_cnj [symmetric]) (simp add: DERIV_def)
+qed
+
 
 subsection \<open>Basic Lemmas\<close>
 
@@ -1387,6 +1403,5 @@ proof -
     by (simp add: complex_eqI)
   then show ?thesis using that by simp
 qed
-
 
 end
