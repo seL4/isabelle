@@ -371,8 +371,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(theories_pane) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
-  private val output_controls =
-    Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+  private val output_controls = Wrap_Panel(List(zoom))
 
   private val output_page =
     new TabbedPane.Page("Output", new BorderPanel {
