@@ -576,10 +576,10 @@ one can refer to them easily by quoting them:
 \begin{quote}
 \isacom{have} \ \<open>"x > 0"\<close>\\
 $\vdots$\\
-\isacom{from} \<open>`x>0`\<close> \dots\index{$IMP053@\<open>`...`\<close>}
+\isacom{from} \<open>\<open>x > 0\<close>\<close> \dots\index{$IMP053@\<open>`...`\<close>}
 \end{quote}
-Note that the quotes around \<open>x>0\<close> are \conceptnoidx{back quotes}.
-They refer to the fact not by name but by value.
+The outside quotes in \<open>\<open>x > 0\<close>\<close> are the standard renderings of the symbols \texttt{\textbackslash<open>} and \texttt{\textbackslash<close>}.
+They refer to the fact not by name but ``by value''.
 
 \subsection{\indexed{\isacom{moreover}}{moreover}}
 \index{ultimately@\isacom{ultimately}}

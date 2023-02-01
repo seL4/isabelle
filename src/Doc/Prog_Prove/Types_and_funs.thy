@@ -324,7 +324,7 @@ lemma "itrev xs ys = rev xs @ ys"
 (*>*)
 apply(induction xs arbitrary: ys)
 
-txt\<open>The induction hypothesis is now universally quantified over \<open>ys\<close>:
+txt\<open>The induction hypothesis in the induction step is now universally quantified over \<open>ys\<close>:
 @{subgoals[display,margin=65]}
 Thus the proof succeeds:
 \<close>
