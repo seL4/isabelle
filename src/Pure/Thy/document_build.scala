@@ -325,6 +325,10 @@ object Document_Build {
       session_graph.write(doc_dir)
 
       progress.bash("ls -alR", echo = true, cwd = doc_dir.file).check
+      progress match {
+        case program_progress: Program_Progress => program_progress.stop_program()
+        case _ =>
+      }
 
       Directory(doc_dir, doc, root_name, sources)
     }
