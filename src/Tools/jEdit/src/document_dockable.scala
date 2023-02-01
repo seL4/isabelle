@@ -313,12 +313,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       override def clicked(): Unit = pending_process()
     }
 
-  private val cancel_button =
-    new GUI.Button("Cancel") {
-      tooltip = "Cancel build process"
-      override def clicked(): Unit = cancel_process()
-    }
-
   private val view_button =
     new GUI.Button("View") {
       tooltip = "View document"
@@ -327,7 +321,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val controls =
     Wrap_Panel(List(document_session, process_indicator.component,
-      auto_build_button, build_button, view_button, cancel_button))
+      auto_build_button, build_button, view_button))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -371,7 +365,14 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       layout(theories_pane) = BorderPanel.Position.Center
     }, "Selection and status of document theories")
 
-  private val output_controls = Wrap_Panel(List(zoom))
+
+  private val cancel_button =
+    new GUI.Button("Cancel") {
+      tooltip = "Cancel build process"
+      override def clicked(): Unit = cancel_process()
+    }
+
+  private val output_controls = Wrap_Panel(List(cancel_button, zoom))
 
   private val output_page =
     new TabbedPane.Page("Output", new BorderPanel {
