@@ -1046,6 +1046,17 @@ lemma AE_iff_null_sets:
   using Int_absorb1[OF sets.sets_into_space, of N M]
   by (subst AE_iff_null) (auto simp: Int_def[symmetric])
 
+lemma ae_filter_eq_bot_iff: "ae_filter M = bot \<longleftrightarrow> emeasure M (space M) = 0"
+proof -
+  have "ae_filter M = bot \<longleftrightarrow> (AE x in M. False)"
+    using trivial_limit_def by blast
+  also have "\<dots> \<longleftrightarrow> space M \<in> null_sets M"
+    by (simp add: AE_iff_null_sets eventually_ae_filter)
+  also have "\<dots> \<longleftrightarrow> emeasure M (space M) = 0"
+    by auto
+  finally show ?thesis .
+qed
+
 lemma AE_not_in:
   "N \<in> null_sets M \<Longrightarrow> AE x in M. x \<notin> N"
   by (metis AE_iff_null_sets null_setsD2)
@@ -1060,12 +1071,9 @@ lemma AE_E[consumes 1]:
   using assms unfolding eventually_ae_filter by auto
 
 lemma AE_E2:
-  assumes "AE x in M. P x" "{x\<in>space M. P x} \<in> sets M"
-  shows "emeasure M {x\<in>space M. \<not> P x} = 0" (is "emeasure M ?P = 0")
-proof -
-  have "{x\<in>space M. \<not> P x} = space M - {x\<in>space M. P x}" by auto
-  with AE_iff_null[of M P] assms show ?thesis by auto
-qed
+  assumes "AE x in M. P x"
+  shows "emeasure M {x\<in>space M. \<not> P x} = 0"
+  by (metis (mono_tags, lifting) AE_iff_null assms emeasure_notin_sets null_setsD1)
 
 lemma AE_E3:
   assumes "AE x in M. P x"
@@ -1080,25 +1088,7 @@ lemma AE_I:
 lemma AE_mp[elim!]:
   assumes AE_P: "AE x in M. P x" and AE_imp: "AE x in M. P x \<longrightarrow> Q x"
   shows "AE x in M. Q x"
-proof -
-  from AE_P obtain A where P: "{x\<in>space M. \<not> P x} \<subseteq> A"
-    and A: "A \<in> sets M" "emeasure M A = 0"
-    by (auto elim!: AE_E)
-
-  from AE_imp obtain B where imp: "{x\<in>space M. P x \<and> \<not> Q x} \<subseteq> B"
-    and B: "B \<in> sets M" "emeasure M B = 0"
-    by (auto elim!: AE_E)
-
-  show ?thesis
-  proof (intro AE_I)
-    have "emeasure M (A \<union> B) \<le> 0"
-      using emeasure_subadditive[of A M B] A B by auto
-    then show "A \<union> B \<in> sets M" "emeasure M (A \<union> B) = 0"
-      using A B by auto
-    show "{x\<in>space M. \<not> Q x} \<subseteq> A \<union> B"
-      using P imp by auto
-  qed
-qed
+  using assms by (fact eventually_rev_mp)
 
 text \<open>The next lemma is convenient to combine with a lemma whose conclusion is of the
 form \<open>AE x in M. P x = Q x\<close>: for such a lemma, there is no \<open>[symmetric]\<close> variant,

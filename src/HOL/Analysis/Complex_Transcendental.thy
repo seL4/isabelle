@@ -2596,6 +2596,9 @@ lemma powr_nat:
   fixes n::nat and z::complex shows "z powr n = (if z = 0 then 0 else z^n)"
   by (simp add: exp_of_nat_mult powr_def)
 
+lemma powr_nat': "(z :: complex) \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> z powr of_nat n = z ^ n"
+  by (cases "z = 0") (auto simp: powr_nat)
+  
 lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = exp(Re z * ln(Re w))"
   using Ln_Reals_eq norm_exp_eq_Re by (auto simp: Im_Ln_eq_0 powr_def norm_complex_def)
 

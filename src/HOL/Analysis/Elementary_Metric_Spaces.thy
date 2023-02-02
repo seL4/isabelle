@@ -1825,6 +1825,31 @@ lemma compact_frontier[intro]:
   shows "compact S \<Longrightarrow> compact (frontier S)"
   using compact_eq_bounded_closed compact_frontier_bounded by blast
 
+lemma no_limpt_imp_countable:
+  assumes "\<And>z. \<not>z islimpt (X :: 'a :: {real_normed_vector, heine_borel} set)"
+  shows   "countable X"
+proof -
+  have "countable (\<Union>n. cball 0 (real n) \<inter> X)"
+  proof (intro countable_UN[OF _ countable_finite])
+    fix n :: nat
+    show "finite (cball 0 (real n) \<inter> X)"
+      using assms by (intro finite_not_islimpt_in_compact) auto
+  qed auto
+  also have "(\<Union>n. cball 0 (real n)) = (UNIV :: 'a set)"
+  proof safe
+    fix z :: 'a
+    have "norm z \<ge> 0"
+      by simp
+    hence "real (nat \<lceil>norm z\<rceil>) \<ge> norm z"
+      by linarith
+    thus "z \<in> (\<Union>n. cball 0 (real n))"
+      by auto
+  qed auto
+  hence "(\<Union>n. cball 0 (real n) \<inter> X) = X"
+    by blast
+  finally show "countable X" .
+qed
+
 
 subsection \<open>Distance from a Set\<close>
 

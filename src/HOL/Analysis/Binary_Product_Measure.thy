@@ -340,6 +340,16 @@ proof -
     by (simp add: ac_simps)
 qed
 
+lemma (in sigma_finite_measure) times_in_null_sets1 [intro]:
+  assumes "A \<in> null_sets N" "B \<in> sets M"
+  shows   "A \<times> B \<in> null_sets (N \<Otimes>\<^sub>M M)"
+  using assms by (simp add: null_sets_def emeasure_pair_measure_Times)
+
+lemma (in sigma_finite_measure) times_in_null_sets2 [intro]:
+  assumes "A \<in> sets N" "B \<in> null_sets M"
+  shows   "A \<times> B \<in> null_sets (N \<Otimes>\<^sub>M M)"
+  using assms by (simp add: null_sets_def emeasure_pair_measure_Times)
+
 subsection \<open>Binary products of \<open>\<sigma>\<close>-finite emeasure spaces\<close>
 
 locale\<^marker>\<open>tag unimportant\<close> pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2

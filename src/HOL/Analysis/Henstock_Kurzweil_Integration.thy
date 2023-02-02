@@ -4529,36 +4529,50 @@ proof -
     using \<open>x \<in> S\<close> \<open>f c = y\<close> \<open>c \<in> S\<close> by auto
 qed
 
-lemma has_derivative_zero_connected_constant:
+lemma has_derivative_zero_connected_constant_on:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  assumes "connected S"
-      and "open S"
-      and "finite k"
-      and "continuous_on S f"
-      and "\<forall>x\<in>(S - k). (f has_derivative (\<lambda>h. 0)) (at x within S)"
-    obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
+  assumes "connected S" "open S" "finite K" "continuous_on S f"
+      and "\<forall>x\<in>S-K. (f has_derivative (\<lambda>h. 0)) (at x within S)"
+  shows   "f constant_on S"
 proof (cases "S = {}")
   case True
   then show ?thesis
-    by (metis empty_iff that)
+    by (simp add: constant_on_def)
 next
   case False
   then obtain c where "c \<in> S"
     by (metis equals0I)
   then show ?thesis
-    by (metis has_derivative_zero_unique_strong_connected assms that)
+    unfolding constant_on_def
+    by (metis has_derivative_zero_unique_strong_connected assms )
 qed
+
+lemma DERIV_zero_connected_constant_on:
+  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  assumes *: "connected S" "open S" "finite K" "continuous_on S f"
+      and 0: "\<forall>x\<in>S-K. DERIV f x :> 0"
+  shows   "f constant_on S"
+  using has_derivative_zero_connected_constant_on [OF *] 0
+  by (metis has_derivative_at_withinI has_field_derivative_def lambda_zero)
 
 lemma DERIV_zero_connected_constant:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
-  assumes "connected S"
-      and "open S"
-      and "finite K"
-      and "continuous_on S f"
-      and "\<forall>x\<in>(S - K). DERIV f x :> 0"
+  assumes "connected S" and "open S" and "finite K" and "continuous_on S f"
+      and "\<forall>x\<in>S-K. DERIV f x :> 0"
     obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
-  using has_derivative_zero_connected_constant [OF assms(1-4)] assms
-  by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
+  by (metis DERIV_zero_connected_constant_on [OF assms] constant_on_def)
+
+lemma has_field_derivative_0_imp_constant_on:
+  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  assumes "\<And>z. z \<in> S \<Longrightarrow> (f has_field_derivative 0) (at z)" and S: "connected S" "open S"
+  shows   "f constant_on S"
+proof -
+  have *: "continuous_on S f"
+    using assms(1) by (intro DERIV_continuous_on[of _ _ "\<lambda>_. 0"])
+                      (use assms in \<open>auto simp: at_within_open[of _ S]\<close>)
+  show ?thesis
+    using DERIV_zero_connected_constant_on[OF S finite.emptyI *] assms(1) by blast
+qed
 
 
 subsection \<open>Integrating characteristic function of an interval\<close>

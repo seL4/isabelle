@@ -883,6 +883,21 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]: "q \<in> \<rat> \<Longr
 lemma Rats_infinite: "\<not> finite \<rat>"
   by (auto dest!: finite_imageD simp: inj_on_def infinite_UNIV_char_0 Rats_def)
 
+lemma Rats_add_iff: "a \<in> \<rat> \<or> b \<in> \<rat> \<Longrightarrow> a+b \<in> \<rat> \<longleftrightarrow> a \<in> \<rat> \<and> b \<in> \<rat>"
+  by (metis Rats_add Rats_diff add_diff_cancel add_diff_cancel_left')
+
+lemma Rats_diff_iff: "a \<in> \<rat> \<or> b \<in> \<rat> \<Longrightarrow> a-b \<in> \<rat> \<longleftrightarrow> a \<in> \<rat> \<and> b \<in> \<rat>"
+  by (metis Rats_add_iff diff_add_cancel)
+
+lemma Rats_mult_iff: "a \<in> \<rat>-{0} \<or> b \<in> \<rat>-{0} \<Longrightarrow> a*b \<in> \<rat> \<longleftrightarrow> a \<in> \<rat> \<and> b \<in> \<rat>"
+  by (metis Diff_iff Rats_divide Rats_mult insertI1 mult.commute nonzero_divide_eq_eq)
+
+lemma Rats_inverse_iff [simp]: "inverse a \<in> \<rat> \<longleftrightarrow> a \<in> \<rat>"
+  using Rats_inverse by force
+
+lemma Rats_divide_iff: "a \<in> \<rat>-{0} \<or> b \<in> \<rat>-{0} \<Longrightarrow> a/b \<in> \<rat> \<longleftrightarrow> a \<in> \<rat> \<and> b \<in> \<rat>"
+  by (metis Rats_divide Rats_mult_iff divide_eq_0_iff divide_inverse nonzero_mult_div_cancel_right)
+
 
 subsection \<open>Implementation of rational numbers as pairs of integers\<close>
 
