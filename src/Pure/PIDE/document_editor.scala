@@ -14,6 +14,12 @@ object Document_Editor {
   def document_output_dir(): Path = Path.explode("$ISABELLE_HOME_USER/document_output")
   def document_output(): Path = document_output_dir() + Path.basic(document_name)
 
+  def write_document(doc: Document_Build.Document_Output): Unit = {
+    val output = document_output()
+    File.write(output.log, doc.log)
+    Bytes.write(output.pdf, doc.pdf)
+  }
+
   def view_document(): Unit = {
     val path = document_output().pdf
     if (path.is_file) Isabelle_System.pdf_viewer(path)

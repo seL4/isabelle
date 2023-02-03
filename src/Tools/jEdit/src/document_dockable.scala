@@ -221,8 +221,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       Isabelle_System.make_directory(Document_Editor.document_output_dir())
       val doc = context.build_document(document_session.get_variant, verbose = true)
 
-      File.write(Document_Editor.document_output().log, doc.log)
-      Bytes.write(Document_Editor.document_output().pdf, doc.pdf)
+      Document_Editor.write_document(doc)
       Document_Editor.view_document()
     }
     finally { session_context.close() }
