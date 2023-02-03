@@ -239,6 +239,7 @@ final class Path private(
   def gz: Path = ext("gz")
   def html: Path = ext("html")
   def jar: Path = ext("jar")
+  def json: Path = ext("json")
   def log: Path = ext("log")
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")

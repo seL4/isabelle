@@ -12,16 +12,73 @@ object Document_Editor {
 
   def document_name: String = "document"
   def document_output_dir(): Path = Path.explode("$ISABELLE_HOME_USER/document_output")
-  def document_output(): Path = document_output_dir() + Path.basic(document_name)
+  def document_output(name: String): Path = document_output_dir() + Path.basic(name)
 
-  def write_document(doc: Document_Build.Document_Output): Unit = {
-    val output = document_output()
-    File.write(output.log, doc.log)
-    Bytes.write(output.pdf, doc.pdf)
+  object Meta_Data {
+    def read(name: String = document_name): Option[Meta_Data] = {
+      val json_path = document_output(name).json
+      if (json_path.is_file) {
+        val json = JSON.parse(File.read(json_path))
+        for {
+          selection <- JSON.list(json, "selection", JSON.Value.String.unapply)
+          sources <- JSON.string(json, "sources")
+          log <- JSON.string(json, "log")
+          pdf <- JSON.string(json, "pdf")
+        } yield {
+          Meta_Data(name,
+            selection,
+            SHA1.fake_digest(sources),
+            SHA1.fake_digest(log),
+            SHA1.fake_digest(pdf))
+        }
+      }
+      else None
+    }
+
+    def write(
+      selection: Set[Document.Node.Name],
+      doc: Document_Build.Document_Output,
+      name: String = document_name
+    ): Unit = {
+      val json =
+        JSON.Object(
+          "selection" -> selection.toList.map(_.theory).sorted,
+          "sources" -> doc.sources.toString,
+          "log" -> SHA1.digest(doc.log).toString,
+          "pdf" -> SHA1.digest(doc.pdf).toString)
+      File.write(document_output(name).json, JSON.Format.pretty_print(json))
+    }
   }
 
-  def view_document(): Unit = {
-    val path = document_output().pdf
+  sealed case class Meta_Data(
+    name: String,
+    selection: List[String],
+    sources: SHA1.Digest,
+    log: SHA1.Digest,
+    pdf: SHA1.Digest
+  ) {
+    def check_files(): Boolean = {
+      val path = document_output(name)
+      path.log.is_file &&
+      path.pdf.is_file &&
+      log == SHA1.digest(File.read(path.log)) &&
+      pdf == SHA1.digest(path.pdf)
+    }
+  }
+
+  def write_document(
+    selection: Set[Document.Node.Name],
+    doc: Document_Build.Document_Output,
+    name: String = document_name
+  ): Unit = {
+    val output = document_output(name)
+    File.write(output.log, doc.log)
+    Bytes.write(output.pdf, doc.pdf)
+    Meta_Data.write(selection, doc, name = name)
+  }
+
+  def view_document(name: String = document_name): Unit = {
+    val path = document_output(name).pdf
     if (path.is_file) Isabelle_System.pdf_viewer(path)
   }
 
