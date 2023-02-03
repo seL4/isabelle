@@ -232,7 +232,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         if (!ok) {
           Document_Editor.write_document(document_session.selection,
             engine.build_document(context, directory, verbose = true))
-          Document_Editor.view_document()
         }
       }
     }
