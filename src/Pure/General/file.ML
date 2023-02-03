@@ -89,7 +89,7 @@ fun tmp_path path = Path.variable "ISABELLE_TMP" + Path.base path;
 
 (* directory entries *)
 
-val exists = can OS.FileSys.modTime o platform_path;
+val exists = can OS.FileSys.fileId o platform_path;
 
 val rm = OS.FileSys.remove o platform_path;
 
