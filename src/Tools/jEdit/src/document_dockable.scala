@@ -252,7 +252,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         val msgs =
           result match {
             case Exn.Res(_) =>
-              List(Protocol.writeln_message("OK"))
+              List(Protocol.writeln_message("DONE"))
             case Exn.Exn(exn: Document_Build.Build_Error) =>
               exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
             case Exn.Exn(exn) =>
