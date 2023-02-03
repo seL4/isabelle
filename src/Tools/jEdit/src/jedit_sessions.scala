@@ -98,7 +98,9 @@ object JEdit_Sessions {
       options.value.check_name(option_name).title_jedit
     override def load(): Unit = {
       val value = options.string(option_name)
-      for (entry <- find_value(_ == value)) selection.item = entry
+      for (entry <- find_value(_ == value) if selection.item != entry) {
+        selection.item = entry
+      }
     }
     override def save(): Unit =
       for (value <- selection_value) options.string(option_name) = value
