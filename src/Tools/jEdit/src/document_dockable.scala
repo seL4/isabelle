@@ -223,11 +223,18 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         val engine = context.get_engine()
         val variant = document_session.get_variant
         val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
-        Document_Editor.write_document(document_session.selection,
-          engine.build_document(context, directory, verbose = true))
+        val ok =
+          Document_Editor.Meta_Data.read() match {
+            case Some(meta_data) =>
+              meta_data.check_files() && meta_data.sources == directory.sources
+            case None => false
+          }
+        if (!ok) {
+          Document_Editor.write_document(document_session.selection,
+            engine.build_document(context, directory, verbose = true))
+          Document_Editor.view_document()
+        }
       }
-
-      Document_Editor.view_document()
     }
     finally { session_context.close() }
   }
