@@ -30,7 +30,8 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
     }
   }
 
-  def invoke(): Unit = synchronized {
+  def invoke(msg: String = ""): Unit = synchronized {
+    if (msg.nonEmpty) log("Delay.invoke " + msg)
     val new_run =
       running match {
         case Some(request) => if (first) false else { request.cancel(); true }
@@ -40,14 +41,16 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
       running = Some(Event_Timer.request(Time.now() + delay)(run))
   }
 
-  def revoke(): Unit = synchronized {
+  def revoke(msg: String = ""): Unit = synchronized {
+    if (msg.nonEmpty) log("Delay.revoke " + msg)
     running match {
       case Some(request) => request.cancel(); running = None
       case None =>
     }
   }
 
-  def postpone(alt_delay: Time): Unit = synchronized {
+  def postpone(alt_delay: Time, msg: String = ""): Unit = synchronized {
+    if (msg.nonEmpty) log("Delay.postpone " + msg)
     running match {
       case Some(request) =>
         val alt_time = Time.now() + alt_delay

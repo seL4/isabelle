@@ -33,3 +33,9 @@ class File_Logger(path: Path) extends Logger {
 
   override def toString: String = path.toString
 }
+
+class System_Logger extends Logger {
+  def apply(msg: => String): Unit =
+    if (Platform.is_windows) System.out.println(msg)
+    else System.console.writer.println(msg)
+}
