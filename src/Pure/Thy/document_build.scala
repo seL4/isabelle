@@ -270,17 +270,6 @@ object Document_Build {
       }
 
 
-    /* build document */
-
-    def build_document(doc: Document_Variant, verbose: Boolean = false): Document_Output = {
-      Isabelle_System.with_tmp_dir("document") { tmp_dir =>
-        val engine = get_engine()
-        val directory = engine.prepare_directory(context, tmp_dir, doc, verbose)
-        engine.build_document(context, directory, verbose)
-      }
-    }
-
-
     /* document directory */
 
     def make_directory(dir: Path, doc: Document_Variant): Path =

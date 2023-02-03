@@ -219,9 +219,14 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
           progress = progress)
 
       Isabelle_System.make_directory(Document_Editor.document_output_dir())
-      val doc = context.build_document(document_session.get_variant, verbose = true)
+      Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+        val engine = context.get_engine()
+        val variant = document_session.get_variant
+        val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
+        Document_Editor.write_document(document_session.selection,
+          engine.build_document(context, directory, verbose = true))
+      }
 
-      Document_Editor.write_document(document_session.selection, doc)
       Document_Editor.view_document()
     }
     finally { session_context.close() }
