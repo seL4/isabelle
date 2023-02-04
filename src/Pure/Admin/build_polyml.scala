@@ -35,21 +35,25 @@ object Build_PolyML {
         setup = MinGW.environment_export,
         libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread")))
 
-  def build_polyml(
+  def polyml_platform(arch_64: Boolean): String = {
+    val platform = Isabelle_Platform.self
+    (if (arch_64) platform.arch_64 else platform.arch_64_32) + "-" + platform.os_name
+  }
+
+  def make_polyml(
     root: Path,
     sha1_root: Option[Path] = None,
-    progress: Progress = new Progress,
+    target_dir: Path = Path.current,
     arch_64: Boolean = false,
     options: List[String] = Nil,
-    mingw: MinGW = MinGW.none
+    mingw: MinGW = MinGW.none,
+    progress: Progress = new Progress,
   ): Unit = {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
 
     val platform = Isabelle_Platform.self
 
-    val polyml_platform =
-      (if (arch_64) platform.arch_64 else platform.arch_64_32) + "-" + platform.os_name
     val sha1_platform = platform.arch_64 + "-" + platform.os_name
 
     val info =
@@ -108,17 +112,21 @@ object Build_PolyML {
 
     /* install */
 
-    val platform_dir = Path.explode(polyml_platform)
+    val platform_path = Path.explode(polyml_platform(arch_64))
+
+    val platform_dir = target_dir + platform_path
     Isabelle_System.rm_tree(platform_dir)
     Isabelle_System.make_directory(platform_dir)
 
-    for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
-
+    val root_platform_dir = Isabelle_System.make_directory(root + platform_path)
     for {
       d <- List("target/bin", "target/lib")
       dir = root + Path.explode(d)
       entry <- File.read_dir(dir)
-    } Isabelle_System.move_file(dir + Path.explode(entry), platform_dir)
+    } Isabelle_System.move_file(dir + Path.explode(entry), root_platform_dir)
+
+    Isabelle_System.copy_dir(root_platform_dir, platform_dir, direct = true)
+    for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
     Executable.libraries_closure(
       platform_dir + Path.basic("poly").platform_exe, mingw = mingw, filter = info.libs)
@@ -145,15 +153,14 @@ object Build_PolyML {
 
   /** skeleton for component **/
 
-  private def extract_sources(source_archive: Path, component_dir: Path): Unit = {
-    Isabelle_System.extract(source_archive, component_dir)
+  val default_polyml_url = "https://github.com/polyml/polyml/archive"
+  val default_polyml_version = "5e9c8155ea96"
+  val default_polyml_name = "polyml-5.9"
 
-    val src_dir = component_dir + Path.explode("src")
-    File.read_dir(component_dir) match {
-      case List(s) => Isabelle_System.move_file(component_dir + Path.basic(s), src_dir)
-      case _ => error("Source archive contains multiple directories")
-    }
+  val default_sha1_url = "https://isabelle.sketis.net/repos/sha1/archive"
+  val default_sha1_version = "e0239faa6f42"
 
+  private def init_sources(src_dir: Path): Unit = {
     val lines = split_lines(File.read(src_dir + Path.explode("RootX86.ML")))
     val ml_files =
       for {
@@ -170,23 +177,147 @@ not affect the running ML session. *)
 """ + ml_files.mkString("\n", "\n", "\n"))
   }
 
-  def build_polyml_component(
-    source_archive: Path,
-    component_path: Path,
-    sha1_root: Option[Path] = None
+
+  def build_polyml(
+    options: List[String] = Nil,
+    mingw: MinGW = MinGW.none,
+    component_name: String = "",
+    polyml_url: String = default_polyml_url,
+    polyml_version: String = default_polyml_version,
+    polyml_name: String = default_polyml_name,
+    sha1_url: String = default_sha1_url,
+    sha1_version: String = default_sha1_version,
+    target_dir: Path = Path.current,
+    verbose: Boolean = false,
+    progress: Progress = new Progress
   ): Unit = {
-    val component_dir = Components.Directory(component_path).create()
-    extract_sources(source_archive, component_path)
+    /* component */
 
-    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/settings"), component_dir.etc)
-    Isabelle_System.copy_file(Path.explode("~~/Admin/polyml/README"), component_dir.path)
+    val component_name1 = if (component_name.isEmpty) "polyml-" + polyml_version else component_name
+    val component_dir = Components.Directory(target_dir + Path.basic(component_name1)).create()
+    progress.echo("Component " + component_dir)
 
-    sha1_root match {
-      case Some(dir) =>
-        Mercurial.repository(dir)
-          .archive(File.standard_path(component_dir.path + Path.explode("sha1")))
-      case None =>
+
+    /* download and build */
+
+    Isabelle_System.with_tmp_dir("download") { download_dir =>
+      val List(polyml_download, sha1_download) =
+        for {
+          (url, version, target) <-
+            List((polyml_url, polyml_version, "src"), (sha1_url, sha1_version, "sha1"))
+        } yield {
+          val remote = Url.append_path(url, version + ".tar.gz")
+          val download = download_dir + Path.basic(version)
+          Isabelle_System.download_file(remote, download.tar.gz, progress = progress)
+          Isabelle_System.extract(download.tar.gz, download, strip = true)
+          Isabelle_System.extract(
+            download.tar.gz, component_dir.path + Path.basic(target), strip = true)
+          download
+        }
+
+      init_sources(component_dir.src)
+
+      for (arch_64 <- List(false, true)) {
+        progress.echo("Building " + polyml_platform(arch_64))
+        make_polyml(
+          root = polyml_download,
+          sha1_root = Some(sha1_download),
+          target_dir = component_dir.path,
+          arch_64 = arch_64,
+          options = options,
+          mingw = mingw,
+          progress = if (verbose) progress else new Progress)
+      }
     }
+
+
+    /* settings */
+
+    component_dir.write_settings("""# -*- shell-script -*- :mode=shellscript:
+
+POLYML_HOME="$COMPONENT"
+
+if [ -n "$ISABELLE_APPLE_PLATFORM64" ]
+then
+  if grep "ML_system_apple.*=.*false" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
+  then
+    ML_PLATFORM="$ISABELLE_PLATFORM64"
+  else
+    ML_PLATFORM="$ISABELLE_APPLE_PLATFORM64"
+  fi
+else
+  ML_PLATFORM="${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
+fi
+
+if grep "ML_system_64.*=.*true" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
+then
+  ML_OPTIONS="--minheap 1000"
+else
+  ML_PLATFORM="${ML_PLATFORM/64/64_32}"
+  ML_OPTIONS="--minheap 500"
+fi
+
+ML_SYSTEM=""" + Bash.string(polyml_name) + """
+ML_HOME="$POLYML_HOME/$ML_PLATFORM"
+ML_SOURCES="$POLYML_HOME/src"
+
+ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$ML_SOURCES/ROOT.ML"
+""")
+
+
+    /* README */
+
+    File.write(component_dir.README,
+"""Poly/ML for Isabelle
+====================
+
+This compilation of Poly/ML (https://www.polyml.org) is based on the
+source distribution from
+https://github.com/polyml/polyml/commit/""" + polyml_version + """
+
+The Isabelle repository provides an administrative tool "isabelle
+build_polyml", which can be used in the polyml component directory as
+follows.
+
+* Linux and macOS:
+
+  $ isabelle build_polyml
+
+* Windows (Cygwin shell)
+
+  $ isabelle build_polyml -M /cygdrive/c/msys64
+
+
+Building libgmp on macOS
+========================
+
+The build_polyml invocations above implicitly use the GNU Multiple Precision
+Arithmetic Library (libgmp), but that is not available on macOS by default.
+Appending "--without-gmp" to the command-line omits this library. Building
+libgmp properly from sources works as follows (library headers and binaries
+will be placed in /usr/local).
+
+* Download:
+
+  $ curl https://gmplib.org/download/gmp/gmp-6.2.1.tar.bz2 | tar xjf -
+  $ cd gmp-6.2.1
+
+* build:
+
+  $ make distclean
+
+  #Intel
+  $ ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
+
+  #ARM
+  $ ./configure --enable-cxx --build=aarch64-apple-darwin"$(uname -r)"
+
+  $ make && make check
+  $ sudo make install
+
+
+        Makarius
+        """ + Date.Format.date(Date.now()) + "\n")
   }
 
 
@@ -194,14 +325,14 @@ not affect the running ML session. *)
   /** Isabelle tool wrappers **/
 
   val isabelle_tool1 =
-    Isabelle_Tool("build_polyml", "build Poly/ML from sources", Scala_Project.here,
+    Isabelle_Tool("make_polyml", "make Poly/ML from existing sources", Scala_Project.here,
       { args =>
         var mingw = MinGW.none
         var arch_64 = false
         var sha1_root: Option[Path] = None
 
         val getopts = Getopts("""
-Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
+Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
     -M DIR       msys/mingw root specification for Windows
@@ -209,7 +340,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         (if (arch_64) "64" else "32") + """)
     -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
-  Build Poly/ML in the ROOT directory of its sources, with additional
+  Make Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --without-gmp).
 """,
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
@@ -227,34 +358,60 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
             case root :: options => (Path.explode(root), options)
             case Nil => getopts.usage()
           }
-        build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
+        make_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
           arch_64 = arch_64, options = options, mingw = mingw)
       })
 
   val isabelle_tool2 =
-    Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component",
+    Isabelle_Tool("build_polyml", "build Poly/ML component from official repository",
       Scala_Project.here,
       { args =>
-        var sha1_root: Option[Path] = None
+        var target_dir = Path.current
+        var mingw = MinGW.none
+        var component_name = ""
+        var sha1_url = default_sha1_url
+        var sha1_version = default_sha1_version
+        var polyml_url = default_polyml_url
+        var polyml_version = default_polyml_version
+        var polyml_name = default_polyml_name
+        var verbose = false
   
         val getopts = Getopts("""
-Usage: isabelle build_polyml_component [OPTIONS] SOURCE_ARCHIVE COMPONENT_DIR
+Usage: isabelle build_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
   Options are:
-    -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
+    -D DIR       target directory (default ".")
+    -M DIR       msys/mingw root specification for Windows
+    -N NAME      component name (default: derived from Poly/ML version)
+    -S URL       SHA1 repository archive area
+                 (default: """ + quote(default_sha1_url) + """)
+    -T VERSION   SHA1 version (default: """ + quote(default_sha1_version) + """)
+    -U URL       Poly/ML repository archive area
+                 (default: """ + quote(default_polyml_url) + """)
+    -V VERSION   Poly/ML version (default: """ + quote(default_polyml_version) + """)
+    -W NAME      Poly/ML name (default: """ + quote(default_polyml_name) + """)
+    -v           verbose
 
-  Make skeleton for Poly/ML component, based on official source archive
-  (zip or tar.gz).
+  Download and build Poly/ML component from source repositories, with additional
+  CONFIGURE_OPTIONS (e.g. --without-gmp).
 """,
-          "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "N:" -> (arg => component_name = arg),
+          "S:" -> (arg => sha1_url = arg),
+          "T:" -> (arg => sha1_version = arg),
+          "U:" -> (arg => polyml_url = arg),
+          "V:" -> (arg => polyml_version = arg),
+          "W:" -> (arg => polyml_name = arg),
+          "v" -> (_ => verbose = true))
 
-        val more_args = getopts(args)
+        val options = getopts(args)
 
-        val (source_archive, component_dir) =
-          more_args match {
-            case List(archive, dir) => (Path.explode(archive), Path.explode(dir))
-            case _ => getopts.usage()
-          }
-        build_polyml_component(source_archive, component_dir, sha1_root = sha1_root)
+        val progress = new Console_Progress
+
+        build_polyml(options = options, mingw = mingw, component_name = component_name,
+          polyml_url = polyml_url, polyml_version = polyml_version, polyml_name = polyml_name,
+          sha1_url = sha1_url, sha1_version = sha1_version, target_dir = target_dir,
+          verbose = verbose, progress = progress)
       })
 }
