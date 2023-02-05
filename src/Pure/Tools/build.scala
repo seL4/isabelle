@@ -380,7 +380,11 @@ object Build {
                 val ancestor_results =
                   build_deps.sessions_structure.build_requirements(List(session_name)).
                     filterNot(_ == session_name).map(results(_))
-                val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
+                val ancestor_heaps =
+                  if (ancestor_results.isEmpty) {
+                    List(SHA1.digest(Path.explode("$POLYML_EXE")).toString)
+                  }
+                  else ancestor_results.flatMap(_.heap_digest)
 
                 val do_store =
                   build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
