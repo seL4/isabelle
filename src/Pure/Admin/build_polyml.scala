@@ -160,15 +160,15 @@ object Build_PolyML {
   val default_sha1_url = "https://isabelle.sketis.net/repos/sha1/archive"
   val default_sha1_version = "e0239faa6f42"
 
-  private def init_sources(src_dir: Path): Unit = {
-    val lines = split_lines(File.read(src_dir + Path.explode("RootX86.ML")))
+  private def init_src_root(src_dir: Path, input: String, output: String): Unit = {
+    val lines = split_lines(File.read(src_dir + Path.explode(input)))
     val ml_files =
       for {
         line <- lines
         rest <- Library.try_unprefix("use", line)
       } yield "ML_file" + rest
 
-    File.write(src_dir + Path.explode("ROOT.ML"),
+    File.write(src_dir + Path.explode(output),
 """(* Poly/ML Compiler root file.
 
 When this file is open in the Prover IDE, the ML files of the Poly/ML
@@ -215,7 +215,8 @@ not affect the running ML session. *)
           download
         }
 
-      init_sources(component_dir.src)
+      init_src_root(component_dir.src, "RootArm64.ML", "ROOT0.ML")
+      init_src_root(component_dir.src, "RootX86.ML", "ROOT.ML")
 
       for (arch_64 <- List(false, true)) {
         progress.echo("Building " + polyml_platform(arch_64))
@@ -261,7 +262,14 @@ ML_SYSTEM=""" + Bash.string(polyml_name) + """
 ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 ML_SOURCES="$POLYML_HOME/src"
 
-ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$ML_SOURCES/ROOT.ML"
+case "$ML_PLATFORM" in
+  *arm64*)
+    ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$ML_SOURCES/ROOT0.ML"
+    ;;
+  *)
+    ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$ML_SOURCES/ROOT.ML"
+    ;;
+esac
 """)
 
 
