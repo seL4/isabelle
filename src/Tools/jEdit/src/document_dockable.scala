@@ -205,37 +205,33 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private def document_build(
+    session_context: Export.Session_Context,
     document_session: Document_Editor.Session,
-    progress: Log_Progress
+    progress: Progress
   ): Unit = {
     val session_background = document_session.get_background
-    val snapshot = document_session.get_snapshot
-    val session_context = JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))
-    try {
-      val context =
-        Document_Build.context(session_context,
-          document_session = Some(session_background.base),
-          document_selection = document_session.selection,
-          progress = progress)
+    val context =
+      Document_Build.context(session_context,
+        document_session = Some(session_background.base),
+        document_selection = document_session.selection,
+        progress = progress)
 
-      Isabelle_System.make_directory(Document_Editor.document_output_dir())
-      Isabelle_System.with_tmp_dir("document") { tmp_dir =>
-        val engine = context.get_engine()
-        val variant = document_session.get_variant
-        val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
-        val ok =
-          Document_Editor.Meta_Data.read() match {
-            case Some(meta_data) =>
-              meta_data.check_files() && meta_data.sources == directory.sources
-            case None => false
-          }
-        if (!ok) {
-          Document_Editor.write_document(document_session.selection,
-            engine.build_document(context, directory, verbose = true))
+    Isabelle_System.make_directory(Document_Editor.document_output_dir())
+    Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+      val engine = context.get_engine()
+      val variant = document_session.get_variant
+      val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
+      val ok =
+        Document_Editor.Meta_Data.read() match {
+          case Some(meta_data) =>
+            meta_data.check_files() && meta_data.sources == directory.sources
+          case None => false
         }
+      if (!ok) {
+        Document_Editor.write_document(document_session.selection,
+          engine.build_document(context, directory, verbose = true))
       }
     }
-    finally { session_context.close() }
   }
 
   private def document_build_attempt(): Boolean = {
@@ -247,7 +243,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         output_process(progress)
         show_page(output_page)
 
-        val result = Exn.capture { document_build(document_session, progress) }
+        val result = Exn.capture {
+          val snapshot = document_session.get_snapshot
+          using(JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))) {
+            session_context => document_build(session_context, document_session, progress)
+          }
+        }
         val msgs =
           result match {
             case Exn.Res(_) =>
