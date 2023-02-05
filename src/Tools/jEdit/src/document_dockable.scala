@@ -204,36 +204,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  private def document_build(
-    session_context: Export.Session_Context,
-    document_session: Document_Editor.Session,
-    progress: Progress
-  ): Unit = {
-    val session_background = document_session.get_background
-    val context =
-      Document_Build.context(session_context,
-        document_session = Some(session_background.base),
-        document_selection = document_session.selection,
-        progress = progress)
-
-    Isabelle_System.make_directory(Document_Editor.document_output_dir())
-    Isabelle_System.with_tmp_dir("document") { tmp_dir =>
-      val engine = context.get_engine()
-      val variant = document_session.get_variant
-      val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
-      val ok =
-        Document_Editor.Meta_Data.read() match {
-          case Some(meta_data) =>
-            meta_data.check_files() && meta_data.sources == directory.sources
-          case None => false
-        }
-      if (!ok) {
-        Document_Editor.write_document(document_session.selection,
-          engine.build_document(context, directory, verbose = true))
-      }
-    }
-  }
-
   private def document_build_attempt(): Boolean = {
     val document_session = PIDE.editor.document_session()
     if (document_session.is_vacuous) true
@@ -246,7 +216,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         val result = Exn.capture {
           val snapshot = document_session.get_snapshot
           using(JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))) {
-            session_context => document_build(session_context, document_session, progress)
+            session_context => Document_Editor.build(session_context, document_session, progress)
           }
         }
         val msgs =

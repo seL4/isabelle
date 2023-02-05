@@ -146,4 +146,37 @@ object Document_Editor {
       Session(background, selection, snapshot)
     }
   }
+
+
+  /* build */
+
+  def build(
+    session_context: Export.Session_Context,
+    document_session: Document_Editor.Session,
+    progress: Progress
+  ): Unit = {
+    val session_background = document_session.get_background
+    val context =
+      Document_Build.context(session_context,
+        document_session = Some(session_background.base),
+        document_selection = document_session.selection,
+        progress = progress)
+
+    Isabelle_System.make_directory(document_output_dir())
+    Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+      val engine = context.get_engine()
+      val variant = document_session.get_variant
+      val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
+      val ok =
+        Meta_Data.read() match {
+          case Some(meta_data) =>
+            meta_data.check_files() && meta_data.sources == directory.sources
+          case None => false
+        }
+      if (!ok) {
+        write_document(document_session.selection,
+          engine.build_document(context, directory, verbose = true))
+      }
+    }
+  }
 }
