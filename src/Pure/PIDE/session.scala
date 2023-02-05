@@ -122,6 +122,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   session =>
 
   val init_time: Time = Time.now()
+  def print_now(): String = (Time.now() - init_time).toString
 
   val cache: Term.Cache = Term.Cache.make()
 
