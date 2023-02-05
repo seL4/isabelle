@@ -159,14 +159,14 @@ object Document_Build {
   def context(
     session_context: Export.Session_Context,
     document_session: Option[Sessions.Base] = None,
-    document_selection: Document.Node.Name => Boolean = _ => true,
+    document_selection: String => Boolean = _ => true,
     progress: Progress = new Progress
   ): Context = new Context(session_context, document_session, document_selection, progress)
 
   final class Context private[Document_Build](
     val session_context: Export.Session_Context,
     document_session: Option[Sessions.Base],
-    document_selection: Document.Node.Name => Boolean,
+    document_selection: String => Boolean,
     val progress: Progress
   ) {
     context =>
@@ -236,7 +236,7 @@ object Document_Build {
     lazy val document_latex: List[Document_Latex] =
       for (name <- all_document_theories)
       yield {
-        val selected = document_selection(name)
+        val selected = document_selection(name.theory)
 
         val body =
           if (selected) {

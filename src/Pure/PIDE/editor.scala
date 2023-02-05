@@ -46,7 +46,7 @@ abstract class Editor[Context] {
       for {
         a <- st.all_document_theories
         b = session.resources.migrate_name(a)
-        if st.selection(b)
+        if st.selection(b.theory)
       } yield b
     }
     else Nil
@@ -55,29 +55,27 @@ abstract class Editor[Context] {
   def document_node_required(name: Document.Node.Name): Boolean = {
     val st = document_state()
     st.is_active &&
-    st.selection.contains(name) &&
-    st.all_document_theories.exists(a => session.resources.migrate_name(a) == name)
+    st.selection.contains(name.theory) &&
+    st.all_document_theories.exists(a => a.theory == name.theory)
   }
 
   def document_theories(): List[Document.Node.Name] =
     document_state().active_document_theories.map(session.resources.migrate_name)
 
-  def document_selection(): Set[Document.Node.Name] = document_state().selection
+  def document_selection(): Set[String] = document_state().selection
 
   def document_setup(background: Option[Sessions.Background]): Unit =
     document_state_change(_.copy(session_background = background))
 
   def document_select(
-    names: Iterable[Document.Node.Name],
+    theories: Iterable[String],
     set: Boolean = false,
     toggle: Boolean = false
-  ): Unit = document_state_change(_.select(names, set = set, toggle = toggle))
+  ): Unit = document_state_change(_.select(theories, set = set, toggle = toggle))
 
   def document_select_all(set: Boolean = false): Unit =
-    document_state_change { st =>
-      val domain = st.active_document_theories.map(session.resources.migrate_name)
-      st.select(domain, set = set)
-    }
+    document_state_change(st =>
+      st.select(st.active_document_theories.map(_.theory), set = set))
 
   def document_init(id: AnyRef): Unit = document_state_change(_.register_view(id))
   def document_exit(id: AnyRef): Unit = document_state_change(_.unregister_view(id))

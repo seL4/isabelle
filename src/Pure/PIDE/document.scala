@@ -592,6 +592,12 @@ object Document {
     def node_consolidated(name: Node.Name): Boolean =
       state.node_consolidated(version, name)
 
+    def theory_consolidated(theory: String): Boolean =
+      version.nodes.theory_name(theory) match {
+        case Some(name) => node_consolidated(name)
+        case None => false
+      }
+
 
     /* pending edits */
 

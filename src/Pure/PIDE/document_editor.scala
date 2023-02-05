@@ -7,6 +7,9 @@ Central resources and configuration for interactive document preparation.
 package isabelle
 
 
+import scala.collection.immutable.SortedSet
+
+
 object Document_Editor {
   /* document output */
 
@@ -26,7 +29,7 @@ object Document_Editor {
           pdf <- JSON.string(json, "pdf")
         } yield {
           Meta_Data(name,
-            selection,
+            SortedSet.from(selection),
             SHA1.fake_digest(sources),
             SHA1.fake_digest(log),
             SHA1.fake_digest(pdf))
@@ -36,13 +39,13 @@ object Document_Editor {
     }
 
     def write(
-      selection: Set[Document.Node.Name],
+      selection: SortedSet[String],
       doc: Document_Build.Document_Output,
       name: String = document_name
     ): Unit = {
       val json =
         JSON.Object(
-          "selection" -> selection.toList.map(_.theory).sorted,
+          "selection" -> selection.toList,
           "sources" -> doc.sources.toString,
           "log" -> SHA1.digest(doc.log).toString,
           "pdf" -> SHA1.digest(doc.pdf).toString)
@@ -52,7 +55,7 @@ object Document_Editor {
 
   sealed case class Meta_Data(
     name: String,
-    selection: List[String],
+    selection: SortedSet[String],
     sources: SHA1.Digest,
     log: SHA1.Digest,
     pdf: SHA1.Digest
@@ -67,7 +70,7 @@ object Document_Editor {
   }
 
   def write_document(
-    selection: Set[Document.Node.Name],
+    selection: SortedSet[String],
     doc: Document_Build.Document_Output,
     name: String = document_name
   ): Unit = {
@@ -87,7 +90,7 @@ object Document_Editor {
 
   sealed case class Session(
     background: Option[Sessions.Background],
-    selection: Set[Document.Node.Name],
+    selection: SortedSet[String],
     snapshot: Option[Document.Snapshot]
   ) {
     def is_vacuous: Boolean = background.isEmpty
@@ -101,7 +104,7 @@ object Document_Editor {
 
   sealed case class State(
     session_background: Option[Sessions.Background] = None,
-    selection: Set[Document.Node.Name] = Set.empty,
+    selection: SortedSet[String] = SortedSet.empty,
     views: Set[AnyRef] = Set.empty,
   ) {
     def is_active: Boolean = session_background.isDefined && views.nonEmpty
@@ -116,15 +119,15 @@ object Document_Editor {
       if (is_active) all_document_theories else Nil
 
     def select(
-      names: Iterable[Document.Node.Name],
+      theories: Iterable[String],
       set: Boolean = false,
       toggle: Boolean = false
     ): State = {
       copy(selection =
-        names.foldLeft(selection) {
-          case (sel, name) =>
-            val b = if (toggle) !selection(name) else set
-            if (b) sel + name else sel - name
+        theories.foldLeft(selection) {
+          case (sel, theory) =>
+            val b = if (toggle) !selection(theory) else set
+            if (b) sel + theory else sel - theory
         })
     }
 
@@ -137,9 +140,9 @@ object Document_Editor {
         if (background.isEmpty) None
         else {
           val snapshot = pide_session.snapshot()
-          def document_ready(name: Document.Node.Name): Boolean =
-            pide_session.resources.session_base.loaded_theory(name) ||
-            snapshot.node_consolidated(name)
+          def document_ready(theory: String): Boolean =
+            pide_session.resources.session_base.loaded_theory(theory) ||
+            snapshot.theory_consolidated(theory)
           if (snapshot.is_outdated || !selection.forall(document_ready)) None
           else Some(snapshot)
         }

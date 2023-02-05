@@ -199,7 +199,7 @@ class Theories_Status(view: View, document: Boolean = false) {
           if (node_renderer.in_required(index_location, point)) {
             if (clicks == 1) {
               val name = listData(index)
-              if (document) PIDE.editor.document_select(Set(name), toggle = true)
+              if (document) PIDE.editor.document_select(Set(name.theory), toggle = true)
               else Document_Model.node_required(name, toggle = true)
             }
           }
