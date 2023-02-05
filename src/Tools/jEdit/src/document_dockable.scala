@@ -215,9 +215,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
         val result = Exn.capture {
           val snapshot = document_session.get_snapshot
-          using(JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot))) {
-            session_context => Document_Editor.build(session_context, document_session, progress)
-          }
+          using(JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot)))(
+            Document_Editor.build(_, document_session, progress))
         }
         val msgs =
           result match {
