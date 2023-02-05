@@ -618,10 +618,11 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 case None => consolidation.update()
                 case Some(version) =>
                   val consolidate =
-                    consolidation.flush().iterator.filter(name =>
+                    version.nodes.descendants(consolidation.flush().toList).filter { name =>
                       !resources.session_base.loaded_theory(name) &&
                       !state.node_consolidated(version, name) &&
-                      state.node_maybe_consolidated(version, name)).toList
+                      state.node_maybe_consolidated(version, name)
+                    }
                   if (consolidate.nonEmpty) handle_raw_edits(consolidate = consolidate)
               }
             }
