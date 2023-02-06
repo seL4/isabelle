@@ -107,7 +107,7 @@ extends Resources(session_background, log = log) {
     else if (path.is_basic && !prefix.endsWith("/") && !prefix.endsWith(JFile.separator))
       prefix + JFile.separator + File.platform_path(path)
     else if (path.is_basic) prefix + File.platform_path(path)
-    else File.absolute_name(new JFile(prefix + JFile.separator + File.platform_path(path)))
+    else File.absolute(new JFile(prefix + JFile.separator + File.platform_path(path))).getPath
   }
 
   override def read_dir(dir: String): List[String] =
