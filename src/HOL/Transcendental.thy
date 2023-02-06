@@ -2521,20 +2521,7 @@ lemma powr_realpow': "(z :: real) \<ge> 0 \<Longrightarrow> n \<noteq> 0 \<Longr
 lemma powr_real_of_int':
   assumes "x \<ge> 0" "x \<noteq> 0 \<or> n > 0"
   shows   "x powr real_of_int n = power_int x n"
-proof (cases "x = 0")
-  case False
-  with assms have "x > 0" by simp
-  show ?thesis
-  proof (cases n rule: int_cases4)
-    case (nonneg n)
-    thus ?thesis using \<open>x > 0\<close>
-      by (auto simp add: powr_realpow)
-  next
-    case (neg n)
-    thus ?thesis using \<open>x > 0\<close>
-      by (auto simp add: powr_realpow powr_minus power_int_minus)
-  qed
-qed (use assms in auto)
+  by (metis assms exp_ln_iff exp_power_int nless_le power_int_eq_0_iff powr_def)
 
 lemma log_ln: "ln x = log (exp(1)) x"
   by (simp add: log_def)

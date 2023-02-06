@@ -84,6 +84,41 @@ lemma holomorphic_on_exp' [holomorphic_intros]:
   "f holomorphic_on s \<Longrightarrow> (\<lambda>x. exp (f x)) holomorphic_on s"
   using holomorphic_on_compose[OF _ holomorphic_on_exp] by (simp add: o_def)
 
+lemma exp_analytic_on [analytic_intros]:
+  assumes "f analytic_on A"
+  shows   "(\<lambda>z. exp (f z)) analytic_on A"
+  by (metis analytic_on_holomorphic assms holomorphic_on_exp')
+
+lemma
+  assumes "\<And>w. w \<in> A \<Longrightarrow> exp (f w) = w"
+  assumes "f holomorphic_on A" "z \<in> A" "open A"
+  shows   deriv_complex_logarithm: "deriv f z = 1 / z"
+    and   has_field_derivative_complex_logarithm: "(f has_field_derivative 1 / z) (at z)"
+proof -
+  have [simp]: "z \<noteq> 0"
+    using assms(1)[of z] assms(3) by auto
+  have deriv [derivative_intros]: "(f has_field_derivative deriv f z) (at z)"
+    using assms holomorphic_derivI by blast
+  have "((\<lambda>w. w) has_field_derivative 1) (at z)"
+    by (intro derivative_intros)
+  also have "?this \<longleftrightarrow> ((\<lambda>w. exp (f w)) has_field_derivative 1) (at z)"
+  proof (rule DERIV_cong_ev)
+    have "eventually (\<lambda>w. w \<in> A) (nhds z)"
+      using assms by (intro eventually_nhds_in_open) auto
+    thus "eventually (\<lambda>w. w = exp (f w)) (nhds z)"
+      by eventually_elim (use assms in auto)
+  qed auto
+  finally have "((\<lambda>w. exp (f w)) has_field_derivative 1) (at z)" .
+  moreover have "((\<lambda>w. exp (f w)) has_field_derivative exp (f z) * deriv f z) (at z)"
+    by (rule derivative_eq_intros refl)+
+  ultimately have "exp (f z) * deriv f z = 1"
+    using DERIV_unique by blast
+  with assms show "deriv f z = 1 / z"
+    by (simp add: field_simps)
+  with deriv show "(f has_field_derivative 1 / z) (at z)"
+    by simp
+qed
+  
 subsection\<open>Euler and de Moivre formulas\<close>
 
 text\<open>The sine series times \<^term>\<open>i\<close>\<close>
@@ -2601,6 +2636,9 @@ lemma powr_nat': "(z :: complex) \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow>
   
 lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = exp(Re z * ln(Re w))"
   using Ln_Reals_eq norm_exp_eq_Re by (auto simp: Im_Ln_eq_0 powr_def norm_complex_def)
+
+lemma norm_powr_real_powr': "w \<in> \<real> \<Longrightarrow> norm (z powr w) = norm z powr Re w"
+  by (auto simp: powr_def Reals_def)
 
 lemma powr_complexpow [simp]:
   fixes x::complex shows "x \<noteq> 0 \<Longrightarrow> x powr (of_nat n) = x^n"

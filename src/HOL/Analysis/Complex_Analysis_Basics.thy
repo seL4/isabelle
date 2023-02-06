@@ -6,7 +6,7 @@ section \<open>Complex Analysis Basics\<close>
 text \<open>Definitions of analytic and holomorphic functions, limit theorems, complex differentiation\<close>
 
 theory Complex_Analysis_Basics
-  imports Derivative "HOL-Library.Nonpos_Ints"
+  imports Derivative "HOL-Library.Nonpos_Ints" Uncountable_Sets
 begin
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>General lemmas\<close>
@@ -51,6 +51,50 @@ lemma
   by (intro open_Collect_less closed_Collect_le closed_Collect_eq continuous_on_Re
             continuous_on_Im continuous_on_id continuous_on_const)+
 
+lemma uncountable_halfspace_Im_gt: "uncountable {z. Im z > c}"
+proof -
+  obtain r where r: "r > 0" "ball ((c + 1) *\<^sub>R \<i>) r \<subseteq> {z. Im z > c}"
+    using open_halfspace_Im_gt[of c] unfolding open_contains_ball by force
+  then show ?thesis
+    using countable_subset uncountable_ball by blast
+qed
+
+lemma uncountable_halfspace_Im_lt: "uncountable {z. Im z < c}"
+proof -
+  obtain r where r: "r > 0" "ball ((c - 1) *\<^sub>R \<i>) r \<subseteq> {z. Im z < c}"
+    using open_halfspace_Im_lt[of c] unfolding open_contains_ball by force
+  then show ?thesis
+    using countable_subset uncountable_ball by blast
+qed
+
+lemma uncountable_halfspace_Re_gt: "uncountable {z. Re z > c}"
+proof -
+  obtain r where r: "r > 0" "ball (of_real(c + 1)) r \<subseteq> {z. Re z > c}"
+    using open_halfspace_Re_gt[of c] unfolding open_contains_ball by force
+  then show ?thesis
+    using countable_subset uncountable_ball by blast
+qed
+
+lemma uncountable_halfspace_Re_lt: "uncountable {z. Re z < c}"
+proof -
+  obtain r where r: "r > 0" "ball (of_real(c - 1)) r \<subseteq> {z. Re z < c}"
+    using open_halfspace_Re_lt[of c] unfolding open_contains_ball by force
+  then show ?thesis
+    using countable_subset uncountable_ball by blast
+qed
+
+lemma connected_halfspace_Im_gt [intro]: "connected {z. c < Im z}"
+  by (intro convex_connected convex_halfspace_Im_gt)
+
+lemma connected_halfspace_Im_lt [intro]: "connected {z. c > Im z}"
+  by (intro convex_connected convex_halfspace_Im_lt)
+
+lemma connected_halfspace_Re_gt [intro]: "connected {z. c < Re z}"
+  by (intro convex_connected convex_halfspace_Re_gt)
+
+lemma connected_halfspace_Re_lt [intro]: "connected {z. c > Re z}"
+  by (intro convex_connected convex_halfspace_Re_lt)
+  
 lemma closed_complex_Reals: "closed (\<real> :: complex set)"
 proof -
   have "(\<real> :: complex set) = {z. Im z = 0}"

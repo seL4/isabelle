@@ -618,31 +618,18 @@ lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
 lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<or> x islimpt T"
   by (simp add: islimpt_iff_eventually eventually_conj_iff)
 
+lemma islimpt_finite_union_iff:
+  assumes "finite A"
+  shows   "z islimpt (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<exists>x\<in>A. z islimpt B x)"
+  using assms by (induction rule: finite_induct) (simp_all add: islimpt_Un)
 
 lemma islimpt_insert:
   fixes x :: "'a::t1_space"
   shows "x islimpt (insert a s) \<longleftrightarrow> x islimpt s"
 proof
-  assume *: "x islimpt (insert a s)"
-  show "x islimpt s"
-  proof (rule islimptI)
-    fix t
-    assume t: "x \<in> t" "open t"
-    show "\<exists>y\<in>s. y \<in> t \<and> y \<noteq> x"
-    proof (cases "x = a")
-      case True
-      obtain y where "y \<in> insert a s" "y \<in> t" "y \<noteq> x"
-        using * t by (rule islimptE)
-      with \<open>x = a\<close> show ?thesis by auto
-    next
-      case False
-      with t have t': "x \<in> t - {a}" "open (t - {a})"
-        by (simp_all add: open_Diff)
-      obtain y where "y \<in> insert a s" "y \<in> t - {a}" "y \<noteq> x"
-        using * t' by (rule islimptE)
-      then show ?thesis by auto
-    qed
-  qed
+  assume "x islimpt (insert a s)"
+  then show "x islimpt s"
+    by (metis closed_limpt closed_singleton empty_iff insert_iff insert_is_Un islimpt_Un islimpt_def)
 next
   assume "x islimpt s"
   then show "x islimpt (insert a s)"

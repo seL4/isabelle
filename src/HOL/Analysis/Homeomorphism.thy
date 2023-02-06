@@ -1017,6 +1017,14 @@ definition\<^marker>\<open>tag important\<close> covering_space
                         pairwise disjnt v \<and>
                         (\<forall>u \<in> v. \<exists>q. homeomorphism u T p q)))"
 
+lemma covering_spaceI [intro?]:
+  assumes "continuous_on c p" "p ` c = S"
+          "\<And>x. x \<in> S \<Longrightarrow> \<exists>T. x \<in> T \<and> openin (top_of_set S) T \<and>
+                             (\<exists>v. \<Union>v = c \<inter> p -` T \<and> (\<forall>u \<in> v. openin (top_of_set c) u) \<and>
+                             pairwise disjnt v \<and> (\<forall>u \<in> v. \<exists>q. homeomorphism u T p q))"
+  shows "covering_space c p S"
+  using assms unfolding covering_space_def by auto
+
 lemma covering_space_imp_continuous: "covering_space c p S \<Longrightarrow> continuous_on c p"
   by (simp add: covering_space_def)
 

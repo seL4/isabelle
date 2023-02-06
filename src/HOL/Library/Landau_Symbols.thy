@@ -618,7 +618,48 @@ lemma small_mult: "f1 \<in> l F (g1) \<Longrightarrow> f2 \<in> l F (g2) \<Longr
 
 lemmas mult = big_mult small_big_mult big_small_mult small_mult
 
+lemma big_power:
+  assumes "f \<in> L F (g)"
+  shows   "(\<lambda>x. f x ^ m) \<in> L F (\<lambda>x. g x ^ m)"
+  using assms by (induction m) (auto intro: mult)
 
+lemma (in landau_pair) small_power:
+  assumes "f \<in> l F (g)" "m > 0"
+  shows   "(\<lambda>x. f x ^ m) \<in> l F (\<lambda>x. g x ^ m)"
+proof -
+  have "(\<lambda>x. f x * f x ^ (m - 1)) \<in> l F (\<lambda>x. g x * g x ^ (m - 1))"
+    by (intro small_big_mult assms big_power[OF small_imp_big])
+  thus ?thesis
+    using assms by (cases m) (simp_all add: mult_ac)
+qed
+
+lemma big_power_increasing:
+  assumes "(\<lambda>_. 1) \<in> L F f" "m \<le> n"
+  shows   "(\<lambda>x. f x ^ m) \<in> L F (\<lambda>x. f x ^ n)"
+proof -
+  have "(\<lambda>x. f x ^ m * 1 ^ (n - m)) \<in> L F (\<lambda>x. f x ^ m * f x ^ (n - m))"
+    using assms by (intro mult big_power) auto
+  also have "(\<lambda>x. f x ^ m * f x ^ (n - m)) = (\<lambda>x. f x ^ (m + (n - m)))"
+    by (subst power_add [symmetric]) (rule refl)
+  also have "m + (n - m) = n"
+    using assms by simp
+  finally show ?thesis by simp
+qed
+
+lemma small_power_increasing:
+  assumes "(\<lambda>_. 1) \<in> l F f" "m < n"
+  shows   "(\<lambda>x. f x ^ m) \<in> l F (\<lambda>x. f x ^ n)"
+proof -
+  note [trans] = small_big_trans
+  have "(\<lambda>x. f x ^ m * 1) \<in> l F (\<lambda>x. f x ^ m * f x)"
+    using assms by (intro big_small_mult) auto
+  also have "(\<lambda>x. f x ^ m * f x) = (\<lambda>x. f x ^ Suc m)"
+    by (simp add: mult_ac)
+  also have "\<dots> \<in> L F (\<lambda>x. f x ^ n)"
+    using assms by (intro big_power_increasing[OF small_imp_big]) auto
+  finally show ?thesis by simp
+qed
+  
 sublocale big: landau_symbol L L' Lr
 proof
   have L: "L = bigo \<or> L = bigomega"
@@ -1779,6 +1820,9 @@ lemma asymp_equiv_refl_ev:
   by (intro asymp_equivI tendsto_eventually)
      (insert assms, auto elim!: eventually_mono)
 
+lemma asymp_equiv_nhds_iff: "f \<sim>[nhds (z :: 'a :: t1_space)] g \<longleftrightarrow> f \<sim>[at z] g \<and> f z = g z"
+  by (auto simp: asymp_equiv_def tendsto_nhds_iff)
+
 lemma asymp_equiv_sandwich:
   fixes f g h :: "'a \<Rightarrow> 'b :: {real_normed_field, order_topology, linordered_field}"
   assumes "eventually (\<lambda>x. f x \<ge> 0) F"
@@ -2191,8 +2235,6 @@ lemma asymp_equiv_sandwich_real'':
   assumes "l1 \<sim>[F] u1" "u1 \<sim>[F] l2" "l2 \<sim>[F] u2"
           "eventually (\<lambda>x. f x \<in> {l1 x..u1 x}) F" "eventually (\<lambda>x. g x \<in> {l2 x..u2 x}) F"
   shows   "f \<sim>[F] g"
-  by (rule asymp_equiv_sandwich_real[OF asymp_equiv_sandwich_real'[OF _ _ assms(5)]
-             asymp_equiv_sandwich_real'[OF _ _ assms(5)] assms(4)];
-      blast intro: asymp_equiv_trans assms(1,2,3))+
+  by (meson assms asymp_equiv_sandwich_real asymp_equiv_sandwich_real' asymp_equiv_trans)
 
 end
