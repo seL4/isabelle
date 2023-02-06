@@ -36,16 +36,16 @@ object Browser_Info {
   }
 
 
-  /* meta data within the file-system */
+  /* meta info within the file-system */
 
-  object Meta_Data {
+  object Meta_Info {
     /* directory */
 
     val PATH: Path = Path.explode(".browser_info")
 
     def check_directory(dir: Path): Unit = {
       if (dir.is_dir && !(dir + PATH).is_dir && File.read_dir(dir).nonEmpty) {
-        error("Existing content in " + dir.expand + " lacks " + PATH + " meta data.\n" +
+        error("Existing content in " + dir.expand + " lacks " + PATH + " meta info.\n" +
           "To avoid potential disaster, it has not been changed automatically.\n" +
           "If this is the intended directory, please move/remove/empty it manually.")
       }
@@ -284,10 +284,10 @@ object Browser_Info {
     /* maintain presentation structure */
 
     def update_chapter(session_name: String, session_description: String): Unit = synchronized {
-      val dir = Meta_Data.init_directory(chapter_dir(session_name))
-      Meta_Data.change(dir, Meta_Data.INDEX) { text =>
-        val index0 = Meta_Data.Index.parse(text, "chapter")
-        val item = Meta_Data.Item(session_name, description = session_description)
+      val dir = Meta_Info.init_directory(chapter_dir(session_name))
+      Meta_Info.change(dir, Meta_Info.INDEX) { text =>
+        val index0 = Meta_Info.Index.parse(text, "chapter")
+        val item = Meta_Info.Item(session_name, description = session_description)
         val index = index0 + item
 
         if (index != index0) {
@@ -311,17 +311,17 @@ object Browser_Info {
     }
 
     def update_root(): Unit = synchronized {
-      Meta_Data.init_directory(root_dir)
+      Meta_Info.init_directory(root_dir)
       HTML.init_fonts(root_dir)
       Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
         root_dir + Path.explode("isabelle.gif"))
 
-      Meta_Data.change(root_dir, Meta_Data.INDEX) { text =>
-        val index0 = Meta_Data.Index.parse(text, "root")
+      Meta_Info.change(root_dir, Meta_Info.INDEX) { text =>
+        val index0 = Meta_Info.Index.parse(text, "root")
         val index = {
           val items1 =
             sessions_structure.known_chapters
-              .map(ch => Meta_Data.Item(ch.name, description = ch.description))
+              .map(ch => Meta_Info.Item(ch.name, description = ch.description))
           val items2 = index0.items.filterNot(item => items1.exists(_.name == item.name))
           index0.copy(items = items1 ::: items2)
         }
@@ -559,8 +559,8 @@ object Browser_Info {
     val session_dir = context.session_dir(session_name).expand
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
 
-    Meta_Data.init_directory(context.chapter_dir(session_name))
-    Meta_Data.clean_directory(session_dir)
+    Meta_Info.init_directory(context.chapter_dir(session_name))
+    Meta_Info.clean_directory(session_dir)
 
     val session = context.document_info.the_session(session_name)
 
@@ -662,7 +662,7 @@ object Browser_Info {
           context.contents("Theories", theories),
         root = Some(context.root_dir))
 
-    Meta_Data.set_build_uuid(session_dir, session.build_uuid)
+    Meta_Info.set_build_uuid(session_dir, session.build_uuid)
 
     context.update_chapter(session_name, session_info.description)
   }
@@ -688,7 +688,7 @@ object Browser_Info {
               case None => false
               case Some(build) =>
                 val session_dir = context0.session_dir(session_name)
-                !Meta_Data.check_build_uuid(session_dir, build.uuid)
+                !Meta_Info.check_build_uuid(session_dir, build.uuid)
             }
           }
         }
