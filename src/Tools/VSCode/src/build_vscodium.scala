@@ -426,7 +426,7 @@ Usage: build_vscodium [OPTIONS]
   for targeting Windows.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "p:" -> (arg => platforms = Library.space_explode(',', arg).map(Platform.Family.parse)),
+          "p:" -> (arg => platforms = space_explode(',', arg).map(Platform.Family.parse)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)

@@ -186,7 +186,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
           "V:" -> (arg => version = arg),
           "f" -> (_ => force = true),
           "n" -> (_ => dry_run = true),
-          "p:" -> (arg => platforms = Library.space_explode(',', arg).map(check_platform_spec)),
+          "p:" -> (arg => platforms = space_explode(',', arg).map(check_platform_spec)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)

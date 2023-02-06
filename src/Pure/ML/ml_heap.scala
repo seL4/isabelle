@@ -17,7 +17,7 @@ object ML_Heap {
 
   private val sha1_prefix = "SHA1:"
 
-  def read_digest(heap: Path): Option[String] = {
+  def read_digest(heap: Path): Option[SHA1.Digest] = {
     if (heap.is_file) {
       using(FileChannel.open(heap.java_path, StandardOpenOption.READ)) { file =>
         val len = file.size
@@ -37,7 +37,7 @@ object ML_Heap {
           if (i == n) {
             val prefix = new String(buf.array(), 0, sha1_prefix.length, UTF8.charset)
             val s = new String(buf.array(), sha1_prefix.length, SHA1.digest_length, UTF8.charset)
-            if (prefix == sha1_prefix) Some(s) else None
+            if (prefix == sha1_prefix) Some(SHA1.fake_digest(s)) else None
           }
           else None
         }
@@ -47,10 +47,10 @@ object ML_Heap {
     else None
   }
 
-  def write_digest(heap: Path): String =
+  def write_digest(heap: Path): SHA1.Digest =
     read_digest(heap) getOrElse {
-      val s = SHA1.digest(heap).toString
-      File.append(heap, sha1_prefix + s)
-      s
+      val digest = SHA1.digest(heap)
+      File.append(heap, sha1_prefix + digest.toString)
+      digest
     }
 }

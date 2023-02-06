@@ -74,6 +74,7 @@ public class Build
 
     public static String BUILD_PROPS = "build.props";
     public static String COMPONENT_BUILD_PROPS = "etc/build.props";
+    public static String META_INFO = "<meta_info>";
 
     public static String TITLE = "title";
     public static String MODULE = "module";
@@ -223,14 +224,14 @@ public class Build
             return shasum(file, List.of(path(file)));
         }
 
-        public String shasum_props()
+        public String shasum_meta_info()
             throws NoSuchAlgorithmException, IOException, InterruptedException
         {
             TreeMap<String,Object> sorted = new TreeMap<String,Object>();
             for (Object x : _props.entrySet()) {
                 sorted.put(x.toString(), _props.get(x));
             }
-            return make_shasum("<props>",
+            return make_shasum(META_INFO,
                     sha -> sha.update(sorted.toString().getBytes(StandardCharsets.UTF_8)));
         }
     }
@@ -475,7 +476,7 @@ public class Build
                 List<Path> compiler_deps = new LinkedList<Path>();
                 {
                     StringBuilder _shasum = new StringBuilder();
-                    _shasum.append(context.shasum_props());
+                    _shasum.append(context.shasum_meta_info());
                     for (String s : requirements) {
                         List<Path> paths = context.requirement_paths(s);
                         compiler_deps.addAll(paths);

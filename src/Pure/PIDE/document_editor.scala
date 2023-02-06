@@ -17,8 +17,8 @@ object Document_Editor {
   def document_output_dir(): Path = Path.explode("$ISABELLE_HOME_USER/document_output")
   def document_output(name: String): Path = document_output_dir() + Path.basic(name)
 
-  object Meta_Data {
-    def read(name: String = document_name): Option[Meta_Data] = {
+  object Meta_Info {
+    def read(name: String = document_name): Option[Meta_Info] = {
       val json_path = document_output(name).json
       if (json_path.is_file) {
         val json = JSON.parse(File.read(json_path))
@@ -28,7 +28,7 @@ object Document_Editor {
           log <- JSON.string(json, "log")
           pdf <- JSON.string(json, "pdf")
         } yield {
-          Meta_Data(name,
+          Meta_Info(name,
             SortedSet.from(selection),
             SHA1.fake_digest(sources),
             SHA1.fake_digest(log),
@@ -53,7 +53,7 @@ object Document_Editor {
     }
   }
 
-  sealed case class Meta_Data(
+  sealed case class Meta_Info(
     name: String,
     selection: SortedSet[String],
     sources: SHA1.Digest,
@@ -77,7 +77,7 @@ object Document_Editor {
     val output = document_output(name)
     File.write(output.log, doc.log)
     Bytes.write(output.pdf, doc.pdf)
-    Meta_Data.write(selection, doc, name = name)
+    Meta_Info.write(selection, doc, name = name)
   }
 
   def view_document(name: String = document_name): Unit = {
@@ -171,9 +171,9 @@ object Document_Editor {
       val variant = document_session.get_variant
       val directory = engine.prepare_directory(context, tmp_dir, variant, verbose = true)
       val ok =
-        Meta_Data.read() match {
-          case Some(meta_data) =>
-            meta_data.check_files() && meta_data.sources == directory.sources
+        Meta_Info.read() match {
+          case Some(meta_info) =>
+            meta_info.check_files() && meta_info.sources == directory.sources
           case None => false
         }
       if (!ok) {

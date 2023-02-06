@@ -99,8 +99,7 @@ object Latex {
 
     val standard = "document,theory,proof,ML,visible,-invisible,important,unimportant"
 
-    private def explode(spec: String): List[String] =
-      Library.space_explode(',', spec)
+    private def explode(spec: String): List[String] = space_explode(',', spec)
 
     def apply(spec: String): Tags =
       new Tags(spec,
@@ -142,7 +141,7 @@ object Latex {
 \newcommand{\isafoldtag}[1]%
 {\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
 
-""" + Library.terminate_lines(tags))
+""" + terminate_lines(tags))
     }
   }
 

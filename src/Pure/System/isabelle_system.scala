@@ -510,8 +510,7 @@ object Isabelle_System {
   def open_external_file(name: String): Boolean = {
     val ext = Library.take_suffix((c: Char) => c != '.', name.toList)._2.mkString
     val external =
-      ext.nonEmpty &&
-      Library.space_explode(':', getenv("ISABELLE_EXTERNAL_FILES")).contains(ext)
+      ext.nonEmpty && space_explode(':', getenv("ISABELLE_EXTERNAL_FILES")).contains(ext)
     if (external) {
       if (ext == "pdf" && Path.is_wellformed(name)) pdf_viewer(Path.explode(name))
       else open(name)

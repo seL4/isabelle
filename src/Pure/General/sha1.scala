@@ -14,6 +14,8 @@ import isabelle.setup.{Build => Setup_Build}
 
 
 object SHA1 {
+  /* digest */
+
   final class Digest private[SHA1](rep: String) {
     override def toString: String = rep
     override def hashCode: Int = rep.hashCode
@@ -22,7 +24,6 @@ object SHA1 {
         case other: Digest => rep == other.toString
         case _ => false
       }
-    def shasum(name: String): String = rep + " " + name
   }
 
   def fake_digest(rep: String): Digest = new Digest(rep)
@@ -47,8 +48,42 @@ object SHA1 {
   def digest(bytes: Array[Byte]): Digest = make_digest(_.update(bytes))
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
   def digest(string: String): Digest = digest(Bytes(string))
-  def digest_set(digests: List[Digest]): Digest =
-    digest(cat_lines(digests.map(_.toString).sorted))
 
   val digest_length: Int = digest("").toString.length
+
+
+  /* shasum */
+
+  final class Shasum private[SHA1](private[SHA1] val rep: List[String]) {
+    override def equals(other: Any): Boolean =
+      other match {
+        case that: Shasum => rep.equals(that.rep)
+        case _ => false
+      }
+    override def hashCode: Int = rep.hashCode
+    override def toString: String = Library.terminate_lines(rep)
+
+    def is_empty: Boolean = rep.isEmpty
+
+    def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
+
+    def digest: Digest = {
+      rep match {
+        case List(s)
+        if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake_digest(s)
+        case _ => SHA1.digest(toString)
+      }
+    }
+  }
+
+  val no_shasum: Shasum = new Shasum(Nil)
+  def flat_shasum(list: List[Shasum]): Shasum = new Shasum(list.flatMap(_.rep))
+  def fake_shasum(text: String): Shasum = new Shasum(Library.trim_split_lines(text))
+
+  def shasum(digest: Digest, name: String): Shasum =
+    new Shasum(List(digest.toString + " " + name))
+  def shasum_meta_info(digest: Digest): Shasum =
+    shasum(digest, isabelle.setup.Build.META_INFO)
+  def shasum_sorted(args: List[(Digest, String)]): Shasum =
+    flat_shasum(args.sortBy(_._2).map(shasum))
 }
