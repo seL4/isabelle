@@ -51,4 +51,7 @@ object SHA1 {
     digest(cat_lines(digests.map(_.toString).sorted))
 
   val digest_length: Int = digest("").toString.length
+
+  def shasum(digest: Digest, name: String): String = digest.toString + " " + name
+  def shasum_meta_info(digest: Digest): String = shasum(digest, isabelle.setup.Build.META_INFO)
 }

@@ -142,6 +142,8 @@ object Sessions {
       ", loaded_theories = " + loaded_theories.size +
       ", used_theories = " + used_theories.length
 
+    def all_sources: List[(Path, SHA1.Digest)] = imported_sources ::: session_sources
+
     def all_document_theories: List[Document.Node.Name] =
       proper_session_theories ::: document_theories
 
@@ -273,11 +275,14 @@ object Sessions {
     def apply(name: String): Base = session_bases(name)
     def get(name: String): Option[Base] = session_bases.get(name)
 
-    def imported_sources(name: String): List[SHA1.Digest] =
-      session_bases(name).imported_sources.map(_._2)
-
-    def session_sources(name: String): List[SHA1.Digest] =
-      session_bases(name).session_sources.map(_._2)
+    def sources_shasum(name: String): String = {
+      val meta_info = SHA1.shasum_meta_info(sessions_structure(name).meta_digest)
+      val sources =
+        (for ((path, digest) <- apply(name).all_sources)
+          yield (File.symbolic_path(path), digest))
+        .sortBy(_._1).map(p => SHA1.shasum(p._2, p._1))
+      Library.terminate_lines(meta_info :: sources)
+    }
 
     def errors: List[String] =
       (for {

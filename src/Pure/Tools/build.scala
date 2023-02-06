@@ -209,14 +209,6 @@ object Build {
         augment_options = augment_options)
     val full_sessions_selection = full_sessions.imports_selection(selection)
 
-    def sources_stamp(deps: Sessions.Deps, session_name: String): String = {
-      val digests =
-        full_sessions(session_name).meta_digest ::
-        deps.session_sources(session_name) :::
-        deps.imported_sources(session_name)
-      SHA1.digest_set(digests).toString
-    }
-
     val build_deps = {
       val deps0 =
         Sessions.deps(full_sessions.selection(selection),
@@ -230,7 +222,7 @@ object Build {
               case Some(db) =>
                 using(db)(store.read_build(_, name)) match {
                   case Some(build)
-                  if build.ok && build.sources == sources_stamp(deps0, name) => None
+                  if build.ok && build.sources == deps0.sources_shasum(name) => None
                   case _ => Some(name)
                 }
               case None => Some(name)
@@ -354,7 +346,7 @@ object Build {
                 build_log =
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =
-                  Session_Info(sources_stamp(build_deps, session_name), input_heaps, heap_digest,
+                  Session_Info(build_deps.sources_shasum(session_name), input_heaps, heap_digest,
                     process_result.rc, UUID.random().toString)))
 
             // messages
@@ -398,7 +390,7 @@ object Build {
                           val current =
                             !fresh_build &&
                             build.ok &&
-                            build.sources == sources_stamp(build_deps, session_name) &&
+                            build.sources == build_deps.sources_shasum(session_name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
                             !(do_store && heap_digest.isEmpty)
