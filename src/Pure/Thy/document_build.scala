@@ -30,10 +30,10 @@ object Document_Build {
     def print: String = if (tags.toString.isEmpty) name else name + "=" + tags.toString
   }
 
-  sealed case class Document_Input(name: String, sources: SHA1.Digest)
+  sealed case class Document_Input(name: String, sources: SHA1.Shasum)
   extends Document_Name { override def toString: String = name }
 
-  sealed case class Document_Output(name: String, sources: SHA1.Digest, log_xz: Bytes, pdf: Bytes)
+  sealed case class Document_Output(name: String, sources: SHA1.Shasum, log_xz: Bytes, pdf: Bytes)
   extends Document_Name {
     override def toString: String = name
 
@@ -74,7 +74,7 @@ object Document_Build {
       stmt.execute_query().iterator({ res =>
         val name = res.string(Data.name)
         val sources = res.string(Data.sources)
-        Document_Input(name, SHA1.fake_digest(sources))
+        Document_Input(name, SHA1.fake_shasum(sources))
       }).toList)
   }
 
@@ -91,7 +91,7 @@ object Document_Build {
         val sources = res.string(Data.sources)
         val log_xz = res.bytes(Data.log_xz)
         val pdf = res.bytes(Data.pdf)
-        Some(Document_Output(name, SHA1.fake_digest(sources), log_xz, pdf))
+        Some(Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf))
       }
       else None
     })
@@ -304,9 +304,16 @@ object Document_Build {
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
 
-      val digests1 = List(doc.print, document_logo.toString, document_build).map(SHA1.digest)
-      val digests2 = File.find_files(doc_dir.file, follow_links = true).map(SHA1.digest)
-      val sources = SHA1.digest_set(digests1 ::: digests2)
+      val meta_info =
+        SHA1.shasum_meta_info(
+          SHA1.digest(List(doc.print, document_logo.toString, document_build).toString))
+
+      val manifest =
+        (for (file <- File.find_files(doc_dir.file, follow_links = true))
+          yield File.path(doc_dir.java_path.relativize(file.toPath)).implode -> SHA1.digest(file))
+        .sortBy(_._1).map(p => SHA1.shasum(p._2, p._1))
+
+      val sources = SHA1.flat_shasum(meta_info :: manifest)
 
 
       /* derived material: without SHA1 digest */
@@ -338,7 +345,7 @@ object Document_Build {
     doc_dir: Path,
     doc: Document_Variant,
     root_name: String,
-    sources: SHA1.Digest
+    sources: SHA1.Shasum
   ) {
     def root_name_script(ext: String = ""): String =
       Bash.string(if (ext.isEmpty) root_name else root_name + "." + ext)
