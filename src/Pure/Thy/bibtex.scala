@@ -202,7 +202,7 @@ object Bibtex {
     override def toString: String = "Bibtex.Entries(" + entries.length + ")"
 
     def ::: (other: Entries): Entries =
-      new Entries(entries ::: other.entries, errors ::: other.errors)
+      new Entries(other.entries ::: entries, other.errors ::: errors)
   }
 
   object Session_Entries extends Scala.Fun("bibtex_session_entries") {
