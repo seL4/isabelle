@@ -217,19 +217,19 @@ object Components {
 
   val components_sha1: Path = Path.explode("~~/Admin/components/components.sha1")
 
-  sealed case class SHA1_Digest(digest: SHA1.Digest, name: String) {
-    override def toString: String = digest.shasum(name)
+  sealed case class SHA1_Entry(digest: SHA1.Digest, name: String) {
+    override def toString: String = SHA1.shasum(digest, name).toString
   }
 
-  def read_components_sha1(lines: List[String] = Nil): List[SHA1_Digest] =
+  def read_components_sha1(lines: List[String] = Nil): List[SHA1_Entry] =
     (proper_list(lines) getOrElse split_lines(File.read(components_sha1))).flatMap(line =>
       Word.explode(line) match {
         case Nil => None
-        case List(sha1, name) => Some(SHA1_Digest(SHA1.fake_digest(sha1), name))
+        case List(sha1, name) => Some(SHA1_Entry(SHA1.fake_digest(sha1), name))
         case _ => error("Bad components.sha1 entry: " + quote(line))
       })
 
-  def write_components_sha1(entries: List[SHA1_Digest]): Unit =
+  def write_components_sha1(entries: List[SHA1_Entry]): Unit =
     File.write(components_sha1, entries.sortBy(_.name).mkString("", "\n", "\n"))
 
 
@@ -384,7 +384,7 @@ object Components {
         yield {
           val name = archive.file_name
           progress.echo("Digesting local " + name)
-          SHA1_Digest(SHA1.digest(archive), name)
+          SHA1_Entry(SHA1.digest(archive), name)
         }
       val new_names = new_entries.map(_.name).toSet
 
