@@ -48,8 +48,6 @@ object SHA1 {
   def digest(bytes: Array[Byte]): Digest = make_digest(_.update(bytes))
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
   def digest(string: String): Digest = digest(Bytes(string))
-  def digest_set(digests: List[Digest]): Digest =
-    digest(cat_lines(digests.map(_.toString).sorted))
 
   val digest_length: Int = digest("").toString.length
 
