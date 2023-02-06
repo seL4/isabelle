@@ -83,5 +83,5 @@ object SHA1 {
   def shasum(digest: Digest, name: String): Shasum = new Shasum(List(digest.toString + " " + name))
   def shasum_meta_info(digest: Digest): Shasum = shasum(digest, isabelle.setup.Build.META_INFO)
   def shasum_sorted(args: List[(Digest, String)]): Shasum =
-    flat_shasum(args.sortBy(_._2).map(arg => shasum(arg._1, arg._2)))
+    flat_shasum(args.sortBy(_._2).map(shasum))
 }
