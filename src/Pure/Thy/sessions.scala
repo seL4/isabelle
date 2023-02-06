@@ -278,11 +278,10 @@ object Sessions {
     def sources_shasum(name: String): SHA1.Shasum = {
       val meta_info = SHA1.shasum_meta_info(sessions_structure(name).meta_digest)
       val sources =
-        (for ((path, digest) <- apply(name).all_sources)
-          yield (File.symbolic_path(path), digest))
-        .sortBy(_._1).map(p => SHA1.shasum(p._2, p._1))
-
-      SHA1.flat_shasum(meta_info :: sources)
+        SHA1.shasum_sorted(
+          for ((path, digest) <- apply(name).all_sources)
+            yield digest -> File.symbolic_path(path))
+      SHA1.flat_shasum(List(meta_info, sources))
     }
 
     def errors: List[String] =

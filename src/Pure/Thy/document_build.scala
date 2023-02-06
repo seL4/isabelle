@@ -309,11 +309,11 @@ object Document_Build {
           SHA1.digest(List(doc.print, document_logo.toString, document_build).toString))
 
       val manifest =
-        (for (file <- File.find_files(doc_dir.file, follow_links = true))
-          yield File.path(doc_dir.java_path.relativize(file.toPath)).implode -> SHA1.digest(file))
-        .sortBy(_._1).map(p => SHA1.shasum(p._2, p._1))
+        SHA1.shasum_sorted(
+          for (file <- File.find_files(doc_dir.file, follow_links = true))
+            yield SHA1.digest(file) -> File.path(doc_dir.java_path.relativize(file.toPath)).implode)
 
-      val sources = SHA1.flat_shasum(meta_info :: manifest)
+      val sources = SHA1.flat_shasum(List(meta_info, manifest))
 
 
       /* derived material: without SHA1 digest */
