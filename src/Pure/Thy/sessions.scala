@@ -1408,8 +1408,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def find_heap(name: String): Option[Path] =
       input_dirs.map(_ + heap(name)).find(_.is_file)
 
-    def find_heap_digest(name: String): Option[String] =
-      find_heap(name).flatMap(ML_Heap.read_digest)
+    def find_heap_shasum(name: String): String =
+      (for {
+        path <- find_heap(name)
+        digest <- ML_Heap.read_digest(path)
+      } yield SHA1.shasum(digest, name) + "\n").getOrElse("")
 
     def the_heap(name: String): Path =
       find_heap(name) getOrElse
@@ -1563,8 +1566,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.compress)
           stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.compress)
           stmt.string(8) = build.sources
-          stmt.string(9) = cat_lines(build.input_heaps)
-          stmt.string(10) = build.output_heap getOrElse ""
+          stmt.string(9) = build.input_heaps
+          stmt.string(10) = build.output_heap
           stmt.int(11) = build.return_code
           stmt.string(12) = build.uuid
           stmt.execute()
@@ -1606,8 +1609,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
             Some(
               Build.Session_Info(
                 res.string(Session_Info.sources),
-                split_lines(res.string(Session_Info.input_heaps)),
-                res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
+                res.string(Session_Info.input_heaps),
+                res.string(Session_Info.output_heap),
                 res.int(Session_Info.return_code),
                 uuid))
           }

@@ -570,7 +570,7 @@ class Build_Job(progress: Progress,
     else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
   }
 
-  def join: (Process_Result, Option[String]) = {
+  def join: (Process_Result, String) = {
     val result1 = future_result.join
 
     val was_timeout =
@@ -591,6 +591,12 @@ class Build_Job(progress: Progress,
       }
       else None
 
-    (result2, heap_digest)
+    val heap_shasum =
+      heap_digest match {
+        case None => ""
+        case Some(digest) => SHA1.shasum(digest, session_name) + "\n"
+      }
+
+    (result2, heap_shasum)
   }
 }

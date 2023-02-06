@@ -19,8 +19,8 @@ object Build {
 
   sealed case class Session_Info(
     sources: String,
-    input_heaps: List[String],
-    output_heap: Option[String],
+    input_heaps: String,
+    output_heap: String,
     return_code: Int,
     uuid: String
   ) {
@@ -271,7 +271,7 @@ object Build {
     // scheduler loop
     case class Result(
       current: Boolean,
-      heap_digest: Option[String],
+      output_heap: String,
       process: Option[Process_Result],
       info: Sessions.Info
     ) {
@@ -298,7 +298,7 @@ object Build {
 
     @tailrec def loop(
       pending: Queue,
-      running: Map[String, (List[String], Build_Job)],
+      running: Map[String, (String, Build_Job)],
       results: Map[String, Result]
     ): Map[String, Result] = {
       def used_node(i: Int): Boolean =
@@ -315,7 +315,7 @@ object Build {
           case Some((session_name, (input_heaps, job))) =>
             //{{{ finish job
 
-            val (process_result, heap_digest) = job.join
+            val (process_result, output_heap) = job.join
 
             val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
             val process_result_tail = {
@@ -346,7 +346,7 @@ object Build {
                 build_log =
                   if (process_result.timeout) build_log.error("Timeout") else build_log,
                 build =
-                  Session_Info(build_deps.sources_shasum(session_name), input_heaps, heap_digest,
+                  Session_Info(build_deps.sources_shasum(session_name), input_heaps, output_heap,
                     process_result.rc, UUID.random().toString)))
 
             // messages
@@ -363,7 +363,7 @@ object Build {
 
             loop(pending - session_name, running - session_name,
               results +
-                (session_name -> Result(false, heap_digest, Some(process_result_tail), job.info)))
+                (session_name -> Result(false, output_heap, Some(process_result_tail), job.info)))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
@@ -372,32 +372,32 @@ object Build {
                 val ancestor_results =
                   build_deps.sessions_structure.build_requirements(List(session_name)).
                     filterNot(_ == session_name).map(results(_))
-                val ancestor_heaps =
+                val input_heaps =
                   if (ancestor_results.isEmpty) {
-                    List(SHA1.digest(Path.explode("$POLYML_EXE")).toString)
+                    SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE"))) + "\n"
                   }
-                  else ancestor_results.flatMap(_.heap_digest)
+                  else ancestor_results.map(_.output_heap).mkString
 
                 val do_store =
                   build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
 
-                val (current, heap_digest) = {
+                val (current, output_heap) = {
                   store.try_open_database(session_name) match {
                     case Some(db) =>
                       using(db)(store.read_build(_, session_name)) match {
                         case Some(build) =>
-                          val heap_digest = store.find_heap_digest(session_name)
+                          val output_heap = store.find_heap_shasum(session_name)
                           val current =
                             !fresh_build &&
                             build.ok &&
                             build.sources == build_deps.sources_shasum(session_name) &&
-                            build.input_heaps == ancestor_heaps &&
-                            build.output_heap == heap_digest &&
-                            !(do_store && heap_digest.isEmpty)
-                          (current, heap_digest)
-                        case None => (false, None)
+                            build.input_heaps == input_heaps &&
+                            build.output_heap == output_heap &&
+                            !(do_store && output_heap.isEmpty)
+                          (current, output_heap)
+                        case None => (false, "")
                       }
-                    case None => (false, None)
+                    case None => (false, "")
                   }
                 }
                 val all_current = current && ancestor_results.forall(_.current)
@@ -405,13 +405,13 @@ object Build {
                 if (all_current) {
                   loop(pending - session_name, running,
                     results +
-                      (session_name -> Result(true, heap_digest, Some(Process_Result(0)), info)))
+                      (session_name -> Result(true, output_heap, Some(Process_Result(0)), info)))
                 }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   loop(pending - session_name, running,
                     results +
-                      (session_name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
+                      (session_name -> Result(false, output_heap, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
@@ -424,12 +424,12 @@ object Build {
                   val job =
                     new Build_Job(progress, build_deps.background(session_name), store, do_store,
                       log, session_setup, numa_node, queue.command_timings(session_name))
-                  loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
+                  loop(pending, running + (session_name -> (input_heaps, job)), results)
                 }
                 else {
                   progress.echo(session_name + " CANCELLED")
                   loop(pending - session_name, running,
-                    results + (session_name -> Result(false, heap_digest, None, info)))
+                    results + (session_name -> Result(false, output_heap, None, info)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
