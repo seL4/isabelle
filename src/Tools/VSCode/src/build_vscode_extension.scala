@@ -160,19 +160,19 @@ object Build_VSCode {
       Isabelle_System.with_tmp_dir("build") { build_dir =>
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)
-        val manifest_shasum: String = {
-          val a = SHA1.digest(manifest_text).shasum("<MANIFEST>")
+        val manifest_shasum: SHA1.Shasum = {
+          val a = SHA1.shasum_meta_info(SHA1.digest(manifest_text))
           val bs =
-            for (entry <- manifest_entries)
-              yield SHA1.digest(VSCode_Main.extension_dir + Path.explode(entry)).shasum(entry)
-          terminate_lines(a :: bs)
+            for (name <- manifest_entries)
+              yield SHA1.shasum(SHA1.digest(VSCode_Main.extension_dir + Path.explode(name)), name)
+          SHA1.flat_shasum(a :: bs)
         }
-        for (entry <- manifest_entries) {
-          val path = Path.explode(entry)
+        for (name <- manifest_entries) {
+          val path = Path.explode(name)
           Isabelle_System.copy_file(VSCode_Main.extension_dir + path,
             Isabelle_System.make_directory(build_dir + path.dir))
         }
-        File.write(build_dir + VSCode_Main.MANIFEST.shasum, manifest_shasum)
+        File.write(build_dir + VSCode_Main.MANIFEST.shasum, manifest_shasum.toString)
 
         build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
