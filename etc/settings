@@ -66,6 +66,7 @@ ISABELLE_EPSTOPDF="epstopdf"
 isabelle_directory '~'
 isabelle_directory '$ISABELLE_HOME_USER'
 isabelle_directory '~~'
+isabelle_directory '$ISABELLE_COMPONENTS_BASE'
 
 ISABELLE_COMPONENT_REPOSITORY="https://isabelle.sketis.net/components"
 ISABELLE_COMPONENTS_BASE="$USER_HOME/.isabelle/contrib"
