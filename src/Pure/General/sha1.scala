@@ -67,6 +67,8 @@ object SHA1 {
 
     def is_empty: Boolean = rep.isEmpty
 
+    def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
+
     def digest: Digest = {
       rep match {
         case List(s)

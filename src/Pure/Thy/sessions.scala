@@ -281,7 +281,7 @@ object Sessions {
         SHA1.shasum_sorted(
           for ((path, digest) <- apply(name).all_sources)
             yield digest -> File.symbolic_path(path))
-      SHA1.flat_shasum(List(meta_info, sources))
+      meta_info ::: sources
     }
 
     def errors: List[String] =
