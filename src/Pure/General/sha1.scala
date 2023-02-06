@@ -80,8 +80,10 @@ object SHA1 {
   def flat_shasum(list: List[Shasum]): Shasum = new Shasum(list.flatMap(_.rep))
   def fake_shasum(text: String): Shasum = new Shasum(Library.trim_split_lines(text))
 
-  def shasum(digest: Digest, name: String): Shasum = new Shasum(List(digest.toString + " " + name))
-  def shasum_meta_info(digest: Digest): Shasum = shasum(digest, isabelle.setup.Build.META_INFO)
+  def shasum(digest: Digest, name: String): Shasum =
+    new Shasum(List(digest.toString + " " + name))
+  def shasum_meta_info(digest: Digest): Shasum =
+    shasum(digest, isabelle.setup.Build.META_INFO)
   def shasum_sorted(args: List[(Digest, String)]): Shasum =
     flat_shasum(args.sortBy(_._2).map(shasum))
 }
