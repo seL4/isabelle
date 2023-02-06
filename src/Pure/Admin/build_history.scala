@@ -295,8 +295,8 @@ object Build_History {
 
               val session_sources =
                 store.read_build(db, session_name).map(_.sources) match {
-                  case Some(sources) if sources.length == SHA1.digest_length =>
-                    List("Sources " + session_name + " " + sources)
+                  case Some(sources) if !sources.is_empty =>
+                    List("Sources " + session_name + " " + sources.digest.toString)
                   case _ => Nil
                 }
 

@@ -275,13 +275,14 @@ object Sessions {
     def apply(name: String): Base = session_bases(name)
     def get(name: String): Option[Base] = session_bases.get(name)
 
-    def sources_shasum(name: String): String = {
+    def sources_shasum(name: String): SHA1.Shasum = {
       val meta_info = SHA1.shasum_meta_info(sessions_structure(name).meta_digest)
       val sources =
         (for ((path, digest) <- apply(name).all_sources)
           yield (File.symbolic_path(path), digest))
         .sortBy(_._1).map(p => SHA1.shasum(p._2, p._1))
-      Library.terminate_lines(meta_info :: sources)
+
+      SHA1.flat_shasum(meta_info :: sources)
     }
 
     def errors: List[String] =
@@ -1408,11 +1409,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def find_heap(name: String): Option[Path] =
       input_dirs.map(_ + heap(name)).find(_.is_file)
 
-    def find_heap_shasum(name: String): String =
+    def find_heap_shasum(name: String): SHA1.Shasum =
       (for {
         path <- find_heap(name)
         digest <- ML_Heap.read_digest(path)
-      } yield SHA1.shasum(digest, name) + "\n").getOrElse("")
+      } yield SHA1.shasum(digest, name)).getOrElse(SHA1.no_shasum)
 
     def the_heap(name: String): Path =
       find_heap(name) getOrElse
@@ -1565,9 +1566,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.compress)
           stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.compress)
           stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.compress)
-          stmt.string(8) = build.sources
-          stmt.string(9) = build.input_heaps
-          stmt.string(10) = build.output_heap
+          stmt.string(8) = build.sources.toString
+          stmt.string(9) = build.input_heaps.toString
+          stmt.string(10) = build.output_heap.toString
           stmt.int(11) = build.return_code
           stmt.string(12) = build.uuid
           stmt.execute()
@@ -1608,9 +1609,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               catch { case _: SQLException => "" }
             Some(
               Build.Session_Info(
-                res.string(Session_Info.sources),
-                res.string(Session_Info.input_heaps),
-                res.string(Session_Info.output_heap),
+                SHA1.fake_shasum(res.string(Session_Info.sources)),
+                SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
+                SHA1.fake_shasum(res.string(Session_Info.output_heap)),
                 res.int(Session_Info.return_code),
                 uuid))
           }

@@ -570,7 +570,7 @@ class Build_Job(progress: Progress,
     else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
   }
 
-  def join: (Process_Result, String) = {
+  def join: (Process_Result, SHA1.Shasum) = {
     val result1 = future_result.join
 
     val was_timeout =
@@ -585,17 +585,11 @@ class Build_Job(progress: Progress,
       else if (result1.interrupted) result1.error(Output.error_message_text("Interrupt"))
       else result1
 
-    val heap_digest =
-      if (result2.ok && do_store && store.output_heap(session_name).is_file) {
-        Some(ML_Heap.write_digest(store.output_heap(session_name)))
-      }
-      else None
-
     val heap_shasum =
-      heap_digest match {
-        case None => ""
-        case Some(digest) => SHA1.shasum(digest, session_name) + "\n"
+      if (result2.ok && do_store && store.output_heap(session_name).is_file) {
+        SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
       }
+      else SHA1.no_shasum
 
     (result2, heap_shasum)
   }

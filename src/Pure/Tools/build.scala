@@ -18,9 +18,9 @@ object Build {
   /* persistent build info */
 
   sealed case class Session_Info(
-    sources: String,
-    input_heaps: String,
-    output_heap: String,
+    sources: SHA1.Shasum,
+    input_heaps: SHA1.Shasum,
+    output_heap: SHA1.Shasum,
     return_code: Int,
     uuid: String
   ) {
@@ -271,7 +271,7 @@ object Build {
     // scheduler loop
     case class Result(
       current: Boolean,
-      output_heap: String,
+      output_heap: SHA1.Shasum,
       process: Option[Process_Result],
       info: Sessions.Info
     ) {
@@ -298,7 +298,7 @@ object Build {
 
     @tailrec def loop(
       pending: Queue,
-      running: Map[String, (String, Build_Job)],
+      running: Map[String, (SHA1.Shasum, Build_Job)],
       results: Map[String, Result]
     ): Map[String, Result] = {
       def used_node(i: Int): Boolean =
@@ -374,9 +374,9 @@ object Build {
                     filterNot(_ == session_name).map(results(_))
                 val input_heaps =
                   if (ancestor_results.isEmpty) {
-                    SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE"))) + "\n"
+                    SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
                   }
-                  else ancestor_results.map(_.output_heap).mkString
+                  else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
 
                 val do_store =
                   build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
@@ -393,11 +393,11 @@ object Build {
                             build.sources == build_deps.sources_shasum(session_name) &&
                             build.input_heaps == input_heaps &&
                             build.output_heap == output_heap &&
-                            !(do_store && output_heap.isEmpty)
+                            !(do_store && output_heap.is_empty)
                           (current, output_heap)
-                        case None => (false, "")
+                        case None => (false, SHA1.no_shasum)
                       }
-                    case None => (false, "")
+                    case None => (false, SHA1.no_shasum)
                   }
                 }
                 val all_current = current && ancestor_results.forall(_.current)
