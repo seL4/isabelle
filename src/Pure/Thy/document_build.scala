@@ -228,7 +228,7 @@ object Document_Build {
     lazy val session_tex: File.Content = {
       val path = Path.basic("session.tex")
       val content =
-        Library.terminate_lines(
+        terminate_lines(
           session_document_theories.map(name => "\\input{" + tex_name(name) + "}"))
       File.content(path, content)
     }

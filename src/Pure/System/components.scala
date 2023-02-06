@@ -243,7 +243,7 @@ object Components {
 
   def write_components(lines: List[String]): Unit = {
     Isabelle_System.make_directory(components_path.dir)
-    File.write(components_path, Library.terminate_lines(lines))
+    File.write(components_path, terminate_lines(lines))
   }
 
   def update_components(add: Boolean, path0: Path, progress: Progress = new Progress): Unit = {

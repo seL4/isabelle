@@ -142,7 +142,7 @@ object Latex {
 \newcommand{\isafoldtag}[1]%
 {\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
 
-""" + Library.terminate_lines(tags))
+""" + terminate_lines(tags))
     }
   }
 
