@@ -19,7 +19,7 @@ object Document_Build {
 
   object Document_Variant {
     def parse(opt: String): Document_Variant =
-      Library.space_explode('=', opt) match {
+      space_explode('=', opt) match {
         case List(name) => Document_Variant(name, Latex.Tags.empty)
         case List(name, tags) => Document_Variant(name, Latex.Tags(tags))
         case _ => error("Malformed document variant: " + quote(opt))

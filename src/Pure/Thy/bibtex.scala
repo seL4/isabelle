@@ -703,7 +703,7 @@ object Bibtex {
   /* cite commands */
 
   def cite_commands(options: Options): List[String] =
-    Library.space_explode(',', options.string("document_cite_commands"))
+    space_explode(',', options.string("document_cite_commands"))
 
   val CITE = "cite"
   val NOCITE = "nocite"
@@ -828,7 +828,7 @@ object Bibtex {
       val location =
         if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1)
         else loc
-      val citations = Library.space_explode(',', m.group(3)).map(_.trim)
+      val citations = space_explode(',', m.group(3)).map(_.trim)
       Regex.quoteReplacement(cite_antiquotation(name, location, citations))
     })
 

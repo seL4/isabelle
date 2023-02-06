@@ -689,7 +689,7 @@ object Sessions {
 
     def document_variants: List[Document_Build.Document_Variant] = {
       val variants =
-        Library.space_explode(':', options.string("document_variants")).
+        space_explode(':', options.string("document_variants")).
           map(Document_Build.Document_Variant.parse)
 
       val dups = Library.duplicates(variants.map(_.name))

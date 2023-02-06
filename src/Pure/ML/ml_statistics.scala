@@ -54,7 +54,7 @@ object ML_Statistics {
     consume: Properties.T => Unit = Console.println
   ): Unit = {
     def progress_stdout(line: String): Unit = {
-      val props = Library.space_explode(',', line).flatMap(Properties.Eq.unapply)
+      val props = space_explode(',', line).flatMap(Properties.Eq.unapply)
       if (props.nonEmpty) consume(props)
     }
 

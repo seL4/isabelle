@@ -55,8 +55,7 @@ object File {
   /* symbolic path representation, e.g. "~~/src/Pure/ROOT.ML" */
 
   def symbolic_path(path: Path): String = {
-    val directories =
-      Library.space_explode(':', Isabelle_System.getenv("ISABELLE_DIRECTORIES")).reverse
+    val directories = space_explode(':', Isabelle_System.getenv("ISABELLE_DIRECTORIES")).reverse
     val full_name = standard_path(path)
     directories.view.flatMap(a =>
       try {

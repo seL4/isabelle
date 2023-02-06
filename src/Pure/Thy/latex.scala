@@ -99,8 +99,7 @@ object Latex {
 
     val standard = "document,theory,proof,ML,visible,-invisible,important,unimportant"
 
-    private def explode(spec: String): List[String] =
-      Library.space_explode(',', spec)
+    private def explode(spec: String): List[String] = space_explode(',', spec)
 
     def apply(spec: String): Tags =
       new Tags(spec,

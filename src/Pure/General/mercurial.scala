@@ -248,7 +248,7 @@ object Mercurial {
 
     def tags(rev: String = "tip"): String = {
       val result = identify(rev, options = "-t")
-      Library.space_explode(' ', result).filterNot(_ == "tip").mkString(" ")
+      space_explode(' ', result).filterNot(_ == "tip").mkString(" ")
     }
 
     def paths(args: String = "", options: String = ""): List[String] =
