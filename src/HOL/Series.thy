@@ -860,6 +860,26 @@ qed
 
 end
 
+text \<open>Application to convergence of the log function\<close>
+lemma norm_summable_ln_series:
+  fixes z :: "'a :: {real_normed_field, banach}"
+  assumes "norm z < 1"
+  shows   "summable (\<lambda>n. norm (z ^ n / of_nat n))"
+proof (rule summable_comparison_test)
+  show "summable (\<lambda>n. norm (z ^ n))"
+    using assms unfolding norm_power by (intro summable_geometric) auto
+  have "norm z ^ n / real n \<le> norm z ^ n" for n
+  proof (cases "n = 0")
+    case False
+    hence "norm z ^ n * 1 \<le> norm z ^ n * real n"
+      by (intro mult_left_mono) auto
+    thus ?thesis
+      using False by (simp add: field_simps)
+  qed auto
+  thus "\<exists>N. \<forall>n\<ge>N. norm (norm (z ^ n / of_nat n)) \<le> norm (z ^ n)"
+    by (intro exI[of _ 0]) (auto simp: norm_power norm_divide)
+qed
+
 
 text \<open>Relations among convergence and absolute convergence for power series.\<close>
 

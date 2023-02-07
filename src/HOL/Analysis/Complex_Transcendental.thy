@@ -245,6 +245,22 @@ lemma holomorphic_on_cos' [holomorphic_intros]:
   shows   "(\<lambda>x. cos (f x)) holomorphic_on A"
   using holomorphic_on_compose[OF assms holomorphic_on_cos] by (simp add: o_def)
 
+lemma analytic_on_sin [analytic_intros]: "sin analytic_on A"
+  using analytic_on_holomorphic holomorphic_on_sin by blast
+
+lemma analytic_on_sin' [analytic_intros]:
+  "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> range (\<lambda>n. complex_of_real pi * of_int n)) \<Longrightarrow>
+   (\<lambda>z. sin (f z)) analytic_on A"
+  using analytic_on_compose_gen[OF _ analytic_on_sin[of UNIV], of f A] by (simp add: o_def)
+
+lemma analytic_on_cos [analytic_intros]: "cos analytic_on A"
+  using analytic_on_holomorphic holomorphic_on_cos by blast
+
+lemma analytic_on_cos' [analytic_intros]:
+  "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> range (\<lambda>n. complex_of_real pi * of_int n)) \<Longrightarrow>
+   (\<lambda>z. cos (f z)) analytic_on A"
+  using analytic_on_compose_gen[OF _ analytic_on_cos[of UNIV], of f A] by (simp add: o_def)
+
 subsection\<^marker>\<open>tag unimportant\<close>\<open>More on the Polar Representation of Complex Numbers\<close>
 
 lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
@@ -3160,6 +3176,9 @@ proof -
     by simp
 qed
 
+lemma csqrt_conv_powr: "csqrt z = z powr (1/2)"
+  by (auto simp: csqrt_exp_Ln powr_def)
+
 lemma csqrt_mult:
   assumes "Arg z + Arg w \<in> {-pi<..pi}"
   shows   "csqrt (z * w) = csqrt z * csqrt w"
@@ -3237,12 +3256,27 @@ lemma continuous_within_csqrt:
   by (simp add: field_differentiable_imp_continuous_at field_differentiable_within_csqrt)
 
 lemma continuous_on_csqrt [continuous_intros]:
-    "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on s csqrt"
+    "continuous_on (-\<real>\<^sub>\<le>\<^sub>0) csqrt"
   by (simp add: continuous_at_imp_continuous_on continuous_within_csqrt)
 
-lemma holomorphic_on_csqrt:
-    "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> csqrt holomorphic_on s"
-  by (simp add: field_differentiable_within_csqrt holomorphic_on_def)
+lemma holomorphic_on_csqrt [holomorphic_intros]: "csqrt holomorphic_on -\<real>\<^sub>\<le>\<^sub>0"
+proof -
+  have *: "(\<lambda>z. exp (ln z / 2)) holomorphic_on -\<real>\<^sub>\<le>\<^sub>0"
+    by (intro holomorphic_intros) auto
+  then show ?thesis
+    using field_differentiable_within_csqrt holomorphic_on_def by auto
+qed
+
+lemma holomorphic_on_csqrt' [holomorphic_intros]:
+  "f holomorphic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> (\<lambda>z. csqrt (f z)) holomorphic_on A"
+  using holomorphic_on_compose_gen[OF _ holomorphic_on_csqrt, of f A] by (auto simp: o_def)
+
+lemma analytic_on_csqrt [analytic_intros]: "csqrt analytic_on -\<real>\<^sub>\<le>\<^sub>0"
+  using holomorphic_on_csqrt by (subst analytic_on_open) auto
+
+lemma analytic_on_csqrt' [analytic_intros]:
+  "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> (\<lambda>z. csqrt (f z)) analytic_on A"
+  using analytic_on_compose_gen[OF _ analytic_on_csqrt, of f A] by (auto simp: o_def)
 
 lemma continuous_within_closed_nontrivial:
     "closed s \<Longrightarrow> a \<notin> s ==> continuous (at a within s) f"

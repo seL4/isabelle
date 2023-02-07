@@ -3375,6 +3375,12 @@ lemma closure_outside_subset:
       shows "closure(outside S) \<subseteq> S \<union> outside S"
   by (metis assms closed_open closure_minimal inside_outside open_inside sup_ge2)
 
+lemma closed_path_image_Un_inside:
+  fixes g :: "real \<Rightarrow> 'a :: real_normed_vector"
+  assumes "path g"
+  shows   "closed (path_image g \<union> inside (path_image g))"
+  by (simp add: assms closed_Compl closed_path_image open_outside union_with_inside)
+
 lemma frontier_outside_subset:
   fixes S :: "'a::real_normed_vector set"
   assumes "closed S"

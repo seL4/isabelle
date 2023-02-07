@@ -986,6 +986,9 @@ lemma norm_divide: "norm (a / b) = norm a / norm b"
   for a b :: "'a::{real_normed_field,field}"
   by (simp add: divide_inverse norm_mult norm_inverse)
 
+lemma dist_divide_right: "dist (a/c) (b/c) = dist a b / norm c" for c :: "'a :: real_normed_field"
+  by (metis diff_divide_distrib dist_norm norm_divide)
+
 lemma norm_inverse_le_norm:
   fixes x :: "'a::real_normed_div_algebra"
   shows "r \<le> norm x \<Longrightarrow> 0 < r \<Longrightarrow> norm (inverse x) \<le> inverse r"
@@ -1133,7 +1136,6 @@ proof -
     by simp
   finally show ?thesis .
 qed
-
 
 subsection \<open>Metric spaces\<close>
 

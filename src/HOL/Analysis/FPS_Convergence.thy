@@ -624,6 +624,10 @@ definition\<^marker>\<open>tag important\<close>
 
 named_theorems fps_expansion_intros
 
+lemma has_fps_expansion_schematicI:
+  "f has_fps_expansion A \<Longrightarrow> A = B \<Longrightarrow> f has_fps_expansion B"
+  by simp
+
 lemma fps_nth_fps_expansion:
   fixes f :: "complex \<Rightarrow> complex"
   assumes "f has_fps_expansion F"
