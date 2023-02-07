@@ -105,7 +105,7 @@ lemma content_subset: "cbox a b \<subseteq> cbox c d \<Longrightarrow> content (
   by (intro enn2real_mono emeasure_mono) (auto simp: emeasure_lborel_cbox_eq)
 
 lemma content_lt_nz: "0 < content (cbox a b) \<longleftrightarrow> content (cbox a b) \<noteq> 0"
-  unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastforce
+  by (fact zero_less_measure_iff)
 
 lemma content_Pair: "content (cbox (a,c) (b,d)) = content (cbox a b) * content (cbox c d)"
   unfolding measure_lborel_cbox_eq Basis_prod_def
@@ -534,10 +534,22 @@ lemma has_integral_mult_left:
   shows "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) S"
   using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
+lemma integrable_on_mult_left:
+  fixes c :: "'a :: real_normed_algebra"
+  assumes "f integrable_on A"
+  shows   "(\<lambda>x. f x * c) integrable_on A"
+  using assms has_integral_mult_left by blast
+
 lemma has_integral_divide:
   fixes c :: "_ :: real_normed_div_algebra"
   shows "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x / c) has_integral (y / c)) S"
   unfolding divide_inverse by (simp add: has_integral_mult_left)
+
+lemma integrable_on_divide:
+  fixes c :: "'a :: real_normed_div_algebra"
+  assumes "f integrable_on A"
+  shows   "(\<lambda>x. f x / c) integrable_on A"
+  using assms has_integral_divide by blast
 
 text\<open>The case analysis eliminates the condition \<^term>\<open>f integrable_on S\<close> at the cost
      of the type class constraint \<open>division_ring\<close>\<close>
@@ -567,8 +579,34 @@ using integral_mult_left [of S f "inverse z"]
 
 lemma has_integral_mult_right:
   fixes c :: "'a :: real_normed_algebra"
-  shows "(f has_integral y) i \<Longrightarrow> ((\<lambda>x. c * f x) has_integral (c * y)) i"
+  shows "(f has_integral y) A \<Longrightarrow> ((\<lambda>x. c * f x) has_integral (c * y)) A"
   using has_integral_linear[OF _ bounded_linear_mult_right] by (simp add: comp_def)
+
+lemma integrable_on_mult_right:
+  fixes c :: "'a :: real_normed_algebra"
+  assumes "f integrable_on A"
+  shows   "(\<lambda>x. c * f x) integrable_on A"
+  using assms has_integral_mult_right by blast
+
+lemma integrable_on_mult_right_iff [simp]:
+  fixes c :: "'a :: real_normed_field"
+  assumes "c \<noteq> 0"
+  shows   "(\<lambda>x. c * f x) integrable_on A \<longleftrightarrow> f integrable_on A"
+    using integrable_on_mult_right[of f A c]
+          integrable_on_mult_right[of "\<lambda>x. c * f x" A "inverse c"] assms
+    by (auto simp: field_simps)
+
+lemma integrable_on_mult_left_iff [simp]:
+  fixes c :: "'a :: real_normed_field"
+  assumes "c \<noteq> 0"
+  shows   "(\<lambda>x. f x * c) integrable_on A \<longleftrightarrow> f integrable_on A"
+  using integrable_on_mult_right_iff[OF assms, of f A] by (simp add: mult.commute)
+
+lemma integrable_on_div_iff [simp]:
+  fixes c :: "'a :: real_normed_field"
+  assumes "c \<noteq> 0"
+  shows   "(\<lambda>x. f x / c) integrable_on A \<longleftrightarrow> f integrable_on A"
+  using integrable_on_mult_right_iff[of "inverse c" f A] assms by (simp add: field_simps)
 
 lemma has_integral_cmul: "(f has_integral k) S \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) S"
   unfolding o_def[symmetric]
@@ -578,14 +616,7 @@ lemma has_integral_cmult_real:
   fixes c :: real
   assumes "c \<noteq> 0 \<Longrightarrow> (f has_integral x) A"
   shows "((\<lambda>x. c * f x) has_integral c * x) A"
-proof (cases "c = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  from has_integral_cmul[OF assms[OF this], of c] show ?thesis
-    unfolding real_scaleR_def .
-qed
+  by (metis assms has_integral_is_0 has_integral_mult_right lambda_zero)
 
 lemma has_integral_neg: "(f has_integral k) S \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral -k) S"
   by (drule_tac c="-1" in has_integral_cmul) auto
@@ -5027,6 +5058,15 @@ lemma integral_open_interval:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
   shows "integral(box a b) f = integral(cbox a b) f"
   by (metis has_integral_integrable_integral has_integral_open_interval not_integrable_integral)
+
+lemma integrable_on_open_interval_real:
+  fixes f :: "real \<Rightarrow> 'b :: banach"
+  shows "f integrable_on {a<..<b} \<longleftrightarrow> f integrable_on {a..b}"
+  using integrable_on_open_interval[of f a b] by simp
+
+lemma integral_open_interval_real:
+  "integral {a..b} (f :: real \<Rightarrow> 'a :: banach) = integral {a<..<(b::real)} f"
+  using integral_open_interval[of a b f] by simp
 
 lemma has_integral_Icc_iff_Ioo:
   fixes f :: "real \<Rightarrow> 'a :: banach"

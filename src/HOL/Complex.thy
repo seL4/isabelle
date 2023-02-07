@@ -1297,6 +1297,11 @@ next
         field_simps real_sqrt_mult[symmetric] real_sqrt_divide)
 qed
 
+lemma csqrt_power_even:
+  assumes "even n"
+  shows   "csqrt z ^ n = z ^ (n div 2)"
+  by (metis assms dvd_mult_div_cancel power2_csqrt power_mult)
+
 lemma norm_csqrt [simp]: "norm (csqrt z) = sqrt (norm z)"
   by (metis abs_of_nonneg norm_ge_zero norm_mult power2_csqrt power2_eq_square real_sqrt_abs)
 

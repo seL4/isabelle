@@ -6731,14 +6731,6 @@ lemma cosh_field_def: "cosh z = (exp z + exp (-z)) / (2 :: 'a :: {banach, real_n
 
 subsubsection \<open>More specific properties of the real functions\<close>
 
-lemma sinh_real_zero_iff [simp]: "sinh (x::real) = 0 \<longleftrightarrow> x = 0"
-proof -
-  have "(-1 :: real) < 0" by simp
-  also have "0 < exp x" by simp
-  finally have "exp x \<noteq> -1" by (intro notI) simp
-  thus ?thesis by (subst sinh_zero_iff) simp
-qed
-
 lemma plus_inverse_ge_2:
   fixes x :: real
   assumes "x > 0"
@@ -6772,21 +6764,6 @@ lemma cosh_real_nonneg[simp]: "cosh (x :: real) \<ge> 0"
 
 lemma cosh_real_nonzero [simp]: "cosh (x :: real) \<noteq> 0"
   using cosh_real_ge_1[of x] by simp
-
-lemma tanh_real_nonneg_iff [simp]: "tanh (x :: real) \<ge> 0 \<longleftrightarrow> x \<ge> 0"
-  by (simp add: tanh_def field_simps)
-
-lemma tanh_real_pos_iff [simp]: "tanh (x :: real) > 0 \<longleftrightarrow> x > 0"
-  by (simp add: tanh_def field_simps)
-
-lemma tanh_real_nonpos_iff [simp]: "tanh (x :: real) \<le> 0 \<longleftrightarrow> x \<le> 0"
-  by (simp add: tanh_def field_simps)
-
-lemma tanh_real_neg_iff [simp]: "tanh (x :: real) < 0 \<longleftrightarrow> x < 0"
-  by (simp add: tanh_def field_simps)
-
-lemma tanh_real_zero_iff [simp]: "tanh (x :: real) = 0 \<longleftrightarrow> x = 0"
-  by (simp add: tanh_def field_simps)
 
 lemma arsinh_real_def: "arsinh (x::real) = ln (x + sqrt (x^2 + 1))"
   by (simp add: arsinh_def powr_half_sqrt)
@@ -6860,8 +6837,29 @@ proof -
   finally show ?thesis .
 qed
 
-end
+lemma sinh_real_zero_iff [simp]: "sinh x = 0 \<longleftrightarrow> x = 0"
+  by (metis arsinh_0 arsinh_sinh_real sinh_0)
 
+lemma cosh_real_one_iff [simp]: "cosh x = 1 \<longleftrightarrow> x = 0"
+  by (smt (verit, best) Transcendental.arcosh_cosh_real cosh_0 cosh_minus)
+
+lemma tanh_real_nonneg_iff [simp]: "tanh x \<ge> 0 \<longleftrightarrow> x \<ge> 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_pos_iff [simp]: "tanh x > 0 \<longleftrightarrow> x > 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_nonpos_iff [simp]: "tanh x \<le> 0 \<longleftrightarrow> x \<le> 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_neg_iff [simp]: "tanh x < 0 \<longleftrightarrow> x < 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_zero_iff [simp]: "tanh x = 0 \<longleftrightarrow> x = 0"
+  by (simp add: tanh_def field_simps)
+
+end
+  
 lemma sinh_real_strict_mono: "strict_mono (sinh :: real \<Rightarrow> real)"
   by (rule pos_deriv_imp_strict_mono derivative_intros)+ auto
 

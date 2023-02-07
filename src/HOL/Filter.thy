@@ -1287,6 +1287,10 @@ syntax
 translations
   "LIM x F1. f :> F2" == "CONST filterlim (\<lambda>x. f) F2 F1"
 
+lemma filterlim_filtercomapI: "filterlim f F G \<Longrightarrow> filterlim (\<lambda>x. f (g x)) F (filtercomap g G)"
+  unfolding filterlim_def
+  by (metis order_trans filtermap_filtercomap filtermap_filtermap filtermap_mono)
+
 lemma filterlim_top [simp]: "filterlim f top F"
   by (simp add: filterlim_def)
 

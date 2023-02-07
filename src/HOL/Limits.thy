@@ -1270,6 +1270,13 @@ lemma continuous_on_power_int [continuous_intros]:
   shows "continuous_on s (\<lambda>x. power_int (f x) n)"
   using assms unfolding continuous_on_def by (blast intro: tendsto_power_int)
 
+lemma tendsto_power_int' [tendsto_intros]:
+  fixes a :: "'a::real_normed_div_algebra"
+  assumes f: "(f \<longlongrightarrow> a) F"
+    and a: "a \<noteq> 0 \<or> n \<ge> 0"
+  shows "((\<lambda>x. power_int (f x) n) \<longlongrightarrow> power_int a n) F"
+  using assms by (cases n rule: int_cases4) (auto intro!: tendsto_intros simp: power_int_minus)
+
 lemma tendsto_sgn [tendsto_intros]: "(f \<longlongrightarrow> l) F \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> ((\<lambda>x. sgn (f x)) \<longlongrightarrow> sgn l) F"
   for l :: "'a::real_normed_vector"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
@@ -1782,6 +1789,22 @@ proof -
     by (subst filterlim_inverse_at_iff[symmetric]) simp_all
 qed
 
+lemma filterlim_power_int_neg_at_infinity:
+  fixes f :: "_ \<Rightarrow> 'a::{real_normed_div_algebra, division_ring}"
+  assumes "n < 0" and lim: "(f \<longlongrightarrow> 0) F" and ev: "eventually (\<lambda>x. f x \<noteq> 0) F"
+  shows   "filterlim (\<lambda>x. f x powi n) at_infinity F"
+proof -
+  have lim': "((\<lambda>x. f x ^ nat (- n)) \<longlongrightarrow> 0) F"
+    by (rule tendsto_eq_intros lim)+ (use \<open>n < 0\<close> in auto)
+  have ev': "eventually (\<lambda>x. f x ^ nat (-n) \<noteq> 0) F"
+    using ev by eventually_elim (use \<open>n < 0\<close> in auto)
+  have "filterlim (\<lambda>x. inverse (f x ^ nat (-n))) at_infinity F"
+    by (intro filterlim_compose[OF filterlim_inverse_at_infinity])
+       (use lim' ev' in \<open>auto simp: filterlim_at\<close>)
+  thus ?thesis
+    using \<open>n < 0\<close> by (simp add: power_int_def power_inverse)
+qed
+  
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) \<longlongrightarrow> 0) F"
   by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
 
@@ -1936,6 +1959,13 @@ lemma filterlim_tendsto_neg_mult_at_bot:
   shows "LIM x F. f x * g x :> at_bot"
   using c filterlim_tendsto_pos_mult_at_top[of "\<lambda>x. - f x" "- c" F, OF _ _ g]
   unfolding filterlim_uminus_at_bot tendsto_minus_cancel_left by simp
+
+
+lemma filterlim_cmult_at_bot_at_top:
+  assumes "filterlim (h :: _ \<Rightarrow> real) at_top F" "c \<noteq> 0" "G = (if c > 0 then at_top else at_bot)"
+  shows   "filterlim (\<lambda>x. c * h x) G F"
+  using assms filterlim_tendsto_pos_mult_at_top[OF tendsto_const[of c], of h F]
+              filterlim_tendsto_neg_mult_at_bot[OF tendsto_const[of c], of h F] by simp
 
 lemma filterlim_pow_at_top:
   fixes f :: "'a \<Rightarrow> real"
@@ -2688,10 +2718,9 @@ lemma LIMSEQ_realpow_zero:
   assumes "0 \<le> x" "x < 1"
   shows "(\<lambda>n. x ^ n) \<longlonglongrightarrow> 0"
 proof (cases "x = 0")
-  case False
-  with \<open>0 \<le> x\<close> have x0: "0 < x" by simp
-  then have "1 < inverse x"
-    using \<open>x < 1\<close> by (rule one_less_inverse)
+  case False 
+  with \<open>0 \<le> x\<close> have "1 < inverse x"
+    using \<open>x < 1\<close> by (simp add: one_less_inverse)
   then have "(\<lambda>n. inverse (inverse x ^ n)) \<longlonglongrightarrow> 0"
     by (rule LIMSEQ_inverse_realpow_zero)
   then show ?thesis by (simp add: power_inverse)
