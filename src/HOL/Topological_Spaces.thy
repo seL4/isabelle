@@ -1078,6 +1078,37 @@ lemma tendsto_Lim: "\<not> trivial_limit net \<Longrightarrow> (f \<longlongrigh
 lemma Lim_ident_at: "\<not> trivial_limit (at x within s) \<Longrightarrow> Lim (at x within s) (\<lambda>x. x) = x"
   by (rule tendsto_Lim[OF _ tendsto_ident_at]) auto
 
+lemma Lim_cong:
+  assumes "eventually (\<lambda>x. f x = g x) F" "F = G"
+  shows   "Lim F f = Lim G g"
+proof (cases "(\<exists>c. (f \<longlongrightarrow> c) F) \<and> F \<noteq> bot")
+  case True
+  then obtain c where c: "(f \<longlongrightarrow> c) F"
+    by blast
+  hence "Lim F f = c"
+    using True by (intro tendsto_Lim) auto
+  moreover have "(f \<longlongrightarrow> c) F \<longleftrightarrow> (g \<longlongrightarrow> c) G"
+    using assms by (intro filterlim_cong) auto
+  with True c assms have "Lim G g = c"
+    by (intro tendsto_Lim) auto
+  ultimately show ?thesis
+    by simp
+next
+  case False
+  show ?thesis
+  proof (cases "F = bot")
+    case True
+    thus ?thesis using assms
+      by (auto simp: Topological_Spaces.Lim_def)
+  next
+    case False
+    have "(f \<longlongrightarrow> c) F \<longleftrightarrow> (g \<longlongrightarrow> c) G" for c
+      using assms by (intro filterlim_cong) auto
+    thus ?thesis
+      by (auto simp: Topological_Spaces.Lim_def)
+  qed
+qed
+
 lemma eventually_Lim_ident_at:
   "(\<forall>\<^sub>F y in at x within X. P (Lim (at x within X) (\<lambda>x. x)) y) \<longleftrightarrow>
     (\<forall>\<^sub>F y in at x within X. P x y)" for x::"'a::t2_space"
@@ -2217,6 +2248,18 @@ lemma continuous_on_discrete [simp]:
   "continuous_on A (f :: 'a :: discrete_topology \<Rightarrow> _)"
   by (auto simp: continuous_on_def at_discrete)
 
+lemma continuous_on_of_nat [continuous_intros]:
+  assumes "continuous_on A f"
+  shows   "continuous_on A (\<lambda>n. of_nat (f n))"
+  using continuous_on_compose[OF assms continuous_on_discrete[of _ of_nat]]
+  by (simp add: o_def)
+
+lemma continuous_on_of_int [continuous_intros]:
+  assumes "continuous_on A f"
+  shows   "continuous_on A (\<lambda>n. of_int (f n))"
+  using continuous_on_compose[OF assms continuous_on_discrete[of _ of_int]]
+  by (simp add: o_def)
+
 subsubsection \<open>Continuity at a point\<close>
 
 definition continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool"
@@ -2329,6 +2372,21 @@ qed
 lemma continuous_within_compose3:
   "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"
   using continuous_at_imp_continuous_at_within continuous_within_compose2 by blast
+
+lemma at_within_isCont_imp_nhds:
+  fixes f:: "'a:: {t2_space,perfect_space} \<Rightarrow> 'b:: t2_space"
+  assumes "\<forall>\<^sub>F w in at z. f w = g w" "isCont f z" "isCont g z"
+  shows "\<forall>\<^sub>F w in nhds z. f w = g w"
+proof -
+  have "g \<midarrow>z\<rightarrow> f z"
+    using assms isContD tendsto_cong by blast 
+  moreover have "g \<midarrow>z\<rightarrow> g z" using \<open>isCont g z\<close> using isCont_def by blast
+  ultimately have "f z=g z" using LIM_unique by auto
+  moreover have "\<forall>\<^sub>F x in nhds z. x \<noteq> z \<longrightarrow> f x = g x"
+    using assms unfolding eventually_at_filter by auto
+  ultimately show ?thesis 
+    by (auto elim:eventually_mono)
+qed
 
 lemma filtermap_nhds_open_map':
   assumes cont: "isCont f a"
@@ -2933,6 +2991,30 @@ proof (rule connectedI_const)
     by auto
 qed
 
+lemma connected_Un_UN:
+  assumes "connected A" "\<And>X. X \<in> B \<Longrightarrow> connected X" "\<And>X. X \<in> B \<Longrightarrow> A \<inter> X \<noteq> {}"
+  shows   "connected (A \<union> \<Union>B)"
+proof (rule connectedI_const)
+  fix f :: "'a \<Rightarrow> bool"
+  assume f: "continuous_on (A \<union> \<Union>B) f"
+  have "connected A" "continuous_on A f"
+    by (auto intro: assms continuous_on_subset[OF f(1)])
+  from connectedD_const[OF this] obtain c where c: "\<And>x. x \<in> A \<Longrightarrow> f x = c"
+    by metis
+  have "f x = c" if "x \<in> X" "X \<in> B" for x X
+  proof -
+    have "connected X" "continuous_on X f"
+      using that by (auto intro: assms continuous_on_subset[OF f])
+    from connectedD_const[OF this] obtain c' where c': "\<And>x. x \<in> X \<Longrightarrow> f x = c'"
+      by metis
+    from assms(3) and that obtain y where "y \<in> A \<inter> X"
+      by auto
+    with c[of y] c'[of y] c'[of x] that show ?thesis
+      by auto
+  qed
+  with c show "\<exists>c. \<forall>x\<in>A \<union> \<Union> B. f x = c"
+    by (intro exI[of _ c]) auto
+qed   
 
 section \<open>Linear Continuum Topologies\<close>
 
@@ -3884,6 +3966,5 @@ proof -
   have "{(x,y) | x y. x \<ge> (y::'a)} = UNIV - {(x,y) | x y. x < y}" by auto
   then show ?thesis using open_subdiagonal closed_Diff by auto
 qed
-
 
 end

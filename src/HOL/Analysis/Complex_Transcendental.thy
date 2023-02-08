@@ -2649,7 +2649,7 @@ lemma powr_nat:
 
 lemma powr_nat': "(z :: complex) \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> z powr of_nat n = z ^ n"
   by (cases "z = 0") (auto simp: powr_nat)
-  
+    
 lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = exp(Re z * ln(Re w))"
   using Ln_Reals_eq norm_exp_eq_Re by (auto simp: Im_Ln_eq_0 powr_def norm_complex_def)
 
@@ -2694,12 +2694,15 @@ lemma powr_of_int:
   shows "z powr of_int n = (if n\<ge>0 then z^nat n else inverse (z^nat (-n)))"
   by (metis assms not_le of_int_of_nat powr_complexpow powr_minus)
 
+lemma complex_powr_of_int: "z \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> z powr of_int n = (z :: complex) powi n"
+  by (cases "z = 0 \<or> n = 0")
+     (auto simp: power_int_def powr_minus powr_nat powr_of_int power_0_left power_inverse)
+  
 lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x \<ge> 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
   by (metis of_real_Re powr_of_real)
 
 lemma norm_powr_real_mono:
-    "\<lbrakk>w \<in> \<real>; 1 < Re w\<rbrakk>
-     \<Longrightarrow> cmod(w powr z1) \<le> cmod(w powr z2) \<longleftrightarrow> Re z1 \<le> Re z2"
+    "\<lbrakk>w \<in> \<real>; 1 < Re w\<rbrakk> \<Longrightarrow> cmod(w powr z1) \<le> cmod(w powr z2) \<longleftrightarrow> Re z1 \<le> Re z2"
   by (auto simp: powr_def algebra_simps Reals_def Ln_of_real)
 
 lemma powr_times_real:

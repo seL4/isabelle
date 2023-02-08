@@ -223,6 +223,16 @@ lemma frequently_eventually_conj:
   shows "\<exists>\<^sub>Fx in F. Q x \<and> P x"
   using assms eventually_elim2 by (force simp add: frequently_def)
 
+lemma frequently_cong:
+  assumes ev: "eventually P F" and QR: "\<And>x. P x \<Longrightarrow> Q x \<longleftrightarrow> R x"
+  shows   "frequently Q F \<longleftrightarrow> frequently R F"
+  unfolding frequently_def 
+  using QR by (auto intro!: eventually_cong [OF ev])
+
+lemma frequently_eventually_frequently:
+  "frequently P F \<Longrightarrow> eventually Q F \<Longrightarrow> frequently (\<lambda>x. P x \<and> Q x) F"
+  using frequently_cong [of Q F P "\<lambda>x. P x \<and> Q x"] by meson
+  
 lemma eventually_frequently_const_simps:
   "(\<exists>\<^sub>Fx in F. P x \<and> C) \<longleftrightarrow> (\<exists>\<^sub>Fx in F. P x) \<and> C"
   "(\<exists>\<^sub>Fx in F. C \<and> P x) \<longleftrightarrow> C \<and> (\<exists>\<^sub>Fx in F. P x)"
@@ -605,12 +615,6 @@ lemma filtermap_inf: "filtermap f (inf F1 F2) \<le> inf (filtermap f F1) (filter
 
 lemma filtermap_INF: "filtermap f (\<Sqinter>b\<in>B. F b) \<le> (\<Sqinter>b\<in>B. filtermap f (F b))"
   by (rule INF_greatest, rule filtermap_mono, erule INF_lower)
-
-lemma frequently_cong:
-  assumes ev: "eventually P F" and QR: "\<And>x. P x \<Longrightarrow> Q x \<longleftrightarrow> R x"
-  shows   "frequently Q F \<longleftrightarrow> frequently R F"
-  unfolding frequently_def 
-  using QR by (auto intro!: eventually_cong [OF ev])
 
 lemma frequently_filtermap:
   "frequently P (filtermap f F) = frequently (\<lambda>x. P (f x)) F"

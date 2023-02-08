@@ -758,6 +758,87 @@ proof (rule ccontr)
     by simp
 qed
 
+(*could prove directly from islimpt_sequential_inj, but only for metric spaces*)
+lemma islimpt_sequential:
+  fixes x :: "'a::first_countable_topology"
+  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> (f \<longlongrightarrow> x) sequentially)"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  from countable_basis_at_decseq[of x] obtain A where A:
+      "\<And>i. open (A i)"
+      "\<And>i. x \<in> A i"
+      "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+    by blast
+  define f where "f n = (SOME y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y)" for n
+  {
+    fix n
+    from \<open>?lhs\<close> have "\<exists>y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
+      unfolding islimpt_def using A(1,2)[of n] by auto
+    then have "f n \<in> S \<and> f n \<in> A n \<and> x \<noteq> f n"
+      unfolding f_def by (rule someI_ex)
+    then have "f n \<in> S" "f n \<in> A n" "x \<noteq> f n" by auto
+  }
+  then have "\<forall>n. f n \<in> S - {x}" by auto
+  moreover have "(\<lambda>n. f n) \<longlonglongrightarrow> x"
+  proof (rule topological_tendstoI)
+    fix S
+    assume "open S" "x \<in> S"
+    from A(3)[OF this] \<open>\<And>n. f n \<in> A n\<close>
+    show "eventually (\<lambda>x. f x \<in> S) sequentially"
+      by (auto elim!: eventually_mono)
+  qed
+  ultimately show ?rhs by fast
+next
+  assume ?rhs
+  then obtain f :: "nat \<Rightarrow> 'a" where f: "\<And>n. f n \<in> S - {x}" and lim: "f \<longlonglongrightarrow> x"
+    by auto
+  show ?lhs
+    unfolding islimpt_def
+  proof safe
+    fix T
+    assume "open T" "x \<in> T"
+    from lim[THEN topological_tendstoD, OF this] f
+    show "\<exists>y\<in>S. y \<in> T \<and> y \<noteq> x"
+      unfolding eventually_sequentially by auto
+  qed
+qed
+
+lemma islimpt_isCont_image:
+  fixes f :: "'a :: {first_countable_topology, t2_space} \<Rightarrow> 'b :: {first_countable_topology, t2_space}"
+  assumes "x islimpt A" and "isCont f x" and ev: "eventually (\<lambda>y. f y \<noteq> f x) (at x)"
+  shows   "f x islimpt f ` A"
+proof -
+  from assms(1) obtain g where g: "g \<longlonglongrightarrow> x" "range g \<subseteq> A - {x}"
+    unfolding islimpt_sequential by blast
+  have "filterlim g (at x) sequentially"
+    using g by (auto simp: filterlim_at intro!: always_eventually)
+  then obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> f (g n) \<noteq> f x"
+    by (metis (mono_tags, lifting) ev eventually_at_top_linorder filterlim_iff)
+  have "(\<lambda>x. g (x + N)) \<longlonglongrightarrow> x"
+    using g(1) by (rule LIMSEQ_ignore_initial_segment)
+  hence "(\<lambda>x. f (g (x + N))) \<longlonglongrightarrow> f x"
+    using assms(2) isCont_tendsto_compose by blast
+  moreover have "range (\<lambda>x. f (g (x + N))) \<subseteq> f ` A - {f x}"
+    using g(2) N by auto
+  ultimately show ?thesis
+    unfolding islimpt_sequential by (intro exI[of _ "\<lambda>x. f (g (x + N))"]) auto
+qed
+
+lemma islimpt_image:
+  assumes "z islimpt g -` A \<inter> B" "g z \<notin> A" "z \<in> B" "open B" "continuous_on B g"
+  shows   "g z islimpt A"
+  unfolding islimpt_def
+proof clarify
+  fix T assume T: "g z \<in> T" "open T"
+  have "z \<in> g -` T \<inter> B"
+    using T assms by auto
+  moreover have "open (g -` T \<inter> B)"
+    using T continuous_on_open_vimage assms by blast
+  ultimately show "\<exists>y\<in>A. y \<in> T \<and> y \<noteq> g z"
+    using assms by (metis (mono_tags, lifting) IntD1 islimptE vimageE)
+qed
+  
 
 subsection \<open>Interior of a Set\<close>
 
@@ -845,7 +926,12 @@ lemma islimpt_Int_eventually:
 
 lemma islimpt_conv_frequently_at:
   "x islimpt A \<longleftrightarrow> frequently (\<lambda>y. y \<in> A) (at x)"
-  unfolding islimpt_def eventually_at_filter frequently_def eventually_nhds by blast
+  by (simp add: frequently_def islimpt_iff_eventually)
+
+lemma frequently_at_imp_islimpt:
+  assumes "frequently (\<lambda>y. y \<in> A) (at x)"
+  shows   "x islimpt A"
+  by (simp add: assms islimpt_conv_frequently_at)  
 
 lemma interior_closed_Un_empty_interior:
   assumes cS: "closed S"
@@ -1347,52 +1433,6 @@ next
       unfolding eventually_at_right[OF \<open>x < y\<close>] by (metis less_imp_le le_less_trans mono)
     then show "eventually (\<lambda>x. f x < a) (at x within ({x<..} \<inter> I))"
       unfolding eventually_at_filter by eventually_elim simp
-  qed
-qed
-
-(*could prove directly from islimpt_sequential_inj, but only for metric spaces*)
-lemma islimpt_sequential:
-  fixes x :: "'a::first_countable_topology"
-  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> (f \<longlongrightarrow> x) sequentially)"
-    (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  from countable_basis_at_decseq[of x] obtain A where A:
-      "\<And>i. open (A i)"
-      "\<And>i. x \<in> A i"
-      "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
-    by blast
-  define f where "f n = (SOME y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y)" for n
-  {
-    fix n
-    from \<open>?lhs\<close> have "\<exists>y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
-      unfolding islimpt_def using A(1,2)[of n] by auto
-    then have "f n \<in> S \<and> f n \<in> A n \<and> x \<noteq> f n"
-      unfolding f_def by (rule someI_ex)
-    then have "f n \<in> S" "f n \<in> A n" "x \<noteq> f n" by auto
-  }
-  then have "\<forall>n. f n \<in> S - {x}" by auto
-  moreover have "(\<lambda>n. f n) \<longlonglongrightarrow> x"
-  proof (rule topological_tendstoI)
-    fix S
-    assume "open S" "x \<in> S"
-    from A(3)[OF this] \<open>\<And>n. f n \<in> A n\<close>
-    show "eventually (\<lambda>x. f x \<in> S) sequentially"
-      by (auto elim!: eventually_mono)
-  qed
-  ultimately show ?rhs by fast
-next
-  assume ?rhs
-  then obtain f :: "nat \<Rightarrow> 'a" where f: "\<And>n. f n \<in> S - {x}" and lim: "f \<longlonglongrightarrow> x"
-    by auto
-  show ?lhs
-    unfolding islimpt_def
-  proof safe
-    fix T
-    assume "open T" "x \<in> T"
-    from lim[THEN topological_tendstoD, OF this] f
-    show "\<exists>y\<in>S. y \<in> T \<and> y \<noteq> x"
-      unfolding eventually_sequentially by auto
   qed
 qed
 

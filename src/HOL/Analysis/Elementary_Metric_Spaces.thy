@@ -274,6 +274,48 @@ proof -
   ultimately show ?thesis by blast
 qed
 
+lemma frequently_atE:
+  fixes x :: "'a :: metric_space"
+  assumes "frequently P (at x within s)"
+  shows   "\<exists>f. filterlim f (at x within s) sequentially \<and> (\<forall>n. P (f n))"
+proof -
+  have "\<exists>y. y \<in> s \<inter> (ball x (1 / real (Suc n)) - {x}) \<and> P y" for n
+  proof -
+    have "\<exists>z\<in>s. z \<noteq> x \<and> dist z x < (1 / real (Suc n)) \<and> P z"
+      by (metis assms divide_pos_pos frequently_at of_nat_0_less_iff zero_less_Suc zero_less_one)
+    then show ?thesis
+      by (auto simp: dist_commute conj_commute)
+  qed
+  then obtain f where f: "\<And>n. f n \<in> s \<inter> (ball x (1 / real (Suc n)) - {x}) \<and> P (f n)"
+    by metis
+  have "filterlim f (nhds x) sequentially"
+    unfolding tendsto_iff
+  proof clarify
+    fix e :: real
+    assume e: "e > 0"
+    then obtain n where n: "Suc n > 1 / e"
+      by (meson le_nat_floor lessI not_le)
+    have "dist (f k) x < e" if "k \<ge> n" for k
+    proof -
+      have "dist (f k) x < 1 / real (Suc k)"
+        using f[of k] by (auto simp: dist_commute)
+      also have "\<dots> \<le> 1 / real (Suc n)"
+        using that by (intro divide_left_mono) auto
+      also have "\<dots> < e"
+        using n e by (simp add: field_simps)
+      finally show ?thesis .
+    qed
+    thus "\<forall>\<^sub>F k in sequentially. dist (f k) x < e"
+      unfolding eventually_at_top_linorder by blast
+  qed
+  moreover have "f n \<noteq> x" for n
+    using f[of n] by auto
+  ultimately have "filterlim f (at x within s) sequentially"
+    using f by (auto simp: filterlim_at)
+  with f show ?thesis
+    by blast
+qed
+
 subsection \<open>Limit Points\<close>
 
 lemma islimpt_approachable:

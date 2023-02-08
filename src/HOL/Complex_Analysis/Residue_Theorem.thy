@@ -454,9 +454,8 @@ subsection \<open>The argument principle\<close>
 
 theorem argument_principle:
   fixes f::"complex \<Rightarrow> complex" and poles s:: "complex set"
-  defines "pz \<equiv> {w. f w = 0 \<or> w \<in> poles}" \<comment> \<open>\<^term>\<open>pz\<close> is the set of poles and zeros\<close>
-  assumes "open s" and
-          "connected s" and
+  defines "pz \<equiv> {w\<in>s. f w = 0 \<or> w \<in> poles}" \<comment> \<open>\<^term>\<open>pz\<close> is the set of poles and zeros\<close>
+  assumes "open s" "connected s" and
           f_holo:"f holomorphic_on s-poles" and
           h_holo:"h holomorphic_on s" and
           "valid_path g" and
@@ -464,7 +463,7 @@ theorem argument_principle:
           path_img:"path_image g \<subseteq> s - pz" and
           homo:"\<forall>z. (z \<notin> s) \<longrightarrow> winding_number g z = 0" and
           finite:"finite pz" and
-          poles:"\<forall>p\<in>poles. is_pole f p"
+          poles:"\<forall>p\<in>s\<inter>poles. is_pole f p"
   shows "contour_integral g (\<lambda>x. deriv f x * h x / f x) = 2 * pi * \<i> *
           (\<Sum>p\<in>pz. winding_number g p * h p * zorder f p)"
     (is "?L=?R")
@@ -505,10 +504,12 @@ proof -
           case False
           then have "p\<in>s-poles" using \<open>p\<in>s\<close> poles unfolding pz_def by auto
           moreover have "open (s-poles)"
-            using \<open>open s\<close>
-            apply (elim open_Diff)
-            apply (rule finite_imp_closed)
-            using finite unfolding pz_def by simp
+          proof -
+            have "closed (s \<inter> poles)"
+              using finite by (simp add: pz_def finite_imp_closed rev_finite_subset subset_eq)
+            then show ?thesis
+              by (metis Diff_Compl Diff_Diff_Int Diff_eq \<open>open s\<close> open_Diff) 
+          qed
           ultimately have "isCont f p"
             using holomorphic_on_imp_continuous_on[OF f_holo] continuous_on_eq_continuous_at
             by auto
@@ -518,13 +519,21 @@ proof -
         proof (rule ccontr)
           assume "\<not> (\<exists>\<^sub>F w in at p. f w \<noteq> 0)"
           then have "\<forall>\<^sub>F w in at p. f w= 0" unfolding frequently_def by auto
-          then obtain rr where "rr>0" "\<forall>w\<in>ball p rr - {p}. f w =0"
+          then obtain r1 where "r1>0" and r1:"\<forall>w\<in>ball p r1 - {p}. f w =0"
             unfolding eventually_at by (auto simp add:dist_commute)
-          then have "ball p rr - {p} \<subseteq> {w\<in>ball p rr-{p}. f w=0}" by blast
-          moreover have "infinite (ball p rr - {p})" using \<open>rr>0\<close> using finite_imp_not_open by fastforce
-          ultimately have "infinite {w\<in>ball p rr-{p}. f w=0}" using infinite_super by blast
+          obtain r2 where "r2>0" and r2: "ball p r2 \<subseteq> s"
+            using \<open>p\<in>s\<close> \<open>open s\<close> openE by blast
+          define rr where "rr=min r1 r2"
+
+          from r1 r2
+          have "ball p rr - {p} \<subseteq> {w\<in> s \<inter> ball p rr-{p}. f w=0}"
+            unfolding rr_def by auto
+          moreover have "infinite (ball p rr - {p})" 
+            using \<open>r1>0\<close> \<open>r2>0\<close> finite_imp_not_open 
+            unfolding rr_def by fastforce
+          ultimately have "infinite {w\<in>s \<inter> ball p rr-{p}. f w=0}" using infinite_super by blast
           then have "infinite pz"
-            unfolding pz_def infinite_super by auto
+            unfolding pz_def by (smt (verit) infinite_super Collect_mono_iff DiffE Int_iff)
           then show False using \<open>finite pz\<close> by auto
         qed
         ultimately obtain r where "pp p \<noteq> 0" and r:"r>0" "pp holomorphic_on cball p r"
@@ -795,7 +804,7 @@ subsection \<open>Rouche's theorem \<close>
 theorem Rouche_theorem:
   fixes f g::"complex \<Rightarrow> complex" and s:: "complex set"
   defines "fg\<equiv>(\<lambda>p. f p + g p)"
-  defines "zeros_fg\<equiv>{p. fg p = 0}" and "zeros_f\<equiv>{p. f p = 0}"
+  defines "zeros_fg\<equiv>{p\<in>s. fg p = 0}" and "zeros_f\<equiv>{p\<in>s. f p = 0}"
   assumes
     "open s" and "connected s" and
     "finite zeros_fg" and
@@ -844,9 +853,8 @@ proof -
     proof -
       have "h p \<in> ball 1 1" when "p\<in>path_image \<gamma>" for p
       proof -
-        have "cmod (g p/f p) <1" using path_less[rule_format,OF that]
-          apply (cases "cmod (f p) = 0")
-          by (auto simp add: norm_divide)
+        have "cmod (g p/f p) <1"
+          by (smt (verit) divide_less_eq_1_pos norm_divide norm_ge_zero path_less that)
         then show ?thesis unfolding h_def by (auto simp add:dist_complex_def)
       qed
       then have "path_image (h o \<gamma>) \<subseteq> ball 1 1"
@@ -935,9 +943,8 @@ proof -
         assume "\<not> h p \<noteq> 0"
         then have "g p / f p= -1" unfolding h_def by (simp add: add_eq_0_iff2)
         then have "cmod (g p/f p) = 1" by auto
-        moreover have "cmod (g p/f p) <1" using path_less[rule_format,OF that]
-          apply (cases "cmod (f p) = 0")
-          by (auto simp add: norm_divide)
+        moreover have "cmod (g p/f p) <1"
+          by (simp add: \<open>f p \<noteq> 0\<close> norm_divide path_less that)
         ultimately show False by auto
       qed
       have der_fg:"deriv fg p =  deriv f p + deriv g p" unfolding fg_def
@@ -963,20 +970,24 @@ proof -
     ultimately show ?thesis by auto
   qed
   moreover have "contour_integral \<gamma> (\<lambda>x. deriv fg x / fg x) = c * (\<Sum>p\<in>zeros_fg. w p * zorder fg p)"
-    unfolding c_def zeros_fg_def w_def
-  proof (rule argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo
-        , of _ "{}" "\<lambda>_. 1",simplified])
-    show "fg holomorphic_on s" unfolding fg_def using f_holo g_holo holomorphic_on_add by auto
-    show "path_image \<gamma> \<subseteq> s - {p. fg p = 0}" using path_fg unfolding zeros_fg_def .
-    show " finite {p. fg p = 0}" using \<open>finite zeros_fg\<close> unfolding zeros_fg_def .
+  proof -
+    have "fg holomorphic_on s" unfolding fg_def using f_holo g_holo holomorphic_on_add by auto
+    moreover
+    have "path_image \<gamma> \<subseteq> s - {p\<in>s. fg p = 0}" using path_fg unfolding zeros_fg_def .
+    moreover
+    have " finite {p\<in>s. fg p = 0}" using \<open>finite zeros_fg\<close> unfolding zeros_fg_def .
+    ultimately show ?thesis
+      unfolding c_def zeros_fg_def w_def
+      using argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo, of _ "{}" "\<lambda>_. 1"]
+      by simp
   qed
   moreover have "contour_integral \<gamma> (\<lambda>x. deriv f x / f x) = c * (\<Sum>p\<in>zeros_f. w p * zorder f p)"
     unfolding c_def zeros_f_def w_def
   proof (rule argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo
         , of _ "{}" "\<lambda>_. 1",simplified])
     show "f holomorphic_on s" using f_holo g_holo holomorphic_on_add by auto
-    show "path_image \<gamma> \<subseteq> s - {p. f p = 0}" using path_f unfolding zeros_f_def .
-    show " finite {p. f p = 0}" using \<open>finite zeros_f\<close> unfolding zeros_f_def .
+    show "path_image \<gamma> \<subseteq> s - {p\<in>s. f p = 0}" using path_f unfolding zeros_f_def .
+    show " finite {p\<in>s. f p = 0}" using \<open>finite zeros_f\<close> unfolding zeros_f_def .
   qed
   ultimately have " c* (\<Sum>p\<in>zeros_fg. w p * (zorder fg p)) = c* (\<Sum>p\<in>zeros_f. w p * (zorder f p))"
     by auto

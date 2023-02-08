@@ -659,6 +659,16 @@ lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<i
 lemma bounded_pos_less: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x < b)"
   by (metis bounded_pos le_less_trans less_imp_le linordered_field_no_ub)
 
+lemma bounded_normE:
+  assumes "bounded A"
+  obtains B where "B > 0" "\<And>z. z \<in> A \<Longrightarrow> norm z \<le> B"
+  by (meson assms bounded_pos)
+
+lemma bounded_normE_less:
+  assumes "bounded A"
+  obtains B where "B > 0" "\<And>z. z \<in> A \<Longrightarrow> norm z < B"
+  by (meson assms bounded_pos_less)
+
 lemma Bseq_eq_bounded:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "Bseq f \<longleftrightarrow> bounded (range f)"

@@ -238,10 +238,7 @@ lemma joinable_connected_component_eq:
     connected_component_set S x \<inter> T \<noteq> {};
     connected_component_set S y \<inter> T \<noteq> {}\<rbrakk>
     \<Longrightarrow> connected_component_set S x = connected_component_set S y"
-apply (simp add: ex_in_conv [symmetric])
-apply (rule connected_component_eq)
-by (metis (no_types, opaque_lifting) connected_component_eq_eq connected_component_in connected_component_maximal subsetD mem_Collect_eq)
-
+  by (metis (full_types) subsetD connected_component_eq connected_component_maximal disjoint_iff_not_equal)
 
 lemma Union_connected_component: "\<Union>(connected_component_set S ` S) = S"
   apply (rule subset_antisym)
@@ -260,10 +257,36 @@ lemma complement_connected_component_unions:
 lemma connected_component_intermediate_subset:
         "\<lbrakk>connected_component_set U a \<subseteq> T; T \<subseteq> U\<rbrakk>
         \<Longrightarrow> connected_component_set T a = connected_component_set U a"
-  apply (case_tac "a \<in> U")
-  apply (simp add: connected_component_maximal connected_component_mono subset_antisym)
-  using connected_component_eq_empty by blast
+  by (metis connected_component_idemp connected_component_mono subset_antisym)
 
+
+lemma connected_component_homeomorphismI:
+  assumes "homeomorphism A B f g" "connected_component A x y"
+  shows   "connected_component B (f x) (f y)"
+proof -
+  from assms obtain T where T: "connected T" "T \<subseteq> A" "x \<in> T" "y \<in> T"
+    unfolding connected_component_def by blast
+  have "connected (f ` T)" "f ` T \<subseteq> B" "f x \<in> f ` T" "f y \<in> f ` T"
+    using assms T continuous_on_subset[of A f T]
+    by (auto intro!: connected_continuous_image simp: homeomorphism_def)
+  thus ?thesis
+    unfolding connected_component_def by blast
+qed
+
+lemma connected_component_homeomorphism_iff:
+  assumes "homeomorphism A B f g"
+  shows   "connected_component A x y \<longleftrightarrow> x \<in> A \<and> y \<in> A \<and> connected_component B (f x) (f y)"
+  by (metis assms connected_component_homeomorphismI connected_component_in homeomorphism_apply1 homeomorphism_sym)
+
+lemma connected_component_set_homeomorphism:
+  assumes "homeomorphism A B f g" "x \<in> A"
+  shows   "connected_component_set B (f x) = f ` connected_component_set A x" (is "?lhs = ?rhs")
+proof -
+  have "y \<in> ?lhs \<longleftrightarrow> y \<in> ?rhs" for y
+    by (smt (verit, best) assms connected_component_homeomorphism_iff homeomorphism_def image_iff mem_Collect_eq)
+  thus ?thesis
+    by blast
+qed
 
 subsection \<open>The set of connected components of a set\<close>
 

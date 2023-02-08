@@ -94,8 +94,6 @@ lemma contour_integrable_on:
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Reversing a path\<close>
 
-
-
 lemma has_contour_integral_reversepath:
   assumes "valid_path g" and f: "(f has_contour_integral i) g"
     shows "(f has_contour_integral (-i)) (reversepath g)"
@@ -807,9 +805,8 @@ subsection\<^marker>\<open>tag unimportant\<close> \<open>Operations on path int
 lemma contour_integral_const_linepath [simp]: "contour_integral (linepath a b) (\<lambda>x. c) = c*(b - a)"
   by (rule contour_integral_unique [OF has_contour_integral_const_linepath])
 
-lemma contour_integral_neg:
-    "f contour_integrable_on g \<Longrightarrow> contour_integral g (\<lambda>x. -(f x)) = -(contour_integral g f)"
-  by (simp add: contour_integral_unique has_contour_integral_integral has_contour_integral_neg)
+lemma contour_integral_neg: "contour_integral g (\<lambda>z. -f z) = -contour_integral g f"
+  by (simp add: contour_integral_integral)
 
 lemma contour_integral_add:
     "f1 contour_integrable_on g \<Longrightarrow> f2 contour_integrable_on g \<Longrightarrow> contour_integral g (\<lambda>x. f1 x + f2 x) =
@@ -903,6 +900,19 @@ lemma contour_integrable_sum:
    unfolding contour_integrable_on_def
    by (metis has_contour_integral_sum)
 
+lemma contour_integrable_lmul_iff:
+    "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. c * f x) contour_integrable_on g \<longleftrightarrow> f contour_integrable_on g"
+  using contour_integrable_lmul[of f g c] contour_integrable_lmul[of "\<lambda>x. c * f x" g "inverse c"]
+  by (auto simp: field_simps)
+
+lemma contour_integrable_rmul_iff:
+    "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x * c) contour_integrable_on g \<longleftrightarrow> f contour_integrable_on g"
+  using contour_integrable_rmul[of f g c] contour_integrable_rmul[of "\<lambda>x. c * f x" g "inverse c"]
+  by (auto simp: field_simps)
+
+lemma contour_integrable_div_iff:
+    "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x / c) contour_integrable_on g \<longleftrightarrow> f contour_integrable_on g"
+  using contour_integrable_rmul_iff[of "inverse c"] by (simp add: field_simps)
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Reversing a path integral\<close>
 
@@ -912,9 +922,9 @@ lemma has_contour_integral_reverse_linepath:
   using has_contour_integral_reversepath valid_path_linepath by fastforce
 
 lemma contour_integral_reverse_linepath:
-    "continuous_on (closed_segment a b) f
-     \<Longrightarrow> contour_integral (linepath a b) f = - (contour_integral(linepath b a) f)"
-  by (metis contour_integrable_continuous_linepath contour_integral_unique has_contour_integral_integral has_contour_integral_reverse_linepath)
+    "continuous_on (closed_segment a b) f \<Longrightarrow> contour_integral (linepath a b) f = - (contour_integral(linepath b a) f)"
+  using contour_integral_reversepath by fastforce
+
 
 
 text \<open>Splitting a path integral in a flat way.*)\<close>
