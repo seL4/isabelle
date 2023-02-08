@@ -238,7 +238,7 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
 class Build_Job(progress: Progress,
   session_background: Sessions.Background,
   store: Sessions.Store,
-  do_store: Boolean,
+  val do_store: Boolean,
   log: Logger,
   session_setup: (String, Session) => Unit,
   val numa_node: Option[Int],
@@ -570,8 +570,8 @@ class Build_Job(progress: Progress,
     else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
   }
 
-  def join: (Process_Result, SHA1.Shasum) = {
-    val result1 = future_result.join
+  def join: Process_Result = {
+    val result = future_result.join
 
     val was_timeout =
       timeout_request match {
@@ -579,18 +579,9 @@ class Build_Job(progress: Progress,
         case Some(request) => !request.cancel()
       }
 
-    val result2 =
-      if (result1.ok) result1
-      else if (was_timeout) result1.error(Output.error_message_text("Timeout")).timeout_rc
-      else if (result1.interrupted) result1.error(Output.error_message_text("Interrupt"))
-      else result1
-
-    val heap_shasum =
-      if (result2.ok && do_store && store.output_heap(session_name).is_file) {
-        SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
-      }
-      else SHA1.no_shasum
-
-    (result2, heap_shasum)
+    if (result.ok) result
+    else if (was_timeout) result.error(Output.error_message_text("Timeout")).timeout_rc
+    else if (result.interrupted) result.error(Output.error_message_text("Interrupt"))
+    else result
   }
 }

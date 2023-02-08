@@ -315,7 +315,13 @@ object Build {
           case Some((session_name, (input_heaps, job))) =>
             //{{{ finish job
 
-            val (process_result, output_heap) = job.join
+            val process_result = job.join
+
+            val output_heap =
+              if (process_result.ok && job.do_store && store.output_heap(session_name).is_file) {
+                SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
+              }
+              else SHA1.no_shasum
 
             val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
             val process_result_tail = {
