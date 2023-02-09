@@ -6,7 +6,7 @@ theory Map_Specs
 imports AList_Upd_Del
 begin
 
-text \<open>The basic map interface with traditional \<open>set\<close>-based specification:\<close>
+text \<open>The basic map interface with @{typ "'a \<Rightarrow> 'b option"} based specification:\<close>
 
 locale Map =
 fixes empty :: "'m"
