@@ -417,14 +417,24 @@ lemma analytic_imp_holomorphic: "f analytic_on S \<Longrightarrow> f holomorphic
      (metis centre_in_ball field_differentiable_at_within)
 
 lemma analytic_on_open: "open S \<Longrightarrow> f analytic_on S \<longleftrightarrow> f holomorphic_on S"
-apply (auto simp: analytic_imp_holomorphic)
-apply (auto simp: analytic_on_def holomorphic_on_def)
-by (metis holomorphic_on_def holomorphic_on_subset open_contains_ball)
+  by (meson analytic_imp_holomorphic analytic_on_def holomorphic_on_subset openE)
 
 lemma analytic_on_imp_differentiable_at:
   "f analytic_on S \<Longrightarrow> x \<in> S \<Longrightarrow> f field_differentiable (at x)"
- apply (auto simp: analytic_on_def holomorphic_on_def)
-by (metis open_ball centre_in_ball field_differentiable_within_open)
+  using analytic_on_def holomorphic_on_imp_differentiable_at by auto
+
+lemma analytic_at_imp_isCont:
+  assumes "f analytic_on {z}"
+  shows   "isCont f z"
+  using assms by (meson analytic_on_imp_differentiable_at field_differentiable_imp_continuous_at insertI1)
+
+lemma analytic_at_neq_imp_eventually_neq:
+  assumes "f analytic_on {x}" "f x \<noteq> c"
+  shows   "eventually (\<lambda>y. f y \<noteq> c) (at x)"
+proof (intro tendsto_imp_eventually_ne)
+  show "f \<midarrow>x\<rightarrow> f x"
+    using assms by (simp add: analytic_at_imp_isCont isContD)
+qed (use assms in auto)
 
 lemma analytic_on_subset: "f analytic_on S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> f analytic_on T"
   by (auto simp: analytic_on_def)
@@ -652,15 +662,20 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>Analyticity at a point\
 
 lemma analytic_at_ball:
   "f analytic_on {z} \<longleftrightarrow> (\<exists>e. 0<e \<and> f holomorphic_on ball z e)"
-by (metis analytic_on_def singleton_iff)
+  by (metis analytic_on_def singleton_iff)
 
 lemma analytic_at:
-    "f analytic_on {z} \<longleftrightarrow> (\<exists>s. open s \<and> z \<in> s \<and> f holomorphic_on s)"
-by (metis analytic_on_holomorphic empty_subsetI insert_subset)
+  "f analytic_on {z} \<longleftrightarrow> (\<exists>s. open s \<and> z \<in> s \<and> f holomorphic_on s)"
+  by (metis analytic_on_holomorphic empty_subsetI insert_subset)
+
+lemma holomorphic_on_imp_analytic_at:
+  assumes "f holomorphic_on A" "open A" "z \<in> A"
+  shows   "f analytic_on {z}"
+  using assms by (meson analytic_at)
 
 lemma analytic_on_analytic_at:
-    "f analytic_on s \<longleftrightarrow> (\<forall>z \<in> s. f analytic_on {z})"
-by (metis analytic_at_ball analytic_on_def)
+  "f analytic_on s \<longleftrightarrow> (\<forall>z \<in> s. f analytic_on {z})"
+  by (metis analytic_at_ball analytic_on_def)
 
 lemma analytic_at_two:
   "f analytic_on {z} \<and> g analytic_on {z} \<longleftrightarrow>

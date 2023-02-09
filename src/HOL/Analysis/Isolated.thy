@@ -14,6 +14,12 @@ definition (in topological_space) discrete:: "'a set \<Rightarrow> bool"
 definition (in metric_space) uniform_discrete :: "'a set \<Rightarrow> bool" where
   "uniform_discrete S \<longleftrightarrow> (\<exists>e>0. \<forall>x\<in>S. \<forall>y\<in>S. dist x y < e \<longrightarrow> x = y)"
 
+lemma discreteI: "(\<And>x. x \<in> X \<Longrightarrow> x isolated_in X ) \<Longrightarrow> discrete X"
+  unfolding discrete_def by auto
+
+lemma discreteD: "discrete X \<Longrightarrow> x \<in> X \<Longrightarrow> x isolated_in X "
+  unfolding discrete_def by auto
+ 
 lemma uniformI1:
   assumes "e>0" "\<And>x y. \<lbrakk>x\<in>S;y\<in>S;dist x y<e\<rbrakk> \<Longrightarrow> x =y "
   shows "uniform_discrete S"
@@ -42,6 +48,54 @@ lemma isolated_in_insert:
   fixes x :: "'a::t1_space"
   shows "x isolated_in (insert a S) \<longleftrightarrow> x isolated_in S \<or> (x=a \<and> \<not> (x islimpt S))"
 by (meson insert_iff islimpt_insert isolated_in_islimpt_iff)
+
+lemma isolated_inI:
+  assumes "x\<in>S" "open T" "T \<inter> S = {x}"
+  shows   "x isolated_in S"
+  using assms unfolding isolated_in_def by auto
+
+lemma isolated_inE:
+  assumes "x isolated_in S"
+  obtains T where "x \<in> S" "open T" "T \<inter> S = {x}"
+  using assms that unfolding isolated_in_def by force
+
+lemma isolated_inE_dist:
+  assumes "x isolated_in S"
+  obtains d where "d > 0" "\<And>y. y \<in> S \<Longrightarrow> dist x y < d \<Longrightarrow> y = x"
+  by (meson assms isolated_in_dist_Ex_iff)
+
+lemma isolated_in_altdef: 
+  "x isolated_in S \<longleftrightarrow> (x\<in>S \<and> eventually (\<lambda>y. y \<notin> S) (at x))"
+proof 
+  assume "x isolated_in S"
+  from isolated_inE[OF this] 
+  obtain T where "x \<in> S" and T:"open T" "T \<inter> S = {x}"
+    by metis
+  have "\<forall>\<^sub>F y in nhds x. y \<in> T"
+    apply (rule eventually_nhds_in_open)
+    using T by auto
+  then have  "eventually (\<lambda>y. y \<in> T - {x}) (at x)"
+    unfolding eventually_at_filter by eventually_elim auto
+  then have "eventually (\<lambda>y. y \<notin> S) (at x)"
+    by eventually_elim (use T in auto)
+  then show " x \<in> S \<and> (\<forall>\<^sub>F y in at x. y \<notin> S)" using \<open>x \<in> S\<close> by auto
+next
+  assume "x \<in> S \<and> (\<forall>\<^sub>F y in at x. y \<notin> S)" 
+  then have "\<forall>\<^sub>F y in at x. y \<notin> S" "x\<in>S" by auto
+  from this(1) have "eventually (\<lambda>y. y \<notin> S \<or> y = x) (nhds x)"
+    unfolding eventually_at_filter by eventually_elim auto
+  then obtain T where T:"open T" "x \<in> T" "(\<forall>y\<in>T. y \<notin> S \<or> y = x)" 
+    unfolding eventually_nhds by auto
+  with \<open>x \<in> S\<close> have "T \<inter> S = {x}"  
+    by fastforce
+  with \<open>x\<in>S\<close> \<open>open T\<close>
+  show "x isolated_in S"
+    unfolding isolated_in_def by auto
+qed
+
+lemma discrete_altdef:
+  "discrete S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>\<^sub>F y in at x. y \<notin> S)"
+  unfolding discrete_def isolated_in_altdef by auto
 
 (*
 TODO.
@@ -192,6 +246,82 @@ proof -
     ultimately show ?thesis unfolding uniform_discrete_def by meson
   qed
   ultimately show ?thesis by fastforce
+qed
+
+definition sparse :: "real \<Rightarrow> 'a :: metric_space set \<Rightarrow> bool"
+  where "sparse \<epsilon> X \<longleftrightarrow> (\<forall>x\<in>X. \<forall>y\<in>X-{x}. dist x y > \<epsilon>)"
+
+lemma sparse_empty [simp, intro]: "sparse \<epsilon> {}"
+  by (auto simp: sparse_def)
+
+lemma sparseI [intro?]:
+  "(\<And>x y. x \<in> X \<Longrightarrow> y \<in> X \<Longrightarrow> x \<noteq> y \<Longrightarrow> dist x y > \<epsilon>) \<Longrightarrow> sparse \<epsilon> X"
+  unfolding sparse_def by auto
+
+lemma sparseD:
+  "sparse \<epsilon> X \<Longrightarrow> x \<in> X \<Longrightarrow> y \<in> X \<Longrightarrow> x \<noteq> y \<Longrightarrow> dist x y > \<epsilon>"
+  unfolding sparse_def by auto
+
+lemma sparseD':
+  "sparse \<epsilon> X \<Longrightarrow> x \<in> X \<Longrightarrow> y \<in> X \<Longrightarrow> dist x y \<le> \<epsilon> \<Longrightarrow> x = y"
+  unfolding sparse_def by force
+
+lemma sparse_singleton [simp, intro]: "sparse \<epsilon> {x}"
+  by (auto simp: sparse_def)
+
+definition setdist_gt where "setdist_gt \<epsilon> X Y \<longleftrightarrow> (\<forall>x\<in>X. \<forall>y\<in>Y. dist x y > \<epsilon>)"
+
+lemma setdist_gt_empty [simp]: "setdist_gt \<epsilon> {} Y" "setdist_gt \<epsilon> X {}"
+  by (auto simp: setdist_gt_def)
+
+lemma setdist_gtI: "(\<And>x y. x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> dist x y > \<epsilon>) \<Longrightarrow> setdist_gt \<epsilon> X Y"
+  unfolding setdist_gt_def by auto
+
+lemma setdist_gtD: "setdist_gt \<epsilon> X Y \<Longrightarrow> x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> dist x y > \<epsilon>"
+  unfolding setdist_gt_def by auto 
+
+lemma setdist_gt_setdist: "\<epsilon> < setdist A B \<Longrightarrow> setdist_gt \<epsilon> A B"
+  unfolding setdist_gt_def using setdist_le_dist by fastforce
+
+lemma setdist_gt_mono: "setdist_gt \<epsilon>' A B \<Longrightarrow> \<epsilon> \<le> \<epsilon>' \<Longrightarrow> A' \<subseteq> A \<Longrightarrow> B' \<subseteq> B \<Longrightarrow> setdist_gt \<epsilon> A' B'"
+  by (force simp: setdist_gt_def)
+  
+lemma setdist_gt_Un_left: "setdist_gt \<epsilon> (A \<union> B) C \<longleftrightarrow> setdist_gt \<epsilon> A C \<and> setdist_gt \<epsilon> B C"
+  by (auto simp: setdist_gt_def)
+
+lemma setdist_gt_Un_right: "setdist_gt \<epsilon> C (A \<union> B) \<longleftrightarrow> setdist_gt \<epsilon> C A \<and> setdist_gt \<epsilon> C B"
+  by (auto simp: setdist_gt_def)
+  
+lemma compact_closed_imp_eventually_setdist_gt_at_right_0:
+  assumes "compact A" "closed B" "A \<inter> B = {}"
+  shows   "eventually (\<lambda>\<epsilon>. setdist_gt \<epsilon> A B) (at_right 0)"
+proof (cases "A = {} \<or> B = {}")
+  case False
+  hence "setdist A B > 0"
+    by (metis IntI assms empty_iff in_closed_iff_infdist_zero order_less_le setdist_attains_inf setdist_pos_le setdist_sym)
+  hence "eventually (\<lambda>\<epsilon>. \<epsilon> < setdist A B) (at_right 0)"
+    using eventually_at_right_field by blast
+  thus ?thesis
+    by eventually_elim (auto intro: setdist_gt_setdist)
+qed auto 
+
+lemma setdist_gt_symI: "setdist_gt \<epsilon> A B \<Longrightarrow> setdist_gt \<epsilon> B A"
+  by (force simp: setdist_gt_def dist_commute)
+
+lemma setdist_gt_sym: "setdist_gt \<epsilon> A B \<longleftrightarrow> setdist_gt \<epsilon> B A"
+  by (force simp: setdist_gt_def dist_commute)
+
+lemma eventually_setdist_gt_at_right_0_mult_iff:
+  assumes "c > 0"
+  shows   "eventually (\<lambda>\<epsilon>. setdist_gt (c * \<epsilon>) A B) (at_right 0) \<longleftrightarrow>
+             eventually (\<lambda>\<epsilon>. setdist_gt \<epsilon> A B) (at_right 0)"
+proof -
+  have "eventually (\<lambda>\<epsilon>. setdist_gt (c * \<epsilon>) A B) (at_right 0) \<longleftrightarrow>
+        eventually (\<lambda>\<epsilon>. setdist_gt \<epsilon> A B) (filtermap ((*) c) (at_right 0))"
+    by (simp add: eventually_filtermap)
+  also have "filtermap ((*) c) (at_right 0) = at_right 0"
+    by (subst filtermap_times_pos_at_right) (use assms in auto)
+  finally show ?thesis .
 qed
 
 end
