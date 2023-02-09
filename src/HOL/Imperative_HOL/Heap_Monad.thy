@@ -646,8 +646,8 @@ val imp_program =
     val unitT = \<^type_name>\<open>unit\<close> `%% [];
     val unitt =
       IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Unity\<close>, typargs = [], dicts = [], dom = [],
-        annotation = NONE };
-    fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
+        annotation = NONE, range = unitT };
+    fun dest_abs ((v, ty) `|=> (t, _), _) = ((v, ty), t)
       | dest_abs (t, ty) =
           let
             val vs = fold_varnames cons t [];
@@ -667,7 +667,7 @@ val imp_program =
           else force t
       | _ => force t;
     fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=>
-      ICase { term = IVar (SOME dummy_name), typ = unitT, clauses = [(unitt, tr_bind'' ts)], primitive = dummy_case_term }
+      (ICase { term = IVar (SOME dummy_name), typ = unitT, clauses = [(unitt, tr_bind'' ts)], primitive = dummy_case_term }, unitT)
     fun imp_monad_bind' (const as { sym = Code_Symbol.Constant c, dom = dom, ... }) ts = if is_bind c then case (ts, dom)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
         | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)] `$ t3
@@ -678,7 +678,7 @@ val imp_program =
       | imp_monad_bind (t as _ `$ _) = (case unfold_app t
          of (IConst const, ts) => imp_monad_bind' const ts
           | (t, ts) => imp_monad_bind t `$$ map imp_monad_bind ts)
-      | imp_monad_bind (v_ty `|=> t) = v_ty `|=> imp_monad_bind t
+      | imp_monad_bind (v_ty `|=> t) = v_ty `|=> apfst imp_monad_bind t
       | imp_monad_bind (ICase { term = t, typ = ty, clauses = clauses, primitive = t0 }) =
           ICase { term = imp_monad_bind t, typ = ty,
             clauses = (map o apply2) imp_monad_bind clauses, primitive = imp_monad_bind t0 };

@@ -243,7 +243,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                   ]
               | SOME (wanted, Code_Printer.Complex_printer _) =>
                   let
-                    val { sym = Constant c, dom, ... } = const;
+                    val { sym = Constant c, dom, range, ... } = const;
                     val (vs, rhs) = (apfst o map) fst
                       (Code_Thingol.unfold_abs (Code_Thingol.satisfied_application wanted (const, [])));
                     val s = if (is_some o const_syntax) c
@@ -251,7 +251,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                     val vars = reserved
                       |> intro_vars (map_filter I (s :: vs));
                     val lhs = IConst { sym = Constant classparam, typargs = [],
-                      dicts = [], dom = dom, annotation = NONE } `$$ map IVar vs;
+                      dicts = [], dom = dom, range = range, annotation = NONE } `$$ map IVar vs;
                       (*dictionaries are not relevant in Haskell,
                         and these consts never need type annotations for disambiguation *)
                   in

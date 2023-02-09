@@ -326,7 +326,7 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
           in of_iapp match_cont t' (fold_rev (cons o of_iterm NONE) ts []) end
         and of_iapp match_cont (IConst { sym, dicts = dss, ... }) ts = constapp sym dss ts
           | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound_optional v) ts
-          | of_iapp match_cont ((v, _) `|=> t) ts =
+          | of_iapp match_cont ((v, _) `|=> (t, _)) ts =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound_optional v]) (of_iterm NONE t))) ts
           | of_iapp match_cont (ICase { term = t, clauses = clauses, primitive = t0, ... }) ts =
               nbe_apps (ml_cases (of_iterm NONE t)
@@ -421,7 +421,7 @@ fun compile_eqnss ctxt nbe_program raw_deps [] = []
 
 fun dummy_const sym dss =
   IConst { sym = sym, typargs = [], dicts = dss,
-    dom = [], annotation = NONE };
+    dom = [], annotation = NONE, range = ITyVar "" };
 
 fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
       []
