@@ -2567,6 +2567,11 @@ text \<open>
 definition\<^marker>\<open>tag important\<close> fps_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex fps" where
   "fps_expansion f z0 = Abs_fps (\<lambda>n. (deriv ^^ n) f z0 / fact n)"
 
+lemma fps_expansion_cong:
+  assumes "\<forall>\<^sub>F w in nhds x. f w =g w"
+  shows "fps_expansion f x = fps_expansion g x"
+  unfolding fps_expansion_def using assms higher_deriv_cong_ev by fastforce 
+
 lemma
   fixes r :: ereal
   assumes "f holomorphic_on eball z0 r"

@@ -131,7 +131,10 @@ definition [code del]: \<open>(uniformity :: (('a \<times> 'b) \<times> ('a \<ti
 instance..
 end
 
-instantiation\<^marker>\<open>tag unimportant\<close> prod :: (uniform_space, uniform_space) uniform_space begin
+subsubsection \<open>Uniform spaces\<close>
+
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (uniform_space, uniform_space) uniform_space 
+begin
 instance 
 proof standard
   fix U :: \<open>('a \<times> 'b) set\<close>
@@ -215,6 +218,133 @@ next
   qed
 qed
 end
+
+
+lemma (in uniform_space) nhds_eq_comap_uniformity: "nhds x = filtercomap (\<lambda>y. (x, y)) uniformity"
+proof -
+  have *: "eventually P (filtercomap (\<lambda>y. (x, y)) F) \<longleftrightarrow>
+           eventually (\<lambda>z. fst z = x \<longrightarrow> P (snd z)) F" for P :: "'a \<Rightarrow> bool" and F
+    unfolding eventually_filtercomap  
+    by (smt (verit) eventually_elim2 fst_conv prod.collapse snd_conv)
+  thus ?thesis
+    unfolding filter_eq_iff
+    by (subst *) (auto simp: eventually_nhds_uniformity case_prod_unfold)
+qed
+
+lemma uniformity_of_uniform_continuous_invariant:
+  fixes f :: "'a :: uniform_space \<Rightarrow> 'a \<Rightarrow> 'a"
+  assumes "filterlim (\<lambda>((a,b),(c,d)). (f a c, f b d)) uniformity (uniformity \<times>\<^sub>F uniformity)"
+  assumes "eventually P uniformity"
+  obtains Q where "eventually Q uniformity" "\<And>a b c. Q (a, b) \<Longrightarrow> P (f a c, f b c)"
+  using eventually_compose_filterlim[OF assms(2,1)] uniformity_refl
+    by (fastforce simp: case_prod_unfold eventually_filtercomap eventually_prod_same)
+
+class uniform_topological_monoid_add = topological_monoid_add + uniform_space +
+  assumes uniformly_continuous_add':
+    "filterlim (\<lambda>((a,b), (c,d)). (a + c, b + d)) uniformity (uniformity \<times>\<^sub>F uniformity)"
+
+lemma uniformly_continuous_add:
+  "uniformly_continuous_on UNIV (\<lambda>(x :: 'a :: uniform_topological_monoid_add,y). x + y)"
+  using uniformly_continuous_add'[where ?'a = 'a]
+  by (simp add: uniformly_continuous_on_uniformity case_prod_unfold uniformity_prod_def filterlim_filtermap)
+
+lemma filterlim_fst: "filterlim fst F (F \<times>\<^sub>F G)"
+  by (simp add: filterlim_def filtermap_fst_prod_filter)
+
+lemma filterlim_snd: "filterlim snd G (F \<times>\<^sub>F G)"
+  by (simp add: filterlim_def filtermap_snd_prod_filter)
+
+class uniform_topological_group_add = topological_group_add + uniform_topological_monoid_add +
+  assumes uniformly_continuous_uminus': "filterlim (\<lambda>(a, b). (-a, -b)) uniformity uniformity"
+begin
+
+lemma uniformly_continuous_minus':
+  "filterlim (\<lambda>((a,b), (c,d)). (a - c, b - d)) uniformity (uniformity \<times>\<^sub>F uniformity)"
+proof -
+  have "filterlim ((\<lambda>((a,b), (c,d)). (a + c, b + d)) \<circ> (\<lambda>((a,b), (c,d)). ((a, b), (-c, -d))))
+          uniformity (uniformity \<times>\<^sub>F uniformity)"
+    unfolding o_def using uniformly_continuous_uminus'
+    by (intro filterlim_compose[OF uniformly_continuous_add'])
+       (auto simp: case_prod_unfold intro!: filterlim_Pair
+          filterlim_fst filterlim_compose[OF _ filterlim_snd])
+  thus ?thesis
+    by (simp add: o_def case_prod_unfold)
+qed
+
+end
+
+lemma uniformly_continuous_uminus:
+  "uniformly_continuous_on UNIV (\<lambda>x :: 'a :: uniform_topological_group_add. -x)"
+  using uniformly_continuous_uminus'[where ?'a = 'a]
+  by (simp add: uniformly_continuous_on_uniformity)
+
+lemma uniformly_continuous_minus:
+  "uniformly_continuous_on UNIV (\<lambda>(x :: 'a :: uniform_topological_group_add,y). x - y)"
+  using uniformly_continuous_minus'[where ?'a = 'a]
+  by (simp add: uniformly_continuous_on_uniformity case_prod_unfold uniformity_prod_def filterlim_filtermap)
+
+
+
+lemma real_normed_vector_is_uniform_topological_group_add [Pure.intro]:
+  "OFCLASS('a :: real_normed_vector, uniform_topological_group_add_class)"
+proof
+  show "filterlim (\<lambda>((a::'a,b), (c,d)). (a + c, b + d)) uniformity (uniformity \<times>\<^sub>F uniformity)"
+    unfolding filterlim_def le_filter_def eventually_filtermap case_prod_unfold
+  proof safe
+    fix P :: "'a \<times> 'a \<Rightarrow> bool"
+    assume "eventually P uniformity"
+    then obtain \<epsilon> where \<epsilon>: "\<epsilon> > 0" "\<And>x y. dist x y < \<epsilon> \<Longrightarrow> P (x, y)"
+      by (auto simp: eventually_uniformity_metric)
+    define Q where "Q = (\<lambda>(x::'a,y). dist x y < \<epsilon> / 2)"
+    have Q: "eventually Q uniformity"
+      unfolding eventually_uniformity_metric Q_def using \<open>\<epsilon> > 0\<close>
+      by (meson case_prodI divide_pos_pos zero_less_numeral)
+    have "P (a + c, b + d)" if "Q (a, b)" "Q (c, d)" for a b c d
+    proof -
+      have "dist (a + c) (b + d) \<le> dist a b + dist c d"
+        by (simp add: dist_norm norm_diff_triangle_ineq)
+      also have "\<dots> < \<epsilon>"
+        using that by (auto simp: Q_def)
+      finally show ?thesis
+        by (intro \<epsilon>)
+    qed
+    thus "\<forall>\<^sub>F x in uniformity \<times>\<^sub>F uniformity. P (fst (fst x) + fst (snd x), snd (fst x) + snd (snd x))"
+      unfolding eventually_prod_filter by (intro exI[of _ Q] conjI Q) auto
+  qed
+next
+  show "filterlim (\<lambda>((a::'a), b). (-a, -b)) uniformity uniformity"
+    unfolding filterlim_def le_filter_def eventually_filtermap
+  proof safe
+    fix P :: "'a \<times> 'a \<Rightarrow> bool"
+    assume "eventually P uniformity"
+    then obtain \<epsilon> where \<epsilon>: "\<epsilon> > 0" "\<And>x y. dist x y < \<epsilon> \<Longrightarrow> P (x, y)"
+      by (auto simp: eventually_uniformity_metric)
+    show "\<forall>\<^sub>F x in uniformity. P (case x of (a, b) \<Rightarrow> (- a, - b))"
+      unfolding eventually_uniformity_metric
+      by (intro exI[of _ \<epsilon>]) (auto intro!: \<epsilon> simp: dist_norm norm_minus_commute)
+  qed
+qed
+
+instance real :: uniform_topological_group_add ..
+instance complex :: uniform_topological_group_add ..
+
+lemma cauchy_seq_finset_iff_vanishing:
+  "uniformity = filtercomap (\<lambda>(x,y). y - x :: 'a :: uniform_topological_group_add) (nhds 0)"
+proof -
+  have "filtercomap (\<lambda>x. (0, case x of (x, y) \<Rightarrow> y - (x :: 'a))) uniformity \<le> uniformity"
+    apply (simp add: le_filter_def eventually_filtercomap)
+    using uniformity_of_uniform_continuous_invariant[OF uniformly_continuous_add']
+    by (metis diff_self eq_diff_eq)
+  moreover
+  have "uniformity \<le> filtercomap (\<lambda>x. (0, case x of (x, y) \<Rightarrow> y - (x :: 'a))) uniformity"
+    apply (simp add: le_filter_def eventually_filtercomap)
+    using uniformity_of_uniform_continuous_invariant[OF uniformly_continuous_minus']
+    by (metis (mono_tags) diff_self eventually_mono surjective_pairing)
+  ultimately show ?thesis
+    by (simp add: nhds_eq_comap_uniformity filtercomap_filtercomap)
+qed
+
+subsubsection \<open>Metric spaces\<close>
 
 instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) uniformity_dist begin
 instance
@@ -422,7 +552,7 @@ lemma isUCont_prod_metric:
   using uniformly_continuous_on_prod_metric[of UNIV UNIV]
   by auto
 
-text \<open>This logically belong with the real vector spaces by we only have the necessary lemmas now.\<close>
+text \<open>This logically belong with the real vector spaces but we only have the necessary lemmas now.\<close>
 lemma isUCont_plus[simp]:
   shows \<open>isUCont (\<lambda>(x::'a::real_normed_vector,y). x+y)\<close>
 proof (rule isUCont_prod_metric[THEN iffD2], intro allI impI, simp)

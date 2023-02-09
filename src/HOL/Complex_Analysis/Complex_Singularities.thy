@@ -39,6 +39,11 @@ lemma is_pole_shift_0':
   shows "NO_MATCH 0 z \<Longrightarrow> is_pole f z \<longleftrightarrow> is_pole (\<lambda>x. f (z + x)) 0"
   by (metis is_pole_shift_0)
 
+lemma is_pole_compose_iff:
+  assumes "filtermap g (at x) = (at y)"
+  shows   "is_pole (f \<circ> g) x \<longleftrightarrow> is_pole f y"
+  unfolding is_pole_def filterlim_def filtermap_compose assms ..
+
 lemma is_pole_inverse_holomorphic:
   assumes "open s"
     and f_holo:"f holomorphic_on (s-{z})"
@@ -208,7 +213,28 @@ lemma is_pole_mult_analytic_nonzero2_iff:
   shows   "is_pole (\<lambda>x. f x * g x) x \<longleftrightarrow> is_pole f x"
   by (subst mult.commute, rule is_pole_mult_analytic_nonzero1_iff) (fact assms)+
 
-text \<open>The proposition
+lemma frequently_const_imp_not_is_pole:
+  fixes z :: "'a::first_countable_topology"
+  assumes "frequently (\<lambda>w. f w = c) (at z)"
+  shows   "\<not> is_pole f z"
+proof
+  assume "is_pole f z"
+  from assms have "z islimpt {w. f w = c}"
+    by (simp add: islimpt_conv_frequently_at)
+  then obtain g where g: "\<And>n. g n \<in> {w. f w = c} - {z}" "g \<longlonglongrightarrow> z"
+    unfolding islimpt_sequential by blast
+  then have "(f \<circ> g) \<longlonglongrightarrow> c"
+    by (simp add: tendsto_eventually)
+  moreover have *: "filterlim g (at z) sequentially"
+    using g by (auto simp: filterlim_at)
+  have "filterlim (f \<circ> g) at_infinity sequentially"
+    unfolding o_def by (rule filterlim_compose [OF _ *])
+                       (use \<open>is_pole f z\<close> in \<open>simp add: is_pole_def\<close>)
+  ultimately show False
+    using not_tendsto_and_filterlim_at_infinity trivial_limit_sequentially by blast
+qed
+  
+ text \<open>The proposition
               \<^term>\<open>\<exists>x. ((f::complex\<Rightarrow>complex) \<longlongrightarrow> x) (at z) \<or> is_pole f z\<close>
 can be interpreted as the complex function \<^term>\<open>f\<close> has a non-essential singularity at \<^term>\<open>z\<close>
 (i.e. the singularity is either removable or a pole).\<close>
