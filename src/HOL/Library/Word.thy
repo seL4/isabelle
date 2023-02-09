@@ -605,20 +605,21 @@ definition enum_word :: \<open>'a word list\<close>
   where \<open>enum_word = map word_of_nat [0..<2 ^ LENGTH('a)]\<close>
 
 definition enum_all_word :: \<open>('a word \<Rightarrow> bool) \<Rightarrow> bool\<close>
-  where \<open>enum_all_word = Ball UNIV\<close>
+  where \<open>enum_all_word = All\<close>
 
 definition enum_ex_word :: \<open>('a word \<Rightarrow> bool) \<Rightarrow> bool\<close>
-  where \<open>enum_ex_word = Bex UNIV\<close>
-
-lemma [code]:
-  \<open>Enum.enum_all P \<longleftrightarrow> Ball UNIV P\<close>
-  \<open>Enum.enum_ex P \<longleftrightarrow> Bex UNIV P\<close> for P :: \<open>'a word \<Rightarrow> bool\<close>
-  by (simp_all add: enum_all_word_def enum_ex_word_def)
+  where \<open>enum_ex_word = Ex\<close>
 
 instance
-  by standard (simp_all add: UNIV_word_eq_word_of_nat inj_on_word_of_nat enum_word_def enum_all_word_def enum_ex_word_def distinct_map)
+  by standard
+    (simp_all add: enum_all_word_def enum_ex_word_def enum_word_def distinct_map inj_on_word_of_nat flip: UNIV_word_eq_word_of_nat)
 
 end
+
+lemma [code]:
+  \<open>Enum.enum_all P \<longleftrightarrow> list_all P Enum.enum\<close>
+  \<open>Enum.enum_ex P \<longleftrightarrow> list_ex P Enum.enum\<close> for P :: \<open>'a::len word \<Rightarrow> bool\<close>
+  by (simp_all add: enum_all_word_def enum_ex_word_def enum_UNIV list_all_iff list_ex_iff)
 
 
 subsection \<open>Bit-wise operations\<close>
