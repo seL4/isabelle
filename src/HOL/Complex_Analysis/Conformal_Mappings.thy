@@ -1079,7 +1079,7 @@ proof -
   qed
 qed
 
-text\<open>Hence a nice clean inverse function theorem\<close>
+subsubsection \<open>Hence a nice clean inverse function theorem\<close>
 
 lemma has_field_derivative_inverse_strong:
   fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
@@ -1138,6 +1138,78 @@ proof -
       show "the_inv_into S f (f z) = z"
         by (simp add: \<open>z \<in> S\<close> injf the_inv_into_f_f)
   qed
+qed
+
+subsubsection \<open> Holomorphism of covering maps and lifts.\<close>
+
+lemma covering_space_lift_is_holomorphic:
+  assumes cov: "covering_space C p S"
+      and C: "open C" "p holomorphic_on C"
+      and holf: "f holomorphic_on U" and fim: "f ` U \<subseteq> S" and gim: "g ` U \<subseteq> C"
+      and contg: "continuous_on U g" and pg_f: "\<And>x. x \<in> U \<Longrightarrow> p(g x) = f x"
+    shows "g holomorphic_on U"
+  unfolding holomorphic_on_def
+proof (intro strip)
+  fix z
+  assume "z \<in> U"
+  with fim have "f z \<in> S" by blast
+  then obtain T \<V> where "f z \<in> T" and opeT: "openin (top_of_set S) T" 
+        and UV: "\<Union>\<V> = C \<inter> p -` T" 
+        and "\<And>W. W \<in> \<V> \<Longrightarrow> openin (top_of_set C) W" 
+        and disV: "pairwise disjnt \<V>" and homeV: "\<And>W. W \<in> \<V> \<Longrightarrow> \<exists>q. homeomorphism W T p q"
+    using cov fim unfolding covering_space_def by meson
+  then have "\<And>W. W \<in> \<V> \<Longrightarrow> open W \<and> W \<subseteq> C"
+    by (metis \<open>open C\<close> inf_le1 open_Int openin_open) 
+  then obtain V where "V \<in> \<V>" "g z \<in> V" "open V" "V \<subseteq> C"
+    by (metis IntI UnionE image_subset_iff vimageI UV \<open>f z \<in> T\<close> \<open>z \<in> U\<close> gim pg_f)
+  have holp: "p holomorphic_on V"
+    using \<open>V \<subseteq> C\<close> \<open>p holomorphic_on C\<close> holomorphic_on_subset by blast
+  moreover have injp: "inj_on p V"
+    by (metis \<open>V \<in> \<V>\<close> homeV homeomorphism_def inj_on_inverseI)
+  ultimately
+  obtain p' where holp': "p' holomorphic_on (p ` V)" and pp': "\<And>z. z \<in> V \<Longrightarrow> p'(p z) = z"
+    using \<open>open V\<close> holomorphic_has_inverse by metis
+  have "z \<in> U \<inter> g -` V"
+    using \<open>g z \<in> V\<close> \<open>z \<in> U\<close> by blast
+  moreover have "openin (top_of_set U) (U \<inter> g -` V)"
+    using continuous_openin_preimage [OF contg gim]
+    by (meson \<open>open V\<close> contg continuous_openin_preimage_eq)
+  ultimately obtain \<epsilon> where "\<epsilon>>0" and e: "ball z \<epsilon> \<inter> U \<subseteq> g -` V"
+    by (force simp add: openin_contains_ball)
+  show "g field_differentiable at z within U"
+  proof (rule field_differentiable_transform_within)
+    show "(0::real) < \<epsilon>"
+      by (simp add: \<open>0 < \<epsilon>\<close>)
+    show "z \<in> U"
+      by (simp add: \<open>z \<in> U\<close>)
+    show "(p' o f) x' = g x'" if "x' \<in> U" "dist x' z < \<epsilon>" for x' 
+      using that
+      by (metis Int_iff comp_apply dist_commute e mem_ball pg_f pp' subsetD vimage_eq)
+    have "open (p ` V)"
+      using \<open>open V\<close> holp injp open_mapping_thm3 by force
+    moreover have "f z \<in> p ` V"
+      by (metis \<open>z \<in> U\<close> image_iff pg_f \<open>g z \<in> V\<close>)
+    ultimately have "p' field_differentiable at (f z)"
+      using holomorphic_on_imp_differentiable_at holp' by blast
+    moreover have "f field_differentiable at z within U"
+      by (metis (no_types) \<open>z \<in> U\<close> holf holomorphic_on_def)
+    ultimately show "(p' o f) field_differentiable at z within U"
+      by (metis (no_types) field_differentiable_at_within field_differentiable_compose_within)
+  qed
+qed
+
+lemma covering_space_lift_holomorphic:
+  assumes cov: "covering_space C p S"
+      and C: "open C" "p holomorphic_on C"
+      and f: "f holomorphic_on U" "f ` U \<subseteq> S" 
+      and U: "simply_connected U" "locally path_connected U"
+    obtains g where  "g holomorphic_on U" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+proof -
+  obtain g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+    using covering_space_lift [OF cov U]
+    using f holomorphic_on_imp_continuous_on by blast
+  then show ?thesis
+    by (metis C cov covering_space_lift_is_holomorphic f that)
 qed
 
 subsection\<open>The Schwarz Lemma\<close>
@@ -1923,8 +1995,7 @@ next
   qed
   show ?thesis
     apply (rule Bloch_unit [OF 1 2])
-    apply (rule_tac b="(C * of_real r) * b" in that)
-    using image_mono sb1 sb2 by fastforce
+    using image_mono sb1 sb2 that by fastforce
 qed
 
 corollary Bloch_general:
@@ -1954,10 +2025,7 @@ proof -
       then have 1: "f holomorphic_on ball a t"
         using holf using holomorphic_on_subset by blast
       show ?thesis
-        apply (rule Bloch [OF 1 \<open>t > 0\<close> rle])
-        apply (rule_tac b=b in that)
-        using * apply force
-        done
+        using Bloch [OF 1 \<open>t > 0\<close> rle] * by (metis image_mono order_trans that)
     qed
   qed
 qed
