@@ -4204,6 +4204,12 @@ proof -
   finally show ?thesis .
 qed
 
+lemma cos_zero_iff_int2:
+  fixes x::real
+  shows "cos x = 0 \<longleftrightarrow> (\<exists>n::int. x = n * pi +  pi/2)"
+  using sin_zero_iff_int2[of "x-pi/2"] unfolding sin_cos_eq 
+  by (auto simp add: algebra_simps)
+
 lemma sin_npi_int [simp]: "sin (pi * of_int n) = 0"
   by (simp add: sin_zero_iff_int2)
 
@@ -4548,6 +4554,9 @@ lemma tan_npi [simp]: "tan (real n * pi) = 0"
   for n :: nat
   by (simp add: tan_def)
 
+lemma tan_pi_half [simp]: "tan (pi / 2) = 0"
+  by (simp add: tan_def)
+
 lemma tan_minus [simp]: "tan (- x) = - tan x"
   by (simp add: tan_def)
 
@@ -4560,6 +4569,16 @@ lemma lemma_tan_add1: "cos x \<noteq> 0 \<Longrightarrow> cos y \<noteq> 0 \<Lon
 lemma add_tan_eq: "cos x \<noteq> 0 \<Longrightarrow> cos y \<noteq> 0 \<Longrightarrow> tan x + tan y = sin(x + y)/(cos x * cos y)"
   for x :: "'a::{real_normed_field,banach}"
   by (simp add: tan_def sin_add field_simps)
+
+lemma tan_eq_0_cos_sin: "tan x = 0 \<longleftrightarrow> cos x = 0 \<or> sin x = 0"
+  by (auto simp: tan_def)
+
+text \<open>Note: half of these zeros would normally be regarded as undefined cases.\<close>
+lemma tan_eq_0_Ex:
+  assumes "tan x = 0"
+  obtains k::int where "x = (k/2) * pi"
+  using assms
+  by (metis cos_zero_iff_int mult.commute sin_zero_iff_int tan_eq_0_cos_sin times_divide_eq_left) 
 
 lemma tan_add:
   "cos x \<noteq> 0 \<Longrightarrow> cos y \<noteq> 0 \<Longrightarrow> cos (x + y) \<noteq> 0 \<Longrightarrow> tan (x + y) = (tan x + tan y)/(1 - tan x * tan y)"
@@ -4803,7 +4822,6 @@ lemma tan_periodic_pi[simp]: "tan (x + pi) = tan x"
   by (simp add: tan_def)
 
 lemma tan_periodic_nat[simp]: "tan (x + real n * pi) = tan x"
-  for n :: nat
 proof (induct n arbitrary: x)
   case 0
   then show ?case by simp
@@ -4817,25 +4835,16 @@ qed
 
 lemma tan_periodic_int[simp]: "tan (x + of_int i * pi) = tan x"
 proof (cases "0 \<le> i")
-  case True
-  then have i_nat: "of_int i = of_int (nat i)" by auto
-  show ?thesis unfolding i_nat
-    by (metis of_int_of_nat_eq tan_periodic_nat)
-next
   case False
   then have i_nat: "of_int i = - of_int (nat (- i))" by auto
-  have "tan x = tan (x + of_int i * pi - of_int i * pi)"
-    by auto
-  also have "\<dots> = tan (x + of_int i * pi)"
-    unfolding i_nat mult_minus_left diff_minus_eq_add
-    by (metis of_int_of_nat_eq tan_periodic_nat)
-  finally show ?thesis by auto
-qed
+  then show ?thesis
+    by (smt (verit, best) mult_minus_left of_int_of_nat_eq tan_periodic_nat)
+qed (use zero_le_imp_eq_int in fastforce)
 
 lemma tan_periodic_n[simp]: "tan (x + numeral n * pi) = tan x"
   using tan_periodic_int[of _ "numeral n" ] by simp
 
-lemma tan_minus_45: "tan (-(pi/4)) = -1"
+lemma tan_minus_45 [simp]: "tan (-(pi/4)) = -1"
   unfolding tan_def by (simp add: sin_45 cos_45)
 
 lemma tan_diff:
@@ -4923,11 +4932,7 @@ lemma cot_gt_zero: "0 < x \<Longrightarrow> x < pi/2 \<Longrightarrow> 0 < cot x
 lemma cot_less_zero:
   assumes lb: "- pi/2 < x" and "x < 0"
   shows "cot x < 0"
-proof -
-  have "0 < cot (- x)"
-    using assms by (simp only: cot_gt_zero)
-  then show ?thesis by simp
-qed
+  by (smt (verit) assms cot_gt_zero cot_minus divide_minus_left)
 
 lemma DERIV_cot [simp]: "sin x \<noteq> 0 \<Longrightarrow> DERIV cot x :> -inverse ((sin x)\<^sup>2)"
   for x :: "'a::{real_normed_field,banach}"
@@ -5159,6 +5164,48 @@ lemma arctan_minus: "arctan (- x) = - arctan x"
 
 lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
   by (intro less_imp_neq [symmetric] cos_gt_zero_pi arctan_lbound arctan_ubound)
+
+lemma tan_eq_arctan_Ex:
+  shows "tan x = y \<longleftrightarrow> (\<exists>k::int. x = arctan y + k*pi \<or> (x = pi/2 + k*pi \<and> y=0))"
+proof
+  assume lhs: "tan x = y"
+  obtain k::int where k:"-pi/2 < x-k*pi" "x-k*pi \<le> pi/2"
+  proof 
+    define k where "k \<equiv> ceiling (x/pi - 1/2)"
+    show "- pi / 2 < x - real_of_int k * pi" 
+      using ceiling_divide_lower [of "pi*2" "(x * 2 - pi)"] by (auto simp: k_def field_simps)
+    show  "x-k*pi \<le> pi/2"
+      using ceiling_divide_upper [of "pi*2" "(x * 2 - pi)"] by (auto simp: k_def field_simps)
+  qed
+  have "x = arctan y + of_int k * pi" when "x \<noteq> pi/2 + k*pi"
+  proof -
+    have "tan (x - k * pi) = y" using lhs tan_periodic_int[of _ "-k"] by auto
+    then have "arctan y = x - real_of_int k * pi"
+      by (smt (verit) arctan_tan lhs divide_minus_left k mult_minus_left of_int_minus tan_periodic_int that)
+    then show ?thesis by auto
+  qed
+  then show "\<exists>k. x = arctan y + of_int k * pi \<or> (x = pi/2 + k*pi \<and> y=0)"
+    using lhs k by force
+qed (auto simp: arctan)
+
+lemma arctan_tan_eq_abs_pi:
+  assumes "cos \<theta> \<noteq> 0"
+  obtains k where "arctan (tan \<theta>) = \<theta> - of_int k * pi"
+  by (metis add.commute assms cos_zero_iff_int2 eq_diff_eq tan_eq_arctan_Ex)
+
+lemma tan_eq:
+  assumes "tan x = tan y" "tan x \<noteq> 0"
+  obtains k::int where "x = y + k * pi"
+proof -
+  obtain k0 where k0: "x = arctan (tan y) + real_of_int k0 * pi"
+    using assms tan_eq_arctan_Ex[of x "tan y"] by auto
+  obtain k1 where k1: "arctan (tan y) = y - of_int k1 * pi"
+    using arctan_tan_eq_abs_pi assms tan_eq_0_cos_sin by auto
+  have "x = y + (k0-k1)*pi"
+    using k0 k1 by (auto simp: algebra_simps)
+  with that show ?thesis
+    by blast
+qed
 
 lemma cos_arctan: "cos (arctan x) = 1 / sqrt (1 + x\<^sup>2)"
 proof (rule power2_eq_imp_eq)
