@@ -15,20 +15,22 @@ object Build_Process {
   /* static information */
 
   object Session_Context {
-    def empty(session: String): Session_Context = new Session_Context(session, Time.zero, Nil)
+    def empty(session: String, timeout: Time): Session_Context =
+      new Session_Context(session, timeout, Time.zero, Nil)
 
     def apply(
       session: String,
+      timeout: Time,
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Session_Context = {
       store.try_open_database(session) match {
-        case None => empty(session)
+        case None => empty(session, timeout)
         case Some(db) =>
           def ignore_error(msg: String) = {
             progress.echo_warning("Ignoring bad database " + db +
               " for session " + quote(session) + (if (msg == "") "" else ":\n" + msg))
-            empty(session)
+            empty(session, timeout)
           }
           try {
             val command_timings = store.read_command_timings(db, session)
@@ -37,7 +39,7 @@ object Build_Process {
                 case Markup.Elapsed(s) => Time.seconds(s)
                 case _ => Time.zero
               }
-            new Session_Context(session, elapsed, command_timings)
+            new Session_Context(session, timeout, elapsed, command_timings)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -51,6 +53,7 @@ object Build_Process {
 
   final class Session_Context(
     val session: String,
+    val timeout: Time,
     val old_time: Time,
     val old_command_timings: List[Properties.T]
   ) {
@@ -70,7 +73,10 @@ object Build_Process {
       val sessions =
         Map.from(
           for (name <- build_graph.keys_iterator)
-          yield name -> Build_Process.Session_Context(name, store, progress = progress))
+          yield {
+            val timeout = sessions_structure(name).timeout
+            name -> Build_Process.Session_Context(name, timeout, store, progress = progress)
+          })
 
       val sessions_time = {
         val maximals = build_graph.maximals.toSet
@@ -96,7 +102,7 @@ object Build_Process {
           def compare(name1: String, name2: String): Int =
             sessions_time(name2) compare sessions_time(name1) match {
               case 0 =>
-                sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
+                sessions(name2).timeout compare sessions(name1).timeout match {
                   case 0 => name1 compare name2
                   case ord => ord
                 }
@@ -113,6 +119,6 @@ object Build_Process {
     val ordering: Ordering[String]
   ) {
     def apply(session: String): Session_Context =
-      sessions.getOrElse(session, Session_Context.empty(session))
+      sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
   }
 }
