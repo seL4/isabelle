@@ -297,10 +297,7 @@ object Build {
                   }
                   else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
 
-                val do_store =
-                  build_heap || Sessions.is_pure(session_name) ||
-                  build_context.is_inner(session_name)
-
+                val do_store = build_heap || build_context.build_heap(session_name)
                 val (current, output_heap) = {
                   store.try_open_database(session_name) match {
                     case Some(db) =>

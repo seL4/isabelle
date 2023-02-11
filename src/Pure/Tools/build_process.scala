@@ -122,7 +122,7 @@ object Build_Process {
     def apply(session: String): Session_Context =
       sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
 
-    def is_inner(session: String): Boolean =
-      !sessions_structure.build_graph.is_maximal(session)
+    def build_heap(session: String): Boolean =
+      Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
   }
 }
