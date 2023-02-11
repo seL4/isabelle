@@ -426,10 +426,15 @@ object Build {
                   using(store.open_database(session_name, output = true))(
                     store.init_session_info(_, session_name))
 
+                  val session_background = build_deps.background(session_name)
+                  val resources =
+                    new Resources(session_background, log = log,
+                      command_timings = queue.command_timings(session_name))
+
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Build_Job(progress, build_deps.background(session_name), store, do_store,
-                      log, session_setup, numa_node, queue.command_timings(session_name))
+                    new Build_Job(progress, session_background, store, do_store,
+                      resources, session_setup, numa_node)
                   loop(pending, running + (session_name -> (input_heaps, job)), results)
                 }
                 else {

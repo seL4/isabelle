@@ -239,10 +239,9 @@ class Build_Job(progress: Progress,
   session_background: Sessions.Background,
   store: Sessions.Store,
   val do_store: Boolean,
-  log: Logger,
+  resources: Resources,
   session_setup: (String, Session) => Unit,
-  val numa_node: Option[Int],
-  command_timings0: List[Properties.T]
+  val numa_node: Option[Int]
 ) {
   def session_name: String = session_background.session_name
   val info: Sessions.Info = session_background.sessions_structure(session_name)
@@ -290,9 +289,6 @@ class Build_Job(progress: Progress,
                   Document.Blobs.Item(bytes, text, chunk, changed = false)
               }
         }
-
-      val resources =
-        new Resources(session_background, log = log, command_timings = command_timings0)
 
       val session =
         new Session(options, resources) {
