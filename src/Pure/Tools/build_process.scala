@@ -72,30 +72,29 @@ object Build_Process {
           for (name <- build_graph.keys_iterator)
           yield name -> Build_Process.Session_Context(name, store, progress = progress))
 
-      val maximals = build_graph.maximals.toSet
-
-      def descendants_time(name: String): Double = {
-        if (maximals.contains(name)) sessions(name).old_time.seconds
-        else {
-          val descendants = build_graph.all_succs(List(name)).toSet
-          val g = build_graph.restrict(descendants)
-          (0.0 :: g.maximals.flatMap { desc =>
-            val ps = g.all_preds(List(desc))
-            if (ps.exists(p => !sessions.isDefinedAt(p))) None
-            else Some(ps.map(p => sessions(p).old_time.seconds).sum)
-          }).max
+      val sessions_time = {
+        val maximals = build_graph.maximals.toSet
+        def descendants_time(name: String): Double = {
+          if (maximals.contains(name)) sessions(name).old_time.seconds
+          else {
+            val descendants = build_graph.all_succs(List(name)).toSet
+            val g = build_graph.restrict(descendants)
+            (0.0 :: g.maximals.flatMap { desc =>
+              val ps = g.all_preds(List(desc))
+              if (ps.exists(p => !sessions.isDefinedAt(p))) None
+              else Some(ps.map(p => sessions(p).old_time.seconds).sum)
+            }).max
+          }
         }
-      }
-
-      val session_time =
         Map.from(
-          for ((name, context) <- sessions.iterator)
+          for (name <- sessions.keysIterator)
           yield name -> descendants_time(name)).withDefaultValue(0.0)
+      }
 
       val ordering =
         new Ordering[String] {
           def compare(name1: String, name2: String): Int =
-            session_time(name2) compare session_time(name1) match {
+            sessions_time(name2) compare sessions_time(name1) match {
               case 0 =>
                 sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
                   case 0 => name1 compare name2
