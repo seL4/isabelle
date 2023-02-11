@@ -60,44 +60,42 @@ object Build_Process {
   }
 
   object Context {
-    private def make_session_timing(
-      sessions_structure: Sessions.Structure,
-      timing: Map[String, Double]
-    ) : Map[String, Double] = {
-      val maximals = sessions_structure.build_graph.maximals.toSet
-      def desc_timing(session_name: String): Double = {
-        if (maximals.contains(session_name)) timing(session_name)
-        else {
-          val descendants = sessions_structure.build_descendants(List(session_name)).toSet
-          val g = sessions_structure.build_graph.restrict(descendants)
-          (0.0 :: g.maximals.flatMap { desc =>
-            val ps = g.all_preds(List(desc))
-            if (ps.exists(p => !timing.isDefinedAt(p))) None
-            else Some(ps.map(timing(_)).sum)
-          }).max
-        }
-      }
-      timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
-    }
-
     def apply(
       sessions_structure: Sessions.Structure,
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Context = {
+      val build_graph = sessions_structure.build_graph
+
       val sessions =
         Map.from(
-          for (session <- sessions_structure.build_graph.keys_iterator)
-          yield session -> Build_Process.Session_Context(session, store, progress = progress))
+          for (name <- build_graph.keys_iterator)
+          yield name -> Build_Process.Session_Context(name, store, progress = progress))
 
-      val session_timing =
-        make_session_timing(sessions_structure,
-          Map.from(for ((name, context) <- sessions.iterator) yield name -> context.old_time.seconds))
+      val maximals = build_graph.maximals.toSet
+
+      def descendants_time(name: String): Double = {
+        if (maximals.contains(name)) sessions(name).old_time.seconds
+        else {
+          val descendants = build_graph.all_succs(List(name)).toSet
+          val g = build_graph.restrict(descendants)
+          (0.0 :: g.maximals.flatMap { desc =>
+            val ps = g.all_preds(List(desc))
+            if (ps.exists(p => !sessions.isDefinedAt(p))) None
+            else Some(ps.map(p => sessions(p).old_time.seconds).sum)
+          }).max
+        }
+      }
+
+      val session_time =
+        Map.from(
+          for ((name, context) <- sessions.iterator)
+          yield name -> descendants_time(name)).withDefaultValue(0.0)
 
       val ordering =
         new Ordering[String] {
           def compare(name1: String, name2: String): Int =
-            session_timing(name2) compare session_timing(name1) match {
+            session_time(name2) compare session_time(name1) match {
               case 0 =>
                 sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
                   case 0 => name1 compare name2
