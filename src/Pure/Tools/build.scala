@@ -58,11 +58,9 @@ object Build {
     def - (name: String): Queue =
       new Queue(context, build_graph.del_node(name), order - name)
 
-    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] = {
-      val it = order.iterator.dropWhile(name => skip(name) || !build_graph.is_minimal(name))
-      if (it.hasNext) { val name = it.next(); Some((name, build_graph.get_node(name))) }
-      else None
-    }
+    def dequeue(skip: String => Boolean): Option[String] =
+      order.iterator.dropWhile(name => skip(name) || !build_graph.is_minimal(name))
+        .nextOption()
   }
 
 
@@ -73,16 +71,16 @@ object Build {
     val store: Sessions.Store,
     val deps: Sessions.Deps,
     val sessions_ok: List[String],
-    results: Map[String, (Option[Process_Result], Sessions.Info)]
+    results: Map[String, Option[Process_Result]]
   ) {
     def cache: Term.Cache = store.cache
 
+    def info(name: String): Sessions.Info = deps.sessions_structure(name)
     def sessions: Set[String] = results.keySet
-    def cancelled(name: String): Boolean = results(name)._1.isEmpty
-    def info(name: String): Sessions.Info = results(name)._2
-    def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result.error)
+    def cancelled(name: String): Boolean = results(name).isEmpty
+    def apply(name: String): Process_Result = results(name).getOrElse(Process_Result.error)
     val rc: Int =
-      results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
+      results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => Process_Result.RC.error }).
         foldLeft(Process_Result.RC.ok)(_ max _)
     def ok: Boolean = rc == Process_Result.RC.ok
 
@@ -205,8 +203,7 @@ object Build {
     case class Result(
       current: Boolean,
       output_heap: SHA1.Shasum,
-      process: Option[Process_Result],
-      info: Sessions.Info
+      process: Option[Process_Result]
     ) {
       def ok: Boolean =
         process match {
@@ -301,13 +298,12 @@ object Build {
             }
 
             loop(pending - session_name, running - session_name,
-              results +
-                (session_name -> Result(false, output_heap, Some(process_result_tail), job.info)))
+              results + (session_name -> Result(false, output_heap, Some(process_result_tail))))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt) match {
-              case Some((session_name, info)) =>
+              case Some(session_name) =>
                 val ancestor_results =
                   build_deps.sessions_structure.build_requirements(List(session_name)).
                     filterNot(_ == session_name).map(results(_))
@@ -343,14 +339,12 @@ object Build {
 
                 if (all_current) {
                   loop(pending - session_name, running,
-                    results +
-                      (session_name -> Result(true, output_heap, Some(Process_Result.ok), info)))
+                    results + (session_name -> Result(true, output_heap, Some(Process_Result.ok))))
                 }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   loop(pending - session_name, running,
-                    results +
-                      (session_name -> Result(false, output_heap, Some(Process_Result.error), info)))
+                    results + (session_name -> Result(false, output_heap, Some(Process_Result.error))))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
@@ -373,7 +367,7 @@ object Build {
                 else {
                   progress.echo(session_name + " CANCELLED")
                   loop(pending - session_name, running,
-                    results + (session_name -> Result(false, output_heap, None, info)))
+                    results + (session_name -> Result(false, output_heap, None)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -403,7 +397,7 @@ object Build {
 
       val results =
         (for ((name, result) <- build_results.iterator)
-          yield (name, (result.process, result.info))).toMap
+          yield (name, result.process)).toMap
 
       new Results(store, build_deps, sessions_ok, results)
     }
