@@ -53,7 +53,6 @@ object Build_Process {
   ) {
     def is_empty: Boolean = old_time.is_zero && old_command_timings.isEmpty
 
-    override def toString: String =
-      session + (if (old_time.seconds > 0.0) " (" + old_time.message_hms + " elapsed time)" else "")
+    override def toString: String = session
   }
 }
