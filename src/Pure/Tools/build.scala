@@ -36,27 +36,27 @@ object Build {
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Queue = {
-      val context = Build_Process.Context(sessions_structure, store, progress = progress)
+      val build_context = Build_Process.Context(sessions_structure, store, progress = progress)
       val build_graph = sessions_structure.build_graph
-      val build_order = SortedSet.from(build_graph.keys)(context.ordering)
-      new Queue(context, build_graph, build_order)
+      val build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
+      new Queue(build_context, build_graph, build_order)
     }
   }
 
   private class Queue(
-    context: Build_Process.Context,
+    build_context: Build_Process.Context,
     build_graph: Graph[String, Sessions.Info],
     build_order: SortedSet[String]
   ) {
     def old_command_timings(name: String): List[Properties.T] =
-      context(name).old_command_timings
+      build_context(name).old_command_timings
 
     def is_inner(name: String): Boolean = !build_graph.is_maximal(name)
 
     def is_empty: Boolean = build_graph.is_empty
 
     def - (name: String): Queue =
-      new Queue(context, build_graph.del_node(name), build_order - name)
+      new Queue(build_context, build_graph.del_node(name), build_order - name)
 
     def dequeue(skip: String => Boolean): Option[String] =
       build_order.iterator.dropWhile(name => skip(name) || !build_graph.is_minimal(name))
