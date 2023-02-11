@@ -42,8 +42,6 @@ object Build {
     build_graph: Graph[String, Sessions.Info],
     build_order: SortedSet[String]
   ) {
-    def is_inner(name: String): Boolean = !build_graph.is_maximal(name)
-
     def is_empty: Boolean = build_graph.is_empty
 
     def - (name: String): Queue =
@@ -177,8 +175,6 @@ object Build {
     val build_context =
       Build_Process.Context(build_deps.sessions_structure, store, progress = progress)
 
-    val queue = Queue(build_context)
-
     store.prepare_output_dir()
 
     if (clean_build) {
@@ -302,7 +298,8 @@ object Build {
                   else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
 
                 val do_store =
-                  build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
+                  build_heap || Sessions.is_pure(session_name) ||
+                  build_context.is_inner(session_name)
 
                 val (current, output_heap) = {
                   store.try_open_database(session_name) match {
@@ -374,7 +371,7 @@ object Build {
           progress.echo_warning("Nothing to build")
           Map.empty[String, Result]
         }
-        else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
+        else Isabelle_Thread.uninterruptible { loop(Queue(build_context), Map.empty, Map.empty) }
 
       val sessions_ok: List[String] =
         (for {
