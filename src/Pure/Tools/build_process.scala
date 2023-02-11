@@ -11,28 +11,30 @@ package isabelle
 object Build_Process {
   /* timings from session database */
 
-  type Session_Timing = (List[Properties.T], Double)
-
   object Session_Timing {
-    val empty: Session_Timing = (Nil, 0.0)
+    def empty(session: String): Session_Timing = new Session_Timing(session, Time.zero, Nil)
 
-    def load(progress: Progress, store: Sessions.Store, session_name: String): Session_Timing = {
-      store.try_open_database(session_name) match {
-        case None => empty
+    def load(
+      session: String,
+      store: Sessions.Store,
+      progress: Progress = new Progress
+    ): Session_Timing = {
+      store.try_open_database(session) match {
+        case None => empty(session)
         case Some(db) =>
           def ignore_error(msg: String) = {
             progress.echo_warning("Ignoring bad database " + db +
-              " for session " + quote(session_name) + (if (msg == "") "" else ":\n" + msg))
-            empty
+              " for session " + quote(session) + (if (msg == "") "" else ":\n" + msg))
+            empty(session)
           }
           try {
-            val command_timings = store.read_command_timings(db, session_name)
-            val session_timing =
-              store.read_session_timing(db, session_name) match {
-                case Markup.Elapsed(t) => t
-                case _ => 0.0
+            val command_timings = store.read_command_timings(db, session)
+            val elapsed =
+              store.read_session_timing(db, session) match {
+                case Markup.Elapsed(s) => Time.seconds(s)
+                case _ => Time.zero
               }
-            (command_timings, session_timing)
+            new Session_Timing(session, elapsed, command_timings)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -42,5 +44,14 @@ object Build_Process {
           finally { db.close() }
       }
     }
+  }
+
+  final class Session_Timing(
+    val session: String,
+    val elapsed: Time,
+    val command_timings: List[Properties.T]
+  ) {
+    override def toString: String =
+      session + (if (elapsed.is_relevant) " (" + elapsed.message_hms + " elapsed time)" else "")
   }
 }
