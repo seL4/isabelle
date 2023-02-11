@@ -71,17 +71,15 @@ object Build {
     val store: Sessions.Store,
     val deps: Sessions.Deps,
     val sessions_ok: List[String],
-    results: Map[String, Option[Process_Result]]
+    results: Map[String, Process_Result]
   ) {
     def cache: Term.Cache = store.cache
 
     def info(name: String): Sessions.Info = deps.sessions_structure(name)
     def sessions: Set[String] = results.keySet
-    def cancelled(name: String): Boolean = results(name).isEmpty
-    def apply(name: String): Process_Result = results(name).getOrElse(Process_Result.error)
-    val rc: Int =
-      results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => Process_Result.RC.error }).
-        foldLeft(Process_Result.RC.ok)(_ max _)
+    def cancelled(name: String): Boolean = !results(name).defined
+    def apply(name: String): Process_Result = results(name).strict
+    val rc: Int = results.valuesIterator.map(_.strict.rc).foldLeft(Process_Result.RC.ok)(_ max _)
     def ok: Boolean = rc == Process_Result.RC.ok
 
     def unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
@@ -203,13 +201,9 @@ object Build {
     case class Result(
       current: Boolean,
       output_heap: SHA1.Shasum,
-      process: Option[Process_Result]
+      process_result: Process_Result
     ) {
-      def ok: Boolean =
-        process match {
-          case None => false
-          case Some(res) => res.ok
-        }
+      def ok: Boolean = process_result.ok
     }
 
     def sleep(): Unit =
@@ -298,7 +292,7 @@ object Build {
             }
 
             loop(pending - session_name, running - session_name,
-              results + (session_name -> Result(false, output_heap, Some(process_result_tail))))
+              results + (session_name -> Result(false, output_heap, process_result_tail)))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
@@ -339,12 +333,12 @@ object Build {
 
                 if (all_current) {
                   loop(pending - session_name, running,
-                    results + (session_name -> Result(true, output_heap, Some(Process_Result.ok))))
+                    results + (session_name -> Result(true, output_heap, Process_Result.ok)))
                 }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   loop(pending - session_name, running,
-                    results + (session_name -> Result(false, output_heap, Some(Process_Result.error))))
+                    results + (session_name -> Result(false, output_heap, Process_Result.error)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
@@ -367,7 +361,7 @@ object Build {
                 else {
                   progress.echo(session_name + " CANCELLED")
                   loop(pending - session_name, running,
-                    results + (session_name -> Result(false, output_heap, None)))
+                    results + (session_name -> Result(false, output_heap, Process_Result.undefined)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -397,7 +391,7 @@ object Build {
 
       val results =
         (for ((name, result) <- build_results.iterator)
-          yield (name, result.process)).toMap
+          yield (name, result.process_result)).toMap
 
       new Results(store, build_deps, sessions_ok, results)
     }
