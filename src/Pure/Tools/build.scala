@@ -61,12 +61,12 @@ object Build {
 
       val timings =
         for (session <- graph.keys)
-          yield Build_Process.Session_Timing.load(session, store, progress = progress)
+          yield Build_Process.Session_Context.load(session, store, progress = progress)
       val command_timings =
-        timings.map(timing => timing.session -> timing.command_timings).toMap.withDefaultValue(Nil)
+        timings.map(timing => timing.session -> timing.old_command_timings).toMap.withDefaultValue(Nil)
       val session_timing =
         make_session_timing(sessions_structure,
-          timings.map(timing => timing.session -> timing.elapsed.seconds).toMap)
+          timings.map(timing => timing.session -> timing.old_time.seconds).toMap)
 
       object Ordering extends scala.math.Ordering[String] {
         def compare(name1: String, name2: String): Int =

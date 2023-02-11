@@ -9,16 +9,16 @@ package isabelle
 
 
 object Build_Process {
-  /* timings from session database */
+  /* static information */
 
-  object Session_Timing {
-    def empty(session: String): Session_Timing = new Session_Timing(session, Time.zero, Nil)
+  object Session_Context {
+    def empty(session: String): Session_Context = new Session_Context(session, Time.zero, Nil)
 
     def load(
       session: String,
       store: Sessions.Store,
       progress: Progress = new Progress
-    ): Session_Timing = {
+    ): Session_Context = {
       store.try_open_database(session) match {
         case None => empty(session)
         case Some(db) =>
@@ -34,7 +34,7 @@ object Build_Process {
                 case Markup.Elapsed(s) => Time.seconds(s)
                 case _ => Time.zero
               }
-            new Session_Timing(session, elapsed, command_timings)
+            new Session_Context(session, elapsed, command_timings)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -46,14 +46,14 @@ object Build_Process {
     }
   }
 
-  final class Session_Timing(
+  final class Session_Context(
     val session: String,
-    val elapsed: Time,
-    val command_timings: List[Properties.T]
+    val old_time: Time,
+    val old_command_timings: List[Properties.T]
   ) {
-    def is_empty: Boolean = elapsed.is_zero && command_timings.isEmpty
+    def is_empty: Boolean = old_time.is_zero && old_command_timings.isEmpty
 
     override def toString: String =
-      session + (if (elapsed.seconds > 0.0) " (" + elapsed.message_hms + " elapsed time)" else "")
+      session + (if (old_time.seconds > 0.0) " (" + old_time.message_hms + " elapsed time)" else "")
   }
 }
