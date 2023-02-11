@@ -31,37 +31,6 @@ object Build {
   /* queue with scheduling information */
 
   private object Queue {
-    type Timings = (List[Properties.T], Double)
-
-    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings = {
-      val no_timings: Timings = (Nil, 0.0)
-
-      store.try_open_database(session_name) match {
-        case None => no_timings
-        case Some(db) =>
-          def ignore_error(msg: String) = {
-            progress.echo_warning("Ignoring bad database " + db +
-              " for session " + quote(session_name) + (if (msg == "") "" else ":\n" + msg))
-            no_timings
-          }
-          try {
-            val command_timings = store.read_command_timings(db, session_name)
-            val session_timing =
-              store.read_session_timing(db, session_name) match {
-                case Markup.Elapsed(t) => t
-                case _ => 0.0
-              }
-            (command_timings, session_timing)
-          }
-          catch {
-            case ERROR(msg) => ignore_error(msg)
-            case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("XML.Error")
-          }
-          finally { db.close() }
-      }
-    }
-
     def make_session_timing(
       sessions_structure: Sessions.Structure,
       timing: Map[String, Double]
@@ -90,7 +59,8 @@ object Build {
       val graph = sessions_structure.build_graph
       val names = graph.keys
 
-      val timings = names.map(name => (name, load_timings(progress, store, name)))
+      val timings =
+        names.map(name => (name, Build_Process.Session_Timing.load(progress, store, name)))
       val command_timings =
         timings.map({ case (name, (ts, _)) => (name, ts) }).toMap.withDefaultValue(Nil)
       val session_timing =
