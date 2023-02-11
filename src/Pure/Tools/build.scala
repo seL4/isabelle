@@ -31,74 +31,36 @@ object Build {
   /* queue with scheduling information */
 
   private object Queue {
-    def make_session_timing(
-      sessions_structure: Sessions.Structure,
-      timing: Map[String, Double]
-    ) : Map[String, Double] = {
-      val maximals = sessions_structure.build_graph.maximals.toSet
-      def desc_timing(session_name: String): Double = {
-        if (maximals.contains(session_name)) timing(session_name)
-        else {
-          val descendants = sessions_structure.build_descendants(List(session_name)).toSet
-          val g = sessions_structure.build_graph.restrict(descendants)
-          (0.0 :: g.maximals.flatMap { desc =>
-            val ps = g.all_preds(List(desc))
-            if (ps.exists(p => !timing.isDefinedAt(p))) None
-            else Some(ps.map(timing(_)).sum)
-          }).max
-        }
-      }
-      timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
-    }
-
     def apply(
-      progress: Progress,
       sessions_structure: Sessions.Structure,
-      store: Sessions.Store
-    ) : Queue = {
-      val graph = sessions_structure.build_graph
-      val sessions = graph.keys
-
-      val timings =
-        for (session <- graph.keys)
-          yield Build_Process.Session_Context.load(session, store, progress = progress)
-      val command_timings =
-        timings.map(timing => timing.session -> timing.old_command_timings).toMap.withDefaultValue(Nil)
-      val session_timing =
-        make_session_timing(sessions_structure,
-          timings.map(timing => timing.session -> timing.old_time.seconds).toMap)
-
-      object Ordering extends scala.math.Ordering[String] {
-        def compare(name1: String, name2: String): Int =
-          session_timing(name2) compare session_timing(name1) match {
-            case 0 =>
-              sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
-                case 0 => name1 compare name2
-                case ord => ord
-              }
-            case ord => ord
-          }
-      }
-
-      new Queue(graph, SortedSet.from(sessions)(Ordering), command_timings)
+      store: Sessions.Store,
+      progress: Progress = new Progress
+    ): Queue = {
+      val context = Build_Process.Context(sessions_structure, store, progress = progress)
+      val build_graph = sessions_structure.build_graph
+      val sessions = SortedSet.from(build_graph.keys)(context.ordering)
+      new Queue(context, build_graph, sessions)
     }
   }
 
   private class Queue(
-    graph: Graph[String, Sessions.Info],
-    order: SortedSet[String],
-    val command_timings: String => List[Properties.T]
+    context: Build_Process.Context,
+    build_graph: Graph[String, Sessions.Info],
+    order: SortedSet[String]
   ) {
-    def is_inner(name: String): Boolean = !graph.is_maximal(name)
+    def old_command_timings(name: String): List[Properties.T] =
+      context(name).old_command_timings
 
-    def is_empty: Boolean = graph.is_empty
+    def is_inner(name: String): Boolean = !build_graph.is_maximal(name)
+
+    def is_empty: Boolean = build_graph.is_empty
 
     def - (name: String): Queue =
-      new Queue(graph.del_node(name), order - name, command_timings)
+      new Queue(context, build_graph.del_node(name), order - name)
 
     def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] = {
-      val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
-      if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
+      val it = order.iterator.dropWhile(name => skip(name) || !build_graph.is_minimal(name))
+      if (it.hasNext) { val name = it.next(); Some((name, build_graph.get_node(name))) }
       else None
     }
   }
@@ -225,7 +187,7 @@ object Build {
 
     /* main build process */
 
-    val queue = Queue(progress, build_deps.sessions_structure, store)
+    val queue = Queue(build_deps.sessions_structure, store, progress = progress)
 
     store.prepare_output_dir()
 
@@ -400,7 +362,7 @@ object Build {
                   val session_background = build_deps.background(session_name)
                   val resources =
                     new Resources(session_background, log = log,
-                      command_timings = queue.command_timings(session_name))
+                      command_timings = queue.old_command_timings(session_name))
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
