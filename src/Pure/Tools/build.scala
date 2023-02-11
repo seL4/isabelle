@@ -57,9 +57,11 @@ object Build {
       store: Sessions.Store
     ) : Queue = {
       val graph = sessions_structure.build_graph
-      val names = graph.keys
+      val sessions = graph.keys
 
-      val timings = names.map(Build_Process.Session_Timing.load(_, store, progress = progress))
+      val timings =
+        for (session <- graph.keys)
+          yield Build_Process.Session_Timing.load(session, store, progress = progress)
       val command_timings =
         timings.map(timing => timing.session -> timing.command_timings).toMap.withDefaultValue(Nil)
       val session_timing =
@@ -78,7 +80,7 @@ object Build {
           }
       }
 
-      new Queue(graph, SortedSet(names: _*)(Ordering), command_timings)
+      new Queue(graph, SortedSet.from(sessions)(Ordering), command_timings)
     }
   }
 
