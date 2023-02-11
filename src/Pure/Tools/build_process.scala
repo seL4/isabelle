@@ -51,6 +51,8 @@ object Build_Process {
     val elapsed: Time,
     val command_timings: List[Properties.T]
   ) {
+    def is_empty: Boolean = elapsed.is_zero && command_timings.isEmpty
+
     override def toString: String =
       session + (if (elapsed.is_relevant) " (" + elapsed.message_hms + " elapsed time)" else "")
   }
