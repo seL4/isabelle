@@ -31,32 +31,23 @@ object Build {
   /* queue with scheduling information */
 
   private object Queue {
-    def apply(
-      sessions_structure: Sessions.Structure,
-      store: Sessions.Store,
-      progress: Progress = new Progress
-    ): Queue = {
-      val build_context = Build_Process.Context(sessions_structure, store, progress = progress)
-      val build_graph = sessions_structure.build_graph
+    def apply(build_context: Build_Process.Context): Queue = {
+      val build_graph = build_context.sessions_structure.build_graph
       val build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
-      new Queue(build_context, build_graph, build_order)
+      new Queue(build_graph, build_order)
     }
   }
 
   private class Queue(
-    build_context: Build_Process.Context,
     build_graph: Graph[String, Sessions.Info],
     build_order: SortedSet[String]
   ) {
-    def old_command_timings(name: String): List[Properties.T] =
-      build_context(name).old_command_timings
-
     def is_inner(name: String): Boolean = !build_graph.is_maximal(name)
 
     def is_empty: Boolean = build_graph.is_empty
 
     def - (name: String): Queue =
-      new Queue(build_context, build_graph.del_node(name), build_order - name)
+      new Queue(build_graph.del_node(name), build_order - name)
 
     def dequeue(skip: String => Boolean): Option[String] =
       build_order.iterator.dropWhile(name => skip(name) || !build_graph.is_minimal(name))
@@ -183,7 +174,10 @@ object Build {
 
     /* main build process */
 
-    val queue = Queue(build_deps.sessions_structure, store, progress = progress)
+    val build_context =
+      Build_Process.Context(build_deps.sessions_structure, store, progress = progress)
+
+    val queue = Queue(build_context)
 
     store.prepare_output_dir()
 
@@ -350,7 +344,7 @@ object Build {
                   val session_background = build_deps.background(session_name)
                   val resources =
                     new Resources(session_background, log = log,
-                      command_timings = queue.old_command_timings(session_name))
+                      command_timings = build_context(session_name).old_command_timings)
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =

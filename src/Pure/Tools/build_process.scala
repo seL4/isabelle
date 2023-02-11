@@ -110,11 +110,12 @@ object Build_Process {
             }
         }
 
-      new Context(sessions, ordering)
+      new Context(sessions_structure, sessions, ordering)
     }
   }
 
   final class Context private(
+    val sessions_structure: Sessions.Structure,
     sessions: Map[String, Session_Context],
     val ordering: Ordering[String]
   ) {
