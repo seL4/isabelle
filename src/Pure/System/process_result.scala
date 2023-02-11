@@ -13,6 +13,7 @@ object Process_Result {
     val ok = 0
     val error = 1
     val failure = 2
+    val startup_failure = 127
     val interrupt = 130
     val timeout = 142
 
@@ -38,6 +39,10 @@ object Process_Result {
     def print_long(rc: Int): String = "Return code: " + rc + text(rc)
     def print(rc: Int): String = "return code " + rc + text(rc)
   }
+
+  val ok: Process_Result = Process_Result(RC.ok)
+  val error: Process_Result = Process_Result(RC.error)
+  val startup_failure: Process_Result = Process_Result(RC.startup_failure)
 }
 
 final case class Process_Result(

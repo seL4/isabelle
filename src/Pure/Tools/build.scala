@@ -118,7 +118,7 @@ object Build {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def info(name: String): Sessions.Info = results(name)._2
-    def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
+    def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result.error)
     val rc: Int =
       results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
         foldLeft(Process_Result.RC.ok)(_ max _)
@@ -382,13 +382,13 @@ object Build {
                 if (all_current) {
                   loop(pending - session_name, running,
                     results +
-                      (session_name -> Result(true, output_heap, Some(Process_Result(0)), info)))
+                      (session_name -> Result(true, output_heap, Some(Process_Result.ok), info)))
                 }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   loop(pending - session_name, running,
                     results +
-                      (session_name -> Result(false, output_heap, Some(Process_Result(1)), info)))
+                      (session_name -> Result(false, output_heap, Some(Process_Result.error), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
