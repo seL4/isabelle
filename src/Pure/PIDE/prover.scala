@@ -138,7 +138,7 @@ class Prover(
       terminate_process()
       process_result.join
       stdout.join
-      exit_message(Process_Result(127))
+      exit_message(Process_Result.startup_failure)
     }
     else {
       val (command_stream, message_stream) = channel.rendezvous()
