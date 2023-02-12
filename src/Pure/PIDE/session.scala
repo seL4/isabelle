@@ -727,7 +727,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         {
           case Session.Startup | Session.Shutdown => None
           case Session.Terminated(_) => Some((false, phase))
-          case Session.Inactive => Some((false, post_phase(Session.Terminated(Process_Result(0)))))
+          case Session.Inactive => Some((false, post_phase(Session.Terminated(Process_Result.ok))))
           case Session.Ready => Some((true, post_phase(Session.Shutdown)))
         })
     if (was_ready) manager.send(Stop)

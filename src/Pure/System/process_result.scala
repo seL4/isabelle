@@ -10,15 +10,18 @@ object Process_Result {
   /* return code */
 
   object RC {
+    val undefined = -1
     val ok = 0
     val error = 1
     val failure = 2
+    val startup_failure = 127
     val interrupt = 130
     val timeout = 142
 
     private def text(rc: Int): String = {
       val txt =
         rc match {
+          case `undefined` => "UNDEFINED"
           case `ok` => "OK"
           case `error` => "ERROR"
           case `failure` => "FAILURE"
@@ -38,6 +41,11 @@ object Process_Result {
     def print_long(rc: Int): String = "Return code: " + rc + text(rc)
     def print(rc: Int): String = "return code " + rc + text(rc)
   }
+
+  val undefined: Process_Result = Process_Result(RC.undefined)
+  val ok: Process_Result = Process_Result(RC.ok)
+  val error: Process_Result = Process_Result(RC.error)
+  val startup_failure: Process_Result = Process_Result(RC.startup_failure)
 }
 
 final case class Process_Result(
@@ -58,6 +66,9 @@ final case class Process_Result(
 
   def ok: Boolean = rc == Process_Result.RC.ok
   def interrupted: Boolean = rc == Process_Result.RC.interrupt
+
+  def defined: Boolean = rc > Process_Result.RC.undefined
+  def strict: Process_Result = if (defined) this else copy(rc = Process_Result.RC.error)
 
   def timeout_rc: Process_Result = copy(rc = Process_Result.RC.timeout)
   def timeout: Boolean = rc == Process_Result.RC.timeout

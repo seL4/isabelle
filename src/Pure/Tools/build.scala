@@ -8,10 +8,6 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import scala.collection.immutable.SortedSet
-import scala.annotation.tailrec
-
-
 object Build {
   /** auxiliary **/
 
@@ -28,111 +24,6 @@ object Build {
   }
 
 
-  /* queue with scheduling information */
-
-  private object Queue {
-    type Timings = (List[Properties.T], Double)
-
-    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings = {
-      val no_timings: Timings = (Nil, 0.0)
-
-      store.try_open_database(session_name) match {
-        case None => no_timings
-        case Some(db) =>
-          def ignore_error(msg: String) = {
-            progress.echo_warning("Ignoring bad database " + db +
-              " for session " + quote(session_name) + (if (msg == "") "" else ":\n" + msg))
-            no_timings
-          }
-          try {
-            val command_timings = store.read_command_timings(db, session_name)
-            val session_timing =
-              store.read_session_timing(db, session_name) match {
-                case Markup.Elapsed(t) => t
-                case _ => 0.0
-              }
-            (command_timings, session_timing)
-          }
-          catch {
-            case ERROR(msg) => ignore_error(msg)
-            case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("XML.Error")
-          }
-          finally { db.close() }
-      }
-    }
-
-    def make_session_timing(
-      sessions_structure: Sessions.Structure,
-      timing: Map[String, Double]
-    ) : Map[String, Double] = {
-      val maximals = sessions_structure.build_graph.maximals.toSet
-      def desc_timing(session_name: String): Double = {
-        if (maximals.contains(session_name)) timing(session_name)
-        else {
-          val descendants = sessions_structure.build_descendants(List(session_name)).toSet
-          val g = sessions_structure.build_graph.restrict(descendants)
-          (0.0 :: g.maximals.flatMap { desc =>
-            val ps = g.all_preds(List(desc))
-            if (ps.exists(p => !timing.isDefinedAt(p))) None
-            else Some(ps.map(timing(_)).sum)
-          }).max
-        }
-      }
-      timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
-    }
-
-    def apply(
-      progress: Progress,
-      sessions_structure: Sessions.Structure,
-      store: Sessions.Store
-    ) : Queue = {
-      val graph = sessions_structure.build_graph
-      val names = graph.keys
-
-      val timings = names.map(name => (name, load_timings(progress, store, name)))
-      val command_timings =
-        timings.map({ case (name, (ts, _)) => (name, ts) }).toMap.withDefaultValue(Nil)
-      val session_timing =
-        make_session_timing(sessions_structure,
-          timings.map({ case (name, (_, t)) => (name, t) }).toMap)
-
-      object Ordering extends scala.math.Ordering[String] {
-        def compare(name1: String, name2: String): Int =
-          session_timing(name2) compare session_timing(name1) match {
-            case 0 =>
-              sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
-                case 0 => name1 compare name2
-                case ord => ord
-              }
-            case ord => ord
-          }
-      }
-
-      new Queue(graph, SortedSet(names: _*)(Ordering), command_timings)
-    }
-  }
-
-  private class Queue(
-    graph: Graph[String, Sessions.Info],
-    order: SortedSet[String],
-    val command_timings: String => List[Properties.T]
-  ) {
-    def is_inner(name: String): Boolean = !graph.is_maximal(name)
-
-    def is_empty: Boolean = graph.is_empty
-
-    def - (name: String): Queue =
-      new Queue(graph.del_node(name), order - name, command_timings)
-
-    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] = {
-      val it = order.iterator.dropWhile(name => skip(name) || !graph.is_minimal(name))
-      if (it.hasNext) { val name = it.next(); Some((name, graph.get_node(name))) }
-      else None
-    }
-  }
-
-
 
   /** build with results **/
 
@@ -140,32 +31,20 @@ object Build {
     val store: Sessions.Store,
     val deps: Sessions.Deps,
     val sessions_ok: List[String],
-    results: Map[String, (Option[Process_Result], Sessions.Info)]
+    results: Map[String, Process_Result]
   ) {
     def cache: Term.Cache = store.cache
 
+    def info(name: String): Sessions.Info = deps.sessions_structure(name)
     def sessions: Set[String] = results.keySet
-    def cancelled(name: String): Boolean = results(name)._1.isEmpty
-    def info(name: String): Sessions.Info = results(name)._2
-    def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
-    val rc: Int =
-      results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }).
-        foldLeft(Process_Result.RC.ok)(_ max _)
+    def cancelled(name: String): Boolean = !results(name).defined
+    def apply(name: String): Process_Result = results(name).strict
+    val rc: Int = results.valuesIterator.map(_.strict.rc).foldLeft(Process_Result.RC.ok)(_ max _)
     def ok: Boolean = rc == Process_Result.RC.ok
 
     def unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
 
     override def toString: String = rc.toString
-  }
-
-  def session_finished(session_name: String, process_result: Process_Result): String =
-    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
-
-  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
-    val props = build_log.session_timing
-    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.get(props)
-    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
   def build(
@@ -252,9 +131,9 @@ object Build {
     }
 
 
-    /* main build process */
+    /* build process and results */
 
-    val queue = Queue(progress, build_deps.sessions_structure, store)
+    val build_context = Build_Process.Context(store, build_deps, progress = progress)
 
     store.prepare_output_dir()
 
@@ -268,187 +147,21 @@ object Build {
       }
     }
 
-    // scheduler loop
-    case class Result(
-      current: Boolean,
-      output_heap: SHA1.Shasum,
-      process: Option[Process_Result],
-      info: Sessions.Info
-    ) {
-      def ok: Boolean =
-        process match {
-          case None => false
-          case Some(res) => res.ok
-        }
-    }
-
-    def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-        build_options.seconds("editor_input_delay").sleep()
-      }
-
-    val log =
-      build_options.string("system_log") match {
-        case "" => No_Logger
-        case "-" => Logger.make(progress)
-        case log_file => Logger.make(Some(Path.explode(log_file)))
-      }
-
-    val numa_nodes = new NUMA.Nodes(numa_shuffling)
-
-    @tailrec def loop(
-      pending: Queue,
-      running: Map[String, (SHA1.Shasum, Build_Job)],
-      results: Map[String, Result]
-    ): Map[String, Result] = {
-      def used_node(i: Int): Boolean =
-        running.iterator.exists(
-          { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
-
-      if (pending.is_empty) results
-      else {
-        if (progress.stopped) {
-          for ((_, (_, job)) <- running) job.terminate()
-        }
-
-        running.find({ case (_, (_, job)) => job.is_finished }) match {
-          case Some((session_name, (input_heaps, job))) =>
-            //{{{ finish job
-
-            val (process_result, output_heap) = job.join
-
-            val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
-            val process_result_tail = {
-              val tail = job.info.options.int("process_output_tail")
-              process_result.copy(
-                out_lines =
-                  "(more details via \"isabelle log -H Error " + session_name + "\")" ::
-                  (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
-            }
-
-            val build_log =
-              Build_Log.Log_File(session_name, process_result.out_lines).
-                parse_session_info(
-                  command_timings = true,
-                  theory_timings = true,
-                  ml_statistics = true,
-                  task_statistics = true)
-
-            // write log file
-            if (process_result.ok) {
-              File.write_gzip(store.output_log_gz(session_name), terminate_lines(log_lines))
-            }
-            else File.write(store.output_log(session_name), terminate_lines(log_lines))
-
-            // write database
-            using(store.open_database(session_name, output = true))(db =>
-              store.write_session_info(db, session_name, job.session_sources,
-                build_log =
-                  if (process_result.timeout) build_log.error("Timeout") else build_log,
-                build =
-                  Session_Info(build_deps.sources_shasum(session_name), input_heaps, output_heap,
-                    process_result.rc, UUID.random().toString)))
-
-            // messages
-            process_result.err_lines.foreach(progress.echo)
-
-            if (process_result.ok) {
-              if (verbose) progress.echo(session_timing(session_name, build_log))
-              progress.echo(session_finished(session_name, process_result))
-            }
-            else {
-              progress.echo(session_name + " FAILED")
-              if (!process_result.interrupted) progress.echo(process_result_tail.out)
-            }
-
-            loop(pending - session_name, running - session_name,
-              results +
-                (session_name -> Result(false, output_heap, Some(process_result_tail), job.info)))
-            //}}}
-          case None if running.size < (max_jobs max 1) =>
-            //{{{ check/start next job
-            pending.dequeue(running.isDefinedAt) match {
-              case Some((session_name, info)) =>
-                val ancestor_results =
-                  build_deps.sessions_structure.build_requirements(List(session_name)).
-                    filterNot(_ == session_name).map(results(_))
-                val input_heaps =
-                  if (ancestor_results.isEmpty) {
-                    SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
-                  }
-                  else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
-
-                val do_store =
-                  build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
-
-                val (current, output_heap) = {
-                  store.try_open_database(session_name) match {
-                    case Some(db) =>
-                      using(db)(store.read_build(_, session_name)) match {
-                        case Some(build) =>
-                          val output_heap = store.find_heap_shasum(session_name)
-                          val current =
-                            !fresh_build &&
-                            build.ok &&
-                            build.sources == build_deps.sources_shasum(session_name) &&
-                            build.input_heaps == input_heaps &&
-                            build.output_heap == output_heap &&
-                            !(do_store && output_heap.is_empty)
-                          (current, output_heap)
-                        case None => (false, SHA1.no_shasum)
-                      }
-                    case None => (false, SHA1.no_shasum)
-                  }
-                }
-                val all_current = current && ancestor_results.forall(_.current)
-
-                if (all_current) {
-                  loop(pending - session_name, running,
-                    results +
-                      (session_name -> Result(true, output_heap, Some(Process_Result(0)), info)))
-                }
-                else if (no_build) {
-                  progress.echo_if(verbose, "Skipping " + session_name + " ...")
-                  loop(pending - session_name, running,
-                    results +
-                      (session_name -> Result(false, output_heap, Some(Process_Result(1)), info)))
-                }
-                else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-                  progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
-
-                  store.clean_output(session_name)
-                  using(store.open_database(session_name, output = true))(
-                    store.init_session_info(_, session_name))
-
-                  val numa_node = numa_nodes.next(used_node)
-                  val job =
-                    new Build_Job(progress, build_deps.background(session_name), store, do_store,
-                      log, session_setup, numa_node, queue.command_timings(session_name))
-                  loop(pending, running + (session_name -> (input_heaps, job)), results)
-                }
-                else {
-                  progress.echo(session_name + " CANCELLED")
-                  loop(pending - session_name, running,
-                    results + (session_name -> Result(false, output_heap, None, info)))
-                }
-              case None => sleep(); loop(pending, running, results)
-            }
-            ///}}}
-          case None => sleep(); loop(pending, running, results)
-        }
-      }
-    }
-
-
-    /* build results */
-
     val results = {
       val build_results =
         if (build_deps.is_empty) {
           progress.echo_warning("Nothing to build")
-          Map.empty[String, Result]
+          Map.empty[String, Build_Process.Result]
         }
-        else Isabelle_Thread.uninterruptible { loop(queue, Map.empty, Map.empty) }
+        else {
+          Isabelle_Thread.uninterruptible {
+            val build_process =
+              new Build_Process(build_context, build_heap = build_heap,
+                numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
+                no_build = no_build, verbose = verbose, session_setup = session_setup)
+            build_process.run()
+          }
+        }
 
       val sessions_ok: List[String] =
         (for {
@@ -459,7 +172,7 @@ object Build {
 
       val results =
         (for ((name, result) <- build_results.iterator)
-          yield (name, (result.process, result.info))).toMap
+          yield (name, result.process_result)).toMap
 
       new Results(store, build_deps, sessions_ok, results)
     }

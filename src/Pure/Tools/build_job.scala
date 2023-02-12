@@ -238,11 +238,10 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
 class Build_Job(progress: Progress,
   session_background: Sessions.Background,
   store: Sessions.Store,
-  do_store: Boolean,
-  log: Logger,
+  val do_store: Boolean,
+  resources: Resources,
   session_setup: (String, Session) => Unit,
-  val numa_node: Option[Int],
-  command_timings0: List[Properties.T]
+  val numa_node: Option[Int]
 ) {
   def session_name: String = session_background.session_name
   val info: Sessions.Info = session_background.sessions_structure(session_name)
@@ -290,9 +289,6 @@ class Build_Job(progress: Progress,
                   Document.Blobs.Item(bytes, text, chunk, changed = false)
               }
         }
-
-      val resources =
-        new Resources(session_background, log = log, command_timings = command_timings0)
 
       val session =
         new Session(options, resources) {
@@ -570,8 +566,8 @@ class Build_Job(progress: Progress,
     else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
   }
 
-  def join: (Process_Result, SHA1.Shasum) = {
-    val result1 = future_result.join
+  def join: Process_Result = {
+    val result = future_result.join
 
     val was_timeout =
       timeout_request match {
@@ -579,18 +575,9 @@ class Build_Job(progress: Progress,
         case Some(request) => !request.cancel()
       }
 
-    val result2 =
-      if (result1.ok) result1
-      else if (was_timeout) result1.error(Output.error_message_text("Timeout")).timeout_rc
-      else if (result1.interrupted) result1.error(Output.error_message_text("Interrupt"))
-      else result1
-
-    val heap_shasum =
-      if (result2.ok && do_store && store.output_heap(session_name).is_file) {
-        SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
-      }
-      else SHA1.no_shasum
-
-    (result2, heap_shasum)
+    if (result.ok) result
+    else if (was_timeout) result.error(Output.error_message_text("Timeout")).timeout_rc
+    else if (result.interrupted) result.error(Output.error_message_text("Interrupt"))
+    else result
   }
 }
