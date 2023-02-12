@@ -252,7 +252,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                       |> intro_vars (map_filter I (s :: vs));
                     val lhs = IConst { sym = Constant classparam, typargs = [],
                       dicts = [], dom = dom, annotation = NONE } `$$ map IVar vs;
-                      (*dictionaries are not relevant at this late stage,
+                      (*dictionaries are not relevant in Haskell,
                         and these consts never need type annotations for disambiguation *)
                   in
                     semicolon [
