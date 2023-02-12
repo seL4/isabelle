@@ -117,7 +117,6 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
     and print_app tyvars is_pat some_thm vars fxy
         (app as ({ sym, typargs, dom, dicts, ... }, ts)) =
       let
-        val k = length ts;
         val typargs' = if is_pat then [] else typargs;
         val syntax = case sym of
             Constant const => const_syntax const
@@ -127,7 +126,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             orelse Code_Thingol.unambiguous_dictss dicts
           then fn p => K p
           else applify_dictss tyvars;
-        val (l, print') = case syntax of
+        val (wanted, print') = case syntax of
             NONE => (args_num sym, fn fxy => fn ts => applify_dicts
               (gen_applify (is_constr sym) "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
@@ -141,11 +140,11 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           | SOME (k, Complex_printer print) =>
               (k, fn fxy => fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
                 (ts ~~ take k dom))
-      in if k = l then print' fxy ts
-      else if k < l then
-        print_term tyvars is_pat some_thm vars fxy (Code_Thingol.eta_expand l app)
+      in if length ts = wanted then print' fxy ts
+      else if length ts < wanted then
+        print_term tyvars is_pat some_thm vars fxy (Code_Thingol.satisfied_application wanted app)
       else let
-        val (ts1, ts23) = chop l ts;
+        val (ts1, ts23) = chop wanted ts;
       in
         Pretty.block (print' BR ts1 :: map (fn t => Pretty.block
           [str ".apply(", print_term tyvars is_pat some_thm vars NOBR t, str ")"]) ts23)

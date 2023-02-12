@@ -57,7 +57,7 @@ sig
   val unfold_const_app: iterm -> (const * iterm list) option
   val is_IVar: iterm -> bool
   val is_IAbs: iterm -> bool
-  val eta_expand: int -> const * iterm list -> iterm
+  val satisfied_application: int -> const * iterm list -> iterm
   val contains_dict_var: iterm -> bool
   val unambiguous_dictss: dict list list -> bool
   val add_constsyms: iterm -> Code_Symbol.T list -> Code_Symbol.T list
@@ -266,7 +266,7 @@ fun unfold_abs_eta [] t = ([], t)
         val vs = map fst (invent_params (declare_varnames t) tys);
       in (vs, t `$$ map IVar vs) end;
 
-fun eta_expand wanted (const as { dom = tys, ... }, ts) =
+fun satisfied_application wanted (const as { dom = tys, ... }, ts) =
   let
     val given = length ts;
     val delta = wanted - given;

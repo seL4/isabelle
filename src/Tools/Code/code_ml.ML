@@ -123,17 +123,17 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 then print_case is_pseudo_fun some_thm vars fxy case_expr
                 else print_app is_pseudo_fun some_thm vars fxy app
             | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dicts = dss, dom = dom, ... }, ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dicts, dom, ... }, ts)) =
       if is_constr sym then
-        let val k = length dom in
-          if k < 2 orelse length ts = k
+        let val wanted = length dom in
+          if wanted < 2 orelse length ts = wanted
           then (str o deresolve) sym
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
-          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.eta_expand k app)]
+          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.satisfied_application wanted app)]
         end
       else if is_pseudo_fun sym
         then (str o deresolve) sym @@ str "()"
-      else (str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dss
+      else (str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dicts
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
       (print_term is_pseudo_fun) const_syntax some_thm vars
@@ -446,17 +446,17 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 then print_case is_pseudo_fun some_thm vars fxy case_expr
                 else print_app is_pseudo_fun some_thm vars fxy app
             | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dicts = dss, dom = dom, ... }, ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dicts, dom, ... }, ts)) =
       if is_constr sym then
-        let val k = length dom in
-          if length ts = k
+        let val wanted = length dom in
+          if length ts = wanted
           then (str o deresolve) sym
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
-          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.eta_expand k app)]
+          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.satisfied_application wanted app)]
         end
       else if is_pseudo_fun sym
         then (str o deresolve) sym @@ str "()"
-      else (str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dss
+      else (str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dicts
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
       (print_term is_pseudo_fun) const_syntax some_thm vars

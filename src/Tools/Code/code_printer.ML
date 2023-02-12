@@ -325,17 +325,17 @@ fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
       NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (_, Plain_printer s) =>
         brackify fxy (str s :: map (print_term some_thm vars BR) ts)
-    | SOME (k, Complex_printer print) =>
+    | SOME (wanted, Complex_printer print) =>
         let
           fun print' fxy ts =
-            print (print_term some_thm) some_thm vars fxy (ts ~~ take k dom);
+            print (print_term some_thm) some_thm vars fxy (ts ~~ take wanted dom);
         in
-          if k = length ts
+          if wanted = length ts
           then print' fxy ts
-          else if k < length ts
-          then case chop k ts of (ts1, ts2) =>
+          else if wanted < length ts
+          then case chop wanted ts of (ts1, ts2) =>
             brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
-          else print_term some_thm vars fxy (Code_Thingol.eta_expand k app)
+          else print_term some_thm vars fxy (Code_Thingol.satisfied_application wanted app)
         end)
   | _ => brackify fxy (print_app_expr some_thm vars app);
 
