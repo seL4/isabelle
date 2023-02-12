@@ -136,6 +136,63 @@ object Build_Process {
 
   /* main */
 
+  case class Result(
+    current: Boolean,
+    output_heap: SHA1.Shasum,
+    process_result: Process_Result
+  ) {
+    def ok: Boolean = process_result.ok
+  }
+}
+
+class Build_Process(
+  build_context: Build_Process.Context,
+  build_heap: Boolean = false,
+  numa_shuffling: Boolean = false,
+  max_jobs: Int = 1,
+  fresh_build: Boolean = false,
+  no_build: Boolean = false,
+  verbose: Boolean = false,
+  session_setup: (String, Session) => Unit = (_, _) => ()
+) {
+  private val store = build_context.store
+  private val build_options = store.options
+  private val build_deps = build_context.deps
+  private val progress = build_context.progress
+
+  // global state
+  private val numa_nodes = new NUMA.Nodes(numa_shuffling)
+  private var build_graph = build_context.sessions_structure.build_graph
+  private var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
+  private var running = Map.empty[String, (SHA1.Shasum, Build_Job)]
+  private var results = Map.empty[String, Build_Process.Result]
+
+  private def sleep(): Unit =
+    Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
+      build_options.seconds("editor_input_delay").sleep()
+    }
+
+  private val log =
+    build_options.string("system_log") match {
+      case "" => No_Logger
+      case "-" => Logger.make(progress)
+      case log_file => Logger.make(Some(Path.explode(log_file)))
+    }
+
+  private def remove_pending(name: String): Unit = {
+    build_graph = build_graph.del_node(name)
+    build_order = build_order - name
+  }
+
+  private def next_pending(): Option[String] =
+    build_order.iterator
+      .dropWhile(name => running.isDefinedAt(name) || !build_graph.is_minimal(name))
+      .nextOption()
+
+  private def used_node(i: Int): Boolean =
+    running.iterator.exists(
+      { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
+
   private def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
@@ -146,62 +203,7 @@ object Build_Process {
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
-  case class Result(
-    current: Boolean,
-    output_heap: SHA1.Shasum,
-    process_result: Process_Result
-  ) {
-    def ok: Boolean = process_result.ok
-  }
-
-  def main(
-    build_context: Context,
-    build_heap: Boolean = false,
-    numa_shuffling: Boolean = false,
-    max_jobs: Int = 1,
-    fresh_build: Boolean = false,
-    no_build: Boolean = false,
-    verbose: Boolean = false,
-    session_setup: (String, Session) => Unit = (_, _) => ()
-  ): Map[String, Result] = {
-    val store = build_context.store
-    val build_options = store.options
-    val build_deps = build_context.deps
-    val progress = build_context.progress
-
-    def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-        build_options.seconds("editor_input_delay").sleep()
-      }
-
-    val log =
-      build_options.string("system_log") match {
-        case "" => No_Logger
-        case "-" => Logger.make(progress)
-        case log_file => Logger.make(Some(Path.explode(log_file)))
-      }
-
-    // global state
-    val numa_nodes = new NUMA.Nodes(numa_shuffling)
-    var build_graph = build_context.sessions_structure.build_graph
-    var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
-    var running = Map.empty[String, (SHA1.Shasum, Build_Job)]
-    var results = Map.empty[String, Result]
-
-    def remove_pending(name: String): Unit = {
-      build_graph = build_graph.del_node(name)
-      build_order = build_order - name
-    }
-
-    def next_pending(): Option[String] =
-      build_order.iterator
-        .dropWhile(name => running.isDefinedAt(name) || !build_graph.is_minimal(name))
-        .nextOption()
-
-    def used_node(i: Int): Boolean =
-      running.iterator.exists(
-        { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
-
+  def run(): Map[String, Build_Process.Result] = {
     @tailrec def loop(): Unit = {
       if (!build_graph.is_empty) {
         if (progress.stopped) {
@@ -266,7 +268,7 @@ object Build_Process {
 
             remove_pending(session_name)
             running -= session_name
-            results += (session_name -> Result(false, output_heap, process_result_tail))
+            results += (session_name -> Build_Process.Result(false, output_heap, process_result_tail))
             loop()
             //}}}
           case None if running.size < (max_jobs max 1) =>
@@ -306,13 +308,13 @@ object Build_Process {
 
                 if (all_current) {
                   remove_pending(session_name)
-                  results += (session_name -> Result(true, output_heap, Process_Result.ok))
+                  results += (session_name -> Build_Process.Result(true, output_heap, Process_Result.ok))
                   loop()
                 }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
                   remove_pending(session_name)
-                  results += (session_name -> Result(false, output_heap, Process_Result.error))
+                  results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.error))
                   loop()
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
@@ -337,7 +339,7 @@ object Build_Process {
                 else {
                   progress.echo(session_name + " CANCELLED")
                   remove_pending(session_name)
-                  results += (session_name -> Result(false, output_heap, Process_Result.undefined))
+                  results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.undefined))
                   loop()
                 }
               case None => sleep(); loop()

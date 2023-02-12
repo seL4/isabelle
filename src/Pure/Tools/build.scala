@@ -155,9 +155,11 @@ object Build {
         }
         else {
           Isabelle_Thread.uninterruptible {
-            Build_Process.main(build_context, build_heap = build_heap,
-              numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-              no_build = no_build, verbose = verbose, session_setup = session_setup)
+            val build_process =
+              new Build_Process(build_context, build_heap = build_heap,
+                numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
+                no_build = no_build, verbose = verbose, session_setup = session_setup)
+            build_process.run()
           }
         }
 
