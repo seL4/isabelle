@@ -134,31 +134,6 @@ object Build_Process {
   }
 
 
-  /* queue with scheduling information */
-
-  private object Queue {
-    def apply(build_context: Build_Process.Context): Queue = {
-      val build_graph = build_context.sessions_structure.build_graph
-      val build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
-      new Queue(build_graph, build_order)
-    }
-  }
-
-  private class Queue(
-    build_graph: Graph[String, Sessions.Info],
-    build_order: SortedSet[String]
-  ) {
-    def is_empty: Boolean = build_graph.is_empty
-
-    def - (name: String): Queue =
-      new Queue(build_graph.del_node(name), build_order - name)
-
-    def dequeue(skip: String => Boolean): Option[String] =
-      build_order.iterator.dropWhile(name => skip(name) || !build_graph.is_minimal(name))
-        .nextOption()
-  }
-
-
   /* main */
 
   private def session_finished(session_name: String, process_result: Process_Result): String =
@@ -206,19 +181,29 @@ object Build_Process {
         case log_file => Logger.make(Some(Path.explode(log_file)))
       }
 
+    // global state
     val numa_nodes = new NUMA.Nodes(numa_shuffling)
+    var build_graph = build_context.sessions_structure.build_graph
+    var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
+    var running = Map.empty[String, (SHA1.Shasum, Build_Job)]
+    var results = Map.empty[String, Result]
 
-    @tailrec def loop(
-      pending: Queue,
-      running: Map[String, (SHA1.Shasum, Build_Job)],
-      results: Map[String, Result]
-    ): Map[String, Result] = {
-      def used_node(i: Int): Boolean =
-        running.iterator.exists(
-          { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
+    def remove_pending(name: String): Unit = {
+      build_graph = build_graph.del_node(name)
+      build_order = build_order - name
+    }
 
-      if (pending.is_empty) results
-      else {
+    def next_pending(): Option[String] =
+      build_order.iterator
+        .dropWhile(name => running.isDefinedAt(name) || !build_graph.is_minimal(name))
+        .nextOption()
+
+    def used_node(i: Int): Boolean =
+      running.iterator.exists(
+        { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
+
+    @tailrec def loop(): Unit = {
+      if (!build_graph.is_empty) {
         if (progress.stopped) {
           for ((_, (_, job)) <- running) job.terminate()
         }
@@ -279,12 +264,14 @@ object Build_Process {
               if (!process_result.interrupted) progress.echo(process_result_tail.out)
             }
 
-            loop(pending - session_name, running - session_name,
-              results + (session_name -> Result(false, output_heap, process_result_tail)))
+            remove_pending(session_name)
+            running -= session_name
+            results += (session_name -> Result(false, output_heap, process_result_tail))
+            loop()
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
-            pending.dequeue(running.isDefinedAt) match {
+            next_pending() match {
               case Some(session_name) =>
                 val ancestor_results =
                   build_deps.sessions_structure.build_requirements(List(session_name)).
@@ -318,13 +305,15 @@ object Build_Process {
                 val all_current = current && ancestor_results.forall(_.current)
 
                 if (all_current) {
-                  loop(pending - session_name, running,
-                    results + (session_name -> Result(true, output_heap, Process_Result.ok)))
+                  remove_pending(session_name)
+                  results += (session_name -> Result(true, output_heap, Process_Result.ok))
+                  loop()
                 }
                 else if (no_build) {
                   progress.echo_if(verbose, "Skipping " + session_name + " ...")
-                  loop(pending - session_name, running,
-                    results + (session_name -> Result(false, output_heap, Process_Result.error)))
+                  remove_pending(session_name)
+                  results += (session_name -> Result(false, output_heap, Process_Result.error))
+                  loop()
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
@@ -342,21 +331,24 @@ object Build_Process {
                   val job =
                     new Build_Job(progress, session_background, store, do_store,
                       resources, session_setup, numa_node)
-                  loop(pending, running + (session_name -> (input_heaps, job)), results)
+                  running += (session_name -> (input_heaps, job))
+                  loop()
                 }
                 else {
                   progress.echo(session_name + " CANCELLED")
-                  loop(pending - session_name, running,
-                    results + (session_name -> Result(false, output_heap, Process_Result.undefined)))
+                  remove_pending(session_name)
+                  results += (session_name -> Result(false, output_heap, Process_Result.undefined))
+                  loop()
                 }
-              case None => sleep(); loop(pending, running, results)
+              case None => sleep(); loop()
             }
             ///}}}
-          case None => sleep(); loop(pending, running, results)
+          case None => sleep(); loop()
         }
       }
     }
 
-    loop(Queue(build_context), Map.empty, Map.empty)
+    loop()
+    results
   }
 }
