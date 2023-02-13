@@ -13,11 +13,11 @@ import scala.util.matching.Regex
 
 trait Build_Job {
   def session_name: String
-  def numa_node: Option[Int]
-  def start(): Unit
-  def terminate(): Unit
-  def is_finished: Boolean
-  def join: Process_Result
+  def numa_node: Option[Int] = None
+  def start(): Unit = ()
+  def terminate(): Unit = ()
+  def is_finished: Boolean = false
+  def join: Process_Result = Process_Result.undefined
 }
 
 object Build_Job {
@@ -28,7 +28,7 @@ object Build_Job {
     resources: Resources,
     session_setup: (String, Session) => Unit,
     val input_heaps: SHA1.Shasum,
-    val numa_node: Option[Int]
+    override val numa_node: Option[Int]
   ) extends Build_Job {
     def session_name: String = session_background.session_name
     val info: Sessions.Info = session_background.sessions_structure(session_name)
@@ -345,16 +345,16 @@ object Build_Job {
         }
       }
 
-    def start(): Unit = future_result
-    def terminate(): Unit = future_result.cancel()
-    def is_finished: Boolean = future_result.is_finished
+    override def start(): Unit = future_result
+    override def terminate(): Unit = future_result.cancel()
+    override def is_finished: Boolean = future_result.is_finished
 
     private val timeout_request: Option[Event_Timer.Request] = {
       if (info.timeout_ignored) None
       else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
     }
 
-    def join: Process_Result = {
+    override def join: Process_Result = {
       val result = future_result.join
 
       val was_timeout =
