@@ -236,7 +236,7 @@ class Build_Process(
         build_log =
           if (process_result.timeout) build_log.error("Timeout") else build_log,
         build =
-          Build.Session_Info(build_deps.sources_shasum(session_name), input_heaps,
+          Sessions.Build_Info(build_deps.sources_shasum(session_name), input_heaps,
             output_heap, process_result.rc, UUID.random().toString)))
 
     // messages

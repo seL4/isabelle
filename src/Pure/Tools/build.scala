@@ -9,22 +9,6 @@ package isabelle
 
 
 object Build {
-  /** auxiliary **/
-
-  /* persistent build info */
-
-  sealed case class Session_Info(
-    sources: SHA1.Shasum,
-    input_heaps: SHA1.Shasum,
-    output_heap: SHA1.Shasum,
-    return_code: Int,
-    uuid: String
-  ) {
-    def ok: Boolean = return_code == 0
-  }
-
-
-
   /** build with results **/
 
   class Results private[Build](

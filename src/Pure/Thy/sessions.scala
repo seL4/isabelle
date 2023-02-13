@@ -1331,6 +1331,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   /** persistent store **/
 
+  /** auxiliary **/
+
+  sealed case class Build_Info(
+    sources: SHA1.Shasum,
+    input_heaps: SHA1.Shasum,
+    output_heap: SHA1.Shasum,
+    return_code: Int,
+    uuid: String
+  ) {
+    def ok: Boolean = return_code == 0
+  }
+
   object Session_Info {
     val session_name = SQL.Column.string("session_name").make_primary_key
 
@@ -1345,7 +1357,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       List(session_name, session_timing, command_timings, theory_timings,
         ml_statistics, task_statistics, errors)
 
-    // Build.Session_Info
+    // Build_Info
     val sources = SQL.Column.string("sources")
     val input_heaps = SQL.Column.string("input_heaps")
     val output_heap = SQL.Column.string("output_heap")
@@ -1553,7 +1565,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       session_name: String,
       sources: Sources,
       build_log: Build_Log.Session_Info,
-      build: Build.Session_Info
+      build: Build_Info
     ): Unit = {
       db.transaction {
         write_sources(db, session_name, sources)
@@ -1596,7 +1608,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def read_errors(db: SQL.Database, name: String): List[String] =
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
-    def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] = {
+    def read_build(db: SQL.Database, name: String): Option[Build_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
         db.using_statement(Session_Info.table.select(Nil,
           Session_Info.session_name.where_equal(name))) { stmt =>
@@ -1607,7 +1619,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               try { Option(res.string(Session_Info.uuid)).getOrElse("") }
               catch { case _: SQLException => "" }
             Some(
-              Build.Session_Info(
+              Build_Info(
                 SHA1.fake_shasum(res.string(Session_Info.sources)),
                 SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
                 SHA1.fake_shasum(res.string(Session_Info.output_heap)),
