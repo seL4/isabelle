@@ -220,12 +220,7 @@ class Build_Process(
 
   private def finish_job(session_name: String, job: Build_Job): Unit = {
     val process_result = job.join
-
-    val output_heap =
-      if (process_result.ok && job.do_store && store.output_heap(session_name).is_file) {
-        SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
-      }
-      else SHA1.no_shasum
+    val output_heap = job.finish
 
     val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
     val process_result_tail = {

@@ -582,4 +582,12 @@ class Build_Job(progress: Progress,
     else if (result.interrupted) result.error(Output.error_message_text("Interrupt"))
     else result
   }
+
+  lazy val finish: SHA1.Shasum = {
+    require(is_finished, "Build job not finished: " + quote(session_name))
+    if (join.ok && do_store && store.output_heap(session_name).is_file) {
+      SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
+    }
+    else SHA1.no_shasum
+  }
 }
