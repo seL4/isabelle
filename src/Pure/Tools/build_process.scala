@@ -164,7 +164,7 @@ class Build_Process(
   private val numa_nodes = new NUMA.Nodes(numa_shuffling)
   private var build_graph = build_context.sessions_structure.build_graph
   private var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
-  private var running = Map.empty[String, (SHA1.Shasum, Build_Job)]
+  private var running = Map.empty[String, Build_Job]
   private var results = Map.empty[String, Build_Process.Result]
 
   private val log =
@@ -185,8 +185,7 @@ class Build_Process(
       .nextOption()
 
   private def used_node(i: Int): Boolean =
-    running.iterator.exists(
-      { case (_, (_, job)) => job.numa_node.isDefined && job.numa_node.get == i })
+    running.valuesIterator.exists(job => job.numa_node.isDefined && job.numa_node.get == i)
 
   private def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
@@ -198,7 +197,7 @@ class Build_Process(
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
-  private def finish_job(session_name: String, input_heaps: SHA1.Shasum, job: Build_Job): Unit = {
+  private def finish_job(session_name: String, job: Build_Job): Unit = {
     val process_result = job.join
 
     val output_heap =
@@ -236,7 +235,7 @@ class Build_Process(
         build_log =
           if (process_result.timeout) build_log.error("Timeout") else build_log,
         build =
-          Sessions.Build_Info(build_deps.sources_shasum(session_name), input_heaps,
+          Sessions.Build_Info(build_deps.sources_shasum(session_name), job.input_heaps,
             output_heap, process_result.rc, UUID.random().toString)))
 
     // messages
@@ -312,8 +311,8 @@ class Build_Process(
       val numa_node = numa_nodes.next(used_node)
       val job =
         new Build_Job(progress, session_background, store, do_store,
-          resources, session_setup, numa_node)
-      running += (session_name -> (input_heaps, job))
+          resources, session_setup, input_heaps, numa_node)
+      running += (session_name -> job)
     }
     else {
       progress.echo(session_name + " CANCELLED")
@@ -329,13 +328,10 @@ class Build_Process(
 
   def run(): Map[String, Build_Process.Result] = {
     while (!build_graph.is_empty) {
-      if (progress.stopped) {
-        for ((_, (_, job)) <- running) job.terminate()
-      }
+      if (progress.stopped) running.valuesIterator.foreach(_.terminate())
 
-      running.find({ case (_, (_, job)) => job.is_finished }) match {
-        case Some((session_name, (input_heaps, job))) =>
-          finish_job(session_name, input_heaps, job)
+      running.find({ case (_, job) => job.is_finished }) match {
+        case Some((session_name, job)) => finish_job(session_name, job)
         case None if running.size < (max_jobs max 1) =>
           next_pending() match {
             case Some(session_name) => start_job(session_name)

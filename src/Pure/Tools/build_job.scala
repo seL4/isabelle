@@ -241,6 +241,7 @@ class Build_Job(progress: Progress,
   val do_store: Boolean,
   resources: Resources,
   session_setup: (String, Session) => Unit,
+  val input_heaps: SHA1.Shasum,
   val numa_node: Option[Int]
 ) {
   def session_name: String = session_background.session_name
