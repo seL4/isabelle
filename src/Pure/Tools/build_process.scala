@@ -160,19 +160,19 @@ class Build_Process(
   private val build_deps = build_context.deps
   private val progress = build_context.progress
 
-  // global state
-  private val numa_nodes = new NUMA.Nodes(numa_shuffling)
-  private var build_graph = build_context.sessions_structure.build_graph
-  private var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
-  private var running = Map.empty[String, Build_Job]
-  private var results = Map.empty[String, Build_Process.Result]
-
   private val log =
     build_options.string("system_log") match {
       case "" => No_Logger
       case "-" => Logger.make(progress)
       case log_file => Logger.make(Some(Path.explode(log_file)))
     }
+
+  // global state
+  private val numa_nodes = new NUMA.Nodes(numa_shuffling)
+  private var build_graph = build_context.sessions_structure.build_graph
+  private var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
+  private var running = Map.empty[String, Build_Job]
+  private var results = Map.empty[String, Build_Process.Result]
 
   private def remove_pending(name: String): Unit = {
     build_graph = build_graph.del_node(name)
