@@ -197,8 +197,12 @@ class Build_Process(
 
   private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
 
-  private def finished_running(): List[Build_Job] = synchronized {
-    _running.valuesIterator.filter(_.is_finished).toList
+  private def finished_running(): List[Build_Job.Build_Session] = synchronized {
+    List.from(
+      _running.valuesIterator.flatMap {
+        case job: Build_Job.Build_Session if job.is_finished => Some(job)
+        case _ => None
+      })
   }
 
   private def job_running(name: String, job: Build_Job): Build_Job = synchronized {
@@ -233,7 +237,7 @@ class Build_Process(
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
-  private def finish_job(job: Build_Job): Unit = {
+  private def finish_job(job: Build_Job.Build_Session): Unit = {
     val session_name = job.session_name
     val process_result = job.join
     val output_heap = job.finish
@@ -351,7 +355,7 @@ class Build_Process(
         synchronized {
           val numa_node = next_numa_node()
           job_running(session_name,
-            new Build_Job(progress, session_background, store, do_store,
+            new Build_Job.Build_Session(progress, session_background, store, do_store,
               resources, session_setup, input_heaps, numa_node))
         }
       job.start()
