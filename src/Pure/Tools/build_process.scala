@@ -168,24 +168,24 @@ class Build_Process(
     }
 
   // global state
-  private val numa_nodes = new NUMA.Nodes(numa_shuffling)
-  private var build_graph = build_context.sessions_structure.build_graph
-  private var build_order = SortedSet.from(build_graph.keys)(build_context.ordering)
-  private var running = Map.empty[String, Build_Job]
-  private var results = Map.empty[String, Build_Process.Result]
+  private val _numa_nodes = new NUMA.Nodes(numa_shuffling)
+  private var _build_graph = build_context.sessions_structure.build_graph
+  private var _build_order = SortedSet.from(_build_graph.keys)(build_context.ordering)
+  private var _running = Map.empty[String, Build_Job]
+  private var _results = Map.empty[String, Build_Process.Result]
 
   private def remove_pending(name: String): Unit = {
-    build_graph = build_graph.del_node(name)
-    build_order = build_order - name
+    _build_graph = _build_graph.del_node(name)
+    _build_order = _build_order - name
   }
 
   private def next_pending(): Option[String] =
-    build_order.iterator
-      .dropWhile(name => running.isDefinedAt(name) || !build_graph.is_minimal(name))
+    _build_order.iterator
+      .dropWhile(name => _running.isDefinedAt(name) || !_build_graph.is_minimal(name))
       .nextOption()
 
   private def used_node(i: Int): Boolean =
-    running.valuesIterator.exists(job => job.numa_node.isDefined && job.numa_node.get == i)
+    _running.valuesIterator.exists(job => job.numa_node.isDefined && job.numa_node.get == i)
 
   private def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
@@ -251,14 +251,14 @@ class Build_Process(
     }
 
     remove_pending(session_name)
-    running -= session_name
-    results += (session_name -> Build_Process.Result(false, output_heap, process_result_tail))
+    _running -= session_name
+    _results += (session_name -> Build_Process.Result(false, output_heap, process_result_tail))
   }
 
   private def start_job(session_name: String): Unit = {
     val ancestor_results =
       build_deps.sessions_structure.build_requirements(List(session_name)).
-        filterNot(_ == session_name).map(results(_))
+        filterNot(_ == session_name).map(_results(_))
     val input_heaps =
       if (ancestor_results.isEmpty) {
         SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
@@ -289,12 +289,12 @@ class Build_Process(
 
     if (all_current) {
       remove_pending(session_name)
-      results += (session_name -> Build_Process.Result(true, output_heap, Process_Result.ok))
+      _results += (session_name -> Build_Process.Result(true, output_heap, Process_Result.ok))
     }
     else if (no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
       remove_pending(session_name)
-      results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.error))
+      _results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.error))
     }
     else if (ancestor_results.forall(_.ok) && !progress.stopped) {
       progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
@@ -308,16 +308,16 @@ class Build_Process(
         new Resources(session_background, log = log,
           command_timings = build_context(session_name).old_command_timings)
 
-      val numa_node = numa_nodes.next(used_node)
+      val numa_node = _numa_nodes.next(used_node)
       val job =
         new Build_Job(progress, session_background, store, do_store,
           resources, session_setup, input_heaps, numa_node)
-      running += (session_name -> job)
+      _running += (session_name -> job)
     }
     else {
       progress.echo(session_name + " CANCELLED")
       remove_pending(session_name)
-      results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.undefined))
+      _results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.undefined))
     }
   }
 
@@ -327,12 +327,12 @@ class Build_Process(
     }
 
   def run(): Map[String, Build_Process.Result] = {
-    while (!build_graph.is_empty) {
-      if (progress.stopped) running.valuesIterator.foreach(_.terminate())
+    while (!_build_graph.is_empty) {
+      if (progress.stopped) _running.valuesIterator.foreach(_.terminate())
 
-      running.find({ case (_, job) => job.is_finished }) match {
+      _running.find({ case (_, job) => job.is_finished }) match {
         case Some((session_name, job)) => finish_job(session_name, job)
-        case None if running.size < (max_jobs max 1) =>
+        case None if _running.size < (max_jobs max 1) =>
           next_pending() match {
             case Some(session_name) => start_job(session_name)
             case None => sleep()
@@ -341,6 +341,6 @@ class Build_Process(
       }
     }
 
-    results
+    _results
   }
 }
