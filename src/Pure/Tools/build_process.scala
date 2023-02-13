@@ -317,13 +317,16 @@ class Build_Process(
         new Resources(session_background, log = log,
           command_timings = build_context(session_name).old_command_timings)
 
-      synchronized {
-        val numa_node = next_numa_node()
-        val job =
-          new Build_Job(progress, session_background, store, do_store,
-            resources, session_setup, input_heaps, numa_node)
-        _running += (session_name -> job)
-      }
+      val job =
+        synchronized {
+          val numa_node = next_numa_node()
+          val job =
+            new Build_Job(progress, session_background, store, do_store,
+              resources, session_setup, input_heaps, numa_node)
+          _running += (session_name -> job)
+          job
+        }
+      job.start()
     }
     else {
       progress.echo(session_name + " CANCELLED")

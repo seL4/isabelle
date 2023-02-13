@@ -251,7 +251,7 @@ class Build_Job(progress: Progress,
   val session_sources: Sessions.Sources =
     Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
-  private val future_result: Future[Process_Result] =
+  private lazy val future_result: Future[Process_Result] =
     Future.thread("build", uninterruptible = true) {
       val parent = info.parent.getOrElse("")
 
@@ -559,6 +559,7 @@ class Build_Job(progress: Progress,
       }
     }
 
+  def start(): Unit = future_result
   def terminate(): Unit = future_result.cancel()
   def is_finished: Boolean = future_result.is_finished
 
