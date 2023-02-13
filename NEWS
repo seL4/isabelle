@@ -224,6 +224,9 @@ antiquotations.
 * Mirabelle:
   - Added session to output directory structure. Minor INCOMPATIBILITY.
 
+* Metis:
+  - Made clausifier more robust in the face of nested lambdas.
+
 
 *** ML ***
 
