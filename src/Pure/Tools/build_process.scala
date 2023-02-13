@@ -199,6 +199,15 @@ class Build_Process(
     _running -= name
   }
 
+  private def add_result(
+    name: String,
+    current: Boolean,
+    output_heap: SHA1.Shasum,
+    process_result: Process_Result
+  ): Unit = synchronized {
+    _results += (name -> Build_Process.Result(current, output_heap, process_result))
+  }
+
   private def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
@@ -265,7 +274,7 @@ class Build_Process(
     synchronized {
       remove_pending(session_name)
       remove_running(session_name)
-      _results += (session_name -> Build_Process.Result(false, output_heap, process_result_tail))
+      add_result(session_name, false, output_heap, process_result_tail)
     }
   }
 
@@ -304,14 +313,14 @@ class Build_Process(
     if (all_current) {
       synchronized {
         remove_pending(session_name)
-        _results += (session_name -> Build_Process.Result(true, output_heap, Process_Result.ok))
+        add_result(session_name, true, output_heap, Process_Result.ok)
       }
     }
     else if (no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
       synchronized {
         remove_pending(session_name)
-        _results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.error))
+        add_result(session_name, false, output_heap, Process_Result.error)
       }
     }
     else if (ancestor_results.forall(_.ok) && !progress.stopped) {
@@ -339,7 +348,7 @@ class Build_Process(
       progress.echo(session_name + " CANCELLED")
       synchronized {
         remove_pending(session_name)
-        _results += (session_name -> Build_Process.Result(false, output_heap, Process_Result.undefined))
+        add_result(session_name, false, output_heap, Process_Result.undefined)
       }
     }
   }
