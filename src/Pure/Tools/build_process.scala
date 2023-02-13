@@ -190,6 +190,10 @@ class Build_Process(
       Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
   }
 
+  private def test_running(): Boolean = synchronized { !_build_graph.is_empty }
+
+  private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
+
   private def job_running(name: String, job: Build_Job): Build_Job = synchronized {
     _running += (name -> job)
     job
@@ -206,6 +210,10 @@ class Build_Process(
     process_result: Process_Result
   ): Unit = synchronized {
     _results += (name -> Build_Process.Result(current, output_heap, process_result))
+  }
+
+  private def get_results(names: List[String]): List[Build_Process.Result] = synchronized {
+    names.map(_results.apply)
   }
 
   private def session_finished(session_name: String, process_result: Process_Result): String =
@@ -275,8 +283,9 @@ class Build_Process(
 
   private def start_job(session_name: String): Unit = {
     val ancestor_results =
-      build_deps.sessions_structure.build_requirements(List(session_name)).
-        filterNot(_ == session_name).map(_results(_))
+      get_results(
+        build_deps.sessions_structure.build_requirements(List(session_name)).
+          filterNot(_ == session_name))
     val input_heaps =
       if (ancestor_results.isEmpty) {
         SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
@@ -354,8 +363,8 @@ class Build_Process(
     }
 
   def run(): Map[String, Build_Process.Result] = {
-    while (synchronized { !_build_graph.is_empty }) {
-      if (progress.stopped) synchronized { _running.valuesIterator.foreach(_.terminate()) }
+    while (test_running()) {
+      if (progress.stopped) stop_running()
 
       synchronized { _running } .find({ case (_, job) => job.is_finished }) match {
         case Some((session_name, job)) => finish_job(session_name, job)
