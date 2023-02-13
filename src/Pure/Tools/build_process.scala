@@ -190,6 +190,15 @@ class Build_Process(
       Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
   }
 
+  private def job_running(name: String, job: Build_Job): Build_Job = synchronized {
+    _running += (name -> job)
+    job
+  }
+
+  private def remove_running(name: String): Unit = synchronized {
+    _running -= name
+  }
+
   private def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
@@ -255,7 +264,7 @@ class Build_Process(
 
     synchronized {
       remove_pending(session_name)
-      _running -= session_name
+      remove_running(session_name)
       _results += (session_name -> Build_Process.Result(false, output_heap, process_result_tail))
     }
   }
@@ -320,11 +329,9 @@ class Build_Process(
       val job =
         synchronized {
           val numa_node = next_numa_node()
-          val job =
+          job_running(session_name,
             new Build_Job(progress, session_background, store, do_store,
-              resources, session_setup, input_heaps, numa_node)
-          _running += (session_name -> job)
-          job
+              resources, session_setup, input_heaps, numa_node))
         }
       job.start()
     }
