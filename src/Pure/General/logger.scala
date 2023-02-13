@@ -35,7 +35,8 @@ class File_Logger(path: Path) extends Logger {
 }
 
 class System_Logger extends Logger {
-  def apply(msg: => String): Unit =
+  def apply(msg: => String): Unit = synchronized {
     if (Platform.is_windows) System.out.println(msg)
     else System.console.writer.println(msg)
+  }
 }
