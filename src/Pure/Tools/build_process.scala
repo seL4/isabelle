@@ -185,8 +185,9 @@ class Build_Process(
       .nextOption()
   }
 
-  private def used_node(i: Int): Boolean = synchronized {
-    _running.valuesIterator.exists(job => job.numa_node.isDefined && job.numa_node.get == i)
+  private def next_numa_node(): Option[Int] = synchronized {
+    _numa_nodes.next(used =
+      Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
   }
 
   private def session_finished(session_name: String, process_result: Process_Result): String =
@@ -317,7 +318,7 @@ class Build_Process(
           command_timings = build_context(session_name).old_command_timings)
 
       synchronized {
-        val numa_node = _numa_nodes.next(used_node)
+        val numa_node = next_numa_node()
         val job =
           new Build_Job(progress, session_background, store, do_store,
             resources, session_setup, input_heaps, numa_node)
