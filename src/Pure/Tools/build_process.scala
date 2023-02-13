@@ -180,9 +180,12 @@ class Build_Process(
   }
 
   private def next_pending(): Option[String] = synchronized {
-    _build_order.iterator
-      .dropWhile(name => _running.isDefinedAt(name) || !_build_graph.is_minimal(name))
-      .nextOption()
+    if (_running.size < (max_jobs max 1)) {
+      _build_order.iterator
+        .dropWhile(name => _running.isDefinedAt(name) || !_build_graph.is_minimal(name))
+        .nextOption()
+    }
+    else None
   }
 
   private def next_numa_node(): Option[Int] = synchronized {
@@ -193,6 +196,10 @@ class Build_Process(
   private def test_running(): Boolean = synchronized { !_build_graph.is_empty }
 
   private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
+
+  private def finished_running(): List[Build_Job] = synchronized {
+    _running.valuesIterator.filter(_.is_finished).toList
+  }
 
   private def job_running(name: String, job: Build_Job): Build_Job = synchronized {
     _running += (name -> job)
@@ -226,7 +233,8 @@ class Build_Process(
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
-  private def finish_job(session_name: String, job: Build_Job): Unit = {
+  private def finish_job(job: Build_Job): Unit = {
+    val session_name = job.session_name
     val process_result = job.join
     val output_heap = job.finish
 
@@ -366,13 +374,10 @@ class Build_Process(
     while (test_running()) {
       if (progress.stopped) stop_running()
 
-      synchronized { _running } .find({ case (_, job) => job.is_finished }) match {
-        case Some((session_name, job)) => finish_job(session_name, job)
-        case None if synchronized { _running.size } < (max_jobs max 1) =>
-          next_pending() match {
-            case Some(session_name) => start_job(session_name)
-            case None => sleep()
-          }
+      for (job <- finished_running()) finish_job(job)
+
+      next_pending() match {
+        case Some(session_name) => start_job(session_name)
         case None => sleep()
       }
     }
