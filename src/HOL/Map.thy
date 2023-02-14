@@ -70,20 +70,10 @@ translations
   "_Map (_Maplets ms1 ms2)"     \<leftharpoondown> "_MapUpd (_Map ms1) ms2"
   "_Maplets ms1 (_Maplets ms2 ms3)" \<leftharpoondown> "_Maplets (_Maplets ms1 ms2) ms3"
 
-primrec map_of :: "('a \<times> 'b) list \<Rightarrow> 'a \<rightharpoonup> 'b"
-where
-  "map_of [] = empty"
-| "map_of (p # ps) = (map_of ps)(fst p \<mapsto> snd p)"
-
 definition map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'a \<rightharpoonup> 'b"
   where "map_upds m xs ys = m ++ map_of (rev (zip xs ys))"
 translations
   "_MapUpd m (_maplets x y)" \<rightleftharpoons> "CONST map_upds m x y"
-
-lemma map_of_Cons_code [code]:
-  "map_of [] k = None"
-  "map_of ((l, v) # ps) k = (if l = k then Some v else map_of ps k)"
-  by simp_all
 
 
 subsection \<open>@{term [source] empty}\<close>
@@ -142,124 +132,12 @@ lemma empty_eq_map_of_iff [simp]:
   "empty = map_of xys \<longleftrightarrow> xys = []"
 by(subst eq_commute) simp
 
-lemma map_of_eq_None_iff:
-  "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
-by (induct xys) simp_all
-
-lemma map_of_eq_Some_iff [simp]:
-  "distinct(map fst xys) \<Longrightarrow> (map_of xys x = Some y) = ((x,y) \<in> set xys)"
-proof (induct xys)
-  case (Cons xy xys)
-  then show ?case
-    by (cases xy) (auto simp flip: map_of_eq_None_iff)
-qed auto
-
-lemma Some_eq_map_of_iff [simp]:
-  "distinct(map fst xys) \<Longrightarrow> (Some y = map_of xys x) = ((x,y) \<in> set xys)"
-by (auto simp del: map_of_eq_Some_iff simp: map_of_eq_Some_iff [symmetric])
-
-lemma map_of_is_SomeI [simp]: 
-  "\<lbrakk>distinct(map fst xys); (x,y) \<in> set xys\<rbrakk> \<Longrightarrow> map_of xys x = Some y"
-  by simp
-
-lemma map_of_zip_is_None [simp]:
-  "length xs = length ys \<Longrightarrow> (map_of (zip xs ys) x = None) = (x \<notin> set xs)"
-by (induct rule: list_induct2) simp_all
-
-lemma map_of_zip_is_Some:
-  assumes "length xs = length ys"
-  shows "x \<in> set xs \<longleftrightarrow> (\<exists>y. map_of (zip xs ys) x = Some y)"
-using assms by (induct rule: list_induct2) simp_all
-
-lemma map_of_zip_upd:
-  fixes x :: 'a and xs :: "'a list" and ys zs :: "'b list"
-  assumes "length ys = length xs"
-    and "length zs = length xs"
-    and "x \<notin> set xs"
-    and "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)"
-  shows "map_of (zip xs ys) = map_of (zip xs zs)"
-proof
-  fix x' :: 'a
-  show "map_of (zip xs ys) x' = map_of (zip xs zs) x'"
-  proof (cases "x = x'")
-    case True
-    from assms True map_of_zip_is_None [of xs ys x']
-      have "map_of (zip xs ys) x' = None" by simp
-    moreover from assms True map_of_zip_is_None [of xs zs x']
-      have "map_of (zip xs zs) x' = None" by simp
-    ultimately show ?thesis by simp
-  next
-    case False from assms
-      have "(map_of (zip xs ys)(x \<mapsto> y)) x' = (map_of (zip xs zs)(x \<mapsto> z)) x'" by auto
-    with False show ?thesis by simp
-  qed
-qed
-
-lemma map_of_zip_inject:
-  assumes "length ys = length xs"
-    and "length zs = length xs"
-    and dist: "distinct xs"
-    and map_of: "map_of (zip xs ys) = map_of (zip xs zs)"
-  shows "ys = zs"
-  using assms(1) assms(2)[symmetric]
-  using dist map_of
-proof (induct ys xs zs rule: list_induct3)
-  case Nil show ?case by simp
-next
-  case (Cons y ys x xs z zs)
-  from \<open>map_of (zip (x#xs) (y#ys)) = map_of (zip (x#xs) (z#zs))\<close>
-    have map_of: "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)" by simp
-  from Cons have "length ys = length xs" and "length zs = length xs"
-    and "x \<notin> set xs" by simp_all
-  then have "map_of (zip xs ys) = map_of (zip xs zs)" using map_of by (rule map_of_zip_upd)
-  with Cons.hyps \<open>distinct (x # xs)\<close> have "ys = zs" by simp
-  moreover from map_of have "y = z" by (rule map_upd_eqD1)
-  ultimately show ?case by simp
-qed
-
-lemma map_of_zip_nth:
-  assumes "length xs = length ys"
-  assumes "distinct xs"
-  assumes "i < length ys"
-  shows "map_of (zip xs ys) (xs ! i) = Some (ys ! i)"
-using assms proof (induct arbitrary: i rule: list_induct2)
-  case Nil
-  then show ?case by simp
-next
-  case (Cons x xs y ys)
-  then show ?case
-    using less_Suc_eq_0_disj by auto
-qed
-
-lemma map_of_zip_map:
-  "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
-  by (induct xs) (simp_all add: fun_eq_iff)
-
 lemma finite_range_map_of: "finite (range (map_of xys))"
 proof (induct xys)
   case (Cons a xys)
   then show ?case
     using finite_range_updI by fastforce
 qed auto
-
-lemma map_of_SomeD: "map_of xs k = Some y \<Longrightarrow> (k, y) \<in> set xs"
-  by (induct xs) (auto split: if_splits)
-
-lemma map_of_mapk_SomeI:
-  "inj f \<Longrightarrow> map_of t k = Some x \<Longrightarrow>
-   map_of (map (case_prod (\<lambda>k. Pair (f k))) t) (f k) = Some x"
-by (induct t) (auto simp: inj_eq)
-
-lemma weak_map_of_SomeI: "(k, x) \<in> set l \<Longrightarrow> \<exists>x. map_of l k = Some x"
-by (induct l) auto
-
-lemma map_of_filter_in:
-  "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (case_prod P) xs) k = Some z"
-by (induct xs) auto
-
-lemma map_of_map:
-  "map_of (map (\<lambda>(k, v). (k, f v)) xs) = map_option f \<circ> map_of xs"
-  by (induct xs) (auto simp: fun_eq_iff)
 
 lemma dom_map_option:
   "dom (\<lambda>k. map_option (f k) (m k)) = dom m"

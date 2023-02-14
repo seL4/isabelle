@@ -543,6 +543,7 @@ Type \<^typ>\<open>int\<close>
 \<^const>\<open>List.list_all2\<close> & \<^typeof>\<open>List.list_all2\<close>\\
 \<^const>\<open>List.list_update\<close> & \<^typeof>\<open>List.list_update\<close>\\
 \<^const>\<open>List.map\<close> & \<^typeof>\<open>List.map\<close>\\
+\<^const>\<open>List.map_of\<close> & \<^typeof>\<open>List.map_of\<close>\\
 \<^const>\<open>List.measures\<close> & @{term_type_only List.measures "('a\<Rightarrow>nat)list\<Rightarrow>('a*'a)set"}\\
 \<^const>\<open>List.nth\<close> & \<^typeof>\<open>List.nth\<close>\\
 \<^const>\<open>List.nths\<close> & \<^typeof>\<open>List.nths\<close>\\
@@ -585,32 +586,31 @@ List comprehension input syntax: \<open>[e. q\<^sub>1, \<dots>, q\<^sub>n]\<clos
 qualifier \<open>q\<^sub>i\<close> is either a generator \mbox{\<open>pat \<leftarrow> e\<close>} or a
 guard, i.e.\ boolean expression.
 
-\section*{Map}
-
-Maps model partial functions and are often used as finite tables. However,
-the domain of a map may be infinite.
-
-\begin{tabular}{@ {} l @ {~::~} l @ {}}
-\<^const>\<open>Map.empty\<close> & \<^typeof>\<open>Map.empty\<close>\\
-\<^const>\<open>Map.map_add\<close> & \<^typeof>\<open>Map.map_add\<close>\\
-\<^const>\<open>Map.map_comp\<close> & \<^typeof>\<open>Map.map_comp\<close>\\
-\<^const>\<open>Map.restrict_map\<close> & @{term_type_only Map.restrict_map "('a\<Rightarrow>'b option)\<Rightarrow>'a set\<Rightarrow>('a\<Rightarrow>'b option)"}\\
-\<^const>\<open>Map.dom\<close> & @{term_type_only Map.dom "('a\<Rightarrow>'b option)\<Rightarrow>'a set"}\\
-\<^const>\<open>Map.ran\<close> & @{term_type_only Map.ran "('a\<Rightarrow>'b option)\<Rightarrow>'b set"}\\
-\<^const>\<open>Map.map_le\<close> & \<^typeof>\<open>Map.map_le\<close>\\
-\<^const>\<open>Map.map_of\<close> & \<^typeof>\<open>Map.map_of\<close>\\
-\<^const>\<open>Map.map_upds\<close> & \<^typeof>\<open>Map.map_upds\<close>\\
-\end{tabular}
-
-\subsubsection*{Syntax}
-
-\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-\<^term>\<open>Map.empty\<close> & @{term[source] "\<lambda>_. None"}\\
-\<^term>\<open>m(x:=Some y)\<close> & @{term[source]"m(x:=Some y)"}\\
-\<open>m(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)\<close> & @{text[source]"m(x\<^sub>1\<mapsto>y\<^sub>1)\<dots>(x\<^sub>n\<mapsto>y\<^sub>n)"}\\
-\<open>[x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n]\<close> & @{text[source]"Map.empty(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"}\\
-\<^term>\<open>map_upds m xs ys\<close> & @{term[source]"map_upds m xs ys"}\\
-\end{tabular}
+%\section*{Map}
+%
+%Maps model partial functions and are often used as finite tables. However,
+%the domain of a map may be infinite.
+%
+%\begin{tabular}{@ {} l @ {~::~} l @ {}}
+%\<const>\<open>Map.empty\<close> & \<typeof>\<open>Map.empty\<close>\\
+%\<const>\<open>Map.map_add\<close> & \<typeof>\<open>Map.map_add\<close>\\
+%\<const>\<open>Map.map_comp\<close> & \<typeof>\<open>Map.map_comp\<close>\\
+%\<const>\<open>Map.restrict_map\<close> & @ {term_type_only Map.restrict_map "('a\<Rightarrow>'b option)\<Rightarrow>'a set\<Rightarrow>('a\<Rightarrow>'b option)"}\\
+%\<const>\<open>Map.dom\<close> & @{term_type_only Map.dom "('a\<Rightarrow>'b option)\<Rightarrow>'a set"}\\
+%\<const>\<open>Map.ran\<close> & @{term_type_only Map.ran "('a\<Rightarrow>'b option)\<Rightarrow>'b set"}\\
+%\<const>\<open>Map.map_le\<close> & \<typeof>\<open>Map.map_le\<close>\\
+%\<const>\<open>Map.map_upds\<close> & \<typeof>\<open>Map.map_upds\<close>\\
+%\end{tabular}
+%
+%\subsubsection*{Syntax}
+%
+%\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+%\<term>\<open>Map.empty\<close> & @ {term[source] "\<lambda>_. None"}\\
+%\<term>\<open>m(x:=Some y)\<close> & @ {term[source]"m(x:=Some y)"}\\
+%m(x1\<mapsto>y1,\<dots>,xn\<mapsto>yn) & @ {text[source]"m(x1\<mapsto>y1)\<dots>(xn\<mapsto>yn)"}\\
+%[x1\<mapsto>y1,\<dots>,xn\<mapsto>yn] & @ {text[source]"Map.empty(x1\<mapsto>y1,\<dots>,xn\<mapsto>yn)"}\\
+%\<term>\<open>map_upds m xs ys\<close> & @ {term[source]"map_upds m xs ys"}\\
+%\end{tabular}
 
 \section*{Infix operators in Main} % \<^theory>\<open>Main\<close>
 
