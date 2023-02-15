@@ -237,18 +237,10 @@ fun run_atp mode name
           (state, subgoal, name, "Running command in " ^
              string_of_int (Time.toMilliseconds run_time) ^ " ms"))
 
-        val outcome =
+        val _ =
           (case outcome of
-            NONE =>
-            (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
-              SOME facts =>
-              let
-                val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
-              in
-                if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
-              end
-            | NONE => (found_something name; NONE))
-          | _ => outcome)
+            NONE => found_something name
+          | _ => ())
       in
         (atp_problem_data,
          (output, run_time, facts, atp_problem, tstplike_proof, atp_proof, outcome),

@@ -24,7 +24,6 @@ sig
     ProofMissing |
     ProofIncomplete |
     ProofUnparsable |
-    UnsoundProof of bool * string list |
     TimedOut |
     Inappropriate |
     OutOfResources |
@@ -143,7 +142,6 @@ datatype atp_failure =
   ProofMissing |
   ProofIncomplete |
   ProofUnparsable |
-  UnsoundProof of bool * string list |
   TimedOut |
   Inappropriate |
   OutOfResources |
@@ -160,21 +158,12 @@ fun short_output verbose output =
   else
     ""
 
-fun from_lemmas [] = ""
-  | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
-
 fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
   | string_of_atp_failure Unprovable = "Unprovable problem"
   | string_of_atp_failure GaveUp = "Gave up"
   | string_of_atp_failure ProofMissing = "Proof missing"
   | string_of_atp_failure ProofIncomplete = "Proof incomplete"
   | string_of_atp_failure ProofUnparsable = "Proof unparsable"
-  | string_of_atp_failure (UnsoundProof (false, ss)) =
-    "Derived the lemma \"False\"" ^ from_lemmas ss ^
-    ", probably due to the use of an unsound type encoding"
-  | string_of_atp_failure (UnsoundProof (true, ss)) =
-    "Derived the lemma \"False\"" ^ from_lemmas ss ^
-    ", which could be due to a bug in Sledgehammer or to inconsistent axioms (including \"sorry\"s)"
   | string_of_atp_failure TimedOut = "Timed out"
   | string_of_atp_failure Inappropriate = "Problem outside the prover's scope"
   | string_of_atp_failure OutOfResources = "Out of resources"
@@ -184,8 +173,7 @@ fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
   | string_of_atp_failure Crashed = "Crashed"
   | string_of_atp_failure InternalError = "Internal prover error"
   | string_of_atp_failure (UnknownError s) =
-    "Prover error" ^
-    (if s = "" then " (pass the \"verbose\" option for details)" else ":\n" ^ s)
+    "Prover error" ^ (if s = "" then " (pass the \"verbose\" option for details)" else ":\n" ^ s)
 
 fun extract_delimited (begin_delim, end_delim) output =
   (case first_field begin_delim output of
