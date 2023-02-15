@@ -104,13 +104,13 @@ val cvc4: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [((2, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((2, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((2, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((2, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((2, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((2, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((2, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+    [((2, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, false, false, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, false, true, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
   replay = NONE }
@@ -124,13 +124,13 @@ val cvc5: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [((2, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((2, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((2, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((2, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((2, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((2, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((2, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+    [((2, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, false, false, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, false, true, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
   replay = NONE }
@@ -169,12 +169,12 @@ val veriT: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [((2, 1024, meshN), []),
-     ((2, 512, mashN), []),
-     ((2, 64, meshN), []),
-     ((2, 128, meshN), []),
-     ((2, 256, mepoN), []),
-     ((2, 32, meshN), [])],
+    [((2, false, false, 1024, meshN), []),
+     ((2, false, false, 512, mashN), []),
+     ((2, false, true, 128, meshN), []),
+     ((2, false, false, 64, meshN), []),
+     ((2, false, false, 256, mepoN), []),
+     ((2, false, false, 32, meshN), [])],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
   parse_proof = SOME (K Lethe_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
@@ -210,12 +210,12 @@ val z3: SMT_Solver.solver_config = {
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
-    [((2, 1024, meshN), []),
-     ((2, 512, mepoN), []),
-     ((2, 64, meshN), []),
-     ((2, 256, meshN), []),
-     ((2, 128, mashN), []),
-     ((2, 32, meshN), [])],
+    [((2, false, false, 1024, meshN), []),
+     ((2, false, false, 512, mepoN), []),
+     ((2, false, false, 64, meshN), []),
+     ((2, false, true, 256, meshN), []),
+     ((2, false, false, 128, mashN), []),
+     ((2, false, false, 32, meshN), [])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME Z3_Replay.parse_proof,
   replay = SOME Z3_Replay.replay }
@@ -250,7 +250,7 @@ val _ =
   Theory.setup
     (Method.setup \<^binding>\<open>smt\<close>
       (Scan.lift parse_smt_options -- Attrib.thms >> (METHOD oo smt_method))
-      "Call to the SMT solvers veriT or z3")
+      "Call to the SMT solver veriT or z3")
 
 (* overall setup *)
 

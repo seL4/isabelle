@@ -228,6 +228,12 @@ antiquotations.
 
 * Metis:
   - Made clausifier more robust in the face of nested lambdas.
+    Minor INCOMPATIBILITY.
+
+* Sledgehammer:
+  - Added refutational mode to find likely unprovable conectures. It is
+    enabled by default in addition to the usual proving mode and can be
+    enabled or disabled using the 'refute' option.
 
 
 *** ML ***

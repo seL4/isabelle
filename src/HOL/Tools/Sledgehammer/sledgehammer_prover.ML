@@ -29,6 +29,8 @@ sig
      overlord : bool,
      spy : bool,
      provers : string list,
+     abduce : bool option,
+     check_consistent : bool option,
      type_enc : string option,
      strict : bool,
      lam_trans : string option,
@@ -61,7 +63,7 @@ sig
      subgoal : int,
      subgoal_count : int,
      factss : (string * fact list) list,
-     found_proof : string -> unit}
+     found_something : string -> unit}
 
   datatype prover_slice_extra =
     ATP_Slice of atp_slice
@@ -134,6 +136,8 @@ type params =
    overlord : bool,
    spy : bool,
    provers : string list,
+   abduce : bool option,
+   check_consistent : bool option,
    type_enc : string option,
    strict : bool,
    lam_trans : string option,
@@ -160,8 +164,8 @@ fun string_of_params (params : params) =
   YXML.content_of (ML_Pretty.string_of_polyml (ML_system_pretty (params, 100)))
 
 fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
-    induction_rules = Exclude ?
-      filter_out (fn ((_, (_, ATP_Problem_Generate.Induction)), _) => true | _ => false)
+  induction_rules = Exclude ?
+    filter_out (fn ((_, (_, ATP_Problem_Generate.Induction)), _) => true | _ => false)
 
 fun slice_timeout slice_size slices timeout =
   let
@@ -178,7 +182,7 @@ type prover_problem =
    subgoal : int,
    subgoal_count : int,
    factss : (string * fact list) list,
-   found_proof : string -> unit}
+   found_something : string -> unit}
 
 datatype prover_slice_extra =
   ATP_Slice of atp_slice
@@ -234,9 +238,14 @@ fun facts_of_filter fact_filter factss =
     SOME facts => facts
   | NONE => snd (hd factss))
 
-fun facts_of_basic_slice (_, num_facts, fact_filter) factss =
-  facts_of_filter fact_filter factss
-  |> take num_facts
+fun facts_of_basic_slice (_, _, _, num_facts, fact_filter) factss =
+  let
+    val facts = facts_of_filter fact_filter factss
+    val (goal_facts, nongoal_facts) =
+      List.partition (equal sledgehammer_goal_as_fact o fst o fst) facts
+  in
+    goal_facts @ take num_facts nongoal_facts
+  end
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 

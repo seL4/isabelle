@@ -83,7 +83,8 @@ fun print silent f = if silent then () else writeln (f ())
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
       minimize, preplay_timeout, induction_rules, ...} : params)
-    slice silent (prover : prover) timeout i n state goal facts =
+    (slice as ((_, abduce, check_consistent, _, _), _)) silent (prover : prover) timeout i n state
+    goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
       (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
@@ -91,9 +92,9 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
-       type_enc = type_enc, strict = strict, lam_trans = lam_trans,
-       uncurried_aliases = uncurried_aliases, learn = false, fact_filter = NONE,
-       induction_rules = induction_rules, max_facts = SOME (length facts),
+       type_enc = type_enc, abduce = SOME abduce, check_consistent = SOME check_consistent,
+       strict = strict, lam_trans = lam_trans, uncurried_aliases = uncurried_aliases, learn = false,
+       fact_filter = NONE, induction_rules = induction_rules, max_facts = SOME (length facts),
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, max_proofs = 1,
        isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
@@ -101,7 +102,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)], found_proof = K ()}
+       factss = [("", facts)], found_something = K ()}
     val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
         message} =
       prover params problem slice
@@ -117,7 +118,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
       (case outcome of
         SOME failure => string_of_atp_failure failure
       | NONE =>
-        "Found proof" ^
+        "Found " ^ (if check_consistent then "inconsistency" else "proof") ^
          (if length used_facts = length facts then "" else " with " ^ n_facts used_facts) ^
          " (" ^ string_of_time run_time ^ ")"));
     result

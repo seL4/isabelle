@@ -104,10 +104,10 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     ({debug, verbose, overlord, strict, max_mono_iters, max_new_mono_instances, isar_proofs,
       compress, try0, smt_proofs, minimize, slices, timeout, preplay_timeout, spy, ...} : params)
-    ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
+    ({comment, state, goal, subgoal, subgoal_count, factss, found_something} : prover_problem)
     slice =
   let
-    val (basic_slice as (slice_size, _, _),
+    val (basic_slice as (slice_size, _, _, _, _),
         ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =
       slice
     val facts = facts_of_basic_slice basic_slice factss
@@ -247,7 +247,7 @@ fun run_atp mode name
               in
                 if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
               end
-            | NONE => (found_proof name; NONE))
+            | NONE => (found_something name; NONE))
           | _ => outcome)
       in
         (atp_problem_data,

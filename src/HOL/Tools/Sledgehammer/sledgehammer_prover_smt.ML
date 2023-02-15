@@ -120,10 +120,10 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
 
 fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, try0,
       smt_proofs, minimize, preplay_timeout, ...})
-    ({state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem)
+    ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem)
     slice =
   let
-    val (basic_slice as (slice_size, _, _), SMT_Slice options) = slice
+    val (basic_slice as (slice_size, _, _, _, _), SMT_Slice options) = slice
     val facts = facts_of_basic_slice basic_slice factss
     val ctxt = Proof.context_of state
 
@@ -139,7 +139,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
       (case outcome of
         NONE =>
         let
-          val _ = found_proof name;
+          val _ = found_something name;
           val preferred =
             if smt_proofs then
               SMT_Method (if name = "z3" then SMT_Z3 else SMT_Verit "default")

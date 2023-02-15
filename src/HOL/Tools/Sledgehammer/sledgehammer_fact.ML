@@ -18,6 +18,7 @@ sig
      del : (Facts.ref * Token.src list) list,
      only : bool}
 
+  val sledgehammer_goal_as_fact : string
   val no_fact_override : fact_override
 
   val fact_of_ref : Proof.context -> Keyword.keywords -> thm list -> status Termtab.table ->
@@ -63,6 +64,8 @@ val local_thisN = Long_Name.localN ^ Long_Name.separator ^ Auto_Bind.thisN
 val max_facts_for_duplicates = 50000
 val max_facts_for_complex_check = 25000
 val max_simps_for_clasimpset = 10000
+
+val sledgehammer_goal_as_fact = "Sledgehammer.goal_as_fact"
 
 val no_fact_override = {add = [], del = [], only = false}
 

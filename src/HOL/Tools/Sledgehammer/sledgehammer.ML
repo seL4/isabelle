@@ -70,6 +70,12 @@ fun alternative f (SOME x) (SOME y) = SOME (f (x, y))
   | alternative _ NONE (y as SOME _) = y
   | alternative _ NONE NONE = NONE
 
+fun varify_nonfixed_terms_global nonfixeds tm = tm
+  |> Same.commit (Term_Subst.map_aterms_same
+    (fn Free (x, T) => if member (op =) nonfixeds x then Var ((x, 0), T) else raise Same.SAME
+      | Var (xi, _) => raise TERM (Logic.bad_schematic xi, [tm])
+      | _ => raise Same.SAME))
+
 fun max_outcome outcomes =
   let
     val some = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
@@ -148,17 +154,20 @@ fun select_one_line_proof used_facts preferred_meth preplay_results =
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem)
-    (slice as ((slice_size, num_facts, fact_filter), _)) name =
+    (slice as ((slice_size, abduce, check_consistent, num_facts, fact_filter), _)) name =
   let
     val ctxt = Proof.context_of state
 
-    val _ = spying spy (fn () => (state, subgoal, name, "Launched"))
+    val _ = spying spy (fn () => (state, subgoal, name,
+      "Launched" ^ (if abduce then " (abduce)" else "") ^
+      (if check_consistent then " (check_consistent)" else "")))
 
     val _ =
       if verbose then
         writeln (name ^ " with " ^ string_of_int num_facts ^ " " ^ fact_filter ^ " fact" ^
           plural_s num_facts ^ " for " ^ string_of_time (slice_timeout slice_size slices timeout) ^
-          "...")
+          (if abduce then " (abduce)" else "") ^
+          (if check_consistent then " (check_consistent)" else "") ^ "...")
       else
         ()
 
@@ -168,7 +177,8 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
-      |> prefix ("Facts in " ^ name ^ " proof: ")
+      |> prefix ("Facts in " ^ name ^ " " ^
+        (if check_consistent then "inconsistency" else "proof") ^ ": ")
       |> writeln
 
     fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
@@ -196,8 +206,8 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
             |> AList.group (op =)
             |> map (fn (indices, fact_filters) => commas fact_filters ^ ": " ^ indices)
         in
-          "Success: Found proof with " ^ string_of_int num_used_facts ^ " fact" ^
-          plural_s num_used_facts ^
+          "Success: Found " ^ (if check_consistent then "inconsistency" else "proof") ^ " with " ^
+          string_of_int num_used_facts ^ " fact" ^ plural_s num_used_facts ^
           (if num_used_facts = 0 then "" else ": " ^ commas filter_infos)
         end
       | spying_str_of_res {outcome = SOME failure, ...} =
@@ -233,6 +243,21 @@ fun preplay_prover_result ({ minimize, preplay_timeout, ...} : params) state sub
     (output, output_message)
   end
 
+fun analyze_prover_result_for_consistency (result as {outcome, used_facts, ...} : prover_result) =
+  if outcome = SOME ATP_Proof.TimedOut then
+    (SH_Timeout, K "")
+  else if is_some outcome then
+    (SH_None, K "")
+  else
+    (SH_Some (result, []), fn () =>
+       (if member (op = o apsnd fst) used_facts sledgehammer_goal_as_fact then
+          (case map fst (filter_out (equal sledgehammer_goal_as_fact o fst) used_facts) of
+            [] => "The goal is inconsistent"
+          | facts => "The goal is inconsistent with these facts: " ^ commas facts)
+        else
+          "The following facts are inconsistent: " ^
+          commas (map fst used_facts)))
+
 fun check_expected_outcome ctxt prover_name expect outcome =
   let
     val outcome_code = short_string_of_sledgehammer_outcome outcome
@@ -248,22 +273,48 @@ fun check_expected_outcome ctxt prover_name expect outcome =
           if exists (fn (_, (Played _, _)) => true | _ => false) preplay_results then
             ()
           else
-            error ("Unexpected outcome: the external prover found a some proof but preplay failed")
+            error ("Unexpected outcome: the external prover found a proof but preplay failed")
       | ("unknown", SH_Unknown) => ()
       | ("timeout", SH_Timeout) => ()
       | ("none", SH_None) => ()
       | _ => error ("Unexpected outcome: " ^ quote outcome_code))
   end
 
-fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode writeln_result learn
-    (problem as {state, subgoal, ...}) slice prover_name =
+fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode found_something
+    writeln_result learn (problem as {state, subgoal, ...})
+    (slice as ((_, _, check_consistent, _, _), _)) prover_name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
 
+    fun flip_problem {comment, state, goal, subgoal, factss = factss, ...} =
+      let
+        val thy = Proof_Context.theory_of ctxt
+        val assms = Assumption.all_assms_of ctxt
+        val assm_ts = map Thm.term_of assms
+        val subgoal_t = Logic.get_goal (Thm.prop_of goal) subgoal
+        val polymorphic_subgoal_t = (Logic.list_implies (assm_ts, subgoal_t))
+          |> Logic.varify_global
+        val nonfixeds =
+          subtract (op =) (fold Term.add_free_names assm_ts []) (Term.add_free_names subgoal_t [])
+        val monomorphic_subgoal_t = subgoal_t
+          |> varify_nonfixed_terms_global nonfixeds
+        val subgoal_thms = map (Skip_Proof.make_thm thy)
+          [polymorphic_subgoal_t, monomorphic_subgoal_t]
+        val new_facts =
+          map (fn thm => (((sledgehammer_goal_as_fact, (Assum, General)), thm))) subgoal_thms
+      in
+        {comment = comment, state = state, goal = Thm.trivial @{cprop False}, subgoal = 1,
+         subgoal_count = 1, factss = map (apsnd (append new_facts)) factss,
+         found_something = found_something "an inconsistency"}
+      end
+
+    val problem = problem |> check_consistent ? flip_problem
+
     fun really_go () =
       launch_prover params mode learn problem slice prover_name
-      |> preplay_prover_result params state subgoal
+      |> (if check_consistent then analyze_prover_result_for_consistency else
+        preplay_prover_result params state subgoal)
 
     fun go () =
       if debug then
@@ -330,13 +381,15 @@ fun schedule_of_provers provers num_slices =
   end
 
 fun prover_slices_of_schedule ctxt factss
-    ({max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases, ...} : params) schedule =
+    ({abduce, check_consistent, max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases,
+      ...} : params)
+    schedule =
   let
     fun triplicate_slices original =
       let
         val shift =
-          map (apfst (fn (slice_size, num_facts, fact_filter) =>
-            (slice_size, num_facts,
+          map (apfst (fn (slice_size, abduce, check_consistent, num_facts, fact_filter) =>
+            (slice_size, abduce, check_consistent, num_facts,
              if fact_filter = mashN then mepoN
              else if fact_filter = mepoN then meshN
              else mashN)))
@@ -353,14 +406,17 @@ fun prover_slices_of_schedule ctxt factss
           the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
       | adjust_extra (extra as SMT_Slice _) = extra
 
-    fun adjust_slice max_slice_size ((slice_size0, num_facts0, fact_filter0), extra) =
+    fun adjust_slice max_slice_size
+        ((slice_size0, abduce0, check_consistent0, num_facts0, fact_filter0), extra) =
       let
         val slice_size = Int.min (max_slice_size, slice_size0)
+        val abduce = abduce |> the_default abduce0
+        val check_consistent = check_consistent |> the_default check_consistent0
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
       in
-        ((slice_size, num_facts, fact_filter), adjust_extra extra)
+        ((slice_size, abduce, check_consistent, num_facts, fact_filter), adjust_extra extra)
       end
 
     val provers = distinct (op =) schedule
@@ -378,7 +434,7 @@ fun prover_slices_of_schedule ctxt factss
           SOME (slice0 :: slices) =>
           let
             val prover_slices' = AList.update (op =) (prover, slices) prover_slices
-            val slice as ((slice_size, _, _), _) =
+            val slice as ((slice_size, _, _, _, _), _) =
               adjust_slice ((slices_left + max_threads - 1) div max_threads) slice0
           in
             (prover, slice) :: translate_schedule prover_slices' (slices_left - slice_size) schedule
@@ -389,8 +445,8 @@ fun prover_slices_of_schedule ctxt factss
     |> distinct (op =)
   end
 
-fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_facts, max_proofs,
-      slices, ...})
+fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induction_rules,
+      max_facts, max_proofs, slices, ...})
     mode writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set"
@@ -402,12 +458,13 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
         val _ = Proof.assert_backward state
         val print = if mode = Normal andalso is_none writeln_result then writeln else K ()
 
-        val found_proofs = Synchronized.var "found_proofs" 0
+        val found_proofs_and_inconsistencies = Synchronized.var "found_proofs_and_inconsistencies" 0
 
-        fun found_proof prover_name =
+        fun found_something a_proof_or_inconsistency prover_name =
           if mode = Normal then
-            (Synchronized.change found_proofs (fn n => n + 1);
-             (the_default writeln writeln_result) (prover_name ^ " found a proof..."))
+            (Synchronized.change found_proofs_and_inconsistencies (fn n => n + 1);
+             (the_default writeln writeln_result) (prover_name ^ " found " ^
+             a_proof_or_inconsistency ^ "..."))
           else
             ()
 
@@ -437,7 +494,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
                 SOME n => n
               | NONE =>
                 fold (fn prover =>
-                    fold (fn ((_, n, _), _) => Integer.max n) (get_slices ctxt prover))
+                      fold (fn ((_, _, _, max_facts, _), _) => Integer.max max_facts)
+                    (get_slices ctxt prover))
                   provers 0)
               * 51 div 50  (* some slack to account for filtering of induction facts below *)
 
@@ -463,9 +521,9 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
             val factss = get_factss provers
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-               factss = factss, found_proof = found_proof}
+               factss = factss, found_something = found_something "a proof"}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
-            val launch = launch_prover_and_preplay params mode writeln_result learn
+            val launch = launch_prover_and_preplay params mode found_something writeln_result learn
 
             val schedule =
               if mode = Auto_Try then provers
@@ -487,7 +545,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
             else
               (learn chained_thms;
                Par_List.map (fn (prover, slice) =>
-                   if Synchronized.value found_proofs < max_proofs then
+                   if Synchronized.value found_proofs_and_inconsistencies < max_proofs then
                      launch problem slice prover
                    else
                      (SH_None, ""))
@@ -499,11 +557,19 @@ fun run_sledgehammer (params as {verbose, spy, provers, induction_rules, max_fac
          handle Timeout.TIMEOUT _ => (SH_Timeout, ""))
         |> `(fn (outcome, message) =>
           (case outcome of
-            SH_Some _ => (the_default writeln writeln_result "QED"; true)
+            SH_Some _ => (the_default writeln writeln_result "Done"; true)
           | SH_Unknown => (the_default writeln writeln_result message; false)
-          | SH_Timeout => (the_default writeln writeln_result "No proof found"; false)
+          | SH_Timeout =>
+            (the_default writeln writeln_result
+               ("No " ^ (if check_consistent = SOME true then "inconsistency" else "proof") ^
+                " found");
+             false)
           | SH_None => (the_default writeln writeln_result
-                (if message = "" then "No proof found" else "Warning: " ^ message);
+                (if message = "" then
+                   "No " ^ (if check_consistent = SOME true then "inconsistency" else "proof") ^
+                   " found"
+                 else
+                   "Warning: " ^ message);
               false)))
       end)
 
