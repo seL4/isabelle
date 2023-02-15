@@ -916,6 +916,72 @@ proof -
     using continuous_attains_sup[of "S \<times> S" "\<lambda>x. dist (fst x) (snd x)"] by auto
 qed
 
+text \<open>
+  If \<open>A\<close> is a compact subset of an open set \<open>B\<close> in a metric space, then there exists an \<open>\<epsilon> > 0\<close>
+  such that the Minkowski sum of \<open>A\<close> with an open ball of radius \<open>\<epsilon>\<close> is also a subset of \<open>B\<close>.
+\<close>
+lemma compact_subset_open_imp_ball_epsilon_subset:
+  assumes "compact A" "open B" "A \<subseteq> B"
+  obtains e where "e > 0"  "(\<Union>x\<in>A. ball x e) \<subseteq> B"
+proof -
+  have "\<forall>x\<in>A. \<exists>e. e > 0 \<and> ball x e \<subseteq> B"
+    using assms unfolding open_contains_ball by blast
+  then obtain e where e: "\<And>x. x \<in> A \<Longrightarrow> e x > 0" "\<And>x. x \<in> A \<Longrightarrow> ball x (e x) \<subseteq> B"
+    by metis
+  define C where "C = e ` A"
+  obtain X where X: "X \<subseteq> A" "finite X" "A \<subseteq> (\<Union>c\<in>X. ball c (e c / 2))"
+    using assms(1)
+  proof (rule compactE_image)
+    show "open (ball x (e x / 2))" if "x \<in> A" for x
+      by simp
+    show "A \<subseteq> (\<Union>c\<in>A. ball c (e c / 2))"
+      using e by auto
+  qed auto
+
+  define e' where "e' = Min (insert 1 ((\<lambda>x. e x / 2) ` X))"
+  have "e' > 0"
+    unfolding e'_def using e X by (subst Min_gr_iff) auto
+  have e': "e' \<le> e x / 2" if "x \<in> X" for x
+    using that X unfolding e'_def by (intro Min.coboundedI) auto
+
+  show ?thesis
+  proof 
+    show "e' > 0"
+      by fact
+  next
+    show "(\<Union>x\<in>A. ball x e') \<subseteq> B"
+    proof clarify
+      fix x y assume xy: "x \<in> A" "y \<in> ball x e'"
+      from xy(1) X obtain z where z: "z \<in> X" "x \<in> ball z (e z / 2)"
+        by auto
+      have "dist y z \<le> dist x y + dist z x"
+        by (metis dist_commute dist_triangle)
+      also have "dist z x < e z / 2"
+        using xy z by auto
+      also have "dist x y < e'"
+        using xy by auto
+      also have "\<dots> \<le> e z / 2"
+        using z by (intro e') auto
+      finally have "y \<in> ball z (e z)"
+        by (simp add: dist_commute)
+      also have "\<dots> \<subseteq> B"
+        using z X by (intro e) auto
+      finally show "y \<in> B" .
+    qed
+  qed
+qed
+
+lemma compact_subset_open_imp_cball_epsilon_subset:
+  assumes "compact A" "open B" "A \<subseteq> B"
+  obtains e where "e > 0"  "(\<Union>x\<in>A. cball x e) \<subseteq> B"
+proof -
+  obtain e where "e > 0" and e: "(\<Union>x\<in>A. ball x e) \<subseteq> B"
+    using compact_subset_open_imp_ball_epsilon_subset [OF assms] by blast
+  then have "(\<Union>x\<in>A. cball x (e / 2)) \<subseteq> (\<Union>x\<in>A. ball x e)"
+    by auto
+  with \<open>0 < e\<close> that show ?thesis
+    by (metis e half_gt_zero_iff order_trans)
+qed
 
 subsubsection\<open>Totally bounded\<close>
 
