@@ -2768,7 +2768,7 @@ lemma lim_1_over_real_power:
   apply (subst filterlim_sequentially_Suc [symmetric])
   by (simp add: lim_sequentially dist_norm Ln_Reals_eq norm_powr_real_powr norm_divide)
 
-lemma lim_1_over_Ln: "((\<lambda>n. 1 / Ln(of_nat n)) \<longlongrightarrow> 0) sequentially"
+lemma lim_1_over_Ln: "(\<lambda>n. 1 / Ln (complex_of_nat n)) \<longlonglongrightarrow> 0"
 proof (clarsimp simp add: lim_sequentially dist_norm norm_divide field_split_simps)
   fix r::real
   assume "0 < r"
@@ -2790,7 +2790,7 @@ proof (clarsimp simp add: lim_sequentially dist_norm norm_divide field_split_sim
     by (rule_tac x=n in exI) (force simp: field_split_simps intro: less_le_trans)
 qed
 
-lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) \<longlongrightarrow> 0) sequentially"
+lemma lim_1_over_ln: "(\<lambda>n. 1 / ln (real n)) \<longlonglongrightarrow> 0"
   using lim_1_over_Ln [THEN filterlim_sequentially_Suc [THEN iffD2]]
   apply (subst filterlim_sequentially_Suc [symmetric])
   by (simp add: lim_sequentially dist_norm Ln_Reals_eq norm_powr_real_powr norm_divide)
@@ -2824,19 +2824,14 @@ proof (rule Lim_transform_eventually)
 qed
 
 lemma lim_ln_over_ln1: "(\<lambda>n. ln n / ln(Suc n)) \<longlonglongrightarrow> 1"
-proof -
-  have "(\<lambda>n. inverse (ln(Suc n) / ln n)) \<longlonglongrightarrow> inverse 1"
-    by (rule tendsto_inverse [OF lim_ln1_over_ln]) auto
-  then show ?thesis
-    by simp
-qed
+  using tendsto_inverse [OF lim_ln1_over_ln] by force
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation between Square Root and exp/ln, hence its derivative\<close>
 
 lemma csqrt_exp_Ln:
   assumes "z \<noteq> 0"
-    shows "csqrt z = exp(Ln(z) / 2)"
+    shows "csqrt z = exp(Ln z / 2)"
 proof -
   have "(exp (Ln z / 2))\<^sup>2 = (exp (Ln z))"
     by (metis exp_double nonzero_mult_div_cancel_left times_divide_eq_right zero_neq_numeral)
@@ -2936,12 +2931,7 @@ lemma continuous_on_csqrt [continuous_intros]:
   by (simp add: continuous_at_imp_continuous_on continuous_within_csqrt)
 
 lemma holomorphic_on_csqrt [holomorphic_intros]: "csqrt holomorphic_on -\<real>\<^sub>\<le>\<^sub>0"
-proof -
-  have *: "(\<lambda>z. exp (ln z / 2)) holomorphic_on -\<real>\<^sub>\<le>\<^sub>0"
-    by (intro holomorphic_intros) auto
-  then show ?thesis
-    using field_differentiable_within_csqrt holomorphic_on_def by auto
-qed
+  by (simp add: field_differentiable_within_csqrt holomorphic_on_def)
 
 lemma holomorphic_on_csqrt' [holomorphic_intros]:
   "f holomorphic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> (\<lambda>z. csqrt (f z)) holomorphic_on A"
@@ -2956,8 +2946,7 @@ lemma analytic_on_csqrt' [analytic_intros]:
 
 lemma continuous_within_closed_nontrivial:
     "closed s \<Longrightarrow> a \<notin> s ==> continuous (at a within s) f"
-  using open_Compl
-  by (force simp add: continuous_def eventually_at_topological filterlim_iff open_Collect_neg)
+  using Compl_iff continuous_within_topological open_Compl by fastforce
 
 lemma continuous_within_csqrt_posreal:
     "continuous (at z within (\<real> \<inter> {w. 0 \<le> Re(w)})) csqrt"
@@ -3017,17 +3006,13 @@ lemma Re_complex_div_lemma: "0 < Re((1 - \<i>*z) / (1 + \<i>*z)) \<longleftright
 
 lemma tan_Arctan:
   assumes "z\<^sup>2 \<noteq> -1"
-    shows [simp]:"tan(Arctan z) = z"
+  shows [simp]: "tan(Arctan z) = z"
 proof -
-  have "1 + \<i>*z \<noteq> 0"
-    by (metis assms complex_i_mult_minus i_squared minus_unique power2_eq_square power2_minus)
-  moreover
-  have "1 - \<i>*z \<noteq> 0"
-    by (metis assms complex_i_mult_minus i_squared power2_eq_square power2_minus right_minus_eq)
-  ultimately
-  show ?thesis
-    by (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus csqrt_exp_Ln [symmetric]
-                  divide_simps power2_eq_square [symmetric])
+  obtain "1 + \<i>*z \<noteq> 0" "1 - \<i>*z \<noteq> 0"
+    by (metis add_diff_cancel_left' assms diff_0 i_times_eq_iff mult_cancel_left2 power2_i power2_minus right_minus_eq)
+  then show ?thesis
+    by (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus divide_simps 
+        flip: csqrt_exp_Ln power2_eq_square)
 qed
 
 lemma Arctan_tan [simp]:
@@ -3050,8 +3035,7 @@ proof -
       by (simp add: algebra_simps)
     also have "\<dots> \<longleftrightarrow> False"
       using assms ge_pi2
-      apply (auto simp: algebra_simps)
-      by (metis abs_mult_pos not_less of_nat_less_0_iff of_nat_numeral)
+      by (metis eq_divide_eq linorder_not_less mult.commute zero_neq_numeral)
     finally have "exp (\<i>*z)*exp (\<i>*z) + 1 \<noteq> 0"
       by (auto simp: add.commute minus_unique)
     then show "exp (2 * z / \<i>) = (1 - \<i> * tan z) / (1 + \<i> * tan z)"
@@ -3137,7 +3121,7 @@ proof -
   define G where [abs_def]: "G z = (\<Sum>n. g n * z^n)" for z
   have summable: "summable (\<lambda>n. g n * u^n)" if "norm u < 1" for u
   proof (cases "u = 0")
-    assume u: "u \<noteq> 0"
+    case False
     have "(\<lambda>n. ereal (norm (h u n) / norm (h u (Suc n)))) = (\<lambda>n. ereal (inverse (norm u)^2) *
               ereal ((2 + inverse (real (Suc n))) / (2 - inverse (real (Suc n)))))"
     proof
@@ -3158,10 +3142,10 @@ proof -
       by (intro tendsto_intros LIMSEQ_inverse_real_of_nat) simp_all
     finally have "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) = inverse (norm u)^2"
       by (intro lim_imp_Liminf) simp_all
-    moreover from power_strict_mono[OF that, of 2] u have "inverse (norm u)^2 > 1"
+    moreover from power_strict_mono[OF that, of 2] False have "inverse (norm u)^2 > 1"
       by (simp add: field_split_simps)
     ultimately have A: "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) > 1" by simp
-    from u have "summable (h u)"
+    from False have "summable (h u)"
       by (intro summable_norm_cancel[OF ratio_test_convergence[OF _ A]])
          (auto simp: h_def norm_divide norm_mult norm_power simp del: of_nat_Suc
                intro!: mult_pos_pos divide_pos_pos always_eventually)
@@ -3263,7 +3247,7 @@ next
     by (simp add: Arctan_def)
 next
   have "tan (Re (Arctan (of_real x))) = Re (tan (Arctan (of_real x)))"
-    by (auto simp: tan_def Complex.Re_divide Re_sin Re_cos Im_sin Im_cos field_simps power2_eq_square)
+    by (metis Im_Arctan_of_real Re_complex_of_real complex_is_Real_iff of_real_Re tan_of_real)
   also have "\<dots> = x"
   proof -
     have "(complex_of_real x)\<^sup>2 \<noteq> - 1"
@@ -3305,8 +3289,7 @@ proof (rule arctan_unique [symmetric])
   show 12: "- (pi / 2) < arctan x + arctan y" "arctan x + arctan y < pi / 2"
     using assms by linarith+
   show "tan (arctan x + arctan y) = (x + y) / (1 - x * y)"
-    using cos_gt_zero_pi [OF 12]
-    by (simp add: arctan tan_add)
+    using cos_gt_zero_pi [OF 12] by (simp add: arctan tan_add)
 qed
 
 lemma arctan_inverse:
@@ -3350,8 +3333,7 @@ lemma abs_tan_ge: "\<bar>x\<bar> < pi/2 \<Longrightarrow> \<bar>x\<bar> \<le> \<
 lemma arctan_bounds:
   assumes "0 \<le> x" "x < 1"
   shows arctan_lower_bound:
-    "(\<Sum>k<2 * n. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1))) \<le> arctan x"
-    (is "(\<Sum>k<_. (- 1)^ k * ?a k) \<le> _")
+    "(\<Sum>k<2 * n. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1))) \<le> arctan x" (is "(\<Sum>k<_. _ * ?a k) \<le> _")
     and arctan_upper_bound:
     "arctan x \<le> (\<Sum>k<2 * n + 1. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1)))"
 proof -
@@ -3397,7 +3379,7 @@ definition\<^marker>\<open>tag important\<close> Arcsin :: "complex \<Rightarrow
 
 lemma Arcsin_body_lemma: "\<i> * z + csqrt(1 - z\<^sup>2) \<noteq> 0"
   using power2_csqrt [of "1 - z\<^sup>2"]
-  by (metis add.inverse_inverse complex_i_mult_minus diff_0 diff_add_cancel diff_minus_eq_add mult.assoc mult.commute numeral_One power2_eq_square zero_neq_numeral)
+  by (metis add.inverse_unique diff_0 diff_add_cancel mult.left_commute mult_minus1_right power2_i power2_minus power_mult_distrib zero_neq_one)
 
 lemma Arcsin_range_lemma: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Re(\<i> * z + csqrt(1 - z\<^sup>2))"
   using Complex.cmod_power2 [of z, symmetric]
@@ -3725,8 +3707,9 @@ proof
 next
   assume L: ?L
   let ?goal = "(\<exists>k::int. x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi)"
-  obtain k::int where k: "-pi < x-k*2*pi" "x-k*2*pi \<le> pi"
-    by (metis Arg_bounded Arg_exp_diff_2pi complex.sel(2) mult.assoc of_int_mult of_int_numeral)
+  obtain k::int where k: "-pi < x - k*(2*pi)" "x - k*(2*pi) \<le> pi"
+    using ceiling_divide_lower [of "2*pi" "x-pi"] ceiling_divide_upper [of "2*pi" "x-pi"] 
+    by (simp add: divide_simps algebra_simps) (metis mult.commute)
   have *: "cos (x - k * 2*pi) = y"
     using cos.periodic_simps(3)[of x "-k"] L by (auto simp add:field_simps)
   then have \<section>: ?goal when "x-k*2*pi \<ge> 0"
