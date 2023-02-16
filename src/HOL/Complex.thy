@@ -1001,6 +1001,21 @@ lemma continuous_on_cis [continuous_intros]:
   "continuous_on A f \<Longrightarrow> continuous_on A (\<lambda>x. cis (f x))"
   by (auto simp: cis_conv_exp intro!: continuous_intros)
 
+lemma tendsto_exp_0_Re_at_bot: "(exp \<longlongrightarrow> 0) (filtercomap Re at_bot)"
+proof -
+  have "((\<lambda>z. cmod (exp z)) \<longlongrightarrow> 0) (filtercomap Re at_bot)"
+    by (auto intro!: filterlim_filtercomapI exp_at_bot)
+  thus ?thesis
+    using tendsto_norm_zero_iff by blast
+qed
+
+lemma filterlim_exp_at_infinity_Re_at_top: "filterlim exp at_infinity (filtercomap Re at_top)"
+proof -
+  have "filterlim (\<lambda>z. norm (exp z)) at_top (filtercomap Re at_top)"
+    by (auto intro!: filterlim_filtercomapI exp_at_top)
+  thus ?thesis
+    using filterlim_norm_at_top_imp_at_infinity by blast
+qed
 
 subsubsection \<open>Complex argument\<close>
 
