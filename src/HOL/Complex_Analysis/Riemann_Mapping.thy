@@ -1245,21 +1245,9 @@ proof -
   interpret SC_Chain
     using assms by (simp add: SC_Chain_def)
   have "?fp \<and> ?ucc \<and> ?ei"
-proof -
-  have *: "\<lbrakk>\<alpha> \<Longrightarrow> \<beta>; \<beta> \<Longrightarrow> \<gamma>; \<gamma> \<Longrightarrow> \<delta>; \<delta> \<Longrightarrow> \<alpha>\<rbrakk>
-           \<Longrightarrow> (\<alpha> \<longleftrightarrow> \<beta>) \<and> (\<alpha> \<longleftrightarrow> \<gamma>) \<and> (\<alpha> \<longleftrightarrow> \<delta>)" for \<alpha> \<beta> \<gamma> \<delta>
-    by blast
-  show ?thesis
-    apply (rule *)
-    using frontier_properties simply_connected_imp_connected apply blast
-apply clarify
-    using unbounded_complement_components simply_connected_imp_connected apply blast
-    using empty_inside apply blast
-    using empty_inside_imp_simply_connected apply blast
-    done
-qed
+    using empty_inside empty_inside_imp_simply_connected frontier_properties unbounded_complement_components winding_number_zero by blast
   then show ?fp ?ucc ?ei
-    by safe
+    by blast+
 qed
 
 lemma simply_connected_iff_simple:
@@ -1269,6 +1257,12 @@ lemma simply_connected_iff_simple:
   apply (simp add: simply_connected_eq_unbounded_complement_components assms, safe)
    apply (metis DIM_complex assms(2) cobounded_has_bounded_component double_compl order_refl)
   by (meson assms inside_bounded_complement_connected_empty simply_connected_eq_empty_inside simply_connected_eq_unbounded_complement_components)
+
+lemma subset_simply_connected_imp_inside_subset:
+  fixes A :: "complex set"
+  assumes "simply_connected A" "open A" "B \<subseteq> A"
+  shows   "inside B \<subseteq> A" 
+by (metis assms Diff_eq_empty_iff inside_mono subset_empty simply_connected_eq_empty_inside)
 
 subsection\<open>Further equivalences based on continuous logs and sqrts\<close>
 
@@ -1299,9 +1293,7 @@ proof -
              and expg: "\<And>z. z \<in> ball 0 1 \<Longrightarrow> (f \<circ> k) z = exp (g z)"
     proof (rule continuous_logarithm_on_ball)
       show "continuous_on (ball 0 1) (f \<circ> k)"
-        apply (rule continuous_on_compose [OF contk])
-        using kim continuous_on_subset [OF contf]
-        by blast
+        using contf continuous_on_compose contk kim by blast
       show "\<And>z. z \<in> ball 0 1 \<Longrightarrow> (f \<circ> k) z \<noteq> 0"
         using kim nz by auto
     qed auto
@@ -1438,9 +1430,7 @@ lemma simply_connected_eq_Borsukian:
 lemma Borsukian_eq_simply_connected:
   fixes S :: "complex set"
   shows "open S \<Longrightarrow> Borsukian S \<longleftrightarrow> (\<forall>C \<in> components S. simply_connected C)"
-apply (auto simp: Borsukian_componentwise_eq open_imp_locally_connected)
-  using in_components_connected open_components simply_connected_eq_Borsukian apply blast
-  using open_components simply_connected_eq_Borsukian by blast
+  by (meson Borsukian_componentwise_eq in_components_connected open_components open_imp_locally_connected simply_connected_eq_Borsukian)
 
 lemma Borsukian_separation_open_closed:
   fixes S :: "complex set"
@@ -1451,7 +1441,7 @@ proof
   assume "open S"
   show ?thesis
     unfolding Borsukian_eq_simply_connected [OF \<open>open S\<close>]
-    by (meson \<open>open S\<close> \<open>bounded S\<close> bounded_subset in_components_connected in_components_subset nonseparation_by_component_eq open_components simply_connected_iff_simple)
+    by (metis \<open>open S\<close> \<open>bounded S\<close> bounded_subset in_components_maximal nonseparation_by_component_eq open_components simply_connected_iff_simple)
 next
   assume "closed S"
   with \<open>bounded S\<close> show ?thesis
@@ -1659,10 +1649,8 @@ lemma winding_number_homotopic_paths_null_explicit_eq:
 proof
   assume ?lhs
   then show ?rhs
-    apply (auto simp: winding_number_homotopic_loops_null_eq [OF assms])
-    apply (rule homotopic_loops_imp_homotopic_paths_null)
-    apply (simp add: linepath_refl)
-    done
+    using homotopic_loops_imp_homotopic_paths_null 
+    by (force simp add: linepath_refl winding_number_homotopic_loops_null_eq [OF assms])
 next
   assume ?rhs
   then show ?lhs
@@ -1701,11 +1689,7 @@ proof
   then show ?rhs
     using homotopic_paths_imp_pathstart assms
     by (fastforce simp add: dest: homotopic_paths_imp_homotopic_loops homotopic_paths_loop_parts)
-next
-  assume ?rhs
-  then show ?lhs
-    by (simp add: winding_number_homotopic_paths)
-qed
+qed (simp add: winding_number_homotopic_paths)
 
 lemma winding_number_homotopic_loops_eq:
   assumes "path p" and \<zeta>p: "\<zeta> \<notin> path_image p"
@@ -1725,17 +1709,20 @@ proof
   then have "pathstart r \<noteq> \<zeta>" by blast
   have "homotopic_loops (- {\<zeta>}) p (r +++ q +++ reversepath r)"
   proof (rule homotopic_paths_imp_homotopic_loops)
-    show "homotopic_paths (- {\<zeta>}) p (r +++ q +++ reversepath r)"
-      by (metis (mono_tags, opaque_lifting) \<open>path r\<close> L \<zeta>p \<zeta>q \<open>path p\<close> \<open>path q\<close> homotopic_loops_conjugate loops not_in_path_image_join paf pas path_image_reversepath path_imp_reversepath path_join_eq pathfinish_join pathfinish_reversepath  pathstart_join pathstart_reversepath rim subset_Compl_singleton winding_number_homotopic_loops winding_number_homotopic_paths_eq)
+    have "path (r +++ q +++ reversepath r)"
+      by (simp add: \<open>path r\<close> \<open>path q\<close> loops paf)
+    moreover have "\<zeta> \<notin> path_image (r +++ q +++ reversepath r)"
+      by (metis \<zeta>q not_in_path_image_join path_image_reversepath rim subset_Compl_singleton)
+    moreover have "homotopic_loops (- {\<zeta>}) (r +++ q +++ reversepath r) q"
+      using \<open>path q\<close> \<open>path r\<close> \<zeta>q homotopic_loops_conjugate loops(2) paf rim by blast
+    ultimately show "homotopic_paths (- {\<zeta>}) p (r +++ q +++ reversepath r)"
+      using loops pathfinish_join pathfinish_reversepath pathstart_join
+      by (metis L \<zeta>p \<open>path p\<close> pas winding_number_homotopic_loops winding_number_homotopic_paths_eq)
   qed (use loops pas in auto)
   moreover have "homotopic_loops (- {\<zeta>}) (r +++ q +++ reversepath r) q"
     using rim \<zeta>q by (auto simp: homotopic_loops_conjugate paf \<open>path q\<close> \<open>path r\<close> loops)
   ultimately show ?rhs
     using homotopic_loops_trans by metis
-next
-  assume ?rhs
-  then show ?lhs
-    by (simp add: winding_number_homotopic_loops)
-qed
+qed (simp add: winding_number_homotopic_loops)
 
 end

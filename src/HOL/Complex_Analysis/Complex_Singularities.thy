@@ -249,6 +249,12 @@ lemma not_essential_cong:
   shows   "not_essential f z \<longleftrightarrow> not_essential g z'"
   unfolding not_essential_def using assms filterlim_cong is_pole_cong by fastforce
 
+lemma not_essential_compose_iff:
+  assumes "filtermap g (at z) = at z'"
+  shows   "not_essential (f \<circ> g) z = not_essential f z'"
+  unfolding not_essential_def filterlim_def filtermap_compose assms is_pole_compose_iff[OF assms]
+  by blast
+
 lemma isolated_singularity_at_cong:
   assumes "eventually (\<lambda>x. f x = g x) (at z)" "z = z'"
   shows   "isolated_singularity_at f z \<longleftrightarrow> isolated_singularity_at g z'"
@@ -362,8 +368,8 @@ proof -
       ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
         by (simp add: continuous_within)
       moreover have "(g \<longlongrightarrow> g z) F"
-        using holomorphic_on_imp_continuous_on[OF g_holo,unfolded continuous_on_def] \<open>r>0\<close>
-        unfolding F_def by auto
+        unfolding F_def
+        using \<open>r>0\<close> centre_in_ball continuous_on_def g_holo holomorphic_on_imp_continuous_on by blast
       ultimately show " ((\<lambda>w. f' w * g w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
     qed
     moreover have "(h \<longlongrightarrow> h z) (at z within ball z r)"
@@ -1058,7 +1064,7 @@ lemma analytic_at_imp_no_pole: "f analytic_on {z} \<Longrightarrow> \<not>is_pol
   using analytic_at not_is_pole_holomorphic by blast
 
 lemma not_essential_const [singularity_intros]: "not_essential (\<lambda>_. c) z"
-  unfolding not_essential_def by (rule exI[of _ c]) auto
+  by blast
 
 lemma not_essential_uminus [singularity_intros]:
   assumes f_ness: "not_essential f z"

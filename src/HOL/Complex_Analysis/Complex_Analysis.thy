@@ -1,7 +1,7 @@
 theory Complex_Analysis
 imports
   Residue_Theorem
-  Riemann_Mapping
+  Meromorphic
 begin
 
 end

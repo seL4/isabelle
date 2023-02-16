@@ -1742,6 +1742,10 @@ proof (cases "F = bot")
     by (rule Lim_transform_eventually)
 qed (simp_all add: asymp_equiv_def)
 
+lemma tendsto_imp_asymp_equiv_const:
+  assumes "(f \<longlongrightarrow> c) F" "c \<noteq> 0"
+  shows   "f \<sim>[F] (\<lambda>_. c)"
+  by (rule asymp_equivI' tendsto_eq_intros assms refl)+ (use assms in auto)
 
 lemma asymp_equiv_cong:
   assumes "eventually (\<lambda>x. f1 x = f2 x) F" "eventually (\<lambda>x. g1 x = g2 x) F"

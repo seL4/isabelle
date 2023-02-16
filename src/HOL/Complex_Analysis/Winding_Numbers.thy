@@ -901,6 +901,16 @@ proof -
     by metis
 qed
 
+lemma bounded_winding_number_nz:
+  assumes "path g" "pathfinish g = pathstart g"
+  shows   "bounded {z. winding_number g z \<noteq> 0}"
+proof -
+  obtain B where "\<And>x. norm x \<ge> B \<Longrightarrow> winding_number g x = 0"
+    using winding_number_zero_at_infinity[OF assms] by auto
+  thus ?thesis
+    unfolding bounded_iff by (intro exI[of _ "B + 1"]) force
+qed
+  
 lemma winding_number_zero_point:
     "\<lbrakk>path \<gamma>; convex S; pathfinish \<gamma> = pathstart \<gamma>; open S; path_image \<gamma> \<subseteq> S\<rbrakk>
      \<Longrightarrow> \<exists>z. z \<in> S \<and> winding_number \<gamma> z = 0"

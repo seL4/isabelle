@@ -3,6 +3,34 @@ theory Residue_Theorem
   imports Complex_Residues "HOL-Library.Landau_Symbols"
 begin
 
+text \<open>Could be moved to a previous theory importing both Landau Symbols and Elementary Metric Spaces\<close>
+lemma continuous_bounded_at_infinity_imp_bounded:
+  fixes f :: "real \<Rightarrow> 'a :: real_normed_field"
+  assumes "f \<in> O[at_bot](\<lambda>_. 1)"
+  assumes "f \<in> O[at_top](\<lambda>_. 1)"
+  assumes "continuous_on UNIV f"
+  shows   "bounded (range f)"
+proof -
+  from assms(1) obtain c1 where "eventually (\<lambda>x. norm (f x) \<le> c1) at_bot"
+    by (auto elim!: landau_o.bigE)
+  then obtain x1 where x1: "\<And>x. x \<le> x1 \<Longrightarrow> norm (f x) \<le> c1"
+    by (auto simp: eventually_at_bot_linorder)
+  from assms(2) obtain c2 where "eventually (\<lambda>x. norm (f x) \<le> c2) at_top"
+    by (auto elim!: landau_o.bigE)
+  then obtain x2 where x2: "\<And>x. x \<ge> x2 \<Longrightarrow> norm (f x) \<le> c2"
+    by (auto simp: eventually_at_top_linorder)
+  have "compact (f ` {x1..x2})"
+    by (intro compact_continuous_image continuous_on_subset[OF assms(3)]) auto
+  hence "bounded (f ` {x1..x2})"
+    by (rule compact_imp_bounded)
+  then obtain c3 where c3: "\<And>x. x \<in> {x1..x2} \<Longrightarrow> norm (f x) \<le> c3"
+    unfolding bounded_iff by fast
+  have "norm (f x) \<le> Max {c1, c2, c3}" for x
+    by (cases "x \<le> x1"; cases "x \<ge> x2") (use x1 x2 c3 in \<open>auto simp: le_max_iff_disj\<close>)
+  thus ?thesis
+    unfolding bounded_iff by blast
+qed
+
 subsection \<open>Cauchy's residue theorem\<close>
 
 lemma get_integrable_path:
