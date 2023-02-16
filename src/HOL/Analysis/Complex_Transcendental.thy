@@ -102,12 +102,7 @@ proof -
   have "((\<lambda>w. w) has_field_derivative 1) (at z)"
     by (intro derivative_intros)
   also have "?this \<longleftrightarrow> ((\<lambda>w. exp (f w)) has_field_derivative 1) (at z)"
-  proof (rule DERIV_cong_ev)
-    have "eventually (\<lambda>w. w \<in> A) (nhds z)"
-      using assms by (intro eventually_nhds_in_open) auto
-    thus "eventually (\<lambda>w. w = exp (f w)) (nhds z)"
-      by eventually_elim (use assms in auto)
-  qed auto
+    by (smt (verit, best) assms has_field_derivative_transform_within_open)
   finally have "((\<lambda>w. exp (f w)) has_field_derivative 1) (at z)" .
   moreover have "((\<lambda>w. exp (f w)) has_field_derivative exp (f z) * deriv f z) (at z)"
     by (rule derivative_eq_intros refl)+
@@ -133,11 +128,7 @@ qed
 theorem exp_Euler: "exp(\<i> * z) = cos(z) + \<i> * sin(z)"
 proof -
   have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n) = (\<lambda>n. (\<i> * z) ^ n /\<^sub>R (fact n))"
-  proof
-    fix n
-    show "(cos_coeff n + \<i> * sin_coeff n) * z^n = (\<i> * z) ^ n /\<^sub>R (fact n)"
-      by (auto simp: cos_coeff_def sin_coeff_def scaleR_conv_of_real field_simps elim!: evenE oddE)
-  qed
+    by (force simp: cos_coeff_def sin_coeff_def scaleR_conv_of_real field_simps elim!: evenE oddE)
   also have "\<dots> sums (exp (\<i> * z))"
     by (rule exp_converges)
   finally have "(\<lambda>n. (cos_coeff n + \<i> * sin_coeff n) * z^n) sums (exp (\<i> * z))" .
@@ -149,8 +140,7 @@ proof -
 qed
 
 corollary\<^marker>\<open>tag unimportant\<close> exp_minus_Euler: "exp(-(\<i> * z)) = cos(z) - \<i> * sin(z)"
-  using exp_Euler [of "-z"]
-  by simp
+  using exp_Euler [of "-z"] by simp
 
 lemma sin_exp_eq: "sin z = (exp(\<i> * z) - exp(-(\<i> * z))) / (2*\<i>)"
   by (simp add: exp_Euler exp_minus_Euler)
@@ -198,18 +188,7 @@ lemma DeMoivre: "(cos z + \<i> * sin z) ^ n = cos(n * z) + \<i> * sin(n * z)"
   by (metis exp_Euler [symmetric] exp_of_nat_mult mult.left_commute)
 
 lemma exp_cnj: "cnj (exp z) = exp (cnj z)"
-proof -
-  have "(\<lambda>n. cnj (z ^ n /\<^sub>R (fact n))) = (\<lambda>n. (cnj z)^n /\<^sub>R (fact n))"
-    by auto
-  also have "\<dots> sums (exp (cnj z))"
-    by (rule exp_converges)
-  finally have "(\<lambda>n. cnj (z ^ n /\<^sub>R (fact n))) sums (exp (cnj z))" .
-  moreover have "(\<lambda>n. cnj (z ^ n /\<^sub>R (fact n))) sums (cnj (exp z))"
-    by (metis exp_converges sums_cnj)
-  ultimately show ?thesis
-    using sums_unique2
-    by blast
-qed
+  by (simp add: cis_cnj exp_eq_polar)
 
 lemma cnj_sin: "cnj(sin z) = sin(cnj z)"
   by (simp add: sin_exp_eq exp_cnj field_simps)
@@ -264,7 +243,7 @@ lemma analytic_on_cos' [analytic_intros]:
 subsection\<^marker>\<open>tag unimportant\<close>\<open>More on the Polar Representation of Complex Numbers\<close>
 
 lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
-  by (simp add: Complex_eq exp_add exp_Euler exp_of_real sin_of_real cos_of_real)
+  using Complex_eq Euler complex.sel by presburger
 
 lemma exp_eq_1: "exp z = 1 \<longleftrightarrow> Re(z) = 0 \<and> (\<exists>n::int. Im(z) = of_int (2 * n) * pi)"
                  (is "?lhs = ?rhs")
@@ -273,7 +252,7 @@ proof
   then have "Re z = 0"
     by (metis exp_eq_one_iff norm_exp_eq_Re norm_one)
   with \<open>?lhs\<close> show ?rhs
-    by (metis Re_exp complex_Re_of_int cos_one_2pi_int exp_zero mult.commute mult_numeral_1 numeral_One of_int_mult of_int_numeral)
+    by (metis Re_exp cos_one_2pi_int exp_zero mult.commute mult_1 of_int_mult of_int_numeral one_complex.simps(1))
 next
   assume ?rhs then show ?lhs
     using Im_exp Re_exp complex_eq_iff
@@ -298,13 +277,7 @@ lemma exp_complex_eqI: "\<bar>Im w - Im z\<bar> < 2*pi \<Longrightarrow> exp w =
 lemma exp_integer_2pi:
   assumes "n \<in> \<int>"
   shows "exp((2 * n * pi) * \<i>) = 1"
-proof -
-  have "exp((2 * n * pi) * \<i>) = exp 0"
-    using assms unfolding Ints_def exp_eq by auto
-  also have "\<dots> = 1"
-    by simp
-  finally show ?thesis .
-qed
+  by (metis assms cis_conv_exp cis_multiple_2pi mult.assoc mult.commute)
 
 lemma exp_plus_2pin [simp]: "exp (z + \<i> * (of_int n * (of_real pi * 2))) = exp z"
   by (simp add: exp_eq)
@@ -312,15 +285,8 @@ lemma exp_plus_2pin [simp]: "exp (z + \<i> * (of_int n * (of_real pi * 2))) = ex
 lemma exp_integer_2pi_plus1:
   assumes "n \<in> \<int>"
   shows "exp(((2 * n + 1) * pi) * \<i>) = - 1"
-proof -
-  from assms obtain n' where [simp]: "n = of_int n'"
-    by (auto simp: Ints_def)
-  have "exp(((2 * n + 1) * pi) * \<i>) = exp (pi * \<i>)"
-    using assms by (subst exp_eq) (auto intro!: exI[of _ n'] simp: algebra_simps)
-  also have "\<dots> = - 1"
-    by simp
-  finally show ?thesis .
-qed
+  using exp_integer_2pi [OF assms]
+  by (metis cis_conv_exp cis_mult cis_pi distrib_left mult.commute mult.right_neutral)
 
 lemma inj_on_exp_pi:
   fixes z::complex shows "inj_on exp (ball z pi)"
@@ -338,7 +304,6 @@ qed
 
 lemma cmod_add_squared:
   fixes r1 r2::real
-  assumes "r1 \<ge> 0" "r2 \<ge> 0"
   shows "(cmod (r1 * exp (\<i> * \<theta>1) + r2 * exp (\<i> * \<theta>2)))\<^sup>2 = r1\<^sup>2 + r2\<^sup>2 + 2 * r1 * r2 * cos (\<theta>1 - \<theta>2)" (is "(cmod (?z1 + ?z2))\<^sup>2 = ?rhs")
 proof -
   have "(cmod (?z1 + ?z2))\<^sup>2 = (?z1 + ?z2) * cnj (?z1 + ?z2)"
@@ -355,19 +320,8 @@ qed
 
 lemma cmod_diff_squared:
   fixes r1 r2::real
-  assumes "r1 \<ge> 0" "r2 \<ge> 0"
-  shows "(cmod (r1 * exp (\<i> * \<theta>1) - r2 * exp (\<i> * \<theta>2)))\<^sup>2 = r1\<^sup>2 + r2\<^sup>2 - 2*r1*r2*cos (\<theta>1 - \<theta>2)" (is "(cmod (?z1 - ?z2))\<^sup>2 = ?rhs")
-proof -
-  have "exp (\<i> * (\<theta>2 + pi)) = - exp (\<i> * \<theta>2)"
-    by (simp add: exp_Euler cos_plus_pi sin_plus_pi)
-  then have "(cmod (?z1 - ?z2))\<^sup>2 = cmod (?z1 + r2 * exp (\<i> * (\<theta>2 + pi))) ^2"
-    by simp
-  also have "\<dots> = r1\<^sup>2 + r2\<^sup>2 + 2*r1*r2*cos (\<theta>1 - (\<theta>2 + pi))"
-    using assms cmod_add_squared by blast
-  also have "\<dots> = ?rhs"
-    by (simp add: add.commute diff_add_eq_diff_diff_swap)
-  finally show ?thesis .
-qed
+  shows "(cmod (r1 * exp (\<i> * \<theta>1) - r2 * exp (\<i> * \<theta>2)))\<^sup>2 = r1\<^sup>2 + r2\<^sup>2 - 2*r1*r2*cos (\<theta>1 - \<theta>2)" 
+  using cmod_add_squared [of r1 _ "-r2"] by simp
 
 lemma polar_convergence:
   fixes R::real
@@ -381,8 +335,7 @@ proof
   moreover obtain k where "(\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> \<Theta>"
   proof -
     have "cos (\<theta> j - \<Theta>) = ((r j)\<^sup>2 + R\<^sup>2 - (norm(?z j - ?Z))\<^sup>2) / (2 * R * r j)" for j
-      apply (subst cmod_diff_squared)
-      using assms by (auto simp: field_split_simps less_le)
+      using assms by (auto simp: cmod_diff_squared less_le)
     moreover have "(\<lambda>j. ((r j)\<^sup>2 + R\<^sup>2 - (norm(?z j - ?Z))\<^sup>2) / (2 * R * r j)) \<longlonglongrightarrow> ((R\<^sup>2 + R\<^sup>2 - (norm(?Z - ?Z))\<^sup>2) / (2 * R * R))"
       by (intro L rR tendsto_intros) (use \<open>R > 0\<close> in force)
     moreover have "((R\<^sup>2 + R\<^sup>2 - (norm(?Z - ?Z))\<^sup>2) / (2 * R * R)) = 1"
@@ -430,19 +383,7 @@ qed
 lemma exp_i_ne_1:
   assumes "0 < x" "x < 2*pi"
   shows "exp(\<i> * of_real x) \<noteq> 1"
-proof
-  assume "exp (\<i> * of_real x) = 1"
-  then have "exp (\<i> * of_real x) = exp 0"
-    by simp
-  then obtain n where "\<i> * of_real x = (of_int (2 * n) * pi) * \<i>"
-    by (simp only: Ints_def exp_eq) auto
-  then have "of_real x = (of_int (2 * n) * pi)"
-    by (metis complex_i_not_zero mult.commute mult_cancel_left of_real_eq_iff real_scaleR_def scaleR_conv_of_real)
-  then have "x = (of_int (2 * n) * pi)"
-    by simp
-  then show False using assms
-    by (cases n) (auto simp: zero_less_mult_iff mult_less_0_iff)
-qed
+  by (smt (verit) Im_i_times Re_complex_of_real assms exp_complex_eqI exp_zero zero_complex.sel(2))
 
 lemma sin_eq_0:
   fixes z::complex
@@ -458,16 +399,7 @@ lemma cos_eq_0:
 lemma cos_eq_1:
   fixes z::complex
   shows "cos z = 1 \<longleftrightarrow> (\<exists>n::int. z = complex_of_real(2 * n * pi))"
-proof -
-  have "cos z = cos (2*(z/2))"
-    by simp
-  also have "\<dots> = 1 - 2 * sin (z/2) ^ 2"
-    by (simp only: cos_double_sin)
-  finally have [simp]: "cos z = 1 \<longleftrightarrow> sin (z/2) = 0"
-    by simp
-  show ?thesis
-    by (auto simp: sin_eq_0)
-qed
+  by (metis Re_complex_of_real cos_of_real cos_one_2pi_int cos_one_sin_zero mult.commute of_real_1 sin_eq_0)
 
 lemma csin_eq_1:
   fixes z::complex
@@ -482,10 +414,8 @@ lemma csin_eq_minus1:
 proof -
   have "sin z = -1 \<longleftrightarrow> sin (-z) = 1"
     by (simp add: equation_minus_iff)
-  also have "\<dots> \<longleftrightarrow> (\<exists>n::int. -z = of_real(2 * n * pi) + of_real pi/2)"
-    by (simp only: csin_eq_1)
   also have "\<dots> \<longleftrightarrow> (\<exists>n::int. z = - of_real(2 * n * pi) - of_real pi/2)"
-    by (rule iff_exI) (metis add.inverse_inverse add_uminus_conv_diff minus_add_distrib)
+    by (metis (mono_tags, lifting) add_uminus_conv_diff csin_eq_1 equation_minus_iff minus_add_distrib)
   also have "\<dots> = ?rhs"
     apply safe
     apply (rule_tac [2] x="-(x+1)" in exI)
@@ -506,10 +436,8 @@ lemma sin_eq_1: "sin x = 1 \<longleftrightarrow> (\<exists>n::int. x = (2 * n + 
 proof -
   have "sin x = 1 \<longleftrightarrow> sin (complex_of_real x) = 1"
     by (metis of_real_1 one_complex.simps(1) real_sin_eq sin_of_real)
-  also have "\<dots> \<longleftrightarrow> (\<exists>n::int. complex_of_real x = of_real(2 * n * pi) + of_real pi/2)"
-    by (simp only: csin_eq_1)
   also have "\<dots> \<longleftrightarrow> (\<exists>n::int. x = of_real(2 * n * pi) + of_real pi/2)"
-    by (rule iff_exI) (auto simp: algebra_simps intro: injD [OF inj_of_real [where 'a = complex]])
+    by (metis csin_eq_1 Re_complex_of_real id_apply of_real_add of_real_divide of_real_eq_id of_real_numeral)
   also have "\<dots> = ?rhs"
     by (auto simp: algebra_simps)
   finally show ?thesis .
@@ -519,10 +447,8 @@ lemma sin_eq_minus1: "sin x = -1 \<longleftrightarrow> (\<exists>n::int. x = (2*
 proof -
   have "sin x = -1 \<longleftrightarrow> sin (complex_of_real x) = -1"
     by (metis Re_complex_of_real of_real_def scaleR_minus1_left sin_of_real)
-  also have "\<dots> \<longleftrightarrow> (\<exists>n::int. complex_of_real x = of_real(2 * n * pi) + 3/2*pi)"
-    by (simp add: csin_eq_minus1)
   also have "\<dots> \<longleftrightarrow> (\<exists>n::int. x = of_real(2 * n * pi) + 3/2*pi)"
-    by (rule iff_exI) (auto simp: algebra_simps intro: injD [OF inj_of_real [where 'a = complex]])
+    by (metis Re_complex_of_real csin_eq_minus1 id_apply of_real_add of_real_eq_id)
   also have "\<dots> = ?rhs"
     by (auto simp: algebra_simps)
   finally show ?thesis .
@@ -533,10 +459,8 @@ lemma cos_eq_minus1: "cos x = -1 \<longleftrightarrow> (\<exists>n::int. x = (2*
 proof -
   have "cos x = -1 \<longleftrightarrow> cos (complex_of_real x) = -1"
     by (metis Re_complex_of_real of_real_def scaleR_minus1_left cos_of_real)
-  also have "\<dots> \<longleftrightarrow> (\<exists>n::int. complex_of_real x = of_real(2 * n * pi) + pi)"
-    by (simp add: ccos_eq_minus1)
   also have "\<dots> \<longleftrightarrow> (\<exists>n::int. x = of_real(2 * n * pi) + pi)"
-    by (rule iff_exI) (auto simp: algebra_simps intro: injD [OF inj_of_real [where 'a = complex]])
+    by (metis ccos_eq_minus1 id_apply of_real_add of_real_eq_id of_real_eq_iff)
   also have "\<dots> = ?rhs"
     by (auto simp: algebra_simps)
   finally show ?thesis .
@@ -568,12 +492,8 @@ lemma complex_sin_eq:
         (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then have "sin w - sin z = 0"
-    by (auto simp: algebra_simps)
-  then have "sin ((w - z) / 2)*cos ((w + z) / 2) = 0"
-    by (auto simp: sin_diff_sin)
   then consider "sin ((w - z) / 2) = 0" | "cos ((w + z) / 2) = 0"
-    using mult_eq_0_iff by blast
+    by (metis divide_eq_0_iff nonzero_eq_divide_eq right_minus_eq sin_diff_sin zero_neq_numeral)
   then show ?rhs
   proof cases
     case 1
@@ -608,14 +528,10 @@ lemma complex_cos_eq:
   fixes w :: complex
   shows "cos w = cos z \<longleftrightarrow> (\<exists>n \<in> \<int>. w = z + of_real(2*n*pi) \<or> w = -z + of_real(2*n*pi))"
         (is "?lhs = ?rhs")
-proof
+proof 
   assume ?lhs
-  then have "cos w - cos z = 0"
-    by (auto simp: algebra_simps)
-  then have "sin ((w + z) / 2) * sin ((z - w) / 2) = 0"
-    by (auto simp: cos_diff_cos)
   then consider "sin ((w + z) / 2) = 0" | "sin ((z - w) / 2) = 0"
-    using mult_eq_0_iff by blast
+    by (metis mult_eq_0_iff cos_diff_cos right_minus_eq zero_neq_numeral)
   then show ?rhs
   proof cases
     case 1
@@ -719,22 +635,7 @@ qed
 lemma norm_cos_plus1_le:
   fixes z::complex
   shows "norm(1 + cos z) \<le> 2 * exp(norm z)"
-proof -
-  have mono: "\<And>u w z::real. (1 \<le> w | 1 \<le> z) \<Longrightarrow> (w \<le> u & z \<le> u) \<Longrightarrow> 2 + w + z \<le> 4 * u"
-      by arith
-  have *: "Im z \<le> cmod z"
-    using abs_Im_le_cmod abs_le_D1 by auto
-  have triangle3: "\<And>x y z. norm(x + y + z) \<le> norm(x) + norm(y) + norm(z)"
-    by (simp add: norm_add_rule_thm)
-  have "norm(1 + cos z) = cmod (1 + (exp (\<i> * z) + exp (- (\<i> * z))) / 2)"
-    by (simp add: cos_exp_eq)
-  also have "\<dots> = cmod ((2 + exp (\<i> * z) + exp (- (\<i> * z))) / 2)"
-    by (simp add: field_simps)
-  also have "\<dots> = cmod (2 + exp (\<i> * z) + exp (- (\<i> * z))) / 2"
-    by (simp add: norm_divide)
-  finally show ?thesis
-    by (metis exp_eq_one_iff exp_le_cancel_iff mult_2 norm_cos_le norm_ge_zero norm_one norm_triangle_mono)
-qed
+  by (smt (verit, best) exp_ge_add_one_self norm_cos_le norm_ge_zero norm_one norm_triangle_ineq)
 
 lemma sinh_conv_sin: "sinh z = -\<i> * sin (\<i>*z)"
   by (simp add: sinh_field_def sin_i_times exp_minus)
@@ -793,6 +694,7 @@ next
     by simp
 qed auto
 
+text \<open>For complex @{term z}, a tighter bound than in the previous result\<close>
 lemma Taylor_exp:
   "norm(exp z - (\<Sum>k\<le>n. z ^ k / (fact k))) \<le> exp\<bar>Re z\<bar> * (norm z) ^ (Suc n) / (fact n)"
 proof (rule complex_Taylor [of _ n "\<lambda>k. exp" "exp\<bar>Re z\<bar>" 0 z, simplified])
@@ -857,14 +759,12 @@ proof -
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
   proof (rule complex_Taylor [of "closed_segment 0 z" n
                                  "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)"
-                                 "exp\<bar>Im z\<bar>" 0 z,  simplified])
+                                 "exp\<bar>Im z\<bar>" 0 z, simplified])
     fix k x
     show "((\<lambda>x. (- 1) ^ (k div 2) * (if even k then sin x else cos x)) has_field_derivative
             (- 1) ^ (Suc k div 2) * (if odd k then sin x else cos x))
             (at x within closed_segment 0 z)"
-      apply (auto simp: power_Suc)
-      apply (intro derivative_eq_intros | simp)+
-      done
+      by (cases "even k") (intro derivative_eq_intros | simp add: power_Suc)+
   next
     fix x
     assume "x \<in> closed_segment 0 z"
@@ -887,16 +787,15 @@ proof -
   have *: "cmod (cos z -
                  (\<Sum>i\<le>n. (-1) ^ (Suc i div 2) * (if even i then cos 0 else sin 0) * z ^ i / (fact i)))
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
-  proof (rule complex_Taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(Suc k div 2) * (if even k then cos x else sin x)" "exp\<bar>Im z\<bar>" 0 z,
-simplified])
+  proof (rule complex_Taylor [of "closed_segment 0 z" n 
+                                 "\<lambda>k x. (-1)^(Suc k div 2) * (if even k then cos x else sin x)" 
+                                 "exp\<bar>Im z\<bar>" 0 z, simplified])
     fix k x
     assume "x \<in> closed_segment 0 z" "k \<le> n"
     show "((\<lambda>x. (- 1) ^ (Suc k div 2) * (if even k then cos x else sin x)) has_field_derivative
             (- 1) ^ Suc (k div 2) * (if odd k then cos x else sin x))
              (at x within closed_segment 0 z)"
-      apply (auto simp: power_Suc)
-      apply (intro derivative_eq_intros | simp)+
-      done
+      by (cases "even k") (intro derivative_eq_intros | simp add: power_Suc)+
   next
     fix x
     assume "x \<in> closed_segment 0 z"
@@ -942,18 +841,10 @@ lemma is_Arg_2pi_iff: "is_Arg z (r + of_int k * (2 * pi)) \<longleftrightarrow> 
   by (simp add: algebra_simps is_Arg_def)
 
 lemma is_Arg_eqI:
-  assumes r: "is_Arg z r" and s: "is_Arg z s" and rs: "abs (r-s) < 2*pi" and "z \<noteq> 0"
+  assumes "is_Arg z r" and "is_Arg z s" and "abs (r-s) < 2*pi" and "z \<noteq> 0"
   shows "r = s"
-proof -
-  have zr: "z = (cmod z) * exp (\<i> * r)" and zs: "z = (cmod z) * exp (\<i> * s)"
-    using r s by (auto simp: is_Arg_def)
-  with \<open>z \<noteq> 0\<close> have eq: "exp (\<i> * r) = exp (\<i> * s)"
-    by (metis mult_eq_0_iff mult_left_cancel)
-  have  "\<i> * r = \<i> * s"
-    by (rule exp_complex_eqI) (use rs in \<open>auto simp: eq exp_complex_eqI\<close>)
-  then show ?thesis
-    by simp
-qed
+  using assms unfolding is_Arg_def
+  by (metis Im_i_times Re_complex_of_real exp_complex_eqI mult_cancel_left mult_eq_0_iff)
 
 text\<open>This function returns the angle of a complex number from its representation in polar coordinates.
 Due to periodicity, its range is arbitrary. \<^term>\<open>Arg2pi\<close> follows HOL Light in adopting the interval \<open>[0,2\<pi>)\<close>.
@@ -965,28 +856,13 @@ lemma Arg2pi_0 [simp]: "Arg2pi(0) = 0"
   by (simp add: Arg2pi_def)
 
 lemma Arg2pi_unique_lemma:
-  assumes z:  "is_Arg z t"
-      and z': "is_Arg z t'"
-      and t:  "0 \<le> t"  "t < 2*pi"
-      and t': "0 \<le> t'" "t' < 2*pi"
-      and nz: "z \<noteq> 0"
+  assumes "is_Arg z t"
+      and "is_Arg z t'"
+      and "0 \<le> t"  "t < 2*pi"
+      and "0 \<le> t'" "t' < 2*pi"
+      and "z \<noteq> 0"
   shows "t' = t"
-proof -
-  have [dest]: "\<And>x y z::real. x\<ge>0 \<Longrightarrow> x+y < z \<Longrightarrow> y<z"
-    by arith
-  have "of_real (cmod z) * exp (\<i> * of_real t') = of_real (cmod z) * exp (\<i> * of_real t)"
-    by (metis z z' is_Arg_def)
-  then have "exp (\<i> * of_real t') = exp (\<i> * of_real t)"
-    by (metis nz mult_left_cancel mult_zero_left z is_Arg_def)
-  then have "sin t' = sin t \<and> cos t' = cos t"
-    by (metis cis.simps cis_conv_exp)
-  then obtain n::int where n: "t' = t + 2 * n * pi"
-    by (auto simp: sin_cos_eq_iff)
-  then have "n=0"
-    by (cases n) (use t t' in \<open>auto simp: mult_less_0_iff algebra_simps\<close>)
-  then show "t' = t"
-    by (simp add: n)
-qed
+  using is_Arg_eqI assms by force
 
 lemma Arg2pi: "0 \<le> Arg2pi z \<and> Arg2pi z < 2*pi \<and> is_Arg z (Arg2pi z)"
 proof (cases "z=0")
@@ -998,7 +874,7 @@ next
              and ReIm: "Re z / cmod z = cos t" "Im z / cmod z = sin t"
     using sincos_total_2pi [OF complex_unit_circle [OF False]]
     by blast
-  have z: "is_Arg z t"
+  then have z: "is_Arg z t"
     unfolding is_Arg_def
     using t False ReIm
     by (intro complex_eqI) (auto simp: exp_Euler sin_of_real cos_of_real field_split_simps)
@@ -1056,36 +932,20 @@ proof (cases "z=0")
 qed auto
 
 lemma Arg2pi_lt_pi: "0 < Arg2pi z \<and> Arg2pi z < pi \<longleftrightarrow> 0 < Im z"
-proof (cases "z=0")
-  case False
-  have "0 < Im z \<longleftrightarrow> 0 < Im (of_real (cmod z) * exp (\<i> * complex_of_real (Arg2pi z)))"
-    by (metis Arg2pi_eq)
-  also have "\<dots> = (0 < Im (exp (\<i> * complex_of_real (Arg2pi z))))"
-    using False by (simp add: zero_less_mult_iff)
-  also have "\<dots> \<longleftrightarrow> 0 < Arg2pi z \<and> Arg2pi z < pi" (is "_ = ?rhs")
-  proof -
-    have "0 < sin (Arg2pi z) \<Longrightarrow> ?rhs"
-      by (meson Arg2pi_ge_0 Arg2pi_lt_2pi less_le_trans not_le sin_le_zero sin_x_le_x)
-    then show ?thesis
-      by (auto simp: Im_exp sin_gt_zero)
-  qed
-  finally show ?thesis
-    by blast
-qed auto
+  using Arg2pi_le_pi [of z]
+  by (smt (verit, del_insts) Arg2pi_0 Arg2pi_le_pi Arg2pi_minus uminus_complex.simps(2) zero_complex.simps(2))
 
 lemma Arg2pi_eq_0: "Arg2pi z = 0 \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re z"
 proof (cases "z=0")
   case False
-  have "z \<in> \<real> \<and> 0 \<le> Re z \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re (of_real (cmod z) * exp (\<i> * complex_of_real (Arg2pi z)))"
-    by (metis Arg2pi_eq)
-  also have "\<dots> \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re (exp (\<i> * complex_of_real (Arg2pi z)))"
-    using False  by (simp add: zero_le_mult_iff)
+  then have "z \<in> \<real> \<and> 0 \<le> Re z \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re (exp (\<i> * complex_of_real (Arg2pi z)))"
+    by (metis cis.sel(1) cis_conv_exp cos_Arg2pi norm_ge_zero norm_le_zero_iff zero_le_mult_iff)
   also have "\<dots> \<longleftrightarrow> Arg2pi z = 0"
   proof -
     have [simp]: "Arg2pi z = 0 \<Longrightarrow> z \<in> \<real>"
       using Arg2pi_eq [of z] by (auto simp: Reals_def)
     moreover have "\<lbrakk>z \<in> \<real>; 0 \<le> cos (Arg2pi z)\<rbrakk> \<Longrightarrow> Arg2pi z = 0"
-      by (metis Arg2pi_lt_pi Arg2pi_ge_0 Arg2pi_le_pi cos_pi complex_is_Real_iff leD less_linear less_minus_one_simps(2) minus_minus neg_less_eq_nonneg order_refl)
+      by (smt (verit, ccfv_SIG) Arg2pi_ge_0 Arg2pi_le_pi Arg2pi_lt_pi complex_is_Real_iff cos_pi)
     ultimately show ?thesis
       by (auto simp: Re_exp)
   qed
@@ -1123,7 +983,7 @@ qed auto
 
 lemma Arg2pi_eq_iff:
   assumes "w \<noteq> 0" "z \<noteq> 0"
-  shows "Arg2pi w = Arg2pi z \<longleftrightarrow> (\<exists>x. 0 < x & w = of_real x * z)" (is "?lhs = ?rhs")
+  shows "Arg2pi w = Arg2pi z \<longleftrightarrow> (\<exists>x. 0 < x \<and> w = of_real x * z)" (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then have "(cmod w) * (z / cmod z) = w"
@@ -1169,8 +1029,7 @@ lemma Arg2pi_times:
   assumes "w \<noteq> 0" "z \<noteq> 0"
     shows "Arg2pi (w * z) = (if Arg2pi w + Arg2pi z < 2*pi then Arg2pi w + Arg2pi z
                             else (Arg2pi w + Arg2pi z) - 2*pi)"
-  using Arg2pi_add [OF assms]
-  by auto
+  using Arg2pi_add [OF assms] by auto
 
 lemma Arg2pi_cnj_eq_inverse:
   assumes "z \<noteq> 0" shows "Arg2pi (cnj z) = Arg2pi (inverse z)"
@@ -1264,14 +1123,7 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation to Real Logari
 lemma Ln_of_real:
   assumes "0 < z"
     shows "ln(of_real z::complex) = of_real(ln z)"
-proof -
-  have "ln(of_real (exp (ln z))::complex) = ln (exp (of_real (ln z)))"
-    by (simp add: exp_of_real)
-  also have "\<dots> = of_real(ln z)"
-    using assms by (subst Ln_exp) auto
-  finally show ?thesis
-    using assms by simp
-qed
+  by (smt (verit) Im_complex_of_real Ln_exp assms exp_ln of_real_exp pi_ge_two)
 
 corollary\<^marker>\<open>tag unimportant\<close> Ln_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> Re z > 0 \<Longrightarrow> ln z \<in> \<real>"
   by (auto simp: Ln_of_real elim: Reals_cases)
@@ -1286,16 +1138,10 @@ lemma Ln_Reals_eq: "\<lbrakk>x \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow
   using Ln_of_real by force
 
 lemma Ln_1 [simp]: "ln 1 = (0::complex)"
-proof -
-  have "ln (exp 0) = (0::complex)"
-    by (simp add: del: exp_zero)
-  then show ?thesis
-    by simp
-qed
-
+  by (smt (verit, best) Ln_of_real ln_one of_real_0 of_real_1)
 
 lemma Ln_eq_zero_iff [simp]: "x \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> ln x = 0 \<longleftrightarrow> x = 1" for x::complex
-  by auto (metis exp_Ln exp_zero nonpos_Reals_zero_I)
+  by (metis (mono_tags, lifting) Ln_1 exp_Ln exp_zero nonpos_Reals_zero_I)
 
 instance
   by intro_classes (rule ln_complex_def Ln_1)
@@ -1317,17 +1163,12 @@ lemma Re_Ln [simp]: "z \<noteq> 0 \<Longrightarrow> Re(Ln z) = ln(norm z)"
 corollary\<^marker>\<open>tag unimportant\<close> ln_cmod_le:
   assumes z: "z \<noteq> 0"
     shows "ln (cmod z) \<le> cmod (Ln z)"
-  using norm_exp [of "Ln z", simplified exp_Ln [OF z]]
   by (metis Re_Ln complex_Re_le_cmod z)
 
 proposition\<^marker>\<open>tag unimportant\<close> exists_complex_root:
   fixes z :: complex
   assumes "n \<noteq> 0"  obtains w where "z = w ^ n"
-proof (cases "z=0")
-  case False
-  then show ?thesis
-    by (rule_tac w = "exp(Ln z / n)" in that) (simp add: assms exp_of_nat_mult [symmetric])
-qed (use assms in auto)
+  by (metis assms exp_Ln exp_of_nat_mult nonzero_mult_div_cancel_left of_nat_eq_0_iff power_0_left times_divide_eq_right)
 
 corollary\<^marker>\<open>tag unimportant\<close> exists_complex_root_nonzero:
   fixes z::complex
@@ -1337,17 +1178,23 @@ corollary\<^marker>\<open>tag unimportant\<close> exists_complex_root_nonzero:
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Derivative of Ln away from the branch cut\<close>
 
-lemma
+lemma Im_Ln_less_pi: 
+  assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"shows "Im (Ln z) < pi"
+proof -
+  have znz [simp]: "z \<noteq> 0"
+    using assms by auto
+  with Im_Ln_le_pi [of z] show ?thesis
+    by (smt (verit, best) Arg2pi_eq_0_pi Arg2pi_exp Ln_in_Reals assms complex_is_Real_iff complex_nonpos_Reals_iff exp_Ln pi_ge_two)
+qed
+
+lemma has_field_derivative_Ln: 
   assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
-  shows has_field_derivative_Ln: "(Ln has_field_derivative inverse(z)) (at z)"
-    and Im_Ln_less_pi:           "Im (Ln z) < pi"
+  shows "(Ln has_field_derivative inverse(z)) (at z)"
 proof -
   have znz [simp]: "z \<noteq> 0"
     using assms by auto
   then have "Im (Ln z) \<noteq> pi"
-    by (metis (no_types) Im_exp Ln_in_Reals assms complex_nonpos_Reals_iff complex_is_Real_iff exp_Ln mult_zero_right not_less pi_neq_zero sin_pi znz)
-  then show *: "Im (Ln z) < pi" using assms Im_Ln_le_pi
-    by (simp add: le_neq_trans)
+    by (smt (verit, best) Arg2pi_eq_0_pi Arg2pi_exp Ln_in_Reals assms complex_is_Real_iff complex_nonpos_Reals_iff exp_Ln pi_ge_two)
   let ?U = "{w. -pi < Im(w) \<and> Im(w) < pi}"
   have 1: "open ?U"
     by (simp add: open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt)
@@ -1356,7 +1203,7 @@ proof -
   have 3: "continuous_on ?U (\<lambda>x. Blinfun ((*) (exp x)))"
     unfolding blinfun_mult_right.abs_eq [symmetric] by (intro continuous_intros)
   have 4: "Ln z \<in> ?U"
-    by (auto simp: mpi_less_Im_Ln *)
+    by (simp add: Im_Ln_less_pi assms mpi_less_Im_Ln)
   have 5: "Blinfun ((*) (inverse z)) o\<^sub>L Blinfun ((*) (exp (Ln z))) = id_blinfun"
     by (rule blinfun_eqI) (simp add: bounded_linear_mult_right bounded_linear_Blinfun_apply)
   obtain U' V g g' where "open U'" and sub: "U' \<subseteq> ?U"
@@ -1371,21 +1218,15 @@ proof -
     unfolding has_field_derivative_def
   proof (rule has_derivative_transform_within_open)
     show g_eq_Ln: "g y = Ln y" if "y \<in> V" for y
-    proof -
-      obtain x where "y = exp x" "x \<in> U'"
-        using hom homeomorphism_image1 that \<open>y \<in> V\<close> by blast
-      then show ?thesis
-        using sub hom homeomorphism_apply1 by fastforce
-    qed
+      by (smt (verit, ccfv_threshold) Ln_exp hom homeomorphism_def imageI mem_Collect_eq sub subset_iff that)
     have "0 \<notin> V"
       by (meson exp_not_eq_zero hom homeomorphism_def)
     then have "\<And>y. y \<in> V \<Longrightarrow> g' y = inv ((*) y)"
       by (metis exp_Ln g' g_eq_Ln)
     then have g': "g' z = (\<lambda>x. x/z)"
-      by (metis (no_types, opaque_lifting) bij \<open>z \<in> V\<close> bij_inv_eq_iff exp_Ln g_eq_Ln nonzero_mult_div_cancel_left znz)
+      by (metis \<open>z \<in> V\<close> bij bij_inv_eq_iff exp_Ln g_eq_Ln nonzero_mult_div_cancel_left znz)
     show "(g has_derivative (*) (inverse z)) (at z)"
-      using g [OF \<open>z \<in> V\<close>] g'
-      by (simp add: \<open>z \<in> V\<close> field_class.field_divide_inverse has_derivative_imp_has_field_derivative has_field_derivative_imp_has_derivative)
+      using g [OF \<open>z \<in> V\<close>] g' by (simp add: divide_inverse_commute)
   qed (auto simp: \<open>z \<in> V\<close> \<open>open V\<close>)
 qed
 
@@ -1425,29 +1266,19 @@ lemma holomorphic_on_Ln' [holomorphic_intros]:
   by (auto simp: o_def)
 
 lemma tendsto_Ln [tendsto_intros]:
-  fixes L F
   assumes "(f \<longlongrightarrow> L) F" "L \<notin> \<real>\<^sub>\<le>\<^sub>0"
   shows   "((\<lambda>x. Ln (f x)) \<longlongrightarrow> Ln L) F"
-proof -
-  have "nhds L \<ge> filtermap f F"
-    using assms(1) by (simp add: filterlim_def)
-  moreover have "\<forall>\<^sub>F y in nhds L. y \<in> - \<real>\<^sub>\<le>\<^sub>0"
-    using eventually_nhds_in_open[of "- \<real>\<^sub>\<le>\<^sub>0" L] assms by (auto simp: open_Compl)
-  ultimately have "\<forall>\<^sub>F y in filtermap f F. y \<in> - \<real>\<^sub>\<le>\<^sub>0" by (rule filter_leD)
-  moreover have "continuous_on (-\<real>\<^sub>\<le>\<^sub>0) Ln" by (rule continuous_on_Ln) auto
-  ultimately show ?thesis using continuous_on_tendsto_compose[of "- \<real>\<^sub>\<le>\<^sub>0" Ln f L F] assms
-    by (simp add: eventually_filtermap)
-qed
+  by (simp add: assms isCont_tendsto_compose)
 
 lemma divide_ln_mono:
   fixes x y::real
   assumes "3 \<le> x" "x \<le> y"
   shows "x / ln x \<le> y / ln y"
-proof (rule exE [OF complex_mvt_line [of x y "\<lambda>z. z / Ln z" "\<lambda>z. 1/(Ln z) - 1/(Ln z)^2"]];
-    clarsimp simp add: closed_segment_Reals closed_segment_eq_real_ivl assms)
-  show "\<And>u. \<lbrakk>x \<le> u; u \<le> y\<rbrakk> \<Longrightarrow> ((\<lambda>z. z / Ln z) has_field_derivative 1 / Ln u - 1 / (Ln u)\<^sup>2) (at u)"
+proof -
+  have "\<And>u. \<lbrakk>x \<le> u; u \<le> y\<rbrakk> \<Longrightarrow> ((\<lambda>z. z / Ln z) has_field_derivative 1 / Ln u - 1 / (Ln u)\<^sup>2) (at u)"
     using \<open>3 \<le> x\<close> by (force intro!: derivative_eq_intros simp: field_simps power_eq_if)
-  show "x / ln x \<le> y / ln y"
+  moreover
+  have "x / ln x \<le> y / ln y"
     if "Re (y / Ln y) - Re (x / Ln x) = (Re (1 / Ln u) - Re (1 / (Ln u)\<^sup>2)) * (y - x)"
     and x: "x \<le> u" "u \<le> y" for u
   proof -
@@ -1456,6 +1287,9 @@ proof (rule exE [OF complex_mvt_line [of x y "\<lambda>z. z / Ln z" "\<lambda>z.
     show ?thesis
       using exp_le \<open>3 \<le> x\<close> x by (simp add: eq) (simp add: power_eq_if divide_simps ln_ge_iff)
   qed
+  ultimately show ?thesis
+    using complex_mvt_line [of x y "\<lambda>z. z / Ln z" "\<lambda>z. 1/(Ln z) - 1/(Ln z)^2"] assms
+    by (force simp add: closed_segment_Reals closed_segment_eq_real_ivl)
 qed
 
 theorem Ln_series:
@@ -1505,7 +1339,8 @@ lemma Ln_series': "cmod z < 1 \<Longrightarrow> (\<lambda>n. - ((-z)^n) / of_nat
   by (drule Ln_series) (simp add: power_minus')
 
 lemma ln_series':
-  assumes "abs (x::real) < 1"
+  fixes x::real
+  assumes "\<bar>x\<bar> < 1"
   shows   "(\<lambda>n. - ((-x)^n) / of_nat n) sums ln (1 + x)"
 proof -
   from assms have "(\<lambda>n. - ((-of_real x)^n) / of_nat n) sums ln (1 + complex_of_real x)"
@@ -1513,7 +1348,7 @@ proof -
   also have "(\<lambda>n. - ((-of_real x)^n) / of_nat n) = (\<lambda>n. complex_of_real (- ((-x)^n) / of_nat n))"
     by (rule ext) simp
   also from assms have "ln (1 + complex_of_real x) = of_real (ln (1 + x))"
-    by (subst Ln_of_real [symmetric]) simp_all
+    by (smt (verit) Ln_of_real of_real_1 of_real_add)
   finally show ?thesis by (subst (asm) sums_of_real_iff)
 qed
 
@@ -1604,35 +1439,9 @@ lemma cos_lt_zero_pi: "pi/2 < x \<Longrightarrow> x < 3*pi/2 \<Longrightarrow> c
   using cos_minus_pi cos_gt_zero_pi [of "x-pi"]
   by simp
 
-lemma Re_Ln_pos_lt:
-  assumes "z \<noteq> 0"
-    shows "\<bar>Im(Ln z)\<bar> < pi/2 \<longleftrightarrow> 0 < Re(z)"
-proof -
-  { fix w
-    assume "w = Ln z"
-    then have w: "Im w \<le> pi" "- pi < Im w"
-      using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
-      by auto
-    have "\<bar>Im w\<bar> < pi/2 \<longleftrightarrow> 0 < Re(exp w)"
-    proof
-      assume "\<bar>Im w\<bar> < pi/2" then show "0 < Re(exp w)"
-        by (auto simp: Re_exp cos_gt_zero_pi split: if_split_asm)
-    next
-      assume R: "0 < Re(exp w)" then
-      have "\<bar>Im w\<bar> \<noteq> pi/2"
-        by (metis cos_minus cos_pi_half mult_eq_0_iff Re_exp abs_if order_less_irrefl)
-      then show "\<bar>Im w\<bar> < pi/2"
-        using cos_lt_zero_pi [of "-(Im w)"] cos_lt_zero_pi [of "(Im w)"] w R
-        by (force simp: Re_exp zero_less_mult_iff abs_if not_less_iff_gr_or_eq)
-    qed
-  }
-  then show ?thesis using assms
-    by auto
-qed
-
 lemma Re_Ln_pos_le:
   assumes "z \<noteq> 0"
-    shows "\<bar>Im(Ln z)\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(z)"
+  shows "\<bar>Im(Ln z)\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(z)"
 proof -
   { fix w
     assume "w = Ln z"
@@ -1647,23 +1456,11 @@ proof -
     by auto
 qed
 
-lemma Im_Ln_pos_lt:
+lemma Re_Ln_pos_lt:
   assumes "z \<noteq> 0"
-    shows "0 < Im(Ln z) \<and> Im(Ln z) < pi \<longleftrightarrow> 0 < Im(z)"
-proof -
-  { fix w
-    assume "w = Ln z"
-    then have w: "Im w \<le> pi" "- pi < Im w"
-      using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
-      by auto
-    then have "0 < Im w \<and> Im w < pi \<longleftrightarrow> 0 < Im(exp w)"
-      using sin_gt_zero [of "- (Im w)"] sin_gt_zero [of "(Im w)"] less_linear
-      by (fastforce simp add: Im_exp zero_less_mult_iff)
-  }
-  then show ?thesis using assms
-    by auto
-qed
-
+  shows "\<bar>Im(Ln z)\<bar> < pi/2 \<longleftrightarrow> 0 < Re(z)"
+  using Re_Ln_pos_le assms
+  by (smt (verit) Re_exp arccos_cos cos_minus cos_pi_half exp_Ln exp_gt_zero field_sum_of_halves mult_eq_0_iff)
 
 lemma Im_Ln_pos_le:
   assumes "z \<noteq> 0"
@@ -1680,6 +1477,12 @@ proof -
   then show ?thesis using assms
     by auto
 qed
+
+lemma Im_Ln_pos_lt:
+  assumes "z \<noteq> 0"
+  shows "0 < Im(Ln z) \<and> Im(Ln z) < pi \<longleftrightarrow> 0 < Im(z)"
+  using Im_Ln_pos_le [OF assms] assms
+  by (smt (verit, best) Arg2pi_exp Arg2pi_lt_pi exp_Ln)
 
 lemma Re_Ln_pos_lt_imp: "0 < Re(z) \<Longrightarrow> \<bar>Im(Ln z)\<bar> < pi/2"
   by (metis Re_Ln_pos_lt less_irrefl zero_complex.simps(1))
@@ -1701,23 +1504,7 @@ lemma cnj_Ln: assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0" shows "cnj(Ln z) 
 proof (cases "z=0")
   case False
   show ?thesis
-  proof (rule exp_complex_eqI)
-    have "\<bar>Im (cnj (Ln z)) - Im (Ln (cnj z))\<bar> \<le> \<bar>Im (cnj (Ln z))\<bar> + \<bar>Im (Ln (cnj z))\<bar>"
-      by (rule abs_triangle_ineq4)
-    also have "\<dots> < pi + pi"
-    proof -
-      have "\<bar>Im (cnj (Ln z))\<bar> < pi"
-        by (simp add: False Im_Ln_less_pi abs_if assms minus_less_iff mpi_less_Im_Ln)
-      moreover have "\<bar>Im (Ln (cnj z))\<bar> \<le> pi"
-        by (meson abs_le_iff complex_cnj_zero_iff less_eq_real_def minus_less_iff  False Im_Ln_le_pi mpi_less_Im_Ln)
-      ultimately show ?thesis
-        by simp
-    qed
-    finally show "\<bar>Im (cnj (Ln z)) - Im (Ln (cnj z))\<bar> < 2 * pi"
-      by simp
-    show "exp (cnj (Ln z)) = exp (Ln (cnj z))"
-      by (metis False complex_cnj_zero_iff exp_Ln exp_cnj)
-  qed
+    by (smt (verit) False Im_Ln_less_pi Ln_exp assms cnj.sel(2) exp_Ln exp_cnj mpi_less_Im_Ln)
 qed (use assms in auto)
 
 
@@ -1725,23 +1512,7 @@ lemma Ln_inverse: assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0" shows "Ln(inv
 proof (cases "z=0")
   case False
   show ?thesis
-  proof (rule exp_complex_eqI)
-    have "\<bar>Im (Ln (inverse z)) - Im (- Ln z)\<bar> \<le> \<bar>Im (Ln (inverse z))\<bar> + \<bar>Im (- Ln z)\<bar>"
-      by (rule abs_triangle_ineq4)
-    also have "\<dots> < pi + pi"
-    proof -
-      have "\<bar>Im (Ln (inverse z))\<bar> < pi"
-        by (simp add: False Im_Ln_less_pi abs_if assms minus_less_iff mpi_less_Im_Ln)
-      moreover have "\<bar>Im (- Ln z)\<bar> \<le> pi"
-        using False Im_Ln_le_pi mpi_less_Im_Ln by fastforce
-      ultimately show ?thesis
-        by simp
-    qed
-    finally show "\<bar>Im (Ln (inverse z)) - Im (- Ln z)\<bar> < 2 * pi"
-      by simp
-    show "exp (Ln (inverse z)) = exp (- Ln z)"
-      by (simp add: False exp_minus)
-  qed
+    by (smt (verit) False Im_Ln_less_pi Ln_exp assms exp_Ln exp_minus mpi_less_Im_Ln uminus_complex.sel(2))
 qed (use assms in auto)
 
 lemma Ln_minus1 [simp]: "Ln(-1) = \<i> * pi"
@@ -1756,12 +1527,7 @@ lemma Ln_ii [simp]: "Ln \<i> = \<i> * of_real pi/2"
   by simp
 
 lemma Ln_minus_ii [simp]: "Ln(-\<i>) = - (\<i> * pi/2)"
-proof -
-  have  "Ln(-\<i>) = Ln(inverse \<i>)"    by simp
-  also have "\<dots> = - (Ln \<i>)"         using Ln_inverse by blast
-  also have "\<dots> = - (\<i> * pi/2)"     by simp
-  finally show ?thesis .
-qed
+  using Ln_inverse by fastforce
 
 lemma Ln_times:
   assumes "w \<noteq> 0" "z \<noteq> 0"
@@ -1792,10 +1558,9 @@ corollary\<^marker>\<open>tag unimportant\<close> Ln_times_Reals:
   using Ln_Reals_eq Ln_times_of_real by fastforce
 
 corollary\<^marker>\<open>tag unimportant\<close> Ln_divide_of_real:
-    "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(z / of_real r) = Ln(z) - ln r"
-using Ln_times_of_real [of "inverse r" z]
-by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse of_real_inverse [symmetric]
-         del: of_real_inverse)
+  "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(z / of_real r) = Ln(z) - ln r"
+  using Ln_times_of_real [of "inverse r" z]
+  by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse flip: of_real_inverse)
 
 corollary\<^marker>\<open>tag unimportant\<close> Ln_prod:
   fixes f :: "'a \<Rightarrow> complex"
@@ -1818,10 +1583,10 @@ lemma Ln_minus:
   assumes "z \<noteq> 0"
     shows "Ln(-z) = (if Im(z) \<le> 0 \<and> \<not>(Re(z) < 0 \<and> Im(z) = 0)
                      then Ln(z) + \<i> * pi
-                     else Ln(z) - \<i> * pi)" (is "_ = ?rhs")
+                     else Ln(z) - \<i> * pi)" 
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z]
-    by (fastforce simp: exp_add exp_diff exp_Euler intro!: Ln_unique)
+  by (intro Ln_unique) (auto simp: exp_add exp_diff)
 
 lemma Ln_inverse_if:
   assumes "z \<noteq> 0"
@@ -1854,7 +1619,7 @@ lemma Ln_times_ii:
   by (simp add: Ln_times) auto
 
 lemma Ln_of_nat [simp]: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
-  by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all
+  by (metis Ln_of_real of_nat_0_less_iff of_real_of_nat_eq)
 
 lemma Ln_of_nat_over_of_nat:
   assumes "m > 0" "n > 0"
@@ -1913,13 +1678,11 @@ proof -
     have "f n x + 1 \<notin> \<real>\<^sub>\<le>\<^sub>0" if "x \<in> A" for n x
     proof
       assume "f n x + 1 \<in> \<real>\<^sub>\<le>\<^sub>0"
-      then obtain t where t: "t \<le> 0" "f n x + 1 = of_real t"
-        by (auto elim!: nonpos_Reals_cases)
-      hence "f n x = of_real (t - 1)"
-        by (simp add: algebra_simps)
-      also have "norm \<dots> \<ge> 1"
+      then obtain t where t: "t \<le> 0" "f n x = of_real (t - 1)"
+        by (metis add_diff_cancel nonpos_Reals_cases of_real_1 of_real_diff)
+      moreover have "norm \<dots> \<ge> 1"
         using t by (subst norm_of_real) auto
-      finally show False
+      ultimately show False
         using norm_f[of x n] that by auto
     qed
     thus "\<forall>\<^sub>F n in sequentially. continuous_on A (\<lambda>x. \<Sum>n<n. Ln (1 + f n x))"
@@ -1961,19 +1724,14 @@ proof -
     have "exp (\<Sum>n<N. ln (1 + f n x)) = (\<Prod>n<N. exp (ln (1 + f n x)))"
       by (simp add: exp_sum)
     also have "\<dots> = (\<Prod>n<N. 1 + f n x)"
-    proof (rule prod.cong)
-      fix n assume "n \<in> {..<N}"
-      have "f n x \<noteq> -1"
-        using norm_f[of x n] x by auto
-      thus "exp (ln (1 + f n x)) = 1 + f n x"
-        by (simp add: add_eq_0_iff)
-    qed auto
+      using norm_f[of x] x
+      by (smt (verit, best) add.right_neutral add_diff_cancel exp_Ln norm_minus_commute norm_one prod.cong)
     finally show "exp (\<Sum>n<N. ln (1 + f n x)) = (\<Prod>n<N. 1 + f n x)" .
   qed
   finally show ?thesis .
 qed
 
-(* Theorem 17.6 by Bak & Newman, roughly *)
+text \<open>Theorem 17.6 by Bak and Newman, Complex Analysis [roughly]\<close>
 lemma uniformly_convergent_on_prod:
   fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
   assumes cont: "\<And>n. continuous_on A (f n)"
@@ -2146,15 +1904,13 @@ lemma\<^marker>\<open>tag important\<close> Arg_def:
 lemma Arg_of_real [simp]: "Arg (of_real r) = (if r<0 then pi else 0)"
   by (simp add: Im_Ln_eq_pi Arg_def)
 
-lemma mpi_less_Arg: "-pi < Arg z"
-    and Arg_le_pi: "Arg z \<le> pi"
+lemma mpi_less_Arg: "-pi < Arg z" and Arg_le_pi: "Arg z \<le> pi"
   by (auto simp: Arg_def mpi_less_Im_Ln Im_Ln_le_pi)
 
-lemma
+lemma Arg_eq: 
   assumes "z \<noteq> 0"
-  shows Arg_eq: "z = of_real(norm z) * exp(\<i> * Arg z)"
-  using assms exp_Ln exp_eq_polar
-  by (auto simp:  Arg_def)
+  shows "z = of_real(norm z) * exp(\<i> * Arg z)"
+  using cis_conv_exp rcis_cmod_Arg rcis_def by force
 
 lemma is_Arg_Arg: "z \<noteq> 0 \<Longrightarrow> is_Arg z (Arg z)"
   by (simp add: Arg_eq is_Arg_def)
@@ -2196,35 +1952,15 @@ lemma Arg_divide:
   by (auto simp: is_Arg_def norm_divide field_simps exp_diff Arg_of_real)
 
 lemma Arg_unique_lemma:
-  assumes z:  "is_Arg z t"
-      and z': "is_Arg z t'"
-      and t:  "- pi < t"  "t \<le> pi"
-      and t': "- pi < t'" "t' \<le> pi"
-      and nz: "z \<noteq> 0"
+  assumes "is_Arg z t" "is_Arg z t'"
+      and "- pi < t"  "t \<le> pi"
+      and "- pi < t'" "t' \<le> pi"
+      and "z \<noteq> 0"
     shows "t' = t"
-  using Arg2pi_unique_lemma [of "- (inverse z)"]
-proof -
-  have "pi - t' = pi - t"
-  proof (rule Arg2pi_unique_lemma [of "- (inverse z)"])
-    have "- (inverse z) = - (inverse (of_real(norm z) * exp(\<i> * t)))"
-      by (metis is_Arg_def z)
-    also have "\<dots> = (cmod (- inverse z)) * exp (\<i> * (pi - t))"
-      by (auto simp: field_simps exp_diff norm_divide)
-    finally show "is_Arg (- inverse z) (pi - t)"
-      unfolding is_Arg_def .
-    have "- (inverse z) = - (inverse (of_real(norm z) * exp(\<i> * t')))"
-      by (metis is_Arg_def z')
-    also have "\<dots> = (cmod (- inverse z)) * exp (\<i> * (pi - t'))"
-      by (auto simp: field_simps exp_diff norm_divide)
-    finally show "is_Arg (- inverse z) (pi - t')"
-      unfolding is_Arg_def .
-  qed (use assms in auto)
-  then show ?thesis
-    by simp
-qed
+  using is_Arg_eqI assms by force
 
 lemma complex_norm_eq_1_exp_eq: "norm z = 1 \<longleftrightarrow> exp(\<i> * (Arg z)) = z"
-  by (metis Arg_eq exp_not_eq_zero exp_zero mult.left_neutral norm_zero of_real_1 norm_exp_i_times)
+  by (metis Arg2pi_eq Arg_eq complex_norm_eq_1_exp norm_eq_zero norm_exp_i_times)
 
 lemma Arg_unique: "\<lbrakk>of_real r * exp(\<i> * a) = z; 0 < r; -pi < a; a \<le> pi\<rbrakk> \<Longrightarrow> Arg z = a"
   by (rule Arg_unique_lemma [unfolded is_Arg_def, OF _ Arg_eq])
@@ -2239,9 +1975,8 @@ proof -
   have [simp]: "cmod z * sin (Arg z) = Im z"
     using assms Arg_eq [of z] by (metis Im_exp exp_Ln norm_exp_eq_Re Arg_def)
   show ?thesis
-    apply (rule Arg_unique [of "norm z", OF complex_eqI])
     using mpi_less_Arg [of z] Arg_le_pi [of z] assms
-    by (auto simp: Re_exp Im_exp)
+    by (intro Arg_unique [of "norm z", OF complex_eqI]) (auto simp: Re_exp Im_exp)
 qed
 
 lemma Arg_1 [simp]: "Arg 1 = 0"
@@ -2292,14 +2027,10 @@ lemma Arg_real: "z \<in> \<real> \<Longrightarrow> Arg z = (if 0 \<le> Re z then
 
 lemma Arg_inverse: "Arg(inverse z) = (if z \<in> \<real> then Arg z else - Arg z)"
 proof (cases "z \<in> \<real>")
-  case True
-  then show ?thesis
-    by (metis Arg2pi_inverse Arg2pi_real Arg_real Reals_inverse)
-next
   case False
   then show ?thesis
     by (simp add: Arg_def Ln_inverse complex_is_Real_iff complex_nonpos_Reals_iff)
-qed
+qed (use Arg_real Re_inverse in auto)
 
 lemma Arg_eq_iff:
   assumes "w \<noteq> 0" "z \<noteq> 0"
@@ -2437,28 +2168,7 @@ subsection \<open>Characterisation of @{term "Im (Ln z)"} (Wenda Li)\<close>
 lemma Im_Ln_eq_pi_half:
     "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi/2 \<longleftrightarrow> 0 < Im(z) \<and> Re(z) = 0)"
     "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = -pi/2 \<longleftrightarrow> Im(z) < 0 \<and> Re(z) = 0)"
-proof -
-  show "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi/2 \<longleftrightarrow> 0 < Im(z) \<and> Re(z) = 0)"
-    by (metis Im_Ln_eq_pi Im_Ln_le_pi Im_Ln_pos_lt Re_Ln_pos_le Re_Ln_pos_lt
-      abs_of_nonneg less_eq_real_def order_less_irrefl pi_half_gt_zero)
-next
-  assume "z\<noteq>0"
-  have "Im (Ln z) = - pi / 2 \<Longrightarrow> Im z < 0 \<and> Re z = 0"
-    by (metis Im_Ln_pos_le Re_Ln_pos_le Re_Ln_pos_lt_imp \<open>z \<noteq> 0\<close> abs_if
-     add.inverse_inverse divide_minus_left less_eq_real_def linorder_not_le minus_pi_half_less_zero)
-  moreover have "Im (Ln z) = - pi / 2" when "Im z < 0" "Re z = 0"
-  proof -
-    obtain r::real where "r>0" "z=r * (-\<i>)"
-      by (smt (verit) \<open>Im z < 0\<close> \<open>Re z = 0\<close> add_0 complex_eq mult.commute mult_minus_right of_real_0 of_real_minus)
-    then have "Im (Ln z) = Im (Ln (r*(-\<i>)))" by auto
-    also have "... = Im (Ln (complex_of_real r) + Ln (- \<i>))"
-      by (metis Ln_times_of_real \<open>0 < r\<close> add.inverse_inverse add.inverse_neutral complex_i_not_zero)
-    also have "... = - pi/2"
-      using \<open>r>0\<close> by simp
-    finally show "Im (Ln z) = - pi / 2" .
-  qed
-  ultimately show "(Im(Ln z) = -pi/2 \<longleftrightarrow> Im(z) < 0 \<and> Re(z) = 0)" by auto
-qed
+  using Im_Ln_pos_lt Im_Ln_pos_le Re_Ln_pos_le Re_Ln_pos_lt pi_ge_two by fastforce+
 
 lemma Im_Ln_eq:
   assumes "z\<noteq>0"
@@ -2472,32 +2182,8 @@ lemma Im_Ln_eq:
                       else
                         if Im z>0 then pi/2 else -pi/2)"
 proof -
-  have eq_arctan_pos:"Im (Ln z) = arctan (Im z/Re z)" when "Re z>0" for z
-  proof -
-    define wR where "wR \<equiv> Re (Ln z)"
-    define \<theta> where "\<theta> \<equiv> arctan (Im z/Re z)"
-    have "z\<noteq>0" using that by auto
-    have "exp (Complex wR \<theta>) = z"
-    proof (rule complex_eqI)
-      have "Im (exp (Complex wR \<theta>)) =exp wR * sin \<theta> "
-        unfolding Im_exp by simp
-      also have "... = Im z"
-        unfolding wR_def Re_Ln[OF \<open>z\<noteq>0\<close>] \<theta>_def using \<open>z\<noteq>0\<close> \<open>Re z>0\<close>
-        by (auto simp add:sin_arctan divide_simps complex_neq_0 cmod_def real_sqrt_divide)
-      finally show "Im (exp (Complex wR \<theta>)) = Im z" .
-    next
-      have "Re (exp (Complex wR \<theta>)) = exp wR * cos \<theta> "
-        unfolding Re_exp by simp
-      also have "... = Re z"
-        by (metis Arg_eq_Im_Ln Re_exp \<open>z \<noteq> 0\<close> \<theta>_def arg_conv_arctan exp_Ln that wR_def)
-      finally show "Re (exp (Complex wR \<theta>)) = Re z" .
-    qed
-    moreover have "-pi<\<theta>" "\<theta>\<le>pi"
-      using arctan_lbound [of \<open>Im z / Re z\<close>] arctan_ubound [of \<open>Im z / Re z\<close>]
-      by (simp_all add: \<theta>_def)
-    ultimately have "Ln z = Complex wR \<theta>" using Ln_unique by auto
-    then show ?thesis using that unfolding \<theta>_def by auto
-  qed
+  have eq_arctan_pos: "Im (Ln z) = arctan (Im z/Re z)" when "Re z>0" for z
+    by (metis Arg_eq_Im_Ln arg_conv_arctan order_less_irrefl that zero_complex.simps(1))
   have ?thesis when "Re z=0"
     using Im_Ln_eq_pi_half[OF \<open>z\<noteq>0\<close>] that
     using assms complex_eq_iff by auto
@@ -2532,12 +2218,12 @@ lemma continuous_at_Arg2pi:
   assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0"
     shows "continuous (at z) Arg2pi"
 proof -
-  have *: "isCont (\<lambda>z. Im (Ln (- z)) + pi) z"
+  have "isCont (\<lambda>z. Im (Ln (- z)) + pi) z"
     by (rule Complex.isCont_Im isCont_Ln' continuous_intros | simp add: assms complex_is_Real_iff)+
-  consider "Re z < 0" | "Im z \<noteq> 0" using assms
+  moreover consider "Re z < 0" | "Im z \<noteq> 0" using assms
     using complex_nonneg_Reals_iff not_le by blast
-  then have "(\<lambda>z. Im (Ln (- z)) + pi) \<midarrow>z\<rightarrow> Arg2pi z"
-    using "*" by (simp add: Arg2pi_Ln Arg2pi_gt_0 assms continuous_within)
+  ultimately have "(\<lambda>z. Im (Ln (- z)) + pi) \<midarrow>z\<rightarrow> Arg2pi z"
+    by (simp add: Arg2pi_Ln Arg2pi_gt_0 assms continuous_within)
   then show ?thesis
     unfolding continuous_at
     by (metis (mono_tags, lifting) Arg2pi_Ln Arg2pi_gt_0 Compl_iff Lim_transform_within_open assms 
@@ -2658,7 +2344,7 @@ lemma norm_powr_real_powr': "w \<in> \<real> \<Longrightarrow> norm (z powr w) =
 
 lemma powr_complexpow [simp]:
   fixes x::complex shows "x \<noteq> 0 \<Longrightarrow> x powr (of_nat n) = x^n"
-  by (induct n) (auto simp: ac_simps powr_add)
+  by (simp add: powr_nat')
 
 lemma powr_complexnumeral [simp]:
   fixes x::complex shows "x powr (numeral n) = x ^ (numeral n)"
@@ -2715,18 +2401,19 @@ lemma Re_powr_le: "r \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> Re (r p
 
 lemma
   fixes w::complex
-  shows Reals_powr [simp]: "\<lbrakk>w \<in> \<real>\<^sub>\<ge>\<^sub>0; z \<in> \<real>\<rbrakk> \<Longrightarrow> w powr z \<in> \<real>"
-  and nonneg_Reals_powr [simp]: "\<lbrakk>w \<in> \<real>\<^sub>\<ge>\<^sub>0; z \<in> \<real>\<rbrakk> \<Longrightarrow> w powr z \<in> \<real>\<^sub>\<ge>\<^sub>0"
-  by (auto simp: nonneg_Reals_def Reals_def powr_of_real)
+  assumes "w \<in> \<real>\<^sub>\<ge>\<^sub>0" "z \<in> \<real>"
+  shows Reals_powr [simp]: "w powr z \<in> \<real>" and nonneg_Reals_powr [simp]: "w powr z \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  using assms by (auto simp: nonneg_Reals_def Reals_def powr_of_real)
 
 lemma powr_neg_real_complex:
-  "(- of_real x) powr a = (-1) powr (of_real (sgn x) * a) * of_real x powr (a :: complex)"
+  fixes w::complex
+  shows "(- of_real x) powr w = (-1) powr (of_real (sgn x) * w) * of_real x powr w"
 proof (cases "x = 0")
   assume x: "x \<noteq> 0"
-  hence "(-x) powr a = exp (a * ln (-of_real x))" by (simp add: powr_def)
+  hence "(-x) powr w = exp (w * ln (-of_real x))" by (simp add: powr_def)
   also from x have "ln (-of_real x) = Ln (of_real x) + of_real (sgn x) * pi * \<i>"
     by (simp add: Ln_minus Ln_of_real)
-  also from x have "exp (a * \<dots>) = cis pi powr (of_real (sgn x) * a) * of_real x powr a"
+  also from x have "exp (w * \<dots>) = cis pi powr (of_real (sgn x) * w) * of_real x powr w"
     by (simp add: powr_def exp_add algebra_simps Ln_of_real cis_conv_exp)
   also note cis_pi
   finally show ?thesis by simp
@@ -2818,28 +2505,14 @@ qed
 
 lemma field_differentiable_powr_of_int:
   fixes z :: complex
-  assumes gderiv: "g field_differentiable (at z within S)" and "g z \<noteq> 0"
+  assumes "g field_differentiable (at z within S)" and "g z \<noteq> 0"
   shows "(\<lambda>z. g z powr of_int n) field_differentiable (at z within S)"
-using has_field_derivative_powr_of_int assms(2) field_differentiable_def gderiv by blast
+  using has_field_derivative_powr_of_int assms field_differentiable_def by blast
 
 lemma holomorphic_on_powr_of_int [holomorphic_intros]:
-  assumes holf: "f holomorphic_on S" and 0: "\<And>z. z\<in>S \<Longrightarrow> f z \<noteq> 0"
+  assumes "f holomorphic_on S" and "\<And>z. z\<in>S \<Longrightarrow> f z \<noteq> 0"
   shows "(\<lambda>z. (f z) powr of_int n) holomorphic_on S"
-proof (cases "n\<ge>0")
-  case True
-  then have "?thesis \<longleftrightarrow> (\<lambda>z. (f z) ^ nat n) holomorphic_on S"
-    by (metis (no_types, lifting) 0 holomorphic_cong powr_of_int)
-  moreover have "(\<lambda>z. (f z) ^ nat n) holomorphic_on S"
-    using holf by (auto intro: holomorphic_intros)
-  ultimately show ?thesis by auto
-next
-  case False
-  then have "?thesis \<longleftrightarrow> (\<lambda>z. inverse (f z) ^ nat (-n)) holomorphic_on S"
-    by (metis (no_types, lifting) "0" holomorphic_cong power_inverse powr_of_int)
-  moreover have "(\<lambda>z. inverse (f z) ^ nat (-n)) holomorphic_on S"
-    using assms by (auto intro!:holomorphic_intros)
-  ultimately show ?thesis by auto
-qed
+  using assms field_differentiable_powr_of_int holomorphic_on_def by auto
 
 lemma has_field_derivative_powr_right [derivative_intros]:
     "w \<noteq> 0 \<Longrightarrow> ((\<lambda>z. w powr z) has_field_derivative Ln w * w powr z) (at z)"
@@ -2896,7 +2569,7 @@ proof (rule tendsto_norm_zero_cancel)
   define h where
     "h = (\<lambda>z. if f z = 0 then 0 else exp (Re (g z) * ln (cmod (f z)) + abs (Im (g z)) * pi))"
   {
-    fix z :: 'a assume z: "f z \<noteq> 0"
+    fix z :: 'a assume z: "f z \<noteq> 0" 
     define c where "c = abs (Im (g z)) * pi"
     from mpi_less_Im_Ln[OF z] Im_Ln_le_pi[OF z]
       have "abs (Im (Ln (f z))) \<le> pi" by simp
@@ -2905,7 +2578,8 @@ proof (rule tendsto_norm_zero_cancel)
     hence "-Im (g z) * Im (ln (f z)) \<le> c" by simp
     hence "norm (f z powr g z) \<le> h z" by (simp add: powr_def field_simps h_def c_def)
   }
-  hence le: "norm (f z powr g z) \<le> h z" for z by (cases "f x = 0") (simp_all add: h_def)
+  hence le: "norm (f z powr g z) \<le> h z" for z
+    by (simp add: h_def) 
 
   have g': "(g \<longlongrightarrow> b) (inf F (principal {z. f z \<noteq> 0}))"
     by (rule tendsto_mono[OF _ g]) simp_all
@@ -2914,8 +2588,7 @@ proof (rule tendsto_norm_zero_cancel)
   moreover {
     have "filterlim (\<lambda>x. norm (f x)) (principal {0<..}) (principal {z. f z \<noteq> 0})"
       by (auto simp: filterlim_def)
-    hence "filterlim (\<lambda>x. norm (f x)) (principal {0<..})
-             (inf F (principal {z. f z \<noteq> 0}))"
+    hence "filterlim (\<lambda>x. norm (f x)) (principal {0<..}) (inf F (principal {z. f z \<noteq> 0}))"
       by (rule filterlim_mono) simp_all
   }
   ultimately have norm: "filterlim (\<lambda>x. norm (f x)) (at_right 0) (inf F (principal {z. f z \<noteq> 0}))"
@@ -3051,7 +2724,7 @@ lemma lim_Ln_over_n: "((\<lambda>n. Ln(of_nat n) / of_nat n) \<longlongrightarro
 lemma lim_ln_over_power:
   fixes s :: real
   assumes "0 < s"
-  shows "((\<lambda>n. ln n / (n powr s)) \<longlongrightarrow> 0) sequentially"
+  shows "(\<lambda>n. ln (real n) / real n powr s) \<longlonglongrightarrow> 0"
 proof -
   have "(\<lambda>n. ln (Suc n) / (Suc n) powr s) \<longlonglongrightarrow> 0"
     using lim_Ln_over_power [of "of_real s", THEN filterlim_sequentially_Suc [THEN iffD2]] assms
@@ -3095,7 +2768,7 @@ lemma lim_1_over_real_power:
   apply (subst filterlim_sequentially_Suc [symmetric])
   by (simp add: lim_sequentially dist_norm Ln_Reals_eq norm_powr_real_powr norm_divide)
 
-lemma lim_1_over_Ln: "((\<lambda>n. 1 / Ln(of_nat n)) \<longlongrightarrow> 0) sequentially"
+lemma lim_1_over_Ln: "(\<lambda>n. 1 / Ln (complex_of_nat n)) \<longlonglongrightarrow> 0"
 proof (clarsimp simp add: lim_sequentially dist_norm norm_divide field_split_simps)
   fix r::real
   assume "0 < r"
@@ -3117,7 +2790,7 @@ proof (clarsimp simp add: lim_sequentially dist_norm norm_divide field_split_sim
     by (rule_tac x=n in exI) (force simp: field_split_simps intro: less_le_trans)
 qed
 
-lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) \<longlongrightarrow> 0) sequentially"
+lemma lim_1_over_ln: "(\<lambda>n. 1 / ln (real n)) \<longlonglongrightarrow> 0"
   using lim_1_over_Ln [THEN filterlim_sequentially_Suc [THEN iffD2]]
   apply (subst filterlim_sequentially_Suc [symmetric])
   by (simp add: lim_sequentially dist_norm Ln_Reals_eq norm_powr_real_powr norm_divide)
@@ -3151,19 +2824,14 @@ proof (rule Lim_transform_eventually)
 qed
 
 lemma lim_ln_over_ln1: "(\<lambda>n. ln n / ln(Suc n)) \<longlonglongrightarrow> 1"
-proof -
-  have "(\<lambda>n. inverse (ln(Suc n) / ln n)) \<longlonglongrightarrow> inverse 1"
-    by (rule tendsto_inverse [OF lim_ln1_over_ln]) auto
-  then show ?thesis
-    by simp
-qed
+  using tendsto_inverse [OF lim_ln1_over_ln] by force
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation between Square Root and exp/ln, hence its derivative\<close>
 
 lemma csqrt_exp_Ln:
   assumes "z \<noteq> 0"
-    shows "csqrt z = exp(Ln(z) / 2)"
+    shows "csqrt z = exp(Ln z / 2)"
 proof -
   have "(exp (Ln z / 2))\<^sup>2 = (exp (Ln z))"
     by (metis exp_double nonzero_mult_div_cancel_left times_divide_eq_right zero_neq_numeral)
@@ -3263,12 +2931,7 @@ lemma continuous_on_csqrt [continuous_intros]:
   by (simp add: continuous_at_imp_continuous_on continuous_within_csqrt)
 
 lemma holomorphic_on_csqrt [holomorphic_intros]: "csqrt holomorphic_on -\<real>\<^sub>\<le>\<^sub>0"
-proof -
-  have *: "(\<lambda>z. exp (ln z / 2)) holomorphic_on -\<real>\<^sub>\<le>\<^sub>0"
-    by (intro holomorphic_intros) auto
-  then show ?thesis
-    using field_differentiable_within_csqrt holomorphic_on_def by auto
-qed
+  by (simp add: field_differentiable_within_csqrt holomorphic_on_def)
 
 lemma holomorphic_on_csqrt' [holomorphic_intros]:
   "f holomorphic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> (\<lambda>z. csqrt (f z)) holomorphic_on A"
@@ -3283,8 +2946,7 @@ lemma analytic_on_csqrt' [analytic_intros]:
 
 lemma continuous_within_closed_nontrivial:
     "closed s \<Longrightarrow> a \<notin> s ==> continuous (at a within s) f"
-  using open_Compl
-  by (force simp add: continuous_def eventually_at_topological filterlim_iff open_Collect_neg)
+  using Compl_iff continuous_within_topological open_Compl by fastforce
 
 lemma continuous_within_csqrt_posreal:
     "continuous (at z within (\<real> \<inter> {w. 0 \<le> Re(w)})) csqrt"
@@ -3344,17 +3006,13 @@ lemma Re_complex_div_lemma: "0 < Re((1 - \<i>*z) / (1 + \<i>*z)) \<longleftright
 
 lemma tan_Arctan:
   assumes "z\<^sup>2 \<noteq> -1"
-    shows [simp]:"tan(Arctan z) = z"
+  shows [simp]: "tan(Arctan z) = z"
 proof -
-  have "1 + \<i>*z \<noteq> 0"
-    by (metis assms complex_i_mult_minus i_squared minus_unique power2_eq_square power2_minus)
-  moreover
-  have "1 - \<i>*z \<noteq> 0"
-    by (metis assms complex_i_mult_minus i_squared power2_eq_square power2_minus right_minus_eq)
-  ultimately
-  show ?thesis
-    by (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus csqrt_exp_Ln [symmetric]
-                  divide_simps power2_eq_square [symmetric])
+  obtain "1 + \<i>*z \<noteq> 0" "1 - \<i>*z \<noteq> 0"
+    by (metis add_diff_cancel_left' assms diff_0 i_times_eq_iff mult_cancel_left2 power2_i power2_minus right_minus_eq)
+  then show ?thesis
+    by (simp add: Arctan_def tan_def sin_exp_eq cos_exp_eq exp_minus divide_simps 
+        flip: csqrt_exp_Ln power2_eq_square)
 qed
 
 lemma Arctan_tan [simp]:
@@ -3377,8 +3035,7 @@ proof -
       by (simp add: algebra_simps)
     also have "\<dots> \<longleftrightarrow> False"
       using assms ge_pi2
-      apply (auto simp: algebra_simps)
-      by (metis abs_mult_pos not_less of_nat_less_0_iff of_nat_numeral)
+      by (metis eq_divide_eq linorder_not_less mult.commute zero_neq_numeral)
     finally have "exp (\<i>*z)*exp (\<i>*z) + 1 \<noteq> 0"
       by (auto simp: add.commute minus_unique)
     then show "exp (2 * z / \<i>) = (1 - \<i> * tan z) / (1 + \<i> * tan z)"
@@ -3464,7 +3121,7 @@ proof -
   define G where [abs_def]: "G z = (\<Sum>n. g n * z^n)" for z
   have summable: "summable (\<lambda>n. g n * u^n)" if "norm u < 1" for u
   proof (cases "u = 0")
-    assume u: "u \<noteq> 0"
+    case False
     have "(\<lambda>n. ereal (norm (h u n) / norm (h u (Suc n)))) = (\<lambda>n. ereal (inverse (norm u)^2) *
               ereal ((2 + inverse (real (Suc n))) / (2 - inverse (real (Suc n)))))"
     proof
@@ -3485,10 +3142,10 @@ proof -
       by (intro tendsto_intros LIMSEQ_inverse_real_of_nat) simp_all
     finally have "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) = inverse (norm u)^2"
       by (intro lim_imp_Liminf) simp_all
-    moreover from power_strict_mono[OF that, of 2] u have "inverse (norm u)^2 > 1"
+    moreover from power_strict_mono[OF that, of 2] False have "inverse (norm u)^2 > 1"
       by (simp add: field_split_simps)
     ultimately have A: "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) > 1" by simp
-    from u have "summable (h u)"
+    from False have "summable (h u)"
       by (intro summable_norm_cancel[OF ratio_test_convergence[OF _ A]])
          (auto simp: h_def norm_divide norm_mult norm_power simp del: of_nat_Suc
                intro!: mult_pos_pos divide_pos_pos always_eventually)
@@ -3590,7 +3247,7 @@ next
     by (simp add: Arctan_def)
 next
   have "tan (Re (Arctan (of_real x))) = Re (tan (Arctan (of_real x)))"
-    by (auto simp: tan_def Complex.Re_divide Re_sin Re_cos Im_sin Im_cos field_simps power2_eq_square)
+    by (metis Im_Arctan_of_real Re_complex_of_real complex_is_Real_iff of_real_Re tan_of_real)
   also have "\<dots> = x"
   proof -
     have "(complex_of_real x)\<^sup>2 \<noteq> - 1"
@@ -3632,8 +3289,7 @@ proof (rule arctan_unique [symmetric])
   show 12: "- (pi / 2) < arctan x + arctan y" "arctan x + arctan y < pi / 2"
     using assms by linarith+
   show "tan (arctan x + arctan y) = (x + y) / (1 - x * y)"
-    using cos_gt_zero_pi [OF 12]
-    by (simp add: arctan tan_add)
+    using cos_gt_zero_pi [OF 12] by (simp add: arctan tan_add)
 qed
 
 lemma arctan_inverse:
@@ -3677,8 +3333,7 @@ lemma abs_tan_ge: "\<bar>x\<bar> < pi/2 \<Longrightarrow> \<bar>x\<bar> \<le> \<
 lemma arctan_bounds:
   assumes "0 \<le> x" "x < 1"
   shows arctan_lower_bound:
-    "(\<Sum>k<2 * n. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1))) \<le> arctan x"
-    (is "(\<Sum>k<_. (- 1)^ k * ?a k) \<le> _")
+    "(\<Sum>k<2 * n. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1))) \<le> arctan x" (is "(\<Sum>k<_. _ * ?a k) \<le> _")
     and arctan_upper_bound:
     "arctan x \<le> (\<Sum>k<2 * n + 1. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1)))"
 proof -
@@ -3724,7 +3379,7 @@ definition\<^marker>\<open>tag important\<close> Arcsin :: "complex \<Rightarrow
 
 lemma Arcsin_body_lemma: "\<i> * z + csqrt(1 - z\<^sup>2) \<noteq> 0"
   using power2_csqrt [of "1 - z\<^sup>2"]
-  by (metis add.inverse_inverse complex_i_mult_minus diff_0 diff_add_cancel diff_minus_eq_add mult.assoc mult.commute numeral_One power2_eq_square zero_neq_numeral)
+  by (metis add.inverse_unique diff_0 diff_add_cancel mult.left_commute mult_minus1_right power2_i power2_minus power_mult_distrib zero_neq_one)
 
 lemma Arcsin_range_lemma: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Re(\<i> * z + csqrt(1 - z\<^sup>2))"
   using Complex.cmod_power2 [of z, symmetric]
@@ -4052,8 +3707,9 @@ proof
 next
   assume L: ?L
   let ?goal = "(\<exists>k::int. x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi)"
-  obtain k::int where k: "-pi < x-k*2*pi" "x-k*2*pi \<le> pi"
-    by (metis Arg_bounded Arg_exp_diff_2pi complex.sel(2) mult.assoc of_int_mult of_int_numeral)
+  obtain k::int where k: "-pi < x - k*(2*pi)" "x - k*(2*pi) \<le> pi"
+    using ceiling_divide_lower [of "2*pi" "x-pi"] ceiling_divide_upper [of "2*pi" "x-pi"] 
+    by (simp add: divide_simps algebra_simps) (metis mult.commute)
   have *: "cos (x - k * 2*pi) = y"
     using cos.periodic_simps(3)[of x "-k"] L by (auto simp add:field_simps)
   then have \<section>: ?goal when "x-k*2*pi \<ge> 0"

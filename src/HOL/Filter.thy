@@ -1511,7 +1511,21 @@ lemma filterlim_at_bot_lt:
   fixes f :: "'a \<Rightarrow> ('b::unbounded_dense_linorder)" and c :: "'b"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z<c. eventually (\<lambda>x. Z \<ge> f x) F)"
   by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
-    
+
+lemma filterlim_at_top_div_const_nat:
+  assumes "c > 0"
+  shows   "filterlim (\<lambda>x::nat. x div c) at_top at_top"
+  unfolding filterlim_at_top
+proof
+  fix C :: nat
+  have *: "n div c \<ge> C" if "n \<ge> C * c" for n
+    using assms that by (metis div_le_mono div_mult_self_is_m)
+  have "eventually (\<lambda>n. n \<ge> C * c) at_top"
+    by (rule eventually_ge_at_top)
+  thus "eventually (\<lambda>n. n div c \<ge> C) at_top"
+    by eventually_elim (use * in auto)
+qed
+
 lemma filterlim_finite_subsets_at_top:
   "filterlim f (finite_subsets_at_top A) F \<longleftrightarrow>
      (\<forall>X. finite X \<and> X \<subseteq> A \<longrightarrow> eventually (\<lambda>y. finite (f y) \<and> X \<subseteq> f y \<and> f y \<subseteq> A) F)"

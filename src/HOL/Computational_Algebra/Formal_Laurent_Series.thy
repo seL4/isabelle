@@ -332,6 +332,9 @@ lemma fls_shift_zero [simp]: "fls_shift m 0 = 0"
 lemma fls_shift_eq0_iff: "fls_shift m f = 0 \<longleftrightarrow> f = 0"
   using fls_shift_eq_iff[of m f 0] by simp
 
+lemma fls_shift_eq_1_iff: "fls_shift n f = 1 \<longleftrightarrow> f = fls_shift (-n) 1"
+  by (metis add_minus_cancel fls_shift_eq_iff fls_shift_fls_shift)
+
 lemma fls_shift_nonneg_subdegree: "m \<le> fls_subdegree f \<Longrightarrow> fls_subdegree (fls_shift m f) \<ge> 0"
   by (cases "f=0") (auto intro: fls_subdegree_geI)
 
@@ -699,6 +702,9 @@ proof (intro fps_ext)
   thus "f $ n = g $ n" by simp
 qed
 
+lemma fps_to_fls_eq_iff [simp]: "fps_to_fls f = fps_to_fls g \<longleftrightarrow> f = g"
+  using fps_to_fls_eq_imp_fps_eq by blast
+
 lemma fps_zero_to_fls [simp]: "fps_to_fls 0 = 0"
   by (intro fls_zero_eqI) simp
 
@@ -723,8 +729,11 @@ lemma fps_const_to_fls [simp]: "fps_to_fls (fps_const c) = fls_const c"
 lemma fps_X_to_fls [simp]: "fps_to_fls fps_X = fls_X"
   by (fastforce intro: fls_eqI)
 
-lemma fps_to_fls_eq_zero_iff: "(fps_to_fls f = 0) \<longleftrightarrow> (f=0)"
+lemma fps_to_fls_eq_0_iff [simp]: "(fps_to_fls f = 0) \<longleftrightarrow> (f=0)"
   using fps_to_fls_nonzeroI by auto
+
+lemma fps_to_fls_eq_1_iff [simp]: "fps_to_fls f = 1 \<longleftrightarrow> f = 1"
+  using fps_to_fls_eq_iff by fastforce
 
 lemma fls_subdegree_fls_to_fps_gt0: "fls_subdegree (fps_to_fls f) \<ge> 0"
 proof (cases "f=0")
@@ -779,6 +788,25 @@ lemma fls_base_factor_to_fps_to_fls:
   "fls_base_factor_to_fps (fps_to_fls f) = unit_factor f"
   using fls_base_factor_fps_to_fls[of f] fls_regpart_fps_trivial[of "unit_factor f"]
   by    simp
+
+lemma fls_as_fps:
+  fixes f :: "'a :: zero fls" and n :: int
+  assumes n: "n \<ge> -fls_subdegree f"
+  obtains f' where "f = fls_shift n (fps_to_fls f')"
+proof -
+  have "fls_subdegree (fls_shift (- n) f) \<ge> 0"
+    by (rule fls_shift_nonneg_subdegree) (use n in simp)
+  hence "f = fls_shift n (fps_to_fls (fls_regpart (fls_shift (-n) f)))"
+    by (subst fls_regpart_to_fls_trivial) simp_all
+  thus ?thesis
+    by (rule that)
+qed
+
+lemma fls_as_fps':
+  fixes f :: "'a :: zero fls" and n :: int
+  assumes n: "n \<ge> -fls_subdegree f"
+  shows "\<exists>f'. f = fls_shift n (fps_to_fls f')"
+  using fls_as_fps[OF assms] by metis
 
 abbreviation
   "fls_regpart_as_fls f \<equiv> fps_to_fls (fls_regpart f)"
@@ -1719,10 +1747,12 @@ proof (induct n)
     by (simp add: fls_times_conv_fps_times)
 qed simp
 
+lemma fps_to_fls_power: "fps_to_fls (f ^ n) = fps_to_fls f ^ n"
+  by (simp add: fls_pow_conv_fps_pow fls_subdegree_fls_to_fps_gt0)
+
 lemma fls_pow_conv_regpart:
   "fls_subdegree f \<ge> 0 \<Longrightarrow> fls_regpart (f ^ n) = (fls_regpart f) ^ n"
-  using fls_pow_subdegree_ge0[of f n] fls_pow_conv_fps_pow[of f n]
-  by    (intro fps_to_fls_eq_imp_fps_eq) simp
+  by (simp add: fls_pow_conv_fps_pow)
 
 text \<open>These two lemmas show that shifting 1 is equivalent to powers of the implied variable.\<close>
 
@@ -1995,17 +2025,7 @@ lemma fls_lr_inverse_starting0:
 lemma fls_lr_inverse_eq0_imp_starting0:
   "fls_left_inverse f x = 0 \<Longrightarrow> x = 0"
   "fls_right_inverse f x = 0 \<Longrightarrow> x = 0"
-proof-
-  assume "fls_left_inverse f x = 0"
-  hence "fps_left_inverse (fls_base_factor_to_fps f) x = 0"
-    using fls_shift_eq_iff fps_to_fls_eq_zero_iff by fastforce
-  thus "x = 0" using fps_lr_inverse_eq0_imp_starting0(1) by fast
-next
-  assume "fls_right_inverse f x = 0"
-  hence "fps_right_inverse (fls_base_factor_to_fps f) x = 0"
-    using fls_shift_eq_iff fps_to_fls_eq_zero_iff by fastforce
-  thus "x = 0" using fps_lr_inverse_eq0_imp_starting0(2) by fast
-qed
+  by (metis fls_lr_inverse_base fls_nonzeroI)+
 
 lemma fls_lr_inverse_eq_0_iff:
   fixes x :: "'a::{comm_monoid_add,mult_zero,uminus}"
@@ -3231,9 +3251,145 @@ next
   thus "\<exists>g. 1 = g * f" by fast
 qed
 
+subsection \<open>Composition\<close>
+
+definition fls_compose_fps :: "'a :: field fls \<Rightarrow> 'a fps \<Rightarrow> 'a fls" where
+  "fls_compose_fps f g =
+     (if f = 0 then 0
+      else if fls_subdegree f \<ge> 0 then fps_to_fls (fps_compose (fls_regpart f) g)
+      else fps_to_fls (fps_compose (fls_base_factor_to_fps f) g) /
+             fps_to_fls g ^ nat (-fls_subdegree f))"
+
+lemma fls_compose_fps_fps [simp]:
+  "fls_compose_fps (fps_to_fls f) g = fps_to_fls (fps_compose f g)"
+  by (simp add: fls_compose_fps_def fls_subdegree_fls_to_fps_gt0 fps_to_fls_eq_0_iff)
+
+lemma fls_const_transfer [transfer_rule]:
+  "rel_fun (=) (pcr_fls (=))
+     (\<lambda>c n. if n = 0 then c else 0) fls_const"
+  by (auto simp: fls_const_def rel_fun_def pcr_fls_def OO_def cr_fls_def)
+
+lemma fls_shift_transfer [transfer_rule]:
+  "rel_fun (=) (rel_fun (pcr_fls (=)) (pcr_fls (=)))
+     (\<lambda>n f k. f (k+n)) fls_shift"
+  by (auto simp: fls_const_def rel_fun_def pcr_fls_def OO_def cr_fls_def)
+
+lift_definition fls_compose_power :: "'a :: zero fls \<Rightarrow> nat \<Rightarrow> 'a fls" is
+  "\<lambda>f d n. if d > 0 \<and> int d dvd n then f (n div int d) else 0"
+proof -
+  fix f :: "int \<Rightarrow> 'a" and d :: nat
+  assume *: "eventually (\<lambda>n. f (-int n) = 0) cofinite"
+  show "eventually (\<lambda>n. (if d > 0 \<and> int d dvd -int n then f (-int n div int d) else 0) = 0) cofinite"
+  proof (cases "d = 0")
+    case False
+    from * have "eventually (\<lambda>n. f (-int n) = 0) at_top"
+      by (simp add: cofinite_eq_sequentially)
+    hence "eventually (\<lambda>n. f (-int (n div d)) = 0) at_top"
+      by (rule eventually_compose_filterlim[OF _ filterlim_at_top_div_const_nat]) (use False in auto)
+    hence "eventually (\<lambda>n. (if d > 0 \<and> int d dvd -int n then f (-int n div int d) else 0) = 0) at_top"
+      by eventually_elim (auto simp: zdiv_int dvd_neg_div)
+    thus ?thesis
+      by (simp add: cofinite_eq_sequentially)
+  qed auto
+qed
+
+lemma fls_nth_compose_power:
+  assumes "d > 0"
+  shows   "fls_nth (fls_compose_power f d) n = (if int d dvd n then fls_nth f (n div int d) else 0)"
+  using assms by transfer auto
+     
+
+lemma fls_compose_power_0_left [simp]: "fls_compose_power 0 d = 0"
+  by transfer auto
+
+lemma fls_compose_power_1_left [simp]: "d > 0 \<Longrightarrow> fls_compose_power 1 d = 1"
+  by transfer (auto simp: fun_eq_iff)
+
+lemma fls_compose_power_const_left [simp]:
+  "d > 0 \<Longrightarrow> fls_compose_power (fls_const c) d = fls_const c"
+  by transfer (auto simp: fun_eq_iff)
+
+lemma fls_compose_power_shift [simp]:
+  "d > 0 \<Longrightarrow> fls_compose_power (fls_shift n f) d = fls_shift (d * n) (fls_compose_power f d)"
+  by transfer (auto simp: fun_eq_iff add_ac mult_ac)
+
+lemma fls_compose_power_X_intpow [simp]:
+  "d > 0 \<Longrightarrow> fls_compose_power (fls_X_intpow n) d = fls_X_intpow (int d * n)"
+  by simp
+
+lemma fls_compose_power_X [simp]:
+  "d > 0 \<Longrightarrow> fls_compose_power fls_X d = fls_X_intpow (int d)"
+  by transfer (auto simp: fun_eq_iff)
+
+lemma fls_compose_power_X_inv [simp]:
+  "d > 0 \<Longrightarrow> fls_compose_power fls_X_inv d = fls_X_intpow (-int d)"
+  by (simp add: fls_X_inv_conv_shift_1)
+
+lemma fls_compose_power_0_right [simp]: "fls_compose_power f 0 = 0"
+  by transfer auto
+
+lemma fls_compose_power_add [simp]:
+  "fls_compose_power (f + g) d = fls_compose_power f d + fls_compose_power g d"
+  by transfer auto
+
+lemma fls_compose_power_diff [simp]:
+  "fls_compose_power (f - g) d = fls_compose_power f d - fls_compose_power g d"
+  by transfer auto
+
+lemma fls_compose_power_uminus [simp]:
+  "fls_compose_power (-f) d = -fls_compose_power f d"
+  by transfer auto
+
+lemma fps_nth_compose_X_power:
+  "fps_nth (f oo (fps_X ^ d)) n = (if d dvd n then fps_nth f (n div d) else 0)"
+proof -
+  have "fps_nth (f oo (fps_X ^ d)) n = (\<Sum>i = 0..n. f $ i * (fps_X ^ (d * i)) $ n)"
+    unfolding fps_compose_def by (simp add: power_mult)
+  also have "\<dots> = (\<Sum>i\<in>(if d dvd n then {n div d} else {}). f $ i * (fps_X ^ (d * i)) $ n)"
+    by (intro sum.mono_neutral_right) auto
+  also have "\<dots> = (if d dvd n then fps_nth f (n div d) else 0)"
+    by auto
+  finally show ?thesis .
+qed
+
+lemma fls_compose_power_fps_to_fls:
+  assumes "d > 0"
+  shows   "fls_compose_power (fps_to_fls f) d = fps_to_fls (fps_compose f (fps_X ^ d))"
+  using assms
+  by (intro fls_eqI) (auto simp: fls_nth_compose_power fps_nth_compose_X_power
+                                 pos_imp_zdiv_neg_iff div_neg_pos_less0 nat_div_distrib
+                           simp flip: int_dvd_int_iff)
+
+lemma fls_compose_power_mult [simp]:
+  "fls_compose_power (f * g :: 'a :: idom fls) d = fls_compose_power f d * fls_compose_power g d"
+proof (cases "d > 0")
+  case True
+  define n where "n = nat (max 0 (max (- fls_subdegree f) (- fls_subdegree g)))"
+  have n_ge: "-fls_subdegree f \<le> int n" "-fls_subdegree g \<le> int n"
+    unfolding n_def by auto
+  obtain f' where f': "f = fls_shift n (fps_to_fls f')"
+    using fls_as_fps[OF n_ge(1)] by (auto simp: n_def)
+  obtain g' where g': "g = fls_shift n (fps_to_fls g')"
+    using fls_as_fps[OF n_ge(2)] by (auto simp: n_def)
+  show ?thesis using \<open>d > 0\<close>
+    by (simp add: f' g' fls_shifted_times_simps mult_ac fls_compose_power_fps_to_fls
+                  fps_compose_mult_distrib flip: fls_times_fps_to_fls)
+qed auto
+
+lemma fls_compose_power_power [simp]:
+  assumes "d > 0 \<or> n > 0"
+  shows   "fls_compose_power (f ^ n :: 'a :: idom fls) d = fls_compose_power f d ^ n"
+proof (cases "d > 0")
+  case True
+  thus ?thesis by (induction n) auto
+qed (use assms in auto)
+
+lemma fls_nth_compose_power' [simp]:
+  "d = 0 \<or> \<not>d dvd n \<Longrightarrow> fls_nth (fls_compose_power f d) n = 0"
+  "d dvd n \<Longrightarrow> d > 0 \<Longrightarrow> fls_nth (fls_compose_power f d) n = fls_nth f (n div d)"
+  by (transfer; force; fail)+
 
 subsection \<open>Formal differentiation and integration\<close>
-
 
 subsubsection \<open>Derivative definition and basic properties\<close>
 
