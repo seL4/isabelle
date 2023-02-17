@@ -3693,38 +3693,6 @@ lemma continuous_on_Arccos [continuous_intros]:
 lemma holomorphic_on_Arccos: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos holomorphic_on s"
   by (simp add: field_differentiable_within_Arccos holomorphic_on_def)
 
-text \<open>This theorem is about REAL cos/arccos but relies on theorems about @{term Arg}\<close>
-lemma cos_eq_arccos_Ex:
-  "cos x = y \<longleftrightarrow> -1\<le>y \<and> y\<le>1 \<and> (\<exists>k::int. x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi)" (is "?L=?R")
-proof
-  assume R: ?R
-  then obtain k::int where "x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi" by auto
-  moreover have "cos x = y" when "x = arccos y + 2*k*pi"
-    by (metis (no_types) R cos_arccos cos_eq_periodic_intro cos_minus minus_add_cancel)
-  moreover have "cos x = y" when "x = -arccos y + 2*k*pi"
-    by (metis add_minus_cancel R cos_arccos cos_eq_periodic_intro uminus_add_conv_diff)
-  ultimately show "cos x = y" by auto
-next
-  assume L: ?L
-  let ?goal = "(\<exists>k::int. x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi)"
-  obtain k::int where k: "-pi < x - k*(2*pi)" "x - k*(2*pi) \<le> pi"
-    using ceiling_divide_lower [of "2*pi" "x-pi"] ceiling_divide_upper [of "2*pi" "x-pi"] 
-    by (simp add: divide_simps algebra_simps) (metis mult.commute)
-  have *: "cos (x - k * 2*pi) = y"
-    using cos.periodic_simps(3)[of x "-k"] L by (auto simp add:field_simps)
-  then have \<section>: ?goal when "x-k*2*pi \<ge> 0"
-    using arccos_cos k that by force
-  moreover have ?goal when "\<not> x-k*2*pi \<ge>0"
-  proof -
-    have "cos (k * 2*pi - x) = y"
-      by (metis * cos_minus minus_diff_eq)
-    then show ?goal
-      using arccos_cos \<section> k by fastforce 
-  qed
-  ultimately show "-1\<le>y \<and> y\<le>1 \<and> ?goal"
-    using L by auto
-qed
-
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Upper and Lower Bounds for Inverse Sine and Cosine\<close>
 
 lemma Arcsin_bounds: "\<bar>Re z\<bar> < 1 \<Longrightarrow> \<bar>Re(Arcsin z)\<bar> < pi/2"

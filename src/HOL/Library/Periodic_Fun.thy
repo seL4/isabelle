@@ -147,6 +147,26 @@ qed
 lemma cos_eq_periodic_intro:
   assumes "x - y = 2*(of_int k)*pi \<or> x + y = 2*(of_int k)*pi"
   shows "cos x = cos y"
-  by (smt (verit, ccfv_SIG) assms cos_eq_neg_periodic_intro cos_minus_pi cos_periodic_pi)
+  by (smt (verit, best) assms cos_eq_neg_periodic_intro cos_minus_pi cos_periodic_pi)
+
+lemma cos_eq_arccos_Ex:
+  "cos x = y \<longleftrightarrow> -1\<le>y \<and> y\<le>1 \<and> (\<exists>k::int. x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi)" (is "?L=?R")
+proof
+  assume ?R then show "cos x = y"
+    by (metis cos.plus_of_int cos_arccos cos_minus id_apply mult.assoc mult.left_commute of_real_eq_id)
+next
+  assume L: ?L
+  let ?goal = "(\<exists>k::int. x = arccos y + 2*k*pi \<or> x = - arccos y + 2*k*pi)"
+  obtain k::int where k: "-pi < x - k*(2*pi)" "x - k*(2*pi) \<le> pi"
+    using ceiling_divide_lower [of "2*pi" "x-pi"] ceiling_divide_upper [of "2*pi" "x-pi"] 
+    by (simp add: divide_simps algebra_simps) (metis mult.commute)
+  have *: "cos (x - k * 2*pi) = y"
+    using cos.periodic_simps(3)[of x "-k"] L by (auto simp add:field_simps)
+  then have **: ?goal when "x-k*2*pi \<ge> 0"
+    using arccos_cos k that by force
+  then show "-1\<le>y \<and> y\<le>1 \<and> ?goal"
+    using "*" arccos_cos2 k(1) by force
+qed
+
 
 end
