@@ -114,10 +114,8 @@ proof -
     qed (simp add: differentiable_difg n)
   next
     case (Suc m')
-    then have "\<exists>t. 0 < t \<and> t < h \<and> DERIV (difg m') t :> 0"
-      by simp
     then obtain t where t: "0 < t" "t < h" "DERIV (difg m') t :> 0"
-      by fast
+      by force
     have "\<exists>t'. 0 < t' \<and> t' < t \<and> DERIV (difg (Suc m')) t' :> 0"
     proof (rule Rolle)
       show "0 < t" by fact
@@ -131,14 +129,11 @@ proof -
     with \<open>t < h\<close> show ?case
       by auto
   qed
-  then obtain t where "0 < t" "t < h" "DERIV (difg m) t :> 0"
-    by fast
-  with \<open>m < n\<close> have "difg (Suc m) t = 0"
-    by (simp add: difg_Suc_eq_0)
+  then obtain t where "0 < t" "t < h" "difg (Suc m) t = 0"
+    using \<open>m < n\<close> difg_Suc_eq_0 by force
   show ?thesis
   proof (intro exI conjI)
-    show "0 < t" by fact
-    show "t < h" by fact
+    show "0 < t" "t < h" by fact+
     show "f h = (\<Sum>m<n. diff m 0 / (fact m) * h ^ m) + diff n t / (fact n) * h ^ n"
       using \<open>difg (Suc m) t = 0\<close> by (simp add: m f_h difg_def)
   qed
@@ -157,10 +152,8 @@ proof (cases n)
 next
   case Suc
   then have "n > 0" by simp
-  from INIT1 this INIT2 DERIV
-  have "\<exists>t>0. t < h \<and> f h = (\<Sum>m<n. diff m 0 / fact m * h ^ m) + diff n t / fact n * h ^ n"
-    by (rule Maclaurin)
-  then show ?thesis by fastforce
+  from Maclaurin [OF INIT1 this INIT2 DERIV]
+  show ?thesis by fastforce
 qed
 
 lemma Maclaurin_minus:
@@ -216,9 +209,7 @@ next
     then obtain t where "x < t" "t < 0"
       "diff 0 x = (\<Sum>m<n. diff m 0 / fact m * x ^ m) + diff n t / fact n * x ^ n"
       by blast
-    with \<open>x < 0\<close> \<open>diff 0 = f\<close> have "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t"
-      by simp
-    then show ?thesis ..
+    with \<open>x < 0\<close> \<open>diff 0 = f\<close> show ?thesis by force
   next
     assume "x > 0"
     with \<open>n \<noteq> 0\<close> \<open>diff 0 = f\<close> DERIV have "\<exists>t>0. t < x \<and> diff 0 x = ?f x t"
@@ -247,20 +238,12 @@ next
   assume "x < 0"
   with assms have "\<exists>t>x. t < 0 \<and> f x = ?f x t"
     by (intro Maclaurin_minus) auto
-  then obtain t where "t > x" "t < 0" "f x = ?f x t"
-    by blast
-  with \<open>x < 0\<close> have "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t"
-    by simp
-  then show ?thesis ..
+  then show ?thesis by force
 next
   assume "x > 0"
   with assms have "\<exists>t>0. t < x \<and> f x = ?f x t"
     by (intro Maclaurin) auto
-  then obtain t where "t > 0" "t < x" "f x = ?f x t"
-    by blast
-  with \<open>x > 0\<close> have "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t"
-    by simp
-  then show ?thesis ..
+  then show ?thesis by force
 qed
 
 lemma Maclaurin_zero: "x = 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> (\<Sum>m<n. (diff m 0 / fact m) * x ^ m) = diff 0 0"
@@ -280,22 +263,7 @@ proof (cases "n = 0")
 next
   case False
   show ?thesis
-  proof (cases "x = 0")
-    case True
-    with \<open>n \<noteq> 0\<close> have "(\<Sum>m<n. diff m 0 / (fact m) * x ^ m) = diff 0 0"
-      by (intro Maclaurin_zero) auto
-    with INIT \<open>x = 0\<close> \<open>n \<noteq> 0\<close> have " \<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0"
-      by force
-    then show ?thesis ..
-  next
-    case False
-    with INIT \<open>n \<noteq> 0\<close> DERIV have "\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t"
-      by (intro Maclaurin_all_lt) auto
-    then obtain t where "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t" ..
-    then have "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t"
-      by simp
-    then show ?thesis ..
-  qed
+    using DERIV INIT Maclaurin_bi_le by auto
 qed
 
 lemma Maclaurin_all_le_objl:
@@ -324,12 +292,7 @@ corollary exp_lower_Taylor_quadratic: "0 \<le> x \<Longrightarrow> 1 + x + x\<^s
   using Maclaurin_exp_le [of x 3] by (auto simp: numeral_3_eq_3 power2_eq_square)
 
 corollary ln_2_less_1: "ln 2 < (1::real)"
-proof -
-  have "2 < 5/(2::real)" by simp
-  also have "5/2 \<le> exp (1::real)" using exp_lower_Taylor_quadratic[of 1, simplified] by simp
-  finally have "exp (ln 2) < exp (1::real)" by simp
-  thus "ln 2 < (1::real)" by (subst (asm) exp_less_cancel_iff) simp
-qed
+  by (smt (verit) ln_eq_minus_one ln_le_minus_one)
 
 subsection \<open>Version for Sine Function\<close>
 
@@ -430,8 +393,8 @@ proof (cases "n = 0 \<or> x = 0")
   proof (rule Maclaurin_all_lt)
     show "\<forall>m x. ((\<lambda>t. cos (t + 1/2 * real m * pi)) has_real_derivative
            cos (x + 1/2 * real (Suc m) * pi)) (at x)"
-      apply (rule allI derivative_eq_intros | simp)+
-      using cos_expansion_lemma by force
+      using cos_expansion_lemma
+      by (intro allI derivative_eq_intros | simp)+
   qed (use False in auto)
   then show ?thesis
     apply (rule ex_forward, simp)
@@ -511,10 +474,10 @@ proof -
     using mod_exhaust_less_4 [of m]
     by (auto simp: minus_one_power_iff even_even_mod_4_iff [of m] dest: even_mod_4_div_2 odd_mod_4_div_2)
   show ?thesis
-    unfolding sin_coeff_def
     apply (subst t2)
     apply (rule sin_bound_lemma)
      apply (rule sum.cong[OF refl])
+    unfolding sin_coeff_def
      apply (subst diff_m_0, simp)
     using est
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono
@@ -559,10 +522,8 @@ proof -
       f (b - c + c) =
         (\<Sum>m<n. diff m (0 + c) / fact m * (b - c) ^ m) + diff n (x + c) / fact n * (b - c) ^ n"
      by (rule Maclaurin [THEN exE])
-   then have "c < x + c \<and> x + c < b \<and> f b =
-     (\<Sum>m<n. diff m c / fact m * (b - c) ^ m) + diff n (x + c) / fact n * (b - c) ^ n"
-    by fastforce
-  then show ?thesis by fastforce
+  then show ?thesis
+    by (smt (verit) sum.cong)
 qed
 
 lemma Taylor_down:
@@ -585,10 +546,8 @@ proof -
       by auto
     moreover from DERIV_ident and DERIV_const have "DERIV (\<lambda>x. x + c) t :> 1 + 0"
       by (rule DERIV_add)
-    ultimately have "DERIV (\<lambda>x. diff m (x + c)) t :> diff (Suc m) (t + c) * (1 + 0)"
-      by (rule DERIV_chain2)
-    then show "DERIV (\<lambda>x. diff m (x + c)) t :> diff (Suc m) (t + c)"
-      by simp
+    ultimately show "DERIV (\<lambda>x. diff m (x + c)) t :> diff (Suc m) (t + c)"
+      using DERIV_chain2 DERIV_shift by blast
   qed
   ultimately obtain x where
     "a - c < x \<and> x < 0 \<and>
@@ -614,26 +573,15 @@ proof (cases "x < c")
   note INIT
   moreover have "\<forall>m t. m < n \<and> x \<le> t \<and> t \<le> b \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
     using DERIV and INTERV by fastforce
-  moreover note True
-  moreover from INTERV have "c \<le> b"
-    by simp
-  ultimately have "\<exists>t>x. t < c \<and> f x =
-    (\<Sum>m<n. diff m c / (fact m) * (x - c) ^ m) + diff n t / (fact n) * (x - c) ^ n"
-    by (rule Taylor_down)
-  with True show ?thesis by simp
+  ultimately show ?thesis
+    using True INTERV Taylor_down by simp
 next
   case False
   note INIT
   moreover have "\<forall>m t. m < n \<and> a \<le> t \<and> t \<le> x \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
     using DERIV and INTERV by fastforce
-  moreover from INTERV have "a \<le> c"
-    by arith
-  moreover from False and INTERV have "c < x"
-    by arith
-  ultimately have "\<exists>t>c. t < x \<and> f x =
-    (\<Sum>m<n. diff m c / (fact m) * (x - c) ^ m) + diff n t / (fact n) * (x - c) ^ n"
-    by (rule Taylor_up)
-  with False show ?thesis by simp
+  ultimately show ?thesis 
+    using Taylor_up INTERV False by simp
 qed
 
 end
