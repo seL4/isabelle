@@ -216,6 +216,8 @@ antiquotations.
 
 * Theory "HOL-Library.Multiset_Order":
   - Added lemmas.
+      asymp_multpHO
+      asymp_not_liftable_to_multpHO
       irreflp_on_multpHO[simp]
       multpHO_plus_plus[simp]
       totalp_multpDM

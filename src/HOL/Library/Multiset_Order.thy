@@ -147,6 +147,48 @@ subsubsection \<open>Properties of Preorders\<close>
 lemma irreflp_on_multp\<^sub>H\<^sub>O[simp]: "irreflp_on B (multp\<^sub>H\<^sub>O R)"
     by (simp add: irreflp_onI multp\<^sub>H\<^sub>O_def)
 
+text \<open>The following lemma is a negative result stating that asymmetry of an arbitrary binary
+relation cannot be simply lifted to @{const multp\<^sub>H\<^sub>O}. It suffices to have four distinct values to
+build a counterexample.\<close>
+
+lemma asymp_not_liftable_to_multp\<^sub>H\<^sub>O:
+  fixes a b c d :: 'a
+  assumes "distinct [a, b, c, d]"
+  shows "\<not> (\<forall>(R :: 'a \<Rightarrow> 'a \<Rightarrow> bool). asymp R \<longrightarrow> asymp (multp\<^sub>H\<^sub>O R))"
+proof -
+  define R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
+    "R = (\<lambda>x y. x = a \<and> y = c \<or> x = b \<and> y = d \<or> x = c \<and> y = b \<or> x = d \<and> y = a)"
+
+  from assms(1) have "{#a, b#} \<noteq> {#c, d#}"
+    by (metis add_mset_add_single distinct.simps(2) list.set(1) list.simps(15) multi_member_this
+        set_mset_add_mset_insert set_mset_single)
+
+  from assms(1) have "asymp R"
+    by (auto simp: R_def intro: asymp_onI)
+  moreover have "\<not> asymp (multp\<^sub>H\<^sub>O R)"
+    unfolding asymp_on_def Set.ball_simps not_all not_imp not_not
+  proof (intro exI conjI)
+    show "multp\<^sub>H\<^sub>O R {#a, b#} {#c, d#}"
+      unfolding multp\<^sub>H\<^sub>O_def
+      using \<open>{#a, b#} \<noteq> {#c, d#}\<close> R_def assms by auto
+  next
+    show "multp\<^sub>H\<^sub>O R {#c, d#} {#a, b#}"
+      unfolding multp\<^sub>H\<^sub>O_def
+      using \<open>{#a, b#} \<noteq> {#c, d#}\<close> R_def assms by auto
+  qed
+  ultimately show ?thesis
+    unfolding not_all not_imp by auto
+qed
+
+text \<open>However, if the binary relation is both asymmetric and transitive, then @{const multp\<^sub>H\<^sub>O} is
+also asymmetric.\<close>
+
+lemma asymp_multp\<^sub>H\<^sub>O:
+  assumes "asymp R" and "transp R"
+  shows "asymp (multp\<^sub>H\<^sub>O R)"
+  using assms
+  by (metis asymp_on_iff_irreflp_on_if_transp_on irreflp_multp multp_eq_multp\<^sub>H\<^sub>O transp_multp)
+
 lemma totalp_on_multp\<^sub>D\<^sub>M:
   "totalp_on A R \<Longrightarrow> (\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A) \<Longrightarrow> totalp_on B (multp\<^sub>D\<^sub>M R)"
   by (smt (verit, ccfv_SIG) count_inI in_mono multp\<^sub>H\<^sub>O_def multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M not_less_iff_gr_or_eq
