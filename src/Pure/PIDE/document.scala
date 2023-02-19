@@ -371,14 +371,16 @@ object Document {
 
   object Nodes {
     val empty: Nodes = new Nodes(Graph.empty(Node.Name.Ordering))
+
+    private def init(graph: Graph[Node.Name, Node], name: Node.Name): Graph[Node.Name, Node] =
+      graph.default_node(name, Node.empty)
   }
 
   final class Nodes private(graph: Graph[Node.Name, Node]) {
-    def apply(name: Node.Name): Node =
-      graph.default_node(name, Node.empty).get_node(name)
+    def apply(name: Node.Name): Node = Nodes.init(graph, name).get_node(name)
 
     def is_suppressed(name: Node.Name): Boolean = {
-      val graph1 = graph.default_node(name, Node.empty)
+      val graph1 = Nodes.init(graph, name)
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
 
@@ -391,10 +393,7 @@ object Document {
     def + (entry: (Node.Name, Node)): Nodes = {
       val (name, node) = entry
       val imports = node.header.imports
-      val graph1 =
-        imports.foldLeft(graph.default_node(name, Node.empty)) {
-          case (g, p) => g.default_node(p, Node.empty)
-        }
+      val graph1 = (name :: imports).foldLeft(graph)(Nodes.init)
       val graph2 =
         graph1.imm_preds(name).foldLeft(graph1) { case (g, dep) => g.del_edge(dep, name) }
       val graph3 = imports.foldLeft(graph2) { case (g, dep) => g.add_edge(dep, name) }
