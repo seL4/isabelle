@@ -63,37 +63,40 @@ lemma offset_poly_pCons:
     smult h (offset_poly p h) + pCons a (offset_poly p h)"
   by (cases "p = 0 \<and> a = 0") (auto simp add: offset_poly_def)
 
-lemma offset_poly_single: "offset_poly [:a:] h = [:a:]"
+lemma offset_poly_single [simp]: "offset_poly [:a:] h = [:a:]"
   by (simp add: offset_poly_pCons offset_poly_0)
 
 lemma poly_offset_poly: "poly (offset_poly p h) x = poly p (h + x)"
-  apply (induct p)
-  apply (simp add: offset_poly_0)
-  apply (simp add: offset_poly_pCons algebra_simps)
-  done
+  by (induct p) (auto simp add: offset_poly_0 offset_poly_pCons algebra_simps)
 
 lemma offset_poly_eq_0_lemma: "smult c p + pCons a p = 0 \<Longrightarrow> p = 0"
   by (induct p arbitrary: a) (simp, force)
 
-lemma offset_poly_eq_0_iff: "offset_poly p h = 0 \<longleftrightarrow> p = 0"
-  apply (safe intro!: offset_poly_0)
-  apply (induct p)
-  apply simp
-  apply (simp add: offset_poly_pCons)
-  apply (frule offset_poly_eq_0_lemma, simp)
-  done
+lemma offset_poly_eq_0_iff [simp]: "offset_poly p h = 0 \<longleftrightarrow> p = 0"
+proof
+  show "offset_poly p h = 0 \<Longrightarrow> p = 0"
+  proof(induction p)
+    case 0
+    then show ?case by blast
+  next
+    case (pCons a p)
+    then show ?case   
+      by (metis offset_poly_eq_0_lemma offset_poly_pCons offset_poly_single)
+  qed
+qed (simp add: offset_poly_0)
 
-lemma degree_offset_poly: "degree (offset_poly p h) = degree p"
-  apply (induct p)
-  apply (simp add: offset_poly_0)
-  apply (case_tac "p = 0")
-  apply (simp add: offset_poly_0 offset_poly_pCons)
-  apply (simp add: offset_poly_pCons)
-  apply (subst degree_add_eq_right)
-  apply (rule le_less_trans [OF degree_smult_le])
-  apply (simp add: offset_poly_eq_0_iff)
-  apply (simp add: offset_poly_eq_0_iff)
-  done
+lemma degree_offset_poly [simp]: "degree (offset_poly p h) = degree p"
+proof(induction p)
+  case 0
+  then show ?case
+    by (simp add: offset_poly_0)
+next
+  case (pCons a p)
+  have "p \<noteq> 0 \<Longrightarrow> degree (offset_poly (pCons a p) h) = Suc (degree p)"
+    by (metis degree_add_eq_right degree_pCons_eq degree_smult_le le_imp_less_Suc offset_poly_eq_0_iff offset_poly_pCons pCons.IH)
+  then show ?case
+    by simp
+qed
 
 definition "psize p = (if p = 0 then 0 else Suc (degree p))"
 
@@ -103,13 +106,7 @@ lemma psize_eq_0_iff [simp]: "psize p = 0 \<longleftrightarrow> p = 0"
 lemma poly_offset:
   fixes p :: "'a::comm_ring_1 poly"
   shows "\<exists>q. psize q = psize p \<and> (\<forall>x. poly q x = poly p (a + x))"
-proof (intro exI conjI)
-  show "psize (offset_poly p a) = psize p"
-    unfolding psize_def
-    by (simp add: offset_poly_eq_0_iff degree_offset_poly)
-  show "\<forall>x. poly (offset_poly p a) x = poly p (a + x)"
-    by (simp add: poly_offset_poly)
-qed
+  by (metis degree_offset_poly offset_poly_eq_0_iff poly_offset_poly psize_def)
 
 text \<open>An alternative useful formulation of completeness of the reals\<close>
 lemma real_sup_exists:
@@ -141,7 +138,7 @@ proof -
     then have "\<bar>2 * x\<bar> \<le> 1" "\<bar>2 * y\<bar> \<le> 1"
       by simp_all
     then have "\<bar>2 * x\<bar>\<^sup>2 \<le> 1\<^sup>2" "\<bar>2 * y\<bar>\<^sup>2 \<le> 1\<^sup>2"
-      by - (rule power_mono, simp, simp)+
+      by (metis abs_square_le_1 one_power2 power2_abs)+
     then have th0: "4 * x\<^sup>2 \<le> 1" "4 * y\<^sup>2 \<le> 1"
       by (simp_all add: power_mult_distrib)
     from add_mono[OF th0] xy show ?thesis
@@ -164,14 +161,10 @@ proof (induct n rule: nat_less_induct)
   let ?P = "\<lambda>z n. cmod (1 + b * z ^ n) < 1"
   show "\<exists>z. ?P z n"
   proof cases
-    assume "even n"
-    then have "\<exists>m. n = 2 * m"
-      by presburger
-    then obtain m where m: "n = 2 * m"
-      by blast
-    from n m have "m \<noteq> 0" "m < n"
-      by presburger+
-    with IH[rule_format, of m] obtain z where z: "?P z m"
+    assume "even n" 
+    then obtain m where m: "n = 2 * m" and "m \<noteq> 0" "m < n"
+      using n by auto
+    with IH obtain z where z: "?P z m"
       by blast
     from z have "?P (csqrt z) n"
       by (simp add: m power_mult)
@@ -184,27 +177,48 @@ proof (induct n rule: nat_less_induct)
       by blast
     have th0: "cmod (complex_of_real (cmod b) / b) = 1"
       using b by (simp add: norm_divide)
-    from unimodular_reduce_norm[OF th0] \<open>odd n\<close>
     have "\<exists>v. cmod (complex_of_real (cmod b) / b + v^n) < 1"
-      apply (cases "cmod (complex_of_real (cmod b) / b + 1) < 1")
-      apply (rule_tac x="1" in exI)
-      apply simp
-      apply (cases "cmod (complex_of_real (cmod b) / b - 1) < 1")
-      apply (rule_tac x="-1" in exI)
-      apply simp
-      apply (cases "cmod (complex_of_real (cmod b) / b + \<i>) < 1")
-      apply (cases "even m")
-      apply (rule_tac x="\<i>" in exI)
-      apply (simp add: m power_mult)
-      apply (rule_tac x="- \<i>" in exI)
-      apply (simp add: m power_mult)
-      apply (cases "even m")
-      apply (rule_tac x="- \<i>" in exI)
-      apply (simp add: m power_mult)
-      apply (auto simp add: m power_mult)
-      apply (rule_tac x="\<i>" in exI)
-      apply (auto simp add: m power_mult)
-      done
+    proof (cases "cmod (complex_of_real (cmod b) / b + 1) < 1")
+      case True
+      then show ?thesis
+        by (metis power_one)
+    next
+      case False
+      note F1 = False
+      show ?thesis
+      proof (cases "cmod (complex_of_real (cmod b) / b - 1) < 1")
+        case True
+        with \<open>odd n\<close> show ?thesis
+          by (metis add_uminus_conv_diff neg_one_odd_power)
+      next
+        case False
+        note F2 = False
+        show ?thesis
+        proof (cases "cmod (complex_of_real (cmod b) / b + \<i>) < 1")
+          case True
+          note T1 = True
+          show ?thesis
+          proof (cases "even m")
+            case True
+            with T1 show ?thesis
+              by (rule_tac x="\<i>" in exI) (simp add: m power_mult)
+          next
+            case False
+            with T1 show ?thesis 
+              by (rule_tac x="- \<i>" in exI) (simp add: m power_mult)
+          qed
+        next
+          case False
+          with F1 F2 m unimodular_reduce_norm[OF th0] \<open>odd n\<close> show ?thesis
+            apply (cases "even m")
+             apply (rule_tac x="- \<i>" in exI)
+             apply (simp add:  power_mult)
+            apply (rule_tac x="\<i>" in exI)
+            apply (auto simp add: m power_mult)
+            done
+        qed
+      qed
+    qed
     then obtain v where v: "cmod (complex_of_real (cmod b) / b + v^n) < 1"
       by blast
     let ?w = "v / complex_of_real (root n (cmod b))"
@@ -222,9 +236,8 @@ proof (induct n rule: nat_less_induct)
       using b v
       apply (simp add: th2)
       done
-    from mult_left_less_imp_less[OF th4 th3]
-    have "?P ?w n" unfolding th1 .
-    then show ?thesis ..
+    show ?thesis
+      by (metis th1 mult_left_less_imp_less[OF th4 th3])
   qed
 qed
 
@@ -248,41 +261,23 @@ proof -
   from r[rule_format, of 0] have rp: "r \<ge> 0"
     using norm_ge_zero[of "s 0"] by arith
   have th: "\<forall>n. r + 1 \<ge> \<bar>Re (s n)\<bar>"
-  proof
-    fix n
-    from abs_Re_le_cmod[of "s n"] r[rule_format, of n]
-    show "\<bar>Re (s n)\<bar> \<le> r + 1" by arith
-  qed
+    by (smt (verit, ccfv_threshold) abs_Re_le_cmod r)
   have conv1: "convergent (\<lambda>n. Re (s (f n)))"
-    apply (rule Bseq_monoseq_convergent)
-    apply (simp add: Bseq_def)
-    apply (metis gt_ex le_less_linear less_trans order.trans th)
-    apply (rule f(2))
-    done
+    by (metis Bseq_monoseq_convergent f(2) BseqI' real_norm_def th)
   have th: "\<forall>n. r + 1 \<ge> \<bar>Im (s n)\<bar>"
-  proof
-    fix n
-    from abs_Im_le_cmod[of "s n"] r[rule_format, of n]
-    show "\<bar>Im (s n)\<bar> \<le> r + 1"
-      by arith
-  qed
+    by (smt (verit) abs_Im_le_cmod r)
 
   have conv2: "convergent (\<lambda>n. Im (s (f (g n))))"
-    apply (rule Bseq_monoseq_convergent)
-    apply (simp add: Bseq_def)
-    apply (metis gt_ex le_less_linear less_trans order.trans th)
-    apply (rule g(2))
-    done
+    by (metis Bseq_monoseq_convergent g(2) BseqI' real_norm_def th)
 
   from conv1[unfolded convergent_def] obtain x where "LIMSEQ (\<lambda>n. Re (s (f n))) x"
     by blast
   then have x: "\<forall>r>0. \<exists>n0. \<forall>n\<ge>n0. \<bar>Re (s (f n)) - x\<bar> < r"
     unfolding LIMSEQ_iff real_norm_def .
 
-  from conv2[unfolded convergent_def] obtain y where "LIMSEQ (\<lambda>n. Im (s (f (g n)))) y"
-    by blast
-  then have y: "\<forall>r>0. \<exists>n0. \<forall>n\<ge>n0. \<bar>Im (s (f (g n))) - y\<bar> < r"
-    unfolding LIMSEQ_iff real_norm_def .
+  from conv2[unfolded convergent_def] 
+  obtain y where  y: "\<forall>r>0. \<exists>n0. \<forall>n\<ge>n0. \<bar>Im (s (f (g n))) - y\<bar> < r"
+    unfolding LIMSEQ_iff real_norm_def by blast
   let ?w = "Complex x y"
   from f(1) g(1) have hs: "strict_mono ?h"
     unfolding strict_mono_def by auto
@@ -290,7 +285,7 @@ proof -
   proof -
     from that have e2: "e/2 > 0"
       by simp
-    from x[rule_format, OF e2] y[rule_format, OF e2]
+    from x y e2
     obtain N1 N2 where N1: "\<forall>n\<ge>N1. \<bar>Re (s (f n)) - x\<bar> < e / 2"
       and N2: "\<forall>n\<ge>N2. \<bar>Im (s (f (g n))) - y\<bar> < e / 2"
       by blast
@@ -298,9 +293,8 @@ proof -
     proof -
       from that have nN1: "g n \<ge> N1" and nN2: "n \<ge> N2"
         using seq_suble[OF g(1), of n] by arith+
-      from add_strict_mono[OF N1[rule_format, OF nN1] N2[rule_format, OF nN2]]
       show ?thesis
-        using metric_bound_lemma[of "s (f (g n))" ?w] by simp
+        using metric_bound_lemma[of "s (f (g n))" ?w] N1 N2 nN1 nN2 by fastforce
     qed
     then show ?thesis by blast
   qed
@@ -315,12 +309,7 @@ lemma poly_cont:
   shows "\<exists>d >0. \<forall>w. 0 < norm (w - z) \<and> norm (w - z) < d \<longrightarrow> norm (poly p w - poly p z) < e"
 proof -
   obtain q where q: "degree q = degree p" "poly q x = poly p (z + x)" for x
-  proof
-    show "degree (offset_poly p z) = degree p"
-      by (rule degree_offset_poly)
-    show "\<And>x. poly (offset_poly p z) x = poly p (z + x)"
-      by (rule poly_offset_poly)
-  qed
+    using degree_offset_poly poly_offset_poly by blast
   have th: "\<And>w. poly q (w - z) = poly p w"
     using q(2)[of "w - z" for w] by simp
   show ?thesis unfolding th[symmetric]
@@ -352,9 +341,8 @@ proof -
         by (simp add: field_simps)
       from H have th: "norm (w - z) \<le> d"
         by simp
-      from mult_mono[OF th m(2)[OF d1(1)] d1(2) norm_ge_zero] dme
       show "norm (w - z) * norm (poly cs (w - z)) < e"
-        by simp
+        by (smt (verit, del_insts) d1(1) dme m(2) mult_mono' norm_ge_zero th)
     qed
   qed
 qed
@@ -374,13 +362,8 @@ proof -
       by simp
     then have mth1: "\<exists>x z. cmod z \<le> r \<and> cmod (poly p z) = - x"
       by blast
-    have False if "cmod z \<le> r" "cmod (poly p z) = - x" "\<not> x < 1" for x z
-    proof -
-      from that have "- x < 0 "
-        by arith
-      with that(2) norm_ge_zero[of "poly p z"] show ?thesis
-        by simp
-    qed
+    have False if "cmod (poly p z) = - x" "\<not> x < 1" for x z
+      by (smt (verit, del_insts) norm_ge_zero that)
     then have mth2: "\<exists>z. \<forall>x. (\<exists>z. cmod z \<le> r \<and> cmod (poly p z) = - x) \<longrightarrow> x < z"
       by blast
     from real_sup_exists[OF mth1 mth2] obtain s where
@@ -389,8 +372,7 @@ proof -
     let ?m = "- s"
     have s1[unfolded minus_minus]:
       "(\<exists>z x. cmod z \<le> r \<and> - (- cmod (poly p z)) < y) \<longleftrightarrow> ?m < y" for y
-      using s[rule_format, of "-y"]
-      unfolding minus_less_iff[of y] equation_minus_iff by blast
+      by (metis add.inverse_inverse minus_less_iff s)
     from s1[of ?m] have s1m: "\<And>z x. cmod z \<le> r \<Longrightarrow> cmod (poly p z) \<ge> ?m"
       by auto
     have "\<exists>z. cmod z \<le> r \<and> cmod (poly p z) < - s + 1 / real (Suc n)" for n
@@ -426,7 +408,6 @@ proof -
           by arith
         have ath: "m \<le> x \<Longrightarrow> x < m + e \<Longrightarrow> \<bar>x - m\<bar> < e" for m x e :: real
           by arith
-        from s1m[OF g(1)[rule_format]] have th31: "?m \<le> cmod(poly p (g (f (N1 + N2))))" .
         from seq_suble[OF fz(1), of "N1 + N2"]
         have th00: "real (Suc (N1 + N2)) \<le> real (Suc (f (N1 + N2)))"
           by simp
@@ -437,30 +418,21 @@ proof -
           by simp
         from g(2)[rule_format, of "f (N1 + N2)"]
         have th01:"cmod (poly p (g (f (N1 + N2)))) < - s + 1 / real (Suc (f (N1 + N2)))" .
-        from order_less_le_trans[OF th01 th00]
-        have th32: "cmod (poly p (g (f (N1 + N2)))) < ?m + (1/ real(Suc (N1 + N2)))" .
         from N2 have "2/?e < real (Suc (N1 + N2))"
           by arith
         with e2 less_imp_inverse_less[of "2/?e" "real (Suc (N1 + N2))"]
         have "?e/2 > 1/ real (Suc (N1 + N2))"
           by (simp add: inverse_eq_divide)
-        with ath[OF th31 th32] have thc1: "\<bar>cmod (poly p (g (f (N1 + N2)))) - ?m\<bar> < ?e/2"
-          by arith
-        have ath2: "\<bar>a - b\<bar> \<le> c \<Longrightarrow> \<bar>b - m\<bar> \<le> \<bar>a - m\<bar> + c" for a b c m :: real
-          by arith
-        have th22: "\<bar>cmod (poly p (g (f (N1 + N2)))) - cmod (poly p z)\<bar> \<le>
-            cmod (poly p (g (f (N1 + N2))) - poly p z)"
-          by (simp add: norm_triangle_ineq3)
-        from ath2[OF th22, of ?m]
+        with ath[OF _  order_less_le_trans[OF th01 th00]] 
+        have thc1: "\<bar>cmod (poly p (g (f (N1 + N2)))) - ?m\<bar> < ?e/2"
+          by (simp add: g(1) s1m)
         have thc2: "2 * (?e/2) \<le>
             \<bar>cmod(poly p (g (f (N1 + N2)))) - ?m\<bar> + cmod (poly p (g (f (N1 + N2))) - poly p z)"
-          by simp
+          by (smt (verit) field_sum_of_halves norm_triangle_ineq3)
         from th0[OF th2 thc1 thc2] have False .
       }
       then have "?e = 0"
         by auto
-      then have "cmod (poly p z) = ?m"
-        by simp
       with s1m[OF wr] have "cmod (poly p z) \<le> cmod (poly p w)"
         by simp
     }
@@ -495,13 +467,11 @@ next
       from that have z1: "norm z \<ge> 1"
         by arith
       from order_trans[OF th0 mult_right_mono[OF z1 norm_ge_zero[of "poly (pCons c cs) z"]]]
-      have th1: "d \<le> norm(z * poly (pCons c cs) z) - norm a"
+      have "d \<le> norm(z * poly (pCons c cs) z) - norm a"
         unfolding norm_mult by (simp add: algebra_simps)
-      from norm_diff_ineq[of "z * poly (pCons c cs) z" a]
-      have th2: "norm (z * poly (pCons c cs) z) - norm a \<le> norm (poly (pCons a (pCons c cs)) z)"
+      with norm_diff_ineq[of "z * poly (pCons c cs) z" a]
+      show ?thesis 
         by (simp add: algebra_simps)
-      from th1 th2 show ?thesis
-        by arith
     qed
     then show ?thesis by blast
   next
@@ -542,19 +512,9 @@ next
       by blast
     have ath: "\<And>z r. r \<le> cmod z \<or> cmod z \<le> \<bar>r\<bar>"
       by arith
-    from poly_minimum_modulus_disc[of "\<bar>r\<bar>" "pCons c cs"]
-    obtain v where v: "cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) w)"
-      if "cmod w \<le> \<bar>r\<bar>" for w
-      by blast
-    have "cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) z)" if z: "r \<le> cmod z" for z
-      using v[of 0] r[OF z] by simp
-    with v ath[of r] show ?thesis
-      by blast
-  next
-    case True
-    with pCons.hyps show ?thesis
-      by simp
-  qed
+    from poly_minimum_modulus_disc[of "\<bar>r\<bar>" "pCons c cs"] show ?thesis
+      by (metis ath dual_order.trans norm_ge_zero norm_zero r)
+  qed (use pCons.hyps in auto)
 qed
 
 text \<open>Constant function (non-syntactic characterization).\<close>
@@ -592,10 +552,7 @@ next
   next
     case False
     show ?thesis
-      apply (rule exI[where x=0])
-      apply (rule exI[where x=c])
-      apply (auto simp: False)
-      done
+      using False by force
   qed
 qed
 
@@ -612,13 +569,7 @@ proof (induct p)
 next
   case (pCons c cs)
   have "\<not> (\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0)"
-  proof
-    assume "\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0"
-    then have "poly (pCons c cs) x = poly (pCons c cs) y" for x y
-      by (cases "x = 0") auto
-    with pCons.prems show False
-      by (auto simp add: constant_def)
-  qed
+    by (smt (verit) constant_def mult_eq_0_iff pCons.prems poly_pCons)
   from poly_decompose_lemma[OF this]
   show ?case
     apply clarsimp
@@ -683,36 +634,15 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
       by simp
     let ?r = "smult (inverse ?a0) q"
     have lgqr: "psize q = psize ?r"
-      using a00
-      unfolding psize_def degree_def
-      by (simp add: poly_eq_iff)
+      by (simp add: a00 psize_def)
     have False if h: "\<And>x y. poly ?r x = poly ?r y"
-    proof -
-      have "poly q x = poly q y" for x y
-      proof -
-        from qr[rule_format, of x] have "poly q x = poly ?r x * ?a0"
-          by auto
-        also have "\<dots> = poly ?r y * ?a0"
-          using h by simp
-        also have "\<dots> = poly q y"
-          using qr[rule_format, of y] by simp
-        finally show ?thesis .
-      qed
-      with qnc show ?thesis
-        unfolding constant_def by blast
-    qed
+      using constant_def qnc qr that by fastforce
     then have rnc: "\<not> constant (poly ?r)"
       unfolding constant_def by blast
     from qr[rule_format, of 0] a00 have r01: "poly ?r 0 = 1"
       by auto
     have mrmq_eq: "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w) < cmod ?a0" for w
-    proof -
-      have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w / ?a0) < 1"
-        using qr[rule_format, of w] a00 by (simp add: divide_inverse ac_simps)
-      also have "\<dots> \<longleftrightarrow> cmod (poly q w) < cmod ?a0"
-        using a00 unfolding norm_divide by (simp add: field_simps)
-      finally show ?thesis .
-    qed
+      by (smt (verit, del_insts) a00 mult_less_cancel_right2 norm_mult qr zero_less_norm_iff)
     from poly_decompose[OF rnc] obtain k a s where
       kas: "a \<noteq> 0" "k \<noteq> 0" "psize s + k + 1 = psize ?r"
         "\<forall>z. poly ?r z = poly ?r 0 + z^k* poly (pCons a s) z" by blast
@@ -731,12 +661,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
         by simp
       have th01: "\<not> constant (poly (pCons 1 (monom a (k - 1))))"
         unfolding constant_def poly_pCons poly_monom
-        using kas(1)
-        apply simp
-        apply (rule exI[where x=0])
-        apply (rule exI[where x=1])
-        apply simp
-        done
+        by (metis add_cancel_left_right kas(1) mult.commute mult_cancel_right2 power_one)
       from kas(1) kas(2) have th02: "k + 1 = psize (pCons 1 (monom a (k - 1)))"
         by (simp add: psize_def degree_monom_eq)
       from less(1) [OF k1n [simplified th02] th01]
@@ -771,10 +696,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
       have ath: "\<And>x t::real. 0 \<le> x \<Longrightarrow> x < t \<Longrightarrow> t \<le> 1 \<Longrightarrow> \<bar>1 - t\<bar> + x < 1"
         by arith
       have "t * cmod w \<le> 1 * cmod w"
-        apply (rule mult_mono)
-        using t(1,2)
-        apply auto
-        done
+        using t(2) w0 by auto
       then have tw: "cmod ?w \<le> cmod w"
         using t(1) by (simp add: norm_mult)
       from t inv0 have "t * (cmod w ^ (k + 1) * m) < 1"
@@ -783,7 +705,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
         by simp
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k + 1) * cmod (poly s ?w)))"
         using w0 t(1)
-        by (simp add: algebra_simps power_mult_distrib norm_power norm_mult)
+        by (simp add: algebra_simps norm_power norm_mult)
       then have "cmod (?w^k * ?w * poly s ?w) \<le> t^k * (t* (cmod w ^ (k + 1) * m))"
         using t(1,2) m(2)[rule_format, OF tw] w0
         by auto
@@ -795,10 +717,8 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
       have th12: "\<bar>1 - t^k\<bar> + cmod (?w^k * ?w * poly s ?w) < 1" .
       from th11 th12 have "cmod (1 + ?w^k * (a + ?w * poly s ?w)) < 1"
         by arith
-      then have "cmod (poly ?r ?w) < 1"
-        unfolding kas(4)[rule_format, of ?w] r01 by simp
       then show ?thesis
-        by blast
+        by (metis kas(4) poly_pCons r01)
     qed
     with cq0 q(2) show ?thesis
       unfolding mrmq_eq not_less[symmetric] by auto
@@ -853,15 +773,12 @@ next
           from pCons.prems[rule_format, OF cx(1)]
           have cth: "cmod (?x*poly ds ?x) = cmod d"
             by (simp add: eq_diff_eq[symmetric])
-          from m(2)[rule_format, OF cx(2)] x(1)
           have th0: "cmod (?x*poly ds ?x) \<le> x*m"
-            by (simp add: norm_mult)
+            by (smt (verit) cx(2) m(2) mult_left_mono norm_mult norm_of_real x(1))
           from x(2) m(1) have "x * m < cmod d"
             by (simp add: field_simps)
-          with th0 have "cmod (?x*poly ds ?x) \<noteq> cmod d"
-            by auto
-          with cth show ?thesis
-            by blast
+          with th0 cth show ?thesis
+            by force
         qed
       qed
       then show False
@@ -936,10 +853,7 @@ proof (induct n arbitrary: p q rule: nat_less_induct)
         next
           case False
           with sne dpn s oa have dsn: "degree s < n"
-            apply auto
-            apply (erule ssubst)
-            apply (simp add: degree_mult_eq degree_linear_power)
-            done
+            by (metis degree_div_less degree_linear_power mult_eq_0_iff n0 nonzero_mult_div_cancel_left not_gr0 pne)
           have "poly r x = 0" if h: "poly s x = 0" for x
           proof -
             have xa: "x \<noteq> a"
@@ -948,10 +862,7 @@ proof (induct n arbitrary: p q rule: nat_less_induct)
               from h[unfolded this poly_eq_0_iff_dvd] obtain u where u: "s = [:- a, 1:] * u"
                 by (rule dvdE)
               have "p = [:- a, 1:] ^ (Suc ?op) * u"
-                apply (subst s)
-                apply (subst u)
-                apply (simp only: power_Suc ac_simps)
-                done
+                by (metis (no_types, lifting) mult.assoc power_Suc power_commutes s u)
               with ap(2)[unfolded dvd_def] show False
                 by blast
             qed
@@ -988,16 +899,9 @@ proof (induct n arbitrary: p q rule: nat_less_induct)
       using a order_root pne by blast
   next
     case False
-    with fundamental_theorem_of_algebra_alt[of p]
-    obtain c where ccs: "c \<noteq> 0" "p = pCons c 0"
-      by blast
-    then have pp: "poly p x = c" for x
-      by simp
-    let ?w = "[:1/c:] * (q ^ n)"
-    from ccs have "(q ^ n) = (p * ?w)"
-      by simp
     then show ?thesis
-      unfolding dvd_def by blast
+      using dpn n0 fundamental_theorem_of_algebra_alt[of p]
+      by fastforce
   qed
 qed
 
@@ -1022,23 +926,12 @@ proof -
     case dp: 2
     then obtain k where k: "p = [:k:]" "k \<noteq> 0"
       by (cases p) (simp split: if_splits)
-    then have th1: "\<forall>x. poly p x \<noteq> 0"
-      by simp
-    from k dp(2) have "q ^ (degree p) = p * [:1/k:]"
-      by simp
-    then have th2: "p dvd (q ^ (degree p))" ..
-    from dp(1) th1 th2 show ?thesis
-      by blast
+    then show ?thesis
+      by (simp add: is_unit_pCons_iff)
   next
     case dp: 3
-    have False if dvd: "p dvd (q ^ (Suc n))" and h: "poly p x = 0" "poly q x \<noteq> 0" for x
-    proof -
-      from dvd obtain u where u: "q ^ (Suc n) = p * u" ..
-      from h have "poly (q ^ (Suc n)) x \<noteq> 0"
-        by simp
-      with u h(1) show ?thesis
-        by (simp only: poly_mult) simp
-    qed
+    have False if "p dvd (q ^ (Suc n))" "poly p x = 0" "poly q x \<noteq> 0" for x
+      by (metis dvd_trans poly_eq_0_iff_dvd poly_power power_eq_0_iff that)
     with dp nullstellensatz_lemma[of p q "degree p"] show ?thesis
       by auto
   qed
@@ -1052,14 +945,10 @@ proof
   show ?rhs if ?lhs
   proof -
     from that[unfolded constant_def, rule_format, of _ "0"]
-    have th: "poly p = poly [:poly p 0:]"
+    have "poly p = poly [:poly p 0:]"
       by auto
-    then have "p = [:poly p 0:]"
-      by (simp add: poly_eq_poly_eq_iff)
-    then have "degree p = degree [:poly p 0:]"
-      by simp
     then show ?thesis
-      by simp
+      by (metis degree_pCons_0 poly_eq_poly_eq_iff)
   qed
   show ?lhs if ?rhs
   proof -
@@ -1099,59 +988,21 @@ lemma poly_divides_pad_rule:
   fixes p:: "('a::comm_ring_1) poly"
   assumes pq: "p dvd q"
   shows "p dvd (pCons 0 q)"
-proof -
-  have "pCons 0 q = q * [:0,1:]" by simp
-  then have "q dvd (pCons 0 q)" ..
-  with pq show ?thesis by (rule dvd_trans)
-qed
+  by (metis add_0 dvd_def mult_pCons_right pq smult_0_left)
 
 lemma poly_divides_conv0:
   fixes p:: "'a::field poly"
-  assumes lgpq: "degree q < degree p"
-    and lq: "p \<noteq> 0"
-  shows "p dvd q \<longleftrightarrow> q = 0" (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?rhs
-  then have "q = p * 0" by simp
-  then show ?lhs ..
-next
-  assume l: ?lhs
-  show ?rhs
-  proof (cases "q = 0")
-    case True
-    then show ?thesis by simp
-  next
-    assume q0: "q \<noteq> 0"
-    from l q0 have "degree p \<le> degree q"
-      by (rule dvd_imp_degree_le)
-    with lgpq show ?thesis by simp
-  qed
-qed
+  assumes lgpq: "degree q < degree p" and lq: "p \<noteq> 0"
+  shows "p dvd q \<longleftrightarrow> q = 0"
+  using lgpq mod_poly_less by fastforce
 
 lemma poly_divides_conv1:
   fixes p :: "'a::field poly"
   assumes a0: "a \<noteq> 0"
     and pp': "p dvd p'"
     and qrp': "smult a q - p' = r"
-  shows "p dvd q \<longleftrightarrow> p dvd r" (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  from pp' obtain t where t: "p' = p * t" ..
-  show ?rhs if ?lhs
-  proof -
-    from that obtain u where u: "q = p * u" ..
-    have "r = p * (smult a u - t)"
-      using u qrp' [symmetric] t by (simp add: algebra_simps)
-    then show ?thesis ..
-  qed
-  show ?lhs if ?rhs
-  proof -
-    from that obtain u where u: "r = p * u" ..
-    from u [symmetric] t qrp' [symmetric] a0
-    have "q = p * smult (1/a) (u + t)"
-      by (simp add: algebra_simps)
-    then show ?thesis ..
-  qed
-qed
+  shows "p dvd q \<longleftrightarrow> p dvd r"
+  by (metis a0 diff_add_cancel dvd_add_left_iff dvd_smult_iff pp' qrp')
 
 lemma basic_cqe_conv1:
   "(\<exists>x. poly p x = 0 \<and> poly 0 x \<noteq> 0) \<longleftrightarrow> False"
@@ -1164,14 +1015,7 @@ lemma basic_cqe_conv1:
 lemma basic_cqe_conv2:
   assumes l: "p \<noteq> 0"
   shows "\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)"
-proof -
-  have False if "h \<noteq> 0" "t = 0" and "pCons a (pCons b p) = pCons h t" for h t
-    using l that by simp
-  then have th: "\<not> (\<exists> h t. h \<noteq> 0 \<and> t = 0 \<and> pCons a (pCons b p) = pCons h t)"
-    by blast
-  from fundamental_theorem_of_algebra_alt[OF th] show ?thesis
-    by auto
-qed
+  by (meson fundamental_theorem_of_algebra_alt l pCons_eq_0_iff pCons_eq_iff)
 
 lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<longleftrightarrow> p \<noteq> 0"
   by (metis poly_all_0_iff_0)
@@ -1180,13 +1024,7 @@ lemma basic_cqe_conv3:
   fixes p q :: "complex poly"
   assumes l: "p \<noteq> 0"
   shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<longleftrightarrow> \<not> (pCons a p) dvd (q ^ psize p)"
-proof -
-  from l have dp: "degree (pCons a p) = psize p"
-    by (simp add: psize_def)
-  from nullstellensatz_univariate[of "pCons a p" q] l
-  show ?thesis
-    by (metis dp pCons_eq_0_iff)
-qed
+  by (metis degree_pCons_eq_if l nullstellensatz_univariate pCons_eq_0_iff psize_def)
 
 lemma basic_cqe_conv4:
   fixes p q :: "complex poly"
@@ -1195,10 +1033,8 @@ lemma basic_cqe_conv4:
 proof -
   from h have "poly (q ^ n) = poly r"
     by auto
-  then have "(q ^ n) = r"
-    by (simp add: poly_eq_poly_eq_iff)
   then show "p dvd (q ^ n) \<longleftrightarrow> p dvd r"
-    by simp
+    by (simp add: poly_eq_poly_eq_iff)
 qed
 
 lemma poly_const_conv:
