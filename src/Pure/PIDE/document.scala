@@ -417,7 +417,6 @@ object Document {
       } yield cmd).toList
 
     def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
-    def requirements(names: List[Node.Name]): List[Node.Name] = graph.all_preds_rev(names)
     def topological_order: List[Node.Name] = graph.topological_order
 
     override def toString: String = topological_order.mkString("Nodes(", ",", ")")
