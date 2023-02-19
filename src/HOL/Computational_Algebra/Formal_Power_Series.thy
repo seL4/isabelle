@@ -59,12 +59,9 @@ proof
       by (rule LeastI_ex)
     moreover have "\<forall>m<?n. f $ m = 0"
       by (auto dest: not_less_Least)
-    ultimately have "f $ ?n \<noteq> 0 \<and> (\<forall>m<?n. f $ m = 0)" ..
-    then show ?thesis ..
+    ultimately show ?thesis by metis
   qed
-  show ?lhs if ?rhs
-    using that by (auto simp add: expand_fps_eq)
-qed
+qed (auto simp: expand_fps_eq)
 
 lemma fps_nonzeroI: "f$n \<noteq> 0 \<Longrightarrow> f \<noteq> 0"
   by auto
@@ -165,71 +162,36 @@ definition subdegree :: "('a::zero) fps \<Rightarrow> nat" where
 lemma subdegreeI:
   assumes "f $ d \<noteq> 0" and "\<And>i. i < d \<Longrightarrow> f $ i = 0"
   shows   "subdegree f = d"
-proof-
-  from assms(1) have "f \<noteq> 0" by auto
-  moreover from assms(1) have "(LEAST i. f $ i \<noteq> 0) = d"
-  proof (rule Least_equality)
-    fix e assume "f $ e \<noteq> 0"
-    with assms(2) have "\<not>(e < d)" by blast
-    thus "e \<ge> d" by simp
-  qed
-  ultimately show ?thesis unfolding subdegree_def by simp
-qed
+  by (smt (verit) LeastI_ex assms fps_zero_nth linorder_cases not_less_Least subdegree_def)
 
 lemma nth_subdegree_nonzero [simp,intro]: "f \<noteq> 0 \<Longrightarrow> f $ subdegree f \<noteq> 0"
-proof-
-  assume "f \<noteq> 0"
-  hence "subdegree f = (LEAST n. f $ n \<noteq> 0)" by (simp add: subdegree_def)
-  also from \<open>f \<noteq> 0\<close> have "\<exists>n. f$n \<noteq> 0" using fps_nonzero_nth by blast
-  from LeastI_ex[OF this] have "f $ (LEAST n. f $ n \<noteq> 0) \<noteq> 0" .
-  finally show ?thesis .
-qed
+  using fps_nonzero_nth_minimal subdegreeI by blast
 
 lemma nth_less_subdegree_zero [dest]: "n < subdegree f \<Longrightarrow> f $ n = 0"
-proof (cases "f = 0")
-  assume "f \<noteq> 0" and less: "n < subdegree f"
-  note less
-  also from \<open>f \<noteq> 0\<close> have "subdegree f = (LEAST n. f $ n \<noteq> 0)" by (simp add: subdegree_def)
-  finally show "f $ n = 0" using not_less_Least by blast
-qed simp_all
+  by (metis fps_nonzero_nth_minimal fps_zero_nth subdegreeI)
 
 lemma subdegree_geI:
   assumes "f \<noteq> 0" "\<And>i. i < n \<Longrightarrow> f$i = 0"
   shows   "subdegree f \<ge> n"
-proof (rule ccontr)
-  assume "\<not>(subdegree f \<ge> n)"
-  with assms(2) have "f $ subdegree f = 0" by simp
-  moreover from assms(1) have "f $ subdegree f \<noteq> 0" by simp
-  ultimately show False by contradiction
-qed
+  by (meson assms leI nth_subdegree_nonzero)
 
 lemma subdegree_greaterI:
   assumes "f \<noteq> 0" "\<And>i. i \<le> n \<Longrightarrow> f$i = 0"
   shows   "subdegree f > n"
-proof (rule ccontr)
-  assume "\<not>(subdegree f > n)"
-  with assms(2) have "f $ subdegree f = 0" by simp
-  moreover from assms(1) have "f $ subdegree f \<noteq> 0" by simp
-  ultimately show False by contradiction
-qed
+  by (meson assms leI nth_subdegree_nonzero)
 
 lemma subdegree_leI:
   "f $ n \<noteq> 0 \<Longrightarrow> subdegree f \<le> n"
-  by (rule leI) auto
+  using linorder_not_less by blast
 
 lemma subdegree_0 [simp]: "subdegree 0 = 0"
   by (simp add: subdegree_def)
 
 lemma subdegree_1 [simp]: "subdegree 1 = 0"
-  by  (cases "(1::'a) = 0")
-      (auto intro: subdegreeI fps_ext simp: subdegree_def)
+  by (metis fps_one_nth nth_subdegree_nonzero subdegree_0)
 
 lemma subdegree_eq_0_iff: "subdegree f = 0 \<longleftrightarrow> f = 0 \<or> f $ 0 \<noteq> 0"
-proof (cases "f = 0")
-  assume "f \<noteq> 0"
-  thus ?thesis
-    using nth_subdegree_nonzero[OF \<open>f \<noteq> 0\<close>] by (fastforce intro!: subdegreeI)
-qed simp_all
+  using nth_subdegree_nonzero subdegree_leI by fastforce
 
 lemma subdegree_eq_0 [simp]: "f $ 0 \<noteq> 0 \<Longrightarrow> subdegree f = 0"
   by (simp add: subdegree_eq_0_iff)
@@ -247,12 +209,11 @@ proof (cases "f=0")
 qed simp
 
 lemma subdegree_minus_commute [simp]:
-  "subdegree (f-(g::('a::group_add) fps)) = subdegree (g - f)"
-proof (-, cases "g-f=0")
-  case True
-  have "\<And>n. (f - g) $ n = -((g - f) $ n)" by simp
-  with True have "f - g = 0" by (intro fps_ext) simp
-  with True show ?thesis by simp
+  fixes f :: "'a::group_add fps"
+  shows "subdegree (f-g) = subdegree (g - f)"
+proof (cases "g-f=0")
+  case True then show ?thesis
+    by (metis fps_sub_nth nth_subdegree_nonzero right_minus_eq)
 next
   case False show ?thesis
     using nth_subdegree_nonzero[OF False] by (fastforce intro: subdegreeI)
@@ -273,12 +234,7 @@ proof (rule subdegree_add_ge')
   proof-
     assume fg: "f + g = 0"
     have "\<And>n. f $ n = - g $ n"
-    proof-
-      fix n
-      from fg have "(f + g) $ n = 0" by simp
-      hence "f $ n + g $ n - g $ n = - g $ n" by simp
-      thus "f $ n = - g $ n" by simp      
-    qed
+      by (metis add_eq_0_iff equation_minus_iff fg fps_add_nth fps_neg_nth fps_zero_nth)
     with assms show False by (auto intro: fps_ext)
   qed
   thus "f + g \<noteq> 0" by fast
@@ -288,43 +244,38 @@ lemma subdegree_add_eq1:
   assumes "f \<noteq> 0"
   and     "subdegree f < subdegree (g :: 'a::monoid_add fps)"
   shows   "subdegree (f + g) = subdegree f"
-  using   assms
-  by      (auto intro: subdegreeI simp: nth_less_subdegree_zero)
+  using assms by(auto intro: subdegreeI simp: nth_less_subdegree_zero)
 
 lemma subdegree_add_eq2:
   assumes "g \<noteq> 0"
   and     "subdegree g < subdegree (f :: 'a :: monoid_add fps)"
   shows   "subdegree (f + g) = subdegree g"
-  using   assms
-  by      (auto intro: subdegreeI simp: nth_less_subdegree_zero)
+  using assms by (auto intro: subdegreeI simp: nth_less_subdegree_zero)
 
 lemma subdegree_diff_eq1:
   assumes "f \<noteq> 0"
   and     "subdegree f < subdegree (g :: 'a :: group_add fps)"
   shows   "subdegree (f - g) = subdegree f"
-  using   assms
-  by      (auto intro: subdegreeI simp: nth_less_subdegree_zero)
+  using assms by (auto intro: subdegreeI simp: nth_less_subdegree_zero)
 
 lemma subdegree_diff_eq1_cancel:
   assumes "f \<noteq> 0"
   and     "subdegree f < subdegree (g :: 'a :: cancel_comm_monoid_add fps)"
   shows   "subdegree (f - g) = subdegree f"
-  using   assms
-  by      (auto intro: subdegreeI simp: nth_less_subdegree_zero)
+  using assms by (auto intro: subdegreeI simp: nth_less_subdegree_zero)
 
 lemma subdegree_diff_eq2:
   assumes "g \<noteq> 0"
   and     "subdegree g < subdegree (f :: 'a :: group_add fps)"
   shows   "subdegree (f - g) = subdegree g"
-  using   assms
-  by      (auto intro: subdegreeI simp: nth_less_subdegree_zero)
+  using assms by (auto intro: subdegreeI simp: nth_less_subdegree_zero)
 
 lemma subdegree_diff_ge [simp]:
   assumes "f \<noteq> (g :: 'a :: group_add fps)"
   shows   "subdegree (f - g) \<ge> min (subdegree f) (subdegree g)"
 proof-
-  from assms have "f = - (- g) \<Longrightarrow> False" using expand_fps_eq by fastforce
-  hence "f \<noteq> - (- g)" by fast
+  have "f \<noteq> - (- g)"
+    using assms expand_fps_eq by fastforce
   moreover have "f + - g = f - g" by (simp add: fps_ext)
   ultimately show ?thesis
     using subdegree_add_ge[of f "-g"] by simp
@@ -334,8 +285,7 @@ lemma subdegree_diff_ge':
   fixes   f g :: "'a :: comm_monoid_diff fps"
   assumes "f - g \<noteq> 0"
   shows   "subdegree (f - g) \<ge> subdegree f"
-  using   assms
-  by      (auto intro: subdegree_geI simp: nth_less_subdegree_zero)
+  using assms by (auto intro: subdegree_geI simp: nth_less_subdegree_zero)
 
 lemma nth_subdegree_mult_left [simp]:
   fixes f g :: "('a :: {mult_zero,comm_monoid_add}) fps"
