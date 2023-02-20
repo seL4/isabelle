@@ -374,18 +374,25 @@ class Build_Process(
       build_options.seconds("editor_input_delay").sleep()
     }
 
-  def run(): Map[String, Build_Process.Result] = {
-    while (test_running()) {
-      if (progress.stopped) stop_running()
+  def run(): Map[String, Process_Result] = {
+    if (test_running()) {
+      while (test_running()) {
+        if (progress.stopped) stop_running()
 
-      for (job <- finished_running()) finish_job(job)
+        for (job <- finished_running()) finish_job(job)
 
-      next_pending() match {
-        case Some(session_name) => start_job(session_name)
-        case None => sleep()
+        next_pending() match {
+          case Some(session_name) => start_job(session_name)
+          case None => sleep()
+        }
+      }
+      synchronized {
+        for ((name, result) <- _results) yield name -> result.process_result
       }
     }
-
-    synchronized { _results }
+    else {
+      progress.echo_warning("Nothing to build")
+      Map.empty[String, Process_Result]
+    }
   }
 }

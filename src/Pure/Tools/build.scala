@@ -132,33 +132,23 @@ object Build {
     }
 
     val results = {
-      val build_results =
-        if (build_deps.is_empty) {
-          progress.echo_warning("Nothing to build")
-          Map.empty[String, Build_Process.Result]
-        }
-        else {
-          Isabelle_Thread.uninterruptible {
-            val build_process =
-              new Build_Process(build_context, build_heap = build_heap,
-                numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-                no_build = no_build, verbose = verbose, session_setup = session_setup)
-            build_process.run()
-          }
+      val process_results =
+        Isabelle_Thread.uninterruptible {
+          val build_process =
+            new Build_Process(build_context, build_heap = build_heap,
+              numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
+              no_build = no_build, verbose = verbose, session_setup = session_setup)
+          build_process.run()
         }
 
       val sessions_ok: List[String] =
         (for {
           name <- build_deps.sessions_structure.build_topological_order.iterator
-          result <- build_results.get(name)
+          result <- process_results.get(name)
           if result.ok
         } yield name).toList
 
-      val results =
-        (for ((name, result) <- build_results.iterator)
-          yield (name, result.process_result)).toMap
-
-      new Results(store, build_deps, sessions_ok, results)
+      new Results(store, build_deps, sessions_ok, process_results)
     }
 
     if (export_files) {
