@@ -9,7 +9,6 @@ package isabelle
 
 
 import scala.math.Ordering
-import scala.collection.immutable.SortedSet
 import scala.annotation.tailrec
 
 
@@ -136,6 +135,12 @@ object Build_Process {
 
   /* main */
 
+  case class Entry(name: String, deps: List[String]) {
+    def is_ready: Boolean = deps.isEmpty
+    def resolve(dep: String): Entry =
+      if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
+  }
+
   case class Result(
     current: Boolean,
     output_heap: SHA1.Shasum,
@@ -179,21 +184,21 @@ class Build_Process(
 
   // global state
   private val _numa_nodes = new NUMA.Nodes(numa_shuffling)
-  private var _build_graph = build_context.sessions_structure.build_graph
-  private var _build_order = SortedSet.from(_build_graph.keys)(build_context.ordering)
+  private var _pending: List[Build_Process.Entry] =
+    (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
+      yield Build_Process.Entry(name, preds.toList)).toList
   private var _running = Map.empty[String, Build_Job]
   private var _results = Map.empty[String, Build_Process.Result]
 
   private def remove_pending(name: String): Unit = synchronized {
-    _build_graph = _build_graph.del_node(name)
-    _build_order = _build_order - name
+    _pending = _pending.flatMap(entry => if (entry.name == name) None else Some(entry.resolve(name)))
   }
 
   private def next_pending(): Option[String] = synchronized {
     if (_running.size < (max_jobs max 1)) {
-      _build_order.iterator
-        .dropWhile(name => _running.isDefinedAt(name) || !_build_graph.is_minimal(name))
-        .nextOption()
+      _pending.filter(entry => entry.is_ready && !_running.isDefinedAt(entry.name))
+        .sortBy(_.name)(build_context.ordering)
+        .headOption.map(_.name)
     }
     else None
   }
@@ -203,7 +208,7 @@ class Build_Process(
       Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
   }
 
-  private def test_running(): Boolean = synchronized { !_build_graph.is_empty }
+  private def test_running(): Boolean = synchronized { _pending.nonEmpty }
 
   private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
 
