@@ -143,6 +143,16 @@ object Build_Process {
   ) {
     def ok: Boolean = process_result.ok
   }
+
+  def session_finished(session_name: String, process_result: Process_Result): String =
+    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
+
+  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
+    val props = build_log.session_timing
+    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+    val timing = Markup.Timing_Properties.get(props)
+    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
+  }
 }
 
 class Build_Process(
@@ -227,16 +237,6 @@ class Build_Process(
     names.map(_results.apply)
   }
 
-  private def session_finished(session_name: String, process_result: Process_Result): String =
-    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
-
-  private def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
-    val props = build_log.session_timing
-    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.get(props)
-    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
-  }
-
   private def finish_job(job: Build_Job.Build_Session): Unit = {
     val session_name = job.session_name
     val process_result = job.join
@@ -278,8 +278,8 @@ class Build_Process(
     process_result.err_lines.foreach(progress.echo)
 
     if (process_result.ok) {
-      if (verbose) progress.echo(session_timing(session_name, build_log))
-      progress.echo(session_finished(session_name, process_result))
+      if (verbose) progress.echo(Build_Process.session_timing(session_name, build_log))
+      progress.echo(Build_Process.session_finished(session_name, process_result))
     }
     else {
       progress.echo(session_name + " FAILED")
