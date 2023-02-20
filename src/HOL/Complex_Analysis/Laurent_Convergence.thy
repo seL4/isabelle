@@ -1091,7 +1091,7 @@ next
   case True
   define n where "n = zorder f 0"
   obtain r where r: "zor_poly f 0 0 \<noteq> 0" "zor_poly f 0 holomorphic_on cball 0 r" "r > 0"
-                    "\<forall>w\<in>cball 0 r - {0}. f w = zor_poly f 0 w * w powr of_int n \<and>
+                    "\<forall>w\<in>cball 0 r - {0}. f w = zor_poly f 0 w * w powi n \<and>
                                          zor_poly f 0 w \<noteq> 0"
     using zorder_exist[OF assms True] unfolding n_def by auto
   have holo: "zor_poly f 0 holomorphic_on ball 0 r"
@@ -1144,7 +1144,7 @@ proof -
       from zorder_exist[OF iso ness this,folded df_def]
       obtain r where "r>0" and df_holo:"df holomorphic_on cball 0 r" and "df 0 \<noteq> 0"
           "\<forall>w\<in>cball 0 r - {0}.
-             f (z + w) = df w * w powr of_int (zorder (\<lambda>w. f (z + w)) 0) \<and>
+             f (z + w) = df w * w powi (zorder (\<lambda>w. f (z + w)) 0) \<and>
              df w \<noteq> 0"
         by auto
       then have df_nz:"\<forall>w\<in>ball 0 r. df w\<noteq>0" by auto
@@ -1340,7 +1340,7 @@ proof -
       by (auto simp: eval_fps_at_0 G_def)
   next
     fix w :: complex assume "w \<in> A \<inter> eball 0 (fls_conv_radius F)" "w \<noteq> 0"
-    thus "f w = eval_fps G w * (w - 0) powr of_int (fls_subdegree F)"
+    thus "f w = eval_fps G w * (w - 0) powi (fls_subdegree F)"
       using A unfolding G_def
       by (subst eval_fps_fls_base_factor)
          (auto simp: complex_powr_of_int power_int_minus field_simps)
@@ -1567,7 +1567,7 @@ proof -
   have n_altdef: "n = fls_subdegree F"
     using has_laurent_expansion_zorder_0 [OF assms(1)] by (simp add: n_def)
   obtain r where r: "zor_poly f 0 0 \<noteq> 0" "zor_poly f 0 holomorphic_on cball 0 r" "r > 0"
-                    "\<forall>w\<in>cball 0 r - {0}. f w = zor_poly f 0 w * w powr of_int n \<and>
+                    "\<forall>w\<in>cball 0 r - {0}. f w = zor_poly f 0 w * w powi n \<and>
                                          zor_poly f 0 w \<noteq> 0"
     using zorder_exist[OF * freq] unfolding n_def by auto
   obtain r' where r': "r' > 0" "\<forall>x\<in>ball 0 r'-{0}. eval_fls F x = f x"
@@ -1590,7 +1590,7 @@ proof -
       show ?case
       proof (cases "w = 0")
         case False
-        hence "f w = zor_poly f 0 w * w powr of_int n"
+        hence "f w = zor_poly f 0 w * w powi n"
           using r w by auto
         thus ?thesis using False
           by (simp add: powr_minus complex_powr_of_int power_int_minus)
@@ -2728,7 +2728,7 @@ proof -
       using \<open>a \<noteq> 0\<close> by (intro holomorphic_on_compose_gen[OF _ r'(4)] holomorphic_intros) auto
     show "a ^ n * (zor_poly f (a * z) \<circ> (\<lambda>w. a * w)) z \<noteq> 0"
       using r' \<open>a \<noteq> 0\<close> by auto
-    show "f (a * w) = a ^ n * (zor_poly f (a * z) \<circ> (*) a) w * (w - z) powr of_int (zorder f (a * z))"
+    show "f (a * w) = a ^ n * (zor_poly f (a * z) \<circ> (*) a) w * (w - z) powi (zorder f (a * z))"
       if "w \<in> ball z (r' / norm a)" "w \<noteq> z" for w
     proof -
       have "f (a * w) = zor_poly f (a * z) (a * w) * (a * (w - z)) ^ n"
@@ -2736,9 +2736,9 @@ proof -
         by (auto simp: divide_simps mult_ac)
       also have "\<dots> = a ^ n * zor_poly f (a * z) (a * w) * (w - z) ^ n"
         by (subst power_mult_distrib) (auto simp: mult_ac)
-      also have "(w - z) ^ n = (w - z) powr of_nat n"
-        using \<open>w \<noteq> z\<close> by (subst powr_nat') auto
-      also have "of_nat n = of_int (zorder f (a * z))"
+      also have "(w - z) ^ n = (w - z) powi of_nat n"
+        by simp
+      also have "of_nat n = zorder f (a * z)"
         using r'(1) by (auto simp: n_def split: if_splits)
       finally show ?thesis
         unfolding o_def n_def .

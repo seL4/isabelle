@@ -3,7 +3,9 @@ theory Residue_Theorem
   imports Complex_Residues "HOL-Library.Landau_Symbols"
 begin
 
-text \<open>Could be moved to a previous theory importing both Landau Symbols and Elementary Metric Spaces\<close>
+text \<open>Several theorems that could be moved up, 
+  IF there were a previous theory importing both Landau Symbols and Elementary Metric Spaces\<close>
+
 lemma continuous_bounded_at_infinity_imp_bounded:
   fixes f :: "real \<Rightarrow> 'a :: real_normed_field"
   assumes "f \<in> O[at_bot](\<lambda>_. 1)"
@@ -30,6 +32,66 @@ proof -
   thus ?thesis
     unfolding bounded_iff by blast
 qed
+
+lemma holomorphic_on_extend:
+  assumes "f holomorphic_on S - {\<xi>}" "\<xi> \<in> interior S" "f \<in> O[at \<xi>](\<lambda>_. 1)"
+  shows   "(\<exists>g. g holomorphic_on S \<and> (\<forall>z\<in>S - {\<xi>}. g z = f z))"
+  by (subst holomorphic_on_extend_bounded) (insert assms, auto elim!: landau_o.bigE)
+
+lemma removable_singularities:
+  assumes "finite X" "X \<subseteq> interior S" "f holomorphic_on (S - X)"
+  assumes "\<And>z. z \<in> X \<Longrightarrow> f \<in> O[at z](\<lambda>_. 1)"
+  shows   "\<exists>g. g holomorphic_on S \<and> (\<forall>z\<in>S-X. g z = f z)"
+  using assms
+proof (induction arbitrary: f rule: finite_induct)
+  case empty
+  thus ?case by auto
+next
+  case (insert z0 X f)
+  from insert.prems and insert.hyps have z0: "z0 \<in> interior (S - X)"
+    by (auto simp: interior_diff finite_imp_closed)
+  hence "\<exists>g. g holomorphic_on (S - X) \<and> (\<forall>z\<in>S - X - {z0}. g z = f z)"
+    using insert.prems insert.hyps by (intro holomorphic_on_extend) auto
+  then obtain g where g: "g holomorphic_on (S - X)" "\<forall>z\<in>S - X - {z0}. g z = f z" by blast
+  have "\<exists>h. h holomorphic_on S \<and> (\<forall>z\<in>S - X. h z = g z)"
+  proof (rule insert.IH)
+    fix z0' assume z0': "z0' \<in> X"
+    hence "eventually (\<lambda>z. z \<in> interior S - (X - {z0'}) - {z0}) (nhds z0')"
+      using insert.prems insert.hyps
+      by (intro eventually_nhds_in_open open_Diff finite_imp_closed) auto
+    hence ev: "eventually (\<lambda>z. z \<in> S - X - {z0}) (at z0')"
+      unfolding eventually_at_filter 
+      by eventually_elim (insert z0' insert.hyps interior_subset[of S], auto)
+    have "g \<in> \<Theta>[at z0'](f)"
+      by (intro bigthetaI_cong eventually_mono[OF ev]) (insert g, auto)
+    also have "f \<in> O[at z0'](\<lambda>_. 1)"
+      using z0' by (intro insert.prems) auto
+    finally show "g \<in> \<dots>" .
+  qed (insert insert.prems g, auto)
+  then obtain h where "h holomorphic_on S" "\<forall>z\<in>S - X. h z = g z" by blast
+  with g have "h holomorphic_on S" "\<forall>z\<in>S - insert z0 X. h z = f z" by auto
+  thus ?case by blast
+qed
+
+lemma continuous_imp_bigo_1:
+  assumes "continuous (at x within A) f"
+  shows   "f \<in> O[at x within A](\<lambda>_. 1)"
+proof (rule bigoI_tendsto)
+  from assms show "((\<lambda>x. f x / 1) \<longlongrightarrow> f x) (at x within A)"
+    by (auto simp: continuous_within)
+qed auto
+
+lemma taylor_bigo_linear:
+  assumes "f field_differentiable at x0 within A"
+  shows   "(\<lambda>x. f x - f x0) \<in> O[at x0 within A](\<lambda>x. x - x0)"
+proof -
+  from assms obtain f' where "(f has_field_derivative f') (at x0 within A)"
+    by (auto simp: field_differentiable_def)
+  hence "((\<lambda>x. (f x - f x0) / (x - x0)) \<longlongrightarrow> f') (at x0 within A)"
+    by (auto simp: has_field_derivative_iff)
+  thus ?thesis by (intro bigoI_tendsto[where c = f']) (auto simp: eventually_at_filter)
+qed
+
 
 subsection \<open>Cauchy's residue theorem\<close>
 
@@ -509,12 +571,12 @@ proof -
     proof -
       define po where "po \<equiv> zorder f p"
       define pp where "pp \<equiv> zor_poly f p"
-      define f' where "f' \<equiv> \<lambda>w. pp w * (w - p) powr po"
+      define f' where "f' \<equiv> \<lambda>w. pp w * (w - p) powi po"
       define ff' where "ff' \<equiv> (\<lambda>x. deriv f' x * h x / f' x)"
       obtain r where "pp p\<noteq>0" "r>0" and
           "r<e1" and
           pp_holo:"pp holomorphic_on cball p r" and
-          pp_po:"(\<forall>w\<in>cball p r-{p}. f w = pp w * (w - p) powr po \<and> pp w \<noteq> 0)"
+          pp_po:"(\<forall>w\<in>cball p r-{p}. f w = pp w * (w - p) powi po \<and> pp w \<noteq> 0)"
       proof -
         have "isolated_singularity_at f p"
         proof -
@@ -565,12 +627,12 @@ proof -
           then show False using \<open>finite pz\<close> by auto
         qed
         ultimately obtain r where "pp p \<noteq> 0" and r:"r>0" "pp holomorphic_on cball p r"
-                  "(\<forall>w\<in>cball p r - {p}. f w = pp w * (w - p) powr of_int po \<and> pp w \<noteq> 0)"
+                  "(\<forall>w\<in>cball p r - {p}. f w = pp w * (w - p) powi po \<and> pp w \<noteq> 0)"
           using zorder_exist[of f p,folded po_def pp_def] by auto
         define r1 where "r1=min r e1 / 2"
         have "r1<e1" unfolding r1_def using \<open>e1>0\<close> \<open>r>0\<close> by auto
         moreover have "r1>0" "pp holomorphic_on cball p r1"
-                  "(\<forall>w\<in>cball p r1 - {p}. f w = pp w * (w - p) powr of_int po \<and> pp w \<noteq> 0)"
+                  "(\<forall>w\<in>cball p r1 - {p}. f w = pp w * (w - p) powi po \<and> pp w \<noteq> 0)"
           unfolding r1_def using \<open>e1>0\<close> r by auto
         ultimately show ?thesis using that \<open>pp p\<noteq>0\<close> by auto
       qed
@@ -604,13 +666,13 @@ proof -
         define wp where "wp \<equiv> w-p"
         have "wp\<noteq>0" and "pp w \<noteq>0"
           unfolding wp_def using \<open>w\<noteq>p\<close> \<open>w\<in>ball p r\<close> pp_po by auto
-        moreover have der_f':"deriv f' w = po * pp w * (w-p) powr (po - 1) + deriv pp w * (w-p) powr po"
+        moreover have der_f':"deriv f' w = po * pp w * (w-p) powi (po - 1) + deriv pp w * (w-p) powi po"
         proof (rule DERIV_imp_deriv)
           have "(pp has_field_derivative (deriv pp w)) (at w)"
             using DERIV_deriv_iff_has_field_derivative pp_holo \<open>w\<noteq>p\<close>
             by (meson open_ball \<open>w \<in> ball p r\<close> ball_subset_cball holomorphic_derivI holomorphic_on_subset)
-          then show " (f' has_field_derivative of_int po * pp w * (w - p) powr of_int (po - 1)
-                  + deriv pp w * (w - p) powr of_int po) (at w)"
+          then show " (f' has_field_derivative of_int po * pp w * (w - p) powi (po - 1)
+                  + deriv pp w * (w - p) powi po) (at w)"
             unfolding f'_def using \<open>w\<noteq>p\<close>
             by (auto intro!: derivative_eq_intros DERIV_cong[OF has_field_derivative_powr_of_int])
         qed
@@ -620,7 +682,7 @@ proof -
           apply (unfold f'_def)
           apply (fold wp_def)
           apply (auto simp add:field_simps)
-          by (metis (no_types, lifting) diff_add_cancel mult.commute powr_add powr_to_1)
+          by (metis (no_types, lifting) mult.commute power_int_minus_mult)
       qed
       then have "cont ff p e2" unfolding cont_def
       proof (elim has_contour_integral_eq)
