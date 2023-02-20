@@ -37,18 +37,26 @@ object NUMA {
   def policy(node: Int): String =
     if (numactl_available) "numactl -m" + node + " -N" + node else ""
 
-  def policy_options(options: Options, numa_node: Option[Int] = Some(0)): Options =
+  def policy_options(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
       case None => options
       case Some(n) => options.string("ML_process_policy") = policy(n)
     }
 
+  def perhaps_policy_options(options: Options): Options = {
+    val numa_node =
+      try {
+        nodes() match {
+          case ns if ns.length >= 2 && numactl_available => ns.headOption
+          case _ => None
+        }
+      }
+      catch { case ERROR(_) => None }
+    policy_options(options, numa_node)
+  }
+
 
   /* shuffling of CPU nodes */
-
-  def available: Boolean =
-    try { nodes().length >= 2 && numactl_available }
-    catch { case ERROR(_) => false }
 
   def enabled_warning(progress: Progress, enabled: Boolean): Boolean = {
     def warning =

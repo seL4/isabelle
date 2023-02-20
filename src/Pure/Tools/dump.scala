@@ -97,9 +97,8 @@ object Dump {
       skip_base: Boolean = false
     ): Context = {
       val session_options: Options = {
-        val options0 = if (NUMA.available) NUMA.policy_options(options) else options
         val options1 =
-          options0 +
+          NUMA.perhaps_policy_options(options) +
             "parallel_proofs=0" +
             "completion_limit=0" +
             "editor_tracing_messages=0"
