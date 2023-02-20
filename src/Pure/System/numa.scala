@@ -46,7 +46,7 @@ object NUMA {
 
   /* shuffling of CPU nodes */
 
-  def enabled: Boolean =
+  def available: Boolean =
     try { nodes().length >= 2 && numactl_available }
     catch { case ERROR(_) => false }
 
