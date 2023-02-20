@@ -190,6 +190,8 @@ class Build_Process(
   private var _running = Map.empty[String, Build_Job]
   private var _results = Map.empty[String, Build_Process.Result]
 
+  private def test_pending(): Boolean = synchronized { _pending.nonEmpty }
+
   private def remove_pending(name: String): Unit = synchronized {
     _pending = _pending.flatMap(entry => if (entry.name == name) None else Some(entry.resolve(name)))
   }
@@ -207,8 +209,6 @@ class Build_Process(
     _numa_nodes.next(used =
       Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
   }
-
-  private def test_running(): Boolean = synchronized { _pending.nonEmpty }
 
   private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
 
@@ -380,8 +380,8 @@ class Build_Process(
     }
 
   def run(): Map[String, Process_Result] = {
-    if (test_running()) {
-      while (test_running()) {
+    if (test_pending()) {
+      while (test_pending()) {
         if (progress.stopped) stop_running()
 
         for (job <- finished_running()) finish_job(job)
