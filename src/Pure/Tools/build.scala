@@ -127,7 +127,11 @@ object Build {
 
     /* build process and results */
 
-    val build_context = Build_Process.Context(store, build_deps, progress = progress)
+    val build_context =
+      Build_Process.Context(store, build_deps, progress = progress,
+        build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        fresh_build = fresh_build, no_build = no_build, verbose = verbose,
+        session_setup = session_setup)
 
     store.prepare_output_dir()
 
@@ -143,11 +147,9 @@ object Build {
 
     val results =
       Isabelle_Thread.uninterruptible {
-        val build_process =
-          new Build_Process(build_context, build_heap = build_heap,
-            numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-            no_build = no_build, verbose = verbose, session_setup = session_setup)
-        Results(build_context, build_process.run())
+        val build_process = new Build_Process(build_context)
+        val res = build_process.run()
+        Results(build_context, res)
       }
 
     if (export_files) {

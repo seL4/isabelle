@@ -67,7 +67,14 @@ object Build_Process {
     def apply(
       store: Sessions.Store,
       deps: Sessions.Deps,
-      progress: Progress = new Progress
+      progress: Progress = new Progress,
+      build_heap: Boolean = false,
+      numa_shuffling: Boolean = false,
+      max_jobs: Int = 1,
+      fresh_build: Boolean = false,
+      no_build: Boolean = false,
+      verbose: Boolean = false,
+      session_setup: (String, Session) => Unit = (_, _) => ()
     ): Context = {
       val sessions_structure = deps.sessions_structure
       val build_graph = sessions_structure.build_graph
@@ -112,7 +119,9 @@ object Build_Process {
             }
         }
 
-      new Context(store, deps, sessions, ordering, progress)
+      new Context(store, deps, sessions, ordering, progress,
+        build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        fresh_build = fresh_build, no_build = no_build, verbose = verbose, session_setup)
     }
   }
 
@@ -121,15 +130,22 @@ object Build_Process {
     val deps: Sessions.Deps,
     sessions: Map[String, Session_Context],
     val ordering: Ordering[String],
-    val progress: Progress
+    val progress: Progress,
+    val build_heap: Boolean,
+    val numa_shuffling: Boolean,
+    val max_jobs: Int,
+    val fresh_build: Boolean,
+    val no_build: Boolean,
+    val verbose: Boolean,
+    val session_setup: (String, Session) => Unit
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
     def apply(session: String): Session_Context =
       sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
 
-    def build_heap(session: String): Boolean =
-      Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
+    def do_store(session: String): Boolean =
+      build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
   }
 
 
@@ -160,20 +176,12 @@ object Build_Process {
   }
 }
 
-class Build_Process(
-  build_context: Build_Process.Context,
-  build_heap: Boolean = false,
-  numa_shuffling: Boolean = false,
-  max_jobs: Int = 1,
-  fresh_build: Boolean = false,
-  no_build: Boolean = false,
-  verbose: Boolean = false,
-  session_setup: (String, Session) => Unit = (_, _) => ()
-) {
+class Build_Process(build_context: Build_Process.Context) {
   private val store = build_context.store
   private val build_options = store.options
   private val build_deps = build_context.deps
   private val progress = build_context.progress
+  private val verbose = build_context.verbose
 
   private val log =
     build_options.string("system_log") match {
@@ -183,7 +191,7 @@ class Build_Process(
     }
 
   // global state
-  private val _numa_nodes = new NUMA.Nodes(numa_shuffling)
+  private val _numa_nodes = new NUMA.Nodes(build_context.numa_shuffling)
   private var _pending: List[Build_Process.Entry] =
     (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
       yield Build_Process.Entry(name, preds.toList)).toList
@@ -197,7 +205,7 @@ class Build_Process(
   }
 
   private def next_pending(): Option[String] = synchronized {
-    if (_running.size < (max_jobs max 1)) {
+    if (_running.size < (build_context.max_jobs max 1)) {
       _pending.filter(entry => entry.is_ready && !_running.isDefinedAt(entry.name))
         .sortBy(_.name)(build_context.ordering)
         .headOption.map(_.name)
@@ -309,7 +317,7 @@ class Build_Process(
       }
       else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
 
-    val do_store = build_heap || build_context.build_heap(session_name)
+    val do_store = build_context.do_store(session_name)
     val (current, output_heap) = {
       store.try_open_database(session_name) match {
         case Some(db) =>
@@ -317,7 +325,7 @@ class Build_Process(
             case Some(build) =>
               val output_heap = store.find_heap_shasum(session_name)
               val current =
-                !fresh_build &&
+                !build_context.fresh_build &&
                 build.ok &&
                 build.sources == build_deps.sources_shasum(session_name) &&
                 build.input_heaps == input_heaps &&
@@ -337,7 +345,7 @@ class Build_Process(
         add_result(session_name, true, output_heap, Process_Result.ok)
       }
     }
-    else if (no_build) {
+    else if (build_context.no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
       synchronized {
         remove_pending(session_name)
@@ -361,7 +369,7 @@ class Build_Process(
           val numa_node = next_numa_node()
           job_running(session_name,
             new Build_Job.Build_Session(progress, session_background, store, do_store,
-              resources, session_setup, input_heaps, numa_node))
+              resources, build_context.session_setup, input_heaps, numa_node))
         }
       job.start()
     }
