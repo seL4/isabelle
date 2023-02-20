@@ -9,7 +9,6 @@ package isabelle
 
 
 import scala.math.Ordering
-import scala.collection.immutable.SortedSet
 import scala.annotation.tailrec
 
 
@@ -68,7 +67,14 @@ object Build_Process {
     def apply(
       store: Sessions.Store,
       deps: Sessions.Deps,
-      progress: Progress = new Progress
+      progress: Progress = new Progress,
+      build_heap: Boolean = false,
+      numa_shuffling: Boolean = false,
+      max_jobs: Int = 1,
+      fresh_build: Boolean = false,
+      no_build: Boolean = false,
+      verbose: Boolean = false,
+      session_setup: (String, Session) => Unit = (_, _) => ()
     ): Context = {
       val sessions_structure = deps.sessions_structure
       val build_graph = sessions_structure.build_graph
@@ -113,7 +119,10 @@ object Build_Process {
             }
         }
 
-      new Context(store, deps, sessions, ordering, progress)
+      val numa_nodes = if (numa_shuffling) NUMA.nodes() else Nil
+      new Context(store, deps, sessions, ordering, progress, numa_nodes,
+        build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
+        no_build = no_build, verbose = verbose, session_setup)
     }
   }
 
@@ -122,19 +131,32 @@ object Build_Process {
     val deps: Sessions.Deps,
     sessions: Map[String, Session_Context],
     val ordering: Ordering[String],
-    val progress: Progress
+    val progress: Progress,
+    val numa_nodes: List[Int],
+    val build_heap: Boolean,
+    val max_jobs: Int,
+    val fresh_build: Boolean,
+    val no_build: Boolean,
+    val verbose: Boolean,
+    val session_setup: (String, Session) => Unit
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
     def apply(session: String): Session_Context =
       sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
 
-    def build_heap(session: String): Boolean =
-      Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
+    def do_store(session: String): Boolean =
+      build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
   }
 
 
   /* main */
+
+  case class Entry(name: String, deps: List[String]) {
+    def is_ready: Boolean = deps.isEmpty
+    def resolve(dep: String): Entry =
+      if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
+  }
 
   case class Result(
     current: Boolean,
@@ -143,22 +165,24 @@ object Build_Process {
   ) {
     def ok: Boolean = process_result.ok
   }
+
+  def session_finished(session_name: String, process_result: Process_Result): String =
+    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
+
+  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
+    val props = build_log.session_timing
+    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+    val timing = Markup.Timing_Properties.get(props)
+    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
+  }
 }
 
-class Build_Process(
-  build_context: Build_Process.Context,
-  build_heap: Boolean = false,
-  numa_shuffling: Boolean = false,
-  max_jobs: Int = 1,
-  fresh_build: Boolean = false,
-  no_build: Boolean = false,
-  verbose: Boolean = false,
-  session_setup: (String, Session) => Unit = (_, _) => ()
-) {
+class Build_Process(build_context: Build_Process.Context) {
   private val store = build_context.store
   private val build_options = store.options
   private val build_deps = build_context.deps
   private val progress = build_context.progress
+  private val verbose = build_context.verbose
 
   private val log =
     build_options.string("system_log") match {
@@ -168,32 +192,42 @@ class Build_Process(
     }
 
   // global state
-  private val _numa_nodes = new NUMA.Nodes(numa_shuffling)
-  private var _build_graph = build_context.sessions_structure.build_graph
-  private var _build_order = SortedSet.from(_build_graph.keys)(build_context.ordering)
+  private var _numa_index = 0
+  private var _pending: List[Build_Process.Entry] =
+    (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
+      yield Build_Process.Entry(name, preds.toList)).toList
   private var _running = Map.empty[String, Build_Job]
   private var _results = Map.empty[String, Build_Process.Result]
 
+  private def test_pending(): Boolean = synchronized { _pending.nonEmpty }
+
   private def remove_pending(name: String): Unit = synchronized {
-    _build_graph = _build_graph.del_node(name)
-    _build_order = _build_order - name
+    _pending = _pending.flatMap(entry => if (entry.name == name) None else Some(entry.resolve(name)))
   }
 
   private def next_pending(): Option[String] = synchronized {
-    if (_running.size < (max_jobs max 1)) {
-      _build_order.iterator
-        .dropWhile(name => _running.isDefinedAt(name) || !_build_graph.is_minimal(name))
-        .nextOption()
+    if (_running.size < (build_context.max_jobs max 1)) {
+      _pending.filter(entry => entry.is_ready && !_running.isDefinedAt(entry.name))
+        .sortBy(_.name)(build_context.ordering)
+        .headOption.map(_.name)
     }
     else None
   }
 
   private def next_numa_node(): Option[Int] = synchronized {
-    _numa_nodes.next(used =
-      Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
+    val available = build_context.numa_nodes.zipWithIndex
+    if (available.isEmpty) None
+    else {
+      val used = Set.from(for (job <- _running.valuesIterator; i <- job.numa_node) yield i)
+      val index = _numa_index
+      val candidates = available.drop(index) ::: available.take(index)
+      val (n, i) =
+        candidates.find({ case (n, i) => i == index && !used(n) }) orElse
+        candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
+      _numa_index = (i + 1) % available.length
+      Some(n)
+    }
   }
-
-  private def test_running(): Boolean = synchronized { !_build_graph.is_empty }
 
   private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
 
@@ -225,16 +259,6 @@ class Build_Process(
 
   private def get_results(names: List[String]): List[Build_Process.Result] = synchronized {
     names.map(_results.apply)
-  }
-
-  private def session_finished(session_name: String, process_result: Process_Result): String =
-    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
-
-  private def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
-    val props = build_log.session_timing
-    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.get(props)
-    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
   }
 
   private def finish_job(job: Build_Job.Build_Session): Unit = {
@@ -278,8 +302,8 @@ class Build_Process(
     process_result.err_lines.foreach(progress.echo)
 
     if (process_result.ok) {
-      if (verbose) progress.echo(session_timing(session_name, build_log))
-      progress.echo(session_finished(session_name, process_result))
+      if (verbose) progress.echo(Build_Process.session_timing(session_name, build_log))
+      progress.echo(Build_Process.session_finished(session_name, process_result))
     }
     else {
       progress.echo(session_name + " FAILED")
@@ -304,7 +328,7 @@ class Build_Process(
       }
       else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
 
-    val do_store = build_heap || build_context.build_heap(session_name)
+    val do_store = build_context.do_store(session_name)
     val (current, output_heap) = {
       store.try_open_database(session_name) match {
         case Some(db) =>
@@ -312,7 +336,7 @@ class Build_Process(
             case Some(build) =>
               val output_heap = store.find_heap_shasum(session_name)
               val current =
-                !fresh_build &&
+                !build_context.fresh_build &&
                 build.ok &&
                 build.sources == build_deps.sources_shasum(session_name) &&
                 build.input_heaps == input_heaps &&
@@ -332,7 +356,7 @@ class Build_Process(
         add_result(session_name, true, output_heap, Process_Result.ok)
       }
     }
-    else if (no_build) {
+    else if (build_context.no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
       synchronized {
         remove_pending(session_name)
@@ -356,7 +380,7 @@ class Build_Process(
           val numa_node = next_numa_node()
           job_running(session_name,
             new Build_Job.Build_Session(progress, session_background, store, do_store,
-              resources, session_setup, input_heaps, numa_node))
+              resources, build_context.session_setup, input_heaps, numa_node))
         }
       job.start()
     }
@@ -374,18 +398,25 @@ class Build_Process(
       build_options.seconds("editor_input_delay").sleep()
     }
 
-  def run(): Map[String, Build_Process.Result] = {
-    while (test_running()) {
-      if (progress.stopped) stop_running()
+  def run(): Map[String, Process_Result] = {
+    if (test_pending()) {
+      while (test_pending()) {
+        if (progress.stopped) stop_running()
 
-      for (job <- finished_running()) finish_job(job)
+        for (job <- finished_running()) finish_job(job)
 
-      next_pending() match {
-        case Some(session_name) => start_job(session_name)
-        case None => sleep()
+        next_pending() match {
+          case Some(session_name) => start_job(session_name)
+          case None => sleep()
+        }
+      }
+      synchronized {
+        for ((name, result) <- _results) yield name -> result.process_result
       }
     }
-
-    synchronized { _results }
+    else {
+      progress.echo_warning("Nothing to build")
+      Map.empty[String, Process_Result]
+    }
   }
 }

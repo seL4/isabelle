@@ -11,13 +11,23 @@ package isabelle
 object Build {
   /** build with results **/
 
-  class Results private[Build](
+  object Results {
+    def apply(context: Build_Process.Context, results: Map[String, Process_Result]): Results =
+      new Results(context.store, context.deps, results)
+  }
+
+  class Results private(
     val store: Sessions.Store,
     val deps: Sessions.Deps,
-    val sessions_ok: List[String],
     results: Map[String, Process_Result]
   ) {
     def cache: Term.Cache = store.cache
+
+    def sessions_ok: List[String] =
+      (for {
+        name <- deps.sessions_structure.build_topological_order.iterator
+        result <- results.get(name) if result.ok
+      } yield name).toList
 
     def info(name: String): Sessions.Info = deps.sessions_structure(name)
     def sessions: Set[String] = results.keySet
@@ -117,7 +127,11 @@ object Build {
 
     /* build process and results */
 
-    val build_context = Build_Process.Context(store, build_deps, progress = progress)
+    val build_context =
+      Build_Process.Context(store, build_deps, progress = progress,
+        build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        fresh_build = fresh_build, no_build = no_build, verbose = verbose,
+        session_setup = session_setup)
 
     store.prepare_output_dir()
 
@@ -131,35 +145,12 @@ object Build {
       }
     }
 
-    val results = {
-      val build_results =
-        if (build_deps.is_empty) {
-          progress.echo_warning("Nothing to build")
-          Map.empty[String, Build_Process.Result]
-        }
-        else {
-          Isabelle_Thread.uninterruptible {
-            val build_process =
-              new Build_Process(build_context, build_heap = build_heap,
-                numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-                no_build = no_build, verbose = verbose, session_setup = session_setup)
-            build_process.run()
-          }
-        }
-
-      val sessions_ok: List[String] =
-        (for {
-          name <- build_deps.sessions_structure.build_topological_order.iterator
-          result <- build_results.get(name)
-          if result.ok
-        } yield name).toList
-
-      val results =
-        (for ((name, result) <- build_results.iterator)
-          yield (name, result.process_result)).toMap
-
-      new Results(store, build_deps, sessions_ok, results)
-    }
+    val results =
+      Isabelle_Thread.uninterruptible {
+        val build_process = new Build_Process(build_context)
+        val res = build_process.run()
+        Results(build_context, res)
+      }
 
     if (export_files) {
       for (name <- full_sessions_selection.iterator if results(name).ok) {

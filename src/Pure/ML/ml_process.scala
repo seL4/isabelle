@@ -117,9 +117,9 @@ object ML_Process {
     bash_env.put("ISABELLE_TMP", File.standard_path(isabelle_tmp))
     bash_env.put("POLYSTATSDIR", isabelle_tmp.getAbsolutePath)
 
-    Bash.process(
-      options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
-        Bash.strings(bash_args),
+    val policy = options.string("ML_process_policy") match { case "" => "" case s => s + " " }
+
+    Bash.process(policy + """"$ML_HOME/poly" -q """ + Bash.strings(bash_args),
       cwd = cwd,
       env = bash_env,
       redirect = redirect,

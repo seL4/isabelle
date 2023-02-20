@@ -32,51 +32,44 @@ object NUMA {
 
   /* CPU policy via numactl tool */
 
-  lazy val numactl_available: Boolean = Isabelle_System.bash("numactl -m0 -N0 true").ok
+  def numactl(node: Int): String = "numactl -m" + node + " -N" + node
+  def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
 
-  def policy(node: Int): String =
-    if (numactl_available) "numactl -m" + node + " -N" + node else ""
+  def policy(node: Int): String = if (numactl_ok(node)) numactl(node) else ""
 
-  def policy_options(options: Options, numa_node: Option[Int] = Some(0)): Options =
+  def policy_options(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
       case None => options
       case Some(n) => options.string("ML_process_policy") = policy(n)
     }
 
+  def perhaps_policy_options(options: Options): Options = {
+    val numa_node =
+      try {
+        nodes() match {
+          case ns if ns.length >= 2 && numactl_ok(ns.head) => Some(ns.head)
+          case _ => None
+        }
+      }
+      catch { case ERROR(_) => None }
+    policy_options(options, numa_node)
+  }
+
 
   /* shuffling of CPU nodes */
 
-  def enabled: Boolean =
-    try { nodes().length >= 2 && numactl_available }
-    catch { case ERROR(_) => false }
-
   def enabled_warning(progress: Progress, enabled: Boolean): Boolean = {
     def warning =
-      if (nodes().length < 2) Some("no NUMA nodes available")
-      else if (!numactl_available) Some("bad numactl tool")
-      else None
+      nodes() match {
+        case ns if ns.length < 2 => Some("no NUMA nodes available")
+        case ns if !numactl_ok(ns.head) => Some("bad numactl tool")
+        case _ => None
+      }
 
     enabled &&
       (warning match {
         case Some(s) => progress.echo_warning("Shuffling of CPU nodes is disabled: " + s); false
         case _ => true
       })
-  }
-
-  class Nodes(enabled: Boolean = true) {
-    private val available = nodes().zipWithIndex
-    private var next_index = 0
-
-    def next(used: Int => Boolean = _ => false): Option[Int] = synchronized {
-      if (!enabled || available.isEmpty) None
-      else {
-        val candidates = available.drop(next_index) ::: available.take(next_index)
-        val (n, i) =
-          candidates.find({ case (n, i) => i == next_index && !used(n) }) orElse
-            candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-        next_index = (i + 1) % available.length
-        Some(n)
-      }
-    }
   }
 }
