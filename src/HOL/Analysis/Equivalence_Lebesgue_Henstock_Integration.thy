@@ -696,7 +696,7 @@ qed
 
 lemma nn_integral_has_integral_lebesgue:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
-  assumes nonneg: "\<And>x. 0 \<le> f x" and I: "(f has_integral I) \<Omega>"
+  assumes nonneg: "\<And>x. x \<in> \<Omega> \<Longrightarrow> 0 \<le> f x" and I: "(f has_integral I) \<Omega>"
   shows "integral\<^sup>N lborel (\<lambda>x. indicator \<Omega> x * f x) = I"
 proof -
   from I have "(\<lambda>x. indicator \<Omega> x *\<^sub>R f x) \<in> lebesgue \<rightarrow>\<^sub>M borel"
@@ -713,8 +713,9 @@ proof -
     by (rule nn_integral_has_integral_lborel[rotated 2]) auto
   also have "integral\<^sup>N lborel (\<lambda>x. abs (f' x)) = integral\<^sup>N lborel (\<lambda>x. abs (indicator \<Omega> x * f x))"
     using eq by (intro nn_integral_cong_AE) auto
-  finally show ?thesis
-    using nonneg by auto
+  also have "(\<lambda>x. abs (indicator \<Omega> x * f x)) = (\<lambda>x. indicator \<Omega> x * f x)"
+    using nonneg by (auto simp: indicator_def fun_eq_iff)
+  finally show ?thesis .
 qed
 
 lemma has_integral_iff_nn_integral_lebesgue:
@@ -739,6 +740,38 @@ next
   moreover note nn_integral_has_integral[of "\<lambda>x. \<bar>f' x\<bar>" r] \<open>?N\<close>
   ultimately show ?I
     using f by (auto simp: nn_integral_completion)
+qed
+
+lemma set_nn_integral_lborel_eq_integral:
+  fixes f::"'a::euclidean_space \<Rightarrow> real"
+  assumes "set_borel_measurable borel A f"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x" "(\<integral>\<^sup>+x\<in>A. f x \<partial>lborel) < \<infinity>"
+  shows "(\<integral>\<^sup>+x\<in>A. f x \<partial>lborel) = integral A f"
+proof -
+  have eq: "(\<integral>\<^sup>+x\<in>A. f x \<partial>lborel) = (\<integral>\<^sup>+x. ennreal (indicator A x * f x) \<partial>lborel)"
+    by (intro nn_integral_cong) (auto simp: indicator_def)
+  also have "\<dots> = integral UNIV (\<lambda>x. indicator A x * f x)"
+    using assms eq by (intro nn_integral_lborel_eq_integral)
+                      (auto simp: indicator_def set_borel_measurable_def)
+  also have "integral UNIV (\<lambda>x. indicator A x * f x) = integral A (\<lambda>x. indicator A x * f x)"
+    by (rule integral_spike_set) (auto intro: empty_imp_negligible)
+ 
+  also have "\<dots> = integral A f"
+    by (rule integral_cong) (auto simp: indicator_def)
+  finally show ?thesis .
+qed
+
+lemma nn_integral_has_integral_lebesgue':
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes nonneg: "\<And>x. x \<in> \<Omega> \<Longrightarrow> 0 \<le> f x" and I: "(f has_integral I) \<Omega>"
+  shows "integral\<^sup>N lborel (\<lambda>x. ennreal (f x) * indicator \<Omega> x) = ennreal I"
+proof -
+  have "integral\<^sup>N lborel (\<lambda>x. ennreal (f x) * indicator \<Omega> x) =
+        integral\<^sup>N lborel (\<lambda>x. ennreal (indicator \<Omega> x * f x))"
+    by (intro nn_integral_cong) (auto simp: indicator_def)
+  also have "\<dots> = ennreal I"
+    using assms by (intro nn_integral_has_integral_lebesgue)
+  finally show ?thesis .
 qed
 
 context
@@ -959,7 +992,7 @@ next
     show "(\<lambda>x. indicator S x *\<^sub>R f x) \<in> borel_measurable lebesgue"
       using f has_integral_implies_lebesgue_measurable[of f _ S] by (auto simp: integrable_on_def)
     show "(\<integral>\<^sup>+ x. ennreal (norm (indicator S x *\<^sub>R f x)) \<partial>lebesgue) < \<infinity>"
-      using nf nn_integral_has_integral_lebesgue[of "\<lambda>x. norm (f x)" _ S]
+      using nf nn_integral_has_integral_lebesgue[of _ "\<lambda>x. norm (f x)"]
       by (auto simp: integrable_on_def nn_integral_completion)
   qed
 qed

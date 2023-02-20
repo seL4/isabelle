@@ -76,6 +76,22 @@ proof -
     by (subst (asm) sets_restrict_space_iff) (auto simp: space_restrict_space)
 qed
 
+lemma set_integrable_bound:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+    and g :: "'a \<Rightarrow> 'c::{banach, second_countable_topology}"
+  assumes "set_integrable M A f" "set_borel_measurable M A g"
+  assumes "AE x in M. x \<in> A \<longrightarrow> norm (g x) \<le> norm (f x)"
+  shows   "set_integrable M A g"
+  unfolding set_integrable_def
+proof (rule Bochner_Integration.integrable_bound)
+  from assms(1) show "integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"
+    by (simp add: set_integrable_def)
+  from assms(2) show "(\<lambda>x. indicat_real A x *\<^sub>R g x) \<in> borel_measurable M"
+    by (simp add: set_borel_measurable_def)
+  from assms(3) show "AE x in M. norm (indicat_real A x *\<^sub>R g x) \<le> norm (indicat_real A x *\<^sub>R f x)"
+    by eventually_elim (simp add: indicator_def)
+qed
+
 lemma set_lebesgue_integral_zero [simp]: "set_lebesgue_integral M A (\<lambda>x. 0) = 0"
   by (auto simp: set_lebesgue_integral_def)
 
@@ -625,6 +641,11 @@ syntax
 translations
 "\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"
 "\<integral>x \<in> A. f \<partial>M" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
+
+lemma set_nn_integral_cong:
+  assumes "M = M'" "A = B" "\<And>x. x \<in> space M \<inter> A \<Longrightarrow> f x = g x"
+  shows   "set_nn_integral M A f = set_nn_integral M' B g"
+  by (metis (mono_tags, lifting) IntI assms indicator_simps(2) mult_eq_0_iff nn_integral_cong)
 
 lemma nn_integral_disjoint_pair:
   assumes [measurable]: "f \<in> borel_measurable M"
