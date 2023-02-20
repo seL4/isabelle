@@ -27,7 +27,8 @@ unfolding select_def by (rule atomize_not)
 lemma not_atomize_select: "(\<not> A \<Longrightarrow> select False) \<equiv> Trueprop A"
 unfolding select_def by (rule not_atomize)
 
-lemma select_FalseI: "False \<Longrightarrow> select False" by simp
+lemma select_FalseI: "False \<Longrightarrow> select False"
+by simp
 
 definition lambda :: "'a \<Rightarrow> 'a" where
 "lambda = (\<lambda>x. x)"

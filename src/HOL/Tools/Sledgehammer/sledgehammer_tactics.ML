@@ -33,7 +33,7 @@ fun run_prover override_params fact_override chained i n ctxt goal =
     val params as {provers, induction_rules, max_facts, ...} = default_params thy override_params
     val name = hd provers
     val prover = get_prover ctxt mode name
-    val default_max_facts = #2 (fst (hd (get_slices ctxt name)))
+    val default_max_facts = #4 (fst (hd (get_slices ctxt name)))
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val keywords = Thy_Header.get_keywords' ctxt
     val css_table = clasimpset_rule_table_of ctxt
@@ -45,7 +45,7 @@ fun run_prover override_params fact_override chained i n ctxt goal =
       |> hd |> snd
     val problem =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)], found_proof = K ()}
+       factss = [("", facts)], found_something = K ()}
     val slice = hd (get_slices ctxt name)
   in
     (case prover params problem slice of

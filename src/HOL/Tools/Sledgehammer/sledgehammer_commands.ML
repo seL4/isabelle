@@ -53,6 +53,8 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("spy", "false"),
+   ("abduce", "smart"),
+   ("check_consistent", "smart"),
    ("type_enc", "smart"),
    ("strict", "false"),
    ("lam_trans", "smart"),
@@ -84,6 +86,8 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_spy", "spy"),
+   ("dont_abduce", "abduce"),
+   ("dont_check_consistent", "check_consistent"),
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
    ("dont_learn", "learn"),
@@ -228,6 +232,16 @@ fun extract_params mode default_params override_params =
     val overlord = lookup_bool "overlord"
     val spy = getenv "SLEDGEHAMMER_SPY" = "yes" orelse lookup_bool "spy"
     val provers = lookup_string "provers" |> space_explode " " |> mode = Auto_Try ? single o hd
+    val check_consistent =
+      if mode = Auto_Try then
+        SOME false
+      else
+        lookup_option lookup_bool "check_consistent"
+    val abduce =
+      if mode = Auto_Try then
+        SOME false
+      else
+        lookup_option lookup_bool "abduce"
     val type_enc =
       if mode = Auto_Try then
         NONE
@@ -261,13 +275,14 @@ fun extract_params mode default_params override_params =
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
-     type_enc = type_enc, strict = strict, lam_trans = lam_trans,
-     uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
-     induction_rules = induction_rules, max_facts = max_facts, fact_thresholds = fact_thresholds,
-     max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
-     max_proofs = max_proofs, isar_proofs = isar_proofs, compress = compress, try0 = try0,
-     smt_proofs = smt_proofs, minimize = minimize, slices = slices, timeout = timeout,
-     preplay_timeout = preplay_timeout, expect = expect}
+     abduce = abduce, check_consistent = check_consistent, type_enc = type_enc, strict = strict,
+     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases, learn = learn,
+     fact_filter = fact_filter, induction_rules = induction_rules, max_facts = max_facts,
+     fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
+     max_new_mono_instances = max_new_mono_instances, max_proofs = max_proofs,
+     isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
+     minimize = minimize, slices = slices, timeout = timeout, preplay_timeout = preplay_timeout,
+     expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

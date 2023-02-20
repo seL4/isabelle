@@ -104,10 +104,10 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     ({debug, verbose, overlord, strict, max_mono_iters, max_new_mono_instances, isar_proofs,
       compress, try0, smt_proofs, minimize, slices, timeout, preplay_timeout, spy, ...} : params)
-    ({comment, state, goal, subgoal, subgoal_count, factss, found_proof} : prover_problem)
+    ({comment, state, goal, subgoal, subgoal_count, factss, found_something} : prover_problem)
     slice =
   let
-    val (basic_slice as (slice_size, _, _),
+    val (basic_slice as (slice_size, _, _, _, _),
         ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =
       slice
     val facts = facts_of_basic_slice basic_slice factss
@@ -237,18 +237,10 @@ fun run_atp mode name
           (state, subgoal, name, "Running command in " ^
              string_of_int (Time.toMilliseconds run_time) ^ " ms"))
 
-        val outcome =
+        val _ =
           (case outcome of
-            NONE =>
-            (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
-              SOME facts =>
-              let
-                val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
-              in
-                if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
-              end
-            | NONE => (found_proof name; NONE))
-          | _ => outcome)
+            NONE => found_something name
+          | _ => ())
       in
         (atp_problem_data,
          (output, run_time, facts, atp_problem, tstplike_proof, atp_proof, outcome),

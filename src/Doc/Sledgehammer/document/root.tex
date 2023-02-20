@@ -99,9 +99,10 @@ Lawrence C. Paulson \\
 \label{introduction}
 
 Sledgehammer is a tool that applies automatic theorem provers (ATPs)
-and satisfiability-modulo-theories (SMT) solvers on the current goal.%
-\footnote{The distinction between ATPs and SMT solvers is convenient but mostly
-historical.}
+and satisfiability-modulo-theories (SMT) solvers on the current goal, mostly
+to find proofs but also to find inconsistencies.%
+\footnote{The distinction between ATPs and SMT solvers is mostly
+historical but convenient.}
 %
 The supported ATPs include agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{schulz-2019}, iProver \cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III
@@ -113,15 +114,19 @@ solvers are CVC4 \cite{cvc4}, cvc5 \cite{barbosa-et-al-cvc5}, veriT
 \cite{bouton-et-al-2009}, and Z3 \cite{de-moura-2008}. These are always run
 locally.
 
-The problem passed to the external provers (or solvers) consists of your current
-goal together with a heuristic selection of hundreds of facts (theorems) from the
-current theory context, filtered by relevance.
+The problem passed to the automatic provers (or solvers) consists of your
+current goal together with a heuristic selection of hundreds of facts (theorems)
+from the current theory context, filtered by relevance.
 
 The result of a successful proof search is some source text that typically
 reconstructs the proof within Isabelle. For ATPs, the reconstructed proof
 typically relies on the general-purpose \textit{metis} proof method, which
 integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
 the kernel. Thus its results are correct by construction.
+
+Sometimes the automatic provers might detect that the goal is inconsistent with
+the background facts---or even that the background facts are inconsistent
+regardless of of the goal.
 
 For Isabelle/jEdit users, Sledgehammer provides an automatic mode that can be
 enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options >
@@ -162,9 +167,9 @@ There are three main ways to install automatic provers on your machine:
 already include properly set up executables for CVC4, cvc5, E, SPASS, Vampire,
 veriT, Z3, and Zipperposition ready to use.
 
-\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC4, E,
-SPASS, Vampire, veriT, Z3, and Zipperposition binary packages from \download.
-Extract the archives, then add a line to your
+\item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC4,
+cvc5, E, SPASS, Vampire, veriT, Z3, and Zipperposition binary packages from
+\download. Extract the archives, then add a line to your
 \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
@@ -225,8 +230,8 @@ attempt to prove a simple lemma:
 \postw
 
 Instead of issuing the \textbf{sledgehammer} command, you can also use the
-Sledgehammer panel in Isabelle/jEdit. Sledgehammer might produce something like
-the following output after a few seconds:
+Sledgehammer panel in Isabelle/jEdit. Either way, Sledgehammer will produce
+something like the following output after a few seconds:
 
 \prew
 \slshape
@@ -238,7 +243,7 @@ e: Try this: \textbf{by} \textit{simp} (0.3 ms) \\
 cvc4: Try this: \textbf{by} \textit{simp} (0.4 ms) \\
 z3: Try this: \textbf{by} \textit{simp} (0.5 ms) \\
 vampire: Try this: \textbf{by} \textit{simp} (0.3 ms) \\
-QED
+Done
 \postw
 
 Sledgehammer ran CVC4, E, Vampire, Z3, and possibly other provers in parallel.
@@ -259,6 +264,23 @@ In addition, you can ask Sledgehammer for an Isar text proof by enabling the
 When Isar proof construction is successful, it can yield proofs that are more
 readable and also faster than \textit{metis} or \textit{smt} one-line
 proofs. This feature is experimental.
+
+For goals that are inconsistent with the background theory (and hence unprovable
+unless the theory is itself inconsistent), such as
+
+\prew
+\textbf{lemma} ``$\mathit{length}\; (\mathit{zip}\; \mathit{xs}\; \mathit{ys}) = \mathit{length}\; \mathit{xs}$'' \\
+\textbf{sledgehammer}
+\postw
+
+Sledgehammer's output might look as follows:
+
+\prew
+\slshape
+vampire found an inconsistency\ldots \\
+vampire: The goal is inconsistent with these facts: append\_Cons, nth\_append\_length, self\_append\_conv2, zip\_eq\_Nil\_iff
+Done
+\postw
 
 
 \section{Hints}
@@ -790,6 +812,16 @@ It is generally beneficial to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
+
+\opsmart{check\_consistent}{dont\_check\_consistent}
+Specifies whether Sledgehammer should look for inconsistencies or for proofs. By
+default, it looks for both proofs and inconsistencies.
+
+An inconsistency indicates that the goal, taken as an axiom, would be
+inconsistent with some specific background facts if it were added as a lemma,
+indicating a likely issue with the goal. Sometimes the inconsistency involves
+only the background theory; this might happen, for example, if an axiom is used
+or if a lemma was introduced with \textbf{sorry}.
 
 \optrue{minimize}{dont\_minimize}
 Specifies whether the proof minimization tool should be invoked automatically

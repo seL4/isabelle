@@ -54,8 +54,21 @@ fun mk_old_skolem_term_wrapper t =
   let val T = fastype_of t
   in \<^Const>\<open>Meson.skolem T for t\<close> end
 
+fun eta_expand_All_Ex_arg ((cst as (Const _)) $ Abs (s, T, t')) =
+    cst $ Abs (s, T, eta_expand_All_Ex_arg t')
+  | eta_expand_All_Ex_arg ((cst as (Const (cst_s, cst_T))) $ t') =
+    if member (op =) [\<^const_name>\<open>All\<close>, \<^const_name>\<open>Ex\<close>] cst_s then
+      cst $ Abs (Name.uu, domain_type (domain_type cst_T),
+        incr_boundvars 1 (eta_expand_All_Ex_arg t') $ Bound 0)
+    else
+      cst $ eta_expand_All_Ex_arg t'
+  | eta_expand_All_Ex_arg (Abs (s, T, t')) = Abs (s, T, eta_expand_All_Ex_arg t')
+  | eta_expand_All_Ex_arg (t1 $ t2) =
+    eta_expand_All_Ex_arg t1 $ eta_expand_All_Ex_arg t2
+  | eta_expand_All_Ex_arg t = t
+
 fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
-  | beta_eta_in_abs_body t = Envir.beta_eta_contract t
+  | beta_eta_in_abs_body t = eta_expand_All_Ex_arg (Envir.beta_eta_contract t)
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun old_skolem_defs th =

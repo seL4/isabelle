@@ -24,11 +24,11 @@ definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<
 
 fun del :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt" where
 "del x Leaf = Leaf" |
-"del x (Node l ((a,b), c) r) = (case cmp x a of
+"del x (Node l (ab, _) r) = (case cmp x (fst ab) of
      LT \<Rightarrow> if l \<noteq> Leaf \<and> color l = Black
-           then baldL (del x l) (a,b) r else R (del x l) (a,b) r |
+           then baldL (del x l) ab r else R (del x l) ab r |
      GT \<Rightarrow> if r \<noteq> Leaf\<and> color r = Black
-           then baldR l (a,b) (del x r) else R l (a,b) (del x r) |
+           then baldR l ab (del x r) else R l ab (del x r) |
   EQ \<Rightarrow> join l r)"
 
 definition delete :: "'a::linorder \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
@@ -46,10 +46,14 @@ lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 by(simp add: update_def inorder_upd inorder_paint)
 
+(* This lemma became necessary below when \<open>del\<close> was converted from pattern-matching to \<open>fst\<close> *)
+lemma del_list_id: "\<forall>ab\<in>set ps. y < fst ab \<Longrightarrow> x \<le> y \<Longrightarrow> del_list x ps = ps"
+by(rule del_list_idem) auto
+
 lemma inorder_del:
  "sorted1(inorder t) \<Longrightarrow>  inorder(del x t) = del_list x (inorder t)"
 by(induction x t rule: del.induct)
-  (auto simp: del_list_simps inorder_join inorder_baldL inorder_baldR)
+  (auto simp: del_list_simps del_list_id inorder_join inorder_baldL inorder_baldR)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
@@ -81,19 +85,19 @@ lemma del_invc_invh: "invh t \<Longrightarrow> invc t \<Longrightarrow> invh (de
    (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>
     color t = Black \<and> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
 proof (induct x t rule: del.induct)
-case (2 x _ y _ c)
-  have "x = y \<or> x < y \<or> x > y" by auto
+case (2 x _ ab c)
+  have "x = fst ab \<or> x < fst ab \<or> x > fst ab" by auto
   thus ?case proof (elim disjE)
-    assume "x = y"
+    assume "x = fst ab"
     with 2 show ?thesis
     by (cases c) (simp_all add: invh_join invc_join)
   next
-    assume "x < y"
+    assume "x < fst ab"
     with 2 show ?thesis
       by(cases c)
         (auto simp: invh_baldL_invc invc_baldL invc2_baldL dest: neq_LeafD)
   next
-    assume "y < x"
+    assume "fst ab < x"
     with 2 show ?thesis
       by(cases c)
         (auto simp: invh_baldR_invc invc_baldR invc2_baldR dest: neq_LeafD)
