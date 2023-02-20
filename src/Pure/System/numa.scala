@@ -32,10 +32,10 @@ object NUMA {
 
   /* CPU policy via numactl tool */
 
-  lazy val numactl_available: Boolean = Isabelle_System.bash("numactl -m0 -N0 true").ok
+  def numactl(node: Int): String = "numactl -m" + node + " -N" + node
+  def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
 
-  def policy(node: Int): String =
-    if (numactl_available) "numactl -m" + node + " -N" + node else ""
+  def policy(node: Int): String = if (numactl_ok(node)) numactl(node) else ""
 
   def policy_options(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
@@ -47,7 +47,7 @@ object NUMA {
     val numa_node =
       try {
         nodes() match {
-          case ns if ns.length >= 2 && numactl_available => ns.headOption
+          case ns if ns.length >= 2 && numactl_ok(ns.head) => Some(ns.head)
           case _ => None
         }
       }
@@ -60,9 +60,11 @@ object NUMA {
 
   def enabled_warning(progress: Progress, enabled: Boolean): Boolean = {
     def warning =
-      if (nodes().length < 2) Some("no NUMA nodes available")
-      else if (!numactl_available) Some("bad numactl tool")
-      else None
+      nodes() match {
+        case ns if ns.length < 2 => Some("no NUMA nodes available")
+        case ns if !numactl_ok(ns.head) => Some("bad numactl tool")
+        case _ => None
+      }
 
     enabled &&
       (warning match {
