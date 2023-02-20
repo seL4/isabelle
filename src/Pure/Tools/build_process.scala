@@ -119,9 +119,10 @@ object Build_Process {
             }
         }
 
-      new Context(store, deps, sessions, ordering, progress,
-        build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        fresh_build = fresh_build, no_build = no_build, verbose = verbose, session_setup)
+      val numa_nodes = if (numa_shuffling) NUMA.nodes() else Nil
+      new Context(store, deps, sessions, ordering, progress, numa_nodes,
+        build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
+        no_build = no_build, verbose = verbose, session_setup)
     }
   }
 
@@ -131,8 +132,8 @@ object Build_Process {
     sessions: Map[String, Session_Context],
     val ordering: Ordering[String],
     val progress: Progress,
+    val numa_nodes: List[Int],
     val build_heap: Boolean,
-    val numa_shuffling: Boolean,
     val max_jobs: Int,
     val fresh_build: Boolean,
     val no_build: Boolean,
@@ -191,7 +192,7 @@ class Build_Process(build_context: Build_Process.Context) {
     }
 
   // global state
-  private val _numa_nodes = new NUMA.Nodes(build_context.numa_shuffling)
+  private var _numa_index = 0
   private var _pending: List[Build_Process.Entry] =
     (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
       yield Build_Process.Entry(name, preds.toList)).toList
@@ -214,8 +215,18 @@ class Build_Process(build_context: Build_Process.Context) {
   }
 
   private def next_numa_node(): Option[Int] = synchronized {
-    _numa_nodes.next(used =
-      Set.from(for { job <- _running.valuesIterator; i <- job.numa_node } yield i))
+    val available = build_context.numa_nodes.zipWithIndex
+    if (available.isEmpty) None
+    else {
+      val used = Set.from(for (job <- _running.valuesIterator; i <- job.numa_node) yield i)
+      val index = _numa_index
+      val candidates = available.drop(index) ::: available.take(index)
+      val (n, i) =
+        candidates.find({ case (n, i) => i == index && !used(n) }) orElse
+        candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
+      _numa_index = (i + 1) % available.length
+      Some(n)
+    }
   }
 
   private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
