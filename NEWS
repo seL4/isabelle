@@ -43,8 +43,6 @@ antiquotations.
 
 *** HOL ***
 
-* Map.map_of and lemmas moved to List.
-
 * Theory "HOL.Euclidean_Division" renamed to "HOL.Euclidean_Rings";
   "euclidean division" typically denotes a particular division on
   integers.  Minor INCOMPATIBILITY.
