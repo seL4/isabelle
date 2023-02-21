@@ -172,8 +172,17 @@ object Build_Process {
     running: Map[String, Build_Job] = Map.empty,
     results: Map[String, Build_Process.Result] = Map.empty
   ) {
-    def get_numa: (Int, Set[Int]) = (numa_index, numa_running)
-    def put_numa(i: Int): State = copy(numa_index = i)
+    def numa_next(numa_nodes: List[Int]): (Option[Int], State) =
+      if (numa_nodes.isEmpty) (None, this)
+      else {
+        val available = numa_nodes.zipWithIndex
+        val used = Set.from(for (job <- running.valuesIterator; i <- job.numa_node) yield i)
+        val candidates = available.drop(numa_index) ::: available.take(numa_index)
+        val (n, i) =
+          candidates.find({ case (n, i) => i == numa_index && !used(n) }) orElse
+          candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
+        (Some(n), copy(numa_index = (i + 1) % available.length))
+      }
 
     def finished: Boolean = pending.isEmpty
 
@@ -182,9 +191,6 @@ object Build_Process {
         entry => if (entry.name == name) None else Some(entry.resolve(name))))
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
-
-    def numa_running: Set[Int] =
-      Set.from(for (job <- running.valuesIterator; i <- job.numa_node) yield i)
 
     def stop_running(): Unit = running.valuesIterator.foreach(_.terminate())
 
@@ -262,29 +268,10 @@ class Build_Process(protected val build_context: Build_Process.Context) {
     else None
   }
 
-  protected def next_numa_node(): Option[Int] = synchronized {
-    val available = build_context.numa_nodes.zipWithIndex
-    if (available.isEmpty) None
-    else {
-      val (index, used) = _state.get_numa
-      val candidates = available.drop(index) ::: available.take(index)
-      val (n, i) =
-        candidates.find({ case (n, i) => i == index && !used(n) }) orElse
-        candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-      _state = _state.put_numa((i + 1) % available.length)
-      Some(n)
-    }
-  }
-
   protected def stop_running(): Unit = synchronized { _state.stop_running() }
 
   protected def finished_running(): List[Build_Job.Build_Session] = synchronized {
     _state.finished_running()
-  }
-
-  protected def job_running(name: String, job: Build_Job): Build_Job = synchronized {
-    _state = _state.add_running(name, job)
-    job
   }
 
   protected def finish_job(job: Build_Job.Build_Session): Unit = {
@@ -407,10 +394,12 @@ class Build_Process(protected val build_context: Build_Process.Context) {
 
       val job =
         synchronized {
-          val numa_node = next_numa_node()
-          job_running(session_name,
+          val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
+          val job =
             new Build_Job.Build_Session(progress, session_background, store, do_store,
-              resources, build_context.session_setup, input_heaps, numa_node))
+              resources, build_context.session_setup, input_heaps, numa_node)
+          _state = state1.add_running(session_name, job)
+          job
         }
       job.start()
     }
