@@ -220,7 +220,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
               clean_build,
               dirs = dirs,
               select_dirs = select_dirs,
-              numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
+              numa_shuffling = NUMA.check(progress, numa_shuffling),
               max_jobs = max_jobs,
               fresh_build,
               no_build = no_build,

@@ -58,7 +58,7 @@ object NUMA {
 
   /* shuffling of CPU nodes */
 
-  def enabled_warning(progress: Progress, enabled: Boolean): Boolean = {
+  def check(progress: Progress, enabled: Boolean): Boolean = {
     def warning =
       nodes() match {
         case ns if ns.length < 2 => Some("no NUMA nodes available")
