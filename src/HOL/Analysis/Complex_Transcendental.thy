@@ -2438,69 +2438,28 @@ qed (use assms in auto)
 
 declare has_field_derivative_powr[THEN DERIV_chain2, derivative_intros]
 
+(*Seemingly impossible to use DERIV_power_int without introducing the assumption z\<in>S*)
 lemma has_field_derivative_powr_of_int:
   fixes z :: complex
-  assumes gderiv:"(g has_field_derivative gd) (at z within S)" and "g z\<noteq>0"
+  assumes gderiv: "(g has_field_derivative gd) (at z within S)" and "g z \<noteq> 0"
   shows "((\<lambda>z. g z powr of_int n) has_field_derivative (n * g z powr (of_int n - 1) * gd)) (at z within S)"
 proof -
-  define dd where "dd = of_int n * g z powr (of_int (n - 1)) * gd"
-  obtain e where "e>0" and e_dist:"\<forall>y\<in>S. dist z y < e \<longrightarrow> g y \<noteq> 0"
-    using DERIV_continuous[OF gderiv,THEN continuous_within_avoid] \<open>g z\<noteq>0\<close> by auto
-  have ?thesis when "n\<ge>0"
-  proof -
-    define dd' where "dd' = of_int n * g z ^ (nat n - 1) * gd"
-    have "dd=dd'"
-    proof (cases "n=0")
-      case False
-      then have "n-1 \<ge>0" using \<open>n\<ge>0\<close> by auto
-      then have "g z powr (of_int (n - 1)) = g z ^ (nat n - 1)"
-        using powr_of_int[OF \<open>g z\<noteq>0\<close>,of "n-1"] by (simp add: nat_diff_distrib')
-      then show ?thesis unfolding dd_def dd'_def by simp
-    qed (simp add:dd_def dd'_def)
-    then have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within S)
-                \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative dd') (at z within S)"
-      by simp
-    also have "\<dots> \<longleftrightarrow> ((\<lambda>z. g z ^ nat n) has_field_derivative dd') (at z within S)"
-    proof (rule has_field_derivative_cong_eventually)
-      show "\<forall>\<^sub>F x in at z within S. g x powr of_int n = g x ^ nat n"
-        unfolding eventually_at by (metis e_dist \<open>e>0\<close> dist_commute powr_of_int that)
-    qed (use powr_of_int \<open>g z\<noteq>0\<close> that in simp)
-    also have "\<dots>" unfolding dd'_def using gderiv that
-      by (auto intro!: derivative_eq_intros)
-    finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within S)" .
-    then show ?thesis unfolding dd_def by simp
-  qed
-  moreover have ?thesis when "n<0"
-  proof -
-    define dd' where "dd' = of_int n / g z ^ (nat (1 - n)) * gd"
-    have "dd=dd'"
-    proof -
-      have "g z powr of_int (n - 1) = inverse (g z ^ nat (1-n))"
-        using powr_of_int[OF \<open>g z\<noteq>0\<close>,of "n-1"] that by auto
-      then show ?thesis
-        unfolding dd_def dd'_def by (simp add: divide_inverse)
-    qed
-    then have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within S)
-                \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative dd') (at z within S)"
-      by simp
-    also have "\<dots> \<longleftrightarrow> ((\<lambda>z. inverse (g z ^ nat (-n))) has_field_derivative dd') (at z within S)"
-    proof (rule has_field_derivative_cong_eventually)
-      show "\<forall>\<^sub>F x in at z within S. g x powr of_int n = inverse (g x ^ nat (- n))"
-         unfolding eventually_at
-         by (metis \<open>e>0\<close> e_dist dist_commute linorder_not_le powr_of_int that)
-    qed (use powr_of_int \<open>g z\<noteq>0\<close> that in simp)
-    also have "\<dots>"
-    proof -
-      have "nat (- n) + nat (1 - n) - Suc 0 = nat (- n) + nat (- n)"
-        by auto
-      then show ?thesis
-        unfolding dd'_def using gderiv that \<open>g z\<noteq>0\<close>
-        by (auto intro!: derivative_eq_intros simp add:field_split_simps power_add[symmetric])
-    qed
-    finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within S)" .
-    then show ?thesis unfolding dd_def by simp
-  qed
-  ultimately show ?thesis by force
+  obtain e where "e>0" and e_dist: "\<forall>y\<in>S. dist z y < e \<longrightarrow> g y \<noteq> 0"
+    using DERIV_continuous assms continuous_within_avoid gderiv by blast
+  define D where "D = of_int n * g z powr (of_int (n - 1)) * gd"
+  define E where "E = of_int n * g z powi (n - 1) * gd"
+  have "((\<lambda>z. g z powr of_int n) has_field_derivative D) (at z within S)
+    \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative E) (at z within S)"
+    using assms complex_powr_of_int D_def E_def by presburger
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>z. g z powi n) has_field_derivative E) (at z within S)"
+  proof (rule has_field_derivative_cong_eventually)
+    show "\<forall>\<^sub>F x in at z within S. g x powr of_int n = g x powi n"
+      unfolding eventually_at by (metis \<open>0 < e\<close> complex_powr_of_int dist_commute e_dist)
+  qed (simp add: assms complex_powr_of_int)
+  also have "((\<lambda>z. g z powi n) has_field_derivative E) (at z within S)"
+    unfolding E_def using gderiv assms by (auto intro!: derivative_eq_intros)
+  finally show ?thesis
+    by (simp add: D_def) 
 qed
 
 lemma field_differentiable_powr_of_int:
@@ -3832,15 +3791,8 @@ qed
 
 lemma continuous_within_Arcsin_real:
     "continuous (at z within {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1}) Arcsin"
-proof (cases "z \<in> {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1}")
-  case True then show ?thesis
-    using continuous_on_Arcsin_real continuous_on_eq_continuous_within
-    by blast
-next
-  case False
-  with closed_real_abs_le [of 1] show ?thesis
-    by (rule continuous_within_closed_nontrivial)
-qed
+  using closed_real_abs_le continuous_on_Arcsin_real continuous_on_eq_continuous_within 
+        continuous_within_closed_nontrivial by blast
 
 lemma continuous_on_Arccos_real:
     "continuous_on {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1} Arccos"
@@ -3858,15 +3810,8 @@ qed
 
 lemma continuous_within_Arccos_real:
     "continuous (at z within {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1}) Arccos"
-proof (cases "z \<in> {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1}")
-  case True then show ?thesis
-    using continuous_on_Arccos_real continuous_on_eq_continuous_within
-    by blast
-next
-  case False
-  with closed_real_abs_le [of 1] show ?thesis
-    by (rule continuous_within_closed_nontrivial)
-qed
+  using closed_real_abs_le continuous_on_Arccos_real continuous_on_eq_continuous_within 
+        continuous_within_closed_nontrivial by blast
 
 lemma sinh_ln_complex: "x \<noteq> 0 \<Longrightarrow> sinh (ln x :: complex) = (x - inverse x) / 2"
   by (simp add: sinh_def exp_minus scaleR_conv_of_real exp_of_real)
