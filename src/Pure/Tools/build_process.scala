@@ -230,13 +230,13 @@ object Build_Process {
 }
 
 class Build_Process(protected val build_context: Build_Process.Context) {
-  protected val store = build_context.store
-  protected val build_options = store.options
-  protected val build_deps = build_context.deps
-  protected val progress = build_context.progress
-  protected val verbose = build_context.verbose
+  protected val store: Sessions.Store = build_context.store
+  protected val build_options: Options = store.options
+  protected val build_deps: Sessions.Deps = build_context.deps
+  protected val progress: Progress = build_context.progress
+  protected val verbose: Boolean = build_context.verbose
 
-  protected val log =
+  protected val log: Logger =
     build_options.string("system_log") match {
       case "" => No_Logger
       case "-" => Logger.make(progress)
@@ -244,7 +244,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
     }
 
   // global state
-  protected var _state = init_state()
+  protected var _state: Build_Process.State = init_state()
 
   protected def init_state(): Build_Process.State =
     Build_Process.State(pending =
