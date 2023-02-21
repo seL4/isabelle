@@ -172,6 +172,9 @@ object Build_Process {
     running: Map[String, Build_Job] = Map.empty,
     results: Map[String, Build_Process.Result] = Map.empty
   ) {
+    def get_numa: (Int, Set[Int]) = (numa_index, numa_running)
+    def put_numa(i: Int): State = copy(numa_index = i)
+
     def finished: Boolean = pending.isEmpty
 
     def remove_pending(name: String): State =
@@ -263,13 +266,12 @@ class Build_Process(protected val build_context: Build_Process.Context) {
     val available = build_context.numa_nodes.zipWithIndex
     if (available.isEmpty) None
     else {
-      val used = _state.numa_running
-      val index = _state.numa_index
+      val (index, used) = _state.get_numa
       val candidates = available.drop(index) ::: available.take(index)
       val (n, i) =
         candidates.find({ case (n, i) => i == index && !used(n) }) orElse
         candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-      _state = _state.copy(numa_index = (i + 1) % available.length)
+      _state = _state.put_numa((i + 1) % available.length)
       Some(n)
     }
   }
