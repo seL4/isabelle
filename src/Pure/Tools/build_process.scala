@@ -198,7 +198,7 @@ object Build_Process {
     def remove_running(name: String): State =
       copy(running = running - name)
 
-    def add_result(
+    def make_result(
       name: String,
       current: Boolean,
       output_heap: SHA1.Shasum,
@@ -338,7 +338,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
       _state = _state.
         remove_pending(session_name).
         remove_running(session_name).
-        add_result(session_name, false, output_heap, process_result_tail)
+        make_result(session_name, false, output_heap, process_result_tail)
     }
   }
 
@@ -380,7 +380,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          add_result(session_name, true, output_heap, Process_Result.ok)
+          make_result(session_name, true, output_heap, Process_Result.ok)
       }
     }
     else if (build_context.no_build) {
@@ -388,7 +388,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          add_result(session_name, false, output_heap, Process_Result.error)
+          make_result(session_name, false, output_heap, Process_Result.error)
       }
     }
     else if (ancestor_results.forall(_.ok) && !progress.stopped) {
@@ -417,7 +417,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          add_result(session_name, false, output_heap, Process_Result.undefined)
+          make_result(session_name, false, output_heap, Process_Result.undefined)
       }
     }
   }
