@@ -193,11 +193,13 @@ class Build_Process(protected val build_context: Build_Process.Context) {
 
   // global state
   protected var _numa_index = 0
-  protected var _pending: List[Build_Process.Entry] =
-    (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
-      yield Build_Process.Entry(name, preds.toList)).toList
+  protected var _pending: List[Build_Process.Entry] = init_pending()
   protected var _running = Map.empty[String, Build_Job]
   protected var _results = Map.empty[String, Build_Process.Result]
+
+  protected def init_pending(): List[Build_Process.Entry] =
+    (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
+      yield Build_Process.Entry(name, preds.toList)).toList
 
   protected def is_pending(): Boolean = synchronized { _pending.nonEmpty }
 
