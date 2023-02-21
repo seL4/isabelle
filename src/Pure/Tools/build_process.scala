@@ -177,14 +177,14 @@ object Build_Process {
   }
 }
 
-class Build_Process(build_context: Build_Process.Context) {
-  private val store = build_context.store
-  private val build_options = store.options
-  private val build_deps = build_context.deps
-  private val progress = build_context.progress
-  private val verbose = build_context.verbose
+class Build_Process(protected val build_context: Build_Process.Context) {
+  protected val store = build_context.store
+  protected val build_options = store.options
+  protected val build_deps = build_context.deps
+  protected val progress = build_context.progress
+  protected val verbose = build_context.verbose
 
-  private val log =
+  protected val log =
     build_options.string("system_log") match {
       case "" => No_Logger
       case "-" => Logger.make(progress)
@@ -192,20 +192,20 @@ class Build_Process(build_context: Build_Process.Context) {
     }
 
   // global state
-  private var _numa_index = 0
-  private var _pending: List[Build_Process.Entry] =
+  protected var _numa_index = 0
+  protected var _pending: List[Build_Process.Entry] =
     (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
       yield Build_Process.Entry(name, preds.toList)).toList
-  private var _running = Map.empty[String, Build_Job]
-  private var _results = Map.empty[String, Build_Process.Result]
+  protected var _running = Map.empty[String, Build_Job]
+  protected var _results = Map.empty[String, Build_Process.Result]
 
-  private def test_pending(): Boolean = synchronized { _pending.nonEmpty }
+  protected def test_pending(): Boolean = synchronized { _pending.nonEmpty }
 
-  private def remove_pending(name: String): Unit = synchronized {
+  protected def remove_pending(name: String): Unit = synchronized {
     _pending = _pending.flatMap(entry => if (entry.name == name) None else Some(entry.resolve(name)))
   }
 
-  private def next_pending(): Option[String] = synchronized {
+  protected def next_pending(): Option[String] = synchronized {
     if (_running.size < (build_context.max_jobs max 1)) {
       _pending.filter(entry => entry.is_ready && !_running.isDefinedAt(entry.name))
         .sortBy(_.name)(build_context.ordering)
@@ -214,7 +214,7 @@ class Build_Process(build_context: Build_Process.Context) {
     else None
   }
 
-  private def next_numa_node(): Option[Int] = synchronized {
+  protected def next_numa_node(): Option[Int] = synchronized {
     val available = build_context.numa_nodes.zipWithIndex
     if (available.isEmpty) None
     else {
@@ -229,9 +229,11 @@ class Build_Process(build_context: Build_Process.Context) {
     }
   }
 
-  private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
+  protected def stop_running(): Unit = synchronized {
+    _running.valuesIterator.foreach(_.terminate())
+  }
 
-  private def finished_running(): List[Build_Job.Build_Session] = synchronized {
+  protected def finished_running(): List[Build_Job.Build_Session] = synchronized {
     List.from(
       _running.valuesIterator.flatMap {
         case job: Build_Job.Build_Session if job.is_finished => Some(job)
@@ -239,16 +241,16 @@ class Build_Process(build_context: Build_Process.Context) {
       })
   }
 
-  private def job_running(name: String, job: Build_Job): Build_Job = synchronized {
+  protected def job_running(name: String, job: Build_Job): Build_Job = synchronized {
     _running += (name -> job)
     job
   }
 
-  private def remove_running(name: String): Unit = synchronized {
+  protected def remove_running(name: String): Unit = synchronized {
     _running -= name
   }
 
-  private def add_result(
+  protected def add_result(
     name: String,
     current: Boolean,
     output_heap: SHA1.Shasum,
@@ -257,11 +259,11 @@ class Build_Process(build_context: Build_Process.Context) {
     _results += (name -> Build_Process.Result(current, output_heap, process_result))
   }
 
-  private def get_results(names: List[String]): List[Build_Process.Result] = synchronized {
+  protected def get_results(names: List[String]): List[Build_Process.Result] = synchronized {
     names.map(_results.apply)
   }
 
-  private def finish_job(job: Build_Job.Build_Session): Unit = {
+  protected def finish_job(job: Build_Job.Build_Session): Unit = {
     val session_name = job.session_name
     val process_result = job.join
     val output_heap = job.finish
@@ -317,7 +319,7 @@ class Build_Process(build_context: Build_Process.Context) {
     }
   }
 
-  private def start_job(session_name: String): Unit = {
+  protected def start_job(session_name: String): Unit = {
     val ancestor_results =
       get_results(
         build_deps.sessions_structure.build_requirements(List(session_name)).
@@ -393,7 +395,7 @@ class Build_Process(build_context: Build_Process.Context) {
     }
   }
 
-  private def sleep(): Unit =
+  protected def sleep(): Unit =
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
       build_options.seconds("editor_input_delay").sleep()
     }
