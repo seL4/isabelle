@@ -152,7 +152,7 @@ object Build_Process {
 
   /* dynamic state */
 
-  case class Entry(name: String, deps: List[String]) {
+  case class Entry(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
     def is_ready: Boolean = deps.isEmpty
     def resolve(dep: String): Entry =
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
