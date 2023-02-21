@@ -8,25 +8,28 @@ package isabelle
 
 
 object NUMA {
-  /* available nodes */
+  /* information about nodes */
 
-  def nodes(): List[Int] = {
-    val numa_nodes_linux = Path.explode("/sys/devices/system/node/online")
+  private val numa_info_linux: Path = Path.explode("/sys/devices/system/node/online")
 
-    val Single = """^(\d+)$""".r
-    val Multiple = """^(\d+)-(\d+)$""".r
+  private val Info_Single = """^(\d+)$""".r
+  private val Info_Multiple = """^(\d+)-(\d+)$""".r
 
-    def read(s: String): List[Int] =
-      s match {
-        case Single(Value.Int(i)) => List(i)
-        case Multiple(Value.Int(i), Value.Int(j)) => (i to j).toList
-        case _ => error("Cannot parse CPU node specification: " + quote(s))
-      }
-
-    if (numa_nodes_linux.is_file) {
-      space_explode(',', File.read(numa_nodes_linux).trim).flatMap(read)
+  private def parse_nodes(s: String): List[Int] =
+    s match {
+      case Info_Single(Value.Int(i)) => List(i)
+      case Info_Multiple(Value.Int(i), Value.Int(j)) => (i to j).toList
+      case _ => error("Cannot parse CPU node specification: " + quote(s))
     }
-    else Nil
+
+  def nodes(enabled: Boolean = true, ssh: SSH.System = SSH.Local): List[Int] = {
+    val numa_info = if (ssh.isabelle_platform.is_linux) Some(numa_info_linux) else None
+    for {
+      path <- numa_info.toList
+      if enabled && ssh.is_file(path)
+      s <- space_explode(',', ssh.read(path).trim)
+      n <- parse_nodes(s)
+    } yield n
   }
 
 
@@ -58,7 +61,7 @@ object NUMA {
 
   /* shuffling of CPU nodes */
 
-  def enabled_warning(progress: Progress, enabled: Boolean): Boolean = {
+  def check(progress: Progress, enabled: Boolean): Boolean = {
     def warning =
       nodes() match {
         case ns if ns.length < 2 => Some("no NUMA nodes available")

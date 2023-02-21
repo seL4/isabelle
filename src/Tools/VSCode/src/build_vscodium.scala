@@ -63,7 +63,7 @@ object Build_VSCodium {
     build_name: String,
     env: List[String]
   ) {
-    def is_linux: Boolean = platform == Platform.Family.linux
+    def primary: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
     def download_ext: String = if (download_template.endsWith(".zip")) "zip" else "tar.gz"
@@ -342,13 +342,13 @@ object Build_VSCodium {
         platform_info.get_vscodium_repository(build_dir, progress = progress)
 
         val sources_patch = platform_info.patch_sources(build_dir)
-        if (platform_info.is_linux) write_patch("02-isabelle_sources", sources_patch)
+        if (platform_info.primary) write_patch("02-isabelle_sources", sources_patch)
 
         progress.echo("Build ...")
         progress.bash(platform_info.environment + "\n" + "./build.sh",
           cwd = build_dir.file, echo = verbose).check
 
-        if (platform_info.is_linux) {
+        if (platform_info.primary) {
           Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
         }
 
@@ -358,7 +358,7 @@ object Build_VSCodium {
         platform_info.setup_electron(platform_dir)
 
         val resources_patch = platform_info.patch_resources(platform_dir)
-        if (platform_info.is_linux) write_patch("03-isabelle_resources", resources_patch)
+        if (platform_info.primary) write_patch("03-isabelle_resources", resources_patch)
 
         Isabelle_System.copy_file(
           build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),

@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 
 
 object Build_Process {
-  /* static information */
+  /* static context */
 
   object Session_Context {
     def empty(session: String, timeout: Time): Session_Context =
@@ -119,7 +119,7 @@ object Build_Process {
             }
         }
 
-      val numa_nodes = if (numa_shuffling) NUMA.nodes() else Nil
+      val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
       new Context(store, deps, sessions, ordering, progress, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, session_setup)
@@ -150,7 +150,7 @@ object Build_Process {
   }
 
 
-  /* main */
+  /* dynamic state */
 
   case class Entry(name: String, deps: List[String]) {
     def is_ready: Boolean = deps.isEmpty
@@ -166,6 +166,58 @@ object Build_Process {
     def ok: Boolean = process_result.ok
   }
 
+  sealed case class State(
+    numa_index: Int = 0,
+    pending: List[Entry] = Nil,
+    running: Map[String, Build_Job] = Map.empty,
+    results: Map[String, Build_Process.Result] = Map.empty
+  ) {
+    def get_numa: (Int, Set[Int]) = (numa_index, numa_running)
+    def put_numa(i: Int): State = copy(numa_index = i)
+
+    def finished: Boolean = pending.isEmpty
+
+    def remove_pending(name: String): State =
+      copy(pending = pending.flatMap(
+        entry => if (entry.name == name) None else Some(entry.resolve(name))))
+
+    def is_running(name: String): Boolean = running.isDefinedAt(name)
+
+    def numa_running: Set[Int] =
+      Set.from(for (job <- running.valuesIterator; i <- job.numa_node) yield i)
+
+    def stop_running(): Unit = running.valuesIterator.foreach(_.terminate())
+
+    def finished_running(): List[Build_Job.Build_Session] =
+      List.from(
+        running.valuesIterator.flatMap {
+          case job: Build_Job.Build_Session if job.is_finished => Some(job)
+          case _ => None
+        })
+
+    def add_running(name: String, job: Build_Job): State =
+      copy(running = running + (name -> job))
+
+    def remove_running(name: String): State =
+      copy(running = running - name)
+
+    def make_result(
+      name: String,
+      current: Boolean,
+      output_heap: SHA1.Shasum,
+      process_result: Process_Result
+    ): State = {
+      val result = Build_Process.Result(current, output_heap, process_result)
+      copy(results = results + (name -> result))
+    }
+
+    def get_results(names: List[String]): List[Build_Process.Result] =
+      names.map(results.apply)
+  }
+
+
+  /* main process */
+
   def session_finished(session_name: String, process_result: Process_Result): String =
     "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
 
@@ -177,14 +229,14 @@ object Build_Process {
   }
 }
 
-class Build_Process(build_context: Build_Process.Context) {
-  private val store = build_context.store
-  private val build_options = store.options
-  private val build_deps = build_context.deps
-  private val progress = build_context.progress
-  private val verbose = build_context.verbose
+class Build_Process(protected val build_context: Build_Process.Context) {
+  protected val store: Sessions.Store = build_context.store
+  protected val build_options: Options = store.options
+  protected val build_deps: Sessions.Deps = build_context.deps
+  protected val progress: Progress = build_context.progress
+  protected val verbose: Boolean = build_context.verbose
 
-  private val log =
+  protected val log: Logger =
     build_options.string("system_log") match {
       case "" => No_Logger
       case "-" => Logger.make(progress)
@@ -192,76 +244,50 @@ class Build_Process(build_context: Build_Process.Context) {
     }
 
   // global state
-  private var _numa_index = 0
-  private var _pending: List[Build_Process.Entry] =
-    (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
-      yield Build_Process.Entry(name, preds.toList)).toList
-  private var _running = Map.empty[String, Build_Job]
-  private var _results = Map.empty[String, Build_Process.Result]
+  protected var _state: Build_Process.State = init_state()
 
-  private def test_pending(): Boolean = synchronized { _pending.nonEmpty }
+  protected def init_state(): Build_Process.State =
+    Build_Process.State(pending =
+      (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
+        yield Build_Process.Entry(name, preds.toList)).toList)
 
-  private def remove_pending(name: String): Unit = synchronized {
-    _pending = _pending.flatMap(entry => if (entry.name == name) None else Some(entry.resolve(name)))
-  }
+  protected def finished(): Boolean = synchronized { _state.finished }
 
-  private def next_pending(): Option[String] = synchronized {
-    if (_running.size < (build_context.max_jobs max 1)) {
-      _pending.filter(entry => entry.is_ready && !_running.isDefinedAt(entry.name))
+  protected def next_pending(): Option[String] = synchronized {
+    if (_state.running.size < (build_context.max_jobs max 1)) {
+      _state.pending.filter(entry => entry.is_ready && !_state.is_running(entry.name))
         .sortBy(_.name)(build_context.ordering)
         .headOption.map(_.name)
     }
     else None
   }
 
-  private def next_numa_node(): Option[Int] = synchronized {
+  protected def next_numa_node(): Option[Int] = synchronized {
     val available = build_context.numa_nodes.zipWithIndex
     if (available.isEmpty) None
     else {
-      val used = Set.from(for (job <- _running.valuesIterator; i <- job.numa_node) yield i)
-      val index = _numa_index
+      val (index, used) = _state.get_numa
       val candidates = available.drop(index) ::: available.take(index)
       val (n, i) =
         candidates.find({ case (n, i) => i == index && !used(n) }) orElse
         candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-      _numa_index = (i + 1) % available.length
+      _state = _state.put_numa((i + 1) % available.length)
       Some(n)
     }
   }
 
-  private def stop_running(): Unit = synchronized { _running.valuesIterator.foreach(_.terminate()) }
+  protected def stop_running(): Unit = synchronized { _state.stop_running() }
 
-  private def finished_running(): List[Build_Job.Build_Session] = synchronized {
-    List.from(
-      _running.valuesIterator.flatMap {
-        case job: Build_Job.Build_Session if job.is_finished => Some(job)
-        case _ => None
-      })
+  protected def finished_running(): List[Build_Job.Build_Session] = synchronized {
+    _state.finished_running()
   }
 
-  private def job_running(name: String, job: Build_Job): Build_Job = synchronized {
-    _running += (name -> job)
+  protected def job_running(name: String, job: Build_Job): Build_Job = synchronized {
+    _state = _state.add_running(name, job)
     job
   }
 
-  private def remove_running(name: String): Unit = synchronized {
-    _running -= name
-  }
-
-  private def add_result(
-    name: String,
-    current: Boolean,
-    output_heap: SHA1.Shasum,
-    process_result: Process_Result
-  ): Unit = synchronized {
-    _results += (name -> Build_Process.Result(current, output_heap, process_result))
-  }
-
-  private def get_results(names: List[String]): List[Build_Process.Result] = synchronized {
-    names.map(_results.apply)
-  }
-
-  private def finish_job(job: Build_Job.Build_Session): Unit = {
+  protected def finish_job(job: Build_Job.Build_Session): Unit = {
     val session_name = job.session_name
     val process_result = job.join
     val output_heap = job.finish
@@ -311,17 +337,19 @@ class Build_Process(build_context: Build_Process.Context) {
     }
 
     synchronized {
-      remove_pending(session_name)
-      remove_running(session_name)
-      add_result(session_name, false, output_heap, process_result_tail)
+      _state = _state.
+        remove_pending(session_name).
+        remove_running(session_name).
+        make_result(session_name, false, output_heap, process_result_tail)
     }
   }
 
-  private def start_job(session_name: String): Unit = {
-    val ancestor_results =
-      get_results(
+  protected def start_job(session_name: String): Unit = {
+    val ancestor_results = synchronized {
+      _state.get_results(
         build_deps.sessions_structure.build_requirements(List(session_name)).
           filterNot(_ == session_name))
+    }
     val input_heaps =
       if (ancestor_results.isEmpty) {
         SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
@@ -352,15 +380,17 @@ class Build_Process(build_context: Build_Process.Context) {
 
     if (all_current) {
       synchronized {
-        remove_pending(session_name)
-        add_result(session_name, true, output_heap, Process_Result.ok)
+        _state = _state.
+          remove_pending(session_name).
+          make_result(session_name, true, output_heap, Process_Result.ok)
       }
     }
     else if (build_context.no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
       synchronized {
-        remove_pending(session_name)
-        add_result(session_name, false, output_heap, Process_Result.error)
+        _state = _state.
+          remove_pending(session_name).
+          make_result(session_name, false, output_heap, Process_Result.error)
       }
     }
     else if (ancestor_results.forall(_.ok) && !progress.stopped) {
@@ -387,36 +417,37 @@ class Build_Process(build_context: Build_Process.Context) {
     else {
       progress.echo(session_name + " CANCELLED")
       synchronized {
-        remove_pending(session_name)
-        add_result(session_name, false, output_heap, Process_Result.undefined)
+        _state = _state.
+          remove_pending(session_name).
+          make_result(session_name, false, output_heap, Process_Result.undefined)
       }
     }
   }
 
-  private def sleep(): Unit =
+  protected def sleep(): Unit =
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
       build_options.seconds("editor_input_delay").sleep()
     }
 
   def run(): Map[String, Process_Result] = {
-    if (test_pending()) {
-      while (test_pending()) {
+    if (finished()) {
+      progress.echo_warning("Nothing to build")
+      Map.empty[String, Process_Result]
+    }
+    else {
+      while (!finished()) {
         if (progress.stopped) stop_running()
 
         for (job <- finished_running()) finish_job(job)
 
         next_pending() match {
-          case Some(session_name) => start_job(session_name)
+          case Some(name) => start_job(name)
           case None => sleep()
         }
       }
       synchronized {
-        for ((name, result) <- _results) yield name -> result.process_result
+        for ((name, result) <- _state.results) yield name -> result.process_result
       }
-    }
-    else {
-      progress.echo_warning("Nothing to build")
-      Map.empty[String, Process_Result]
     }
   }
 }

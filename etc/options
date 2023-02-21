@@ -172,13 +172,16 @@ public option ML_process_policy : string = ""
   -- "ML process command prefix (process policy)"
 
 
-section "PIDE Build"
+section "Build Process"
 
 option pide_reports : bool = true
   -- "report PIDE markup (in ML)"
 
 option build_pide_reports : bool = true
   -- "report PIDE markup (in batch build)"
+
+option build_engine : string = ""
+  -- "alternative session build engine"
 
 
 section "Editor Session"
