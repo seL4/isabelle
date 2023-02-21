@@ -9,7 +9,7 @@ package isabelle
 
 
 object Build {
-  /** build with results **/
+  /* results */
 
   object Results {
     def apply(context: Build_Process.Context, results: Map[String, Process_Result]): Results =
@@ -40,6 +40,29 @@ object Build {
 
     override def toString: String = rc.toString
   }
+
+
+  /* engine */
+
+  abstract class Engine(val name: String) extends Isabelle_System.Service {
+    override def toString: String = name
+    def init(build_context: Build_Process.Context): Build_Process
+  }
+
+  class Default_Engine extends Engine("") {
+    override def toString: String = "<default>"
+    override def init(build_context: Build_Process.Context): Build_Process =
+      new Build_Process(build_context)
+  }
+
+  lazy val engines: List[Engine] =
+    Isabelle_System.make_services(classOf[Engine])
+
+  def get_engine(name: String): Engine =
+    engines.find(_.name == name).getOrElse(error("Bad build engine " + quote(name)))
+
+
+  /* build */
 
   def build(
     options: Options,
@@ -147,7 +170,8 @@ object Build {
 
     val results =
       Isabelle_Thread.uninterruptible {
-        val build_process = new Build_Process(build_context)
+        val engine = get_engine(build_options.string("build_engine"))
+        val build_process = engine.init(build_context)
         val res = build_process.run()
         Results(build_context, res)
       }
