@@ -119,7 +119,7 @@ object Build_Process {
             }
         }
 
-      val numa_nodes = if (numa_shuffling) NUMA.nodes() else Nil
+      val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
       new Context(store, deps, sessions, ordering, progress, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, session_setup)
