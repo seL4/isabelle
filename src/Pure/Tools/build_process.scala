@@ -441,7 +441,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
         for (job <- finished_running()) finish_job(job)
 
         next_pending() match {
-          case Some(session_name) => start_job(session_name)
+          case Some(name) => start_job(name)
           case None => sleep()
         }
       }
