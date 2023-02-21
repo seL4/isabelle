@@ -199,7 +199,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
   protected var _running = Map.empty[String, Build_Job]
   protected var _results = Map.empty[String, Build_Process.Result]
 
-  protected def test_pending(): Boolean = synchronized { _pending.nonEmpty }
+  protected def is_pending(): Boolean = synchronized { _pending.nonEmpty }
 
   protected def remove_pending(name: String): Unit = synchronized {
     _pending = _pending.flatMap(entry => if (entry.name == name) None else Some(entry.resolve(name)))
@@ -401,8 +401,8 @@ class Build_Process(protected val build_context: Build_Process.Context) {
     }
 
   def run(): Map[String, Process_Result] = {
-    if (test_pending()) {
-      while (test_pending()) {
+    if (is_pending()) {
+      while (is_pending()) {
         if (progress.stopped) stop_running()
 
         for (job <- finished_running()) finish_job(job)
