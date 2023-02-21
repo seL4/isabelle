@@ -172,7 +172,7 @@ object Build_Process {
     running: Map[String, Build_Job] = Map.empty,
     results: Map[String, Build_Process.Result] = Map.empty
   ) {
-    def is_pending: Boolean = pending.nonEmpty
+    def finished: Boolean = pending.isEmpty
 
     def remove_pending(name: String): State =
       copy(pending = pending.flatMap(
@@ -248,7 +248,7 @@ class Build_Process(protected val build_context: Build_Process.Context) {
       (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
         yield Build_Process.Entry(name, preds.toList)).toList)
 
-  protected def is_pending(): Boolean = synchronized { _state.is_pending }
+  protected def finished(): Boolean = synchronized { _state.finished }
 
   protected def next_pending(): Option[String] = synchronized {
     if (_state.running.size < (build_context.max_jobs max 1)) {
@@ -428,8 +428,12 @@ class Build_Process(protected val build_context: Build_Process.Context) {
     }
 
   def run(): Map[String, Process_Result] = {
-    if (is_pending()) {
-      while (is_pending()) {
+    if (finished()) {
+      progress.echo_warning("Nothing to build")
+      Map.empty[String, Process_Result]
+    }
+    else {
+      while (!finished()) {
         if (progress.stopped) stop_running()
 
         for (job <- finished_running()) finish_job(job)
@@ -442,10 +446,6 @@ class Build_Process(protected val build_context: Build_Process.Context) {
       synchronized {
         for ((name, result) <- _state.results) yield name -> result.process_result
       }
-    }
-    else {
-      progress.echo_warning("Nothing to build")
-      Map.empty[String, Process_Result]
     }
   }
 }
