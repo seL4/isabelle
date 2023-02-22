@@ -299,6 +299,8 @@ object SQL {
 
     def is_server: Boolean
 
+    def rebuild(): Unit = ()
+
 
     /* types */
 
@@ -411,6 +413,7 @@ object SQLite {
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
     override def is_server: Boolean = false
+    override def rebuild(): Unit = using_statement("VACUUM")(_.execute())
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
 
@@ -423,8 +426,6 @@ object SQLite {
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT OR IGNORE", sql = sql)
-
-    def rebuild(): Unit = using_statement("VACUUM")(_.execute())
   }
 }
 
