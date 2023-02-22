@@ -12,15 +12,23 @@ import scala.util.matching.Regex
 
 
 trait Build_Job {
-  def session_name: String
+  def job_name: String
   def numa_node: Option[Int] = None
   def start(): Unit = ()
   def terminate(): Unit = ()
   def is_finished: Boolean = false
   def join: Process_Result = Process_Result.undefined
+  def make_abstract: Build_Job.Abstract = Build_Job.Abstract(job_name, numa_node)
 }
 
 object Build_Job {
+  case class Abstract(
+    override val job_name: String,
+    override val numa_node: Option[Int]
+  ) extends Build_Job {
+    override def make_abstract: Abstract = this
+  }
+
   class Build_Session(progress: Progress,
     session_background: Sessions.Background,
     store: Sessions.Store,
@@ -31,6 +39,8 @@ object Build_Job {
     override val numa_node: Option[Int]
   ) extends Build_Job {
     def session_name: String = session_background.session_name
+    def job_name: String = session_name
+
     val info: Sessions.Info = session_background.sessions_structure(session_name)
     val options: Options = NUMA.policy_options(info.options, numa_node)
 
