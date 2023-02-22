@@ -55,8 +55,12 @@ object SQL {
   val join_inner: Source = " INNER JOIN "
   def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
-  def member(x: Source, set: Iterable[String]): Source =
+  def member(x: Source, set: Iterable[String]): Source = {
+    require(set.nonEmpty)
     set.iterator.map(a => x + " = " + SQL.string(a)).mkString("(", " OR ", ")")
+  }
+
+  def where_member(x: Source, set: Iterable[String]): Source = " WHERE " + member(x, set)
 
 
   /* types */
@@ -295,6 +299,8 @@ object SQL {
 
     def is_server: Boolean
 
+    def rebuild(): Unit = ()
+
 
     /* types */
 
@@ -407,6 +413,7 @@ object SQLite {
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
     override def is_server: Boolean = false
+    override def rebuild(): Unit = using_statement("VACUUM")(_.execute())
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
 
@@ -419,8 +426,6 @@ object SQLite {
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT OR IGNORE", sql = sql)
-
-    def rebuild(): Unit = using_statement("VACUUM")(_.execute())
   }
 }
 

@@ -33,6 +33,9 @@ object JSON {
           Some(m.asInstanceOf[Object.T])
         case _ => None
       }
+
+    def parse(s: S): Object.T =
+      unapply(JSON.parse(s)).getOrElse(error("Bad JSON object " + quote(s)))
   }
 
 

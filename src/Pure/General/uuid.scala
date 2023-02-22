@@ -17,4 +17,7 @@ object UUID {
     catch { case _: IllegalArgumentException => None }
 
   def unapply(body: XML.Body): Option[T] = unapply(XML.content(body))
+
+  def make(s: String): T =
+    unapply(s).getOrElse(error("Bad UUID: " + quote(s)))
 }
