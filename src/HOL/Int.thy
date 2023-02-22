@@ -1754,6 +1754,9 @@ begin
 lemma power_int_minus: "power_int (x::'a) (-n) = inverse (power_int x n)"
   by (auto simp: power_int_def power_inverse)
 
+lemma power_int_minus_divide: "power_int (x::'a) (-n) = 1 / (power_int x n)"
+  by (simp add: divide_inverse power_int_minus)
+
 lemma power_int_eq_0_iff [simp]: "power_int (x::'a) n = 0 \<longleftrightarrow> x = 0 \<and> n \<noteq> 0"
   by (auto simp: power_int_def)
 
