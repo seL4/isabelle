@@ -217,6 +217,8 @@ antiquotations.
       asymp_multpHO
       asymp_not_liftable_to_multpHO
       irreflp_on_multpHO[simp]
+      multpDM_mono_strong
+      multpHO_mono_strong
       multpHO_plus_plus[simp]
       totalp_multpDM
       totalp_multpHO

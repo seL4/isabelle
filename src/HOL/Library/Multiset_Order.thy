@@ -142,6 +142,19 @@ lemma multp\<^sub>H\<^sub>O_plus_plus[simp]: "multp\<^sub>H\<^sub>O R (M + M1) (
   unfolding multp\<^sub>H\<^sub>O_def by simp
 
 
+subsubsection \<open>Monotonicity\<close>
+
+lemma multp\<^sub>D\<^sub>M_mono_strong:
+  "multp\<^sub>D\<^sub>M R M1 M2 \<Longrightarrow> (\<And>x y. x \<in># M1 \<Longrightarrow> y \<in># M2 \<Longrightarrow> R x y \<Longrightarrow> S x y) \<Longrightarrow> multp\<^sub>D\<^sub>M S M1 M2"
+  unfolding multp\<^sub>D\<^sub>M_def
+  by (metis add_diff_cancel_left' in_diffD subset_mset.diff_add)
+
+lemma multp\<^sub>H\<^sub>O_mono_strong:
+  "multp\<^sub>H\<^sub>O R M1 M2 \<Longrightarrow> (\<And>x y. x \<in># M1 \<Longrightarrow> y \<in># M2 \<Longrightarrow> R x y \<Longrightarrow> S x y) \<Longrightarrow> multp\<^sub>H\<^sub>O S M1 M2"
+  unfolding multp\<^sub>H\<^sub>O_def
+  by (metis count_inI less_zeroE)
+
+
 subsubsection \<open>Properties of Preorders\<close>
 
 lemma irreflp_on_multp\<^sub>H\<^sub>O[simp]: "irreflp_on B (multp\<^sub>H\<^sub>O R)"
