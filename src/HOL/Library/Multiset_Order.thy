@@ -168,6 +168,15 @@ qed
 lemma multp\<^sub>H\<^sub>O_plus_plus[simp]: "multp\<^sub>H\<^sub>O R (M + M1) (M + M2) \<longleftrightarrow> multp\<^sub>H\<^sub>O R M1 M2"
   unfolding multp\<^sub>H\<^sub>O_def by simp
 
+lemma strict_subset_implies_multp\<^sub>D\<^sub>M: "A \<subset># B \<Longrightarrow> multp\<^sub>D\<^sub>M r A B"
+  unfolding multp\<^sub>D\<^sub>M_def
+  by (metis add.right_neutral add_diff_cancel_right' empty_iff mset_subset_eq_add_right
+      set_mset_empty subset_mset.lessE)
+
+lemma strict_subset_implies_multp\<^sub>H\<^sub>O: "A \<subset># B \<Longrightarrow> multp\<^sub>H\<^sub>O r A B"
+  unfolding multp\<^sub>H\<^sub>O_def
+  by (simp add: leD mset_subset_eq_count)
+
 
 subsubsection \<open>Monotonicity\<close>
 
