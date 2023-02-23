@@ -14,7 +14,7 @@ begin
 
 type_synonym ('a, 'b) "map" = "'a \<Rightarrow> 'b option" (infixr "\<rightharpoonup>" 0)
 
-abbreviation
+abbreviation (input)
   empty :: "'a \<rightharpoonup> 'b" where
   "empty \<equiv> \<lambda>x. None"
 

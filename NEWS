@@ -51,6 +51,9 @@ antiquotations.
   - Renamed lemma inj_on_strict_subset to image_strict_mono.
     Minor INCOMPATIBILITY.
 
+* Theory HOL.Map:
+  - Map.empty has been demoted to an input abbreviation only
+
 * Theory "HOL.Relation":
   - Added predicates irrefl_on and irreflp_on and redefined irrefl and
     irreflp to be abbreviations. Lemmas irrefl_def and irreflp_def are
