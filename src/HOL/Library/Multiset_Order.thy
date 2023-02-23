@@ -138,6 +138,33 @@ lemma multp_eq_multp\<^sub>H\<^sub>O: "asymp r \<Longrightarrow> transp r \<Long
   using multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M[THEN multp\<^sub>D\<^sub>M_imp_multp] multp_imp_multp\<^sub>H\<^sub>O
   by blast
 
+lemma multp\<^sub>D\<^sub>M_plus_plusI[simp]:
+  assumes "multp\<^sub>D\<^sub>M R M1 M2"
+  shows "multp\<^sub>D\<^sub>M R (M + M1) (M + M2)"
+proof -
+  from assms obtain X Y where
+    "X \<noteq> {#}" and "X \<subseteq># M2" and "M1 = M2 - X + Y" and "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> R k a)"
+  unfolding multp\<^sub>D\<^sub>M_def by auto
+
+  show "multp\<^sub>D\<^sub>M R (M + M1) (M + M2)"
+    unfolding multp\<^sub>D\<^sub>M_def
+  proof (intro exI conjI)
+    show "X \<noteq> {#}"
+      using \<open>X \<noteq> {#}\<close> by simp
+  next
+    show "X \<subseteq># M + M2"
+      using \<open>X \<subseteq># M2\<close>
+      by (simp add: subset_mset.add_increasing)
+  next
+    show "M + M1 = M + M2 - X + Y"
+      using \<open>X \<subseteq># M2\<close> \<open>M1 = M2 - X + Y\<close>
+      by (metis multiset_diff_union_assoc union_assoc)
+  next
+    show "\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> R k a)"
+      using \<open>\<forall>k. k \<in># Y \<longrightarrow> (\<exists>a. a \<in># X \<and> R k a)\<close> by simp
+  qed
+qed
+
 lemma multp\<^sub>H\<^sub>O_plus_plus[simp]: "multp\<^sub>H\<^sub>O R (M + M1) (M + M2) \<longleftrightarrow> multp\<^sub>H\<^sub>O R M1 M2"
   unfolding multp\<^sub>H\<^sub>O_def by simp
 
