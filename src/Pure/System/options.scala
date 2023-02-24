@@ -406,10 +406,19 @@ final class Options private(
   }
 
 
+  /* changed options */
+
+  def changed(defaults: Options = Options.init(prefs = "")): List[String] =
+    (for {
+      (name, opt2) <- options.iterator
+      opt1 = defaults.get(name)
+      if opt1.isEmpty || opt1.get.value != opt2.value
+    } yield (name, opt2.value)).toList.sortBy(_._1).map({ case (x, y) => Properties.Eq(x, y) })
+
+
   /* save preferences */
 
-  def save_prefs(file: Path = Options.PREFS): Unit = {
-    val defaults: Options = Options.init(prefs = "")
+  def save_prefs(file: Path = Options.PREFS, defaults: Options = Options.init(prefs = "")): Unit = {
     val changed =
       (for {
         (name, opt2) <- options.iterator
