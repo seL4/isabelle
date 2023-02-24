@@ -67,6 +67,7 @@ translations
   "_MapUpd m (_Maplets xy ms)"  \<rightleftharpoons> "_MapUpd (_MapUpd m xy) ms"
   "_MapUpd m (_maplet  x y)"    \<rightleftharpoons> "m(x := CONST Some y)"
   "_Map ms"                     \<rightleftharpoons> "_MapUpd (CONST empty) ms"
+  "_Map ms"                     \<leftharpoondown> "_MapUpd (\<lambda>x. CONST None) ms" \<comment>\<open>both are needed\<close>
   "_Map (_Maplets ms1 ms2)"     \<leftharpoondown> "_MapUpd (_Map ms1) ms2"
   "_Maplets ms1 (_Maplets ms2 ms3)" \<leftharpoondown> "_Maplets (_Maplets ms1 ms2) ms3"
 
