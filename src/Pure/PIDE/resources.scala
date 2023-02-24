@@ -308,8 +308,7 @@ class Resources(
       "Cyclic dependency of " + show_path(names)
 
     private def required_by(initiators: List[Document.Node.Name]): String =
-      if (initiators.isEmpty) ""
-      else "\n(required by " + show_path(initiators.reverse) + ")"
+      if_proper(initiators, "\n(required by " + show_path(initiators.reverse) + ")")
   }
 
   final class Dependencies[A] private(

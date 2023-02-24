@@ -52,7 +52,7 @@ object Phabricator {
   val default_name = "vcs"
 
   def phabricator_name(name: String = "", ext: String = ""): String =
-    "phabricator" + (if (name.isEmpty) "" else "-" + name) + (if (ext.isEmpty) "" else "." + ext)
+    "phabricator" + if_proper(name, "-" + name) + if_proper(ext, "." + ext)
 
   def isabelle_phabricator_name(name: String = "", ext: String = ""): String =
     "isabelle-" + phabricator_name(name = name, ext = ext)

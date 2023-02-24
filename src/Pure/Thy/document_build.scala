@@ -357,7 +357,7 @@ object Document_Build {
       "then\n" +
       "  " + (if (title.nonEmpty) program_running_script(title) else "") +
         exe + " " + root_name_script() + "\n" +
-      (if (after.isEmpty) "" else "  " + after) +
+      if_proper(after, "  " + after) +
       "fi\n"
     }
 

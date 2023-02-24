@@ -231,14 +231,14 @@ object Latex {
     }
 
     def index_item(item: Index_Item.Value): String = {
-      val like = if (item.like.isEmpty) "" else index_escape(item.like) + "@"
+      val like = if_proper(item.like, index_escape(item.like) + "@")
       val text = index_escape(latex_output(item.text))
       like + text
     }
 
     def index_entry(entry: Index_Entry.Value): Text = {
       val items = entry.items.map(index_item).mkString("!")
-      val kind = if (entry.kind.isEmpty) "" else "|" + index_escape(entry.kind)
+      val kind = if_proper(entry.kind, "|" + index_escape(entry.kind))
       latex_macro("index", XML.string(items + kind))
     }
 

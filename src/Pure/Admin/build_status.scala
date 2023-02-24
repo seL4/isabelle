@@ -44,8 +44,8 @@ object Build_Status {
             List(
               Build_Log.Session_Status.finished.toString,
               Build_Log.Session_Status.failed.toString)) +
-          (if (only_sessions.isEmpty) ""
-           else " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
+          if_proper(only_sessions,
+            " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
           " AND " + SQL.enclose(sql))
     }
   }
@@ -206,7 +206,7 @@ object Build_Status {
     val body =
       proper_string(isabelle_version).map("Isabelle/" + _).toList :::
       (if (chapter == AFP.chapter) proper_string(afp_version).map("AFP/" + _) else None).toList
-    if (body.isEmpty) "" else body.mkString(" (", ", ", ")")
+    if_proper(body, body.mkString(" (", ", ", ")"))
   }
 
   def read_data(options: Options,

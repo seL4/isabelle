@@ -353,7 +353,7 @@ object Dump {
             Output.clean_yxml(
               "FAILED theory " + bad.name +
                 (if (bad.status.consolidated) "" else ": " + bad.status.percentage + "% finished") +
-                (if (bad.errors.isEmpty) "" else bad.errors.mkString("\n", "\n", ""))))
+                if_proper(bad.errors, bad.errors.mkString("\n", "\n", ""))))
 
         val pending_msgs =
           use_theories_result.nodes_pending match {

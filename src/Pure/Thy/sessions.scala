@@ -339,9 +339,7 @@ object Sessions {
             val resources = new Resources(session_background)
 
             if (verbose || list_files) {
-              val groups =
-                if (info.groups.isEmpty) ""
-                else info.groups.mkString(" (", " ", ")")
+              val groups = if_proper(info.groups, info.groups.mkString(" (", " ", ")"))
               progress.echo("Session " + info.chapter + "/" + session_name + groups)
             }
 

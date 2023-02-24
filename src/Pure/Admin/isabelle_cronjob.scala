@@ -157,7 +157,7 @@ object Isabelle_Cronjob {
     def sql: PostgreSQL.Source =
       Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
       SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
-      (if (detect == "") "" else " AND " + SQL.enclose(detect))
+      if_proper(detect, " AND " + SQL.enclose(detect))
 
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)

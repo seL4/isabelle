@@ -171,18 +171,16 @@ object SQL {
 
     def insert_cmd(cmd: Source = "INSERT", sql: Source = ""): Source =
       cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
-        (if (sql == "") "" else " " + sql)
+        if_proper(sql, " " + sql)
 
     def insert(sql: Source = ""): Source = insert_cmd(sql = sql)
 
     def delete(sql: Source = ""): Source =
-      "DELETE FROM " + ident +
-        (if (sql == "") "" else " " + sql)
+      "DELETE FROM " + ident + if_proper(sql, " " + sql)
 
     def select(
         select_columns: List[Column] = Nil, sql: Source = "", distinct: Boolean = false): Source =
-      SQL.select(select_columns, distinct = distinct) + ident +
-        (if (sql == "") "" else " " + sql)
+      SQL.select(select_columns, distinct = distinct) + ident + if_proper(sql, " " + sql)
 
     override def toString: Source = ident
   }
@@ -366,8 +364,7 @@ object SQL {
     }
 
     def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit =
-      using_statement(
-        table.create(strict, sql_type) + (if (sql == "") "" else " " + sql))(_.execute())
+      using_statement(table.create(strict, sql_type) + if_proper(sql, " " + sql))(_.execute())
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
@@ -500,7 +497,7 @@ object PostgreSQL {
     }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
-      table.insert_cmd(sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
+      table.insert_cmd(sql = sql + if_proper(sql, " ") + "ON CONFLICT DO NOTHING")
 
 
     /* notifications: IPC via database server */
@@ -514,8 +511,7 @@ object PostgreSQL {
 
     def notify(name: String, payload: String = ""): Unit =
       using_statement(
-        "NOTIFY " + SQL.ident(name) +
-          (if (payload.isEmpty) "" else ", " + SQL.string(payload)))(_.execute())
+        "NOTIFY " + SQL.ident(name) + if_proper(payload, ", " + SQL.string(payload)))(_.execute())
 
     def get_notifications(): List[PGNotification] =
       the_postgresql_connection.getNotifications() match {

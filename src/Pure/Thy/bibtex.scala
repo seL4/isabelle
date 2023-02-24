@@ -813,7 +813,7 @@ object Bibtex {
 
   def cite_antiquotation(name: String, location: String, citations: List[String]): String = {
     val body =
-      (if (location.isEmpty) "" else Symbol.cartouche(location) + " in ") +
+      if_proper(location, Symbol.cartouche(location) + " in ") +
       citations.map(quote).mkString(" and ")
     cite_antiquotation(name, body)
   }

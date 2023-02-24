@@ -26,7 +26,7 @@ object Timing {
       val timing = stop - start
       if (timing.is_relevant) {
         val msg = if (message == null) null else message(result)
-        output((if (msg == null || msg == "") "" else msg + ": ") + timing.message + " elapsed time")
+        output(if_proper(msg, msg + ": ") + timing.message + " elapsed time")
       }
 
       Exn.release(result)

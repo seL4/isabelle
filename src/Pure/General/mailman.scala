@@ -541,7 +541,7 @@ object Mailman {
 
     override def message_content(name: String, lines: List[String]): Message = {
       def err(msg: String = ""): Nothing =
-        error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
+        error("Malformed message: " + name + if_proper(msg, "\n" + msg))
 
       val (head, body) =
         try { (Head.get(lines), make_body(Body.get(lines))) }
@@ -596,7 +596,7 @@ object Mailman {
 
     override def message_content(name: String, lines: List[String]): Message = {
       def err(msg: String = ""): Nothing =
-        error("Malformed message: " + name + (if (msg.isEmpty) "" else "\n" + msg))
+        error("Malformed message: " + name + if_proper(msg, "\n" + msg))
 
       val (head, body) =
         try { (Head.get(lines), make_body(Body.get(lines))) }
