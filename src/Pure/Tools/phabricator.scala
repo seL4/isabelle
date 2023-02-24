@@ -81,7 +81,7 @@ object Phabricator {
     body: String = "",
     exit: String = ""): String = {
 """#!/bin/bash
-""" + (if (init.nonEmpty) "\n" + init else "") + """
+""" + if_proper(init, "\n" + init) + """
 {
   while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
   do
@@ -92,7 +92,7 @@ object Phabricator {
     } < /dev/null
   done
 } < """ + File.bash_path(global_config) + "\n" +
-    (if (exit.nonEmpty) "\n" + exit + "\n" else "")
+    if_proper(exit, "\n" + exit + "\n")
   }
 
   sealed case class Config(name: String, root: Path) {

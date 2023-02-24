@@ -453,9 +453,7 @@ object Mailman {
 
     def get(lines: List[String]): List[String] =
       unapply(lines) getOrElse
-        error("Missing delimiters:" +
-          (if (bg.nonEmpty) " " else "") + bg +
-          (if (en.nonEmpty) " " else "") + en)
+        error("Missing delimiters:" + if_proper(bg, " ") + bg + if_proper(en, " ") + en)
   }
 
 
