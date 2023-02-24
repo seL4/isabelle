@@ -132,9 +132,6 @@ option timeout : real = 0
 option timeout_build : bool = true
   -- "observe timeout for session build"
 
-option process_output_limit : int = 100
-  -- "build process output limit (in million characters, 0 = unlimited)"
-
 option process_output_tail : int = 40
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
