@@ -283,6 +283,9 @@ object Library {
   def proper_list[A](list: List[A]): Option[List[A]] =
     if (list == null || list.isEmpty) None else Some(list)
 
+  def if_proper[A](x: Iterable[A], body: => String): String =
+    if (x == null || x.isEmpty) "" else body
+
 
   /* reflection */
 
