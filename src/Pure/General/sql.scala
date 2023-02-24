@@ -169,11 +169,11 @@ object SQL {
         (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
         ident + " " + enclosure(index_columns.map(_.name))
 
-    def insert_cmd(cmd: Source, sql: Source = ""): Source =
+    def insert_cmd(cmd: Source = "INSERT", sql: Source = ""): Source =
       cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
         (if (sql == "") "" else " " + sql)
 
-    def insert(sql: Source = ""): Source = insert_cmd("INSERT", sql)
+    def insert(sql: Source = ""): Source = insert_cmd(sql = sql)
 
     def delete(sql: Source = ""): Source =
       "DELETE FROM " + ident +
@@ -424,7 +424,7 @@ object SQLite {
       date_format.parse(res.string(column))
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
-      table.insert_cmd("INSERT OR IGNORE", sql = sql)
+      table.insert_cmd(cmd = "INSERT OR IGNORE", sql = sql)
   }
 }
 
@@ -500,8 +500,7 @@ object PostgreSQL {
     }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
-      table.insert_cmd("INSERT",
-        sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
+      table.insert_cmd(sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
 
 
     /* notifications: IPC via database server */
