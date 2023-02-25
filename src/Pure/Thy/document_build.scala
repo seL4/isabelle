@@ -64,8 +64,10 @@ object Document_Build {
     val table = SQL.Table("isabelle_documents", List(session_name, name, sources, log_xz, pdf))
 
     def where_equal(session_name: String, name: String = ""): SQL.Source =
-      "WHERE " + Data.session_name.equal(session_name) +
-        (if (name == "") "" else " AND " + Data.name.equal(name))
+      SQL.where(
+        SQL.and(
+          Data.session_name.equal(session_name),
+          if_proper(name, Data.name.equal(name))))
   }
 
   def read_documents(db: SQL.Database, session_name: String): List[Document_Input] = {

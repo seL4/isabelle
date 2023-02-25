@@ -42,9 +42,11 @@ object Export {
         List(session_name, theory_name, name, executable, compressed, body))
 
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
-      "WHERE " + Data.session_name.equal(session_name) +
-        (if (theory_name == "") "" else " AND " + Data.theory_name.equal(theory_name)) +
-        (if (name == "") "" else " AND " + Data.name.equal(name))
+      SQL.where(
+        SQL.and(
+          Data.session_name.equal(session_name),
+          if_proper(theory_name, Data.theory_name.equal(theory_name)),
+          if_proper(name, Data.name.equal(name))))
   }
 
   def compound_name(a: String, b: String): String =

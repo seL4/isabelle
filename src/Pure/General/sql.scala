@@ -55,11 +55,28 @@ object SQL {
   val join_inner: Source = " INNER JOIN "
   def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
+  def infix(op: Source, args: Iterable[Source]): Source = {
+    val body = args.iterator.filter(_.nonEmpty).mkString(" " + op + " ")
+    if_proper(body, enclose(body))
+  }
+
+  def AND(args: Iterable[Source]): Source = infix("AND", args)
+  def OR(args: Iterable[Source]): Source = infix("OR", args)
+
+  def and(args: Source*): Source = AND(args)
+  def or(args: Source*): Source = OR(args)
+
+  val TRUE: Source = "TRUE"
+  val FALSE: Source = "FALSE"
+
   def member(x: Source, set: Iterable[String]): Source =
-    if (set.isEmpty) "FALSE"
-    else set.iterator.map(a => x + " = " + SQL.string(a)).mkString("(", " OR ", ")")
+    if (set.isEmpty) FALSE
+    else OR(set.iterator.map(a => x + " = " + SQL.string(a)).toList)
 
   def where_member(x: Source, set: Iterable[String]): Source = " WHERE " + member(x, set)
+
+  def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
+
 
 
   /* types */
@@ -128,7 +145,7 @@ object SQL {
     def undefined: String = ident + " IS NULL"
 
     def equal(s: String): Source = ident + " = " + string(s)
-    def where_equal(s: String): Source = "WHERE " + equal(s)
+    def where_equal(s: String): Source = " WHERE " + equal(s)
 
     override def toString: Source = ident
   }

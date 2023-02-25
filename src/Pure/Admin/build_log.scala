@@ -681,7 +681,7 @@ object Build_Log {
       val version2 = Prop.afp_version
       build_log_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
         SQL.select(List(version1, version2), distinct = true) + meta_info_table +
-        " WHERE " + version1.defined + " AND " + version2.defined)
+          SQL.where(SQL.and(version1.defined, version2.defined)))
     }
 
 
@@ -700,7 +700,7 @@ object Build_Log {
         "SELECT " + versions.mkString(", ") +
           ", min(" + Prop.build_start + ") AS " + pull_date(afp) +
         " FROM " + meta_info_table +
-        " WHERE " + (versions ::: List(Prop.build_start)).map(_.defined).mkString(" AND ") +
+        " WHERE " + SQL.AND((versions ::: List(Prop.build_start)).map(_.defined)) +
         " GROUP BY " + versions.mkString(", "))
     }
 
