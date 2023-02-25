@@ -925,17 +925,15 @@ lemma (in normal) rcosets_inv_mult_group_eq:
      "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
 by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal.axioms normal_axioms)
 
-theorem (in normal) factorgroup_is_group:
-  "group (G Mod H)"
-  unfolding FactGroup_def
-  apply (rule groupI)
-    apply (simp add: setmult_closed)
-   apply (simp add: normal_imp_subgroup subgroup_in_rcosets [OF is_group])
-  apply (simp add: restrictI setmult_closed rcosets_assoc)
- apply (simp add: normal_imp_subgroup
-                  subgroup_in_rcosets rcosets_mult_eq)
-apply (auto dest: rcosets_inv_mult_group_eq simp add: setinv_closed)
-done
+theorem (in normal) factorgroup_is_group: "group (G Mod H)"
+proof -
+  have "\<And>x. x \<in> rcosets H \<Longrightarrow> \<exists>y\<in>rcosets H. y <#> x = H"
+    using rcosets_inv_mult_group_eq setinv_closed by blast
+  then show ?thesis
+    unfolding FactGroup_def
+    by (intro groupI)
+      (auto simp: setmult_closed subgroup_in_rcosets rcosets_assoc rcosets_mult_eq)
+qed
 
 lemma carrier_FactGroup: "carrier(G Mod N) = (\<lambda>x. r_coset G N x) ` carrier G"
   by (auto simp: FactGroup_def RCOSETS_def)
@@ -956,10 +954,8 @@ proof -
     using X by (simp add: normal.rcosets_inv_mult_group_eq normal_axioms)
   moreover have "Group.group (G Mod H)"
     using normal.factorgroup_is_group normal_axioms by blast
-  moreover have "set_inv X \<in> rcosets H"
-    by (simp add: \<open>X \<in> rcosets H\<close> setinv_closed)
   ultimately show ?thesis
-    by (simp add: FactGroup_def group.inv_equality)
+    by (simp add: FactGroup_def group.inv_equality normal.setinv_closed normal_axioms)
 qed
 
 text\<open>The coset map is a homomorphism from \<^term>\<open>G\<close> to the quotient group
@@ -985,10 +981,7 @@ proof (rule group.group_comm_groupI)
   fix x :: "'a set" and y :: "'a set"
   assume "x \<in> carrier (G Mod N)" "y \<in> carrier (G Mod N)"
   then show "x \<otimes>\<^bsub>G Mod N\<^esub> y = y \<otimes>\<^bsub>G Mod N\<^esub> x"
-    apply (simp add: FactGroup_def subgroup_def)
-    apply (rule set_mult_commute)
-    using assms apply (auto simp: subgroup_def)
-    done
+    by (metis FactGroup_def assms mult_FactGroup partial_object.simps(1) set_mult_commute subgroup_def)
 qed
 
 
@@ -1053,7 +1046,7 @@ definition
   where "kernel G H h = {x. x \<in> carrier G \<and> h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
-  by (auto simp add: kernel_def group.intro is_group intro: subgroup.intro)
+  by (auto simp add: kernel_def group.intro intro: subgroup.intro)
 
 text\<open>The kernel of a homomorphism is a normal subgroup\<close>
 lemma (in group_hom) normal_kernel: "(kernel G H h) \<lhd> G"
@@ -1082,16 +1075,10 @@ qed
 
 
 lemma (in group_hom) FactGroup_nonempty:
-  assumes X: "X \<in> carrier (G Mod kernel G H h)"
+  assumes "X \<in> carrier (G Mod kernel G H h)"
   shows "X \<noteq> {}"
-proof -
-  from X
-  obtain g where "g \<in> carrier G"
-             and "X = kernel G H h #> g"
-    by (auto simp add: FactGroup_def RCOSETS_def)
-  thus ?thesis
-   by (auto simp add: kernel_def r_coset_def image_def intro: hom_one)
-qed
+  using assms unfolding FactGroup_def
+  by (metis group_hom.subgroup_kernel group_hom_axioms partial_object.simps(1) subgroup.rcosets_non_empty)
 
 
 lemma (in group_hom) FactGroup_universal_kernel:
@@ -1336,18 +1323,18 @@ lemma (in group) trivial_homomorphism_image:
 subsection \<open>Image kernel theorems\<close>
 
 lemma group_Int_image_ker:
-  assumes f: "f \<in> hom G H" and g: "g \<in> hom H K" and "inj_on (g \<circ> f) (carrier G)" "group G" "group H" "group K"
+  assumes f: "f \<in> hom G H" and g: "g \<in> hom H K" 
+    and "inj_on (g \<circ> f) (carrier G)" "group G" "group H" "group K"
   shows "(f ` carrier G) \<inter> (kernel H K g) = {\<one>\<^bsub>H\<^esub>}"
 proof -
   have "(f ` carrier G) \<inter> (kernel H K g) \<subseteq> {\<one>\<^bsub>H\<^esub>}"
-    using assms
+    using assms 
     apply (clarsimp simp: kernel_def o_def)
     by (metis group.is_monoid hom_one inj_on_eq_iff monoid.one_closed)
   moreover have "one H \<in> f ` carrier G"
     by (metis f \<open>group G\<close> \<open>group H\<close> group.is_monoid hom_one image_iff monoid.one_closed)
   moreover have "one H \<in> kernel H K g"
-    apply (simp add: kernel_def)
-    using g group.is_monoid hom_one \<open>group H\<close> \<open>group K\<close> by blast
+    unfolding kernel_def using Group.group_def \<open>group H\<close> \<open>group K\<close> g hom_one by blast
   ultimately show ?thesis
     by blast
 qed
@@ -1359,8 +1346,8 @@ lemma group_sum_image_ker:
   shows "set_mult H (f ` carrier G) (kernel H K g) = carrier H" (is "?lhs = ?rhs")
 proof
   show "?lhs \<subseteq> ?rhs"
-    apply (auto simp: kernel_def set_mult_def)
-    by (meson Group.group_def assms(5) f hom_carrier image_eqI monoid.m_closed subset_iff)
+    apply (clarsimp simp: kernel_def set_mult_def)
+    by (meson \<open>group H\<close> f group.is_monoid hom_in_carrier monoid.m_closed)
   have "\<exists>x\<in>carrier G. \<exists>z. z \<in> carrier H \<and> g z = \<one>\<^bsub>K\<^esub> \<and> y = f x \<otimes>\<^bsub>H\<^esub> z"
     if y: "y \<in> carrier H" for y
   proof -
@@ -1368,7 +1355,7 @@ proof
       using g hom_carrier that by blast
     with assms obtain x where x: "x \<in> carrier G" "(g \<circ> f) x = g y"
       by (metis image_iff)
-    with assms have "inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y \<in> carrier H"
+    with assms have invf: "inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y \<in> carrier H"
       by (metis group.subgroup_self hom_carrier image_subset_iff subgroup_def y)
     moreover
     have "g (inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y) = \<one>\<^bsub>K\<^esub>"
@@ -1387,7 +1374,7 @@ proof
     moreover
     have "y = f x \<otimes>\<^bsub>H\<^esub> (inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y)"
       using x y
-      by (metis (no_types, opaque_lifting) assms(5) f group.inv_solve_left group.subgroup_self hom_carrier image_subset_iff subgroup_def that)
+      by (meson \<open>group H\<close> invf f group.inv_solve_left' hom_in_carrier)
     ultimately
     show ?thesis
       using x y by force
@@ -1403,8 +1390,8 @@ lemma group_sum_ker_image:
    shows "set_mult H (kernel H K g) (f ` carrier G) = carrier H" (is "?lhs = ?rhs")
 proof
   show "?lhs \<subseteq> ?rhs"
-    apply (auto simp: kernel_def set_mult_def)
-    by (meson Group.group_def \<open>group H\<close> f hom_carrier image_eqI monoid.m_closed subset_iff)
+    apply (clarsimp simp: kernel_def set_mult_def)
+    by (meson \<open>group H\<close> f group.is_monoid hom_in_carrier monoid.m_closed)
   have "\<exists>w\<in>carrier H. \<exists>x \<in> carrier G. g w = \<one>\<^bsub>K\<^esub> \<and> y = w \<otimes>\<^bsub>H\<^esub> f x"
     if y: "y \<in> carrier H" for y
   proof -
@@ -1423,7 +1410,7 @@ proof
         by (simp add: hom_mult [OF g] y)
       also have "\<dots> = g y \<otimes>\<^bsub>K\<^esub> inv\<^bsub>K\<^esub> (g (f x))"
         using assms x(1)
-        by (metis (mono_tags, lifting) group_hom.hom_inv group_hom.intro group_hom_axioms.intro hom_carrier image_subset_iff)
+        by (metis group_hom.hom_inv group_hom_axioms.intro group_hom_def hom_in_carrier)
       also have "\<dots> = \<one>\<^bsub>K\<^esub>"
         using \<open>g y \<in> carrier K\<close> assms(6) group.l_inv x(2)
         by (simp add: group.r_inv)
@@ -1494,7 +1481,6 @@ lemma (in group) FactGroup_DirProd_multiplication_iso_set : \<^marker>\<open>con
     and "H \<lhd> G"
     and "N \<lhd> K"
   shows "(\<lambda> (X, Y). X \<times> Y) \<in> iso  ((G Mod H) \<times>\<times> (K Mod N)) (G \<times>\<times> K Mod H \<times> N)"
-
 proof-
   have R :"(\<lambda>(X, Y). X \<times> Y) \<in> carrier (G Mod H) \<times> carrier (K Mod N) \<rightarrow> carrier (G \<times>\<times> K Mod H \<times> N)"
     unfolding r_coset_def Sigma_def DirProd_def FactGroup_def RCOSETS_def by force

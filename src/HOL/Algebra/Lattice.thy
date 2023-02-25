@@ -111,11 +111,8 @@ lemma (in weak_lattice) dual_weak_lattice:
 proof -
   interpret dual: weak_partial_order "inv_gorder L"
     by (metis dual_weak_order)
-
   show ?thesis
-    apply (unfold_locales)
-    apply (simp_all add: inf_of_two_exists sup_of_two_exists)
-  done
+  proof qed (simp_all add: inf_of_two_exists sup_of_two_exists)
 qed
 
 
@@ -230,15 +227,11 @@ proof (unfold sup_def)
         then show "z \<sqsubseteq> y"
         proof
           have y': "y \<in> Upper L A"
-            apply (rule subsetD [where A = "Upper L (insert x A)"])
-             apply (rule Upper_antimono)
-             apply blast
-            apply (rule y)
-            done
+            by (meson Upper_antimono in_mono subset_insertI y)
           assume "z = a"
           with y' least_a show ?thesis by (fast dest: least_le)
         next
-          assume "z \<in> {x}"  (* FIXME "z = x"; declare specific elim rule for "insert x {}" (!?) *)
+          assume "z \<in> {x}"
           with y L show ?thesis by blast
         qed
       qed (rule Upper_closed [THEN subsetD, OF y])
@@ -475,11 +468,7 @@ proof (unfold inf_def)
         then show "y \<sqsubseteq> z"
         proof
           have y': "y \<in> Lower L A"
-            apply (rule subsetD [where A = "Lower L (insert x A)"])
-            apply (rule Lower_antimono)
-             apply blast
-            apply (rule y)
-            done
+            by (meson Lower_antimono in_mono subset_insertI y)
           assume "z = a"
           with y' greatest_a show ?thesis by (fast dest: greatest_le)
         next
@@ -712,7 +701,7 @@ proof -
   show ?thesis
     apply (unfold_locales)
     apply (simp_all add: inf_of_two_exists sup_of_two_exists)
-    apply (simp add:eq_is_equal)
+    apply (rule eq_is_equal)
   done
 qed
   
@@ -724,7 +713,7 @@ lemma (in lattice) le_iff_join:
 lemma (in lattice) le_iff_meet:
   assumes "x \<in> carrier L" "y \<in> carrier L"
   shows "x \<sqsubseteq> y \<longleftrightarrow> (x \<squnion> y) = y"
-  by (simp add: assms(1) assms(2) eq_is_equal weak_le_iff_meet)
+  by (simp add: assms eq_is_equal weak_le_iff_meet)
 
 text \<open> Total orders are lattices. \<close>
 
@@ -742,24 +731,24 @@ definition meet_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_sc
 lemma join_pres_isotone:
   assumes "f \<in> carrier X \<rightarrow> carrier Y" "join_pres X Y f"
   shows "isotone X Y f"
-  using assms
-  apply (rule_tac isotoneI)
-  apply (auto simp add: join_pres_def lattice.le_iff_meet funcset_carrier)
-  using lattice_def partial_order_def upper_semilattice_def apply blast
-  using lattice_def partial_order_def upper_semilattice_def apply blast
-  apply fastforce
-done
+proof (rule isotoneI)
+  show "weak_partial_order X" "weak_partial_order Y"
+    using assms unfolding join_pres_def lattice_def upper_semilattice_def lower_semilattice_def
+    by (meson partial_order.axioms(1))+
+  show "\<And>x y. \<lbrakk>x \<in> carrier X; y \<in> carrier X; x \<sqsubseteq>\<^bsub>X\<^esub> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>Y\<^esub> f y"
+    by (metis (no_types, lifting) PiE assms join_pres_def lattice.le_iff_meet)
+qed
 
 lemma meet_pres_isotone:
   assumes "f \<in> carrier X \<rightarrow> carrier Y" "meet_pres X Y f"
   shows "isotone X Y f"
-  using assms
-  apply (rule_tac isotoneI)
-  apply (auto simp add: meet_pres_def lattice.le_iff_join funcset_carrier)
-  using lattice_def partial_order_def upper_semilattice_def apply blast
-  using lattice_def partial_order_def upper_semilattice_def apply blast
-  apply fastforce
-done
+proof (rule isotoneI)
+  show "weak_partial_order X" "weak_partial_order Y"
+    using assms unfolding meet_pres_def lattice_def upper_semilattice_def lower_semilattice_def
+    by (meson partial_order.axioms(1))+
+  show "\<And>x y. \<lbrakk>x \<in> carrier X; y \<in> carrier X; x \<sqsubseteq>\<^bsub>X\<^esub> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>Y\<^esub> f y"
+    by (metis (no_types, lifting) PiE assms lattice.le_iff_join meet_pres_def)
+qed
 
 
 subsection \<open>Bounded Lattices\<close>
