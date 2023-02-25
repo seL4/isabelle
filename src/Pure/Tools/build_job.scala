@@ -22,7 +22,7 @@ trait Build_Job {
 }
 
 object Build_Job {
-  case class Abstract(
+  sealed case class Abstract(
     override val job_name: String,
     override val numa_node: Option[Int]
   ) extends Build_Job {
