@@ -271,6 +271,9 @@ object Library {
       case _ => error("Single argument expected")
     }
 
+  def symmetric_difference[A](xs: List[A], ys: List[A]): (List[A], List[A]) =
+    (xs.filterNot(ys.toSet), ys.filterNot(xs.toSet))
+
 
   /* proper values */
 

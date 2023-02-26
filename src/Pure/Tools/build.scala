@@ -171,9 +171,10 @@ object Build {
     val results =
       Isabelle_Thread.uninterruptible {
         val engine = get_engine(build_options.string("build_engine"))
-        val build_process = engine.init(build_context)
-        val res = build_process.run()
-        Results(build_context, res)
+        using(engine.init(build_context)) { build_process =>
+          val res = build_process.run()
+          Results(build_context, res)
+        }
       }
 
     if (export_files) {

@@ -13,18 +13,25 @@ import scala.util.matching.Regex
 
 trait Build_Job {
   def job_name: String
-  def numa_node: Option[Int] = None
+  def node_info: Build_Job.Node_Info
   def start(): Unit = ()
   def terminate(): Unit = ()
   def is_finished: Boolean = false
   def join: Process_Result = Process_Result.undefined
-  def make_abstract: Build_Job.Abstract = Build_Job.Abstract(job_name, numa_node)
+  def make_abstract: Build_Job.Abstract = Build_Job.Abstract(job_name, node_info)
 }
 
 object Build_Job {
+  object Node_Info { def none: Node_Info = Node_Info("", None) }
+  sealed case class Node_Info(hostname: String, numa_node: Option[Int])
+
+  sealed case class Result(node_info: Node_Info, process_result: Process_Result) {
+    def ok: Boolean = process_result.ok
+  }
+
   sealed case class Abstract(
     override val job_name: String,
-    override val numa_node: Option[Int]
+    override val node_info: Node_Info
   ) extends Build_Job {
     override def make_abstract: Abstract = this
   }
@@ -36,13 +43,13 @@ object Build_Job {
     resources: Resources,
     session_setup: (String, Session) => Unit,
     val input_heaps: SHA1.Shasum,
-    override val numa_node: Option[Int]
+    override val node_info: Node_Info
   ) extends Build_Job {
     def session_name: String = session_background.session_name
     def job_name: String = session_name
 
     val info: Sessions.Info = session_background.sessions_structure(session_name)
-    val options: Options = NUMA.policy_options(info.options, numa_node)
+    val options: Options = NUMA.policy_options(info.options, node_info.numa_node)
 
     val session_sources: Sessions.Sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)

@@ -180,6 +180,9 @@ option build_pide_reports : bool = true
 option build_engine : string = ""
   -- "alternative session build engine"
 
+option build_database : bool = false
+  -- "expose state of build process via central database"
+
 
 section "Editor Session"
 
