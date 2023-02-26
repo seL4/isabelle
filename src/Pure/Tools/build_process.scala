@@ -478,7 +478,7 @@ object Build_Process {
       val ch2 = update_running(db, state.running)
       val ch3 = update_results(db, state.results)
 
-      val (serial0, numa_index0) = read_state(db, instance)
+      val (serial0, _) = read_state(db, instance)
       val serial = if (ch1 || ch2 || ch3) serial0 + 1 else serial0
       if (serial != serial0) {
         reset_state(db, instance)
@@ -522,7 +522,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     else if (store.database_server) Some(store.open_database_server())
     else Some(SQLite.open_database(Build_Process.Data.database))
 
-  def close(): Unit = database.map(_.close())
+  def close(): Unit = database.foreach(_.close())
 
   // global state
   protected var _state: Build_Process.State = init_state()
