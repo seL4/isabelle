@@ -47,7 +47,8 @@ object Isabelle_System {
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
-  def hostname(): String = getenv_strict("ISABELLE_HOSTNAME")
+  def hostname(default: String = ""): String =
+    proper_string(default) getOrElse getenv_strict("ISABELLE_HOSTNAME")
 
 
   /* services */
