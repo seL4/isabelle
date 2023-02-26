@@ -582,7 +582,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     else {
       ssh.with_tmp_dir { tmp_dir =>
         val output_file = tmp_dir + Path.explode("output")
-        val build_options = (if (afp_repos.isEmpty) "" else " -A") + " " + options
+        val build_options = if_proper(afp_repos, " -A") + " " + options
         try {
           val script =
             ssh.bash_path(Path.explode("Admin/build_other")) +

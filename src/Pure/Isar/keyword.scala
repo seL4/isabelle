@@ -114,8 +114,8 @@ object Keyword {
   ) {
     override def toString: String =
       kind +
-        (if (load_command.isEmpty) "" else " (" + quote(load_command) + ")") +
-        (if (tags.isEmpty) "" else tags.map(quote).mkString(" % ", " % ", ""))
+        if_proper(load_command, " (" + quote(load_command) + ")") +
+        if_proper(tags, tags.map(quote).mkString(" % ", " % ", ""))
 
     def map(f: String => String): Spec =
       copy(kind = f(kind), load_command = f(load_command), tags = tags.map(f))
@@ -137,9 +137,7 @@ object Keyword {
               case Some(load_command) => " (" + quote(load_command) + ")"
               case None => ""
             }
-          val kind_decl =
-            if (kind == "") ""
-            else " :: " + quote(kind) + load_decl
+          val kind_decl = if_proper(kind, " :: " + quote(kind) + load_decl)
           quote(name) + kind_decl
         }
       entries.mkString("keywords\n  ", " and\n  ", "")

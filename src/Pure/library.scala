@@ -271,6 +271,9 @@ object Library {
       case _ => error("Single argument expected")
     }
 
+  def symmetric_difference[A](xs: List[A], ys: List[A]): (List[A], List[A]) =
+    (xs.filterNot(ys.toSet), ys.filterNot(xs.toSet))
+
 
   /* proper values */
 
@@ -282,6 +285,9 @@ object Library {
 
   def proper_list[A](list: List[A]): Option[List[A]] =
     if (list == null || list.isEmpty) None else Some(list)
+
+  def if_proper[A](x: Iterable[A], body: => String): String =
+    if (x == null || x.isEmpty) "" else body
 
 
   /* reflection */

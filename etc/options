@@ -132,9 +132,6 @@ option timeout : real = 0
 option timeout_build : bool = true
   -- "observe timeout for session build"
 
-option process_output_limit : int = 100
-  -- "build process output limit (in million characters, 0 = unlimited)"
-
 option process_output_tail : int = 40
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
@@ -180,8 +177,14 @@ option pide_reports : bool = true
 option build_pide_reports : bool = true
   -- "report PIDE markup (in batch build)"
 
+option build_hostname : string = ""
+  -- "alternative hostname for build process (default $ISABELLE_HOSTNAME)"
+
 option build_engine : string = ""
   -- "alternative session build engine"
+
+option build_database : bool = false
+  -- "expose state of build process via central database"
 
 
 section "Editor Session"

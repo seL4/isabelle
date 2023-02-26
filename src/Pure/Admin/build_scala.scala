@@ -29,8 +29,7 @@ object Build_Scala {
       Isabelle_System.download_file(proper_url, path, progress = progress)
 
     def print: String =
-      "  * " + name + " " + version +
-        (if (base_version.nonEmpty) " for Scala " + base_version else "") +
+      "  * " + name + " " + version + if_proper(base_version, " for Scala " + base_version) +
         ":\n    " + make_url(url)
   }
 

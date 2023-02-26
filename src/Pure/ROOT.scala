@@ -20,5 +20,6 @@ package object isabelle {
   val proper_bool = Library.proper_bool _
   val proper_string = Library.proper_string _
   def proper_list[A](list: List[A]): Option[List[A]] = Library.proper_list(list)
+  def if_proper[A](x: Iterable[A], body: => String): String = Library.if_proper(x, body)
 }
 

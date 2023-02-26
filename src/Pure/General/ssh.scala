@@ -19,7 +19,7 @@ object SSH {
     if (control_path.isEmpty || control_path == Bash.string(control_path)) {
       "ssh" +
         (if (port > 0) " -p " + port else "") +
-        (if (control_path.nonEmpty) " -o ControlPath=" + control_path else "")
+        if_proper(control_path, " -o ControlPath=" + control_path)
     }
     else error ("Malformed SSH control socket: " + quote(control_path))
 
@@ -130,8 +130,8 @@ object SSH {
           control_master = master, control_path = control_path)
       val cmd =
         Config.command(command, config) +
-        (if (opts.nonEmpty) " " + opts else "") +
-        (if (args.nonEmpty) " -- " + args else "")
+        if_proper(opts, " " + opts) +
+        if_proper(args, " -- " + args)
       Isabelle_System.bash(cmd, cwd = cwd,
         redirect = redirect,
         progress_stdout = progress_stdout,
@@ -155,7 +155,7 @@ object SSH {
     }
 
     def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result = {
-      val args1 = Bash.string(host) + (if (args.nonEmpty) " " + args else "")
+      val args1 = Bash.string(host) + if_proper(args, " " + args)
       run_command("ssh", master = master, opts = opts, args = args1)
     }
 

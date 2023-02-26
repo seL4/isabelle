@@ -155,9 +155,10 @@ object Isabelle_Cronjob {
       SSH.open_session(options, host = host, user = user, port = port)
 
     def sql: PostgreSQL.Source =
-      Build_Log.Prop.build_engine.toString + " = " + SQL.string(Build_History.engine) + " AND " +
-      SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
-      (if (detect == "") "" else " AND " + SQL.enclose(detect))
+      SQL.and(
+        Build_Log.Prop.build_engine.equal(Build_History.engine),
+        Build_Log.Prop.build_host.member(host :: more_hosts),
+        if_proper(detect, SQL.enclose(detect)))
 
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)

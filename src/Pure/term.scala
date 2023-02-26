@@ -41,21 +41,21 @@ object Term {
 
     override def toString: String =
       if (this == dummyT) "_"
-      else "Type(" + name + (if (args.isEmpty) "" else "," + args) + ")"
+      else "Type(" + name + if_proper(args, "," + args) + ")"
   }
   case class TFree(name: String, sort: Sort = Nil) extends Typ {
     private lazy val hash: Int = ("TFree", name, sort).hashCode()
     override def hashCode(): Int = hash
 
     override def toString: String =
-      "TFree(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
+      "TFree(" + name + if_proper(sort, "," + sort) + ")"
   }
   case class TVar(name: Indexname, sort: Sort = Nil) extends Typ {
     private lazy val hash: Int = ("TVar", name, sort).hashCode()
     override def hashCode(): Int = hash
 
     override def toString: String =
-      "TVar(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
+      "TVar(" + name + if_proper(sort, "," + sort) + ")"
   }
   val dummyT: Type = Type("dummy")
 
@@ -72,7 +72,7 @@ object Term {
 
     override def toString: String =
       if (this == dummy) "_"
-      else "Const(" + name + (if (typargs.isEmpty) "" else "," + typargs) + ")"
+      else "Const(" + name + if_proper(typargs, "," + typargs) + ")"
   }
   case class Free(name: String, typ: Typ = dummyT) extends Term {
     private lazy val hash: Int = ("Free", name, typ).hashCode()

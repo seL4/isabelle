@@ -680,7 +680,7 @@ object Bibtex {
         "\"$BIB2XHTML_HOME/main/bib2xhtml.pl\" -B \"$ISABELLE_BIBTEX\"" +
           " -u -s " + Bash.string(proper_string(style) getOrElse "empty") +
           (if (chronological) " -c" else "") +
-          (if (title != "") " -h " + Bash.string(title) + " " else "") +
+          if_proper(title, " -h " + Bash.string(title) + " ") +
           " " + File.bash_path(in_file) + " " + File.bash_path(out_file),
         cwd = tmp_dir.file).check
 
@@ -813,7 +813,7 @@ object Bibtex {
 
   def cite_antiquotation(name: String, location: String, citations: List[String]): String = {
     val body =
-      (if (location.isEmpty) "" else Symbol.cartouche(location) + " in ") +
+      if_proper(location, Symbol.cartouche(location) + " in ") +
       citations.map(quote).mkString(" and ")
     cite_antiquotation(name, body)
   }

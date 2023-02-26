@@ -86,7 +86,7 @@ object Mercurial {
   /* command-line syntax */
 
   def optional(s: String, prefix: String = ""): String =
-    if (s == "") "" else " " + prefix + " " + Bash.string(s)
+    if_proper(s, " " + prefix + " " + Bash.string(s))
 
   def opt_flag(flag: String, b: Boolean): String = if (b) " " + flag else ""
   def opt_rev(s: String): String = optional(s, "--rev")

@@ -47,6 +47,9 @@ object SQL {
   def enclose(s: Source): Source = "(" + s + ")"
   def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
 
+  def separate(sql: Source): Source =
+    (if (sql.isEmpty || sql.startsWith(" ")) "" else " ") + sql
+
   def select(columns: List[Column] = Nil, distinct: Boolean = false): Source =
     "SELECT " + (if (distinct) "DISTINCT " else "") +
     (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM "
@@ -55,12 +58,27 @@ object SQL {
   val join_inner: Source = " INNER JOIN "
   def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
-  def member(x: Source, set: Iterable[String]): Source = {
-    require(set.nonEmpty)
-    set.iterator.map(a => x + " = " + SQL.string(a)).mkString("(", " OR ", ")")
+  def infix(op: Source, args: Iterable[Source]): Source = {
+    val body = args.iterator.filter(_.nonEmpty).mkString(" " + op + " ")
+    if_proper(body, enclose(body))
   }
 
-  def where_member(x: Source, set: Iterable[String]): Source = " WHERE " + member(x, set)
+  def AND(args: Iterable[Source]): Source = infix("AND", args)
+  def OR(args: Iterable[Source]): Source = infix("OR", args)
+
+  def and(args: Source*): Source = AND(args)
+  def or(args: Source*): Source = OR(args)
+
+  val TRUE: Source = "TRUE"
+  val FALSE: Source = "FALSE"
+
+  def equal(sql: Source, s: String): Source = sql + " = " + string(s)
+
+  def member(sql: Source, set: Iterable[String]): Source =
+    if (set.isEmpty) FALSE
+    else OR(set.iterator.map(equal(sql, _)).toList)
+
+  def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
 
 
   /* types */
@@ -128,8 +146,11 @@ object SQL {
     def defined: String = ident + " IS NOT NULL"
     def undefined: String = ident + " IS NULL"
 
-    def equal(s: String): Source = ident + " = " + string(s)
-    def where_equal(s: String): Source = "WHERE " + equal(s)
+    def equal(s: String): Source = SQL.equal(ident, s)
+    def member(set: Iterable[String]): Source = SQL.member(ident, set)
+
+    def where_equal(s: String): Source = SQL.where(equal(s))
+    def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
     override def toString: Source = ident
   }
@@ -170,20 +191,19 @@ object SQL {
         (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
         ident + " " + enclosure(index_columns.map(_.name))
 
-    def insert_cmd(cmd: Source, sql: Source = ""): Source =
-      cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
-        (if (sql == "") "" else " " + sql)
+    def insert_cmd(cmd: Source = "INSERT", sql: Source = ""): Source =
+      cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) + SQL.separate(sql)
 
-    def insert(sql: Source = ""): Source = insert_cmd("INSERT", sql)
+    def insert(sql: Source = ""): Source = insert_cmd(sql = sql)
 
     def delete(sql: Source = ""): Source =
-      "DELETE FROM " + ident +
-        (if (sql == "") "" else " " + sql)
+      "DELETE FROM " + ident + SQL.separate(sql)
 
     def select(
-        select_columns: List[Column] = Nil, sql: Source = "", distinct: Boolean = false): Source =
-      SQL.select(select_columns, distinct = distinct) + ident +
-        (if (sql == "") "" else " " + sql)
+      select_columns: List[Column] = Nil,
+      distinct: Boolean = false,
+      sql: Source = ""
+    ): Source = SQL.select(select_columns, distinct = distinct) + ident + SQL.separate(sql)
 
     override def toString: Source = ident
   }
@@ -367,8 +387,7 @@ object SQL {
     }
 
     def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit =
-      using_statement(
-        table.create(strict, sql_type) + (if (sql == "") "" else " " + sql))(_.execute())
+      using_statement(table.create(strict, sql_type) + SQL.separate(sql))(_.execute())
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
@@ -425,7 +444,7 @@ object SQLite {
       date_format.parse(res.string(column))
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
-      table.insert_cmd("INSERT OR IGNORE", sql = sql)
+      table.insert_cmd(cmd = "INSERT OR IGNORE", sql = sql)
   }
 }
 
@@ -501,8 +520,7 @@ object PostgreSQL {
     }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
-      table.insert_cmd("INSERT",
-        sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
+      table.insert_cmd(sql = if_proper(sql, sql + " ") + "ON CONFLICT DO NOTHING")
 
 
     /* notifications: IPC via database server */
@@ -516,8 +534,7 @@ object PostgreSQL {
 
     def notify(name: String, payload: String = ""): Unit =
       using_statement(
-        "NOTIFY " + SQL.ident(name) +
-          (if (payload.isEmpty) "" else ", " + SQL.string(payload)))(_.execute())
+        "NOTIFY " + SQL.ident(name) + if_proper(payload, ", " + SQL.string(payload)))(_.execute())
 
     def get_notifications(): List[PGNotification] =
       the_postgresql_connection.getNotifications() match {

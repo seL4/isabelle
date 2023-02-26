@@ -152,6 +152,7 @@ object Build {
 
     val build_context =
       Build_Process.Context(store, build_deps, progress = progress,
+        hostname = Isabelle_System.hostname(build_options.string("build_hostname")),
         build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
         fresh_build = fresh_build, no_build = no_build, verbose = verbose,
         session_setup = session_setup)
@@ -171,9 +172,10 @@ object Build {
     val results =
       Isabelle_Thread.uninterruptible {
         val engine = get_engine(build_options.string("build_engine"))
-        val build_process = engine.init(build_context)
-        val res = build_process.run()
-        Results(build_context, res)
+        using(engine.init(build_context)) { build_process =>
+          val res = build_process.run()
+          Results(build_context, res)
+        }
       }
 
     if (export_files) {
@@ -293,9 +295,10 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val start_date = Date.now()
 
       if (verbose) {
+        val hostname = Isabelle_System.hostname(options.string("build_hostname"))
         progress.echo(
           "Started at " + Build_Log.print_date(start_date) +
-            " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + Isabelle_System.hostname() +")")
+            " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + hostname +")")
         progress.echo(Build_Log.Settings.show() + "\n")
       }
 

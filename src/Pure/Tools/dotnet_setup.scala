@@ -128,9 +128,9 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
           if (platform_dir.is_dir && force) Isabelle_System.rm_tree(platform_dir)
           val script =
             platform.exec + " " + File.bash_platform_path(install) +
-              (if (version.nonEmpty) " -Version " + Bash.string(version) else "") +
+              if_proper(version, " -Version " + Bash.string(version)) +
               " -Architecture " + Bash.string(platform.arch) +
-              (if (platform.os.nonEmpty) " -OS " + Bash.string(platform.os) else "") +
+              if_proper(platform.os, " -OS " + Bash.string(platform.os)) +
               " -InstallDir " + Bash.string(platform.name) +
               (if (dry_run) " -DryRun" else "") +
               " -NoPath"

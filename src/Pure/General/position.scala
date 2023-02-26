@@ -116,18 +116,18 @@ object Position {
 
   def here(props: T, delimited: Boolean = true): String = {
     val pos = props.filter(Markup.position_property)
-    if (pos.isEmpty) ""
-    else {
-      val s0 =
-        (Line.unapply(pos), File.unapply(pos)) match {
-          case (Some(i), None) => "line " + i.toString
-          case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
-          case (None, Some(name)) => "file " + quote(name)
-          case _ => ""
-        }
-      val s = if (s0 == "") s0 else if (delimited) " (" + s0 + ")" else s0
-      Markup(Markup.POSITION, pos).markup(s)
-    }
+    if_proper(pos,
+      {
+        val s0 =
+          (Line.unapply(pos), File.unapply(pos)) match {
+            case (Some(i), None) => "line " + i.toString
+            case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
+            case (None, Some(name)) => "file " + quote(name)
+            case _ => ""
+          }
+        val s = if (s0 == "") s0 else if (delimited) " (" + s0 + ")" else s0
+        Markup(Markup.POSITION, pos).markup(s)
+      })
   }
 
 

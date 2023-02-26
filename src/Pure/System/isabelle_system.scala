@@ -47,6 +47,9 @@ object Isabelle_System {
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
+  def hostname(default: String = ""): String =
+    proper_string(default) getOrElse getenv_strict("ISABELLE_HOSTNAME")
+
 
   /* services */
 
@@ -498,8 +501,6 @@ object Isabelle_System {
       File.read(patch)
     }
   }
-
-  def hostname(): String = bash("hostname -s").check.out
 
   def open(arg: String): Unit =
     bash("exec \"$ISABELLE_OPEN\" " + Bash.string(arg) + " >/dev/null 2>/dev/null &")

@@ -22,7 +22,7 @@ object JSON_API {
       HTTP.Client.get(if (route.isEmpty) url else new URL(url, route))
 
     def get_root(route: String = ""): Root =
-      Root(get(if (route.isEmpty) "" else "/" + route).json)
+      Root(get(if_proper(route, "/" + route)).json)
   }
 
   sealed case class Root(json: JSON.T) {

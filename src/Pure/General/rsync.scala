@@ -42,7 +42,7 @@ object Rsync {
         (if (clean) " --delete-excluded" else "") +
         (if (list) " --list-only --no-human-readable" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
-        (if (args.nonEmpty) " " + Bash.strings(args) else "")
+        if_proper(args, " " + Bash.strings(args))
     context.progress.bash(script, echo = true)
   }
 
