@@ -517,7 +517,12 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
   protected val database: Option[SQL.Database] =
     if (!build_options.bool("build_database") || true /*FIXME*/) None
     else if (store.database_server) Some(store.open_database_server())
-    else Some(SQLite.open_database(Build_Process.Data.database))
+    else {
+      val db = SQLite.open_database(Build_Process.Data.database)
+      try { Isabelle_System.chmod("600", Build_Process.Data.database) }
+      catch { case exn: Throwable => db.close(); throw exn }
+      Some(db)
+    }
 
   def close(): Unit = database.foreach(_.close())
 
