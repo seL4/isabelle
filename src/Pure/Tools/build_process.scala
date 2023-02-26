@@ -255,10 +255,10 @@ object Build_Process {
 
     object Config {
       val instance = Generic.instance.make_primary_key
-      val ml_identifier = SQL.Column.string("ml_identifier")
+      val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
 
-      val table = make_table("", List(instance, ml_identifier, options))
+      val table = make_table("", List(instance, ml_platform, options))
     }
 
     object State {
@@ -424,7 +424,7 @@ object Build_Process {
     def write_config(db: SQL.Database, instance: String, hostname: String, options: Options): Unit =
       db.using_statement(Config.table.insert()) { stmt =>
         stmt.string(1) = instance
-        stmt.string(2) = Isabelle_System.getenv("ML_IDENTIFIER")
+        stmt.string(2) = Isabelle_System.getenv("ML_PLATFORM")
         stmt.string(3) = options.make_prefs(Options.init(prefs = ""))
         stmt.execute()
       }
