@@ -423,7 +423,7 @@ object Build_Process {
       db.using_statement(Config.table.insert()) { stmt =>
         stmt.string(1) = instance
         stmt.string(2) = Isabelle_System.getenv("ML_IDENTIFIER")
-        stmt.string(3) = options.changed(Options.init(prefs = "")).mkString("\u0001")
+        stmt.string(3) = options.make_prefs(Options.init(prefs = ""))
         stmt.execute()
       }
 
