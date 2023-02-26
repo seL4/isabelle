@@ -69,14 +69,13 @@ object SQL {
   val TRUE: Source = "TRUE"
   val FALSE: Source = "FALSE"
 
-  def member(x: Source, set: Iterable[String]): Source =
-    if (set.isEmpty) FALSE
-    else OR(set.iterator.map(a => x + " = " + SQL.string(a)).toList)
+  def equal(sql: Source, s: String): Source = sql + " = " + string(s)
 
-  def where_member(x: Source, set: Iterable[String]): Source = " WHERE " + member(x, set)
+  def member(sql: Source, set: Iterable[String]): Source =
+    if (set.isEmpty) FALSE
+    else OR(set.iterator.map(equal(sql, _)).toList)
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
-
 
 
   /* types */
@@ -144,8 +143,11 @@ object SQL {
     def defined: String = ident + " IS NOT NULL"
     def undefined: String = ident + " IS NULL"
 
-    def equal(s: String): Source = ident + " = " + string(s)
-    def where_equal(s: String): Source = " WHERE " + equal(s)
+    def equal(s: String): Source = SQL.equal(ident, s)
+    def member(set: Iterable[String]): Source = SQL.member(ident, set)
+
+    def where_equal(s: String): Source = SQL.where(equal(s))
+    def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
     override def toString: Source = ident
   }

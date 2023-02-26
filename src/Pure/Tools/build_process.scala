@@ -246,7 +246,7 @@ object Build_Process {
       def sql_member(instance: String = "", names: Iterable[String] = Nil): SQL.Source =
         SQL.and(
           if_proper(instance, Generic.instance.equal(instance)),
-          if_proper(names, SQL.member(Generic.name.toString, names)))
+          if_proper(names, Generic.name.member(names)))
     }
 
     object Config {
@@ -367,7 +367,7 @@ object Build_Process {
 
     def read_results(db: SQL.Database, names: List[String] = Nil): Map[String, Build_Job.Result] =
       db.using_statement(
-        Results.table.select() + if_proper(names, SQL.where_member(Results.name.toString, names))
+        Results.table.select() + if_proper(names, Results.name.where_member(names))
       ) { stmt =>
         Map.from(
           stmt.execute_query().iterator { res =>

@@ -40,12 +40,11 @@ object Build_Status {
         sql = "WHERE " +
           Build_Log.Data.pull_date(afp) + " > " + Build_Log.Data.recent_time(days(options)) +
           " AND " +
-          SQL.member(Build_Log.Data.status.ident,
+          Build_Log.Data.status.member(
             List(
               Build_Log.Session_Status.finished.toString,
               Build_Log.Session_Status.failed.toString)) +
-          if_proper(only_sessions,
-            " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
+          if_proper(only_sessions, " AND " + Build_Log.Data.session_name.member(only_sessions)) +
           " AND " + SQL.enclose(sql))
     }
   }
