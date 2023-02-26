@@ -443,8 +443,6 @@ object Build_Process {
       }
 
     def write_state(db: SQL.Database, instance: String, serial: Long, numa_index: Int): Unit = {
-      db.using_statement(
-        State.table.delete() + SQL.where(Generic.sql_equal(instance = instance)))(_.execute())
       db.using_statement(State.table.insert()) { stmt =>
         stmt.string(1) = instance
         stmt.long(2) = serial
@@ -452,6 +450,10 @@ object Build_Process {
         stmt.execute()
       }
     }
+
+    def reset_state(db: SQL.Database, instance: String): Unit =
+      db.using_statement(
+        State.table.delete() + SQL.where(Generic.sql_equal(instance = instance)))(_.execute())
 
     def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
       val tables =
@@ -478,7 +480,10 @@ object Build_Process {
 
       val (serial0, numa_index0) = read_state(db, instance)
       val serial = if (ch1 || ch2 || ch3) serial0 + 1 else serial0
-      if (serial != serial0) write_state(db, instance, serial, state.numa_index)
+      if (serial != serial0) {
+        reset_state(db, instance)
+        write_state(db, instance, serial, state.numa_index)
+      }
 
       state.copy(serial = serial)
     }
