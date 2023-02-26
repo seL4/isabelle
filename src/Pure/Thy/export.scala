@@ -64,15 +64,15 @@ object Export {
     }
 
     def readable(db: SQL.Database): Boolean = {
-      val select = Data.table.select(List(Data.name), Data.where_equal(session, theory, name))
-      db.using_statement(select)(stmt => stmt.execute_query().next())
+      db.using_statement(
+        Data.table.select(List(Data.name),
+          sql = Data.where_equal(session, theory, name)))(_.execute_query().next())
     }
 
-    def read(db: SQL.Database, cache: XML.Cache): Option[Entry] = {
-      val select =
+    def read(db: SQL.Database, cache: XML.Cache): Option[Entry] =
+      db.using_statement(
         Data.table.select(List(Data.executable, Data.compressed, Data.body),
-          Data.where_equal(session, theory, name))
-      db.using_statement(select) { stmt =>
+          sql = Data.where_equal(session, theory, name))) { stmt =>
         val res = stmt.execute_query()
         if (res.next()) {
           val executable = res.bool(Data.executable)
@@ -83,27 +83,24 @@ object Export {
         }
         else None
       }
-    }
   }
 
-  def read_theory_names(db: SQL.Database, session_name: String): List[String] = {
-    val select =
-      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true) +
-      SQL.order_by(List(Data.theory_name))
-    db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
-  }
+  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
+    db.using_statement(
+      Data.table.select(List(Data.theory_name), distinct = true,
+        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.theory_name)))
+    ) { stmt => stmt.execute_query().iterator(_.string(Data.theory_name)).toList }
 
-  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] = {
-    val select =
-      Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name)) +
-      SQL.order_by(List(Data.theory_name, Data.name))
-    db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator(res =>
-        Entry_Name(session = session_name,
-          theory = res.string(Data.theory_name),
-          name = res.string(Data.name))).toList)
-  }
+  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
+    db.using_statement(
+      Data.table.select(List(Data.theory_name, Data.name),
+        sql = Data.where_equal(session_name)) + SQL.order_by(List(Data.theory_name, Data.name))
+    ) { stmt =>
+        stmt.execute_query().iterator(res =>
+          Entry_Name(session = session_name,
+            theory = res.string(Data.theory_name),
+            name = res.string(Data.name))).toList
+      }
 
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)

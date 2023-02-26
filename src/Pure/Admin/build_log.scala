@@ -723,7 +723,7 @@ object Build_Log {
       val eq_rev2 = if_proper(rev2, Prop.afp_version(table).equal(rev2))
 
       SQL.Table("recent_pull_date", table.columns,
-        table.select(table.columns,
+        table.select(table.columns, sql =
           SQL.where(
             SQL.or(pull_date(afp)(table).ident + " > " + recent_time(days),
               SQL.and(eq_rev, eq_rev2)))))
@@ -732,8 +732,9 @@ object Build_Log {
     def select_recent_log_names(days: Int): PostgreSQL.Source = {
       val table1 = meta_info_table
       val table2 = recent_pull_date_table(days)
-      table1.select(List(log_name), distinct = true) + SQL.join_inner + table2.query_named +
-        " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
+      table1.select(List(log_name), distinct = true, sql =
+        SQL.join_inner + table2.query_named +
+        " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
     }
 
     def select_recent_versions(
@@ -1035,7 +1036,7 @@ object Build_Log {
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
       val table = Data.meta_info_table
       val columns = table.columns.tail
-      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name))) { stmt =>
+      db.using_statement(table.select(columns, sql = Data.log_name.where_equal(log_name))) { stmt =>
         val res = stmt.execute_query()
         if (!res.next()) None
         else {

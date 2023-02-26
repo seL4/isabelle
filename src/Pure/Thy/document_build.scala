@@ -70,23 +70,23 @@ object Document_Build {
           if_proper(name, Data.name.equal(name))))
   }
 
-  def read_documents(db: SQL.Database, session_name: String): List[Document_Input] = {
-    val select = Data.table.select(List(Data.name, Data.sources), Data.where_equal(session_name))
-    db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator({ res =>
-        val name = res.string(Data.name)
-        val sources = res.string(Data.sources)
-        Document_Input(name, SHA1.fake_shasum(sources))
-      }).toList)
-  }
+  def read_documents(db: SQL.Database, session_name: String): List[Document_Input] =
+    db.using_statement(
+      Data.table.select(List(Data.name, Data.sources), sql = Data.where_equal(session_name))
+    ) { stmt =>
+        (stmt.execute_query().iterator { res =>
+          val name = res.string(Data.name)
+          val sources = res.string(Data.sources)
+          Document_Input(name, SHA1.fake_shasum(sources))
+        }).toList
+      }
 
   def read_document(
     db: SQL.Database,
     session_name: String,
     name: String
   ): Option[Document_Output] = {
-    val select = Data.table.select(sql = Data.where_equal(session_name, name))
-    db.using_statement(select)({ stmt =>
+    db.using_statement(Data.table.select(sql = Data.where_equal(session_name, name))) { stmt =>
       val res = stmt.execute_query()
       if (res.next()) {
         val name = res.string(Data.name)
@@ -96,7 +96,7 @@ object Document_Build {
         Some(Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf))
       }
       else None
-    })
+    }
   }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit = {

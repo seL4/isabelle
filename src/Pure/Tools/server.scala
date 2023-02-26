@@ -367,12 +367,13 @@ object Server {
 
   def list(db: SQLite.Database): List[Info] =
     if (db.tables.contains(Data.table.name)) {
-      db.using_statement(Data.table.select())(stmt =>
+      db.using_statement(Data.table.select()) { stmt =>
         stmt.execute_query().iterator(res =>
           Info(
             res.string(Data.name),
             res.int(Data.port),
-            res.string(Data.password))).toList.sortBy(_.name))
+            res.string(Data.password))).toList.sortBy(_.name)
+      }
     }
     else Nil
 
@@ -390,8 +391,8 @@ object Server {
         Isabelle_System.chmod("600", Data.database)
         db.create_table(Data.table)
         list(db).filterNot(_.active).foreach(server_info =>
-          db.using_statement(Data.table.delete(Data.name.where_equal(server_info.name)))(
-            _.execute()))
+          db.using_statement(
+            Data.table.delete(sql = Data.name.where_equal(server_info.name)))(_.execute()))
       }
       db.transaction {
         find(db, name) match {
@@ -402,7 +403,7 @@ object Server {
             val server = new Server(port, log)
             val server_info = Info(name, server.port, server.password)
 
-            db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute())
+            db.using_statement(Data.table.delete(sql = Data.name.where_equal(name)))(_.execute())
             db.using_statement(Data.table.insert()) { stmt =>
               stmt.string(1) = server_info.name
               stmt.int(2) = server_info.port

@@ -302,7 +302,7 @@ object Build_Process {
     }
 
     def read_pending(db: SQL.Database): List[Entry] =
-      db.using_statement(Pending.table.select() + SQL.order_by(List(Pending.name))) { stmt =>
+      db.using_statement(Pending.table.select(sql = SQL.order_by(List(Pending.name)))) { stmt =>
         List.from(
           stmt.execute_query().iterator { res =>
             val name = res.string(Pending.name)
@@ -318,8 +318,8 @@ object Build_Process {
 
       if (delete.nonEmpty) {
         db.using_statement(
-          Pending.table.delete() + SQL.where(Generic.sql_member(names = delete.map(_.name)))
-        )(_.execute())
+          Pending.table.delete(
+            sql = SQL.where(Generic.sql_member(names = delete.map(_.name)))))(_.execute())
       }
 
       for (entry <- insert) {
@@ -335,7 +335,7 @@ object Build_Process {
     }
 
     def read_running(db: SQL.Database): List[Build_Job.Abstract] =
-      db.using_statement(Running.table.select() + SQL.order_by(List(Running.name))) { stmt =>
+      db.using_statement(Running.table.select(sql = SQL.order_by(List(Running.name)))) { stmt =>
         List.from(
           stmt.execute_query().iterator { res =>
             val name = res.string(Running.name)
@@ -353,8 +353,8 @@ object Build_Process {
 
       if (delete.nonEmpty) {
         db.using_statement(
-          Running.table.delete() + SQL.where(Generic.sql_member(names = delete.map(_.job_name)))
-        )(_.execute())
+          Running.table.delete(
+            sql = SQL.where(Generic.sql_member(names = delete.map(_.job_name)))))(_.execute())
       }
 
       for (job <- insert) {
@@ -371,8 +371,7 @@ object Build_Process {
 
     def read_results(db: SQL.Database, names: List[String] = Nil): Map[String, Build_Job.Result] =
       db.using_statement(
-        Results.table.select() + if_proper(names, Results.name.where_member(names))
-      ) { stmt =>
+        Results.table.select(sql = if_proper(names, Results.name.where_member(names)))) { stmt =>
         Map.from(
           stmt.execute_query().iterator { res =>
             val name = res.string(Results.name)
@@ -395,9 +394,8 @@ object Build_Process {
       }
 
     def read_results_name(db: SQL.Database): Set[String] =
-      db.using_statement(Results.table.select(List(Results.name))) { stmt =>
-        Set.from(stmt.execute_query().iterator(_.string(Results.name)))
-      }
+      db.using_statement(Results.table.select(List(Results.name)))(stmt =>
+        Set.from(stmt.execute_query().iterator(_.string(Results.name))))
 
     def update_results(db: SQL.Database, results: Map[String, Build_Process.Result]): Boolean = {
       val old_results = read_results_name(db)
@@ -433,27 +431,26 @@ object Build_Process {
 
     def read_state(db: SQL.Database, instance: String): (Long, Int) =
       db.using_statement(
-        State.table.select() + SQL.where(Generic.sql_equal(instance = instance))
+        State.table.select(sql = SQL.where(Generic.sql_equal(instance = instance)))
       ) { stmt =>
-        (stmt.execute_query().iterator { res =>
-          val serial = res.long(State.serial)
-          val numa_index = res.int(State.numa_index)
-          (serial, numa_index)
-        }).nextOption.getOrElse(error("No build state instance " + instance + " in database " + db))
-      }
+          (stmt.execute_query().iterator { res =>
+            val serial = res.long(State.serial)
+            val numa_index = res.int(State.numa_index)
+            (serial, numa_index)
+          }).nextOption.getOrElse(error("No build state instance " + instance + " in database " + db))
+        }
 
-    def write_state(db: SQL.Database, instance: String, serial: Long, numa_index: Int): Unit = {
+    def write_state(db: SQL.Database, instance: String, serial: Long, numa_index: Int): Unit =
       db.using_statement(State.table.insert()) { stmt =>
         stmt.string(1) = instance
         stmt.long(2) = serial
         stmt.int(3) = numa_index
         stmt.execute()
       }
-    }
 
     def reset_state(db: SQL.Database, instance: String): Unit =
       db.using_statement(
-        State.table.delete() + SQL.where(Generic.sql_equal(instance = instance)))(_.execute())
+        State.table.delete(sql = SQL.where(Generic.sql_equal(instance = instance))))(_.execute())
 
     def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
       val tables =

@@ -47,6 +47,9 @@ object SQL {
   def enclose(s: Source): Source = "(" + s + ")"
   def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
 
+  def separate(sql: Source): Source =
+    (if (sql.isEmpty || sql.startsWith(" ")) "" else " ") + sql
+
   def select(columns: List[Column] = Nil, distinct: Boolean = false): Source =
     "SELECT " + (if (distinct) "DISTINCT " else "") +
     (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM "
@@ -76,9 +79,6 @@ object SQL {
     else OR(set.iterator.map(equal(sql, _)).toList)
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
-
-  def separate(sql: Source): Source =
-    (if (sql.isEmpty || sql.startsWith(" ")) "" else " ") + sql
 
 
   /* types */
@@ -200,8 +200,10 @@ object SQL {
       "DELETE FROM " + ident + SQL.separate(sql)
 
     def select(
-        select_columns: List[Column] = Nil, sql: Source = "", distinct: Boolean = false): Source =
-      SQL.select(select_columns, distinct = distinct) + ident + SQL.separate(sql)
+      select_columns: List[Column] = Nil,
+      distinct: Boolean = false,
+      sql: Source = ""
+    ): Source = SQL.select(select_columns, distinct = distinct) + ident + SQL.separate(sql)
 
     override def toString: Source = ident
   }

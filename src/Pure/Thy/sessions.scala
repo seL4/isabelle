@@ -1512,8 +1512,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     /* SQL database content */
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
-      db.using_statement(Session_Info.table.select(List(column),
-        Session_Info.session_name.where_equal(name))) { stmt =>
+      db.using_statement(
+        Session_Info.table.select(List(column),
+          sql = Session_Info.session_name.where_equal(name))) { stmt =>
         val res = stmt.execute_query()
         if (!res.next()) Bytes.empty else res.bytes(column)
       }
@@ -1528,22 +1529,22 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       db.transaction {
         db.create_table(Session_Info.table)
         db.using_statement(
-          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute())
+          Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))(_.execute())
         if (db.isInstanceOf[PostgreSQL.Database]) {
           db.using_statement(Session_Info.augment_table)(_.execute())
         }
 
         db.create_table(Sources.table)
-        db.using_statement(Sources.table.delete(Sources.where_equal(name)))(_.execute())
+        db.using_statement(Sources.table.delete(sql = Sources.where_equal(name)))(_.execute())
 
         db.create_table(Export.Data.table)
         db.using_statement(
-          Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute())
+          Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))(_.execute())
 
         db.create_table(Document_Build.Data.table)
         db.using_statement(
           Document_Build.Data.table.delete(
-            Document_Build.Data.session_name.where_equal(name)))(_.execute())
+            sql = Document_Build.Data.session_name.where_equal(name)))(_.execute())
       }
     }
 
@@ -1557,7 +1558,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       session_info_exists(db) && {
         db.using_statement(
           Session_Info.table.select(List(Session_Info.session_name),
-            Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
+            sql = Session_Info.session_name.where_equal(name)))(_.execute_query().next())
       }
 
     def write_session_info(
@@ -1610,8 +1611,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_build(db: SQL.Database, name: String): Option[Build_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
-        db.using_statement(Session_Info.table.select(Nil,
-          Session_Info.session_name.where_equal(name))) { stmt =>
+        db.using_statement(
+          Session_Info.table.select(sql = Session_Info.session_name.where_equal(name))) { stmt =>
           val res = stmt.execute_query()
           if (!res.next()) None
           else {
@@ -1652,18 +1653,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       session_name: String,
       name: String = ""
     ): List[Source_File] = {
-      val select =
-        Sources.table.select(Nil,
+      db.using_statement(
+        Sources.table.select(sql =
           Sources.where_equal(session_name, name = name) + SQL.order_by(List(Sources.name)))
-      db.using_statement(select) { stmt =>
-        (stmt.execute_query().iterator { res =>
-          val res_name = res.string(Sources.name)
-          val digest = SHA1.fake_digest(res.string(Sources.digest))
-          val compressed = res.bool(Sources.compressed)
-          val body = res.bytes(Sources.body)
-          Source_File(res_name, digest, compressed, body, cache.compress)
-        }).toList
-      }
+      ) { stmt =>
+          (stmt.execute_query().iterator { res =>
+            val res_name = res.string(Sources.name)
+            val digest = SHA1.fake_digest(res.string(Sources.digest))
+            val compressed = res.bool(Sources.compressed)
+            val body = res.bytes(Sources.body)
+            Source_File(res_name, digest, compressed, body, cache.compress)
+          }).toList
+        }
     }
   }
 }
