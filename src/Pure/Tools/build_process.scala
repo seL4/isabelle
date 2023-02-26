@@ -399,7 +399,7 @@ object Build_Process {
 
     def update_results(db: SQL.Database, results: Map[String, Build_Process.Result]): Boolean = {
       val old_results = read_results_name(db)
-      val insert = results.iterator.filterNot(p => !old_results.contains(p._1)).toList
+      val insert = results.iterator.filterNot(p => old_results.contains(p._1)).toList
 
       for ((name, result) <- insert) {
         val node_info = result.node_info
