@@ -787,17 +787,14 @@ proof -
         by (subst (asm) sum.union_disjoint) (use that in \<open>auto simp: F0A_def\<close>)      
     qed
 
-    show \<open>eventually E (?filter_fB \<times>\<^sub>F ?filter_fB)\<close>
-      unfolding eventually_prod_filter
-    proof (safe intro!: exI)
-      show "eventually (\<lambda>x. E' (x, sum f F0B)) (filtermap (sum f) (finite_subsets_at_top B))"
-       and "eventually (\<lambda>x. E' (sum f F0B, x)) (filtermap (sum f) (finite_subsets_at_top B))"
+    have "eventually (\<lambda>x. E' (x, sum f F0B)) (filtermap (sum f) (finite_subsets_at_top B))"
+     and "eventually (\<lambda>x. E' (sum f F0B, x)) (filtermap (sum f) (finite_subsets_at_top B))"
         unfolding eventually_filtermap eventually_finite_subsets_at_top
         by (rule exI[of _ F0B]; use * in \<open>force simp: F0B_def\<close>)+
-    next
-      show "E (x, y)" if "E' (x, sum f F0B)" and "E' (sum f F0B, y)" for x y
-        using E'E'E that by blast
-    qed
+      then 
+    show \<open>eventually E (?filter_fB \<times>\<^sub>F ?filter_fB)\<close>
+      unfolding eventually_prod_filter
+      using E'E'E by blast
   qed
 
   then obtain x where \<open>?filter_fB \<le> nhds x\<close>
@@ -816,8 +813,7 @@ lemma summable_on_subset_banach:
   assumes \<open>f summable_on A\<close>
   assumes \<open>B \<subseteq> A\<close>
   shows \<open>f summable_on B\<close>
-  by (rule summable_on_subset_aux[OF _ _ assms])
-     (auto simp: complete_def convergent_def dest!: Cauchy_convergent)
+  by (meson Cauchy_convergent UNIV_I assms complete_def convergent_def isUCont_plus summable_on_subset_aux)
 
 lemma has_sum_empty[simp]: \<open>(f has_sum 0) {}\<close>
   by (meson ex_in_conv has_sum_0)
@@ -866,7 +862,7 @@ lemma sum_infsum:
   assumes conv: \<open>\<And>a. a \<in> A \<Longrightarrow> f summable_on (B a)\<close>
   assumes disj: \<open>\<And>a a'. a\<in>A \<Longrightarrow> a'\<in>A \<Longrightarrow> a\<noteq>a' \<Longrightarrow> B a \<inter> B a' = {}\<close>
   shows \<open>sum (\<lambda>a. infsum f (B a)) A = infsum f (\<Union>a\<in>A. B a)\<close>
-  by (metis (no_types, lifting) assms has_sum_infsum infsumI sum_has_sum[of A f B \<open>\<lambda>a. infsum f (B a)\<close>])
+  by (metis (no_types, lifting) assms has_sum_infsum infsumI sum_has_sum)
 
 text \<open>The lemmas \<open>infsum_comm_additive_general\<close> and \<open>infsum_comm_additive\<close> (and variants) below both state that the infinite sum commutes with
   a continuous additive function. \<open>infsum_comm_additive_general\<close> is stated more for more general type classes
@@ -959,16 +955,10 @@ proof -
       by (metis \<open>F \<subseteq> A\<close> \<open>finite F\<close> eventually_finite_subsets_at_top)
   next
     fix a assume *: \<open>(SUP F\<in>{F. finite F \<and> F\<subseteq>A}. sum f F) < a\<close>
-    have \<open>sum f F < a\<close> if \<open>F\<subseteq>A\<close> and \<open>finite F\<close> for F
-    proof -
-      have "sum f F \<le> (SUP F\<in>{F. finite F \<and> F\<subseteq>A}. sum f F)"
+    have "sum f F \<le> (SUP F\<in>{F. finite F \<and> F\<subseteq>A}. sum f F)" if \<open>F\<subseteq>A\<close> and \<open>finite F\<close> for F
         by (rule cSUP_upper) (use that assms(2) in \<open>auto simp: conj_commute\<close>)
-      also have "\<dots> < a"
-        by fact
-      finally show ?thesis .
-    qed
     then show \<open>\<forall>\<^sub>F x in finite_subsets_at_top A. sum f x < a\<close>
-      by (rule eventually_finite_subsets_at_top_weakI)
+      by (metis (no_types, lifting) "*" eventually_finite_subsets_at_top_weakI order_le_less_trans)
   qed
   then show ?thesis
     using has_sum_def by blast
@@ -1024,14 +1014,7 @@ lemma has_sum_mono2:
   assumes "(f has_sum S) A" "(f has_sum S') B" "A \<subseteq> B"
   assumes "\<And>x. x \<in> B - A \<Longrightarrow> f x \<ge> 0"
   shows   "S \<le> S'"
-proof -
-  have "(f has_sum (S' - S)) (B - A)"
-    by (rule has_sum_Diff) fact+
-  hence "S' - S \<ge> 0"
-    by (rule has_sum_nonneg) (use assms(4) in auto)
-  thus ?thesis
-    by (metis add_0 add_mono_thms_linordered_semiring(3) diff_add_cancel)
-qed
+  by (metis add_0 add_right_mono assms diff_add_cancel has_sum_Diff has_sum_nonneg)
 
 lemma infsum_mono2:
   fixes f :: "'a \<Rightarrow> 'b::{topological_ab_group_add, ordered_comm_monoid_add,linorder_topology}"
@@ -1045,12 +1028,7 @@ lemma finite_sum_le_has_sum:
   assumes "(f has_sum S) A" "finite B" "B \<subseteq> A"
   assumes "\<And>x. x \<in> A - B \<Longrightarrow> f x \<ge> 0"
   shows   "sum f B \<le> S"
-proof (rule has_sum_mono2)
-  show "(f has_sum S) A"
-    by fact
-  show "(f has_sum (sum f B)) B"
-    by (rule has_sum_finite) fact+
-qed (use assms in auto)
+  by (meson assms has_sum_finite has_sum_mono2)
 
 lemma finite_sum_le_infsum:
   fixes f :: "'a \<Rightarrow> 'b::{topological_ab_group_add, ordered_comm_monoid_add,linorder_topology}"
@@ -1085,39 +1063,24 @@ lemma summable_on_reindex:
 lemma infsum_reindex:
   assumes \<open>inj_on h A\<close>
   shows \<open>infsum g (h ` A) = infsum (g \<circ> h) A\<close>
-  by (metis (no_types, opaque_lifting) assms finite_subsets_at_top_neq_bot infsum_def 
-        summable_on_reindex has_sum_def has_sum_infsum has_sum_reindex tendsto_Lim)
+  by (metis assms has_sum_infsum has_sum_reindex infsumI infsum_def)
 
 lemma summable_on_reindex_bij_betw:
   assumes "bij_betw g A B"
   shows   "(\<lambda>x. f (g x)) summable_on A \<longleftrightarrow> f summable_on B"
-proof -
-  have "inj_on g A"
-    using assms bij_betw_imp_inj_on by blast
-  then have \<open>(\<lambda>x. f (g x)) summable_on A \<longleftrightarrow> f summable_on g ` A\<close>
-    by (metis (mono_tags, lifting) comp_apply summable_on_cong summable_on_reindex)
-  also have \<open>\<dots> \<longleftrightarrow> f summable_on B\<close>
-    using assms bij_betw_imp_surj_on by blast
-  finally show ?thesis .
-qed
+  by (smt (verit) assms bij_betw_def o_apply summable_on_cong summable_on_reindex) 
 
 lemma infsum_reindex_bij_betw:
   assumes "bij_betw g A B"
   shows   "infsum (\<lambda>x. f (g x)) A = infsum f B"
-proof -
-  have \<open>infsum (\<lambda>x. f (g x)) A = infsum f (g ` A)\<close>
-    by (metis (mono_tags, lifting) assms bij_betw_imp_inj_on infsum_cong infsum_reindex o_def)
-  also have \<open>\<dots> = infsum f B\<close>
-    using assms bij_betw_imp_surj_on by blast
-  finally show ?thesis .
-qed
+  by (metis (mono_tags, lifting) assms bij_betw_def infsum_cong infsum_reindex o_def)
 
 lemma sum_uniformity:
   assumes plus_cont: \<open>uniformly_continuous_on UNIV (\<lambda>(x::'b::{uniform_space,comm_monoid_add},y). x+y)\<close>
-  assumes \<open>eventually E uniformity\<close>
+  assumes EE: \<open>eventually E uniformity\<close>
   obtains D where \<open>eventually D uniformity\<close> 
     and \<open>\<And>M::'a set. \<And>f f' :: 'a \<Rightarrow> 'b. card M \<le> n \<and> (\<forall>m\<in>M. D (f m, f' m)) \<Longrightarrow> E (sum f M, sum f' M)\<close>
-proof (atomize_elim, insert \<open>eventually E uniformity\<close>, induction n arbitrary: E rule:nat_induct)
+proof (atomize_elim, insert EE, induction n arbitrary: E rule:nat_induct)
   case 0
   then show ?case
     by (metis card_eq_0_iff equals0D le_zero_eq sum.infinite sum.not_neutral_contains_not_neutral uniformity_refl)
@@ -1169,8 +1132,7 @@ next
     then show \<open>E (sum f M, sum f' M)\<close>
       by (metis False \<open>M = insert x N\<close> \<open>x \<notin> N\<close> card.infinite finite_insert sum.insert)
   qed
-  with \<open>eventually D uniformity\<close>
-  show ?case 
+  with \<open>eventually D uniformity\<close> show ?case 
     by auto
 qed
 
@@ -1257,26 +1219,23 @@ proof -
           using Ha_B \<open>M \<subseteq> A\<close> by auto
         ultimately show ?thesis
           unfolding FMB_def eventually_finite_subsets_at_top
-          by (intro exI[of _ "Sigma M Ha"])
-             (use Ha_fin that(2,3) in \<open>fastforce intro!: finite_SigmaI\<close>)
+          by (metis (no_types, lifting) Ha_fin finite_SigmaI subsetD that(2) that(3))
       qed
       moreover have \<open>eventually (\<lambda>H. D (\<Sum>(a,b)\<in>H. f (a,b), a)) FMB\<close>
         unfolding FMB_def eventually_finite_subsets_at_top
       proof (rule exI[of _ G], safe)
         fix Y assume Y: "finite Y" "G \<subseteq> Y" "Y \<subseteq> Sigma M B"
-        have "Y \<subseteq> Sigma A B"
-          using Y \<open>M \<subseteq> A\<close> by blast
         thus "D (\<Sum>(a,b)\<in>Y. f (a, b), a)"
-          using G_sum[of Y] Y by auto
+          using G_sum[of Y] Y using that(3) by fastforce
       qed (use \<open>finite G\<close> \<open>G \<subseteq> Sigma A B\<close> that in auto)
       ultimately have \<open>\<forall>\<^sub>F x in FMB. E (sum b M, a)\<close>
         by eventually_elim (use DDE' in auto)
       then show \<open>E (sum b M, a)\<close>
-        by (rule eventually_const[THEN iffD1, rotated]) (force simp: FMB_def)
+        using FMB_def by force
     qed
     then show \<open>\<forall>\<^sub>F x in FA. E (sum b x, a)\<close>
       using \<open>finite (fst ` G)\<close> and \<open>fst ` G \<subseteq> A\<close>
-      by (auto intro!: exI[of _ \<open>fst ` G\<close>] simp add: FA_def eventually_finite_subsets_at_top)
+      by (metis (mono_tags, lifting) FA_def eventually_finite_subsets_at_top)
   qed
   then show ?thesis
     by (simp add: FA_def has_sum_def)
@@ -1295,8 +1254,8 @@ proof -
   from summableB have b: \<open>\<And>x. x\<in>A \<Longrightarrow> (f x has_sum infsum (f x) (B x)) (B x)\<close>
     by (auto intro!: has_sum_infsum)
   show ?thesis
-    using plus_cont a b 
-    by (auto intro: has_sum_Sigma[where f=\<open>\<lambda>(x,y). f x y\<close>, simplified] simp: summable_on_def)
+    using plus_cont a b
+    by (smt (verit) has_sum_Sigma[where f=\<open>\<lambda>(x,y). f x y\<close>] has_sum_cong old.prod.case summable_on_def) 
 qed
 
 lemma infsum_Sigma:
@@ -1354,8 +1313,7 @@ lemma infsum_Sigma_banach:
     and f :: \<open>'a \<times> 'b \<Rightarrow> 'c::banach\<close>
   assumes [simp]: "f summable_on (Sigma A B)"
   shows \<open>infsum (\<lambda>x. infsum (\<lambda>y. f (x,y)) (B x)) A = infsum f (Sigma A B)\<close>
-  using assms
-  by (subst infsum_Sigma'_banach) auto
+  using assms by (simp add: infsum_Sigma'_banach)
 
 lemma infsum_swap:
   fixes A :: "'a set" and B :: "'b set"
@@ -1440,31 +1398,14 @@ lemma has_sum_cmult_left:
   fixes f :: "'a \<Rightarrow> 'b :: {topological_semigroup_mult, semiring_0}"
   assumes \<open>(f has_sum a) A\<close>
   shows "((\<lambda>x. f x * c) has_sum (a * c)) A"
-proof -
-  from assms have \<open>(sum f \<longlongrightarrow> a) (finite_subsets_at_top A)\<close>
-    using has_sum_def by blast
-  then have \<open>((\<lambda>F. sum f F * c) \<longlongrightarrow> a * c) (finite_subsets_at_top A)\<close>
-    by (simp add: tendsto_mult_right)
-  then have \<open>(sum (\<lambda>x. f x * c) \<longlongrightarrow> a * c) (finite_subsets_at_top A)\<close>
-    by (metis (mono_tags) tendsto_cong eventually_finite_subsets_at_top_weakI sum_distrib_right)
-  then show ?thesis
-    using infsumI has_sum_def by blast
-qed
+  using assms tendsto_mult_right 
+  by (force simp add: has_sum_def sum_distrib_right)
 
 lemma infsum_cmult_left:
   fixes f :: "'a \<Rightarrow> 'b :: {t2_space, topological_semigroup_mult, semiring_0}"
   assumes \<open>c \<noteq> 0 \<Longrightarrow> f summable_on A\<close>
   shows "infsum (\<lambda>x. f x * c) A = infsum f A * c"
-proof (cases \<open>c=0\<close>)
-  case True
-  then show ?thesis by auto
-next
-  case False
-  then have \<open>(f has_sum (infsum f A)) A\<close>
-    by (simp add: assms)
-  then show ?thesis
-    by (auto intro!: infsumI has_sum_cmult_left)
-qed
+  using assms has_sum_cmult_left infsumI summable_iff_has_sum_infsum by fastforce
 
 lemma summable_on_cmult_left:
   fixes f :: "'a \<Rightarrow> 'b :: {t2_space, topological_semigroup_mult, semiring_0}"
@@ -1476,16 +1417,8 @@ lemma has_sum_cmult_right:
   fixes f :: "'a \<Rightarrow> 'b :: {topological_semigroup_mult, semiring_0}"
   assumes \<open>(f has_sum a) A\<close>
   shows "((\<lambda>x. c * f x) has_sum (c * a)) A"
-proof -
-  from assms have \<open>(sum f \<longlongrightarrow> a) (finite_subsets_at_top A)\<close>
-    using has_sum_def by blast
-  then have \<open>((\<lambda>F. c * sum f F) \<longlongrightarrow> c * a) (finite_subsets_at_top A)\<close>
-    by (simp add: tendsto_mult_left)
-  then have \<open>(sum (\<lambda>x. c * f x) \<longlongrightarrow> c * a) (finite_subsets_at_top A)\<close>
-    by (metis (mono_tags, lifting) tendsto_cong eventually_finite_subsets_at_top_weakI sum_distrib_left)
-  then show ?thesis
-    using infsumI has_sum_def by blast
-qed
+  using assms tendsto_mult_left 
+  by (force simp add: has_sum_def sum_distrib_left)
 
 lemma infsum_cmult_right:
   fixes f :: "'a \<Rightarrow> 'b :: {t2_space, topological_semigroup_mult, semiring_0}"
@@ -1512,24 +1445,14 @@ next
   then have \<open>(\<lambda>x. f x * c * inverse c) summable_on A\<close>
     by (rule summable_on_cmult_left)
   then show \<open>f summable_on A\<close>
-    by (metis (no_types, lifting) assms summable_on_cong mult.assoc mult.right_neutral right_inverse)
+    by (smt (verit, del_insts) assms divide_inverse nonzero_divide_eq_eq summable_on_cong)
 qed
 
 lemma summable_on_cmult_right':
   fixes f :: "'a \<Rightarrow> 'b :: {t2_space, topological_semigroup_mult, division_ring}"
   assumes \<open>c \<noteq> 0\<close>
   shows "(\<lambda>x. c * f x) summable_on A \<longleftrightarrow> f summable_on A"
-proof
-  assume \<open>f summable_on A\<close>
-  then show \<open>(\<lambda>x. c * f x) summable_on A\<close>
-    by (rule summable_on_cmult_right)
-next
-  assume \<open>(\<lambda>x. c * f x) summable_on A\<close>
-  then have \<open>(\<lambda>x. inverse c * (c * f x)) summable_on A\<close>
-    by (rule summable_on_cmult_right)
-  then show \<open>f summable_on A\<close>
-    by (metis (no_types, lifting) assms summable_on_cong left_inverse mult.assoc mult.left_neutral)
-qed
+    by (metis (no_types, lifting) assms left_inverse mult.assoc mult_1 summable_on_cmult_right summable_on_cong)
 
 lemma infsum_cmult_left':
   fixes f :: "'a \<Rightarrow> 'b :: {t2_space, topological_semigroup_mult, division_ring}"
@@ -2203,15 +2126,10 @@ lemma infsum_nonneg_is_SUPREMUM_real:
     and fnn: "\<And>x. x\<in>A \<Longrightarrow> f x \<ge> 0"
   shows "infsum f A = (SUP F\<in>{F. finite F \<and> F \<subseteq> A}. (sum f F))"
 proof -
-  have "ereal (infsum f A) = (SUP F\<in>{F. finite F \<and> F \<subseteq> A}. (ereal (sum f F)))"
+  have *: "ereal (infsum f A) = (SUP F\<in>{F. finite F \<and> F \<subseteq> A}. (ereal (sum f F)))"
     using assms by (rule infsum_nonneg_is_SUPREMUM_ereal)
   also have "\<dots> = ereal (SUP F\<in>{F. finite F \<and> F \<subseteq> A}. (sum f F))"
-  proof (subst ereal_SUP)
-    show "\<bar>SUP a\<in>{F. finite F \<and> F \<subseteq> A}. ereal (sum f a)\<bar> \<noteq> \<infinity>"
-      using calculation by fastforce      
-    show "(SUP F\<in>{F. finite F \<and> F \<subseteq> A}. ereal (sum f F)) = (SUP a\<in>{F. finite F \<and> F \<subseteq> A}. ereal (sum f a))"
-      by simp      
-  qed
+    by (metis (no_types, lifting) * MInfty_neq_ereal(2) PInfty_neq_ereal(2) SUP_cong abs_eq_infinity_cases ereal_SUP)
   finally show ?thesis by simp
 qed
 
@@ -2530,7 +2448,7 @@ lemma lift_filter_le:
   assumes "eventually (\<lambda>x. x \<in> X) F" "g X \<le> F'"
   shows   "lift_filter g F \<le> F'"
   unfolding lift_filter_def
-  by (rule INF_lower2[of X _ g F', OF _ assms(2)]) (use assms(1) in auto)
+  by (metis INF_lower2 assms mem_Collect_eq)
 
 definition lift_filter' :: "('a set \<Rightarrow> 'b set) \<Rightarrow> 'a filter \<Rightarrow> 'b filter" where
   "lift_filter' f F = lift_filter (principal \<circ> f) F"
@@ -2649,13 +2567,10 @@ proof (cases "F = bot")
       using P eventually_compose_filterlim eventually_uniformity_imp_nhds G by blast
     ultimately have "eventually (\<lambda>n. (\<forall>x\<in>B n. P x) \<and> P (L, g n)) sequentially"
       by eventually_elim auto
-    then obtain n where n: "\<forall>x\<in>B n. P x" "P (L, g n)"
+    then obtain n where "\<forall>x\<in>B n. P x" "P (L, g n)"
       unfolding eventually_at_top_linorder by blast
-
-    have "eventually (\<lambda>y. y \<in> G n) F" "\<forall>z\<in>G n \<times> G n. P z"  "g n \<in> G n" "P (L, g n)"
-      using n gG by blast+
-    thus "\<exists>X. (\<forall>\<^sub>F y in F. y \<in> X) \<and> (\<forall>z\<in>X \<times> X. P z) \<and> (\<exists>y. P (L, y) \<and> y \<in> X)"
-      by blast      
+    then show "\<exists>X. (\<forall>\<^sub>F y in F. y \<in> X) \<and> (\<forall>z\<in>X \<times> X. P z) \<and> (\<exists>y. P (L, y) \<and> y \<in> X)"
+      using gG by blast+
   qed
   thus "convergent_filter F"
     by (auto simp: convergent_filter_iff)
@@ -2713,12 +2628,11 @@ proof -
   proof safe
     fix P :: "'a \<times> 'a \<Rightarrow> bool"
     assume P: "eventually P uniformity"
-    from U[OF this] obtain N where N: "\<forall>x\<in>U N. P x"
+    from U[OF this] obtain N where "\<forall>x\<in>U N. P x"
       by blast
-
-    show "eventually P (filtermap (map_prod f f) (sequentially \<times>\<^sub>F sequentially))"
+    then show "eventually P (filtermap (map_prod f f) (sequentially \<times>\<^sub>F sequentially))"
       unfolding eventually_filtermap eventually_prod_sequentially
-      by (rule exI[of _ N]) (use controlled N in \<open>auto simp: map_prod_def\<close>)
+      by (metis controlled map_prod_simp)
   qed
 qed
 
@@ -2778,10 +2692,10 @@ proof -
         thus ?case
           by (intro bexI[of _ "min \<epsilon>1 \<epsilon>2"]) auto
       qed auto
-      from \<open>\<epsilon> > 0\<close> obtain n where n: "1 / real (Suc n) < \<epsilon>"
+      from \<open>\<epsilon> > 0\<close> obtain n where "1 / real (Suc n) < \<epsilon>"
         using nat_approx_posE by blast
-      have "eventually P (principal {(x, y). dist x y < 1 / real (Suc n)})"
-        using \<epsilon>(2) n by (auto simp: eventually_principal)
+      then have "eventually P (principal {(x, y). dist x y < 1 / real (Suc n)})"
+        using \<epsilon>(2) by (auto simp: eventually_principal)
       thus "eventually P ?G"
         by (intro eventually_INF1) auto
     qed
@@ -2813,7 +2727,7 @@ proof (rule tendsto_le)
   show "((\<lambda>Y. \<Sum>x\<in>Y. g x) \<longlongrightarrow> T) (finite_subsets_at_top X)"
     using assms(2) unfolding has_sum_def .
   show "\<forall>\<^sub>F x in finite_subsets_at_top X. norm (sum f x) \<le> (\<Sum>x\<in>x. g x)"
-    by (rule eventually_finite_subsets_at_top_weakI) (auto intro!: sum_norm_le assms)
+    by (simp add: assms(3) eventually_finite_subsets_at_top_weakI subsetD sum_norm_le)
 qed auto
 
 (*
@@ -2835,9 +2749,8 @@ lemma has_sum_reindex_bij_betw:
 proof -
   have "((\<lambda>x. f (g x)) has_sum S) A \<longleftrightarrow> (f has_sum S) (g ` A)"
     by (subst has_sum_reindex) (use assms in \<open>auto dest: bij_betw_imp_inj_on simp: o_def\<close>)
-  also have "g ` A = B"
-    using assms bij_betw_imp_surj_on by blast
-  finally show ?thesis .
+  then show ?thesis
+    using assms bij_betw_imp_surj_on by blast 
 qed
 
 lemma has_sum_reindex_bij_witness:
@@ -2848,16 +2761,7 @@ lemma has_sum_reindex_bij_witness:
   assumes "\<And>a. a \<in> S \<Longrightarrow> h (j a) = g a"
   assumes "s = s'"
   shows   "(g has_sum s) S = (h has_sum s') T"
-proof -
-  have bij:"bij_betw j S T"
-    using assms by (intro bij_betwI[of _ _ _ i]) auto
-  have "(h has_sum s') T \<longleftrightarrow> ((\<lambda>a. h (j a)) has_sum s) S"
-    using has_sum_reindex_bij_betw[OF bij, of h] assms by simp
-  also have "\<dots> \<longleftrightarrow> (g has_sum s) S"
-    by (intro has_sum_cong) (use assms in auto)
-  finally show ?thesis ..
-qed
-
+  by (smt (verit, del_insts) assms bij_betwI' has_sum_cong has_sum_reindex_bij_betw)
 
 
 lemma has_sum_homomorphism:
@@ -2868,10 +2772,9 @@ proof -
     by (induction X rule: infinite_finite_induct) (simp_all add: assms)
   hence sum_h: "sum (h \<circ> f) = h \<circ> sum f"
     by (intro ext) auto
-  have "((h \<circ> f) has_sum h S) A"
-    unfolding has_sum_def sum_h unfolding o_def
-    by (rule continuous_on_tendsto_compose[OF assms(4)])
-       (use assms in \<open>auto simp: has_sum_def\<close>)
+  then have "((h \<circ> f) has_sum h S) A"
+    using assms
+    by (metis UNIV_I continuous_on_def has_sum_comm_additive_general o_apply)
   thus ?thesis
     by (simp add: o_def)
 qed
@@ -2892,18 +2795,10 @@ lemma infsum_homomorphism_strong:
   fixes h :: "'a :: {t2_space, topological_comm_monoid_add} \<Rightarrow>
                 'b :: {t2_space, topological_comm_monoid_add}"
   assumes "(\<lambda>x. h (f x)) summable_on A \<longleftrightarrow> f summable_on A"
-  assumes "h 0 = 0" "\<And>a b. h (a + b) = h a + h b" "continuous_on UNIV h"
+  assumes "h 0 = 0" 
   assumes "\<And>S. (f has_sum S) A \<Longrightarrow> ((\<lambda>x. h (f x)) has_sum (h S)) A"
   shows   "infsum (\<lambda>x. h (f x)) A = h (infsum f A)"
-proof (cases "f summable_on A")
-  case False
-  thus ?thesis by (simp add: infsum_def assms)
-next
-  case True
-  then obtain S where "(f has_sum S) A" by (auto simp: summable_on_def)
-  moreover from this have "((\<lambda>x. h (f x)) has_sum (h S)) A" by (rule assms)
-  ultimately show ?thesis by (simp add: infsumI)
-qed
+  by (metis assms has_sum_infsum infsumI infsum_not_exists)
 
 lemma has_sum_bounded_linear:
   assumes "bounded_linear h" and "(f has_sum S) A"
@@ -2917,16 +2812,12 @@ qed
 lemma summable_on_bounded_linear:
   assumes "bounded_linear h" and "f summable_on A"
   shows "(\<lambda>x. h (f x)) summable_on A"
-proof -
-  interpret bounded_linear h by fact
-  from assms(2) show ?thesis
-    by (rule summable_on_homomorphism) (auto simp: add intro!: continuous_on)
-qed
+  by (metis assms has_sum_bounded_linear summable_on_def)
 
 lemma summable_on_bounded_linear_iff:
   assumes "bounded_linear h" and "bounded_linear h'" and "\<And>x. h' (h x) = x"
   shows "(\<lambda>x. h (f x)) summable_on A \<longleftrightarrow> f summable_on A"
-  by (auto dest: assms(1,2)[THEN summable_on_bounded_linear] simp: assms(3))
+  by (metis (full_types) assms summable_on_bounded_linear summable_on_cong)
 
 lemma infsum_bounded_linear_strong:
   fixes h :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_vector"
@@ -2946,7 +2837,7 @@ lemma infsum_bounded_linear_strong':
   assumes "bounded_linear (mult c)"
   assumes [simp]: "\<And>x. mult 0 x = 0"
   shows   "infsum (\<lambda>x. mult c (f x)) A = mult c (infsum f A)"
-  using assms(1,2) by (cases "c = 0") (auto intro: infsum_bounded_linear_strong)
+  by (metis assms infsum_0 infsum_bounded_linear_strong)
 
 lemma has_sum_of_nat: "(f has_sum S) A \<Longrightarrow> ((\<lambda>x. of_nat (f x)) has_sum of_nat S) A"
   by (erule has_sum_homomorphism) (auto intro!: continuous_intros)
@@ -2967,9 +2858,8 @@ proof
   assume *: "finite {x\<in>A. f x \<noteq> 0}"
   hence "f summable_on {x\<in>A. f x \<noteq> 0}"
     by (rule summable_on_finite)
-  also have "?this \<longleftrightarrow> f summable_on A"
-    by (intro summable_on_cong_neutral) auto
-  finally show "f summable_on A" .
+  then show "f summable_on A"
+    by (smt (verit) DiffE mem_Collect_eq summable_on_cong_neutral) 
 next
   assume "f summable_on A"
   then obtain S where "(f has_sum S) A"
@@ -2985,13 +2875,9 @@ next
     proof (rule ccontr)
       assume [simp]: "x \<notin> X"
       have "sum f (insert x X) = S"
-        using X(1,2) x by (intro X) auto
-      also have "sum f (insert x X) = f x + sum f X"
-        using X(1) by (subst sum.insert) auto
-      also have "sum f X = S"
-        by (intro X order.refl)
-      finally have "f x = 0"
-        by simp
+        using X x by (intro X) auto
+      then have "f x = 0"
+        using X by auto
       with x show False
         by auto
     qed
@@ -3025,28 +2911,20 @@ proof -
       by blast
     have "\<forall>\<^sub>F X in finite_subsets_at_top A. sum f X < C"
       using S C by (rule order_tendstoD(2))
-    hence "\<forall>\<^sub>F X in finite_subsets_at_top A. sum f X \<le> C"
-      by (rule eventually_mono) auto
-    thus ?thesis by blast
+    thus ?thesis
+      by (meson eventually_mono nless_le)
   next
-    case False
-    hence "\<forall>\<^sub>F X in finite_subsets_at_top A. sum f X \<le> S"
-      by (auto simp: not_less)
-    thus ?thesis by blast
+    case False thus ?thesis
+      by (meson not_eventuallyD not_le_imp_less)
   qed
 qed
 
 lemma has_sum_mono':
   fixes S S' :: "'a :: {linorder_topology, ordered_comm_monoid_add, topological_comm_monoid_add}"
-  assumes "(f has_sum S) A" "(f has_sum S') B" "A \<subseteq> B" "\<And>x. x \<in> B - A \<Longrightarrow> f x \<ge> 0"
+  assumes f: "(f has_sum S) A" "(f has_sum S') B" 
+     and AB: "A \<subseteq> B" "\<And>x. x \<in> B - A \<Longrightarrow> f x \<ge> 0"
   shows   "S \<le> S'"
-proof (rule has_sum_mono)
-  show "(f has_sum S') B" by fact
-  have "(f has_sum S) A \<longleftrightarrow> ((\<lambda>x. if x \<in> A then f x else 0) has_sum S) B"
-    by (rule has_sum_cong_neutral) (use assms in auto)
-  thus "((\<lambda>x. if x \<in> A then f x else 0) has_sum S) B"
-    using assms(1) by blast
-qed (insert assms, auto)
+  using AB has_sum_mono_neutral[OF f] by fastforce
 
 
 context
@@ -3069,8 +2947,9 @@ proof -
   have bound': "sum f X \<le> C" if "X \<subseteq> A" "finite X" for X
   proof -
     have "sum f X \<le> sum f (X \<union> X0)"
-      using that X0(1,2) assms(1) by (intro sum_mono2) auto
-    also have "\<dots> \<le> C" using X0(1,2) that by (intro X0) auto
+      using that X0 assms(1) by (intro sum_mono2) auto
+    also have "\<dots> \<le> C"
+      by (simp add: X0 that)
     finally show ?thesis .
   qed
   hence bdd: "bdd_above (sum f ` {X. X \<subseteq> A \<and> finite X})"
@@ -3115,8 +2994,7 @@ lemma summable_on_comparison_test:
   shows   "g summable_on A"
 proof -
   obtain C where C: "\<forall>\<^sub>F X in finite_subsets_at_top A. sum f X \<le> C"
-    using summable_on_imp_bounded_partial_sums [of f]
-    using assms(1) by presburger
+    using assms(1) summable_on_imp_bounded_partial_sums by blast
   show ?thesis
   proof (rule nonneg_bounded_partial_sums_imp_summable_on)
     show "\<forall>\<^sub>F X in finite_subsets_at_top A. sum g X \<le> C"
@@ -3142,7 +3020,7 @@ lemma summable_on_union:
   shows "f summable_on (A \<union> B)"
 proof -
   have "f summable_on (A \<union> (B - A))"
-    by (intro summable_on_Un_disjoint[OF assms(1) summable_on_subset[OF assms(2)]]) auto
+    by (meson Diff_disjoint Diff_subset assms summable_on_Un_disjoint summable_on_subset)
   also have "A \<union> (B - A) = A \<union> B"
     by blast
   finally show ?thesis .
@@ -3154,7 +3032,7 @@ lemma summable_on_insert_iff:
   using summable_on_union[of f A "{x}"] by (auto intro: summable_on_subset)
 
 lemma has_sum_finiteI: "finite A \<Longrightarrow> S = sum f A \<Longrightarrow> (f has_sum S) A"
-  using has_sum_finite by blast
+  by simp
 
 lemma has_sum_insert:
   fixes f :: "'a \<Rightarrow> 'b :: topological_comm_monoid_add"
@@ -3269,14 +3147,7 @@ lemma has_sum_SigmaI:
   assumes g: "(g has_sum S) A"
   assumes summable: "f summable_on Sigma A B"
   shows   "(f has_sum S) (Sigma A B)"
-proof -
-  from summable obtain S' where S': "(f has_sum S') (Sigma A B)"
-    using summable_on_def by blast
-  have "(g has_sum S') A"
-    by (rule has_sum_SigmaD[OF S' f])
-  with g  S' show ?thesis
-    using has_sum_unique by blast
-qed
+  by (metis f g has_sum_SigmaD has_sum_infsum has_sum_unique local.summable)
 
 lemma summable_on_SigmaD1:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> 'a :: {complete_uniform_space, uniform_topological_group_add, ab_group_add, topological_comm_monoid_add}"
@@ -3307,12 +3178,7 @@ qed
 
 lemma summable_on_swap:
   "f summable_on (A \<times> B) \<longleftrightarrow> (\<lambda>(x,y). f (y,x)) summable_on (B \<times> A)"
-proof -
-  have "bij_betw (\<lambda>(x,y). (y,x)) (B \<times> A) (A \<times> B)"
-    by (rule bij_betwI[of _ _ _ "\<lambda>(x,y). (y,x)"]) auto
-  from summable_on_reindex_bij_betw[OF this, where f = f] show ?thesis
-    by (simp add: case_prod_unfold)
-qed
+  by (metis has_sum_swap summable_on_def)
 
 lemma has_sum_cmult_right_iff:
   fixes c :: "'a :: {topological_semigroup_mult, field}"
@@ -3331,13 +3197,7 @@ lemma has_sum_cmult_left_iff:
 lemma finite_nonzero_values_imp_summable_on:
   assumes "finite {x\<in>X. f x \<noteq> 0}"
   shows   "f summable_on X"
-proof -
-  have "f summable_on {x\<in>X. f x \<noteq> 0}"
-    by (intro summable_on_finite assms)
-  also have "?this \<longleftrightarrow> f summable_on X"
-    by (intro summable_on_cong_neutral) auto
-  finally show ?thesis .
-qed
+  by (smt (verit, del_insts) Diff_iff assms mem_Collect_eq summable_on_cong_neutral summable_on_finite)
 
 lemma summable_on_of_int_iff:
   "(\<lambda>x::'a. of_int (f x) :: 'b :: real_normed_algebra_1) summable_on A \<longleftrightarrow> f summable_on A"
@@ -3351,7 +3211,7 @@ next
     by (auto simp: summable_on_def)
   hence "(sum (\<lambda>x. of_int (f x) :: 'b) \<longlongrightarrow> S) (finite_subsets_at_top A)"
     unfolding has_sum_def .
-  moreover have "1 / 2 > (0 :: real)"
+  moreover have "1/2 > (0 :: real)"
     by auto
   ultimately have "eventually (\<lambda>X. dist (sum (\<lambda>x. of_int (f x) :: 'b) X) S < 1/2)
                      (finite_subsets_at_top A)"
@@ -3360,31 +3220,20 @@ next
      "\<And>Y. finite Y \<Longrightarrow> X \<subseteq> Y \<Longrightarrow> Y \<subseteq> A \<Longrightarrow> dist (sum (\<lambda>x. of_int (f x)) Y) S < 1/2"
     unfolding eventually_finite_subsets_at_top by metis
 
-  have X': "sum f Y = sum f X" if "finite Y" "X \<subseteq> Y" "Y \<subseteq> A" for Y
+  have "sum f Y = sum f X" if "finite Y" "X \<subseteq> Y" "Y \<subseteq> A" for Y
   proof -
-    have "dist (sum (\<lambda>x. of_int (f x)) X) S < 1 / 2"
+    have "dist (sum (\<lambda>x. of_int (f x)) X) S < 1/2"
       by (intro X) auto
-    moreover have "dist (sum (\<lambda>x. of_int (f x)) Y) S < 1 / 2"
+    moreover have "dist (sum (\<lambda>x. of_int (f x)) Y) S < 1/2"
       by (intro X that)
     ultimately have "dist (sum (\<lambda>x. of_int (f x)) X) (sum (\<lambda>x. of_int (f x) :: 'b) Y) <
-                       1 / 2 + 1 / 2"
+                       1/2 + 1/2"
       using dist_triangle_less_add by blast
     thus ?thesis
       by (simp add: dist_norm flip: of_int_sum of_int_diff)
   qed
-
-  have "{x\<in>A. f x \<noteq> 0} \<subseteq> X"
-  proof (rule ccontr)
-    assume "\<not>{x\<in>A. f x \<noteq> 0} \<subseteq> X"
-    then obtain x where x: "x \<in> A" "f x \<noteq> 0" "x \<notin> X"
-      by blast
-    have "sum f (insert x X) = sum f X"
-      using x X by (intro X') auto
-    also have "sum f (insert x X) = f x + sum f X"
-      using x X by auto
-    finally show False
-      using x by auto
-  qed
+  then have "{x\<in>A. f x \<noteq> 0} \<subseteq> X"
+    by (smt (verit) X finite_insert insert_iff mem_Collect_eq subset_eq sum.insert)
   with \<open>finite X\<close> have "finite {x\<in>A. f x \<noteq> 0}"
     using finite_subset by blast
   thus "f summable_on A"
@@ -3403,8 +3252,6 @@ next
     by simp
   also have "?this \<longleftrightarrow> (\<lambda>x. int (f x)) summable_on A"
     by (rule summable_on_of_int_iff)
-  also have "\<dots> \<longleftrightarrow> finite {x\<in>A. f x \<noteq> 0}"
-    by (simp add: summable_on_discrete_iff)
   also have "\<dots> \<longleftrightarrow> f summable_on A"
     by (simp add: summable_on_discrete_iff)
   finally show "f summable_on A" .
@@ -3412,13 +3259,11 @@ qed
 
 lemma infsum_of_nat:
   "infsum (\<lambda>x::'a. of_nat (f x) :: 'b :: {real_normed_algebra_1}) A = of_nat (infsum f A)"
-  by (rule infsum_homomorphism_strong)
-     (auto simp: summable_on_of_nat has_sum_of_nat summable_on_of_nat_iff)
+  by (metis has_sum_infsum has_sum_of_nat infsumI infsum_def of_nat_0 summable_on_of_nat_iff)
 
 lemma infsum_of_int:
   "infsum (\<lambda>x::'a. of_int (f x) :: 'b :: {real_normed_algebra_1}) A = of_int (infsum f A)"
-  by (rule infsum_homomorphism_strong)
-     (auto simp: summable_on_of_nat has_sum_of_int summable_on_of_int_iff)
+  by (metis has_sum_infsum has_sum_of_int infsumI infsum_not_exists of_int_0 summable_on_of_int_iff)
 
 
 lemma summable_on_SigmaI:
@@ -3440,7 +3285,7 @@ proof -
       "finite X'" "X' \<subseteq> A" "\<And>Y. finite Y \<Longrightarrow> X' \<subseteq> Y \<Longrightarrow> Y \<subseteq> A \<Longrightarrow> sum g Y \<le> C"
       unfolding eventually_finite_subsets_at_top by metis
     have "sum g X \<le> sum g (X \<union> X')"
-      using X X'(1,2) by (intro sum_mono2 g_nonneg) auto
+      using X X' by (intro sum_mono2 g_nonneg) auto
     also have "\<dots> \<le> C"
       using X X'(1,2) by (intro X'(3)) auto
     finally show ?thesis .
@@ -3481,8 +3326,7 @@ proof -
   hence "\<forall>\<^sub>F X in finite_subsets_at_top (Sigma A B). sum f X \<le> C"
     unfolding eventually_finite_subsets_at_top by auto
   thus ?thesis
-    by (intro nonneg_bounded_partial_sums_imp_summable_on[where C = C])
-       (use f_nonneg in auto)
+    by (metis SigmaE f_nonneg nonneg_bounded_partial_sums_imp_summable_on)
 qed
 
 lemma summable_on_UnionI:
@@ -3508,14 +3352,8 @@ lemma summable_on_SigmaD:
   assumes sum1: "f summable_on (Sigma A B)"
   assumes sum2: "\<And>x. x \<in> A \<Longrightarrow> (\<lambda>y. f (x, y)) summable_on (B x)"
   shows   "(\<lambda>x. infsum (\<lambda>y. f (x, y)) (B x)) summable_on A"
-proof -
-  from sum1 have 1: "(f has_sum infsum f (Sigma A B)) (Sigma A B)"
-    using has_sum_infsum by blast
-  have 2: "((\<lambda>y. f (x, y)) has_sum infsum (\<lambda>y. f (x, y)) (B x)) (B x)"
-    if "x \<in> A" for x using sum2[OF that] by simp
-  from has_sum_SigmaD[OF 1 2] show ?thesis
-    using has_sum_imp_summable by blast
-qed
+  using assms unfolding summable_on_def
+  by (smt (verit, del_insts) assms has_sum_SigmaD has_sum_cong has_sum_infsum)
 
 lemma summable_on_UnionD:
   fixes f :: "'a \<Rightarrow> 'c :: {topological_comm_monoid_add,t3_space}"
@@ -3568,24 +3406,9 @@ lemma abs_summable_on_comparison_test':
   shows   "(\<lambda>x. norm (f x)) summable_on A"
 proof (rule Infinite_Sum.abs_summable_on_comparison_test)
   have "g summable_on A \<longleftrightarrow> (\<lambda>x. norm (g x)) summable_on A"
-  proof (rule summable_on_cong)
-    fix x assume "x \<in> A"
-    have "0 \<le> norm (f x)"
-      by simp
-    also have "\<dots> \<le> g x"
-      by (rule assms) fact
-    finally show "g x = norm (g x)"
-      by simp
-  qed
+    by (metis summable_on_iff_abs_summable_on_real)
   with assms show "(\<lambda>x. norm (g x)) summable_on A" by blast
-next
-  fix x assume "x \<in> A"
-  have "norm (f x) \<le> g x"
-    by (intro assms) fact
-  also have "\<dots> \<le> norm (g x)"
-    by simp
-  finally show "norm (f x) \<le> norm (g x)" .
-qed
+qed (use assms in fastforce)
 
 lemma has_sum_geometric_from_1:
   fixes z :: "'a :: {real_normed_field, banach}"
