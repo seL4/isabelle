@@ -719,18 +719,14 @@ object Build_Log {
       val rev2 = afp_rev.getOrElse("")
       val table = pull_date_table(afp)
 
-      val version1 = Prop.isabelle_version
-      val version2 = Prop.afp_version
-      val eq1 = version1(table).toString + " = " + SQL.string(rev)
-      val eq2 = version2(table).toString + " = " + SQL.string(rev2)
+      val eq_rev = if_proper(rev, Prop.isabelle_version(table).equal(rev))
+      val eq_rev2 = if_proper(rev2, Prop.afp_version(table).equal(rev2))
 
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns,
-          "WHERE " + pull_date(afp)(table) + " > " + recent_time(days) +
-          (if (rev != "" && rev2 == "") " OR " + eq1
-           else if (rev == "" && rev2 != "") " OR " + eq2
-           else if (rev != "" && rev2 != "") " OR (" + eq1 + " AND " + eq2 + ")"
-           else "")))
+          SQL.where(
+            SQL.or(pull_date(afp)(table).ident + " > " + recent_time(days),
+              SQL.and(eq_rev, eq_rev2)))))
     }
 
     def select_recent_log_names(days: Int): PostgreSQL.Source = {
@@ -776,9 +772,10 @@ object Build_Log {
       val a_table =
         SQL.Table("a", a_columns,
           SQL.select(List(log_name, afp_pull_date) ::: table1.columns.tail.map(_.apply(table1))) +
-          table1 + SQL.join_outer + table2 +
-          " ON " + version1(table1) + " = " + version1(table2) +
-          " AND " + version2(table1) + " = " + version2(table2))
+          table1 + SQL.join_outer + table2 + " ON " +
+            SQL.and(
+              version1(table1).ident + " = " + version1(table2).ident,
+              version2(table1).ident + " = " + version2(table2).ident))
 
       val b_columns = log_name :: pull_date() :: a_columns.tail
       val b_table =
@@ -798,9 +795,10 @@ object Build_Log {
       SQL.Table("isabelle_build_log", c_columns ::: List(ml_statistics),
         {
           SQL.select(c_columns.map(_.apply(c_table)) ::: List(ml_statistics)) +
-          c_table.query_named + SQL.join_outer + ml_statistics_table +
-          " ON " + log_name(c_table) + " = " + log_name(ml_statistics_table) +
-          " AND " + session_name(c_table) + " = " + session_name(ml_statistics_table)
+          c_table.query_named + SQL.join_outer + ml_statistics_table + " ON " +
+            SQL.and(
+              log_name(c_table).ident + " = " + log_name(ml_statistics_table).ident,
+              session_name(c_table).ident + " = " + session_name(ml_statistics_table).ident)
         })
     }
   }
@@ -1063,12 +1061,12 @@ object Build_Log {
       val table1 = Data.sessions_table
       val table2 = Data.ml_statistics_table
 
-      val where_log_name =
-        Data.log_name(table1).where_equal(log_name) + " AND " +
-        Data.session_name(table1) + " <> ''"
       val where =
-        if (session_names.isEmpty) where_log_name
-        else where_log_name + " AND " + Data.session_name(table1).member(session_names)
+        SQL.where(
+          SQL.and(
+            Data.log_name(table1).where_equal(log_name),
+            Data.session_name(table1).ident + " <> ''",
+            if_proper(session_names, Data.session_name(table1).member(session_names))))
 
       val columns1 = table1.columns.tail.map(_.apply(table1))
       val (columns, from) =
@@ -1076,14 +1074,15 @@ object Build_Log {
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
             table1.toString + SQL.join_outer + table2 + " ON " +
-            Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
-            Data.session_name(table1) + " = " + Data.session_name(table2)
+              SQL.and(
+                Data.log_name(table1).ident + " = " + Data.log_name(table2).ident,
+                Data.session_name(table1).ident + " = " + Data.session_name(table2).ident)
           (columns, SQL.enclose(join))
         }
         else (columns1, table1.ident)
 
       val sessions =
-        db.using_statement(SQL.select(columns) + from + " " + where) { stmt =>
+        db.using_statement(SQL.select(columns) + from + where) { stmt =>
           stmt.execute_query().iterator({ res =>
             val session_name = res.string(Data.session_name)
             val session_entry =
