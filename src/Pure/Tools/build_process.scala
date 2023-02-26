@@ -68,13 +68,15 @@ object Build_Process {
       store: Sessions.Store,
       deps: Sessions.Deps,
       progress: Progress = new Progress,
-      build_heap: Boolean = false,
+      hostname: String = Isabelle_System.hostname(),
       numa_shuffling: Boolean = false,
+      build_heap: Boolean = false,
       max_jobs: Int = 1,
       fresh_build: Boolean = false,
       no_build: Boolean = false,
       verbose: Boolean = false,
-      session_setup: (String, Session) => Unit = (_, _) => ()
+      session_setup: (String, Session) => Unit = (_, _) => (),
+      instance: String = UUID.random().toString
     ): Context = {
       val sessions_structure = deps.sessions_structure
       val build_graph = sessions_structure.build_graph
@@ -120,25 +122,27 @@ object Build_Process {
         }
 
       val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
-      new Context(store, deps, sessions, ordering, progress, numa_nodes,
+      new Context(instance, store, deps, sessions, ordering, progress, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, session_setup)
     }
   }
 
   final class Context private(
+    val instance: String,
     val store: Sessions.Store,
     val deps: Sessions.Deps,
     sessions: Map[String, Session_Context],
     val ordering: Ordering[String],
     val progress: Progress,
+    val hostname: String,
     val numa_nodes: List[Int],
     val build_heap: Boolean,
     val max_jobs: Int,
     val fresh_build: Boolean,
     val no_build: Boolean,
     val verbose: Boolean,
-    val session_setup: (String, Session) => Unit
+    val session_setup: (String, Session) => Unit,
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
@@ -449,12 +453,7 @@ object Build_Process {
       }
     }
 
-    def init_database(
-      db: SQL.Database,
-      instance: String,
-      hostname: String,
-      options: Options
-    ): Unit = {
+    def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
       val tables =
         List(Config.table, State.table, Pending.table, Running.table, Results.table)
 
@@ -468,8 +467,8 @@ object Build_Process {
 
       for (table <- tables) db.using_statement(table.delete())(_.execute())
 
-      write_config(db, instance, hostname, options)
-      write_state(db, instance, 0, 0)
+      write_config(db, build_context.instance, build_context.hostname, build_context.store.options)
+      write_state(db, build_context.instance, 0, 0)
     }
 
     def update_database(db: SQL.Database, instance: String, state: State): State = {
@@ -500,7 +499,6 @@ object Build_Process {
 }
 
 class Build_Process(protected val build_context: Build_Process.Context) extends AutoCloseable {
-  protected val instance: String = UUID.random().toString
   protected val store: Sessions.Store = build_context.store
   protected val build_options: Options = store.options
   protected val build_deps: Sessions.Deps = build_context.deps
@@ -513,8 +511,6 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       case "-" => Logger.make(progress)
       case log_file => Logger.make(Some(Path.explode(log_file)))
     }
-
-  protected val hostname: String = Isabelle_System.hostname()
 
   protected val database: Option[SQL.Database] =
     if (!build_options.bool("build_database") || true /*FIXME*/) None
@@ -669,7 +665,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       val job =
         synchronized {
           val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
-          val node_info = Build_Job.Node_Info(hostname, numa_node)
+          val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
           val job =
             new Build_Job.Build_Session(progress, session_background, store, do_store,
               resources, build_context.session_setup, input_heaps, node_info)
@@ -692,7 +688,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     for (db <- database) {
       synchronized {
         db.transaction {
-          Build_Process.Data.init_database(db, instance, hostname, build_options)
+          Build_Process.Data.init_database(db, build_context)
         }
       }
       db.rebuild()
@@ -701,7 +697,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     for (db <- database) {
       synchronized {
         db.transaction {
-          _state = Build_Process.Data.update_database(db, instance, _state)
+          _state = Build_Process.Data.update_database(db, build_context.instance, _state)
         }
       }
     }
