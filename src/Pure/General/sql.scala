@@ -77,6 +77,9 @@ object SQL {
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
 
+  def separate(sql: Source): Source =
+    (if (sql.isEmpty || sql.startsWith(" ")) "" else " ") + sql
+
 
   /* types */
 
@@ -189,17 +192,16 @@ object SQL {
         ident + " " + enclosure(index_columns.map(_.name))
 
     def insert_cmd(cmd: Source = "INSERT", sql: Source = ""): Source =
-      cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
-        if_proper(sql, " " + sql)
+      cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) + SQL.separate(sql)
 
     def insert(sql: Source = ""): Source = insert_cmd(sql = sql)
 
     def delete(sql: Source = ""): Source =
-      "DELETE FROM " + ident + if_proper(sql, " " + sql)
+      "DELETE FROM " + ident + SQL.separate(sql)
 
     def select(
         select_columns: List[Column] = Nil, sql: Source = "", distinct: Boolean = false): Source =
-      SQL.select(select_columns, distinct = distinct) + ident + if_proper(sql, " " + sql)
+      SQL.select(select_columns, distinct = distinct) + ident + SQL.separate(sql)
 
     override def toString: Source = ident
   }
@@ -383,7 +385,7 @@ object SQL {
     }
 
     def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit =
-      using_statement(table.create(strict, sql_type) + if_proper(sql, " " + sql))(_.execute())
+      using_statement(table.create(strict, sql_type) + SQL.separate(sql))(_.execute())
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
@@ -516,7 +518,7 @@ object PostgreSQL {
     }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
-      table.insert_cmd(sql = sql + if_proper(sql, " ") + "ON CONFLICT DO NOTHING")
+      table.insert_cmd(sql = if_proper(sql, sql + " ") + "ON CONFLICT DO NOTHING")
 
 
     /* notifications: IPC via database server */
