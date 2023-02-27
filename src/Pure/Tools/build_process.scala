@@ -489,8 +489,8 @@ object Build_Process {
 
   /* main process */
 
-  def session_finished(session_name: String, process_result: Process_Result): String =
-    "Finished " + session_name + " (" + process_result.timing.message_resources + ")"
+  def session_finished(session_name: String, timing: Timing): String =
+    "Finished " + session_name + " (" + timing.message_resources + ")"
 
   def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
     val props = build_log.session_timing
@@ -586,7 +586,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
 
     if (process_result.ok) {
       if (verbose) progress.echo(Build_Process.session_timing(session_name, build_log))
-      progress.echo(Build_Process.session_finished(session_name, process_result))
+      progress.echo(Build_Process.session_finished(session_name, process_result.timing))
     }
     else {
       progress.echo(
