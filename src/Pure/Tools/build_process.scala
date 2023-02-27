@@ -603,7 +603,8 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       _state = _state.
         remove_pending(session_name).
         remove_running(session_name).
-        make_result(session_name, false, output_heap, process_result, node_info = job.node_info)
+        make_result(session_name, false, output_heap, process_result.copy(out_lines = log_lines),
+          node_info = job.node_info)
     }
   }
 
