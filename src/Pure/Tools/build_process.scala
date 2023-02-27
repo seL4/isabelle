@@ -589,12 +589,13 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       progress.echo(Build_Process.session_finished(session_name, process_result))
     }
     else {
-      progress.echo(session_name + " FAILED")
+      progress.echo(
+        session_name + " FAILED (see also \"isabelle log -H Error " + session_name + "\")")
       if (!process_result.interrupted) {
-        progress.echo("(more details via \"isabelle log -H Error " + session_name + "\")")
         val tail = job.info.options.int("process_output_tail")
         val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
-        progress.echo(Library.trim_line(cat_lines(suffix)))
+        val prefix = if (log_lines.length == suffix.length) Nil else List("...")
+        progress.echo(Library.trim_line(cat_lines(prefix ::: suffix)))
       }
     }
 
