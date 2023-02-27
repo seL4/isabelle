@@ -39,15 +39,6 @@ object Build_Job {
 
   /* build session */
 
-  def session_finished(session_name: String, timing: Timing): String =
-    "Finished " + session_name + " (" + timing.message_resources + ")"
-
-  def session_timing(session_name: String, props: Properties.T): String = {
-    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.get(props)
-    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
-  }
-
   class Build_Session(
     progress: Progress,
     verbose: Boolean,
@@ -438,9 +429,14 @@ object Build_Job {
 
       if (process_result.ok) {
         if (verbose) {
-          progress.echo(Build_Job.session_timing(session_name, build_log.session_timing))
+          val props = build_log.session_timing
+          val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+          val timing = Markup.Timing_Properties.get(props)
+          progress.echo(
+            "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")")
         }
-        progress.echo(Build_Job.session_finished(session_name, process_result.timing))
+        progress.echo(
+          "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
       }
       else {
         progress.echo(
