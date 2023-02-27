@@ -557,13 +557,6 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     val output_heap = job.finish
 
     val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
-    val process_result_tail = {
-      val tail = job.info.options.int("process_output_tail")
-      process_result.copy(
-        out_lines =
-          "(more details via \"isabelle log -H Error " + session_name + "\")" ::
-          (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
-    }
 
     val build_log =
       Build_Log.Log_File(session_name, process_result.out_lines).
@@ -597,14 +590,19 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     }
     else {
       progress.echo(session_name + " FAILED")
-      if (!process_result.interrupted) progress.echo(process_result_tail.out)
+      if (!process_result.interrupted) {
+        progress.echo("(more details via \"isabelle log -H Error " + session_name + "\")")
+        val tail = job.info.options.int("process_output_tail")
+        val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
+        progress.echo(Library.trim_line(cat_lines(suffix)))
+      }
     }
 
     synchronized {
       _state = _state.
         remove_pending(session_name).
         remove_running(session_name).
-        make_result(session_name, false, output_heap, process_result_tail, node_info = job.node_info)
+        make_result(session_name, false, output_heap, process_result, node_info = job.node_info)
     }
   }
 
