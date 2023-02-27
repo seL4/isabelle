@@ -520,8 +520,6 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
         yield Build_Process.Entry(name, preds.toList)).toList)
 
-  protected def finished(): Boolean = synchronized { _state.finished }
-
   protected def next_pending(): Option[String] = synchronized {
     if (_state.running.size < (build_context.max_jobs max 1)) {
       _state.pending.filter(entry => entry.is_ready && !_state.is_running(entry.name))
@@ -529,12 +527,6 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
         .headOption.map(_.name)
     }
     else None
-  }
-
-  protected def stop_running(): Unit = synchronized { _state.stop_running() }
-
-  protected def finished_running(): List[Build_Job] = synchronized {
-    _state.finished_running()
   }
 
   protected def start_job(session_name: String): Unit = {
@@ -645,6 +637,8 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     }
 
   def run(): Map[String, Process_Result] = {
+    def finished(): Boolean = synchronized { _state.finished }
+
     if (finished()) {
       progress.echo_warning("Nothing to build")
       Map.empty[String, Process_Result]
@@ -652,9 +646,9 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     else {
       setup_database()
       while (!finished()) {
-        if (progress.stopped) stop_running()
+        if (progress.stopped) synchronized { _state.stop_running() }
 
-        for (job <- finished_running()) {
+        for (job <- synchronized { _state.finished_running() }) {
           val job_name = job.job_name
           val (process_result, output_heap) = job.finish
           synchronized {
