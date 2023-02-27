@@ -1074,7 +1074,7 @@ object Build_Log {
         if (ml_statistics) {
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
-            table1.toString + SQL.join_outer + table2 + " ON " +
+            table1.ident + SQL.join_outer + table2.ident + " ON " +
               SQL.and(
                 Data.log_name(table1).ident + " = " + Data.log_name(table2).ident,
                 Data.session_name(table1).ident + " = " + Data.session_name(table2).ident)
