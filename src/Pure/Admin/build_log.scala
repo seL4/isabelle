@@ -1083,7 +1083,7 @@ object Build_Log {
         else (columns1, table1.ident)
 
       val sessions =
-        db.using_statement(SQL.select(columns) + from + where) { stmt =>
+        db.using_statement(SQL.select(columns, sql = from + where)) { stmt =>
           stmt.execute_query().iterator({ res =>
             val session_name = res.string(Data.session_name)
             val session_entry =

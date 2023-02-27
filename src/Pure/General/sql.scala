@@ -50,9 +50,9 @@ object SQL {
   def separate(sql: Source): Source =
     (if (sql.isEmpty || sql.startsWith(" ")) "" else " ") + sql
 
-  def select(columns: List[Column] = Nil, distinct: Boolean = false): Source =
+  def select(columns: List[Column] = Nil, distinct: Boolean = false, sql: Source = ""): Source =
     "SELECT " + (if (distinct) "DISTINCT " else "") +
-    (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM "
+    (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM " + sql
 
   val join_outer: Source = " LEFT OUTER JOIN "
   val join_inner: Source = " INNER JOIN "
@@ -203,7 +203,7 @@ object SQL {
       select_columns: List[Column] = Nil,
       distinct: Boolean = false,
       sql: Source = ""
-    ): Source = SQL.select(select_columns, distinct = distinct) + ident + SQL.separate(sql)
+    ): Source = SQL.select(select_columns, distinct = distinct, sql = ident + SQL.separate(sql))
 
     override def toString: Source = ident
   }
