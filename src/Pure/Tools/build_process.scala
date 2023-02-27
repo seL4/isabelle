@@ -201,12 +201,8 @@ object Build_Process {
 
     def stop_running(): Unit = running.valuesIterator.foreach(_.terminate())
 
-    def finished_running(): List[Build_Job.Build_Session] =
-      List.from(
-        running.valuesIterator.flatMap {
-          case job: Build_Job.Build_Session if job.is_finished => Some(job)
-          case _ => None
-        })
+    def finished_running(): List[Build_Job] =
+      List.from(running.valuesIterator.filter(_.is_finished))
 
     def add_running(name: String, job: Build_Job): State =
       copy(running = running + (name -> job))
@@ -537,7 +533,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
 
   protected def stop_running(): Unit = synchronized { _state.stop_running() }
 
-  protected def finished_running(): List[Build_Job.Build_Session] = synchronized {
+  protected def finished_running(): List[Build_Job] = synchronized {
     _state.finished_running()
   }
 
@@ -659,14 +655,13 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
         if (progress.stopped) stop_running()
 
         for (job <- finished_running()) {
-          val session_name = job.session_name
+          val job_name = job.job_name
           val (process_result, output_heap) = job.finish
           synchronized {
             _state = _state.
-              remove_pending(session_name).
-              remove_running(session_name).
-              make_result(session_name, false, output_heap, process_result,
-                node_info = job.node_info)
+              remove_pending(job_name).
+              remove_running(job_name).
+              make_result(job_name, false, output_heap, process_result, node_info = job.node_info)
           }
         }
 
