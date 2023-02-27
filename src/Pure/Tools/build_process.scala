@@ -485,19 +485,10 @@ object Build_Process {
       state.copy(serial = serial)
     }
   }
-
-
-  /* main process */
-
-  def session_finished(session_name: String, timing: Timing): String =
-    "Finished " + session_name + " (" + timing.message_resources + ")"
-
-  def session_timing(session_name: String, props: Properties.T): String = {
-    val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-    val timing = Markup.Timing_Properties.get(props)
-    "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
-  }
 }
+
+
+/* main process */
 
 class Build_Process(protected val build_context: Build_Process.Context) extends AutoCloseable {
   protected val store: Sessions.Store = build_context.store
@@ -548,65 +539,6 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
 
   protected def finished_running(): List[Build_Job.Build_Session] = synchronized {
     _state.finished_running()
-  }
-
-  protected def finish_job(job: Build_Job.Build_Session): Unit = {
-    val session_name = job.session_name
-    val process_result = job.join
-    val output_heap = job.finish
-
-    val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
-
-    val build_log =
-      Build_Log.Log_File(session_name, process_result.out_lines).
-        parse_session_info(
-          command_timings = true,
-          theory_timings = true,
-          ml_statistics = true,
-          task_statistics = true)
-
-    // write log file
-    if (process_result.ok) {
-      File.write_gzip(store.output_log_gz(session_name), terminate_lines(log_lines))
-    }
-    else File.write(store.output_log(session_name), terminate_lines(log_lines))
-
-    // write database
-    using(store.open_database(session_name, output = true))(db =>
-      store.write_session_info(db, session_name, job.session_sources,
-        build_log =
-          if (process_result.timeout) build_log.error("Timeout") else build_log,
-        build =
-          Sessions.Build_Info(build_deps.sources_shasum(session_name), job.input_heaps,
-            output_heap, process_result.rc, UUID.random().toString)))
-
-    // messages
-    process_result.err_lines.foreach(progress.echo)
-
-    if (process_result.ok) {
-      if (verbose) {
-        progress.echo(Build_Process.session_timing(session_name, build_log.session_timing))
-      }
-      progress.echo(Build_Process.session_finished(session_name, process_result.timing))
-    }
-    else {
-      progress.echo(
-        session_name + " FAILED (see also \"isabelle log -H Error " + session_name + "\")")
-      if (!process_result.interrupted) {
-        val tail = job.info.options.int("process_output_tail")
-        val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
-        val prefix = if (log_lines.length == suffix.length) Nil else List("...")
-        progress.echo(Library.trim_line(cat_lines(prefix ::: suffix)))
-      }
-    }
-
-    synchronized {
-      _state = _state.
-        remove_pending(session_name).
-        remove_running(session_name).
-        make_result(session_name, false, output_heap, process_result.copy(out_lines = log_lines),
-          node_info = job.node_info)
-    }
   }
 
   protected def start_job(session_name: String): Unit = {
@@ -675,8 +607,9 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
           val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
           val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
           val job =
-            new Build_Job.Build_Session(progress, session_background, store, do_store,
-              resources, build_context.session_setup, input_heaps, node_info)
+            new Build_Job.Build_Session(progress, verbose, session_background, store, do_store,
+              resources, build_context.session_setup, build_deps.sources_shasum(session_name),
+              input_heaps, node_info)
           _state = state1.add_running(session_name, job)
           job
         }
@@ -725,7 +658,17 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       while (!finished()) {
         if (progress.stopped) stop_running()
 
-        for (job <- finished_running()) finish_job(job)
+        for (job <- finished_running()) {
+          val session_name = job.session_name
+          val (process_result, output_heap) = job.finish
+          synchronized {
+            _state = _state.
+              remove_pending(session_name).
+              remove_running(session_name).
+              make_result(session_name, false, output_heap, process_result,
+                node_info = job.node_info)
+          }
+        }
 
         next_pending() match {
           case Some(name) =>
