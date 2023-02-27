@@ -1062,13 +1062,6 @@ object Build_Log {
       val table1 = Data.sessions_table
       val table2 = Data.ml_statistics_table
 
-      val where =
-        SQL.where(
-          SQL.and(
-            Data.log_name(table1).equal(log_name),
-            Data.session_name(table1).ident + " <> ''",
-            if_proper(session_names, Data.session_name(table1).member(session_names))))
-
       val columns1 = table1.columns.tail.map(_.apply(table1))
       val (columns, from) =
         if (ml_statistics) {
@@ -1081,6 +1074,13 @@ object Build_Log {
           (columns, SQL.enclose(join))
         }
         else (columns1, table1.ident)
+
+      val where =
+        SQL.where(
+          SQL.and(
+            Data.log_name(table1).equal(log_name),
+            Data.session_name(table1).ident + " <> ''",
+            if_proper(session_names, Data.session_name(table1).member(session_names))))
 
       val sessions =
         db.using_statement(SQL.select(columns, sql = from + where)) { stmt =>
