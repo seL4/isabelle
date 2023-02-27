@@ -515,7 +515,7 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     }
 
   protected val database: Option[SQL.Database] =
-    if (!build_options.bool("build_database") || true /*FIXME*/) None
+    if (!build_options.bool("build_database_test")) None
     else if (store.database_server) Some(store.open_database_server())
     else {
       val db = SQLite.open_database(Build_Process.Data.database)
