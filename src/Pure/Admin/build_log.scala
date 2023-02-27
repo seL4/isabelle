@@ -1058,7 +1058,8 @@ object Build_Log {
       db: SQL.Database,
       log_name: String,
       session_names: List[String] = Nil,
-      ml_statistics: Boolean = false): Build_Info = {
+      ml_statistics: Boolean = false
+    ): Build_Info = {
       val table1 = Data.sessions_table
       val table2 = Data.ml_statistics_table
 
