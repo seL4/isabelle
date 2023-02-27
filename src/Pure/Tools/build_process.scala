@@ -492,8 +492,7 @@ object Build_Process {
   def session_finished(session_name: String, timing: Timing): String =
     "Finished " + session_name + " (" + timing.message_resources + ")"
 
-  def session_timing(session_name: String, build_log: Build_Log.Session_Info): String = {
-    val props = build_log.session_timing
+  def session_timing(session_name: String, props: Properties.T): String = {
     val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
     val timing = Markup.Timing_Properties.get(props)
     "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")"
@@ -585,7 +584,9 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     process_result.err_lines.foreach(progress.echo)
 
     if (process_result.ok) {
-      if (verbose) progress.echo(Build_Process.session_timing(session_name, build_log))
+      if (verbose) {
+        progress.echo(Build_Process.session_timing(session_name, build_log.session_timing))
+      }
       progress.echo(Build_Process.session_finished(session_name, process_result.timing))
     }
     else {
