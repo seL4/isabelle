@@ -1065,7 +1065,7 @@ object Build_Log {
       val where =
         SQL.where(
           SQL.and(
-            Data.log_name(table1).where_equal(log_name),
+            Data.log_name(table1).equal(log_name),
             Data.session_name(table1).ident + " <> ''",
             if_proper(session_names, Data.session_name(table1).member(session_names))))
 
