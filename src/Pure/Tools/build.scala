@@ -44,16 +44,13 @@ object Build {
 
   /* engine */
 
-  abstract class Engine(val name: String) extends Isabelle_System.Service {
+  class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
-    def init(build_context: Build_Process.Context): Build_Process
-  }
-
-  class Default_Engine extends Engine("") {
-    override def toString: String = "<default>"
-    override def init(build_context: Build_Process.Context): Build_Process =
+    def init(build_context: Build_Process.Context): Build_Process =
       new Build_Process(build_context)
   }
+
+  class Default_Engine extends Engine("") { override def toString: String = "<default>" }
 
   lazy val engines: List[Engine] =
     Isabelle_System.make_services(classOf[Engine])
