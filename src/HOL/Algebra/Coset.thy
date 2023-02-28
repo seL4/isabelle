@@ -1609,7 +1609,7 @@ lemma (in group) set_mult_subgroup_idem:
   shows "H <#> N = H"
   using group.set_mult_carrier_idem[OF subgroup.subgroup_is_group[OF HG group_axioms] NG] by simp
 
-text \<open>A normal subgroup is commutative with set_mult\<close>
+text \<open>A normal subgroup is commutative with set multiplication\<close>
 lemma (in group) commut_normal:
   assumes "subgroup H G" and "N\<lhd>G"
   shows "H<#>N = N<#>H"
