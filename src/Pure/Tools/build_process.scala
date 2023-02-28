@@ -513,12 +513,18 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
   def close(): Unit = database.foreach(_.close())
 
   // global state
-  protected var _state: Build_Process.State = init_state()
+  protected var _state: Build_Process.State = init_state(Build_Process.State())
 
-  protected def init_state(): Build_Process.State =
-    Build_Process.State(pending =
-      (for ((name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator)
-        yield Build_Process.Entry(name, preds.toList)).toList)
+  protected def init_state(state: Build_Process.State): Build_Process.State = {
+    val old_pending = state.pending.iterator.map(_.name).toSet
+    val new_pending =
+      List.from(
+        for {
+          (name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator
+          if !old_pending(name)
+        } yield Build_Process.Entry(name, preds.toList))
+    state.copy(pending = new_pending ::: state.pending)
+  }
 
   protected def next_pending(): Option[String] = synchronized {
     if (_state.running.size < (build_context.max_jobs max 1)) {
