@@ -61,10 +61,7 @@ object ML_Process {
       else
         List(
           "(PolyML.SaveState.loadHierarchy " +
-            ML_Syntax.print_list(ML_Syntax.print_string_bytes)(heaps) +
-          "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
-          ML_Syntax.print_string_bytes(": " + logic_name + "\n") +
-          "); OS.Process.exit OS.Process.failure)")
+            ML_Syntax.print_list(ML_Syntax.print_string_bytes)(heaps) + "; PolyML.print_depth 0)")
 
     val eval_modes =
       if (modes.isEmpty) Nil
