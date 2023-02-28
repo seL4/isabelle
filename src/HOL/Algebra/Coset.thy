@@ -39,7 +39,7 @@ abbreviation
   "H \<lhd> G \<equiv> normal H G"
 
 lemma (in comm_group) subgroup_imp_normal: "subgroup A G \<Longrightarrow> A \<lhd> G"
-  by (simp add: normal_def normal_axioms_def is_group l_coset_def r_coset_def m_comm subgroup.mem_carrier)
+  by (simp add: normal_def normal_axioms_def l_coset_def r_coset_def m_comm subgroup.mem_carrier)
 
 lemma l_coset_eq_set_mult: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   fixes G (structure)
@@ -468,13 +468,65 @@ corollary (in group) normal_invE:
   using assms normal_inv_iff apply blast
   by (simp add: assms normal.inv_op_closed2)
 
-
 lemma (in group) one_is_normal: "{\<one>} \<lhd> G"
-proof(intro normal_invI)
-  show "subgroup {\<one>} G"
-    by (simp add: subgroup_def)
-qed simp
+  using normal_invI triv_subgroup by force
 
+text \<open>The intersection of two normal subgroups is, again, a normal subgroup.\<close>
+lemma (in group) normal_subgroup_intersect:
+  assumes "M \<lhd> G" and "N \<lhd> G" shows "M \<inter> N \<lhd> G"
+  using  assms normal_inv_iff subgroups_Inter_pair by force
+
+
+text \<open>Being a normal subgroup is preserved by surjective homomorphisms.\<close>
+
+lemma (in normal) surj_hom_normal_subgroup:
+  assumes \<phi>: "group_hom G F \<phi>"
+  assumes \<phi>surj: "\<phi> ` (carrier G) = carrier F"
+  shows "(\<phi> ` H) \<lhd> F"
+proof (rule group.normalI)
+  show "group F"
+    using \<phi> group_hom.axioms(2) by blast
+next
+  show "subgroup (\<phi> ` H) F"
+    using \<phi> group_hom.subgroup_img_is_subgroup subgroup_axioms by blast
+next
+  show "\<forall>x\<in>carrier F. \<phi> ` H #>\<^bsub>F\<^esub> x = x <#\<^bsub>F\<^esub> \<phi> ` H"
+  proof
+    fix f
+    assume f: "f \<in> carrier F"
+    with \<phi>surj obtain g where g: "g \<in> carrier G" "f = \<phi> g" by auto
+    hence "\<phi> ` H #>\<^bsub>F\<^esub> f = \<phi> ` H #>\<^bsub>F\<^esub> \<phi> g" by simp
+    also have "... = (\<lambda>x. (\<phi> x) \<otimes>\<^bsub>F\<^esub> (\<phi> g)) ` H" 
+      unfolding r_coset_def image_def by auto
+    also have "... = (\<lambda>x. \<phi> (x \<otimes> g)) ` H" 
+      using subset g \<phi> group_hom.hom_mult unfolding image_def by fastforce
+    also have "... = \<phi> ` (H #> g)" 
+      using \<phi> unfolding r_coset_def by auto
+    also have "... = \<phi> ` (g <# H)" 
+      by (metis coset_eq g(1))
+    also have "... = (\<lambda>x. \<phi> (g \<otimes> x)) ` H" 
+      using \<phi> unfolding l_coset_def by auto
+    also have "... = (\<lambda>x. (\<phi> g) \<otimes>\<^bsub>F\<^esub> (\<phi> x)) ` H" 
+      using subset g \<phi> group_hom.hom_mult by fastforce
+    also have "... = \<phi> g <#\<^bsub>F\<^esub> \<phi> ` H" 
+      unfolding l_coset_def image_def by auto
+    also have "... = f <#\<^bsub>F\<^esub> \<phi> ` H" 
+      using g by simp
+    finally show "\<phi> ` H #>\<^bsub>F\<^esub> f = f <#\<^bsub>F\<^esub> \<phi> ` H".
+  qed
+qed
+
+text \<open>Being a normal subgroup is preserved by group isomorphisms.\<close>
+lemma iso_normal_subgroup:
+  assumes \<phi>: "\<phi> \<in> iso G F" "group G" "group F" "H \<lhd> G"
+  shows "(\<phi> ` H) \<lhd> F"
+  by (meson assms Group.iso_iff group_hom_axioms_def group_hom_def normal.surj_hom_normal_subgroup)
+
+text \<open>The set product of two normal subgroups is a normal subgroup.\<close>
+lemma (in group) setmult_lcos_assoc:
+  "\<lbrakk>H \<subseteq> carrier G; K \<subseteq> carrier G; x \<in> carrier G\<rbrakk>
+      \<Longrightarrow> (x <# H) <#> K = x <# (H <#> K)"
+  by (force simp add: l_coset_def set_mult_def m_assoc)
 
 subsection\<open>More Properties of Left Cosets\<close>
 
@@ -770,8 +822,17 @@ definition
   order :: "('a, 'b) monoid_scheme \<Rightarrow> nat"
   where "order S = card (carrier S)"
 
+lemma iso_same_order:
+  assumes "\<phi> \<in> iso G H"
+  shows "order G = order H"
+  by (metis assms is_isoI iso_same_card order_def order_def)
+
 lemma (in monoid) order_gt_0_iff_finite: "0 < order G \<longleftrightarrow> finite (carrier G)"
-by(auto simp add: order_def card_gt_0_iff)
+  by(auto simp add: order_def card_gt_0_iff)
+
+lemma (in group) order_one_triv_iff:
+  shows "(order G = 1) = (carrier G = {\<one>})"
+  by (metis One_nat_def card.empty card_Suc_eq empty_iff one_closed order_def singleton_iff)
 
 lemma (in group) rcosets_part_G:
   assumes "subgroup H G"
@@ -889,6 +950,11 @@ next
   qed
 qed
 
+text \<open>The cardinality of the right cosets of the trivial subgroup is the cardinality of the group itself:\<close>
+corollary (in group) card_rcosets_triv:
+  assumes "finite (carrier G)"
+  shows "card (rcosets {\<one>}) = order G"
+  using lagrange triv_subgroup by fastforce
 
 subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
@@ -1523,7 +1589,7 @@ corollary (in group) FactGroup_DirProd_multiplication_iso_2 : \<^marker>\<open>c
 
 subsubsection "More Lemmas about set multiplication"
 
-(*A group multiplied by a subgroup stays the same*)
+text \<open>A group multiplied by a subgroup stays the same\<close>
 lemma (in group) set_mult_carrier_idem:
   assumes "subgroup H G"
   shows "(carrier G) <#> H = carrier G"
@@ -1537,13 +1603,13 @@ next
   ultimately show "carrier G \<subseteq> (carrier G) <#> H" by simp
 qed
 
-(*Same lemma as above, but everything is included in a subgroup*)
+text \<open>Same lemma as above, but everything is included in a subgroup\<close>
 lemma (in group) set_mult_subgroup_idem:
   assumes HG: "subgroup H G" and NG: "subgroup N (G \<lparr> carrier := H \<rparr>)"
   shows "H <#> N = H"
   using group.set_mult_carrier_idem[OF subgroup.subgroup_is_group[OF HG group_axioms] NG] by simp
 
-(*A normal subgroup is commutative with set_mult*)
+text \<open>A normal subgroup is commutative with set multiplication\<close>
 lemma (in group) commut_normal:
   assumes "subgroup H G" and "N\<lhd>G"
   shows "H<#>N = N<#>H"
@@ -1554,22 +1620,22 @@ proof-
   ultimately show "H<#>N = N<#>H" by simp
 qed
 
-(*Same lemma as above, but everything is included in a subgroup*)
+text \<open>Same lemma as above, but everything is included in a subgroup\<close>
 lemma (in group) commut_normal_subgroup:
   assumes "subgroup H G" and "N \<lhd> (G\<lparr> carrier := H \<rparr>)"
     and "subgroup K (G \<lparr> carrier := H \<rparr>)"
   shows "K <#> N = N <#> K"
-  using group.commut_normal[OF subgroup.subgroup_is_group[OF assms(1) group_axioms] assms(3,2)] by simp
-
+  by (metis assms(2) assms(3) group.commut_normal normal.axioms(2) set_mult_consistent)
 
 
 subsubsection "Lemmas about intersection and normal subgroups"
+text \<open>Mostly by Jakob von Raumer\<close>
 
 lemma (in group) normal_inter:
   assumes "subgroup H G"
     and "subgroup K G"
     and "H1\<lhd>G\<lparr>carrier := H\<rparr>"
-  shows " (H1\<inter>K)\<lhd>(G\<lparr>carrier:= (H\<inter>K)\<rparr>)"
+  shows "(H1\<inter>K)\<lhd>(G\<lparr>carrier:= (H\<inter>K)\<rparr>)"
 proof-
   define HK and H1K and GH and GHK
     where "HK = H\<inter>K" and "H1K=H1\<inter>K" and "GH =G\<lparr>carrier := H\<rparr>" and "GHK = (G\<lparr>carrier:= (H\<inter>K)\<rparr>)"
@@ -1645,6 +1711,339 @@ proof -
   moreover have "K \<inter> H = H" using K_def assms subgroup.subset by blast
   ultimately show "normal (N\<inter>H) (G\<lparr>carrier := H\<rparr>)"
  by auto
+qed
+
+lemma (in group) normal_restrict_supergroup:
+  assumes "subgroup S G" "N \<lhd> G" "N \<subseteq> S"
+  shows "N \<lhd> (G\<lparr>carrier := S\<rparr>)"
+  by (metis assms inf.absorb_iff1 normal_Int_subgroup)
+
+text \<open>A subgroup relation survives factoring by a normal subgroup.\<close>
+lemma (in group) normal_subgroup_factorize:
+  assumes "N \<lhd> G" and "N \<subseteq> H" and "subgroup H G"
+  shows "subgroup (rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N) (G Mod N)"
+proof -
+  interpret GModN: group "G Mod N" 
+    using assms(1) by (rule normal.factorgroup_is_group)
+  have "N \<lhd> G\<lparr>carrier := H\<rparr>" 
+    using assms by (metis normal_restrict_supergroup)
+  hence grpHN: "group (G\<lparr>carrier := H\<rparr> Mod N)" 
+    by (rule normal.factorgroup_is_group)
+  have "(<#>\<^bsub>G\<lparr>carrier:=H\<rparr>\<^esub>) = (\<lambda>U K. (\<Union>h\<in>U. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k}))" 
+    using set_mult_def by metis
+  moreover have "\<dots> = (\<lambda>U K. (\<Union>h\<in>U. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k}))" 
+    by auto
+  moreover have "(<#>) = (\<lambda>U K. (\<Union>h\<in>U. \<Union>k\<in>K. {h \<otimes> k}))" 
+    using set_mult_def by metis
+  ultimately have "(<#>\<^bsub>G\<lparr>carrier:=H\<rparr>\<^esub>) = (<#>\<^bsub>G\<^esub>)" 
+    by simp
+  with grpHN have "group ((G Mod N)\<lparr>carrier := (rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N)\<rparr>)" 
+    unfolding FactGroup_def by auto
+  moreover have "rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N \<subseteq> carrier (G Mod N)" 
+    unfolding FactGroup_def RCOSETS_def r_coset_def using assms(3) subgroup.subset 
+    by fastforce
+  ultimately show ?thesis
+    using GModN.group_incl_imp_subgroup by blast
+qed
+
+text \<open>A normality relation survives factoring by a normal subgroup.\<close>
+lemma (in group) normality_factorization:
+  assumes NG: "N \<lhd> G" and NH: "N \<subseteq> H" and HG: "H \<lhd> G"
+  shows "(rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N) \<lhd> (G Mod N)"
+proof -
+  from assms(1) interpret GModN: group "G Mod N" by (metis normal.factorgroup_is_group)
+  show ?thesis
+    unfolding GModN.normal_inv_iff
+  proof (intro conjI strip)
+    show "subgroup (rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N) (G Mod N)" 
+      using assms normal_imp_subgroup normal_subgroup_factorize by force
+  next
+    fix U V
+    assume U: "U \<in> carrier (G Mod N)" and V: "V \<in> rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N"
+    then obtain g where g: "g \<in> carrier G" "U = N #> g"
+      unfolding FactGroup_def RCOSETS_def by auto
+    from V obtain h where h: "h \<in> H" "V = N #> h" 
+      unfolding FactGroup_def RCOSETS_def r_coset_def by auto
+    hence hG: "h \<in> carrier G" 
+      using HG normal_imp_subgroup subgroup.mem_carrier by force
+    hence ghG: "g \<otimes> h \<in> carrier G" 
+      using g m_closed by auto
+    from g h have "g \<otimes> h \<otimes> inv g \<in> H" 
+      using HG normal_inv_iff by auto
+    moreover have "U <#> V <#> inv\<^bsub>G Mod N\<^esub> U = N #> (g \<otimes> h \<otimes> inv g)"
+    proof -
+      from g U have "inv\<^bsub>G Mod N\<^esub> U = N #> inv g" 
+        using NG normal.inv_FactGroup normal.rcos_inv by fastforce
+      hence "U <#> V <#> inv\<^bsub>G Mod N\<^esub> U = (N #> g) <#> (N #> h) <#> (N #> inv g)" 
+        using g h by simp
+      also have "\<dots> = N #> (g \<otimes> h \<otimes> inv g)" 
+        using g hG NG inv_closed ghG normal.rcos_sum by force
+      finally show ?thesis .
+    qed
+    ultimately show "U \<otimes>\<^bsub>G Mod N\<^esub> V \<otimes>\<^bsub>G Mod N\<^esub> inv\<^bsub>G Mod N\<^esub> U \<in> rcosets\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N" 
+      unfolding RCOSETS_def r_coset_def by auto
+  qed
+qed
+
+text \<open>Factorizing by the trivial subgroup is an isomorphism.\<close>
+lemma (in group) trivial_factor_iso:
+  shows "the_elem \<in> iso (G Mod {\<one>}) G"
+proof -
+  have "group_hom G G (\<lambda>x. x)" 
+    unfolding group_hom_def group_hom_axioms_def hom_def using is_group by simp
+  moreover have "(\<lambda>x. x) ` carrier G = carrier G" 
+    by simp
+  moreover have "kernel G G (\<lambda>x. x) = {\<one>}" 
+    unfolding kernel_def by auto
+  ultimately show ?thesis using group_hom.FactGroup_iso_set 
+    by force
+qed
+
+text \<open>And the dual theorem to the previous one: Factorizing by the group itself gives the trivial group\<close>
+
+lemma (in group) self_factor_iso:
+  shows "(\<lambda>X. the_elem ((\<lambda>x. \<one>) ` X)) \<in> iso (G Mod (carrier G)) (G\<lparr> carrier := {\<one>} \<rparr>)"
+proof -
+  have "group (G\<lparr>carrier := {\<one>}\<rparr>)" 
+    by (metis subgroup_imp_group triv_subgroup)
+  hence "group_hom G (G\<lparr>carrier := {\<one>}\<rparr>) (\<lambda>x. \<one>)" 
+    unfolding group_hom_def group_hom_axioms_def hom_def using is_group by auto
+  moreover have "(\<lambda>x. \<one>) ` carrier G = carrier (G\<lparr>carrier := {\<one>}\<rparr>)" 
+    by auto
+  moreover have "kernel G (G\<lparr>carrier := {\<one>}\<rparr>) (\<lambda>x. \<one>) = carrier G" 
+    unfolding kernel_def by auto
+  ultimately show ?thesis using group_hom.FactGroup_iso_set 
+    by force
+qed
+
+text \<open>Factoring by a normal subgroups yields the trivial group iff the subgroup is the whole group.\<close>
+lemma (in normal) fact_group_trivial_iff:
+  assumes "finite (carrier G)"
+  shows "(carrier (G Mod H) = {\<one>\<^bsub>G Mod H\<^esub>}) \<longleftrightarrow> (H = carrier G)"
+proof
+  assume "carrier (G Mod H) = {\<one>\<^bsub>G Mod H\<^esub>}" 
+  moreover have "order (G Mod H) * card H = order G"
+    by (simp add: FactGroup_def lagrange order_def subgroup_axioms)
+  ultimately have "card H = order G" unfolding order_def by auto
+  thus "H = carrier G"
+    by (simp add: assms card_subset_eq order_def subset)
+next
+  assume "H = carrier G"
+  with assms is_subgroup lagrange 
+  have "card (rcosets H) * order G = order G"
+    by (simp add: order_def)
+  then have "card (rcosets H) = 1" 
+    using assms order_gt_0_iff_finite by auto
+  hence "order (G Mod H) = 1" 
+    unfolding order_def FactGroup_def by auto
+  thus "carrier (G Mod H) = {\<one>\<^bsub>G Mod H\<^esub>}" 
+    using factorgroup_is_group by (metis group.order_one_triv_iff)
+qed
+
+text \<open>The union of all the cosets contained in a subgroup of a quotient group acts as a represenation for that subgroup.\<close>
+
+lemma (in normal) factgroup_subgroup_union_char:
+  assumes "subgroup A (G Mod H)"
+  shows "(\<Union>A) = {x \<in> carrier G. H #> x \<in> A}"
+proof
+  show "\<Union>A \<subseteq> {x \<in> carrier G. H #> x \<in> A}"
+  proof
+    fix x
+    assume x: "x \<in> \<Union>A"
+    then obtain a where a: "a \<in> A" "x \<in> a" and xx: "x \<in> carrier G"
+      using subgroup.subset assms by (force simp add: FactGroup_def RCOSETS_def r_coset_def)
+    from assms a obtain y where y: "y \<in> carrier G" "a = H #> y" 
+      using subgroup.subset unfolding FactGroup_def RCOSETS_def by force
+    with a have "x \<in> H #> y" by simp
+    hence "H #> y = H #> x" using y is_subgroup repr_independence by auto
+    with y(2) a(1) have "H #> x \<in> A" 
+      by auto
+    with xx show "x \<in> {x \<in> carrier G. H #> x \<in> A}" by simp
+  qed
+next
+  show "{x \<in> carrier G. H #> x \<in> A} \<subseteq> \<Union>A"
+    using rcos_self subgroup_axioms by auto
+qed
+
+lemma (in normal) factgroup_subgroup_union_subgroup:
+  assumes "subgroup A (G Mod H)"
+  shows "subgroup (\<Union>A) G"
+proof -
+  have "subgroup {x \<in> carrier G. H #> x \<in> A} G"
+  proof
+    show "{x \<in> carrier G. H #> x \<in> A} \<subseteq> carrier G" by auto
+  next
+    fix x y
+    assume xy: "x \<in> {x \<in> carrier G. H #> x \<in> A}" "y \<in> {x \<in> carrier G. H #> x \<in> A}"
+    then have "(H #> x) <#> (H #> y) \<in> A" 
+      using subgroup.m_closed assms unfolding FactGroup_def  by fastforce
+    hence "H #> (x \<otimes> y) \<in> A"
+      using xy rcos_sum by force
+    with xy show "x \<otimes> y \<in> {x \<in> carrier G. H #> x \<in> A}" by blast 
+  next
+    have "H #> \<one> \<in> A"
+      using assms subgroup.one_closed subset by fastforce
+    with assms one_closed show "\<one> \<in> {x \<in> carrier G. H #> x \<in> A}" by simp
+  next
+    fix x
+    assume x: "x \<in> {x \<in> carrier G. H #> x \<in> A}"
+    hence invx: "inv x \<in> carrier G" using inv_closed by simp
+    from assms x have "set_inv (H #> x) \<in> A" using subgroup.m_inv_closed
+      using inv_FactGroup subgroup.mem_carrier by fastforce
+    with invx show "inv x \<in> {x \<in> carrier G. H #> x \<in> A}"
+      using rcos_inv x by force
+  qed
+  with assms factgroup_subgroup_union_char show ?thesis by auto
+qed
+
+lemma (in normal) factgroup_subgroup_union_normal:
+  assumes "A \<lhd> (G Mod H)"
+  shows "\<Union>A \<lhd> G"
+proof - 
+  have "{x \<in> carrier G. H #> x \<in> A} \<lhd> G"
+    unfolding normal_def normal_axioms_def
+  proof (intro conjI strip)
+    from assms show "subgroup {x \<in> carrier G. H #> x \<in> A} G"
+      by (metis (full_types) factgroup_subgroup_union_char factgroup_subgroup_union_subgroup normal_imp_subgroup)
+  next
+    interpret Anormal: normal A "(G Mod H)" using assms by simp
+    show "{x \<in> carrier G. H #> x \<in> A} #> x = x <# {x \<in> carrier G. H #> x \<in> A}" if x: "x \<in> carrier G" for x
+    proof -
+      { fix y
+        assume y: "y \<in> {x \<in> carrier G. H #> x \<in> A} #> x"
+        then obtain x' where x': "x' \<in> carrier G" "H #> x' \<in> A" "y = x' \<otimes> x" 
+          unfolding r_coset_def by auto
+        from x(1) have Hx: "H #> x \<in> carrier (G Mod H)" 
+          unfolding FactGroup_def RCOSETS_def by force
+        with x' have "(inv\<^bsub>G Mod H\<^esub> (H #> x)) \<otimes>\<^bsub>G Mod H\<^esub> (H #> x') \<otimes>\<^bsub>G Mod H\<^esub> (H #> x) \<in> A" 
+          using Anormal.inv_op_closed1 by auto
+        hence "(set_inv (H #> x)) <#> (H #> x') <#> (H #> x) \<in> A" 
+          using inv_FactGroup Hx unfolding FactGroup_def by auto
+        hence "(H #> (inv x)) <#> (H #> x') <#> (H #> x) \<in> A" 
+          using x(1) by (metis rcos_inv)
+        hence "H #> (inv x \<otimes> x' \<otimes> x) \<in> A" 
+          by (metis inv_closed m_closed rcos_sum x'(1) x(1))
+        moreover have "inv x \<otimes> x' \<otimes> x \<in> carrier G" 
+          using x x' by (metis inv_closed m_closed)
+        ultimately have xcoset: "x \<otimes> (inv x \<otimes> x' \<otimes> x) \<in> x <# {x \<in> carrier G. H #> x \<in> A}" 
+          unfolding l_coset_def using x(1) by auto
+        have "x \<otimes> (inv x \<otimes> x' \<otimes> x) = (x \<otimes> inv x) \<otimes> x' \<otimes> x" 
+          by (metis Units_eq Units_inv_Units m_assoc m_closed x'(1) x(1))
+        also have "\<dots> = y"
+          by (simp add: x x')
+        finally have "x \<otimes> (inv x \<otimes> x' \<otimes> x) = y" .
+        with xcoset have "y \<in> x <# {x \<in> carrier G. H #> x \<in> A}" by auto}
+      moreover
+      { fix y
+        assume y: "y \<in> x <# {x \<in> carrier G. H #> x \<in> A}"
+        then obtain x' where x': "x' \<in> carrier G" "H #> x' \<in> A" "y = x \<otimes> x'" unfolding l_coset_def by auto
+        from x(1) have invx: "inv x \<in> carrier G" 
+          by (rule inv_closed)
+        hence Hinvx: "H #> (inv x) \<in> carrier (G Mod H)" 
+          unfolding FactGroup_def RCOSETS_def by force
+        with x' have "(inv\<^bsub>G Mod H\<^esub> (H #> inv x)) \<otimes>\<^bsub>G Mod H\<^esub> (H #> x') \<otimes>\<^bsub>G Mod H\<^esub> (H #> inv x) \<in> A" 
+          using invx Anormal.inv_op_closed1 by auto
+        hence "(set_inv (H #> inv x)) <#> (H #> x') <#> (H #> inv x) \<in> A" 
+          using inv_FactGroup Hinvx unfolding FactGroup_def by auto
+        hence "H #> (x \<otimes> x' \<otimes> inv x) \<in> A"
+          by (simp add: rcos_inv rcos_sum x x'(1))
+        moreover have "x \<otimes> x' \<otimes> inv x \<in> carrier G" using x x' by (metis inv_closed m_closed)
+        ultimately have xcoset: "(x \<otimes> x' \<otimes> inv x) \<otimes> x \<in> {x \<in> carrier G. H #> x \<in> A} #> x" 
+          unfolding r_coset_def using invx by auto
+        have "(x \<otimes> x' \<otimes> inv x) \<otimes> x = (x \<otimes> x') \<otimes> (inv x \<otimes> x)" 
+          by (metis Units_eq Units_inv_Units m_assoc m_closed x'(1) x(1))
+        also have "\<dots> = y"
+          by (simp add: x x')
+        finally have "x \<otimes> x' \<otimes> inv x \<otimes> x = y".
+        with xcoset have "y \<in> {x \<in> carrier G. H #> x \<in> A} #> x" by auto }
+      ultimately show ?thesis
+        by auto
+    qed
+  qed auto
+  with assms show ?thesis 
+    by (metis (full_types) factgroup_subgroup_union_char normal_imp_subgroup)
+qed
+
+lemma (in normal) factgroup_subgroup_union_factor:
+  assumes "subgroup A (G Mod H)"
+  shows "A = rcosets\<^bsub>G\<lparr>carrier := \<Union>A\<rparr>\<^esub> H"
+  using assms subgroup.mem_carrier factgroup_subgroup_union_char by (fastforce simp: RCOSETS_def FactGroup_def)
+
+
+section  \<open>Flattening the type of group carriers\<close>
+
+text \<open>Flattening here means to convert the type of group elements from 'a set to 'a.
+This is possible whenever the empty set is not an element of the group. By Jakob von Raumer\<close>
+
+
+definition flatten where
+  "flatten (G::('a set, 'b) monoid_scheme) rep = \<lparr>carrier=(rep ` (carrier G)),
+      monoid.mult=(\<lambda> x y. rep ((the_inv_into (carrier G) rep x) \<otimes>\<^bsub>G\<^esub> (the_inv_into (carrier G) rep y))), 
+      one=rep \<one>\<^bsub>G\<^esub> \<rparr>"
+
+lemma flatten_set_group_hom:
+  assumes group: "group G"
+  assumes inj: "inj_on rep (carrier G)"
+  shows "rep \<in> hom G (flatten G rep)"
+  by (force simp add: hom_def flatten_def inj the_inv_into_f_f)
+
+lemma flatten_set_group:
+  assumes "group G" "inj_on rep (carrier G)"
+  shows "group (flatten G rep)"
+proof (rule groupI)
+  fix x y
+  assume "x \<in> carrier (flatten G rep)" and "y \<in> carrier (flatten G rep)"
+  then show "x \<otimes>\<^bsub>flatten G rep\<^esub> y \<in> carrier (flatten G rep)" 
+    using assms group.surj_const_mult the_inv_into_f_f by (fastforce simp: flatten_def)
+next
+  show "\<one>\<^bsub>flatten G rep\<^esub> \<in> carrier (flatten G rep)" 
+    unfolding flatten_def by (simp add: assms group.is_monoid)
+next
+  fix x y z
+  assume "x \<in> carrier (flatten G rep)" "y \<in> carrier (flatten G rep)" "z \<in> carrier (flatten G rep)"
+  then show "x \<otimes>\<^bsub>flatten G rep\<^esub> y \<otimes>\<^bsub>flatten G rep\<^esub> z = x \<otimes>\<^bsub>flatten G rep\<^esub> (y \<otimes>\<^bsub>flatten G rep\<^esub> z)"
+    by (auto simp: assms flatten_def group.is_monoid monoid.m_assoc monoid.m_closed the_inv_into_f_f)
+next
+  fix x
+  assume x: "x \<in> carrier (flatten G rep)"
+  then show "\<one>\<^bsub>flatten G rep\<^esub> \<otimes>\<^bsub>flatten G rep\<^esub> x = x"
+    by (auto simp: assms group.is_monoid the_inv_into_f_f flatten_def)
+  then have "\<exists>y\<in>carrier G. rep (y \<otimes>\<^bsub>G\<^esub> z) = rep \<one>\<^bsub>G\<^esub>" if "z \<in> carrier G" for z
+    by (metis \<open>group G\<close> group.l_inv_ex that)
+  with assms x show "\<exists>y\<in>carrier (flatten G rep). y \<otimes>\<^bsub>flatten G rep\<^esub> x = \<one>\<^bsub>flatten G rep\<^esub>"
+    by (auto simp: flatten_def the_inv_into_f_f)
+qed
+
+lemma (in normal) flatten_set_group_mod_inj:
+  shows "inj_on (\<lambda>U. SOME g. g \<in> U) (carrier (G Mod H))"
+proof (rule inj_onI)
+  fix U V
+  assume U: "U \<in> carrier (G Mod H)" and V: "V \<in> carrier (G Mod H)"
+  then obtain g h where g: "U = H #> g" "g \<in> carrier G" and h: "V = H #> h" "h \<in> carrier G"
+    unfolding FactGroup_def RCOSETS_def by auto
+  hence notempty: "U \<noteq> {}" "V \<noteq> {}" 
+    by (metis empty_iff is_subgroup rcos_self)+
+  assume "(SOME g. g \<in> U) = (SOME g. g \<in> V)"
+  with notempty have "(SOME g. g \<in> U) \<in> U \<inter> V" 
+    by (metis IntI ex_in_conv someI)
+  thus "U = V" 
+    by (metis Int_iff g h is_subgroup repr_independence)
+qed
+
+lemma (in normal) flatten_set_group_mod:
+  shows "group (flatten (G Mod H) (\<lambda>U. SOME g. g \<in> U))"
+  by (simp add: factorgroup_is_group flatten_set_group flatten_set_group_mod_inj)
+
+lemma (in normal) flatten_set_group_mod_iso:
+  shows "(\<lambda>U. SOME g. g \<in> U) \<in> iso (G Mod H) (flatten (G Mod H) (\<lambda>U. SOME g. g \<in> U))"
+proof -
+  have "(\<lambda>U. SOME g. g \<in> U) \<in> hom (G Mod H) (flatten (G Mod H) (\<lambda>U. SOME g. g \<in> U))"
+    using factorgroup_is_group flatten_set_group_hom flatten_set_group_mod_inj by blast
+  moreover
+  have "inj_on (\<lambda>U. SOME g. g \<in> U) (carrier (G Mod H))"
+    using flatten_set_group_mod_inj by blast
+  ultimately show ?thesis
+    by (simp add: iso_def bij_betw_def flatten_def)
 qed
 
 end

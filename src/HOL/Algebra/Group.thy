@@ -674,6 +674,9 @@ proof -
     by (rule monoid.group_l_invI) (auto intro: l_inv mem_carrier)
 qed
 
+lemma (in group) triv_subgroup: "subgroup {\<one>} G"
+  by (auto simp: subgroup_def)
+
 lemma subgroup_is_submonoid:
   assumes "subgroup H G" shows "submonoid H G"
   using assms by (auto intro: submonoid.intro simp add: subgroup_def)
@@ -1362,6 +1365,12 @@ proof -
     using group_hom.img_is_subgroup[of "G \<lparr> carrier := I \<rparr>" H h] by simp
 qed
 
+lemma (in subgroup) iso_subgroup: \<^marker>\<open>contributor \<open>Jakob von Raumer\<close>\<close>
+  assumes "group G" "group F"
+  assumes "\<phi> \<in> iso G F"
+  shows "subgroup (\<phi> ` H) F"
+  by (metis assms Group.iso_iff group_hom.intro group_hom_axioms_def group_hom.subgroup_img_is_subgroup subgroup_axioms)
+
 lemma (in group_hom) induced_group_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "subgroup I G"
   shows "group_hom (G \<lparr> carrier := I \<rparr>) (H \<lparr> carrier := h ` I \<rparr>) h"
@@ -1372,6 +1381,24 @@ proof -
     unfolding group_hom_def group_hom_axioms_def
     using subgroup.subgroup_is_group[OF assms G.is_group]
           subgroup.subgroup_is_group[OF subgroup_img_is_subgroup[OF assms] is_group] by simp
+qed
+
+text \<open>An isomorphism restricts to an isomorphism of subgroups.\<close>
+
+lemma iso_restrict:
+  assumes "\<phi> \<in> iso G F"
+  assumes groups: "group G" "group F"
+  assumes HG: "subgroup H G"
+  shows "(restrict \<phi> H) \<in> iso (G\<lparr>carrier := H\<rparr>) (F\<lparr>carrier := \<phi> ` H\<rparr>)"
+proof -
+  have "\<And>x y. \<lbrakk>x \<in> H; y \<in> H; x \<otimes>\<^bsub>G\<^esub> y \<in> H\<rbrakk> \<Longrightarrow> \<phi> (x \<otimes>\<^bsub>G\<^esub> y) = \<phi> x \<otimes>\<^bsub>F\<^esub> \<phi> y"
+    by (meson assms hom_mult iso_imp_homomorphism subgroup.mem_carrier)
+  moreover have "\<And>x y. \<lbrakk>x \<in> H; y \<in> H; x \<otimes>\<^bsub>G\<^esub> y \<notin> H\<rbrakk> \<Longrightarrow> \<phi> x \<otimes>\<^bsub>F\<^esub> \<phi> y = undefined"
+    by (simp add: HG subgroup.m_closed)
+  moreover have "\<And>x y. \<lbrakk>x \<in> H; y \<in> H; \<phi> x = \<phi> y\<rbrakk> \<Longrightarrow> x = y"
+    by (smt (verit, ccfv_SIG) assms group.iso_iff_group_isomorphisms group_isomorphisms_def subgroup.mem_carrier)
+  ultimately show ?thesis
+    by (auto simp: iso_def hom_def bij_betw_def inj_on_def)
 qed
 
 lemma (in group) canonical_inj_is_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
@@ -1636,9 +1663,8 @@ next
 qed
 
 lemma (in group) subgroups_Inter_pair :
-  assumes  "subgroup I G"
-    and  "subgroup J G"
-  shows "subgroup (I\<inter>J) G" using subgroups_Inter[ where ?A = "{I,J}"] assms by auto
+  assumes "subgroup I G" "subgroup J G" shows "subgroup (I\<inter>J) G" 
+  using subgroups_Inter[ where ?A = "{I,J}"] assms by auto
 
 theorem (in group) subgroups_complete_lattice:
   "complete_lattice \<lparr>carrier = {H. subgroup H G}, eq = (=), le = (\<subseteq>)\<rparr>"
