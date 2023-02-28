@@ -249,7 +249,7 @@ object Build_Process {
           if_proper(names, Generic.name.member(names)))
     }
 
-    object Config {
+    object Base {
       val instance = Generic.instance.make_primary_key
       val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
@@ -455,18 +455,10 @@ object Build_Process {
       insert.nonEmpty
     }
 
-    def write_config(db: SQL.Database, instance: String, hostname: String, options: Options): Unit =
-      db.using_statement(Config.table.insert()) { stmt =>
-        stmt.string(1) = instance
-        stmt.string(2) = Isabelle_System.getenv("ML_PLATFORM")
-        stmt.string(3) = options.make_prefs(Options.init(prefs = ""))
-        stmt.execute()
-      }
-
     def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
       val tables =
         List(
-          Config.table,
+          Base.table,
           Serial.table,
           Node_Info.table,
           Pending.table,
@@ -483,7 +475,12 @@ object Build_Process {
 
       for (table <- tables) db.using_statement(table.delete())(_.execute())
 
-      write_config(db, build_context.instance, build_context.hostname, build_context.store.options)
+      db.using_statement(Base.table.insert()) { stmt =>
+        stmt.string(1) = build_context.instance
+        stmt.string(2) = Isabelle_System.getenv("ML_PLATFORM")
+        stmt.string(3) = build_context.store.options.make_prefs(Options.init(prefs = ""))
+        stmt.execute()
+      }
     }
 
     def update_database(
