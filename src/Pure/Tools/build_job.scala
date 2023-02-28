@@ -62,8 +62,6 @@ object Build_Job {
 
     private lazy val future_result: Future[Process_Result] =
       Future.thread("build", uninterruptible = true) {
-        Exn.Interrupt.expose()
-
         val parent = info.parent.getOrElse("")
 
         val env =
@@ -271,12 +269,10 @@ object Build_Job {
         val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
         val process =
-          Isabelle_Thread.uninterruptible {
-            Isabelle_Process.start(store, options, session, session_background,
-              logic = parent, raw_ml_system = is_pure,
-              use_prelude = use_prelude, eval_main = eval_main,
-              cwd = info.dir.file, env = env)
-          }
+          Isabelle_Process.start(store, options, session, session_background,
+            logic = parent, raw_ml_system = is_pure,
+            use_prelude = use_prelude, eval_main = eval_main,
+            cwd = info.dir.file, env = env)
 
         val build_errors =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
