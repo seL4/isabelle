@@ -124,9 +124,14 @@ object Isabelle_Thread {
     else body
 }
 
-class Isabelle_Thread private(main: Runnable, name: String, group: ThreadGroup,
-    pri: Int, daemon: Boolean, inherit_locals: Boolean)
-  extends Thread(group, null, name, 0L, inherit_locals) {
+class Isabelle_Thread private(
+  main: Runnable,
+  name: String,
+  group: ThreadGroup,
+  pri: Int,
+  daemon: Boolean,
+  inherit_locals: Boolean
+) extends Thread(group, null, name, 0L, inherit_locals) {
   thread =>
 
   thread.setPriority(pri)

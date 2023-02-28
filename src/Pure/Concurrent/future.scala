@@ -139,7 +139,8 @@ private class Thread_Future[A](
   daemon: Boolean,
   inherit_locals: Boolean,
   uninterruptible: Boolean,
-  body: => A) extends Future[A] {
+  body: => A
+) extends Future[A] {
   private val result = Future.promise[A]
   private val thread =
     Isabelle_Thread.fork(name = name, group = group, pri = pri, daemon = daemon,
