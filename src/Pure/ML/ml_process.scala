@@ -58,10 +58,11 @@ object ML_Process {
           "PolyML.Compiler.prompt1 := \"Poly/ML> \"",
           "PolyML.Compiler.prompt2 := \"Poly/ML# \"")
       }
-      else
+      else {
         List(
           "(PolyML.SaveState.loadHierarchy " +
             ML_Syntax.print_list(ML_Syntax.print_string_bytes)(heaps) + "; PolyML.print_depth 0)")
+      }
 
     val eval_modes =
       if (modes.isEmpty) Nil
