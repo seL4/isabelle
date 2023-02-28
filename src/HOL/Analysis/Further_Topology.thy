@@ -3333,7 +3333,7 @@ proof -
       then have "z \<noteq> 0" by auto
       have "(w/z)^n = 1"
         by (metis False divide_self_if eq power_divide power_one)
-      then obtain j where j: "w / z = exp (2 * of_real pi * \<i> * j / n)" and "j < n"
+      then obtain j::nat where j: "w / z = exp (2 * of_real pi * \<i> * j / n)" and "j < n"
         using Suc_leI assms \<open>2 \<le> n\<close> complex_roots_unity [THEN eqset_imp_iff, of n "w/z"]
         by force
       have "cmod (w/z - 1) < 2 * sin (pi / real n)"
