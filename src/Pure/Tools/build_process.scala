@@ -586,6 +586,12 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
         store.init_session_info(_, session_name))
 
       val session_background = build_deps.background(session_name)
+      val session_heaps =
+        session_background.info.parent match {
+          case None => Nil
+          case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
+        }
+
       val resources =
         new Resources(session_background, log = log,
           command_timings = build_context(session_name).old_command_timings)
@@ -595,9 +601,9 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
           val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
           val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
           val job =
-            new Build_Job.Build_Session(progress, verbose, session_background, store, do_store,
-              resources, build_context.session_setup, build_deps.sources_shasum(session_name),
-              input_heaps, node_info)
+            new Build_Job.Build_Session(progress, verbose, session_background, session_heaps,
+              store, do_store, resources, build_context.session_setup,
+              build_deps.sources_shasum(session_name), input_heaps, node_info)
           _state = state1.add_running(session_name, job)
           job
         }

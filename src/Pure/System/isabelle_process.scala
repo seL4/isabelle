@@ -13,12 +13,10 @@ import java.io.{File => JFile}
 
 object Isabelle_Process {
   def start(
-    store: Sessions.Store,
     options: Options,
     session: Session,
     session_background: Sessions.Background,
-    logic: String = "",
-    raw_ml_system: Boolean = false,
+    session_heaps: List[Path],
     use_prelude: List[String] = Nil,
     eval_main: String = "",
     modes: List[String] = Nil,
@@ -32,8 +30,7 @@ object Isabelle_Process {
           options.
             string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
-        ML_Process(store, ml_options, session_background,
-          logic = logic, raw_ml_system = raw_ml_system,
+        ML_Process(ml_options, session_background, session_heaps,
           use_prelude = use_prelude, eval_main = eval_main,
           modes = modes, cwd = cwd, env = env)
       }

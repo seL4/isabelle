@@ -12,12 +12,22 @@ import java.io.{File => JFile}
 
 
 object ML_Process {
-  def apply(
+  def session_heaps(
     store: Sessions.Store,
+    session_background: Sessions.Background,
+    logic: String = ""
+  ): List[Path] = {
+    val logic_name = Isabelle_System.default_logic(logic)
+
+    session_background.sessions_structure.selection(logic_name).
+      build_requirements(List(logic_name)).
+      map(store.the_heap)
+  }
+
+  def apply(
     options: Options,
     session_background: Sessions.Background,
-    logic: String = "",
-    raw_ml_system: Boolean = false,
+    session_heaps: List[Path],
     use_prelude: List[String] = Nil,
     eval_main: String = "",
     args: List[String] = Nil,
@@ -27,18 +37,8 @@ object ML_Process {
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()
   ): Bash.Process = {
-    val logic_name = Isabelle_System.default_logic(logic)
-
-    val heaps: List[String] =
-      if (raw_ml_system) Nil
-      else {
-        session_background.sessions_structure.selection(logic_name).
-          build_requirements(List(logic_name)).
-          map(a => File.platform_path(store.the_heap(a)))
-      }
-
     val eval_init =
-      if (heaps.isEmpty) {
+      if (session_heaps.isEmpty) {
         List(
           """
           fun chapter (_: string) = ();
@@ -61,7 +61,9 @@ object ML_Process {
       else {
         List(
           "(PolyML.SaveState.loadHierarchy " +
-            ML_Syntax.print_list(ML_Syntax.print_string_bytes)(heaps) + "; PolyML.print_depth 0)")
+            ML_Syntax.print_list(
+              ML_Syntax.print_string_bytes)(session_heaps.map(File.platform_path)) +
+          "; PolyML.print_depth 0)")
       }
 
     val eval_modes =
@@ -70,13 +72,13 @@ object ML_Process {
 
 
     // options
-    val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
+    val eval_options = if (session_heaps.isEmpty) Nil else List("Options.load_default ()")
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     Isabelle_System.chmod("600", File.path(isabelle_process_options))
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
 
     // session resources
-    val eval_init_session = if (raw_ml_system) Nil else List("Resources.init_session_env ()")
+    val eval_init_session = if (session_heaps.isEmpty) Nil else List("Resources.init_session_env ()")
     val init_session = Isabelle_System.tmp_file("init_session")
     Isabelle_System.chmod("600", File.path(init_session))
     File.write(init_session, new Resources(session_background).init_session_yxml)
@@ -84,7 +86,7 @@ object ML_Process {
     // process
     val eval_process =
       proper_string(eval_main).getOrElse(
-        if (heaps.isEmpty) {
+        if (session_heaps.isEmpty) {
           "PolyML.print_depth " + ML_Syntax.print_int(options.int("ML_print_depth"))
         }
         else "Isabelle_Process.init ()")
@@ -169,9 +171,10 @@ Usage: isabelle process [OPTIONS]
 
       val store = Sessions.store(options)
       val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
+      val session_heaps = ML_Process.session_heaps(store, session_background, logic = logic)
       val result =
-        ML_Process(store, options, session_background,
-          logic = logic, args = eval_args, modes = modes).result(
+        ML_Process(options, session_background, session_heaps, args = eval_args, modes = modes)
+          .result(
             progress_stdout = Output.writeln(_, stdout = true),
             progress_stderr = Output.writeln(_))
 

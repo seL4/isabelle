@@ -71,12 +71,14 @@ Usage: isabelle console [OPTIONS]
             options, logic, dirs = dirs, include_sessions = include_sessions).check_errors
         }
 
+      val session_heaps =
+        if (raw_ml_system) Nil
+        else ML_Process.session_heaps(store, session_background, logic = logic)
+
       // process loop
       val process =
-        ML_Process(store, options, session_background,
-          logic = logic, args = List("-i"), redirect = true,
-          modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
-          raw_ml_system = raw_ml_system)
+        ML_Process(options, session_background, session_heaps, args = List("-i"), redirect = true,
+          modes = if (raw_ml_system) Nil else modes ::: List("ASCII"))
 
       POSIX_Interrupt.handler { process.interrupt() } {
         new TTY_Loop(process.stdin, process.stdout).join()

@@ -619,10 +619,11 @@ object Headless {
     ): Session = {
       val session_name = session_background.session_name
       val session = new Session(session_name, options, resources)
+      val session_heaps = ML_Process.session_heaps(store, session_background, logic = session_name)
 
       progress.echo("Starting session " + session_name + " ...")
-      Isabelle_Process.start(store, options, session, session_background,
-        logic = session_name, modes = print_mode).await_startup()
+      Isabelle_Process.start(
+        options, session, session_background, session_heaps, modes = print_mode).await_startup()
 
       session
     }

@@ -43,6 +43,7 @@ object Build_Job {
     progress: Progress,
     verbose: Boolean,
     session_background: Sessions.Background,
+    session_heaps: List[Path],
     store: Sessions.Store,
     do_store: Boolean,
     resources: Resources,
@@ -62,15 +63,11 @@ object Build_Job {
 
     private lazy val future_result: Future[Process_Result] =
       Future.thread("build", uninterruptible = true) {
-        val parent = info.parent.getOrElse("")
-
         val env =
           Isabelle_System.settings(
             List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
-        val is_pure = Sessions.is_pure(session_name)
-
-        val use_prelude = if (is_pure) Thy_Header.ml_roots.map(_._1) else Nil
+        val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
 
         val eval_store =
           if (do_store) {
@@ -268,11 +265,10 @@ object Build_Job {
 
         val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
-        val process =
-          Isabelle_Process.start(store, options, session, session_background,
-            logic = parent, raw_ml_system = is_pure,
-            use_prelude = use_prelude, eval_main = eval_main,
-            cwd = info.dir.file, env = env)
+        val process = {
+          Isabelle_Process.start(options, session, session_background, session_heaps,
+            use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir.file, env = env)
+        }
 
         val build_errors =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) {

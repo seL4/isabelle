@@ -297,6 +297,8 @@ class Language_Server(
 
     for ((session_background, session) <- try_session) {
       val store = Sessions.store(options)
+      val session_heaps =
+        ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
 
       session_.change(_ => Some(session))
 
@@ -306,8 +308,8 @@ class Language_Server(
       dynamic_output.init()
 
       try {
-        Isabelle_Process.start(store, options, session, session_background,
-          modes = modes, logic = session_background.session_name).await_startup()
+        Isabelle_Process.start(
+          options, session, session_background, session_heaps, modes = modes).await_startup()
         reply_ok(
           "Welcome to Isabelle/" + session_background.session_name +
           Isabelle_System.isabelle_heading())

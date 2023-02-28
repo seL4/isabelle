@@ -162,11 +162,12 @@ object JEdit_Sessions {
     val session = PIDE.session
     val session_background = PIDE.resources.session_background
     val store = sessions_store(options = options)
+    val session_heaps =
+      ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
-    Isabelle_Process.start(store, store.options, session, session_background,
-      logic = session_background.session_name,
+    Isabelle_Process.start(store.options, session, session_background, session_heaps,
       modes =
         (space_explode(',', store.options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)
