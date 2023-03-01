@@ -98,11 +98,11 @@ object Build_Process {
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
-    def apply(session: String): Build_Job.Session_Context =
+    def session_context(session: String): Build_Job.Session_Context =
       sessions.getOrElse(session, Build_Job.Session_Context.init(session))
 
     def old_command_timings(session: String): List[Properties.T] =
-      Properties.uncompress(apply(session).old_command_timings_blob, cache = store.cache)
+      Properties.uncompress(session_context(session).old_command_timings_blob, cache = store.cache)
 
     def do_store(session: String): Boolean =
       build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
