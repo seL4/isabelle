@@ -35,9 +35,8 @@ object Build_Process {
 
       val sessions =
         Map.from(
-          for (name <- build_graph.keys_iterator)
+          for ((name, (info, _)) <- build_graph.iterator)
           yield {
-            val info = sessions_structure(name)
             val deps = info.parent.toList
             val ancestors = sessions_structure.build_requirements(deps)
             val session_context =
