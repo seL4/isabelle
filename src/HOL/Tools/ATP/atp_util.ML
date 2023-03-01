@@ -62,8 +62,7 @@ fun timestamp_format time =
 val timestamp = timestamp_format o Time.now
 
 (* This hash function is recommended in "Compilers: Principles, Techniques, and
-   Tools" by Aho, Sethi, and Ullman. The "hashpjw" function, which they
-   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
+   Tools" by Aho, Sethi, and Ullman. *)
 fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
 fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
 fun hashw_string (s : string, w) = CharVector.foldl hashw_char w s
@@ -416,8 +415,8 @@ fun short_thm_name ctxt th =
 
 val map_prod = Ctr_Sugar_Util.map_prod
 
-(* Compare the length of a list with an integer n while traversing at most n elements of the list.
-*)
+(* Compare the length of a list with an integer n while traversing at most n
+elements of the list. *)
 fun compare_length_with [] n = if n < 0 then GREATER else if n = 0 then EQUAL else LESS
   | compare_length_with (_ :: xs) n = if n <= 0 then GREATER else compare_length_with xs (n - 1)
 

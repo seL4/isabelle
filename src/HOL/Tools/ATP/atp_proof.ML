@@ -24,6 +24,7 @@ sig
     ProofMissing |
     ProofIncomplete |
     ProofUnparsable |
+    UnsoundProof of bool * string list |
     TimedOut |
     Inappropriate |
     OutOfResources |
@@ -144,6 +145,7 @@ datatype atp_failure =
   ProofMissing |
   ProofIncomplete |
   ProofUnparsable |
+  UnsoundProof of bool * string list |
   TimedOut |
   Inappropriate |
   OutOfResources |
@@ -160,12 +162,21 @@ fun short_output verbose output =
   else
     ""
 
+fun from_lemmas [] = ""
+  | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
+
 fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
-  | string_of_atp_failure Unprovable = "Unprovable problem"
+  | string_of_atp_failure Unprovable = "Problem unprovable"
   | string_of_atp_failure GaveUp = "Gave up"
   | string_of_atp_failure ProofMissing = "Proof missing"
   | string_of_atp_failure ProofIncomplete = "Proof incomplete"
   | string_of_atp_failure ProofUnparsable = "Proof unparsable"
+  | string_of_atp_failure (UnsoundProof (false, ss)) =
+    "Derived the lemma \"False\"" ^ from_lemmas ss ^
+    ", likely due to the use of an unsound type encoding"
+  | string_of_atp_failure (UnsoundProof (true, ss)) =
+    "Derived the lemma \"False\"" ^ from_lemmas ss ^
+    ", likely due to inconsistent axioms or \"sorry\"d lemmas"
   | string_of_atp_failure TimedOut = "Timed out"
   | string_of_atp_failure Inappropriate = "Problem outside the prover's scope"
   | string_of_atp_failure OutOfResources = "Out of resources"

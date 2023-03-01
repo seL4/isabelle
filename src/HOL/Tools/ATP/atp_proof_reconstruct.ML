@@ -46,6 +46,8 @@ sig
 
   val used_facts_in_atp_proof : Proof.context -> (string * stature) list -> string atp_proof ->
     (string * stature) list
+  val used_facts_in_unsound_atp_proof : Proof.context -> (string * stature) list -> 'a atp_proof ->
+    string list option
   val atp_proof_prefers_lifting : string atp_proof -> bool
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
   val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
@@ -521,6 +523,19 @@ fun add_fact ctxt facts ((num, ss), _, _, rule, deps) =
 
 fun used_facts_in_atp_proof ctxt facts atp_proof =
   if null atp_proof then facts else fold (add_fact ctxt facts) atp_proof []
+
+fun used_facts_in_unsound_atp_proof _ _ [] = NONE
+  | used_facts_in_unsound_atp_proof ctxt facts atp_proof =
+    let
+      val used_facts = used_facts_in_atp_proof ctxt facts atp_proof
+      val all_global_facts = forall (fn (_, (sc, _)) => sc = Global) used_facts
+      val axiom_used = is_axiom_used_in_proof (is_some o resolve_conjecture) atp_proof
+    in
+      if all_global_facts andalso not axiom_used then
+        SOME (map fst used_facts)
+      else
+        NONE
+    end
 
 val ascii_of_lam_fact_prefix = ascii_of lam_fact_prefix
 
