@@ -44,12 +44,13 @@ object Build_Job {
       name: String,
       deps: List[String],
       ancestors: List[String],
+      sources_shasum: SHA1.Shasum,
       timeout: Time,
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Session_Context = {
       def default: Session_Context =
-        new Session_Context(name, deps, ancestors, timeout, Time.zero, Bytes.empty)
+        new Session_Context(name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty)
 
       store.try_open_database(name) match {
         case None => default
@@ -68,7 +69,7 @@ object Build_Job {
                 case _ => Time.zero
               }
             new Session_Context(
-              name, deps, ancestors, timeout, elapsed, command_timings)
+              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -84,6 +85,7 @@ object Build_Job {
     val name: String,
     val deps: List[String],
     val ancestors: List[String],
+    val sources_shasum: SHA1.Shasum,
     val timeout: Time,
     val old_time: Time,
     val old_command_timings_blob: Bytes
@@ -97,7 +99,6 @@ object Build_Job {
     session_heaps: List[Path],
     do_store: Boolean,
     resources: Resources,
-    sources_shasum: SHA1.Shasum,
     input_heaps: SHA1.Shasum,
     override val node_info: Node_Info
   ) extends Build_Job {
@@ -470,7 +471,9 @@ object Build_Job {
           build_log =
             if (process_result.timeout) build_log.error("Timeout") else build_log,
           build =
-            Sessions.Build_Info(sources_shasum, input_heaps, output_heap,
+            Sessions.Build_Info(
+              sources = build_context.sources_shasum(session_name),
+              input_heaps = input_heaps, output_heap = output_heap,
               process_result.rc, build_context.uuid)))
 
       // messages

@@ -39,9 +39,10 @@ object Build_Process {
           yield {
             val deps = info.parent.toList
             val ancestors = sessions_structure.build_requirements(deps)
+            val sources_shasum = build_deps.sources_shasum(name)
             val session_context =
               Build_Job.Session_Context.load(
-                name, deps, ancestors, info.timeout, store, progress = progress)
+                name, deps, ancestors, sources_shasum, info.timeout, store, progress = progress)
             name -> session_context
           })
 
@@ -103,6 +104,8 @@ object Build_Process {
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
     def session_context(session: String): Build_Job.Session_Context = sessions(session)
+
+    def sources_shasum(session: String): SHA1.Shasum = session_context(session).sources_shasum
 
     def old_command_timings(session: String): List[Properties.T] =
       sessions.get(session) match {
@@ -570,7 +573,7 @@ extends AutoCloseable {
               val current =
                 !build_context.fresh_build &&
                 build.ok &&
-                build.sources == build_deps.sources_shasum(session_name) &&
+                build.sources == build_context.sources_shasum(session_name) &&
                 build.input_heaps == input_heaps &&
                 build.output_heap == output_heap &&
                 !(do_store && output_heap.is_empty)
@@ -629,7 +632,7 @@ extends AutoCloseable {
           val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
           val job =
             new Build_Job.Session_Job(build_context, session_background, session_heaps,
-              do_store, resources, build_deps.sources_shasum(session_name), input_heaps, node_info)
+              do_store, resources, input_heaps, node_info)
           _state = state1.add_running(session_name, job)
           job
         }
