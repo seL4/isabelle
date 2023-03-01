@@ -91,7 +91,7 @@ object Build_Job {
     override def toString: String = name
   }
 
-  class Build_Session(
+  class Session_Job(
     progress: Progress,
     verbose: Boolean,
     session_background: Sessions.Background,
