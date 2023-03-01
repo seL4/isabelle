@@ -92,18 +92,19 @@ object Build_Job {
   }
 
   class Session_Job(
-    progress: Progress,
-    verbose: Boolean,
+    build_context: Build_Process.Context,
     session_background: Sessions.Background,
     session_heaps: List[Path],
-    store: Sessions.Store,
     do_store: Boolean,
     resources: Resources,
-    session_setup: (String, Session) => Unit,
     sources_shasum: SHA1.Shasum,
     input_heaps: SHA1.Shasum,
     override val node_info: Node_Info
   ) extends Build_Job {
+    private val store = build_context.store
+    private val progress = build_context.progress
+    private val verbose = build_context.verbose
+
     def session_name: String = session_background.session_name
     def job_name: String = session_name
 
@@ -313,7 +314,7 @@ object Build_Job {
           case _ =>
         }
 
-        session_setup(session_name, session)
+        build_context.session_setup(session_name, session)
 
         val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
