@@ -39,6 +39,8 @@ object Build_Job {
 
   /* build session */
 
+  def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
+
   object Session_Context {
     def load(
       name: String,

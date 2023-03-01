@@ -551,7 +551,7 @@ extends AutoCloseable {
     }
     else None
 
-  protected def start_job(session_name: String): Unit = {
+  protected def start_session(session_name: String): Unit = {
     val ancestor_results = synchronized {
       _state.get_results(build_context.sessions(session_name).ancestors)
     }
@@ -671,7 +671,8 @@ extends AutoCloseable {
 
         synchronized { next_job(_state) } match {
           case Some(name) =>
-            start_job(name)
+            if (Build_Job.is_session_name(name)) start_session(name)
+            else error("Unsupported build job name " + quote(name))
           case None =>
             sync_database()
             sleep()
