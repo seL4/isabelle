@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 
 
 object Build_Process {
-  /* static context */
+  /** static context **/
 
   object Session_Context {
     def empty(session: String, timeout: Time): Session_Context =
@@ -154,7 +154,8 @@ object Build_Process {
   }
 
 
-  /* dynamic state */
+
+  /** dynamic state **/
 
   case class Entry(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
     def is_ready: Boolean = deps.isEmpty
@@ -226,7 +227,8 @@ object Build_Process {
   }
 
 
-  /* SQL data model */
+
+  /** SQL data model **/
 
   object Data {
     val database = Path.explode("$ISABELLE_HOME_USER/build.db")
@@ -506,9 +508,13 @@ object Build_Process {
 }
 
 
-/* main process */
 
-class Build_Process(protected val build_context: Build_Process.Context) extends AutoCloseable {
+/** main process **/
+
+class Build_Process(protected val build_context: Build_Process.Context)
+extends AutoCloseable {
+  /* context */
+
   protected val store: Sessions.Store = build_context.store
   protected val build_options: Options = store.options
   protected val build_deps: Sessions.Deps = build_context.deps
@@ -522,6 +528,9 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       case log_file => Logger.make(Some(Path.explode(log_file)))
     }
 
+
+  /* database */
+
   protected val database: Option[SQL.Database] =
     if (!build_options.bool("build_database_test")) None
     else if (store.database_server) Some(store.open_database_server())
@@ -534,7 +543,29 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
 
   def close(): Unit = database.foreach(_.close())
 
-  // global state
+  protected def setup_database(): Unit =
+    for (db <- database) {
+      synchronized {
+        db.transaction {
+          Build_Process.Data.init_database(db, build_context)
+        }
+      }
+      db.rebuild()
+    }
+  protected def sync_database(): Unit =
+    for (db <- database) {
+      synchronized {
+        db.transaction {
+          _state =
+            Build_Process.Data.update_database(
+              db, build_context.instance, build_context.hostname, _state)
+        }
+      }
+    }
+
+
+  /* global state */
+
   protected var _state: Build_Process.State = init_state(Build_Process.State())
 
   protected def init_state(state: Build_Process.State): Build_Process.State = {
@@ -647,25 +678,8 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     }
   }
 
-  protected def setup_database(): Unit =
-    for (db <- database) {
-      synchronized {
-        db.transaction {
-          Build_Process.Data.init_database(db, build_context)
-        }
-      }
-      db.rebuild()
-    }
-  protected def sync_database(): Unit =
-    for (db <- database) {
-      synchronized {
-        db.transaction {
-          _state =
-            Build_Process.Data.update_database(
-              db, build_context.instance, build_context.hostname, _state)
-        }
-      }
-    }
+
+  /* run */
 
   protected def sleep(): Unit =
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
