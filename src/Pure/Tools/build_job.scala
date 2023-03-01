@@ -43,7 +43,7 @@ object Build_Job {
     def init(name: String,
       deps: List[String],
       ancestors: List[String],
-      timeout: Time = Time.zero
+      timeout: Time
     ): Session_Context = new Session_Context(name, deps, ancestors, timeout, Time.zero, Bytes.empty)
 
     def load(
@@ -54,7 +54,7 @@ object Build_Job {
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Session_Context = {
-      def default: Session_Context = init(name, deps, ancestors, timeout = timeout)
+      def default: Session_Context = init(name, deps, ancestors, timeout)
 
       store.try_open_database(name) match {
         case None => default
