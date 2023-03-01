@@ -95,7 +95,7 @@ fun max_outcome outcomes =
     |> the_default (SH_Unknown, "")
   end
 
-fun play_one_line_proofs minimize timeout used_facts state i methss =
+fun play_one_line_proofs minimize timeout used_facts state goal i methss =
   (if timeout = Time.zeroTime then
      []
    else
@@ -103,7 +103,7 @@ fun play_one_line_proofs minimize timeout used_facts state i methss =
        val ctxt = Proof.context_of state
        val used_facts = filter_out (fn (_, (sc, _)) => sc = Chained) used_facts
        val fact_names = map fst used_facts
-       val {facts = chained, goal, ...} = Proof.goal state
+       val {facts = chained, ...} = Proof.goal state
        val goal_t = Logic.get_goal (Thm.prop_of goal) i
 
        fun try_methss ress [] = ress
@@ -225,7 +225,7 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
    |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
  end
 
-fun preplay_prover_result ({minimize, preplay_timeout, ...} : params) state subgoal
+fun preplay_prover_result ({minimize, preplay_timeout, ...} : params) state goal subgoal
     (result as {outcome, used_facts, preferred_methss, message, ...} : prover_result) =
   let
     val (output, chosen_preplay_outcome) =
@@ -238,7 +238,7 @@ fun preplay_prover_result ({minimize, preplay_timeout, ...} : params) state subg
       else
         let
           val preplay_results =
-            play_one_line_proofs minimize preplay_timeout used_facts state subgoal
+            play_one_line_proofs minimize preplay_timeout used_facts state goal subgoal
               (snd preferred_methss)
           val chosen_preplay_outcome =
             select_one_line_proof used_facts (fst preferred_methss) preplay_results
@@ -320,12 +320,12 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
          found_something = found_something "an inconsistency"}
       end
 
-    val problem = problem |> check_consistent ? flip_problem
+    val problem as {goal, ...} = problem |> check_consistent ? flip_problem
 
     fun really_go () =
       launch_prover params mode learn problem slice prover_name
       |> (if check_consistent then analyze_prover_result_for_consistency else
-        preplay_prover_result params state subgoal)
+        preplay_prover_result params state goal subgoal)
 
     fun go () =
       if debug then
