@@ -21,6 +21,7 @@ sig
 
   val proof_text : Proof.context -> bool -> bool option -> bool -> (unit -> isar_params) -> int ->
     one_line_params -> string
+  val abduce_text : Proof.context -> term list -> string
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -527,5 +528,9 @@ fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
      isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
    else
      one_line_proof_text ctxt num_chained) one_line_params
+
+fun abduce_text ctxt tms =
+  "Candidate" ^ plural_s (length tms) ^ " for missing hypothesis:\n" ^
+  cat_lines (map (Syntax.string_of_term ctxt) tms)
 
 end;

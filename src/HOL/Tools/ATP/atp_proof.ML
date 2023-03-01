@@ -99,6 +99,8 @@ sig
 
   val atp_proof_of_tstplike_proof : bool -> string -> string atp_problem -> string ->
     string atp_proof
+  val atp_abduce_candidates_of_output : string -> string atp_problem -> string ->
+    (string, string, (string, string atp_type) atp_term, string) atp_formula list
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -723,5 +725,59 @@ fun atp_proof_of_tstplike_proof _ _ _ "" = []
       tstp
       |> parse_proof full local_prover problem
       |> local_prover = vampireN ? perhaps (try (sort (vampire_step_name_ord o apply2 #1))))
+
+val e_symbol_prefixes = ["esk", "epred"]
+
+fun exists_name_in_term pred =
+  let
+    fun ex_name (ATerm ((s, _), tms)) = pred s orelse exists ex_name tms
+      | ex_name (AAbs ((_, tm), tms)) = exists ex_name (tm :: tms)
+  in ex_name end
+
+fun exists_name_in_formula pred phi =
+  formula_fold NONE (fn _ => fn tm => fn ex => ex orelse exists_name_in_term pred tm) phi false
+
+fun exists_symbol_in_formula prefixes =
+  exists_name_in_formula (fn s => exists (fn prefix => String.isPrefix prefix s) prefixes)
+
+fun atp_abduce_candidates_of_output local_prover problem output =
+  let
+    (* Truncate too large output to avoid memory issues. *)
+    val max_size = 1000000
+    val output =
+      if String.size output > max_size then
+        String.substring (output, 0, max_size)
+      else
+        output
+
+    fun fold_extract accum [] = accum
+      | fold_extract accum (line :: lines) =
+        if String.isSubstring "# info" line
+           andalso String.isSubstring "negated_conjecture" line then
+          if String.isSubstring ", 0, 0," line then
+            (* This pattern occurs in the "info()" comment of an E clause that directly emerges from
+               the conjecture. We don't want to tell the user that they can prove "P" by assuming
+               "P". *)
+            fold_extract accum lines
+          else
+            let
+              val clean_line =
+                (case space_explode "#" line of
+                  [] => ""
+                | before_hash :: _ => before_hash)
+            in
+              (case try (parse_proof true local_prover problem) clean_line of
+                SOME [(_, _, phi, _, _)] =>
+                if local_prover = eN andalso exists_symbol_in_formula e_symbol_prefixes phi then
+                  fold_extract accum lines
+                else
+                  fold_extract (phi :: accum) lines
+              | _ => fold_extract accum lines)
+            end
+        else
+          fold_extract accum lines
+  in
+    fold_extract [] (split_lines output)
+  end
 
 end;

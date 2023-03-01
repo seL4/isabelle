@@ -77,6 +77,7 @@ val default_default_params =
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
+   ("dont_abduce", ("abduce", ["0"])),
    ("dont_preplay", ("preplay_timeout", ["0"])),
    ("dont_compress", ("compress", ["1"])),
    ("dont_slice", ("slices", ["1"])),
@@ -86,7 +87,6 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_spy", "spy"),
-   ("dont_abduce", "abduce"),
    ("dont_check_consistent", "check_consistent"),
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
@@ -232,16 +232,12 @@ fun extract_params mode default_params override_params =
     val overlord = lookup_bool "overlord"
     val spy = getenv "SLEDGEHAMMER_SPY" = "yes" orelse lookup_bool "spy"
     val provers = lookup_string "provers" |> space_explode " " |> mode = Auto_Try ? single o hd
-    val check_consistent =
-      if mode = Auto_Try then
-        SOME false
-      else
-        lookup_option lookup_bool "check_consistent"
     val abduce =
-      if mode = Auto_Try then
-        SOME false
-      else
-        lookup_option lookup_bool "abduce"
+      if mode = Auto_Try then SOME 0
+      else lookup_option lookup_int "abduce"
+    val check_consistent =
+      if mode = Auto_Try then SOME false
+      else lookup_option lookup_bool "check_consistent"
     val type_enc =
       if mode = Auto_Try then
         NONE

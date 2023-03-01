@@ -29,7 +29,7 @@ sig
      overlord : bool,
      spy : bool,
      provers : string list,
-     abduce : bool option,
+     abduce : int option,
      check_consistent : bool option,
      type_enc : string option,
      strict : bool,
@@ -63,6 +63,7 @@ sig
      subgoal : int,
      subgoal_count : int,
      factss : (string * fact list) list,
+     has_already_found_something : unit -> bool,
      found_something : string -> unit}
 
   datatype prover_slice_extra =
@@ -82,6 +83,7 @@ sig
   type prover = params -> prover_problem -> prover_slice -> prover_result
 
   val SledgehammerN : string
+  val default_abduce_max_candidates : int
   val str_of_mode : mode -> string
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
@@ -113,6 +115,8 @@ open Sledgehammer_ATP_Systems
 (* Identifier that distinguishes Sledgehammer from other tools that could use "Async_Manager". *)
 val SledgehammerN = "Sledgehammer"
 
+val default_abduce_max_candidates = 1
+
 datatype mode = Auto_Try | Try | Normal | Minimize | MaSh
 
 fun str_of_mode Auto_Try = "Auto Try"
@@ -136,7 +140,7 @@ type params =
    overlord : bool,
    spy : bool,
    provers : string list,
-   abduce : bool option,
+   abduce : int option,
    check_consistent : bool option,
    type_enc : string option,
    strict : bool,
@@ -182,6 +186,7 @@ type prover_problem =
    subgoal : int,
    subgoal_count : int,
    factss : (string * fact list) list,
+   has_already_found_something : unit -> bool,
    found_something : string -> unit}
 
 datatype prover_slice_extra =

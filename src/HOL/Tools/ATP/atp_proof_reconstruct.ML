@@ -58,6 +58,11 @@ sig
   val introduce_spass_skolems : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
+  val termify_atp_abduce_candidate : Proof.context -> string -> ATP_Problem.atp_format ->
+    ATP_Problem_Generate.type_enc -> string Symtab.table -> (string * term) list ->
+    int Symtab.table -> (string, string, (string, string atp_type) atp_term, string) atp_formula ->
+    term
+  val top_abduce_candidates : int -> term list -> term list
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -624,7 +629,7 @@ fun termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab =
   #> map_proof_terms (infer_formulas_types ctxt #> map HOLogic.mk_Trueprop)
   #> local_prover = waldmeisterN ? repair_waldmeister_endgame
 
-fun unskolemize_term skos =
+fun unskolemize_spass_term skos =
   let
     val is_skolem_name = member (op =) skos
 
@@ -653,10 +658,10 @@ fun unskolemize_term skos =
 
     val safe_abstract_over = abstract_over o apsnd (incr_boundvars 1)
 
-    fun unskolem t =
+    fun unskolem_inner t =
       (case find_argless_skolem t of
         SOME (x as (s, T)) =>
-        HOLogic.exists_const T $ Abs (s, T, unskolem (safe_abstract_over (Free x, t)))
+        HOLogic.exists_const T $ Abs (s, T, unskolem_inner (safe_abstract_over (Free x, t)))
       | NONE =>
         (case find_skolem_arg t of
           SOME (v as ((s, _), T)) =>
@@ -667,16 +672,19 @@ fun unskolemize_term skos =
               |> apply2 (fn lits => fold (curry s_disj) lits \<^term>\<open>False\<close>)
           in
             s_disj (HOLogic.all_const T
-                $ Abs (s, T, unskolem (safe_abstract_over (Var v, kill_skolem_arg haves))),
-              unskolem have_nots)
+                $ Abs (s, T, unskolem_inner (safe_abstract_over (Var v, kill_skolem_arg haves))),
+              unskolem_inner have_nots)
           end
         | NONE =>
           (case find_var t of
             SOME (v as ((s, _), T)) =>
-            HOLogic.all_const T $ Abs (s, T, unskolem (safe_abstract_over (Var v, t)))
+            HOLogic.all_const T $ Abs (s, T, unskolem_inner (safe_abstract_over (Var v, t)))
           | NONE => t)))
+
+    fun unskolem_outer (@{const Trueprop} $ t) = @{const Trueprop} $ unskolem_outer t
+      | unskolem_outer t = unskolem_inner t
   in
-    HOLogic.mk_Trueprop o unskolem o HOLogic.dest_Trueprop
+    unskolem_outer
   end
 
 fun rename_skolem_args t =
@@ -740,7 +748,7 @@ fun introduce_spass_skolems proof =
           fold (union (op =) o filter (String.isPrefix spass_skolem_prefix) o fst) skoXss_steps []
         val deps = map (snd #> #1) skoXss_steps
       in
-        [(name0, Unknown, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
+        [(name0, Unknown, unskolemize_spass_term skos t, spass_pre_skolemize_rule, deps),
          (name, Unknown, t, spass_skolemize_rule, [name0])]
       end
 
@@ -780,6 +788,50 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
     fun repair_deps (name, role, t, rule, deps) = (name, role, t, rule, map repair_dep deps)
   in
     map repair_deps atp_proof
+  end
+
+fun termify_atp_abduce_candidate ctxt local_prover format type_enc pool lifted sym_tab phi =
+  let
+    val proof = [(("", []), Conjecture, mk_anot phi, "", [])]
+    val new_proof = termify_atp_proof ctxt local_prover format type_enc pool lifted sym_tab proof
+  in
+    (case new_proof of
+      [(_, _, phi', _, _)] => phi'
+    | _ => error "Impossible case in termify_atp_abduce_candidate")
+  end
+
+fun sort_top n scored_items =
+  if n <= 0 orelse null scored_items then
+    []
+  else
+    let
+      fun split_min seen [] (_, best_item) = (best_item, List.rev seen)
+        | split_min seen ((score, item) :: scored_items) (best_score, best_item) =
+          if score < best_score then
+            split_min ((best_score, best_item) :: seen) scored_items (score, item)
+          else
+            split_min ((score, item) :: seen) scored_items (best_score, best_item)
+
+      val (min_item, other_scored_items) = split_min [] (tl scored_items) (hd scored_items)
+    in
+      min_item :: sort_top (n - 1) (filter_out (equal min_item o snd) other_scored_items)
+    end
+
+fun top_abduce_candidates max_candidates candidates =
+  let
+    fun score t =
+      size_of_term t +
+      (if exists_subterm (fn Bound _ => true | Var _ => true | _ => false) t then 50 else 0) +
+      (if exists_subterm (fn Free _ => true | _ => false) t then ~10 else 0)
+
+    fun maybe_score t =
+      (case t of
+        @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ Free _ $ _) => NONE
+      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Free _) => NONE
+      | @{const Trueprop} $ (Const (@{const_name All}, _) $ _) => NONE
+      | _ => SOME (score t, t))
+  in
+    sort_top max_candidates (map_filter maybe_score candidates)
   end
 
 end;

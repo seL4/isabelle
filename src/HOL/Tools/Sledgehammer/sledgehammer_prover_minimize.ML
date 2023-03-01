@@ -83,8 +83,8 @@ fun print silent f = if silent then () else writeln (f ())
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
       minimize, preplay_timeout, induction_rules, ...} : params)
-    (slice as ((_, abduce, check_consistent, _, _), _)) silent (prover : prover) timeout i n state
-    goal facts =
+    (slice as ((_, _, check_consistent, _, fact_filter), slice_extra)) silent
+    (prover : prover) timeout i n state goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
       (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
@@ -92,8 +92,8 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
-       type_enc = type_enc, abduce = SOME abduce, check_consistent = SOME check_consistent,
-       strict = strict, lam_trans = lam_trans, uncurried_aliases = uncurried_aliases, learn = false,
+       type_enc = type_enc, abduce = SOME 0, check_consistent = SOME false, strict = strict,
+       lam_trans = lam_trans, uncurried_aliases = uncurried_aliases, learn = false,
        fact_filter = NONE, induction_rules = induction_rules, max_facts = SOME (length facts),
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, max_proofs = 1,
@@ -102,10 +102,10 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        expect = ""}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)], found_something = K ()}
+       factss = [("", facts)], has_already_found_something = K false, found_something = K ()}
     val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
         message} =
-      prover params problem slice
+      prover params problem ((1, false, false, length facts, fact_filter), slice_extra)
     val result as {outcome, ...} =
       if is_none outcome0 andalso
          forall (member (fn ((s, _), ((s', _), _)) => s = s') used_from) used_facts then
@@ -123,8 +123,6 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
          " (" ^ string_of_time run_time ^ ")"));
     result
   end
-
-(* minimalization of facts *)
 
 (* Give the external prover some slack. The ATP gets further slack because the
    Sledgehammer preprocessing time is included in the estimate below but isn't

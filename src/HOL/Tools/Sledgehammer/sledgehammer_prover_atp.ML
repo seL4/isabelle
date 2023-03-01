@@ -99,15 +99,17 @@ fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Minimize = "_min"
 
 (* Important messages are important but not so important that users want to see them each time. *)
-val atp_important_message_keep_quotient = 25
+val important_message_keep_quotient = 25
 
 fun run_atp mode name
-    ({debug, verbose, overlord, strict, max_mono_iters, max_new_mono_instances, isar_proofs,
-      compress, try0, smt_proofs, minimize, slices, timeout, preplay_timeout, spy, ...} : params)
-    ({comment, state, goal, subgoal, subgoal_count, factss, found_something} : prover_problem)
+    ({debug, verbose, overlord, abduce = abduce_max_candidates, strict, max_mono_iters,
+      max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize, slices, timeout,
+      preplay_timeout, spy, ...} : params)
+    ({comment, state, goal, subgoal, subgoal_count, factss, has_already_found_something,
+      found_something} : prover_problem)
     slice =
   let
-    val (basic_slice as (slice_size, _, _, _, _),
+    val (basic_slice as (slice_size, abduce, _, _, _),
         ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =
       slice
     val facts = facts_of_basic_slice basic_slice factss
@@ -185,11 +187,12 @@ fun run_atp mode name
         val strictness = if strict then Strict else Non_Strict
         val type_enc = choose_type_enc strictness good_format good_type_enc
         val run_timeout = slice_timeout slice_size slices timeout
-        val generous_run_timeout = if mode = MaSh then one_day else run_timeout
+        val generous_run_timeout =
+          if mode = MaSh then one_day
+          else if abduce then run_timeout + seconds 5.0
+          else run_timeout
         val ({elapsed, ...}, atp_problem_data as (atp_problem, _, _, _)) = Timing.timing (fn () =>
-          let
-            val readable_names = not (Config.get ctxt atp_full_names)
-          in
+          let val readable_names = not (Config.get ctxt atp_full_names) in
             facts
             |> not (is_type_enc_sound type_enc) ?
               filter_out (is_dangerous_prop ctxt o Thm.prop_of o snd)
@@ -203,7 +206,7 @@ fun run_atp mode name
           (state, subgoal, name, "Generating ATP problem in " ^
              string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
-        val args = arguments ctxt full_proofs extra run_timeout prob_path
+        val args = arguments abduce full_proofs extra run_timeout prob_path
         val command = space_implode " " (File.bash_path executable :: args)
 
         fun run_command () =
@@ -220,6 +223,8 @@ fun run_atp mode name
             cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
           |> File.write_list prob_path
 
+        val local_name = name |> perhaps (try (unprefix remote_prefix))
+
         val ((output, run_time), ((atp_proof, tstplike_proof), outcome)) =
           Timeout.apply generous_run_timeout run_command ()
           |>> overlord ?
@@ -227,11 +232,16 @@ fun run_atp mode name
           |> (fn accum as (output, _) =>
             (accum,
              extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
-             |>> `(atp_proof_of_tstplike_proof false (perhaps (try (unprefix remote_prefix)) name)
-               atp_problem)
+             |>> `(atp_proof_of_tstplike_proof false local_name atp_problem)
              handle UNRECOGNIZED_ATP_PROOF () => (([], ""), SOME ProofUnparsable)))
           handle Timeout.TIMEOUT _ => (("", run_timeout), (([], ""), SOME TimedOut))
             | ERROR msg => (("", Time.zeroTime), (([], ""), SOME (UnknownError msg)))
+
+        val atp_abduce_candidates =
+          if abduce andalso outcome <> NONE andalso not (has_already_found_something ()) then
+            atp_abduce_candidates_of_output local_name atp_problem output
+          else
+            []
 
         val () = spying spy (fn () =>
           (state, subgoal, name, "Running command in " ^
@@ -243,14 +253,15 @@ fun run_atp mode name
           | _ => ())
       in
         (atp_problem_data,
-         (output, run_time, facts, atp_problem, tstplike_proof, atp_proof, outcome),
+         (output, run_time, facts, atp_problem, tstplike_proof, atp_proof, atp_abduce_candidates,
+          outcome),
          (good_format, type_enc))
       end
 
-    (* If the problem file has not been exported, remove it; otherwise, export
-       the proof file too. *)
+    (* If the problem file has not been exported, remove it; otherwise, export the proof file
+       too. *)
     fun clean_up () = if problem_dest_dir = "" then (try File.rm prob_path; ()) else ()
-    fun export (_, (output, _, _, _, _, _, _), _) =
+    fun export (_, (output, _, _, _, _, _, _, _), _) =
       let
         val proof_dest_dir_path = Path.explode proof_dest_dir
         val make_export_file_name =
@@ -259,7 +270,8 @@ fun run_atp mode name
           #> swap
           #> uncurry Path.ext
       in
-        if proof_dest_dir = "" then Output.system_message "don't export proof"
+        if proof_dest_dir = "" then
+          Output.system_message "don't export proof"
         else if File.exists proof_dest_dir_path then
           File.write (proof_dest_dir_path + make_export_file_name problem_file_name) output
         else
@@ -267,16 +279,17 @@ fun run_atp mode name
       end
 
     val ((_, pool, lifted, sym_tab),
-         (output, run_time, used_from, atp_problem, tstplike_proof, atp_proof, outcome),
+         (output, run_time, used_from, atp_problem, tstplike_proof, atp_proof,
+          atp_abduce_candidates, outcome),
          (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
     val important_message =
-      if mode = Normal andalso Random.random_range 0 (atp_important_message_keep_quotient - 1) = 0
+      if mode = Normal andalso Random.random_range 0 (important_message_keep_quotient - 1) = 0
       then extract_important_message output
       else ""
 
-    val (used_facts, preferred_methss, message) =
+    val (outcome, used_facts, preferred_methss, message) =
       (case outcome of
         NONE =>
         let
@@ -291,7 +304,7 @@ fun run_atp mode name
              else
                [[preferred]])
         in
-          (used_facts, preferred_methss,
+          (NONE, used_facts, preferred_methss,
            fn preplay =>
               let
                 val _ = if verbose then writeln "Generating proof text..." else ()
@@ -330,7 +343,19 @@ fun run_atp mode name
               end)
         end
       | SOME failure =>
-        ([], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure))
+        let
+          val max_abduce_candidates =
+            the_default default_abduce_max_candidates abduce_max_candidates
+          val abduce_candidates =
+            map (termify_atp_abduce_candidate ctxt name format type_enc pool lifted sym_tab)
+              atp_abduce_candidates
+        in
+          if null abduce_candidates then
+            (SOME failure, [], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure)
+          else
+            (NONE, [], (Auto_Method (* dummy *), []), fn _ =>
+               abduce_text ctxt (top_abduce_candidates max_abduce_candidates abduce_candidates))
+        end)
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
      preferred_methss = preferred_methss, run_time = run_time, message = message}

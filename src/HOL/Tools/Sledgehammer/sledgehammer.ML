@@ -24,7 +24,8 @@ sig
   datatype sledgehammer_outcome =
     SH_Some of prover_result * preplay_result list
   | SH_Unknown
-  | SH_Timeout
+  | SH_TimeOut
+  | SH_ResourcesOut
   | SH_None
 
   val short_string_of_sledgehammer_outcome : sledgehammer_outcome -> string
@@ -57,12 +58,14 @@ type preplay_result = proof_method * (play_outcome * (string * stature) list)
 datatype sledgehammer_outcome =
   SH_Some of prover_result * preplay_result list
 | SH_Unknown
-| SH_Timeout
+| SH_TimeOut
+| SH_ResourcesOut
 | SH_None
 
 fun short_string_of_sledgehammer_outcome (SH_Some _) = "some"
   | short_string_of_sledgehammer_outcome SH_Unknown = "unknown"
-  | short_string_of_sledgehammer_outcome SH_Timeout = "timeout"
+  | short_string_of_sledgehammer_outcome SH_TimeOut = "timeout"
+  | short_string_of_sledgehammer_outcome SH_ResourcesOut = "resources_out"
   | short_string_of_sledgehammer_outcome SH_None = "none"
 
 fun alternative f (SOME x) (SOME y) = SOME (f (x, y))
@@ -79,13 +82,15 @@ fun varify_nonfixed_terms_global nonfixeds tm = tm
 fun max_outcome outcomes =
   let
     val some = find_first (fn (SH_Some _, _) => true | _ => false) outcomes
+    val timeout = find_first (fn (SH_TimeOut, _) => true | _ => false) outcomes
+    val resources_out = find_first (fn (SH_ResourcesOut, _) => true | _ => false) outcomes
     val unknown = find_first (fn (SH_Unknown, _) => true | _ => false) outcomes
-    val timeout = find_first (fn (SH_Timeout, _) => true | _ => false) outcomes
     val none = find_first (fn (SH_None, _) => true | _ => false) outcomes
   in
     some
     |> alternative snd unknown
     |> alternative snd timeout
+    |> alternative snd resources_out
     |> alternative snd none
     |> the_default (SH_Unknown, "")
   end
@@ -220,12 +225,14 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
    |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
  end
 
-fun preplay_prover_result ({ minimize, preplay_timeout, ...} : params) state subgoal
+fun preplay_prover_result ({minimize, preplay_timeout, ...} : params) state subgoal
     (result as {outcome, used_facts, preferred_methss, message, ...} : prover_result) =
   let
     val (output, chosen_preplay_outcome) =
       if outcome = SOME ATP_Proof.TimedOut then
-        (SH_Timeout, select_one_line_proof used_facts (fst preferred_methss) [])
+        (SH_TimeOut, select_one_line_proof used_facts (fst preferred_methss) [])
+      else if outcome = SOME ATP_Proof.OutOfResources then
+        (SH_ResourcesOut, select_one_line_proof used_facts (fst preferred_methss) [])
       else if is_some outcome then
         (SH_None, select_one_line_proof used_facts (fst preferred_methss) [])
       else
@@ -245,7 +252,9 @@ fun preplay_prover_result ({ minimize, preplay_timeout, ...} : params) state sub
 
 fun analyze_prover_result_for_consistency (result as {outcome, used_facts, ...} : prover_result) =
   if outcome = SOME ATP_Proof.TimedOut then
-    (SH_Timeout, K "")
+    (SH_TimeOut, K "")
+  else if outcome = SOME ATP_Proof.OutOfResources then
+    (SH_ResourcesOut, K "")
   else if is_some outcome then
     (SH_None, K "")
   else
@@ -275,14 +284,15 @@ fun check_expected_outcome ctxt prover_name expect outcome =
           else
             error ("Unexpected outcome: the external prover found a proof but preplay failed")
       | ("unknown", SH_Unknown) => ()
-      | ("timeout", SH_Timeout) => ()
+      | ("timeout", SH_TimeOut) => ()
+      | ("resources_out", SH_ResourcesOut) => ()
       | ("none", SH_None) => ()
       | _ => error ("Unexpected outcome: " ^ quote outcome_code))
   end
 
-fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode found_something
-    writeln_result learn (problem as {state, subgoal, ...})
-    (slice as ((_, _, check_consistent, _, _), _)) prover_name =
+fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
+    has_already_found_something found_something writeln_result learn
+    (problem as {state, subgoal, ...}) (slice as ((_, _, check_consistent, _, _), _)) prover_name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
@@ -306,6 +316,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode fou
       in
         {comment = comment, state = state, goal = Thm.trivial @{cprop False}, subgoal = 1,
          subgoal_count = 1, factss = map (apsnd (append new_facts)) factss,
+         has_already_found_something = has_already_found_something,
          found_something = found_something "an inconsistency"}
       end
 
@@ -354,11 +365,10 @@ fun string_of_factss factss =
 
 val default_slice_schedule =
   (* FUDGE (loosely inspired by Seventeen evaluation) *)
-  [cvc4N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc4N,
-   zipperpositionN, cvc4N, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN,
-   cvc4N, iproverN, zipperpositionN, spassN, vampireN, zipperpositionN,
-   vampireN, zipperpositionN, z3N, zipperpositionN, vampireN, iproverN, spassN,
-   zipperpositionN, vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N, cvc4N,
+  [cvc4N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc4N, zipperpositionN,
+   cvc4N, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN, eN, cvc4N, iproverN, zipperpositionN,
+   spassN, vampireN, zipperpositionN, vampireN, zipperpositionN, z3N, zipperpositionN, vampireN,
+   iproverN, spassN, zipperpositionN, vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N,
    zipperpositionN]
 
 fun schedule_of_provers provers num_slices =
@@ -410,7 +420,10 @@ fun prover_slices_of_schedule ctxt factss
         ((slice_size0, abduce0, check_consistent0, num_facts0, fact_filter0), extra) =
       let
         val slice_size = Int.min (max_slice_size, slice_size0)
-        val abduce = abduce |> the_default abduce0
+        val abduce =
+          (case abduce of
+            NONE => abduce0
+          | SOME max_candidates => max_candidates > 0)
         val check_consistent = check_consistent |> the_default check_consistent0
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
@@ -459,6 +472,12 @@ fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induct
         val print = if mode = Normal andalso is_none writeln_result then writeln else K ()
 
         val found_proofs_and_inconsistencies = Synchronized.var "found_proofs_and_inconsistencies" 0
+
+        fun has_already_found_something () =
+          if mode = Normal then
+            Synchronized.value found_proofs_and_inconsistencies > 0
+          else
+            false
 
         fun found_something a_proof_or_inconsistency prover_name =
           if mode = Normal then
@@ -521,9 +540,11 @@ fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induct
             val factss = get_factss provers
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-               factss = factss, found_something = found_something "a proof"}
+               factss = factss, has_already_found_something = has_already_found_something,
+               found_something = found_something "a proof"}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
-            val launch = launch_prover_and_preplay params mode found_something writeln_result learn
+            val launch = launch_prover_and_preplay params mode has_already_found_something
+              found_something writeln_result learn
 
             val schedule =
               if mode = Auto_Try then provers
@@ -552,25 +573,26 @@ fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induct
                  prover_slices
                |> max_outcome)
           end
+
+        fun normal_failure () =
+          (the_default writeln writeln_result
+             ("No " ^ (if check_consistent = SOME true then "inconsistency" else "proof") ^
+              " found");
+           false)
       in
         (launch_provers ()
-         handle Timeout.TIMEOUT _ => (SH_Timeout, ""))
+         handle Timeout.TIMEOUT _ => (SH_TimeOut, ""))
         |> `(fn (outcome, message) =>
           (case outcome of
             SH_Some _ => (the_default writeln writeln_result "Done"; true)
-          | SH_Unknown => (the_default writeln writeln_result message; false)
-          | SH_Timeout =>
-            (the_default writeln writeln_result
-               ("No " ^ (if check_consistent = SOME true then "inconsistency" else "proof") ^
-                " found");
-             false)
-          | SH_None => (the_default writeln writeln_result
-                (if message = "" then
-                   "No " ^ (if check_consistent = SOME true then "inconsistency" else "proof") ^
-                   " found"
-                 else
-                   "Warning: " ^ message);
-              false)))
+          | SH_Unknown =>
+            if message = "" then normal_failure ()
+            else (the_default writeln writeln_result ("Warning: " ^ message); false)
+          | SH_TimeOut => normal_failure ()
+          | SH_ResourcesOut => normal_failure ()
+          | SH_None =>
+            if message = "" then normal_failure ()
+            else (the_default writeln writeln_result ("Warning: " ^ message); false)))
       end)
 
 end;

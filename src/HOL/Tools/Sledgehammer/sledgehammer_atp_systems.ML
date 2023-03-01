@@ -15,7 +15,7 @@ sig
   type atp_slice = atp_format * string * string * bool * string
   type atp_config =
     {exec : string list * string list,
-     arguments : Proof.context -> bool -> string -> Time.time -> Path.T -> string list,
+     arguments : bool -> bool -> string -> Time.time -> Path.T -> string list,
      proof_delims : (string * string) list,
      known_failures : (atp_failure * string) list,
      prem_role : atp_formula_role,
@@ -76,7 +76,7 @@ type atp_slice = atp_format * string * string * bool * string
 
 type atp_config =
   {exec : string list * string list,
-   arguments : Proof.context -> bool -> string -> Time.time -> Path.T -> string list,
+   arguments : bool -> bool -> string -> Time.time -> Path.T -> string list,
    proof_delims : (string * string) list,
    known_failures : (atp_failure * string) list,
    prem_role : atp_formula_role,
@@ -176,10 +176,13 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 val e_config : atp_config =
   {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
-   arguments = fn _ => fn _ => fn extra_options => fn timeout => fn problem =>
-     ["--tstp-in --tstp-out --silent " ^ extra_options ^
-      " --cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^
-      File.bash_path problem],
+   arguments = fn abduce => fn _ => fn extra_options => fn timeout => fn problem =>
+     ["--tstp-in --tstp-out --silent " ^
+      (if abduce then
+         "--auto --print-saturated=ieIE --print-sat-info --soft-cpu-limit="
+       else
+         extra_options ^ " --cpu-limit=") ^
+      string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ File.bash_path problem],
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
@@ -193,7 +196,8 @@ val e_config : atp_config =
      let
        val (format, type_enc, lam_trans, extra_options) =
          if string_ord (getenv "E_VERSION", "2.7") <> LESS then
-           (THF (Monomorphic, {with_ite = true, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true --demod-under-lambda=true")
+           (* '$ite' support appears to be buggy *)
+           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true --demod-under-lambda=true")
          else if string_ord (getenv "E_VERSION", "2.6") <> LESS then
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule")
          else
@@ -201,11 +205,11 @@ val e_config : atp_config =
      in
        (* FUDGE *)
        K [((1000 (* infinity *), false, false, 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1, true, false, 128, mashN), (format, type_enc, combsN, false, extra_options)),
          ((1000 (* infinity *), false, false, 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
-         ((1000 (* infinity *), false, false, 128, mepoN), (format, type_enc, lam_trans, false, extra_options)),
+         ((1000 (* infinity *), false, false, 64, mepoN), (format, type_enc, lam_trans, false, extra_options)),
          ((1000 (* infinity *), false, false, 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
-         ((1000 (* infinity *), false, true, 256, mepoN), (format, type_enc, liftingN, false, extra_options)),
-         ((1000 (* infinity *), false, false, 64, mashN), (format, type_enc, combsN, false, extra_options))]
+         ((1000 (* infinity *), false, true, 256, mepoN), (format, type_enc, liftingN, false, extra_options))]
      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = default_max_new_mono_instances}
