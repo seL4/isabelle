@@ -16,22 +16,22 @@ object Build_Process {
   /** static context **/
 
   object Session_Context {
-    def empty(session: String, timeout: Time): Session_Context =
+    def init(session: String, timeout: Time = Time.zero): Session_Context =
       new Session_Context(session, timeout, Time.zero, Bytes.empty)
 
-    def apply(
+    def load(
       session: String,
       timeout: Time,
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Session_Context = {
       store.try_open_database(session) match {
-        case None => empty(session, timeout)
+        case None => init(session, timeout = timeout)
         case Some(db) =>
           def ignore_error(msg: String) = {
             progress.echo_warning("Ignoring bad database " + db +
               " for session " + quote(session) + (if (msg == "") "" else ":\n" + msg))
-            empty(session, timeout)
+            init(session, timeout = timeout)
           }
           try {
             val command_timings = store.read_command_timings(db, session)
@@ -87,7 +87,7 @@ object Build_Process {
           for (name <- build_graph.keys_iterator)
           yield {
             val timeout = sessions_structure(name).timeout
-            name -> Build_Process.Session_Context(name, timeout, store, progress = progress)
+            name -> Build_Process.Session_Context.load(name, timeout, store, progress = progress)
           })
 
       val sessions_time = {
@@ -148,7 +148,7 @@ object Build_Process {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
     def apply(session: String): Session_Context =
-      sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
+      sessions.getOrElse(session, Session_Context.init(session))
 
     def old_command_timings(session: String): List[Properties.T] =
       Properties.uncompress(apply(session).old_command_timings_blob, cache = store.cache)
