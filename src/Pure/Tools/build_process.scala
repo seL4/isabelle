@@ -556,10 +556,9 @@ extends AutoCloseable {
     }
     else None
 
-  protected def start_session(session_name: String): Unit = {
-    val ancestor_results = synchronized_database {
-      _state.get_results(build_context.sessions(session_name).ancestors)
-    }
+  protected def start_session(state: Build_Process.State, session_name: String): Build_Process.State = {
+    val ancestor_results = state.get_results(build_context.sessions(session_name).ancestors)
+
     val input_shasum =
       if (ancestor_results.isEmpty) {
         SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
@@ -589,27 +588,21 @@ extends AutoCloseable {
     val all_current = current && ancestor_results.forall(_.current)
 
     if (all_current) {
-      synchronized_database {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, Process_Result.ok, output_shasum, current = true)
-      }
+      state
+        .remove_pending(session_name)
+        .make_result(session_name, Process_Result.ok, output_shasum, current = true)
     }
     else if (build_context.no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
-      synchronized_database {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, Process_Result.error, output_shasum)
-      }
+      state.
+        remove_pending(session_name).
+        make_result(session_name, Process_Result.error, output_shasum)
     }
     else if (!ancestor_results.forall(_.ok) || progress.stopped) {
       progress.echo(session_name + " CANCELLED")
-      synchronized_database {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, Process_Result.undefined, output_shasum)
-      }
+      state
+        .remove_pending(session_name)
+        .make_result(session_name, Process_Result.undefined, output_shasum)
     }
     else {
       progress.echo((if (store_heap) "Building " else "Running ") + session_name + " ...")
@@ -629,15 +622,12 @@ extends AutoCloseable {
         new Resources(session_background, log = log,
           command_timings = build_context.old_command_timings(session_name))
 
-      synchronized_database {
-        val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
-        val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
-        val job =
-          new Build_Job.Session_Job(build_context, session_background, session_heaps,
-            store_heap, resources, input_shasum, node_info)
-        _state = state1.add_running(session_name, job)
-        job
-      }
+      val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
+      val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
+      val job =
+        new Build_Job.Session_Job(build_context, session_background, session_heaps,
+          store_heap, resources, input_shasum, node_info)
+      state1.add_running(session_name, job)
     }
   }
 
@@ -651,6 +641,18 @@ extends AutoCloseable {
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
         build_options.seconds("editor_input_delay").sleep()
       }
+
+    def start(): Boolean = synchronized_database {
+      next_job(_state) match {
+        case Some(name) =>
+          if (Build_Job.is_session_name(name)) {
+            _state = start_session(_state, name)
+            true
+          }
+          else error("Unsupported build job name " + quote(name))
+        case None => false
+      }
+    }
 
     if (finished()) {
       progress.echo_warning("Nothing to build")
@@ -672,15 +674,12 @@ extends AutoCloseable {
           }
         }
 
-        synchronized_database { next_job(_state) } match {
-          case Some(name) =>
-            if (Build_Job.is_session_name(name)) start_session(name)
-            else error("Unsupported build job name " + quote(name))
-          case None =>
-            sync_database()
-            sleep()
+        if (!start()) {
+          sync_database()
+          sleep()
         }
       }
+
       synchronized_database {
         for ((name, result) <- _state.results) yield name -> result.process_result
       }
