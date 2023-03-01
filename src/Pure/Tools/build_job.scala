@@ -471,7 +471,7 @@ object Build_Job {
             if (process_result.timeout) build_log.error("Timeout") else build_log,
           build =
             Sessions.Build_Info(sources_shasum, input_heaps, output_heap,
-              process_result.rc, UUID.random().toString)))
+              process_result.rc, build_context.uuid)))
 
       // messages
       process_result.err_lines.foreach(progress.echo)

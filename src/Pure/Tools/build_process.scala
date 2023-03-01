@@ -28,7 +28,7 @@ object Build_Process {
       no_build: Boolean = false,
       verbose: Boolean = false,
       session_setup: (String, Session) => Unit = (_, _) => (),
-      instance: String = UUID.random().toString
+      uuid: String = UUID.random().toString
     ): Context = {
       val sessions_structure = build_deps.sessions_structure
       val build_graph = sessions_structure.build_graph
@@ -78,14 +78,14 @@ object Build_Process {
         }
 
       val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
-      new Context(instance, store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
+      new Context(uuid, store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, session_setup)
     }
   }
 
   final class Context private(
-    val instance: String,
+    val uuid: String,
     val store: Sessions.Store,
     val build_deps: Sessions.Deps,
     val sessions: Map[String, Build_Job.Session_Context],
@@ -200,26 +200,26 @@ object Build_Process {
       SQL.Table("isabelle_build" + if_proper(name, "_" + name), columns, body = body)
 
     object Generic {
-      val instance = SQL.Column.string("instance")
+      val uuid = SQL.Column.string("uuid")
       val name = SQL.Column.string("name")
 
-      def sql_equal(instance: String = "", name: String = ""): SQL.Source =
+      def sql_equal(uuid: String = "", name: String = ""): SQL.Source =
         SQL.and(
-          if_proper(instance, Generic.instance.equal(instance)),
+          if_proper(uuid, Generic.uuid.equal(uuid)),
           if_proper(name, Generic.name.equal(name)))
 
-      def sql_member(instance: String = "", names: Iterable[String] = Nil): SQL.Source =
+      def sql_member(uuid: String = "", names: Iterable[String] = Nil): SQL.Source =
         SQL.and(
-          if_proper(instance, Generic.instance.equal(instance)),
+          if_proper(uuid, Generic.uuid.equal(uuid)),
           if_proper(names, Generic.name.member(names)))
     }
 
     object Base {
-      val instance = Generic.instance.make_primary_key
+      val uuid = Generic.uuid.make_primary_key
       val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
 
-      val table = make_table("", List(instance, ml_platform, options))
+      val table = make_table("", List(uuid, ml_platform, options))
     }
 
     object Serial {
@@ -441,7 +441,7 @@ object Build_Process {
       for (table <- tables) db.using_statement(table.delete())(_.execute())
 
       db.using_statement(Base.table.insert()) { stmt =>
-        stmt.string(1) = build_context.instance
+        stmt.string(1) = build_context.uuid
         stmt.string(2) = Isabelle_System.getenv("ML_PLATFORM")
         stmt.string(3) = build_context.store.options.make_prefs(Options.init(prefs = ""))
         stmt.execute()
@@ -450,7 +450,7 @@ object Build_Process {
 
     def update_database(
       db: SQL.Database,
-      instance: String,
+      uuid: String,
       hostname: String,
       state: State
     ): State = {
@@ -520,7 +520,7 @@ extends AutoCloseable {
         db.transaction {
           _state =
             Build_Process.Data.update_database(
-              db, build_context.instance, build_context.hostname, _state)
+              db, build_context.uuid, build_context.hostname, _state)
         }
       }
     }
