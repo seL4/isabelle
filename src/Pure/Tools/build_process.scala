@@ -103,9 +103,7 @@ object Build_Process {
   ) {
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
-    def session_context(session: String): Build_Job.Session_Context = sessions(session)
-
-    def sources_shasum(session: String): SHA1.Shasum = session_context(session).sources_shasum
+    def sources_shasum(session: String): SHA1.Shasum = sessions(session).sources_shasum
 
     def old_command_timings(session: String): List[Properties.T] =
       sessions.get(session) match {
@@ -555,7 +553,7 @@ extends AutoCloseable {
 
   protected def start_job(session_name: String): Unit = {
     val ancestor_results = synchronized {
-      _state.get_results(build_context.session_context(session_name).ancestors)
+      _state.get_results(build_context.sessions(session_name).ancestors)
     }
     val input_heaps =
       if (ancestor_results.isEmpty) {
