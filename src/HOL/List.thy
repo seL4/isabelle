@@ -4999,15 +4999,7 @@ qed
 lemma distinct_set_subseqs:
   assumes "distinct xs"
   shows "distinct (map set (subseqs xs))"
-proof (rule card_distinct)
-  have "finite (set xs)" ..
-  then have "card (Pow (set xs)) = 2 ^ card (set xs)"
-    by (rule card_Pow)
-  with assms distinct_card [of xs] have "card (Pow (set xs)) = 2 ^ length xs"
-    by simp
-  then show "card (set (map set (subseqs xs))) = length (map set (subseqs xs))"
-    by (simp add: subseqs_powset length_subseqs)
-qed
+  by (simp add: assms card_Pow card_distinct distinct_card length_subseqs subseqs_powset)
 
 lemma n_lists_Nil [simp]: "List.n_lists n [] = (if n = 0 then [[]] else [])"
   by (induct n) simp_all
@@ -5559,7 +5551,7 @@ proof (induction ns arbitrary: i rule: rev_induct)
 next
   case snoc
   thus ?case
-    by (auto simp: nth_append sorted_wrt_append)
+    by (simp add: nth_append sorted_wrt_append)
        (metis less_antisym not_less nth_mem)
 qed
 
@@ -5581,7 +5573,7 @@ lemma sorted1: "sorted [x] = True"
   by simp
 
 lemma sorted2: "sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
-  by(induction zs) auto
+  by auto
 
 lemmas sorted2_simps = sorted1 sorted2
 
@@ -5618,9 +5610,7 @@ lemma sorted_iff_nth_Suc:
 
 lemma sorted_rev_nth_mono:
   "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
-  using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
-    rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
-  by auto
+  by (metis local.nle_le order_class.antisym_conv1 sorted_wrt_iff_nth_less sorted_wrt_rev)
 
 lemma sorted_rev_iff_nth_mono:
   "sorted (rev xs) \<longleftrightarrow> (\<forall> i j. i \<le> j \<longrightarrow> j < length xs \<longrightarrow> xs!j \<le> xs!i)" (is "?L = ?R")
@@ -5635,7 +5625,7 @@ next
       "length xs - Suc l \<le> length xs - Suc k" "length xs - Suc k < length xs"
       using asms by auto
     thus "rev xs ! k \<le> rev xs ! l"
-      using \<open>?R\<close> \<open>k \<le> l\<close> unfolding rev_nth[OF \<open>k < length xs\<close>] rev_nth[OF \<open>l < length xs\<close>] by blast
+      by (simp add: \<open>?R\<close> rev_nth)
   qed
   thus ?L by (simp add: sorted_iff_nth_mono)
 qed
@@ -5658,13 +5648,9 @@ lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
 using sorted_map_remove1 [of "\<lambda>x. x"] by simp
 
 lemma sorted_butlast:
-  assumes "xs \<noteq> []" and "sorted xs"
+  assumes "sorted xs"
   shows "sorted (butlast xs)"
-proof -
-  from \<open>xs \<noteq> []\<close> obtain ys y where "xs = ys @ [y]"
-    by (cases xs rule: rev_cases) auto
-  with \<open>sorted xs\<close> show ?thesis by (simp add: sorted_append)
-qed
+  by (simp add: assms butlast_conv_take sorted_wrt_take)
 
 lemma sorted_replicate [simp]: "sorted(replicate n x)"
 by(induction n) (auto)
@@ -5701,28 +5687,13 @@ lemma map_sorted_distinct_set_unique:
     "sorted (map f ys)" "distinct (map f ys)"
   assumes "set xs = set ys"
   shows "xs = ys"
-proof -
-  from assms have "map f xs = map f ys"
-    by (simp add: sorted_distinct_set_unique)
-  with \<open>inj_on f (set xs \<union> set ys)\<close> show "xs = ys"
-    by (blast intro: map_inj_on)
-qed
-
-lemma
-  assumes "sorted xs"
-  shows sorted_take: "sorted (take n xs)"
-  and sorted_drop: "sorted (drop n xs)"
-proof -
-  from assms have "sorted (take n xs @ drop n xs)" by simp
-  then show "sorted (take n xs)" and "sorted (drop n xs)"
-    unfolding sorted_append by simp_all
-qed
+  using assms map_inj_on sorted_distinct_set_unique by fastforce
 
 lemma sorted_dropWhile: "sorted xs \<Longrightarrow> sorted (dropWhile P xs)"
-  by (auto dest: sorted_drop simp add: dropWhile_eq_drop)
+  by (auto dest: sorted_wrt_drop simp add: dropWhile_eq_drop)
 
 lemma sorted_takeWhile: "sorted xs \<Longrightarrow> sorted (takeWhile P xs)"
-  by (subst takeWhile_eq_take) (auto dest: sorted_take)
+  by (subst takeWhile_eq_take) (auto dest: sorted_wrt_take)
 
 lemma sorted_filter:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (filter P xs))"
@@ -5745,7 +5716,7 @@ lemma filter_equals_takeWhile_sorted_rev:
     (is "filter ?P xs = ?tW")
 proof (rule takeWhile_eq_filter[symmetric])
   let "?dW" = "dropWhile ?P xs"
-  fix x assume "x \<in> set ?dW"
+  fix x assume x: "x \<in> set ?dW"
   then obtain i where i: "i < length ?dW" and nth_i: "x = ?dW ! i"
     unfolding in_set_conv_nth by auto
   hence "length ?tW + i < length (?tW @ ?dW)"
@@ -5759,8 +5730,7 @@ proof (rule takeWhile_eq_filter[symmetric])
     unfolding nth_append_length_plus nth_i
     using i preorder_class.le_less_trans[OF le0 i] by simp
   also have "... \<le> t"
-    using hd_dropWhile[of "?P" xs] le0[THEN preorder_class.le_less_trans, OF i]
-    using hd_conv_nth[of "?dW"] by simp
+    by (metis hd_conv_nth hd_dropWhile length_greater_0_conv length_pos_if_in_set local.leI x)
   finally show "\<not> t < f x" by simp
 qed
 
@@ -7325,12 +7295,15 @@ text\<open>Accessible part and wellfoundedness:\<close>
 
 lemma Cons_acc_listrel1I [intro!]:
   "x \<in> Wellfounded.acc r \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> (x # xs) \<in> Wellfounded.acc (listrel1 r)"
-apply (induct arbitrary: xs set: Wellfounded.acc)
-apply (erule thin_rl)
-apply (erule acc_induct)
-  apply (rule accI)
-apply (blast)
-done
+proof (induction arbitrary: xs set: Wellfounded.acc)
+  case outer: (1 u)
+  show ?case
+  proof (induct xs rule: acc_induct)
+    case 1
+    show "xs \<in> Wellfounded.acc (listrel1 r)"
+      by (simp add: outer.prems)
+  qed (metis (no_types, lifting) Cons_listrel1E2 acc.simps outer.IH)
+qed
 
 lemma lists_accD: "xs \<in> lists (Wellfounded.acc r) \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r)"
 proof (induct set: lists)
@@ -7344,11 +7317,13 @@ next
 qed
 
 lemma lists_accI: "xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> xs \<in> lists (Wellfounded.acc r)"
-apply (induct set: Wellfounded.acc)
-apply clarify
-apply (rule accI)
-apply (fastforce dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)
-done
+proof (induction set: Wellfounded.acc)
+  case (1 x)
+  then have "\<And>u v. \<lbrakk>u \<in> set x; (v, u) \<in> r\<rbrakk> \<Longrightarrow> v \<in> Wellfounded.acc r"
+    by (metis in_lists_conv_set in_set_conv_decomp listrel1I)
+  then show ?case
+    by (meson acc.intros in_listsI)
+qed
 
 lemma wf_listrel1_iff[simp]: "wf(listrel1 r) = wf r"
 by (auto simp: wf_acc_iff
@@ -7856,11 +7831,7 @@ lemma [code]:
   "all_interval_nat P i j \<longleftrightarrow> i \<ge> j \<or> P i \<and> all_interval_nat P (Suc i) j"
 proof -
   have *: "\<And>n. P i \<Longrightarrow> \<forall>n\<in>{Suc i..<j}. P n \<Longrightarrow> i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n"
-  proof -
-    fix n
-    assume "P i" "\<forall>n\<in>{Suc i..<j}. P n" "i \<le> n" "n < j"
-    then show "P n" by (cases "n = i") simp_all
-  qed
+    using le_less_Suc_eq by fastforce
   show ?thesis by (auto simp add: all_interval_nat_def intro: *)
 qed
 
@@ -7879,11 +7850,7 @@ lemma [code]:
   "all_interval_int P i j \<longleftrightarrow> i > j \<or> P i \<and> all_interval_int P (i + 1) j"
 proof -
   have *: "\<And>k. P i \<Longrightarrow> \<forall>k\<in>{i+1..j}. P k \<Longrightarrow> i \<le> k \<Longrightarrow> k \<le> j \<Longrightarrow> P k"
-  proof -
-    fix k
-    assume "P i" "\<forall>k\<in>{i+1..j}. P k" "i \<le> k" "k \<le> j"
-    then show "P k" by (cases "k = i") simp_all
-  qed
+    by (smt (verit, best) atLeastAtMost_iff)
   show ?thesis by (auto simp add: all_interval_int_def intro: *)
 qed
 
@@ -8084,11 +8051,7 @@ lemma Bex_set [code]:
 
 lemma card_set [code]:
   "card (set xs) = length (remdups xs)"
-proof -
-  have "card (set (remdups xs)) = length (remdups xs)"
-    by (rule distinct_card) simp
-  then show ?thesis by simp
-qed
+  by (simp add: length_remdups_card_conv)
 
 lemma the_elem_set [code]:
   "the_elem (set [x]) = x"
@@ -8255,15 +8218,8 @@ proof (intro allI impI)
   thus "distinct_adj xs \<longleftrightarrow> distinct_adj ys"
   proof (induction rule: list_all2_induct)
     case (Cons x xs y ys)
-    note * = this
     show ?case
-    proof (cases xs)
-      case [simp]: (Cons x' xs')
-      with * obtain y' ys' where [simp]: "ys = y' # ys'"
-        by (cases ys) auto
-      from * show ?thesis
-        using assms by (auto simp: distinct_adj_Cons bi_unique_def)
-    qed (use * in auto)
+      by (metis Cons assms bi_unique_def distinct_adj_Cons list.rel_sel)
   qed auto
 qed
 
