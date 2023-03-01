@@ -185,9 +185,6 @@ object Build_Process {
       val entry = name -> Build_Process.Result(process_result, output_shasum, node_info, current)
       copy(results = results + entry)
     }
-
-    def get_results(names: List[String]): List[Build_Process.Result] =
-      names.map(results.apply)
   }
 
 
@@ -557,7 +554,8 @@ extends AutoCloseable {
     else None
 
   protected def start_session(state: Build_Process.State, session_name: String): Build_Process.State = {
-    val ancestor_results = state.get_results(build_context.sessions(session_name).ancestors)
+    val ancestor_results =
+      for (a <- build_context.sessions(session_name).ancestors) yield state.results(a)
 
     val input_shasum =
       if (ancestor_results.isEmpty) {
