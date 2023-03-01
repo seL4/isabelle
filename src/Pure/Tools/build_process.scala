@@ -103,18 +103,18 @@ object Build_Process {
   ) {
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
-    def sources_shasum(session: String): SHA1.Shasum = sessions(session).sources_shasum
+    def sources_shasum(name: String): SHA1.Shasum = sessions(name).sources_shasum
 
-    def old_command_timings(session: String): List[Properties.T] =
-      sessions.get(session) match {
+    def old_command_timings(name: String): List[Properties.T] =
+      sessions.get(name) match {
         case Some(session_context) =>
           Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache)
         case None => Nil
       }
 
-    def do_store(session: String): Boolean =
-      build_heap || Sessions.is_pure(session) ||
-      sessions.valuesIterator.exists(_.ancestors.contains(session))
+    def do_store(name: String): Boolean =
+      build_heap || Sessions.is_pure(name) ||
+      sessions.valuesIterator.exists(_.ancestors.contains(name))
   }
 
 
