@@ -159,20 +159,20 @@ fun select_one_line_proof used_facts preferred_meth preplay_results =
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem)
-    (slice as ((slice_size, abduce, check_consistent, num_facts, fact_filter), _)) name =
+    (slice as ((slice_size, abduce, check_inconsistent, num_facts, fact_filter), _)) name =
   let
     val ctxt = Proof.context_of state
 
     val _ = spying spy (fn () => (state, subgoal, name,
       "Launched" ^ (if abduce then " (abduce)" else "") ^
-      (if check_consistent then " (check_consistent)" else "")))
+      (if check_inconsistent then " (check_inconsistent)" else "")))
 
     val _ =
       if verbose then
         writeln (name ^ " with " ^ string_of_int num_facts ^ " " ^ fact_filter ^ " fact" ^
           plural_s num_facts ^ " for " ^ string_of_time (slice_timeout slice_size slices timeout) ^
           (if abduce then " (abduce)" else "") ^
-          (if check_consistent then " (check_consistent)" else "") ^ "...")
+          (if check_inconsistent then " (check_inconsistent)" else "") ^ "...")
       else
         ()
 
@@ -183,7 +183,7 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
       |> prefix ("Facts in " ^ name ^ " " ^
-        (if check_consistent then "inconsistency" else "proof") ^ ": ")
+        (if check_inconsistent then "inconsistency" else "proof") ^ ": ")
       |> writeln
 
     fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
@@ -211,7 +211,7 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
             |> AList.group (op =)
             |> map (fn (indices, fact_filters) => commas fact_filters ^ ": " ^ indices)
         in
-          "Success: Found " ^ (if check_consistent then "inconsistency" else "proof") ^ " with " ^
+          "Success: Found " ^ (if check_inconsistent then "inconsistency" else "proof") ^ " with " ^
           string_of_int num_used_facts ^ " fact" ^ plural_s num_used_facts ^
           (if num_used_facts = 0 then "" else ": " ^ commas filter_infos)
         end
@@ -250,7 +250,7 @@ fun preplay_prover_result ({minimize, preplay_timeout, ...} : params) state goal
     (output, output_message)
   end
 
-fun analyze_prover_result_for_consistency (result as {outcome, used_facts, ...} : prover_result) =
+fun analyze_prover_result_for_inconsistency (result as {outcome, used_facts, ...} : prover_result) =
   if outcome = SOME ATP_Proof.TimedOut then
     (SH_TimeOut, K "")
   else if outcome = SOME ATP_Proof.OutOfResources then
@@ -292,7 +292,8 @@ fun check_expected_outcome ctxt prover_name expect outcome =
 
 fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
     has_already_found_something found_something writeln_result learn
-    (problem as {state, subgoal, ...}) (slice as ((_, _, check_consistent, _, _), _)) prover_name =
+    (problem as {state, subgoal, ...}) (slice as ((_, _, check_inconsistent, _, _), _))
+    prover_name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
@@ -320,11 +321,11 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
          found_something = found_something "an inconsistency"}
       end
 
-    val problem as {goal, ...} = problem |> check_consistent ? flip_problem
+    val problem as {goal, ...} = problem |> check_inconsistent ? flip_problem
 
     fun really_go () =
       launch_prover params mode learn problem slice prover_name
-      |> (if check_consistent then analyze_prover_result_for_consistency else
+      |> (if check_inconsistent then analyze_prover_result_for_inconsistency else
         preplay_prover_result params state goal subgoal)
 
     fun go () =
@@ -366,7 +367,7 @@ fun string_of_factss factss =
 val default_slice_schedule =
   (* FUDGE (loosely inspired by Seventeen evaluation) *)
   [cvc4N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc4N, zipperpositionN,
-   cvc4N, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN, eN, cvc4N, iproverN, zipperpositionN,
+   cvc4N, eN, zipperpositionN, vampireN, cvc4N, cvc4N, vampireN, cvc4N, iproverN, zipperpositionN,
    spassN, vampireN, zipperpositionN, vampireN, zipperpositionN, z3N, zipperpositionN, vampireN,
    iproverN, spassN, zipperpositionN, vampireN, cvc4N, zipperpositionN, z3N, z3N, cvc4N,
    zipperpositionN]
@@ -391,15 +392,15 @@ fun schedule_of_provers provers num_slices =
   end
 
 fun prover_slices_of_schedule ctxt goal subgoal factss
-    ({abduce, check_consistent, max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases,
+    ({abduce, check_inconsistent, max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases,
       ...} : params)
     schedule =
   let
     fun triplicate_slices original =
       let
         val shift =
-          map (apfst (fn (slice_size, abduce, check_consistent, num_facts, fact_filter) =>
-            (slice_size, abduce, check_consistent, num_facts,
+          map (apfst (fn (slice_size, abduce, check_inconsistent, num_facts, fact_filter) =>
+            (slice_size, abduce, check_inconsistent, num_facts,
              if fact_filter = mashN then mepoN
              else if fact_filter = mepoN then meshN
              else mashN)))
@@ -417,7 +418,7 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
       | adjust_extra (extra as SMT_Slice _) = extra
 
     fun adjust_slice max_slice_size
-        ((slice_size0, abduce0, check_consistent0, num_facts0, fact_filter0), extra) =
+        ((slice_size0, abduce0, check_inconsistent0, num_facts0, fact_filter0), extra) =
       let
         val slice_size = Int.min (max_slice_size, slice_size0)
         val goal_not_False = not (Logic.get_goal (Thm.prop_of goal) subgoal aconv @{prop False})
@@ -425,15 +426,15 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
           (case abduce of
             NONE => abduce0 andalso goal_not_False
           | SOME max_candidates => max_candidates > 0)
-        val check_consistent =
-          (case check_consistent of
-            NONE => check_consistent0 andalso goal_not_False
-          | SOME check_consistent => check_consistent)
+        val check_inconsistent =
+          (case check_inconsistent of
+            NONE => check_inconsistent0 andalso goal_not_False
+          | SOME check_inconsistent => check_inconsistent)
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
       in
-        ((slice_size, abduce, check_consistent, num_facts, fact_filter), adjust_extra extra)
+        ((slice_size, abduce, check_inconsistent, num_facts, fact_filter), adjust_extra extra)
       end
 
     val provers = distinct (op =) schedule
@@ -462,7 +463,7 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
     |> distinct (op =)
   end
 
-fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induction_rules,
+fun run_sledgehammer (params as {verbose, spy, provers, check_inconsistent, induction_rules,
       max_facts, max_proofs, slices, ...})
     mode writeln_result i (fact_override as {only, ...}) state =
   if null provers then
@@ -580,7 +581,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induct
 
         fun normal_failure () =
           (the_default writeln writeln_result
-             ("No " ^ (if check_consistent = SOME true then "inconsistency" else "proof") ^
+             ("No " ^ (if check_inconsistent = SOME true then "inconsistency" else "proof") ^
               " found");
            false)
       in

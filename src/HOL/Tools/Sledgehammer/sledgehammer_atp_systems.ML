@@ -67,7 +67,7 @@ val TH1 = THF (Polymorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 val default_max_mono_iters = 3 (* FUDGE *)
 val default_max_new_mono_instances = 100 (* FUDGE *)
 
-(* desired slice size, abduce, check_consistent, desired number of facts, fact filter *)
+(* desired slice size, abduce, check_inconsistent, desired number of facts, fact filter *)
 type base_slice = int * bool * bool * int * string
 
 (* problem file format, type encoding, lambda translation scheme, uncurried aliases?,

@@ -54,7 +54,7 @@ val default_default_params =
    ("overlord", "false"),
    ("spy", "false"),
    ("abduce", "smart"),
-   ("check_consistent", "smart"),
+   ("check_inconsistent", "smart"),
    ("type_enc", "smart"),
    ("strict", "false"),
    ("lam_trans", "smart"),
@@ -87,7 +87,7 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_spy", "spy"),
-   ("dont_check_consistent", "check_consistent"),
+   ("dont_check_inconsistent", "check_inconsistent"),
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
    ("dont_learn", "learn"),
@@ -235,9 +235,9 @@ fun extract_params mode default_params override_params =
     val abduce =
       if mode = Auto_Try then SOME 0
       else lookup_option lookup_int "abduce"
-    val check_consistent =
+    val check_inconsistent =
       if mode = Auto_Try then SOME false
-      else lookup_option lookup_bool "check_consistent"
+      else lookup_option lookup_bool "check_inconsistent"
     val type_enc =
       if mode = Auto_Try then
         NONE
@@ -271,7 +271,7 @@ fun extract_params mode default_params override_params =
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
-     abduce = abduce, check_consistent = check_consistent, type_enc = type_enc, strict = strict,
+     abduce = abduce, check_inconsistent = check_inconsistent, type_enc = type_enc, strict = strict,
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases, learn = learn,
      fact_filter = fact_filter, induction_rules = induction_rules, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
