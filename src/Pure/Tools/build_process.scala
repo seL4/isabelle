@@ -18,7 +18,7 @@ object Build_Process {
   object Context {
     def apply(
       store: Sessions.Store,
-      deps: Sessions.Deps,
+      build_deps: Sessions.Deps,
       progress: Progress = new Progress,
       hostname: String = Isabelle_System.hostname(),
       numa_shuffling: Boolean = false,
@@ -30,7 +30,7 @@ object Build_Process {
       session_setup: (String, Session) => Unit = (_, _) => (),
       instance: String = UUID.random().toString
     ): Context = {
-      val sessions_structure = deps.sessions_structure
+      val sessions_structure = build_deps.sessions_structure
       val build_graph = sessions_structure.build_graph
 
       val sessions =
@@ -78,7 +78,7 @@ object Build_Process {
         }
 
       val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
-      new Context(instance, store, deps, sessions, ordering, progress, hostname, numa_nodes,
+      new Context(instance, store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, session_setup)
     }
@@ -87,7 +87,7 @@ object Build_Process {
   final class Context private(
     val instance: String,
     val store: Sessions.Store,
-    val deps: Sessions.Deps,
+    val build_deps: Sessions.Deps,
     val sessions: Map[String, Build_Job.Session_Context],
     val ordering: Ordering[String],
     val progress: Progress,
@@ -100,7 +100,7 @@ object Build_Process {
     val verbose: Boolean,
     val session_setup: (String, Session) => Unit,
   ) {
-    def sessions_structure: Sessions.Structure = deps.sessions_structure
+    def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
     def session_context(session: String): Build_Job.Session_Context = sessions(session)
 
@@ -480,7 +480,7 @@ extends AutoCloseable {
 
   protected val store: Sessions.Store = build_context.store
   protected val build_options: Options = store.options
-  protected val build_deps: Sessions.Deps = build_context.deps
+  protected val build_deps: Sessions.Deps = build_context.build_deps
   protected val progress: Progress = build_context.progress
   protected val verbose: Boolean = build_context.verbose
 

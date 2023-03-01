@@ -13,7 +13,7 @@ object Build {
 
   object Results {
     def apply(context: Build_Process.Context, results: Map[String, Process_Result]): Results =
-      new Results(context.store, context.deps, results)
+      new Results(context.store, context.build_deps, results)
   }
 
   class Results private(
