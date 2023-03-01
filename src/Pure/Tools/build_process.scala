@@ -529,9 +529,11 @@ extends AutoCloseable {
     }
 
 
-  /* database */
+  /* global state: internal var vs. external database */
 
-  protected val database: Option[SQL.Database] =
+  private var _state: Build_Process.State = init_state(Build_Process.State())
+
+  private val _database: Option[SQL.Database] =
     if (!build_options.bool("build_database_test")) None
     else if (store.database_server) Some(store.open_database_server())
     else {
@@ -541,10 +543,8 @@ extends AutoCloseable {
       Some(db)
     }
 
-  def close(): Unit = database.foreach(_.close())
-
-  protected def setup_database(): Unit =
-    for (db <- database) {
+  private def setup_database(): Unit =
+    for (db <- _database) {
       synchronized {
         db.transaction {
           Build_Process.Data.init_database(db, build_context)
@@ -552,8 +552,9 @@ extends AutoCloseable {
       }
       db.rebuild()
     }
-  protected def sync_database(): Unit =
-    for (db <- database) {
+
+  private def sync_database(): Unit =
+    for (db <- _database) {
       synchronized {
         db.transaction {
           _state =
@@ -563,10 +564,10 @@ extends AutoCloseable {
       }
     }
 
+  def close(): Unit = _database.foreach(_.close())
 
-  /* global state */
 
-  protected var _state: Build_Process.State = init_state(Build_Process.State())
+  /* policy operations */
 
   protected def init_state(state: Build_Process.State): Build_Process.State = {
     val old_pending = state.pending.iterator.map(_.name).toSet
@@ -579,14 +580,13 @@ extends AutoCloseable {
     state.copy(pending = new_pending ::: state.pending)
   }
 
-  protected def next_pending(): Option[String] = synchronized {
-    if (_state.running.size < (build_context.max_jobs max 1)) {
-      _state.pending.filter(entry => entry.is_ready && !_state.is_running(entry.name))
+  protected def next_job(state: Build_Process.State): Option[String] =
+    if (state.running.size < (build_context.max_jobs max 1)) {
+      state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
         .sortBy(_.name)(build_context.ordering)
         .headOption.map(_.name)
     }
     else None
-  }
 
   protected def start_job(session_name: String): Unit = {
     val ancestor_results = synchronized {
@@ -681,13 +681,13 @@ extends AutoCloseable {
 
   /* run */
 
-  protected def sleep(): Unit =
-    Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-      build_options.seconds("editor_input_delay").sleep()
-    }
-
   def run(): Map[String, Process_Result] = {
     def finished(): Boolean = synchronized { _state.finished }
+
+    def sleep(): Unit =
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
+        build_options.seconds("editor_input_delay").sleep()
+      }
 
     if (finished()) {
       progress.echo_warning("Nothing to build")
@@ -709,7 +709,7 @@ extends AutoCloseable {
           }
         }
 
-        next_pending() match {
+        synchronized { next_job(_state) } match {
           case Some(name) =>
             start_job(name)
           case None =>
