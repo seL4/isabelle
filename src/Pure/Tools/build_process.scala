@@ -15,56 +15,6 @@ import scala.annotation.tailrec
 object Build_Process {
   /** static context **/
 
-  object Session_Context {
-    def init(session: String, timeout: Time = Time.zero): Session_Context =
-      new Session_Context(session, timeout, Time.zero, Bytes.empty)
-
-    def load(
-      session: String,
-      timeout: Time,
-      store: Sessions.Store,
-      progress: Progress = new Progress
-    ): Session_Context = {
-      store.try_open_database(session) match {
-        case None => init(session, timeout = timeout)
-        case Some(db) =>
-          def ignore_error(msg: String) = {
-            progress.echo_warning(
-              "Ignoring bad database " + db + " for session " + quote(session) +
-              if_proper(msg, ":\n" + msg))
-            init(session, timeout = timeout)
-          }
-          try {
-            val command_timings = store.read_command_timings(db, session)
-            val elapsed =
-              store.read_session_timing(db, session) match {
-                case Markup.Elapsed(s) => Time.seconds(s)
-                case _ => Time.zero
-              }
-            new Session_Context(session, timeout, elapsed, command_timings)
-          }
-          catch {
-            case ERROR(msg) => ignore_error(msg)
-            case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("XML.Error")
-          }
-          finally { db.close() }
-      }
-    }
-  }
-
-  final class Session_Context(
-    val session: String,
-    val timeout: Time,
-    val old_time: Time,
-    val old_command_timings_blob: Bytes
-  ) {
-    def is_empty: Boolean =
-      old_time.is_zero && old_command_timings_blob.is_empty
-
-    override def toString: String = session
-  }
-
   object Context {
     def apply(
       store: Sessions.Store,
@@ -88,7 +38,7 @@ object Build_Process {
           for (name <- build_graph.keys_iterator)
           yield {
             val timeout = sessions_structure(name).timeout
-            name -> Build_Process.Session_Context.load(name, timeout, store, progress = progress)
+            name -> Build_Job.Session_Context.load(name, timeout, store, progress = progress)
           })
 
       val sessions_time = {
@@ -134,7 +84,7 @@ object Build_Process {
     val instance: String,
     val store: Sessions.Store,
     val deps: Sessions.Deps,
-    sessions: Map[String, Session_Context],
+    sessions: Map[String, Build_Job.Session_Context],
     val ordering: Ordering[String],
     val progress: Progress,
     val hostname: String,
@@ -148,8 +98,8 @@ object Build_Process {
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
-    def apply(session: String): Session_Context =
-      sessions.getOrElse(session, Session_Context.init(session))
+    def apply(session: String): Build_Job.Session_Context =
+      sessions.getOrElse(session, Build_Job.Session_Context.init(session))
 
     def old_command_timings(session: String): List[Properties.T] =
       Properties.uncompress(apply(session).old_command_timings_blob, cache = store.cache)

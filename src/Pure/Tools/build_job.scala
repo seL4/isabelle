@@ -39,6 +39,56 @@ object Build_Job {
 
   /* build session */
 
+  object Session_Context {
+    def init(session: String, timeout: Time = Time.zero): Session_Context =
+      new Session_Context(session, timeout, Time.zero, Bytes.empty)
+
+    def load(
+      session: String,
+      timeout: Time,
+      store: Sessions.Store,
+      progress: Progress = new Progress
+    ): Session_Context = {
+      store.try_open_database(session) match {
+        case None => init(session, timeout = timeout)
+        case Some(db) =>
+          def ignore_error(msg: String) = {
+            progress.echo_warning(
+              "Ignoring bad database " + db + " for session " + quote(session) +
+              if_proper(msg, ":\n" + msg))
+            init(session, timeout = timeout)
+          }
+          try {
+            val command_timings = store.read_command_timings(db, session)
+            val elapsed =
+              store.read_session_timing(db, session) match {
+                case Markup.Elapsed(s) => Time.seconds(s)
+                case _ => Time.zero
+              }
+            new Session_Context(session, timeout, elapsed, command_timings)
+          }
+          catch {
+            case ERROR(msg) => ignore_error(msg)
+            case exn: java.lang.Error => ignore_error(Exn.message(exn))
+            case _: XML.Error => ignore_error("XML.Error")
+          }
+          finally { db.close() }
+      }
+    }
+  }
+
+  final class Session_Context(
+    val session: String,
+    val timeout: Time,
+    val old_time: Time,
+    val old_command_timings_blob: Bytes
+  ) {
+    def is_empty: Boolean =
+      old_time.is_zero && old_command_timings_blob.is_empty
+
+    override def toString: String = session
+  }
+
   class Build_Session(
     progress: Progress,
     verbose: Boolean,
