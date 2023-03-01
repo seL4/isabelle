@@ -38,8 +38,7 @@ object Build_Process {
           for (name <- build_graph.keys_iterator)
           yield {
             val info = sessions_structure(name)
-            val ancestors =
-              sessions_structure.build_requirements(List(name)).filterNot(_ == name)
+            val ancestors = sessions_structure.build_requirements(info.parent.toList)
             val session_context =
               Build_Job.Session_Context.load(
                 name, info.deps, ancestors, info.timeout, store, progress = progress)
@@ -89,7 +88,7 @@ object Build_Process {
     val instance: String,
     val store: Sessions.Store,
     val deps: Sessions.Deps,
-    sessions: Map[String, Build_Job.Session_Context],
+    val sessions: Map[String, Build_Job.Session_Context],
     val ordering: Ordering[String],
     val progress: Progress,
     val hostname: String,
@@ -103,6 +102,8 @@ object Build_Process {
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
+    def session_context(session: String): Build_Job.Session_Context = sessions(session)
+
     def old_command_timings(session: String): List[Properties.T] =
       sessions.get(session) match {
         case Some(session_context) =>
@@ -111,7 +112,8 @@ object Build_Process {
       }
 
     def do_store(session: String): Boolean =
-      build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
+      build_heap || Sessions.is_pure(session) ||
+      sessions.valuesIterator.exists(_.ancestors.contains(session))
   }
 
 
@@ -550,9 +552,7 @@ extends AutoCloseable {
 
   protected def start_job(session_name: String): Unit = {
     val ancestor_results = synchronized {
-      _state.get_results(
-        build_deps.sessions_structure.build_requirements(List(session_name)).
-          filterNot(_ == session_name))
+      _state.get_results(build_context.session_context(session_name).ancestors)
     }
     val input_heaps =
       if (ancestor_results.isEmpty) {
