@@ -823,7 +823,7 @@ fun top_abduce_candidates max_candidates candidates =
     (* We prefer free variables to other constructs, so that e.g. "x \<le> y" is
        prioritized over "x \<le> 0". *)
     fun score t =
-      Term.fold_aterms (fn t => fn score => score + (case t of Free _ => ~1 | _ => 4)) t 0
+      Term.fold_aterms (fn t => fn score => score + (case t of Free _ => 1 | _ => 2)) t 0
 
     (* Equations of the form "x = ..." or "... = x" or similar are too specific
        to be useful. Quantified formulas are also filtered out. As for "True",
@@ -843,7 +843,7 @@ fun top_abduce_candidates max_candidates candidates =
       | @{const Trueprop} $ (@{const Not} $
           (@{const less_eq(nat)} $ @{const zero_class.zero(nat)} $ _)) => NONE
       | @{const Trueprop} $ (@{const Not} $
-          (@{const less(nat)} $ @{const one_class.one(nat)} $ _)) => NONE
+          (@{const less_eq(nat)} $ @{const one_class.one(nat)} $ _)) => NONE
       | @{const Trueprop} $ (Const (@{const_name All}, _) $ _) => NONE
       | @{const Trueprop} $ (Const (@{const_name Ex}, _) $ _) => NONE
       | _ => SOME (score t, t))

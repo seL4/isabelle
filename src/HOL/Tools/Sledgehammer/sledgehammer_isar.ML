@@ -530,7 +530,7 @@ fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
      one_line_proof_text ctxt num_chained) one_line_params
 
 fun abduce_text ctxt tms =
-  "Candidate" ^ plural_s (length tms) ^ " for missing hypothesis:\n" ^
+  "Candidate missing assumption" ^ plural_s (length tms) ^ ":\n" ^
   cat_lines (map (Syntax.string_of_term ctxt) tms)
 
 end;

@@ -346,15 +346,15 @@ fun run_atp mode name
         let
           val max_abduce_candidates =
             the_default default_abduce_max_candidates abduce_max_candidates
-          val abduce_candidates =
-            map (termify_atp_abduce_candidate ctxt name format type_enc pool lifted sym_tab)
-              atp_abduce_candidates
+          val abduce_candidates = atp_abduce_candidates
+            |> map (termify_atp_abduce_candidate ctxt name format type_enc pool lifted sym_tab)
+            |> top_abduce_candidates max_abduce_candidates
         in
           if null abduce_candidates then
             (SOME failure, [], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure)
           else
             (NONE, [], (Auto_Method (* dummy *), []), fn _ =>
-               abduce_text ctxt (top_abduce_candidates max_abduce_candidates abduce_candidates))
+               abduce_text ctxt abduce_candidates)
         end)
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,

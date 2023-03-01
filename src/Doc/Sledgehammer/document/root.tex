@@ -284,7 +284,7 @@ Sometimes Sledgehammer will helpfully suggest a missing assumption:
 
 \prew
 \slshape
-e: Candidate for missing hypothesis: \\
+e: Candidate missing assumption: \\
 length ys = length xs
 \postw
 
@@ -829,16 +829,16 @@ only the background theory; this might happen, for example, if a flawed axiom is
 used or if a flawed lemma was introduced with \textbf{sorry}.
 
 \opdefault{abduce}{smart\_int}{smart}
-Specifies the maximum number of candidate missing hypotheses that may be
+Specifies the maximum number of candidate missing assumptions that may be
 displayed. These hypotheses are discovered heuristically by a process called
 abduction (which stands in contrast to deduction)---that is, they are guessed
 and found to be sufficient to prove the goal.
 
 Abduction is currently supported only by E. If the option is set to
 \textit{smart} (the default), abduction is enabled only in some of the E time
-slices, and only one candidate missing hypothesis is displayed. You can disable
-abduction altogether by setting the option to 0 or enable it in all time slices
-by setting it to a nonzero value.
+slices, and at most one candidate missing assumption is displayed. You can
+disable abduction altogether by setting the option to 0 or enable it in all
+time slices by setting it to a nonzero value.
 
 \optrueonly{dont\_abduce}
 Alias for ``\textit{abduce} = 0''.
