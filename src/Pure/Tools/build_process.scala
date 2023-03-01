@@ -112,7 +112,7 @@ object Build_Process {
         case None => Nil
       }
 
-    def do_store(name: String): Boolean =
+    def store_heap(name: String): Boolean =
       build_heap || Sessions.is_pure(name) ||
       sessions.valuesIterator.exists(_.ancestors.contains(name))
   }
@@ -561,7 +561,7 @@ extends AutoCloseable {
       }
       else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
-    val do_store = build_context.do_store(session_name)
+    val store_heap = build_context.store_heap(session_name)
     val (current, output_shasum) = {
       store.try_open_database(session_name) match {
         case Some(db) =>
@@ -574,7 +574,7 @@ extends AutoCloseable {
                 build.sources == build_context.sources_shasum(session_name) &&
                 build.input_heaps == input_shasum &&
                 build.output_heap == output_shasum &&
-                !(do_store && output_shasum.is_empty)
+                !(store_heap && output_shasum.is_empty)
               (current, output_shasum)
             case None => (false, SHA1.no_shasum)
           }
@@ -607,7 +607,7 @@ extends AutoCloseable {
       }
     }
     else {
-      progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
+      progress.echo((if (store_heap) "Building " else "Running ") + session_name + " ...")
 
       store.clean_output(session_name)
       using(store.open_database(session_name, output = true))(
@@ -630,7 +630,7 @@ extends AutoCloseable {
           val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
           val job =
             new Build_Job.Session_Job(build_context, session_background, session_heaps,
-              do_store, resources, input_shasum, node_info)
+              store_heap, resources, input_shasum, node_info)
           _state = state1.add_running(session_name, job)
           job
         }

@@ -97,7 +97,7 @@ object Build_Job {
     build_context: Build_Process.Context,
     session_background: Sessions.Background,
     session_heaps: List[Path],
-    do_store: Boolean,
+    store_heap: Boolean,
     resources: Resources,
     input_shasum: SHA1.Shasum,
     override val node_info: Node_Info
@@ -124,7 +124,7 @@ object Build_Job {
         val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
 
         val eval_store =
-          if (do_store) {
+          if (store_heap) {
             (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
             List("ML_Heap.save_child " +
               ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(session_name))))
@@ -444,7 +444,7 @@ object Build_Job {
       }
 
       val output_shasum =
-        if (process_result.ok && do_store && store.output_heap(session_name).is_file) {
+        if (process_result.ok && store_heap && store.output_heap(session_name).is_file) {
           SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
         }
         else SHA1.no_shasum
