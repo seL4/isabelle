@@ -88,9 +88,6 @@ object Build_Job {
     val old_time: Time,
     val old_command_timings_blob: Bytes
   ) {
-    def is_empty: Boolean =
-      old_time.is_zero && old_command_timings_blob.is_empty
-
     override def toString: String = name
   }
 
