@@ -544,18 +544,16 @@ extends AutoCloseable {
     }
 
   private def setup_database(): Unit =
-    for (db <- _database) {
-      synchronized {
-        db.transaction {
-          Build_Process.Data.init_database(db, build_context)
-        }
+    synchronized {
+      for (db <- _database) {
+        db.transaction { Build_Process.Data.init_database(db, build_context) }
+        db.rebuild()
       }
-      db.rebuild()
     }
 
   private def sync_database(): Unit =
-    for (db <- _database) {
-      synchronized {
+    synchronized {
+      for (db <- _database) {
         db.transaction {
           _state =
             Build_Process.Data.update_database(
@@ -564,7 +562,8 @@ extends AutoCloseable {
       }
     }
 
-  def close(): Unit = _database.foreach(_.close())
+  def close(): Unit =
+    synchronized { _database.foreach(_.close()) }
 
 
   /* policy operations */
