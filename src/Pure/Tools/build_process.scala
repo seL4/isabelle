@@ -37,8 +37,13 @@ object Build_Process {
         Map.from(
           for (name <- build_graph.keys_iterator)
           yield {
-            val timeout = sessions_structure(name).timeout
-            name -> Build_Job.Session_Context.load(name, timeout, store, progress = progress)
+            val info = sessions_structure(name)
+            val ancestors =
+              sessions_structure.build_requirements(List(name)).filterNot(_ == name)
+            val session_context =
+              Build_Job.Session_Context.load(
+                name, info.deps, ancestors, info.timeout, store, progress = progress)
+            name -> session_context
           })
 
       val sessions_time = {
@@ -98,11 +103,12 @@ object Build_Process {
   ) {
     def sessions_structure: Sessions.Structure = deps.sessions_structure
 
-    def session_context(session: String): Build_Job.Session_Context =
-      sessions.getOrElse(session, Build_Job.Session_Context.init(session))
-
     def old_command_timings(session: String): List[Properties.T] =
-      Properties.uncompress(session_context(session).old_command_timings_blob, cache = store.cache)
+      sessions.get(session) match {
+        case Some(session_context) =>
+          Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache)
+        case None => Nil
+      }
 
     def do_store(session: String): Boolean =
       build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)

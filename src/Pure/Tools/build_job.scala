@@ -40,32 +40,40 @@ object Build_Job {
   /* build session */
 
   object Session_Context {
-    def init(session: String, timeout: Time = Time.zero): Session_Context =
-      new Session_Context(session, timeout, Time.zero, Bytes.empty)
+    def init(name: String,
+      deps: List[String],
+      ancestors: List[String],
+      timeout: Time = Time.zero
+    ): Session_Context = new Session_Context(name, deps, ancestors, timeout, Time.zero, Bytes.empty)
 
     def load(
-      session: String,
+      name: String,
+      deps: List[String],
+      ancestors: List[String],
       timeout: Time,
       store: Sessions.Store,
       progress: Progress = new Progress
     ): Session_Context = {
-      store.try_open_database(session) match {
-        case None => init(session, timeout = timeout)
+      def default: Session_Context = init(name, deps, ancestors, timeout = timeout)
+
+      store.try_open_database(name) match {
+        case None => default
         case Some(db) =>
           def ignore_error(msg: String) = {
             progress.echo_warning(
-              "Ignoring bad database " + db + " for session " + quote(session) +
+              "Ignoring bad database " + db + " for session " + quote(name) +
               if_proper(msg, ":\n" + msg))
-            init(session, timeout = timeout)
+            default
           }
           try {
-            val command_timings = store.read_command_timings(db, session)
+            val command_timings = store.read_command_timings(db, name)
             val elapsed =
-              store.read_session_timing(db, session) match {
+              store.read_session_timing(db, name) match {
                 case Markup.Elapsed(s) => Time.seconds(s)
                 case _ => Time.zero
               }
-            new Session_Context(session, timeout, elapsed, command_timings)
+            new Session_Context(
+              name, deps, ancestors, timeout, elapsed, command_timings)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -78,7 +86,9 @@ object Build_Job {
   }
 
   final class Session_Context(
-    val session: String,
+    val name: String,
+    val deps: List[String],
+    val ancestors: List[String],
     val timeout: Time,
     val old_time: Time,
     val old_command_timings_blob: Bytes
@@ -86,7 +96,7 @@ object Build_Job {
     def is_empty: Boolean =
       old_time.is_zero && old_command_timings_blob.is_empty
 
-    override def toString: String = session
+    override def toString: String = name
   }
 
   class Build_Session(
