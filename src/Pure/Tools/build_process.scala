@@ -38,10 +38,11 @@ object Build_Process {
           for (name <- build_graph.keys_iterator)
           yield {
             val info = sessions_structure(name)
-            val ancestors = sessions_structure.build_requirements(info.parent.toList)
+            val deps = info.parent.toList
+            val ancestors = sessions_structure.build_requirements(deps)
             val session_context =
               Build_Job.Session_Context.load(
-                name, info.deps, ancestors, info.timeout, store, progress = progress)
+                name, deps, ancestors, info.timeout, store, progress = progress)
             name -> session_context
           })
 
