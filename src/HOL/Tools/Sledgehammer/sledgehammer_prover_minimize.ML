@@ -83,8 +83,8 @@ fun print silent f = if silent then () else writeln (f ())
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
       minimize, preplay_timeout, induction_rules, ...} : params)
-    (slice as ((_, _, check_inconsistent, _, fact_filter), slice_extra)) silent
-    (prover : prover) timeout i n state goal facts =
+    (slice as ((_, _, falsify, _, fact_filter), slice_extra)) silent (prover : prover) timeout i n
+    state goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
       (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
@@ -92,7 +92,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
-       type_enc = type_enc, abduce = SOME 0, check_inconsistent = SOME false, strict = strict,
+       type_enc = type_enc, abduce = SOME 0, falsify = SOME false, strict = strict,
        lam_trans = lam_trans, uncurried_aliases = uncurried_aliases, learn = false,
        fact_filter = NONE, induction_rules = induction_rules, max_facts = SOME (length facts),
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
@@ -118,7 +118,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
       (case outcome of
         SOME failure => string_of_atp_failure failure
       | NONE =>
-        "Found " ^ (if check_inconsistent then "inconsistency" else "proof") ^
+        "Found " ^ (if falsify then "falsification" else "proof") ^
          (if length used_facts = length facts then "" else " with " ^ n_facts used_facts) ^
          " (" ^ string_of_time run_time ^ ")"));
     result

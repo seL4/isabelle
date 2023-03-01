@@ -100,7 +100,7 @@ Lawrence C. Paulson \\
 
 Sledgehammer is a tool that applies automatic theorem provers (ATPs)
 and satisfiability-modulo-theories (SMT) solvers on the current goal, mostly
-to find proofs but also to find inconsistencies.%
+to find proofs but also to refute the goal.%
 \footnote{The distinction between ATPs and SMT solvers is mostly
 historical but convenient.}
 %
@@ -276,8 +276,8 @@ Sledgehammer's output might look as follows:
 
 \prew
 \slshape
-vampire found an inconsistency\ldots \\
-vampire: The goal is inconsistent with these facts: append\_Cons, nth\_append\_length, self\_append\_conv2, zip\_eq\_Nil\_iff
+vampire found a falsification\ldots \\
+vampire: The goal is falsified by these facts: append\_Cons, nth\_append\_length, self\_append\_conv2, zip\_eq\_Nil\_iff
 \postw
 
 Sometimes Sledgehammer will helpfully suggest a missing assumption:
@@ -818,11 +818,11 @@ It is generally beneficial to run several provers in parallel.
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
 
-\opsmartx{check\_inconsistent}{dont\_check\_inconsistent}
-Specifies whether Sledgehammer should look for inconsistencies or for proofs. By
-default, it looks for both proofs and inconsistencies.
+\opsmartx{falsify}{dont\_falsify}
+Specifies whether Sledgehammer should look for falsifications or for proofs. By
+default, it looks for both.
 
-An inconsistency indicates that the goal, taken as an axiom, would be
+A falsification indicates that the goal, taken as an axiom, would be
 inconsistent with some specific background facts if it were added as a lemma,
 indicating a likely issue with the goal. Sometimes the inconsistency involves
 only the background theory; this might happen, for example, if a flawed axiom is
