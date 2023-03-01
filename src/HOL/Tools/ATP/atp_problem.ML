@@ -64,6 +64,7 @@ sig
 
   val tptp_cnf : string
   val tptp_fof : string
+  val tptp_tcf : string
   val tptp_tff : string
   val tptp_thf : string
   val tptp_has_type : string
@@ -222,6 +223,7 @@ type 'a atp_problem = (string * 'a atp_problem_line list) list
 (* official TPTP syntax *)
 val tptp_cnf = "cnf"
 val tptp_fof = "fof"
+val tptp_tcf = "tcf" (* sometimes appears in E's output *)
 val tptp_tff = "tff"
 val tptp_thf = "thf"
 val tptp_has_type = ":"

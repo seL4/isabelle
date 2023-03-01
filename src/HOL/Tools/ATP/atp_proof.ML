@@ -572,7 +572,8 @@ fun parse_tstp_hol_line full problem =
       end)
 
 fun parse_tstp_fol_line full problem =
-  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof || Scan.this_string tptp_tff) -- $$ "(")
+  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof || Scan.this_string tptp_tcf
+      || Scan.this_string tptp_tff) -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
     -- (if full then parse_fol_formula || skip_term >> K dummy_phi else skip_term >> K dummy_phi)
     -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
