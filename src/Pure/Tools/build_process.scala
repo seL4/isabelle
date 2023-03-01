@@ -507,6 +507,8 @@ extends AutoCloseable {
       Some(db)
     }
 
+  def close(): Unit = synchronized { _database.foreach(_.close()) }
+
   private def setup_database(): Unit =
     synchronized {
       for (db <- _database) {
@@ -515,19 +517,22 @@ extends AutoCloseable {
       }
     }
 
-  private def sync_database(): Unit =
+  protected def synchronized_database[A](body: => A): A =
     synchronized {
-      for (db <- _database) {
-        db.transaction {
-          _state =
-            Build_Process.Data.update_database(
-              db, build_context.uuid, build_context.hostname, _state)
-        }
+      _database match {
+        case None => body
+        case Some(db) => db.transaction { body }
       }
     }
 
-  def close(): Unit =
-    synchronized { _database.foreach(_.close()) }
+  private def sync_database(): Unit =
+    synchronized_database {
+      for (db <- _database) {
+        _state =
+          Build_Process.Data.update_database(
+            db, build_context.uuid, build_context.hostname, _state)
+      }
+    }
 
 
   /* policy operations */
@@ -552,7 +557,7 @@ extends AutoCloseable {
     else None
 
   protected def start_session(session_name: String): Unit = {
-    val ancestor_results = synchronized {
+    val ancestor_results = synchronized_database {
       _state.get_results(build_context.sessions(session_name).ancestors)
     }
     val input_shasum =
@@ -584,7 +589,7 @@ extends AutoCloseable {
     val all_current = current && ancestor_results.forall(_.current)
 
     if (all_current) {
-      synchronized {
+      synchronized_database {
         _state = _state.
           remove_pending(session_name).
           make_result(session_name, Process_Result.ok, output_shasum, current = true)
@@ -592,7 +597,7 @@ extends AutoCloseable {
     }
     else if (build_context.no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
-      synchronized {
+      synchronized_database {
         _state = _state.
           remove_pending(session_name).
           make_result(session_name, Process_Result.error, output_shasum)
@@ -600,7 +605,7 @@ extends AutoCloseable {
     }
     else if (!ancestor_results.forall(_.ok) || progress.stopped) {
       progress.echo(session_name + " CANCELLED")
-      synchronized {
+      synchronized_database {
         _state = _state.
           remove_pending(session_name).
           make_result(session_name, Process_Result.undefined, output_shasum)
@@ -624,7 +629,7 @@ extends AutoCloseable {
         new Resources(session_background, log = log,
           command_timings = build_context.old_command_timings(session_name))
 
-      synchronized {
+      synchronized_database {
         val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
         val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
         val job =
@@ -640,7 +645,7 @@ extends AutoCloseable {
   /* run */
 
   def run(): Map[String, Process_Result] = {
-    def finished(): Boolean = synchronized { _state.finished }
+    def finished(): Boolean = synchronized_database { _state.finished }
 
     def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
@@ -654,12 +659,12 @@ extends AutoCloseable {
     else {
       setup_database()
       while (!finished()) {
-        if (progress.stopped) synchronized { _state.stop_running() }
+        if (progress.stopped) synchronized_database { _state.stop_running() }
 
-        for (job <- synchronized { _state.finished_running() }) {
+        for (job <- synchronized_database { _state.finished_running() }) {
           val job_name = job.job_name
           val (process_result, output_shasum) = job.finish
-          synchronized {
+          synchronized_database {
             _state = _state.
               remove_pending(job_name).
               remove_running(job_name).
@@ -667,7 +672,7 @@ extends AutoCloseable {
           }
         }
 
-        synchronized { next_job(_state) } match {
+        synchronized_database { next_job(_state) } match {
           case Some(name) =>
             if (Build_Job.is_session_name(name)) start_session(name)
             else error("Unsupported build job name " + quote(name))
@@ -676,7 +681,7 @@ extends AutoCloseable {
             sleep()
         }
       }
-      synchronized {
+      synchronized_database {
         for ((name, result) <- _state.results) yield name -> result.process_result
       }
     }
