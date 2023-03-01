@@ -805,30 +805,47 @@ fun sort_top n scored_items =
     []
   else
     let
-      fun split_min seen [] (_, best_item) = (best_item, List.rev seen)
-        | split_min seen ((score, item) :: scored_items) (best_score, best_item) =
+      fun split_min accum [] (_, best_item) = (best_item, List.rev accum)
+        | split_min accum ((score, item) :: scored_items) (best_score, best_item) =
           if score < best_score then
-            split_min ((best_score, best_item) :: seen) scored_items (score, item)
+            split_min ((best_score, best_item) :: accum) scored_items (score, item)
           else
-            split_min ((score, item) :: seen) scored_items (best_score, best_item)
+            split_min ((score, item) :: accum) scored_items (best_score, best_item)
 
       val (min_item, other_scored_items) = split_min [] (tl scored_items) (hd scored_items)
     in
       min_item :: sort_top (n - 1) (filter_out (equal min_item o snd) other_scored_items)
+      |> distinct (op aconv)
     end
 
 fun top_abduce_candidates max_candidates candidates =
   let
+    (* We prefer free variables to other constructs, so that e.g. "x \<le> y" is
+       prioritized over "x \<le> 0". *)
     fun score t =
-      size_of_term t +
-      (if exists_subterm (fn Bound _ => true | Var _ => true | _ => false) t then 50 else 0) +
-      (if exists_subterm (fn Free _ => true | _ => false) t then ~10 else 0)
+      Term.fold_aterms (fn t => fn score => score + (case t of Free _ => ~1 | _ => 4)) t 0
 
+    (* Equations of the form "x = ..." or "... = x" or similar are too specific
+       to be useful. Quantified formulas are also filtered out. As for "True",
+       it may seem an odd choice for abduction, but it sometimes arises in
+       conjunction with type class constraints, which are removed by the
+       termifier. *)
     fun maybe_score t =
       (case t of
-        @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ Free _ $ _) => NONE
+        @{prop True} => NONE
+      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ Free _ $ _) => NONE
       | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Free _) => NONE
+      | @{const Trueprop} $ (@{const less(nat)} $ _ $ @{const zero_class.zero(nat)}) => NONE
+      | @{const Trueprop} $ (@{const less_eq(nat)} $ _ $ @{const zero_class.zero(nat)}) => NONE
+      | @{const Trueprop} $ (@{const less(nat)} $ _ $ @{const one_class.one(nat)}) => NONE
+      | @{const Trueprop} $ (@{const Not} $
+          (@{const less(nat)} $ @{const zero_class.zero(nat)} $ _)) => NONE
+      | @{const Trueprop} $ (@{const Not} $
+          (@{const less_eq(nat)} $ @{const zero_class.zero(nat)} $ _)) => NONE
+      | @{const Trueprop} $ (@{const Not} $
+          (@{const less(nat)} $ @{const one_class.one(nat)} $ _)) => NONE
       | @{const Trueprop} $ (Const (@{const_name All}, _) $ _) => NONE
+      | @{const Trueprop} $ (Const (@{const_name Ex}, _) $ _) => NONE
       | _ => SOME (score t, t))
   in
     sort_top max_candidates (map_filter maybe_score candidates)
