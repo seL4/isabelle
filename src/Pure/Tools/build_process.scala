@@ -29,8 +29,9 @@ object Build_Process {
         case None => init(session, timeout = timeout)
         case Some(db) =>
           def ignore_error(msg: String) = {
-            progress.echo_warning("Ignoring bad database " + db +
-              " for session " + quote(session) + (if (msg == "") "" else ":\n" + msg))
+            progress.echo_warning(
+              "Ignoring bad database " + db + " for session " + quote(session) +
+              if_proper(msg, ":\n" + msg))
             init(session, timeout = timeout)
           }
           try {
