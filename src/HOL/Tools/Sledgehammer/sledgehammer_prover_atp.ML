@@ -249,15 +249,7 @@ fun run_atp mode name
 
         val outcome =
           (case outcome of
-            NONE =>
-            (case used_facts_in_unsound_atp_proof ctxt (map fst facts) atp_proof of
-              SOME facts =>
-              let
-                val failure = UnsoundProof (is_type_enc_sound type_enc, sort string_ord facts)
-              in
-                if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
-              end
-            | NONE => (found_something name; NONE))
+            NONE => (found_something name; NONE)
           | _ => outcome)
       in
         (atp_problem_data,
@@ -302,6 +294,13 @@ fun run_atp mode name
         NONE =>
         let
           val used_facts = sort_by fst (used_facts_in_atp_proof ctxt (map fst used_from) atp_proof)
+          val _ =
+            if mode = Normal andalso not (is_conjecture_used_in_proof atp_proof)
+               andalso not (Logic.get_goal (Thm.prop_of goal) subgoal aconv @{prop False}) then
+              warning ("Derived \"False\" from these facts alone: " ^ commas (map fst used_facts))
+            else
+              ()
+
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val preferred = Metis_Method (NONE, NONE)
           val preferred_methss =

@@ -261,7 +261,7 @@ fun analyze_prover_result_for_inconsistency (result as {outcome, used_facts, ...
             [] => "The goal is inconsistent"
           | facts => "The goal is falsified by these facts: " ^ commas facts)
         else
-          "The following facts are inconsistent: " ^
+          "Derived \"False\" from these facts alone: " ^
           commas (map fst used_facts)))
 
 fun check_expected_outcome ctxt prover_name expect outcome =
