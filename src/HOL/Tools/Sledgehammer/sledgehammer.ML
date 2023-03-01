@@ -334,10 +334,10 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
       else
         (really_go ()
          handle
-           ERROR msg => (SH_Unknown, fn () => "Warning: " ^ msg ^ "\n")
+           ERROR msg => (SH_Unknown, fn () => msg ^ "\n")
          | exn =>
            if Exn.is_interrupt exn then Exn.reraise exn
-           else (SH_Unknown, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
+           else (SH_Unknown, fn () => Runtime.exn_message exn ^ "\n"))
 
     val (outcome, message) = Timeout.apply hard_timeout go ()
     val () = check_expected_outcome ctxt prover_name expect outcome
