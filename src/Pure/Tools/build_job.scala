@@ -99,7 +99,7 @@ object Build_Job {
     session_heaps: List[Path],
     do_store: Boolean,
     resources: Resources,
-    input_heaps: SHA1.Shasum,
+    input_shasum: SHA1.Shasum,
     override val node_info: Node_Info
   ) extends Build_Job {
     private val store = build_context.store
@@ -443,7 +443,7 @@ object Build_Job {
         else result
       }
 
-      val output_heap =
+      val output_shasum =
         if (process_result.ok && do_store && store.output_heap(session_name).is_file) {
           SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
         }
@@ -473,7 +473,8 @@ object Build_Job {
           build =
             Sessions.Build_Info(
               sources = build_context.sources_shasum(session_name),
-              input_heaps = input_heaps, output_heap = output_heap,
+              input_heaps = input_shasum,
+              output_heap = output_shasum,
               process_result.rc, build_context.uuid)))
 
       // messages
@@ -501,7 +502,7 @@ object Build_Job {
         }
       }
 
-      (process_result.copy(out_lines = log_lines), output_heap)
+      (process_result.copy(out_lines = log_lines), output_shasum)
     }
   }
 

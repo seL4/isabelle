@@ -129,7 +129,7 @@ object Build_Process {
 
   case class Result(
     current: Boolean,
-    output_heap: SHA1.Shasum,
+    output_shasum: SHA1.Shasum,
     node_info: Build_Job.Node_Info,
     process_result: Process_Result
   ) {
@@ -178,11 +178,11 @@ object Build_Process {
     def make_result(
       name: String,
       current: Boolean,
-      output_heap: SHA1.Shasum,
+      output_shasum: SHA1.Shasum,
       process_result: Process_Result,
       node_info: Build_Job.Node_Info = Build_Job.Node_Info.none
     ): State = {
-      val result = Build_Process.Result(current, output_heap, node_info, process_result)
+      val result = Build_Process.Result(current, output_shasum, node_info, process_result)
       copy(results = results + (name -> result))
     }
 
@@ -555,27 +555,27 @@ extends AutoCloseable {
     val ancestor_results = synchronized {
       _state.get_results(build_context.sessions(session_name).ancestors)
     }
-    val input_heaps =
+    val input_shasum =
       if (ancestor_results.isEmpty) {
         SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
       }
-      else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
+      else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
     val do_store = build_context.do_store(session_name)
-    val (current, output_heap) = {
+    val (current, output_shasum) = {
       store.try_open_database(session_name) match {
         case Some(db) =>
           using(db)(store.read_build(_, session_name)) match {
             case Some(build) =>
-              val output_heap = store.find_heap_shasum(session_name)
+              val output_shasum = store.find_heap_shasum(session_name)
               val current =
                 !build_context.fresh_build &&
                 build.ok &&
                 build.sources == build_context.sources_shasum(session_name) &&
-                build.input_heaps == input_heaps &&
-                build.output_heap == output_heap &&
-                !(do_store && output_heap.is_empty)
-              (current, output_heap)
+                build.input_heaps == input_shasum &&
+                build.output_heap == output_shasum &&
+                !(do_store && output_shasum.is_empty)
+              (current, output_shasum)
             case None => (false, SHA1.no_shasum)
           }
         case None => (false, SHA1.no_shasum)
@@ -587,7 +587,7 @@ extends AutoCloseable {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          make_result(session_name, true, output_heap, Process_Result.ok)
+          make_result(session_name, true, output_shasum, Process_Result.ok)
       }
     }
     else if (build_context.no_build) {
@@ -595,7 +595,7 @@ extends AutoCloseable {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          make_result(session_name, false, output_heap, Process_Result.error)
+          make_result(session_name, false, output_shasum, Process_Result.error)
       }
     }
     else if (!ancestor_results.forall(_.ok) || progress.stopped) {
@@ -603,7 +603,7 @@ extends AutoCloseable {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          make_result(session_name, false, output_heap, Process_Result.undefined)
+          make_result(session_name, false, output_shasum, Process_Result.undefined)
       }
     }
     else {
@@ -630,7 +630,7 @@ extends AutoCloseable {
           val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
           val job =
             new Build_Job.Session_Job(build_context, session_background, session_heaps,
-              do_store, resources, input_heaps, node_info)
+              do_store, resources, input_shasum, node_info)
           _state = state1.add_running(session_name, job)
           job
         }
@@ -660,12 +660,12 @@ extends AutoCloseable {
 
         for (job <- synchronized { _state.finished_running() }) {
           val job_name = job.job_name
-          val (process_result, output_heap) = job.finish
+          val (process_result, output_shasum) = job.finish
           synchronized {
             _state = _state.
               remove_pending(job_name).
               remove_running(job_name).
-              make_result(job_name, false, output_heap, process_result, node_info = job.node_info)
+              make_result(job_name, false, output_shasum, process_result, node_info = job.node_info)
           }
         }
 
