@@ -14,7 +14,6 @@ import scala.util.matching.Regex
 trait Build_Job {
   def job_name: String
   def node_info: Build_Job.Node_Info
-  def start(): Unit = ()
   def terminate(): Unit = ()
   def is_finished: Boolean = false
   def finish: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
@@ -117,7 +116,7 @@ object Build_Job {
     val session_sources: Sessions.Sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
-    private lazy val future_result: Future[Process_Result] =
+    private val future_result: Future[Process_Result] =
       Future.thread("build", uninterruptible = true) {
         val env =
           Isabelle_System.settings(
@@ -420,7 +419,6 @@ object Build_Job {
         }
       }
 
-    override def start(): Unit = future_result
     override def terminate(): Unit = future_result.cancel()
     override def is_finished: Boolean = future_result.is_finished
 

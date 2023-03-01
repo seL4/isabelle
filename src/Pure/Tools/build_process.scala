@@ -624,17 +624,15 @@ extends AutoCloseable {
         new Resources(session_background, log = log,
           command_timings = build_context.old_command_timings(session_name))
 
-      val job =
-        synchronized {
-          val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
-          val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
-          val job =
-            new Build_Job.Session_Job(build_context, session_background, session_heaps,
-              store_heap, resources, input_shasum, node_info)
-          _state = state1.add_running(session_name, job)
-          job
-        }
-      job.start()
+      synchronized {
+        val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
+        val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
+        val job =
+          new Build_Job.Session_Job(build_context, session_background, session_heaps,
+            store_heap, resources, input_shasum, node_info)
+        _state = state1.add_running(session_name, job)
+        job
+      }
     }
   }
 
