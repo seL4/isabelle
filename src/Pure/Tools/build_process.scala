@@ -128,10 +128,10 @@ object Build_Process {
   }
 
   case class Result(
-    current: Boolean,
+    process_result: Process_Result,
     output_shasum: SHA1.Shasum,
     node_info: Build_Job.Node_Info,
-    process_result: Process_Result
+    current: Boolean
   ) {
     def ok: Boolean = process_result.ok
   }
@@ -177,13 +177,13 @@ object Build_Process {
 
     def make_result(
       name: String,
-      current: Boolean,
-      output_shasum: SHA1.Shasum,
       process_result: Process_Result,
-      node_info: Build_Job.Node_Info = Build_Job.Node_Info.none
+      output_shasum: SHA1.Shasum,
+      node_info: Build_Job.Node_Info = Build_Job.Node_Info.none,
+      current: Boolean = false
     ): State = {
-      val result = Build_Process.Result(current, output_shasum, node_info, process_result)
-      copy(results = results + (name -> result))
+      val entry = name -> Build_Process.Result(process_result, output_shasum, node_info, current)
+      copy(results = results + entry)
     }
 
     def get_results(names: List[String]): List[Build_Process.Result] =
@@ -587,7 +587,7 @@ extends AutoCloseable {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          make_result(session_name, true, output_shasum, Process_Result.ok)
+          make_result(session_name, Process_Result.ok, output_shasum, current = true)
       }
     }
     else if (build_context.no_build) {
@@ -595,7 +595,7 @@ extends AutoCloseable {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          make_result(session_name, false, output_shasum, Process_Result.error)
+          make_result(session_name, Process_Result.error, output_shasum)
       }
     }
     else if (!ancestor_results.forall(_.ok) || progress.stopped) {
@@ -603,7 +603,7 @@ extends AutoCloseable {
       synchronized {
         _state = _state.
           remove_pending(session_name).
-          make_result(session_name, false, output_shasum, Process_Result.undefined)
+          make_result(session_name, Process_Result.undefined, output_shasum)
       }
     }
     else {
@@ -665,7 +665,7 @@ extends AutoCloseable {
             _state = _state.
               remove_pending(job_name).
               remove_running(job_name).
-              make_result(job_name, false, output_shasum, process_result, node_info = job.node_info)
+              make_result(job_name, process_result, output_shasum, node_info = job.node_info)
           }
         }
 
