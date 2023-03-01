@@ -17,7 +17,7 @@ object Build_Process {
 
   object Session_Context {
     def empty(session: String, timeout: Time): Session_Context =
-      new Session_Context(session, timeout, Time.zero, Nil)
+      new Session_Context(session, timeout, Time.zero, Bytes.empty)
 
     def apply(
       session: String,
@@ -56,9 +56,10 @@ object Build_Process {
     val session: String,
     val timeout: Time,
     val old_time: Time,
-    val old_command_timings: List[Properties.T]
+    val old_command_timings_blob: Bytes
   ) {
-    def is_empty: Boolean = old_time.is_zero && old_command_timings.isEmpty
+    def is_empty: Boolean =
+      old_time.is_zero && old_command_timings_blob.is_empty
 
     override def toString: String = session
   }
@@ -148,6 +149,9 @@ object Build_Process {
 
     def apply(session: String): Session_Context =
       sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
+
+    def old_command_timings(session: String): List[Properties.T] =
+      Properties.uncompress(apply(session).old_command_timings_blob, cache = store.cache)
 
     def do_store(session: String): Boolean =
       build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
@@ -652,7 +656,7 @@ extends AutoCloseable {
 
       val resources =
         new Resources(session_background, log = log,
-          command_timings = build_context(session_name).old_command_timings)
+          command_timings = build_context.old_command_timings(session_name))
 
       val job =
         synchronized {

@@ -1591,8 +1591,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def read_session_timing(db: SQL.Database, name: String): Properties.T =
       Properties.decode(read_bytes(db, name, Session_Info.session_timing), cache = cache)
 
-    def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
-      read_properties(db, name, Session_Info.command_timings)
+    def read_command_timings(db: SQL.Database, name: String): Bytes =
+      read_bytes(db, name, Session_Info.command_timings)
 
     def read_theory_timings(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.theory_timings)
