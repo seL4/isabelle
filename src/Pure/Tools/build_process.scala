@@ -597,7 +597,15 @@ extends AutoCloseable {
           make_result(session_name, false, output_heap, Process_Result.error)
       }
     }
-    else if (ancestor_results.forall(_.ok) && !progress.stopped) {
+    else if (!ancestor_results.forall(_.ok) || progress.stopped) {
+      progress.echo(session_name + " CANCELLED")
+      synchronized {
+        _state = _state.
+          remove_pending(session_name).
+          make_result(session_name, false, output_heap, Process_Result.undefined)
+      }
+    }
+    else {
       progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
 
       store.clean_output(session_name)
@@ -627,14 +635,6 @@ extends AutoCloseable {
           job
         }
       job.start()
-    }
-    else {
-      progress.echo(session_name + " CANCELLED")
-      synchronized {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, false, output_heap, Process_Result.undefined)
-      }
     }
   }
 
