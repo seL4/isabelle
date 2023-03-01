@@ -390,7 +390,7 @@ fun schedule_of_provers provers num_slices =
       @ round_robin (num_slices - num_default_slices) (unknown_provers @ known_provers)
   end
 
-fun prover_slices_of_schedule ctxt factss
+fun prover_slices_of_schedule ctxt goal subgoal factss
     ({abduce, check_consistent, max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases,
       ...} : params)
     schedule =
@@ -420,11 +420,15 @@ fun prover_slices_of_schedule ctxt factss
         ((slice_size0, abduce0, check_consistent0, num_facts0, fact_filter0), extra) =
       let
         val slice_size = Int.min (max_slice_size, slice_size0)
+        val goal_not_False = not (Logic.get_goal (Thm.prop_of goal) subgoal aconv @{prop False})
         val abduce =
           (case abduce of
-            NONE => abduce0
+            NONE => abduce0 andalso goal_not_False
           | SOME max_candidates => max_candidates > 0)
-        val check_consistent = check_consistent |> the_default check_consistent0
+        val check_consistent =
+          (case check_consistent of
+            NONE => check_consistent0 andalso goal_not_False
+          | SOME check_consistent => check_consistent)
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
@@ -549,7 +553,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, check_consistent, induct
             val schedule =
               if mode = Auto_Try then provers
               else schedule_of_provers provers slices
-            val prover_slices = prover_slices_of_schedule ctxt factss params schedule
+            val prover_slices = prover_slices_of_schedule ctxt goal i factss params schedule
 
             val _ =
               if verbose then
