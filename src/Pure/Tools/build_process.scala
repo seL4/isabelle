@@ -78,14 +78,13 @@ object Build_Process {
         }
 
       val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
-      new Context(uuid, store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
+      new Context(store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, verbose = verbose, session_setup)
+        no_build = no_build, verbose = verbose, session_setup, uuid = uuid)
     }
   }
 
   final class Context private(
-    val uuid: String,
     val store: Sessions.Store,
     val build_deps: Sessions.Deps,
     val sessions: Map[String, Build_Job.Session_Context],
@@ -99,6 +98,7 @@ object Build_Process {
     val no_build: Boolean,
     val verbose: Boolean,
     val session_setup: (String, Session) => Unit,
+    val uuid: String
   ) {
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
