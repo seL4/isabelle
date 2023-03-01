@@ -536,9 +536,9 @@ extends AutoCloseable {
     val new_pending =
       List.from(
         for {
-          (name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator
+          (name, session_context) <- build_context.sessions.iterator
           if !old_pending(name)
-        } yield Build_Process.Entry(name, preds.toList))
+        } yield Build_Process.Entry(name, session_context.deps))
     state.copy(pending = new_pending ::: state.pending)
   }
 
