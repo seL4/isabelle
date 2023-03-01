@@ -818,7 +818,7 @@ It is generally beneficial to run several provers in parallel.
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
 
-\opsmart{check\_inconsistent}{dont\_check\_inconsistent}
+\opsmartx{check\_inconsistent}{dont\_check\_inconsistent}
 Specifies whether Sledgehammer should look for inconsistencies or for proofs. By
 default, it looks for both proofs and inconsistencies.
 
@@ -831,14 +831,17 @@ used or if a flawed lemma was introduced with \textbf{sorry}.
 \opdefault{abduce}{smart\_int}{smart}
 Specifies the maximum number of candidate missing hypotheses that may be
 displayed. These hypotheses are discovered heuristically by a process called
-abduction (as opposed to deduction)---that is, they are guessed and found to be
-sufficient to prove the goal.
+abduction (which stands in contrast to deduction)---that is, they are guessed
+and found to be sufficient to prove the goal.
 
 Abduction is currently supported only by E. If the option is set to
 \textit{smart} (the default), abduction is enabled only in some of the E time
 slices, and only one candidate missing hypothesis is displayed. You can disable
 abduction altogether by setting the option to 0 or enable it in all time slices
 by setting it to a nonzero value.
+
+\optrueonly{dont\_abduce}
+Alias for ``\textit{abduce} = 0''.
 
 \optrue{minimize}{dont\_minimize}
 Specifies whether the proof minimization tool should be invoked automatically
