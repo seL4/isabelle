@@ -239,9 +239,14 @@ antiquotations.
     Minor INCOMPATIBILITY.
 
 * Sledgehammer:
-  - Added refutational mode to find likely unprovable conectures. It is
-    enabled by default in addition to the usual proving mode and can be
-    enabled or disabled using the 'refute' option.
+  - Added an inconsistency check mode to find likely unprovable
+    conjectures. It is enabled by default in addition to the usual
+    proving mode and can be controlled using the 'check_inconsistent'
+    option.
+  - Added an abduction mode to find likely missing hypotheses to
+    conjectures. It currently works only with the E prover. It is
+    enabled by default and can be controlled using the 'abduce'
+    option.
 
 
 *** ML ***
