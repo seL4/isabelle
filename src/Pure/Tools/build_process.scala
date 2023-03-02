@@ -139,7 +139,7 @@ object Build_Process {
   case class Result(
     process_result: Process_Result,
     output_shasum: SHA1.Shasum,
-    node_info: Build_Job.Node_Info,
+    node_info: Host.Node_Info,
     current: Boolean
   ) {
     def ok: Boolean = process_result.ok
@@ -188,7 +188,7 @@ object Build_Process {
       name: String,
       process_result: Process_Result,
       output_shasum: SHA1.Shasum,
-      node_info: Build_Job.Node_Info = Build_Job.Node_Info.none,
+      node_info: Host.Node_Info = Host.Node_Info.none,
       current: Boolean = false
     ): State = {
       val entry = name -> Build_Process.Result(process_result, output_shasum, node_info, current)
@@ -347,7 +347,7 @@ object Build_Process {
             val name = res.string(Running.name)
             val hostname = res.string(Running.hostname)
             val numa_node = res.get_int(Running.numa_node)
-            Build_Job.Abstract(name, Build_Job.Node_Info(hostname, numa_node))
+            Build_Job.Abstract(name, Host.Node_Info(hostname, numa_node))
           })
       }
 
@@ -389,7 +389,7 @@ object Build_Process {
             val timing_elapsed = res.long(Results.timing_elapsed)
             val timing_cpu = res.long(Results.timing_cpu)
             val timing_gc = res.long(Results.timing_gc)
-            val node_info = Build_Job.Node_Info(hostname, numa_node)
+            val node_info = Host.Node_Info(hostname, numa_node)
             val process_result =
               Process_Result(rc,
                 out_lines = split_lines(out),
@@ -599,7 +599,7 @@ extends AutoCloseable {
       store.init_output(session_name)
 
       val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
-      val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
+      val node_info = Host.Node_Info(build_context.hostname, numa_node)
       val job =
         Build_Job.start_session(
           build_context, build_deps.background(session_name), input_shasum, node_info)

@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 
 trait Build_Job {
   def job_name: String
-  def node_info: Build_Job.Node_Info
+  def node_info: Host.Node_Info
   def terminate(): Unit = ()
   def is_finished: Boolean = false
   def finish: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
@@ -21,16 +21,13 @@ trait Build_Job {
 }
 
 object Build_Job {
-  object Node_Info { def none: Node_Info = Node_Info("", None) }
-  sealed case class Node_Info(hostname: String, numa_node: Option[Int])
-
-  sealed case class Result(node_info: Node_Info, process_result: Process_Result) {
+  sealed case class Result(node_info: Host.Node_Info, process_result: Process_Result) {
     def ok: Boolean = process_result.ok
   }
 
   sealed case class Abstract(
     override val job_name: String,
-    override val node_info: Node_Info
+    override val node_info: Host.Node_Info
   ) extends Build_Job {
     override def make_abstract: Abstract = this
   }
@@ -44,7 +41,7 @@ object Build_Job {
     build_context: Build_Process.Context,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
-    node_info: Node_Info
+    node_info: Host.Node_Info
   ): Session_Job = new Session_Job(build_context, session_background, input_shasum, node_info)
 
   object Session_Context {
@@ -105,7 +102,7 @@ object Build_Job {
     build_context: Build_Process.Context,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
-    override val node_info: Node_Info
+    override val node_info: Host.Node_Info
   ) extends Build_Job {
     private val store = build_context.store
     private val progress = build_context.progress

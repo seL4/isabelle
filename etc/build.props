@@ -152,6 +152,7 @@ sources = \
   src/Pure/System/components.scala \
   src/Pure/System/executable.scala \
   src/Pure/System/getopts.scala \
+  src/Pure/System/host.scala \
   src/Pure/System/isabelle_charset.scala \
   src/Pure/System/isabelle_fonts.scala \
   src/Pure/System/isabelle_platform.scala \
