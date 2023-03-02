@@ -173,7 +173,7 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def stop_running(): Unit = running.valuesIterator.foreach(_.terminate())
+    def stop_running(): Unit = running.valuesIterator.foreach(_.cancel())
 
     def finished_running(): List[Build_Job] =
       List.from(running.valuesIterator.filter(_.is_finished))
@@ -614,7 +614,7 @@ extends AutoCloseable {
 
         for (job <- synchronized_database { _state.finished_running() }) {
           val job_name = job.job_name
-          val (process_result, output_shasum) = job.finish
+          val (process_result, output_shasum) = job.join
           synchronized_database {
             _state = _state.
               remove_pending(job_name).
