@@ -2369,9 +2369,6 @@ proof
     using hull_inc u by fastforce
 qed
 
-lemma inner_sum_Basis[simp]: "i \<in> Basis \<Longrightarrow> (\<Sum>Basis) \<bullet> i = 1"
-  by (simp add: inner_sum_left sum.If_cases inner_Basis)
-
 lemma convex_set_plus:
   assumes "convex S" and "convex T" shows "convex (S + T)"
 proof -

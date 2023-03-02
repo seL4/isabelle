@@ -840,6 +840,76 @@ proof -
     by (metis assms continuous_on_compose continuous_on_swap swap_cbox_Pair)
 qed
 
+lemma open_contains_cbox:
+  fixes x :: "'a :: euclidean_space"
+  assumes "open A" "x \<in> A"
+  obtains a b where "cbox a b \<subseteq> A" "x \<in> box a b" "\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i"
+proof -
+  from assms obtain R where R: "R > 0" "ball x R \<subseteq> A"
+    by (auto simp: open_contains_ball)
+  define r :: real where "r = R / (2 * sqrt DIM('a))"
+  from \<open>R > 0\<close> have [simp]: "r > 0" by (auto simp: r_def)
+  define d :: 'a where "d = r *\<^sub>R Topology_Euclidean_Space.One"
+  have "cbox (x - d) (x + d) \<subseteq> A"
+  proof safe
+    fix y assume y: "y \<in> cbox (x - d) (x + d)"
+    have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2)"
+      by (subst euclidean_dist_l2) (auto simp: L2_set_def)
+    also from y have "sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2) \<le> sqrt (\<Sum>i\<in>(Basis::'a set). r\<^sup>2)"
+      by (intro real_sqrt_le_mono sum_mono power_mono)
+         (auto simp: dist_norm d_def cbox_def algebra_simps)
+    also have "\<dots> = sqrt (DIM('a) * r\<^sup>2)" by simp
+    also have "DIM('a) * r\<^sup>2 = (R / 2) ^ 2"
+      by (simp add: r_def power_divide)
+    also have "sqrt \<dots> = R / 2"
+      using \<open>R > 0\<close> by simp
+    also from \<open>R > 0\<close> have "\<dots> < R" by simp
+    finally have "y \<in> ball x R" by simp
+    with R show "y \<in> A" by blast
+  qed
+  thus ?thesis
+    using that[of "x - d" "x + d"] by (auto simp: algebra_simps d_def box_def)
+qed
+
+lemma open_contains_box:
+  fixes x :: "'a :: euclidean_space"
+  assumes "open A" "x \<in> A"
+  obtains a b where "box a b \<subseteq> A" "x \<in> box a b" "\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i"
+  by (meson assms box_subset_cbox dual_order.trans open_contains_cbox)
+
+lemma inner_image_box:
+  assumes "(i :: 'a :: euclidean_space) \<in> Basis"
+  assumes "\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i"
+  shows   "(\<lambda>x. x \<bullet> i) ` box a b = {a \<bullet> i<..<b \<bullet> i}"
+proof safe
+  fix x assume x: "x \<in> {a \<bullet> i<..<b \<bullet> i}"
+  let ?y = "(\<Sum>j\<in>Basis. (if i = j then x else (a + b) \<bullet> j / 2) *\<^sub>R j)"
+  from x assms have "?y \<bullet> i \<in> (\<lambda>x. x \<bullet> i) ` box a b"
+    by (intro imageI) (auto simp: box_def algebra_simps)
+  also have "?y \<bullet> i = (\<Sum>j\<in>Basis. (if i = j then x else (a + b) \<bullet> j / 2) * (j \<bullet> i))"
+    by (simp add: inner_sum_left)
+  also have "\<dots> = (\<Sum>j\<in>Basis. if i = j then x else 0)"
+    by (intro sum.cong) (auto simp: inner_not_same_Basis assms)
+  also have "\<dots> = x" using assms by simp
+  finally show "x \<in> (\<lambda>x. x \<bullet> i) ` box a b"  .
+qed (insert assms, auto simp: box_def)
+
+lemma inner_image_cbox:
+  assumes "(i :: 'a :: euclidean_space) \<in> Basis"
+  assumes "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
+  shows   "(\<lambda>x. x \<bullet> i) ` cbox a b = {a \<bullet> i..b \<bullet> i}"
+proof safe
+  fix x assume x: "x \<in> {a \<bullet> i..b \<bullet> i}"
+  let ?y = "(\<Sum>j\<in>Basis. (if i = j then x else a \<bullet> j) *\<^sub>R j)"
+  from x assms have "?y \<bullet> i \<in> (\<lambda>x. x \<bullet> i) ` cbox a b"
+    by (intro imageI) (auto simp: cbox_def)
+  also have "?y \<bullet> i = (\<Sum>j\<in>Basis. (if i = j then x else a \<bullet> j) * (j \<bullet> i))"
+    by (simp add: inner_sum_left)
+  also have "\<dots> = (\<Sum>j\<in>Basis. if i = j then x else 0)"
+    by (intro sum.cong) (auto simp: inner_not_same_Basis assms)
+  also have "\<dots> = x" using assms by simp
+  finally show "x \<in> (\<lambda>x. x \<bullet> i) ` cbox a b"  .
+qed (insert assms, auto simp: cbox_def)
 
 subsection \<open>General Intervals\<close>
 

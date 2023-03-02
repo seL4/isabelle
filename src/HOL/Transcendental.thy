@@ -2492,6 +2492,9 @@ lemma powr_minus_divide: "x powr (- a) = 1/(x powr a)"
       for a x :: "'a::{ln,real_normed_field}"
   by (simp add: divide_inverse powr_minus)
 
+lemma powr_sum: "x \<noteq> 0 \<Longrightarrow> finite A \<Longrightarrow> x powr sum f A = (\<Prod>y\<in>A. x powr f y)"
+  by (simp add: powr_def exp_sum sum_distrib_right)
+
 lemma divide_powr_uminus: "a / b powr c = a * b powr (- c)"
   for a b c :: real
   by (simp add: powr_minus_divide)

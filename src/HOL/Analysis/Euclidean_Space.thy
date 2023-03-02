@@ -53,6 +53,9 @@ lemma (in euclidean_space) inner_not_same_Basis: "u \<in> Basis \<Longrightarrow
 lemma (in euclidean_space) sgn_Basis: "u \<in> Basis \<Longrightarrow> sgn u = u"
   unfolding sgn_div_norm by (simp add: scaleR_one)
 
+lemma inner_sum_Basis[simp]: "i \<in> Basis \<Longrightarrow> inner (\<Sum>Basis) i = 1"
+  by (simp add: inner_sum_left sum.If_cases inner_Basis)
+
 lemma (in euclidean_space) Basis_zero [simp]: "0 \<notin> Basis"
 proof
   assume "0 \<in> Basis" thus "False"

@@ -1067,11 +1067,7 @@ lemma real_of_nat_div2: "0 \<le> real n / real x - real (n div x)" for n x :: na
   by (metis floor_divide_of_nat_eq of_int_floor_le of_int_of_nat_eq)
 
 lemma real_of_nat_div3: "real n / real x - real (n div x) \<le> 1" for n x :: nat
-proof (cases "x = 0")
-  case False
-  then show ?thesis
-    by (metis of_int_of_nat_eq real_of_int_div3 zdiv_int)
-qed auto
+  by (metis of_int_of_nat_eq real_of_int_div3 of_nat_div)
 
 lemma real_of_nat_div4: "real (n div x) \<le> real n / real x" for n x :: nat
   using real_of_nat_div2 [of n x] by simp
