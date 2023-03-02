@@ -4,7 +4,8 @@
 Information about compute hosts, including NUMA: Non-Uniform Memory Access of
 separate CPU nodes.
 
-See also https://www.open-mpi.org/projects/hwloc notably "hwloc-ls".
+See also https://www.open-mpi.org/projects/hwloc --- notably "lstopo" or
+"hwloc-ls" (e.g. via Ubuntu package "hwloc").
 */
 
 package isabelle
