@@ -120,7 +120,7 @@ object ML_Process {
     val process_policy = options.string("ML_process_policy")
     val process_prefix = if_proper(process_policy, process_policy + " ")
 
-    Bash.process(process_prefix + """"$ML_HOME/poly" -q """ + Bash.strings(bash_args),
+    Bash.process(process_prefix + "\"$POLYML_EXE\" -q " + Bash.strings(bash_args),
       cwd = cwd,
       env = bash_env,
       redirect = redirect,
