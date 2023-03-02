@@ -97,9 +97,6 @@ object Build_Job {
   class Session_Job(
     build_context: Build_Process.Context,
     session_background: Sessions.Background,
-    session_heaps: List[Path],
-    store_heap: Boolean,
-    resources: Resources,
     input_shasum: SHA1.Shasum,
     override val node_info: Node_Info
   ) extends Build_Job {
@@ -116,11 +113,19 @@ object Build_Job {
     val session_sources: Sessions.Sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
+    val store_heap = build_context.store_heap(session_name)
+
     private val future_result: Future[Process_Result] =
       Future.thread("build", uninterruptible = true) {
         val env =
           Isabelle_System.settings(
             List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
+
+        val session_heaps =
+          session_background.info.parent match {
+            case None => Nil
+            case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
+          }
 
         val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
 
@@ -151,6 +156,10 @@ object Build_Job {
                     Document.Blobs.Item(bytes, text, chunk, changed = false)
                 }
           }
+
+        val resources =
+          new Resources(session_background, log = build_context.log,
+            command_timings = build_context.old_command_timings(session_name))
 
         val session =
           new Session(options, resources) {

@@ -598,22 +598,11 @@ extends AutoCloseable {
 
       store.init_output(session_name)
 
-      val session_background = build_deps.background(session_name)
-      val session_heaps =
-        session_background.info.parent match {
-          case None => Nil
-          case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
-        }
-
-      val resources =
-        new Resources(session_background, log = build_context.log,
-          command_timings = build_context.old_command_timings(session_name))
-
       val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
       val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
       val job =
-        new Build_Job.Session_Job(build_context, session_background, session_heaps,
-          store_heap, resources, input_shasum, node_info)
+        new Build_Job.Session_Job(
+          build_context, build_deps.background(session_name), input_shasum, node_info)
       state1.add_running(session_name, job)
     }
   }
