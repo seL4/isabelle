@@ -333,10 +333,13 @@ object Build_Job {
 
         val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
-        val process = {
+        val process =
           Isabelle_Process.start(options, session, session_background, session_heaps,
             use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir.file, env = env)
-        }
+
+        val timeout_request: Option[Event_Timer.Request] =
+          if (info.timeout_ignored) None
+          else Some(Event_Timer.request(Time.now() + info.timeout) { process.terminate() })
 
         val build_errors =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
@@ -360,6 +363,12 @@ object Build_Job {
 
         val result0 =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) { process.await_shutdown() }
+
+        val was_timeout =
+          timeout_request match {
+            case None => false
+            case Some(request) => !request.cancel()
+          }
 
         session.stop()
 
@@ -432,32 +441,20 @@ object Build_Job {
             case Exn.Exn(exn) => throw exn
           }
 
-        result2
+        val process_result =
+          if (result2.ok) result2
+          else if (was_timeout) result2.error(Output.error_message_text("Timeout")).timeout_rc
+          else if (result2.interrupted) result2.error(Output.error_message_text("Interrupt"))
+          else result2
+
+        process_result
       }
 
     override def terminate(): Unit = future_result.cancel()
     override def is_finished: Boolean = future_result.is_finished
 
-    private val timeout_request: Option[Event_Timer.Request] = {
-      if (info.timeout_ignored) None
-      else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
-    }
-
     override lazy val finish: (Process_Result, SHA1.Shasum) = {
-      val process_result = {
-        val result2 = future_result.join
-
-        val was_timeout =
-          timeout_request match {
-            case None => false
-            case Some(request) => !request.cancel()
-          }
-
-        if (result2.ok) result2
-        else if (was_timeout) result2.error(Output.error_message_text("Timeout")).timeout_rc
-        else if (result2.interrupted) result2.error(Output.error_message_text("Interrupt"))
-        else result2
-      }
+      val process_result = future_result.join
 
       val output_shasum =
         if (process_result.ok && store_heap && store.output_heap(session_name).is_file) {
