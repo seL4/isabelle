@@ -235,13 +235,6 @@ object Build_Process {
       val table = make_table("serial", List(serial))
     }
 
-    object Node_Info {
-      val hostname = SQL.Column.string("hostname").make_primary_key
-      val numa_index = SQL.Column.int("numa_index")
-
-      val table = make_table("node_info", List(hostname, numa_index))
-    }
-
     object Pending {
       val name = Generic.name.make_primary_key
       val deps = SQL.Column.string("deps")
@@ -286,26 +279,6 @@ object Build_Process {
           stmt.execute()
         }
       }
-
-    def read_numa_index(db: SQL.Database, hostname: String): Int =
-      db.using_statement(
-        Node_Info.table.select(List(Node_Info.numa_index),
-          sql = Node_Info.hostname.where_equal(hostname))
-      )(stmt => stmt.execute_query().iterator(_.int(Node_Info.numa_index)).nextOption.getOrElse(0))
-
-    def update_numa_index(db: SQL.Database, hostname: String, numa_index: Int): Boolean =
-      if (read_numa_index(db, hostname) != numa_index) {
-        db.using_statement(
-          Node_Info.table.delete(sql = Node_Info.hostname.where_equal(hostname))
-        )(_.execute())
-        db.using_statement(Node_Info.table.insert()) { stmt =>
-          stmt.string(1) = hostname
-          stmt.int(2) = numa_index
-          stmt.execute()
-        }
-        true
-      }
-      else false
 
     def read_pending(db: SQL.Database): List[Entry] =
       db.using_statement(Pending.table.select(sql = SQL.order_by(List(Pending.name)))) { stmt =>
@@ -432,10 +405,10 @@ object Build_Process {
         List(
           Base.table,
           Serial.table,
-          Node_Info.table,
           Pending.table,
           Running.table,
-          Results.table)
+          Results.table,
+          Host.Data.Node_Info.table)
 
       for (table <- tables) db.create_table(table)
 
@@ -463,10 +436,10 @@ object Build_Process {
     ): State = {
       val changed =
         List(
-          update_numa_index(db, hostname, state.numa_index),
           update_pending(db, state.pending),
           update_running(db, state.running),
-          update_results(db, state.results))
+          update_results(db, state.results),
+          Host.Data.update_numa_index(db, hostname, state.numa_index))
 
       val serial0 = get_serial(db)
       val serial = if (changed.exists(identity)) serial0 + 1 else serial0
