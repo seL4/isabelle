@@ -132,6 +132,9 @@ option timeout : real = 0
 option timeout_build : bool = true
   -- "observe timeout for session build"
 
+option process_policy : string = ""
+  -- "command prefix for underlying process, notably ML with NUMA policy"
+
 option process_output_tail : int = 40
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
@@ -164,9 +167,6 @@ public option ML_system_64 : bool = false
 
 public option ML_system_apple : bool = true
   -- "prefer native Apple/ARM64 platform (change requires restart)"
-
-public option ML_process_policy : string = ""
-  -- "ML process command prefix (process policy)"
 
 
 section "Build Process"

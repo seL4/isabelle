@@ -1484,13 +1484,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         database_server && {
           try_open_database(name) match {
             case Some(db) =>
-              try {
+              using(db) { db =>
                 db.transaction {
                   val relevant_db = session_info_defined(db, name)
                   init_session_info(db, name)
                   relevant_db
                 }
-              } finally { db.close() }
+              }
             case None => false
           }
         }
@@ -1506,6 +1506,37 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       val relevant = relevant_db || del.nonEmpty
       val ok = del.forall(b => b)
       (relevant, ok)
+    }
+
+    def init_output(name: String): Unit = {
+      clean_output(name)
+      using(open_database(name, output = true))(init_session_info(_, name))
+    }
+
+    def check_output(
+      name: String,
+      sources_shasum: SHA1.Shasum,
+      input_shasum: SHA1.Shasum,
+      fresh_build: Boolean,
+      store_heap: Boolean
+    ): (Boolean, SHA1.Shasum) = {
+      try_open_database(name) match {
+        case Some(db) =>
+          using(db)(read_build(_, name)) match {
+            case Some(build) =>
+              val output_shasum = find_heap_shasum(name)
+              val current =
+                !fresh_build &&
+                build.ok &&
+                build.sources == sources_shasum &&
+                build.input_heaps == input_shasum &&
+                build.output_heap == output_shasum &&
+                !(store_heap && output_shasum.is_empty)
+              (current, output_shasum)
+            case None => (false, SHA1.no_shasum)
+          }
+        case None => (false, SHA1.no_shasum)
+      }
     }
 
 
@@ -1591,8 +1622,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def read_session_timing(db: SQL.Database, name: String): Properties.T =
       Properties.decode(read_bytes(db, name, Session_Info.session_timing), cache = cache)
 
-    def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
-      read_properties(db, name, Session_Info.command_timings)
+    def read_command_timings(db: SQL.Database, name: String): Bytes =
+      read_bytes(db, name, Session_Info.command_timings)
 
     def read_theory_timings(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.theory_timings)

@@ -13,7 +13,7 @@ object Build {
 
   object Results {
     def apply(context: Build_Process.Context, results: Map[String, Process_Result]): Results =
-      new Results(context.store, context.deps, results)
+      new Results(context.store, context.build_deps, results)
   }
 
   class Results private(
@@ -317,7 +317,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             clean_build = clean_build,
             dirs = dirs,
             select_dirs = select_dirs,
-            numa_shuffling = NUMA.check(progress, numa_shuffling),
+            numa_shuffling = Host.numa_check(progress, numa_shuffling),
             max_jobs = max_jobs,
             list_files = list_files,
             check_keywords = check_keywords,

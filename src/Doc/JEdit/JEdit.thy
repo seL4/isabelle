@@ -243,7 +243,7 @@ text \<open>
     -l NAME      logic image name
     -m MODE      add print mode for output
     -n           no build of session image on startup
-    -p CMD       ML process command prefix (process policy)
+    -p CMD       command prefix for ML process (e.g. NUMA policy)
     -s           system build mode for session image (system_heaps=true)
     -u           user build mode for session image (system_heaps=false)
 
@@ -308,7 +308,7 @@ text \<open>
   Isabelle desktop application without further options.
 
   The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
-  option @{system_option_ref ML_process_policy} for ML processes started by
+  option @{system_option_ref process_policy} for ML processes started by
   the Prover IDE, e.g. to control CPU affinity on multiprocessor systems.
 
   The JVM system property \<^verbatim>\<open>isabelle.jedit_server\<close> provides a different server

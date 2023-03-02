@@ -13,25 +13,21 @@ import scala.util.matching.Regex
 
 trait Build_Job {
   def job_name: String
-  def node_info: Build_Job.Node_Info
-  def start(): Unit = ()
-  def terminate(): Unit = ()
+  def node_info: Host.Node_Info
+  def cancel(): Unit = ()
   def is_finished: Boolean = false
-  def finish: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
+  def join: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
   def make_abstract: Build_Job.Abstract = Build_Job.Abstract(job_name, node_info)
 }
 
 object Build_Job {
-  object Node_Info { def none: Node_Info = Node_Info("", None) }
-  sealed case class Node_Info(hostname: String, numa_node: Option[Int])
-
-  sealed case class Result(node_info: Node_Info, process_result: Process_Result) {
+  sealed case class Result(node_info: Host.Node_Info, process_result: Process_Result) {
     def ok: Boolean = process_result.ok
   }
 
   sealed case class Abstract(
     override val job_name: String,
-    override val node_info: Node_Info
+    override val node_info: Host.Node_Info
   ) extends Build_Job {
     override def make_abstract: Abstract = this
   }
@@ -39,38 +35,106 @@ object Build_Job {
 
   /* build session */
 
-  class Build_Session(
-    progress: Progress,
-    verbose: Boolean,
+  def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
+
+  def start_session(
+    build_context: Build_Process.Context,
     session_background: Sessions.Background,
-    session_heaps: List[Path],
-    store: Sessions.Store,
-    do_store: Boolean,
-    resources: Resources,
-    session_setup: (String, Session) => Unit,
-    sources_shasum: SHA1.Shasum,
-    input_heaps: SHA1.Shasum,
-    override val node_info: Node_Info
+    input_shasum: SHA1.Shasum,
+    node_info: Host.Node_Info
+  ): Session_Job = new Session_Job(build_context, session_background, input_shasum, node_info)
+
+  object Session_Context {
+    def load(
+      name: String,
+      deps: List[String],
+      ancestors: List[String],
+      sources_shasum: SHA1.Shasum,
+      timeout: Time,
+      store: Sessions.Store,
+      progress: Progress = new Progress
+    ): Session_Context = {
+      def default: Session_Context =
+        new Session_Context(name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty)
+
+      store.try_open_database(name) match {
+        case None => default
+        case Some(db) =>
+          def ignore_error(msg: String) = {
+            progress.echo_warning(
+              "Ignoring bad database " + db + " for session " + quote(name) +
+              if_proper(msg, ":\n" + msg))
+            default
+          }
+          try {
+            val command_timings = store.read_command_timings(db, name)
+            val elapsed =
+              store.read_session_timing(db, name) match {
+                case Markup.Elapsed(s) => Time.seconds(s)
+                case _ => Time.zero
+              }
+            new Session_Context(
+              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings)
+          }
+          catch {
+            case ERROR(msg) => ignore_error(msg)
+            case exn: java.lang.Error => ignore_error(Exn.message(exn))
+            case _: XML.Error => ignore_error("XML.Error")
+          }
+          finally { db.close() }
+      }
+    }
+  }
+
+  final class Session_Context(
+    val name: String,
+    val deps: List[String],
+    val ancestors: List[String],
+    val sources_shasum: SHA1.Shasum,
+    val timeout: Time,
+    val old_time: Time,
+    val old_command_timings_blob: Bytes
+  ) {
+    override def toString: String = name
+  }
+
+  class Session_Job private[Build_Job](
+    build_context: Build_Process.Context,
+    session_background: Sessions.Background,
+    input_shasum: SHA1.Shasum,
+    override val node_info: Host.Node_Info
   ) extends Build_Job {
+    private val store = build_context.store
+    private val progress = build_context.progress
+    private val verbose = build_context.verbose
+
     def session_name: String = session_background.session_name
     def job_name: String = session_name
 
     val info: Sessions.Info = session_background.sessions_structure(session_name)
-    val options: Options = NUMA.policy_options(info.options, node_info.numa_node)
+    val options: Options = Host.process_policy_options(info.options, node_info.numa_node)
 
     val session_sources: Sessions.Sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
-    private lazy val future_result: Future[Process_Result] =
+    val store_heap = build_context.store_heap(session_name)
+
+    private val future_result: Future[(Process_Result, SHA1.Shasum)] =
       Future.thread("build", uninterruptible = true) {
         val env =
           Isabelle_System.settings(
             List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
+        val session_heaps =
+          session_background.info.parent match {
+            case None => Nil
+            case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
+          }
+
         val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
 
         val eval_store =
-          if (do_store) {
+          if (store_heap) {
             (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
             List("ML_Heap.save_child " +
               ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(session_name))))
@@ -96,6 +160,13 @@ object Build_Job {
                     Document.Blobs.Item(bytes, text, chunk, changed = false)
                 }
           }
+
+
+        /* session */
+
+        val resources =
+          new Resources(session_background, log = build_context.log,
+            command_timings = build_context.old_command_timings(session_name))
 
         val session =
           new Session(options, resources) {
@@ -261,14 +332,20 @@ object Build_Job {
           case _ =>
         }
 
-        session_setup(session_name, session)
+        build_context.session_setup(session_name, session)
 
         val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
-        val process = {
+
+        /* process */
+
+        val process =
           Isabelle_Process.start(options, session, session_background, session_heaps,
             use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir.file, env = env)
-        }
+
+        val timeout_request: Option[Event_Timer.Request] =
+          if (info.timeout_ignored) None
+          else Some(Event_Timer.request(Time.now() + info.timeout) { process.terminate() })
 
         val build_errors =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
@@ -290,8 +367,14 @@ object Build_Job {
             }
           }
 
-        val process_result =
+        val result0 =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) { process.await_shutdown() }
+
+        val was_timeout =
+          timeout_request match {
+            case None => false
+            case Some(request) => !request.cancel()
+          }
 
         session.stop()
 
@@ -300,7 +383,7 @@ object Build_Job {
 
         val (document_output, document_errors) =
           try {
-            if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
+            if (build_errors.isInstanceOf[Exn.Res[_]] && result0.ok && info.documents.nonEmpty) {
               using(Export.open_database_context(store)) { database_context =>
                 val documents =
                   using(database_context.open_session(session_background)) {
@@ -322,7 +405,10 @@ object Build_Job {
             case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
           }
 
-        val result = {
+
+        /* process result */
+
+        val result1 = {
           val theory_timing =
             theory_timings.iterator.flatMap(
               {
@@ -342,111 +428,102 @@ object Build_Job {
               task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
               document_output
 
-          process_result.output(more_output)
+          result0.output(more_output)
             .error(Library.trim_line(stderr.toString))
             .errors_rc(export_errors ::: document_errors)
         }
 
-        build_errors match {
-          case Exn.Res(build_errs) =>
-            val errs = build_errs ::: document_errors
-            if (errs.nonEmpty) {
-              result.error_rc.output(
-                errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
-                  errs.map(Protocol.Error_Message_Marker.apply))
-            }
-            else if (progress.stopped && result.ok) result.copy(rc = Process_Result.RC.interrupt)
-            else result
-          case Exn.Exn(Exn.Interrupt()) =>
-            if (result.ok) result.copy(rc = Process_Result.RC.interrupt)
-            else result
-          case Exn.Exn(exn) => throw exn
-        }
-      }
-
-    override def start(): Unit = future_result
-    override def terminate(): Unit = future_result.cancel()
-    override def is_finished: Boolean = future_result.is_finished
-
-    private val timeout_request: Option[Event_Timer.Request] = {
-      if (info.timeout_ignored) None
-      else Some(Event_Timer.request(Time.now() + info.timeout) { terminate() })
-    }
-
-    override lazy val finish: (Process_Result, SHA1.Shasum) = {
-      val process_result = {
-        val result = future_result.join
-
-        val was_timeout =
-          timeout_request match {
-            case None => false
-            case Some(request) => !request.cancel()
+        val result2 =
+          build_errors match {
+            case Exn.Res(build_errs) =>
+              val errs = build_errs ::: document_errors
+              if (errs.nonEmpty) {
+                result1.error_rc.output(
+                  errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                    errs.map(Protocol.Error_Message_Marker.apply))
+              }
+              else if (progress.stopped && result1.ok) result1.copy(rc = Process_Result.RC.interrupt)
+              else result1
+            case Exn.Exn(Exn.Interrupt()) =>
+              if (result1.ok) result1.copy(rc = Process_Result.RC.interrupt)
+              else result1
+            case Exn.Exn(exn) => throw exn
           }
 
-        if (result.ok) result
-        else if (was_timeout) result.error(Output.error_message_text("Timeout")).timeout_rc
-        else if (result.interrupted) result.error(Output.error_message_text("Interrupt"))
-        else result
-      }
+        val process_result =
+          if (result2.ok) result2
+          else if (was_timeout) result2.error(Output.error_message_text("Timeout")).timeout_rc
+          else if (result2.interrupted) result2.error(Output.error_message_text("Interrupt"))
+          else result2
 
-      val output_heap =
-        if (process_result.ok && do_store && store.output_heap(session_name).is_file) {
-          SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
+
+        /* output heap */
+
+        val output_shasum =
+          if (process_result.ok && store_heap && store.output_heap(session_name).is_file) {
+            SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
+          }
+          else SHA1.no_shasum
+
+        val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
+
+        val build_log =
+          Build_Log.Log_File(session_name, process_result.out_lines).
+            parse_session_info(
+              command_timings = true,
+              theory_timings = true,
+              ml_statistics = true,
+              task_statistics = true)
+
+        // write log file
+        if (process_result.ok) {
+          File.write_gzip(store.output_log_gz(session_name), terminate_lines(log_lines))
         }
-        else SHA1.no_shasum
+        else File.write(store.output_log(session_name), terminate_lines(log_lines))
 
-      val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
+        // write database
+        using(store.open_database(session_name, output = true))(db =>
+          store.write_session_info(db, session_name, session_sources,
+            build_log =
+              if (process_result.timeout) build_log.error("Timeout") else build_log,
+            build =
+              Sessions.Build_Info(
+                sources = build_context.sources_shasum(session_name),
+                input_heaps = input_shasum,
+                output_heap = output_shasum,
+                process_result.rc, build_context.uuid)))
 
-      val build_log =
-        Build_Log.Log_File(session_name, process_result.out_lines).
-          parse_session_info(
-            command_timings = true,
-            theory_timings = true,
-            ml_statistics = true,
-            task_statistics = true)
+        // messages
+        process_result.err_lines.foreach(progress.echo)
 
-      // write log file
-      if (process_result.ok) {
-        File.write_gzip(store.output_log_gz(session_name), terminate_lines(log_lines))
-      }
-      else File.write(store.output_log(session_name), terminate_lines(log_lines))
-
-      // write database
-      using(store.open_database(session_name, output = true))(db =>
-        store.write_session_info(db, session_name, session_sources,
-          build_log =
-            if (process_result.timeout) build_log.error("Timeout") else build_log,
-          build =
-            Sessions.Build_Info(sources_shasum, input_heaps, output_heap,
-              process_result.rc, UUID.random().toString)))
-
-      // messages
-      process_result.err_lines.foreach(progress.echo)
-
-      if (process_result.ok) {
-        if (verbose) {
-          val props = build_log.session_timing
-          val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-          val timing = Markup.Timing_Properties.get(props)
+        if (process_result.ok) {
+          if (verbose) {
+            val props = build_log.session_timing
+            val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+            val timing = Markup.Timing_Properties.get(props)
+            progress.echo(
+              "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")")
+          }
           progress.echo(
-            "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")")
+            "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
         }
-        progress.echo(
-          "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
-      }
-      else {
-        progress.echo(
-          session_name + " FAILED (see also \"isabelle log -H Error " + session_name + "\")")
-        if (!process_result.interrupted) {
-          val tail = info.options.int("process_output_tail")
-          val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
-          val prefix = if (log_lines.length == suffix.length) Nil else List("...")
-          progress.echo(Library.trim_line(cat_lines(prefix ::: suffix)))
+        else {
+          progress.echo(
+            session_name + " FAILED (see also \"isabelle log -H Error " + session_name + "\")")
+          if (!process_result.interrupted) {
+            val tail = info.options.int("process_output_tail")
+            val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
+            val prefix = if (log_lines.length == suffix.length) Nil else List("...")
+            progress.echo(Library.trim_line(cat_lines(prefix ::: suffix)))
+          }
         }
+
+        (process_result.copy(out_lines = log_lines), output_shasum)
       }
 
-      (process_result.copy(out_lines = log_lines), output_heap)
-    }
+    override def cancel(): Unit = future_result.cancel()
+    override def is_finished: Boolean = future_result.is_finished
+    override def join: (Process_Result, SHA1.Shasum) = future_result.join
   }
 
 

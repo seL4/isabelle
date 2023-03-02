@@ -203,7 +203,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p CMD       ML process command prefix (process policy)
+    -p CMD       command prefix for ML process (e.g. NUMA policy)
     -s           system build mode for session image (system_heaps=true)
     -u           user build mode for session image (system_heaps=false)
     -v           verbose logging of language server
@@ -226,7 +226,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
           "m:" -> (arg => modes = modes ::: List(arg)),
           "n" -> (_ => no_build = true),
           "o:" -> add_option,
-          "p:" -> (arg => add_option("ML_process_policy=" + arg)),
+          "p:" -> (arg => add_option("process_policy=" + arg)),
           "s" -> (_ => add_option("system_heaps=true")),
           "u" -> (_ => add_option("system_heaps=false")),
           "v" -> (_ => verbose = true))

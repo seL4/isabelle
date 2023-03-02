@@ -13,60 +13,12 @@ import scala.annotation.tailrec
 
 
 object Build_Process {
-  /* static context */
-
-  object Session_Context {
-    def empty(session: String, timeout: Time): Session_Context =
-      new Session_Context(session, timeout, Time.zero, Nil)
-
-    def apply(
-      session: String,
-      timeout: Time,
-      store: Sessions.Store,
-      progress: Progress = new Progress
-    ): Session_Context = {
-      store.try_open_database(session) match {
-        case None => empty(session, timeout)
-        case Some(db) =>
-          def ignore_error(msg: String) = {
-            progress.echo_warning("Ignoring bad database " + db +
-              " for session " + quote(session) + (if (msg == "") "" else ":\n" + msg))
-            empty(session, timeout)
-          }
-          try {
-            val command_timings = store.read_command_timings(db, session)
-            val elapsed =
-              store.read_session_timing(db, session) match {
-                case Markup.Elapsed(s) => Time.seconds(s)
-                case _ => Time.zero
-              }
-            new Session_Context(session, timeout, elapsed, command_timings)
-          }
-          catch {
-            case ERROR(msg) => ignore_error(msg)
-            case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("XML.Error")
-          }
-          finally { db.close() }
-      }
-    }
-  }
-
-  final class Session_Context(
-    val session: String,
-    val timeout: Time,
-    val old_time: Time,
-    val old_command_timings: List[Properties.T]
-  ) {
-    def is_empty: Boolean = old_time.is_zero && old_command_timings.isEmpty
-
-    override def toString: String = session
-  }
+  /** static context **/
 
   object Context {
     def apply(
       store: Sessions.Store,
-      deps: Sessions.Deps,
+      build_deps: Sessions.Deps,
       progress: Progress = new Progress,
       hostname: String = Isabelle_System.hostname(),
       numa_shuffling: Boolean = false,
@@ -76,17 +28,22 @@ object Build_Process {
       no_build: Boolean = false,
       verbose: Boolean = false,
       session_setup: (String, Session) => Unit = (_, _) => (),
-      instance: String = UUID.random().toString
+      uuid: String = UUID.random().toString
     ): Context = {
-      val sessions_structure = deps.sessions_structure
+      val sessions_structure = build_deps.sessions_structure
       val build_graph = sessions_structure.build_graph
 
       val sessions =
         Map.from(
-          for (name <- build_graph.keys_iterator)
+          for ((name, (info, _)) <- build_graph.iterator)
           yield {
-            val timeout = sessions_structure(name).timeout
-            name -> Build_Process.Session_Context(name, timeout, store, progress = progress)
+            val deps = info.parent.toList
+            val ancestors = sessions_structure.build_requirements(deps)
+            val sources_shasum = build_deps.sources_shasum(name)
+            val session_context =
+              Build_Job.Session_Context.load(
+                name, deps, ancestors, sources_shasum, info.timeout, store, progress = progress)
+            name -> session_context
           })
 
       val sessions_time = {
@@ -121,18 +78,17 @@ object Build_Process {
             }
         }
 
-      val numa_nodes = NUMA.nodes(enabled = numa_shuffling)
-      new Context(instance, store, deps, sessions, ordering, progress, hostname, numa_nodes,
+      val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
+      new Context(store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, verbose = verbose, session_setup)
+        no_build = no_build, verbose = verbose, session_setup, uuid = uuid)
     }
   }
 
   final class Context private(
-    val instance: String,
     val store: Sessions.Store,
-    val deps: Sessions.Deps,
-    sessions: Map[String, Session_Context],
+    val build_deps: Sessions.Deps,
+    val sessions: Map[String, Build_Job.Session_Context],
     val ordering: Ordering[String],
     val progress: Progress,
     val hostname: String,
@@ -143,18 +99,36 @@ object Build_Process {
     val no_build: Boolean,
     val verbose: Boolean,
     val session_setup: (String, Session) => Unit,
+    val uuid: String
   ) {
-    def sessions_structure: Sessions.Structure = deps.sessions_structure
+    def build_options: Options = store.options
 
-    def apply(session: String): Session_Context =
-      sessions.getOrElse(session, Session_Context.empty(session, Time.zero))
+    val log: Logger =
+      build_options.string("system_log") match {
+        case "" => No_Logger
+        case "-" => Logger.make(progress)
+        case log_file => Logger.make(Some(Path.explode(log_file)))
+      }
 
-    def do_store(session: String): Boolean =
-      build_heap || Sessions.is_pure(session) || !sessions_structure.build_graph.is_maximal(session)
+    def sessions_structure: Sessions.Structure = build_deps.sessions_structure
+
+    def sources_shasum(name: String): SHA1.Shasum = sessions(name).sources_shasum
+
+    def old_command_timings(name: String): List[Properties.T] =
+      sessions.get(name) match {
+        case Some(session_context) =>
+          Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache)
+        case None => Nil
+      }
+
+    def store_heap(name: String): Boolean =
+      build_heap || Sessions.is_pure(name) ||
+      sessions.valuesIterator.exists(_.ancestors.contains(name))
   }
 
 
-  /* dynamic state */
+
+  /** dynamic state **/
 
   case class Entry(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
     def is_ready: Boolean = deps.isEmpty
@@ -163,10 +137,10 @@ object Build_Process {
   }
 
   case class Result(
-    current: Boolean,
-    output_heap: SHA1.Shasum,
-    node_info: Build_Job.Node_Info,
-    process_result: Process_Result
+    process_result: Process_Result,
+    output_shasum: SHA1.Shasum,
+    node_info: Host.Node_Info,
+    current: Boolean
   ) {
     def ok: Boolean = process_result.ok
   }
@@ -199,7 +173,7 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def stop_running(): Unit = running.valuesIterator.foreach(_.terminate())
+    def stop_running(): Unit = running.valuesIterator.foreach(_.cancel())
 
     def finished_running(): List[Build_Job] =
       List.from(running.valuesIterator.filter(_.is_finished))
@@ -212,21 +186,19 @@ object Build_Process {
 
     def make_result(
       name: String,
-      current: Boolean,
-      output_heap: SHA1.Shasum,
       process_result: Process_Result,
-      node_info: Build_Job.Node_Info = Build_Job.Node_Info.none
+      output_shasum: SHA1.Shasum,
+      node_info: Host.Node_Info = Host.Node_Info.none,
+      current: Boolean = false
     ): State = {
-      val result = Build_Process.Result(current, output_heap, node_info, process_result)
-      copy(results = results + (name -> result))
+      val entry = name -> Build_Process.Result(process_result, output_shasum, node_info, current)
+      copy(results = results + entry)
     }
-
-    def get_results(names: List[String]): List[Build_Process.Result] =
-      names.map(results.apply)
   }
 
 
-  /* SQL data model */
+
+  /** SQL data model **/
 
   object Data {
     val database = Path.explode("$ISABELLE_HOME_USER/build.db")
@@ -235,39 +207,32 @@ object Build_Process {
       SQL.Table("isabelle_build" + if_proper(name, "_" + name), columns, body = body)
 
     object Generic {
-      val instance = SQL.Column.string("instance")
+      val uuid = SQL.Column.string("uuid")
       val name = SQL.Column.string("name")
 
-      def sql_equal(instance: String = "", name: String = ""): SQL.Source =
+      def sql_equal(uuid: String = "", name: String = ""): SQL.Source =
         SQL.and(
-          if_proper(instance, Generic.instance.equal(instance)),
+          if_proper(uuid, Generic.uuid.equal(uuid)),
           if_proper(name, Generic.name.equal(name)))
 
-      def sql_member(instance: String = "", names: Iterable[String] = Nil): SQL.Source =
+      def sql_member(uuid: String = "", names: Iterable[String] = Nil): SQL.Source =
         SQL.and(
-          if_proper(instance, Generic.instance.equal(instance)),
+          if_proper(uuid, Generic.uuid.equal(uuid)),
           if_proper(names, Generic.name.member(names)))
     }
 
     object Base {
-      val instance = Generic.instance.make_primary_key
+      val uuid = Generic.uuid.make_primary_key
       val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
 
-      val table = make_table("", List(instance, ml_platform, options))
+      val table = make_table("", List(uuid, ml_platform, options))
     }
 
     object Serial {
       val serial = SQL.Column.long("serial")
 
       val table = make_table("serial", List(serial))
-    }
-
-    object Node_Info {
-      val hostname = SQL.Column.string("hostname").make_primary_key
-      val numa_index = SQL.Column.int("numa_index")
-
-      val table = make_table("node_info", List(hostname, numa_index))
     }
 
     object Pending {
@@ -315,26 +280,6 @@ object Build_Process {
         }
       }
 
-    def read_numa_index(db: SQL.Database, hostname: String): Int =
-      db.using_statement(
-        Node_Info.table.select(List(Node_Info.numa_index),
-          sql = Node_Info.hostname.where_equal(hostname))
-      )(stmt => stmt.execute_query().iterator(_.int(Node_Info.numa_index)).nextOption.getOrElse(0))
-
-    def update_numa_index(db: SQL.Database, hostname: String, numa_index: Int): Boolean =
-      if (read_numa_index(db, hostname) != numa_index) {
-        db.using_statement(
-          Node_Info.table.delete(sql = Node_Info.hostname.where_equal(hostname))
-        )(_.execute())
-        db.using_statement(Node_Info.table.insert()) { stmt =>
-          stmt.string(1) = hostname
-          stmt.int(2) = numa_index
-          stmt.execute()
-        }
-        true
-      }
-      else false
-
     def read_pending(db: SQL.Database): List[Entry] =
       db.using_statement(Pending.table.select(sql = SQL.order_by(List(Pending.name)))) { stmt =>
         List.from(
@@ -375,7 +320,7 @@ object Build_Process {
             val name = res.string(Running.name)
             val hostname = res.string(Running.hostname)
             val numa_node = res.get_int(Running.numa_node)
-            Build_Job.Abstract(name, Build_Job.Node_Info(hostname, numa_node))
+            Build_Job.Abstract(name, Host.Node_Info(hostname, numa_node))
           })
       }
 
@@ -417,7 +362,7 @@ object Build_Process {
             val timing_elapsed = res.long(Results.timing_elapsed)
             val timing_cpu = res.long(Results.timing_cpu)
             val timing_gc = res.long(Results.timing_gc)
-            val node_info = Build_Job.Node_Info(hostname, numa_node)
+            val node_info = Host.Node_Info(hostname, numa_node)
             val process_result =
               Process_Result(rc,
                 out_lines = split_lines(out),
@@ -460,10 +405,10 @@ object Build_Process {
         List(
           Base.table,
           Serial.table,
-          Node_Info.table,
           Pending.table,
           Running.table,
-          Results.table)
+          Results.table,
+          Host.Data.Node_Info.table)
 
       for (table <- tables) db.create_table(table)
 
@@ -476,7 +421,7 @@ object Build_Process {
       for (table <- tables) db.using_statement(table.delete())(_.execute())
 
       db.using_statement(Base.table.insert()) { stmt =>
-        stmt.string(1) = build_context.instance
+        stmt.string(1) = build_context.uuid
         stmt.string(2) = Isabelle_System.getenv("ML_PLATFORM")
         stmt.string(3) = build_context.store.options.make_prefs(Options.init(prefs = ""))
         stmt.execute()
@@ -485,16 +430,16 @@ object Build_Process {
 
     def update_database(
       db: SQL.Database,
-      instance: String,
+      uuid: String,
       hostname: String,
       state: State
     ): State = {
       val changed =
         List(
-          update_numa_index(db, hostname, state.numa_index),
           update_pending(db, state.pending),
           update_running(db, state.running),
-          update_results(db, state.results))
+          update_results(db, state.results),
+          Host.Data.update_numa_index(db, hostname, state.numa_index))
 
       val serial0 = get_serial(db)
       val serial = if (changed.exists(identity)) serial0 + 1 else serial0
@@ -506,23 +451,25 @@ object Build_Process {
 }
 
 
-/* main process */
 
-class Build_Process(protected val build_context: Build_Process.Context) extends AutoCloseable {
+/** main process **/
+
+class Build_Process(protected val build_context: Build_Process.Context)
+extends AutoCloseable {
+  /* context */
+
   protected val store: Sessions.Store = build_context.store
   protected val build_options: Options = store.options
-  protected val build_deps: Sessions.Deps = build_context.deps
+  protected val build_deps: Sessions.Deps = build_context.build_deps
   protected val progress: Progress = build_context.progress
   protected val verbose: Boolean = build_context.verbose
 
-  protected val log: Logger =
-    build_options.string("system_log") match {
-      case "" => No_Logger
-      case "-" => Logger.make(progress)
-      case log_file => Logger.make(Some(Path.explode(log_file)))
-    }
 
-  protected val database: Option[SQL.Database] =
+  /* global state: internal var vs. external database */
+
+  private var _state: Build_Process.State = init_state(Build_Process.State())
+
+  private val _database: Option[SQL.Database] =
     if (!build_options.bool("build_database_test")) None
     else if (store.database_server) Some(store.open_database_server())
     else {
@@ -532,148 +479,129 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
       Some(db)
     }
 
-  def close(): Unit = database.foreach(_.close())
+  def close(): Unit = synchronized { _database.foreach(_.close()) }
 
-  // global state
-  protected var _state: Build_Process.State = init_state(Build_Process.State())
+  private def setup_database(): Unit =
+    synchronized {
+      for (db <- _database) {
+        db.transaction { Build_Process.Data.init_database(db, build_context) }
+        db.rebuild()
+      }
+    }
+
+  protected def synchronized_database[A](body: => A): A =
+    synchronized {
+      _database match {
+        case None => body
+        case Some(db) => db.transaction { body }
+      }
+    }
+
+  private def sync_database(): Unit =
+    synchronized_database {
+      for (db <- _database) {
+        _state =
+          Build_Process.Data.update_database(
+            db, build_context.uuid, build_context.hostname, _state)
+      }
+    }
+
+
+  /* policy operations */
 
   protected def init_state(state: Build_Process.State): Build_Process.State = {
     val old_pending = state.pending.iterator.map(_.name).toSet
     val new_pending =
       List.from(
         for {
-          (name, (_, (preds, _))) <- build_context.sessions_structure.build_graph.iterator
+          (name, session_context) <- build_context.sessions.iterator
           if !old_pending(name)
-        } yield Build_Process.Entry(name, preds.toList))
+        } yield Build_Process.Entry(name, session_context.deps))
     state.copy(pending = new_pending ::: state.pending)
   }
 
-  protected def next_pending(): Option[String] = synchronized {
-    if (_state.running.size < (build_context.max_jobs max 1)) {
-      _state.pending.filter(entry => entry.is_ready && !_state.is_running(entry.name))
+  protected def next_job(state: Build_Process.State): Option[String] =
+    if (state.running.size < (build_context.max_jobs max 1)) {
+      state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
         .sortBy(_.name)(build_context.ordering)
         .headOption.map(_.name)
     }
     else None
-  }
 
-  protected def start_job(session_name: String): Unit = {
-    val ancestor_results = synchronized {
-      _state.get_results(
-        build_deps.sessions_structure.build_requirements(List(session_name)).
-          filterNot(_ == session_name))
-    }
-    val input_heaps =
+  protected def start_session(state: Build_Process.State, session_name: String): Build_Process.State = {
+    val ancestor_results =
+      for (a <- build_context.sessions(session_name).ancestors) yield state.results(a)
+
+    val input_shasum =
       if (ancestor_results.isEmpty) {
         SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
       }
-      else SHA1.flat_shasum(ancestor_results.map(_.output_heap))
+      else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
-    val do_store = build_context.do_store(session_name)
-    val (current, output_heap) = {
-      store.try_open_database(session_name) match {
-        case Some(db) =>
-          using(db)(store.read_build(_, session_name)) match {
-            case Some(build) =>
-              val output_heap = store.find_heap_shasum(session_name)
-              val current =
-                !build_context.fresh_build &&
-                build.ok &&
-                build.sources == build_deps.sources_shasum(session_name) &&
-                build.input_heaps == input_heaps &&
-                build.output_heap == output_heap &&
-                !(do_store && output_heap.is_empty)
-              (current, output_heap)
-            case None => (false, SHA1.no_shasum)
-          }
-        case None => (false, SHA1.no_shasum)
-      }
-    }
+    val store_heap = build_context.store_heap(session_name)
+
+    val (current, output_shasum) =
+      store.check_output(session_name,
+        sources_shasum = build_context.sources_shasum(session_name),
+        input_shasum = input_shasum,
+        fresh_build = build_context.fresh_build,
+        store_heap = store_heap)
+
     val all_current = current && ancestor_results.forall(_.current)
 
     if (all_current) {
-      synchronized {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, true, output_heap, Process_Result.ok)
-      }
+      state
+        .remove_pending(session_name)
+        .make_result(session_name, Process_Result.ok, output_shasum, current = true)
     }
     else if (build_context.no_build) {
       progress.echo_if(verbose, "Skipping " + session_name + " ...")
-      synchronized {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, false, output_heap, Process_Result.error)
-      }
+      state.
+        remove_pending(session_name).
+        make_result(session_name, Process_Result.error, output_shasum)
     }
-    else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-      progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
-
-      store.clean_output(session_name)
-      using(store.open_database(session_name, output = true))(
-        store.init_session_info(_, session_name))
-
-      val session_background = build_deps.background(session_name)
-      val session_heaps =
-        session_background.info.parent match {
-          case None => Nil
-          case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
-        }
-
-      val resources =
-        new Resources(session_background, log = log,
-          command_timings = build_context(session_name).old_command_timings)
-
-      val job =
-        synchronized {
-          val (numa_node, state1) = _state.numa_next(build_context.numa_nodes)
-          val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
-          val job =
-            new Build_Job.Build_Session(progress, verbose, session_background, session_heaps,
-              store, do_store, resources, build_context.session_setup,
-              build_deps.sources_shasum(session_name), input_heaps, node_info)
-          _state = state1.add_running(session_name, job)
-          job
-        }
-      job.start()
+    else if (!ancestor_results.forall(_.ok) || progress.stopped) {
+      progress.echo(session_name + " CANCELLED")
+      state
+        .remove_pending(session_name)
+        .make_result(session_name, Process_Result.undefined, output_shasum)
     }
     else {
-      progress.echo(session_name + " CANCELLED")
-      synchronized {
-        _state = _state.
-          remove_pending(session_name).
-          make_result(session_name, false, output_heap, Process_Result.undefined)
-      }
+      progress.echo((if (store_heap) "Building " else "Running ") + session_name + " ...")
+
+      store.init_output(session_name)
+
+      val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
+      val node_info = Host.Node_Info(build_context.hostname, numa_node)
+      val job =
+        Build_Job.start_session(
+          build_context, build_deps.background(session_name), input_shasum, node_info)
+      state1.add_running(session_name, job)
     }
   }
 
-  protected def setup_database(): Unit =
-    for (db <- database) {
-      synchronized {
-        db.transaction {
-          Build_Process.Data.init_database(db, build_context)
-        }
-      }
-      db.rebuild()
-    }
-  protected def sync_database(): Unit =
-    for (db <- database) {
-      synchronized {
-        db.transaction {
-          _state =
-            Build_Process.Data.update_database(
-              db, build_context.instance, build_context.hostname, _state)
-        }
-      }
-    }
 
-  protected def sleep(): Unit =
-    Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-      build_options.seconds("editor_input_delay").sleep()
-    }
+  /* run */
 
   def run(): Map[String, Process_Result] = {
-    def finished(): Boolean = synchronized { _state.finished }
+    def finished(): Boolean = synchronized_database { _state.finished }
+
+    def sleep(): Unit =
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
+        build_options.seconds("editor_input_delay").sleep()
+      }
+
+    def start(): Boolean = synchronized_database {
+      next_job(_state) match {
+        case Some(name) =>
+          if (Build_Job.is_session_name(name)) {
+            _state = start_session(_state, name)
+            true
+          }
+          else error("Unsupported build job name " + quote(name))
+        case None => false
+      }
+    }
 
     if (finished()) {
       progress.echo_warning("Nothing to build")
@@ -682,28 +610,26 @@ class Build_Process(protected val build_context: Build_Process.Context) extends 
     else {
       setup_database()
       while (!finished()) {
-        if (progress.stopped) synchronized { _state.stop_running() }
+        if (progress.stopped) synchronized_database { _state.stop_running() }
 
-        for (job <- synchronized { _state.finished_running() }) {
+        for (job <- synchronized_database { _state.finished_running() }) {
           val job_name = job.job_name
-          val (process_result, output_heap) = job.finish
-          synchronized {
+          val (process_result, output_shasum) = job.join
+          synchronized_database {
             _state = _state.
               remove_pending(job_name).
               remove_running(job_name).
-              make_result(job_name, false, output_heap, process_result, node_info = job.node_info)
+              make_result(job_name, process_result, output_shasum, node_info = job.node_info)
           }
         }
 
-        next_pending() match {
-          case Some(name) =>
-            start_job(name)
-          case None =>
-            sync_database()
-            sleep()
+        if (!start()) {
+          sync_database()
+          sleep()
         }
       }
-      synchronized {
+
+      synchronized_database {
         for ((name, result) <- _state.results) yield name -> result.process_result
       }
     }
