@@ -1484,13 +1484,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         database_server && {
           try_open_database(name) match {
             case Some(db) =>
-              try {
+              using(db) { db =>
                 db.transaction {
                   val relevant_db = session_info_defined(db, name)
                   init_session_info(db, name)
                   relevant_db
                 }
-              } finally { db.close() }
+              }
             case None => false
           }
         }
