@@ -101,6 +101,15 @@ object Build_Process {
     val session_setup: (String, Session) => Unit,
     val uuid: String
   ) {
+    def build_options: Options = store.options
+
+    val log: Logger =
+      build_options.string("system_log") match {
+        case "" => No_Logger
+        case "-" => Logger.make(progress)
+        case log_file => Logger.make(Some(Path.explode(log_file)))
+      }
+
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
     def sources_shasum(name: String): SHA1.Shasum = sessions(name).sources_shasum
@@ -482,13 +491,6 @@ extends AutoCloseable {
   protected val progress: Progress = build_context.progress
   protected val verbose: Boolean = build_context.verbose
 
-  protected val log: Logger =
-    build_options.string("system_log") match {
-      case "" => No_Logger
-      case "-" => Logger.make(progress)
-      case log_file => Logger.make(Some(Path.explode(log_file)))
-    }
-
 
   /* global state: internal var vs. external database */
 
@@ -606,7 +608,7 @@ extends AutoCloseable {
         }
 
       val resources =
-        new Resources(session_background, log = log,
+        new Resources(session_background, log = build_context.log,
           command_timings = build_context.old_command_timings(session_name))
 
       val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
