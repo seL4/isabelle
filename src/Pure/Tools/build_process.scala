@@ -596,9 +596,7 @@ extends AutoCloseable {
     else {
       progress.echo((if (store_heap) "Building " else "Running ") + session_name + " ...")
 
-      store.clean_output(session_name)
-      using(store.open_database(session_name, output = true))(
-        store.init_session_info(_, session_name))
+      store.init_output(session_name)
 
       val session_background = build_deps.background(session_name)
       val session_heaps =

@@ -1508,6 +1508,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       (relevant, ok)
     }
 
+    def init_output(name: String): Unit = {
+      clean_output(name)
+      using(open_database(name, output = true))(init_session_info(_, name))
+    }
+
     def check_output(
       name: String,
       sources_shasum: SHA1.Shasum,
