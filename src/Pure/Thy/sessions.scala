@@ -1508,6 +1508,32 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       (relevant, ok)
     }
 
+    def check_output(
+      name: String,
+      sources_shasum: SHA1.Shasum,
+      input_shasum: SHA1.Shasum,
+      fresh_build: Boolean,
+      store_heap: Boolean
+    ): (Boolean, SHA1.Shasum) = {
+      try_open_database(name) match {
+        case Some(db) =>
+          using(db)(read_build(_, name)) match {
+            case Some(build) =>
+              val output_shasum = find_heap_shasum(name)
+              val current =
+                !fresh_build &&
+                build.ok &&
+                build.sources == sources_shasum &&
+                build.input_heaps == input_shasum &&
+                build.output_heap == output_shasum &&
+                !(store_heap && output_shasum.is_empty)
+              (current, output_shasum)
+            case None => (false, SHA1.no_shasum)
+          }
+        case None => (false, SHA1.no_shasum)
+      }
+    }
+
 
     /* SQL database content */
 

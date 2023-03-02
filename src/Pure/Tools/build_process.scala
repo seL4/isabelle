@@ -564,25 +564,14 @@ extends AutoCloseable {
       else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
     val store_heap = build_context.store_heap(session_name)
-    val (current, output_shasum) = {
-      store.try_open_database(session_name) match {
-        case Some(db) =>
-          using(db)(store.read_build(_, session_name)) match {
-            case Some(build) =>
-              val output_shasum = store.find_heap_shasum(session_name)
-              val current =
-                !build_context.fresh_build &&
-                build.ok &&
-                build.sources == build_context.sources_shasum(session_name) &&
-                build.input_heaps == input_shasum &&
-                build.output_heap == output_shasum &&
-                !(store_heap && output_shasum.is_empty)
-              (current, output_shasum)
-            case None => (false, SHA1.no_shasum)
-          }
-        case None => (false, SHA1.no_shasum)
-      }
-    }
+
+    val (current, output_shasum) =
+      store.check_output(session_name,
+        sources_shasum = build_context.sources_shasum(session_name),
+        input_shasum = input_shasum,
+        fresh_build = build_context.fresh_build,
+        store_heap = store_heap)
+
     val all_current = current && ancestor_results.forall(_.current)
 
     if (all_current) {
