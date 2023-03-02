@@ -40,6 +40,13 @@ object Build_Job {
 
   def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
 
+  def start_session(
+    build_context: Build_Process.Context,
+    session_background: Sessions.Background,
+    input_shasum: SHA1.Shasum,
+    node_info: Node_Info
+  ): Session_Job = new Session_Job(build_context, session_background, input_shasum, node_info)
+
   object Session_Context {
     def load(
       name: String,
@@ -94,7 +101,7 @@ object Build_Job {
     override def toString: String = name
   }
 
-  class Session_Job(
+  class Session_Job private[Build_Job](
     build_context: Build_Process.Context,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,

@@ -601,7 +601,7 @@ extends AutoCloseable {
       val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
       val node_info = Build_Job.Node_Info(build_context.hostname, numa_node)
       val job =
-        new Build_Job.Session_Job(
+        Build_Job.start_session(
           build_context, build_deps.background(session_name), input_shasum, node_info)
       state1.add_running(session_name, job)
     }
