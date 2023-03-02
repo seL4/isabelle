@@ -231,6 +231,13 @@ antiquotations.
       totalp_on_multpDM
       totalp_on_multpHO
 
+* HOL-Algebra: new theories SimpleGroups (simple groups) 
+  and SndIsomorphismGrp (second isomorphism theorem for groups), 
+  by Jakob von Raumer
+
+* HOL-Analysis and HOL-Complex_Analysis:  much new material, due to
+   Manuel Eberl and Wenda Li.
+
 * Mirabelle:
   - Added session to output directory structure. Minor INCOMPATIBILITY.
 

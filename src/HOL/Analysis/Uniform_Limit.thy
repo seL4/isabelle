@@ -6,7 +6,7 @@
 section \<open>Uniform Limit and Uniform Convergence\<close>
 
 theory Uniform_Limit
-imports Connected Summation_Tests
+imports Connected Summation_Tests Infinite_Sum
 begin
 
 
@@ -560,11 +560,66 @@ corollary\<^marker>\<open>tag unimportant\<close> Weierstrass_m_test':
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
   unfolding uniformly_convergent_on_def by (rule exI, rule Weierstrass_m_test[OF assms])
 
-lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Longrightarrow> uniform_limit X f m F"
-  by simp
+
+lemma Weierstrass_m_test_general:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c :: banach"
+  fixes M :: "'a \<Rightarrow> real"
+  assumes norm_le:  "\<And>x y. x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> norm (f x y) \<le> M x"
+  assumes summable: "M summable_on X"
+  shows "uniform_limit Y (\<lambda>X y. \<Sum>x\<in>X. f x y) (\<lambda>y. \<Sum>\<^sub>\<infinity>x\<in>X. f x y) (finite_subsets_at_top X)"
+proof (rule uniform_limitI)
+  fix \<epsilon> :: real
+  assume "\<epsilon> > 0"
+  define S where "S = (\<lambda>y. \<Sum>\<^sub>\<infinity>x\<in>X. f x y)"
+  have S: "((\<lambda>x. f x y) has_sum S y) X" if y: "y \<in> Y" for y
+    unfolding S_def 
+  proof (rule has_sum_infsum)
+    have "(\<lambda>x. norm (f x y)) summable_on X"
+      by (rule abs_summable_on_comparison_test'[OF summable norm_le]) (use y in auto)
+    thus "(\<lambda>x. f x y) summable_on X"
+      by (metis abs_summable_summable)
+  qed
+
+  define T where "T = (\<Sum>\<^sub>\<infinity>x\<in>X. M x)"
+  have T: "(M has_sum T) X"
+    unfolding T_def by (simp add: local.summable)
+  have M_summable: "M summable_on X'" if "X' \<subseteq> X" for X'
+    using local.summable summable_on_subset_banach that by blast
+
+  have f_summable: "(\<lambda>x. f x y) summable_on X'" if "X' \<subseteq> X" "y \<in> Y" for X' y
+    using S summable_on_def summable_on_subset_banach that by blast
+  have "eventually (\<lambda>X'. dist (\<Sum>x\<in>X'. M x) T < \<epsilon>) (finite_subsets_at_top X)"
+    using T \<open>\<epsilon> > 0\<close> unfolding T_def has_sum_def tendsto_iff by blast
+  moreover have "eventually (\<lambda>X'. finite X' \<and> X' \<subseteq> X) (finite_subsets_at_top X)"
+    by (simp add: eventually_finite_subsets_at_top_weakI)
+  ultimately show "\<forall>\<^sub>F X' in finite_subsets_at_top X. \<forall>y\<in>Y. dist (\<Sum>x\<in>X'. f x y) (\<Sum>\<^sub>\<infinity>x\<in>X. f x y) < \<epsilon>"
+  proof eventually_elim
+    case X': (elim X')
+    show "\<forall>y\<in>Y. dist (\<Sum>x\<in>X'. f x y) (\<Sum>\<^sub>\<infinity>x\<in>X. f x y) < \<epsilon>"
+    proof
+      fix y assume y: "y \<in> Y"
+      have 1: "((\<lambda>x. f x y) has_sum (S y - (\<Sum>x\<in>X'. f x y))) (X - X')"
+        using X' y by (intro has_sum_Diff S has_sum_finite[of X'] f_summable) auto
+      have 2: "(M has_sum (T - (\<Sum>x\<in>X'. M x))) (X - X')"
+        using X' y by (intro has_sum_Diff T has_sum_finite[of X'] M_summable) auto
+      have "dist (\<Sum>x\<in>X'. f x y) (\<Sum>\<^sub>\<infinity>x\<in>X. f x y) = norm (S y - (\<Sum>x\<in>X'. f x y))"
+        by (simp add: dist_norm norm_minus_commute S_def)
+      also have "norm (S y - (\<Sum>x\<in>X'. f x y)) \<le> (\<Sum>\<^sub>\<infinity>x\<in>X-X'. M x)"
+        using 2 y by (intro norm_infsum_le[OF 1 _ norm_le]) (auto simp: infsumI)
+      also have "\<dots> = T - (\<Sum>x\<in>X'. M x)"
+        using 2 by (auto simp: infsumI)
+      also have "\<dots> < \<epsilon>"
+        using X' by (simp add: dist_norm)
+      finally show "dist (\<Sum>x\<in>X'. f x y) (\<Sum>\<^sub>\<infinity>x\<in>X. f x y) < \<epsilon>" .
+    qed
+  qed
+qed
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Structural introduction rules\<close>
+
+lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Longrightarrow> uniform_limit X f m F"
+  by simp
 
 named_theorems uniform_limit_intros "introduction rules for uniform_limit"
 setup \<open>

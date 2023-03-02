@@ -2338,20 +2338,23 @@ unfolding pmf_None_eq_weight_spmf by(simp add: weight_scale_spmf)
 lemma scale_scale_spmf:
   "scale_spmf r (scale_spmf r' p) = scale_spmf (r * max 0 (min (inverse (weight_spmf p)) r')) p"
   (is "?lhs = ?rhs")
-proof(rule spmf_eqI)
-  fix i
-  have "max 0 (min (1 / weight_spmf p) r') *
-    max 0 (min (1 / min 1 (weight_spmf p * max 0 r')) r) =
-    max 0 (min (1 / weight_spmf p) (r * max 0 (min (1 / weight_spmf p) r')))"
-  proof(cases "weight_spmf p > 0")
-    case False
-    thus ?thesis by(simp add: not_less weight_spmf_le_0)
-  next
-    case True
-    thus ?thesis by(simp add: field_simps max_def min.absorb_iff2[symmetric])(auto simp add: min_def field_simps zero_le_mult_iff)
+proof(cases "weight_spmf p > 0")
+  case False
+  thus ?thesis
+    by (simp add: weight_spmf_eq_0 zero_less_measure_iff)
+next
+  case True
+  show ?thesis
+  proof(rule spmf_eqI)
+    fix i
+    have "max 0 (min (1 / weight_spmf p) r') * max 0 (min (1 / min 1 (weight_spmf p * max 0 r')) r) =
+          max 0 (min (1 / weight_spmf p) (r * max 0 (min (1 / weight_spmf p) r')))"
+      using True
+      by(simp add: field_simps max_def min.absorb_iff2[symmetric])(auto simp add: min_def field_simps zero_le_mult_iff)
+    then show "spmf ?lhs i = spmf ?rhs i"
+      apply (subst spmf_scale_spmf)+  (*FOR SOME REASON we now get linarith_split_limit exceeded if simp is used*)
+      by (metis (no_types, opaque_lifting) inverse_eq_divide mult.commute mult.left_commute weight_scale_spmf)
   qed
-  then show "spmf ?lhs i = spmf ?rhs i"
-    by(simp add: spmf_scale_spmf field_simps weight_scale_spmf)
 qed
 
 lemma scale_scale_spmf' [simp]:

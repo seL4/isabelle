@@ -7,6 +7,9 @@ theory Product_PMF
   imports Probability_Mass_Function Independent_Family
 begin
 
+text \<open>Conflicting notation from \<^theory>\<open>HOL-Analysis.Infinite_Sum\<close>\<close>
+no_notation Infinite_Sum.abs_summable_on (infixr "abs'_summable'_on" 46)
+
 subsection \<open>Preliminaries\<close>
 
 lemma pmf_expectation_eq_infsetsum: "measure_pmf.expectation p f = infsetsum (\<lambda>x. pmf p x * f x) UNIV"
