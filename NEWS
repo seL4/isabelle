@@ -259,6 +259,10 @@ antiquotations.
 scalable, and supports most options from "isabelle build". Partial
 builds are supported as well, e.g. "isabelle update -n -a".
 
+* System option "ML_process_policy" has been renamed to
+"process_policy", as it may affect other processes as well (notably in
+"isabelle build").
+
 * Isabelle/Scala provides generic support for XZ and Zstd compression,
 via Compress.Options and Compress.Cache. Bytes.uncompress automatically
 detects the compression scheme.

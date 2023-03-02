@@ -28,9 +28,9 @@ object JEdit_Sessions {
       }
 
     val options2 =
-      Isabelle_System.getenv("JEDIT_ML_PROCESS_POLICY") match {
+      Isabelle_System.getenv("JEDIT_PROCESS_POLICY") match {
         case "" => options1
-        case s => options1.string.update("ML_process_policy", s)
+        case s => options1.string.update("process_policy", s)
       }
 
     options2

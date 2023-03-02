@@ -28,7 +28,7 @@ function usage()
   echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
   echo "    -n           no build of session image on startup"
-  echo "    -p CMD       ML process command prefix (process policy)"
+  echo "    -p CMD       command prefix for ML process (e.g. NUMA policy)"
   echo "    -s           system build mode for session image (system_heaps=true)"
   echo "    -u           user build mode for session image (system_heaps=false)"
   echo
@@ -56,7 +56,7 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_OPTIONS=""
-ML_PROCESS_POLICY=""
+PROCESS_POLICY=""
 JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_REQUIREMENTS=""
 JEDIT_INCLUDE_SESSIONS=""
@@ -119,7 +119,7 @@ function getoptions()
         JEDIT_NO_BUILD="true"
         ;;
       p)
-        ML_PROCESS_POLICY="$OPTARG"
+        PROCESS_POLICY="$OPTARG"
         ;;
       s)
         JEDIT_BUILD_MODE="system"
@@ -163,7 +163,7 @@ then
 
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
     JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
-  export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
+  export JEDIT_PROCESS_POLICY="$PROCESS_POLICY"
   exec isabelle java -splash:"$(platform_path "$ISABELLE_HOME/lib/logo/isabelle.gif")" \
     "${JAVA_ARGS[@]}" isabelle.jedit.JEdit_Main "${ARGS[@]}"
 fi

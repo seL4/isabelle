@@ -54,7 +54,7 @@ object Host {
   def process_policy_options(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
       case None => options
-      case Some(n) => options.string("ML_process_policy") = process_policy(n)
+      case Some(n) => options.string("process_policy") = process_policy(n)
     }
 
   def perhaps_process_policy_options(options: Options): Options = {

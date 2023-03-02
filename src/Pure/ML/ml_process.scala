@@ -117,7 +117,7 @@ object ML_Process {
     bash_env.put("ISABELLE_TMP", File.standard_path(isabelle_tmp))
     bash_env.put("POLYSTATSDIR", isabelle_tmp.getAbsolutePath)
 
-    val process_policy = options.string("ML_process_policy")
+    val process_policy = options.string("process_policy")
     val process_prefix = if_proper(process_policy, process_policy + " ")
 
     Bash.process(process_prefix + "\"$POLYML_EXE\" -q " + Bash.strings(bash_args),
