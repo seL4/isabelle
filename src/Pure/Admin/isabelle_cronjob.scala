@@ -196,11 +196,9 @@ object Isabelle_Cronjob {
 
     def build_history_options: String =
       " -h " + Bash.string(host) + " " +
-      (java_heap match {
-        case "" => ""
-        case h =>
-          "-e 'ISABELLE_TOOL_JAVA_OPTIONS=\"$ISABELLE_TOOL_JAVA_OPTIONS -Xmx" + h + "\"' "
-      }) + options
+      if_proper(java_heap,
+        "-e 'ISABELLE_TOOL_JAVA_OPTIONS=\"$ISABELLE_TOOL_JAVA_OPTIONS -Xmx" + java_heap + "\"' ") +
+      options
   }
 
   val remote_builds_old: List[Remote_Build] =
