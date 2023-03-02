@@ -163,7 +163,6 @@ sources = \
   src/Pure/System/linux.scala \
   src/Pure/System/mingw.scala \
   src/Pure/System/nodejs.scala \
-  src/Pure/System/numa.scala \
   src/Pure/System/options.scala \
   src/Pure/System/platform.scala \
   src/Pure/System/posix_interrupt.scala \

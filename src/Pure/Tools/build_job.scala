@@ -112,7 +112,7 @@ object Build_Job {
     def job_name: String = session_name
 
     val info: Sessions.Info = session_background.sessions_structure(session_name)
-    val options: Options = NUMA.policy_options(info.options, node_info.numa_node)
+    val options: Options = Host.process_policy_options(info.options, node_info.numa_node)
 
     val session_sources: Sessions.Sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)
