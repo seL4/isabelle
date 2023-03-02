@@ -358,7 +358,7 @@ object Build_Job {
             }
           }
 
-        val process_result =
+        val result0 =
           Isabelle_Thread.interrupt_handler(_ => process.terminate()) { process.await_shutdown() }
 
         session.stop()
@@ -368,7 +368,7 @@ object Build_Job {
 
         val (document_output, document_errors) =
           try {
-            if (build_errors.isInstanceOf[Exn.Res[_]] && process_result.ok && info.documents.nonEmpty) {
+            if (build_errors.isInstanceOf[Exn.Res[_]] && result0.ok && info.documents.nonEmpty) {
               using(Export.open_database_context(store)) { database_context =>
                 val documents =
                   using(database_context.open_session(session_background)) {
@@ -390,7 +390,7 @@ object Build_Job {
             case Exn.Interrupt.ERROR(msg) => (Nil, List(msg))
           }
 
-        val result = {
+        val result1 = {
           val theory_timing =
             theory_timings.iterator.flatMap(
               {
@@ -410,26 +410,29 @@ object Build_Job {
               task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
               document_output
 
-          process_result.output(more_output)
+          result0.output(more_output)
             .error(Library.trim_line(stderr.toString))
             .errors_rc(export_errors ::: document_errors)
         }
 
-        build_errors match {
-          case Exn.Res(build_errs) =>
-            val errs = build_errs ::: document_errors
-            if (errs.nonEmpty) {
-              result.error_rc.output(
-                errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
-                  errs.map(Protocol.Error_Message_Marker.apply))
-            }
-            else if (progress.stopped && result.ok) result.copy(rc = Process_Result.RC.interrupt)
-            else result
-          case Exn.Exn(Exn.Interrupt()) =>
-            if (result.ok) result.copy(rc = Process_Result.RC.interrupt)
-            else result
-          case Exn.Exn(exn) => throw exn
-        }
+        val result2 =
+          build_errors match {
+            case Exn.Res(build_errs) =>
+              val errs = build_errs ::: document_errors
+              if (errs.nonEmpty) {
+                result1.error_rc.output(
+                  errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                    errs.map(Protocol.Error_Message_Marker.apply))
+              }
+              else if (progress.stopped && result1.ok) result1.copy(rc = Process_Result.RC.interrupt)
+              else result1
+            case Exn.Exn(Exn.Interrupt()) =>
+              if (result1.ok) result1.copy(rc = Process_Result.RC.interrupt)
+              else result1
+            case Exn.Exn(exn) => throw exn
+          }
+
+        result2
       }
 
     override def terminate(): Unit = future_result.cancel()
@@ -442,7 +445,7 @@ object Build_Job {
 
     override lazy val finish: (Process_Result, SHA1.Shasum) = {
       val process_result = {
-        val result = future_result.join
+        val result2 = future_result.join
 
         val was_timeout =
           timeout_request match {
@@ -450,10 +453,10 @@ object Build_Job {
             case Some(request) => !request.cancel()
           }
 
-        if (result.ok) result
-        else if (was_timeout) result.error(Output.error_message_text("Timeout")).timeout_rc
-        else if (result.interrupted) result.error(Output.error_message_text("Interrupt"))
-        else result
+        if (result2.ok) result2
+        else if (was_timeout) result2.error(Output.error_message_text("Timeout")).timeout_rc
+        else if (result2.interrupted) result2.error(Output.error_message_text("Interrupt"))
+        else result2
       }
 
       val output_shasum =
