@@ -288,7 +288,7 @@ fun check_expected_outcome ctxt prover_name expect outcome =
   end
 
 fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
-    has_already_found_something found_something writeln_result learn
+    has_already_found_something found_something massage_message writeln_result learn
     (problem as {state, subgoal, ...}) (slice as ((_, _, falsify, _, _), _)) prover_name =
   let
     val ctxt = Proof.context_of state
@@ -314,7 +314,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
         {comment = comment, state = state, goal = Thm.trivial @{cprop False}, subgoal = 1,
          subgoal_count = 1, factss = map (apsnd (append new_facts)) factss,
          has_already_found_something = has_already_found_something,
-         found_something = found_something "an inconsistency"}
+         found_something = found_something "a falsification"}
       end
 
     val problem as {goal, ...} = problem |> falsify ? flip_problem
@@ -344,7 +344,9 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
         ()
       else
         (case outcome of
-          SH_Some _ => the_default writeln writeln_result (prover_name ^ ": " ^ message)
+          SH_Some _ =>
+          the_default writeln writeln_result (prover_name ^ ": " ^
+            massage_message (if falsify then "falsification" else "proof") message)
         | _ => ())
   in
     (outcome, message)
@@ -487,6 +489,33 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
           else
             ()
 
+        val seen_messages = Synchronized.var "seen_messages" ([] : string list)
+
+        fun strip_until_left_paren "" = ""
+          | strip_until_left_paren s =
+            let
+              val n = String.size s
+              val s' = String.substring (s, 0, n - 1)
+            in
+              s' |> String.substring (s, n - 1, 1) <> "(" ? strip_until_left_paren
+            end
+
+        (* Remove the measured preplay time when looking for duplicates. This is
+           admittedly rather ad hoc. *)
+        fun strip_time s =
+          if String.isSuffix " s)" s orelse String.isSuffix " ms)" s then
+            strip_until_left_paren s
+          else
+            s
+
+        fun massage_message proof_or_inconsistency s =
+          let val s' = strip_time s in
+            if member (op =) (Synchronized.value seen_messages) s' then
+              "Found duplicate " ^ proof_or_inconsistency
+            else
+              (Synchronized.change seen_messages (cons s'); s)
+          end
+
         val ctxt = Proof.context_of state
         val inst_inducts = induction_rules = SOME Instantiate
         val {facts = chained_thms, goal, ...} = Proof.goal state
@@ -544,7 +573,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
                found_something = found_something "a proof"}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
             val launch = launch_prover_and_preplay params mode has_already_found_something
-              found_something writeln_result learn
+              found_something massage_message writeln_result learn
 
             val schedule =
               if mode = Auto_Try then provers
