@@ -46,6 +46,7 @@ object Build_Job {
 
   object Session_Context {
     def load(
+      uuid: String,
       name: String,
       deps: List[String],
       ancestors: List[String],
@@ -55,7 +56,8 @@ object Build_Job {
       progress: Progress = new Progress
     ): Session_Context = {
       def default: Session_Context =
-        new Session_Context(name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty)
+        Session_Context(
+          name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty, uuid)
 
       store.try_open_database(name) match {
         case None => default
@@ -74,7 +76,7 @@ object Build_Job {
                 case _ => Time.zero
               }
             new Session_Context(
-              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings)
+              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings, uuid)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -86,14 +88,15 @@ object Build_Job {
     }
   }
 
-  final class Session_Context(
-    val name: String,
-    val deps: List[String],
-    val ancestors: List[String],
-    val sources_shasum: SHA1.Shasum,
-    val timeout: Time,
-    val old_time: Time,
-    val old_command_timings_blob: Bytes
+  sealed case class Session_Context(
+    name: String,
+    deps: List[String],
+    ancestors: List[String],
+    sources_shasum: SHA1.Shasum,
+    timeout: Time,
+    old_time: Time,
+    old_command_timings_blob: Bytes,
+    uuid: String
   ) {
     override def toString: String = name
   }
@@ -111,13 +114,13 @@ object Build_Job {
     def session_name: String = session_background.session_name
     def job_name: String = session_name
 
-    val info: Sessions.Info = session_background.sessions_structure(session_name)
-    val options: Options = Host.process_policy_options(info.options, node_info.numa_node)
+    private val info: Sessions.Info = session_background.sessions_structure(session_name)
+    private val options: Options = Host.process_policy_options(info.options, node_info.numa_node)
 
-    val session_sources: Sessions.Sources =
+    private val session_sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
-    val store_heap = build_context.store_heap(session_name)
+    private val store_heap = build_context.store_heap(session_name)
 
     private val future_result: Future[(Process_Result, SHA1.Shasum)] =
       Future.thread("build", uninterruptible = true) {
