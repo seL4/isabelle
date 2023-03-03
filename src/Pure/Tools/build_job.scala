@@ -111,13 +111,13 @@ object Build_Job {
     def session_name: String = session_background.session_name
     def job_name: String = session_name
 
-    val info: Sessions.Info = session_background.sessions_structure(session_name)
-    val options: Options = Host.process_policy_options(info.options, node_info.numa_node)
+    private val info: Sessions.Info = session_background.sessions_structure(session_name)
+    private val options: Options = Host.process_policy_options(info.options, node_info.numa_node)
 
-    val session_sources: Sessions.Sources =
+    private val session_sources =
       Sessions.Sources.load(session_background.base, cache = store.cache.compress)
 
-    val store_heap = build_context.store_heap(session_name)
+    private val store_heap = build_context.store_heap(session_name)
 
     private val future_result: Future[(Process_Result, SHA1.Shasum)] =
       Future.thread("build", uninterruptible = true) {
