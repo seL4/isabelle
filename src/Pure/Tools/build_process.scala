@@ -359,15 +359,17 @@ object Build_Process {
             val rc = res.int(Results.rc)
             val out = res.string(Results.out)
             val err = res.string(Results.err)
-            val timing_elapsed = res.long(Results.timing_elapsed)
-            val timing_cpu = res.long(Results.timing_cpu)
-            val timing_gc = res.long(Results.timing_gc)
+            val timing =
+              res.timing(
+                Results.timing_elapsed,
+                Results.timing_cpu,
+                Results.timing_gc)
             val node_info = Host.Node_Info(hostname, numa_node)
             val process_result =
               Process_Result(rc,
                 out_lines = split_lines(out),
                 err_lines = split_lines(err),
-                timing = Timing(Time.ms(timing_elapsed), Time.ms(timing_cpu), Time.ms(timing_gc)))
+                timing = timing)
             name -> Build_Job.Result(node_info, process_result)
           })
       }
