@@ -68,7 +68,6 @@ sig
 
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
-  val extract_important_message : string -> string
   val extract_known_atp_failure : (atp_failure * string) list -> string -> atp_failure option
   val extract_tstplike_proof_and_outcome :
     bool -> (string * string) list -> (atp_failure * string) list -> string
@@ -201,17 +200,6 @@ fun extract_delimited (begin_delim, end_delim) output =
         | NONE => "")
     | NONE => "")
   | NONE => "")
-
-val tstp_important_message_delims =
-  ("% SZS start RequiredInformation", "% SZS end RequiredInformation")
-
-fun extract_important_message output =
-  (case extract_delimited tstp_important_message_delims output of
-    "" => ""
-  | s => s |> space_explode "\n" |> filter_out (curry (op =) "")
-           |> map (perhaps (try (unprefix "%")))
-           |> map (perhaps (try (unprefix " ")))
-           |> space_implode "\n " |> quote)
 
 (* Splits by the first possible of a list of delimiters. *)
 fun extract_tstplike_proof delims output =

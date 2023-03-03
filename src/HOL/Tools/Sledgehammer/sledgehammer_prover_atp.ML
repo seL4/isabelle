@@ -98,9 +98,6 @@ fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode MaSh = ""
   | suffix_of_mode Minimize = "_min"
 
-(* Important messages are important but not so important that users want to see them each time. *)
-val important_message_keep_quotient = 25
-
 fun run_atp mode name
     ({debug, verbose, overlord, abduce = abduce_max_candidates, strict, max_mono_iters,
       max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize, slices, timeout,
@@ -284,11 +281,6 @@ fun run_atp mode name
          (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
-    val important_message =
-      if mode = Normal andalso Random.random_range 0 (important_message_keep_quotient - 1) = 0
-      then extract_important_message output
-      else ""
-
     val (outcome, used_facts, preferred_methss, message) =
       (case outcome of
         NONE =>
@@ -342,11 +334,7 @@ fun run_atp mode name
                 val num_chained = length (#facts (Proof.goal state))
               in
                 proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
-                  one_line_params ^
-                (if important_message <> "" then
-                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
-                 else
-                   "")
+                  one_line_params
               end)
         end
       | SOME failure =>
