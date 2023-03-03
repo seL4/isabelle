@@ -417,33 +417,7 @@ qed
 
 lemma floor_divide_of_nat_eq: "\<lfloor>of_nat m / of_nat n\<rfloor> = of_nat (m div n)"
   for m n :: nat
-proof (cases "n = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have *: "\<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> = 0"
-    by (auto intro: floor_unique)
-  have "(of_nat m :: 'a) = of_nat (m div n * n + m mod n)"
-    by simp
-  also have "\<dots> = (of_nat (m div n) + of_nat (m mod n) / of_nat n) * of_nat n"
-    using False by (simp only: of_nat_add) (simp add: field_simps)
-  finally have "(of_nat m / of_nat n :: 'a) = \<dots> / of_nat n"
-    by simp
-  then have "(of_nat m / of_nat n :: 'a) = of_nat (m div n) + of_nat (m mod n) / of_nat n"
-    using False by (simp only:) simp
-  then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m div n) + of_nat (m mod n) / of_nat n :: 'a\<rfloor>"
-    by simp
-  then have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> = \<lfloor>of_nat (m mod n) / of_nat n + of_nat (m div n) :: 'a\<rfloor>"
-    by (simp add: ac_simps)
-  moreover have "(of_nat (m div n) :: 'a) = of_int (of_nat (m div n))"
-    by simp
-  ultimately have "\<lfloor>of_nat m / of_nat n :: 'a\<rfloor> =
-      \<lfloor>of_nat (m mod n) / of_nat n :: 'a\<rfloor> + of_nat (m div n)"
-    by (simp only: floor_add_int)
-  with * show ?thesis
-    by simp
-qed
+    by (metis floor_divide_of_int_eq of_int_of_nat_eq unique_euclidean_semiring_with_nat_class.of_nat_div)
 
 lemma floor_divide_lower:
   fixes q :: "'a::floor_ceiling"

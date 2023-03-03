@@ -12,8 +12,7 @@ begin
 
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
   \<Longrightarrow> norm(y-x) \<le> e"
-  using norm_triangle_mono [of "y1 - x1" "e1" "y2 - x2" "e2"]
-  by (simp add: add_diff_add)
+  by (smt (verit, ccfv_SIG) norm_diff_triangle_ineq)
 
 lemma setcomp_dot1: "{z. P (z \<bullet> (i,0))} = {(x,y). P(x \<bullet> i)}"
   by auto
@@ -2326,11 +2325,9 @@ proof -
 qed
 
 lemma has_integral_spike_eq:
-  assumes "negligible S"
-    and gf: "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+  assumes "negligible S" and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
   shows "(f has_integral y) T \<longleftrightarrow> (g has_integral y) T"
-    using has_integral_spike [OF \<open>negligible S\<close>] gf
-    by metis
+  by (metis assms has_integral_spike)
 
 lemma integrable_spike:
   assumes "f integrable_on T" "negligible S" "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
@@ -4878,13 +4875,22 @@ qed
 
 lemma integrable_on_superset:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on S"
-    and "\<And>x. x \<notin> S \<Longrightarrow> f x = 0"
-    and "S \<subseteq> t"
+  assumes "f integrable_on S" and "\<And>x. x \<notin> S \<Longrightarrow> f x = 0" and "S \<subseteq> t"
   shows "f integrable_on t"
-  using assms
-  unfolding integrable_on_def
-  by (auto intro:has_integral_on_superset)
+  by (meson assms has_integral_on_superset integrable_integral integrable_on_def)
+
+lemma integral_subset_negligible:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  assumes "S \<subseteq> T" "negligible (T - S)"
+  shows   "integral S f = integral T f"
+proof -
+  have "integral T f = integral T (\<lambda>x. if x \<in> S then f x else 0)"
+    by (rule integral_spike[of "T - S"]) (use assms in auto)
+  also have "\<dots> = integral (S \<inter> T) f"
+    by (subst integral_restrict_Int) auto
+  also have "S \<inter> T = S" using assms by auto
+  finally show ?thesis ..
+qed
 
 lemma integral_restrict_UNIV:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"

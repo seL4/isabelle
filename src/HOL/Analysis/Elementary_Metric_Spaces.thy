@@ -895,6 +895,17 @@ proof -
     by (rule bounded_subset)
 qed
 
+lemma continuous_on_compact_bound:
+  assumes "compact A" "continuous_on A f"
+  obtains B where "B \<ge> 0" "\<And>x. x \<in> A \<Longrightarrow> norm (f x) \<le> B"
+proof -
+  have "compact (f ` A)" by (metis assms compact_continuous_image)
+  then obtain B where "\<forall>x\<in>A. norm (f x) \<le> B"
+    by (auto dest!: compact_imp_bounded simp: bounded_iff)
+  hence "max B 0 \<ge> 0" and "\<forall>x\<in>A. norm (f x) \<le> max B 0" by auto
+  thus ?thesis using that by blast
+qed
+
 lemma closure_Int_ball_not_empty:
   assumes "S \<subseteq> closure T" "x \<in> S" "r > 0"
   shows "T \<inter> ball x r \<noteq> {}"

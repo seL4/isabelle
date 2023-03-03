@@ -1499,6 +1499,21 @@ lemma big_sum_in_bigo:
   shows   "(\<lambda>x. sum (\<lambda>y. f y x) A) \<in> O[F](g)"
   using assms by (induction A rule: infinite_finite_induct) (auto intro: sum_in_bigo)
 
+lemma le_imp_bigo_real:
+  assumes "c \<ge> 0" "eventually (\<lambda>x. f x \<le> c * (g x :: real)) F" "eventually (\<lambda>x. 0 \<le> f x) F"
+  shows   "f \<in> O[F](g)"
+proof -
+  have "eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F"
+    using assms(2,3)
+  proof eventually_elim
+    case (elim x)
+    have "norm (f x) \<le> c * g x" using elim by simp
+    also have "\<dots> \<le> c * norm (g x)" by (intro mult_left_mono assms) auto
+    finally show ?case .
+  qed
+  thus ?thesis by (intro bigoI[of _ c]) auto
+qed
+
 context landau_symbol
 begin
 
@@ -2051,6 +2066,17 @@ lemma asymp_equiv_divide [asymp_equiv_intros]:
   assumes "f1 \<sim>[F] g1" "f2 \<sim>[F] g2"
   shows   "(\<lambda>x. f1 x / f2 x) \<sim>[F] (\<lambda>x. g1 x / g2 x)"
   using asymp_equiv_mult[OF assms(1) asymp_equiv_inverse[OF assms(2)]] by (simp add: field_simps)
+
+lemma asymp_equivD_strong:
+  assumes "f \<sim>[F] g" "eventually (\<lambda>x. f x \<noteq> 0 \<or> g x \<noteq> 0) F"
+  shows   "((\<lambda>x. f x / g x) \<longlongrightarrow> 1) F"
+proof -
+  from assms(1) have "((\<lambda>x. if f x = 0 \<and> g x = 0 then 1 else f x / g x) \<longlongrightarrow> 1) F"
+    by (rule asymp_equivD)
+  also have "?this \<longleftrightarrow> ?thesis"
+    by (intro filterlim_cong eventually_mono[OF assms(2)]) auto
+  finally show ?thesis .
+qed
 
 lemma asymp_equiv_compose [asymp_equiv_intros]:
   assumes "f \<sim>[G] g" "filterlim h G F"

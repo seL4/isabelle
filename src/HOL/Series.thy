@@ -1023,6 +1023,17 @@ lemma summable_rabs: "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> \
   for f :: "nat \<Rightarrow> real"
   by (fold real_norm_def) (rule summable_norm)
 
+lemma norm_suminf_le:
+  assumes "\<And>n. norm (f n :: 'a :: banach) \<le> g n" "summable g"
+  shows   "norm (suminf f) \<le> suminf g"
+proof -
+  have *: "summable (\<lambda>n. norm (f n))" 
+    using assms summable_norm_comparison_test by blast
+  hence "norm (suminf f) \<le> (\<Sum>n. norm (f n))" by (intro summable_norm) auto
+  also have "\<dots> \<le> suminf g" by (intro suminf_le * assms allI)
+  finally show ?thesis .
+qed
+
 lemma summable_zero_power [simp]: "summable (\<lambda>n. 0 ^ n :: 'a::{comm_ring_1,topological_space})"
 proof -
   have "(\<lambda>n. 0 ^ n :: 'a) = (\<lambda>n. if n = 0 then 0^0 else 0)"
@@ -1054,12 +1065,7 @@ proof (rule summable_comparison_test[OF _ summable_geometric])
 qed
 
 lemma summable_0_powser: "summable (\<lambda>n. f n * 0 ^ n :: 'a::real_normed_div_algebra)"
-proof -
-  have A: "(\<lambda>n. f n * 0 ^ n) = (\<lambda>n. if n = 0 then f n else 0)"
-    by (intro ext) auto
-  then show ?thesis
-    by (subst A) simp_all
-qed
+  by simp
 
 lemma summable_powser_split_head:
   "summable (\<lambda>n. f (Suc n) * z ^ n :: 'a::real_normed_div_algebra) = summable (\<lambda>n. f n * z ^ n)"
