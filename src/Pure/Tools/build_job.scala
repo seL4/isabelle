@@ -46,6 +46,7 @@ object Build_Job {
 
   object Session_Context {
     def load(
+      uuid: String,
       name: String,
       deps: List[String],
       ancestors: List[String],
@@ -55,7 +56,8 @@ object Build_Job {
       progress: Progress = new Progress
     ): Session_Context = {
       def default: Session_Context =
-        new Session_Context(name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty)
+        Session_Context(
+          name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty, uuid)
 
       store.try_open_database(name) match {
         case None => default
@@ -74,7 +76,7 @@ object Build_Job {
                 case _ => Time.zero
               }
             new Session_Context(
-              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings)
+              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings, uuid)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -86,14 +88,15 @@ object Build_Job {
     }
   }
 
-  final class Session_Context(
-    val name: String,
-    val deps: List[String],
-    val ancestors: List[String],
-    val sources_shasum: SHA1.Shasum,
-    val timeout: Time,
-    val old_time: Time,
-    val old_command_timings_blob: Bytes
+  sealed case class Session_Context(
+    name: String,
+    deps: List[String],
+    ancestors: List[String],
+    sources_shasum: SHA1.Shasum,
+    timeout: Time,
+    old_time: Time,
+    old_command_timings_blob: Bytes,
+    uuid: String
   ) {
     override def toString: String = name
   }
