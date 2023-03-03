@@ -1499,6 +1499,21 @@ lemma big_sum_in_bigo:
   shows   "(\<lambda>x. sum (\<lambda>y. f y x) A) \<in> O[F](g)"
   using assms by (induction A rule: infinite_finite_induct) (auto intro: sum_in_bigo)
 
+lemma le_imp_bigo_real:
+  assumes "c \<ge> 0" "eventually (\<lambda>x. f x \<le> c * (g x :: real)) F" "eventually (\<lambda>x. 0 \<le> f x) F"
+  shows   "f \<in> O[F](g)"
+proof -
+  have "eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F"
+    using assms(2,3)
+  proof eventually_elim
+    case (elim x)
+    have "norm (f x) \<le> c * g x" using elim by simp
+    also have "\<dots> \<le> c * norm (g x)" by (intro mult_left_mono assms) auto
+    finally show ?case .
+  qed
+  thus ?thesis by (intro bigoI[of _ c]) auto
+qed
+
 context landau_symbol
 begin
 
