@@ -60,7 +60,7 @@ object Session_Build {
           vertical.setValue(vertical.getMaximum)
         }
 
-      override def theory(theory: Progress.Theory): Unit = echo(theory.message)
+      override def verbose: Boolean = true
     }
 
 

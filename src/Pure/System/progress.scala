@@ -24,8 +24,11 @@ object Progress {
 
 class Progress {
   def echo(msg: String): Unit = {}
-  def echo_if(cond: Boolean, msg: String): Unit = { if (cond) echo(msg) }
-  def theory(theory: Progress.Theory): Unit = {}
+  def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
+
+  def verbose: Boolean = false
+  def theory(theory: Progress.Theory): Unit = if (verbose) echo(theory.message)
+
   def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
 
   def echo_warning(msg: String): Unit = echo(Output.warning_text(msg))
@@ -63,20 +66,15 @@ class Progress {
   }
 }
 
-class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress {
+class Console_Progress(override val verbose: Boolean = false, stderr: Boolean = false)
+extends Progress {
   override def echo(msg: String): Unit =
     Output.writeln(msg, stdout = !stderr, include_empty = true)
-
-  override def theory(theory: Progress.Theory): Unit =
-    if (verbose) echo(theory.message)
 }
 
-class File_Progress(path: Path, verbose: Boolean = false) extends Progress {
+class File_Progress(path: Path, override val verbose: Boolean = false) extends Progress {
   override def echo(msg: String): Unit =
     File.append(path, Output.writeln_text(msg) + "\n")
-
-  override def theory(theory: Progress.Theory): Unit =
-    if (verbose) echo(theory.message)
 
   override def toString: String = path.toString
 }
@@ -129,7 +127,8 @@ object Program_Progress {
 
 abstract class Program_Progress(
   default_heading: String = "Running",
-  default_title: String = "program"
+  default_title: String = "program",
+  override val verbose: Boolean = false
 ) extends Progress {
   private var _finished_programs: List[Program_Progress.Program] = Nil
   private var _running_program: Option[Program_Progress.Program] = None

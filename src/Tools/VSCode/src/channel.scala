@@ -97,11 +97,13 @@ class Channel(
 
   /* progress */
 
-  def progress(verbose: Boolean = false): Progress =
+  def progress(verbose: Boolean = false): Progress = {
+    val verbose_ = verbose
     new Progress {
       override def echo(msg: String): Unit = log_writeln(msg)
       override def echo_warning(msg: String): Unit = log_warning(msg)
       override def echo_error_message(msg: String): Unit = log_error_message(msg)
-      override def theory(theory: Progress.Theory): Unit = if (verbose) echo(theory.message)
+      override val verbose: Boolean = verbose_
     }
+  }
 }
