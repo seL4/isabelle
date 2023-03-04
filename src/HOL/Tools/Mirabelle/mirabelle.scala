@@ -43,7 +43,6 @@ object Mirabelle {
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
-    verbose: Boolean = false
   ): Build.Results = {
     require(!selection.requirements)
     Isabelle_System.make_directory(output_dir)
@@ -53,7 +52,7 @@ object Mirabelle {
       Build.build(options, build_heap = true,
         selection = selection.copy(requirements = true), progress = progress, dirs = dirs,
         select_dirs = select_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        verbose = verbose)
+        verbose = progress.verbose)
 
     if (build_results0.ok) {
       val build_options =
@@ -71,10 +70,9 @@ object Mirabelle {
             case msg: Prover.Protocol_Output =>
               msg.properties match {
                 case Protocol.Export(args) if args.name.startsWith("mirabelle/") =>
-                  if (verbose) {
-                    progress.echo(
-                      "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")")
-                  }
+                  progress.echo(
+                    "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")",
+                    verbose = true)
                   val yxml = YXML.parse_body(UTF8.decode_permissive(msg.chunk), cache = build_results0.cache)
                   val lines = Pretty.string_of(yxml).trim()
                   val prefix =
@@ -97,7 +95,7 @@ object Mirabelle {
 
       Build.build(build_options, clean_build = true,
         selection = selection, progress = progress, dirs = dirs, select_dirs = select_dirs,
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = verbose,
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = progress.verbose,
         session_setup = session_setup)
     }
     else build_results0
@@ -197,9 +195,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
       val start_date = Date.now()
 
-      if (verbose) {
-        progress.echo("Started at " + Build_Log.print_date(start_date))
-      }
+      progress.echo("Started at " + Build_Log.print_date(start_date), verbose = true)
 
       val results =
         progress.interrupt_handler {
@@ -216,16 +212,13 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
             dirs = dirs,
             select_dirs = select_dirs,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
-            max_jobs = max_jobs,
-            verbose = verbose)
+            max_jobs = max_jobs)
         }
 
       val end_date = Date.now()
       val elapsed_time = end_date.time - start_date.time
 
-      if (verbose) {
-        progress.echo("\nFinished at " + Build_Log.print_date(end_date))
-      }
+      progress.echo("\nFinished at " + Build_Log.print_date(end_date), verbose = true)
 
       val total_timing =
         results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).

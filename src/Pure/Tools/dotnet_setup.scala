@@ -61,7 +61,6 @@ object Dotnet_Setup {
     version: String = default_version,
     force: Boolean = false,
     dry_run: Boolean = false,
-    verbose: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
     check_platform_spec(platform_spec)
@@ -134,7 +133,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
               " -InstallDir " + Bash.string(platform.name) +
               (if (dry_run) " -DryRun" else "") +
               " -NoPath"
-          progress.bash(script, echo = verbose,
+          progress.bash(script, echo = progress.verbose,
             cwd = if (dry_run) null else component_dir.path.file).check
           for (exe <- File.find_files(platform_dir.file, pred = _.getName.endsWith(".exe"))) {
             File.set_executable(File.path(exe), true)
@@ -192,11 +191,11 @@ Usage: isabelle dotnet_setup [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
         for (platform <- platforms) {
           dotnet_setup(platform_spec = platform, target_dir = target_dir, install_url = install_url,
-            version = version, force = force, dry_run = dry_run, verbose = verbose, progress = progress)
+            version = version, force = force, dry_run = dry_run, progress = progress)
         }
       })
 }

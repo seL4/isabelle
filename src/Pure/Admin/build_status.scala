@@ -56,7 +56,6 @@ object Build_Status {
     progress: Progress = new Progress,
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
-    verbose: Boolean = false,
     target_dir: Path = default_target_dir,
     ml_statistics: Boolean = false,
     image_size: (Int, Int) = default_image_size
@@ -66,8 +65,7 @@ object Build_Status {
         ML_Statistics.workers_fields).flatMap(_._2).toSet
 
     val data =
-      read_data(options, progress = progress, profiles = profiles,
-        only_sessions = only_sessions, verbose = verbose,
+      read_data(options, progress = progress, profiles = profiles, only_sessions = only_sessions,
         ml_statistics = ml_statistics, ml_statistics_domain = ml_statistics_domain)
 
     present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
@@ -213,8 +211,7 @@ object Build_Status {
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     ml_statistics: Boolean = false,
-    ml_statistics_domain: String => Boolean = _ => true,
-    verbose: Boolean = false
+    ml_statistics_domain: String => Boolean = _ => true
   ): Data = {
     val date = Date.now()
     var data_hosts = Map.empty[String, Set[String]]
@@ -258,7 +255,7 @@ object Build_Status {
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
         val sql = profile.select(options, columns, only_sessions)
-        progress.echo_if(verbose, sql)
+        progress.echo(sql, verbose = true)
 
         db.using_statement(sql) { stmt =>
           val res = stmt.execute_query()
@@ -620,9 +617,9 @@ Usage: isabelle build_status [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress(verbose = verbose)
 
-        build_status(options, progress = progress, only_sessions = only_sessions, verbose = verbose,
+        build_status(options, progress = progress, only_sessions = only_sessions,
           target_dir = target_dir, ml_statistics = ml_statistics, image_size = image_size)
       })
 }

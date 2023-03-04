@@ -16,7 +16,6 @@ object Build_E {
   def build_e(
     version: String = default_version,
     download_url: String = default_download_url,
-    verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
@@ -58,8 +57,8 @@ object Build_E {
 
       val build_script = "./configure" + build_options + " && make"
       Isabelle_System.bash(build_script, cwd = source_dir.file,
-        progress_stdout = progress.echo_if(verbose, _),
-        progress_stderr = progress.echo_if(verbose, _)).check
+        progress_stdout = progress.echo(_, verbose = true),
+        progress_stderr = progress.echo(_, verbose = true)).check
 
 
       /* install */
@@ -131,9 +130,9 @@ Usage: isabelle build_e [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
         build_e(version = version, download_url = download_url,
-          verbose = verbose, progress = progress, target_dir = target_dir)
+          progress = progress, target_dir = target_dir)
       })
 }

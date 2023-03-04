@@ -39,8 +39,7 @@ object Build_Docker {
     entrypoint: Boolean = false,
     output: Option[Path] = None,
     more_packages: List[String] = Nil,
-    tag: String = "",
-    verbose: Boolean = false
+    tag: String = ""
   ): Unit = {
     val isabelle_name =
       app_archive match {
@@ -103,7 +102,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
             tmp_dir + Path.explode("Isabelle.tar.gz"))
         }
 
-        val quiet_option = if (verbose) "" else " -q"
+        val quiet_option = if (progress.verbose) "" else " -q"
         val tag_option = if_proper(tag, " -t " + Bash.string(tag))
         progress.bash("docker build" + quiet_option + tag_option + " " + File.bash_path(tmp_dir),
           echo = true).check
@@ -170,8 +169,10 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
             case _ => getopts.usage()
           }
 
-        build_docker(new Console_Progress(), app_archive, base = base, work_dir = work_dir,
+        val progress = new Console_Progress(verbose = verbose)
+
+        build_docker(progress, app_archive, base = base, work_dir = work_dir,
           logic = logic, no_build = no_build, entrypoint = entrypoint, output = output,
-          more_packages = more_packages, tag = tag, verbose = verbose)
+          more_packages = more_packages, tag = tag)
       })
 }

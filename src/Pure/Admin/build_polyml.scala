@@ -188,7 +188,6 @@ not affect the running ML session. *)
     sha1_url: String = default_sha1_url,
     sha1_version: String = default_sha1_version,
     target_dir: Path = Path.current,
-    verbose: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
     /* component */
@@ -227,7 +226,7 @@ not affect the running ML session. *)
           arch_64 = arch_64,
           options = options,
           mingw = mingw,
-          progress = if (verbose) progress else new Progress)
+          progress = if (progress.verbose) progress else new Progress)
       }
     }
 
@@ -415,11 +414,11 @@ Usage: isabelle build_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
         val options = getopts(args)
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress(verbose = verbose)
 
         build_polyml(options = options, mingw = mingw, component_name = component_name,
           polyml_url = polyml_url, polyml_version = polyml_version, polyml_name = polyml_name,
           sha1_url = sha1_url, sha1_version = sha1_version, target_dir = target_dir,
-          verbose = verbose, progress = progress)
+          progress = progress)
       })
 }

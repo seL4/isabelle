@@ -15,7 +15,6 @@ object Build_Zipperposition {
 
   def build_zipperposition(
     version: String = default_version,
-    verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
@@ -43,10 +42,10 @@ object Build_Zipperposition {
       /* build */
 
       progress.echo("OCaml/OPAM setup ...")
-      progress.bash("isabelle ocaml_setup", echo = verbose).check
+      progress.bash("isabelle ocaml_setup", echo = progress.verbose).check
 
       progress.echo("Building Zipperposition for " + platform_name + " ...")
-      progress.bash(cwd = build_dir.file, echo = verbose,
+      progress.bash(cwd = build_dir.file, echo = progress.verbose,
         script = "isabelle_opam install -y --destdir=" + File.bash_path(build_dir) +
           " zipperposition=" + Bash.string(version)).check
 
@@ -112,9 +111,8 @@ Usage: isabelle build_zipperposition [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
-        build_zipperposition(version = version, verbose = verbose, progress = progress,
-          target_dir = target_dir)
+        build_zipperposition(version = version, progress = progress, target_dir = target_dir)
       })
 }

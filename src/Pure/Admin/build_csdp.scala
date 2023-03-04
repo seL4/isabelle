@@ -49,7 +49,6 @@ object Build_CSDP {
 
   def build_csdp(
     download_url: String = default_download_url,
-    verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
     mingw: MinGW = MinGW.none
@@ -112,7 +111,9 @@ object Build_CSDP {
             foreach(file => flags.change(File.path(file)))
       }
 
-      progress.bash(mingw.bash_script("make"), cwd = source_dir.file, echo = verbose).check
+      progress.bash(mingw.bash_script("make"),
+        cwd = source_dir.file,
+        echo = progress.verbose).check
 
 
       /* install */
@@ -188,9 +189,9 @@ Usage: isabelle build_csdp [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
-        build_csdp(download_url = download_url, verbose = verbose, progress = progress,
+        build_csdp(download_url = download_url, progress = progress,
           target_dir = target_dir, mingw = mingw)
       })
 }

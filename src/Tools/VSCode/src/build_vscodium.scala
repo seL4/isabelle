@@ -275,7 +275,7 @@ object Build_VSCodium {
 
   /* original repository clones and patches */
 
-  def vscodium_patch(verbose: Boolean = false, progress: Progress = new Progress): String = {
+  def vscodium_patch(progress: Progress = new Progress): String = {
     val platform_info = linux_platform_info
     check_system(List(platform_info.platform))
 
@@ -291,7 +291,7 @@ object Build_VSCodium {
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
-          ).mkString("\n"), cwd = build_dir.file, echo = verbose).check
+          ).mkString("\n"), cwd = build_dir.file, echo = progress.verbose).check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
@@ -306,7 +306,6 @@ object Build_VSCodium {
   def build_vscodium(
     target_dir: Path = Path.current,
     platforms: List[Platform.Family.Value] = default_platforms,
-    verbose: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
     check_system(platforms)
@@ -328,7 +327,7 @@ object Build_VSCodium {
     def write_patch(name: String, patch: String): Unit =
       File.write(patches_dir + Path.explode(name).patch, patch)
 
-    write_patch("01-vscodium", vscodium_patch(verbose = verbose, progress = progress))
+    write_patch("01-vscodium", vscodium_patch(progress = progress))
 
 
     /* build */
@@ -346,7 +345,7 @@ object Build_VSCodium {
 
         progress.echo("Build ...")
         progress.bash(platform_info.environment + "\n" + "./build.sh",
-          cwd = build_dir.file, echo = verbose).check
+          cwd = build_dir.file, echo = progress.verbose).check
 
         if (platform_info.primary) {
           Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
@@ -432,10 +431,9 @@ Usage: build_vscodium [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
-        build_vscodium(target_dir = target_dir, platforms = platforms,
-          verbose = verbose, progress = progress)
+        build_vscodium(target_dir = target_dir, platforms = platforms, progress = progress)
       })
 
   val isabelle_tool2 =

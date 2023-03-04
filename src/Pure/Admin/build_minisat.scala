@@ -18,7 +18,6 @@ object Build_Minisat {
   def build_minisat(
     download_url: String = default_download_url,
     component_name: String = "",
-    verbose: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
@@ -77,7 +76,7 @@ object Build_Minisat {
           _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", "")
         }
       }
-      progress.bash("make r", source_dir.file, echo = verbose).check
+      progress.bash("make r", source_dir.file, echo = progress.verbose).check
 
       Isabelle_System.copy_file(
         source_dir + Path.explode("build/release/bin/minisat").platform_exe, platform_dir)
@@ -142,9 +141,9 @@ Usage: isabelle build_minisat [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
         build_minisat(download_url = download_url, component_name = component_name,
-          verbose = verbose, progress = progress, target_dir = target_dir)
+          progress = progress, target_dir = target_dir)
       })
 }

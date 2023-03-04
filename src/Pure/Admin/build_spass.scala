@@ -15,9 +15,9 @@ object Build_SPASS {
 
   def build_spass(
     download_url: String = default_download_url,
-    verbose: Boolean = false,
     progress: Progress = new Progress,
-    target_dir: Path = Path.current): Unit = {
+    target_dir: Path = Path.current
+  ): Unit = {
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       Isabelle_System.require_command("bison")
       Isabelle_System.require_command("flex")
@@ -85,8 +85,8 @@ object Build_SPASS {
       }
 
       Isabelle_System.bash("make", cwd = source_dir.file,
-        progress_stdout = progress.echo_if(verbose, _),
-        progress_stderr = progress.echo_if(verbose, _)).check
+        progress_stdout = progress.echo(_, verbose = true),
+        progress_stderr = progress.echo(_, verbose = true)).check
 
 
       /* install */
@@ -166,9 +166,8 @@ Usage: isabelle build_spass [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
-        build_spass(download_url = download_url, verbose = verbose, progress = progress,
-          target_dir = target_dir)
+        build_spass(download_url = download_url, progress = progress, target_dir = target_dir)
       })
 }

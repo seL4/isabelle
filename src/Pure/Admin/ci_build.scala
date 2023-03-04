@@ -178,7 +178,7 @@ object CI_Build {
           selection = config.selection,
           progress = progress,
           clean_build = config.clean,
-          verbose = true,
+          verbose = progress.verbose,
           numa_shuffling = profile.numa,
           max_jobs = profile.jobs,
           dirs = config.include,

@@ -588,7 +588,7 @@ Usage: isabelle document [OPTIONS] SESSION
         progress.interrupt_handler {
           val build_results =
             Build.build(options, selection = Sessions.Selection.session(session),
-              dirs = dirs, progress = progress, verbose = verbose_build)
+              dirs = dirs, progress = progress, verbose = progress.verbose)
           if (!build_results.ok) error("Failed to build session " + quote(session))
 
           if (output_sources.isEmpty && output_pdf.isEmpty) {
