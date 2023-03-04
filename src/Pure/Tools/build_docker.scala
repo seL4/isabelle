@@ -104,7 +104,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
         }
 
         val quiet_option = if (verbose) "" else " -q"
-        val tag_option = if (tag == "") "" else " -t " + Bash.string(tag)
+        val tag_option = if_proper(tag, " -t " + Bash.string(tag))
         progress.bash("docker build" + quiet_option + tag_option + " " + File.bash_path(tmp_dir),
           echo = true).check
       }

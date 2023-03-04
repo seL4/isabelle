@@ -28,7 +28,7 @@ object Progress {
     def message: Message =
       Message(Kind.writeln, print_session + print_theory + print_percentage)
 
-    def print_session: String = if (session == "") "" else session + ": "
+    def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
     def print_percentage: String =
       percentage match { case None => "" case Some(p) => " " + p + "%" }

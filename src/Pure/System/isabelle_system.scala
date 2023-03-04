@@ -296,7 +296,7 @@ object Isabelle_System {
     base_dir: JFile = isabelle_tmp_prefix(),
     initialized: Boolean = true
   ): JFile = {
-    val suffix = if (ext == "") "" else "." + ext
+    val suffix = if_proper(ext, "." + ext)
     val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
     if (initialized) file.deleteOnExit() else file.delete()
     file

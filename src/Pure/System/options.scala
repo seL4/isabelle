@@ -64,7 +64,7 @@ object Options {
     private def print(default: Boolean): String = {
       val x = if (default) default_value else value
       "option " + name + " : " + typ.print + " = " + print_value(x) + print_standard +
-        (if (description == "") "" else "\n  -- " + quote(description))
+        if_proper(description, "\n  -- " + quote(description))
     }
 
     def print: String = print(false)

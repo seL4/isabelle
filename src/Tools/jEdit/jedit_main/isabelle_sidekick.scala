@@ -278,10 +278,10 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
         val name = chunk.name
         val source = chunk.source
         if (kind != "") {
-          val label = kind + (if (name == "") "" else " " + name)
+          val label = kind + if_proper(name, " " + name)
           val label_html =
             "<html><b>" + HTML.output(kind) + "</b>" +
-            (if (name == "") "" else " " + HTML.output(name)) + "</html>"
+            if_proper(name, " " + HTML.output(name)) + "</html>"
           val range = Text.Range(offset, offset + source.length)
           val asset = new Asset(label, label_html, range, source)
           data.root.add(new DefaultMutableTreeNode(asset))
