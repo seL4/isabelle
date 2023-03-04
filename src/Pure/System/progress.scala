@@ -95,7 +95,8 @@ extends Progress {
   override def toString: String = super.toString + ": console"
 }
 
-class File_Progress(path: Path, override val verbose: Boolean = false) extends Progress {
+class File_Progress(path: Path, override val verbose: Boolean = false)
+extends Progress {
   override def echo(message: Progress.Message): Unit =
     File.append(path, message.output_text + "\n")
 
