@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/output.scala
     Author:     Makarius
 
-Isabelle output channels.
+Console output channels.
 */
 
 package isabelle
@@ -20,24 +20,17 @@ object Output {
   def error_prefix(s: String): String = Library.prefix_lines("*** ", s)
   def error_message_text(msg: String): String = error_prefix(clean_yxml(msg))
 
-  def writeln(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit = {
-    if (msg.nonEmpty || include_empty) {
-      if (stdout) Console.print(writeln_text(msg) + "\n")
-      else Console.err.print(writeln_text(msg) + "\n")
+  def output(s: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
+    if (s.nonEmpty || include_empty) {
+      if (stdout) Console.print(s + "\n") else Console.err.print(s + "\n")
     }
-  }
 
-  def warning(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit = {
-    if (msg.nonEmpty || include_empty) {
-      if (stdout) Console.print(warning_text(msg) + "\n")
-      else Console.err.print(warning_text(msg) + "\n")
-    }
-  }
+  def writeln(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
+    output(writeln_text(msg), stdout = stdout, include_empty = include_empty)
 
-  def error_message(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit = {
-    if (msg.nonEmpty || include_empty) {
-      if (stdout) Console.print(error_message_text(msg) + "\n")
-      else Console.err.print(error_message_text(msg) + "\n")
-    }
-  }
+  def warning(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
+    output(warning_text(msg), stdout = stdout, include_empty = include_empty)
+
+  def error_message(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
+    output(error_message_text(msg), stdout = stdout, include_empty = include_empty)
 }
