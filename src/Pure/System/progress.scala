@@ -38,22 +38,25 @@ object Progress {
 class Progress {
   def echo(message: Progress.Message) = {}
 
-  def echo(msg: String): Unit =
+  final def echo(msg: String): Unit =
     echo(Progress.Message(Progress.Kind.writeln, msg))
-  def echo_warning(msg: String): Unit =
+  final def echo_warning(msg: String): Unit =
     echo(Progress.Message(Progress.Kind.warning, msg))
-  def echo_error_message(msg: String): Unit =
+  final def echo_error_message(msg: String): Unit =
     echo(Progress.Message(Progress.Kind.error_message, msg))
 
-  def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
+  final def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 
   def verbose: Boolean = false
   def theory(theory: Progress.Theory): Unit = if (verbose) echo(theory.message)
 
   def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
 
-  def timeit[A](body: => A, message: Exn.Result[A] => String = null, enabled: Boolean = true): A =
-    Timing.timeit(body, message = message, enabled = enabled, output = echo)
+  final def timeit[A](
+    body: => A,
+    message: Exn.Result[A] => String = null,
+    enabled: Boolean = true
+  ): A = Timing.timeit(body, message = message, enabled = enabled, output = echo)
 
   @volatile protected var is_stopped = false
   def stop(): Unit = { is_stopped = true }
@@ -62,11 +65,11 @@ class Progress {
     is_stopped
   }
 
-  def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop() } { e }
-  def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
+  final def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop() } { e }
+  final def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
-  def bash(script: String,
+  final def bash(script: String,
     cwd: JFile = null,
     env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
