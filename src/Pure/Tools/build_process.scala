@@ -8,6 +8,7 @@ optional presentation.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
 import scala.math.Ordering
 import scala.annotation.tailrec
 
@@ -80,7 +81,7 @@ object Build_Process {
         }
 
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
-      new Context(store, build_deps, sessions, ordering, progress, hostname, numa_nodes,
+      new Context(store, build_deps, sessions, ordering, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, verbose = verbose, session_setup, uuid = uuid)
     }
@@ -92,7 +93,6 @@ object Build_Process {
     val build_deps: Sessions.Deps,
     val sessions: State.Sessions,
     val ordering: Ordering[String],
-    val progress: Progress,
     val hostname: String,
     val numa_nodes: List[Int],
     val build_heap: Boolean,
@@ -104,13 +104,6 @@ object Build_Process {
     val uuid: String
   ) {
     def build_options: Options = store.options
-
-    val log: Logger =
-      build_options.string("system_log") match {
-        case "" => No_Logger
-        case "-" => Logger.make(progress)
-        case log_file => Logger.make(Some(Path.explode(log_file)))
-      }
 
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
 
@@ -131,6 +124,8 @@ object Build_Process {
 
 
   /** dynamic state **/
+
+  type Progress_Messages = SortedMap[Long, Progress.Message]
 
   case class Entry(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
     def is_ready: Boolean = deps.isEmpty
@@ -157,12 +152,22 @@ object Build_Process {
   // dynamic state of various instances, distinguished by uuid
   sealed case class State(
     serial: Long = 0,
+    progress_seen: Long = 0,
     numa_index: Int = 0,
     sessions: State.Sessions = Map.empty,   // static build targets
     pending: State.Pending = Nil,           // dynamic build "queue"
     running: State.Running = Map.empty,     // presently running jobs
     results: State.Results = Map.empty      // finished results
   ) {
+    def echo(progress: Progress, message_serial: Long, message: Progress.Message): State =
+      if (message_serial > progress_seen) {
+        progress.echo(message)
+        copy(progress_seen = message_serial)
+      }
+      else {
+        error("Bad serial " + message_serial + " (already seen) for progress message:\n" + message)
+      }
+
     def numa_next(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
       else {
@@ -246,6 +251,15 @@ object Build_Process {
       val table = make_table("serial", List(serial))
     }
 
+    object Progress {
+      val serial = SQL.Column.long("serial").make_primary_key
+      val kind = SQL.Column.int("kind")
+      val text = SQL.Column.string("text")
+      val uuid = Generic.uuid
+
+      val table = make_table("progress", List(serial, kind, text, uuid))
+    }
+
     object Sessions {
       val name = Generic.name.make_primary_key
       val deps = SQL.Column.string("deps")
@@ -304,6 +318,38 @@ object Build_Process {
           stmt.execute()
         }
       }
+
+    def read_progress(db: SQL.Database, seen: Long = 0, uuid: String = ""): Progress_Messages =
+      db.using_statement(
+        Progress.table.select(
+          sql =
+            SQL.where(
+              SQL.and(
+                if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
+                Generic.sql_equal(uuid = uuid))))
+      ) { stmt =>
+          SortedMap.from(stmt.execute_query().iterator { res =>
+            val serial = res.long(Progress.serial)
+            val kind = isabelle.Progress.Kind(res.int(Progress.kind))
+            val text = res.string(Progress.text)
+            serial -> isabelle.Progress.Message(kind, text)
+          })
+        }
+
+    def write_progress(
+      db: SQL.Database,
+      message_serial: Long,
+      message: isabelle.Progress.Message,
+      uuid: String
+    ): Unit = {
+      db.using_statement(Progress.table.insert()) { stmt =>
+        stmt.long(1) = message_serial
+        stmt.int(2) = message.kind.id
+        stmt.string(3) = message.text
+        stmt.string(4) = uuid
+        stmt.execute()
+      }
+    }
 
     def read_sessions_domain(db: SQL.Database): Set[String] =
       db.using_statement(Sessions.table.select(List(Sessions.name)))(stmt =>
@@ -475,6 +521,7 @@ object Build_Process {
         List(
           Base.table,
           Serial.table,
+          Progress.table,
           Sessions.table,
           Pending.table,
           Running.table,
@@ -526,14 +573,16 @@ object Build_Process {
 
 /** main process **/
 
-class Build_Process(protected val build_context: Build_Process.Context)
+class Build_Process(
+  protected val build_context: Build_Process.Context,
+  protected val build_progress: Progress
+)
 extends AutoCloseable {
   /* context */
 
   protected val store: Sessions.Store = build_context.store
   protected val build_options: Options = store.options
   protected val build_deps: Sessions.Deps = build_context.build_deps
-  protected val progress: Progress = build_context.progress
   protected val verbose: Boolean = build_context.verbose
 
 
@@ -576,6 +625,33 @@ extends AutoCloseable {
           Build_Process.Data.update_database(
             db, build_context.uuid, build_context.hostname, _state)
       }
+    }
+
+
+  /* progress backed by database */
+
+  object progress extends Progress {
+    override def echo(message: Progress.Message): Unit =
+      synchronized_database {
+        val serial1 = _state.serial + 1
+        _state = _state.echo(build_progress, serial1, message).copy(serial = serial1)
+
+        for (db <- _database) {
+          Build_Process.Data.write_progress(db, serial1, message, build_context.uuid)
+          Build_Process.Data.set_serial(db, serial1)
+        }
+      }
+
+    override def verbose: Boolean = build_progress.verbose
+    override def stop(): Unit = build_progress.stop()
+    override def stopped: Boolean = build_progress.stopped
+  }
+
+  val log: Logger =
+    build_options.string("system_log") match {
+      case "" => No_Logger
+      case "-" => Logger.make(progress)
+      case log_file => Logger.make(Some(Path.explode(log_file)))
     }
 
 
@@ -654,8 +730,8 @@ extends AutoCloseable {
       val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
       val node_info = Host.Node_Info(build_context.hostname, numa_node)
       val job =
-        Build_Job.start_session(
-          build_context, build_deps.background(session_name), input_shasum, node_info)
+        Build_Job.start_session(build_context, progress, log,
+          build_deps.background(session_name), input_shasum, node_info)
       state1.add_running(session_name, job)
     }
   }

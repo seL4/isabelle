@@ -39,10 +39,14 @@ object Build_Job {
 
   def start_session(
     build_context: Build_Process.Context,
+    progress: Progress,
+    log: Logger,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
     node_info: Host.Node_Info
-  ): Session_Job = new Session_Job(build_context, session_background, input_shasum, node_info)
+  ): Session_Job = {
+    new Session_Job(build_context, progress, log, session_background, input_shasum, node_info)
+  }
 
   object Session_Context {
     def load(
@@ -103,12 +107,13 @@ object Build_Job {
 
   class Session_Job private[Build_Job](
     build_context: Build_Process.Context,
+    progress: Progress,
+    log: Logger,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
     override val node_info: Host.Node_Info
   ) extends Build_Job {
     private val store = build_context.store
-    private val progress = build_context.progress
     private val verbose = build_context.verbose
 
     def session_name: String = session_background.session_name
@@ -168,7 +173,7 @@ object Build_Job {
         /* session */
 
         val resources =
-          new Resources(session_background, log = build_context.log,
+          new Resources(session_background, log = log,
             command_timings = build_context.old_command_timings(session_name))
 
         val session =

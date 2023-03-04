@@ -46,8 +46,8 @@ object Build {
 
   class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
-    def init(build_context: Build_Process.Context): Build_Process =
-      new Build_Process(build_context)
+    def init(build_context: Build_Process.Context, build_progress: Progress): Build_Process =
+      new Build_Process(build_context, build_progress)
   }
 
   class Default_Engine extends Engine("") { override def toString: String = "<default>" }
@@ -169,7 +169,7 @@ object Build {
     val results =
       Isabelle_Thread.uninterruptible {
         val engine = get_engine(build_options.string("build_engine"))
-        using(engine.init(build_context)) { build_process =>
+        using(engine.init(build_context, progress)) { build_process =>
           val res = build_process.run()
           Results(build_context, res)
         }
