@@ -13,6 +13,13 @@ object Logger {
 
   def make(progress: Progress): Logger =
     new Logger { def apply(msg: => String): Unit = progress.echo(msg) }
+
+  def make_system_log(progress: Progress, options: Options): Logger =
+    options.string("system_log") match {
+      case "" => No_Logger
+      case "-" => make(progress)
+      case log_file => make(Some(Path.explode(log_file)))
+    }
 }
 
 trait Logger {

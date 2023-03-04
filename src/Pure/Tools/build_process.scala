@@ -652,12 +652,7 @@ extends AutoCloseable {
     override def stopped: Boolean = build_progress.stopped
   }
 
-  val log: Logger =
-    build_options.string("system_log") match {
-      case "" => No_Logger
-      case "-" => Logger.make(progress)
-      case log_file => Logger.make(Some(Path.explode(log_file)))
-    }
+  val log: Logger = Logger.make_system_log(progress, build_options)
 
 
   /* policy operations */
