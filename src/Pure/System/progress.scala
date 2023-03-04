@@ -73,7 +73,7 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
 
 class File_Progress(path: Path, verbose: Boolean = false) extends Progress {
   override def echo(msg: String): Unit =
-    File.append(path, msg + "\n")
+    File.append(path, Output.writeln_text(msg) + "\n")
 
   override def theory(theory: Progress.Theory): Unit =
     if (verbose) echo(theory.message)

@@ -53,9 +53,9 @@ object Session_Build {
     /* progress */
 
     private val progress = new Progress {
-      override def echo(txt: String): Unit =
+      override def echo(msg: String): Unit =
         GUI_Thread.later {
-          text.append(txt + "\n")
+          text.append(Output.writeln_text(msg) + "\n")
           val vertical = scroll_text.peer.getVerticalScrollBar
           vertical.setValue(vertical.getMaximum)
         }

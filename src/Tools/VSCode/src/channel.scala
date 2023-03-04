@@ -80,7 +80,7 @@ class Channel(
   /* display message */
 
   def display_message(message_type: Int, msg: String, show: Boolean): Unit =
-    write(LSP.DisplayMessage(message_type, Output.clean_yxml(msg), show))
+    write(LSP.DisplayMessage(message_type, Output.writeln_text(msg), show))
 
   def error_message(msg: String): Unit = display_message(LSP.MessageType.Error, msg, true)
   def warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, true)
