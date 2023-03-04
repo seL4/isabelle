@@ -17,8 +17,8 @@ object Output {
   def warning_prefix(s: String): String = Library.prefix_lines("### ", s)
   def warning_text(msg: String): String = warning_prefix(clean_yxml(msg))
 
-  def error_prefix(s: String): String = Library.prefix_lines("*** ", s)
-  def error_message_text(msg: String): String = error_prefix(clean_yxml(msg))
+  def error_message_prefix(s: String): String = Library.prefix_lines("*** ", s)
+  def error_message_text(msg: String): String = error_message_prefix(clean_yxml(msg))
 
   def output(s: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
     if (s.nonEmpty || include_empty) {

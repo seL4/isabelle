@@ -194,7 +194,7 @@ object Protocol {
 
     val text2 =
       if (is_warning(elem) || is_legacy(elem)) Output.warning_prefix(body)
-      else if (is_error(elem)) Output.error_prefix(body)
+      else if (is_error(elem)) Output.error_message_prefix(body)
       else body
 
     text1 + text2
