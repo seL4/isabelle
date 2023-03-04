@@ -100,6 +100,7 @@ class Channel(
   def progress(verbose: Boolean = false): Progress = {
     val verbose_ = verbose
     new Progress {
+      override val verbose: Boolean = verbose_
       override def echo(message: Progress.Message): Unit =
         message.kind match {
           case Progress.Kind.writeln => log_writeln(message.text)
