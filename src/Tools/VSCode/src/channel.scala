@@ -100,10 +100,12 @@ class Channel(
   def progress(verbose: Boolean = false): Progress = {
     val verbose_ = verbose
     new Progress {
-      override def echo(msg: String): Unit = log_writeln(msg)
-      override def echo_warning(msg: String): Unit = log_warning(msg)
-      override def echo_error_message(msg: String): Unit = log_error_message(msg)
-      override val verbose: Boolean = verbose_
+      override def echo(message: Progress.Message): Unit =
+        message.kind match {
+          case Progress.Kind.writeln => log_writeln(message.text)
+          case Progress.Kind.warning => log_warning(message.text)
+          case Progress.Kind.error_message => log_error_message(message.text)
+        }
     }
   }
 }

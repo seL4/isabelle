@@ -12,8 +12,21 @@ import java.io.{File => JFile}
 
 
 object Progress {
+  object Kind extends Enumeration { val writeln, warning, error_message = Value }
+  sealed case class Message(kind: Kind.Value, text: String) {
+    def output_text: String =
+      kind match {
+        case Kind.writeln => Output.writeln_text(text)
+        case Kind.warning => Output.warning_text(text)
+        case Kind.error_message => Output.error_message_text(text)
+      }
+
+    override def toString: String = output_text
+  }
+
   sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None) {
-    def message: String = print_session + print_theory + print_percentage
+    def message: Message =
+      Message(Kind.writeln, print_session + print_theory + print_percentage)
 
     def print_session: String = if (session == "") "" else session + ": "
     def print_theory: String = "theory " + theory
@@ -23,16 +36,21 @@ object Progress {
 }
 
 class Progress {
-  def echo(msg: String): Unit = {}
+  def echo(message: Progress.Message) = {}
+
+  def echo(msg: String): Unit =
+    echo(Progress.Message(Progress.Kind.writeln, msg))
+  def echo_warning(msg: String): Unit =
+    echo(Progress.Message(Progress.Kind.warning, msg))
+  def echo_error_message(msg: String): Unit =
+    echo(Progress.Message(Progress.Kind.error_message, msg))
+
   def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 
   def verbose: Boolean = false
   def theory(theory: Progress.Theory): Unit = if (verbose) echo(theory.message)
 
   def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
-
-  def echo_warning(msg: String): Unit = echo(Output.warning_text(msg))
-  def echo_error_message(msg: String): Unit = echo(Output.error_message_text(msg))
 
   def timeit[A](body: => A, message: Exn.Result[A] => String = null, enabled: Boolean = true): A =
     Timing.timeit(body, message = message, enabled = enabled, output = echo)
@@ -68,13 +86,13 @@ class Progress {
 
 class Console_Progress(override val verbose: Boolean = false, stderr: Boolean = false)
 extends Progress {
-  override def echo(msg: String): Unit =
-    Output.writeln(msg, stdout = !stderr, include_empty = true)
+  override def echo(message: Progress.Message): Unit =
+    Output.output(message.output_text, stdout = !stderr, include_empty = true)
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false) extends Progress {
-  override def echo(msg: String): Unit =
-    File.append(path, Output.writeln_text(msg) + "\n")
+  override def echo(message: Progress.Message): Unit =
+    File.append(path, message.output_text + "\n")
 
   override def toString: String = path.toString
 }
@@ -86,9 +104,9 @@ object Program_Progress {
   class Program private[Program_Progress](heading: String, title: String) {
     private val output_buffer = new StringBuffer(256)  // synchronized
 
-    def echo(msg: String): Unit = synchronized {
+    def echo(message: Progress.Message): Unit = synchronized {
       if (output_buffer.length() > 0) output_buffer.append('\n')
-      output_buffer.append(msg)
+      output_buffer.append(message.output_text)
     }
 
     val start_time: Time = Time.now()
@@ -157,14 +175,15 @@ abstract class Program_Progress(
 
   def detect_program(s: String): Option[String]
 
-  override def echo(msg: String): Unit = synchronized {
-    detect_program(msg).map(Word.explode) match {
+  override def echo(message: Progress.Message): Unit = synchronized {
+    val writeln_msg = if (message.kind == Progress.Kind.writeln) message.text else ""
+    detect_program(writeln_msg).map(Word.explode) match {
       case Some(a :: bs) =>
         stop_program()
         start_program(a, Word.implode(bs))
       case _ =>
         if (_running_program.isEmpty) start_program(default_heading, default_title)
-        _running_program.get.echo(msg)
+        _running_program.get.echo(message)
     }
   }
 }

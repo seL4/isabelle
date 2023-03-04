@@ -256,15 +256,18 @@ object Server {
 
   class Connection_Progress private[Server](context: Context, more: JSON.Object.Entry*)
   extends Progress {
-    override def echo(msg: String): Unit = context.writeln(msg, more:_*)
-    override def echo_warning(msg: String): Unit = context.warning(msg, more:_*)
-    override def echo_error_message(msg: String): Unit = context.error_message(msg, more:_*)
+    override def echo(message: Progress.Message): Unit =
+      message.kind match {
+        case Progress.Kind.writeln => context.writeln(message.text, more:_*)
+        case Progress.Kind.warning => context.warning(message.text, more:_*)
+        case Progress.Kind.error_message => context.error_message(message.text, more:_*)
+      }
 
     override def theory(theory: Progress.Theory): Unit = {
       val entries: List[JSON.Object.Entry] =
         List("theory" -> theory.theory, "session" -> theory.session) :::
           (theory.percentage match { case None => Nil case Some(p) => List("percentage" -> p) })
-      context.writeln(theory.message, entries ::: more.toList:_*)
+      context.writeln(theory.message.text, entries ::: more.toList:_*)
     }
 
     override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {
