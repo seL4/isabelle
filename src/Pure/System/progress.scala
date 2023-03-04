@@ -88,13 +88,15 @@ class Console_Progress(override val verbose: Boolean = false, stderr: Boolean = 
 extends Progress {
   override def echo(message: Progress.Message): Unit =
     Output.output(message.output_text, stdout = !stderr, include_empty = true)
+
+  override def toString: String = super.toString + ": console"
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false) extends Progress {
   override def echo(message: Progress.Message): Unit =
     File.append(path, message.output_text + "\n")
 
-  override def toString: String = path.toString
+  override def toString: String = super.toString + ": " + path.toString
 }
 
 
