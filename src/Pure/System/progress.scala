@@ -13,7 +13,7 @@ import java.io.{File => JFile}
 
 object Progress {
   object Kind extends Enumeration { val writeln, warning, error_message = Value }
-  sealed case class Message(kind: Kind.Value, text: String) {
+  sealed case class Message(kind: Kind.Value, text: String, verbose: Boolean = false) {
     def output_text: String =
       kind match {
         case Kind.writeln => Output.writeln_text(text)
@@ -26,7 +26,7 @@ object Progress {
 
   sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None) {
     def message: Message =
-      Message(Kind.writeln, print_session + print_theory + print_percentage)
+      Message(Kind.writeln, print_session + print_theory + print_percentage, verbose = true)
 
     def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
@@ -36,27 +36,28 @@ object Progress {
 }
 
 class Progress {
-  def echo(message: Progress.Message) = {}
+  def verbose: Boolean = false
+  final def do_output(message: Progress.Message): Boolean = !message.verbose || verbose
 
-  final def echo(msg: String): Unit =
-    echo(Progress.Message(Progress.Kind.writeln, msg))
-  final def echo_warning(msg: String): Unit =
-    echo(Progress.Message(Progress.Kind.warning, msg))
-  final def echo_error_message(msg: String): Unit =
-    echo(Progress.Message(Progress.Kind.error_message, msg))
+  def output(message: Progress.Message) = {}
+
+  final def echo(msg: String, verbose: Boolean = false): Unit =
+    output(Progress.Message(Progress.Kind.writeln, msg, verbose = verbose))
+  final def echo_warning(msg: String, verbose: Boolean = false): Unit =
+    output(Progress.Message(Progress.Kind.warning, msg, verbose = verbose))
+  final def echo_error_message(msg: String, verbose: Boolean = false): Unit =
+    output(Progress.Message(Progress.Kind.error_message, msg, verbose = verbose))
 
   final def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 
-  def verbose: Boolean = false
-  def theory(theory: Progress.Theory): Unit = if (verbose) echo(theory.message)
-
+  def theory(theory: Progress.Theory): Unit = output(theory.message)
   def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
 
   final def timeit[A](
     body: => A,
     message: Exn.Result[A] => String = null,
     enabled: Boolean = true
-  ): A = Timing.timeit(body, message = message, enabled = enabled, output = echo)
+  ): A = Timing.timeit(body, message = message, enabled = enabled, output = echo(_))
 
   @volatile protected var is_stopped = false
   def stop(): Unit = { is_stopped = true }
@@ -89,16 +90,18 @@ class Progress {
 
 class Console_Progress(override val verbose: Boolean = false, stderr: Boolean = false)
 extends Progress {
-  override def echo(message: Progress.Message): Unit =
-    Output.output(message.output_text, stdout = !stderr, include_empty = true)
+  override def output(message: Progress.Message): Unit =
+    if (do_output(message)) {
+      Output.output(message.output_text, stdout = !stderr, include_empty = true)
+    }
 
   override def toString: String = super.toString + ": console"
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
 extends Progress {
-  override def echo(message: Progress.Message): Unit =
-    File.append(path, message.output_text + "\n")
+  override def output(message: Progress.Message): Unit =
+    if (do_output(message)) File.append(path, message.output_text + "\n")
 
   override def toString: String = super.toString + ": " + path.toString
 }
@@ -110,7 +113,7 @@ object Program_Progress {
   class Program private[Program_Progress](heading: String, title: String) {
     private val output_buffer = new StringBuffer(256)  // synchronized
 
-    def echo(message: Progress.Message): Unit = synchronized {
+    def output(message: Progress.Message): Unit = synchronized {
       if (output_buffer.length() > 0) output_buffer.append('\n')
       output_buffer.append(message.output_text)
     }
@@ -181,7 +184,7 @@ abstract class Program_Progress(
 
   def detect_program(s: String): Option[String]
 
-  override def echo(message: Progress.Message): Unit = synchronized {
+  override def output(message: Progress.Message): Unit = synchronized {
     val writeln_msg = if (message.kind == Progress.Kind.writeln) message.text else ""
     detect_program(writeln_msg).map(Word.explode) match {
       case Some(a :: bs) =>
@@ -189,7 +192,7 @@ abstract class Program_Progress(
         start_program(a, Word.implode(bs))
       case _ =>
         if (_running_program.isEmpty) start_program(default_heading, default_title)
-        _running_program.get.echo(message)
+        if (do_output(message)) _running_program.get.output(message)
     }
   }
 }

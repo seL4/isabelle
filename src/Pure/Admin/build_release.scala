@@ -260,7 +260,7 @@ directory individually.
           ssh.read_file(remote_tmp_tar, local_tmp_tar)
         }
         execute_tar(local_dir, "-xvf " + File.bash_path(local_tmp_tar))
-          .out_lines.sorted.foreach(progress.echo)
+          .out_lines.sorted.foreach(progress.echo(_))
       }
     }
     finally { ssh.close() }

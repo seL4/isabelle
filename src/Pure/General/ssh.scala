@@ -208,8 +208,8 @@ object SSH {
         File.read(Path.explode("~~/lib/scripts/download_file")) + "\n" +
           "download_file " + Bash.string(url_name) + " " + bash_path(file)
       execute(cmd_line,
-        progress_stdout = progress.echo,
-        progress_stderr = progress.echo).check
+        progress_stdout = progress.echo(_),
+        progress_stderr = progress.echo(_)).check
     }
 
     override lazy val isabelle_platform: Isabelle_Platform = Isabelle_Platform(ssh = Some(ssh))

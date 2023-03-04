@@ -322,7 +322,7 @@ object Dump {
                       XML.content(Pretty.formatted(List(elem)))
                   }
                 progress.echo("FAILED to process theory " + name)
-                msgs.foreach(progress.echo_error_message)
+                msgs.foreach(progress.echo_error_message(_))
                 consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
               }
               true

@@ -502,7 +502,7 @@ object Build_Job {
                 process_result.rc, build_context.uuid)))
 
         // messages
-        process_result.err_lines.foreach(progress.echo)
+        process_result.err_lines.foreach(progress.echo(_))
 
         if (process_result.ok) {
           if (verbose) {
@@ -674,7 +674,7 @@ object Build_Job {
                     }
                     if (buffer.nonEmpty) {
                       progress.echo(thy_heading)
-                      buffer.foreach(progress.echo)
+                      buffer.foreach(progress.echo(_))
                     }
                   }
               }

@@ -161,7 +161,7 @@ object Build_Process {
   ) {
     def echo(progress: Progress, message_serial: Long, message: Progress.Message): State =
       if (message_serial > progress_seen) {
-        progress.echo(message)
+        progress.output(message)
         copy(progress_seen = message_serial)
       }
       else {
@@ -255,9 +255,10 @@ object Build_Process {
       val serial = SQL.Column.long("serial").make_primary_key
       val kind = SQL.Column.int("kind")
       val text = SQL.Column.string("text")
+      val verbose = SQL.Column.bool("verbose")
       val uuid = Generic.uuid
 
-      val table = make_table("progress", List(serial, kind, text, uuid))
+      val table = make_table("progress", List(serial, kind, text, verbose, uuid))
     }
 
     object Sessions {
@@ -332,7 +333,8 @@ object Build_Process {
             val serial = res.long(Progress.serial)
             val kind = isabelle.Progress.Kind(res.int(Progress.kind))
             val text = res.string(Progress.text)
-            serial -> isabelle.Progress.Message(kind, text)
+            val verbose = res.bool(Progress.verbose)
+            serial -> isabelle.Progress.Message(kind, text, verbose = verbose)
           })
         }
 
@@ -346,7 +348,8 @@ object Build_Process {
         stmt.long(1) = message_serial
         stmt.int(2) = message.kind.id
         stmt.string(3) = message.text
-        stmt.string(4) = uuid
+        stmt.bool(4) = message.verbose
+        stmt.string(5) = uuid
         stmt.execute()
       }
     }
@@ -631,18 +634,20 @@ extends AutoCloseable {
   /* progress backed by database */
 
   object progress extends Progress {
-    override def echo(message: Progress.Message): Unit =
-      synchronized_database {
-        val serial1 = _state.serial + 1
-        _state = _state.echo(build_progress, serial1, message).copy(serial = serial1)
+    override def verbose: Boolean = build_progress.verbose
 
+    override def output(message: Progress.Message): Unit =
+      synchronized_database {
+        val state1 = _state.copy(serial = _state.serial + 1)
         for (db <- _database) {
-          Build_Process.Data.write_progress(db, serial1, message, build_context.uuid)
-          Build_Process.Data.set_serial(db, serial1)
+          Build_Process.Data.write_progress(db, state1.serial, message, build_context.uuid)
+          Build_Process.Data.set_serial(db, state1.serial)
         }
+        _state =
+          if (do_output(message)) state1.echo(build_progress, state1.serial, message)
+          else state1
       }
 
-    override def verbose: Boolean = build_progress.verbose
     override def stop(): Unit = build_progress.stop()
     override def stopped: Boolean = build_progress.stopped
   }

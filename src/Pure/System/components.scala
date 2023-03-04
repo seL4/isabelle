@@ -83,8 +83,8 @@ object Components {
     progress.echo("Unpacking " + archive.base)
     ssh.execute(
       "tar -C " + ssh.bash_path(dir) + " -x -z -f " + ssh.bash_path(archive),
-      progress_stdout = progress.echo,
-      progress_stderr = progress.echo).check
+      progress_stdout = progress.echo(_),
+      progress_stderr = progress.echo(_)).check
     name
   }
 
