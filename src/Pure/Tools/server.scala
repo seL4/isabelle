@@ -281,7 +281,7 @@ object Server {
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 
-    override def toString: String = context.toString
+    override def toString: String = super.toString + ": " + context.toString
   }
 
   class Task private[Server](val context: Context, body: Task => JSON.Object.T) {
