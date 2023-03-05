@@ -44,6 +44,8 @@ object Sync {
     afp_root: Option[Path] = None,
     afp_rev: String = ""
   ): Unit = {
+    val progress = context.progress
+
     val hg = Mercurial.self_repository()
     val afp_hg = afp_root.map(Mercurial.repository(_))
 
@@ -56,14 +58,14 @@ object Sync {
         contents = contents, filter = filter ::: more_filter)
     }
 
-    context.progress.echo_if(verbose, "\n* Isabelle repository:")
+    progress.echo_if(verbose, "\n* Isabelle repository:")
     val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
     sync(hg, target, rev,
       contents = List(File.content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
       filter = filter_heaps ::: List("protect /AFP"))
 
     for (hg <- afp_hg) {
-      context.progress.echo_if(verbose, "\n* AFP repository:")
+      progress.echo_if(verbose, "\n* AFP repository:")
       sync(hg, Url.append_path(target, "AFP"), afp_rev)
     }
 
@@ -71,7 +73,7 @@ object Sync {
       find_images(options, session_images,
         dirs = afp_root.map(_ + Path.explode("thys")).toList)
     if (images.nonEmpty) {
-      context.progress.echo_if(verbose, "\n* Session images:")
+      progress.echo_if(verbose, "\n* Session images:")
       val heaps = Url.append_path(target, "heaps/")
       Rsync.exec(context, verbose = verbose, thorough = thorough, dry_run = dry_run,
         args = List("--relative", "--") ::: images ::: List(heaps)).check

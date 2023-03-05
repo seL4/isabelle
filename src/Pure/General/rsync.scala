@@ -33,6 +33,7 @@ object Rsync {
     filter: List[String] = Nil,
     args: List[String] = Nil
   ): Process_Result = {
+    val progress = context.progress
     val script =
       context.command +
         (if (verbose) " --verbose" else "") +
@@ -43,7 +44,7 @@ object Rsync {
         (if (list) " --list-only --no-human-readable" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
         if_proper(args, " " + Bash.strings(args))
-    context.progress.bash(script, echo = true)
+    progress.bash(script, echo = true)
   }
 
   def init(context: Context, target: String,

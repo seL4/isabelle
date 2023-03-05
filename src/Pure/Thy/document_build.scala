@@ -442,8 +442,9 @@ object Document_Build {
       directory: Directory,
       verbose: Boolean
     ): Document_Output = {
+      val progress = context.progress
       val result =
-        context.progress.bash(
+        progress.bash(
           build_script(context, directory),
           cwd = directory.doc_dir.file,
           echo = verbose,
