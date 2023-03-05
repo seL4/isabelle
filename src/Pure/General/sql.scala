@@ -321,6 +321,8 @@ object SQL {
 
     def rebuild(): Unit = ()
 
+    def now(): Date
+
 
     /* types */
 
@@ -434,6 +436,8 @@ object SQLite {
     override def is_server: Boolean = false
     override def rebuild(): Unit = using_statement("VACUUM")(_.execute())
 
+    override def now(): Date = Date.now()
+
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
 
     def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
@@ -506,6 +510,13 @@ object PostgreSQL {
   ) extends SQL.Database {
     override def toString: String = name
     override def is_server: Boolean = true
+
+    override def now(): Date = {
+      val now = SQL.Column.date("now")
+      using_statement("SELECT NOW() as " + now.ident)(
+        stmt => stmt.execute_query().iterator(_.date(now)).nextOption
+      ).getOrElse(error("Failed to get current date/time from database server " + toString))
+    }
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)
 

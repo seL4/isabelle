@@ -264,9 +264,13 @@ object Build_Process {
     }
 
     object Serial {
+      val uuid = Generic.uuid.make_primary_key
+      val stamp = SQL.Column.date("stamp")
       val serial = SQL.Column.long("serial")
 
-      val table = make_table("serial", List(serial))
+      val table = make_table("serial", List(uuid, stamp, serial))
+
+      val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
     }
 
     object Progress {
@@ -325,15 +329,21 @@ object Build_Process {
           List(name, hostname, numa_node, rc, out, err, timing_elapsed, timing_cpu, timing_gc))
     }
 
-    def get_serial(db: SQL.Database): Long =
-      db.using_statement(Serial.table.select())(stmt =>
-        stmt.execute_query().iterator(_.long(Serial.serial)).nextOption.getOrElse(0L))
+    def get_serial(db: SQL.Database, uuid: String = ""): Long =
+      db.using_statement(
+        Serial.table.select(List(Serial.serial_max),
+          sql = SQL.where(Generic.sql_equal(uuid = uuid)))
+      )(stmt => stmt.execute_query().iterator(_.long(Serial.serial)).nextOption.getOrElse(0L))
 
-    def set_serial(db: SQL.Database, serial: Long): Unit =
-      if (get_serial(db) != serial) {
-        db.using_statement(Serial.table.delete())(_.execute())
+    def set_serial(db: SQL.Database, uuid: String, stamp: Date, serial: Long): Unit =
+      if (get_serial(db, uuid = uuid) != serial) {
+        db.using_statement(
+          Serial.table.delete(sql = SQL.where(Generic.sql_equal(uuid = uuid)))
+        )(_.execute())
         db.using_statement(Serial.table.insert()) { stmt =>
-          stmt.long(1) = serial
+          stmt.string(1) = uuid
+          stmt.date(2) = stamp
+          stmt.long(3) = serial
           stmt.execute()
         }
       }
@@ -584,7 +594,7 @@ object Build_Process {
       val serial0 = get_serial(db)
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
 
-      set_serial(db, serial)
+      set_serial(db, uuid, db.now(), serial)
       state.set_serial(serial)
     }
   }
@@ -647,7 +657,7 @@ extends AutoCloseable {
       val state1 = _state.inc_serial.progress_serial()
       for (db <- _database) {
         Build_Process.Data.write_progress(db, state1.serial, message, build_context.uuid)
-        Build_Process.Data.set_serial(db, state1.serial)
+        Build_Process.Data.set_serial(db, build_context.uuid, db.now(), state1.serial)
       }
       body
       _state = state1
