@@ -166,7 +166,7 @@ object Build_Process {
   sealed case class State(
     serial: Long = 0,
     progress_seen: Long = 0,
-    numa_index: Int = 0,
+    numa_next: Int = 0,
     sessions: State.Sessions = Map.empty,   // static build targets
     pending: State.Pending = Nil,           // dynamic build "queue"
     running: State.Running = Map.empty,     // presently running jobs
@@ -183,17 +183,20 @@ object Build_Process {
       if (message_serial > progress_seen) copy(progress_seen = message_serial)
       else error("Bad serial " + message_serial + " for progress output (already seen)")
 
-    def numa_next(numa_nodes: List[Int]): (Option[Int], State) =
+    def numa_next_node(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
       else {
         val available = numa_nodes.zipWithIndex
         val used =
           Set.from(for (job <- running.valuesIterator; i <- job.node_info.numa_node) yield i)
+
+        val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
         val candidates = available.drop(numa_index) ::: available.take(numa_index)
         val (n, i) =
           candidates.find({ case (n, i) => i == numa_index && !used(n) }) orElse
           candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-        (Some(n), copy(numa_index = (i + 1) % available.length))
+
+        (Some(n), copy(numa_next = numa_nodes((i + 1) % numa_nodes.length)))
       }
 
     def finished: Boolean = pending.isEmpty
@@ -576,7 +579,7 @@ object Build_Process {
           update_pending(db, state.pending),
           update_running(db, state.running),
           update_results(db, state.results),
-          Host.Data.update_numa_index(db, hostname, state.numa_index))
+          Host.Data.update_numa_next(db, hostname, state.numa_next))
 
       val serial0 = get_serial(db)
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
@@ -742,7 +745,7 @@ extends AutoCloseable {
 
       store.init_output(session_name)
 
-      val (numa_node, state1) = state.numa_next(build_context.numa_nodes)
+      val (numa_node, state1) = state.numa_next_node(build_context.numa_nodes)
       val node_info = Host.Node_Info(build_context.hostname, numa_node)
       val job =
         Build_Job.start_session(build_context, progress, log,
