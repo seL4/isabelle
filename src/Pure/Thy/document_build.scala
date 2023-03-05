@@ -116,13 +116,10 @@ object Document_Build {
   def session_background(
     options: Options,
     session: String,
-    dirs: List[Path] = Nil,
-    progress: Progress = new Progress,
-    verbose: Boolean = false
+    dirs: List[Path] = Nil
   ): Sessions.Background = {
       Sessions.load_structure(options + "document", dirs = dirs).
-        selection_deps(Sessions.Selection.session(session), progress = progress, verbose = verbose).
-        background(session)
+        selection_deps(Sessions.Selection.session(session)).background(session)
   }
 
 
