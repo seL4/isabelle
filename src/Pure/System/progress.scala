@@ -59,7 +59,7 @@ class Progress {
     enabled: Boolean = true
   ): A = Timing.timeit(body, message = message, enabled = enabled, output = echo(_))
 
-  @volatile protected var is_stopped = false
+  @volatile private var is_stopped = false
   def stop(): Unit = { is_stopped = true }
   def stopped: Boolean = {
     if (Thread.interrupted()) is_stopped = true
