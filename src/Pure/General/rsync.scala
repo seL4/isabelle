@@ -24,7 +24,6 @@ object Rsync {
 
   def exec(
     context: Context,
-    verbose: Boolean = false,
     thorough: Boolean = false,
     prune_empty_dirs: Boolean = false,
     dry_run: Boolean = false,
@@ -36,7 +35,7 @@ object Rsync {
     val progress = context.progress
     val script =
       context.command +
-        (if (verbose) " --verbose" else "") +
+        (if (progress.verbose) " --verbose" else "") +
         (if (thorough) " --ignore-times" else " --omit-dir-times") +
         (if (prune_empty_dirs) " --prune-empty-dirs" else "") +
         (if (dry_run) " --dry-run" else "") +

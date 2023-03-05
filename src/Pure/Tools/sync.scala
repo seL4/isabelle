@@ -34,7 +34,6 @@ object Sync {
   /* sync */
 
   def sync(options: Options, context: Rsync.Context, target: String,
-    verbose: Boolean = false,
     thorough: Boolean = false,
     purge_heaps: Boolean = false,
     session_images: List[String] = Nil,
@@ -54,18 +53,18 @@ object Sync {
     def sync(hg: Mercurial.Repository, dest: String, r: String,
       contents: List[File.Content] = Nil, filter: List[String] = Nil
     ): Unit = {
-      hg.sync(context, dest, rev = r, verbose = verbose, thorough = thorough, dry_run = dry_run,
+      hg.sync(context, dest, rev = r, thorough = thorough, dry_run = dry_run,
         contents = contents, filter = filter ::: more_filter)
     }
 
-    progress.echo_if(verbose, "\n* Isabelle repository:")
+    progress.echo("\n* Isabelle repository:", verbose = true)
     val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
     sync(hg, target, rev,
       contents = List(File.content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
       filter = filter_heaps ::: List("protect /AFP"))
 
     for (hg <- afp_hg) {
-      progress.echo_if(verbose, "\n* AFP repository:")
+      progress.echo("\n* AFP repository:", verbose = true)
       sync(hg, Url.append_path(target, "AFP"), afp_rev)
     }
 
@@ -73,9 +72,9 @@ object Sync {
       find_images(options, session_images,
         dirs = afp_root.map(_ + Path.explode("thys")).toList)
     if (images.nonEmpty) {
-      progress.echo_if(verbose, "\n* Session images:")
+      progress.echo("\n* Session images:", verbose = true)
       val heaps = Url.append_path(target, "heaps/")
-      Rsync.exec(context, verbose = verbose, thorough = thorough, dry_run = dry_run,
+      Rsync.exec(context, thorough = thorough, dry_run = dry_run,
         args = List("--relative", "--") ::: images ::: List(heaps)).check
     }
   }
@@ -137,13 +136,13 @@ Usage: isabelle sync [OPTIONS] TARGET
           }
 
         val options = Options.init()
-        val progress = new Console_Progress
+        val progress = new Console_Progress(verbose = verbose)
         val context =
           Rsync.Context(progress, ssh_port = ssh_port, ssh_control_path = ssh_control_path,
             protect_args = protect_args)
-        sync(options, context, target, verbose = verbose, thorough = thorough,
-          purge_heaps = purge_heaps, session_images = session_images, preserve_jars = preserve_jars,
-          dry_run = dry_run, rev = rev, afp_root = afp_root, afp_rev = afp_rev)
+        sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
+          session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
+          rev = rev, afp_root = afp_root, afp_rev = afp_rev)
       }
     )
 }

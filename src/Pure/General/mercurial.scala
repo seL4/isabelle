@@ -294,7 +294,6 @@ object Mercurial {
     def known_files(): List[String] = status(options = "--modified --added --clean --no-status")
 
     def sync(context: Rsync.Context, target: String,
-      verbose: Boolean = false,
       thorough: Boolean = false,
       dry_run: Boolean = false,
       filter: List[String] = Nil,
@@ -348,7 +347,6 @@ object Mercurial {
           (Hg_Sync.PATH :: contents.map(_.path))
             .map(path => "protect /" + File.standard_path(path))
         Rsync.exec(context,
-          verbose = verbose,
           thorough = thorough,
           dry_run = dry_run,
           clean = true,
@@ -604,7 +602,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case _ => getopts.usage()
           }
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress(verbose = verbose)
         val hg =
           root match {
             case Some(dir) => repository(dir)
@@ -612,8 +610,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           }
         val context = Rsync.Context(progress, ssh_port = ssh_port,
           ssh_control_path = ssh_control_path, protect_args = protect_args)
-        hg.sync(context, target, verbose = verbose, thorough = thorough,
-          dry_run = dry_run, filter = filter, rev = rev)
+        hg.sync(context, target, thorough = thorough, dry_run = dry_run, filter = filter, rev = rev)
       }
     )
 }
