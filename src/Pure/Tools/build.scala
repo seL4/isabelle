@@ -79,7 +79,6 @@ object Build {
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     soft_build: Boolean = false,
-    verbose: Boolean = false,
     export_files: Boolean = false,
     augment_options: String => List[Options.Spec] = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => ()
@@ -104,8 +103,7 @@ object Build {
 
     val build_deps = {
       val deps0 =
-        Sessions.deps(full_sessions.selection(selection),
-          progress = progress, inlined_files = true, verbose = verbose,
+        Sessions.deps(full_sessions.selection(selection), progress = progress, inlined_files = true,
           list_files = list_files, check_keywords = check_keywords).check_errors
 
       if (soft_build && !fresh_build) {
@@ -151,8 +149,7 @@ object Build {
       Build_Process.Context(store, build_deps, progress = progress,
         hostname = Isabelle_System.hostname(build_options.string("build_hostname")),
         build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        fresh_build = fresh_build, no_build = no_build, verbose = verbose,
-        session_setup = session_setup)
+        fresh_build = fresh_build, no_build = no_build, session_setup = session_setup)
 
     store.prepare_output_dir()
 
@@ -182,7 +179,7 @@ object Build {
           progress.echo("Exporting " + info.name + " ...")
           for ((dir, prune, pats) <- info.export_files) {
             Export.export_files(store, name, info.dir + dir,
-              progress = if (verbose) progress else new Progress,
+              progress = if (progress.verbose) progress else new Progress,
               export_prune = prune,
               export_patterns = pats)
           }
@@ -194,10 +191,10 @@ object Build {
       results.sessions_ok.filter(name => browser_info.enabled(results.info(name)))
     if (presentation_sessions.nonEmpty && !progress.stopped) {
       Browser_Info.build(browser_info, results.store, results.deps, presentation_sessions,
-        progress = progress, verbose = verbose)
+        progress = progress)
     }
 
-    if (!results.ok && (verbose || !no_build)) {
+    if (!results.ok && (progress.verbose || !no_build)) {
       progress.echo("Unfinished session(s): " + commas(results.unfinished))
     }
 
@@ -291,13 +288,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val start_date = Date.now()
 
-      if (verbose) {
-        val hostname = Isabelle_System.hostname(options.string("build_hostname"))
-        progress.echo(
-          "Started at " + Build_Log.print_date(start_date) +
-            " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + hostname +")")
-        progress.echo(Build_Log.Settings.show() + "\n")
-      }
+      val hostname = Isabelle_System.hostname(options.string("build_hostname"))
+      progress.echo(
+        "Started at " + Build_Log.print_date(start_date) +
+          " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + hostname +")",
+        verbose = true)
+      progress.echo(Build_Log.Settings.show() + "\n", verbose = true)
 
       val results =
         progress.interrupt_handler {
@@ -324,15 +320,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             fresh_build = fresh_build,
             no_build = no_build,
             soft_build = soft_build,
-            verbose = verbose,
             export_files = export_files)
         }
       val end_date = Date.now()
       val elapsed_time = end_date.time - start_date.time
 
-      if (verbose) {
-        progress.echo("\nFinished at " + Build_Log.print_date(end_date))
-      }
+      progress.echo("\nFinished at " + Build_Log.print_date(end_date), verbose = true)
 
       val total_timing =
         results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).

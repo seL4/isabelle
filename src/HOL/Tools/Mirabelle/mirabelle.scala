@@ -51,8 +51,7 @@ object Mirabelle {
     val build_results0 =
       Build.build(options, build_heap = true,
         selection = selection.copy(requirements = true), progress = progress, dirs = dirs,
-        select_dirs = select_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        verbose = progress.verbose)
+        select_dirs = select_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs)
 
     if (build_results0.ok) {
       val build_options =
@@ -95,8 +94,7 @@ object Mirabelle {
 
       Build.build(build_options, clean_build = true,
         selection = selection, progress = progress, dirs = dirs, select_dirs = select_dirs,
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs, verbose = progress.verbose,
-        session_setup = session_setup)
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, session_setup = session_setup)
     }
     else build_results0
   }

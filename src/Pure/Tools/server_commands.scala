@@ -74,8 +74,7 @@ object Server_Commands {
           progress = progress,
           build_heap = true,
           dirs = dirs,
-          infos = session_background.infos,
-          verbose = progress.verbose)
+          infos = session_background.infos)
 
       val sessions_order =
         session_background.sessions_structure.imports_topological_order.zipWithIndex.

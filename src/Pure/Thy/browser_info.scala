@@ -549,7 +549,6 @@ object Browser_Info {
     context: Context,
     session_context: Export.Session_Context,
     progress: Progress = new Progress,
-    verbose: Boolean = false,
   ): Unit = {
     progress.expose_interrupt()
 
@@ -580,7 +579,7 @@ object Browser_Info {
           error("Illegal document variant " + quote(doc.name) +
             " (conflict with " + session_graph_path + ")")
         }
-        if (verbose) progress.echo("Presenting document " + session_name + "/" + doc.name)
+        progress.echo("Presenting document " + session_name + "/" + doc.name, verbose = true)
         if (session_info.document_echo) progress.echo("Document at " + doc_path)
         Bytes.write(doc_path, document.pdf)
         doc
@@ -602,7 +601,7 @@ object Browser_Info {
       val snapshot = Build_Job.read_theory(session_context.theory(theory_name)) getOrElse err()
       val theory = context.theory_by_name(session_name, theory_name) getOrElse err()
 
-      if (verbose) progress.echo("Presenting theory " + quote(theory_name))
+      progress.echo("Presenting theory " + quote(theory_name), verbose = true)
 
       val thy_elements = theory.elements(context.elements)
 
@@ -626,7 +625,7 @@ object Browser_Info {
           progress.expose_interrupt()
 
           val file = blob_name.node
-          if (verbose) progress.echo("Presenting file " + quote(file))
+          progress.echo("Presenting file " + quote(file), verbose = true)
 
           val file_html = session_dir + context.file_html(file)
           val file_dir = file_html.dir
@@ -672,8 +671,7 @@ object Browser_Info {
     store: Sessions.Store,
     deps: Sessions.Deps,
     sessions: List[String],
-    progress: Progress = new Progress,
-    verbose: Boolean = false
+    progress: Progress = new Progress
   ): Unit = {
     val root_dir = browser_info.presentation_dir(store).absolute
     progress.echo("Presentation in " + root_dir)
@@ -701,7 +699,7 @@ object Browser_Info {
 
       Par_List.map({ (session: String) =>
         using(database_context.open_session(deps.background(session))) { session_context =>
-          build_session(context1, session_context, progress = progress, verbose = verbose)
+          build_session(context1, session_context, progress = progress)
         }
       }, sessions1)
     }

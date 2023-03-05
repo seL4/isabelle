@@ -27,7 +27,6 @@ object Build_Process {
       max_jobs: Int = 1,
       fresh_build: Boolean = false,
       no_build: Boolean = false,
-      verbose: Boolean = false,
       session_setup: (String, Session) => Unit = (_, _) => (),
       uuid: String = UUID.random().toString
     ): Context = {
@@ -83,7 +82,7 @@ object Build_Process {
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       new Context(store, build_deps, sessions, ordering, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, verbose = verbose, session_setup, uuid = uuid)
+        no_build = no_build, session_setup, uuid = uuid)
     }
   }
 
@@ -99,7 +98,6 @@ object Build_Process {
     val max_jobs: Int,
     val fresh_build: Boolean,
     val no_build: Boolean,
-    val verbose: Boolean,
     val session_setup: (String, Session) => Unit,
     val uuid: String
   ) {
@@ -608,7 +606,6 @@ extends AutoCloseable {
   protected val store: Sessions.Store = build_context.store
   protected val build_options: Options = store.options
   protected val build_deps: Sessions.Deps = build_context.build_deps
-  protected val verbose: Boolean = build_context.verbose
 
 
   /* global state: internal var vs. external database */
@@ -725,7 +722,7 @@ extends AutoCloseable {
         .make_result(session_name, Process_Result.ok, output_shasum, current = true)
     }
     else if (build_context.no_build) {
-      progress.echo_if(verbose, "Skipping " + session_name + " ...")
+      progress.echo("Skipping " + session_name + " ...", verbose = true)
       state.
         remove_pending(session_name).
         make_result(session_name, Process_Result.error, output_shasum)

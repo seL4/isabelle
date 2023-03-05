@@ -306,7 +306,6 @@ object Sessions {
   def deps(sessions_structure: Structure,
     progress: Progress = new Progress,
     inlined_files: Boolean = false,
-    verbose: Boolean = false,
     list_files: Boolean = false,
     check_keywords: Set[String] = Set.empty
   ): Deps = {
@@ -340,10 +339,10 @@ object Sessions {
               Background(base = deps_base, sessions_structure = sessions_structure)
             val resources = new Resources(session_background)
 
-            if (verbose || list_files) {
-              val groups = if_proper(info.groups, info.groups.mkString(" (", " ", ")"))
-              progress.echo("Session " + info.chapter + "/" + session_name + groups)
-            }
+            progress.echo(
+              "Session " + info.chapter + "/" + session_name +
+                if_proper(info.groups, info.groups.mkString(" (", " ", ")")),
+              verbose = !list_files)
 
             val dependencies = resources.session_dependencies(info)
 
@@ -972,12 +971,11 @@ object Sessions {
       selection: Selection,
       progress: Progress = new Progress,
       loading_sessions: Boolean = false,
-      inlined_files: Boolean = false,
-      verbose: Boolean = false
+      inlined_files: Boolean = false
     ): Deps = {
       val deps =
         Sessions.deps(sessions_structure.selection(selection),
-          progress = progress, inlined_files = inlined_files, verbose = verbose)
+          progress = progress, inlined_files = inlined_files)
 
       if (loading_sessions) {
         val selection_size = deps.sessions_structure.build_graph.size

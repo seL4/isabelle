@@ -54,8 +54,7 @@ object Update {
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
     fresh_build: Boolean = false,
-    no_build: Boolean = false,
-    verbose: Boolean = false
+    no_build: Boolean = false
   ): Build.Results = {
     /* excluded sessions */
 
@@ -80,7 +79,7 @@ object Update {
       Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection, build_heap = build_heap, clean_build = clean_build,
         numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, verbose = verbose, augment_options = augment_options)
+        no_build = no_build, augment_options = augment_options)
 
     val store = build_results.store
     val sessions_structure = build_results.deps.sessions_structure
@@ -223,8 +222,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
               numa_shuffling = Host.numa_check(progress, numa_shuffling),
               max_jobs = max_jobs,
               fresh_build,
-              no_build = no_build,
-              verbose = verbose)
+              no_build = no_build)
           }
 
         sys.exit(results.rc)

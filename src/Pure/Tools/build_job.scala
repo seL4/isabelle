@@ -114,7 +114,6 @@ object Build_Job {
     override val node_info: Host.Node_Info
   ) extends Build_Job {
     private val store = build_context.store
-    private val verbose = build_context.verbose
 
     def session_name: String = session_background.session_name
     def job_name: String = session_name
@@ -505,13 +504,12 @@ object Build_Job {
         process_result.err_lines.foreach(progress.echo(_))
 
         if (process_result.ok) {
-          if (verbose) {
-            val props = build_log.session_timing
-            val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-            val timing = Markup.Timing_Properties.get(props)
-            progress.echo(
-              "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")")
-          }
+          val props = build_log.session_timing
+          val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+          val timing = Markup.Timing_Properties.get(props)
+          progress.echo(
+            "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")",
+            verbose = true)
           progress.echo(
             "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
         }
@@ -613,7 +611,6 @@ object Build_Job {
     theories: List[String] = Nil,
     message_head: List[Regex] = Nil,
     message_body: List[Regex] = Nil,
-    verbose: Boolean = false,
     progress: Progress = new Progress,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
@@ -657,7 +654,7 @@ object Build_Job {
                   val rendering = new Rendering(snapshot, options, session)
                   val messages =
                     rendering.text_messages(Text.Range.full)
-                      .filter(message => verbose || Protocol.is_exported(message.info))
+                      .filter(message => progress.verbose || Protocol.is_exported(message.info))
                   if (messages.nonEmpty) {
                     val line_document = Line.Document(snapshot.node.source)
                     val buffer = new mutable.ListBuffer[String]
@@ -747,12 +744,12 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
 
       val sessions = getopts(args)
 
-      val progress = new Console_Progress()
+      val progress = new Console_Progress(verbose = verbose)
 
       if (sessions.isEmpty) progress.echo_warning("No sessions to print")
       else {
         print_log(options, sessions, theories = theories, message_head = message_head,
-          message_body = message_body, verbose = verbose, margin = margin, progress = progress,
+          message_body = message_body, margin = margin, progress = progress,
           unicode_symbols = unicode_symbols)
       }
     })
