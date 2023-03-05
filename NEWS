@@ -295,6 +295,11 @@ now observes the option "show_states" as given in the server command
 "session_start". If enabled, the server command "use_theories" will
 expose proof state output via its "messages" field.
 
+* Isabelle server command "session_build" no longer supports the
+"verbose" flag. Instead, all messages are shown unconditionally, while
+the property {"verbose": bool} indicates whether the result is meant to
+depend on verbose mode.
+
 
 
 New in Isabelle2022 (October 2022)

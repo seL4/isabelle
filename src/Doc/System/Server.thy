@@ -719,10 +719,6 @@ text \<open>
   (\secref{sec:session-root}). It enables the \<^verbatim>\<open>use_theories\<close> command
   (\secref{sec:command-use-theories}) to refer to sources from other sessions
   in a robust manner, instead of relying on directory locations.
-
-  \<^medskip>
-  The \<open>verbose\<close> field set to \<^verbatim>\<open>true\<close> yields extra verbosity. The effect is
-  similar to option \<^verbatim>\<open>-v\<close> in @{tool build}.
 \<close>
 
 

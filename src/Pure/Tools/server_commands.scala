@@ -42,8 +42,7 @@ object Server_Commands {
       preferences: String = default_preferences,
       options: List[String] = Nil,
       dirs: List[String] = Nil,
-      include_sessions: List[String] = Nil,
-      verbose: Boolean = false)
+      include_sessions: List[String] = Nil)
 
     def unapply(json: JSON.T): Option[Args] =
       for {
@@ -52,11 +51,10 @@ object Server_Commands {
         options <- JSON.strings_default(json, "options")
         dirs <- JSON.strings_default(json, "dirs")
         include_sessions <- JSON.strings_default(json, "include_sessions")
-        verbose <- JSON.bool_default(json, "verbose")
       }
       yield {
         Args(session, preferences = preferences, options = options, dirs = dirs,
-          include_sessions = include_sessions, verbose = verbose)
+          include_sessions = include_sessions)
       }
 
     def command(
@@ -77,7 +75,7 @@ object Server_Commands {
           build_heap = true,
           dirs = dirs,
           infos = session_background.infos,
-          verbose = args.verbose)
+          verbose = progress.verbose)
 
       val sessions_order =
         session_background.sessions_structure.imports_topological_order.zipWithIndex.

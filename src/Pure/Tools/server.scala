@@ -256,14 +256,16 @@ object Server {
 
   class Connection_Progress private[Server](context: Context, more: JSON.Object.Entry*)
   extends Progress {
-    override def output(message: Progress.Message): Unit =
-      if (do_output(message)) {
-        message.kind match {
-          case Progress.Kind.writeln => context.writeln(message.text, more:_*)
-          case Progress.Kind.warning => context.warning(message.text, more:_*)
-          case Progress.Kind.error_message => context.error_message(message.text, more:_*)
-        }
+    override def verbose: Boolean = true
+
+    override def output(message: Progress.Message): Unit = {
+      val more1 = ("verbose" -> message.verbose.toString) :: more.toList
+      message.kind match {
+        case Progress.Kind.writeln => context.writeln(message.text, more1:_*)
+        case Progress.Kind.warning => context.warning(message.text, more1:_*)
+        case Progress.Kind.error_message => context.error_message(message.text, more1:_*)
       }
+    }
 
     override def theory(theory: Progress.Theory): Unit = {
       val entries: List[JSON.Object.Entry] =
