@@ -20,6 +20,9 @@ object Library {
     finally { if (a != null) a.close() }
   }
 
+  def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
+    opt.map(a => using(a)(f))
+
 
   /* integers */
 
