@@ -147,6 +147,11 @@ object Build_Process {
     type Pending = List[Entry]
     type Running = Map[String, Build_Job]
     type Results = Map[String, Result]
+
+    def inc_serial(serial: Long): Long = {
+      require(serial < java.lang.Long.MAX_VALUE, "serial overflow")
+      serial + 1
+    }
   }
 
   // dynamic state of various instances, distinguished by uuid
@@ -159,6 +164,13 @@ object Build_Process {
     running: State.Running = Map.empty,     // presently running jobs
     results: State.Results = Map.empty      // finished results
   ) {
+    require(serial >= 0, "serial underflow")
+    def inc_serial: State = copy(serial = State.inc_serial(serial))
+    def set_serial(i: Long): State = {
+      require(serial <= i, "non-monotonic change of serial")
+      copy(serial = i)
+    }
+
     def echo(progress: Progress, message_serial: Long, message: Progress.Message): State =
       if (message_serial > progress_seen) {
         progress.output(message)
@@ -564,10 +576,10 @@ object Build_Process {
           Host.Data.update_numa_index(db, hostname, state.numa_index))
 
       val serial0 = get_serial(db)
-      val serial = if (changed.exists(identity)) serial0 + 1 else serial0
+      val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
 
       set_serial(db, serial)
-      state.copy(serial = serial)
+      state.set_serial(serial)
     }
   }
 }
@@ -638,7 +650,7 @@ extends AutoCloseable {
 
     override def output(message: Progress.Message): Unit =
       synchronized_database {
-        val state1 = _state.copy(serial = _state.serial + 1)
+        val state1 = _state.inc_serial
         for (db <- _database) {
           Build_Process.Data.write_progress(db, state1.serial, message, build_context.uuid)
           Build_Process.Data.set_serial(db, state1.serial)
