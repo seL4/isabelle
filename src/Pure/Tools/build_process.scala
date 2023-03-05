@@ -179,14 +179,9 @@ object Build_Process {
       copy(serial = i)
     }
 
-    def echo(progress: Progress, message_serial: Long, message: Progress.Message): State =
-      if (message_serial > progress_seen) {
-        progress.output(message)
-        copy(progress_seen = message_serial)
-      }
-      else {
-        error("Bad serial " + message_serial + " (already seen) for progress message:\n" + message)
-      }
+    def progress_serial(message_serial: Long = serial): State =
+      if (message_serial > progress_seen) copy(progress_seen = message_serial)
+      else error("Bad serial " + message_serial + " for progress output (already seen)")
 
     def numa_next(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
@@ -644,20 +639,29 @@ extends AutoCloseable {
 
   /* progress backed by database */
 
+  private def progress_output(message: Progress.Message, body: => Unit): Unit = {
+    synchronized_database {
+      val state1 = _state.inc_serial.progress_serial()
+      for (db <- _database) {
+        Build_Process.Data.write_progress(db, state1.serial, message, build_context.uuid)
+        Build_Process.Data.set_serial(db, state1.serial)
+      }
+      body
+      _state = state1
+    }
+  }
+
   object progress extends Progress {
     override def verbose: Boolean = build_progress.verbose
 
     override def output(message: Progress.Message): Unit =
-      synchronized_database {
-        val state1 = _state.inc_serial
-        for (db <- _database) {
-          Build_Process.Data.write_progress(db, state1.serial, message, build_context.uuid)
-          Build_Process.Data.set_serial(db, state1.serial)
-        }
-        _state =
-          if (do_output(message)) state1.echo(build_progress, state1.serial, message)
-          else state1
-      }
+      progress_output(message, if (do_output(message)) build_progress.output(message))
+
+    override def theory(theory: Progress.Theory): Unit =
+      progress_output(theory.message, build_progress.theory(theory))
+
+    override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit =
+      build_progress.nodes_status(nodes_status)
 
     override def stop(): Unit = build_progress.stop()
     override def stopped: Boolean = build_progress.stopped
