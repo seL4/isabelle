@@ -16,7 +16,10 @@ object Host {
 
   object Node_Info { def none: Node_Info = Node_Info("", None) }
 
-  sealed case class Node_Info(hostname: String, numa_node: Option[Int])
+  sealed case class Node_Info(hostname: String, numa_node: Option[Int]) {
+    override def toString: String =
+      hostname + if_proper(numa_node, "/" + numa_node.get.toString)
+  }
 
 
   /* available NUMA nodes */
