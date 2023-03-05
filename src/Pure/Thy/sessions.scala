@@ -1481,19 +1481,14 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =
-        database_server && {
-          try_open_database(name) match {
-            case Some(db) =>
-              using(db) { db =>
-                db.transaction {
-                  val relevant_db = session_info_defined(db, name)
-                  init_session_info(db, name)
-                  relevant_db
-                }
-              }
-            case None => false
-          }
-        }
+        database_server &&
+          using_option(try_open_database(name))(db =>
+            db.transaction {
+              val relevant_db = session_info_defined(db, name)
+              init_session_info(db, name)
+              relevant_db
+            }
+          ).getOrElse(false)
 
       val del =
         for {
