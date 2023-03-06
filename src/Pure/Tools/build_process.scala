@@ -610,17 +610,17 @@ object Build_Process {
 /** main process **/
 
 class Build_Process(
-  protected val build_context: Build_Process.Context,
-  protected val build_progress: Progress
+  protected final val build_context: Build_Process.Context,
+  protected final val build_progress: Progress
 )
 extends AutoCloseable {
   /* context */
 
-  protected val store: Sessions.Store = build_context.store
-  protected val build_options: Options = store.options
-  protected val build_deps: Sessions.Deps = build_context.build_deps
-  protected val build_uuid: String = build_context.build_uuid
-  protected val worker_uuid: String = UUID.random().toString
+  protected final val store: Sessions.Store = build_context.store
+  protected final val build_options: Options = store.options
+  protected final val build_deps: Sessions.Deps = build_context.build_deps
+  protected final val build_uuid: String = build_context.build_uuid
+  protected final val worker_uuid: String = UUID.random().toString
 
 
   /* global state: internal var vs. external database */
@@ -671,7 +671,7 @@ extends AutoCloseable {
     }
   }
 
-  object progress extends Progress {
+  protected object progress extends Progress {
     override def verbose: Boolean = build_progress.verbose
 
     override def output(message: Progress.Message): Unit =
@@ -687,7 +687,7 @@ extends AutoCloseable {
     override def stopped: Boolean = build_progress.stopped
   }
 
-  val log: Logger = Logger.make_system_log(progress, build_options)
+  protected val log: Logger = Logger.make_system_log(progress, build_options)
 
 
   /* policy operations */
