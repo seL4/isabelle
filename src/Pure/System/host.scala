@@ -12,6 +12,19 @@ package isabelle
 
 
 object Host {
+  /* process policy via numactl tool */
+
+  def numactl(node: Int): String = "numactl -m" + node + " -N" + node
+  def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
+
+  def process_policy(options: Options, numa_node: Option[Int]): Options =
+    numa_node match {
+      case None => options
+      case Some(node) =>
+        options.string("process_policy") = if (numactl_ok(node)) numactl(node) else ""
+    }
+
+
   /* allocated resources */
 
   object Node_Info { def none: Node_Info = Node_Info("", None) }
@@ -55,19 +68,6 @@ object Host {
     }
     catch { case ERROR(_) => None }
 
-
-
-  /* process policy via numactl tool */
-
-  def numactl(node: Int): String = "numactl -m" + node + " -N" + node
-  def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
-
-  def process_policy(options: Options, numa_node: Option[Int]): Options =
-    numa_node match {
-      case None => options
-      case Some(node) =>
-        options.string("process_policy") = if (numactl_ok(node)) numactl(node) else ""
-    }
 
 
   /* shuffling of NUMA nodes */
