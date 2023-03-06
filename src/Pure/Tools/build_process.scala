@@ -835,12 +835,15 @@ extends AutoCloseable {
         .make_result(session_name, Process_Result.undefined, output_shasum)
     }
     else {
-      progress.echo((if (store_heap) "Building " else "Running ") + session_name + " ...")
+      val (numa_node, state1) = state.numa_next_node(build_context.numa_nodes)
+      val node_info = Host.Node_Info(build_context.hostname, numa_node)
+
+      progress.echo(
+        (if (store_heap) "Building " else "Running ") + session_name +
+          if_proper(node_info.numa_node, " on " + node_info) + " ...")
 
       store.init_output(session_name)
 
-      val (numa_node, state1) = state.numa_next_node(build_context.numa_nodes)
-      val node_info = Host.Node_Info(build_context.hostname, numa_node)
       val job =
         Build_Job.start_session(build_context, progress, log,
           build_deps.background(session_name), input_shasum, node_info)

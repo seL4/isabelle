@@ -443,7 +443,8 @@ object Build_Log {
       new Regex("""^Finished ([^\s/]+) \((\d+):(\d+):(\d+) elapsed time.*$""")
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
-    val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
+    val Session_Started1 = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
+    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) on \S+ \.\.\.$""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
@@ -486,7 +487,10 @@ object Build_Log {
           chapter += (name -> chapt)
           groups += (name -> Word.explode(grps))
 
-        case Session_Started(name) =>
+        case Session_Started1(name) =>
+          started += name
+
+        case Session_Started2(name) =>
           started += name
 
         case Session_Finished1(name,
