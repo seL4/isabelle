@@ -1565,8 +1565,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
         db.create_table(Document_Build.Data.table)
         db.execute_statement(
-          Document_Build.Data.table.delete(
-            sql = Document_Build.Data.session_name.where_equal(name)))
+          Document_Build.Data.table.delete(sql = Document_Build.Data.session_name.where_equal(name)))
       }
     }
 
@@ -1657,7 +1656,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* session sources */
 
-    def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit = {
+    def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit =
       for (source_file <- sources) {
         db.execute_statement(Sources.table.insert(), body =
           { stmt =>
@@ -1668,7 +1667,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
             stmt.bytes(5) = source_file.body
           })
       }
-    }
 
     def read_sources(
       db: SQL.Database,

@@ -114,8 +114,7 @@ object Host {
 
     def update_numa_next(db: SQL.Database, hostname: String, numa_next: Int): Boolean =
       if (read_numa_next(db, hostname) != numa_next) {
-        db.execute_statement(
-          Node_Info.table.delete(sql = Node_Info.hostname.where_equal(hostname)))
+        db.execute_statement(Node_Info.table.delete(sql = Node_Info.hostname.where_equal(hostname)))
         db.execute_statement(Node_Info.table.insert(), body =
           { stmt =>
             stmt.string(1) = hostname

@@ -906,23 +906,18 @@ object Build_Log {
       db.using_statement(table.select(List(column), distinct = true))(stmt =>
         stmt.execute_query().iterator(_.string(column)).toSet)
 
-    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit = {
-      val table = Data.meta_info_table
-      db.execute_statement(db.insert_permissive(table), body =
+    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit =
+      db.execute_statement(db.insert_permissive(Data.meta_info_table), body =
         { stmt =>
           stmt.string(1) = log_name
-          for ((c, i) <- table.columns.tail.zipWithIndex) {
-            if (c.T == SQL.Type.Date)
-              stmt.date(i + 2) = meta_info.get_date(c)
-            else
-              stmt.string(i + 2) = meta_info.get(c)
+          for ((c, i) <- Data.meta_info_table.columns.tail.zipWithIndex) {
+            if (c.T == SQL.Type.Date) stmt.date(i + 2) = meta_info.get_date(c)
+            else stmt.string(i + 2) = meta_info.get(c)
           }
         })
-    }
 
-    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
-      val table = Data.sessions_table
-      db.execute_statement(db.insert_permissive(table), body =
+    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
+      db.execute_statement(db.insert_permissive(Data.sessions_table), body =
         { stmt =>
           val sessions =
             if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
@@ -947,11 +942,9 @@ object Build_Log {
             stmt.string(17) = session.sources
           }
         })
-    }
 
-    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
-      val table = Data.theories_table
-      db.execute_statement(db.insert_permissive(table), body =
+    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
+      db.execute_statement(db.insert_permissive(Data.theories_table), body =
         { stmt =>
           val sessions =
             if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
@@ -969,11 +962,9 @@ object Build_Log {
             stmt.long(6) = timing.gc.ms
           }
         })
-    }
 
-    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
-      val table = Data.ml_statistics_table
-      db.execute_statement(db.insert_permissive(table), body =
+    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
+      db.execute_statement(db.insert_permissive(Data.ml_statistics_table), body =
         { stmt =>
           val ml_stats: List[(String, Option[Bytes])] =
             Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
@@ -986,7 +977,6 @@ object Build_Log {
             stmt.bytes(3) = ml_statistics
           }
         })
-    }
 
     def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit = {
       abstract class Table_Status(table: SQL.Table) {

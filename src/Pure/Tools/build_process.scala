@@ -442,7 +442,7 @@ object Build_Process {
           sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
       )(stmt => stmt.execute_query().iterator(_.long(Workers.serial)).nextOption.getOrElse(0L))
 
-    def set_serial(db: SQL.Database, worker_uuid: String, build_uuid: String, serial: Long): Unit = {
+    def set_serial(db: SQL.Database, worker_uuid: String, build_uuid: String, serial: Long): Unit =
       if (get_serial(db, worker_uuid = worker_uuid) != serial) {
         db.execute_statement(
           Workers.table.delete(sql = SQL.where(Generic.sql(worker_uuid = worker_uuid))))
@@ -454,7 +454,6 @@ object Build_Process {
             stmt.long(4) = serial
           })
       }
-    }
 
 
     /* pending jobs */

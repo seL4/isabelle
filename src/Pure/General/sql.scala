@@ -549,8 +549,7 @@ object PostgreSQL {
       execute_statement("UNLISTEN " + (if (name == "*") name else SQL.ident(name)))
 
     def notify(name: String, payload: String = ""): Unit =
-      execute_statement(
-        "NOTIFY " + SQL.ident(name) + if_proper(payload, ", " + SQL.string(payload)))
+      execute_statement("NOTIFY " + SQL.ident(name) + if_proper(payload, ", " + SQL.string(payload)))
 
     def get_notifications(): List[PGNotification] =
       the_postgresql_connection.getNotifications() match {

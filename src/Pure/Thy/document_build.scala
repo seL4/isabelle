@@ -99,7 +99,7 @@ object Document_Build {
     }
   }
 
-  def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit = {
+  def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
     db.execute_statement(Data.table.insert(), body =
       { stmt =>
         stmt.string(1) = session_name
@@ -108,7 +108,6 @@ object Document_Build {
         stmt.bytes(4) = doc.log_xz
         stmt.bytes(5) = doc.pdf
       })
-  }
 
 
   /* background context */
