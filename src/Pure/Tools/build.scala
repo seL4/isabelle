@@ -168,7 +168,7 @@ object Build {
       Isabelle_Thread.uninterruptible {
         val engine = get_engine(build_options.string("build_engine"))
         using(engine.init(build_context, progress)) { build_process =>
-          val res = build_process.run()
+          val res = build_process.run(master = true)
           Results(build_context, res)
         }
       }
