@@ -199,6 +199,10 @@ object SQL {
     def delete(sql: Source = ""): Source =
       "DELETE FROM " + ident + SQL.separate(sql)
 
+    def update(update_columns: List[Column] = Nil, sql: Source = ""): Source =
+      "UPDATE " + ident + " SET " + commas(update_columns.map(c => c.ident + " = ?")) +
+        SQL.separate(sql)
+
     def select(
       select_columns: List[Column] = Nil,
       distinct: Boolean = false,
