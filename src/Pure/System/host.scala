@@ -52,15 +52,14 @@ object Host {
   def numactl(node: Int): String = "numactl -m" + node + " -N" + node
   def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
 
-  def process_policy(node: Int): String = if (numactl_ok(node)) numactl(node) else ""
-
-  def process_policy_options(options: Options, numa_node: Option[Int]): Options =
+  def process_policy(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
       case None => options
-      case Some(n) => options.string("process_policy") = process_policy(n)
+      case Some(node) =>
+        options.string("process_policy") = if (numactl_ok(node)) numactl(node) else ""
     }
 
-  def perhaps_process_policy_options(options: Options): Options = {
+  def perhaps_process_policy(options: Options): Options = {
     val numa_node =
       try {
         numa_nodes() match {
@@ -69,7 +68,7 @@ object Host {
         }
       }
       catch { case ERROR(_) => None }
-    process_policy_options(options, numa_node)
+    process_policy(options, numa_node)
   }
 
 
