@@ -32,6 +32,9 @@ object Host {
   sealed case class Node_Info(hostname: String, numa_node: Option[Int]) {
     override def toString: String =
       hostname + if_proper(numa_node, "/" + numa_node.get.toString)
+
+    def process_policy(options: Options): Options =
+      Host.process_policy(options, numa_node)
   }
 
 
