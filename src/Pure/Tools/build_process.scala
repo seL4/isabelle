@@ -273,8 +273,9 @@ object Build_Process {
       val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
       val start = SQL.Column.date("start")
+      val end = SQL.Column.date("end")
 
-      val table = make_table("", List(build_uuid, ml_platform, options, start))
+      val table = make_table("", List(build_uuid, ml_platform, options, start, end))
     }
 
     def start_build(
@@ -288,9 +289,18 @@ object Build_Process {
         stmt.string(2) = ml_platform
         stmt.string(3) = options
         stmt.date(4) = db.now()
+        stmt.date(5) = None
         stmt.execute()
       }
     }
+
+    def end_build(db: SQL.Database, build_uuid: String): Unit =
+      db.using_statement(
+        Base.table.update(List(Base.end), sql = SQL.where(Generic.sql(build_uuid = build_uuid)))
+      ) { stmt =>
+          stmt.date(1) = db.now()
+          stmt.execute()
+        }
 
 
     /* sessions */
@@ -806,6 +816,12 @@ extends AutoCloseable {
       }
     }
 
+    def exit(): Unit = synchronized_database {
+      for (db <- _database) {
+        Build_Process.Data.end_build(db, build_uuid)
+      }
+    }
+
     def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
         build_options.seconds("editor_input_delay").sleep()
@@ -829,25 +845,28 @@ extends AutoCloseable {
     }
     else {
       init()
-      while (!finished()) {
-        if (progress.stopped) synchronized_database { _state.stop_running() }
+      try {
+        while (!finished()) {
+          if (progress.stopped) synchronized_database { _state.stop_running() }
 
-        for (job <- synchronized_database { _state.finished_running() }) {
-          val job_name = job.job_name
-          val (process_result, output_shasum) = job.join
-          synchronized_database {
-            _state = _state.
-              remove_pending(job_name).
-              remove_running(job_name).
-              make_result(job_name, process_result, output_shasum, node_info = job.node_info)
+          for (job <- synchronized_database { _state.finished_running() }) {
+            val job_name = job.job_name
+            val (process_result, output_shasum) = job.join
+            synchronized_database {
+              _state = _state.
+                remove_pending(job_name).
+                remove_running(job_name).
+                make_result(job_name, process_result, output_shasum, node_info = job.node_info)
+            }
+          }
+
+          if (!start()) {
+            sync_database()
+            sleep()
           }
         }
-
-        if (!start()) {
-          sync_database()
-          sleep()
-        }
       }
+      finally exit()
 
       synchronized_database {
         for ((name, result) <- _state.results) yield name -> result.process_result
