@@ -46,6 +46,16 @@ object Host {
     } yield n
   }
 
+  def numa_node0(): Option[Int] =
+    try {
+      numa_nodes() match {
+        case ns if ns.length >= 2 && numactl_ok(ns.head) => Some(ns.head)
+        case _ => None
+      }
+    }
+    catch { case ERROR(_) => None }
+
+
 
   /* process policy via numactl tool */
 
@@ -58,18 +68,6 @@ object Host {
       case Some(node) =>
         options.string("process_policy") = if (numactl_ok(node)) numactl(node) else ""
     }
-
-  def perhaps_process_policy(options: Options): Options = {
-    val numa_node =
-      try {
-        numa_nodes() match {
-          case ns if ns.length >= 2 && numactl_ok(ns.head) => Some(ns.head)
-          case _ => None
-        }
-      }
-      catch { case ERROR(_) => None }
-    process_policy(options, numa_node)
-  }
 
 
   /* shuffling of NUMA nodes */
