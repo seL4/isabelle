@@ -381,6 +381,18 @@ object SQL {
     def execute_statement(sql: Source, body: Statement => Unit = _ => ()): Unit =
       using_statement(sql) { stmt => body(stmt); stmt.execute() }
 
+    def execute_query_statement[A, B](
+      sql: Source,
+      make_result: Iterator[A] => B,
+      get: Result => A
+    ): B = using_statement(sql)(stmt => make_result(stmt.execute_query().iterator(get)))
+
+    def execute_query_statementO[A](sql: Source, get: Result => A): Option[A] =
+      execute_query_statement[A, Option[A]](sql, _.nextOption, get)
+
+    def execute_query_statementB(sql: Source): Boolean =
+      using_statement(sql)(stmt => stmt.execute_query().next())
+
     def update_date(stmt: Statement, i: Int, date: Date): Unit
     def date(res: Result, column: Column): Date
 
@@ -518,9 +530,8 @@ object PostgreSQL {
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
-      using_statement("SELECT NOW() as " + now.ident)(
-        stmt => stmt.execute_query().iterator(_.date(now)).nextOption
-      ).getOrElse(error("Failed to get current date/time from database server " + toString))
+      execute_query_statementO[Date]("SELECT NOW() as " + now.ident, res => res.date(now))
+        .getOrElse(error("Failed to get current date/time from database server " + toString))
     }
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)

@@ -107,10 +107,11 @@ object Host {
     }
 
     def read_numa_next(db: SQL.Database, hostname: String): Int =
-      db.using_statement(
+      db.execute_query_statementO[Int](
         Node_Info.table.select(List(Node_Info.numa_next),
-          sql = Node_Info.hostname.where_equal(hostname))
-      )(stmt => stmt.execute_query().iterator(_.int(Node_Info.numa_next)).nextOption.getOrElse(0))
+          sql = Node_Info.hostname.where_equal(hostname)),
+        res => res.int(Node_Info.numa_next)
+      ).getOrElse(0)
 
     def update_numa_next(db: SQL.Database, hostname: String, numa_next: Int): Boolean =
       if (read_numa_next(db, hostname) != numa_next) {

@@ -64,41 +64,42 @@ object Export {
     }
 
     def readable(db: SQL.Database): Boolean = {
-      db.using_statement(
+      db.execute_query_statementB(
         Data.table.select(List(Data.name),
-          sql = Data.where_equal(session, theory, name)))(_.execute_query().next())
+          sql = Data.where_equal(session, theory, name)))
     }
 
     def read(db: SQL.Database, cache: XML.Cache): Option[Entry] =
-      db.using_statement(
+      db.execute_query_statementO[Entry](
         Data.table.select(List(Data.executable, Data.compressed, Data.body),
-          sql = Data.where_equal(session, theory, name))) { stmt =>
-        (stmt.execute_query().iterator { res =>
+          sql = Data.where_equal(session, theory, name)),
+        { res =>
           val executable = res.bool(Data.executable)
           val compressed = res.bool(Data.compressed)
           val bytes = res.bytes(Data.body)
           val body = Future.value(compressed, bytes)
           Entry(this, executable, body, cache)
-        }).nextOption
-      }
+        }
+      )
   }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-    db.using_statement(
+    db.execute_query_statement(
       Data.table.select(List(Data.theory_name), distinct = true,
-        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.theory_name)))
-    ) { stmt => stmt.execute_query().iterator(_.string(Data.theory_name)).toList }
+        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.theory_name))),
+      List.from[String], res => res.string(Data.theory_name))
 
   def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
-    db.using_statement(
+    db.execute_query_statement(
       Data.table.select(List(Data.theory_name, Data.name),
-        sql = Data.where_equal(session_name)) + SQL.order_by(List(Data.theory_name, Data.name))
-    ) { stmt =>
-        stmt.execute_query().iterator(res =>
-          Entry_Name(session = session_name,
-            theory = res.string(Data.theory_name),
-            name = res.string(Data.name))).toList
-      }
+        sql = Data.where_equal(session_name)) + SQL.order_by(List(Data.theory_name, Data.name)),
+      List.from[Entry_Name],
+      { res =>
+        Entry_Name(
+          session = session_name,
+          theory = res.string(Data.theory_name),
+          name = res.string(Data.name))
+      })
 
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)

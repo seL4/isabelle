@@ -374,13 +374,15 @@ object Server {
 
   def list(db: SQLite.Database): List[Info] =
     if (db.tables.contains(Data.table.name)) {
-      db.using_statement(Data.table.select()) { stmt =>
-        stmt.execute_query().iterator(res =>
-          Info(
-            res.string(Data.name),
-            res.int(Data.port),
-            res.string(Data.password))).toList.sortBy(_.name)
-      }
+      db.execute_query_statement(Data.table.select(),
+        List.from[Info],
+        { res =>
+          val name = res.string(Data.name)
+          val port = res.int(Data.port)
+          val password = res.string(Data.password)
+          Info(name, port, password)
+        }
+      ).sortBy(_.name)
     }
     else Nil
 

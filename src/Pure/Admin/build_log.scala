@@ -864,8 +864,9 @@ object Build_Log {
             db2.create_table(Data.ml_statistics_table)
 
             val recent_log_names =
-              db.using_statement(Data.select_recent_log_names(days))(stmt =>
-                stmt.execute_query().iterator(_.string(Data.log_name)).toList)
+              db.execute_query_statement(
+                Data.select_recent_log_names(days),
+                List.from[String], res => res.string(Data.log_name))
 
             for (log_name <- recent_log_names) {
               read_meta_info(db, log_name).foreach(meta_info =>
@@ -907,8 +908,9 @@ object Build_Log {
     }
 
     def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
-      db.using_statement(table.select(List(column), distinct = true))(stmt =>
-        stmt.execute_query().iterator(_.string(column)).toSet)
+      db.execute_query_statement(
+        table.select(List(column), distinct = true),
+        Set.from[String], res => res.string(column))
 
     def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit =
       db.execute_statement(db.insert_permissive(Data.meta_info_table), body =
@@ -1030,8 +1032,9 @@ object Build_Log {
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
       val table = Data.meta_info_table
       val columns = table.columns.tail
-      db.using_statement(table.select(columns, sql = Data.log_name.where_equal(log_name))) { stmt =>
-        (stmt.execute_query().iterator { res =>
+      db.execute_query_statementO[Meta_Info](
+        table.select(columns, sql = Data.log_name.where_equal(log_name)),
+        { res =>
           val results =
             columns.map(c => c.name ->
               (if (c.T == SQL.Type.Date)
@@ -1042,8 +1045,8 @@ object Build_Log {
           val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
           Meta_Info(props, settings)
-        }).nextOption
-      }
+        }
+      )
     }
 
     def read_build_info(
@@ -1076,8 +1079,10 @@ object Build_Log {
             if_proper(session_names, Data.session_name(table1).member(session_names))))
 
       val sessions =
-        db.using_statement(SQL.select(columns, sql = from + where)) { stmt =>
-          stmt.execute_query().iterator({ res =>
+        db.execute_query_statement(
+          SQL.select(columns, sql = from + where),
+          Map.from[String, Session_Entry],
+          { res =>
             val session_name = res.string(Data.session_name)
             val session_entry =
               Session_Entry(
@@ -1104,8 +1109,8 @@ object Build_Log {
                   }
                   else Nil)
             session_name -> session_entry
-          }).toMap
-        }
+          }
+        )
       Build_Info(sessions)
     }
   }

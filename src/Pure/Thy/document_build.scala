@@ -71,30 +71,31 @@ object Document_Build {
   }
 
   def read_documents(db: SQL.Database, session_name: String): List[Document_Input] =
-    db.using_statement(
-      Data.table.select(List(Data.name, Data.sources), sql = Data.where_equal(session_name))
-    ) { stmt =>
-        (stmt.execute_query().iterator { res =>
-          val name = res.string(Data.name)
-          val sources = res.string(Data.sources)
-          Document_Input(name, SHA1.fake_shasum(sources))
-        }).toList
+    db.execute_query_statement(
+      Data.table.select(List(Data.name, Data.sources), sql = Data.where_equal(session_name)),
+      List.from[Document_Input],
+      { res =>
+        val name = res.string(Data.name)
+        val sources = res.string(Data.sources)
+        Document_Input(name, SHA1.fake_shasum(sources))
       }
+    )
 
   def read_document(
     db: SQL.Database,
     session_name: String,
     name: String
   ): Option[Document_Output] = {
-    db.using_statement(Data.table.select(sql = Data.where_equal(session_name, name))) { stmt =>
-      (stmt.execute_query().iterator { res =>
+    db.execute_query_statementO[Document_Output](
+      Data.table.select(sql = Data.where_equal(session_name, name)),
+      { res =>
         val name = res.string(Data.name)
         val sources = res.string(Data.sources)
         val log_xz = res.bytes(Data.log_xz)
         val pdf = res.bytes(Data.pdf)
         Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf)
-      }).nextOption
-    }
+      }
+    )
   }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =

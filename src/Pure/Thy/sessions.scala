@@ -1536,12 +1536,11 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     /* SQL database content */
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
-      db.using_statement(
+      db.execute_query_statementO[Bytes](
         Session_Info.table.select(List(column),
-          sql = Session_Info.session_name.where_equal(name))) { stmt =>
-        val res = stmt.execute_query()
-        if (!res.next()) Bytes.empty else res.bytes(column)
-      }
+          sql = Session_Info.session_name.where_equal(name)),
+        res => res.bytes(column)
+      ).getOrElse(Bytes.empty)
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
       Properties.uncompress(read_bytes(db, name, column), cache = cache)
@@ -1576,11 +1575,10 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     }
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
-      session_info_exists(db) && {
-        db.using_statement(
+      session_info_exists(db) &&
+        db.execute_query_statementB(
           Session_Info.table.select(List(Session_Info.session_name),
-            sql = Session_Info.session_name.where_equal(name)))(_.execute_query().next())
-      }
+            sql = Session_Info.session_name.where_equal(name)))
 
     def write_session_info(
       db: SQL.Database,
@@ -1632,9 +1630,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def read_build(db: SQL.Database, name: String): Option[Build_Info] = {
       if (db.tables.contains(Session_Info.table.name)) {
-        db.using_statement(
-          Session_Info.table.select(sql = Session_Info.session_name.where_equal(name))) { stmt =>
-          (stmt.execute_query().iterator { res =>
+        db.execute_query_statementO[Build_Info](
+          Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
+          { res =>
             val uuid =
               try { Option(res.string(Session_Info.uuid)).getOrElse("") }
               catch { case _: SQLException => "" }
@@ -1644,8 +1642,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               SHA1.fake_shasum(res.string(Session_Info.output_heap)),
               res.int(Session_Info.return_code),
               uuid)
-          }).nextOption
-        }
+          }
+        )
       }
       else None
     }
@@ -1670,18 +1668,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       session_name: String,
       name: String = ""
     ): List[Source_File] = {
-      db.using_statement(
+      db.execute_query_statement(
         Sources.table.select(sql =
-          Sources.where_equal(session_name, name = name) + SQL.order_by(List(Sources.name)))
-      ) { stmt =>
-          (stmt.execute_query().iterator { res =>
-            val res_name = res.string(Sources.name)
-            val digest = SHA1.fake_digest(res.string(Sources.digest))
-            val compressed = res.bool(Sources.compressed)
-            val body = res.bytes(Sources.body)
-            Source_File(res_name, digest, compressed, body, cache.compress)
-          }).toList
+          Sources.where_equal(session_name, name = name) + SQL.order_by(List(Sources.name))),
+        List.from[Source_File],
+        { res =>
+          val res_name = res.string(Sources.name)
+          val digest = SHA1.fake_digest(res.string(Sources.digest))
+          val compressed = res.bool(Sources.compressed)
+          val body = res.bytes(Sources.body)
+          Source_File(res_name, digest, compressed, body, cache.compress)
         }
+      )
     }
   }
 }

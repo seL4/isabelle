@@ -113,18 +113,18 @@ object Isabelle_Cronjob {
     sql: PostgreSQL.Source
   ): List[Item] = {
     val afp = afp_rev.isDefined
-    val select =
-      Build_Log.Data.select_recent_versions(
-        days = days, rev = rev, afp_rev = afp_rev, sql = "WHERE " + sql)
 
-    db.using_statement(select)(stmt =>
-      stmt.execute_query().iterator({ res =>
+    db.execute_query_statement(
+      Build_Log.Data.select_recent_versions(
+        days = days, rev = rev, afp_rev = afp_rev, sql = "WHERE " + sql),
+      List.from[Item],
+      { res =>
         val known = res.bool(Build_Log.Data.known)
         val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
         val afp_version = if (afp) proper_string(res.string(Build_Log.Prop.afp_version)) else None
         val pull_date = res.date(Build_Log.Data.pull_date(afp))
         Item(known, isabelle_version, afp_version, pull_date)
-      }).toList)
+      })
   }
 
   def unknown_runs(items: List[Item]): List[List[Item]] = {

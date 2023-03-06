@@ -304,9 +304,9 @@ object Build_Process {
 
     def clean_build(db: SQL.Database): Unit = {
       val old =
-        db.using_statement(
-          Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.defined))
-        )(stmt => stmt.execute_query().iterator(_.string(Base.build_uuid)).toList)
+        db.execute_query_statement(
+          Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.defined)),
+          List.from[String], res => res.string(Base.build_uuid))
 
       if (old.nonEmpty) {
         for (table <- List(Base.table, Sessions.table, Progress.table, Workers.table)) {
@@ -333,26 +333,27 @@ object Build_Process {
     }
 
     def read_sessions_domain(db: SQL.Database): Set[String] =
-      db.using_statement(Sessions.table.select(List(Sessions.name)))(stmt =>
-        Set.from(stmt.execute_query().iterator(_.string(Sessions.name))))
+      db.execute_query_statement(
+        Sessions.table.select(List(Sessions.name)),
+        Set.from[String], res => res.string(Sessions.name))
 
     def read_sessions(db: SQL.Database, names: Iterable[String] = Nil): State.Sessions =
-      db.using_statement(
-        Sessions.table.select(sql = if_proper(names, Sessions.name.where_member(names)))
-      ) { stmt =>
-          Map.from(stmt.execute_query().iterator { res =>
-            val name = res.string(Sessions.name)
-            val deps = split_lines(res.string(Sessions.deps))
-            val ancestors = split_lines(res.string(Sessions.ancestors))
-            val sources_shasum = SHA1.fake_shasum(res.string(Sessions.sources))
-            val timeout = Time.ms(res.long(Sessions.timeout))
-            val old_time = Time.ms(res.long(Sessions.old_time))
-            val old_command_timings_blob = res.bytes(Sessions.old_command_timings)
-            val build_uuid = res.string(Sessions.build_uuid)
-            name -> Build_Job.Session_Context(name, deps, ancestors, sources_shasum,
-              timeout, old_time, old_command_timings_blob, build_uuid)
-          })
+      db.execute_query_statement(
+        Sessions.table.select(sql = if_proper(names, Sessions.name.where_member(names))),
+        Map.from[String, Build_Job.Session_Context],
+        { res =>
+          val name = res.string(Sessions.name)
+          val deps = split_lines(res.string(Sessions.deps))
+          val ancestors = split_lines(res.string(Sessions.ancestors))
+          val sources_shasum = SHA1.fake_shasum(res.string(Sessions.sources))
+          val timeout = Time.ms(res.long(Sessions.timeout))
+          val old_time = Time.ms(res.long(Sessions.old_time))
+          val old_command_timings_blob = res.bytes(Sessions.old_command_timings)
+          val build_uuid = res.string(Sessions.build_uuid)
+          name -> Build_Job.Session_Context(name, deps, ancestors, sources_shasum,
+            timeout, old_time, old_command_timings_blob, build_uuid)
         }
+      )
 
     def update_sessions(db:SQL.Database, sessions: State.Sessions): Boolean = {
       val old_sessions = read_sessions_domain(db)
@@ -389,22 +390,22 @@ object Build_Process {
     }
 
     def read_progress(db: SQL.Database, seen: Long = 0, build_uuid: String = ""): Progress_Messages =
-      db.using_statement(
+      db.execute_query_statement(
         Progress.table.select(
           sql =
             SQL.where(
               SQL.and(
                 if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
-                Generic.sql(build_uuid = build_uuid))))
-      ) { stmt =>
-          SortedMap.from(stmt.execute_query().iterator { res =>
-            val serial = res.long(Progress.serial)
-            val kind = isabelle.Progress.Kind(res.int(Progress.kind))
-            val text = res.string(Progress.text)
-            val verbose = res.bool(Progress.verbose)
-            serial -> isabelle.Progress.Message(kind, text, verbose = verbose)
-          })
+                Generic.sql(build_uuid = build_uuid)))),
+        SortedMap.from[Long, isabelle.Progress.Message],
+        { res =>
+          val serial = res.long(Progress.serial)
+          val kind = isabelle.Progress.Kind(res.int(Progress.kind))
+          val text = res.string(Progress.text)
+          val verbose = res.bool(Progress.verbose)
+          serial -> isabelle.Progress.Message(kind, text, verbose = verbose)
         }
+      )
 
     def write_progress(
       db: SQL.Database,
@@ -439,20 +440,21 @@ object Build_Process {
     }
 
     def serial_max(db: SQL.Database): Long =
-      db.using_statement(
-        Workers.table.select(List(Workers.serial_max))
-      )(stmt => stmt.execute_query().iterator(_.long(Workers.serial)).nextOption.getOrElse(0L))
+      db.execute_query_statementO[Long](
+        Workers.table.select(List(Workers.serial_max)),
+        res => res.long(Workers.serial)
+      ).getOrElse(0L)
 
     def start_worker(db: SQL.Database, worker_uuid: String, build_uuid: String): Long = {
       def err(msg: String): Nothing =
         error("Cannot start worker " + worker_uuid + if_proper(msg, "\n" + msg))
 
-      val build_stop = {
-        val sql =
+      val build_stop =
+        db.execute_query_statementO(
           Base.table.select(List(Base.stop),
-            sql = SQL.where(Generic.sql(build_uuid = build_uuid)))
-        db.using_statement(sql)(_.execute_query().iterator(_.get_date(Base.stop)).nextOption)
-      }
+            sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+          res => res.get_date(Base.stop))
+
       build_stop match {
         case Some(None) =>
         case Some(Some(_)) => err("for already stopped build process " + build_uuid)
@@ -503,15 +505,15 @@ object Build_Process {
     }
 
     def read_pending(db: SQL.Database): List[Entry] =
-      db.using_statement(Pending.table.select(sql = SQL.order_by(List(Pending.name)))) { stmt =>
-        List.from(
-          stmt.execute_query().iterator { res =>
-            val name = res.string(Pending.name)
-            val deps = res.string(Pending.deps)
-            val info = res.string(Pending.info)
-            Entry(name, split_lines(deps), info = JSON.Object.parse(info))
-          })
-      }
+      db.execute_query_statement(
+        Pending.table.select(sql = SQL.order_by(List(Pending.name))),
+        List.from[Entry],
+        { res =>
+          val name = res.string(Pending.name)
+          val deps = res.string(Pending.deps)
+          val info = res.string(Pending.info)
+          Entry(name, split_lines(deps), info = JSON.Object.parse(info))
+        })
 
     def update_pending(db: SQL.Database, pending: State.Pending): Boolean = {
       val old_pending = read_pending(db)
@@ -546,15 +548,16 @@ object Build_Process {
     }
 
     def read_running(db: SQL.Database): List[Build_Job.Abstract] =
-      db.using_statement(Running.table.select(sql = SQL.order_by(List(Running.name)))) { stmt =>
-        List.from(
-          stmt.execute_query().iterator { res =>
-            val name = res.string(Running.name)
-            val hostname = res.string(Running.hostname)
-            val numa_node = res.get_int(Running.numa_node)
-            Build_Job.Abstract(name, Host.Node_Info(hostname, numa_node))
-          })
-      }
+      db.execute_query_statement(
+        Running.table.select(sql = SQL.order_by(List(Running.name))),
+        List.from[Build_Job.Abstract],
+        { res =>
+          val name = res.string(Running.name)
+          val hostname = res.string(Running.hostname)
+          val numa_node = res.get_int(Running.numa_node)
+          Build_Job.Abstract(name, Host.Node_Info(hostname, numa_node))
+        }
+      )
 
     def update_running(db: SQL.Database, running: State.Running): Boolean = {
       val old_running = read_running(db)
@@ -599,34 +602,35 @@ object Build_Process {
     }
 
     def read_results_domain(db: SQL.Database): Set[String] =
-      db.using_statement(Results.table.select(List(Results.name)))(stmt =>
-        Set.from(stmt.execute_query().iterator(_.string(Results.name))))
+      db.execute_query_statement(
+        Results.table.select(List(Results.name)),
+        Set.from[String], res => res.string(Results.name))
 
     def read_results(db: SQL.Database, names: List[String] = Nil): Map[String, Build_Job.Result] =
-      db.using_statement(
-        Results.table.select(sql = if_proper(names, Results.name.where_member(names)))
-      ) { stmt =>
-          Map.from(stmt.execute_query().iterator { res =>
-            val name = res.string(Results.name)
-            val hostname = res.string(Results.hostname)
-            val numa_node = res.get_int(Results.numa_node)
-            val rc = res.int(Results.rc)
-            val out = res.string(Results.out)
-            val err = res.string(Results.err)
-            val timing =
-              res.timing(
-                Results.timing_elapsed,
-                Results.timing_cpu,
-                Results.timing_gc)
-            val node_info = Host.Node_Info(hostname, numa_node)
-            val process_result =
-              Process_Result(rc,
-                out_lines = split_lines(out),
-                err_lines = split_lines(err),
-                timing = timing)
-            name -> Build_Job.Result(node_info, process_result)
-          })
+      db.execute_query_statement(
+        Results.table.select(sql = if_proper(names, Results.name.where_member(names))),
+        Map.from[String, Build_Job.Result],
+        { res =>
+          val name = res.string(Results.name)
+          val hostname = res.string(Results.hostname)
+          val numa_node = res.get_int(Results.numa_node)
+          val rc = res.int(Results.rc)
+          val out = res.string(Results.out)
+          val err = res.string(Results.err)
+          val timing =
+            res.timing(
+              Results.timing_elapsed,
+              Results.timing_cpu,
+              Results.timing_gc)
+          val node_info = Host.Node_Info(hostname, numa_node)
+          val process_result =
+            Process_Result(rc,
+              out_lines = split_lines(out),
+              err_lines = split_lines(err),
+              timing = timing)
+          name -> Build_Job.Result(node_info, process_result)
         }
+      )
 
     def update_results(db: SQL.Database, results: State.Results): Boolean = {
       val old_results = read_results_domain(db)
