@@ -50,7 +50,7 @@ object Build_Job {
 
   object Session_Context {
     def load(
-      uuid: String,
+      build_uuid: String,
       name: String,
       deps: List[String],
       ancestors: List[String],
@@ -61,7 +61,7 @@ object Build_Job {
     ): Session_Context = {
       def default: Session_Context =
         Session_Context(
-          name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty, uuid)
+          name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty, build_uuid)
 
       store.try_open_database(name) match {
         case None => default
@@ -80,7 +80,7 @@ object Build_Job {
                 case _ => Time.zero
               }
             new Session_Context(
-              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings, uuid)
+              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings, build_uuid)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -100,7 +100,7 @@ object Build_Job {
     timeout: Time,
     old_time: Time,
     old_command_timings_blob: Bytes,
-    uuid: String
+    build_uuid: String
   ) {
     override def toString: String = name
   }
@@ -498,7 +498,8 @@ object Build_Job {
                 sources = build_context.sources_shasum(session_name),
                 input_heaps = input_shasum,
                 output_heap = output_shasum,
-                process_result.rc, build_context.uuid)))
+                process_result.rc,
+                build_context.build_uuid)))
 
         // messages
         process_result.err_lines.foreach(progress.echo(_))
