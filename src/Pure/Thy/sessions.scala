@@ -1592,21 +1592,21 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     ): Unit = {
       db.transaction {
         write_sources(db, session_name, sources)
-        db.using_statement(Session_Info.table.insert()) { stmt =>
-          stmt.string(1) = session_name
-          stmt.bytes(2) = Properties.encode(build_log.session_timing)
-          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.compress)
-          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.compress)
-          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.compress)
-          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.compress)
-          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.compress)
-          stmt.string(8) = build.sources.toString
-          stmt.string(9) = build.input_heaps.toString
-          stmt.string(10) = build.output_heap.toString
-          stmt.int(11) = build.return_code
-          stmt.string(12) = build.uuid
-          stmt.execute()
-        }
+        db.execute_statement(Session_Info.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = session_name
+            stmt.bytes(2) = Properties.encode(build_log.session_timing)
+            stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.compress)
+            stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.compress)
+            stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.compress)
+            stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.compress)
+            stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.compress)
+            stmt.string(8) = build.sources.toString
+            stmt.string(9) = build.input_heaps.toString
+            stmt.string(10) = build.output_heap.toString
+            stmt.int(11) = build.return_code
+            stmt.string(12) = build.uuid
+          })
       }
     }
 
@@ -1659,14 +1659,14 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit = {
       for (source_file <- sources) {
-        db.using_statement(Sources.table.insert()) { stmt =>
-          stmt.string(1) = session_name
-          stmt.string(2) = source_file.name
-          stmt.string(3) = source_file.digest.toString
-          stmt.bool(4) = source_file.compressed
-          stmt.bytes(5) = source_file.body
-          stmt.execute()
-        }
+        db.execute_statement(Sources.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = session_name
+            stmt.string(2) = source_file.name
+            stmt.string(3) = source_file.digest.toString
+            stmt.bool(4) = source_file.compressed
+            stmt.bytes(5) = source_file.body
+          })
       }
     }
 

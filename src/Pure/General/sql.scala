@@ -377,7 +377,8 @@ object SQL {
     def using_statement[A](sql: Source)(f: Statement => A): A =
       using(statement(sql))(f)
 
-    def execute_statement(sql: Source): Unit = using_statement(sql)(_.execute())
+    def execute_statement(sql: Source, body: Statement => Unit = _ => ()): Unit =
+      using_statement(sql) { stmt => body(stmt); stmt.execute() }
 
     def update_date(stmt: Statement, i: Int, date: Date): Unit
     def date(res: Result, column: Column): Date
@@ -543,14 +544,14 @@ object PostgreSQL {
     // see https://www.postgresql.org/docs/current/sql-notify.html
 
     def listen(name: String): Unit =
-      using_statement("LISTEN " + SQL.ident(name))(_.execute())
+      execute_statement("LISTEN " + SQL.ident(name))
 
     def unlisten(name: String = "*"): Unit =
-      using_statement("UNLISTEN " + (if (name == "*") name else SQL.ident(name)))(_.execute())
+      execute_statement("UNLISTEN " + (if (name == "*") name else SQL.ident(name)))
 
     def notify(name: String, payload: String = ""): Unit =
-      using_statement(
-        "NOTIFY " + SQL.ident(name) + if_proper(payload, ", " + SQL.string(payload)))(_.execute())
+      execute_statement(
+        "NOTIFY " + SQL.ident(name) + if_proper(payload, ", " + SQL.string(payload)))
 
     def get_notifications(): List[PGNotification] =
       the_postgresql_connection.getNotifications() match {

@@ -410,12 +410,12 @@ object Server {
             val server_info = Info(name, server.port, server.password)
 
             db.execute_statement(Data.table.delete(sql = Data.name.where_equal(name)))
-            db.using_statement(Data.table.insert()) { stmt =>
-              stmt.string(1) = server_info.name
-              stmt.int(2) = server_info.port
-              stmt.string(3) = server_info.password
-              stmt.execute()
-            }
+            db.execute_statement(Data.table.insert(), body =
+              { stmt =>
+                stmt.string(1) = server_info.name
+                stmt.int(2) = server_info.port
+                stmt.string(3) = server_info.password
+              })
 
             server.start()
             (server_info, Some(server))

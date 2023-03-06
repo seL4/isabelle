@@ -100,14 +100,14 @@ object Document_Build {
   }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit = {
-    db.using_statement(Data.table.insert()){ stmt =>
-      stmt.string(1) = session_name
-      stmt.string(2) = doc.name
-      stmt.string(3) = doc.sources.toString
-      stmt.bytes(4) = doc.log_xz
-      stmt.bytes(5) = doc.pdf
-      stmt.execute()
-    }
+    db.execute_statement(Data.table.insert(), body =
+      { stmt =>
+        stmt.string(1) = session_name
+        stmt.string(2) = doc.name
+        stmt.string(3) = doc.sources.toString
+        stmt.bytes(4) = doc.log_xz
+        stmt.bytes(5) = doc.pdf
+      })
   }
 
 

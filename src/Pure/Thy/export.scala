@@ -165,15 +165,15 @@ object Export {
 
     def write(db: SQL.Database): Unit = {
       val (compressed, bs) = body.join
-      db.using_statement(Data.table.insert()) { stmt =>
-        stmt.string(1) = session_name
-        stmt.string(2) = theory_name
-        stmt.string(3) = name
-        stmt.bool(4) = executable
-        stmt.bool(5) = compressed
-        stmt.bytes(6) = bs
-        stmt.execute()
-      }
+      db.execute_statement(Data.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = session_name
+          stmt.string(2) = theory_name
+          stmt.string(3) = name
+          stmt.bool(4) = executable
+          stmt.bool(5) = compressed
+          stmt.bytes(6) = bs
+        })
     }
   }
 

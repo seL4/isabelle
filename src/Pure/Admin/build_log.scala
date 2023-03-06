@@ -908,84 +908,84 @@ object Build_Log {
 
     def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit = {
       val table = Data.meta_info_table
-      db.using_statement(db.insert_permissive(table)) { stmt =>
-        stmt.string(1) = log_name
-        for ((c, i) <- table.columns.tail.zipWithIndex) {
-          if (c.T == SQL.Type.Date)
-            stmt.date(i + 2) = meta_info.get_date(c)
-          else
-            stmt.string(i + 2) = meta_info.get(c)
-        }
-        stmt.execute()
-      }
+      db.execute_statement(db.insert_permissive(table), body =
+        { stmt =>
+          stmt.string(1) = log_name
+          for ((c, i) <- table.columns.tail.zipWithIndex) {
+            if (c.T == SQL.Type.Date)
+              stmt.date(i + 2) = meta_info.get_date(c)
+            else
+              stmt.string(i + 2) = meta_info.get(c)
+          }
+        })
     }
 
     def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.sessions_table
-      db.using_statement(db.insert_permissive(table)) { stmt =>
-        val sessions =
-          if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
-          else build_info.sessions
-        for ((session_name, session) <- sessions) {
-          stmt.string(1) = log_name
-          stmt.string(2) = session_name
-          stmt.string(3) = proper_string(session.chapter)
-          stmt.string(4) = session.proper_groups
-          stmt.int(5) = session.threads
-          stmt.long(6) = session.timing.elapsed.proper_ms
-          stmt.long(7) = session.timing.cpu.proper_ms
-          stmt.long(8) = session.timing.gc.proper_ms
-          stmt.double(9) = session.timing.factor
-          stmt.long(10) = session.ml_timing.elapsed.proper_ms
-          stmt.long(11) = session.ml_timing.cpu.proper_ms
-          stmt.long(12) = session.ml_timing.gc.proper_ms
-          stmt.double(13) = session.ml_timing.factor
-          stmt.long(14) = session.heap_size.map(_.bytes)
-          stmt.string(15) = session.status.map(_.toString)
-          stmt.bytes(16) = compress_errors(session.errors, cache = cache.compress)
-          stmt.string(17) = session.sources
-          stmt.execute()
-        }
-      }
+      db.execute_statement(db.insert_permissive(table), body =
+        { stmt =>
+          val sessions =
+            if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
+            else build_info.sessions
+          for ((session_name, session) <- sessions) {
+            stmt.string(1) = log_name
+            stmt.string(2) = session_name
+            stmt.string(3) = proper_string(session.chapter)
+            stmt.string(4) = session.proper_groups
+            stmt.int(5) = session.threads
+            stmt.long(6) = session.timing.elapsed.proper_ms
+            stmt.long(7) = session.timing.cpu.proper_ms
+            stmt.long(8) = session.timing.gc.proper_ms
+            stmt.double(9) = session.timing.factor
+            stmt.long(10) = session.ml_timing.elapsed.proper_ms
+            stmt.long(11) = session.ml_timing.cpu.proper_ms
+            stmt.long(12) = session.ml_timing.gc.proper_ms
+            stmt.double(13) = session.ml_timing.factor
+            stmt.long(14) = session.heap_size.map(_.bytes)
+            stmt.string(15) = session.status.map(_.toString)
+            stmt.bytes(16) = compress_errors(session.errors, cache = cache.compress)
+            stmt.string(17) = session.sources
+          }
+        })
     }
 
     def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.theories_table
-      db.using_statement(db.insert_permissive(table)) { stmt =>
-        val sessions =
-          if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
-            Build_Info.sessions_dummy
-          else build_info.sessions
-        for {
-          (session_name, session) <- sessions
-          (theory_name, timing) <- session.theory_timings
-        } {
-          stmt.string(1) = log_name
-          stmt.string(2) = session_name
-          stmt.string(3) = theory_name
-          stmt.long(4) = timing.elapsed.ms
-          stmt.long(5) = timing.cpu.ms
-          stmt.long(6) = timing.gc.ms
-          stmt.execute()
-        }
-      }
+      db.execute_statement(db.insert_permissive(table), body =
+        { stmt =>
+          val sessions =
+            if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
+              Build_Info.sessions_dummy
+            else build_info.sessions
+          for {
+            (session_name, session) <- sessions
+            (theory_name, timing) <- session.theory_timings
+          } {
+            stmt.string(1) = log_name
+            stmt.string(2) = session_name
+            stmt.string(3) = theory_name
+            stmt.long(4) = timing.elapsed.ms
+            stmt.long(5) = timing.cpu.ms
+            stmt.long(6) = timing.gc.ms
+          }
+        })
     }
 
     def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
       val table = Data.ml_statistics_table
-      db.using_statement(db.insert_permissive(table)) { stmt =>
-        val ml_stats: List[(String, Option[Bytes])] =
-          Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-            { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.compress).proper) },
-            build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
-        val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
-        for ((session_name, ml_statistics) <- entries) {
-          stmt.string(1) = log_name
-          stmt.string(2) = session_name
-          stmt.bytes(3) = ml_statistics
-          stmt.execute()
-        }
-      }
+      db.execute_statement(db.insert_permissive(table), body =
+        { stmt =>
+          val ml_stats: List[(String, Option[Bytes])] =
+            Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
+              { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.compress).proper) },
+              build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
+          val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
+          for ((session_name, ml_statistics) <- entries) {
+            stmt.string(1) = log_name
+            stmt.string(2) = session_name
+            stmt.bytes(3) = ml_statistics
+          }
+        })
     }
 
     def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit = {

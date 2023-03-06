@@ -287,23 +287,20 @@ object Build_Process {
       ml_platform: String,
       options: String
     ): Unit = {
-      db.using_statement(Base.table.insert()) { stmt =>
-        stmt.string(1) = build_uuid
-        stmt.string(2) = ml_platform
-        stmt.string(3) = options
-        stmt.date(4) = db.now()
-        stmt.date(5) = None
-        stmt.execute()
-      }
+      db.execute_statement(Base.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = build_uuid
+          stmt.string(2) = ml_platform
+          stmt.string(3) = options
+          stmt.date(4) = db.now()
+          stmt.date(5) = None
+        })
     }
 
     def end_build(db: SQL.Database, build_uuid: String): Unit =
-      db.using_statement(
-        Base.table.update(List(Base.end), sql = SQL.where(Generic.sql(build_uuid = build_uuid)))
-      ) { stmt =>
-          stmt.date(1) = db.now()
-          stmt.execute()
-        }
+      db.execute_statement(
+        Base.table.update(List(Base.end), sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+        body = { stmt => stmt.date(1) = db.now() })
 
     def clean_build(db: SQL.Database): Unit = {
       val old =
@@ -362,17 +359,17 @@ object Build_Process {
       val insert = sessions.iterator.filterNot(p => old_sessions.contains(p._1)).toList
 
       for ((name, session) <- insert) {
-        db.using_statement(Sessions.table.insert()) { stmt =>
-          stmt.string(1) = name
-          stmt.string(2) = cat_lines(session.deps)
-          stmt.string(3) = cat_lines(session.ancestors)
-          stmt.string(4) = session.sources_shasum.toString
-          stmt.long(5) = session.timeout.ms
-          stmt.long(6) = session.old_time.ms
-          stmt.bytes(7) = session.old_command_timings_blob
-          stmt.string(8) = session.build_uuid
-          stmt.execute()
-        }
+        db.execute_statement(Sessions.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = name
+            stmt.string(2) = cat_lines(session.deps)
+            stmt.string(3) = cat_lines(session.ancestors)
+            stmt.string(4) = session.sources_shasum.toString
+            stmt.long(5) = session.timeout.ms
+            stmt.long(6) = session.old_time.ms
+            stmt.bytes(7) = session.old_command_timings_blob
+            stmt.string(8) = session.build_uuid
+          })
       }
 
       insert.nonEmpty
@@ -415,14 +412,14 @@ object Build_Process {
       message: isabelle.Progress.Message,
       build_uuid: String
     ): Unit = {
-      db.using_statement(Progress.table.insert()) { stmt =>
-        stmt.long(1) = message_serial
-        stmt.int(2) = message.kind.id
-        stmt.string(3) = message.text
-        stmt.bool(4) = message.verbose
-        stmt.string(5) = build_uuid
-        stmt.execute()
-      }
+      db.execute_statement(Progress.table.insert(), body =
+        { stmt =>
+          stmt.long(1) = message_serial
+          stmt.int(2) = message.kind.id
+          stmt.string(3) = message.text
+          stmt.bool(4) = message.verbose
+          stmt.string(5) = build_uuid
+        })
     }
 
 
@@ -449,13 +446,13 @@ object Build_Process {
       if (get_serial(db, worker_uuid = worker_uuid) != serial) {
         db.execute_statement(
           Workers.table.delete(sql = SQL.where(Generic.sql(worker_uuid = worker_uuid))))
-        db.using_statement(Workers.table.insert()) { stmt =>
-          stmt.string(1) = worker_uuid
-          stmt.string(2) = build_uuid
-          stmt.date(3) = db.now()
-          stmt.long(4) = serial
-          stmt.execute()
-        }
+        db.execute_statement(Workers.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = worker_uuid
+            stmt.string(2) = build_uuid
+            stmt.date(3) = db.now()
+            stmt.long(4) = serial
+          })
       }
     }
 
@@ -491,12 +488,12 @@ object Build_Process {
       }
 
       for (entry <- insert) {
-        db.using_statement(Pending.table.insert()) { stmt =>
-          stmt.string(1) = entry.name
-          stmt.string(2) = cat_lines(entry.deps)
-          stmt.string(3) = JSON.Format(entry.info)
-          stmt.execute()
-        }
+        db.execute_statement(Pending.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = entry.name
+            stmt.string(2) = cat_lines(entry.deps)
+            stmt.string(3) = JSON.Format(entry.info)
+          })
       }
 
       delete.nonEmpty || insert.nonEmpty
@@ -536,12 +533,12 @@ object Build_Process {
       }
 
       for (job <- insert) {
-        db.using_statement(Running.table.insert()) { stmt =>
-          stmt.string(1) = job.job_name
-          stmt.string(2) = job.node_info.hostname
-          stmt.int(3) = job.node_info.numa_node
-          stmt.execute()
-        }
+        db.execute_statement(Running.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = job.job_name
+            stmt.string(2) = job.node_info.hostname
+            stmt.int(3) = job.node_info.numa_node
+          })
       }
 
       delete.nonEmpty || insert.nonEmpty
@@ -603,18 +600,18 @@ object Build_Process {
       for ((name, result) <- insert) {
         val node_info = result.node_info
         val process_result = result.process_result
-        db.using_statement(Results.table.insert()) { stmt =>
-          stmt.string(1) = name
-          stmt.string(2) = node_info.hostname
-          stmt.int(3) = node_info.numa_node
-          stmt.int(4) = process_result.rc
-          stmt.string(5) = cat_lines(process_result.out_lines)
-          stmt.string(6) = cat_lines(process_result.err_lines)
-          stmt.long(7) = process_result.timing.elapsed.ms
-          stmt.long(8) = process_result.timing.cpu.ms
-          stmt.long(9) = process_result.timing.gc.ms
-          stmt.execute()
-        }
+        db.execute_statement(Results.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = name
+            stmt.string(2) = node_info.hostname
+            stmt.int(3) = node_info.numa_node
+            stmt.int(4) = process_result.rc
+            stmt.string(5) = cat_lines(process_result.out_lines)
+            stmt.string(6) = cat_lines(process_result.err_lines)
+            stmt.long(7) = process_result.timing.elapsed.ms
+            stmt.long(8) = process_result.timing.cpu.ms
+            stmt.long(9) = process_result.timing.gc.ms
+          })
       }
 
       insert.nonEmpty
