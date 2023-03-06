@@ -323,10 +323,10 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             soft_build = soft_build,
             export_files = export_files)
         }
-      val end_date = Date.now()
-      val elapsed_time = end_date.time - start_date.time
+      val stop_date = Date.now()
+      val elapsed_time = stop_date.time - start_date.time
 
-      progress.echo("\nFinished at " + Build_Log.print_date(end_date), verbose = true)
+      progress.echo("\nFinished at " + Build_Log.print_date(stop_date), verbose = true)
 
       val total_timing =
         results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).

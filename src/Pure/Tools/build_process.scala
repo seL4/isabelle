@@ -276,9 +276,9 @@ object Build_Process {
       val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
       val start = SQL.Column.date("start")
-      val end = SQL.Column.date("end")
+      val stop = SQL.Column.date("stop")
 
-      val table = make_table("", List(build_uuid, ml_platform, options, start, end))
+      val table = make_table("", List(build_uuid, ml_platform, options, start, stop))
     }
 
     def start_build(
@@ -297,15 +297,15 @@ object Build_Process {
         })
     }
 
-    def end_build(db: SQL.Database, build_uuid: String): Unit =
+    def stop_build(db: SQL.Database, build_uuid: String): Unit =
       db.execute_statement(
-        Base.table.update(List(Base.end), sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+        Base.table.update(List(Base.stop), sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
         body = { stmt => stmt.date(1) = db.now() })
 
     def clean_build(db: SQL.Database): Unit = {
       val old =
         db.using_statement(
-          Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.end.defined))
+          Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.defined))
         )(stmt => stmt.execute_query().iterator(_.string(Base.build_uuid)).toList)
 
       if (old.nonEmpty) {
@@ -827,7 +827,7 @@ extends AutoCloseable {
 
     def exit(): Unit = synchronized_database {
       for (db <- _database) {
-        Build_Process.Data.end_build(db, build_uuid)
+        Build_Process.Data.stop_build(db, build_uuid)
       }
     }
 
