@@ -127,7 +127,10 @@ object Build_Process {
 
     def prepare_database(): Unit = {
       using_option(open_database()) { db =>
-        db.transaction { for (table <- Data.all_tables) db.create_table(table) }
+        db.transaction {
+          for (table <- Data.all_tables) db.create_table(table)
+          Data.clean_build(db)
+        }
         db.rebuild()
       }
     }
@@ -301,6 +304,19 @@ object Build_Process {
           stmt.date(1) = db.now()
           stmt.execute()
         }
+
+    def clean_build(db: SQL.Database): Unit = {
+      val old =
+        db.using_statement(
+          Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.end.defined))
+        )(stmt => stmt.execute_query().iterator(_.string(Base.build_uuid)).toList)
+
+      if (old.nonEmpty) {
+        for (table <- List(Base.table, Sessions.table, Progress.table, Workers.table)) {
+          db.using_statement(table.delete(sql = Generic.build_uuid.where_member(old)))(_.execute())
+        }
+      }
+    }
 
 
     /* sessions */
