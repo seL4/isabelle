@@ -1552,23 +1552,21 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def init_session_info(db: SQL.Database, name: String): Unit = {
       db.transaction {
         db.create_table(Session_Info.table)
-        db.using_statement(
-          Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))(_.execute())
-        if (db.isInstanceOf[PostgreSQL.Database]) {
-          db.using_statement(Session_Info.augment_table)(_.execute())
-        }
+        db.execute_statement(
+          Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))
+        if (db.isInstanceOf[PostgreSQL.Database]) db.execute_statement(Session_Info.augment_table)
 
         db.create_table(Sources.table)
-        db.using_statement(Sources.table.delete(sql = Sources.where_equal(name)))(_.execute())
+        db.execute_statement(Sources.table.delete(sql = Sources.where_equal(name)))
 
         db.create_table(Export.Data.table)
-        db.using_statement(
-          Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))(_.execute())
+        db.execute_statement(
+          Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))
 
         db.create_table(Document_Build.Data.table)
-        db.using_statement(
+        db.execute_statement(
           Document_Build.Data.table.delete(
-            sql = Document_Build.Data.session_name.where_equal(name)))(_.execute())
+            sql = Document_Build.Data.session_name.where_equal(name)))
       }
     }
 

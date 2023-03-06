@@ -377,6 +377,8 @@ object SQL {
     def using_statement[A](sql: Source)(f: Statement => A): A =
       using(statement(sql))(f)
 
+    def execute_statement(sql: Source): Unit = using_statement(sql)(_.execute())
+
     def update_date(stmt: Statement, i: Int, date: Date): Unit
     def date(res: Result, column: Column): Date
 
@@ -393,16 +395,15 @@ object SQL {
     }
 
     def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit =
-      using_statement(table.create(strict, sql_type) + SQL.separate(sql))(_.execute())
+      execute_statement(table.create(strict, sql_type) + SQL.separate(sql))
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
-      using_statement(table.create_index(name, columns, strict, unique))(_.execute())
+      execute_statement(table.create_index(name, columns, strict, unique))
 
     def create_view(table: Table, strict: Boolean = false): Unit = {
       if (strict || !tables.contains(table.name)) {
-        val sql = "CREATE VIEW " + table + " AS " + { table.query; table.body }
-        using_statement(sql)(_.execute())
+        execute_statement("CREATE VIEW " + table + " AS " + { table.query; table.body })
       }
     }
   }
@@ -438,7 +439,7 @@ object SQLite {
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
     override def is_server: Boolean = false
-    override def rebuild(): Unit = using_statement("VACUUM")(_.execute())
+    override def rebuild(): Unit = execute_statement("VACUUM")
 
     override def now(): Date = Date.now()
 

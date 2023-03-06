@@ -313,7 +313,7 @@ object Build_Process {
 
       if (old.nonEmpty) {
         for (table <- List(Base.table, Sessions.table, Progress.table, Workers.table)) {
-          db.using_statement(table.delete(sql = Generic.build_uuid.where_member(old)))(_.execute())
+          db.execute_statement(table.delete(sql = Generic.build_uuid.where_member(old)))
         }
       }
     }
@@ -447,9 +447,8 @@ object Build_Process {
 
     def set_serial(db: SQL.Database, worker_uuid: String, build_uuid: String, serial: Long): Unit = {
       if (get_serial(db, worker_uuid = worker_uuid) != serial) {
-        db.using_statement(
-          Workers.table.delete(sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
-        )(_.execute())
+        db.execute_statement(
+          Workers.table.delete(sql = SQL.where(Generic.sql(worker_uuid = worker_uuid))))
         db.using_statement(Workers.table.insert()) { stmt =>
           stmt.string(1) = worker_uuid
           stmt.string(2) = build_uuid
@@ -487,9 +486,8 @@ object Build_Process {
       val (delete, insert) = Library.symmetric_difference(old_pending, pending)
 
       if (delete.nonEmpty) {
-        db.using_statement(
-          Pending.table.delete(
-            sql = SQL.where(Generic.sql(names = delete.map(_.name)))))(_.execute())
+        db.execute_statement(
+          Pending.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.name)))))
       }
 
       for (entry <- insert) {
@@ -533,9 +531,8 @@ object Build_Process {
       val (delete, insert) = Library.symmetric_difference(old_running, abs_running)
 
       if (delete.nonEmpty) {
-        db.using_statement(
-          Running.table.delete(
-            sql = SQL.where(Generic.sql(names = delete.map(_.job_name)))))(_.execute())
+        db.execute_statement(
+          Running.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.job_name)))))
       }
 
       for (job <- insert) {

@@ -398,8 +398,7 @@ object Server {
         Isabelle_System.chmod("600", Data.database)
         db.create_table(Data.table)
         list(db).filterNot(_.active).foreach(server_info =>
-          db.using_statement(
-            Data.table.delete(sql = Data.name.where_equal(server_info.name)))(_.execute()))
+          db.execute_statement(Data.table.delete(sql = Data.name.where_equal(server_info.name))))
       }
       db.transaction {
         find(db, name) match {
@@ -410,7 +409,7 @@ object Server {
             val server = new Server(port, log)
             val server_info = Info(name, server.port, server.password)
 
-            db.using_statement(Data.table.delete(sql = Data.name.where_equal(name)))(_.execute())
+            db.execute_statement(Data.table.delete(sql = Data.name.where_equal(name)))
             db.using_statement(Data.table.insert()) { stmt =>
               stmt.string(1) = server_info.name
               stmt.int(2) = server_info.port
