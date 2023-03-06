@@ -152,6 +152,7 @@ object Build {
         fresh_build = fresh_build, no_build = no_build, session_setup = session_setup)
 
     store.prepare_output()
+    build_context.prepare_database()
 
     if (clean_build) {
       for (name <- full_sessions.imports_descendants(full_sessions_selection)) {

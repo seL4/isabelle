@@ -21,6 +21,7 @@ object Build_Process {
       store: Sessions.Store,
       build_deps: Sessions.Deps,
       progress: Progress = new Progress,
+      ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
       hostname: String = Isabelle_System.hostname(),
       numa_shuffling: Boolean = false,
       build_heap: Boolean = false,
@@ -80,7 +81,7 @@ object Build_Process {
         }
 
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
-      new Context(store, build_deps, sessions, ordering, hostname, numa_nodes,
+      new Context(store, build_deps, sessions, ordering, ml_platform, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, session_setup, build_uuid = build_uuid)
     }
@@ -91,6 +92,7 @@ object Build_Process {
     val build_deps: Sessions.Deps,
     val sessions: State.Sessions,
     val ordering: Ordering[String],
+    val ml_platform: String,
     val hostname: String,
     val numa_nodes: List[Int],
     val build_heap: Boolean,
@@ -122,6 +124,13 @@ object Build_Process {
         catch { case exn: Throwable => db.close(); throw exn }
         Some(db)
       }
+
+    def prepare_database(): Unit = {
+      using_option(open_database()) { db =>
+        db.transaction { for (table <- Data.all_tables) db.create_table(table) }
+        db.rebuild()
+      }
+    }
 
     def store_heap(name: String): Boolean =
       build_heap || Sessions.is_pure(name) ||
@@ -256,12 +265,31 @@ object Build_Process {
           if_proper(names, Generic.name.member(names)))
     }
 
+
+    /* base table */
+
     object Base {
       val build_uuid = Generic.build_uuid.make_primary_key
       val ml_platform = SQL.Column.string("ml_platform")
       val options = SQL.Column.string("options")
+      val start = SQL.Column.date("start")
 
-      val table = make_table("", List(build_uuid, ml_platform, options))
+      val table = make_table("", List(build_uuid, ml_platform, options, start))
+    }
+
+    def start_build(
+      db: SQL.Database,
+      build_uuid: String,
+      ml_platform: String,
+      options: String
+    ): Unit = {
+      db.using_statement(Base.table.insert()) { stmt =>
+        stmt.string(1) = build_uuid
+        stmt.string(2) = ml_platform
+        stmt.string(3) = options
+        stmt.date(4) = db.now()
+        stmt.execute()
+      }
     }
 
 
@@ -583,25 +611,6 @@ object Build_Process {
         Results.table,
         Host.Data.Node_Info.table)
 
-    def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
-      for (table <- all_tables) db.create_table(table)
-
-      val old_pending = Data.read_pending(db)
-      if (old_pending.nonEmpty) {
-        error("Cannot init build process, because of unfinished " +
-          commas_quote(old_pending.map(_.name)))
-      }
-
-      for (table <- all_tables) db.using_statement(table.delete())(_.execute())
-
-      db.using_statement(Base.table.insert()) { stmt =>
-        stmt.string(1) = build_context.build_uuid
-        stmt.string(2) = Isabelle_System.getenv("ML_PLATFORM")
-        stmt.string(3) = build_context.store.options.make_prefs(Options.init(prefs = ""))
-        stmt.execute()
-      }
-    }
-
     def update_database(
       db: SQL.Database,
       worker_uuid: String,
@@ -651,14 +660,6 @@ extends AutoCloseable {
   private val _database: Option[SQL.Database] = build_context.open_database()
 
   def close(): Unit = synchronized { _database.foreach(_.close()) }
-
-  private def setup_database(): Unit =
-    synchronized {
-      for (db <- _database) {
-        db.transaction { Build_Process.Data.init_database(db, build_context) }
-        db.rebuild()
-      }
-    }
 
   protected def synchronized_database[A](body: => A): A =
     synchronized {
@@ -798,6 +799,13 @@ extends AutoCloseable {
   def run(): Map[String, Process_Result] = {
     def finished(): Boolean = synchronized_database { _state.finished }
 
+    def init(): Unit = synchronized_database {
+      for (db <- _database) {
+        Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
+          store.options.make_prefs(Options.init(prefs = "")))
+      }
+    }
+
     def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
         build_options.seconds("editor_input_delay").sleep()
@@ -820,7 +828,7 @@ extends AutoCloseable {
       Map.empty[String, Process_Result]
     }
     else {
-      setup_database()
+      init()
       while (!finished()) {
         if (progress.stopped) synchronized_database { _state.stop_running() }
 
