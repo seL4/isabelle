@@ -1554,7 +1554,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         db.create_table(Session_Info.table)
         db.execute_statement(
           Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))
-        if (db.isInstanceOf[PostgreSQL.Database]) db.execute_statement(Session_Info.augment_table)
+        if (db.is_postgresql) db.execute_statement(Session_Info.augment_table)
 
         db.create_table(Sources.table)
         db.execute_statement(Sources.table.delete(sql = Sources.where_equal(name)))

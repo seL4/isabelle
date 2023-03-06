@@ -321,7 +321,8 @@ object SQL {
   trait Database extends AutoCloseable {
     db =>
 
-    def is_server: Boolean
+    def is_sqlite: Boolean = isInstanceOf[SQLite.Database]
+    def is_postgresql: Boolean = isInstanceOf[PostgreSQL.Database]
 
     def rebuild(): Unit = ()
 
@@ -439,7 +440,6 @@ object SQLite {
 
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
-    override def is_server: Boolean = false
     override def rebuild(): Unit = execute_statement("VACUUM")
 
     override def now(): Date = Date.now()
@@ -515,7 +515,6 @@ object PostgreSQL {
     port_forwarding: Option[SSH.Port_Forwarding]
   ) extends SQL.Database {
     override def toString: String = name
-    override def is_server: Boolean = true
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
