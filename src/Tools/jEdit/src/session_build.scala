@@ -53,7 +53,6 @@ object Session_Build {
     /* progress */
 
     private val progress = new Progress {
-      override def verbose: Boolean = true
       override def output(message: Progress.Message): Unit =
         if (do_output(message)) {
           GUI_Thread.later {
@@ -62,6 +61,9 @@ object Session_Build {
             vertical.setValue(vertical.getMaximum)
           }
         }
+
+      override def theory(theory: Progress.Theory): Unit =
+        output(theory.message.copy(verbose = false))
     }
 
 
