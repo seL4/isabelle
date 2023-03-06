@@ -1410,8 +1410,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def output_log(name: String): Path = output_dir + log(name)
     def output_log_gz(name: String): Path = output_dir + log_gz(name)
 
-    def prepare_output_dir(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
-
 
     /* heap */
 
@@ -1476,6 +1474,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def open_database(name: String, output: Boolean = false): SQL.Database =
       try_open_database(name, output = output) getOrElse error_database(name)
+
+    def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
 
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =

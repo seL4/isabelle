@@ -151,7 +151,7 @@ object Build {
         build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
         fresh_build = fresh_build, no_build = no_build, session_setup = session_setup)
 
-    store.prepare_output_dir()
+    store.prepare_output()
 
     if (clean_build) {
       for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
