@@ -264,26 +264,8 @@ object Build_Process {
       val table = make_table("", List(build_uuid, ml_platform, options))
     }
 
-    object Workers {
-      val worker_uuid = Generic.worker_uuid.make_primary_key
-      val build_uuid = Generic.build_uuid
-      val stamp = SQL.Column.date("stamp")
-      val serial = SQL.Column.long("serial")
 
-      val table = make_table("workers", List(worker_uuid, build_uuid, stamp, serial))
-
-      val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
-    }
-
-    object Progress {
-      val serial = SQL.Column.long("serial").make_primary_key
-      val kind = SQL.Column.int("kind")
-      val text = SQL.Column.string("text")
-      val verbose = SQL.Column.bool("verbose")
-      val build_uuid = Generic.build_uuid
-
-      val table = make_table("progress", List(serial, kind, text, verbose, build_uuid))
-    }
+    /* sessions */
 
     object Sessions {
       val name = Generic.name.make_primary_key
@@ -297,93 +279,6 @@ object Build_Process {
 
       val table = make_table("sessions",
         List(name, deps, ancestors, sources, timeout, old_time, old_command_timings, build_uuid))
-    }
-
-    object Pending {
-      val name = Generic.name.make_primary_key
-      val deps = SQL.Column.string("deps")
-      val info = SQL.Column.string("info")
-
-      val table = make_table("pending", List(name, deps, info))
-    }
-
-    object Running {
-      val name = Generic.name.make_primary_key
-      val hostname = SQL.Column.string("hostname")
-      val numa_node = SQL.Column.int("numa_node")
-
-      val table = make_table("running", List(name, hostname, numa_node))
-    }
-
-    object Results {
-      val name = Generic.name.make_primary_key
-      val hostname = SQL.Column.string("hostname")
-      val numa_node = SQL.Column.string("numa_node")
-      val rc = SQL.Column.int("rc")
-      val out = SQL.Column.string("out")
-      val err = SQL.Column.string("err")
-      val timing_elapsed = SQL.Column.long("timing_elapsed")
-      val timing_cpu = SQL.Column.long("timing_cpu")
-      val timing_gc = SQL.Column.long("timing_gc")
-
-      val table =
-        make_table("results",
-          List(name, hostname, numa_node, rc, out, err, timing_elapsed, timing_cpu, timing_gc))
-    }
-
-    def get_serial(db: SQL.Database, worker_uuid: String = ""): Long =
-      db.using_statement(
-        Workers.table.select(List(Workers.serial_max),
-          sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
-      )(stmt => stmt.execute_query().iterator(_.long(Workers.serial)).nextOption.getOrElse(0L))
-
-    def set_serial(db: SQL.Database, worker_uuid: String, build_uuid: String, serial: Long): Unit = {
-      if (get_serial(db, worker_uuid = worker_uuid) != serial) {
-        db.using_statement(
-          Workers.table.delete(sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
-        )(_.execute())
-        db.using_statement(Workers.table.insert()) { stmt =>
-          stmt.string(1) = worker_uuid
-          stmt.string(2) = build_uuid
-          stmt.date(3) = db.now()
-          stmt.long(4) = serial
-          stmt.execute()
-        }
-      }
-    }
-
-    def read_progress(db: SQL.Database, seen: Long = 0, build_uuid: String = ""): Progress_Messages =
-      db.using_statement(
-        Progress.table.select(
-          sql =
-            SQL.where(
-              SQL.and(
-                if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
-                Generic.sql(build_uuid = build_uuid))))
-      ) { stmt =>
-          SortedMap.from(stmt.execute_query().iterator { res =>
-            val serial = res.long(Progress.serial)
-            val kind = isabelle.Progress.Kind(res.int(Progress.kind))
-            val text = res.string(Progress.text)
-            val verbose = res.bool(Progress.verbose)
-            serial -> isabelle.Progress.Message(kind, text, verbose = verbose)
-          })
-        }
-
-    def write_progress(
-      db: SQL.Database,
-      message_serial: Long,
-      message: isabelle.Progress.Message,
-      build_uuid: String
-    ): Unit = {
-      db.using_statement(Progress.table.insert()) { stmt =>
-        stmt.long(1) = message_serial
-        stmt.int(2) = message.kind.id
-        stmt.string(3) = message.text
-        stmt.bool(4) = message.verbose
-        stmt.string(5) = build_uuid
-        stmt.execute()
-      }
     }
 
     def read_sessions_domain(db: SQL.Database): Set[String] =
@@ -429,6 +324,99 @@ object Build_Process {
       insert.nonEmpty
     }
 
+
+    /* progress */
+
+    object Progress {
+      val serial = SQL.Column.long("serial").make_primary_key
+      val kind = SQL.Column.int("kind")
+      val text = SQL.Column.string("text")
+      val verbose = SQL.Column.bool("verbose")
+      val build_uuid = Generic.build_uuid
+
+      val table = make_table("progress", List(serial, kind, text, verbose, build_uuid))
+    }
+
+    def read_progress(db: SQL.Database, seen: Long = 0, build_uuid: String = ""): Progress_Messages =
+      db.using_statement(
+        Progress.table.select(
+          sql =
+            SQL.where(
+              SQL.and(
+                if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
+                Generic.sql(build_uuid = build_uuid))))
+      ) { stmt =>
+          SortedMap.from(stmt.execute_query().iterator { res =>
+            val serial = res.long(Progress.serial)
+            val kind = isabelle.Progress.Kind(res.int(Progress.kind))
+            val text = res.string(Progress.text)
+            val verbose = res.bool(Progress.verbose)
+            serial -> isabelle.Progress.Message(kind, text, verbose = verbose)
+          })
+        }
+
+    def write_progress(
+      db: SQL.Database,
+      message_serial: Long,
+      message: isabelle.Progress.Message,
+      build_uuid: String
+    ): Unit = {
+      db.using_statement(Progress.table.insert()) { stmt =>
+        stmt.long(1) = message_serial
+        stmt.int(2) = message.kind.id
+        stmt.string(3) = message.text
+        stmt.bool(4) = message.verbose
+        stmt.string(5) = build_uuid
+        stmt.execute()
+      }
+    }
+
+
+    /* workers */
+
+    object Workers {
+      val worker_uuid = Generic.worker_uuid.make_primary_key
+      val build_uuid = Generic.build_uuid
+      val stamp = SQL.Column.date("stamp")
+      val serial = SQL.Column.long("serial")
+
+      val table = make_table("workers", List(worker_uuid, build_uuid, stamp, serial))
+
+      val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
+    }
+
+    def get_serial(db: SQL.Database, worker_uuid: String = ""): Long =
+      db.using_statement(
+        Workers.table.select(List(Workers.serial_max),
+          sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
+      )(stmt => stmt.execute_query().iterator(_.long(Workers.serial)).nextOption.getOrElse(0L))
+
+    def set_serial(db: SQL.Database, worker_uuid: String, build_uuid: String, serial: Long): Unit = {
+      if (get_serial(db, worker_uuid = worker_uuid) != serial) {
+        db.using_statement(
+          Workers.table.delete(sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
+        )(_.execute())
+        db.using_statement(Workers.table.insert()) { stmt =>
+          stmt.string(1) = worker_uuid
+          stmt.string(2) = build_uuid
+          stmt.date(3) = db.now()
+          stmt.long(4) = serial
+          stmt.execute()
+        }
+      }
+    }
+
+
+    /* pending jobs */
+
+    object Pending {
+      val name = Generic.name.make_primary_key
+      val deps = SQL.Column.string("deps")
+      val info = SQL.Column.string("info")
+
+      val table = make_table("pending", List(name, deps, info))
+    }
+
     def read_pending(db: SQL.Database): List[Entry] =
       db.using_statement(Pending.table.select(sql = SQL.order_by(List(Pending.name)))) { stmt =>
         List.from(
@@ -460,6 +448,17 @@ object Build_Process {
       }
 
       delete.nonEmpty || insert.nonEmpty
+    }
+
+
+    /* running jobs */
+
+    object Running {
+      val name = Generic.name.make_primary_key
+      val hostname = SQL.Column.string("hostname")
+      val numa_node = SQL.Column.int("numa_node")
+
+      val table = make_table("running", List(name, hostname, numa_node))
     }
 
     def read_running(db: SQL.Database): List[Build_Job.Abstract] =
@@ -495,6 +494,25 @@ object Build_Process {
       }
 
       delete.nonEmpty || insert.nonEmpty
+    }
+
+
+    /* job results */
+
+    object Results {
+      val name = Generic.name.make_primary_key
+      val hostname = SQL.Column.string("hostname")
+      val numa_node = SQL.Column.string("numa_node")
+      val rc = SQL.Column.int("rc")
+      val out = SQL.Column.string("out")
+      val err = SQL.Column.string("err")
+      val timing_elapsed = SQL.Column.long("timing_elapsed")
+      val timing_cpu = SQL.Column.long("timing_cpu")
+      val timing_gc = SQL.Column.long("timing_gc")
+
+      val table =
+        make_table("results",
+          List(name, hostname, numa_node, rc, out, err, timing_elapsed, timing_cpu, timing_gc))
     }
 
     def read_results_domain(db: SQL.Database): Set[String] =
@@ -550,6 +568,9 @@ object Build_Process {
 
       insert.nonEmpty
     }
+
+
+    /* collective operations */
 
     def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
       val tables =
