@@ -87,15 +87,13 @@ object Document_Build {
     name: String
   ): Option[Document_Output] = {
     db.using_statement(Data.table.select(sql = Data.where_equal(session_name, name))) { stmt =>
-      val res = stmt.execute_query()
-      if (res.next()) {
+      (stmt.execute_query().iterator { res =>
         val name = res.string(Data.name)
         val sources = res.string(Data.sources)
         val log_xz = res.bytes(Data.log_xz)
         val pdf = res.bytes(Data.pdf)
-        Some(Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf))
-      }
-      else None
+        Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf)
+      }).nextOption
     }
   }
 

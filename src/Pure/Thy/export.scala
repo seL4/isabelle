@@ -73,15 +73,13 @@ object Export {
       db.using_statement(
         Data.table.select(List(Data.executable, Data.compressed, Data.body),
           sql = Data.where_equal(session, theory, name))) { stmt =>
-        val res = stmt.execute_query()
-        if (res.next()) {
+        (stmt.execute_query().iterator { res =>
           val executable = res.bool(Data.executable)
           val compressed = res.bool(Data.compressed)
           val bytes = res.bytes(Data.body)
           val body = Future.value(compressed, bytes)
-          Some(Entry(this, executable, body, cache))
-        }
-        else None
+          Entry(this, executable, body, cache)
+        }).nextOption
       }
   }
 

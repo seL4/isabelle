@@ -1027,9 +1027,7 @@ object Build_Log {
       val table = Data.meta_info_table
       val columns = table.columns.tail
       db.using_statement(table.select(columns, sql = Data.log_name.where_equal(log_name))) { stmt =>
-        val res = stmt.execute_query()
-        if (!res.next()) None
-        else {
+        (stmt.execute_query().iterator { res =>
           val results =
             columns.map(c => c.name ->
               (if (c.T == SQL.Type.Date)
@@ -1039,8 +1037,8 @@ object Build_Log {
           val n = Prop.all_props.length
           val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
-          Some(Meta_Info(props, settings))
-        }
+          Meta_Info(props, settings)
+        }).nextOption
       }
     }
 

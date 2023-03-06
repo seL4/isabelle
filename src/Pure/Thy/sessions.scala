@@ -1634,20 +1634,17 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       if (db.tables.contains(Session_Info.table.name)) {
         db.using_statement(
           Session_Info.table.select(sql = Session_Info.session_name.where_equal(name))) { stmt =>
-          val res = stmt.execute_query()
-          if (!res.next()) None
-          else {
+          (stmt.execute_query().iterator { res =>
             val uuid =
               try { Option(res.string(Session_Info.uuid)).getOrElse("") }
               catch { case _: SQLException => "" }
-            Some(
-              Build_Info(
-                SHA1.fake_shasum(res.string(Session_Info.sources)),
-                SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
-                SHA1.fake_shasum(res.string(Session_Info.output_heap)),
-                res.int(Session_Info.return_code),
-                uuid))
-          }
+            Build_Info(
+              SHA1.fake_shasum(res.string(Session_Info.sources)),
+              SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
+              SHA1.fake_shasum(res.string(Session_Info.output_heap)),
+              res.int(Session_Info.return_code),
+              uuid)
+          }).nextOption
         }
       }
       else None
