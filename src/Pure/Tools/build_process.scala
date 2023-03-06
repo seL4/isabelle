@@ -572,19 +572,19 @@ object Build_Process {
 
     /* collective operations */
 
-    def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
-      val tables =
-        List(
-          Base.table,
-          Workers.table,
-          Progress.table,
-          Sessions.table,
-          Pending.table,
-          Running.table,
-          Results.table,
-          Host.Data.Node_Info.table)
+    def all_tables: List[SQL.Table] =
+      List(
+        Base.table,
+        Workers.table,
+        Progress.table,
+        Sessions.table,
+        Pending.table,
+        Running.table,
+        Results.table,
+        Host.Data.Node_Info.table)
 
-      for (table <- tables) db.create_table(table)
+    def init_database(db: SQL.Database, build_context: Build_Process.Context): Unit = {
+      for (table <- all_tables) db.create_table(table)
 
       val old_pending = Data.read_pending(db)
       if (old_pending.nonEmpty) {
@@ -592,7 +592,7 @@ object Build_Process {
           commas_quote(old_pending.map(_.name)))
       }
 
-      for (table <- tables) db.using_statement(table.delete())(_.execute())
+      for (table <- all_tables) db.using_statement(table.delete())(_.execute())
 
       db.using_statement(Base.table.insert()) { stmt =>
         stmt.string(1) = build_context.build_uuid
