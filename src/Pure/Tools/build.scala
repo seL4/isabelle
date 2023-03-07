@@ -208,6 +208,28 @@ object Build {
   }
 
 
+  /* build logic image */
+
+  def build_logic(options: Options, logic: String,
+    progress: Progress = new Progress,
+    build_heap: Boolean = false,
+    dirs: List[Path] = Nil,
+    fresh: Boolean = false,
+    strict: Boolean = false
+  ): Int = {
+    val selection = Sessions.Selection.session(logic)
+    val rc =
+      if (!fresh && build(options, selection = selection,
+            build_heap = build_heap, no_build = true, dirs = dirs).ok) Process_Result.RC.ok
+      else {
+        progress.echo("Build started for Isabelle/" + logic + " ...")
+        build(options, selection = selection, progress = progress,
+          build_heap = build_heap, fresh_build = fresh, dirs = dirs).rc
+      }
+    if (strict && rc != Process_Result.RC.ok) error("Failed to build Isabelle/" + logic) else rc
+  }
+
+
   /* command-line wrapper */
 
   val isabelle_tool1 = Isabelle_Tool("build", "build and manage Isabelle sessions",
@@ -340,28 +362,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       sys.exit(results.rc)
     })
-
-
-  /* build logic image */
-
-  def build_logic(options: Options, logic: String,
-    progress: Progress = new Progress,
-    build_heap: Boolean = false,
-    dirs: List[Path] = Nil,
-    fresh: Boolean = false,
-    strict: Boolean = false
-  ): Int = {
-    val selection = Sessions.Selection.session(logic)
-    val rc =
-      if (!fresh && build(options, selection = selection,
-            build_heap = build_heap, no_build = true, dirs = dirs).ok) Process_Result.RC.ok
-      else {
-        progress.echo("Build started for Isabelle/" + logic + " ...")
-        Build.build(options, selection = selection, progress = progress,
-          build_heap = build_heap, fresh_build = fresh, dirs = dirs).rc
-      }
-    if (strict && rc != Process_Result.RC.ok) error("Failed to build Isabelle/" + logic) else rc
-  }
 
 
 
