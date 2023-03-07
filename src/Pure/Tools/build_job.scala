@@ -515,7 +515,7 @@ object Build_Job {
         }
         else {
           progress.echo(
-            session_name + " FAILED (see also \"isabelle log -H Error " + session_name + "\")")
+            session_name + " FAILED (see also \"isabelle build_log -H Error " + session_name + "\")")
           if (!process_result.interrupted) {
             val tail = info.options.int("process_output_tail")
             val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)

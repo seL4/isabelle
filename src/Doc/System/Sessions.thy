@@ -570,7 +570,7 @@ text \<open>
   database of the given session. Its command-line usage is:
 
   @{verbatim [display]
-\<open>Usage: isabelle log [OPTIONS] [SESSIONS ...]
+\<open>Usage: isabelle build_log [OPTIONS] [SESSIONS ...]
 
   Options are:
     -H REGEX     filter messages by matching against head
@@ -628,16 +628,16 @@ subsubsection \<open>Examples\<close>
 text \<open>
   Print messages from theory \<^verbatim>\<open>HOL.Nat\<close> of session \<^verbatim>\<open>HOL\<close>, using Unicode
   rendering of Isabelle symbols and a margin of 100 characters:
-  @{verbatim [display] \<open>  isabelle log -T HOL.Nat -U -m 100 HOL\<close>}
+  @{verbatim [display] \<open>  isabelle build_log -T HOL.Nat -U -m 100 HOL\<close>}
 
   Print warnings about ambiguous input (inner syntax) of session
   \<^verbatim>\<open>HOL-Library\<close>, which is built beforehand:
   @{verbatim [display] \<open>  isabelle build HOL-Library
-  isabelle log -H "Warning" -M "Ambiguous input" HOL-Library\<close>}
+  isabelle build_log -H "Warning" -M "Ambiguous input" HOL-Library\<close>}
 
   Print all errors from all sessions, e.g. from a partial build of
   Isabelle/AFP:
-  @{verbatim [display] \<open>  isabelle log -H "Error" $(isabelle sessions -a -d AFP/thys)\<close>}
+  @{verbatim [display] \<open>  isabelle build_log -H "Error" $(isabelle sessions -a -d AFP/thys)\<close>}
 \<close>
 
 

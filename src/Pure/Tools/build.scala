@@ -457,7 +457,7 @@ Usage: isabelle build_worker [OPTIONS] ...]
 
 
 
-  /** "isabelle log" **/
+  /** "isabelle build_log" **/
 
   /* theory markup/messages from session database */
 
@@ -627,7 +627,7 @@ Usage: isabelle build_worker [OPTIONS] ...]
 
   /* command-line wrapper */
 
-  val isabelle_tool3 = Isabelle_Tool("log", "print messages from session build database",
+  val isabelle_tool3 = Isabelle_Tool("build_log", "print messages from session build database",
     Scala_Project.here,
     { args =>
       /* arguments */
@@ -641,7 +641,7 @@ Usage: isabelle build_worker [OPTIONS] ...]
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle log [OPTIONS] [SESSIONS ...]
+Usage: isabelle build_log [OPTIONS] [SESSIONS ...]
 
   Options are:
     -H REGEX     filter messages by matching against head

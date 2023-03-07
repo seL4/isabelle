@@ -270,6 +270,9 @@ antiquotations.
 scalable, and supports most options from "isabelle build". Partial
 builds are supported as well, e.g. "isabelle update -n -a".
 
+* The command-line tool "isabelle log" has been renamed to "isabelle
+build_log", to emphasize its relation to "isabelle build".
+
 * System option "ML_process_policy" has been renamed to
 "process_policy", as it may affect other processes as well (notably in
 "isabelle build").
