@@ -69,13 +69,13 @@ object Build {
   def hostname(options: Options): String =
     Isabelle_System.hostname(options.string("build_hostname"))
 
-  def build_init(options: Options): Sessions.Store = {
+  def build_init(options: Options, cache: Term.Cache = Term.Cache.make()): Sessions.Store = {
     val build_options =
       options +
         "completion_limit=0" +
         "editor_tracing_messages=0" +
         ("pide_reports=" + options.bool("build_pide_reports"))
-    val store = Sessions.store(build_options)
+    val store = Sessions.store(build_options, cache = cache)
 
     Isabelle_Fonts.init()
 
@@ -105,9 +105,10 @@ object Build {
     soft_build: Boolean = false,
     export_files: Boolean = false,
     augment_options: String => List[Options.Spec] = _ => Nil,
-    session_setup: (String, Session) => Unit = (_, _) => ()
+    session_setup: (String, Session) => Unit = (_, _) => (),
+    cache: Term.Cache = Term.Cache.make()
   ): Results = {
-    val store = build_init(options)
+    val store = build_init(options, cache = cache)
     val build_options = store.options
 
 
@@ -388,9 +389,10 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     infos: List[Sessions.Info] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
-    session_setup: (String, Session) => Unit = (_, _) => ()
+    session_setup: (String, Session) => Unit = (_, _) => (),
+    cache: Term.Cache = Term.Cache.make()
   ): Results = {
-    val store = build_init(options)
+    val store = build_init(options, cache = cache)
     val build_options = store.options
 
     progress.echo("build worker for " + build_uuid)
