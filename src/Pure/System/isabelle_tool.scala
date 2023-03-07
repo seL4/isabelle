@@ -122,6 +122,7 @@ class Isabelle_Scala_Tools(val tools: Isabelle_Tool*) extends Isabelle_System.Se
 class Tools extends Isabelle_Scala_Tools(
   Build.isabelle_tool1,
   Build.isabelle_tool2,
+  Build.isabelle_tool3,
   Build_Docker.isabelle_tool,
   CI_Build.isabelle_tool,
   Doc.isabelle_tool,

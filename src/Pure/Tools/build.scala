@@ -66,6 +66,19 @@ object Build {
 
   /* build */
 
+  def build_init(options: Options): Sessions.Store = {
+    val build_options =
+      options +
+        "completion_limit=0" +
+        "editor_tracing_messages=0" +
+        ("pide_reports=" + options.bool("build_pide_reports"))
+    val store = Sessions.store(build_options)
+
+    Isabelle_Fonts.init()
+
+    store
+  }
+
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -88,15 +101,8 @@ object Build {
     augment_options: String => List[Options.Spec] = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => ()
   ): Results = {
-    val build_options =
-      options +
-        "completion_limit=0" +
-        "editor_tracing_messages=0" +
-        ("pide_reports=" + options.bool("build_pide_reports"))
-
-    val store = Sessions.store(build_options)
-
-    Isabelle_Fonts.init()
+    val store = build_init(options)
+    val build_options = store.options
 
 
     /* session selection and dependencies */
@@ -365,6 +371,85 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
 
 
+  /** "isabelle build_worker" **/
+
+  /* build_worker */
+
+  def build_worker(
+    options: Options,
+    build_uuid: String,
+    progress: Progress = new Progress,
+    dirs: List[Path] = Nil,
+    infos: List[Sessions.Info] = Nil,
+    numa_shuffling: Boolean = false,
+    max_jobs: Int = 1,
+    session_setup: (String, Session) => Unit = (_, _) => ()
+  ): Results = {
+    val store = build_init(options)
+    val build_options = store.options
+
+    progress.echo("build worker for " + build_uuid)
+    progress.echo_warning("FIXME")
+    ???
+  }
+
+
+  /* command-line wrapper */
+
+  val isabelle_tool2 = Isabelle_Tool("build_worker", "external worker for session build process",
+    Scala_Project.here,
+    { args =>
+      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
+
+      var numa_shuffling = false
+      var dirs: List[Path] = Nil
+      var max_jobs = 1
+      var options = Options.init(opts = build_options)
+      var verbose = false
+      var build_uuid = ""
+
+      val getopts = Getopts("""
+Usage: isabelle build_worker [OPTIONS] ...]
+
+  Options are:
+    -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
+    -U UUID      Universally Unique Identifier of the build process
+    -d DIR       include session directory
+    -j INT       maximum number of parallel jobs (default 1)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           verbose
+
+  Run as external worker for session build process, as identified via
+  option -U UUID.
+""" + Library.indent_lines(2,  Build_Log.Settings.show()) + "\n",
+        "N" -> (_ => numa_shuffling = true),
+        "U:" -> (arg => build_uuid = arg),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      if (build_uuid.isEmpty) error("Missing UUID for build process (option -U)")
+
+      val progress = new Console_Progress(verbose = verbose)
+
+      val results =
+        progress.interrupt_handler {
+          build_worker(options, build_uuid,
+            progress = progress,
+            dirs = dirs,
+            numa_shuffling = Host.numa_check(progress, numa_shuffling),
+            max_jobs = max_jobs)
+        }
+
+      sys.exit(results.rc)
+    })
+
+
+
   /** "isabelle log" **/
 
   /* theory markup/messages from session database */
@@ -535,7 +620,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   /* command-line wrapper */
 
-  val isabelle_tool2 = Isabelle_Tool("log", "print messages from session build database",
+  val isabelle_tool3 = Isabelle_Tool("log", "print messages from session build database",
     Scala_Project.here,
     { args =>
       /* arguments */
