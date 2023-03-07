@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_vampire.scala
+/*  Title:      Pure/Admin/component_vampire.scala
     Author:     Makarius
 
 Build Isabelle Vampire component from official download.
@@ -7,7 +7,7 @@ Build Isabelle Vampire component from official download.
 package isabelle
 
 
-object Build_Vampire {
+object Component_Vampire {
   val default_download_url = "https://github.com/vprover/vampire/archive/refs/tags/v4.6.tar.gz"
   val default_jobs = 1
 
@@ -119,7 +119,7 @@ The executables have been built via "cmake . && make"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vampire", "build prover component from official download",
+    Isabelle_Tool("component_vampire", "build prover component from official download",
     Scala_Project.here,
     { args =>
       var target_dir = Path.current
@@ -129,7 +129,7 @@ The executables have been built via "cmake . && make"
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle build_vampire [OPTIONS]
+Usage: isabelle component_vampire [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

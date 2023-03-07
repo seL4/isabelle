@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_e.scala
+/*  Title:      Pure/Admin/component_e.scala
     Author:     Makarius
 
 Build Isabelle E prover component from official downloads.
@@ -7,7 +7,7 @@ Build Isabelle E prover component from official downloads.
 package isabelle
 
 
-object Build_E {
+object Component_E {
   /* build E prover */
 
   val default_version = "2.6"
@@ -103,7 +103,7 @@ Isabelle component directory: x86_64-linux etc.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_e", "build prover component from source distribution", Scala_Project.here,
+    Isabelle_Tool("component_e", "build prover component from source distribution", Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var version = default_version
@@ -111,7 +111,7 @@ Isabelle component directory: x86_64-linux etc.
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle build_e [OPTIONS]
+Usage: isabelle component_e [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

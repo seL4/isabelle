@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_polyml.scala
+/*  Title:      Pure/Admin/component_polyml.scala
     Author:     Makarius
 
 Build Poly/ML from sources.
@@ -10,7 +10,7 @@ package isabelle
 import scala.util.matching.Regex
 
 
-object Build_PolyML {
+object Component_PolyML {
   /** platform-specific build **/
 
   sealed case class Platform_Info(
@@ -288,11 +288,11 @@ follows.
 
 * Linux and macOS:
 
-  $ isabelle build_polyml
+  $ isabelle component_polyml
 
 * Windows (Cygwin shell)
 
-  $ isabelle build_polyml -M /cygdrive/c/msys64
+  $ isabelle component_polyml -M /cygdrive/c/msys64
 
 
 Building libgmp on macOS
@@ -370,7 +370,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
       })
 
   val isabelle_tool2 =
-    Isabelle_Tool("build_polyml", "build Poly/ML component from official repository",
+    Isabelle_Tool("component_polyml", "build Poly/ML component from official repository",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -384,7 +384,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var verbose = false
   
         val getopts = Getopts("""
-Usage: isabelle build_polyml [OPTIONS] [CONFIGURE_OPTIONS]
+Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

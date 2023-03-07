@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_prismjs.scala
+/*  Title:      Pure/Admin/component_prismjs.scala
     Author:     Makarius
 
 Build Isabelle component for the Prism.js syntax highlighter.
@@ -11,7 +11,7 @@ See also:
 package isabelle
 
 
-object Build_Prismjs {
+object Component_Prismjs {
   /* build prismjs component */
 
   val default_version = "1.29.0"
@@ -62,14 +62,14 @@ ISABELLE_PRISMJS_HOME="$COMPONENT"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_prismjs", "build component for prismjs",
+    Isabelle_Tool("component_prismjs", "build component for prismjs",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var version = default_version
 
         val getopts = Getopts("""
-Usage: isabelle build_prismjs [OPTIONS]
+Usage: isabelle component_prismjs [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

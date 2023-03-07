@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_sqlite.scala
+/*  Title:      Pure/Admin/component_sqlite.scala
     Author:     Makarius
 
 Build Isabelle sqlite-jdbc component from official download.
@@ -7,7 +7,7 @@ Build Isabelle sqlite-jdbc component from official download.
 package isabelle
 
 
-object Build_SQLite {
+object Component_SQLite {
   /* build sqlite */
 
   val default_download_url =
@@ -80,14 +80,14 @@ classpath "$ISABELLE_SQLITE_HOME/lib/""" + download_name + """.jar"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_sqlite", "build Isabelle sqlite-jdbc component from official download",
+    Isabelle_Tool("component_sqlite", "build Isabelle sqlite-jdbc component from official download",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var download_url = default_download_url
 
         val getopts = Getopts("""
-Usage: isabelle build_sqlite [OPTIONS] DOWNLOAD
+Usage: isabelle component_sqlite [OPTIONS] DOWNLOAD
 
   Options are:
     -D DIR       target directory (default ".")

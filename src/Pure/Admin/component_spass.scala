@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_spass.scala
+/*  Title:      Pure/Admin/component_spass.scala
     Author:     Makarius
 
 Build Isabelle SPASS component from unofficial download.
@@ -7,7 +7,7 @@ Build Isabelle SPASS component from unofficial download.
 package isabelle
 
 
-object Build_SPASS {
+object Component_SPASS {
   /* build SPASS */
 
   val default_download_url = "https://www.cs.vu.nl/~jbe248/spass-3.8ds-src.tar.gz"
@@ -141,7 +141,7 @@ Viel SPASS!
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_spass", "build prover component from source distribution",
+    Isabelle_Tool("component_spass", "build prover component from source distribution",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -149,7 +149,7 @@ Viel SPASS!
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle build_spass [OPTIONS]
+Usage: isabelle component_spass [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_minisat.scala
+/*  Title:      Pure/Admin/component_minisat.scala
     Author:     Makarius
 
 Build Isabelle Minisat from sources.
@@ -7,7 +7,7 @@ Build Isabelle Minisat from sources.
 package isabelle
 
 
-object Build_Minisat {
+object Component_Minisat {
   val default_download_url = "https://github.com/stp/minisat/archive/releases/2.2.1.tar.gz"
 
   def make_component_name(version: String): String = "minisat-" + version
@@ -114,7 +114,7 @@ remove options "--static" and "-Wl,-soname,..." from the Makefile.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_minisat", "build prover component from sources", Scala_Project.here,
+    Isabelle_Tool("component_minisat", "build prover component from sources", Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var download_url = default_download_url
@@ -122,7 +122,7 @@ remove options "--static" and "-Wl,-soname,..." from the Makefile.
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle build_minisat [OPTIONS]
+Usage: isabelle component_minisat [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

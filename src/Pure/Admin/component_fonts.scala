@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_fonts.scala
+/*  Title:      Pure/Admin/component_fonts.scala
     Author:     Makarius
 
 Build standard Isabelle fonts: DejaVu base + Isabelle symbols.
@@ -7,7 +7,7 @@ Build standard Isabelle fonts: DejaVu base + Isabelle symbols.
 package isabelle
 
 
-object Build_Fonts {
+object Component_Fonts {
   /* relevant codepoint ranges */
 
   object Range {
@@ -356,13 +356,13 @@ isabelle_fonts_hidden "$COMPONENT/""" + make_path().file_name + """/Vacuous.ttf"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_fonts", "construct Isabelle fonts", Scala_Project.here,
+    Isabelle_Tool("component_fonts", "construct Isabelle fonts", Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var download_url = default_download_url
 
         val getopts = Getopts("""
-Usage: isabelle build_fonts [OPTIONS]
+Usage: isabelle component_fonts [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

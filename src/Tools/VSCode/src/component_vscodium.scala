@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/build_vscodium.scala
+/*  Title:      Tools/VSCode/src/component_vscodium.scala
     Author:     Makarius
 
 Build the Isabelle system component for VSCodium: cross-compilation for all
@@ -14,7 +14,7 @@ import java.security.MessageDigest
 import java.util.Base64
 
 
-object Build_VSCodium {
+object Component_VSCodium {
   /* global parameters */
 
   lazy val version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
@@ -303,7 +303,7 @@ object Build_VSCodium {
 
   def default_platforms: List[Platform.Family.Value] = Platform.Family.list
 
-  def build_vscodium(
+  def component_vscodium(
     target_dir: Path = Path.current,
     platforms: List[Platform.Family.Value] = default_platforms,
     progress: Progress = new Progress
@@ -391,7 +391,7 @@ fi
       "This is VSCodium " + version + " from " + vscodium_repository +
 """
 
-It has been built from sources using "isabelle build_vscodium". This applies
+It has been built from sources using "isabelle component_vscodium". This applies
 a few changes required for Isabelle/VSCode, see "patches" directory for a
 formal record.
 
@@ -404,7 +404,7 @@ formal record.
   /* Isabelle tool wrappers */
 
   val isabelle_tool1 =
-    Isabelle_Tool("build_vscodium", "build component for VSCodium",
+    Isabelle_Tool("component_vscodium", "build component for VSCodium",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -412,7 +412,7 @@ formal record.
         var verbose = false
 
         val getopts = Getopts("""
-Usage: build_vscodium [OPTIONS]
+Usage: component_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
@@ -433,7 +433,7 @@ Usage: build_vscodium [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        build_vscodium(target_dir = target_dir, platforms = platforms, progress = progress)
+        component_vscodium(target_dir = target_dir, platforms = platforms, progress = progress)
       })
 
   val isabelle_tool2 =

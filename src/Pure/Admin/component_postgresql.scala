@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_postgresql.scala
+/*  Title:      Pure/Admin/component_postgresql.scala
     Author:     Makarius
 
 Build Isabelle postgresql component from official download.
@@ -7,7 +7,7 @@ Build Isabelle postgresql component from official download.
 package isabelle
 
 
-object Build_PostgreSQL {
+object Component_PostgreSQL {
   /* URLs */
 
   val notable_urls =
@@ -96,14 +96,14 @@ classpath "$COMPONENT/""" + download_name + """.jar"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_postgresql", "build Isabelle postgresql component from official download",
+    Isabelle_Tool("component_postgresql", "build Isabelle postgresql component from official download",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var download_url = default_download_url
 
         val getopts = Getopts("""
-Usage: isabelle build_postgresql [OPTIONS]
+Usage: isabelle component_postgresql [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

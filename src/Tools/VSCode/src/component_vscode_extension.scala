@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/build_vscode_extension.scala
+/*  Title:      Tools/VSCode/src/component_vscode_extension.scala
     Author:     Makarius
 
 Build the Isabelle/VSCode extension as component.
@@ -10,7 +10,7 @@ package isabelle.vscode
 import isabelle._
 
 
-object Build_VSCode {
+object Component_VSCode {
   /* build grammar */
 
   def default_logic: String = Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -210,7 +210,7 @@ It has been produced from the sources in $ISABELLE_HOME/src/Tools/extension/.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_vscode_extension", "build Isabelle/VSCode extension module",
+    Isabelle_Tool("component_vscode_extension", "build Isabelle/VSCode extension module",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -218,7 +218,7 @@ It has been produced from the sources in $ISABELLE_HOME/src/Tools/extension/.
         var logic = default_logic
 
         val getopts = Getopts("""
-Usage: isabelle build_vscode_extension
+Usage: isabelle component_vscode_extension
 
   Options are:
     -D DIR       target directory (default ".")

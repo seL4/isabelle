@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_jedit.scala
+/*  Title:      Pure/Admin/component_jedit.scala
     Author:     Makarius
 
 Build component for jEdit text-editor.
@@ -12,7 +12,7 @@ import java.nio.charset.Charset
 import scala.jdk.CollectionConverters._
 
 
-object Build_JEdit {
+object Component_JEdit {
   /* modes */
 
   object Mode {
@@ -505,7 +505,7 @@ https://sourceforge.net/projects/jedit-plugins/files
   def default_java_home: Path = Path.explode("$JAVA_HOME").expand
 
   val isabelle_tool =
-    Isabelle_Tool("build_jedit", "build Isabelle component from the jEdit text-editor",
+    Isabelle_Tool("component_jedit", "build Isabelle component from the jEdit text-editor",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -514,7 +514,7 @@ https://sourceforge.net/projects/jedit-plugins/files
         var version = default_version
 
         val getopts = Getopts("""
-Usage: isabelle build_jedit [OPTIONS]
+Usage: isabelle component_jedit [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

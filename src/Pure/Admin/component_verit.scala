@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_csdp.scala
+/*  Title:      Pure/Admin/component_csdp.scala
     Author:     Makarius
 
 Build Isabelle veriT component from official download.
@@ -7,7 +7,7 @@ Build Isabelle veriT component from official download.
 package isabelle
 
 
-object Build_VeriT {
+object Component_VeriT {
   val default_download_url = "https://verit.loria.fr/rmx/2021.06.2/verit-2021.06.2-rmx.tar.gz"
 
 
@@ -115,7 +115,7 @@ It has been built from sources like this:
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_verit", "build prover component from official download",
+    Isabelle_Tool("component_verit", "build prover component from official download",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -124,7 +124,7 @@ It has been built from sources like this:
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle build_verit [OPTIONS]
+Usage: isabelle component_verit [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

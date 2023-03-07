@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_csdp.scala
+/*  Title:      Pure/Admin/component_csdp.scala
     Author:     Makarius
 
 Build Isabelle CSDP component from official download.
@@ -7,7 +7,7 @@ Build Isabelle CSDP component from official download.
 package isabelle
 
 
-object Build_CSDP {
+object Component_CSDP {
   // Note: version 6.2.0 does not quite work for the "sos" proof method
   val default_download_url = "https://github.com/coin-or/Csdp/archive/releases/6.1.1.tar.gz"
 
@@ -162,7 +162,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_csdp", "build prover component from official download", Scala_Project.here,
+    Isabelle_Tool("component_csdp", "build prover component from official download", Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var mingw = MinGW.none
@@ -170,7 +170,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle build_csdp [OPTIONS]
+Usage: isabelle component_csdp [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

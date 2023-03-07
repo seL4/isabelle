@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_scala.scala
+/*  Title:      Pure/Admin/component_scala.scala
     Author:     Makarius
 
 Build Isabelle Scala component from official downloads.
@@ -7,7 +7,7 @@ Build Isabelle Scala component from official downloads.
 package isabelle
 
 
-object Build_Scala {
+object Component_Scala {
   /* downloads */
 
   sealed case class Download(
@@ -141,13 +141,13 @@ with spaces in the directory name.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_scala", "build Isabelle Scala component from official downloads",
+    Isabelle_Tool("component_scala", "build Isabelle Scala component from official downloads",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
 
         val getopts = Getopts("""
-Usage: isabelle build_scala [OPTIONS]
+Usage: isabelle component_scala [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

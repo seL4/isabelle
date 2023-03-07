@@ -1,70 +1,68 @@
-/*  Title:      Pure/Admin/build_pdfjs.scala
+/*  Title:      Pure/Admin/component_eptcs.scala
     Author:     Makarius
 
-Build Isabelle component for Mozilla PDF.js.
+Build Isabelle component for EPTCS LaTeX style.
 
 See also:
-
-  - https://github.com/mozilla/pdf.js
-  - https://github.com/mozilla/pdf.js/releases
-  - https://github.com/mozilla/pdf.js/wiki/Setup-PDF.js-in-a-website
+  - http://style.eptcs.org
+  - https://github.com/EPTCS/style/releases
 */
 
 package isabelle
 
 
-object Build_PDFjs {
-  /* build pdfjs component */
+object Component_EPTCS {
+  /* build eptcs component */
 
-  val default_url = "https://github.com/mozilla/pdf.js/releases/download"
-  val default_version = "2.14.305"
+  val default_url = "https://github.com/EPTCS/style/releases/download"
+  val default_version = "1.7.0"
 
-  def build_pdfjs(
+  def build_eptcs(
     base_url: String = default_url,
     version: String = default_version,
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
-    /* component name */
+    /* component */
 
-    val component = "pdfjs-" + version
+    val component = "eptcs-" + version
     val component_dir =
       Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
 
     /* download */
 
-    val download_url = base_url + "/v" + version
-    Isabelle_System.with_tmp_file("archive", ext = "zip") { archive_file =>
-      Isabelle_System.download_file(download_url + "/pdfjs-" + version + "-legacy-dist.zip",
-        archive_file, progress = progress)
-      Isabelle_System.extract(archive_file, component_dir.path)
+    val download_url = base_url + "/v" + version + "/eptcsstyle.zip"
+
+    Isabelle_System.with_tmp_file("download", ext = "zip") { download_file =>
+      Isabelle_System.download_file(download_url, download_file, progress = progress)
+      Isabelle_System.extract(download_file, component_dir.path)
     }
 
 
     /* settings */
 
     component_dir.write_settings("""
-ISABELLE_PDFJS_HOME="$COMPONENT"
+ISABELLE_EPTCS_HOME="$COMPONENT"
 """)
 
 
     /* README */
 
     File.write(component_dir.README,
-      """This is PDF.js from
+      """This is the EPTCS style from
 """ + download_url + """
 
 
-        Makarius
-        """ + Date.Format.date(Date.now()) + "\n")
+    Makarius
+    """ + Date.Format.date(Date.now()) + "\n")
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_pdfjs", "build component for Mozilla PDF.js",
+    Isabelle_Tool("component_eptcs", "build component for EPTCS LaTeX style",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -72,14 +70,14 @@ ISABELLE_PDFJS_HOME="$COMPONENT"
         var version = default_version
 
         val getopts = Getopts("""
-Usage: isabelle build_pdfjs [OPTIONS]
+Usage: isabelle component_eptcs [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
     -U URL       download URL (default: """" + default_url + """")
     -V VERSION   version (default: """" + default_version + """")
 
-  Build component for PDF.js.
+  Build component for EPTCS LaTeX style.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => base_url = arg),
@@ -90,7 +88,7 @@ Usage: isabelle build_pdfjs [OPTIONS]
 
         val progress = new Console_Progress()
 
-        build_pdfjs(base_url = base_url, version = version, target_dir = target_dir,
+        build_eptcs(base_url = base_url, version = version, target_dir = target_dir,
           progress = progress)
       })
 }

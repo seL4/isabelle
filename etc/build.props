@@ -11,37 +11,37 @@ sources = \
   src/HOL/Tools/Mirabelle/mirabelle.scala \
   src/HOL/Tools/Nitpick/kodkod.scala \
   src/Pure/Admin/afp.scala \
-  src/Pure/Admin/build_csdp.scala \
-  src/Pure/Admin/build_cvc5.scala \
-  src/Pure/Admin/build_cygwin.scala \
   src/Pure/Admin/build_doc.scala \
-  src/Pure/Admin/build_e.scala \
-  src/Pure/Admin/build_easychair.scala \
-  src/Pure/Admin/build_eptcs.scala \
-  src/Pure/Admin/build_foiltex.scala \
-  src/Pure/Admin/build_fonts.scala \
   src/Pure/Admin/build_history.scala \
-  src/Pure/Admin/build_jdk.scala \
-  src/Pure/Admin/build_jedit.scala \
-  src/Pure/Admin/build_lipics.scala \
-  src/Pure/Admin/build_llncs.scala \
   src/Pure/Admin/build_log.scala \
-  src/Pure/Admin/build_minisat.scala \
-  src/Pure/Admin/build_pdfjs.scala \
-  src/Pure/Admin/build_polyml.scala \
-  src/Pure/Admin/build_postgresql.scala \
-  src/Pure/Admin/build_prismjs.scala \
   src/Pure/Admin/build_release.scala \
-  src/Pure/Admin/build_scala.scala \
-  src/Pure/Admin/build_spass.scala \
-  src/Pure/Admin/build_sqlite.scala \
   src/Pure/Admin/build_status.scala \
-  src/Pure/Admin/build_vampire.scala \
-  src/Pure/Admin/build_verit.scala \
-  src/Pure/Admin/build_zipperposition.scala \
-  src/Pure/Admin/build_zstd.scala \
   src/Pure/Admin/check_sources.scala \
   src/Pure/Admin/ci_build.scala \
+  src/Pure/Admin/component_csdp.scala \
+  src/Pure/Admin/component_cvc5.scala \
+  src/Pure/Admin/component_cygwin.scala \
+  src/Pure/Admin/component_e.scala \
+  src/Pure/Admin/component_easychair.scala \
+  src/Pure/Admin/component_eptcs.scala \
+  src/Pure/Admin/component_foiltex.scala \
+  src/Pure/Admin/component_fonts.scala \
+  src/Pure/Admin/component_jdk.scala \
+  src/Pure/Admin/component_jedit.scala \
+  src/Pure/Admin/component_lipics.scala \
+  src/Pure/Admin/component_llncs.scala \
+  src/Pure/Admin/component_minisat.scala \
+  src/Pure/Admin/component_pdfjs.scala \
+  src/Pure/Admin/component_polyml.scala \
+  src/Pure/Admin/component_postgresql.scala \
+  src/Pure/Admin/component_prismjs.scala \
+  src/Pure/Admin/component_scala.scala \
+  src/Pure/Admin/component_spass.scala \
+  src/Pure/Admin/component_sqlite.scala \
+  src/Pure/Admin/component_vampire.scala \
+  src/Pure/Admin/component_verit.scala \
+  src/Pure/Admin/component_zipperposition.scala \
+  src/Pure/Admin/component_zstd.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
   src/Pure/Admin/isabelle_devel.scala \
   src/Pure/Admin/other_isabelle.scala \
@@ -233,9 +233,9 @@ sources = \
   src/Tools/Graphview/popups.scala \
   src/Tools/Graphview/shapes.scala \
   src/Tools/Graphview/tree_panel.scala \
-  src/Tools/VSCode/src/build_vscode_extension.scala \
-  src/Tools/VSCode/src/build_vscodium.scala \
   src/Tools/VSCode/src/channel.scala \
+  src/Tools/VSCode/src/component_vscode_extension.scala \
+  src/Tools/VSCode/src/component_vscodium.scala \
   src/Tools/VSCode/src/dynamic_output.scala \
   src/Tools/VSCode/src/language_server.scala \
   src/Tools/VSCode/src/lsp.scala \

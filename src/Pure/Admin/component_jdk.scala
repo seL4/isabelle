@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_jdk.scala
+/*  Title:      Pure/Admin/component_jdk.scala
     Author:     Makarius
 
 Build Isabelle jdk component using downloads from Azul.
@@ -11,7 +11,7 @@ import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
 
-object Build_JDK {
+object Component_JDK {
   /* platform information */
 
   sealed case class JDK_Platform(name: String, url_template: String) {
@@ -130,7 +130,7 @@ subdirectories.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_jdk", "build Isabelle jdk component using downloads from Azul",
+    Isabelle_Tool("component_jdk", "build Isabelle jdk component using downloads from Azul",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -139,7 +139,7 @@ subdirectories.
         var zulu_version = default_zulu_version
 
         val getopts = Getopts("""
-Usage: isabelle build_jdk [OPTIONS]
+Usage: isabelle component_jdk [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

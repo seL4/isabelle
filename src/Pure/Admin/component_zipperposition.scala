@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_zipperposition.scala
+/*  Title:      Pure/Admin/component_zipperposition.scala
     Author:     Makarius
 
 Build Isabelle Zipperposition component from OPAM repository.
@@ -7,7 +7,7 @@ Build Isabelle Zipperposition component from OPAM repository.
 package isabelle
 
 
-object Build_Zipperposition {
+object Component_Zipperposition {
   val default_version = "2.1"
 
 
@@ -87,7 +87,7 @@ ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_zipperposition", "build prover component from OPAM repository",
+    Isabelle_Tool("component_zipperposition", "build prover component from OPAM repository",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -95,7 +95,7 @@ ZIPPERPOSITION_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle build_zipperposition [OPTIONS]
+Usage: isabelle component_zipperposition [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

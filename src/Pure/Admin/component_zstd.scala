@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_zstd.scala
+/*  Title:      Pure/Admin/component_zstd.scala
     Author:     Makarius
 
 Build Isabelle zstd-jni component from official download.
@@ -7,7 +7,7 @@ Build Isabelle zstd-jni component from official download.
 package isabelle
 
 
-object Build_Zstd {
+object Component_Zstd {
   /* platforms */
 
   sealed case class Platform_Info(name: String, template: String, exe: Boolean = false) {
@@ -79,7 +79,7 @@ classpath "$ISABELLE_ZSTD_HOME/""" + jar_name + """"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_zstd", "build Isabelle zstd-jni component from official download",
+    Isabelle_Tool("component_zstd", "build Isabelle zstd-jni component from official download",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -87,7 +87,7 @@ classpath "$ISABELLE_ZSTD_HOME/""" + jar_name + """"
         var version = default_version
 
         val getopts = Getopts("""
-Usage: isabelle build_zstd [OPTIONS]
+Usage: isabelle component_zstd [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

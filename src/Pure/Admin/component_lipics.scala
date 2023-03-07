@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_lipics.scala
+/*  Title:      Pure/Admin/component_lipics.scala
     Author:     Makarius
 
 Build Isabelle component for Dagstuhl LIPIcs style.
@@ -13,7 +13,7 @@ See also:
 package isabelle
 
 
-object Build_LIPIcs {
+object Component_LIPIcs {
   /* files for document preparation */
 
   val document_files: List[Path] =
@@ -82,14 +82,14 @@ ISABELLE_LIPICS_HOME="$COMPONENT/authors"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_lipics", "build component for Dagstuhl LIPIcs style",
+    Isabelle_Tool("component_lipics", "build component for Dagstuhl LIPIcs style",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var download_url = default_url
 
         val getopts = Getopts("""
-Usage: isabelle build_lipics [OPTIONS]
+Usage: isabelle component_lipics [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

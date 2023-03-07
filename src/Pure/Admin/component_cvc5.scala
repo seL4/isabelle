@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_cvc5.scala
+/*  Title:      Pure/Admin/component_cvc5.scala
     Author:     Makarius
 
 Build Isabelle component for cvc5. See also:
@@ -10,7 +10,7 @@ Build Isabelle component for cvc5. See also:
 package isabelle
 
 
-object Build_CVC5 {
+object Component_CVC5 {
   /* platform information */
 
   sealed case class CVC5_Platform(platform_name: String, download_name: String) {
@@ -104,14 +104,14 @@ The downloaded files were renamed and made executable.
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_cvc5", "build component for cvc5", Scala_Project.here,
+    Isabelle_Tool("component_cvc5", "build component for cvc5", Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var base_url = default_url
         var version = default_version
 
         val getopts = Getopts("""
-Usage: isabelle build_cvc5 [OPTIONS]
+Usage: isabelle component_cvc5 [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

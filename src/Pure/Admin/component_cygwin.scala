@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_cygwin.scala
+/*  Title:      Pure/Admin/component_cygwin.scala
     Author:     Makarius
 
 Produce pre-canned Cygwin distribution for Isabelle.
@@ -7,7 +7,7 @@ Produce pre-canned Cygwin distribution for Isabelle.
 package isabelle
 
 
-object Build_Cygwin {
+object Component_Cygwin {
   val default_mirror: String = "https://isabelle.sketis.net/cygwin_2022"
 
   val packages: List[String] =
@@ -62,7 +62,7 @@ object Build_Cygwin {
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_cygwin", "produce pre-canned Cygwin distribution for Isabelle",
+    Isabelle_Tool("component_cygwin", "produce pre-canned Cygwin distribution for Isabelle",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -71,7 +71,7 @@ object Build_Cygwin {
 
         val getopts =
           Getopts("""
-Usage: isabelle build_cygwin [OPTIONS]
+Usage: isabelle component_cygwin [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")

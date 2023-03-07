@@ -1,20 +1,23 @@
-/*  Title:      Pure/Admin/build_foiltex.scala
+/*  Title:      Pure/Admin/component_llncs.scala
     Author:     Makarius
 
-Build Isabelle component for FoilTeX.
+Build Isabelle component for Springer LaTeX LNCS style.
 
-See also https://ctan.org/pkg/foiltex
+See also:
+
+  - https://ctan.org/pkg/llncs?lang=en
+  - https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines
 */
 
 package isabelle
 
 
-object Build_Foiltex {
-  /* build FoilTeX component */
+object Component_LLNCS {
+  /* build llncs component */
 
-  val default_url = "https://mirrors.ctan.org/macros/latex/contrib/foiltex.zip"
+  val default_url = "https://mirrors.ctan.org/macros/latex/contrib/llncs.zip"
 
-  def build_foiltex(
+  def build_llncs(
     download_url: String = default_url,
     target_dir: Path = Path.current,
     progress: Progress = new Progress
@@ -27,43 +30,39 @@ object Build_Foiltex {
         Isabelle_System.download_file(download_url, download_file, progress = progress)
         Isabelle_System.extract(download_file, download_dir)
 
-        val foiltex_dir = File.get_dir(download_dir, title = download_url)
+        val llncs_dir = File.get_dir(download_dir, title = download_url)
 
 
         /* component */
 
-        val README = Path.explode("README")
+        val README_md = Path.explode("README.md")
         val version = {
-          val Version = """^.*Instructions for FoilTeX Version\s*(.*)$""".r
-          split_lines(File.read(foiltex_dir + README))
+          val Version = """^_.* v(.*)_$""".r
+          split_lines(File.read(llncs_dir + README_md))
             .collectFirst({ case Version(v) => v })
-            .getOrElse(error("Failed to detect version in " + README))
+            .getOrElse(error("Failed to detect version in " + README_md))
         }
 
-        val component = "foiltex-" + version
+        val component = "llncs-" + version
         val component_dir =
           Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
         Isabelle_System.extract(download_file, component_dir.path, strip = true)
 
-        Isabelle_System.bash("pdflatex foiltex.ins", cwd = component_dir.path.file).check
-        (component_dir.path + Path.basic("foiltex.log")).file.delete()
-
 
         /* settings */
 
         component_dir.write_settings("""
-ISABELLE_FOILTEX_HOME="$COMPONENT"
+ISABELLE_LLNCS_HOME="$COMPONENT"
 """)
 
 
         /* README */
 
-        Isabelle_System.move_file(component_dir.README,
-          component_dir.path + Path.basic("README.flt"))
+        File.change(component_dir.path + README_md)(_.replace("&nbsp;", "\u00a0"))
 
         File.write(component_dir.README,
-          """This is FoilTeX from
+          """This is the Springer LaTeX LNCS style for authors from
 """ + download_url + """
 
 
@@ -77,20 +76,20 @@ ISABELLE_FOILTEX_HOME="$COMPONENT"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_foiltex", "build component for FoilTeX",
+    Isabelle_Tool("component_llncs", "build component for Springer LaTeX LNCS style",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
         var download_url = default_url
 
         val getopts = Getopts("""
-Usage: isabelle build_foiltex [OPTIONS]
+Usage: isabelle component_llncs [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
     -U URL       download URL (default: """" + default_url + """")
 
-  Build component for FoilTeX: slides in LaTeX.
+  Build component for Springer LaTeX LNCS style.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => download_url = arg))
@@ -100,6 +99,6 @@ Usage: isabelle build_foiltex [OPTIONS]
 
         val progress = new Console_Progress()
 
-        build_foiltex(download_url = download_url, target_dir = target_dir, progress = progress)
+        build_llncs(download_url = download_url, target_dir = target_dir, progress = progress)
       })
 }

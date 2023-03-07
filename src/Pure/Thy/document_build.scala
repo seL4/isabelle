@@ -472,7 +472,7 @@ object Document_Build {
       context: Context, dir: Path, doc: Document_Variant, verbose: Boolean
     ): Directory = {
       val doc_dir = context.make_directory(dir, doc)
-      Build_LIPIcs.document_files.foreach(Latex.copy_file(_, doc_dir))
+      Component_LIPIcs.document_files.foreach(Latex.copy_file(_, doc_dir))
 
       val latex_output = new Latex.Output(lipics_options(context.options))
       context.prepare_directory(dir, doc, latex_output, verbose)
