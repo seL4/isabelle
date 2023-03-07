@@ -64,7 +64,10 @@ object Build {
     engines.find(_.name == name).getOrElse(error("Bad build engine " + quote(name)))
 
 
-  /* build */
+  /* options */
+
+  def hostname(options: Options): String =
+    Isabelle_System.hostname(options.string("build_hostname"))
 
   def build_init(options: Options): Sessions.Store = {
     val build_options =
@@ -78,6 +81,9 @@ object Build {
 
     store
   }
+
+
+  /* build */
 
   def build(
     options: Options,
@@ -158,9 +164,9 @@ object Build {
 
     val build_context =
       Build_Process.Context(store, build_deps, progress = progress,
-        hostname = Isabelle_System.hostname(build_options.string("build_hostname")),
-        build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        fresh_build = fresh_build, no_build = no_build, session_setup = session_setup)
+        hostname = hostname(build_options), build_heap = build_heap,
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
+        no_build = no_build, session_setup = session_setup)
 
     store.prepare_output()
     build_context.prepare_database()
@@ -322,10 +328,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val start_date = Date.now()
 
-      val hostname = Isabelle_System.hostname(options.string("build_hostname"))
       progress.echo(
         "Started at " + Build_Log.print_date(start_date) +
-          " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + hostname +")",
+          " (" + Isabelle_System.getenv("ML_IDENTIFIER") + " on " + hostname(options) +")",
         verbose = true)
       progress.echo(Build_Log.Settings.show() + "\n", verbose = true)
 
