@@ -102,6 +102,9 @@ object Build_Process {
     val session_setup: (String, Session) => Unit,
     val build_uuid: String
   ) {
+    override def toString: String =
+      "Build_Process.Context(build_uuid = " + quote(build_uuid) + ")"
+
     def build_options: Options = store.options
 
     def sessions_structure: Sessions.Structure = build_deps.sessions_structure
