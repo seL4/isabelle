@@ -92,7 +92,7 @@ subsection \<open>Example of proving termination using a multiset ordering\<clos
 
 text \<open>This termination proof uses the argument from
 Nachum Dershowitz and Zohar Manna. Proving termination with multiset orderings.
-Communications of the ACM 22 (8) 1979, 465–476.\<close>
+Communications of the ACM 22 (8) 1979, 465--476.\<close>
 
 text\<open>Setting up the termination proof. Note that Dershowitz had @{term z} as a global variable.
 The top two stack elements are treated differently from the rest.\<close>
