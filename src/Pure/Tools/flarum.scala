@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/flarum.scala
+/*  Title:      Pure/Tools/flarum.scala
     Author:     Makarius
 
 Support for Flarum forum server: https://flarum.org

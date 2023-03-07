@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/component_csdp.scala
+/*  Title:      Pure/Admin/component_verit.scala
     Author:     Makarius
 
 Build Isabelle veriT component from official download.

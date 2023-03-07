@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit_plugin.scala
+/*  Title:      Tools/jEdit/src/jedit_plugins.scala
     Author:     Makarius
 
 Isabelle/jEdit plugins via dynamic Isabelle/Scala/Java modules.

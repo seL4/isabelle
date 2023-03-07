@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/byte_message.scala
+/*  Title:      Pure/PIDE/byte_message.scala
     Author:     Makarius
 
 Byte-oriented messages.

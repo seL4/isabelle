@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/xz.scala
+/*  Title:      Pure/General/zstd.scala
     Author:     Makarius
 
 Support for Zstd data compression.

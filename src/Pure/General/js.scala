@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/json.scala
+/*  Title:      Pure/General/js.scala
     Author:     Makarius
 
 Support for JavaScript syntax.

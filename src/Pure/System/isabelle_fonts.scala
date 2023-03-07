@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/isabelle_system.scala
+/*  Title:      Pure/System/isabelle_fonts.scala
     Author:     Makarius
 
 Fonts from the Isabelle system environment, notably the "Isabelle DejaVu"

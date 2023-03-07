@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/ci_profile.scala
+/*  Title:      Pure/Admin/ci_build.scala
     Author:     Lars Hupel and Fabian Huch, TU Munich
 
 Build profile for continuous integration services.

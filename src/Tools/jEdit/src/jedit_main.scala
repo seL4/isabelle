@@ -1,4 +1,4 @@
-/*  Title:      src/Tools/jEdit/src/jedit_main.scala
+/*  Title:      Tools/jEdit/src/jedit_main.scala
     Author:     Makarius
 
 Main application entry point for Isabelle/jEdit.
