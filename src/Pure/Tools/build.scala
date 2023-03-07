@@ -2,13 +2,18 @@
     Author:     Makarius
     Options:    :folding=explicit:
 
-Build and manage Isabelle sessions.
+Command-line tools to build and manage Isabelle sessions.
 */
 
 package isabelle
 
+import scala.collection.mutable
+import scala.util.matching.Regex
+
 
 object Build {
+  /** "isabelle build" **/
+
   /* results */
 
   object Results {
@@ -203,9 +208,9 @@ object Build {
   }
 
 
-  /* Isabelle tool wrapper */
+  /* command-line wrapper */
 
-  val isabelle_tool = Isabelle_Tool("build", "build and manage Isabelle sessions",
+  val isabelle_tool1 = Isabelle_Tool("build", "build and manage Isabelle sessions",
     Scala_Project.here,
     { args =>
       val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
@@ -357,4 +362,229 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       }
     if (strict && rc != Process_Result.RC.ok) error("Failed to build Isabelle/" + logic) else rc
   }
+
+
+
+  /** "isabelle log" **/
+
+  /* theory markup/messages from session database */
+
+  def read_theory(
+    theory_context: Export.Theory_Context,
+    unicode_symbols: Boolean = false
+  ): Option[Document.Snapshot] = {
+    def decode_bytes(bytes: Bytes): String =
+      Symbol.output(unicode_symbols, UTF8.decode_permissive(bytes))
+
+    def read(name: String): Export.Entry = theory_context(name, permissive = true)
+
+    def read_xml(name: String): XML.Body =
+      YXML.parse_body(decode_bytes(read(name).bytes), cache = theory_context.cache)
+
+    def read_source_file(name: String): Sessions.Source_File =
+      theory_context.session_context.source_file(name)
+
+    for {
+      id <- theory_context.document_id()
+      (thy_file, blobs_files) <- theory_context.files(permissive = true)
+    }
+    yield {
+      val master_dir =
+        Path.explode(Url.strip_base_name(thy_file).getOrElse(
+          error("Cannot determine theory master directory: " + quote(thy_file))))
+
+      val blobs =
+        blobs_files.map { name =>
+          val path = Path.explode(name)
+          val src_path = File.relative_path(master_dir, path).getOrElse(path)
+
+          val file = read_source_file(name)
+          val bytes = file.bytes
+          val text = decode_bytes(bytes)
+          val chunk = Symbol.Text_Chunk(text)
+
+          Command.Blob(Document.Node.Name(name), src_path, Some((file.digest, chunk))) ->
+            Document.Blobs.Item(bytes, text, chunk, changed = false)
+        }
+
+      val thy_source = decode_bytes(read_source_file(thy_file).bytes)
+      val thy_xml = read_xml(Export.MARKUP)
+      val blobs_xml =
+        for (i <- (1 to blobs.length).toList)
+          yield read_xml(Export.MARKUP + i)
+
+      val markups_index = Command.Markup_Index.make(blobs.map(_._1))
+      val markups =
+        Command.Markups.make(
+          for ((index, xml) <- markups_index.zip(thy_xml :: blobs_xml))
+          yield index -> Markup_Tree.from_XML(xml))
+
+      val results =
+        Command.Results.make(
+          for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
+            yield i -> elem)
+
+      val command =
+        Command.unparsed(thy_source, theory = true, id = id,
+          node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
+          blobs_info = Command.Blobs_Info.make(blobs),
+          markups = markups, results = results)
+
+      val doc_blobs = Document.Blobs.make(blobs)
+
+      Document.State.init.snippet(command, doc_blobs)
+    }
+  }
+
+
+  /* print messages */
+
+  def print_log(
+    options: Options,
+    sessions: List[String],
+    theories: List[String] = Nil,
+    message_head: List[Regex] = Nil,
+    message_body: List[Regex] = Nil,
+    progress: Progress = new Progress,
+    margin: Double = Pretty.default_margin,
+    breakgain: Double = Pretty.default_breakgain,
+    metric: Pretty.Metric = Symbol.Metric,
+    unicode_symbols: Boolean = false
+  ): Unit = {
+    val store = Sessions.store(options)
+    val session = new Session(options, Resources.bootstrap)
+
+    def check(filter: List[Regex], make_string: => String): Boolean =
+      filter.isEmpty || {
+        val s = Output.clean_yxml(make_string)
+        filter.forall(r => r.findFirstIn(Output.clean_yxml(s)).nonEmpty)
+      }
+
+    def print(session_name: String): Unit = {
+      using(Export.open_session_context0(store, session_name)) { session_context =>
+        val result =
+          for {
+            db <- session_context.session_db()
+            theories = store.read_theories(db, session_name)
+            errors = store.read_errors(db, session_name)
+            info <- store.read_build(db, session_name)
+          } yield (theories, errors, info.return_code)
+        result match {
+          case None => store.error_database(session_name)
+          case Some((used_theories, errors, rc)) =>
+            theories.filterNot(used_theories.toSet) match {
+              case Nil =>
+              case bad => error("Unknown theories " + commas_quote(bad))
+            }
+            val print_theories =
+              if (theories.isEmpty) used_theories else used_theories.filter(theories.toSet)
+
+            for (thy <- print_theories) {
+              val thy_heading = "\nTheory " + quote(thy) + " (in " + session_name + ")" + ":"
+
+              Build_Job.read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
+                case None => progress.echo(thy_heading + " MISSING")
+                case Some(snapshot) =>
+                  val rendering = new Rendering(snapshot, options, session)
+                  val messages =
+                    rendering.text_messages(Text.Range.full)
+                      .filter(message => progress.verbose || Protocol.is_exported(message.info))
+                  if (messages.nonEmpty) {
+                    val line_document = Line.Document(snapshot.node.source)
+                    val buffer = new mutable.ListBuffer[String]
+                    for (Text.Info(range, elem) <- messages) {
+                      val line = line_document.position(range.start).line1
+                      val pos = Position.Line_File(line, snapshot.node_name.node)
+                      def message_text: String =
+                        Protocol.message_text(elem, heading = true, pos = pos,
+                          margin = margin, breakgain = breakgain, metric = metric)
+                      val ok =
+                        check(message_head, Protocol.message_heading(elem, pos)) &&
+                        check(message_body, XML.content(Pretty.unformatted(List(elem))))
+                      if (ok) buffer += message_text
+                    }
+                    if (buffer.nonEmpty) {
+                      progress.echo(thy_heading)
+                      buffer.foreach(progress.echo(_))
+                    }
+                  }
+              }
+            }
+
+            if (errors.nonEmpty) {
+              val msg = Symbol.output(unicode_symbols, cat_lines(errors))
+              progress.echo("\nBuild errors:\n" + Output.error_message_text(msg))
+            }
+            if (rc != Process_Result.RC.ok) {
+              progress.echo("\n" + Process_Result.RC.print_long(rc))
+            }
+        }
+      }
+    }
+
+    val errors = new mutable.ListBuffer[String]
+    for (session_name <- sessions) {
+      Exn.interruptible_capture(print(session_name)) match {
+        case Exn.Res(_) =>
+        case Exn.Exn(exn) => errors += Exn.message(exn)
+      }
+    }
+    if (errors.nonEmpty) error(cat_lines(errors.toList))
+  }
+
+
+  /* command-line wrapper */
+
+  val isabelle_tool2 = Isabelle_Tool("log", "print messages from build database",
+    Scala_Project.here,
+    { args =>
+      /* arguments */
+
+      var message_head = List.empty[Regex]
+      var message_body = List.empty[Regex]
+      var unicode_symbols = false
+      var theories: List[String] = Nil
+      var margin = Pretty.default_margin
+      var options = Options.init()
+      var verbose = false
+
+      val getopts = Getopts("""
+Usage: isabelle log [OPTIONS] [SESSIONS ...]
+
+  Options are:
+    -H REGEX     filter messages by matching against head
+    -M REGEX     filter messages by matching against body
+    -T NAME      restrict to given theories (multiple options possible)
+    -U           output Unicode symbols
+    -m MARGIN    margin for pretty printing (default: """ + margin + """)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           print all messages, including information etc.
+
+  Print messages from the build database of the given sessions, without any
+  checks against current sources nor session structure: results from old
+  sessions or failed builds can be printed as well.
+
+  Multiple options -H and -M are conjunctive: all given patterns need to
+  match. Patterns match any substring, but ^ or $ may be used to match the
+  start or end explicitly.
+""",
+        "H:" -> (arg => message_head = message_head ::: List(arg.r)),
+        "M:" -> (arg => message_body = message_body ::: List(arg.r)),
+        "T:" -> (arg => theories = theories ::: List(arg)),
+        "U" -> (_ => unicode_symbols = true),
+        "m:" -> (arg => margin = Value.Double.parse(arg)),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true))
+
+      val sessions = getopts(args)
+
+      val progress = new Console_Progress(verbose = verbose)
+
+      if (sessions.isEmpty) progress.echo_warning("No sessions to print")
+      else {
+        print_log(options, sessions, theories = theories, message_head = message_head,
+          message_body = message_body, margin = margin, progress = progress,
+          unicode_symbols = unicode_symbols)
+      }
+    })
 }
