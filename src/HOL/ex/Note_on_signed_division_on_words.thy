@@ -6,21 +6,21 @@ unbundle bit_operations_syntax
 
 context semiring_bit_operations
 begin
-	
+
 lemma take_bit_Suc_from_most:
   \<open>take_bit (Suc n) a = 2 ^ n * of_bool (bit a n) OR take_bit n a\<close>
   by (rule bit_eqI) (auto simp add: bit_simps less_Suc_eq)
-	
+
 end
-	
+
 context ring_bit_operations
 begin
-	
+
 lemma signed_take_bit_exp_eq_int:
   \<open>signed_take_bit m (2 ^ n) =
     (if n < m then 2 ^ n else if n = m then - (2 ^ n) else 0)\<close>
   by (rule bit_eqI) (auto simp add: bit_simps simp flip: mask_eq_exp_minus_1)
-	
+
 end
 
 lift_definition signed_divide_word :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>  (infixl \<open>wdiv\<close> 70)
@@ -46,5 +46,5 @@ proof (transfer fixing: n)
       by (auto simp add: signed_take_bit_exp_eq_int signed_take_bit_take_bit take_bit_signed_take_bit simp flip: power_Suc signed_take_bit_eq_rmod)
   qed
 qed
-  
+
 end
