@@ -168,7 +168,7 @@ text \<open>
   used instead; its default is \<^path>\<open>$ISABELLE_HOME/browser_info\<close>.
 
   \<^descr>[@{setting_def ISABELLE_HEAPS}] is the directory where session heap images,
-  log files, and build databases are stored; its default is
+  log files, and session build databases are stored; its default is
   \<^path>\<open>$ISABELLE_HOME_USER/heaps\<close>. If @{system_option system_heaps} is
   \<^verbatim>\<open>true\<close>, @{setting_def ISABELLE_HEAPS_SYSTEM} is used instead; its default
   is \<^path>\<open>$ISABELLE_HOME/heaps\<close>. See also \secref{sec:tool-build}.

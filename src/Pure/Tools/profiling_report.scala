@@ -57,7 +57,7 @@ Usage: isabelle profiling_report [OPTIONS] SESSION
     -c           clean function names
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  Report Poly/ML profiling from the build database of the given session
+  Report Poly/ML profiling from the sebuild database of the given session
   (without up-to-date check of sources).
 """,
           "T:" -> (arg => theories = theories ::: List(arg)),

@@ -22,7 +22,7 @@ text \<open>
   with the PDF into the given directory (relative to the session directory).
 
   Alternatively, @{tool_ref document} may be used to turn the generated
-  {\LaTeX} sources of a session (exports from its build database) into PDF.
+  {\LaTeX} sources of a session (exports from its session build database) into PDF.
 \<close>
 
 

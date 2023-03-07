@@ -258,7 +258,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -j INT       maximum number of parallel jobs (default 1)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
-    -n           no build -- take existing build databases
+    -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -535,7 +535,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   /* command-line wrapper */
 
-  val isabelle_tool2 = Isabelle_Tool("log", "print messages from build database",
+  val isabelle_tool2 = Isabelle_Tool("log", "print messages from session build database",
     Scala_Project.here,
     { args =>
       /* arguments */
@@ -560,9 +560,9 @@ Usage: isabelle log [OPTIONS] [SESSIONS ...]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           print all messages, including information etc.
 
-  Print messages from the build database of the given sessions, without any
-  checks against current sources nor session structure: results from old
-  sessions or failed builds can be printed as well.
+  Print messages from the session build database of the given sessions,
+  without any checks against current sources nor session structure: results
+  from old sessions or failed builds can be printed as well.
 
   Multiple options -H and -M are conjunctive: all given patterns need to
   match. Patterns match any substring, but ^ or $ may be used to match the

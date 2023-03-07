@@ -171,7 +171,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -j INT       maximum number of parallel jobs (default 1)
     -l NAMES     comma-separated list of base logics, to remain unchanged
                  (default: """ + quote(default_base_logic) + """)
-    -n           no build -- take existing build databases
+    -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option for selected sessions
     -v           verbose

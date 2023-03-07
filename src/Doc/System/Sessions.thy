@@ -375,7 +375,7 @@ text \<open>
     -j INT       maximum number of parallel jobs (default 1)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
-    -n           no build -- take existing build databases
+    -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -563,7 +563,7 @@ text \<open>
 \<close>
 
 
-section \<open>Print messages from build database \label{sec:tool-log}\<close>
+section \<open>Print messages from session build database \label{sec:tool-log}\<close>
 
 text \<open>
   The @{tool_def "log"} tool prints prover messages from the build
@@ -581,9 +581,9 @@ text \<open>
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           print all messages, including information etc.
 
-  Print messages from the build database of the given sessions, without any
-  checks against current sources nor session structure: results from old
-  sessions or failed builds can be printed as well.
+  Print messages from the session build database of the given sessions,
+  without any checks against current sources nor session structure: results
+  from old sessions or failed builds can be printed as well.
 
   Multiple options -H and -M are conjunctive: all given patterns need to
   match. Patterns match any substring, but ^ or $ may be used to match the
@@ -791,7 +791,7 @@ text \<open>
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -l NAME      additional base logic
-    -n           no build -- take existing build databases
+    -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option for selected sessions
     -v           verbose
