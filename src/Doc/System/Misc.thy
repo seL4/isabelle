@@ -31,11 +31,11 @@ text \<open>
   as Docker images in the first place.
 
   \<^medskip>
-  The @{tool_def build_docker} tool builds docker images from a standard
+  The @{tool_def docker_build} tool builds docker images from a standard
   Isabelle application archive for Linux:
 
   @{verbatim [display]
-\<open>Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
+\<open>Usage: isabelle docker_build [OPTIONS] APP_ARCHIVE
 
   Options are:
     -B NAME      base image (default "ubuntu:22.04")
@@ -79,7 +79,7 @@ text \<open>
   of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
 
   Option \<^verbatim>\<open>-P\<close> refers to high-level package collections: \<^verbatim>\<open>X11\<close> or \<^verbatim>\<open>latex\<close> as
-  provided by \<^verbatim>\<open>isabelle build_docker\<close> (assuming Ubuntu 20.04 LTS). This
+  provided by \<^verbatim>\<open>isabelle docker_build\<close> (assuming Ubuntu 20.04 LTS). This
   imposes extra weight on the resulting Docker images. Note that \<^verbatim>\<open>X11\<close> will
   only provide remote X11 support according to the modest GUI quality
   standards of the late 1990-ies.
@@ -105,14 +105,14 @@ subsubsection \<open>Examples\<close>
 text \<open>
   Produce a Dockerfile (without image) from a remote Isabelle distribution:
   @{verbatim [display]
-\<open>  isabelle build_docker -E -n -o Dockerfile
+\<open>  isabelle docker_build -E -n -o Dockerfile
     https://isabelle.in.tum.de/website-Isabelle2022/dist/Isabelle2022_linux.tar.gz\<close>}
 
   Build a standard Isabelle Docker image from a local Isabelle distribution,
   with \<^verbatim>\<open>bin/isabelle\<close> as executable entry point:
 
   @{verbatim [display]
-\<open>  isabelle build_docker -E -t test/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz\<close>}
+\<open>  isabelle docker_build -E -t test/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz\<close>}
 
   Invoke the raw Isabelle/ML process within that image:
   @{verbatim [display]

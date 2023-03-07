@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_docker.scala
+/*  Title:      Pure/Tools/docker_build.scala
     Author:     Makarius
 
 Build docker image from Isabelle application bundle for Linux.
@@ -7,7 +7,7 @@ Build docker image from Isabelle application bundle for Linux.
 package isabelle
 
 
-object Build_Docker {
+object Docker_Build {
   private val default_base = "ubuntu:22.04"
   private val default_work_dir = Path.current
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -30,7 +30,7 @@ object Build_Docker {
   def all_packages: List[String] =
     packages ::: package_collections.valuesIterator.flatten.toList
 
-  def build_docker(progress: Progress,
+  def docker_build(progress: Progress,
     app_archive: String,
     base: String = default_base,
     work_dir: Path = default_work_dir,
@@ -114,7 +114,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_docker", "build Isabelle docker image",
+    Isabelle_Tool("docker_build", "build Isabelle docker image",
       Scala_Project.here,
       { args =>
         var base = default_base
@@ -128,7 +128,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
         var tag = ""
 
         val getopts = Getopts("""
-Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
+Usage: isabelle docker_build [OPTIONS] APP_ARCHIVE
 
   Options are:
     -B NAME      base image (default """ + quote(default_base) + """)
@@ -171,7 +171,7 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
         val progress = new Console_Progress(verbose = verbose)
 
-        build_docker(progress, app_archive, base = base, work_dir = work_dir,
+        docker_build(progress, app_archive, base = base, work_dir = work_dir,
           logic = logic, no_build = no_build, entrypoint = entrypoint, output = output,
           more_packages = more_packages, tag = tag)
       })
