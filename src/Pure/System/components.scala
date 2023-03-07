@@ -281,7 +281,7 @@ object Components {
 
   /** build and publish components **/
 
-  def build_components(
+  def components_build(
     options: Options,
     components: List[Path],
     progress: Progress = new Progress,
@@ -401,7 +401,7 @@ object Components {
     List("isabelle_components_server", "isabelle_components_dir", "isabelle_components_contrib_dir")
 
   val isabelle_tool =
-    Isabelle_Tool("build_components", "build and publish Isabelle components",
+    Isabelle_Tool("components_build", "build and publish Isabelle components",
       Scala_Project.here,
       { args =>
         var publish = false
@@ -413,7 +413,7 @@ object Components {
           cat_lines(relevant_options.flatMap(options.get).map(_.print))
 
         val getopts = Getopts("""
-Usage: isabelle build_components [OPTIONS] ARCHIVES... DIRS...
+Usage: isabelle components_build [OPTIONS] ARCHIVES... DIRS...
 
   Options are:
     -P           publish on SSH server (see options below)
@@ -435,7 +435,7 @@ Usage: isabelle build_components [OPTIONS] ARCHIVES... DIRS...
 
         val progress = new Console_Progress
 
-        build_components(options, more_args.map(Path.explode), progress = progress,
+        components_build(options, more_args.map(Path.explode), progress = progress,
           publish = publish, force = force, update_components_sha1 = update_components_sha1)
       })
 }
