@@ -269,7 +269,10 @@ object Sessions {
 
   /* source dependencies */
 
-  sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base]) {
+  final class Deps private[Sessions](
+    val sessions_structure: Structure,
+    val session_bases: Map[String, Base]
+  ) {
     def background(session: String): Background =
       Background(base = apply(session), sessions_structure = sessions_structure, errors = errors)
 
@@ -542,7 +545,7 @@ object Sessions {
           }
       }
 
-    Deps(sessions_structure, session_bases)
+    new Deps(sessions_structure, session_bases)
   }
 
 
