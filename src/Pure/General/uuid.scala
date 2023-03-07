@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/uuid.scala
     Author:     Makarius
 
-Universally unique identifiers.
+Universally Unique Identifiers.
 */
 
 package isabelle
