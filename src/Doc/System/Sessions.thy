@@ -566,7 +566,7 @@ text \<open>
 section \<open>Print messages from session build database \label{sec:tool-log}\<close>
 
 text \<open>
-  The @{tool_def "log"} tool prints prover messages from the build
+  The @{tool_def "build_log"} tool prints prover messages from the build
   database of the given session. Its command-line usage is:
 
   @{verbatim [display]
