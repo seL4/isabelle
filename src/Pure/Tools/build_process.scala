@@ -29,7 +29,8 @@ object Build_Process {
       fresh_build: Boolean = false,
       no_build: Boolean = false,
       session_setup: (String, Session) => Unit = (_, _) => (),
-      build_uuid: String = UUID.random().toString
+      build_uuid: String = UUID.random().toString,
+      master: Boolean = false,
     ): Context = {
       val sessions_structure = build_deps.sessions_structure
       val build_graph = sessions_structure.build_graph
@@ -83,7 +84,7 @@ object Build_Process {
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       new Context(store, build_deps, sessions, ordering, ml_platform, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, session_setup, build_uuid = build_uuid)
+        no_build = no_build, session_setup, build_uuid = build_uuid, master = master)
     }
   }
 
@@ -100,7 +101,8 @@ object Build_Process {
     val fresh_build: Boolean,
     val no_build: Boolean,
     val session_setup: (String, Session) => Unit,
-    val build_uuid: String
+    val build_uuid: String,
+    val master: Boolean
   ) {
     override def toString: String =
       "Build_Process.Context(build_uuid = " + quote(build_uuid) + ")"
@@ -892,7 +894,7 @@ extends AutoCloseable {
 
   /* run */
 
-  def run(master: Boolean = false): Map[String, Process_Result] = {
+  def run(): Map[String, Process_Result] = {
     def finished(): Boolean = synchronized_database { _state.finished }
 
     def sleep(): Unit =
@@ -917,7 +919,7 @@ extends AutoCloseable {
       Map.empty[String, Process_Result]
     }
     else {
-      if (master) start_build()
+      if (build_context.master) start_build()
 
       val worker = build_context.worker
       if (worker) start_worker() else progress.echo("Waiting for external workers ...")
@@ -945,7 +947,7 @@ extends AutoCloseable {
       }
       finally {
         if (worker) stop_worker()
-        if (master) stop_build()
+        if (build_context.master) stop_build()
       }
 
       synchronized_database {
