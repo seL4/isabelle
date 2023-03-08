@@ -23,10 +23,13 @@ fun rlen :: "'a tree \<Rightarrow> nat" where
 lemma rlen_le_size: "rlen t \<le> size t"
 by(induction t) auto
 
-function (sequential) rot_to_list :: "'a tree \<Rightarrow> 'a tree" where
-"rot_to_list (Node (Node A a B) b C) = rot_to_list (Node A a (Node B b C))" |
-"rot_to_list (Node Leaf a A) = Node Leaf a (rot_to_list A)" |
-"rot_to_list Leaf = Leaf"
+
+subsection \<open>Without positions\<close>
+
+function (sequential) list_of :: "'a tree \<Rightarrow> 'a tree" where
+"list_of (Node (Node A a B) b C) = list_of (Node A a (Node B b C))" |
+"list_of (Node Leaf a A) = Node Leaf a (list_of A)" |
+"list_of Leaf = Leaf"
 by pat_completeness auto
 
 termination
@@ -41,39 +44,14 @@ proof
   fix a A show "(A, Node Leaf a A) \<in> ?R" using rlen_le_size[of A] by(simp)
 qed
 
-lemma is_list_rot: "is_list(rot_to_list t)"
-by (induction t rule: rot_to_list.induct) auto
+lemma is_list_rot: "is_list(list_of t)"
+by (induction t rule: list_of.induct) auto
 
-lemma inorder_rot: "inorder(rot_to_list t) = inorder t"
-by (induction t rule: rot_to_list.induct) auto
+lemma inorder_rot: "inorder(list_of t) = inorder t"
+by (induction t rule: list_of.induct) auto
 
-function (sequential) n_rot_to_list :: "'a tree \<Rightarrow> nat" where
-"n_rot_to_list (Node (Node A a B) b C) = n_rot_to_list (Node A a (Node B b C)) + 1" |
-"n_rot_to_list (Node Leaf a A) = n_rot_to_list A" |
-"n_rot_to_list Leaf = 0"
-by pat_completeness auto
 
-termination
-proof
-  let ?R = "measure(\<lambda>t. 2*size t - rlen t)"
-  show "wf ?R" by (auto simp add: mlex_prod_def)
-
-  fix A a B b C
-  show "(Node A a (Node B b C), Node (Node A a B) b C) \<in> ?R"
-    using rlen_le_size[of C] by(simp)
-
-  fix a A show "(A, Node Leaf a A) \<in> ?R" using rlen_le_size[of A] by(simp)
-qed
-
-text \<open>Closed formula for the exact number of rotations needed:\<close>
-
-lemma n_rot_to_list: "n_rot_to_list t = size t - rlen t"
-proof(induction t rule: n_rot_to_list.induct)
-  case (1 A a B b C)
-  then show ?case using rlen_le_size[of C] by simp
-qed auto
-
-text \<open>Now with explicit positions:\<close>
+subsection \<open>With positions\<close>
 
 datatype dir = L | R
 
