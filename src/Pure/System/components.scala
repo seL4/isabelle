@@ -230,7 +230,7 @@ object Components {
       })
 
   def write_components_sha1(entries: List[SHA1_Entry]): Unit =
-    File.write(components_sha1, entries.sortBy(_.name).mkString("", "\n", "\n"))
+    File.write(components_sha1, entries.sortBy(_.name).mkString)
 
 
   /** manage user components **/
