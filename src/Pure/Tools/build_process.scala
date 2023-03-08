@@ -141,6 +141,8 @@ object Build_Process {
     def store_heap(name: String): Boolean =
       build_heap || Sessions.is_pure(name) ||
       sessions.valuesIterator.exists(_.ancestors.contains(name))
+
+    def worker: Boolean = max_jobs > 1
   }
 
 
@@ -796,7 +798,7 @@ extends AutoCloseable {
   }
 
   protected def next_job(state: Build_Process.State): Option[String] =
-    if (state.running.size < (build_context.max_jobs max 1)) {
+    if (progress.stopped || state.running.size < build_context.max_jobs) {
       state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
         .sortBy(_.name)(build_context.ordering)
         .headOption.map(_.name)
@@ -835,7 +837,7 @@ extends AutoCloseable {
         remove_pending(session_name).
         make_result(session_name, Process_Result.error, output_shasum)
     }
-    else if (!ancestor_results.forall(_.ok) || progress.stopped) {
+    else if (progress.stopped || !ancestor_results.forall(_.ok)) {
       progress.echo(session_name + " CANCELLED")
       state
         .remove_pending(session_name)
@@ -916,7 +918,10 @@ extends AutoCloseable {
     }
     else {
       if (master) start_build()
-      start_worker()
+
+      val worker = build_context.worker
+      if (worker) start_worker() else progress.echo("Waiting for external workers ...")
+
       try {
         while (!finished()) {
           if (progress.stopped) synchronized_database { _state.stop_running() }
@@ -939,7 +944,7 @@ extends AutoCloseable {
         }
       }
       finally {
-        stop_worker()
+        if (worker) stop_worker()
         if (master) stop_build()
       }
 
