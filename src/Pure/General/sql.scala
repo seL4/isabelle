@@ -369,6 +369,8 @@ object SQL {
       finally { connection.setAutoCommit(auto_commit) }
     }
 
+    def lock_tables(tables: List[Table]): Unit = {}  // PostgreSQL only
+
 
     /* statements and results */
 
@@ -548,6 +550,14 @@ object PostgreSQL {
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd(sql = if_proper(sql, sql + " ") + "ON CONFLICT DO NOTHING")
+
+
+    /* explicit locking: only applicable to PostgreSQL within transaction context */
+    // see https://www.postgresql.org/docs/current/sql-lock.html
+    // see https://www.postgresql.org/docs/current/explicit-locking.html
+
+    override def lock_tables(tables: List[SQL.Table]): Unit =
+      execute_statement("LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE")
 
 
     /* notifications: IPC via database server */
