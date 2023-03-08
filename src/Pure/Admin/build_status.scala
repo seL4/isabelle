@@ -24,7 +24,7 @@ object Build_Status {
     history: Int = 0,
     afp: Boolean = false,
     bulky: Boolean = false,
-    sql: String
+    sql: String = ""
   ) {
     def days(options: Options): Int = options.int("build_log_history") max history
 
@@ -37,15 +37,15 @@ object Build_Status {
       only_sessions: Set[String]
     ): PostgreSQL.Source = {
       Build_Log.Data.universal_table.select(columns, distinct = true, sql =
-        "WHERE " +
-          Build_Log.Data.pull_date(afp) + " > " + Build_Log.Data.recent_time(days(options)) +
-          " AND " +
-          Build_Log.Data.status.member(
-            List(
-              Build_Log.Session_Status.finished.toString,
-              Build_Log.Session_Status.failed.toString)) +
-          if_proper(only_sessions, " AND " + Build_Log.Data.session_name.member(only_sessions)) +
-          " AND " + SQL.enclose(sql))
+        SQL.where(
+          SQL.and(
+            Build_Log.Data.pull_date(afp).ident + " > " + Build_Log.Data.recent_time(days(options)),
+            Build_Log.Data.status.member(
+              List(
+                Build_Log.Session_Status.finished.toString,
+                Build_Log.Session_Status.failed.toString)),
+            if_proper(only_sessions, Build_Log.Data.session_name.member(only_sessions)),
+            if_proper(sql, SQL.enclose(sql)))))
     }
   }
 
