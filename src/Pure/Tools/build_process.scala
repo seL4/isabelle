@@ -164,7 +164,7 @@ object Build_Process {
     build_uuid: String,
     hostname: String,
     java_pid: Long,
-    java_start: Option[Date],
+    java_start: Date,
     start: Date,
     stamp: Date,
     stop: Option[Date],
@@ -480,7 +480,7 @@ object Build_Process {
               build_uuid = res.string(Workers.build_uuid),
               hostname = res.string(Workers.hostname),
               java_pid = res.long(Workers.java_pid),
-              java_start = res.get_date(Workers.java_start),
+              java_start = res.date(Workers.java_start),
               start = res.date(Workers.start),
               stamp = res.date(Workers.stamp),
               stop = res.get_date(Workers.stop),
@@ -500,7 +500,7 @@ object Build_Process {
       build_uuid: String,
       hostname: String,
       java_pid: Long,
-      java_start: Option[Date]
+      java_start: Date
     ): Long = {
       def err(msg: String): Nothing =
         error("Cannot start worker " + worker_uuid + if_proper(msg, "\n" + msg))
@@ -937,8 +937,7 @@ extends AutoCloseable {
     for (db <- _database) {
       val java = ProcessHandle.current()
       val java_pid = java.pid
-      val java_start0 = java.info.startInstant
-      val java_start = if (java_start0.isPresent) Some(Date.instant(java_start0.get)) else None
+      val java_start = Date.instant(java.info.startInstant.get)
       val serial =
         Build_Process.Data.start_worker(
           db, worker_uuid, build_uuid, build_context.hostname, java_pid, java_start)
