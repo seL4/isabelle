@@ -287,6 +287,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Sorting
     Balance
     Tree_Map
+    Tree_Rotations
     Interval_Tree
     AVL_Map
     AVL_Bal_Set
