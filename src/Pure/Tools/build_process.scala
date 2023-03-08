@@ -465,6 +465,29 @@ object Build_Process {
       val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
     }
 
+    def read_workers(
+      db: SQL.Database,
+      build_uuid: String = "",
+      worker_uuid: String = ""
+    ): State.Workers = {
+      db.execute_query_statement(
+        Workers.table.select(sql =
+          SQL.where(Generic.sql(build_uuid = build_uuid, worker_uuid = worker_uuid))),
+          List.from[Worker],
+          { res =>
+            Worker(
+              worker_uuid = res.string(Workers.worker_uuid),
+              build_uuid = res.string(Workers.build_uuid),
+              hostname = res.string(Workers.hostname),
+              java_pid = res.long(Workers.java_pid),
+              java_start = res.get_date(Workers.java_start),
+              start = res.date(Workers.start),
+              stamp = res.date(Workers.stamp),
+              stop = res.get_date(Workers.stop),
+              serial = res.long(Workers.serial))
+          })
+    }
+
     def serial_max(db: SQL.Database): Long =
       db.execute_query_statementO[Long](
         Workers.table.select(List(Workers.serial_max)),
@@ -527,29 +550,6 @@ object Build_Process {
           stmt.date(2) = if (stop) Some(now) else None
           stmt.long(3) = serial
         })
-    }
-
-    def read_workers(
-      db: SQL.Database,
-      build_uuid: String = "",
-      worker_uuid: String = ""
-    ): State.Workers = {
-      db.execute_query_statement(
-        Workers.table.select(sql =
-          SQL.where(Generic.sql(build_uuid = build_uuid, worker_uuid = worker_uuid))),
-          List.from[Worker],
-          { res =>
-            Worker(
-              worker_uuid = res.string(Workers.worker_uuid),
-              build_uuid = res.string(Workers.build_uuid),
-              hostname = res.string(Workers.hostname),
-              java_pid = res.long(Workers.java_pid),
-              java_start = res.get_date(Workers.java_start),
-              start = res.date(Workers.start),
-              stamp = res.date(Workers.stamp),
-              stop = res.get_date(Workers.stop),
-              serial = res.long(Workers.serial))
-          })
     }
 
 
