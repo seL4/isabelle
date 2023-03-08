@@ -600,10 +600,11 @@ object Build_Process {
 
     object Running {
       val name = Generic.name.make_primary_key
+      val worker_uuid = Generic.worker_uuid
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
 
-      val table = make_table("running", List(name, hostname, numa_node))
+      val table = make_table("running", List(name, worker_uuid, hostname, numa_node))
     }
 
     def read_running(db: SQL.Database): List[Build_Job.Abstract] =
@@ -612,9 +613,10 @@ object Build_Process {
         List.from[Build_Job.Abstract],
         { res =>
           val name = res.string(Running.name)
+          val worker_uuid = res.string(Running.worker_uuid)
           val hostname = res.string(Running.hostname)
           val numa_node = res.get_int(Running.numa_node)
-          Build_Job.Abstract(name, Host.Node_Info(hostname, numa_node))
+          Build_Job.Abstract(name, worker_uuid, Host.Node_Info(hostname, numa_node))
         }
       )
 
@@ -633,8 +635,9 @@ object Build_Process {
         db.execute_statement(Running.table.insert(), body =
           { stmt =>
             stmt.string(1) = job.job_name
-            stmt.string(2) = job.node_info.hostname
-            stmt.int(3) = job.node_info.numa_node
+            stmt.string(2) = job.worker_uuid
+            stmt.string(3) = job.node_info.hostname
+            stmt.int(4) = job.node_info.numa_node
           })
       }
 
@@ -908,7 +911,7 @@ extends AutoCloseable {
       store.init_output(session_name)
 
       val job =
-        Build_Job.start_session(build_context, progress, log,
+        Build_Job.start_session(build_context, worker_uuid, progress, log,
           build_deps.background(session_name), input_shasum, node_info)
       state1.add_running(session_name, job)
     }

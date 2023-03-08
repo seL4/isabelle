@@ -12,11 +12,12 @@ import scala.collection.mutable
 
 trait Build_Job {
   def job_name: String
+  def worker_uuid: String
   def node_info: Host.Node_Info
   def cancel(): Unit = ()
   def is_finished: Boolean = false
   def join: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
-  def make_abstract: Build_Job.Abstract = Build_Job.Abstract(job_name, node_info)
+  def make_abstract: Build_Job.Abstract = Build_Job.Abstract(job_name, worker_uuid, node_info)
 }
 
 object Build_Job {
@@ -26,6 +27,7 @@ object Build_Job {
 
   sealed case class Abstract(
     override val job_name: String,
+    override val worker_uuid: String,
     override val node_info: Host.Node_Info
   ) extends Build_Job {
     override def make_abstract: Abstract = this
@@ -38,13 +40,15 @@ object Build_Job {
 
   def start_session(
     build_context: Build_Process.Context,
+    worker_uuid: String,
     progress: Progress,
     log: Logger,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
     node_info: Host.Node_Info
   ): Session_Job = {
-    new Session_Job(build_context, progress, log, session_background, input_shasum, node_info)
+    new Session_Job(
+      build_context, worker_uuid, progress, log, session_background, input_shasum, node_info)
   }
 
   object Session_Context {
@@ -106,6 +110,7 @@ object Build_Job {
 
   class Session_Job private[Build_Job](
     build_context: Build_Process.Context,
+    override val worker_uuid: String,
     progress: Progress,
     log: Logger,
     session_background: Sessions.Background,
