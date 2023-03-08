@@ -159,6 +159,14 @@ object Build_Process {
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
   }
 
+  case class Worker(
+    worker_uuid: String,
+    build_uuid: String,
+    start: Date,
+    stamp: Date,
+    stop: Option[Date],
+    serial: Long)
+
   case class Result(
     process_result: Process_Result,
     output_shasum: SHA1.Shasum,
@@ -170,6 +178,7 @@ object Build_Process {
 
   object State {
     type Sessions = Map[String, Build_Job.Session_Context]
+    type Workers = List[Worker]
     type Pending = List[Entry]
     type Running = Map[String, Build_Job]
     type Results = Map[String, Result]
@@ -185,6 +194,7 @@ object Build_Process {
     progress_seen: Long = 0,
     numa_next: Int = 0,
     sessions: State.Sessions = Map.empty,   // static build targets
+    workers: State.Workers = Nil,           // available worker processes
     pending: State.Pending = Nil,           // dynamic build "queue"
     running: State.Running = Map.empty,     // presently running jobs
     results: State.Results = Map.empty      // finished results
@@ -199,6 +209,8 @@ object Build_Process {
     def progress_serial(message_serial: Long = serial): State =
       if (message_serial > progress_seen) copy(progress_seen = message_serial)
       else error("Bad serial " + message_serial + " for progress output (already seen)")
+
+    def set_workers(new_workers: State.Workers): State = copy(workers = new_workers)
 
     def numa_next_node(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
@@ -500,6 +512,26 @@ object Build_Process {
         })
     }
 
+    def read_workers(
+      db: SQL.Database,
+      build_uuid: String = "",
+      worker_uuid: String = ""
+    ): State.Workers = {
+      db.execute_query_statement(
+        Workers.table.select(sql =
+          SQL.where(Generic.sql(build_uuid = build_uuid, worker_uuid = worker_uuid))),
+          List.from[Worker],
+          { res =>
+            Worker(
+              worker_uuid = res.string(Workers.worker_uuid),
+              build_uuid = res.string(Workers.build_uuid),
+              start = res.date(Workers.start),
+              stamp = res.date(Workers.stamp),
+              stop = res.get_date(Workers.stop),
+              serial = res.long(Workers.serial))
+          })
+    }
+
 
     /* pending jobs */
 
@@ -696,7 +728,7 @@ object Build_Process {
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
 
       stamp_worker(db, worker_uuid, serial)
-      state.set_serial(serial)
+      state.set_serial(serial).set_workers(read_workers(db))
     }
   }
 }
