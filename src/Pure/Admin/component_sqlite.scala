@@ -11,7 +11,7 @@ object Component_SQLite {
   /* build sqlite */
 
   val default_download_url =
-    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.39.4.1/sqlite-jdbc-3.39.4.1.jar"
+    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.41.0.0/sqlite-jdbc-3.41.0.0.jar"
 
   def build_sqlite(
     download_url: String = default_download_url,
