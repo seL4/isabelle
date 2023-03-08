@@ -490,7 +490,9 @@ object PostgreSQL {
     host: String = "",
     port: Int = 0,
     ssh: Option[SSH.Session] = None,
-    ssh_close: Boolean = false
+    ssh_close: Boolean = false,
+    // see https://www.postgresql.org/docs/current/transaction-iso.html
+    transaction_isolation: Int = Connection.TRANSACTION_SERIALIZABLE
   ): Database = {
     init_jdbc
 
@@ -518,6 +520,7 @@ object PostgreSQL {
       }
     try {
       val connection = DriverManager.getConnection(url, user, password)
+      connection.setTransactionIsolation(transaction_isolation)
       new Database(name, connection, port_forwarding)
     }
     catch { case exn: Throwable => port_forwarding.foreach(_.close()); throw exn }
