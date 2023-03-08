@@ -19,7 +19,7 @@
 
 * Shell commands within $ISABELLE_HOME directory:
 
-    isabelle build_vscode_extension -U
+    isabelle component_vscode_extension -U
     isabelle vscode src/Tools/VSCode/extension
 
 * VSCode commands:
@@ -29,4 +29,4 @@
 
 ## Build and install ##
 
-    isabelle build_vscode_extension -I
+    isabelle component_vscode_extension -I

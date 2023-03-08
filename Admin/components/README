@@ -10,11 +10,11 @@ Quick reference
 
   * packaging (with associated SHA1 digest), e.g.
 
-      $ isabelle build_components screwdriver-3.14
+      $ isabelle components_build screwdriver-3.14
 
   * publishing, e.g.
 
-      $ isabelle build_components -P screwdriver-3.14.tar.gz
+      $ isabelle components_build -P screwdriver-3.14.tar.gz
 
   * manual editing of Admin/components/main: screwdriver-3.14
 
@@ -54,7 +54,7 @@ regular components should be world-readable.
 The file `Admin/components/components.sha1` contains SHA1 identifiers
 within the Isabelle repository, for integrity checking of the archives
 that are exposed to the public file-system.  The command-line tool
-`isabelle build_components` maintains these hash-keys automatically.
+`isabelle components_build` maintains these hash-keys automatically.
 
 
 Unpacked copy
@@ -67,6 +67,6 @@ without extra copying or unpacking of the authentic archives. The
 isabelle_cronjob does this routinely: it will break if the unpacked version is
 omitted.
 
-The command-line tool `isabelle build_components -P` takes care of uploading
+The command-line tool `isabelle components_build -P` takes care of uploading
 the .tar.gz archive and unpacking it, unless it is a special component (e.g.
 for multiplatform application bundling).

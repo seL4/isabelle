@@ -89,11 +89,11 @@ Packaging
 
 - Docker image:
 
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022_X11_Latex -P X11 -P latex Isabelle2022_linux.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022_X11_Latex -P X11 -P latex Isabelle2022_linux.tar.gz
 
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM Isabelle2022_linux_arm.tar.gz
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM_X11_Latex -P X11 -P latex Isabelle2022_linux_arm.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM Isabelle2022_linux_arm.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM_X11_Latex -P X11 -P latex Isabelle2022_linux_arm.tar.gz
 
   docker login
 

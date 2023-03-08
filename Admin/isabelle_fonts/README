@@ -6,7 +6,7 @@ The Isabelle fonts are subject to the same BSD-3-clause license as Isabelle.
 TTF files are produced automatically from the Deja Vu font family with symbols
 from the IsabelleSymbols font (formerly IsabelleText):
 
-  isabelle build_fonts -d dejavu-fonts-ttf-2.37/ttf
+  isabelle component_fonts -d dejavu-fonts-ttf-2.37/ttf
 
 The IsabelleSymbols template (see Admin/isabelle_fonts in the repository) has
 been assembled manually, by composing glyphs from Bluesky TeX fonts (scaled
@@ -20,7 +20,7 @@ these are subject to GPL.
 
 
     Makarius
-    22-Mar-2021
+    08-Mar-2023
 
 
 ----------------------------------------------------------------------------
