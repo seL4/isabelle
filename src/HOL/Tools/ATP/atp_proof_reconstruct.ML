@@ -824,7 +824,7 @@ fun sort_top n scored_items =
 fun top_abduce_candidates max_candidates candidates =
   let
     (* We prefer free variables to other constructs, so that e.g. "x \<le> y" is
-       prioritized over "x \<le> 0". *)
+       prioritized over "x \<le> 5". *)
     fun score t =
       Term.fold_aterms (fn t => fn score => score + (case t of Free _ => 1 | _ => 2)) t 0
 
@@ -849,7 +849,12 @@ fun top_abduce_candidates max_candidates candidates =
           (@{const less_eq(nat)} $ @{const one_class.one(nat)} $ _)) => NONE
       | @{const Trueprop} $ (Const (@{const_name All}, _) $ _) => NONE
       | @{const Trueprop} $ (Const (@{const_name Ex}, _) $ _) => NONE
-      | _ => SOME (score t, t))
+      | _ =>
+        (* We require the presence of at least one free variable. A "missing
+           assumption" that does not talk about any free variable is likely
+           spurious. *)
+        if exists_subterm (fn Free _ => true | _ => false) t then SOME (score t, t)
+        else NONE)
   in
     sort_top max_candidates (map_filter maybe_score candidates)
   end
