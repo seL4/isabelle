@@ -153,9 +153,9 @@ object Build_Process {
 
   type Progress_Messages = SortedMap[Long, Progress.Message]
 
-  case class Entry(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
+  case class Task(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
     def is_ready: Boolean = deps.isEmpty
-    def resolve(dep: String): Entry =
+    def resolve(dep: String): Task =
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
   }
 
@@ -182,7 +182,7 @@ object Build_Process {
   object State {
     type Sessions = Map[String, Build_Job.Session_Context]
     type Workers = List[Worker]
-    type Pending = List[Entry]
+    type Pending = List[Task]
     type Running = Map[String, Build_Job]
     type Results = Map[String, Result]
 
@@ -563,15 +563,15 @@ object Build_Process {
       val table = make_table("pending", List(name, deps, info))
     }
 
-    def read_pending(db: SQL.Database): List[Entry] =
+    def read_pending(db: SQL.Database): List[Task] =
       db.execute_query_statement(
         Pending.table.select(sql = SQL.order_by(List(Pending.name))),
-        List.from[Entry],
+        List.from[Task],
         { res =>
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
           val info = res.string(Pending.info)
-          Entry(name, split_lines(deps), info = JSON.Object.parse(info))
+          Task(name, split_lines(deps), info = JSON.Object.parse(info))
         })
 
     def update_pending(db: SQL.Database, pending: State.Pending): Boolean = {
@@ -845,7 +845,7 @@ extends AutoCloseable {
         for {
           (name, session_context) <- build_context.sessions.iterator
           if !old_pending(name)
-        } yield Build_Process.Entry(name, session_context.deps))
+        } yield Build_Process.Task(name, session_context.deps))
     val pending1 = new_pending ::: state.pending
 
     state.copy(sessions = sessions1, pending = pending1)
