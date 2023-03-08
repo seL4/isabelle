@@ -29,7 +29,8 @@ object Build_Process {
       fresh_build: Boolean = false,
       no_build: Boolean = false,
       session_setup: (String, Session) => Unit = (_, _) => (),
-      build_uuid: String = UUID.random().toString
+      build_uuid: String = UUID.random().toString,
+      master: Boolean = false,
     ): Context = {
       val sessions_structure = build_deps.sessions_structure
       val build_graph = sessions_structure.build_graph
@@ -83,7 +84,7 @@ object Build_Process {
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       new Context(store, build_deps, sessions, ordering, ml_platform, hostname, numa_nodes,
         build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, session_setup, build_uuid = build_uuid)
+        no_build = no_build, session_setup, build_uuid = build_uuid, master = master)
     }
   }
 
@@ -100,7 +101,8 @@ object Build_Process {
     val fresh_build: Boolean,
     val no_build: Boolean,
     val session_setup: (String, Session) => Unit,
-    val build_uuid: String
+    val build_uuid: String,
+    val master: Boolean
   ) {
     override def toString: String =
       "Build_Process.Context(build_uuid = " + quote(build_uuid) + ")"
@@ -141,6 +143,8 @@ object Build_Process {
     def store_heap(name: String): Boolean =
       build_heap || Sessions.is_pure(name) ||
       sessions.valuesIterator.exists(_.ancestors.contains(name))
+
+    def worker_active: Boolean = max_jobs > 1
   }
 
 
@@ -149,11 +153,22 @@ object Build_Process {
 
   type Progress_Messages = SortedMap[Long, Progress.Message]
 
-  case class Entry(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
+  case class Task(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
     def is_ready: Boolean = deps.isEmpty
-    def resolve(dep: String): Entry =
+    def resolve(dep: String): Task =
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
   }
+
+  case class Worker(
+    worker_uuid: String,
+    build_uuid: String,
+    hostname: String,
+    java_pid: Long,
+    java_start: Date,
+    start: Date,
+    stamp: Date,
+    stop: Option[Date],
+    serial: Long)
 
   case class Result(
     process_result: Process_Result,
@@ -166,7 +181,8 @@ object Build_Process {
 
   object State {
     type Sessions = Map[String, Build_Job.Session_Context]
-    type Pending = List[Entry]
+    type Workers = List[Worker]
+    type Pending = List[Task]
     type Running = Map[String, Build_Job]
     type Results = Map[String, Result]
 
@@ -181,6 +197,7 @@ object Build_Process {
     progress_seen: Long = 0,
     numa_next: Int = 0,
     sessions: State.Sessions = Map.empty,   // static build targets
+    workers: State.Workers = Nil,           // available worker processes
     pending: State.Pending = Nil,           // dynamic build "queue"
     running: State.Running = Map.empty,     // presently running jobs
     results: State.Results = Map.empty      // finished results
@@ -195,6 +212,8 @@ object Build_Process {
     def progress_serial(message_serial: Long = serial): State =
       if (message_serial > progress_seen) copy(progress_seen = message_serial)
       else error("Bad serial " + message_serial + " for progress output (already seen)")
+
+    def set_workers(new_workers: State.Workers): State = copy(workers = new_workers)
 
     def numa_next_node(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
@@ -432,14 +451,41 @@ object Build_Process {
     object Workers {
       val worker_uuid = Generic.worker_uuid.make_primary_key
       val build_uuid = Generic.build_uuid
+      val hostname = SQL.Column.string("hostname")
+      val java_pid = SQL.Column.long("java_pid")
+      val java_start = SQL.Column.date("java_start")
       val start = SQL.Column.date("start")
       val stamp = SQL.Column.date("stamp")
       val stop = SQL.Column.date("stop")
       val serial = SQL.Column.long("serial")
 
-      val table = make_table("workers", List(worker_uuid, build_uuid, start, stamp, stop, serial))
+      val table = make_table("workers",
+        List(worker_uuid, build_uuid, hostname, java_pid, java_start, start, stamp, stop, serial))
 
       val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
+    }
+
+    def read_workers(
+      db: SQL.Database,
+      build_uuid: String = "",
+      worker_uuid: String = ""
+    ): State.Workers = {
+      db.execute_query_statement(
+        Workers.table.select(sql =
+          SQL.where(Generic.sql(build_uuid = build_uuid, worker_uuid = worker_uuid))),
+          List.from[Worker],
+          { res =>
+            Worker(
+              worker_uuid = res.string(Workers.worker_uuid),
+              build_uuid = res.string(Workers.build_uuid),
+              hostname = res.string(Workers.hostname),
+              java_pid = res.long(Workers.java_pid),
+              java_start = res.date(Workers.java_start),
+              start = res.date(Workers.start),
+              stamp = res.date(Workers.stamp),
+              stop = res.get_date(Workers.stop),
+              serial = res.long(Workers.serial))
+          })
     }
 
     def serial_max(db: SQL.Database): Long =
@@ -448,7 +494,14 @@ object Build_Process {
         res => res.long(Workers.serial)
       ).getOrElse(0L)
 
-    def start_worker(db: SQL.Database, worker_uuid: String, build_uuid: String): Long = {
+    def start_worker(
+      db: SQL.Database,
+      worker_uuid: String,
+      build_uuid: String,
+      hostname: String,
+      java_pid: Long,
+      java_start: Date
+    ): Long = {
       def err(msg: String): Nothing =
         error("Cannot start worker " + worker_uuid + if_proper(msg, "\n" + msg))
 
@@ -470,10 +523,13 @@ object Build_Process {
           val now = db.now()
           stmt.string(1) = worker_uuid
           stmt.string(2) = build_uuid
-          stmt.date(3) = now
-          stmt.date(4) = now
-          stmt.date(5) = None
-          stmt.long(6) = serial
+          stmt.string(3) = hostname
+          stmt.long(4) = java_pid
+          stmt.date(5) = java_start
+          stmt.date(6) = now
+          stmt.date(7) = now
+          stmt.date(8) = None
+          stmt.long(9) = serial
         })
       serial
     }
@@ -507,15 +563,15 @@ object Build_Process {
       val table = make_table("pending", List(name, deps, info))
     }
 
-    def read_pending(db: SQL.Database): List[Entry] =
+    def read_pending(db: SQL.Database): List[Task] =
       db.execute_query_statement(
         Pending.table.select(sql = SQL.order_by(List(Pending.name))),
-        List.from[Entry],
+        List.from[Task],
         { res =>
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
           val info = res.string(Pending.info)
-          Entry(name, split_lines(deps), info = JSON.Object.parse(info))
+          Task(name, split_lines(deps), info = JSON.Object.parse(info))
         })
 
     def update_pending(db: SQL.Database, pending: State.Pending): Boolean = {
@@ -544,10 +600,11 @@ object Build_Process {
 
     object Running {
       val name = Generic.name.make_primary_key
+      val worker_uuid = Generic.worker_uuid
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
 
-      val table = make_table("running", List(name, hostname, numa_node))
+      val table = make_table("running", List(name, worker_uuid, hostname, numa_node))
     }
 
     def read_running(db: SQL.Database): List[Build_Job.Abstract] =
@@ -556,9 +613,10 @@ object Build_Process {
         List.from[Build_Job.Abstract],
         { res =>
           val name = res.string(Running.name)
+          val worker_uuid = res.string(Running.worker_uuid)
           val hostname = res.string(Running.hostname)
           val numa_node = res.get_int(Running.numa_node)
-          Build_Job.Abstract(name, Host.Node_Info(hostname, numa_node))
+          Build_Job.Abstract(name, worker_uuid, Host.Node_Info(hostname, numa_node))
         }
       )
 
@@ -577,8 +635,9 @@ object Build_Process {
         db.execute_statement(Running.table.insert(), body =
           { stmt =>
             stmt.string(1) = job.job_name
-            stmt.string(2) = job.node_info.hostname
-            stmt.int(3) = job.node_info.numa_node
+            stmt.string(2) = job.worker_uuid
+            stmt.string(3) = job.node_info.hostname
+            stmt.int(4) = job.node_info.numa_node
           })
       }
 
@@ -692,7 +751,7 @@ object Build_Process {
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
 
       stamp_worker(db, worker_uuid, serial)
-      state.set_serial(serial)
+      state.set_serial(serial).set_workers(read_workers(db))
     }
   }
 }
@@ -789,14 +848,14 @@ extends AutoCloseable {
         for {
           (name, session_context) <- build_context.sessions.iterator
           if !old_pending(name)
-        } yield Build_Process.Entry(name, session_context.deps))
+        } yield Build_Process.Task(name, session_context.deps))
     val pending1 = new_pending ::: state.pending
 
     state.copy(sessions = sessions1, pending = pending1)
   }
 
   protected def next_job(state: Build_Process.State): Option[String] =
-    if (state.running.size < (build_context.max_jobs max 1)) {
+    if (progress.stopped || state.running.size < build_context.max_jobs) {
       state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
         .sortBy(_.name)(build_context.ordering)
         .headOption.map(_.name)
@@ -835,7 +894,7 @@ extends AutoCloseable {
         remove_pending(session_name).
         make_result(session_name, Process_Result.error, output_shasum)
     }
-    else if (!ancestor_results.forall(_.ok) || progress.stopped) {
+    else if (progress.stopped || !ancestor_results.forall(_.ok)) {
       progress.echo(session_name + " CANCELLED")
       state
         .remove_pending(session_name)
@@ -852,7 +911,7 @@ extends AutoCloseable {
       store.init_output(session_name)
 
       val job =
-        Build_Job.start_session(build_context, progress, log,
+        Build_Job.start_session(build_context, worker_uuid, progress, log,
           build_deps.background(session_name), input_shasum, node_info)
       state1.add_running(session_name, job)
     }
@@ -876,7 +935,12 @@ extends AutoCloseable {
 
   final def start_worker(): Unit = synchronized_database {
     for (db <- _database) {
-      val serial = Build_Process.Data.start_worker(db, worker_uuid, build_uuid)
+      val java = ProcessHandle.current()
+      val java_pid = java.pid
+      val java_start = Date.instant(java.info.startInstant.get)
+      val serial =
+        Build_Process.Data.start_worker(
+          db, worker_uuid, build_uuid, build_context.hostname, java_pid, java_start)
       _state = _state.set_serial(serial)
     }
   }
@@ -890,7 +954,7 @@ extends AutoCloseable {
 
   /* run */
 
-  def run(master: Boolean = false): Map[String, Process_Result] = {
+  def run(): Map[String, Process_Result] = {
     def finished(): Boolean = synchronized_database { _state.finished }
 
     def sleep(): Unit =
@@ -915,8 +979,13 @@ extends AutoCloseable {
       Map.empty[String, Process_Result]
     }
     else {
-      if (master) start_build()
+      if (build_context.master) start_build()
+
       start_worker()
+      if (build_context.master && !build_context.worker_active) {
+        progress.echo("Waiting for external workers ...")
+      }
+
       try {
         while (!finished()) {
           if (progress.stopped) synchronized_database { _state.stop_running() }
@@ -940,7 +1009,7 @@ extends AutoCloseable {
       }
       finally {
         stop_worker()
-        if (master) stop_build()
+        if (build_context.master) stop_build()
       }
 
       synchronized_database {

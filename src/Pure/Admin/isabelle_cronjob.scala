@@ -116,7 +116,7 @@ object Isabelle_Cronjob {
 
     db.execute_query_statement(
       Build_Log.Data.select_recent_versions(
-        days = days, rev = rev, afp_rev = afp_rev, sql = "WHERE " + sql),
+        days = days, rev = rev, afp_rev = afp_rev, sql = SQL.where(sql)),
       List.from[Item],
       { res =>
         val known = res.bool(Build_Log.Data.known)

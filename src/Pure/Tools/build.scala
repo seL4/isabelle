@@ -167,7 +167,7 @@ object Build {
       Build_Process.Context(store, build_deps, progress = progress,
         hostname = hostname(build_options), build_heap = build_heap,
         numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, session_setup = session_setup)
+        no_build = no_build, session_setup = session_setup, master = true)
 
     store.prepare_output()
     build_context.prepare_database()
@@ -186,7 +186,7 @@ object Build {
       Isabelle_Thread.uninterruptible {
         val engine = get_engine(build_options.string("build_engine"))
         using(engine.init(build_context, progress)) { build_process =>
-          val res = build_process.run(master = true)
+          val res = build_process.run()
           Results(build_context, res)
         }
       }
