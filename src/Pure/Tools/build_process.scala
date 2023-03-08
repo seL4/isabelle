@@ -144,7 +144,7 @@ object Build_Process {
       build_heap || Sessions.is_pure(name) ||
       sessions.valuesIterator.exists(_.ancestors.contains(name))
 
-    def worker: Boolean = max_jobs > 1
+    def worker_active: Boolean = max_jobs > 1
   }
 
 
@@ -921,8 +921,10 @@ extends AutoCloseable {
     else {
       if (build_context.master) start_build()
 
-      val worker = build_context.worker
-      if (worker) start_worker() else progress.echo("Waiting for external workers ...")
+      start_worker()
+      if (build_context.master && !build_context.worker_active) {
+        progress.echo("Waiting for external workers ...")
+      }
 
       try {
         while (!finished()) {
@@ -946,7 +948,7 @@ extends AutoCloseable {
         }
       }
       finally {
-        if (worker) stop_worker()
+        stop_worker()
         if (build_context.master) stop_build()
       }
 
