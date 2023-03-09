@@ -41,6 +41,8 @@ object Export {
       SQL.Table("isabelle_exports",
         List(session_name, theory_name, name, executable, compressed, body))
 
+    val tables = SQL.Tables(table)
+
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
       SQL.where(
         SQL.and(

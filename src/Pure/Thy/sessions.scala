@@ -1515,13 +1515,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def clean_output(name: String): (Boolean, Boolean) = {
       val relevant_db =
         database_server &&
-          using_option(try_open_database(name))(db =>
-            db.transaction {
-              val relevant_db = session_info_defined(db, name)
-              init_session_info(db, name)
-              relevant_db
-            }
-          ).getOrElse(false)
+          using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
 
       val del =
         for {
@@ -1583,23 +1577,28 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     /* session info */
 
-    def init_session_info(db: SQL.Database, name: String): Unit = {
+    val all_tables: SQL.Tables =
+      SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
+
+    def init_session_info(db: SQL.Database, name: String): Boolean = {
       db.transaction {
-        db.create_table(Session_Info.table)
+        val already_defined = session_info_defined(db, name)
+
+        all_tables.create_lock(db)
+
         db.execute_statement(
           Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))
         if (db.is_postgresql) db.execute_statement(Session_Info.augment_table)
 
-        db.create_table(Sources.table)
         db.execute_statement(Sources.table.delete(sql = Sources.where_equal(name)))
 
-        db.create_table(Export.Data.table)
         db.execute_statement(
           Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))
 
-        db.create_table(Document_Build.Data.table)
         db.execute_statement(
           Document_Build.Data.table.delete(sql = Document_Build.Data.session_name.where_equal(name)))
+
+        already_defined
       }
     }
 
@@ -1622,7 +1621,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       build_log: Build_Log.Session_Info,
       build: Build_Info
     ): Unit = {
-      db.transaction {
+      db.transaction_lock(all_tables) {
         write_sources(db, session_name, sources)
         db.execute_statement(Session_Info.table.insert(), body =
           { stmt =>
