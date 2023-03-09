@@ -370,6 +370,8 @@ object Server {
     val port = SQL.Column.int("port")
     val password = SQL.Column.string("password")
     val table = SQL.Table("isabelle_servers", List(name, port, password))
+
+    val tables = SQL.Tables(table)
   }
 
   def list(db: SQLite.Database): List[Info] =
@@ -398,11 +400,11 @@ object Server {
     using(SQLite.open_database(Data.database)) { db =>
       db.transaction {
         Isabelle_System.chmod("600", Data.database)
-        db.create_table(Data.table)
+        Data.tables.create_lock(db)
         list(db).filterNot(_.active).foreach(server_info =>
           db.execute_statement(Data.table.delete(sql = Data.name.where_equal(server_info.name))))
       }
-      db.transaction {
+      db.transaction_lock(Data.tables) {
         find(db, name) match {
           case Some(server_info) => (server_info, None)
           case None =>
@@ -428,7 +430,7 @@ object Server {
 
   def exit(name: String = default_name): Boolean = {
     using(SQLite.open_database(Data.database))(db =>
-      db.transaction {
+      db.transaction_lock(Data.tables) {
         find(db, name) match {
           case Some(server_info) =>
             using(server_info.connection())(_.write_line_message("shutdown"))
