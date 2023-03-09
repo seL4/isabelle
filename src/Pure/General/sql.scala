@@ -330,7 +330,7 @@ object SQL {
 
     def get[A](column: Column, f: Column => A): Option[A] = {
       val x = f(column)
-      if (rep.wasNull) None else Some(x)
+      if (rep.wasNull || x == null) None else Some(x)
     }
     def get_bool(column: Column): Option[Boolean] = get(column, bool)
     def get_int(column: Column): Option[Int] = get(column, int)
@@ -494,7 +494,10 @@ object SQLite {
       else stmt.string(i) = date_format(date)
 
     def date(res: SQL.Result, column: SQL.Column): Date =
-      date_format.parse(res.string(column))
+      proper_string(res.string(column)) match {
+        case None => null
+        case Some(s) => date_format.parse(s)
+      }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd(cmd = "INSERT OR IGNORE", sql = sql)
