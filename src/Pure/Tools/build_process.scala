@@ -133,8 +133,7 @@ object Build_Process {
     def prepare_database(): Unit = {
       using_option(open_database()) { db =>
         db.transaction {
-          for (table <- Data.all_tables) db.create_table(table)
-          db.lock_tables(Data.all_tables)
+          Data.all_tables.create_lock(db)
           Data.clean_build(db)
         }
         db.rebuild()
@@ -722,8 +721,8 @@ object Build_Process {
 
     /* collective operations */
 
-    def all_tables: List[SQL.Table] =
-      List(
+    val all_tables: SQL.Tables =
+      SQL.Tables(
         Base.table,
         Workers.table,
         Progress.table,
@@ -754,15 +753,6 @@ object Build_Process {
       stamp_worker(db, worker_uuid, serial)
       state.set_serial(serial).set_workers(read_workers(db))
     }
-
-
-    /* transaction_lock */
-
-    def transaction_lock[A](db: SQL.Database, body: => A): A =
-      db.transaction {
-        db.lock_tables(Build_Process.Data.all_tables)
-        body
-      }
   }
 }
 
@@ -796,7 +786,7 @@ extends AutoCloseable {
     synchronized {
       _database match {
         case None => body
-        case Some(db) => Build_Process.Data.transaction_lock(db, body)
+        case Some(db) => db.transaction_lock(Build_Process.Data.all_tables)(body)
       }
     }
 

@@ -213,6 +213,32 @@ object SQL {
   }
 
 
+  /* table groups */
+
+  object Tables {
+    def list(list: List[Table]): Tables = new Tables(list)
+    def apply(args: Table*): Tables = list(args.toList)
+  }
+
+  final class Tables private(val list: List[Table]) extends Iterable[Table] {
+    override def toString: String = list.mkString("SQL.Tables(", ", ", ")")
+
+    def iterator: Iterator[Table] = list.iterator
+
+    // requires transaction
+    def create_lock(db: Database): Unit = {
+      foreach(db.create_table(_))
+      lock(db)
+    }
+
+    // requires transaction
+    def lock(db: Database): Unit = {
+      val sql = db.lock_tables(list)
+      if (sql.nonEmpty) db.execute_statement(sql)
+    }
+  }
+
+
 
   /** SQL database operations **/
 
@@ -369,7 +395,10 @@ object SQL {
       finally { connection.setAutoCommit(auto_commit) }
     }
 
-    def lock_tables(tables: List[Table]): Unit = {}  // PostgreSQL only
+    def transaction_lock[A](tables: Tables)(body: => A): A =
+      transaction { tables.lock(db); body }
+
+    def lock_tables(tables: List[Table]): Source = ""  // PostgreSQL only
 
 
     /* statements and results */
@@ -559,8 +588,8 @@ object PostgreSQL {
     // see https://www.postgresql.org/docs/current/sql-lock.html
     // see https://www.postgresql.org/docs/current/explicit-locking.html
 
-    override def lock_tables(tables: List[SQL.Table]): Unit =
-      execute_statement("LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE")
+    override def lock_tables(tables: List[SQL.Table]): PostgreSQL.Source =
+      "LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE"
 
 
     /* notifications: IPC via database server */
