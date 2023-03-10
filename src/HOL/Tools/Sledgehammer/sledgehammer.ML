@@ -419,7 +419,8 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
         ((slice_size0, abduce0, falsify0, num_facts0, fact_filter0), extra) =
       let
         val slice_size = Int.min (max_slice_size, slice_size0)
-        val goal_not_False = not (Logic.get_goal (Thm.prop_of goal) subgoal aconv @{prop False})
+        val the_subgoal = Logic.get_goal (Thm.prop_of goal) subgoal
+        val goal_not_False = not (the_subgoal aconv @{prop False})
         val abduce =
           (case abduce of
             NONE => abduce0 andalso goal_not_False
@@ -428,6 +429,7 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
           (case falsify of
             NONE => falsify0 andalso goal_not_False
           | SOME falsify => falsify)
+          andalso not (Term.is_schematic the_subgoal)
         val fact_filter = fact_filter |> the_default fact_filter0
         val max_facts = max_facts |> the_default num_facts0
         val num_facts = Int.min (max_facts, length (facts_of_filter fact_filter factss))
