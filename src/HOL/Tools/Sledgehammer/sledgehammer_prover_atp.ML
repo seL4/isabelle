@@ -339,11 +339,14 @@ fun run_atp mode name
         end
       | SOME failure =>
         let
+          val max_abduce_candidates_factor = 3 (* FUDGE *)
           val max_abduce_candidates =
             the_default default_abduce_max_candidates abduce_max_candidates
           val abduce_candidates = atp_abduce_candidates
             |> map (termify_atp_abduce_candidate ctxt name format type_enc pool lifted sym_tab)
-            |> top_abduce_candidates max_abduce_candidates
+            |> top_abduce_candidates (max_abduce_candidates * max_abduce_candidates_factor)
+            |> sort_propositions_by_provability ctxt
+            |> take max_abduce_candidates
         in
           if null abduce_candidates then
             (SOME failure, [], (Auto_Method (* dummy *), []), fn _ => string_of_atp_failure failure)

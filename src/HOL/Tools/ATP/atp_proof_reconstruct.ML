@@ -64,6 +64,7 @@ sig
     int Symtab.table -> (string, string, (string, string atp_type) atp_term, string) atp_formula ->
     term
   val top_abduce_candidates : int -> term list -> term list
+  val sort_propositions_by_provability : Proof.context -> term list -> term list
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -857,6 +858,27 @@ fun top_abduce_candidates max_candidates candidates =
         else NONE)
   in
     sort_top max_candidates (map_filter maybe_score candidates)
+  end
+
+fun provability_status ctxt t =
+  let
+    val res = Timeout.apply (seconds 0.1)
+      (Thm.term_of o Thm.rhs_of o Simplifier.full_rewrite ctxt) (Thm.cterm_of ctxt t)
+  in
+    if res aconv @{prop True} then SOME true
+    else if res aconv @{prop False} then SOME false
+    else NONE
+  end
+  handle Timeout.TIMEOUT _ => NONE
+
+(* Put propositions that simplify to "True" first, and filter out propositions
+   that simplify to "False". *)
+fun sort_propositions_by_provability ctxt ts =
+  let
+    val statuses_ts = map (`(provability_status ctxt)) ts
+  in
+    maps (fn (SOME true, t) => [t] | _ => []) statuses_ts @
+    maps (fn (NONE, t) => [t] | _ => []) statuses_ts
   end
 
 end;
