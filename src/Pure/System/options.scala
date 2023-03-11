@@ -194,6 +194,7 @@ object Options {
       var build_options = false
       var get_option = ""
       var list_options = false
+      var list_tags = List.empty[String]
       var export_file = ""
 
       val getopts = Getopts("""
@@ -203,6 +204,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
     -b           include $ISABELLE_BUILD_OPTIONS
     -g OPTION    get value of OPTION
     -l           list options
+    -t TAGS      restrict list to given tags (comma-separated)
     -x FILE      export options to FILE in YXML format
 
   Report Isabelle system options, augmented by MORE_OPTIONS given as
@@ -211,6 +213,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
         "b" -> (_ => build_options = true),
         "g:" -> (arg => get_option = arg),
         "l" -> (_ => list_options = true),
+        "t:" -> (arg => list_tags = space_explode(',', arg)),
         "x:" -> (arg => export_file = arg))
 
       val more_options = getopts(args)
@@ -235,7 +238,10 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
       }
 
       if (get_option == "" && export_file == "") {
-        Output.writeln(options.print, stdout = true)
+        val filter: Options.Entry => Boolean =
+          if (list_tags.isEmpty) (_ => true)
+          else opt => list_tags.exists(opt.has_tag)
+        Output.writeln(options.print(filter = filter), stdout = true)
       }
     })
 }
@@ -252,7 +258,8 @@ final class Options private(
   private def print_entry(opt: Options.Entry): String =
     if_proper(opt.public, "public ") + opt.print
 
-  def print: String = cat_lines(iterator.toList.sortBy(_.name).map(print_entry))
+  def print(filter: Options.Entry => Boolean = _ => true): String =
+    cat_lines(iterator.filter(filter).toList.sortBy(_.name).map(print_entry))
 
   def description(name: String): String = check_name(name).description
 
