@@ -48,6 +48,7 @@ object Options {
   val TAG_BUILD = "build"        // relavant for "isabelle build"
   val TAG_UPDATE = "update"      // relevant for "isabelle update"
   val TAG_CONNECTION = "connection"  // private information about connections (password etc.)
+  val TAG_COLOR_DIALOG = "color_dialog"  // special color selection dialog
 
   case class Entry(
     public: Boolean,
@@ -91,8 +92,8 @@ object Options {
     def unknown: Boolean = typ == Unknown
 
     def has_tag(tag: String): Boolean = tags.contains(tag)
-
     def session_content: Boolean = has_tag(TAG_CONTENT) || has_tag(TAG_DOCUMENT)
+    def color_dialog: Boolean = has_tag(TAG_COLOR_DIALOG)
   }
 
 
