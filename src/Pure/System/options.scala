@@ -91,9 +91,12 @@ object Options {
 
     def unknown: Boolean = typ == Unknown
 
-    def has_tag(tag: String): Boolean = tags.contains(tag)
-    def session_content: Boolean = has_tag(TAG_CONTENT) || has_tag(TAG_DOCUMENT)
-    def color_dialog: Boolean = has_tag(TAG_COLOR_DIALOG)
+    def for_tag(tag: String): Boolean = tags.contains(tag)
+    def for_content: Boolean = for_tag(TAG_CONTENT)
+    def for_document: Boolean = for_tag(TAG_DOCUMENT)
+    def for_color_dialog: Boolean = for_tag(TAG_COLOR_DIALOG)
+
+    def session_content: Boolean = for_content || for_document
   }
 
 
@@ -240,7 +243,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
       if (get_option == "" && export_file == "") {
         val filter: Options.Entry => Boolean =
           if (list_tags.isEmpty) (_ => true)
-          else opt => list_tags.exists(opt.has_tag)
+          else opt => list_tags.exists(opt.for_tag)
         Output.writeln(options.print(filter = filter), stdout = true)
       }
     })
@@ -452,9 +455,6 @@ final class Options private(
       .toList.sortBy(_._1)
       .map({ case (x, y, z) => x + " = " + Outer_Syntax.quote_string(y) + z + "\n" }).mkString
   }
-
-  def session_prefs(defaults: Options = Options.init0()): String =
-    make_prefs(defaults = defaults, filter = _.session_content)
 
   def save_prefs(file: Path = Options.PREFS, defaults: Options = Options.init0()): Unit = {
     val prefs = make_prefs(defaults = defaults)

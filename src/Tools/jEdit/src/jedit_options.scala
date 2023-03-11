@@ -122,7 +122,7 @@ object JEdit_Options {
     private val predefined =
       (for {
         opt <- PIDE.options.value.iterator
-        if opt.color_dialog
+        if opt.for_color_dialog
       } yield PIDE.options.make_color_component(opt)).toList
 
     assert(predefined.nonEmpty)

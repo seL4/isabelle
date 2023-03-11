@@ -629,7 +629,7 @@ object Sessions {
 
         val entry_options = entry.options ::: augment_options(name)
         val session_options = options ++ entry_options
-        val session_prefs = options.session_prefs(defaults = options0)
+        val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
 
         val theories =
           entry.theories.map({ case (opts, thys) =>
@@ -825,7 +825,7 @@ object Sessions {
         }
 
       val options0 = Options.init0()
-      val session_prefs = options.session_prefs(defaults = options0)
+      val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
 
       val root_infos = {
         var chapter = UNSORTED
