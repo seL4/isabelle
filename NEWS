@@ -265,6 +265,14 @@ antiquotations.
 
 *** System ***
 
+* Session builds observe dependency of options that contribute to the
+formal content. This is determined via option tags specified in
+etc/options, notably "content" or "document". A change of relavant
+session options causes a fresh build. For example:
+
+  isabelle build -o show_types FOL
+  isabelle build FOL
+
 * The command-line tool "isabelle update" is now directly based on
 "isabelle build" instead of "isabelle dump". Thus it has become more
 scalable, and supports most options from "isabelle build". Partial
