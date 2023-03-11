@@ -43,11 +43,11 @@ object Options {
   case object String extends Type
   case object Unknown extends Type
 
-  val TAG_CONTENT = "content"
-  val TAG_DOCUMENT = "document"
-  val TAG_BUILD = "build"
-  val TAG_UPDATE = "update"
-  val TAG_CONNECTION = "connection"
+  val TAG_CONTENT = "content"    // formal theory content
+  val TAG_DOCUMENT = "document"  // document preparation
+  val TAG_BUILD = "build"        // relavant for "isabelle build"
+  val TAG_UPDATE = "update"      // relevant for "isabelle update"
+  val TAG_CONNECTION = "connection"  // private information about connections (password etc.)
 
   case class Entry(
     public: Boolean,
@@ -92,10 +92,7 @@ object Options {
 
     def has_tag(tag: String): Boolean = tags.contains(tag)
 
-    def session_content: Boolean =
-      has_tag(TAG_CONTENT) ||
-      has_tag(TAG_DOCUMENT) ||
-      has_tag(TAG_UPDATE)
+    def session_content: Boolean = has_tag(TAG_CONTENT) || has_tag(TAG_DOCUMENT)
   }
 
 
