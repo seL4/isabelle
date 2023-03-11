@@ -1,6 +1,5 @@
 #main components for repository clones or release bundles
 gnu-utils-20211030
-apache-commons-20211211
 bash_process-1.3
 bib2xhtml-20190409
 csdp-6.1.1
@@ -17,6 +16,7 @@ jdk-17.0.6
 jedit-20211103
 jfreechart-1.5.3
 jortho-1.0-2
+jsoup-1.15.4
 kodkodi-1.5.7
 lipics-3.1.2
 llncs-2.22

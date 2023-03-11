@@ -258,7 +258,7 @@ object HTML {
   /* input text */
 
   def input(text: String): String =
-    org.apache.commons.text.StringEscapeUtils.unescapeHtml4(text)
+    org.jsoup.nodes.Entities.unescape(text)
 
 
   /* messages */
