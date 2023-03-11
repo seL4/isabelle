@@ -12,14 +12,14 @@ option isabelle_components_contrib_dir : string = "/p/home/isabelle/contrib"
   -- "unpacked components for remote build services"
 
 
-option build_host_linux_arm : string = ""
+option build_host_linux_arm : string = "" for build connection
   -- "SSH user@host for remote build of heaps"
 
-option build_host_linux : string = ""
+option build_host_linux : string = "" for build connection
   -- "SSH user@host for remote build of heaps"
 
-option build_host_macos : string = ""
+option build_host_macos : string = "" for build connection
   -- "SSH user@host for remote build of heaps"
 
-option build_host_windows : string = ""
+option build_host_windows : string = "" for build connection
   -- "SSH user@host for remote build of heaps"

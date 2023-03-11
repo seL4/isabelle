@@ -43,6 +43,12 @@ object Options {
   case object String extends Type
   case object Unknown extends Type
 
+  val TAG_CONTENT = "content"
+  val TAG_DOCUMENT = "document"
+  val TAG_BUILD = "build"
+  val TAG_UPDATE = "update"
+  val TAG_CONNECTION = "connection"
+
   case class Opt(
     public: Boolean,
     pos: Position.T,
@@ -51,6 +57,7 @@ object Options {
     value: String,
     default_value: String,
     standard_value: Option[String],
+    tags: List[String],
     description: String,
     section: String
   ) {
@@ -82,6 +89,9 @@ object Options {
     def title_jedit: String = title("jedit")
 
     def unknown: Boolean = typ == Unknown
+
+    def has_tag(tag: String): Boolean = tags.contains(tag)
+    def is_exported: Boolean = !has_tag(TAG_CONNECTION)
   }
 
 
@@ -91,6 +101,7 @@ object Options {
   private val PUBLIC = "public"
   private val OPTION = "option"
   private val STANDARD = "standard"
+  private val FOR = "for"
   private val OPTIONS = Path.explode("etc/options")
   private val PREFS = Path.explode("$ISABELLE_HOME_USER/etc/preferences")
 
@@ -100,7 +111,7 @@ object Options {
       (SECTION, Keyword.DOCUMENT_HEADING) +
       (PUBLIC, Keyword.BEFORE_COMMAND) +
       (OPTION, Keyword.THY_DECL) +
-      STANDARD
+      STANDARD + FOR
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
@@ -113,6 +124,9 @@ object Options {
       atom("option value", tok => tok.is_name || tok.is_float)
     val option_standard: Parser[Option[String]] =
       $$$("(") ~! $$$(STANDARD) ~ opt(option_value) ~ $$$(")") ^^ { case _ ~ _ ~ a ~ _ => a }
+    val option_tag: Parser[String] = atom("option tag", _.is_name)
+    val option_tags: Parser[List[String]] =
+      $$$(FOR) ~! rep(option_tag) ^^ { case _ ~ x => x } | success(Nil)
   }
 
   private object Parsers extends Parsers {
@@ -123,10 +137,10 @@ object Options {
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
       opt($$$(PUBLIC)) ~ command(OPTION) ~! (position(option_name) ~ $$$(":") ~ option_type ~
-      $$$("=") ~ option_value ~ opt(option_standard) ~
+      $$$("=") ~ option_value ~ opt(option_standard) ~ option_tags ~
         (comment_marker ~! text ^^ { case _ ~ x => x } | success(""))) ^^
-        { case a ~ _ ~ ((b, pos) ~ _ ~ c ~ _ ~ d ~ e ~ f) =>
-            (options: Options) => options.declare(a.isDefined, pos, b, c, d, e, f) }
+        { case a ~ _ ~ ((b, pos) ~ _ ~ c ~ _ ~ d ~ e ~ f ~ g) =>
+            (options: Options) => options.declare(a.isDefined, pos, b, c, d, e, f, g) }
     }
 
     val prefs_entry: Parser[Options => Options] = {
@@ -322,6 +336,7 @@ final class Options private(
     typ_name: String,
     value: String,
     standard: Option[Option[String]],
+    tags: List[String],
     description: String
   ): Options = {
     get(name) match {
@@ -348,7 +363,8 @@ final class Options private(
             case Some(s) => Some(s.getOrElse(value))
           }
         val opt =
-          Options.Opt(public, pos, name, typ, value, value, standard_value, description, section)
+          Options.Opt(
+            public, pos, name, typ, value, value, standard_value, tags, description, section)
         (new Options(options + (name -> opt), section)).check_value(name)
     }
   }
@@ -356,7 +372,8 @@ final class Options private(
   def add_permissive(name: String, value: String): Options = {
     if (options.isDefinedAt(name)) this + (name, value)
     else {
-      val opt = Options.Opt(false, Position.none, name, Options.Unknown, value, value, None, "", "")
+      val opt =
+        Options.Opt(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
       new Options(options + (name -> opt), section)
     }
   }
@@ -418,11 +435,14 @@ final class Options private(
 
   /* save preferences */
 
-  def make_prefs(defaults: Options = Options.init(prefs = "")): String = {
+  def make_prefs(
+    defaults: Options = Options.init(prefs = ""),
+    filter: Options.Opt => Boolean = _ => true
+  ): String = {
     (for {
       (name, opt2) <- options.iterator
       opt1 = defaults.get(name)
-      if opt1.isEmpty || opt1.get.value != opt2.value
+      if (opt1.isEmpty || opt1.get.value != opt2.value) && filter(opt2)
     } yield (name, opt2.value, if (opt1.isEmpty) "  (* unknown *)" else ""))
       .toList.sortBy(_._1)
       .map({ case (x, y, z) => x + " = " + Outer_Syntax.quote_string(y) + z + "\n" }).mkString

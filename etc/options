@@ -2,155 +2,155 @@
 
 section "Document Preparation"
 
-option browser_info : bool = false
+option browser_info : bool = false for build
   -- "generate theory browser information"
 
-option document : string = "" (standard "true")
+option document : string = "" (standard "true") for build
   -- "build PDF document (enabled for \"pdf\" or \"true\", disabled for \"\" or \"false\")"
-option document_output : string = "" (standard "output")
+option document_output : string = "" (standard "output") for build
   -- "document output directory"
-option document_echo : bool = false
+option document_echo : bool = false for build
   -- "inform about document file names during session presentation"
-option document_variants : string = "document"
+option document_variants : string = "document" for build document
   -- "alternative document variants (separated by colons)"
-option document_tags : string = ""
+option document_tags : string = "" for document
   -- "default command tags (separated by commas)"
-option document_bibliography : bool = false
+option document_bibliography : bool = false for document
   -- "explicitly enable use of bibtex (default: according to presence of root.bib)"
-option document_build : string = "lualatex" (standard "build")
+option document_build : string = "lualatex" (standard "build") for document
   -- "document build engine (e.g. build, lualatex, pdflatex)"
-option document_logo : string = "" (standard "_")
+option document_logo : string = "" (standard "_") for document
   -- "generate named instance of Isabelle logo (underscore means unnamed variant)"
-option document_heading_prefix : string = "isamarkup" (standard)
+option document_heading_prefix : string = "isamarkup" (standard) for document
   -- "prefix for LaTeX macros generated from 'chapter', 'section' etc."
-option document_comment_latex : bool = false
+option document_comment_latex : bool = false for document
   -- "use regular LaTeX version of comment.sty, instead of historic plain TeX version"
-option document_cite_commands : string = "cite,nocite,citet,citep"
+option document_cite_commands : string = "cite,nocite,citet,citep" for document
   -- "antiquotation commands to determine the structure of bibliography"
 
-option thy_output_display : bool = false
+option thy_output_display : bool = false for content
   -- "indicate output as multi-line display-style material"
-option thy_output_break : bool = false
+option thy_output_break : bool = false for content
   -- "control line breaks in non-display material"
-option thy_output_cartouche : bool = false
+option thy_output_cartouche : bool = false for content
   -- "indicate if the output should be delimited as cartouche"
-option thy_output_quotes : bool = false
+option thy_output_quotes : bool = false for content
   -- "indicate if the output should be delimited via double quotes"
-option thy_output_margin : int = 76
+option thy_output_margin : int = 76 for content
   -- "right margin / page width for printing of display material"
-option thy_output_indent : int = 0
+option thy_output_indent : int = 0 for content
   -- "indentation for pretty printing of display material"
-option thy_output_source : bool = false
+option thy_output_source : bool = false for content
   -- "print original source text rather than internal representation"
-option thy_output_source_cartouche : bool = false
+option thy_output_source_cartouche : bool = false for content
   -- "print original source text rather than internal representation, preserve cartouches"
-option thy_output_modes : string = ""
+option thy_output_modes : string = "" for content
   -- "additional print modes for document output (separated by commas)"
 
 
 section "Prover Output"
 
-option show_types : bool = false
+option show_types : bool = false for content
   -- "show type constraints when printing terms"
-option show_sorts : bool = false
+option show_sorts : bool = false for content
   -- "show sort constraints when printing types"
-option show_brackets : bool = false
+option show_brackets : bool = false for content
   -- "show extra brackets when printing terms/types"
-option show_question_marks : bool = true
+option show_question_marks : bool = true for content
   -- "show leading question mark of schematic variables"
 
-option show_consts : bool = false
+option show_consts : bool = false for content
   -- "show constants with types when printing proof state"
-option show_main_goal : bool = false
+option show_main_goal : bool = false for content
   -- "show main goal when printing proof state"
-option goals_limit : int = 10
+option goals_limit : int = 10 for content
   -- "maximum number of subgoals to be printed"
 
-option show_states : bool = false
+option show_states : bool = false for content
   -- "show toplevel states even if outside of interactive mode"
 
 
-option names_long : bool = false
+option names_long : bool = false for content
   -- "show fully qualified names"
-option names_short : bool = false
+option names_short : bool = false for content
   -- "show base names only"
-option names_unique : bool = true
+option names_unique : bool = true for content
   -- "show partially qualified names, as required for unique name resolution"
 
-option eta_contract : bool = true
+option eta_contract : bool = true for content
   -- "print terms in eta-contracted form"
 
-option print_mode : string = ""
+option print_mode : string = "" for content
   -- "additional print modes for prover output (separated by commas)"
 
 
 section "Parallel Processing and Timing"
 
-public option threads : int = 0
+public option threads : int = 0 for build
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
 option threads_trace : int = 0
   -- "level of tracing information for multithreading"
 option threads_stack_limit : real = 0.25
   -- "maximum stack size for worker threads (in giga words, 0 = unlimited)"
 
-public option parallel_limit : int = 0
+public option parallel_limit : int = 0 for build
   -- "approximative limit for parallel tasks (0 = unlimited)"
-public option parallel_print : bool = true
+public option parallel_print : bool = true for build
   -- "parallel and asynchronous printing of results"
-public option parallel_proofs : int = 1
+public option parallel_proofs : int = 1 for build
   -- "level of parallel proof checking: 0, 1, 2"
-option parallel_subproofs_threshold : real = 0.01
+option parallel_subproofs_threshold : real = 0.01 for build
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
 
-option command_timing_threshold : real = 0.1
+option command_timing_threshold : real = 0.1 for build
   -- "default threshold for persistent command timing (seconds)"
 
-public option timeout_scale : real = 1.0
+public option timeout_scale : real = 1.0 for build
   -- "scale factor for timeout in Isabelle/ML and session build"
 
 
 section "Detail of Proof Checking"
 
-option record_proofs : int = -1
+option record_proofs : int = -1 for content
   -- "set level of proofterm recording: 0, 1, 2, negative means unchanged"
-option quick_and_dirty : bool = false
+option quick_and_dirty : bool = false for content
   -- "if true then some tools will OMIT some proofs"
-option skip_proofs : bool = false
+option skip_proofs : bool = false for content
   -- "skip over proofs (implicit 'sorry')"
-option strict_facts : bool = false
+option strict_facts : bool = false for content
   -- "force lazy facts when defined in context"
 
 
 section "Global Session Parameters"
 
-option condition : string = ""
+option condition : string = "" for content
   -- "required environment variables for subsequent theories (separated by commas)"
 
-option timeout : real = 0
+option timeout : real = 0 for build
   -- "timeout for session build job (seconds > 0)"
 
-option timeout_build : bool = true
+option timeout_build : bool = true for build
   -- "observe timeout for session build"
 
 option process_policy : string = ""
   -- "command prefix for underlying process, notably ML with NUMA policy"
 
-option process_output_tail : int = 40
+option process_output_tail : int = 40 for build
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
-option profiling : string = "" (standard "time")
+option profiling : string = "" (standard "time") for build
   -- "ML profiling (possible values: time, time_thread, allocations)"
 
-option system_log : string = "" (standard "-")
+option system_log : string = "" (standard "-") for build
   -- "output for system messages (log file or \"-\" for console progress)"
 
-option system_heaps : bool = false
+option system_heaps : bool = false for build
   -- "store session heaps in $ISABELLE_HEAPS_SYSTEM, not $ISABELLE_HEAPS"
 
 
 section "ML System"
 
-option ML_print_depth : int = 20
+option ML_print_depth : int = 20 for content
   -- "ML print depth for toplevel pretty-printing"
 
 public option ML_exception_trace : bool = false
@@ -162,19 +162,19 @@ public option ML_exception_debugger : bool = false
 public option ML_debugger : bool = false
   -- "ML debugger instrumentation for newly compiled code"
 
-public option ML_system_64 : bool = false
+public option ML_system_64 : bool = false for build
   -- "prefer native 64bit platform (change requires restart)"
 
-public option ML_system_apple : bool = true
+public option ML_system_apple : bool = true for build#
   -- "prefer native Apple/ARM64 platform (change requires restart)"
 
 
 section "Build Process"
 
-option pide_reports : bool = true
+option pide_reports : bool = true for content
   -- "report PIDE markup (in ML)"
 
-option build_pide_reports : bool = true
+option build_pide_reports : bool = true for content
   -- "report PIDE markup (in batch build)"
 
 option build_hostname : string = ""
@@ -291,16 +291,16 @@ public option completion_path_ignore : string = "*~:*.marks:*.orig:*.rej:.DS_Sto
 
 section "Spell Checker"
 
-public option spell_checker : bool = true
+public option spell_checker : bool = true for content
   -- "enable spell-checker for prose words within document text, comments etc."
 
-public option spell_checker_dictionary : string = "en"
+public option spell_checker_dictionary : string = "en" for content
   -- "spell-checker dictionary name"
 
-public option spell_checker_include : string = "words,comment,comment1,comment2,comment3,ML_comment,SML_comment"
+public option spell_checker_include : string = "words,comment,comment1,comment2,comment3,ML_comment,SML_comment" for content
   -- "included markup elements for spell-checker (separated by commas)"
 
-public option spell_checker_exclude : string = "document_marker,antiquoted,raw_text"
+public option spell_checker_exclude : string = "document_marker,antiquoted,raw_text" for content
   -- "excluded markup elements for spell-checker (separated by commas)"
 
 
@@ -333,72 +333,72 @@ option phabricator_version_phabricator : string = "193798385bd3a7f72dca255e44f81
 
 section "Theory Export"
 
-option export_theory : bool = false
+option export_theory : bool = false for content
   -- "export theory content to Isabelle/Scala"
 
-option export_standard_proofs : bool = false
+option export_standard_proofs : bool = false for content
   -- "export standardized proof terms to Isabelle/Scala (not scalable)"
 
-option export_proofs : bool = false
+option export_proofs : bool = false for content
   -- "export proof terms to Isabelle/Scala"
 
-option prune_proofs : bool = false
+option prune_proofs : bool = false for content
   -- "prune proof terms after export (do not store in Isabelle/ML)"
 
 
 section "Theory update"
 
-option update_inner_syntax_cartouches : bool = false
+option update_inner_syntax_cartouches : bool = false for content update
   -- "update inner syntax (types, terms, etc.) to use cartouches"
 
-option update_mixfix_cartouches : bool = false
+option update_mixfix_cartouches : bool = false for content update
   -- "update mixfix templates to use cartouches instead of double quotes"
 
-option update_control_cartouches : bool = false
+option update_control_cartouches : bool = false for content update
   -- "update antiquotations to use control symbol with cartouche argument"
 
-option update_path_cartouches : bool = false
+option update_path_cartouches : bool = false for content update
   -- "update file-system paths to use cartouches"
 
-option update_cite : bool = false
+option update_cite : bool = false for content update
   -- "update cite commands and antiquotations"
 
 
 section "Build Database"
 
-option build_database_server : bool = false
-option build_database_user : string = ""
-option build_database_password : string = ""
-option build_database_name : string = ""
-option build_database_host : string = ""
-option build_database_port : int = 0
-option build_database_ssh_host : string = ""
-option build_database_ssh_user : string = ""
-option build_database_ssh_port : int = 0
+option build_database_server : bool = false for connection
+option build_database_user : string = "" for connection
+option build_database_password : string = "" for connection
+option build_database_name : string = "" for connection
+option build_database_host : string = "" for connection
+option build_database_port : int = 0 for connection
+option build_database_ssh_host : string = "" for connection
+option build_database_ssh_user : string = "" for connection
+option build_database_ssh_port : int = 0 for connection
 
 
 section "Build Log Database"
 
-option build_log_database_user : string = ""
-option build_log_database_password : string = ""
-option build_log_database_name : string = ""
-option build_log_database_host : string = ""
-option build_log_database_port : int = 0
-option build_log_ssh_host : string = ""
-option build_log_ssh_user : string = ""
-option build_log_ssh_port : int = 0
+option build_log_database_user : string = "" for connection
+option build_log_database_password : string = "" for connection
+option build_log_database_name : string = "" for connection
+option build_log_database_host : string = "" for connection
+option build_log_database_port : int = 0 for connection
+option build_log_ssh_host : string = "" for connection
+option build_log_ssh_user : string = "" for connection
+option build_log_ssh_port : int = 0 for connection
 option build_log_history : int = 30  -- "length of relevant history (in days)"
 option build_log_transaction_size : int = 1  -- "number of log files for each db update"
 
 
 section "Isabelle/Scala/ML system channel"
 
-option system_channel_address : string = ""
-option system_channel_password : string = ""
+option system_channel_address : string = "" for connection
+option system_channel_password : string = "" for connection
 
 
 section "Bash process execution server"
 
-option bash_process_debugging : bool = false
-option bash_process_address : string = ""
-option bash_process_password : string = ""
+option bash_process_debugging : bool = false for connection
+option bash_process_address : string = "" for connection
+option bash_process_password : string = "" for connection
