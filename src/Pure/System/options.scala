@@ -427,7 +427,7 @@ final class Options private(
   }
 
 
-  /* save preferences */
+  /* preferences */
 
   def make_prefs(
     defaults: Options = Options.init(prefs = ""),
