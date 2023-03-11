@@ -923,7 +923,7 @@ extends AutoCloseable {
   final def start_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
-        store.options.make_prefs(Options.init(prefs = ""), filter = _.is_exported))
+        store.options.make_prefs(Options.init(prefs = ""), filter = _.session_content))
     }
   }
 

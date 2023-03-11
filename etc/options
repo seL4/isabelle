@@ -291,16 +291,16 @@ public option completion_path_ignore : string = "*~:*.marks:*.orig:*.rej:.DS_Sto
 
 section "Spell Checker"
 
-public option spell_checker : bool = true for content
+public option spell_checker : bool = true
   -- "enable spell-checker for prose words within document text, comments etc."
 
-public option spell_checker_dictionary : string = "en" for content
+public option spell_checker_dictionary : string = "en"
   -- "spell-checker dictionary name"
 
-public option spell_checker_include : string = "words,comment,comment1,comment2,comment3,ML_comment,SML_comment" for content
+public option spell_checker_include : string = "words,comment,comment1,comment2,comment3,ML_comment,SML_comment"
   -- "included markup elements for spell-checker (separated by commas)"
 
-public option spell_checker_exclude : string = "document_marker,antiquoted,raw_text" for content
+public option spell_checker_exclude : string = "document_marker,antiquoted,raw_text"
   -- "excluded markup elements for spell-checker (separated by commas)"
 
 

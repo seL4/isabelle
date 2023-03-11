@@ -91,7 +91,11 @@ object Options {
     def unknown: Boolean = typ == Unknown
 
     def has_tag(tag: String): Boolean = tags.contains(tag)
-    def is_exported: Boolean = !has_tag(TAG_CONNECTION)
+
+    def session_content: Boolean =
+      has_tag(TAG_CONTENT) ||
+      has_tag(TAG_DOCUMENT) ||
+      has_tag(TAG_UPDATE)
   }
 
 
