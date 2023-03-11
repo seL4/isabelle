@@ -301,9 +301,12 @@ object Document_Build {
       val root_name1 = "root_" + doc.name
       val root_name = if ((doc_dir + Path.explode(root_name1).tex).is_file) root_name1 else "root"
 
+      val document_prefs = latex_output.options.make_prefs(filter = _.for_document)
+
       val meta_info =
         SHA1.shasum_meta_info(
-          SHA1.digest(List(doc.print, document_logo.toString, document_build).toString))
+          SHA1.digest(
+            List(doc.print, document_logo.toString, document_build, document_prefs).toString))
 
       val manifest =
         SHA1.shasum_sorted(
