@@ -292,6 +292,9 @@ object Library {
   def if_proper[A](x: Iterable[A], body: => String): String =
     if (x == null || x.isEmpty) "" else body
 
+  def if_proper(b: Boolean, body: => String): String =
+    if (!b) "" else body
+
 
   /* reflection */
 

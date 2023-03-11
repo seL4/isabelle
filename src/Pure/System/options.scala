@@ -250,7 +250,7 @@ final class Options private(
   override def toString: String = iterator.mkString("Options(", ",", ")")
 
   private def print_entry(opt: Options.Entry): String =
-    if (opt.public) "public " + opt.print else opt.print
+    if_proper(opt.public, "public ") + opt.print
 
   def print: String = cat_lines(iterator.toList.sortBy(_.name).map(print_entry))
 
