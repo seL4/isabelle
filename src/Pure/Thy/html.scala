@@ -7,6 +7,10 @@ HTML presentation elements.
 package isabelle
 
 
+import org.jsoup.nodes.{Entities => Jsoup_Entities, Document => Jsoup_Document}
+import org.jsoup.Jsoup
+
+
 object HTML {
   /* attributes */
 
@@ -255,10 +259,12 @@ object HTML {
     output(List(tree), hidden, structural)
 
 
-  /* input text */
+  /* input */
 
-  def input(text: String): String =
-    org.jsoup.nodes.Entities.unescape(text)
+  def input(text: String): String = Jsoup_Entities.unescape(text)
+
+  def parse_document(html: String): Jsoup_Document = Jsoup.parse(html)
+  def get_document(url: String): Jsoup_Document = Jsoup.connect(url).get()
 
 
   /* messages */
