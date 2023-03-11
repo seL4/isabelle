@@ -258,6 +258,7 @@ object Sessions {
               List(
                 Info.make(
                   Chapter_Defs.empty,
+                  Options.init0(),
                   info.options,
                   augment_options = _ => Nil,
                   dir_selected = false,
@@ -608,6 +609,7 @@ object Sessions {
   object Info {
     def make(
       chapter_defs: Chapter_Defs,
+      options0: Options,
       options: Options,
       augment_options: String => List[Options.Spec],
       dir_selected: Boolean,
@@ -627,6 +629,7 @@ object Sessions {
 
         val entry_options = entry.options ::: augment_options(name)
         val session_options = options ++ entry_options
+        val session_prefs = options.session_prefs(defaults = options0)
 
         val theories =
           entry.theories.map({ case (opts, thys) =>
@@ -663,14 +666,14 @@ object Sessions {
           SHA1.digest(
             (name, chapter, entry.parent, entry.directories, entry_options, entry.imports,
               entry.theories_no_position, conditions, entry.document_theories_no_position,
-              entry.document_files)
+              entry.document_files, session_prefs)
             .toString)
 
         val chapter_groups = chapter_defs(chapter).groups
         val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
 
         Info(name, chapter, dir_selected, entry.pos, groups, session_path,
-          entry.parent, entry.description, directories, session_options,
+          entry.parent, entry.description, directories, session_options, session_prefs,
           entry.imports, theories, global_theories, entry.document_theories, document_files,
           export_files, entry.export_classpath, meta_digest)
       }
@@ -693,6 +696,7 @@ object Sessions {
     description: String,
     directories: List[Path],
     options: Options,
+    session_prefs: String,
     imports: List[String],
     theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
@@ -820,6 +824,9 @@ object Sessions {
             }
         }
 
+      val options0 = Options.init0()
+      val session_prefs = options.session_prefs(defaults = options0)
+
       val root_infos = {
         var chapter = UNSORTED
         val root_infos = new mutable.ListBuffer[Info]
@@ -828,7 +835,7 @@ object Sessions {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
               root_infos +=
-                Info.make(chapter_defs, options, augment_options,
+                Info.make(chapter_defs, options0, options, augment_options,
                   root.select, root.dir, chapter, entry)
             case _ =>
           }
@@ -913,13 +920,14 @@ object Sessions {
               }
           }
 
-      new Structure(chapter_defs, session_positions, session_directories,
+      new Structure(chapter_defs, session_prefs, session_positions, session_directories,
         global_theories, build_graph, imports_graph)
     }
   }
 
   final class Structure private[Sessions](
     chapter_defs: Chapter_Defs,
+    val session_prefs: String,
     val session_positions: List[(String, Position.T)],
     val session_directories: Map[JFile, String],
     val global_theories: Map[String, String],
@@ -1010,8 +1018,8 @@ object Sessions {
         graph.restrict(graph.all_preds(sessions).toSet)
       }
 
-      new Structure(chapter_defs, session_positions, session_directories, global_theories,
-        restrict(build_graph), restrict(imports_graph))
+      new Structure(chapter_defs, session_prefs, session_positions, session_directories,
+        global_theories, restrict(build_graph), restrict(imports_graph))
     }
 
     def selection(session: String): Structure = selection(Selection.session(session))

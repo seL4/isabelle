@@ -57,6 +57,7 @@ object Build_Job {
       name: String,
       deps: List[String],
       ancestors: List[String],
+      session_prefs: String,
       sources_shasum: SHA1.Shasum,
       timeout: Time,
       store: Sessions.Store,
@@ -64,7 +65,8 @@ object Build_Job {
     ): Session_Context = {
       def default: Session_Context =
         Session_Context(
-          name, deps, ancestors, sources_shasum, timeout, Time.zero, Bytes.empty, build_uuid)
+          name, deps, ancestors, session_prefs, sources_shasum, timeout,
+          Time.zero, Bytes.empty, build_uuid)
 
       store.try_open_database(name) match {
         case None => default
@@ -83,7 +85,8 @@ object Build_Job {
                 case _ => Time.zero
               }
             new Session_Context(
-              name, deps, ancestors, sources_shasum, timeout, elapsed, command_timings, build_uuid)
+              name, deps, ancestors, session_prefs, sources_shasum, timeout,
+              elapsed, command_timings, build_uuid)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
@@ -99,6 +102,7 @@ object Build_Job {
     name: String,
     deps: List[String],
     ancestors: List[String],
+    session_prefs: String,
     sources_shasum: SHA1.Shasum,
     timeout: Time,
     old_time: Time,

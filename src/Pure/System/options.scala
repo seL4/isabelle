@@ -444,6 +444,9 @@ final class Options private(
       .map({ case (x, y, z) => x + " = " + Outer_Syntax.quote_string(y) + z + "\n" }).mkString
   }
 
+  def session_prefs(defaults: Options = Options.init0()): String =
+    make_prefs(defaults = defaults, filter = _.session_content)
+
   def save_prefs(file: Path = Options.PREFS, defaults: Options = Options.init0()): Unit = {
     val prefs = make_prefs(defaults = defaults)
     Isabelle_System.make_directory(file.dir)

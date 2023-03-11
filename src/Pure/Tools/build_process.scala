@@ -44,8 +44,8 @@ object Build_Process {
             val sources_shasum = build_deps.sources_shasum(name)
             val session_context =
               Build_Job.Session_Context.load(
-                build_uuid, name, deps, ancestors, sources_shasum, info.timeout, store,
-                progress = progress)
+                build_uuid, name, deps, ancestors, info.session_prefs, sources_shasum,
+                info.timeout, store, progress = progress)
             name -> session_context
           })
 
@@ -344,6 +344,7 @@ object Build_Process {
       val name = Generic.name.make_primary_key
       val deps = SQL.Column.string("deps")
       val ancestors = SQL.Column.string("ancestors")
+      val options = SQL.Column.string("options")
       val sources = SQL.Column.string("sources")
       val timeout = SQL.Column.long("timeout")
       val old_time = SQL.Column.long("old_time")
@@ -351,7 +352,8 @@ object Build_Process {
       val build_uuid = Generic.build_uuid
 
       val table = make_table("sessions",
-        List(name, deps, ancestors, sources, timeout, old_time, old_command_timings, build_uuid))
+        List(name, deps, ancestors, options, sources, timeout,
+          old_time, old_command_timings, build_uuid))
     }
 
     def read_sessions_domain(db: SQL.Database): Set[String] =
@@ -367,12 +369,13 @@ object Build_Process {
           val name = res.string(Sessions.name)
           val deps = split_lines(res.string(Sessions.deps))
           val ancestors = split_lines(res.string(Sessions.ancestors))
+          val options = res.string(Sessions.options)
           val sources_shasum = SHA1.fake_shasum(res.string(Sessions.sources))
           val timeout = Time.ms(res.long(Sessions.timeout))
           val old_time = Time.ms(res.long(Sessions.old_time))
           val old_command_timings_blob = res.bytes(Sessions.old_command_timings)
           val build_uuid = res.string(Sessions.build_uuid)
-          name -> Build_Job.Session_Context(name, deps, ancestors, sources_shasum,
+          name -> Build_Job.Session_Context(name, deps, ancestors, options, sources_shasum,
             timeout, old_time, old_command_timings_blob, build_uuid)
         }
       )
@@ -387,11 +390,12 @@ object Build_Process {
             stmt.string(1) = name
             stmt.string(2) = cat_lines(session.deps)
             stmt.string(3) = cat_lines(session.ancestors)
-            stmt.string(4) = session.sources_shasum.toString
-            stmt.long(5) = session.timeout.ms
-            stmt.long(6) = session.old_time.ms
-            stmt.bytes(7) = session.old_command_timings_blob
-            stmt.string(8) = session.build_uuid
+            stmt.string(4) = session.session_prefs
+            stmt.string(5) = session.sources_shasum.toString
+            stmt.long(6) = session.timeout.ms
+            stmt.long(7) = session.old_time.ms
+            stmt.bytes(8) = session.old_command_timings_blob
+            stmt.string(9) = session.build_uuid
           })
       }
 
@@ -923,7 +927,7 @@ extends AutoCloseable {
   final def start_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
-        store.options.make_prefs(Options.init0(), filter = _.session_content))
+        build_context.sessions_structure.session_prefs)
     }
   }
 
