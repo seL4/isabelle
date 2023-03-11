@@ -115,14 +115,14 @@ object JEdit_Options {
 
     protected val components: List[(String, List[Entry])] =
       options.make_components(predefined,
-        (for ((name, opt) <- options.value.opt_iterator if opt.public) yield name).toSet)
+        (for (opt <- options.value.iterator if opt.public) yield opt.name).toSet)
   }
 
   class Isabelle_Rendering_Options extends Isabelle_Options("isabelle-rendering") {
     private val predefined =
       (for {
-        (name, opt) <- PIDE.options.value.opt_iterator
-        if name.endsWith("_color") && opt.section == "Rendering of Document Content"
+        opt <- PIDE.options.value.iterator
+        if opt.name.endsWith("_color") && opt.section == "Rendering of Document Content"
       } yield PIDE.options.make_color_component(opt)).toList
 
     assert(predefined.nonEmpty)
@@ -135,7 +135,7 @@ object JEdit_Options {
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
   def color_value(s: String): Color = Color_Value(string(s))
 
-  def make_color_component(opt: Options.Opt): JEdit_Options.Entry = {
+  def make_color_component(opt: Options.Entry): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
     val opt_name = opt.name
@@ -154,7 +154,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
     component
   }
 
-  def make_component(opt: Options.Opt): JEdit_Options.Entry = {
+  def make_component(opt: Options.Entry): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
     val opt_name = opt.name
@@ -202,7 +202,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
     predefined: List[JEdit_Options.Entry],
     filter: String => Boolean
   ) : List[(String, List[JEdit_Options.Entry])] = {
-    def mk_component(opt: Options.Opt): List[JEdit_Options.Entry] =
+    def mk_component(opt: Options.Entry): List[JEdit_Options.Entry] =
       predefined.find(opt.name == _.name) match {
         case Some(c) => List(c)
         case None => if (filter(opt.name)) List(make_component(opt)) else Nil

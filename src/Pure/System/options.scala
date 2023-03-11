@@ -49,7 +49,7 @@ object Options {
   val TAG_UPDATE = "update"
   val TAG_CONNECTION = "connection"
 
-  case class Opt(
+  case class Entry(
     public: Boolean,
     pos: Position.T,
     name: String,
@@ -234,32 +234,32 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
 
 final class Options private(
-  options: Map[String, Options.Opt] = Map.empty,
+  options: Map[String, Options.Entry] = Map.empty,
   val section: String = ""
 ) {
-  def opt_iterator: Iterator[(String, Options.Opt)] = options.iterator
+  def iterator: Iterator[Options.Entry] = options.valuesIterator
 
-  override def toString: String = opt_iterator.mkString("Options(", ",", ")")
+  override def toString: String = iterator.mkString("Options(", ",", ")")
 
-  private def print_opt(opt: Options.Opt): String =
+  private def print_entry(opt: Options.Entry): String =
     if (opt.public) "public " + opt.print else opt.print
 
-  def print: String = cat_lines(opt_iterator.toList.sortBy(_._1).map(p => print_opt(p._2)))
+  def print: String = cat_lines(iterator.toList.sortBy(_.name).map(print_entry))
 
   def description(name: String): String = check_name(name).description
 
 
   /* check */
 
-  def get(name: String): Option[Options.Opt] = options.get(name)
+  def get(name: String): Option[Options.Entry] = options.get(name)
 
-  def check_name(name: String): Options.Opt =
+  def check_name(name: String): Options.Entry =
     get(name) match {
       case Some(opt) if !opt.unknown => opt
       case _ => error("Unknown option " + quote(name))
     }
 
-  private def check_type(name: String, typ: Options.Type): Options.Opt = {
+  private def check_type(name: String, typ: Options.Type): Options.Entry = {
     val opt = check_name(name)
     if (opt.typ == typ) opt
     else error("Ill-typed option " + quote(name) + " : " + opt.typ.print + " vs. " + typ.print)
@@ -363,7 +363,7 @@ final class Options private(
             case Some(s) => Some(s.getOrElse(value))
           }
         val opt =
-          Options.Opt(
+          Options.Entry(
             public, pos, name, typ, value, value, standard_value, tags, description, section)
         (new Options(options + (name -> opt), section)).check_value(name)
     }
@@ -373,7 +373,7 @@ final class Options private(
     if (options.isDefinedAt(name)) this + (name, value)
     else {
       val opt =
-        Options.Opt(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
+        Options.Entry(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
       new Options(options + (name -> opt), section)
     }
   }
@@ -407,7 +407,7 @@ final class Options private(
   def set_section(new_section: String): Options =
     new Options(options, new_section)
 
-  def sections: List[(String, List[Options.Opt])] =
+  def sections: List[(String, List[Options.Entry])] =
     options.groupBy(_._2.section).toList.map({ case (a, opts) => (a, opts.toList.map(_._2)) })
 
 
@@ -437,7 +437,7 @@ final class Options private(
 
   def make_prefs(
     defaults: Options = Options.init(prefs = ""),
-    filter: Options.Opt => Boolean = _ => true
+    filter: Options.Entry => Boolean = _ => true
   ): String = {
     (for {
       (name, opt2) <- options.iterator
