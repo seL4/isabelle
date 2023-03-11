@@ -219,20 +219,24 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
       val options = {
         val options0 = Options.init()
         val options1 =
-          if (build_options)
+          if (build_options) {
             Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
+          }
           else options0
         more_options.foldLeft(options1)(_ + _)
       }
 
-      if (get_option != "")
+      if (get_option != "") {
         Output.writeln(options.check_name(get_option).value, stdout = true)
+      }
 
-      if (export_file != "")
+      if (export_file != "") {
         File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+      }
 
-      if (get_option == "" && export_file == "")
+      if (get_option == "" && export_file == "") {
         Output.writeln(options.print, stdout = true)
+      }
     })
 }
 
