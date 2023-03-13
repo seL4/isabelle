@@ -331,7 +331,7 @@ object Build_Process {
 
     def stop_build(db: SQL.Database, build_uuid: String): Unit =
       db.execute_statement(
-        Base.table.update(List(Base.stop), sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+        Base.table.update(List(Base.stop), sql = Base.build_uuid.where_equal(build_uuid)),
         body = { stmt => stmt.date(1) = db.now() })
 
     def clean_build(db: SQL.Database): Unit = {
@@ -470,9 +470,7 @@ object Build_Process {
       def stop_db(): Unit =
         db.execute_statement(
           Base.table.update(
-            List(Base.progress_stopped),
-            sql = SQL.where(Generic.sql(build_uuid = build_uuid))
-          ),
+            List(Base.progress_stopped), sql = Base.build_uuid.where_equal(build_uuid)),
           body = { stmt => stmt.bool(1) = true })
 
       val stopped = build_progress.stopped
@@ -543,7 +541,7 @@ object Build_Process {
 
       val build_stop =
         db.execute_query_statementO(
-          Base.table.select(List(Base.stop), sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+          Base.table.select(List(Base.stop), sql = Base.build_uuid.where_equal(build_uuid)),
           res => res.get_date(Base.stop))
 
       build_stop match {
@@ -577,7 +575,7 @@ object Build_Process {
     ): Unit = {
       val sql =
         Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial),
-          sql = SQL.where(Generic.sql(worker_uuid = worker_uuid)))
+          sql = Workers.worker_uuid.where_equal(worker_uuid))
       db.execute_statement(sql, body =
         { stmt =>
           val now = db.now()
