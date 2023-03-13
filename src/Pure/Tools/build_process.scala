@@ -219,7 +219,7 @@ object Build_Process {
 
     def set_workers(new_workers: State.Workers): State = copy(workers = new_workers)
 
-    def numa_next_node(numa_nodes: List[Int]): (Option[Int], State) =
+    def next_numa_node(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
       else {
         val available = numa_nodes.zipWithIndex
@@ -910,7 +910,7 @@ extends AutoCloseable {
         .make_result(session_name, Process_Result.undefined, output_shasum)
     }
     else {
-      val (numa_node, state1) = state.numa_next_node(build_context.numa_nodes)
+      val (numa_node, state1) = state.next_numa_node(build_context.numa_nodes)
       val node_info = Host.Node_Info(build_context.hostname, numa_node)
 
       progress.echo(
