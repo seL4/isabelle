@@ -258,7 +258,6 @@ object Sessions {
               List(
                 Info.make(
                   Chapter_Defs.empty,
-                  Options.init0(),
                   info.options,
                   augment_options = _ => Nil,
                   dir_selected = false,
@@ -609,7 +608,6 @@ object Sessions {
   object Info {
     def make(
       chapter_defs: Chapter_Defs,
-      options0: Options,
       options: Options,
       augment_options: String => List[Options.Spec],
       dir_selected: Boolean,
@@ -627,9 +625,10 @@ object Sessions {
         val session_path = dir + Path.explode(entry.path)
         val directories = entry.directories.map(dir => session_path + Path.explode(dir))
 
-        val entry_options = entry.options ::: augment_options(name)
-        val session_options = options ++ entry_options
-        val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
+        val session_options0 = options ++ entry.options
+        val session_options = session_options0 ++ augment_options(name)
+        val session_prefs =
+          session_options.make_prefs(defaults = session_options0, filter = _.session_content)
 
         val theories =
           entry.theories.map({ case (opts, thys) =>
@@ -664,7 +663,7 @@ object Sessions {
 
         val meta_digest =
           SHA1.digest(
-            (name, chapter, entry.parent, entry.directories, entry_options, entry.imports,
+            (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
               entry.theories_no_position, conditions, entry.document_theories_no_position,
               entry.document_files, session_prefs)
             .toString)
@@ -824,8 +823,8 @@ object Sessions {
             }
         }
 
-      val options0 = Options.init0()
-      val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
+      val session_prefs =
+        options.make_prefs(defaults = Options.init0(), filter = _.session_content)
 
       val root_infos = {
         var chapter = UNSORTED
@@ -835,7 +834,7 @@ object Sessions {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
               root_infos +=
-                Info.make(chapter_defs, options0, options, augment_options,
+                Info.make(chapter_defs, options, augment_options,
                   root.select, root.dir, chapter, entry)
             case _ =>
           }
