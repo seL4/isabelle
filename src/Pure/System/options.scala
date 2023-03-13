@@ -177,7 +177,7 @@ object Options {
   def read_prefs(file: Path = PREFS): String =
     if (file.is_file) File.read(file) else ""
 
-  def init(prefs: String = read_prefs(PREFS), opts: List[String] = Nil): Options = {
+  def init(prefs: String = read_prefs(file = PREFS), opts: List[String] = Nil): Options = {
     var options = empty
     for {
       dir <- Components.directories()
@@ -438,20 +438,34 @@ final class Options private(
   }
 
 
+  /* changed options */
+
+  sealed case class Changed(name: String, value: String, unknown: Boolean) {
+    def print_props: String = Properties.Eq(name, value)
+    def print_prefs: String =
+      name + " = " + Outer_Syntax.quote_string(value) +
+        if_proper(unknown, "  (* unknown *)") + "\n"
+  }
+
+  def changed(
+    defaults: Options = Options.init0(),
+    filter: Options.Entry => Boolean = _ => true
+  ): List[Changed] = {
+    List.from(
+      for {
+        (name, opt2) <- options.iterator
+        opt1 = defaults.get(name)
+        if (opt1.isEmpty || opt1.get.value != opt2.value) && filter(opt2)
+      } yield Changed(name, opt2.value, opt1.isEmpty))
+  }
+
+
   /* preferences */
 
   def make_prefs(
     defaults: Options = Options.init0(),
     filter: Options.Entry => Boolean = _ => true
-  ): String = {
-    (for {
-      (name, opt2) <- options.iterator
-      opt1 = defaults.get(name)
-      if (opt1.isEmpty || opt1.get.value != opt2.value) && filter(opt2)
-    } yield (name, opt2.value, if (opt1.isEmpty) "  (* unknown *)" else ""))
-      .toList.sortBy(_._1)
-      .map({ case (x, y, z) => x + " = " + Outer_Syntax.quote_string(y) + z + "\n" }).mkString
-  }
+  ): String = changed(defaults = defaults, filter = filter).map(_.print_prefs).mkString
 
   def save_prefs(file: Path = Options.PREFS, defaults: Options = Options.init0()): Unit = {
     val prefs = make_prefs(defaults = defaults)
