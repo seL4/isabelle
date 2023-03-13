@@ -143,7 +143,23 @@ object Build_Process {
 
   type Progress_Messages = SortedMap[Long, Progress.Message]
 
-  case class Task(name: String, deps: List[String], info: JSON.Object.T = JSON.Object.empty) {
+  case class Worker(
+    worker_uuid: String,
+    build_uuid: String,
+    hostname: String,
+    java_pid: Long,
+    java_start: Date,
+    start: Date,
+    stamp: Date,
+    stop: Option[Date],
+    serial: Long
+  )
+
+  case class Task(
+    name: String,
+    deps: List[String],
+    info: JSON.Object.T = JSON.Object.empty
+  ) {
     def is_ready: Boolean = deps.isEmpty
     def resolve(dep: String): Task =
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
@@ -157,17 +173,6 @@ object Build_Process {
   ) {
     def no_build: Job = copy(build = None)
   }
-
-  case class Worker(
-    worker_uuid: String,
-    build_uuid: String,
-    hostname: String,
-    java_pid: Long,
-    java_start: Date,
-    start: Date,
-    stamp: Date,
-    stop: Option[Date],
-    serial: Long)
 
   case class Result(
     process_result: Process_Result,
