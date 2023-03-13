@@ -8,9 +8,9 @@ package isabelle
 
 
 object Options {
-  type Spec = (String, Option[String])
-
   val empty: Options = new Options()
+
+  sealed case class Spec(name: String, value: Option[String] = None)
 
   sealed case class Change(name: String, value: String, unknown: Boolean) {
     def print_props: String = Properties.Eq(name, value)
@@ -421,7 +421,7 @@ final class Options private(
     }
 
   def ++ (specs: List[Options.Spec]): Options =
-    specs.foldLeft(this) { case (x, (y, z)) => x + (y, z) }
+    specs.foldLeft(this) { case (x, Options.Spec(y, z)) => x + (y, z) }
 
 
   /* sections */

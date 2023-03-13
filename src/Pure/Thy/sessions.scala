@@ -1168,7 +1168,7 @@ object Sessions {
     private val session_entry: Parser[Session_Entry] = {
       val option =
         option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
-          { case x ~ y => (x, y) }
+          { case x ~ y => Options.Spec(x, y) }
       val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
 
       val theory_entry =

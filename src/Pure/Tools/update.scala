@@ -194,7 +194,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
         "l:" -> (arg => base_logics = space_explode(',', arg)),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
-        "u:" -> (arg => update_options = update_options ::: List(("update_" + arg, None))),
+        "u:" -> (arg => update_options = update_options ::: List(Options.Spec("update_" + arg))),
         "v" -> (_ => verbose = true),
         "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
