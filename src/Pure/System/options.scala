@@ -10,12 +10,21 @@ package isabelle
 object Options {
   val empty: Options = new Options()
 
-  sealed case class Spec(name: String, value: Option[String] = None) {
+  object Spec {
+    def make(s: String): Spec =
+      s match {
+        case Properties.Eq(a, b) => Spec(a, Some(b))
+        case _ => Spec(s)
+      }
+  }
+
+  sealed case class Spec(name: String, value: Option[String] = None, permissive: Boolean = false) {
     override def toString: String = name + if_proper(value, "=" + value.get)
   }
 
   sealed case class Change(name: String, value: String, unknown: Boolean) {
-    def print_props: String = Properties.Eq(name, value)
+    def spec: Spec = Spec(name, Some(value))
+
     def print_prefs: String =
       name + " = " + Outer_Syntax.quote_string(value) +
         if_proper(unknown, "  (* unknown *)") + "\n"
@@ -159,7 +168,8 @@ object Options {
 
     val prefs_entry: Parser[Options => Options] = {
       option_name ~ ($$$("=") ~! option_value) ^^
-      { case a ~ (_ ~ b) => (options: Options) => options.add_permissive(a, b) }
+      { case a ~ (_ ~ b) => (options: Options) =>
+          options + Options.Spec(a, Some(b), permissive = true) }
     }
 
     def parse_file(
@@ -393,37 +403,29 @@ final class Options private(
     }
   }
 
-  def add_permissive(name: String, value: String): Options = {
-    if (options.isDefinedAt(name)) this + (name, value)
-    else {
+  def + (spec: Options.Spec): Options = {
+    val name = spec.name
+    if (spec.permissive && !options.isDefinedAt(name)) {
+      val value = spec.value.getOrElse("")
       val opt =
         Options.Entry(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
       new Options(options + (name -> opt), section)
     }
-  }
-
-  def + (name: String, value: String): Options = {
-    val opt = check_name(name)
-    (new Options(options + (name -> opt.copy(value = value)), section)).check_value(name)
-  }
-
-  def + (name: String, opt_value: Option[String]): Options = {
-    val opt = check_name(name)
-    opt_value orElse opt.standard_value match {
-      case Some(value) => this + (name, value)
-      case None if opt.typ == Options.Bool => this + (name, "true")
-      case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
+    else {
+      val opt = check_name(name)
+      def put(value: String): Options =
+        (new Options(options + (name -> opt.copy(value = value)), section)).check_value(name)
+      spec.value orElse opt.standard_value match {
+        case Some(value) => put(value)
+        case None if opt.typ == Options.Bool => put("true")
+        case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
+      }
     }
   }
 
-  def + (str: String): Options =
-    str match {
-      case Properties.Eq(a, b) => this + (a, b)
-      case _ => this + (str, None)
-    }
+  def + (s: String): Options = this + Options.Spec.make(s)
 
-  def ++ (specs: List[Options.Spec]): Options =
-    specs.foldLeft(this) { case (x, Options.Spec(y, z)) => x + (y, z) }
+  def ++ (specs: List[Options.Spec]): Options = specs.foldLeft(this)(_ + _)
 
 
   /* sections */
@@ -482,7 +484,7 @@ class Options_Variable(init_options: Options) {
 
   def value: Options = synchronized { _options }
   def change(f: Options => Options): Unit = synchronized { _options = f(_options) }
-  def += (name: String, x: String): Unit = change(options => options + (name, x))
+  def += (name: String, x: String): Unit = change(options => options + Options.Spec(name, Some(x)))
 
   val bool: Options.Access_Variable[Boolean] =
     new Options.Access_Variable[Boolean](this, _.bool)
