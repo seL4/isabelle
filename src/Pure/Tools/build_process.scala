@@ -120,18 +120,8 @@ object Build_Process {
         case None => Nil
       }
 
-    def open_database(): Option[SQL.Database] =
-      if (!build_options.bool("build_database_test")) None
-      else if (store.database_server) Some(store.open_database_server())
-      else {
-        val db = SQLite.open_database(Build_Process.Data.database)
-        try { Isabelle_System.chmod("600", Build_Process.Data.database) }
-        catch { case exn: Throwable => db.close(); throw exn }
-        Some(db)
-      }
-
     def prepare_database(): Unit = {
-      using_option(open_database()) { db =>
+      using_option(store.open_build_database()) { db =>
         db.transaction {
           Data.all_tables.create_lock(db)
           Data.clean_build(db)
@@ -267,8 +257,6 @@ object Build_Process {
   /** SQL data model **/
 
   object Data {
-    val database = Path.explode("$ISABELLE_HOME_USER/build.db")
-
     def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_build" + if_proper(name, "_" + name), columns, body = body)
 
@@ -782,7 +770,7 @@ extends AutoCloseable {
 
   private var _state: Build_Process.State = init_state(Build_Process.State())
 
-  private val _database: Option[SQL.Database] = build_context.open_database()
+  private val _database: Option[SQL.Database] = store.open_build_database()
 
   def close(): Unit = synchronized { _database.foreach(_.close()) }
 

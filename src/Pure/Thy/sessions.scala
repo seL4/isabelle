@@ -1470,7 +1470,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
 
-    /* database */
+    /* databases for build process and session content */
 
     def find_database(name: String): Option[Path] =
       input_dirs.map(_ + database(name)).find(_.is_file)
@@ -1491,6 +1491,18 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               user = options.string("build_database_ssh_user"),
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
+
+    val build_database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+
+    def open_build_database(): Option[SQL.Database] =
+      if (!options.bool("build_database_test")) None
+      else if (database_server) Some(open_database_server())
+      else {
+        val db = SQLite.open_database(build_database)
+        try { Isabelle_System.chmod("600", build_database) }
+        catch { case exn: Throwable => db.close(); throw exn }
+        Some(db)
+      }
 
     def try_open_database(
       name: String,
