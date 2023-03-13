@@ -820,6 +820,10 @@ extends AutoCloseable {
   protected final val build_uuid: String = build_context.build_uuid
   protected final val worker_uuid: String = UUID.random().toString
 
+  override def toString: String =
+    "Build_Process(worker_uuid = " + quote(worker_uuid) + ", build_uuid = " + quote(build_uuid) +
+      if_proper(build_context.master, ", master = true") + ")"
+
 
   /* global state: internal var vs. external database */
 
