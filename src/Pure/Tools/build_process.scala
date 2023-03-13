@@ -168,6 +168,7 @@ object Build_Process {
   case class Job(
     name: String,
     worker_uuid: String,
+    build_uuid: String,
     node_info: Host.Node_Info,
     build: Option[Build_Job]
   ) {
@@ -609,10 +610,11 @@ object Build_Process {
     object Running {
       val name = Generic.name.make_primary_key
       val worker_uuid = Generic.worker_uuid
+      val build_uuid = Generic.build_uuid
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
 
-      val table = make_table("running", List(name, worker_uuid, hostname, numa_node))
+      val table = make_table("running", List(name, worker_uuid, build_uuid, hostname, numa_node))
     }
 
     def read_running(db: SQL.Database): List[Job] =
@@ -622,9 +624,10 @@ object Build_Process {
         { res =>
           val name = res.string(Running.name)
           val worker_uuid = res.string(Running.worker_uuid)
+          val build_uuid = res.string(Running.build_uuid)
           val hostname = res.string(Running.hostname)
           val numa_node = res.get_int(Running.numa_node)
-          Job(name, worker_uuid, Host.Node_Info(hostname, numa_node), None)
+          Job(name, worker_uuid, build_uuid, Host.Node_Info(hostname, numa_node), None)
         }
       )
 
@@ -644,8 +647,9 @@ object Build_Process {
           { stmt =>
             stmt.string(1) = job.name
             stmt.string(2) = job.worker_uuid
-            stmt.string(3) = job.node_info.hostname
-            stmt.int(4) = job.node_info.numa_node
+            stmt.string(3) = job.build_uuid
+            stmt.string(4) = job.node_info.hostname
+            stmt.int(5) = job.node_info.numa_node
           })
       }
 
@@ -922,7 +926,9 @@ extends AutoCloseable {
         Build_Job.start_session(build_context, progress, log,
           build_deps.background(session_name), input_shasum, node_info)
 
-      state1.add_running(Build_Process.Job(session_name, worker_uuid, node_info, Some(build)))
+      val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
+
+      state1.add_running(job)
     }
   }
 
