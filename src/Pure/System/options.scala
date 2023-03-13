@@ -16,6 +16,9 @@ object Options {
         case Properties.Eq(a, b) => Spec(a, Some(b))
         case _ => Spec(s)
       }
+
+    def ISABELLE_BUILD_OPTIONS: List[Spec] =
+      Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).map(make)
   }
 
   sealed case class Spec(name: String, value: Option[String] = None, permissive: Boolean = false) {
@@ -196,13 +199,13 @@ object Options {
   def read_prefs(file: Path = PREFS): String =
     if (file.is_file) File.read(file) else ""
 
-  def init(prefs: String = read_prefs(file = PREFS), opts: List[String] = Nil): Options = {
+  def init(prefs: String = read_prefs(file = PREFS), specs: List[Spec] = Nil): Options = {
     var options = empty
     for {
       dir <- Components.directories()
       file = dir + OPTIONS if file.is_file
     } { options = Parsers.parse_file(options, file.implode, File.read(file)) }
-    opts.foldLeft(Parsers.parse_prefs(options, prefs))(_ + _)
+    Parsers.parse_prefs(options, prefs) ++ specs
   }
 
   def init0(): Options = init(prefs = "")
@@ -244,10 +247,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
       val options = {
         val options0 = Options.init()
         val options1 =
-          if (build_options) {
-            Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).foldLeft(options0)(_ + _)
-          }
-          else options0
+          if (build_options) options0 ++ Options.Spec.ISABELLE_BUILD_OPTIONS else options0
         more_options.foldLeft(options1)(_ + _)
       }
 

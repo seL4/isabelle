@@ -61,7 +61,8 @@ object Server_Commands {
       args: Args,
       progress: Progress = new Progress
     ) : (JSON.Object.T, Build.Results, Options, Sessions.Background) = {
-      val options = Options.init(prefs = args.preferences, opts = args.options)
+      val options =
+        Options.init(prefs = args.preferences, specs = args.options.map(Options.Spec.make))
       val dirs = args.dirs.map(Path.explode)
 
       val session_background =

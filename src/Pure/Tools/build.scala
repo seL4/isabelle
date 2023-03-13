@@ -248,8 +248,6 @@ object Build {
   val isabelle_tool1 = Isabelle_Tool("build", "build and manage Isabelle sessions",
     Scala_Project.here,
     { args =>
-      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
-
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var numa_shuffling = false
@@ -268,7 +266,7 @@ object Build {
       var check_keywords: Set[String] = Set.empty
       var list_files = false
       var no_build = false
-      var options = Options.init(opts = build_options)
+      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var verbose = false
       var exclude_sessions: List[String] = Nil
 
@@ -406,12 +404,10 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   val isabelle_tool2 = Isabelle_Tool("build_worker", "external worker for session build process",
     Scala_Project.here,
     { args =>
-      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
-
       var numa_shuffling = false
       var dirs: List[Path] = Nil
       var max_jobs = 1
-      var options = Options.init(opts = build_options)
+      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var verbose = false
       var build_uuid = ""
 

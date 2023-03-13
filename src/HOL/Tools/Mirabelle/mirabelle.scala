@@ -105,9 +105,7 @@ object Mirabelle {
   val isabelle_tool = Isabelle_Tool("mirabelle", "testing tool for automated proof tools",
     Scala_Project.here,
     { args =>
-      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
-
-      var options = Options.init(opts = build_options)
+      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
       val mirabelle_dry_run = options.check_name("mirabelle_dry_run")
       val mirabelle_max_calls = options.check_name("mirabelle_max_calls")
       val mirabelle_randomize = options.check_name("mirabelle_randomize")
