@@ -12,6 +12,13 @@ object Options {
 
   val empty: Options = new Options()
 
+  sealed case class Change(name: String, value: String, unknown: Boolean) {
+    def print_props: String = Properties.Eq(name, value)
+    def print_prefs: String =
+      name + " = " + Outer_Syntax.quote_string(value) +
+        if_proper(unknown, "  (* unknown *)") + "\n"
+  }
+
 
   /* typed access */
 
@@ -440,23 +447,16 @@ final class Options private(
 
   /* changed options */
 
-  sealed case class Changed(name: String, value: String, unknown: Boolean) {
-    def print_props: String = Properties.Eq(name, value)
-    def print_prefs: String =
-      name + " = " + Outer_Syntax.quote_string(value) +
-        if_proper(unknown, "  (* unknown *)") + "\n"
-  }
-
   def changed(
     defaults: Options = Options.init0(),
     filter: Options.Entry => Boolean = _ => true
-  ): List[Changed] = {
+  ): List[Options.Change] = {
     List.from(
       for {
         (name, opt2) <- options.iterator
         opt1 = defaults.get(name)
         if (opt1.isEmpty || opt1.get.value != opt2.value) && filter(opt2)
-      } yield Changed(name, opt2.value, opt1.isEmpty))
+      } yield Options.Change(name, opt2.value, opt1.isEmpty))
   }
 
 
