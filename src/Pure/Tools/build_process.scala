@@ -874,13 +874,12 @@ extends AutoCloseable {
 
   private def progress_output(message: Progress.Message, build_progress_output: => Unit): Unit = {
     synchronized_database {
-      val state1 = _state.inc_serial.progress_serial()
+      _state = _state.inc_serial.progress_serial()
       for (db <- _database) {
-        Build_Process.Data.write_progress(db, state1.serial, message, build_uuid)
-        Build_Process.Data.stamp_worker(db, worker_uuid, state1.serial)
+        Build_Process.Data.write_progress(db, _state.serial, message, build_uuid)
+        Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial)
       }
       build_progress_output
-      _state = state1
     }
   }
 
