@@ -10,7 +10,9 @@ package isabelle
 object Options {
   val empty: Options = new Options()
 
-  sealed case class Spec(name: String, value: Option[String] = None)
+  sealed case class Spec(name: String, value: Option[String] = None) {
+    override def toString: String = name + if_proper(value, "=" + value.get)
+  }
 
   sealed case class Change(name: String, value: String, unknown: Boolean) {
     def print_props: String = Properties.Eq(name, value)
