@@ -459,7 +459,16 @@ object Build_Process {
         })
     }
 
-    def sync_progress(db: SQL.Database, build_uuid: String, build_progress: Progress): Unit = {
+    def sync_progress(
+      db: SQL.Database,
+      seen: Long,
+      build_uuid: String,
+      build_progress: Progress
+    ): (Progress_Messages, Boolean) = {
+      require(build_uuid.nonEmpty)
+
+      val messages = read_progress(db, seen = seen, build_uuid = build_uuid)
+
       val stopped_db =
         db.execute_query_statementO[Boolean](
           Base.table.select(List(Base.progress_stopped),
@@ -477,6 +486,8 @@ object Build_Process {
 
       if (stopped_db && !stopped) build_progress.stop()
       if (stopped && !stopped_db) stop_db()
+
+      (messages, messages.isEmpty && stopped_db == stopped)
     }
 
 
@@ -823,10 +834,25 @@ extends AutoCloseable {
       _database match {
         case None => body
         case Some(db) =>
-          db.transaction_lock(Build_Process.Data.all_tables) {
-            Build_Process.Data.sync_progress(db, build_uuid, build_progress)
-            body
+          @tailrec def loop(): A = {
+            val sync_progress =
+              db.transaction_lock(Build_Process.Data.all_tables) {
+                val (messages, sync) =
+                  Build_Process.Data.sync_progress(
+                    db, _state.progress_seen, build_uuid, build_progress)
+                if (sync) Left(body) else Right(messages)
+              }
+            sync_progress match {
+              case Left(res) => res
+              case Right(messages) =>
+                for ((message_serial, message) <- messages) {
+                  _state = _state.progress_serial(message_serial = message_serial)
+                  if (build_progress.do_output(message)) build_progress.output(message)
+                }
+                loop()
+            }
           }
+          loop()
       }
     }
 
