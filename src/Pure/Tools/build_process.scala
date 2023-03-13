@@ -305,15 +305,18 @@ object Build_Process {
       val options = SQL.Column.string("options")
       val start = SQL.Column.date("start")
       val stop = SQL.Column.date("stop")
+      val progress_stopped = SQL.Column.bool("progress_stopped")
 
-      val table = make_table("", List(build_uuid, ml_platform, options, start, stop))
+      val table =
+        make_table("", List(build_uuid, ml_platform, options, start, stop, progress_stopped))
     }
 
     def start_build(
       db: SQL.Database,
       build_uuid: String,
       ml_platform: String,
-      options: String
+      options: String,
+      progress_stopped: Boolean
     ): Unit = {
       db.execute_statement(Base.table.insert(), body =
         { stmt =>
@@ -322,6 +325,7 @@ object Build_Process {
           stmt.string(3) = options
           stmt.date(4) = db.now()
           stmt.date(5) = None
+          stmt.bool(6) = progress_stopped
         })
     }
 
@@ -453,6 +457,28 @@ object Build_Process {
           stmt.bool(4) = message.verbose
           stmt.string(5) = build_uuid
         })
+    }
+
+    def sync_progress(db: SQL.Database, build_uuid: String, build_progress: Progress): Unit = {
+      val stopped_db =
+        db.execute_query_statementO[Boolean](
+          Base.table.select(List(Base.progress_stopped),
+            sql = SQL.where(Base.build_uuid.equal(build_uuid))),
+          res => res.bool(Base.progress_stopped)
+        ).getOrElse(false)
+
+      def stop_db(): Unit =
+        db.execute_statement(
+          Base.table.update(
+            List(Base.progress_stopped),
+            sql = SQL.where(Generic.sql(build_uuid = build_uuid))
+          ),
+          body = { stmt => stmt.bool(1) = true })
+
+      val stopped = build_progress.stopped
+
+      if (stopped_db && !stopped) build_progress.stop()
+      if (stopped && !stopped_db) stop_db()
     }
 
 
@@ -798,7 +824,11 @@ extends AutoCloseable {
     synchronized {
       _database match {
         case None => body
-        case Some(db) => db.transaction_lock(Build_Process.Data.all_tables)(body)
+        case Some(db) =>
+          db.transaction_lock(Build_Process.Data.all_tables) {
+            Build_Process.Data.sync_progress(db, build_uuid, build_progress)
+            body
+          }
       }
     }
 
@@ -938,7 +968,7 @@ extends AutoCloseable {
   final def start_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
-        build_context.sessions_structure.session_prefs)
+        build_context.sessions_structure.session_prefs, progress.stopped)
     }
   }
 
