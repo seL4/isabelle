@@ -149,6 +149,15 @@ object Build_Process {
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
   }
 
+  case class Job(
+    name: String,
+    worker_uuid: String,
+    node_info: Host.Node_Info,
+    build: Option[Build_Job]
+  ) {
+    def no_build: Job = copy(build = None)
+  }
+
   case class Worker(
     worker_uuid: String,
     build_uuid: String,
@@ -173,7 +182,7 @@ object Build_Process {
     type Sessions = Map[String, Build_Job.Session_Context]
     type Workers = List[Worker]
     type Pending = List[Task]
-    type Running = Map[String, Build_Job]
+    type Running = Map[String, Job]
     type Results = Map[String, Result]
 
     def inc_serial(serial: Long): Long = {
@@ -229,13 +238,16 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def stop_running(): Unit = running.valuesIterator.foreach(_.cancel())
+    def stop_running(): Unit =
+      for (job <- running.valuesIterator; build <- job.build) build.cancel()
 
     def finished_running(): List[Build_Job] =
-      List.from(running.valuesIterator.filter(_.is_finished))
+      List.from(
+        for (job <- running.valuesIterator; build <- job.build if build.is_finished)
+        yield build)
 
-    def add_running(name: String, job: Build_Job): State =
-      copy(running = running + (name -> job))
+    def add_running(job: Job): State =
+      copy(running = running + (job.name -> job))
 
     def remove_running(name: String): State =
       copy(running = running - name)
@@ -599,34 +611,34 @@ object Build_Process {
       val table = make_table("running", List(name, worker_uuid, hostname, numa_node))
     }
 
-    def read_running(db: SQL.Database): List[Build_Job.Abstract] =
+    def read_running(db: SQL.Database): List[Job] =
       db.execute_query_statement(
         Running.table.select(sql = SQL.order_by(List(Running.name))),
-        List.from[Build_Job.Abstract],
+        List.from[Job],
         { res =>
           val name = res.string(Running.name)
           val worker_uuid = res.string(Running.worker_uuid)
           val hostname = res.string(Running.hostname)
           val numa_node = res.get_int(Running.numa_node)
-          Build_Job.Abstract(name, worker_uuid, Host.Node_Info(hostname, numa_node))
+          Job(name, worker_uuid, Host.Node_Info(hostname, numa_node), None)
         }
       )
 
     def update_running(db: SQL.Database, running: State.Running): Boolean = {
-      val old_running = read_running(db)
-      val abs_running = running.valuesIterator.map(_.make_abstract).toList
+      val running0 = read_running(db)
+      val running1 = running.valuesIterator.map(_.no_build).toList
 
-      val (delete, insert) = Library.symmetric_difference(old_running, abs_running)
+      val (delete, insert) = Library.symmetric_difference(running0, running1)
 
       if (delete.nonEmpty) {
         db.execute_statement(
-          Running.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.job_name)))))
+          Running.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.name)))))
       }
 
       for (job <- insert) {
         db.execute_statement(Running.table.insert(), body =
           { stmt =>
-            stmt.string(1) = job.job_name
+            stmt.string(1) = job.name
             stmt.string(2) = job.worker_uuid
             stmt.string(3) = job.node_info.hostname
             stmt.int(4) = job.node_info.numa_node
@@ -902,10 +914,11 @@ extends AutoCloseable {
 
       store.init_output(session_name)
 
-      val job =
-        Build_Job.start_session(build_context, worker_uuid, progress, log,
+      val build =
+        Build_Job.start_session(build_context, progress, log,
           build_deps.background(session_name), input_shasum, node_info)
-      state1.add_running(session_name, job)
+
+      state1.add_running(Build_Process.Job(session_name, worker_uuid, node_info, Some(build)))
     }
   }
 
@@ -982,14 +995,14 @@ extends AutoCloseable {
         while (!finished()) {
           if (progress.stopped) synchronized_database { _state.stop_running() }
 
-          for (job <- synchronized_database { _state.finished_running() }) {
-            val job_name = job.job_name
-            val (process_result, output_shasum) = job.join
+          for (build <- synchronized_database { _state.finished_running() }) {
+            val job_name = build.job_name
+            val (process_result, output_shasum) = build.join
             synchronized_database {
               _state = _state.
                 remove_pending(job_name).
                 remove_running(job_name).
-                make_result(job_name, process_result, output_shasum, node_info = job.node_info)
+                make_result(job_name, process_result, output_shasum, node_info = build.node_info)
             }
           }
 
