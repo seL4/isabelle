@@ -516,8 +516,7 @@ object Build_Process {
 
       val build_stop =
         db.execute_query_statementO(
-          Base.table.select(List(Base.stop),
-            sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+          Base.table.select(List(Base.stop), sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
           res => res.get_date(Base.stop))
 
       build_stop match {
