@@ -328,9 +328,6 @@ final class Options private(
       def update(name: String, x: String): Options = put(name, Options.String, x)
     }
 
-  def proper_string(name: String): Option[String] =
-    Library.proper_string(string(name))
-
   def seconds(name: String): Time = Time.seconds(real(name))
 
 
@@ -482,9 +479,6 @@ class Options_Variable(init_options: Options) {
 
   val string: Options.Access_Variable[String] =
     new Options.Access_Variable[String](this, _.string)
-
-  def proper_string(name: String): Option[String] =
-    Library.proper_string(string(name))
 
   def seconds(name: String): Time = value.seconds(name)
 }

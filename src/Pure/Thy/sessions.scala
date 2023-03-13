@@ -1486,7 +1486,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
         host = options.string("build_database_host"),
         port = options.int("build_database_port"),
         ssh =
-          options.proper_string("build_database_ssh_host").map(ssh_host =>
+          proper_string(options.string("build_database_ssh_host")).map(ssh_host =>
             SSH.open_session(options,
               host = ssh_host,
               user = options.string("build_database_ssh_user"),
