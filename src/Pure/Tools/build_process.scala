@@ -1061,12 +1061,12 @@ extends AutoCloseable {
 
       try {
         while (!finished()) {
-          if (progress.stopped) synchronized_database { _state.stop_running() }
+          synchronized_database {
+            if (progress.stopped) _state.stop_running()
 
-          for (build <- synchronized_database { _state.finished_running() }) {
-            val job_name = build.job_name
-            val (process_result, output_shasum) = build.join
-            synchronized_database {
+            for (build <- _state.finished_running()) {
+              val job_name = build.job_name
+              val (process_result, output_shasum) = build.join
               _state = _state.
                 remove_pending(job_name).
                 remove_running(job_name).
