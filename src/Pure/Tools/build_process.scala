@@ -342,6 +342,16 @@ object Build_Process {
           if_proper(worker_uuid, Generic.worker_uuid.equal(worker_uuid)),
           if_proper(name, Generic.name.equal(name)),
           if_proper(names, Generic.name.member(names)))
+
+      def sql_where(
+        build_uuid: String = "",
+        worker_uuid: String = "",
+        name: String = "",
+        names: Iterable[String] = Nil
+      ): SQL.Source = {
+        SQL.where(sql(build_uuid = build_uuid, worker_uuid = worker_uuid,
+          name = name, names = names))
+      }
     }
 
 
@@ -361,7 +371,7 @@ object Build_Process {
 
     def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] =
       db.execute_query_statement(
-        Base.table.select(sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+        Base.table.select(sql = Generic.sql_where(build_uuid = build_uuid)),
         List.from[Build],
         { res =>
           val build_uuid = res.string(Base.build_uuid)
@@ -582,8 +592,8 @@ object Build_Process {
       worker_uuid: String = ""
     ): List[Worker] = {
       db.execute_query_statement(
-        Workers.table.select(sql =
-          SQL.where(Generic.sql(build_uuid = build_uuid, worker_uuid = worker_uuid))),
+        Workers.table.select(
+          sql = Generic.sql_where(build_uuid = build_uuid, worker_uuid = worker_uuid)),
           List.from[Worker],
           { res =>
             Worker(
@@ -685,7 +695,7 @@ object Build_Process {
 
       if (delete.nonEmpty) {
         db.execute_statement(
-          Pending.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.name)))))
+          Pending.table.delete(sql = Generic.sql_where(names = delete.map(_.name))))
       }
 
       for (task <- insert) {
@@ -736,7 +746,7 @@ object Build_Process {
 
       if (delete.nonEmpty) {
         db.execute_statement(
-          Running.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.name)))))
+          Running.table.delete(sql = Generic.sql_where(names = delete.map(_.name))))
       }
 
       for (job <- insert) {
