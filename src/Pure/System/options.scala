@@ -460,7 +460,7 @@ final class Options private(
         (name, opt2) <- options.iterator
         opt1 = defaults.get(name)
         if (opt1.isEmpty || opt1.get.value != opt2.value) && filter(opt2)
-      } yield Options.Change(name, opt2.value, opt1.isEmpty))
+      } yield Options.Change(name, opt2.value, opt1.isEmpty)).sortBy(_.name)
   }
 
 
