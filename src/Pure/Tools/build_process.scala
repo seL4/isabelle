@@ -190,7 +190,6 @@ object Build_Process {
 
   object State {
     type Sessions = Map[String, Build_Job.Session_Context]
-    type Workers = List[Worker]
     type Pending = List[Task]
     type Running = Map[String, Job]
     type Results = Map[String, Result]
@@ -206,7 +205,6 @@ object Build_Process {
     progress_seen: Long = 0,
     numa_next: Int = 0,
     sessions: State.Sessions = Map.empty,   // static build targets
-    workers: State.Workers = Nil,           // available worker processes
     pending: State.Pending = Nil,           // dynamic build "queue"
     running: State.Running = Map.empty,     // presently running jobs
     results: State.Results = Map.empty      // finished results
@@ -221,8 +219,6 @@ object Build_Process {
     def progress_serial(message_serial: Long = serial): State =
       if (message_serial > progress_seen) copy(progress_seen = message_serial)
       else error("Bad serial " + message_serial + " for progress output (already seen)")
-
-    def set_workers(new_workers: State.Workers): State = copy(workers = new_workers)
 
     def next_numa_node(numa_nodes: List[Int]): (Option[Int], State) =
       if (numa_nodes.isEmpty) (None, this)
@@ -556,7 +552,7 @@ object Build_Process {
       db: SQL.Database,
       build_uuid: String = "",
       worker_uuid: String = ""
-    ): State.Workers = {
+    ): List[Worker] = {
       db.execute_query_statement(
         Workers.table.select(sql =
           SQL.where(Generic.sql(build_uuid = build_uuid, worker_uuid = worker_uuid))),
@@ -844,13 +840,12 @@ object Build_Process {
 
         val numa_next = Host.Data.read_numa_next(db, hostname)
         val sessions = pull1(read_sessions_domain(db), read_sessions(db, _), state.sessions)
-        val workers = read_workers(db)
         val pending = read_pending(db)
         val running = pull0(read_running(db), state.running)
         val results = pull1(read_results_domain(db), read_results(db, _), state.results)
 
         state.copy(serial = serial, numa_next = numa_next, sessions = sessions,
-          workers = workers, pending = pending, running = running, results = results)
+          pending = pending, running = running, results = results)
       }
     }
 
@@ -873,7 +868,7 @@ object Build_Process {
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
 
       stamp_worker(db, worker_uuid, serial)
-      state.set_serial(serial).set_workers(read_workers(db))
+      state.set_serial(serial)
     }
   }
 }
@@ -955,7 +950,6 @@ extends AutoCloseable {
       for (db <- _database) {
         Build_Process.Data.write_progress(db, _state.serial, message, build_uuid)
         Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial)
-        _state = _state.set_workers(Build_Process.Data.read_workers(db))
       }
       build_progress_output
     }
@@ -1094,14 +1088,12 @@ extends AutoCloseable {
       _state = _state.inc_serial
       Build_Process.Data.start_worker(
         db, worker_uuid, build_uuid, hostname, java_pid, java_start, _state.serial)
-      _state = _state.set_workers(Build_Process.Data.read_workers(db))
     }
   }
 
   protected final def stop_worker(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop = true)
-      _state = _state.set_workers(Build_Process.Data.read_workers(db))
     }
   }
 
