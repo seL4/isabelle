@@ -248,10 +248,10 @@ object Build_Process {
     def stop_running(): Unit =
       for (job <- running.valuesIterator; build <- job.build) build.cancel()
 
-    def finished_running(): List[Build_Job] =
+    def finished_running(): List[(String, Build_Job)] =
       List.from(
         for (job <- running.valuesIterator; build <- job.build if build.is_finished)
-        yield build)
+        yield job.name -> build)
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -993,6 +993,8 @@ extends AutoCloseable {
 
   /* build process roles */
 
+  final def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
+
   final def start_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
@@ -1038,7 +1040,7 @@ extends AutoCloseable {
     def start_job(): Boolean = synchronized_database {
       next_job(_state) match {
         case Some(name) =>
-          if (Build_Job.is_session_name(name)) {
+          if (is_session_name(name)) {
             _state = start_session(_state, name)
             true
           }
@@ -1064,8 +1066,7 @@ extends AutoCloseable {
           synchronized_database {
             if (progress.stopped) _state.stop_running()
 
-            for (build <- _state.finished_running()) {
-              val job_name = build.job_name
+            for ((job_name, build) <- _state.finished_running()) {
               val (process_result, output_shasum) = build.join
               _state = _state.
                 remove_pending(job_name).

@@ -11,7 +11,6 @@ import scala.collection.mutable
 
 
 trait Build_Job {
-  def job_name: String
   def node_info: Host.Node_Info
   def cancel(): Unit = ()
   def is_finished: Boolean = false
@@ -25,8 +24,6 @@ object Build_Job {
 
 
   /* build session */
-
-  def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
 
   def start_session(
     build_context: Build_Process.Context,
@@ -111,7 +108,6 @@ object Build_Job {
     private val store = build_context.store
 
     def session_name: String = session_background.session_name
-    def job_name: String = session_name
 
     private val info: Sessions.Info = session_background.sessions_structure(session_name)
     private val options: Options = node_info.process_policy(info.options)
