@@ -296,9 +296,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Build and manage Isabelle sessions, depending on implicit settings:
+  Build and manage Isabelle sessions: ML heaps, session databases, documents.
 
-""" + Library.indent_lines(2,  Build_Log.Settings.show()) + "\n",
+  Notable system options: see "isabelle options -l -t build"
+
+  Notable system settings:
+""" + Library.indent_lines(4,  Build_Log.Settings.show()) + "\n",
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
         "N" -> (_ => numa_shuffling = true),
@@ -424,7 +427,7 @@ Usage: isabelle build_worker [OPTIONS] ...]
 
   Run as external worker for session build process, as identified via
   option -U UUID.
-""" + Library.indent_lines(2,  Build_Log.Settings.show()) + "\n",
+""",
         "N" -> (_ => numa_shuffling = true),
         "U:" -> (arg => build_uuid = arg),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),

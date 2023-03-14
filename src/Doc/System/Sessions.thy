@@ -382,15 +382,18 @@ text \<open>
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Build and manage Isabelle sessions, depending on implicit settings:
+  Build and manage Isabelle sessions: ML heaps, session databases, documents.
 
-  ISABELLE_TOOL_JAVA_OPTIONS="..."
-  ISABELLE_BUILD_OPTIONS="..."
+  Notable system options: see "isabelle options -l -t build"
 
-  ML_PLATFORM="..."
-  ML_HOME="..."
-  ML_SYSTEM="..."
-  ML_OPTIONS="..."\<close>}
+  Notable system settings:
+    ISABELLE_TOOL_JAVA_OPTIONS="..."
+    ISABELLE_BUILD_OPTIONS="..."
+
+    ML_PLATFORM="..."
+    ML_HOME="..."
+    ML_SYSTEM="..."
+    ML_OPTIONS="..."\<close>}
 
   \<^medskip>
   Isabelle sessions are defined via session ROOT files as described in
