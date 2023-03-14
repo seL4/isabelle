@@ -372,8 +372,12 @@ object Build_Process {
           Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.defined)),
           List.from[String], res => res.string(Base.build_uuid))
 
+      val tables =
+        all_tables.filter(table =>
+          table.columns.exists(column => column.name == Generic.build_uuid.name))
+
       if (old.nonEmpty) {
-        for (table <- List(Base.table, Sessions.table, Progress.table, Workers.table)) {
+        for (table <- tables) {
           db.execute_statement(table.delete(sql = Generic.build_uuid.where_member(old)))
         }
       }
