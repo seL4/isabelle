@@ -145,6 +145,15 @@ object Build_Process {
   type Progress_Messages = SortedMap[Long, Progress.Message]
   val progress_messages_empty: Progress_Messages = SortedMap.empty
 
+  case class Build(
+    build_uuid: String,
+    ml_platform: String,
+    options: String,
+    start: Date,
+    stop: Option[Date],
+    progress_stopped: Boolean
+  )
+
   case class Worker(
     worker_uuid: String,
     build_uuid: String,
@@ -191,6 +200,7 @@ object Build_Process {
 
   sealed case class Snapshot(
     progress_messages: Progress_Messages,
+    builds: List[Build],        // available build configurations
     workers: List[Worker],      // available worker processes
     sessions: State.Sessions,   // static build targets
     pending: State.Pending,     // dynamic build "queue"
@@ -347,6 +357,20 @@ object Build_Process {
       val table =
         make_table("", List(build_uuid, ml_platform, options, start, stop, progress_stopped))
     }
+
+    def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] =
+      db.execute_query_statement(
+        Base.table.select(sql = SQL.where(Generic.sql(build_uuid = build_uuid))),
+        List.from[Build],
+        { res =>
+          val build_uuid = res.string(Base.build_uuid)
+          val ml_platform = res.string(Base.ml_platform)
+          val options = res.string(Base.options)
+          val start = res.date(Base.start)
+          val stop = res.get_date(Base.stop)
+          val progress_stopped = res.bool(Base.progress_stopped)
+          Build(build_uuid, ml_platform, options, start, stop, progress_stopped)
+        })
 
     def start_build(
       db: SQL.Database,
@@ -1174,15 +1198,17 @@ extends AutoCloseable {
   /* snapshot */
 
   def snapshot(): Build_Process.Snapshot = synchronized_database {
-    val (progress_messages, workers) =
+    val (progress_messages, builds, workers) =
       _database match {
-        case None => (Build_Process.progress_messages_empty, Nil)
+        case None => (Build_Process.progress_messages_empty, Nil, Nil)
         case Some(db) =>
           (Build_Process.Data.read_progress(db),
+           Build_Process.Data.read_builds(db),
            Build_Process.Data.read_workers(db))
       }
     Build_Process.Snapshot(
       progress_messages = progress_messages,
+      builds = builds,
       workers = workers,
       sessions = _state.sessions,
       pending = _state.pending,
