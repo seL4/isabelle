@@ -937,9 +937,7 @@ extends AutoCloseable {
       for (a <- build_context.sessions(session_name).ancestors) yield state.results(a)
 
     val input_shasum =
-      if (ancestor_results.isEmpty) {
-        SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
-      }
+      if (ancestor_results.isEmpty) ML_Process.bootstrap_shasum()
       else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
     val store_heap = build_context.store_heap(session_name)
