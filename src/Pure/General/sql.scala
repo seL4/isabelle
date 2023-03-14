@@ -224,6 +224,8 @@ object SQL {
   final class Tables private(val list: List[Table]) extends Iterable[Table] {
     override def toString: String = list.mkString("SQL.Tables(", ", ", ")")
 
+    def ::: (other: Tables): Tables = new Tables(other.list ::: list)
+
     def iterator: Iterator[Table] = list.iterator
 
     // requires transaction
