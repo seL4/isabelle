@@ -11,7 +11,6 @@ import scala.collection.mutable
 
 
 trait Build_Job {
-  def node_info: Host.Node_Info
   def cancel(): Unit = ()
   def is_finished: Boolean = false
   def join: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
@@ -103,7 +102,7 @@ object Build_Job {
     log: Logger,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
-    override val node_info: Host.Node_Info
+    node_info: Host.Node_Info
   ) extends Build_Job {
     private val store = build_context.store
 

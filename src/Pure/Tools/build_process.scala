@@ -248,10 +248,10 @@ object Build_Process {
     def stop_running(): Unit =
       for (job <- running.valuesIterator; build <- job.build) build.cancel()
 
-    def finished_running(): List[(String, Build_Job)] =
+    def finished_running(): List[Job] =
       List.from(
         for (job <- running.valuesIterator; build <- job.build if build.is_finished)
-        yield job.name -> build)
+        yield job)
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -1066,12 +1066,12 @@ extends AutoCloseable {
           synchronized_database {
             if (progress.stopped) _state.stop_running()
 
-            for ((job_name, build) <- _state.finished_running()) {
-              val (process_result, output_shasum) = build.join
+            for (job <- _state.finished_running()) {
+              val (process_result, output_shasum) = job.build.get.join
               _state = _state.
-                remove_pending(job_name).
-                remove_running(job_name).
-                make_result(job_name, process_result, output_shasum, node_info = build.node_info)
+                remove_pending(job.name).
+                remove_running(job.name).
+                make_result(job.name, process_result, output_shasum, node_info = job.node_info)
             }
           }
 
