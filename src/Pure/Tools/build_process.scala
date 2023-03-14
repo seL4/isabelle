@@ -542,6 +542,12 @@ object Build_Process {
       val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
     }
 
+    def read_serial(db: SQL.Database): Long =
+      db.execute_query_statementO[Long](
+        Workers.table.select(List(Workers.serial_max)),
+        res => res.long(Workers.serial)
+      ).getOrElse(0L)
+
     def read_workers(
       db: SQL.Database,
       build_uuid: String = "",
@@ -564,12 +570,6 @@ object Build_Process {
               serial = res.long(Workers.serial))
           })
     }
-
-    def serial_max(db: SQL.Database): Long =
-      db.execute_query_statementO[Long](
-        Workers.table.select(List(Workers.serial_max)),
-        res => res.long(Workers.serial)
-      ).getOrElse(0L)
 
     def start_worker(
       db: SQL.Database,
@@ -832,10 +832,10 @@ object Build_Process {
       hostname: String,
       state: State
     ): State = {
-      val serial0 = serial_max(db)
-      if (serial0 == state.serial) state
+      val serial_db = read_serial(db)
+      if (serial_db == state.serial) state
       else {
-        val serial = serial0 max state.serial
+        val serial = serial_db max state.serial
         stamp_worker(db, worker_uuid, serial)
 
         val numa_next = Host.Data.read_numa_next(db, hostname)
