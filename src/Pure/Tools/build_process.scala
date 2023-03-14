@@ -169,7 +169,8 @@ object Build_Process {
   case class Task(
     name: String,
     deps: List[String],
-    info: JSON.Object.T = JSON.Object.empty
+    info: JSON.Object.T,
+    build_uuid: String
   ) {
     def is_ready: Boolean = deps.isEmpty
     def resolve(dep: String): Task =
@@ -661,8 +662,9 @@ object Build_Process {
       val name = Generic.name.make_primary_key
       val deps = SQL.Column.string("deps")
       val info = SQL.Column.string("info")
+      val build_uuid = Generic.build_uuid
 
-      val table = make_table("pending", List(name, deps, info))
+      val table = make_table("pending", List(name, deps, info, build_uuid))
     }
 
     def read_pending(db: SQL.Database): List[Task] =
@@ -673,7 +675,8 @@ object Build_Process {
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
           val info = res.string(Pending.info)
-          Task(name, split_lines(deps), info = JSON.Object.parse(info))
+          val build_uuid = res.string(Pending.build_uuid)
+          Task(name, split_lines(deps), JSON.Object.parse(info), build_uuid)
         })
 
     def update_pending(db: SQL.Database, pending: State.Pending): Boolean = {
@@ -685,12 +688,13 @@ object Build_Process {
           Pending.table.delete(sql = SQL.where(Generic.sql(names = delete.map(_.name)))))
       }
 
-      for (entry <- insert) {
+      for (task <- insert) {
         db.execute_statement(Pending.table.insert(), body =
           { stmt =>
-            stmt.string(1) = entry.name
-            stmt.string(2) = cat_lines(entry.deps)
-            stmt.string(3) = JSON.Format(entry.info)
+            stmt.string(1) = task.name
+            stmt.string(2) = cat_lines(task.deps)
+            stmt.string(3) = JSON.Format(task.info)
+            stmt.string(4) = task.build_uuid
           })
       }
 
@@ -1020,7 +1024,7 @@ extends AutoCloseable {
         for {
           (name, session_context) <- build_context.sessions.iterator
           if !old_pending(name)
-        } yield Build_Process.Task(name, session_context.deps))
+        } yield Build_Process.Task(name, session_context.deps, JSON.Object.empty, build_uuid))
     val pending1 = new_pending ::: state.pending
 
     state.copy(sessions = sessions1, pending = pending1)
