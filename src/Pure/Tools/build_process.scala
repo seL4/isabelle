@@ -1066,22 +1066,23 @@ extends AutoCloseable {
 
   /* build process roles */
 
-  final def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
+  final def is_session_name(job_name: String): Boolean =
+    !Long_Name.is_qualified(job_name)
 
-  final def start_build(): Unit = synchronized_database {
+  protected final def start_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
         build_context.sessions_structure.session_prefs, progress.stopped)
     }
   }
 
-  final def stop_build(): Unit = synchronized_database {
+  protected final def stop_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.stop_build(db, build_uuid)
     }
   }
 
-  final def start_worker(): Unit = synchronized_database {
+  protected final def start_worker(): Unit = synchronized_database {
     for (db <- _database) {
       val java = ProcessHandle.current()
       val java_pid = java.pid
@@ -1093,7 +1094,7 @@ extends AutoCloseable {
     }
   }
 
-  final def stop_worker(): Unit = synchronized_database {
+  protected final def stop_worker(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop = true)
       _state = _state.set_workers(Build_Process.Data.read_workers(db))
