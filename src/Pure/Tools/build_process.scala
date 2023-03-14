@@ -105,7 +105,8 @@ object Build_Process {
     val master: Boolean
   ) {
     override def toString: String =
-      "Build_Process.Context(build_uuid = " + quote(build_uuid) + ")"
+      "Build_Process.Context(build_uuid = " + quote(build_uuid) +
+        if_proper(master, ", master = true") + ")"
 
     def build_options: Options = store.options
 
