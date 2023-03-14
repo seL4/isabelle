@@ -127,7 +127,7 @@ object Build_Process {
           Data.all_tables.create_lock(db)
           Data.clean_build(db)
         }
-        db.rebuild()
+        db.vacuum(Data.all_tables)
       }
     }
 
