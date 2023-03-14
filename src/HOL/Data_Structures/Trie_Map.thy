@@ -2,7 +2,7 @@ section "Tries via Search Trees"
 
 theory Trie_Map
 imports
-  RBT_Map
+  Tree_Map
   Trie_Fun
 begin
 
@@ -30,19 +30,19 @@ Characters with a dot are final.
 Thus the tree represents the set of strings "cute","cup","at","as","he","us" and "i".
 \<close>
 
-datatype 'a trie3 = Nd3 bool "('a * 'a trie3) rbt"
+datatype 'a trie3 = Nd3 bool "('a * 'a trie3) tree"
 
 text \<open>In principle one should be able to given an implementation of tries
-once and for all for any map implementation and not just for a specific one (RBT) as done here.
-But because the map (@{typ "'a rbt"}) is used in a datatype, the HOL type system does not support this.
+once and for all for any map implementation and not just for a specific one (unbalanced trees) as done here.
+But because the map (@{type tree}) is used in a datatype, the HOL type system does not support this.
 
-However, the development below works verbatim for any map implementation, eg \<open>Tree_Map\<close>,
-and not just \<open>RBT_Map\<close>, except for the termination lemma \<open>lookup_size\<close>.\<close>
+However, the development below works verbatim for any map implementation, eg \<open>RBT_Map\<close>,
+and not just \<open>Tree_Map\<close>, except for the termination lemma \<open>lookup_size\<close>.\<close>
 
 term size_tree
 lemma lookup_size[termination_simp]:
-  fixes t :: "('a::linorder * 'a trie3) rbt"
-  shows "lookup t a = Some b \<Longrightarrow> size b < Suc (size_tree (\<lambda>ab. Suc(Suc (size (snd(fst ab))))) t)"
+  fixes t :: "('a::linorder * 'a trie3) tree"
+  shows "lookup t a = Some b \<Longrightarrow> size b < Suc (size_tree (\<lambda>ab. Suc (size (snd( ab)))) t)"
 apply(induction t a rule: lookup.induct)
 apply(auto split: if_splits)
 done
@@ -85,7 +85,7 @@ done
 
 lemma abs3_insert3: "invar3 t \<Longrightarrow> abs3(insert3 xs t) = insert xs (abs3 t)"
 apply(induction xs t rule: insert3.induct)
-apply(auto simp: M.map_specs RBT_Set.empty_def[symmetric] split: option.split)
+apply(auto simp: M.map_specs Tree_Set.empty_def[symmetric] split: option.split)
 done
 
 lemma abs3_delete3: "invar3 t \<Longrightarrow> abs3(delete3 xs t) = delete xs (abs3 t)"
@@ -95,7 +95,7 @@ done
 
 lemma invar3_insert3: "invar3 t \<Longrightarrow> invar3 (insert3 xs t)"
 apply(induction xs t rule: insert3.induct)
-apply(auto simp: M.map_specs RBT_Set.empty_def[symmetric] split: option.split)
+apply(auto simp: M.map_specs Tree_Set.empty_def[symmetric] split: option.split)
 done
 
 lemma invar3_delete3: "invar3 t \<Longrightarrow> invar3 (delete3 xs t)"
@@ -117,12 +117,11 @@ next
 next
   case 4 thus ?case by (simp add: set_delete abs3_delete3 del: set_def)
 next
-  case 5 thus ?case by (simp add: M.map_specs RBT_Set.empty_def[symmetric])
+  case 5 thus ?case by (simp add: M.map_specs Tree_Set.empty_def[symmetric])
 next
   case 6 thus ?case by (simp add: invar3_insert3)
 next
   case 7 thus ?case by (simp add: invar3_delete3)
 qed
-
 
 end
