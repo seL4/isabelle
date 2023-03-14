@@ -888,6 +888,7 @@ extends AutoCloseable {
   protected final val store: Sessions.Store = build_context.store
   protected final val build_options: Options = store.options
   protected final val build_deps: Sessions.Deps = build_context.build_deps
+  protected final val hostname: String = build_context.hostname
   protected final val build_uuid: String = build_context.build_uuid
   protected final val worker_uuid: String = UUID.random().toString
 
@@ -910,13 +911,12 @@ extends AutoCloseable {
         case None => body
         case Some(db) =>
           def pull_database(): Unit = {
-            _state = Build_Process.Data.pull_database(db, worker_uuid, build_context.hostname, _state)
+            _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
           }
 
           def sync_database(): Unit = {
             _state =
-              Build_Process.Data.update_database(
-                db, worker_uuid, build_uuid, build_context.hostname, _state)
+              Build_Process.Data.update_database(db, worker_uuid, build_uuid, hostname, _state)
           }
 
           def attempt(): Either[A, Build_Process.Progress_Messages] = {
@@ -1045,7 +1045,7 @@ extends AutoCloseable {
     }
     else {
       val (numa_node, state1) = state.next_numa_node(build_context.numa_nodes)
-      val node_info = Host.Node_Info(build_context.hostname, numa_node)
+      val node_info = Host.Node_Info(hostname, numa_node)
 
       progress.echo(
         (if (store_heap) "Building " else "Running ") + session_name +
@@ -1088,7 +1088,7 @@ extends AutoCloseable {
       val java_start = Date.instant(java.info.startInstant.get)
       _state = _state.inc_serial
       Build_Process.Data.start_worker(
-        db, worker_uuid, build_uuid, build_context.hostname, java_pid, java_start, _state.serial)
+        db, worker_uuid, build_uuid, hostname, java_pid, java_start, _state.serial)
       _state = _state.set_workers(Build_Process.Data.read_workers(db))
     }
   }
