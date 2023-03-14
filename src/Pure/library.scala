@@ -308,4 +308,9 @@ object Library {
 
   def as_subclass[C](c: Class[C])(x: AnyRef): Option[C] =
     if (x == null || is_subclass(x.getClass, c)) Some(x.asInstanceOf[C]) else None
+
+
+  /* named items */
+
+  trait Named { def name: String }
 }

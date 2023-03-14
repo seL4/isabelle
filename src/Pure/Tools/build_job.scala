@@ -11,22 +11,13 @@ import scala.collection.mutable
 
 
 trait Build_Job {
-  def job_name: String
-  def node_info: Host.Node_Info
   def cancel(): Unit = ()
   def is_finished: Boolean = false
   def join: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
 }
 
 object Build_Job {
-  sealed case class Result(node_info: Host.Node_Info, process_result: Process_Result) {
-    def ok: Boolean = process_result.ok
-  }
-
-
   /* build session */
-
-  def is_session_name(job_name: String): Boolean = !Long_Name.is_qualified(job_name)
 
   def start_session(
     build_context: Build_Process.Context,
@@ -96,9 +87,7 @@ object Build_Job {
     old_time: Time,
     old_command_timings_blob: Bytes,
     build_uuid: String
-  ) {
-    override def toString: String = name
-  }
+  ) extends Library.Named
 
   class Session_Job private[Build_Job](
     build_context: Build_Process.Context,
@@ -106,12 +95,11 @@ object Build_Job {
     log: Logger,
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
-    override val node_info: Host.Node_Info
+    node_info: Host.Node_Info
   ) extends Build_Job {
     private val store = build_context.store
 
     def session_name: String = session_background.session_name
-    def job_name: String = session_name
 
     private val info: Sessions.Info = session_background.sessions_structure(session_name)
     private val options: Options = node_info.process_policy(info.options)

@@ -217,11 +217,14 @@ object SQL {
 
   object Tables {
     def list(list: List[Table]): Tables = new Tables(list)
+    val empty: Tables = list(Nil)
     def apply(args: Table*): Tables = list(args.toList)
   }
 
   final class Tables private(val list: List[Table]) extends Iterable[Table] {
     override def toString: String = list.mkString("SQL.Tables(", ", ", ")")
+
+    def ::: (other: Tables): Tables = new Tables(other.list ::: list)
 
     def iterator: Iterator[Table] = list.iterator
 
@@ -350,7 +353,7 @@ object SQL {
     def is_sqlite: Boolean = isInstanceOf[SQLite.Database]
     def is_postgresql: Boolean = isInstanceOf[PostgreSQL.Database]
 
-    def rebuild(): Unit = ()
+    def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit
 
     def now(): Date
 
@@ -483,7 +486,9 @@ object SQLite {
 
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
-    override def rebuild(): Unit = execute_statement("VACUUM")
+
+    override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
+      execute_statement("VACUUM")  // always FULL
 
     override def now(): Date = Date.now()
 
@@ -564,6 +569,9 @@ object PostgreSQL {
     port_forwarding: Option[SSH.Port_Forwarding]
   ) extends SQL.Database {
     override def toString: String = name
+
+    override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
+      execute_statement("VACUUM" + if_proper(tables.list, " " + commas(tables.list.map(_.ident))))
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
