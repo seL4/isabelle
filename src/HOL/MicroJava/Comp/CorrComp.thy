@@ -266,7 +266,7 @@ definition env_of_jmb :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig \<R
   "env_of_jmb G C S == 
   (let (mn,pTs) = S;
        (D,rT,(pns,lvars,blk,res)) = the(method (G, C) S) in
-  (G,map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C)))"
+  (G,(map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class C)))"
 
 lemma env_of_jmb_fst [simp]: "fst (env_of_jmb G C S) = G"
 by (simp add: env_of_jmb_def split_beta)
@@ -406,7 +406,7 @@ lemma wtpd_blk:
   wf_prog wf_java_mdecl G; is_class G D \<rbrakk>
  \<Longrightarrow> wtpd_stmt (env_of_jmb G D (md, pTs)) blk"
   apply (simp add: wtpd_stmt_def env_of_jmb_def)
-  apply (frule_tac P="%D (md, pTs) (rT, (pns, lvars, blk, res)). (G, map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class D)) \<turnstile> blk \<surd> " in method_preserves)
+  apply (frule_tac P="%D (md, pTs) (rT, (pns, lvars, blk, res)). (G, (map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class D)) \<turnstile> blk \<surd> " in method_preserves)
      apply (auto simp: wf_mdecl_def wf_java_mdecl_def)
   done
 
@@ -415,7 +415,7 @@ lemma wtpd_res:
   wf_prog wf_java_mdecl G; is_class G D \<rbrakk>
  \<Longrightarrow> wtpd_expr (env_of_jmb G D (md, pTs)) res"
   apply (simp add: wtpd_expr_def env_of_jmb_def)
-  apply (frule_tac P="%D (md, pTs) (rT, (pns, lvars, blk, res)). \<exists>T. (G, map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class D)) \<turnstile> res :: T " in method_preserves)
+  apply (frule_tac P="%D (md, pTs) (rT, (pns, lvars, blk, res)). \<exists>T. (G, (map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class D)) \<turnstile> res :: T " in method_preserves)
      apply (auto simp: wf_mdecl_def wf_java_mdecl_def)
   done
 
@@ -539,7 +539,7 @@ lemma progression_lvar_init [rule_format (no_asm)]:
    {cG, D, S} \<turnstile>
    {h, os, (a' # pvs @ lvals)}
    >- (compInitLvars (pns, lvars, blk, res) lvars) \<rightarrow>
-   {h, os, (locvars_xstate G C S (Norm (h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))))})"
+   {h, os, (locvars_xstate G C S (Norm (h, (init_vars lvars)(pns[\<mapsto>]pvs, This\<mapsto>a'))))})"
   apply (simp only: compInitLvars_def)
   apply (frule method_yields_wf_java_mdecl, assumption, assumption)
 
@@ -587,7 +587,7 @@ lemma state_ok_init:
   method (G, dynT) (mn, pTs) = Some (md, rT, pns, lvars, blk, res);
   list_all2 (conf G h) pvs pTs; G,h \<turnstile> a' ::\<preceq> Class md\<rbrakk>
   \<Longrightarrow>
-  (np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))::\<preceq>(env_of_jmb G md (mn, pTs))"
+  (np a' x, h, (init_vars lvars)(pns[\<mapsto>]pvs, This\<mapsto>a'))::\<preceq>(env_of_jmb G md (mn, pTs))"
   apply (frule wf_prog_ws_prog)
   apply (frule method_in_md [THEN conjunct2], assumption+)
   apply (frule method_yields_wf_java_mdecl, assumption, assumption)
@@ -1173,7 +1173,7 @@ theorem compiler_correctness:
            apply (simp (no_asm_simp))
 
           (* show s3::\<preceq>\<dots> *)
-          apply (rule_tac xs = "(np a' x, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))" and st=blk in state_ok_exec)
+          apply (rule_tac xs = "(np a' x, h, (init_vars lvars)(pns[\<mapsto>]pvs, This\<mapsto>a'))" and st=blk in state_ok_exec)
              apply assumption
             apply (simp (no_asm_simp) only: env_of_jmb_fst)
            apply assumption

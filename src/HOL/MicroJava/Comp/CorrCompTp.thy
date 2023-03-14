@@ -20,7 +20,7 @@ definition is_inited_LT :: "[cname, ty list, (vname \<times> ty) list, locvars_t
 
 definition local_env :: "[java_mb prog, cname, sig, vname list,(vname \<times> ty) list] \<Rightarrow> java_mb env" where
   "local_env G C S pns lvars == 
-     let (mn, pTs) = S in (G,map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C))"
+     let (mn, pTs) = S in (G,(map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class C))"
 
 lemma local_env_fst [simp]: "fst (local_env G C S pns lvars) = G"
   by (simp add: local_env_def split_beta)
@@ -42,7 +42,7 @@ lemma wt_class_expr_is_class:
 subsection "index"
 
 lemma local_env_snd:
-  "snd (local_env G C (mn, pTs) pns lvars) = map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C)"
+  "snd (local_env G C (mn, pTs) pns lvars) = (map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class C)"
   by (simp add: local_env_def)
 
 
@@ -62,7 +62,7 @@ lemma index_in_bounds:
 
 
 lemma map_upds_append: 
-  "length k1s = length x1s \<Longrightarrow> m(k1s[\<mapsto>]x1s)(k2s[\<mapsto>]x2s) = m ((k1s@k2s)[\<mapsto>](x1s@x2s))"
+  "length k1s = length x1s \<Longrightarrow> m(k1s[\<mapsto>]x1s, k2s[\<mapsto>]x2s) = m ((k1s@k2s)[\<mapsto>](x1s@x2s))"
   apply (induct k1s arbitrary: x1s m)
    apply simp
   apply (subgoal_tac "\<exists>x xr. x1s = x # xr")
@@ -114,7 +114,7 @@ lemma map_upds_takeWhile [rule_format]:
    apply (clarify)
    apply (drule_tac x=kr in spec)
    apply (simp only: rev.simps)
-   apply (subgoal_tac "(Map.empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = Map.empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
+   apply (subgoal_tac "(Map.empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = Map.empty (rev kr[\<mapsto>]rev xs, [k'][\<mapsto>][a])")
     apply (simp split:if_split_asm)
    apply (simp add: map_upds_append [symmetric])
   apply (case_tac ks)

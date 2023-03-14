@@ -85,7 +85,7 @@ definition
             EName e 
             \<Rightarrow> (case e of 
                   VNam v 
-                  \<Rightarrow>(table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
+                  \<Rightarrow>((table_of (lcls (mbody m)))(pars m [\<mapsto>] parTs sig)) v
                 | Res \<Rightarrow> Some (resTy m))
           | This \<Rightarrow> if is_static m then None else Some (Class C)))"
 
@@ -110,7 +110,7 @@ definition
 
 lemma callee_lcl_VNam_simp [simp]:
 "callee_lcl C sig m (EName (VNam v)) 
-  = (table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v"
+  = ((table_of (lcls (mbody m)))(pars m [\<mapsto>] parTs sig)) v"
 by (simp add: callee_lcl_def)
  
 lemma callee_lcl_Res_simp [simp]:

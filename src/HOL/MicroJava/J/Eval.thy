@@ -83,7 +83,7 @@ where
 | Call: "[| G\<turnstile>Norm s0 -e\<succ>a'-> s1; a = the_Addr a';
             G\<turnstile>s1 -ps[\<succ>]pvs-> (x,(h,l)); dynT = fst (the (h a));
             (md,rT,pns,lvars,blk,res) = the (method (G,dynT) (mn,pTs));
-            G\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\<mapsto>]pvs)(This\<mapsto>a'))) -blk-> s3;
+            G\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\<mapsto>]pvs, This\<mapsto>a'))) -blk-> s3;
             G\<turnstile> s3 -res\<succ>v -> (x4,s4) |] ==>
          G\<turnstile>Norm s0 -{C}e..mn({pTs}ps)\<succ>v-> (x4,(heap s4,l))"
 
@@ -135,7 +135,7 @@ where
 lemmas eval_evals_exec_induct = eval_evals_exec.induct [split_format (complete)]
 
 lemma NewCI: "[|new_Addr (heap s) = (a,x);  
-       s' = c_hupd (heap s(a\<mapsto>(C,init_vars (fields (G,C))))) (x,s)|] ==>  
+       s' = c_hupd ((heap s)(a\<mapsto>(C,init_vars (fields (G,C))))) (x,s)|] ==>  
        G\<turnstile>Norm s -NewC C\<succ>Addr a-> s'"
 apply simp
 apply (rule eval_evals_exec.NewC)
@@ -197,7 +197,7 @@ lemma eval_Call_code:
   "[| G\<turnstile>Norm s0 -e\<succ>a'-> s1; a = the_Addr a';
       G\<turnstile>s1 -ps[\<succ>]pvs-> (x,(h,l)); dynT = fst (the (h a));
       (md,rT,pns,lvars,blk,res) = the (method (G,dynT) (mn,pTs));
-      G\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\<mapsto>]pvs)(This\<mapsto>a'))) -blk-> s3;
+      G\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\<mapsto>]pvs, This\<mapsto>a'))) -blk-> s3;
       G\<turnstile> s3 -res\<succ>v -> (x4,(h4, l4)) |] ==>
    G\<turnstile>Norm s0 -{C}e..mn({pTs}ps)\<succ>v-> (x4,(h4,l))"
 using Call[of G s0 e a' s1 a ps pvs x h l dynT md rT pns lvars blk res mn pTs s3 v x4 "(h4, l4)" C]

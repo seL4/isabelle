@@ -815,7 +815,7 @@ lemma conforms_init_lvars_lemma: "\<lbrakk>wf_prog G;
   wf_mhead G P sig mh;
   list_all2 (conf G s) pvs pTsa; G\<turnstile>pTsa[\<preceq>](parTs sig)\<rbrakk> \<Longrightarrow>  
   G,s\<turnstile>Map.empty (pars mh[\<mapsto>]pvs)
-      [\<sim>\<Colon>\<preceq>]table_of lvars(pars mh[\<mapsto>]parTs sig)"
+      [\<sim>\<Colon>\<preceq>](table_of lvars)(pars mh[\<mapsto>]parTs sig)"
 apply (unfold wf_mhead_def)
 apply clarify
 apply (erule (1) wlconf_empty_vals [THEN wlconf_ext_list])
@@ -895,7 +895,7 @@ lemma conforms_init_lvars:
                 (case k of
                    EName e \<Rightarrow> (case e of 
                                  VNam v 
-                                  \<Rightarrow> (table_of (lcls (mbody (mthd dm)))
+                                  \<Rightarrow> ((table_of (lcls (mbody (mthd dm))))
                                         (pars (mthd dm)[\<mapsto>]parTs sig)) v
                                | Res \<Rightarrow> Some (resTy (mthd dm)))
                  | This \<Rightarrow> if (is_static (mthd sm)) 
@@ -1180,7 +1180,7 @@ qed
 
 lemma map_upds_upd_eq_length_simp:
   "\<And> tab qs x y. length ps = length qs 
-                  \<Longrightarrow> tab(ps[\<mapsto>]qs)(x\<mapsto>y) = tab(ps@[x][\<mapsto>]qs@[y])"
+                  \<Longrightarrow> tab(ps[\<mapsto>]qs, x\<mapsto>y) = tab(ps@[x][\<mapsto>]qs@[y])"
 proof (induct "ps")
   case Nil thus ?case by simp
 next
@@ -1189,7 +1189,7 @@ next
   obtain q qs' where qs: "qs=q#qs'" and eq_length: "length ps=length qs'"
     by (cases qs) auto
   from eq_length 
-  have "(tab(p\<mapsto>q))(ps[\<mapsto>]qs')(x\<mapsto>y) = (tab(p\<mapsto>q))(ps@[x][\<mapsto>]qs'@[y])"
+  have "(tab(p\<mapsto>q))(ps[\<mapsto>]qs', x\<mapsto>y) = (tab(p\<mapsto>q))(ps@[x][\<mapsto>]qs'@[y])"
     by (rule Cons.hyps)
   with qs show ?case
     by simp
@@ -1219,7 +1219,7 @@ next
     show ?thesis by simp
   next
     case (Cons y ys')
-    have "(tab(x\<mapsto>y)(xs[\<mapsto>]ys')) z = (tab'(x\<mapsto>y)(xs[\<mapsto>]ys')) z"
+    have "(tab(x\<mapsto>y, xs[\<mapsto>]ys')) z = (tab'(x\<mapsto>y, xs[\<mapsto>]ys')) z"
       by (iprover intro: Hyps map_upd_cong_ext)
     with Cons show ?thesis
       by simp
@@ -1230,7 +1230,7 @@ lemma map_upd_override: "(tab(x\<mapsto>y)) x = (tab'(x\<mapsto>y)) x"
   by simp
 
 lemma map_upds_eq_length_suffix: "\<And> tab qs. 
-        length ps = length qs \<Longrightarrow> tab(ps@xs[\<mapsto>]qs) = tab(ps[\<mapsto>]qs)(xs[\<mapsto>][])"
+        length ps = length qs \<Longrightarrow> tab(ps@xs[\<mapsto>]qs) = tab(ps[\<mapsto>]qs, xs[\<mapsto>][])"
 proof (induct ps)
   case Nil thus ?case by simp
 next
@@ -1238,7 +1238,7 @@ next
   then obtain q qs' where qs: "qs=q#qs'" and eq_length: "length ps=length qs'"
     by (cases qs) auto
   from eq_length
-  have "tab(p\<mapsto>q)(ps @ xs[\<mapsto>]qs') = tab(p\<mapsto>q)(ps[\<mapsto>]qs')(xs[\<mapsto>][])"
+  have "tab(p\<mapsto>q, ps @ xs[\<mapsto>]qs') = tab(p\<mapsto>q, ps[\<mapsto>]qs', xs[\<mapsto>][])"
     by (rule Cons.hyps)
   with qs show ?case 
     by simp
@@ -1247,7 +1247,7 @@ qed
   
 lemma map_upds_upds_eq_length_prefix_simp:
   "\<And> tab qs. length ps = length qs
-              \<Longrightarrow> tab(ps[\<mapsto>]qs)(xs[\<mapsto>]ys) = tab(ps@xs[\<mapsto>]qs@ys)"
+              \<Longrightarrow> tab(ps[\<mapsto>]qs, xs[\<mapsto>]ys) = tab(ps@xs[\<mapsto>]qs@ys)"
 proof (induct ps)
   case Nil thus ?case by simp
 next
@@ -1255,7 +1255,7 @@ next
   then obtain q qs' where qs: "qs=q#qs'" and eq_length: "length ps=length qs'"
     by (cases qs) auto
   from eq_length 
-  have "tab(p\<mapsto>q)(ps[\<mapsto>]qs')(xs[\<mapsto>]ys) = tab(p\<mapsto>q)(ps @ xs[\<mapsto>](qs' @ ys))"
+  have "tab(p\<mapsto>q, ps[\<mapsto>]qs', xs[\<mapsto>]ys) = tab(p\<mapsto>q, ps @ xs[\<mapsto>](qs' @ ys))"
     by (rule Cons.hyps)
   with qs 
   show ?case by simp
@@ -1297,11 +1297,11 @@ qed
 
 
 lemma map_upd_Some_swap:
- "(tab(r\<mapsto>w)(u\<mapsto>v)) vn = Some z \<Longrightarrow> \<exists> z. (tab(u\<mapsto>v)(r\<mapsto>w)) vn = Some z"
+ "(tab(r\<mapsto>w, u\<mapsto>v)) vn = Some z \<Longrightarrow> \<exists> z. (tab(u\<mapsto>v, r\<mapsto>w)) vn = Some z"
 by (simp add: fun_upd_def)
 
 lemma map_upd_None_swap:
- "(tab(r\<mapsto>w)(u\<mapsto>v)) vn = None \<Longrightarrow> (tab(u\<mapsto>v)(r\<mapsto>w)) vn = None"
+ "(tab(r\<mapsto>w, u\<mapsto>v)) vn = None \<Longrightarrow> (tab(u\<mapsto>v, r\<mapsto>w)) vn = None"
 by (simp add: fun_upd_def)
 
 
@@ -1331,7 +1331,7 @@ next
     show ?thesis
     proof (cases "(tab(x\<mapsto>y)) vn \<noteq> Some z")
       case True
-      with some ys have "(tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = Some z"
+      with some ys have "(tab'(x\<mapsto>y, xs[\<mapsto>]tl)) vn = Some z"
         by (fastforce intro: Cons.hyps)
       with ys show ?thesis 
         by simp
@@ -1345,7 +1345,7 @@ next
       ultimately
       have "(tab(x\<mapsto>y)) vn =(tab'(x\<mapsto>y)) vn"
         by simp
-      hence "(tab(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = (tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn"
+      hence "(tab(x\<mapsto>y, xs[\<mapsto>]tl)) vn = (tab'(x\<mapsto>y, xs[\<mapsto>]tl)) vn"
         by (rule map_upds_cong_ext)
       with some ys
       show ?thesis 
@@ -1355,18 +1355,18 @@ next
 qed
    
 lemma map_upds_Some_swap: 
- assumes r_u: "(tab(r\<mapsto>w)(u\<mapsto>v)(xs[\<mapsto>]ys)) vn = Some z"
-    shows "\<exists> z. (tab(u\<mapsto>v)(r\<mapsto>w)(xs[\<mapsto>]ys)) vn = Some z"
-proof (cases "(tab(r\<mapsto>w)(u\<mapsto>v)) vn = Some z")
+ assumes r_u: "(tab(r\<mapsto>w, u\<mapsto>v, xs[\<mapsto>]ys)) vn = Some z"
+    shows "\<exists> z. (tab(u\<mapsto>v, r\<mapsto>w, xs[\<mapsto>]ys)) vn = Some z"
+proof (cases "(tab(r\<mapsto>w, u\<mapsto>v)) vn = Some z")
   case True
-  then obtain z' where "(tab(u\<mapsto>v)(r\<mapsto>w)) vn = Some z'"
+  then obtain z' where "(tab(u\<mapsto>v, r\<mapsto>w)) vn = Some z'"
     by (rule map_upd_Some_swap [elim_format]) blast
-  thus "\<exists> z. (tab(u\<mapsto>v)(r\<mapsto>w)(xs[\<mapsto>]ys)) vn = Some z"
+  thus "\<exists> z. (tab(u\<mapsto>v, r\<mapsto>w, xs[\<mapsto>]ys)) vn = Some z"
     by (rule map_upds_Some_expand)
 next
   case False
   with r_u
-  have "(tab(u\<mapsto>v)(r\<mapsto>w)(xs[\<mapsto>]ys)) vn = Some z"
+  have "(tab(u\<mapsto>v, r\<mapsto>w, xs[\<mapsto>]ys)) vn = Some z"
     by (rule map_upds_in_expansion_map_swap)
   thus ?thesis
     by simp
@@ -1374,7 +1374,7 @@ qed
  
 lemma map_upds_Some_insert:
   assumes z: "(tab(xs[\<mapsto>]ys)) vn = Some z"
-    shows "\<exists> z. (tab(u\<mapsto>v)(xs[\<mapsto>]ys)) vn = Some z"
+    shows "\<exists> z. (tab(u\<mapsto>v, xs[\<mapsto>]ys)) vn = Some z"
 proof (cases "\<exists> z. tab vn = Some z")
   case True
   then obtain z' where "tab vn = Some z'" by blast
@@ -1386,7 +1386,7 @@ next
   case False
   hence "tab vn \<noteq> Some z" by simp
   with z
-  have "(tab(u\<mapsto>v)(xs[\<mapsto>]ys)) vn = Some z"
+  have "(tab(u\<mapsto>v, xs[\<mapsto>]ys)) vn = Some z"
     by (rule map_upds_in_expansion_map_swap)
   thus ?thesis ..
 qed
@@ -1425,7 +1425,7 @@ next
     have "(tab(x\<mapsto>y)) vn = Some el"
       by - (rule Cons.hyps,auto)
     moreover from tab'_vn ys
-    have "(tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = None" 
+    have "(tab'(x\<mapsto>y, xs[\<mapsto>]tl)) vn = None" 
       by simp
     hence "(tab'(x\<mapsto>y)) vn = None"
       by (rule map_upds_None_cut)
@@ -1436,7 +1436,7 @@ qed
 
    
 lemma dom_vname_split:
- "dom (case_lname (case_ename (tab(x\<mapsto>y)(xs[\<mapsto>]ys)) a) b)
+ "dom (case_lname (case_ename (tab(x\<mapsto>y, xs[\<mapsto>]ys)) a) b)
    = dom (case_lname (case_ename (tab(x\<mapsto>y)) a) b) \<union> 
      dom (case_lname (case_ename (tab(xs[\<mapsto>]ys)) a) b)"
   (is "?List x xs y ys = ?Hd x y \<union> ?Tl xs ys")
@@ -1503,7 +1503,7 @@ next
     case Nil with len show ?thesis by simp
   next
     case (Cons y tl)
-    with len have "dom (tab(x\<mapsto>y)(xs[\<mapsto>]tl)) = dom (tab(x\<mapsto>y)) \<union> set xs"
+    with len have "dom (tab(x\<mapsto>y, xs[\<mapsto>]tl)) = dom (tab(x\<mapsto>y)) \<union> set xs"
       by - (rule Hyp,simp)
     moreover 
     have "dom (tab(x\<mapsto>hd ys)) = dom tab \<union> {x}"
@@ -3162,7 +3162,7 @@ proof -
                     EName e
                     \<Rightarrow> (case e of 
                           VNam v 
-                          \<Rightarrow>(table_of (lcls (mbody (mthd dynM)))
+                          \<Rightarrow>((table_of (lcls (mbody (mthd dynM))))
                              (pars (mthd dynM)[\<mapsto>]pTs')) v
                         | Res \<Rightarrow> Some (resTy dynM))
                   | This \<Rightarrow> if is_static statM 

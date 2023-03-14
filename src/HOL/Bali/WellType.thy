@@ -295,7 +295,7 @@ where
                                          E,dt\<Turnstile>Throw e\<Colon>\<surd>"
   \<comment> \<open>cf. 14.18\<close>
 | Try:  "\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable;
-          lcl E (VName vn)=None; E \<lparr>lcl := lcl E(VName vn\<mapsto>Class tn)\<rparr>,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk>
+          lcl E (VName vn)=None; E \<lparr>lcl := (lcl E)(VName vn\<mapsto>Class tn)\<rparr>,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk>
           \<Longrightarrow>
                                          E,dt\<Turnstile>Try c1 Catch(tn vn) c2\<Colon>\<surd>"
 

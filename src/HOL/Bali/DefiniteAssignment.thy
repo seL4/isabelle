@@ -608,7 +608,7 @@ where
          \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Throw e\<rangle>\<guillemotright> A"
 
 | Try:  "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1; 
-          Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> (B \<union> {VName vn}) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;  
+          Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>\<turnstile> (B \<union> {VName vn}) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2;  
           nrm A = nrm C1 \<inter> nrm C2;
           brk A = brk C1 \<Rightarrow>\<inter> brk C2\<rbrakk> 
          \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A"
@@ -1170,7 +1170,7 @@ proof -
     from \<open>Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'\<close>
     obtain C1' C2'
       where da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
-            da_c2': "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> B' \<union> {VName vn} 
+            da_c2': "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>\<turnstile> B' \<union> {VName vn} 
                       \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
             A': "nrm A' = nrm C1' \<inter> nrm C2'"
                 "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'" 
@@ -1180,7 +1180,7 @@ proof -
     moreover note da_c1'
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    note \<open>PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>)
+    note \<open>PROP ?Hyp (Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>)
                     (B \<union> {VName vn}) \<langle>c2\<rangle> C2\<close>
     with B' da_c2'
     obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
@@ -1448,11 +1448,11 @@ proof -
     qed
     moreover
     obtain C2' where 
-      "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> B' \<union> {VName vn} \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
+      "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>\<turnstile> B' \<union> {VName vn} \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
     proof -
       from B' have "B \<union> {VName vn} \<subseteq> B' \<union> {VName vn}" by blast
       moreover
-      have "PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>) 
+      have "PROP ?Hyp (Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>) 
                       (B \<union> {VName vn}) \<langle>c2\<rangle>" 
         by (rule Try.hyps)
       ultimately

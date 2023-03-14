@@ -1468,7 +1468,7 @@ next
                        EName e
                        \<Rightarrow> (case e of 
                              VNam v 
-                             \<Rightarrow>(table_of (lcls (mbody (mthd dynM)))
+                             \<Rightarrow>((table_of (lcls (mbody (mthd dynM))))
                                 (pars (mthd dynM)[\<mapsto>]pTs')) v
                            | Res \<Rightarrow> Some (resTy dynM))
                      | This \<Rightarrow> if is_static statM 

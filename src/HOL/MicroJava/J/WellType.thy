@@ -194,7 +194,7 @@ definition wf_java_mdecl :: "'c prog => cname => java_mb mdecl => bool" where
         This \<notin> set pns \<and> This \<notin> set (map fst lvars) \<and> 
   (\<forall>pn\<in>set pns. map_of lvars pn = None) \<and>
   (\<forall>(vn,T)\<in>set lvars. is_type G T) &
-  (let E = (G,map_of lvars(pns[\<mapsto>]pTs)(This\<mapsto>Class C)) in
+  (let E = (G,(map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class C)) in
    E\<turnstile>blk\<surd> \<and> (\<exists>T. E\<turnstile>res::T \<and> G\<turnstile>T\<preceq>rT))"
 
 abbreviation "wf_java_prog == wf_prog wf_java_mdecl"

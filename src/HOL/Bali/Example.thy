@@ -1208,12 +1208,11 @@ abbreviation "four == Suc three"
 
 abbreviation
   "obj_a == \<lparr>tag=Arr (PrimT Boolean) 2
-                ,values= Map.empty(Inr 0\<mapsto>Bool False)(Inr 1\<mapsto>Bool False)\<rparr>"
+                ,values= Map.empty(Inr 0\<mapsto>Bool False, Inr 1\<mapsto>Bool False)\<rparr>"
 
 abbreviation
   "obj_b == \<lparr>tag=CInst Ext
-                ,values=(Map.empty(Inl (vee, Base)\<mapsto>Null   )
-                              (Inl (vee, Ext )\<mapsto>Intg 0))\<rparr>"
+                ,values=(Map.empty(Inl (vee, Base)\<mapsto>Null, Inl (vee, Ext )\<mapsto>Intg 0))\<rparr>"
 
 abbreviation
   "obj_c == \<lparr>tag=CInst (SXcpt NullPointer),values=CONST Map.empty\<rparr>"
@@ -1222,15 +1221,15 @@ abbreviation "arr_N == Map.empty(Inl (arr, Base)\<mapsto>Null)"
 abbreviation "arr_a == Map.empty(Inl (arr, Base)\<mapsto>Addr a)"
 
 abbreviation
-  "globs1 == Map.empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)
-                     (Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_N\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)"
+  "globs1 == Map.empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>,
+                     Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_N\<rparr>,
+                     Inr Object\<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)"
 
 abbreviation
-  "globs2 == Map.empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)
-                     (Inl a\<mapsto>obj_a)
-                     (Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_a\<rparr>)"
+  "globs2 == Map.empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>,
+                     Inr Object\<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>,
+                     Inl a\<mapsto>obj_a,
+                     Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_a\<rparr>)"
 
 abbreviation "globs3 == globs2(Inl b\<mapsto>obj_b)"
 abbreviation "globs8 == globs3(Inl c\<mapsto>obj_c)"

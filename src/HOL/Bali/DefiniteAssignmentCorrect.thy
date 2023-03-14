@@ -494,7 +494,7 @@ proof -
     note G = \<open>prg Env = G\<close>
     from Try.prems obtain 
       wt_c1: "Env\<turnstile>c1\<Colon>\<surd>" and  
-      wt_c2: "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile>c2\<Colon>\<surd>"
+      wt_c2: "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>\<turnstile>c2\<Colon>\<surd>"
       by (elim wt_elim_cases)
     {
       fix j
@@ -531,7 +531,7 @@ proof -
           moreover have "jumpNestingOk jmps (In1r c2)" using jmpOk by simp
           moreover note wt_c2
           moreover from G 
-          have "prg (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>) = G"
+          have "prg (Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>) = G"
             by simp
           moreover note jmp
           ultimately show ?thesis 
@@ -3170,13 +3170,13 @@ proof -
     from Try.prems obtain C1 C2 where
       da_c1: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1"  and
       da_c2:
-       "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>
+       "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>
         \<turnstile> (dom (locals (store ((Norm s0)::state))) \<union> {VName vn}) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2" and
       A: "nrm A = nrm C1 \<inter> nrm C2" "brk A = brk C1 \<Rightarrow>\<inter> brk C2"
       by (elim da_elim_cases) simp
     from Try.prems obtain 
       wt_c1: "Env\<turnstile>c1\<Colon>\<surd>" and
-      wt_c2: "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile>c2\<Colon>\<surd>"
+      wt_c2: "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>\<turnstile>c2\<Colon>\<surd>"
       by (elim wt_elim_cases)
     have sxalloc: "prg Env\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2" using Try.hyps G 
       by (simp (no_asm_simp))
@@ -3257,7 +3257,7 @@ proof -
           qed
           with da_c2 
           obtain C2' where
-            da_C2': "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>
+            da_C2': "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>
                      \<turnstile> dom (locals (store (new_xcpt_var vn s2))) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
            and nrm_C2': "nrm C2 \<subseteq> nrm C2'" 
            and brk_C2': "\<forall> l. brk C2 l \<subseteq> brk C2' l"

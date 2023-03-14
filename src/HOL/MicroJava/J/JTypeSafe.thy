@@ -105,7 +105,7 @@ lemma Call_lemma2: "[| wf_prog wf_mb G; list_all2 (conf G h) pvs pTs;
    list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'; wf_mhead G (mn,pTs') rT;  
   length pTs' = length pns; distinct pns;  
   Ball (set lvars) (case_prod (\<lambda>vn. is_type G))  
-  |] ==> G,h\<turnstile>init_vars lvars(pns[\<mapsto>]pvs)[::\<preceq>]map_of lvars(pns[\<mapsto>]pTs')"
+  |] ==> G,h\<turnstile>(init_vars lvars)(pns[\<mapsto>]pvs)[::\<preceq>](map_of lvars)(pns[\<mapsto>]pTs')"
 apply (unfold wf_mhead_def)
 apply( clarsimp)
 apply( rule lconf_ext_list)
@@ -122,7 +122,7 @@ lemma Call_type_sound:
      list_all2 (conf G h) pvs pTsa; 
      (md, rT, pns, lvars, blk, res) =  
                the (method (G,fst (the (h (the_Addr a')))) (mn, pTs')); 
-  \<forall>lT. (np a' None, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))::\<preceq>(G, lT) -->  
+  \<forall>lT. (np a' None, h, (init_vars lvars)(pns[\<mapsto>]pvs, This\<mapsto>a'))::\<preceq>(G, lT) -->  
   (G, lT)\<turnstile>blk\<surd> -->  h\<le>|xi \<and>  (xcptb, xi, xl)::\<preceq>(G, lT);  
   \<forall>lT. (xcptb,xi, xl)::\<preceq>(G, lT) --> (\<forall>T. (G, lT)\<turnstile>res::T -->  
           xi\<le>|h' \<and> (x',h', xj)::\<preceq>(G, lT) \<and> (x' = None --> G,h'\<turnstile>v::\<preceq>T));  

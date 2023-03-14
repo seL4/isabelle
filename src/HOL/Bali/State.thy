@@ -293,7 +293,7 @@ done
 
 lemma init_arr_comps_step [simp]: 
 "0 < j \<Longrightarrow> init_vals (arr_comps T  j    ) =  
-           init_vals (arr_comps T (j - 1))(j - 1\<mapsto>default_val T)"
+           (init_vals (arr_comps T (j - 1)))(j - 1\<mapsto>default_val T)"
 apply (unfold arr_comps_def in_bounds_def)
 apply (rule ext)
 apply auto
@@ -335,7 +335,7 @@ apply (unfold lupd_def)
 apply (simp (no_asm))
 done
 
-lemma globs_gupd [simp]: "globs  (gupd(r\<mapsto>obj) s) = globs s(r\<mapsto>obj)"
+lemma globs_gupd [simp]: "globs  (gupd(r\<mapsto>obj) s) = (globs s)(r\<mapsto>obj)"
 apply (induct "s")
 by (simp add: gupd_def)
 
@@ -347,7 +347,7 @@ lemma locals_gupd [simp]: "locals (gupd(r\<mapsto>obj) s) = locals s"
 apply (induct "s")
 by (simp add: gupd_def)
 
-lemma locals_lupd [simp]: "locals (lupd(vn\<mapsto>v ) s) = locals s(vn\<mapsto>v )"
+lemma locals_lupd [simp]: "locals (lupd(vn\<mapsto>v ) s) = (locals s)(vn\<mapsto>v )"
 apply (induct "s")
 by (simp add: lupd_def)
 
@@ -359,7 +359,7 @@ apply auto
 done
 
 lemma globs_upd_gobj_upd [rule_format (no_asm), simp]: 
-"globs s r=Some obj\<longrightarrow> globs (upd_gobj r n v s) = globs s(r\<mapsto>upd_obj n v obj)"
+"globs s r=Some obj\<longrightarrow> globs (upd_gobj r n v s) = (globs s)(r\<mapsto>upd_obj n v obj)"
 apply (unfold upd_gobj_def)
 apply (induct "s")
 apply auto
@@ -390,7 +390,7 @@ apply (rule surjective_st)
 done
 
 lemma heap_heap_upd [simp]: 
-  "heap (st (g(Inl a\<mapsto>obj)) l) = heap (st g l)(a\<mapsto>obj)"
+  "heap (st (g(Inl a\<mapsto>obj)) l) = (heap (st g l))(a\<mapsto>obj)"
 apply (rule ext)
 apply (simp (no_asm))
 done
@@ -403,7 +403,7 @@ apply (rule ext)
 apply (simp (no_asm))
 done
 
-lemma heap_gupd_Heap [simp]: "heap (gupd(Heap a\<mapsto>obj) s) = heap s(a\<mapsto>obj)"
+lemma heap_gupd_Heap [simp]: "heap (gupd(Heap a\<mapsto>obj) s) = (heap s)(a\<mapsto>obj)"
 apply (rule ext)
 apply (simp (no_asm))
 done

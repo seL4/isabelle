@@ -102,7 +102,7 @@ lemma map_upds_SomeD:
    apply fastforce+
   done
 
-lemma map_of_upds_SomeD: "(map_of m (xs[\<mapsto>]ys)) k = Some y 
+lemma map_of_upds_SomeD: "((map_of m) (xs[\<mapsto>]ys)) k = Some y 
   \<Longrightarrow> k \<in> (set (xs @ map fst m))"
   by (auto dest: map_upds_SomeD map_of_SomeD fst_in_set_lemma)
 

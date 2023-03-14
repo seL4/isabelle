@@ -120,11 +120,11 @@ abbreviation
 
 abbreviation
   obj1  :: obj where
-  "obj1 == (Ext, Map.empty((vee, Base)\<mapsto>Bool False) ((vee, Ext )\<mapsto>Intg 0))"
+  "obj1 == (Ext, Map.empty((vee, Base)\<mapsto>Bool False, (vee, Ext )\<mapsto>Intg 0))"
 
 abbreviation "s0 == Norm    (Map.empty, Map.empty)"
 abbreviation "s1 == Norm    (Map.empty(a\<mapsto>obj1),Map.empty(e\<mapsto>Addr a))"
-abbreviation "s2 == Norm    (Map.empty(a\<mapsto>obj1),Map.empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
+abbreviation "s2 == Norm    (Map.empty(a\<mapsto>obj1),Map.empty(x\<mapsto>Null, This\<mapsto>Addr a))"
 abbreviation "s3 == (Some NP, Map.empty(a\<mapsto>obj1),Map.empty(e\<mapsto>Addr a))"
 
 lemmas map_of_Cons = map_of.simps(2)
