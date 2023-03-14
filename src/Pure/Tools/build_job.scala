@@ -17,11 +17,6 @@ trait Build_Job {
 }
 
 object Build_Job {
-  sealed case class Result(node_info: Host.Node_Info, process_result: Process_Result) {
-    def ok: Boolean = process_result.ok
-  }
-
-
   /* build session */
 
   def start_session(

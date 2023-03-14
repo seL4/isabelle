@@ -177,9 +177,12 @@ object Build_Process {
   }
 
   case class Result(
+    name: String,
+    worker_uuid: String,
+    build_uuid: String,
+    node_info: Host.Node_Info,
     process_result: Process_Result,
     output_shasum: SHA1.Shasum,
-    node_info: Host.Node_Info,
     current: Boolean
   ) {
     def ok: Boolean = process_result.ok
@@ -260,14 +263,16 @@ object Build_Process {
       copy(running = running - name)
 
     def make_result(
-      name: String,
+      result_name: (String, String, String),
       process_result: Process_Result,
       output_shasum: SHA1.Shasum,
       node_info: Host.Node_Info = Host.Node_Info.none,
       current: Boolean = false
     ): State = {
-      val entry = name -> Build_Process.Result(process_result, output_shasum, node_info, current)
-      copy(results = results + entry)
+      val (name, worker_uuid, build_uuid) = result_name
+      val result =
+        Result(name, worker_uuid, build_uuid, node_info, process_result, output_shasum, current)
+      copy(results = results + (name -> result))
     }
   }
 
@@ -697,6 +702,8 @@ object Build_Process {
 
     object Results {
       val name = Generic.name.make_primary_key
+      val worker_uuid = Generic.worker_uuid
+      val build_uuid = Generic.build_uuid
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.string("numa_node")
       val rc = SQL.Column.int("rc")
@@ -705,10 +712,13 @@ object Build_Process {
       val timing_elapsed = SQL.Column.long("timing_elapsed")
       val timing_cpu = SQL.Column.long("timing_cpu")
       val timing_gc = SQL.Column.long("timing_gc")
+      val output_shasum = SQL.Column.string("output_shasum")
+      val current = SQL.Column.bool("current")
 
       val table =
         make_table("results",
-          List(name, hostname, numa_node, rc, out, err, timing_elapsed, timing_cpu, timing_gc))
+          List(name, worker_uuid, build_uuid, hostname, numa_node,
+            rc, out, err, timing_elapsed, timing_cpu, timing_gc, output_shasum, current))
     }
 
     def read_results_domain(db: SQL.Database): Set[String] =
@@ -716,14 +726,18 @@ object Build_Process {
         Results.table.select(List(Results.name)),
         Set.from[String], res => res.string(Results.name))
 
-    def read_results(db: SQL.Database, names: List[String] = Nil): Map[String, Build_Job.Result] =
+    def read_results(db: SQL.Database, names: List[String] = Nil): State.Results =
       db.execute_query_statement(
         Results.table.select(sql = if_proper(names, Results.name.where_member(names))),
-        Map.from[String, Build_Job.Result],
+        Map.from[String, Result],
         { res =>
           val name = res.string(Results.name)
+          val worker_uuid = res.string(Results.worker_uuid)
+          val build_uuid = res.string(Results.build_uuid)
           val hostname = res.string(Results.hostname)
           val numa_node = res.get_int(Results.numa_node)
+          val node_info = Host.Node_Info(hostname, numa_node)
+
           val rc = res.int(Results.rc)
           val out = res.string(Results.out)
           val err = res.string(Results.err)
@@ -732,34 +746,41 @@ object Build_Process {
               Results.timing_elapsed,
               Results.timing_cpu,
               Results.timing_gc)
-          val node_info = Host.Node_Info(hostname, numa_node)
           val process_result =
             Process_Result(rc,
               out_lines = split_lines(out),
               err_lines = split_lines(err),
               timing = timing)
-          name -> Build_Job.Result(node_info, process_result)
+
+          val output_shasum = SHA1.fake_shasum(res.string(Results.output_shasum))
+          val current = res.bool(Results.current)
+
+          name ->
+            Result(name, worker_uuid, build_uuid, node_info, process_result, output_shasum, current)
         }
       )
 
     def update_results(db: SQL.Database, results: State.Results): Boolean = {
       val old_results = read_results_domain(db)
-      val insert = results.iterator.filterNot(p => old_results.contains(p._1)).toList
+      val insert = results.valuesIterator.filterNot(res => old_results.contains(res.name)).toList
 
-      for ((name, result) <- insert) {
-        val node_info = result.node_info
+      for (result <- insert) {
         val process_result = result.process_result
         db.execute_statement(Results.table.insert(), body =
           { stmt =>
-            stmt.string(1) = name
-            stmt.string(2) = node_info.hostname
-            stmt.int(3) = node_info.numa_node
-            stmt.int(4) = process_result.rc
-            stmt.string(5) = cat_lines(process_result.out_lines)
-            stmt.string(6) = cat_lines(process_result.err_lines)
-            stmt.long(7) = process_result.timing.elapsed.ms
-            stmt.long(8) = process_result.timing.cpu.ms
-            stmt.long(9) = process_result.timing.gc.ms
+            stmt.string(1) = result.name
+            stmt.string(2) = result.worker_uuid
+            stmt.string(3) = result.build_uuid
+            stmt.string(4) = result.node_info.hostname
+            stmt.int(5) = result.node_info.numa_node
+            stmt.int(6) = process_result.rc
+            stmt.string(7) = cat_lines(process_result.out_lines)
+            stmt.string(8) = cat_lines(process_result.err_lines)
+            stmt.long(9) = process_result.timing.elapsed.ms
+            stmt.long(10) = process_result.timing.cpu.ms
+            stmt.long(11) = process_result.timing.gc.ms
+            stmt.string(12) = result.output_shasum.toString
+            stmt.bool(13) = result.current
           })
       }
 
@@ -951,22 +972,24 @@ extends AutoCloseable {
 
     val all_current = current && ancestor_results.forall(_.current)
 
+    val result_name = (session_name, worker_uuid, build_uuid)
+
     if (all_current) {
       state
         .remove_pending(session_name)
-        .make_result(session_name, Process_Result.ok, output_shasum, current = true)
+        .make_result(result_name, Process_Result.ok, output_shasum, current = true)
     }
     else if (build_context.no_build) {
       progress.echo("Skipping " + session_name + " ...", verbose = true)
       state.
         remove_pending(session_name).
-        make_result(session_name, Process_Result.error, output_shasum)
+        make_result(result_name, Process_Result.error, output_shasum)
     }
     else if (progress.stopped || !ancestor_results.forall(_.ok)) {
       progress.echo(session_name + " CANCELLED")
       state
         .remove_pending(session_name)
-        .make_result(session_name, Process_Result.undefined, output_shasum)
+        .make_result(result_name, Process_Result.undefined, output_shasum)
     }
     else {
       val (numa_node, state1) = state.next_numa_node(build_context.numa_nodes)
@@ -1065,11 +1088,12 @@ extends AutoCloseable {
             if (progress.stopped) _state.stop_running()
 
             for (job <- _state.finished_running()) {
+              val result_name = (job.name, worker_uuid, build_uuid)
               val (process_result, output_shasum) = job.build.get.join
               _state = _state.
                 remove_pending(job.name).
                 remove_running(job.name).
-                make_result(job.name, process_result, output_shasum, node_info = job.node_info)
+                make_result(result_name, process_result, output_shasum, node_info = job.node_info)
             }
           }
 
