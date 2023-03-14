@@ -143,6 +143,7 @@ object Build_Process {
   /** dynamic state **/
 
   type Progress_Messages = SortedMap[Long, Progress.Message]
+  val progress_messages_empty: Progress_Messages = SortedMap.empty
 
   case class Worker(
     worker_uuid: String,
@@ -188,6 +189,14 @@ object Build_Process {
     def ok: Boolean = process_result.ok
   }
 
+  sealed case class Snapshot(
+    progress_messages: Progress_Messages,
+    workers: List[Worker],      // available worker processes
+    sessions: State.Sessions,   // static build targets
+    pending: State.Pending,     // dynamic build "queue"
+    running: State.Running,     // presently running jobs
+    results: State.Results)     // finished results
+
   object State {
     type Sessions = Map[String, Build_Job.Session_Context]
     type Pending = List[Task]
@@ -204,10 +213,10 @@ object Build_Process {
     serial: Long = 0,
     progress_seen: Long = 0,
     numa_next: Int = 0,
-    sessions: State.Sessions = Map.empty,   // static build targets
-    pending: State.Pending = Nil,           // dynamic build "queue"
-    running: State.Running = Map.empty,     // presently running jobs
-    results: State.Results = Map.empty      // finished results
+    sessions: State.Sessions = Map.empty,
+    pending: State.Pending = Nil,
+    running: State.Running = Map.empty,
+    results: State.Results = Map.empty
   ) {
     require(serial >= 0, "serial underflow")
     def inc_serial: State = copy(serial = State.inc_serial(serial))
@@ -540,9 +549,7 @@ object Build_Process {
 
     def read_serial(db: SQL.Database): Long =
       db.execute_query_statementO[Long](
-        Workers.table.select(List(Workers.serial_max)),
-        res => res.long(Workers.serial)
-      ).getOrElse(0L)
+        Workers.table.select(List(Workers.serial_max)), _.long(Workers.serial)).getOrElse(0L)
 
     def read_workers(
       db: SQL.Database,
@@ -1161,5 +1168,25 @@ extends AutoCloseable {
         for ((name, result) <- _state.results) yield name -> result.process_result
       }
     }
+  }
+
+
+  /* snapshot */
+
+  def snapshot(): Build_Process.Snapshot = synchronized_database {
+    val (progress_messages, workers) =
+      _database match {
+        case None => (Build_Process.progress_messages_empty, Nil)
+        case Some(db) =>
+          (Build_Process.Data.read_progress(db),
+           Build_Process.Data.read_workers(db))
+      }
+    Build_Process.Snapshot(
+      progress_messages = progress_messages,
+      workers = workers,
+      sessions = _state.sessions,
+      pending = _state.pending,
+      running = _state.running,
+      results = _state.results)
   }
 }
