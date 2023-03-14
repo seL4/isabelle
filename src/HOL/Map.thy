@@ -56,7 +56,7 @@ syntax
   "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[\<mapsto>]/ _")
   ""         :: "maplet \<Rightarrow> maplets"             ("_")
   "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets" ("_,/ _")
-  "_MapUpd"  :: "['a \<rightharpoonup> 'b, maplets] \<Rightarrow> 'a \<rightharpoonup> 'b" ("_/'(_')" [900, 0] 900)
+  "_MapUpd"  :: "['a \<rightharpoonup> 'b, maplets] \<Rightarrow> 'a \<rightharpoonup> 'b" ("_/'(_')" [1000, 0] 900)
   "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"            ("(1[_])")
 
 syntax (ASCII)
@@ -177,7 +177,7 @@ lemma map_of_zip_upd:
   assumes "length ys = length xs"
     and "length zs = length xs"
     and "x \<notin> set xs"
-    and "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)"
+    and "(map_of (zip xs ys))(x \<mapsto> y) = (map_of (zip xs zs))(x \<mapsto> z)"
   shows "map_of (zip xs ys) = map_of (zip xs zs)"
 proof
   fix x' :: 'a
@@ -191,7 +191,7 @@ proof
     ultimately show ?thesis by simp
   next
     case False from assms
-      have "(map_of (zip xs ys)(x \<mapsto> y)) x' = (map_of (zip xs zs)(x \<mapsto> z)) x'" by auto
+      have "((map_of (zip xs ys))(x \<mapsto> y)) x' = ((map_of (zip xs zs))(x \<mapsto> z)) x'" by auto
     with False show ?thesis by simp
   qed
 qed
@@ -209,7 +209,7 @@ proof (induct ys xs zs rule: list_induct3)
 next
   case (Cons y ys x xs z zs)
   from \<open>map_of (zip (x#xs) (y#ys)) = map_of (zip (x#xs) (z#zs))\<close>
-    have map_of: "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)" by simp
+    have map_of: "(map_of (zip xs ys))(x \<mapsto> y) = (map_of (zip xs zs))(x \<mapsto> z)" by simp
   from Cons have "length ys = length xs" and "length zs = length xs"
     and "x \<notin> set xs" by simp_all
   then have "map_of (zip xs ys) = map_of (zip xs zs)" using map_of by (rule map_of_zip_upd)
@@ -435,7 +435,7 @@ lemma map_upds_Cons [simp]: "m(a#as [\<mapsto>] b#bs) = (m(a\<mapsto>b))(as[\<ma
   by (simp add:map_upds_def)
 
 lemma map_upds_append1 [simp]:
-  "size xs < size ys \<Longrightarrow> m(xs@[x] [\<mapsto>] ys) = m(xs [\<mapsto>] ys)(x \<mapsto> ys!size xs)"
+  "size xs < size ys \<Longrightarrow> m(xs@[x] [\<mapsto>] ys) = m(xs [\<mapsto>] ys, x \<mapsto> ys!size xs)"
 proof (induct xs arbitrary: ys m)
   case Nil
   then show ?case
@@ -478,7 +478,7 @@ qed auto
 
 
 lemma map_upds_twist [simp]:
-  "a \<notin> set as \<Longrightarrow> m(a\<mapsto>b)(as[\<mapsto>]bs) = m(as[\<mapsto>]bs)(a\<mapsto>b)"
+  "a \<notin> set as \<Longrightarrow> m(a\<mapsto>b, as[\<mapsto>]bs) = m(as[\<mapsto>]bs, a\<mapsto>b)"
 using set_take_subset by (fastforce simp add: map_upd_upds_conv_if)
 
 lemma map_upds_apply_nontin [simp]:
@@ -876,7 +876,7 @@ next
   with Cons.prems have "k \<notin> dom (map_of xs)"
     by (simp add: dom_map_of_conv_image_fst)
   then have *: "insert (k, v) {(k, v). map_of xs k = Some v} =
-    {(k', v'). (map_of xs(k \<mapsto> v)) k' = Some v'}"
+    {(k', v'). ((map_of xs)(k \<mapsto> v)) k' = Some v'}"
     by (auto split: if_splits)
   from Cons have "set xs = {(k, v). map_of xs k = Some v}" by simp
   with * \<open>x = (k, v)\<close> show ?case by simp
