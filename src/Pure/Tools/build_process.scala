@@ -334,23 +334,19 @@ object Build_Process {
       def sql(
         build_uuid: String = "",
         worker_uuid: String = "",
-        name: String = "",
         names: Iterable[String] = Nil
       ): SQL.Source =
         SQL.and(
           if_proper(build_uuid, Generic.build_uuid.equal(build_uuid)),
           if_proper(worker_uuid, Generic.worker_uuid.equal(worker_uuid)),
-          if_proper(name, Generic.name.equal(name)),
           if_proper(names, Generic.name.member(names)))
 
       def sql_where(
         build_uuid: String = "",
         worker_uuid: String = "",
-        name: String = "",
         names: Iterable[String] = Nil
       ): SQL.Source = {
-        SQL.where(sql(build_uuid = build_uuid, worker_uuid = worker_uuid,
-          name = name, names = names))
+        SQL.where(sql(build_uuid = build_uuid, worker_uuid = worker_uuid, names = names))
       }
     }
 
