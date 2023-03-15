@@ -53,6 +53,12 @@ antiquotations.
 
 * Theory HOL.Map:
   - Map.empty has been demoted to an input abbreviation only
+  - Map update syntax "_(_ \<mapsto> _)" now has the same priorities
+    as function update syntax "_(_ := _)". This means:
+    1. "f t(a \<mapsto> b)" becomes "(f t)(a \<mapsto> b)"
+    2. "t(a \<mapsto> b)(c \<mapsto> d)" becomes
+       "t(a \<mapsto> b, c \<mapsto> d)" or
+       "(t(a \<mapsto> b))(c \<mapsto> d)".
 
 * Theory "HOL.Relation":
   - Added predicates irrefl_on and irreflp_on and redefined irrefl and
