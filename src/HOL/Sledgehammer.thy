@@ -35,10 +35,4 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_tactics.ML\<close>
 
-(*
-lemma "x - y + y = (x::nat)"
-  sledgehammer[e, abduce = 10]
-  oops
-*)
-
 end
