@@ -291,6 +291,9 @@ build_log", to emphasize its relation to "isabelle build".
 "isabelle docker_build", to emphasize its non-relation to "isabelle
 build".
 
+* System option "build_pide_reports" has been discontinued: it coincides
+with "pide_reports".
+
 * System option "ML_process_policy" has been renamed to
 "process_policy", as it may affect other processes as well (notably in
 "isabelle build").

@@ -70,11 +70,7 @@ object Build {
     Isabelle_System.hostname(options.string("build_hostname"))
 
   def build_init(options: Options, cache: Term.Cache = Term.Cache.make()): Sessions.Store = {
-    val build_options =
-      options +
-        "completion_limit=0" +
-        "editor_tracing_messages=0" +
-        ("pide_reports=" + options.bool("build_pide_reports"))
+    val build_options = options + "completion_limit=0" + "editor_tracing_messages=0"
     val store = Sessions.store(build_options, cache = cache)
 
     Isabelle_Fonts.init()
