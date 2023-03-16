@@ -631,7 +631,7 @@ object Build_Log {
 
   object Data {
     def build_log_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
-      SQL.Table("isabelle_build_log_" + name, columns, body)
+      SQL.Table("isabelle_build_log" + if_proper(name, "_" + name), columns, body)
 
 
     /* main content */
@@ -797,7 +797,7 @@ object Build_Log {
           b_table.query_named + SQL.join_inner + sessions_table +
           " ON " + log_name(b_table) + " = " + log_name(sessions_table))
 
-      SQL.Table("isabelle_build_log", c_columns ::: List(ml_statistics),
+      build_log_table("", c_columns ::: List(ml_statistics),
         {
           SQL.select(c_columns.map(_.apply(c_table)) ::: List(ml_statistics)) +
           c_table.query_named + SQL.join_outer + ml_statistics_table + " ON " +
