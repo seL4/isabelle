@@ -258,6 +258,7 @@ object Sessions {
               List(
                 Info.make(
                   Chapter_Defs.empty,
+                  Options.init0(),
                   info.options,
                   augment_options = _ => Nil,
                   dir_selected = false,
@@ -569,7 +570,7 @@ object Sessions {
     def get(name: String): Option[Base] = session_bases.get(name)
 
     def sources_shasum(name: String): SHA1.Shasum = {
-      val meta_info = SHA1.shasum_meta_info(sessions_structure(name).meta_digest)
+      val meta_info = sessions_structure(name).meta_info
       val sources =
         SHA1.shasum_sorted(
           for ((path, digest) <- apply(name).all_sources)
@@ -597,6 +598,17 @@ object Sessions {
 
   /* cumulative session info */
 
+  val BUILD_PREFS = "<build_prefs>"
+
+  def eq_sources(options: Options, shasum1: SHA1.Shasum, shasum2: SHA1.Shasum): Boolean =
+    if (options.bool("build_thorough")) shasum1 == shasum2
+    else {
+      def trim(shasum: SHA1.Shasum): SHA1.Shasum =
+        shasum.filter(s => !s.endsWith(BUILD_PREFS))
+
+      trim(shasum1) == trim(shasum2)
+    }
+
   sealed case class Chapter_Info(
     name: String,
     pos: Position.T,
@@ -608,6 +620,7 @@ object Sessions {
   object Info {
     def make(
       chapter_defs: Chapter_Defs,
+      options0: Options,
       options: Options,
       augment_options: String => List[Options.Spec],
       dir_selected: Boolean,
@@ -629,6 +642,9 @@ object Sessions {
         val session_options = session_options0 ++ augment_options(name)
         val session_prefs =
           session_options.make_prefs(defaults = session_options0, filter = _.session_content)
+
+        val build_prefs =
+          session_options.make_prefs(defaults = options0, filter = _.session_content)
 
         val theories =
           entry.theories.map({ case (opts, thys) =>
@@ -664,9 +680,11 @@ object Sessions {
         val meta_digest =
           SHA1.digest(
             (name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
-              entry.theories_no_position, conditions, entry.document_theories_no_position,
-              entry.document_files, session_prefs)
-            .toString)
+              entry.theories_no_position, conditions, entry.document_theories_no_position).toString)
+
+        val meta_info =
+          SHA1.shasum_meta_info(meta_digest) :::
+          SHA1.shasum(SHA1.digest(build_prefs), BUILD_PREFS)
 
         val chapter_groups = chapter_defs(chapter).groups
         val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
@@ -674,7 +692,7 @@ object Sessions {
         Info(name, chapter, dir_selected, entry.pos, groups, session_path,
           entry.parent, entry.description, directories, session_options, session_prefs,
           entry.imports, theories, global_theories, entry.document_theories, document_files,
-          export_files, entry.export_classpath, meta_digest)
+          export_files, entry.export_classpath, meta_info)
       }
       catch {
         case ERROR(msg) =>
@@ -703,7 +721,7 @@ object Sessions {
     document_files: List[(Path, Path)],
     export_files: List[(Path, Int, List[String])],
     export_classpath: List[String],
-    meta_digest: SHA1.Digest
+    meta_info: SHA1.Shasum
   ) {
     def deps: List[String] = parent.toList ::: imports
 
@@ -823,8 +841,8 @@ object Sessions {
             }
         }
 
-      val session_prefs =
-        options.make_prefs(defaults = Options.init0(), filter = _.session_content)
+      val options0 = Options.init0()
+      val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
 
       val root_infos = {
         var chapter = UNSORTED
@@ -834,7 +852,7 @@ object Sessions {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
               root_infos +=
-                Info.make(chapter_defs, options, augment_options,
+                Info.make(chapter_defs, options0, options, augment_options,
                   root.select, root.dir, chapter, entry)
             case _ =>
           }
@@ -1531,7 +1549,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
 
-    def clean_output(name: String): (Boolean, Boolean) = {
+    def clean_output(name: String): Option[Boolean] = {
       val relevant_db =
         database_server &&
           using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
@@ -1544,9 +1562,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           path = dir + file if path.is_file
         } yield path.file.delete
 
-      val relevant = relevant_db || del.nonEmpty
-      val ok = del.forall(b => b)
-      (relevant, ok)
+      if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
     }
 
     def init_output(name: String): Unit = {
@@ -1556,6 +1572,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def check_output(
       name: String,
+      session_options: Options,
       sources_shasum: SHA1.Shasum,
       input_shasum: SHA1.Shasum,
       fresh_build: Boolean,
@@ -1569,7 +1586,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               val current =
                 !fresh_build &&
                 build.ok &&
-                build.sources == sources_shasum &&
+                Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
                 build.input_heaps == input_shasum &&
                 build.output_heap == output_shasum &&
                 !(store_heap && output_shasum.is_empty)
@@ -1601,9 +1618,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def init_session_info(db: SQL.Database, name: String): Boolean = {
       db.transaction {
-        val already_defined = session_info_defined(db, name)
-
         all_tables.create_lock(db)
+
+        val already_defined = session_info_defined(db, name)
 
         db.execute_statement(
           Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))
@@ -1623,15 +1640,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def session_info_exists(db: SQL.Database): Boolean = {
       val tables = db.tables
-      tables.contains(Session_Info.table.name) &&
-      tables.contains(Export.Data.table.name)
+      all_tables.forall(table => tables.contains(table.name))
     }
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
-      session_info_exists(db) &&
-        db.execute_query_statementB(
-          Session_Info.table.select(List(Session_Info.session_name),
-            sql = Session_Info.session_name.where_equal(name)))
+      db.execute_query_statementB(
+        Session_Info.table.select(List(Session_Info.session_name),
+          sql = Session_Info.session_name.where_equal(name)))
 
     def write_session_info(
       db: SQL.Database,

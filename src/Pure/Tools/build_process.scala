@@ -123,11 +123,13 @@ object Build_Process {
 
     def prepare_database(): Unit = {
       using_option(store.open_build_database()) { db =>
+        val shared_db = db.is_postgresql
         db.transaction {
           Data.all_tables.create_lock(db)
           Data.clean_build(db)
+          if (shared_db) store.all_tables.create_lock(db)
         }
-        db.vacuum(Data.all_tables)
+        db.vacuum(Data.all_tables ::: (if (shared_db) store.all_tables else SQL.Tables.empty))
       }
     }
 
@@ -1056,6 +1058,7 @@ extends AutoCloseable {
 
     val (current, output_shasum) =
       store.check_output(session_name,
+        session_options = build_context.sessions_structure(session_name).options,
         sources_shasum = build_context.sources_shasum(session_name),
         input_shasum = input_shasum,
         fresh_build = build_context.fresh_build,

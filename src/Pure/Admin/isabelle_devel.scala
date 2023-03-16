@@ -54,6 +54,7 @@ object Isabelle_Devel {
   def build_log_database(options: Options, log_dirs: List[Path]): Unit = {
     val store = Build_Log.store(options)
     using(store.open_database()) { db =>
+      db.vacuum()
       store.update_database(db, log_dirs)
       store.update_database(db, log_dirs, ml_statistics = true)
       store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))

@@ -50,6 +50,9 @@ option thy_output_modes : string = "" for content
 
 section "Prover Output"
 
+option pide_reports : bool = true for content
+  -- "enable reports of PIDE markup"
+
 option show_types : bool = false for content
   -- "show type constraints when printing terms"
 option show_sorts : bool = false for content
@@ -171,11 +174,8 @@ public option ML_system_apple : bool = true for build#
 
 section "Build Process"
 
-option pide_reports : bool = true for content
-  -- "report PIDE markup (in ML)"
-
-option build_pide_reports : bool = true for content
-  -- "report PIDE markup (in batch build)"
+option build_thorough : bool = false
+  -- "observe dependencies on options with tag 'content' or 'document'"
 
 option build_hostname : string = ""
   -- "alternative hostname for build process (default $ISABELLE_HOSTNAME)"

@@ -70,11 +70,7 @@ object Build {
     Isabelle_System.hostname(options.string("build_hostname"))
 
   def build_init(options: Options, cache: Term.Cache = Term.Cache.make()): Sessions.Store = {
-    val build_options =
-      options +
-        "completion_limit=0" +
-        "editor_tracing_messages=0" +
-        ("pide_reports=" + options.bool("build_pide_reports"))
+    val build_options = options + "completion_limit=0" + "editor_tracing_messages=0"
     val store = Sessions.store(build_options, cache = cache)
 
     Isabelle_Fonts.init()
@@ -130,8 +126,11 @@ object Build {
             store.try_open_database(name) match {
               case Some(db) =>
                 using(db)(store.read_build(_, name)) match {
-                  case Some(build)
-                  if build.ok && build.sources == deps0.sources_shasum(name) => None
+                  case Some(build) if build.ok =>
+                    val session_options = deps0.sessions_structure(name).options
+                    val session_sources = deps0.sources_shasum(name)
+                    if (Sessions.eq_sources(session_options, build.sources, session_sources)) None
+                    else Some(name)
                   case _ => Some(name)
                 }
               case None => Some(name)
@@ -174,10 +173,10 @@ object Build {
 
     if (clean_build) {
       for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
-        val (relevant, ok) = store.clean_output(name)
-        if (relevant) {
-          if (ok) progress.echo("Cleaned " + name)
-          else progress.echo(name + " FAILED to clean")
+        store.clean_output(name) match {
+          case None =>
+          case Some(true) => progress.echo("Cleaned " + name)
+          case Some(false) => progress.echo(name + " FAILED to clean")
         }
       }
     }

@@ -442,8 +442,15 @@ object SQL {
       result.toList
     }
 
-    def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit =
+    def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit = {
       execute_statement(table.create(strict, sql_type) + SQL.separate(sql))
+      if (is_postgresql) {
+        for (column <- table.columns if column.T == SQL.Type.Bytes) {
+          execute_statement(
+            "ALTER TABLE " + table + " ALTER COLUMN " + column + " SET STORAGE EXTERNAL")
+        }
+      }
+    }
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =

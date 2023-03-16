@@ -235,9 +235,8 @@ object Export {
             (results, true)
           })
 
-    def make_entry(session_name: String, args0: Protocol.Export.Args, body: Bytes): Unit = {
+    def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
       if (!progress.stopped && !body.is_empty) {
-        val args = if (db.is_postgresql) args0.copy(compress = false) else args0
         consumer.send(Entry.make(session_name, args, body, cache) -> args.strict)
       }
     }

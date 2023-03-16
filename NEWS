@@ -274,13 +274,16 @@ antiquotations.
 
 *** System ***
 
-* Session builds observe dependency of options that contribute to the
-formal content. This is determined via option tags specified in
-etc/options, notably "content" or "document". A change of relavant
-session options causes a fresh build. For example:
+* System option "build_through" determines if session builds should
+observe dependency of options that contribute to the formal content.
+This is specified via option tags given in etc/options (e.g. see
+"isabelle options -l -t content,document"). A change of such options
+causes a fresh build. For example:
 
-  isabelle build -o show_types FOL
   isabelle build FOL
+  isabelle build -o show_types FOL  # unchanged, no depency on options
+  isabelle build -o build_thorough -o show_types FOL  # changed
+  isabelle build -o build_thorough FOL  # changed
 
 * The command-line tool "isabelle update" is now directly based on
 "isabelle build" instead of "isabelle dump". Thus it has become more
@@ -293,6 +296,9 @@ build_log", to emphasize its relation to "isabelle build".
 * The command-line tool "isabelle build_docker" has been renamed to
 "isabelle docker_build", to emphasize its non-relation to "isabelle
 build".
+
+* System option "build_pide_reports" has been discontinued: it coincides
+with "pide_reports".
 
 * System option "ML_process_policy" has been renamed to
 "process_policy", as it may affect other processes as well (notably in
