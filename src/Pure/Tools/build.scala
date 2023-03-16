@@ -126,8 +126,11 @@ object Build {
             store.try_open_database(name) match {
               case Some(db) =>
                 using(db)(store.read_build(_, name)) match {
-                  case Some(build)
-                  if build.ok && build.sources == deps0.sources_shasum(name) => None
+                  case Some(build) if build.ok =>
+                    val session_options = deps0.sessions_structure(name).options
+                    val session_sources = deps0.sources_shasum(name)
+                    if (Sessions.eq_sources(session_options, build.sources, session_sources)) None
+                    else Some(name)
                   case _ => Some(name)
                 }
               case None => Some(name)

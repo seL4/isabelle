@@ -1056,6 +1056,7 @@ extends AutoCloseable {
 
     val (current, output_shasum) =
       store.check_output(session_name,
+        session_options = build_context.sessions_structure(session_name).options,
         sources_shasum = build_context.sources_shasum(session_name),
         input_shasum = input_shasum,
         fresh_build = build_context.fresh_build,

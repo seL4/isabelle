@@ -67,6 +67,8 @@ object SHA1 {
 
     def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
 
+    def filter(pred: String => Boolean): Shasum = new Shasum(rep.filter(pred))
+
     def digest: Digest = {
       rep match {
         case List(s)
