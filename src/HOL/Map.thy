@@ -49,42 +49,60 @@ definition
   map_le :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool"  (infix "\<subseteq>\<^sub>m" 50) where
   "(m\<^sub>1 \<subseteq>\<^sub>m m\<^sub>2) \<longleftrightarrow> (\<forall>a \<in> dom m\<^sub>1. m\<^sub>1 a = m\<^sub>2 a)"
 
-nonterminal maplets and maplet
+text \<open>Function update syntax \<open>f(x := y, \<dots>)\<close> is extended with \<open>x \<mapsto> y\<close>, which is short for
+\<open>x := Some y\<close>. \<open>:=\<close> and \<open>\<mapsto>\<close> can be mixed freely.
+The syntax \<open>[x \<mapsto> y, \<dots>]\<close> is short for \<open>Map.empty(x \<mapsto> y, \<dots>)\<close>
+but must only contain \<open>\<mapsto>\<close>, not \<open>:=\<close>, because \<open>[x:=y]\<close> clashes with the list update syntax \<open>xs[i:=x]\<close>.\<close>
+
+nonterminal maplet and maplets
 
 syntax
   "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /\<mapsto>/ _")
-  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[\<mapsto>]/ _")
+  ""         :: "maplet \<Rightarrow> updbind"              ("_")
   ""         :: "maplet \<Rightarrow> maplets"             ("_")
   "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets" ("_,/ _")
-  "_MapUpd"  :: "['a \<rightharpoonup> 'b, maplets] \<Rightarrow> 'a \<rightharpoonup> 'b" ("_/'(_')" [1000, 0] 900)
-  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"            ("(1[_])")
+  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"           ("(1[_])")
+(* Syntax forbids \<open>[\<dots>, x := y, \<dots>]\<close> by introducing \<open>maplets\<close> in addition to \<open>updbinds\<close> *)
 
 syntax (ASCII)
   "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /|->/ _")
-  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[|->]/ _")
 
 translations
-  "_MapUpd m (_Maplets xy ms)"  \<rightleftharpoons> "_MapUpd (_MapUpd m xy) ms"
-  "_MapUpd m (_maplet  x y)"    \<rightleftharpoons> "m(x := CONST Some y)"
-  "_Map ms"                     \<rightleftharpoons> "_MapUpd (CONST empty) ms"
-  "_Map ms"                     \<leftharpoondown> "_MapUpd (\<lambda>x. CONST None) ms" \<comment>\<open>both are needed\<close>
-  "_Map (_Maplets ms1 ms2)"     \<leftharpoondown> "_MapUpd (_Map ms1) ms2"
-  "_Maplets ms1 (_Maplets ms2 ms3)" \<leftharpoondown> "_Maplets (_Maplets ms1 ms2) ms3"
+  "_Update f (_maplet x y)" \<rightleftharpoons> "f(x := CONST Some y)"
+  "_Maplets m ms" \<rightharpoonup> "_updbinds m ms"
+  "_Map ms" \<rightharpoonup> "_Update (CONST empty) ms"
 
-primrec map_of :: "('a \<times> 'b) list \<Rightarrow> 'a \<rightharpoonup> 'b"
-where
+(* Printing must create \<open>_Map\<close> only for \<open>_maplet\<close> *)
+  "_Map (_maplet x y)"  \<leftharpoondown> "_Update (\<lambda>u. CONST None) (_maplet x y)"
+  "_Map (_updbinds m (_maplet x y))"  \<leftharpoondown> "_Update (_Map m) (_maplet x y)"
+
+text \<open>Updating with lists:\<close>
+
+primrec map_of :: "('a \<times> 'b) list \<Rightarrow> 'a \<rightharpoonup> 'b" where
   "map_of [] = empty"
 | "map_of (p # ps) = (map_of ps)(fst p \<mapsto> snd p)"
-
-definition map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'a \<rightharpoonup> 'b"
-  where "map_upds m xs ys = m ++ map_of (rev (zip xs ys))"
-translations
-  "_MapUpd m (_maplets x y)" \<rightleftharpoons> "CONST map_upds m x y"
 
 lemma map_of_Cons_code [code]:
   "map_of [] k = None"
   "map_of ((l, v) # ps) k = (if l = k then Some v else map_of ps k)"
   by simp_all
+
+definition map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'a \<rightharpoonup> 'b" where
+"map_upds m xs ys = m ++ map_of (rev (zip xs ys))"
+
+text \<open>There is also the more specialized update syntax \<open>xs [\<mapsto>] ys\<close> for lists \<open>xs\<close> and \<open>ys\<close>.\<close>
+
+syntax
+  "_maplets"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[\<mapsto>]/ _")
+
+syntax (ASCII)
+  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[|->]/ _")
+
+translations
+  "_Update m (_maplets xs ys)" \<rightleftharpoons> "CONST map_upds m xs ys"
+
+  "_Map (_maplets xs ys)"  \<leftharpoondown> "_Update (\<lambda>u. CONST None) (_maplets xs ys)"
+  "_Map (_updbinds m (_maplets xs ys))"  \<leftharpoondown> "_Update (_Map m) (_maplets xs ys)"
 
 
 subsection \<open>@{term [source] empty}\<close>
