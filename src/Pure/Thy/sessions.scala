@@ -1620,9 +1620,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def init_session_info(db: SQL.Database, name: String): Boolean = {
       db.transaction {
-        val already_defined = session_info_defined(db, name)
-
         all_tables.create_lock(db)
+
+        val already_defined = session_info_defined(db, name)
 
         db.execute_statement(
           Session_Info.table.delete(sql = Session_Info.session_name.where_equal(name)))
@@ -1642,15 +1642,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def session_info_exists(db: SQL.Database): Boolean = {
       val tables = db.tables
-      tables.contains(Session_Info.table.name) &&
-      tables.contains(Export.Data.table.name)
+      all_tables.forall(table => tables.contains(table.name))
     }
 
     def session_info_defined(db: SQL.Database, name: String): Boolean =
-      session_info_exists(db) &&
-        db.execute_query_statementB(
-          Session_Info.table.select(List(Session_Info.session_name),
-            sql = Session_Info.session_name.where_equal(name)))
+      db.execute_query_statementB(
+        Session_Info.table.select(List(Session_Info.session_name),
+          sql = Session_Info.session_name.where_equal(name)))
 
     def write_session_info(
       db: SQL.Database,
