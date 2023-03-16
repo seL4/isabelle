@@ -1549,7 +1549,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
 
-    def clean_output(name: String): (Boolean, Boolean) = {
+    def clean_output(name: String): Option[Boolean] = {
       val relevant_db =
         database_server &&
           using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
@@ -1562,9 +1562,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
           path = dir + file if path.is_file
         } yield path.file.delete
 
-      val relevant = relevant_db || del.nonEmpty
-      val ok = del.forall(b => b)
-      (relevant, ok)
+      if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
     }
 
     def init_output(name: String): Unit = {

@@ -173,10 +173,10 @@ object Build {
 
     if (clean_build) {
       for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
-        val (relevant, ok) = store.clean_output(name)
-        if (relevant) {
-          if (ok) progress.echo("Cleaned " + name)
-          else progress.echo(name + " FAILED to clean")
+        store.clean_output(name) match {
+          case None =>
+          case Some(true) => progress.echo("Cleaned " + name)
+          case Some(false) => progress.echo(name + " FAILED to clean")
         }
       }
     }
