@@ -75,8 +75,10 @@ object Update {
 
     /* build */
 
+    val build_options = options + "build_thorough"
+
     val build_results =
-      Build.build(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
+      Build.build(build_options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection, build_heap = build_heap, clean_build = clean_build,
         numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, augment_options = augment_options)
