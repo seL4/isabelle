@@ -3192,6 +3192,33 @@ qed
 lemma subset_implies_multp: "A \<subset># B \<Longrightarrow> multp r A B"
   by (rule subset_implies_mult[of _ _ "{(x, y). r x y}" for r, folded multp_def])
 
+lemma multp_repeat_mset_repeat_msetI:
+  assumes "transp R" and "multp R A B" and "n \<noteq> 0"
+  shows "multp R (repeat_mset n A) (repeat_mset n  B)"
+proof -
+  from \<open>transp R\<close> \<open>multp R A B\<close> obtain I J K where
+    "B = I + J" and "A = I + K" and "J \<noteq> {#}" and "\<forall>k \<in># K. \<exists>x \<in># J. R k x"
+    by (auto dest: multp_implies_one_step)
+
+  have repeat_n_A_eq: "repeat_mset n A = repeat_mset n I + repeat_mset n K"
+    using \<open>A = I + K\<close> by simp
+
+  have repeat_n_B_eq: "repeat_mset n B = repeat_mset n I + repeat_mset n J"
+    using \<open>B = I + J\<close> by simp
+
+  show ?thesis
+    unfolding repeat_n_A_eq repeat_n_B_eq
+  proof (rule one_step_implies_multp)
+    from \<open>n \<noteq> 0\<close> show "repeat_mset n J \<noteq> {#}"
+      using \<open>J \<noteq> {#}\<close>
+      by (simp add: repeat_mset_eq_empty_iff)
+  next
+    show "\<forall>k \<in># repeat_mset n K. \<exists>j \<in># repeat_mset n J. R k j"
+      using \<open>\<forall>k \<in># K. \<exists>x \<in># J. R k x\<close>
+      by (metis count_greater_zero_iff nat_0_less_mult_iff repeat_mset.rep_eq)
+  qed
+qed
+
 
 subsubsection \<open>Monotonicity\<close>
 
