@@ -2571,6 +2571,103 @@ lemma is_max_element_in_set_iff:
   "asymp_on A R \<Longrightarrow> (\<forall>y \<in> A. y \<noteq> x \<longrightarrow> \<not> R x y) \<longleftrightarrow> (\<forall>y. R x y \<longrightarrow> y \<notin> A)"
   by (auto dest: asymp_onD)
 
+context begin
+
+qualified lemma
+  assumes "finite A" and "A \<noteq> {}" and "transp_on A R" and "totalp_on A R"
+  shows
+    bex_least_element: "\<exists>l \<in> A. \<forall>x \<in> A. x \<noteq> l \<longrightarrow> R l x" and
+    bex_greatest_element: "\<exists>g \<in> A. \<forall>x \<in> A. x \<noteq> g \<longrightarrow> R x g"
+  unfolding atomize_conj
+  using assms
+proof (induction A rule: finite_induct)
+  case empty
+  hence False by simp
+  thus ?case ..
+next
+  case (insert a A')
+
+  from insert.prems(2) have transp_on_A': "transp_on A' R"
+    by (auto intro: transp_onI dest: transp_onD)
+
+  from insert.prems(3) have
+    totalp_on_a_A'_raw: "\<forall>y \<in> A'. a \<noteq> y \<longrightarrow> R a y \<or> R y a" and
+    totalp_on_A': "totalp_on A' R"
+    by (simp_all add: totalp_on_def)
+
+  show ?case
+  proof (cases "A' = {}")
+    case True
+    thus ?thesis by simp
+  next
+    case False
+    then obtain least greatest where
+      "least \<in> A'" and least_of_A': "\<forall>x\<in>A'. x \<noteq> least \<longrightarrow> R least x" and
+      "greatest \<in> A'" and greatest_of_A': "\<forall>x\<in>A'. x \<noteq> greatest \<longrightarrow> R x greatest"
+      using insert.IH[OF _ transp_on_A' totalp_on_A'] by auto
+
+    show ?thesis
+    proof (rule conjI)
+      show "\<exists>l\<in>insert a A'. \<forall>x\<in>insert a A'. x \<noteq> l \<longrightarrow> R l x"
+      proof (cases "R a least")
+        case True
+        show ?thesis
+        proof (intro bexI ballI impI)
+          show "a \<in> insert a A'"
+            by simp
+        next
+          fix x
+          show "\<And>x. x \<in> insert a A' \<Longrightarrow> x \<noteq> a \<Longrightarrow> R a x"
+            using True \<open>least \<in> A'\<close> least_of_A'
+            using insert.prems(2)[THEN transp_onD, of a least]
+            by auto
+        qed
+      next
+        case False
+        show ?thesis
+        proof (intro bexI ballI impI)
+          show "least \<in> insert a A'"
+            using \<open>least \<in> A'\<close> by simp
+        next
+          fix x
+          show "x \<in> insert a A' \<Longrightarrow> x \<noteq> least \<Longrightarrow> R least x"
+            using False \<open>least \<in> A'\<close> least_of_A' totalp_on_a_A'_raw
+            by (cases "x = a") auto
+        qed
+      qed
+    next
+      show "\<exists>g \<in> insert a A'. \<forall>x \<in> insert a A'. x \<noteq> g \<longrightarrow> R x g"
+      proof (cases "R greatest a")
+        case True
+        show ?thesis
+        proof (intro bexI ballI impI)
+          show "a \<in> insert a A'"
+            by simp
+        next
+          fix x
+          show "\<And>x. x \<in> insert a A' \<Longrightarrow> x \<noteq> a \<Longrightarrow> R x a"
+            using True \<open>greatest \<in> A'\<close> greatest_of_A'
+            using insert.prems(2)[THEN transp_onD, of _ greatest a]
+            by auto
+        qed
+      next
+        case False
+        show ?thesis
+        proof (intro bexI ballI impI)
+          show "greatest \<in> insert a A'"
+            using \<open>greatest \<in> A'\<close> by simp
+        next
+          fix x
+          show "x \<in> insert a A' \<Longrightarrow> x \<noteq> greatest \<Longrightarrow> R x greatest"
+            using False \<open>greatest \<in> A'\<close> greatest_of_A' totalp_on_a_A'_raw
+            by (cases "x = a") auto
+        qed
+      qed
+    qed
+  qed
+qed
+
+end
 
 subsubsection \<open>Finite orders\<close>
 

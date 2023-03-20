@@ -67,6 +67,8 @@ antiquotations.
   - Imported Relation instead of Product_Type, Sum_Type, and Fields.
     Minor INCOMPATIBILITY.
   - Added lemmas.
+      Finite_Set.bex_greatest_element
+      Finite_Set.bex_least_element
       Finite_Set.bex_max_element
       Finite_Set.bex_min_element
       is_max_element_in_set_iff
