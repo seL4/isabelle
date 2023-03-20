@@ -224,7 +224,7 @@ antiquotations.
       multp_cancel_add_mset
       multp_cancel_max
       multp_code_iff_mult
-  - Used transp_on in assumptions of lemmas bex_least_element and
+  - Used transp_on and reorder assumptions of lemmas bex_least_element and
     bex_greatest_element. Minor INCOMPATIBILITIES.
   - Added lemmas.
       mult_mono_strong

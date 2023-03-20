@@ -1614,51 +1614,14 @@ context begin
 
 qualified lemma
   assumes
+    "M \<noteq> {#}" and
     "transp_on (set_mset M) R" and
-    "totalp_on (set_mset M) R" and
-    "M \<noteq> {#}"
+    "totalp_on (set_mset M) R"
   shows
-    bex_least_element: "(\<exists>least \<in># M. \<forall>x \<in># M. least \<noteq> x \<longrightarrow> R least x)" and
-    bex_greatest_element: "(\<exists>greatest \<in># M. \<forall>x \<in># M. greatest \<noteq> x \<longrightarrow> R x greatest)"
-  unfolding atomize_conj
+    bex_least_element: "(\<exists>l \<in># M. \<forall>x \<in># M. x \<noteq> l \<longrightarrow> R l x)" and
+    bex_greatest_element: "(\<exists>g \<in># M. \<forall>x \<in># M. x \<noteq> g \<longrightarrow> R x g)"
   using assms
-proof (induction M rule: multiset_induct)
-  case empty
-  hence False by simp
-  thus ?case ..
-next
-  case (add x M)
-  from add.prems(1) have
-    transp_on_x_M_raw: "\<forall>y\<in>#M. \<forall>z\<in>#M. R x y \<and> R y z \<longrightarrow> R x z" and
-    transp_on_R_M: "transp_on (set_mset M) R"
-    by (auto intro: transp_onI dest: transp_onD)
-
-  from add.prems(2) have
-    totalp_on_x_M_raw: "\<forall>y \<in># M. x \<noteq> y \<longrightarrow> R x y \<or> R y x" and
-    totalp_on_M_R: "totalp_on (set_mset M) R"
-    by (simp_all add: totalp_on_def)
-
-  show ?case
-  proof (cases "M = {#}")
-    case True
-    thus ?thesis by simp
-  next
-    case False
-    then obtain least greatest where
-      least_of_M: "least \<in># M" "\<forall>y\<in>#M. least \<noteq> y \<longrightarrow> R least y" and
-      greatest_of_M: "greatest\<in>#M" "\<forall>y\<in>#M. greatest \<noteq> y \<longrightarrow> R y greatest"
-      using add.IH[OF transp_on_R_M totalp_on_M_R] by blast
-
-    show ?thesis
-    proof (rule conjI)
-      from least_of_M show "\<exists>y\<in>#add_mset x M. \<forall>z\<in>#add_mset x M. y \<noteq> z \<longrightarrow> R y z"
-        by (metis insert_iff set_mset_add_mset_insert totalp_on_x_M_raw transp_on_x_M_raw)
-    next
-      from greatest_of_M show "\<exists>y\<in>#add_mset x M. \<forall>z\<in>#add_mset x M. y \<noteq> z \<longrightarrow> R z y"
-        by (metis insert_iff set_mset_add_mset_insert totalp_on_x_M_raw transp_on_x_M_raw)
-    qed
-  qed
-qed
+  by (auto intro: Finite_Set.bex_least_element Finite_Set.bex_greatest_element)
 
 end
 
