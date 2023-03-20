@@ -63,7 +63,13 @@ antiquotations.
     Except in "[...]" maps where ":=" would create a clash with
     list update syntax "xs[i := x]".
 
+* Theory "HOL.Finite_Set"
+  - Imported Relation instead of Product_Type, Sum_Type, and Fields.
+    Minor INCOMPATIBILITY.
+
 * Theory "HOL.Relation":
+  - Imported Product_Type, Sum_Type, and Fields instead of Finite_Set.
+    Minor INCOMPATIBILITY.
   - Added predicates irrefl_on and irreflp_on and redefined irrefl and
     irreflp to be abbreviations. Lemmas irrefl_def and irreflp_def are
     explicitly provided for backward compatibility but their usage is

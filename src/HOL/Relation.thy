@@ -7,7 +7,7 @@
 section \<open>Relations -- as sets of pairs, and binary predicates\<close>
 
 theory Relation
-  imports Finite_Set
+  imports Product_Type Sum_Type Fields
 begin
 
 text \<open>A preliminary: classical rules for reasoning on predicates\<close>
@@ -1198,24 +1198,6 @@ lemma total_on_converse [simp]: "total_on A (r\<inverse>) = total_on A r"
 lemma totalp_on_converse [simp]: "totalp_on A R\<inverse>\<inverse> = totalp_on A R"
   by (rule total_on_converse[to_pred])
 
-lemma finite_converse [iff]: "finite (r\<inverse>) = finite r"
-unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
-by (auto elim: finite_imageD simp: inj_on_def)
-
-lemma card_inverse[simp]: "card (R\<inverse>) = card R"
-proof -
-  have *: "\<And>R. prod.swap ` R = R\<inverse>" by auto
-  {
-    assume "\<not>finite R"
-    hence ?thesis
-      by auto
-  } moreover {
-    assume "finite R"
-    with card_image_le[of R prod.swap] card_image_le[of "R\<inverse>" prod.swap]
-    have ?thesis by (auto simp: *)
-  } ultimately show ?thesis by blast
-qed  
-
 lemma conversep_noteq [simp]: "(\<noteq>)\<inverse>\<inverse> = (\<noteq>)"
   by (auto simp add: fun_eq_iff)
 
@@ -1361,15 +1343,6 @@ lemma Domain_Collect_case_prod [simp]: "Domain {(x, y). P x y} = {x. \<exists>y.
 lemma Range_Collect_case_prod [simp]: "Range {(x, y). P x y} = {y. \<exists>x. P x y}"
   by auto
 
-lemma finite_Domain: "finite r \<Longrightarrow> finite (Domain r)"
-  by (induct set: finite) auto
-
-lemma finite_Range: "finite r \<Longrightarrow> finite (Range r)"
-  by (induct set: finite) auto
-
-lemma finite_Field: "finite r \<Longrightarrow> finite (Field r)"
-  by (simp add: Field_def finite_Domain finite_Range)
-
 lemma Domain_mono: "r \<subseteq> s \<Longrightarrow> Domain r \<subseteq> Domain s"
   by blast
 
@@ -1480,9 +1453,6 @@ lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"
 lemma relcomp_Image: "(X O Y) `` Z = Y `` (X `` Z)"
   by auto
 
-lemma finite_Image[simp]: assumes "finite R" shows "finite (R `` A)"
-by(rule finite_subset[OF _ finite_Range[OF assms]]) auto
-
 
 subsubsection \<open>Inverse image\<close>
 
@@ -1527,91 +1497,5 @@ lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. 
   by (auto simp add: Powp_def fun_eq_iff)
 
 lemmas Powp_mono [mono] = Pow_mono [to_pred]
-
-
-subsubsection \<open>Expressing relation operations via \<^const>\<open>Finite_Set.fold\<close>\<close>
-
-lemma Id_on_fold:
-  assumes "finite A"
-  shows "Id_on A = Finite_Set.fold (\<lambda>x. Set.insert (Pair x x)) {} A"
-proof -
-  interpret comp_fun_commute "\<lambda>x. Set.insert (Pair x x)"
-    by standard auto
-  from assms show ?thesis
-    unfolding Id_on_def by (induct A) simp_all
-qed
-
-lemma comp_fun_commute_Image_fold:
-  "comp_fun_commute (\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A)"
-proof -
-  interpret comp_fun_idem Set.insert
-    by (fact comp_fun_idem_insert)
-  show ?thesis
-    by standard (auto simp: fun_eq_iff comp_fun_commute split: prod.split)
-qed
-
-lemma Image_fold:
-  assumes "finite R"
-  shows "R `` S = Finite_Set.fold (\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A) {} R"
-proof -
-  interpret comp_fun_commute "(\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A)"
-    by (rule comp_fun_commute_Image_fold)
-  have *: "\<And>x F. Set.insert x F `` S = (if fst x \<in> S then Set.insert (snd x) (F `` S) else (F `` S))"
-    by (force intro: rev_ImageI)
-  show ?thesis
-    using assms by (induct R) (auto simp: *)
-qed
-
-lemma insert_relcomp_union_fold:
-  assumes "finite S"
-  shows "{x} O S \<union> X = Finite_Set.fold (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A') X S"
-proof -
-  interpret comp_fun_commute "\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A'"
-  proof -
-    interpret comp_fun_idem Set.insert
-      by (fact comp_fun_idem_insert)
-    show "comp_fun_commute (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A')"
-      by standard (auto simp add: fun_eq_iff split: prod.split)
-  qed
-  have *: "{x} O S = {(x', z). x' = fst x \<and> (snd x, z) \<in> S}"
-    by (auto simp: relcomp_unfold intro!: exI)
-  show ?thesis
-    unfolding * using \<open>finite S\<close> by (induct S) (auto split: prod.split)
-qed
-
-lemma insert_relcomp_fold:
-  assumes "finite S"
-  shows "Set.insert x R O S =
-    Finite_Set.fold (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A') (R O S) S"
-proof -
-  have "Set.insert x R O S = ({x} O S) \<union> (R O S)"
-    by auto
-  then show ?thesis
-    by (auto simp: insert_relcomp_union_fold [OF assms])
-qed
-
-lemma comp_fun_commute_relcomp_fold:
-  assumes "finite S"
-  shows "comp_fun_commute (\<lambda>(x,y) A.
-    Finite_Set.fold (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') A S)"
-proof -
-  have *: "\<And>a b A.
-    Finite_Set.fold (\<lambda>(w, z) A'. if b = w then Set.insert (a, z) A' else A') A S = {(a,b)} O S \<union> A"
-    by (auto simp: insert_relcomp_union_fold[OF assms] cong: if_cong)
-  show ?thesis
-    by standard (auto simp: *)
-qed
-
-lemma relcomp_fold:
-  assumes "finite R" "finite S"
-  shows "R O S = Finite_Set.fold
-    (\<lambda>(x,y) A. Finite_Set.fold (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') A S) {} R"
-proof -
-  interpret commute_relcomp_fold: comp_fun_commute
-    "(\<lambda>(x, y) A. Finite_Set.fold (\<lambda>(w, z) A'. if y = w then insert (x, z) A' else A') A S)"
-    by (fact comp_fun_commute_relcomp_fold[OF \<open>finite S\<close>])
-  from assms show ?thesis
-    by (induct R) (auto simp: comp_fun_commute_relcomp_fold insert_relcomp_fold cong: if_cong)
-qed
 
 end

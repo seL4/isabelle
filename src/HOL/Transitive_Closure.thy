@@ -6,7 +6,7 @@
 section \<open>Reflexive and Transitive closure of a relation\<close>
 
 theory Transitive_Closure
-  imports Relation
+  imports Finite_Set
   abbrevs "^*" = "\<^sup>*" "\<^sup>*\<^sup>*"
     and "^+" = "\<^sup>+" "\<^sup>+\<^sup>+"
     and "^=" = "\<^sup>=" "\<^sup>=\<^sup>="
