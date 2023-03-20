@@ -31,6 +31,7 @@ final class Space private(val bytes: Long) extends AnyVal {
   def + (other: Space): Space = new Space(bytes + other.bytes)
   def - (other: Space): Space = new Space(bytes - other.bytes)
   def * (scalar: Double): Space = new Space((bytes * scalar).round)
+  def / (other: Space): Double = B / other.B
 
   def is_proper: Boolean = bytes > 0
   def is_relevant: Boolean = MiB >= 1.0
