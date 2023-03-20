@@ -55,7 +55,7 @@ sig
   val join_thys: theory * theory -> theory
   val begin_thy: string -> theory list -> theory
   val finish_thy: theory -> theory
-  val theory_data_size: theory -> (Position.T * int) list
+  val theory_sizeof1_data: theory -> (Position.T * int) list
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
   (*certificate*)
@@ -457,14 +457,14 @@ fun get k dest thy =
 
 fun put k mk x = update_thy (Datatab.update (k, mk x));
 
-fun obj_size k thy =
-  Datatab.lookup (data_of thy) k |> Option.map ML_Heap.obj_size;
+fun sizeof1 k thy =
+  Datatab.lookup (data_of thy) k |> Option.map ML_Heap.sizeof1;
 
 end;
 
-fun theory_data_size thy =
+fun theory_sizeof1_data thy =
   build (data_of thy |> Datatab.fold_rev (fn (k, _) =>
-    (case Theory_Data.obj_size k thy of
+    (case Theory_Data.sizeof1 k thy of
       NONE => I
     | SOME n => (cons (invoke_pos k, n)))));
 
