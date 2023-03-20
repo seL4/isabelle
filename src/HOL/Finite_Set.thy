@@ -2578,22 +2578,15 @@ context order
 begin
 
 lemma finite_has_maximal:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists> m \<in> A. \<forall> b \<in> A. m \<le> b \<longrightarrow> m = b"
-proof (induction rule: finite_psubset_induct)
-  case (psubset A)
-  from \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" by auto
-  let ?B = "{b \<in> A. a < b}"
-  show ?case
-  proof cases
-    assume "?B = {}"
-    hence "\<forall> b \<in> A. a \<le> b \<longrightarrow> a = b" using le_neq_trans by blast
-    thus ?thesis using \<open>a \<in> A\<close> by blast
-  next
-    assume "?B \<noteq> {}"
-    have "a \<notin> ?B" by auto
-    hence "?B \<subset> A" using \<open>a \<in> A\<close> by blast
-    from psubset.IH[OF this \<open>?B \<noteq> {}\<close>] show ?thesis using order.strict_trans2 by blast
-  qed
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<exists> m \<in> A. \<forall> b \<in> A. m \<le> b \<longrightarrow> m = b"
+proof -
+  obtain m where "m \<in> A" and m_is_max: "\<forall>x\<in>A. x \<noteq> m \<longrightarrow> \<not> m < x"
+    using Finite_Set.bex_max_element[OF \<open>finite A\<close> \<open>A \<noteq> {}\<close>, of "(<)"] by auto
+  moreover have "\<forall>b \<in> A. m \<le> b \<longrightarrow> m = b"
+    using m_is_max by (auto simp: le_less)
+  ultimately show ?thesis
+    by auto
 qed
 
 lemma finite_has_maximal2:
@@ -2601,22 +2594,15 @@ lemma finite_has_maximal2:
 using finite_has_maximal[of "{b \<in> A. a \<le> b}"] by fastforce
 
 lemma finite_has_minimal:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists> m \<in> A. \<forall> b \<in> A. b \<le> m \<longrightarrow> m = b"
-proof (induction rule: finite_psubset_induct)
-  case (psubset A)
-  from \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" by auto
-  let ?B = "{b \<in> A. b < a}"
-  show ?case
-  proof cases
-    assume "?B = {}"
-    hence "\<forall> b \<in> A. b \<le> a \<longrightarrow> a = b" using le_neq_trans by blast
-    thus ?thesis using \<open>a \<in> A\<close> by blast
-  next
-    assume "?B \<noteq> {}"
-    have "a \<notin> ?B" by auto
-    hence "?B \<subset> A" using \<open>a \<in> A\<close> by blast
-    from psubset.IH[OF this \<open>?B \<noteq> {}\<close>] show ?thesis using order.strict_trans1 by blast
-  qed
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<exists> m \<in> A. \<forall> b \<in> A. b \<le> m \<longrightarrow> m = b"
+proof -
+  obtain m where "m \<in> A" and m_is_min: "\<forall>x\<in>A. x \<noteq> m \<longrightarrow> \<not> x < m"
+    using Finite_Set.bex_min_element[OF \<open>finite A\<close> \<open>A \<noteq> {}\<close>, of "(<)"] by auto
+  moreover have "\<forall>b \<in> A. b \<le> m \<longrightarrow> m = b"
+    using m_is_min by (auto simp: le_less)
+  ultimately show ?thesis
+    by auto
 qed
 
 lemma finite_has_minimal2:
