@@ -2465,6 +2465,113 @@ proof -
   qed
 qed
 
+
+subsection \<open>Minimal and maximal elements of finite sets\<close>
+
+context begin
+
+qualified lemma
+  assumes "finite A" and "A \<noteq> {}" and "transp_on A R" and "asymp_on A R"
+  shows
+    bex_min_element: "\<exists>m \<in> A. \<forall>x \<in> A. x \<noteq> m \<longrightarrow> \<not> R x m" and
+    bex_max_element: "\<exists>m \<in> A. \<forall>x \<in> A. x \<noteq> m \<longrightarrow> \<not> R m x"
+  unfolding atomize_conj
+  using assms
+proof (induction A rule: finite_induct)
+  case empty
+  hence False
+    by simp
+  thus ?case ..
+next
+  case (insert a A')
+  show ?case
+  proof (cases "A' = {}")
+    case True
+    show ?thesis
+    proof (intro conjI bexI)
+      show "\<forall>x\<in>insert a A'. x \<noteq> a \<longrightarrow> \<not> R x a" and "\<forall>x\<in>insert a A'. x \<noteq> a \<longrightarrow> \<not> R a x"
+        using True by blast+
+    qed simp_all
+  next
+    case False
+    moreover have "transp_on A' R"
+      using insert.prems transp_on_subset by blast
+    moreover have "asymp_on A' R"
+      using insert.prems asymp_on_subset by blast
+    ultimately obtain min max where
+      "min \<in> A'" and "max \<in> A'" and
+      min_is_min: "\<forall>x\<in>A'. x \<noteq> min \<longrightarrow> \<not> R x min" and
+      max_is_max: "\<forall>x\<in>A'. x \<noteq> max \<longrightarrow> \<not> R max x"
+      using insert.IH by auto
+
+    show ?thesis
+    proof (rule conjI)
+      show "\<exists>min\<in>insert a A'. \<forall>x\<in>insert a A'. x \<noteq> min \<longrightarrow> \<not> R x min"
+      proof (cases "R a min")
+        case True
+        show ?thesis
+        proof (intro bexI ballI impI)
+          show "a \<in> insert a A'"
+            by simp
+        next
+          fix x
+          show "x \<in> insert a A' \<Longrightarrow> x \<noteq> a \<Longrightarrow> \<not> R x a"
+            using True \<open>min \<in> A'\<close> min_is_min[rule_format, of x] insert.prems(2,3)
+            by (auto dest: asymp_onD transp_onD)
+        qed
+      next
+        case False
+        show ?thesis
+        proof (rule bexI)
+          show "min \<in> insert a A'"
+            using \<open>min \<in> A'\<close> by auto
+        next
+          show "\<forall>x\<in>insert a A'. x \<noteq> min \<longrightarrow> \<not> R x min"
+            using False min_is_min by blast
+        qed
+      qed
+    next
+      show "\<exists>max\<in>insert a A'. \<forall>x\<in>insert a A'. x \<noteq> max \<longrightarrow> \<not> R max x"
+      proof (cases "R max a")
+        case True
+        show ?thesis
+        proof (intro bexI ballI impI)
+          show "a \<in> insert a A'"
+            by simp
+        next
+          fix x
+          show "x \<in> insert a A' \<Longrightarrow> x \<noteq> a \<Longrightarrow> \<not> R a x"
+            using True \<open>max \<in> A'\<close> max_is_max[rule_format, of x] insert.prems(2,3)
+            by (auto dest: asymp_onD transp_onD)
+        qed
+      next
+        case False
+        show ?thesis
+        proof (rule bexI)
+          show "max \<in> insert a A'"
+            using \<open>max \<in> A'\<close> by auto
+        next
+          show "\<forall>x\<in>insert a A'. x \<noteq> max \<longrightarrow> \<not> R max x"
+            using False max_is_max by blast
+        qed
+      qed
+    qed
+  qed
+qed
+
+end
+
+text \<open>The following alternative form might sometimes be easier to work with.\<close>
+
+lemma is_min_element_in_set_iff:
+  "asymp_on A R \<Longrightarrow> (\<forall>y \<in> A. y \<noteq> x \<longrightarrow> \<not> R y x) \<longleftrightarrow> (\<forall>y. R y x \<longrightarrow> y \<notin> A)"
+  by (auto dest: asymp_onD)
+
+lemma is_max_element_in_set_iff:
+  "asymp_on A R \<Longrightarrow> (\<forall>y \<in> A. y \<noteq> x \<longrightarrow> \<not> R x y) \<longleftrightarrow> (\<forall>y. R x y \<longrightarrow> y \<notin> A)"
+  by (auto dest: asymp_onD)
+
+
 subsubsection \<open>Finite orders\<close>
 
 context order

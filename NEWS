@@ -66,6 +66,11 @@ antiquotations.
 * Theory "HOL.Finite_Set"
   - Imported Relation instead of Product_Type, Sum_Type, and Fields.
     Minor INCOMPATIBILITY.
+  - Added lemmas.
+      Finite_Set.bex_max_element
+      Finite_Set.bex_min_element
+      is_max_element_in_set_iff
+      is_min_element_in_set_iff
 
 * Theory "HOL.Relation":
   - Imported Product_Type, Sum_Type, and Fields instead of Finite_Set.
