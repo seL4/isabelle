@@ -267,6 +267,19 @@ antiquotations.
 
 *** ML ***
 
+* Operations ML_Heap.sizeof1 and ML_Heap.sizeof determine the object
+size on the heap in bytes. The latter works simultaneously on multiple
+objects, taking implicit sharing of values into account. Examples for
+the default 64_32 platform (4 bytes per machine word):
+
+  val s = "aaaabbbbcccc";
+  val a = ML_Heap.sizeof1 s;
+    (*20: 2 words descriptor + 3 words content*)
+  val b = ML_Heap.sizeof [s, s];
+    (*20: shared values without list structure*)
+  val c = ML_Heap.sizeof1 [s, s];
+    (*44 = 20 + 24: shared values + 2 * 3 words per list cons*)
+
 * Operations for Zstd compression (via Isabelle/Scala):
 
   Zstd.compress: Bytes.T -> Bytes.T
