@@ -15,28 +15,28 @@ infixr 3 `|==>;
 
 signature BASIC_CODE_THINGOL =
 sig
-  type vname = string;
+  type vname = string
   datatype dict =
       Dict of (class * class) list * plain_dict
   and plain_dict = 
       Dict_Const of (string * class) * dict list list
-    | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool };
+    | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool }
   datatype itype =
       `%% of string * itype list
-    | ITyVar of vname;
+    | ITyVar of vname
   type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
-    dom: itype list, range: itype, annotation: itype option };
+    dom: itype list, range: itype, annotation: itype option }
   datatype iterm =
       IConst of const
     | IVar of vname option
     | `$ of iterm * iterm
     | `|=> of (vname option * itype) * (iterm * itype)
-    | ICase of { term: iterm, typ: itype, clauses: (iterm * iterm) list, primitive: iterm };
-  val `-> : itype * itype -> itype;
-  val `--> : itype list * itype -> itype;
-  val `$$ : iterm * iterm list -> iterm;
-  val `|==> : (vname option * itype) list * (iterm * itype) -> iterm;
-  type typscheme = (vname * sort) list * itype;
+    | ICase of { term: iterm, typ: itype, clauses: (iterm * iterm) list, primitive: iterm }
+  val `-> : itype * itype -> itype
+  val `--> : itype list * itype -> itype
+  val `$$ : iterm * iterm list -> iterm
+  val `|==> : (vname option * itype) list * (iterm * itype) -> iterm
+  type typscheme = (vname * sort) list * itype
 end;
 
 signature CODE_THINGOL =
