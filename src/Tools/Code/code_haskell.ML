@@ -244,8 +244,9 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
               | SOME (wanted, Code_Printer.Complex_printer _) =>
                   let
                     val { sym = Constant c, dom, range, ... } = const;
-                    val (vs, rhs) = (apfst o map) fst
-                      (Code_Thingol.unfold_abs (Code_Thingol.satisfied_application wanted (const, [])));
+                    val ((vs_tys, (ts, _)), _) = Code_Thingol.satisfied_application wanted (const, []);
+                    val vs = map fst vs_tys;
+                    val rhs = IConst const `$$ ts;
                     val s = if (is_some o const_syntax) c
                       then NONE else (SOME o Long_Name.base_name o deresolve_const) c;
                     val vars = reserved

@@ -129,7 +129,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           if wanted < 2 orelse length ts = wanted
           then (str o deresolve) sym
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
-          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.satisfied_application wanted app)]
+          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.saturated_application wanted app)]
         end
       else if is_pseudo_fun sym
         then (str o deresolve) sym @@ str "()"
@@ -452,7 +452,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           if length ts = wanted
           then (str o deresolve) sym
             :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
-          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.satisfied_application wanted app)]
+          else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.saturated_application wanted app)]
         end
       else if is_pseudo_fun sym
         then (str o deresolve) sym @@ str "()"

@@ -115,7 +115,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
              ], vars')
            end
     and print_app tyvars is_pat some_thm vars fxy
-        (app as ({ sym, typargs, dom, dicts, ... }, ts)) =
+        (app as (const as { sym, typargs, dom, dicts, ... }, ts)) =
       let
         val typargs' = if is_pat then [] else typargs;
         val syntax = case sym of
@@ -140,15 +140,18 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           | SOME (k, Complex_printer print) =>
               (k, fn fxy => fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
                 (ts ~~ take k dom))
-      in if length ts = wanted then print' fxy ts
-      else if length ts < wanted then
-        print_term tyvars is_pat some_thm vars fxy (Code_Thingol.satisfied_application wanted app)
-      else let
-        val (ts1, ts23) = chop wanted ts;
+        val ((vs_tys, (ts1, rty)), ts2) =
+          Code_Thingol.satisfied_application wanted app;
       in
-        Pretty.block (print' BR ts1 :: map (fn t => Pretty.block
-          [str ".apply(", print_term tyvars is_pat some_thm vars NOBR t, str ")"]) ts23)
-      end end
+        if null vs_tys then
+          if null ts2 then
+            print' fxy ts
+          else
+            Pretty.block (print' BR ts1 :: map (fn t => Pretty.block
+              [str ".apply(", print_term tyvars is_pat some_thm vars NOBR t, str ")"]) ts2)
+        else
+          print_term tyvars is_pat some_thm vars fxy (vs_tys `|==> (IConst const `$$ ts1, rty))
+      end
     and print_bind tyvars some_thm fxy p =
       gen_print_bind (print_term tyvars true) some_thm fxy p
     and print_case tyvars some_thm vars fxy { clauses = [], ... } =

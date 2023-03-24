@@ -58,7 +58,9 @@ sig
   val unfold_const_app: iterm -> (const * iterm list) option
   val is_IVar: iterm -> bool
   val is_IAbs: iterm -> bool
-  val satisfied_application: int -> const * iterm list -> iterm
+  val satisfied_application: int -> const * iterm list
+    -> ((vname option * itype) list * (iterm list * itype)) * iterm list
+  val saturated_application: int -> const * iterm list -> iterm
   val contains_dict_var: iterm -> bool
   val unambiguous_dictss: dict list list -> bool
   val add_constsyms: iterm -> Code_Symbol.T list -> Code_Symbol.T list
@@ -277,14 +279,29 @@ fun unfold_abs_eta [] t = ([], t)
         val vs = map fst (invent_params (declare_varnames t) tys);
       in (vs, t `$$ map IVar vs) end;
 
-fun satisfied_application wanted (const as { dom, range, ... }, ts) =
+fun satisfied_application wanted ({ dom, range, ... }, ts) =
   let
     val given = length ts;
     val delta = wanted - given;
-    val vs_tys = invent_params (fold declare_varnames ts)
-      (((take delta o drop given) dom));
     val (_, rty) = unfold_fun_n wanted range;
-  in vs_tys `|==> (IConst const `$$ ts @ map (IVar o fst) vs_tys, rty) end;
+  in
+    if delta = 0 then
+      (([], (ts, rty)), [])
+    else if delta < 0 then
+      let
+        val (ts1, ts2) = chop wanted ts
+      in (([], (ts1, rty)), ts2) end
+    else
+      let
+        val vs_tys = invent_params (fold declare_varnames ts)
+          (((take delta o drop given) dom));
+      in ((vs_tys, (ts @ map (IVar o fst) vs_tys, rty)), []) end
+  end
+
+fun saturated_application wanted (const, ts) =
+  let
+    val ((vs_tys, (ts', rty)), []) = satisfied_application wanted (const, ts)
+  in vs_tys `|==> (IConst const `$$ ts', rty) end
 
 fun map_terms_bottom_up f (t as IConst _) = f t
   | map_terms_bottom_up f (t as IVar _) = f t

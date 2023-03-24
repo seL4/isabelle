@@ -319,23 +319,26 @@ fun prep_const_syntax thy literals c (plain_const_syntax s) =
       (n, Complex_printer (f literals));
 
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
-    (app as ({ sym, dom, ... }, ts)) =
+    (app as (const as { sym, dom, ... }, ts)) =
   case sym of
-    Constant const => (case const_syntax const of
+    Constant name => (case const_syntax name of
       NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (_, Plain_printer s) =>
         brackify fxy (str s :: map (print_term some_thm vars BR) ts)
     | SOME (wanted, Complex_printer print) =>
         let
-          fun print' fxy ts =
-            print (print_term some_thm) some_thm vars fxy (ts ~~ take wanted dom);
+          val ((vs_tys, (ts1, rty)), ts2) =
+            Code_Thingol.satisfied_application wanted app;
+          fun print' fxy =
+            print (print_term some_thm) some_thm vars fxy (ts1 ~~ take wanted dom);
         in
-          if wanted = length ts
-          then print' fxy ts
-          else if wanted < length ts
-          then case chop wanted ts of (ts1, ts2) =>
-            brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
-          else print_term some_thm vars fxy (Code_Thingol.satisfied_application wanted app)
+          if null vs_tys then
+            if null ts2 then
+              print' fxy
+            else
+              brackify fxy (print' APP :: map (print_term some_thm vars BR) ts2)
+          else
+            print_term some_thm vars fxy (vs_tys `|==> (IConst const `$$ ts1, rty))
         end)
   | _ => brackify fxy (print_app_expr some_thm vars app);
 

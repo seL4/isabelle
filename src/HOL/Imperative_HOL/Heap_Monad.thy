@@ -671,7 +671,7 @@ val imp_program =
     fun imp_monad_bind' (const as { sym = Code_Symbol.Constant c, dom = dom, ... }) ts = if is_bind c then case (ts, dom)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
         | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)] `$ t3
-        | (ts, _) => imp_monad_bind (satisfied_application 2 (const, ts))
+        | (ts, _) => imp_monad_bind (saturated_application 2 (const, ts))
       else IConst const `$$ map imp_monad_bind ts
     and imp_monad_bind (IConst const) = imp_monad_bind' const []
       | imp_monad_bind (t as IVar _) = t
