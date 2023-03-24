@@ -75,7 +75,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
       | print_var vars (SOME v) = (str o lookup_var vars) v;
     fun applify_dict tyvars (Dict (_, d)) = applify_plain_dict tyvars d
     and applify_plain_dict tyvars (Dict_Const (inst, dss)) =
-          applify_dictss tyvars ((str o deresolve o Class_Instance) inst) dss
+          applify_dictss tyvars ((str o deresolve o Class_Instance) inst) (map snd dss)
       | applify_plain_dict tyvars (Dict_Var { var, class, ... }) =
           Pretty.block [str "implicitly",
             enclose "[" "]" [Pretty.block [(str o deresolve_class) class,

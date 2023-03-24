@@ -314,7 +314,7 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
     and assemble_dict (Dict (classrels, x)) =
           assemble_classrels classrels (assemble_plain_dict x)
     and assemble_plain_dict (Dict_Const (inst, dss)) =
-          assemble_constapp (Class_Instance inst) dss []
+          assemble_constapp (Class_Instance inst) (map snd dss) []
       | assemble_plain_dict (Dict_Var { var, index, ... }) =
           nbe_dict var index
 
@@ -448,7 +448,7 @@ fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
       []
   | eqns_of_stmt (sym_inst, Code_Thingol.Classinst { class, tyco, vs, superinsts, inst_params, ... }) =
       [(sym_inst, (vs, [([], dummy_const (Type_Class class) [] `$$
-        map (fn (class, dss) => dummy_const (Class_Instance (tyco, class)) dss) superinsts
+        map (fn (class, dss) => dummy_const (Class_Instance (tyco, class)) (map snd dss)) superinsts
         @ map (IConst o fst o snd o fst) inst_params)]))];
 
 

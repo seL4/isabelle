@@ -16,14 +16,14 @@ infixr 3 `|==>;
 signature BASIC_CODE_THINGOL =
 sig
   type vname = string
-  datatype dict =
-      Dict of (class * class) list * plain_dict
-  and plain_dict = 
-      Dict_Const of (string * class) * dict list list
-    | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool }
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname
+  datatype dict =
+      Dict of (class * class) list * plain_dict
+  and plain_dict = 
+      Dict_Const of (string * class) * (itype * dict list) list
+    | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool }
   type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
     dom: itype list, range: itype, annotation: itype option }
   datatype iterm =
@@ -78,7 +78,7 @@ sig
     | Classrel of class * class
     | Classparam of class
     | Classinst of { class: string, tyco: string, vs: (vname * sort) list,
-        superinsts: (class * dict list list) list,
+        superinsts: (class * (itype * dict list) list) list,
         inst_params: ((string * (const * int)) * (thm * bool)) list,
         superinst_params: ((string * (const * int)) * (thm * bool)) list };
   type program = stmt Code_Symbol.Graph.T
@@ -136,15 +136,15 @@ fun unfoldr dest x =
 
 type vname = string;
 
-datatype dict =
-    Dict of (class * class) list * plain_dict
-and plain_dict = 
-    Dict_Const of (string * class) * dict list list
-  | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool };
-
 datatype itype =
     `%% of string * itype list
   | ITyVar of vname;
+
+datatype dict =
+    Dict of (class * class) list * plain_dict
+and plain_dict = 
+    Dict_Const of (string * class) * (itype * dict list) list
+  | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool };
 
 fun ty1 `-> ty2 = "fun" `%% [ty1, ty2];
 
@@ -353,9 +353,9 @@ fun distill_minimized_clause tys t =
   in distill vs_map (map IVar vs) body end;
 
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
-and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
+and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f (map snd dss)
   | exists_plain_dict_var_pred f (Dict_Var x) = f x
-and exists_dictss_var f dss = (exists o exists) (exists_dict_var f) dss;
+and exists_dictss_var f = (exists o exists) (exists_dict_var f);
 
 fun contains_dict_var (IConst { dicts = dss, ... }) = exists_dictss_var (K true) dss
   | contains_dict_var (IVar _) = false
@@ -378,7 +378,7 @@ datatype stmt =
   | Classrel of class * class
   | Classparam of class
   | Classinst of { class: string, tyco: string, vs: (vname * sort) list,
-      superinsts: (class * dict list list) list,
+      superinsts: (class * (itype * dict list) list) list,
       inst_params: ((string * (const * int)) * (thm * bool)) list,
       superinst_params: ((string * (const * int)) * (thm * bool)) list };
 
@@ -552,7 +552,7 @@ fun annotate_eqns ctxt algbr eqngr (c, ty) eqns =
 datatype typarg_witness =
     Weakening of (class * class) list * plain_typarg_witness
 and plain_typarg_witness =
-    Global of (string * class) * typarg_witness list list
+    Global of (string * class) * (typ * typarg_witness list) list
   | Local of { var: string, index: int, sort: sort, unique: bool };
 
 fun brand_unique unique (w as Global _) = w
@@ -563,8 +563,8 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
   let
     fun class_relation unique (Weakening (classrels, x), sub_class) super_class =
       Weakening ((sub_class, super_class) :: classrels, brand_unique unique x);
-    fun type_constructor (tyco, _) dss class =
-      Weakening ([], Global ((tyco, class), (map o map) fst dss));
+    fun type_constructor (tyco, typs) dss class =
+      Weakening ([], Global ((tyco, class), typs ~~ (map o map) fst dss));
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
@@ -832,21 +832,23 @@ and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sor
   #>> (fn sort => (unprefix "'" v, sort))
 and translate_dicts ctxt algbr eqngr permissive some_thm (ty, sort) =
   let
-    fun mk_dict (Weakening (classrels, d)) =
+    fun translate_dict (Weakening (classrels, d)) =
           fold_map (ensure_classrel ctxt algbr eqngr permissive) classrels
-          ##>> mk_plain_dict d
+          ##>> translate_plain_dict d
           #>> Dict 
-    and mk_plain_dict (Global (inst, dss)) =
+    and translate_plain_dict (Global (inst, dss)) =
           ensure_inst ctxt algbr eqngr permissive inst
-          ##>> (fold_map o fold_map) mk_dict dss
+          ##>> fold_map (fn (ty, ds) =>
+            translate_typ ctxt algbr eqngr permissive ty
+            ##>> fold_map translate_dict ds) dss
           #>> Dict_Const
-      | mk_plain_dict (Local { var, index, sort, unique }) =
+      | translate_plain_dict (Local { var, index, sort, unique }) =
           ensure_class ctxt algbr eqngr permissive (nth sort index)
           #>> (fn class => Dict_Var { var = unprefix "'" var, index = index,
             length = length sort, class = class, unique = unique })
   in
     construct_dictionaries ctxt algbr permissive some_thm (ty, sort)
-    #-> (fn typarg_witnesses => fold_map mk_dict typarg_witnesses)
+    #-> (fn typarg_witnesses => fold_map translate_dict typarg_witnesses)
   end;
 
 

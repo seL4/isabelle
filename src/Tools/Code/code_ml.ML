@@ -29,7 +29,7 @@ val target_OCaml = "OCaml";
 datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
   | ML_Instance of (string * class) * { class: class, tyco: string, vs: (vname * sort) list,
-        superinsts: (class * dict list list) list,
+        superinsts: (class * (itype * dict list) list) list,
         inst_params: ((string * (const * int)) * (thm * bool)) list,
         superinst_params: ((string * (const * int)) * (thm * bool)) list };
 
@@ -89,7 +89,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
     and print_plain_dict is_pseudo_fun fxy (Dict_Const (inst, dss)) =
           ((str o deresolve_inst) inst ::
             (if is_pseudo_fun (Class_Instance inst) then [str "()"]
-            else map_filter (print_dicts is_pseudo_fun BR) dss))
+            else map_filter (print_dicts is_pseudo_fun BR o snd) dss))
       | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length, ... }) =
           [str (if length = 1 then Name.enforce_case true var ^ "_"
             else Name.enforce_case true var ^ string_of_int (index + 1) ^ "_")]
@@ -415,7 +415,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
     and print_plain_dict is_pseudo_fun fxy (Dict_Const (inst, dss)) =
           brackify BR ((str o deresolve_inst) inst ::
             (if is_pseudo_fun (Class_Instance inst) then [str "()"]
-            else map_filter (print_dicts is_pseudo_fun BR) dss))
+            else map_filter (print_dicts is_pseudo_fun BR o snd) dss))
       | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length, ... }) =
           str (if length = 1 then "_" ^ Name.enforce_case true var
             else "_" ^ Name.enforce_case true var ^ string_of_int (index + 1))
@@ -580,11 +580,11 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
       | print_def is_pseudo_fun _ definer
           (ML_Instance (inst as (tyco, class), { vs, superinsts, inst_params, ... })) =
           let
-            fun print_super_instance (super_class, x) =
+            fun print_super_instance (super_class, dss) =
               concat [
                 (str o deresolve_classrel) (class, super_class),
                 str "=",
-                print_dict is_pseudo_fun NOBR (Dict ([], Dict_Const ((tyco, super_class), x)))
+                print_dict is_pseudo_fun NOBR (Dict ([], Dict_Const ((tyco, super_class), dss)))
               ];
             fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               concat [
