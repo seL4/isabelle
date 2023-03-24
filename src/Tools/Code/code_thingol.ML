@@ -514,7 +514,7 @@ fun annotate ctxt algbr eqngr (c, ty) args rhs =
   let
     val erase = map_types (fn _ => Type_Infer.anyT []);
     val reinfer = singleton (Type_Infer_Context.infer_types ctxt);
-    val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args);
+    val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o snd) args);
     val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))));
   in tag_term algbr eqngr reinferred_rhs rhs end
 
@@ -524,8 +524,8 @@ fun annotate_eqns ctxt algbr eqngr (c, ty) eqns =
       |> Config.put Type_Infer_Context.const_sorts false;
       (*avoid spurious fixed variables: there is no eigen context for equations*)
   in
-    map (apfst (fn (args, (rhs, some_abs)) => (args,
-      (annotate ctxt' algbr eqngr (c, ty) args rhs, some_abs)))) eqns
+    map (apfst (fn (args, (some_abs, rhs)) => (args,
+      (some_abs, annotate ctxt' algbr eqngr (c, ty) args rhs)))) eqns
   end;
 
 
@@ -657,7 +657,7 @@ and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
           o Logic.dest_equals o Thm.prop_of) thm;
       in
         ensure_const ctxt algbr eqngr permissive c
-        ##>> translate_const ctxt algbr eqngr permissive (SOME thm) (const, NONE)
+        ##>> translate_const ctxt algbr eqngr permissive (SOME thm) NONE const
         #>> (fn (c, IConst const') => ((c, (const', dom_length)), (thm, true)))
       end;
     val stmt_inst =
@@ -677,11 +677,11 @@ and translate_typ ctxt algbr eqngr permissive (TFree (v, _)) =
       ensure_tyco ctxt algbr eqngr permissive tyco
       ##>> fold_map (translate_typ ctxt algbr eqngr permissive) tys
       #>> (fn (tyco, tys) => tyco `%% tys)
-and translate_term ctxt algbr eqngr permissive some_thm (Const (c, ty), some_abs) =
-      translate_app ctxt algbr eqngr permissive some_thm (((c, ty), []), some_abs)
-  | translate_term ctxt algbr eqngr permissive some_thm (Free (v, _), some_abs) =
+and translate_term ctxt algbr eqngr permissive some_thm some_abs (Const (c, ty)) =
+      translate_app ctxt algbr eqngr permissive some_thm some_abs ((c, ty), [])
+  | translate_term ctxt algbr eqngr permissive some_thm some_abs (Free (v, _)) =
       pair (IVar (SOME v))
-  | translate_term ctxt algbr eqngr permissive some_thm (Abs (v, ty, t), some_abs) =
+  | translate_term ctxt algbr eqngr permissive some_thm some_abs (Abs (v, ty, t)) =
       let
         val ((v', _), t') = Term.dest_abs_global (Abs (Name.desymbolize (SOME false) v, ty, t));
         val v'' = if Term.used_free v' t' then SOME v' else NONE
@@ -689,24 +689,24 @@ and translate_term ctxt algbr eqngr permissive some_thm (Const (c, ty), some_abs
       in
         translate_typ ctxt algbr eqngr permissive ty
         ##>> translate_typ ctxt algbr eqngr permissive rty
-        ##>> translate_term ctxt algbr eqngr permissive some_thm (t', some_abs)
+        ##>> translate_term ctxt algbr eqngr permissive some_thm some_abs t'
         #>> (fn ((ty, rty), t) => (v'', ty) `|=> (t, rty))
       end
-  | translate_term ctxt algbr eqngr permissive some_thm (t as _ $ _, some_abs) =
+  | translate_term ctxt algbr eqngr permissive some_thm some_abs (t as _ $ _) =
       case strip_comb t
        of (Const (c, ty), ts) =>
-            translate_app ctxt algbr eqngr permissive some_thm (((c, ty), ts), some_abs)
+            translate_app ctxt algbr eqngr permissive some_thm some_abs ((c, ty), ts)
         | (t', ts) =>
-            translate_term ctxt algbr eqngr permissive some_thm (t', some_abs)
-            ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
+            translate_term ctxt algbr eqngr permissive some_thm some_abs t'
+            ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eqn ctxt algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm, proper)) =
-  fold_map (translate_term ctxt algbr eqngr permissive some_thm) args
-  ##>> translate_term ctxt algbr eqngr permissive some_thm (rhs, some_abs)
+and translate_eqn ctxt algbr eqngr permissive ((args, (some_abs, rhs)), (some_thm, proper)) =
+  fold_map (uncurry (translate_term ctxt algbr eqngr permissive some_thm)) args
+  ##>> translate_term ctxt algbr eqngr permissive some_thm some_abs rhs
   #>> rpair (some_thm, proper)
 and translate_eqns ctxt algbr eqngr permissive eqns =
   maybe_permissive (fold_map (translate_eqn ctxt algbr eqngr permissive) eqns)
-and translate_const ctxt algbr eqngr permissive some_thm ((c, ty), some_abs) (deps, program) =
+and translate_const ctxt algbr eqngr permissive some_thm some_abs (c, ty) (deps, program) =
   let
     val thy = Proof_Context.theory_of ctxt;
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
@@ -732,9 +732,9 @@ and translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) =
         dom = dom, range = range, annotation =
           if annotate then SOME (dom `--> range) else NONE })
   end
-and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
-  translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)
-  ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
+and translate_app_const ctxt algbr eqngr permissive some_thm some_abs (c_ty, ts) =
+  translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
+  ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
   #>> (fn (t, ts) => t `$$ ts)
 and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
       let
@@ -744,8 +744,8 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
         fun distill_clauses ty_case t =
           map (fn ([pat], body) => (pat, body)) (distill_minimized_clause [ty_case] t)
       in
-        translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
-        ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
+        translate_const ctxt algbr eqngr permissive some_thm NONE c_ty
+        ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
         ##>> translate_typ ctxt algbr eqngr permissive ty_case
         #>> (fn ((t_app, ts), ty_case) =>
             ICase { term = project_term ts, typ = ty_case,
@@ -770,11 +770,11 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
               (distill_minimized_clause (take n tys) t))
                 (constrs ~~ ts_clause);
       in
-        translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
-        ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
+        translate_const ctxt algbr eqngr permissive some_thm NONE c_ty
+        ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
         ##>> translate_typ ctxt algbr eqngr permissive ty_case
         ##>> fold_map (fn (c_ty, n) =>
-          translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE) #>> rpair n) constrs
+          translate_const ctxt algbr eqngr permissive some_thm NONE c_ty #>> rpair n) constrs
         #>> (fn (((t_app, ts), ty_case), constrs) =>
             ICase { term = project_term ts, typ = ty_case,
               clauses = (filter_out (is_undefined_clause ctxt) o distill_clauses constrs o project_cases) ts,
@@ -797,14 +797,14 @@ and translate_app_case ctxt algbr eqngr permissive some_thm (wanted, pattern_sch
     end
   else if length ts > wanted then
     translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), take wanted ts)
-    ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) (drop wanted ts)
+    ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) (drop wanted ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
     translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts)
-and translate_app ctxt algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), some_abs) =
+and translate_app ctxt algbr eqngr permissive some_thm some_abs (c_ty_ts as ((c, _), _)) =
   case Code.get_case_schema (Proof_Context.theory_of ctxt) c
    of SOME case_schema => translate_app_case ctxt algbr eqngr permissive some_thm case_schema c_ty_ts
-    | NONE => translate_app_const ctxt algbr eqngr permissive some_thm (c_ty_ts, some_abs)
+    | NONE => translate_app_const ctxt algbr eqngr permissive some_thm some_abs c_ty_ts
 and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
   fold_map (ensure_class ctxt algbr eqngr permissive) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
@@ -903,7 +903,7 @@ fun ensure_value ctxt algbr eqngr t =
     val stmt_value =
       fold_map (translate_tyvar_sort ctxt algbr eqngr false) vs
       ##>> translate_typ ctxt algbr eqngr false ty
-      ##>> translate_term ctxt algbr eqngr false NONE (t', NONE)
+      ##>> translate_term ctxt algbr eqngr false NONE NONE t'
       #>> (fn ((vs, ty), t) => Fun
         (((vs, ty), [(([], t), (NONE, true))]), NONE));
     fun term_value (_, program1) =

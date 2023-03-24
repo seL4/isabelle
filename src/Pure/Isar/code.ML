@@ -26,7 +26,7 @@ sig
   val conclude_cert: cert -> cert
   val typargs_deps_of_cert: theory -> cert -> (string * sort) list * (string * typ list) list
   val equations_of_cert: theory -> cert -> ((string * sort) list * typ)
-    * (((term * string option) list * (term * string option)) * (thm option * bool)) list option
+    * (((string option * term) list * (string option * term)) * (thm option * bool)) list option
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
@@ -1065,20 +1065,20 @@ fun equations_of_cert thy (cert as Nothing _) =
           |> Local_Defs.expand [snd (get_head thy cert_thm)]
           |> Thm.varifyT_global
           |> Conjunction.elim_balanced (length propers);
-        fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, NONE));
+        fun abstractions (args, rhs) = (map (pair NONE) args, (NONE, rhs));
       in (tyscm, SOME (map (abstractions o dest_eqn o Thm.prop_of) thms ~~ (map SOME thms ~~ propers))) end
   | equations_of_cert thy (Projection (t, tyco)) =
       let
         val (_, {abstractor = (abs, _), ...}) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
         val t' = Logic.varify_types_global t;
-        fun abstractions (args, rhs) = (map (rpair (SOME abs)) args, (rhs, NONE));
+        fun abstractions (args, rhs) = (map (pair (SOME abs)) args, (NONE, rhs));
       in (tyscm, SOME [((abstractions o dest_eqn) t', (NONE, true))]) end
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
       let
         val tyscm = typscheme_abs thy abs_thm;
         val (abs, concrete_thm) = concretify_abs thy tyco abs_thm;
-        fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, (SOME abs)));
+        fun abstractions (args, rhs) = (map (pair NONE) args, (SOME abs, rhs));
       in
         (tyscm, SOME [((abstractions o dest_eqn o Thm.prop_of) concrete_thm,
           (SOME (Thm.varifyT_global abs_thm), true))])
