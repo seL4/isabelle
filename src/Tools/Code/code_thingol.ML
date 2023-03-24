@@ -936,7 +936,7 @@ fun ensure_value ctxt algbr eqngr t =
         val program2 = Code_Symbol.Graph.del_node dummy_constant program1;
         val deps_all = Code_Symbol.Graph.all_succs program2 deps';
         val program3 = Code_Symbol.Graph.restrict (member (op =) deps_all) program2;
-       in ((program3, ((vs_ty, t), deps')), (deps', program2)) end;
+      in ((program3, ((vs_ty, t), deps')), (deps', program2)) end;
   in
     ensure_stmt Constant stmt_value \<^const_name>\<open>Pure.dummy_pattern\<close>
     #> snd
