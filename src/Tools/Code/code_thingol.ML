@@ -256,7 +256,7 @@ val declare_varnames = fold_varnames Name.declare;
 fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
 fun invent_params used tys =
-  (map o apfst) SOME (Name.invent_names (Name.build_context used) "a" tys);
+  Name.invent_names (Name.build_context used) "a" tys;
 
 fun split_pat_abs ((NONE, ty) `|=> (t, _)) = SOME ((IVar NONE, ty), t)
   | split_pat_abs ((SOME v, ty) `|=> (t, _)) = SOME (case t
@@ -276,7 +276,7 @@ fun unfold_abs_eta [] t = ([], t)
       in (v :: vs, t') end
   | unfold_abs_eta tys t =
       let
-        val vs = map fst (invent_params (declare_varnames t) tys);
+        val vs = map (SOME o fst) (invent_params (declare_varnames t) tys);
       in (vs, t `$$ map IVar vs) end;
 
 fun satisfied_application wanted ({ dom, range, ... }, ts) =
@@ -294,7 +294,8 @@ fun satisfied_application wanted ({ dom, range, ... }, ts) =
     else
       let
         val vs_tys = invent_params (fold declare_varnames ts)
-          (((take delta o drop given) dom));
+          (((take delta o drop given) dom))
+          |> (map o apfst) SOME;
       in ((vs_tys, (ts @ map (IVar o fst) vs_tys, rty)), []) end
   end
 
@@ -586,6 +587,25 @@ fun is_undefined_clause ctxt (_, IConst { sym = Constant c, ... }) =
   | is_undefined_clause ctxt _ =
       false;
 
+fun satisfied_app wanted (ty, ts) =
+  let
+    val given = length ts;
+    val delta = wanted - given;
+    val rty = (drop delta o binder_types) ty ---> body_type ty;
+  in
+    if delta = 0 then
+      (([], (ts, rty)), [])
+    else if delta < 0 then
+      let
+        val (ts1, ts2) = chop wanted ts
+      in (([], (ts1, rty)), ts2) end
+    else
+      let
+        val tys = (take delta o drop given o binder_types) ty;
+        val vs_tys = invent_params ((fold o fold_aterms) Term.declare_term_frees ts) tys;
+      in ((vs_tys, (ts @ map Free vs_tys, rty)), []) end
+  end
+
 fun ensure_tyco ctxt algbr eqngr permissive tyco =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -749,10 +769,6 @@ and translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) =
         dom = dom, range = range, annotation =
           if annotate then SOME (dom `--> range) else NONE })
   end
-and translate_app_const ctxt algbr eqngr permissive some_thm some_abs (c_ty, ts) =
-  translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
-  ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
-  #>> (fn (t, ts) => t `$$ ts)
 and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
       let
         fun project_term xs = nth xs t_pos;
@@ -797,31 +813,20 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
               clauses = (filter_out (is_undefined_clause ctxt) o distill_clauses constrs o project_cases) ts,
               primitive = t_app `$$ ts })
       end
-and translate_app_case ctxt algbr eqngr permissive some_thm (wanted, pattern_schema) ((c, ty), ts) =
-  if length ts < wanted then
-    let
-      val given = length ts;
-      val delta = wanted - given;
-      val tys = (take delta o drop given o binder_types) ty;
-      val used = Name.build_context ((fold o fold_aterms) Term.declare_term_frees ts);
-      val vs_tys = Name.invent_names used "a" tys;
-      val rty = (drop delta o binder_types) ty ---> body_type ty;
-    in
-      fold_map (translate_typ ctxt algbr eqngr permissive) tys
-      ##>> translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts @ map Free vs_tys)
-      ##>> translate_typ ctxt algbr eqngr permissive rty
-      #>> (fn ((tys, t), rty) => map2 (fn (v, _) => pair (SOME v)) vs_tys tys `|==> (t, rty))
-    end
-  else if length ts > wanted then
-    translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), take wanted ts)
-    ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) (drop wanted ts)
-    #>> (fn (t, ts) => t `$$ ts)
-  else
-    translate_case ctxt algbr eqngr permissive some_thm pattern_schema ((c, ty), ts)
-and translate_app ctxt algbr eqngr permissive some_thm some_abs (c_ty_ts as ((c, _), _)) =
-  case Code.get_case_schema (Proof_Context.theory_of ctxt) c
-   of SOME case_schema => translate_app_case ctxt algbr eqngr permissive some_thm case_schema c_ty_ts
-    | NONE => translate_app_const ctxt algbr eqngr permissive some_thm some_abs c_ty_ts
+and translate_app_case ctxt algbr eqngr permissive some_thm pattern_schema c_ty ((vs_tys, (ts1, rty)), ts2) =
+  fold_map (fn (v, ty) => translate_typ ctxt algbr eqngr permissive ty #>> pair (SOME v)) vs_tys
+  ##>> translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts1)
+  ##>> translate_typ ctxt algbr eqngr permissive rty
+  ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts2
+  #>> (fn (((vs_tys, t), rty), ts) => (vs_tys `|==> (t, rty)) `$$ ts)
+and translate_app ctxt algbr eqngr permissive some_thm some_abs (c_ty as (c, ty), ts) =
+  case Code.get_case_schema (Proof_Context.theory_of ctxt) c of
+    SOME (wanted, pattern_schema) =>
+      translate_app_case ctxt algbr eqngr permissive some_thm pattern_schema c_ty (satisfied_app wanted (ty, ts))
+  | NONE =>
+      translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
+      ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
+      #>> (fn (t, ts) => t `$$ ts)
 and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
   fold_map (ensure_class ctxt algbr eqngr permissive) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
