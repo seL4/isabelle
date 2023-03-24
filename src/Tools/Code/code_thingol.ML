@@ -695,7 +695,7 @@ and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
       in
         ensure_const ctxt algbr eqngr permissive c
         ##>> translate_const ctxt algbr eqngr permissive (SOME thm) NONE const
-        #>> (fn (c, IConst const') => ((c, (const', dom_length)), (thm, true)))
+        #>> (fn (c, const') => ((c, (const', dom_length)), (thm, true)))
       end;
     val stmt_inst =
       ensure_class ctxt algbr eqngr permissive class
@@ -765,7 +765,7 @@ and translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) =
     ##>> fold_map (translate_dicts ctxt algbr eqngr permissive some_thm) (typargs ~~ sorts)
     ##>> fold_map (translate_typ ctxt algbr eqngr permissive) (range :: dom)
     #>> (fn (((c, typargs), dss), range :: dom) =>
-      IConst { sym = Constant c, typargs = typargs, dicts = dss,
+      { sym = Constant c, typargs = typargs, dicts = dss,
         dom = dom, range = range, annotation =
           if annotate then SOME (dom `--> range) else NONE })
   end
@@ -780,10 +780,10 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
         translate_const ctxt algbr eqngr permissive some_thm NONE c_ty
         ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
         ##>> translate_typ ctxt algbr eqngr permissive ty_case
-        #>> (fn ((t_app, ts), ty_case) =>
+        #>> (fn ((const, ts), ty_case) =>
             ICase { term = project_term ts, typ = ty_case,
               clauses = (filter_out (is_undefined_clause ctxt) o distill_clauses ty_case o project_clause) ts,
-              primitive = t_app `$$ ts })
+              primitive = IConst const `$$ ts })
       end
   | translate_case ctxt algbr eqngr permissive some_thm (t_pos, case_pats) (c_ty, ts) =
       let
@@ -798,8 +798,8 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
           |> map (fn ((c, n), t) =>
             ((c, (take n o binder_types o fastype_of_tagged_term) t ---> ty_case), n));
         fun distill_clauses constrs ts_clause =
-          maps (fn ((constr as IConst { dom = tys, ... }, n), t) =>
-            map (fn (pat_args, body) => (constr `$$ pat_args, body))
+          maps (fn ((constr as { dom = tys, ... }, n), t) =>
+            map (fn (pat_args, body) => (IConst constr `$$ pat_args, body))
               (distill_minimized_clause (take n tys) t))
                 (constrs ~~ ts_clause);
       in
@@ -808,10 +808,10 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) (c_ty, ts) =
         ##>> translate_typ ctxt algbr eqngr permissive ty_case
         ##>> fold_map (fn (c_ty, n) =>
           translate_const ctxt algbr eqngr permissive some_thm NONE c_ty #>> rpair n) constrs
-        #>> (fn (((t_app, ts), ty_case), constrs) =>
+        #>> (fn (((const, ts), ty_case), constrs) =>
             ICase { term = project_term ts, typ = ty_case,
               clauses = (filter_out (is_undefined_clause ctxt) o distill_clauses constrs o project_cases) ts,
-              primitive = t_app `$$ ts })
+              primitive = IConst const `$$ ts })
       end
 and translate_app_case ctxt algbr eqngr permissive some_thm pattern_schema c_ty ((vs_tys, (ts1, rty)), ts2) =
   fold_map (fn (v, ty) => translate_typ ctxt algbr eqngr permissive ty #>> pair (SOME v)) vs_tys
@@ -826,7 +826,7 @@ and translate_app ctxt algbr eqngr permissive some_thm some_abs (c_ty as (c, ty)
   | NONE =>
       translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
       ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
-      #>> (fn (t, ts) => t `$$ ts)
+      #>> (fn (const, ts) => IConst const `$$ ts)
 and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
   fold_map (ensure_class ctxt algbr eqngr permissive) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
