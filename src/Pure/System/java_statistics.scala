@@ -10,15 +10,14 @@ package isabelle
 object Java_Statistics {
   /* memory status */
 
-  sealed case class Memory_Status(heap_size: Long, heap_free: Long) {
-    def heap_used: Long = (heap_size - heap_free) max 0
-    def heap_used_fraction: Double =
-      if (heap_size == 0) 0.0 else heap_used.toDouble / heap_size
+  sealed case class Memory_Status(heap_size: Space, heap_free: Space) {
+    def heap_used: Space = heap_size.used(heap_free)
+    def heap_used_fraction: Double = heap_size.used_fraction(heap_free)
   }
 
   def memory_status(): Memory_Status = {
-    val heap_size = Runtime.getRuntime.totalMemory()
-    val heap_free = Runtime.getRuntime.freeMemory()
+    val heap_size = Space.bytes(Runtime.getRuntime.totalMemory())
+    val heap_free = Space.bytes(Runtime.getRuntime.freeMemory())
     Memory_Status(heap_size, heap_free)
   }
 

@@ -104,8 +104,8 @@ object Status_Widget {
     private var status = Java_Statistics.memory_status()
 
     def get_status: (String, Double) = {
-      ("JVM: " + (status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
-        status.heap_used_fraction)
+      val text = "JVM: " + status.heap_used.MiB.round + "/" + status.heap_size.MiB.round + "MiB"
+      (text, status.heap_used_fraction)
     }
 
     private def update_status(new_status: Java_Statistics.Memory_Status): Unit = {
@@ -160,8 +160,8 @@ object Status_Widget {
       status.gc_progress match {
         case Some(p) => ("ML cleanup", 1.0 - p)
         case None =>
-          ("ML: " + (status.heap_used / 1024 / 1024) + "/" + (status.heap_size / 1024 / 1024) + "MB",
-            status.heap_used_fraction)
+          val text = "ML: " + status.heap_used.MiB.round + "/" + status.heap_size.MiB.round + "MiB"
+          (text, status.heap_used_fraction)
       }
 
     private def update_status(new_status: ML_Statistics.Memory_Status): Unit = {

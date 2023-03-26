@@ -36,6 +36,10 @@ final class Space private(val bytes: Long) extends AnyVal {
   def is_proper: Boolean = bytes > 0
   def is_relevant: Boolean = MiB >= 1.0
 
+  def used(free: Space): Space = new Space((bytes - free.bytes) max 0)
+  def used_fraction(free: Space): Double =
+    if (is_proper && used(free).is_proper) used(free).B / B else 0.0
+
   def B: Double = bytes.toDouble
   def KiB: Double = B / 1024
   def MiB: Double = KiB / 1024
