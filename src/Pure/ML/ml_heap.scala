@@ -22,7 +22,7 @@ object ML_Heap {
       val l = sha1_prefix.length
       val m = l + SHA1.digest_length
       val n = heap.file.length
-      val bs = Bytes.read_slice(heap, offset = n - m)
+      val bs = Bytes.read_file(heap.file, offset = n - m)
       if (bs.length == m) {
         val s = bs.text
         if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(l)))

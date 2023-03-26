@@ -71,28 +71,20 @@ object Bytes {
 
   def read_url(name: String): Bytes = using(Url(name).openStream)(read_stream(_))
 
-  def read(file: JFile): Bytes = {
-    val length = file.length
-    val limit = if (length < 0 || length > Integer.MAX_VALUE) Integer.MAX_VALUE else length.toInt
-    using(new FileInputStream(file))(read_stream(_, limit = limit))
-  }
-
-  def read(path: Path): Bytes = read(path.file)
-
-  def read_slice(path: Path, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
+  def read_file(file: JFile, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
     val start = offset.max(0L)
-    val len = (path.file.length - start).max(0L).min(limit)
+    val len = (file.length - start).max(0L).min(limit)
     if (len > Integer.MAX_VALUE) error("Cannot read large file slice: " + Space.bytes(len).print)
     else if (len == 0L) empty
     else {
-      using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { file =>
-        file.position(start)
+      using(FileChannel.open(file.toPath, StandardOpenOption.READ)) { java_path =>
+        java_path.position(start)
         val n = len.toInt
         val buf = ByteBuffer.allocate(n)
         var i = 0
         var m = 0
         while ({
-          m = file.read(buf)
+          m = java_path.read(buf)
           if (m != -1) i += m
           m != -1 && n > i
         }) ()
@@ -100,6 +92,9 @@ object Bytes {
       }
     }
   }
+
+  def read(file: JFile): Bytes = read_file(file)
+  def read(path: Path): Bytes = read_file(path.file)
 
 
   /* write */
