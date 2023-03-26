@@ -89,7 +89,7 @@ object Headless {
     /* theories */
 
     private object Load_State {
-      def finished: Load_State = Load_State(Nil, Nil, 0)
+      def finished: Load_State = Load_State(Nil, Nil, Space.zero)
 
       def count_file(name: Document.Node.Name): Long =
         if (loaded_theory(name)) 0 else File.space(name.path).bytes
@@ -98,7 +98,7 @@ object Headless {
     private case class Load_State(
       pending: List[Document.Node.Name],
       rest: List[Document.Node.Name],
-      load_limit: Long
+      load_limit: Space
     ) {
       def next(
         dep_graph: Document.Node.Name.Graph[Unit],
@@ -114,10 +114,11 @@ object Headless {
 
         if (!pending.forall(consolidated)) (Nil, this)
         else if (rest.isEmpty) (Nil, Load_State.finished)
-        else if (load_limit == 0) load_requirements(rest, Nil)
+        else if (!load_limit.is_proper) load_requirements(rest, Nil)
         else {
           val reachable =
-            dep_graph.reachable_limit(load_limit, Load_State.count_file, dep_graph.imm_preds, rest)
+            dep_graph.reachable_limit(
+              load_limit.bytes, Load_State.count_file, dep_graph.imm_preds, rest)
           val (pending1, rest1) = rest.partition(reachable)
           load_requirements(pending1, rest1)
         }
@@ -319,8 +320,8 @@ object Headless {
             maximals.sortBy(node => - depth(node))
           }
         val load_limit =
-          if (commit.isDefined) (session_options.real("headless_load_limit") * 1024 * 1024).round
-          else 0
+          if (commit.isDefined) Space.MiB(session_options.real("headless_load_limit"))
+          else Space.zero
         val load_state = Load_State(Nil, rest, load_limit)
 
         Synchronized(Use_Theories_State(dep_graph, load_state, watchdog_timeout, commit))
