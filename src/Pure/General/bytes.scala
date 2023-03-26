@@ -9,6 +9,9 @@ package isabelle
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream, File as JFile}
 import java.net.URL
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.StandardOpenOption
 import org.tukaani.xz
 import com.github.luben.zstd
 
@@ -74,6 +77,28 @@ object Bytes {
   def read(path: Path): Bytes = read(path.file)
 
   def read(url: URL): Bytes = using(url.openStream)(read_stream(_))
+
+  def read_slice(path: Path, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
+    val start = offset.max(0L)
+    val len = (path.file.length - start).max(0L).min(limit)
+    if (len > Integer.MAX_VALUE) error("Cannot read large file slice: " + Space.bytes(len).print)
+    else if (len == 0L) empty
+    else {
+      using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { file =>
+        file.position(start)
+        val n = len.toInt
+        val buf = ByteBuffer.allocate(n)
+        var i = 0
+        var m = 0
+        while ({
+          m = file.read(buf)
+          if (m != -1) i += m
+          m != -1 && n > i
+        }) ()
+        new Bytes(buf.array, 0, i)
+      }
+    }
+  }
 
 
   /* write */

@@ -19,30 +19,16 @@ object ML_Heap {
 
   def read_digest(heap: Path): Option[SHA1.Digest] = {
     if (heap.is_file) {
-      using(FileChannel.open(heap.java_path, StandardOpenOption.READ)) { file =>
-        val len = file.size
-        val n = sha1_prefix.length + SHA1.digest_length
-        if (len >= n) {
-          file.position(len - n)
-
-          val buf = ByteBuffer.allocate(n)
-          var i = 0
-          var m = 0
-          while ({
-            m = file.read(buf)
-            if (m != -1) i += m
-            m != -1 && n > i
-          }) ()
-
-          if (i == n) {
-            val prefix = new String(buf.array(), 0, sha1_prefix.length, UTF8.charset)
-            val s = new String(buf.array(), sha1_prefix.length, SHA1.digest_length, UTF8.charset)
-            if (prefix == sha1_prefix) Some(SHA1.fake_digest(s)) else None
-          }
-          else None
-        }
+      val l = sha1_prefix.length
+      val m = l + SHA1.digest_length
+      val n = heap.file.length
+      val bs = Bytes.read_slice(heap, offset = n - m)
+      if (bs.length == m) {
+        val s = bs.text
+        if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(l)))
         else None
       }
+      else None
     }
     else None
   }
