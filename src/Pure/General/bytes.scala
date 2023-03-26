@@ -174,7 +174,7 @@ final class Bytes private(
       case None => (true, encode_base64)
     }
 
-  override def toString: String = "Bytes(" + length + ")"
+  override def toString: String = "Bytes(" + Space.bytes(length).print + ")"
 
   def proper: Option[Bytes] = if (is_empty) None else Some(this)
   def proper_text: Option[String] = if (is_empty) None else Some(text)
