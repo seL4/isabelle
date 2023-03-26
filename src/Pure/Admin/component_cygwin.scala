@@ -29,7 +29,7 @@ object Component_Cygwin {
         val cygwin_exe_name = mirror + "/setup-x86_64.exe"
         val cygwin_exe = cygwin_isabelle + Path.explode("cygwin.exe")
         Bytes.write(cygwin_exe,
-          try { Bytes.read(Url(cygwin_exe_name)) }
+          try { Bytes.read_url(cygwin_exe_name) }
           catch { case ERROR(_) => error("Failed to download " + quote(cygwin_exe_name)) })
 
         File.write(cygwin_isabelle + Path.explode("cygwin_mirror"), mirror)

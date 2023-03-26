@@ -69,6 +69,8 @@ object Bytes {
       new Bytes(out.toByteArray, 0, out.size)
     }
 
+  def read_url(name: String): Bytes = using(Url(name).openStream)(read_stream(_))
+
   def read(file: JFile): Bytes = {
     val length = file.length
     val limit = if (length < 0 || length > Integer.MAX_VALUE) Integer.MAX_VALUE else length.toInt
@@ -76,8 +78,6 @@ object Bytes {
   }
 
   def read(path: Path): Bytes = read(path.file)
-
-  def read(url: URL): Bytes = using(url.openStream)(read_stream(_))
 
   def read_slice(path: Path, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
     val start = offset.max(0L)
