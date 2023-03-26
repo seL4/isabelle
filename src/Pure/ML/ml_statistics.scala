@@ -109,8 +109,6 @@ object ML_Statistics {
 
   /* memory fields */
 
-  val scale_MiB: Double = 1.0 / 1024 / 1024
-
   val CODE_SIZE = "size_code"
   val STACK_SIZE = "size_stacks"
   val HEAP_SIZE = "size_heap"
@@ -118,7 +116,9 @@ object ML_Statistics {
 
   /* standard fields */
 
-  sealed case class Fields(title: String, names: List[String], scale: Double = 1.0)
+  sealed case class Fields(title: String, names: List[String], scale_MiB: Boolean = false) {
+    def scale(y: Double): Double = if (scale_MiB) Space.B(y).MiB else y
+  }
 
   val tasks_fields: Fields =
     Fields("Future tasks",
@@ -133,10 +133,10 @@ object ML_Statistics {
 
   val heap_fields: Fields =
     Fields("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
-      "size_heap_free_last_full_GC", "size_heap_free_last_GC"), scale = scale_MiB)
+      "size_heap_free_last_full_GC", "size_heap_free_last_GC"), scale_MiB = true)
 
   val program_fields: Fields =
-    Fields("Program", List("size_code", "size_stacks"), scale = scale_MiB)
+    Fields("Program", List("size_code", "size_stacks"), scale_MiB = true)
 
   val threads_fields: Fields =
     Fields("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
@@ -167,7 +167,7 @@ object ML_Statistics {
   val all_fields: List[Fields] = main_fields ::: other_fields
 
   def field_scale(x: String, y: Double): Double =
-    all_fields.collectFirst({ case fields if fields.names.contains(x) => y * fields.scale })
+    all_fields.collectFirst({ case fields if fields.names.contains(x) => fields.scale(y) })
       .getOrElse(y)
 
 
