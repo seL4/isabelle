@@ -146,8 +146,7 @@ object Session_Build {
 
     /* main */
 
-    setTitle("Isabelle build (" +
-      Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
+    setTitle("Isabelle build (" + Isabelle_System.ml_identifier() + " / " +
       "jdk-" + Platform.jvm_version + "_" + Platform.jvm_platform + ")")
 
     pack()
