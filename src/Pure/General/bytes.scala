@@ -12,6 +12,7 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
+import java.util.Arrays
 import org.tukaani.xz
 import com.github.luben.zstd
 
@@ -118,9 +119,9 @@ final class Bytes private(
   override def equals(that: Any): Boolean = {
     that match {
       case other: Bytes =>
-        if (this eq other) true
-        else if (length != other.length) false
-        else (0 until length).forall(i => bytes(offset + i) == other.bytes(other.offset + i))
+        this.eq(other) ||
+        Arrays.equals(bytes, offset, offset + length,
+          other.bytes, other.offset, other.offset + other.length)
       case _ => false
     }
   }
