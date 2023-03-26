@@ -202,10 +202,12 @@ final class Bytes private(
   }
 
   def trim_line: Bytes =
-    if (length >= 2 && charAt(length - 2) == 13 && charAt(length - 1) == 10)
+    if (length >= 2 && charAt(length - 2) == 13 && charAt(length - 1) == 10) {
       subSequence(0, length - 2)
-    else if (length >= 1 && (charAt(length - 1) == 13 || charAt(length - 1) == 10))
+    }
+    else if (length >= 1 && (charAt(length - 1) == 13 || charAt(length - 1) == 10)) {
       subSequence(0, length - 1)
+    }
     else this
 
 
