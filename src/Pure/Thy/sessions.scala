@@ -1392,7 +1392,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
   /** persistent store **/
 
-  /** auxiliary **/
+  /* SQL data model */
 
   sealed case class Build_Info(
     sources: SHA1.Shasum,
@@ -1432,6 +1432,9 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       "ALTER TABLE IF EXISTS " + table.ident +
       " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
   }
+
+
+  /* store */
 
   class Store private[Sessions](val options: Options, val cache: Term.Cache) {
     store =>
