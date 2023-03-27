@@ -317,64 +317,76 @@ fun del (SOME k) Empty = raise UNDEF k
   | del NONE (Branch2 (Empty, p, Empty)) = (p, (true, Empty))
   | del NONE (Branch3 (Empty, p, Empty, q, Empty)) =
       (p, (false, Branch2 (Empty, q, Empty)))
-  | del k (Branch2 (Empty, p, Empty)) = (case compare k p of
-      EQUAL => (p, (true, Empty)) | _ => raise UNDEF (the k))
-  | del k (Branch3 (Empty, p, Empty, q, Empty)) = (case compare k p of
-      EQUAL => (p, (false, Branch2 (Empty, q, Empty)))
-    | _ => (case compare k q of
-        EQUAL => (q, (false, Branch2 (Empty, p, Empty)))
-      | _ => raise UNDEF (the k)))
-  | del k (Branch2 (l, p, r)) = (case compare k p of
-      LESS => (case del k l of
-        (p', (false, l')) => (p', (false, Branch2 (l', p, r)))
-      | (p', (true, l')) => (p', case r of
-          Branch2 (rl, rp, rr) =>
-            (true, Branch3 (l', p, rl, rp, rr))
-        | Branch3 (rl, rp, rm, rq, rr) => (false, Branch2
-            (Branch2 (l', p, rl), rp, Branch2 (rm, rq, rr)))))
-    | ord => (case del (if_eq ord NONE k) r of
-        (p', (false, r')) => (p', (false, Branch2 (l, if_eq ord p' p, r')))
-      | (p', (true, r')) => (p', case l of
-          Branch2 (ll, lp, lr) =>
-            (true, Branch3 (ll, lp, lr, if_eq ord p' p, r'))
-        | Branch3 (ll, lp, lm, lq, lr) => (false, Branch2
-            (Branch2 (ll, lp, lm), lq, Branch2 (lr, if_eq ord p' p, r'))))))
-  | del k (Branch3 (l, p, m, q, r)) = (case compare k q of
-      LESS => (case compare k p of
-        LESS => (case del k l of
-          (p', (false, l')) => (p', (false, Branch3 (l', p, m, q, r)))
-        | (p', (true, l')) => (p', (false, case (m, r) of
-            (Branch2 (ml, mp, mr), Branch2 _) =>
-              Branch2 (Branch3 (l', p, ml, mp, mr), q, r)
-          | (Branch3 (ml, mp, mm, mq, mr), _) =>
-              Branch3 (Branch2 (l', p, ml), mp, Branch2 (mm, mq, mr), q, r)
-          | (Branch2 (ml, mp, mr), Branch3 (rl, rp, rm, rq, rr)) =>
-              Branch3 (Branch2 (l', p, ml), mp, Branch2 (mr, q, rl), rp,
-                Branch2 (rm, rq, rr)))))
-      | ord => (case del (if_eq ord NONE k) m of
-          (p', (false, m')) =>
-            (p', (false, Branch3 (l, if_eq ord p' p, m', q, r)))
-        | (p', (true, m')) => (p', (false, case (l, r) of
-            (Branch2 (ll, lp, lr), Branch2 _) =>
-              Branch2 (Branch3 (ll, lp, lr, if_eq ord p' p, m'), q, r)
-          | (Branch3 (ll, lp, lm, lq, lr), _) =>
-              Branch3 (Branch2 (ll, lp, lm), lq,
-                Branch2 (lr, if_eq ord p' p, m'), q, r)
-          | (_, Branch3 (rl, rp, rm, rq, rr)) =>
-              Branch3 (l, if_eq ord p' p, Branch2 (m', q, rl), rp,
-                Branch2 (rm, rq, rr))))))
-    | ord => (case del (if_eq ord NONE k) r of
-        (q', (false, r')) =>
-          (q', (false, Branch3 (l, p, m, if_eq ord q' q, r')))
-      | (q', (true, r')) => (q', (false, case (l, m) of
-          (Branch2 _, Branch2 (ml, mp, mr)) =>
-            Branch2 (l, p, Branch3 (ml, mp, mr, if_eq ord q' q, r'))
-        | (_, Branch3 (ml, mp, mm, mq, mr)) =>
-            Branch3 (l, p, Branch2 (ml, mp, mm), mq,
-              Branch2 (mr, if_eq ord q' q, r'))
-        | (Branch3 (ll, lp, lm, lq, lr), Branch2 (ml, mp, mr)) =>
-            Branch3 (Branch2 (ll, lp, lm), lq, Branch2 (lr, p, ml), mp,
-              Branch2 (mr, if_eq ord q' q, r'))))));
+  | del k (Branch2 (Empty, p, Empty)) =
+      (case compare k p of
+        EQUAL => (p, (true, Empty))
+      | _ => raise UNDEF (the k))
+  | del k (Branch3 (Empty, p, Empty, q, Empty)) =
+      (case compare k p of
+        EQUAL => (p, (false, Branch2 (Empty, q, Empty)))
+      | _ =>
+        (case compare k q of
+          EQUAL => (q, (false, Branch2 (Empty, p, Empty)))
+        | _ => raise UNDEF (the k)))
+  | del k (Branch2 (l, p, r)) =
+      (case compare k p of
+        LESS =>
+          (case del k l of
+            (p', (false, l')) => (p', (false, Branch2 (l', p, r)))
+          | (p', (true, l')) => (p', case r of
+              Branch2 (rl, rp, rr) =>
+                (true, Branch3 (l', p, rl, rp, rr))
+            | Branch3 (rl, rp, rm, rq, rr) => (false, Branch2
+                (Branch2 (l', p, rl), rp, Branch2 (rm, rq, rr)))))
+      | ord =>
+          (case del (if_eq ord NONE k) r of
+            (p', (false, r')) => (p', (false, Branch2 (l, if_eq ord p' p, r')))
+          | (p', (true, r')) => (p', case l of
+              Branch2 (ll, lp, lr) =>
+                (true, Branch3 (ll, lp, lr, if_eq ord p' p, r'))
+            | Branch3 (ll, lp, lm, lq, lr) => (false, Branch2
+                (Branch2 (ll, lp, lm), lq, Branch2 (lr, if_eq ord p' p, r'))))))
+  | del k (Branch3 (l, p, m, q, r)) =
+      (case compare k q of
+        LESS =>
+          (case compare k p of
+            LESS =>
+              (case del k l of
+                (p', (false, l')) => (p', (false, Branch3 (l', p, m, q, r)))
+              | (p', (true, l')) => (p', (false, case (m, r) of
+                  (Branch2 (ml, mp, mr), Branch2 _) =>
+                    Branch2 (Branch3 (l', p, ml, mp, mr), q, r)
+                | (Branch3 (ml, mp, mm, mq, mr), _) =>
+                    Branch3 (Branch2 (l', p, ml), mp, Branch2 (mm, mq, mr), q, r)
+                | (Branch2 (ml, mp, mr), Branch3 (rl, rp, rm, rq, rr)) =>
+                    Branch3 (Branch2 (l', p, ml), mp, Branch2 (mr, q, rl), rp,
+                      Branch2 (rm, rq, rr)))))
+          | ord =>
+              (case del (if_eq ord NONE k) m of
+                (p', (false, m')) =>
+                  (p', (false, Branch3 (l, if_eq ord p' p, m', q, r)))
+              | (p', (true, m')) => (p', (false, case (l, r) of
+                  (Branch2 (ll, lp, lr), Branch2 _) =>
+                    Branch2 (Branch3 (ll, lp, lr, if_eq ord p' p, m'), q, r)
+                | (Branch3 (ll, lp, lm, lq, lr), _) =>
+                    Branch3 (Branch2 (ll, lp, lm), lq,
+                      Branch2 (lr, if_eq ord p' p, m'), q, r)
+                | (_, Branch3 (rl, rp, rm, rq, rr)) =>
+                    Branch3 (l, if_eq ord p' p, Branch2 (m', q, rl), rp,
+                      Branch2 (rm, rq, rr))))))
+      | ord =>
+          (case del (if_eq ord NONE k) r of
+            (q', (false, r')) =>
+              (q', (false, Branch3 (l, p, m, if_eq ord q' q, r')))
+          | (q', (true, r')) => (q', (false, case (l, m) of
+              (Branch2 _, Branch2 (ml, mp, mr)) =>
+                Branch2 (l, p, Branch3 (ml, mp, mr, if_eq ord q' q, r'))
+            | (_, Branch3 (ml, mp, mm, mq, mr)) =>
+                Branch3 (l, p, Branch2 (ml, mp, mm), mq,
+                  Branch2 (mr, if_eq ord q' q, r'))
+            | (Branch3 (ll, lp, lm, lq, lr), Branch2 (ml, mp, mr)) =>
+                Branch3 (Branch2 (ll, lp, lm), lq, Branch2 (lr, p, ml), mp,
+                  Branch2 (mr, if_eq ord q' q, r'))))));
 
 in
 
