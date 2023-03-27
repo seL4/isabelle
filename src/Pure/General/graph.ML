@@ -208,7 +208,10 @@ fun restrict pred G =
 
 (* edge operations *)
 
-fun is_edge G (x, y) = Keys.member (imm_succs G x) y handle UNDEF _ => false;
+fun is_edge (Graph tab) (x, y) =
+  (case Table.lookup tab x of
+    SOME (_, (_, succs)) => Keys.member succs y
+  | NONE => false);
 
 fun add_edge (x, y) G =
   if is_edge G (x, y) then G
