@@ -246,7 +246,7 @@ fun encode (Char s) = s
 
 local
   val letter_symbols =
-    Symtab.make_set [
+    Symset.make [
       "\<A>",
       "\<B>",
       "\<C>",
@@ -388,7 +388,7 @@ local
     ];
 in
 
-val is_letter_symbol = Symtab.defined letter_symbols;
+val is_letter_symbol = Symset.member letter_symbols;
 
 end;
 

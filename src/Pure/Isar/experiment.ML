@@ -16,12 +16,12 @@ struct
 
 structure Data = Theory_Data
 (
-  type T = Symtab.set;
-  val empty = Symtab.empty;
-  val merge = Symtab.merge (K true);
+  type T = Symset.T;
+  val empty = Symset.empty;
+  val merge = Symset.merge;
 );
 
-fun is_experiment thy name = Symtab.defined (Data.get thy) name;
+fun is_experiment thy name = Symset.member (Data.get thy) name;
 
 fun gen_experiment add_locale elems thy =
   let
@@ -29,7 +29,7 @@ fun gen_experiment add_locale elems thy =
     val lthy =
       thy
       |> add_locale experiment_name Binding.empty [] ([], []) elems
-      |-> (Local_Theory.background_theory o Data.map o Symtab.insert_set);
+      |-> (Local_Theory.background_theory o Data.map o Symset.insert);
     val (scope, naming) =
       Name_Space.new_scope (Proof_Context.naming_of (Local_Theory.target_of lthy));
     val naming' = naming |> Name_Space.private_scope scope;

@@ -242,11 +242,11 @@ fun command_tags keywords name =
 
 fun command_category ks =
   let
-    val tab = Symtab.make_set ks;
+    val set = Symset.make ks;
     fun pred keywords name =
       (case lookup_command keywords name of
         NONE => false
-      | SOME {kind, ...} => Symtab.defined tab kind);
+      | SOME {kind, ...} => Symset.member set kind);
   in pred end;
 
 val is_vacuous = command_category [diag, document_heading, document_body, document_raw];

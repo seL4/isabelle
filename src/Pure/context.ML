@@ -127,7 +127,7 @@ abstype theory_id =
   Theory_Id of
    (*identity*)
    {id: serial,                   (*identifier*)
-    ids: Inttab.set} *            (*cumulative identifiers -- symbolic body content*)
+    ids: Intset.T} *              (*cumulative identifiers -- symbolic body content*)
    (*history*)
    {name: string,                 (*official theory name*)
     stage: stage option}          (*index and counter for anonymous updates*)
@@ -215,14 +215,12 @@ fun get_theory long thy name =
 
 (* build ids *)
 
-fun insert_id id ids = Inttab.update (id, ()) ids;
-
 val merge_ids =
   apply2 (theory_id #> rep_theory_id #> #1) #>
   (fn ({id = id1, ids = ids1, ...}, {id = id2, ids = ids2, ...}) =>
-    Inttab.merge (K true) (ids1, ids2)
-    |> insert_id id1
-    |> insert_id id2);
+    Intset.merge (ids1, ids2)
+    |> Intset.insert id1
+    |> Intset.insert id2);
 
 
 (* equality and inclusion *)
@@ -231,7 +229,7 @@ val eq_thy_id = op = o apply2 (#id o identity_of_id);
 val eq_thy = op = o apply2 (#id o identity_of);
 
 val proper_subthy_id =
-  apply2 (rep_theory_id #> #1) #> (fn ({id, ...}, {ids, ...}) => Inttab.defined ids id);
+  apply2 (rep_theory_id #> #1) #> (fn ({id, ...}, {ids, ...}) => Intset.member ids id);
 val proper_subthy = proper_subthy_id o apply2 theory_id;
 
 fun subthy_id p = eq_thy_id p orelse proper_subthy_id p;
@@ -345,7 +343,7 @@ end;
 (* primitives *)
 
 val pre_pure_thy =
-  create_thy Inttab.empty (make_history PureN) (make_ancestry [] []) Datatab.empty;
+  create_thy Intset.empty (make_history PureN) (make_ancestry [] []) Datatab.empty;
 
 local
 
@@ -358,7 +356,7 @@ fun change_thy finish f thy =
       then make_ancestry [thy] (extend_ancestors thy (ancestors_of thy))
       else ancestry;
     val history' = {name = name, stage = if finish then NONE else Option.map next_stage stage};
-    val ids' = insert_id id ids;
+    val ids' = Intset.insert id ids;
     val data' = f data;
   in create_thy ids' history' ancestry' data' end;
 

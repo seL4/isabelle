@@ -38,15 +38,15 @@ fun tags_lookup (tags: tags) = Symtab.lookup tags;
 fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
 fun tags_name (tags: tags) = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
 
-type nts = Inttab.set;
-val nts_empty: nts = Inttab.empty;
-val nts_merge: nts * nts -> nts = Inttab.merge (K true);
-fun nts_insert nt : nts -> nts = Inttab.insert_set nt;
-fun nts_member (nts: nts) = Inttab.defined nts;
-fun nts_fold f (nts: nts) = Inttab.fold (f o #1) nts;
-fun nts_subset (nts1: nts, nts2: nts) = Inttab.forall (nts_member nts2 o #1) nts1;
-fun nts_is_empty (nts: nts) = Inttab.is_empty nts;
-fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Inttab.is_single nts;
+type nts = Intset.T;
+val nts_empty: nts = Intset.empty;
+val nts_merge: nts * nts -> nts = Intset.merge;
+fun nts_insert nt : nts -> nts = Intset.insert nt;
+fun nts_member (nts: nts) = Intset.member nts;
+fun nts_fold f (nts: nts) = Intset.fold f nts;
+fun nts_subset (nts1: nts, nts2: nts) = Intset.forall (nts_member nts2) nts1;
+fun nts_is_empty (nts: nts) = Intset.is_empty nts;
+fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Intset.is_single nts;
 
 
 (* tokens *)

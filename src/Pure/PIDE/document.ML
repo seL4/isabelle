@@ -54,7 +54,7 @@ type node_header =
 
 type perspective =
  {required: bool,  (*required node*)
-  visible: Inttab.set,  (*visible commands*)
+  visible: Intset.T,  (*visible commands*)
   visible_last: Document_ID.command option,  (*last visible command*)
   overlays: (string * string list) list Inttab.table};  (*command id -> print functions with args*)
 
@@ -79,7 +79,7 @@ fun map_node f (Node {header, keywords, perspective, entries, result, consolidat
 
 fun make_perspective (required, command_ids, overlays) : perspective =
  {required = required,
-  visible = Inttab.make_set command_ids,
+  visible = Intset.make command_ids,
   visible_last = try List.last command_ids,
   overlays = Inttab.make_list overlays};
 
@@ -93,7 +93,7 @@ val empty_node =
 
 fun is_empty_perspective ({required, visible, visible_last, overlays}: perspective) =
   not required andalso
-  Inttab.is_empty visible andalso
+  Intset.is_empty visible andalso
   is_none visible_last andalso
   Inttab.is_empty overlays;
 
@@ -147,7 +147,7 @@ fun set_perspective args =
 
 val required_node = #required o get_perspective;
 val command_overlays = Inttab.lookup_list o #overlays o get_perspective;
-val command_visible = Inttab.defined o #visible o get_perspective;
+val command_visible = Intset.member o #visible o get_perspective;
 val visible_last = #visible_last o get_perspective;
 val visible_node = is_some o visible_last
 
@@ -516,14 +516,14 @@ fun make_required nodes =
     fun all_preds P =
       String_Graph.fold (fn (a, (node, _)) => P node ? cons a) nodes []
       |> String_Graph.all_preds nodes
-      |> Symtab.make_set;
+      |> Symset.make;
 
     val all_visible = all_preds visible_node;
     val all_required = all_preds required_node;
   in
-    Symtab.fold (fn (a, ()) =>
-      exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
-        Symtab.update (a, ())) all_visible all_required
+    Symset.fold (fn a =>
+      exists (Symset.member all_visible) (String_Graph.immediate_succs nodes a) ?
+        Symset.insert a) all_visible all_required
   end;
 
 fun start_execution state = state |> map_state (fn (versions, blobs, commands, execution) =>
@@ -548,7 +548,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
       val _ =
         nodes |> String_Graph.schedule
           (fn deps => fn (name, node) =>
-            if Symtab.defined required name orelse visible_node node orelse pending_result node then
+            if Symset.member required name orelse visible_node node orelse pending_result node then
               let
                 val future =
                   (singleton o Future.forks)
@@ -812,11 +812,11 @@ fun update old_version_id new_version_id edits consolidate state =
       timeit "Document.edit_nodes"
         (fn () => old_version |> fold edit_nodes edits |> edit_keywords edits);
 
-    val consolidate = Symtab.defined (Symtab.make_set consolidate);
+    val consolidate = Symset.member (Symset.make consolidate);
     val nodes = nodes_of new_version;
     val required = make_required nodes;
     val required0 = make_required (nodes_of old_version);
-    val edited = Symtab.build (edits |> fold (Symtab.insert_set o #1));
+    val edited = Symset.build (edits |> fold (Symset.insert o #1));
 
     val updated = timeit "Document.update" (fn () =>
       nodes |> String_Graph.schedule
@@ -834,11 +834,11 @@ fun update old_version_id new_version_id edits consolidate state =
                     val maybe_consolidate = consolidate name andalso could_consolidate node;
                     val imports = map (apsnd Future.join) deps;
                     val imports_result_changed = exists (#4 o #1 o #2) imports;
-                    val node_required = Symtab.defined required name;
+                    val node_required = Symset.member required name;
                   in
-                    if Symtab.defined edited name orelse maybe_consolidate orelse
+                    if Symset.member edited name orelse maybe_consolidate orelse
                       visible_node node orelse imports_result_changed orelse
-                      Symtab.defined required0 name <> node_required
+                      Symset.member required0 name <> node_required
                     then
                       let
                         val node0 = node_of old_version name;
@@ -906,7 +906,7 @@ fun update old_version_id new_version_id edits consolidate state =
     val state' = state
       |> define_version new_version_id new_version assigned_nodes;
 
-  in (Symtab.keys edited, removed, assign_result, state') end);
+  in (Symset.dest edited, removed, assign_result, state') end);
 
 end;
 

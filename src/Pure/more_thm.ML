@@ -253,8 +253,8 @@ val item_net_elim = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 
 structure Hyps = Proof_Data
 (
-  type T = {checked_hyps: bool, hyps: Termtab.set, shyps: sort Ord_List.T};
-  fun init _ : T = {checked_hyps = true, hyps = Termtab.empty, shyps = []};
+  type T = {checked_hyps: bool, hyps: Termset.T, shyps: sort Ord_List.T};
+  fun init _ : T = {checked_hyps = true, hyps = Termset.empty, shyps = []};
 );
 
 fun map_hyps f = Hyps.map (fn {checked_hyps, hyps, shyps} =>
@@ -267,7 +267,7 @@ fun map_hyps f = Hyps.map (fn {checked_hyps, hyps, shyps} =>
 fun declare_hyps raw_ct ctxt = ctxt |> map_hyps (fn (checked_hyps, hyps, shyps) =>
   let
     val ct = Thm.transfer_cterm (Proof_Context.theory_of ctxt) raw_ct;
-    val hyps' = Termtab.update (Thm.term_of ct, ()) hyps;
+    val hyps' = Termset.insert (Thm.term_of ct) hyps;
   in (checked_hyps, hyps', shyps) end);
 
 fun assume_hyps ct ctxt = (Thm.assume ct, declare_hyps ct ctxt);
@@ -285,7 +285,7 @@ fun undeclared_hyps context th =
     | Context.Proof ctxt =>
         (case Hyps.get ctxt of
           {checked_hyps = false, ...} => K true
-        | {hyps, ...} => Termtab.defined hyps));
+        | {hyps, ...} => Termset.member hyps));
 
 fun check_hyps context th =
   (case undeclared_hyps context th of

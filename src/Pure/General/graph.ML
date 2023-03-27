@@ -76,22 +76,23 @@ type key = Key.key;
 val eq_key = is_equal o Key.ord;
 
 structure Table = Table(Key);
+structure Set = Set(Key);
 
 structure Keys =
 struct
 
-abstype T = Keys of unit Table.table
+abstype T = Keys of Set.T
 with
 
-val empty = Keys Table.empty;
-fun is_empty (Keys tab) = Table.is_empty tab;
+val empty = Keys Set.empty;
+fun is_empty (Keys set) = Set.is_empty set;
 
-fun member (Keys tab) = Table.defined tab;
-fun insert x (Keys tab) = Keys (Table.insert (K true) (x, ()) tab);
-fun remove x (Keys tab) = Keys (Table.delete_safe x tab);
+fun member (Keys set) = Set.member set;
+fun insert x (Keys set) = Keys (Set.insert x set);
+fun remove x (Keys set) = Keys (Set.remove x set);
 
-fun fold f (Keys tab) = Table.fold (f o #1) tab;
-fun fold_rev f (Keys tab) = Table.fold_rev (f o #1) tab;
+fun fold f (Keys set) = Set.fold f set;
+fun fold_rev f (Keys set) = Set.fold_rev f set;
 
 fun dest keys = fold_rev cons keys [];
 

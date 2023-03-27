@@ -27,18 +27,18 @@ open Predicate_Compile_Aux;
 structure Data = Theory_Data
 (
   type T =
-    {ignore_consts : unit Symtab.table,
-     keep_functions : unit Symtab.table,
+    {ignore_consts : Symset.T,
+     keep_functions : Symset.T,
      processed_specs : ((string * thm list) list) Symtab.table};
   val empty =
-    {ignore_consts = Symtab.empty,
-     keep_functions = Symtab.empty,
+    {ignore_consts = Symset.empty,
+     keep_functions = Symset.empty,
      processed_specs =  Symtab.empty};
   fun merge
     ({ignore_consts = c1, keep_functions = k1, processed_specs = s1},
      {ignore_consts = c2, keep_functions = k2, processed_specs = s2}) =
-     {ignore_consts = Symtab.merge (K true) (c1, c2),
-      keep_functions = Symtab.merge (K true) (k1, k2),
+     {ignore_consts = Symset.merge (c1, c2),
+      keep_functions = Symset.merge (k1, k2),
       processed_specs = Symtab.merge (K true) (s1, s2)}
 );
 
@@ -48,12 +48,12 @@ fun mk_data (c, k, s) = {ignore_consts = c, keep_functions = k, processed_specs 
 fun map_data f {ignore_consts = c, keep_functions = k, processed_specs = s} = mk_data (f (c, k, s))
 
 fun ignore_consts cs =
-  Data.map (map_data (@{apply 3(1)} (fold (fn c => Symtab.insert (op =) (c, ())) cs)))
+  Data.map (map_data (@{apply 3(1)} (fold Symset.insert cs)))
 
 fun keep_functions cs =
-  Data.map (map_data (@{apply 3(2)} (fold (fn c => Symtab.insert (op =) (c, ())) cs)))
+  Data.map (map_data (@{apply 3(2)} (fold Symset.insert cs)))
 
-fun keep_function thy = Symtab.defined (#keep_functions (Data.get thy))
+fun keep_function thy = Symset.member (#keep_functions (Data.get thy))
 
 fun processed_specs thy = Symtab.lookup (#processed_specs (Data.get thy))
 
@@ -274,7 +274,7 @@ fun obtain_specification_graph options thy t =
       |> filter_out has_code_pred_intros
       |> filter_out case_consts
       |> filter_out special_cases
-      |> filter_out (fn (c, _) => Symtab.defined (#ignore_consts (Data.get thy)) c)
+      |> filter_out (fn (c, _) => Symset.member (#ignore_consts (Data.get thy)) c)
       |> map (fn (c, _) => (c, Sign.the_const_constraint thy c))
       |> map Const
       (*

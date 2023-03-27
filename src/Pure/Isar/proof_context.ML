@@ -1285,17 +1285,17 @@ fun dest_cases prev_ctxt ctxt =
     val serial_of = #serial oo (Name_Space.the_entry o Name_Space.space_of_table);
     val ignored =
       (case prev_ctxt of
-        NONE => Inttab.empty
+        NONE => Intset.empty
       | SOME ctxt0 =>
           let val cases0 = cases_of ctxt0 in
-            Inttab.build (cases0 |> Name_Space.fold_table (fn (a, _) =>
-              Inttab.insert_set (serial_of cases0 a)))
+            Intset.build (cases0 |> Name_Space.fold_table (fn (a, _) =>
+              Intset.insert (serial_of cases0 a)))
           end);
      val cases = cases_of ctxt;
   in
     Name_Space.fold_table (fn (a, c) =>
       let val i = serial_of cases a
-      in not (Inttab.defined ignored i) ? cons (i, (a, c)) end) cases []
+      in not (Intset.member ignored i) ? cons (i, (a, c)) end) cases []
     |> sort (int_ord o apply2 #1) |> map #2
   end;
 

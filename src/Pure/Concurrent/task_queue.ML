@@ -181,7 +181,7 @@ fun task_statistics (Task {name, id, timing, pos, ...}) =
 
 end;
 
-structure Tasks = Table(type key = task val ord = task_ord);
+structure Tasks = Set(type key = task val ord = task_ord);
 structure Task_Graph = Graph(type key = task val ord = task_ord);
 
 
@@ -205,16 +205,16 @@ fun waiting task deps =
 
 (* known group members *)
 
-type groups = unit Tasks.table Inttab.table;
+type groups = Tasks.T Inttab.table;
 
 fun get_tasks (groups: groups) gid =
   the_default Tasks.empty (Inttab.lookup groups gid);
 
 fun add_task (gid, task) groups =
-  Inttab.update (gid, Tasks.update (task, ()) (get_tasks groups gid)) groups;
+  Inttab.update (gid, Tasks.insert task (get_tasks groups gid)) groups;
 
 fun del_task (gid, task) groups =
-  let val tasks = Tasks.delete_safe task (get_tasks groups gid) in
+  let val tasks = Tasks.remove task (get_tasks groups gid) in
     if Tasks.is_empty tasks then Inttab.delete_safe gid groups
     else Inttab.update (gid, tasks) groups
   end;
@@ -246,9 +246,9 @@ fun make_queue groups jobs urgent total =
 val empty = make_queue Inttab.empty Task_Graph.empty 0 0;
 
 fun group_tasks (Queue {groups, ...}) gs =
-  fold (fn g => fn tasks => Tasks.merge (op =) (tasks, get_tasks groups (group_id g)))
+  fold (fn g => fn tasks => Tasks.merge (tasks, get_tasks groups (group_id g)))
     gs Tasks.empty
-  |> Tasks.keys;
+  |> Tasks.dest;
 
 fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
 
@@ -298,7 +298,7 @@ fun cancel (Queue {groups, jobs, ...}) group =
   let
     val _ = cancel_group group Exn.Interrupt;
     val running =
-      Tasks.fold (fn (task, _) =>
+      Tasks.fold (fn task =>
           (case get_job jobs task of Running thread => insert Thread.equal thread | _ => I))
         (get_tasks groups (group_id group)) [];
   in running end;
@@ -405,11 +405,11 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs, urgent, total}) =
 
     fun ready_dep _ [] = NONE
       | ready_dep seen (task :: tasks) =
-          if Tasks.defined seen task then ready_dep seen tasks
+          if Tasks.member seen task then ready_dep seen tasks
           else
             let val entry as (_, (ds, _)) = #2 (Task_Graph.get_entry jobs task) in
               (case ready_job (task, entry) of
-                NONE => ready_dep (Tasks.update (task, ()) seen) (Task_Graph.Keys.dest ds @ tasks)
+                NONE => ready_dep (Tasks.insert task seen) (Task_Graph.Keys.dest ds @ tasks)
               | some => some)
             end;
 

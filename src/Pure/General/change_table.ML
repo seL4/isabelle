@@ -36,6 +36,7 @@ functor Change_Table(Key: KEY): CHANGE_TABLE =
 struct
 
 structure Table = Table(Key);
+structure Set = Set(Key);
 type key = Table.key;
 
 exception SAME = Table.SAME;
@@ -45,7 +46,7 @@ exception DUP = Table.DUP;
 (* optional change *)
 
 datatype change =
-  No_Change | Change of {base: serial, depth: int, changes: Table.set option};
+  No_Change | Change of {base: serial, depth: int, changes: Set.T option};
 
 fun make_change base depth changes =
   Change {base = base, depth = depth, changes = changes};
@@ -55,11 +56,11 @@ fun ignore_change (Change {base, depth, changes = SOME _}) =
   | ignore_change change = change;
 
 fun update_change key (Change {base, depth, changes = SOME ch}) =
-      make_change base depth (SOME (Table.insert (K true) (key, ()) ch))
+      make_change base depth (SOME (Set.insert key ch))
   | update_change _ change = change;
 
 fun base_change true No_Change =
-      make_change (serial ()) 0 (SOME Table.empty)
+      make_change (serial ()) 0 (SOME Set.empty)
   | base_change true (Change {base, depth, changes}) =
       make_change base (depth + 1) changes
   | base_change false (Change {base, depth, changes}) =
@@ -128,7 +129,7 @@ fun join f (arg1, arg2) =
                       (case (SOME (f key (maybe_swap (x, y))) handle Table.SAME => NONE) of
                         NONE => tab
                       | SOME z => Table.update (key, z) tab)));
-          in make_change_table (change', Table.fold (update o #1) ch2 tab1) end)
+          in make_change_table (change', Set.fold update ch2 tab1) end)
   end;
 
 fun merge eq =

@@ -48,15 +48,15 @@ fun read_actions str =
         (case String.tokens (fn c => c = #".") name of
           [name] => (("", name, args), labels)
         | [label, name] =>
-          (if Symtab.defined labels label then
+          (if Symset.member labels label then
              error ("Action label '" ^ label ^ "' already defined.")
            else
              ();
-           ((label, name, args), Symtab.insert_set label labels))
+           ((label, name, args), Symset.insert label labels))
         | _ => error "Cannot parse action")
   in
     try read_actions ()
-    |> Option.map (fn xs => fst (fold_map split_name_label xs Symtab.empty))
+    |> Option.map (fn xs => fst (fold_map split_name_label xs Symset.empty))
   end
 
 

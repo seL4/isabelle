@@ -42,7 +42,7 @@ sig
   val get_quotients           : Proof.context -> quotient Symtab.table
   val get_relator_distr_data  : Proof.context -> relator_distr_data Symtab.table
   val get_restore_data        : Proof.context -> restore_data Symtab.table
-  val get_no_code_types       : Proof.context -> unit Symtab.table
+  val get_no_code_types       : Proof.context -> Symset.T
 end
 
 structure Lifting_Info: LIFTING_INFO =
@@ -82,7 +82,7 @@ structure Data = Generic_Data
       reflexivity_rules : thm Item_Net.T,
       relator_distr_data : relator_distr_data Symtab.table,
       restore_data : restore_data Symtab.table,
-      no_code_types : unit Symtab.table
+      no_code_types : Symset.T
     }
   val empty =
     { quot_maps = Symtab.empty,
@@ -90,7 +90,7 @@ structure Data = Generic_Data
       reflexivity_rules = Thm.item_net,
       relator_distr_data = Symtab.empty,
       restore_data = Symtab.empty,
-      no_code_types = Symtab.empty
+      no_code_types = Symset.empty
     }
   fun merge
     ( { quot_maps = qm1, quotients = q1, reflexivity_rules = rr1, relator_distr_data = rdd1,
@@ -102,7 +102,7 @@ structure Data = Generic_Data
       reflexivity_rules = Item_Net.merge (rr1, rr2),
       relator_distr_data = Symtab.merge (K true) (rdd1, rdd2),
       restore_data = Symtab.join join_restore_data (rd1, rd2),
-      no_code_types = Symtab.merge (K true) (nct1, nct2)
+      no_code_types = Symset.merge (nct1, nct2)
     }
 )
 
@@ -543,9 +543,9 @@ val _ =
 (* no_code types *)
 
 fun add_no_code_type type_name context =
-  Data.map (map_no_code_types (Symtab.update (type_name, ()))) context;
+  Data.map (map_no_code_types (Symset.insert type_name)) context;
 
-fun is_no_code_type context type_name = (Symtab.defined o get_no_code_types) context type_name
+fun is_no_code_type context type_name = (Symset.member o get_no_code_types) context type_name
 
 
 (* setup fixed eq_onp rules *)

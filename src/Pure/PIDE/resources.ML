@@ -107,7 +107,7 @@ val empty_session_base =
     load_commands = []: (string * Position.T) list,
     scala_functions = Symtab.empty: ((bool * bool) * Position.T) Symtab.table},
    {global_theories = Symtab.empty: string Symtab.table,
-    loaded_theories = Symtab.empty: unit Symtab.table});
+    loaded_theories = Symset.empty: Symset.T});
 
 val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
@@ -125,7 +125,7 @@ fun init_session
         load_commands = load_commands,
         scala_functions = Symtab.make scala_functions},
        {global_theories = Symtab.make global_theories,
-        loaded_theories = Symtab.make_set loaded_theories}));
+        loaded_theories = Symset.make loaded_theories}));
 
 fun init_session_yxml yxml =
   let
@@ -169,7 +169,7 @@ fun get_session_base1 f = get_session_base (f o #1);
 fun get_session_base2 f = get_session_base (f o #2);
 
 fun global_theory a = Symtab.lookup (get_session_base2 #global_theories) a;
-fun loaded_theory a = Symtab.defined (get_session_base2 #loaded_theories) a;
+fun loaded_theory a = Symset.member (get_session_base2 #loaded_theories) a;
 
 fun check_session ctxt arg =
   Completion.check_item "session"
