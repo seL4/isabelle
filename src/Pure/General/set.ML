@@ -8,6 +8,7 @@ signature SET =
 sig
   type elem
   type T
+  val size: T -> int
   val empty: T
   val build: (T -> T) -> T
   val is_empty: T -> bool
@@ -35,6 +36,19 @@ datatype T =
   Empty |
   Branch2 of T * elem * T |
   Branch3 of T * elem * T * elem * T;
+
+
+(* size *)
+
+local
+  fun add_size Empty n = n
+    | add_size (Branch2 (left, _, right)) n =
+        n + 1 |> add_size left |> add_size right
+    | add_size (Branch3 (left, _, mid, _, right)) n =
+        n + 2 |> add_size left |> add_size mid |> add_size right;
+in
+  fun size set = add_size set 0;
+end;
 
 
 (* empty and single *)
@@ -162,7 +176,10 @@ fun make elems = build (fold insert elems);
 fun merge (set1, set2) =
   if pointer_eq (set1, set2) then set1
   else if is_empty set1 then set2
-  else fold_set insert set2 set1;
+  else if is_empty set2 then set1
+  else if size set1 >= size set2
+  then fold_set insert set2 set1
+  else fold_set insert set1 set2;
 
 
 (* remove *)
