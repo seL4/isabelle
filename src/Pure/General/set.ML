@@ -84,12 +84,12 @@ fun fold_set f =
 
 fun fold_rev_set f =
   let
-    fun fold Empty x = x
-      | fold (Branch2 (left, e, right)) x =
-          fold left (f e (fold right x))
-      | fold (Branch3 (left, e1, mid, e2, right)) x =
-          fold left (f e1 (fold mid (f e2 (fold right x))));
-  in fold end;
+    fun fold_rev Empty x = x
+      | fold_rev (Branch2 (left, e, right)) x =
+          fold_rev left (f e (fold_rev right x))
+      | fold_rev (Branch3 (left, e1, mid, e2, right)) x =
+          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))));
+  in fold_rev end;
 
 fun dest tab = fold_rev_set cons tab [];
 
