@@ -17,7 +17,7 @@ sig
     val make_with_cache : machine -> theory -> term list -> thm list -> computer
     val theory_of : computer -> theory
     val hyps_of : computer -> term list
-    val shyps_of : computer -> sort list
+    val shyps_of : computer -> Sortset.T
     (* ! *) val update : computer -> thm list -> unit
     (* ! *) val update_with_cache : computer -> term list -> thm list -> unit
     
@@ -169,13 +169,12 @@ type naming = int -> string
 fun default_naming i = "v_" ^ string_of_int i
 
 datatype computer = Computer of
-  (theory * Encode.encoding * term list * unit Sorttab.table * prog * unit Unsynchronized.ref * naming)
+  (theory * Encode.encoding * term list * Sortset.T * prog * unit Unsynchronized.ref * naming)
     option Unsynchronized.ref
 
 fun theory_of (Computer (Unsynchronized.ref (SOME (thy,_,_,_,_,_,_)))) = thy
 fun hyps_of (Computer (Unsynchronized.ref (SOME (_,_,hyps,_,_,_,_)))) = hyps
-fun shyps_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = Sorttab.keys (shyptable)
-fun shyptab_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = shyptable
+fun shyps_of (Computer (Unsynchronized.ref (SOME (_,_,_,shypset,_,_,_)))) = shypset
 fun stamp_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,_,stamp,_)))) = stamp
 fun prog_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,prog,_,_)))) = prog
 fun encoding_of (Computer (Unsynchronized.ref (SOME (_,encoding,_,_,_,_,_)))) = encoding
@@ -188,7 +187,7 @@ fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,_))))
 fun ref_of (Computer r) = r
 
 
-datatype cthm = ComputeThm of term list * sort list * term
+datatype cthm = ComputeThm of term list * Sortset.T * term
 
 fun thm2cthm th = 
     (if not (null (Thm.tpairs_of th)) then raise Make "theorems may not contain tpairs" else ();
@@ -220,11 +219,11 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                     (n, vars, AbstractMachine.PConst (c, args@[pb]))
             end
 
-        fun thm2rule (encoding, hyptable, shyptable) th =
+        fun thm2rule (encoding, hyptable, shypset) th =
             let
                 val (ComputeThm (hyps, shyps, prop)) = th
                 val hyptable = fold (fn h => Termtab.update (h, ())) hyps hyptable
-                val shyptable = fold (fn sh => Sorttab.update (sh, ())) shyps shyptable
+                val shypset = Sortset.merge (shyps, shypset)
                 val (prems, prop) = (Logic.strip_imp_prems prop, Logic.strip_imp_concl prop)
                 val (a, b) = Logic.dest_equals prop
                   handle TERM _ => raise (Make "theorems must be meta-level equations (with optional guards)")
@@ -270,15 +269,15 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                 fun rename_guard (AbstractMachine.Guard (a,b)) = 
                     AbstractMachine.Guard (rename 0 vars a, rename 0 vars b)
             in
-                ((encoding, hyptable, shyptable), (map rename_guard prems, pattern, rename 0 vars right))
+                ((encoding, hyptable, shypset), (map rename_guard prems, pattern, rename 0 vars right))
             end
 
-        val ((encoding, hyptable, shyptable), rules) =
+        val ((encoding, hyptable, shypset), rules) =
           fold_rev (fn th => fn (encoding_hyptable, rules) =>
             let
               val (encoding_hyptable, rule) = thm2rule encoding_hyptable th
             in (encoding_hyptable, rule::rules) end)
-          ths ((encoding, Termtab.empty, Sorttab.empty), [])
+          ths ((encoding, Termtab.empty, Sortset.empty), [])
 
         fun make_cache_pattern t (encoding, cache_patterns) =
             let
@@ -299,9 +298,9 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
 
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
 
-        val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
+        val shypset = Sortset.fold (fn s => has_witness s ? Sortset.remove s) shypset shypset
 
-    in (thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
+    in (thy, encoding, Termtab.keys hyptable, shypset, prog, stamp, default_naming) end
 
 fun make_with_cache machine thy cache_patterns raw_thms =
   Computer (Unsynchronized.ref (SOME (make_internal machine thy (Unsynchronized.ref ()) Encode.empty cache_patterns raw_thms)))
@@ -335,23 +334,19 @@ in
     Termtab.keys (add hyps2 (add hyps1 Termtab.empty))
 end
 
-fun add_shyps shyps tab = fold (fn h => fn tab => Sorttab.update (h, ()) tab) shyps tab
-
-fun merge_shyps shyps1 shyps2 = Sorttab.keys (add_shyps shyps2 (add_shyps shyps1 Sorttab.empty))
-
 val (_, export_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (\<^binding>\<open>compute\<close>, fn (thy, hyps, shyps, prop) =>
     let
-        val shyptab = add_shyps shyps Sorttab.empty
-        fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
-        fun delete_term t shyptab = fold delete (Sorts.insert_term t []) shyptab
+        fun remove_term t = Sortset.subtract (Sortset.build (Sortset.insert_term t))
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
-        val shyptab = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptab))) shyptab
-        val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
+        val shyps = Sortset.fold (fn s => has_witness s ? Sortset.remove s) shyps shyps
+        val shyps =
+          if Sortset.is_empty shyps then Sortset.empty
+          else fold remove_term (prop::hyps) shyps
         val _ =
-          if not (null shyps) then
+          if not (Sortset.is_empty shyps) then
             raise Compute ("dangling sort hypotheses: " ^
-              commas (map (Syntax.string_of_sort_global thy) shyps))
+              commas (map (Syntax.string_of_sort_global thy) (Sortset.dest shyps)))
           else ()
     in
         Thm.global_cterm_of thy (fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop)
@@ -379,7 +374,7 @@ fun rewrite computer raw_ct =
         val t = infer_types naming encoding ty t
         val eq = Logic.mk_equals (t', t)
     in
-        export_thm thy (hyps_of computer) (Sorttab.keys (shyptab_of computer)) eq
+        export_thm thy (hyps_of computer) (shyps_of computer) eq
     end
 
 (* --------- Simplify ------------ *)
@@ -387,7 +382,7 @@ fun rewrite computer raw_ct =
 datatype prem = EqPrem of AbstractMachine.term * AbstractMachine.term * Term.typ * int 
               | Prem of AbstractMachine.term
 datatype theorem = Theorem of theory * unit Unsynchronized.ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
-               * prem list * AbstractMachine.term * term list * sort list
+               * prem list * AbstractMachine.term * term list * Sortset.T
 
 
 exception ParamSimplify of computer * theorem
@@ -619,7 +614,7 @@ in
             val th = update_varsubst varsubst th
             val th = update_prems (splicein prem_no (prems_of_theorem th') prems) th
             val th = update_hyps (merge_hyps (hyps_of_theorem th) (hyps_of_theorem th')) th
-            val th = update_shyps (merge_shyps (shyps_of_theorem th) (shyps_of_theorem th')) th
+            val th = update_shyps (Sortset.merge (shyps_of_theorem th, shyps_of_theorem th')) th
         in
             update_theory thy th
         end
@@ -636,10 +631,9 @@ let
     fun runprem p = run (prem2term p)
     val prop = Logic.list_implies (map runprem (prems_of_theorem th), run (concl_of_theorem th))
     val hyps = merge_hyps (hyps_of computer) (hyps_of_theorem th)
-    val shyps = merge_shyps (shyps_of_theorem th) (Sorttab.keys (shyptab_of computer))
+    val shyps = Sortset.merge (shyps_of_theorem th, shyps_of computer)
 in
     export_thm (theory_of_theorem th) hyps shyps prop
 end
 
 end
-

@@ -136,7 +136,7 @@ sig
   val abstract_rule_proof: string * term -> proof -> proof
   val combination_proof: term -> term -> term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
-    sort list -> proof -> proof
+    Sortset.T -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
     (class * class -> proof) ->
     (string * class list list * class -> proof) ->
@@ -177,19 +177,19 @@ sig
   val export_proof_boxes: proof_body list -> unit
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
-    (string * class list list * class -> proof) -> string * Position.T -> sort list ->
+    (string * class list list * class -> proof) -> string * Position.T -> Sortset.T ->
     term list -> term -> (serial * proof_body future) list -> proof_body -> thm * proof
   val unconstrain_thm_proof: theory -> (class * class -> proof) ->
-    (string * class list list * class -> proof) -> sort list -> term ->
+    (string * class list list * class -> proof) -> Sortset.T -> term ->
     (serial * proof_body future) list -> proof_body -> thm * proof
-  val get_identity: sort list -> term list -> term -> proof ->
+  val get_identity: Sortset.T -> term list -> term -> proof ->
     {serial: serial, theory_name: string, name: string} option
-  val get_approximative_name: sort list -> term list -> term -> proof -> string
+  val get_approximative_name: Sortset.T -> term list -> term -> proof -> string
   type thm_id = {serial: serial, theory_name: string}
   val make_thm_id: serial * string -> thm_id
   val thm_header_id: thm_header -> thm_id
   val thm_id: thm -> thm_id
-  val get_id: sort list -> term list -> term -> proof -> thm_id option
+  val get_id: Sortset.T -> term list -> term -> proof -> thm_id option
   val this_id: thm_id option -> thm_id -> bool
   val proof_boxes: {excluded: thm_id -> bool, included: thm_id -> bool} ->
     proof list -> (thm_header * proof) list  (*exception MIN_PROOF*)
@@ -1086,7 +1086,7 @@ fun bicompose_proof flatten Bs As A oldAs n m rprf sprf =
 
 fun strip_shyps_proof algebra present witnessed extra prf =
   let
-    val replacements = present @ witnessed @ map (`Logic.dummy_tfree) extra;
+    val replacements = present @ witnessed @ map (`Logic.dummy_tfree) (Sortset.dest extra);
     fun get_replacement S =
       replacements |> get_first (fn (T', S') =>
         if Sorts.sort_le algebra (S', S) then SOME T' else NONE);
@@ -1182,7 +1182,7 @@ fun prop_args prop =
 fun const_proof mk name prop =
   let
     val args = prop_args prop;
-    val ({outer_constraints, ...}, prop1) = Logic.unconstrainT [] prop;
+    val ({outer_constraints, ...}, prop1) = Logic.unconstrainT Sortset.empty prop;
     val head = mk (name, prop1, NONE);
   in proof_combP (proof_combt' (head, args), map PClass outer_constraints) end;
 

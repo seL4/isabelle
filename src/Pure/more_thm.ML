@@ -57,7 +57,7 @@ sig
   val undeclared_hyps: Context.generic -> thm -> term list
   val check_hyps: Context.generic -> thm -> thm
   val declare_term_sorts: term -> Proof.context -> Proof.context
-  val extra_shyps': Proof.context -> thm -> sort list
+  val extra_shyps': Proof.context -> thm -> Sortset.T
   val check_shyps: Proof.context -> thm -> thm
   val weaken_sorts': Proof.context -> cterm -> cterm
   val elim_implies: thm -> thm -> thm
@@ -253,8 +253,8 @@ val item_net_elim = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 
 structure Hyps = Proof_Data
 (
-  type T = {checked_hyps: bool, hyps: Termset.T, shyps: sort Ord_List.T};
-  fun init _ : T = {checked_hyps = true, hyps = Termset.empty, shyps = []};
+  type T = {checked_hyps: bool, hyps: Termset.T, shyps: Sortset.T};
+  fun init _ : T = {checked_hyps = true, hyps = Termset.empty, shyps = Sortset.empty};
 );
 
 fun map_hyps f = Hyps.map (fn {checked_hyps, hyps, shyps} =>
@@ -299,19 +299,19 @@ fun check_hyps context th =
 
 fun declare_term_sorts t =
   map_hyps (fn (checked_hyps, hyps, shyps) =>
-    (checked_hyps, hyps, Sorts.insert_term t shyps));
+    (checked_hyps, hyps, Sortset.insert_term t shyps));
 
 fun extra_shyps' ctxt th =
-  Sorts.subtract (#shyps (Hyps.get ctxt)) (Thm.extra_shyps th);
+  Sortset.subtract (#shyps (Hyps.get ctxt)) (Thm.extra_shyps th);
 
 fun check_shyps ctxt raw_th =
   let
     val th = Thm.strip_shyps raw_th;
     val extra_shyps = extra_shyps' ctxt th;
   in
-    if null extra_shyps then th
+    if Sortset.is_empty extra_shyps then th
     else error (Pretty.string_of (Pretty.block (Pretty.str "Pending sort hypotheses:" ::
-      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) extra_shyps))))
+      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) (Sortset.dest extra_shyps)))))
   end;
 
 val weaken_sorts' = Thm.weaken_sorts o #shyps o Hyps.get;
@@ -718,7 +718,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
       |> perhaps (try Thm.strip_shyps);
 
     val hyps = if show_hyps then Thm.hyps_of th else undeclared_hyps (Context.Proof ctxt) th;
-    val extra_shyps = extra_shyps' ctxt th;
+    val extra_shyps = Sortset.dest (extra_shyps' ctxt th);
     val tags = Thm.get_tags th;
     val tpairs = Thm.tpairs_of th;
 

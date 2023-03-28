@@ -66,7 +66,7 @@ sig
     map_atyps: typ -> typ,
     constraints: ((typ * class) * term) list,
     outer_constraints: (typ * class) list};
-  val unconstrainT: sort list -> term -> unconstrain_context * term
+  val unconstrainT: Sortset.T -> term -> unconstrain_context * term
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -365,7 +365,7 @@ type unconstrain_context =
 fun unconstrainT shyps prop =
   let
     val present = rev ((fold_types o fold_atyps_sorts) (insert (eq_fst op =)) prop []);
-    val extra = fold (Sorts.remove_sort o #2) present shyps;
+    val extra = Sortset.dest (fold (Sortset.remove o #2) present shyps);
 
     val n = length present;
     val (names1, names2) = Name.invent Name.context Name.aT (n + length extra) |> chop n;

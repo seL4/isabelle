@@ -949,7 +949,7 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML Thm.extra_shyps: "thm -> sort list"} \\
+  @{define_ML Thm.extra_shyps: "thm -> Sortset.T"} \\
   @{define_ML Thm.strip_shyps: "thm -> thm"} \\
   \end{mldecls}
 
@@ -971,7 +971,7 @@ class empty =
 theorem (in empty) false: False
   using bad by blast
 
-ML_val \<open>\<^assert> (Thm.extra_shyps @{thm false} = [\<^sort>\<open>empty\<close>])\<close>
+ML_val \<open>\<^assert> (Sortset.dest (Thm.extra_shyps @{thm false}) = [\<^sort>\<open>empty\<close>])\<close>
 
 text \<open>
   Thanks to the inference kernel managing sort hypothesis according to their

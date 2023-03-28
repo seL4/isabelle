@@ -17,7 +17,7 @@ sig
   val empty: int -> env
   val init: env
   val merge: env * env -> env
-  val insert_sorts: env -> sort list -> sort list
+  val insert_sorts: env -> Sortset.T -> Sortset.T
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
   val lookup1: tenv -> indexname * typ -> term option
@@ -94,7 +94,7 @@ fun merge
 
 
 (*NB: type unification may invent new sorts*)  (* FIXME tenv!? *)
-val insert_sorts = Vartab.fold (fn (_, (_, T)) => Sorts.insert_typ T) o type_env;
+val insert_sorts = Vartab.fold (fn (_, (_, T)) => Sortset.insert_typ T) o type_env;
 
 (*Generate a list of distinct variables.
   Increments index to make them distinct from ALL present variables. *)
