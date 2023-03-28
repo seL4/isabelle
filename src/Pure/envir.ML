@@ -94,7 +94,7 @@ fun merge
 
 
 (*NB: type unification may invent new sorts*)  (* FIXME tenv!? *)
-val insert_sorts = Vartab.fold (fn (_, (_, T)) => Sortset.insert_typ T) o type_env;
+val insert_sorts = Vartab.fold (Sortset.insert_typ o #2 o #2) o type_env;
 
 (*Generate a list of distinct variables.
   Increments index to make them distinct from ALL present variables. *)
