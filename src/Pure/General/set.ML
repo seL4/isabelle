@@ -239,13 +239,13 @@ local
 fun compare NONE _ = LESS
   | compare (SOME e1) e2 = Key.ord (e1, e2);
 
-fun if_eq EQUAL x y = x
-  | if_eq _ x y = y;
+fun if_eq ord x y = if ord = EQUAL then x else y;
 
 exception UNDEF of elem;
 
 (*literal copy from table.ML -- by Stefan Berghofer*)
 fun del (SOME k) Empty = raise UNDEF k
+  | del NONE Empty = raise Match
   | del NONE (Branch2 (Empty, p, Empty)) = (p, (true, Empty))
   | del NONE (Branch3 (Empty, p, Empty, q, Empty)) =
       (p, (false, Branch2 (Empty, q, Empty)))

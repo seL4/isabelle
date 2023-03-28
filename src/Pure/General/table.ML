@@ -229,12 +229,12 @@ fun lookup_key tab key =
 fun defined tab key =
   let
     fun def Empty = false
-      | def (Branch2 (left, (k, x), right)) =
+      | def (Branch2 (left, (k, _), right)) =
           (case Key.ord (key, k) of
             LESS => def left
           | EQUAL => true
           | GREATER => def right)
-      | def (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+      | def (Branch3 (left, (k1, _), mid, (k2, _), right)) =
           (case Key.ord (key, k1) of
             LESS => def left
           | EQUAL => true
@@ -311,13 +311,13 @@ exception UNDEF of key;
 
 local
 
-fun compare NONE (k2, _) = LESS
+fun compare NONE _ = LESS
   | compare (SOME k1) (k2, _) = Key.ord (k1, k2);
 
-fun if_eq EQUAL x y = x
-  | if_eq _ x y = y;
+fun if_eq ord x y = if ord = EQUAL then x else y;
 
 fun del (SOME k) Empty = raise UNDEF k
+  | del NONE Empty = raise Match
   | del NONE (Branch2 (Empty, p, Empty)) = (p, (true, Empty))
   | del NONE (Branch3 (Empty, p, Empty, q, Empty)) =
       (p, (false, Branch2 (Empty, q, Empty)))
