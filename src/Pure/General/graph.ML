@@ -6,6 +6,7 @@ Directed graphs.
 
 signature GRAPH =
 sig
+  structure Key: KEY
   type key
   structure Keys:
   sig
@@ -72,7 +73,9 @@ struct
 
 (* keys *)
 
+structure Key = Key;
 type key = Key.key;
+
 val eq_key = is_equal o Key.ord;
 
 structure Table = Table(Key);
@@ -352,6 +355,6 @@ val fold = fold_graph;
 
 end;
 
-structure Graph = Graph(type key = string val ord = fast_string_ord);
+structure Graph = Graph(Symtab.Key);
 structure String_Graph = Graph(type key = string val ord = string_ord);
-structure Int_Graph = Graph(type key = int val ord = int_ord);
+structure Int_Graph = Graph(Inttab.Key);

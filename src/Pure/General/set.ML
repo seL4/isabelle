@@ -6,6 +6,7 @@ Efficient representation of sets (see also Pure/General/table.ML).
 
 signature SET =
 sig
+  structure Key: KEY
   type elem
   type T
   val size: T -> int
@@ -32,9 +33,11 @@ end;
 functor Set(Key: KEY): SET =
 struct
 
-(* datatype *)
-
+structure Key = Key;
 type elem = Key.key;
+
+
+(* datatype *)
 
 datatype T =
   Empty |
@@ -339,5 +342,5 @@ val fold_rev = fold_rev_set;
 
 end;
 
-structure Intset = Set(type key = int val ord = int_ord);
-structure Symset = Set(type key = string val ord = fast_string_ord);
+structure Intset = Set(Inttab.Key);
+structure Symset = Set(Symtab.Key);

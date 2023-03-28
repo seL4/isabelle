@@ -13,6 +13,7 @@ end;
 
 signature TABLE =
 sig
+  structure Key: KEY
   type key
   type 'a table
   exception DUP of key
@@ -66,10 +67,11 @@ end;
 functor Table(Key: KEY): TABLE =
 struct
 
-
-(* datatype table *)
-
+structure Key = Key;
 type key = Key.key;
+
+
+(* datatype *)
 
 datatype 'a table =
   Empty |

@@ -222,7 +222,7 @@ fun term_cache f = Cache.create empty lookup update f;
 
 end;
 
-structure Termset = Set(type key = term val ord = Term_Ord.fast_term_ord);
+structure Termset = Set(Termtab.Key);
 
 structure Sortset:
 sig
@@ -234,7 +234,7 @@ sig
 end =
 struct
 
-structure Set = Set(type key = sort val ord = Term_Ord.sort_ord);
+structure Set = Set(Sorttab.Key);
 open Set;
 
 fun insert_typ (TFree (_, S)) Ss = insert S Ss
@@ -255,7 +255,7 @@ fun insert_terms [] Ss = Ss
 
 end;
 
-structure Var_Graph = Graph(type key = indexname val ord = Term_Ord.fast_indexname_ord);
-structure Sort_Graph = Graph(type key = sort val ord = Term_Ord.sort_ord);
-structure Typ_Graph = Graph(type key = typ val ord = Term_Ord.typ_ord);
-structure Term_Graph = Graph(type key = term val ord = Term_Ord.fast_term_ord);
+structure Var_Graph = Graph(Vartab.Key);
+structure Sort_Graph = Graph(Sorttab.Key);
+structure Typ_Graph = Graph(Typtab.Key);
+structure Term_Graph = Graph(Termtab.Key);

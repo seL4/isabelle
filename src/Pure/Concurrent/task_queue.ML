@@ -182,7 +182,7 @@ fun task_statistics (Task {name, id, timing, pos, ...}) =
 end;
 
 structure Tasks = Set(type key = task val ord = task_ord);
-structure Task_Graph = Graph(type key = task val ord = task_ord);
+structure Task_Graph = Graph(Tasks.Key);
 
 
 (* timing *)
