@@ -84,6 +84,7 @@ sig
 
   (* Diagnostic *)
   val get_locales: theory -> string list
+  val locale_notes: theory -> string -> (string * Attrib.fact list) list
   val pretty_locales: theory -> bool -> Pretty.T
   val pretty_locale: theory -> bool -> string -> Pretty.T
   val pretty_registrations: Proof.context -> string -> Pretty.T
@@ -453,9 +454,12 @@ fun make_notes kind = map (fn ((b, atts), facts) =>
   then Lazy_Notes (kind, (b, Lazy.value (maps #1 facts)))
   else Notes (kind, [((b, atts), facts)]));
 
+fun locale_notes thy loc =
+  fold (cons o #1) (#notes (the_locale thy loc)) [];
+
 fun lazy_notes thy loc =
-  rev (#notes (the_locale thy loc))
-  |> maps (fn ((kind, notes), _) => make_notes kind notes);
+  locale_notes thy loc
+  |> maps (fn (kind, notes) => make_notes kind notes);
 
 fun consolidate_notes elems =
   elems
