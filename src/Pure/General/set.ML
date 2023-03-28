@@ -18,11 +18,15 @@ sig
   val dest: T -> elem list
   val exists: (elem -> bool) -> T -> bool
   val forall: (elem -> bool) -> T -> bool
+  val get_first: (elem -> 'a option) -> T -> 'a option
   val member: T -> elem -> bool
+  val subset: T * T -> bool
+  val ord: T ord
   val insert: elem -> T -> T
   val make: elem list -> T
   val merge: T * T -> T
   val remove: elem -> T -> T
+  val subtract: T -> T -> T
 end;
 
 functor Set(Key: KEY): SET =
@@ -101,6 +105,34 @@ fun exists pred =
 fun forall pred = not o exists (not o pred);
 
 
+(* get_first *)
+
+fun get_first f =
+  let
+    fun get Empty = NONE
+      | get (Branch2 (left, e, right)) =
+          (case get left of
+            NONE =>
+              (case f e of
+                NONE => get right
+              | some => some)
+          | some => some)
+      | get (Branch3 (left, e1, mid, e2, right)) =
+          (case get left of
+            NONE =>
+              (case f e1 of
+                NONE =>
+                  (case get mid of
+                    NONE =>
+                      (case f e2 of
+                        NONE => get right
+                      | some => some)
+                  | some => some)
+              | some => some)
+          | some => some);
+  in get end;
+
+
 (* member *)
 
 fun member set elem =
@@ -121,6 +153,19 @@ fun member set elem =
               | EQUAL => true
               | GREATER => mem right));
   in mem set end;
+
+
+(* subset and order *)
+
+fun subset (set1, set2) = forall (member set2) set1;
+
+val ord =
+  pointer_eq_ord (fn sets =>
+    (case int_ord (apply2 size sets) of
+      EQUAL =>
+        if subset sets then EQUAL
+        else dict_ord Key.ord (apply2 dest sets)
+    | ord => ord));
 
 
 (* insert *)
@@ -274,6 +319,8 @@ in
 
 fun remove elem set =
   if member set elem then snd (snd (del (SOME elem) set)) else set;
+
+val subtract = fold_set remove;
 
 end;
 
