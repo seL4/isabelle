@@ -106,19 +106,19 @@ fun map_table f =
 fun fold_table f =
   let
     fun fold Empty x = x
-      | fold (Branch2 (left, p, right)) x =
-          fold right (f p (fold left x))
-      | fold (Branch3 (left, p1, mid, p2, right)) x =
-          fold right (f p2 (fold mid (f p1 (fold left x))));
+      | fold (Branch2 (left, e, right)) x =
+          fold right (f e (fold left x))
+      | fold (Branch3 (left, e1, mid, e2, right)) x =
+          fold right (f e2 (fold mid (f e1 (fold left x))));
   in fold end;
 
 fun fold_rev_table f =
   let
     fun fold Empty x = x
-      | fold (Branch2 (left, p, right)) x =
-          fold left (f p (fold right x))
-      | fold (Branch3 (left, p1, mid, p2, right)) x =
-          fold left (f p1 (fold mid (f p2 (fold right x))));
+      | fold (Branch2 (left, e, right)) x =
+          fold left (f e (fold right x))
+      | fold (Branch3 (left, e1, mid, e2, right)) x =
+          fold left (f e1 (fold mid (f e2 (fold right x))));
   in fold end;
 
 fun dest tab = fold_rev_table cons tab [];
@@ -128,14 +128,14 @@ fun keys tab = fold_rev_table (cons o #1) tab [];
 (* min/max entries *)
 
 fun min Empty = NONE
-  | min (Branch2 (Empty, p, _)) = SOME p
-  | min (Branch3 (Empty, p, _, _, _)) = SOME p
+  | min (Branch2 (Empty, e, _)) = SOME e
+  | min (Branch3 (Empty, e, _, _, _)) = SOME e
   | min (Branch2 (left, _, _)) = min left
   | min (Branch3 (left, _, _, _, _)) = min left;
 
 fun max Empty = NONE
-  | max (Branch2 (_, p, Empty)) = SOME p
-  | max (Branch3 (_, _, _, p, Empty)) = SOME p
+  | max (Branch2 (_, e, Empty)) = SOME e
+  | max (Branch3 (_, _, _, e, Empty)) = SOME e
   | max (Branch2 (_, _, right)) = max right
   | max (Branch3 (_, _, _, _, right)) = max right;
 
@@ -145,10 +145,10 @@ fun max Empty = NONE
 fun exists pred =
   let
     fun ex Empty = false
-      | ex (Branch2 (left, (k, x), right)) =
-          ex left orelse pred (k, x) orelse ex right
-      | ex (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          ex left orelse pred (k1, x1) orelse ex mid orelse pred (k2, x2) orelse ex right;
+      | ex (Branch2 (left, e, right)) =
+          ex left orelse pred e orelse ex right
+      | ex (Branch3 (left, e1, mid, e2, right)) =
+          ex left orelse pred e1 orelse ex mid orelse pred e2 orelse ex right;
   in ex end;
 
 fun forall pred = not o exists (not o pred);
@@ -159,21 +159,21 @@ fun forall pred = not o exists (not o pred);
 fun get_first f =
   let
     fun get Empty = NONE
-      | get (Branch2 (left, (k, x), right)) =
+      | get (Branch2 (left, e, right)) =
           (case get left of
             NONE =>
-              (case f (k, x) of
+              (case f e of
                 NONE => get right
               | some => some)
           | some => some)
-      | get (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+      | get (Branch3 (left, e1, mid, e2, right)) =
           (case get left of
             NONE =>
-              (case f (k1, x1) of
+              (case f e1 of
                 NONE =>
                   (case get mid of
                     NONE =>
-                      (case f (k2, x2) of
+                      (case f e2 of
                         NONE => get right
                       | some => some)
                   | some => some)
