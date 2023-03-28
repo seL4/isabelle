@@ -269,7 +269,7 @@ local
 fun compare NONE _ = LESS
   | compare (SOME e1) e2 = Key.ord (e1, e2);
 
-fun if_eq ord x y = if ord = EQUAL then x else y;
+fun if_equal ord x y = if is_equal ord then x else y;
 
 exception UNDEF of elem;
 
@@ -300,13 +300,13 @@ fun del (SOME k) Empty = raise UNDEF k
             | Branch3 (rl, rp, rm, rq, rr) => (false, make2
                 (make2 (l', p, rl), rp, make2 (rm, rq, rr)))))
       | ord =>
-          (case del (if_eq ord NONE k) r of
-            (p', (false, r')) => (p', (false, make2 (l, if_eq ord p' p, r')))
+          (case del (if_equal ord NONE k) r of
+            (p', (false, r')) => (p', (false, make2 (l, if_equal ord p' p, r')))
           | (p', (true, r')) => (p', case unmake l of
               Branch2 (ll, lp, lr) =>
-                (true, make3 (ll, lp, lr, if_eq ord p' p, r'))
+                (true, make3 (ll, lp, lr, if_equal ord p' p, r'))
             | Branch3 (ll, lp, lm, lq, lr) => (false, make2
-                (make2 (ll, lp, lm), lq, make2 (lr, if_eq ord p' p, r'))))))
+                (make2 (ll, lp, lm), lq, make2 (lr, if_equal ord p' p, r'))))))
   | del k (Branch3 (l, p, m, q, r)) =
       (case compare k q of
         LESS =>
@@ -323,31 +323,31 @@ fun del (SOME k) Empty = raise UNDEF k
                     make3 (make2 (l', p, ml), mp, make2 (mr, q, rl), rp,
                       make2 (rm, rq, rr)))))
           | ord =>
-              (case del (if_eq ord NONE k) m of
+              (case del (if_equal ord NONE k) m of
                 (p', (false, m')) =>
-                  (p', (false, make3 (l, if_eq ord p' p, m', q, r)))
+                  (p', (false, make3 (l, if_equal ord p' p, m', q, r)))
               | (p', (true, m')) => (p', (false, case (unmake l, unmake r) of
                   (Branch2 (ll, lp, lr), Branch2 _) =>
-                    make2 (make3 (ll, lp, lr, if_eq ord p' p, m'), q, r)
+                    make2 (make3 (ll, lp, lr, if_equal ord p' p, m'), q, r)
                 | (Branch3 (ll, lp, lm, lq, lr), _) =>
                     make3 (make2 (ll, lp, lm), lq,
-                      make2 (lr, if_eq ord p' p, m'), q, r)
+                      make2 (lr, if_equal ord p' p, m'), q, r)
                 | (_, Branch3 (rl, rp, rm, rq, rr)) =>
-                    make3 (l, if_eq ord p' p, make2 (m', q, rl), rp,
+                    make3 (l, if_equal ord p' p, make2 (m', q, rl), rp,
                       make2 (rm, rq, rr))))))
       | ord =>
-          (case del (if_eq ord NONE k) r of
+          (case del (if_equal ord NONE k) r of
             (q', (false, r')) =>
-              (q', (false, make3 (l, p, m, if_eq ord q' q, r')))
+              (q', (false, make3 (l, p, m, if_equal ord q' q, r')))
           | (q', (true, r')) => (q', (false, case (unmake l, unmake m) of
               (Branch2 _, Branch2 (ml, mp, mr)) =>
-                make2 (l, p, make3 (ml, mp, mr, if_eq ord q' q, r'))
+                make2 (l, p, make3 (ml, mp, mr, if_equal ord q' q, r'))
             | (_, Branch3 (ml, mp, mm, mq, mr)) =>
                 make3 (l, p, make2 (ml, mp, mm), mq,
-                  make2 (mr, if_eq ord q' q, r'))
+                  make2 (mr, if_equal ord q' q, r'))
             | (Branch3 (ll, lp, lm, lq, lr), Branch2 (ml, mp, mr)) =>
                 make3 (make2 (ll, lp, lm), lq, make2 (lr, p, ml), mp,
-                  make2 (mr, if_eq ord q' q, r'))))));
+                  make2 (mr, if_equal ord q' q, r'))))));
 
 in
 
