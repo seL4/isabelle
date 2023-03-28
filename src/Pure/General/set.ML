@@ -33,6 +33,8 @@ end;
 functor Set(Key: KEY): SET =
 struct
 
+(* keys *)
+
 structure Key = Key;
 type elem = Key.key;
 

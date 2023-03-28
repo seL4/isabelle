@@ -67,8 +67,12 @@ end;
 functor Table(Key: KEY): TABLE =
 struct
 
+(* keys *)
+
 structure Key = Key;
 type key = Key.key;
+
+exception DUP of key;
 
 
 (* datatype *)
@@ -77,8 +81,6 @@ datatype 'a table =
   Empty |
   Branch2 of 'a table * (key * 'a) * 'a table |
   Branch3 of 'a table * (key * 'a) * 'a table * (key * 'a) * 'a table;
-
-exception DUP of key;
 
 
 (* empty and single *)
