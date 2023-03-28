@@ -210,17 +210,21 @@ structure Typtab = Table(type key = typ val ord = Term_Ord.typ_ord);
 
 structure Termtab:
 sig
-  include TABLE;
+  include TABLE
   val term_cache: (term -> 'a) -> term -> 'a
 end =
 struct
-  structure Table = Table(type key = term val ord = Term_Ord.fast_term_ord);
-  open Table;
-  fun term_cache f = Cache.create empty lookup update f;
+
+structure Table = Table(type key = term val ord = Term_Ord.fast_term_ord);
+open Table;
+
+fun term_cache f = Cache.create empty lookup update f;
+
 end;
 
-structure Sortset = Set(type key = sort val ord = Term_Ord.sort_ord);
 structure Termset = Set(type key = term val ord = Term_Ord.fast_term_ord);
+
+structure Sortset = Set(type key = sort val ord = Term_Ord.sort_ord);
 
 structure Var_Graph = Graph(type key = indexname val ord = Term_Ord.fast_indexname_ord);
 structure Sort_Graph = Graph(type key = sort val ord = Term_Ord.sort_ord);
