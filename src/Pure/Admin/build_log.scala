@@ -98,6 +98,7 @@ object Build_Log {
         case None => name
       }
     }
+    def plain_name(file: JFile): String = plain_name(file.getName)
 
     def apply(name: String, lines: List[String]): Log_File =
       new Log_File(plain_name(name), lines.map(Library.trim_line))
@@ -984,16 +985,26 @@ object Build_Log {
           }
         })
 
-    def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false): Unit = {
+    def write_info(db: SQL.Database, files: List[JFile],
+      ml_statistics: Boolean = false,
+      progress: Progress = new Progress,
+      errors: Multi_Map[String, String] = Multi_Map.empty
+    ): Multi_Map[String, String] = {
+      var errors1 = errors
+      def add_error(name: String, exn: Throwable): Unit = {
+        errors1 = errors1.insert(name, Exn.message(exn))
+      }
+
       abstract class Table_Status(table: SQL.Table) {
         db.create_table(table)
         private var known: Set[String] = domain(db, table, Data.log_name)
 
-        def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
+        def required(file: JFile): Boolean = !known(Log_File.plain_name(file))
+        def required(log_file: Log_File): Boolean = !known(log_file.name)
 
         def update_db(db: SQL.Database, log_file: Log_File): Unit
         def update(log_file: Log_File): Unit = {
-          if (!known(log_file.name)) {
+          if (required(log_file)) {
             update_db(db, log_file)
             known += log_file.name
           }
@@ -1026,13 +1037,26 @@ object Build_Log {
           grouped(options.int("build_log_transaction_size") max 1)
 
       for (file_group <- file_groups) {
-        val log_files = Par_List.map[JFile, Log_File](Log_File.apply, file_group)
-        db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
+        val log_files =
+          Par_List.map[JFile, Exn.Result[Log_File]](
+            file => Exn.capture { Log_File(file) }, file_group)
+        db.transaction {
+          for (Exn.Res(log_file) <- log_files) {
+            progress.echo("Log " + quote(log_file.name), verbose = true)
+            try { status.foreach(_.update(log_file)) }
+            catch { case exn: Throwable => add_error(log_file.name, exn) }
+          }
+        }
+        for ((file, Exn.Exn(exn)) <- file_group.zip(log_files)) {
+          add_error(Log_File.plain_name(file), exn)
+        }
       }
 
       db.create_view(Data.pull_date_table())
       db.create_view(Data.pull_date_table(afp = true))
       db.create_view(Data.universal_table)
+
+      errors1
     }
 
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
@@ -1125,19 +1149,41 @@ object Build_Log {
   /* maintain build_log database */
 
   def build_log_database(options: Options, log_dirs: List[Path],
+    progress: Progress = new Progress,
+    ml_statistics: Boolean = false,
     snapshot: Option[Path] = None
   ): Unit = {
     val store = Build_Log.store(options)
 
     val log_files =
       log_dirs.flatMap(dir =>
-        File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true))
+        File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true)
+      ).sortBy(Log_File.plain_name)
 
     using(store.open_database()) { db =>
       db.vacuum()
-      store.write_info(db, log_files)
-      store.write_info(db, log_files, ml_statistics = true)
-      snapshot.foreach(store.snapshot_database(db, _))
+
+      progress.echo("Updating database " + db + " ...")
+      val errors0 = store.write_info(db, log_files, progress = progress)
+
+      val errors =
+        if (ml_statistics) {
+          progress.echo("Updating database " + db + " (ML statistics) ...")
+          store.write_info(db, log_files, ml_statistics = true, errors = errors0)
+        }
+        else errors0
+
+      if (errors.isEmpty) {
+        for (path <- snapshot) {
+          progress.echo("Writing database snapshot " + path)
+          store.snapshot_database(db, path)
+        }
+      }
+      else {
+        error(cat_lines(List.from(
+          for ((name, rev_errs) <- errors.iterator_list)
+            yield "Error(s) in log file " + quote(name) + ":\n" + cat_lines(rev_errs.reverse))))
+      }
     }
   }
 }

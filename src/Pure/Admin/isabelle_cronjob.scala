@@ -598,6 +598,7 @@ object Isabelle_Cronjob {
                 Logger_Task("build_log_database",
                   logger =>
                     Build_Log.build_log_database(logger.options, build_log_dirs,
+                      ml_statistics = true,
                       snapshot = Some(Isabelle_Devel.build_log_snapshot))),
                 Logger_Task("build_status",
                   logger => Isabelle_Devel.build_status(logger.options)))))),
