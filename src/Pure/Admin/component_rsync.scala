@@ -13,7 +13,7 @@ object Component_Rsync {
   val default_version = "3.2.7"
   val default_download_url = "https://github.com/WayneD/rsync/archive/refs/tags"
   val default_build_options =
-    "--disable-openssl --disable-xxhash --disable-zstd --disable-lz4 --disable-md2man"
+    "--disable-openssl --disable-xxhash --disable-zstd --disable-lz4 --disable-md2man --disable-acl-support --disable-xattr-support"
 
   def build_rsync(
     version: String = default_version,
