@@ -596,7 +596,9 @@ object Isabelle_Cronjob {
                       (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
                     } yield remote_build_history(rev, afp_rev, i, r)))),
                 Logger_Task("build_log_database",
-                  logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
+                  logger =>
+                    Build_Log.build_log_database(logger.options, build_log_dirs,
+                      snapshot = Some(Isabelle_Devel.build_log_snapshot))),
                 Logger_Task("build_status",
                   logger => Isabelle_Devel.build_status(logger.options)))))),
             exit)))))

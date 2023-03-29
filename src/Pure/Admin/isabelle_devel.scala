@@ -15,6 +15,7 @@ object Isabelle_Devel {
 
   val root: Path = Path.explode("~/html-data/devel")
   val cronjob_log: Path = root + Path.basic(CRONJOB_LOG)
+  val build_log_snapshot: Path = root + Path.explode(BUILD_LOG_DB)
 
 
   /* index */
@@ -45,19 +46,6 @@ object Isabelle_Devel {
             website = Some(website_dir))
         }
       )
-    }
-  }
-
-
-  /* maintain build_log database */
-
-  def build_log_database(options: Options, log_dirs: List[Path]): Unit = {
-    val store = Build_Log.store(options)
-    using(store.open_database()) { db =>
-      db.vacuum()
-      store.update_database(db, log_dirs)
-      store.update_database(db, log_dirs, ml_statistics = true)
-      store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))
     }
   }
 

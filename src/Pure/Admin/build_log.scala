@@ -1114,4 +1114,19 @@ object Build_Log {
       Build_Info(sessions)
     }
   }
+
+
+  /* maintain build_log database */
+
+  def build_log_database(options: Options, log_dirs: List[Path],
+    snapshot: Option[Path] = None
+  ): Unit = {
+    val store = Build_Log.store(options)
+    using(store.open_database()) { db =>
+      db.vacuum()
+      store.update_database(db, log_dirs)
+      store.update_database(db, log_dirs, ml_statistics = true)
+      snapshot.foreach(store.snapshot_database(db, _))
+    }
+  }
 }
