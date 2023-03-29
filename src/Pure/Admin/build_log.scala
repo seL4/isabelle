@@ -992,7 +992,7 @@ object Build_Log {
     ): Multi_Map[String, String] = {
       var errors1 = errors
       def add_error(name: String, exn: Throwable): Unit = {
-        errors1 = errors1.insert(name, Exn.message(exn))
+        errors1 = errors1.insert(name, Exn.print(exn))
       }
 
       abstract class Table_Status(table: SQL.Table) {
