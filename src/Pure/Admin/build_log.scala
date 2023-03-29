@@ -815,6 +815,18 @@ object Build_Log {
     new Store(options, cache)
 
   class Store private[Build_Log](options: Options, val cache: XML.Cache) {
+    override def toString: String = {
+      val s =
+        Exn.capture { open_database() } match {
+          case Exn.Res(db) =>
+            val db_name = db.toString
+            db.close()
+            "database = " + db_name
+          case Exn.Exn(_) => "no database"
+        }
+      "Store(" + s + ")"
+    }
+
     def open_database(
       user: String = options.string("build_log_database_user"),
       password: String = options.string("build_log_database_password"),
