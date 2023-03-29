@@ -1146,7 +1146,7 @@ object Build_Log {
   }
 
 
-  /* maintain build_log database */
+  /** maintain build_log database **/
 
   def build_log_database(options: Options, log_dirs: List[Path],
     progress: Progress = new Progress,
@@ -1186,4 +1186,44 @@ object Build_Log {
       }
     }
   }
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool = Isabelle_Tool("build_log_database", "update build_log database from log files",
+    Scala_Project.here,
+    { args =>
+      var ml_statistics: Boolean = false
+      var snapshot: Option[Path] = None
+      var dirs: List[Path] = Nil
+      var options = Options.init()
+      var verbose = false
+
+      val getopts = Getopts("""
+Usage: isabelle build_log_database [OPTIONS]
+
+  Options are:
+    -M           include ML statistics
+    -S FILE      snapshot to SQLite db file
+    -d DIR       include directory with log files
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           verbose
+
+  Update the build_log database server from log files, recursively collected
+  from given directories.
+""",
+        "M" -> (_ => ml_statistics = true),
+        "S:" -> (arg => snapshot = Some(Path.explode(arg))),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val progress = new Console_Progress(verbose = verbose)
+
+      build_log_database(options, dirs, progress = progress,
+        ml_statistics = ml_statistics, snapshot = snapshot)
+    })
 }
