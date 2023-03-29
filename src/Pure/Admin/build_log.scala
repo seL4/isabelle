@@ -1150,6 +1150,7 @@ object Build_Log {
 
   def build_log_database(options: Options, log_dirs: List[Path],
     progress: Progress = new Progress,
+    vacuum: Boolean = false,
     ml_statistics: Boolean = false,
     snapshot: Option[Path] = None
   ): Unit = {
@@ -1161,7 +1162,7 @@ object Build_Log {
       ).sortBy(Log_File.plain_name)
 
     using(store.open_database()) { db =>
-      db.vacuum()
+      if (vacuum) db.vacuum()
 
       progress.echo("Updating database " + db + " ...")
       val errors0 = store.write_info(db, log_files, progress = progress)
@@ -1198,6 +1199,7 @@ object Build_Log {
     { args =>
       var ml_statistics: Boolean = false
       var snapshot: Option[Path] = None
+      var vacuum = false
       var dirs: List[Path] = Nil
       var options = Options.init()
       var verbose = false
@@ -1208,6 +1210,7 @@ Usage: isabelle build_log_database [OPTIONS]
   Options are:
     -M           include ML statistics
     -S FILE      snapshot to SQLite db file
+    -V           vacuum cleaning of database
     -d DIR       include directory with log files
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
@@ -1217,6 +1220,7 @@ Usage: isabelle build_log_database [OPTIONS]
 """,
         "M" -> (_ => ml_statistics = true),
         "S:" -> (arg => snapshot = Some(Path.explode(arg))),
+        "V" -> (_ => vacuum = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose = true))
@@ -1226,7 +1230,7 @@ Usage: isabelle build_log_database [OPTIONS]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      build_log_database(options, dirs, progress = progress,
+      build_log_database(options, dirs, progress = progress, vacuum = vacuum,
         ml_statistics = ml_statistics, snapshot = snapshot)
     })
 }
