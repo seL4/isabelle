@@ -87,6 +87,8 @@ datatype 'a table =
   Branch3 of 'a table * (key * 'a) * 'a table * (key * 'a) * 'a table;
 
 fun make2 (Empty, e, Empty) = Leaf1 e
+  | make2 (Leaf1 e1, e2, Empty) = Leaf2 (e1, e2)
+  | make2 (Empty, e1, Leaf1 e2) = Leaf2 (e1, e2)
   | make2 arg = Branch2 arg;
 
 fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)

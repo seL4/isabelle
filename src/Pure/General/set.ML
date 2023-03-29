@@ -50,6 +50,8 @@ datatype T =
   Branch3 of T * elem * T * elem * T;
 
 fun make2 (Empty, e, Empty) = Leaf1 e
+  | make2 (Leaf1 e1, e2, Empty) = Leaf2 (e1, e2)
+  | make2 (Empty, e1, Leaf1 e2) = Leaf2 (e1, e2)
   | make2 arg = Branch2 arg;
 
 fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
