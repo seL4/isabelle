@@ -186,7 +186,7 @@ object Build_Log {
     def text: String = cat_lines(lines)
 
     def err(msg: String): Nothing =
-      error("Error in log file " + quote(name) + ": " + msg)
+      error("Bad log file " + quote(name) + ": " + msg)
 
 
     /* date format */
@@ -1181,8 +1181,11 @@ object Build_Log {
       }
       else {
         error(cat_lines(List.from(
-          for ((name, rev_errs) <- errors.iterator_list)
-            yield "Error(s) in log file " + quote(name) + ":\n" + cat_lines(rev_errs.reverse))))
+          for ((name, rev_errs) <- errors.iterator_list) yield {
+            val err = "The error(s) above occurred in " + quote(name)
+            cat_lines((err :: rev_errs).reverse)
+          }
+        )))
       }
     }
   }
