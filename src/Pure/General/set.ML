@@ -13,7 +13,6 @@ sig
   val empty: T
   val build: (T -> T) -> T
   val is_empty: T -> bool
-  val is_single: T -> bool
   val fold: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_rev: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val dest: T -> elem list
@@ -106,9 +105,6 @@ fun build (f: T -> T) = f empty;
 
 fun is_empty Empty = true
   | is_empty _ = false;
-
-fun is_single (Leaf1 _) = true
-  | is_single _ = false;
 
 
 (* fold combinators *)

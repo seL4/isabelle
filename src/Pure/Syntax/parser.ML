@@ -46,7 +46,7 @@ fun nts_member (nts: nts) = Intset.member nts;
 fun nts_fold f (nts: nts) = Intset.fold f nts;
 fun nts_subset (nts1: nts, nts2: nts) = Intset.forall (nts_member nts2) nts1;
 fun nts_is_empty (nts: nts) = Intset.is_empty nts;
-fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Intset.is_single nts;
+fun nts_is_unique (nts: nts) = Intset.size nts <= 1;
 
 
 (* tokens *)

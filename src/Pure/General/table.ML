@@ -22,7 +22,6 @@ sig
   val empty: 'a table
   val build: ('a table -> 'a table) -> 'a table
   val is_empty: 'a table -> bool
-  val is_single: 'a table -> bool
   val map: (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
@@ -126,9 +125,6 @@ fun build (f: 'a table -> 'a table) = f empty;
 
 fun is_empty Empty = true
   | is_empty _ = false;
-
-fun is_single (Leaf1 _) = true
-  | is_single _ = false;
 
 
 (* map and fold combinators *)
