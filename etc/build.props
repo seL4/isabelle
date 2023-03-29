@@ -36,6 +36,7 @@ sources = \
   src/Pure/Admin/component_polyml.scala \
   src/Pure/Admin/component_postgresql.scala \
   src/Pure/Admin/component_prismjs.scala \
+  src/Pure/Admin/component_rsync.scala \
   src/Pure/Admin/component_scala.scala \
   src/Pure/Admin/component_spass.scala \
   src/Pure/Admin/component_sqlite.scala \
