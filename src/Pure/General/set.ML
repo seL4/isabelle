@@ -95,7 +95,7 @@ in
 end;
 
 
-(* empty and single *)
+(* empty *)
 
 val empty = Empty;
 

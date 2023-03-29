@@ -115,7 +115,7 @@ fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
   | unmake arg = arg;
 
 
-(* empty and single *)
+(* empty *)
 
 val empty = Empty;
 
