@@ -833,18 +833,6 @@ object Build_Log {
         ssh_close = true)
     }
 
-    def update_database(
-      db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false): Unit = {
-      val log_files =
-        dirs.flatMap(dir =>
-          File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true))
-      write_info(db, log_files, ml_statistics = ml_statistics)
-
-      db.create_view(Data.pull_date_table())
-      db.create_view(Data.pull_date_table(afp = true))
-      db.create_view(Data.universal_table)
-    }
-
     def snapshot_database(
       db: PostgreSQL.Database,
       sqlite_database: Path,
@@ -1027,6 +1015,10 @@ object Build_Log {
         val log_files = Par_List.map[JFile, Log_File](Log_File.apply, file_group)
         db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
       }
+
+      db.create_view(Data.pull_date_table())
+      db.create_view(Data.pull_date_table(afp = true))
+      db.create_view(Data.universal_table)
     }
 
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
@@ -1122,10 +1114,15 @@ object Build_Log {
     snapshot: Option[Path] = None
   ): Unit = {
     val store = Build_Log.store(options)
+
+    val log_files =
+      log_dirs.flatMap(dir =>
+        File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true))
+
     using(store.open_database()) { db =>
       db.vacuum()
-      store.update_database(db, log_dirs)
-      store.update_database(db, log_dirs, ml_statistics = true)
+      store.write_info(db, log_files)
+      store.write_info(db, log_files, ml_statistics = true)
       snapshot.foreach(store.snapshot_database(db, _))
     }
   }
