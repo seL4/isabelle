@@ -71,8 +71,6 @@ struct
 structure Key = Key;
 type key = Key.key;
 
-val eq_key = is_equal o Key.ord;
-
 exception DUP of key;
 
 
@@ -252,30 +250,33 @@ fun get_first f =
 
 fun lookup tab key =
   let
+    fun key_ord k = Key.ord (key, k);
+    val key_eq = is_equal o key_ord;
+
     fun look Empty = NONE
       | look (Leaf1 (k, x)) =
-          if eq_key (key, k) then SOME x else NONE
+          if key_eq k then SOME x else NONE
       | look (Leaf2 ((k1, x1), (k2, x2))) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS => NONE
           | EQUAL => SOME x1
-          | GREATER => if eq_key (key, k2) then SOME x2 else NONE)
+          | GREATER => if key_eq k2 then SOME x2 else NONE)
       | look (Leaf3 ((k1, x1), (k2, x2), (k3, x3))) =
-          (case Key.ord (key, k2) of
-            LESS => if eq_key (key, k1) then SOME x1 else NONE
+          (case key_ord k2 of
+            LESS => if key_eq k1 then SOME x1 else NONE
           | EQUAL => SOME x2
-          | GREATER => if eq_key (key, k3) then SOME x3 else NONE)
+          | GREATER => if key_eq k3 then SOME x3 else NONE)
       | look (Branch2 (left, (k, x), right)) =
-          (case Key.ord (key, k) of
+          (case key_ord k of
             LESS => look left
           | EQUAL => SOME x
           | GREATER => look right)
       | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS => look left
           | EQUAL => SOME x1
           | GREATER =>
-              (case Key.ord (key, k2) of
+              (case key_ord k2 of
                 LESS => look mid
               | EQUAL => SOME x2
               | GREATER => look right));
@@ -283,30 +284,33 @@ fun lookup tab key =
 
 fun lookup_key tab key =
   let
+    fun key_ord k = Key.ord (key, k);
+    val key_eq = is_equal o key_ord;
+
     fun look Empty = NONE
       | look (Leaf1 (k, x)) =
-          if eq_key (key, k) then SOME (k, x) else NONE
+          if key_eq k then SOME (k, x) else NONE
       | look (Leaf2 ((k1, x1), (k2, x2))) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS => NONE
           | EQUAL => SOME (k1, x1)
-          | GREATER => if eq_key (key, k2) then SOME (k2, x2) else NONE)
+          | GREATER => if key_eq k2 then SOME (k2, x2) else NONE)
       | look (Leaf3 ((k1, x1), (k2, x2), (k3, x3))) =
-          (case Key.ord (key, k2) of
-            LESS => if eq_key (key, k1) then SOME (k1, x1) else NONE
+          (case key_ord k2 of
+            LESS => if key_eq k1 then SOME (k1, x1) else NONE
           | EQUAL => SOME (k2, x2)
-          | GREATER => if eq_key (key, k3) then SOME (k3, x3) else NONE)
+          | GREATER => if key_eq k3 then SOME (k3, x3) else NONE)
       | look (Branch2 (left, (k, x), right)) =
-          (case Key.ord (key, k) of
+          (case key_ord k of
             LESS => look left
           | EQUAL => SOME (k, x)
           | GREATER => look right)
       | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS => look left
           | EQUAL => SOME (k1, x1)
           | GREATER =>
-              (case Key.ord (key, k2) of
+              (case key_ord k2 of
                 LESS => look mid
               | EQUAL => SOME (k2, x2)
               | GREATER => look right));
@@ -314,29 +318,32 @@ fun lookup_key tab key =
 
 fun defined tab key =
   let
+    fun key_ord k = Key.ord (key, k);
+    val key_eq = is_equal o key_ord;
+
     fun def Empty = false
-      | def (Leaf1 (k, _)) = eq_key (key, k)
+      | def (Leaf1 (k, _)) = key_eq k
       | def (Leaf2 ((k1, _), (k2, _))) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS => false
           | EQUAL => true
-          | GREATER => eq_key (key, k2))
+          | GREATER => key_eq k2)
       | def (Leaf3 ((k1, _), (k2, _), (k3, _))) =
-          (case Key.ord (key, k2) of
-            LESS => eq_key (key, k1)
+          (case key_ord k2 of
+            LESS => key_eq k1
           | EQUAL => true
-          | GREATER => eq_key (key, k3))
+          | GREATER => key_eq k3)
       | def (Branch2 (left, (k, _), right)) =
-          (case Key.ord (key, k) of
+          (case key_ord k of
             LESS => def left
           | EQUAL => true
           | GREATER => def right)
       | def (Branch3 (left, (k1, _), mid, (k2, _), right)) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS => def left
           | EQUAL => true
           | GREATER =>
-              (case Key.ord (key, k2) of
+              (case key_ord k2 of
                 LESS => def mid
               | EQUAL => true
               | GREATER => def right));
@@ -353,12 +360,14 @@ exception SAME;
 
 fun modify key f tab =
   let
+    fun key_ord k = Key.ord (key, k);
+
     fun modfy Empty = Sprout (Empty, (key, f NONE), Empty)
       | modfy (t as Leaf1 _) = modfy (unmake t)
       | modfy (t as Leaf2 _) = modfy (unmake t)
       | modfy (t as Leaf3 _) = modfy (unmake t)
       | modfy (Branch2 (left, p as (k, x), right)) =
-          (case Key.ord (key, k) of
+          (case key_ord k of
             LESS =>
               (case modfy left of
                 Stay left' => Stay (make2 (left', p, right))
@@ -370,7 +379,7 @@ fun modify key f tab =
               | Sprout (right1, q, right2) =>
                   Stay (make3 (left, p, right1, q, right2))))
       | modfy (Branch3 (left, p1 as (k1, x1), mid, p2 as (k2, x2), right)) =
-          (case Key.ord (key, k1) of
+          (case key_ord k1 of
             LESS =>
               (case modfy left of
                 Stay left' => Stay (make3 (left', p1, mid, p2, right))
@@ -378,7 +387,7 @@ fun modify key f tab =
                   Sprout (make2 (left1, q, left2), p1, make2 (mid, p2, right)))
           | EQUAL => Stay (make3 (left, (k1, f (SOME x1)), mid, p2, right))
           | GREATER =>
-              (case Key.ord (key, k2) of
+              (case key_ord k2 of
                 LESS =>
                   (case modfy mid of
                     Stay mid' => Stay (make3 (left, p1, mid', p2, right))

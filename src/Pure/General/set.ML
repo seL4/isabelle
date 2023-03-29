@@ -37,8 +37,6 @@ struct
 structure Key = Key;
 type elem = Key.key;
 
-val eq_key = is_equal o Key.ord;
-
 
 (* datatype *)
 
@@ -197,29 +195,32 @@ fun get_first f =
 
 fun member set elem =
   let
+    fun elem_ord e = Key.ord (elem, e)
+    val elem_eq = is_equal o elem_ord;
+
     fun mem Empty = false
-      | mem (Leaf1 e) = eq_key (elem, e)
+      | mem (Leaf1 e) = elem_eq e
       | mem (Leaf2 (e1, e2)) =
-          (case Key.ord (elem, e1) of
+          (case elem_ord e1 of
             LESS => false
           | EQUAL => true
-          | GREATER => eq_key (elem, e2))
+          | GREATER => elem_eq e2)
       | mem (Leaf3 (e1, e2, e3)) =
-          (case Key.ord (elem, e2) of
-            LESS => eq_key (elem, e1)
+          (case elem_ord e2 of
+            LESS => elem_eq e1
           | EQUAL => true
-          | GREATER => eq_key (elem, e3))
+          | GREATER => elem_eq e3)
       | mem (Branch2 (left, e, right)) =
-          (case Key.ord (elem, e) of
+          (case elem_ord e of
             LESS => mem left
           | EQUAL => true
           | GREATER => mem right)
       | mem (Branch3 (left, e1, mid, e2, right)) =
-          (case Key.ord (elem, e1) of
+          (case elem_ord e1 of
             LESS => mem left
           | EQUAL => true
           | GREATER =>
-              (case Key.ord (elem, e2) of
+              (case elem_ord e2 of
                 LESS => mem mid
               | EQUAL => true
               | GREATER => mem right));
@@ -247,12 +248,14 @@ fun insert elem set =
   if member set elem then set
   else
     let
+      fun elem_ord e = Key.ord (elem, e)
+
       fun ins Empty = Sprout (Empty, elem, Empty)
         | ins (t as Leaf1 _) = ins (unmake t)
         | ins (t as Leaf2 _) = ins (unmake t)
         | ins (t as Leaf3 _) = ins (unmake t)
         | ins (Branch2 (left, e, right)) =
-            (case Key.ord (elem, e) of
+            (case elem_ord e of
               LESS =>
                 (case ins left of
                   Stay left' => Stay (make2 (left', e, right))
@@ -264,7 +267,7 @@ fun insert elem set =
                 | Sprout (right1, e', right2) =>
                     Stay (make3 (left, e, right1, e', right2))))
         | ins (Branch3 (left, e1, mid, e2, right)) =
-            (case Key.ord (elem, e1) of
+            (case elem_ord e1 of
               LESS =>
                 (case ins left of
                   Stay left' => Stay (make3 (left', e1, mid, e2, right))
@@ -272,7 +275,7 @@ fun insert elem set =
                     Sprout (make2 (left1, e', left2), e1, make2 (mid, e2, right)))
             | EQUAL => Stay (make3 (left, e1, mid, e2, right))
             | GREATER =>
-                (case Key.ord (elem, e2) of
+                (case elem_ord e2 of
                   LESS =>
                     (case ins mid of
                       Stay mid' => Stay (make3 (left, e1, mid', e2, right))
