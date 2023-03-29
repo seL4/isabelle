@@ -40,25 +40,45 @@ type elem = Key.key;
 
 val eq_key = is_equal o Key.ord;
 
+
 (* datatype *)
 
 datatype T =
   Empty |
   Leaf1 of elem |
   Leaf2 of elem * elem |
+  Leaf3 of elem * elem * elem |
   Branch2 of T * elem * T |
   Branch3 of T * elem * T * elem * T;
 
+(*literal copy from table.ML*)
 fun make2 (Empty, e, Empty) = Leaf1 e
+  | make2 (Branch2 (Empty, e1, Empty), e2, right) = make2 (Leaf1 e1, e2, right)
+  | make2 (left, e1, Branch2 (Empty, e2, Empty)) = make2 (left, e1, Leaf1 e2)
+  | make2 (Branch3 (Empty, e1, Empty, e2, Empty), e3, right) = make2 (Leaf2 (e1, e2), e3, right)
+  | make2 (left, e1, Branch3 (Empty, e2, Empty, e3, Empty)) = make2 (left, e1, Leaf2 (e2, e3))
   | make2 (Leaf1 e1, e2, Empty) = Leaf2 (e1, e2)
   | make2 (Empty, e1, Leaf1 e2) = Leaf2 (e1, e2)
+  | make2 (Leaf1 e1, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
+  | make2 (Leaf2 (e1, e2), e3, Empty) = Leaf3 (e1, e2, e3)
+  | make2 (Empty, e1, Leaf2 (e2, e3)) = Leaf3 (e1, e2, e3)
   | make2 arg = Branch2 arg;
 
+(*literal copy from table.ML*)
 fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
+  | make3 (Branch2 (Empty, e1, Empty), e2, mid, e3, right) = make3 (Leaf1 e1, e2, mid, e3, right)
+  | make3 (left, e1, Branch2 (Empty, e2, Empty), e3, right) = make3 (left, e1, Leaf1 e2, e3, right)
+  | make3 (left, e1, mid, e2, Branch2 (Empty, e3, Empty)) = make3 (left, e1, mid, e2, Leaf1 e3)
+  | make3 (Leaf1 e1, e2, Empty, e3, Empty) = Leaf3 (e1, e2, e3)
+  | make3 (Empty, e1, Leaf1 e2, e3, Empty) = Leaf3 (e1, e2, e3)
+  | make3 (Empty, e1, Empty, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
   | make3 arg = Branch3 arg;
 
+(*literal copy from table.ML*)
 fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
   | unmake (Leaf2 (e1, e2)) = Branch3 (Empty, e1, Empty, e2, Empty)
+  | unmake (Leaf3 (e1, e2, e3)) =
+      Branch2 (Branch2 (Empty, e1, Empty), e2, Branch2 (Empty, e3, Empty))
   | unmake arg = arg;
 
 
@@ -68,6 +88,7 @@ local
   fun add_size Empty n = n
     | add_size (Leaf1 _) n = n + 1
     | add_size (Leaf2 _) n = n + 2
+    | add_size (Leaf3 _) n = n + 3
     | add_size (Branch2 (left, _, right)) n =
         n + 1 |> add_size left |> add_size right
     | add_size (Branch3 (left, _, mid, _, right)) n =
@@ -97,6 +118,7 @@ fun fold_set f =
     fun fold Empty x = x
       | fold (Leaf1 e) x = f e x
       | fold (Leaf2 (e1, e2)) x = f e2 (f e1 x)
+      | fold (Leaf3 (e1, e2, e3)) x = f e3 (f e2 (f e1 x))
       | fold (Branch2 (left, e, right)) x =
           fold right (f e (fold left x))
       | fold (Branch3 (left, e1, mid, e2, right)) x =
@@ -108,6 +130,7 @@ fun fold_rev_set f =
     fun fold_rev Empty x = x
       | fold_rev (Leaf1 e) x = f e x
       | fold_rev (Leaf2 (e1, e2)) x = f e1 (f e2 x)
+      | fold_rev (Leaf3 (e1, e2, e3)) x = f e1 (f e2 (f e3 x))
       | fold_rev (Branch2 (left, e, right)) x =
           fold_rev left (f e (fold_rev right x))
       | fold_rev (Branch3 (left, e1, mid, e2, right)) x =
@@ -124,6 +147,7 @@ fun exists pred =
     fun ex Empty = false
       | ex (Leaf1 e) = pred e
       | ex (Leaf2 (e1, e2)) = pred e1 orelse pred e2
+      | ex (Leaf3 (e1, e2, e3)) = pred e1 orelse pred e2 orelse pred e3
       | ex (Branch2 (left, e, right)) =
           ex left orelse pred e orelse ex right
       | ex (Branch3 (left, e1, mid, e2, right)) =
@@ -142,6 +166,13 @@ fun get_first f =
       | get (Leaf2 (e1, e2)) =
           (case f e1 of
             NONE => f e2
+          | some => some)
+      | get (Leaf3 (e1, e2, e3)) =
+          (case f e1 of
+            NONE =>
+              (case f e2 of
+                NONE => f e3
+              | some => some)
           | some => some)
       | get (Branch2 (left, e, right)) =
           (case get left of
@@ -172,7 +203,16 @@ fun member set elem =
   let
     fun mem Empty = false
       | mem (Leaf1 e) = eq_key (elem, e)
-      | mem (Leaf2 (e1, e2)) = eq_key (elem, e1) orelse eq_key (elem, e2)
+      | mem (Leaf2 (e1, e2)) =
+          (case Key.ord (elem, e1) of
+            LESS => false
+          | EQUAL => true
+          | GREATER => eq_key (elem, e2))
+      | mem (Leaf3 (e1, e2, e3)) =
+          (case Key.ord (elem, e2) of
+            LESS => eq_key (elem, e1)
+          | EQUAL => true
+          | GREATER => eq_key (elem, e3))
       | mem (Branch2 (left, e, right)) =
           (case Key.ord (elem, e) of
             LESS => mem left
@@ -214,6 +254,7 @@ fun insert elem set =
       fun ins Empty = Sprout (Empty, elem, Empty)
         | ins (t as Leaf1 _) = ins (unmake t)
         | ins (t as Leaf2 _) = ins (unmake t)
+        | ins (t as Leaf3 _) = ins (unmake t)
         | ins (Branch2 (left, e, right)) =
             (case Key.ord (elem, e) of
               LESS =>
@@ -275,7 +316,7 @@ fun if_equal ord x y = if is_equal ord then x else y;
 
 exception UNDEF of elem;
 
-(*literal copy from table.ML -- by Stefan Berghofer*)
+(*literal copy from table.ML*)
 fun del (SOME k) Empty = raise UNDEF k
   | del NONE Empty = raise Match
   | del NONE (Leaf1 p) = (p, (true, Empty))
@@ -291,6 +332,7 @@ fun del (SOME k) Empty = raise UNDEF k
         (case compare k q of
           EQUAL => (q, (false, Leaf1 p))
         | _ => raise UNDEF (the k)))
+  | del k (Leaf3 (p, q, r)) = del k (Branch2 (Leaf1 p, q, Leaf1 r))
   | del k (Branch2 (l, p, r)) =
       (case compare k p of
         LESS =>
