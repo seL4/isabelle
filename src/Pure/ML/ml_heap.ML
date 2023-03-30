@@ -8,6 +8,7 @@ signature ML_HEAP =
 sig
   val obj_size: 'a -> int
   val sizeof1: 'a -> int
+  val sizeof_list: 'a list -> int
   val sizeof: 'a list -> int
   val full_gc: unit -> unit
   val gc_now: unit -> Time.time
@@ -21,7 +22,9 @@ struct
 val obj_size = PolyML.objSize;
 
 fun sizeof1 x = obj_size x * ML_System.platform_obj_size;
-fun sizeof xs = (obj_size xs - 3 * length xs) * ML_System.platform_obj_size;
+
+fun sizeof_list xs = 3 * length xs * ML_System.platform_obj_size;
+fun sizeof xs = obj_size xs * ML_System.platform_obj_size - sizeof_list xs;
 
 val full_gc = PolyML.fullGC;
 
