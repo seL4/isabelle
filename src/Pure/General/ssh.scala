@@ -408,6 +408,10 @@ object SSH {
         env = if (settings) Isabelle_System.settings() else null,
         strict = strict)
 
+    def new_directory(path: Path): Path =
+      if (is_dir(path)) error("Directory already exists: " + absolute_path(path))
+      else make_directory(path)
+
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
       Isabelle_System.download_file(url_name, file, progress = progress)
 

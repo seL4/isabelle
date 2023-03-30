@@ -1255,8 +1255,8 @@ object Sessions {
 
   /* load sessions from certain directories */
 
-  def is_session_dir(dir: Path): Boolean =
-    (dir + ROOT).is_file || (dir + ROOTS).is_file
+  def is_session_dir(dir: Path, ssh: SSH.System = SSH.Local): Boolean =
+    ssh.is_file(dir + ROOT) || ssh.is_file(dir + ROOTS)
 
   def check_session_dir(dir: Path): Path =
     if (is_session_dir(dir)) File.pwd() + dir.expand
@@ -1266,7 +1266,7 @@ object Sessions {
     }
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] = {
-    val default_dirs = Components.directories().filter(is_session_dir)
+    val default_dirs = Components.directories().filter(is_session_dir(_))
     for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
     yield (select, dir.canonical)
   }

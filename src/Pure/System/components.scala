@@ -171,10 +171,11 @@ object Components {
   /* component directory content */
 
   object Directory {
-    def apply(path: Path): Directory = new Directory(path.absolute)
+    def apply(path: Path, ssh: SSH.System = SSH.Local): Directory =
+      new Directory(ssh.absolute_path(path), ssh)
   }
 
-  class Directory private(val path: Path) {
+  class Directory private(val path: Path, val ssh: SSH.System = SSH.Local) {
     override def toString: String = path.toString
 
     def etc: Path = path + Path.basic("etc")
@@ -188,15 +189,16 @@ object Components {
 
     def create(progress: Progress = new Progress): Directory = {
       progress.echo("Creating component directory " + path)
-      Isabelle_System.new_directory(path)
-      Isabelle_System.make_directory(etc)
+      ssh.new_directory(path)
+      ssh.make_directory(etc)
       this
     }
 
-    def ok: Boolean = settings.is_file || components.is_file || Sessions.is_session_dir(path)
+    def ok: Boolean =
+      ssh.is_file(settings) || ssh.is_file(components) || Sessions.is_session_dir(path, ssh = ssh)
 
     def check: Directory =
-      if (!path.is_dir) error("Bad component directory: " + path)
+      if (!ssh.is_dir(path)) error("Bad component directory: " + path)
       else if (!ok) {
         error("Malformed component directory: " + path +
           "\n  (missing \"etc/settings\" or \"etc/components\" or \"ROOT\" or \"ROOTS\")")
@@ -204,12 +206,12 @@ object Components {
       else this
 
     def read_components(): List[String] =
-      split_lines(File.read(components)).filter(_.nonEmpty)
+      split_lines(ssh.read(components)).filter(_.nonEmpty)
     def write_components(lines: List[String]): Unit =
-      File.write(components, terminate_lines(lines))
+      ssh.write(components, terminate_lines(lines))
 
     def write_settings(text: String): Unit =
-      File.write(settings, "# -*- shell-script -*- :mode=shellscript:\n" + text)
+      ssh.write(settings, "# -*- shell-script -*- :mode=shellscript:\n" + text)
   }
 
 
