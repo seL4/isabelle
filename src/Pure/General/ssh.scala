@@ -109,6 +109,7 @@ object SSH {
     def user_prefix: String = if (user.nonEmpty) user + "@" else ""
 
     override def toString: String = user_prefix + host + port_suffix
+    override def print: String = " (ssh " + toString + ")"
     override def hg_url: String = "ssh://" + toString + "/"
     override def rsync_prefix: String = user_prefix + host + ":"
 
@@ -371,6 +372,8 @@ object SSH {
   trait System extends AutoCloseable {
     def close(): Unit = ()
 
+    override def toString: String = "SSH.Local"
+    def print: String = ""
     def hg_url: String = ""
 
     def rsync_prefix: String = ""
