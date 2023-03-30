@@ -8,6 +8,11 @@ package isabelle
 
 
 object Component_Rsync {
+  /* resources */
+
+  def component_home: Path = Path.explode("$ISABELLE_RSYNC_HOME")
+
+
   /* build rsync */
 
   val default_version = "3.2.7"
