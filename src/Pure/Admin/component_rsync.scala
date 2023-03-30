@@ -14,13 +14,13 @@ object Component_Rsync {
   val default_download_url = "https://github.com/WayneD/rsync/archive/refs/tags"
   val default_build_options: List[String] =
     List(
-      "--disable-openssl",
-      "--disable-xxhash",
-      "--disable-zstd",
+      "--disable-acl-support",
       "--disable-lz4",
       "--disable-md2man",
-      "--disable-acl-support",
-      "--disable-xattr-support")
+      "--disable-openssl",
+      "--disable-xattr-support",
+      "--disable-xxhash",
+      "--disable-zstd")
 
   def build_rsync(
     version: String = default_version,
@@ -61,8 +61,8 @@ object Component_Rsync {
 
       progress.echo("Building rsync for " + platform_name + " ...")
 
-      val build_script = "./configure " + Bash.strings(build_options) + " && make"
-      Isabelle_System.bash(build_script, cwd = source_dir.file,
+      val build_script = List("./configure " + Bash.strings(build_options.sorted), "make")
+      Isabelle_System.bash(build_script.mkString(" && "), cwd = source_dir.file,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
 
@@ -86,13 +86,12 @@ ISABELLE_RSYNC="$ISABELLE_RSYNC_HOME/rsync"
       File.write(component_dir.README,
         "This is rsync " + version + " from " + download_url + """
 
+The distribution has been built like this:
+
+""" + ("cd src" :: build_script).map(s => "  " + s + "\n").mkString + """
 See also:
   * https://github.com/WayneD/rsync
   * https://rsync.samba.org
-
-The distribution has been built like this:
-
-    cd src && """ + build_script + """
 
 
         Makarius
