@@ -42,12 +42,11 @@ object Component_Rsync {
         Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
       val platform_name =
-        "platform_" +
-          proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))
-            .getOrElse(error("No 64bit platform"))
+        proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))
+          .getOrElse(error("No 64bit platform"))
 
       val platform_dir =
-        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
+        Isabelle_System.make_directory(component_dir.path + Path.basic("platform_" + platform_name))
 
 
       /* download source */
