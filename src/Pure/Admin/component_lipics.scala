@@ -14,7 +14,7 @@ package isabelle
 
 
 object Component_LIPIcs {
-  /* files for document preparation */
+  /* resources */
 
   val document_files: List[Path] =
     for (name <- List("cc-by.pdf", "lipics-logo-bw.pdf", "lipics-v2021.cls"))
