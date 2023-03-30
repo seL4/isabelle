@@ -55,7 +55,7 @@ sig
   val join_thys: theory * theory -> theory
   val begin_thy: string -> theory list -> theory
   val finish_thy: theory -> theory
-  val theory_sizeof1_data: theory -> (Position.T * int) list
+  val theory_data_sizeof1: theory -> (Position.T * int) list
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
   (*certificate*)
@@ -460,7 +460,7 @@ fun sizeof1 k thy =
 
 end;
 
-fun theory_sizeof1_data thy =
+fun theory_data_sizeof1 thy =
   build (data_of thy |> Datatab.fold_rev (fn (k, _) =>
     (case Theory_Data.sizeof1 k thy of
       NONE => I
