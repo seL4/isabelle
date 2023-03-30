@@ -64,6 +64,7 @@ object Components {
 
   val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
   val dynamic_components_base: String = "${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}"
+  val classic_components_base: Path = Path.explode("$USER_HOME/.isabelle/contrib")
 
   val default_catalogs: List[String] = List("main")
   val optional_catalogs: List[String] = List("main", "optional")
@@ -155,6 +156,31 @@ object Components {
       progress.echo("Removing " + quote(archive_name))
       ssh.delete(archive)
     }
+  }
+
+  def provide(local_dir: Path,
+    base_dir: Path = classic_components_base,
+    ssh: SSH.System = SSH.Local,
+    progress: Progress = new Progress
+  ): Directory = {
+    val base_name = local_dir.expand.base
+    val local_directory = Directory(local_dir).check
+    val remote_directory = Directory(base_dir + base_name, ssh = ssh)
+    if (!remote_directory.ok) {
+      progress.echo("Providing " + base_name + ssh.print)
+      Isabelle_System.with_tmp_file("tmp", ext = "tar") { local_tmp_tar =>
+        ssh.with_tmp_dir { remote_tmp_dir =>
+          val remote_tmp_tar = remote_tmp_dir + Path.basic("tmp.tar")
+          val remote_dir = ssh.make_directory(remote_directory.path)
+          Isabelle_System.gnutar(
+            "-cf " + File.bash_path(local_tmp_tar) + " .", dir = local_dir).check
+          ssh.write_file(remote_tmp_tar, local_tmp_tar)
+          ssh.execute(
+            "tar -C " + ssh.bash_path(remote_dir) + " -xf " + ssh.bash_path(remote_tmp_tar)).check
+        }
+      }
+    }
+    remote_directory.check
   }
 
 
