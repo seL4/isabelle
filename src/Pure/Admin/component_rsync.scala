@@ -12,15 +12,22 @@ object Component_Rsync {
 
   val default_version = "3.2.7"
   val default_download_url = "https://github.com/WayneD/rsync/archive/refs/tags"
-  val default_build_options =
-    "--disable-openssl --disable-xxhash --disable-zstd --disable-lz4 --disable-md2man --disable-acl-support --disable-xattr-support"
+  val default_build_options: List[String] =
+    List(
+      "--disable-openssl",
+      "--disable-xxhash",
+      "--disable-zstd",
+      "--disable-lz4",
+      "--disable-md2man",
+      "--disable-acl-support",
+      "--disable-xattr-support")
 
   def build_rsync(
     version: String = default_version,
     download_url: String = default_download_url,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    build_options: String = default_build_options
+    build_options: List[String] = default_build_options
   ): Unit = {
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
@@ -54,7 +61,7 @@ object Component_Rsync {
 
       progress.echo("Building rsync for " + platform_name + " ...")
 
-      val build_script = "./configure " + build_options + " && make"
+      val build_script = "./configure " + Bash.strings(build_options) + " && make"
       Isabelle_System.bash(build_script, cwd = source_dir.file,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
@@ -101,32 +108,36 @@ The distribution has been built like this:
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var build_options = default_build_options
         var version = default_version
         var download_url = default_download_url
         var verbose = false
 
         val getopts = Getopts("""
-Usage: isabelle component_rsync [OPTIONS] [BUILD_OPTIONS ...]
+Usage: isabelle component_rsync [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -O OPT       add build option
+    -R OPT       remove build option
     -U URL       download URL
                  (default: """" + default_download_url + """")
     -V VERSION   version (default: """ + default_version + """)
     -v           verbose
 
-  Build rsync component from the specified source distribution. The default
-  BUILD_OPTIONS are:
+  Build rsync component from the specified source distribution.
 
-  """ + default_build_options + "\n",
+  The default build options (for ./configure) are:
+""" + default_build_options.map(opt => "    " + opt + "\n").mkString,
           "D:" -> (arg => target_dir = Path.explode(arg)),
+          "O:" -> (arg => build_options = Library.insert(arg)(build_options)),
+          "R:" -> (arg => build_options = Library.remove(arg)(build_options)),
           "U:" -> (arg => download_url = arg),
           "V:" -> (arg => version = arg),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
-        val build_options =
-          if (more_args.isEmpty) default_build_options else Bash.strings(more_args)
+        if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
 
