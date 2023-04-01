@@ -39,7 +39,6 @@ sig
   val adjust_offsets: (int -> int option) -> T -> T
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
-  val offset_properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
   val entity_markup: string -> string * T -> Markup.T
   val make_entity_markup: {def: bool} -> serial -> string -> string * T -> Markup.T
@@ -222,10 +221,6 @@ fun properties_of (Pos {line, offset, end_offset, props}) =
   int_entry Markup.lineN line @
   int_entry Markup.offsetN offset @
   int_entry Markup.end_offsetN end_offset @ props;
-
-fun offset_properties_of (Pos {offset, end_offset, ...}) =
-  int_entry Markup.offsetN offset @
-  int_entry Markup.end_offsetN end_offset;
 
 val def_properties_of = properties_of #> map (apfst Markup.def_name);
 
