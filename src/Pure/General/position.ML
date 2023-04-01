@@ -212,15 +212,12 @@ fun of_properties props =
     end_offset = Properties.get_int props Markup.end_offsetN,
     props = props};
 
-fun string_entry k s = if s = "" then [] else [(k, s)];
-fun int_entry k i = if i = 0 then [] else [(k, Value.print_int i)];
-
 fun properties_of (Pos {line, offset, end_offset, props = {file, id}}) =
-  int_entry Markup.lineN line @
-  int_entry Markup.offsetN offset @
-  int_entry Markup.end_offsetN end_offset @
-  string_entry Markup.fileN file @
-  string_entry Markup.idN id;
+  Properties.make_int Markup.lineN line @
+  Properties.make_int Markup.offsetN offset @
+  Properties.make_int Markup.end_offsetN end_offset @
+  Properties.make_string Markup.fileN file @
+  Properties.make_string Markup.idN id;
 
 val def_properties_of = properties_of #> map (apfst Markup.def_name);
 
@@ -310,7 +307,7 @@ fun range_of_properties props =
   in (pos, pos') end;
 
 fun properties_of_range (pos, pos') =
-  properties_of pos @ int_entry Markup.end_lineN (the_default 0 (line_of pos'));
+  properties_of pos @ Properties.make_int Markup.end_lineN (the_default 0 (line_of pos'));
 
 
 (* thread data *)
