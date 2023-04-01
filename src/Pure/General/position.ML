@@ -31,7 +31,6 @@ sig
   val id_only: string -> T
   val put_id: string -> T -> T
   val copy_id: T -> T -> T
-  val id_properties_of: T -> Properties.T
   val parse_id: T -> int option
   val shift_offsets: {remove_id: bool} -> int -> T -> T
   val adjust_offsets: (int -> int option) -> T -> T
@@ -164,11 +163,6 @@ fun put_id id' (pos as Pos {line, offset, end_offset, props = {file, id}}) =
 fun copy_id pos = (case id_of pos of NONE => I | SOME id => put_id id);
 
 fun parse_id pos = Option.map Value.parse_int (id_of pos);
-
-fun id_properties_of pos =
-  (case id_of pos of
-    SOME id => [(Markup.idN, id)]
-  | NONE => []);
 
 
 (* adjust offsets *)
