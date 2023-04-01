@@ -208,7 +208,7 @@ fun of_properties props =
     end_offset = Properties.get_int props Markup.end_offsetN,
     props = props};
 
-fun int_entry k i = if invalid i then [] else [(k, Value.print_int i)];
+fun int_entry k i = if i = 0 then [] else [(k, Value.print_int i)];
 
 fun properties_of (Pos {line, offset, end_offset, props}) =
   int_entry Markup.lineN line @
