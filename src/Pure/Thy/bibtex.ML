@@ -25,7 +25,8 @@ fun check_database pos0 database =
   \<^scala>\<open>bibtex_check_database\<close> database
   |> YXML.parse_body
   |> let open XML.Decode in pair (list (pair string properties)) (list (pair string properties)) end
-  |> (apply2 o map o apsnd) (fn pos => Position.of_properties (pos @ Position.get_props pos0));
+  |> (apply2 o map o apsnd)
+      (fn pos => Position.of_properties (pos @ Position.properties_of pos0));
 
 fun check_database_output pos0 database =
   let val (errors, warnings) = check_database pos0 database in

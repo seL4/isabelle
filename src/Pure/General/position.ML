@@ -28,7 +28,6 @@ sig
   val line_file_only: int -> string -> T
   val line_file: int -> string -> T
   val line: int -> T
-  val get_props: T -> Properties.T
   val id: string -> T
   val id_only: string -> T
   val put_id: string -> T -> T
@@ -151,8 +150,6 @@ fun file name = Pos {line = 1, offset = 1, end_offset = 0, props = file_name nam
 fun line_file_only line name = Pos {line = line, offset = 0, end_offset = 0, props = file_name name};
 fun line_file line name = Pos {line = line, offset = 1, end_offset = 0, props = file_name name};
 fun line line = line_file line "";
-
-val get_props = #props o dest;
 
 fun id id = Pos {line = 0, offset = 1, end_offset = 0, props = [(Markup.idN, id)]};
 fun id_only id = Pos {line = 0, offset = 0, end_offset = 0, props = [(Markup.idN, id)]};
