@@ -76,84 +76,94 @@ struct
 
 (* datatype position *)
 
-type count = int * int * int;
-datatype T = Pos of count * Properties.T;
-
-fun dest2 f = apply2 (fn Pos p => f p);
-
-val ord =
-  pointer_eq_ord
-   (int_ord o dest2 (#1 o #1) |||
-    int_ord o dest2 (#2 o #1) |||
-    int_ord o dest2 (#3 o #1) |||
-    Properties.ord o dest2 #2);
+datatype T = Pos of {line: int, offset: int, end_offset: int, props: Properties.T};
 
 fun norm_props (props: Properties.T) =
   maps (fn a => the_list (find_first (fn (b, _) => a = b) props))
     [Markup.fileN, Markup.idN];
 
-fun make {line = i, offset = j, end_offset = k, props} = Pos ((i, j, k), norm_props props);
-fun dest (Pos ((i, j, k), props)) = {line = i, offset = j, end_offset = k, props = props};
+fun make {line, offset, end_offset, props} =
+  Pos {line = line, offset = offset, end_offset = end_offset, props = norm_props props};
 
-fun valid (i: int) = i > 0;
-val invalid = not o valid;
-fun maybe_valid i = if valid i then SOME i else NONE;
-fun if_valid i i' = if valid i then i' else i;
+fun dest (Pos args) = args;
+
+val ord =
+  pointer_eq_ord
+   (int_ord o apply2 (#line o dest) |||
+    int_ord o apply2 (#offset o dest) |||
+    int_ord o apply2 (#end_offset o dest) |||
+    Properties.ord o apply2 (#props o dest));
 
 
 (* fields *)
 
-fun line_of (Pos ((i, _, _), _)) = maybe_valid i;
-fun offset_of (Pos ((_, j, _), _)) = maybe_valid j;
-fun end_offset_of (Pos ((_, _, k), _)) = maybe_valid k;
+fun valid (i: int) = i > 0;
+fun maybe_valid i = if valid i then SOME i else NONE;
 
-fun file_of (Pos (_, props)) = Properties.get props Markup.fileN;
-fun id_of (Pos (_, props)) = Properties.get props Markup.idN;
+val invalid = not o valid;
+fun invalid_pos (Pos {line, offset, ...}) = invalid line andalso invalid offset;
+
+val line_of = maybe_valid o #line o dest;
+val offset_of = maybe_valid o #offset o dest;
+val end_offset_of = maybe_valid o #end_offset o dest;
+
+fun file_of (Pos {props, ...}) = Properties.get props Markup.fileN;
+fun id_of (Pos {props, ...}) = Properties.get props Markup.idN;
 
 
-(* count position *)
+(* symbol positions *)
 
-fun count_symbol "\n" ((i, j, k): count) =
-      (if_valid i (i + 1), if_valid j (j + 1), k)
-  | count_symbol s (i, j, k) =
-      if Symbol.not_eof s then (i, if_valid j (j + 1), k) else (i, j, k);
+fun symbols [] pos = pos
+  | symbols ss (pos as Pos {line, offset, end_offset, props}) =
+      let
+        val line' = if valid line then fold (fn s => s = "\n" ? Integer.add 1) ss line else line;
+        val offset' =
+          if valid offset then fold (fn s => Symbol.not_eof s ? Integer.add 1) ss offset else offset;
+      in
+        if line = line' andalso offset = offset' then pos
+        else Pos {line = line', offset = offset', end_offset = end_offset, props = props}
+      end;
 
-fun count_invalid ((i, j, _): count) = invalid i andalso invalid j;
+val symbol = symbols o single;
 
-fun symbol sym (pos as (Pos (count, props))) =
-  if count_invalid count then pos else Pos (count_symbol sym count, props);
-
-val symbol_explode = fold symbol o Symbol.explode;
+fun symbol_explode str pos =
+  if str = "" orelse invalid_pos pos then pos
+  else fold symbol (Symbol.explode str) pos;
 
 
 (* distance of adjacent positions *)
 
-fun distance_of (Pos ((_, j, _), _), Pos ((_, j', _), _)) =
-  if valid j andalso valid j' then SOME (j' - j) else NONE;
+fun distance_of (Pos {offset, ...}, Pos {offset = offset', ...}) =
+  if valid offset andalso valid offset' then SOME (offset' - offset) else NONE;
 
 
 (* make position *)
 
-val none = Pos ((0, 0, 0), []);
-val start = Pos ((1, 1, 0), []);
+val none = Pos {line = 0, offset = 0, end_offset = 0, props = []};
+val start = Pos {line = 1, offset = 1, end_offset = 0, props = []};
 
 
 fun file_name "" = []
   | file_name name = [(Markup.fileN, name)];
 
-fun file_only name = Pos ((0, 0, 0), file_name name);
-fun file name = Pos ((1, 1, 0), file_name name);
+fun file_only name = Pos {line = 0, offset = 0, end_offset = 0, props = file_name name};
+fun file name = Pos {line = 1, offset = 1, end_offset = 0, props = file_name name};
 
-fun line_file_only i name = Pos ((i, 0, 0), file_name name);
-fun line_file i name = Pos ((i, 1, 0), file_name name);
-fun line i = line_file i "";
+fun line_file_only line name = Pos {line = line, offset = 0, end_offset = 0, props = file_name name};
+fun line_file line name = Pos {line = line, offset = 1, end_offset = 0, props = file_name name};
+fun line line = line_file line "";
 
-fun get_props (Pos (_, props)) = props;
+val get_props = #props o dest;
 
-fun id id = Pos ((0, 1, 0), [(Markup.idN, id)]);
-fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
+fun id id = Pos {line = 0, offset = 1, end_offset = 0, props = [(Markup.idN, id)]};
+fun id_only id = Pos {line = 0, offset = 0, end_offset = 0, props = [(Markup.idN, id)]};
 
-fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Markup.idN, id) props));
+fun put_id id (pos as Pos {line, offset, end_offset, props}) =
+  let val props' = norm_props (Properties.put (Markup.idN, id) props) in
+    if props = props' then pos
+    else Pos {line = line, offset = offset, end_offset = end_offset, props = props'}
+  end;
+
 fun copy_id pos = (case id_of pos of NONE => I | SOME id => put_id id);
 
 fun parse_id pos = Option.map Value.parse_int (id_of pos);
@@ -166,20 +176,27 @@ fun id_properties_of pos =
 
 (* adjust offsets *)
 
-fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
-  if offset = 0 orelse count_invalid count then pos
-  else if offset < 0 then raise Fail "Illegal offset"
-  else if valid i then raise Fail "Illegal line position"
-  else Pos ((i, if_valid j (j + offset), if_valid k (k + offset)), props);
+fun shift_offsets {remove_id} shift (pos as Pos {line, offset, end_offset, props}) =
+  if shift < 0 then raise Fail "Illegal offset shift"
+  else if shift > 0 andalso valid line then raise Fail "Illegal line position"
+  else
+    let
+      val offset' = if valid offset then offset + shift else offset;
+      val end_offset' = if valid end_offset then end_offset + shift else end_offset;
+      val props' = if remove_id then Properties.remove Markup.idN props else props;
+    in
+      if offset = offset' andalso end_offset = end_offset' andalso props = props' then pos
+      else Pos {line = line, offset = offset', end_offset = end_offset', props = props'}
+    end;
 
-fun adjust_offsets adjust (pos as Pos (_, props)) =
+val advance_offsets = shift_offsets {remove_id = false};
+
+fun adjust_offsets adjust pos =
   if is_none (file_of pos) then
     (case parse_id pos of
       SOME id =>
         (case adjust id of
-          SOME offset =>
-            let val Pos (count, _) = advance_offsets offset pos
-            in Pos (count, Properties.remove Markup.idN props) end
+          SOME shift => shift_offsets {remove_id = true} shift pos
         | NONE => pos)
     | NONE => pos)
   else pos;
@@ -201,14 +218,14 @@ fun of_properties props =
 
 fun int_entry k i = if invalid i then [] else [(k, Value.print_int i)];
 
-fun properties_of (Pos ((i, j, k), props)) =
-  int_entry Markup.lineN i @
-  int_entry Markup.offsetN j @
-  int_entry Markup.end_offsetN k @ props;
+fun properties_of (Pos {line, offset, end_offset, props}) =
+  int_entry Markup.lineN line @
+  int_entry Markup.offsetN offset @
+  int_entry Markup.end_offsetN end_offset @ props;
 
-fun offset_properties_of (Pos ((_, j, k), _)) =
-  int_entry Markup.offsetN j @
-  int_entry Markup.end_offsetN k;
+fun offset_properties_of (Pos {offset, end_offset, ...}) =
+  int_entry Markup.offsetN offset @
+  int_entry Markup.end_offsetN end_offset;
 
 val def_properties_of = properties_of #> map (apfst Markup.def_name);
 
@@ -279,8 +296,12 @@ type range = T * T;
 
 val no_range = (none, none);
 
-fun no_range_position (Pos ((i, j, _), props)) = Pos ((i, j, 0), props);
-fun range_position (Pos ((i, j, _), props), Pos ((_, j', _), _)) = Pos ((i, j, j'), props);
+fun no_range_position (Pos {line, offset, end_offset = _, props}) =
+  Pos {line = line, offset = offset, end_offset = 0, props = props};
+
+fun range_position (Pos {line, offset, end_offset = _, props}, Pos {offset = offset', ...}) =
+  Pos {line = line, offset = offset, end_offset = offset', props = props};
+
 fun range (pos, pos') = (range_position (pos, pos'), no_range_position pos');
 
 fun range_of_properties props =
