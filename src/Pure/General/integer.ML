@@ -6,6 +6,7 @@ Auxiliary operations on (unbounded) integers.
 
 signature INTEGER =
 sig
+  val build: (int -> int) -> int
   val min: int -> int -> int
   val max: int -> int -> int
   val add: int -> int -> int
@@ -28,6 +29,8 @@ end;
 
 structure Integer : INTEGER =
 struct
+
+fun build (f: int -> int) = f 0;
 
 fun min x y = Int.min (x, y);
 fun max x y = Int.max (x, y);
@@ -65,7 +68,7 @@ fun radicify base len k =
     fun shift i = swap (div_mod i base);
   in funpow_yield len shift k |> fst end;
 
-fun eval_radix base ks =
-  fold_rev (fn k => fn i => k + i * base) ks 0;
+fun eval_radix base =
+  build o fold_rev (fn k => fn i => k + i * base);
 
 end;

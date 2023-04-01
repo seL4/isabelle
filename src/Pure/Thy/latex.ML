@@ -168,8 +168,8 @@ fun read scan syms =
 
 in
 
-fun length_symbols syms =
-  fold Integer.add (these (read scan_latex_length syms)) 0;
+val length_symbols =
+  Integer.build o fold Integer.add o these o read scan_latex_length;
 
 fun output_symbols syms =
   if member (op =) syms Symbol.latex then

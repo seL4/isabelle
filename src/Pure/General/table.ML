@@ -164,8 +164,8 @@ fun fold_rev_table f =
           fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))));
   in fold_rev end;
 
-fun dest tab = fold_rev_table cons tab [];
-fun keys tab = fold_rev_table (cons o #1) tab [];
+fun dest tab = Library.build (fold_rev_table cons tab);
+fun keys tab = Library.build (fold_rev_table (cons o #1) tab);
 
 
 (* min/max entries *)

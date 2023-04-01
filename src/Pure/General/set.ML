@@ -82,16 +82,14 @@ fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
 (* size *)
 
 local
-  fun add_size Empty n = n
-    | add_size (Leaf1 _) n = n + 1
-    | add_size (Leaf2 _) n = n + 2
-    | add_size (Leaf3 _) n = n + 3
-    | add_size (Branch2 (left, _, right)) n =
-        n + 1 |> add_size left |> add_size right
-    | add_size (Branch3 (left, _, mid, _, right)) n =
-        n + 2 |> add_size left |> add_size mid |> add_size right;
+  fun count Empty n = n
+    | count (Leaf1 _) n = n + 1
+    | count (Leaf2 _) n = n + 2
+    | count (Leaf3 _) n = n + 3
+    | count (Branch2 (left, _, right)) n = count right (count left (n + 1))
+    | count (Branch3 (left, _, mid, _, right)) n = count right (count mid (count left (n + 2)));
 in
-  fun size set = add_size set 0;
+  val size = Integer.build o count;
 end;
 
 
@@ -131,7 +129,7 @@ fun fold_rev_set f =
           fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))));
   in fold_rev end;
 
-fun dest tab = fold_rev_set cons tab [];
+val dest = Library.build o fold_rev_set cons;
 
 
 (* exists and forall *)
