@@ -201,16 +201,11 @@ fun adjust_offsets adjust pos =
 
 (* markup properties *)
 
-fun get_int props name =
-  (case Properties.get props name of
-    NONE => 0
-  | SOME s => Value.parse_int s);
-
 fun of_properties props =
   make {
-    line = get_int props Markup.lineN,
-    offset = get_int props Markup.offsetN,
-    end_offset = get_int props Markup.end_offsetN,
+    line = Properties.get_int props Markup.lineN,
+    offset = Properties.get_int props Markup.offsetN,
+    end_offset = Properties.get_int props Markup.end_offsetN,
     props = props};
 
 fun int_entry k i = if invalid i then [] else [(k, Value.print_int i)];
@@ -301,8 +296,8 @@ fun range_of_properties props =
   let
     val pos = of_properties props;
     val pos' =
-      make {line = get_int props Markup.end_lineN,
-        offset = get_int props Markup.end_offsetN,
+      make {line = Properties.get_int props Markup.end_lineN,
+        offset = Properties.get_int props Markup.end_offsetN,
         end_offset = 0,
         props = props};
   in (pos, pos') end;

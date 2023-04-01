@@ -674,7 +674,7 @@ fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
     (SOME file, SOME offset, SOME name) =>
       SOME ({file = file, offset = Value.parse_int offset, name = name},
-        Properties.seconds props elapsedN)
+        Properties.get_seconds props elapsedN)
   | _ => NONE);
 
 
