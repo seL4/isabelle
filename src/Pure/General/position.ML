@@ -22,7 +22,6 @@ sig
   val distance_of: T * T -> int option
   val none: T
   val start: T
-  val file_name: string -> Properties.T
   val file_only: string -> T
   val file: string -> T
   val line_file_only: int -> string -> T
@@ -36,6 +35,7 @@ sig
   val parse_id: T -> int option
   val shift_offsets: {remove_id: bool} -> int -> T -> T
   val adjust_offsets: (int -> int option) -> T -> T
+  val of_props: {line: int, offset: int, end_offset: int, props: Properties.T} -> T
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
@@ -74,15 +74,9 @@ struct
 
 (* datatype position *)
 
-datatype T = Pos of {line: int, offset: int, end_offset: int, props: Properties.T};
+datatype T = Pos of Thread_Position.T;
 
-fun norm_props (props: Properties.T) =
-  maps (fn a => the_list (find_first (fn (b, _) => a = b) props))
-    [Markup.fileN, Markup.idN];
-
-fun make {line, offset, end_offset, props} =
-  Pos {line = line, offset = offset, end_offset = end_offset, props = norm_props props};
-
+val make = Pos;
 fun dest (Pos args) = args;
 
 val ord =
@@ -90,7 +84,8 @@ val ord =
    (int_ord o apply2 (#line o dest) |||
     int_ord o apply2 (#offset o dest) |||
     int_ord o apply2 (#end_offset o dest) |||
-    Properties.ord o apply2 (#props o dest));
+    fast_string_ord o apply2 (#file o #props o dest) |||
+    fast_string_ord o apply2 (#id o #props o dest));
 
 
 (* fields *)
@@ -105,8 +100,8 @@ val line_of = maybe_valid o #line o dest;
 val offset_of = maybe_valid o #offset o dest;
 val end_offset_of = maybe_valid o #end_offset o dest;
 
-fun file_of (Pos {props, ...}) = Properties.get props Markup.fileN;
-fun id_of (Pos {props, ...}) = Properties.get props Markup.idN;
+fun file_of (Pos {props = {file, ...}, ...}) = if file = "" then NONE else SOME file;
+fun id_of (Pos {props = {id, ...}, ...}) = if id = "" then NONE else SOME id;
 
 
 (* symbol positions *)
@@ -137,28 +132,34 @@ fun distance_of (Pos {offset, ...}, Pos {offset = offset', ...}) =
 
 (* make position *)
 
-val none = Pos {line = 0, offset = 0, end_offset = 0, props = []};
-val start = Pos {line = 1, offset = 1, end_offset = 0, props = []};
+type props = {file: string, id: string};
+
+val no_props: props = {file = "", id = ""};
+
+fun file_props name : props =
+  if name = "" then no_props else {file = name, id = ""};
+
+fun id_props id : props =
+  if id = "" then no_props else {file = "", id = id};
 
 
-fun file_name "" = []
-  | file_name name = [(Markup.fileN, name)];
+val none = Pos {line = 0, offset = 0, end_offset = 0, props = no_props};
+val start = Pos {line = 1, offset = 1, end_offset = 0, props = no_props};
 
-fun file_only name = Pos {line = 0, offset = 0, end_offset = 0, props = file_name name};
-fun file name = Pos {line = 1, offset = 1, end_offset = 0, props = file_name name};
 
-fun line_file_only line name = Pos {line = line, offset = 0, end_offset = 0, props = file_name name};
-fun line_file line name = Pos {line = line, offset = 1, end_offset = 0, props = file_name name};
+fun file_only name = Pos {line = 0, offset = 0, end_offset = 0, props = file_props name};
+fun file name = Pos {line = 1, offset = 1, end_offset = 0, props = file_props name};
+
+fun line_file_only line name = Pos {line = line, offset = 0, end_offset = 0, props = file_props name};
+fun line_file line name = Pos {line = line, offset = 1, end_offset = 0, props = file_props name};
 fun line line = line_file line "";
 
-fun id id = Pos {line = 0, offset = 1, end_offset = 0, props = [(Markup.idN, id)]};
-fun id_only id = Pos {line = 0, offset = 0, end_offset = 0, props = [(Markup.idN, id)]};
+fun id id = Pos {line = 0, offset = 1, end_offset = 0, props = id_props id};
+fun id_only id = Pos {line = 0, offset = 0, end_offset = 0, props = id_props id};
 
-fun put_id id (pos as Pos {line, offset, end_offset, props}) =
-  let val props' = norm_props (Properties.put (Markup.idN, id) props) in
-    if props = props' then pos
-    else Pos {line = line, offset = offset, end_offset = end_offset, props = props'}
-  end;
+fun put_id id' (pos as Pos {line, offset, end_offset, props = {file, id}}) =
+  if id = id' then pos
+  else Pos {line = line, offset = offset, end_offset = end_offset, props = {file = file, id = id'}};
 
 fun copy_id pos = (case id_of pos of NONE => I | SOME id => put_id id);
 
@@ -179,7 +180,7 @@ fun shift_offsets {remove_id} shift (pos as Pos {line, offset, end_offset, props
     let
       val offset' = if valid offset then offset + shift else offset;
       val end_offset' = if valid end_offset then end_offset + shift else end_offset;
-      val props' = if remove_id then Properties.remove Markup.idN props else props;
+      val props' = if remove_id then file_props (#file props) else props;
     in
       if offset = offset' andalso end_offset = end_offset' andalso props = props' then pos
       else Pos {line = line, offset = offset', end_offset = end_offset', props = props'}
@@ -198,19 +199,28 @@ fun adjust_offsets adjust pos =
 
 (* markup properties *)
 
+fun of_props {line, offset, end_offset, props} =
+  Pos {line = line, offset = offset, end_offset = end_offset,
+    props =
+     {file = Properties.get_string props Markup.fileN,
+      id = Properties.get_string props Markup.idN}};
+
 fun of_properties props =
-  make {
+  of_props {
     line = Properties.get_int props Markup.lineN,
     offset = Properties.get_int props Markup.offsetN,
     end_offset = Properties.get_int props Markup.end_offsetN,
     props = props};
 
+fun string_entry k s = if s = "" then [] else [(k, s)];
 fun int_entry k i = if i = 0 then [] else [(k, Value.print_int i)];
 
-fun properties_of (Pos {line, offset, end_offset, props}) =
+fun properties_of (Pos {line, offset, end_offset, props = {file, id}}) =
   int_entry Markup.lineN line @
   int_entry Markup.offsetN offset @
-  int_entry Markup.end_offsetN end_offset @ props;
+  int_entry Markup.end_offsetN end_offset @
+  string_entry Markup.fileN file @
+  string_entry Markup.idN id;
 
 val def_properties_of = properties_of #> map (apfst Markup.def_name);
 
@@ -293,7 +303,7 @@ fun range_of_properties props =
   let
     val pos = of_properties props;
     val pos' =
-      make {line = Properties.get_int props Markup.end_lineN,
+      of_props {line = Properties.get_int props Markup.end_lineN,
         offset = Properties.get_int props Markup.end_offsetN,
         end_offset = 0,
         props = props};
@@ -305,7 +315,7 @@ fun properties_of_range (pos, pos') =
 
 (* thread data *)
 
-val thread_data = make o Thread_Position.get;
+val thread_data = Pos o Thread_Position.get;
 fun setmp_thread_data pos = Thread_Position.setmp (dest pos);
 
 fun default pos =
