@@ -35,7 +35,7 @@ sig
   val copy_id: T -> T -> T
   val id_properties_of: T -> Properties.T
   val parse_id: T -> int option
-  val advance_offsets: int -> T -> T
+  val shift_offsets: {remove_id: bool} -> int -> T -> T
   val adjust_offsets: (int -> int option) -> T -> T
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
@@ -187,8 +187,6 @@ fun shift_offsets {remove_id} shift (pos as Pos {line, offset, end_offset, props
       if offset = offset' andalso end_offset = end_offset' andalso props = props' then pos
       else Pos {line = line, offset = offset', end_offset = end_offset', props = props'}
     end;
-
-val advance_offsets = shift_offsets {remove_id = false};
 
 fun adjust_offsets adjust pos =
   if is_none (file_of pos) then

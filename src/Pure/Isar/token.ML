@@ -727,7 +727,7 @@ fun print_properties keywords =
 
 fun make ((k, n), s) pos =
   let
-    val pos' = Position.advance_offsets n pos;
+    val pos' = Position.shift_offsets {remove_id = false} n pos;
     val range = Position.range (pos, pos');
     val tok =
       if 0 <= k andalso k < Vector.length immediate_kinds then
