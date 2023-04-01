@@ -138,12 +138,12 @@ fun insertP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
 "insertP ks LfP  = NdP ks True (LfP,LfP)" |
 "insertP ks (NdP ps b lr) =
   (case split ks ps of
-     (qs,k#ks',p#ps') \<Rightarrow>
+     (qs, k#ks', p#ps') \<Rightarrow>
        let tp = NdP ps' b lr; tk = NdP ks' True (LfP,LfP) in
        NdP qs False (if k then (tp,tk) else (tk,tp)) |
-     (qs,k#ks',[]) \<Rightarrow>
+     (qs, k#ks', []) \<Rightarrow>
        NdP ps b (mod2 (insertP ks') k lr) |
-     (qs,[],p#ps') \<Rightarrow>
+     (qs, [], p#ps') \<Rightarrow>
        let t = NdP ps' b lr in
        NdP qs True (if p then (LfP,t) else (t,LfP)) |
      (qs,[],[]) \<Rightarrow> NdP ps True lr)"
@@ -156,9 +156,9 @@ fun deleteP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
 "deleteP ks LfP  = LfP" |
 "deleteP ks (NdP ps b lr) =
   (case split ks ps of
-     (qs,ks',p#ps') \<Rightarrow> NdP ps b lr |
-     (qs,k#ks',[]) \<Rightarrow> nodeP ps b (mod2 (deleteP ks') k lr) |
-     (qs,[],[]) \<Rightarrow> nodeP ps False lr)"
+     (_, _, _#_) \<Rightarrow> NdP ps b lr |
+     (_, k#ks', []) \<Rightarrow> nodeP ps b (mod2 (deleteP ks') k lr) |
+     (_, [], []) \<Rightarrow> nodeP ps False lr)"
 
 
 subsubsection \<open>Functional Correctness\<close>
