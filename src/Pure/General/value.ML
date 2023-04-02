@@ -31,21 +31,39 @@ val print_bool = Bool.toString;
 
 (* nat and int *)
 
-val zero = ord "0";
-val nine = ord "9";
+local
 
-fun parse_nat s =
-  fold_string (fn c => fn n =>
-    let val i = ord c in
-      if zero <= i andalso i <= nine then 10 * n + (i - zero)
-      else raise Fail ("Bad natural number " ^ quote s)
-    end) s 0;
+val c0 = Char.ord #"0";
+val c9 = Char.ord #"9";
+val minus = Char.ord #"-";
 
-fun parse_int s =
-  (case try (unprefix "-") s of
-    NONE => parse_nat s
-  | SOME s' => ~ (parse_nat s'))
-  handle Fail _ => raise Fail ("Bad integer " ^ quote s);
+in
+
+fun parse_int str =
+  let
+    fun err () = raise Fail ("Bad integer " ^ quote str);
+    fun char i = Char.ord (String.sub (str, i));
+    val n = size str;
+
+    fun digits i a =
+      if i = n then a
+      else
+        let val c = char i
+        in if c0 <= c andalso c <= c9 then digits (i + 1) (10 * a + (c - c0)) else err () end;
+  in
+    if n = 0 then err ()
+    else if char 0 <> minus then digits 0 0
+    else if n = 1 then err ()
+    else ~ (digits 1 0)
+  end;
+
+fun parse_nat str =
+  let
+    fun err () = raise Fail ("Bad natural number " ^ quote str);
+    val i = parse_int str handle Fail _ => err ();
+  in if i >= 0 then i else err () end;
+
+end;
 
 val print_int = signed_string_of_int;
 

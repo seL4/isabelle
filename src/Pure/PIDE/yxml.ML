@@ -81,8 +81,8 @@ fun traverse string =
       | tree (XML.Text s) = string s;
   in tree end;
 
-fun tree_size tree = traverse (Integer.add o size) tree 0;
-fun body_size body = fold (Integer.add o tree_size) body 0;
+val tree_size = Integer.build o traverse (Integer.add o size);
+val body_size = Integer.build o fold (Integer.add o tree_size);
 
 
 (* output *)

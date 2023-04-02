@@ -38,6 +38,7 @@ subsection "Library of general tools";
 
 ML_file "library.ML";
 ML_file "General/print_mode.ML";
+ML_file "General/integer.ML";
 ML_file "General/alist.ML";
 ML_file "General/table.ML";
 ML_file "General/set.ML";
@@ -64,7 +65,6 @@ section "Bootstrap phase 2: towards ML within Isar context";
 
 subsection "Library of general tools";
 
-ML_file "General/integer.ML";
 ML_file "General/stack.ML";
 ML_file "General/queue.ML";
 ML_file "General/heap.ML";

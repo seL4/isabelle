@@ -26,7 +26,7 @@ fun props_of_polyml_location (loc: ML_Compiler0.polyml_location) =
   | body => XML.Decode.properties body);
 
 fun position_of_polyml_location loc =
-  Position.make
+  Position.of_props
    {line = FixedInt.toInt (#startLine loc),
     offset = FixedInt.toInt (#startPosition loc),
     end_offset = FixedInt.toInt (#endPosition loc),
