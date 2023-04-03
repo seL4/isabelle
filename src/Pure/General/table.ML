@@ -546,13 +546,13 @@ fun remove eq (key, x) tab =
 
 fun make entries = build (fold update_new entries);
 
-fun join f (table1, table2) =
+fun join f (tab1, tab2) =
   let
     fun add (key, y) tab = modify key (fn NONE => y | SOME x => f key (x, y)) tab;
   in
-    if pointer_eq (table1, table2) then table1
-    else if is_empty table1 then table2
-    else fold_table add table2 table1
+    if pointer_eq (tab1, tab2) then tab1
+    else if is_empty tab1 then tab2
+    else fold_table add tab2 tab1
   end;
 
 fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP key);
