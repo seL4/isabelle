@@ -81,6 +81,7 @@ fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
 
 (* size *)
 
+(*literal copy from table.ML*)
 local
   fun count Empty n = n
     | count (Leaf1 _) n = n + 1

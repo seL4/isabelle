@@ -19,6 +19,7 @@ sig
   exception DUP of key
   exception SAME
   exception UNDEF of key
+  val size: 'a table -> int
   val empty: 'a table
   val build: ('a table -> 'a table) -> 'a table
   val is_empty: 'a table -> bool
@@ -113,6 +114,21 @@ fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
   | unmake (Leaf3 (e1, e2, e3)) =
       Branch2 (Branch2 (Empty, e1, Empty), e2, Branch2 (Empty, e3, Empty))
   | unmake arg = arg;
+
+
+(* size *)
+
+local
+  (*literal copy from set.ML*)
+  fun count Empty n = n
+    | count (Leaf1 _) n = n + 1
+    | count (Leaf2 _) n = n + 2
+    | count (Leaf3 _) n = n + 3
+    | count (Branch2 (left, _, right)) n = count right (count left (n + 1))
+    | count (Branch3 (left, _, mid, _, right)) n = count right (count mid (count left (n + 2)));
+in
+  fun size tab = Integer.build (count tab);
+end;
 
 
 (* empty *)
