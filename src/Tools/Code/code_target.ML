@@ -311,9 +311,14 @@ fun export_physical root format pretty_modules =
   (case pretty_modules of
     Singleton (_, p) => Bytes.write root (format p)
   | Hierarchy code_modules =>
-      (Isabelle_System.make_directory root;
-        List.app (fn (names, p) =>
-          Bytes.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
+     List.app (fn (names, p) =>
+       let
+         val segments = map Path.basic names;
+       in
+         Isabelle_System.make_directory (Path.appends (root :: (fst (split_last segments))));
+         Bytes.write (Path.appends (root :: segments)) (format p)
+       end)
+     code_modules);
 
 in
 
