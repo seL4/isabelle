@@ -320,7 +320,6 @@ text \<open>
   Options are:
     -F RULE      add rsync filter RULE
                  (e.g. "protect /foo" to avoid deletion)
-    -P           protect spaces in target file names: more robust, less portable
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
     -T           thorough treatment of file content and directory times
@@ -368,12 +367,6 @@ text \<open>
 
   \<^medskip> Option \<^verbatim>\<open>-p\<close> specifies an explicit port for the SSH connection underlying
   \<^verbatim>\<open>rsync\<close>; the default is taken from the user's \<^path>\<open>ssh_config\<close> file.
-
-  \<^medskip> Option \<^verbatim>\<open>-P\<close> uses \<^verbatim>\<open>rsync --protect-args\<close> to work robustly with spaces or
-  special characters of the shell. This requires at least \<^verbatim>\<open>rsync 3.0.0\<close>,
-  which is not always available --- notably on macOS. Assuming traditional
-  Unix-style naming of files and directories, it is safe to omit this option
-  for the sake of portability.
 \<close>
 
 subsubsection \<open>Examples\<close>

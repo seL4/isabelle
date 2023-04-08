@@ -305,6 +305,12 @@ the default 64_32 platform (4 bytes per machine word):
 
 *** System ***
 
+* The "rsync" tool has been bundled as Isabelle component, with uniform
+version and compilation options on all platforms. This allows to use
+more recent options for extra robustness, notably "--secluded-args"
+(formerly "--protected-args"). Option -P of "isabelle hg_sync" and
+"isabelle sync" has been eliminated accordingly.
+
 * Remote SSH host of "isabelle hg_sync" and "isabelle sync" now works
 via options -s, -p, -u. The TARGET argument is a plain file-system path
 in Isabelle notation, no longer an rsync target (host:directory). Minor

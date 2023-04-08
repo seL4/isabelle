@@ -535,7 +535,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     clean_platform: Boolean = false,
     clean_archives: Boolean = false,
     progress: Progress = new Progress,
-    protect_args: Boolean = false,
     rev: String = "",
     afp_repos: Option[Path] = None,
     afp_rev: String = "",
@@ -548,7 +547,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     def sync(target: Path, accurate: Boolean = false,
       rev: String = "", afp_rev: String = "", afp: Boolean = false
     ): Unit = {
-      val context = Rsync.Context(progress = progress, ssh = ssh, protect_args = protect_args)
+      val context = Rsync.Context(progress = progress, ssh = ssh)
       Sync.sync(ssh.options, context, target,
         thorough = accurate, preserve_jars = !accurate,
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)

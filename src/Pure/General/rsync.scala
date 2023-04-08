@@ -12,11 +12,10 @@ object Rsync {
     def apply(
       progress: Progress = new Progress,
       ssh: SSH.System = SSH.Local,
-      archive: Boolean = true,
-      protect_args: Boolean = true  // requires rsync 3.0.0, or later
+      archive: Boolean = true
     ): Context = {
       val directory = Components.provide(Component_Rsync.home, ssh = ssh, progress = progress)
-      new Context(directory, progress, archive, protect_args)
+      new Context(directory, progress, archive)
     }
   }
 
@@ -24,23 +23,21 @@ object Rsync {
     directory: Components.Directory,
     val progress: Progress,
     archive: Boolean,
-    protect_args: Boolean,
   ) {
     override def toString: String = directory.toString
 
-    def no_progress: Context = new Context(directory, new Progress, archive, protect_args)
-    def no_archive: Context = new Context(directory, progress, false, protect_args)
+    def no_progress: Context = new Context(directory, new Progress, archive)
+    def no_archive: Context = new Context(directory, progress, false)
 
     def ssh: SSH.System = directory.ssh
 
     def command: String = {
       val program = Component_Rsync.remote_program(directory)
       val ssh_command = ssh.client_command
-      File.bash_path(Component_Rsync.local_program) +
+      File.bash_path(Component_Rsync.local_program) + " --secluded-args" +
         if_proper(ssh_command, " --rsh=" + Bash.string(ssh_command)) +
         " --rsync-path=" + Bash.string(quote(File.standard_path(program))) +
-        (if (archive) " --archive" else "") +
-        (if (protect_args) " --protect-args" else "")
+        (if (archive) " --archive" else "")
     }
 
     def target(path: Path, direct: Boolean = false): String = {

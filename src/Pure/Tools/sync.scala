@@ -86,7 +86,6 @@ object Sync {
         var purge_heaps = false
         var session_images = List.empty[String]
         var preserve_jars = false
-        var protect_args = false
         var thorough = false
         var afp_rev = ""
         var dry_run = false
@@ -105,7 +104,6 @@ Usage: isabelle sync [OPTIONS] TARGET
     -I NAME      include session heap image and build database
                  (based on accidental local state)
     -J           preserve *.jar files
-    -P           protect spaces in target file names: more robust, less portable
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
     -s HOST      SSH host name for remote target (default: local)
@@ -121,7 +119,6 @@ Usage: isabelle sync [OPTIONS] TARGET
           "H" -> (_ => purge_heaps = true),
           "I:" -> (arg => session_images = session_images ::: List(arg)),
           "J" -> (_ => preserve_jars = true),
-          "P" -> (_ => protect_args = true),
           "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
           "n" -> (_ => dry_run = true),
@@ -142,7 +139,7 @@ Usage: isabelle sync [OPTIONS] TARGET
         val progress = new Console_Progress(verbose = verbose)
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val context = Rsync.Context(progress = progress, ssh = ssh, protect_args = protect_args)
+          val context = Rsync.Context(progress = progress, ssh = ssh)
           sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
             session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
             rev = rev, afp_root = afp_root, afp_rev = afp_rev)

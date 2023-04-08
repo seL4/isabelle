@@ -552,7 +552,6 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
     Isabelle_Tool("hg_sync", "synchronize Mercurial repository with target directory",
       Scala_Project.here, { args =>
         var filter: List[String] = Nil
-        var protect_args = false
         var root: Option[Path] = None
         var thorough = false
         var dry_run = false
@@ -569,7 +568,6 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   Options are:
     -F RULE      add rsync filter RULE
                  (e.g. "protect /foo" to avoid deletion)
-    -P           protect spaces in target file names: more robust, less portable
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
     -T           thorough treatment of file content and directory times
@@ -585,7 +583,6 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
   which can be local or remote (see options -s -p -u).
 """,
           "F:" -> (arg => filter = filter ::: List(arg)),
-          "P" -> (_ => protect_args = true),
           "R:" -> (arg => root = Some(Path.explode(arg))),
           "T" -> (_ => thorough = true),
           "n" -> (_ => dry_run = true),
@@ -611,7 +608,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           }
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val context = Rsync.Context(progress = progress, ssh = ssh, protect_args = protect_args)
+          val context = Rsync.Context(progress = progress, ssh = ssh)
           hg.sync(context, target, thorough = thorough, dry_run = dry_run,
             filter = filter, rev = rev)
         }
