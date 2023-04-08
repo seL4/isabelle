@@ -131,11 +131,8 @@ object Mercurial {
         error("No .hg_sync meta data in " + ssh.rsync_path(root))
       }
 
-    def is_directory(root: Path, ssh: SSH.System = SSH.Local): Boolean =
-      ssh.is_dir(root + PATH)
-
     def directory(root: Path, ssh: SSH.System = SSH.Local): Directory = {
-      if (is_directory(root, ssh = ssh)) new Directory(root, ssh)
+      if (ssh.is_dir(root + PATH)) new Directory(root, ssh)
       else error("No .hg_sync directory found in " + ssh.rsync_path(root))
     }
 
