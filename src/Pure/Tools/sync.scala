@@ -50,7 +50,7 @@ object Sync {
 
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
 
-    def sync(hg: Mercurial.Repository, dest: Path, r: String,
+    def hg_sync(hg: Mercurial.Repository, dest: Path, r: String,
       contents: List[File.Content] = Nil, filter: List[String] = Nil
     ): Unit = {
       hg.sync(context, dest, rev = r, thorough = thorough, dry_run = dry_run,
@@ -59,13 +59,13 @@ object Sync {
 
     progress.echo("\n* Isabelle repository:", verbose = true)
     val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
-    sync(hg, target, rev,
+    hg_sync(hg, target, rev,
       contents = List(File.content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
       filter = filter_heaps ::: List("protect /AFP"))
 
     for (hg <- afp_hg) {
       progress.echo("\n* AFP repository:", verbose = true)
-      sync(hg, target + Path.explode("AFP"), afp_rev)
+      hg_sync(hg, target + Path.explode("AFP"), afp_rev)
     }
 
     val images =
