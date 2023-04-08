@@ -307,9 +307,7 @@ object Mercurial {
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
         Hg_Sync.check_directory(target, ssh = context.ssh)
 
-        val context0 = context.copy(progress = new Progress)
-
-        Rsync.init(context0, target)
+        Rsync.init(context.no_progress, target)
 
         val id_content = id(rev = rev)
         val is_changed = id_content.endsWith("+")
@@ -317,7 +315,7 @@ object Mercurial {
         val diff_content = if (is_changed) diff(rev = rev, options = "--git") else ""
         val stat_content = if (is_changed) diff(rev = rev, options = "--stat") else ""
 
-        Rsync.init(context0, target,
+        Rsync.init(context.no_progress, target,
           contents =
             File.content(Hg_Sync.PATH_ID, id_content) ::
             File.content(Hg_Sync.PATH_LOG, log_content) ::
@@ -613,7 +611,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           }
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val context = Rsync.Context(progress, ssh = ssh, protect_args = protect_args)
+          val context = Rsync.Context(progress = progress, ssh = ssh, protect_args = protect_args)
           hg.sync(context, target, thorough = thorough, dry_run = dry_run,
             filter = filter, rev = rev)
         }

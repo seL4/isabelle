@@ -142,7 +142,7 @@ Usage: isabelle sync [OPTIONS] TARGET
         val progress = new Console_Progress(verbose = verbose)
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val context = Rsync.Context(progress, ssh = ssh, protect_args = protect_args)
+          val context = Rsync.Context(progress = progress, ssh = ssh, protect_args = protect_args)
           sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
             session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
             rev = rev, afp_root = afp_root, afp_rev = afp_rev)
