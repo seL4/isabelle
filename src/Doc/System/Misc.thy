@@ -323,25 +323,26 @@ text \<open>
     -P           protect spaces in target file names: more robust, less portable
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
-    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -n           no changes: dry-run
-    -p PORT      SSH port
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p PORT      explicit SSH port
     -r REV       explicit revision (default: state of working directory)
+    -s HOST      SSH host name for remote target (default: local)
+    -u USER      explicit SSH user name
     -v           verbose
 
   Synchronize Mercurial repository with TARGET directory,
-  which can be local or remote (using notation of rsync).\<close>}
+  which can be local or remote (see options -s -p -u).\<close>}
 
-  The \<^verbatim>\<open>TARGET\<close> specification can be a local or remote directory (via ssh),
-  using \<^verbatim>\<open>rsync\<close>\<^footnote>\<open>\<^url>\<open>https://linux.die.net/man/1/rsync\<close>\<close> notation for
-  destinations; see also examples below. The content is written directly into
-  the target, \<^emph>\<open>without\<close> creating a separate sub-directory. The special
-  sub-directory \<^verbatim>\<open>.hg_sync\<close> within the target contains meta data from the
-  original Mercurial repository. Repeated synchronization is guarded by the
-  presence of a \<^verbatim>\<open>.hg_sync\<close> sub-directory: this sanity check prevents
-  accidental changes (or deletion!) of targets that were not created by @{tool
-  hg_sync}.
+  The \<^verbatim>\<open>TARGET\<close> specifies a directory, which can be local or an a remote SSH
+  host; the latter requires option \<^verbatim>\<open>-s\<close> for the host name. The content is
+  written directly into the target, \<^emph>\<open>without\<close> creating a separate
+  sub-directory. The special sub-directory \<^verbatim>\<open>.hg_sync\<close> within the target
+  contains meta data from the original Mercurial repository. Repeated
+  synchronization is guarded by the presence of a \<^verbatim>\<open>.hg_sync\<close> sub-directory:
+  this sanity check prevents accidental changes (or deletion!) of targets that
+  were not created by @{tool hg_sync}.
 
   \<^medskip> Option \<^verbatim>\<open>-r\<close> specifies an explicit revision of the repository; the default
   is the current state of the working directory (which might be uncommitted).
@@ -361,11 +362,12 @@ text \<open>
   times. The default is to consider files with equal time and size already as
   equal, and to ignore time stamps on directories.
 
+  \<^medskip> Options \<^verbatim>\<open>-s\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-u\<close> specify the SSH connection precisely. If no
+  SSH host name is given, the local file-system is used. An explicit port and
+  user are only required in special situations.
+
   \<^medskip> Option \<^verbatim>\<open>-p\<close> specifies an explicit port for the SSH connection underlying
   \<^verbatim>\<open>rsync\<close>; the default is taken from the user's \<^path>\<open>ssh_config\<close> file.
-
-  \<^medskip> Option \<^verbatim>\<open>-S\<close> specifies the control path (Unix socket) to an existing SSH
-  connection that supports multiplexing (\<^verbatim>\<open>ssh -M -S\<close>~\<open>socket\<close>).
 
   \<^medskip> Option \<^verbatim>\<open>-P\<close> uses \<^verbatim>\<open>rsync --protect-args\<close> to work robustly with spaces or
   special characters of the shell. This requires at least \<^verbatim>\<open>rsync 3.0.0\<close>,
@@ -379,7 +381,7 @@ subsubsection \<open>Examples\<close>
 text \<open>
   Synchronize the current repository onto a remote host, with accurate
   treatment of all content:
-  @{verbatim [display] \<open>  isabelle hg_sync -T remotename:test/repos\<close>}
+  @{verbatim [display] \<open>  isabelle hg_sync -T -s remotename test/repos\<close>}
 \<close>
 
 

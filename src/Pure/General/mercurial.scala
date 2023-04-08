@@ -293,7 +293,7 @@ object Mercurial {
 
     def known_files(): List[String] = status(options = "--modified --added --clean --no-status")
 
-    def sync(context: Rsync.Context, target: String,
+    def sync(context: Rsync.Context, target: Path,
       thorough: Boolean = false,
       dry_run: Boolean = false,
       filter: List[String] = Nil,
@@ -308,10 +308,11 @@ object Mercurial {
         Rsync.init(context0, target)
 
         val list =
-          Rsync.exec(context0, list = true, args = List("--", Url.direct_path(target)))
+          Rsync.exec(context0, list = true,
+            args = List("--", context.target(target, direct = true)))
             .check.out_lines.filterNot(_.endsWith(" ."))
         if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
-          error("No .hg_sync meta data in " + quote(target))
+          error("No .hg_sync meta data in " + quote(context.target(target)))
         }
 
         val id_content = id(rev = rev)
@@ -353,7 +354,7 @@ object Mercurial {
           prune_empty_dirs = true,
           filter = protect ::: filter,
           args = List("--exclude-from=" + exclude_path.implode, "--",
-            Url.direct_path(source), target)
+            Url.direct_path(source), context.target(target))
         ).check
       }
     }
@@ -559,11 +560,13 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
         var filter: List[String] = Nil
         var protect_args = false
         var root: Option[Path] = None
-        var ssh_control_path = ""
         var thorough = false
         var dry_run = false
+        var options = Options.init()
         var ssh_port = 0
         var rev = ""
+        var ssh_host = ""
+        var ssh_user = ""
         var verbose = false
 
         val getopts = Getopts("""
@@ -575,30 +578,34 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
     -P           protect spaces in target file names: more robust, less portable
     -R ROOT      explicit repository root directory
                  (default: implicit from current directory)
-    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -n           no changes: dry-run
-    -p PORT      SSH port
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p PORT      explicit SSH port
     -r REV       explicit revision (default: state of working directory)
+    -s HOST      SSH host name for remote target (default: local)
+    -u USER      explicit SSH user name
     -v           verbose
 
   Synchronize Mercurial repository with TARGET directory,
-  which can be local or remote (using notation of rsync).
+  which can be local or remote (see options -s -p -u).
 """,
           "F:" -> (arg => filter = filter ::: List(arg)),
           "P" -> (_ => protect_args = true),
           "R:" -> (arg => root = Some(Path.explode(arg))),
-          "S:" -> (arg => ssh_control_path = arg),
           "T" -> (_ => thorough = true),
           "n" -> (_ => dry_run = true),
+          "o:" -> (arg => options = options + arg),
           "p:" -> (arg => ssh_port = Value.Int.parse(arg)),
           "r:" -> (arg => rev = arg),
+          "s:" -> (arg => ssh_host = arg),
+          "u:" -> (arg => ssh_user = arg),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         val target =
           more_args match {
-            case List(target) => target
+            case List(target) => Path.explode(target)
             case _ => getopts.usage()
           }
 
@@ -608,9 +615,12 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
             case Some(dir) => repository(dir)
             case None => the_repository(Path.current)
           }
-        val context = Rsync.Context(progress, ssh_port = ssh_port,
-          ssh_control_path = ssh_control_path, protect_args = protect_args)
-        hg.sync(context, target, thorough = thorough, dry_run = dry_run, filter = filter, rev = rev)
+
+        using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
+          val context = Rsync.Context(progress, ssh = ssh, protect_args = protect_args)
+          hg.sync(context, target, thorough = thorough, dry_run = dry_run,
+            filter = filter, rev = rev)
+        }
       }
     )
 }

@@ -305,6 +305,11 @@ the default 64_32 platform (4 bytes per machine word):
 
 *** System ***
 
+* Remote SSH host of "isabelle hg_sync" and "isabelle sync" now works
+via options -s, -p, -u. The TARGET argument is a plain file-system path
+in Isabelle notation, no longer an rsync target (host:directory). Minor
+INCOMPATIBILITY of command-line syntax.
+
 * System option "build_through" determines if session builds should
 observe dependency of options that contribute to the formal content.
 This is specified via option tags given in etc/options (e.g. see

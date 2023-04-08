@@ -937,11 +937,12 @@ text \<open>
                  (based on accidental local state)
     -J           preserve *.jar files
     -P           protect spaces in target file names: more robust, less portable
-    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
+    -s HOST      SSH host name for remote target (default: local)
+    -u USER      explicit SSH user name
     -n           no changes: dry-run
-    -p PORT      SSH port
+    -p PORT      explicit SSH port
     -r REV       explicit revision (default: state of working directory)
     -v           verbose
 
@@ -956,8 +957,8 @@ text \<open>
   sub-directory with the literal name \<^verbatim>\<open>AFP\<close>; thus it can be easily included
   elsewhere, e.g. @{tool build}~\<^verbatim>\<open>-d\<close>~\<^verbatim>\<open>'~~/AFP'\<close> on the remote side.
 
-  \<^medskip> Options \<^verbatim>\<open>-P\<close>, \<^verbatim>\<open>-S\<close>, \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-v\<close> are the same as the
-  underlying @{tool hg_sync}.
+  \<^medskip> Options \<^verbatim>\<open>-P\<close>, \<^verbatim>\<open>-T\<close>, \<^verbatim>\<open>-n\<close>, \<^verbatim>\<open>-p\<close>, \<^verbatim>\<open>-s\<close>, \<^verbatim>\<open>-u\<close>, \<^verbatim>\<open>-v\<close> are the same as
+  the underlying @{tool hg_sync}.
 
   \<^medskip> Options \<^verbatim>\<open>-r\<close> and \<^verbatim>\<open>-a\<close> are the same as option \<^verbatim>\<open>-r\<close> for @{tool hg_sync},
   but for the Isabelle and AFP repositories, respectively. The AFP version is
@@ -1001,7 +1002,7 @@ text \<open>
   For quick testing of Isabelle + AFP on a remote machine, upload changed
   sources, jars, and local sessions images for \<^verbatim>\<open>HOL\<close>:
 
-  @{verbatim [display] \<open>  isabelle sync -A: -I HOL -J testmachine:test/isabelle_afp\<close>}
+  @{verbatim [display] \<open>  isabelle sync -A: -I HOL -J -s testmachine test/isabelle_afp\<close>}
   Assuming that the local \<^verbatim>\<open>HOL\<close> hierarchy has been up-to-date, and the local
   and remote ML platforms coincide, a remote @{tool build} will proceed
   without building \<^verbatim>\<open>HOL\<close> again.
@@ -1010,7 +1011,7 @@ text \<open>
   \<^verbatim>\<open>-J\<close>, but option \<^verbatim>\<open>-T\<close> to disable the default ``quick check'' of \<^verbatim>\<open>rsync\<close>
   (which only inspects file sizes and date stamps); existing heaps are
   deleted:
-  @{verbatim [display] \<open>  isabelle sync -A: -T -H testmachine:test/isabelle_afp\<close>}
+  @{verbatim [display] \<open>  isabelle sync -A: -T -H -s testmachine test/isabelle_afp\<close>}
 \<close>
 
 end

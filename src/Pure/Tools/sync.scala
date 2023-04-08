@@ -33,7 +33,7 @@ object Sync {
 
   /* sync */
 
-  def sync(options: Options, context: Rsync.Context, target: String,
+  def sync(options: Options, context: Rsync.Context, target: Path,
     thorough: Boolean = false,
     purge_heaps: Boolean = false,
     session_images: List[String] = Nil,
@@ -50,7 +50,7 @@ object Sync {
 
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
 
-    def sync(hg: Mercurial.Repository, dest: String, r: String,
+    def sync(hg: Mercurial.Repository, dest: Path, r: String,
       contents: List[File.Content] = Nil, filter: List[String] = Nil
     ): Unit = {
       hg.sync(context, dest, rev = r, thorough = thorough, dry_run = dry_run,
@@ -65,7 +65,7 @@ object Sync {
 
     for (hg <- afp_hg) {
       progress.echo("\n* AFP repository:", verbose = true)
-      sync(hg, Url.append_path(target, "AFP"), afp_rev)
+      sync(hg, target + Path.explode("AFP"), afp_rev)
     }
 
     val images =
@@ -73,7 +73,7 @@ object Sync {
         dirs = afp_root.map(_ + Path.explode("thys")).toList)
     if (images.nonEmpty) {
       progress.echo("\n* Session images:", verbose = true)
-      val heaps = Url.append_path(target, "heaps/")
+      val heaps = context.target(target + Path.explode("heaps")) + "/"
       Rsync.exec(context, thorough = thorough, dry_run = dry_run,
         args = List("--relative", "--") ::: images ::: List(heaps)).check
     }
@@ -92,7 +92,8 @@ object Sync {
         var dry_run = false
         var ssh_port = 0
         var rev = ""
-        var ssh_control_path = ""
+        var ssh_host = ""
+        var ssh_user = ""
         var verbose = false
 
         val getopts = Getopts("""
@@ -105,11 +106,12 @@ Usage: isabelle sync [OPTIONS] TARGET
                  (based on accidental local state)
     -J           preserve *.jar files
     -P           protect spaces in target file names: more robust, less portable
-    -S PATH      SSH control path for connection multiplexing
     -T           thorough treatment of file content and directory times
     -a REV       explicit AFP revision (default: state of working directory)
+    -s HOST      SSH host name for remote target (default: local)
+    -u USER      explicit SSH user name
     -n           no changes: dry-run
-    -p PORT      SSH port
+    -p PORT      explicit SSH port
     -r REV       explicit revision (default: state of working directory)
     -v           verbose
 
@@ -120,29 +122,31 @@ Usage: isabelle sync [OPTIONS] TARGET
           "I:" -> (arg => session_images = session_images ::: List(arg)),
           "J" -> (_ => preserve_jars = true),
           "P" -> (_ => protect_args = true),
-          "S:" -> (arg => ssh_control_path = arg),
           "T" -> (_ => thorough = true),
           "a:" -> (arg => afp_rev = arg),
           "n" -> (_ => dry_run = true),
           "p:" -> (arg => ssh_port = Value.Int.parse(arg)),
           "r:" -> (arg => rev = arg),
+          "s:" -> (arg => ssh_host = arg),
+          "u:" -> (arg => ssh_user = arg),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         val target =
           more_args match {
-            case List(target) => target
+            case List(target) => Path.explode(target)
             case _ => getopts.usage()
           }
 
         val options = Options.init()
         val progress = new Console_Progress(verbose = verbose)
-        val context =
-          Rsync.Context(progress, ssh_port = ssh_port, ssh_control_path = ssh_control_path,
-            protect_args = protect_args)
-        sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
-          session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
-          rev = rev, afp_root = afp_root, afp_rev = afp_rev)
+
+        using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
+          val context = Rsync.Context(progress, ssh = ssh, protect_args = protect_args)
+          sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
+            session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
+            rev = rev, afp_root = afp_root, afp_rev = afp_rev)
+        }
       }
     )
 }

@@ -548,10 +548,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     def sync(target: Path, accurate: Boolean = false,
       rev: String = "", afp_rev: String = "", afp: Boolean = false
     ): Unit = {
-      val context =
-        Rsync.Context(progress, ssh_port = ssh.port, ssh_control_path = ssh.control_path,
-          protect_args = protect_args)
-      Sync.sync(ssh.options, context, ssh.rsync_path(target),
+      val context = Rsync.Context(progress, ssh = ssh, protect_args = protect_args)
+      Sync.sync(ssh.options, context, target,
         thorough = accurate, preserve_jars = !accurate,
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }

@@ -113,6 +113,8 @@ object SSH {
     override def toString: String = user_prefix + host + port_suffix
     override def print: String = " (ssh " + toString + ")"
     override def hg_url: String = "ssh://" + toString + "/"
+    override def client_command: String =
+      SSH.client_command(port = port, control_path = control_path)
     override def rsync_prefix: String = user_prefix + host + ":"
 
 
@@ -371,6 +373,16 @@ object SSH {
 
   /* system operations */
 
+  def open_system(
+    options: Options,
+    host: String,
+    port: Int = 0,
+    user: String = ""
+  ): System = {
+    if (host.isEmpty) Local
+    else open_session(options, host = host, port = port, user = user)
+  }
+
   trait System extends AutoCloseable {
     def is_local: Boolean
 
@@ -379,6 +391,7 @@ object SSH {
     override def toString: String = "SSH.Local"
     def print: String = ""
     def hg_url: String = ""
+    def client_command: String = ""
 
     def rsync_prefix: String = ""
     def rsync_path(path: Path): String = rsync_prefix + expand_path(path).implode
