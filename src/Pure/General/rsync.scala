@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/rsync.scala
     Author:     Makarius
 
-Support for rsync: see also https://rsync.samba.org
+Support for rsync, based on Isabelle component.
 */
 
 package isabelle
