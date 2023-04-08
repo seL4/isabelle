@@ -16,27 +16,27 @@ object Rsync {
       protect_args: Boolean = true  // requires rsync 3.0.0, or later
     ): Context = {
       val directory = Components.provide(Component_Rsync.home, ssh = ssh, progress = progress)
-      val remote_program = Component_Rsync.remote_program(directory)
-      val rsync_path = quote(File.standard_path(remote_program))
-      new Context(progress, ssh, rsync_path, archive, protect_args)
+      new Context(directory, progress, archive, protect_args)
     }
   }
 
   final class Context private(
+    directory: Components.Directory,
     val progress: Progress,
-    val ssh: SSH.System,
-    rsync_path: String,
     archive: Boolean,
     protect_args: Boolean,
   ) {
-    def no_progress: Context = new Context(new Progress, ssh, rsync_path, archive, protect_args)
-    def no_archive: Context = new Context(progress, ssh, rsync_path, false, protect_args)
+    def no_progress: Context = new Context(directory, new Progress, archive, protect_args)
+    def no_archive: Context = new Context(directory, progress, false, protect_args)
+
+    def ssh: SSH.System = directory.ssh
 
     def command: String = {
+      val program = Component_Rsync.remote_program(directory)
       val ssh_command = ssh.client_command
       File.bash_path(Component_Rsync.local_program) +
         if_proper(ssh_command, " --rsh=" + Bash.string(ssh_command)) +
-        " --rsync-path=" + Bash.string(rsync_path) +
+        " --rsync-path=" + Bash.string(quote(File.standard_path(program))) +
         (if (archive) " --archive" else "") +
         (if (protect_args) " --protect-args" else "")
     }
