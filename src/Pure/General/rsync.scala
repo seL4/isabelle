@@ -26,6 +26,8 @@ object Rsync {
     archive: Boolean,
     protect_args: Boolean,
   ) {
+    override def toString: String = directory.toString
+
     def no_progress: Context = new Context(directory, new Progress, archive, protect_args)
     def no_archive: Context = new Context(directory, progress, false, protect_args)
 
