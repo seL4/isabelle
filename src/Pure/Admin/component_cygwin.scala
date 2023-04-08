@@ -10,8 +10,7 @@ package isabelle
 object Component_Cygwin {
   val default_mirror: String = "https://isabelle.sketis.net/cygwin_2022"
 
-  val packages: List[String] =
-    List("curl", "libgmp-devel", "nano", "openssh", "rsync")
+  val packages: List[String] = List("curl", "libgmp-devel", "nano", "openssh")
 
   def build_cygwin(
     target_dir: Path = Path.current,
