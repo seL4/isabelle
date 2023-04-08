@@ -608,7 +608,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           }
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val context = Rsync.Context(progress = progress, ssh = ssh)
+          val context = Rsync.Context(progress = progress, ssh = ssh, stats = verbose)
           hg.sync(context, target, thorough = thorough, dry_run = dry_run,
             filter = filter, rev = rev)
         }
