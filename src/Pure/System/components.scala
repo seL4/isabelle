@@ -202,7 +202,7 @@ object Components {
   }
 
   class Directory private(val path: Path, val ssh: SSH.System = SSH.Local) {
-    override def toString: String = path.toString
+    override def toString: String = path.toString + ssh.print
 
     def etc: Path = path + Path.basic("etc")
     def src: Path = path + Path.basic("src")
@@ -214,7 +214,7 @@ object Components {
     def LICENSE: Path = path + Path.basic("LICENSE")
 
     def create(progress: Progress = new Progress): Directory = {
-      progress.echo("Creating component directory " + path)
+      progress.echo("Creating component directory " + toString)
       ssh.new_directory(path)
       ssh.make_directory(etc)
       this
@@ -224,9 +224,9 @@ object Components {
       ssh.is_file(settings) || ssh.is_file(components) || Sessions.is_session_dir(path, ssh = ssh)
 
     def check: Directory =
-      if (!ssh.is_dir(path)) error("Bad component directory: " + path)
+      if (!ssh.is_dir(path)) error("Bad component directory: " + toString)
       else if (!ok) {
-        error("Malformed component directory: " + path +
+        error("Malformed component directory: " + toString +
           "\n  (missing \"etc/settings\" or \"etc/components\" or \"ROOT\" or \"ROOTS\")")
       }
       else this
