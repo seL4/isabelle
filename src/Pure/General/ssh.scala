@@ -105,6 +105,8 @@ object SSH {
   ) extends System {
     ssh =>
 
+    override def is_local: Boolean = false
+
     def port_suffix: String = if (port > 0) ":" + port else ""
     def user_prefix: String = if (user.nonEmpty) user + "@" else ""
 
@@ -370,6 +372,8 @@ object SSH {
   /* system operations */
 
   trait System extends AutoCloseable {
+    def is_local: Boolean
+
     def close(): Unit = ()
 
     override def toString: String = "SSH.Local"
@@ -424,5 +428,7 @@ object SSH {
       Platform.Family.parse(isabelle_platform.ISABELLE_PLATFORM_FAMILY)
   }
 
-  object Local extends System
+  object Local extends System {
+    override def is_local: Boolean = true
+  }
 }

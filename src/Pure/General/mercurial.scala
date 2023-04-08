@@ -300,7 +300,7 @@ object Mercurial {
       contents: List[File.Content] = Nil,
       rev: String = ""
     ): Unit = {
-      require(ssh == SSH.Local, "local repository required")
+      require(ssh.is_local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
         val context0 = context.copy(progress = new Progress)
