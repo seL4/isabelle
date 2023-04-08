@@ -14,22 +14,29 @@ object Rsync {
       ssh: SSH.System = SSH.Local,
       archive: Boolean = true,
       protect_args: Boolean = true  // requires rsync 3.0.0, or later
-    ): Context = new Context(progress, ssh, archive, protect_args)
+    ): Context = {
+      val directory = Components.provide(Component_Rsync.home, ssh = ssh, progress = progress)
+      val remote_program = Component_Rsync.remote_program(directory)
+      val rsync_path = quote(File.standard_path(remote_program))
+      new Context(progress, ssh, rsync_path, archive, protect_args)
+    }
   }
 
   final class Context private(
     val progress: Progress,
     val ssh: SSH.System,
+    rsync_path: String,
     archive: Boolean,
-    protect_args: Boolean
+    protect_args: Boolean,
   ) {
-    def no_progress: Context = new Context(new Progress, ssh, archive, protect_args)
-    def no_archive: Context = new Context(progress, ssh, false, protect_args)
+    def no_progress: Context = new Context(new Progress, ssh, rsync_path, archive, protect_args)
+    def no_archive: Context = new Context(progress, ssh, rsync_path, false, protect_args)
 
     def command: String = {
       val ssh_command = ssh.client_command
-      "rsync" +
+      File.bash_path(Component_Rsync.local_program) +
         if_proper(ssh_command, " --rsh=" + Bash.string(ssh_command)) +
+        " --rsync-path=" + Bash.string(rsync_path) +
         (if (archive) " --archive" else "") +
         (if (protect_args) " --protect-args" else "")
     }

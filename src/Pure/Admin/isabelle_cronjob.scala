@@ -53,7 +53,8 @@ object Isabelle_Cronjob {
           Build_Log.Identify.content(logger.start_date, Some(get_rev()), Some(get_afp_rev())))
 
         Isabelle_System.bash(
-          """rsync -a --include="*/" --include="plain_identify*" --exclude="*" """ +
+          File.bash_path(Component_Rsync.local_program) +
+            """ -a --include="*/" --include="plain_identify*" --exclude="*" """ +
             Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
 
         if (!Isabelle_Devel.cronjob_log.is_file)
@@ -64,7 +65,8 @@ object Isabelle_Cronjob {
     Logger_Task("exit",
       { logger =>
         Isabelle_System.bash(
-          "rsync -a " + File.bash_path(main_dir) + "/log/." + " " + Bash.string(backup) + "/log/.")
+          File.bash_path(Component_Rsync.local_program) +
+            " -a " + File.bash_path(main_dir) + "/log/." + " " + Bash.string(backup) + "/log/.")
             .check
       })
 
