@@ -102,7 +102,7 @@ object Url {
   def canonical_file_name(uri: String): String = canonical_file(uri).getPath
 
 
-  /* generic path notation: standard, platform, ssh, rsync, ftp, http */
+  /* generic path notation: standard, platform, ssh, rsync, ftp, http, https */
 
   private val separators1 = "/\\"
   private val separators2 = ":/\\"
