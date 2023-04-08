@@ -33,7 +33,6 @@ object Rsync {
     prune_empty_dirs: Boolean = false,
     dry_run: Boolean = false,
     clean: Boolean = false,
-    list: Boolean = false,
     filter: List[String] = Nil,
     args: List[String] = Nil
   ): Process_Result = {
@@ -45,7 +44,6 @@ object Rsync {
         (if (prune_empty_dirs) " --prune-empty-dirs" else "") +
         (if (dry_run) " --dry-run" else "") +
         (if (clean) " --delete-excluded" else "") +
-        (if (list) " --list-only --no-human-readable" else "") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
         if_proper(args, " " + Bash.strings(args))
     progress.bash(script, echo = true)

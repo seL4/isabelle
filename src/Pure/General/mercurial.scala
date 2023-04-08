@@ -126,6 +126,11 @@ object Mercurial {
     val PATH_DIFF: Path = PATH + Path.explode("diff")
     val PATH_STAT: Path = PATH + Path.explode("stat")
 
+    def check_directory(root: Path, ssh: SSH.System = SSH.Local): Unit =
+      if (ssh.is_dir(root) && !ssh.is_dir(root + PATH) && ssh.read_dir(root).nonEmpty) {
+        error("No .hg_sync meta data in " + ssh.rsync_path(root))
+      }
+
     def is_directory(root: Path, ssh: SSH.System = SSH.Local): Boolean =
       ssh.is_dir(root + PATH)
 
@@ -303,17 +308,11 @@ object Mercurial {
       require(ssh.is_local, "local repository required")
 
       Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
+        Hg_Sync.check_directory(target, ssh = context.ssh)
+
         val context0 = context.copy(progress = new Progress)
 
         Rsync.init(context0, target)
-
-        val list =
-          Rsync.exec(context0, list = true,
-            args = List("--", context.target(target, direct = true)))
-            .check.out_lines.filterNot(_.endsWith(" ."))
-        if (list.nonEmpty && !list.exists(_.endsWith(Hg_Sync._NAME))) {
-          error("No .hg_sync meta data in " + quote(context.target(target)))
-        }
 
         val id_content = id(rev = rev)
         val is_changed = id_content.endsWith("+")
