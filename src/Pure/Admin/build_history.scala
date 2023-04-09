@@ -345,7 +345,11 @@ object Build_History {
               catch { case _: java.sql.SQLException => Nil }
             }
             else Nil
-          errors.map(msg => List(Build_Log.SESSION_NAME -> session_name, Markup.CONTENT -> msg))
+          for (msg <- errors)
+          yield {
+            val content = Library.encode_lines(Output.clean_yxml(msg))
+            List(Build_Log.SESSION_NAME -> session_name, Markup.CONTENT -> content)
+          }
         }
 
       build_out_progress.echo("Reading heap sizes ...")
