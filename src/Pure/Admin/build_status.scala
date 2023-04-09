@@ -33,9 +33,33 @@ object Build_Status {
 
     def select(
       options: Options,
-      columns: List[SQL.Column],
-      only_sessions: Set[String]
+      ml_statistics: Boolean = false,
+      only_sessions: Set[String] = Set.empty
     ): PostgreSQL.Source = {
+      val columns =
+        List(
+          Build_Log.Data.pull_date(afp = false),
+          Build_Log.Data.pull_date(afp = true),
+          Build_Log.Prop.build_host,
+          Build_Log.Prop.isabelle_version,
+          Build_Log.Prop.afp_version,
+          Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
+          Build_Log.Settings.ML_PLATFORM,
+          Build_Log.Data.session_name,
+          Build_Log.Data.chapter,
+          Build_Log.Data.groups,
+          Build_Log.Data.threads,
+          Build_Log.Data.timing_elapsed,
+          Build_Log.Data.timing_cpu,
+          Build_Log.Data.timing_gc,
+          Build_Log.Data.ml_timing_elapsed,
+          Build_Log.Data.ml_timing_cpu,
+          Build_Log.Data.ml_timing_gc,
+          Build_Log.Data.heap_size,
+          Build_Log.Data.status,
+          Build_Log.Data.errors) :::
+        (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
+
       Build_Log.Data.universal_table.select(columns, distinct = true, sql =
         SQL.where(
           SQL.and(
@@ -228,33 +252,11 @@ object Build_Status {
         progress.echo("input " + quote(profile.description))
 
         val afp = profile.afp
-        val columns =
-          List(
-            Build_Log.Data.pull_date(afp = false),
-            Build_Log.Data.pull_date(afp = true),
-            Build_Log.Prop.build_host,
-            Build_Log.Prop.isabelle_version,
-            Build_Log.Prop.afp_version,
-            Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
-            Build_Log.Settings.ML_PLATFORM,
-            Build_Log.Data.session_name,
-            Build_Log.Data.chapter,
-            Build_Log.Data.groups,
-            Build_Log.Data.threads,
-            Build_Log.Data.timing_elapsed,
-            Build_Log.Data.timing_cpu,
-            Build_Log.Data.timing_gc,
-            Build_Log.Data.ml_timing_elapsed,
-            Build_Log.Data.ml_timing_cpu,
-            Build_Log.Data.ml_timing_gc,
-            Build_Log.Data.heap_size,
-            Build_Log.Data.status,
-            Build_Log.Data.errors) :::
-          (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
-        val sql = profile.select(options, columns, only_sessions)
+        val sql =
+          profile.select(options, ml_statistics = ml_statistics, only_sessions = only_sessions)
         progress.echo(sql, verbose = true)
 
         db.using_statement(sql) { stmt =>
