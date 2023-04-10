@@ -280,12 +280,17 @@ antiquotations.
 
 *** ML ***
 
-* Functor Set() provides more compact representation of sets than
-previous Table().set = unit table. See also instances such as structure
-Intset, Symset, Termset.
+* Improved implementations and signatures of functor Table() and
+corresponding functor Set().
 
-* Functors Table() and Set() now provide efficient operation "size" with
-constant time complexity.
+  - Specific Set().T supersedes Table().set = unit table, with concrete
+    instances Intset, Symset, Termset etc.
+
+  - Data representation is more compact than before, approx. 85% .. 110%
+    of a plain list (e.g. see structure AList or Ord_List, respectively).
+
+  - The new "size" operation works with constant time complexity and
+    minimal space overhead: small structures have no size descriptor.
 
 * Operations ML_Heap.sizeof1 and ML_Heap.sizeof determine the object
 size on the heap in bytes. The latter works simultaneously on multiple
