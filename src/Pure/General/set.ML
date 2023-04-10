@@ -46,7 +46,8 @@ datatype T =
   Leaf2 of elem * elem |
   Leaf3 of elem * elem * elem |
   Branch2 of T * elem * T |
-  Branch3 of T * elem * T * elem * T;
+  Branch3 of T * elem * T * elem * T |
+  Size of int * T;
 
 (*literal copy from table.ML*)
 fun make2 (Empty, e, Empty) = Leaf1 e
@@ -76,10 +77,14 @@ fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
   | unmake (Leaf2 (e1, e2)) = Branch3 (Empty, e1, Empty, e2, Empty)
   | unmake (Leaf3 (e1, e2, e3)) =
       Branch2 (Branch2 (Empty, e1, Empty), e2, Branch2 (Empty, e3, Empty))
+  | unmake (Size (_, arg)) = arg
   | unmake arg = arg;
 
 
 (* size *)
+
+(*literal copy from table.ML*)
+fun make_size m arg = if m > 12 then Size (m, arg) else arg;
 
 (*literal copy from table.ML*)
 local
@@ -88,7 +93,8 @@ local
     | count (Leaf2 _) n = n + 2
     | count (Leaf3 _) n = n + 3
     | count (Branch2 (left, _, right)) n = count right (count left (n + 1))
-    | count (Branch3 (left, _, mid, _, right)) n = count right (count mid (count left (n + 2)));
+    | count (Branch3 (left, _, mid, _, right)) n = count right (count mid (count left (n + 2)))
+    | count (Size (m, _)) n = m + n;
 in
   val size = Integer.build o count;
 end;
@@ -100,7 +106,9 @@ val empty = Empty;
 
 fun build (f: T -> T) = f empty;
 
+(*literal copy from table.ML*)
 fun is_empty Empty = true
+  | is_empty (Size (_, arg)) = is_empty arg
   | is_empty _ = false;
 
 
@@ -115,7 +123,8 @@ fun fold_set f =
       | fold (Branch2 (left, e, right)) x =
           fold right (f e (fold left x))
       | fold (Branch3 (left, e1, mid, e2, right)) x =
-          fold right (f e2 (fold mid (f e1 (fold left x))));
+          fold right (f e2 (fold mid (f e1 (fold left x))))
+      | fold (Size (_, arg)) x = fold arg x;
   in fold end;
 
 fun fold_rev_set f =
@@ -127,7 +136,8 @@ fun fold_rev_set f =
       | fold_rev (Branch2 (left, e, right)) x =
           fold_rev left (f e (fold_rev right x))
       | fold_rev (Branch3 (left, e1, mid, e2, right)) x =
-          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))));
+          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))))
+      | fold_rev (Size (_, arg)) x = fold_rev arg x;
   in fold_rev end;
 
 val dest = Library.build o fold_rev_set cons;
@@ -144,7 +154,8 @@ fun exists pred =
       | ex (Branch2 (left, e, right)) =
           ex left orelse pred e orelse ex right
       | ex (Branch3 (left, e1, mid, e2, right)) =
-          ex left orelse pred e1 orelse ex mid orelse pred e2 orelse ex right;
+          ex left orelse pred e1 orelse ex mid orelse pred e2 orelse ex right
+      | ex (Size (_, arg)) = ex arg;
   in ex end;
 
 fun forall pred = not o exists (not o pred);
@@ -186,7 +197,8 @@ fun get_first f =
                       | some => some)
                   | some => some)
               | some => some)
-          | some => some);
+          | some => some)
+      | get (Size (_, arg)) = get arg;
   in get end;
 
 
@@ -222,7 +234,8 @@ fun member set elem =
               (case elem_ord e2 of
                 LESS => mem mid
               | EQUAL => true
-              | GREATER => mem right));
+              | GREATER => mem right))
+      | mem (Size (_, arg)) = mem arg;
   in mem set end;
 
 
@@ -285,11 +298,13 @@ fun insert elem set =
                     (case ins right of
                       Stay right' => Stay (make3 (left, e1, mid, e2, right'))
                     | Sprout (right1, e', right2) =>
-                        Sprout (make2 (left, e1, mid), e2, make2 (right1, e', right2)))));
+                        Sprout (make2 (left, e1, mid), e2, make2 (right1, e', right2)))))
+        | ins (Size (_, arg)) = ins arg;
     in
-      (case ins set of
-        Stay set' => set'
-      | Sprout br => make2 br)
+      make_size (size set + 1)
+        (case ins set of
+          Stay set' => set'
+        | Sprout br => make2 br)
     end;
 
 fun make elems = build (fold insert elems);
@@ -389,12 +404,15 @@ fun del (SOME k) Empty = raise UNDEF k
                   make2 (mr, if_equal ord q' q, r'))
             | (Branch3 (ll, lp, lm, lq, lr), Branch2 (ml, mp, mr)) =>
                 make3 (make2 (ll, lp, lm), lq, make2 (lr, p, ml), mp,
-                  make2 (mr, if_equal ord q' q, r'))))));
+                  make2 (mr, if_equal ord q' q, r'))))))
+  | del k (Size (_, arg)) = del k arg;
 
 in
 
 fun remove elem set =
-  if member set elem then snd (snd (del (SOME elem) set)) else set;
+  if member set elem
+  then make_size (size set - 1) (snd (snd (del (SOME elem) set)))
+  else set;
 
 val subtract = fold_set remove;
 
