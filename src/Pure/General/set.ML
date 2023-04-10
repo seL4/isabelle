@@ -445,4 +445,5 @@ val fold_rev = fold_rev_set;
 end;
 
 structure Intset = Set(Inttab.Key);
+structure Intset' = Set(Inttab'.Key);
 structure Symset = Set(Symtab.Key);
