@@ -1640,7 +1640,7 @@ fun add_sorts sorts_of (_, c) sorts = Sortset.merge (sorts_of c, sorts);
 val add_instT_sorts = add_sorts (fn Ctyp {sorts, ...} => sorts);
 val add_inst_sorts = add_sorts (fn Cterm {sorts, ...} => sorts);
 
-fun make_instT thy (v as (_, S)) (Ctyp {T = U, maxidx, ...}) =
+fun make_instT thy (_: indexname, S) (Ctyp {T = U, maxidx, ...}) =
   if Sign.of_sort thy (U, S) then (U, maxidx)
   else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy S, [U], []);
 
