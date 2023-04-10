@@ -292,6 +292,12 @@ corresponding functor Set().
   - The new "size" operation works with constant time complexity and
     minimal space overhead: small structures have no size descriptor.
 
+  - Various internal interfaces now use scalable Set() instances instead
+    of plain list, notably Thm.hyps_of and Thm.shyps_of. Minor
+    INCOMPATIBILITY: use e.g. Termset.dest to adapt the result, better
+    use proper Termset operations such as Termset.exists or Termset.fold
+    without the overhead of destruction.
+
 * Operations ML_Heap.sizeof1 and ML_Heap.sizeof determine the object
 size on the heap in bytes. The latter works simultaneously on multiple
 objects, taking implicit sharing of values into account. Examples for
