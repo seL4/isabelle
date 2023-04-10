@@ -278,14 +278,13 @@ fun restore_hyps ctxt =
   map_hyps (fn (_, hyps, shyps) => (#checked_hyps (Hyps.get ctxt), hyps, shyps));
 
 fun undeclared_hyps context th =
-  Thm.hyps_of th
-  |> filter_out
+  Termset.fold_rev
     (case context of
-      Context.Theory _ => K false
+      Context.Theory _ => cons
     | Context.Proof ctxt =>
-        (case Hyps.get ctxt of
-          {checked_hyps = false, ...} => K true
-        | {hyps, ...} => Termset.member hyps));
+        let val {checked_hyps, hyps, ...} = Hyps.get ctxt
+        in fn hyp => if not checked_hyps orelse Termset.member hyps hyp then I else cons hyp end)
+    (Thm.hyps_of th) [];
 
 fun check_hyps context th =
   (case undeclared_hyps context th of
@@ -447,7 +446,7 @@ fun forall_intr_frees th =
     val fixed =
       Frees.build
        (fold Frees.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
-        fold Frees.add_frees (Thm.hyps_of th));
+        Termset.fold Frees.add_frees (Thm.hyps_of th));
     val is_fixed = Frees.defined fixed o Term.dest_Free o Thm.term_of;
     val frees =
       Cterms.build (th |> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
@@ -460,7 +459,9 @@ fun forall_intr_frees th =
 fun unvarify_global thy th =
   let
     val prop = Thm.full_prop_of th;
-    val _ = map Logic.unvarify_global (prop :: Thm.hyps_of th)
+    val _ =
+      (Logic.unvarify_global prop;
+       Termset.fold (fn t => fn () => ignore (Logic.unvarify_global t)) (Thm.hyps_of th) ())
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
 
     val cert = Thm.global_cterm_of thy;
@@ -717,7 +718,9 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
       |> perhaps (try (Thm.transfer' ctxt))
       |> perhaps (try Thm.strip_shyps);
 
-    val hyps = if show_hyps then Thm.hyps_of th else undeclared_hyps (Context.Proof ctxt) th;
+    val hyps =
+      if show_hyps then Termset.dest (Thm.hyps_of th)
+      else undeclared_hyps (Context.Proof ctxt) th;
     val extra_shyps = Sortset.dest (extra_shyps' ctxt th);
     val tags = Thm.get_tags th;
     val tpairs = Thm.tpairs_of th;

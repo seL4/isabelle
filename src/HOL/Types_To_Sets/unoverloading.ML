@@ -80,7 +80,7 @@ fun unoverload_impl cconst thm =
   let
     fun err msg = raise THM ("unoverloading: " ^ msg, 0, [thm]);
 
-    val _ = null (Thm.hyps_of thm) orelse err "the theorem has meta hypotheses";
+    val _ = Termset.is_empty (Thm.hyps_of thm) orelse err "the theorem has meta hypotheses";
     val _ = null (Thm.tpairs_of thm) orelse err "the theorem contains unresolved flex-flex pairs";
 
     val prop = Thm.prop_of thm;

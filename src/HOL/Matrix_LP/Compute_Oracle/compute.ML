@@ -16,7 +16,7 @@ sig
     val make : machine -> theory -> thm list -> computer
     val make_with_cache : machine -> theory -> term list -> thm list -> computer
     val theory_of : computer -> theory
-    val hyps_of : computer -> term list
+    val hyps_of : computer -> Termset.T
     val shyps_of : computer -> Sortset.T
     (* ! *) val update : computer -> thm list -> unit
     (* ! *) val update_with_cache : computer -> term list -> thm list -> unit
@@ -169,7 +169,7 @@ type naming = int -> string
 fun default_naming i = "v_" ^ string_of_int i
 
 datatype computer = Computer of
-  (theory * Encode.encoding * term list * Sortset.T * prog * unit Unsynchronized.ref * naming)
+  (theory * Encode.encoding * Termset.T * Sortset.T * prog * unit Unsynchronized.ref * naming)
     option Unsynchronized.ref
 
 fun theory_of (Computer (Unsynchronized.ref (SOME (thy,_,_,_,_,_,_)))) = thy
@@ -187,7 +187,7 @@ fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,_))))
 fun ref_of (Computer r) = r
 
 
-datatype cthm = ComputeThm of term list * Sortset.T * term
+datatype cthm = ComputeThm of Termset.T * Sortset.T * term
 
 fun thm2cthm th = 
     (if not (null (Thm.tpairs_of th)) then raise Make "theorems may not contain tpairs" else ();
@@ -219,10 +219,10 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                     (n, vars, AbstractMachine.PConst (c, args@[pb]))
             end
 
-        fun thm2rule (encoding, hyptable, shypset) th =
+        fun thm2rule (encoding, hypset, shypset) th =
             let
                 val (ComputeThm (hyps, shyps, prop)) = th
-                val hyptable = fold (fn h => Termtab.update (h, ())) hyps hyptable
+                val hypset = Termset.merge (hyps, hypset)
                 val shypset = Sortset.merge (shyps, shypset)
                 val (prems, prop) = (Logic.strip_imp_prems prop, Logic.strip_imp_concl prop)
                 val (a, b) = Logic.dest_equals prop
@@ -269,15 +269,15 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                 fun rename_guard (AbstractMachine.Guard (a,b)) = 
                     AbstractMachine.Guard (rename 0 vars a, rename 0 vars b)
             in
-                ((encoding, hyptable, shypset), (map rename_guard prems, pattern, rename 0 vars right))
+                ((encoding, hypset, shypset), (map rename_guard prems, pattern, rename 0 vars right))
             end
 
-        val ((encoding, hyptable, shypset), rules) =
-          fold_rev (fn th => fn (encoding_hyptable, rules) =>
+        val ((encoding, hypset, shypset), rules) =
+          fold_rev (fn th => fn (encoding_hypset, rules) =>
             let
-              val (encoding_hyptable, rule) = thm2rule encoding_hyptable th
-            in (encoding_hyptable, rule::rules) end)
-          ths ((encoding, Termtab.empty, Sortset.empty), [])
+              val (encoding_hypset, rule) = thm2rule encoding_hypset th
+            in (encoding_hypset, rule::rules) end)
+          ths ((encoding, Termset.empty, Sortset.empty), [])
 
         fun make_cache_pattern t (encoding, cache_patterns) =
             let
@@ -287,7 +287,7 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                 (encoding, p::cache_patterns)
             end
         
-        val (encoding, _) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
+        val (encoding, _) = Termset.fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
 
         val prog = 
             case machine of 
@@ -300,17 +300,18 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
 
         val shypset = Sortset.fold (fn s => has_witness s ? Sortset.remove s) shypset shypset
 
-    in (thy, encoding, Termtab.keys hyptable, shypset, prog, stamp, default_naming) end
+    in (thy, encoding, hypset, shypset, prog, stamp, default_naming) end
 
 fun make_with_cache machine thy cache_patterns raw_thms =
-  Computer (Unsynchronized.ref (SOME (make_internal machine thy (Unsynchronized.ref ()) Encode.empty cache_patterns raw_thms)))
+  Computer (Unsynchronized.ref
+    (SOME (make_internal machine thy (Unsynchronized.ref ()) Encode.empty (Termset.make cache_patterns) raw_thms)))
 
 fun make machine thy raw_thms = make_with_cache machine thy [] raw_thms
 
 fun update_with_cache computer cache_patterns raw_thms =
     let 
         val c = make_internal (machine_of_prog (prog_of computer)) (theory_of computer) (stamp_of computer) 
-                              (encoding_of computer) cache_patterns raw_thms
+                              (encoding_of computer) (Termset.make cache_patterns) raw_thms
         val _ = (ref_of computer) := SOME c     
     in
         ()
@@ -326,13 +327,6 @@ fun runprog (ProgBarras p) = AM_Interpreter.run p
 (* ------------------------------------------------------------------------------------- *)
 (* An oracle for exporting theorems; must only be accessible from inside this structure! *)
 (* ------------------------------------------------------------------------------------- *)
-
-fun merge_hyps hyps1 hyps2 = 
-let
-    fun add hyps tab = fold (fn h => fn tab => Termtab.update (h, ()) tab) hyps tab
-in
-    Termtab.keys (add hyps2 (add hyps1 Termtab.empty))
-end
 
 val (_, export_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (\<^binding>\<open>compute\<close>, fn (thy, hyps, shyps, prop) =>
@@ -374,7 +368,7 @@ fun rewrite computer raw_ct =
         val t = infer_types naming encoding ty t
         val eq = Logic.mk_equals (t', t)
     in
-        export_thm thy (hyps_of computer) (shyps_of computer) eq
+        export_thm thy (Termset.dest (hyps_of computer)) (shyps_of computer) eq
     end
 
 (* --------- Simplify ------------ *)
@@ -382,7 +376,7 @@ fun rewrite computer raw_ct =
 datatype prem = EqPrem of AbstractMachine.term * AbstractMachine.term * Term.typ * int 
               | Prem of AbstractMachine.term
 datatype theorem = Theorem of theory * unit Unsynchronized.ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
-               * prem list * AbstractMachine.term * term list * Sortset.T
+               * prem list * AbstractMachine.term * Termset.T * Sortset.T
 
 
 exception ParamSimplify of computer * theorem
@@ -613,7 +607,7 @@ in
         let
             val th = update_varsubst varsubst th
             val th = update_prems (splicein prem_no (prems_of_theorem th') prems) th
-            val th = update_hyps (merge_hyps (hyps_of_theorem th) (hyps_of_theorem th')) th
+            val th = update_hyps (Termset.merge (hyps_of_theorem th, hyps_of_theorem th')) th
             val th = update_shyps (Sortset.merge (shyps_of_theorem th, shyps_of_theorem th')) th
         in
             update_theory thy th
@@ -630,10 +624,10 @@ let
     fun run t = infer (runprog (prog_of computer) (apply_subst true varsubst t))
     fun runprem p = run (prem2term p)
     val prop = Logic.list_implies (map runprem (prems_of_theorem th), run (concl_of_theorem th))
-    val hyps = merge_hyps (hyps_of computer) (hyps_of_theorem th)
+    val hyps = Termset.merge (hyps_of computer, hyps_of_theorem th)
     val shyps = Sortset.merge (shyps_of_theorem th, shyps_of computer)
 in
-    export_thm (theory_of_theorem th) hyps shyps prop
+    export_thm (theory_of_theorem th) (Termset.dest hyps) shyps prop
 end
 
 end

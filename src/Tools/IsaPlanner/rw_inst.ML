@@ -64,7 +64,8 @@ fun mk_abstractedrule ctxt TsFake Ts rule =
        bound vars with binders outside the redex *)
 
     val ns =
-      IsaND.variant_names ctxt (Thm.full_prop_of rule :: Thm.hyps_of rule) (map fst Ts);
+      IsaND.variant_names ctxt (Thm.full_prop_of rule :: Termset.dest (Thm.hyps_of rule))
+        (map fst Ts);
 
     val (fromnames, tonames, Ts') =
       fold (fn (((faken, _), (n, ty)), n2) => fn (rnf, rnt, Ts'') =>

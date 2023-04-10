@@ -920,8 +920,9 @@ fun cconcl thm = Dcterm.drop_prop (Thm.cprop_of thm);
 fun chyps thm = map Dcterm.drop_prop (Thm.chyps_of thm);
 
 fun dest_thm thm =
-  (map HOLogic.dest_Trueprop (Thm.hyps_of thm), HOLogic.dest_Trueprop (Thm.prop_of thm))
-    handle TERM _ => raise RULES_ERR "dest_thm" "missing Trueprop";
+  (map HOLogic.dest_Trueprop (Termset.dest (Thm.hyps_of thm)),
+    HOLogic.dest_Trueprop (Thm.prop_of thm))
+  handle TERM _ => raise RULES_ERR "dest_thm" "missing Trueprop";
 
 
 (* Inference rules *)
@@ -1101,7 +1102,7 @@ fun organize eq =    (* a bit slow - analogous to insertion sort *)
 fun DISJ_CASESL disjth thl =
    let val c = cconcl disjth
        fun eq th atm =
-        exists (fn t => HOLogic.dest_Trueprop t aconv Thm.term_of atm) (Thm.hyps_of th)
+        Termset.exists (fn t => HOLogic.dest_Trueprop t aconv Thm.term_of atm) (Thm.hyps_of th)
        val tml = Dcterm.strip_disj c
        fun DL _ [] = raise RULES_ERR "DISJ_CASESL" "no cases"
          | DL th [th1] = PROVE_HYP th th1

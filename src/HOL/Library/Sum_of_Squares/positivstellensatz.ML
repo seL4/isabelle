@@ -169,7 +169,7 @@ fun deduct_antisym_rule tha thb =
      (Thm.implies_intr (Thm.cprop_of tha) thb);
 
 fun prove_hyp tha thb =
-  if exists (curry op aconv (Thm.concl_of tha)) (Thm.hyps_of thb)  (* FIXME !? *)
+  if Termset.exists (curry op aconv (Thm.concl_of tha)) (Thm.hyps_of thb)  (* FIXME !? *)
   then Thm.equal_elim (Thm.symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
 val pth = @{lemma "(((x::real) < y) \<equiv> (y - x > 0))" and "((x \<le> y) \<equiv> (y - x \<ge> 0))" and
