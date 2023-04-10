@@ -1255,28 +1255,31 @@ fun implies_elim thAB thA =
   ------
   \<And>x. A
 *)
+fun occs x ts tpairs =
+  let fun occs t = Logic.occs (x, t)
+  in exists occs ts orelse exists (occs o fst) tpairs orelse exists (occs o snd) tpairs end;
+
 fun forall_intr
     (ct as Cterm {maxidx = maxidx1, t = x, T, sorts, ...})
     (th as Thm (der, {maxidx = maxidx2, constraints, shyps, hyps, tpairs, prop, ...})) =
   let
-    fun result a =
-      Thm (deriv_rule1 (Proofterm.forall_intr_proof (a, x) NONE) der,
-       {cert = join_certificate1 (ct, th),
-        tags = [],
-        maxidx = Int.max (maxidx1, maxidx2),
-        constraints = constraints,
-        shyps = Sortset.merge (sorts, shyps),
-        hyps = hyps,
-        tpairs = tpairs,
-        prop = Logic.all_const T $ Abs (a, T, abstract_over (x, prop))});
-    fun check_occs a x ts =
-      if exists (fn t => Logic.occs (x, t)) ts then
+    fun check_result a ts =
+      if occs x ts tpairs then
         raise THM ("forall_intr: variable " ^ quote a ^ " free in assumptions", 0, [th])
-      else ();
+      else
+        Thm (deriv_rule1 (Proofterm.forall_intr_proof (a, x) NONE) der,
+         {cert = join_certificate1 (ct, th),
+          tags = [],
+          maxidx = Int.max (maxidx1, maxidx2),
+          constraints = constraints,
+          shyps = Sortset.merge (sorts, shyps),
+          hyps = hyps,
+          tpairs = tpairs,
+          prop = Logic.all_const T $ Abs (a, T, abstract_over (x, prop))});
   in
     (case x of
-      Free (a, _) => (check_occs a x hyps; check_occs a x (terms_of_tpairs tpairs); result a)
-    | Var ((a, _), _) => (check_occs a x (terms_of_tpairs tpairs); result a)
+      Free (a, _) => check_result a hyps
+    | Var ((a, _), _) => check_result a []
     | _ => raise THM ("forall_intr: not a variable", 0, [th]))
   end;
 
@@ -1419,31 +1422,30 @@ fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
   --------------
   \<lambda>x. t \<equiv> \<lambda>x. u
 *)
-fun abstract_rule a
+fun abstract_rule b
     (Cterm {t = x, T, sorts, ...})
     (th as Thm (der, {cert, maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
   let
     val (t, u) = Logic.dest_equals prop
       handle TERM _ => raise THM ("abstract_rule: premise not an equality", 0, [th]);
-    val result =
-      Thm (deriv_rule1 (Proofterm.abstract_rule_proof (a, x)) der,
-       {cert = cert,
-        tags = [],
-        maxidx = maxidx,
-        constraints = constraints,
-        shyps = Sortset.merge (sorts, shyps),
-        hyps = hyps,
-        tpairs = tpairs,
-        prop = Logic.mk_equals
-          (Abs (a, T, abstract_over (x, t)), Abs (a, T, abstract_over (x, u)))});
-    fun check_occs a x ts =
-      if exists (fn t => Logic.occs (x, t)) ts then
+    fun check_result a ts =
+      if occs x ts tpairs then
         raise THM ("abstract_rule: variable " ^ quote a ^ " free in assumptions", 0, [th])
-      else ();
+      else
+        Thm (deriv_rule1 (Proofterm.abstract_rule_proof (b, x)) der,
+         {cert = cert,
+          tags = [],
+          maxidx = maxidx,
+          constraints = constraints,
+          shyps = Sortset.merge (sorts, shyps),
+          hyps = hyps,
+          tpairs = tpairs,
+          prop = Logic.mk_equals
+            (Abs (b, T, abstract_over (x, t)), Abs (b, T, abstract_over (x, u)))});
   in
     (case x of
-      Free (a, _) => (check_occs a x hyps; check_occs a x (terms_of_tpairs tpairs); result)
-    | Var ((a, _), _) => (check_occs a x (terms_of_tpairs tpairs); result)
+      Free (a, _) => check_result a hyps
+    | Var ((a, _), _) => check_result a []
     | _ => raise THM ("abstract_rule: not a variable", 0, [th]))
   end;
 
