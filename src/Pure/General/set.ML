@@ -84,9 +84,6 @@ fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
 (* size *)
 
 (*literal copy from table.ML*)
-fun make_size m arg = if m > 12 then Size (m, arg) else arg;
-
-(*literal copy from table.ML*)
 local
   fun count Empty n = n
     | count (Leaf1 _) n = n + 1
@@ -95,8 +92,23 @@ local
     | count (Branch2 (left, _, right)) n = count right (count left (n + 1))
     | count (Branch3 (left, _, mid, _, right)) n = count right (count mid (count left (n + 2)))
     | count (Size (m, _)) n = m + n;
+
+  fun box (Branch2 _) = 1
+    | box (Branch3 _) = 1
+    | box _ = 0;
+
+  fun bound arg b =
+    if b > 0 then
+      (case arg of
+        Branch2 (left, _, right) =>
+          bound right (bound left (b - box left - box right))
+      | Branch3 (left, _, mid, _, right) =>
+          bound right (bound mid (bound left (b - box left - box mid - box right)))
+      | _ => b)
+    else b;
 in
-  val size = Integer.build o count;
+  fun size arg = count arg 0;
+  fun make_size m arg = if bound arg 3 <= 0 then Size (m, arg) else arg;
 end;
 
 
@@ -425,7 +437,6 @@ val _ =
   ML_system_pp (fn depth => fn _ => fn set =>
     ML_Pretty.to_polyml
       (ML_Pretty.enum "," "{" "}" (ML_Pretty.from_polyml o ML_system_pretty) (dest set, depth)));
-
 
 (*final declarations of this structure!*)
 val fold = fold_set;
