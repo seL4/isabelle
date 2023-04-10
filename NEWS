@@ -284,6 +284,9 @@ antiquotations.
 previous Table().set = unit table. See also instances such as structure
 Intset, Symset, Termset.
 
+* Functors Table() and Set() now provide efficient operation "size" with
+constant time complexity.
+
 * Operations ML_Heap.sizeof1 and ML_Heap.sizeof determine the object
 size on the heap in bytes. The latter works simultaneously on multiple
 objects, taking implicit sharing of values into account. Examples for
