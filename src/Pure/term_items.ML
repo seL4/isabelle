@@ -8,6 +8,7 @@ Scalable collections of term items:
 
 signature TERM_ITEMS =
 sig
+  structure Key: KEY
   type key
   type 'a table
   val empty: 'a table
@@ -38,32 +39,32 @@ end;
 functor Term_Items(Key: KEY): TERM_ITEMS =
 struct
 
+(* keys *)
+
+structure Key = Key;
+type key = Key.key;
+
+
 (* table with length *)
 
 structure Table = Table(Key);
 
-type key = Table.key;
-datatype 'a table = Items of int * 'a Table.table;
+datatype 'a table = Table of 'a Table.table;
 
-fun size (Items (n, _)) = n;
-fun table (Items (_, tab)) = tab;
-
-val empty = Items (0, Table.empty);
+val empty = Table Table.empty;
 fun build (f: 'a table -> 'a table) = f empty;
-fun is_empty items = size items = 0;
+fun is_empty (Table tab) = Table.is_empty tab;
 
-fun dest items = Table.dest (table items);
-fun keys items = Table.keys (table items);
-fun exists pred = Table.exists pred o table;
-fun forall pred = Table.forall pred o table;
-fun get_first get = Table.get_first get o table;
-fun lookup items = Table.lookup (table items);
-fun defined items = Table.defined (table items);
+fun size (Table tab) = Table.size tab;
+fun dest (Table tab) = Table.dest tab;
+fun keys (Table tab) = Table.keys tab;
+fun exists pred (Table tab) = Table.exists pred tab;
+fun forall pred (Table tab) = Table.forall pred tab;
+fun get_first get (Table tab) = Table.get_first get tab;
+fun lookup (Table tab) = Table.lookup tab;
+fun defined (Table tab) = Table.defined tab;
 
-fun add (key, x) (items as Items (n, tab)) =
-  if Table.defined tab key then items
-  else Items (n + 1, Table.update_new (key, x) tab);
-
+fun add entry (Table tab) = Table (Table.default entry tab);
 fun make entries = build (fold add entries);
 
 
@@ -71,22 +72,21 @@ fun make entries = build (fold add entries);
 
 type set = int table;
 
-fun add_set x (items as Items (n, tab)) =
-  if Table.defined tab x then items
-  else Items (n + 1, Table.update_new (x, n) tab);
+fun add_set x (Table tab) =
+  Table (if Table.defined tab x then tab else Table.update_new (x, Table.size tab + 1) tab);
 
 fun make_set xs = build (fold add_set xs);
 
 fun subset (A: set, B: set) = forall (defined B o #1) A;
 fun eq_set (A: set, B: set) = size A = size B andalso subset (A, B);
 
-fun list_set_ord ord items = Table.dest (table items) |> sort (ord o apply2 #2) |> map #1
+fun list_set_ord ord (Table tab) = tab |> Table.dest |> sort (ord o apply2 #2) |> map #1;
 val list_set = list_set_ord int_ord;
 val list_set_rev = list_set_ord (rev_order o int_ord);
 
-fun map f (Items (n, tab)) = Items (n, Table.map f tab);
-fun fold f = Table.fold f o table;
-fun fold_rev f = Table.fold_rev f o table;
+fun map f (Table tab) = Table (Table.map f tab);
+fun fold f (Table tab) = Table.fold f tab;
+fun fold_rev f (Table tab) = Table.fold_rev f tab;
 
 end;
 
