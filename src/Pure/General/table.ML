@@ -179,28 +179,28 @@ fun map_table f =
 
 fun fold_table f =
   let
-    fun fold Empty x = x
-      | fold (Leaf1 e) x = f e x
-      | fold (Leaf2 (e1, e2)) x = f e2 (f e1 x)
-      | fold (Leaf3 (e1, e2, e3)) x = f e3 (f e2 (f e1 x))
-      | fold (Branch2 (left, e, right)) x =
-          fold right (f e (fold left x))
-      | fold (Branch3 (left, e1, mid, e2, right)) x =
-          fold right (f e2 (fold mid (f e1 (fold left x))))
-      | fold (Size (_, arg)) x = fold arg x;
+    fun fold Empty a = a
+      | fold (Leaf1 e) a = f e a
+      | fold (Leaf2 (e1, e2)) a = f e2 (f e1 a)
+      | fold (Leaf3 (e1, e2, e3)) a = f e3 (f e2 (f e1 a))
+      | fold (Branch2 (left, e, right)) a =
+          fold right (f e (fold left a))
+      | fold (Branch3 (left, e1, mid, e2, right)) a =
+          fold right (f e2 (fold mid (f e1 (fold left a))))
+      | fold (Size (_, arg)) a = fold arg a;
   in fold end;
 
 fun fold_rev_table f =
   let
-    fun fold_rev Empty x = x
-      | fold_rev (Leaf1 e) x = f e x
-      | fold_rev (Leaf2 (e1, e2)) x = f e1 (f e2 x)
-      | fold_rev (Leaf3 (e1, e2, e3)) x = f e1 (f e2 (f e3 x))
-      | fold_rev (Branch2 (left, e, right)) x =
-          fold_rev left (f e (fold_rev right x))
-      | fold_rev (Branch3 (left, e1, mid, e2, right)) x =
-          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))))
-      | fold_rev (Size (_, arg)) x = fold_rev arg x;
+    fun fold_rev Empty a = a
+      | fold_rev (Leaf1 e) a = f e a
+      | fold_rev (Leaf2 (e1, e2)) a = f e1 (f e2 a)
+      | fold_rev (Leaf3 (e1, e2, e3)) a = f e1 (f e2 (f e3 a))
+      | fold_rev (Branch2 (left, e, right)) a =
+          fold_rev left (f e (fold_rev right a))
+      | fold_rev (Branch3 (left, e1, mid, e2, right)) a =
+          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right a))))
+      | fold_rev (Size (_, arg)) a = fold_rev arg a;
   in fold_rev end;
 
 fun dest tab = Library.build (fold_rev_table cons tab);
