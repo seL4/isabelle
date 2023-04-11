@@ -1,11 +1,11 @@
 (* Author: Pascal Stoop, ETH Zurich
    Author: Andreas Lochbihler, Digital Asset *)
 
+section \<open>Eliminating pattern matches\<close>
+
 theory Case_Converter
   imports Main
 begin
-
-subsection \<open>Eliminating pattern matches\<close>
 
 definition missing_pattern_match :: "String.literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a" where
   [code del]: "missing_pattern_match m f = f ()"

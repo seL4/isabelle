@@ -2,9 +2,13 @@
     Author:     Alessandro Coglio
 *)
 
+section \<open>Finite Lattices\<close>
+
 theory Finite_Lattice
 imports Product_Order
 begin
+
+subsection \<open>Finite Complete Lattices\<close>
 
 text \<open>A non-empty finite lattice is a complete lattice.
 Since types are never empty in Isabelle/HOL,

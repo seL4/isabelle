@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl
 *)
 
-subsection \<open>The type of non-negative extended real numbers\<close>
+section \<open>The type of non-negative extended real numbers\<close>
 
 theory Extended_Nonnegative_Real
   imports Extended_Real Indicator_Function

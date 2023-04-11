@@ -1,7 +1,7 @@
 (*  Author:  Stefan Berghofer et al.
 *)
 
-subsection \<open>Signed division: negative results rounded towards zero rather than minus infinity.\<close>
+section \<open>Signed division: negative results rounded towards zero rather than minus infinity.\<close>
 
 theory Signed_Division
   imports Main

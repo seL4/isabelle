@@ -1,4 +1,4 @@
-subsection \<open>Code setup for sets with cardinality type information\<close>
+section \<open>Code setup for sets with cardinality type information\<close>
 
 theory Code_Cardinality imports Cardinality begin
 

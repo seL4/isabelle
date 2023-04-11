@@ -74,7 +74,7 @@ lemma iterate_add_diff_add_eq2:
   by (auto dest!: le_Suc_ex add_right_imp_eq simp: ab_semigroup_add_class.add_ac(1))
 
 
-subsection \<open>Simproc Set-Up\<close>
+text \<open>Simproc Set-Up\<close>
 
 ML_file \<open>Cancellation/cancel.ML\<close>
 ML_file \<open>Cancellation/cancel_data.ML\<close>

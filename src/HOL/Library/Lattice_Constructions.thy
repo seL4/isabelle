@@ -3,11 +3,11 @@
     Copyright   2010 TU Muenchen
 *)
 
+section \<open>Values extended by a bottom element\<close>
+
 theory Lattice_Constructions
 imports Main
 begin
-
-subsection \<open>Values extended by a bottom element\<close>
 
 datatype 'a bot = Value 'a | Bot
 
