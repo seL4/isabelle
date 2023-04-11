@@ -16,6 +16,8 @@ sig
   val fold: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_rev: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val dest: T -> elem list
+  val min: T -> elem option
+  val max: T -> elem option
   val exists: (elem -> bool) -> T -> bool
   val forall: (elem -> bool) -> T -> bool
   val get_first: (elem -> 'a option) -> T -> 'a option
@@ -150,6 +152,29 @@ fun fold_rev_set f =
   in fold_rev end;
 
 val dest = Library.build o fold_rev_set cons;
+
+
+(* min/max entries *)
+
+fun min Empty = NONE
+  | min (Leaf1 e) = SOME e
+  | min (Leaf2 (e, _)) = SOME e
+  | min (Leaf3 (e, _, _)) = SOME e
+  | min (Branch2 (Empty, e, _)) = SOME e
+  | min (Branch3 (Empty, e, _, _, _)) = SOME e
+  | min (Branch2 (left, _, _)) = min left
+  | min (Branch3 (left, _, _, _, _)) = min left
+  | min (Size (_, arg)) = min arg;
+
+fun max Empty = NONE
+  | max (Leaf1 e) = SOME e
+  | max (Leaf2 (_, e)) = SOME e
+  | max (Leaf3 (_, _, e)) = SOME e
+  | max (Branch2 (_, e, Empty)) = SOME e
+  | max (Branch3 (_, _, _, e, Empty)) = SOME e
+  | max (Branch2 (_, _, right)) = max right
+  | max (Branch3 (_, _, _, _, right)) = max right
+  | max (Size (_, arg)) = max arg;
 
 
 (* exists and forall *)
