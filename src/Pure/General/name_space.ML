@@ -113,7 +113,7 @@ type entry =
   pos: Position.T,
   serial: serial};
 
-fun entry_markup def kind (name, {pos, theory_long_name, serial, ...}: entry) =
+fun entry_markup def kind (name, {pos, serial, ...}: entry) =
   Position.make_entity_markup def serial kind (name, pos);
 
 fun print_entry_ref kind (name, entry) =
