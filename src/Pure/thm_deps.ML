@@ -121,23 +121,17 @@ fun unused_thms_cmd (base_thys, thys) =
     (*groups containing at least one used theorem*)
     val used_groups =
       Inttab.build (new_thms |> fold (fn (a, (_, _, group)) =>
-        if is_unused a then I
-        else
-          (case group of
-            NONE => I
-          | SOME grp => Inttab.update (grp, ()))));
+        if is_unused a orelse group = 0 then I
+        else Inttab.update (group, ())));
 
     val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, seen_groups) =>
       if not concealed andalso
         (* FIXME replace by robust treatment of thm groups *)
         Thm.legacy_get_kind th = Thm.theoremK andalso is_unused a
       then
-        (case group of
-           NONE => ((a, th) :: thms, seen_groups)
-         | SOME grp =>
-             if Inttab.defined used_groups grp orelse
-               Inttab.defined seen_groups grp then q
-             else ((a, th) :: thms, Inttab.update (grp, ()) seen_groups))
+        (if group = 0 then ((a, th) :: thms, seen_groups)
+         else if Inttab.defined used_groups group orelse Inttab.defined seen_groups group then q
+         else ((a, th) :: thms, Inttab.update (group, ()) seen_groups))
       else q) new_thms ([], Inttab.empty);
   in rev thms' end;
 
