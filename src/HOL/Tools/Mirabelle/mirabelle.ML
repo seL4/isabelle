@@ -302,7 +302,7 @@ local
 
 fun fold_body_thms f =
   let
-    fun app n (PBody {thms, ...}) = thms |> fold (fn (i, thm_node) =>
+    fun app n (PBody {thms, ...}) = thms |> PThms.fold (fn (i, thm_node) =>
       fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
