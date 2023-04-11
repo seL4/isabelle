@@ -25,8 +25,8 @@ fun init thy =
     val tycon = perhaps (Option.map #1 o Name_Space.lookup_key types);
     val const = perhaps (try (#1 o Consts.the_const (Sign.consts_of thy)));
 
-    val typs = Unsynchronized.ref (Typtab.empty: unit Typtab.table);
-    val terms = Unsynchronized.ref (Syntax_Termtab.empty: unit Syntax_Termtab.table);
+    val typs = Unsynchronized.ref (Typtab.empty: Typtab.set);
+    val terms = Unsynchronized.ref (Syntax_Termtab.empty: Syntax_Termtab.set);
 
     fun typ T =
       (case Typtab.lookup_key (! typs) T of
@@ -38,7 +38,7 @@ fun init thy =
                 Type (a, Ts) => Type (tycon a, map typ Ts)
               | TFree (a, S) => TFree (a, map class S)
               | TVar (a, S) => TVar (a, map class S));
-            val _ = Unsynchronized.change typs (Typtab.update (T', ()));
+            val _ = Unsynchronized.change typs (Typtab.insert_set T');
           in T' end);
 
     fun term tm =
@@ -54,7 +54,7 @@ fun init thy =
               | Bound i => Bound i
               | Abs (x, T, t) => Abs (x, typ T, term t)
               | t $ u => term t $ term u);
-            val _ = Unsynchronized.change terms (Syntax_Termtab.update (tm', ()));
+            val _ = Unsynchronized.change terms (Syntax_Termtab.insert_set tm');
           in tm' end);
 
     fun check eq f x =
