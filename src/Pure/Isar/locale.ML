@@ -346,23 +346,19 @@ val total_ident_ord = prod_ord fast_string_ord (list_ord Term_Ord.fast_term_ord)
 structure Idtab = Table(type key = string * term list val ord = total_ident_ord);
 
 type reg = {morphisms: morphism * morphism, pos: Position.T, serial: serial};
-type regs = reg Idtab.table;
-
-val join_regs : regs * regs -> regs =
-  Idtab.join (fn id => fn (reg1, reg2) =>
-    if #serial reg1 = #serial reg2 then raise Idtab.SAME else raise Idtab.DUP id);
+val eq_reg: reg * reg -> bool = op = o apply2 #serial;
 
 (* FIXME consolidate with locale dependencies, consider one data slot only *)
 structure Global_Registrations = Theory_Data'
 (
   (*registrations, indexed by locale name and instance;
     unique registration serial points to mixin list*)
-  type T = regs * mixins;
+  type T = reg Idtab.table * mixins;
   val empty: T = (Idtab.empty, Inttab.empty);
   fun merge old_thys =
     let
       fun recursive_merge ((regs1, mixins1), (regs2, mixins2)) : T =
-        (join_regs (regs1, regs2), merge_mixins (mixins1, mixins2))
+        (Idtab.merge eq_reg (regs1, regs2), merge_mixins (mixins1, mixins2))
         handle Idtab.DUP id =>
           (*distinct interpretations with same base: merge their mixins*)
           let
