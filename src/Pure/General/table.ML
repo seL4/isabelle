@@ -45,6 +45,9 @@ sig
   val join: (key -> 'a * 'a -> 'a) (*exception SAME*) ->
     'a table * 'a table -> 'a table                                    (*exception DUP*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUP*)
+  val joins: (key -> 'a * 'a -> 'a) (*exception SAME*) ->
+    'a table list -> 'a table                                          (*exception DUP*)
+  val merges: ('a * 'a -> bool) -> 'a table list -> 'a table           (*exception DUP*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
   val delete_safe: key -> 'a table -> 'a table
   val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
@@ -590,6 +593,9 @@ fun join f (tab1, tab2) =
   end;
 
 fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP key);
+
+fun joins f tabs = Library.foldl (join f) (empty, tabs);
+fun merges eq tabs = Library.foldl (merge eq) (empty, tabs);
 
 
 (* list tables *)

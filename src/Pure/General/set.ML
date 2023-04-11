@@ -27,6 +27,7 @@ sig
   val insert: elem -> T -> T
   val make: elem list -> T
   val merge: T * T -> T
+  val merges: T list -> T
   val remove: elem -> T -> T
   val subtract: T -> T -> T
 end;
@@ -343,6 +344,9 @@ fun insert elem set =
 
 fun make elems = build (fold insert elems);
 
+
+(* merge *)
+
 fun merge (set1, set2) =
   if pointer_eq (set1, set2) then set1
   else if is_empty set1 then set2
@@ -350,6 +354,8 @@ fun merge (set1, set2) =
   else if size set1 >= size set2
   then fold_set insert set2 set1
   else fold_set insert set1 set2;
+
+fun merges sets = Library.foldl merge (empty, sets);
 
 
 (* remove *)
