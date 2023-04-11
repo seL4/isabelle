@@ -47,6 +47,13 @@ lemma minus_smod_eq_mult_sdiv:
 
 end
 
+text \<open>
+  \noindent The following specification of division is named ``T-division'' in \cite{leijen01}.
+  It is motivated by ISO C99, which in turn adopted the typical behavior of
+  hardware modern in the beginning of the 1990ies; but note ISO C99 describes
+  the instance on machine words, not mathematical integers.
+\<close>
+
 instantiation int :: signed_division
 begin
 

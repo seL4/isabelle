@@ -624,6 +624,11 @@ lemma [code]:
 
 subsection \<open>Bit-wise operations\<close>
 
+text \<open>
+  The following specification of word division just lifts the pre-existing
+  division on integers named ``F-Division'' in \cite{leijen01}.
+\<close>
+
 instantiation word :: (len) semiring_modulo
 begin
 

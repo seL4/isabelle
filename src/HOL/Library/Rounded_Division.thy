@@ -11,11 +11,33 @@ lemma off_iff_abs_mod_2_eq_one:
   \<open>odd l \<longleftrightarrow> \<bar>l\<bar> mod 2 = 1\<close> for l :: int
   by (simp flip: odd_iff_mod_2_eq_one)
 
+text \<open>
+  \noindent The following specification of division on integers centers
+  the modulus around zero.  This is useful e.g.~to define division
+  on Gauss numbers.
+  N.b.: This is not mentioned \cite{leijen01}.
+\<close>
+
 definition rounded_divide :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>  (infixl \<open>rdiv\<close> 70)
   where \<open>k rdiv l = sgn l * ((k + \<bar>l\<bar> div 2) div \<bar>l\<bar>)\<close>
 
 definition rounded_modulo :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>  (infixl \<open>rmod\<close> 70)
   where \<open>k rmod l = (k + \<bar>l\<bar> div 2) mod \<bar>l\<bar> - \<bar>l\<bar> div 2\<close>
+
+text \<open>
+  \noindent Example: @{lemma \<open>k rmod 5 \<in> {-2, -1, 0, 1, 2}\<close> by (auto simp add: rounded_modulo_def)}
+\<close>
+
+lemma signed_take_bit_eq_rmod:
+  \<open>signed_take_bit n k = k rmod (2 ^ Suc n)\<close>
+  by (simp only: rounded_modulo_def power_abs abs_numeral flip: take_bit_eq_mod)
+    (simp add: signed_take_bit_eq_take_bit_shift)
+
+text \<open>
+  \noindent Property @{thm signed_take_bit_eq_rmod [no_vars]} is the key to generalize
+  rounded division to arbitrary structures satisfying \<^class>\<open>ring_bit_operations\<close>,
+  but so far it is not clear what practical relevance that would have.
+\<close>
 
 lemma rdiv_mult_rmod_eq:
   \<open>k rdiv l * l + k rmod l = k\<close>
@@ -117,11 +139,6 @@ proof -
   finally show ?thesis
     by (simp add: rounded_modulo_def algebra_simps)
 qed
-
-lemma signed_take_bit_eq_rmod:
-  \<open>signed_take_bit n k = k rmod (2 ^ Suc n)\<close>
-  by (simp only: rounded_modulo_def power_abs abs_numeral flip: take_bit_eq_mod)
-    (simp add: signed_take_bit_eq_take_bit_shift)
 
 lemma rmod_less_divisor:
   \<open>k rmod l < \<bar>l\<bar> - \<bar>l\<bar> div 2\<close> if \<open>l \<noteq> 0\<close>

@@ -1654,6 +1654,13 @@ qed
 
 subsection \<open>Division on \<^typ>\<open>int\<close>\<close>
 
+text \<open>
+  The following specification of integer division rounds towards minus infinity
+  and is advocated by Donald Knuth. See \cite{leijen01} for an overview and
+  terminology of different possibilities to specify integer division;
+  there division rounding towards minus infinitiy is named ``F-division''.
+\<close>
+
 subsubsection \<open>Basic instantiation\<close>
 
 instantiation int :: "{normalization_semidom, idom_modulo}"
