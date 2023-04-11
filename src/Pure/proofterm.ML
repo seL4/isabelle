@@ -291,27 +291,27 @@ fun fold_proof_atoms all f =
       | app (prf % _) = app prf
       | app (prf1 %% prf2) = app prf1 #> app prf2
       | app (prf as PThm ({serial = i, ...}, Thm_Body {body, ...})) = (fn (x, seen) =>
-          if Inttab.defined seen i then (x, seen)
+          if Intset.member seen i then (x, seen)
           else
             let val (x', seen') =
-              (if all then app (join_proof body) else I) (x, Inttab.update (i, ()) seen)
+              (if all then app (join_proof body) else I) (x, Intset.insert i seen)
             in (f prf x', seen') end)
       | app prf = (fn (x, seen) => (f prf x, seen));
-  in fn prfs => fn x => #1 (fold app prfs (x, Inttab.empty)) end;
+  in fn prfs => fn x => #1 (fold app prfs (x, Intset.empty)) end;
 
 fun fold_body_thms f =
   let
     fun app (PBody {thms, ...}) =
       tap join_thms thms |> fold (fn (i, thm_node) => fn (x, seen) =>
-        if Inttab.defined seen i then (x, seen)
+        if Intset.member seen i then (x, seen)
         else
           let
             val name = thm_node_name thm_node;
             val prop = thm_node_prop thm_node;
             val body = Future.join (thm_node_body thm_node);
-            val (x', seen') = app body (x, Inttab.update (i, ()) seen);
+            val (x', seen') = app body (x, Intset.insert i seen);
           in (f {serial = i, name = name, prop = prop, body = body} x', seen') end);
-  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
+  in fn bodies => fn x => #1 (fold app bodies (x, Intset.empty)) end;
 
 
 (* proof body *)

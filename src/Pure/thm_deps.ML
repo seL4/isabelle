@@ -25,12 +25,12 @@ fun all_oracles thms =
     fun collect (PBody {oracles, thms, ...}) =
       (if null oracles then I else apfst (cons oracles)) #>
       (tap Proofterm.join_thms thms |> fold (fn (i, thm_node) => fn (res, seen) =>
-        if Inttab.defined seen i then (res, seen)
+        if Intset.member seen i then (res, seen)
         else
           let val body = Future.join (Proofterm.thm_node_body thm_node)
-          in collect body (res, Inttab.update (i, ()) seen) end));
+          in collect body (res, Intset.insert i seen) end));
     val bodies = map Thm.proof_body_of thms;
-  in fold collect bodies ([], Inttab.empty) |> #1 |> Proofterm.unions_oracles end;
+  in fold collect bodies ([], Intset.empty) |> #1 |> Proofterm.unions_oracles end;
 
 fun has_skip_proof thms =
   all_oracles thms |> exists (fn ((name, _), _) => name = \<^oracle_name>\<open>skip_proof\<close>);
@@ -112,17 +112,16 @@ fun unused_thms_cmd (base_thys, thys) =
 
     val used =
       Proofterm.fold_body_thms
-        (fn {name = a, ...} => a <> "" ? Symtab.update (a, ()))
+        (fn {name = a, ...} => a <> "" ? Symset.insert a)
         (map Proofterm.strip_thm_body (Thm.proof_bodies_of (map (#1 o #2) new_thms)))
-        Symtab.empty;
+        Symset.empty;
 
-    fun is_unused a = not (Symtab.defined used a);
+    fun is_unused a = not (Symset.member used a);
 
     (*groups containing at least one used theorem*)
     val used_groups =
-      Inttab.build (new_thms |> fold (fn (a, (_, _, group)) =>
-        if is_unused a orelse group = 0 then I
-        else Inttab.update (group, ())));
+      Intset.build (new_thms |> fold (fn (a, (_, _, group)) =>
+        if is_unused a orelse group = 0 then I else Intset.insert group));
 
     val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, seen_groups) =>
       if not concealed andalso
@@ -130,9 +129,9 @@ fun unused_thms_cmd (base_thys, thys) =
         Thm.legacy_get_kind th = Thm.theoremK andalso is_unused a
       then
         (if group = 0 then ((a, th) :: thms, seen_groups)
-         else if Inttab.defined used_groups group orelse Inttab.defined seen_groups group then q
-         else ((a, th) :: thms, Inttab.update (group, ()) seen_groups))
-      else q) new_thms ([], Inttab.empty);
+         else if Intset.member used_groups group orelse Intset.member seen_groups group then q
+         else ((a, th) :: thms, Intset.insert group seen_groups))
+      else q) new_thms ([], Intset.empty);
   in rev thms' end;
 
 end;
