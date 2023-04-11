@@ -753,7 +753,7 @@ fun deriv_rule2 f
   let
     val ps = merge_promises (promises1, promises2);
     val oracles = Oracles.merge (oracles1, oracles2);
-    val thms = Proofterm.union_thms (thms1, thms2);
+    val thms = Proofterm.merge_thms (thms1, thms2);
     val prf =
       (case ! Proofterm.proofs of
         2 => f prf1 prf2
@@ -974,7 +974,7 @@ val arity_proof = proof_of oo the_arity;
 local
 
 fun union_digest (oracles1, thms1) (oracles2, thms2) =
-  (Oracles.merge (oracles1, oracles2), Proofterm.union_thms (thms1, thms2));
+  (Oracles.merge (oracles1, oracles2), Proofterm.merge_thms (thms1, thms2));
 
 fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) =
   (oracles, thms);
