@@ -49,7 +49,6 @@ datatype T =
   Branch3 of T * elem * T * elem * T |
   Size of int * T;
 
-(*literal copy from table.ML*)
 fun make2 (Empty, e, Empty) = Leaf1 e
   | make2 (Branch2 (Empty, e1, Empty), e2, right) = make2 (Leaf1 e1, e2, right)
   | make2 (left, e1, Branch2 (Empty, e2, Empty)) = make2 (left, e1, Leaf1 e2)
@@ -62,7 +61,6 @@ fun make2 (Empty, e, Empty) = Leaf1 e
   | make2 (Empty, e1, Leaf2 (e2, e3)) = Leaf3 (e1, e2, e3)
   | make2 arg = Branch2 arg;
 
-(*literal copy from table.ML*)
 fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
   | make3 (Branch2 (Empty, e1, Empty), e2, mid, e3, right) = make3 (Leaf1 e1, e2, mid, e3, right)
   | make3 (left, e1, Branch2 (Empty, e2, Empty), e3, right) = make3 (left, e1, Leaf1 e2, e3, right)
@@ -72,7 +70,6 @@ fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
   | make3 (Empty, e1, Empty, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
   | make3 arg = Branch3 arg;
 
-(*literal copy from table.ML*)
 fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
   | unmake (Leaf2 (e1, e2)) = Branch3 (Empty, e1, Empty, e2, Empty)
   | unmake (Leaf3 (e1, e2, e3)) =
@@ -341,7 +338,6 @@ fun if_equal ord x y = if is_equal ord then x else y;
 
 exception UNDEF of elem;
 
-(*literal copy from table.ML*)
 fun del (SOME k) Empty = raise UNDEF k
   | del NONE Empty = raise Match
   | del NONE (Leaf1 p) = (p, (true, Empty))
