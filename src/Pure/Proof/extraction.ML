@@ -182,7 +182,7 @@ fun make_proof_body prf =
           | _ => I);
     val body =
       PBody
-       {oracles = Ord_List.make Proofterm.oracle_ord oracles,
+       {oracles = Oracles.make oracles,
         thms = Ord_List.make Proofterm.thm_ord thms,
         proof = prf};
   in Proofterm.thm_body body end;

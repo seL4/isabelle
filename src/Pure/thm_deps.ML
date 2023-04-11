@@ -7,7 +7,7 @@ Dependencies of theorems wrt. internal derivation.
 
 signature THM_DEPS =
 sig
-  val all_oracles: thm list -> Proofterm.oracle list
+  val all_oracles: thm list -> Oracles.T
   val has_skip_proof: thm list -> bool
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
   val thm_deps: theory -> thm list -> (Proofterm.thm_id * Thm_Name.T) list
@@ -23,17 +23,17 @@ struct
 fun all_oracles thms =
   let
     fun collect (PBody {oracles, thms, ...}) =
-      (if null oracles then I else apfst (cons oracles)) #>
+      (if Oracles.is_empty oracles then I else apfst (cons oracles)) #>
       (tap Proofterm.join_thms thms |> fold (fn (i, thm_node) => fn (res, seen) =>
         if Intset.member seen i then (res, seen)
         else
           let val body = Future.join (Proofterm.thm_node_body thm_node)
           in collect body (res, Intset.insert i seen) end));
     val bodies = map Thm.proof_body_of thms;
-  in fold collect bodies ([], Intset.empty) |> #1 |> Proofterm.unions_oracles end;
+  in fold collect bodies ([], Intset.empty) |> #1 |> Oracles.merges end;
 
 fun has_skip_proof thms =
-  all_oracles thms |> exists (fn ((name, _), _) => name = \<^oracle_name>\<open>skip_proof\<close>);
+  all_oracles thms |> Oracles.exists (fn ((name, _), _) => name = \<^oracle_name>\<open>skip_proof\<close>);
 
 fun pretty_thm_oracles ctxt thms =
   let
@@ -44,7 +44,7 @@ fun pretty_thm_oracles ctxt thms =
           prt_ora ora @ [Pretty.str ":", Pretty.brk 1, Syntax.pretty_term_global thy prop];
     val oracles =
       (case try all_oracles thms of
-        SOME oracles => oracles
+        SOME oracles => Oracles.dest oracles
       | NONE => error "Malformed proofs")
   in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) oracles) end;
 
