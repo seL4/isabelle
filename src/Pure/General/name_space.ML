@@ -456,7 +456,7 @@ fun make_accesses naming binding =
         val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
         val sfxs = restrict (mandatory_suffixes spec);
         val pfxs = restrict (mandatory_prefixes spec);
-      in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end);
+      in apply2 (map Long_Name.implode o distinct op =) (sfxs @ pfxs, sfxs) end);
 
 end;
 
