@@ -230,6 +230,7 @@ antiquotations.
       mult_mono_strong
       multeqp_code_iff_reflclp_multp
       multp_code_iff_multp
+      multp_image_mset_image_msetI
       multp_mono_strong
       multp_repeat_mset_repeat_msetI
       total_mult
