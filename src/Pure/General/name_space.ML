@@ -435,6 +435,8 @@ val base_name = full_name global_naming #> Long_Name.base_name;
 
 (* accesses *)
 
+local
+
 fun mandatory xs = fold_rev (fn (x, b) => b ? cons x) xs [];
 
 fun mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
@@ -443,6 +445,8 @@ and mandatory_prefixes1 [] = []
   | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs);
 
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
+
+in
 
 fun make_accesses naming binding =
   (case name_spec naming binding of
@@ -453,6 +457,8 @@ fun make_accesses naming binding =
         val sfxs = restrict (mandatory_suffixes spec);
         val pfxs = restrict (mandatory_prefixes spec);
       in apply2 (map Long_Name.implode) (sfxs @ pfxs, sfxs) end);
+
+end;
 
 
 (* hide *)
