@@ -11,7 +11,7 @@ signature NAME_SPACE =
 sig
   type entry =
    {concealed: bool,
-    group: serial option,
+    group: serial,
     theory_long_name: string,
     pos: Position.T,
     serial: serial}
@@ -108,12 +108,12 @@ struct
 
 type entry =
  {concealed: bool,
-  group: serial option,
+  group: serial,
   theory_long_name: string,
   pos: Position.T,
   serial: serial};
 
-fun entry_markup def kind (name, {pos, theory_long_name, serial, ...}: entry) =
+fun entry_markup def kind (name, {pos, serial, ...}: entry) =
   Position.make_entity_markup def serial kind (name, pos);
 
 fun print_entry_ref kind (name, entry) =
@@ -329,7 +329,7 @@ datatype naming = Naming of
  {scopes: Binding.scope list,
   restricted: (bool * Binding.scope) option,
   concealed: bool,
-  group: serial option,
+  group: serial,
   theory_long_name: string,
   path: (string * bool) list};
 
@@ -379,11 +379,11 @@ fun set_theory_long_name theory_long_name =
   map_naming (fn (scopes, restricted, concealed, group, _, path) =>
     (scopes, restricted, concealed, group, theory_long_name, path));
 
-fun get_group (Naming {group, ...}) = group;
+fun get_group (Naming {group, ...}) = if group = 0 then NONE else SOME group;
 
 fun set_group group =
   map_naming (fn (scopes, restricted, concealed, _, theory_long_name, path) =>
-    (scopes, restricted, concealed, group, theory_long_name, path));
+    (scopes, restricted, concealed, the_default 0 group, theory_long_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
@@ -405,7 +405,7 @@ fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 fun qualified_path mandatory binding = map_path (fn path =>
   path @ Binding.path_of (Binding.qualify_name mandatory binding ""));
 
-val global_naming = make_naming ([], NONE, false, NONE, "", []);
+val global_naming = make_naming ([], NONE, false, 0, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;
 
 

@@ -16,6 +16,8 @@ sig
   val fold: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_rev: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val dest: T -> elem list
+  val min: T -> elem option
+  val max: T -> elem option
   val exists: (elem -> bool) -> T -> bool
   val forall: (elem -> bool) -> T -> bool
   val get_first: (elem -> 'a option) -> T -> 'a option
@@ -25,6 +27,7 @@ sig
   val insert: elem -> T -> T
   val make: elem list -> T
   val merge: T * T -> T
+  val merges: T list -> T
   val remove: elem -> T -> T
   val subtract: T -> T -> T
 end;
@@ -49,7 +52,6 @@ datatype T =
   Branch3 of T * elem * T * elem * T |
   Size of int * T;
 
-(*literal copy from table.ML*)
 fun make2 (Empty, e, Empty) = Leaf1 e
   | make2 (Branch2 (Empty, e1, Empty), e2, right) = make2 (Leaf1 e1, e2, right)
   | make2 (left, e1, Branch2 (Empty, e2, Empty)) = make2 (left, e1, Leaf1 e2)
@@ -62,7 +64,6 @@ fun make2 (Empty, e, Empty) = Leaf1 e
   | make2 (Empty, e1, Leaf2 (e2, e3)) = Leaf3 (e1, e2, e3)
   | make2 arg = Branch2 arg;
 
-(*literal copy from table.ML*)
 fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
   | make3 (Branch2 (Empty, e1, Empty), e2, mid, e3, right) = make3 (Leaf1 e1, e2, mid, e3, right)
   | make3 (left, e1, Branch2 (Empty, e2, Empty), e3, right) = make3 (left, e1, Leaf1 e2, e3, right)
@@ -72,7 +73,6 @@ fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
   | make3 (Empty, e1, Empty, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
   | make3 arg = Branch3 arg;
 
-(*literal copy from table.ML*)
 fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
   | unmake (Leaf2 (e1, e2)) = Branch3 (Empty, e1, Empty, e2, Empty)
   | unmake (Leaf3 (e1, e2, e3)) =
@@ -128,31 +128,54 @@ fun is_empty Empty = true
 
 fun fold_set f =
   let
-    fun fold Empty x = x
-      | fold (Leaf1 e) x = f e x
-      | fold (Leaf2 (e1, e2)) x = f e2 (f e1 x)
-      | fold (Leaf3 (e1, e2, e3)) x = f e3 (f e2 (f e1 x))
-      | fold (Branch2 (left, e, right)) x =
-          fold right (f e (fold left x))
-      | fold (Branch3 (left, e1, mid, e2, right)) x =
-          fold right (f e2 (fold mid (f e1 (fold left x))))
-      | fold (Size (_, arg)) x = fold arg x;
+    fun fold Empty a = a
+      | fold (Leaf1 e) a = f e a
+      | fold (Leaf2 (e1, e2)) a = f e2 (f e1 a)
+      | fold (Leaf3 (e1, e2, e3)) a = f e3 (f e2 (f e1 a))
+      | fold (Branch2 (left, e, right)) a =
+          fold right (f e (fold left a))
+      | fold (Branch3 (left, e1, mid, e2, right)) a =
+          fold right (f e2 (fold mid (f e1 (fold left a))))
+      | fold (Size (_, arg)) a = fold arg a;
   in fold end;
 
 fun fold_rev_set f =
   let
-    fun fold_rev Empty x = x
-      | fold_rev (Leaf1 e) x = f e x
-      | fold_rev (Leaf2 (e1, e2)) x = f e1 (f e2 x)
-      | fold_rev (Leaf3 (e1, e2, e3)) x = f e1 (f e2 (f e3 x))
-      | fold_rev (Branch2 (left, e, right)) x =
-          fold_rev left (f e (fold_rev right x))
-      | fold_rev (Branch3 (left, e1, mid, e2, right)) x =
-          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right x))))
-      | fold_rev (Size (_, arg)) x = fold_rev arg x;
+    fun fold_rev Empty a = a
+      | fold_rev (Leaf1 e) a = f e a
+      | fold_rev (Leaf2 (e1, e2)) a = f e1 (f e2 a)
+      | fold_rev (Leaf3 (e1, e2, e3)) a = f e1 (f e2 (f e3 a))
+      | fold_rev (Branch2 (left, e, right)) a =
+          fold_rev left (f e (fold_rev right a))
+      | fold_rev (Branch3 (left, e1, mid, e2, right)) a =
+          fold_rev left (f e1 (fold_rev mid (f e2 (fold_rev right a))))
+      | fold_rev (Size (_, arg)) a = fold_rev arg a;
   in fold_rev end;
 
 val dest = Library.build o fold_rev_set cons;
+
+
+(* min/max entries *)
+
+fun min Empty = NONE
+  | min (Leaf1 e) = SOME e
+  | min (Leaf2 (e, _)) = SOME e
+  | min (Leaf3 (e, _, _)) = SOME e
+  | min (Branch2 (Empty, e, _)) = SOME e
+  | min (Branch3 (Empty, e, _, _, _)) = SOME e
+  | min (Branch2 (left, _, _)) = min left
+  | min (Branch3 (left, _, _, _, _)) = min left
+  | min (Size (_, arg)) = min arg;
+
+fun max Empty = NONE
+  | max (Leaf1 e) = SOME e
+  | max (Leaf2 (_, e)) = SOME e
+  | max (Leaf3 (_, _, e)) = SOME e
+  | max (Branch2 (_, e, Empty)) = SOME e
+  | max (Branch3 (_, _, _, e, Empty)) = SOME e
+  | max (Branch2 (_, _, right)) = max right
+  | max (Branch3 (_, _, _, _, right)) = max right
+  | max (Size (_, arg)) = max arg;
 
 
 (* exists and forall *)
@@ -321,6 +344,9 @@ fun insert elem set =
 
 fun make elems = build (fold insert elems);
 
+
+(* merge *)
+
 fun merge (set1, set2) =
   if pointer_eq (set1, set2) then set1
   else if is_empty set1 then set2
@@ -328,6 +354,8 @@ fun merge (set1, set2) =
   else if size set1 >= size set2
   then fold_set insert set2 set1
   else fold_set insert set1 set2;
+
+fun merges sets = Library.foldl merge (empty, sets);
 
 
 (* remove *)
@@ -341,7 +369,6 @@ fun if_equal ord x y = if is_equal ord then x else y;
 
 exception UNDEF of elem;
 
-(*literal copy from table.ML*)
 fun del (SOME k) Empty = raise UNDEF k
   | del NONE Empty = raise Match
   | del NONE (Leaf1 p) = (p, (true, Empty))

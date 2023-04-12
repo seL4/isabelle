@@ -51,21 +51,10 @@ fun nts_is_unique (nts: nts) = Intset.size nts <= 1;
 
 (* tokens *)
 
-structure Tokens = Table(type key = Lexicon.token val ord = Lexicon.tokens_match_ord);
+structure Tokens = Set(type key = Lexicon.token val ord = Lexicon.tokens_match_ord);
 
-type tokens = Tokens.set;
-val tokens_empty: tokens = Tokens.empty;
-val tokens_merge: tokens * tokens -> tokens = Tokens.merge (K true);
-fun tokens_insert tk : tokens -> tokens = Tokens.insert_set tk;
-fun tokens_remove tk : tokens -> tokens = Tokens.remove_set tk;
-fun tokens_member (tokens: tokens) = Tokens.defined tokens;
-fun tokens_is_empty (tokens: tokens) = Tokens.is_empty tokens;
-fun tokens_fold f (tokens: tokens) = Tokens.fold (f o #1) tokens;
-val tokens_union = tokens_fold tokens_insert;
-val tokens_subtract = tokens_fold tokens_remove;
-fun tokens_find P (tokens: tokens) =
-  Tokens.get_first (fn (tok, ()) => if P tok then SOME tok else NONE) tokens;
-fun tokens_add (nt: nt, tokens) = if tokens_is_empty tokens then I else cons (nt, tokens);
+fun tokens_find P tokens = Tokens.get_first (fn tok => if P tok then SOME tok else NONE) tokens;
+fun tokens_add (nt: nt, tokens) = if Tokens.is_empty tokens then I else cons (nt, tokens);
 
 
 (* productions *)
@@ -74,17 +63,18 @@ datatype symb =
   Terminal of Lexicon.token |
   Nonterminal of nt * int;  (*(tag, prio)*)
 
-type prods = (symb list * string * int) list Tokens.table;  (*start_token ~> [(rhs, name, prio)]*)
+structure Prods = Table(Tokens.Key);
+type prods = (symb list * string * int) list Prods.table;  (*start_token ~> [(rhs, name, prio)]*)
 
-val prods_empty: prods = Tokens.empty;
-fun prods_lookup (prods: prods) = Tokens.lookup_list prods;
-fun prods_update entry : prods -> prods = Tokens.update entry;
-fun prods_content (prods: prods) = distinct (op =) (maps #2 (Tokens.dest prods));
+val prods_empty: prods = Prods.empty;
+fun prods_lookup (prods: prods) = Prods.lookup_list prods;
+fun prods_update entry : prods -> prods = Prods.update entry;
+fun prods_content (prods: prods) = distinct (op =) (maps #2 (Prods.dest prods));
 
-type nt_gram = (nts * tokens) * prods; (*dependent_nts, start_tokens, prods*)
+type nt_gram = (nts * Tokens.T) * prods; (*dependent_nts, start_tokens, prods*)
   (*depent_nts is a set of all NTs whose lookahead depends on this NT's lookahead*)
 
-val nt_gram_empty: nt_gram = ((nts_empty, tokens_empty), prods_empty);
+val nt_gram_empty: nt_gram = ((nts_empty, Tokens.empty), prods_empty);
 
 type chains = unit Int_Graph.T;
 fun chains_preds (chains: chains) = Int_Graph.immediate_preds chains;
@@ -116,7 +106,7 @@ val unknown_start = Lexicon.eof;
 
 fun get_start tks =
   (case Tokens.min tks of
-    SOME (tk, _) => tk
+    SOME tk => tk
   | NONE => unknown_start);
 
 fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
@@ -149,8 +139,8 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
             let
               val ((to_nts, to_tks), ps) = Array.sub (prods, to);
 
-              val new_tks = tokens_subtract to_tks from_tks;  (*added lookahead tokens*)
-              val to_tks' = tokens_merge (to_tks, new_tks);
+              val new_tks = Tokens.subtract to_tks from_tks;  (*added lookahead tokens*)
+              val to_tks' = Tokens.merge (to_tks, new_tks);
               val _ = Array.update (prods, to, ((to_nts, to_tks'), ps));
             in tokens_add (to, new_tks) end;
 
@@ -204,12 +194,12 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                               is_none tk andalso nts_subset (nts, lambdas);
 
                             val new_tks =
-                              tokens_empty
-                              |> fold tokens_insert (the_list tk)
-                              |> nts_fold (tokens_union o starts_for_nt) nts
-                              |> tokens_subtract l_starts;
+                              Tokens.empty
+                              |> fold Tokens.insert (the_list tk)
+                              |> nts_fold (curry Tokens.merge o starts_for_nt) nts
+                              |> Tokens.subtract l_starts;
 
-                            val added_tks' = tokens_merge (added_tks, new_tks);
+                            val added_tks' = Tokens.merge (added_tks, new_tks);
 
                             val nt_dependencies' = nts_merge (nt_dependencies, nts);
 
@@ -218,7 +208,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                               prods_update (tk, p :: prods_lookup nt_prods tk) nt_prods;
 
                             val nt_prods' = nt_prods
-                              |> tokens_fold copy new_tks
+                              |> Tokens.fold copy new_tks
                               |> new_lambda ? copy Lexicon.dummy;
                           in
                             examine_prods ps (add_lambda orelse new_lambda)
@@ -239,10 +229,10 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                     (*add_lambda is true if an existing production of the nt
                       produces lambda due to the new lambda NT l*)
                     val (add_lambda, nt_dependencies, added_tks, nt_prods') =
-                      examine_prods tk_prods false nts_empty tokens_empty nt_prods;
+                      examine_prods tk_prods false nts_empty Tokens.empty nt_prods;
 
                     val new_nts = nts_merge (old_nts, nt_dependencies);
-                    val new_tks = tokens_merge (old_tks, added_tks);
+                    val new_tks = Tokens.merge (old_tks, added_tks);
 
                     val added_lambdas' = added_lambdas |> add_lambda ? cons nt;
                     val _ = Array.update (prods, nt, ((new_nts, new_tks), nt_prods'));
@@ -276,14 +266,14 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
           val (start_tk, start_nts) = lookahead_dependency lambdas' rhs nts_empty;
 
           val start_tks =
-            tokens_empty
-            |> fold tokens_insert (the_list start_tk)
-            |> nts_fold (tokens_union o starts_for_nt) start_nts;
+            Tokens.empty
+            |> fold Tokens.insert (the_list start_tk)
+            |> nts_fold (curry Tokens.merge o starts_for_nt) start_nts;
 
           val start_tks' =
             start_tks
-            |> (if is_some new_lambdas then tokens_insert Lexicon.dummy
-                else if tokens_is_empty start_tks then tokens_insert unknown_start
+            |> (if is_some new_lambdas then Tokens.insert Lexicon.dummy
+                else if Tokens.is_empty start_tks then Tokens.insert unknown_start
                 else I);
 
           (*add lhs NT to list of dependent NTs in lookahead*)
@@ -302,7 +292,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                 let
                   val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                  val new_tks = tokens_subtract old_tks start_tks;
+                  val new_tks = Tokens.subtract old_tks start_tks;
 
                   (*store new production*)
                   fun store tk (prods, _) =
@@ -313,12 +303,12 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                     in (prods', true) end;
 
                   val (nt_prods', changed) = (nt_prods, false)
-                    |> nt = lhs ? tokens_fold store start_tks';
+                    |> nt = lhs ? Tokens.fold store start_tks';
                   val _ =
-                    if not changed andalso tokens_is_empty new_tks then ()
+                    if not changed andalso Tokens.is_empty new_tks then ()
                     else
                       Array.update
-                        (prods, nt, ((old_nts, tokens_merge (old_tks, new_tks)), nt_prods'));
+                        (prods, nt, ((old_nts, Tokens.merge (old_tks, new_tks)), nt_prods'));
                 in add_tks nts (tokens_add (nt, new_tks) added) end;
           val _ = nts_fold add_nts start_nts true;
         in add_tks (chains_all_succs chains' [lhs]) [] end;
@@ -333,7 +323,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                 (*token under which old productions which
                   depend on changed_nt could be stored*)
                 val key =
-                  tokens_find (not o tokens_member new_tks) (starts_for_nt changed_nt)
+                  tokens_find (not o Tokens.member new_tks) (starts_for_nt changed_nt)
                   |> the_default unknown_start;
 
                 (*copy productions whose lookahead depends on changed_nt;
@@ -354,7 +344,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                         val lambda =
                           not (nts_is_unique depends) orelse
                           not (nts_is_empty depends) andalso is_some tk
-                          andalso tokens_member new_tks (the tk);
+                          andalso Tokens.member new_tks (the tk);
 
                         (*associate production with new starting tokens*)
                         fun copy tk nt_prods =
@@ -367,7 +357,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                                  have to look for duplicates*)
                           in prods_update (tk, tk_prods') nt_prods end;
                         val result =
-                          if update then (tk_prods, tokens_fold copy new_tks nt_prods)
+                          if update then (tk_prods, Tokens.fold copy new_tks nt_prods)
                           else if key = unknown_start then (p :: tk_prods, nt_prods)
                           else (tk_prods, nt_prods);
                       in update_prods ps result end;
@@ -387,8 +377,8 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                         prods_update (key, tk_prods') nt_prods'
                       else nt_prods';
 
-                    val added_tks = tokens_subtract tks new_tks;
-                    val tks' = tokens_merge (tks, added_tks);
+                    val added_tks = Tokens.subtract tks new_tks;
+                    val tks' = Tokens.merge (tks, added_tks);
                     val _ = Array.update (prods, nt, ((nts, tks'), nt_prods''));
                   in tokens_add (nt, added_tks) end;
 

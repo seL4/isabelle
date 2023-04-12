@@ -224,11 +224,11 @@ fun read_proof thy topsort =
 
 fun proof_syntax prf =
   let
-    val thm_names = Symtab.keys (Proofterm.fold_proof_atoms true
-      (fn PThm ({name, ...}, _) => if name <> "" then Symtab.update (name, ()) else I
-        | _ => I) [prf] Symtab.empty);
-    val axm_names = Symtab.keys (Proofterm.fold_proof_atoms true
-      (fn PAxm (name, _, _) => Symtab.update (name, ()) | _ => I) [prf] Symtab.empty);
+    val thm_names = Symset.dest (Proofterm.fold_proof_atoms true
+      (fn PThm ({name, ...}, _) => if name <> "" then Symset.insert name else I
+        | _ => I) [prf] Symset.empty);
+    val axm_names = Symset.dest (Proofterm.fold_proof_atoms true
+      (fn PAxm (name, _, _) => Symset.insert name | _ => I) [prf] Symset.empty);
   in
     add_proof_syntax #>
     add_proof_atom_consts

@@ -701,7 +701,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{define_ML Theory.add_deps: "Defs.context -> string ->
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
-  @{define_ML Thm_Deps.all_oracles: "thm list -> Proofterm.oracle list"} \\
+  @{define_ML Thm_Deps.all_oracles: "thm list -> Oracles.T"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Logic.all\<close>~\<open>a B\<close> produces a Pure quantification \<open>\<And>a. B\<close>, where
