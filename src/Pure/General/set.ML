@@ -23,6 +23,7 @@ sig
   val get_first: (elem -> 'a option) -> T -> 'a option
   val member: T -> elem -> bool
   val subset: T * T -> bool
+  val eq_set: T * T -> bool
   val ord: T ord
   val insert: elem -> T -> T
   val make: elem list -> T
@@ -277,6 +278,9 @@ fun member set elem =
 (* subset and order *)
 
 fun subset (set1, set2) = forall (member set2) set1;
+
+fun eq_set (set1, set2) =
+  pointer_eq (set1, set2) orelse size set1 = size set2 andalso subset (set1, set2);
 
 val ord =
   pointer_eq_ord (fn sets =>
