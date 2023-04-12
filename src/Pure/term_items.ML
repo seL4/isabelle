@@ -78,7 +78,7 @@ fun add_set x (Table tab) =
 fun make_set xs = build (fold add_set xs);
 
 fun subset (A: set, B: set) = forall (defined B o #1) A;
-fun eq_set (A: set, B: set) = size A = size B andalso subset (A, B);
+fun eq_set (A: set, B: set) = pointer_eq (A, B) orelse size A = size B andalso subset (A, B);
 
 fun list_set_ord ord (Table tab) = tab |> Table.dest |> sort (ord o apply2 #2) |> map #1;
 val list_set = list_set_ord int_ord;
