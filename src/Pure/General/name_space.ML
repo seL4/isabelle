@@ -435,7 +435,7 @@ val base_name = full_name global_naming #> Long_Name.base_name;
 
 (* accesses *)
 
-fun mandatory xs = map_filter (fn (x, true) => SOME x | _ => NONE) xs;
+fun mandatory xs = fold_rev (fn (x, b) => b ? cons x) xs [];
 
 fun mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
 and mandatory_prefixes1 [] = []
