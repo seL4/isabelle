@@ -91,9 +91,39 @@ by(auto simp add: isin_insert set_trie_def)
 lemma set_trie_delete: "set_trie(delete xs t) = set_trie t - {xs}"
 by(auto simp add: isin_delete set_trie_def)
 
+text \<open>Invariant: tries are fully shrunk:\<close>
+fun invar where
+"invar Lf = True" |
+"invar (Nd b (l,r)) = (invar l \<and> invar r \<and> (l = Lf \<and> r = Lf \<longrightarrow> b))"
+
+lemma insert_Lf: "insert xs t \<noteq> Lf"
+using insert.elims by blast
+
+lemma invar_insert: "invar t \<Longrightarrow> invar(insert xs t)"
+proof(induction xs t rule: insert.induct)
+  case 1 thus ?case by simp
+next
+  case (2 b lr)
+  thus ?case by(cases lr; simp)
+next
+  case (3 k ks)
+  thus ?case by(simp; cases ks; auto)
+next
+  case (4 k ks b lr)
+  then show ?case by(cases lr; auto simp: insert_Lf)
+qed
+
+lemma invar_delete: "invar t \<Longrightarrow> invar(delete xs t)"
+proof(induction t arbitrary: xs)
+  case Lf thus ?case by simp
+next
+  case (Nd b lr)
+  thus ?case by(cases lr)(auto split: list.split)
+qed
+
 interpretation S: Set
 where empty = empty and isin = isin and insert = insert and delete = delete
-and set = set_trie and invar = "\<lambda>t. True"
+and set = set_trie and invar = invar
 proof (standard, goal_cases)
   case 1 show ?case by (rule set_trie_empty)
 next
@@ -102,12 +132,23 @@ next
   case 3 thus ?case by(auto simp: set_trie_insert)
 next
   case 4 show ?case by(rule set_trie_delete)
-qed (rule TrueI)+
+next
+  case 5 show ?case by(simp)
+next
+  case 6 thus ?case by(rule invar_insert)
+next
+  case 7 thus ?case by(rule invar_delete)
+qed
 
 
 subsection "Patricia Trie"
 
 datatype trieP = LfP | NdP "bool list" bool "trieP * trieP"
+
+text \<open>Fully shrunk:\<close>
+fun invarP where
+"invarP LfP = True" |
+"invarP (NdP ps b (l,r)) = (invarP l \<and> invarP r \<and> (l = LfP \<or> r = LfP \<longrightarrow> b))"
 
 fun isinP :: "trieP \<Rightarrow> bool list \<Rightarrow> bool" where
 "isinP LfP ks = False" |
@@ -120,12 +161,12 @@ fun isinP :: "trieP \<Rightarrow> bool list \<Rightarrow> bool" where
 definition emptyP :: trieP where
 [simp]: "emptyP = LfP"
 
-fun split where
-"split [] ys = ([],[],ys)" |
-"split xs [] = ([],xs,[])" |
-"split (x#xs) (y#ys) =
+fun lcp :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<times> 'a list \<times> 'a list" where
+"lcp [] ys = ([],[],ys)" |
+"lcp xs [] = ([],xs,[])" |
+"lcp (x#xs) (y#ys) =
   (if x\<noteq>y then ([],x#xs,y#ys)
-   else let (ps,xs',ys') = split xs ys in (x#ps,xs',ys'))"
+   else let (ps,xs',ys') = lcp xs ys in (x#ps,xs',ys'))"
 
 
 lemma mod2_cong[fundef_cong]:
@@ -137,7 +178,7 @@ by(cases lr, cases lr', auto)
 fun insertP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
 "insertP ks LfP  = NdP ks True (LfP,LfP)" |
 "insertP ks (NdP ps b lr) =
-  (case split ks ps of
+  (case lcp ks ps of
      (qs, k#ks', p#ps') \<Rightarrow>
        let tp = NdP ps' b lr; tk = NdP ks' True (LfP,LfP) in
        NdP qs False (if k then (tp,tk) else (tk,tp)) |
@@ -149,16 +190,24 @@ fun insertP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
      (qs,[],[]) \<Rightarrow> NdP ps True lr)"
 
 
-fun nodeP :: "bool list \<Rightarrow> bool \<Rightarrow> trieP * trieP \<Rightarrow> trieP" where
-"nodeP ps b lr = (if \<not> b \<and> lr = (LfP,LfP) then LfP else NdP ps b lr)"
+text \<open>Smart constructor that shrinks:\<close>
+definition nodeP :: "bool list \<Rightarrow> bool \<Rightarrow> trieP * trieP \<Rightarrow> trieP" where
+"nodeP ps b lr =
+ (if b then  NdP ps b lr
+  else case lr of
+   (LfP,LfP) \<Rightarrow> LfP |
+   (LfP, NdP ks b lr) \<Rightarrow> NdP (ps @ True # ks) b lr |
+   (NdP ks b lr, LfP) \<Rightarrow> NdP (ps @ False # ks) b lr |
+   _ \<Rightarrow> NdP ps b lr)"
 
 fun deleteP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
 "deleteP ks LfP  = LfP" |
 "deleteP ks (NdP ps b lr) =
-  (case split ks ps of
+  (case lcp ks ps of
      (_, _, _#_) \<Rightarrow> NdP ps b lr |
      (_, k#ks', []) \<Rightarrow> nodeP ps b (mod2 (deleteP ks') k lr) |
      (_, [], []) \<Rightarrow> nodeP ps False lr)"
+
 
 
 subsubsection \<open>Functional Correctness\<close>
@@ -214,9 +263,9 @@ apply(induction ps)
 apply auto
 done
 
-lemma split_if: "split ks ps = (qs, ks', ps') \<Longrightarrow>
+lemma lcp_if: "lcp ks ps = (qs, ks', ps') \<Longrightarrow>
   ks = qs @ ks' \<and> ps = qs @ ps' \<and> (ks' \<noteq> [] \<and> ps' \<noteq> [] \<longrightarrow> hd ks' \<noteq> hd ps')"
-apply(induction ks ps arbitrary: qs ks' ps' rule: split.induct)
+apply(induction ks ps arbitrary: qs ks' ps' rule: lcp.induct)
 apply(auto split: prod.splits if_splits)
 done
 
@@ -224,7 +273,7 @@ lemma abs_trieP_insertP:
   "abs_trieP (insertP ks t) = insert ks (abs_trieP t)"
 apply(induction t arbitrary: ks)
 apply(auto simp: prefix_trie_Lfs insert_prefix_trie_same insert_append prefix_trie_append
-           dest!: split_if split: list.split prod.split if_splits)
+           dest!: lcp_if split: list.split prod.split if_splits)
 done
 
 
@@ -246,13 +295,51 @@ lemma delete_append_prefix_trie:
    = (if delete ys t = Lf then Lf else prefix_trie xs (delete ys t))"
 by(induction xs)(auto simp: prefix_trie_Lf)
 
+lemma nodeP_LfP2: "nodeP xs False (LfP, LfP) = LfP"
+by(simp add: nodeP_def)
+
+text \<open>Some non-inductive aux. lemmas:\<close>
+
+lemma abs_trieP_nodeP: "a\<noteq>LfP \<or> b \<noteq> LfP \<Longrightarrow>
+  abs_trieP (nodeP xs f (a, b)) = prefix_trie xs (Nd f (abs_trieP a, abs_trieP b))"
+by(auto simp add: nodeP_def prefix_trie_append split: trieP.split)
+
+lemma nodeP_True: "nodeP ps True lr = NdP ps True lr"
+by(simp add: nodeP_def)
+
 lemma delete_abs_trieP:
   "delete ks (abs_trieP t) = abs_trieP (deleteP ks t)"
 apply(induction t arbitrary: ks)
 apply(auto simp: delete_prefix_trie delete_append_prefix_trie
-        prefix_trie_append prefix_trie_Lf abs_trieP_Lf
-        dest!: split_if split: if_splits list.split prod.split)
+        prefix_trie_append prefix_trie_Lf abs_trieP_Lf nodeP_LfP2 abs_trieP_nodeP nodeP_True
+        dest!: lcp_if split: if_splits list.split prod.split)
 done
+
+text \<open>Invariant preservation:\<close>
+
+lemma insertP_LfP: "insertP xs t \<noteq> LfP"
+by(cases t)(auto split: prod.split list.split)
+
+lemma invarP_insertP: "invarP t \<Longrightarrow> invarP(insertP xs t)"
+proof(induction t arbitrary: xs)
+  case LfP thus ?case by simp
+next
+  case (NdP bs b lr)
+  then show ?case
+    by(cases lr)(auto simp: insertP_LfP split: prod.split list.split)
+qed
+
+(* Inlining this proof leads to nontermination *)
+lemma invarP_nodeP: "\<lbrakk> invarP t1; invarP t2\<rbrakk> \<Longrightarrow> invarP (nodeP xs b (t1, t2))"
+by (auto simp add: nodeP_def split: trieP.split)
+
+lemma invarP_deleteP: "invarP t \<Longrightarrow> invarP(deleteP xs t)"
+proof(induction t arbitrary: xs)
+  case LfP thus ?case by simp
+next
+  case (NdP ks b lr)
+  thus ?case by(cases lr)(auto simp: invarP_nodeP split: prod.split list.split)
+qed
 
 
 text \<open>The overall correctness proof. Simply composes correctness lemmas.\<close>
@@ -271,7 +358,7 @@ by(auto simp: set_trie_delete set_trieP_def simp flip: delete_abs_trieP)
 
 interpretation SP: Set
 where empty = emptyP and isin = isinP and insert = insertP and delete = deleteP
-and set = set_trieP and invar = "\<lambda>t. True"
+and set = set_trieP and invar = invarP
 proof (standard, goal_cases)
   case 1 show ?case by (simp add: set_trieP_def set_trie_def)
 next
@@ -280,6 +367,12 @@ next
   case 3 thus ?case by (auto simp: set_trieP_insertP)
 next
   case 4 thus ?case by(auto simp: set_trieP_deleteP)
-qed (rule TrueI)+
+next
+  case 5 thus ?case by(simp)
+next
+  case 6 thus ?case by(rule invarP_insertP)
+next
+  case 7 thus ?case by(rule invarP_deleteP)
+qed
 
 end
