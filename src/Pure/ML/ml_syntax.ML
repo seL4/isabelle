@@ -139,8 +139,14 @@ fun pretty_string max_len str =
       else take (Int.max (max_len, 0)) body @ ["..."];
   in Pretty.str (quote (implode (map print_symbol body'))) end;
 
+fun pretty_string' depth = pretty_string (FixedInt.toInt (depth * 100));
+
 val _ =
   ML_system_pp (fn depth => fn _ => fn str =>
-    Pretty.to_polyml (pretty_string (FixedInt.toInt (depth * 100)) str));
+    Pretty.to_polyml (pretty_string' depth str));
+
+val _ =
+  ML_system_pp (fn depth => fn _ => fn chunks =>
+    Pretty.to_polyml (pretty_string' depth (Long_Name.implode_chunks chunks)));
 
 end;
