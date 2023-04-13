@@ -489,6 +489,47 @@ lemma mset_le_single_right_iff[simp]:
   by (meson less_eq_multiset_def mset_lt_single_right_iff)
 
 
+subsubsection \<open>Simplifications\<close>
+
+lemma multp\<^sub>H\<^sub>O_repeat_mset_repeat_mset[simp]:
+  assumes "n \<noteq> 0"
+  shows "multp\<^sub>H\<^sub>O R (repeat_mset n A) (repeat_mset n B) \<longleftrightarrow> multp\<^sub>H\<^sub>O R A B"
+proof (rule iffI)
+  assume hyp: "multp\<^sub>H\<^sub>O R (repeat_mset n A) (repeat_mset n B)"
+  hence
+    1: "repeat_mset n A \<noteq> repeat_mset n B" and
+    2: "\<forall>y. n * count B y < n * count A y \<longrightarrow> (\<exists>x. R y x \<and> n * count A x < n * count B x)"
+    by (simp_all add: multp\<^sub>H\<^sub>O_def)
+
+  from 1 \<open>n \<noteq> 0\<close> have "A \<noteq> B"
+    by auto
+
+  moreover from 2 \<open>n \<noteq> 0\<close> have "\<forall>y. count B y < count A y \<longrightarrow> (\<exists>x. R y x \<and> count A x < count B x)"
+    by auto
+
+  ultimately show "multp\<^sub>H\<^sub>O R A B"
+    by (simp add: multp\<^sub>H\<^sub>O_def)
+next
+  assume "multp\<^sub>H\<^sub>O R A B"
+  hence 1: "A \<noteq> B" and 2: "\<forall>y. count B y < count A y \<longrightarrow> (\<exists>x. R y x \<and> count A x < count B x)"
+    by (simp_all add: multp\<^sub>H\<^sub>O_def)
+
+  from 1 have "repeat_mset n A \<noteq> repeat_mset n B"
+    by (simp add: assms repeat_mset_cancel1)
+
+  moreover from 2 have "\<forall>y. n * count B y < n * count A y \<longrightarrow>
+    (\<exists>x. R y x \<and> n * count A x < n * count B x)"
+    by auto
+
+  ultimately show "multp\<^sub>H\<^sub>O R (repeat_mset n A) (repeat_mset n B)"
+    by (simp add: multp\<^sub>H\<^sub>O_def)
+qed
+
+lemma multp\<^sub>H\<^sub>O_double_double[simp]: "multp\<^sub>H\<^sub>O R (A + A) (B + B) \<longleftrightarrow> multp\<^sub>H\<^sub>O R A B"
+  using multp\<^sub>H\<^sub>O_repeat_mset_repeat_mset[of 2]
+  by (simp add: numeral_Bit0)
+
+
 subsection \<open>Simprocs\<close>
 
 lemma mset_le_add_iff1:

@@ -246,8 +246,10 @@ antiquotations.
       irreflp_on_multpHO[simp]
       multpDM_mono_strong
       multpDM_plus_plusI[simp]
+      multpHO_double_double[simp]
       multpHO_mono_strong
       multpHO_plus_plus[simp]
+      multpHO_repeat_mset_repeat_mset[simp]
       strict_subset_implies_multpDM
       strict_subset_implies_multpHO
       totalp_multpDM
