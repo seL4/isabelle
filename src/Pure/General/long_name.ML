@@ -66,12 +66,6 @@ fun qualify qual name =
   if qual = "" orelse name = "" then name
   else qual ^ separator ^ name;
 
-fun qualifier "" = ""
-  | qualifier name = implode (#1 (split_last (explode name)));
-
-fun base_name "" = ""
-  | base_name name = List.last (explode name);
-
 fun map_base_name _ "" = ""
   | map_base_name f name =
       let val names = explode name
@@ -184,5 +178,18 @@ end;
 end;
 
 structure Chunks = Change_Table(type key = chunks val ord = compare_chunks);
+
+
+(* split name *)
+
+fun qualifier name =
+  if is_qualified name
+  then String.substring (name, 0, Int.max (0, List.last (expand_chunks #2 (chunks name)) - 1))
+  else "";
+
+fun base_name name =
+  if is_qualified name
+  then String.substring (List.last (expand_chunks I (chunks name)))
+  else name;
 
 end;
