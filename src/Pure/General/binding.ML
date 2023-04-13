@@ -43,7 +43,7 @@ sig
   val bad: binding -> string
   val check: binding -> unit
   val name_spec: scope list -> (string * bool) list -> binding ->
-    {restriction: bool option, concealed: bool, spec: (string * bool) list}
+    {restriction: bool option, concealed: bool, spec: (string * bool) list, full_name: string}
 end;
 
 structure Binding: BINDING =
@@ -211,8 +211,10 @@ fun name_spec scopes path binding =
     val _ =
       exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso error (bad binding);
-  in {restriction = restriction, concealed = concealed, spec = if null spec2 then [] else spec} end;
 
+    val spec' = if null spec2 then [] else spec;
+    val full_name = Long_Name.implode (map #1 spec');
+  in {restriction = restriction, concealed = concealed, spec = spec', full_name = full_name} end;
 
 end;
 

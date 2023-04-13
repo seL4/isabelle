@@ -428,10 +428,8 @@ fun transform_binding (Naming {restricted, concealed, ...}) =
 fun name_spec naming binding =
   Binding.name_spec (get_scopes naming) (get_path naming) (transform_binding naming binding);
 
-fun full_name naming =
-  name_spec naming #> #spec #> map #1 #> Long_Name.implode;
-
-val base_name = full_name global_naming #> Long_Name.base_name;
+val full_name = #full_name oo name_spec;
+val base_name = Long_Name.base_name o full_name global_naming;
 
 
 (* accesses *)
@@ -450,14 +448,17 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 in
 
 fun make_accesses naming binding =
-  (case name_spec naming binding of
-    {restriction = SOME true, ...} => ([], [])
-  | {restriction, spec, ...} =>
-      let
-        val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
-        val sfxs = restrict (mandatory_suffixes spec);
-        val pfxs = restrict (mandatory_prefixes spec);
-      in apply2 (map Long_Name.implode o distinct op =) (sfxs @ pfxs, sfxs) end);
+  let
+    val args as {restriction, spec, ...} = name_spec naming binding;
+    val accesses =
+      if restriction = SOME true then ([], [])
+      else
+        let
+          val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
+          val sfxs = restrict (mandatory_suffixes spec);
+          val pfxs = restrict (mandatory_prefixes spec);
+        in apply2 (map Long_Name.implode o distinct op =) (sfxs @ pfxs, sfxs) end;
+  in (accesses, args) end;
 
 end;
 
@@ -487,7 +488,7 @@ fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, externals) =>
     let
       val _ = the_entry space name;
-      val (more_accs, more_accs') = make_accesses naming binding;
+      val (more_accs, more_accs') = #1 (make_accesses naming binding);
       val internals' = internals |> fold (add_name name) more_accs;
       val externals' = externals
         |> Change_Table.map_entry name (fn {accesses, accesses', entry} =>
@@ -529,10 +530,7 @@ fun declare context strict binding space =
   let
     val naming = naming_of context;
     val Naming {group, theory_long_name, ...} = naming;
-    val {concealed, spec, ...} = name_spec naming binding;
-    val (accesses, accesses') = make_accesses naming binding;
-
-    val name = Long_Name.implode (map fst spec);
+    val ((accesses, accesses'), {concealed, full_name = name, ...}) = make_accesses naming binding;
     val _ = name = "" andalso error (Binding.bad binding);
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
