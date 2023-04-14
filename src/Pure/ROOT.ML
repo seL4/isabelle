@@ -72,6 +72,7 @@ ML_file "General/same.ML";
 ML_file "General/ord_list.ML";
 ML_file "General/balanced_tree.ML";
 ML_file "General/linear_set.ML";
+ML_file "General/change_table.ML";
 ML_file "General/buffer.ML";
 ML_file "General/pretty.ML";
 ML_file "General/rat.ML";
@@ -96,7 +97,6 @@ ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";
 ML_file "General/socket_io.ML";
 
-ML_file "General/change_table.ML";
 ML_file "General/graph.ML";
 
 ML_file "System/options.ML";
