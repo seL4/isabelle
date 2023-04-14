@@ -383,10 +383,10 @@ object File {
   final class Content private[File](val path: Path, val content: Bytes) {
     override def toString: String = path.toString
 
-    def write(dir: Path): Unit = {
+    def write(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
       val full_path = dir + path
-      Isabelle_System.make_directory(full_path.expand.dir)
-      Bytes.write(full_path, content)
+      ssh.make_directory(ssh.expand_path(full_path).dir)
+      ssh.write_bytes(full_path, content)
     }
   }
 

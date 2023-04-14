@@ -28,9 +28,6 @@ object Rsync {
   ) {
     override def toString: String = directory.toString
 
-    def no_progress: Context = new Context(directory, new Progress, archive, stats)
-    def no_archive: Context = new Context(directory, progress, false, stats)
-
     def ssh: SSH.System = directory.ssh
 
     def command: String = {
@@ -70,17 +67,4 @@ object Rsync {
         if_proper(args, " " + Bash.strings(args))
     progress.bash(script, echo = true)
   }
-
-  def init(context: Context, target: Path,
-    contents: List[File.Content] = Nil
-  ): Unit =
-    Isabelle_System.with_tmp_dir("sync") { tmp_dir =>
-      val init_dir = Isabelle_System.make_directory(tmp_dir + Path.explode("init"))
-      contents.foreach(_.write(init_dir))
-      exec(context.no_archive,
-        thorough = true,
-        args =
-          List(if (contents.nonEmpty) "--archive" else "--dirs",
-            File.bash_path(init_dir) + "/.", context.target(target))).check
-    }
 }
