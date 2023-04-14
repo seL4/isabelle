@@ -110,13 +110,11 @@ val space = chr 32;
 fun is_space s = s = space;
 
 local
-  val small_spaces = Vector.tabulate (65, fn i => replicate_string i space);
+  val spaces0 = Vector.tabulate (65, fn i => replicate_string i space);
 in
   fun spaces n =
-    if n < 64 then Vector.sub (small_spaces, n)
-    else
-      replicate_string (n div 64) (Vector.sub (small_spaces, 64)) ^
-        Vector.sub (small_spaces, n mod 64);
+    if n < 64 then Vector.nth spaces0 n
+    else replicate_string (n div 64) (Vector.nth spaces0 64) ^ Vector.nth spaces0 (n mod 64);
 end;
 
 val comment = "\<comment>";

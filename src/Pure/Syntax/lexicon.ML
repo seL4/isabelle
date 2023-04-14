@@ -130,7 +130,7 @@ val token_kinds =
     String, Cartouche, Space, Comment Comment.Comment, Comment Comment.Cancel,
     Comment Comment.Latex, Dummy, EOF];
 
-fun token_kind i = Vector.sub (token_kinds, i);
+val token_kind = Vector.nth token_kinds;
 fun token_kind_index k = #1 (the (Vector.findi (fn (_, k') => k = k') token_kinds));
 
 

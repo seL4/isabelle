@@ -658,7 +658,7 @@ in
 fun string_of_int i =
   if i < 0 then Int.toString i
   else if i < 10 then chr (zero + i)
-  else if i < small_int then Vector.sub (small_int_table, i)
+  else if i < small_int then Vector.nth small_int_table i
   else Int.toString i;
 
 end;

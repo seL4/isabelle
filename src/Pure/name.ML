@@ -59,8 +59,8 @@ val small_int = Vector.tabulate (1000, fn i =>
   in ":" ^ leading ^ string_of_int i end);
 
 fun bound n =
-  if n < 1000 then Vector.sub (small_int, n)
-  else ":" ^ bound (n div 1000) ^ Vector.sub (small_int, n mod 1000);
+  if n < 1000 then Vector.nth small_int n
+  else ":" ^ bound (n div 1000) ^ Vector.nth small_int (n mod 1000);
 
 val is_bound = String.isPrefix ":";
 

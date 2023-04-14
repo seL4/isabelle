@@ -731,7 +731,7 @@ fun make ((k, n), s) pos =
     val range = Position.range (pos, pos');
     val tok =
       if 0 <= k andalso k < Vector.length immediate_kinds then
-        Token ((s, range), (Vector.sub (immediate_kinds, k), s), Slot)
+        Token ((s, range), (Vector.nth immediate_kinds k, s), Slot)
       else
         (case explode Keyword.empty_keywords pos s of
           [tok] => tok

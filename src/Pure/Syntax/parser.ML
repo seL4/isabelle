@@ -407,7 +407,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
     fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
     fun pretty_prod (name, tag) =
-      (prods_content (#2 (Vector.sub (prods, tag))) @ map prod_of_chain (chains_preds chains tag))
+      (prods_content (#2 (Vector.nth prods tag)) @ map prod_of_chain (chains_preds chains tag))
       |> map (fn (symbs, const, p) =>
           Pretty.block (Pretty.breaks
             (Pretty.str (name ^ print_pri p ^ " =") :: map pretty_symb symbs @ pretty_const const)));
@@ -476,7 +476,7 @@ fun extend_gram [] gram = gram
         val prods' =
           let
             fun get_prod i =
-              if i < nt_count then Vector.sub (prods, i)
+              if i < nt_count then Vector.nth prods i
               else nt_gram_empty;
           in Array.tabulate (nt_count', get_prod) end;
 
@@ -601,7 +601,7 @@ fun prods_for (Gram {prods, chains, ...}) tk nt =
     fun token_prods prods =
       fold cons (prods_lookup prods tk) #>
       fold cons (prods_lookup prods Lexicon.dummy);
-    fun nt_prods nt = #2 (Vector.sub (prods, nt));
+    fun nt_prods nt = #2 (Vector.nth prods nt);
   in fold (token_prods o nt_prods) (chains_all_preds chains [nt]) [] end;
 
 
