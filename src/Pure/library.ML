@@ -693,22 +693,13 @@ fun oct_char s = chr (#1 (read_radix_int 8 (raw_explode s)));
 
 (* functions tuned for strings, avoiding explode *)
 
-fun nth_string str i = String.substring (str, i, 1);
+fun nth_string str = String.str o String.nth str;
 
-fun fold_string f str x0 =
-  let
-    val n = size str;
-    fun iter (x, i) =
-      if i < n then iter (f (String.substring (str, i, 1)) x, i + 1) else x;
-  in iter (x0, 0) end;
+fun fold_string f = String.fold (f o String.str);
 
-fun exists_string pred str =
-  let
-    val n = size str;
-    fun ex i = i < n andalso (pred (String.substring (str, i, 1)) orelse ex (i + 1));
-  in ex 0 end;
+fun exists_string pred = String.exists (pred o String.str);
 
-fun forall_string pred = not o exists_string (not o pred);
+fun forall_string pred = String.forall (pred o String.str);
 
 fun member_string str s = exists_string (fn s' => s = s') str;
 
