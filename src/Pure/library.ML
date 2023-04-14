@@ -693,10 +693,7 @@ fun oct_char s = chr (#1 (read_radix_int 8 (raw_explode s)));
 
 (* functions tuned for strings, avoiding explode *)
 
-fun nth_string str i =
-  (case try String.substring (str, i, 1) of
-    SOME s => s
-  | NONE => raise Subscript);
+fun nth_string str i = String.substring (str, i, 1);
 
 fun fold_string f str x0 =
   let
