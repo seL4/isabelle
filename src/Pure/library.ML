@@ -132,6 +132,7 @@ sig
   (*strings*)
   val nth_string: string -> int -> string
   val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
+  val fold_rev_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val exists_string: (string -> bool) -> string -> bool
   val forall_string: (string -> bool) -> string -> bool
   val member_string: string -> string -> bool
@@ -696,6 +697,8 @@ fun oct_char s = chr (#1 (read_radix_int 8 (raw_explode s)));
 fun nth_string str = String.str o String.nth str;
 
 fun fold_string f = String.fold (f o String.str);
+
+fun fold_rev_string f = String.fold_rev (f o String.str);
 
 fun exists_string pred = String.exists (pred o String.str);
 
