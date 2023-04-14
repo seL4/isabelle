@@ -17,7 +17,7 @@ fun is_utf8_control c = #"\128" <= c andalso c < #"\160";
 
 fun explode string =
   let
-    fun char i = String.sub (string, i);
+    val char = String.nth string;
     fun substring i j = String.substring (string, i, j - i);
 
     val n = size string;

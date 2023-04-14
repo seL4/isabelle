@@ -42,7 +42,7 @@ in
 fun parse_int str =
   let
     fun err () = raise Fail ("Bad integer " ^ quote str);
-    fun char i = Char.ord (String.sub (str, i));
+    val char = Char.ord o String.nth str;
     val n = size str;
 
     fun digits i a =

@@ -124,7 +124,7 @@ val marker = "\<^marker>";
 
 fun is_char s = size s = 1;
 
-fun is_utf8 s = size s > 0 andalso forall_string (fn c => ord c >= 128) s;
+fun is_utf8 s = size s > 0 andalso String.forall (fn c => Char.ord c >= 128) s;
 
 fun raw_symbolic s =
   String.isPrefix "\092<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\092<^" s);

@@ -40,9 +40,9 @@ struct
 (* long names separated by "." *)
 
 val separator = ".";
-val separator_char = String.sub (separator, 0);
+val separator_char = String.nth separator 0;
 
-val is_qualified = exists_string (fn s => s = separator);
+fun is_qualified name = String.member name separator_char;
 
 val hidden_prefix = "??."
 val hidden = prefix hidden_prefix;
@@ -85,7 +85,7 @@ fun mask_keep m = Word.andb (m, 0w1) = 0w0;
 fun string_ops string =
   let
     val n = size string;
-    fun char i = String.sub (string, i);
+    val char = String.nth string;
     fun string_end i = i >= n;
     fun chunk_end i = string_end i orelse char i = separator_char;
   in {string_end = string_end, chunk_end = chunk_end} end;

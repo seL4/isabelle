@@ -158,7 +158,7 @@ fun space_explode sep bytes =
   else if size sep <> 1 then [content bytes]
   else
     let
-      val sep_char = String.sub (sep, 0);
+      val sep_char = String.nth sep 0;
 
       fun add_part s part =
         Buffer.add (Substring.string s) (the_default Buffer.empty part);

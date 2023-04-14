@@ -716,7 +716,7 @@ fun forall_string pred = not o exists_string (not o pred);
 fun member_string str s = exists_string (fn s' => s = s') str;
 
 fun last_string "" = NONE
-  | last_string s = SOME (str (String.sub (s, size s - 1)));
+  | last_string s = SOME (str (String.nth s (size s - 1)));
 
 fun first_field sep str =
   let
