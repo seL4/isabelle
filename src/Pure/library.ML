@@ -771,7 +771,7 @@ fun trim_line s =
 val trim_split_lines = trim_line #> split_lines #> map trim_line;
 
 fun normalize_lines str =
-  if exists_string (fn s => s = "\r") str then
+  if member_string str "\r" then
     split_lines str |> map trim_line |> cat_lines
   else str;
 
