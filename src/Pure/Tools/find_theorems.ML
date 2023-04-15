@@ -335,7 +335,7 @@ local
 
 val index_ord = option_ord (K EQUAL);
 val hidden_ord = bool_ord o apply2 Long_Name.is_hidden;
-val qual_ord = int_ord o apply2 Long_Name.qualification;
+val qual_ord = int_ord o apply2 Long_Name.count;
 val txt_ord = int_ord o apply2 size;
 
 fun nicer_name ((a, x), i) ((b, y), j) =
