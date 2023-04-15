@@ -8,6 +8,8 @@ signature LONG_NAME =
 sig
   val separator: string
   val is_qualified: string -> bool
+  val qualifier: string -> string
+  val base_name: string -> string
   val count: string -> int
   val hidden: string -> string
   val is_hidden: string -> bool
@@ -18,8 +20,6 @@ sig
   val explode: string -> string list
   val append: string -> string -> string
   val qualify: string -> string -> string
-  val qualifier: string -> string
-  val base_name: string -> string
   val map_base_name: (string -> string) -> string -> string
   type chunks
   val count_chunks: chunks -> int
@@ -42,7 +42,21 @@ struct
 val separator = ".";
 val separator_char = String.nth separator 0;
 
-fun is_qualified name = String.member name separator_char;
+fun last_separator name =
+  let fun last i = if i < 0 orelse String.nth name i = separator_char then i else last (i - 1)
+  in last (size name - 1) end;
+
+fun is_qualified name = last_separator name >= 0;
+
+fun qualifier name =
+  let val i = last_separator name
+  in if i < 0 then "" else String.substring (name, 0, i) end;
+
+fun base_name name =
+  let
+    val i = last_separator name;
+    val j = i + 1;
+  in if i < 0 then name else String.substring (name, j, size name - j) end;
 
 fun count "" = 0
   | count name = String.fold (fn c => c = separator_char ? Integer.add 1) name 1;
@@ -178,18 +192,5 @@ end;
 end;
 
 structure Chunks = Change_Table(type key = chunks val ord = compare_chunks);
-
-
-(* split name *)
-
-fun qualifier name =
-  if is_qualified name
-  then String.substring (name, 0, Int.max (0, List.last (expand_chunks #2 (chunks name)) - 1))
-  else "";
-
-fun base_name name =
-  if is_qualified name
-  then String.substring (List.last (expand_chunks I (chunks name)))
-  else name;
 
 end;
