@@ -490,9 +490,7 @@ fun hide fully name space =
       val xnames = filter (is_valid_access space name) accesses;
       val xnames' =
         if fully then xnames
-        else
-          let val base_name = Long_Name.chunks (Long_Name.base_name name)
-          in inter Long_Name.eq_chunks [base_name] xnames end;
+        else inter Long_Name.eq_chunks [Long_Name.base_chunks name] xnames;
       val internals' = internals
         |> hide_name name
         |> fold (del_name name) xnames'

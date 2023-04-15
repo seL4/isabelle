@@ -25,6 +25,7 @@ sig
   val count_chunks: chunks -> int
   val size_chunks: chunks -> int
   val empty_chunks: chunks
+  val base_chunks: string -> chunks
   val make_chunks: int -> bool list -> string -> chunks
   val chunks: string -> chunks
   val explode_chunks: chunks -> string list
@@ -156,6 +157,9 @@ fun make_chunks suppress1 suppress2 string =
   in make suppress1 suppress2 0 0 0 0w0 0w1 end;
 
 val chunks = make_chunks 0 [];
+
+fun base_chunks name =
+  make_chunks (Int.max (0, count name - 1)) [] name;
 
 fun expand_chunks f (Chunks {count, size, mask, string}) =
   let
