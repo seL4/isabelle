@@ -12,6 +12,7 @@ sig
   val is_qualified: string -> bool
   val qualifier: string -> string
   val base_name: string -> string
+  val map_base_name: (string -> string) -> string -> string
   val count: string -> int
   val hidden: string -> string
   val is_hidden: string -> bool
@@ -20,7 +21,6 @@ sig
   val dest_local: string -> string option
   val implode: string list -> string
   val explode: string -> string list
-  val map_base_name: (string -> string) -> string -> string
   type chunks
   val count_chunks: chunks -> int
   val size_chunks: chunks -> int
@@ -66,6 +66,10 @@ fun base_name name =
     val j = i + 1;
   in if i < 0 then name else String.substring (name, j, size name - j) end;
 
+fun map_base_name f name =
+  if name = "" then ""
+  else qualify (qualifier name) (f (base_name name));
+
 fun count "" = 0
   | count name = String.fold (fn c => c = separator_char ? Integer.add 1) name 1;
 
@@ -79,11 +83,6 @@ val dest_local = try (unprefix "local.");
 
 val implode = space_implode separator;
 val explode = space_explode separator;
-
-fun map_base_name _ "" = ""
-  | map_base_name f name =
-      let val names = explode name
-      in implode (nth_map (length names - 1) f names) end;
 
 
 (* compact representation of chunks *)
