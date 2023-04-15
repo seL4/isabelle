@@ -283,7 +283,7 @@ fun completion context space pred (xname, pos) =
           EQUAL =>
             (case bool_ord (apply2 (is_some o Long_Name.dest_local) (name2, name1)) of
               EQUAL =>
-                (case int_ord (apply2 Long_Name.qualification (xname1, xname2)) of
+                (case int_ord (apply2 Long_Name.count (xname1, xname2)) of
                   EQUAL => string_ord (xname1, xname2)
                 | ord => ord)
             | ord => ord)

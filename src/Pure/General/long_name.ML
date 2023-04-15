@@ -7,7 +7,13 @@ Long names.
 signature LONG_NAME =
 sig
   val separator: string
+  val append: string -> string -> string
+  val qualify: string -> string -> string
   val is_qualified: string -> bool
+  val qualifier: string -> string
+  val base_name: string -> string
+  val map_base_name: (string -> string) -> string -> string
+  val count: string -> int
   val hidden: string -> string
   val is_hidden: string -> bool
   val dest_hidden: string -> string option
@@ -15,17 +21,11 @@ sig
   val dest_local: string -> string option
   val implode: string list -> string
   val explode: string -> string list
-  val append: string -> string -> string
-  val qualification: string -> int
-  val qualify: string -> string -> string
-  val qualifier: string -> string
-  val base_name: string -> string
-  val map_base_name: (string -> string) -> string -> string
   type chunks
   val count_chunks: chunks -> int
   val size_chunks: chunks -> int
   val empty_chunks: chunks
-  val make_chunks: bool list -> string -> chunks
+  val make_chunks: int -> bool list -> string -> chunks
   val chunks: string -> chunks
   val explode_chunks: chunks -> string list
   val implode_chunks: chunks -> string
@@ -42,7 +42,36 @@ struct
 val separator = ".";
 val separator_char = String.nth separator 0;
 
-fun is_qualified name = String.member name separator_char;
+fun append name1 "" = name1
+  | append "" name2 = name2
+  | append name1 name2 = name1 ^ separator ^ name2;
+
+fun qualify qual name =
+  if qual = "" orelse name = "" then name
+  else qual ^ separator ^ name;
+
+fun last_separator name =
+  let fun last i = if i < 0 orelse String.nth name i = separator_char then i else last (i - 1)
+  in last (size name - 1) end;
+
+fun is_qualified name = last_separator name >= 0;
+
+fun qualifier name =
+  let val i = last_separator name
+  in if i < 0 then "" else String.substring (name, 0, i) end;
+
+fun base_name name =
+  let
+    val i = last_separator name;
+    val j = i + 1;
+  in if i < 0 then name else String.substring (name, j, size name - j) end;
+
+fun map_base_name f name =
+  if name = "" then ""
+  else qualify (qualifier name) (f (base_name name));
+
+fun count "" = 0
+  | count name = String.fold (fn c => c = separator_char ? Integer.add 1) name 1;
 
 val hidden_prefix = "??."
 val hidden = prefix hidden_prefix;
@@ -54,22 +83,6 @@ val dest_local = try (unprefix "local.");
 
 val implode = space_implode separator;
 val explode = space_explode separator;
-
-fun append name1 "" = name1
-  | append "" name2 = name2
-  | append name1 name2 = name1 ^ separator ^ name2;
-
-fun qualification "" = 0
-  | qualification name = fold_string (fn s => s = separator ? Integer.add 1) name 1;
-
-fun qualify qual name =
-  if qual = "" orelse name = "" then name
-  else qual ^ separator ^ name;
-
-fun map_base_name _ "" = ""
-  | map_base_name f name =
-      let val names = explode name
-      in implode (nth_map (length names - 1) f names) end;
 
 
 (* compact representation of chunks *)
@@ -100,18 +113,31 @@ fun size_chunks (Chunks {size, ...}) = size;
 
 val empty_chunks = Chunks {count = 0, size = 0, mask = 0w0, string = ""};
 
-fun make_chunks suppress string =
+fun make_chunks suppress1 suppress2 string =
   let
     val {string_end, chunk_end, ...} = string_ops string;
 
     fun err msg = raise Fail ("Malformed qualified name " ^ quote string ^ ":\n  " ^ msg);
 
-    fun make suppr i k l m s =
+    fun make suppr1 suppr2 i k l m s =
       let
         val is_end = chunk_end i;
-        val keep = null suppr orelse not (hd suppr);
 
-        val suppr' = if is_end andalso not (null suppr) then tl suppr else suppr;
+        val suppr =
+          if suppr1 > 0 then true
+          else if suppr1 < 0 then false
+          else if null suppr2 then false
+          else hd suppr2;
+        val suppr1' =
+          if is_end andalso suppr1 > 0 then suppr1 - 1
+          else if is_end andalso suppr1 < 0 then suppr1 + 1
+          else suppr1;
+        val suppr2' =
+          if is_end andalso suppr1 = 0 andalso not (null suppr2)
+          then tl suppr2 else suppr2;
+
+        val keep = not suppr;
+
         val l' = if keep then l + 1 else l;
         val k' = if is_end andalso keep andalso l' > 0 then k + 1 else k;
         val m' =
@@ -121,14 +147,15 @@ fun make_chunks suppress string =
           else mask_set s m;
         val s' = if is_end then mask_push s else s;
       in
-        if not (string_end i) then make suppr' (i + 1) k' l' m' s'
-        else if not (null suppr') then err ("cannot suppress chunks beyond " ^ string_of_int k')
+        if not (string_end i) then make suppr1' suppr2' (i + 1) k' l' m' s'
+        else if not (suppr1' = 0 andalso null suppr2') then
+          err ("cannot suppress chunks beyond " ^ string_of_int k')
         else if k' = 0 then empty_chunks
         else Chunks {count = k', size = Int.max (0, l' - 1), mask = m', string = string}
       end;
-  in make suppress 0 0 0 0w0 0w1 end;
+  in make suppress1 suppress2 0 0 0 0w0 0w1 end;
 
-val chunks = make_chunks [];
+val chunks = make_chunks 0 [];
 
 fun expand_chunks f (Chunks {count, size, mask, string}) =
   let
@@ -178,18 +205,5 @@ end;
 end;
 
 structure Chunks = Change_Table(type key = chunks val ord = compare_chunks);
-
-
-(* split name *)
-
-fun qualifier name =
-  if is_qualified name
-  then String.substring (name, 0, Int.max (0, List.last (expand_chunks #2 (chunks name)) - 1))
-  else "";
-
-fun base_name name =
-  if is_qualified name
-  then String.substring (List.last (expand_chunks I (chunks name)))
-  else name;
 
 end;
