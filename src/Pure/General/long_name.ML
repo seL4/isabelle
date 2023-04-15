@@ -25,7 +25,7 @@ sig
   val count_chunks: chunks -> int
   val size_chunks: chunks -> int
   val empty_chunks: chunks
-  val make_chunks: bool list -> string -> chunks
+  val make_chunks: int -> bool list -> string -> chunks
   val chunks: string -> chunks
   val explode_chunks: chunks -> string list
   val implode_chunks: chunks -> string
@@ -113,18 +113,31 @@ fun size_chunks (Chunks {size, ...}) = size;
 
 val empty_chunks = Chunks {count = 0, size = 0, mask = 0w0, string = ""};
 
-fun make_chunks suppress string =
+fun make_chunks suppress1 suppress2 string =
   let
     val {string_end, chunk_end, ...} = string_ops string;
 
     fun err msg = raise Fail ("Malformed qualified name " ^ quote string ^ ":\n  " ^ msg);
 
-    fun make suppr i k l m s =
+    fun make suppr1 suppr2 i k l m s =
       let
         val is_end = chunk_end i;
-        val keep = null suppr orelse not (hd suppr);
 
-        val suppr' = if is_end andalso not (null suppr) then tl suppr else suppr;
+        val suppr =
+          if suppr1 > 0 then true
+          else if suppr1 < 0 then false
+          else if null suppr2 then false
+          else hd suppr2;
+        val suppr1' =
+          if is_end andalso suppr1 > 0 then suppr1 - 1
+          else if is_end andalso suppr1 < 0 then suppr1 + 1
+          else suppr1;
+        val suppr2' =
+          if is_end andalso suppr1 = 0 andalso not (null suppr2)
+          then tl suppr2 else suppr2;
+
+        val keep = not suppr;
+
         val l' = if keep then l + 1 else l;
         val k' = if is_end andalso keep andalso l' > 0 then k + 1 else k;
         val m' =
@@ -134,14 +147,15 @@ fun make_chunks suppress string =
           else mask_set s m;
         val s' = if is_end then mask_push s else s;
       in
-        if not (string_end i) then make suppr' (i + 1) k' l' m' s'
-        else if not (null suppr') then err ("cannot suppress chunks beyond " ^ string_of_int k')
+        if not (string_end i) then make suppr1' suppr2' (i + 1) k' l' m' s'
+        else if not (suppr1' = 0 andalso null suppr2') then
+          err ("cannot suppress chunks beyond " ^ string_of_int k')
         else if k' = 0 then empty_chunks
         else Chunks {count = k', size = Int.max (0, l' - 1), mask = m', string = string}
       end;
-  in make suppress 0 0 0 0w0 0w1 end;
+  in make suppress1 suppress2 0 0 0 0w0 0w1 end;
 
-val chunks = make_chunks [];
+val chunks = make_chunks 0 [];
 
 fun expand_chunks f (Chunks {count, size, mask, string}) =
   let
