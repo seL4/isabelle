@@ -7,6 +7,8 @@ Long names.
 signature LONG_NAME =
 sig
   val separator: string
+  val append: string -> string -> string
+  val qualify: string -> string -> string
   val is_qualified: string -> bool
   val qualifier: string -> string
   val base_name: string -> string
@@ -18,8 +20,6 @@ sig
   val dest_local: string -> string option
   val implode: string list -> string
   val explode: string -> string list
-  val append: string -> string -> string
-  val qualify: string -> string -> string
   val map_base_name: (string -> string) -> string -> string
   type chunks
   val count_chunks: chunks -> int
@@ -41,6 +41,14 @@ struct
 
 val separator = ".";
 val separator_char = String.nth separator 0;
+
+fun append name1 "" = name1
+  | append "" name2 = name2
+  | append name1 name2 = name1 ^ separator ^ name2;
+
+fun qualify qual name =
+  if qual = "" orelse name = "" then name
+  else qual ^ separator ^ name;
 
 fun last_separator name =
   let fun last i = if i < 0 orelse String.nth name i = separator_char then i else last (i - 1)
@@ -71,14 +79,6 @@ val dest_local = try (unprefix "local.");
 
 val implode = space_implode separator;
 val explode = space_explode separator;
-
-fun append name1 "" = name1
-  | append "" name2 = name2
-  | append name1 name2 = name1 ^ separator ^ name2;
-
-fun qualify qual name =
-  if qual = "" orelse name = "" then name
-  else qual ^ separator ^ name;
 
 fun map_base_name _ "" = ""
   | map_base_name f name =
