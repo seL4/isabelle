@@ -35,7 +35,7 @@ fun cancel_type_definition_cterm thm =
 
     val thy = Thm.theory_of_thm thm;
     val prop = Thm.prop_of thm;
-    val hyps = Termset.dest (Thm.hyps_of thm);
+    val hyps = Thm.hyps_of thm;
 
     val _ = null (Thm.tpairs_of thm) orelse err "the theorem contains unsolved flex-flex pairs";
 

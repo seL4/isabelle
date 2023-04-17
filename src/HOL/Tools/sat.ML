@@ -153,9 +153,9 @@ fun resolve_raw_clauses _ [] =
             val _ =
               cond_tracing ctxt (fn () =>
                 "Resolving clause: " ^ Thm.string_of_thm ctxt c1 ^
-                " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Termset.dest (Thm.hyps_of c1)) ^
+                " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c1) ^
                 ")\nwith clause: " ^ Thm.string_of_thm ctxt c2 ^
-                " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Termset.dest (Thm.hyps_of c2)) ^ ")")
+                " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c2) ^ ")")
 
             (* the two literals used for resolution *)
             val (hyp1_is_neg, hyp1, hyp2, new_hyps) = find_res_hyps (hyps1, hyps2) []
@@ -186,7 +186,7 @@ fun resolve_raw_clauses _ [] =
               cond_tracing ctxt (fn () =>
                 "Resulting clause: " ^ Thm.string_of_thm ctxt c_new ^
                 " (hyps: " ^
-                ML_Syntax.print_list (Syntax.string_of_term ctxt) (Termset.dest (Thm.hyps_of c_new)) ^ ")")
+                ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c_new) ^ ")")
 
             val _ = Unsynchronized.inc counter
           in

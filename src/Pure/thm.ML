@@ -70,7 +70,7 @@ sig
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
   val shyps_of: thm -> Sortset.T
-  val hyps_of: thm -> Termset.T
+  val hyps_of: thm -> term list
   val prop_of: thm -> term
   val tpairs_of: thm -> (term * term) list
   val concl_of: thm -> term
@@ -433,7 +433,7 @@ datatype thm = Thm of
   maxidx: int,                  (*maximum index of any Var or TVar*)
   constraints: Constraints.T,   (*implicit proof obligations for sort constraints*)
   shyps: Sortset.T,             (*sort hypotheses*)
-  hyps: Termset.T,              (*hypotheses*)
+  hyps: term Ord_List.T,        (*hypotheses*)
   tpairs: (term * term) list,   (*flex-flex pairs*)
   prop: term}                   (*conclusion*)
 and deriv = Deriv of
@@ -456,7 +456,7 @@ exception THM of string * int * thm list;
 fun rep_thm (Thm (_, args)) = args;
 
 fun fold_terms h f (Thm (_, {tpairs, prop, hyps, ...})) =
-  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> #hyps h ? Termset.fold f hyps;
+  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> #hyps h ? fold f hyps;
 
 fun fold_atomic_ctyps h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
   let fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps}
@@ -486,6 +486,10 @@ fun attach_tpairs tpairs prop =
 
 fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
+
+val union_hyps = Ord_List.union Term_Ord.fast_term_ord;
+val insert_hyps = Ord_List.insert Term_Ord.fast_term_ord;
+val remove_hyps = Ord_List.remove Term_Ord.fast_term_ord;
 
 fun join_certificate1 (Cterm {cert = cert1, ...}, Thm (_, {cert = cert2, ...})) =
   Context.join_certificate (cert1, cert2);
@@ -533,8 +537,7 @@ fun cprems_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
     (prems_of th);
 
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
-  map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t})
-    (Termset.dest hyps);
+  map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;
 
 
 (* thm order: ignores theory context! *)
@@ -543,7 +546,7 @@ val thm_ord =
   pointer_eq_ord
   (Term_Ord.fast_term_ord o apply2 prop_of
     ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 tpairs_of
-    ||| Termset.ord o apply2 hyps_of
+    ||| list_ord Term_Ord.fast_term_ord o apply2 hyps_of
     ||| Sortset.ord o apply2 shyps_of);
 
 
@@ -720,7 +723,7 @@ fun weaken raw_ct th =
         maxidx = maxidx,
         constraints = constraints,
         shyps = Sortset.merge (sorts, shyps),
-        hyps = Termset.insert A hyps,
+        hyps = insert_hyps A hyps,
         tpairs = tpairs,
         prop = prop})
   end;
@@ -815,7 +818,7 @@ fun future_result i orig_cert orig_shyps orig_prop thm =
     val _ = prop aconv orig_prop orelse err "bad prop";
     val _ = Constraints.is_empty constraints orelse err "bad sort constraints";
     val _ = null tpairs orelse err "bad flex-flex constraints";
-    val _ = Termset.is_empty hyps orelse err "bad hyps";
+    val _ = null hyps orelse err "bad hyps";
     val _ = Sortset.subset (shyps, orig_shyps) orelse err "bad shyps";
     val _ = forall_promises (fn j => i <> j) promises orelse err "bad dependencies";
     val _ = join_promises (dest_promises promises);
@@ -838,7 +841,7 @@ fun future future_thm ct =
       maxidx = maxidx,
       constraints = Constraints.empty,
       shyps = sorts,
-      hyps = Termset.empty,
+      hyps = [],
       tpairs = [],
       prop = prop})
   end;
@@ -858,8 +861,7 @@ fun axiom thy name =
       in
         Thm (der,
           {cert = cert, tags = [], maxidx = maxidx,
-            constraints = Constraints.empty, shyps = shyps,
-            hyps = Termset.empty, tpairs = [], prop = prop})
+            constraints = Constraints.empty, shyps = shyps, hyps = [], tpairs = [], prop = prop})
       end
   | NONE => raise THEORY ("No axiom " ^ quote name, [thy]));
 
@@ -1073,12 +1075,12 @@ fun derivation_closed (Thm (Deriv {body, ...}, _)) =
 
 (*non-deterministic, depends on unknown promises*)
 fun raw_derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
-  Proofterm.get_approximative_name shyps (Termset.dest hyps) prop (Proofterm.proof_of body);
+  Proofterm.get_approximative_name shyps hyps prop (Proofterm.proof_of body);
 
 fun expand_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
   let
     val self_id =
-      (case Proofterm.get_identity shyps (Termset.dest hyps) prop (Proofterm.proof_of body) of
+      (case Proofterm.get_identity shyps hyps prop (Proofterm.proof_of body) of
         NONE => K false
       | SOME {serial, ...} => fn (header: Proofterm.thm_header) => serial = #serial header);
     fun expand header = if self_id header orelse #name header = "" then SOME "" else NONE;
@@ -1086,11 +1088,11 @@ fun expand_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
 
 (*deterministic name of finished proof*)
 fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
-  Proofterm.get_approximative_name shyps (Termset.dest hyps) prop (proof_of thm);
+  Proofterm.get_approximative_name shyps hyps prop (proof_of thm);
 
 (*identified PThm node*)
 fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
-  Proofterm.get_id shyps (Termset.dest hyps) prop (proof_of thm);
+  Proofterm.get_id shyps hyps prop (proof_of thm);
 
 (*dependencies of PThm node*)
 fun thm_deps (thm as Thm (Deriv {promises, body = PBody {thms, ...}, ...}, _)) =
@@ -1115,7 +1117,7 @@ fun name_derivation name_pos =
       val ps = map (apsnd (Future.map fulfill_body)) (dest_promises promises);
       val (pthm, proof) =
         Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
-          name_pos shyps (Termset.dest hyps) prop ps body;
+          name_pos shyps hyps prop ps body;
       val der' = make_deriv empty_promises Oracles.empty (PThms.make [pthm]) proof;
     in Thm (der', args) end);
 
@@ -1153,7 +1155,7 @@ fun add_oracle (b, oracle_fn) thy =
               maxidx = maxidx,
               constraints = Constraints.empty,
               shyps = sorts,
-              hyps = Termset.empty,
+              hyps = [],
               tpairs = [],
               prop = prop})
           end
@@ -1190,7 +1192,7 @@ fun assume raw_ct =
       maxidx = ~1,
       constraints = Constraints.empty,
       shyps = sorts,
-      hyps = Termset.make [prop],
+      hyps = [prop],
       tpairs = [],
       prop = prop})
   end;
@@ -1214,7 +1216,7 @@ fun implies_intr
       maxidx = Int.max (maxidx1, maxidx2),
       constraints = constraints,
       shyps = Sortset.merge (sorts, shyps),
-      hyps = Termset.remove A hyps,
+      hyps = remove_hyps A hyps,
       tpairs = tpairs,
       prop = Logic.mk_implies (A, prop)});
 
@@ -1241,7 +1243,7 @@ fun implies_elim thAB thA =
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = Constraints.merge (constraintsA, constraints),
             shyps = Sortset.merge (shypsA, shyps),
-            hyps = Termset.merge (hypsA, hyps),
+            hyps = union_hyps hypsA hyps,
             tpairs = union_tpairs tpairsA tpairs,
             prop = B})
         else err ()
@@ -1257,7 +1259,7 @@ fun implies_elim thAB thA =
 *)
 fun occs x ts tpairs =
   let fun occs t = Logic.occs (x, t)
-  in Termset.exists occs ts orelse exists (occs o fst) tpairs orelse exists (occs o snd) tpairs end;
+  in exists occs ts orelse exists (occs o fst) tpairs orelse exists (occs o snd) tpairs end;
 
 fun forall_intr
     (ct as Cterm {maxidx = maxidx1, t = x, T, sorts, ...})
@@ -1279,7 +1281,7 @@ fun forall_intr
   in
     (case x of
       Free (a, _) => check_result a hyps
-    | Var ((a, _), _) => check_result a Termset.empty
+    | Var ((a, _), _) => check_result a []
     | _ => raise THM ("forall_intr: not a variable", 0, [th]))
   end;
 
@@ -1320,7 +1322,7 @@ fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
     maxidx = maxidx,
     constraints = Constraints.empty,
     shyps = sorts,
-    hyps = Termset.empty,
+    hyps = [],
     tpairs = [],
     prop = Logic.mk_equals (t, t)});
 
@@ -1366,7 +1368,7 @@ fun transitive th1 th2 =
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = Constraints.merge (constraints1, constraints2),
             shyps = Sortset.merge (shyps1, shyps2),
-            hyps = Termset.merge (hyps1, hyps2),
+            hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = eq $ t1 $ t2})
      | _ =>  err "premises"
@@ -1389,7 +1391,7 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
       maxidx = maxidx,
       constraints = Constraints.empty,
       shyps = sorts,
-      hyps = Termset.empty,
+      hyps = [],
       tpairs = [],
       prop = Logic.mk_equals (t, t')})
   end;
@@ -1401,7 +1403,7 @@ fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
     maxidx = maxidx,
     constraints = Constraints.empty,
     shyps = sorts,
-    hyps = Termset.empty,
+    hyps = [],
     tpairs = [],
     prop = Logic.mk_equals (t, Envir.eta_contract t)});
 
@@ -1412,7 +1414,7 @@ fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
     maxidx = maxidx,
     constraints = Constraints.empty,
     shyps = sorts,
-    hyps = Termset.empty,
+    hyps = [],
     tpairs = [],
     prop = Logic.mk_equals (t, Envir.eta_long [] t)});
 
@@ -1445,7 +1447,7 @@ fun abstract_rule b
   in
     (case x of
       Free (a, _) => check_result a hyps
-    | Var ((a, _), _) => check_result a Termset.empty
+    | Var ((a, _), _) => check_result a []
     | _ => raise THM ("abstract_rule: not a variable", 0, [th]))
   end;
 
@@ -1478,7 +1480,7 @@ fun combination th1 th2 =
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = Constraints.merge (constraints1, constraints2),
             shyps = Sortset.merge (shyps1, shyps2),
-            hyps = Termset.merge (hyps1, hyps2),
+            hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = Logic.mk_equals (f $ t, g $ u)}))
      | _ => raise THM ("combination: premises", 0, [th1, th2]))
@@ -1506,7 +1508,7 @@ fun equal_intr th1 th2 =
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = Constraints.merge (constraints1, constraints2),
             shyps = Sortset.merge (shyps1, shyps2),
-            hyps = Termset.merge (hyps1, hyps2),
+            hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = Logic.mk_equals (A, B)})
         else err "not equal"
@@ -1535,7 +1537,7 @@ fun equal_elim th1 th2 =
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = Constraints.merge (constraints1, constraints2),
             shyps = Sortset.merge (shyps1, shyps2),
-            hyps = Termset.merge (hyps1, hyps2),
+            hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = B})
         else err "not equal"
@@ -1599,7 +1601,7 @@ fun generalize (tfrees, frees) idx th =
         | bad_term (Abs (_, T, t)) = bad_type T orelse bad_term t
         | bad_term (t $ u) = bad_term t orelse bad_term u
         | bad_term (Bound _) = false;
-      val _ = Termset.exists bad_term hyps andalso
+      val _ = exists bad_term hyps andalso
         raise THM ("generalize: variable free in assumptions", 0, [th]);
 
       val generalize = Term_Subst.generalize (tfrees, frees) idx;
@@ -1759,7 +1761,7 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
       maxidx = maxidx,
       constraints = Constraints.empty,
       shyps = sorts,
-      hyps = Termset.empty,
+      hyps = [],
       tpairs = [],
       prop = Logic.mk_implies (A, A)});
 
@@ -1783,7 +1785,7 @@ fun of_class (cT, raw_c) =
         maxidx = maxidx,
         constraints = Constraints.build (insert_constraints thy (T, [c])),
         shyps = sorts,
-        hyps = Termset.empty,
+        hyps = [],
         tpairs = [],
         prop = prop})
     else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
@@ -1798,7 +1800,7 @@ val unconstrainT =
       val thy = theory_of_thm thm;
 
       fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
-      val _ = Termset.is_empty hyps orelse err "bad hyps";
+      val _ = null hyps orelse err "bad hyps";
       val _ = null tpairs orelse err "bad flex-flex constraints";
       val tfrees = build_rev (Term.add_tfree_names prop);
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
@@ -1816,7 +1818,7 @@ val unconstrainT =
         maxidx = maxidx_of_term prop',
         constraints = Constraints.empty,
         shyps = Sortset.make [[]],  (*potentially redundant*)
-        hyps = Termset.empty,
+        hyps = [],
         tpairs = [],
         prop = prop'})
     end);
@@ -1824,7 +1826,7 @@ val unconstrainT =
 (*Replace all TFrees not fixed or in the hyps by new TVars*)
 fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   let
-    val tfrees = Termset.fold TFrees.add_tfrees hyps fixed;
+    val tfrees = fold TFrees.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
@@ -1865,7 +1867,7 @@ fun plain_prop_of raw_thm =
     val thm = strip_shyps raw_thm;
     fun err msg = raise THM ("plain_prop_of: " ^ msg, 0, [thm]);
   in
-    if not (Termset.is_empty (hyps_of thm)) then
+    if not (null (hyps_of thm)) then
       err "theorem may not contain hypotheses"
     else if not (Sortset.is_empty (extra_shyps thm)) then
       err "theorem may not contain sort hypotheses"
@@ -2196,7 +2198,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
                  maxidx = Envir.maxidx_of env,
                  constraints = constraints',
                  shyps = Envir.insert_sorts env (Sortset.merge (shyps1, shyps2)),
-                 hyps = Termset.merge (hyps1, hyps2),
+                 hyps = union_hyps hyps1 hyps2,
                  tpairs = ntpairs,
                  prop = Logic.list_implies normp,
                  cert = cert})

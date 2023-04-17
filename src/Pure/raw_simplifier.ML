@@ -1280,8 +1280,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
             let
               val prem' = Thm.rhs_of eqn;
               val tprems = map Thm.term_of prems;
-              val i = 1 + Termset.fold (fn p =>
-                Integer.max (find_index (fn q => q aconv p) tprems)) (Thm.hyps_of eqn) ~1;
+              val i = 1 + fold Integer.max (map (fn p =>
+                find_index (fn q => q aconv p) tprems) (Thm.hyps_of eqn)) ~1;
               val ((rrs', asm'), ctxt') = rules_of_prem prem' ctxt;
             in
               mut_impc prems concl rrss asms (prem' :: prems')
