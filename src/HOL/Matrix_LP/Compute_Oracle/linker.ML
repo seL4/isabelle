@@ -365,12 +365,12 @@ fun add_monos thy monocs pats ths =
         (!changed, result)
     end
 
-datatype cthm = ComputeThm of term list * Sortset.T * term
+datatype cthm = ComputeThm of term list * sort list * term
 
 fun thm2cthm th = ComputeThm (Thm.hyps_of th, Thm.shyps_of th, Thm.prop_of th)
 
 val cthm_ord' =
-  prod_ord (prod_ord (list_ord Term_Ord.term_ord) Sortset.ord) Term_Ord.term_ord
+  prod_ord (prod_ord (list_ord Term_Ord.term_ord) (list_ord Term_Ord.sort_ord)) Term_Ord.term_ord
 
 fun cthm_ord (ComputeThm (h1, sh1, p1), ComputeThm (h2, sh2, p2)) =
   cthm_ord' (((h1,sh1), p1), ((h2, sh2), p2))

@@ -264,7 +264,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
       in ((sorts @ typargs, args, prop), proof) end;
 
     fun standard_prop_of thm =
-      standard_prop Name.context (Sortset.dest (Thm.extra_shyps thm)) (Thm.full_prop_of thm);
+      standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
 
     val encode_prop =
       let open XML.Encode Term_XML.Encode

@@ -14,6 +14,16 @@ minimal classes (wrt. current class inclusion).
 
 signature SORTS =
 sig
+  val make: sort list -> sort Ord_List.T
+  val subset: sort Ord_List.T * sort Ord_List.T -> bool
+  val union: sort Ord_List.T -> sort Ord_List.T -> sort Ord_List.T
+  val subtract: sort Ord_List.T -> sort Ord_List.T -> sort Ord_List.T
+  val remove_sort: sort -> sort Ord_List.T -> sort Ord_List.T
+  val insert_sort: sort -> sort Ord_List.T -> sort Ord_List.T
+  val insert_typ: typ -> sort Ord_List.T -> sort Ord_List.T
+  val insert_typs: typ list -> sort Ord_List.T -> sort Ord_List.T
+  val insert_term: term -> sort Ord_List.T -> sort Ord_List.T
+  val insert_terms: term list -> sort Ord_List.T -> sort Ord_List.T
   type algebra
   val classes_of: algebra -> serial Graph.T
   val arities_of: algebra -> (class * sort list) list Symtab.table
@@ -58,6 +68,35 @@ end;
 
 structure Sorts: SORTS =
 struct
+
+
+(** ordered lists of sorts **)
+
+val make = Ord_List.make Term_Ord.sort_ord;
+val subset = Ord_List.subset Term_Ord.sort_ord;
+val union = Ord_List.union Term_Ord.sort_ord;
+val subtract = Ord_List.subtract Term_Ord.sort_ord;
+
+val remove_sort = Ord_List.remove Term_Ord.sort_ord;
+val insert_sort = Ord_List.insert Term_Ord.sort_ord;
+
+fun insert_typ (TFree (_, S)) Ss = insert_sort S Ss
+  | insert_typ (TVar (_, S)) Ss = insert_sort S Ss
+  | insert_typ (Type (_, Ts)) Ss = insert_typs Ts Ss
+and insert_typs [] Ss = Ss
+  | insert_typs (T :: Ts) Ss = insert_typs Ts (insert_typ T Ss);
+
+fun insert_term (Const (_, T)) Ss = insert_typ T Ss
+  | insert_term (Free (_, T)) Ss = insert_typ T Ss
+  | insert_term (Var (_, T)) Ss = insert_typ T Ss
+  | insert_term (Bound _) Ss = Ss
+  | insert_term (Abs (_, T, t)) Ss = insert_term t (insert_typ T Ss)
+  | insert_term (t $ u) Ss = insert_term t (insert_term u Ss);
+
+fun insert_terms [] Ss = Ss
+  | insert_terms (t :: ts) Ss = insert_terms ts (insert_term t Ss);
+
+
 
 (** order-sorted algebra **)
 

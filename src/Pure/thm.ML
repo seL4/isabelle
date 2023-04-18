@@ -69,7 +69,7 @@ sig
   val theory_name: thm -> string
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
-  val shyps_of: thm -> Sortset.T
+  val shyps_of: thm -> sort Ord_List.T
   val hyps_of: thm -> term list
   val prop_of: thm -> term
   val tpairs_of: thm -> (term * term) list
@@ -98,7 +98,7 @@ sig
   val join_transfer_context: Proof.context * thm -> Proof.context * thm
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
-  val weaken_sorts: Sortset.T -> cterm -> cterm
+  val weaken_sorts: sort list -> cterm -> cterm
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
@@ -108,7 +108,7 @@ sig
   val expose_proof: theory -> thm -> unit
   val future: thm future -> cterm -> thm
   val thm_deps: thm -> Proofterm.thm Ord_List.T
-  val extra_shyps: thm -> Sortset.T
+  val extra_shyps: thm -> sort list
   val strip_shyps: thm -> thm
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
@@ -189,7 +189,7 @@ struct
 
 (** certified types **)
 
-datatype ctyp = Ctyp of {cert: Context.certificate, T: typ, maxidx: int, sorts: Sortset.T};
+datatype ctyp = Ctyp of {cert: Context.certificate, T: typ, maxidx: int, sorts: sort Ord_List.T};
 
 fun typ_of (Ctyp {T, ...}) = T;
 
@@ -197,7 +197,7 @@ fun global_ctyp_of thy raw_T =
   let
     val T = Sign.certify_typ thy raw_T;
     val maxidx = Term.maxidx_of_typ T;
-    val sorts = Sortset.build (Sortset.insert_typ T);
+    val sorts = Sorts.insert_typ T [];
   in Ctyp {cert = Context.Certificate thy, T = T, maxidx = maxidx, sorts = sorts} end;
 
 val ctyp_of = global_ctyp_of o Proof_Context.theory_of;
@@ -219,7 +219,7 @@ val dest_ctyp0 = dest_ctypN 0;
 val dest_ctyp1 = dest_ctypN 1;
 
 fun join_certificate_ctyp (Ctyp {cert, ...}) cert0 = Context.join_certificate (cert0, cert);
-fun insert_sorts_ctyp (Ctyp {sorts, ...}) sorts0 = Sortset.merge (sorts0, sorts);
+fun union_sorts_ctyp (Ctyp {sorts, ...}) sorts0 = Sorts.union sorts0 sorts;
 fun maxidx_ctyp (Ctyp {maxidx, ...}) maxidx0 = Int.max (maxidx0, maxidx);
 
 fun make_ctyp (Ctyp {cert, T, maxidx = _, sorts = _}) cargs =
@@ -232,7 +232,7 @@ fun make_ctyp (Ctyp {cert, T, maxidx = _, sorts = _}) cargs =
         Ctyp {
           cert = fold join_certificate_ctyp cargs cert,
           maxidx = fold maxidx_ctyp cargs ~1,
-          sorts = Sortset.build (fold insert_sorts_ctyp cargs),
+          sorts = fold union_sorts_ctyp cargs [],
           T = if length args = length cargs then Type (a, As) else err ()}
     | _ => err ())
   end;
@@ -243,7 +243,7 @@ fun make_ctyp (Ctyp {cert, T, maxidx = _, sorts = _}) cargs =
 
 (*certified terms with checked typ, maxidx, and sorts*)
 datatype cterm =
-  Cterm of {cert: Context.certificate, t: term, T: typ, maxidx: int, sorts: Sortset.T};
+  Cterm of {cert: Context.certificate, t: term, T: typ, maxidx: int, sorts: sort Ord_List.T};
 
 exception CTERM of string * cterm list;
 
@@ -259,7 +259,7 @@ fun maxidx_of_cterm (Cterm {maxidx, ...}) = maxidx;
 fun global_cterm_of thy tm =
   let
     val (t, T, maxidx) = Sign.certify_term thy tm;
-    val sorts = Sortset.build (Sortset.insert_term t);
+    val sorts = Sorts.insert_term t [];
   in Cterm {cert = Context.Certificate thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
 val cterm_of = global_cterm_of o Proof_Context.theory_of;
@@ -345,7 +345,7 @@ fun apply
         t = f $ x,
         T = rty,
         maxidx = Int.max (maxidx1, maxidx2),
-        sorts = Sortset.merge (sorts1, sorts2)}
+        sorts = Sorts.union sorts1 sorts2}
       else raise CTERM ("apply: types don't agree", [cf, cx])
   | apply cf cx = raise CTERM ("apply: first arg is not a function", [cf, cx]);
 
@@ -356,7 +356,7 @@ fun lambda_name
       Cterm {cert = join_certificate0 (ct1, ct2),
         t = t, T = T1 --> T2,
         maxidx = Int.max (maxidx1, maxidx2),
-        sorts = Sortset.merge (sorts1, sorts2)}
+        sorts = Sorts.union sorts1 sorts2}
     end;
 
 fun lambda t u = lambda_name ("", t) u;
@@ -430,7 +430,7 @@ datatype thm = Thm of
   tags: Properties.T,           (*additional annotations/comments*)
   maxidx: int,                  (*maximum index of any Var or TVar*)
   constraints: constraint Ord_List.T,  (*implicit proof obligations for sort constraints*)
-  shyps: Sortset.T,             (*sort hypotheses*)
+  shyps: sort Ord_List.T,       (*sort hypotheses*)
   hyps: term Ord_List.T,        (*hypotheses*)
   tpairs: (term * term) list,   (*flex-flex pairs*)
   prop: term}                   (*conclusion*)
@@ -544,7 +544,7 @@ val thm_ord =
   (Term_Ord.fast_term_ord o apply2 prop_of
     ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 tpairs_of
     ||| list_ord Term_Ord.fast_term_ord o apply2 hyps_of
-    ||| Sortset.ord o apply2 shyps_of);
+    ||| list_ord Term_Ord.sort_ord o apply2 shyps_of);
 
 
 (* implicit theory context *)
@@ -658,7 +658,7 @@ fun gen_match match
     val thy = Context.certificate_theory cert
       handle ERROR msg => raise CONTEXT (msg, [], [ct1, ct2], [], NONE);
     val (Tinsts, tinsts) = match thy (t1, t2) (Vartab.empty, Vartab.empty);
-    val sorts = Sortset.merge (sorts1, sorts2);
+    val sorts = Sorts.union sorts1 sorts2;
     fun mk_cTinst ((a, i), (S, T)) =
       (((a, i), S), Ctyp {T = T, cert = cert, maxidx = maxidx2, sorts = sorts});
     fun mk_ctinst ((x, i), (U, t)) =
@@ -719,17 +719,18 @@ fun weaken raw_ct th =
         tags = tags,
         maxidx = maxidx,
         constraints = constraints,
-        shyps = Sortset.merge (sorts, shyps),
+        shyps = Sorts.union sorts shyps,
         hyps = insert_hyps A hyps,
         tpairs = tpairs,
         prop = prop})
   end;
 
-fun weaken_sorts more_sorts ct =
+fun weaken_sorts raw_sorts ct =
   let
     val Cterm {cert, t, T, maxidx, sorts} = ct;
     val thy = theory_of_cterm ct;
-    val sorts' = Sortset.fold (Sortset.insert o Sign.certify_sort thy) more_sorts sorts;
+    val more_sorts = Sorts.make (map (Sign.certify_sort thy) raw_sorts);
+    val sorts' = Sorts.union sorts more_sorts;
   in Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = sorts'} end;
 
 
@@ -816,7 +817,7 @@ fun future_result i orig_cert orig_shyps orig_prop thm =
     val _ = null constraints orelse err "bad sort constraints";
     val _ = null tpairs orelse err "bad flex-flex constraints";
     val _ = null hyps orelse err "bad hyps";
-    val _ = Sortset.subset (shyps, orig_shyps) orelse err "bad shyps";
+    val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
     val _ = forall_promises (fn j => i <> j) promises orelse err "bad dependencies";
     val _ = join_promises (dest_promises promises);
   in thm end;
@@ -854,7 +855,7 @@ fun axiom thy name =
         val der = deriv_rule0 (fn () => Proofterm.axm_proof name prop);
         val cert = Context.Certificate thy;
         val maxidx = maxidx_of_term prop;
-        val shyps = Sortset.build (Sortset.insert_term prop);
+        val shyps = Sorts.insert_term prop [];
       in
         Thm (der,
           {cert = cert, tags = [], maxidx = maxidx,
@@ -1019,13 +1020,13 @@ end;
 
 (*Dangling sort constraints of a thm*)
 fun extra_shyps (th as Thm (_, {shyps, ...})) =
-  Sortset.subtract (Sortset.build (fold_terms {hyps = true} Sortset.insert_term th)) shyps;
+  Sorts.subtract (fold_terms {hyps = true} Sorts.insert_term th []) shyps;
 
 (*Remove extra sorts that are witnessed by type signature information*)
-fun strip_shyps (thm as Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop})) =
-  solve_constraints (
-    if Sortset.is_empty shyps then thm
-    else
+fun strip_shyps thm =
+  (case thm of
+    Thm (_, {shyps = [], ...}) => thm
+  | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
       let
         val thy = theory_of_thm thm;
 
@@ -1037,29 +1038,30 @@ fun strip_shyps (thm as Thm (der, {cert, tags, maxidx, constraints, shyps, hyps,
 
         val present =
           (fold_terms {hyps = true} o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
-        val extra = fold (Sortset.remove o #2) present shyps;
-        val witnessed = Sign.witness_sorts thy present (Sortset.dest extra);
-        val non_witnessed =
-          fold (Sortset.remove o #2) witnessed extra |> Sortset.dest |> map (`minimize);
+        val extra = fold (Sorts.remove_sort o #2) present shyps;
+        val witnessed = Sign.witness_sorts thy present extra;
+        val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
 
         val extra' =
           non_witnessed |> map_filter (fn (S, _) =>
             if non_witnessed |> exists (fn (S', _) => lt (S', S)) then NONE else SOME S)
-          |> Sortset.make;
+          |> Sorts.make;
 
         val constrs' =
           non_witnessed |> maps (fn (S1, S2) =>
-            let val S0 = the (Sortset.get_first (fn S => if le (S, S1) then SOME S else NONE) extra')
+            let val S0 = the (find_first (fn S => le (S, S1)) extra')
             in rel (S0, S1) @ rel (S1, S2) end);
 
         val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
-        val shyps' = fold (Sortset.insert o #2) present extra';
+        val shyps' = fold (Sorts.insert_sort o #2) present extra';
       in
         Thm (deriv_rule_unconditional
           (Proofterm.strip_shyps_proof algebra present witnessed extra') der,
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
-      end);
+      end)
+  |> solve_constraints;
+
 
 
 (*** Closed theorems with official name ***)
@@ -1209,7 +1211,7 @@ fun implies_intr
       tags = [],
       maxidx = Int.max (maxidx1, maxidx2),
       constraints = constraints,
-      shyps = Sortset.merge (sorts, shyps),
+      shyps = Sorts.union sorts shyps,
       hyps = remove_hyps A hyps,
       tpairs = tpairs,
       prop = Logic.mk_implies (A, prop)});
@@ -1236,7 +1238,7 @@ fun implies_elim thAB thA =
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = union_constraints constraintsA constraints,
-            shyps = Sortset.merge (shypsA, shyps),
+            shyps = Sorts.union shypsA shyps,
             hyps = union_hyps hypsA hyps,
             tpairs = union_tpairs tpairsA tpairs,
             prop = B})
@@ -1268,7 +1270,7 @@ fun forall_intr
           tags = [],
           maxidx = Int.max (maxidx1, maxidx2),
           constraints = constraints,
-          shyps = Sortset.merge (sorts, shyps),
+          shyps = Sorts.union sorts shyps,
           hyps = hyps,
           tpairs = tpairs,
           prop = Logic.all_const T $ Abs (a, T, abstract_over (x, prop))});
@@ -1297,7 +1299,7 @@ fun forall_elim
           tags = [],
           maxidx = Int.max (maxidx1, maxidx2),
           constraints = constraints,
-          shyps = Sortset.merge (sorts, shyps),
+          shyps = Sorts.union sorts shyps,
           hyps = hyps,
           tpairs = tpairs,
           prop = Term.betapply (A, t)})
@@ -1361,7 +1363,7 @@ fun transitive th1 th2 =
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = union_constraints constraints1 constraints2,
-            shyps = Sortset.merge (shyps1, shyps2),
+            shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = eq $ t1 $ t2})
@@ -1433,7 +1435,7 @@ fun abstract_rule b
           tags = [],
           maxidx = maxidx,
           constraints = constraints,
-          shyps = Sortset.merge (sorts, shyps),
+          shyps = Sorts.union sorts shyps,
           hyps = hyps,
           tpairs = tpairs,
           prop = Logic.mk_equals
@@ -1473,7 +1475,7 @@ fun combination th1 th2 =
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = union_constraints constraints1 constraints2,
-            shyps = Sortset.merge (shyps1, shyps2),
+            shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = Logic.mk_equals (f $ t, g $ u)}))
@@ -1501,7 +1503,7 @@ fun equal_intr th1 th2 =
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = union_constraints constraints1 constraints2,
-            shyps = Sortset.merge (shyps1, shyps2),
+            shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = Logic.mk_equals (A, B)})
@@ -1530,7 +1532,7 @@ fun equal_elim th1 th2 =
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = union_constraints constraints1 constraints2,
-            shyps = Sortset.merge (shyps1, shyps2),
+            shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = B})
@@ -1644,7 +1646,7 @@ fun add_cert cert_of (_, c) cert = Context.join_certificate (cert, cert_of c);
 val add_instT_cert = add_cert (fn Ctyp {cert, ...} => cert);
 val add_inst_cert = add_cert (fn Cterm {cert, ...} => cert);
 
-fun add_sorts sorts_of (_, c) sorts = Sortset.merge (sorts_of c, sorts);
+fun add_sorts sorts_of (_, c) sorts = Sorts.union (sorts_of c) sorts;
 val add_instT_sorts = add_sorts (fn Ctyp {sorts, ...} => sorts);
 val add_inst_sorts = add_sorts (fn Cterm {sorts, ...} => sorts);
 
@@ -1811,7 +1813,7 @@ val unconstrainT =
         tags = [],
         maxidx = maxidx_of_term prop',
         constraints = [],
-        shyps = Sortset.make [[]],  (*potentially redundant*)
+        shyps = [[]],  (*potentially redundant*)
         hyps = [],
         tpairs = [],
         prop = prop'})
@@ -1863,7 +1865,7 @@ fun plain_prop_of raw_thm =
   in
     if not (null (hyps_of thm)) then
       err "theorem may not contain hypotheses"
-    else if not (Sortset.is_empty (extra_shyps thm)) then
+    else if not (null (extra_shyps thm)) then
       err "theorem may not contain sort hypotheses"
     else if not (null (tpairs_of thm)) then
       err "theorem may not contain flex-flex pairs"
@@ -1899,7 +1901,7 @@ fun lift_rule goal orule =
         tags = [],
         maxidx = maxidx + inc,
         constraints = constraints,
-        shyps = Sortset.merge (sorts, shyps),
+        shyps = Sorts.union shyps sorts,  (*sic!*)
         hyps = hyps,
         tpairs = map (apply2 lift_abs) tpairs,
         prop = Logic.list_implies (map lift_all As, lift_all B)})
@@ -2191,7 +2193,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
                 {tags = [],
                  maxidx = Envir.maxidx_of env,
                  constraints = constraints',
-                 shyps = Envir.insert_sorts env (Sortset.merge (shyps1, shyps2)),
+                 shyps = Envir.insert_sorts env (Sorts.union shyps1 shyps2),
                  hyps = union_hyps hyps1 hyps2,
                  tpairs = ntpairs,
                  prop = Logic.list_implies normp,

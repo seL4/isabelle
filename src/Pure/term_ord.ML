@@ -224,38 +224,6 @@ end;
 
 structure Termset = Set(Termtab.Key);
 
-structure Sortset:
-sig
-  include SET
-  val insert_typ: typ -> T -> T
-  val insert_typs: typ list -> T -> T
-  val insert_term: term -> T -> T
-  val insert_terms: term list -> T -> T
-end =
-struct
-
-structure Set = Set(Sorttab.Key);
-open Set;
-
-fun insert_typ (TFree (_, S)) Ss = insert S Ss
-  | insert_typ (TVar (_, S)) Ss = insert S Ss
-  | insert_typ (Type (_, Ts)) Ss = insert_typs Ts Ss
-and insert_typs [] Ss = Ss
-  | insert_typs (T :: Ts) Ss = insert_typs Ts (insert_typ T Ss);
-
-fun insert_term (Const (_, T)) Ss = insert_typ T Ss
-  | insert_term (Free (_, T)) Ss = insert_typ T Ss
-  | insert_term (Var (_, T)) Ss = insert_typ T Ss
-  | insert_term (Bound _) Ss = Ss
-  | insert_term (Abs (_, T, t)) Ss = insert_term t (insert_typ T Ss)
-  | insert_term (t $ u) Ss = insert_term t (insert_term u Ss);
-
-fun insert_terms [] Ss = Ss
-  | insert_terms (t :: ts) Ss = insert_terms ts (insert_term t Ss);
-
-end;
-
 structure Var_Graph = Graph(Vartab.Key);
-structure Sort_Graph = Graph(Sorttab.Key);
 structure Typ_Graph = Graph(Typtab.Key);
 structure Term_Graph = Graph(Termtab.Key);
