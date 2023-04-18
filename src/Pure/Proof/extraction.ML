@@ -180,7 +180,11 @@ fun make_proof_body prf =
         (fn Oracle (name, prop, _) => apfst (cons ((name, Position.none), SOME prop))
           | PThm (header, thm_body) => apsnd (cons (Proofterm.make_thm header thm_body))
           | _ => I);
-    val body = PBody {oracles = Oracles.make oracles, thms = PThms.make thms, proof = prf};
+    val body =
+      PBody
+       {oracles = Oracles.make oracles,
+        thms = Ord_List.make Proofterm.thm_ord thms,
+        proof = prf};
   in Proofterm.thm_body body end;
 
 

@@ -104,7 +104,7 @@ fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
             else (num_thms + 1, name' :: names)
           | NONE => accum)
       end
-    and app_body map_name (PBody {thms, ...}) = PThms.fold (app_thm map_name) thms
+    and app_body map_name (PBody {thms, ...}) = fold (app_thm map_name) thms
   in
     snd (app_body map_plain_name body (0, []))
   end

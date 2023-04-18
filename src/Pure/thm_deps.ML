@@ -24,7 +24,7 @@ fun all_oracles thms =
   let
     fun collect (PBody {oracles, thms, ...}) =
       (if Oracles.is_empty oracles then I else apfst (cons oracles)) #>
-      (tap Proofterm.join_thms thms |> PThms.fold (fn (i, thm_node) => fn (res, seen) =>
+      (tap Proofterm.join_thms thms |> fold (fn (i, thm_node) => fn (res, seen) =>
         if Intset.member seen i then (res, seen)
         else
           let val body = Future.join (Proofterm.thm_node_body thm_node)
@@ -63,11 +63,11 @@ fun thm_deps thy =
               Inttab.update (i, SOME (thm_id, thm_name)) res
           | NONE =>
               Inttab.update (i, NONE) res
-              |> PThms.fold deps (Proofterm.thm_node_thms thm_node))
+              |> fold deps (Proofterm.thm_node_thms thm_node))
         end;
   in
     fn thms =>
-      (Inttab.build (fold (PThms.fold deps o Thm.thm_deps o Thm.transfer thy) thms), [])
+      (Inttab.build (fold (fold deps o Thm.thm_deps o Thm.transfer thy) thms), [])
       |-> Inttab.fold_rev (fn (_, SOME entry) => cons entry | _ => I)
   end;
 
