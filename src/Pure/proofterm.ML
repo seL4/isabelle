@@ -53,7 +53,9 @@ sig
     proof_body list -> 'a -> 'a
   val oracle_ord: oracle ord
   val thm_ord: thm ord
+  val union_oracles: oracle Ord_List.T -> oracle Ord_List.T -> oracle Ord_List.T
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
+  val union_thms: thm Ord_List.T -> thm Ord_List.T -> thm Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
   val no_proof_body: proof -> proof_body
   val no_thm_names: proof -> proof
@@ -316,7 +318,10 @@ fun fold_body_thms f =
 
 (* proof body *)
 
+val union_oracles = Ord_List.union oracle_ord;
 val unions_oracles = Ord_List.unions oracle_ord;
+
+val union_thms = Ord_List.union thm_ord;
 val unions_thms = Ord_List.unions thm_ord;
 
 fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};

@@ -777,8 +777,8 @@ fun deriv_rule2 f
     (Deriv {promises = ps2, body = PBody {oracles = oracles2, thms = thms2, proof = prf2}}) =
   let
     val ps = Ord_List.union promise_ord ps1 ps2;
-    val oracles = Proofterm.unions_oracles [oracles1, oracles2];
-    val thms = Proofterm.unions_thms [thms1, thms2];
+    val oracles = Proofterm.union_oracles oracles1 oracles2;
+    val thms = Proofterm.union_thms thms1 thms2;
     val prf =
       (case ! Proofterm.proofs of
         2 => f prf1 prf2
@@ -995,7 +995,7 @@ val arity_proof = proof_of oo the_arity;
 local
 
 fun union_digest (oracles1, thms1) (oracles2, thms2) =
-  (Proofterm.unions_oracles [oracles1, oracles2], Proofterm.unions_thms [thms1, thms2]);
+  (Proofterm.union_oracles oracles1 oracles2, Proofterm.union_thms thms1 thms2);
 
 fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) =
   (oracles, thms);
