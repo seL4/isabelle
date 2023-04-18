@@ -742,7 +742,7 @@ fun weaken_sorts more_sorts ct =
 fun make_deriv promises oracles thms proof =
   Deriv {promises = promises, body = PBody {oracles = oracles, thms = thms, proof = proof}};
 
-val empty_deriv = make_deriv empty_promises Oracles.empty [] MinProof;
+val empty_deriv = make_deriv empty_promises [] [] MinProof;
 
 
 (* inference rules *)
@@ -755,7 +755,7 @@ fun deriv_rule2 f
     (Deriv {promises = promises2, body = PBody {oracles = oracles2, thms = thms2, proof = prf2}}) =
   let
     val ps = merge_promises (promises1, promises2);
-    val oracles = Oracles.merge (oracles1, oracles2);
+    val oracles = Proofterm.unions_oracles [oracles1, oracles2];
     val thms = Proofterm.unions_thms [thms1, thms2];
     val prf =
       (case ! Proofterm.proofs of
@@ -769,7 +769,7 @@ fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
 
 fun deriv_rule0 make_prf =
   if ! Proofterm.proofs <= 1 then empty_deriv
-  else deriv_rule1 I (make_deriv empty_promises Oracles.empty [] (make_prf ()));
+  else deriv_rule1 I (make_deriv empty_promises [] [] (make_prf ()));
 
 fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, proof}}) =
   make_deriv promises oracles thms (f proof);
@@ -835,7 +835,7 @@ fun future future_thm ct =
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv (make_promises [(i, future)]) Oracles.empty [] MinProof,
+    Thm (make_deriv (make_promises [(i, future)]) [] [] MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -976,7 +976,7 @@ val arity_proof = proof_of oo the_arity;
 local
 
 fun union_digest (oracles1, thms1) (oracles2, thms2) =
-  (Oracles.merge (oracles1, oracles2), Proofterm.unions_thms [thms1, thms2]);
+  (Proofterm.unions_oracles [oracles1, oracles2], Proofterm.unions_thms [thms1, thms2]);
 
 fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) =
   (oracles, thms);
@@ -984,11 +984,11 @@ fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) =
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
   Sorts.of_sort_derivation (Sign.classes_of thy)
    {class_relation = fn _ => fn _ => fn (digest, c1) => fn c2 =>
-      if c1 = c2 then (Oracles.empty, []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
+      if c1 = c2 then ([], []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val arity_digest = thm_digest (the_arity thy (a, (map o map) #2 dom, c))
       in (fold o fold) (union_digest o #1) dom arity_digest end,
-    type_variable = fn T => map (pair (Oracles.empty, [])) (Type.sort_of_atyp T)}
+    type_variable = fn T => map (pair ([], [])) (Type.sort_of_atyp T)}
    (typ, sort);
 
 in
@@ -1116,7 +1116,7 @@ fun name_derivation name_pos =
       val (pthm, proof) =
         Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
           name_pos shyps hyps prop ps body;
-      val der' = make_deriv empty_promises Oracles.empty [pthm] proof;
+      val der' = make_deriv empty_promises [] [pthm] proof;
     in Thm (der', args) end);
 
 fun close_derivation pos =
@@ -1147,7 +1147,7 @@ fun add_oracle (b, oracle_fn) thy =
               | 0 => (((name, Position.none), NONE), MinProof)
               | i => bad_proofs i);
           in
-            Thm (make_deriv empty_promises (Oracles.make [oracle]) [] prf,
+            Thm (make_deriv empty_promises [oracle] [] prf,
              {cert = Context.join_certificate (Context.Certificate thy', cert2),
               tags = [],
               maxidx = maxidx,
@@ -1807,7 +1807,7 @@ val unconstrainT =
       val (pthm, proof) =
         Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
           shyps prop ps body;
-      val der' = make_deriv empty_promises Oracles.empty [pthm] proof;
+      val der' = make_deriv empty_promises [] [pthm] proof;
       val prop' = Proofterm.thm_node_prop (#2 pthm);
     in
       Thm (der',

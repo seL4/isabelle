@@ -6,11 +6,6 @@ LF style proof terms.
 
 infix 8 % %% %>;
 
-structure Oracles = Set(
-  type key = (string * Position.T) * term option
-  val ord = prod_ord (prod_ord fast_string_ord Position.ord) (option_ord Term_Ord.fast_term_ord)
-);
-
 signature PROOFTERM =
 sig
   type thm_header =
@@ -31,9 +26,10 @@ sig
    | Oracle of string * term * typ list option
    | PThm of thm_header * thm_body
   and proof_body = PBody of
-    {oracles: Oracles.T,
+    {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
      proof: proof}
+  type oracle = (string * Position.T) * term option
   type thm = serial * thm_node
   exception MIN_PROOF of unit
   val proof_of: proof_body -> proof
@@ -55,7 +51,9 @@ sig
   val fold_body_thms:
     ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
+  val oracle_ord: oracle ord
   val thm_ord: thm ord
+  val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
   val no_proof_body: proof -> proof_body
   val no_thm_names: proof -> proof
@@ -219,7 +217,7 @@ datatype proof =
  | Oracle of string * term * typ list option
  | PThm of thm_header * thm_body
 and proof_body = PBody of
-  {oracles: Oracles.T,
+  {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
    proof: proof}
 and thm_body =
@@ -227,6 +225,10 @@ and thm_body =
 and thm_node =
   Thm_Node of {theory_name: string, name: string, prop: term,
     body: proof_body future, export: unit lazy, consolidate: unit lazy};
+
+type oracle = (string * Position.T) * term option;
+val oracle_ord: oracle ord =
+  prod_ord (prod_ord fast_string_ord Position.ord) (option_ord Term_Ord.fast_term_ord);
 
 type thm = serial * thm_node;
 val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
@@ -314,9 +316,10 @@ fun fold_body_thms f =
 
 (* proof body *)
 
+val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
 
-fun no_proof_body proof = PBody {oracles = Oracles.empty, thms = [], proof = proof};
+fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};
 val no_thm_body = thm_body (no_proof_body MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
@@ -372,7 +375,7 @@ fun proof consts prf = prf |> variant
         (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
 and proof_body consts (PBody {oracles, thms, proof = prf}) =
   triple (list (pair (pair string (properties o Position.properties_of))
-      (option (term consts)))) (list (thm consts)) (proof consts) (Oracles.dest oracles, thms, prf)
+      (option (term consts)))) (list (thm consts)) (proof consts) (oracles, thms, prf)
 and thm consts (a, thm_node) =
   pair int (pair string (pair string (pair (term consts) (proof_body consts))))
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
@@ -438,7 +441,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = Oracles.make a, thms = b, proof = c} end
+  in PBody {oracles = a, thms = b, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -1987,9 +1990,8 @@ fun fulfill_norm_proof thy ps body0 =
     val _ = consolidate_bodies (map #2 ps @ [body0]);
     val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
     val oracles =
-      Oracles.merges
-        (fold (fn (_, PBody {oracles, ...}) => not (Oracles.is_empty oracles) ? cons oracles)
-          ps [oracles0]);
+      unions_oracles
+        (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
     val proof = rew_proof thy proof0;

@@ -36,8 +36,7 @@ ML \<open>iff_oracle (\<^theory>, 2)\<close>
 ML \<open>iff_oracle (\<^theory>, 10)\<close>
 
 ML \<open>
-  \<^assert> (map (#1 o #1) (Oracles.dest (Thm_Deps.all_oracles [iff_oracle (\<^theory>, 10)])) =
-    [\<^oracle_name>\<open>iff_oracle\<close>]);
+  \<^assert> (map (#1 o #1) (Thm_Deps.all_oracles [iff_oracle (\<^theory>, 10)]) = [\<^oracle_name>\<open>iff_oracle\<close>]);
 \<close>
 
 text \<open>These oracle calls had better fail.\<close>
