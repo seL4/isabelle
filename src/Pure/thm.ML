@@ -96,8 +96,6 @@ sig
   val transfer'': Context.generic -> thm -> thm
   val join_transfer: theory -> thm -> thm
   val join_transfer_context: Proof.context * thm -> Proof.context * thm
-  val shared_context: theory -> thm list -> thm list
-  val shared_context': Proof.context -> thm list -> thm list
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
@@ -641,31 +639,6 @@ fun join_transfer_context (ctxt, th) =
   if Context.subthy_id (theory_id th, Context.theory_id (Proof_Context.theory_of ctxt))
   then (ctxt, transfer' ctxt th)
   else (Context.raw_transfer (theory_of_thm th) ctxt, th);
-
-
-(* shared context: speed-up low-level inferences *)
-
-fun shared_context thy thms0 =
-  let
-    val thms = map (transfer thy) thms0;
-    val maxidx' = fold (Integer.max o maxidx_of) thms ~1;
-    val constraints' = unions_constraints (map constraints_of thms);
-    val shyps' = Sorts.unions (map shyps_of thms);
-    val hyps' = unions_hyps (map hyps_of thms);
-  in
-    thms |> map (fn Thm (deriv, {cert, tags, tpairs, prop, ...}) =>
-      Thm (deriv,
-       {cert = cert,
-        tags = tags,
-        maxidx = maxidx',
-        constraints = constraints',
-        shyps = shyps',
-        hyps = hyps',
-        tpairs = tpairs,
-        prop = prop}))
-  end;
-
-val shared_context' = shared_context o Proof_Context.theory_of;
 
 
 (* matching *)
