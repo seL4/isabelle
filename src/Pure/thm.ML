@@ -438,16 +438,8 @@ datatype thm = Thm of
   tpairs: (term * term) list,   (*flex-flex pairs*)
   prop: term}                   (*conclusion*)
 and deriv = Deriv of
- {promises: thm future Inttab'.table,
+ {promises: (serial * thm future) Ord_List.T,
   body: Proofterm.proof_body};
-
-type promises = thm future Inttab'.table;
-val null_promises : promises -> bool = Inttab'.is_empty;
-val empty_promises : promises = Inttab'.empty;
-val merge_promises : promises * promises -> promises = Inttab'.merge (K true);
-val make_promises : (serial * thm future) list -> promises = Inttab'.make;
-val dest_promises : promises -> (serial * thm future) list = Inttab'.dest;
-fun forall_promises f : promises -> bool = Inttab'.forall (f o fst);
 
 type conv = cterm -> thm;
 
@@ -770,19 +762,21 @@ fun weaken_sorts raw_sorts ct =
 fun make_deriv promises oracles thms proof =
   Deriv {promises = promises, body = PBody {oracles = oracles, thms = thms, proof = proof}};
 
-val empty_deriv = make_deriv empty_promises [] [] MinProof;
+val empty_deriv = make_deriv [] [] [] MinProof;
 
 
 (* inference rules *)
+
+val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 fun bad_proofs i =
   error ("Illegal level of detail for proof objects: " ^ string_of_int i);
 
 fun deriv_rule2 f
-    (Deriv {promises = promises1, body = PBody {oracles = oracles1, thms = thms1, proof = prf1}})
-    (Deriv {promises = promises2, body = PBody {oracles = oracles2, thms = thms2, proof = prf2}}) =
+    (Deriv {promises = ps1, body = PBody {oracles = oracles1, thms = thms1, proof = prf1}})
+    (Deriv {promises = ps2, body = PBody {oracles = oracles2, thms = thms2, proof = prf2}}) =
   let
-    val ps = merge_promises (promises1, promises2);
+    val ps = Ord_List.union promise_ord ps1 ps2;
     val oracles = Proofterm.unions_oracles [oracles1, oracles2];
     val thms = Proofterm.unions_thms [thms1, thms2];
     val prf =
@@ -797,7 +791,7 @@ fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
 
 fun deriv_rule0 make_prf =
   if ! Proofterm.proofs <= 1 then empty_deriv
-  else deriv_rule1 I (make_deriv empty_promises [] [] (make_prf ()));
+  else deriv_rule1 I (make_deriv [] [] [] (make_prf ()));
 
 fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, proof}}) =
   make_deriv promises oracles thms (f proof);
@@ -805,18 +799,15 @@ fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, pr
 
 (* fulfilled proofs *)
 
-fun merge_promises_of (Thm (Deriv {promises, ...}, _)) ps = merge_promises (ps, promises);
+fun raw_promises_of (Thm (Deriv {promises, ...}, _)) = promises;
 
 fun join_promises [] = ()
   | join_promises promises = join_promises_of (Future.joins (map snd promises))
-and join_promises_of thms =
-  join_promises (dest_promises (fold merge_promises_of thms empty_promises));
+and join_promises_of thms = join_promises (Ord_List.make promise_ord (maps raw_promises_of thms));
 
 fun fulfill_body (th as Thm (Deriv {promises, body}, _)) =
-  let
-    val pending = dest_promises promises;
-    val fulfilled = map #1 pending ~~ map fulfill_body (Future.joins (map #2 pending));
-  in Proofterm.fulfill_norm_proof (theory_of_thm th) fulfilled body end;
+  let val fulfilled_promises = map #1 promises ~~ map fulfill_body (Future.joins (map #2 promises))
+  in Proofterm.fulfill_norm_proof (theory_of_thm th) fulfilled_promises body end;
 
 fun proof_bodies_of thms = (join_promises_of thms; map fulfill_body thms);
 val proof_body_of = singleton proof_bodies_of;
@@ -848,8 +839,8 @@ fun future_result i orig_cert orig_shyps orig_prop thm =
     val _ = null tpairs orelse err "bad flex-flex constraints";
     val _ = null hyps orelse err "bad hyps";
     val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
-    val _ = forall_promises (fn j => i <> j) promises orelse err "bad dependencies";
-    val _ = join_promises (dest_promises promises);
+    val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
+    val _ = join_promises promises;
   in thm end;
 
 fun future future_thm ct =
@@ -863,7 +854,7 @@ fun future future_thm ct =
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv (make_promises [(i, future)]) [] [] MinProof,
+    Thm (make_deriv [(i, future)] [] [] MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1122,13 +1113,12 @@ fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_id shyps hyps prop (proof_of thm);
 
 (*dependencies of PThm node*)
-fun thm_deps (thm as Thm (Deriv {promises, body = PBody {thms, ...}, ...}, _)) =
-  if null_promises promises then
+fun thm_deps (thm as Thm (Deriv {promises = [], body = PBody {thms, ...}, ...}, _)) =
       (case (derivation_id thm, thms) of
         (SOME {serial = i, ...}, [(j, thm_node)]) =>
           if i = j then Proofterm.thm_node_thms thm_node else thms
       | _ => thms)
-  else raise THM ("thm_deps: bad promises", 0, [thm]);
+  | thm_deps thm = raise THM ("thm_deps: bad promises", 0, [thm]);
 
 fun name_derivation name_pos =
   strip_shyps #> (fn thm as Thm (der, args) =>
@@ -1140,11 +1130,11 @@ fun name_derivation name_pos =
 
       val _ = null tpairs orelse raise THM ("name_derivation: bad flex-flex constraints", 0, [thm]);
 
-      val ps = map (apsnd (Future.map fulfill_body)) (dest_promises promises);
+      val ps = map (apsnd (Future.map fulfill_body)) promises;
       val (pthm, proof) =
         Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
           name_pos shyps hyps prop ps body;
-      val der' = make_deriv empty_promises [] [pthm] proof;
+      val der' = make_deriv [] [] [pthm] proof;
     in Thm (der', args) end);
 
 fun close_derivation pos =
@@ -1175,7 +1165,7 @@ fun add_oracle (b, oracle_fn) thy =
               | 0 => (((name, Position.none), NONE), MinProof)
               | i => bad_proofs i);
           in
-            Thm (make_deriv empty_promises [oracle] [] prf,
+            Thm (make_deriv [] [oracle] [] prf,
              {cert = Context.join_certificate (Context.Certificate thy', cert2),
               tags = [],
               maxidx = maxidx,
@@ -1831,11 +1821,11 @@ val unconstrainT =
       val tfrees = build_rev (Term.add_tfree_names prop);
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
-      val ps = map (apsnd (Future.map fulfill_body)) (dest_promises promises);
+      val ps = map (apsnd (Future.map fulfill_body)) promises;
       val (pthm, proof) =
         Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
           shyps prop ps body;
-      val der' = make_deriv empty_promises [] [pthm] proof;
+      val der' = make_deriv [] [] [pthm] proof;
       val prop' = Proofterm.thm_node_prop (#2 pthm);
     in
       Thm (der',
