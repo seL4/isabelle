@@ -42,6 +42,7 @@ sig
   type thm = serial * thm_node
   type thms = thm_node PThms.table
   val union_thms: thms * thms -> thms
+  val unions_thms: thms list -> thms
   exception MIN_PROOF of unit
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
@@ -237,6 +238,7 @@ type thm = serial * thm_node;
 
 type thms = thm_node PThms.table;
 val union_thms: thms * thms -> thms = PThms.merge (K true);
+val unions_thms: thms list -> thms = PThms.merges (K true);
 
 exception MIN_PROOF of unit;
 
@@ -1992,8 +1994,13 @@ fun fulfill_norm_proof thy ps body0 =
     val _ = consolidate_bodies (map #2 ps @ [body0]);
     val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
     val oracles =
-      fold (fn (_, PBody {oracles, ...}) => fn acc => Oracles.merge (acc, oracles)) ps oracles0;
-    val thms = fold (fn (_, PBody {thms, ...}) => fn acc => union_thms (acc, thms)) ps thms0;
+      Oracles.merges
+        (fold (fn (_, PBody {oracles, ...}) => not (Oracles.is_empty oracles) ? cons oracles)
+          ps [oracles0]);
+    val thms =
+      unions_thms
+        (fold (fn (_, PBody {thms, ...}) => not (PThms.is_empty thms) ? cons thms)
+          ps [thms0]);
     val proof = rew_proof thy proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
