@@ -27,9 +27,15 @@ sig
   val defined: 'a table -> key -> bool
   val add: key * 'a -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table
+  val make1: key * 'a -> 'a table
+  val make2: key * 'a -> key * 'a -> 'a table
+  val make3: key * 'a -> key * 'a -> key * 'a -> 'a table
   type set = int table
   val add_set: key -> set -> set
   val make_set: key list -> set
+  val make1_set: key -> set
+  val make2_set: key -> key -> set
+  val make3_set: key -> key -> key -> set
   val list_set: set -> key list
   val list_set_rev: set -> key list
   val subset: set * set -> bool
@@ -65,7 +71,10 @@ fun lookup (Table tab) = Table.lookup tab;
 fun defined (Table tab) = Table.defined tab;
 
 fun add entry (Table tab) = Table (Table.default entry tab);
-fun make entries = build (fold add entries);
+fun make es = build (fold add es);
+fun make1 e = build (add e);
+fun make2 e1 e2 = build (add e1 #> add e2);
+fun make3 e1 e2 e3 = build (add e1 #> add e2 #> add e3);
 
 
 (* set with order of addition *)
@@ -76,6 +85,9 @@ fun add_set x (Table tab) =
   Table (if Table.defined tab x then tab else Table.update_new (x, Table.size tab + 1) tab);
 
 fun make_set xs = build (fold add_set xs);
+fun make1_set e = build (add_set e);
+fun make2_set e1 e2 = build (add_set e1 #> add_set e2);
+fun make3_set e1 e2 e3 = build (add_set e1 #> add_set e2 #> add_set e3);
 
 fun subset (A: set, B: set) = forall (defined B o #1) A;
 fun eq_set (A: set, B: set) = pointer_eq (A, B) orelse size A = size B andalso subset (A, B);
