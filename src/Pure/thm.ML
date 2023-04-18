@@ -385,21 +385,19 @@ fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
 
 type constraint = {theory: theory, typ: typ, sort: sort};
 
-structure Constraints =
-  Set(
-    type key = constraint;
-    val ord =
-      Context.theory_id_ord o apply2 (Context.theory_id o #theory)
-      ||| Term_Ord.typ_ord o apply2 #typ
-      ||| Term_Ord.sort_ord o apply2 #sort;
-  );
-
 local
+
+val constraint_ord : constraint ord =
+  Context.theory_id_ord o apply2 (Context.theory_id o #theory)
+  ||| Term_Ord.typ_ord o apply2 #typ
+  ||| Term_Ord.sort_ord o apply2 #sort;
 
 val smash_atyps =
   map_atyps (fn TVar (_, S) => Term.aT S | TFree (_, S) => Term.aT S | T => T);
 
 in
+
+val union_constraints = Ord_List.union constraint_ord;
 
 fun insert_constraints thy (T, S) =
   let
@@ -411,7 +409,7 @@ fun insert_constraints thy (T, S) =
         | _ => false);
   in
     if ignored then I
-    else Constraints.insert {theory = thy, typ = smash_atyps T, sort = S}
+    else Ord_List.insert constraint_ord {theory = thy, typ = smash_atyps T, sort = S}
   end;
 
 fun insert_constraints_env thy env =
@@ -431,7 +429,7 @@ datatype thm = Thm of
  {cert: Context.certificate,    (*background theory certificate*)
   tags: Properties.T,           (*additional annotations/comments*)
   maxidx: int,                  (*maximum index of any Var or TVar*)
-  constraints: Constraints.T,   (*implicit proof obligations for sort constraints*)
+  constraints: constraint Ord_List.T,  (*implicit proof obligations for sort constraints*)
   shyps: Sortset.T,             (*sort hypotheses*)
   hyps: term Ord_List.T,        (*hypotheses*)
   tpairs: (term * term) list,   (*flex-flex pairs*)
@@ -506,7 +504,6 @@ val theory_name = Context.theory_id_name o theory_id;
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
-val constraints_of = #constraints o rep_thm;
 val shyps_of = #shyps o rep_thm;
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
@@ -577,17 +574,17 @@ fun trim_context_cterm ct =
         t = t, T = T, maxidx = maxidx, sorts = sorts});
 
 fun trim_context_thm th =
-  if Constraints.is_empty (constraints_of th) then
-    (case th of
-      Thm (_, {cert = Context.Certificate_Id _, ...}) => th
-    | Thm (der,
-        {cert = Context.Certificate thy, tags, maxidx, constraints = _, shyps, hyps,
-          tpairs, prop}) =>
-        Thm (der,
-         {cert = Context.Certificate_Id (Context.theory_id thy),
-          tags = tags, maxidx = maxidx, constraints = Constraints.empty,
-          shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}))
-  else raise THM ("trim_context: pending sort constraints", 0, [th]);
+  (case th of
+    Thm (_, {constraints = _ :: _, ...}) =>
+      raise THM ("trim_context: pending sort constraints", 0, [th])
+  | Thm (_, {cert = Context.Certificate_Id _, ...}) => th
+  | Thm (der,
+      {cert = Context.Certificate thy, tags, maxidx, constraints = [], shyps, hyps,
+        tpairs, prop}) =>
+      Thm (der,
+       {cert = Context.Certificate_Id (Context.theory_id thy),
+        tags = tags, maxidx = maxidx, constraints = [], shyps = shyps, hyps = hyps,
+        tpairs = tpairs, prop = prop}));
 
 fun transfer_ctyp thy' cT =
   let
@@ -816,7 +813,7 @@ fun future_result i orig_cert orig_shyps orig_prop thm =
 
     val _ = Context.eq_certificate (cert, orig_cert) orelse err "bad theory";
     val _ = prop aconv orig_prop orelse err "bad prop";
-    val _ = Constraints.is_empty constraints orelse err "bad sort constraints";
+    val _ = null constraints orelse err "bad sort constraints";
     val _ = null tpairs orelse err "bad flex-flex constraints";
     val _ = null hyps orelse err "bad hyps";
     val _ = Sortset.subset (shyps, orig_shyps) orelse err "bad shyps";
@@ -839,7 +836,7 @@ fun future future_thm ct =
      {cert = cert,
       tags = [],
       maxidx = maxidx,
-      constraints = Constraints.empty,
+      constraints = [],
       shyps = sorts,
       hyps = [],
       tpairs = [],
@@ -861,7 +858,7 @@ fun axiom thy name =
       in
         Thm (der,
           {cert = cert, tags = [], maxidx = maxidx,
-            constraints = Constraints.empty, shyps = shyps, hyps = [], tpairs = [], prop = prop})
+            constraints = [], shyps = shyps, hyps = [], tpairs = [], prop = prop})
       end
   | NONE => raise THEORY ("No axiom " ^ quote name, [thy]));
 
@@ -993,31 +990,30 @@ fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
 
 in
 
-fun solve_constraints (thm as Thm (der, args)) =
-  if Constraints.is_empty (constraints_of thm) then thm
-  else
-    let
-      val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
+fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
+  | solve_constraints (thm as Thm (der, args)) =
+      let
+        val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
 
-      val thy = Context.certificate_theory cert;
-      val bad_thys =
-        Constraints.fold (fn {theory = thy', ...} =>
-          if Context.eq_thy (thy, thy') then I else cons thy') constraints [];
-      val () =
-        if null bad_thys then ()
-        else
-          raise THEORY ("solve_constraints: bad theories for theorem\n" ^
-            Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
+        val thy = Context.certificate_theory cert;
+        val bad_thys =
+          constraints |> map_filter (fn {theory = thy', ...} =>
+            if Context.eq_thy (thy, thy') then NONE else SOME thy');
+        val () =
+          if null bad_thys then ()
+          else
+            raise THEORY ("solve_constraints: bad theories for theorem\n" ^
+              Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
 
-      val Deriv {promises, body = PBody {oracles, thms, proof}} = der;
-      val (oracles', thms') = (oracles, thms)
-        |> Constraints.fold (fold union_digest o constraint_digest) constraints;
-      val body' = PBody {oracles = oracles', thms = thms', proof = proof};
-    in
-      Thm (Deriv {promises = promises, body = body'},
-        {constraints = Constraints.empty, cert = cert, tags = tags, maxidx = maxidx,
-          shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
-    end;
+        val Deriv {promises, body = PBody {oracles, thms, proof}} = der;
+        val (oracles', thms') = (oracles, thms)
+          |> fold (fold union_digest o constraint_digest) constraints;
+        val body' = PBody {oracles = oracles', thms = thms', proof = proof};
+      in
+        Thm (Deriv {promises = promises, body = body'},
+          {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
+            shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
+      end;
 
 end;
 
@@ -1151,7 +1147,7 @@ fun add_oracle (b, oracle_fn) thy =
              {cert = Context.join_certificate (Context.Certificate thy', cert2),
               tags = [],
               maxidx = maxidx,
-              constraints = Constraints.empty,
+              constraints = [],
               shyps = sorts,
               hyps = [],
               tpairs = [],
@@ -1188,7 +1184,7 @@ fun assume raw_ct =
      {cert = cert,
       tags = [],
       maxidx = ~1,
-      constraints = Constraints.empty,
+      constraints = [],
       shyps = sorts,
       hyps = [prop],
       tpairs = [],
@@ -1239,7 +1235,7 @@ fun implies_elim thAB thA =
            {cert = join_certificate2 (thAB, thA),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
-            constraints = Constraints.merge (constraintsA, constraints),
+            constraints = union_constraints constraintsA constraints,
             shyps = Sortset.merge (shypsA, shyps),
             hyps = union_hyps hypsA hyps,
             tpairs = union_tpairs tpairsA tpairs,
@@ -1318,7 +1314,7 @@ fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
    {cert = cert,
     tags = [],
     maxidx = maxidx,
-    constraints = Constraints.empty,
+    constraints = [],
     shyps = sorts,
     hyps = [],
     tpairs = [],
@@ -1364,7 +1360,7 @@ fun transitive th1 th2 =
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
-            constraints = Constraints.merge (constraints1, constraints2),
+            constraints = union_constraints constraints1 constraints2,
             shyps = Sortset.merge (shyps1, shyps2),
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1387,7 +1383,7 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
      {cert = cert,
       tags = [],
       maxidx = maxidx,
-      constraints = Constraints.empty,
+      constraints = [],
       shyps = sorts,
       hyps = [],
       tpairs = [],
@@ -1399,7 +1395,7 @@ fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
    {cert = cert,
     tags = [],
     maxidx = maxidx,
-    constraints = Constraints.empty,
+    constraints = [],
     shyps = sorts,
     hyps = [],
     tpairs = [],
@@ -1410,7 +1406,7 @@ fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
    {cert = cert,
     tags = [],
     maxidx = maxidx,
-    constraints = Constraints.empty,
+    constraints = [],
     shyps = sorts,
     hyps = [],
     tpairs = [],
@@ -1476,7 +1472,7 @@ fun combination th1 th2 =
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
-            constraints = Constraints.merge (constraints1, constraints2),
+            constraints = union_constraints constraints1 constraints2,
             shyps = Sortset.merge (shyps1, shyps2),
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1504,7 +1500,7 @@ fun equal_intr th1 th2 =
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
-            constraints = Constraints.merge (constraints1, constraints2),
+            constraints = union_constraints constraints1 constraints2,
             shyps = Sortset.merge (shyps1, shyps2),
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1533,7 +1529,7 @@ fun equal_elim th1 th2 =
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
-            constraints = Constraints.merge (constraints1, constraints2),
+            constraints = union_constraints constraints1 constraints2,
             shyps = Sortset.merge (shyps1, shyps2),
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1757,7 +1753,7 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
      {cert = cert,
       tags = [],
       maxidx = maxidx,
-      constraints = Constraints.empty,
+      constraints = [],
       shyps = sorts,
       hyps = [],
       tpairs = [],
@@ -1781,7 +1777,7 @@ fun of_class (cT, raw_c) =
        {cert = cert,
         tags = [],
         maxidx = maxidx,
-        constraints = Constraints.build (insert_constraints thy (T, [c])),
+        constraints = insert_constraints thy (T, [c]) [],
         shyps = sorts,
         hyps = [],
         tpairs = [],
@@ -1814,7 +1810,7 @@ val unconstrainT =
        {cert = cert,
         tags = [],
         maxidx = maxidx_of_term prop',
-        constraints = Constraints.empty,
+        constraints = [],
         shyps = Sortset.make [[]],  (*potentially redundant*)
         hyps = [],
         tpairs = [],
@@ -2182,7 +2178,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
                   (ntps, (map normt (Bs @ As), normt C))
              end
            val constraints' =
-             Constraints.merge (constraints1, constraints2)
+             union_constraints constraints1 constraints2
              |> insert_constraints_env (Context.certificate_theory cert) env;
            fun bicompose_proof prf1 prf2 =
              Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1)
