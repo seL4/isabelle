@@ -943,7 +943,7 @@ fun instantiated_case_rewrite thy Tcon =
       Thm.instantiate
         (TVars.make [(dest_TVar uninst_T, Thm.ctyp_of ctxt' (U --> T')),
           (dest_TVar uninst_T', Thm.ctyp_of ctxt' T')],
-         Vars.make [((fst (dest_Var f), (U --> T') --> T'), Thm.cterm_of ctxt' f')]) th
+         Vars.make1 ((fst (dest_Var f), (U --> T') --> T'), Thm.cterm_of ctxt' f')) th
     val [th'] = Variable.export (Variable.declare_thm th' ctxt') ctxt [th']
   in
     th'

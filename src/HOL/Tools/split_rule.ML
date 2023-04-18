@@ -42,7 +42,7 @@ fun ap_split (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) T3
 fun split_rule_var' ctxt (t as Var (v, Type ("fun", [T1, T2]))) rl =
       let val T' = HOLogic.flatten_tupleT T1 ---> T2;
           val newt = ap_split T1 T2 (Var (v, T'));
-      in Thm.instantiate (TVars.empty, Vars.make [(dest_Var t, Thm.cterm_of ctxt newt)]) rl end
+      in Thm.instantiate (TVars.empty, Vars.make1 (dest_Var t, Thm.cterm_of ctxt newt)) rl end
   | split_rule_var' _ _ rl = rl;
 
 

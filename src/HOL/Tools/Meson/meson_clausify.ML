@@ -42,9 +42,9 @@ val ctp_false = Thm.cterm_of \<^theory_context>\<open>HOL\<close> (HOLogic.mk_Tr
 fun transform_elim_theorem th =
   (case Thm.concl_of th of    (*conclusion variable*)
     \<^Const_>\<open>Trueprop for \<open>Var (v as (_, \<^Type>\<open>bool\<close>))\<close>\<close> =>
-      Thm.instantiate (TVars.empty, Vars.make [(v, cfalse)]) th
+      Thm.instantiate (TVars.empty, Vars.make1 (v, cfalse)) th
   | Var (v as (_, \<^Type>\<open>prop\<close>)) =>
-      Thm.instantiate (TVars.empty, Vars.make [(v, ctp_false)]) th
+      Thm.instantiate (TVars.empty, Vars.make1 (v, ctp_false)) th
   | _ => th)
 
 

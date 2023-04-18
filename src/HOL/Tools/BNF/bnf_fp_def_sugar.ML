@@ -851,7 +851,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 |> unfold_thms lthy [dtor_ctor];
             in
               (fp_map_thm' RS ctor_cong RS (ctor_dtor RS sym RS trans))
-              |> Drule.generalize (Names.empty, Names.make_set [y_s])
+              |> Drule.generalize (Names.empty, Names.make1_set y_s)
             end;
 
         val map_thms =
@@ -930,7 +930,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
               |> infer_instantiate' lthy (replicate live NONE @
                 [SOME (Thm.cterm_of lthy (ctorA $ y)), SOME (Thm.cterm_of lthy (ctorB $ z))])
               |> unfold_thms lthy [dtor_ctor]
-              |> Drule.generalize (Names.empty, Names.make_set [y_s, z_s])
+              |> Drule.generalize (Names.empty, Names.make2_set y_s z_s)
             end;
 
         val rel_inject_thms =

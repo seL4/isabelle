@@ -1571,8 +1571,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
               (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P)))
             (fn {context = ctxt, ...} =>
               dresolve_tac ctxt [Thm.instantiate (TVars.empty,
-                 Vars.make [((("pi", 0), permT),
-                   Thm.global_cterm_of thy11 (Const (\<^const_name>\<open>rev\<close>, permT --> permT) $ pi))]) th] 1 THEN
+                 Vars.make1 ((("pi", 0), permT),
+                   Thm.global_cterm_of thy11 (Const (\<^const_name>\<open>rev\<close>, permT --> permT) $ pi))) th] 1 THEN
                NominalPermeq.perm_simp_tac (put_simpset HOL_ss ctxt) 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
 
@@ -1662,9 +1662,9 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                     SUBPROOF (fn {context = ctxt', prems = prems', params = [(_, a), (_, b)], ...} =>
                       EVERY [cut_facts_tac [rec_prem] 1,
                        resolve_tac ctxt' [Thm.instantiate (TVars.empty,
-                         Vars.make [((("pi", 0), mk_permT aT),
+                         Vars.make1 ((("pi", 0), mk_permT aT),
                            Thm.cterm_of ctxt'
-                            (perm_of_pair (Thm.term_of a, Thm.term_of b)))]) eqvt_th] 1,
+                            (perm_of_pair (Thm.term_of a, Thm.term_of b)))) eqvt_th] 1,
                        asm_simp_tac (put_simpset HOL_ss ctxt' addsimps
                          (prems' @ perm_swap @ perm_fresh_fresh)) 1]) ctxt 1,
                     resolve_tac ctxt [rec_prem] 1,
@@ -1882,7 +1882,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                             val l = find_index (equal T) dt_atomTs;
                             val th = nth (nth rec_equiv_thms' l) k;
                             val th' = Thm.instantiate (TVars.empty,
-                              Vars.make [((("pi", 0), U), Thm.global_cterm_of thy11 p)]) th;
+                              Vars.make1 ((("pi", 0), U), Thm.global_cterm_of thy11 p)) th;
                           in resolve_tac ctxt [th'] 1 end;
                         val th' = Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (S $ mk_pi x $ mk_pi y))

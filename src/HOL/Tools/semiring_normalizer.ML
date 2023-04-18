@@ -144,7 +144,7 @@ val field_funs =
       in if b = 1 then Numeral.mk_cnumber cT a
         else Thm.apply
              (Thm.apply
-               (Thm.instantiate_cterm (TVars.make [(divide_tvar, cT)], Vars.empty) divide_const)
+               (Thm.instantiate_cterm (TVars.make1 (divide_tvar, cT), Vars.empty) divide_const)
                (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end

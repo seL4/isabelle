@@ -57,7 +57,7 @@ struct
   -------- (init)
   C \<Longrightarrow> #C
 *)
-fun init C = Thm.instantiate (TVars.empty, Vars.make [((("A", 0), propT), C)]) Drule.protectI;
+fun init C = Thm.instantiate (TVars.empty, Vars.make1 ((("A", 0), propT), C)) Drule.protectI;
 
 (*
   A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> C

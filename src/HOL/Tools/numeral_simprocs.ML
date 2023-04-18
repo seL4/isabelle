@@ -591,8 +591,8 @@ val add_num_frac = mk_meta_eq @{thm add_num_frac}
 
 fun prove_nz ctxt T t =
   let
-    val z = Thm.instantiate_cterm (TVars.make [(zero_tvar, T)], Vars.empty) zero
-    val eq = Thm.instantiate_cterm (TVars.make [(type_tvar, T)], Vars.empty) geq
+    val z = Thm.instantiate_cterm (TVars.make1 (zero_tvar, T), Vars.empty) zero
+    val eq = Thm.instantiate_cterm (TVars.make1 (type_tvar, T), Vars.empty) geq
     val th =
       Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
         (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply \<^cterm>\<open>Not\<close>

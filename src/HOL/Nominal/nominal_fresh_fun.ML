@@ -153,7 +153,7 @@ fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
      [Var v] =>
       Seq.single
         (Thm.instantiate (TVars.empty,
-          Vars.make [(v, Thm.cterm_of ctxt (fold_rev Term.abs params (Bound 0)))]) st)
+          Vars.make1 (v, Thm.cterm_of ctxt (fold_rev Term.abs params (Bound 0)))) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
    end
   in

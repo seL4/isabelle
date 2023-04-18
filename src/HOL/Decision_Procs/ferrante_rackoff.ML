@@ -115,11 +115,11 @@ let
    val [pinf_conj, pinf_disj, pinf_eq, pinf_neq, pinf_lt,
         pinf_le, pinf_gt, pinf_ge, pinf_P] = pinf
    val [nmi_conj, nmi_disj, nmi_eq, nmi_neq, nmi_lt,
-        nmi_le, nmi_gt, nmi_ge, nmi_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make [(U_v,cU)])) nmi
+        nmi_le, nmi_gt, nmi_ge, nmi_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make1 (U_v,cU))) nmi
    val [npi_conj, npi_disj, npi_eq, npi_neq, npi_lt,
-        npi_le, npi_gt, npi_ge, npi_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make [(U_v,cU)])) npi
+        npi_le, npi_gt, npi_ge, npi_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make1 (U_v,cU))) npi
    val [ld_conj, ld_disj, ld_eq, ld_neq, ld_lt,
-        ld_le, ld_gt, ld_ge, ld_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make [(U_v,cU)])) ld
+        ld_le, ld_gt, ld_ge, ld_P] = map (Drule.instantiate_normalize (TVars.empty, Vars.make1 (U_v,cU))) ld
 
    fun decomp_mpinf fm =
      case Thm.term_of fm of

@@ -174,7 +174,7 @@ fun gen_guess prep_var raw_vars int state =
       [] [] [(Binding.empty_atts, [(Logic.mk_term goal, []), (goal, [])])]
     |> snd
     |> Proof.refine_singleton (Method.Basic (fn _ => fn _ => CONTEXT_TACTIC
-        (PRIMITIVE (Thm.instantiate (TVars.empty, Vars.make [(guess, Thm.cterm_of ctxt thesis)]))
+        (PRIMITIVE (Thm.instantiate (TVars.empty, Vars.make1 (guess, Thm.cterm_of ctxt thesis)))
           THEN Goal.conjunction_tac 1
           THEN resolve_tac ctxt [Drule.termI] 1)))
   end;

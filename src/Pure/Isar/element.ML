@@ -207,7 +207,7 @@ fun standard_elim ctxt th =
     SOME C =>
       let
         val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
-        val insts = (TVars.empty, Vars.make [(Term.dest_Var C, Thm.cterm_of ctxt thesis)]);
+        val insts = (TVars.empty, Vars.make1 (Term.dest_Var C, Thm.cterm_of ctxt thesis));
         val th' = Thm.instantiate insts th;
       in (th', true) end
   | NONE => (th, false));

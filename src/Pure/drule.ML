@@ -599,7 +599,7 @@ fun mk_term ct =
     val cT = Thm.ctyp_of_cterm ct;
     val T = Thm.typ_of cT;
   in
-    Thm.instantiate (TVars.make [((("'a", 0), []), cT)], Vars.make [((("x", 0), T), ct)]) termI
+    Thm.instantiate (TVars.make1 ((("'a", 0), []), cT), Vars.make1 ((("x", 0), T), ct)) termI
   end;
 
 fun dest_term th =

@@ -44,7 +44,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       Element.instantiate_normalize_morphism (TFrees.empty, param_map_inst);
     val typ_morph =
       Element.instantiate_normalize_morphism
-        (TFrees.make [(a_tfree, certT (Term.aT [class]))], Frees.empty)
+        (TFrees.make1 (a_tfree, certT (Term.aT [class])), Frees.empty)
     val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = thy_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            (Expression.Named param_map_const, [])))], []);

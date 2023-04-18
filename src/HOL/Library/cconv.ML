@@ -132,7 +132,7 @@ fun abs_cconv cv ctxt ct =
                end
              val rule = abstract_rule_thm x
              val inst = Thm.match (hd (Drule.cprems_of rule), mk_concl eq)
-             val gen = (Names.empty, Names.make_set [#1 (dest_Free v)])
+             val gen = (Names.empty, Names.make1_set (#1 (dest_Free v)))
            in
              (Drule.instantiate_normalize inst rule OF [Drule.generalize gen eq])
              |> Drule.zero_var_indexes

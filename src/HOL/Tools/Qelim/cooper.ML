@@ -507,17 +507,17 @@ let
    then
     (bl,b0,decomp_minf,
      fn B => (map (fn th =>
-       Thm.implies_elim (Thm.instantiate (TVars.empty, Vars.make [(B_v,B), (D_v,cd)]) th) dp)
+       Thm.implies_elim (Thm.instantiate (TVars.empty, Vars.make2 (B_v,B) (D_v,cd)) th) dp)
                      [bseteq,bsetneq,bsetlt, bsetle, bsetgt,bsetge])@
-                   (map (Thm.instantiate (TVars.empty, Vars.make [(B_v,B), (D_v,cd)]))
+                   (map (Thm.instantiate (TVars.empty, Vars.make2 (B_v,B) (D_v,cd)))
                         [bsetdvd,bsetndvd,bsetP,infDdvd, infDndvd,bsetconj,
                          bsetdisj,infDconj, infDdisj]),
                        cpmi)
      else (al,a0,decomp_pinf,fn A =>
           (map (fn th =>
-            Thm.implies_elim (Thm.instantiate (TVars.empty, Vars.make [(A_v,A), (D_v,cd)]) th) dp)
+            Thm.implies_elim (Thm.instantiate (TVars.empty, Vars.make2 (A_v,A) (D_v,cd)) th) dp)
                    [aseteq,asetneq,asetlt, asetle, asetgt,asetge])@
-                   (map (Thm.instantiate (TVars.empty, Vars.make [(A_v,A), (D_v,cd)]))
+                   (map (Thm.instantiate (TVars.empty, Vars.make2 (A_v,A) (D_v,cd)))
                    [asetdvd,asetndvd, asetP, infDdvd, infDndvd,asetconj,
                          asetdisj,infDconj, infDdisj]),cppi)
  val cpth =

@@ -310,8 +310,8 @@ fun subtractProver ctxt (Const (\<^const_name>\<open>Tip\<close>, T)) ct dist_th
         val [alphaI] = #2 (dest_Type T);
       in
         Thm.instantiate
-          (TVars.make [(alpha, Thm.ctyp_of ctxt alphaI)],
-           Vars.make [((v, treeT alphaI), ct')]) @{thm subtract_Tip}
+          (TVars.make1 (alpha, Thm.ctyp_of ctxt alphaI),
+           Vars.make1 ((v, treeT alphaI), ct')) @{thm subtract_Tip}
       end
   | subtractProver ctxt (Const (\<^const_name>\<open>Node\<close>, nT) $ l $ x $ d $ r) ct dist_thm =
       let

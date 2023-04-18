@@ -477,7 +477,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
           else make_inst (Thm.term_of (Thm.lhs_of thm3)) (Thm.term_of ctrm)
         val thm4 =
           Drule.instantiate_normalize
-            (TVars.empty, Vars.make [(dest_Var insp, Thm.cterm_of ctxt inst)]) thm3
+            (TVars.empty, Vars.make1 (dest_Var insp, Thm.cterm_of ctxt inst)) thm3
       in
         Conv.rewr_conv thm4 ctrm
       end

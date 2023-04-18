@@ -208,7 +208,7 @@ fun var_of_add_cmp (_ $ _ $ (_ $ _ $ (_ $ _ $ Var v))) = v
 fun add_cmp_conv ctxt n thm =
   let val v = var_of_add_cmp (Thm.prop_of thm) in
     Conv.rewr_conv
-      (Thm.instantiate (TVars.empty, Vars.make [(v, Thm.cterm_of ctxt (mk_number n))]) thm)
+      (Thm.instantiate (TVars.empty, Vars.make1 (v, Thm.cterm_of ctxt (mk_number n))) thm)
   end
 
 fun mul_cmp_conv ctxt n pos_thm neg_thm =

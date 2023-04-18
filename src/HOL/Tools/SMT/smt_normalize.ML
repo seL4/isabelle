@@ -35,7 +35,7 @@ local
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
-    in Thm.instantiate (TVars.empty, Vars.make [(dest_Var (Thm.term_of cv), ct)]) thm end
+    in Thm.instantiate (TVars.empty, Vars.make1 (dest_Var (Thm.term_of cv), ct)) thm end
 in
 
 fun instantiate_elim thm =
@@ -401,7 +401,7 @@ fun add_int_of_nat_constraints thms =
   let val (q, cts) = fold (add_apps add_int_of_nat [] o Thm.cprop_of) thms (false, [])
   in
     if q then (thms, nat_int_thms)
-    else (thms, map (fn ct => Thm.instantiate (TVars.empty, Vars.make [(var, ct)]) int_thm) cts)
+    else (thms, map (fn ct => Thm.instantiate (TVars.empty, Vars.make1 (var, ct)) int_thm) cts)
   end
 
 val setup_nat_as_int =

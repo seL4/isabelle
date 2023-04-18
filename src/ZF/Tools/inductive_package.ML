@@ -506,7 +506,7 @@ let
      val inst =
          case elem_frees of [_] => I
             | _ => Drule.instantiate_normalize (TVars.empty,
-                    Vars.make [((("x", 1), \<^Type>\<open>i\<close>), Thm.global_cterm_of thy4 elem_tuple)]);
+                    Vars.make1 ((("x", 1), \<^Type>\<open>i\<close>), Thm.global_cterm_of thy4 elem_tuple));
 
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));

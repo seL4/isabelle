@@ -280,7 +280,7 @@ fun make_elim_preserve ctxt rl =
     fun cvar xi = Thm.cterm_of ctxt (Var (xi, propT));
     val revcut_rl' =
       Drule.revcut_rl |> Drule.instantiate_normalize
-        (TVars.empty, Vars.make [(var "V", cvar ("V", maxidx + 1)), (var "W", cvar ("W", maxidx + 1))]);
+        (TVars.empty, Vars.make2 (var "V", cvar ("V", maxidx + 1)) (var "W", cvar ("W", maxidx + 1)));
   in
     (case Seq.list_of
       (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false}

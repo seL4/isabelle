@@ -1216,7 +1216,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
         val (lhs, rhs) = Thm.dest_equals (Thm.cprop_of eq);
         val eq' =
           Thm.implies_elim
-            (Thm.instantiate (TVars.empty, Vars.make [(vA, prem), (vB, lhs), (vC, rhs)])
+            (Thm.instantiate (TVars.empty, Vars.make3 (vA, prem) (vB, lhs) (vC, rhs))
               Drule.imp_cong)
             (Thm.implies_intr prem eq);
       in
@@ -1228,10 +1228,10 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
           in
             Thm.transitive
               (Thm.transitive
-                (Thm.instantiate (TVars.empty, Vars.make [(vA, prem'), (vB, prem), (vC, concl)])
+                (Thm.instantiate (TVars.empty, Vars.make3 (vA, prem') (vB, prem) (vC, concl))
                   Drule.swap_prems_eq)
                 eq')
-              (Thm.instantiate (TVars.empty, Vars.make [(vA, prem), (vB, prem''), (vC, concl)])
+              (Thm.instantiate (TVars.empty, Vars.make3 (vA, prem) (vB, prem'') (vC, concl))
                 Drule.swap_prems_eq)
           end
       end

@@ -102,7 +102,7 @@ val conjunctionI =
 fun intr tha thb =
   Thm.implies_elim
     (Thm.implies_elim
-      (Thm.instantiate (TVars.empty, Vars.make [(vA, Thm.cprop_of tha), (vB, Thm.cprop_of thb)])
+      (Thm.instantiate (TVars.empty, Vars.make2 (vA, Thm.cprop_of tha) (vB, Thm.cprop_of thb))
         conjunctionI)
     tha)
   thb;
@@ -111,7 +111,7 @@ fun elim th =
   let
     val (A, B) = dest_conjunction (Thm.cprop_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
-    val inst = Thm.instantiate (TVars.empty, Vars.make [(vA, A), (vB, B)]);
+    val inst = Thm.instantiate (TVars.empty, Vars.make2 (vA, A) (vB, B));
   in
    (Thm.implies_elim (inst conjunctionD1) th,
     Thm.implies_elim (inst conjunctionD2) th)

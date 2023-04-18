@@ -656,7 +656,7 @@ fun replay ctxt terms facts proof =
 
 (* normalizing goals *)
 
-fun instantiate v ct = Thm.instantiate (TVars.empty, Vars.make [(v, ct)])
+fun instantiate v ct = Thm.instantiate (TVars.empty, Vars.make1 (v, ct))
 
 fun instantiate_elim_rule thm =
   let

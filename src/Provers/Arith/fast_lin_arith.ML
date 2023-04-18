@@ -437,7 +437,7 @@ fun mkthm ctxt asms (just: injust) =
             val T = Thm.typ_of_cterm cv
           in
             mth
-            |> Thm.instantiate (TVars.empty, Vars.make [(dest_Var (Thm.term_of cv), number_of T n)])
+            |> Thm.instantiate (TVars.empty, Vars.make1 (dest_Var (Thm.term_of cv), number_of T n))
             |> rewrite_concl
             |> discharge_prem
             handle CTERM _ => mult_by_add n thm

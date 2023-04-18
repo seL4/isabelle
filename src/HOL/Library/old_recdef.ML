@@ -308,7 +308,7 @@ fun mk_casesplit_goal_thm ctxt (vstr,ty) gt =
       Conv.fconv_rule Drule.beta_eta_conversion
          (case_thm
             |> Thm.instantiate (TVars.make type_cinsts, Vars.empty)
-            |> Thm.instantiate (TVars.empty, Vars.make [(Pv, abs_ct), (Dv, free_ct)]))
+            |> Thm.instantiate (TVars.empty, Vars.make2 (Pv, abs_ct) (Dv, free_ct)))
     end;
 
 
@@ -1124,7 +1124,7 @@ local (* this is fragile *)
 in
 fun SPEC tm thm =
    let val gspec' =
-    Drule.instantiate_normalize (TVars.make [(TV, Thm.ctyp_of_cterm tm)], Vars.empty) gspec
+    Drule.instantiate_normalize (TVars.make1 (TV, Thm.ctyp_of_cterm tm), Vars.empty) gspec
    in thm RS (Thm.forall_elim tm gspec') end
 end;
 
