@@ -24,7 +24,6 @@ sig
   val member: T -> elem -> bool
   val subset: T * T -> bool
   val eq_set: T * T -> bool
-  val ord: T ord
   val insert: elem -> T -> T
   val make: elem list -> T
   val merge: T * T -> T
@@ -238,7 +237,7 @@ fun get_first f =
   in get end;
 
 
-(* member *)
+(* member and subset *)
 
 fun member set elem =
   let
@@ -274,21 +273,10 @@ fun member set elem =
       | mem (Size (_, arg)) = mem arg;
   in mem set end;
 
-
-(* subset and order *)
-
 fun subset (set1, set2) = forall (member set2) set1;
 
 fun eq_set (set1, set2) =
   pointer_eq (set1, set2) orelse size set1 = size set2 andalso subset (set1, set2);
-
-val ord =
-  pointer_eq_ord (fn sets =>
-    (case int_ord (apply2 size sets) of
-      EQUAL =>
-        if subset sets then EQUAL
-        else dict_ord Key.ord (apply2 dest sets)
-    | ord => ord));
 
 
 (* insert *)
