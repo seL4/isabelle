@@ -350,22 +350,22 @@ fun rawsat_thm ctxt clauses =
             (* [c_1, ..., c_n] |- c_1 && ... && c_n *)
             val clauses_thm = Conjunction.intr_balanced (map Thm.assume sorted_clauses)
             (* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
-            val cnf_cterm = Thm.cprop_of clauses_thm
-            val cnf_thm = Thm.assume cnf_cterm
+            val clauses_cprop = Thm.cprop_of clauses_thm
             (* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
-            val cnf_clauses = Conjunction.elim_balanced (length sorted_clauses) cnf_thm
+            val cnf_clauses =
+              Conjunction.elim_balanced (length sorted_clauses) (Thm.assume clauses_cprop)
             (* initialize the clause array with the given clauses *)
             val max_idx = fst (the (Inttab.max clause_table))
             val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
             val _ =
-              fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1))
+              fold (fn thm => fn i => (Array.update (clause_arr, i, ORIG_CLAUSE thm); i + 1))
                 cnf_clauses 0
             (* replay the proof to derive the empty clause *)
             (* [c_1 && ... && c_n] |- False *)
             val raw_thm = replay_proof ctxt atom_table clause_arr (clause_table, empty_id)
           in
             (* [c_1, ..., c_n] |- False *)
-            Thm.implies_elim (Thm.implies_intr cnf_cterm raw_thm) clauses_thm
+            Thm.implies_elim (Thm.implies_intr clauses_cprop raw_thm) clauses_thm
           end)
     | SAT_Solver.UNSATISFIABLE NONE =>
         if Config.get ctxt quick_and_dirty then
