@@ -541,10 +541,10 @@ fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
 
 val thm_ord =
   pointer_eq_ord
-  (Term_Ord.fast_term_ord o apply2 prop_of
-    ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 tpairs_of
-    ||| list_ord Term_Ord.fast_term_ord o apply2 hyps_of
-    ||| list_ord Term_Ord.sort_ord o apply2 shyps_of);
+    (Term_Ord.fast_term_ord o apply2 prop_of
+      ||| list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 tpairs_of
+      ||| list_ord Term_Ord.fast_term_ord o apply2 hyps_of
+      ||| list_ord Term_Ord.sort_ord o apply2 shyps_of);
 
 
 (* implicit theory context *)
