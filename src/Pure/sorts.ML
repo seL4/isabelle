@@ -17,6 +17,7 @@ sig
   val make: sort list -> sort Ord_List.T
   val subset: sort Ord_List.T * sort Ord_List.T -> bool
   val union: sort Ord_List.T -> sort Ord_List.T -> sort Ord_List.T
+  val unions: sort Ord_List.T list -> sort Ord_List.T
   val subtract: sort Ord_List.T -> sort Ord_List.T -> sort Ord_List.T
   val remove_sort: sort -> sort Ord_List.T -> sort Ord_List.T
   val insert_sort: sort -> sort Ord_List.T -> sort Ord_List.T
@@ -75,6 +76,7 @@ struct
 val make = Ord_List.make Term_Ord.sort_ord;
 val subset = Ord_List.subset Term_Ord.sort_ord;
 val union = Ord_List.union Term_Ord.sort_ord;
+val unions = Ord_List.unions Term_Ord.sort_ord;
 val subtract = Ord_List.subtract Term_Ord.sort_ord;
 
 val remove_sort = Ord_List.remove Term_Ord.sort_ord;

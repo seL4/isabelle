@@ -96,6 +96,8 @@ sig
   val transfer'': Context.generic -> thm -> thm
   val join_transfer: theory -> thm -> thm
   val join_transfer_context: Proof.context * thm -> Proof.context * thm
+  val shared_context: theory -> thm list -> thm list
+  val shared_context': Proof.context -> thm list -> thm list
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
@@ -398,6 +400,7 @@ val smash_atyps =
 in
 
 val union_constraints = Ord_List.union constraint_ord;
+val unions_constraints = Ord_List.unions constraint_ord;
 
 fun insert_constraints thy (T, S) =
   let
@@ -486,6 +489,7 @@ fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
 
 val union_hyps = Ord_List.union Term_Ord.fast_term_ord;
+val unions_hyps = Ord_List.unions Term_Ord.fast_term_ord;
 val insert_hyps = Ord_List.insert Term_Ord.fast_term_ord;
 val remove_hyps = Ord_List.remove Term_Ord.fast_term_ord;
 
@@ -504,6 +508,7 @@ val theory_name = Context.theory_id_name o theory_id;
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
+val constraints_of = #constraints o rep_thm;
 val shyps_of = #shyps o rep_thm;
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
@@ -644,6 +649,31 @@ fun join_transfer_context (ctxt, th) =
   if Context.subthy_id (theory_id th, Context.theory_id (Proof_Context.theory_of ctxt))
   then (ctxt, transfer' ctxt th)
   else (Context.raw_transfer (theory_of_thm th) ctxt, th);
+
+
+(* shared context: speed-up low-level inferences *)
+
+fun shared_context thy thms0 =
+  let
+    val thms = map (transfer thy) thms0;
+    val maxidx' = fold (Integer.max o maxidx_of) thms ~1;
+    val constraints' = unions_constraints (map constraints_of thms);
+    val shyps' = Sorts.unions (map shyps_of thms);
+    val hyps' = unions_hyps (map hyps_of thms);
+  in
+    thms |> map (fn Thm (deriv, {cert, tags, tpairs, prop, ...}) =>
+      Thm (deriv,
+       {cert = cert,
+        tags = tags,
+        maxidx = maxidx',
+        constraints = constraints',
+        shyps = shyps',
+        hyps = hyps',
+        tpairs = tpairs,
+        prop = prop}))
+  end;
+
+val shared_context' = shared_context o Proof_Context.theory_of;
 
 
 (* matching *)
