@@ -287,7 +287,8 @@ fun insert elem set =
   if member set elem then set
   else
     let
-      fun elem_ord e = Key.ord (elem, e)
+      fun elem_ord e = Key.ord (elem, e);
+      fun elem_less e = elem_ord e = LESS;
 
       fun ins Empty = Sprout (Empty, elem, Empty)
         | ins (t as Leaf1 _) = ins (unmake t)
@@ -328,10 +329,23 @@ fun insert elem set =
                         Sprout (make2 (left, e1, mid), e2, make2 (right1, e', right2)))))
         | ins (Size (_, arg)) = ins arg;
     in
-      make_size (size set + 1)
-        (case ins set of
-          Stay set' => set'
-        | Sprout br => make2 br)
+      (case set of
+        Empty => Leaf1 elem
+      | Leaf1 e =>
+          if elem_less e
+          then Leaf2 (elem, e)
+          else Leaf2 (e, elem)
+      | Leaf2 (e1, e2) =>
+          if elem_less e1
+          then Leaf3 (elem, e1, e2)
+          else if elem_less e2
+          then Leaf3 (e1, elem, e2)
+          else Leaf3 (e1, e2, elem)
+      | _ =>
+          make_size (size set + 1)
+            (case ins set of
+              Stay set' => set'
+            | Sprout br => make2 br))
     end;
 
 fun make elems = build (fold insert elems);

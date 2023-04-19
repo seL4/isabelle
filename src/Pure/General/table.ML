@@ -454,9 +454,26 @@ fun modify key f tab =
       | modfy (Size (_, arg)) = modfy arg;
 
     val tab' =
-      (case modfy tab of
-        Stay tab' => tab'
-      | Sprout br => make2 br);
+      (case tab of
+        Empty => Leaf1 (key, insert ())
+      | Leaf1 (k, x) =>
+          (case key_ord k of
+            LESS => Leaf2 (key, insert (), k, x)
+          | EQUAL => Leaf1 (k, update x)
+          | GREATER => Leaf2 (k, x, key, insert ()))
+      | Leaf2 (k1, x1, k2, x2) =>
+          (case key_ord k1 of
+            LESS => Leaf3 (key, insert (), k1, x1, k2, x2)
+          | EQUAL => Leaf2 (k1, update x1, k2, x2)
+          | GREATER =>
+              (case key_ord k2 of
+                LESS => Leaf3 (k1, x1, key, insert (), k2, x2)
+              | EQUAL => Leaf2 (k1, x1, k2, update x2)
+              | GREATER => Leaf3 (k1, x1, k2, x2, key, insert ())))
+      | _ =>
+          (case modfy tab of
+            Stay tab' => tab'
+          | Sprout br => make2 br));
   in
     make_size (size tab + !inc) tab'
   end handle SAME => tab;
