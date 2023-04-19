@@ -119,18 +119,12 @@ structure Datatab = Table(type key = int val ord = int_ord);
 
 (** datatype theory **)
 
-type stage = int * int Synchronized.var;
-fun init_stage () : stage = (0, Synchronized.var "Context.stage" 1);
-fun next_stage ((_, state): stage) = (Synchronized.change_result state (fn n => (n, n + 1)), state);
-
 abstype theory_id =
   Theory_Id of
-   (*identity*)
    {id: serial,                   (*identifier*)
-    ids: Intset.T} *              (*cumulative identifiers -- symbolic body content*)
-   (*history*)
-   {name: string,                 (*official theory name*)
-    stage: stage option}          (*index and counter for anonymous updates*)
+    ids: Intset.T,                (*cumulative identifiers -- symbolic body content*)
+    name: string,                 (*official theory name*)
+    stage: int}                   (*index for anonymous updates*)
 with
 
 fun rep_theory_id (Theory_Id args) = args;
@@ -143,6 +137,8 @@ datatype theory =
    (*identity*)
    {theory_id: theory_id,
     token: Position.T Unsynchronized.ref} *
+   (*allocation state*)
+   {next_stage: unit -> int} *
    (*ancestry*)
    {parents: theory list,         (*immediate predecessors*)
     ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
@@ -155,24 +151,28 @@ fun rep_theory (Theory args) = args;
 
 val theory_identity = #1 o rep_theory;
 val theory_id = #theory_id o theory_identity;
-val identity_of_id = #1 o rep_theory_id;
-val identity_of = identity_of_id o theory_id;
-val history_of_id = #2 o rep_theory_id;
-val history_of = history_of_id o theory_id;
-val ancestry_of = #2 o rep_theory;
-val data_of = #3 o rep_theory;
+val identity_of = rep_theory_id o theory_id;
+val state_of = #2 o rep_theory;
+val ancestry_of = #3 o rep_theory;
+val data_of = #4 o rep_theory;
 
-fun make_identity id ids = {id = id, ids = ids};
-fun make_history name = {name = name, stage = SOME (init_stage ())};
+fun make_state () = {next_stage = Counter.make ()};
+fun next_stage {next_stage: unit -> int} = next_stage ();
+
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 
-val theory_id_ord = int_ord o apply2 (#id o identity_of_id);
-val theory_id_long_name = #name o history_of_id;
+fun stage_final stage = stage = 0;
+
+val theory_id_stage = #stage o rep_theory_id;
+val theory_id_final = stage_final o theory_id_stage;
+val theory_id_ord = int_ord o apply2 (#id o rep_theory_id);
+val theory_id_long_name = #name o rep_theory_id;
 val theory_id_name = Long_Name.base_name o theory_id_long_name;
-val theory_long_name = #name o history_of;
+
+val theory_long_name = #name o identity_of;
 val theory_name = Long_Name.base_name o theory_long_name;
 fun theory_name' {long} = if long then theory_long_name else theory_name;
-val theory_identifier = #id o identity_of_id o theory_id;
+val theory_identifier = #id o identity_of;
 
 val parents_of = #parents o ancestry_of;
 val ancestors_of = #ancestors o ancestry_of;
@@ -183,9 +183,8 @@ val ancestors_of = #ancestors o ancestry_of;
 val PureN = "Pure";
 
 fun display_name thy_id =
-  (case history_of_id thy_id of
-    {name, stage = NONE} => name
-  | {name, stage = SOME (i, _)} => name ^ ":" ^ string_of_int i);
+  if theory_id_final thy_id then theory_id_name thy_id
+  else theory_id_name thy_id ^ ":" ^ string_of_int (theory_id_stage thy_id);
 
 fun display_names thy =
   let
@@ -209,14 +208,14 @@ fun get_theory long thy name =
     (case find_first (fn thy' => theory_name' long thy' = name) (ancestors_of thy) of
       SOME thy' => thy'
     | NONE => error ("Unknown ancestor theory " ^ quote name))
-  else if is_none (#stage (history_of thy)) then thy
+  else if theory_id_final (theory_id thy) then thy
   else error ("Unfinished theory " ^ quote name);
 
 
 (* build ids *)
 
 val merge_ids =
-  apply2 (theory_id #> rep_theory_id #> #1) #>
+  apply2 identity_of #>
   (fn ({id = id1, ids = ids1, ...}, {id = id2, ids = ids2, ...}) =>
     Intset.merge (ids1, ids2)
     |> Intset.insert id1
@@ -225,11 +224,10 @@ val merge_ids =
 
 (* equality and inclusion *)
 
-val eq_thy_id = op = o apply2 (#id o identity_of_id);
+val eq_thy_id = op = o apply2 (#id o rep_theory_id);
 val eq_thy = op = o apply2 (#id o identity_of);
 
-val proper_subthy_id =
-  apply2 (rep_theory_id #> #1) #> (fn ({id, ...}, {ids, ...}) => Intset.member ids id);
+val proper_subthy_id = apply2 rep_theory_id #> (fn ({id, ...}, {ids, ...}) => Intset.member ids id);
 val proper_subthy = proper_subthy_id o apply2 theory_id;
 
 fun subthy_id p = eq_thy_id p orelse proper_subthy_id p;
@@ -331,11 +329,11 @@ fun theories_trace () =
      total = length trace}
   end;
 
-fun create_thy ids history ancestry data =
+fun create_thy ids name stage state ancestry data =
   let
-    val theory_id = make_theory_id (make_identity (serial ()) ids, history);
+    val theory_id = make_theory_id {id = serial (), ids = ids, name = name, stage = stage};
     val token = make_token ();
-  in Theory ({theory_id = theory_id, token = token}, ancestry, data) end;
+  in Theory ({theory_id = theory_id, token = token}, state, ancestry, data) end;
 
 end;
 
@@ -343,22 +341,25 @@ end;
 (* primitives *)
 
 val pre_pure_thy =
-  create_thy Intset.empty (make_history PureN) (make_ancestry [] []) Datatab.empty;
+  let
+    val state = make_state ();
+    val stage = next_stage state;
+  in create_thy Intset.empty PureN stage state (make_ancestry [] []) Datatab.empty end;
 
 local
 
 fun change_thy finish f thy =
   let
-    val ({id, ids}, {name, stage}) = rep_theory_id (theory_id thy);
-    val Theory (_, ancestry, data) = thy;
+    val {id, ids, name, stage} = identity_of thy;
+    val Theory (_, state, ancestry, data) = thy;
     val ancestry' =
-      if is_none stage
+      if stage_final stage
       then make_ancestry [thy] (extend_ancestors thy (ancestors_of thy))
       else ancestry;
-    val history' = {name = name, stage = if finish then NONE else Option.map next_stage stage};
     val ids' = Intset.insert id ids;
+    val stage' = if finish then 0 else next_stage state;
     val data' = f data;
-  in create_thy ids' history' ancestry' data' end;
+  in create_thy ids' name stage' state ancestry' data' end;
 
 in
 
@@ -375,12 +376,14 @@ local
 
 fun bad_join (thy1, thy2) = raise THEORY ("Cannot join theories", [thy1, thy2]);
 
-fun join_history thys =
-  apply2 history_of thys |>
-  (fn ({name, stage}, {name = name', stage = stage'}) =>
-    if name = name' andalso is_some stage andalso is_some stage' then
-      {name = name, stage = Option.map next_stage stage}
-    else bad_join thys);
+fun join_stage (thy1, thy2) =
+  apply2 identity_of (thy1, thy2) |>
+    (fn ({name, stage, ...}, {name = name', stage = stage', ...}) =>
+      if name <> name' orelse stage_final stage orelse stage_final stage'
+      then bad_join (thy1, thy2)
+      else
+        let val state = state_of thy1
+        in {name = name, stage = next_stage state, state = state} end)
 
 fun join_ancestry thys =
   apply2 ancestry_of thys |>
@@ -393,10 +396,10 @@ in
 fun join_thys thys =
   let
     val ids = merge_ids thys;
-    val history = join_history thys;
+    val {name, stage, state} = join_stage thys;
     val ancestry = join_ancestry thys;
     val data = merge_data thys (apply2 data_of thys);
-  in create_thy ids history ancestry data end;
+  in create_thy ids name stage state ancestry data end;
 
 end;
 
@@ -408,10 +411,10 @@ local
 fun merge_thys thys =
   let
     val ids = merge_ids thys;
-    val history = make_history "";
+    val state = state_of (#1 thys);
     val ancestry = make_ancestry [] [];
     val data = merge_data thys (apply2 data_of thys);
-  in create_thy ids history ancestry data end;
+  in create_thy ids "" 0 state ancestry data end;
 
 fun maximal_thys thys =
   thys |> filter_out (fn thy => exists (fn thy' => proper_subthy (thy, thy')) thys);
@@ -432,11 +435,12 @@ fun begin_thy name imports =
           [] => error "Missing theory imports"
         | [thy] => extend_thy thy
         | thy :: thys => Library.foldl merge_thys (thy, thys));
-      val ({ids, ...}, _) = rep_theory_id (theory_id thy0);
+      val ids = #ids (identity_of thy0);
 
-      val history = make_history name;
+      val state = make_state ();
+      val stage = next_stage state;
       val ancestry = make_ancestry parents ancestors;
-    in create_thy ids history ancestry (data_of thy0) |> tap finish_thy end;
+    in create_thy ids name stage state ancestry (data_of thy0) |> tap finish_thy end;
 
 end;
 
