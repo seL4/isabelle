@@ -649,7 +649,6 @@ val fold_rev = fold_rev_table;
 end;
 
 structure Inttab = Table(type key = int val ord = int_ord);
-structure Inttab' = Table(type key = int val ord = rev_order o int_ord);
 structure Symtab = Table(type key = string val ord = fast_string_ord);
 structure Symreltab = Table(type key = string * string
   val ord = prod_ord fast_string_ord fast_string_ord);
