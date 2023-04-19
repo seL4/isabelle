@@ -1,5 +1,5 @@
 theory Note_on_signed_division_on_words
-  imports "HOL-Library.Word" "HOL-Library.Rounded_Division"
+  imports "HOL-Library.Word" "HOL-Library.Centered_Division"
 begin
 
 unbundle bit_operations_syntax
@@ -24,26 +24,26 @@ lemma signed_take_bit_exp_eq_int:
 end
 
 lift_definition signed_divide_word :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>  (infixl \<open>wdiv\<close> 70)
-  is \<open>\<lambda>a b. signed_take_bit (LENGTH('a) - Suc 0) a rdiv signed_take_bit (LENGTH('a) - Suc 0) b\<close>
+  is \<open>\<lambda>a b. signed_take_bit (LENGTH('a) - Suc 0) a cdiv signed_take_bit (LENGTH('a) - Suc 0) b\<close>
   by (simp flip: signed_take_bit_decr_length_iff)
 
 lift_definition signed_modulo_word :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>  (infixl \<open>wmod\<close> 70)
-  is \<open>\<lambda>a b. signed_take_bit (LENGTH('a) - Suc 0) a rmod signed_take_bit (LENGTH('a) - Suc 0) b\<close>
+  is \<open>\<lambda>a b. signed_take_bit (LENGTH('a) - Suc 0) a cmod signed_take_bit (LENGTH('a) - Suc 0) b\<close>
   by (simp flip: signed_take_bit_decr_length_iff)
 
 lemma signed_take_bit_eq_wmod:
   \<open>signed_take_bit n w = w wmod (2 ^ Suc n)\<close>
 proof (transfer fixing: n)
   show \<open>take_bit LENGTH('a) (signed_take_bit n (take_bit LENGTH('a) k)) =
-    take_bit LENGTH('a) (signed_take_bit (LENGTH('a) - Suc 0) k rmod signed_take_bit (LENGTH('a) - Suc 0) (2 ^ Suc n))\<close> for k :: int
+    take_bit LENGTH('a) (signed_take_bit (LENGTH('a) - Suc 0) k cmod signed_take_bit (LENGTH('a) - Suc 0) (2 ^ Suc n))\<close> for k :: int
   proof (cases \<open>LENGTH('a) = Suc (Suc n)\<close>)
     case True
     then show ?thesis
-      by (simp add: signed_take_bit_exp_eq_int signed_take_bit_take_bit rmod_minus_eq flip: power_Suc signed_take_bit_eq_rmod)
+      by (simp add: signed_take_bit_exp_eq_int signed_take_bit_take_bit cmod_minus_eq flip: power_Suc signed_take_bit_eq_cmod)
   next
     case False
     then show ?thesis
-      by (auto simp add: signed_take_bit_exp_eq_int signed_take_bit_take_bit take_bit_signed_take_bit simp flip: power_Suc signed_take_bit_eq_rmod)
+      by (auto simp add: signed_take_bit_exp_eq_int signed_take_bit_take_bit take_bit_signed_take_bit simp flip: power_Suc signed_take_bit_eq_cmod)
   qed
 qed
 

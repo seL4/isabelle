@@ -4,7 +4,7 @@
 section \<open>Gauss Numbers: integral gauss numbers\<close>
 
 theory Gauss_Numbers
-  imports "HOL-Library.Rounded_Division"
+  imports "HOL-Library.Centered_Division"
 begin
 
 codatatype gauss = Gauss (Re: int) (Im: int)
@@ -308,17 +308,17 @@ begin
 
 primcorec divide_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<close>
   where
-    \<open>Re (x div y) = (Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
-  | \<open>Im (x div y) = (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
+    \<open>Re (x div y) = (Re x * Re y + Im x * Im y) cdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
+  | \<open>Im (x div y) = (Im x * Re y - Re x * Im y) cdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2)\<close>
 
 primcorec modulo_gauss :: \<open>gauss \<Rightarrow> gauss \<Rightarrow> gauss\<close>
   where
     \<open>Re (x mod y) = Re x -
-      ((Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Re y -
-       (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Im y)\<close>
+      ((Re x * Re y + Im x * Im y) cdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Re y -
+       (Im x * Re y - Re x * Im y) cdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Im y)\<close>
   | \<open>Im (x mod y) = Im x -
-      ((Re x * Re y + Im x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Im y +
-       (Im x * Re y - Re x * Im y) rdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Re y)\<close>
+      ((Re x * Re y + Im x * Im y) cdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Im y +
+       (Im x * Re y - Re x * Im y) cdiv ((Re y)\<^sup>2 + (Im y)\<^sup>2) * Re y)\<close>
 
 instance proof
   fix x y :: gauss
@@ -334,7 +334,7 @@ instance proof
       \<open>(Im y)\<^sup>2 + (Re y)\<^sup>2 = Y\<close>
       by (simp_all add: power2_eq_square algebra_simps Y_def)
     from \<open>Y > 0\<close> show ?thesis
-      by (simp add: gauss_eq_iff algebra_simps) (simp add: * nonzero_mult_rdiv_cancel_right)
+      by (simp add: gauss_eq_iff algebra_simps) (simp add: * nonzero_mult_cdiv_cancel_right)
   qed
   show \<open>x div y * y + x mod y = x\<close>
     by (simp add: gauss_eq_iff)
@@ -360,22 +360,22 @@ instance proof
       by (simp_all add: gauss_neq_0 euclidean_size_gauss_def)
     have \<open>X * Y = R\<^sup>2 + I\<^sup>2\<close>
       by (simp add: R_def I_def X_def Y_def power2_eq_square algebra_simps)
-    let ?lhs = \<open>X - I * (I rdiv Y) - R * (R rdiv Y)
-        - I rdiv Y * (I rmod Y) - R rdiv Y * (R rmod Y)\<close>
-    have \<open>?lhs = X + Y * (R rdiv Y) * (R rdiv Y) + Y * (I rdiv Y) * (I rdiv Y)
-        - 2 * (R rdiv Y * R + I rdiv Y * I)\<close>
-      by (simp flip: minus_rmod_eq_mult_rdiv add: algebra_simps)
+    let ?lhs = \<open>X - I * (I cdiv Y) - R * (R cdiv Y)
+        - I cdiv Y * (I cmod Y) - R cdiv Y * (R cmod Y)\<close>
+    have \<open>?lhs = X + Y * (R cdiv Y) * (R cdiv Y) + Y * (I cdiv Y) * (I cdiv Y)
+        - 2 * (R cdiv Y * R + I cdiv Y * I)\<close>
+      by (simp flip: minus_cmod_eq_mult_cdiv add: algebra_simps)
     also have \<open>\<dots> = (Re (x mod y))\<^sup>2 + (Im (x mod y))\<^sup>2\<close>
       by (simp add: X_def Y_def R_def I_def algebra_simps power2_eq_square)
     finally have lhs: \<open>int (euclidean_size (x mod y)) = ?lhs\<close>
       by (simp add: euclidean_size_gauss_def)
-    have \<open>?lhs * Y = (I rmod Y)\<^sup>2 + (R rmod Y)\<^sup>2\<close>
+    have \<open>?lhs * Y = (I cmod Y)\<^sup>2 + (R cmod Y)\<^sup>2\<close>
       apply (simp add: algebra_simps power2_eq_square \<open>X * Y = R\<^sup>2 + I\<^sup>2\<close>)
-      apply (simp flip: mult.assoc add.assoc minus_rmod_eq_mult_rdiv)
+      apply (simp flip: mult.assoc add.assoc minus_cmod_eq_mult_cdiv)
       apply (simp add: algebra_simps)
       done
     also have \<open>\<dots> \<le> (Y div 2)\<^sup>2 + (Y div 2)\<^sup>2\<close>
-      by (rule add_mono) (use \<open>Y > 0\<close> abs_rmod_less_equal [of Y] in \<open>simp_all add: power2_le_iff_abs_le\<close>)
+      by (rule add_mono) (use \<open>Y > 0\<close> abs_cmod_less_equal [of Y] in \<open>simp_all add: power2_le_iff_abs_le\<close>)
     also have \<open>\<dots> < Y\<^sup>2\<close>
       using \<open>Y > 0\<close> by (cases \<open>Y = 1\<close>) (simp_all add: power2_eq_square mult_le_less_imp_less flip: mult.assoc)
     finally have \<open>?lhs * Y < Y\<^sup>2\<close> .

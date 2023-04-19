@@ -6,6 +6,7 @@ imports
   BNF_Axiomatization
   BNF_Corec
   Bourbaki_Witt_Fixpoint
+  Centered_Division
   Char_ord
   Code_Cardinality
   Code_Lazy
@@ -78,7 +79,6 @@ imports
   Ramsey
   Reflection
   Rewrite
-  Rounded_Division
   Saturated
   Set_Algebras
   Set_Idioms
