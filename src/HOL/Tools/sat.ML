@@ -216,7 +216,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
       handle TERM _ => NONE;  (* 'chyp' is not a literal *)
 
     fun prove_clause id =
-      (case Array.sub (clauses, id) of
+      (case Array.nth clauses id of
         RAW_CLAUSE clause => clause
       | ORIG_CLAUSE thm =>
           (* convert the original clause *)

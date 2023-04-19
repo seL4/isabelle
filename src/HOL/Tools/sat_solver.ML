@@ -682,7 +682,7 @@ let
             original_clause_id_from 0
           (* both 'lits' and the list of literals used in 'clauses' are sorted, so *)
           (* testing for equality should suffice -- barring duplicate literals     *)
-          else if Array.sub (clauses, index) = lits then (
+          else if Array.nth clauses index = lits then (
             (* success *)
             last_ref_clause := index;
             SOME index
