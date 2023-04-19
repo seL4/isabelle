@@ -363,7 +363,7 @@ fun change_thy finish f thy =
 in
 
 val update_thy = change_thy false;
-val extend_thy = update_thy I;
+val extend_thy = change_thy false I;
 val finish_thy = change_thy true I;
 
 end;
