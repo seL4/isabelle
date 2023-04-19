@@ -1493,7 +1493,7 @@ val split_wrapper = (split_name, fn ctxt => fn tac => split_tac ctxt ORELSE' tac
 
 (* attributes *)
 
-fun case_names_fields x = Rule_Cases.case_names ["fields"] x;
+val case_names_fields = Rule_Cases.case_names ["fields"];
 fun induct_type_global name = [case_names_fields, Induct.induct_type name];
 fun cases_type_global name = [case_names_fields, Induct.cases_type name];
 
