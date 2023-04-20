@@ -99,7 +99,7 @@ end;
 local
   val thyname_of_type = Name_Space.the_entry_theory_name o Sign.type_space;
   val thyname_of_class = Name_Space.the_entry_theory_name o Sign.class_space;
-  fun thyname_of_instance thy inst = case Thm.thynames_of_arity thy inst
+  fun thyname_of_instance thy inst = case Thm.theory_names_of_arity {long = false} thy inst
    of [] => error ("No such instance: " ^ quote (fst inst ^ " :: " ^  snd inst))
     | thyname :: _ => thyname;
   fun thyname_of_const thy c = case Axclass.class_of_param thy c

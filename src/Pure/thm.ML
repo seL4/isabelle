@@ -179,7 +179,7 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val thynames_of_arity: theory -> string * class -> string list
+  val theory_names_of_arity: {long: bool} -> theory -> string * class -> string list
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
 end;
@@ -2343,10 +2343,10 @@ fun complete_classrels thy =
 
 (* type arities *)
 
-fun thynames_of_arity thy (a, c) =
+fun theory_names_of_arity {long} thy (a, c) =
   build (get_arities thy |> Aritytab.fold
     (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser)))
-  |> sort (int_ord o apply2 #2) |> map #1;
+  |> sort (int_ord o apply2 #2) |> map (if long then #1 else Long_Name.base_name o #1);
 
 fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, arities) =
   let
@@ -2404,7 +2404,7 @@ fun add_arity raw_th thy =
     val th' = th |> unconstrainT |> tap (expose_proof thy) |> trim_context;
     val prop = plain_prop_of th;
     val (t, Ss, c) = Logic.dest_arity prop;
-    val ar = ((t, Ss, c), (th', Context.theory_base_name thy, serial ()));
+    val ar = ((t, Ss, c), (th', Context.theory_long_name thy, serial ()));
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
