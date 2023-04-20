@@ -172,9 +172,9 @@ fun transfer_theories thy =
   let
     val theories =
       Symtab.build (Theory.nodes_of thy |> fold (fn thy' =>
-        Symtab.update (Context.theory_base_name thy', thy')));
+        Symtab.update (Context.theory_long_name thy', thy')));
     fun transfer th =
-      Thm.transfer (the_default thy (Symtab.lookup theories (Thm.theory_base_name th))) th;
+      Thm.transfer (the_default thy (Symtab.lookup theories (Thm.theory_long_name th))) th;
   in transfer end;
 
 fun all_thms_of thy verbose =
