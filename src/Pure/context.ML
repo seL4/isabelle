@@ -282,12 +282,17 @@ fun invoke_pos k = invoke "" (K o #pos) k ();
 fun invoke_empty k = invoke "" (K o #empty) k ();
 fun invoke_merge thys = invoke "merge" (fn kind => #merge kind thys);
 
-fun declare_theory_data pos empty merge =
+fun declare_data pos empty merge =
   let
     val k = serial ();
     val kind = {pos = pos, empty = empty, merge = merge};
     val _ = Synchronized.change kinds (Datatab.update (k, kind));
   in k end;
+
+fun get_data k thy =
+  (case Datatab.lookup (data_of thy) k of
+    SOME x => x
+  | NONE => invoke_empty k);
 
 fun merge_data thys = Datatab.join (invoke_merge thys);
 
@@ -452,14 +457,11 @@ end;
 structure Theory_Data =
 struct
 
-val declare = declare_theory_data;
+val declare = declare_data;
 
-fun get k dest thy =
-  (case Datatab.lookup (data_of thy) k of
-    SOME x => x
-  | NONE => invoke_empty k) |> dest;
+fun get k dest thy = dest (get_data k thy);
 
-fun put k mk x = update_thy (Datatab.update (k, mk x));
+fun put k make x = update_thy (Datatab.update (k, make x));
 
 fun sizeof1 k thy =
   Datatab.lookup (data_of thy) k |> Option.map ML_Heap.sizeof1;
@@ -532,8 +534,8 @@ fun get k dest (Proof.Context (data, thy)) =
     SOME x => x
   | NONE => init_fallback k thy) |> dest;
 
-fun put k mk x (Proof.Context (data, thy)) =
-  Proof.Context (Datatab.update (k, mk x) data, thy);
+fun put k make x (Proof.Context (data, thy)) =
+  Proof.Context (Datatab.update (k, make x) data, thy);
 
 end;
 
