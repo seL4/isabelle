@@ -102,7 +102,7 @@ fun digest_string_internal str =
     val hash_array : Word32.word Array.array =
       Array.fromList [0wx67452301, 0wxEFCDAB89, 0wx98BADCFE, 0wx10325476, 0wxC3D2E1F0];
     val hash = Array.nth hash_array;
-    fun add_hash x i = Array.update (hash_array, i, hash i + x);
+    fun add_hash x i = Array.upd hash_array i (hash i + x);
 
     (*current chunk -- 80 words*)
     val chunk_array = Array.array (80, 0w0: Word32.word);

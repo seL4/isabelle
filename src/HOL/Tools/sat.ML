@@ -226,7 +226,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
             val hyps = sort (lit_ord o apply2 fst) (map_filter (fn chyp =>
               Option.map (rpair chyp) (index_of_literal chyp)) (Thm.chyps_of raw))
             val clause = (raw, hyps)
-            val _ = Array.update (clauses, id, RAW_CLAUSE clause)
+            val _ = Array.upd clauses id (RAW_CLAUSE clause)
           in
             clause
           end
@@ -236,7 +236,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
             val _ = cond_tracing ctxt (fn () => "Proving clause #" ^ string_of_int id ^ " ...")
             val ids = the (Inttab.lookup clause_table id)
             val clause = resolve_raw_clauses ctxt (map prove_clause ids)
-            val _ = Array.update (clauses, id, RAW_CLAUSE clause)
+            val _ = Array.upd clauses id (RAW_CLAUSE clause)
             val _ =
               cond_tracing ctxt
                 (fn () => "Replay chain successful; clause stored at #" ^ string_of_int id)
@@ -358,7 +358,7 @@ fun rawsat_thm ctxt clauses =
             val max_idx = fst (the (Inttab.max clause_table))
             val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
             val _ =
-              fold (fn thm => fn i => (Array.update (clause_arr, i, ORIG_CLAUSE thm); i + 1))
+              fold (fn thm => fn i => (Array.upd clause_arr i (ORIG_CLAUSE thm); i + 1))
                 cnf_clauses 0
             (* replay the proof to derive the empty clause *)
             (* [c_1 && ... && c_n] |- False *)

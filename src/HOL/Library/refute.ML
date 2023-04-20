@@ -2375,7 +2375,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                               val result = fold (fn arg_i => fn i =>
                                 interpretation_apply (i, arg_i)) arg_intrs intr
                               (* update 'REC_OPERATORS' *)
-                              val _ = Array.update (arr, elem, (true, result))
+                              val _ = Array.upd arr elem (true, result)
                             in
                               result
                             end

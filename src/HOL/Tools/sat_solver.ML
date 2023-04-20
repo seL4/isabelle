@@ -667,7 +667,7 @@ let
       fun init_array (Prop_Logic.And (fm1, fm2), n) =
         init_array (fm2, init_array (fm1, n))
         | init_array (fm, n) =
-        (Array.update (clauses, n, clause_to_lit_list fm); n+1)
+        (Array.upd clauses n (clause_to_lit_list fm); n+1)
       val _ = init_array (cnf, 0)
       (* optimization for the common case where MiniSat "R"s clauses in their *)
       (* original order:                                                      *)
