@@ -35,7 +35,7 @@ subsection \<open>Example application\<close>
 setup \<open>
   fn thy =>
     let val forked_thys = Par_List.map (fn i => Named_Target.theory_map (spec i) thy) (1 upto 10)
-    in Theory.join_theory forked_thys end
+    in Context.join_thys forked_thys end
 \<close>
 
 term test1

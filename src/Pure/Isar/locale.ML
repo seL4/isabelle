@@ -355,8 +355,9 @@ structure Global_Registrations = Theory_Data'
     unique registration serial points to mixin list*)
   type T = reg Idtab.table * mixins;
   val empty: T = (Idtab.empty, Inttab.empty);
-  fun merge old_thys =
+  fun merge args =
     let
+      val ctxt0 = Syntax.init_pretty_global (#1 (hd args));
       fun recursive_merge ((regs1, mixins1), (regs2, mixins2)) : T =
         (Idtab.merge eq_reg (regs1, regs2), merge_mixins (mixins1, mixins2))
         handle Idtab.DUP id =>
@@ -373,9 +374,9 @@ structure Global_Registrations = Theory_Data'
             val _ =
               warning ("Removed duplicate interpretation after retrieving its mixins" ^
                 Position.here_list [#pos reg1, #pos reg2] ^ ":\n  " ^
-                Pretty.string_of (pretty_reg_inst (Syntax.init_pretty_global (#1 old_thys)) [] id));
+                Pretty.string_of (pretty_reg_inst ctxt0 [] id));
           in recursive_merge ((regs1, mixins1), (regs2', mixins2')) end;
-    in recursive_merge end;
+    in Library.foldl1 recursive_merge (map #2 args) end;
 );
 
 structure Local_Registrations = Proof_Data

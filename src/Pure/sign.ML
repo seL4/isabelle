@@ -129,24 +129,23 @@ datatype sign = Sign of
   tsig: Type.tsig,              (*order-sorted signature of types*)
   consts: Consts.T};            (*polymorphic constants*)
 
+fun rep_sign (Sign args) = args;
 fun make_sign (syn, tsig, consts) = Sign {syn = syn, tsig = tsig, consts = consts};
 
 structure Data = Theory_Data'
 (
   type T = sign;
   val empty = make_sign (Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
-  fun merge old_thys (sign1, sign2) =
+  fun merge args =
     let
-      val Sign {syn = syn1, tsig = tsig1, consts = consts1} = sign1;
-      val Sign {syn = syn2, tsig = tsig2, consts = consts2} = sign2;
-
-      val syn = Syntax.merge_syntax (syn1, syn2);
-      val tsig = Type.merge_tsig (Context.Theory (fst old_thys)) (tsig1, tsig2);
-      val consts = Consts.merge (consts1, consts2);
-    in make_sign (syn, tsig, consts) end;
+      val context0 = Context.Theory (#1 (hd args));
+      val syn' = Library.foldl1 Syntax.merge_syntax (map (#syn o rep_sign o #2) args);
+      val tsig' = Library.foldl1 (Type.merge_tsig context0) (map (#tsig o rep_sign o #2) args);
+      val consts' = Library.foldl1 Consts.merge (map (#consts o rep_sign o #2) args);
+    in make_sign (syn', tsig', consts') end;
 );
 
-fun rep_sg thy = Data.get thy |> (fn Sign args => args);
+val rep_sg = rep_sign o Data.get;
 
 fun map_sign f = Data.map (fn Sign {syn, tsig, consts} => make_sign (f (syn, tsig, consts)));
 
