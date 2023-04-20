@@ -71,7 +71,7 @@ fun find_unused_assms ctxt thy_name =
     val thy = Proof_Context.theory_of ctxt
     val all_thms =
       thms_of thy thy_name
-      |> filter (fn (name, _) => length (Long_Name.explode name) = 2)  (* FIXME !? *)
+      |> filter (fn (name, _) => Long_Name.count name = 2)  (* FIXME !? *)
       |> sort_by #1
     val check = check_unused_assms ctxt
   in rev (Par_List.map check all_thms) end

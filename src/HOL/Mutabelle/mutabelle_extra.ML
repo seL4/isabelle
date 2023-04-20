@@ -239,7 +239,7 @@ fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (Thm.prop_of th) [] in
     exists (member (op =) (Long_Name.explode s)) forbidden_thms orelse
     exists (member (op =) forbidden_consts) consts orelse
-    length (Long_Name.explode s) <> 2 orelse
+    Long_Name.count s <> 2 orelse
     String.isPrefix "type_definition" (List.last (Long_Name.explode s)) orelse
     String.isSuffix "_def" s orelse
     String.isSuffix "_raw" s orelse

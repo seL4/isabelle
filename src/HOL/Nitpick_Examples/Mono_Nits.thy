@@ -144,7 +144,7 @@ val preproc_timeout = seconds 5.0
 val mono_timeout = seconds 1.0
 
 fun is_forbidden_theorem name =
-  length (Long_Name.explode name) <> 2 orelse
+  Long_Name.count name <> 2 orelse
   String.isPrefix "type_definition" (List.last (Long_Name.explode name)) orelse
   String.isPrefix "arity_" (List.last (Long_Name.explode name)) orelse
   String.isSuffix "_def" name orelse
