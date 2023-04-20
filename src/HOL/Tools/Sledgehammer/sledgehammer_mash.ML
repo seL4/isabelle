@@ -796,7 +796,7 @@ fun nickname_of_thm th =
       (* There must be a better way to detect local facts. *)
       (case Long_Name.dest_local hint of
         SOME suf =>
-        Long_Name.implode [Thm.theory_name th, suf, crude_printed_term 25 (Thm.prop_of th)]
+        Long_Name.implode [Thm.theory_base_name th, suf, crude_printed_term 25 (Thm.prop_of th)]
       | NONE => hint)
     end
   else
@@ -820,9 +820,9 @@ val local_feature = "local"
 fun crude_thm_ord ctxt =
   let
     val ancestor_lengths =
-      fold (fn thy => Symtab.update (Context.theory_name thy, length (Context.ancestors_of thy)))
+      fold (fn thy => Symtab.update (Context.theory_base_name thy, length (Context.ancestors_of thy)))
         (Theory.nodes_of (Proof_Context.theory_of ctxt)) Symtab.empty
-    val ancestor_length = Symtab.lookup ancestor_lengths o Context.theory_id_name
+    val ancestor_length = Symtab.lookup ancestor_lengths o Context.theory_id_name {long = false}
 
     fun crude_theory_ord p =
       if Context.eq_thy_id p then EQUAL
@@ -832,9 +832,9 @@ fun crude_thm_ord ctxt =
         (case apply2 ancestor_length p of
           (SOME m, SOME n) =>
             (case int_ord (m, n) of
-              EQUAL => string_ord (apply2 Context.theory_id_name p)
+              EQUAL => string_ord (apply2 (Context.theory_id_name {long = false}) p)
             | ord => ord)
-        | _ => string_ord (apply2 Context.theory_id_name p))
+        | _ => string_ord (apply2 (Context.theory_id_name {long = false}) p))
   in
     fn p =>
       (case crude_theory_ord (apply2 Thm.theory_id p) of
@@ -1125,7 +1125,7 @@ fun attach_parents_to_facts _ [] = []
             val chunks = app_hd (cons th) chunks
             val chunks_and_parents' =
               if thm_less_eq (th, th') andalso
-                Thm.theory_name th = Thm.theory_name th'
+                Thm.theory_base_name th = Thm.theory_base_name th'
               then (chunks, [nickname_of_thm th])
               else chunks_and_parents_for chunks th'
           in
@@ -1172,11 +1172,11 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
 
     val chained = filter (fn ((_, (scope, _)), _) => scope = Chained) facts
 
-    fun fact_has_right_theory (_, th) = thy_name = Thm.theory_name th
+    fun fact_has_right_theory (_, th) = thy_name = Thm.theory_base_name th
 
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [Thm.prop_of th]
-      |> features_of ctxt (Thm.theory_name th) stature
+      |> features_of ctxt (Thm.theory_base_name th) stature
       |> map (rpair (weight * factor))
   in
     (case get_state ctxt of
@@ -1283,7 +1283,7 @@ fun mash_learn_proof ctxt ({timeout, ...} : params) t used_ths =
     launch_thread timeout (fn () =>
       let
         val thy = Proof_Context.theory_of ctxt
-        val feats = features_of ctxt (Context.theory_name thy) (Local, General) [t]
+        val feats = features_of ctxt (Context.theory_base_name thy) (Local, General) [t]
       in
         map_state ctxt
           (fn {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
@@ -1395,7 +1395,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
                   (learns, (num_nontrivial, next_commit, _)) =
                 let
                   val name = nickname_of_thm th
-                  val feats = features_of ctxt (Thm.theory_name th) stature [Thm.prop_of th]
+                  val feats = features_of ctxt (Thm.theory_base_name th) stature [Thm.prop_of th]
                   val deps = these (deps_of status th)
                   val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
                   val learns = (name, parents, feats, deps) :: learns
@@ -1544,7 +1544,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
     [("", [])]
   else
     let
-      val thy_name = Context.theory_name (Proof_Context.theory_of ctxt)
+      val thy_name = Context.theory_base_name (Proof_Context.theory_of ctxt)
 
       fun maybe_launch_thread exact min_num_facts_to_learn =
         if not (Async_Manager_Legacy.has_running_threads MaShN) andalso

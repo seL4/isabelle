@@ -16,7 +16,7 @@ struct
 
 fun thms_of thy thy_name =
   Global_Theory.all_thms_of thy false
-  |> filter (fn (_, th) => Thm.theory_name th = thy_name)
+  |> filter (fn (_, th) => Thm.theory_base_name th = thy_name)
 
 fun do_while P f s list =
   if P s then
@@ -95,7 +95,8 @@ in
 
 fun print_unused_assms ctxt opt_thy_name =
   let
-    val thy_name = the_default (Context.theory_name (Proof_Context.theory_of ctxt)) opt_thy_name
+    val thy_name =
+      the_default (Context.theory_base_name (Proof_Context.theory_of ctxt)) opt_thy_name
     val results = find_unused_assms ctxt thy_name
     val total = length results
     val with_assumptions = length (filter (is_some o snd) results)

@@ -1009,7 +1009,7 @@ fun read_const_exprs_internal ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     fun this_theory name =
-      if Context.theory_name thy = name then thy
+      if Context.theory_base_name thy = name then thy
       else Context.get_theory {long = false} thy name;
 
     fun consts_of thy' =

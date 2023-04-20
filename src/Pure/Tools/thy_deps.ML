@@ -27,8 +27,8 @@ fun gen_thy_deps prep_thy ctxt bounds =
         SOME Bs => (fn thy => exists (fn B => rel (B, thy)) Bs)
       | NONE => K true);
     fun node thy =
-      ((Context.theory_name thy, Graph_Display.content_node (Context.theory_name thy) []),
-        map Context.theory_name (filter pred (Theory.parents_of thy)));
+      ((Context.theory_base_name thy, Graph_Display.content_node (Context.theory_base_name thy) []),
+        map Context.theory_base_name (filter pred (Theory.parents_of thy)));
   in map node (filter pred (Theory.nodes_of (Proof_Context.theory_of ctxt))) end;
 
 val thy_deps =

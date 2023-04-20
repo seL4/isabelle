@@ -20,7 +20,7 @@ sig
   sig
     val theory_of: Proof.context -> theory
     val init_global: theory -> Proof.context
-    val get_global: theory -> string -> Proof.context
+    val get_global: {long: bool} -> theory -> string -> Proof.context
   end
 end;
 
@@ -34,11 +34,10 @@ sig
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val theory_id_ord: theory_id ord
-  val theory_id_long_name: theory_id -> string
-  val theory_id_name: theory_id -> string
+  val theory_id_name: {long: bool} -> theory_id -> string
   val theory_long_name: theory -> string
-  val theory_name: theory -> string
-  val theory_name': {long: bool} -> theory -> string
+  val theory_base_name: theory -> string
+  val theory_name: {long: bool} -> theory -> string
   val theory_identifier: theory -> serial
   val PureN: string
   val pretty_thy: theory -> Pretty.T
@@ -166,12 +165,13 @@ fun stage_final stage = stage = 0;
 val theory_id_stage = #stage o rep_theory_id;
 val theory_id_final = stage_final o theory_id_stage;
 val theory_id_ord = int_ord o apply2 (#id o rep_theory_id);
-val theory_id_long_name = #name o rep_theory_id;
-val theory_id_name = Long_Name.base_name o theory_id_long_name;
+fun theory_id_name {long} thy_id =
+  let val name = #name (rep_theory_id thy_id)
+  in if long then name else Long_Name.base_name name end;
 
 val theory_long_name = #name o identity_of;
-val theory_name = Long_Name.base_name o theory_long_name;
-fun theory_name' {long} = if long then theory_long_name else theory_name;
+val theory_base_name = Long_Name.base_name o theory_long_name;
+fun theory_name {long} = if long then theory_long_name else theory_base_name;
 val theory_identifier = #id o identity_of;
 
 val parents_of = #parents o ancestry_of;
@@ -183,8 +183,10 @@ val ancestors_of = #ancestors o ancestry_of;
 val PureN = "Pure";
 
 fun display_name thy_id =
-  if theory_id_final thy_id then theory_id_name thy_id
-  else theory_id_name thy_id ^ ":" ^ string_of_int (theory_id_stage thy_id);
+  let
+    val name = theory_id_name {long = false} thy_id;
+    val final = theory_id_final thy_id;
+  in if final then name else name ^ ":" ^ string_of_int (theory_id_stage thy_id) end;
 
 fun display_names thy =
   let
@@ -204,8 +206,8 @@ fun pretty_abbrev_thy thy =
   in Pretty.str_list "{" "}" abbrev end;
 
 fun get_theory long thy name =
-  if theory_name' long thy <> name then
-    (case find_first (fn thy' => theory_name' long thy' = name) (ancestors_of thy) of
+  if theory_name long thy <> name then
+    (case find_first (fn thy' => theory_name long thy' = name) (ancestors_of thy) of
       SOME thy' => thy'
     | NONE => error ("Unknown ancestor theory " ^ quote name))
   else if theory_id_final (theory_id thy) then thy
@@ -238,7 +240,7 @@ val subthy = subthy_id o apply2 theory_id;
 
 fun eq_thy_consistent (thy1, thy2) =
   eq_thy (thy1, thy2) orelse
-    (theory_name thy1 = theory_name thy2 andalso
+    (theory_base_name thy1 = theory_base_name thy2 andalso
       raise THEORY ("Duplicate theory name", [thy1, thy2]));
 
 fun extend_ancestors thy thys =
@@ -513,7 +515,7 @@ structure Proof_Context =
 struct
   fun theory_of (Proof.Context (_, thy)) = thy;
   fun init_global thy = Proof.Context (init_data thy, thy);
-  fun get_global thy name = init_global (get_theory {long = false} thy name);
+  fun get_global long thy name = init_global (get_theory long thy name);
 end;
 
 structure Proof_Data =

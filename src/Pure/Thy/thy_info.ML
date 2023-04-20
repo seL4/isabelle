@@ -65,7 +65,7 @@ val _ =
     else
       let
         val keywords = Thy_Header.get_keywords thy;
-        val thy_name = Context.theory_name thy;
+        val thy_name = Context.theory_base_name thy;
         val latex = Document_Output.present_thy options keywords thy_name segments;
       in
         if Options.string options "document" = "false" then ()

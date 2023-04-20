@@ -97,7 +97,7 @@ fun operations Theory =
        theory_registration = Generic_Target.theory_registration,
        locale_dependency = fn _ => error "Not possible in theory target",
        pretty = fn ctxt => [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
-        Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]}
+        Pretty.str (Context.theory_base_name (Proof_Context.theory_of ctxt))]]}
   | operations (Locale locale) =
       {define = Generic_Target.define (locale_foundation locale),
        notes = Generic_Target.notes (Generic_Target.locale_target_notes locale),

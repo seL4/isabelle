@@ -331,7 +331,7 @@ val freezeT =
 
 fun thms_of all thy =
   filter
-    (fn th => (all orelse Thm.theory_name th = Context.theory_name thy)
+    (fn th => (all orelse Thm.theory_base_name th = Context.theory_base_name thy)
       (* andalso is_executable_thm thy th *))
     (map snd (filter_out is_forbidden_theorem (Global_Theory.all_thms_of thy false)))
 

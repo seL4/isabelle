@@ -162,7 +162,7 @@ fun str_of_state state =
     Toplevel =>
       (case previous_theory_of state of
         NONE => "at top level"
-      | SOME thy => "at top level, result theory " ^ quote (Context.theory_name thy))
+      | SOME thy => "at top level, result theory " ^ quote (Context.theory_base_name thy))
   | Theory (Context.Theory _) => "in theory mode"
   | Theory (Context.Proof _) => "in local theory mode"
   | Proof _ => "in proof mode"

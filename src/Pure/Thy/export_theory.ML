@@ -414,7 +414,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         get_dependencies parents thy |> map_index (fn (i, dep) =>
           let
             val xname = string_of_int (i + 1);
-            val name = Long_Name.implode [Context.theory_name thy, xname];
+            val name = Long_Name.implode [Context.theory_base_name thy, xname];
             val markup = make_entity_markup name xname (#pos (#1 dep)) (#serial (#1 dep));
             val body = encode_locale_dependency dep;
           in XML.Elem (markup, body) end)

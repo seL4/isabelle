@@ -153,7 +153,7 @@ fun is_forbidden_theorem name =
 fun theorems_of thy =
   filter (fn (name, th) =>
              not (is_forbidden_theorem name) andalso
-             Thm.theory_name th = Context.theory_name thy)
+             Thm.theory_base_name th = Context.theory_base_name thy)
          (Global_Theory.all_thms_of thy true)
 
 fun check_formulas tsp =
@@ -175,7 +175,7 @@ fun check_formulas tsp =
 
 fun check_theory thy =
   let
-    val path = File.tmp_path (Context.theory_name thy ^ ".out" |> Path.explode)
+    val path = File.tmp_path (Context.theory_base_name thy ^ ".out" |> Path.explode)
     val _ = File.write path ""
     fun check_theorem (name, th) =
       let

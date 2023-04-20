@@ -65,7 +65,7 @@ val _ = Theory.setup
   ML_Antiquotation.value_embedded \<^binding>\<open>theory_context\<close>
     (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Theory.check {long = false} ctxt (name, pos);
-       "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
+       "Proof_Context.get_global {long = false} (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))) #>
 
   ML_Antiquotation.inline \<^binding>\<open>context\<close>

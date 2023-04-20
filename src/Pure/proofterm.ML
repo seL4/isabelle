@@ -2137,7 +2137,7 @@ fun export_enabled () = Options.default_bool "export_proofs";
 fun export_standard_enabled () = Options.default_bool "export_standard_proofs";
 
 fun export_proof_boxes_required thy =
-  Context.theory_name thy = Context.PureN orelse
+  Context.theory_base_name thy = Context.PureN orelse
     (export_enabled () andalso not (export_standard_enabled ()));
 
 fun export_proof_boxes bodies =
