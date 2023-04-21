@@ -59,7 +59,7 @@ val get = content o Context.Proof;
 
 fun clear name = map_entry name (K Thm.item_net);
 
-fun add_thm name th = map_entry name (Item_Net.update (Thm.trim_context th));
+fun add_thm name = map_entry name o Item_Net.update o Thm.trim_context;
 fun del_thm name = map_entry name o Item_Net.remove;
 
 val add = Thm.declaration_attribute o add_thm;
