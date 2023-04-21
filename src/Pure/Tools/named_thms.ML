@@ -1,7 +1,7 @@
 (*  Title:      Pure/Tools/named_thms.ML
     Author:     Makarius
 
-Named collections of theorems in canonical order.
+Named collections of theorems in canonical (reverse) order: OLD VERSION.
 *)
 
 signature NAMED_THMS =
@@ -27,10 +27,10 @@ structure Data = Generic_Data
 
 val member = Item_Net.member o Data.get o Context.Proof;
 
-val content = Item_Net.content o Data.get;
+fun content context = map (Thm.transfer'' context) (Item_Net.content (Data.get context));
 val get = content o Context.Proof;
 
-val add_thm = Data.map o Item_Net.update;
+val add_thm = Data.map o Item_Net.update o Thm.trim_context;
 val del_thm = Data.map o Item_Net.remove;
 
 val add = Thm.declaration_attribute add_thm;
