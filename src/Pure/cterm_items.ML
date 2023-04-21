@@ -19,6 +19,8 @@ fun cterm_cache f = Cache.create empty lookup update f;
 
 end;
 
+structure Ctermset = Set(Ctermtab.Key);
+
 
 structure Cterms:
 sig
@@ -54,3 +56,5 @@ open Table;
 fun thm_cache f = Cache.create empty lookup update f;
 
 end;
+
+structure Thmset = Set(Thmtab.Key);
