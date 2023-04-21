@@ -54,7 +54,7 @@ structure Data = Generic_Data
     (*cong_thms*) thm Item_Net.T *
     (string * preprocessor) list
   val empty: T =
-    (Item_Net.init eq_measurable_thm (single o Thm.prop_of o fst), Thm.item_net, Thm.item_net, [])
+    (Item_Net.init eq_measurable_thm (single o Thm.full_prop_of o fst), Thm.item_net, Thm.item_net, [])
   fun merge
    ((measurable_thms1, dest_thms1, cong_thms1, preprocessors1),
     (measurable_thms2, dest_thms2, cong_thms2, preprocessors2)) : T =
@@ -82,7 +82,7 @@ val cong_thm_attr = generic_add_del map_cong_thms
 
 fun del_thm th net =
   let
-    val thms = net |> Item_Net.content |> filter (fn (th', _) => Thm.eq_thm (th, th'))
+    val thms = net |> Item_Net.content |> filter (fn (th', _) => Thm.eq_thm_prop (th, th'))
   in fold Item_Net.remove thms net end ;
 
 fun measurable_thm_attr (do_add, d) = Thm.declaration_attribute
