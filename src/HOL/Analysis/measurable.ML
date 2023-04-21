@@ -75,7 +75,7 @@ val split = Attrib.setup_config_bool \<^binding>\<open>measurable_split\<close> 
 fun generic_add_del map : attribute context_parser =
   Scan.lift
     (Args.add >> K Item_Net.update || Args.del >> K Item_Net.remove || Scan.succeed Item_Net.update) >>
-    (fn f => Thm.declaration_attribute (map o f))
+    (fn f => Thm.declaration_attribute (map o f o Thm.trim_context))
 
 val dest_thm_attr = generic_add_del map_dest_thms
 val cong_thm_attr = generic_add_del map_cong_thms
@@ -86,13 +86,13 @@ fun del_thm th net =
   in fold Item_Net.remove thms net end ;
 
 fun measurable_thm_attr (do_add, d) = Thm.declaration_attribute
-  (map_measurable_thms o (if do_add then Item_Net.update o rpair d else del_thm))
+  (map_measurable_thms o (if do_add then Item_Net.update o rpair d else del_thm) o Thm.trim_context)
 
-val get_dest = Item_Net.content o #2 o Data.get;
+fun get_dest context = map (Thm.transfer'' context) (Item_Net.content (#2 (Data.get context)));
+fun get_cong context = map (Thm.transfer'' context) (Item_Net.content (#3 (Data.get context)));
 
-val get_cong = Item_Net.content o #3 o Data.get;
-val add_cong = map_cong_thms o Item_Net.update;
-val del_cong = map_cong_thms o Item_Net.remove;
+val add_cong = map_cong_thms o Item_Net.update o Thm.trim_context;
+val del_cong = map_cong_thms o Item_Net.remove o Thm.trim_context;
 fun add_del_cong_thm true = add_cong
   | add_del_cong_thm false = del_cong
 
@@ -108,9 +108,10 @@ fun is_too_generic thm =
     val concl' = HOLogic.dest_Trueprop concl handle TERM _ => concl
   in is_Var (head_of concl') end
 
-val get_thms = Data.get #> #1 #> Item_Net.content ;
+fun get_thms context =
+  map (apfst (Thm.transfer'' context)) (Item_Net.content (#1 (Data.get context)));
 
-val get_all = get_thms #> map fst ;
+val get_all = get_thms #> map fst;
 
 fun debug_tac ctxt msg f =
   if Config.get ctxt debug then print_tac ctxt (msg ()) THEN f else f
