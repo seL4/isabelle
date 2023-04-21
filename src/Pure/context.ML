@@ -27,7 +27,11 @@ end;
 signature CONTEXT =
 sig
   include BASIC_CONTEXT
+  (*theory data*)
+  type data_kind = int
+  val data_kinds: unit -> (data_kind * Position.T) list
   (*theory context*)
+  type id = int
   type theory_id
   val theory_id: theory -> theory_id
   val timing: bool Unsynchronized.ref
@@ -38,7 +42,7 @@ sig
   val theory_long_name: theory -> string
   val theory_base_name: theory -> string
   val theory_name: {long: bool} -> theory -> string
-  val theory_identifier: theory -> serial
+  val theory_identifier: theory -> id
   val PureN: string
   val pretty_thy: theory -> Pretty.T
   val pretty_abbrev_thy: theory -> Pretty.T
@@ -95,15 +99,15 @@ sig
   include CONTEXT
   structure Theory_Data:
   sig
-    val declare: Position.T -> Any.T -> ((theory * Any.T) list -> Any.T) -> serial
-    val get: serial -> (Any.T -> 'a) -> theory -> 'a
-    val put: serial -> ('a -> Any.T) -> 'a -> theory -> theory
+    val declare: Position.T -> Any.T -> ((theory * Any.T) list -> Any.T) -> data_kind
+    val get: data_kind -> (Any.T -> 'a) -> theory -> 'a
+    val put: data_kind -> ('a -> Any.T) -> 'a -> theory -> theory
   end
   structure Proof_Data:
   sig
-    val declare: (theory -> Any.T) -> serial
-    val get: serial -> (Any.T -> 'a) -> Proof.context -> 'a
-    val put: serial -> ('a -> Any.T) -> 'a -> Proof.context -> Proof.context
+    val declare: (theory -> Any.T) -> data_kind
+    val get: data_kind -> (Any.T -> 'a) -> Proof.context -> 'a
+    val put: data_kind -> ('a -> Any.T) -> 'a -> Proof.context -> Proof.context
   end
 end;
 
@@ -112,8 +116,13 @@ struct
 
 (*** theory context ***)
 
+(* theory data *)
+
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
+
+type data_kind = int;
+val data_kind = Counter.make ();
 
 
 (** datatype theory **)
@@ -131,9 +140,12 @@ fun next_stage (state: state) =
 
 (* theory_id *)
 
+type id = int;
+val new_id = Counter.make ();
+
 abstype theory_id =
   Theory_Id of
-   {id: serial,                   (*identifier*)
+   {id: id,                       (*identifier*)
     ids: Intset.T,                (*cumulative identifiers -- symbolic body content*)
     name: string,                 (*official theory name*)
     stage: int}                   (*index for anonymous updates*)
@@ -286,6 +298,9 @@ fun the_kind k =
 
 in
 
+fun data_kinds () =
+  Datatab.fold_rev (fn (k, {pos, ...}) => cons (k, pos)) (Synchronized.value kinds) [];
+
 val invoke_pos = #pos o the_kind;
 val invoke_empty = #empty o the_kind;
 
@@ -297,7 +312,7 @@ fun invoke_merge kind args =
 
 fun declare_data pos empty merge =
   let
-    val k = serial ();
+    val k = data_kind ();
     val kind = {pos = pos, empty = empty, merge = merge};
     val _ = Synchronized.change kinds (Datatab.update (k, kind));
   in k end;
@@ -362,7 +377,7 @@ fun theories_trace () =
 
 fun create_thy state ids name stage ancestry data =
   let
-    val theory_id = make_theory_id {id = serial (), ids = ids, name = name, stage = stage};
+    val theory_id = make_theory_id {id = new_id (), ids = ids, name = name, stage = stage};
     val identity = {theory_id = theory_id, token = make_token ()};
   in Theory (state, identity, ancestry, data) end;
 
@@ -521,7 +536,7 @@ struct
 
 fun declare init =
   let
-    val k = serial ();
+    val k = data_kind ();
     val _ = Synchronized.change kinds (Datatab.update (k, init));
   in k end;
 
