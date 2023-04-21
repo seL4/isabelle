@@ -34,35 +34,37 @@ end ;
 structure Measurable : MEASURABLE =
 struct
 
-type preprocessor = thm -> Proof.context -> (thm list * Proof.context)
+type preprocessor = thm -> Proof.context -> thm list * Proof.context
 
 datatype level = Concrete | Generic;
 
-fun eq_measurable_thms ((th1, d1), (th2, d2)) = 
+type measurable_thm = thm * (bool * level);
+
+fun eq_measurable_thm ((th1, d1): measurable_thm, (th2, d2): measurable_thm) =
   d1 = d2 andalso Thm.eq_thm_prop (th1, th2) ;
 
 fun merge_dups (xs:(string * preprocessor) list) ys =
-  xs @ (filter (fn (name, _) => is_none (find_first (fn (name', _) => name' = name) xs)) ys) 
+  xs @ (filter (fn (name, _) => is_none (find_first (fn (name', _) => name' = name) xs)) ys)
 
 structure Data = Generic_Data
 (
-  type T = {
-    measurable_thms : (thm * (bool * level)) Item_Net.T,
+  type T =
+   {measurable_thms : measurable_thm Item_Net.T,
     dest_thms : thm Item_Net.T,
     cong_thms : thm Item_Net.T,
-    preprocessors : (string * preprocessor) list }
-  val empty: T = {
-    measurable_thms = Item_Net.init eq_measurable_thms (single o Thm.prop_of o fst),
+    preprocessors : (string * preprocessor) list};
+  val empty: T =
+   {measurable_thms = Item_Net.init eq_measurable_thm (single o Thm.prop_of o fst),
     dest_thms = Thm.item_net,
     cong_thms = Thm.item_net,
-    preprocessors = [] };
-  fun merge ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1 },
-      {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2 }) : T = {
-    measurable_thms = Item_Net.merge (t1, t2),
+    preprocessors = []};
+  fun merge
+   ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1},
+    {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2}) : T =
+   {measurable_thms = Item_Net.merge (t1, t2),
     dest_thms = Item_Net.merge (dt1, dt2),
     cong_thms = Item_Net.merge (ct1, ct2),
-    preprocessors = merge_dups i1 i2 
-    };
+    preprocessors = merge_dups i1 i2};
 );
 
 val debug =
