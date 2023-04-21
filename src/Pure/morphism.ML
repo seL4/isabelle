@@ -22,6 +22,7 @@ sig
     typ: (typ -> typ) list,
     term: (term -> term) list,
     fact: (thm list -> thm list) list} -> morphism
+  val is_identity: morphism -> bool
   val pretty: morphism -> Pretty.T
   val binding: morphism -> binding -> binding
   val binding_prefix: morphism -> (string * bool) list
@@ -81,6 +82,10 @@ fun morphism a {binding, typ, term, fact} =
     typ = map (pair a) typ,
     term = map (pair a) term,
     fact = map (pair a) fact};
+
+(*syntactic test only!*)
+fun is_identity (Morphism {names, binding, typ, term, fact}) =
+  null names andalso null binding andalso null typ andalso null term andalso null fact;
 
 fun pretty (Morphism {names, ...}) = Pretty.enum ";" "{" "}" (map Pretty.str (rev names));
 
