@@ -43,52 +43,41 @@ type measurable_thm = thm * (bool * level);
 fun eq_measurable_thm ((th1, d1): measurable_thm, (th2, d2): measurable_thm) =
   d1 = d2 andalso Thm.eq_thm_prop (th1, th2) ;
 
-fun merge_dups (xs:(string * preprocessor) list) ys =
+fun merge_preprocessors (xs: (string * preprocessor) list, ys) =
   xs @ (filter (fn (name, _) => is_none (find_first (fn (name', _) => name' = name) xs)) ys)
 
 structure Data = Generic_Data
 (
   type T =
-   {measurable_thms : measurable_thm Item_Net.T,
-    dest_thms : thm Item_Net.T,
-    cong_thms : thm Item_Net.T,
-    preprocessors : (string * preprocessor) list};
+    measurable_thm Item_Net.T *
+    (*dest_thms*) thm Item_Net.T *
+    (*cong_thms*) thm Item_Net.T *
+    (string * preprocessor) list
   val empty: T =
-   {measurable_thms = Item_Net.init eq_measurable_thm (single o Thm.prop_of o fst),
-    dest_thms = Thm.item_net,
-    cong_thms = Thm.item_net,
-    preprocessors = []};
+    (Item_Net.init eq_measurable_thm (single o Thm.prop_of o fst), Thm.item_net, Thm.item_net, [])
   fun merge
-   ({measurable_thms = t1, dest_thms = dt1, cong_thms = ct1, preprocessors = i1},
-    {measurable_thms = t2, dest_thms = dt2, cong_thms = ct2, preprocessors = i2}) : T =
-   {measurable_thms = Item_Net.merge (t1, t2),
-    dest_thms = Item_Net.merge (dt1, dt2),
-    cong_thms = Item_Net.merge (ct1, ct2),
-    preprocessors = merge_dups i1 i2};
+   ((measurable_thms1, dest_thms1, cong_thms1, preprocessors1),
+    (measurable_thms2, dest_thms2, cong_thms2, preprocessors2)) : T =
+   (Item_Net.merge (measurable_thms1, measurable_thms2),
+    Item_Net.merge (dest_thms1, dest_thms2),
+    Item_Net.merge (cong_thms1, cong_thms2),
+    merge_preprocessors (preprocessors1, preprocessors2))
 );
 
-val debug =
-  Attrib.setup_config_bool \<^binding>\<open>measurable_debug\<close> (K false)
+val map_measurable_thms = Data.map o @{apply 4(1)}
+val map_dest_thms = Data.map o @{apply 4(2)}
+val map_cong_thms = Data.map o @{apply 4(3)}
+val map_preprocessors = Data.map o @{apply 4(4)}
 
-val split =
-  Attrib.setup_config_bool \<^binding>\<open>measurable_split\<close> (K true)
-
-fun map_data f1 f2 f3 f4
-  {measurable_thms = t1,    dest_thms = t2,    cong_thms = t3,    preprocessors = t4 } =
-  {measurable_thms = f1 t1, dest_thms = f2 t2, cong_thms = f3 t3, preprocessors = f4 t4}
-
-fun map_measurable_thms f = map_data f I I I
-fun map_dest_thms f = map_data I f I I
-fun map_cong_thms f = map_data I I f I
-fun map_preprocessors f = map_data I I I f
+val debug = Attrib.setup_config_bool \<^binding>\<open>measurable_debug\<close> (K false)
+val split = Attrib.setup_config_bool \<^binding>\<open>measurable_split\<close> (K true)
 
 fun generic_add_del map : attribute context_parser =
   Scan.lift
     (Args.add >> K Item_Net.update || Args.del >> K Item_Net.remove || Scan.succeed Item_Net.update) >>
-    (fn f => Thm.declaration_attribute (Data.map o map o f))
+    (fn f => Thm.declaration_attribute (map o f))
 
 val dest_thm_attr = generic_add_del map_dest_thms
-
 val cong_thm_attr = generic_add_del map_cong_thms
 
 fun del_thm th net =
@@ -97,21 +86,21 @@ fun del_thm th net =
   in fold Item_Net.remove thms net end ;
 
 fun measurable_thm_attr (do_add, d) = Thm.declaration_attribute
-  (Data.map o map_measurable_thms o (if do_add then Item_Net.update o rpair d else del_thm))
+  (map_measurable_thms o (if do_add then Item_Net.update o rpair d else del_thm))
 
-val get_dest = Item_Net.content o #dest_thms o Data.get;
+val get_dest = Item_Net.content o #2 o Data.get;
 
-val get_cong = Item_Net.content o #cong_thms o Data.get;
-val add_cong = Data.map o map_cong_thms o Item_Net.update;
-val del_cong = Data.map o map_cong_thms o Item_Net.remove;
+val get_cong = Item_Net.content o #3 o Data.get;
+val add_cong = map_cong_thms o Item_Net.update;
+val del_cong = map_cong_thms o Item_Net.remove;
 fun add_del_cong_thm true = add_cong
   | add_del_cong_thm false = del_cong
 
-fun add_preprocessor name f = Data.map (map_preprocessors (fn xs => xs @ [(name, f)]))
-fun del_preprocessor name = Data.map (map_preprocessors (filter (fn (n, _) => n <> name)))
+fun add_preprocessor name f = map_preprocessors (fn xs => xs @ [(name, f)])
+fun del_preprocessor name = map_preprocessors (filter (fn (n, _) => n <> name))
 val add_local_cong = Context.proof_map o add_cong
 
-val get_preprocessors = Context.Proof #> Data.get #> #preprocessors ;
+val get_preprocessors = Context.Proof #> Data.get #> #4;
 
 fun is_too_generic thm =
   let 
@@ -119,7 +108,7 @@ fun is_too_generic thm =
     val concl' = HOLogic.dest_Trueprop concl handle TERM _ => concl
   in is_Var (head_of concl') end
 
-val get_thms = Data.get #> #measurable_thms #> Item_Net.content ;
+val get_thms = Data.get #> #1 #> Item_Net.content ;
 
 val get_all = get_thms #> map fst ;
 
