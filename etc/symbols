@@ -506,6 +506,7 @@
 \<^if_macos>            argument: cartouche
 \<^if_windows>          argument: cartouche
 \<^if_unix>             argument: cartouche
+\<^if_none>             argument: cartouche
 \<^cite>                argument: cartouche
 \<^nocite>              argument: cartouche
 \<^citet>               argument: cartouche

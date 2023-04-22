@@ -340,11 +340,24 @@ val _ = Theory.setup
 in end;
 
 
-(* special forms *)
+(* special forms for option type *)
 
 val _ = Theory.setup
  (ML_Antiquotation.special_form \<^binding>\<open>try\<close> "() |> Basics.try" #>
-  ML_Antiquotation.special_form \<^binding>\<open>can\<close> "() |> Basics.can");
+  ML_Antiquotation.special_form \<^binding>\<open>can\<close> "() |> Basics.can" #>
+  ML_Context.add_antiquotation \<^binding>\<open>if_none\<close> true
+    (fn _ => fn src => fn ctxt =>
+      let
+        val (s, _) = Token.syntax (Scan.lift Parse.embedded_input) src ctxt;
+        val tokenize = ML_Lex.tokenize_no_range;
+
+        val (decl, ctxt') = ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt;
+        fun decl' ctxt'' =
+          let
+            val (ml_env, ml_body) = decl ctxt'';
+            val ml_body' = tokenize "(fn SOME x => x | NONE => " @ ml_body @ tokenize ")";
+          in (ml_env, ml_body') end;
+      in (decl', ctxt') end));
 
 
 (* basic combinators *)

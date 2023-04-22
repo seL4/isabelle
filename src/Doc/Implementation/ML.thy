@@ -1495,12 +1495,52 @@ text %mlref \<open>
   @{define_ML the_list: "'a option -> 'a list"} \\
   @{define_ML the_default: "'a -> 'a option -> 'a"} \\
   \end{mldecls}
+
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "if_none"} & : & \<open>ML_antiquotation\<close> \\
+  \end{matharray}
+
+  \<^rail>\<open>@@{ML_antiquotation if_none} embedded\<close>
 \<close>
 
 text \<open>
   Apart from \<^ML>\<open>Option.map\<close> most other operations defined in structure
   \<^ML_structure>\<open>Option\<close> are alien to Isabelle/ML and never used. The
   operations shown above are defined in \<^file>\<open>~~/src/Pure/General/basics.ML\<close>.
+
+  Note that the function \<^ML>\<open>the_default\<close> is strict in all of its
+  arguments, the default value is evaluated beforehand, even if not required
+  later. In contrast, the antiquotation @{ML_antiquotation "if_none"} is
+  non-strict: the given expression is only evaluated for an application to
+  \<^ML>\<open>NONE\<close>. This allows to work with exceptions like this:
+\<close>
+
+ML \<open>
+  fun div_total x y =
+    \<^try>\<open>x div y\<close> |> the_default 0;
+
+  fun div_error x y =
+    \<^try>\<open>x div y\<close> |> \<^if_none>\<open>error "Division by zero"\<close>;
+\<close>
+
+text \<open>
+  Of course, it is also possible to handle exceptions directly, without an
+  intermediate option construction:
+\<close>
+
+ML \<open>
+  fun div_total x y =
+    x div y handle Div => 0;
+
+  fun div_error x y =
+    x div y handle Div => error "Division by zero";
+\<close>
+
+text \<open>
+  The first form works better in longer chains of functional composition, with
+  combinators like \<^ML>\<open>|>\<close> or \<^ML>\<open>#>\<close> or \<^ML>\<open>o\<close>. The second form is more
+  adequate in elementary expressions: there is no need to pretend that
+  Isabelle/ML is actually a version of Haskell.
 \<close>
 
 

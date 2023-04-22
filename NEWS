@@ -283,6 +283,10 @@ antiquotations.
 
 *** ML ***
 
+* ML antiquotation \<^if_none>\<open>expr\<close> inlines a function (fn SOME x => x
+| NONE => expr); this is a non-strict version of the regular function
+"the_default". Both are particularly useful with the |> combinator.
+
 * Improved implementations and signatures of functor Table() and
 corresponding functor Set().
 
