@@ -22,7 +22,6 @@ sig
   val defs_of: theory -> Defs.T
   val at_begin: (theory -> theory option) -> theory -> theory
   val at_end: (theory -> theory option) -> theory -> theory
-  val join_theory: theory list -> theory
   val begin_theory: string * Position.T -> theory list -> theory
   val end_theory: theory -> theory
   val add_axiom: Proof.context -> binding * term -> theory -> theory
@@ -83,6 +82,8 @@ datatype thy = Thy of
   defs: Defs.T,
   wrappers: wrapper list * wrapper list};
 
+fun rep_thy (Thy args) = args;
+
 fun make_thy (pos, id, axioms, defs, wrappers) =
   Thy {pos = pos, id = id, axioms = axioms, defs = defs, wrappers = wrappers};
 
@@ -90,19 +91,22 @@ structure Thy = Theory_Data'
 (
   type T = thy;
   val empty = make_thy (Position.none, 0, Name_Space.empty_table Markup.axiomN, Defs.empty, ([], []));
-  fun merge old_thys (thy1, thy2) =
+  fun merge args =
     let
-      val Thy {pos, id, axioms = axioms1, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
-      val Thy {pos = _, id = _, axioms = axioms2, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
+      val thy0 = #1 (hd args);
+      val {pos, id, ...} = rep_thy (#2 (hd args));
 
-      val axioms' = Name_Space.merge_tables (axioms1, axioms2);
-      val defs' = Defs.merge (Defs.global_context (fst old_thys)) (defs1, defs2);
-      val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
-      val ens' = Library.merge (eq_snd op =) (ens1, ens2);
+      val merge_defs = Defs.merge (Defs.global_context thy0);
+      val merge_wrappers = Library.merge (eq_snd op =);
+
+      val axioms' = Library.foldl1 Name_Space.merge_tables (map (#axioms o rep_thy o #2) args);
+      val defs' = Library.foldl1 merge_defs (map (#defs o rep_thy o #2) args);
+      val bgs' = Library.foldl1 merge_wrappers (map (#1 o #wrappers o rep_thy o #2) args);
+      val ens' = Library.foldl1 merge_wrappers (map (#2 o #wrappers o rep_thy o #2) args);
     in make_thy (pos, id, axioms', defs', (bgs', ens')) end;
 );
 
-fun rep_theory thy = Thy.get thy |> (fn Thy args => args);
+val rep_theory = rep_thy o Thy.get;
 
 fun map_thy f = Thy.map (fn (Thy {pos, id, axioms, defs, wrappers}) =>
   make_thy (f (pos, id, axioms, defs, wrappers)));
@@ -143,7 +147,7 @@ fun check long ctxt (name, pos) =
             val completion_report =
               Completion.make_report (name, pos)
                 (fn completed =>
-                  map (Context.theory_name' long) (ancestors_of thy)
+                  map (Context.theory_name long) (ancestors_of thy)
                   |> filter (completed o Long_Name.base_name)
                   |> sort_strings
                   |> map (fn a => (a, (Markup.theoryN, a))));
@@ -160,13 +164,6 @@ val axiom_space = Name_Space.space_of_table o axiom_table;
 val all_axioms_of = Name_Space.dest_table o axiom_table;
 
 val defs_of = #defs o rep_theory;
-
-
-(* join theory *)
-
-fun join_theory [] = raise List.Empty
-  | join_theory [thy] = thy
-  | join_theory thys = foldl1 Context.join_thys thys;
 
 
 (* begin/end theory *)

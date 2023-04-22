@@ -132,16 +132,16 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
       if not new_chain then ([], lambdas)
       else
         let (*lookahead of chain's source*)
-          val ((_, from_tks), _) = Array.sub (prods, the chain);
+          val ((_, from_tks), _) = Array.nth prods (the chain);
 
           (*copy from's lookahead to chain's destinations*)
           fun copy_lookahead to =
             let
-              val ((to_nts, to_tks), ps) = Array.sub (prods, to);
+              val ((to_nts, to_tks), ps) = Array.nth prods to;
 
               val new_tks = Tokens.subtract to_tks from_tks;  (*added lookahead tokens*)
               val to_tks' = Tokens.merge (to_tks, new_tks);
-              val _ = Array.update (prods, to, ((to_nts, to_tks'), ps));
+              val _ = Array.upd prods to ((to_nts, to_tks'), ps);
             in tokens_add (to, new_tks) end;
 
           val tos = chains_all_succs chains' [lhs];
@@ -170,7 +170,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
           else (NONE, nts_insert nt nts);
 
     (*get all known starting tokens for a nonterminal*)
-    fun starts_for_nt nt = snd (fst (Array.sub (prods, nt)));
+    fun starts_for_nt nt = snd (fst (Array.nth prods nt));
 
     (*update prods, lookaheads, and lambdas according to new lambda NTs*)
     val (added_starts', lambdas') =
@@ -180,7 +180,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
           | propagate_lambda (l :: ls) added_starts lambdas =
               let
                 (*get lookahead for lambda NT*)
-                val ((dependent, l_starts), _) = Array.sub (prods, l);
+                val ((dependent, l_starts), _) = Array.nth prods l;
 
                 (*check productions whose lookahead may depend on lambda NT*)
                 fun examine_prods [] add_lambda nt_dependencies added_tks nt_prods =
@@ -221,7 +221,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                 (*check each NT whose lookahead depends on new lambda NT*)
                 fun process_nts nt (added_lambdas, added_starts) =
                   let
-                    val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
+                    val ((old_nts, old_tks), nt_prods) = Array.nth prods nt;
 
                     (*existing productions whose lookahead may depend on l*)
                     val tk_prods = prods_lookup nt_prods (get_start l_starts);
@@ -235,7 +235,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                     val new_tks = Tokens.merge (old_tks, added_tks);
 
                     val added_lambdas' = added_lambdas |> add_lambda ? cons nt;
-                    val _ = Array.update (prods, nt, ((new_nts, new_tks), nt_prods'));
+                    val _ = Array.upd prods nt ((new_nts, new_tks), nt_prods');
                       (*N.B. that because the tks component
                         is used to access existing
                         productions we have to add new
@@ -279,9 +279,9 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
           (*add lhs NT to list of dependent NTs in lookahead*)
           fun add_nts nt initial =
             (if initial then
-              let val ((old_nts, old_tks), ps) = Array.sub (prods, nt) in
+              let val ((old_nts, old_tks), ps) = Array.nth prods nt in
                 if nts_member old_nts lhs then ()
-                else Array.update (prods, nt, ((nts_insert lhs old_nts, old_tks), ps))
+                else Array.upd prods nt ((nts_insert lhs old_nts, old_tks), ps)
               end
              else (); false);
 
@@ -290,7 +290,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
           fun add_tks [] added = added
             | add_tks (nt :: nts) added =
                 let
-                  val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
+                  val ((old_nts, old_tks), nt_prods) = Array.nth prods nt;
 
                   val new_tks = Tokens.subtract old_tks start_tks;
 
@@ -306,9 +306,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                     |> nt = lhs ? Tokens.fold store start_tks';
                   val _ =
                     if not changed andalso Tokens.is_empty new_tks then ()
-                    else
-                      Array.update
-                        (prods, nt, ((old_nts, Tokens.merge (old_tks, new_tks)), nt_prods'));
+                    else Array.upd prods nt ((old_nts, Tokens.merge (old_tks, new_tks)), nt_prods');
                 in add_tks nts (tokens_add (nt, new_tks) added) end;
           val _ = nts_fold add_nts start_nts true;
         in add_tks (chains_all_succs chains' [lhs]) [] end;
@@ -365,7 +363,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
                 (*copy existing productions for new starting tokens*)
                 fun process_nts nt =
                   let
-                    val ((nts, tks), nt_prods) = Array.sub (prods, nt);
+                    val ((nts, tks), nt_prods) = Array.nth prods nt;
 
                     val tk_prods = prods_lookup nt_prods key;
 
@@ -379,10 +377,10 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
 
                     val added_tks = Tokens.subtract tks new_tks;
                     val tks' = Tokens.merge (tks, added_tks);
-                    val _ = Array.update (prods, nt, ((nts, tks'), nt_prods''));
+                    val _ = Array.upd prods nt ((nts, tks'), nt_prods'');
                   in tokens_add (nt, added_tks) end;
 
-                val ((dependent, _), _) = Array.sub (prods, changed_nt);
+                val ((dependent, _), _) = Array.nth prods changed_nt;
               in add_starts (starts @ nts_fold process_nts dependent []) end;
       in add_starts added_starts' end;
   in (chains', lambdas') end;
@@ -574,7 +572,7 @@ fun get_states Estate j A max_prec =
   filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
       | _ => false)
-    (Array.sub (Estate, j));
+    (Array.nth Estate j);
 
 
 fun movedot_term c (A, j, ts, Terminal a :: sa, id, i) =
@@ -652,7 +650,7 @@ fun PROCESSS gram Estate i c states =
 
 
 fun produce gram stateset i indata prev_token =
-  (case Array.sub (stateset, i) of
+  (case Array.nth stateset i of
     [] =>
       let
         val toks = if Lexicon.is_eof prev_token then indata else prev_token :: indata;
@@ -677,8 +675,8 @@ fun produce gram stateset i indata prev_token =
       | c :: cs =>
           let
             val (si, sii) = PROCESSS gram stateset i c s;
-            val _ = Array.update (stateset, i, si);
-            val _ = Array.update (stateset, i + 1, sii);
+            val _ = Array.upd stateset i si;
+            val _ = Array.upd stateset (i + 1) sii;
           in produce gram stateset (i + 1) cs c end));
 
 
@@ -693,7 +691,7 @@ fun earley (gram as Gram {tags, ...}) startsymbol indata =
     val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof], "", 0)];
     val s = length indata + 1;
     val Estate = Array.array (s, []);
-    val _ = Array.update (Estate, 0, S0);
+    val _ = Array.upd Estate 0 S0;
   in
     get_trees (produce gram Estate 0 indata Lexicon.eof)
   end;

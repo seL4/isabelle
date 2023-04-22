@@ -21,6 +21,7 @@ ML_file "ML/ml_system.ML";
 ML_file "General/basics.ML";
 ML_file "General/string.ML";
 ML_file "General/vector.ML";
+ML_file "General/array.ML";
 ML_file "General/symbol_explode.ML";
 
 ML_file "Concurrent/multithreading.ML";

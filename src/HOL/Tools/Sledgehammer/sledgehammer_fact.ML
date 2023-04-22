@@ -484,7 +484,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
           let
             val n = length ths
             val collection = n > 1
-            val dotted_name = length (Long_Name.explode name0) > 2 (* ignore theory name *)
+            val dotted_name = Long_Name.count name0 > 2 (* ignore theory name *)
 
             fun check_thms a =
               (case try (Proof_Context.get_thms ctxt) a of

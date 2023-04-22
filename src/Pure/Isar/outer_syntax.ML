@@ -112,7 +112,7 @@ fun print_commands thy =
 (* maintain commands *)
 
 fun add_command name cmd thy =
-  if member (op =) Thy_Header.bootstrap_thys (Context.theory_name thy) then thy
+  if member (op =) Thy_Header.bootstrap_thys (Context.theory_base_name thy) then thy
   else
     let
       val _ =

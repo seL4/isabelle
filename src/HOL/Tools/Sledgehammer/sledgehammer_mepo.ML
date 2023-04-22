@@ -220,7 +220,7 @@ fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...} :
     t
 
 fun theory_const_prop_of fudge th =
-  theory_constify fudge (Thm.theory_name th) (Thm.prop_of th)
+  theory_constify fudge (Thm.theory_base_name th) (Thm.prop_of th)
 
 fun pair_consts_fact thy fudge fact =
   (case fact |> snd |> theory_const_prop_of fudge |> pconsts_in_fact thy of
@@ -546,7 +546,7 @@ fun mepo_suggested_facts ctxt ({fact_thresholds = (thres0, thres1), ...} : param
        []
      else
        relevance_filter ctxt thres0 decay max_facts fudge facts hyp_ts
-         (concl_t |> theory_constify fudge (Context.theory_name thy)))
+         (concl_t |> theory_constify fudge (Context.theory_base_name thy)))
     |> map fact_of_lazy_fact
   end
 

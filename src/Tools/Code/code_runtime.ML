@@ -718,7 +718,7 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
         val code_binding = Path.map_binding Code_Target.code_path binding;
         val preamble =
           "(* Generated from " ^
-            Path.implode (Resources.thy_path (Path.basic (Context.theory_name thy))) ^
+            Path.implode (Resources.thy_path (Path.basic (Context.theory_base_name thy))) ^
           "; DO NOT EDIT! *)";
         val thy' = Code_Target.export code_binding (Bytes.string (preamble ^ "\n\n" ^ code)) thy;
         val _ = Code_Target.code_export_message thy';

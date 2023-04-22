@@ -74,6 +74,8 @@ datatype data = Data of
       (*constant name ~> type constructor ~> (constant name, equation)*)
     (string * string) Symtab.table (*constant name ~> (constant name, type constructor)*)};
 
+fun rep_data (Data args) = args;
+
 fun make_data (axclasses, params, inst_params) =
   Data {axclasses = axclasses, params = params, inst_params = inst_params};
 
@@ -81,22 +83,23 @@ structure Data = Theory_Data'
 (
   type T = data;
   val empty = make_data (Symtab.empty, [], (Symtab.empty, Symtab.empty));
-  fun merge old_thys
-      (Data {axclasses = axclasses1, params = params1, inst_params = inst_params1},
-       Data {axclasses = axclasses2, params = params2, inst_params = inst_params2}) =
+  fun merge args =
     let
-      val old_ctxt = Syntax.init_pretty_global (fst old_thys);
+      val ctxt0 = Syntax.init_pretty_global (#1 (hd args));
 
-      val axclasses' = Symtab.merge (K true) (axclasses1, axclasses2);
-      val params' =
+      fun merge_params (params1, params2) =
         if null params1 then params2
         else
-          fold_rev (fn p => if member (op =) params1 p then I else add_param old_ctxt p)
+          fold_rev (fn p => if member (op =) params1 p then I else add_param ctxt0 p)
             params2 params1;
 
-      val inst_params' =
+      fun merge_inst_params (inst_params1, inst_params2) =
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),
           Symtab.merge (K true) (#2 inst_params1, #2 inst_params2));
+
+      val axclasses' = Library.foldl1 (Symtab.merge (K true)) (map (#axclasses o rep_data o #2) args);
+      val params' = Library.foldl1 merge_params (map (#params o rep_data o #2) args);
+      val inst_params' = Library.foldl1 merge_inst_params (map (#inst_params o rep_data o #2) args);
     in make_data (axclasses', params', inst_params') end;
 );
 
@@ -116,11 +119,11 @@ fun map_inst_params f =
   map_data (fn (axclasses, params, inst_params) =>
     (axclasses, params, f inst_params));
 
-val rep_data = Data.get #> (fn Data args => args);
+val rep_theory_data = Data.get #> rep_data;
 
-val axclasses_of = #axclasses o rep_data;
-val params_of = #params o rep_data;
-val inst_params_of = #inst_params o rep_data;
+val axclasses_of = #axclasses o rep_theory_data;
+val params_of = #params o rep_theory_data;
+val inst_params_of = #inst_params o rep_theory_data;
 
 
 (* axclasses with parameters *)

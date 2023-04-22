@@ -10,7 +10,7 @@ signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
   val init_global: theory -> Proof.context
-  val get_global: theory -> string -> Proof.context
+  val get_global: {long: bool} -> theory -> string -> Proof.context
   type mode
   val mode_default: mode
   val mode_pattern: mode

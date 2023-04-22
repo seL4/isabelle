@@ -58,7 +58,7 @@ fun extract_suggestions line =
   | _ => ("", []))
 
 fun has_thm_thy th thy =
-  Context.theory_name thy = Thm.theory_name th
+  Context.theory_base_name thy = Thm.theory_base_name th
 
 fun has_thys thys th = exists (has_thm_thy th) thys
 
@@ -98,7 +98,7 @@ fun generate_features ctxt thys file_name =
     fun do_fact ((_, stature), th) =
       let
         val name = nickname_of_thm th
-        val feats = features_of ctxt (Thm.theory_name th) stature [Thm.prop_of th]
+        val feats = features_of ctxt (Thm.theory_base_name th) stature [Thm.prop_of th]
         val s = encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
       in
         File.append path s
@@ -187,14 +187,14 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt step j th isar_deps)
-          val goal_feats = features_of ctxt (Thm.theory_name th) stature [Thm.prop_of th]
+          val goal_feats = features_of ctxt (Thm.theory_base_name th) stature [Thm.prop_of th]
           val access_facts = filter_accessible_from th new_facts @ old_facts
           val (marker, deps) =
             smart_dependencies_of ctxt params_opt access_facts name_tabs th isar_deps
 
           fun extra_features_of (((_, stature), th), weight) =
             [Thm.prop_of th]
-            |> features_of ctxt (Thm.theory_name th) stature
+            |> features_of ctxt (Thm.theory_base_name th) stature
             |> map (rpair (weight * extra_feature_factor))
 
           val query =
@@ -261,7 +261,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
               val suggs =
                 old_facts
                 |> filter_accessible_from th
-                |> mepo_or_mash_suggested_facts ctxt (Thm.theory_name th)
+                |> mepo_or_mash_suggested_facts ctxt (Thm.theory_base_name th)
                   params max_suggs hyp_ts concl_t
                 |> map (nickname_of_thm o snd)
             in

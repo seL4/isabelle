@@ -144,7 +144,7 @@ val preproc_timeout = seconds 5.0
 val mono_timeout = seconds 1.0
 
 fun is_forbidden_theorem name =
-  length (Long_Name.explode name) <> 2 orelse
+  Long_Name.count name <> 2 orelse
   String.isPrefix "type_definition" (List.last (Long_Name.explode name)) orelse
   String.isPrefix "arity_" (List.last (Long_Name.explode name)) orelse
   String.isSuffix "_def" name orelse
@@ -153,7 +153,7 @@ fun is_forbidden_theorem name =
 fun theorems_of thy =
   filter (fn (name, th) =>
              not (is_forbidden_theorem name) andalso
-             Thm.theory_name th = Context.theory_name thy)
+             Thm.theory_long_name th = Context.theory_long_name thy)
          (Global_Theory.all_thms_of thy true)
 
 fun check_formulas tsp =
@@ -175,7 +175,7 @@ fun check_formulas tsp =
 
 fun check_theory thy =
   let
-    val path = File.tmp_path (Context.theory_name thy ^ ".out" |> Path.explode)
+    val path = File.tmp_path (Context.theory_base_name thy ^ ".out" |> Path.explode)
     val _ = File.write path ""
     fun check_theorem (name, th) =
       let

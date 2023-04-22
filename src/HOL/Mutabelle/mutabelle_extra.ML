@@ -239,7 +239,7 @@ fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (Thm.prop_of th) [] in
     exists (member (op =) (Long_Name.explode s)) forbidden_thms orelse
     exists (member (op =) forbidden_consts) consts orelse
-    length (Long_Name.explode s) <> 2 orelse
+    Long_Name.count s <> 2 orelse
     String.isPrefix "type_definition" (List.last (Long_Name.explode s)) orelse
     String.isSuffix "_def" s orelse
     String.isSuffix "_raw" s orelse
@@ -331,7 +331,7 @@ val freezeT =
 
 fun thms_of all thy =
   filter
-    (fn th => (all orelse Thm.theory_name th = Context.theory_name thy)
+    (fn th => (all orelse Thm.theory_long_name th = Context.theory_long_name thy)
       (* andalso is_executable_thm thy th *))
     (map snd (filter_out is_forbidden_theorem (Global_Theory.all_thms_of thy false)))
 
