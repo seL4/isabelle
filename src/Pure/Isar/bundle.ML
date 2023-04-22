@@ -70,9 +70,8 @@ fun define_bundle (b, bundle) context =
 (* target -- bundle under construction *)
 
 fun the_target thy =
-  (case #2 (Data.get (Context.Theory thy)) of
-    SOME thms => thms
-  | NONE => error "Missing bundle target");
+  #2 (Data.get (Context.Theory thy))
+  |> \<^if_none>\<open>error "Missing bundle target"\<close>;
 
 val reset_target = (Context.theory_map o Data.map o apsnd o K) NONE;
 val set_target = Context.theory_map o Data.map o apsnd o K o SOME o Attrib.trim_context_thms;

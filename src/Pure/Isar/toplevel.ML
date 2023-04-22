@@ -217,9 +217,8 @@ fun presentation_context (state as State (current, _)) =
   |> Presentation_State.put (SOME (State (current, (NONE, NONE))));
 
 fun presentation_state ctxt =
-  (case Presentation_State.get ctxt of
-    NONE => State (node_presentation (Theory (Context.Proof ctxt)), (NONE, NONE))
-  | SOME state => state);
+  Presentation_State.get ctxt
+  |> \<^if_none>\<open>State (node_presentation (Theory (Context.Proof ctxt)), (NONE, NONE))\<close>;
 
 
 (* print state *)

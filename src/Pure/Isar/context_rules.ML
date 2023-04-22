@@ -77,7 +77,7 @@ fun make_rules next rules netpairs wrappers =
 
 fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
   let
-    val w = (case opt_w of SOME w => w | NONE => Tactic.subgoals_of_brl (b, th));
+    val w = opt_w |> \<^if_none>\<open>Tactic.subgoals_of_brl (b, th)\<close>;
     val th' = Thm.trim_context th;
   in
     make_rules (next - 1) ((w, ((i, b), th')) :: rules)

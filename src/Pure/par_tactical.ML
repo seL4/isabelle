@@ -59,10 +59,7 @@ fun PARALLEL_GOALS tac st =
     SOME goals =>
       if Future.relevant goals then
         let
-          fun try_goal g =
-            (case SINGLE tac (Goal.init g) of
-              NONE => raise FAILED ()
-            | SOME st' => st');
+          fun try_goal g = SINGLE tac (Goal.init g) |> \<^if_none>\<open>raise FAILED ()\<close>;
           val results = Par_List.map try_goal goals;
         in retrofit_tac {close = false} (rev results) st end handle FAILED () => Seq.empty
       else DETERM tac st

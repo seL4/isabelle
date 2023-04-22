@@ -121,9 +121,8 @@ fun lookup_class_data thy class =
   | NONE => NONE);
 
 fun the_class_data thy class =
-  (case lookup_class_data thy class of
-    NONE => error ("Undeclared class " ^ quote class)
-  | SOME data => data);
+  lookup_class_data thy class
+  |> \<^if_none>\<open>error ("Undeclared class " ^ quote class)\<close>;
 
 val is_class = is_some oo lookup_class_data;
 

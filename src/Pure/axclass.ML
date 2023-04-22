@@ -215,17 +215,14 @@ fun read_classrel thy raw_rel =
 (* declaration and definition of instances of overloaded constants *)
 
 fun inst_tyco_of thy (c, T) =
-  (case get_inst_tyco (Sign.consts_of thy) (c, T) of
-    SOME tyco => tyco
-  | NONE => error ("Illegal type for instantiation of class parameter: " ^
-      quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T)));
+  get_inst_tyco (Sign.consts_of thy) (c, T)
+  |> \<^if_none>\<open>
+    error ("Illegal type for instantiation of class parameter: " ^
+      quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T))\<close>;
 
 fun declare_overloaded (c, T) thy =
   let
-    val class =
-      (case class_of_param thy c of
-        SOME class => class
-      | NONE => error ("Not a class parameter: " ^ quote c));
+    val class = class_of_param thy c |> \<^if_none>\<open>error ("Not a class parameter: " ^ quote c)\<close>;
     val tyco = inst_tyco_of thy (c, T);
     val name_inst = instance_name (tyco, class) ^ "_inst";
     val c' = instance_name (tyco, c);

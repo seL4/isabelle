@@ -44,9 +44,8 @@ fun default_context mk_thy =
   (case Context.get_generic_context () of
     SOME (Context.Proof ctxt) => ctxt
   | SOME (Context.Theory thy) =>
-      (case try Syntax.init_pretty_global thy of
-        SOME ctxt => ctxt
-      | NONE => Syntax.init_pretty_global (mk_thy ()))
+      try Syntax.init_pretty_global thy
+      |> \<^if_none>\<open>Syntax.init_pretty_global (mk_thy ())\<close>
   | NONE => Syntax.init_pretty_global (mk_thy ()));
 
 fun pp_thm mk_thy th =

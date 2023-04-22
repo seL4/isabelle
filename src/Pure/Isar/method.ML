@@ -321,9 +321,8 @@ val method_space = Name_Space.space_of_table o get_methods;
 fun set_tactic ml_tactic = map_data (fn (methods, _, facts) => (methods, SOME ml_tactic, facts));
 
 fun the_tactic context =
-  (case #ml_tactic (Data.get context) of
-    SOME tac => tac
-  | NONE => raise Fail "Undefined ML tactic");
+  #ml_tactic (Data.get context)
+  |> \<^if_none>\<open>raise Fail "Undefined ML tactic"\<close>;
 
 val parse_tactic =
   Scan.state :|-- (fn context =>

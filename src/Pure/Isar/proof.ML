@@ -355,9 +355,8 @@ fun using_facts using =
     (ctxt, statement, using, goal, before_qed, after_qed));
 
 fun find_goal state =
-  (case try current_goal state of
-    SOME ctxt_goal => ctxt_goal
-  | NONE => find_goal (close_block state handle ERROR _ => error "No proof goal"));
+  try current_goal state
+  |> \<^if_none>\<open>find_goal (close_block state handle ERROR _ => error "No proof goal")\<close>;
 
 
 
@@ -1298,9 +1297,7 @@ structure Result = Proof_Data
 );
 
 fun the_result ctxt =
-  (case Result.get ctxt of
-    NONE => error "No result of forked proof"
-  | SOME th => th);
+  Result.get ctxt |> \<^if_none>\<open>error "No result of forked proof"\<close>;
 
 val set_result = Result.put o SOME;
 val reset_result = Result.put NONE;
