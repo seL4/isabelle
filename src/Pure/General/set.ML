@@ -288,7 +288,7 @@ fun insert elem set =
   else
     let
       fun elem_ord e = Key.ord (elem, e);
-      fun elem_less e = elem_ord e = LESS;
+      val elem_less = is_less o elem_ord;
 
       fun ins Empty = Sprout (Empty, elem, Empty)
         | ins (t as Leaf1 _) = ins (unmake t)
