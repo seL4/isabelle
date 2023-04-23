@@ -820,9 +820,9 @@ fun signed_string_of_real x =
 
 fun member eq list x =
   let
-    fun memb [] = false
-      | memb (y :: ys) = eq (x, y) orelse memb ys;
-  in memb list end;
+    fun mem [] = false
+      | mem (y :: ys) = eq (x, y) orelse mem ys;
+  in mem list end;
 
 fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
