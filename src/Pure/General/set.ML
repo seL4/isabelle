@@ -30,6 +30,9 @@ sig
   val merges: T list -> T
   val remove: elem -> T -> T
   val subtract: T -> T -> T
+  val restrict: (elem -> bool) -> T -> T
+  val inter: T -> T -> T
+  val union: T -> T -> T
 end;
 
 functor Set(Key: KEY): SET =
@@ -462,6 +465,20 @@ fun remove elem set =
 val subtract = fold_set remove;
 
 end;
+
+
+(* conventional set operations *)
+
+fun restrict pred set =
+  fold_set (fn x => not (pred x) ? remove x) set set;
+
+fun inter set1 set2 =
+  if pointer_eq (set1, set2) then set1
+  else if is_empty set1 orelse is_empty set2 then empty
+  else if size set1 < size set2 then restrict (member set2) set1
+  else restrict (member set1) set2;
+
+fun union set1 set2 = merge (set2, set1);
 
 
 (* ML pretty-printing *)
