@@ -24,6 +24,7 @@ sig
   val member: T -> elem -> bool
   val subset: T * T -> bool
   val eq_set: T * T -> bool
+  val ord: T ord
   val insert: elem -> T -> T
   val make: elem list -> T
   val merge: T * T -> T
@@ -278,8 +279,23 @@ fun member set elem =
 
 fun subset (set1, set2) = forall (member set2) set1;
 
+
+(* equality and order *)
+
 fun eq_set (set1, set2) =
   pointer_eq (set1, set2) orelse size set1 = size set2 andalso subset (set1, set2);
+
+val ord =
+  pointer_eq_ord (fn (set1, set2) =>
+    (case int_ord (size set1, size set2) of
+      EQUAL =>
+        (case get_first (fn a => if member set2 a then NONE else SOME a) set1 of
+          NONE => EQUAL
+        | SOME a =>
+            (case get_first (fn b => if member set1 b then NONE else SOME b) set2 of
+              NONE => EQUAL
+            | SOME b => Key.ord (a, b)))
+    | order => order));
 
 
 (* insert *)

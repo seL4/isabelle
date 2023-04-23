@@ -210,6 +210,8 @@ sig
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val length_ord: 'a list * 'b list -> order
   val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
+  val vector_ord: 'a ord -> 'a vector ord
+  val array_ord: 'a ord -> 'a array ord
   val sort: 'a ord -> 'a list -> 'a list
   val sort_distinct: 'a ord -> 'a list -> 'a list
   val sort_strings: string list -> string list
@@ -956,6 +958,12 @@ fun dict_ord elem_ord (x :: xs, y :: ys) =
 (*lexicographic product of lists*)
 fun length_ord (xs, ys) = int_ord (length xs, length ys);
 fun list_ord elem_ord = length_ord ||| dict_ord elem_ord;
+
+fun vector_ord ord =
+  pointer_eq_ord (int_ord o apply2 Vector.length ||| Vector.collate ord);
+
+fun array_ord ord =
+  pointer_eq_ord (int_ord o apply2 Array.length ||| Array.collate ord);
 
 
 (* sorting *)
