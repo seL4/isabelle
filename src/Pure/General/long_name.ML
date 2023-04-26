@@ -90,39 +90,54 @@ val explode = space_explode separator;
 
 local
 
-fun mask_bad s = s = 0w0;
-fun mask_set s m = Word.orb (m, s);
-fun mask_push s = Word.<< (s, 0w1);
-fun mask_next m = Word.>> (m, 0w1);
-fun mask_keep m = Word.andb (m, 0w1) = 0w0;
+fun failure string msg =
+  raise Fail ("Malformed qualified name " ^ quote string ^ ":\n  " ^ msg);
 
-fun string_ops string =
-  let
-    val n = size string;
-    val char = String.nth string;
-    fun string_end i = i >= n;
-    fun chunk_end i = string_end i orelse char i = separator_char;
-  in {string_end = string_end, chunk_end = chunk_end} end;
+val range_limit = 32768;
+
+val _ =
+  if ML_Heap.sizeof1 (range_limit * (range_limit - 1)) = 0 then ()
+  else raise Fail ("Bad Long_Name.range_limit for ML platform " ^ ML_System.platform);
+
+fun range string index len =
+  if len < range_limit then index * range_limit + len
+  else failure string ("chunk length beyond " ^ string_of_int range_limit);
+
+fun range_index i = i div range_limit;
+fun range_length i = i mod range_limit;
+fun range_string s r = String.substring (s, range_index r, range_length r);
+fun range_substring s r = Substring.substring (s, range_index r, range_length r);
 
 in
 
-abstype chunks = Chunks of {count: int, size: int, mask: word, string: string}
+abstype chunks = Chunks of {ranges: int list (*reverse*), string: string}
 with
 
-fun count_chunks (Chunks {count, ...}) = count;
-fun size_chunks (Chunks {size, ...}) = size;
+fun count_chunks (Chunks {ranges, ...}) = length ranges;
 
-val empty_chunks = Chunks {count = 0, size = 0, mask = 0w0, string = ""};
+fun size_chunks (Chunks {ranges, ...}) =
+  if null ranges then 0
+  else fold (fn r => fn n => n + range_length r + 1) ranges ~1;
+
+val empty_chunks = Chunks {ranges = [], string = ""};
+
+fun base_chunks name =
+  let
+    val i = last_separator name;
+    val j = i + 1;
+  in
+    if i < 0 then empty_chunks
+    else Chunks {ranges = [range name j (size name - j)], string = name}
+  end;
 
 fun suppress_chunks suppress1 suppress2 string =
   let
-    val {string_end, chunk_end, ...} = string_ops string;
+    val n = size string;
 
-    fun err msg = raise Fail ("Malformed qualified name " ^ quote string ^ ":\n  " ^ msg);
-
-    fun suppr_chunks suppr1 suppr2 i k l m s =
+    fun suppr_chunks suppr1 suppr2 i j rs =
       let
-        val is_end = chunk_end i;
+        val string_end = i >= n;
+        val chunk_end = string_end orelse String.nth string i = separator_char;
 
         val suppr =
           if suppr1 > 0 then true
@@ -130,77 +145,50 @@ fun suppress_chunks suppress1 suppress2 string =
           else if null suppr2 then false
           else hd suppr2;
         val suppr1' =
-          if is_end andalso suppr1 > 0 then suppr1 - 1
-          else if is_end andalso suppr1 < 0 then suppr1 + 1
+          if chunk_end andalso suppr1 > 0 then suppr1 - 1
+          else if chunk_end andalso suppr1 < 0 then suppr1 + 1
           else suppr1;
         val suppr2' =
-          if is_end andalso suppr1 = 0 andalso not (null suppr2)
+          if chunk_end andalso suppr1 = 0 andalso not (null suppr2)
           then tl suppr2 else suppr2;
 
-        val keep = not suppr;
-
-        val l' = if keep then l + 1 else l;
-        val k' = if is_end andalso keep andalso l' > 0 then k + 1 else k;
-        val m' =
-          if not is_end orelse keep then m
-          else if mask_bad s then
-            err ("cannot suppress chunks beyond word size " ^ string_of_int Word.wordSize)
-          else mask_set s m;
-        val s' = if is_end then mask_push s else s;
+        val i' = i + 1;
+        val j' = if chunk_end then i' else j;
+        val rs' = if chunk_end andalso not suppr then range string j (i - j) :: rs else rs;
       in
-        if not (string_end i) then suppr_chunks suppr1' suppr2' (i + 1) k' l' m' s'
+        if not string_end then suppr_chunks suppr1' suppr2' i' j' rs'
         else if not (suppr1' = 0 andalso null suppr2') then
-          err ("cannot suppress chunks beyond " ^ string_of_int k')
-        else if k' = 0 then empty_chunks
-        else Chunks {count = k', size = Int.max (0, l' - 1), mask = m', string = string}
+          failure string ("cannot suppress chunks beyond " ^ string_of_int (length rs'))
+        else if null rs' then empty_chunks
+        else Chunks {ranges = rs', string = string}
       end;
-  in suppr_chunks suppress1 suppress2 0 0 0 0w0 0w1 end;
+  in suppr_chunks suppress1 suppress2 0 0 [] end;
 
 val make_chunks = suppress_chunks 0 [];
 
-fun base_chunks name =
-  suppress_chunks (Int.max (0, count name - 1)) [] name;
+fun explode_chunks (Chunks {ranges, string}) =
+  fold (cons o range_string string) ranges [];
 
-fun expand_chunks f (Chunks {count, size, mask, string}) =
+fun implode_chunks (chunks as Chunks {ranges, string}) =
+  if size_chunks chunks = size string then string
+  else if length ranges = 1 then range_string string (nth ranges 0)
+  else implode (explode_chunks chunks);
+
+fun compare_chunks (chunks1, chunks2) =
   let
-    val {string_end, chunk_end, ...} = string_ops string;
+    val Chunks {ranges = ranges1, string = string1} = chunks1;
+    val Chunks {ranges = ranges2, string = string2} = chunks2;
 
-    fun explode bg en m acc =
-      let
-        val is_end = chunk_end en;
-
-        val en' = en + 1;
-        val bg' = if is_end then en' else bg;
-        val m' = if is_end then mask_next m else m;
-        val acc' = if is_end andalso mask_keep m then f (string, bg, en - bg) :: acc else acc;
-      in if string_end en then rev acc' else explode bg' en' m' acc' end;
+    val range_length_ord = int_ord o apply2 range_length;
+    fun range_substring_ord (r1, r2) =
+      Substring.compare (range_substring string1 r1, range_substring string2 r2);
   in
-    if count = 0 then []
-    else if count = 1 andalso size = String.size string then [f (string, 0, size)]
-    else explode 0 0 mask []
-  end;
-
-val explode_chunks = expand_chunks String.substring;
-val implode_chunks = implode o explode_chunks;
-
-val compare_chunks =
-  pointer_eq_ord (fn (chunks1, chunks2) =>
-    let
-      val Chunks args1 = chunks1;
-      val Chunks args2 = chunks2;
-      val ord1 =
-        int_ord o apply2 #size |||
-        int_ord o apply2 #count;
-      val ord2 =
-        dict_ord int_ord o apply2 (expand_chunks #3) |||
-        dict_ord Substring.compare o apply2 (expand_chunks Substring.substring);
-    in
-      (case ord1 (args1, args2) of
-        EQUAL =>
-          if #mask args1 = #mask args2 andalso #string args1 = #string args2 then EQUAL
-          else ord2 (chunks1, chunks2)
+    if chunks1 = chunks2 then EQUAL
+    else
+      (case list_ord range_length_ord (ranges1, ranges2) of
+        EQUAL => dict_ord range_substring_ord (ranges1, ranges2)
       | ord => ord)
-    end);
+  end;
 
 val eq_chunks = is_equal o compare_chunks;
 
