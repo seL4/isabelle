@@ -136,7 +136,7 @@ val del_name = map_internals o apfst o remove (op =);
 fun del_name_extra name =
   map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
 val add_name = map_internals o apfst o update (op =);
-fun hide_name name = map_internals (apsnd (update (op =) name)) (Long_Name.chunks name);
+fun hide_name name = map_internals (apsnd (update (op =) name)) (Long_Name.make_chunks name);
 
 
 (* external accesses *)
@@ -221,7 +221,7 @@ fun intern_chunks space xname =
   | ([], []) => (Long_Name.hidden (Long_Name.implode_chunks xname), true)
   | ([], name' :: _) => (Long_Name.hidden name', true));
 
-fun intern space = #1 o intern_chunks space o Long_Name.chunks;
+fun intern space = #1 o intern_chunks space o Long_Name.make_chunks;
 
 fun is_valid_access space name xname =
   (case lookup_internals space xname of
@@ -246,7 +246,7 @@ fun extern ctxt space name =
       in name = name' andalso (not require_unique orelse is_unique) end;
 
     fun extern [] =
-          if valid false (Long_Name.chunks name) then name
+          if valid false (Long_Name.make_chunks name) then name
           else Long_Name.hidden name
       | extern (a :: bs) =
           if valid names_unique a then Long_Name.implode_chunks a
@@ -472,7 +472,7 @@ fun make_accesses naming binding =
           val sfxs = restrict (mandatory_suffixes spec);
           val pfxs = restrict (mandatory_prefixes spec);
         in apply2 (map Long_Name.implode o distinct op =) (sfxs @ pfxs, sfxs) end;
-  in (apply2 (map Long_Name.chunks) accesses (* FIXME proper make_chunks mask*), args) end;
+  in (apply2 (map Long_Name.make_chunks) accesses (* FIXME suppress_chunks *), args) end;
 
 end;
 
