@@ -50,10 +50,15 @@ sig
   val short_thm_name : Proof.context -> thm -> string
   val map_prod : ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
   val compare_length_with : 'a list -> int -> order
+  val forall2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
 end;
 
 structure ATP_Util : ATP_UTIL =
 struct
+
+fun forall2 _ [] [] = true
+  | forall2 P (x :: xs) (y :: ys) = P x y andalso forall2 P xs ys
+  | forall2 _ _ _ = false
 
 fun timestamp_format time =
   Date.fmt "%Y-%m-%d %H:%M:%S." (Date.fromTimeLocal time) ^

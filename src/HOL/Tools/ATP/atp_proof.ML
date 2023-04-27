@@ -440,8 +440,7 @@ fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2))
     q1 = q2 andalso length xs1 = length xs2 andalso
     is_same_formula comm (map2 (fn (x1, _) => fn (x2, _) => (x1, x2)) xs1 xs2 @ subst) phi1 phi2
   | is_same_formula comm subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
-    c1 = c2 andalso length phis1 = length phis2 andalso
-    forall (uncurry (is_same_formula comm subst)) (phis1 ~~ phis2)
+    c1 = c2 andalso forall2 (is_same_formula comm subst) phis1 phis2
   | is_same_formula comm subst (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
     is_same_term subst tm1 tm2 orelse
     (comm andalso is_same_term subst (ATerm (("equal", tys), [tm12, tm11])) tm2)
