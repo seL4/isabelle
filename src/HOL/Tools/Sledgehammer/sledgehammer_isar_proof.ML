@@ -322,7 +322,7 @@ fun rationalize_obtains_in_isar_proofs ctxt =
         val (new_names, ctxt') = Variable.variant_fixes new_names0 ctxt
         val ys = map2 pair new_names Ts
       in
-        (ys, ((map Free xs ~~ map Free ys) @ subst, ctxt'))
+        (ys, (map2 (fn x => fn y => (Free x, Free y)) xs ys @ subst, ctxt'))
       end
 
     fun rationalize_step (Prove {qualifiers, obtains, label, goal, subproofs, facts, proof_methods,
