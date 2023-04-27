@@ -257,6 +257,9 @@ antiquotations.
       totalp_on_multpDM
       totalp_on_multpHO
 
+* 'primcorec': Made the internal tactic more robust in the face of
+  nested corecursion.
+
 * HOL-Algebra: new theories SimpleGroups (simple groups) 
   and SndIsomorphismGrp (second isomorphism theorem for groups), 
   by Jakob von Raumer
