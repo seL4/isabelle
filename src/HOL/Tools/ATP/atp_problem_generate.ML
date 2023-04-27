@@ -956,14 +956,14 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
                 val (binder_Us, body_U) = strip_ty U
                 val in_U_vars = fold Term.add_tvarsT binder_Us []
                 val out_U_vars = Term.add_tvarsT body_U []
-                fun filt (U_var, T) =
+                fun filt U_var T =
                   if keep (member (op =) in_U_vars U_var,
                            member (op =) out_U_vars U_var) then
                     T
                   else
                     dummyT
                 val U_args = (s, U) |> robust_const_type_args thy
-              in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
+              in map2 (fn U_arg => filt (dest_TVar U_arg)) U_args T_args end
               handle TYPE _ => T_args
           fun is_always_ctr (s', T') =
             s' = s andalso type_equiv thy (T', robust_const_type thy s')
