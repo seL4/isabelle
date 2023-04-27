@@ -141,6 +141,9 @@ fun mk_primcorec_sel_tac ctxt fun_defs distincts splits split_asms mapsx map_ide
     etac ctxt notE THEN' assume_tac ctxt ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
          sum.case sum.sel sum.distinct[THEN eq_False[THEN iffD2]]} @
+       map_ident0s @ map_comps))) ORELSE'
+    (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
+         sum.case sum.sel sum.distinct[THEN eq_False[THEN iffD2]]} @
        mapsx @ map_ident0s @ map_comps))) ORELSE'
     fo_rtac ctxt @{thm cong} ORELSE'
     rtac ctxt @{thm ext} ORELSE'
