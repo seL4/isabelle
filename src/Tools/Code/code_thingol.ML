@@ -591,7 +591,7 @@ fun satisfied_app wanted (ty, ts) =
   let
     val given = length ts;
     val delta = wanted - given;
-    val rty = (drop delta o binder_types) ty ---> body_type ty;
+    val rty = (drop wanted o binder_types) ty ---> body_type ty;
   in
     if delta = 0 then
       (([], (ts, rty)), [])
