@@ -818,7 +818,7 @@ and translate_app_case ctxt algbr eqngr permissive some_thm pattern_schema c_ty 
   ##>> translate_case ctxt algbr eqngr permissive some_thm pattern_schema (c_ty, ts1)
   ##>> translate_typ ctxt algbr eqngr permissive rty
   ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts2
-  #>> (fn (((vs_tys, t), rty), ts) => (vs_tys `|==> (t, case rty of "fun" `%% [_, rty] => rty | _ => rty)) `$$ ts)
+  #>> (fn (((vs_tys, t), rty), ts) => (vs_tys `|==> (t, rty)) `$$ ts)
 and translate_app ctxt algbr eqngr permissive some_thm some_abs (c_ty as (c, ty), ts) =
   case Code.get_case_schema (Proof_Context.theory_of ctxt) c of
     SOME (wanted, pattern_schema) =>
