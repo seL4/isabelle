@@ -443,4 +443,31 @@ next
   qed
 qed
 
+
+subsection \<open>Uniqueness of Sorting\<close>
+
+lemma sorting_unique:
+  assumes "mset ys = mset xs" "sorted xs" "sorted ys"
+  shows "xs = ys"
+  using assms
+proof (induction xs arbitrary: ys)
+  case (Cons x xs ys')
+  obtain y ys where ys': "ys' = y # ys"
+    using Cons.prems by (cases ys') auto
+  have "x = y"
+    using Cons.prems unfolding ys'
+  proof (induction x y arbitrary: xs ys rule: linorder_wlog)
+    case (le x y xs ys)
+    have "x \<in># mset (x # xs)"
+      by simp
+    also have "mset (x # xs) = mset (y # ys)"
+      using le by simp
+    finally show "x = y"
+      using le by auto
+  qed (simp_all add: eq_commute)
+  thus ?case
+    using Cons.prems Cons.IH[of ys] by (auto simp: ys')
+qed auto
+
+
 end
