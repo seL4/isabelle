@@ -103,10 +103,9 @@ fun range string index len =
   if len < range_limit then index * range_limit + len
   else failure string ("chunk length beyond " ^ string_of_int range_limit);
 
-fun range_index i = i div range_limit;
-fun range_length i = i mod range_limit;
+fun range_index r = r div range_limit;
+fun range_length r = r mod range_limit;
 fun range_string s r = String.substring (s, range_index r, range_length r);
-fun range_substring s r = Substring.substring (s, range_index r, range_length r);
 
 in
 
@@ -174,21 +173,29 @@ fun implode_chunks (chunks as Chunks {ranges, string}) =
   else if length ranges = 1 then range_string string (nth ranges 0)
   else implode (explode_chunks chunks);
 
-fun compare_chunks (chunks1, chunks2) =
+val compare_chunks = pointer_eq_ord (fn (chunks1, chunks2) =>
   let
     val Chunks {ranges = ranges1, string = string1} = chunks1;
     val Chunks {ranges = ranges2, string = string2} = chunks2;
 
     val range_length_ord = int_ord o apply2 range_length;
-    fun range_substring_ord (r1, r2) =
-      Substring.compare (range_substring string1 r1, range_substring string2 r2);
+    fun range_substring_ord arg =
+      let
+        val (i, j) = apply2 range_index arg;
+        val (m, n) = apply2 range_length arg;
+
+        fun substring_ord k =
+          if k < n then
+            (case Char.compare (String.nth string1 (i + k), String.nth string2 (j + k)) of
+              EQUAL => substring_ord (k + 1)
+            | ord => ord)
+          else EQUAL;
+      in (case int_ord (m, n) of EQUAL => substring_ord 0 | ord => ord) end;
   in
-    if chunks1 = chunks2 then EQUAL
-    else
-      (case list_ord range_length_ord (ranges1, ranges2) of
-        EQUAL => dict_ord range_substring_ord (ranges1, ranges2)
-      | ord => ord)
-  end;
+    (case list_ord range_length_ord (ranges1, ranges2) of
+      EQUAL => dict_ord range_substring_ord (ranges1, ranges2)
+    | ord => ord)
+  end);
 
 val eq_chunks = is_equal o compare_chunks;
 
