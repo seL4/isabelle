@@ -216,12 +216,11 @@ fun is_concealed space name =
 
 fun intern_chunks space xname =
   (case the_default ([], []) (lookup_internals space xname) of
-    ([name], _) => (name, true)
-  | (name :: _, _) => (name, false)
-  | ([], []) => (Long_Name.hidden (Long_Name.implode_chunks xname), true)
-  | ([], name' :: _) => (Long_Name.hidden name', true));
+    (name :: rest, _) => {name = name, unique = null rest}
+  | ([], name' :: _) => {name = Long_Name.hidden name', unique = true}
+  | ([], []) => {name = Long_Name.hidden (Long_Name.implode_chunks xname), unique = true});
 
-fun intern space = #1 o intern_chunks space o Long_Name.make_chunks;
+fun intern space = #name o intern_chunks space o Long_Name.make_chunks;
 
 fun is_valid_access space name xname =
   (case lookup_internals space xname of
@@ -242,8 +241,8 @@ fun extern ctxt space name =
     val names_unique = Config.get ctxt names_unique;
 
     fun valid require_unique xname =
-      let val (name', is_unique) = intern_chunks space xname
-      in name = name' andalso (not require_unique orelse is_unique) end;
+      let val {name = name', unique} = intern_chunks space xname
+      in name = name' andalso (not require_unique orelse unique) end;
 
     fun extern [] =
           if valid false (Long_Name.make_chunks name) then name
