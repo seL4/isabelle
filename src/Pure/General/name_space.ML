@@ -240,6 +240,16 @@ fun get_aliases space name =
     NONE => [name]
   | SOME aliases => aliases @ [name]);
 
+fun is_valid_access space name xname =
+  (case lookup_internals space xname of
+    SOME (name' :: _, _) => name = name'
+  | _ => false);
+
+fun valid_accesses space name =
+  get_aliases space name
+  |> maps (make_accesses'' o Binding.full_name_spec)
+  |> filter (is_valid_access space name);
+
 fun gen_markup def space name =
   (case lookup_entries space name of
     NONE => Markup.intensify
@@ -285,11 +295,6 @@ fun intern_chunks space xname =
   | _ => {name = Long_Name.hidden (Long_Name.implode_chunks xname), full_name = "", unique = true});
 
 fun intern space = #name o intern_chunks space o Long_Name.make_chunks;
-
-fun is_valid_access space name xname =
-  (case lookup_internals space xname of
-    SOME (name' :: _, _) => name = name'
-  | _ => false);
 
 
 (* extern *)
@@ -529,15 +534,13 @@ fun hide fully name space =
   space |> map_name_space (fn (kind, internals, entries, aliases) =>
     let
       val _ = the_entry space name;
-      val accesses = get_aliases space name |> maps (make_accesses'' o Binding.full_name_spec);
+      val accesses =
+        valid_accesses space name
+        |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
       val accesses' = make_accesses' name;
-      val xnames = filter (is_valid_access space name) accesses;
-      val xnames' =
-        if fully then xnames
-        else inter Long_Name.eq_chunks [Long_Name.base_chunks name] xnames;
       val internals' = internals
         |> hide_name name
-        |> fold (del_name name) xnames'
+        |> fold (del_name name) accesses
         |> fold (del_name_extra name) accesses';
     in (kind, internals', entries, aliases) end);
 
@@ -549,9 +552,9 @@ fun alias naming binding name space =
     let
       val _ = the_entry space name;
       val name_spec as {full_name = alias_name, ...} = name_spec naming binding;
-      val more_accs = make_accesses name_spec;
+      val alias_accesses = make_accesses name_spec;
       val _ = alias_name = "" andalso error (Binding.bad binding);
-      val internals' = internals |> fold (add_name name) more_accs;
+      val internals' = internals |> fold (add_name name) alias_accesses;
       val aliases' = aliases |> Symtab.update_list (op =) (name, alias_name);
     in (kind, internals', entries, aliases') end);
 
