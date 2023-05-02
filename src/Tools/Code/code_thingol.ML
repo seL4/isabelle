@@ -732,20 +732,17 @@ and translate_const ctxt algbr eqngr permissive some_thm some_abs (c, ty) (deps,
         then translation_error ctxt permissive some_thm deps
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
-  in translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) (deps, program) end
-and translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) =
-  let
-    val thy = Proof_Context.theory_of ctxt;
     val (annotate, ty') = dest_tagged_type ty;
     val typargs = Sign.const_typargs thy (c, ty');
     val sorts = Code_Preproc.sortargs eqngr c;
     val (dom, range) = Term.strip_type ty';
   in
-    ensure_const ctxt algbr eqngr permissive c
-    ##>> fold_map (translate_typ ctxt algbr eqngr permissive) typargs
-    ##>> fold_map (translate_dicts ctxt algbr eqngr permissive some_thm) (typargs ~~ sorts)
-    ##>> fold_map (translate_typ ctxt algbr eqngr permissive) (range :: dom)
-    #>> (fn (((c, typargs), dss), range :: dom) =>
+    (deps, program)
+    |> ensure_const ctxt algbr eqngr permissive c
+    ||>> fold_map (translate_typ ctxt algbr eqngr permissive) typargs
+    ||>> fold_map (translate_dicts ctxt algbr eqngr permissive some_thm) (typargs ~~ sorts)
+    ||>> fold_map (translate_typ ctxt algbr eqngr permissive) (range :: dom)
+    |>> (fn (((c, typargs), dss), range :: dom) =>
       { sym = Constant c, typargs = typargs, dicts = dss,
         dom = dom, range = range, annotation =
           if annotate then SOME (dom `--> range) else NONE })
@@ -770,7 +767,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) _ (const as 
           |> nth_drop t_pos
           |> curry (op ~~) case_pats
           |> map_filter (fn (NONE, _) => NONE | (SOME _, x) => SOME x);
-        val tys = take (length case_pats + 1) (binder_types (snd (dest_tagged_type ty)));
+        val tys = take (length case_pats + 1) (binder_types ty);
         val ty_case = project_term tys;
         val ty_case' = project_term dom;
         val constrs = map_filter I case_pats ~~ project_cases tys
@@ -789,20 +786,20 @@ and translate_case ctxt algbr eqngr permissive some_thm (t_pos, []) _ (const as 
               clauses = (filter_out (is_undefined_clause ctxt) o distill_clauses constrs o project_cases) ts,
               primitive = IConst const `$$ ts })
       end
-and translate_app_case ctxt algbr eqngr permissive some_thm pattern_schema ty const ((vs_tys, (ts1, rty)), ts2) =
-  translate_case ctxt algbr eqngr permissive some_thm pattern_schema ty (const, ts1)
-  #>> (fn t => (vs_tys `|==> (t, rty)) `$$ ts2)
 and translate_app ctxt algbr eqngr permissive some_thm some_abs (c_ty as (c, ty), ts) =
-  case Code.get_case_schema (Proof_Context.theory_of ctxt) c of
-    SOME (wanted, pattern_schema) =>
-      translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
-      ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
-      #-> (fn (const, ts) => translate_app_case ctxt algbr eqngr permissive some_thm pattern_schema
-            ty const (satisfied_application wanted (const, ts)))
-  | NONE =>
-      translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
-      ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
-      #>> (fn (const, ts) => IConst const `$$ ts)
+  translate_const ctxt algbr eqngr permissive some_thm some_abs c_ty
+  ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm NONE) ts
+  #-> (fn (const, ts) => case Code.get_case_schema (Proof_Context.theory_of ctxt) c of
+      SOME (wanted, pattern_schema) =>
+        let
+          val ((vs_tys, (ts1, rty)), ts2) = satisfied_application wanted (const, ts);
+          val (_, ty') = dest_tagged_type ty;
+        in
+          translate_case ctxt algbr eqngr permissive some_thm pattern_schema ty' (const, ts1)
+          #>> (fn t => (vs_tys `|==> (t, rty)) `$$ ts2)
+        end
+    | NONE =>
+        pair (IConst const `$$ ts))
 and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
   fold_map (ensure_class ctxt algbr eqngr permissive) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
