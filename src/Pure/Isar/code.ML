@@ -758,29 +758,24 @@ fun mk_proj tyco vs ty abs rep =
 
 fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
 
-fun expand_eta thy k thm =
-  let
-    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
-    val (_, args) = strip_comb lhs;
-    val l = if k = ~1
-      then (length o fst o strip_abs) rhs
-      else Int.max (0, k - length args);
-    val (raw_vars, _) = Term.strip_abs_eta l rhs;
-    val vars = burrow_fst (Name.variant_list (map (fst o fst) (Term.add_vars lhs [])))
-      raw_vars;
-    fun expand (v, ty) thm = Drule.fun_cong_rule thm
-      (Thm.global_cterm_of thy (Var ((v, 0), ty)));
-  in
-    thm
-    |> fold expand vars
-    |> Conv.fconv_rule Drule.beta_eta_conversion
-  end;
-
 fun same_arity thy thms =
   let
-    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (Integer.max o num_args_of o Thm.prop_of) thms 0;
-  in map (expand_eta thy k) thms end;
+    val lhs_rhss = map (Logic.dest_equals o Thm.plain_prop_of) thms;
+    val k = fold (Integer.max o length o snd o strip_comb o fst) lhs_rhss 0;
+    fun expand_eta (lhs, rhs) thm =
+      let
+        val l = k - length (snd (strip_comb lhs));
+        val (raw_vars, _) = Term.strip_abs_eta l rhs;
+        val vars = burrow_fst (Name.variant_list (map (fst o fst) (Term.add_vars lhs [])))
+          raw_vars;
+        fun expand (v, ty) thm = Drule.fun_cong_rule thm
+          (Thm.global_cterm_of thy (Var ((v, 0), ty)));
+      in
+        thm
+        |> fold expand vars
+        |> Conv.fconv_rule Drule.beta_eta_conversion
+      end;
+  in map2 expand_eta lhs_rhss thms end;
 
 fun mk_desymbolization pre post mk vs =
   let
