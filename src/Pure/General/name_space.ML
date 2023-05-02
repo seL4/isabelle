@@ -160,7 +160,25 @@ and mandatory_prefixes1 [] = []
 
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
+fun accesses ((_: string, mandatory) :: rest) =
+      let
+        val suppr = not mandatory;
+        val accs0 = accesses rest;
+        val accs1 = map (cons suppr) accs0;
+        val accs2 = if suppr then map (cons false) accs0 else [];
+      in accs1 @ accs2 end
+  | accesses [] = [[]];
+
 in
+
+fun make_accesses'' ({restriction, spec, full_name, ...}: Binding.name_spec) =
+  if restriction = SOME true then []
+  else
+    accesses spec
+    |> restriction = SOME false ? filter (fn [_] => false | _ => true)
+    |> map (fn s => Long_Name.suppress_chunks 0 s full_name)
+    |> remove Long_Name.eq_chunks Long_Name.empty_chunks
+    |> distinct Long_Name.eq_chunks;
 
 fun make_accesses ({restriction, spec, ...}: Binding.name_spec) =
   if restriction = SOME true then []
@@ -511,7 +529,7 @@ fun hide fully name space =
   space |> map_name_space (fn (kind, internals, entries, aliases) =>
     let
       val _ = the_entry space name;
-      val accesses = get_aliases space name |> maps (make_accesses o Binding.full_name_spec);
+      val accesses = get_aliases space name |> maps (make_accesses'' o Binding.full_name_spec);
       val accesses' = make_accesses' name;
       val xnames = filter (is_valid_access space name) accesses;
       val xnames' =
