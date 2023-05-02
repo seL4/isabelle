@@ -129,8 +129,10 @@ fun err_dup kind entry1 entry2 pos =
 type internal = string list * string list;  (*visible, hidden*)
 type internals = internal Long_Name.Chunks.T;  (*xname -> internal*)
 
+val internal_default: internal = ([], []);
+
 fun map_internals f xname : internals -> internals =
-  Long_Name.Chunks.map_default (xname, ([], [])) f;
+  Long_Name.Chunks.map_default (xname, internal_default) f;
 
 val del_name = map_internals o apfst o remove (op =);
 fun del_name_extra name =
@@ -225,7 +227,7 @@ fun is_concealed space name =
 (* intern *)
 
 fun intern_chunks space xname =
-  (case the_default ([], []) (lookup_internals space xname) of
+  (case the_default internal_default (lookup_internals space xname) of
     (name :: rest, _) => {name = name, full_name = name, unique = null rest}
   | ([], name' :: _) => {name = Long_Name.hidden name', full_name = "", unique = true}
   | _ => {name = Long_Name.hidden (Long_Name.implode_chunks xname), full_name = "", unique = true});
