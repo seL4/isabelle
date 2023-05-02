@@ -174,6 +174,18 @@ lemma closedin_diff[intro]:
   shows "closedin U (S - T)"
   by (metis Int_Diff cT closedin_Int closedin_subset inf.orderE oS openin_closedin_eq)
 
+lemma all_openin: "(\<forall>U. openin X U \<longrightarrow> P U) \<longleftrightarrow> (\<forall>U. closedin X U \<longrightarrow> P (topspace X - U))"
+  by (metis Diff_Diff_Int closedin_def inf.absorb_iff2 openin_closedin_eq)
+
+lemma all_closedin: "(\<forall>U. closedin X U \<longrightarrow> P U) \<longleftrightarrow> (\<forall>U. openin X U \<longrightarrow> P (topspace X - U))"
+  by (metis Diff_Diff_Int closedin_subset inf.absorb_iff2 openin_closedin_eq)
+
+lemma ex_openin: "(\<exists>U. openin X U \<and> P U) \<longleftrightarrow> (\<exists>U. closedin X U \<and> P (topspace X - U))"
+  by (metis Diff_Diff_Int closedin_def inf.absorb_iff2 openin_closedin_eq)
+
+lemma ex_closedin: "(\<exists>U. closedin X U \<and> P U) \<longleftrightarrow> (\<exists>U. openin X U \<and> P (topspace X - U))"
+  by (metis Diff_Diff_Int closedin_subset inf.absorb_iff2 openin_closedin_eq)
+
 
 subsection\<open>The discrete topology\<close>
 
@@ -1371,7 +1383,7 @@ lemma closedin_Union_locally_finite_closure:
   by (metis (mono_tags) closedin_closure_of closedin_locally_finite_Union imageE locally_finite_in_closure)
 
 lemma closure_of_Union_subset: "\<Union>((\<lambda>S. X closure_of S) ` \<A>) \<subseteq> X closure_of (\<Union>\<A>)"
-  by clarify (meson Union_upper closure_of_mono subsetD)
+  by (simp add: SUP_le_iff Sup_upper closure_of_mono)
 
 lemma closure_of_locally_finite_Union:
   assumes "locally_finite_in X \<A>" 
@@ -2966,7 +2978,7 @@ next
     by (metis closure_of_eq)
 qed
 
-lemma connectedin_inter_frontier_of:
+lemma connectedin_Int_frontier_of:
   assumes "connectedin X S" "S \<inter> T \<noteq> {}" "S - T \<noteq> {}"
   shows "S \<inter> X frontier_of T \<noteq> {}"
 proof -
@@ -3360,7 +3372,7 @@ qed force
 corollary compact_space_imp_nest:
   fixes C :: "nat \<Rightarrow> 'a set"
   assumes "compact_space X" and clo: "\<And>n. closedin X (C n)"
-    and ne: "\<And>n. C n \<noteq> {}" and inc: "\<And>m n. m \<le> n \<Longrightarrow> C n \<subseteq> C m"
+    and ne: "\<And>n. C n \<noteq> {}" and dec: "decseq C"
   shows "(\<Inter>n. C n) \<noteq> {}"
 proof -
   let ?\<U> = "range (\<lambda>n. \<Inter>m \<le> n. C m)"
@@ -3370,8 +3382,8 @@ proof -
   proof -
     obtain n where "\<And>k. k \<in> K \<Longrightarrow> k \<le> n"
       using Max.coboundedI \<open>finite K\<close> by blast
-    with inc have "C n \<subseteq> (\<Inter>n\<in>K. \<Inter>m \<le> n. C m)"
-    by blast
+    with dec have "C n \<subseteq> (\<Inter>n\<in>K. \<Inter>m \<le> n. C m)"
+      unfolding decseq_def by blast
   with ne [of n] show ?thesis
     by blast
   qed

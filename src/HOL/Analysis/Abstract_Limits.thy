@@ -47,6 +47,9 @@ subsection\<open>Limits in a topological space\<close>
 definition limitin :: "'a topology \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" where
   "limitin X f l F \<equiv> l \<in> topspace X \<and> (\<forall>U. openin X U \<and> l \<in> U \<longrightarrow> eventually (\<lambda>x. f x \<in> U) F)"
 
+lemma limitinD: "\<lbrakk>limitin X f l F; openin X U; l \<in> U\<rbrakk> \<Longrightarrow> eventually (\<lambda>x. f x \<in> U) F"
+  by (simp add: limitin_def)
+
 lemma limitin_canonical_iff [simp]: "limitin euclidean f l F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
   by (auto simp: limitin_def tendsto_def)
 

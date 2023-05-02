@@ -1031,6 +1031,12 @@ abbreviation mono_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rig
 abbreviation strict_mono_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
   where "strict_mono_on A \<equiv> monotone_on A (<) (<)"
 
+abbreviation antimono_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
+  where "antimono_on A \<equiv> monotone_on A (\<le>) (\<ge>)"
+
+abbreviation strict_antimono_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b :: ord) \<Rightarrow> bool"
+  where "strict_antimono_on A \<equiv> monotone_on A (<) (>)"
+
 lemma mono_on_def[no_atp]: "mono_on A f \<longleftrightarrow> (\<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s)"
   by (auto simp add: monotone_on_def)
 
@@ -1264,6 +1270,32 @@ lemma strict_mono_on_eqD:
 lemma strict_mono_on_imp_mono_on:
   "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) \<Longrightarrow> mono_on A f"
   by (rule mono_onI, rule strict_mono_on_leD)
+
+lemma mono_imp_strict_mono:
+  fixes f :: "'a::order \<Rightarrow> 'b::order"
+  shows "\<lbrakk>mono_on S f; inj_on f S\<rbrakk> \<Longrightarrow> strict_mono_on S f"
+  by (auto simp add: monotone_on_def order_less_le inj_on_eq_iff)
+
+lemma strict_mono_iff_mono:
+  fixes f :: "'a::linorder \<Rightarrow> 'b::order"
+  shows "strict_mono_on S f \<longleftrightarrow> mono_on S f \<and> inj_on f S"
+proof
+  show "strict_mono_on S f \<Longrightarrow> mono_on S f \<and> inj_on f S"
+    by (simp add: strict_mono_on_imp_inj_on strict_mono_on_imp_mono_on)
+qed (auto intro: mono_imp_strict_mono)
+
+lemma antimono_imp_strict_antimono:
+  fixes f :: "'a::order \<Rightarrow> 'b::order"
+  shows "\<lbrakk>antimono_on S f; inj_on f S\<rbrakk> \<Longrightarrow> strict_antimono_on S f"
+  by (auto simp add: monotone_on_def order_less_le inj_on_eq_iff)
+
+lemma strict_antimono_iff_antimono:
+  fixes f :: "'a::linorder \<Rightarrow> 'b::order"
+  shows "strict_antimono_on S f \<longleftrightarrow> antimono_on S f \<and> inj_on f S"
+proof
+  show "strict_antimono_on S f \<Longrightarrow> antimono_on S f \<and> inj_on f S"
+    by (force simp add: monotone_on_def intro: linorder_inj_onI)
+qed (auto intro: antimono_imp_strict_antimono)
 
 lemma mono_compose: "mono Q \<Longrightarrow> mono (\<lambda>i x. Q i (f x))"
   unfolding mono_def le_fun_def by auto

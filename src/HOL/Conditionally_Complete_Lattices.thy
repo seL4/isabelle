@@ -481,6 +481,12 @@ proof cases
   assume "X = {}" with lt_ex[of a] least show ?thesis by (auto simp: less_le_not_le)
 qed (intro cSup_eq_non_empty assms)
 
+lemma cSup_unique:
+  fixes b :: "'a :: {conditionally_complete_lattice, no_bot}"
+  assumes "\<And>c. (\<forall>x \<in> s. x \<le> c) \<longleftrightarrow> b \<le> c"
+  shows "Sup s = b"
+  by (metis assms cSup_eq order.refl)
+
 lemma cInf_eq:
   fixes a :: "'a :: {conditionally_complete_lattice, no_top}"
   assumes upper: "\<And>x. x \<in> X \<Longrightarrow> a \<le> x"
@@ -489,6 +495,12 @@ lemma cInf_eq:
 proof cases
   assume "X = {}" with gt_ex[of a] least show ?thesis by (auto simp: less_le_not_le)
 qed (intro cInf_eq_non_empty assms)
+
+lemma cInf_unique:
+  fixes b :: "'a :: {conditionally_complete_lattice, no_top}"
+  assumes "\<And>c. (\<forall>x \<in> s. x \<ge> c) \<longleftrightarrow> b \<ge> c"
+  shows "Inf s = b"
+  by (meson assms cInf_eq order.refl)
 
 class conditionally_complete_linorder = conditionally_complete_lattice + linorder
 begin
