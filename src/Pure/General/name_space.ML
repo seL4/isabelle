@@ -151,6 +151,41 @@ type external =
 type externals = external Change_Table.T;  (*name -> external*)
 
 
+(* accesses *)
+
+local
+
+fun mandatory xs = fold_rev (fn (x, b) => b ? cons x) xs [];
+
+fun mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
+and mandatory_prefixes1 [] = []
+  | mandatory_prefixes1 ((x, true) :: xs) = map (cons x) (mandatory_prefixes1 xs)
+  | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs);
+
+fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
+
+in
+
+fun make_accesses ({restriction, spec, ...}: Binding.name_spec) =
+  if restriction = SOME true then []
+  else
+    let
+      val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
+      val sfxs = restrict (mandatory_suffixes spec);
+      val pfxs = restrict (mandatory_prefixes spec);
+    (* FIXME suppress_chunks *)
+    in map (Long_Name.make_chunks o Long_Name.implode) (distinct (op =) (sfxs @ pfxs)) end;
+
+fun make_accesses' name =
+  let
+    val n = Long_Name.count name;
+    fun make k acc =
+      if k < n then make (k + 1) (Long_Name.suppress_chunks k [] name :: acc) else acc;
+  in make 0 [] end;
+
+end;
+
+
 (* datatype T *)
 
 datatype T = Name_Space of {kind: string, internals: internals, externals: externals};
@@ -484,45 +519,6 @@ val full_name = #full_name oo name_spec;
 val base_name = Long_Name.base_name o full_name global_naming;
 
 
-(* accesses *)
-
-local
-
-fun mandatory xs = fold_rev (fn (x, b) => b ? cons x) xs [];
-
-fun mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
-and mandatory_prefixes1 [] = []
-  | mandatory_prefixes1 ((x, true) :: xs) = map (cons x) (mandatory_prefixes1 xs)
-  | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs);
-
-fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
-
-in
-
-fun make_accesses naming binding =
-  let
-    val args as {restriction, spec, ...} = name_spec naming binding;
-    val accesses =
-      if restriction = SOME true then []
-      else
-        let
-          val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
-          val sfxs = restrict (mandatory_suffixes spec);
-          val pfxs = restrict (mandatory_prefixes spec);
-        (* FIXME suppress_chunks *)
-        in map (Long_Name.make_chunks o Long_Name.implode) (distinct (op =) (sfxs @ pfxs)) end;
-  in (accesses, args) end;
-
-fun make_accesses' name =
-  let
-    val n = Long_Name.count name;
-    fun make k acc =
-      if k < n then make (k + 1) (Long_Name.suppress_chunks k [] name :: acc) else acc;
-  in make 0 [] end;
-
-end;
-
-
 (* hide *)
 
 fun hide fully name space =
@@ -548,12 +544,13 @@ fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, externals) =>
     let
       val _ = the_entry space name;
-      val (more_accs, {full_name = alias_name, ...}) = make_accesses naming binding;
+      val name_spec = name_spec naming binding;
+      val more_accs = make_accesses name_spec;
       val internals' = internals |> fold (add_name name) more_accs;
       val externals' = externals
         |> Change_Table.map_entry name (fn {accesses, aliases, entry} =>
             {accesses = fold_rev (update Long_Name.eq_chunks) more_accs accesses,
-             aliases = update (op =) alias_name aliases,
+             aliases = update (op =) (#full_name name_spec) aliases,
              entry = entry});
     in (kind, internals', externals') end);
 
@@ -590,12 +587,13 @@ fun declare context strict binding space =
   let
     val naming = naming_of context;
     val Naming {group, theory_long_name, ...} = naming;
-    val (accesses, {concealed, full_name = name, ...}) = make_accesses naming binding;
+    val name_spec as {full_name = name, ...} = name_spec naming binding;
     val _ = name = "" andalso error (Binding.bad binding);
+    val accesses = make_accesses name_spec;
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
-     {concealed = concealed,
+     {concealed = #concealed name_spec,
       group = group,
       theory_long_name = theory_long_name,
       pos = pos,
