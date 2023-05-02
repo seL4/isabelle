@@ -544,13 +544,13 @@ fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, externals) =>
     let
       val _ = the_entry space name;
-      val name_spec = name_spec naming binding;
+      val name_spec as {full_name = alias_name, ...} = name_spec naming binding;
       val more_accs = make_accesses name_spec;
       val internals' = internals |> fold (add_name name) more_accs;
       val externals' = externals
         |> Change_Table.map_entry name (fn {accesses, aliases, entry} =>
             {accesses = fold_rev (update Long_Name.eq_chunks) more_accs accesses,
-             aliases = update (op =) (#full_name name_spec) aliases,
+             aliases = update (op =) alias_name aliases,
              entry = entry});
     in (kind, internals', externals') end);
 
