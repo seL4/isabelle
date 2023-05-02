@@ -557,4 +557,162 @@ proof -
     by blast
 qed
 
+lemma countable_union_of_empty [simp]: "(countable union_of P) {}"
+  by (simp add: union_of_empty)
+
+lemma countable_intersection_of_empty [simp]: "(countable intersection_of P) UNIV"
+  by (simp add: intersection_of_empty)
+
+lemma countable_union_of_inc: "P S \<Longrightarrow> (countable union_of P) S"
+  by (simp add: union_of_inc)
+
+lemma countable_intersection_of_inc: "P S \<Longrightarrow> (countable intersection_of P) S"
+  by (simp add: intersection_of_inc)
+
+lemma countable_union_of_complement:
+  "(countable union_of P) S \<longleftrightarrow> (countable intersection_of (\<lambda>S. P(-S))) (-S)" 
+  (is "?lhs=?rhs")
+proof
+  assume ?lhs
+  then obtain \<U> where "countable \<U>" and \<U>: "\<U> \<subseteq> Collect P" "\<Union>\<U> = S"
+    by (metis union_of_def)
+  define \<U>' where "\<U>' \<equiv> (\<lambda>C. -C) ` \<U>"
+  have "\<U>' \<subseteq> {S. P (- S)}" "\<Inter>\<U>' = -S"
+    using \<U>'_def \<U> by auto
+  then show ?rhs
+    unfolding intersection_of_def by (metis \<U>'_def \<open>countable \<U>\<close> countable_image)
+next
+  assume ?rhs
+  then obtain \<U> where "countable \<U>" and \<U>: "\<U> \<subseteq> {S. P (- S)}" "\<Inter>\<U> = -S"
+    by (metis intersection_of_def)
+  define \<U>' where "\<U>' \<equiv> (\<lambda>C. -C) ` \<U>"
+  have "\<U>' \<subseteq> Collect P" "\<Union> \<U>' = S"
+    using \<U>'_def \<U> by auto
+  then show ?lhs
+    unfolding union_of_def
+    by (metis \<U>'_def \<open>countable \<U>\<close> countable_image)
+qed
+
+lemma countable_intersection_of_complement:
+   "(countable intersection_of P) S \<longleftrightarrow> (countable union_of (\<lambda>S. P(- S))) (- S)"
+  by (simp add: countable_union_of_complement)
+
+lemma countable_union_of_explicit:
+  assumes "P {}"
+  shows "(countable union_of P) S \<longleftrightarrow>
+         (\<exists>T. (\<forall>n::nat. P(T n)) \<and> \<Union>(range T) = S)" (is "?lhs=?rhs")
+proof
+  assume ?lhs
+  then obtain \<U> where "countable \<U>" and \<U>: "\<U> \<subseteq> Collect P" "\<Union>\<U> = S"
+    by (metis union_of_def)
+  then show ?rhs
+    by (metis SUP_bot Sup_empty assms from_nat_into mem_Collect_eq range_from_nat_into subsetD)
+next
+  assume ?rhs
+  then show ?lhs
+    by (metis countableI_type countable_image image_subset_iff mem_Collect_eq union_of_def)
+qed
+
+lemma countable_union_of_ascending:
+  assumes empty: "P {}" and Un: "\<And>T U. \<lbrakk>P T; P U\<rbrakk> \<Longrightarrow> P(T \<union> U)"
+  shows "(countable union_of P) S \<longleftrightarrow>
+         (\<exists>T. (\<forall>n. P(T n)) \<and> (\<forall>n. T n \<subseteq> T(Suc n)) \<and> \<Union>(range T) = S)" (is "?lhs=?rhs")
+proof
+  assume ?lhs
+  then obtain T where T: "\<And>n::nat. P(T n)" "\<Union>(range T) = S"
+    by (meson empty countable_union_of_explicit)
+  have "P (\<Union> (T ` {..n}))" for n
+    by (induction n) (auto simp: atMost_Suc Un T)
+  with T show ?rhs
+    by (rule_tac x="\<lambda>n. \<Union>k\<le>n. T k" in exI) force
+next
+  assume ?rhs
+  then show ?lhs
+    using empty countable_union_of_explicit by auto
+qed
+
+lemma countable_union_of_idem [simp]:
+  "countable union_of countable union_of P = countable union_of P"  (is "?lhs=?rhs")
+proof
+  fix S
+  show "(countable union_of countable union_of P) S = (countable union_of P) S"
+  proof
+    assume L: "?lhs S"
+    then obtain \<U> where "countable \<U>" and \<U>: "\<U> \<subseteq> Collect (countable union_of P)" "\<Union>\<U> = S"
+      by (metis union_of_def)
+    then have "\<forall>U \<in> \<U>. \<exists>\<V>. countable \<V> \<and> \<V> \<subseteq> Collect P \<and> U = \<Union>\<V>"
+      by (metis Ball_Collect union_of_def)
+    then obtain \<F> where \<F>: "\<forall>U \<in> \<U>. countable (\<F> U) \<and> \<F> U \<subseteq> Collect P \<and> U = \<Union>(\<F> U)"
+      by metis
+    have "countable (\<Union> (\<F> ` \<U>))"
+      using \<F> \<open>countable \<U>\<close> by blast
+    moreover have "\<Union> (\<F> ` \<U>) \<subseteq> Collect P"
+      by (simp add: Sup_le_iff \<F>)
+    moreover have "\<Union> (\<Union> (\<F> ` \<U>)) = S"
+      by auto (metis Union_iff \<F> \<U>(2))+
+    ultimately show "?rhs S"
+      by (meson union_of_def)
+  qed (simp add: countable_union_of_inc)
+qed
+
+lemma countable_intersection_of_idem [simp]:
+   "countable intersection_of countable intersection_of P =
+        countable intersection_of P"
+  by (force simp: countable_intersection_of_complement)
+
+lemma countable_union_of_Union:
+   "\<lbrakk>countable \<U>; \<And>S. S \<in> \<U> \<Longrightarrow> (countable union_of P) S\<rbrakk>
+        \<Longrightarrow> (countable union_of P) (\<Union> \<U>)"
+  by (metis Ball_Collect countable_union_of_idem union_of_def)
+
+lemma countable_union_of_UN:
+   "\<lbrakk>countable I; \<And>i. i \<in> I \<Longrightarrow> (countable union_of P) (U i)\<rbrakk>
+        \<Longrightarrow> (countable union_of P) (\<Union>i\<in>I. U i)"
+  by (metis (mono_tags, lifting) countable_image countable_union_of_Union imageE)
+
+lemma countable_union_of_Un:
+  "\<lbrakk>(countable union_of P) S; (countable union_of P) T\<rbrakk>
+           \<Longrightarrow> (countable union_of P) (S \<union> T)"
+  by (smt (verit) Union_Un_distrib countable_Un le_sup_iff union_of_def)
+
+lemma countable_intersection_of_Inter:
+   "\<lbrakk>countable \<U>; \<And>S. S \<in> \<U> \<Longrightarrow> (countable intersection_of P) S\<rbrakk>
+        \<Longrightarrow> (countable intersection_of P) (\<Inter> \<U>)"
+  by (metis countable_intersection_of_idem intersection_of_def mem_Collect_eq subsetI)
+
+lemma countable_intersection_of_INT:
+   "\<lbrakk>countable I; \<And>i. i \<in> I \<Longrightarrow> (countable intersection_of P) (U i)\<rbrakk>
+        \<Longrightarrow> (countable intersection_of P) (\<Inter>i\<in>I. U i)"
+  by (metis (mono_tags, lifting) countable_image countable_intersection_of_Inter imageE)
+
+lemma countable_intersection_of_inter:
+   "\<lbrakk>(countable intersection_of P) S; (countable intersection_of P) T\<rbrakk>
+           \<Longrightarrow> (countable intersection_of P) (S \<inter> T)"
+  by (simp add: countable_intersection_of_complement countable_union_of_Un)
+
+lemma countable_union_of_Int:
+  assumes S: "(countable union_of P) S" and T: "(countable union_of P) T"
+    and Int: "\<And>S T. P S \<and> P T \<Longrightarrow> P(S \<inter> T)"
+  shows "(countable union_of P) (S \<inter> T)"
+proof -
+  obtain \<U> where "countable \<U>" and \<U>: "\<U> \<subseteq> Collect P" "\<Union>\<U> = S"
+    using S by (metis union_of_def)
+  obtain \<V> where "countable \<V>" and \<V>: "\<V> \<subseteq> Collect P" "\<Union>\<V> = T"
+    using T by (metis union_of_def)
+  have "\<And>U V. \<lbrakk>U \<in> \<U>; V \<in> \<V>\<rbrakk> \<Longrightarrow> (countable union_of P) (U \<inter> V)"
+    using \<U> \<V> by (metis Ball_Collect countable_union_of_inc local.Int)
+  then have "(countable union_of P) (\<Union>U\<in>\<U>. \<Union>V\<in>\<V>. U \<inter> V)"
+    by (meson \<open>countable \<U>\<close> \<open>countable \<V>\<close> countable_union_of_UN)
+  moreover have "S \<inter> T = (\<Union>U\<in>\<U>. \<Union>V\<in>\<V>. U \<inter> V)"
+    by (simp add: \<U> \<V>)
+  ultimately show ?thesis
+    by presburger
+qed
+
+lemma countable_intersection_of_union:
+  assumes S: "(countable intersection_of P) S" and T: "(countable intersection_of P) T"
+    and Un: "\<And>S T. P S \<and> P T \<Longrightarrow> P(S \<union> T)"
+  shows "(countable intersection_of P) (S \<union> T)"
+  by (metis (mono_tags, lifting) Compl_Int S T Un compl_sup countable_intersection_of_complement countable_union_of_Int)
+
 end

@@ -1946,6 +1946,9 @@ lemma disjnt_Un1 [simp]: "disjnt (A \<union> B) C \<longleftrightarrow> disjnt A
 lemma disjnt_Un2 [simp]: "disjnt C (A \<union> B) \<longleftrightarrow> disjnt C A \<and> disjnt C B"
   by (auto simp: disjnt_def)
 
+lemma disjnt_Diff1: "disjnt (X-Y) (U-V)" and disjnt_Diff2: "disjnt (U-V) (X-Y)" if "X \<subseteq> V"
+  using that by (auto simp: disjnt_def)
+
 lemma disjoint_image_subset: "\<lbrakk>pairwise disjnt \<A>; \<And>X. X \<in> \<A> \<Longrightarrow> f X \<subseteq> X\<rbrakk> \<Longrightarrow> pairwise disjnt (f `\<A>)"
   unfolding disjnt_def pairwise_def by fast
 

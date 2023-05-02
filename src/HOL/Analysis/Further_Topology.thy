@@ -969,9 +969,6 @@ qed
 
 subsection\<open> Special cases and corollaries involving spheres\<close>
 
-lemma disjnt_Diff1: "X \<subseteq> Y' \<Longrightarrow> disjnt (X - Y) (X' - Y')"
-  by (auto simp: disjnt_def)
-
 proposition extend_map_affine_to_sphere_cofinite_simple:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact S" "convex U" "bounded U"

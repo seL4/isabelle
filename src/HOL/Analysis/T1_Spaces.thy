@@ -380,8 +380,7 @@ lemma closedin_Hausdorff_sing_eq:
 lemma Hausdorff_space_discrete_topology [simp]:
    "Hausdorff_space (discrete_topology U)"
   unfolding Hausdorff_space_def
-  apply safe
-  by (metis discrete_topology_unique_alt disjnt_empty2 disjnt_insert2 insert_iff mk_disjoint_insert topspace_discrete_topology)
+  by (metis Hausdorff_space_compact_sets Hausdorff_space_def compactin_discrete_topology equalityE openin_discrete_topology)
 
 lemma compactin_Int:
    "\<lbrakk>Hausdorff_space X; compactin X S; compactin X T\<rbrakk> \<Longrightarrow> compactin X (S \<inter> T)"
@@ -394,6 +393,10 @@ lemma finite_topspace_imp_discrete_topology:
 lemma derived_set_of_finite:
    "\<lbrakk>Hausdorff_space X; finite S\<rbrakk> \<Longrightarrow> X derived_set_of S = {}"
   using Hausdorff_imp_t1_space t1_space_derived_set_of_finite by auto
+
+lemma infinite_perfect_set:
+   "\<lbrakk>Hausdorff_space X; S \<subseteq> X derived_set_of S; S \<noteq> {}\<rbrakk> \<Longrightarrow> infinite S"
+  using derived_set_of_finite by blast
 
 lemma derived_set_of_singleton:
    "Hausdorff_space X \<Longrightarrow> X derived_set_of {x} = {}"
@@ -698,4 +701,47 @@ next
   qed
 qed
 
+lemma Hausdorff_space_closed_neighbourhood:
+   "Hausdorff_space X \<longleftrightarrow>
+    (\<forall>x \<in> topspace X. \<exists>U C. openin X U \<and> closedin X C \<and>
+                      Hausdorff_space(subtopology X C) \<and> x \<in> U \<and> U \<subseteq> C)" (is "_ = ?rhs")
+proof
+  assume R: ?rhs
+  show "Hausdorff_space X"
+    unfolding Hausdorff_space_def
+  proof clarify
+    fix x y
+    assume x: "x \<in> topspace X" and y: "y \<in> topspace X" and "x \<noteq> y"
+    obtain T C where *: "openin X T" "closedin X C" "x \<in> T" "T \<subseteq> C"
+                 and C: "Hausdorff_space (subtopology X C)"
+      by (meson R \<open>x \<in> topspace X\<close>)
+    show "\<exists>U V. openin X U \<and> openin X V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
+    proof (cases "y \<in> C")
+      case True
+      with * C obtain U V where U: "openin (subtopology X C) U"
+                        and V: "openin (subtopology X C) V"
+                        and "x \<in> U" "y \<in> V" "disjnt U V"
+        unfolding Hausdorff_space_def
+        by (smt (verit, best) \<open>x \<noteq> y\<close> closedin_subset subsetD topspace_subtopology_subset)
+      then obtain U' V' where UV': "U = U' \<inter> C" "openin X U'" "V = V' \<inter> C" "openin X V'"
+        by (meson openin_subtopology)
+      have "disjnt (T \<inter> U') V'"
+        using \<open>disjnt U V\<close> UV' \<open>T \<subseteq> C\<close> by (force simp: disjnt_iff)
+      with \<open>T \<subseteq> C\<close> have "disjnt (T \<inter> U') (V' \<union> (topspace X - C))"
+        unfolding disjnt_def by blast
+      moreover
+      have "openin X (T \<inter> U')"
+        by (simp add: \<open>openin X T\<close> \<open>openin X U'\<close> openin_Int)
+      moreover have "openin X (V' \<union> (topspace X - C))"
+        using \<open>closedin X C\<close> \<open>openin X V'\<close> by auto
+      ultimately show ?thesis
+        using UV' \<open>x \<in> T\<close> \<open>x \<in> U\<close> \<open>y \<in> V\<close> by blast
+    next
+      case False
+      with * y show ?thesis
+        by (force simp: closedin_def disjnt_def)
+    qed
+  qed
+qed fastforce
+    
 end
