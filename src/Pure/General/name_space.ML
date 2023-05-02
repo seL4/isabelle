@@ -143,11 +143,7 @@ fun hide_name name = map_internals (apsnd (update (op =) name)) (Long_Name.make_
 
 (* external accesses *)
 
-type external =
- {accesses: Long_Name.chunks list,
-  aliases: string list,
-  entry: entry};
-
+type external = {aliases: string list, entry: entry};
 type externals = external Change_Table.T;  (*name -> external*)
 
 
@@ -212,11 +208,6 @@ fun empty kind = make_name_space (kind, Long_Name.Chunks.empty, Change_Table.emp
 fun kind_of (Name_Space {kind, ...}) = kind;
 fun lookup_internals (Name_Space {internals, ...}) = Long_Name.Chunks.lookup internals;
 fun lookup_externals (Name_Space {externals, ...}) = Change_Table.lookup externals;
-
-fun get_accesses space name =
-  (case lookup_externals space name of
-    NONE => []
-  | SOME {accesses, ...} => accesses);
 
 fun get_aliases space name =
   (case lookup_externals space name of
@@ -389,22 +380,15 @@ fun merge
         then raise Long_Name.Chunks.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val externals' = (externals1, externals2) |> Change_Table.join (fn name =>
-      fn ({accesses = accesses1, aliases = aliases1, entry = entry1},
-          {accesses = accesses2, aliases = aliases2, entry = entry2}) =>
-      if #serial entry1 <> #serial entry2
-      then err_dup kind' (name, entry1) (name, entry2) Position.none
-      else
-        let
-          val accesses' = Library.merge Long_Name.eq_chunks (accesses1, accesses2);
-          val aliases' = Library.merge (op =) (aliases1, aliases2);
-        in
-          if eq_list Long_Name.eq_chunks (accesses', accesses1) andalso
-             eq_list Long_Name.eq_chunks (accesses', accesses2) andalso
-             eq_list (op =) (aliases', aliases1) andalso
-             eq_list (op =) (aliases', aliases2)
-          then raise Change_Table.SAME
-          else {accesses = accesses', aliases = aliases', entry = entry1}
-        end);
+      fn ({aliases = aliases1, entry = entry1}, {aliases = aliases2, entry = entry2}) =>
+        if #serial entry1 <> #serial entry2
+        then err_dup kind' (name, entry1) (name, entry2) Position.none
+        else
+          let val aliases' = Library.merge (op =) (aliases1, aliases2) in
+            if eq_list (op =) (aliases', aliases1) andalso eq_list (op =) (aliases', aliases2)
+            then raise Change_Table.SAME
+            else {aliases = aliases', entry = entry1}
+          end);
   in make_name_space (kind', internals', externals') end;
 
 
@@ -525,7 +509,7 @@ fun hide fully name space =
   space |> map_name_space (fn (kind, internals, externals) =>
     let
       val _ = the_entry space name;
-      val accesses = get_accesses space name;
+      val accesses = get_aliases space name |> maps (make_accesses o Binding.full_name_spec);
       val accesses' = make_accesses' name;
       val xnames = filter (is_valid_access space name) accesses;
       val xnames' =
@@ -549,11 +533,8 @@ fun alias naming binding name space =
       val _ = alias_name = "" andalso error (Binding.bad binding);
 
       val internals' = internals |> fold (add_name name) more_accs;
-      val externals' = externals
-        |> Change_Table.map_entry name (fn {accesses, aliases, entry} =>
-            {accesses = fold_rev (update Long_Name.eq_chunks) more_accs accesses,
-             aliases = update (op =) alias_name aliases,
-             entry = entry});
+      val externals' = externals |> Change_Table.map_entry name
+        (fn {aliases, entry} => {aliases = update (op =) alias_name aliases, entry = entry});
     in (kind, internals', externals') end);
 
 
@@ -606,7 +587,7 @@ fun declare context strict binding space =
           val internals' = internals |> fold (add_name name) accesses;
           val externals' =
             (if strict then Change_Table.update_new else Change_Table.update)
-              (name, {accesses = accesses, aliases = [], entry = entry}) externals
+              (name, {aliases = [], entry = entry}) externals
             handle Change_Table.DUP dup =>
               err_dup kind (dup, #entry (the (lookup_externals space dup)))
                 (name, entry) (#pos entry);

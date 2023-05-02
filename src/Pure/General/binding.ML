@@ -45,6 +45,7 @@ sig
   type name_spec =
     {restriction: bool option, concealed: bool, spec: (string * bool) list, full_name: string}
   val name_spec: scope list -> (string * bool) list -> binding -> name_spec
+  val full_name_spec: string -> name_spec
 end;
 
 structure Binding: BINDING =
@@ -219,6 +220,10 @@ fun name_spec scopes path binding : name_spec =
     val spec' = if null spec2 then [] else spec;
     val full_name = Long_Name.implode (map #1 spec');
   in {restriction = restriction, concealed = concealed, spec = spec', full_name = full_name} end;
+
+fun full_name_spec name : name_spec =
+  let val spec = Long_Name.explode name |> map (rpair false);
+  in {restriction = NONE, concealed = false, spec = spec, full_name = name} end;
 
 end;
 
