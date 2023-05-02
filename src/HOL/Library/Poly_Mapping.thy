@@ -910,7 +910,7 @@ lift_definition less_eq_poly_mapping :: "('a \<Rightarrow>\<^sub>0 'b) \<Rightar
   is "\<lambda>f g. less_fun f g \<or> f = g"
   .
 
-instance proof (rule class.Orderings.linorder.of_class.intro)
+instance proof (rule linorder.intro_of_class)
   show "class.linorder (less_eq :: (_ \<Rightarrow>\<^sub>0 _) \<Rightarrow> _) less"
   proof (rule linorder_strictI, rule order_strictI)
     fix f g h :: "'a \<Rightarrow>\<^sub>0 'b"

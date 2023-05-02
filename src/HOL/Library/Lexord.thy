@@ -153,7 +153,7 @@ global_interpretation lex: lex_preordering \<open>(\<le>) :: 'a::preorder \<Righ
     and less_list = lex.lex_less ..
 
 instance
-  by (rule class.preorder.of_class.intro, rule preordering_preorderI, fact lex.preordering)
+  by (rule preorder.intro_of_class, rule preordering_preorderI, fact lex.preordering)
 
 end
 
@@ -171,7 +171,7 @@ proof -
 qed
 
 instance list :: (order) order
-  by (rule class.order.of_class.intro, rule ordering_orderI, fact lex.ordering)
+  by (rule order.intro_of_class, rule ordering_orderI, fact lex.ordering)
 
 export_code \<open>(\<le>) :: _ list \<Rightarrow> _ list \<Rightarrow> bool\<close> \<open>(<) :: _ list \<Rightarrow> _ list \<Rightarrow> bool\<close> in Haskell
 
