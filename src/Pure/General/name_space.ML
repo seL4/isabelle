@@ -546,6 +546,8 @@ fun alias naming binding name space =
       val _ = the_entry space name;
       val name_spec as {full_name = alias_name, ...} = name_spec naming binding;
       val more_accs = make_accesses name_spec;
+      val _ = alias_name = "" andalso error (Binding.bad binding);
+
       val internals' = internals |> fold (add_name name) more_accs;
       val externals' = externals
         |> Change_Table.map_entry name (fn {accesses, aliases, entry} =>

@@ -433,7 +433,7 @@ fun new_fixed ((x, x'), pos) ctxt =
       ctxt
       |> map_fixes
         (Name_Space.define context true (Binding.make (x', pos), (x, proper)) #> snd #>
-          Name_Space.alias_table Name_Space.global_naming (Binding.make (x, pos)) x')
+          x <> "" ? Name_Space.alias_table Name_Space.global_naming (Binding.make (x, pos)) x')
       |> declare_fixed x
       |> declare_constraints (Syntax.free x')
   end;
