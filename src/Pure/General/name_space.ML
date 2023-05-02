@@ -184,62 +184,70 @@ end;
 
 (* datatype T *)
 
-datatype T = Name_Space of {kind: string, internals: internals, externals: externals};
+datatype T =
+  Name_Space of
+   {kind: string,
+    internals: internals,
+    entries: entry Change_Table.T,
+    aliases: string list Symtab.table};
 
-fun make_name_space (kind, internals, externals) =
-  Name_Space {kind = kind, internals = internals, externals = externals};
+fun make_name_space (kind, internals, entries, aliases) =
+  Name_Space {kind = kind, internals = internals, entries = entries, aliases = aliases};
 
-fun map_name_space f (Name_Space {kind = kind, internals = internals, externals = externals}) =
-  make_name_space (f (kind, internals, externals));
+fun map_name_space f (Name_Space {kind, internals, entries, aliases}) =
+  make_name_space (f (kind, internals, entries, aliases));
 
-fun change_base_space begin = map_name_space (fn (kind, internals, externals) =>
+fun change_base_space begin = map_name_space (fn (kind, internals, entries, aliases) =>
   (kind,
     Long_Name.Chunks.change_base begin internals,
-    Change_Table.change_base begin externals));
+    Change_Table.change_base begin entries,
+    aliases));
 
-val change_ignore_space = map_name_space (fn (kind, internals, externals) =>
+val change_ignore_space = map_name_space (fn (kind, internals, entries, aliases) =>
   (kind,
     Long_Name.Chunks.change_ignore internals,
-    Change_Table.change_ignore externals));
+    Change_Table.change_ignore entries,
+    aliases));
 
 
-fun empty kind = make_name_space (kind, Long_Name.Chunks.empty, Change_Table.empty);
+fun empty kind = make_name_space (kind, Long_Name.Chunks.empty, Change_Table.empty, Symtab.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
 fun lookup_internals (Name_Space {internals, ...}) = Long_Name.Chunks.lookup internals;
-fun lookup_externals (Name_Space {externals, ...}) = Change_Table.lookup externals;
+fun lookup_entries (Name_Space {entries, ...}) = Change_Table.lookup entries;
+fun lookup_aliases (Name_Space {aliases, ...}) = Symtab.lookup aliases;
 
 fun get_aliases space name =
-  (case lookup_externals space name of
+  (case lookup_aliases space name of
     NONE => [name]
-  | SOME {aliases, ...} => aliases @ [name]);
+  | SOME aliases => aliases @ [name]);
 
 fun gen_markup def space name =
-  (case lookup_externals space name of
+  (case lookup_entries space name of
     NONE => Markup.intensify
-  | SOME {entry, ...} => entry_markup def (kind_of space) (name, entry));
+  | SOME entry => entry_markup def (kind_of space) (name, entry));
 
 val markup = gen_markup {def = false};
 val markup_def = gen_markup {def = true};
 
-fun undefined (space as Name_Space {kind, externals, ...}) bad =
+fun undefined (space as Name_Space {kind, entries, ...}) bad =
   let
     val (prfx, sfx) =
       (case Long_Name.dest_hidden bad of
         SOME name =>
-          if Change_Table.defined externals name
+          if Change_Table.defined entries name
           then ("Inaccessible", Markup.markup (markup space name) (quote name))
           else ("Undefined", quote name)
       | NONE => ("Undefined", quote bad));
   in prfx ^ " " ^ plain_words kind ^ ": " ^ sfx end;
 
-fun get_names (Name_Space {externals, ...}) =
-  Change_Table.fold (cons o #1) externals [];
+fun get_names (Name_Space {entries, ...}) =
+  Change_Table.fold (cons o #1) entries [];
 
 fun the_entry space name =
-  (case lookup_externals space name of
+  (case lookup_entries space name of
     NONE => error (undefined space name)
-  | SOME {entry, ...} => entry);
+  | SOME entry => entry);
 
 fun the_entry_theory_name space name =
   Long_Name.base_name (#theory_long_name (the_entry space name));
@@ -367,8 +375,8 @@ fun completion context space pred (xname, pos) =
 (* merge *)
 
 fun merge
-  (Name_Space {kind = kind1, internals = internals1, externals = externals1},
-    Name_Space {kind = kind2, internals = internals2, externals = externals2}) =
+   (Name_Space {kind = kind1, internals = internals1, entries = entries1, aliases = aliases1},
+    Name_Space {kind = kind2, internals = internals2, entries = entries2, aliases = aliases2}) =
   let
     val kind' =
       if kind1 = kind2 then kind1
@@ -379,17 +387,11 @@ fun merge
         if pointer_eq (names1, names2) andalso pointer_eq (names1', names2')
         then raise Long_Name.Chunks.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
-    val externals' = (externals1, externals2) |> Change_Table.join (fn name =>
-      fn ({aliases = aliases1, entry = entry1}, {aliases = aliases2, entry = entry2}) =>
-        if #serial entry1 <> #serial entry2
-        then err_dup kind' (name, entry1) (name, entry2) Position.none
-        else
-          let val aliases' = Library.merge (op =) (aliases1, aliases2) in
-            if eq_list (op =) (aliases', aliases1) andalso eq_list (op =) (aliases', aliases2)
-            then raise Change_Table.SAME
-            else {aliases = aliases', entry = entry1}
-          end);
-  in make_name_space (kind', internals', externals') end;
+    val entries' = (entries1, entries2) |> Change_Table.join (fn name => fn (entry1, entry2) =>
+      if #serial entry1 = #serial entry2 then raise Change_Table.SAME
+      else err_dup kind' (name, entry1) (name, entry2) Position.none);
+    val aliases' = Symtab.merge_list (op =) (aliases1, aliases2);
+  in make_name_space (kind', internals', entries', aliases') end;
 
 
 
@@ -506,7 +508,7 @@ val base_name = Long_Name.base_name o full_name global_naming;
 (* hide *)
 
 fun hide fully name space =
-  space |> map_name_space (fn (kind, internals, externals) =>
+  space |> map_name_space (fn (kind, internals, entries, aliases) =>
     let
       val _ = the_entry space name;
       val accesses = get_aliases space name |> maps (make_accesses o Binding.full_name_spec);
@@ -519,23 +521,21 @@ fun hide fully name space =
         |> hide_name name
         |> fold (del_name name) xnames'
         |> fold (del_name_extra name) accesses';
-    in (kind, internals', externals) end);
+    in (kind, internals', entries, aliases) end);
 
 
 (* alias *)
 
 fun alias naming binding name space =
-  space |> map_name_space (fn (kind, internals, externals) =>
+  space |> map_name_space (fn (kind, internals, entries, aliases) =>
     let
       val _ = the_entry space name;
       val name_spec as {full_name = alias_name, ...} = name_spec naming binding;
       val more_accs = make_accesses name_spec;
       val _ = alias_name = "" andalso error (Binding.bad binding);
-
       val internals' = internals |> fold (add_name name) more_accs;
-      val externals' = externals |> Change_Table.map_entry name
-        (fn {aliases, entry} => {aliases = update (op =) alias_name aliases, entry = entry});
-    in (kind, internals', externals') end);
+      val aliases' = aliases |> Symtab.update_list (op =) (name, alias_name);
+    in (kind, internals', entries, aliases') end);
 
 
 
@@ -564,7 +564,7 @@ fun map_naming f (Context.Theory thy) = Context.Theory (Global_Naming.map f thy)
 
 (* declaration *)
 
-fun declared (Name_Space {externals, ...}) = Change_Table.defined externals;
+fun declared (Name_Space {entries, ...}) = Change_Table.defined entries;
 
 fun declare context strict binding space =
   let
@@ -582,16 +582,14 @@ fun declare context strict binding space =
       pos = pos,
       serial = serial ()};
     val space' =
-      space |> map_name_space (fn (kind, internals, externals) =>
+      space |> map_name_space (fn (kind, internals, entries, aliases) =>
         let
           val internals' = internals |> fold (add_name name) accesses;
-          val externals' =
-            (if strict then Change_Table.update_new else Change_Table.update)
-              (name, {aliases = [], entry = entry}) externals
+          val entries' =
+            (if strict then Change_Table.update_new else Change_Table.update) (name, entry) entries
             handle Change_Table.DUP dup =>
-              err_dup kind (dup, #entry (the (lookup_externals space dup)))
-                (name, entry) (#pos entry);
-        in (kind, internals', externals') end);
+              err_dup kind (dup, the (lookup_entries space dup)) (name, entry) (#pos entry);
+        in (kind, internals', entries', aliases) end);
     val _ =
       if proper_pos andalso Context_Position.is_reported_generic context pos then
         Position.report pos (entry_markup {def = true} (kind_of space) (name, entry))
