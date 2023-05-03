@@ -16,15 +16,10 @@ lemma cInf_abs_ge:
 proof -
   have "Sup (uminus ` S) = - (Inf S)"
   proof (rule antisym)
-    show "- (Inf S) \<le> Sup (uminus ` S)"
-      apply (subst minus_le_iff)
-      apply (rule cInf_greatest [OF \<open>S \<noteq> {}\<close>])
-      apply (subst minus_le_iff)
-      apply (rule cSup_upper)
-       apply force
-      using bdd
-      apply (force simp: abs_le_iff bdd_above_def)
-      done
+    have "\<And>x. x \<in> S \<Longrightarrow> bdd_above (uminus ` S)"
+      using bdd by (force simp: abs_le_iff bdd_above_def)
+  then show "- (Inf S) \<le> Sup (uminus ` S)"
+    by (meson cInf_greatest [OF \<open>S \<noteq> {}\<close>] cSUP_upper minus_le_iff)
   next
     have *: "\<And>x. x \<in> S \<Longrightarrow> Inf S \<le> x"
       by (meson abs_le_iff bdd bdd_below_def cInf_lower minus_le_iff)

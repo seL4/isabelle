@@ -1096,6 +1096,27 @@ lemma real_archimedian_rdiv_eq_0:
   by (metis reals_Archimedean3 dual_order.order_iff_strict le0 le_less_trans not_le x0 xc)
 
 
+lemma inverse_Suc: "inverse (Suc n) > 0"
+  using of_nat_0_less_iff positive_imp_inverse_positive zero_less_Suc by blast
+
+lemma Archimedean_eventually_inverse:
+  fixes \<epsilon>::real shows "(\<forall>\<^sub>F n in sequentially. inverse (real (Suc n)) < \<epsilon>) \<longleftrightarrow> 0 < \<epsilon>"
+  (is "?lhs=?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    unfolding eventually_at_top_dense using inverse_Suc order_less_trans by blast
+next
+  assume ?rhs
+  then obtain N where "inverse (Suc N) < \<epsilon>"
+    using reals_Archimedean by blast
+  moreover have "inverse (Suc n) \<le> inverse (Suc N)" if "n \<ge> N" for n
+    using inverse_Suc that by fastforce
+  ultimately show ?lhs
+    unfolding eventually_sequentially
+    using order_le_less_trans by blast
+qed
+
 subsection \<open>Rationals\<close>
 
 lemma Rats_abs_iff[simp]:

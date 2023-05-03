@@ -1716,6 +1716,11 @@ lemma connected_convex_1:
   shows "connected S \<longleftrightarrow> convex S"
   by (metis is_interval_convex convex_connected is_interval_connected_1)
 
+lemma connected_space_iff_is_interval_1 [iff]:
+  fixes S :: "real set"
+  shows "connected_space (top_of_set S) \<longleftrightarrow> is_interval S"
+  using connectedin_topspace is_interval_connected_1 by force
+
 lemma connected_convex_1_gen:
   fixes S :: "'a :: euclidean_space set"
   assumes "DIM('a) = 1"

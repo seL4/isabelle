@@ -2,7 +2,7 @@ section \<open>Ordered Euclidean Space\<close>
 
 theory Ordered_Euclidean_Space
 imports
-  Convex_Euclidean_Space
+  Convex_Euclidean_Space Abstract_Limits
   "HOL-Library.Product_Order"
 begin
 
@@ -157,6 +157,32 @@ lemma tendsto_inf[tendsto_intros]:
   shows "((\<lambda>i. inf (X i) (Y i)) \<longlongrightarrow> inf x y) net"
    unfolding inf_min eucl_inf by (intro assms tendsto_intros)
 
+lemma tendsto_Inf:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::ordered_euclidean_space"
+  assumes "finite K" "\<And>i. i \<in> K \<Longrightarrow> ((\<lambda>x. f x i) \<longlongrightarrow> l i) F"
+  shows "((\<lambda>x. Inf (f x ` K)) \<longlongrightarrow> Inf (l ` K)) F"
+  using assms
+  by (induction K rule: finite_induct) (auto simp: cInf_insert_If tendsto_inf)
+
+lemma tendsto_Sup:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::ordered_euclidean_space"
+  assumes "finite K" "\<And>i. i \<in> K \<Longrightarrow> ((\<lambda>x. f x i) \<longlongrightarrow> l i) F"
+  shows "((\<lambda>x. Sup (f x ` K)) \<longlongrightarrow> Sup (l ` K)) F"
+  using assms
+  by (induction K rule: finite_induct) (auto simp: cSup_insert_If tendsto_sup)
+
+lemma continuous_map_Inf:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::ordered_euclidean_space"
+  assumes "finite K" "\<And>i. i \<in> K \<Longrightarrow> continuous_map X euclidean (\<lambda>x. f x i)"
+  shows "continuous_map X euclidean (\<lambda>x. INF i\<in>K. f x i)"
+  using assms by (simp add: continuous_map_atin tendsto_Inf)
+
+lemma continuous_map_Sup:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::ordered_euclidean_space"
+  assumes "finite K" "\<And>i. i \<in> K \<Longrightarrow> continuous_map X euclidean (\<lambda>x. f x i)"
+  shows "continuous_map X euclidean (\<lambda>x. SUP i\<in>K. f x i)"
+  using assms by (simp add: continuous_map_atin tendsto_Sup)
+
 lemma tendsto_componentwise_max:
   assumes f: "(f \<longlongrightarrow> l) F" and g: "(g \<longlongrightarrow> m) F"
   shows "((\<lambda>x. (\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)) \<longlongrightarrow> (\<Sum>i\<in>Basis. max (l \<bullet> i) (m \<bullet> i) *\<^sub>R i)) F"
@@ -166,10 +192,6 @@ lemma tendsto_componentwise_min:
   assumes f: "(f \<longlongrightarrow> l) F" and g: "(g \<longlongrightarrow> m) F"
   shows "((\<lambda>x. (\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)) \<longlongrightarrow> (\<Sum>i\<in>Basis. min (l \<bullet> i) (m \<bullet> i) *\<^sub>R i)) F"
   by (intro tendsto_intros assms)
-
-lemma (in order) atLeastatMost_empty'[simp]:
-  "(\<not> a \<le> b) \<Longrightarrow> {a..b} = {}"
-  by (auto)
 
 instance real :: ordered_euclidean_space
   by standard auto

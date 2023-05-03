@@ -1138,6 +1138,20 @@ proof -
     by (force simp: retract_of_space_def)
 qed
 
+lemma retract_of_space_trans:
+  assumes "S retract_of_space X"  "T retract_of_space subtopology X S"
+  shows "T retract_of_space X"
+  using assms
+  apply (simp add: retract_of_space_retraction_maps)
+  by (metis id_comp inf.absorb_iff2 retraction_maps_compose subtopology_subtopology)
+
+lemma retract_of_space_subtopology:
+  assumes "S retract_of_space X"  "S \<subseteq> U"
+  shows "S retract_of_space subtopology X U"
+  using assms
+  apply (clarsimp simp: retract_of_space_def)
+  by (metis continuous_map_from_subtopology inf.absorb2 subtopology_subtopology)
+
 lemma retract_of_space_clopen:
   assumes "openin X S" "closedin X S" "S = {} \<Longrightarrow> topspace X = {}"
   shows "S retract_of_space X"
@@ -1193,6 +1207,13 @@ lemma retraction_maps_section_image2:
         \<Longrightarrow> subtopology X (s ` (topspace Y)) homeomorphic_space Y"
   using embedding_map_imp_homeomorphic_space homeomorphic_space_sym section_imp_embedding_map
         section_map_def by blast
+
+lemma hereditary_imp_retractive_property:
+  assumes "\<And>X S. P X \<Longrightarrow> P(subtopology X S)" 
+          "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> Q X')"
+  assumes "retraction_map X X' r" "P X"
+  shows "Q X'"
+  by (meson assms retraction_map_def retraction_maps_section_image2)
 
 subsection\<open>Paths and path-connectedness\<close>
 

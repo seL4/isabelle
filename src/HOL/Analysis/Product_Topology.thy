@@ -464,6 +464,10 @@ lemma homeomorphic_map_swap:
    "homeomorphic_map (prod_topology X Y) (prod_topology Y X) (\<lambda>(x,y). (y,x))"
   using homeomorphic_map_maps homeomorphic_maps_swap by metis
 
+lemma homeomorphic_space_prod_topology_swap:
+   "(prod_topology X Y) homeomorphic_space (prod_topology Y X)"
+  using homeomorphic_map_swap homeomorphic_space by blast
+
 lemma embedding_map_graph:
    "embedding_map X (prod_topology X Y) (\<lambda>x. (x, f x)) \<longleftrightarrow> continuous_map X Y f"
     (is "?lhs = ?rhs")
@@ -472,8 +476,7 @@ proof
   have "snd \<circ> (\<lambda>x. (x, f x)) = f"
     by force
   moreover have "continuous_map X Y (snd \<circ> (\<lambda>x. (x, f x)))"
-    using L
-    unfolding embedding_map_def
+    using L unfolding embedding_map_def
     by (meson continuous_map_in_subtopology continuous_map_snd_of homeomorphic_imp_continuous_map)
   ultimately show ?rhs
     by simp

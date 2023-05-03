@@ -280,8 +280,8 @@ end
 context order
 begin
 
-lemma atLeastatMost_empty[simp]:
-  "b < a \<Longrightarrow> {a..b} = {}"
+lemma atLeastatMost_empty[simp]: "b < a \<Longrightarrow> {a..b} = {}" 
+  and atLeastatMost_empty'[simp]: "\<not> a \<le> b \<Longrightarrow> {a..b} = {}"
   by(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 
 lemma atLeastLessThan_empty[simp]:
