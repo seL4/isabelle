@@ -153,10 +153,10 @@ local
 
 fun mandatory xs = fold_rev (fn (x, b) => b ? cons x) xs [];
 
-fun mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
-and mandatory_prefixes1 [] = []
+fun mandatory_prefixes1 [] = []
   | mandatory_prefixes1 ((x, true) :: xs) = map (cons x) (mandatory_prefixes1 xs)
-  | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs);
+  | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs)
+and mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
 
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 

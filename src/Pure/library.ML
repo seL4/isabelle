@@ -607,9 +607,8 @@ fun chop_common_prefix eq ([], ys) = ([], ([], ys))
       else ([], (xs, ys));
 
 fun prefixes1 [] = []
-  | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
-
-fun prefixes xs = [] :: prefixes1 xs;
+  | prefixes1 (x :: xs) = map (cons x) (prefixes xs)
+and prefixes xs = [] :: prefixes1 xs;
 
 fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
