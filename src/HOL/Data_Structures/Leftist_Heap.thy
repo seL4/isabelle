@@ -158,6 +158,8 @@ qed
 
 subsection "Complexity"
 
+text \<open>We count only the calls of the only recursive function: @{const merge}\<close>
+
 text\<open>Explicit termination argument: sum of sizes\<close>
 
 fun T_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
@@ -168,11 +170,11 @@ fun T_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
    else T_merge t1 r2) + 1"
 
 definition T_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"T_insert x t = T_merge (Node Leaf (x, 1) Leaf) t + 1"
+"T_insert x t = T_merge (Node Leaf (x, 1) Leaf) t"
 
 fun T_del_min :: "'a::ord lheap \<Rightarrow> nat" where
-"T_del_min Leaf = 1" |
-"T_del_min (Node l _ r) = T_merge l r + 1"
+"T_del_min Leaf = 0" |
+"T_del_min (Node l _ r) = T_merge l r"
 
 lemma T_merge_min_height: "ltree l \<Longrightarrow> ltree r \<Longrightarrow> T_merge l r \<le> min_height l + min_height r + 1"
 proof(induction l r rule: merge.induct)
@@ -185,7 +187,7 @@ using le_log2_of_power[OF min_height_size1[of l]]
   le_log2_of_power[OF min_height_size1[of r]] T_merge_min_height[of l r] assms
 by linarith
 
-corollary T_insert_log: "ltree t \<Longrightarrow> T_insert x t \<le> log 2 (size1 t) + 3"
+corollary T_insert_log: "ltree t \<Longrightarrow> T_insert x t \<le> log 2 (size1 t) + 2"
 using T_merge_log[of "Node Leaf (x, 1) Leaf" t]
 by(simp add: T_insert_def split: tree.split)
 
@@ -203,15 +205,15 @@ proof -
 qed
 
 corollary T_del_min_log: assumes "ltree t"
-  shows "T_del_min t \<le> 2 * log 2 (size1 t) + 1"
+  shows "T_del_min t \<le> 2 * log 2 (size1 t)"
 proof(cases t rule: tree2_cases)
   case Leaf thus ?thesis using assms by simp
 next
   case [simp]: (Node l _ _ r)
-  have "T_del_min t = T_merge l r + 1" by simp
-  also have "\<dots> \<le> log 2 (size1 l) + log 2 (size1 r) + 2"
+  have "T_del_min t = T_merge l r" by simp
+  also have "\<dots> \<le> log 2 (size1 l) + log 2 (size1 r) + 1"
     using \<open>ltree t\<close> T_merge_log[of l r] by (auto simp del: T_merge.simps)
-  also have "\<dots> \<le> 2 * log 2 (size1 t) + 1"
+  also have "\<dots> \<le> 2 * log 2 (size1 t)"
     using ld_ld_1_less[of "size1 l" "size1 r"] by (simp)
   finally show ?thesis .
 qed
