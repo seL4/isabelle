@@ -174,11 +174,16 @@ in
 fun make_accesses'' ({restriction, spec, full_name, ...}: Binding.name_spec) =
   if restriction = SOME true then []
   else
-    accesses spec
-    |> restriction = SOME false ? filter (fn [_] => false | _ => true)
-    |> map (fn s => Long_Name.suppress_chunks 0 s full_name)
-    |> remove Long_Name.eq_chunks Long_Name.empty_chunks
-    |> distinct Long_Name.eq_chunks;
+    let
+      val m = if is_some restriction then 1 else 0;
+      fun make_chunks s =
+        let val chunks = Long_Name.suppress_chunks 0 s full_name
+        in if Long_Name.count_chunks chunks > m then SOME chunks else NONE end;
+    in
+      accesses spec
+      |> map_filter make_chunks
+      |> distinct Long_Name.eq_chunks
+    end;
 
 fun make_accesses ({restriction, spec, ...}: Binding.name_spec) =
   if restriction = SOME true then []
