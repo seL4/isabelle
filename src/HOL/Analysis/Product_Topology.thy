@@ -1,7 +1,7 @@
 section\<open>The binary product topology\<close>
 
 theory Product_Topology
-imports Function_Topology
+  imports Function_Topology
 begin
 
 section \<open>Product Topology\<close>

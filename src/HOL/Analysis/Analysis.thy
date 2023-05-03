@@ -4,6 +4,8 @@ theory Analysis
   Convex
   Determinants
   (* Topology *)
+  FSigma
+  Sum_Topology
   Connected
   Abstract_Limits
   Isolated
