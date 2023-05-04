@@ -1,5 +1,4 @@
-(*  Author:     L C Paulson, University of Cambridge [ported from HOL Light]
-*)
+(*  Author:     L C Paulson, University of Cambridge [ported from HOL Light] *)
 
 section \<open>Operators involving abstract topology\<close>
 
