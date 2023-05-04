@@ -209,12 +209,13 @@ fun empty kind = make_name_space (kind, Long_Name.Chunks.empty, Change_Table.emp
 fun kind_of (Name_Space {kind, ...}) = kind;
 fun lookup_internals (Name_Space {internals, ...}) = Long_Name.Chunks.lookup internals;
 fun lookup_entries (Name_Space {entries, ...}) = Change_Table.lookup entries;
-fun lookup_aliases (Name_Space {aliases, ...}) = Symtab.lookup aliases;
+fun lookup_aliases (Name_Space {aliases, ...}) = Symtab.lookup_list aliases;
+
+fun is_alias space c a =
+  c = a orelse member (op =) (lookup_aliases space c) a;
 
 fun get_aliases space name =
-  (case lookup_aliases space name of
-    NONE => [name]
-  | SOME aliases => aliases @ [name]);
+  lookup_aliases space name @ [name];
 
 fun is_valid_access space name xname =
   (case lookup_internals space xname of
@@ -292,8 +293,8 @@ fun extern ctxt space name =
     val names_unique = Config.get ctxt names_unique;
 
     fun extern_chunks require_unique a chunks =
-      let val {full_name = b, unique, ...} = intern_chunks space chunks in
-        if (not require_unique orelse unique) andalso member (op =) (get_aliases space b) a
+      let val {full_name = c, unique, ...} = intern_chunks space chunks in
+        if (not require_unique orelse unique) andalso is_alias space c a
         then SOME (Long_Name.implode_chunks chunks)
         else NONE
       end;
