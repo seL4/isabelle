@@ -11,6 +11,7 @@ signature NAME_SPACE =
 sig
   type entry =
    {concealed: bool,
+    suppress: bool list,
     group: serial,
     theory_long_name: string,
     pos: Position.T,
@@ -108,6 +109,7 @@ struct
 
 type entry =
  {concealed: bool,
+  suppress: bool list,
   group: serial,
   theory_long_name: string,
   pos: Position.T,
@@ -151,56 +153,25 @@ type externals = external Change_Table.T;  (*name -> external*)
 
 local
 
-fun mandatory xs = fold_rev (fn (x, b) => b ? cons x) xs [];
+fun suppress_prefixes1 [] = []
+  | suppress_prefixes1 (s :: ss) =
+      map (cons false) (if s then suppress_prefixes ss else suppress_prefixes1 ss)
+and suppress_prefixes ss = ss :: suppress_prefixes1 ss;
 
-fun mandatory_prefixes1 [] = []
-  | mandatory_prefixes1 ((x, true) :: xs) = map (cons x) (mandatory_prefixes1 xs)
-  | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs)
-and mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
+fun suppress_suffixes ss = map rev (suppress_prefixes (rev ss));
 
-fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
-
-fun accesses ((_: string, mandatory) :: rest) =
-      let
-        val suppr = not mandatory;
-        val accs0 = accesses rest;
-        val accs1 = map (cons suppr) accs0;
-        val accs2 = if suppr then map (cons false) accs0 else [];
-      in accs1 @ accs2 end
-  | accesses [] = [[]];
+fun make_chunks full_name m s =
+  let val chunks = Long_Name.suppress_chunks 0 s full_name
+  in if Long_Name.count_chunks chunks > m then SOME chunks else NONE end;
 
 in
 
-fun make_accesses'' ({restriction, spec, full_name, ...}: Binding.name_spec) =
+fun make_accesses {intern} restriction suppress full_name =
   if restriction = SOME true then []
   else
-    let
-      val m = if is_some restriction then 1 else 0;
-      fun make_chunks s =
-        let val chunks = Long_Name.suppress_chunks 0 s full_name
-        in if Long_Name.count_chunks chunks > m then SOME chunks else NONE end;
-    in
-      accesses spec
-      |> map_filter make_chunks
-      |> distinct Long_Name.eq_chunks
-    end;
-
-fun make_accesses ({restriction, spec, ...}: Binding.name_spec) =
-  if restriction = SOME true then []
-  else
-    let
-      val restrict = is_some restriction ? filter (fn [_] => false | _ => true);
-      val sfxs = restrict (mandatory_suffixes spec);
-      val pfxs = restrict (mandatory_prefixes spec);
-    (* FIXME suppress_chunks *)
-    in map (Long_Name.make_chunks o Long_Name.implode) (distinct (op =) (sfxs @ pfxs)) end;
-
-fun make_accesses' name =
-  let
-    val n = Long_Name.count name;
-    fun make k acc =
-      if k < n then make (k + 1) (Long_Name.suppress_chunks k [] name :: acc) else acc;
-  in make 0 [] end;
+    ((if intern then suppress_prefixes suppress else []) @ suppress_suffixes suppress)
+    |> map_filter (make_chunks full_name (if is_some restriction then 1 else 0))
+    |> distinct Long_Name.eq_chunks;
 
 end;
 
@@ -250,10 +221,16 @@ fun is_valid_access space name xname =
     SOME (name' :: _, _) => name = name'
   | _ => false);
 
-fun valid_accesses space name =
-  get_aliases space name
-  |> maps (make_accesses'' o Binding.full_name_spec)
-  |> filter (is_valid_access space name);
+fun get_accesses {intern, aliases} space name =
+  let
+    fun suppress a =
+      (case lookup_entries space a of
+        SOME {suppress, ...} => suppress
+      | NONE => []);
+    fun accesses a =
+      make_accesses {intern = intern} NONE (suppress a) a
+      |> filter (is_valid_access space a);
+  in maps accesses (if aliases then get_aliases space name else [name]) end;
 
 fun gen_markup def space name =
   (case lookup_entries space name of
@@ -314,31 +291,22 @@ fun extern ctxt space name =
     val names_short = Config.get ctxt names_short;
     val names_unique = Config.get ctxt names_unique;
 
-    fun extern_access require_unique k a =
-      let
-        val chunks = Long_Name.suppress_chunks k [] a;
-        val {full_name = b, unique, ...} = intern_chunks space chunks;
-      in
+    fun extern_chunks require_unique a chunks =
+      let val {full_name = b, unique, ...} = intern_chunks space chunks in
         if (not require_unique orelse unique) andalso member (op =) (get_aliases space b) a
         then SOME (Long_Name.implode_chunks chunks)
         else NONE
       end;
 
-    fun extern_name a =
-      let
-        fun extern k =
-          if k >= 0 then
-            (case extern_access names_unique k a of
-              NONE => extern (k - 1)
-            | some => some)
-          else NONE;
-      in extern (Long_Name.count a - 1) end;
+    fun extern_name name =
+      get_first (extern_chunks names_unique name)
+        (get_accesses {intern = false, aliases = false} space name);
 
     fun extern_names aliases =
       (case get_first extern_name aliases of
         SOME xname => xname
       | NONE =>
-          (case get_first (extern_access false 0) aliases of
+          (case get_first (fn a => extern_chunks false a (Long_Name.make_chunks a)) aliases of
             SOME xname => xname
           | NONE => Long_Name.hidden name));
   in
@@ -540,9 +508,9 @@ fun hide fully name space =
     let
       val _ = the_entry space name;
       val accesses =
-        valid_accesses space name
+        get_accesses {intern = true, aliases = true} space name
         |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
-      val accesses' = make_accesses' name;
+      val accesses' = get_accesses {intern = false, aliases = false} space name;
       val internals' = internals
         |> hide_name name
         |> fold (del_name name) accesses
@@ -556,8 +524,8 @@ fun alias naming binding name space =
   space |> map_name_space (fn (kind, internals, entries, aliases) =>
     let
       val _ = the_entry space name;
-      val name_spec as {full_name = alias_name, ...} = name_spec naming binding;
-      val alias_accesses = make_accesses name_spec;
+      val {restriction, suppress, full_name = alias_name, ...} = name_spec naming binding;
+      val alias_accesses = make_accesses {intern = true} restriction suppress alias_name;
       val _ = alias_name = "" andalso error (Binding.bad binding);
       val internals' = internals |> fold (add_name name) alias_accesses;
       val aliases' = aliases |> Symtab.update_list (op =) (name, alias_name);
@@ -596,13 +564,14 @@ fun declare context strict binding space =
   let
     val naming = naming_of context;
     val Naming {group, theory_long_name, ...} = naming;
-    val name_spec as {full_name = name, ...} = name_spec naming binding;
+    val name_spec as {restriction, suppress, full_name = name, ...} = name_spec naming binding;
     val _ = name = "" andalso error (Binding.bad binding);
-    val accesses = make_accesses name_spec;
+    val accesses = make_accesses {intern = true} restriction suppress name;
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
      {concealed = #concealed name_spec,
+      suppress = suppress,
       group = group,
       theory_long_name = theory_long_name,
       pos = pos,
