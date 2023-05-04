@@ -113,21 +113,21 @@ val ranges_empty: int vector = Vector.fromList [];
 
 in
 
-abstype chunks = Chunks of {range0: int, ranges: int vector (*reverse*), string: string}
+abstype chunks = Chunks of {range0: int, ranges: int list (*reverse*), string: string}
 with
 
-val empty_chunks = Chunks {range0 = range_empty, ranges = ranges_empty, string = ""};
+val empty_chunks = Chunks {range0 = range_empty, ranges = [], string = ""};
 
 fun is_empty_chunks (Chunks {range0, ranges, ...}) =
-  range0 = range_empty andalso Vector.length ranges = 0;
+  range0 = range_empty andalso null ranges;
 
 fun count_chunks (chunks as Chunks {ranges, ...}) =
   if is_empty_chunks chunks then 0
-  else Vector.length ranges + 1;
+  else length ranges + 1;
 
 fun size_chunks (chunks as Chunks {range0, ranges, ...}) =
   if is_empty_chunks chunks then 0
-  else Vector.fold (fn r => fn n => n + range_length r + 1) ranges (range_length range0);
+  else fold (fn r => fn n => n + range_length r + 1) ranges (range_length range0);
 
 fun base_chunks name =
   let
@@ -135,7 +135,7 @@ fun base_chunks name =
     val j = i + 1;
   in
     if i < 0 then empty_chunks
-    else Chunks {range0 = range name j (size name - j), ranges = ranges_empty, string = name}
+    else Chunks {range0 = range name j (size name - j), ranges = [], string = name}
   end;
 
 fun suppress_chunks suppress1 suppress2 string =
@@ -170,7 +170,7 @@ fun suppress_chunks suppress1 suppress2 string =
         else
           (case rs' of
             [] => empty_chunks
-          | r0 :: rest => Chunks {range0 = r0, ranges = Vector.fromList rest, string = string})
+          | r0 :: rest => Chunks {range0 = r0, ranges = rest, string = string})
       end;
   in suppr_chunks suppress1 suppress2 0 0 [] end;
 
@@ -178,11 +178,11 @@ val make_chunks = suppress_chunks 0 [];
 
 fun explode_chunks (chunks as Chunks {range0, ranges, string}) =
   if is_empty_chunks chunks then []
-  else Vector.fold (cons o range_string string) ranges [range_string string range0];
+  else fold (cons o range_string string) ranges [range_string string range0];
 
 fun implode_chunks (chunks as Chunks {range0, ranges, string}) =
   if size_chunks chunks = size string then string
-  else if Vector.length ranges = 0 then range_string string range0
+  else if null ranges then range_string string range0
   else implode (explode_chunks chunks);
 
 val compare_chunks = pointer_eq_ord (fn (chunks1, chunks2) =>
@@ -212,10 +212,10 @@ val compare_chunks = pointer_eq_ord (fn (chunks1, chunks2) =>
         EQUAL =>
           (case range_length_ord (range01, range02) of
             EQUAL =>
-              (case Vector.collate range_length_ord (ranges1, ranges2) of
+              (case dict_ord range_length_ord (ranges1, ranges2) of
                 EQUAL =>
                   (case range_substring_ord (range01, range02) of
-                    EQUAL => Vector.collate range_substring_ord (ranges1, ranges2)
+                    EQUAL => dict_ord range_substring_ord (ranges1, ranges2)
                   | ord => ord)
               | ord => ord)
           | ord => ord)
