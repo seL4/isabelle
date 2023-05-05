@@ -239,7 +239,7 @@ fun is_valid_access space name xname =
     SOME (name' :: _, _) => name = name'
   | _ => false);
 
-fun get_accesses {intern, aliases} space name =
+fun get_accesses {intern, aliases, valid} space name =
   let
     fun accesses a =
       let
@@ -249,7 +249,7 @@ fun get_accesses {intern, aliases} space name =
           | NONE => [])
       in
         make_accesses {intern = intern} NONE suppress a
-        |> filter (is_valid_access space a)
+        |> valid ? filter (is_valid_access space a)
       end;
   in if aliases then maps accesses (get_aliases space name) else accesses name end;
 
@@ -322,7 +322,7 @@ fun extern ctxt space name =
 
     fun extern_name name =
       get_first (extern_chunks names_unique name)
-        (get_accesses {intern = false, aliases = false} space name);
+        (get_accesses {intern = false, aliases = false, valid = false} space name);
 
     fun extern_names aliases =
       (case get_first extern_name aliases of
@@ -530,9 +530,9 @@ fun hide fully name space =
     let
       val _ = the_entry space name;
       val accesses =
-        get_accesses {intern = true, aliases = true} space name
+        get_accesses {intern = true, aliases = true, valid = true} space name
         |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
-      val accesses' = get_accesses {intern = false, aliases = false} space name;
+      val accesses' = get_accesses {intern = false, aliases = false, valid = true} space name;
       val internals' = internals
         |> hide_name name
         |> fold (del_name name) accesses
