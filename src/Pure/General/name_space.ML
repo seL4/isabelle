@@ -224,14 +224,17 @@ fun is_valid_access space name xname =
 
 fun get_accesses {intern, aliases} space name =
   let
-    fun suppress a =
-      (case lookup_entries space a of
-        SOME {suppress, ...} => suppress
-      | NONE => []);
     fun accesses a =
-      make_accesses {intern = intern} NONE (suppress a) a
-      |> filter (is_valid_access space a);
-  in maps accesses (if aliases then get_aliases space name else [name]) end;
+      let
+        val suppress =
+          (case lookup_entries space a of
+            SOME {suppress, ...} => suppress
+          | NONE => [])
+      in
+        make_accesses {intern = intern} NONE suppress a
+        |> filter (is_valid_access space a)
+      end;
+  in if aliases then maps accesses (get_aliases space name) else accesses name end;
 
 fun gen_markup def space name =
   (case lookup_entries space name of
