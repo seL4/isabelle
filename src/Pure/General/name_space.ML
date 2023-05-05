@@ -115,6 +115,9 @@ type entry =
   pos: Position.T,
   serial: serial};
 
+fun eq_entry_serial (entry1: entry, entry2: entry) : bool =
+  #serial entry1 = #serial entry2;
+
 fun entry_markup def kind (name, {pos, serial, ...}: entry) =
   Position.make_entity_markup def serial kind (name, pos);
 
@@ -389,7 +392,7 @@ fun merge
         then raise Long_Name.Chunks.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val entries' = (entries1, entries2) |> Change_Table.join (fn name => fn (entry1, entry2) =>
-      if #serial entry1 = #serial entry2 then raise Change_Table.SAME
+      if eq_entry_serial (entry1, entry2) then raise Change_Table.SAME
       else err_dup kind' (name, entry1) (name, entry2) Position.none);
     val aliases' = Symtab.merge_list (op =) (aliases1, aliases2);
   in make_name_space (kind', internals', entries', aliases') end;
