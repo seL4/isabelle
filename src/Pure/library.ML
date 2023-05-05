@@ -963,15 +963,17 @@ fun dict_ord elem_ord (x :: xs, y :: ys) =
   | dict_ord _ ([], _ :: _) = LESS
   | dict_ord _ (_ :: _, []) = GREATER;
 
-(*lexicographic product of lists*)
-fun length_ord (xs, ys) = int_ord (length xs, length ys);
+fun length_ord args =
+  (case args of
+    (_ :: xs, _ :: ys) => length_ord (xs, ys)
+  | ([], []) => EQUAL
+  | ([], _ :: _) => LESS
+  | (_ :: _, []) => GREATER);
+
+(*lexicographic product of lists, vectors, arrays*)
 fun list_ord elem_ord = length_ord ||| dict_ord elem_ord;
-
-fun vector_ord ord =
-  pointer_eq_ord (int_ord o apply2 Vector.length ||| Vector.collate ord);
-
-fun array_ord ord =
-  pointer_eq_ord (int_ord o apply2 Array.length ||| Array.collate ord);
+fun vector_ord ord = pointer_eq_ord (int_ord o apply2 Vector.length ||| Vector.collate ord);
+fun array_ord ord = pointer_eq_ord (int_ord o apply2 Array.length ||| Array.collate ord);
 
 
 (* sorting *)
