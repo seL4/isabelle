@@ -115,8 +115,7 @@ type decl =
   serial: serial};
 
 type alias =
-  {decl: string,
-   suppress: bool list,
+  {suppress: bool list,
    pos: Position.T,
    serial: serial};
 
@@ -158,12 +157,6 @@ fun del_name_extra name =
   map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
 val add_name = map_internals o apfst o update (op =);
 fun hide_name name = map_internals (apsnd (update (op =) name)) (Long_Name.make_chunks name);
-
-
-(* external accesses *)
-
-type external = {aliases: string list, entry: entry};
-type externals = external Change_Table.T;  (*name -> external*)
 
 
 (* accesses *)
@@ -558,7 +551,6 @@ fun alias naming strict binding name space =
           if name <> alias_name andalso (new_entry orelse strict) then
             entries |> update_entry strict kind (alias_name,
               Alias {
-                decl = name,
                 suppress = suppress,
                 pos = #2 (Position.default (Binding.pos_of binding)),
                 serial = serial ()})
