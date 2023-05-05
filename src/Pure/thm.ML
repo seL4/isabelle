@@ -400,7 +400,6 @@ val smash_atyps =
 in
 
 val union_constraints = Ord_List.union constraint_ord;
-val unions_constraints = Ord_List.unions constraint_ord;
 
 fun insert_constraints thy (T, S) =
   let
@@ -481,7 +480,6 @@ fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
 
 val union_hyps = Ord_List.union Term_Ord.fast_term_ord;
-val unions_hyps = Ord_List.unions Term_Ord.fast_term_ord;
 val insert_hyps = Ord_List.insert Term_Ord.fast_term_ord;
 val remove_hyps = Ord_List.remove Term_Ord.fast_term_ord;
 
@@ -503,7 +501,6 @@ val theory_base_name = theory_name {long = false};
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
-val constraints_of = #constraints o rep_thm;
 val shyps_of = #shyps o rep_thm;
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
