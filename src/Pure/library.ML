@@ -371,12 +371,21 @@ fun foldr1 f [] = raise List.Empty
 
 (* basic list functions *)
 
-fun eq_list eq (list1, list2) =
-  pointer_eq (list1, list2) orelse
-    let
-      fun eq_lst (x :: xs, y :: ys) = eq (x, y) andalso eq_lst (xs, ys)
-        | eq_lst _ = true;
-    in length list1 = length list2 andalso eq_lst (list1, list2) end;
+fun eq_list eq lists =
+  let
+    fun eq_len args =
+      pointer_eq args orelse
+        (case args of
+          (_ :: xs, _ :: ys) => eq_len (xs, ys)
+        | ([], []) => true
+        | _ => false);
+    fun eq_lst args =
+      pointer_eq args orelse
+        (case args of
+          (x :: xs, y :: ys) => eq (x, y) andalso eq_lst (xs, ys)
+        | ([], []) => true
+        | _ => false);
+  in eq_len lists andalso eq_lst lists end;
 
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
