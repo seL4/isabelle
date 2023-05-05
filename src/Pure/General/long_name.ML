@@ -31,7 +31,7 @@ sig
   val make_chunks: string -> chunks
   val explode_chunks: chunks -> string list
   val implode_chunks: chunks -> string
-  val compare_chunks: chunks * chunks -> order
+  val compare_chunks: chunks ord
   val eq_chunks: chunks * chunks -> bool
   structure Chunks: CHANGE_TABLE
 end;

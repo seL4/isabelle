@@ -198,7 +198,7 @@ sig
   val is_greater_equal: order -> bool
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a ord
-  val pointer_eq_ord: ('a * 'a -> order) -> 'a * 'a -> order
+  val pointer_eq_ord: 'a ord -> 'a ord
   val bool_ord: bool ord
   val int_ord: int ord
   val string_ord: string ord
