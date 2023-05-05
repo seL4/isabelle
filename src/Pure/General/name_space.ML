@@ -23,7 +23,7 @@ sig
   val markup_def: T -> string -> Markup.T
   val get_names: T -> string list
   val the_entry: T -> string -> entry
-  val the_entry_theory_name: T -> string -> string
+  val theory_name: {long: bool} -> T -> string -> string
   val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
@@ -260,8 +260,9 @@ fun the_entry space name =
     NONE => error (undefined space name)
   | SOME entry => entry);
 
-fun the_entry_theory_name space name =
-  Long_Name.base_name (#theory_long_name (the_entry space name));
+fun theory_name {long} space name =
+  #theory_long_name (the_entry space name)
+  |> not long ? Long_Name.base_name;
 
 fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
 
