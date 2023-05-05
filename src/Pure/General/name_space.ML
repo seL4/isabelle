@@ -9,20 +9,19 @@ type xstring = string;    (*external names*)
 
 signature NAME_SPACE =
 sig
-  type entry =
+  type T
+  val empty: string -> T
+  val kind_of: T -> string
+  val markup: T -> string -> Markup.T
+  val markup_def: T -> string -> Markup.T
+  val decl_names: T -> string list
+  val the_entry: T -> string ->
    {concealed: bool,
     suppress: bool list,
     group: serial,
     theory_long_name: string,
     pos: Position.T,
     serial: serial}
-  type T
-  val empty: string -> T
-  val kind_of: T -> string
-  val markup: T -> string -> Markup.T
-  val markup_def: T -> string -> Markup.T
-  val get_names: T -> string list
-  val the_entry: T -> string -> entry
   val theory_name: {long: bool} -> T -> string -> string
   val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
@@ -64,7 +63,7 @@ sig
   val full_name: naming -> binding -> string
   val base_name: binding -> string
   val hide: bool -> string -> T -> T
-  val alias: naming -> binding -> string -> T -> T
+  val alias: naming -> bool -> binding -> string -> T -> T
   val naming_of: Context.generic -> naming
   val map_naming: (naming -> naming) -> Context.generic -> Context.generic
   val declared: T -> string -> bool
@@ -81,7 +80,7 @@ sig
   val lookup_key: 'a table -> string -> (string * 'a) option
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
-  val alias_table: naming -> binding -> string -> 'a table -> 'a table
+  val alias_table: naming -> bool -> binding -> string -> 'a table -> 'a table
   val hide_table: bool -> string -> 'a table -> 'a table
   val del_table: string -> 'a table -> 'a table
   val map_table_entry: string -> ('a -> 'a) -> 'a table -> 'a table
@@ -107,7 +106,7 @@ struct
 
 (* datatype entry *)
 
-type entry =
+type decl =
  {concealed: bool,
   suppress: bool list,
   group: serial,
@@ -115,18 +114,33 @@ type entry =
   pos: Position.T,
   serial: serial};
 
-fun eq_entry_serial (entry1: entry, entry2: entry) : bool =
-  #serial entry1 = #serial entry2;
+type alias =
+  {decl: string,
+   suppress: bool list,
+   pos: Position.T,
+   serial: serial};
 
-fun entry_markup def kind (name, {pos, serial, ...}: entry) =
-  Position.make_entity_markup def serial kind (name, pos);
+datatype entry = Decl of decl | Alias of alias;
+
+val entry_suppress = fn Decl {suppress, ...} => suppress | Alias {suppress, ...} => suppress;
+val entry_pos = fn Decl {pos, ...} => pos | Alias {pos, ...} => pos;
+val entry_serial = fn Decl {serial, ...} => serial | Alias {serial, ...} => serial;
+
+fun markup_entry def kind (name, entry) =
+  Position.make_entity_markup def (entry_serial entry) kind (name, entry_pos entry);
 
 fun print_entry_ref kind (name, entry) =
-  quote (Markup.markup (entry_markup {def = false} kind (name, entry)) name);
+  quote (Markup.markup (markup_entry {def = false} kind (name, entry)) name);
 
-fun err_dup kind entry1 entry2 pos =
+fun err_dup_entry kind entry1 entry2 pos =
   error ("Duplicate " ^ plain_words kind ^ " declaration " ^
     print_entry_ref kind entry1 ^ " vs. " ^ print_entry_ref kind entry2 ^ Position.here pos);
+
+fun update_entry strict kind (name, entry) entries =
+  (if strict then Change_Table.update_new else Change_Table.update) (name, entry) entries
+    handle Change_Table.DUP _ =>
+      let val old_entry = the (Change_Table.lookup entries name)
+      in err_dup_entry kind (name, old_entry) (name, entry) (entry_pos entry) end;
 
 
 (* internal names *)
@@ -231,7 +245,7 @@ fun get_accesses {intern, aliases} space name =
       let
         val suppress =
           (case lookup_entries space a of
-            SOME {suppress, ...} => suppress
+            SOME entry => entry_suppress entry
           | NONE => [])
       in
         make_accesses {intern = intern} NONE suppress a
@@ -242,7 +256,7 @@ fun get_accesses {intern, aliases} space name =
 fun gen_markup def space name =
   (case lookup_entries space name of
     NONE => Markup.intensify
-  | SOME entry => entry_markup def (kind_of space) (name, entry));
+  | SOME entry => markup_entry def (kind_of space) (name, entry));
 
 val markup = gen_markup {def = false};
 val markup_def = gen_markup {def = true};
@@ -258,13 +272,13 @@ fun undefined (space as Name_Space {kind, entries, ...}) bad =
       | NONE => ("Undefined", quote bad));
   in prfx ^ " " ^ plain_words kind ^ ": " ^ sfx end;
 
-fun get_names (Name_Space {entries, ...}) =
-  Change_Table.fold (cons o #1) entries [];
+fun decl_names (Name_Space {entries, ...}) =
+  Change_Table.fold (fn (name, Decl _) => cons name | _ => I) entries [];
 
 fun the_entry space name =
   (case lookup_entries space name of
-    NONE => error (undefined space name)
-  | SOME entry => entry);
+    SOME (Decl decl) => decl
+  | _ => error (undefined space name));
 
 fun theory_name {long} space name =
   #theory_long_name (the_entry space name)
@@ -392,8 +406,8 @@ fun merge
         then raise Long_Name.Chunks.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val entries' = (entries1, entries2) |> Change_Table.join (fn name => fn (entry1, entry2) =>
-      if eq_entry_serial (entry1, entry2) then raise Change_Table.SAME
-      else err_dup kind' (name, entry1) (name, entry2) Position.none);
+      if op = (apply2 entry_serial (entry1, entry2)) then raise Change_Table.SAME
+      else err_dup_entry kind' (name, entry1) (name, entry2) Position.none);
     val aliases' = Symtab.merge_list (op =) (aliases1, aliases2);
   in make_name_space (kind', internals', entries', aliases') end;
 
@@ -528,16 +542,31 @@ fun hide fully name space =
 
 (* alias *)
 
-fun alias naming binding name space =
-  space |> map_name_space (fn (kind, internals, entries, aliases) =>
-    let
-      val _ = the_entry space name;
-      val {restriction, suppress, full_name = alias_name, ...} = name_spec naming binding;
-      val alias_accesses = make_accesses {intern = true} restriction suppress alias_name;
-      val _ = alias_name = "" andalso error (Binding.bad binding);
-      val internals' = internals |> fold (add_name name) alias_accesses;
-      val aliases' = aliases |> Symtab.update_list (op =) (name, alias_name);
-    in (kind, internals', entries, aliases') end);
+fun alias naming strict binding name space =
+  let
+    val _ = the_entry space name;
+    val {restriction, suppress, full_name = alias_name, ...} = name_spec naming binding;
+    val alias_accesses = make_accesses {intern = true} restriction suppress alias_name;
+    val _ = alias_name = "" andalso error (Binding.bad binding);
+    val new_entry = is_none (lookup_entries space alias_name);
+    val decl_entry = can (the_entry space) alias_name;
+  in
+    space |> map_name_space (fn (kind, internals, entries, aliases) =>
+      let
+        val internals' = internals |> fold (add_name name) alias_accesses;
+        val entries' =
+          if name <> alias_name andalso (new_entry orelse strict) then
+            entries |> update_entry strict kind (alias_name,
+              Alias {
+                decl = name,
+                suppress = suppress,
+                pos = #2 (Position.default (Binding.pos_of binding)),
+                serial = serial ()})
+          else entries;
+        val aliases' = aliases
+          |> (not decl_entry) ? Symtab.update_list (op =) (name, alias_name);
+      in (kind, internals', entries', aliases') end)
+  end;
 
 
 
@@ -578,24 +607,22 @@ fun declare context strict binding space =
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
-     {concealed = #concealed name_spec,
-      suppress = suppress,
-      group = group,
-      theory_long_name = theory_long_name,
-      pos = pos,
-      serial = serial ()};
+      Decl {
+        concealed = #concealed name_spec,
+        suppress = suppress,
+        group = group,
+        theory_long_name = theory_long_name,
+        pos = pos,
+        serial = serial ()};
     val space' =
       space |> map_name_space (fn (kind, internals, entries, aliases) =>
         let
           val internals' = internals |> fold (add_name name) accesses;
-          val entries' =
-            (if strict then Change_Table.update_new else Change_Table.update) (name, entry) entries
-            handle Change_Table.DUP dup =>
-              err_dup kind (dup, the (lookup_entries space dup)) (name, entry) (#pos entry);
+          val entries' = entries |> update_entry strict kind (name, entry);
         in (kind, internals', entries', aliases) end);
     val _ =
       if proper_pos andalso Context_Position.is_reported_generic context pos then
-        Position.report pos (entry_markup {def = true} (kind_of space) (name, entry))
+        Position.report pos (markup_entry {def = true} (kind_of space) (name, entry))
       else ();
   in (name, space') end;
 
@@ -651,8 +678,8 @@ fun define context strict (binding, x) (Table (space, tab)) =
 
 (* derived table operations *)
 
-fun alias_table naming binding name (Table (space, tab)) =
-  Table (alias naming binding name space, tab);
+fun alias_table naming strict binding name (Table (space, tab)) =
+  Table (alias naming strict binding name space, tab);
 
 fun hide_table fully name (Table (space, tab)) =
   Table (hide fully name space, tab);

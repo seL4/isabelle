@@ -24,7 +24,7 @@ sig
   type T
   val empty: T
   val space_of: T -> Name_Space.T
-  val alias: Name_Space.naming -> binding -> string -> T -> T
+  val alias: Name_Space.naming -> bool -> binding -> string -> T -> T
   val is_concealed: T -> string -> bool
   val check: Context.generic -> T -> xstring * Position.T -> string
   val intern: T -> xstring -> string
@@ -155,8 +155,8 @@ fun facts_of (Facts {facts, ...}) = facts;
 
 val space_of = Name_Space.space_of_table o facts_of;
 
-fun alias naming binding name (Facts {facts, props}) =
-  make_facts (Name_Space.alias_table naming binding name facts) props;
+fun alias naming strict binding name (Facts {facts, props}) =
+  make_facts (Name_Space.alias_table naming strict binding name facts) props;
 
 val is_concealed = Name_Space.is_concealed o space_of;
 

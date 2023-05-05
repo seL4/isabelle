@@ -79,7 +79,7 @@ val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
 
 fun alias_fact binding name thy =
-  map_facts (Facts.alias (Sign.naming_of thy) binding name) thy;
+  map_facts (Facts.alias (Sign.naming_of thy) true binding name) thy;
 
 fun hide_fact fully name = map_facts (Facts.hide fully name);
 

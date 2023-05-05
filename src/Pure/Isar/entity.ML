@@ -39,7 +39,7 @@ fun alias {get_data, put_data} binding name =
     let
       val naming = Name_Space.naming_of context;
       val binding' = Morphism.binding phi binding;
-      val data' = Name_Space.alias_table naming binding' name (get_data context);
+      val data' = Name_Space.alias_table naming true binding' name (get_data context);
     in put_data data' context end);
 
 fun transfer {get_data, put_data} ctxt =
