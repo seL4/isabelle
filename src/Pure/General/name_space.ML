@@ -144,19 +144,18 @@ fun update_entry strict kind (name, entry) entries =
 
 (* internal names *)
 
-type internal = string list * string list;  (*visible, hidden*)
-type internals = internal Long_Name.Chunks.T;  (*xname -> internal*)
+type internals = string list Long_Name.Chunks.T;  (*external name -> internal names*)
 
-val internal_default: internal = ([], []);
+val merge_internals : internals * internals -> internals = Long_Name.Chunks.merge_list (op =);
 
-fun map_internals f xname : internals -> internals =
-  Long_Name.Chunks.map_default (xname, internal_default) f;
+fun add_name name xname : internals -> internals =
+  Long_Name.Chunks.update_list (op =) (xname, name);
 
-val del_name = map_internals o apfst o remove (op =);
-fun del_name_extra name =
-  map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
-val add_name = map_internals o apfst o update (op =);
-fun hide_name name = map_internals (apsnd (update (op =) name)) (Long_Name.make_chunks name);
+fun del_name name xname : internals -> internals =
+  Long_Name.Chunks.remove_list (op =) (xname, name);
+
+fun del_name_extra name xname : internals -> internals =
+  Long_Name.Chunks.map_default (xname, []) (fn [] => [] | x :: xs => x :: remove (op =) name xs);
 
 
 (* accesses *)
@@ -192,32 +191,43 @@ datatype T =
   Name_Space of
    {kind: string,
     internals: internals,
+    internals_hidden: internals,
     entries: entry Change_Table.T,
     aliases: string list Symtab.table};
 
-fun make_name_space (kind, internals, entries, aliases) =
-  Name_Space {kind = kind, internals = internals, entries = entries, aliases = aliases};
+fun make_name_space (kind, internals, internals_hidden, entries, aliases) =
+  Name_Space {kind = kind, internals = internals, internals_hidden = internals_hidden,
+    entries = entries, aliases = aliases};
 
-fun map_name_space f (Name_Space {kind, internals, entries, aliases}) =
-  make_name_space (f (kind, internals, entries, aliases));
+fun map_name_space f (Name_Space {kind, internals, internals_hidden, entries, aliases}) =
+  make_name_space (f (kind, internals, internals_hidden, entries, aliases));
 
-fun change_base_space begin = map_name_space (fn (kind, internals, entries, aliases) =>
-  (kind,
-    Long_Name.Chunks.change_base begin internals,
-    Change_Table.change_base begin entries,
-    aliases));
+fun change_base_space begin =
+  map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
+    (kind,
+      Long_Name.Chunks.change_base begin internals,
+      Long_Name.Chunks.change_base begin internals_hidden,
+      Change_Table.change_base begin entries,
+      aliases));
 
-val change_ignore_space = map_name_space (fn (kind, internals, entries, aliases) =>
-  (kind,
-    Long_Name.Chunks.change_ignore internals,
-    Change_Table.change_ignore entries,
-    aliases));
+val change_ignore_space =
+  map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
+    (kind,
+      Long_Name.Chunks.change_ignore internals,
+      Long_Name.Chunks.change_ignore internals_hidden,
+      Change_Table.change_ignore entries,
+      aliases));
 
 
-fun empty kind = make_name_space (kind, Long_Name.Chunks.empty, Change_Table.empty, Symtab.empty);
+fun empty kind =
+  make_name_space
+    (kind, Long_Name.Chunks.empty, Long_Name.Chunks.empty, Change_Table.empty, Symtab.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
-fun lookup_internals (Name_Space {internals, ...}) = Long_Name.Chunks.lookup internals;
+fun lookup_internals (Name_Space {internals, ...}) =
+  Long_Name.Chunks.lookup_list internals;
+fun lookup_internals_hidden (Name_Space {internals_hidden, ...}) =
+  Long_Name.Chunks.lookup_list internals_hidden;
 fun lookup_entries (Name_Space {entries, ...}) = Change_Table.lookup entries;
 fun lookup_aliases (Name_Space {aliases, ...}) = Symtab.lookup_list aliases;
 
@@ -229,7 +239,7 @@ fun get_aliases space name =
 
 fun is_valid_access space name xname =
   (case lookup_internals space xname of
-    SOME (name' :: _, _) => name = name'
+    name' :: _ => name = name'
   | _ => false);
 
 fun get_accesses {intern, aliases, valid} space name =
@@ -286,10 +296,15 @@ fun is_concealed space name =
 (* intern *)
 
 fun intern_chunks space xname =
-  (case the_default internal_default (lookup_internals space xname) of
-    (name :: rest, _) => {name = name, full_name = name, unique = null rest}
-  | ([], name' :: _) => {name = Long_Name.hidden name', full_name = "", unique = true}
-  | _ => {name = Long_Name.hidden (Long_Name.implode_chunks xname), full_name = "", unique = true});
+  (case lookup_internals space xname of
+    name :: rest => {name = name, full_name = name, unique = null rest}
+  | [] =>
+      (case lookup_internals_hidden space xname of
+        name' :: _ => {name = Long_Name.hidden name', full_name = "", unique = true}
+      | [] =>
+         {name = Long_Name.hidden (Long_Name.implode_chunks xname),
+          full_name = "",
+          unique = true}));
 
 fun intern space = #name o intern_chunks space o Long_Name.make_chunks;
 
@@ -376,7 +391,7 @@ fun completion context space pred (xname, pos) =
         else I;
     in
       Long_Name.Chunks.fold
-        (fn (xname', (name :: _, _)) => complete (Long_Name.implode_chunks xname') name | _ => I)
+        (fn (xname', name :: _) => complete (Long_Name.implode_chunks xname') name | _ => I)
         internals []
       |> sort_distinct result_ord
       |> map #2
@@ -386,23 +401,22 @@ fun completion context space pred (xname, pos) =
 (* merge *)
 
 fun merge
-   (Name_Space {kind = kind1, internals = internals1, entries = entries1, aliases = aliases1},
-    Name_Space {kind = kind2, internals = internals2, entries = entries2, aliases = aliases2}) =
+   (Name_Space {kind = kind1, internals = internals1, internals_hidden = internals_hidden1,
+     entries = entries1, aliases = aliases1},
+    Name_Space {kind = kind2, internals = internals2, internals_hidden = internals_hidden2,
+     entries = entries2, aliases = aliases2}) =
   let
     val kind' =
       if kind1 = kind2 then kind1
       else error ("Attempt to merge different kinds of name spaces " ^
         quote kind1 ^ " vs. " ^ quote kind2);
-    val internals' = (internals1, internals2) |> Long_Name.Chunks.join
-      (K (fn ((names1, names1'), (names2, names2')) =>
-        if pointer_eq (names1, names2) andalso pointer_eq (names1', names2')
-        then raise Long_Name.Chunks.SAME
-        else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
+    val internals' = merge_internals (internals1, internals2);
+    val internals_hidden' = merge_internals (internals_hidden1, internals_hidden2);
     val entries' = (entries1, entries2) |> Change_Table.join (fn name => fn (entry1, entry2) =>
       if op = (apply2 entry_serial (entry1, entry2)) then raise Change_Table.SAME
       else err_dup_entry kind' (name, entry1) (name, entry2) Position.none);
     val aliases' = Symtab.merge_list (op =) (aliases1, aliases2);
-  in make_name_space (kind', internals', entries', aliases') end;
+  in make_name_space (kind', internals', internals_hidden', entries', aliases') end;
 
 
 
@@ -519,7 +533,7 @@ val base_name = Long_Name.base_name o full_name global_naming;
 (* hide *)
 
 fun hide fully name space =
-  space |> map_name_space (fn (kind, internals, entries, aliases) =>
+  space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
     let
       val _ = the_entry space name;
       val accesses =
@@ -527,10 +541,11 @@ fun hide fully name space =
         |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
       val accesses' = get_accesses {intern = false, aliases = false, valid = true} space name;
       val internals' = internals
-        |> hide_name name
         |> fold (del_name name) accesses
         |> fold (del_name_extra name) accesses';
-    in (kind, internals', entries, aliases) end);
+      val internals_hidden' = internals_hidden
+        |> add_name name (Long_Name.make_chunks name);
+    in (kind, internals', internals_hidden', entries, aliases) end);
 
 
 (* alias *)
@@ -544,7 +559,7 @@ fun alias naming strict binding name space =
     val new_entry = is_none (lookup_entries space alias_name);
     val decl_entry = can (the_entry space) alias_name;
   in
-    space |> map_name_space (fn (kind, internals, entries, aliases) =>
+    space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
       let
         val internals' = internals |> fold (add_name name) alias_accesses;
         val entries' =
@@ -557,7 +572,7 @@ fun alias naming strict binding name space =
           else entries;
         val aliases' = aliases
           |> (not decl_entry) ? Symtab.update_list (op =) (name, alias_name);
-      in (kind, internals', entries', aliases') end)
+      in (kind, internals', internals_hidden, entries', aliases') end)
   end;
 
 
@@ -607,11 +622,11 @@ fun declare context strict binding space =
         pos = pos,
         serial = serial ()};
     val space' =
-      space |> map_name_space (fn (kind, internals, entries, aliases) =>
+      space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
         let
           val internals' = internals |> fold (add_name name) accesses;
           val entries' = entries |> update_entry strict kind (name, entry);
-        in (kind, internals', entries', aliases) end);
+        in (kind, internals', internals_hidden, entries', aliases) end);
     val _ =
       if proper_pos andalso Context_Position.is_reported_generic context pos then
         Position.report pos (markup_entry {def = true} (kind_of space) (name, entry))
