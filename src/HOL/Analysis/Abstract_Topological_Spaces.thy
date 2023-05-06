@@ -1045,7 +1045,7 @@ next
 qed
 
 
-subsection\<open>T_0 spaces and the Kolmogorov quotient\<close>
+subsection\<open>$T_0$ spaces and the Kolmogorov quotient\<close>
 
 definition t0_space where
   "t0_space X \<equiv>
@@ -1646,16 +1646,18 @@ proof (intro strip)
     then have "closedin X C"
       using assms by (auto simp: kc_space_def)
     show ?thesis
-      apply (rule_tac x="(topspace X - C) \<times> V" in exI)
-      using VU
-      apply (auto simp:  )
-          apply (metis VU(1) \<open>closedin X C\<close> closedin_def openin_prod_Times_iff)
-      using that apply blast
-        apply (auto simp: C_def image_iff Ball_def)
-      using V'_def VU(4) apply auto[1]
-       apply (simp add: \<open>b \<in> V\<close>)
-      using \<open>V \<subseteq> topspace Y\<close> apply blast
-      using \<open>V \<subseteq> V'\<close> \<open>V \<subseteq> topspace Y\<close> by blast
+    proof (intro exI conjI)
+      show "openin (prod_topology X Y) ((topspace X - C) \<times> V)"
+        by (simp add: VU \<open>closedin X C\<close> openin_diff openin_prod_Times_iff)
+      have "a \<notin> C"
+        using VU by (auto simp: C_def V'_def)
+      then show "(a, b) \<in> (topspace X - C) \<times> V"
+        using \<open>a \<notin> C\<close> \<open>b \<in> V\<close> that by blast
+      show "(topspace X - C) \<times> V \<subseteq> topspace X \<times> topspace Y - K"
+        using \<open>V \<subseteq> V'\<close> \<open>V \<subseteq> topspace Y\<close> 
+        apply (simp add: C_def )
+        by (smt (verit, ccfv_threshold) DiffE DiffI IntI SigmaE SigmaI image_eqI mem_Collect_eq prod.sel(1) snd_conv subset_iff)
+    qed
   qed
   ultimately show "closedin (prod_topology X Y) K"
     by (metis surj_pair closedin_def openin_subopen topspace_prod_topology)
@@ -1668,8 +1670,7 @@ lemma kc_space_prod_topology_right:
 
 subsection \<open>Regular spaces\<close>
 
-text \<open>Regular spaces. These are *not* a priori assumed to be Hausdorff/T_1\<close>
-
+text \<open>Regular spaces are *not* a priori assumed to be Hausdorff or $T_1$\<close>
 
 definition regular_space 
   where "regular_space X \<equiv>
