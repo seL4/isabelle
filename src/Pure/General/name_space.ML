@@ -148,13 +148,13 @@ type internals = string list Long_Name.Chunks.T;  (*external name -> internal na
 
 val merge_internals : internals * internals -> internals = Long_Name.Chunks.merge_list (op =);
 
-fun add_name name xname : internals -> internals =
+fun add_internals name xname : internals -> internals =
   Long_Name.Chunks.update_list (op =) (xname, name);
 
-fun del_name name xname : internals -> internals =
+fun del_internals name xname : internals -> internals =
   Long_Name.Chunks.remove_list (op =) (xname, name);
 
-fun del_name_extra name xname : internals -> internals =
+fun del_internals' name xname : internals -> internals =
   Long_Name.Chunks.map_default (xname, []) (fn [] => [] | x :: xs => x :: remove (op =) name xs);
 
 
@@ -541,10 +541,10 @@ fun hide fully name space =
         |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
       val accesses' = get_accesses {intern = false, aliases = false, valid = true} space name;
       val internals' = internals
-        |> fold (del_name name) accesses
-        |> fold (del_name_extra name) accesses';
+        |> fold (del_internals name) accesses
+        |> fold (del_internals' name) accesses';
       val internals_hidden' = internals_hidden
-        |> add_name name (Long_Name.make_chunks name);
+        |> add_internals name (Long_Name.make_chunks name);
     in (kind, internals', internals_hidden', entries, aliases) end);
 
 
@@ -561,7 +561,7 @@ fun alias naming strict binding name space =
   in
     space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
       let
-        val internals' = internals |> fold (add_name name) alias_accesses;
+        val internals' = internals |> fold (add_internals name) alias_accesses;
         val entries' =
           if name <> alias_name andalso (new_entry orelse strict) then
             entries |> update_entry strict kind (alias_name,
@@ -624,7 +624,7 @@ fun declare context strict binding space =
     val space' =
       space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
         let
-          val internals' = internals |> fold (add_name name) accesses;
+          val internals' = internals |> fold (add_internals name) accesses;
           val entries' = entries |> update_entry strict kind (name, entry);
         in (kind, internals', internals_hidden, entries', aliases) end);
     val _ =
