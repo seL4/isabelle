@@ -33,6 +33,7 @@ sig
   val insert_list: ('a * 'a -> bool) -> key * 'a -> 'a list T -> 'a list T
   val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list T -> 'a list T
   val update_list: ('a * 'a -> bool) -> key * 'a -> 'a list T -> 'a list T
+  val merge_list: ('a * 'a -> bool) -> 'a list T * 'a list T -> 'a list T
 end;
 
 functor Change_Table(Key: KEY): CHANGE_TABLE =
@@ -137,6 +138,9 @@ fun join f (arg1, arg2) =
 
 fun merge eq =
   join (fn key => fn xy => if eq xy then raise Table.SAME else raise Table.DUP key);
+
+fun merge_list eq =
+  join (fn _ => fn xy => if eq_list eq xy then raise Table.SAME else Library.merge eq xy);
 
 
 (* derived operations *)

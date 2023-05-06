@@ -635,7 +635,7 @@ fun update_list eq (key, x) =
 fun make_list args = build (fold_rev cons_list args);
 fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
 fun merge_list eq =
-  join (fn _ => fn args => if eq_list eq args then raise SAME else Library.merge eq args);
+  join (fn _ => fn xy => if eq_list eq xy then raise SAME else Library.merge eq xy);
 
 
 (* set operations *)
