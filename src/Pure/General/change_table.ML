@@ -30,6 +30,7 @@ sig
   val map_entry: key -> ('a -> 'a) -> 'a T -> 'a T
   val map_default: key * 'a -> ('a -> 'a) -> 'a T -> 'a T
   val delete_safe: key -> 'a T -> 'a T
+  val lookup_list: 'a list T -> Table.key -> 'a list
   val insert_list: ('a * 'a -> bool) -> key * 'a -> 'a list T -> 'a list T
   val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list T -> 'a list T
   val update_list: ('a * 'a -> bool) -> key * 'a -> 'a list T -> 'a list T
@@ -160,6 +161,7 @@ fun map_entry key f        = change_table key (Table.map_entry key f);
 fun map_default (key, x) f = change_table key (Table.map_default (key, x) f);
 fun delete_safe key        = change_table key (Table.delete_safe key);
 
+fun lookup_list arg = Table.lookup_list (table_of arg);
 fun insert_list eq (key, x) = change_table key (Table.insert_list eq (key, x));
 fun remove_list eq (key, x) = change_table key (Table.remove_list eq (key, x));
 fun update_list eq (key, x) = change_table key (Table.update_list eq (key, x));
