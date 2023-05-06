@@ -6,6 +6,7 @@ theory Analysis
   (* Topology *)
   FSigma
   Sum_Topology
+  Abstract_Topological_Spaces
   Connected
   Abstract_Limits
   Isolated
