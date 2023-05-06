@@ -245,7 +245,7 @@ fun restore_mode ctxt = set_mode (get_mode ctxt);
 val type_space = Name_Space.space_of_table o #types o rep_tsig;
 
 fun type_alias naming binding name = map_tsig (fn (classes, default, types) =>
-  (classes, default, (Name_Space.alias_table naming true binding name types)));
+  (classes, default, (Name_Space.alias_table naming binding name types)));
 
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;

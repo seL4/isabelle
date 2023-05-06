@@ -1076,7 +1076,7 @@ fun put_thms index thms ctxt = ctxt
 
 end;
 
-fun alias_fact b c ctxt = map_facts (Facts.alias (naming_of ctxt) false b c) ctxt;
+fun alias_fact b c ctxt = map_facts (Facts.alias (naming_of ctxt) b c) ctxt;
 
 
 

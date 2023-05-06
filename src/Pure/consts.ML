@@ -140,7 +140,7 @@ fun the_constraint (consts as Consts {constraints, ...}) c =
 fun space_of (Consts {decls, ...}) = Name_Space.space_of_table decls;
 
 fun alias naming binding name = map_consts (fn (decls, constraints, rev_abbrevs) =>
-  ((Name_Space.alias_table naming true binding name decls), constraints, rev_abbrevs));
+  ((Name_Space.alias_table naming binding name decls), constraints, rev_abbrevs));
 
 val is_concealed = Name_Space.is_concealed o space_of;
 

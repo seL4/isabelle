@@ -463,7 +463,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
       let
         val space = get_space thy;
         val export_name = "other/" ^ Name_Space.kind_of space;
-        val decls = Name_Space.decl_names space |> map (rpair ());
+        val decls = Name_Space.get_names space |> map (rpair ());
       in export_entities export_name get_space decls (fn _ => fn () => SOME (K [])) end;
 
     val other_spaces = other_name_spaces thy;
