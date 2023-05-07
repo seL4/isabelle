@@ -232,22 +232,6 @@ fun is_alias space c a =
 fun get_aliases space name =
   lookup_aliases space name @ [suppress_entry space name];
 
-fun is_valid_access space name xname =
-  (case lookup_internals space xname of
-    name' :: _ => name = name'
-  | _ => false);
-
-fun valid_accesses {intern, aliases} space name =
-  let
-    fun accesses (suppress, a) =
-      make_accesses {intern = intern} NONE suppress a
-      |> filter (is_valid_access space a);
-  in
-    if aliases then maps accesses (get_aliases space name)
-    else accesses (suppress_entry space name)
-  end;
-
-
 fun gen_markup def space name =
   (case lookup_entries space name of
     NONE => Markup.intensify
@@ -528,10 +512,11 @@ fun hide fully name space =
   space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
     let
       val _ = the_entry space name;
+      val hide_names = get_aliases space name;
       val accesses =
-        valid_accesses {intern = true, aliases = true} space name
+        maps (uncurry (make_accesses {intern = true} NONE)) hide_names
         |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
-      val accesses' = valid_accesses {intern = false, aliases = false} space name;
+      val accesses' = maps (uncurry (make_accesses {intern = false} NONE)) hide_names;
       val internals' = internals
         |> fold (del_internals name) accesses
         |> fold (del_internals' name) accesses';
