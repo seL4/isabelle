@@ -383,6 +383,10 @@ lemma closedin_closed_subtopology:
      "closedin X S \<Longrightarrow> (closedin (subtopology X S) T \<longleftrightarrow> closedin X T \<and> T \<subseteq> S)"
   by (metis closedin_Int closedin_imp_subset closedin_subtopology inf.orderE)
 
+lemma closedin_trans_full:
+   "\<lbrakk>closedin (subtopology X U) S; closedin X U\<rbrakk> \<Longrightarrow> closedin X S"
+  using closedin_closed_subtopology by blast
+
 lemma openin_subtopology_Un:
     "\<lbrakk>openin (subtopology X T) S; openin (subtopology X U) S\<rbrakk>
      \<Longrightarrow> openin (subtopology X (T \<union> U)) S"
@@ -4038,6 +4042,7 @@ lemma continuous_map_euclidean_top_of_set:
   shows "continuous_map euclidean (top_of_set S) f"
   by (simp add: cont continuous_map_into_subtopology eq image_subset_iff_subset_vimage)
 
+
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Half-global and completely global cases\<close>
 
 lemma continuous_openin_preimage_gen:
@@ -4479,6 +4484,188 @@ lemma continuous_on_generated_topo:
           "f`(topspace T1) \<subseteq> (\<Union> S)"
   shows "continuous_map T1 (topology_generated_by S) f"
   using assms continuous_on_generated_topo_iff by blast
+
+
+subsection\<open>Continuity via bases/subbases, hence upper and lower semicontinuity\<close>
+
+lemma continuous_map_into_topology_base:
+  assumes P: "openin Y = arbitrary union_of P"
+    and f: "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+    and ope: "\<And>U. P U \<Longrightarrow> openin X {x \<in> topspace X. f x \<in> U}"
+  shows "continuous_map X Y f"
+proof -
+  have *: "\<And>\<U>. (\<And>t. t \<in> \<U> \<Longrightarrow> P t) \<Longrightarrow> openin X {x \<in> topspace X. \<exists>U\<in>\<U>. f x \<in> U}"
+    by (smt (verit) Ball_Collect ope mem_Collect_eq openin_subopen)
+  show ?thesis
+    using P by (auto simp: continuous_map_def arbitrary_def union_of_def intro!: f *)
+qed
+
+lemma continuous_map_into_topology_base_eq:
+  assumes P: "openin Y = arbitrary union_of P"
+  shows
+   "continuous_map X Y f \<longleftrightarrow>
+    (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and> (\<forall>U. P U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
+ (is "?lhs=?rhs")
+proof
+  assume L: ?lhs 
+  then have "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+    by (meson continuous_map_def)
+  moreover have "\<And>U. P U \<Longrightarrow> openin X {x \<in> topspace X. f x \<in> U}"
+    using L assms continuous_map openin_topology_base_unique by fastforce
+  ultimately show ?rhs by auto
+qed (simp add: assms continuous_map_into_topology_base)
+
+lemma continuous_map_into_topology_subbase:
+  fixes U P
+  defines "Y \<equiv> topology(arbitrary union_of (finite intersection_of P relative_to U))"
+  assumes f: "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+    and ope: "\<And>U. P U \<Longrightarrow> openin X {x \<in> topspace X. f x \<in> U}"
+  shows "continuous_map X Y f"
+proof (intro continuous_map_into_topology_base)
+  show "openin Y = arbitrary union_of (finite intersection_of P relative_to U)"
+    unfolding Y_def using istopology_subbase topology_inverse' by blast
+  show "openin X {x \<in> topspace X. f x \<in> V}"
+    if \<section>: "(finite intersection_of P relative_to U) V" for V 
+  proof -
+    define finv where "finv \<equiv> \<lambda>V. {x \<in> topspace X. f x \<in> V}"
+    obtain \<U> where \<U>: "finite \<U>" "\<And>V. V \<in> \<U> \<Longrightarrow> P V"
+                      "{x \<in> topspace X. f x \<in> V} = (\<Inter>V \<in> insert U \<U>. finv V)"
+      using \<section> by (fastforce simp: finv_def intersection_of_def relative_to_def)
+    show ?thesis
+      unfolding \<U>
+    proof (intro openin_Inter ope)
+      have U: "U = topspace Y"
+        unfolding Y_def using topspace_subbase by fastforce
+      fix V
+      assume V: "V \<in> finv ` insert U \<U>"
+      with U f have "openin X {x \<in> topspace X. f x \<in> U}"
+        by (auto simp: openin_subopen [of X "Collect _"])
+      then show "openin X V"
+        using V \<U>(2) ope by (fastforce simp: finv_def)
+    qed (use \<open>finite \<U>\<close> in auto)
+  qed
+qed (use f in auto)
+
+lemma continuous_map_into_topology_subbase_eq:
+  assumes "Y = topology(arbitrary union_of (finite intersection_of P relative_to U))"
+  shows
+   "continuous_map X Y f \<longleftrightarrow>
+    (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and> (\<forall>U. P U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
+   (is "?lhs=?rhs")
+proof
+  assume L: ?lhs 
+  show ?rhs
+  proof (intro conjI strip)
+    show "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+      using L continuous_map_def by fastforce
+    fix V
+    assume "P V"
+    have "U = topspace Y"
+      unfolding assms using topspace_subbase by fastforce
+    then have eq: "{x \<in> topspace X. f x \<in> V} = {x \<in> topspace X. f x \<in> U \<inter> V}"
+      using L by (auto simp: continuous_map)
+    have "openin Y (U \<inter> V)"
+      unfolding assms openin_subbase
+      by (meson \<open>P V\<close> arbitrary_union_of_inc finite_intersection_of_inc relative_to_inc)
+    show "openin X {x \<in> topspace X. f x \<in> V}"
+      using L \<open>openin Y (U \<inter> V)\<close> continuous_map eq by fastforce
+  qed
+next
+  show "?rhs \<Longrightarrow> ?lhs"
+    unfolding assms
+    by (intro continuous_map_into_topology_subbase) auto
+qed 
+
+lemma subbase_subtopology_euclidean:
+  fixes U :: "'a::order_topology set"
+  shows
+  "topology
+    (arbitrary union_of
+      (finite intersection_of (\<lambda>x. x \<in> range greaterThan \<union> range lessThan) relative_to U))
+ = subtopology euclidean U"
+proof -
+  have "\<exists>V. (finite intersection_of (\<lambda>x. x \<in> range greaterThan \<or> x \<in> range lessThan)) V \<and> x \<in> V \<and> V \<subseteq> W"
+    if "open W" "x \<in> W" for W and x::'a
+    using \<open>open W\<close> [unfolded open_generated_order] \<open>x \<in> W\<close>
+  proof (induct rule: generate_topology.induct)
+    case UNIV
+    then show ?case
+      using finite_intersection_of_empty by blast
+  next
+    case (Int a b)
+    then show ?case 
+        by (meson Int_iff finite_intersection_of_Int inf_mono)
+  next
+    case (UN K)
+    then show ?case
+      by (meson Union_iff subset_iff)
+  next
+    case (Basis s)
+    then show ?case
+      by (metis (no_types, lifting) Un_iff finite_intersection_of_inc order_refl)
+  qed
+  moreover 
+  have "\<And>V::'a set. (finite intersection_of (\<lambda>x. x \<in> range greaterThan \<or> x \<in> range lessThan)) V \<Longrightarrow> open V"
+    by (force simp: intersection_of_def subset_iff)
+  ultimately have *: "openin (euclidean::'a topology) = 
+           (arbitrary union_of (finite intersection_of (\<lambda>x. x \<in> range greaterThan \<or> x \<in> range lessThan)))" 
+    by (smt (verit, best) openin_topology_base_unique open_openin)
+  show ?thesis
+    unfolding subtopology_def arbitrary_union_of_relative_to [symmetric] 
+    apply (simp add: relative_to_def flip: *)
+    by (metis Int_commute)
+qed
+
+lemma continuous_map_upper_lower_semicontinuous_lt_gen:
+  fixes U :: "'a::order_topology set"
+  shows "continuous_map X (subtopology euclidean U) f \<longleftrightarrow>
+         (\<forall>x \<in> topspace X. f x \<in> U) \<and>
+         (\<forall>a. openin X {x \<in> topspace X. f x > a}) \<and>
+         (\<forall>a. openin X {x \<in> topspace X. f x < a})"
+  by (auto simp: continuous_map_into_topology_subbase_eq [OF subbase_subtopology_euclidean [symmetric, of U]] 
+           greaterThan_def lessThan_def image_iff   simp flip: all_simps)
+
+lemma continuous_map_upper_lower_semicontinuous_lt:
+  fixes f :: "'a \<Rightarrow> 'b::order_topology"
+  shows "continuous_map X euclidean f \<longleftrightarrow>
+         (\<forall>a. openin X {x \<in> topspace X. f x > a}) \<and>
+         (\<forall>a. openin X {x \<in> topspace X. f x < a})"
+  using continuous_map_upper_lower_semicontinuous_lt_gen [where U=UNIV]
+  by auto
+
+lemma Int_Collect_imp_eq: "A \<inter> {x. x\<in>A \<longrightarrow> P x} = {x\<in>A. P x}"
+  by blast
+
+lemma continuous_map_upper_lower_semicontinuous_le_gen:
+  shows
+    "continuous_map X (subtopology euclideanreal U) f \<longleftrightarrow>
+         (\<forall>x \<in> topspace X. f x \<in> U) \<and>
+         (\<forall>a. closedin X {x \<in> topspace X. f x \<ge> a}) \<and>
+         (\<forall>a. closedin X {x \<in> topspace X. f x \<le> a})"
+  unfolding continuous_map_upper_lower_semicontinuous_lt_gen
+  by (auto simp: closedin_def Diff_eq Compl_eq not_le Int_Collect_imp_eq)
+
+lemma continuous_map_upper_lower_semicontinuous_le:
+   "continuous_map X euclideanreal f \<longleftrightarrow>
+         (\<forall>a. closedin X {x \<in> topspace X. f x \<ge> a}) \<and>
+         (\<forall>a. closedin X {x \<in> topspace X. f x \<le> a})"
+  using continuous_map_upper_lower_semicontinuous_le_gen [where U=UNIV]
+  by auto
+
+lemma continuous_map_upper_lower_semicontinuous_lte_gen:
+   "continuous_map X (subtopology euclideanreal U) f \<longleftrightarrow>
+         (\<forall>x \<in> topspace X. f x \<in> U) \<and>
+         (\<forall>a. openin X {x \<in> topspace X. f x < a}) \<and>
+         (\<forall>a. closedin X {x \<in> topspace X. f x \<le> a})"
+  unfolding continuous_map_upper_lower_semicontinuous_lt_gen
+  by (auto simp: closedin_def Diff_eq Compl_eq not_le Int_Collect_imp_eq)
+
+lemma continuous_map_upper_lower_semicontinuous_lte:
+   "continuous_map X euclideanreal f \<longleftrightarrow>
+         (\<forall>a. openin X {x \<in> topspace X. f x < a}) \<and>
+         (\<forall>a. closedin X {x \<in> topspace X. f x \<le> a})"
+  using continuous_map_upper_lower_semicontinuous_lte_gen [where U=UNIV]
+  by auto
 
 
 subsection\<^marker>\<open>tag important\<close> \<open>Pullback topology\<close>

@@ -458,6 +458,12 @@ lemma trivial_limit_def: "trivial_limit F \<longleftrightarrow> eventually (\<la
 lemma False_imp_not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> \<not> trivial_limit net \<Longrightarrow> \<not> eventually (\<lambda>x. P x) net"
   by (simp add: eventually_False)
 
+lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
+  by simp
+
+lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
+  by (simp add: filter_eq_iff)
+
 lemma eventually_Inf: "eventually P (Inf B) \<longleftrightarrow> (\<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X))"
 proof -
   let ?F = "\<lambda>P. \<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X)"

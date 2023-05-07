@@ -3251,4 +3251,21 @@ lemma LIM_fun_not_zero: "f \<midarrow>c\<rightarrow> l \<Longrightarrow> l \<not
   for f :: "real \<Rightarrow> real"
   using LIM_fun_gt_zero[of f l c] LIM_fun_less_zero[of f l c] by (auto simp: neq_iff)
 
+lemma Lim_topological:
+  "(f \<longlongrightarrow> l) net \<longleftrightarrow>
+    trivial_limit net \<or> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
+  unfolding tendsto_def trivial_limit_eq by auto
+
+lemma eventually_within_Un:
+  "eventually P (at x within (s \<union> t)) \<longleftrightarrow>
+    eventually P (at x within s) \<and> eventually P (at x within t)"
+  unfolding eventually_at_filter
+  by (auto elim!: eventually_rev_mp)
+
+lemma Lim_within_Un:
+ "(f \<longlongrightarrow> l) (at x within (s \<union> t)) \<longleftrightarrow>
+  (f \<longlongrightarrow> l) (at x within s) \<and> (f \<longlongrightarrow> l) (at x within t)"
+  unfolding tendsto_def
+  by (auto simp: eventually_within_Un)
+
 end

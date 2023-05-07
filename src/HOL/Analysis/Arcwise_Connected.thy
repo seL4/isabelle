@@ -533,6 +533,216 @@ lemma dyadics_in_open_unit_interval:
   by (auto simp: field_split_simps)
 
 
+lemma padic_rational_approximation_straddle:
+  assumes "\<epsilon> > 0" "p > 1"
+  obtains n q r 
+    where "of_int q / p^n < x" "x < of_int r / p^n" "\<bar>q / p^n - r / p^n \<bar> < \<epsilon>"
+proof -
+  obtain n where n: "2 / \<epsilon> < p ^ n"
+    using \<open>p>1\<close> real_arch_pow by blast
+  define q where "q \<equiv> \<lfloor>p ^ n * x\<rfloor> - 1"
+  show thesis
+    proof
+      show "q / p ^ n < x" "x < real_of_int (q+2) / p ^ n"
+        using assms by (simp_all add: q_def divide_simps floor_less_cancel mult.commute)
+      show "\<bar>q / p ^ n - real_of_int (q+2) / p ^ n\<bar> < \<epsilon>"
+        using assms n by (simp add: q_def divide_simps mult.commute)
+    qed
+qed
+
+lemma padic_rational_approximation_straddle_pos:
+  assumes "\<epsilon> > 0" "p > 1" "x > 0"
+  obtains n q r 
+    where "of_nat q / p^n < x" "x < of_nat r / p^n" "\<bar>q / p^n - r / p^n \<bar> < \<epsilon>"
+proof -
+  obtain n q r 
+    where *: "of_int q / p^n < x" "x < of_int r / p^n" "\<bar>q / p^n - r / p^n \<bar> < \<epsilon>"
+    using padic_rational_approximation_straddle assms by metis
+  then have "r \<ge> 0"
+    using assms by (smt (verit, best) divide_nonpos_pos of_int_0_le_iff zero_less_power)
+  show thesis
+  proof
+    show "real (max 0 (nat q)) / p ^ n < x"
+      using * by (metis assms(3) div_0 max_nat.left_neutral nat_eq_iff2 of_nat_0 of_nat_nat) 
+    show "x < real (nat r) / p ^ n"
+      using \<open>r \<ge> 0\<close> * by force
+    show "\<bar>real (max 0 (nat q)) / p ^ n - real (nat r) / p ^ n\<bar> < \<epsilon>"
+      using * assms by (simp add: divide_simps)
+  qed
+qed
+
+lemma padic_rational_approximation_straddle_pos_le:
+  assumes "\<epsilon> > 0" "p > 1" "x \<ge> 0"
+  obtains n q r 
+    where "of_nat q / p^n \<le> x" "x < of_nat r / p^n" "\<bar>q / p^n - r / p^n \<bar> < \<epsilon>"
+proof -
+  obtain n q r 
+    where *: "of_int q / p^n < x" "x < of_int r / p^n" "\<bar>q / p^n - r / p^n \<bar> < \<epsilon>"
+    using padic_rational_approximation_straddle assms by metis
+  then have "r \<ge> 0"
+    using assms by (smt (verit, best) divide_nonpos_pos of_int_0_le_iff zero_less_power)
+  show thesis
+  proof
+    show "real (max 0 (nat q)) / p ^ n \<le> x"
+      using * assms(3) nle_le by fastforce
+    show "x < real (nat r) / p ^ n"
+      using \<open>r \<ge> 0\<close> * by force
+    show "\<bar>real (max 0 (nat q)) / p ^ n - real (nat r) / p ^ n\<bar> < \<epsilon>"
+       using * assms by (simp add: divide_simps)
+  qed
+qed
+
+
+subsubsection \<open>Definition by recursion on dyadic rationals in [0,1]\<close>
+
+lemma recursion_on_dyadic_fractions:
+  assumes base: "R a b"
+    and step: "\<And>x y. R x y \<Longrightarrow> \<exists>z. R x z \<and> R z y" and trans: "\<And>x y z. \<lbrakk>R x y; R y z\<rbrakk> \<Longrightarrow> R x z"
+  shows "\<exists>f :: real \<Rightarrow> 'a. f 0 = a \<and> f 1 = b \<and>
+               (\<forall>x \<in> dyadics \<inter> {0..1}. \<forall>y \<in> dyadics \<inter> {0..1}. x < y \<longrightarrow> R (f x) (f y))"
+proof -
+  obtain mid where mid: "R x y \<Longrightarrow> R x (mid x y)" "R x y \<Longrightarrow> R (mid x y) y" for x y 
+    using step by metis
+  define g where "g \<equiv> rec_nat (\<lambda>k. if k = 0 then a else b) (\<lambda>n r k. if even k then r (k div 2) else mid (r ((k - 1) div 2)) (r ((Suc k) div 2)))"
+  have g0 [simp]: "g 0 = (\<lambda>k. if k = 0 then a else b)"
+    by (simp add: g_def)
+  have gSuc [simp]: "\<And>n. g(Suc n) = (\<lambda>k. if even k then g n (k div 2) else mid (g n ((k - 1) div 2)) (g n ((Suc k) div 2)))"
+    by (auto simp: g_def)
+  have g_eq_g: "2 ^ d * k = k' \<Longrightarrow> g n k = g (n + d) k'" for n d k k'
+    by (induction d arbitrary: k k') auto
+  have "g n k = g n' k'" if "real k / 2^n = real k' / 2^n'" "n' \<le> n" for k n k' n'
+  proof -
+    have "real k = real k' * 2 ^ (n-n')"
+      using that by (simp add: power_diff divide_simps)
+    then have "k = k' * 2 ^ (n-n')"
+      using of_nat_eq_iff by fastforce
+    with g_eq_g show ?thesis
+      by (metis le_add_diff_inverse mult.commute that(2))
+  qed
+  then have g_eq_g: "g n k = g n' k'" if "real k / 2 ^ n = real k' / 2 ^ n'" for k n k' n'
+    by (metis nat_le_linear that)
+  then obtain f where "(\<lambda>(k,n). g n k) = f \<circ> (\<lambda>(k,n). k / 2 ^ n)"
+    using function_factors_left by (smt (verit, del_insts) case_prod_beta')
+  then have f_eq_g: "\<And>k n. f(real k / 2 ^ n) = g n k"
+    by (simp add: fun_eq_iff)
+  show ?thesis
+  proof (intro exI conjI strip)
+    show "f 0 = a"
+      by (metis f_eq_g g0 div_0 of_nat_0)
+    show "f 1 = b"
+      by (metis f_eq_g g0 div_by_1 of_nat_1_eq_iff power_0 zero_neq_one)
+    show "R (f x) (f y)" 
+      if x: "x \<in> dyadics \<inter> {0..1}" and y: "y \<in> dyadics \<inter> {0..1}" and "x < y" for x y
+    proof -
+      obtain n1 k1 where xeq: "x = real k1 / 2^n1" "k1 \<le> 2^n1"
+        using x by (auto simp: dyadics_def)
+      obtain n2 k2 where yeq: "y = real k2 / 2^n2" "k2 \<le> 2^n2"
+        using y by (auto simp: dyadics_def)
+      have xcommon: "x = real(2^n2 * k1) / 2 ^ (n1+n2)"
+        using xeq by (simp add: power_add)
+      have ycommon: "y = real(2^n1 * k2) / 2 ^ (n1+n2)"
+        using yeq by (simp add: power_add)
+      have *: "R (g n j) (g n k)" if "j < k" "k \<le> 2^n" for n j k
+        using that
+      proof (induction n arbitrary: j k)
+        case 0
+        then show ?case
+          by (simp add: base)
+      next
+        case (Suc n)
+        show ?case
+        proof (cases "even j")
+          case True
+          then obtain a where [simp]: "j = 2*a"
+            by blast
+          show ?thesis 
+          proof (cases "even k")
+            case True
+            with Suc show ?thesis
+              by (auto elim!: evenE)
+          next
+            case False
+            then obtain b where [simp]: "k = Suc (2*b)"
+              using oddE by fastforce
+            show ?thesis
+              using Suc
+              apply simp
+              by (smt (verit, ccfv_SIG) less_Suc_eq linorder_not_le local.trans mid(1) nat_mult_less_cancel1 pos2)
+          qed
+        next
+          case False
+          then obtain a where [simp]: "j = Suc (2*a)"
+            using oddE by fastforce
+          show ?thesis
+          proof (cases "even k")
+            case True
+            then obtain b where [simp]: "k = 2*b"
+              by blast
+            show ?thesis
+              using Suc 
+              apply simp
+              by (smt (verit, ccfv_SIG) Suc_leI Suc_lessD le_trans lessI linorder_neqE_nat linorder_not_le local.trans mid(2) nat_mult_less_cancel1 pos2)
+          next
+            case False
+            then obtain b where [simp]: "k = Suc (2*b)"
+              using oddE by fastforce
+            show ?thesis
+              using Suc 
+              apply simp
+              by (smt (verit) Suc_leI le_trans lessI less_or_eq_imp_le linorder_neqE_nat linorder_not_le local.trans mid(1) mid(2) nat_mult_less_cancel1 pos2)
+            qed
+        qed
+      qed
+      show ?thesis
+        unfolding xcommon ycommon f_eq_g
+      proof (rule *)
+        show "2 ^ n2 * k1 < 2 ^ n1 * k2"
+          using of_nat_less_iff \<open>x < y\<close> by (fastforce simp: xeq yeq field_simps)
+        show "2 ^ n1 * k2 \<le> 2 ^ (n1 + n2)"
+          by (simp add: power_add yeq)
+      qed
+    qed
+  qed
+qed
+
+lemma dyadics_add:
+  assumes "x \<in> dyadics" "y \<in> dyadics"
+  shows "x+y \<in> dyadics"
+proof -
+  obtain i j m n where x: "x = of_nat i / 2 ^ m" and y: "y = of_nat j / 2 ^ n"
+    using assms by (auto simp: dyadics_def)
+  have xcommon: "x = of_nat(2^n * i) / 2 ^ (m+n)"
+    using x by (simp add: power_add)
+  moreover
+  have ycommon: "y = of_nat(2^m * j) / 2 ^ (m+n)"
+    using y by (simp add: power_add)
+  ultimately have "x+y = (of_nat(2^n * i + 2^m * j)) / 2 ^ (m+n)"
+    by (simp add: field_simps)
+  then show ?thesis
+    unfolding dyadics_def by blast
+qed
+
+lemma dyadics_diff:
+  fixes x :: "'a::linordered_field"
+  assumes "x \<in> dyadics" "y \<in> dyadics" "y \<le> x"
+  shows "x-y \<in> dyadics"
+proof -
+  obtain i j m n where x: "x = of_nat i / 2 ^ m" and y: "y = of_nat j / 2 ^ n"
+    using assms by (auto simp: dyadics_def)
+  have j_le_i: "j * 2 ^ m \<le> i * 2 ^ n"
+    using of_nat_le_iff \<open>y \<le> x\<close> unfolding x y by (fastforce simp add: divide_simps)
+  have xcommon: "x = of_nat(2^n * i) / 2 ^ (m+n)"
+    using x by (simp add: power_add)
+  moreover
+  have ycommon: "y = of_nat(2^m * j) / 2 ^ (m+n)"
+    using y by (simp add: power_add)
+  ultimately have "x-y = (of_nat(2^n * i - 2^m * j)) / 2 ^ (m+n)"
+    by (simp add: xcommon ycommon field_simps j_le_i of_nat_diff)
+  then show ?thesis
+    unfolding dyadics_def by blast
+qed
+
+
 
 theorem homeomorphic_monotone_image_interval:
   fixes f :: "real \<Rightarrow> 'a::{real_normed_vector,complete_space}"

@@ -1402,10 +1402,34 @@ lemma forall_pos_mono:
 lemma forall_pos_mono_1:
   "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
     (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
-  apply (rule forall_pos_mono)
-  apply auto
-  apply (metis Suc_pred of_nat_Suc)
-  done
+  using reals_Archimedean by blast
+
+lemma Archimedean_eventually_pow:
+  fixes x::real
+  assumes "1 < x"
+  shows "\<forall>\<^sub>F n in sequentially. b < x ^ n"
+proof -
+  obtain N where "\<And>n. n\<ge>N \<Longrightarrow> b < x ^ n"
+    by (metis assms le_less order_less_trans power_strict_increasing_iff real_arch_pow)
+  then show ?thesis
+    using eventually_sequentially by blast
+qed
+
+lemma Archimedean_eventually_pow_inverse:
+  fixes x::real
+  assumes "\<bar>x\<bar> < 1" "\<epsilon> > 0"
+  shows "\<forall>\<^sub>F n in sequentially. \<bar>x^n\<bar> < \<epsilon>"
+proof (cases "x = 0")
+  case True
+  then show ?thesis
+    by (simp add: assms eventually_at_top_dense zero_power)
+next
+  case False
+  then have "\<forall>\<^sub>F n in sequentially. inverse \<epsilon> < inverse \<bar>x\<bar> ^ n"
+    by (simp add: Archimedean_eventually_pow assms(1) one_less_inverse)
+  then show ?thesis
+    by eventually_elim (metis \<open>\<epsilon> > 0\<close> inverse_less_imp_less power_abs power_inverse)
+qed
 
 
 subsection \<open>Floor and Ceiling Functions from the Reals to the Integers\<close>

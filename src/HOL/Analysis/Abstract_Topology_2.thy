@@ -347,7 +347,7 @@ lemma continuous_on_Un_local:
       continuous_on S f; continuous_on T f\<rbrakk>
      \<Longrightarrow> continuous_on (S \<union> T) f"
   unfolding continuous_on closedin_limpt
-  by (metis Lim_trivial_limit Lim_within_union Un_iff trivial_limit_within)
+  by (metis Lim_trivial_limit Lim_within_Un Un_iff trivial_limit_within)
 
 lemma continuous_on_cases_local:
      "\<lbrakk>closedin (top_of_set (S \<union> T)) S; closedin (top_of_set (S \<union> T)) T;
@@ -1611,5 +1611,32 @@ lemma connected_component_of_overlap:
     x \<in> topspace X \<and> y \<in> topspace X \<and>
     connected_component_of_set X x = connected_component_of_set X y"
   by (meson connected_component_of_nonoverlap)
+
+subsection\<open>Combining theorems for continuous functions into the reals\<close>
+
+text \<open>The homeomorphism between the real line and the open interval $(-1,1)$\<close>
+
+lemma continuous_map_real_shrink:
+  "continuous_map euclideanreal (top_of_set {-1<..<1}) (\<lambda>x. x / (1 + \<bar>x\<bar>))"
+proof -
+  have "continuous_on UNIV (\<lambda>x::real. x / (1 + \<bar>x\<bar>))"
+    by (intro continuous_intros) auto
+  then show ?thesis
+    by (auto simp: continuous_map_in_subtopology divide_simps)
+qed
+
+lemma continuous_on_real_grow:
+  "continuous_on {-1<..<1} (\<lambda>x::real. x / (1 - \<bar>x\<bar>))"
+  by (intro continuous_intros) auto
+
+lemma real_grow_shrink:
+  fixes x::real 
+  shows "x / (1 + \<bar>x\<bar>) / (1 - \<bar>x / (1 + \<bar>x\<bar>)\<bar>) = x"
+  by (force simp: divide_simps)
+
+lemma homeomorphic_maps_real_shrink:
+  "homeomorphic_maps euclideanreal (subtopology euclideanreal {-1<..<1}) 
+     (\<lambda>x. x / (1 + \<bar>x\<bar>))  (\<lambda>y. y / (1 - \<bar>y\<bar>))"
+  by (force simp: homeomorphic_maps_def continuous_map_real_shrink continuous_on_real_grow divide_simps)
 
 end

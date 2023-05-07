@@ -175,39 +175,6 @@ proof (rule onorm_le)
   finally show "norm (A *v x) \<le> CARD('m) * real (CARD('n)) * B * norm x" .
 qed
 
-lemma rational_approximation:
-  assumes "e > 0"
-  obtains r::real where "r \<in> \<rat>" "\<bar>r - x\<bar> < e"
-  using Rats_dense_in_real [of "x - e/2" "x + e/2"] assms by auto
-
-lemma Rats_closure_real: "closure \<rat> = (UNIV::real set)"
-proof -
-  have "\<And>x::real. x \<in> closure \<rat>"
-    by (metis closure_approachable dist_real_def rational_approximation)
-  then show ?thesis by auto
-qed
-
-proposition matrix_rational_approximation:
-  fixes A :: "real^'n^'m"
-  assumes "e > 0"
-  obtains B where "\<And>i j. B$i$j \<in> \<rat>" "onorm(\<lambda>x. (A - B) *v x) < e"
-proof -
-  have "\<forall>i j. \<exists>q \<in> \<rat>. \<bar>q - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
-    using assms by (force intro: rational_approximation [of "e / (2 * CARD('m) * CARD('n))"])
-  then obtain B where B: "\<And>i j. B$i$j \<in> \<rat>" and Bclo: "\<And>i j. \<bar>B$i$j - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
-    by (auto simp: lambda_skolem Bex_def)
-  show ?thesis
-  proof
-    have "onorm ((*v) (A - B)) \<le> real CARD('m) * real CARD('n) *
-    (e / (2 * real CARD('m) * real CARD('n)))"
-      apply (rule onorm_le_matrix_component)
-      using Bclo by (simp add: abs_minus_commute less_imp_le)
-    also have "\<dots> < e"
-      using \<open>0 < e\<close> by (simp add: field_split_simps)
-    finally show "onorm ((*v) (A - B)) < e" .
-  qed (use B in auto)
-qed
-
 lemma vector_sub_project_orthogonal_cart: "(b::real^'n) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *s b) = 0"
   unfolding inner_simps scalar_mult_eq_scaleR by auto
 
@@ -478,6 +445,42 @@ proof -
 qed
 *)
 
+subsection\<open>Arbitrarily good rational approximations\<close>
+
+lemma rational_approximation:
+  assumes "e > 0"
+  obtains r::real where "r \<in> \<rat>" "\<bar>r - x\<bar> < e"
+  using Rats_dense_in_real [of "x - e/2" "x + e/2"] assms by auto
+
+lemma Rats_closure_real: "closure \<rat> = (UNIV::real set)"
+proof -
+  have "\<And>x::real. x \<in> closure \<rat>"
+    by (metis closure_approachable dist_real_def rational_approximation)
+  then show ?thesis by auto
+qed
+
+proposition matrix_rational_approximation:
+  fixes A :: "real^'n^'m"
+  assumes "e > 0"
+  obtains B where "\<And>i j. B$i$j \<in> \<rat>" "onorm(\<lambda>x. (A - B) *v x) < e"
+proof -
+  have "\<forall>i j. \<exists>q \<in> \<rat>. \<bar>q - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
+    using assms by (force intro: rational_approximation [of "e / (2 * CARD('m) * CARD('n))"])
+  then obtain B where B: "\<And>i j. B$i$j \<in> \<rat>" and Bclo: "\<And>i j. \<bar>B$i$j - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
+    by (auto simp: lambda_skolem Bex_def)
+  show ?thesis
+  proof
+    have "onorm ((*v) (A - B)) \<le> real CARD('m) * real CARD('n) *
+    (e / (2 * real CARD('m) * real CARD('n)))"
+      apply (rule onorm_le_matrix_component)
+      using Bclo by (simp add: abs_minus_commute less_imp_le)
+    also have "\<dots> < e"
+      using \<open>0 < e\<close> by (simp add: field_split_simps)
+    finally show "onorm ((*v) (A - B)) < e" .
+  qed (use B in auto)
+qed
+
+
 subsection "Derivative"
 
 definition\<^marker>\<open>tag important\<close> "jacobian f net = matrix(frechet_derivative f net)"
@@ -547,8 +550,7 @@ lemma vec_nth_real_1_iff_cbox [simp]:
 lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"
   "cbox a b \<inter> {x. x$k \<ge> c} = {(\<chi> i. if i = k then max (a$k) c else a$i) .. b}"
-  apply (rule_tac[!] set_eqI)
-  unfolding Int_iff mem_box_cart mem_Collect_eq interval_cbox_cart
+  unfolding Int_iff mem_box_cart mem_Collect_eq interval_cbox_cart set_eq_iff
   unfolding vec_lambda_beta
   by auto
 

@@ -49,6 +49,9 @@ lemma t1_space_closedin_singleton:
   apply (simp add: closedin_contains_derived_set t1_space_derived_set_of_singleton)
   using t1_space_alt by auto
 
+lemma t1_space_euclidean: "t1_space (euclidean :: 'a::metric_space topology)"
+  by (simp add: t1_space_closedin_singleton)
+
 lemma closedin_t1_singleton:
    "\<lbrakk>t1_space X; a \<in> topspace X\<rbrakk> \<Longrightarrow> closedin X {a}"
   by (simp add: t1_space_closedin_singleton)
@@ -743,5 +746,5 @@ proof
     qed
   qed
 qed fastforce
-    
+
 end

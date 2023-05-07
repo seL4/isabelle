@@ -1323,32 +1323,6 @@ lemma filterlim_at_within_closure_implies_filterlim: "filterlim f l (at x within
 lemma at_within_eq_bot_iff: "at c within A = bot \<longleftrightarrow> c \<notin> closure (A - {c})"
   using not_trivial_limit_within[of c A] by blast
 
-text \<open>Some property holds "sufficiently close" to the limit point.\<close>
-
-lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
-  by simp
-
-lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
-  by (simp add: filter_eq_iff)
-
-lemma Lim_topological:
-  "(f \<longlongrightarrow> l) net \<longleftrightarrow>
-    trivial_limit net \<or> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
-  unfolding tendsto_def trivial_limit_eq by auto
-
-lemma eventually_within_Un:
-  "eventually P (at x within (s \<union> t)) \<longleftrightarrow>
-    eventually P (at x within s) \<and> eventually P (at x within t)"
-  unfolding eventually_at_filter
-  by (auto elim!: eventually_rev_mp)
-
-lemma Lim_within_union:
- "(f \<longlongrightarrow> l) (at x within (s \<union> t)) \<longleftrightarrow>
-  (f \<longlongrightarrow> l) (at x within s) \<and> (f \<longlongrightarrow> l) (at x within t)"
-  unfolding tendsto_def
-  by (auto simp: eventually_within_Un)
-
-
 subsection \<open>Limits\<close>
 
 text \<open>The expected monotonicity property.\<close>

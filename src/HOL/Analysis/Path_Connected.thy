@@ -2313,6 +2313,174 @@ lemma homeomorphic_map_path_components_of:
   using assms homeomorphic_map_path_component_of by fastforce
 
 
+subsection\<open>Paths and path-connectedness\<close>
+
+lemma path_connected_space_quotient_map_image:
+   "\<lbrakk>quotient_map X Y q; path_connected_space X\<rbrakk> \<Longrightarrow> path_connected_space Y"
+  by (metis path_connectedin_continuous_map_image path_connectedin_topspace quotient_imp_continuous_map quotient_imp_surjective_map)
+
+lemma path_connected_space_retraction_map_image:
+   "\<lbrakk>retraction_map X Y r; path_connected_space X\<rbrakk> \<Longrightarrow> path_connected_space Y"
+  using path_connected_space_quotient_map_image retraction_imp_quotient_map by blast
+
+lemma path_connected_space_prod_topology:
+  "path_connected_space(prod_topology X Y) \<longleftrightarrow>
+        topspace(prod_topology X Y) = {} \<or> path_connected_space X \<and> path_connected_space Y"
+proof (cases "topspace(prod_topology X Y) = {}")
+  case True
+  then show ?thesis
+    by (simp add: path_connected_space_topspace_empty)
+next
+  case False
+  have "path_connected_space (prod_topology X Y)" 
+    if X: "path_connected_space X" and Y: "path_connected_space Y"
+  proof (clarsimp simp: path_connected_space_def)
+    fix x y x' y'
+    assume "x \<in> topspace X" and "y \<in> topspace Y" and "x' \<in> topspace X" and "y' \<in> topspace Y"
+    obtain f where "pathin X f" "f 0 = x" "f 1 = x'"
+      by (meson X \<open>x \<in> topspace X\<close> \<open>x' \<in> topspace X\<close> path_connected_space_def)
+    obtain g where "pathin Y g" "g 0 = y" "g 1 = y'"
+      by (meson Y \<open>y \<in> topspace Y\<close> \<open>y' \<in> topspace Y\<close> path_connected_space_def)
+    show "\<exists>h. pathin (prod_topology X Y) h \<and> h 0 = (x,y) \<and> h 1 = (x',y')"
+    proof (intro exI conjI)
+      show "pathin (prod_topology X Y) (\<lambda>t. (f t, g t))"
+        using \<open>pathin X f\<close> \<open>pathin Y g\<close> by (simp add: continuous_map_paired pathin_def)
+      show "(\<lambda>t. (f t, g t)) 0 = (x, y)"
+        using \<open>f 0 = x\<close> \<open>g 0 = y\<close> by blast
+      show "(\<lambda>t. (f t, g t)) 1 = (x', y')"
+        using \<open>f 1 = x'\<close> \<open>g 1 = y'\<close> by blast
+    qed
+  qed
+  then show ?thesis
+    by (metis False Sigma_empty1 Sigma_empty2 topspace_prod_topology path_connected_space_retraction_map_image
+        retraction_map_fst  retraction_map_snd) 
+qed
+
+lemma path_connectedin_Times:
+   "path_connectedin (prod_topology X Y) (S \<times> T) \<longleftrightarrow>
+        S = {} \<or> T = {} \<or> path_connectedin X S \<and> path_connectedin Y T"
+  by (auto simp add: path_connectedin_def subtopology_Times path_connected_space_prod_topology)
+
+
+subsection\<open>Path components\<close>
+
+lemma path_component_of_subtopology_eq:
+  "path_component_of (subtopology X U) x = path_component_of X x \<longleftrightarrow> path_component_of_set X x \<subseteq> U"  
+  (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis path_connectedin_path_component_of path_connectedin_subtopology)
+next
+  show "?rhs \<Longrightarrow> ?lhs"
+    unfolding fun_eq_iff
+    by (metis path_connectedin_subtopology path_component_of path_component_of_aux path_component_of_mono)
+qed
+
+lemma path_components_of_subtopology:
+  assumes "C \<in> path_components_of X" "C \<subseteq> U"
+  shows "C \<in> path_components_of (subtopology X U)"
+  using assms path_component_of_refl path_component_of_subtopology_eq topspace_subtopology
+  by (smt (verit) imageE path_component_in_path_components_of path_components_of_def)
+
+lemma path_imp_connected_component_of:
+   "path_component_of X x y \<Longrightarrow> connected_component_of X x y"
+  by (metis in_mono mem_Collect_eq path_component_subset_connected_component_of)
+
+lemma finite_path_components_of_finite:
+   "finite(topspace X) \<Longrightarrow> finite(path_components_of X)"
+  by (simp add: Union_path_components_of finite_UnionD)
+
+lemma path_component_of_continuous_image:
+  "\<lbrakk>continuous_map X X' f; path_component_of X x y\<rbrakk> \<Longrightarrow> path_component_of X' (f x) (f y)"
+  by (meson image_eqI path_component_of path_connectedin_continuous_map_image)
+
+lemma path_component_of_pair [simp]:
+   "path_component_of_set (prod_topology X Y) (x,y) =
+    path_component_of_set X x \<times> path_component_of_set Y y"   (is "?lhs = ?rhs")
+proof (cases "?lhs = {}")
+  case True
+  then show ?thesis
+    by (metis Sigma_empty1 Sigma_empty2 mem_Sigma_iff path_component_of_eq_empty topspace_prod_topology) 
+next
+  case False
+  then have "path_component_of X x x" "path_component_of Y y y"
+    using path_component_of_eq_empty path_component_of_refl by fastforce+
+  moreover
+  have "path_connectedin (prod_topology X Y) (path_component_of_set X x \<times> path_component_of_set Y y)"
+    by (metis path_connectedin_Times path_connectedin_path_component_of)
+  moreover have "path_component_of X x a" "path_component_of Y y b"
+    if "(x, y) \<in> C'" "(a,b) \<in> C'" and "path_connectedin (prod_topology X Y) C'" for C' a b
+    by (smt (verit, best) that continuous_map_fst continuous_map_snd fst_conv snd_conv path_component_of path_component_of_continuous_image)+
+  ultimately show ?thesis
+    by (intro path_component_of_unique) auto
+qed
+
+lemma path_components_of_prod_topology:
+   "path_components_of (prod_topology X Y) =
+    (\<lambda>(C,D). C \<times> D) ` (path_components_of X \<times> path_components_of Y)"
+  by (force simp add: image_iff path_components_of_def)
+
+lemma path_components_of_prod_topology':
+   "path_components_of (prod_topology X Y) =
+    {C \<times> D |C D. C \<in> path_components_of X \<and> D \<in> path_components_of Y}"
+  by (auto simp: path_components_of_prod_topology)
+
+lemma path_component_of_product_topology:
+   "path_component_of_set (product_topology X I) f =
+    (if f \<in> extensional I then PiE I (\<lambda>i. path_component_of_set (X i) (f i)) else {})"
+    (is "?lhs = ?rhs")
+proof (cases "path_component_of_set (product_topology X I) f = {}")
+  case True
+  then show ?thesis
+    by (smt (verit) PiE_eq_empty_iff PiE_iff path_component_of_eq_empty topspace_product_topology)
+next
+  case False
+  then have [simp]: "f \<in> extensional I"
+    by (auto simp: path_component_of_eq_empty PiE_iff path_component_of_equiv)
+  show ?thesis
+  proof (intro path_component_of_unique)
+    show "f \<in> ?rhs"
+      using False path_component_of_eq_empty path_component_of_refl by force
+    show "path_connectedin (product_topology X I) (if f \<in> extensional I then \<Pi>\<^sub>E i\<in>I. path_component_of_set (X i) (f i) else {})"
+      by (simp add: path_connectedin_PiE path_connectedin_path_component_of)
+    fix C'
+    assume "f \<in> C'" and C': "path_connectedin (product_topology X I) C'" 
+    show "C' \<subseteq> ?rhs"
+    proof -
+      have "C' \<subseteq> extensional I"
+        using PiE_def C' path_connectedin_subset_topspace by fastforce
+      with \<open>f \<in> C'\<close> C' show ?thesis
+        apply (clarsimp simp: PiE_iff subset_iff)
+        by (smt (verit, ccfv_threshold) continuous_map_product_projection path_component_of path_component_of_continuous_image)
+    qed   
+  qed
+qed
+
+lemma path_components_of_product_topology:
+  "path_components_of (product_topology X I) =
+    {PiE I B |B. \<forall>i \<in> I. B i \<in> path_components_of(X i)}"  (is "?lhs=?rhs")
+proof
+  show "?lhs \<subseteq> ?rhs"
+    apply (simp add: path_components_of_def image_subset_iff)
+    by (smt (verit, best) PiE_iff image_eqI path_component_of_product_topology)
+next
+  show "?rhs \<subseteq> ?lhs"
+  proof
+    fix F
+    assume "F \<in> ?rhs"
+    then obtain B where B: "F = Pi\<^sub>E I B"
+      and "\<forall>i\<in>I. \<exists>x\<in>topspace (X i). B i = path_component_of_set (X i) x"
+      by (force simp add: path_components_of_def image_iff)
+    then obtain f where ftop: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> topspace (X i)"
+      and BF: "\<And>i. i \<in> I \<Longrightarrow> B i = path_component_of_set (X i) (f i)"
+      by metis
+    then have "F = path_component_of_set (product_topology X I) (restrict f I)"
+      by (metis (mono_tags, lifting) B PiE_cong path_component_of_product_topology restrict_apply' restrict_extensional)
+    then show "F \<in> ?lhs"
+      by (simp add: ftop path_component_in_path_components_of)
+  qed
+qed
+
 subsection \<open>Sphere is path-connected\<close>
 
 lemma path_connected_punctured_universe:

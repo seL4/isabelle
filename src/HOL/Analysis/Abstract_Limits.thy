@@ -41,6 +41,29 @@ proof (cases "a \<in> topspace X")
   finally show ?thesis by (simp add: True)
 qed auto
 
+lemma nontrivial_limit_atin:
+   "atin X a \<noteq> bot \<longleftrightarrow> a \<in> X derived_set_of topspace X"
+proof 
+  assume L: "atin X a \<noteq> bot"
+  then have "a \<in> topspace X"
+    by (meson atin_degenerate)
+  moreover have "\<not> openin X {a}"
+    using L by (auto simp: eventually_atin trivial_limit_eq)
+  ultimately
+  show "a \<in> X derived_set_of topspace X"
+    by (auto simp: derived_set_of_topspace)
+next
+  assume a: "a \<in> X derived_set_of topspace X"
+  show "atin X a \<noteq> bot"
+  proof
+    assume "atin X a = bot"
+    then have "eventually (\<lambda>_. False) (atin X a)"
+      by simp
+    then show False
+      by (smt (verit, best) a eventually_atin in_derived_set_of insertE insert_Diff)
+  qed
+qed
+
 
 subsection\<open>Limits in a topological space\<close>
 
