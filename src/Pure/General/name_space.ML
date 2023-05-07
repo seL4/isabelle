@@ -164,7 +164,7 @@ fun make_chunks full_name m s =
 
 in
 
-fun make_accesses {intern} restriction suppress full_name =
+fun make_accesses {intern} restriction (suppress, full_name) =
   if restriction = SOME true then []
   else
     ((if intern then suppress_prefixes suppress else []) @ suppress_suffixes suppress)
@@ -304,12 +304,12 @@ fun extern ctxt space name =
         else NONE
       end;
 
-    fun extern_name suppress a =
+    fun extern_name (suppress, a) =
       get_first (extern_chunks names_unique a)
-        (make_accesses {intern = false} NONE suppress a);
+        (make_accesses {intern = false} NONE (suppress, a));
 
     fun extern_names aliases =
-      (case get_first (uncurry extern_name) aliases of
+      (case get_first extern_name aliases of
         SOME xname => xname
       | NONE =>
           (case get_first (fn (_, a) => extern_chunks false a (Long_Name.make_chunks a)) aliases of
@@ -514,9 +514,9 @@ fun hide fully name space =
       val _ = the_entry space name;
       val hide_names = get_aliases space name;
       val accesses =
-        maps (uncurry (make_accesses {intern = true} NONE)) hide_names
+        maps (make_accesses {intern = true} NONE) hide_names
         |> not fully ? inter Long_Name.eq_chunks [Long_Name.base_chunks name];
-      val accesses' = maps (uncurry (make_accesses {intern = false} NONE)) hide_names;
+      val accesses' = maps (make_accesses {intern = false} NONE) hide_names;
       val internals' = internals
         |> fold (del_internals name) accesses
         |> fold (del_internals' name) accesses';
@@ -533,7 +533,7 @@ fun alias naming binding name space =
       val _ = the_entry space name;
       val {restriction, suppress, full_name = alias_name, ...} = name_spec naming binding;
       val _ = alias_name = "" andalso error (Binding.bad binding);
-      val alias_accesses = make_accesses {intern = true} restriction suppress alias_name;
+      val alias_accesses = make_accesses {intern = true} restriction (suppress, alias_name);
       val internals' = internals |> fold (add_internals name) alias_accesses;
       val aliases' = aliases |> Symtab.update_list (op =) (name, (suppress, alias_name));
     in (kind, internals', internals_hidden, entries, aliases') end);
@@ -573,7 +573,7 @@ fun declare context strict binding space =
     val Naming {group, theory_long_name, ...} = naming;
     val name_spec as {restriction, suppress, full_name = name, ...} = name_spec naming binding;
     val _ = name = "" andalso error (Binding.bad binding);
-    val accesses = make_accesses {intern = true} restriction suppress name;
+    val accesses = make_accesses {intern = true} restriction (suppress, name);
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry: entry =
