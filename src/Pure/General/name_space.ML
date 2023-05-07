@@ -1,11 +1,10 @@
 (*  Title:      Pure/General/name_space.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Generic name spaces with declared and hidden entries; no support for
-absolute addressing.
+Generic name spaces with authentic declarations, hidden names and aliases.
 *)
 
-type xstring = string;    (*external names*)
+type xstring = string;    (*external names with partial qualification*)
 
 signature NAME_SPACE =
 sig
