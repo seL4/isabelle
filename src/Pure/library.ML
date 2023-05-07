@@ -836,7 +836,13 @@ fun member eq list x =
 
 fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
-fun update eq x xs = cons x (remove eq x xs);
+
+fun update eq x list =
+  (case list of
+    [] => [x]
+  | y :: rest =>
+      if member eq rest x then x :: remove eq x list
+      else if eq (x, y) then list else x :: list);
 
 fun inter eq xs = filter (member eq xs);
 
