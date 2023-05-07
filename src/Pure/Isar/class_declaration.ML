@@ -322,13 +322,13 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
 fun gen_class prep_class_spec b raw_includes raw_supclasses raw_elems thy =
   let
     val class = Sign.full_name thy b;
-    val prefix = Binding.qualify true "class";
     val ctxt = Proof_Context.init_global thy;
     val (((sups, supparam_names), (supsort, base_sort, supexpr)), (includes, elems, global_syntax)) =
       prep_class_spec ctxt raw_supclasses raw_includes raw_elems;
+    val of_class_binding = Binding.qualify_name true b "intro_of_class";
   in
     thy
-    |> Expression.add_locale b (prefix b) includes supexpr elems
+    |> Expression.add_locale b (Binding.qualify true "class" b) includes supexpr elems
     |> snd |> Local_Theory.exit_global
     |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
     |-> (fn (param_map, params, assm_axiom) =>
@@ -339,7 +339,7 @@ fun gen_class prep_class_spec b raw_includes raw_supclasses raw_elems thy =
            mixin = Option.map (rpair true) eq_morph,
            export = export_morph})
     #> Class.register class sups params base_sort base_morph export_morph some_axiom some_assm_intro of_class
-    #> Global_Theory.store_thm (prefix (Binding.qualified_name (class ^ ".of_class.intro")), of_class)))
+    #> Global_Theory.store_thm (of_class_binding, of_class)))
     |> snd
     |> Named_Target.init includes class
     |> pair class

@@ -56,8 +56,8 @@ sig
   val lookup_list: 'a list table -> key -> 'a list
   val cons_list: key * 'a -> 'a list table -> 'a list table
   val insert_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
-  val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
   val update_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
+  val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
   val make_list: (key * 'a) list -> 'a list table
   val dest_list: 'a list table -> (key * 'a) list
   val merge_list: ('a * 'a -> bool) -> 'a list table * 'a list table -> 'a list table
@@ -621,20 +621,27 @@ fun lookup_list tab key = these (lookup tab key);
 
 fun cons_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 
-fun insert_list eq (key, x) =
-  modify key (fn NONE => [x] | SOME xs => if Library.member eq xs x then raise SAME else x :: xs);
+fun modify_list key f =
+  modify key (fn arg =>
+    let
+      val xs = the_default [] arg;
+      val ys = f xs;
+    in if pointer_eq (xs, ys) then raise SAME else ys end);
+
+fun insert_list eq (key, x) = modify_list key (Library.insert eq x);
+fun update_list eq (key, x) = modify_list key (Library.update eq x);
 
 fun remove_list eq (key, x) tab =
-  map_entry key (fn xs => (case Library.remove eq x xs of [] => raise UNDEF key | ys => ys)) tab
+  map_entry key (fn xs =>
+    (case Library.remove eq x xs of
+      [] => raise UNDEF key
+    | ys => if pointer_eq (xs, ys) then raise SAME else ys)) tab
   handle UNDEF _ => delete key tab;
-
-fun update_list eq (key, x) =
-  modify key (fn NONE => [x] | SOME [] => [x] | SOME (xs as y :: _) =>
-    if eq (x, y) then raise SAME else Library.update eq x xs);
 
 fun make_list args = build (fold_rev cons_list args);
 fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
-fun merge_list eq = join (fn _ => Library.merge eq);
+fun merge_list eq =
+  join (fn _ => fn xy => if eq_list eq xy then raise SAME else Library.merge eq xy);
 
 
 (* set operations *)

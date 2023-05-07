@@ -198,7 +198,7 @@ sig
   val is_greater_equal: order -> bool
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a ord
-  val pointer_eq_ord: ('a * 'a -> order) -> 'a * 'a -> order
+  val pointer_eq_ord: 'a ord -> 'a ord
   val bool_ord: bool ord
   val int_ord: int ord
   val string_ord: string ord
@@ -371,12 +371,21 @@ fun foldr1 f [] = raise List.Empty
 
 (* basic list functions *)
 
-fun eq_list eq (list1, list2) =
-  pointer_eq (list1, list2) orelse
-    let
-      fun eq_lst (x :: xs, y :: ys) = eq (x, y) andalso eq_lst (xs, ys)
-        | eq_lst _ = true;
-    in length list1 = length list2 andalso eq_lst (list1, list2) end;
+fun eq_list eq lists =
+  let
+    fun eq_len args =
+      pointer_eq args orelse
+        (case args of
+          (_ :: xs, _ :: ys) => eq_len (xs, ys)
+        | ([], []) => true
+        | _ => false);
+    fun eq_lst args =
+      pointer_eq args orelse
+        (case args of
+          (x :: xs, y :: ys) => eq (x, y) andalso eq_lst (xs, ys)
+        | ([], []) => true
+        | _ => false);
+  in eq_len lists andalso eq_lst lists end;
 
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
@@ -607,9 +616,8 @@ fun chop_common_prefix eq ([], ys) = ([], ([], ys))
       else ([], (xs, ys));
 
 fun prefixes1 [] = []
-  | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
-
-fun prefixes xs = [] :: prefixes1 xs;
+  | prefixes1 (x :: xs) = map (cons x) (prefixes xs)
+and prefixes xs = [] :: prefixes1 xs;
 
 fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
@@ -828,7 +836,13 @@ fun member eq list x =
 
 fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
-fun update eq x xs = cons x (remove eq x xs);
+
+fun update eq x list =
+  (case list of
+    [] => [x]
+  | y :: rest =>
+      if member eq rest x then x :: remove eq x list
+      else if eq (x, y) then list else x :: list);
 
 fun inter eq xs = filter (member eq xs);
 
@@ -955,15 +969,17 @@ fun dict_ord elem_ord (x :: xs, y :: ys) =
   | dict_ord _ ([], _ :: _) = LESS
   | dict_ord _ (_ :: _, []) = GREATER;
 
-(*lexicographic product of lists*)
-fun length_ord (xs, ys) = int_ord (length xs, length ys);
+fun length_ord args =
+  (case args of
+    (_ :: xs, _ :: ys) => length_ord (xs, ys)
+  | ([], []) => EQUAL
+  | ([], _ :: _) => LESS
+  | (_ :: _, []) => GREATER);
+
+(*lexicographic product of lists, vectors, arrays*)
 fun list_ord elem_ord = length_ord ||| dict_ord elem_ord;
-
-fun vector_ord ord =
-  pointer_eq_ord (int_ord o apply2 Vector.length ||| Vector.collate ord);
-
-fun array_ord ord =
-  pointer_eq_ord (int_ord o apply2 Array.length ||| Array.collate ord);
+fun vector_ord ord = pointer_eq_ord (int_ord o apply2 Vector.length ||| Vector.collate ord);
+fun array_ord ord = pointer_eq_ord (int_ord o apply2 Array.length ||| Array.collate ord);
 
 
 (* sorting *)

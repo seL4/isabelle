@@ -7,6 +7,17 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* The special "of_class" introduction rule for 'class' definitions has
+been renamed from "class.NAME.of_class.intro" to "NAME.intro_of_class"
+(where NAME is the name specification of the class). E.g. see the HOL
+library:
+
+  class.preorder.of_class.intro  ~>  preorder.intro_of_class
+  class.order.of_class.intro  ~> order.intro_of_class
+
+
 *** Document preparation ***
 
 * Various well-known LaTeX styles are included as Isabelle components,

@@ -42,8 +42,9 @@ sig
   val print: binding -> string
   val bad: binding -> string
   val check: binding -> unit
-  val name_spec: scope list -> (string * bool) list -> binding ->
-    {restriction: bool option, concealed: bool, spec: (string * bool) list, full_name: string}
+  type name_spec =
+    {restriction: bool option, concealed: bool, suppress: bool list, full_name: string}
+  val name_spec: scope list -> (string * bool) list -> binding -> name_spec
 end;
 
 structure Binding: BINDING =
@@ -194,7 +195,10 @@ fun check binding =
 
 val bad_specs = ["", "??", "__"];
 
-fun name_spec scopes path binding =
+type name_spec =
+  {restriction: bool option, concealed: bool, suppress: bool list, full_name: string};
+
+fun name_spec scopes path binding : name_spec =
   let
     val Binding {restricted, concealed, prefix, qualifier, name, ...} = binding;
     val _ = Long_Name.is_qualified name andalso error (bad binding);
@@ -213,8 +217,11 @@ fun name_spec scopes path binding =
       andalso error (bad binding);
 
     val spec' = if null spec2 then [] else spec;
+    val suppress = map (not o #2) spec';
     val full_name = Long_Name.implode (map #1 spec');
-  in {restriction = restriction, concealed = concealed, spec = spec', full_name = full_name} end;
+  in
+    {restriction = restriction, concealed = concealed, suppress = suppress, full_name = full_name}
+  end;
 
 end;
 

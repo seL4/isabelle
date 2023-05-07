@@ -25,12 +25,13 @@ sig
   val count_chunks: chunks -> int
   val size_chunks: chunks -> int
   val empty_chunks: chunks
+  val is_empty_chunks: chunks -> bool
   val base_chunks: string -> chunks
   val suppress_chunks: int -> bool list -> string -> chunks
   val make_chunks: string -> chunks
   val explode_chunks: chunks -> string list
   val implode_chunks: chunks -> string
-  val compare_chunks: chunks * chunks -> order
+  val compare_chunks: chunks ord
   val eq_chunks: chunks * chunks -> bool
   structure Chunks: CHANGE_TABLE
 end;
@@ -107,18 +108,26 @@ fun range_index r = r div range_limit;
 fun range_length r = r mod range_limit;
 fun range_string s r = String.substring (s, range_index r, range_length r);
 
+val range_empty = 0;
+val ranges_empty: int vector = Vector.fromList [];
+
 in
 
-abstype chunks = Chunks of {ranges: int list (*reverse*), string: string}
+abstype chunks = Chunks of {range0: int, ranges: int list (*reverse*), string: string}
 with
 
-fun count_chunks (Chunks {ranges, ...}) = length ranges;
+val empty_chunks = Chunks {range0 = range_empty, ranges = [], string = ""};
 
-fun size_chunks (Chunks {ranges, ...}) =
-  if null ranges then 0
-  else fold (fn r => fn n => n + range_length r + 1) ranges ~1;
+fun is_empty_chunks (Chunks {range0, ranges, ...}) =
+  range0 = range_empty andalso null ranges;
 
-val empty_chunks = Chunks {ranges = [], string = ""};
+fun count_chunks (chunks as Chunks {ranges, ...}) =
+  if is_empty_chunks chunks then 0
+  else length ranges + 1;
+
+fun size_chunks (chunks as Chunks {range0, ranges, ...}) =
+  if is_empty_chunks chunks then 0
+  else fold (fn r => fn n => n + range_length r + 1) ranges (range_length range0);
 
 fun base_chunks name =
   let
@@ -126,7 +135,7 @@ fun base_chunks name =
     val j = i + 1;
   in
     if i < 0 then empty_chunks
-    else Chunks {ranges = [range name j (size name - j)], string = name}
+    else Chunks {range0 = range name j (size name - j), ranges = [], string = name}
   end;
 
 fun suppress_chunks suppress1 suppress2 string =
@@ -158,25 +167,30 @@ fun suppress_chunks suppress1 suppress2 string =
         if not string_end then suppr_chunks suppr1' suppr2' i' j' rs'
         else if not (suppr1' = 0 andalso null suppr2') then
           failure string ("cannot suppress chunks beyond " ^ string_of_int (length rs'))
-        else if null rs' then empty_chunks
-        else Chunks {ranges = rs', string = string}
+        else
+          (case rs' of
+            [] => empty_chunks
+          | r0 :: rest => Chunks {range0 = r0, ranges = rest, string = string})
       end;
   in suppr_chunks suppress1 suppress2 0 0 [] end;
 
 val make_chunks = suppress_chunks 0 [];
 
-fun explode_chunks (Chunks {ranges, string}) =
-  fold (cons o range_string string) ranges [];
+fun explode_chunks (chunks as Chunks {range0, ranges, string}) =
+  if is_empty_chunks chunks then []
+  else fold (cons o range_string string) ranges [range_string string range0];
 
-fun implode_chunks (chunks as Chunks {ranges, string}) =
+fun implode_chunks (chunks as Chunks {range0, ranges, string}) =
   if size_chunks chunks = size string then string
-  else if length ranges = 1 then range_string string (nth ranges 0)
+  else if null ranges then range_string string range0
   else implode (explode_chunks chunks);
 
 val compare_chunks = pointer_eq_ord (fn (chunks1, chunks2) =>
   let
-    val Chunks {ranges = ranges1, string = string1} = chunks1;
-    val Chunks {ranges = ranges2, string = string2} = chunks2;
+    val Chunks {range0 = range01, ranges = ranges1, string = string1} = chunks1;
+    val Chunks {range0 = range02, ranges = ranges2, string = string2} = chunks2;
+    val count1 = count_chunks chunks1;
+    val count2 = count_chunks chunks2;
 
     val range_length_ord = int_ord o apply2 range_length;
     fun range_substring_ord arg =
@@ -192,9 +206,20 @@ val compare_chunks = pointer_eq_ord (fn (chunks1, chunks2) =>
           else EQUAL;
       in (case int_ord (m, n) of EQUAL => substring_ord 0 | ord => ord) end;
   in
-    (case list_ord range_length_ord (ranges1, ranges2) of
-      EQUAL => dict_ord range_substring_ord (ranges1, ranges2)
-    | ord => ord)
+    if count1 = 0 andalso count2 = 0 then EQUAL
+    else
+      (case int_ord (count1, count2) of
+        EQUAL =>
+          (case range_length_ord (range01, range02) of
+            EQUAL =>
+              (case dict_ord range_length_ord (ranges1, ranges2) of
+                EQUAL =>
+                  (case range_substring_ord (range01, range02) of
+                    EQUAL => dict_ord range_substring_ord (ranges1, ranges2)
+                  | ord => ord)
+              | ord => ord)
+          | ord => ord)
+      | ord => ord)
   end);
 
 val eq_chunks = is_equal o compare_chunks;
