@@ -19,7 +19,7 @@ sig
     En
   datatype xprod = XProd of string * xsymb list * string * int
   val chain_pri: int
-  val delims_of: xprod list -> string list list
+  val delims_of: xprod list -> Symbol.symbol list list
   datatype syn_ext =
     Syn_Ext of {
       xprods: xprod list,
