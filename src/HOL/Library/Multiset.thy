@@ -375,6 +375,15 @@ lemma union_iff:
   "a \<in># A + B \<longleftrightarrow> a \<in># A \<or> a \<in># B"
   by auto
 
+lemma count_minus_inter_lt_count_minus_inter_iff:
+  "count (M2 - M1) y < count (M1 - M2) y \<longleftrightarrow> y \<in># M1 - M2"
+  by (meson count_greater_zero_iff gr_implies_not_zero in_diff_count leI order.strict_trans2
+      order_less_asym)
+
+lemma minus_inter_eq_minus_inter_iff:
+  "(M1 - M2) = (M2 - M1) \<longleftrightarrow> set_mset (M1 - M2) = set_mset (M2 - M1)"
+  by (metis add.commute count_diff count_eq_zero_iff diff_add_zero in_diff_countE multiset_eq_iff)
+
 
 subsubsection \<open>Min and Max\<close>
 
