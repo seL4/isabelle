@@ -177,6 +177,21 @@ lemma strict_subset_implies_multp\<^sub>H\<^sub>O: "A \<subset># B \<Longrightar
   unfolding multp\<^sub>H\<^sub>O_def
   by (simp add: leD mset_subset_eq_count)
 
+lemma multp\<^sub>H\<^sub>O_implies_one_step_strong:
+  assumes "multp\<^sub>H\<^sub>O R A B"
+  defines "J \<equiv> B - A" and "K \<equiv> A - B"
+  shows "J \<noteq> {#}" and "\<forall>k \<in># K. \<exists>x \<in># J. R k x"
+proof -
+  show "J \<noteq> {#}"
+  using \<open>multp\<^sub>H\<^sub>O R A B\<close>
+  by (metis Diff_eq_empty_iff_mset J_def add.right_neutral multp\<^sub>D\<^sub>M_def multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M
+      multp\<^sub>H\<^sub>O_plus_plus subset_mset.add_diff_inverse subset_mset.le_zero_eq)
+
+  show "\<forall>k\<in>#K. \<exists>x\<in>#J. R k x"
+    using \<open>multp\<^sub>H\<^sub>O R A B\<close>
+    by (metis J_def K_def in_diff_count multp\<^sub>H\<^sub>O_def)
+qed
+
 
 subsubsection \<open>Monotonicity\<close>
 
