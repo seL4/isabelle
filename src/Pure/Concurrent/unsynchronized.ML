@@ -7,6 +7,7 @@ Raw ML references as unsynchronized state variables.
 signature UNSYNCHRONIZED =
 sig
   datatype ref = datatype ref
+  type 'a weak_ref = 'a ref option ref
   val := : 'a ref * 'a -> unit
   val ! : 'a ref -> 'a
   val change: 'a ref -> ('a -> 'a) -> unit
@@ -21,6 +22,8 @@ structure Unsynchronized: UNSYNCHRONIZED =
 struct
 
 datatype ref = datatype ref;
+
+type 'a weak_ref = 'a ref option ref;
 
 val op := = op :=;
 val ! = !;
