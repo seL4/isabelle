@@ -134,7 +134,8 @@ fun update_entry strict kind (name, entry: entry) entries =
 
 type internals = string list Long_Name.Chunks.T;  (*external name -> internal names*)
 
-val merge_internals : internals * internals -> internals = Long_Name.Chunks.merge_list (op =);
+val merge_internals : internals * internals -> internals =
+  Long_Name.Chunks.merge_list (op =);
 
 fun add_internals name xname : internals -> internals =
   Long_Name.Chunks.update_list (op =) (xname, name);
