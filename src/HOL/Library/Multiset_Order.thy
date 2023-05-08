@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/Multiset_Order.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>More Theorems about the Multiset Order\<close>
