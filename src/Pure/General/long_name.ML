@@ -108,18 +108,15 @@ fun range_index r = r div range_limit;
 fun range_length r = r mod range_limit;
 fun range_string s r = String.substring (s, range_index r, range_length r);
 
-val range_empty = 0;
-val ranges_empty: int vector = Vector.fromList [];
-
 in
 
 abstype chunks = Chunks of {range0: int, ranges: int list (*reverse*), string: string}
 with
 
-val empty_chunks = Chunks {range0 = range_empty, ranges = [], string = ""};
+val empty_chunks = Chunks {range0 = 0, ranges = [], string = ""};
 
 fun is_empty_chunks (Chunks {range0, ranges, ...}) =
-  range0 = range_empty andalso null ranges;
+  range0 = 0 andalso null ranges;
 
 fun count_chunks (chunks as Chunks {ranges, ...}) =
   if is_empty_chunks chunks then 0
