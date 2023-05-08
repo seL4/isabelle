@@ -262,11 +262,45 @@ qed
 text \<open>However, if the binary relation is both asymmetric and transitive, then @{const multp\<^sub>H\<^sub>O} is
 also asymmetric.\<close>
 
+lemma asymp_on_multp\<^sub>H\<^sub>O:
+  assumes "asymp_on A R" and "transp_on A R" and
+    B_sub_A: "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  shows "asymp_on B (multp\<^sub>H\<^sub>O R)"
+proof (rule asymp_onI)
+  fix M1 M2 :: "'a multiset"
+  assume "M1 \<in> B" "M2 \<in> B" "multp\<^sub>H\<^sub>O R M1 M2"
+
+  from \<open>transp_on A R\<close> B_sub_A have tran: "transp_on (set_mset (M1 - M2)) R"
+    using \<open>M1 \<in> B\<close>
+    by (meson in_diffD subset_eq transp_on_subset)
+
+  from \<open>asymp_on A R\<close> B_sub_A have asym: "asymp_on (set_mset (M1 - M2)) R"
+    using \<open>M1 \<in> B\<close>
+    by (meson in_diffD subset_eq asymp_on_subset)
+
+  show "\<not> multp\<^sub>H\<^sub>O R M2 M1"
+  proof (cases "M1 - M2 = {#}")
+    case True
+    then show ?thesis
+      using multp\<^sub>H\<^sub>O_implies_one_step_strong(1) by metis
+  next
+    case False
+    hence "\<exists>m\<in>#M1 - M2. \<forall>x\<in>#M1 - M2. x \<noteq> m \<longrightarrow> \<not> R m x"
+      using Finite_Set.bex_max_element[of "set_mset (M1 - M2)" R, OF finite_set_mset _ tran asym]
+      by simp
+    with \<open>transp_on A R\<close> B_sub_A have "\<exists>y\<in>#M2 - M1. \<forall>x\<in>#M1 - M2. \<not> R y x"
+      using \<open>multp\<^sub>H\<^sub>O R M1 M2\<close>[THEN multp\<^sub>H\<^sub>O_implies_one_step_strong(2)]
+      using asym[THEN irreflp_on_if_asymp_on, THEN irreflp_onD]
+      by (metis \<open>M1 \<in> B\<close> \<open>M2 \<in> B\<close> in_diffD subsetD transp_onD)
+    thus ?thesis
+      unfolding multp\<^sub>H\<^sub>O_iff_set_mset_less\<^sub>H\<^sub>O_set_mset by simp
+  qed
+qed
+
 lemma asymp_multp\<^sub>H\<^sub>O:
   assumes "asymp R" and "transp R"
   shows "asymp (multp\<^sub>H\<^sub>O R)"
-  using assms
-  by (metis asymp_on_iff_irreflp_on_if_transp_on irreflp_multp multp_eq_multp\<^sub>H\<^sub>O transp_multp)
+  using assms asymp_on_multp\<^sub>H\<^sub>O[of UNIV, simplified] by metis
 
 lemma totalp_on_multp\<^sub>D\<^sub>M:
   "totalp_on A R \<Longrightarrow> (\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A) \<Longrightarrow> totalp_on B (multp\<^sub>D\<^sub>M R)"

@@ -245,6 +245,7 @@ antiquotations.
   - Added lemmas.
       asymp_multpHO
       asymp_not_liftable_to_multpHO
+      asymp_on_multpHO
       irreflp_on_multpHO[simp]
       multpDM_mono_strong
       multpDM_plus_plusI[simp]
