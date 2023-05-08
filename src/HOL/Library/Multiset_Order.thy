@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/Multiset_Order.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>More Theorems about the Multiset Order\<close>
@@ -177,6 +178,36 @@ lemma strict_subset_implies_multp\<^sub>H\<^sub>O: "A \<subset># B \<Longrightar
   unfolding multp\<^sub>H\<^sub>O_def
   by (simp add: leD mset_subset_eq_count)
 
+lemma multp\<^sub>H\<^sub>O_implies_one_step_strong:
+  assumes "multp\<^sub>H\<^sub>O R A B"
+  defines "J \<equiv> B - A" and "K \<equiv> A - B"
+  shows "J \<noteq> {#}" and "\<forall>k \<in># K. \<exists>x \<in># J. R k x"
+proof -
+  show "J \<noteq> {#}"
+  using \<open>multp\<^sub>H\<^sub>O R A B\<close>
+  by (metis Diff_eq_empty_iff_mset J_def add.right_neutral multp\<^sub>D\<^sub>M_def multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M
+      multp\<^sub>H\<^sub>O_plus_plus subset_mset.add_diff_inverse subset_mset.le_zero_eq)
+
+  show "\<forall>k\<in>#K. \<exists>x\<in>#J. R k x"
+    using \<open>multp\<^sub>H\<^sub>O R A B\<close>
+    by (metis J_def K_def in_diff_count multp\<^sub>H\<^sub>O_def)
+qed
+
+lemma multp\<^sub>H\<^sub>O_minus_inter_minus_inter_iff:
+  fixes M1 M2 :: "_ multiset"
+  shows "multp\<^sub>H\<^sub>O R (M1 - M2) (M2 - M1) \<longleftrightarrow> multp\<^sub>H\<^sub>O R M1 M2"
+  by (metis diff_intersect_left_idem multiset_inter_commute multp\<^sub>H\<^sub>O_plus_plus
+      subset_mset.add_diff_inverse subset_mset.inf.cobounded1)
+
+lemma multp\<^sub>H\<^sub>O_iff_set_mset_less\<^sub>H\<^sub>O_set_mset:
+  "multp\<^sub>H\<^sub>O R M1 M2 \<longleftrightarrow> (set_mset (M1 - M2) \<noteq> set_mset (M2 - M1) \<and>
+    (\<forall>y \<in># M1 - M2. (\<exists>x \<in># M2 - M1. R y x)))"
+  unfolding multp\<^sub>H\<^sub>O_minus_inter_minus_inter_iff[of R M1 M2, symmetric]
+  unfolding multp\<^sub>H\<^sub>O_def
+  unfolding count_minus_inter_lt_count_minus_inter_iff
+  unfolding minus_inter_eq_minus_inter_iff
+  by auto
+
 
 subsubsection \<open>Monotonicity\<close>
 
@@ -232,11 +263,45 @@ qed
 text \<open>However, if the binary relation is both asymmetric and transitive, then @{const multp\<^sub>H\<^sub>O} is
 also asymmetric.\<close>
 
+lemma asymp_on_multp\<^sub>H\<^sub>O:
+  assumes "asymp_on A R" and "transp_on A R" and
+    B_sub_A: "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  shows "asymp_on B (multp\<^sub>H\<^sub>O R)"
+proof (rule asymp_onI)
+  fix M1 M2 :: "'a multiset"
+  assume "M1 \<in> B" "M2 \<in> B" "multp\<^sub>H\<^sub>O R M1 M2"
+
+  from \<open>transp_on A R\<close> B_sub_A have tran: "transp_on (set_mset (M1 - M2)) R"
+    using \<open>M1 \<in> B\<close>
+    by (meson in_diffD subset_eq transp_on_subset)
+
+  from \<open>asymp_on A R\<close> B_sub_A have asym: "asymp_on (set_mset (M1 - M2)) R"
+    using \<open>M1 \<in> B\<close>
+    by (meson in_diffD subset_eq asymp_on_subset)
+
+  show "\<not> multp\<^sub>H\<^sub>O R M2 M1"
+  proof (cases "M1 - M2 = {#}")
+    case True
+    then show ?thesis
+      using multp\<^sub>H\<^sub>O_implies_one_step_strong(1) by metis
+  next
+    case False
+    hence "\<exists>m\<in>#M1 - M2. \<forall>x\<in>#M1 - M2. x \<noteq> m \<longrightarrow> \<not> R m x"
+      using Finite_Set.bex_max_element[of "set_mset (M1 - M2)" R, OF finite_set_mset _ tran asym]
+      by simp
+    with \<open>transp_on A R\<close> B_sub_A have "\<exists>y\<in>#M2 - M1. \<forall>x\<in>#M1 - M2. \<not> R y x"
+      using \<open>multp\<^sub>H\<^sub>O R M1 M2\<close>[THEN multp\<^sub>H\<^sub>O_implies_one_step_strong(2)]
+      using asym[THEN irreflp_on_if_asymp_on, THEN irreflp_onD]
+      by (metis \<open>M1 \<in> B\<close> \<open>M2 \<in> B\<close> in_diffD subsetD transp_onD)
+    thus ?thesis
+      unfolding multp\<^sub>H\<^sub>O_iff_set_mset_less\<^sub>H\<^sub>O_set_mset by simp
+  qed
+qed
+
 lemma asymp_multp\<^sub>H\<^sub>O:
   assumes "asymp R" and "transp R"
   shows "asymp (multp\<^sub>H\<^sub>O R)"
-  using assms
-  by (metis asymp_on_iff_irreflp_on_if_transp_on irreflp_multp multp_eq_multp\<^sub>H\<^sub>O transp_multp)
+  using assms asymp_on_multp\<^sub>H\<^sub>O[of UNIV, simplified] by metis
 
 lemma totalp_on_multp\<^sub>D\<^sub>M:
   "totalp_on A R \<Longrightarrow> (\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A) \<Longrightarrow> totalp_on B (multp\<^sub>D\<^sub>M R)"

@@ -238,6 +238,8 @@ antiquotations.
   - Used transp_on and reorder assumptions of lemmas bex_least_element and
     bex_greatest_element. Minor INCOMPATIBILITIES.
   - Added lemmas.
+      count_minus_inter_lt_count_minus_inter_iff
+      minus_inter_eq_minus_inter_iff
       mult_mono_strong
       multeqp_code_iff_reflclp_multp
       multp_code_iff_multp
@@ -254,10 +256,14 @@ antiquotations.
   - Added lemmas.
       asymp_multpHO
       asymp_not_liftable_to_multpHO
+      asymp_on_multpHO
       irreflp_on_multpHO[simp]
       multpDM_mono_strong
       multpDM_plus_plusI[simp]
       multpHO_double_double[simp]
+      multpHO_iff_set_mset_lessHO_set_mset
+      multpHO_implies_one_step_strong
+      multpHO_minus_inter_minus_inter_iff
       multpHO_mono_strong
       multpHO_plus_plus[simp]
       multpHO_repeat_mset_repeat_mset[simp]
