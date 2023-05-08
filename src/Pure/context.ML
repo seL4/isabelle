@@ -114,9 +114,9 @@ end;
 structure Context: PRIVATE_CONTEXT =
 struct
 
-(*** theory context ***)
+(*** type definitions ***)
 
-(* theory data *)
+(* context data *)
 
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
@@ -125,9 +125,24 @@ type data_kind = int;
 val data_kind = Counter.make ();
 
 
-(** datatype theory **)
+(* theory identity *)
 
-(* implicit state *)
+type id = int;
+val new_id = Counter.make ();
+
+abstype theory_id =
+  Thy_Id of
+   {id: id,         (*identifier*)
+    ids: Intset.T,  (*cumulative identifiers -- symbolic body content*)
+    name: string,   (*official theory name*)
+    stage: int}     (*index for anonymous updates*)
+with
+  fun rep_theory_id (Thy_Id args) = args;
+  val make_theory_id = Thy_Id;
+end;
+
+
+(* theory allocation state *)
 
 type state = {stage: int} Synchronized.var;
 
@@ -138,29 +153,10 @@ fun next_stage (state: state) =
   Synchronized.change_result state (fn {stage} => (stage + 1, {stage = stage + 1}));
 
 
-(* theory_id *)
-
-type id = int;
-val new_id = Counter.make ();
-
-abstype theory_id =
-  Theory_Id of
-   {id: id,                       (*identifier*)
-    ids: Intset.T,                (*cumulative identifiers -- symbolic body content*)
-    name: string,                 (*official theory name*)
-    stage: int}                   (*index for anonymous updates*)
-with
-
-fun rep_theory_id (Theory_Id args) = args;
-val make_theory_id = Theory_Id;
-
-end;
-
-
-(* theory *)
+(* theory and proof context *)
 
 datatype theory =
-  Theory of
+  Thy of
    (*allocation state*)
    state *
    (*identity*)
@@ -172,9 +168,18 @@ datatype theory =
    (*data*)
    Any.T Datatab.table;           (*body content*)
 
-exception THEORY of string * theory list;
+datatype proof = Prf of Any.T Datatab.table * theory;
+structure Proof = struct type context = proof end;
 
-fun rep_theory (Theory args) = args;
+datatype generic = Theory of theory | Proof of Proof.context;
+
+
+
+(*** theory operations ***)
+
+fun rep_theory (Thy args) = args;
+
+exception THEORY of string * theory list;
 
 val state_of = #1 o rep_theory;
 val theory_identity = #2 o rep_theory;
@@ -379,7 +384,7 @@ fun create_thy state ids name stage ancestry data =
   let
     val theory_id = make_theory_id {id = new_id (), ids = ids, name = name, stage = stage};
     val identity = {theory_id = theory_id, token = make_token ()};
-  in Theory (state, identity, ancestry, data) end;
+  in Thy (state, identity, ancestry, data) end;
 
 end;
 
@@ -397,7 +402,7 @@ local
 fun change_thy finish f thy =
   let
     val {name, stage, ...} = identity_of thy;
-    val Theory (state, _, ancestry, data) = thy;
+    val Thy (state, _, ancestry, data) = thy;
     val ancestry' =
       if stage_final stage
       then make_ancestry [thy] (extend_ancestors thy (ancestors_of thy))
@@ -489,14 +494,6 @@ fun theory_data_sizeof1 thy =
 
 (*** proof context ***)
 
-(* datatype Proof.context *)
-
-structure Proof =
-struct
-  datatype context = Context of Any.T Datatab.table * theory;
-end;
-
-
 (* proof data kinds *)
 
 local
@@ -518,16 +515,16 @@ fun init_fallback k thy =
 
 in
 
-fun raw_transfer thy' (Proof.Context (data, thy)) =
+fun raw_transfer thy' (Prf (data, thy)) =
   let
     val _ = subthy (thy, thy') orelse error "Cannot transfer proof context: not a super theory";
     val data' = init_new_data thy' data;
-  in Proof.Context (data', thy') end;
+  in Prf (data', thy') end;
 
 structure Proof_Context =
 struct
-  fun theory_of (Proof.Context (_, thy)) = thy;
-  fun init_global thy = Proof.Context (init_data thy, thy);
+  fun theory_of (Prf (_, thy)) = thy;
+  fun init_global thy = Prf (init_data thy, thy);
   fun get_global long thy name = init_global (get_theory long thy name);
 end;
 
@@ -540,13 +537,13 @@ fun declare init =
     val _ = Synchronized.change kinds (Datatab.update (k, init));
   in k end;
 
-fun get k dest (Proof.Context (data, thy)) =
+fun get k dest (Prf (data, thy)) =
   (case Datatab.lookup data k of
     SOME x => x
   | NONE => init_fallback k thy) |> dest;
 
-fun put k make x (Proof.Context (data, thy)) =
-  Proof.Context (Datatab.update (k, make x) data, thy);
+fun put k make x (Prf (data, thy)) =
+  Prf (Datatab.update (k, make x) data, thy);
 
 end;
 
@@ -582,8 +579,6 @@ fun join_certificate (cert1, cert2) =
 
 
 (*** generic context ***)
-
-datatype generic = Theory of theory | Proof of Proof.context;
 
 fun cases f _ (Theory thy) = f thy
   | cases _ g (Proof prf) = g prf;
