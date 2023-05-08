@@ -249,7 +249,9 @@ antiquotations.
       multpDM_mono_strong
       multpDM_plus_plusI[simp]
       multpHO_double_double[simp]
+      multpHO_iff_set_mset_lessHO_set_mset
       multpHO_implies_one_step_strong
+      multpHO_minus_inter_minus_inter_iff
       multpHO_mono_strong
       multpHO_plus_plus[simp]
       multpHO_repeat_mset_repeat_mset[simp]

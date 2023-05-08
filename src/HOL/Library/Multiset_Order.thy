@@ -192,6 +192,21 @@ proof -
     by (metis J_def K_def in_diff_count multp\<^sub>H\<^sub>O_def)
 qed
 
+lemma multp\<^sub>H\<^sub>O_minus_inter_minus_inter_iff:
+  fixes M1 M2 :: "_ multiset"
+  shows "multp\<^sub>H\<^sub>O R (M1 - M2) (M2 - M1) \<longleftrightarrow> multp\<^sub>H\<^sub>O R M1 M2"
+  by (metis diff_intersect_left_idem multiset_inter_commute multp\<^sub>H\<^sub>O_plus_plus
+      subset_mset.add_diff_inverse subset_mset.inf.cobounded1)
+
+lemma multp\<^sub>H\<^sub>O_iff_set_mset_less\<^sub>H\<^sub>O_set_mset:
+  "multp\<^sub>H\<^sub>O R M1 M2 \<longleftrightarrow> (set_mset (M1 - M2) \<noteq> set_mset (M2 - M1) \<and>
+    (\<forall>y \<in># M1 - M2. (\<exists>x \<in># M2 - M1. R y x)))"
+  unfolding multp\<^sub>H\<^sub>O_minus_inter_minus_inter_iff[of R M1 M2, symmetric]
+  unfolding multp\<^sub>H\<^sub>O_def
+  unfolding count_minus_inter_lt_count_minus_inter_iff
+  unfolding minus_inter_eq_minus_inter_iff
+  by auto
+
 
 subsubsection \<open>Monotonicity\<close>
 
