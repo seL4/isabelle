@@ -202,8 +202,9 @@ fun make_token guard var token0 =
   if ! guard then
     let
       val token = Unsynchronized.ref (! token0);
-      val _ = Synchronized.change var (cons (Weak.weak (SOME token)));
-    in (token, fn res => (token := res; res)) end
+      fun assign res =
+        (token := res; Synchronized.change var (cons (Weak.weak (SOME token))); res);
+    in (token, assign) end
   else (token0, I);
 
 val theory_tokens = Synchronized.var "theory_tokens" ([]: theory Unsynchronized.weak_ref list);
