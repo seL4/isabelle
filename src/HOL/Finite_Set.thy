@@ -2471,93 +2471,192 @@ subsection \<open>Minimal and maximal elements of finite sets\<close>
 context begin
 
 qualified lemma
-  assumes "finite A" and "A \<noteq> {}" and "transp_on A R" and "asymp_on A R"
+  assumes "finite A" and "asymp_on A R" and "transp_on A R" and "\<exists>x \<in> A. P x"
   shows
-    bex_min_element: "\<exists>m \<in> A. \<forall>x \<in> A. x \<noteq> m \<longrightarrow> \<not> R x m" and
-    bex_max_element: "\<exists>m \<in> A. \<forall>x \<in> A. x \<noteq> m \<longrightarrow> \<not> R m x"
+    bex_min_element_with_property: "\<exists>x \<in> A. P x \<and> (\<forall>y \<in> A. R y x \<longrightarrow> \<not> P y)" and
+    bex_max_element_with_property: "\<exists>x \<in> A. P x \<and> (\<forall>y \<in> A. R x y \<longrightarrow> \<not> P y)"
   unfolding atomize_conj
   using assms
 proof (induction A rule: finite_induct)
   case empty
   hence False
-    by simp
+    by simp_all
   thus ?case ..
 next
-  case (insert a A')
+  case (insert x F)
+
+  from insert.prems have "asymp_on F R"
+    using asymp_on_subset by blast
+
+  from insert.prems have "transp_on F R"
+    using transp_on_subset by blast
+
   show ?case
-  proof (cases "A' = {}")
+  proof (cases "P x")
     case True
     show ?thesis
-    proof (intro conjI bexI)
-      show "\<forall>x\<in>insert a A'. x \<noteq> a \<longrightarrow> \<not> R x a" and "\<forall>x\<in>insert a A'. x \<noteq> a \<longrightarrow> \<not> R a x"
-        using True by blast+
-    qed simp_all
-  next
-    case False
-    moreover have "transp_on A' R"
-      using insert.prems transp_on_subset by blast
-    moreover have "asymp_on A' R"
-      using insert.prems asymp_on_subset by blast
-    ultimately obtain min max where
-      "min \<in> A'" and "max \<in> A'" and
-      min_is_min: "\<forall>x\<in>A'. x \<noteq> min \<longrightarrow> \<not> R x min" and
-      max_is_max: "\<forall>x\<in>A'. x \<noteq> max \<longrightarrow> \<not> R max x"
-      using insert.IH by auto
+    proof (cases "\<exists>a\<in>F. P a")
+      case True
+      with insert.IH obtain min max where
+        "min \<in> F" and "P min" and "\<forall>z \<in> F. R z min \<longrightarrow> \<not> P z"
+        "max \<in> F" and "P max" and "\<forall>z \<in> F. R max z \<longrightarrow> \<not> P z"
+        using \<open>asymp_on F R\<close> \<open>transp_on F R\<close> by auto
 
-    show ?thesis
-    proof (rule conjI)
-      show "\<exists>min\<in>insert a A'. \<forall>x\<in>insert a A'. x \<noteq> min \<longrightarrow> \<not> R x min"
-      proof (cases "R a min")
-        case True
-        show ?thesis
-        proof (intro bexI ballI impI)
-          show "a \<in> insert a A'"
-            by simp
+      show ?thesis
+      proof (rule conjI)
+        show "\<exists>y \<in> insert x F. P y \<and> (\<forall>z \<in> insert x F. R y z \<longrightarrow> \<not> P z)"
+        proof (cases "R max x")
+          case True
+          show ?thesis
+          proof (intro bexI conjI ballI impI)
+            show "x \<in> insert x F"
+              by simp
+          next
+            show "P x"
+              using \<open>P x\<close> by simp
+          next
+            fix z assume "z \<in> insert x F" and "R x z"
+            hence "z = x \<or> z \<in> F"
+              by simp
+            thus "\<not> P z"
+            proof (rule disjE)
+              assume "z = x"
+              hence "R x x"
+                using \<open>R x z\<close> by simp
+              moreover have "\<not> R x x"
+                using \<open>asymp_on (insert x F) R\<close>[THEN irreflp_on_if_asymp_on, THEN irreflp_onD]
+                by simp
+              ultimately have False
+                by simp
+              thus ?thesis ..
+            next
+              assume "z \<in> F"
+              moreover have "R max z"
+                using \<open>R max x\<close> \<open>R x z\<close>
+                using \<open>transp_on (insert x F) R\<close>[THEN transp_onD, of max x z]
+                using \<open>max \<in> F\<close> \<open>z \<in> F\<close> by simp
+              ultimately show ?thesis
+                using \<open>\<forall>z \<in> F. R max z \<longrightarrow> \<not> P z\<close> by simp
+            qed
+          qed
         next
-          fix x
-          show "x \<in> insert a A' \<Longrightarrow> x \<noteq> a \<Longrightarrow> \<not> R x a"
-            using True \<open>min \<in> A'\<close> min_is_min[rule_format, of x] insert.prems(2,3)
-            by (auto dest: asymp_onD transp_onD)
+          case False
+          show ?thesis
+          proof (intro bexI conjI ballI impI)
+            show "max \<in> insert x F"
+              using \<open>max \<in> F\<close> by simp
+          next
+            show "P max"
+              using \<open>P max\<close> by simp
+          next
+            fix z assume "z \<in> insert x F" and "R max z"
+            hence "z = x \<or> z \<in> F"
+              by simp
+            thus "\<not> P z"
+            proof (rule disjE)
+              assume "z = x"
+              hence False
+                using \<open>\<not> R max x\<close> \<open>R max z\<close> by simp
+              thus ?thesis ..
+            next
+              assume "z \<in> F"
+              thus ?thesis
+                using \<open>R max z\<close> \<open>\<forall>z\<in>F. R max z \<longrightarrow> \<not> P z\<close> by simp
+            qed
+          qed
         qed
       next
-        case False
-        show ?thesis
-        proof (rule bexI)
-          show "min \<in> insert a A'"
-            using \<open>min \<in> A'\<close> by auto
+        show "\<exists>y \<in> insert x F. P y \<and> (\<forall>z \<in> insert x F. R z y \<longrightarrow> \<not> P z)"
+        proof (cases "R x min")
+          case True
+          show ?thesis
+          proof (intro bexI conjI ballI impI)
+            show "x \<in> insert x F"
+              by simp
+          next
+            show "P x"
+              using \<open>P x\<close> by simp
+          next
+            fix z assume "z \<in> insert x F" and "R z x"
+            hence "z = x \<or> z \<in> F"
+              by simp
+            thus "\<not> P z"
+            proof (rule disjE)
+              assume "z = x"
+              hence "R x x"
+                using \<open>R z x\<close> by simp
+              moreover have "\<not> R x x"
+                using \<open>asymp_on (insert x F) R\<close>[THEN irreflp_on_if_asymp_on, THEN irreflp_onD]
+                by simp
+              ultimately have False
+                by simp
+              thus ?thesis ..
+            next
+              assume "z \<in> F"
+              moreover have "R z min"
+                using \<open>R z x\<close> \<open>R x min\<close>
+                using \<open>transp_on (insert x F) R\<close>[THEN transp_onD, of z x min]
+                using \<open>min \<in> F\<close> \<open>z \<in> F\<close> by simp
+              ultimately show ?thesis
+                using \<open>\<forall>z \<in> F. R z min \<longrightarrow> \<not> P z\<close> by simp
+            qed
+          qed
         next
-          show "\<forall>x\<in>insert a A'. x \<noteq> min \<longrightarrow> \<not> R x min"
-            using False min_is_min by blast
+          case False
+          show ?thesis
+          proof (intro bexI conjI ballI impI)
+            show "min \<in> insert x F"
+              using \<open>min \<in> F\<close> by simp
+          next
+            show "P min"
+              using \<open>P min\<close> by simp
+          next
+            fix z assume "z \<in> insert x F" and "R z min"
+            hence "z = x \<or> z \<in> F"
+              by simp
+            thus "\<not> P z"
+            proof (rule disjE)
+              assume "z = x"
+              hence False
+                using \<open>\<not> R x min\<close> \<open>R z min\<close> by simp
+              thus ?thesis ..
+            next
+              assume "z \<in> F"
+              thus ?thesis
+                using \<open>R z min\<close> \<open>\<forall>z\<in>F. R z min \<longrightarrow> \<not> P z\<close> by simp
+            qed
+          qed
         qed
       qed
     next
-      show "\<exists>max\<in>insert a A'. \<forall>x\<in>insert a A'. x \<noteq> max \<longrightarrow> \<not> R max x"
-      proof (cases "R max a")
-        case True
-        show ?thesis
-        proof (intro bexI ballI impI)
-          show "a \<in> insert a A'"
-            by simp
-        next
-          fix x
-          show "x \<in> insert a A' \<Longrightarrow> x \<noteq> a \<Longrightarrow> \<not> R a x"
-            using True \<open>max \<in> A'\<close> max_is_max[rule_format, of x] insert.prems(2,3)
-            by (auto dest: asymp_onD transp_onD)
-        qed
-      next
-        case False
-        show ?thesis
-        proof (rule bexI)
-          show "max \<in> insert a A'"
-            using \<open>max \<in> A'\<close> by auto
-        next
-          show "\<forall>x\<in>insert a A'. x \<noteq> max \<longrightarrow> \<not> R max x"
-            using False max_is_max by blast
-        qed
-      qed
+      case False
+      then show ?thesis
+        using \<open>\<exists>a\<in>insert x F. P a\<close>
+        using \<open>asymp_on (insert x F) R\<close>[THEN asymp_onD, of x] insert_iff[of _ x F]
+        by blast
     qed
+  next
+    case False
+    with insert.prems have "\<exists>x \<in> F. P x"
+      by simp
+    with insert.IH have
+      "\<exists>y \<in> F. P y \<and> (\<forall>z\<in>F. R z y \<longrightarrow> \<not> P z)"
+      "\<exists>y \<in> F. P y \<and> (\<forall>z\<in>F. R y z \<longrightarrow> \<not> P z)"
+      using \<open>asymp_on F R\<close> \<open>transp_on F R\<close> by auto
+    thus ?thesis
+      using False by auto
   qed
 qed
+
+qualified lemma
+  assumes "finite A" and "asymp_on A R" and "transp_on A R" and "A \<noteq> {}"
+  shows
+    bex_min_element: "\<exists>m \<in> A. \<forall>x \<in> A. x \<noteq> m \<longrightarrow> \<not> R x m" and
+    bex_max_element: "\<exists>m \<in> A. \<forall>x \<in> A. x \<noteq> m \<longrightarrow> \<not> R m x"
+  using \<open>A \<noteq> {}\<close>
+    bex_min_element_with_property[OF assms(1,2,3), of "\<lambda>_. True", simplified]
+    bex_max_element_with_property[OF assms(1,2,3), of "\<lambda>_. True", simplified]
+  by blast+
 
 end
 
@@ -2679,7 +2778,7 @@ lemma finite_has_maximal:
   shows "\<exists> m \<in> A. \<forall> b \<in> A. m \<le> b \<longrightarrow> m = b"
 proof -
   obtain m where "m \<in> A" and m_is_max: "\<forall>x\<in>A. x \<noteq> m \<longrightarrow> \<not> m < x"
-    using Finite_Set.bex_max_element[OF \<open>finite A\<close> \<open>A \<noteq> {}\<close>, of "(<)"] by auto
+    using Finite_Set.bex_max_element[OF \<open>finite A\<close> _ _ \<open>A \<noteq> {}\<close>, of "(<)"] by auto
   moreover have "\<forall>b \<in> A. m \<le> b \<longrightarrow> m = b"
     using m_is_max by (auto simp: le_less)
   ultimately show ?thesis
@@ -2695,7 +2794,7 @@ lemma finite_has_minimal:
   shows "\<exists> m \<in> A. \<forall> b \<in> A. b \<le> m \<longrightarrow> m = b"
 proof -
   obtain m where "m \<in> A" and m_is_min: "\<forall>x\<in>A. x \<noteq> m \<longrightarrow> \<not> x < m"
-    using Finite_Set.bex_min_element[OF \<open>finite A\<close> \<open>A \<noteq> {}\<close>, of "(<)"] by auto
+    using Finite_Set.bex_min_element[OF \<open>finite A\<close> _ _ \<open>A \<noteq> {}\<close>, of "(<)"] by auto
   moreover have "\<forall>b \<in> A. b \<le> m \<longrightarrow> m = b"
     using m_is_min by (auto simp: le_less)
   ultimately show ?thesis
