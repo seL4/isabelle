@@ -70,7 +70,7 @@ sig
   val trace_theories: bool Unsynchronized.ref
   val trace_proofs: bool Unsynchronized.ref
   val allocations_trace: unit ->
-   {contexts: generic list,
+   {contexts: (generic * Position.T) list,
     active_contexts: int,
     active_theories: int,
     active_proofs: int,
@@ -170,7 +170,8 @@ datatype theory =
     state *
     (*identity*)
     {theory_id: theory_id,
-     theory_token: theory Unsynchronized.ref} *
+     theory_token: theory Unsynchronized.ref,
+     theory_token_pos: Position.T} *
     (*ancestry*)
     {parents: theory list,         (*immediate predecessors*)
      ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
@@ -181,7 +182,8 @@ datatype proof =
   Prf_Undef
 | Prf of
     (*identity*)
-    proof Unsynchronized.ref *
+    proof Unsynchronized.ref *  (*token*)
+    Position.T *                (*token_pos*)
     theory *
     (*data*)
     Any.T Datatab.table;
@@ -202,10 +204,11 @@ fun make_token guard var token0 =
   if ! guard then
     let
       val token = Unsynchronized.ref (! token0);
+      val pos = Position.thread_data ();
       fun assign res =
         (token := res; Synchronized.change var (cons (Weak.weak (SOME token))); res);
-    in (token, assign) end
-  else (token0, I);
+    in (token, pos, assign) end
+  else (token0, Position.none, I);
 
 val theory_tokens = Synchronized.var "theory_tokens" ([]: theory Unsynchronized.weak_ref list);
 val proof_tokens = Synchronized.var "proof_tokens" ([]: Proof.context Unsynchronized.weak_ref list);
@@ -225,13 +228,19 @@ fun allocations_trace () =
     val trace2 = Synchronized.value proof_tokens;
 
     fun cons1 r =
-      (case Unsynchronized.weak_peek r of SOME (thy as Thy _) => cons (Theory thy) | _ => I);
+      (case Unsynchronized.weak_peek r of
+        SOME (thy as Thy (_, {theory_token_pos, ...}, _, _)) =>
+          cons (Theory thy, theory_token_pos)
+      | _ => I);
     fun cons2 r =
-      (case Unsynchronized.weak_peek r of SOME (ctxt as Prf _) => cons (Proof ctxt) | _ => I);
+      (case Unsynchronized.weak_peek r of
+        SOME (ctxt as Prf (_, proof_token_pos, _, _)) =>
+          cons (Proof ctxt, proof_token_pos)
+      | _ => I);
 
     val contexts = build (fold cons1 trace1 #> fold cons2 trace2);
-    val active_theories = fold (fn Theory _ => Integer.add 1 | _ => I) contexts 0;
-    val active_proofs = fold (fn Proof _ => Integer.add 1 | _ => I) contexts 0;
+    val active_theories = fold (fn (Theory _, _) => Integer.add 1 | _ => I) contexts 0;
+    val active_proofs = fold (fn (Proof _, _) => Integer.add 1 | _ => I) contexts 0;
 
     val total_theories = length trace1;
     val total_proofs = length trace2;
@@ -425,8 +434,8 @@ end;
 fun create_thy state ids name stage ancestry data =
   let
     val theory_id = make_theory_id {id = new_id (), ids = ids, name = name, stage = stage};
-    val (token, assign) = theory_token ();
-    val identity = {theory_id = theory_id, theory_token = token};
+    val (token, pos, assign) = theory_token ();
+    val identity = {theory_id = theory_id, theory_token = token, theory_token_pos = pos};
   in assign (Thy (state, identity, ancestry, data)) end;
 
 
@@ -556,21 +565,21 @@ fun init_fallback k thy =
 
 in
 
-fun raw_transfer thy' (ctxt as Prf (_, thy, data)) =
+fun raw_transfer thy' (ctxt as Prf (_, _, thy, data)) =
   if eq_thy (thy, thy') then ctxt
   else if proper_subthy (thy, thy') then
     let
-      val (token', assign) = proof_token ();
+      val (token', pos', assign) = proof_token ();
       val data' = init_new_data thy' data;
-    in assign (Prf (token', thy', data')) end
+    in assign (Prf (token', pos', thy', data')) end
   else error "Cannot transfer proof context: not a super theory";
 
 structure Proof_Context =
 struct
-  fun theory_of (Prf (_, thy, _)) = thy;
+  fun theory_of (Prf (_, _, thy, _)) = thy;
   fun init_global thy =
-    let val (token, assign) = proof_token ()
-    in assign (Prf (token, thy, init_data thy)) end;
+    let val (token, pos, assign) = proof_token ()
+    in assign (Prf (token, pos, thy, init_data thy)) end;
   fun get_global long thy name = init_global (get_theory long thy name);
 end;
 
@@ -583,14 +592,16 @@ fun declare init =
     val _ = Synchronized.change kinds (Datatab.update (k, init));
   in k end;
 
-fun get k dest (Prf (_, thy, data)) =
+fun get k dest (Prf (_, _, thy, data)) =
   (case Datatab.lookup data k of
     SOME x => x
   | NONE => init_fallback k thy) |> dest;
 
-fun put k make x (Prf (token, thy, data)) =
-  let val (token, assign) = proof_token ()
-  in assign (Prf (token, thy, Datatab.update (k, make x) data)) end;
+fun put k make x (Prf (_, _, thy, data)) =
+  let
+    val (token', pos', assign) = proof_token ();
+    val data' = Datatab.update (k, make x) data;
+  in assign (Prf (token', pos', thy, data')) end;
 
 end;
 
