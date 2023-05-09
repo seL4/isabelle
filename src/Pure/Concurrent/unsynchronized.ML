@@ -49,6 +49,8 @@ fun setmp flag value f x =
 
 (* weak references *)
 
+(*see also $ML_SOURCES/basis/Weak.sml*)
+
 type 'a weak_ref = 'a ref option ref;
 
 fun weak_ref a = Weak.weak (SOME (ref a));
