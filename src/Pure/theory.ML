@@ -189,7 +189,6 @@ fun begin_theory (name, pos) imports =
       |> Sign.init_naming
       |> Sign.local_path
       |> apply_wrappers wrappers
-      |> tap (Syntax.force_syntax o Sign.syn_of)
     end;
 
 fun end_theory thy =

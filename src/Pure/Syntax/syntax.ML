@@ -73,7 +73,6 @@ sig
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T list
   type syntax
   val eq_syntax: syntax * syntax -> bool
-  val force_syntax: syntax -> unit
   datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int}
   val get_approx: syntax -> string -> approx option
   val lookup_const: syntax -> string -> string option
@@ -409,7 +408,7 @@ datatype syntax =
   Syntax of {
     input: Syntax_Ext.xprod list,
     lexicon: Scan.lexicon,
-    gram: Parser.gram lazy,
+    gram: Parser.gram Synchronized.cache,
     consts: string Symtab.table,
     prmodes: string list,
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
@@ -421,8 +420,6 @@ datatype syntax =
     prtabs: Printer.prtabs} * stamp;
 
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
-
-fun force_syntax (Syntax ({gram, ...}, _)) = ignore (Lazy.force gram);
 
 datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int};
 fun get_approx (Syntax ({prtabs, ...}, _)) c =
@@ -437,7 +434,7 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
-fun parse (Syntax ({gram, ...}, _)) = Parser.parse (Lazy.force gram);
+fun parse (Syntax ({gram, ...}, _)) = Parser.parse (Synchronized.cache_eval gram);
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
 fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
@@ -452,13 +449,20 @@ type mode = string * bool;
 val mode_default = ("", true);
 val mode_input = (Print_Mode.input, true);
 
+fun extend_gram new_xprods old_xprods gram =
+  Synchronized.cache (fn () =>
+    Parser.make_gram new_xprods old_xprods (Synchronized.cache_peek gram));
+
+fun new_gram new_xprods =
+  Synchronized.cache (fn () => Parser.make_gram new_xprods [] NONE);
+
 
 (* empty_syntax *)
 
 val empty_syntax = Syntax
   ({input = [],
     lexicon = Scan.empty_lexicon,
-    gram = Lazy.value Parser.empty_gram,
+    gram = Synchronized.cache (fn () => Parser.empty_gram),
     consts = Symtab.empty,
     prmodes = [],
     parse_ast_trtab = Symtab.empty,
@@ -491,7 +495,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = new_xprods @ input,
       lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
-      gram = if null new_xprods then gram else Lazy.map (Parser.extend_gram new_xprods) gram,
+      gram = if null new_xprods then gram else extend_gram new_xprods input gram,
       consts = fold update_const consts2 consts1,
       prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
@@ -520,7 +524,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = input',
       lexicon = if changed then Scan.make_lexicon (Syntax_Ext.delims_of input') else lexicon,
-      gram = if changed then Lazy.value (Parser.make_gram input') else gram,
+      gram = if changed then new_gram input' else gram,
       consts = consts,
       prmodes = prmodes,
       parse_ast_trtab = remove_trtab (if_inout parse_ast_translation) parse_ast_trtab,
@@ -557,7 +561,7 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
             else
               let
                 val input' = new_xprods2 @ input1;
-                val gram' = Lazy.lazy_name "Syntax.merge_syntax" (fn () => Parser.make_gram input');
+                val gram' = new_gram input';
               in (input', gram') end);
   in
     Syntax
@@ -592,7 +596,7 @@ fun pretty_gram (Syntax (tabs, _)) =
   in
     [Pretty.block (Pretty.breaks
       (Pretty.str "lexicon:" :: map (Pretty.quote o Pretty.keyword1) (Scan.dest_lexicon lexicon))),
-      Pretty.big_list "productions:" (Parser.pretty_gram (Lazy.force gram)),
+      Pretty.big_list "productions:" (Parser.pretty_gram (Synchronized.cache_eval gram)),
       pretty_strs_qs "print modes:" prmodes']
   end;
 
