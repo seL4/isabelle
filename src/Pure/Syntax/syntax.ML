@@ -561,7 +561,7 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
             else
               let
                 val input' = new_xprods2 @ input1;
-                val gram' = extend_gram new_xprods2 input1 gram1;
+                val gram' = new_gram input';
               in (input', gram') end);
   in
     Syntax
