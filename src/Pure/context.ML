@@ -223,10 +223,10 @@ fun allocations_trace () =
     val trace1 = Synchronized.value theory_tokens;
     val trace2 = Synchronized.value proof_tokens;
 
-    fun cons1 (Unsynchronized.ref (SOME (Unsynchronized.ref (thy as Thy _)))) = cons (Theory thy)
-      | cons1 _ = I;
-    fun cons2 (Unsynchronized.ref (SOME (Unsynchronized.ref (ctxt as Prf _)))) = cons (Proof ctxt)
-      | cons2 _ = I;
+    fun cons1 r =
+      (case Unsynchronized.weak_peek r of SOME (thy as Thy _) => cons (Theory thy) | _ => I);
+    fun cons2 r =
+      (case Unsynchronized.weak_peek r of SOME (ctxt as Prf _) => cons (Proof ctxt) | _ => I);
 
     val contexts = build (fold cons1 trace1 #> fold cons2 trace2);
     val active_theories = fold (fn Theory _ => Integer.add 1 | _ => I) contexts 0;

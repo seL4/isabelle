@@ -17,10 +17,13 @@ sig
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   type 'a weak_ref = 'a ref option ref
   val weak_ref: 'a -> 'a weak_ref
+  val weak_peek: 'a weak_ref -> 'a option
 end;
 
 structure Unsynchronized: UNSYNCHRONIZED =
 struct
+
+(* regular references *)
 
 datatype ref = datatype ref;
 
@@ -43,8 +46,15 @@ fun setmp flag value f x =
       val _ = flag := orig_value;
     in Exn.release result end) ();
 
+
+(* weak references *)
+
 type 'a weak_ref = 'a ref option ref;
+
 fun weak_ref a = Weak.weak (SOME (ref a));
+
+fun weak_peek (ref (SOME (ref a))) = SOME a
+  | weak_peek _ = NONE;
 
 end;
 

@@ -107,11 +107,11 @@ fun cache expr =
 
 fun cache_eval (Cache {expr, var}) =
   change_result var (fn state =>
-    (case state of
-      SOME (Unsynchronized.ref (SOME (Unsynchronized.ref result))) => (result, state)
-    | _ =>
-      let val result = expr ()
-      in (result, SOME (Unsynchronized.weak_ref result)) end));
+    (case Option.mapPartial Unsynchronized.weak_peek state of
+      SOME result => (result, state)
+    | NONE =>
+        let val result = expr ()
+        in (result, SOME (Unsynchronized.weak_ref result)) end));
 
 end;
 
