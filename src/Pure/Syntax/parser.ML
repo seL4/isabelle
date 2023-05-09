@@ -36,7 +36,8 @@ val tags_empty: tags = Symtab.empty;
 fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
 fun tags_lookup (tags: tags) = Symtab.lookup tags;
 fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
-fun tags_name (tags: tags) = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
+fun tags_name (tags: tags) =
+  the o Inttab.lookup (Inttab.build (Symtab.fold (Inttab.update_new o swap) tags));
 
 type nts = Intset.T;
 val nts_empty: nts = Intset.empty;
