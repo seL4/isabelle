@@ -16,6 +16,7 @@ sig
   val change: 'a var -> ('a -> 'a) -> unit
   type 'a cache
   val cache: (unit -> 'a) -> 'a cache
+  val cache_peek: 'a cache -> 'a option
   val cache_eval: 'a cache -> 'a
 end;
 
@@ -104,6 +105,9 @@ with
 
 fun cache expr =
   Cache {expr = expr, var = var "Synchronized.cache" NONE};
+
+fun cache_peek (Cache {var, ...}) =
+  Option.mapPartial Unsynchronized.weak_peek (value var);
 
 fun cache_eval (Cache {expr, var}) =
   change_result var (fn state =>
