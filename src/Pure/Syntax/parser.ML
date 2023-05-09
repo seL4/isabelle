@@ -7,7 +7,6 @@ General context-free parser for the inner syntax of terms and types.
 
 signature PARSER =
 sig
-  val timing: bool Unsynchronized.ref
   type gram
   val empty_gram: gram
   val extend_gram: Syntax_Ext.xprod list -> gram -> gram
@@ -416,8 +415,6 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
 (** operations on grammars **)
 
-val timing = Unsynchronized.ref true;
-
 val empty_gram =
   Gram
    {nt_count = 0,
@@ -429,8 +426,8 @@ val empty_gram =
 
 
 (*Add productions to a grammar*)
-fun extend_gram0 [] gram = gram
-  | extend_gram0 xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods}) =
+fun extend_gram [] gram = gram
+  | extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods}) =
       let
         (*Get tag for existing nonterminal or create a new one*)
         fun get_tag nt_count tags nt =
@@ -492,12 +489,6 @@ fun extend_gram0 [] gram = gram
           lambdas = lambdas',
           prods = Array.vector prods'}
       end;
-
-fun extend_gram xprods gram =
-  if ! timing then
-    Timing.cond_timeit true ("Parser.extend_gram" ^ Position.here (Position.thread_data ()))
-      (fn () => extend_gram0 xprods gram)
-  else extend_gram0 xprods gram;
 
 fun make_gram xprods = extend_gram xprods empty_gram;
 
