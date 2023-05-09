@@ -236,7 +236,7 @@ fun matches_subterm ctxt (pat, obj) =
     val thy = Proof_Context.theory_of ctxt;
     fun matches obj ctxt' = Pattern.matches thy (pat, obj) orelse
       (case obj of
-        Abs (_, T, t) =>
+        Abs _ =>
           let val ((_, t'), ctxt'') = Variable.dest_abs obj ctxt'
           in matches t' ctxt'' end
       | t $ u => matches t ctxt' orelse matches u ctxt'

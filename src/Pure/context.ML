@@ -53,8 +53,6 @@ sig
   val proper_subthy: theory * theory -> bool
   val subthy_id: theory_id * theory_id -> bool
   val subthy: theory * theory -> bool
-  val trace_theories: bool Unsynchronized.ref
-  val theories_trace: unit -> {active_positions: Position.T list, active: int, total: int}
   val join_thys: theory list -> theory
   val begin_thy: string -> theory list -> theory
   val finish_thy: theory -> theory
@@ -69,6 +67,16 @@ sig
   val join_certificate: certificate * certificate -> certificate
   (*generic context*)
   datatype generic = Theory of theory | Proof of Proof.context
+  val trace_theories: bool Unsynchronized.ref
+  val trace_proofs: bool Unsynchronized.ref
+  val allocations_trace: unit ->
+   {contexts: generic list,
+    active_contexts: int,
+    active_theories: int,
+    active_proofs: int,
+    total_contexts: int,
+    total_theories: int,
+    total_proofs: int}
   val cases: (theory -> 'a) -> (Proof.context -> 'a) -> generic -> 'a
   val mapping: (theory -> theory) -> (Proof.context -> Proof.context) -> generic -> generic
   val mapping_result: (theory -> 'a * theory) -> (Proof.context -> 'a * Proof.context) ->
@@ -114,9 +122,9 @@ end;
 structure Context: PRIVATE_CONTEXT =
 struct
 
-(*** theory context ***)
+(*** type definitions ***)
 
-(* theory data *)
+(* context data *)
 
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
@@ -125,9 +133,24 @@ type data_kind = int;
 val data_kind = Counter.make ();
 
 
-(** datatype theory **)
+(* theory identity *)
 
-(* implicit state *)
+type id = int;
+val new_id = Counter.make ();
+
+abstype theory_id =
+  Thy_Id of
+   {id: id,         (*identifier*)
+    ids: Intset.T,  (*cumulative identifiers -- symbolic body content*)
+    name: string,   (*official theory name*)
+    stage: int}     (*index for anonymous updates*)
+with
+  fun rep_theory_id (Thy_Id args) = args;
+  val make_theory_id = Thy_Id;
+end;
+
+
+(* theory allocation state *)
 
 type state = {stage: int} Synchronized.var;
 
@@ -138,43 +161,98 @@ fun next_stage (state: state) =
   Synchronized.change_result state (fn {stage} => (stage + 1, {stage = stage + 1}));
 
 
-(* theory_id *)
+(* theory and proof context *)
 
-type id = int;
-val new_id = Counter.make ();
+datatype theory =
+  Thy_Undef
+| Thy of
+    (*allocation state*)
+    state *
+    (*identity*)
+    {theory_id: theory_id,
+     theory_token: theory Unsynchronized.ref} *
+    (*ancestry*)
+    {parents: theory list,         (*immediate predecessors*)
+     ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
+    (*data*)
+    Any.T Datatab.table;           (*body content*)
 
-abstype theory_id =
-  Theory_Id of
-   {id: id,                       (*identifier*)
-    ids: Intset.T,                (*cumulative identifiers -- symbolic body content*)
-    name: string,                 (*official theory name*)
-    stage: int}                   (*index for anonymous updates*)
-with
+datatype proof =
+  Prf_Undef
+| Prf of
+    (*identity*)
+    proof Unsynchronized.ref *
+    theory *
+    (*data*)
+    Any.T Datatab.table;
 
-fun rep_theory_id (Theory_Id args) = args;
-val make_theory_id = Theory_Id;
+structure Proof = struct type context = proof end;
+
+datatype generic = Theory of theory | Proof of Proof.context;
+
+
+(* heap allocations *)
+
+val trace_theories = Unsynchronized.ref false;
+val trace_proofs = Unsynchronized.ref false;
+
+local
+
+fun make_token guard var token0 =
+  if ! guard then
+    let
+      val token = Unsynchronized.ref (! token0);
+      val _ = Synchronized.change var (cons (Weak.weak (SOME token)));
+    in (token, fn res => (token := res; res)) end
+  else (token0, I);
+
+val theory_tokens = Synchronized.var "theory_tokens" ([]: theory Unsynchronized.weak_ref list);
+val proof_tokens = Synchronized.var "proof_tokens" ([]: Proof.context Unsynchronized.weak_ref list);
+
+val theory_token0 = Unsynchronized.ref Thy_Undef;
+val proof_token0 = Unsynchronized.ref Prf_Undef;
+
+in
+
+fun theory_token () = make_token trace_theories theory_tokens theory_token0;
+fun proof_token () = make_token trace_proofs proof_tokens proof_token0;
+
+fun allocations_trace () =
+  let
+    val _ = ML_Heap.full_gc ();
+    val trace1 = Synchronized.value theory_tokens;
+    val trace2 = Synchronized.value proof_tokens;
+
+    fun cons1 (Unsynchronized.ref (SOME (Unsynchronized.ref (thy as Thy _)))) = cons (Theory thy)
+      | cons1 _ = I;
+    fun cons2 (Unsynchronized.ref (SOME (Unsynchronized.ref (ctxt as Prf _)))) = cons (Proof ctxt)
+      | cons2 _ = I;
+
+    val contexts = build (fold cons1 trace1 #> fold cons2 trace2);
+    val active_theories = fold (fn Theory _ => Integer.add 1 | _ => I) contexts 0;
+    val active_proofs = fold (fn Proof _ => Integer.add 1 | _ => I) contexts 0;
+
+    val total_theories = length trace1;
+    val total_proofs = length trace2;
+  in
+    {contexts = contexts,
+     active_contexts = active_theories + active_proofs,
+     active_theories = active_theories,
+     active_proofs = active_proofs,
+     total_contexts = total_theories + total_proofs,
+     total_theories = total_theories,
+     total_proofs = total_proofs}
+  end;
 
 end;
 
 
-(* theory *)
 
-datatype theory =
-  Theory of
-   (*allocation state*)
-   state *
-   (*identity*)
-   {theory_id: theory_id,
-    token: Position.T Unsynchronized.ref} *
-   (*ancestry*)
-   {parents: theory list,         (*immediate predecessors*)
-    ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
-   (*data*)
-   Any.T Datatab.table;           (*body content*)
+(*** theory operations ***)
+
+fun rep_theory (Thy args) = args;
 
 exception THEORY of string * theory list;
-
-fun rep_theory (Theory args) = args;
 
 val state_of = #1 o rep_theory;
 val theory_identity = #2 o rep_theory;
@@ -343,45 +421,12 @@ end;
 
 (* create theory *)
 
-val trace_theories = Unsynchronized.ref false;
-
-local
-
-val theories =
-  Synchronized.var "theory_tokens"
-    ([]: Position.T Unsynchronized.ref option Unsynchronized.ref list);
-
-val dummy_token = Unsynchronized.ref Position.none;
-
-fun make_token () =
-  if ! trace_theories then
-    let
-      val token = Unsynchronized.ref (Position.thread_data ());
-      val _ = Synchronized.change theories (cons (Weak.weak (SOME token)));
-    in token end
-  else dummy_token;
-
-in
-
-fun theories_trace () =
-  let
-    val trace = Synchronized.value theories;
-    val _ = ML_Heap.full_gc ();
-    val active_positions =
-      fold (fn Unsynchronized.ref (SOME pos) => cons (! pos) | _ => I) trace [];
-  in
-    {active_positions = active_positions,
-     active = length active_positions,
-     total = length trace}
-  end;
-
 fun create_thy state ids name stage ancestry data =
   let
     val theory_id = make_theory_id {id = new_id (), ids = ids, name = name, stage = stage};
-    val identity = {theory_id = theory_id, token = make_token ()};
-  in Theory (state, identity, ancestry, data) end;
-
-end;
+    val (token, assign) = theory_token ();
+    val identity = {theory_id = theory_id, theory_token = token};
+  in assign (Thy (state, identity, ancestry, data)) end;
 
 
 (* primitives *)
@@ -397,7 +442,7 @@ local
 fun change_thy finish f thy =
   let
     val {name, stage, ...} = identity_of thy;
-    val Theory (state, _, ancestry, data) = thy;
+    val Thy (state, _, ancestry, data) = thy;
     val ancestry' =
       if stage_final stage
       then make_ancestry [thy] (extend_ancestors thy (ancestors_of thy))
@@ -489,14 +534,6 @@ fun theory_data_sizeof1 thy =
 
 (*** proof context ***)
 
-(* datatype Proof.context *)
-
-structure Proof =
-struct
-  datatype context = Context of Any.T Datatab.table * theory;
-end;
-
-
 (* proof data kinds *)
 
 local
@@ -518,16 +555,21 @@ fun init_fallback k thy =
 
 in
 
-fun raw_transfer thy' (Proof.Context (data, thy)) =
-  let
-    val _ = subthy (thy, thy') orelse error "Cannot transfer proof context: not a super theory";
-    val data' = init_new_data thy' data;
-  in Proof.Context (data', thy') end;
+fun raw_transfer thy' (ctxt as Prf (_, thy, data)) =
+  if eq_thy (thy, thy') then ctxt
+  else if proper_subthy (thy, thy') then
+    let
+      val (token', assign) = proof_token ();
+      val data' = init_new_data thy' data;
+    in assign (Prf (token', thy', data')) end
+  else error "Cannot transfer proof context: not a super theory";
 
 structure Proof_Context =
 struct
-  fun theory_of (Proof.Context (_, thy)) = thy;
-  fun init_global thy = Proof.Context (init_data thy, thy);
+  fun theory_of (Prf (_, thy, _)) = thy;
+  fun init_global thy =
+    let val (token, assign) = proof_token ()
+    in assign (Prf (token, thy, init_data thy)) end;
   fun get_global long thy name = init_global (get_theory long thy name);
 end;
 
@@ -540,13 +582,14 @@ fun declare init =
     val _ = Synchronized.change kinds (Datatab.update (k, init));
   in k end;
 
-fun get k dest (Proof.Context (data, thy)) =
+fun get k dest (Prf (_, thy, data)) =
   (case Datatab.lookup data k of
     SOME x => x
   | NONE => init_fallback k thy) |> dest;
 
-fun put k make x (Proof.Context (data, thy)) =
-  Proof.Context (Datatab.update (k, make x) data, thy);
+fun put k make x (Prf (token, thy, data)) =
+  let val (token, assign) = proof_token ()
+  in assign (Prf (token, thy, Datatab.update (k, make x) data)) end;
 
 end;
 
@@ -582,8 +625,6 @@ fun join_certificate (cert1, cert2) =
 
 
 (*** generic context ***)
-
-datatype generic = Theory of theory | Proof of Proof.context;
 
 fun cases f _ (Theory thy) = f thy
   | cases _ g (Proof prf) = g prf;

@@ -14,6 +14,9 @@ sig
   val guarded_access: 'a var -> ('a -> ('b * 'a) option) -> 'b
   val change_result: 'a var -> ('a -> 'b * 'a) -> 'b
   val change: 'a var -> ('a -> 'a) -> unit
+  type 'a cache
+  val cache: (unit -> 'a) -> 'a cache
+  val cache_eval: 'a cache -> 'a
 end;
 
 structure Synchronized: SYNCHRONIZED =
@@ -89,6 +92,26 @@ fun guarded_access var f = the (timed_access var (fn _ => NONE) f);
 
 fun change_result var f = guarded_access var (SOME o f);
 fun change var f = change_result var (fn x => ((), f x));
+
+end;
+
+
+(* cached evaluation via weak_ref *)
+
+abstype 'a cache =
+  Cache of {expr: unit -> 'a, var: 'a Unsynchronized.weak_ref option var}
+with
+
+fun cache expr =
+  Cache {expr = expr, var = var "Synchronized.cache" NONE};
+
+fun cache_eval (Cache {expr, var}) =
+  change_result var (fn state =>
+    (case state of
+      SOME (Unsynchronized.ref (SOME (Unsynchronized.ref result))) => (result, state)
+    | _ =>
+      let val result = expr ()
+      in (result, SOME (Unsynchronized.weak_ref result)) end));
 
 end;
 

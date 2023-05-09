@@ -15,6 +15,8 @@ sig
   val dec: int ref -> int
   val add: int ref -> int -> int
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  type 'a weak_ref = 'a ref option ref
+  val weak_ref: 'a -> 'a weak_ref
 end;
 
 structure Unsynchronized: UNSYNCHRONIZED =
@@ -40,6 +42,9 @@ fun setmp flag value f x =
       val result = Exn.capture (restore_attributes f) x;
       val _ = flag := orig_value;
     in Exn.release result end) ();
+
+type 'a weak_ref = 'a ref option ref;
+fun weak_ref a = Weak.weak (SOME (ref a));
 
 end;
 
