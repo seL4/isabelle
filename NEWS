@@ -275,6 +275,8 @@ antiquotations.
       totalp_multpHO
       totalp_on_multpDM
       totalp_on_multpHO
+      transp_multpHO
+      transp_on_multpHO
 
 * 'primcorec': Made the internal tactic more robust in the face of
   nested corecursion.

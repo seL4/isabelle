@@ -311,6 +311,146 @@ lemma irreflp_on_multp\<^sub>H\<^sub>O[simp]: "irreflp_on B (multp\<^sub>H\<^sub
 
 paragraph \<open>Transitivity\<close>
 
+lemma transp_on_multp\<^sub>H\<^sub>O:
+  assumes "asymp_on A R" and "transp_on A R" and
+    B_sub_A: "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  shows "transp_on B (multp\<^sub>H\<^sub>O R)"
+proof (rule transp_onI)
+  from assms have "asymp_on B (multp\<^sub>H\<^sub>O R)"
+    using asymp_on_multp\<^sub>H\<^sub>O by metis
+
+  fix M1 M2 M3
+  assume hyps: "M1 \<in> B" "M2 \<in> B" "M3 \<in> B" "multp\<^sub>H\<^sub>O R M1 M2" "multp\<^sub>H\<^sub>O R M2 M3"
+
+  from assms have
+    [intro]: "asymp_on (set_mset M1 \<union> set_mset M2) R" "transp_on (set_mset M1 \<union> set_mset M2) R"
+    using \<open>M1 \<in> B\<close> \<open>M2 \<in> B\<close>
+    by (simp_all add: asymp_on_subset transp_on_subset)
+
+  from assms have "transp_on (set_mset M1) R"
+    by (meson transp_on_subset hyps(1))
+
+  from \<open>multp\<^sub>H\<^sub>O R M1 M2\<close> have
+    "M1 \<noteq> M2" and
+    "\<forall>y. count M2 y < count M1 y \<longrightarrow> (\<exists>x. R y x \<and> count M1 x < count M2 x)"
+    unfolding multp\<^sub>H\<^sub>O_def by simp_all
+
+  from \<open>multp\<^sub>H\<^sub>O R M2 M3\<close> have
+    "M2 \<noteq> M3" and
+    "\<forall>y. count M3 y < count M2 y \<longrightarrow> (\<exists>x. R y x \<and> count M2 x < count M3 x)"
+    unfolding multp\<^sub>H\<^sub>O_def by simp_all
+
+  show "multp\<^sub>H\<^sub>O R M1 M3"
+  proof (rule ccontr)
+    let ?P = "\<lambda>x. count M3 x < count M1 x \<and> (\<forall>y. R x y \<longrightarrow> count M1 y \<ge> count M3 y)"
+
+    assume "\<not> multp\<^sub>H\<^sub>O R M1 M3"
+    hence "M1 = M3 \<or> (\<exists>x. ?P x)"
+      unfolding multp\<^sub>H\<^sub>O_def by force
+    thus False
+    proof (elim disjE)
+      assume "M1 = M3"
+      thus False
+        using \<open>asymp_on B (multp\<^sub>H\<^sub>O R)\<close>[THEN asymp_onD]
+        using \<open>M2 \<in> B\<close> \<open>M3 \<in> B\<close> \<open>multp\<^sub>H\<^sub>O R M1 M2\<close> \<open>multp\<^sub>H\<^sub>O R M2 M3\<close>
+        by metis
+    next
+      assume "\<exists>x. ?P x"
+      hence "\<exists>x \<in># M1 + M2. ?P x"
+        by (auto simp: count_inI)
+      have "\<exists>y \<in># M1 + M2. ?P y \<and> (\<forall>z \<in># M1 + M2. R y z \<longrightarrow> \<not> ?P z)"
+      proof (rule Finite_Set.bex_max_element_with_property)
+        show "\<exists>x \<in># M1 + M2. ?P x"
+          using \<open>\<exists>x. ?P x\<close>
+          by (auto simp: count_inI)
+      qed auto
+      then obtain x where
+        "x \<in># M1 + M2" and
+        "count M3 x < count M1 x" and
+        "\<forall>y. R x y \<longrightarrow> count M1 y \<ge> count M3 y" and
+        "\<forall>y \<in># M1 + M2. R x y \<longrightarrow> count M3 y < count M1 y \<longrightarrow> (\<exists>z. R y z \<and> count M1 z < count M3 z)"
+        by force
+
+      let ?Q = "\<lambda>x'. R\<^sup>=\<^sup>= x x' \<and> count M3 x' < count M2 x'"
+      show False
+      proof (cases "\<exists>x'. ?Q x'")
+        case True
+        have "\<exists>y \<in># M1 + M2. ?Q y \<and> (\<forall>z \<in># M1 + M2. R y z \<longrightarrow> \<not> ?Q z)"
+        proof (rule Finite_Set.bex_max_element_with_property)
+          show "\<exists>x \<in># M1 + M2. ?Q x"
+            using \<open>\<exists>x. ?Q x\<close>
+            by (auto simp: count_inI)
+        qed auto
+        then obtain x' where
+          "x' \<in># M1 + M2" and
+          "R\<^sup>=\<^sup>= x x'" and
+          "count M3 x' < count M2 x'" and
+          maximality_x': "\<forall>z \<in># M1 + M2. R x' z \<longrightarrow> \<not> (R\<^sup>=\<^sup>= x z) \<or> count M3 z \<ge> count M2 z"
+          by (auto simp: linorder_not_less)
+        with \<open>multp\<^sub>H\<^sub>O R M2 M3\<close> obtain y' where
+          "R x' y'" and "count M2 y' < count M3 y'"
+          unfolding multp\<^sub>H\<^sub>O_def by auto
+        hence "count M2 y' < count M1 y'"
+          by (smt (verit) \<open>R\<^sup>=\<^sup>= x x'\<close> \<open>\<forall>y. R x y \<longrightarrow> count M3 y \<le> count M1 y\<close>
+              \<open>count M3 x < count M1 x\<close> \<open>count M3 x' < count M2 x'\<close> assms(2) count_inI
+              dual_order.strict_trans1 hyps(1) hyps(2) hyps(3) less_nat_zero_code B_sub_A subsetD
+              sup2E transp_onD)
+        with \<open>multp\<^sub>H\<^sub>O R M1 M2\<close> obtain y'' where
+          "R y' y''" and "count M1 y'' < count M2 y''"
+          unfolding multp\<^sub>H\<^sub>O_def by auto
+        hence "count M3 y'' < count M2 y''"
+          by (smt (verit, del_insts) \<open>R x' y'\<close> \<open>R\<^sup>=\<^sup>= x x'\<close> \<open>\<forall>y. R x y \<longrightarrow> count M3 y \<le> count M1 y\<close>
+              \<open>count M2 y' < count M3 y'\<close> \<open>count M3 x < count M1 x\<close> \<open>count M3 x' < count M2 x'\<close>
+              assms(2) count_greater_zero_iff dual_order.strict_trans1 hyps(1) hyps(2) hyps(3)
+              less_nat_zero_code linorder_not_less B_sub_A subset_iff sup2E transp_onD)
+
+        moreover have "count M2 y'' \<le> count M3 y''"
+        proof -
+          have "y'' \<in># M1 + M2"
+            by (metis \<open>count M1 y'' < count M2 y''\<close> count_inI not_less_iff_gr_or_eq union_iff)
+
+          moreover have "R x' y''"
+            by (metis \<open>R x' y'\<close> \<open>R y' y''\<close> \<open>count M2 y' < count M1 y'\<close>
+                \<open>transp_on (set_mset M1 \<union> set_mset M2) R\<close> \<open>x' \<in># M1 + M2\<close> calculation count_inI
+                nat_neq_iff set_mset_union transp_onD union_iff)
+
+          moreover have "R\<^sup>=\<^sup>= x y''"
+            using \<open>R\<^sup>=\<^sup>= x x'\<close>
+            by (metis (mono_tags, opaque_lifting) \<open>transp_on (set_mset M1 \<union> set_mset M2) R\<close>
+                \<open>x \<in># M1 + M2\<close> \<open>x' \<in># M1 + M2\<close> calculation(1) calculation(2) set_mset_union sup2I1
+                transp_onD transp_on_reflclp)
+
+          ultimately show ?thesis
+            using maximality_x'[rule_format, of y''] by metis
+        qed
+
+        ultimately show ?thesis
+          by linarith
+      next
+        case False
+        hence "\<And>x'. R\<^sup>=\<^sup>= x x' \<Longrightarrow> count M2 x' \<le> count M3 x'"
+          by auto
+        hence "count M2 x \<le> count M3 x"
+          by simp
+        hence "count M2 x < count M1 x"
+          using \<open>count M3 x < count M1 x\<close> by linarith
+        with \<open>multp\<^sub>H\<^sub>O R M1 M2\<close> obtain y where
+          "R x y" and "count M1 y < count M2 y"
+          unfolding multp\<^sub>H\<^sub>O_def by auto
+        hence "count M3 y < count M2 y"
+          using \<open>\<forall>y. R x y \<longrightarrow> count M3 y \<le> count M1 y\<close> dual_order.strict_trans2 by metis
+        then show ?thesis
+          using False \<open>R x y\<close> by auto
+      qed
+    qed
+  qed
+qed
+
+lemma transp_multp\<^sub>H\<^sub>O:
+  assumes "asymp R" and "transp R"
+  shows "transp (multp\<^sub>H\<^sub>O R)"
+  using assms transp_on_multp\<^sub>H\<^sub>O[of UNIV, simplified] by metis
+
 
 paragraph \<open>Totality\<close>
 
