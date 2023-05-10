@@ -402,8 +402,11 @@ fun add_mono_rule mono_rule context =
     else
       let
         val neg_mono_rule = negate_mono_rule pol_mono_rule
-        val relator_distr_data = {pos_mono_rule = pol_mono_rule, neg_mono_rule = neg_mono_rule,
-          pos_distr_rules = [], neg_distr_rules = []}
+        val relator_distr_data =
+         {pos_mono_rule = Thm.trim_context pol_mono_rule,
+          neg_mono_rule = Thm.trim_context neg_mono_rule,
+          pos_distr_rules = [],
+          neg_distr_rules = []}
       in
         context
         |> (Data.map o map_relator_distr_data) (Symtab.update (mono_ruleT_name, relator_distr_data))
@@ -433,7 +436,9 @@ in
     let
       val distr_rule' = Conv.fconv_rule (rewrite_concl_conv @{thm POS_def}) distr_rule
       fun update_entry distr_rule data =
-        map_pos_distr_rules (cons (@{thm POS_trans} OF [distr_rule, #pos_mono_rule data])) data
+        data |> (map_pos_distr_rules o cons)
+          (Thm.trim_context (@{thm POS_trans} OF
+            [distr_rule, Thm.transfer'' context (#pos_mono_rule data)]))
     in
       add_distr_rule update_entry distr_rule' context
     end
@@ -443,7 +448,9 @@ in
     let
       val distr_rule' = Conv.fconv_rule (rewrite_concl_conv @{thm NEG_def}) distr_rule
       fun update_entry distr_rule data =
-        map_neg_distr_rules (cons (@{thm NEG_trans} OF [distr_rule, #neg_mono_rule data])) data
+        data |> (map_neg_distr_rules o cons)
+          (Thm.trim_context (@{thm NEG_trans} OF
+            [distr_rule, Thm.transfer'' context (#neg_mono_rule data)]))
     in
       add_distr_rule update_entry distr_rule' context
     end
