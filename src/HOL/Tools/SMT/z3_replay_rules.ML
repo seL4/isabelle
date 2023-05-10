@@ -43,11 +43,8 @@ fun del thm net = Net.delete_term Thm.eq_thm (prep thm) net handle Net.DELETE =>
 val add = Thm.declaration_attribute (Data.map o ins)
 val del = Thm.declaration_attribute (Data.map o del)
 
-val name = Binding.name "z3_rule"
-
-val description = "declaration of Z3 proof rules"
-
-val _ = Theory.setup (Attrib.setup name (Attrib.add_del add del) description #>
-  Global_Theory.add_thms_dynamic (name, Net.content o Data.get))
+val _ = Theory.setup
+ (Attrib.setup \<^binding>\<open>z3_rule\<close> (Attrib.add_del add del) "declaration of Z3 proof rules" #>
+  Global_Theory.add_thms_dynamic (\<^binding>\<open>z3_rule\<close>, Net.content o Data.get))
 
 end;
