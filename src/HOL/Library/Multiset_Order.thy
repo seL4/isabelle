@@ -287,7 +287,7 @@ proof (rule asymp_onI)
   next
     case False
     hence "\<exists>m\<in>#M1 - M2. \<forall>x\<in>#M1 - M2. x \<noteq> m \<longrightarrow> \<not> R m x"
-      using Finite_Set.bex_max_element[of "set_mset (M1 - M2)" R, OF finite_set_mset _ tran asym]
+      using Finite_Set.bex_max_element[of "set_mset (M1 - M2)" R, OF finite_set_mset asym tran]
       by simp
     with \<open>transp_on A R\<close> B_sub_A have "\<exists>y\<in>#M2 - M1. \<forall>x\<in>#M1 - M2. \<not> R y x"
       using \<open>multp\<^sub>H\<^sub>O R M1 M2\<close>[THEN multp\<^sub>H\<^sub>O_implies_one_step_strong(2)]

@@ -81,7 +81,9 @@ antiquotations.
       Finite_Set.bex_greatest_element
       Finite_Set.bex_least_element
       Finite_Set.bex_max_element
+      Finite_Set.bex_max_element_with_property
       Finite_Set.bex_min_element
+      Finite_Set.bex_min_element_with_property
       is_max_element_in_set_iff
       is_min_element_in_set_iff
 
