@@ -69,7 +69,7 @@ sig
   datatype generic = Theory of theory | Proof of Proof.context
   val theory_tracing: bool Unsynchronized.ref
   val proof_tracing: bool Unsynchronized.ref
-  val allocations_trace: unit ->
+  val finish_tracing: unit ->
    {contexts: (generic * Position.T) list,
     active_contexts: int,
     active_theories: int,
@@ -200,18 +200,27 @@ val proof_tracing = Unsynchronized.ref false;
 
 local
 
+fun cons_tokens var token =
+  Synchronized.change var (fn (n, tokens) => (n + 1, Weak.weak (SOME token) :: tokens));
+
+fun finish_tokens var =
+  Synchronized.change_result var (fn (n, tokens) =>
+    let
+      val tokens' = filter Unsynchronized.weak_active tokens;
+      val results = map_filter Unsynchronized.weak_peek tokens';
+    in ((n, results), (n, tokens')) end);
+
 fun make_token guard var token0 =
   if ! guard then
     let
       val token = Unsynchronized.ref (! token0);
       val pos = Position.thread_data ();
-      fun assign res =
-        (token := res; Synchronized.change var (cons (Weak.weak (SOME token))); res);
+      fun assign res = (token := res; cons_tokens var token; res);
     in (token, pos, assign) end
   else (token0, Position.none, I);
 
-val theory_tokens = Synchronized.var "theory_tokens" ([]: theory Unsynchronized.weak_ref list);
-val proof_tokens = Synchronized.var "proof_tokens" ([]: Proof.context Unsynchronized.weak_ref list);
+val theory_tokens = Synchronized.var "theory_tokens" (0, []: theory Unsynchronized.weak_ref list);
+val proof_tokens = Synchronized.var "proof_tokens" (0, []: proof Unsynchronized.weak_ref list);
 
 val theory_token0 = Unsynchronized.ref Thy_Undef;
 val proof_token0 = Unsynchronized.ref Prf_Undef;
@@ -221,29 +230,20 @@ in
 fun theory_token () = make_token theory_tracing theory_tokens theory_token0;
 fun proof_token () = make_token proof_tracing proof_tokens proof_token0;
 
-fun allocations_trace () =
+fun finish_tracing () =
   let
     val _ = ML_Heap.full_gc ();
-    val trace1 = Synchronized.value theory_tokens;
-    val trace2 = Synchronized.value proof_tokens;
+    val (total_theories, token_theories) = finish_tokens theory_tokens;
+    val (total_proofs, token_proofs) = finish_tokens proof_tokens;
 
-    fun cons1 r =
-      (case Unsynchronized.weak_peek r of
-        SOME (thy as Thy (_, {theory_token_pos, ...}, _, _)) =>
-          cons (Theory thy, theory_token_pos)
-      | _ => I);
-    fun cons2 r =
-      (case Unsynchronized.weak_peek r of
-        SOME (ctxt as Prf (_, proof_token_pos, _, _)) =>
-          cons (Proof ctxt, proof_token_pos)
-      | _ => I);
+    fun cons1 (thy as Thy (_, {theory_token_pos, ...}, _, _)) = cons (Theory thy, theory_token_pos)
+      | cons1 _ = I;
+    fun cons2 (ctxt as Prf (_, proof_token_pos, _, _)) = cons (Proof ctxt, proof_token_pos)
+      | cons2 _ = I;
 
-    val contexts = build (fold cons1 trace1 #> fold cons2 trace2);
+    val contexts = build (fold cons1 token_theories #> fold cons2 token_proofs);
     val active_theories = fold (fn (Theory _, _) => Integer.add 1 | _ => I) contexts 0;
     val active_proofs = fold (fn (Proof _, _) => Integer.add 1 | _ => I) contexts 0;
-
-    val total_theories = length trace1;
-    val total_proofs = length trace2;
   in
     {contexts = contexts,
      active_contexts = active_theories + active_proofs,
