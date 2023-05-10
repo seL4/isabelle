@@ -15,6 +15,7 @@ sig
   val line_of: T -> int option
   val offset_of: T -> int option
   val end_offset_of: T -> int option
+  val label_of: T -> string option
   val file_of: T -> string option
   val id_of: T -> string option
   val symbol: Symbol.symbol -> T -> T
@@ -22,6 +23,7 @@ sig
   val distance_of: T * T -> int option
   val none: T
   val start: T
+  val label: string -> T -> T
   val file_only: string -> T
   val file: string -> T
   val line_file_only: int -> string -> T
@@ -83,6 +85,7 @@ val ord =
    (int_ord o apply2 (#line o dest) |||
     int_ord o apply2 (#offset o dest) |||
     int_ord o apply2 (#end_offset o dest) |||
+    fast_string_ord o apply2 (#label o #props o dest) |||
     fast_string_ord o apply2 (#file o #props o dest) |||
     fast_string_ord o apply2 (#id o #props o dest));
 
@@ -99,6 +102,7 @@ val line_of = maybe_valid o #line o dest;
 val offset_of = maybe_valid o #offset o dest;
 val end_offset_of = maybe_valid o #end_offset o dest;
 
+fun label_of (Pos {props = {label, ...}, ...}) = if label = "" then NONE else SOME label;
 fun file_of (Pos {props = {file, ...}, ...}) = if file = "" then NONE else SOME file;
 fun id_of (Pos {props = {id, ...}, ...}) = if id = "" then NONE else SOME id;
 
@@ -131,20 +135,23 @@ fun distance_of (Pos {offset, ...}, Pos {offset = offset', ...}) =
 
 (* make position *)
 
-type props = {file: string, id: string};
+type props = {label: string, file: string, id: string};
 
-val no_props: props = {file = "", id = ""};
+val no_props: props = {label = "", file = "", id = ""};
 
 fun file_props name : props =
-  if name = "" then no_props else {file = name, id = ""};
+  if name = "" then no_props else {label = "", file = name, id = ""};
 
 fun id_props id : props =
-  if id = "" then no_props else {file = "", id = id};
+  if id = "" then no_props else {label = "", file = "", id = id};
 
 
 val none = Pos {line = 0, offset = 0, end_offset = 0, props = no_props};
 val start = Pos {line = 1, offset = 1, end_offset = 0, props = no_props};
 
+fun label label (Pos {line, offset, end_offset, props = {label = _, file, id}}) =
+  Pos {line = line, offset = offset, end_offset = end_offset,
+    props = {label = label, file = file, id = id}};
 
 fun file_only name = Pos {line = 0, offset = 0, end_offset = 0, props = file_props name};
 fun file name = Pos {line = 1, offset = 1, end_offset = 0, props = file_props name};
@@ -156,9 +163,10 @@ fun line line = line_file line "";
 fun id id = Pos {line = 0, offset = 1, end_offset = 0, props = id_props id};
 fun id_only id = Pos {line = 0, offset = 0, end_offset = 0, props = id_props id};
 
-fun put_id id' (pos as Pos {line, offset, end_offset, props = {file, id}}) =
+fun put_id id' (pos as Pos {line, offset, end_offset, props = {label, file, id}}) =
   if id = id' then pos
-  else Pos {line = line, offset = offset, end_offset = end_offset, props = {file = file, id = id'}};
+  else Pos {line = line, offset = offset, end_offset = end_offset,
+    props = {label = label, file = file, id = id'}};
 
 fun copy_id pos = (case id_of pos of NONE => I | SOME id => put_id id);
 
@@ -196,7 +204,8 @@ fun adjust_offsets adjust pos =
 fun of_props {line, offset, end_offset, props} =
   Pos {line = line, offset = offset, end_offset = end_offset,
     props =
-     {file = Properties.get_string props Markup.fileN,
+     {label = Properties.get_string props Markup.labelN,
+      file = Properties.get_string props Markup.fileN,
       id = Properties.get_string props Markup.idN}};
 
 fun of_properties props =
@@ -206,10 +215,11 @@ fun of_properties props =
     end_offset = Properties.get_int props Markup.end_offsetN,
     props = props};
 
-fun properties_of (Pos {line, offset, end_offset, props = {file, id}}) =
+fun properties_of (Pos {line, offset, end_offset, props = {label, file, id}}) =
   Properties.make_int Markup.lineN line @
   Properties.make_int Markup.offsetN offset @
   Properties.make_int Markup.end_offsetN end_offset @
+  Properties.make_string Markup.labelN label @
   Properties.make_string Markup.fileN file @
   Properties.make_string Markup.idN id;
 

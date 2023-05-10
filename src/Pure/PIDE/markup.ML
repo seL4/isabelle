@@ -58,6 +58,7 @@ sig
   val end_lineN: string
   val offsetN: string
   val end_offsetN: string
+  val labelN: string
   val fileN: string
   val idN: string
   val positionN: string val position: T
@@ -408,12 +409,13 @@ val end_lineN = "end_line";
 val offsetN = "offset";
 val end_offsetN = "end_offset";
 
+val labelN = "label";
 val fileN = "file";
 val idN = "id";
 
 val (positionN, position) = markup_elem "position";
 
-val position_properties = [lineN, offsetN, end_offsetN, fileN, idN];
+val position_properties = [lineN, offsetN, end_offsetN, labelN, fileN, idN];
 fun position_property (entry: Properties.entry) = member (op =) position_properties (#1 entry);
 
 
