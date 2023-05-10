@@ -222,10 +222,9 @@ lemma multp\<^sub>H\<^sub>O_mono_strong:
   by (metis count_inI less_zeroE)
 
 
-subsubsection \<open>Properties of Preorders\<close>
+subsubsection \<open>Properties of Orders\<close>
 
-lemma irreflp_on_multp\<^sub>H\<^sub>O[simp]: "irreflp_on B (multp\<^sub>H\<^sub>O R)"
-    by (simp add: irreflp_onI multp\<^sub>H\<^sub>O_def)
+paragraph \<open>Asymmetry\<close>
 
 text \<open>The following lemma is a negative result stating that asymmetry of an arbitrary binary
 relation cannot be simply lifted to @{const multp\<^sub>H\<^sub>O}. It suffices to have four distinct values to
@@ -303,6 +302,18 @@ lemma asymp_multp\<^sub>H\<^sub>O:
   shows "asymp (multp\<^sub>H\<^sub>O R)"
   using assms asymp_on_multp\<^sub>H\<^sub>O[of UNIV, simplified] by metis
 
+
+paragraph \<open>Irreflexivity\<close>
+
+lemma irreflp_on_multp\<^sub>H\<^sub>O[simp]: "irreflp_on B (multp\<^sub>H\<^sub>O R)"
+    by (simp add: irreflp_onI multp\<^sub>H\<^sub>O_def)
+
+
+paragraph \<open>Transitivity\<close>
+
+
+paragraph \<open>Totality\<close>
+
 lemma totalp_on_multp\<^sub>D\<^sub>M:
   "totalp_on A R \<Longrightarrow> (\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A) \<Longrightarrow> totalp_on B (multp\<^sub>D\<^sub>M R)"
   by (smt (verit, ccfv_SIG) count_inI in_mono multp\<^sub>H\<^sub>O_def multp\<^sub>H\<^sub>O_imp_multp\<^sub>D\<^sub>M not_less_iff_gr_or_eq
@@ -318,6 +329,9 @@ lemma totalp_on_multp\<^sub>H\<^sub>O:
 
 lemma totalp_multp\<^sub>H\<^sub>O: "totalp R \<Longrightarrow> totalp (multp\<^sub>H\<^sub>O R)"
   by (rule totalp_on_multp\<^sub>H\<^sub>O[of UNIV R UNIV, simplified])
+
+
+paragraph \<open>Type Classes\<close>
 
 context preorder
 begin
