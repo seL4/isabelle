@@ -163,8 +163,14 @@ fun pretty_binding ctxt (b, atts) sep =
 (* get attributes *)
 
 fun attribute_generic context =
-  let val table = Attributes.get context
-  in fn src => #1 (Name_Space.get table (#1 (Token.name_of_src src))) src end;
+  let val table = Attributes.get context in
+    fn src =>
+      let
+        val name = #1 (Token.name_of_src src);
+        val label = Long_Name.qualify Markup.attributeN name;
+        val att = #1 (Name_Space.get table name) src;
+      in Position.setmp_thread_data_label label att end
+  end;
 
 val attribute = attribute_generic o Context.Proof;
 val attribute_global = attribute_generic o Context.Theory;

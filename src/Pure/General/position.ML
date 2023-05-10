@@ -67,6 +67,7 @@ sig
   val properties_of_range: range -> Properties.T
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
+  val setmp_thread_data_label: string -> ('a -> 'b) -> 'a -> 'b
   val default: T -> bool * T
 end;
 
@@ -318,6 +319,10 @@ fun properties_of_range (pos, pos') =
 
 val thread_data = Pos o Thread_Position.get;
 fun setmp_thread_data pos = Thread_Position.setmp (dest pos);
+
+fun setmp_thread_data_label a f x =
+  if a = "" then f x
+  else setmp_thread_data (label a (thread_data ())) f x;
 
 fun default pos =
   if pos = none then (false, thread_data ())
