@@ -34,7 +34,7 @@ sig
   type id = int
   type theory_id
   val theory_id: theory -> theory_id
-  val timing: bool Unsynchronized.ref
+  val data_timing: bool Unsynchronized.ref
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val theory_id_ord: theory_id ord
@@ -67,8 +67,8 @@ sig
   val join_certificate: certificate * certificate -> certificate
   (*generic context*)
   datatype generic = Theory of theory | Proof of Proof.context
-  val trace_theories: bool Unsynchronized.ref
-  val trace_proofs: bool Unsynchronized.ref
+  val theory_tracing: bool Unsynchronized.ref
+  val proof_tracing: bool Unsynchronized.ref
   val allocations_trace: unit ->
    {contexts: (generic * Position.T) list,
     active_contexts: int,
@@ -195,8 +195,8 @@ datatype generic = Theory of theory | Proof of Proof.context;
 
 (* heap allocations *)
 
-val trace_theories = Unsynchronized.ref false;
-val trace_proofs = Unsynchronized.ref false;
+val theory_tracing = Unsynchronized.ref false;
+val proof_tracing = Unsynchronized.ref false;
 
 local
 
@@ -218,8 +218,8 @@ val proof_token0 = Unsynchronized.ref Prf_Undef;
 
 in
 
-fun theory_token () = make_token trace_theories theory_tokens theory_token0;
-fun proof_token () = make_token trace_proofs proof_tokens proof_token0;
+fun theory_token () = make_token theory_tracing theory_tokens theory_token0;
+fun proof_token () = make_token proof_tracing proof_tokens proof_token0;
 
 fun allocations_trace () =
   let
@@ -368,7 +368,7 @@ val eq_ancestry =
 
 (* data kinds and access methods *)
 
-val timing = Unsynchronized.ref false;
+val data_timing = Unsynchronized.ref false;
 
 local
 
@@ -393,7 +393,7 @@ val invoke_pos = #pos o the_kind;
 val invoke_empty = #empty o the_kind;
 
 fun invoke_merge kind args =
-  if ! timing then
+  if ! data_timing then
     Timing.cond_timeit true ("Theory_Data.merge" ^ Position.here (#pos kind))
       (fn () => #merge kind args)
   else #merge kind args;

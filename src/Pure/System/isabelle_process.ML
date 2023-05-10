@@ -200,7 +200,10 @@ fun init_options () =
   if Options.default_bool "export_standard_proofs" then Proofterm.proofs := 2 else ();
   let val proofs = Options.default_int "record_proofs"
   in if proofs < 0 then () else Proofterm.proofs := proofs end;
-  Printer.show_markup_default := false);
+  Printer.show_markup_default := false;
+  Context.theory_tracing := Options.default_bool "context_theory_tracing";
+  Context.proof_tracing := Options.default_bool "context_proof_tracing";
+  Context.data_timing := Options.default_bool "context_data_timing");
 
 fun init_options_interactive () =
  (init_options ();

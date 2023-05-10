@@ -111,6 +111,15 @@ option command_timing_threshold : real = 0.1 for build
 public option timeout_scale : real = 1.0 for build
   -- "scale factor for timeout in Isabelle/ML and session build"
 
+option context_data_timing : bool = false for build
+  -- "timing for context data operations"
+
+option context_theory_tracing : bool = false for build
+  -- "tracing of persistent theory values within ML heap"
+
+option context_proof_tracing : bool = false for build
+  -- "tracing of persistent Proof.context values within ML heap"
+
 
 section "Detail of Proof Checking"
 
