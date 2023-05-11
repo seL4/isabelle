@@ -274,6 +274,7 @@ let
     |> Global_Theory.add_thm
       ((Binding.name "elim",
         rule_by_tactic ctxt3 (basic_elim_tac ctxt3) (unfold RS Ind_Syntax.equals_CollectD)), []);
+  val elim' = Thm.trim_context elim;
 
   val ctxt4 = Proof_Context.init_global thy4;
 
@@ -284,7 +285,7 @@ let
   fun make_cases ctxt A =
     rule_by_tactic ctxt
       (basic_elim_tac ctxt THEN ALLGOALS (asm_full_simp_tac ctxt) THEN basic_elim_tac ctxt)
-      (Thm.assume A RS elim)
+      (Thm.assume A RS Thm.transfer' ctxt elim')
       |> Drule.export_without_context_open;
 
   fun induction_rules raw_induct =
