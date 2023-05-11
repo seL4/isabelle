@@ -41,8 +41,8 @@ fun finish () =
  (shutdown ();
   Par_List.map (Global_Theory.get_thm_names o Thy_Info.get_theory) (Thy_Info.get_names ());
   Thy_Info.finish ();
-  Context.finish_tracing ();
-  shutdown ());
+  shutdown ();
+  ignore (Context.finish_tracing ()));
 
 fun print_context_tracing pred =
   List.app (writeln o Proof_Display.print_context_tracing)
