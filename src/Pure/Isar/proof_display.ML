@@ -28,6 +28,9 @@ sig
     ((string * string) * (string * thm list) list) -> unit
   val print_consts: bool -> Position.T -> Proof.context ->
     (string * typ -> bool) -> (string * typ) list -> unit
+  val markup_extern_label: Position.T -> (Markup.T * xstring) option
+  val print_label: Position.T -> string
+  val print_context_tracing: Context.generic * Position.T -> string
 end
 
 structure Proof_Display: PROOF_DISPLAY =
@@ -389,5 +392,31 @@ fun print_consts int pos ctxt pred cs =
   else Output.state (Pretty.string_of (pretty_consts pos ctxt pred cs));
 
 end;
+
+
+(* position label *)
+
+val command_prefix = Markup.commandN ^ ".";
+
+fun markup_extern_label pos =
+  Position.label_of pos |> Option.map (fn label =>
+    (case try (unprefix command_prefix) label of
+      SOME cmd => (Markup.keyword1, Long_Name.base_name cmd)
+    | NONE => (Markup.empty, label)));
+
+fun print_label pos =
+  (case markup_extern_label pos of
+    NONE => ""
+  | SOME (m, s) => Markup.markup m s);
+
+
+(* context tracing *)
+
+fun context_type (Context.Theory _) = "theory"
+  | context_type (Context.Proof ctxt) =
+      if can Local_Theory.assert ctxt then "local_theory" else "Proof.context";
+
+fun print_context_tracing (context, pos) =
+  context_type context ^ (case print_label pos of "" => "" | s => " " ^ s) ^ Position.here pos;
 
 end;
