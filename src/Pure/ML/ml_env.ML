@@ -26,6 +26,7 @@ sig
   val Isabelle_operations: operations
   val SML_operations: operations
   val operations: Context.generic option -> string -> operations
+  val touch: Context.generic -> Context.generic
   val forget_structure: string -> Context.generic -> Context.generic
   val bootstrap_name_space: Context.generic -> Context.generic
   val add_name_space: string -> ML_Name_Space.T -> Context.generic -> Context.generic
@@ -126,6 +127,8 @@ end;
 
 val get_env = Name_Space.get o #1 o Data.get;
 val get_tables = #1 oo get_env;
+
+val touch = Data.map I;
 
 fun update_tables env_name f context = context |> (Data.map o apfst) (fn envs =>
   let val _ = Name_Space.get envs env_name;

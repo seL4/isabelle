@@ -69,6 +69,7 @@ sig
   datatype generic = Theory of theory | Proof of Proof.context
   val theory_tracing: bool Unsynchronized.ref
   val proof_tracing: bool Unsynchronized.ref
+  val enabled_tracing: unit -> bool
   val finish_tracing: unit ->
    {contexts: (generic * Position.T) list,
     active_contexts: int,
@@ -197,6 +198,8 @@ datatype generic = Theory of theory | Proof of Proof.context;
 
 val theory_tracing = Unsynchronized.ref false;
 val proof_tracing = Unsynchronized.ref false;
+
+fun enabled_tracing () = ! theory_tracing orelse ! proof_tracing;
 
 local
 
