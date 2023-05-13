@@ -161,15 +161,15 @@ end;
 
 local
 
-fun make_cong ctxt = Thm.close_derivation \<^here> o Thm.reflexive
-  o Thm.cterm_of ctxt o Logic.varify_global o list_comb;
+fun make_cong thy = Thm.close_derivation \<^here> o Thm.reflexive
+  o Thm.global_cterm_of thy o Logic.varify_global o list_comb;
 
 fun add_cong (const_binding, (const, target_params)) gthy =
   if null target_params
   then gthy
   else
     let
-      val cong = make_cong (Context.proof_of gthy) (const, target_params)
+      val cong = make_cong (Context.theory_of gthy) (const, target_params)
       val cong_binding = Binding.qualify_name true const_binding "cong"
     in
       gthy
