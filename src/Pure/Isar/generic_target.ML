@@ -167,18 +167,18 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
 
 structure Foundation_Interpretations = Theory_Data
 (
-  type T = (binding * (term * term list) -> Context.generic -> Context.generic) Inttab.table;
-  val empty = Inttab.empty;
-  val merge = Inttab.merge (K true);
+  type T = ((binding * (term * term list) -> Context.generic -> Context.generic) * stamp) list
+  val empty = [];
+  val merge = Library.merge (eq_snd (op =));
 );
 
 fun add_foundation_interpretation f =
-  Foundation_Interpretations.map (Inttab.update_new (serial (), f));
+  Foundation_Interpretations.map (cons (f, stamp ()));
 
 fun foundation_interpretation binding_const_params lthy =
   let
     val interps = Foundation_Interpretations.get (Proof_Context.theory_of lthy);
-    val interp = Inttab.fold (fn (_, f) => f binding_const_params) interps;
+    val interp = fold (fn (f, _) => f binding_const_params) interps;
   in
     lthy
     |> Local_Theory.background_theory (Context.theory_map interp)
