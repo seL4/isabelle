@@ -161,28 +161,27 @@ end;
 
 local
 
-fun make_cong thy = Thm.close_derivation \<^here> o Thm.reflexive
-  o Thm.global_cterm_of thy o Logic.varify_global o list_comb;
-
-fun add_cong (const_binding, (const, target_params)) gthy =
-  if null target_params
-  then gthy
+fun add_foundation_cong (binding, (const, target_params)) gthy =
+  if null target_params then gthy
   else
     let
-      val cong = make_cong (Context.theory_of gthy) (const, target_params)
-      val cong_binding = Binding.qualify_name true const_binding "cong"
+      val thy = Context.theory_of gthy;
+      val cong =
+        list_comb (const, target_params)
+        |> Logic.varify_global
+        |> Thm.global_cterm_of thy
+        |> Thm.reflexive
+        |> Thm.close_derivation \<^here>;
+      val cong_binding = Binding.qualify_name true binding "cong";
     in
       gthy
-      |> Attrib.generic_notes Thm.theoremK
-           [((cong_binding, []), [([cong], [])])]
-      |> snd
+      |> Attrib.generic_notes Thm.theoremK [((cong_binding, []), [([cong], [])])]
+      |> #2
     end;
 
-in
+val _ = Theory.setup (Generic_Target.add_foundation_interpretation add_foundation_cong);
 
-val _ = Theory.setup (Generic_Target.add_foundation_interpretation add_cong);
-
-end;
+in end;
 
 
 
