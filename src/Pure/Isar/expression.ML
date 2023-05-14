@@ -743,41 +743,41 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
     val ctxt = Proof_Context.init_global thy;
     val defs' = map (Thm.cterm_of ctxt #> Assumption.assume ctxt #> Drule.abs_def) defs;
 
-    val (a_pred, a_intro, a_axioms, thy'') =
+    val (a_pred, a_intro, a_axioms, thy2) =
       if null exts then (NONE, NONE, [], thy)
       else
         let
           val abinding =
             if null ints then binding else Binding.suffix_name ("_" ^ axiomsN) binding;
-          val ((statement, intro, axioms), thy') =
+          val ((statement, intro, axioms), thy1) =
             thy
             |> def_pred abinding parms defs' exts exts';
-          val ((_, [intro']), thy'') =
-            thy'
+          val ((_, [intro']), thy2) =
+            thy1
             |> Sign.qualified_path true abinding
             |> Global_Theory.note_thms ""
               ((Binding.name introN, []), [([intro], [Locale.unfold_add])])
-            ||> Sign.restore_naming thy';
-          in (SOME statement, SOME intro', axioms, thy'') end;
-    val (b_pred, b_intro, b_axioms, thy'''') =
-      if null ints then (NONE, NONE, [], thy'')
+            ||> Sign.restore_naming thy1;
+          in (SOME statement, SOME intro', axioms, thy2) end;
+    val (b_pred, b_intro, b_axioms, thy4) =
+      if null ints then (NONE, NONE, [], thy2)
       else
         let
-          val ((statement, intro, axioms), thy''') =
-            thy''
+          val ((statement, intro, axioms), thy3) =
+            thy2
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val conclude_witness =
-            Drule.export_without_context o Element.conclude_witness (Proof_Context.init_global thy''');
-          val ([(_, [intro']), _], thy'''') =
-            thy'''
+            Drule.export_without_context o Element.conclude_witness (Proof_Context.init_global thy3);
+          val ([(_, [intro']), _], thy4) =
+            thy3
             |> Sign.qualified_path true binding
             |> Global_Theory.note_thmss ""
                  [((Binding.name introN, []), [([intro], [Locale.intro_add])]),
                   ((Binding.name axiomsN, []),
                     [(map conclude_witness axioms, [])])]
-            ||> Sign.restore_naming thy''';
-        in (SOME statement, SOME intro', axioms, thy'''') end;
-  in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;
+            ||> Sign.restore_naming thy3;
+        in (SOME statement, SOME intro', axioms, thy4) end;
+  in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy4) end;
 
 end;
 
