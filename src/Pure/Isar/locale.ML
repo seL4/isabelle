@@ -212,8 +212,10 @@ fun register_locale
   thy |> Locales.map (Name_Space.define (Context.Theory thy) true
     (binding,
       mk_locale ((parameters, spec, (apply2 o Option.map) Thm.trim_context intros,
-          map Thm.trim_context axioms, hyp_spec),
-        ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
+          map Thm.trim_context axioms,
+          map (Element.transform_ctxt Morphism.trim_context_morphism) hyp_spec),
+        ((map (fn decl => (decl, serial ())) syntax_decls,
+          map (fn (a, facts) => ((a, map Attrib.trim_context_fact facts), serial ())) notes),
           (map (fn (name, morph) => make_dep (name, (morph, Morphism.identity))) dependencies,
             Inttab.empty)))) #> snd);
           (* FIXME Morphism.identity *)

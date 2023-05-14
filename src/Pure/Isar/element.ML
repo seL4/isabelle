@@ -275,7 +275,8 @@ fun prove_witness ctxt t tac =
   Witness (t,
     Goal.prove ctxt [] [] (mark_witness t)
       (fn _ => resolve_tac ctxt [Drule.protectI] 1 THEN tac)
-    |> Thm.close_derivation \<^here>);
+    |> Thm.close_derivation \<^here>
+    |> Thm.trim_context);
 
 
 local
@@ -290,7 +291,9 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
       (map o map) (fn prop => (mark_witness prop, [])) wit_propss @
         [map (rpair []) eq_props];
     fun after_qed' thmss =
-      let val (wits, eqs) = split_last ((map o map) (Thm.close_derivation \<^here>) thmss);
+      let
+        val (wits, eqs) =
+          split_last ((map o map) (Thm.close_derivation \<^here> #> Thm.trim_context) thmss);
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness end;
 
@@ -322,7 +325,7 @@ fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt =
 end;
 
 fun conclude_witness ctxt (Witness (_, th)) =
-  Goal.conclude th
+  Goal.conclude (Thm.transfer' ctxt th)
   |> Raw_Simplifier.norm_hhf_protect ctxt
   |> Thm.close_derivation \<^here>;
 
@@ -359,7 +362,7 @@ fun find_witness witns hyp =
 
 fun compose_witness (Witness (_, th)) r =
   let
-    val th' = Goal.conclude th;
+    val th' = Goal.conclude (Thm.transfer (Thm.theory_of_thm r) th);
     val A = Thm.cprem_of r 1;
   in
     Thm.implies_elim

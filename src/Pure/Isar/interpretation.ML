@@ -98,7 +98,8 @@ fun note_eqns_register note add_registration
   let
     val factss = thms
       |> unflat ((map o map) #1 eqnss)
-      |> map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) #1 eqnss);
+      |> map2 (map2 (fn b => fn eq =>
+          (b, [([Morphism.thm export (Thm.transfer' ctxt eq)], [])]))) ((map o map) #1 eqnss);
     val (eqnss', ctxt') =
       fold_map (fn facts => note Thm.theoremK facts #-> abs_def_rule) factss ctxt;
     val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);

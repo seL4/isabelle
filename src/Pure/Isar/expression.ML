@@ -766,15 +766,15 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val ((statement, intro, axioms), thy''') =
             thy''
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
-          val ctxt''' = Proof_Context.init_global thy''';
+          val conclude_witness =
+            Drule.export_without_context o Element.conclude_witness (Proof_Context.init_global thy''');
           val ([(_, [intro']), _], thy'''') =
             thy'''
             |> Sign.qualified_path true binding
             |> Global_Theory.note_thmss ""
                  [((Binding.name introN, []), [([intro], [Locale.intro_add])]),
                   ((Binding.name axiomsN, []),
-                    [(map (Drule.export_without_context o Element.conclude_witness ctxt''') axioms,
-                      [])])]
+                    [(map conclude_witness axioms, [])])]
             ||> Sign.restore_naming thy''';
         in (SOME statement, SOME intro', axioms, thy'''') end;
   in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;
@@ -851,6 +851,7 @@ fun gen_add_locale prep_include prep_decl
 
     val notes' =
       body_elems
+      |> map (Element.transform_ctxt (Morphism.transfer_morphism thy'))
       |> map (defines_to_notes pred_ctxt)
       |> map (Element.transform_ctxt a_satisfy)
       |> (fn elems =>
