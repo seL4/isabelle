@@ -407,7 +407,7 @@ fun prep_full_context_statement
           |> map (abs_def ctxt')
           |> Variable.export_terms ctxt' ctxt
           |> Element.eq_term_morphism (Proof_Context.theory_of ctxt)
-          |> the_default Morphism.identity;
+          |> Morphism.default;
        val ctxt'' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
        val eqnss' = eqnss @ [attrss ~~ Variable.export_terms ctxt' ctxt eqns'];
       in (i + 1, insts', eqnss', ctxt'') end;

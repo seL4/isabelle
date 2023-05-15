@@ -157,9 +157,8 @@ fun these_operations thy = maps (#operations o the_class_data thy) o ancestry th
 val base_morphism = #base_morph oo the_class_data;
 
 fun morphism thy class =
-  (case Element.eq_morphism thy (these_defs thy [class]) of
-    SOME eq_morph => base_morphism thy class $> eq_morph
-  | NONE => base_morphism thy class);
+  base_morphism thy class $>
+  Morphism.default (Element.eq_morphism thy (these_defs thy [class]));
 
 val export_morphism = #export_morph oo the_class_data;
 

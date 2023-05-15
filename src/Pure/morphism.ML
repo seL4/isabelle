@@ -32,6 +32,7 @@ sig
   val thm: morphism -> thm -> thm
   val cterm: morphism -> cterm -> cterm
   val identity: morphism
+  val default: morphism option -> morphism
   val compose: morphism -> morphism -> morphism
   val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
   val form: (morphism -> 'a) -> 'a
@@ -105,6 +106,8 @@ val cterm = Drule.cterm_rule o thm;
 (* morphism combinators *)
 
 val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
+
+val default = the_default identity;
 
 fun compose phi1 phi2 =
   if is_identity phi1 then phi2

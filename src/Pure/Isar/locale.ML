@@ -538,7 +538,7 @@ fun activate_facts export dep context =
   |> pair (Idents.get context)
   |> roundup (Context.theory_of context)
       (activate_notes_trace init_element Morphism.transfer_morphism'' context export)
-      (the_default Morphism.identity export) dep
+      (Morphism.default export) dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context;
 
