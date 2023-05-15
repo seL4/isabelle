@@ -1373,9 +1373,7 @@ fun generic_declare_abstype strictness proto_thm thy =
   | NONE => thy;
 
 val declare_abstype_global = generic_declare_abstype Strict;
-
-val declare_abstype =
-  code_declaration Morphism.thm generic_declare_abstype;
+val declare_abstype = code_declaration Morphism.thm generic_declare_abstype;
 
 
 (* functions *)
@@ -1448,14 +1446,10 @@ fun add_maybe_abs_eqn_liberal thm thy =
 end;
 
 val declare_default_eqns_global = generic_declare_eqns true Silent;
-
-val declare_default_eqns =
-  silent_code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns true);
+val declare_default_eqns = silent_code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns true);
 
 val declare_eqns_global = generic_declare_eqns false Strict;
-
-val declare_eqns =
-  code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns false);
+val declare_eqns = code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns false);
 
 val add_eqn_global = generic_add_eqn Strict;
 
@@ -1466,9 +1460,7 @@ fun del_eqn_global thm thy =
   | NONE => thy;
 
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
-
-val declare_abstract_eqn =
-  code_declaration Morphism.thm generic_declare_abstract_eqn;
+val declare_abstract_eqn = code_declaration Morphism.thm generic_declare_abstract_eqn;
 
 fun declare_aborting_global c =
   modify_specs (register_fun_spec c aborting);
