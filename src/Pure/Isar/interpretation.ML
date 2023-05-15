@@ -104,9 +104,12 @@ fun note_eqns_register note add_registration
       fold_map (fn facts => note Thm.theoremK facts #-> abs_def_rule) factss ctxt;
     val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);
     val (eqns', ctxt'') = ctxt' |> note Thm.theoremK [defs] |-> abs_def_rule;
+    val transform_witness =
+      Element.transform_witness
+        (Morphism.transfer_morphism' ctxt' $> export' $> Morphism.trim_context_morphism);
     val deps' =
       (deps ~~ witss) |> map (fn ((dep, morph), wits) =>
-        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)));
+        (dep, morph $> Element.satisfy_morphism (map transform_witness wits)));
     fun register (dep, eqns) ctxt =
       ctxt |> add_registration
         {inst = dep,
