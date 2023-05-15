@@ -230,12 +230,11 @@ fun register class sups params base_sort base_morph export_morph
 fun activate_defs class thms thy =
   (case Element.eq_morphism thy thms of
     SOME eq_morph =>
-      fold (fn cls => fn thy =>
-        Context.theory_map
-          (Locale.amend_registration
-            {inst = (cls, base_morphism thy cls),
-              mixin = SOME (eq_morph, true),
-              export = export_morphism thy cls}) thy) (heritage thy [class]) thy
+      fold (fn cls => fn thy' =>
+        (Context.theory_map o Locale.amend_registration)
+         {inst = (cls, base_morphism thy' cls),
+          mixin = SOME (eq_morph, true),
+          export = export_morphism thy' cls} thy') (heritage thy [class]) thy
   | NONE => thy);
 
 fun register_operation class (c, t) input_only thy =
