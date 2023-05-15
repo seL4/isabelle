@@ -203,7 +203,7 @@ fun gen_activate notes prep_bundle args ctxt =
   let val decls = maps (prep_bundle ctxt) args in
     ctxt
     |> Context_Position.set_visible false
-    |> notes [(Binding.empty_atts, decls)] |> #2
+    |> notes [(Binding.empty_atts, transform_bundle (Morphism.transfer_morphism' ctxt) decls)] |> #2
     |> Context_Position.restore_visible ctxt
   end;
 
