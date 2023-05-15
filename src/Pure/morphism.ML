@@ -107,17 +107,20 @@ val cterm = Drule.cterm_rule o thm;
 val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
 
 fun compose phi1 phi2 =
-  let
-    val {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1} = rep phi1;
-    val {names = names2, binding = binding2, typ = typ2, term = term2, fact = fact2} = rep phi2;
-  in
-    Morphism {
-      names = names1 @ names2,
-      binding = binding1 @ binding2,
-      typ = typ1 @ typ2,
-      term = term1 @ term2,
-      fact = fact1 @ fact2}
-  end;
+  if is_identity phi1 then phi2
+  else if is_identity phi2 then phi1
+  else
+    let
+      val {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1} = rep phi1;
+      val {names = names2, binding = binding2, typ = typ2, term = term2, fact = fact2} = rep phi2;
+    in
+      Morphism {
+        names = names1 @ names2,
+        binding = binding1 @ binding2,
+        typ = typ1 @ typ2,
+        term = term1 @ term2,
+        fact = fact1 @ fact2}
+    end;
 
 fun phi1 $> phi2 = compose phi2 phi1;
 
