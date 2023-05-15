@@ -75,7 +75,7 @@ sig
   val eta_contraction_rule: thm -> thm
   val norm_hhf_eq: thm
   val norm_hhf_eqs: thm list
-  val is_norm_hhf: term -> bool
+  val is_norm_hhf: {protect: bool} -> term -> bool
   val norm_hhf: theory -> term -> term
   val norm_hhf_cterm: Proof.context -> cterm -> cterm
   val protect: cterm -> cterm
@@ -669,15 +669,19 @@ val norm_hhf_eq =
 val norm_hhf_prop = Logic.dest_equals (Thm.prop_of norm_hhf_eq);
 val norm_hhf_eqs = [norm_hhf_eq, sort_constraint_eq];
 
-fun is_norm_hhf (Const ("Pure.sort_constraint", _)) = false
-  | is_norm_hhf (Const ("Pure.imp", _) $ _ $ (Const ("Pure.all", _) $ _)) = false
-  | is_norm_hhf (Abs _ $ _) = false
-  | is_norm_hhf (t $ u) = is_norm_hhf t andalso is_norm_hhf u
-  | is_norm_hhf (Abs (_, _, t)) = is_norm_hhf t
-  | is_norm_hhf _ = true;
+fun is_norm_hhf {protect} =
+  let
+    fun is_norm (Const ("Pure.sort_constraint", _)) = false
+      | is_norm (Const ("Pure.imp", _) $ _ $ (Const ("Pure.all", _) $ _)) = false
+      | is_norm (Const ("Pure.prop", _) $ t) = protect orelse is_norm t
+      | is_norm (Abs _ $ _) = false
+      | is_norm (t $ u) = is_norm t andalso is_norm u
+      | is_norm (Abs (_, _, t)) = is_norm t
+      | is_norm _ = true;
+  in is_norm end;
 
 fun norm_hhf thy t =
-  if is_norm_hhf t then t
+  if is_norm_hhf {protect = false} t then t
   else Pattern.rewrite_term thy [norm_hhf_prop] [] t;
 
 fun norm_hhf_cterm ctxt raw_ct =
@@ -685,7 +689,7 @@ fun norm_hhf_cterm ctxt raw_ct =
     val thy = Proof_Context.theory_of ctxt;
     val ct = Thm.transfer_cterm thy raw_ct;
     val t = Thm.term_of ct;
-  in if is_norm_hhf t then ct else Thm.cterm_of ctxt (norm_hhf thy t) end;
+  in if is_norm_hhf {protect = false} t then ct else Thm.cterm_of ctxt (norm_hhf thy t) end;
 
 
 (* var indexes *)
