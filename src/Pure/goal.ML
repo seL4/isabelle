@@ -22,6 +22,7 @@ sig
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
   val norm_result: Proof.context -> thm -> thm
+  val norm_result_without_context: thm -> thm
   val skip_proofs_enabled: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: Proof.context -> cterm list -> cterm -> (thm list -> tactic) -> thm
@@ -95,6 +96,9 @@ fun norm_result ctxt =
   #> Raw_Simplifier.norm_hhf_protect ctxt
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
+
+fun norm_result_without_context th =
+  norm_result (Proof_Context.init_global (Thm.theory_of_thm th)) th;
 
 
 (* scheduling parameters *)

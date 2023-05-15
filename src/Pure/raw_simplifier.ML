@@ -65,6 +65,7 @@ sig
   val fold_goals_tac: Proof.context -> thm list -> tactic
   val norm_hhf: Proof.context -> thm -> thm
   val norm_hhf_protect: Proof.context -> thm -> thm
+  val norm_hhf_protect_without_context: thm -> thm
 end;
 
 signature RAW_SIMPLIFIER =
@@ -1447,6 +1448,9 @@ in
 
 val norm_hhf = gen_norm_hhf {protect = false} hhf_ss;
 val norm_hhf_protect = gen_norm_hhf {protect = true} hhf_protect_ss;
+
+fun norm_hhf_protect_without_context th =
+  norm_hhf_protect (Proof_Context.init_global (Thm.theory_of_thm th)) th;
 
 end;
 
