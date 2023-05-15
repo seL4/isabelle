@@ -242,7 +242,7 @@ directory individually.
           ssh.write_file(remote_tmp_tar, local_tmp_tar)
 
           val build_command =
-            "bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions)
+            "bin/isabelle build -o parallel_proofs=0 -o system_heaps -b -- " + Bash.strings(build_sessions)
           def system_apple(b: Boolean): String =
             """{ echo "ML_system_apple = """ + b + """" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
 
