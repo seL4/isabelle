@@ -73,6 +73,8 @@ datatype morphism = Morphism of
   term: term funs,
   fact: thm list funs};
 
+fun rep (Morphism args) = args;
+
 type declaration = morphism -> Context.generic -> Context.generic;
 
 fun morphism a {binding, typ, term, fact} =
@@ -87,15 +89,15 @@ fun morphism a {binding, typ, term, fact} =
 fun is_identity (Morphism {names, binding, typ, term, fact}) =
   null names andalso null binding andalso null typ andalso null term andalso null fact;
 
-fun pretty (Morphism {names, ...}) = Pretty.enum ";" "{" "}" (map Pretty.str (rev names));
+fun pretty phi = Pretty.enum ";" "{" "}" (map Pretty.str (rev (#names (rep phi))));
 
 val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
 
-fun binding (Morphism {binding, ...}) = apply binding;
+val binding = apply o #binding o rep;
 fun binding_prefix morph = Binding.name "x" |> binding morph |> Binding.prefix_of;
-fun typ (Morphism {typ, ...}) = apply typ;
-fun term (Morphism {term, ...}) = apply term;
-fun fact (Morphism {fact, ...}) = apply fact;
+val typ = apply o #typ o rep;
+val term = apply o #term o rep;
+val fact = apply o #fact o rep;
 val thm = singleton o fact;
 val cterm = Drule.cterm_rule o thm;
 
@@ -104,15 +106,18 @@ val cterm = Drule.cterm_rule o thm;
 
 val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
 
-fun compose
-    (Morphism {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1})
-    (Morphism {names = names2, binding = binding2, typ = typ2, term = term2, fact = fact2}) =
-  Morphism {
-    names = names1 @ names2,
-    binding = binding1 @ binding2,
-    typ = typ1 @ typ2,
-    term = term1 @ term2,
-    fact = fact1 @ fact2};
+fun compose phi1 phi2 =
+  let
+    val {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1} = rep phi1;
+    val {names = names2, binding = binding2, typ = typ2, term = term2, fact = fact2} = rep phi2;
+  in
+    Morphism {
+      names = names1 @ names2,
+      binding = binding1 @ binding2,
+      typ = typ1 @ typ2,
+      term = term1 @ term2,
+      fact = fact1 @ fact2}
+  end;
 
 fun phi1 $> phi2 = compose phi2 phi1;
 
