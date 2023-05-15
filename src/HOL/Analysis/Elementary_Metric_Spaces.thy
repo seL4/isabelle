@@ -437,6 +437,9 @@ lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>
   by (meson ball_subset_cball interior_subset mem_interior open_contains_cball open_interior
       subset_trans)
 
+lemma ball_iff_cball: "(\<exists>r>0. ball x r \<subseteq> U) \<longleftrightarrow> (\<exists>r>0. cball x r \<subseteq> U)"
+  by (meson mem_interior mem_interior_cball)
+
 
 subsection \<open>Frontier\<close>
 

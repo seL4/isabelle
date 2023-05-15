@@ -882,6 +882,11 @@ lemma convex_interior_closure:
     convex_rel_interior_closure[of S] assms
   by auto
 
+lemma open_subset_closure_of_interval:
+  assumes "open U" "is_interval S"
+  shows "U \<subseteq> closure S \<longleftrightarrow> U \<subseteq> interior S"
+  by (metis assms convex_interior_closure is_interval_convex open_subset_interior)
+
 lemma closure_eq_rel_interior_eq:
   fixes S1 S2 :: "'n::euclidean_space set"
   assumes "convex S1"

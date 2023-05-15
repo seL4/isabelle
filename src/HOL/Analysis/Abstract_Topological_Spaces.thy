@@ -71,69 +71,6 @@ lemma connectedin_imp_perfect:
   by (simp add: Hausdorff_imp_t1_space connectedin_imp_perfect_gen)
 
 
-proposition connected_space_prod_topology:
-   "connected_space(prod_topology X Y) \<longleftrightarrow>
-    topspace(prod_topology X Y) = {} \<or> connected_space X \<and> connected_space Y" (is "?lhs=?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
-  case True
-  then show ?thesis
-    using connected_space_topspace_empty by blast
-next
-  case False
-  then have nonempty: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
-    by force+
-  show ?thesis 
-  proof
-    assume ?lhs
-    then show ?rhs
-      by (meson connected_space_quotient_map_image nonempty quotient_map_fst quotient_map_snd)
-  next
-    assume ?rhs
-    then have conX: "connected_space X" and conY: "connected_space Y"
-      using False by blast+
-    have False
-      if "openin (prod_topology X Y) U" and "openin (prod_topology X Y) V"
-        and UV: "topspace X \<times> topspace Y \<subseteq> U \<union> V" "U \<inter> V = {}" 
-        and "U \<noteq> {}" and "V \<noteq> {}"
-      for U V
-    proof -
-      have Usub: "U \<subseteq> topspace X \<times> topspace Y" and Vsub: "V \<subseteq> topspace X \<times> topspace Y"
-        using that by (metis openin_subset topspace_prod_topology)+
-      obtain a b where ab: "(a,b) \<in> U" and a: "a \<in> topspace X" and b: "b \<in> topspace Y"
-        using \<open>U \<noteq> {}\<close> Usub by auto
-      have "\<not> topspace X \<times> topspace Y \<subseteq> U"
-        using Usub Vsub \<open>U \<inter> V = {}\<close> \<open>V \<noteq> {}\<close> by auto
-      then obtain x y where x: "x \<in> topspace X" and y: "y \<in> topspace Y" and "(x,y) \<notin> U"
-        by blast
-      have oX: "openin X {x \<in> topspace X. (x,y) \<in> U}" "openin X {x \<in> topspace X. (x,y) \<in> V}"
-       and oY: "openin Y {y \<in> topspace Y. (a,y) \<in> U}" "openin Y {y \<in> topspace Y. (a,y) \<in> V}"
-        by (force intro: openin_continuous_map_preimage [where Y = "prod_topology X Y"] 
-            simp: that continuous_map_pairwise o_def x y a)+
-      have 1: "topspace Y \<subseteq> {y \<in> topspace Y. (a,y) \<in> U} \<union> {y \<in> topspace Y. (a,y) \<in> V}"
-        using a that(3) by auto
-      have 2: "{y \<in> topspace Y. (a,y) \<in> U} \<inter> {y \<in> topspace Y. (a,y) \<in> V} = {}"
-        using that(4) by auto
-      have 3: "{y \<in> topspace Y. (a,y) \<in> U} \<noteq> {}"
-        using ab b by auto
-      have 4: "{y \<in> topspace Y. (a,y) \<in> V} \<noteq> {}"
-      proof -
-        show ?thesis
-          using connected_spaceD [OF conX oX] UV \<open>(x,y) \<notin> U\<close> a x y
-                disjoint_iff_not_equal by blast
-      qed
-      show ?thesis
-        using connected_spaceD [OF conY oY 1 2 3 4] by auto
-    qed
-    then show ?lhs
-      unfolding connected_space_def topspace_prod_topology by blast 
-  qed
-qed
-
-lemma connectedin_Times:
-   "connectedin (prod_topology X Y) (S \<times> T) \<longleftrightarrow>
-        S = {} \<or> T = {} \<or> connectedin X S \<and> connectedin Y T"
-  by (force simp: connectedin_def subtopology_Times connected_space_prod_topology)
-
 
 subsection\<open>The notion of "separated between" (complement of "connected between)"\<close>
 
