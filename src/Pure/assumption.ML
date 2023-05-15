@@ -129,9 +129,9 @@ val add_assumes = add_assms assume_export;
 (* export *)
 
 fun export is_goal inner outer =
-  Raw_Simplifier.norm_hhf_protect inner #>
+  Raw_Simplifier.norm_hhf_protect_without_context #>
   fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
-  Raw_Simplifier.norm_hhf_protect outer;
+  Raw_Simplifier.norm_hhf_protect_without_context;
 
 fun export_term inner outer =
   fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);
@@ -142,8 +142,6 @@ fun export_morphism inner outer =
     val term = export_term inner outer;
     val typ = Logic.type_map term;
   in
-    Morphism.transfer_morphism' inner $>
-    Morphism.transfer_morphism' outer $>
     Morphism.morphism "Assumption.export"
       {binding = [], typ = [typ], term = [term], fact = [map thm]}
   end;

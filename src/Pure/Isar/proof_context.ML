@@ -852,7 +852,7 @@ fun export_morphism inner outer =
 
 fun norm_export_morphism inner outer =
   export_morphism inner outer $>
-  Morphism.thm_morphism "Proof_Context.norm_export" (Goal.norm_result outer);
+  Morphism.thm_morphism "Proof_Context.norm_export" Goal.norm_result_without_context;
 
 
 
