@@ -559,7 +559,7 @@ lemma fsubset_finsert: "x |\<notin>| A \<Longrightarrow> (A |\<subseteq>| finser
 lemma funion_upper1: "A |\<subseteq>| A |\<union>| B"
   by (rule Un_upper1[Transfer.transferred])
 
-lemma funion_upper2P: "B |\<subseteq>| A |\<union>| B"
+lemma funion_upper2: "B |\<subseteq>| A |\<union>| B"
   by (rule Un_upper2[Transfer.transferred])
 
 lemma funion_least: "A |\<subseteq>| C \<Longrightarrow> B |\<subseteq>| C \<Longrightarrow> A |\<union>| B |\<subseteq>| C"
