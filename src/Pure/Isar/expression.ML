@@ -556,7 +556,7 @@ fun prep_goal_expression prep expression ctxt =
     val exp_typ = Logic.type_map exp_term;
     val export' =
       Morphism.morphism "Expression.prep_goal"
-        {binding = [], typ = [exp_typ], term = [exp_term], fact = [exp_fact]};
+        {binding = [], typ = [K exp_typ], term = [K exp_term], fact = [K exp_fact]};
   in ((propss, eq_propss, deps, eqnss, export'), goal_ctxt) end;
 
 in

@@ -17,12 +17,16 @@ signature MORPHISM =
 sig
   include BASIC_MORPHISM
   exception MORPHISM of string * exn
+  val the_theory: theory option -> theory
+  val set_context: theory -> morphism -> morphism
+  val reset_context: morphism -> morphism
   val morphism: string ->
-   {binding: (binding -> binding) list,
-    typ: (typ -> typ) list,
-    term: (term -> term) list,
-    fact: (thm list -> thm list) list} -> morphism
+   {binding: (theory option -> binding -> binding) list,
+    typ: (theory option -> typ -> typ) list,
+    term: (theory option -> term -> term) list,
+    fact: (theory option -> thm list -> thm list) list} -> morphism
   val is_identity: morphism -> bool
+  val is_empty: morphism -> bool
   val pretty: morphism -> Pretty.T
   val binding: morphism -> binding -> binding
   val binding_prefix: morphism -> (string * bool) list
@@ -37,7 +41,9 @@ sig
   val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
   val form: (morphism -> 'a) -> 'a
   val binding_morphism: string -> (binding -> binding) -> morphism
+  val typ_morphism': string -> (theory -> typ -> typ) -> morphism
   val typ_morphism: string -> (typ -> typ) -> morphism
+  val term_morphism': string -> (theory -> term -> term) -> morphism
   val term_morphism: string -> (term -> term) -> morphism
   val fact_morphism: string -> (thm list -> thm list) -> morphism
   val thm_morphism: string -> (thm -> thm) -> morphism
@@ -54,32 +60,53 @@ struct
 
 (* named functions *)
 
-type 'a funs = (string * ('a -> 'a)) list;
+type 'a funs = (string * (theory option -> 'a -> 'a)) list;
 
 exception MORPHISM of string * exn;
 
-fun app (name, f) x = f x
+fun app context (name, f) x = f context x
   handle exn =>
     if Exn.is_interrupt exn then Exn.reraise exn else raise MORPHISM (name, exn);
 
-fun apply fs = fold_rev app fs;
+
+(* optional context *)
+
+fun the_theory (SOME thy) = thy
+  | the_theory NONE = raise Fail "Morphism lacks theory context";
+
+fun join_transfer (SOME thy) = Thm.join_transfer thy
+  | join_transfer NONE = I;
+
+val join_context = join_options Context.join_certificate_theory;
 
 
 (* type morphism *)
 
 datatype morphism = Morphism of
- {names: string list,
+ {context: theory option,
+  names: string list,
   binding: binding funs,
   typ: typ funs,
   term: term funs,
   fact: thm list funs};
 
+type declaration = morphism -> Context.generic -> Context.generic;
+
 fun rep (Morphism args) = args;
 
-type declaration = morphism -> Context.generic -> Context.generic;
+fun apply which phi =
+  let val args = rep phi
+  in fold_rev (app (#context args)) (which args) end;
+
+fun put_context context (Morphism {context = _, names, binding, typ, term, fact}) =
+  Morphism {context = context, names = names, binding = binding, typ = typ, term = term, fact = fact};
+
+val set_context = put_context o SOME;
+val reset_context = put_context NONE;
 
 fun morphism a {binding, typ, term, fact} =
   Morphism {
+    context = NONE,
     names = if a = "" then [] else [a],
     binding = map (pair a) binding,
     typ = map (pair a) typ,
@@ -87,18 +114,20 @@ fun morphism a {binding, typ, term, fact} =
     fact = map (pair a) fact};
 
 (*syntactic test only!*)
-fun is_identity (Morphism {names, binding, typ, term, fact}) =
+fun is_identity (Morphism {context = _, names, binding, typ, term, fact}) =
   null names andalso null binding andalso null typ andalso null term andalso null fact;
+
+fun is_empty phi = is_none (#context (rep phi)) andalso is_identity phi;
 
 fun pretty phi = Pretty.enum ";" "{" "}" (map Pretty.str (rev (#names (rep phi))));
 
 val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
 
-val binding = apply o #binding o rep;
+val binding = apply #binding;
 fun binding_prefix morph = Binding.name "x" |> binding morph |> Binding.prefix_of;
-val typ = apply o #typ o rep;
-val term = apply o #term o rep;
-val fact = apply o #fact o rep;
+val typ = apply #typ;
+val term = apply #term;
+fun fact phi = map (join_transfer (#context (rep phi))) #> apply #fact phi;
 val thm = singleton o fact;
 val cterm = Drule.cterm_rule o thm;
 
@@ -110,14 +139,17 @@ val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
 val default = the_default identity;
 
 fun compose phi1 phi2 =
-  if is_identity phi1 then phi2
-  else if is_identity phi2 then phi1
+  if is_empty phi1 then phi2
+  else if is_empty phi2 then phi1
   else
     let
-      val {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1} = rep phi1;
-      val {names = names2, binding = binding2, typ = typ2, term = term2, fact = fact2} = rep phi2;
+      val {context = context1, names = names1, binding = binding1,
+        typ = typ1, term = term1, fact = fact1} = rep phi1;
+      val {context = context2, names = names2, binding = binding2,
+        typ = typ2, term = term2, fact = fact2} = rep phi2;
     in
       Morphism {
+        context = join_context (context1, context2),
         names = names1 @ names2,
         binding = binding1 @ binding2,
         typ = typ1 @ typ2,
@@ -133,11 +165,13 @@ fun form f = f identity;
 
 (* concrete morphisms *)
 
-fun binding_morphism a binding = morphism a {binding = [binding], typ = [], term = [], fact = []};
-fun typ_morphism a typ = morphism a {binding = [], typ = [typ], term = [], fact = []};
-fun term_morphism a term = morphism a {binding = [], typ = [], term = [term], fact = []};
-fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [fact]};
-fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
+fun binding_morphism a binding = morphism a {binding = [K binding], typ = [], term = [], fact = []};
+fun typ_morphism' a typ = morphism a {binding = [], typ = [typ o the_theory], term = [], fact = []};
+fun typ_morphism a typ = morphism a {binding = [], typ = [K typ], term = [], fact = []};
+fun term_morphism' a term = morphism a {binding = [], typ = [], term = [term o the_theory], fact = []};
+fun term_morphism a term = morphism a {binding = [], typ = [], term = [K term], fact = []};
+fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [K fact]};
+fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [K (map thm)]};
 
 val transfer_morphism = thm_morphism "transfer" o Thm.join_transfer;
 val transfer_morphism' = transfer_morphism o Proof_Context.theory_of;
@@ -159,9 +193,9 @@ fun instantiate_frees_morphism (cinstT, cinst) =
         {binding = [],
          typ =
           if TFrees.is_empty instT then []
-          else [Term_Subst.instantiateT_frees instT],
-         term = [Term_Subst.instantiate_frees (instT, inst)],
-         fact = [map (Thm.instantiate_frees (cinstT, cinst))]}
+          else [K (Term_Subst.instantiateT_frees instT)],
+         term = [K (Term_Subst.instantiate_frees (instT, inst))],
+         fact = [K (map (Thm.instantiate_frees (cinstT, cinst)))]}
     end;
 
 fun instantiate_morphism (cinstT, cinst) =
@@ -175,9 +209,9 @@ fun instantiate_morphism (cinstT, cinst) =
         {binding = [],
          typ =
           if TVars.is_empty instT then []
-          else [Term_Subst.instantiateT instT],
-         term = [Term_Subst.instantiate (instT, inst)],
-         fact = [map (Thm.instantiate (cinstT, cinst))]}
+          else [K (Term_Subst.instantiateT instT)],
+         term = [K (Term_Subst.instantiate (instT, inst))],
+         fact = [K (map (Thm.instantiate (cinstT, cinst)))]}
     end;
 
 end;

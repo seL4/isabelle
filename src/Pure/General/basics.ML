@@ -32,6 +32,7 @@ sig
   val the_default: 'a -> 'a option -> 'a
   val perhaps: ('a -> 'a option) -> 'a -> 'a
   val merge_options: 'a option * 'a option -> 'a option
+  val join_options: ('a * 'a -> 'a) -> 'a option * 'a option -> 'a option
   val eq_option: ('a * 'b -> bool) -> 'a option * 'b option -> bool
 
   (*partiality*)
@@ -93,6 +94,9 @@ fun the_default x (SOME y) = y
 fun perhaps f x = the_default x (f x);
 
 fun merge_options (x, y) = if is_some x then x else y;
+
+fun join_options f (SOME x, SOME y) = SOME (f (x, y))
+  | join_options _ args = merge_options args;
 
 fun eq_option eq (SOME x, SOME y) = eq (x, y)
   | eq_option _ (NONE, NONE) = true

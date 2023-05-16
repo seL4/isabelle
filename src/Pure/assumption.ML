@@ -143,7 +143,7 @@ fun export_morphism inner outer =
     val typ = Logic.type_map term;
   in
     Morphism.morphism "Assumption.export"
-      {binding = [], typ = [typ], term = [term], fact = [map thm]}
+      {binding = [], typ = [K typ], term = [K term], fact = [K (map thm)]}
   end;
 
 end;

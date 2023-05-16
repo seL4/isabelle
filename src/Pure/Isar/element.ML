@@ -390,6 +390,7 @@ end;
 fun eq_term_morphism _ [] = NONE
   | eq_term_morphism thy props =
       let
+        (* FIXME proper morphism context *)
         fun decomp_simp prop =
           let
             val ctxt = Proof_Context.init_global thy;
@@ -402,21 +403,21 @@ fun eq_term_morphism _ [] = NONE
           Morphism.morphism "Element.eq_term_morphism"
            {binding = [],
             typ = [],
-            term = [Pattern.rewrite_term thy (map decomp_simp props) []],
-            fact = [fn _ => error "Illegal application of Element.eq_term_morphism"]};
+            term = [K (Pattern.rewrite_term thy (map decomp_simp props) [])],
+            fact = [fn _ => fn _ => error "Illegal application of Element.eq_term_morphism"]};
       in SOME phi end;
 
 fun eq_morphism _ [] = NONE
   | eq_morphism thy thms =
       let
-        (* FIXME proper context!? *)
+        (* FIXME proper morphism context *)
         fun rewrite th = rewrite_rule (Proof_Context.init_global (Thm.theory_of_thm th)) thms th;
         val phi =
           Morphism.morphism "Element.eq_morphism"
            {binding = [],
             typ = [],
-            term = [Raw_Simplifier.rewrite_term thy thms []],
-            fact = [map rewrite]};
+            term = [K (Raw_Simplifier.rewrite_term thy thms [])],
+            fact = [K (map rewrite)]};
       in SOME phi end;
 
 
