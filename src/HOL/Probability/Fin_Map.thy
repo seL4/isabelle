@@ -232,7 +232,7 @@ proof
       case (UN B)
       then obtain b where "x \<in> b" "b \<in> B" by auto
       hence "\<exists>a\<in>?A. a \<subseteq> b" using UN by simp
-      thus ?case using \<open>b \<in> B\<close> by blast
+      thus ?case using \<open>b \<in> B\<close> by (metis Sup_upper2)
     next
       case (Basis s)
       then obtain a b where xs: "x\<in> Pi' a b" "s = Pi' a b" "\<And>i. i\<in>a \<Longrightarrow> open (b i)" by auto

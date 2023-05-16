@@ -170,16 +170,19 @@ translations
   "{|x, xs|}" == "CONST finsert x {|xs|}"
   "{|x|}"     == "CONST finsert x {||}"
 
-lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is Set.member
-  parametric member_transfer .
+abbreviation fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) where
+  "a |\<in>| A \<equiv> a \<in> fset A"
 
-lemma fmember_iff_member_fset: "x |\<in>| A \<longleftrightarrow> x \<in> fset A"
-  by (rule fmember.rep_eq)
-
-abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
+abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
+  "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
 context includes lifting_syntax
 begin
+
+lemma fmember_transfer0[transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> pcr_fset A ===> (=)) (\<in>) (|\<in>|)"
+  by transfer_prover
 
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter
   parametric Lifting_Set.filter_transfer unfolding Set.filter_def by simp
@@ -1010,9 +1013,6 @@ lemmas fset_cong = fset_inject
 lemma filter_fset [simp]:
   shows "fset (ffilter P xs) = Collect P \<inter> fset xs"
   by transfer auto
-
-lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S"
-  by (simp add: fmember_iff_member_fset)
 
 lemma inter_fset[simp]: "fset (A |\<inter>| B) = fset A \<inter> fset B"
   by (rule inf_fset.rep_eq)
