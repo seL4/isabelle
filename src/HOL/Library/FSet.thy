@@ -208,258 +208,768 @@ lift_definition fset_of_list :: "'a list \<Rightarrow> 'a fset" is set by (rule 
 
 lift_definition sorted_list_of_fset :: "'a::linorder fset \<Rightarrow> 'a list" is sorted_list_of_set .
 
+
 subsection \<open>Transferred lemmas from Set.thy\<close>
 
-lemmas fset_eqI = set_eqI[Transfer.transferred]
-lemmas fset_eq_iff[no_atp] = set_eq_iff[Transfer.transferred]
-lemmas fBallI[intro!] = ballI[Transfer.transferred]
-lemmas fbspec[dest?] = bspec[Transfer.transferred]
-lemmas fBallE[elim] = ballE[Transfer.transferred]
-lemmas fBexI[intro] = bexI[Transfer.transferred]
-lemmas rev_fBexI[intro?] = rev_bexI[Transfer.transferred]
-lemmas fBexCI = bexCI[Transfer.transferred]
-lemmas fBexE[elim!] = bexE[Transfer.transferred]
-lemmas fBall_triv[simp] = ball_triv[Transfer.transferred]
-lemmas fBex_triv[simp] = bex_triv[Transfer.transferred]
-lemmas fBex_triv_one_point1[simp] = bex_triv_one_point1[Transfer.transferred]
-lemmas fBex_triv_one_point2[simp] = bex_triv_one_point2[Transfer.transferred]
-lemmas fBex_one_point1[simp] = bex_one_point1[Transfer.transferred]
-lemmas fBex_one_point2[simp] = bex_one_point2[Transfer.transferred]
-lemmas fBall_one_point1[simp] = ball_one_point1[Transfer.transferred]
-lemmas fBall_one_point2[simp] = ball_one_point2[Transfer.transferred]
-lemmas fBall_conj_distrib = ball_conj_distrib[Transfer.transferred]
-lemmas fBex_disj_distrib = bex_disj_distrib[Transfer.transferred]
-lemmas fBall_cong[fundef_cong] = ball_cong[Transfer.transferred]
-lemmas fBex_cong[fundef_cong] = bex_cong[Transfer.transferred]
-lemmas fsubsetI[intro!] = subsetI[Transfer.transferred]
-lemmas fsubsetD[elim, intro?] = subsetD[Transfer.transferred]
-lemmas rev_fsubsetD[no_atp,intro?] = rev_subsetD[Transfer.transferred]
-lemmas fsubsetCE[no_atp,elim] = subsetCE[Transfer.transferred]
-lemmas fsubset_eq[no_atp] = subset_eq[Transfer.transferred]
-lemmas contra_fsubsetD[no_atp] = contra_subsetD[Transfer.transferred]
-lemmas fsubset_refl = subset_refl[Transfer.transferred]
-lemmas fsubset_trans = subset_trans[Transfer.transferred]
-lemmas fset_rev_mp = rev_subsetD[Transfer.transferred]
-lemmas fset_mp = subsetD[Transfer.transferred]
-lemmas fsubset_not_fsubset_eq[code] = subset_not_subset_eq[Transfer.transferred]
-lemmas eq_fmem_trans = eq_mem_trans[Transfer.transferred]
-lemmas fsubset_antisym[intro!] = subset_antisym[Transfer.transferred]
-lemmas fequalityD1 = equalityD1[Transfer.transferred]
-lemmas fequalityD2 = equalityD2[Transfer.transferred]
-lemmas fequalityE = equalityE[Transfer.transferred]
-lemmas fequalityCE[elim] = equalityCE[Transfer.transferred]
-lemmas eqfset_imp_iff = eqset_imp_iff[Transfer.transferred]
-lemmas eqfelem_imp_iff = eqelem_imp_iff[Transfer.transferred]
-lemmas fempty_iff[simp] = empty_iff[Transfer.transferred]
-lemmas fempty_fsubsetI[iff] = empty_subsetI[Transfer.transferred]
-lemmas equalsffemptyI = equals0I[Transfer.transferred]
-lemmas equalsffemptyD = equals0D[Transfer.transferred]
-lemmas fBall_fempty[simp] = ball_empty[Transfer.transferred]
-lemmas fBex_fempty[simp] = bex_empty[Transfer.transferred]
-lemmas fPow_iff[iff] = Pow_iff[Transfer.transferred]
-lemmas fPowI = PowI[Transfer.transferred]
-lemmas fPowD = PowD[Transfer.transferred]
-lemmas fPow_bottom = Pow_bottom[Transfer.transferred]
-lemmas fPow_top = Pow_top[Transfer.transferred]
-lemmas fPow_not_fempty = Pow_not_empty[Transfer.transferred]
-lemmas finter_iff[simp] = Int_iff[Transfer.transferred]
-lemmas finterI[intro!] = IntI[Transfer.transferred]
-lemmas finterD1 = IntD1[Transfer.transferred]
-lemmas finterD2 = IntD2[Transfer.transferred]
-lemmas finterE[elim!] = IntE[Transfer.transferred]
-lemmas funion_iff[simp] = Un_iff[Transfer.transferred]
-lemmas funionI1[elim?] = UnI1[Transfer.transferred]
-lemmas funionI2[elim?] = UnI2[Transfer.transferred]
-lemmas funionCI[intro!] = UnCI[Transfer.transferred]
-lemmas funionE[elim!] = UnE[Transfer.transferred]
-lemmas fminus_iff[simp] = Diff_iff[Transfer.transferred]
-lemmas fminusI[intro!] = DiffI[Transfer.transferred]
-lemmas fminusD1 = DiffD1[Transfer.transferred]
-lemmas fminusD2 = DiffD2[Transfer.transferred]
-lemmas fminusE[elim!] = DiffE[Transfer.transferred]
-lemmas finsert_iff[simp] = insert_iff[Transfer.transferred]
-lemmas finsertI1 = insertI1[Transfer.transferred]
-lemmas finsertI2 = insertI2[Transfer.transferred]
-lemmas finsertE[elim!] = insertE[Transfer.transferred]
-lemmas finsertCI[intro!] = insertCI[Transfer.transferred]
-lemmas fsubset_finsert_iff = subset_insert_iff[Transfer.transferred]
-lemmas finsert_ident = insert_ident[Transfer.transferred]
-lemmas fsingletonI[intro!,no_atp] = singletonI[Transfer.transferred]
-lemmas fsingletonD[dest!,no_atp] = singletonD[Transfer.transferred]
-lemmas fsingleton_iff = singleton_iff[Transfer.transferred]
-lemmas fsingleton_inject[dest!] = singleton_inject[Transfer.transferred]
-lemmas fsingleton_finsert_inj_eq[iff,no_atp] = singleton_insert_inj_eq[Transfer.transferred]
-lemmas fsingleton_finsert_inj_eq'[iff,no_atp] = singleton_insert_inj_eq'[Transfer.transferred]
-lemmas fsubset_fsingletonD = subset_singletonD[Transfer.transferred]
-lemmas fminus_single_finsert = Diff_single_insert[Transfer.transferred]
-lemmas fdoubleton_eq_iff = doubleton_eq_iff[Transfer.transferred]
-lemmas funion_fsingleton_iff = Un_singleton_iff[Transfer.transferred]
-lemmas fsingleton_funion_iff = singleton_Un_iff[Transfer.transferred]
-lemmas fimage_eqI[simp, intro] = image_eqI[Transfer.transferred]
-lemmas fimageI = imageI[Transfer.transferred]
-lemmas rev_fimage_eqI = rev_image_eqI[Transfer.transferred]
-lemmas fimageE[elim!] = imageE[Transfer.transferred]
-lemmas Compr_fimage_eq = Compr_image_eq[Transfer.transferred]
-lemmas fimage_funion = image_Un[Transfer.transferred]
-lemmas fimage_iff = image_iff[Transfer.transferred]
-lemmas fimage_fsubset_iff[no_atp] = image_subset_iff[Transfer.transferred]
-lemmas fimage_fsubsetI = image_subsetI[Transfer.transferred]
-lemmas fimage_ident[simp] = image_ident[Transfer.transferred]
-lemmas if_split_fmem1 = if_split_mem1[Transfer.transferred]
-lemmas if_split_fmem2 = if_split_mem2[Transfer.transferred]
-lemmas pfsubsetI[intro!,no_atp] = psubsetI[Transfer.transferred]
-lemmas pfsubsetE[elim!,no_atp] = psubsetE[Transfer.transferred]
-lemmas pfsubset_finsert_iff = psubset_insert_iff[Transfer.transferred]
-lemmas pfsubset_eq = psubset_eq[Transfer.transferred]
-lemmas pfsubset_imp_fsubset = psubset_imp_subset[Transfer.transferred]
-lemmas pfsubset_trans = psubset_trans[Transfer.transferred]
-lemmas pfsubsetD = psubsetD[Transfer.transferred]
-lemmas pfsubset_fsubset_trans = psubset_subset_trans[Transfer.transferred]
-lemmas fsubset_pfsubset_trans = subset_psubset_trans[Transfer.transferred]
-lemmas pfsubset_imp_ex_fmem = psubset_imp_ex_mem[Transfer.transferred]
-lemmas fimage_fPow_mono = image_Pow_mono[Transfer.transferred]
-lemmas fimage_fPow_surj = image_Pow_surj[Transfer.transferred]
-lemmas fsubset_finsertI = subset_insertI[Transfer.transferred]
-lemmas fsubset_finsertI2 = subset_insertI2[Transfer.transferred]
-lemmas fsubset_finsert = subset_insert[Transfer.transferred]
-lemmas funion_upper1 = Un_upper1[Transfer.transferred]
-lemmas funion_upper2 = Un_upper2[Transfer.transferred]
-lemmas funion_least = Un_least[Transfer.transferred]
-lemmas finter_lower1 = Int_lower1[Transfer.transferred]
-lemmas finter_lower2 = Int_lower2[Transfer.transferred]
-lemmas finter_greatest = Int_greatest[Transfer.transferred]
-lemmas fminus_fsubset = Diff_subset[Transfer.transferred]
-lemmas fminus_fsubset_conv = Diff_subset_conv[Transfer.transferred]
-lemmas fsubset_fempty[simp] = subset_empty[Transfer.transferred]
-lemmas not_pfsubset_fempty[iff] = not_psubset_empty[Transfer.transferred]
-lemmas finsert_is_funion = insert_is_Un[Transfer.transferred]
-lemmas finsert_not_fempty[simp] = insert_not_empty[Transfer.transferred]
-lemmas fempty_not_finsert = empty_not_insert[Transfer.transferred]
-lemmas finsert_absorb = insert_absorb[Transfer.transferred]
-lemmas finsert_absorb2[simp] = insert_absorb2[Transfer.transferred]
-lemmas finsert_commute = insert_commute[Transfer.transferred]
-lemmas finsert_fsubset[simp] = insert_subset[Transfer.transferred]
-lemmas finsert_inter_finsert[simp] = insert_inter_insert[Transfer.transferred]
-lemmas finsert_disjoint[simp,no_atp] = insert_disjoint[Transfer.transferred]
-lemmas disjoint_finsert[simp,no_atp] = disjoint_insert[Transfer.transferred]
-lemmas fimage_fempty[simp] = image_empty[Transfer.transferred]
-lemmas fimage_finsert[simp] = image_insert[Transfer.transferred]
-lemmas fimage_constant = image_constant[Transfer.transferred]
-lemmas fimage_constant_conv = image_constant_conv[Transfer.transferred]
-lemmas fimage_fimage = image_image[Transfer.transferred]
-lemmas finsert_fimage[simp] = insert_image[Transfer.transferred]
-lemmas fimage_is_fempty[iff] = image_is_empty[Transfer.transferred]
-lemmas fempty_is_fimage[iff] = empty_is_image[Transfer.transferred]
-lemmas fimage_cong = image_cong[Transfer.transferred]
-lemmas fimage_finter_fsubset = image_Int_subset[Transfer.transferred]
-lemmas fimage_fminus_fsubset = image_diff_subset[Transfer.transferred]
-lemmas finter_absorb = Int_absorb[Transfer.transferred]
-lemmas finter_left_absorb = Int_left_absorb[Transfer.transferred]
-lemmas finter_commute = Int_commute[Transfer.transferred]
-lemmas finter_left_commute = Int_left_commute[Transfer.transferred]
-lemmas finter_assoc = Int_assoc[Transfer.transferred]
-lemmas finter_ac = Int_ac[Transfer.transferred]
-lemmas finter_absorb1 = Int_absorb1[Transfer.transferred]
-lemmas finter_absorb2 = Int_absorb2[Transfer.transferred]
-lemmas finter_fempty_left = Int_empty_left[Transfer.transferred]
-lemmas finter_fempty_right = Int_empty_right[Transfer.transferred]
-lemmas disjoint_iff_fnot_equal = disjoint_iff_not_equal[Transfer.transferred]
-lemmas finter_funion_distrib = Int_Un_distrib[Transfer.transferred]
-lemmas finter_funion_distrib2 = Int_Un_distrib2[Transfer.transferred]
-lemmas finter_fsubset_iff[no_atp, simp] = Int_subset_iff[Transfer.transferred]
-lemmas funion_absorb = Un_absorb[Transfer.transferred]
-lemmas funion_left_absorb = Un_left_absorb[Transfer.transferred]
-lemmas funion_commute = Un_commute[Transfer.transferred]
-lemmas funion_left_commute = Un_left_commute[Transfer.transferred]
-lemmas funion_assoc = Un_assoc[Transfer.transferred]
-lemmas funion_ac = Un_ac[Transfer.transferred]
-lemmas funion_absorb1 = Un_absorb1[Transfer.transferred]
-lemmas funion_absorb2 = Un_absorb2[Transfer.transferred]
-lemmas funion_fempty_left = Un_empty_left[Transfer.transferred]
-lemmas funion_fempty_right = Un_empty_right[Transfer.transferred]
-lemmas funion_finsert_left[simp] = Un_insert_left[Transfer.transferred]
-lemmas funion_finsert_right[simp] = Un_insert_right[Transfer.transferred]
-lemmas finter_finsert_left = Int_insert_left[Transfer.transferred]
-lemmas finter_finsert_left_ifffempty[simp] = Int_insert_left_if0[Transfer.transferred]
-lemmas finter_finsert_left_if1[simp] = Int_insert_left_if1[Transfer.transferred]
-lemmas finter_finsert_right = Int_insert_right[Transfer.transferred]
-lemmas finter_finsert_right_ifffempty[simp] = Int_insert_right_if0[Transfer.transferred]
-lemmas finter_finsert_right_if1[simp] = Int_insert_right_if1[Transfer.transferred]
-lemmas funion_finter_distrib = Un_Int_distrib[Transfer.transferred]
-lemmas funion_finter_distrib2 = Un_Int_distrib2[Transfer.transferred]
-lemmas funion_finter_crazy = Un_Int_crazy[Transfer.transferred]
-lemmas fsubset_funion_eq = subset_Un_eq[Transfer.transferred]
-lemmas funion_fempty[iff] = Un_empty[Transfer.transferred]
-lemmas funion_fsubset_iff[no_atp, simp] = Un_subset_iff[Transfer.transferred]
-lemmas funion_fminus_finter = Un_Diff_Int[Transfer.transferred]
-lemmas ffunion_empty[simp] = Union_empty[Transfer.transferred]
-lemmas ffunion_mono = Union_mono[Transfer.transferred]
-lemmas ffunion_insert[simp] = Union_insert[Transfer.transferred]
-lemmas fminus_finter2 = Diff_Int2[Transfer.transferred]
-lemmas funion_finter_assoc_eq = Un_Int_assoc_eq[Transfer.transferred]
-lemmas fBall_funion = ball_Un[Transfer.transferred]
-lemmas fBex_funion = bex_Un[Transfer.transferred]
-lemmas fminus_eq_fempty_iff[simp,no_atp] = Diff_eq_empty_iff[Transfer.transferred]
-lemmas fminus_cancel[simp] = Diff_cancel[Transfer.transferred]
-lemmas fminus_idemp[simp] = Diff_idemp[Transfer.transferred]
-lemmas fminus_triv = Diff_triv[Transfer.transferred]
-lemmas fempty_fminus[simp] = empty_Diff[Transfer.transferred]
-lemmas fminus_fempty[simp] = Diff_empty[Transfer.transferred]
-lemmas fminus_finsertffempty[simp,no_atp] = Diff_insert0[Transfer.transferred]
-lemmas fminus_finsert = Diff_insert[Transfer.transferred]
-lemmas fminus_finsert2 = Diff_insert2[Transfer.transferred]
-lemmas finsert_fminus_if = insert_Diff_if[Transfer.transferred]
-lemmas finsert_fminus1[simp] = insert_Diff1[Transfer.transferred]
-lemmas finsert_fminus_single[simp] = insert_Diff_single[Transfer.transferred]
-lemmas finsert_fminus = insert_Diff[Transfer.transferred]
-lemmas fminus_finsert_absorb = Diff_insert_absorb[Transfer.transferred]
-lemmas fminus_disjoint[simp] = Diff_disjoint[Transfer.transferred]
-lemmas fminus_partition = Diff_partition[Transfer.transferred]
-lemmas double_fminus = double_diff[Transfer.transferred]
-lemmas funion_fminus_cancel[simp] = Un_Diff_cancel[Transfer.transferred]
-lemmas funion_fminus_cancel2[simp] = Un_Diff_cancel2[Transfer.transferred]
-lemmas fminus_funion = Diff_Un[Transfer.transferred]
-lemmas fminus_finter = Diff_Int[Transfer.transferred]
-lemmas funion_fminus = Un_Diff[Transfer.transferred]
-lemmas finter_fminus = Int_Diff[Transfer.transferred]
-lemmas fminus_finter_distrib = Diff_Int_distrib[Transfer.transferred]
-lemmas fminus_finter_distrib2 = Diff_Int_distrib2[Transfer.transferred]
-lemmas fUNIV_bool[no_atp] = UNIV_bool[Transfer.transferred]
-lemmas fPow_fempty[simp] = Pow_empty[Transfer.transferred]
-lemmas fPow_finsert = Pow_insert[Transfer.transferred]
-lemmas funion_fPow_fsubset = Un_Pow_subset[Transfer.transferred]
-lemmas fPow_finter_eq[simp] = Pow_Int_eq[Transfer.transferred]
-lemmas fset_eq_fsubset = set_eq_subset[Transfer.transferred]
-lemmas fsubset_iff[no_atp] = subset_iff[Transfer.transferred]
-lemmas fsubset_iff_pfsubset_eq = subset_iff_psubset_eq[Transfer.transferred]
-lemmas all_not_fin_conv[simp] = all_not_in_conv[Transfer.transferred]
-lemmas ex_fin_conv = ex_in_conv[Transfer.transferred]
-lemmas fimage_mono = image_mono[Transfer.transferred]
-lemmas fPow_mono = Pow_mono[Transfer.transferred]
-lemmas finsert_mono = insert_mono[Transfer.transferred]
-lemmas funion_mono = Un_mono[Transfer.transferred]
-lemmas finter_mono = Int_mono[Transfer.transferred]
-lemmas fminus_mono = Diff_mono[Transfer.transferred]
-lemmas fin_mono = in_mono[Transfer.transferred]
-lemmas fthe_felem_eq[simp] = the_elem_eq[Transfer.transferred]
-lemmas fLeast_mono = Least_mono[Transfer.transferred]
-lemmas fbind_fbind = bind_bind[Transfer.transferred]
-lemmas fempty_fbind[simp] = empty_bind[Transfer.transferred]
-lemmas nonfempty_fbind_const = nonempty_bind_const[Transfer.transferred]
-lemmas fbind_const = bind_const[Transfer.transferred]
-lemmas ffmember_filter[simp] = member_filter[Transfer.transferred]
-lemmas fequalityI = equalityI[Transfer.transferred]
-lemmas fset_of_list_simps[simp] = set_simps[Transfer.transferred]
-lemmas fset_of_list_append[simp] = set_append[Transfer.transferred]
-lemmas fset_of_list_rev[simp] = set_rev[Transfer.transferred]
-lemmas fset_of_list_map[simp] = set_map[Transfer.transferred]
+lemma fset_eqI: "(\<And>x. (x |\<in>| A) = (x |\<in>| B)) \<Longrightarrow> A = B"
+  by (rule set_eqI[Transfer.transferred])
+
+lemma fset_eq_iff[no_atp]: "(A = B) = (\<forall>x. (x |\<in>| A) = (x |\<in>| B))"
+  by (rule set_eq_iff[Transfer.transferred])
+
+lemma fBallI[intro!]: "(\<And>x. x |\<in>| A \<Longrightarrow> P x) \<Longrightarrow> fBall A P"
+  by (rule ballI[Transfer.transferred])
+
+lemma fbspec[dest?]: "fBall A P \<Longrightarrow> x |\<in>| A \<Longrightarrow> P x"
+  by (rule bspec[Transfer.transferred])
+
+lemma fBallE[elim]: "fBall A P \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> (x |\<notin>| A \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (rule ballE[Transfer.transferred])
+
+lemma fBexI[intro]: "P x \<Longrightarrow> x |\<in>| A \<Longrightarrow> fBex A P"
+  by (rule bexI[Transfer.transferred])
+
+lemma rev_fBexI[intro?]: "x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> fBex A P"
+  by (rule rev_bexI[Transfer.transferred])
+
+lemma fBexCI: "(fBall A (\<lambda>x. \<not> P x) \<Longrightarrow> P a) \<Longrightarrow> a |\<in>| A \<Longrightarrow> fBex A P"
+  by (rule bexCI[Transfer.transferred])
+
+lemma fBexE[elim!]: "fBex A P \<Longrightarrow> (\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (rule bexE[Transfer.transferred])
+
+lemma fBall_triv[simp]: "fBall A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<longrightarrow> P)"
+  by (rule ball_triv[Transfer.transferred])
+
+lemma fBex_triv[simp]: "fBex A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<and> P)"
+  by (rule bex_triv[Transfer.transferred])
+
+lemma fBex_triv_one_point1[simp]: "fBex A (\<lambda>x. x = a) = (a |\<in>| A)"
+  by (rule bex_triv_one_point1[Transfer.transferred])
+
+lemma fBex_triv_one_point2[simp]: "fBex A ((=) a) = (a |\<in>| A)"
+  by (rule bex_triv_one_point2[Transfer.transferred])
+
+lemma fBex_one_point1[simp]: "fBex A (\<lambda>x. x = a \<and> P x) = (a |\<in>| A \<and> P a)"
+  by (rule bex_one_point1[Transfer.transferred])
+
+lemma fBex_one_point2[simp]: "fBex A (\<lambda>x. a = x \<and> P x) = (a |\<in>| A \<and> P a)"
+  by (rule bex_one_point2[Transfer.transferred])
+
+lemma fBall_one_point1[simp]: "fBall A (\<lambda>x. x = a \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
+  by (rule ball_one_point1[Transfer.transferred])
+
+lemma fBall_one_point2[simp]: "fBall A (\<lambda>x. a = x \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
+  by (rule ball_one_point2[Transfer.transferred])
+
+lemma fBall_conj_distrib: "fBall A (\<lambda>x. P x \<and> Q x) = (fBall A P \<and> fBall A Q)"
+  by (rule ball_conj_distrib[Transfer.transferred])
+
+lemma fBex_disj_distrib: "fBex A (\<lambda>x. P x \<or> Q x) = (fBex A P \<or> fBex A Q)"
+  by (rule bex_disj_distrib[Transfer.transferred])
+
+lemma fBall_cong[fundef_cong]: "A = B \<Longrightarrow> (\<And>x. x |\<in>| B \<Longrightarrow> P x = Q x) \<Longrightarrow> fBall A P = fBall B Q"
+  by (rule ball_cong[Transfer.transferred])
+
+lemma fBex_cong[fundef_cong]: "A = B \<Longrightarrow> (\<And>x. x |\<in>| B \<Longrightarrow> P x = Q x) \<Longrightarrow> fBex A P = fBex B Q"
+  by (rule bex_cong[Transfer.transferred])
+
+lemma fsubsetI[intro!]: "(\<And>x. x |\<in>| A \<Longrightarrow> x |\<in>| B) \<Longrightarrow> A |\<subseteq>| B"
+  by (rule subsetI[Transfer.transferred])
+
+lemma fsubsetD[elim, intro?]: "A |\<subseteq>| B \<Longrightarrow> c |\<in>| A \<Longrightarrow> c |\<in>| B"
+  by (rule subsetD[Transfer.transferred])
+
+lemma rev_fsubsetD[no_atp,intro?]: "c |\<in>| A \<Longrightarrow> A |\<subseteq>| B \<Longrightarrow> c |\<in>| B"
+  by (rule rev_subsetD[Transfer.transferred])
+
+lemma fsubsetCE[no_atp,elim]: "A |\<subseteq>| B \<Longrightarrow> (c |\<notin>| A \<Longrightarrow> P) \<Longrightarrow> (c |\<in>| B \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule subsetCE[Transfer.transferred])
+
+lemma fsubset_eq[no_atp]: "(A |\<subseteq>| B) = fBall A (\<lambda>x. x |\<in>| B)"
+  by (rule subset_eq[Transfer.transferred])
+
+lemma contra_fsubsetD[no_atp]: "A |\<subseteq>| B \<Longrightarrow> c |\<notin>| B \<Longrightarrow> c |\<notin>| A"
+  by (rule contra_subsetD[Transfer.transferred])
+
+lemma fsubset_refl: "A |\<subseteq>| A"
+  by (rule subset_refl[Transfer.transferred])
+
+lemma fsubset_trans: "A |\<subseteq>| B \<Longrightarrow> B |\<subseteq>| C \<Longrightarrow> A |\<subseteq>| C"
+  by (rule subset_trans[Transfer.transferred])
+
+lemma fset_rev_mp: "c |\<in>| A \<Longrightarrow> A |\<subseteq>| B \<Longrightarrow> c |\<in>| B"
+  by (rule rev_subsetD[Transfer.transferred])
+
+lemma fset_mp: "A |\<subseteq>| B \<Longrightarrow> c |\<in>| A \<Longrightarrow> c |\<in>| B"
+  by (rule subsetD[Transfer.transferred])
+
+lemma fsubset_not_fsubset_eq[code]: "(A |\<subset>| B) = (A |\<subseteq>| B \<and> \<not> B |\<subseteq>| A)"
+  by (rule subset_not_subset_eq[Transfer.transferred])
+
+lemma eq_fmem_trans: "a = b \<Longrightarrow> b |\<in>| A \<Longrightarrow> a |\<in>| A"
+  by (rule eq_mem_trans[Transfer.transferred])
+
+lemma fsubset_antisym[intro!]: "A |\<subseteq>| B \<Longrightarrow> B |\<subseteq>| A \<Longrightarrow> A = B"
+  by (rule subset_antisym[Transfer.transferred])
+
+lemma fequalityD1: "A = B \<Longrightarrow> A |\<subseteq>| B"
+  by (rule equalityD1[Transfer.transferred])
+
+lemma fequalityD2: "A = B \<Longrightarrow> B |\<subseteq>| A"
+  by (rule equalityD2[Transfer.transferred])
+
+lemma fequalityE: "A = B \<Longrightarrow> (A |\<subseteq>| B \<Longrightarrow> B |\<subseteq>| A \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule equalityE[Transfer.transferred])
+
+lemma fequalityCE[elim]:
+  "A = B \<Longrightarrow> (c |\<in>| A \<Longrightarrow> c |\<in>| B \<Longrightarrow> P) \<Longrightarrow> (c |\<notin>| A \<Longrightarrow> c |\<notin>| B \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule equalityCE[Transfer.transferred])
+
+lemma eqfset_imp_iff: "A = B \<Longrightarrow> (x |\<in>| A) = (x |\<in>| B)"
+  by (rule eqset_imp_iff[Transfer.transferred])
+
+lemma eqfelem_imp_iff: "x = y \<Longrightarrow> (x |\<in>| A) = (y |\<in>| A)"
+  by (rule eqelem_imp_iff[Transfer.transferred])
+
+lemma fempty_iff[simp]: "(c |\<in>| {||}) = False"
+  by (rule empty_iff[Transfer.transferred])
+
+lemma fempty_fsubsetI[iff]: "{||} |\<subseteq>| x"
+  by (rule empty_subsetI[Transfer.transferred])
+
+lemma equalsffemptyI: "(\<And>y. y |\<in>| A \<Longrightarrow> False) \<Longrightarrow> A = {||}"
+  by (rule equals0I[Transfer.transferred])
+
+lemma equalsffemptyD: "A = {||} \<Longrightarrow> a |\<notin>| A"
+  by (rule equals0D[Transfer.transferred])
+
+lemma fBall_fempty[simp]: "fBall {||} P = True"
+  by (rule ball_empty[Transfer.transferred])
+
+lemma fBex_fempty[simp]: "fBex {||} P = False"
+  by (rule bex_empty[Transfer.transferred])
+
+lemma fPow_iff[iff]: "(A |\<in>| fPow B) = (A |\<subseteq>| B)"
+  by (rule Pow_iff[Transfer.transferred])
+
+lemma fPowI: "A |\<subseteq>| B \<Longrightarrow> A |\<in>| fPow B"
+  by (rule PowI[Transfer.transferred])
+
+lemma fPowD: "A |\<in>| fPow B \<Longrightarrow> A |\<subseteq>| B"
+  by (rule PowD[Transfer.transferred])
+
+lemma fPow_bottom: "{||} |\<in>| fPow B"
+  by (rule Pow_bottom[Transfer.transferred])
+
+lemma fPow_top: "A |\<in>| fPow A"
+  by (rule Pow_top[Transfer.transferred])
+
+lemma fPow_not_fempty: "fPow A \<noteq> {||}"
+  by (rule Pow_not_empty[Transfer.transferred])
+
+lemma finter_iff[simp]: "(c |\<in>| A |\<inter>| B) = (c |\<in>| A \<and> c |\<in>| B)"
+  by (rule Int_iff[Transfer.transferred])
+
+lemma finterI[intro!]: "c |\<in>| A \<Longrightarrow> c |\<in>| B \<Longrightarrow> c |\<in>| A |\<inter>| B"
+  by (rule IntI[Transfer.transferred])
+
+lemma finterD1: "c |\<in>| A |\<inter>| B \<Longrightarrow> c |\<in>| A"
+  by (rule IntD1[Transfer.transferred])
+
+lemma finterD2: "c |\<in>| A |\<inter>| B \<Longrightarrow> c |\<in>| B"
+  by (rule IntD2[Transfer.transferred])
+
+lemma finterE[elim!]: "c |\<in>| A |\<inter>| B \<Longrightarrow> (c |\<in>| A \<Longrightarrow> c |\<in>| B \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule IntE[Transfer.transferred])
+
+lemma funion_iff[simp]: "(c |\<in>| A |\<union>| B) = (c |\<in>| A \<or> c |\<in>| B)"
+  by (rule Un_iff[Transfer.transferred])
+
+lemma funionI1[elim?]: "c |\<in>| A \<Longrightarrow> c |\<in>| A |\<union>| B"
+  by (rule UnI1[Transfer.transferred])
+
+lemma funionI2[elim?]: "c |\<in>| B \<Longrightarrow> c |\<in>| A |\<union>| B"
+  by (rule UnI2[Transfer.transferred])
+
+lemma funionCI[intro!]: "(c |\<notin>| B \<Longrightarrow> c |\<in>| A) \<Longrightarrow> c |\<in>| A |\<union>| B"
+  by (rule UnCI[Transfer.transferred])
+
+lemma funionE[elim!]: "c |\<in>| A |\<union>| B \<Longrightarrow> (c |\<in>| A \<Longrightarrow> P) \<Longrightarrow> (c |\<in>| B \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule UnE[Transfer.transferred])
+
+lemma fminus_iff[simp]: "(c |\<in>| A |-| B) = (c |\<in>| A \<and> c |\<notin>| B)"
+  by (rule Diff_iff[Transfer.transferred])
+
+lemma fminusI[intro!]: "c |\<in>| A \<Longrightarrow> c |\<notin>| B \<Longrightarrow> c |\<in>| A |-| B"
+  by (rule DiffI[Transfer.transferred])
+
+lemma fminusD1: "c |\<in>| A |-| B \<Longrightarrow> c |\<in>| A"
+  by (rule DiffD1[Transfer.transferred])
+
+lemma fminusD2: "c |\<in>| A |-| B \<Longrightarrow> c |\<in>| B \<Longrightarrow> P"
+  by (rule DiffD2[Transfer.transferred])
+
+lemma fminusE[elim!]: "c |\<in>| A |-| B \<Longrightarrow> (c |\<in>| A \<Longrightarrow> c |\<notin>| B \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule DiffE[Transfer.transferred])
+
+lemma finsert_iff[simp]: "(a |\<in>| finsert b A) = (a = b \<or> a |\<in>| A)"
+  by (rule insert_iff[Transfer.transferred])
+
+lemma finsertI1: "a |\<in>| finsert a B"
+  by (rule insertI1[Transfer.transferred])
+
+lemma finsertI2: "a |\<in>| B \<Longrightarrow> a |\<in>| finsert b B"
+  by (rule insertI2[Transfer.transferred])
+
+lemma finsertE[elim!]: "a |\<in>| finsert b A \<Longrightarrow> (a = b \<Longrightarrow> P) \<Longrightarrow> (a |\<in>| A \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule insertE[Transfer.transferred])
+
+lemma finsertCI[intro!]: "(a |\<notin>| B \<Longrightarrow> a = b) \<Longrightarrow> a |\<in>| finsert b B"
+  by (rule insertCI[Transfer.transferred])
+
+lemma fsubset_finsert_iff:
+  "(A |\<subseteq>| finsert x B) = (if x |\<in>| A then A |-| {|x|} |\<subseteq>| B else A |\<subseteq>| B)"
+  by (rule subset_insert_iff[Transfer.transferred])
+
+lemma finsert_ident: "x |\<notin>| A \<Longrightarrow> x |\<notin>| B \<Longrightarrow> (finsert x A = finsert x B) = (A = B)"
+  by (rule insert_ident[Transfer.transferred])
+
+lemma fsingletonI[intro!,no_atp]: "a |\<in>| {|a|}"
+  by (rule singletonI[Transfer.transferred])
+
+lemma fsingletonD[dest!,no_atp]: "b |\<in>| {|a|} \<Longrightarrow> b = a"
+  by (rule singletonD[Transfer.transferred])
+
+lemma fsingleton_iff: "(b |\<in>| {|a|}) = (b = a)"
+  by (rule singleton_iff[Transfer.transferred])
+
+lemma fsingleton_inject[dest!]: "{|a|} = {|b|} \<Longrightarrow> a = b"
+  by (rule singleton_inject[Transfer.transferred])
+
+lemma fsingleton_finsert_inj_eq[iff,no_atp]: "({|b|} = finsert a A) = (a = b \<and> A |\<subseteq>| {|b|})"
+  by (rule singleton_insert_inj_eq[Transfer.transferred])
+
+lemma fsingleton_finsert_inj_eq'[iff,no_atp]: "(finsert a A = {|b|}) = (a = b \<and> A |\<subseteq>| {|b|})"
+  by (rule singleton_insert_inj_eq'[Transfer.transferred])
+
+lemma fsubset_fsingletonD: "A |\<subseteq>| {|x|} \<Longrightarrow> A = {||} \<or> A = {|x|}"
+  by (rule subset_singletonD[Transfer.transferred])
+
+lemma fminus_single_finsert: "A |-| {|x|} |\<subseteq>| B \<Longrightarrow> A |\<subseteq>| finsert x B"
+  by (rule Diff_single_insert[Transfer.transferred])
+
+lemma fdoubleton_eq_iff: "({|a, b|} = {|c, d|}) = (a = c \<and> b = d \<or> a = d \<and> b = c)"
+  by (rule doubleton_eq_iff[Transfer.transferred])
+
+lemma funion_fsingleton_iff:
+  "(A |\<union>| B = {|x|}) = (A = {||} \<and> B = {|x|} \<or> A = {|x|} \<and> B = {||} \<or> A = {|x|} \<and> B = {|x|})"
+  by (rule Un_singleton_iff[Transfer.transferred])
+
+lemma fsingleton_funion_iff:
+  "({|x|} = A |\<union>| B) = (A = {||} \<and> B = {|x|} \<or> A = {|x|} \<and> B = {||} \<or> A = {|x|} \<and> B = {|x|})"
+  by (rule singleton_Un_iff[Transfer.transferred])
+
+lemma fimage_eqI[simp, intro]: "b = f x \<Longrightarrow> x |\<in>| A \<Longrightarrow> b |\<in>| f |`| A"
+  by (rule image_eqI[Transfer.transferred])
+
+lemma fimageI: "x |\<in>| A \<Longrightarrow> f x |\<in>| f |`| A"
+  by (rule imageI[Transfer.transferred])
+
+lemma rev_fimage_eqI: "x |\<in>| A \<Longrightarrow> b = f x \<Longrightarrow> b |\<in>| f |`| A"
+  by (rule rev_image_eqI[Transfer.transferred])
+
+lemma fimageE[elim!]: "b |\<in>| f |`| A \<Longrightarrow> (\<And>x. b = f x \<Longrightarrow> x |\<in>| A \<Longrightarrow> thesis) \<Longrightarrow> thesis"
+  by (rule imageE[Transfer.transferred])
+
+lemma Compr_fimage_eq: "{x. x |\<in>| f |`| A \<and> P x} = f ` {x. x |\<in>| A \<and> P (f x)}"
+  by (rule Compr_image_eq[Transfer.transferred])
+
+lemma fimage_funion: "f |`| (A |\<union>| B) = f |`| A |\<union>| f |`| B"
+  by (rule image_Un[Transfer.transferred])
+
+lemma fimage_iff: "(z |\<in>| f |`| A) = fBex A (\<lambda>x. z = f x)"
+  by (rule image_iff[Transfer.transferred])
+
+lemma fimage_fsubset_iff[no_atp]: "(f |`| A |\<subseteq>| B) = fBall A (\<lambda>x. f x |\<in>| B)"
+  by (rule image_subset_iff[Transfer.transferred])
+
+lemma fimage_fsubsetI: "(\<And>x. x |\<in>| A \<Longrightarrow> f x |\<in>| B) \<Longrightarrow> f |`| A |\<subseteq>| B"
+  by (rule image_subsetI[Transfer.transferred])
+
+lemma fimage_ident[simp]: "(\<lambda>x. x) |`| Y = Y"
+  by (rule image_ident[Transfer.transferred])
+
+lemma if_split_fmem1: "((if Q then x else y) |\<in>| b) = ((Q \<longrightarrow> x |\<in>| b) \<and> (\<not> Q \<longrightarrow> y |\<in>| b))"
+  by (rule if_split_mem1[Transfer.transferred])
+
+lemma if_split_fmem2: "(a |\<in>| (if Q then x else y)) = ((Q \<longrightarrow> a |\<in>| x) \<and> (\<not> Q \<longrightarrow> a |\<in>| y))"
+  by (rule if_split_mem2[Transfer.transferred])
+
+lemma pfsubsetI[intro!,no_atp]: "A |\<subseteq>| B \<Longrightarrow> A \<noteq> B \<Longrightarrow> A |\<subset>| B"
+  by (rule psubsetI[Transfer.transferred])
+
+lemma pfsubsetE[elim!,no_atp]: "A |\<subset>| B \<Longrightarrow> (A |\<subseteq>| B \<Longrightarrow> \<not> B |\<subseteq>| A \<Longrightarrow> R) \<Longrightarrow> R"
+  by (rule psubsetE[Transfer.transferred])
+
+lemma pfsubset_finsert_iff:
+  "(A |\<subset>| finsert x B) =
+    (if x |\<in>| B then A |\<subset>| B else if x |\<in>| A then A |-| {|x|} |\<subset>| B else A |\<subseteq>| B)"
+  by (rule psubset_insert_iff[Transfer.transferred])
+
+lemma pfsubset_eq: "(A |\<subset>| B) = (A |\<subseteq>| B \<and> A \<noteq> B)"
+  by (rule psubset_eq[Transfer.transferred])
+
+lemma pfsubset_imp_fsubset: "A |\<subset>| B \<Longrightarrow> A |\<subseteq>| B"
+  by (rule psubset_imp_subset[Transfer.transferred])
+
+lemma pfsubset_trans: "A |\<subset>| B \<Longrightarrow> B |\<subset>| C \<Longrightarrow> A |\<subset>| C"
+  by (rule psubset_trans[Transfer.transferred])
+
+lemma pfsubsetD: "A |\<subset>| B \<Longrightarrow> c |\<in>| A \<Longrightarrow> c |\<in>| B"
+  by (rule psubsetD[Transfer.transferred])
+
+lemma pfsubset_fsubset_trans: "A |\<subset>| B \<Longrightarrow> B |\<subseteq>| C \<Longrightarrow> A |\<subset>| C"
+  by (rule psubset_subset_trans[Transfer.transferred])
+
+lemma fsubset_pfsubset_trans: "A |\<subseteq>| B \<Longrightarrow> B |\<subset>| C \<Longrightarrow> A |\<subset>| C"
+  by (rule subset_psubset_trans[Transfer.transferred])
+
+lemma pfsubset_imp_ex_fmem: "A |\<subset>| B \<Longrightarrow> \<exists>b. b |\<in>| B |-| A"
+  by (rule psubset_imp_ex_mem[Transfer.transferred])
+
+lemma fimage_fPow_mono: "f |`| A |\<subseteq>| B \<Longrightarrow> (|`|) f |`| fPow A |\<subseteq>| fPow B"
+  by (rule image_Pow_mono[Transfer.transferred])
+
+lemma fimage_fPow_surj: "f |`| A = B \<Longrightarrow> (|`|) f |`| fPow A = fPow B"
+  by (rule image_Pow_surj[Transfer.transferred])
+
+lemma fsubset_finsertI: "B |\<subseteq>| finsert a B"
+  by (rule subset_insertI[Transfer.transferred])
+
+lemma fsubset_finsertI2: "A |\<subseteq>| B \<Longrightarrow> A |\<subseteq>| finsert b B"
+  by (rule subset_insertI2[Transfer.transferred])
+
+lemma fsubset_finsert: "x |\<notin>| A \<Longrightarrow> (A |\<subseteq>| finsert x B) = (A |\<subseteq>| B)"
+  by (rule subset_insert[Transfer.transferred])
+
+lemma funion_upper1: "A |\<subseteq>| A |\<union>| B"
+  by (rule Un_upper1[Transfer.transferred])
+
+lemma funion_upper2P: "B |\<subseteq>| A |\<union>| B"
+  by (rule Un_upper2[Transfer.transferred])
+
+lemma funion_least: "A |\<subseteq>| C \<Longrightarrow> B |\<subseteq>| C \<Longrightarrow> A |\<union>| B |\<subseteq>| C"
+  by (rule Un_least[Transfer.transferred])
+
+lemma finter_lower1: "A |\<inter>| B |\<subseteq>| A"
+  by (rule Int_lower1[Transfer.transferred])
+
+lemma finter_lower2: "A |\<inter>| B |\<subseteq>| B"
+  by (rule Int_lower2[Transfer.transferred])
+
+lemma finter_greatest: "C |\<subseteq>| A \<Longrightarrow> C |\<subseteq>| B \<Longrightarrow> C |\<subseteq>| A |\<inter>| B"
+  by (rule Int_greatest[Transfer.transferred])
+
+lemma fminus_fsubset: "A |-| B |\<subseteq>| A"
+  by (rule Diff_subset[Transfer.transferred])
+
+lemma fminus_fsubset_conv: "(A |-| B |\<subseteq>| C) = (A |\<subseteq>| B |\<union>| C)"
+  by (rule Diff_subset_conv[Transfer.transferred])
+
+lemma fsubset_fempty[simp]: "(A |\<subseteq>| {||}) = (A = {||})"
+  by (rule subset_empty[Transfer.transferred])
+
+lemma not_pfsubset_fempty[iff]: "\<not> A |\<subset>| {||}"
+  by (rule not_psubset_empty[Transfer.transferred])
+
+lemma finsert_is_funion: "finsert a A = {|a|} |\<union>| A"
+  by (rule insert_is_Un[Transfer.transferred])
+
+lemma finsert_not_fempty[simp]: "finsert a A \<noteq> {||}"
+  by (rule insert_not_empty[Transfer.transferred])
+
+lemma fempty_not_finsert: "{||} \<noteq> finsert a A"
+  by (rule empty_not_insert[Transfer.transferred])
+
+lemma finsert_absorb: "a |\<in>| A \<Longrightarrow> finsert a A = A"
+  by (rule insert_absorb[Transfer.transferred])
+
+lemma finsert_absorb2[simp]: "finsert x (finsert x A) = finsert x A"
+  by (rule insert_absorb2[Transfer.transferred])
+
+lemma finsert_commute: "finsert x (finsert y A) = finsert y (finsert x A)"
+  by (rule insert_commute[Transfer.transferred])
+
+lemma finsert_fsubset[simp]: "(finsert x A |\<subseteq>| B) = (x |\<in>| B \<and> A |\<subseteq>| B)"
+  by (rule insert_subset[Transfer.transferred])
+
+lemma finsert_inter_finsert[simp]: "finsert a A |\<inter>| finsert a B = finsert a (A |\<inter>| B)"
+  by (rule insert_inter_insert[Transfer.transferred])
+
+lemma finsert_disjoint[simp,no_atp]:
+  "(finsert a A |\<inter>| B = {||}) = (a |\<notin>| B \<and> A |\<inter>| B = {||})"
+  "({||} = finsert a A |\<inter>| B) = (a |\<notin>| B \<and> {||} = A |\<inter>| B)"
+  by (rule insert_disjoint[Transfer.transferred])+
+
+lemma disjoint_finsert[simp,no_atp]:
+  "(B |\<inter>| finsert a A = {||}) = (a |\<notin>| B \<and> B |\<inter>| A = {||})"
+  "({||} = A |\<inter>| finsert b B) = (b |\<notin>| A \<and> {||} = A |\<inter>| B)"
+  by (rule disjoint_insert[Transfer.transferred])+
+
+lemma fimage_fempty[simp]: "f |`| {||} = {||}"
+  by (rule image_empty[Transfer.transferred])
+
+lemma fimage_finsert[simp]: "f |`| finsert a B = finsert (f a) (f |`| B)"
+  by (rule image_insert[Transfer.transferred])
+
+lemma fimage_constant: "x |\<in>| A \<Longrightarrow> (\<lambda>x. c) |`| A = {|c|}"
+  by (rule image_constant[Transfer.transferred])
+
+lemma fimage_constant_conv: "(\<lambda>x. c) |`| A = (if A = {||} then {||} else {|c|})"
+  by (rule image_constant_conv[Transfer.transferred])
+
+lemma fimage_fimage: "f |`| g |`| A = (\<lambda>x. f (g x)) |`| A"
+  by (rule image_image[Transfer.transferred])
+
+lemma finsert_fimage[simp]: "x |\<in>| A \<Longrightarrow> finsert (f x) (f |`| A) = f |`| A"
+  by (rule insert_image[Transfer.transferred])
+
+lemma fimage_is_fempty[iff]: "(f |`| A = {||}) = (A = {||})"
+  by (rule image_is_empty[Transfer.transferred])
+
+lemma fempty_is_fimage[iff]: "({||} = f |`| A) = (A = {||})"
+  by (rule empty_is_image[Transfer.transferred])
+
+lemma fimage_cong: "M = N \<Longrightarrow> (\<And>x. x |\<in>| N \<Longrightarrow> f x = g x) \<Longrightarrow> f |`| M = g |`| N"
+  by (rule image_cong[Transfer.transferred])
+
+lemma fimage_finter_fsubset: "f |`| (A |\<inter>| B) |\<subseteq>| f |`| A |\<inter>| f |`| B"
+  by (rule image_Int_subset[Transfer.transferred])
+
+lemma fimage_fminus_fsubset: "f |`| A |-| f |`| B |\<subseteq>| f |`| (A |-| B)"
+  by (rule image_diff_subset[Transfer.transferred])
+
+lemma finter_absorb: "A |\<inter>| A = A"
+  by (rule Int_absorb[Transfer.transferred])
+
+lemma finter_left_absorb: "A |\<inter>| (A |\<inter>| B) = A |\<inter>| B"
+  by (rule Int_left_absorb[Transfer.transferred])
+
+lemma finter_commute: "A |\<inter>| B = B |\<inter>| A"
+  by (rule Int_commute[Transfer.transferred])
+
+lemma finter_left_commute: "A |\<inter>| (B |\<inter>| C) = B |\<inter>| (A |\<inter>| C)"
+  by (rule Int_left_commute[Transfer.transferred])
+
+lemma finter_assoc: "A |\<inter>| B |\<inter>| C = A |\<inter>| (B |\<inter>| C)"
+  by (rule Int_assoc[Transfer.transferred])
+
+lemma finter_ac:
+  "A |\<inter>| B |\<inter>| C = A |\<inter>| (B |\<inter>| C)"
+  "A |\<inter>| (A |\<inter>| B) = A |\<inter>| B"
+  "A |\<inter>| B = B |\<inter>| A"
+  "A |\<inter>| (B |\<inter>| C) = B |\<inter>| (A |\<inter>| C)"
+  by (rule Int_ac[Transfer.transferred])+
+
+lemma finter_absorb1: "B |\<subseteq>| A \<Longrightarrow> A |\<inter>| B = B"
+  by (rule Int_absorb1[Transfer.transferred])
+
+lemma finter_absorb2: "A |\<subseteq>| B \<Longrightarrow> A |\<inter>| B = A"
+  by (rule Int_absorb2[Transfer.transferred])
+
+lemma finter_fempty_left: "{||} |\<inter>| B = {||}"
+  by (rule Int_empty_left[Transfer.transferred])
+
+lemma finter_fempty_right: "A |\<inter>| {||} = {||}"
+  by (rule Int_empty_right[Transfer.transferred])
+
+lemma disjoint_iff_fnot_equal: "(A |\<inter>| B = {||}) = fBall A (\<lambda>x. fBall B ((\<noteq>) x))"
+  by (rule disjoint_iff_not_equal[Transfer.transferred])
+
+lemma finter_funion_distrib: "A |\<inter>| (B |\<union>| C) = A |\<inter>| B |\<union>| (A |\<inter>| C)"
+  by (rule Int_Un_distrib[Transfer.transferred])
+
+lemma finter_funion_distrib2: "B |\<union>| C |\<inter>| A = B |\<inter>| A |\<union>| (C |\<inter>| A)"
+  by (rule Int_Un_distrib2[Transfer.transferred])
+
+lemma finter_fsubset_iff[no_atp, simp]: "(C |\<subseteq>| A |\<inter>| B) = (C |\<subseteq>| A \<and> C |\<subseteq>| B)"
+  by (rule Int_subset_iff[Transfer.transferred])
+
+lemma funion_absorb: "A |\<union>| A = A"
+  by (rule Un_absorb[Transfer.transferred])
+
+lemma funion_left_absorb: "A |\<union>| (A |\<union>| B) = A |\<union>| B"
+  by (rule Un_left_absorb[Transfer.transferred])
+
+lemma funion_commute: "A |\<union>| B = B |\<union>| A"
+  by (rule Un_commute[Transfer.transferred])
+
+lemma funion_left_commute: "A |\<union>| (B |\<union>| C) = B |\<union>| (A |\<union>| C)"
+  by (rule Un_left_commute[Transfer.transferred])
+
+lemma funion_assoc: "A |\<union>| B |\<union>| C = A |\<union>| (B |\<union>| C)"
+  by (rule Un_assoc[Transfer.transferred])
+
+lemma funion_ac:
+  "A |\<union>| B |\<union>| C = A |\<union>| (B |\<union>| C)"
+  "A |\<union>| (A |\<union>| B) = A |\<union>| B"
+  "A |\<union>| B = B |\<union>| A"
+  "A |\<union>| (B |\<union>| C) = B |\<union>| (A |\<union>| C)"
+  by (rule Un_ac[Transfer.transferred])+
+
+lemma funion_absorb1: "A |\<subseteq>| B \<Longrightarrow> A |\<union>| B = B"
+  by (rule Un_absorb1[Transfer.transferred])
+
+lemma funion_absorb2: "B |\<subseteq>| A \<Longrightarrow> A |\<union>| B = A"
+  by (rule Un_absorb2[Transfer.transferred])
+
+lemma funion_fempty_left: "{||} |\<union>| B = B"
+  by (rule Un_empty_left[Transfer.transferred])
+
+lemma funion_fempty_right: "A |\<union>| {||} = A"
+  by (rule Un_empty_right[Transfer.transferred])
+
+lemma funion_finsert_left[simp]: "finsert a B |\<union>| C = finsert a (B |\<union>| C)"
+  by (rule Un_insert_left[Transfer.transferred])
+
+lemma funion_finsert_right[simp]: "A |\<union>| finsert a B = finsert a (A |\<union>| B)"
+  by (rule Un_insert_right[Transfer.transferred])
+
+lemma finter_finsert_left: "finsert a B |\<inter>| C = (if a |\<in>| C then finsert a (B |\<inter>| C) else B |\<inter>| C)"
+  by (rule Int_insert_left[Transfer.transferred])
+
+lemma finter_finsert_left_ifffempty[simp]: "a |\<notin>| C \<Longrightarrow> finsert a B |\<inter>| C = B |\<inter>| C"
+  by (rule Int_insert_left_if0[Transfer.transferred])
+
+lemma finter_finsert_left_if1[simp]: "a |\<in>| C \<Longrightarrow> finsert a B |\<inter>| C = finsert a (B |\<inter>| C)"
+  by (rule Int_insert_left_if1[Transfer.transferred])
+
+lemma finter_finsert_right:
+  "A |\<inter>| finsert a B = (if a |\<in>| A then finsert a (A |\<inter>| B) else A |\<inter>| B)"
+  by (rule Int_insert_right[Transfer.transferred])
+
+lemma finter_finsert_right_ifffempty[simp]: "a |\<notin>| A \<Longrightarrow> A |\<inter>| finsert a B = A |\<inter>| B"
+  by (rule Int_insert_right_if0[Transfer.transferred])
+
+lemma finter_finsert_right_if1[simp]: "a |\<in>| A \<Longrightarrow> A |\<inter>| finsert a B = finsert a (A |\<inter>| B)"
+  by (rule Int_insert_right_if1[Transfer.transferred])
+
+lemma funion_finter_distrib: "A |\<union>| (B |\<inter>| C) = A |\<union>| B |\<inter>| (A |\<union>| C)"
+  by (rule Un_Int_distrib[Transfer.transferred])
+
+lemma funion_finter_distrib2: "B |\<inter>| C |\<union>| A = B |\<union>| A |\<inter>| (C |\<union>| A)"
+  by (rule Un_Int_distrib2[Transfer.transferred])
+
+lemma funion_finter_crazy:
+  "A |\<inter>| B |\<union>| (B |\<inter>| C) |\<union>| (C |\<inter>| A) = A |\<union>| B |\<inter>| (B |\<union>| C) |\<inter>| (C |\<union>| A)"
+  by (rule Un_Int_crazy[Transfer.transferred])
+
+lemma fsubset_funion_eq: "(A |\<subseteq>| B) = (A |\<union>| B = B)"
+  by (rule subset_Un_eq[Transfer.transferred])
+
+lemma funion_fempty[iff]: "(A |\<union>| B = {||}) = (A = {||} \<and> B = {||})"
+  by (rule Un_empty[Transfer.transferred])
+
+lemma funion_fsubset_iff[no_atp, simp]: "(A |\<union>| B |\<subseteq>| C) = (A |\<subseteq>| C \<and> B |\<subseteq>| C)"
+  by (rule Un_subset_iff[Transfer.transferred])
+
+lemma funion_fminus_finter: "A |-| B |\<union>| (A |\<inter>| B) = A"
+  by (rule Un_Diff_Int[Transfer.transferred])
+
+lemma ffunion_empty[simp]: "ffUnion {||} = {||}"
+  by (rule Union_empty[Transfer.transferred])
+
+lemma ffunion_mono: "A |\<subseteq>| B \<Longrightarrow> ffUnion A |\<subseteq>| ffUnion B"
+  by (rule Union_mono[Transfer.transferred])
+
+lemma ffunion_insert[simp]: "ffUnion (finsert a B) = a |\<union>| ffUnion B"
+  by (rule Union_insert[Transfer.transferred])
+
+lemma fminus_finter2: "A |\<inter>| C |-| (B |\<inter>| C) = A |\<inter>| C |-| B"
+  by (rule Diff_Int2[Transfer.transferred])
+
+lemma funion_finter_assoc_eq: "(A |\<inter>| B |\<union>| C = A |\<inter>| (B |\<union>| C)) = (C |\<subseteq>| A)"
+  by (rule Un_Int_assoc_eq[Transfer.transferred])
+
+lemma fBall_funion: "fBall (A |\<union>| B) P = (fBall A P \<and> fBall B P)"
+  by (rule ball_Un[Transfer.transferred])
+
+lemma fBex_funion: "fBex (A |\<union>| B) P = (fBex A P \<or> fBex B P)"
+  by (rule bex_Un[Transfer.transferred])
+
+lemma fminus_eq_fempty_iff[simp,no_atp]: "(A |-| B = {||}) = (A |\<subseteq>| B)"
+  by (rule Diff_eq_empty_iff[Transfer.transferred])
+
+lemma fminus_cancel[simp]: "A |-| A = {||}"
+  by (rule Diff_cancel[Transfer.transferred])
+
+lemma fminus_idemp[simp]: "A |-| B |-| B = A |-| B"
+  by (rule Diff_idemp[Transfer.transferred])
+
+lemma fminus_triv: "A |\<inter>| B = {||} \<Longrightarrow> A |-| B = A"
+  by (rule Diff_triv[Transfer.transferred])
+
+lemma fempty_fminus[simp]: "{||} |-| A = {||}"
+  by (rule empty_Diff[Transfer.transferred])
+
+lemma fminus_fempty[simp]: "A |-| {||} = A"
+  by (rule Diff_empty[Transfer.transferred])
+
+lemma fminus_finsertffempty[simp,no_atp]: "x |\<notin>| A \<Longrightarrow> A |-| finsert x B = A |-| B"
+  by (rule Diff_insert0[Transfer.transferred])
+
+lemma fminus_finsert: "A |-| finsert a B = A |-| B |-| {|a|}"
+  by (rule Diff_insert[Transfer.transferred])
+
+lemma fminus_finsert2: "A |-| finsert a B = A |-| {|a|} |-| B"
+  by (rule Diff_insert2[Transfer.transferred])
+
+lemma finsert_fminus_if: "finsert x A |-| B = (if x |\<in>| B then A |-| B else finsert x (A |-| B))"
+  by (rule insert_Diff_if[Transfer.transferred])
+
+lemma finsert_fminus1[simp]: "x |\<in>| B \<Longrightarrow> finsert x A |-| B = A |-| B"
+  by (rule insert_Diff1[Transfer.transferred])
+
+lemma finsert_fminus_single[simp]: "finsert a (A |-| {|a|}) = finsert a A"
+  by (rule insert_Diff_single[Transfer.transferred])
+
+lemma finsert_fminus: "a |\<in>| A \<Longrightarrow> finsert a (A |-| {|a|}) = A"
+  by (rule insert_Diff[Transfer.transferred])
+
+lemma fminus_finsert_absorb: "x |\<notin>| A \<Longrightarrow> finsert x A |-| {|x|} = A"
+  by (rule Diff_insert_absorb[Transfer.transferred])
+
+lemma fminus_disjoint[simp]: "A |\<inter>| (B |-| A) = {||}"
+  by (rule Diff_disjoint[Transfer.transferred])
+
+lemma fminus_partition: "A |\<subseteq>| B \<Longrightarrow> A |\<union>| (B |-| A) = B"
+  by (rule Diff_partition[Transfer.transferred])
+
+lemma double_fminus: "A |\<subseteq>| B \<Longrightarrow> B |\<subseteq>| C \<Longrightarrow> B |-| (C |-| A) = A"
+  by (rule double_diff[Transfer.transferred])
+
+lemma funion_fminus_cancel[simp]: "A |\<union>| (B |-| A) = A |\<union>| B"
+  by (rule Un_Diff_cancel[Transfer.transferred])
+
+lemma funion_fminus_cancel2[simp]: "B |-| A |\<union>| A = B |\<union>| A"
+  by (rule Un_Diff_cancel2[Transfer.transferred])
+
+lemma fminus_funion: "A |-| (B |\<union>| C) = A |-| B |\<inter>| (A |-| C)"
+  by (rule Diff_Un[Transfer.transferred])
+
+lemma fminus_finter: "A |-| (B |\<inter>| C) = A |-| B |\<union>| (A |-| C)"
+  by (rule Diff_Int[Transfer.transferred])
+
+lemma funion_fminus: "A |\<union>| B |-| C = A |-| C |\<union>| (B |-| C)"
+  by (rule Un_Diff[Transfer.transferred])
+
+lemma finter_fminus: "A |\<inter>| B |-| C = A |\<inter>| (B |-| C)"
+  by (rule Int_Diff[Transfer.transferred])
+
+lemma fminus_finter_distrib: "C |\<inter>| (A |-| B) = C |\<inter>| A |-| (C |\<inter>| B)"
+  by (rule Diff_Int_distrib[Transfer.transferred])
+
+lemma fminus_finter_distrib2: "A |-| B |\<inter>| C = A |\<inter>| C |-| (B |\<inter>| C)"
+  by (rule Diff_Int_distrib2[Transfer.transferred])
+
+lemma fUNIV_bool[no_atp]: "fUNIV = {|False, True|}"
+  by (rule UNIV_bool[Transfer.transferred])
+
+lemma fPow_fempty[simp]: "fPow {||} = {|{||}|}"
+  by (rule Pow_empty[Transfer.transferred])
+
+lemma fPow_finsert: "fPow (finsert a A) = fPow A |\<union>| finsert a |`| fPow A"
+  by (rule Pow_insert[Transfer.transferred])
+
+lemma funion_fPow_fsubset: "fPow A |\<union>| fPow B |\<subseteq>| fPow (A |\<union>| B)"
+  by (rule Un_Pow_subset[Transfer.transferred])
+
+lemma fPow_finter_eq[simp]: "fPow (A |\<inter>| B) = fPow A |\<inter>| fPow B"
+  by (rule Pow_Int_eq[Transfer.transferred])
+
+lemma fset_eq_fsubset: "(A = B) = (A |\<subseteq>| B \<and> B |\<subseteq>| A)"
+  by (rule set_eq_subset[Transfer.transferred])
+
+lemma fsubset_iff[no_atp]: "(A |\<subseteq>| B) = (\<forall>t. t |\<in>| A \<longrightarrow> t |\<in>| B)"
+  by (rule subset_iff[Transfer.transferred])
+
+lemma fsubset_iff_pfsubset_eq: "(A |\<subseteq>| B) = (A |\<subset>| B \<or> A = B)"
+  by (rule subset_iff_psubset_eq[Transfer.transferred])
+
+lemma all_not_fin_conv[simp]: "(\<forall>x. x |\<notin>| A) = (A = {||})"
+  by (rule all_not_in_conv[Transfer.transferred])
+
+lemma ex_fin_conv: "(\<exists>x. x |\<in>| A) = (A \<noteq> {||})"
+  by (rule ex_in_conv[Transfer.transferred])
+
+lemma fimage_mono: "A |\<subseteq>| B \<Longrightarrow> f |`| A |\<subseteq>| f |`| B"
+  by (rule image_mono[Transfer.transferred])
+
+lemma fPow_mono: "A |\<subseteq>| B \<Longrightarrow> fPow A |\<subseteq>| fPow B"
+  by (rule Pow_mono[Transfer.transferred])
+
+lemma finsert_mono: "C |\<subseteq>| D \<Longrightarrow> finsert a C |\<subseteq>| finsert a D"
+  by (rule insert_mono[Transfer.transferred])
+
+lemma funion_mono: "A |\<subseteq>| C \<Longrightarrow> B |\<subseteq>| D \<Longrightarrow> A |\<union>| B |\<subseteq>| C |\<union>| D"
+  by (rule Un_mono[Transfer.transferred])
+
+lemma finter_mono: "A |\<subseteq>| C \<Longrightarrow> B |\<subseteq>| D \<Longrightarrow> A |\<inter>| B |\<subseteq>| C |\<inter>| D"
+  by (rule Int_mono[Transfer.transferred])
+
+lemma fminus_mono: "A |\<subseteq>| C \<Longrightarrow> D |\<subseteq>| B \<Longrightarrow> A |-| B |\<subseteq>| C |-| D"
+  by (rule Diff_mono[Transfer.transferred])
+
+lemma fin_mono: "A |\<subseteq>| B \<Longrightarrow> x |\<in>| A \<longrightarrow> x |\<in>| B"
+  by (rule in_mono[Transfer.transferred])
+
+lemma fthe_felem_eq[simp]: "fthe_elem {|x|} = x"
+  by (rule the_elem_eq[Transfer.transferred])
+
+lemma fLeast_mono:
+  "mono f \<Longrightarrow> fBex S (\<lambda>x. fBall S ((\<le>) x)) \<Longrightarrow> (LEAST y. y |\<in>| f |`| S) = f (LEAST x. x |\<in>| S)"
+  by (rule Least_mono[Transfer.transferred])
+
+lemma fbind_fbind: "fbind (fbind A B) C = fbind A (\<lambda>x. fbind (B x) C)"
+  by (rule Set.bind_bind[Transfer.transferred])
+
+lemma fempty_fbind[simp]: "fbind {||} f = {||}"
+  by (rule empty_bind[Transfer.transferred])
+
+lemma nonfempty_fbind_const: "A \<noteq> {||} \<Longrightarrow> fbind A (\<lambda>_. B) = B"
+  by (rule nonempty_bind_const[Transfer.transferred])
+
+lemma fbind_const: "fbind A (\<lambda>_. B) = (if A = {||} then {||} else B)"
+  by (rule bind_const[Transfer.transferred])
+
+lemma ffmember_filter[simp]: "(x |\<in>| ffilter P A) = (x |\<in>| A \<and> P x)"
+  by (rule member_filter[Transfer.transferred])
+
+lemma fequalityI: "A |\<subseteq>| B \<Longrightarrow> B |\<subseteq>| A \<Longrightarrow> A = B"
+  by (rule equalityI[Transfer.transferred])
+
+lemma fset_of_list_simps[simp]:
+  "fset_of_list [] = {||}"
+  "fset_of_list (x21 # x22) = finsert x21 (fset_of_list x22)"
+  by (rule set_simps[Transfer.transferred])+
+
+lemma fset_of_list_append[simp]: "fset_of_list (xs @ ys) = fset_of_list xs |\<union>| fset_of_list ys"
+  by (rule set_append[Transfer.transferred])
+
+lemma fset_of_list_rev[simp]: "fset_of_list (rev xs) = fset_of_list xs"
+  by (rule set_rev[Transfer.transferred])
+
+lemma fset_of_list_map[simp]: "fset_of_list (map f xs) = f |`| fset_of_list xs"
+  by (rule set_map[Transfer.transferred])
 
 
 subsection \<open>Additional lemmas\<close>
 
 subsubsection \<open>\<open>ffUnion\<close>\<close>
 
-lemmas ffUnion_funion_distrib[simp] = Union_Un_distrib[Transfer.transferred]
+lemma ffUnion_funion_distrib[simp]: "ffUnion (A |\<union>| B) = ffUnion A |\<union>| ffUnion B"
+  by (rule Union_Un_distrib[Transfer.transferred])
 
 
 subsubsection \<open>\<open>fbind\<close>\<close>
@@ -470,7 +980,8 @@ by transfer force
 
 subsubsection \<open>\<open>fsingleton\<close>\<close>
 
-lemmas fsingletonE = fsingletonD [elim_format]
+lemma fsingletonE: " b |\<in>| {|a|} \<Longrightarrow> (b = a \<Longrightarrow> thesis) \<Longrightarrow> thesis"
+  by (rule fsingletonD [elim_format])
 
 
 subsubsection \<open>\<open>femepty\<close>\<close>
@@ -485,7 +996,10 @@ lemma femptyE [elim!]: "a |\<in>| {||} \<Longrightarrow> P"
 
 subsubsection \<open>\<open>fset\<close>\<close>
 
-lemmas fset_simps[simp] = bot_fset.rep_eq finsert.rep_eq
+lemma fset_simps[simp]:
+  "fset {||} = {}"
+  "fset (finsert x X) = insert x (fset X)"
+  by (rule bot_fset.rep_eq finsert.rep_eq)+
 
 lemma finite_fset [simp]:
   shows "finite (fset S)"
@@ -500,11 +1014,14 @@ lemma filter_fset [simp]:
 lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S"
   by (simp add: fmember_iff_member_fset)
 
-lemmas inter_fset[simp] = inf_fset.rep_eq
+lemma inter_fset[simp]: "fset (A |\<inter>| B) = fset A \<inter> fset B"
+  by (rule inf_fset.rep_eq)
 
-lemmas union_fset[simp] = sup_fset.rep_eq
+lemma union_fset[simp]: "fset (A |\<union>| B) = fset A \<union> fset B"
+  by (rule sup_fset.rep_eq)
 
-lemmas minus_fset[simp] = minus_fset.rep_eq
+lemma minus_fset[simp]: "fset (A |-| B) = fset A - fset B"
+  by (rule minus_fset.rep_eq)
 
 
 subsubsection \<open>\<open>ffilter\<close>\<close>
@@ -720,7 +1237,8 @@ subsubsection \<open>\<open>ffold\<close>\<close>
 
 context comp_fun_commute
 begin
-  lemmas ffold_empty[simp] = fold_empty[Transfer.transferred]
+  lemma ffold_empty[simp]: "ffold f z {||} = z"
+    by (rule fold_empty[Transfer.transferred])
 
   lemma ffold_finsert [simp]:
     assumes "x |\<notin>| A"
@@ -792,7 +1310,8 @@ sublocale set: comm_monoid_set ..
 
 lift_definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b fset \<Rightarrow> 'a" is set.F .
 
-lemmas cong[fundef_cong] = set.cong[Transfer.transferred]
+lemma cong[fundef_cong]: "A = B \<Longrightarrow> (\<And>x. x |\<in>| B \<Longrightarrow> g x = h x) \<Longrightarrow> F g A = F h B"
+  by (rule set.cong[Transfer.transferred])
 
 lemma cong_simp[cong]:
   "\<lbrakk> A = B;  \<And>x. x |\<in>| B =simp=> g x = h x \<rbrakk> \<Longrightarrow> F g A = F h B"
@@ -1048,7 +1567,9 @@ text \<open>Unconditional transfer rules\<close>
 context includes lifting_syntax
 begin
 
-lemmas fempty_transfer [transfer_rule] = empty_transfer[Transfer.transferred]
+lemma fempty_transfer [transfer_rule]:
+  "rel_fset A {||} {||}"
+  by (rule empty_transfer[Transfer.transferred])
 
 lemma finsert_transfer [transfer_rule]:
   "(A ===> rel_fset A ===> rel_fset A) finsert finsert"
@@ -1219,7 +1740,10 @@ lemma rel_fset_fset: "rel_set \<chi> (fset A1) (fset A2) = rel_fset \<chi> A1 A2
 
 end
 
-lemmas [simp] = fset.map_comp fset.map_id fset.set_map
+declare
+  fset.map_comp[simp]
+  fset.map_id[simp]
+  fset.set_map[simp]
 
 
 subsection \<open>Size setup\<close>
@@ -1234,13 +1758,13 @@ definition size_fset where
 instance ..
 end
 
-lemmas size_fset_simps[simp] =
-  size_fset_def[THEN meta_eq_to_obj_eq, THEN fun_cong, THEN fun_cong,
-    unfolded map_fun_def comp_def id_apply]
+lemma size_fset_simps[simp]: "size_fset f X = (\<Sum>x \<in> fset X. Suc (f x))"
+  by (rule size_fset_def[THEN meta_eq_to_obj_eq, THEN fun_cong, THEN fun_cong,
+    unfolded map_fun_def comp_def id_apply])
 
-lemmas size_fset_overloaded_simps[simp] =
-  size_fset_simps[of "\<lambda>_. 0", unfolded add_0_left add_0_right,
-    folded size_fset_overloaded_def]
+lemma size_fset_overloaded_simps[simp]: "size X = (\<Sum>x \<in> fset X. Suc 0)"
+  by (rule size_fset_simps[of "\<lambda>_. 0", unfolded add_0_left add_0_right,
+    folded size_fset_overloaded_def])
 
 lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
   apply (subst fun_eq_iff)
