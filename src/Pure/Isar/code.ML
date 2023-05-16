@@ -1309,19 +1309,9 @@ fun register_tyco_for_plugin tyco =
 
 (* abstract code declarations *)
 
-local
-
-fun generic_code_declaration strictness lift_phi f x =
-  Local_Theory.declaration
-    {syntax = false, pervasive = false}
+fun code_declaration strictness lift_phi f x =
+  Local_Theory.declaration {syntax = false, pervasive = false}
     (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
-
-in
-
-fun silent_code_declaration lift_phi = generic_code_declaration Silent lift_phi;
-fun code_declaration lift_phi = generic_code_declaration Liberal lift_phi;
-
-end;
 
 
 (* types *)
@@ -1375,7 +1365,7 @@ fun generic_declare_abstype strictness proto_thm thy =
   | NONE => thy;
 
 val declare_abstype_global = generic_declare_abstype Strict;
-val declare_abstype = code_declaration Morphism.thm generic_declare_abstype;
+val declare_abstype = code_declaration Liberal Morphism.thm generic_declare_abstype;
 
 
 (* functions *)
@@ -1448,10 +1438,10 @@ fun add_maybe_abs_eqn_liberal thm thy =
 end;
 
 val declare_default_eqns_global = generic_declare_eqns true Silent;
-val declare_default_eqns = silent_code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns true);
+val declare_default_eqns = code_declaration Silent (map o apfst o Morphism.thm) (generic_declare_eqns true);
 
 val declare_eqns_global = generic_declare_eqns false Strict;
-val declare_eqns = code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns false);
+val declare_eqns = code_declaration Liberal (map o apfst o Morphism.thm) (generic_declare_eqns false);
 
 val add_eqn_global = generic_add_eqn Strict;
 
@@ -1462,7 +1452,7 @@ fun del_eqn_global thm thy =
   | NONE => thy;
 
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
-val declare_abstract_eqn = code_declaration Morphism.thm generic_declare_abstract_eqn;
+val declare_abstract_eqn = code_declaration Liberal Morphism.thm generic_declare_abstract_eqn;
 
 fun declare_aborting_global c =
   modify_specs (register_fun_spec c aborting);
