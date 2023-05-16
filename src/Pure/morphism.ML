@@ -19,6 +19,8 @@ sig
   exception MORPHISM of string * exn
   val the_theory: theory option -> theory
   val set_context: theory -> morphism -> morphism
+  val set_context': Proof.context -> morphism -> morphism
+  val set_context'': Context.generic -> morphism -> morphism
   val reset_context: morphism -> morphism
   val morphism: string ->
    {binding: (theory option -> binding -> binding) list,
@@ -102,6 +104,8 @@ fun put_context context (Morphism {context = _, names, binding, typ, term, fact}
   Morphism {context = context, names = names, binding = binding, typ = typ, term = term, fact = fact};
 
 val set_context = put_context o SOME;
+val set_context' = set_context o Proof_Context.theory_of;
+val set_context'' = set_context o Context.theory_of;
 val reset_context = put_context NONE;
 
 fun morphism a {binding, typ, term, fact} =
@@ -173,7 +177,7 @@ fun term_morphism a term = morphism a {binding = [], typ = [], term = [K term], 
 fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [K fact]};
 fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [K (map thm)]};
 
-val transfer_morphism = thm_morphism "transfer" o Thm.join_transfer;
+fun transfer_morphism thy = fact_morphism "transfer" I |> set_context thy;
 val transfer_morphism' = transfer_morphism o Proof_Context.theory_of;
 val transfer_morphism'' = transfer_morphism o Context.theory_of;
 
