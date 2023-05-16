@@ -162,14 +162,13 @@ fun add b rough_classification terms rules lthy =
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => fn context =>
         let
+          val psi = Morphism.set_trim_context'' context phi;
           val pos = Position.thread_data ();
-          val name = Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding phi b);
+          val name = Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding psi b);
           val (terms', rules') =
-            map (Thm.transfer (Context.theory_of context)) thms0
-            |> Morphism.fact phi
+            Morphism.fact psi thms0
             |> chop (length terms)
-            |>> map (Thm.term_of o Drule.dest_term)
-            ||> map Thm.trim_context;
+            |>> map (Thm.term_of o Drule.dest_term);
         in
           context |> (Data.map o Item_Net.update)
             {pos = pos, name = name, rough_classification = rough_classification,

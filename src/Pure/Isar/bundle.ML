@@ -59,13 +59,6 @@ fun read ctxt = get ctxt o check ctxt;
 
 fun extern ctxt = Name_Space.extern ctxt (Name_Space.space_of_table (get_all ctxt));
 
-fun define_bundle (b, bundle) context =
-  let
-    val bundle' = Attrib.trim_context_thms bundle;
-    val (name, bundles') = Name_Space.define context true (b, bundle') (get_all_generic context);
-    val context' = (Data.map o apfst o K) bundles' context;
-  in (name, context') end;
-
 
 (* target -- bundle under construction *)
 
@@ -102,8 +95,23 @@ fun print_bundles verbose ctxt =
 
 (** define bundle **)
 
+(* context and morphisms *)
+
+val trim_context_bundle =
+  map (fn (fact, atts) => (map Thm.trim_context fact, (map o map) Token.trim_context atts));
+
+fun transfer_bundle thy =
+  map (fn (fact, atts) => (map (Thm.transfer thy) fact, (map o map) (Token.transfer thy) atts));
+
 fun transform_bundle phi =
   map (fn (fact, atts) => (Morphism.fact phi fact, (map o map) (Token.transform phi) atts));
+
+fun define_bundle (b, bundle) context =
+  let
+    val (name, bundles') = get_all_generic context
+      |> Name_Space.define context true (b, trim_context_bundle bundle);
+    val context' = (Data.map o apfst o K) bundles' context;
+  in (name, context') end;
 
 
 (* command *)
@@ -200,10 +208,13 @@ end;
 local
 
 fun gen_activate notes prep_bundle args ctxt =
-  let val decls = maps (prep_bundle ctxt) args in
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val decls = maps (prep_bundle ctxt) args |> transfer_bundle thy;
+  in
     ctxt
     |> Context_Position.set_visible false
-    |> notes [(Binding.empty_atts, transform_bundle (Morphism.transfer_morphism' ctxt) decls)] |> #2
+    |> notes [(Binding.empty_atts, decls)] |> #2
     |> Context_Position.restore_visible ctxt
   end;
 

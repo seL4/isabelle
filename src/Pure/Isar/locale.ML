@@ -213,10 +213,11 @@ fun register_locale
     (binding,
       mk_locale ((parameters, spec, (apply2 o Option.map) Thm.trim_context intros,
           map Thm.trim_context axioms,
-          map (Element.transform_ctxt Morphism.trim_context_morphism) hyp_spec),
+          map Element.trim_context_ctxt hyp_spec),
         ((map (fn decl => (decl, serial ())) syntax_decls,
           map (fn (a, facts) => ((a, map Attrib.trim_context_fact facts), serial ())) notes),
-          (map (fn (name, morph) => make_dep (name, (morph, Morphism.identity))) dependencies,
+          (map (fn (name, morph) =>
+                make_dep (name, (Morphism.reset_context morph, Morphism.identity))) dependencies,
             Inttab.empty)))) #> snd);
           (* FIXME Morphism.identity *)
 
@@ -650,7 +651,7 @@ fun add_facts loc kind facts ctxt =
       val applied_notes = make_notes kind facts;
 
       fun apply_notes morph = applied_notes |> fold (fn elem => fn context =>
-        let val elem' = Element.transform_ctxt (Morphism.transfer_morphism'' context $> morph) elem
+        let val elem' = Element.transform_ctxt (Morphism.set_context'' context morph) elem
         in Element.init elem' context end);
       val apply_registrations = Context.theory_map (fn context =>
         fold_rev (apply_notes o #2) (registrations_of context loc) context);

@@ -851,7 +851,7 @@ fun gen_add_locale prep_include prep_decl
 
     val notes' =
       body_elems
-      |> map (Element.transform_ctxt (Morphism.transfer_morphism thy'))
+      |> map (Element.transfer_ctxt thy')
       |> map (defines_to_notes pred_ctxt)
       |> map (Element.transform_ctxt a_satisfy)
       |> (fn elems =>

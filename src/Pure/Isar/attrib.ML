@@ -187,11 +187,18 @@ fun map_facts f = map (apfst (apsnd f) o apsnd (map (apsnd f)));
 fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 
-(* fact expressions *)
+(* implicit context *)
 
-val trim_context_binding: Attrib.binding -> Attrib.binding = apsnd (map Token.trim_context_src);
-val trim_context_thms: thms -> thms = (map o apfst o map) Thm.trim_context;
+val trim_context_binding: Attrib.binding -> Attrib.binding =
+  apsnd ((map o map) Token.trim_context);
+
+val trim_context_thms: thms -> thms =
+  map (fn (thms, atts) => (map Thm.trim_context thms, (map o map) Token.trim_context atts));
+
 fun trim_context_fact (binding, thms) = (trim_context_binding binding, trim_context_thms thms);
+
+
+(* fact expressions *)
 
 fun global_notes kind facts thy = thy |>
   Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);

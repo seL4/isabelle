@@ -82,7 +82,8 @@ sig
   val get_name: T -> name_value option
   val declare_maxidx: T -> Proof.context -> Proof.context
   val map_facts: (string option -> thm list -> thm list) -> T -> T
-  val trim_context_src: src -> src
+  val trim_context: T -> T
+  val transfer: theory -> T -> T
   val transform: morphism -> T -> T
   val init_assignable: T -> T
   val assign: value option -> T -> T
@@ -484,7 +485,26 @@ fun map_facts f =
     | Fact (a, ths) => Fact (a, f a ths)
     | _ => v));
 
-val trim_context_src = (map o map_facts) (K (map Thm.trim_context));
+
+(* implicit context *)
+
+local
+
+fun context thm_context morphism_context =
+  let
+    fun token_context tok = map_value
+      (fn Source src => Source (map token_context src)
+        | Fact (a, ths) => Fact (a, map thm_context ths)
+        | Name (a, phi) => Name (a, morphism_context phi)
+        | v => v) tok;
+  in token_context end;
+
+in
+
+val trim_context = context Thm.trim_context Morphism.reset_context;
+fun transfer thy = context (Thm.transfer thy) (Morphism.set_context thy);
+
+end;
 
 
 (* transform *)

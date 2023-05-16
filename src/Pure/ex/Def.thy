@@ -46,7 +46,7 @@ fun declare_def lhs eq lthy =
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => fn context =>
-        let val psi = Morphism.transfer_morphism'' context $> phi $> Morphism.trim_context_morphism
+        let val psi = Morphism.set_trim_context'' context phi
         in (Data.map o Item_Net.update) (transform_def psi def) context end)
   end;
 

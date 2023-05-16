@@ -220,8 +220,11 @@ fun register class sups params base_sort base_morph export_morph
       (c, (class, ((ty, Free v_ty), false)))) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o apply2) fst params, base_sort,
-          base_morph, export_morph, Option.map Thm.trim_context some_assm_intro,
-          Thm.trim_context of_class, Option.map Thm.trim_context some_axiom),
+          Morphism.reset_context base_morph,
+          Morphism.reset_context export_morph,
+          Option.map Thm.trim_context some_assm_intro,
+          Thm.trim_context of_class,
+          Option.map Thm.trim_context some_axiom),
           (Thm.item_net, operations)))
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;

@@ -29,6 +29,8 @@ sig
     ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Token.src -> Token.src) ->
     ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
+  val trim_context_ctxt: context_i -> context_i
+  val transfer_ctxt: theory -> context_i -> context_i
   val transform_ctxt: morphism -> context_i -> context_i
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
@@ -102,6 +104,16 @@ fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
 
 fun map_ctxt_attrib attrib =
   map_ctxt {binding = I, typ = I, term = I, pattern = I, fact = I, attrib = attrib};
+
+val trim_context_ctxt: context_i -> context_i = map_ctxt
+ {binding = I, typ = I, term = I, pattern = I,
+  fact = map Thm.trim_context,
+  attrib = map Token.trim_context};
+
+fun transfer_ctxt thy: context_i -> context_i = map_ctxt
+ {binding = I, typ = I, term = I, pattern = I,
+  fact = map (Thm.transfer thy),
+  attrib = map (Token.transfer thy)};
 
 fun transform_ctxt phi = map_ctxt
  {binding = Morphism.binding phi,

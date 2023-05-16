@@ -53,6 +53,9 @@ sig
   val transfer_morphism': Proof.context -> morphism
   val transfer_morphism'': Context.generic -> morphism
   val trim_context_morphism: morphism
+  val set_trim_context: theory -> morphism -> morphism
+  val set_trim_context': Proof.context -> morphism -> morphism
+  val set_trim_context'': Context.generic -> morphism -> morphism
   val instantiate_frees_morphism: ctyp TFrees.table * cterm Frees.table -> morphism
   val instantiate_morphism: ctyp TVars.table * cterm Vars.table -> morphism
 end;
@@ -182,6 +185,10 @@ val transfer_morphism' = transfer_morphism o Proof_Context.theory_of;
 val transfer_morphism'' = transfer_morphism o Context.theory_of;
 
 val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
+
+fun set_trim_context thy phi = set_context thy phi $> trim_context_morphism;
+val set_trim_context' = set_trim_context o Proof_Context.theory_of;
+val set_trim_context'' = set_trim_context o Context.theory_of;
 
 
 (* instantiate *)
