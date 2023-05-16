@@ -126,10 +126,13 @@ fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy
     val bundle =
       Attrib.partial_evaluation ctxt' [(Binding.empty_atts, bundle0)]
       |> maps #2
-      |> transform_bundle (Proof_Context.export_morphism ctxt' lthy);
+      |> transform_bundle (Proof_Context.export_morphism ctxt' lthy)
+      |> trim_context_bundle;
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
-      (fn phi => #2 o define_bundle (Morphism.binding phi binding, transform_bundle phi bundle))
+      (fn phi => fn context =>
+        let val psi = Morphism.set_trim_context'' context phi
+        in #2 (define_bundle (Morphism.binding psi binding, transform_bundle psi bundle) context) end)
   end;
 
 in
