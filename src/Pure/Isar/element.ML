@@ -51,8 +51,8 @@ sig
   val pretty_witness: Proof.context -> witness -> Pretty.T
   val instantiate_normalize_morphism: ctyp TFrees.table * cterm Frees.table -> morphism
   val satisfy_morphism: witness list -> morphism
-  val eq_term_morphism: theory -> term list -> morphism option
-  val eq_morphism: theory -> thm list -> morphism option
+  val eq_term_morphism: term list -> morphism option
+  val eq_morphism: thm list -> morphism option
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
@@ -399,37 +399,42 @@ end;
 (* rewriting with equalities *)
 
 (* for activating declarations only *)
-fun eq_term_morphism _ [] = NONE
-  | eq_term_morphism thy props =
+fun eq_term_morphism [] = NONE
+  | eq_term_morphism props =
       let
-        (* FIXME proper morphism context *)
-        fun decomp_simp prop =
+        fun decomp_simp ctxt prop =
           let
-            val ctxt = Proof_Context.init_global thy;
             val _ = Logic.no_prems prop orelse
               error ("Bad conditional rewrite rule " ^ Syntax.string_of_term ctxt prop);
-            val lhsrhs = Logic.dest_equals prop
-              handle TERM _ => error ("Rewrite rule not a meta-equality " ^ Syntax.string_of_term ctxt prop);
-          in lhsrhs end;
+          in
+            Logic.dest_equals prop handle TERM _ =>
+              error ("Rewrite rule not a meta-equality " ^ Syntax.string_of_term ctxt prop)
+          end;
+        fun rewrite_term thy =
+          let val ctxt = Proof_Context.init_global thy
+          in Pattern.rewrite_term thy (map (decomp_simp ctxt) props) [] end;
         val phi =
           Morphism.morphism "Element.eq_term_morphism"
            {binding = [],
             typ = [],
-            term = [K (Pattern.rewrite_term thy (map decomp_simp props) [])],
+            term = [rewrite_term o Morphism.the_theory],
             fact = [fn _ => fn _ => error "Illegal application of Element.eq_term_morphism"]};
       in SOME phi end;
 
-fun eq_morphism _ [] = NONE
-  | eq_morphism thy thms =
+fun eq_morphism [] = NONE
+  | eq_morphism thms =
       let
-        (* FIXME proper morphism context *)
-        fun rewrite th = rewrite_rule (Proof_Context.init_global (Thm.theory_of_thm th)) thms th;
+        val thms0 = map Thm.trim_context thms;
+        fun rewrite_term thy =
+          Raw_Simplifier.rewrite_term thy (map (Thm.transfer thy) thms0) [];
+        fun rewrite thy =
+          Raw_Simplifier.rewrite_rule (Proof_Context.init_global thy) (map (Thm.transfer thy) thms0);
         val phi =
           Morphism.morphism "Element.eq_morphism"
            {binding = [],
             typ = [],
-            term = [K (Raw_Simplifier.rewrite_term thy thms [])],
-            fact = [K (map rewrite)]};
+            term = [rewrite_term o Morphism.the_theory],
+            fact = [map o rewrite o Morphism.the_theory]};
       in SOME phi end;
 
 

@@ -107,8 +107,14 @@ datatype ctxt = datatype Element.ctxt;
 type dep = {name: string, morphisms: morphism * morphism, pos: Position.T, serial: serial};
 fun eq_dep (dep1: dep, dep2: dep) = #serial dep1 = #serial dep2;
 
+fun transfer_dep thy ({name, morphisms, pos, serial}: dep) : dep =
+  {name = name, morphisms = apply2 (Morphism.set_context thy) morphisms, pos = pos, serial = serial};
+
 fun make_dep (name, morphisms) : dep =
-  {name = name, morphisms = morphisms, pos = Position.thread_data (), serial = serial ()};
+ {name = name,
+  morphisms = apply2 Morphism.reset_context morphisms,
+  pos = Position.thread_data (),
+  serial = serial ()};
 
 (*table of mixin lists, per list mixins in reverse order of declaration;
   lists indexed by registration/dependency serial,
@@ -120,7 +126,8 @@ fun lookup_mixins (mixins: mixins) serial' = Inttab.lookup_list mixins serial';
 
 val merge_mixins: mixins * mixins -> mixins = Inttab.merge_list (eq_snd op =);
 
-fun insert_mixin serial' mixin : mixins -> mixins = Inttab.cons_list (serial', (mixin, serial ()));
+fun insert_mixin serial' (morph, b) : mixins -> mixins =
+  Inttab.cons_list (serial', ((Morphism.reset_context morph, b), serial ()));
 
 fun rename_mixin (old, new) (mixins: mixins) =
   (case Inttab.lookup mixins old of
@@ -216,8 +223,7 @@ fun register_locale
           map Element.trim_context_ctxt hyp_spec),
         ((map (fn decl => (decl, serial ())) syntax_decls,
           map (fn (a, facts) => ((a, map Attrib.trim_context_fact facts), serial ())) notes),
-          (map (fn (name, morph) =>
-                make_dep (name, (Morphism.reset_context morph, Morphism.identity))) dependencies,
+          (map (fn (name, morph) => make_dep (name, (morph, Morphism.identity))) dependencies,
             Inttab.empty)))) #> snd);
           (* FIXME Morphism.identity *)
 
@@ -236,15 +242,17 @@ fun intros_of thy = (apply2 o Option.map) (Thm.transfer thy) o #intros o the_loc
 fun axioms_of thy = map (Thm.transfer thy) o #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
-  map (Morphism.term morph o Free o #1);
+  map (Morphism.term (Morphism.set_context thy morph) o Free o #1);
 
 fun specification_of thy = #spec o the_locale thy;
 
-fun hyp_spec_of thy = #hyp_spec o the_locale thy;
+fun hyp_spec_of thy = map (Element.transfer_ctxt thy) o #hyp_spec o the_locale thy;
 
-fun dependencies_of thy = #dependencies o the_locale thy;
+fun dependencies_of thy = map (transfer_dep thy) o #dependencies o the_locale thy;
 
-fun mixins_of thy name serial = lookup_mixins (#mixins (the_locale thy name)) serial;
+fun mixins_of thy name serial =
+  lookup_mixins (#mixins (the_locale thy name)) serial
+  |> (map o apfst o apfst) (Morphism.set_context thy);
 
 
 (* Print instance and qualifiers *)
@@ -398,7 +406,10 @@ fun map_registrations f (Context.Theory thy) = Context.Theory (Global_Registrati
 
 fun add_reg thy export (name, morph) =
   let
-    val reg = {morphisms = (morph, export), pos = Position.thread_data (), serial = serial ()};
+    val reg =
+     {morphisms = (Morphism.reset_context morph, Morphism.reset_context export),
+      pos = Position.thread_data (),
+      serial = serial ()};
     val id = (name, instance_of thy name (morph $> export));
   in (map_registrations o apfst) (Idtab.insert (K false) (id, reg)) end;
 
@@ -494,28 +505,28 @@ fun activate_syntax_decls (name, morph) context =
       handle ERROR msg => activate_err msg "syntax" (name, morph) context
   end;
 
-fun activate_notes activ_elem transfer context export' (name, morph) input =
+fun activate_notes activ_elem context export' (name, morph) input =
   let
     val thy = Context.theory_of context;
     val mixin =
       (case export' of
         NONE => Morphism.identity
       | SOME export => collect_mixins context (name, morph $> export) $> export);
-    val morph' = transfer input $> morph $> mixin;
+    val morph' = Morphism.set_context thy (morph $> mixin);
     val notes' = map (Element.transform_ctxt morph') (lazy_notes thy name);
   in
     (notes', input) |-> fold (fn elem => fn res =>
-      activ_elem (Element.transform_ctxt (transfer res) elem) res)
+      activ_elem (Element.transfer_ctxt thy elem) res)
   end handle ERROR msg => activate_err msg "facts" (name, morph) context;
 
-fun activate_notes_trace activ_elem transfer context export' (name, morph) context' =
+fun activate_notes_trace activ_elem context export' (name, morph) context' =
   let
     val _ = trace "facts" (name, morph) context';
   in
-    activate_notes activ_elem transfer context export' (name, morph) context'
+    activate_notes activ_elem context export' (name, morph) context'
   end;
 
-fun activate_all name thy activ_elem transfer (marked, input) =
+fun activate_all name thy activ_elem (marked, input) =
   let
     val {parameters = (_, params), spec = (asm, defs), ...} = the_locale thy name;
     val input' = input |>
@@ -525,7 +536,7 @@ fun activate_all name thy activ_elem transfer (marked, input) =
       (case asm of SOME A => activ_elem (Assumes [(Binding.empty_atts, [(A, [])])]) | _ => I) |>
       (not (null defs) ?
         activ_elem (Defines (map (fn def => (Binding.empty_atts, (def, []))) defs)));
-    val activate = activate_notes activ_elem transfer (Context.Theory thy) NONE;
+    val activate = activate_notes activ_elem (Context.Theory thy) NONE;
   in
     roundup thy activate Morphism.identity (name, Morphism.identity) (marked, input')
   end;
@@ -538,7 +549,7 @@ fun activate_facts export dep context =
   |> Context_Position.set_visible_generic false
   |> pair (Idents.get context)
   |> roundup (Context.theory_of context)
-      (activate_notes_trace init_element Morphism.transfer_morphism'' context export)
+      (activate_notes_trace init_element context export)
       (Morphism.default export) dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context;
@@ -559,7 +570,7 @@ fun init name thy =
     context
     |> Context_Position.set_visible_generic false
     |> pair empty_idents
-    |> activate_all name thy init_element Morphism.transfer_morphism''
+    |> activate_all name thy init_element
     |-> (fn marked' => Idents.put (merge_idents (marked, marked')))
     |> Context_Position.restore_visible_generic context
     |> Context.proof_of
@@ -735,7 +746,7 @@ fun pretty_locale thy show_facts name =
       | cons_elem (elem as Lazy_Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
     val elems =
-      activate_all name thy cons_elem (K (Morphism.transfer_morphism thy)) (empty_idents, [])
+      activate_all name thy cons_elem (empty_idents, [])
       |> snd |> rev
       |> tap consolidate_notes
       |> map force_notes;

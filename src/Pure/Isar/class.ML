@@ -157,8 +157,9 @@ fun these_operations thy = maps (#operations o the_class_data thy) o ancestry th
 val base_morphism = #base_morph oo the_class_data;
 
 fun morphism thy class =
-  base_morphism thy class $>
-  Morphism.default (Element.eq_morphism thy (these_defs thy [class]));
+  Morphism.set_context thy
+   (base_morphism thy class $>
+    Morphism.default (Element.eq_morphism (these_defs thy [class])));
 
 val export_morphism = #export_morph oo the_class_data;
 
@@ -230,7 +231,7 @@ fun register class sups params base_sort base_morph export_morph
   in Class_Data.map add_class thy end;
 
 fun activate_defs class thms thy =
-  (case Element.eq_morphism thy thms of
+  (case Element.eq_morphism thms of
     SOME eq_morph =>
       fold (fn cls => fn thy' =>
         (Context.theory_map o Locale.amend_registration)
@@ -359,7 +360,8 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
 
 fun target_const class phi0 prmode (b, rhs) lthy =
   let
-    val export = Variable.export_morphism lthy (Local_Theory.target_of lthy);
+    val export =
+      Morphism.set_context' lthy (Variable.export_morphism lthy (Local_Theory.target_of lthy));
     val guess_identity = guess_morphism_identity (b, rhs) export;
     val guess_canonical = guess_morphism_identity (b, rhs) (export $> phi0);
   in
