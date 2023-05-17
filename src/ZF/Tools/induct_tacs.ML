@@ -157,8 +157,8 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
     thy
     |> Sign.add_path (Long_Name.base_name big_rec_name)
     |> Global_Theory.add_thmss [((Binding.name "simps", simps), [Simplifier.simp_add])] |> snd
-    |> DatatypesData.put (Symtab.update (big_rec_name, dt_info) (DatatypesData.get thy))
-    |> ConstructorsData.put (fold_rev Symtab.update con_pairs (ConstructorsData.get thy))
+    |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
+    |> ConstructorsData.map (fold_rev Symtab.update con_pairs)
     |> Sign.parent_path
   end;
 

@@ -11,6 +11,7 @@ sig
   val welcome: unit -> string
   val shutdown: unit -> unit
   val finish: unit -> unit
+  val print_context_tracing: (Context.generic -> bool) -> unit
 end;
 
 structure Session: SESSION =
@@ -40,6 +41,11 @@ fun finish () =
  (shutdown ();
   Par_List.map (Global_Theory.get_thm_names o Thy_Info.get_theory) (Thy_Info.get_names ());
   Thy_Info.finish ();
-  shutdown ());
+  shutdown ();
+  ignore (Context.finish_tracing ()));
+
+fun print_context_tracing pred =
+  List.app (writeln o Proof_Display.print_context_tracing)
+    (filter (pred o #1) (#contexts (Context.finish_tracing ())));
 
 end;

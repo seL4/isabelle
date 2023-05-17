@@ -28,6 +28,7 @@ fun command environment debug get_file = Toplevel.generic_theory (fn gthy =>
         debug = debug, writeln = writeln, warning = warning};
   in
     gthy
+    |> Local_Theory.touch_ml_env
     |> ML_Context.exec (fn () => ML_Context.eval_source flags source)
     |> Local_Theory.propagate_ml_env
     |> Context.mapping provide (Local_Theory.background_theory provide)

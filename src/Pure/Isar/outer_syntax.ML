@@ -325,7 +325,8 @@ val _ =
   command ("ML", \<^here>) "ML text within theory or local theory"
     (Parse.ML_source >> (fn source =>
       Toplevel.generic_theory
-        (ML_Context.exec (fn () =>
+        (Local_Theory.touch_ml_env #>
+          ML_Context.exec (fn () =>
             ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source) #>
           Local_Theory.propagate_ml_env)));
 

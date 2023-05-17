@@ -610,8 +610,8 @@ fun exec_id id (tr as Transition {pos, ...}) =
   let val put_id = Position.put_id (Document_ID.print id)
   in position (put_id pos) tr end;
 
-fun setmp_thread_position (Transition {pos, ...}) f x =
-  Position.setmp_thread_data pos f x;
+fun setmp_thread_position (Transition {pos, name, ...}) f x =
+  Position.setmp_thread_data (Position.label (Long_Name.qualify Markup.commandN name) pos) f x;
 
 
 (* apply transitions *)

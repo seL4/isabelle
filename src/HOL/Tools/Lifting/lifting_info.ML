@@ -145,7 +145,7 @@ fun quot_map_thm_sanity_check rel_quot_thm ctxt =
   let
     fun quot_term_absT ctxt quot_term =
       let
-        val (_, abs, _, _) = (dest_Quotient o HOLogic.dest_Trueprop) quot_term
+        val (_, abs, _, _) = dest_Quotient (HOLogic.dest_Trueprop quot_term)
           handle TERM (_, [t]) => error (Pretty.string_of (Pretty.block
             [Pretty.str "The Quotient map theorem is not in the right form.",
              Pretty.brk 1,
@@ -167,10 +167,11 @@ fun quot_map_thm_sanity_check rel_quot_thm ctxt =
     val extra_prem_tfrees =
       case subtract (op =) concl_tfrees prems_tfrees of
         [] => []
-      | extras => [Pretty.block ([Pretty.str "Extra type variables in the premises:",
-                                 Pretty.brk 1] @
-                                 ((Pretty.commas o map (Pretty.str o quote)) extras) @
-                                 [Pretty.str "."])]
+      | extras =>
+          [Pretty.block ([Pretty.str "Extra type variables in the premises:",
+           Pretty.brk 1] @
+           Pretty.commas (map (Pretty.str o quote) extras) @
+           [Pretty.str "."])]
     val errs = extra_prem_tfrees
   in
     if null errs then () else error (cat_lines (["Sanity check of the quotient map theorem failed:",""]
@@ -181,13 +182,11 @@ fun quot_map_thm_sanity_check rel_quot_thm ctxt =
 fun add_quot_map rel_quot_thm context =
   let
     val _ = Context.cases (K ()) (quot_map_thm_sanity_check rel_quot_thm) context
-    val rel_quot_thm_concl = (Logic.strip_imp_concl o Thm.prop_of) rel_quot_thm
-    val (_, abs, _, _) = (dest_Quotient o HOLogic.dest_Trueprop) rel_quot_thm_concl
-    val relatorT_name = (fst o dest_Type o fst o dest_funT o fastype_of) abs
+    val rel_quot_thm_concl = Logic.strip_imp_concl (Thm.prop_of rel_quot_thm)
+    val (_, abs, _, _) = dest_Quotient (HOLogic.dest_Trueprop rel_quot_thm_concl)
+    val relatorT_name = fst (dest_Type (fst (dest_funT (fastype_of abs))))
     val minfo = {rel_quot_thm = Thm.trim_context rel_quot_thm}
-  in
-    Data.map (map_quot_maps (Symtab.update (relatorT_name, minfo))) context
-  end
+  in (Data.map o map_quot_maps) (Symtab.update (relatorT_name, minfo)) context end
 
 val _ =
   Theory.setup
@@ -224,7 +223,7 @@ fun lookup_quotients ctxt type_name =
 fun lookup_quot_thm_quotients ctxt quot_thm =
   let
     val (_, qtyp) = quot_thm_rty_qty quot_thm
-    val qty_full_name = (fst o dest_Type) qtyp
+    val qty_full_name = fst (dest_Type qtyp)
     fun compare_data (data:quotient) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
   in
     case lookup_quotients ctxt qty_full_name of
@@ -234,15 +233,15 @@ fun lookup_quot_thm_quotients ctxt quot_thm =
 
 fun update_quotients type_name qinfo context =
   let val qinfo' = transform_quotient Morphism.trim_context_morphism qinfo
-  in Data.map (map_quotients (Symtab.update (type_name, qinfo'))) context end
+  in (Data.map o map_quotients) (Symtab.update (type_name, qinfo')) context end
 
 fun delete_quotients quot_thm context =
   let
     val (_, qtyp) = quot_thm_rty_qty quot_thm
-    val qty_full_name = (fst o dest_Type) qtyp
+    val qty_full_name = fst (dest_Type qtyp)
   in
     if is_some (lookup_quot_thm_quotients (Context.proof_of context) quot_thm)
-    then Data.map (map_quotients (Symtab.delete qty_full_name)) context
+    then (Data.map o map_quotients) (Symtab.delete qty_full_name) context
     else context
   end
 
@@ -273,7 +272,7 @@ val _ =
 fun lookup_restore_data ctxt bundle_name = Symtab.lookup (get_restore_data ctxt) bundle_name
 
 fun update_restore_data bundle_name restore_data context =
-  Data.map (map_restore_data (Symtab.update (bundle_name, restore_data))) context
+  (Data.map o map_restore_data) (Symtab.update (bundle_name, restore_data)) context
 
 fun init_restore_data bundle_name qinfo context =
   update_restore_data bundle_name { quotient = qinfo, transfer_rules = Thm.item_net } context
@@ -299,7 +298,7 @@ fun get_reflexivity_rules ctxt =
   |> map (Thm.transfer' ctxt)
 
 fun add_reflexivity_rule thm =
-  Data.map (map_reflexivity_rules (Item_Net.update (Thm.trim_context thm)))
+  (Data.map o map_reflexivity_rules) (Item_Net.update (Thm.trim_context thm))
 
 val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_rule
 
@@ -371,11 +370,11 @@ fun add_reflexivity_rules mono_rule context =
 
     fun find_eq_rule thm =
       let
-        val concl_rhs = (hd o get_args 1 o HOLogic.dest_Trueprop o Thm.concl_of) thm
+        val concl_rhs = hd (get_args 1 (HOLogic.dest_Trueprop (Thm.concl_of thm)))
         val rules = Transfer.retrieve_relator_eq ctxt concl_rhs
       in
         find_first (fn th => Pattern.matches thy (concl_rhs,
-          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.concl_of) th)) rules
+          fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.concl_of th))))) rules
       end
 
     val eq_rule = find_eq_rule mono_rule;
@@ -391,8 +390,9 @@ fun add_reflexivity_rules mono_rule context =
 fun add_mono_rule mono_rule context =
   let
     val pol_mono_rule = introduce_polarities mono_rule
-    val mono_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o
-      dest_Const o head_of o HOLogic.dest_Trueprop o Thm.concl_of) pol_mono_rule
+    val mono_ruleT_name =
+      fst (dest_Type (fst (relation_types (fst (relation_types
+        (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of pol_mono_rule))))))))))
   in
     if Symtab.defined (get_relator_distr_data' context) mono_ruleT_name
     then
@@ -402,11 +402,14 @@ fun add_mono_rule mono_rule context =
     else
       let
         val neg_mono_rule = negate_mono_rule pol_mono_rule
-        val relator_distr_data = {pos_mono_rule = pol_mono_rule, neg_mono_rule = neg_mono_rule,
-          pos_distr_rules = [], neg_distr_rules = []}
+        val relator_distr_data =
+         {pos_mono_rule = Thm.trim_context pol_mono_rule,
+          neg_mono_rule = Thm.trim_context neg_mono_rule,
+          pos_distr_rules = [],
+          neg_distr_rules = []}
       in
         context
-        |> Data.map (map_relator_distr_data (Symtab.update (mono_ruleT_name, relator_distr_data)))
+        |> (Data.map o map_relator_distr_data) (Symtab.update (mono_ruleT_name, relator_distr_data))
         |> add_reflexivity_rules mono_rule
       end
   end;
@@ -414,12 +417,13 @@ fun add_mono_rule mono_rule context =
 local
   fun add_distr_rule update_entry distr_rule context =
     let
-      val distr_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o
-        dest_Const o head_of o HOLogic.dest_Trueprop o Thm.concl_of) distr_rule
+      val distr_ruleT_name =
+        fst (dest_Type (fst (relation_types (fst (relation_types
+          (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of distr_rule))))))))))
     in
       if Symtab.defined (get_relator_distr_data' context) distr_ruleT_name then
-        Data.map (map_relator_distr_data (Symtab.map_entry distr_ruleT_name (update_entry distr_rule)))
-          context
+        (Data.map o map_relator_distr_data)
+          (Symtab.map_entry distr_ruleT_name (update_entry distr_rule)) context
       else error "The monotonicity rule is not defined."
     end
 
@@ -430,21 +434,25 @@ local
 in
   fun add_pos_distr_rule distr_rule context =
     let
-      val distr_rule = Conv.fconv_rule (rewrite_concl_conv @{thm POS_def}) distr_rule
+      val distr_rule' = Conv.fconv_rule (rewrite_concl_conv @{thm POS_def}) distr_rule
       fun update_entry distr_rule data =
-        map_pos_distr_rules (cons (@{thm POS_trans} OF [distr_rule, #pos_mono_rule data])) data
+        data |> (map_pos_distr_rules o cons)
+          (Thm.trim_context (@{thm POS_trans} OF
+            [distr_rule, Thm.transfer'' context (#pos_mono_rule data)]))
     in
-      add_distr_rule update_entry distr_rule context
+      add_distr_rule update_entry distr_rule' context
     end
     handle THM _ => error "Combining of the distr. rule and the monotonicity rule together has failed."
 
   fun add_neg_distr_rule distr_rule context =
     let
-      val distr_rule = Conv.fconv_rule (rewrite_concl_conv @{thm NEG_def}) distr_rule
+      val distr_rule' = Conv.fconv_rule (rewrite_concl_conv @{thm NEG_def}) distr_rule
       fun update_entry distr_rule data =
-        map_neg_distr_rules (cons (@{thm NEG_trans} OF [distr_rule, #neg_mono_rule data])) data
+        data |> (map_neg_distr_rules o cons)
+          (Thm.trim_context (@{thm NEG_trans} OF
+            [distr_rule, Thm.transfer'' context (#neg_mono_rule data)]))
     in
-      add_distr_rule update_entry distr_rule context
+      add_distr_rule update_entry distr_rule' context
     end
     handle THM _ => error "Combining of the distr. rule and the monotonicity rule together has failed."
 end
@@ -467,7 +475,7 @@ local
   fun sanity_check rule =
     let
       val assms = map (perhaps (try HOLogic.dest_Trueprop)) (Thm.prems_of rule)
-      val concl = (perhaps (try HOLogic.dest_Trueprop)) (Thm.concl_of rule);
+      val concl = perhaps (try HOLogic.dest_Trueprop) (Thm.concl_of rule);
       val (lhs, rhs) =
         (case concl of
           Const (\<^const_name>\<open>less_eq\<close>, _) $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ rhs =>
@@ -502,7 +510,7 @@ in
   fun add_distr_rule distr_rule context =
     let
       val _ = sanity_check distr_rule
-      val concl = (perhaps (try HOLogic.dest_Trueprop)) (Thm.concl_of distr_rule)
+      val concl = perhaps (try HOLogic.dest_Trueprop) (Thm.concl_of distr_rule)
     in
       (case concl of
         Const (\<^const_name>\<open>less_eq\<close>, _) $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ _ =>
@@ -545,7 +553,7 @@ val _ =
 fun add_no_code_type type_name context =
   Data.map (map_no_code_types (Symset.insert type_name)) context;
 
-fun is_no_code_type context type_name = (Symset.member o get_no_code_types) context type_name
+val is_no_code_type = Symset.member o get_no_code_types;
 
 
 (* setup fixed eq_onp rules *)

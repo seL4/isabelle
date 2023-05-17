@@ -992,7 +992,8 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
       let
         val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
 
-        val thy = Context.certificate_theory cert;
+        val thy = Context.certificate_theory cert
+          handle ERROR msg => raise CONTEXT (msg, [], [], [thm], NONE);
         val bad_thys =
           constraints |> map_filter (fn {theory = thy', ...} =>
             if Context.eq_thy (thy, thy') then NONE else SOME thy');
@@ -1558,8 +1559,9 @@ fun flexflex_rule opt_ctxt =
                 (*remove trivial tpairs, of the form t \<equiv> t*)
                 |> filter_out (op aconv);
               val der' = deriv_rule1 (Proofterm.norm_proof' env) der;
-              val constraints' =
-                insert_constraints_env (Context.certificate_theory cert') env constraints;
+              val thy' = Context.certificate_theory cert' handle ERROR msg =>
+                raise CONTEXT (msg, [], [], [th], Option.map Context.Proof opt_ctxt);
+              val constraints' = insert_constraints_env thy' env constraints;
               val prop' = Envir.norm_term env prop;
               val maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop');
               val shyps = Envir.insert_sorts env shyps;
@@ -1699,7 +1701,8 @@ fun gen_instantiate inst_fn (instT, inst) th =
       val (tpairs', maxidx') =
         fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
 
-      val thy' = Context.certificate_theory cert';
+      val thy' = Context.certificate_theory cert'
+        handle ERROR msg => raise CONTEXT (msg, [], [], [th], NONE);
       val constraints' =
         TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
           instT' constraints;
@@ -1927,12 +1930,14 @@ fun assumption opt_ctxt i state =
         val normt = Envir.norm_term env;
         fun assumption_proof prf =
           Proofterm.assumption_proof (map normt Bs) (normt Bi) n prf;
+        val thy' = Context.certificate_theory cert' handle ERROR msg =>
+          raise CONTEXT (msg, [], [], [state], Option.map Context.Proof opt_ctxt);
       in
         Thm (deriv_rule1
           (assumption_proof #> not (Envir.is_empty env) ? Proofterm.norm_proof' env) der,
          {tags = [],
           maxidx = Envir.maxidx_of env,
-          constraints = insert_constraints_env (Context.certificate_theory cert') env constraints,
+          constraints = insert_constraints_env thy' env constraints,
           shyps = Envir.insert_sorts env shyps,
           hyps = hyps,
           tpairs = if Envir.is_empty env then tpairs else map (apply2 normt) tpairs,
@@ -2174,9 +2179,11 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
                 else (*normalize the new rule fully*)
                   (ntps, (map normt (Bs @ As), normt C))
              end
+           val thy' = Context.certificate_theory cert handle ERROR msg =>
+            raise CONTEXT (msg, [], [], [state, orule], Option.map Context.Proof opt_ctxt);
            val constraints' =
              union_constraints constraints1 constraints2
-             |> insert_constraints_env (Context.certificate_theory cert) env;
+             |> insert_constraints_env thy' env;
            fun bicompose_proof prf1 prf2 =
              Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1)
                prf1 prf2

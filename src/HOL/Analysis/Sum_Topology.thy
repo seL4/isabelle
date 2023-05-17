@@ -143,4 +143,20 @@ lemma embedding_map_component_injection:
   by (metis injective_open_imp_embedding_map continuous_map_component_injection
             open_map_component_injection inj_onI prod.inject)
 
+lemma topological_property_of_sum_component:
+  assumes major: "P (sum_topology X I)"
+    and minor: "\<And>X S. \<lbrakk>P X; closedin X S; openin X S\<rbrakk> \<Longrightarrow> P(subtopology X S)"
+    and PQ:  "\<And>X Y. X homeomorphic_space Y \<Longrightarrow> (P X \<longleftrightarrow> Q Y)"
+  shows "(\<forall>i \<in> I. Q(X i))"
+proof -
+  have "Q(X i)" if "i \<in> I" for i
+  proof -
+    have "P(subtopology (sum_topology X I) (Pair i ` topspace (X i)))"
+      by (meson closed_map_component_injection closed_map_def closedin_topspace major minor open_map_component_injection open_map_def openin_topspace that)
+    then show ?thesis
+      by (metis PQ embedding_map_component_injection embedding_map_imp_homeomorphic_space homeomorphic_space_sym that)
+  qed
+  then show ?thesis by metis
+qed
+
 end

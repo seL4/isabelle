@@ -137,18 +137,20 @@ object Markup {
   val END_LINE = "line"
   val OFFSET = "offset"
   val END_OFFSET = "end_offset"
+  val LABEL = "label"
   val FILE = "file"
   val ID = "id"
 
   val DEF_LINE = "def_line"
   val DEF_OFFSET = "def_offset"
   val DEF_END_OFFSET = "def_end_offset"
+  val DEF_LABEL = "def_label"
   val DEF_FILE = "def_file"
   val DEF_ID = "def_id"
 
   val POSITION = "position"
 
-  val POSITION_PROPERTIES = Set(LINE, OFFSET, END_OFFSET, FILE, ID)
+  val POSITION_PROPERTIES = Set(LINE, OFFSET, END_OFFSET, LABEL, FILE, ID)
   def position_property(entry: Properties.Entry): Boolean = POSITION_PROPERTIES(entry._1)
 
 
@@ -156,7 +158,7 @@ object Markup {
 
   private val def_names: Map[String, String] =
     Map(LINE -> DEF_LINE, OFFSET -> DEF_OFFSET, END_OFFSET -> DEF_END_OFFSET,
-      FILE -> DEF_FILE, ID -> DEF_ID)
+      LABEL -> DEF_LABEL, FILE -> DEF_FILE, ID -> DEF_ID)
 
   def def_name(a: String): String = def_names.getOrElse(a, a + "def_")
 

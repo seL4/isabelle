@@ -228,7 +228,9 @@ fun exec (e: unit -> unit) context =
     SOME context' => context'
   | NONE => error "Missing context after execution");
 
-fun expression pos ants = exec (fn () => eval ML_Compiler.flags pos ants);
+fun expression pos ants =
+  Local_Theory.touch_ml_env #>
+  exec (fn () => eval ML_Compiler.flags pos ants);
 
 end;
 

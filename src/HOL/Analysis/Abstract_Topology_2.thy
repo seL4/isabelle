@@ -1639,4 +1639,53 @@ lemma homeomorphic_maps_real_shrink:
      (\<lambda>x. x / (1 + \<bar>x\<bar>))  (\<lambda>y. y / (1 - \<bar>y\<bar>))"
   by (force simp: homeomorphic_maps_def continuous_map_real_shrink continuous_on_real_grow divide_simps)
 
+lemma real_shrink_Galois:
+  fixes x::real
+  shows "(x / (1 + \<bar>x\<bar>) = y) \<longleftrightarrow> (\<bar>y\<bar> < 1 \<and> y / (1 - \<bar>y\<bar>) = x)"
+  using real_grow_shrink by (fastforce simp add: distrib_left)
+
+lemma real_shrink_lt:
+  fixes x::real
+  shows "x / (1 + \<bar>x\<bar>) < y / (1 + \<bar>y\<bar>) \<longleftrightarrow> x < y"
+  using zero_less_mult_iff [of x y] by (auto simp: field_simps abs_if not_less)
+
+lemma real_shrink_le:
+  fixes x::real
+  shows "x / (1 + \<bar>x\<bar>) \<le> y / (1 + \<bar>y\<bar>) \<longleftrightarrow> x \<le> y"
+  by (meson linorder_not_le real_shrink_lt)
+
+lemma real_shrink_grow:
+  fixes x::real
+  shows "\<bar>x\<bar> < 1 \<Longrightarrow> x / (1 - \<bar>x\<bar>) / (1 + \<bar>x / (1 - \<bar>x\<bar>)\<bar>) = x"
+  using real_shrink_Galois by blast
+
+lemma continuous_shrink:
+  "continuous_on UNIV (\<lambda>x::real. x / (1 + \<bar>x\<bar>))"
+  by (intro continuous_intros) auto
+
+lemma strict_mono_shrink:
+  "strict_mono (\<lambda>x::real. x / (1 + \<bar>x\<bar>))"
+  by (simp add: monotoneI real_shrink_lt)
+
+lemma shrink_range: "(\<lambda>x::real. x / (1 + \<bar>x\<bar>)) ` S \<subseteq> {-1<..<1}"
+  by (auto simp: divide_simps)
+
+text \<open>Note: connected sets of real numbers are the same thing as intervals\<close>
+lemma connected_shrink:
+  fixes S :: "real set"
+  shows "connected ((\<lambda>x. x / (1 + \<bar>x\<bar>)) ` S) \<longleftrightarrow> connected S"  (is "?lhs = ?rhs")
+proof 
+  assume "?lhs"
+  then have "connected ((\<lambda>x. x / (1 - \<bar>x\<bar>)) ` (\<lambda>x. x / (1 + \<bar>x\<bar>)) ` S)"
+    by (metis continuous_on_real_grow shrink_range connected_continuous_image 
+               continuous_on_subset)
+  then show "?rhs"
+    using real_grow_shrink by (force simp add: image_comp)
+next
+  assume ?rhs
+  then show ?lhs
+    using connected_continuous_image 
+    by (metis continuous_on_subset continuous_shrink subset_UNIV)
+qed
+
 end

@@ -36,7 +36,6 @@ sig
        (((string * bool) * (string list * xstring * (bstring * bstring) list)) list *
         (bstring * string) list)) parser
 
-
   val neq_x_y : Proof.context -> term -> term -> thm option
   val distinctNameSolver : Simplifier.solver
   val distinctTree_tac : Proof.context -> int -> tactic
@@ -49,9 +48,7 @@ sig
   val get_comp : Context.generic -> string -> (typ * string) option (* legacy wrapper, eventually replace by primed version *)
   val get_comps : Context.generic -> (typ * string list) Termtab.table
 
-  val get_silent : Context.generic -> bool
-  val set_silent : bool -> Context.generic -> Context.generic
-
+  val silent : bool Config.T
 
   val gen_lookup_tr : Proof.context -> term -> string -> term
   val lookup_swap_tr : Proof.context -> term list -> term
@@ -66,8 +63,7 @@ sig
   val update_tr : Proof.context -> term list -> term
   val update_tr' : Proof.context -> term list -> term
 
-  val trace_name_space_data: Context.generic -> unit
-  val trace_state_space_data: Context.generic -> unit
+  val trace_data: Context.generic -> unit
 end;
 
 structure StateSpace : STATE_SPACE =
@@ -101,29 +97,26 @@ fun comps_of_distinct_thm thm = Thm.prop_of thm
 
 fun insert_tagged_distinct_thms tagged_thm tagged_thms =
  let
-   fun ins t1 [] = [t1] 
+   fun ins t1 [] = [t1]
      | ins (t1 as (names1, _)) ((t2 as (names2, _))::thms) =
          if Ord_List.subset string_ord (names1, names2) then t2::thms
          else if Ord_List.subset string_ord (names2, names1) then ins t1 thms
          else t2 :: ins t1 thms
- in 
+ in
    ins tagged_thm tagged_thms
  end
 
-fun join_tagged_distinct_thms tagged_thms1 tagged_thms2 = 
+fun join_tagged_distinct_thms tagged_thms1 tagged_thms2 =
   tagged_thms1 |> fold insert_tagged_distinct_thms tagged_thms2
 
 fun tag_distinct_thm thm = (comps_of_distinct_thm thm, thm)
 val tag_distinct_thms = map tag_distinct_thm
 
-fun join_distinct_thms thms1 thms2 = 
-  if pointer_eq (thms1, thms2) then thms1 
-  else join_tagged_distinct_thms (tag_distinct_thms thms1) (tag_distinct_thms thms2) 
-       |> map snd
+fun join_distinct_thms (thms1, thms2) =
+  if pointer_eq (thms1, thms2) then thms1
+  else join_tagged_distinct_thms (tag_distinct_thms thms1) (tag_distinct_thms thms2) |> map snd
 
-fun insert_distinct_thm thm thms = join_distinct_thms thms [thm]
-
-val join_distinctthm_tab = Symtab.join (fn name => fn (thms1, thms2) => join_distinct_thms thms1 thms2)
+fun insert_distinct_thm thm thms = join_distinct_thms (thms, [thm])
 
 
 fun join_declinfo_entry name (T1:typ, names1:string list) (T2, names2) =
@@ -131,68 +124,67 @@ fun join_declinfo_entry name (T1:typ, names1:string list) (T2, names2) =
     fun typ_info T names = @{make_string} T ^ " "  ^ Pretty.string_of (Pretty.str_list "(" ")" names);
   in
     if T1 = T2 then (T1, distinct (op =) (names1 @ names2))
-    else error ("statespace component '" ^ name ^ "' disagrees on type:\n " ^ 
+    else error ("statespace component '" ^ name ^ "' disagrees on type:\n " ^
        typ_info T1 names1 ^ " vs. "  ^ typ_info T2 names2
-     ) 
+     )
   end
 fun guess_name (Free (x,_)) = x
   | guess_name _ = "unknown"
 
-val join_declinfo = Termtab.join (fn trm => uncurry (join_declinfo_entry (guess_name trm))) 
+val join_declinfo = Termtab.join (fn t => uncurry (join_declinfo_entry (guess_name t)))
 
 
 (*
   A component might appear in *different* statespaces within the same context. However, it must
   be mapped to the same type. Note that this information is currently only properly maintained
   within contexts where all components are actually "fixes" and not arbitrary terms. Moreover, on
-  the theory level the info stays empty. 
+  the theory level the info stays empty.
 
   This means that on the theory level we do not make use of the syntax and the tree-based distinct simprocs.
-  N.B: It might still make sense (from a performance perspective) to overcome this limitation 
+  N.B: It might still make sense (from a performance perspective) to overcome this limitation
   and even use the simprocs when a statespace is interpreted for concrete names like HOL-strings.
-  Once the distinct-theorem is proven by the interpretation the simproc can use the positions in 
-  the tree to derive distinctness of two strings vs. HOL-string comparison. 
+  Once the distinct-theorem is proven by the interpretation the simproc can use the positions in
+  the tree to derive distinctness of two strings vs. HOL-string comparison.
  *)
-type namespace_info =
- {declinfo: (typ * string list) Termtab.table, (* type, names of statespaces of component  *)
-  distinctthm: thm list Symtab.table, (* minimal list of maximal distinctness-assumptions for a component name *)
-  silent: bool
+
+type statespace_info =
+ {args: (string * sort) list, (* type arguments *)
+  parents: (typ list * string * string option list) list,
+             (* type instantiation, state-space name, component renamings *)
+  components: (string * typ) list,
+  types: typ list (* range types of state space *)
  };
 
-structure NameSpaceData = Generic_Data
+structure Data = Generic_Data
 (
-  type T = namespace_info;
-  val empty = {declinfo = Termtab.empty, distinctthm = Symtab.empty, silent = false};
-  fun merge
-    ({declinfo=declinfo1, distinctthm=distinctthm1, silent=silent1},
-      {declinfo=declinfo2, distinctthm=distinctthm2, silent=silent2}) : T =
-    {declinfo = join_declinfo (declinfo1, declinfo2),
-     distinctthm = join_distinctthm_tab (distinctthm1, distinctthm2),
-     silent = silent1 andalso silent2 (* FIXME odd merge *)}
+  type T =
+    (typ * string list) Termtab.table * (*declinfo: type, names of statespaces of component*)
+    thm list Symtab.table * (*distinctthm: minimal list of maximal distinctness-assumptions for a component name*)
+    statespace_info Symtab.table;
+  val empty = (Termtab.empty, Symtab.empty, Symtab.empty);
+  fun merge ((declinfo1, distinctthm1, statespaces1), (declinfo2, distinctthm2, statespaces2)) =
+   (join_declinfo (declinfo1, declinfo2),
+    Symtab.join (K join_distinct_thms) (distinctthm1, distinctthm2),
+    Symtab.merge (K true) (statespaces1, statespaces2));
 );
 
-fun trace_name_space_data context =  
-  tracing ("NameSpaceData: " ^ @{make_string} (NameSpaceData.get context))
+val get_declinfo = #1 o Data.get
+val get_distinctthm = #2 o Data.get
+val get_statespaces = #3 o Data.get
 
-fun make_namespace_data declinfo distinctthm silent =
-     {declinfo=declinfo,distinctthm=distinctthm,silent=silent};
+val map_declinfo = Data.map o @{apply 3(1)}
+val map_distinctthm = Data.map o @{apply 3(2)}
+val map_statespaces = Data.map o @{apply 3(3)}
 
+fun trace_data context =
+  tracing ("StateSpace.Data: " ^ @{make_string}
+   {declinfo = get_declinfo context,
+    distinctthm = get_distinctthm context,
+    statespaces = get_statespaces context})
 
-fun update_declinfo (n,v) ctxt =
-  let 
-    val {declinfo,distinctthm,silent} = NameSpaceData.get ctxt;
-    val v = apsnd single v
-  in NameSpaceData.put
-      (make_namespace_data (Termtab.map_default (n,v) (join_declinfo_entry (guess_name n) v) declinfo) distinctthm silent) ctxt
-  end;
-
-fun set_silent silent ctxt =
-  let val {declinfo,distinctthm,...} = NameSpaceData.get ctxt;
-  in NameSpaceData.put
-      (make_namespace_data declinfo distinctthm silent) ctxt
-  end;
-
-val get_silent = #silent o NameSpaceData.get;
+fun update_declinfo (n,v) = map_declinfo (fn declinfo =>
+  let val vs = apsnd single v
+  in Termtab.map_default (n, vs) (join_declinfo_entry (guess_name n) vs) declinfo end);
 
 fun expression_no_pos (expr, fixes) : Expression.expression =
   (map (fn (name, inst) => ((name, Position.none), inst)) expr, fixes);
@@ -216,52 +208,31 @@ fun add_locale_cmd name expr elems thy =
   |> snd
   |> Local_Theory.exit;
 
-type statespace_info =
- {args: (string * sort) list, (* type arguments *)
-  parents: (typ list * string * string option list) list,
-             (* type instantiation, state-space name, component renamings *)
-  components: (string * typ) list,
-  types: typ list (* range types of state space *)
- };
-
-structure StateSpaceData = Generic_Data
-(
-  type T = statespace_info Symtab.table;
-  val empty = Symtab.empty;
-  fun merge data : T = Symtab.merge (K true) data;
-);
-
 fun is_statespace context name =
-  Symtab.defined (StateSpaceData.get context) (Locale.intern (Context.theory_of context) name)
+  Symtab.defined (get_statespaces context) (Locale.intern (Context.theory_of context) name)
 
-fun trace_state_space_data context =  
-  tracing ("StateSpaceData: " ^ @{make_string} (StateSpaceData.get context))
+fun add_statespace name args parents components types =
+  map_statespaces (Symtab.update_new (name, {args=args,parents=parents, components=components,types=types}))
 
-fun add_statespace name args parents components types ctxt =
-     StateSpaceData.put
-      (Symtab.update_new (name, {args=args,parents=parents,
-                                components=components,types=types}) (StateSpaceData.get ctxt))
-      ctxt;
-
-fun get_statespace ctxt name =
-      Symtab.lookup (StateSpaceData.get ctxt) name;
+val get_statespace = Symtab.lookup o get_statespaces
+val the_statespace = the oo get_statespace
 
 
 fun mk_free ctxt name =
   if Variable.is_fixed ctxt name orelse Variable.is_declared ctxt name
   then
-    let 
+    let
       val n' = Variable.intern_fixed ctxt name |> perhaps Long_Name.dest_hidden;
       val free = Free (n', Proof_Context.infer_type ctxt (n', dummyT))
     in SOME (free) end
   else (tracing ("variable not fixed or declared: " ^ name); NONE)
 
 
-fun get_dist_thm ctxt name = Symtab.lookup (#distinctthm (NameSpaceData.get ctxt)) name;
+val get_dist_thm = Symtab.lookup o get_distinctthm;
 
-fun get_dist_thm2 ctxt x y = 
+fun get_dist_thm2 ctxt x y =
  (let
-    val dist_thms = [x, y] |> map (#1 o dest_Free) 
+    val dist_thms = [x, y] |> map (#1 o dest_Free)
       |> map (these o get_dist_thm (Context.Proof ctxt)) |> flat;
 
     fun get_paths dist_thm =
@@ -272,30 +243,31 @@ fun get_dist_thm2 ctxt x y =
         val y_path = the (DistinctTreeProver.find_tree y tree);
       in SOME (dist_thm, x_path, y_path) end
       handle Option.Option => NONE
-    
+
     val result = get_first get_paths dist_thms
-  in 
+  in
     result
   end)
-    
-       
-fun get_comp' ctxt name =
-  mk_free (Context.proof_of ctxt) name 
-  |> Option.mapPartial (fn t => 
+
+
+fun get_comp' context name =
+  mk_free (Context.proof_of context) name
+  |> Option.mapPartial (fn t =>
        let
-         val declinfo = #declinfo (NameSpaceData.get ctxt)
-       in 
+         val declinfo = get_declinfo context
+       in
          case Termtab.lookup declinfo t of
-           NONE => (* during syntax phase, types of fixes might not yet be constrained completely *) 
+           NONE => (* during syntax phase, types of fixes might not yet be constrained completely *)
              AList.lookup (fn (x, Free (n,_)) => n = x | _ => false) (Termtab.dest declinfo) name
          | some => some
        end)
 
 (* legacy wrapper *)
 fun get_comp ctxt name =
- get_comp' ctxt name |> Option.map (apsnd (fn ns => if null ns then "" else hd ns)) 
+ get_comp' ctxt name |> Option.map (apsnd (fn ns => if null ns then "" else hd ns))
 
-fun get_comps ctxt = #declinfo (NameSpaceData.get ctxt)
+val get_comps = get_declinfo
+
 
 (*** Tactics ***)
 
@@ -356,9 +328,10 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
         Context.Theory _ => context
       | Context.Proof ctxt =>
         let
-          val {declinfo,distinctthm=tt,silent} = NameSpaceData.get context;
+          val declinfo = get_declinfo context
+          val tt = get_distinctthm context;
           val all_names = comps_of_distinct_thm thm;
-          fun upd name = Symtab.map_default (name, [thm]) (fn thms => insert_distinct_thm thm thms)
+          fun upd name = Symtab.map_default (name, [thm]) (insert_distinct_thm thm)
 
           val tt' = tt |> fold upd all_names;
           val context' =
@@ -366,7 +339,8 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
               addsimprocs [distinct_simproc]
               |> Context_Position.restore_visible ctxt
               |> Context.Proof
-              |> NameSpaceData.put {declinfo=declinfo,distinctthm=tt',silent=silent};
+              |> map_declinfo (K declinfo)
+              |> map_distinctthm (K tt');
         in context' end));
 
     val attr = Attrib.internal type_attr;
@@ -406,11 +380,10 @@ fun add_declaration name decl thy =
 
 fun parent_components thy (Ts, pname, renaming) =
   let
-    val ctxt = Context.Theory thy;
     fun rename [] xs = xs
       | rename (NONE::rs)  (x::xs) = x::rename rs xs
       | rename (SOME r::rs) ((x,T)::xs) = (r,T)::rename rs xs;
-    val {args, parents, components, ...} = the (Symtab.lookup (StateSpaceData.get ctxt) pname);
+    val {args, parents, components, ...} = the_statespace (Context.Theory thy) pname;
     val inst = map fst args ~~ Ts;
     val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
     val parent_comps =
@@ -451,8 +424,7 @@ fun statespace_definition state_type args name parents parent_comps components t
 
     fun interprete_parent_valuetypes (prefix, (Ts, pname, _)) thy =
       let
-        val {args,types,...} =
-             the (Symtab.lookup (StateSpaceData.get (Context.Theory thy)) pname);
+        val {args,types,...} = the_statespace (Context.Theory thy) pname;
         val inst = map fst args ~~ Ts;
         val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
         val pars = maps ((fn T => [project_name T,inject_name T]) o subst) types;
@@ -481,7 +453,7 @@ fun statespace_definition state_type args name parents parent_comps components t
               in Context.proof_map
                   (update_declinfo (Morphism.term phi (Free (n,nT)),v))
               end;
-            val ctxt' = ctxt |> fold upd updates 
+            val ctxt' = ctxt |> fold upd updates
           in ctxt' end;
 
       in Context.mapping I upd_prf ctxt end;
@@ -558,7 +530,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
         val {args,components,...} =
               (case get_statespace (Context.Theory thy) full_pname of
                 SOME r => r
-               | NONE => error ("Undefined statespace " ^ quote pname));
+              | NONE => error ("Undefined statespace " ^ quote pname));
 
 
         val (Ts',env') = fold_map (prep_typ ctxt) Ts env
@@ -650,6 +622,7 @@ val define_statespace_i = gen_define_statespace cert_typ;
 
 (*** parse/print - translations ***)
 
+val silent = Attrib.setup_config_bool \<^binding>\<open>statespace_silent\<close> (K false);
 
 fun gen_lookup_tr ctxt s n =
   (case get_comp' (Context.Proof ctxt) n of
@@ -657,7 +630,7 @@ fun gen_lookup_tr ctxt s n =
       Syntax.const \<^const_name>\<open>StateFun.lookup\<close> $
         Syntax.free (project_name T) $ Syntax.free n $ s
   | NONE =>
-      if get_silent (Context.Proof ctxt)
+      if Config.get ctxt silent
       then Syntax.const \<^const_name>\<open>StateFun.lookup\<close> $
         Syntax.const \<^const_syntax>\<open>undefined\<close> $ Syntax.free n $ s
       else raise TERM ("StateSpace.gen_lookup_tr: component " ^ quote n ^ " not defined", []));
@@ -690,7 +663,7 @@ fun gen'_update_tr const_val id ctxt n v s =
           Syntax.free (pname T) $ Syntax.free (iname T) $
           Syntax.free n $ v $ s
     | NONE =>
-        if get_silent (Context.Proof ctxt) then
+        if Config.get ctxt silent then
           Syntax.const \<^const_name>\<open>StateFun.update\<close> $
             Syntax.const \<^const_syntax>\<open>undefined\<close> $ Syntax.const \<^const_syntax>\<open>undefined\<close> $
             Syntax.free n $ v $ s

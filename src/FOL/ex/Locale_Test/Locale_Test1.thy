@@ -234,7 +234,7 @@ locale semi_hom_loc = prod: semi \<open>prod\<close> + sum: semi \<open>sum\<clo
   notes semi_hom_mult = semi_hom_mult [OF semi_homh]
 
 thm semi_hom_loc.semi_hom_mult
-(* unspecified, attribute not applied in backgroud theory !!! *)
+(* unspecified, attribute not applied in background theory !!! *)
 
 lemma (in semi_hom_loc) \<open>h(prod(x, y)) = sum(h(x), h(y))\<close>
   by (rule semi_hom_mult)

@@ -26,7 +26,7 @@ fun maybe_instantiate ct thm =
 fun apply ctxt ct =
   let
     val net = Data.get (Context.Proof ctxt)
-    val xthms = Net.match_term net (Thm.term_of ct)
+    val xthms = map (Thm.transfer' ctxt) (Net.match_term net (Thm.term_of ct))
 
     fun select ct = map_filter (maybe_instantiate ct) xthms
     fun select' ct =
@@ -40,14 +40,12 @@ val prep = `Thm.prop_of
 fun ins thm net = Net.insert_term Thm.eq_thm (prep thm) net handle Net.INSERT => net
 fun del thm net = Net.delete_term Thm.eq_thm (prep thm) net handle Net.DELETE => net
 
-val add = Thm.declaration_attribute (Data.map o ins)
+val add = Thm.declaration_attribute (Data.map o ins o Thm.trim_context)
 val del = Thm.declaration_attribute (Data.map o del)
 
-val name = Binding.name "z3_rule"
-
-val description = "declaration of Z3 proof rules"
-
-val _ = Theory.setup (Attrib.setup name (Attrib.add_del add del) description #>
-  Global_Theory.add_thms_dynamic (name, Net.content o Data.get))
+val _ = Theory.setup
+ (Attrib.setup \<^binding>\<open>z3_rule\<close> (Attrib.add_del add del) "declaration of Z3 proof rules" #>
+  Global_Theory.add_thms_dynamic (\<^binding>\<open>z3_rule\<close>,
+    fn context => map (Thm.transfer'' context) (Net.content (Data.get context))))
 
 end;

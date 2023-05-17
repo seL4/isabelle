@@ -43,6 +43,7 @@ sig
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val propagate_ml_env: generic_theory -> generic_theory
+  val touch_ml_env: generic_theory -> generic_theory
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
@@ -252,6 +253,13 @@ fun propagate_ml_env (context as Context.Proof lthy) =
         |> Context.Proof
       end
   | propagate_ml_env context = context;
+
+fun touch_ml_env context =
+  if Context.enabled_tracing () then
+    (case context of
+      Context.Theory _ => ML_Env.touch context
+    | Context.Proof _ => context)
+  else context;
 
 
 

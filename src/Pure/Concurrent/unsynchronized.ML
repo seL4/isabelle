@@ -18,6 +18,7 @@ sig
   type 'a weak_ref = 'a ref option ref
   val weak_ref: 'a -> 'a weak_ref
   val weak_peek: 'a weak_ref -> 'a option
+  val weak_active: 'a weak_ref -> bool
 end;
 
 structure Unsynchronized: UNSYNCHRONIZED =
@@ -57,6 +58,9 @@ fun weak_ref a = Weak.weak (SOME (ref a));
 
 fun weak_peek (ref (SOME (ref a))) = SOME a
   | weak_peek _ = NONE;
+
+fun weak_active (ref (SOME (ref _))) = true
+  | weak_active _ = false;
 
 end;
 

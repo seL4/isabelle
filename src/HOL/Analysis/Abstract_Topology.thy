@@ -296,6 +296,10 @@ lemma closedin_subtopology: "closedin (subtopology U V) S \<longleftrightarrow> 
   unfolding closedin_def topspace_subtopology
   by (auto simp: openin_subtopology)
 
+lemma closedin_subset_topspace:
+   "\<lbrakk>closedin X S; S \<subseteq> T\<rbrakk> \<Longrightarrow> closedin (subtopology X T) S"
+  using closedin_subtopology by fastforce
+
 lemma closedin_relative_to:
    "(closedin X relative_to S) = closedin (subtopology X S)"
   by (force simp: relative_to_def closedin_subtopology)
@@ -3377,6 +3381,10 @@ proof -
       by (auto simp: 1 2)
   qed
 qed
+
+lemma connected_space_quotient_map_image:
+   "\<lbrakk>quotient_map X X' q; connected_space X\<rbrakk> \<Longrightarrow> connected_space X'"
+  by (metis connectedin_continuous_map_image connectedin_topspace quotient_imp_continuous_map quotient_imp_surjective_map)
 
 lemma homeomorphic_connected_space:
      "X homeomorphic_space Y \<Longrightarrow> connected_space X \<longleftrightarrow> connected_space Y"

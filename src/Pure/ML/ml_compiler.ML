@@ -166,7 +166,8 @@ fun eval (flags: flags) pos toks =
     (* input *)
 
     val position_props =
-      filter (fn (a, _) => a = Markup.idN orelse a = Markup.fileN) (Position.properties_of pos);
+      filter (fn (a, _) => a = Markup.labelN orelse a = Markup.fileN orelse a = Markup.idN)
+        (Position.properties_of pos);
     val location_props = op ^ (YXML.output_markup (":", position_props));
 
     val {explode_token, ...} = ML_Env.operations opt_context (#environment flags);

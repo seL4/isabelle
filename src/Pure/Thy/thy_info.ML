@@ -44,7 +44,7 @@ fun adjust_pos_properties (context: presentation_context) pos =
     val props' = Position.properties_of (#adjust_pos context pos);
   in
     filter (fn (a, _) => a = Markup.offsetN orelse a = Markup.end_offsetN) props' @
-    filter (fn (a, _) => a = Markup.idN orelse a = Markup.fileN) props
+    filter (fn (a, _) => a = Markup.labelN orelse a = Markup.fileN orelse a = Markup.idN) props
   end;
 
 structure Presentation = Theory_Data
