@@ -1098,7 +1098,6 @@ lemma frontier_of_closures:
      "X frontier_of S = X closure_of S \<inter> X closure_of (topspace X - S)"
   by (metis Diff_Diff_Int closure_of_complement closure_of_subset_topspace double_diff frontier_of_def interior_of_subset_closure_of)
 
-
 lemma interior_of_union_frontier_of [simp]:
      "X interior_of S \<union> X frontier_of S = X closure_of S"
   by (simp add: frontier_of_def interior_of_subset_closure_of subset_antisym)
@@ -1264,6 +1263,37 @@ lemma frontier_of_subtopology_open:
 lemma discrete_topology_frontier_of [simp]:
      "(discrete_topology U) frontier_of S = {}"
   by (simp add: Diff_eq discrete_topology_closure_of frontier_of_closures)
+
+lemma openin_subset_topspace_eq:
+  assumes "disjnt S (X frontier_of U)"
+  shows "openin (subtopology X U) S \<longleftrightarrow> openin X S \<and> S \<subseteq> U"
+proof
+  assume S: "openin (subtopology X U) S"
+  show "openin X S \<and> S \<subseteq> U"
+  proof
+    show "S \<subseteq> U"
+      using S openin_imp_subset by blast
+    have "disjnt S (X frontier_of (topspace X \<inter> U))"
+      by (metis assms frontier_of_restrict)
+    moreover
+    have "openin (subtopology X (topspace X \<inter> U)) S"
+      by (simp add: S subtopology_restrict)
+    moreover
+    have "openin X S" 
+      if dis: "disjnt S (X frontier_of U)" and ope: "openin (subtopology X U) S" and "U \<subseteq> topspace X" 
+      for S U
+    proof -
+      obtain T where T: "openin X T" "S = T \<inter> U"
+        using ope by (auto simp: openin_subtopology)
+      have "T \<inter> U = T \<inter> X interior_of U"
+        using that T interior_of_subset in_closure_of by (fastforce simp: disjnt_iff frontier_of_def)
+      then show ?thesis
+        using \<open>S = T \<inter> U\<close> \<open>openin X T\<close> by auto
+    qed
+  ultimately show "openin X S"
+      by blast
+  qed 
+qed (metis inf.absorb_iff1 openin_subtopology_Int)
 
 
 subsection\<open>Locally finite collections\<close>
