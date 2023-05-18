@@ -41,6 +41,10 @@ sig
   val compose: morphism -> morphism -> morphism
   type 'a entity
   val entity: (morphism -> 'a) -> 'a entity
+  val entity_reset_context: 'a entity -> 'a entity
+  val entity_set_context: theory -> 'a entity -> 'a entity
+  val entity_set_context': Proof.context -> 'a entity -> 'a entity
+  val entity_set_context'': Context.generic -> 'a entity -> 'a entity
   val transform: morphism -> 'a entity -> 'a entity
   val form: 'a entity -> 'a
   val form_entity: (morphism -> 'a) -> 'a
@@ -171,11 +175,18 @@ fun phi1 $> phi2 = compose phi2 phi1;
 
 (* abstract entities *)
 
-datatype 'a entity = Entity of morphism -> 'a
-fun entity f = Entity f;
+datatype 'a entity = Entity of (morphism -> 'a) * morphism;
+fun entity f = Entity (f, identity);
 
-fun transform phi (Entity f) = Entity (fn psi => f (phi $> psi));
-fun form (Entity f) = f identity;
+fun entity_morphism g (Entity (f, phi)) = Entity (f, g phi);
+fun entity_reset_context a = entity_morphism reset_context a;
+fun entity_set_context thy a = entity_morphism (set_context thy) a;
+fun entity_set_context' ctxt a = entity_morphism (set_context' ctxt) a;
+fun entity_set_context'' context a = entity_morphism (set_context'' context) a;
+
+fun transform phi2 (Entity (f, phi1)) = Entity (f, phi1 $> phi2);
+fun form (Entity (f, phi)) = f phi;
+
 fun form_entity f = f identity;
 
 type declaration = (Context.generic -> Context.generic) entity;

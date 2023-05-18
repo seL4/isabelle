@@ -221,7 +221,7 @@ fun register_locale
       mk_locale ((parameters, spec, (apply2 o Option.map) Thm.trim_context intros,
           map Thm.trim_context axioms,
           map Element.trim_context_ctxt hyp_spec),
-        ((map (fn decl => (decl, serial ())) syntax_decls,
+        ((map (fn decl => (Morphism.entity_reset_context decl, serial ())) syntax_decls,
           map (fn (a, facts) => ((a, map Attrib.trim_context_fact facts), serial ())) notes),
           (map (fn (name, morph) => make_dep (name, (morph, Morphism.identity))) dependencies,
             Inttab.empty)))) #> snd);
@@ -499,9 +499,10 @@ fun activate_syntax_decls (name, morph) context =
     val _ = trace "syntax" (name, morph) context;
     val thy = Context.theory_of context;
     val {syntax_decls, ...} = the_locale thy name;
+    val form_syntax_decl =
+      Morphism.form o Morphism.transform morph o Morphism.entity_set_context thy;
   in
-    context
-    |> fold_rev (Morphism.form o Morphism.transform morph o #1) syntax_decls
+    fold_rev (form_syntax_decl o #1) syntax_decls context
       handle ERROR msg => activate_err msg "syntax" (name, morph) context
   end;
 
@@ -674,9 +675,11 @@ fun add_facts loc kind facts ctxt =
     end;
 
 fun add_declaration loc syntax decl =
-  syntax ?
-    Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
-  #> add_facts loc "" [(Binding.empty_atts, Attrib.internal_declaration decl)];
+  let val decl0 = Morphism.entity_reset_context decl in
+    syntax ?
+      Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl0, serial ())))
+    #> add_facts loc "" [(Binding.empty_atts, Attrib.internal_declaration decl0)]
+  end;
 
 
 (*** Reasoning about locales ***)

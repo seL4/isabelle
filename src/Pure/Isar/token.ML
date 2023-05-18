@@ -490,19 +490,26 @@ fun map_facts f =
 
 local
 
-fun context thm_context morphism_context =
+fun context thm_context morphism_context attribute_context declaration_context =
   let
     fun token_context tok = map_value
       (fn Source src => Source (map token_context src)
         | Fact (a, ths) => Fact (a, map thm_context ths)
         | Name (a, phi) => Name (a, morphism_context phi)
+        | Attribute a => Attribute (attribute_context a)
+        | Declaration a => Declaration (declaration_context a)
         | v => v) tok;
   in token_context end;
 
 in
 
-val trim_context = context Thm.trim_context Morphism.reset_context;
-fun transfer thy = context (Thm.transfer thy) (Morphism.set_context thy);
+val trim_context =
+  context Thm.trim_context Morphism.reset_context
+    Morphism.entity_reset_context Morphism.entity_reset_context;
+
+fun transfer thy =
+  context (Thm.transfer thy) (Morphism.set_context thy)
+    (Morphism.entity_set_context thy) (Morphism.entity_set_context thy);
 
 end;
 
