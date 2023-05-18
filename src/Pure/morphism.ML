@@ -9,7 +9,6 @@ infix 1 $>
 signature BASIC_MORPHISM =
 sig
   type morphism
-  type declaration = morphism -> Context.generic -> Context.generic
   val $> : morphism * morphism -> morphism
 end
 
@@ -40,8 +39,13 @@ sig
   val identity: morphism
   val default: morphism option -> morphism
   val compose: morphism -> morphism -> morphism
-  val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
-  val form: (morphism -> 'a) -> 'a
+  type 'a entity
+  val entity: (morphism -> 'a) -> 'a entity
+  val transform: morphism -> 'a entity -> 'a entity
+  val form: 'a entity -> 'a
+  val form_entity: (morphism -> 'a) -> 'a
+  type declaration = (Context.generic -> Context.generic) entity
+  type declaration_fn = morphism -> Context.generic -> Context.generic
   val binding_morphism: string -> (binding -> binding) -> morphism
   val typ_morphism': string -> (theory -> typ -> typ) -> morphism
   val typ_morphism: string -> (typ -> typ) -> morphism
@@ -94,8 +98,6 @@ datatype morphism = Morphism of
   typ: typ funs,
   term: term funs,
   fact: thm list funs};
-
-type declaration = morphism -> Context.generic -> Context.generic;
 
 fun rep (Morphism args) = args;
 
@@ -166,8 +168,18 @@ fun compose phi1 phi2 =
 
 fun phi1 $> phi2 = compose phi2 phi1;
 
-fun transform phi f = fn psi => f (phi $> psi);
-fun form f = f identity;
+
+(* abstract entities *)
+
+datatype 'a entity = Entity of morphism -> 'a
+fun entity f = Entity f;
+
+fun transform phi (Entity f) = Entity (fn psi => f (phi $> psi));
+fun form (Entity f) = f identity;
+fun form_entity f = f identity;
+
+type declaration = (Context.generic -> Context.generic) entity;
+type declaration_fn = morphism -> Context.generic -> Context.generic;
 
 
 (* concrete morphisms *)

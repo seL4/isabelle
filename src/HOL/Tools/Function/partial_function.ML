@@ -6,7 +6,7 @@ Partial function definitions based on least fixed points in ccpos.
 
 signature PARTIAL_FUNCTION =
 sig
-  val init: string -> term -> term -> thm -> thm -> thm option -> declaration
+  val init: string -> term -> term -> thm -> thm -> thm option -> Morphism.declaration_fn
   val mono_tac: Proof.context -> int -> tactic
   val add_partial_function: string -> (binding * typ option * mixfix) list ->
     Attrib.binding * term -> local_theory -> (term * thm) * local_theory

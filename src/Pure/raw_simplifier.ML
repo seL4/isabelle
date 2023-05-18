@@ -36,7 +36,7 @@ sig
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val cert_simproc: theory -> string ->
-    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
+    {lhss: term list, proc: (Proof.context -> cterm -> thm option) Morphism.entity} -> simproc
   val transform_simproc: morphism -> simproc -> simproc
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
@@ -710,7 +710,7 @@ datatype simproc =
   Simproc of
     {name: string,
      lhss: term list,
-     proc: morphism -> Proof.context -> cterm -> thm option,
+     proc: (Proof.context -> cterm -> thm option) Morphism.entity,
      stamp: stamp};
 
 fun eq_simproc (Simproc {stamp = stamp1, ...}, Simproc {stamp = stamp2, ...}) = stamp1 = stamp2;

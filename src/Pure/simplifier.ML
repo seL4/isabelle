@@ -128,7 +128,8 @@ fun make_simproc ctxt name {lhss, proc} =
     val ctxt' = fold Proof_Context.augment lhss ctxt;
     val lhss' = Variable.export_terms ctxt' ctxt lhss;
   in
-    cert_simproc (Proof_Context.theory_of ctxt) name {lhss = lhss', proc = proc}
+    cert_simproc (Proof_Context.theory_of ctxt) name
+      {lhss = lhss', proc = Morphism.entity proc}
   end;
 
 local
@@ -311,8 +312,8 @@ local
 val add_del =
   (Args.del -- Args.colon >> K (op delsimprocs) ||
     Scan.option (Args.add -- Args.colon) >> K (op addsimprocs))
-  >> (fn f => fn simproc => fn phi => Thm.declaration_attribute
-      (K (Raw_Simplifier.map_ss (fn ctxt => f (ctxt, [transform_simproc phi simproc])))));
+  >> (fn f => fn simproc => Morphism.entity (fn phi => Thm.declaration_attribute
+      (K (Raw_Simplifier.map_ss (fn ctxt => f (ctxt, [transform_simproc phi simproc]))))));
 
 in
 

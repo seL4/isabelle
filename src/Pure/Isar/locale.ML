@@ -39,7 +39,7 @@ sig
     term option * term list ->
     thm option * thm option -> thm list ->
     Element.context_i list ->
-    declaration list ->
+    Morphism.declaration list ->
     (string * Attrib.fact list) list ->
     (string * morphism) list -> theory -> theory
   val locale_space: theory -> Name_Space.T
@@ -59,7 +59,7 @@ sig
 
   (* Storing results *)
   val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
-  val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
+  val add_declaration: string -> bool -> Morphism.declaration -> Proof.context -> Proof.context
 
   (* Activation *)
   val activate_facts: morphism option -> string * morphism -> Context.generic -> Context.generic
@@ -152,7 +152,7 @@ datatype locale = Loc of {
   (* dynamic part *)
 
   (*syntax declarations*)
-  syntax_decls: (declaration * serial) list,
+  syntax_decls: (Morphism.declaration * serial) list,
   (*theorem declarations*)
   notes: ((string * Attrib.fact list) * serial) list,
   (*locale dependencies (sublocale relation) in reverse order*)
@@ -501,7 +501,7 @@ fun activate_syntax_decls (name, morph) context =
     val {syntax_decls, ...} = the_locale thy name;
   in
     context
-    |> fold_rev (fn (decl, _) => decl morph) syntax_decls
+    |> fold_rev (Morphism.form o Morphism.transform morph o #1) syntax_decls
       handle ERROR msg => activate_err msg "syntax" (name, morph) context
   end;
 

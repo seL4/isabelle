@@ -49,7 +49,7 @@ sig
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
   val internal: (morphism -> attribute) -> Token.src
-  val internal_declaration: declaration -> thms
+  val internal_declaration: Morphism.declaration -> thms
   val add_del: attribute -> attribute -> attribute context_parser
   val thm: thm context_parser
   val thms: thm list context_parser
@@ -257,10 +257,8 @@ fun internal_source value =
 
 in
 
-fun internal att = internal_source (Token.Attribute att);
-
-fun internal_declaration decl =
-  [([Drule.dummy_thm], [internal_source (Token.Declaration decl)])];
+fun internal arg = internal_source (Token.Attribute (Morphism.entity arg));
+fun internal_declaration arg = [([Drule.dummy_thm], [internal_source (Token.Declaration arg)])];
 
 end;
 
@@ -442,7 +440,8 @@ fun scan_config thy config =
 fun register binding config thy =
   let val name = Sign.full_name thy binding in
     thy
-    |> setup binding (Scan.lift (scan_config thy config) >> Morphism.form) "configuration option"
+    |> setup binding (Scan.lift (scan_config thy config) >> Morphism.form_entity)
+        "configuration option"
     |> Configs.map (Symtab.update (name, config))
   end;
 

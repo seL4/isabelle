@@ -36,15 +36,15 @@ sig
   val internal_typ: typ parser
   val internal_term: term parser
   val internal_fact: thm list parser
-  val internal_attribute: (morphism -> attribute) parser
-  val internal_declaration: declaration parser
+  val internal_attribute: attribute Morphism.entity parser
+  val internal_declaration: Morphism.declaration parser
   val named_source: (Token.T -> Token.src) -> Token.src parser
   val named_typ: (string -> typ) -> typ parser
   val named_term: (string -> term) -> term parser
   val named_fact: (string -> string option * thm list) -> thm list parser
-  val named_attribute: (string * Position.T -> morphism -> attribute) ->
-    (morphism -> attribute) parser
-  val embedded_declaration: (Input.source -> declaration) -> declaration parser
+  val named_attribute: (string * Position.T -> attribute Morphism.entity) ->
+    attribute Morphism.entity parser
+  val embedded_declaration: (Input.source -> Morphism.declaration) -> Morphism.declaration parser
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser
