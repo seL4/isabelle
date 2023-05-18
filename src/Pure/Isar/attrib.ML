@@ -237,23 +237,32 @@ fun attribute_setup binding source comment =
 
 (* internal attribute *)
 
-val _ = Theory.setup
-  (setup (Binding.make ("attribute", \<^here>))
-    (Scan.lift Args.internal_attribute >> Morphism.form)
-    "internal attribute");
-
 fun internal_name ctxt name =
   Token.make_src (name, Position.none) [] |> check_src ctxt |> hd;
+
+local
+
+val _ = Theory.setup
+  (setup (Binding.make ("attribute", \<^here>))
+    (Scan.lift Args.internal_attribute >> Morphism.form ||
+      Scan.lift Args.internal_declaration >> (Thm.declaration_attribute o K o Morphism.form))
+    "internal attribute");
 
 val internal_attribute_name =
   internal_name (Context.the_local_context ()) "attribute";
 
-fun internal att =
+fun internal_source value =
   internal_attribute_name ::
-    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
+    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME value)];
+
+in
+
+fun internal att = internal_source (Token.Attribute att);
 
 fun internal_declaration decl =
-  [([Drule.dummy_thm], [internal (fn phi => Thm.declaration_attribute (K (decl phi)))])];
+  [([Drule.dummy_thm], [internal_source (Token.Declaration decl)])];
+
+end;
 
 
 (* add/del syntax *)
