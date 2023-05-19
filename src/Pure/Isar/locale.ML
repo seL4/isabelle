@@ -662,11 +662,11 @@ fun add_facts loc kind facts ctxt =
       val stored_notes = ((kind, map Attrib.trim_context_fact facts), serial ());
       val applied_notes = make_notes kind facts;
 
-      fun apply_notes morph = applied_notes |> fold (fn elem => fn context =>
-        let val elem' = Element.transform_ctxt (Morphism.set_context'' context morph) elem
-        in Element.init elem' context end);
-      val apply_registrations = Context.theory_map (fn context =>
-        fold_rev (apply_notes o #2) (registrations_of context loc) context);
+      fun apply_notes morph = applied_notes |> fold (fn elem => fn thy =>
+        let val elem' = Element.transform_ctxt (Morphism.set_context thy morph) elem
+        in Context.theory_map (Element.init elem') thy end);
+      fun apply_registrations thy =
+        fold_rev (apply_notes o #2) (registrations_of (Context.Theory thy) loc) thy;
     in
       ctxt
       |> Attrib.local_notes kind facts |> #2
