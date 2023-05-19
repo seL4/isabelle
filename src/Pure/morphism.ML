@@ -46,6 +46,7 @@ sig
   val entity_set_context': Proof.context -> 'a entity -> 'a entity
   val entity_set_context'': Context.generic -> 'a entity -> 'a entity
   val transform: morphism -> 'a entity -> 'a entity
+  val transform_reset_context: morphism -> 'a entity -> 'a entity
   val form: 'a entity -> 'a
   val form_entity: (morphism -> 'a) -> 'a
   type declaration = (Context.generic -> Context.generic) entity
@@ -185,8 +186,9 @@ fun entity_set_context' ctxt a = entity_morphism (set_context' ctxt) a;
 fun entity_set_context'' context a = entity_morphism (set_context'' context) a;
 
 fun transform phi2 (Entity (f, phi1)) = Entity (f, phi1 $> phi2);
-fun form (Entity (f, phi)) = f phi;
+fun transform_reset_context phi2 (Entity (f, phi1)) = Entity (f, reset_context (phi1 $> phi2));
 
+fun form (Entity (f, phi)) = f phi;
 fun form_entity f = f identity;
 
 type declaration = (Context.generic -> Context.generic) entity;

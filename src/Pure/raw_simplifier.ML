@@ -722,7 +722,7 @@ fun transform_simproc phi (Simproc {name, lhss, proc, stamp}) =
   Simproc
    {name = name,
     lhss = map (Morphism.term phi) lhss,
-    proc = Morphism.transform phi proc |> Morphism.entity_reset_context,
+    proc = Morphism.transform_reset_context phi proc,
     stamp = stamp};
 
 local
