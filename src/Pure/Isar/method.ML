@@ -607,12 +607,17 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
                   map (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs)) xthms;
                 val facts =
                   Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
-                  |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K attribute)]), bs));
+                  |> map (fn (_, bs) =>
+                    ((Binding.empty, [Attrib.internal (K attribute)]), Attrib.trim_context_thms bs));
 
                 val decl =
-                  Morphism.entity (fn phi =>
-                    Context.mapping I init #>
-                    Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd);
+                  Morphism.entity (fn phi => fn context =>
+                    let val psi = Morphism.set_context'' context phi in
+                      context
+                      |> Context.mapping I init
+                      |> Attrib.generic_notes "" (Attrib.transform_facts psi facts)
+                      |> snd
+                    end);
 
                 val modifier_report =
                   (#1 (Token.range_of modifier_toks),
