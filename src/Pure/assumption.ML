@@ -18,7 +18,9 @@ sig
   val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
   val add_assumes: cterm list -> Proof.context -> thm list * Proof.context
   val export_term: Proof.context -> Proof.context -> term -> term
-  val export: bool -> Proof.context -> Proof.context -> thm -> thm
+  val export_: {goal: bool} -> Proof.context -> Proof.context -> thm -> thm
+  val export: Proof.context -> Proof.context -> thm -> thm
+  val export_goal: Proof.context -> Proof.context -> thm -> thm
   val export_morphism: Proof.context -> Proof.context -> morphism
 end;
 
@@ -134,10 +136,13 @@ fun export_term inner outer =
 fun export_thm is_goal inner outer =
   fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer);
 
-fun export is_goal inner outer =
+fun export_{goal} inner outer =
   Raw_Simplifier.norm_hhf_protect inner #>
-  export_thm is_goal inner outer #>
+  export_thm goal inner outer #>
   Raw_Simplifier.norm_hhf_protect outer;
+
+val export = export_{goal = false};
+val export_goal = export_{goal = true};
 
 fun export_morphism inner outer =
   let

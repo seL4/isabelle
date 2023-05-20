@@ -221,7 +221,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
     res
     |> Thm.close_derivation \<^here>
     |> Conjunction.elim_balanced (length props)
-    |> map (Assumption.export false ctxt' ctxt)
+    |> map (Assumption.export ctxt' ctxt)
     |> Variable.export ctxt' ctxt
     |> map Drule.zero_var_indexes
   end;

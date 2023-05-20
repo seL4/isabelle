@@ -102,8 +102,9 @@ sig
   val standard_typ_check: Proof.context -> typ list -> typ list
   val standard_term_check_finish: Proof.context -> term list -> term list
   val standard_term_uncheck: Proof.context -> term list -> term list
-  val goal_export: Proof.context -> Proof.context -> thm list -> thm list
+  val export_: {goal: bool} -> Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
+  val export_goal: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
@@ -838,12 +839,12 @@ fun standard_term_uncheck ctxt = map (contract_abbrevs ctxt);
 
 (** export results **)
 
-fun common_export is_goal inner outer =
-  map (Assumption.export is_goal inner outer) #>
+fun export_ goal inner outer =
+  map (Assumption.export_ goal inner outer) #>
   Variable.export inner outer;
 
-val goal_export = common_export true;
-val export = common_export false;
+val export = export_{goal = false};
+val export_goal = export_{goal = true};
 
 fun export_morphism inner outer =
   Assumption.export_morphism inner outer $>
