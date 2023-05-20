@@ -1323,11 +1323,10 @@ simproc_setup numeral_divmod
       minus_minus numeral_times_numeral mult_zero_right mult_1_right
       euclidean_size_nat_less_eq_iff euclidean_size_int_less_eq_iff diff_nat_numeral nat_numeral}
       @ [@{lemma "0 = 0 \<longleftrightarrow> True" by simp}];
-    fun prepare_simpset ctxt = HOL_ss |> Simplifier.simpset_map ctxt
-      (Simplifier.add_cong if_cong #> fold Simplifier.add_simp simps)
-  in
-    K (fn ctxt => successful_rewrite (Simplifier.put_simpset (prepare_simpset ctxt) ctxt))
-  end
+    val simpset =
+      HOL_ss |> Simplifier.simpset_map \<^context>
+        (Simplifier.add_cong if_cong #> fold Simplifier.add_simp simps);
+  in K (fn ctxt => successful_rewrite (Simplifier.put_simpset simpset ctxt)) end
 \<close> \<comment> \<open>
   There is space for improvement here: the calculation itself
   could be carried out outside the logic, and a generic simproc
