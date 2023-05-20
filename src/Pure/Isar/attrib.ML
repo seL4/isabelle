@@ -169,7 +169,7 @@ fun attribute_generic context =
         val name = #1 (Token.name_of_src src);
         val label = Long_Name.qualify Markup.attributeN name;
         val att = #1 (Name_Space.get table name) src;
-      in Position.setmp_thread_data_label label att end
+      in Position.setmp_thread_data_label label att : attribute end
   end;
 
 val attribute = attribute_generic o Context.Proof;
@@ -237,19 +237,21 @@ fun attribute_setup binding source comment =
 
 (* internal attribute *)
 
-fun internal_name ctxt name =
+fun make_name ctxt name =
   Token.make_src (name, Position.none) [] |> check_src ctxt |> hd;
 
 local
 
+val internal_binding = Binding.make ("attribute", \<^here>);
+
 val _ = Theory.setup
-  (setup (Binding.make ("attribute", \<^here>))
+  (setup internal_binding
     (Scan.lift Args.internal_attribute >> Morphism.form ||
       Scan.lift Args.internal_declaration >> (Thm.declaration_attribute o K o Morphism.form))
     "internal attribute");
 
-val internal_name = internal_name (Context.the_local_context ()) "attribute";
-val internal_arg = Token.make_string ("<attribute>", Position.none);
+val internal_name = make_name (Context.the_local_context ()) (Binding.name_of internal_binding);
+val internal_arg = Token.make_string0 "<attribute>";
 fun internal_source value = [internal_name, Token.assign (SOME value) internal_arg];
 
 in
@@ -635,23 +637,21 @@ val _ = Theory.setup
 
 local
 
-val internal = internal_name (Context.the_local_context ());
+val make_name0 = make_name (Context.the_local_context ());
 
-val consumes_name = internal "consumes";
-val constraints_name = internal "constraints";
-val cases_open_name = internal "cases_open";
-val case_names_name = internal "case_names";
-val case_conclusion_name = internal "case_conclusion";
-
-fun make_string s = Token.make_string (s, Position.none);
+val consumes_name = make_name0 "consumes";
+val constraints_name = make_name0 "constraints";
+val cases_open_name = make_name0 "cases_open";
+val case_names_name = make_name0 "case_names";
+val case_conclusion_name = make_name0 "case_conclusion";
 
 in
 
 fun consumes i = consumes_name :: Token.make_int i;
 fun constraints i = constraints_name :: Token.make_int i;
 val cases_open = [cases_open_name];
-fun case_names names = case_names_name :: map make_string names;
-fun case_conclusion (name, names) = case_conclusion_name :: map make_string (name :: names);
+fun case_names names = case_names_name :: map Token.make_string0 names;
+fun case_conclusion (name, names) = case_conclusion_name :: map Token.make_string0 (name :: names);
 
 end;
 
