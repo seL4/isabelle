@@ -248,12 +248,9 @@ val _ = Theory.setup
       Scan.lift Args.internal_declaration >> (Thm.declaration_attribute o K o Morphism.form))
     "internal attribute");
 
-val internal_attribute_name =
-  internal_name (Context.the_local_context ()) "attribute";
-
-fun internal_source value =
-  internal_attribute_name ::
-    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME value)];
+val internal_name = internal_name (Context.the_local_context ()) "attribute";
+val internal_arg = Token.make_string ("<attribute>", Position.none);
+fun internal_source value = [internal_name, Token.assign (SOME value) internal_arg];
 
 in
 
