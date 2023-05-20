@@ -187,8 +187,8 @@ fun entity_set_context thy a = entity_morphism (set_context thy) a;
 fun entity_set_context' ctxt a = entity_morphism (set_context' ctxt) a;
 fun entity_set_context'' context a = entity_morphism (set_context'' context) a;
 
-fun transform phi2 (Entity (f, phi1)) = Entity (f, phi1 $> phi2);
-fun transform_reset_context phi2 (Entity (f, phi1)) = Entity (f, reset_context (phi1 $> phi2));
+fun transform phi = entity_morphism (compose phi);
+fun transform_reset_context phi = entity_morphism (reset_context o compose phi);
 
 fun form (Entity (f, phi)) = f phi;
 fun form_entity f = f identity;
