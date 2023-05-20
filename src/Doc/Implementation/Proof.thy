@@ -271,6 +271,7 @@ text %mlref \<open>
   @{define_ML Assumption.add_assumes: "
   cterm list -> Proof.context -> thm list * Proof.context"} \\
   @{define_ML Assumption.export: "Proof.context -> Proof.context -> thm -> thm"} \\
+  @{define_ML Assumption.export_goal: "Proof.context -> Proof.context -> thm -> thm"} \\
   @{define_ML Assumption.export_term: "Proof.context -> Proof.context -> term -> term"} \\
   \end{mldecls}
 
@@ -292,9 +293,10 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Assumption.export\<close>~\<open>inner outer thm\<close> exports result \<open>thm\<close> from the
   \<open>inner\<close> context back into the \<open>outer\<close> one; \<^ML>\<open>Assumption.export_goal\<close>
-  does the same in a goal context. The result is in HHF normal form. Note that
-  \<^ML>\<open>Proof_Context.export\<close> combines \<^ML>\<open>Variable.export\<close> and
-  \<^ML>\<open>Assumption.export\<close> in the canonical way.
+  does the same in a goal context (\<^theory_text>\<open>fix/assume/show\<close> in Isabelle/Isar). The
+  result is always in HHF normal form. Note that \<^ML>\<open>Proof_Context.export\<close>
+  combines \<^ML>\<open>Variable.export\<close> and \<^ML>\<open>Assumption.export\<close> in the
+  canonical way.
 
   \<^descr> \<^ML>\<open>Assumption.export_term\<close>~\<open>inner outer t\<close> exports term \<open>t\<close> from the
   \<open>inner\<close> context back into the \<open>outer\<close> one. This is analogous to
