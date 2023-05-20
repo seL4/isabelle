@@ -104,6 +104,7 @@ sig
   val print_properties: Keyword.keywords -> Properties.T -> string
   val make: (int * int) * string -> Position.T -> T * Position.T
   val make_string: string * Position.T -> T
+  val make_string0: string -> T
   val make_int: int -> T list
   val make_src: string * Position.T -> T list -> src
   type 'a parser = T list -> 'a * T list
@@ -770,6 +771,8 @@ fun make_string (s, pos) =
     val Token ((x, _), y, z) = #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none);
     val pos' = Position.no_range_position pos;
   in Token ((x, (pos', pos')), y, z) end;
+
+fun make_string0 s = make_string (s, Position.none);
 
 val make_int = explode Keyword.empty_keywords Position.none o signed_string_of_int;
 
