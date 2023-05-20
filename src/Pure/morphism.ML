@@ -49,8 +49,8 @@ sig
   val transform_reset_context: morphism -> 'a entity -> 'a entity
   val form: 'a entity -> 'a
   val form_entity: (morphism -> 'a) -> 'a
-  type declaration = (Context.generic -> Context.generic) entity
-  type declaration_fn = morphism -> Context.generic -> Context.generic
+  type declaration = morphism -> Context.generic -> Context.generic
+  type declaration_entity = (Context.generic -> Context.generic) entity
   val binding_morphism: string -> (binding -> binding) -> morphism
   val typ_morphism': string -> (theory -> typ -> typ) -> morphism
   val typ_morphism: string -> (typ -> typ) -> morphism
@@ -193,8 +193,8 @@ fun transform_reset_context phi2 (Entity (f, phi1)) = Entity (f, reset_context (
 fun form (Entity (f, phi)) = f phi;
 fun form_entity f = f identity;
 
-type declaration = (Context.generic -> Context.generic) entity;
-type declaration_fn = morphism -> Context.generic -> Context.generic;
+type declaration = morphism -> Context.generic -> Context.generic;
+type declaration_entity = (Context.generic -> Context.generic) entity;
 
 
 (* concrete morphisms *)

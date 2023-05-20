@@ -39,7 +39,7 @@ sig
     term option * term list ->
     thm option * thm option -> thm list ->
     Element.context_i list ->
-    Morphism.declaration list ->
+    Morphism.declaration_entity list ->
     (string * Attrib.fact list) list ->
     (string * morphism) list -> theory -> theory
   val locale_space: theory -> Name_Space.T
@@ -59,7 +59,7 @@ sig
 
   (* Storing results *)
   val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
-  val add_declaration: string -> bool -> Morphism.declaration -> Proof.context -> Proof.context
+  val add_declaration: string -> bool -> Morphism.declaration_entity -> Proof.context -> Proof.context
 
   (* Activation *)
   val activate_facts: morphism option -> string * morphism -> Context.generic -> Context.generic
@@ -152,7 +152,7 @@ datatype locale = Loc of {
   (* dynamic part *)
 
   (*syntax declarations*)
-  syntax_decls: (Morphism.declaration * serial) list,
+  syntax_decls: (Morphism.declaration_entity * serial) list,
   (*theorem declarations*)
   notes: ((string * Attrib.fact list) * serial) list,
   (*locale dependencies (sublocale relation) in reverse order*)

@@ -55,7 +55,7 @@ sig
     (string * thm list) list * local_theory
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val declaration: {syntax: bool, pervasive: bool} -> Morphism.declaration_fn ->
+  val declaration: {syntax: bool, pervasive: bool} -> Morphism.declaration ->
     local_theory -> local_theory
   val theory_registration: Locale.registration -> local_theory -> local_theory
   val locale_dependency: Locale.registration -> local_theory -> local_theory
@@ -103,7 +103,7 @@ type operations =
   notes: string -> Attrib.fact list -> local_theory -> (string * thm list) list * local_theory,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
-  declaration: {syntax: bool, pervasive: bool} -> Morphism.declaration ->
+  declaration: {syntax: bool, pervasive: bool} -> Morphism.declaration_entity ->
     local_theory -> local_theory,
   theory_registration: Locale.registration -> local_theory -> local_theory,
   locale_dependency: Locale.registration -> local_theory -> local_theory,

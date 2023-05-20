@@ -49,7 +49,7 @@ sig
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
   val internal: (morphism -> attribute) -> Token.src
-  val internal_declaration: Morphism.declaration -> thms
+  val internal_declaration: Morphism.declaration_entity -> thms
   val add_del: attribute -> attribute -> attribute context_parser
   val thm: thm context_parser
   val thms: thm list context_parser

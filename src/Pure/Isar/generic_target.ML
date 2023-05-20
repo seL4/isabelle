@@ -16,7 +16,7 @@ sig
   (*background primitives*)
   val background_foundation: ((binding * typ) * mixfix) * (binding * term) ->
     term list * term list -> local_theory -> (term * thm) * local_theory
-  val background_declaration: Morphism.declaration -> local_theory -> local_theory
+  val background_declaration: Morphism.declaration_entity -> local_theory -> local_theory
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
   val add_foundation_interpretation: (binding * (term * term list) -> Context.generic -> Context.generic) ->
     theory -> theory
@@ -25,7 +25,7 @@ sig
   val standard_facts: local_theory -> Proof.context -> Attrib.fact list -> Attrib.fact list
   val standard_notes: (int * int -> bool) -> string -> Attrib.fact list ->
     local_theory -> local_theory
-  val standard_declaration: (int * int -> bool) -> Morphism.declaration ->
+  val standard_declaration: (int * int -> bool) -> Morphism.declaration_entity ->
     local_theory -> local_theory
   val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
@@ -55,7 +55,7 @@ sig
   (*theory target operations*)
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> (term * term) * local_theory
-  val theory_declaration: Morphism.declaration -> local_theory -> local_theory
+  val theory_declaration: Morphism.declaration_entity -> local_theory -> local_theory
   val theory_registration: Locale.registration -> local_theory -> local_theory
 
   (*locale target primitives*)
@@ -63,7 +63,7 @@ sig
     local_theory -> local_theory
   val locale_target_abbrev: string -> Syntax.mode ->
     (binding * mixfix) -> term -> term list * term list -> local_theory -> local_theory
-  val locale_target_declaration: string -> bool -> Morphism.declaration ->
+  val locale_target_declaration: string -> bool -> Morphism.declaration_entity ->
     local_theory -> local_theory
   val locale_target_const: string -> (morphism -> bool) -> Syntax.mode ->
     (binding * mixfix) * term -> local_theory -> local_theory
@@ -71,7 +71,7 @@ sig
   (*locale operations*)
   val locale_abbrev: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> (term * term) * local_theory
-  val locale_declaration: string -> {syntax: bool, pervasive: bool} -> Morphism.declaration ->
+  val locale_declaration: string -> {syntax: bool, pervasive: bool} -> Morphism.declaration_entity ->
     local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory

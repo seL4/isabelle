@@ -30,7 +30,7 @@ sig
     Term of term |
     Fact of string option * thm list |
     Attribute of attribute Morphism.entity |
-    Declaration of Morphism.declaration |
+    Declaration of Morphism.declaration_entity |
     Files of file Exn.result list |
     Output of XML.body option
   val pos_of: T -> Position.T
@@ -198,7 +198,7 @@ and value =
   Term of term |
   Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
   Attribute of attribute Morphism.entity |
-  Declaration of Morphism.declaration |
+  Declaration of Morphism.declaration_entity |
   Files of file Exn.result list |
   Output of XML.body option;
 
