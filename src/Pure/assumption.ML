@@ -17,8 +17,8 @@ sig
   val local_prems_of: Proof.context -> Proof.context -> thm list
   val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
   val add_assumes: cterm list -> Proof.context -> thm list * Proof.context
-  val export: bool -> Proof.context -> Proof.context -> thm -> thm
   val export_term: Proof.context -> Proof.context -> term -> term
+  val export: bool -> Proof.context -> Proof.context -> thm -> thm
   val export_morphism: Proof.context -> Proof.context -> morphism
 end;
 
@@ -128,22 +128,29 @@ val add_assumes = add_assms assume_export;
 
 (* export *)
 
-fun export is_goal inner outer =
-  Raw_Simplifier.norm_hhf_protect_without_context #>
-  fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
-  Raw_Simplifier.norm_hhf_protect_without_context;
-
 fun export_term inner outer =
   fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);
 
+fun export_thm is_goal inner outer =
+  fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer);
+
+fun export is_goal inner outer =
+  Raw_Simplifier.norm_hhf_protect inner #>
+  export_thm is_goal inner outer #>
+  Raw_Simplifier.norm_hhf_protect outer;
+
 fun export_morphism inner outer =
   let
-    val thm = export false inner outer;
+    val export0 = export_thm false inner outer;
+    fun thm thy =
+      let val norm = norm_hhf_protect (Proof_Context.init_global thy)
+      in norm #> export0 #> norm end;
     val term = export_term inner outer;
     val typ = Logic.type_map term;
   in
     Morphism.morphism "Assumption.export"
-      {binding = [], typ = [K typ], term = [K term], fact = [K (map thm)]}
+      {binding = [], typ = [K typ], term = [K term], fact = [map o thm o Morphism.the_theory]}
+    |> Morphism.set_context (Proof_Context.theory_of inner)
   end;
 
 end;

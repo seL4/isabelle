@@ -785,8 +785,9 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 
 (* wrapped syntax *)
 
-fun syntax_generic scan src context =
+fun syntax_generic scan src0 context =
   let
+    val src = map (transfer (Context.theory_of context)) src0;
     val (name, pos) = name_of_src src;
     val old_reports = maps reports_of_value src;
     val args1 = map init_assignable (args_of_src src);

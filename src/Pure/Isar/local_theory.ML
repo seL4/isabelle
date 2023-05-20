@@ -195,7 +195,8 @@ val reset_group = map_background_naming Name_Space.reset_group;
 
 fun standard_morphism lthy ctxt =
   Morphism.set_context' lthy
-   (Proof_Context.norm_export_morphism lthy ctxt $>
+   (Proof_Context.export_morphism lthy ctxt $>
+    Morphism.thm_morphism' "Local_Theory.standard" (Goal.norm_result o Proof_Context.init_global) $>
     Morphism.binding_morphism "Local_Theory.standard_binding"
       (Name_Space.transform_binding (Proof_Context.naming_of lthy)));
 
