@@ -56,7 +56,9 @@ sig
   val typ_morphism: string -> (typ -> typ) -> morphism
   val term_morphism': string -> (theory -> term -> term) -> morphism
   val term_morphism: string -> (term -> term) -> morphism
+  val fact_morphism': string -> (theory -> thm list -> thm list) -> morphism
   val fact_morphism: string -> (thm list -> thm list) -> morphism
+  val thm_morphism': string -> (theory -> thm -> thm) -> morphism
   val thm_morphism: string -> (thm -> thm) -> morphism
   val transfer_morphism: theory -> morphism
   val transfer_morphism': Proof.context -> morphism
@@ -202,7 +204,9 @@ fun typ_morphism' a typ = morphism a {binding = [], typ = [typ o the_theory], te
 fun typ_morphism a typ = morphism a {binding = [], typ = [K typ], term = [], fact = []};
 fun term_morphism' a term = morphism a {binding = [], typ = [], term = [term o the_theory], fact = []};
 fun term_morphism a term = morphism a {binding = [], typ = [], term = [K term], fact = []};
+fun fact_morphism' a fact = morphism a {binding = [], typ = [], term = [], fact = [fact o the_theory]};
 fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [K fact]};
+fun thm_morphism' a thm = morphism a {binding = [], typ = [], term = [], fact = [map o thm o the_theory]};
 fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [K (map thm)]};
 
 fun transfer_morphism thy = fact_morphism "transfer" I |> set_context thy;
