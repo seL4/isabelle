@@ -65,6 +65,7 @@ sig
   val certificate_theory_id: certificate -> theory_id
   val eq_certificate: certificate * certificate -> bool
   val join_certificate: certificate * certificate -> certificate
+  val join_certificate_theory: theory * theory -> theory
   (*generic context*)
   datatype generic = Theory of theory | Proof of Proof.context
   val theory_tracing: bool Unsynchronized.ref
@@ -627,16 +628,24 @@ fun eq_certificate (Certificate thy1, Certificate thy2) = eq_thy (thy1, thy2)
   | eq_certificate (Certificate_Id thy_id1, Certificate_Id thy_id2) = eq_thy_id (thy_id1, thy_id2)
   | eq_certificate _ = false;
 
+fun err_join (thy_id1, thy_id2) =
+  error ("Cannot join unrelated theory certificates " ^
+    display_name thy_id1 ^ " and " ^ display_name thy_id2);
+
 fun join_certificate (cert1, cert2) =
   let val (thy_id1, thy_id2) = apply2 certificate_theory_id (cert1, cert2) in
     if eq_thy_id (thy_id1, thy_id2) then (case cert1 of Certificate _ => cert1 | _ => cert2)
     else if proper_subthy_id (thy_id2, thy_id1) then cert1
     else if proper_subthy_id (thy_id1, thy_id2) then cert2
-    else
-      error ("Cannot join unrelated theory certificates " ^
-        display_name thy_id1 ^ " and " ^ display_name thy_id2)
+    else err_join (thy_id1, thy_id2)
   end;
 
+fun join_certificate_theory (thy1, thy2) =
+  let val (thy_id1, thy_id2) = apply2 theory_id (thy1, thy2) in
+    if subthy_id (thy_id2, thy_id1) then thy1
+    else if proper_subthy_id (thy_id1, thy_id2) then thy2
+    else err_join (thy_id1, thy_id2)
+  end;
 
 
 (*** generic context ***)

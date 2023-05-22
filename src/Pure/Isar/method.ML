@@ -335,8 +335,9 @@ val parse_tactic =
                ML_Lex.read_source source @ ML_Lex.read ")))")
           |> the_tactic;
       in
-        fn phi => set_tactic (fn _ => Context.setmp_generic_context (SOME context) (tac phi))
-      end)) >> (fn decl => Morphism.form (the_tactic (Morphism.form decl context))));
+        Morphism.entity (fn phi =>
+          set_tactic (fn _ => Context.setmp_generic_context (SOME context) (tac phi)))
+      end)) >> (fn decl => Morphism.form_entity (the_tactic (Morphism.form decl context))));
 
 
 (* method facts *)
@@ -606,11 +607,17 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
                   map (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs)) xthms;
                 val facts =
                   Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
-                  |> map (fn (_, bs) => ((Binding.empty, [Attrib.internal (K attribute)]), bs));
+                  |> map (fn (_, bs) =>
+                    ((Binding.empty, [Attrib.internal (K attribute)]), Attrib.trim_context_thms bs));
 
-                fun decl phi =
-                  Context.mapping I init #>
-                  Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
+                val decl =
+                  Morphism.entity (fn phi => fn context =>
+                    let val psi = Morphism.set_context'' context phi in
+                      context
+                      |> Context.mapping I init
+                      |> Attrib.generic_notes "" (Attrib.transform_facts psi facts)
+                      |> snd
+                    end);
 
                 val modifier_report =
                   (#1 (Token.range_of modifier_toks),

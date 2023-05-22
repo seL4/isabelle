@@ -29,8 +29,8 @@ sig
     Typ of typ |
     Term of term |
     Fact of string option * thm list |
-    Attribute of morphism -> attribute |
-    Declaration of declaration |
+    Attribute of attribute Morphism.entity |
+    Declaration of Morphism.declaration_entity |
     Files of file Exn.result list |
     Output of XML.body option
   val pos_of: T -> Position.T
@@ -82,7 +82,8 @@ sig
   val get_name: T -> name_value option
   val declare_maxidx: T -> Proof.context -> Proof.context
   val map_facts: (string option -> thm list -> thm list) -> T -> T
-  val trim_context_src: src -> src
+  val trim_context: T -> T
+  val transfer: theory -> T -> T
   val transform: morphism -> T -> T
   val init_assignable: T -> T
   val assign: value option -> T -> T
@@ -103,6 +104,7 @@ sig
   val print_properties: Keyword.keywords -> Properties.T -> string
   val make: (int * int) * string -> Position.T -> T * Position.T
   val make_string: string * Position.T -> T
+  val make_string0: string -> T
   val make_int: int -> T list
   val make_src: string * Position.T -> T list -> src
   type 'a parser = T list -> 'a * T list
@@ -196,8 +198,8 @@ and value =
   Typ of typ |
   Term of term |
   Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
-  Attribute of morphism -> attribute |
-  Declaration of declaration |
+  Attribute of attribute Morphism.entity |
+  Declaration of Morphism.declaration_entity |
   Files of file Exn.result list |
   Output of XML.body option;
 
@@ -484,7 +486,33 @@ fun map_facts f =
     | Fact (a, ths) => Fact (a, f a ths)
     | _ => v));
 
-val trim_context_src = (map o map_facts) (K (map Thm.trim_context));
+
+(* implicit context *)
+
+local
+
+fun context thm_context morphism_context attribute_context declaration_context =
+  let
+    fun token_context tok = map_value
+      (fn Source src => Source (map token_context src)
+        | Fact (a, ths) => Fact (a, map thm_context ths)
+        | Name (a, phi) => Name (a, morphism_context phi)
+        | Attribute a => Attribute (attribute_context a)
+        | Declaration a => Declaration (declaration_context a)
+        | v => v) tok;
+  in token_context end;
+
+in
+
+val trim_context =
+  context Thm.trim_context Morphism.reset_context
+    Morphism.entity_reset_context Morphism.entity_reset_context;
+
+fun transfer thy =
+  context (Thm.transfer thy) (Morphism.set_context thy)
+    (Morphism.entity_set_context thy) (Morphism.entity_set_context thy);
+
+end;
 
 
 (* transform *)
@@ -744,6 +772,8 @@ fun make_string (s, pos) =
     val pos' = Position.no_range_position pos;
   in Token ((x, (pos', pos')), y, z) end;
 
+fun make_string0 s = make_string (s, Position.none);
+
 val make_int = explode Keyword.empty_keywords Position.none o signed_string_of_int;
 
 fun make_src a args = make_string a :: args;
@@ -758,8 +788,9 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 
 (* wrapped syntax *)
 
-fun syntax_generic scan src context =
+fun syntax_generic scan src0 context =
   let
+    val src = map (transfer (Context.theory_of context)) src0;
     val (name, pos) = name_of_src src;
     val old_reports = maps reports_of_value src;
     val args1 = map init_assignable (args_of_src src);

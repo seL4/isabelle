@@ -36,7 +36,7 @@ sig
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val cert_simproc: theory -> string ->
-    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
+    {lhss: term list, proc: (Proof.context -> cterm -> thm option) Morphism.entity} -> simproc
   val transform_simproc: morphism -> simproc -> simproc
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
@@ -709,7 +709,7 @@ datatype simproc =
   Simproc of
     {name: string,
      lhss: term list,
-     proc: morphism -> Proof.context -> cterm -> thm option,
+     proc: (Proof.context -> cterm -> thm option) Morphism.entity,
      stamp: stamp};
 
 fun eq_simproc (Simproc {stamp = stamp1, ...}, Simproc {stamp = stamp2, ...}) = stamp1 = stamp2;
@@ -721,7 +721,7 @@ fun transform_simproc phi (Simproc {name, lhss, proc, stamp}) =
   Simproc
    {name = name,
     lhss = map (Morphism.term phi) lhss,
-    proc = Morphism.transform phi proc,
+    proc = Morphism.transform_reset_context phi proc,
     stamp = stamp};
 
 local
@@ -1423,11 +1423,11 @@ fun fold_goals_tac ctxt defs = EVERY (map (rewrite_goals_tac ctxt) (rev_defs def
 
 local
 
-fun gen_norm_hhf ss ctxt0 th0 =
+fun gen_norm_hhf protect ss ctxt0 th0 =
   let
     val (ctxt, th) = Thm.join_transfer_context (ctxt0, th0);
     val th' =
-      if Drule.is_norm_hhf (Thm.prop_of th) then th
+      if Drule.is_norm_hhf protect (Thm.prop_of th) then th
       else
         Conv.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) (put_simpset ss ctxt)) th;
   in th' |> Thm.adjust_maxidx_thm ~1 |> Variable.gen_all ctxt end;
@@ -1445,8 +1445,8 @@ val hhf_protect_ss =
 
 in
 
-val norm_hhf = gen_norm_hhf hhf_ss;
-val norm_hhf_protect = gen_norm_hhf hhf_protect_ss;
+val norm_hhf = gen_norm_hhf {protect = false} hhf_ss;
+val norm_hhf_protect = gen_norm_hhf {protect = true} hhf_protect_ss;
 
 end;
 

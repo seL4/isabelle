@@ -417,7 +417,7 @@ text \<open>
     @@{command declare} (@{syntax thms} + @'and')
   \<close>
 
-  \<^descr> \<^theory_text>\<open>declaration d\<close> adds the declaration function \<open>d\<close> of ML type \<^ML_type>\<open>declaration\<close>, to the current local theory under construction. In later
+  \<^descr> \<^theory_text>\<open>declaration d\<close> adds the declaration function \<open>d\<close> of ML type \<^ML_type>\<open>Morphism.declaration\<close>, to the current local theory under construction. In later
   application contexts, the function is transformed according to the morphisms
   being involved in the interpretation hierarchy.
 

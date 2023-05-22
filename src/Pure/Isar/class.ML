@@ -157,9 +157,9 @@ fun these_operations thy = maps (#operations o the_class_data thy) o ancestry th
 val base_morphism = #base_morph oo the_class_data;
 
 fun morphism thy class =
-  (case Element.eq_morphism thy (these_defs thy [class]) of
-    SOME eq_morph => base_morphism thy class $> eq_morph
-  | NONE => base_morphism thy class);
+  Morphism.set_context thy
+   (base_morphism thy class $>
+    Morphism.default (Element.eq_morphism (these_defs thy [class])));
 
 val export_morphism = #export_morph oo the_class_data;
 
@@ -221,21 +221,23 @@ fun register class sups params base_sort base_morph export_morph
       (c, (class, ((ty, Free v_ty), false)))) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o apply2) fst params, base_sort,
-          base_morph, export_morph, Option.map Thm.trim_context some_assm_intro,
-          Thm.trim_context of_class, Option.map Thm.trim_context some_axiom),
+          Morphism.reset_context base_morph,
+          Morphism.reset_context export_morph,
+          Option.map Thm.trim_context some_assm_intro,
+          Thm.trim_context of_class,
+          Option.map Thm.trim_context some_axiom),
           (Thm.item_net, operations)))
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;
 
 fun activate_defs class thms thy =
-  (case Element.eq_morphism thy thms of
+  (case Element.eq_morphism thms of
     SOME eq_morph =>
-      fold (fn cls => fn thy =>
-        Context.theory_map
-          (Locale.amend_registration
-            {inst = (cls, base_morphism thy cls),
-              mixin = SOME (eq_morph, true),
-              export = export_morphism thy cls}) thy) (heritage thy [class]) thy
+      fold (fn cls => fn thy' =>
+        (Context.theory_map o Locale.amend_registration)
+         {inst = (cls, base_morphism thy' cls),
+          mixin = SOME (eq_morph, true),
+          export = export_morphism thy' cls} thy') (heritage thy [class]) thy
   | NONE => thy);
 
 fun register_operation class (c, t) input_only thy =
@@ -358,7 +360,8 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
 
 fun target_const class phi0 prmode (b, rhs) lthy =
   let
-    val export = Variable.export_morphism lthy (Local_Theory.target_of lthy);
+    val export =
+      Morphism.set_context' lthy (Variable.export_morphism lthy (Local_Theory.target_of lthy));
     val guess_identity = guess_morphism_identity (b, rhs) export;
     val guess_canonical = guess_morphism_identity (b, rhs) (export $> phi0);
   in
@@ -478,9 +481,11 @@ end;
 fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val intros = (snd o rules thy) sup :: map_filter I
-      [Option.map (Drule.export_without_context_open o Element.conclude_witness lthy) some_witn,
-        (fst o rules thy) sub];
+    val conclude_witness =
+      Thm.trim_context o Drule.export_without_context_open o Element.conclude_witness lthy;
+    val intros =
+      (snd o rules thy) sup ::
+        map_filter I [Option.map conclude_witness some_witn, (fst o rules thy) sub];
     val classrel =
       Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))
         (fn {context = ctxt, ...} => EVERY (map (TRYALL o resolve_tac ctxt o single) intros));

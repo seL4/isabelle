@@ -31,6 +31,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     val certT = Thm.trim_context_ctyp o Thm.global_ctyp_of thy;
     val cert = Thm.trim_context_cterm o Thm.global_cterm_of thy;
+    val conclude_witness = Thm.trim_context o Element.conclude_witness thy_ctxt;
 
     (* instantiation of canonical interpretation *)
     val a_tfree = (Name.aT, base_sort);
@@ -67,13 +68,15 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val tac = loc_intro_tac
           THEN ALLGOALS (Proof_Context.fact_tac thy_ctxt (sup_axioms @ the_list assm_axiom));
       in Element.prove_witness thy_ctxt prop tac end) some_prop;
-    val some_axiom = Option.map (Element.conclude_witness thy_ctxt) some_witn;
+    val some_axiom = Option.map conclude_witness some_witn;
 
     (* canonical interpretation *)
     val base_morph = inst_morph
       $> Morphism.binding_morphism "class_binding" (Binding.prefix false (Class.class_prefix class))
       $> Element.satisfy_morphism (the_list some_witn);
-    val eq_morph = Element.eq_morphism thy (Class.these_defs thy sups);
+    val eq_morph =
+      Element.eq_morphism (Class.these_defs thy sups)
+      |> Option.map (Morphism.set_context thy);
 
     (* assm_intro *)
     fun prove_assm_intro thm =

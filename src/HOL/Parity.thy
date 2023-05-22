@@ -1311,24 +1311,22 @@ simproc_setup numeral_divmod
       let
         val thm = Simplifier.rewrite ctxt ct
       in if Thm.is_reflexive thm then NONE else SOME thm end;
-  in fn phi =>
-    let
-      val simps = Morphism.fact phi (@{thms div_0 mod_0 div_by_0 mod_by_0 div_by_1 mod_by_1
-        one_div_numeral one_mod_numeral minus_one_div_numeral minus_one_mod_numeral
-        one_div_minus_numeral one_mod_minus_numeral
-        numeral_div_numeral numeral_mod_numeral minus_numeral_div_numeral minus_numeral_mod_numeral
-        numeral_div_minus_numeral numeral_mod_minus_numeral
-        div_minus_minus mod_minus_minus Parity.adjust_div_eq of_bool_eq one_neq_zero
-        numeral_neq_zero neg_equal_0_iff_equal arith_simps arith_special divmod_trivial
-        divmod_cancel divmod_steps divmod_step_def fst_conv snd_conv numeral_One
-        case_prod_beta rel_simps Parity.adjust_mod_def div_minus1_right mod_minus1_right
-        minus_minus numeral_times_numeral mult_zero_right mult_1_right
-        euclidean_size_nat_less_eq_iff euclidean_size_int_less_eq_iff diff_nat_numeral nat_numeral}
-        @ [@{lemma "0 = 0 \<longleftrightarrow> True" by simp}]);
-      fun prepare_simpset ctxt = HOL_ss |> Simplifier.simpset_map ctxt
-        (Simplifier.add_cong if_cong #> fold Simplifier.add_simp simps)
-    in fn ctxt => successful_rewrite (Simplifier.put_simpset (prepare_simpset ctxt) ctxt) end
-  end
+    val simps = @{thms div_0 mod_0 div_by_0 mod_by_0 div_by_1 mod_by_1
+      one_div_numeral one_mod_numeral minus_one_div_numeral minus_one_mod_numeral
+      one_div_minus_numeral one_mod_minus_numeral
+      numeral_div_numeral numeral_mod_numeral minus_numeral_div_numeral minus_numeral_mod_numeral
+      numeral_div_minus_numeral numeral_mod_minus_numeral
+      div_minus_minus mod_minus_minus Parity.adjust_div_eq of_bool_eq one_neq_zero
+      numeral_neq_zero neg_equal_0_iff_equal arith_simps arith_special divmod_trivial
+      divmod_cancel divmod_steps divmod_step_def fst_conv snd_conv numeral_One
+      case_prod_beta rel_simps Parity.adjust_mod_def div_minus1_right mod_minus1_right
+      minus_minus numeral_times_numeral mult_zero_right mult_1_right
+      euclidean_size_nat_less_eq_iff euclidean_size_int_less_eq_iff diff_nat_numeral nat_numeral}
+      @ [@{lemma "0 = 0 \<longleftrightarrow> True" by simp}];
+    val simpset =
+      HOL_ss |> Simplifier.simpset_map \<^context>
+        (Simplifier.add_cong if_cong #> fold Simplifier.add_simp simps);
+  in K (fn ctxt => successful_rewrite (Simplifier.put_simpset simpset ctxt)) end
 \<close> \<comment> \<open>
   There is space for improvement here: the calculation itself
   could be carried out outside the logic, and a generic simproc

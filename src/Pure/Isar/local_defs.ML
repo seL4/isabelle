@@ -155,7 +155,7 @@ fun export inner outer th =
                   if t aconv u then (asm, false)
                   else (Drule.abs_def (Variable.gen_all outer asm), true))
             end)));
-  in (apply2 (map #1) (List.partition #2 defs_asms), Assumption.export false inner outer th) end;
+  in (apply2 (map #1) (List.partition #2 defs_asms), Assumption.export inner outer th) end;
 
 (*
   [xs, xs \<equiv> as]

@@ -270,7 +270,8 @@ text %mlref \<open>
   cterm list -> Proof.context -> thm list * Proof.context"} \\
   @{define_ML Assumption.add_assumes: "
   cterm list -> Proof.context -> thm list * Proof.context"} \\
-  @{define_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
+  @{define_ML Assumption.export: "Proof.context -> Proof.context -> thm -> thm"} \\
+  @{define_ML Assumption.export_goal: "Proof.context -> Proof.context -> thm -> thm"} \\
   @{define_ML Assumption.export_term: "Proof.context -> Proof.context -> term -> term"} \\
   \end{mldecls}
 
@@ -290,11 +291,12 @@ text %mlref \<open>
   \<^ML>\<open>Assumption.add_assms\<close> where the export rule performs \<open>\<Longrightarrow>\<hyphen>intro\<close> or
   \<open>#\<Longrightarrow>\<hyphen>intro\<close>, depending on goal mode.
 
-  \<^descr> \<^ML>\<open>Assumption.export\<close>~\<open>is_goal inner outer thm\<close> exports result \<open>thm\<close>
-  from the \<open>inner\<close> context back into the \<open>outer\<close> one; \<open>is_goal = true\<close> means
-  this is a goal context. The result is in HHF normal form. Note that
-  \<^ML>\<open>Proof_Context.export\<close> combines \<^ML>\<open>Variable.export\<close> and
-  \<^ML>\<open>Assumption.export\<close> in the canonical way.
+  \<^descr> \<^ML>\<open>Assumption.export\<close>~\<open>inner outer thm\<close> exports result \<open>thm\<close> from the
+  \<open>inner\<close> context back into the \<open>outer\<close> one; \<^ML>\<open>Assumption.export_goal\<close>
+  does the same in a goal context (\<^theory_text>\<open>fix/assume/show\<close> in Isabelle/Isar). The
+  result is always in HHF normal form. Note that \<^ML>\<open>Proof_Context.export\<close>
+  combines \<^ML>\<open>Variable.export\<close> and \<^ML>\<open>Assumption.export\<close> in the
+  canonical way.
 
   \<^descr> \<^ML>\<open>Assumption.export_term\<close>~\<open>inner outer t\<close> exports term \<open>t\<close> from the
   \<open>inner\<close> context back into the \<open>outer\<close> one. This is analogous to
@@ -318,7 +320,7 @@ ML_val \<open>
   val eq' = Thm.symmetric eq;
 
   (*back to original context -- discharges assumption*)
-  val r = Assumption.export false ctxt1 ctxt0 eq';
+  val r = Assumption.export ctxt1 ctxt0 eq';
 \<close>
 
 text \<open>

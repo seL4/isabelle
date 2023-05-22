@@ -98,20 +98,20 @@ fun note_eqns_register note add_registration
   let
     val factss = thms
       |> unflat ((map o map) #1 eqnss)
-      |> map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) #1 eqnss);
+      |> map2 (map2 (fn b => fn eq =>
+          (b, [([Morphism.thm export (Thm.transfer' ctxt eq)], [])]))) ((map o map) #1 eqnss);
     val (eqnss', ctxt') =
       fold_map (fn facts => note Thm.theoremK facts #-> abs_def_rule) factss ctxt;
     val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);
     val (eqns', ctxt'') = ctxt' |> note Thm.theoremK [defs] |-> abs_def_rule;
+    val transform_witness = Element.transform_witness (Morphism.set_trim_context' ctxt' export');
     val deps' =
       (deps ~~ witss) |> map (fn ((dep, morph), wits) =>
-        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)));
+        (dep, morph $> Element.satisfy_morphism (map transform_witness wits)));
     fun register (dep, eqns) ctxt =
       ctxt |> add_registration
         {inst = dep,
-          mixin =
-            Option.map (rpair true)
-              (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')),
+          mixin = Option.map (rpair true) (Element.eq_morphism (eqns @ eqns')),
           export = export};
   in ctxt'' |> fold register (deps' ~~ eqnss') end;
 

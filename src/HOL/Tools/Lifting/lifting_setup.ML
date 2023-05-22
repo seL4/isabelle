@@ -245,9 +245,7 @@ fun lifting_bundle qty_full_name qinfo lthy =
 
     val dummy_thm = Thm.transfer thy Drule.dummy_thm
     val restore_lifting_att = 
-      ([dummy_thm],
-        [map (Token.make_string o rpair Position.none)
-          ["Lifting.lifting_restore_internal", bundle_name]])
+      ([dummy_thm], [map Token.make_string0 ["Lifting.lifting_restore_internal", bundle_name]])
   in
     lthy
     |> Local_Theory.declaration {syntax = false, pervasive = true}
