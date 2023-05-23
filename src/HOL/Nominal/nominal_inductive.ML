@@ -675,7 +675,7 @@ fun prove_eqvt s xatoms lthy =
     lthy |>
     Local_Theory.notes (map (fn (name, ths) =>
         ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "eqvt"),
-          [Attrib.internal \<^here> (K NominalThmDecls.eqvt_add)]), [(ths, [])]))
+          @{attributes [eqvt]}), [(ths, [])]))
       (names ~~ transp thss)) |> snd
   end;
 
