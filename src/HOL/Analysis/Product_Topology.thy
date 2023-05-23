@@ -139,6 +139,47 @@ next
   qed
 qed
 
+text \<open>Missing the opposite direction. Does it hold? A converse is proved for proper maps, a stronger condition\<close>
+lemma closed_map_prod:
+  assumes "closed_map (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y))"
+  shows "topspace(prod_topology X Y) = {} \<or> closed_map X X' f \<and> closed_map Y Y' g"
+proof (cases "topspace(prod_topology X Y) = {}")
+  case False
+  then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
+    by auto
+  have "closed_map X X' f"
+    unfolding closed_map_def
+  proof (intro strip)
+    fix C
+    assume "closedin X C"
+    show "closedin X' (f ` C)"
+    proof (cases "C={}")
+      case False
+      with assms have "closedin (prod_topology X' Y') ((\<lambda>(x,y). (f x, g y)) ` (C \<times> topspace Y))"
+        by (simp add: \<open>closedin X C\<close> closed_map_def closedin_prod_Times_iff)
+      with False ne show ?thesis
+        by (simp add: image_paired_Times closedin_Times closedin_prod_Times_iff)
+    qed auto
+  qed
+  moreover
+  have "closed_map Y Y' g"
+    unfolding closed_map_def
+  proof (intro strip)
+    fix C
+    assume "closedin Y C"
+    show "closedin Y' (g ` C)"
+    proof (cases "C={}")
+      case False
+      with assms have "closedin (prod_topology X' Y') ((\<lambda>(x,y). (f x, g y)) ` (topspace X \<times> C))"
+        by (simp add: \<open>closedin Y C\<close> closed_map_def closedin_prod_Times_iff)
+      with False ne show ?thesis
+        by (simp add: image_paired_Times closedin_Times closedin_prod_Times_iff)
+    qed auto
+  qed
+  ultimately show ?thesis
+    by (auto simp: False)
+qed auto
+
 subsection \<open>Continuity\<close>
 
 lemma continuous_map_pairwise:

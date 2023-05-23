@@ -7,6 +7,7 @@ theory Analysis
   FSigma
   Sum_Topology
   Abstract_Topological_Spaces
+  Abstract_Metric_Spaces
   Connected
   Abstract_Limits
   Isolated

@@ -1319,17 +1319,6 @@ qed
 
 subsubsection \<open>Subsequence (alternative definition, (e.g. Hoskins)\<close>
 
-lemma strict_mono_Suc_iff: "strict_mono f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
-proof (intro iffI strict_monoI)
-  assume *: "\<forall>n. f n < f (Suc n)"
-  fix m n :: nat assume "m < n"
-  thus "f m < f n"
-    by (induction rule: less_Suc_induct) (use * in auto)
-qed (auto simp: strict_mono_def)
-
-lemma strict_mono_add: "strict_mono (\<lambda>n::'a::linordered_semidom. n + k)"
-  by (auto simp: strict_mono_def)
-
 text \<open>For any sequence, there is a monotonic subsequence.\<close>
 lemma seq_monosub:
   fixes s :: "nat \<Rightarrow> 'a::linorder"

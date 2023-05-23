@@ -1276,6 +1276,10 @@ proof -
     using Hausdorff_space_closedin_diagonal embedding_imp_closed_map_eq by blast
 qed
 
+lemma proper_map_diag_eq [simp]:
+   "proper_map X (prod_topology X X) (\<lambda>x. (x,x)) \<longleftrightarrow> Hausdorff_space X"
+  by (simp add: closed_map_diag_eq inj_on_convol_ident injective_imp_proper_eq_closed_map)
+  
 lemma closedin_continuous_maps_eq:
   assumes "Hausdorff_space Y" and f: "continuous_map X Y f" and g: "continuous_map X Y g"
   shows "closedin X {x \<in> topspace X. f x = g x}"
@@ -1605,6 +1609,340 @@ qed
 lemma kc_space_prod_topology_right:
    "\<lbrakk>Hausdorff_space X; kc_space Y\<rbrakk> \<Longrightarrow> kc_space (prod_topology X Y)"
   using kc_space_prod_topology_left homeomorphic_kc_space homeomorphic_space_prod_topology_swap by blast
+
+subsection \<open>Technical results about proper maps, perfect maps, etc\<close>
+
+lemma compact_imp_proper_map_gen:
+  assumes Y: "\<And>S. \<lbrakk>S \<subseteq> topspace Y; \<And>K. compactin Y K \<Longrightarrow> compactin Y (S \<inter> K)\<rbrakk>
+               \<Longrightarrow> closedin Y S"
+    and fim: "f ` (topspace X) \<subseteq> topspace Y"
+    and f: "continuous_map X Y f \<or> kc_space X"
+    and YX: "\<And>K. compactin Y K \<Longrightarrow> compactin X {x \<in> topspace X. f x \<in> K}"
+  shows "proper_map X Y f"
+  unfolding proper_map_alt closed_map_def
+proof (intro conjI strip)
+  fix C
+  assume C: "closedin X C"
+  show "closedin Y (f ` C)"
+  proof (intro Y)
+    show "f ` C \<subseteq> topspace Y"
+      using C closedin_subset fim by blast
+    fix K
+    assume K: "compactin Y K"
+    define A where "A \<equiv> {x \<in> topspace X. f x \<in> K}"
+    have eq: "f ` C \<inter> K = f ` ({x \<in> topspace X. f x \<in> K} \<inter> C)"
+      using C closedin_subset by auto
+    show "compactin Y (f ` C \<inter> K)"
+      unfolding eq
+    proof (rule image_compactin)
+      show "compactin (subtopology X A) ({x \<in> topspace X. f x \<in> K} \<inter> C)"
+      proof (rule closedin_compact_space)
+        show "compact_space (subtopology X A)"
+          by (simp add: A_def K YX compact_space_subtopology)
+        show "closedin (subtopology X A) ({x \<in> topspace X. f x \<in> K} \<inter> C)"
+          using A_def C closedin_subtopology by blast
+      qed
+      have "continuous_map (subtopology X A) (subtopology Y K) f" if "kc_space X"
+        unfolding continuous_map_closedin
+      proof (intro conjI strip)
+        show "f x \<in> topspace (subtopology Y K)"
+          if "x \<in> topspace (subtopology X A)" for x
+          using that A_def K compactin_subset_topspace by auto
+      next
+        fix C
+        assume C: "closedin (subtopology Y K) C"
+        show "closedin (subtopology X A) {x \<in> topspace (subtopology X A). f x \<in> C}"
+        proof (rule compactin_imp_closedin_gen)
+          show "kc_space (subtopology X A)"
+            by (simp add: kc_space_subtopology that)
+          have [simp]: "{x \<in> topspace X. f x \<in> K \<and> f x \<in> C} = {x \<in> topspace X. f x \<in> C}"
+            using C closedin_imp_subset by auto
+          have "compactin (subtopology Y K) C"
+            by (simp add: C K closedin_compact_space compact_space_subtopology)
+          then have "compactin X {x \<in> topspace X. x \<in> A \<and> f x \<in> C}"
+            by (auto simp: A_def compactin_subtopology dest: YX)
+          then show "compactin (subtopology X A) {x \<in> topspace (subtopology X A). f x \<in> C}"
+            by (auto simp add: compactin_subtopology)
+        qed
+      qed
+      with f show "continuous_map (subtopology X A) Y f"
+        using continuous_map_from_subtopology continuous_map_in_subtopology by blast
+    qed
+  qed
+qed (simp add: YX)
+
+lemma tube_lemma_left:
+  assumes W: "openin (prod_topology X Y) W" and C: "compactin X C" 
+    and y: "y \<in> topspace Y" and subW: "C \<times> {y} \<subseteq> W"
+  shows "\<exists>U V. openin X U \<and> openin Y V \<and> C \<subseteq> U \<and> y \<in> V \<and> U \<times> V \<subseteq> W"
+proof (cases "C = {}")
+  case True
+  with y show ?thesis by auto
+next
+  case False
+  have "\<exists>U V. openin X U \<and> openin Y V \<and> x \<in> U \<and> y \<in> V \<and> U \<times> V \<subseteq> W" 
+    if "x \<in> C" for x
+    using W openin_prod_topology_alt subW subsetD that by fastforce
+  then obtain U V where UV: "\<And>x. x \<in> C \<Longrightarrow> openin X (U x) \<and> openin Y (V x) \<and> x \<in> U x \<and> y \<in> V x \<and> U x \<times> V x \<subseteq> W" 
+    by metis
+  then obtain D where D: "finite D" "D \<subseteq> C" "C \<subseteq> \<Union> (U ` D)"
+    using compactinD [OF C, of "U`C"]
+    by (smt (verit) UN_I finite_subset_image imageE subsetI)
+  show ?thesis
+  proof (intro exI conjI)
+    show "openin X (\<Union> (U ` D))" "openin Y (\<Inter> (V ` D))"
+      using D False UV by blast+
+    show "y \<in> \<Inter> (V ` D)" "C \<subseteq> \<Union> (U ` D)" "\<Union>(U ` D) \<times> \<Inter>(V ` D) \<subseteq> W"
+      using D UV by force+
+  qed
+qed
+
+lemma Wallace_theorem_prod_topology:
+  assumes "compactin X K" "compactin Y L" 
+    and W: "openin (prod_topology X Y) W" and subW: "K \<times> L \<subseteq> W"
+  obtains U V where "openin X U" "openin Y V" "K \<subseteq> U" "L \<subseteq> V" "U \<times> V \<subseteq> W"
+proof -
+  have "\<And>y. y \<in> L \<Longrightarrow> \<exists>U V. openin X U \<and> openin Y V \<and> K \<subseteq> U \<and> y \<in> V \<and> U \<times> V \<subseteq> W"
+  proof (intro tube_lemma_left assms)
+    fix y assume "y \<in> L"
+    show "y \<in> topspace Y"
+      using assms \<open>y \<in> L\<close> compactin_subset_topspace by blast 
+    show "K \<times> {y} \<subseteq> W"
+      using \<open>y \<in> L\<close> subW by force
+  qed
+  then obtain U V where UV: 
+         "\<And>y. y \<in> L \<Longrightarrow> openin X (U y) \<and> openin Y (V y) \<and> K \<subseteq> U y \<and> y \<in> V y \<and> U y \<times> V y \<subseteq> W"
+    by metis
+  then obtain M where "finite M" "M \<subseteq> L" and M: "L \<subseteq> \<Union> (V ` M)"
+    using \<open>compactin Y L\<close> unfolding compactin_def
+    by (smt (verit) UN_iff finite_subset_image imageE subset_iff)
+  show thesis
+  proof (cases "M={}")
+    case True
+    with M have "L={}"
+      by blast
+    then show ?thesis
+      using \<open>compactin X K\<close> compactin_subset_topspace that by fastforce
+  next
+    case False
+    show ?thesis
+    proof
+      show "openin X (\<Inter>(U`M))"
+        using False UV \<open>M \<subseteq> L\<close> \<open>finite M\<close> by blast
+      show "openin Y (\<Union>(V`M))"
+        using UV \<open>M \<subseteq> L\<close> by blast
+      show "K \<subseteq> \<Inter>(U`M)"
+        by (meson INF_greatest UV \<open>M \<subseteq> L\<close> subsetD)
+      show "L \<subseteq> \<Union>(V`M)"
+        by (simp add: M)
+      show "\<Inter>(U`M) \<times> \<Union>(V`M) \<subseteq> W"
+        using UV \<open>M \<subseteq> L\<close> by fastforce
+    qed   
+  qed
+qed
+
+lemma proper_map_prod:
+   "proper_map (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) \<longleftrightarrow>
+    topspace(prod_topology X Y) = {} \<or> proper_map X X' f \<and> proper_map Y Y' g"
+   (is "?lhs \<longleftrightarrow> _ \<or> ?rhs")
+proof (cases "topspace(prod_topology X Y) = {}")
+  case True
+  then show ?thesis
+    by (simp add: proper_map_on_empty)
+next
+  case False
+  then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
+    by auto
+  define h where "h \<equiv> \<lambda>(x,y). (f x, g y)"
+  have "proper_map X X' f" "proper_map Y Y' g" if ?lhs
+  proof -
+    have cm: "closed_map X X' f" "closed_map Y Y' g"
+      using that False closed_map_prod proper_imp_closed_map by blast+
+    show "proper_map X X' f"
+    proof (clarsimp simp add: proper_map_def cm)
+      fix y
+      assume y: "y \<in> topspace X'"
+      obtain z where z: "z \<in> topspace Y"
+        using ne by blast
+      then have eq: "{x \<in> topspace X. f x = y} =
+                     fst ` {u \<in> topspace X \<times> topspace Y. h u = (y,g z)}"
+        by (force simp: h_def)
+      show "compactin X {x \<in> topspace X. f x = y}"
+        unfolding eq
+      proof (intro image_compactin)
+        have "g z \<in> topspace Y'"
+          by (meson closed_map_def closedin_subset closedin_topspace cm image_subset_iff z)
+        with y show "compactin (prod_topology X Y) {u \<in> topspace X \<times> topspace Y. (h u) = (y, g z)}"
+          using that by (simp add: h_def proper_map_def)
+        show "continuous_map (prod_topology X Y) X fst"
+          by (simp add: continuous_map_fst)
+      qed
+    qed
+    show "proper_map Y Y' g"
+    proof (clarsimp simp add: proper_map_def cm)
+      fix y
+      assume y: "y \<in> topspace Y'"
+      obtain z where z: "z \<in> topspace X"
+        using ne by blast
+      then have eq: "{x \<in> topspace Y. g x = y} =
+                     snd ` {u \<in> topspace X \<times> topspace Y. h u = (f z,y)}"
+        by (force simp: h_def)
+      show "compactin Y {x \<in> topspace Y. g x = y}"
+        unfolding eq
+      proof (intro image_compactin)
+        have "f z \<in> topspace X'"
+          by (meson closed_map_def closedin_subset closedin_topspace cm image_subset_iff z)
+        with y show "compactin (prod_topology X Y) {u \<in> topspace X \<times> topspace Y. (h u) = (f z, y)}"
+          using that by (simp add: proper_map_def h_def)
+        show "continuous_map (prod_topology X Y) Y snd"
+          by (simp add: continuous_map_snd)
+      qed
+    qed
+  qed
+  moreover
+  { assume R: ?rhs
+    then have fgim: "f ` topspace X \<subseteq> topspace X'" "g ` topspace Y \<subseteq> topspace Y'" 
+          and cm: "closed_map X X' f" "closed_map Y Y' g"
+      by (auto simp: proper_map_def closed_map_imp_subset_topspace)
+    have "closed_map (prod_topology X Y) (prod_topology X' Y') h"
+      unfolding closed_map_fibre_neighbourhood imp_conjL
+    proof (intro conjI strip)
+      show "h ` topspace (prod_topology X Y) \<subseteq> topspace (prod_topology X' Y')"
+        unfolding h_def using fgim by auto
+      fix W w
+      assume W: "openin (prod_topology X Y) W"
+        and w: "w \<in> topspace (prod_topology X' Y')"
+        and subW: "{x \<in> topspace (prod_topology X Y). h x = w} \<subseteq> W"
+      then obtain x' y' where weq: "w = (x',y')" "x' \<in> topspace X'" "y' \<in> topspace Y'"
+        by auto
+      have eq: "{u \<in> topspace X \<times> topspace Y. h u = (x',y')} = {x \<in> topspace X. f x = x'} \<times> {y \<in> topspace Y. g y = y'}"
+        by (auto simp: h_def)
+      obtain U V where "openin X U" "openin Y V" "U \<times> V \<subseteq> W"
+        and U: "{x \<in> topspace X. f x = x'} \<subseteq> U" 
+        and V: "{x \<in> topspace Y. g x = y'} \<subseteq> V" 
+      proof (rule Wallace_theorem_prod_topology)
+        show "compactin X {x \<in> topspace X. f x = x'}" "compactin Y {x \<in> topspace Y. g x = y'}"
+          using R weq unfolding proper_map_def closed_map_fibre_neighbourhood by fastforce+
+        show "{x \<in> topspace X. f x = x'} \<times> {x \<in> topspace Y. g x = y'} \<subseteq> W"
+          using weq subW by (auto simp: h_def)
+      qed (use W in auto)
+      obtain U' where "openin X' U'" "x' \<in> U'" and U': "{x \<in> topspace X. f x \<in> U'} \<subseteq> U"
+        using cm U \<open>openin X U\<close> weq unfolding closed_map_fibre_neighbourhood by meson
+      obtain V' where "openin Y' V'" "y' \<in> V'" and V': "{x \<in> topspace Y. g x \<in> V'} \<subseteq> V"
+        using cm V \<open>openin Y V\<close> weq unfolding closed_map_fibre_neighbourhood by meson
+      show "\<exists>V. openin (prod_topology X' Y') V \<and> w \<in> V \<and> {x \<in> topspace (prod_topology X Y). h x \<in> V} \<subseteq> W"
+      proof (intro conjI exI)
+        show "openin (prod_topology X' Y') (U' \<times> V')"
+          by (simp add: \<open>openin X' U'\<close> \<open>openin Y' V'\<close> openin_prod_Times_iff)
+        show "w \<in> U' \<times> V'"
+          using \<open>x' \<in> U'\<close> \<open>y' \<in> V'\<close> weq by blast
+        show "{x \<in> topspace (prod_topology X Y). h x \<in> U' \<times> V'} \<subseteq> W"
+          using \<open>U \<times> V \<subseteq> W\<close> U' V' h_def by auto
+      qed
+    qed
+    moreover
+    have "compactin (prod_topology X Y) {u \<in> topspace X \<times> topspace Y. h u = (w, z)}"
+      if "w \<in> topspace X'" and "z \<in> topspace Y'" for w z
+    proof -
+      have eq: "{u \<in> topspace X \<times> topspace Y. h u = (w,z)} =
+                {u \<in> topspace X. f u = w} \<times> {y. y \<in> topspace Y \<and> g y = z}"
+        by (auto simp: h_def)
+      show ?thesis
+        using R that by (simp add: eq compactin_Times proper_map_def)
+    qed
+    ultimately have ?lhs
+      by (auto simp: h_def proper_map_def) 
+  }
+  ultimately show ?thesis using False by metis
+qed
+
+lemma proper_map_paired:
+  assumes "Hausdorff_space X \<and> proper_map X Y f \<and> proper_map X Z g \<or>
+        Hausdorff_space Y \<and> continuous_map X Y f \<and> proper_map X Z g \<or>
+        Hausdorff_space Z \<and> proper_map X Y f \<and> continuous_map X Z g"
+  shows "proper_map X (prod_topology Y Z) (\<lambda>x. (f x,g x))"
+  using assms
+proof (elim disjE conjE)
+  assume \<section>: "Hausdorff_space X" "proper_map X Y f" "proper_map X Z g"
+  have eq: "(\<lambda>x. (f x, g x)) = (\<lambda>(x, y). (f x, g y)) \<circ> (\<lambda>x. (x, x))"
+    by auto
+  show "proper_map X (prod_topology Y Z) (\<lambda>x. (f x, g x))"
+    unfolding eq
+  proof (rule proper_map_compose)
+    show "proper_map X (prod_topology X X) (\<lambda>x. (x,x))"
+      by (simp add: \<section>)
+    show "proper_map (prod_topology X X) (prod_topology Y Z) (\<lambda>(x,y). (f x, g y))"
+      by (simp add: \<section> proper_map_prod)
+  qed
+next
+  assume \<section>: "Hausdorff_space Y" "continuous_map X Y f" "proper_map X Z g"
+  have eq: "(\<lambda>x. (f x, g x)) = (\<lambda>(x,y). (x,g y)) \<circ> (\<lambda>x. (f x,x))"
+    by auto
+  show "proper_map X (prod_topology Y Z) (\<lambda>x. (f x, g x))"
+    unfolding eq
+  proof (rule proper_map_compose)
+    show "proper_map X (prod_topology Y X) (\<lambda>x. (f x,x))"
+      by (simp add: \<section> proper_map_paired_continuous_map_left)
+    show "proper_map (prod_topology Y X) (prod_topology Y Z) (\<lambda>(x,y). (x,g y))"
+      by (simp add: \<section> proper_map_prod proper_map_id [unfolded id_def])
+  qed
+next
+  assume \<section>: "Hausdorff_space Z" "proper_map X Y f" "continuous_map X Z g"
+  have eq: "(\<lambda>x. (f x, g x)) = (\<lambda>(x,y). (f x,y)) \<circ> (\<lambda>x. (x,g x))"
+    by auto
+  show "proper_map X (prod_topology Y Z) (\<lambda>x. (f x, g x))"
+    unfolding eq
+  proof (rule proper_map_compose)
+    show "proper_map X (prod_topology X Z) (\<lambda>x. (x, g x))"
+      using \<section> proper_map_paired_continuous_map_right by auto
+    show "proper_map (prod_topology X Z) (prod_topology Y Z) (\<lambda>(x,y). (f x,y))"
+      by (simp add: \<section> proper_map_prod proper_map_id [unfolded id_def])
+  qed
+qed
+
+lemma proper_map_pairwise:
+  assumes
+    "Hausdorff_space X \<and> proper_map X Y (fst \<circ> f) \<and> proper_map X Z (snd \<circ> f) \<or>
+     Hausdorff_space Y \<and> continuous_map X Y (fst \<circ> f) \<and> proper_map X Z (snd \<circ> f) \<or>
+     Hausdorff_space Z \<and> proper_map X Y (fst \<circ> f) \<and> continuous_map X Z (snd \<circ> f)"
+  shows "proper_map X (prod_topology Y Z) f"
+  using proper_map_paired [OF assms] by (simp add: o_def)
+
+lemma proper_map_from_composition_right:
+  assumes "Hausdorff_space Y" "proper_map X Z (g \<circ> f)" and "continuous_map X Y f"
+    and contg: "continuous_map Y Z g"
+  shows "proper_map X Y f"
+proof -
+  define YZ where "YZ \<equiv> subtopology (prod_topology Y Z) ((\<lambda>x. (x, g x)) ` topspace Y)"
+  have "proper_map X Y (fst \<circ> (\<lambda>x. (f x, (g \<circ> f) x)))"
+  proof (rule proper_map_compose)
+    have [simp]: "x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y" for x
+      by (meson assms(3) continuous_map_def)
+    show "proper_map X YZ (\<lambda>x. (f x, (g \<circ> f) x))"
+      unfolding YZ_def
+      using assms
+      by (force intro!: proper_map_into_subtopology proper_map_paired simp: o_def image_iff)+
+    show "proper_map YZ Y fst"
+      using contg 
+      by (simp flip: homeomorphic_maps_graph add: YZ_def homeomorphic_maps_map homeomorphic_imp_proper_map)
+  qed
+  moreover have "fst \<circ> (\<lambda>x. (f x, (g \<circ> f) x)) = f"
+    by auto
+  ultimately show ?thesis
+    by auto
+qed
+
+lemma perfect_map_from_composition_right:
+   "\<lbrakk>Hausdorff_space Y; perfect_map X Z (g \<circ> f);
+     continuous_map X Y f; continuous_map Y Z g; f ` topspace X = topspace Y\<rbrakk>
+    \<Longrightarrow> perfect_map X Y f"
+  by (meson perfect_map_def proper_map_from_composition_right)
+
+lemma perfect_map_from_composition_right_inj:
+   "\<lbrakk>perfect_map X Z (g \<circ> f); f ` topspace X = topspace Y;
+     continuous_map X Y f; continuous_map Y Z g; inj_on g (topspace Y)\<rbrakk>
+    \<Longrightarrow> perfect_map X Y f"
+  by (meson continuous_map_image_subset_topspace perfect_map_def proper_map_from_composition_right_inj)
 
 
 subsection \<open>Regular spaces\<close>
@@ -2022,6 +2360,10 @@ proof -
     by auto
 qed
 
+lemma continuous_imp_proper_map:
+   "\<lbrakk>compact_space X; kc_space Y; continuous_map X Y f\<rbrakk> \<Longrightarrow> proper_map X Y f"
+  by (simp add: continuous_closed_imp_proper_map continuous_imp_closed_map_gen kc_imp_t1_space)
+
 
 lemma tube_lemma_right:
   assumes W: "openin (prod_topology X Y) W" and C: "compactin Y C" 
@@ -2060,8 +2402,7 @@ proof -
   have **: "\<And>U y. \<lbrakk>openin (prod_topology X Y) U; y \<in> topspace X;
             {x \<in> topspace X \<times> topspace Y. fst x = y} \<subseteq> U\<rbrakk>
            \<Longrightarrow> \<exists>V. openin X V \<and> y \<in> V \<and> V \<times> topspace Y \<subseteq> U"
-    using tube_lemma_right[of X Y _ "topspace Y"] assms compact_space_def
-    by force
+    using tube_lemma_right[of X Y _ "topspace Y"] assms by (fastforce simp: compact_space_def)
   show ?thesis
     unfolding closed_map_fibre_neighbourhood
     by (force simp: * openin_subset cong: conj_cong intro: **)
@@ -2492,17 +2833,19 @@ proof (clarsimp simp: locally_compact_space_def)
 qed
 
 lemma locally_compact_space_open_subset:
-  assumes reg: "regular_space X" and loc: "locally_compact_space X" and "openin X S"
+  assumes X: "Hausdorff_space X \<or> regular_space X" and loc: "locally_compact_space X" and "openin X S"
   shows "locally_compact_space (subtopology X S)"
 proof (clarsimp simp: locally_compact_space_def)
   fix x assume x: "x \<in> topspace X" "x \<in> S"
   then obtain U K where UK: "openin X U" "compactin X K" "x \<in> U" "U \<subseteq> K"
     by (meson loc locally_compact_space_def)
-  have "openin X (U \<inter> S)"
+  moreover have reg: "regular_space X"
+    using X loc locally_compact_Hausdorff_imp_regular_space by blast
+  moreover have "openin X (U \<inter> S)"
     by (simp add: UK \<open>openin X S\<close> openin_Int)
-  with UK reg x obtain V C 
+  ultimately obtain V C 
       where VC: "openin X V" "closedin X C" "x \<in> V" "V \<subseteq> C" "C \<subseteq> U" "C \<subseteq> S"
-    by (metis IntI le_inf_iff neighbourhood_base_of neighbourhood_base_of_closedin)
+    by (metis \<open>x \<in> S\<close> IntI le_inf_iff neighbourhood_base_of neighbourhood_base_of_closedin)
   show "\<exists>U. openin (subtopology X S) U \<and> 
             (\<exists>K. compactin (subtopology X S) K \<and> x \<in> U \<and> U \<subseteq> K)"
   proof (intro conjI exI)
@@ -2575,19 +2918,17 @@ proof
   then have "C \<subseteq> topspace X"
     by (simp add: closedin_subset)
   have "locally_compact_space (subtopology (subtopology X C) (topspace (subtopology X C) \<inter> U))"
-    proof (rule locally_compact_space_open_subset)
-  show "regular_space (subtopology X C)"
-    by (simp add: \<open>Hausdorff_space X\<close> loc locally_compact_Hausdorff_imp_regular_space regular_space_subtopology)
-  show "locally_compact_space (subtopology X C)"
-    by (simp add: \<open>closedin X C\<close> loc locally_compact_space_closed_subset)
-  show "openin (subtopology X C) (topspace (subtopology X C) \<inter> U)"
-    by (simp add: \<open>openin X U\<close> Int_left_commute inf_commute openin_Int openin_subtopology_Int2)
-qed
-    then show ?rhs
-      by (metis Seq \<open>C \<subseteq> topspace X\<close> inf.coboundedI1 subtopology_subtopology subtopology_topspace)
+  proof (rule locally_compact_space_open_subset)
+    show "locally_compact_space (subtopology X C)"
+      by (simp add: \<open>closedin X C\<close> loc locally_compact_space_closed_subset)
+    show "openin (subtopology X C) (topspace (subtopology X C) \<inter> U)"
+      by (simp add: \<open>openin X U\<close> Int_left_commute inf_commute openin_Int openin_subtopology_Int2)
+  qed (simp add: Hausdorff_space_subtopology \<open>Hausdorff_space X\<close>)
+  then show ?rhs
+    by (metis Seq \<open>C \<subseteq> topspace X\<close> inf.coboundedI1 subtopology_subtopology subtopology_topspace)
 next
   assume ?rhs then show ?lhs
-  using assms locally_compact_subspace_closed_Int_openin by blast
+    using assms locally_compact_subspace_closed_Int_openin by blast
 qed
 
 lemma dense_locally_compact_openin_Hausdorff_space:
@@ -3505,7 +3846,7 @@ lemma quasi_component_of_eq_empty:
 lemma quasi_component_of:
    "quasi_component_of X x y \<longleftrightarrow>
     x \<in> topspace X \<and> y \<in> topspace X \<and> (\<forall>T. x \<in> T \<and> closedin X T \<and> openin X T \<longrightarrow> y \<in> T)"
-  unfolding quasi_component_of_def by blast
+  unfolding quasi_component_of_def by (metis Diff_iff closedin_def openin_closedin_eq) 
 
 lemma quasi_component_of_alt:
   "quasi_component_of X x y \<longleftrightarrow>
@@ -4432,6 +4773,537 @@ lemma boundary_bumping_theorem:
      C \<in> connected_components_of(subtopology X S)\<rbrakk>
     \<Longrightarrow> X frontier_of C \<inter> X frontier_of S \<noteq> {}"
   by (simp add: boundary_bumping_theorem_gen closedin_compact_space compact_imp_locally_compact_space)
+
+subsection \<open>Compactly generated spaces (k-spaces)\<close>
+
+text \<open>These don't have to be Hausdorff\<close>
+
+definition k_space where
+  "k_space X \<equiv>
+    \<forall>S. S \<subseteq> topspace X \<longrightarrow> 
+        (closedin X S \<longleftrightarrow> (\<forall>K. compactin X K \<longrightarrow> closedin (subtopology X K) (K \<inter> S)))"
+
+lemma k_space:
+   "k_space X \<longleftrightarrow>
+    (\<forall>S. S \<subseteq> topspace X \<and>
+         (\<forall>K. compactin X K \<longrightarrow> closedin (subtopology X K) (K \<inter> S)) \<longrightarrow> closedin X S)"
+  by (metis closedin_subtopology inf_commute k_space_def)
+
+lemma k_space_open:
+   "k_space X \<longleftrightarrow>
+    (\<forall>S. S \<subseteq> topspace X \<and>
+         (\<forall>K. compactin X K \<longrightarrow> openin (subtopology X K) (K \<inter> S)) \<longrightarrow> openin X S)"
+proof -
+  have "openin X S"
+    if "k_space X" "S \<subseteq> topspace X"
+      and "\<forall>K. compactin X K \<longrightarrow> openin (subtopology X K) (K \<inter> S)" for S
+    using that unfolding k_space openin_closedin_eq
+    by (metis Diff_Int_distrib2 Diff_subset inf_commute topspace_subtopology)
+  moreover have "k_space X"
+    if "\<forall>S. S \<subseteq> topspace X \<and> (\<forall>K. compactin X K \<longrightarrow> openin (subtopology X K) (K \<inter> S)) \<longrightarrow> openin X S"
+    unfolding k_space openin_closedin_eq
+    by (simp add: Diff_Int_distrib closedin_def inf_commute that)
+  ultimately show ?thesis
+    by blast
+qed
+
+lemma k_space_alt:
+   "k_space X \<longleftrightarrow>
+    (\<forall>S. S \<subseteq> topspace X
+        \<longrightarrow> (openin X S \<longleftrightarrow> (\<forall>K. compactin X K \<longrightarrow> openin (subtopology X K) (K \<inter> S))))"
+  by (meson k_space_open openin_subtopology_Int2)
+
+lemma k_space_quotient_map_image:
+  assumes q: "quotient_map X Y q" and X: "k_space X"
+  shows "k_space Y"
+  unfolding k_space
+proof clarify
+  fix S
+  assume "S \<subseteq> topspace Y" and S: "\<forall>K. compactin Y K \<longrightarrow> closedin (subtopology Y K) (K \<inter> S)"
+  then have iff: "closedin X {x \<in> topspace X. q x \<in> S} \<longleftrightarrow> closedin Y S"
+    using q quotient_map_closedin by fastforce
+  have "closedin (subtopology X K) (K \<inter> {x \<in> topspace X. q x \<in> S})" if "compactin X K" for K
+  proof -
+    have "{x \<in> topspace X. q x \<in> q ` K} \<inter> K = K"
+      using compactin_subset_topspace that by blast
+    then have *: "subtopology X K = subtopology (subtopology X {x \<in> topspace X. q x \<in> q ` K}) K"
+      by (simp add: subtopology_subtopology)
+    have **: "K \<inter> {x \<in> topspace X. q x \<in> S} =
+              K \<inter> {x \<in> topspace (subtopology X {x \<in> topspace X. q x \<in> q ` K}). q x \<in> q ` K \<inter> S}"
+      by auto
+    have "K \<subseteq> topspace X"
+      by (simp add: compactin_subset_topspace that)
+    show ?thesis
+      unfolding * **
+    proof (intro closedin_continuous_map_preimage closedin_subtopology_Int_closed)
+      show "continuous_map (subtopology X {x \<in> topspace X. q x \<in> q ` K}) (subtopology Y (q ` K)) q"
+        by (auto simp add: continuous_map_in_subtopology continuous_map_from_subtopology q quotient_imp_continuous_map)
+      show "closedin (subtopology Y (q ` K)) (q ` K \<inter> S)"
+        by (meson S image_compactin q quotient_imp_continuous_map that)
+    qed
+  qed
+  then have "closedin X {x \<in> topspace X. q x \<in> S}"
+    by (metis (no_types, lifting) X k_space mem_Collect_eq subsetI)
+  with iff show "closedin Y S" by simp
+qed
+
+lemma k_space_retraction_map_image:
+   "\<lbrakk>retraction_map X Y r; k_space X\<rbrakk> \<Longrightarrow> k_space Y"
+  using k_space_quotient_map_image retraction_imp_quotient_map by blast
+
+lemma homeomorphic_k_space:
+   "X homeomorphic_space Y \<Longrightarrow> k_space X \<longleftrightarrow> k_space Y"
+  by (meson homeomorphic_map_def homeomorphic_space homeomorphic_space_sym k_space_quotient_map_image)
+
+lemma k_space_perfect_map_image:
+   "\<lbrakk>k_space X; perfect_map X Y f\<rbrakk> \<Longrightarrow> k_space Y"
+  using k_space_quotient_map_image perfect_imp_quotient_map by blast
+
+lemma locally_compact_imp_k_space:
+  assumes "locally_compact_space X"
+  shows "k_space X"
+  unfolding k_space
+proof clarify
+  fix S
+  assume "S \<subseteq> topspace X" and S: "\<forall>K. compactin X K \<longrightarrow> closedin (subtopology X K) (K \<inter> S)"
+  have False if non: "\<not> (X closure_of S \<subseteq> S)"
+  proof -
+    obtain x where "x \<in> X closure_of S" "x \<notin> S"
+      using non by blast
+    then have "x \<in> topspace X"
+      by (simp add: in_closure_of)
+    then obtain K U where "openin X U" "compactin X K" "x \<in> U" "U \<subseteq> K"
+      by (meson assms locally_compact_space_def)
+    then show False
+      using \<open>x \<in> X closure_of S\<close>  openin_Int_closure_of_eq [OF \<open>openin X U\<close>]
+      by (smt (verit, ccfv_threshold) Int_iff S \<open>x \<notin> S\<close> closedin_Int_closure_of inf.orderE inf_assoc)
+  qed
+  then show "closedin X S"
+    using S \<open>S \<subseteq> topspace X\<close> closure_of_subset_eq by blast
+qed
+
+lemma compact_imp_k_space:
+   "compact_space X \<Longrightarrow> k_space X"
+  by (simp add: compact_imp_locally_compact_space locally_compact_imp_k_space)
+
+lemma k_space_discrete_topology: "k_space(discrete_topology U)"
+  by (simp add: k_space_open)
+
+lemma k_space_closed_subtopology:
+  assumes "k_space X" "closedin X C"
+  shows "k_space (subtopology X C)"
+unfolding k_space compactin_subtopology
+proof clarsimp
+  fix S
+  assume Ssub: "S \<subseteq> topspace X" "S \<subseteq> C"
+      and S: "\<forall>K. compactin X K \<and> K \<subseteq> C \<longrightarrow> closedin (subtopology (subtopology X C) K) (K \<inter> S)"
+  have "closedin (subtopology X K) (K \<inter> S)" if "compactin X K" for K
+  proof -
+    have "closedin (subtopology (subtopology X C) (K \<inter> C)) ((K \<inter> C) \<inter> S)"
+      by (simp add: S \<open>closedin X C\<close> compact_Int_closedin that)
+    then show ?thesis
+      using \<open>closedin X C\<close> Ssub by (auto simp add: closedin_subtopology)
+  qed
+  then show "closedin (subtopology X C) S"
+    by (metis Ssub \<open>k_space X\<close> closedin_subset_topspace k_space_def)
+qed
+
+lemma k_space_subtopology:
+  assumes 1: "\<And>T. \<lbrakk>T \<subseteq> topspace X; T \<subseteq> S;
+                   \<And>K. compactin X K \<Longrightarrow> closedin (subtopology X (K \<inter> S)) (K \<inter> T)\<rbrakk> \<Longrightarrow> closedin (subtopology X S) T"
+  assumes 2: "\<And>K. compactin X K \<Longrightarrow> k_space(subtopology X (K \<inter> S))"
+  shows "k_space (subtopology X S)"
+  unfolding k_space
+proof (intro conjI strip)
+  fix U
+  assume \<section>: "U \<subseteq> topspace (subtopology X S) \<and> (\<forall>K. compactin (subtopology X S) K \<longrightarrow> closedin (subtopology (subtopology X S) K) (K \<inter> U))"
+  have "closedin (subtopology X (K \<inter> S)) (K \<inter> U)" if "compactin X K" for K
+  proof -
+    have "K \<inter> U \<subseteq> topspace (subtopology X (K \<inter> S))"
+      using "\<section>" by auto
+    moreover
+    have "\<And>K'. compactin (subtopology X (K \<inter> S)) K' \<Longrightarrow> closedin (subtopology (subtopology X (K \<inter> S)) K') (K' \<inter> K \<inter> U)"
+      by (metis "\<section>" compactin_subtopology inf.orderE inf_commute subtopology_subtopology)
+    ultimately show ?thesis
+      by (metis (no_types, opaque_lifting) "2" inf.assoc k_space_def that)
+  qed
+  then show "closedin (subtopology X S) U"
+    using "1" \<section> by auto
+qed
+
+lemma k_space_subtopology_open:
+  assumes 1: "\<And>T. \<lbrakk>T \<subseteq> topspace X; T \<subseteq> S;
+                    \<And>K. compactin X K \<Longrightarrow> openin (subtopology X (K \<inter> S)) (K \<inter> T)\<rbrakk> \<Longrightarrow> openin (subtopology X S) T"
+  assumes 2: "\<And>K. compactin X K \<Longrightarrow> k_space(subtopology X (K \<inter> S))"
+  shows "k_space (subtopology X S)"
+  unfolding k_space_open
+proof (intro conjI strip)
+  fix U
+  assume \<section>: "U \<subseteq> topspace (subtopology X S) \<and> (\<forall>K. compactin (subtopology X S) K \<longrightarrow> openin (subtopology (subtopology X S) K) (K \<inter> U))"
+  have "openin (subtopology X (K \<inter> S)) (K \<inter> U)" if "compactin X K" for K
+  proof -
+    have "K \<inter> U \<subseteq> topspace (subtopology X (K \<inter> S))"
+      using "\<section>" by auto
+    moreover
+    have "\<And>K'. compactin (subtopology X (K \<inter> S)) K' \<Longrightarrow> openin (subtopology (subtopology X (K \<inter> S)) K') (K' \<inter> K \<inter> U)"
+      by (metis "\<section>" compactin_subtopology inf.orderE inf_commute subtopology_subtopology)
+    ultimately show ?thesis
+      by (metis (no_types, opaque_lifting) "2" inf.assoc k_space_open that)
+  qed
+  then show "openin (subtopology X S) U"
+    using "1" \<section> by auto
+qed
+
+
+lemma k_space_open_subtopology_aux:
+  assumes "kc_space X" "compact_space X" "openin X V"
+  shows "k_space (subtopology X V)"
+proof (clarsimp simp: k_space subtopology_subtopology compactin_subtopology Int_absorb1)
+  fix S
+  assume "S \<subseteq> topspace X"
+    and "S \<subseteq> V"
+    and S: "\<forall>K. compactin X K \<and> K \<subseteq> V \<longrightarrow> closedin (subtopology X K) (K \<inter> S)"
+  then have "V \<subseteq> topspace X"
+    using assms openin_subset by blast
+  have "S = V \<inter> ((topspace X - V) \<union> S)"
+    using \<open>S \<subseteq> V\<close> by auto
+  moreover have "closedin (subtopology X V) (V \<inter> ((topspace X - V) \<union> S))"
+  proof (intro closedin_subtopology_Int_closed compactin_imp_closedin_gen \<open>kc_space X\<close>)
+    show "compactin X (topspace X - V \<union> S)"
+      unfolding compactin_def
+    proof (intro conjI strip)
+      show "topspace X - V \<union> S \<subseteq> topspace X"
+        by (simp add: \<open>S \<subseteq> topspace X\<close>)
+      fix \<U>
+      assume \<U>: "Ball \<U> (openin X) \<and> topspace X - V \<union> S \<subseteq> \<Union>\<U>"
+      moreover
+      have "compactin X (topspace X - V)"
+        using assms closedin_compact_space by blast
+      ultimately obtain \<G> where "finite \<G>" "\<G> \<subseteq> \<U>" and \<G>: "topspace X - V \<subseteq> \<Union>\<G>"
+        unfolding compactin_def using \<open>V \<subseteq> topspace X\<close> by (metis le_sup_iff)
+      then have "topspace X - \<Union>\<G> \<subseteq> V"
+        by blast
+      then have "closedin (subtopology X (topspace X - \<Union>\<G>)) ((topspace X - \<Union>\<G>) \<inter> S)"
+        by (meson S \<U> \<open>\<G> \<subseteq> \<U>\<close> \<open>compact_space X\<close> closedin_compact_space openin_Union openin_closedin_eq subset_iff)
+      then have "compactin X ((topspace X - \<Union>\<G>) \<inter> S)"
+        by (meson \<U> \<open>\<G> \<subseteq> \<U>\<close>\<open>compact_space X\<close> closedin_compact_space closedin_trans_full openin_Union openin_closedin_eq subset_iff)
+      then obtain \<H> where "finite \<H>" "\<H> \<subseteq> \<U>" "(topspace X - \<Union>\<G>) \<inter> S \<subseteq> \<Union>\<H>"
+        unfolding compactin_def by (smt (verit, best) \<U> inf_le2 subset_trans sup.boundedE)
+      with \<G> have "topspace X - V \<union> S \<subseteq> \<Union>(\<G> \<union> \<H>)"
+        using \<open>S \<subseteq> topspace X\<close> by auto
+      then show "\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> topspace X - V \<union> S \<subseteq> \<Union>\<F>"
+        by (metis \<open>\<G> \<subseteq> \<U>\<close> \<open>\<H> \<subseteq> \<U>\<close> \<open>finite \<G>\<close> \<open>finite \<H>\<close> finite_Un le_sup_iff)
+    qed
+  qed
+  ultimately show "closedin (subtopology X V) S"
+    by metis
+qed
+
+
+lemma k_space_open_subtopology:
+  assumes X: "kc_space X \<or> Hausdorff_space X \<or> regular_space X" and "k_space X" "openin X S"
+  shows "k_space(subtopology X S)"
+proof (rule k_space_subtopology_open)
+  fix T
+  assume "T \<subseteq> topspace X"
+    and "T \<subseteq> S"
+    and T: "\<And>K. compactin X K \<Longrightarrow> openin (subtopology X (K \<inter> S)) (K \<inter> T)"
+  have "openin (subtopology X K) (K \<inter> T)" if "compactin X K" for K
+    by (smt (verit, ccfv_threshold) T assms(3) inf_assoc inf_commute openin_Int openin_subtopology that)
+  then show "openin (subtopology X S) T"
+    by (metis \<open>T \<subseteq> S\<close> \<open>T \<subseteq> topspace X\<close> assms(2) k_space_alt subset_openin_subtopology)
+next
+  fix K
+  assume "compactin X K"
+  then have KS: "openin (subtopology X K) (K \<inter> S)"
+    by (simp add: \<open>openin X S\<close> openin_subtopology_Int2)
+  have XK: "compact_space (subtopology X K)"
+    by (simp add: \<open>compactin X K\<close> compact_space_subtopology)
+  show "k_space (subtopology X (K \<inter> S))"
+    using X
+  proof (rule disjE)
+    assume "kc_space X"
+    then show "k_space (subtopology X (K \<inter> S))"
+      using k_space_open_subtopology_aux [of "subtopology X K" "K \<inter> S"]
+      by (simp add: KS XK kc_space_subtopology subtopology_subtopology)
+  next
+    assume "Hausdorff_space X \<or> regular_space X"
+    then have "locally_compact_space (subtopology (subtopology X K) (K \<inter> S))"
+      using locally_compact_space_open_subset Hausdorff_space_subtopology KS XK 
+        compact_imp_locally_compact_space regular_space_subtopology by blast
+    then show "k_space (subtopology X (K \<inter> S))"
+      by (simp add: locally_compact_imp_k_space subtopology_subtopology)
+  qed
+qed
+
+lemma k_kc_space_subtopology:
+   "\<lbrakk>k_space X; kc_space X; openin X S \<or> closedin X S\<rbrakk> \<Longrightarrow> k_space(subtopology X S) \<and> kc_space(subtopology X S)"
+  by (metis k_space_closed_subtopology k_space_open_subtopology kc_space_subtopology)
+
+
+lemma k_space_as_quotient_explicit:
+  "k_space X \<longleftrightarrow> quotient_map (sum_topology (subtopology X) {K. compactin X K}) X snd"
+proof -
+  have [simp]: "{x \<in> topspace X. x \<in> K \<and> x \<in> U} = K \<inter> U" if "U \<subseteq> topspace X" for K U
+    using that by blast
+  show "?thesis"
+    apply (simp add: quotient_map_def openin_sum_topology snd_image_Sigma k_space_alt)
+    by (smt (verit, del_insts) Union_iff compactin_sing inf.orderE mem_Collect_eq singletonI subsetI)
+qed
+
+lemma k_space_as_quotient:
+  fixes X :: "'a topology"
+  shows "k_space X \<longleftrightarrow> (\<exists>q. \<exists>Y:: ('a set * 'a) topology. locally_compact_space Y \<and> quotient_map Y X q)" 
+         (is "?lhs=?rhs")
+proof
+  show "k_space X" if ?rhs
+    using that k_space_quotient_map_image locally_compact_imp_k_space by blast 
+next
+  assume "k_space X"
+  show ?rhs
+  proof (intro exI conjI)
+    show "locally_compact_space (sum_topology (subtopology X) {K. compactin X K})"
+      by (simp add: compact_imp_locally_compact_space compact_space_subtopology locally_compact_space_sum_topology)
+    show "quotient_map (sum_topology (subtopology X) {K. compactin X K}) X snd"
+      using \<open>k_space X\<close> k_space_as_quotient_explicit by blast
+  qed
+qed
+
+lemma k_space_prod_topology_left:
+  assumes X: "locally_compact_space X" "Hausdorff_space X \<or> regular_space X" and "k_space Y"
+  shows "k_space (prod_topology X Y)"
+proof -
+  obtain q and Z :: "('b set * 'b) topology" where "locally_compact_space Z" and q: "quotient_map Z Y q"
+    using \<open>k_space Y\<close> k_space_as_quotient by blast
+  then show ?thesis
+    using quotient_map_prod_right [OF X q] X k_space_quotient_map_image locally_compact_imp_k_space 
+          locally_compact_space_prod_topology by blast
+qed
+
+text \<open>Essentially the same proof\<close>
+lemma k_space_prod_topology_right:
+  assumes "k_space X" and Y: "locally_compact_space Y" "Hausdorff_space Y \<or> regular_space Y"
+  shows "k_space (prod_topology X Y)"
+proof -
+  obtain q and Z :: "('a set * 'a) topology" where "locally_compact_space Z" and q: "quotient_map Z X q"
+    using \<open>k_space X\<close> k_space_as_quotient by blast
+  then show ?thesis
+    using quotient_map_prod_left [OF Y q] using Y k_space_quotient_map_image locally_compact_imp_k_space 
+          locally_compact_space_prod_topology by blast
+qed
+
+
+lemma continuous_map_from_k_space:
+  assumes "k_space X" and f: "\<And>K. compactin X K \<Longrightarrow> continuous_map(subtopology X K) Y f"
+  shows "continuous_map X Y f"
+proof -
+  have "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+    by (metis compactin_absolute compactin_sing f image_compactin image_empty image_insert)
+  moreover have "closedin X {x \<in> topspace X. f x \<in> C}" if "closedin Y C" for C
+  proof -
+    have "{x \<in> topspace X. f x \<in> C} \<subseteq> topspace X"
+      by fastforce
+    moreover 
+    have eq: "K \<inter> {x \<in> topspace X. f x \<in> C} = {x. x \<in> topspace(subtopology X K) \<and> f x \<in> (f ` K \<inter> C)}" for K
+      by auto
+    have "closedin (subtopology X K) (K \<inter> {x \<in> topspace X. f x \<in> C})" if "compactin X K" for K
+      unfolding eq
+    proof (rule closedin_continuous_map_preimage)
+      show "continuous_map (subtopology X K) (subtopology Y (f`K)) f"
+        by (simp add: continuous_map_in_subtopology f image_mono that)
+      show "closedin (subtopology Y (f`K)) (f ` K \<inter> C)"
+        using \<open>closedin Y C\<close> closedin_subtopology by blast
+    qed
+    ultimately show ?thesis
+      using \<open>k_space X\<close> k_space by blast
+  qed
+  ultimately show ?thesis
+    by (simp add: continuous_map_closedin)
+qed
+
+lemma closed_map_into_k_space:
+  assumes "k_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y"
+    and f: "\<And>K. compactin Y K
+                \<Longrightarrow> closed_map(subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f"
+  shows "closed_map X Y f"
+  unfolding closed_map_def
+proof (intro strip)
+  fix C
+  assume "closedin X C"
+  have "closedin (subtopology Y K) (K \<inter> f ` C)"
+    if "compactin Y K" for K
+  proof -
+    have eq: "K \<inter> f ` C = f ` ({x \<in> topspace X. f x \<in> K} \<inter> C)"
+      using \<open>closedin X C\<close> closedin_subset by auto
+    show ?thesis
+      unfolding eq
+      by (metis (no_types, lifting) \<open>closedin X C\<close> closed_map_def closedin_subtopology f inf_commute that)
+  qed
+  then show "closedin Y (f ` C)"
+    using \<open>k_space Y\<close> unfolding k_space
+    by (meson \<open>closedin X C\<close> closedin_subset dual_order.trans fim image_mono)
+qed
+
+
+text \<open>Essentially the same proof\<close>
+lemma open_map_into_k_space:
+  assumes "k_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y"
+    and f: "\<And>K. compactin Y K
+                 \<Longrightarrow> open_map (subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f"
+  shows "open_map X Y f"
+  unfolding open_map_def
+proof (intro strip)
+  fix C
+  assume "openin X C"
+  have "openin (subtopology Y K) (K \<inter> f ` C)"
+    if "compactin Y K" for K
+  proof -
+    have eq: "K \<inter> f ` C = f ` ({x \<in> topspace X. f x \<in> K} \<inter> C)"
+      using \<open>openin X C\<close> openin_subset by auto
+    show ?thesis
+      unfolding eq
+      by (metis (no_types, lifting) \<open>openin X C\<close> open_map_def openin_subtopology f inf_commute that)
+  qed
+  then show "openin Y (f ` C)"
+    using \<open>k_space Y\<close> unfolding k_space_open
+    by (meson \<open>openin X C\<close> openin_subset dual_order.trans fim image_mono)
+qed
+
+lemma quotient_map_into_k_space:
+  fixes f :: "'a \<Rightarrow> 'b"
+  assumes "k_space Y" and cmf: "continuous_map X Y f" 
+    and fim: "f ` (topspace X) = topspace Y"
+    and f: "\<And>k. compactin Y k
+                 \<Longrightarrow> quotient_map (subtopology X {x \<in> topspace X. f x \<in> k})
+                                  (subtopology Y k) f"
+  shows "quotient_map X Y f"
+proof -
+  have "closedin Y C"
+    if "C \<subseteq> topspace Y" and K: "closedin X {x \<in> topspace X. f x \<in> C}" for C
+  proof -
+    have "closedin (subtopology Y K) (K \<inter> C)" if "compactin Y K" for K
+    proof -
+      define Kf where "Kf \<equiv> {x \<in> topspace X. f x \<in> K}"
+      have *: "K \<inter> C \<subseteq> topspace Y \<and> K \<inter> C \<subseteq> K"
+        using \<open>C \<subseteq> topspace Y\<close> by blast
+      then have eq: "closedin (subtopology X Kf) (Kf \<inter> {x \<in> topspace X. f x \<in> C}) =
+                 closedin (subtopology Y K) (K \<inter> C)"
+        using f [OF that] * unfolding quotient_map_closedin Kf_def
+        by (smt (verit, ccfv_SIG) Collect_cong Int_def compactin_subset_topspace mem_Collect_eq that topspace_subtopology topspace_subtopology_subset)
+      have dd: "{x \<in> topspace X \<inter> Kf. f x \<in> K \<inter> C} = Kf \<inter> {x \<in> topspace X. f x \<in> C}"
+        by (auto simp add: Kf_def)
+      have "closedin (subtopology X Kf) {x \<in> topspace X. x \<in> Kf \<and> f x \<in> K \<and> f x \<in> C}"
+        using K closedin_subtopology by (fastforce simp add: Kf_def)
+      with K closedin_subtopology_Int_closed eq show ?thesis
+        by blast
+    qed
+    then show ?thesis 
+      using \<open>k_space Y\<close> that unfolding k_space by blast
+  qed
+  moreover have "closedin X {x \<in> topspace X. f x \<in> K}"
+    if "K \<subseteq> topspace Y" "closedin Y K" for K
+    using that cmf continuous_map_closedin by fastforce
+  ultimately show ?thesis
+    unfolding quotient_map_closedin using fim by blast
+qed
+
+lemma quotient_map_into_k_space_eq:
+  assumes "k_space Y" "kc_space Y"
+  shows "quotient_map X Y f \<longleftrightarrow>
+         continuous_map X Y f \<and> f ` (topspace X) = topspace Y \<and>
+         (\<forall>K. compactin Y K
+              \<longrightarrow> quotient_map (subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f)"
+  using assms
+  by (auto simp: kc_space_def intro: quotient_map_into_k_space quotient_map_restriction
+       dest: quotient_imp_continuous_map quotient_imp_surjective_map)
+
+lemma open_map_into_k_space_eq:
+  assumes "k_space Y"
+  shows "open_map X Y f \<longleftrightarrow>
+         f ` (topspace X) \<subseteq> topspace Y \<and>
+         (\<forall>k. compactin Y k
+              \<longrightarrow> open_map (subtopology X {x \<in> topspace X. f x \<in> k}) (subtopology Y k) f)"
+       (is "?lhs=?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: open_map_imp_subset_topspace open_map_restriction)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (simp add: assms open_map_into_k_space)
+qed
+
+lemma closed_map_into_k_space_eq:
+  assumes "k_space Y"
+  shows "closed_map X Y f \<longleftrightarrow>
+         f ` (topspace X) \<subseteq> topspace Y \<and>
+         (\<forall>k. compactin Y k
+              \<longrightarrow> closed_map (subtopology X {x \<in> topspace X. f x \<in> k}) (subtopology Y k) f)"
+       (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: closed_map_imp_subset_topspace closed_map_restriction)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (simp add: assms closed_map_into_k_space)
+qed
+
+lemma proper_map_into_k_space:
+  assumes "k_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y"
+    and f: "\<And>K. compactin Y K
+                 \<Longrightarrow> proper_map (subtopology X {x \<in> topspace X. f x \<in> K})
+                                (subtopology Y K) f"
+  shows "proper_map X Y f"
+proof -
+  have "closed_map X Y f"
+    by (meson assms closed_map_into_k_space fim proper_map_def)
+  with f topspace_subtopology_subset show ?thesis
+    apply (simp add: proper_map_alt)
+    by (smt (verit, best) Collect_cong compactin_absolute)
+qed
+
+lemma proper_map_into_k_space_eq:
+  assumes "k_space Y"
+  shows "proper_map X Y f \<longleftrightarrow>
+         f ` (topspace X) \<subseteq> topspace Y \<and>
+         (\<forall>K. compactin Y K
+              \<longrightarrow> proper_map (subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f)"
+         (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: proper_map_imp_subset_topspace proper_map_restriction)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (simp add: assms proper_map_into_k_space)
+qed
+
+lemma compact_imp_proper_map:
+  assumes "k_space Y" "kc_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y" 
+    and f: "continuous_map X Y f \<or> kc_space X" 
+    and comp: "\<And>K. compactin Y K \<Longrightarrow> compactin X {x \<in> topspace X. f x \<in> K}"
+  shows "proper_map X Y f"
+proof (rule compact_imp_proper_map_gen)
+  fix S
+  assume "S \<subseteq> topspace Y"
+      and "\<And>K. compactin Y K \<Longrightarrow> compactin Y (S \<inter> K)"
+  with assms show "closedin Y S"
+    by (simp add: closedin_subset_topspace inf_commute k_space kc_space_def)
+qed (use assms in auto)
+
+lemma proper_eq_compact_map:
+  assumes "k_space Y" "kc_space Y" 
+    and f: "continuous_map X Y f \<or> kc_space X" 
+  shows  "proper_map X Y f \<longleftrightarrow>
+             f ` (topspace X) \<subseteq> topspace Y \<and>
+             (\<forall>K. compactin Y K \<longrightarrow> compactin X {x \<in> topspace X. f x \<in> K})"
+         (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (simp add: proper_map_alt proper_map_imp_subset_topspace)
+qed (use assms compact_imp_proper_map in auto)
+
+lemma compact_imp_perfect_map:
+  assumes "k_space Y" "kc_space Y" and "f ` (topspace X) = topspace Y" 
+    and "continuous_map X Y f" 
+    and "\<And>K. compactin Y K \<Longrightarrow> compactin X {x \<in> topspace X. f x \<in> K}"
+  shows "perfect_map X Y f"
+  by (simp add: assms compact_imp_proper_map perfect_map_def)
 
 end
 
