@@ -909,15 +909,14 @@ end
 context field
 begin
 
-local_setup \<open>
-Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
-  (fn phi => Field_Tac.Field_Simps.map (Ring_Tac.insert_rules Field_Tac.eq_field_simps
+declaration \<open>fn phi =>
+  Field_Tac.Field_Simps.map (Ring_Tac.insert_rules Field_Tac.eq_field_simps
     (Morphism.term phi \<^term>\<open>R\<close>,
      (Morphism.fact phi @{thms feval.simps [meta] feval_Cnst [meta]},
       Morphism.fact phi @{thms peval.simps [meta] peval_Cnst [meta]},
       Morphism.fact phi @{thms nonzero.simps [meta] nonzero_singleton [meta]},
       singleton (Morphism.fact phi) @{thm nth_el_Cons [meta]},
-      singleton (Morphism.fact phi) @{thm feval_eq}))))
+      singleton (Morphism.fact phi) @{thm feval_eq})))
 \<close>
 
 end
