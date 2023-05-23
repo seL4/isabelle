@@ -605,28 +605,28 @@ lemma wt_stmt_eq: "E,dt\<Turnstile>In1r t\<Colon>U = (U=Inl(PrimT Void)\<and>E,d
   by (auto, frule wt_Inj_elim, auto, frule wt_Inj_elim, auto)
 
 simproc_setup wt_expr ("E,dt\<Turnstile>In1l t\<Colon>U") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
-    | _ => SOME (mk_meta_eq @{thm wt_expr_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm wt_expr_eq}))))\<close>
 
 simproc_setup wt_var ("E,dt\<Turnstile>In2 t\<Colon>U") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
-    | _ => SOME (mk_meta_eq @{thm wt_var_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm wt_var_eq}))))\<close>
 
 simproc_setup wt_exprs ("E,dt\<Turnstile>In3 t\<Colon>U") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
-    | _ => SOME (mk_meta_eq @{thm wt_exprs_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm wt_exprs_eq}))))\<close>
 
 simproc_setup wt_stmt ("E,dt\<Turnstile>In1r t\<Colon>U") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
-    | _ => SOME (mk_meta_eq @{thm wt_stmt_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm wt_stmt_eq}))))\<close>
 
 lemma wt_elim_BinOp:
   "\<lbrakk>E,dt\<Turnstile>In1l (BinOp binop e1 e2)\<Colon>T;

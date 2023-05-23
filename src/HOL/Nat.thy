@@ -1968,19 +1968,19 @@ ML_file \<open>Tools/nat_arith.ML\<close>
 
 simproc_setup nateq_cancel_sums
   ("(l::nat) + m = n" | "(l::nat) = m + n" | "Suc m = n" | "m = Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_eq_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_eq_conv)\<close>
 
 simproc_setup natless_cancel_sums
   ("(l::nat) + m < n" | "(l::nat) < m + n" | "Suc m < n" | "m < Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_less_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_less_conv)\<close>
 
 simproc_setup natle_cancel_sums
   ("(l::nat) + m \<le> n" | "(l::nat) \<le> m + n" | "Suc m \<le> n" | "m \<le> Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_le_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_le_conv)\<close>
 
 simproc_setup natdiff_cancel_sums
   ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_diff_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_diff_conv)\<close>
 
 context order
 begin

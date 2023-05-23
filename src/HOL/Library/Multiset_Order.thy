@@ -776,14 +776,14 @@ simproc_setup msetless_cancel
    "add_mset a m < n" | "m < add_mset a n" |
    "replicate_mset p a < n" | "m < replicate_mset p a" |
    "repeat_mset p m < n" | "m < repeat_mset p n") =
-  \<open>fn phi => Cancel_Simprocs.less_cancel\<close>
+  \<open>K Cancel_Simprocs.less_cancel\<close>
 
 simproc_setup msetle_cancel
   ("(l::'a::preorder multiset) + m \<le> n" | "(l::'a multiset) \<le> m + n" |
    "add_mset a m \<le> n" | "m \<le> add_mset a n" |
    "replicate_mset p a \<le> n" | "m \<le> replicate_mset p a" |
    "repeat_mset p m \<le> n" | "m \<le> repeat_mset p n") =
-  \<open>fn phi => Cancel_Simprocs.less_eq_cancel\<close>
+  \<open>K Cancel_Simprocs.less_eq_cancel\<close>
 
 
 subsection \<open>Additional facts and instantiations\<close>

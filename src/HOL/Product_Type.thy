@@ -73,9 +73,9 @@ text \<open>
 \<close>
 
 simproc_setup unit_eq ("x::unit") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     if HOLogic.is_unit (Thm.term_of ct) then NONE
-    else SOME (mk_meta_eq @{thm unit_eq})
+    else SOME (mk_meta_eq @{thm unit_eq})))
 \<close>
 
 free_constructors case_unit for "()"
@@ -570,9 +570,9 @@ in
 end;
 \<close>
 simproc_setup case_prod_beta ("case_prod f z") =
-  \<open>fn _ => fn ctxt => fn ct => beta_proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => beta_proc ctxt (Thm.term_of ct))\<close>
 simproc_setup case_prod_eta ("case_prod f") =
-  \<open>fn _ => fn ctxt => fn ct => eta_proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => eta_proc ctxt (Thm.term_of ct))\<close>
 
 lemma case_prod_beta': "(\<lambda>(x,y). f x y) = (\<lambda>x. f (fst x) (snd x))"
   by (auto simp: fun_eq_iff)
@@ -1326,7 +1326,7 @@ subsection \<open>Inductively defined sets\<close>
 
 (* simplify {(x1, ..., xn). (x1, ..., xn) : S} to S *)
 simproc_setup Collect_mem ("Collect t") = \<open>
-  fn _ => fn ctxt => fn ct =>
+  K (fn ctxt => fn ct =>
     (case Thm.term_of ct of
       S as Const (\<^const_name>\<open>Collect\<close>, Type (\<^type_name>\<open>fun\<close>, [_, T])) $ t =>
         let val (u, _, ps) = HOLogic.strip_ptupleabs t in
@@ -1355,7 +1355,7 @@ simproc_setup Collect_mem ("Collect t") = \<open>
                   else NONE)
           | _ => NONE)
         end
-    | _ => NONE)
+    | _ => NONE))
 \<close>
 
 ML_file \<open>Tools/inductive_set.ML\<close>

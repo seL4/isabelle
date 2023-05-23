@@ -1236,7 +1236,7 @@ simproc_setup defined_all("\<And>x. PROP P x") = \<open>K Quantifier1.rearrange_
 
 text \<open>Simproc for proving \<open>(y = x) \<equiv> False\<close> from premise \<open>\<not> (x = y)\<close>:\<close>
 
-simproc_setup neq ("x = y") = \<open>fn _ =>
+simproc_setup neq ("x = y") = \<open>
   let
     val neq_to_EQ_False = @{thm not_sym} RS @{thm Eq_FalseI};
     fun is_neq eq lhs rhs thm =
@@ -1252,7 +1252,7 @@ simproc_setup neq ("x = y") = \<open>fn _ =>
             SOME thm => SOME (thm RS neq_to_EQ_False)
           | NONE => NONE)
        | _ => NONE);
-  in proc end
+  in K proc end
 \<close>
 
 simproc_setup let_simp ("Let x f") = \<open>
@@ -1266,7 +1266,7 @@ simproc_setup let_simp ("Let x f") = \<open>
         Abs (_, _, t') => count_loose t' 0 <= 1
       | _ => true);
   in
-    fn _ => fn ctxt => fn ct =>
+    K (fn ctxt => fn ct =>
       if is_trivial_let (Thm.term_of ct)
       then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
       else
@@ -1308,7 +1308,7 @@ simproc_setup let_simp ("Let x f") = \<open>
                     in SOME (rl OF [Thm.transitive fx_g g_g'x]) end
                 end
             | _ => NONE)
-        end
+        end)
   end
 \<close>
 
@@ -1649,7 +1649,7 @@ ML \<open>
 signature REORIENT_PROC =
 sig
   val add : (term -> bool) -> theory -> theory
-  val proc : morphism -> Proof.context -> cterm -> thm option
+  val proc : Proof.context -> cterm -> thm option
 end;
 
 structure Reorient_Proc : REORIENT_PROC =
@@ -1664,7 +1664,7 @@ struct
   fun matches thy t = exists (fn (m, _) => m t) (Data.get thy);
 
   val meta_reorient = @{thm eq_commute [THEN eq_reflection]};
-  fun proc phi ctxt ct =
+  fun proc ctxt ct =
     let
       val thy = Proof_Context.theory_of ctxt;
     in
@@ -1851,12 +1851,12 @@ lemma NO_MATCH_cong[cong]: "NO_MATCH pat val = NO_MATCH pat val"
 
 declare [[coercion_args NO_MATCH - -]]
 
-simproc_setup NO_MATCH ("NO_MATCH pat val") = \<open>fn _ => fn ctxt => fn ct =>
+simproc_setup NO_MATCH ("NO_MATCH pat val") = \<open>K (fn ctxt => fn ct =>
   let
     val thy = Proof_Context.theory_of ctxt
     val dest_binop = Term.dest_comb #> apfst (Term.dest_comb #> snd)
     val m = Pattern.matches thy (dest_binop (Thm.term_of ct))
-  in if m then NONE else SOME @{thm NO_MATCH_def} end
+  in if m then NONE else SOME @{thm NO_MATCH_def} end)
 \<close>
 
 text \<open>

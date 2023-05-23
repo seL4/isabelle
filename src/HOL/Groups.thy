@@ -178,8 +178,8 @@ setup \<open>
       | _ => false)
 \<close>
 
-simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
-simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
+simproc_setup reorient_zero ("0 = x") = \<open>K Reorient_Proc.proc\<close>
+simproc_setup reorient_one ("1 = x") = \<open>K Reorient_Proc.proc\<close>
 
 typed_print_translation \<open>
   let

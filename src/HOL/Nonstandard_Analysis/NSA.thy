@@ -549,12 +549,12 @@ simproc_setup approx_reorient_simproc
   ("0 \<approx> x" | "1 \<approx> y" | "numeral w \<approx> z" | "- 1 \<approx> y" | "- numeral w \<approx> r") =
 \<open>
   let val rule = @{thm approx_reorient} RS eq_reflection
-      fun proc phi ss ct =
+      fun proc ct =
         case Thm.term_of ct of
           _ $ t $ u => if can HOLogic.dest_number u then NONE
             else if can HOLogic.dest_number t then SOME rule else NONE
         | _ => NONE
-  in proc end
+  in K (K proc) end
 \<close>
 
 lemma Infinitesimal_approx_minus: "x - y \<in> Infinitesimal \<longleftrightarrow> x \<approx> y"

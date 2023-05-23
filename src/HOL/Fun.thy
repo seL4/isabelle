@@ -1353,7 +1353,7 @@ subsubsection \<open>Proof tools\<close>
 
 text \<open>Simplify terms of the form \<open>f(\<dots>,x:=y,\<dots>,x:=z,\<dots>)\<close> to \<open>f(\<dots>,x:=z,\<dots>)\<close>\<close>
 
-simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
+simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>
   let
     fun gen_fun_upd NONE T _ _ = NONE
       | gen_fun_upd (SOME f) T x y = SOME (Const (\<^const_name>\<open>fun_upd\<close>, T) $ f $ x $ y)
@@ -1380,7 +1380,7 @@ simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
                 resolve_tac ctxt @{thms ext} 1 THEN
                 simp_tac (put_simpset ss ctxt) 1)))
       end
-  in proc end
+  in K proc end
 \<close>
 
 
