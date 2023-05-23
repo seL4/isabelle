@@ -256,10 +256,10 @@ fun internal_source name value = [internal_name, Token.assign (SOME value) (Toke
 in
 
 fun internal pos arg =
-  internal_source ("<attribute>", pos) (Token.Attribute (Morphism.entity arg));
+  internal_source ("internal", pos) (Token.Attribute (Morphism.entity arg));
 
 fun internal_declaration pos arg =
-  [([Drule.dummy_thm], [internal_source ("<declaration>", pos) (Token.Declaration arg)])];
+  [([Drule.dummy_thm], [internal_source ("declaration", pos) (Token.Declaration arg)])];
 
 end;
 
