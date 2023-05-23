@@ -910,7 +910,7 @@ context field
 begin
 
 local_setup \<open>
-Local_Theory.declaration {syntax = false, pervasive = false}
+Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
   (fn phi => Field_Tac.Field_Simps.map (Ring_Tac.insert_rules Field_Tac.eq_field_simps
     (Morphism.term phi \<^term>\<open>R\<close>,
      (Morphism.fact phi @{thms feval.simps [meta] feval_Cnst [meta]},

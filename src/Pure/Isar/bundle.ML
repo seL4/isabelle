@@ -129,7 +129,7 @@ fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy
       |> transform_bundle (Proof_Context.export_morphism ctxt' lthy)
       |> trim_context_bundle;
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = Binding.pos_of binding}
       (fn phi => fn context =>
         let val psi = Morphism.set_trim_context'' context phi
         in #2 (define_bundle (Morphism.binding psi binding, transform_bundle psi bundle) context) end)
@@ -181,9 +181,9 @@ fun bundle_notes kind facts lthy =
     |> Attrib.local_notes kind facts
   end;
 
-fun bundle_declaration decl lthy =
+fun bundle_declaration pos decl lthy =
   lthy
-  |> (augment_target o Attrib.internal_declaration)
+  |> (augment_target o Attrib.internal_declaration pos)
     (Morphism.transform (Local_Theory.standard_morphism_theory lthy) decl)
   |> Generic_Target.standard_declaration (K true) decl;
 
@@ -198,10 +198,10 @@ fun init binding thy =
      {define = bad_operation,
       notes = bundle_notes,
       abbrev = bad_operation,
-      declaration = K bundle_declaration,
+      declaration = fn {pos, ...} => bundle_declaration pos,
       theory_registration = bad_operation,
       locale_dependency = bad_operation,
-      pretty = pretty binding}
+      pretty = pretty binding};
 
 end;
 

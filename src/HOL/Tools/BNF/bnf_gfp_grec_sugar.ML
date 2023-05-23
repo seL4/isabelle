@@ -143,8 +143,9 @@ structure Data = Generic_Data
 );
 
 fun register_codatatype_extra fpT_name extra =
-  Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
-    Data.map (@{apply 3(1)} (Symtab.update (fpT_name, morph_codatatype_extra phi extra))));
+  Local_Theory.declaration {syntax = false, pervasive = true, pos = Position.thread_data ()}
+    (fn phi =>
+      Data.map (@{apply 3(1)} (Symtab.update (fpT_name, morph_codatatype_extra phi extra))));
 
 fun codatatype_extra_of ctxt =
   Symtab.lookup (#1 (Data.get (Context.Proof ctxt)))
@@ -154,19 +155,21 @@ fun all_codatatype_extras_of ctxt =
   Symtab.dest (#1 (Data.get (Context.Proof ctxt)));
 
 fun register_coinduct_extra fpT_name extra =
-  Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
-    Data.map (@{apply 3(2)} (Symtab.update (fpT_name, morph_coinduct_extra phi extra))));
+  Local_Theory.declaration {syntax = false, pervasive = true, pos = Position.thread_data ()}
+    (fn phi =>
+      Data.map (@{apply 3(2)} (Symtab.update (fpT_name, morph_coinduct_extra phi extra))));
 
 fun coinduct_extra_of ctxt =
   Symtab.lookup (#2 (Data.get (Context.Proof ctxt)))
   #> Option.map (transfer_coinduct_extra (Proof_Context.theory_of ctxt));
 
 fun register_friend_extra fun_name eq_algrho algrho_eq =
-  Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
-    Data.map (@{apply 3(3)} (Symtab.map_default (fun_name, empty_friend_extra)
-      (fn {eq_algrhos, algrho_eqs} =>
-        {eq_algrhos = Morphism.thm phi eq_algrho :: eq_algrhos,
-         algrho_eqs = Morphism.thm phi algrho_eq :: algrho_eqs}))));
+  Local_Theory.declaration {syntax = false, pervasive = true, pos = Position.thread_data ()}
+    (fn phi =>
+      Data.map (@{apply 3(3)} (Symtab.map_default (fun_name, empty_friend_extra)
+        (fn {eq_algrhos, algrho_eqs} =>
+          {eq_algrhos = Morphism.thm phi eq_algrho :: eq_algrhos,
+           algrho_eqs = Morphism.thm phi algrho_eq :: algrho_eqs}))));
 
 fun all_friend_extras_of ctxt =
   Symtab.dest (#3 (Data.get (Context.Proof ctxt)));

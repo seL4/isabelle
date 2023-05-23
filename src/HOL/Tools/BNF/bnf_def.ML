@@ -2081,7 +2081,7 @@ fun bnf_interpretation name f =
 val interpret_bnf = BNF_Plugin.data;
 
 fun register_bnf_raw key bnf =
-  Local_Theory.declaration {syntax = false, pervasive = true}
+  Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
     (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)));
 
 fun register_bnf plugins key bnf =

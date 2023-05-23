@@ -35,12 +35,13 @@ fun define_global {get_data, put_data} b x thy =
 (* local definition *)
 
 fun alias {get_data, put_data} binding name =
-  Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
-    let
-      val naming = Name_Space.naming_of context;
-      val binding' = Morphism.binding phi binding;
-      val data' = Name_Space.alias_table naming binding' name (get_data context);
-    in put_data data' context end);
+  Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of binding}
+    (fn phi => fn context =>
+      let
+        val naming = Name_Space.naming_of context;
+        val binding' = Morphism.binding phi binding;
+        val data' = Name_Space.alias_table naming binding' name (get_data context);
+      in put_data data' context end);
 
 fun transfer {get_data, put_data} ctxt =
   let

@@ -55,7 +55,7 @@ sig
     (string * thm list) list * local_theory
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val declaration: {syntax: bool, pervasive: bool} -> Morphism.declaration ->
+  val declaration: {syntax: bool, pervasive: bool, pos: Position.T} -> Morphism.declaration ->
     local_theory -> local_theory
   val theory_registration: Locale.registration -> local_theory -> local_theory
   val locale_dependency: Locale.registration -> local_theory -> local_theory
@@ -103,7 +103,7 @@ type operations =
   notes: string -> Attrib.fact list -> local_theory -> (string * thm list) list * local_theory,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
-  declaration: {syntax: bool, pervasive: bool} -> Morphism.declaration_entity ->
+  declaration: {syntax: bool, pervasive: bool, pos: Position.T} -> Morphism.declaration_entity ->
     local_theory -> local_theory,
   theory_registration: Locale.registration -> local_theory -> local_theory,
   locale_dependency: Locale.registration -> local_theory -> local_theory,
@@ -301,7 +301,7 @@ fun add_thms_dynamic (binding, f) lthy =
   |-> (fn name =>
     map_contexts (fn _ => fn ctxt =>
       Proof_Context.transfer_facts (Proof_Context.theory_of ctxt) ctxt) #>
-    declaration {syntax = false, pervasive = false} (fn phi =>
+    declaration {syntax = false, pervasive = false, pos = Binding.pos_of binding} (fn phi =>
       let val binding' = Morphism.binding phi binding in
         Context.mapping
           (Global_Theory.alias_fact binding' name)
@@ -312,7 +312,7 @@ fun add_thms_dynamic (binding, f) lthy =
 (* default sort *)
 
 fun set_defsort S =
-  declaration {syntax = true, pervasive = false}
+  declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
     (K (Context.mapping (Sign.set_defsort S) (Proof_Context.set_defsort S)));
 
 
@@ -324,7 +324,7 @@ fun gen_syntax prep_type add mode raw_args lthy =
     val args' = map (fn (c, T, mx) => (c, T, Mixfix.reset_pos mx)) args;
     val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.syntax add mode args;
   in
-    declaration {syntax = true, pervasive = false}
+    declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
       (fn _ => Proof_Context.generic_syntax add mode args') lthy
   end;
 
@@ -343,7 +343,7 @@ fun gen_type_notation prep_type add mode raw_args lthy =
     val args' = map (apsnd Mixfix.reset_pos) args;
     val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.type_notation add mode args;
   in
-    declaration {syntax = true, pervasive = false}
+    declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
       (Proof_Context.generic_type_notation add mode args') lthy
   end;
 
@@ -354,7 +354,7 @@ fun gen_notation prep_const add mode raw_args lthy =
     val args' = map (apsnd Mixfix.reset_pos) args;
     val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.notation add mode args;
   in
-    declaration {syntax = true, pervasive = false}
+    declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
       (Proof_Context.generic_notation add mode args') lthy
   end;
 
@@ -373,7 +373,7 @@ end;
 (* name space aliases *)
 
 fun syntax_alias global_alias local_alias b name =
-  declaration {syntax = true, pervasive = false} (fn phi =>
+  declaration {syntax = true, pervasive = false, pos = Position.thread_data ()} (fn phi =>
     let val b' = Morphism.binding phi b
     in Context.mapping (global_alias b' name) (local_alias b' name) end);
 

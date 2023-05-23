@@ -248,7 +248,7 @@ fun lifting_bundle qty_full_name qinfo lthy =
       ([dummy_thm], [map Token.make_string0 ["Lifting.lifting_restore_internal", bundle_name]])
   in
     lthy
-    |> Local_Theory.declaration {syntax = false, pervasive = true}
+    |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
         (fn phi => Lifting_Info.init_restore_data bundle_name (phi_qinfo phi))
     |> Bundle.bundle ((binding, [restore_lifting_att])) []
     |> pair binding
@@ -272,7 +272,7 @@ fun setup_lifting_infr config quot_thm opt_reflp_thm lthy =
     val quotients = { quot_thm = quot_thm, pcr_info = pcr_info }
     val qty_full_name = (fst o dest_Type) qty
     fun quot_info phi = Lifting_Info.transform_quotient phi quotients
-    val reflexivity_rule_attr = Attrib.internal (K Lifting_Info.add_reflexivity_rule_attribute)
+    val reflexivity_rule_attr = Attrib.internal \<^here> (K Lifting_Info.add_reflexivity_rule_attribute)
     val lthy3 =
       case opt_reflp_thm of
         SOME reflp_thm =>
@@ -283,7 +283,7 @@ fun setup_lifting_infr config quot_thm opt_reflp_thm lthy =
       | NONE => lthy2 |> define_abs_type quot_thm
   in
     lthy3
-    |> Local_Theory.declaration {syntax = false, pervasive = true}
+    |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
         (fn phi => Lifting_Info.update_quotients qty_full_name (quot_info phi))
     |> lifting_bundle qty_full_name quotients
   end
@@ -520,7 +520,7 @@ fun setup_by_quotient (config: config) quot_thm opt_reflp_thm opt_par_thm lthy0 
     val quot_thm = Morphism.thm (Local_Theory.target_morphism lthy0) quot_thm
     (**)
     val (rty, qty) = quot_thm_rty_qty quot_thm
-    val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
+    val induct_attr = Attrib.internal \<^here> (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_full_name = (fst o dest_Type) qty
     val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
     val qualify = Binding.qualify_name true qty_name
@@ -997,7 +997,7 @@ fun lifting_forget pointer lthy =
           val quot_thm = #quot_thm qinfo
           val transfer_rules = get_transfer_rules_to_delete qinfo lthy
         in
-          Local_Theory.declaration {syntax = false, pervasive = true}
+          Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
             (K (fold (Transfer.transfer_raw_del) transfer_rules #> Lifting_Info.delete_quotients quot_thm))
             lthy
         end
@@ -1029,7 +1029,7 @@ fun update_transfer_rules pointer lthy =
   in
     case Lifting_Info.lookup_restore_data lthy pointer of
       SOME refresh_data => 
-        Local_Theory.declaration {syntax = false, pervasive = true}
+        Local_Theory.declaration {syntax = false, pervasive = true, pos =  \<^here>}
           (fn phi => Lifting_Info.add_transfer_rules_in_restore_data pointer 
             (new_transfer_rules refresh_data lthy phi)) lthy
     | NONE => error "The lifting bundle refers to non-existent restore data."

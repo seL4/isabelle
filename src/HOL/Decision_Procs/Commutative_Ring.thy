@@ -943,7 +943,7 @@ context cring
 begin
 
 local_setup \<open>
-Local_Theory.declaration {syntax = false, pervasive = false}
+Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
   (fn phi => Ring_Tac.Ring_Simps.map (Ring_Tac.insert_rules Ring_Tac.eq_ring_simps
     (Morphism.term phi \<^term>\<open>R\<close>,
      (Morphism.fact phi @{thms Ipol.simps [meta] Ipol_Pc [meta]},

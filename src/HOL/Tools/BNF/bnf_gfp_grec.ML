@@ -2909,7 +2909,7 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
   end;
 
 fun set_corec_info_exprs fpT_name f =
-  Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
+  Local_Theory.declaration {syntax = false, pervasive = true, pos = Position.thread_data ()} (fn phi =>
     let val exprs = f phi in
       Data.map (apsnd (fn [info_tab] => [Symtab.map_default (fpT_name, exprs) (K exprs) info_tab]))
     end);
@@ -3214,7 +3214,7 @@ fun consolidate lthy =
     let
       val (info_tab', lthy) = fold_rev (uncurry o merge_corec_info_tabs) info_tabs (info_tab, lthy);
     in
-      Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
+      Local_Theory.declaration {syntax = false, pervasive = true, pos = Position.thread_data ()} (fn phi =>
           Data.map (apsnd (fn _ => [Symtab.map (K (map (morph_corec_info_expr phi))) info_tab'])))
         lthy
     end);

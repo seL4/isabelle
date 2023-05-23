@@ -368,15 +368,16 @@ functor Order_Tac(structure Base_Tac : BASE_ORDER_TAC) = struct
   )
 
   fun declare (octxt as {kind = kind, raw_proc = raw_proc, ...}) lthy =
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
-      let
-        val ops = map (Morphism.term phi) (#ops octxt)
-        val thms = map (fn (s, thm) => (s, Morphism.thm phi thm)) (#thms octxt)
-        val conv_thms = map (fn (s, thm) => (s, Morphism.thm phi thm)) (#conv_thms octxt)
-        val octxt' = {kind = kind, ops = ops, thms = thms, conv_thms = conv_thms}
-      in
-        context |> Data.map (Library.insert order_data_eq (octxt', raw_proc))
-      end)
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
+      (fn phi => fn context =>
+        let
+          val ops = map (Morphism.term phi) (#ops octxt)
+          val thms = map (fn (s, thm) => (s, Morphism.thm phi thm)) (#thms octxt)
+          val conv_thms = map (fn (s, thm) => (s, Morphism.thm phi thm)) (#conv_thms octxt)
+          val octxt' = {kind = kind, ops = ops, thms = thms, conv_thms = conv_thms}
+        in
+          context |> Data.map (Library.insert order_data_eq (octxt', raw_proc))
+        end)
 
   fun declare_order {
       ops = {eq = eq, le = le, lt = lt},

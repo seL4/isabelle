@@ -466,7 +466,7 @@ fun prove_strong_ind s alt_name avoids lthy =
         val strong_raw_induct =
           mk_ind_proof lthy1 thss' |> Inductive.rulify lthy1;
         val strong_induct_atts =
-          map (Attrib.internal o K)
+          map (Attrib.internal \<^here> o K)
             [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of strong_raw_induct))];
         val strong_induct =
           if length names > 1 then strong_raw_induct
@@ -484,8 +484,8 @@ fun prove_strong_ind s alt_name avoids lthy =
         lthy2 |>
         Local_Theory.notes [((inducts_name, []),
           strong_inducts |> map (fn th => ([th],
-            [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th)))])))] |> snd
+            [Attrib.internal \<^here> (K ind_case_names),
+             Attrib.internal \<^here> (K (Rule_Cases.consumes (1 - Thm.nprems_of th)))])))] |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)
   end;

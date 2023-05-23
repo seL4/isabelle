@@ -59,7 +59,8 @@ sig
 
   (* Storing results *)
   val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
-  val add_declaration: string -> bool -> Morphism.declaration_entity -> Proof.context -> Proof.context
+  val add_declaration: string -> {syntax: bool, pos: Position.T} ->
+    Morphism.declaration_entity -> Proof.context -> Proof.context
 
   (* Activation *)
   val activate_facts: morphism option -> string * morphism -> Context.generic -> Context.generic
@@ -674,11 +675,11 @@ fun add_facts loc kind facts ctxt =
         ((change_locale loc o apfst o apsnd) (cons stored_notes) #> apply_registrations)
     end;
 
-fun add_declaration loc syntax decl =
+fun add_declaration loc {syntax, pos} decl =
   let val decl0 = Morphism.entity_reset_context decl in
     syntax ?
       Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl0, serial ())))
-    #> add_facts loc "" [(Binding.empty_atts, Attrib.internal_declaration decl0)]
+    #> add_facts loc "" [(Binding.empty_atts, Attrib.internal_declaration pos decl0)]
   end;
 
 

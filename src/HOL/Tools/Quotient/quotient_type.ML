@@ -149,7 +149,7 @@ fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
       Quotient_Info.transform_abs_rep phi {abs = abs, rep = rep}
   in
     lthy
-    |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
+    |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>} (fn phi =>
         Quotient_Info.update_quotients (qty_full_name, quotients phi) #>
         Quotient_Info.update_abs_rep (qty_full_name, abs_rep phi))
     |> setup_lifting_package quot_thm equiv_thm opt_par_thm

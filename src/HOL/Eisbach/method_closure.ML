@@ -66,13 +66,14 @@ fun put_closure binding (closure: closure) lthy =
   let
     val name = Local_Theory.full_name lthy binding;
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
-      Data.map
-        (Symtab.update (name,
-          {vars = map (Morphism.term phi) (#vars closure),
-           named_thms = #named_thms closure,
-           methods = #methods closure,
-           body = (Method.map_source o map) (Token.transform phi) (#body closure)})))
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = Binding.pos_of binding}
+      (fn phi =>
+        Data.map
+          (Symtab.update (name,
+            {vars = map (Morphism.term phi) (#vars closure),
+             named_thms = #named_thms closure,
+             methods = #methods closure,
+             body = (Method.map_source o map) (Token.transform phi) (#body closure)})))
   end;
 
 

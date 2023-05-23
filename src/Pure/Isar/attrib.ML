@@ -48,8 +48,8 @@ sig
     local_theory -> local_theory
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
-  val internal: (morphism -> attribute) -> Token.src
-  val internal_declaration: Morphism.declaration_entity -> thms
+  val internal: Position.T -> (morphism -> attribute) -> Token.src
+  val internal_declaration: Position.T -> Morphism.declaration_entity -> thms
   val add_del: attribute -> attribute -> attribute context_parser
   val thm: thm context_parser
   val thms: thm list context_parser
@@ -251,13 +251,15 @@ val _ = Theory.setup
     "internal attribute");
 
 val internal_name = make_name (Context.the_local_context ()) (Binding.name_of internal_binding);
-val internal_arg = Token.make_string0 "<attribute>";
-fun internal_source value = [internal_name, Token.assign (SOME value) internal_arg];
+fun internal_source name value = [internal_name, Token.assign (SOME value) (Token.make_string name)];
 
 in
 
-fun internal arg = internal_source (Token.Attribute (Morphism.entity arg));
-fun internal_declaration arg = [([Drule.dummy_thm], [internal_source (Token.Declaration arg)])];
+fun internal pos arg =
+  internal_source ("<attribute>", pos) (Token.Attribute (Morphism.entity arg));
+
+fun internal_declaration pos arg =
+  [([Drule.dummy_thm], [internal_source ("<declaration>", pos) (Token.Declaration arg)])];
 
 end;
 

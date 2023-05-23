@@ -63,16 +63,16 @@ sig
     local_theory -> local_theory
   val locale_target_abbrev: string -> Syntax.mode ->
     (binding * mixfix) -> term -> term list * term list -> local_theory -> local_theory
-  val locale_target_declaration: string -> bool -> Morphism.declaration_entity ->
-    local_theory -> local_theory
+  val locale_target_declaration: string -> {syntax: bool, pos: Position.T} ->
+    Morphism.declaration_entity -> local_theory -> local_theory
   val locale_target_const: string -> (morphism -> bool) -> Syntax.mode ->
     (binding * mixfix) * term -> local_theory -> local_theory
 
   (*locale operations*)
   val locale_abbrev: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> (term * term) * local_theory
-  val locale_declaration: string -> {syntax: bool, pervasive: bool} -> Morphism.declaration_entity ->
-    local_theory -> local_theory
+  val locale_declaration: string -> {syntax: bool, pervasive: bool, pos: Position.T} ->
+    Morphism.declaration_entity -> local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
   val locale_dependency: string -> Locale.registration ->
@@ -443,20 +443,21 @@ fun locale_target_notes locale kind global_facts local_facts =
       Locale.add_facts locale kind (standard_facts lthy ctxt local_facts))) #>
   standard_notes (fn (this, other) => other <> 0 andalso this <> other) kind local_facts;
 
-fun locale_target_declaration locale syntax decl lthy = lthy
+fun locale_target_declaration locale params decl lthy = lthy
   |> Local_Theory.target (fn ctxt => ctxt |>
-    Locale.add_declaration locale syntax
+    Locale.add_declaration locale params
       (Morphism.transform (Local_Theory.standard_morphism lthy ctxt) decl));
 
 fun locale_target_const locale phi_pred prmode ((b, mx), rhs) =
-  locale_target_declaration locale true (const_decl phi_pred prmode ((b, mx), rhs))
+  locale_target_declaration locale {syntax = true, pos = Binding.pos_of b}
+    (const_decl phi_pred prmode ((b, mx), rhs));
 
 
 (** locale operations **)
 
-fun locale_declaration locale {syntax, pervasive} decl =
+fun locale_declaration locale {syntax, pervasive, pos} decl =
   pervasive ? background_declaration decl
-  #> locale_target_declaration locale syntax decl
+  #> locale_target_declaration locale {syntax = syntax, pos = pos} decl
   #> standard_declaration (fn (_, other) => other <> 0) decl;
 
 fun locale_const locale prmode ((b, mx), rhs) =
