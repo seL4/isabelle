@@ -1045,7 +1045,7 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
         else if lastl aconv lastr then rearr @{thm append_same_eq}
         else NONE
       end;
-  in fn _ => fn ctxt => fn ct => list_eq ctxt (Thm.term_of ct) end
+  in K (fn ctxt => fn ct => list_eq ctxt (Thm.term_of ct)) end
 \<close>
 
 

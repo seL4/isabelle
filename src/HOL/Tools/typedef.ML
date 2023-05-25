@@ -259,19 +259,19 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
               make @{thm type_definition.Abs_inject})
           ||>> note ((Binding.suffix_name "_cases" Rep_name,
                 [Attrib.case_names [Binding.name_of Rep_name],
-                 Attrib.internal (K (Induct.cases_pred full_name))]),
+                 Attrib.internal \<^here> (K (Induct.cases_pred full_name))]),
               make @{thm type_definition.Rep_cases})
           ||>> note ((Binding.suffix_name "_cases" Abs_name,
                 [Attrib.case_names [Binding.name_of Abs_name],
-                 Attrib.internal (K (Induct.cases_type full_name))]),
+                 Attrib.internal \<^here> (K (Induct.cases_type full_name))]),
               make @{thm type_definition.Abs_cases})
           ||>> note ((Binding.suffix_name "_induct" Rep_name,
                 [Attrib.case_names [Binding.name_of Rep_name],
-                 Attrib.internal (K (Induct.induct_pred full_name))]),
+                 Attrib.internal \<^here> (K (Induct.induct_pred full_name))]),
               make @{thm type_definition.Rep_induct})
           ||>> note ((Binding.suffix_name "_induct" Abs_name,
                 [Attrib.case_names [Binding.name_of Abs_name],
-                 Attrib.internal (K (Induct.induct_type full_name))]),
+                 Attrib.internal \<^here> (K (Induct.induct_type full_name))]),
               make @{thm type_definition.Abs_induct});
 
         val info =
@@ -283,7 +283,7 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
           Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct});
       in
         lthy3
-        |> Local_Theory.declaration {syntax = false, pervasive = true}
+        |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
           (fn phi => put_info full_name (transform_info phi info))
         |> Typedef_Plugin.data Plugin_Name.default_filter full_name
         |> pair (full_name, info)

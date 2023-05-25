@@ -494,7 +494,7 @@ fun add_ind_set_def
                 [def, @{thm mem_Collect_eq}, @{thm case_prod_conv}]) 1))
         in
           lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
-            [Attrib.internal (K pred_set_conv_att)]),
+            [Attrib.internal \<^here> (K pred_set_conv_att)]),
               [conv_thm]) |> snd
         end) (preds ~~ cs ~~ cs_info ~~ defs) lthy2;
 

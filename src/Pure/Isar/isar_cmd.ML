@@ -130,7 +130,8 @@ fun declaration {syntax, pervasive} source =
   ML_Context.expression (Input.pos_of source)
     (ML_Lex.read
       ("Theory.local_setup (Local_Theory.declaration {syntax = " ^
-        Bool.toString syntax ^ ", pervasive = " ^ Bool.toString pervasive ^ "} (") @
+        Bool.toString syntax ^ ", pervasive = " ^ Bool.toString pervasive ^
+        ", pos = " ^ ML_Syntax.print_position (Position.thread_data ()) ^ "} (") @
      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.proof_map;
 

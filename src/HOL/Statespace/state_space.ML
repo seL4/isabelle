@@ -346,7 +346,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
               |> map_distinctthm (K tt');
         in context' end));
 
-    val attr = Attrib.internal type_attr;
+    val attr = Attrib.internal \<^here> type_attr;
 
     val assume =
       ((Binding.name dist_thm_name, [attr]),
@@ -378,7 +378,9 @@ fun inject_name T = injectN ^"_"^encode_type T;
 fun add_declaration name decl thy =
   thy
   |> Named_Target.init [] name
-  |> (fn lthy => Local_Theory.declaration {syntax = true, pervasive = false} (decl lthy) lthy)
+  |> (fn lthy =>
+    Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
+      (decl lthy) lthy)
   |> Local_Theory.exit_global;
 
 fun parent_components thy (Ts, pname, renaming) =

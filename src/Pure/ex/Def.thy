@@ -41,7 +41,7 @@ structure Data = Generic_Data
 
 fun declare_def lhs eq lthy =
   let val def0: def = {lhs = lhs, eq = Thm.trim_context eq} in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
       (fn phi => fn context =>
         let val psi = Morphism.set_trim_context'' context phi
         in (Data.map o Item_Net.update) (transform_def psi def0) context end)

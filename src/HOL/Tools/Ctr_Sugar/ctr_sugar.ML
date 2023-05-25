@@ -210,7 +210,7 @@ fun ctr_sugar_interpretation name f =
 val interpret_ctr_sugar = Ctr_Sugar_Plugin.data;
 
 fun register_ctr_sugar_raw (ctr_sugar as {T = Type (name, _), ...}) =
-  Local_Theory.declaration {syntax = false, pervasive = true}
+  Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
     (fn phi => fn context =>
       let val pos = Position.thread_data ()
       in Data.map (Symtab.update (name, (pos, morph_ctr_sugar phi ctr_sugar))) context end);
@@ -1072,8 +1072,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
             |> Thm.close_derivation \<^here>
           end;
 
-        val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
-        val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
+        val exhaust_case_names_attr = Attrib.internal \<^here> (K (Rule_Cases.case_names exhaust_cases));
+        val cases_type_attr = Attrib.internal \<^here> (K (Induct.cases_type fcT_name));
 
         val nontriv_disc_eq_thmss =
           map (map (fn th => th RS @{thm eq_False[THEN iffD2]}
@@ -1119,12 +1119,12 @@ fun prepare_free_constructors kind prep_plugins prep_term
             (AList.group (eq_list (op aconv)) (map (`(single o lhs_head_of)) all_sel_thms))
           |> fold (uncurry (Spec_Rules.add Binding.empty Spec_Rules.equational))
             (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
-          |> Local_Theory.declaration {syntax = false, pervasive = true}
+          |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
             (fn phi => Case_Translation.register
                (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
           |> plugins code_plugin ?
              (Code.declare_default_eqns (map (rpair true) (flat nontriv_disc_eq_thmss @ case_thms @ all_sel_thms))
-             #> Local_Theory.declaration {syntax = false, pervasive = false}
+             #> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
                (fn phi => Context.mapping
                   (add_ctr_code fcT_name (map (Morphism.typ phi) As)
                      (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)

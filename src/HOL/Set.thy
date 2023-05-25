@@ -65,13 +65,13 @@ text \<open>
 \<close>
 
 simproc_setup defined_Collect ("{x. P x \<and> Q x}") = \<open>
-  fn _ => Quantifier1.rearrange_Collect
+  K (Quantifier1.rearrange_Collect
     (fn ctxt =>
       resolve_tac ctxt @{thms Collect_cong} 1 THEN
       resolve_tac ctxt @{thms iffI} 1 THEN
       ALLGOALS
         (EVERY' [REPEAT_DETERM o eresolve_tac ctxt @{thms conjE},
-          DEPTH_SOLVE_1 o (assume_tac ctxt ORELSE' resolve_tac ctxt @{thms conjI})]))
+          DEPTH_SOLVE_1 o (assume_tac ctxt ORELSE' resolve_tac ctxt @{thms conjI})])))
 \<close>
 
 lemmas CollectE = CollectD [elim_format]
@@ -330,13 +330,11 @@ let
 \<close>
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P x \<and> Q x") = \<open>
-  fn _ => Quantifier1.rearrange_Bex
-    (fn ctxt => unfold_tac ctxt @{thms Bex_def})
+  K (Quantifier1.rearrange_Bex (fn ctxt => unfold_tac ctxt @{thms Bex_def}))
 \<close>
 
 simproc_setup defined_All ("\<forall>x\<in>A. P x \<longrightarrow> Q x") = \<open>
-  fn _ => Quantifier1.rearrange_Ball
-    (fn ctxt => unfold_tac ctxt @{thms Ball_def})
+  K (Quantifier1.rearrange_Ball (fn ctxt => unfold_tac ctxt @{thms Ball_def}))
 \<close>
 
 lemma ballI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> P x) \<Longrightarrow> \<forall>x\<in>A. P x"

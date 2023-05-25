@@ -193,7 +193,7 @@ qed
 lemma finite_subset: "A \<subseteq> B \<Longrightarrow> finite B \<Longrightarrow> finite A"
   by (rule rev_finite_subset)
 
-simproc_setup finite ("finite A") = \<open>fn _ =>
+simproc_setup finite ("finite A") = \<open>
 let
   val finite_subset = @{thm finite_subset}
   val Eq_TrueI = @{thm Eq_TrueI}
@@ -209,17 +209,17 @@ let
 
   fun comb (A,sub_th) (A',fin_th) ths = if A aconv A' then (sub_th,fin_th) :: ths else ths
 
-  fun proc ss ct =
+  fun proc ctxt ct =
     (let
        val _ $ A = Thm.term_of ct
-       val prems = Simplifier.prems_of ss
+       val prems = Simplifier.prems_of ctxt
        val fins = map_filter is_finite prems
        val subsets = map_filter (is_subset A) prems
      in case fold_product comb subsets fins [] of
           (sub_th,fin_th) :: _ => SOME((fin_th RS (sub_th RS finite_subset)) RS Eq_TrueI)
         | _ => NONE
      end)
-in proc end
+in K proc end
 \<close>
 
 (* Needs to be used with care *)

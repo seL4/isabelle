@@ -558,6 +558,10 @@ fun closure (Token (x, y, Assignable (Unsynchronized.ref v))) = Token (x, y, Val
 
 (* pretty *)
 
+fun pretty_keyword3 tok =
+  let val props = Position.properties_of (pos_of tok)
+  in Pretty.mark_str (Markup.properties props Markup.keyword3, unparse tok) end;
+
 fun pretty_value ctxt tok =
   (case get_value tok of
     SOME (Literal markup) =>
@@ -568,6 +572,8 @@ fun pretty_value ctxt tok =
   | SOME (Term t) => Syntax.pretty_term ctxt t
   | SOME (Fact (_, ths)) =>
       Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.cartouche o Thm.pretty_thm ctxt) ths))
+  | SOME (Attribute _) => pretty_keyword3 tok
+  | SOME (Declaration _) => pretty_keyword3 tok
   | _ => Pretty.marks_str (markups Keyword.empty_keywords tok, unparse tok));
 
 

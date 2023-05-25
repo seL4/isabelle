@@ -104,17 +104,17 @@ ML_file \<open>Tools/numeral_simprocs.ML\<close>
 
 simproc_setup semiring_assoc_fold
   ("(a::'a::comm_semiring_1_cancel) * b") =
-  \<open>fn phi => Numeral_Simprocs.assoc_fold\<close>
+  \<open>K Numeral_Simprocs.assoc_fold\<close>
 
 (* TODO: see whether the type class can be generalized further *)
 simproc_setup int_combine_numerals
   ("(i::'a::comm_ring_1) + j" | "(i::'a::comm_ring_1) - j") =
-  \<open>fn phi => Numeral_Simprocs.combine_numerals\<close>
+  \<open>K Numeral_Simprocs.combine_numerals\<close>
 
 simproc_setup field_combine_numerals
   ("(i::'a::{field,ring_char_0}) + j"
   |"(i::'a::{field,ring_char_0}) - j") =
-  \<open>fn phi => Numeral_Simprocs.field_combine_numerals\<close>
+  \<open>K Numeral_Simprocs.field_combine_numerals\<close>
 
 simproc_setup inteq_cancel_numerals
   ("(l::'a::comm_ring_1) + m = n"
@@ -125,7 +125,7 @@ simproc_setup inteq_cancel_numerals
   |"(l::'a::comm_ring_1) = m * n"
   |"- (l::'a::comm_ring_1) = m"
   |"(l::'a::comm_ring_1) = - m") =
-  \<open>fn phi => Numeral_Simprocs.eq_cancel_numerals\<close>
+  \<open>K Numeral_Simprocs.eq_cancel_numerals\<close>
 
 simproc_setup intless_cancel_numerals
   ("(l::'a::linordered_idom) + m < n"
@@ -136,7 +136,7 @@ simproc_setup intless_cancel_numerals
   |"(l::'a::linordered_idom) < m * n"
   |"- (l::'a::linordered_idom) < m"
   |"(l::'a::linordered_idom) < - m") =
-  \<open>fn phi => Numeral_Simprocs.less_cancel_numerals\<close>
+  \<open>K Numeral_Simprocs.less_cancel_numerals\<close>
 
 simproc_setup intle_cancel_numerals
   ("(l::'a::linordered_idom) + m \<le> n"
@@ -147,138 +147,138 @@ simproc_setup intle_cancel_numerals
   |"(l::'a::linordered_idom) \<le> m * n"
   |"- (l::'a::linordered_idom) \<le> m"
   |"(l::'a::linordered_idom) \<le> - m") =
-  \<open>fn phi => Numeral_Simprocs.le_cancel_numerals\<close>
+  \<open>K Numeral_Simprocs.le_cancel_numerals\<close>
 
 simproc_setup ring_eq_cancel_numeral_factor
   ("(l::'a::{idom,ring_char_0}) * m = n"
   |"(l::'a::{idom,ring_char_0}) = m * n") =
-  \<open>fn phi => Numeral_Simprocs.eq_cancel_numeral_factor\<close>
+  \<open>K Numeral_Simprocs.eq_cancel_numeral_factor\<close>
 
 simproc_setup ring_less_cancel_numeral_factor
   ("(l::'a::linordered_idom) * m < n"
   |"(l::'a::linordered_idom) < m * n") =
-  \<open>fn phi => Numeral_Simprocs.less_cancel_numeral_factor\<close>
+  \<open>K Numeral_Simprocs.less_cancel_numeral_factor\<close>
 
 simproc_setup ring_le_cancel_numeral_factor
   ("(l::'a::linordered_idom) * m <= n"
   |"(l::'a::linordered_idom) <= m * n") =
-  \<open>fn phi => Numeral_Simprocs.le_cancel_numeral_factor\<close>
+  \<open>K Numeral_Simprocs.le_cancel_numeral_factor\<close>
 
 (* TODO: remove comm_ring_1 constraint if possible *)
 simproc_setup int_div_cancel_numeral_factors
   ("((l::'a::{euclidean_semiring_cancel,comm_ring_1,ring_char_0}) * m) div n"
   |"(l::'a::{euclidean_semiring_cancel,comm_ring_1,ring_char_0}) div (m * n)") =
-  \<open>fn phi => Numeral_Simprocs.div_cancel_numeral_factor\<close>
+  \<open>K Numeral_Simprocs.div_cancel_numeral_factor\<close>
 
 simproc_setup divide_cancel_numeral_factor
   ("((l::'a::{field,ring_char_0}) * m) / n"
   |"(l::'a::{field,ring_char_0}) / (m * n)"
   |"((numeral v)::'a::{field,ring_char_0}) / (numeral w)") =
-  \<open>fn phi => Numeral_Simprocs.divide_cancel_numeral_factor\<close>
+  \<open>K Numeral_Simprocs.divide_cancel_numeral_factor\<close>
 
 simproc_setup ring_eq_cancel_factor
   ("(l::'a::idom) * m = n" | "(l::'a::idom) = m * n") =
-  \<open>fn phi => Numeral_Simprocs.eq_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.eq_cancel_factor\<close>
 
 simproc_setup linordered_ring_le_cancel_factor
   ("(l::'a::linordered_idom) * m <= n"
   |"(l::'a::linordered_idom) <= m * n") =
-  \<open>fn phi => Numeral_Simprocs.le_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.le_cancel_factor\<close>
 
 simproc_setup linordered_ring_less_cancel_factor
   ("(l::'a::linordered_idom) * m < n"
   |"(l::'a::linordered_idom) < m * n") =
-  \<open>fn phi => Numeral_Simprocs.less_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.less_cancel_factor\<close>
 
 simproc_setup int_div_cancel_factor
   ("((l::'a::euclidean_semiring_cancel) * m) div n"
   |"(l::'a::euclidean_semiring_cancel) div (m * n)") =
-  \<open>fn phi => Numeral_Simprocs.div_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.div_cancel_factor\<close>
 
 simproc_setup int_mod_cancel_factor
   ("((l::'a::euclidean_semiring_cancel) * m) mod n"
   |"(l::'a::euclidean_semiring_cancel) mod (m * n)") =
-  \<open>fn phi => Numeral_Simprocs.mod_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.mod_cancel_factor\<close>
 
 simproc_setup dvd_cancel_factor
   ("((l::'a::idom) * m) dvd n"
   |"(l::'a::idom) dvd (m * n)") =
-  \<open>fn phi => Numeral_Simprocs.dvd_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.dvd_cancel_factor\<close>
 
 simproc_setup divide_cancel_factor
   ("((l::'a::field) * m) / n"
   |"(l::'a::field) / (m * n)") =
-  \<open>fn phi => Numeral_Simprocs.divide_cancel_factor\<close>
+  \<open>K Numeral_Simprocs.divide_cancel_factor\<close>
 
 ML_file \<open>Tools/nat_numeral_simprocs.ML\<close>
 
 simproc_setup nat_combine_numerals
   ("(i::nat) + j" | "Suc (i + j)") =
-  \<open>fn phi => Nat_Numeral_Simprocs.combine_numerals\<close>
+  \<open>K Nat_Numeral_Simprocs.combine_numerals\<close>
 
 simproc_setup nateq_cancel_numerals
   ("(l::nat) + m = n" | "(l::nat) = m + n" |
    "(l::nat) * m = n" | "(l::nat) = m * n" |
    "Suc m = n" | "m = Suc n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.eq_cancel_numerals\<close>
+  \<open>K Nat_Numeral_Simprocs.eq_cancel_numerals\<close>
 
 simproc_setup natless_cancel_numerals
   ("(l::nat) + m < n" | "(l::nat) < m + n" |
    "(l::nat) * m < n" | "(l::nat) < m * n" |
    "Suc m < n" | "m < Suc n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.less_cancel_numerals\<close>
+  \<open>K Nat_Numeral_Simprocs.less_cancel_numerals\<close>
 
 simproc_setup natle_cancel_numerals
   ("(l::nat) + m \<le> n" | "(l::nat) \<le> m + n" |
    "(l::nat) * m \<le> n" | "(l::nat) \<le> m * n" |
    "Suc m \<le> n" | "m \<le> Suc n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.le_cancel_numerals\<close>
+  \<open>K Nat_Numeral_Simprocs.le_cancel_numerals\<close>
 
 simproc_setup natdiff_cancel_numerals
   ("((l::nat) + m) - n" | "(l::nat) - (m + n)" |
    "(l::nat) * m - n" | "(l::nat) - m * n" |
    "Suc m - n" | "m - Suc n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.diff_cancel_numerals\<close>
+  \<open>K Nat_Numeral_Simprocs.diff_cancel_numerals\<close>
 
 simproc_setup nat_eq_cancel_numeral_factor
   ("(l::nat) * m = n" | "(l::nat) = m * n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.eq_cancel_numeral_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.eq_cancel_numeral_factor\<close>
 
 simproc_setup nat_less_cancel_numeral_factor
   ("(l::nat) * m < n" | "(l::nat) < m * n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.less_cancel_numeral_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.less_cancel_numeral_factor\<close>
 
 simproc_setup nat_le_cancel_numeral_factor
   ("(l::nat) * m <= n" | "(l::nat) <= m * n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.le_cancel_numeral_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.le_cancel_numeral_factor\<close>
 
 simproc_setup nat_div_cancel_numeral_factor
   ("((l::nat) * m) div n" | "(l::nat) div (m * n)") =
-  \<open>fn phi => Nat_Numeral_Simprocs.div_cancel_numeral_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.div_cancel_numeral_factor\<close>
 
 simproc_setup nat_dvd_cancel_numeral_factor
   ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =
-  \<open>fn phi => Nat_Numeral_Simprocs.dvd_cancel_numeral_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.dvd_cancel_numeral_factor\<close>
 
 simproc_setup nat_eq_cancel_factor
   ("(l::nat) * m = n" | "(l::nat) = m * n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.eq_cancel_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.eq_cancel_factor\<close>
 
 simproc_setup nat_less_cancel_factor
   ("(l::nat) * m < n" | "(l::nat) < m * n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.less_cancel_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.less_cancel_factor\<close>
 
 simproc_setup nat_le_cancel_factor
   ("(l::nat) * m <= n" | "(l::nat) <= m * n") =
-  \<open>fn phi => Nat_Numeral_Simprocs.le_cancel_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.le_cancel_factor\<close>
 
 simproc_setup nat_div_cancel_factor
   ("((l::nat) * m) div n" | "(l::nat) div (m * n)") =
-  \<open>fn phi => Nat_Numeral_Simprocs.div_cancel_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.div_cancel_factor\<close>
 
 simproc_setup nat_dvd_cancel_factor
   ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =
-  \<open>fn phi => Nat_Numeral_Simprocs.dvd_cancel_factor\<close>
+  \<open>K Nat_Numeral_Simprocs.dvd_cancel_factor\<close>
 
 declaration \<open>
   K (Lin_Arith.add_simprocs

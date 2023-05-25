@@ -851,28 +851,28 @@ lemma eval_stmt_eq: "G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s'
   by (auto, frule eval_Inj_elim, auto, frule eval_Inj_elim, auto)
 
 simproc_setup eval_expr ("G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s')") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_expr_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm eval_expr_eq}))))\<close>
 
 simproc_setup eval_var ("G\<turnstile>s \<midarrow>In2 t\<succ>\<rightarrow> (w, s')") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_var_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm eval_var_eq}))))\<close>
 
 simproc_setup eval_exprs ("G\<turnstile>s \<midarrow>In3 t\<succ>\<rightarrow> (w, s')") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_exprs_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm eval_exprs_eq}))))\<close>
 
 simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s')") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_stmt_eq}))\<close>
+    | _ => SOME (mk_meta_eq @{thm eval_stmt_eq}))))\<close>
 
 ML \<open>
 ML_Thms.bind_thms ("AbruptIs", sum3_instantiate \<^context> @{thm eval.Abrupt})
@@ -947,10 +947,10 @@ apply (frule eval_no_abrupt_lemma, auto)+
 done
 
 simproc_setup eval_no_abrupt ("G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarrow> (w,Norm s')") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ (Const (\<^const_name>\<open>None\<close>, _)) $ _) $ _  $ _ $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_no_abrupt}))
+    | _ => SOME (mk_meta_eq @{thm eval_no_abrupt}))))
 \<close>
 
 
@@ -967,10 +967,10 @@ apply (frule eval_abrupt_lemma, auto)+
 done
 
 simproc_setup eval_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<rightarrow> (w,s')") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ (Const (\<^const_name>\<open>Some\<close>, _) $ _)$ _)) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_abrupt}))
+    | _ => SOME (mk_meta_eq @{thm eval_abrupt}))))
 \<close>
 
 lemma LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else undefined)\<rightarrow> s"

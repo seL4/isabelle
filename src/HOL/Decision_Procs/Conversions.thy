@@ -20,7 +20,7 @@ fun err s ct =
 \<close>
 
 attribute_setup meta =
-  \<open>Scan.succeed (fn (ctxt, th) => (NONE, SOME (mk_meta_eq th)))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (K mk_meta_eq))\<close>
   \<open>convert equality to meta equality\<close>
 
 ML \<open>

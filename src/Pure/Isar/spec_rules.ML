@@ -162,7 +162,7 @@ fun add b rough_classification terms rules lthy =
     val n = length terms;
     val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules);
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = Binding.pos_of b}
       (fn phi => fn context =>
         let
           val psi = Morphism.set_trim_context'' context phi;

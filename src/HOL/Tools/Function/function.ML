@@ -129,7 +129,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
             (K false) (map fst fixes)
       in
         (info,
-         lthy2 |> Local_Theory.declaration {syntax = false, pervasive = false}
+         lthy2 |> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
           (fn phi => add_function_data (transform_function_data phi info)))
       end
   in
@@ -209,7 +209,7 @@ fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
           in
             (info',
              lthy2
-             |> Local_Theory.declaration {syntax = false, pervasive = false}
+             |> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
                (fn phi => add_function_data (transform_function_data phi info'))
              |> Spec_Rules.add Binding.empty Spec_Rules.equational_recdef fs tsimps)
           end)

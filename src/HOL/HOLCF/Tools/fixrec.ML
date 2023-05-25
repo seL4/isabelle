@@ -171,7 +171,7 @@ fun add_fixdefs
     fun unfold_note (name, thm) : Attrib.binding * Thm.thm list =
       let
         val thm_name = Binding.qualify true name (Binding.name "unfold")
-        val src = Attrib.internal (K add_unfold)
+        val src = Attrib.internal \<^here> (K add_unfold)
       in
         ((thm_name, [src]), [thm])
       end

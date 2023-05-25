@@ -59,7 +59,7 @@ fun n2m_sugar_of ctxt =
   #> Option.map (transfer_n2m_sugar (Proof_Context.theory_of ctxt));
 
 fun register_n2m_sugar key n2m_sugar =
-  Local_Theory.declaration {syntax = false, pervasive = false}
+  Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
     (fn phi => Data.map (Typtab.update (key, morph_n2m_sugar phi n2m_sugar)));
 
 fun unfold_lets_splits (Const (\<^const_name>\<open>Let\<close>, _) $ t $ u) =

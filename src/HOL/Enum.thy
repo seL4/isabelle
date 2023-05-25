@@ -564,10 +564,10 @@ lemma finite_1_eq: "x = a\<^sub>1"
 by(cases x) simp
 
 simproc_setup finite_1_eq ("x::finite_1") = \<open>
-  fn _ => fn _ => fn ct =>
+  K (K (fn ct =>
     (case Thm.term_of ct of
       Const (\<^const_name>\<open>a\<^sub>1\<close>, _) => NONE
-    | _ => SOME (mk_meta_eq @{thm finite_1_eq}))
+    | _ => SOME (mk_meta_eq @{thm finite_1_eq}))))
 \<close>
 
 instantiation finite_1 :: complete_boolean_algebra

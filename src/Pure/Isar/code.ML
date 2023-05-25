@@ -1310,7 +1310,7 @@ fun register_tyco_for_plugin tyco =
 (* abstract code declarations *)
 
 fun code_declaration strictness lift_phi f x =
-  Local_Theory.declaration {syntax = false, pervasive = false}
+  Local_Theory.declaration {syntax = false, pervasive = false, pos = Position.thread_data ()}
     (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
 
 

@@ -1003,28 +1003,28 @@ simproc_setup mseteq_cancel
    "add_mset a m = n" | "m = add_mset a n" |
    "replicate_mset p a = n" | "m = replicate_mset p a" |
    "repeat_mset p m = n" | "m = repeat_mset p m") =
-  \<open>fn phi => Cancel_Simprocs.eq_cancel\<close>
+  \<open>K Cancel_Simprocs.eq_cancel\<close>
 
 simproc_setup msetsubset_cancel
   ("(l::'a multiset) + m \<subset># n" | "(l::'a multiset) \<subset># m + n" |
    "add_mset a m \<subset># n" | "m \<subset># add_mset a n" |
    "replicate_mset p r \<subset># n" | "m \<subset># replicate_mset p r" |
    "repeat_mset p m \<subset># n" | "m \<subset># repeat_mset p m") =
-  \<open>fn phi => Multiset_Simprocs.subset_cancel_msets\<close>
+  \<open>K Multiset_Simprocs.subset_cancel_msets\<close>
 
 simproc_setup msetsubset_eq_cancel
   ("(l::'a multiset) + m \<subseteq># n" | "(l::'a multiset) \<subseteq># m + n" |
    "add_mset a m \<subseteq># n" | "m \<subseteq># add_mset a n" |
    "replicate_mset p r \<subseteq># n" | "m \<subseteq># replicate_mset p r" |
    "repeat_mset p m \<subseteq># n" | "m \<subseteq># repeat_mset p m") =
-  \<open>fn phi => Multiset_Simprocs.subseteq_cancel_msets\<close>
+  \<open>K Multiset_Simprocs.subseteq_cancel_msets\<close>
 
 simproc_setup msetdiff_cancel
   ("((l::'a multiset) + m) - n" | "(l::'a multiset) - (m + n)" |
    "add_mset a m - n" | "m - add_mset a n" |
    "replicate_mset p r - n" | "m - replicate_mset p r" |
    "repeat_mset p m - n" | "m - repeat_mset p m") =
-  \<open>fn phi => Cancel_Simprocs.diff_cancel\<close>
+  \<open>K Cancel_Simprocs.diff_cancel\<close>
 
 
 subsubsection \<open>Conditionally complete lattice\<close>

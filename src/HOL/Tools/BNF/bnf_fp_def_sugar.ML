@@ -418,7 +418,7 @@ val interpret_fp_sugars = FP_Sugar_Plugin.data;
 
 val register_fp_sugars_raw =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>
-    Local_Theory.declaration {syntax = false, pervasive = true}
+    Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
       (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))));
 
 fun register_fp_sugars plugins fp_sugars =
@@ -1069,7 +1069,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   |> rotate_prems ~1;
 
                 val cases_set_attr =
-                  Attrib.internal (K (Induct.cases_pred (name_of_set set)));
+                  Attrib.internal \<^here> (K (Induct.cases_pred (name_of_set set)));
 
                 val ctr_names = quasi_unambiguous_case_names (flat
                   (map (uncurry mk_names o map_prod length name_of_ctr) (premss ~~ ctrAs)));
@@ -2031,7 +2031,7 @@ fun derive_set_induct_thms_for_types ctxt nn fpTs ctrss setss dtor_set_inducts e
           |> Thm.close_derivation \<^here>;
 
         val case_names_attr = Attrib.case_names (quasi_unambiguous_case_names case_names);
-        val induct_set_attrs = map (Attrib.internal o K o Induct.induct_pred o name_of_set) sets;
+        val induct_set_attrs = map (Attrib.internal \<^here> o K o Induct.induct_pred o name_of_set) sets;
       in
         (thm, case_names_attr :: induct_set_attrs)
       end
@@ -2647,8 +2647,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         val rec_transfer_thmss =
           map single (derive_rec_transfer_thms lthy recs rec_defs recs_args_types);
 
-        val induct_type_attr = Attrib.internal o K o Induct.induct_type;
-        val induct_pred_attr = Attrib.internal o K o Induct.induct_pred;
+        val induct_type_attr = Attrib.internal \<^here> o K o Induct.induct_type;
+        val induct_pred_attr = Attrib.internal \<^here> o K o Induct.induct_pred;
 
         val ((rel_induct_thmss, common_rel_induct_thms),
              (rel_induct_attrs, common_rel_induct_attrs)) =
@@ -2808,8 +2808,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         val corec_code_thms = map (eq_ifIN lthy) corec_thmss;
         val corec_sel_thmss = map flat corec_sel_thmsss;
 
-        val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
-        val coinduct_pred_attr = Attrib.internal o K o Induct.coinduct_pred;
+        val coinduct_type_attr = Attrib.internal \<^here> o K o Induct.coinduct_type;
+        val coinduct_pred_attr = Attrib.internal \<^here> o K o Induct.coinduct_pred;
 
         val flat_corec_thms = append oo append;
 

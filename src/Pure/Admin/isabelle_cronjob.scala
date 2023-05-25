@@ -57,8 +57,9 @@ object Isabelle_Cronjob {
             """ -a --include="*/" --include="plain_identify*" --exclude="*" """ +
             Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
 
-        if (!Isabelle_Devel.cronjob_log.is_file)
+        if (!Isabelle_Devel.cronjob_log.is_file) {
           Files.createSymbolicLink(Isabelle_Devel.cronjob_log.java_path, current_log.java_path)
+        }
       })
 
   val exit: Logger_Task =
@@ -292,7 +293,7 @@ object Isabelle_Cronjob {
       Remote_Build("macOS 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
         detect = Build_Log.Prop.build_start.toString + " < date '2017-03-03'")) :::
       {
-        for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
+        for ((n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")))
         yield {
           Remote_Build("AFP old", host = hosts.head, more_hosts = hosts.tail,
             options = "-m32 -M1x2 -t AFP -P" + n +

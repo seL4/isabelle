@@ -608,7 +608,8 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
                 val facts =
                   Attrib.partial_evaluation ctxt [((Binding.name "dummy", []), thms)]
                   |> map (fn (_, bs) =>
-                    ((Binding.empty, [Attrib.internal (K attribute)]), Attrib.trim_context_thms bs));
+                    ((Binding.empty, [Attrib.internal pos (K attribute)]),
+                      Attrib.trim_context_thms bs));
 
                 val decl =
                   Morphism.entity (fn phi => fn context =>
