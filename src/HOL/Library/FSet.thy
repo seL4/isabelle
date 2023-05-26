@@ -2,6 +2,7 @@
     Author:     Ondrej Kuncar, TU Muenchen
     Author:     Cezary Kaliszyk and Christian Urban
     Author:     Andrei Popescu, TU Muenchen
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>Type of finite sets defined as a subtype of sets\<close>
