@@ -171,10 +171,10 @@ translations
   "{|x|}"     == "CONST finsert x {||}"
 
 abbreviation fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) where
-  "a |\<in>| A \<equiv> a \<in> fset A"
+  "x |\<in>| X \<equiv> x \<in> fset X"
 
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
-  "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
+  "x |\<notin>| X \<equiv> x \<notin> fset X"
 
 context includes lifting_syntax
 begin
