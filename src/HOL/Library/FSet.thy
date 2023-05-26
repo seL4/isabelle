@@ -174,7 +174,7 @@ translations
 abbreviation fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) where
   "x |\<in>| X \<equiv> x \<in> fset X"
 
-abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
+abbreviation not_fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
   "x |\<notin>| X \<equiv> x \<notin> fset X"
 
 context includes lifting_syntax
