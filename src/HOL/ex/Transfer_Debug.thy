@@ -19,48 +19,58 @@ begin
 
 subsection \<open>1. A missing transfer rule\<close>
 
-(* We will simulate the situation in which there is not any transfer rules for fmember. *)
-declare fmember.transfer[transfer_rule del] fmember_transfer[transfer_rule del]
+(* We will simulate the situation in which there is not any transfer rules for fempty. *)
+declare bot_fset.transfer[transfer_rule del] fempty_transfer[transfer_rule del]
 
-(* We want to prove the following theorem about |\<subseteq>| by transfer *)
-lemma "(A |\<subseteq>| B) = fBall A (\<lambda>x. x |\<in>| B)"
-apply transfer
+(* We want to prove the following theorem about fcard by transfer *)
+lemma "fcard (A |-| {|x|}) \<le> fcard A"
+  apply transfer
 (* 
-   Transfer complains that it could not find a transfer rule for |\<subseteq>| with a matching transfer
-   relation. An experienced user could notice that |\<in>| was transferred to |\<in>| by a 
-   a default reflexivity transfer rule (because there was not any genuine transfer rule for |\<in>|)
-   and fBall was transferred to Ball using the transfer relation pcr_fset. Therefore transfer
-   is looking for a transfer rule for |\<subseteq>| with a transfer relation that mixes (=) and pcr_fset.
+   Transfer complains that it could not find a transfer rule for |-| with a matching transfer
+   relation. An experienced user could notice that {||} (in {|x|}, which is special syntax for
+   finsert x {||}) was transferred to {||} by a a default reflexivity transfer rule (because there
+   was not any genuine transfer rule for {||}) and fcard was transferred to card using the transfer
+   relation pcr_fset. Therefore transfer is looking for a transfer rule for |-| with a transfer
+   relation that mixes (=) and pcr_fset.
    This situation might be confusing because the real problem (a missing transfer rule) propagates
    during the transferring algorithm and manifests later in an obfuscated way. Fortunately,
    we could inspect the behavior of transfer in a more interactive way to pin down the real problem.
 *)
-oops
+  oops
 
-lemma "(A |\<subseteq>| B) = fBall A (\<lambda>x. x |\<in>| B)"
-apply transfer_start 
-(* Setups 6 goals for 6 transfer rules that have to be found and the result as the 7. goal, which
-   gets synthesized to the final result of transferring when we find the 6 transfer rules. *)
-apply transfer_step
+lemma "fcard (A |-| {|x|}) \<le> fcard A"
+apply transfer_start
+(* Setups 8 goals for 8 transfer rules that have to be found and the result as the 9th goal, which
+   gets synthesized to the final result of transferring when we find the 8 transfer rules. *)
+          apply transfer_step
+         apply transfer_step
 (* We can see that the default reflexivity transfer rule was applied and |\<in>| 
   was transferred to |\<in>| \<Longrightarrow> there is no genuine transfer rule for |\<in>|. *)
+        apply transfer_step
+       defer
+       apply transfer_step
+      apply transfer_step
+     apply transfer_step
+    apply transfer_step
+   apply transfer_end
 oops
 
-(* We provide a transfer rule for |\<in>|. *)
-lemma [transfer_rule]: "bi_unique A \<Longrightarrow> rel_fun A (rel_fun (pcr_fset A) (=)) (\<in>) (|\<in>|)"
-by (rule fmember.transfer)
+(* We provide a transfer rule for {||}. *)
+lemma [transfer_rule]: "pcr_fset A {} {||}"
+  by (rule bot_fset.transfer)
 
-lemma "(A |\<subseteq>| B) = fBall A (\<lambda>x. x |\<in>| B)"
-apply transfer_start
-apply transfer_step (* The new transfer rule was selected and |\<in>| was transferred to \<in>. *)
-apply transfer_step+
-apply transfer_end
-by blast
+lemma "fcard (A |-| {|x|}) \<le> fcard A"
+  apply transfer_start
+          apply transfer_step
+         apply transfer_step (* The new transfer rule was selected and |\<in>| was transferred to \<in>. *)
+        apply transfer_step+
+  apply transfer_end
+  by (rule card_Diff1_le)
 
 (* Of course in the real life, we would use transfer instead of transfer_start, transfer_step+ and 
    transfer_end. *) 
-lemma "(A |\<subseteq>| B) = fBall A (\<lambda>x. x |\<in>| B)"
-by transfer blast
+lemma "fcard (A |-| {|x|}) \<le> fcard A"
+  by transfer (rule card_Diff1_le)
 
 subsection \<open>2. Unwanted instantiation of a transfer relation variable\<close>
 
