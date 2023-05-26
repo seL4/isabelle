@@ -136,14 +136,14 @@ local
 
 fun def_simproc prep b {lhss, proc} lthy =
   let
-    val simproc =
+    val simproc0 =
       make_simproc lthy (Local_Theory.full_name lthy b) {lhss = prep lthy lhss, proc = proc};
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of b}
       (fn phi => fn context =>
         let
           val b' = Morphism.binding phi b;
-          val simproc' = transform_simproc phi simproc;
+          val simproc' = simproc0 |> transform_simproc phi |> trim_context_simproc;
         in
           context
           |> Simprocs.map (#2 o Name_Space.define context true (b', simproc'))
