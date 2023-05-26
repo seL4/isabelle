@@ -219,6 +219,13 @@ antiquotations.
       wf_if_convertible_to_wf
 
 * Theory "HOL-Library.FSet":
+  - Redefined fmember as an abbreviation based on Set.member.
+    Minor INCOMPATIBILITY.
+  - Redefined notin_fset as an abbreviation based on Set.not_member and
+    renamed to not_fmember. Minor INCOMPATIBILITY.
+  - Removed lemmas. Minor INCOMPATIBILITIES.
+      fmember_iff_member_fset
+      notin_fset
   - Added lemmas.
       fimage_strict_mono
       wfP_pfsubset
