@@ -177,12 +177,37 @@ abbreviation fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\
 abbreviation not_fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
   "x |\<notin>| X \<equiv> x \<notin> fset X"
 
+context
+begin
+
+qualified abbreviation Ball :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "Ball X \<equiv> Set.Ball (fset X)"
+
+alias fBall = FSet.Ball
+
+qualified abbreviation Bex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "Bex X \<equiv> Set.Bex (fset X)"
+
+alias fBex = FSet.Bex
+
+end
+
 context includes lifting_syntax
 begin
 
 lemma fmember_transfer0[transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "(A ===> pcr_fset A ===> (=)) (\<in>) (|\<in>|)"
+  by transfer_prover
+
+lemma fBall_transfer0[transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(pcr_fset A ===> (A ===> (=)) ===> (=)) (Ball) (fBall)"
+  by transfer_prover
+
+lemma fBex_transfer0[transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(pcr_fset A ===> (A ===> (=)) ===> (=)) (Bex) (fBex)"
   by transfer_prover
 
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter
@@ -202,9 +227,6 @@ lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rig
 by (simp add: Set.bind_def)
 
 lift_definition ffUnion :: "'a fset fset \<Rightarrow> 'a fset" is Union parametric Union_transfer by simp
-
-lift_definition fBall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer .
-lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer .
 
 lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold .
 

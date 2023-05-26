@@ -1438,7 +1438,7 @@ subsection \<open>Tests\<close>
 \<comment> \<open>Code generation\<close>
 
 export_code
-  fBall fmrel fmran fmran' fmdom fmdom' fmpred pred_fmap fmsubset fmupd fmrel_on_fset
+  Ball fset fmrel fmran fmran' fmdom fmdom' fmpred pred_fmap fmsubset fmupd fmrel_on_fset
   fmdrop fmdrop_set fmdrop_fset fmrestrict_set fmrestrict_fset fmimage fmlookup fmempty
   fmfilter fmadd fmmap fmmap_keys fmcomp
   checking SML Scala Haskell? OCaml?
