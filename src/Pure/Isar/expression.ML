@@ -406,8 +406,8 @@ fun prep_full_context_statement
         val rewrite_morph = eqns'
           |> map (abs_def ctxt')
           |> Variable.export_terms ctxt' ctxt
-          |> Element.eq_term_morphism (Proof_Context.theory_of ctxt)
-          |> the_default Morphism.identity;
+          |> Element.eq_term_morphism
+          |> Morphism.default;
        val ctxt'' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
        val eqnss' = eqnss @ [attrss ~~ Variable.export_terms ctxt' ctxt eqns'];
       in (i + 1, insts', eqnss', ctxt'') end;
@@ -556,7 +556,7 @@ fun prep_goal_expression prep expression ctxt =
     val exp_typ = Logic.type_map exp_term;
     val export' =
       Morphism.morphism "Expression.prep_goal"
-        {binding = [], typ = [exp_typ], term = [exp_term], fact = [exp_fact]};
+        {binding = [], typ = [K exp_typ], term = [K exp_term], fact = [K exp_fact]};
   in ((propss, eq_propss, deps, eqnss, export'), goal_ctxt) end;
 
 in
@@ -743,41 +743,41 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
     val ctxt = Proof_Context.init_global thy;
     val defs' = map (Thm.cterm_of ctxt #> Assumption.assume ctxt #> Drule.abs_def) defs;
 
-    val (a_pred, a_intro, a_axioms, thy'') =
+    val (a_pred, a_intro, a_axioms, thy2) =
       if null exts then (NONE, NONE, [], thy)
       else
         let
           val abinding =
             if null ints then binding else Binding.suffix_name ("_" ^ axiomsN) binding;
-          val ((statement, intro, axioms), thy') =
+          val ((statement, intro, axioms), thy1) =
             thy
             |> def_pred abinding parms defs' exts exts';
-          val ((_, [intro']), thy'') =
-            thy'
+          val ((_, [intro']), thy2) =
+            thy1
             |> Sign.qualified_path true abinding
             |> Global_Theory.note_thms ""
               ((Binding.name introN, []), [([intro], [Locale.unfold_add])])
-            ||> Sign.restore_naming thy';
-          in (SOME statement, SOME intro', axioms, thy'') end;
-    val (b_pred, b_intro, b_axioms, thy'''') =
-      if null ints then (NONE, NONE, [], thy'')
+            ||> Sign.restore_naming thy1;
+          in (SOME statement, SOME intro', axioms, thy2) end;
+    val (b_pred, b_intro, b_axioms, thy4) =
+      if null ints then (NONE, NONE, [], thy2)
       else
         let
-          val ((statement, intro, axioms), thy''') =
-            thy''
+          val ((statement, intro, axioms), thy3) =
+            thy2
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
-          val ctxt''' = Proof_Context.init_global thy''';
-          val ([(_, [intro']), _], thy'''') =
-            thy'''
+          val conclude_witness =
+            Drule.export_without_context o Element.conclude_witness (Proof_Context.init_global thy3);
+          val ([(_, [intro']), _], thy4) =
+            thy3
             |> Sign.qualified_path true binding
             |> Global_Theory.note_thmss ""
                  [((Binding.name introN, []), [([intro], [Locale.intro_add])]),
                   ((Binding.name axiomsN, []),
-                    [(map (Drule.export_without_context o Element.conclude_witness ctxt''') axioms,
-                      [])])]
-            ||> Sign.restore_naming thy''';
-        in (SOME statement, SOME intro', axioms, thy'''') end;
-  in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;
+                    [(map conclude_witness axioms, [])])]
+            ||> Sign.restore_naming thy3;
+        in (SOME statement, SOME intro', axioms, thy4) end;
+  in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy4) end;
 
 end;
 
@@ -794,7 +794,7 @@ fun assumes_to_notes (Assumes asms) axms =
 fun defines_to_notes ctxt (Defines defs) =
       Notes ("", map (fn (a, (def, _)) =>
         (a, [([Assumption.assume ctxt (Thm.cterm_of ctxt def)],
-          [(Attrib.internal o K) Locale.witness_add])])) defs)
+          [Attrib.internal @{here} (K Locale.witness_add)])])) defs)
   | defines_to_notes _ e = e;
 
 val is_hyp = fn Assumes _ => true | Defines _ => true | _ => false;
@@ -846,11 +846,12 @@ fun gen_add_locale prep_include prep_decl
       if is_some asm then
         [("", [((Binding.suffix_name ("_" ^ axiomsN) binding, []),
           [([Assumption.assume pred_ctxt (Thm.cterm_of pred_ctxt (the asm))],
-            [(Attrib.internal o K) Locale.witness_add])])])]
+            [Attrib.internal @{here} (K Locale.witness_add)])])])]
       else [];
 
     val notes' =
       body_elems
+      |> map (Element.transfer_ctxt thy')
       |> map (defines_to_notes pred_ctxt)
       |> map (Element.transform_ctxt a_satisfy)
       |> (fn elems =>

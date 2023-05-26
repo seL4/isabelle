@@ -588,15 +588,15 @@ structure Less_Enat_Cancel = ExtractCommonTermFun
 
 simproc_setup enat_eq_cancel
   ("(l::enat) + m = n" | "(l::enat) = m + n") =
-  \<open>fn phi => fn ctxt => fn ct => Eq_Enat_Cancel.proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => Eq_Enat_Cancel.proc ctxt (Thm.term_of ct))\<close>
 
 simproc_setup enat_le_cancel
   ("(l::enat) + m \<le> n" | "(l::enat) \<le> m + n") =
-  \<open>fn phi => fn ctxt => fn ct => Le_Enat_Cancel.proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => Le_Enat_Cancel.proc ctxt (Thm.term_of ct))\<close>
 
 simproc_setup enat_less_cancel
   ("(l::enat) + m < n" | "(l::enat) < m + n") =
-  \<open>fn phi => fn ctxt => fn ct => Less_Enat_Cancel.proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => Less_Enat_Cancel.proc ctxt (Thm.term_of ct))\<close>
 
 text \<open>TODO: add regression tests for these simprocs\<close>
 

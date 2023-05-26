@@ -942,16 +942,15 @@ end
 context cring
 begin
 
-local_setup \<open>
-Local_Theory.declaration {syntax = false, pervasive = false}
-  (fn phi => Ring_Tac.Ring_Simps.map (Ring_Tac.insert_rules Ring_Tac.eq_ring_simps
+declaration \<open>fn phi =>
+  Ring_Tac.Ring_Simps.map (Ring_Tac.insert_rules Ring_Tac.eq_ring_simps
     (Morphism.term phi \<^term>\<open>R\<close>,
      (Morphism.fact phi @{thms Ipol.simps [meta] Ipol_Pc [meta]},
       Morphism.fact phi @{thms Ipolex.simps [meta] Ipolex_Const [meta]},
       Morphism.fact phi @{thms Ipolex_polex_list.simps [meta]},
       Morphism.fact phi @{thms in_carrier_Nil in_carrier_Cons},
       singleton (Morphism.fact phi) @{thm head.simps(2) [meta]},
-      singleton (Morphism.fact phi) @{thm norm_subst_correct [meta]}))))
+      singleton (Morphism.fact phi) @{thm norm_subst_correct [meta]})))
 \<close>
 
 end

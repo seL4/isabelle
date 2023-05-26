@@ -229,7 +229,7 @@ fun register_custom binding pat expand =
     fun decl phi =
       register_custom' binding (Morphism.term phi pat) expand
   in
-    Local_Theory.declaration {syntax = false, pervasive = false} decl
+    Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of binding} decl
   end
 
 fun register_custom_from_thm binding thm expand = 

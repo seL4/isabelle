@@ -528,7 +528,7 @@ local
 
   val register_code_eq_attribute = Thm.declaration_attribute
     (fn thm => Context.mapping (register_encoded_code_eq thm) I)
-  val register_code_eq_attrib = Attrib.internal (K register_code_eq_attribute)
+  val register_code_eq_attrib = Attrib.internal \<^here> (K register_code_eq_attribute)
 
 in
 
@@ -547,7 +547,7 @@ fun register_code_eq abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
             which code equation is going to be used. This is going to be resolved at the
             point when an interpretation of the locale is executed. *)
         val lthy'' = lthy'
-          |> Local_Theory.declaration {syntax = false, pervasive = true} (K (Data.put NONE))
+          |> Local_Theory.declaration {syntax = false, pervasive = true, pos =  \<^here>} (K (Data.put NONE))
       in (code_eq, lthy'') end
     else
       (NONE_EQ, lthy)

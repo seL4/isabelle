@@ -59,13 +59,6 @@ fun read ctxt = get ctxt o check ctxt;
 
 fun extern ctxt = Name_Space.extern ctxt (Name_Space.space_of_table (get_all ctxt));
 
-fun define_bundle (b, bundle) context =
-  let
-    val bundle' = Attrib.trim_context_thms bundle;
-    val (name, bundles') = Name_Space.define context true (b, bundle') (get_all_generic context);
-    val context' = (Data.map o apfst o K) bundles' context;
-  in (name, context') end;
-
 
 (* target -- bundle under construction *)
 
@@ -102,8 +95,23 @@ fun print_bundles verbose ctxt =
 
 (** define bundle **)
 
+(* context and morphisms *)
+
+val trim_context_bundle =
+  map (fn (fact, atts) => (map Thm.trim_context fact, (map o map) Token.trim_context atts));
+
+fun transfer_bundle thy =
+  map (fn (fact, atts) => (map (Thm.transfer thy) fact, (map o map) (Token.transfer thy) atts));
+
 fun transform_bundle phi =
   map (fn (fact, atts) => (Morphism.fact phi fact, (map o map) (Token.transform phi) atts));
+
+fun define_bundle (b, bundle) context =
+  let
+    val (name, bundles') = get_all_generic context
+      |> Name_Space.define context true (b, trim_context_bundle bundle);
+    val context' = (Data.map o apfst o K) bundles' context;
+  in (name, context') end;
 
 
 (* command *)
@@ -116,11 +124,15 @@ fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy
     val bundle0 = raw_bundle
       |> map (fn (fact, atts) => (prep_fact ctxt' fact, map (prep_att ctxt') atts));
     val bundle =
-      Attrib.partial_evaluation ctxt' [(Binding.empty_atts, bundle0)] |> map snd |> flat
-      |> transform_bundle (Proof_Context.export_morphism ctxt' lthy);
+      Attrib.partial_evaluation ctxt' [(Binding.empty_atts, bundle0)]
+      |> maps #2
+      |> transform_bundle (Proof_Context.export_morphism ctxt' lthy)
+      |> trim_context_bundle;
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
-      (fn phi => #2 o define_bundle (Morphism.binding phi binding, transform_bundle phi bundle))
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = Binding.pos_of binding}
+      (fn phi => fn context =>
+        let val psi = Morphism.set_trim_context'' context phi
+        in #2 (define_bundle (Morphism.binding psi binding, transform_bundle psi bundle) context) end)
   end;
 
 in
@@ -169,9 +181,9 @@ fun bundle_notes kind facts lthy =
     |> Attrib.local_notes kind facts
   end;
 
-fun bundle_declaration decl lthy =
+fun bundle_declaration pos decl lthy =
   lthy
-  |> (augment_target o Attrib.internal_declaration)
+  |> (augment_target o Attrib.internal_declaration pos)
     (Morphism.transform (Local_Theory.standard_morphism_theory lthy) decl)
   |> Generic_Target.standard_declaration (K true) decl;
 
@@ -186,10 +198,10 @@ fun init binding thy =
      {define = bad_operation,
       notes = bundle_notes,
       abbrev = bad_operation,
-      declaration = K bundle_declaration,
+      declaration = fn {pos, ...} => bundle_declaration pos,
       theory_registration = bad_operation,
       locale_dependency = bad_operation,
-      pretty = pretty binding}
+      pretty = pretty binding};
 
 end;
 
@@ -200,7 +212,10 @@ end;
 local
 
 fun gen_activate notes prep_bundle args ctxt =
-  let val decls = maps (prep_bundle ctxt) args in
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val decls = maps (prep_bundle ctxt) args |> transfer_bundle thy;
+  in
     ctxt
     |> Context_Position.set_visible false
     |> notes [(Binding.empty_atts, decls)] |> #2

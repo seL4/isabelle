@@ -25,12 +25,12 @@ struct
 
 (* context data *)
 
-type def = {lhs: term, mk_eq: morphism -> thm};
+type def = {lhs: term, eq: thm};
 
 val eq_def : def * def -> bool = op aconv o apply2 #lhs;
 
-fun transform_def phi ({lhs, mk_eq}: def) =
-  {lhs = Morphism.term phi lhs, mk_eq = Morphism.transform phi mk_eq};
+fun transform_def phi ({lhs, eq}: def) =
+  {lhs = Morphism.term phi lhs, eq = Morphism.thm phi eq};
 
 structure Data = Generic_Data
 (
@@ -40,12 +40,11 @@ structure Data = Generic_Data
 );
 
 fun declare_def lhs eq lthy =
-  let
-    val eq0 = Thm.trim_context eq;
-    val def: def = {lhs = lhs, mk_eq = fn phi => Morphism.thm phi eq0};
-  in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
-      (fn phi => (Data.map o Item_Net.update) (transform_def phi def))
+  let val def0: def = {lhs = lhs, eq = Thm.trim_context eq} in
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
+      (fn phi => fn context =>
+        let val psi = Morphism.set_trim_context'' context phi
+        in (Data.map o Item_Net.update) (transform_def psi def0) context end)
   end;
 
 fun get_def ctxt ct =
@@ -53,15 +52,10 @@ fun get_def ctxt ct =
     val thy = Proof_Context.theory_of ctxt;
     val data = Data.get (Context.Proof ctxt);
     val t = Thm.term_of ct;
-    fun match_def {lhs, mk_eq} =
+    fun match_def {lhs, eq} =
       if Pattern.matches thy (lhs, t) then
-        let
-          val inst = Thm.match (Thm.cterm_of ctxt lhs, ct);
-          val eq =
-            Morphism.form mk_eq
-            |> Thm.transfer thy
-            |> Thm.instantiate inst;
-        in SOME eq end
+        let val inst = Thm.match (Thm.cterm_of ctxt lhs, ct)
+        in SOME (Thm.instantiate inst (Thm.transfer thy eq)) end
       else NONE;
   in Item_Net.retrieve_matching data t |> get_first match_def end;
 

@@ -269,6 +269,10 @@ lemma openin_subtopology: "openin (subtopology U V) S \<longleftrightarrow> (\<e
   unfolding subtopology_def topology_inverse'[OF istopology_subtopology]
   by auto
 
+lemma subset_openin_subtopology:
+   "\<lbrakk>openin X S; S \<subseteq> T\<rbrakk> \<Longrightarrow> openin (subtopology X T) S"
+  by (metis inf.orderE openin_subtopology)
+
 lemma openin_subtopology_Int:
    "openin X S \<Longrightarrow> openin (subtopology X T) (S \<inter> T)"
   using openin_subtopology by auto
@@ -295,6 +299,10 @@ lemma topspace_subtopology_subset:
 lemma closedin_subtopology: "closedin (subtopology U V) S \<longleftrightarrow> (\<exists>T. closedin U T \<and> S = T \<inter> V)"
   unfolding closedin_def topspace_subtopology
   by (auto simp: openin_subtopology)
+
+lemma closedin_subtopology_Int_closed:
+   "closedin X T \<Longrightarrow> closedin (subtopology X S) (S \<inter> T)"
+  using closedin_subtopology inf_commute by blast
 
 lemma closedin_subset_topspace:
    "\<lbrakk>closedin X S; S \<subseteq> T\<rbrakk> \<Longrightarrow> closedin (subtopology X T) S"
@@ -1098,7 +1106,6 @@ lemma frontier_of_closures:
      "X frontier_of S = X closure_of S \<inter> X closure_of (topspace X - S)"
   by (metis Diff_Diff_Int closure_of_complement closure_of_subset_topspace double_diff frontier_of_def interior_of_subset_closure_of)
 
-
 lemma interior_of_union_frontier_of [simp]:
      "X interior_of S \<union> X frontier_of S = X closure_of S"
   by (simp add: frontier_of_def interior_of_subset_closure_of subset_antisym)
@@ -1264,6 +1271,37 @@ lemma frontier_of_subtopology_open:
 lemma discrete_topology_frontier_of [simp]:
      "(discrete_topology U) frontier_of S = {}"
   by (simp add: Diff_eq discrete_topology_closure_of frontier_of_closures)
+
+lemma openin_subset_topspace_eq:
+  assumes "disjnt S (X frontier_of U)"
+  shows "openin (subtopology X U) S \<longleftrightarrow> openin X S \<and> S \<subseteq> U"
+proof
+  assume S: "openin (subtopology X U) S"
+  show "openin X S \<and> S \<subseteq> U"
+  proof
+    show "S \<subseteq> U"
+      using S openin_imp_subset by blast
+    have "disjnt S (X frontier_of (topspace X \<inter> U))"
+      by (metis assms frontier_of_restrict)
+    moreover
+    have "openin (subtopology X (topspace X \<inter> U)) S"
+      by (simp add: S subtopology_restrict)
+    moreover
+    have "openin X S" 
+      if dis: "disjnt S (X frontier_of U)" and ope: "openin (subtopology X U) S" and "U \<subseteq> topspace X" 
+      for S U
+    proof -
+      obtain T where T: "openin X T" "S = T \<inter> U"
+        using ope by (auto simp: openin_subtopology)
+      have "T \<inter> U = T \<inter> X interior_of U"
+        using that T interior_of_subset in_closure_of by (fastforce simp: disjnt_iff frontier_of_def)
+      then show ?thesis
+        using \<open>S = T \<inter> U\<close> \<open>openin X T\<close> by auto
+    qed
+  ultimately show "openin X S"
+      by blast
+  qed 
+qed (metis inf.absorb_iff1 openin_subtopology_Int)
 
 
 subsection\<open>Locally finite collections\<close>
@@ -4778,6 +4816,18 @@ lemma proper_map_imp_subset_topspace:
    "proper_map X Y f \<Longrightarrow> f ` (topspace X) \<subseteq> topspace Y"
   by (simp add: closed_map_imp_subset_topspace proper_map_def)
 
+lemma proper_map_restriction:
+  assumes "proper_map X Y f" "{x \<in> topspace X. f x \<in> V} = U"
+  shows "proper_map (subtopology X U) (subtopology Y V) f"
+proof -
+  have [simp]: "{x \<in> topspace X. f x \<in> V \<and> f x = y} = {x \<in> topspace X. f x = y}" 
+    if "y \<in> V" for y
+    using that by auto
+  show ?thesis
+    using assms unfolding proper_map_def using closed_map_restriction
+    by (force simp: compactin_subtopology)
+qed
+
 lemma closed_injective_imp_proper_map:
   assumes f: "closed_map X Y f" and inj: "inj_on f (topspace X)"
   shows "proper_map X Y f"
@@ -4946,6 +4996,45 @@ lemma proper_map_inclusion:
    "S \<subseteq> topspace X \<Longrightarrow> proper_map (subtopology X S) X id \<longleftrightarrow> closedin X S \<and> (\<forall>k. compactin X k \<longrightarrow> compactin X (S \<inter> k))"
   by (metis closed_Int_compactin closed_map_inclusion_eq inf.absorb_iff2 inj_on_id injective_imp_proper_eq_closed_map)
 
+lemma proper_map_into_subtopology:
+   "\<lbrakk>proper_map X Y f; f ` topspace X \<subseteq> C\<rbrakk> \<Longrightarrow> proper_map X (subtopology Y C) f"
+  by (simp add: closed_map_into_subtopology compactin_subtopology proper_map_alt)
+
+lemma proper_map_from_composition_left:
+  assumes gf: "proper_map X Z (g \<circ> f)" and contf: "continuous_map X Y f" and fim: "f ` topspace X = topspace Y"
+  shows "proper_map Y Z g"
+  unfolding proper_map_def
+proof (intro strip conjI)
+  show "closed_map Y Z g"
+    by (meson closed_map_from_composition_left gf contf fim proper_imp_closed_map)
+  fix z assume "z \<in> topspace Z"
+  have eq: "{y \<in> topspace Y. g y = z} = f ` {x \<in> topspace X. (g \<circ> f) x = z}"
+    using fim by force
+  show "compactin Y {x \<in> topspace Y. g x = z}"
+    unfolding eq
+  proof (rule image_compactin [OF _ contf])
+    show "compactin X {x \<in> topspace X. (g \<circ> f) x = z}"
+      using \<open>z \<in> topspace Z\<close> gf proper_map_def by fastforce
+  qed
+qed
+
+lemma proper_map_from_composition_right_inj:
+  assumes gf: "proper_map X Z (g \<circ> f)" and fim: "f ` topspace X \<subseteq> topspace Y" 
+    and contf: "continuous_map Y Z g" and inj: "inj_on g (topspace Y)"
+  shows "proper_map X Y f"
+  unfolding proper_map_def
+proof (intro strip conjI)
+  show "closed_map X Y f"
+    by (meson closed_map_from_composition_right assms proper_imp_closed_map)
+  fix y
+  assume "y \<in> topspace Y"
+  with fim inj have eq: "{x \<in> topspace X. f x = y} = {x \<in> topspace X. (g \<circ> f) x = g y}"
+    by (auto simp: image_subset_iff inj_onD)
+  show "compactin X {x \<in> topspace X. f x = y}"
+    unfolding eq
+    by (smt (verit) Collect_cong \<open>y \<in> topspace Y\<close> contf continuous_map_closedin gf proper_map_def)
+qed
+
 
 subsection\<open>Perfect maps (proper, continuous and surjective)\<close>
 
@@ -4990,5 +5079,12 @@ lemma perfect_imp_proper_map:
 lemma perfect_imp_surjective_map:
    "perfect_map X Y f \<Longrightarrow> f ` (topspace X) = topspace Y"
   by (simp add: perfect_map_def)
+
+lemma perfect_map_from_composition_left:
+  assumes "perfect_map X Z (g \<circ> f)" and "continuous_map X Y f"
+    and "continuous_map Y Z g" and "f ` topspace X = topspace Y"
+  shows "perfect_map Y Z g"
+  using assms unfolding perfect_map_def
+  by (metis image_comp proper_map_from_composition_left)
 
 end

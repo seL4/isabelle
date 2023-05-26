@@ -29,6 +29,8 @@ sig
     ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Token.src -> Token.src) ->
     ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
+  val trim_context_ctxt: context_i -> context_i
+  val transfer_ctxt: theory -> context_i -> context_i
   val transform_ctxt: morphism -> context_i -> context_i
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
@@ -49,8 +51,8 @@ sig
   val pretty_witness: Proof.context -> witness -> Pretty.T
   val instantiate_normalize_morphism: ctyp TFrees.table * cterm Frees.table -> morphism
   val satisfy_morphism: witness list -> morphism
-  val eq_term_morphism: theory -> term list -> morphism option
-  val eq_morphism: theory -> thm list -> morphism option
+  val eq_term_morphism: term list -> morphism option
+  val eq_morphism: thm list -> morphism option
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
@@ -102,6 +104,16 @@ fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
 
 fun map_ctxt_attrib attrib =
   map_ctxt {binding = I, typ = I, term = I, pattern = I, fact = I, attrib = attrib};
+
+val trim_context_ctxt: context_i -> context_i = map_ctxt
+ {binding = I, typ = I, term = I, pattern = I,
+  fact = map Thm.trim_context,
+  attrib = map Token.trim_context};
+
+fun transfer_ctxt thy: context_i -> context_i = map_ctxt
+ {binding = I, typ = I, term = I, pattern = I,
+  fact = map (Thm.transfer thy),
+  attrib = map (Token.transfer thy)};
 
 fun transform_ctxt phi = map_ctxt
  {binding = Morphism.binding phi,
@@ -275,7 +287,8 @@ fun prove_witness ctxt t tac =
   Witness (t,
     Goal.prove ctxt [] [] (mark_witness t)
       (fn _ => resolve_tac ctxt [Drule.protectI] 1 THEN tac)
-    |> Thm.close_derivation \<^here>);
+    |> Thm.close_derivation \<^here>
+    |> Thm.trim_context);
 
 
 local
@@ -290,7 +303,9 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
       (map o map) (fn prop => (mark_witness prop, [])) wit_propss @
         [map (rpair []) eq_props];
     fun after_qed' thmss =
-      let val (wits, eqs) = split_last ((map o map) (Thm.close_derivation \<^here>) thmss);
+      let
+        val (wits, eqs) =
+          split_last ((map o map) (Thm.close_derivation \<^here> #> Thm.trim_context) thmss);
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness end;
 
@@ -322,7 +337,7 @@ fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt =
 end;
 
 fun conclude_witness ctxt (Witness (_, th)) =
-  Goal.conclude th
+  Goal.conclude (Thm.transfer' ctxt th)
   |> Raw_Simplifier.norm_hhf_protect ctxt
   |> Thm.close_derivation \<^here>;
 
@@ -359,7 +374,7 @@ fun find_witness witns hyp =
 
 fun compose_witness (Witness (_, th)) r =
   let
-    val th' = Goal.conclude th;
+    val th' = Goal.conclude (Thm.transfer (Thm.theory_of_thm r) th);
     val A = Thm.cprem_of r 1;
   in
     Thm.implies_elim
@@ -384,36 +399,42 @@ end;
 (* rewriting with equalities *)
 
 (* for activating declarations only *)
-fun eq_term_morphism _ [] = NONE
-  | eq_term_morphism thy props =
+fun eq_term_morphism [] = NONE
+  | eq_term_morphism props =
       let
-        fun decomp_simp prop =
+        fun decomp_simp ctxt prop =
           let
-            val ctxt = Proof_Context.init_global thy;
             val _ = Logic.no_prems prop orelse
               error ("Bad conditional rewrite rule " ^ Syntax.string_of_term ctxt prop);
-            val lhsrhs = Logic.dest_equals prop
-              handle TERM _ => error ("Rewrite rule not a meta-equality " ^ Syntax.string_of_term ctxt prop);
-          in lhsrhs end;
+          in
+            Logic.dest_equals prop handle TERM _ =>
+              error ("Rewrite rule not a meta-equality " ^ Syntax.string_of_term ctxt prop)
+          end;
+        fun rewrite_term thy =
+          let val ctxt = Proof_Context.init_global thy
+          in Pattern.rewrite_term thy (map (decomp_simp ctxt) props) [] end;
         val phi =
           Morphism.morphism "Element.eq_term_morphism"
            {binding = [],
             typ = [],
-            term = [Pattern.rewrite_term thy (map decomp_simp props) []],
-            fact = [fn _ => error "Illegal application of Element.eq_term_morphism"]};
+            term = [rewrite_term o Morphism.the_theory],
+            fact = [fn _ => fn _ => error "Illegal application of Element.eq_term_morphism"]};
       in SOME phi end;
 
-fun eq_morphism _ [] = NONE
-  | eq_morphism thy thms =
+fun eq_morphism [] = NONE
+  | eq_morphism thms =
       let
-        (* FIXME proper context!? *)
-        fun rewrite th = rewrite_rule (Proof_Context.init_global (Thm.theory_of_thm th)) thms th;
+        val thms0 = map Thm.trim_context thms;
+        fun rewrite_term thy =
+          Raw_Simplifier.rewrite_term thy (map (Thm.transfer thy) thms0) [];
+        fun rewrite thy =
+          Raw_Simplifier.rewrite_rule (Proof_Context.init_global thy) (map (Thm.transfer thy) thms0);
         val phi =
           Morphism.morphism "Element.eq_morphism"
            {binding = [],
             typ = [],
-            term = [Raw_Simplifier.rewrite_term thy thms []],
-            fact = [map rewrite]};
+            term = [rewrite_term o Morphism.the_theory],
+            fact = [map o rewrite o Morphism.the_theory]};
       in SOME phi end;
 
 

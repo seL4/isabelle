@@ -221,7 +221,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
     res
     |> Thm.close_derivation \<^here>
     |> Conjunction.elim_balanced (length props)
-    |> map (Assumption.export false ctxt' ctxt)
+    |> map (Assumption.export ctxt' ctxt)
     |> Variable.export ctxt' ctxt
     |> map Drule.zero_var_indexes
   end;
@@ -311,7 +311,7 @@ fun CONJUNCTS tac =
 fun norm_hhf_tac ctxt =
   resolve_tac ctxt [Drule.asm_rl]  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
-    if Drule.is_norm_hhf t then all_tac
+    if Drule.is_norm_hhf {protect = false} t then all_tac
     else rewrite_goal_tac ctxt Drule.norm_hhf_eqs i);
 
 

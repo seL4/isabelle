@@ -382,7 +382,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val phi0 = substitute_noted_thm noted;
     in
       lthy3
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
+      |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
         (fn phi => Data.map (@{fold 3} (fn T_name => fn Const (size_name, _) =>
             fn overloaded_size_def =>
                let val morph = Morphism.thm (phi0 $> phi) in

@@ -566,7 +566,7 @@ fun prove_strong_ind s avoids lthy =
         val strong_cases = map (mk_cases_proof ##> Inductive.rulify lthy1)
           (thsss ~~ elims ~~ cases_prems ~~ cases_prems');
         val strong_induct_atts =
-          map (Attrib.internal o K)
+          map (Attrib.internal \<^here> o K)
             [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of strong_raw_induct))];
         val strong_induct =
           if length names > 1 then strong_raw_induct
@@ -580,12 +580,12 @@ fun prove_strong_ind s avoids lthy =
         Local_Theory.notes
           [((rec_qualified (Binding.name "strong_inducts"), []),
             strong_inducts |> map (fn th => ([th],
-              [Attrib.internal (K ind_case_names),
-               Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th)))])))] |> snd |>
+              [Attrib.internal \<^here> (K ind_case_names),
+               Attrib.internal \<^here> (K (Rule_Cases.consumes (1 - Thm.nprems_of th)))])))] |> snd |>
         Local_Theory.notes (map (fn ((name, elim), (_, cases)) =>
             ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
-              [Attrib.internal (K (Rule_Cases.case_names (map snd cases))),
-               Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of elim)))]), [([elim], [])]))
+              [Attrib.internal \<^here> (K (Rule_Cases.case_names (map snd cases))),
+               Attrib.internal \<^here> (K (Rule_Cases.consumes (1 - Thm.nprems_of elim)))]), [([elim], [])]))
           (strong_cases ~~ induct_cases')) |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)
@@ -675,7 +675,7 @@ fun prove_eqvt s xatoms lthy =
     lthy |>
     Local_Theory.notes (map (fn (name, ths) =>
         ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "eqvt"),
-          [Attrib.internal (K NominalThmDecls.eqvt_add)]), [(ths, [])]))
+          @{attributes [eqvt]}), [(ths, [])]))
       (names ~~ transp thss)) |> snd
   end;
 

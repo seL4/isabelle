@@ -840,9 +840,9 @@ text \<open>
 
 (*<*)experiment begin(*>*)
 simproc_setup unit ("x::unit") =
-  \<open>fn _ => fn _ => fn ct =>
+  \<open>K (K (fn ct =>
     if HOLogic.is_unit (Thm.term_of ct) then NONE
-    else SOME (mk_meta_eq @{thm unit_eq})\<close>
+    else SOME (mk_meta_eq @{thm unit_eq})))\<close>
 (*<*)end(*>*)
 
 text \<open>

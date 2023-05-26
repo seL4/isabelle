@@ -1394,7 +1394,7 @@ setup \<open>
 \<close>
 
 simproc_setup reorient_numeral ("numeral w = x" | "- numeral w = y") =
-  Reorient_Proc.proc
+  \<open>K Reorient_Proc.proc\<close>
 
 
 subsubsection \<open>Simplification of arithmetic operations on integer constants\<close>

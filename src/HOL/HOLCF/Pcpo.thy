@@ -157,7 +157,7 @@ translations "UU" \<rightharpoonup> "CONST bottom"
 
 text \<open>Simproc to rewrite \<^term>\<open>\<bottom> = x\<close> to \<^term>\<open>x = \<bottom>\<close>.\<close>
 setup \<open>Reorient_Proc.add (fn \<^Const_>\<open>bottom _\<close> => true | _ => false)\<close>
-simproc_setup reorient_bottom ("\<bottom> = x") = Reorient_Proc.proc
+simproc_setup reorient_bottom ("\<bottom> = x") = \<open>K Reorient_Proc.proc\<close>
 
 text \<open>useful lemmas about \<^term>\<open>\<bottom>\<close>\<close>
 

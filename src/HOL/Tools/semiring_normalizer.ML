@@ -173,7 +173,7 @@ fun declare raw_key
     val raw_ring = prepare_ops raw_ring0;
     val raw_field = prepare_ops raw_field0;
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>} (fn phi => fn context =>
       let
         val ctxt = Context.proof_of context;
         val key = Morphism.thm phi raw_key;

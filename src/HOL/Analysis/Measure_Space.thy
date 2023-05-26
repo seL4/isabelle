@@ -2288,12 +2288,8 @@ qed (auto simp add: iter le_fun_def INF_apply[abs_def] intro!: meas cont)
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Counting space\<close>
 
 lemma strict_monoI_Suc:
-  assumes ord [simp]: "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
-  unfolding strict_mono_def
-proof safe
-  fix n m :: nat assume "n < m" then show "f n < f m"
-    by (induct m) (auto simp: less_Suc_eq intro: less_trans ord)
-qed
+  assumes "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
+  by (simp add: assms strict_mono_Suc_iff)
 
 lemma emeasure_count_space:
   assumes "X \<subseteq> A" shows "emeasure (count_space A) X = (if finite X then of_nat (card X) else \<infinity>)"

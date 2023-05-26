@@ -228,12 +228,14 @@ fun mk_free ctxt name =
   else (tracing ("variable not fixed or declared: " ^ name); NONE)
 
 
-val get_dist_thm = Symtab.lookup o get_distinctthm;
+fun get_dist_thm context name =
+  Symtab.lookup_list (get_distinctthm context) name
+  |> map (Thm.transfer'' context)
 
 fun get_dist_thm2 ctxt x y =
  (let
     val dist_thms = [x, y] |> map (#1 o dest_Free)
-      |> map (these o get_dist_thm (Context.Proof ctxt)) |> flat;
+      |> maps (get_dist_thm (Context.Proof ctxt));
 
     fun get_paths dist_thm =
       let
@@ -331,7 +333,8 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
           val declinfo = get_declinfo context
           val tt = get_distinctthm context;
           val all_names = comps_of_distinct_thm thm;
-          fun upd name = Symtab.map_default (name, [thm]) (insert_distinct_thm thm)
+          val thm0 = Thm.trim_context thm;
+          fun upd name = Symtab.map_default (name, [thm0]) (insert_distinct_thm thm0)
 
           val tt' = tt |> fold upd all_names;
           val context' =
@@ -343,7 +346,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
               |> map_distinctthm (K tt');
         in context' end));
 
-    val attr = Attrib.internal type_attr;
+    val attr = Attrib.internal \<^here> type_attr;
 
     val assume =
       ((Binding.name dist_thm_name, [attr]),
@@ -375,7 +378,9 @@ fun inject_name T = injectN ^"_"^encode_type T;
 fun add_declaration name decl thy =
   thy
   |> Named_Target.init [] name
-  |> (fn lthy => Local_Theory.declaration {syntax = true, pervasive = false} (decl lthy) lthy)
+  |> (fn lthy =>
+    Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
+      (decl lthy) lthy)
   |> Local_Theory.exit_global;
 
 fun parent_components thy (Ts, pname, renaming) =

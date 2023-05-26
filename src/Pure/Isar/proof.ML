@@ -477,7 +477,7 @@ fun refine_goals print_rule result_ctxt result state =
   in
     result
     |> map (Raw_Simplifier.norm_hhf result_ctxt #> protect_prems)
-    |> Proof_Context.goal_export result_ctxt goal_ctxt
+    |> Proof_Context.export_goal result_ctxt goal_ctxt
     |> (fn rules => Seq.lift provide_goal (EVERY (map refine rules) goal) state)
   end;
 
@@ -1096,7 +1096,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
       let
         val ctxt' = context_of state';
         val export0 =
-          Assumption.export false result_ctxt (Proof_Context.augment result_text ctxt') #>
+          Assumption.export result_ctxt (Proof_Context.augment result_text ctxt') #>
           fold_rev (fn (x, v) => Thm.forall_intr_name (x, Thm.cterm_of params_ctxt v)) params #>
           Raw_Simplifier.norm_hhf_protect ctxt';
         val export = map export0 #> Variable.export result_ctxt ctxt';

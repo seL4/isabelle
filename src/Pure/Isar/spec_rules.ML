@@ -117,7 +117,7 @@ fun map_spec_rules f ({pos, name, rough_classification, terms, rules}: spec_rule
   {pos = pos, name = name, rough_classification = rough_classification, terms = terms,
     rules = map f rules};
 
-structure Rules = Generic_Data
+structure Data = Generic_Data
 (
   type T = spec_rule Item_Net.T;
   val empty : T = Item_Net.init eq_spec #terms;
@@ -132,9 +132,9 @@ fun get_generic imports context =
     val thy = Context.theory_of context;
     val transfer = Global_Theory.transfer_theories thy;
     fun imported spec =
-      imports |> exists (fn thy => Item_Net.member (Rules.get (Context.Theory thy)) spec);
+      imports |> exists (fn thy => Item_Net.member (Data.get (Context.Theory thy)) spec);
   in
-    Item_Net.content (Rules.get context)
+    Item_Net.content (Data.get context)
     |> filter_out imported
     |> (map o map_spec_rules) transfer
   end;
@@ -148,7 +148,7 @@ fun dest_theory thy = rev (get_generic (Theory.parents_of thy) (Context.Theory t
 (* retrieve *)
 
 fun retrieve_generic context =
-  Item_Net.retrieve (Rules.get context)
+  Item_Net.retrieve (Data.get context)
   #> (map o map_spec_rules) (Thm.transfer'' context);
 
 val retrieve = retrieve_generic o Context.Proof;
@@ -158,27 +158,28 @@ val retrieve_global = retrieve_generic o Context.Theory;
 (* add *)
 
 fun add b rough_classification terms rules lthy =
-  let val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules) in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
+  let
+    val n = length terms;
+    val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules);
+  in
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = Binding.pos_of b}
       (fn phi => fn context =>
         let
+          val psi = Morphism.set_trim_context'' context phi;
           val pos = Position.thread_data ();
-          val name = Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding phi b);
+          val name = Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding psi b);
           val (terms', rules') =
-            map (Thm.transfer (Context.theory_of context)) thms0
-            |> Morphism.fact phi
-            |> chop (length terms)
-            |>> map (Thm.term_of o Drule.dest_term)
-            ||> map Thm.trim_context;
+            chop n (Morphism.fact psi thms0)
+            |>> map (Thm.term_of o Drule.dest_term);
         in
-          context |> (Rules.map o Item_Net.update)
+          context |> (Data.map o Item_Net.update)
             {pos = pos, name = name, rough_classification = rough_classification,
               terms = terms', rules = rules'}
         end)
   end;
 
 fun add_global b rough_classification terms rules thy =
-  thy |> (Context.theory_map o Rules.map o Item_Net.update)
+  thy |> (Context.theory_map o Data.map o Item_Net.update)
    {pos = Position.thread_data (),
     name = Sign.full_name thy b,
     rough_classification = rough_classification,

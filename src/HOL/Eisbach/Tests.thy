@@ -432,9 +432,7 @@ locale foo =
   assumes A : "A"
 begin
 
-local_setup
-  \<open>Local_Theory.declaration {pervasive = false, syntax = false}
-    (fn phi => Data.put (Morphism.fact phi @{thms A}))\<close>
+declaration \<open>fn phi => Data.put (Morphism.fact phi @{thms A})\<close>
 
 lemma A by dynamic_thms_test
 

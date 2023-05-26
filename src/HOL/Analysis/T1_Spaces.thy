@@ -49,6 +49,12 @@ lemma t1_space_closedin_singleton:
   apply (simp add: closedin_contains_derived_set t1_space_derived_set_of_singleton)
   using t1_space_alt by auto
 
+lemma continuous_closed_imp_proper_map:
+   "\<lbrakk>compact_space X; t1_space Y; continuous_map X Y f; closed_map X Y f\<rbrakk> \<Longrightarrow> proper_map X Y f"
+  unfolding proper_map_def
+  by (smt (verit) closedin_compact_space closedin_continuous_map_preimage 
+      Collect_cong singleton_iff t1_space_closedin_singleton)
+
 lemma t1_space_euclidean: "t1_space (euclidean :: 'a::metric_space topology)"
   by (simp add: t1_space_closedin_singleton)
 

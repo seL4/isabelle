@@ -146,7 +146,7 @@ val all_code_dt_of_global = all_code_dt_of_generic o Context.Theory;
 
 fun update_code_dt code_dt =
   (snd o Local_Theory.begin_nested)
-  #> Local_Theory.declaration {syntax = false, pervasive = true}
+  #> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
     (fn phi => Data.map (Item_Net.update (morph_code_dt phi code_dt)))
   #> Local_Theory.end_nested
 
@@ -346,7 +346,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
       |> update_rep_isom rep_isom (transfer_rules_of_lift_def rep_isom_lift_def |> hd)
           (bundle_name_of_bundle_binding qty_isom_bundle phi context) pointer;
     val lthy3 = lthy2  
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
+      |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
         (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
       |> Local_Theory.end_nested
 

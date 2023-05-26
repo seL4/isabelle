@@ -1968,19 +1968,19 @@ ML_file \<open>Tools/nat_arith.ML\<close>
 
 simproc_setup nateq_cancel_sums
   ("(l::nat) + m = n" | "(l::nat) = m + n" | "Suc m = n" | "m = Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_eq_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_eq_conv)\<close>
 
 simproc_setup natless_cancel_sums
   ("(l::nat) + m < n" | "(l::nat) < m + n" | "Suc m < n" | "m < Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_less_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_less_conv)\<close>
 
 simproc_setup natle_cancel_sums
   ("(l::nat) + m \<le> n" | "(l::nat) \<le> m + n" | "Suc m \<le> n" | "m \<le> Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_le_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_le_conv)\<close>
 
 simproc_setup natdiff_cancel_sums
   ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
-  \<open>fn phi => try o Nat_Arith.cancel_diff_conv\<close>
+  \<open>K (try o Nat_Arith.cancel_diff_conv)\<close>
 
 context order
 begin
@@ -2028,6 +2028,17 @@ lemma mono_iff_le_Suc: "mono f \<longleftrightarrow> (\<forall>n. f n \<le> f (S
 
 lemma antimono_iff_le_Suc: "antimono f \<longleftrightarrow> (\<forall>n. f (Suc n) \<le> f n)"
   unfolding antimono_def by (auto intro: lift_Suc_antimono_le [of f])
+
+lemma strict_mono_Suc_iff: "strict_mono f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
+proof (intro iffI strict_monoI)
+  assume *: "\<forall>n. f n < f (Suc n)"
+  fix m n :: nat assume "m < n"
+  thus "f m < f n"
+    by (induction rule: less_Suc_induct) (use * in auto)
+qed (auto simp: strict_mono_def)
+
+lemma strict_mono_add: "strict_mono (\<lambda>n::'a::linordered_semidom. n + k)"
+  by (auto simp: strict_mono_def)
 
 lemma mono_nat_linear_lb:
   fixes f :: "nat \<Rightarrow> nat"

@@ -433,15 +433,15 @@ structure Less_Ennreal_Cancel = ExtractCommonTermFun
 
 simproc_setup ennreal_eq_cancel
   ("(l::ennreal) + m = n" | "(l::ennreal) = m + n") =
-  \<open>fn phi => fn ctxt => fn ct => Eq_Ennreal_Cancel.proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => Eq_Ennreal_Cancel.proc ctxt (Thm.term_of ct))\<close>
 
 simproc_setup ennreal_le_cancel
   ("(l::ennreal) + m \<le> n" | "(l::ennreal) \<le> m + n") =
-  \<open>fn phi => fn ctxt => fn ct => Le_Ennreal_Cancel.proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => Le_Ennreal_Cancel.proc ctxt (Thm.term_of ct))\<close>
 
 simproc_setup ennreal_less_cancel
   ("(l::ennreal) + m < n" | "(l::ennreal) < m + n") =
-  \<open>fn phi => fn ctxt => fn ct => Less_Ennreal_Cancel.proc ctxt (Thm.term_of ct)\<close>
+  \<open>K (fn ctxt => fn ct => Less_Ennreal_Cancel.proc ctxt (Thm.term_of ct))\<close>
 
 
 subsection \<open>Order with top\<close>

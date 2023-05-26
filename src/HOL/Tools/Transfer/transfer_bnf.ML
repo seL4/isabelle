@@ -208,7 +208,7 @@ fun predicator bnf lthy =
     lthy
     |> Local_Theory.notes notes
     |> snd
-    |> Local_Theory.declaration {syntax = false, pervasive = true}
+    |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
       (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
   end
 
@@ -260,7 +260,7 @@ fun register_pred_injects fp_sugar lthy =
       |> Transfer.update_pred_simps pred_injects
   in
     lthy
-    |> Local_Theory.declaration {syntax = false, pervasive = true}
+    |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
       (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
   end
 

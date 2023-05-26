@@ -48,8 +48,8 @@ sig
     local_theory -> local_theory
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
-  val internal: (morphism -> attribute) -> Token.src
-  val internal_declaration: declaration -> thms
+  val internal: Position.T -> (morphism -> attribute) -> Token.src
+  val internal_declaration: Position.T -> Morphism.declaration_entity -> thms
   val add_del: attribute -> attribute -> attribute context_parser
   val thm: thm context_parser
   val thms: thm list context_parser
@@ -169,7 +169,7 @@ fun attribute_generic context =
         val name = #1 (Token.name_of_src src);
         val label = Long_Name.qualify Markup.attributeN name;
         val att = #1 (Name_Space.get table name) src;
-      in Position.setmp_thread_data_label label att end
+      in Position.setmp_thread_data_label label att : attribute end
   end;
 
 val attribute = attribute_generic o Context.Proof;
@@ -187,11 +187,18 @@ fun map_facts f = map (apfst (apsnd f) o apsnd (map (apsnd f)));
 fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 
-(* fact expressions *)
+(* implicit context *)
 
-val trim_context_binding: Attrib.binding -> Attrib.binding = apsnd (map Token.trim_context_src);
-val trim_context_thms: thms -> thms = (map o apfst o map) Thm.trim_context;
+val trim_context_binding: Attrib.binding -> Attrib.binding =
+  apsnd ((map o map) Token.trim_context);
+
+val trim_context_thms: thms -> thms =
+  map (fn (thms, atts) => (map Thm.trim_context thms, (map o map) Token.trim_context atts));
+
 fun trim_context_fact (binding, thms) = (trim_context_binding binding, trim_context_thms thms);
+
+
+(* fact expressions *)
 
 fun global_notes kind facts thy = thy |>
   Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);
@@ -230,23 +237,31 @@ fun attribute_setup binding source comment =
 
 (* internal attribute *)
 
-val _ = Theory.setup
-  (setup (Binding.make ("attribute", \<^here>))
-    (Scan.lift Args.internal_attribute >> Morphism.form)
-    "internal attribute");
-
-fun internal_name ctxt name =
+fun make_name ctxt name =
   Token.make_src (name, Position.none) [] |> check_src ctxt |> hd;
 
-val internal_attribute_name =
-  internal_name (Context.the_local_context ()) "attribute";
+local
 
-fun internal att =
-  internal_attribute_name ::
-    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
+val internal_binding = Binding.make ("attribute", \<^here>);
 
-fun internal_declaration decl =
-  [([Drule.dummy_thm], [internal (fn phi => Thm.declaration_attribute (K (decl phi)))])];
+val _ = Theory.setup
+  (setup internal_binding
+    (Scan.lift Args.internal_attribute >> Morphism.form ||
+      Scan.lift Args.internal_declaration >> (Thm.declaration_attribute o K o Morphism.form))
+    "internal attribute");
+
+val internal_name = make_name (Context.the_local_context ()) (Binding.name_of internal_binding);
+fun internal_source name value = [internal_name, Token.assign (SOME value) (Token.make_string name)];
+
+in
+
+fun internal pos arg =
+  internal_source ("internal", pos) (Token.Attribute (Morphism.entity arg));
+
+fun internal_declaration pos arg =
+  [([Drule.dummy_thm], [internal_source ("declaration", pos) (Token.Declaration arg)])];
+
+end;
 
 
 (* add/del syntax *)
@@ -426,7 +441,8 @@ fun scan_config thy config =
 fun register binding config thy =
   let val name = Sign.full_name thy binding in
     thy
-    |> setup binding (Scan.lift (scan_config thy config) >> Morphism.form) "configuration option"
+    |> setup binding (Scan.lift (scan_config thy config) >> Morphism.form_entity)
+        "configuration option"
     |> Configs.map (Symtab.update (name, config))
   end;
 
@@ -623,23 +639,21 @@ val _ = Theory.setup
 
 local
 
-val internal = internal_name (Context.the_local_context ());
+val make_name0 = make_name (Context.the_local_context ());
 
-val consumes_name = internal "consumes";
-val constraints_name = internal "constraints";
-val cases_open_name = internal "cases_open";
-val case_names_name = internal "case_names";
-val case_conclusion_name = internal "case_conclusion";
-
-fun make_string s = Token.make_string (s, Position.none);
+val consumes_name = make_name0 "consumes";
+val constraints_name = make_name0 "constraints";
+val cases_open_name = make_name0 "cases_open";
+val case_names_name = make_name0 "case_names";
+val case_conclusion_name = make_name0 "case_conclusion";
 
 in
 
 fun consumes i = consumes_name :: Token.make_int i;
 fun constraints i = constraints_name :: Token.make_int i;
 val cases_open = [cases_open_name];
-fun case_names names = case_names_name :: map make_string names;
-fun case_conclusion (name, names) = case_conclusion_name :: map make_string (name :: names);
+fun case_names names = case_names_name :: map Token.make_string0 names;
+fun case_conclusion (name, names) = case_conclusion_name :: map Token.make_string0 (name :: names);
 
 end;
 

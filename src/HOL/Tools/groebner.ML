@@ -781,7 +781,7 @@ val poly_eq_simproc =
   in
     Simplifier.cert_simproc (Thm.theory_of_thm idl_sub) "poly_eq_simproc"
      {lhss = [Thm.term_of (Thm.lhs_of idl_sub)],
-      proc = fn _ => fn _ => proc}
+      proc = Morphism.entity (fn _ => fn _ => proc)}
   end;
 
 val poly_eq_ss =

@@ -1032,7 +1032,7 @@ fun declare_rules rec_binding coind no_ind spec_name cnames
           [Attrib.case_names [rec_name],
            Attrib.case_conclusion (rec_name, intr_names),
            Attrib.consumes (1 - Thm.nprems_of raw_induct),
-           Attrib.internal (K (Induct.coinduct_pred (hd cnames)))])
+           Attrib.internal \<^here> (K (Induct.coinduct_pred (hd cnames)))])
       else if no_ind orelse length cnames > 1 then
         (raw_induct, ind_case_names @ [Attrib.consumes (~ (Thm.nprems_of raw_induct))])
       else
@@ -1055,7 +1055,7 @@ fun declare_rules rec_binding coind no_ind spec_name cnames
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
             ((if forall (equal "") cases then [] else [Attrib.case_names cases]) @
               [Attrib.consumes (1 - Thm.nprems_of elim), Attrib.constraints k,
-               Attrib.internal (K (Induct.cases_pred name))] @ @{attributes [Pure.elim?]})),
+               Attrib.internal \<^here> (K (Induct.cases_pred name))] @ @{attributes [Pure.elim?]})),
             [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       Local_Theory.note
@@ -1065,7 +1065,7 @@ fun declare_rules rec_binding coind no_ind spec_name cnames
     val (eqs', lthy3) = lthy2 |>
       fold_map (fn (name, eq) => Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "simps"),
-            [Attrib.internal (K equation_add_permissive)]), [eq])
+            [Attrib.internal \<^here> (K equation_add_permissive)]), [eq])
           #> apfst (hd o snd))
         (if null eqs then [] else (cnames ~~ eqs))
     val (inducts, lthy4) =
@@ -1077,7 +1077,7 @@ fun declare_rules rec_binding coind no_ind spec_name cnames
             inducts |> map (fn (name, th) => ([th],
               ind_case_names @
                 [Attrib.consumes (1 - Thm.nprems_of th),
-                 Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
+                 Attrib.internal \<^here> (K (Induct.induct_pred name))])))] |>> snd o hd
         end;
   in (intrs', elims', eqs', induct', inducts, lthy4) end;
 
@@ -1144,7 +1144,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        eqs = eqs'};
 
     val lthy4 = lthy3
-      |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi =>
+      |> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>} (fn phi =>
         let val result' = transform_result phi result;
         in put_inductives ({names = cnames, coind = coind}, result') end);
   in (result, lthy4) end;

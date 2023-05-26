@@ -74,7 +74,7 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
     val rsp_thm_name = qualify lhs_name "rsp"
 
     val lthy'' = lthy'
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
+      |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
         (fn phi =>
           (case qconst_data phi of
             qcinfo as {qconst = Const (c, _), ...} =>

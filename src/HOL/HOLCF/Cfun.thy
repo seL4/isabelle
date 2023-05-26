@@ -142,14 +142,14 @@ text \<open>
 \<close>
 
 simproc_setup beta_cfun_proc ("Rep_cfun (Abs_cfun f)") = \<open>
-  fn phi => fn ctxt => fn ct =>
+  K (fn ctxt => fn ct =>
     let
       val f = #2 (Thm.dest_comb (#2 (Thm.dest_comb ct)));
       val [T, U] = Thm.dest_ctyp (Thm.ctyp_of_cterm f);
       val tr = Thm.instantiate' [SOME T, SOME U] [SOME f] (mk_meta_eq @{thm Abs_cfun_inverse2});
       val rules = Named_Theorems.get ctxt \<^named_theorems>\<open>cont2cont\<close>;
       val tac = SOLVED' (REPEAT_ALL_NEW (match_tac ctxt (rev rules)));
-    in SOME (perhaps (SINGLE (tac 1)) tr) end
+    in SOME (perhaps (SINGLE (tac 1)) tr) end)
 \<close>
 
 text \<open>Eta-equality for continuous functions\<close>

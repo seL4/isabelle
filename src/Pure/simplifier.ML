@@ -128,7 +128,8 @@ fun make_simproc ctxt name {lhss, proc} =
     val ctxt' = fold Proof_Context.augment lhss ctxt;
     val lhss' = Variable.export_terms ctxt' ctxt lhss;
   in
-    cert_simproc (Proof_Context.theory_of ctxt) name {lhss = lhss', proc = proc}
+    cert_simproc (Proof_Context.theory_of ctxt) name
+      {lhss = lhss', proc = Morphism.entity proc}
   end;
 
 local
@@ -138,15 +139,16 @@ fun def_simproc prep b {lhss, proc} lthy =
     val simproc =
       make_simproc lthy (Local_Theory.full_name lthy b) {lhss = prep lthy lhss, proc = proc};
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
-      let
-        val b' = Morphism.binding phi b;
-        val simproc' = transform_simproc phi simproc;
-      in
-        context
-        |> Simprocs.map (#2 o Name_Space.define context true (b', simproc'))
-        |> map_ss (fn ctxt => ctxt addsimprocs [simproc'])
-      end)
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of b}
+      (fn phi => fn context =>
+        let
+          val b' = Morphism.binding phi b;
+          val simproc' = transform_simproc phi simproc;
+        in
+          context
+          |> Simprocs.map (#2 o Name_Space.define context true (b', simproc'))
+          |> map_ss (fn ctxt => ctxt addsimprocs [simproc'])
+        end)
   end;
 
 in
@@ -161,28 +163,27 @@ end;
 
 local
 
-fun make_cong ctxt = Thm.close_derivation \<^here> o Thm.reflexive
-  o Thm.cterm_of ctxt o Logic.varify_global o list_comb;
-
-fun add_cong (const_binding, (const, target_params)) gthy =
-  if null target_params
-  then gthy
+fun add_foundation_cong (binding, (const, target_params)) gthy =
+  if null target_params then gthy
   else
     let
-      val cong = make_cong (Context.proof_of gthy) (const, target_params)
-      val cong_binding = Binding.qualify_name true const_binding "cong"
+      val thy = Context.theory_of gthy;
+      val cong =
+        list_comb (const, target_params)
+        |> Logic.varify_global
+        |> Thm.global_cterm_of thy
+        |> Thm.reflexive
+        |> Thm.close_derivation \<^here>;
+      val cong_binding = Binding.qualify_name true binding "cong";
     in
       gthy
-      |> Attrib.generic_notes Thm.theoremK
-           [((cong_binding, []), [([cong], [])])]
-      |> snd
+      |> Attrib.generic_notes Thm.theoremK [((cong_binding, []), [([cong], [])])]
+      |> #2
     end;
 
-in
+val _ = Theory.setup (Generic_Target.add_foundation_interpretation add_foundation_cong);
 
-val _ = Theory.setup (Generic_Target.add_foundation_interpretation add_cong);
-
-end;
+in end;
 
 
 
@@ -311,8 +312,8 @@ local
 val add_del =
   (Args.del -- Args.colon >> K (op delsimprocs) ||
     Scan.option (Args.add -- Args.colon) >> K (op addsimprocs))
-  >> (fn f => fn simproc => fn phi => Thm.declaration_attribute
-      (K (Raw_Simplifier.map_ss (fn ctxt => f (ctxt, [transform_simproc phi simproc])))));
+  >> (fn f => fn simproc => Morphism.entity (fn phi => Thm.declaration_attribute
+      (K (Raw_Simplifier.map_ss (fn ctxt => f (ctxt, [transform_simproc phi simproc]))))));
 
 in
 

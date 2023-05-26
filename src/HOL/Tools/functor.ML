@@ -263,7 +263,7 @@ fun gen_functor prep_term some_prfx raw_mapper lthy =
         |> Local_Theory.note ((qualify identityN, []),
             [prove_identity lthy id_thm])
         |> snd
-        |> Local_Theory.declaration {syntax = false, pervasive = false}
+        |> Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
           (mapper_declaration comp_thm id_thm))
   in
     lthy

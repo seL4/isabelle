@@ -393,21 +393,23 @@ local
 
 type data = Any.T Datatab.table;
 
-fun make_dataref thy =
-  (Context.theory_long_name thy,
-    Synchronized.var "code data" (NONE : (data * Context.theory_id) option));
+fun make_dataref () =
+  Synchronized.var "code data" (NONE : (data * Context.theory_id) option);
 
 structure Code_Data = Theory_Data
 (
   type T = specs * (string * (data * Context.theory_id) option Synchronized.var);
-  val empty = (empty_specs, make_dataref (Context.the_global_context ()));
+  val empty =
+    (empty_specs, (Context.theory_long_name (Context.the_global_context ()), make_dataref ()));
   fun merge ((specs1, dataref), (specs2, _)) =
     (merge_specs (specs1, specs2), dataref);
 );
 
 fun init_dataref thy =
-  if #1 (#2 (Code_Data.get thy)) = Context.theory_long_name thy then NONE
-  else SOME ((Code_Data.map o apsnd) (fn _ => make_dataref thy) thy)
+  let val thy_name = Context.theory_long_name thy in
+    if #1 (#2 (Code_Data.get thy)) = thy_name then NONE
+    else SOME ((Code_Data.map o apsnd) (K (thy_name, make_dataref ())) thy)
+  end;
 
 in
 
@@ -419,7 +421,8 @@ val _ = Theory.setup (Theory.at_begin init_dataref);
 val specs_of : theory -> specs = fst o Code_Data.get;
 
 fun modify_specs f thy =
-  Code_Data.map (fn (specs, _) => (f specs, make_dataref thy)) thy;
+  let val thy_name = Context.theory_long_name thy
+  in Code_Data.map (fn (specs, _) => (f specs, (thy_name, make_dataref ()))) thy end;
 
 
 (* access to data dependent on executable specifications *)
@@ -569,7 +572,7 @@ type abs_type =
 
 fun get_abstype_spec thy tyco = case lookup_vs_type_spec thy tyco of
     SOME (vs, Abstractor {abs_rep, abstractor, projection, ...}) =>
-      (vs, {abs_rep = abs_rep, abstractor = abstractor, projection = projection})
+      (vs, {abs_rep = Thm.transfer thy abs_rep, abstractor = abstractor, projection = projection})
   | _ => error ("Not an abstract type: " ^ tyco);
 
 fun get_type_of_constr_or_abstr thy c =
@@ -1014,13 +1017,13 @@ fun constrain_cert thy sorts (Nothing cert_thm) =
       Abstract (snd (constrain_thm thy (fst (typscheme_abs thy abs_thm)) sorts abs_thm), tyco);
 
 fun conclude_cert (Nothing cert_thm) =
-      Nothing (Thm.close_derivation \<^here> cert_thm)
+      Nothing (Thm.close_derivation \<^here> cert_thm |> Thm.trim_context)
   | conclude_cert (Equations (cert_thm, propers)) =
-      Equations (Thm.close_derivation \<^here> cert_thm, propers)
+      Equations (Thm.close_derivation \<^here> cert_thm |> Thm.trim_context, propers)
   | conclude_cert (cert as Projection _) =
       cert
   | conclude_cert (Abstract (abs_thm, tyco)) =
-      Abstract (Thm.close_derivation \<^here> abs_thm, tyco);
+      Abstract (Thm.close_derivation \<^here> abs_thm |> Thm.trim_context, tyco);
 
 fun typscheme_of_cert thy (Nothing cert_thm) =
       fst (get_head thy cert_thm)
@@ -1057,6 +1060,7 @@ fun equations_of_cert thy (cert as Nothing _) =
         val tyscm = typscheme_of_cert thy cert;
         val thms = if null propers then [] else
           cert_thm
+          |> Thm.transfer thy
           |> Local_Defs.expand [snd (get_head thy cert_thm)]
           |> Thm.varifyT_global
           |> Conjunction.elim_balanced (length propers);
@@ -1072,7 +1076,7 @@ fun equations_of_cert thy (cert as Nothing _) =
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
       let
         val tyscm = typscheme_abs thy abs_thm;
-        val (abs, concrete_thm) = concretify_abs thy tyco abs_thm;
+        val (abs, concrete_thm) = concretify_abs thy tyco (Thm.transfer thy abs_thm);
         fun abstractions (args, rhs) = (map (pair NONE) args, (SOME abs, rhs));
       in
         (tyscm, SOME [((abstractions o dest_eqn o Thm.prop_of) concrete_thm,
@@ -1305,19 +1309,9 @@ fun register_tyco_for_plugin tyco =
 
 (* abstract code declarations *)
 
-local
-
-fun generic_code_declaration strictness lift_phi f x =
-  Local_Theory.declaration
-    {syntax = false, pervasive = false}
+fun code_declaration strictness lift_phi f x =
+  Local_Theory.declaration {syntax = false, pervasive = false, pos = Position.thread_data ()}
     (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
-
-in
-
-fun silent_code_declaration lift_phi = generic_code_declaration Silent lift_phi;
-fun code_declaration lift_phi = generic_code_declaration Liberal lift_phi;
-
-end;
 
 
 (* types *)
@@ -1363,16 +1357,15 @@ fun generic_declare_abstype strictness proto_thm thy =
     SOME (tyco, (vs, (abstractor as (abs, (_, ty)), (proj, abs_rep)))) =>
       thy
       |> modify_specs (register_type
-            (tyco, (vs, Abstractor {abstractor = abstractor, projection = proj, abs_rep = abs_rep, more_abstract_functions = []}))
+            (tyco, (vs, Abstractor {abstractor = abstractor, projection = proj,
+                abs_rep = Thm.trim_context abs_rep, more_abstract_functions = []}))
           #> register_fun_spec proj
             (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs proj), (tyco, abs))))
       |> register_tyco_for_plugin tyco
   | NONE => thy;
 
 val declare_abstype_global = generic_declare_abstype Strict;
-
-val declare_abstype =
-  code_declaration Morphism.thm generic_declare_abstype;
+val declare_abstype = code_declaration Liberal Morphism.thm generic_declare_abstype;
 
 
 (* functions *)
@@ -1422,7 +1415,7 @@ fun add_eqns_for default (c, proto_eqns) thy =
     else specs);
 
 fun add_abstract_for (c, (thm, tyco_abs as (tyco, _))) =
-  modify_specs (register_fun_spec c (Abstr (Thm.close_derivation \<^here> thm, tyco_abs))
+  modify_specs (register_fun_spec c (Abstr (Thm.close_derivation \<^here> thm |> Thm.trim_context, tyco_abs))
     #> map_types (History.modify_entry tyco (add_abstract_function c)))
 
 in
@@ -1445,14 +1438,10 @@ fun add_maybe_abs_eqn_liberal thm thy =
 end;
 
 val declare_default_eqns_global = generic_declare_eqns true Silent;
-
-val declare_default_eqns =
-  silent_code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns true);
+val declare_default_eqns = code_declaration Silent (map o apfst o Morphism.thm) (generic_declare_eqns true);
 
 val declare_eqns_global = generic_declare_eqns false Strict;
-
-val declare_eqns =
-  code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns false);
+val declare_eqns = code_declaration Liberal (map o apfst o Morphism.thm) (generic_declare_eqns false);
 
 val add_eqn_global = generic_add_eqn Strict;
 
@@ -1463,9 +1452,7 @@ fun del_eqn_global thm thy =
   | NONE => thy;
 
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
-
-val declare_abstract_eqn =
-  code_declaration Morphism.thm generic_declare_abstract_eqn;
+val declare_abstract_eqn = code_declaration Liberal Morphism.thm generic_declare_abstract_eqn;
 
 fun declare_aborting_global c =
   modify_specs (register_fun_spec c aborting);

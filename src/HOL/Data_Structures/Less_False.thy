@@ -6,7 +6,7 @@ theory Less_False
 imports Main
 begin
 
-simproc_setup less_False ("(x::'a::order) < y") = \<open>fn _ => fn ctxt => fn ct =>
+simproc_setup less_False ("(x::'a::order) < y") = \<open>K (fn ctxt => fn ct =>
   let
     fun prp t thm = Thm.full_prop_of thm aconv t;
 
@@ -25,7 +25,7 @@ simproc_setup less_False ("(x::'a::order) < y") = \<open>fn _ => fn ctxt => fn c
              end
          | SOME thm => NONE
       end;
-  in prove_less_False (Thm.term_of ct) end
+  in prove_less_False (Thm.term_of ct) end)
 \<close>
 
 end
