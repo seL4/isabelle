@@ -223,6 +223,8 @@ antiquotations.
     Minor INCOMPATIBILITY.
   - Redefined notin_fset as an abbreviation based on Set.not_member and
     renamed to not_fmember. Minor INCOMPATIBILITY.
+  - Redefined fBall and fBex as abbreviations based on Set.Ball and Set.Bex.
+    Minor INCOMPATIBILITY.
   - Removed lemmas. Minor INCOMPATIBILITIES.
       fmember_iff_member_fset
       notin_fset
