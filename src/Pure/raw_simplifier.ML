@@ -38,6 +38,7 @@ sig
   val cert_simproc: theory -> string ->
     {lhss: term list, proc: (Proof.context -> cterm -> thm option) Morphism.entity} -> simproc
   val transform_simproc: morphism -> simproc -> simproc
+  val trim_context_simproc: simproc -> simproc
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
   val simpset_map: Proof.context -> (Proof.context -> Proof.context) -> simpset -> simpset
@@ -208,7 +209,7 @@ datatype proc =
   Proc of
    {name: string,
     lhs: term,
-    proc: Proof.context -> cterm -> thm option,
+    proc: (Proof.context -> cterm -> thm option) Morphism.entity,
     stamp: stamp};
 
 fun eq_proc (Proc {stamp = stamp1, ...}, Proc {stamp = stamp2, ...}) = stamp1 = stamp2;
@@ -721,7 +722,14 @@ fun transform_simproc phi (Simproc {name, lhss, proc, stamp}) =
   Simproc
    {name = name,
     lhss = map (Morphism.term phi) lhss,
-    proc = Morphism.transform_reset_context phi proc,
+    proc = Morphism.transform phi proc,
+    stamp = stamp};
+
+fun trim_context_simproc (Simproc {name, lhss, proc, stamp}) =
+  Simproc
+   {name = name,
+    lhss = lhss,
+    proc = Morphism.entity_reset_context proc,
     stamp = stamp};
 
 local
@@ -747,7 +755,7 @@ fun del_proc (proc as Proc {name, lhs, ...}) ctxt =
       ctxt);
 
 fun prep_procs (Simproc {name, lhss, proc, stamp}) =
-  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = Morphism.form proc, stamp = stamp});
+  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = proc, stamp = stamp});
 
 in
 
@@ -1041,7 +1049,7 @@ fun rewritec (prover, maxt) ctxt t =
           if Pattern.matches (Proof_Context.theory_of ctxt) (lhs, Thm.term_of t) then
             (cond_tracing' ctxt simp_debug (fn () =>
               print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
-             (case proc ctxt eta_t' of
+             (case Morphism.form_context' ctxt proc eta_t' of
                NONE => (cond_tracing' ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
              | SOME raw_thm =>
                  (cond_tracing ctxt (fn () =>
