@@ -1970,4 +1970,22 @@ end
 
 end
 
+
+subsection \<open>Code Generation Setup\<close>
+
+text \<open>The following @{attribute code_unfold} lemmas are so the pre-processor of the code generator
+will perform conversions like, e.g.,
+@{lemma "x |\<in>| fimage f (fset_of_list xs) \<longleftrightarrow> x \<in> f ` set xs"
+  by (simp only: fimage.rep_eq fset_of_list.rep_eq)}.\<close>
+
+declare
+  ffilter.rep_eq[code_unfold]
+  fimage.rep_eq[code_unfold]
+  finsert.rep_eq[code_unfold]
+  fset_of_list.rep_eq[code_unfold]
+  inf_fset.rep_eq[code_unfold]
+  minus_fset.rep_eq[code_unfold]
+  sup_fset.rep_eq[code_unfold]
+  uminus_fset.rep_eq[code_unfold]
+
 end
