@@ -32,6 +32,9 @@ val eq_def : def * def -> bool = op aconv o apply2 #lhs;
 fun transform_def phi ({lhs, eq}: def) =
   {lhs = Morphism.term phi lhs, eq = Morphism.thm phi eq};
 
+fun trim_context_def ({lhs, eq}: def) =
+  {lhs = lhs, eq = Thm.trim_context eq};
+
 structure Data = Generic_Data
 (
   type T = def Item_Net.T;
@@ -43,8 +46,8 @@ fun declare_def lhs eq lthy =
   let val def0: def = {lhs = lhs, eq = Thm.trim_context eq} in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
       (fn phi => fn context =>
-        let val psi = Morphism.set_trim_context'' context phi
-        in (Data.map o Item_Net.update) (transform_def psi def0) context end)
+        let val def' = def0 |> transform_def phi |> trim_context_def
+        in (Data.map o Item_Net.update) def' context end)
   end;
 
 fun get_def ctxt ct =

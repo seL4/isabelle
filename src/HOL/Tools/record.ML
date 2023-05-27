@@ -1116,9 +1116,8 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
         | _ => NONE)
       end}));
 
-val simproc_name =
-  Simplifier.check_simproc (Context.the_local_context ()) ("select_update", Position.none);
-val simproc = Simplifier.the_simproc (Context.the_local_context ()) simproc_name;
+val simproc =
+  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("select_update", Position.none));
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
@@ -1284,9 +1283,8 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
         else NONE
       end}));
 
-val upd_simproc_name =
-  Simplifier.check_simproc (Context.the_local_context ()) ("update", Position.none);
-val upd_simproc = Simplifier.the_simproc (Context.the_local_context ()) upd_simproc_name;
+val upd_simproc =
+  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("update", Position.none));
 
 end;
 
@@ -1319,8 +1317,9 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
               | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
       | _ => NONE)}));
 
-val eq_simproc_name = Simplifier.check_simproc (Context.the_local_context ()) ("eq", Position.none);
-val eq_simproc = Simplifier.the_simproc (Context.the_local_context ()) eq_simproc_name;
+val eq_simproc =
+  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("eq", Position.none));
+
 
 (* split_simproc *)
 
@@ -1398,9 +1397,9 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
         | _ => NONE)
       end}));
 
-val ex_sel_eq_simproc_name =
-  Simplifier.check_simproc (Context.the_local_context ()) ("ex_sel_eq", Position.none);
-val ex_sel_eq_simproc = Simplifier.the_simproc (Context.the_local_context ()) ex_sel_eq_simproc_name;
+val ex_sel_eq_simproc =
+  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("ex_sel_eq", Position.none));
+
 val _ = Theory.setup (map_theory_simpset (fn ctxt => ctxt delsimprocs [ex_sel_eq_simproc]));
 
 
