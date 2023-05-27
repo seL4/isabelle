@@ -35,7 +35,7 @@ sig
   val simp_flip: attribute
   val cong_add: attribute
   val cong_del: attribute
-  val check_simproc: Proof.context -> xstring * Position.T -> string
+  val check_simproc: Proof.context -> xstring * Position.T -> string * simproc
   val the_simproc: Proof.context -> string -> simproc
   type 'a simproc_spec = {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option}
   val make_simproc: Proof.context -> string -> term simproc_spec -> simproc
@@ -109,14 +109,13 @@ structure Simprocs = Generic_Data
 
 val get_simprocs = Simprocs.get o Context.Proof;
 
-fun check_simproc ctxt = Name_Space.check (Context.Proof ctxt) (get_simprocs ctxt) #> #1;
 val the_simproc = Name_Space.get o get_simprocs;
+fun check_simproc ctxt = Name_Space.check (Context.Proof ctxt) (get_simprocs ctxt);
 
 val _ = Theory.setup
   (ML_Antiquotation.value_embedded \<^binding>\<open>simproc\<close>
-    (Args.context -- Scan.lift Parse.embedded_position
-      >> (fn (ctxt, name) =>
-        "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (check_simproc ctxt name))));
+    (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, name) =>
+      "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (#1 (check_simproc ctxt name)))));
 
 
 (* define simprocs *)
@@ -319,7 +318,7 @@ in
 
 val simproc_att =
   (Args.context -- Scan.lift add_del) :|-- (fn (ctxt, decl) =>
-    Scan.repeat1 (Scan.lift (Args.named_attribute (decl o the_simproc ctxt o check_simproc ctxt))))
+    Scan.repeat1 (Scan.lift (Args.named_attribute (decl o #2 o check_simproc ctxt))))
   >> (fn atts => Thm.declaration_attribute (fn th =>
         fold (fn att => Thm.attribute_declaration (Morphism.form att) th) atts));
 
