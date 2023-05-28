@@ -243,49 +243,49 @@ lemma fset_eqI: "(\<And>x. (x |\<in>| A) = (x |\<in>| B)) \<Longrightarrow> A = 
 lemma fset_eq_iff[no_atp]: "(A = B) = (\<forall>x. (x |\<in>| A) = (x |\<in>| B))"
   by (rule set_eq_iff[Transfer.transferred])
 
-lemma fBallI[intro!]: "(\<And>x. x |\<in>| A \<Longrightarrow> P x) \<Longrightarrow> fBall A P"
+lemma fBallI[no_atp]: "(\<And>x. x |\<in>| A \<Longrightarrow> P x) \<Longrightarrow> fBall A P"
   by (rule ballI[Transfer.transferred])
 
-lemma fbspec[dest?]: "fBall A P \<Longrightarrow> x |\<in>| A \<Longrightarrow> P x"
+lemma fbspec[no_atp]: "fBall A P \<Longrightarrow> x |\<in>| A \<Longrightarrow> P x"
   by (rule bspec[Transfer.transferred])
 
-lemma fBallE[elim]: "fBall A P \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> (x |\<notin>| A \<Longrightarrow> Q) \<Longrightarrow> Q"
+lemma fBallE[no_atp]: "fBall A P \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> (x |\<notin>| A \<Longrightarrow> Q) \<Longrightarrow> Q"
   by (rule ballE[Transfer.transferred])
 
-lemma fBexI[intro]: "P x \<Longrightarrow> x |\<in>| A \<Longrightarrow> fBex A P"
+lemma fBexI[no_atp]: "P x \<Longrightarrow> x |\<in>| A \<Longrightarrow> fBex A P"
   by (rule bexI[Transfer.transferred])
 
-lemma rev_fBexI[intro?]: "x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> fBex A P"
+lemma rev_fBexI[no_atp]: "x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> fBex A P"
   by (rule rev_bexI[Transfer.transferred])
 
-lemma fBexCI: "(fBall A (\<lambda>x. \<not> P x) \<Longrightarrow> P a) \<Longrightarrow> a |\<in>| A \<Longrightarrow> fBex A P"
+lemma fBexCI[no_atp]: "(fBall A (\<lambda>x. \<not> P x) \<Longrightarrow> P a) \<Longrightarrow> a |\<in>| A \<Longrightarrow> fBex A P"
   by (rule bexCI[Transfer.transferred])
 
-lemma fBexE[elim!]: "fBex A P \<Longrightarrow> (\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q) \<Longrightarrow> Q"
+lemma fBexE[no_atp]: "fBex A P \<Longrightarrow> (\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q) \<Longrightarrow> Q"
   by (rule bexE[Transfer.transferred])
 
-lemma fBall_triv[simp]: "fBall A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<longrightarrow> P)"
+lemma fBall_triv[no_atp]: "fBall A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<longrightarrow> P)"
   by (rule ball_triv[Transfer.transferred])
 
-lemma fBex_triv[simp]: "fBex A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<and> P)"
+lemma fBex_triv[no_atp]: "fBex A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<and> P)"
   by (rule bex_triv[Transfer.transferred])
 
-lemma fBex_triv_one_point1[simp]: "fBex A (\<lambda>x. x = a) = (a |\<in>| A)"
+lemma fBex_triv_one_point1[no_atp]: "fBex A (\<lambda>x. x = a) = (a |\<in>| A)"
   by (rule bex_triv_one_point1[Transfer.transferred])
 
-lemma fBex_triv_one_point2[simp]: "fBex A ((=) a) = (a |\<in>| A)"
+lemma fBex_triv_one_point2[no_atp]: "fBex A ((=) a) = (a |\<in>| A)"
   by (rule bex_triv_one_point2[Transfer.transferred])
 
-lemma fBex_one_point1[simp]: "fBex A (\<lambda>x. x = a \<and> P x) = (a |\<in>| A \<and> P a)"
+lemma fBex_one_point1[no_atp]: "fBex A (\<lambda>x. x = a \<and> P x) = (a |\<in>| A \<and> P a)"
   by (rule bex_one_point1[Transfer.transferred])
 
-lemma fBex_one_point2[simp]: "fBex A (\<lambda>x. a = x \<and> P x) = (a |\<in>| A \<and> P a)"
+lemma fBex_one_point2[no_atp]: "fBex A (\<lambda>x. a = x \<and> P x) = (a |\<in>| A \<and> P a)"
   by (rule bex_one_point2[Transfer.transferred])
 
-lemma fBall_one_point1[simp]: "fBall A (\<lambda>x. x = a \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
+lemma fBall_one_point1[no_atp]: "fBall A (\<lambda>x. x = a \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
   by (rule ball_one_point1[Transfer.transferred])
 
-lemma fBall_one_point2[simp]: "fBall A (\<lambda>x. a = x \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
+lemma fBall_one_point2[no_atp]: "fBall A (\<lambda>x. a = x \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
   by (rule ball_one_point2[Transfer.transferred])
 
 lemma fBall_conj_distrib: "fBall A (\<lambda>x. P x \<and> Q x) = (fBall A P \<and> fBall A Q)"
