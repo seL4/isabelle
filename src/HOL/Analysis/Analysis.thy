@@ -8,6 +8,7 @@ theory Analysis
   Sum_Topology
   Abstract_Topological_Spaces
   Abstract_Metric_Spaces
+  Urysohn
   Connected
   Abstract_Limits
   Isolated

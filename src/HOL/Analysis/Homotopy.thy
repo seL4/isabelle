@@ -3605,6 +3605,30 @@ lemma homeomorphic_space_contractibility:
         \<Longrightarrow> (contractible_space X \<longleftrightarrow> contractible_space Y)"
   by (simp add: homeomorphic_imp_homotopy_equivalent_space homotopy_equivalent_space_contractibility)
 
+lemma homotopic_through_contractible_space:
+   "continuous_map X Y f \<and>
+        continuous_map X Y f' \<and>
+        continuous_map Y Z g \<and>
+        continuous_map Y Z g' \<and>
+        contractible_space Y \<and> path_connected_space Z
+        \<Longrightarrow> homotopic_with (\<lambda>h. True) X Z (g \<circ> f) (g' \<circ> f')"
+  using nullhomotopic_through_contractible_space [of X Y f Z g]
+  using nullhomotopic_through_contractible_space [of X Y f' Z g']
+  by (metis continuous_map_const homotopic_constant_maps homotopic_with_imp_continuous_maps 
+      homotopic_with_trans path_connected_space_iff_path_component homotopic_with_sym)
+
+lemma homotopic_from_contractible_space:
+   "continuous_map X Y f \<and> continuous_map X Y g \<and>
+        contractible_space X \<and> path_connected_space Y
+        \<Longrightarrow> homotopic_with (\<lambda>x. True) X Y f g"
+  by (metis comp_id continuous_map_id homotopic_through_contractible_space)
+
+lemma homotopic_into_contractible_space:
+   "continuous_map X Y f \<and> continuous_map X Y g \<and>
+        contractible_space Y
+        \<Longrightarrow> homotopic_with (\<lambda>x. True) X Y f g"
+  by (metis continuous_map_id contractible_imp_path_connected_space homotopic_through_contractible_space id_comp)
+
 lemma contractible_eq_homotopy_equivalent_singleton_subtopology:
    "contractible_space X \<longleftrightarrow>
         topspace X = {} \<or> (\<exists>a \<in> topspace X. X homotopy_equivalent_space (subtopology X {a}))"(is "?lhs = ?rhs")
