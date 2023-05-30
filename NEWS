@@ -9,6 +9,14 @@ New in this Isabelle version
 
 *** General ***
 
+* ML heap usage and stored heap size has been significantly reduced,
+especially for applications with a lot of definitions in a 'locale' or
+'class' context. The shrink factor is usually in the range 1.1 .. 2.0,
+but a factor 3 .. 10 has been seen in unusual situations. This often
+allows big applications to return to the "small" 64_32 memory model with
+its hard limit of 16 GiB, and thus reduce the heap size by another
+factor 1.8.
+
 * The special "of_class" introduction rule for 'class' definitions has
 been renamed from "class.NAME.of_class.intro" to "NAME.intro_of_class"
 (where NAME is the name specification of the class). E.g. see the HOL
