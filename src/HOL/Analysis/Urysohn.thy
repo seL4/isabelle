@@ -1542,9 +1542,11 @@ inductive Alexandroff_open for X where
   base: "openin X U \<Longrightarrow> Alexandroff_open X (Some ` U)"
 | ext: "\<lbrakk>compactin X C; closedin X C\<rbrakk> \<Longrightarrow> Alexandroff_open X (insert None (Some ` (topspace X - C)))"
 
+hide_fact (open) base ext
+
 lemma Alexandroff_open_iff: "Alexandroff_open X S \<longleftrightarrow>
    (\<exists>U. (S = Some ` U \<and> openin X U) \<or> (S = insert None (Some ` (topspace X - U)) \<and> compactin X U \<and> closedin X U))"
-  by (meson Alexandroff_open.cases Alexandroff_open.ext base)
+  by (meson Alexandroff_open.cases Alexandroff_open.ext Alexandroff_open.base)
 
 lemma Alexandroff_open_Un_aux:
   assumes U: "openin X U" and "Alexandroff_open X T"
@@ -1681,7 +1683,7 @@ next
     then have eq: "\<Union>\<K> = Some ` (\<Union> K\<in>\<K>. U K)"
       using image_iff by fastforce
     show ?thesis
-      unfolding eq by (simp add: U base openin_clauses(3))
+      unfolding eq by (simp add: U Alexandroff_open.base openin_clauses(3))
   qed
 qed
 
