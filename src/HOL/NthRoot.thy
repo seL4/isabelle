@@ -460,10 +460,10 @@ lemma real_sqrt_le_iff [simp]: "sqrt x \<le> sqrt y \<longleftrightarrow> x \<le
 lemma real_sqrt_eq_iff [simp]: "sqrt x = sqrt y \<longleftrightarrow> x = y"
   unfolding sqrt_def by (rule real_root_eq_iff [OF pos2])
 
-lemma real_less_lsqrt: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x < y\<^sup>2 \<Longrightarrow> sqrt x < y"
+lemma real_less_lsqrt: "0 \<le> y \<Longrightarrow> x < y\<^sup>2 \<Longrightarrow> sqrt x < y"
   using real_sqrt_less_iff[of x "y\<^sup>2"] by simp
 
-lemma real_le_lsqrt: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y\<^sup>2 \<Longrightarrow> sqrt x \<le> y"
+lemma real_le_lsqrt: "0 \<le> y \<Longrightarrow> x \<le> y\<^sup>2 \<Longrightarrow> sqrt x \<le> y"
   using real_sqrt_le_iff[of x "y\<^sup>2"] by simp
 
 lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"

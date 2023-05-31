@@ -901,7 +901,7 @@ lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"
   shows "norm x \<le> sqrt DIM('a) * infnorm x"
   unfolding norm_eq_sqrt_inner id_def
-proof (rule real_le_lsqrt[OF inner_ge_zero])
+proof (rule real_le_lsqrt)
   show "sqrt DIM('a) * infnorm x \<ge> 0"
     by (simp add: zero_le_mult_iff infnorm_pos_le)
   have "x \<bullet> x \<le> (\<Sum>b\<in>Basis. x \<bullet> b * (x \<bullet> b))"

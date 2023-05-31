@@ -3579,6 +3579,18 @@ next
     by (rule_tac x="\<F> - {topspace X - C}" in exI) auto
 qed
 
+lemma closed_compactin_Inter:
+  "\<lbrakk>compactin X K; K \<in> \<K>; \<And>K. K \<in> \<K> \<Longrightarrow> closedin X K\<rbrakk> \<Longrightarrow> compactin X (\<Inter>\<K>)"
+  by (metis Inf_lower closed_compactin closedin_Inter empty_iff)
+
+lemma closedin_subtopology_Int_subset:
+   "\<lbrakk>closedin (subtopology X U) (U \<inter> S); V \<subseteq> U\<rbrakk> \<Longrightarrow> closedin (subtopology X V) (V \<inter> S)"
+  by (smt (verit, ccfv_SIG) closedin_subtopology inf.left_commute inf.orderE inf_commute)
+
+lemma closedin_subtopology_Int_closedin:
+   "\<lbrakk>closedin (subtopology X U) S; closedin X T\<rbrakk> \<Longrightarrow> closedin (subtopology X U) (S \<inter> T)"
+  by (smt (verit, best) closedin_Int closedin_subtopology inf_assoc inf_commute)
+
 lemma closedin_compact_space:
    "\<lbrakk>compact_space X; closedin X S\<rbrakk> \<Longrightarrow> compactin X S"
   by (simp add: closed_compactin closedin_subset compact_space_def)
