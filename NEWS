@@ -361,6 +361,25 @@ the default 64_32 platform (4 bytes per machine word):
 
 *** System ***
 
+* System options "context_theory_tracing" and "context_proof_tracing"
+store information about persistent context values (ML types theory,
+local_theory, Proof.context). This may reveal "memory leaks" in
+Isabelle/ML infrastructure or user tools, typically due to the lack of
+Thm.trim_context when thm values are stored as theory data.
+
+Below is a minimal example for Isabelle/ZF. The idea is to build a clean
+heap image with the above options enabled, and inspect the resulting ML
+heap later:
+
+  isabelle build -o context_theory_tracing -o context_proof_tracing -b -c ZF
+  isabelle process -l ZF -e "Session.print_context_tracing (K true)"
+
+An alternative to "isabelle process -l ZF" is "isabelle jedit -l ZF"
+with the subsequent ML snippets in an arbitrary theory context:
+
+  ML_command \<open>Session.print_context_tracing (K true)\<close>
+  ML \<open>Context.finish_tracing ()\<close>
+
 * The "rsync" tool has been bundled as Isabelle component, with uniform
 version and compilation options on all platforms. This allows to use
 more recent options for extra robustness, notably "--secluded-args"
