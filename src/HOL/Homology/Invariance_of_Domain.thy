@@ -2799,7 +2799,8 @@ next
     fix \<sigma>
     assume \<sigma>: "\<forall>n. \<sigma> n \<in> S" and "Cauchy \<sigma>"
     have "Cauchy (f o \<sigma>)"
-      using uniformly_continuous_imp_Cauchy_continuous \<open>Cauchy \<sigma>\<close> \<sigma> contf by blast
+      using uniformly_continuous_imp_Cauchy_continuous \<open>Cauchy \<sigma>\<close> \<sigma> contf 
+      unfolding Cauchy_continuous_on_def by blast
     then obtain l where "(f \<circ> \<sigma>) \<longlonglongrightarrow> l"
       by (auto simp: convergent_eq_Cauchy [symmetric])
     show "\<exists>l\<in>S. \<sigma> \<longlonglongrightarrow> l"

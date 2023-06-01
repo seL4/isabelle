@@ -308,13 +308,14 @@ instance "fun" :: (countable, complete_space) complete_space
 proof
   fix u::"nat \<Rightarrow> ('a \<Rightarrow> 'b)" assume "Cauchy u"
   have "Cauchy (\<lambda>n. u n i)" for i
-  unfolding cauchy_def proof (intro impI allI)
-    fix e assume "e>(0::real)"
+    unfolding Cauchy_def 
+  proof (intro strip)
+    fix e::real assume "e>0"
     obtain k where "i = from_nat k"
       using from_nat_to_nat[of i] by metis
     have "(1/2)^k * min e 1 > 0" using \<open>e>0\<close> by auto
     then have "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (u m) (u n) < (1/2)^k * min e 1"
-      using \<open>Cauchy u\<close> unfolding cauchy_def by blast
+      using \<open>Cauchy u\<close> by (meson Cauchy_def)
     then obtain N::nat where C: "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (u m) (u n) < (1/2)^k * min e 1"
       by blast
     have "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (u m i) (u n i) < e"
@@ -334,7 +335,7 @@ proof
         by (auto simp add: field_split_simps)
       then show "dist (u m i) (u n i) < e" by auto
     qed
-    then show "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (u m i) (u n i) < e"
+    then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (u m i) (u n i) < e"
       by blast
   qed
   then have "\<exists>x. (\<lambda>n. u n i) \<longlonglongrightarrow> x" for i

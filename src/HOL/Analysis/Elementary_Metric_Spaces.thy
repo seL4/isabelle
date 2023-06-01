@@ -999,9 +999,6 @@ qed
 
 subsubsection\<open>Totally bounded\<close>
 
-lemma cauchy_def: "Cauchy S \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N \<longrightarrow> dist (S m) (S n) < e)"
-  unfolding Cauchy_def by metis
-
 proposition seq_compact_imp_totally_bounded:
   assumes "seq_compact S"
   shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>k. ball x e)"
@@ -1025,7 +1022,7 @@ proof -
     then have "Cauchy (x \<circ> r)"
       using LIMSEQ_imp_Cauchy by auto
     then obtain N::nat where "\<And>m n. N \<le> m \<Longrightarrow> N \<le> n \<Longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e"
-      unfolding cauchy_def using \<open>e > 0\<close> by blast
+      unfolding Cauchy_def using \<open>e > 0\<close> by blast
     then have False
       using x[of "r N" "r (N+1)"] r by (auto simp: strict_mono_def) }
   then show ?thesis
@@ -1204,7 +1201,7 @@ proof -
     then show ?thesis by auto
   qed
   then have "Cauchy z"
-    by (simp add: cauchy_def)
+    by (metis metric_CauchyI)
   then obtain x where "x\<in>s" and x:"(z \<longlongrightarrow> x) sequentially"
     using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
 
@@ -1678,7 +1675,7 @@ proof -
       fix e :: real
       assume "e > 0"
       from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2"
-        unfolding cauchy_def using \<open>e > 0\<close> by (meson half_gt_zero)
+        unfolding Cauchy_def using \<open>e > 0\<close> by (meson half_gt_zero)
       then obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < e/2"
         by (metis dist_self lim_sequentially lr(3))
       {
@@ -1793,7 +1790,7 @@ lemma cauchy_imp_bounded:
   shows "bounded (range s)"
 proof -
   from assms obtain N :: nat where "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < 1"
-    unfolding cauchy_def by force
+    by (meson Cauchy_def zero_less_one)
   then have N:"\<forall>n. N \<le> n \<longrightarrow> dist (s N) (s n) < 1" by auto
   moreover
   have "bounded (s ` {0..N})"
@@ -1867,11 +1864,6 @@ lemma frontier_subset_compact:
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
-lemma continuous_closed_imp_Cauchy_continuous:
-  fixes S :: "('a::complete_space) set"
-  shows "\<lbrakk>continuous_on S f; closed S; Cauchy \<sigma>; \<And>n. (\<sigma> n) \<in> S\<rbrakk> \<Longrightarrow> Cauchy(f \<circ> \<sigma>)"
-  by (meson LIMSEQ_imp_Cauchy completeE complete_eq_closed continuous_on_sequentially)
-
 lemma banach_fix_type:
   fixes f::"'a::complete_space\<Rightarrow>'a"
   assumes c:"0 \<le> c" "c < 1"
@@ -1879,6 +1871,73 @@ lemma banach_fix_type:
   shows "\<exists>!x. (f x = x)"
   using assms banach_fix[OF complete_UNIV UNIV_not_empty assms(1,2) subset_UNIV, of f]
   by auto
+
+subsection \<open>Cauchy continuity\<close>
+
+definition Cauchy_continuous_on where
+  "Cauchy_continuous_on \<equiv> \<lambda>S f. \<forall>\<sigma>. Cauchy \<sigma> \<longrightarrow> range \<sigma> \<subseteq> S \<longrightarrow> Cauchy (f \<circ> \<sigma>)"
+
+lemma continuous_closed_imp_Cauchy_continuous:
+  fixes S :: "('a::complete_space) set"
+  shows "\<lbrakk>continuous_on S f; closed S\<rbrakk> \<Longrightarrow> Cauchy_continuous_on S f"
+  unfolding Cauchy_continuous_on_def
+  by (metis LIMSEQ_imp_Cauchy completeE complete_eq_closed continuous_on_sequentially range_subsetD)
+
+lemma uniformly_continuous_imp_Cauchy_continuous:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows "uniformly_continuous_on S f \<Longrightarrow> Cauchy_continuous_on S f"
+  by (simp add: uniformly_continuous_on_def Cauchy_continuous_on_def Cauchy_def image_subset_iff) metis
+
+lemma Cauchy_continuous_on_imp_continuous:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "Cauchy_continuous_on S f"
+  shows "continuous_on S f"
+proof -
+  have False if x: "\<forall>n. \<exists>x'\<in>S. dist x' x < inverse(Suc n) \<and> \<not> dist (f x') (f x) < \<epsilon>" "\<epsilon>>0" "x \<in> S" for x and \<epsilon>::real
+  proof -
+    obtain \<rho> where \<rho>: "\<forall>n. \<rho> n \<in> S" and dx: "\<forall>n. dist (\<rho> n) x < inverse(Suc n)" and dfx: "\<forall>n. \<not> dist (f (\<rho> n)) (f x) < \<epsilon>"
+      using x by metis
+    define \<sigma> where "\<sigma> \<equiv> \<lambda>n. if even n then \<rho> n else x"
+    with \<rho> \<open>x \<in> S\<close> have "range \<sigma> \<subseteq> S"
+      by auto
+    have "\<sigma> \<longlonglongrightarrow> x"
+      unfolding tendsto_iff
+    proof (intro strip)
+      fix e :: real
+      assume "e>0"
+      then obtain N where "inverse (Suc N) < e"
+        using reals_Archimedean by blast
+      then have "\<forall>n. N \<le> n \<longrightarrow> dist (\<rho> n) x < e"
+        by (smt (verit, ccfv_SIG) dx inverse_Suc inverse_less_iff_less inverse_positive_iff_positive of_nat_Suc of_nat_mono)
+      with \<open>e>0\<close> show "\<forall>\<^sub>F n in sequentially. dist (\<sigma> n) x < e"
+        by (auto simp add: eventually_sequentially \<sigma>_def)
+    qed
+    then have "Cauchy \<sigma>"
+      by (intro LIMSEQ_imp_Cauchy)
+    then have Cf: "Cauchy (f \<circ> \<sigma>)"
+      by (meson Cauchy_continuous_on_def \<open>range \<sigma> \<subseteq> S\<close> assms)
+    have "(f \<circ> \<sigma>) \<longlonglongrightarrow> f x"
+      unfolding tendsto_iff 
+    proof (intro strip)
+      fix e :: real
+      assume "e>0"
+      then obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist ((f \<circ> \<sigma>) m) ((f \<circ> \<sigma>) n) < e"
+        using Cf unfolding Cauchy_def by presburger
+      moreover have "(f \<circ> \<sigma>) (Suc(N+N)) = f x"
+        by (simp add: \<sigma>_def)
+      ultimately have "\<forall>n\<ge>N. dist ((f \<circ> \<sigma>) n) (f x) < e"
+        by (metis add_Suc le_add2)
+      then show "\<forall>\<^sub>F n in sequentially. dist ((f \<circ> \<sigma>) n) (f x) < e"
+        using eventually_sequentially by blast
+    qed
+    moreover have "\<And>n. \<not> dist (f (\<sigma> (2*n))) (f x) < \<epsilon>"
+      using dfx by (simp add: \<sigma>_def)
+    ultimately show False
+      using \<open>\<epsilon>>0\<close> by (fastforce simp: mult_2 nat_le_iff_add tendsto_iff eventually_sequentially)
+  qed
+  then show ?thesis
+    unfolding continuous_on_iff by (meson inverse_Suc)
+qed
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open> Finite intersection property\<close>
@@ -2805,7 +2864,7 @@ proof -
       by auto
   }
   then have "Cauchy t"
-    unfolding cauchy_def by auto
+    by (metis metric_CauchyI)
   then obtain l where l:"(t \<longlongrightarrow> l) sequentially"
     using complete_UNIV unfolding complete_def by auto
   { fix n :: nat
