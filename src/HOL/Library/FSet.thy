@@ -1543,6 +1543,12 @@ lemma fset_induct2:
   done
 
 
+subsection \<open>Lemmas depending on induction\<close>
+
+lemma ffUnion_fsubset_iff: "ffUnion A |\<subseteq>| B \<longleftrightarrow> fBall A (\<lambda>x. x |\<subseteq>| B)"
+  by (induction A) simp_all
+
+
 subsection \<open>Setup for Lifting/Transfer\<close>
 
 subsubsection \<open>Relator and predicator properties\<close>

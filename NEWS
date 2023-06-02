@@ -237,6 +237,7 @@ antiquotations.
       fmember_iff_member_fset
       notin_fset
   - Added lemmas.
+      ffUnion_fsubset_iff
       fimage_strict_mono
       wfP_pfsubset
 
