@@ -499,8 +499,7 @@ fun mkthm ctxt asms (just: injust) =
          (tracing (cat_lines
            (["Assumptions:"] @ map (Thm.string_of_thm ctxt) asms @ [""] @
             ["Proved:", Thm.string_of_thm ctxt fls, ""]));
-          warning "Linear arithmetic should have refuted the assumptions.\n\
-            \Please inform Tobias Nipkow.")
+          warning "Linear arithmetic should have refuted the assumptions but failed to.")
     in finish ctxt' hyps fls end
     handle FalseE (thm, hyps, ctxt') =>
       trace_thm ctxt ["False reached early:"] (finish ctxt' hyps thm)
