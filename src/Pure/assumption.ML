@@ -82,14 +82,19 @@ structure Data = Proof_Data
 );
 
 fun map_data f = Data.map (fn Data {rev_assms, rev_prems} => make_data (f (rev_assms, rev_prems)));
-fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
 
 (* all assumptions *)
 
-val all_assumptions_of = rev o #rev_assms o rep_data;
+fun all_assumptions_of ctxt =
+  let val Data {rev_assms, ...} = Data.get ctxt
+  in fold (cons o (apsnd o map) (Thm.transfer_cterm' ctxt)) rev_assms [] end;
+
+fun all_prems_of ctxt =
+  let val Data {rev_prems, ...} = Data.get ctxt
+  in fold (cons o Thm.transfer' ctxt) rev_prems [] end;
+
 val all_assms_of = maps #2 o all_assumptions_of;
-val all_prems_of = rev o #rev_prems o rep_data;
 
 
 (* local assumptions *)
@@ -129,7 +134,8 @@ fun add_assms export new_asms ctxt =
   let val (new_prems, ctxt') = fold_map assume_hyps new_asms ctxt in
     ctxt'
     |> map_data (fn (rev_assms, rev_prems) =>
-        ((export, new_asms) :: rev_assms, fold cons new_prems rev_prems))
+      ((export, map Thm.trim_context_cterm new_asms) :: rev_assms,
+        fold (cons o Thm.trim_context) new_prems rev_prems))
     |> pair new_prems
   end;
 
@@ -154,11 +160,12 @@ val export_goal = export_{goal = true};
 
 fun export_morphism inner outer =
   let
-    val export0 = export_thm false inner outer;
+    val assms0 = local_assumptions_of inner outer
+      |> (map o apsnd o map) Thm.trim_context_cterm;
     fun thm thy =
       let val norm = norm_hhf_protect (Proof_Context.init_global thy)
-      in norm #> export0 #> norm end;
-    val term = export_term inner outer;
+      in norm #> thm_export false assms0 #> norm end;
+    val term = term_export assms0;
     val typ = Logic.type_map term;
   in
     Morphism.morphism "Assumption.export"
