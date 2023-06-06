@@ -266,7 +266,7 @@ fun map_hyps f = Hyps.map (fn {checked_hyps, hyps, shyps} =>
 
 fun declare_hyps raw_ct ctxt = ctxt |> map_hyps (fn (checked_hyps, hyps, shyps) =>
   let
-    val ct = Thm.transfer_cterm (Proof_Context.theory_of ctxt) raw_ct;
+    val ct = Thm.transfer_cterm' ctxt raw_ct;
     val hyps' = Termset.insert (Thm.term_of ct) hyps;
   in (checked_hyps, hyps', shyps) end);
 

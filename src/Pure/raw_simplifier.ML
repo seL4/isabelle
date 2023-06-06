@@ -967,7 +967,6 @@ fun cond_skel (args as (_, (lhs, rhs))) =
 
 fun rewritec (prover, maxt) ctxt t =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val Simpset ({rules, ...}, {congs, procs, term_ord, ...}) = simpset_of ctxt;
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = Thm.rhs_of eta_thm;
@@ -975,8 +974,8 @@ fun rewritec (prover, maxt) ctxt t =
     fun rew rrule =
       let
         val {thm = thm0, name, lhs, elhs = elhs0, extra, fo, perm} = rrule;
-        val thm = Thm.transfer thy thm0;
-        val elhs = Thm.transfer_cterm thy elhs0;
+        val thm = Thm.transfer' ctxt thm0;
+        val elhs = Thm.transfer_cterm' ctxt elhs0;
         val prop = Thm.prop_of thm;
         val (rthm, elhs') =
           if maxt = ~1 orelse not extra then (thm, elhs)
@@ -1343,10 +1342,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
 
 fun rewrite_cterm mode prover raw_ctxt raw_ct =
   let
-    val thy = Proof_Context.theory_of raw_ctxt;
-
     val ct = raw_ct
-      |> Thm.transfer_cterm thy
+      |> Thm.transfer_cterm' raw_ctxt
       |> Thm.adjust_maxidx_cterm ~1;
     val maxidx = Thm.maxidx_of_cterm ct;
 

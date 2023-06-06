@@ -171,9 +171,8 @@ fun outer_params t =
   -- reverses the effect of gen_all modulo higher-order unification*)
 fun lift_all ctxt raw_goal raw_th =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val goal = Thm.transfer_cterm thy raw_goal;
-    val th = Thm.transfer thy raw_th;
+    val goal = Thm.transfer_cterm' ctxt raw_goal;
+    val th = Thm.transfer' ctxt raw_th;
 
     val maxidx = Thm.maxidx_of th;
     val ps = outer_params (Thm.term_of goal)
@@ -686,10 +685,12 @@ fun norm_hhf thy t =
 
 fun norm_hhf_cterm ctxt raw_ct =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val ct = Thm.transfer_cterm thy raw_ct;
+    val ct = Thm.transfer_cterm' ctxt raw_ct;
     val t = Thm.term_of ct;
-  in if is_norm_hhf {protect = false} t then ct else Thm.cterm_of ctxt (norm_hhf thy t) end;
+  in
+    if is_norm_hhf {protect = false} t then ct
+    else Thm.cterm_of ctxt (norm_hhf (Proof_Context.theory_of ctxt) t)
+  end;
 
 
 (* var indexes *)
