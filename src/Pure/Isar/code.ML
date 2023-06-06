@@ -1307,9 +1307,11 @@ fun register_tyco_for_plugin tyco =
 
 (* abstract code declarations *)
 
-fun code_declaration strictness lift_phi f x =
-  Local_Theory.declaration {syntax = false, pervasive = false, pos = Position.thread_data ()}
-    (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
+fun code_declaration (strictness: strictness) transform f x =
+  let val x0 = transform Morphism.trim_context_morphism x in
+    Local_Theory.declaration {syntax = false, pervasive = false, pos = \<^here>}
+      (fn phi => Context.mapping (f strictness (transform phi x0)) I)
+  end;
 
 
 (* types *)
