@@ -62,10 +62,10 @@ fun assume_hyps ct ctxt =
 (** local context data **)
 
 datatype data = Data of
- {assms: (export * cterm list) list,    (*assumes: A \<Longrightarrow> _*)
-  prems: thm list};                     (*prems: A |- norm_hhf A*)
+ {rev_assms: (export * cterm list) list,    (*assumes: A \<Longrightarrow> _*)
+  rev_prems: thm list};                     (*prems: A |- norm_hhf A*)
 
-fun make_data (assms, prems) = Data {assms = assms, prems = prems};
+fun make_data (rev_assms, rev_prems) = Data {rev_assms = rev_assms, rev_prems = rev_prems};
 val empty_data = make_data ([], []);
 
 structure Data = Proof_Data
@@ -74,15 +74,15 @@ structure Data = Proof_Data
   fun init _ = empty_data;
 );
 
-fun map_data f = Data.map (fn Data {assms, prems} => make_data (f (assms, prems)));
+fun map_data f = Data.map (fn Data {rev_assms, rev_prems} => make_data (f (rev_assms, rev_prems)));
 fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
 
 (* all assumptions *)
 
-val all_assumptions_of = #assms o rep_data;
+val all_assumptions_of = rev o #rev_assms o rep_data;
 val all_assms_of = maps #2 o all_assumptions_of;
-val all_prems_of = #prems o rep_data;
+val all_prems_of = rev o #rev_prems o rep_data;
 
 
 (* local assumptions *)
@@ -121,7 +121,8 @@ end;
 fun add_assms export new_asms ctxt =
   let val (new_prems, ctxt') = fold_map assume_hyps new_asms ctxt in
     ctxt'
-    |> map_data (fn (asms, prems) => (asms @ [(export, new_asms)], prems @ new_prems))
+    |> map_data (fn (rev_assms, rev_prems) =>
+        ((export, new_asms) :: rev_assms, fold cons new_prems rev_prems))
     |> pair new_prems
   end;
 
