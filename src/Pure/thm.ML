@@ -92,7 +92,11 @@ sig
   val trim_context_ctyp: ctyp -> ctyp
   val trim_context_cterm: cterm -> cterm
   val transfer_ctyp: theory -> ctyp -> ctyp
+  val transfer_ctyp': Proof.context -> ctyp -> ctyp
+  val transfer_ctyp'': Context.generic -> ctyp -> ctyp
   val transfer_cterm: theory -> cterm -> cterm
+  val transfer_cterm': Proof.context -> cterm -> cterm
+  val transfer_cterm'': Context.generic -> cterm -> cterm
   val transfer: theory -> thm -> thm
   val transfer': Proof.context -> thm -> thm
   val transfer'': Context.generic -> thm -> thm
@@ -596,6 +600,9 @@ fun transfer_ctyp thy' cT =
     else Ctyp {cert = cert', T = T, maxidx = maxidx, sorts = sorts}
   end;
 
+val transfer_ctyp' = transfer_ctyp o Proof_Context.theory_of;
+val transfer_ctyp'' = transfer_ctyp o Context.theory_of;
+
 fun transfer_cterm thy' ct =
   let
     val Cterm {cert, t, T, maxidx, sorts} = ct;
@@ -608,6 +615,9 @@ fun transfer_cterm thy' ct =
     if Context.eq_certificate (cert, cert') then ct
     else Cterm {cert = cert', t = t, T = T, maxidx = maxidx, sorts = sorts}
   end;
+
+val transfer_cterm' = transfer_cterm o Proof_Context.theory_of;
+val transfer_cterm'' = transfer_cterm o Context.theory_of;
 
 fun transfer thy' th =
   let
