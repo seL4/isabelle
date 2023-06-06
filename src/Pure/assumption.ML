@@ -27,9 +27,16 @@ end;
 structure Assumption: ASSUMPTION =
 struct
 
-(** basic rules **)
+(** export operations **)
 
 type export = bool -> cterm list -> (thm -> thm) * (term -> term);
+
+val term_export = fold_rev (fn (e: export, As) => #2 (e false As));
+fun thm_export is_goal = fold_rev (fn (e: export, As) => #1 (e is_goal As));
+
+
+
+(** basic rules **)
 
 (*
     [A]
@@ -132,10 +139,10 @@ val add_assumes = add_assms assume_export;
 (* export *)
 
 fun export_term inner outer =
-  fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);
+  term_export (local_assumptions_of inner outer);
 
 fun export_thm is_goal inner outer =
-  fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer);
+  thm_export is_goal (local_assumptions_of inner outer);
 
 fun export_{goal} inner outer =
   Raw_Simplifier.norm_hhf_protect inner #>
