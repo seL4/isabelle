@@ -40,11 +40,11 @@ Official platforms:
                     macOS 10.15 Catalina (???)
                     macOS 11 Big Sur (mini1 Macmini8,1)
                     macOS 12 Monterey (laramac01 Macmini8,1)
-                    macOS 13 Ventura (???)
+                    macOS 13 Ventura (mini3 Mac14,12 -- MacMini M2)
 
-  arm64-darwin      macOS 11 Big Sur (???)
+  arm64-darwin      macOS 11 Big Sur (assur Macmini9,1 -- MacMini M1)
                     macOS 12 Monterey (???)
-                    macOS 13 Ventura (???)
+                    macOS 13 Ventura (mini3 Mac14,12 -- MacMini M2)
 
   x86_64-windows    Windows 10
   x86_64-cygwin     Cygwin 3.3.x https://isabelle.sketis.net/cygwin_2022 (x86_64/release)
