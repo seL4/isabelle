@@ -76,28 +76,28 @@ Packaging
 - regular packaging:
 
   #source archive
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -p ""
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p ""
 
   #on fast Linux machine, with access to Linux + Windows build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -p linux,windows -l
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p linux,windows -l
 
   #with access Apple ARM build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -p macos
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p macos
 
   #with access Linux ARM build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2022 -p linux_arm
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p linux_arm
 
 - Docker image:
 
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022 Isabelle2022_linux.tar.gz
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022_X11_Latex -P X11 -P latex Isabelle2022_linux.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2023 Isabelle2023_linux.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2023_X11_Latex -P X11 -P latex Isabelle2023_linux.tar.gz
 
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM Isabelle2022_linux_arm.tar.gz
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2022_ARM_X11_Latex -P X11 -P latex Isabelle2022_linux_arm.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2023_ARM Isabelle2023_linux_arm.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2023_ARM_X11_Latex -P X11 -P latex Isabelle2023_linux_arm.tar.gz
 
   docker login
 
-  docker push makarius/isabelle:Isabelle2022
+  docker push makarius/isabelle:Isabelle2023
 
   docker tag ... latest
   docker push makarius/isabelle:latest
