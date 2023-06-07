@@ -28,6 +28,9 @@ library:
 
 *** Document preparation ***
 
+* Support for interactive document preparation in PIDE, notably via the
+Isabelle/jEdit Document panel.
+
 * Various well-known LaTeX styles are included as Isabelle components,
 with demo documents in the regular Isabelle "doc" space:
 
@@ -36,9 +39,6 @@ with demo documents in the regular Isabelle "doc" space:
   - FoilTeX as session "Demo_FoilTeX" / doc "demo_foiltex"
   - Dagstuhl LIPIcs style as session "Demo_LIPIcs" / doc "demo_lipics"
   - Springer LaTeX LNCS style as session "Demo_LLNCS" / doc "demo_llncs"
-
-* Support for interactive document preparation in PIDE, notably via the
-Isabelle/jEdit Document panel.
 
 * Support for more "cite" antiquotations, notably for \nocite and
 natbib's \citet / \citep. The antiquotation syntax now supports
@@ -62,15 +62,22 @@ antiquotations.
 
 *** HOL ***
 
-* Theory "HOL.Euclidean_Division" renamed to "HOL.Euclidean_Rings";
-  "euclidean division" typically denotes a particular division on
-  integers.  Minor INCOMPATIBILITY.
+* Sledgehammer:
+  - Added an inconsistency check mode to find likely unprovable
+    conjectures. It is enabled by default in addition to the usual
+    proving mode and can be controlled using the 'falsify' option.
+  - Added an abduction mode to find likely missing hypotheses to
+    conjectures. It currently works only with the E prover. It is
+    enabled by default and can be controlled using the 'abduce' option.
 
-* Theory "HOL.Fun":
-  - Renamed lemma inj_on_strict_subset to image_strict_mono.
+* Metis:
+  - Made clausifier more robust in the face of nested lambdas.
     Minor INCOMPATIBILITY.
 
-* Theory HOL.Map:
+* 'primcorec': Made the internal tactic more robust in the face of
+  nested corecursion.
+
+* Theory "HOL.Map":
   - Map.empty has been demoted to an input abbreviation.
   - Map update syntax "_(_ \<mapsto> _)" now has the same priorities
     as function update syntax "_(_ := _)". This means:
@@ -81,6 +88,14 @@ antiquotations.
     Moreover, ":=" and "\<mapsto>" can be mixed freely now.
     Except in "[...]" maps where ":=" would create a clash with
     list update syntax "xs[i := x]".
+
+* Theory "HOL.Fun":
+  - Renamed lemma inj_on_strict_subset to image_strict_mono.
+    Minor INCOMPATIBILITY.
+
+* Theory "HOL.Euclidean_Division" renamed to "HOL.Euclidean_Rings";
+  "euclidean division" typically denotes a particular division on
+  integers.  Minor INCOMPATIBILITY.
 
 * Theory "HOL.Finite_Set"
   - Imported Relation instead of Product_Type, Sum_Type, and Fields.
@@ -102,22 +117,22 @@ antiquotations.
     irreflp to be abbreviations. Lemmas irrefl_def and irreflp_def are
     explicitly provided for backward compatibility but their usage is
     discouraged. Minor INCOMPATIBILITY.
-  - Added predicates sym_on and symp_on and redefined sym and
-    symp to be abbreviations. Lemmas sym_def and symp_def are explicitly
-    provided for backward compatibility but their usage is discouraged.
-    Minor INCOMPATIBILITY.
-  - Added predicates asym_on and asymp_on and redefined asym and
-    asymp to be abbreviations. INCOMPATIBILITY.
-  - Added predicates antisym_on and antisymp_on and redefined antisym and
-    antisymp to be abbreviations. Lemmas antisym_def and antisymp_def are
+  - Added predicates sym_on and symp_on and redefined sym and symp to be
+    abbreviations. Lemmas sym_def and symp_def are explicitly provided
+    for backward compatibility but their usage is discouraged. Minor
+    INCOMPATIBILITY.
+  - Added predicates asym_on and asymp_on and redefined asym and asymp
+    to be abbreviations. INCOMPATIBILITY.
+  - Added predicates antisym_on and antisymp_on and redefined antisym
+    and antisymp to be abbreviations. Lemmas antisym_def and
+    antisymp_def are explicitly provided for backward compatibility but
+    their usage is discouraged. Minor INCOMPATIBILITY.
+  - Added predicates trans_on and transp_on and redefined trans and
+    transp to be abbreviations. Lemmas trans_def and transp_def are
     explicitly provided for backward compatibility but their usage is
     discouraged. Minor INCOMPATIBILITY.
-  - Added predicates trans_on and transp_on and redefined trans and transp to
-    be abbreviations. Lemmas trans_def and transp_def are explicitly provided
-    for backward compatibility but their usage is discouraged.
-    Minor INCOMPATIBILITY.
-  - Renamed wrongly named lemma totalp_on_refl_on_eq to totalp_on_total_on_eq.
-    Minor INCOMPATIBILITY.
+  - Renamed wrongly named lemma totalp_on_refl_on_eq to
+    totalp_on_total_on_eq. Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       antisym_converse[simp] ~> antisym_on_converse[simp]
       order.antisymp_ge[simp] ~> order.antisymp_on_ge[simp]
@@ -241,8 +256,8 @@ antiquotations.
       fimage_strict_mono
       wfP_pfsubset
 
-* Theory "HOL-Library.BigO":
-  - Obsolete, moved to HOL-ex
+* Theory "HOL-Library.BigO" is obsolete and has been moved to
+  "HOL-ex.BigO" (it corresponds to "HOL-Metis_Examples.Big_O").
 
 * Theory "HOL-Library.Multiset":
   - Strengthened lemmas. Minor INCOMPATIBILITIES.
@@ -255,8 +270,8 @@ antiquotations.
       multp_cancel_add_mset
       multp_cancel_max
       multp_code_iff_mult
-  - Used transp_on and reorder assumptions of lemmas bex_least_element and
-    bex_greatest_element. Minor INCOMPATIBILITIES.
+  - Used transp_on and reorder assumptions of lemmas bex_least_element
+    and bex_greatest_element. Minor INCOMPATIBILITIES.
   - Added lemmas.
       count_minus_inter_lt_count_minus_inter_iff
       minus_inter_eq_minus_inter_iff
@@ -296,34 +311,18 @@ antiquotations.
       transp_multpHO
       transp_on_multpHO
 
-* 'primcorec': Made the internal tactic more robust in the face of
-  nested corecursion.
+* Session "HOL-Algebra": new theories "HOL-Algebra.SimpleGroups" and
+"HOL-Algebra.SndIsomorphismGrp" (second isomorphism theorem for groups),
+by Jakob von Raumer.
 
-* HOL-Algebra: new theories SimpleGroups (simple groups) 
-  and SndIsomorphismGrp (second isomorphism theorem for groups), 
-  by Jakob von Raumer
-  
-* HOL-Analysis: 
-  - imported the HOL Light abstract metric space library and
-    numerous associated topological developments
-  - new material on infinite sums and integration, due to Manuel Eberl 
+* Session "HOL-Analysis":
+  - Imported the HOL Light abstract metric space library and numerous
+    associated topological developments.
+  - New material on infinite sums and integration, due to Manuel Eberl
     and Wenda Li.
 
-* Mirabelle:
-  - Added session to output directory structure. Minor INCOMPATIBILITY.
-
-* Metis:
-  - Made clausifier more robust in the face of nested lambdas.
-    Minor INCOMPATIBILITY.
-
-* Sledgehammer:
-  - Added an inconsistency check mode to find likely unprovable
-    conjectures. It is enabled by default in addition to the usual
-    proving mode and can be controlled using the 'falsify' option.
-  - Added an abduction mode to find likely missing hypotheses to
-    conjectures. It currently works only with the E prover. It is
-    enabled by default and can be controlled using the 'abduce'
-    option.
+* Session "Mirabelle": Added session name to output directory structure.
+Minor INCOMPATIBILITY.
 
 
 *** ML ***
@@ -425,10 +424,6 @@ with "pide_reports".
 "process_policy", as it may affect other processes as well (notably in
 "isabelle build").
 
-* Isabelle/Scala provides generic support for XZ and Zstd compression,
-via Compress.Options and Compress.Cache. Bytes.uncompress automatically
-detects the compression scheme.
-
 * The command-line tools "isabelle dotnet_setup" and "isabelle dotnet"
 support the Dotnet platform (.NET), which includes Fsharp (F#). This
 works uniformly on all Isabelle OS platforms, even as cross-platform
@@ -450,6 +445,10 @@ expose proof state output via its "messages" field.
 "verbose" flag. Instead, all messages are shown unconditionally, while
 the property {"verbose": bool} indicates whether the result is meant to
 depend on verbose mode.
+
+* Isabelle/Scala provides generic support for XZ and Zstd compression,
+via Compress.Options and Compress.Cache. Bytes.uncompress automatically
+detects the compression scheme.
 
 
 
