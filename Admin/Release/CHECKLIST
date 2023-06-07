@@ -75,16 +75,10 @@ Packaging
 
 - regular packaging:
 
-  #source archive
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p ""
+  #on fast Linux machine, with access to Linux + Apple ARM + Windows build_host
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -j2 -l -c .../naproche-XYZ
 
-  #on fast Linux machine, with access to Linux + Windows build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p linux,windows -l
-
-  #with access Apple ARM build_host
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p macos
-
-  #with access Linux ARM build_host
+  #with access Linux ARM build_host, without "naproche" component
   Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2023 -p linux_arm
 
 - Docker image:
