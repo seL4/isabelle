@@ -11,9 +11,9 @@ object Component_PostgreSQL {
   /* URLs */
 
   val notable_urls =
-    List("https://jdbc.postgresql.org", "https://jdbc.postgresql.org/download.html")
+    List("https://jdbc.postgresql.org", "https://jdbc.postgresql.org/download")
 
-  val default_download_url = "https://jdbc.postgresql.org/download/postgresql-42.5.0.jar"
+  val default_download_url = "https://jdbc.postgresql.org/download/postgresql-42.6.0.jar"
 
 
   /* build postgresql */
