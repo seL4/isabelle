@@ -576,13 +576,11 @@ object Build_Process {
 
       val table = make_table("workers",
         List(worker_uuid, build_uuid, hostname, java_pid, java_start, start, stamp, stop, serial))
-
-      val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
     }
 
     def read_serial(db: SQL.Database): Long =
       db.execute_query_statementO[Long](
-        Workers.table.select(List(Workers.serial_max)), _.long(Workers.serial)).getOrElse(0L)
+        Workers.table.select(List(Workers.serial.max)), _.long(Workers.serial)).getOrElse(0L)
 
     def read_workers(
       db: SQL.Database,

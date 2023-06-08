@@ -152,6 +152,8 @@ object SQL {
     def where_equal(s: String): Source = SQL.where(equal(s))
     def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
+    def max: Column = copy(expr = "MAX(" + ident + ")")
+
     override def toString: Source = ident
   }
 
