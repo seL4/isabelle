@@ -44,11 +44,10 @@ object Export {
     val tables = SQL.Tables(table)
 
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
-      SQL.where(
-        SQL.and(
-          Data.session_name.equal(session_name),
-          if_proper(theory_name, Data.theory_name.equal(theory_name)),
-          if_proper(name, Data.name.equal(name))))
+      SQL.where_and(
+        Data.session_name.equal(session_name),
+        if_proper(theory_name, Data.theory_name.equal(theory_name)),
+        if_proper(name, Data.name.equal(name)))
   }
 
   def compound_name(a: String, b: String): String =

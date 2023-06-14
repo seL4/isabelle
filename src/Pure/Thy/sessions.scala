@@ -119,10 +119,9 @@ object Sessions {
       SQL.Table("isabelle_sources", List(session_name, name, digest, compressed, body))
 
     def where_equal(session_name: String, name: String = ""): SQL.Source =
-      SQL.where(
-        SQL.and(
-          Sources.session_name.equal(session_name),
-          if_proper(name, Sources.name.equal(name))))
+      SQL.where_and(
+        Sources.session_name.equal(session_name),
+        if_proper(name, Sources.name.equal(name)))
 
     def load(session_base: Base, cache: Compress.Cache = Compress.Cache.none): Sources =
       new Sources(

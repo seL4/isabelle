@@ -499,10 +499,9 @@ object Build_Process {
       db.execute_query_statement(
         Progress.table.select(
           sql =
-            SQL.where(
-              SQL.and(
-                if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
-                Generic.sql(build_uuid = build_uuid)))),
+            SQL.where_and(
+              if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
+              Generic.sql(build_uuid = build_uuid))),
         SortedMap.from[Long, isabelle.Progress.Message],
         { res =>
           val serial = res.long(Progress.serial)

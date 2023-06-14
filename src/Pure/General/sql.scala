@@ -81,6 +81,8 @@ object SQL {
     else OR(set.iterator.map(equal(sql, _)).toList)
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
+  def where_and(args: Source*): Source = where(and(args:_*))
+  def where_or(args: Source*): Source = where(or(args:_*))
 
 
   /* types */
