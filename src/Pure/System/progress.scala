@@ -237,8 +237,8 @@ extends Progress {
 /* database progress */
 
 class Database_Progress(
-  db: SQL.Database,
-  base_progress: Progress,
+  val db: SQL.Database,
+  val base_progress: Progress,
   val hostname: String = Isabelle_System.hostname(),
   val context_uuid: String = UUID.random().toString)
 extends Progress {
