@@ -124,8 +124,7 @@ object Build_Process {
     def prepare_database(): Unit = {
       using_option(store.open_build_database()) { db =>
         val shared_db = db.is_postgresql
-        db.transaction {
-          Data.all_tables.create_lock(db)
+        db.transaction_lock(Data.all_tables, create = true) {
           Data.clean_build(db)
           if (shared_db) store.all_tables.create_lock(db)
         }

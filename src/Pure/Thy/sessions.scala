@@ -1618,10 +1618,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val all_tables: SQL.Tables =
       SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
 
-    def init_session_info(db: SQL.Database, name: String): Boolean = {
-      db.transaction {
-        all_tables.create_lock(db)
-
+    def init_session_info(db: SQL.Database, name: String): Boolean =
+      db.transaction_lock(all_tables, create = true) {
         val already_defined = session_info_defined(db, name)
 
         db.execute_statement(
@@ -1638,7 +1636,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
         already_defined
       }
-    }
 
     def session_info_exists(db: SQL.Database): Boolean = {
       val tables = db.tables
