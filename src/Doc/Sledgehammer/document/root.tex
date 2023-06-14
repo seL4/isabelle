@@ -264,29 +264,29 @@ When Isar proof construction is successful, it can yield proofs that are more
 readable and also faster than \textit{metis} or \textit{smt} one-line
 proofs. This feature is experimental.
 
-For goals that are inconsistent with the background theory (and hence unprovable
-unless the theory is itself inconsistent), such as
-
-\prew
-\textbf{lemma} ``$\mathit{length}\; (\mathit{zip}\; \mathit{xs}\; \mathit{ys}) = \mathit{length}\; \mathit{xs}$'' \\
-\textbf{sledgehammer}
-\postw
-
-Sledgehammer's output might look as follows:
-
-\prew
-\slshape
-vampire found a falsification\ldots \\
-vampire: The goal is falsified by these facts: append\_Cons, nth\_append\_length, self\_append\_conv2, zip\_eq\_Nil\_iff
-\postw
-
-Sometimes Sledgehammer will helpfully suggest a missing assumption:
-
-\prew
-\slshape
-e: Candidate missing assumption: \\
-length ys = length xs
-\postw
+%For goals that are inconsistent with the background theory (and hence unprovable
+%unless the theory is itself inconsistent), such as
+%
+%\prew
+%\textbf{lemma} ``$\mathit{length}\; (\mathit{zip}\; \mathit{xs}\; \mathit{ys}) = \mathit{length}\; \mathit{xs}$'' \\
+%\textbf{sledgehammer}
+%\postw
+%
+%Sledgehammer's output might look as follows:
+%
+%\prew
+%\slshape
+%vampire found a falsification\ldots \\
+%vampire: The goal is falsified by these facts: append\_Cons, nth\_append\_length, self\_append\_conv2, zip\_eq\_Nil\_iff
+%\postw
+%
+%Sometimes Sledgehammer will helpfully suggest a missing assumption:
+%
+%\prew
+%\slshape
+%e: Candidate missing assumption: \\
+%length ys = length xs
+%\postw
 
 \section{Hints}
 \label{hints}
@@ -640,6 +640,7 @@ For convenience, the following aliases are provided:
 \def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmartx#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\\\hbox{}\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmartfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
 \def\opnodefaultbrk#1#2{\flushitem{$\bigl[$\textit{#1} =$\bigr]$ \qtybf{#2}} \nopagebreak\\[\parskip]}
 \def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\enskip \defl\textit{#3}\defr} \nopagebreak\\[\parskip]}
@@ -818,7 +819,7 @@ It is generally beneficial to run several provers in parallel.
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
 
-\opsmartx{falsify}{dont\_falsify}
+\opsmartfalse{falsify}{dont\_falsify}
 Specifies whether Sledgehammer should look for falsifications or for proofs. By
 default, it looks for both.
 
@@ -828,7 +829,7 @@ indicating a likely issue with the goal. Sometimes the inconsistency involves
 only the background theory; this might happen, for example, if a flawed axiom is
 used or if a flawed lemma was introduced with \textbf{sorry}.
 
-\opdefault{abduce}{smart\_int}{smart}
+\opdefault{abduce}{smart\_int}{0}
 Specifies the maximum number of candidate missing assumptions that may be
 displayed. These hypotheses are discovered heuristically by a process called
 abduction (which stands in contrast to deduction)---that is, they are guessed

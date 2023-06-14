@@ -64,11 +64,11 @@ antiquotations.
 
 * Sledgehammer:
   - Added an inconsistency check mode to find likely unprovable
-    conjectures. It is enabled by default in addition to the usual
-    proving mode and can be controlled using the 'falsify' option.
+    conjectures. It is disabled by default and can be controlled using
+    the 'falsify' option.
   - Added an abduction mode to find likely missing hypotheses to
-    conjectures. It currently works only with the E prover. It is
-    enabled by default and can be controlled using the 'abduce' option.
+    conjectures. It works only with the E prover. It is disabled by
+    default and can be controlled using the 'abduce' option.
 
 * Metis:
   - Made clausifier more robust in the face of nested lambdas.
