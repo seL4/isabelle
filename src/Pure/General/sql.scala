@@ -72,7 +72,9 @@ object SQL {
   val TRUE: Source = "TRUE"
   val FALSE: Source = "FALSE"
 
-  def equal(sql: Source, s: String): Source = sql + " = " + string(s)
+  def equal(sql: Source, x: Int): Source = sql + " = " + x
+  def equal(sql: Source, x: Long): Source = sql + " = " + x
+  def equal(sql: Source, x: String): Source = sql + " = " + string(x)
 
   def member(sql: Source, set: Iterable[String]): Source =
     if (set.isEmpty) FALSE
@@ -146,10 +148,15 @@ object SQL {
     def defined: String = ident + " IS NOT NULL"
     def undefined: String = ident + " IS NULL"
 
-    def equal(s: String): Source = SQL.equal(ident, s)
-    def member(set: Iterable[String]): Source = SQL.member(ident, set)
+    def equal(x: Int): Source = SQL.equal(ident, x)
+    def equal(x: Long): Source = SQL.equal(ident, x)
+    def equal(x: String): Source = SQL.equal(ident, x)
 
-    def where_equal(s: String): Source = SQL.where(equal(s))
+    def where_equal(x: Int): Source = SQL.where(equal(x))
+    def where_equal(x: Long): Source = SQL.where(equal(x))
+    def where_equal(x: String): Source = SQL.where(equal(x))
+
+    def member(set: Iterable[String]): Source = SQL.member(ident, set)
     def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
     def max: Column = copy(expr = "MAX(" + ident + ")")
