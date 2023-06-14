@@ -848,7 +848,10 @@ extends AutoCloseable {
         val progress_db =
           if (db.is_postgresql) store.open_database_server()
           else db
-        val progress = new Database_Progress(progress_db, build_progress, context_uuid = build_uuid)
+        val progress =
+          new Database_Progress(progress_db, build_progress,
+            hostname = hostname,
+            context_uuid = build_uuid)
         (progress, progress.agent_uuid)
     }
   }
