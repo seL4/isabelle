@@ -494,13 +494,18 @@ object SQLite {
     Class.forName("org.sqlite.JDBC")
   }
 
-  def open_database(path: Path): Database = {
+  def open_database(path: Path, restrict: Boolean = false): Database = {
     init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
     val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
     val connection = DriverManager.getConnection("jdbc:sqlite:" + s1)
-    new Database(path0.toString, connection)
+    val db = new Database(path0.toString, connection)
+
+    try { if (restrict) File.restrict(path0) }
+    catch { case exn: Throwable => db.close(); throw exn }
+
+    db
   }
 
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {

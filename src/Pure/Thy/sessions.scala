@@ -1517,12 +1517,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def open_build_database(): Option[SQL.Database] =
       if (!options.bool("build_database_test")) None
       else if (database_server) Some(open_database_server())
-      else {
-        val db = SQLite.open_database(build_database)
-        try { File.restrict(build_database) }
-        catch { case exn: Throwable => db.close(); throw exn }
-        Some(db)
-      }
+      else Some(SQLite.open_database(build_database, restrict = true))
 
     def try_open_database(
       name: String,
