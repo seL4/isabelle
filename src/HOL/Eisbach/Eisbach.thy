@@ -20,10 +20,11 @@ ML_file \<open>method_closure.ML\<close>
 ML_file \<open>eisbach_rule_insts.ML\<close>
 ML_file \<open>match_method.ML\<close>
 
+method solves methods m \<open>Apply method only when it solves the goal\<close> = m; fail
 
-method solves methods m = (m; fail)
-
-method repeat_new methods m = (m ; (repeat_new \<open>m\<close>)?)
+method repeat_new methods m
+  \<open>apply method recursively to the subgoals it generates\<close> =
+  (m ; (repeat_new \<open>m\<close>)?)
 
 
 section \<open>Debugging methods\<close>
@@ -32,6 +33,7 @@ method_setup print_raw_goal = \<open>Scan.succeed (fn ctxt => fn facts =>
   (fn (ctxt, st) => (
      Output.writeln (Thm.string_of_thm ctxt st);
      Seq.make_results (Seq.single (ctxt, st)))))\<close>
+  \<open>print the entire goal statement\<close>
 
 method_setup print_headgoal =
   \<open>Scan.succeed (fn ctxt => fn _ => fn (ctxt', thm) =>
@@ -39,6 +41,7 @@ method_setup print_headgoal =
      (Output.writeln
      (Pretty.string_of (Syntax.pretty_term ctxt t)); all_tac)) 1 thm);
      (Seq.make_results (Seq.single (ctxt', thm)))))\<close>
+  \<open>print the first subgoal\<close>
 
 ML \<open>fun method_evaluate text ctxt facts =
   NO_CONTEXT_TACTIC ctxt
@@ -54,13 +57,20 @@ method_setup timeit =
        timed_tac st' (method_evaluate m ctxt facts st');
 
    in SIMPLE_METHOD tac [] end)
-\<close>
+  \<close>
+  \<open>print timing information from running the parameter method\<close>
 
 
 section \<open>Simple Combinators\<close>
 
-method_setup defer_tac = \<open>Scan.succeed (fn _ => SIMPLE_METHOD (defer_tac 1))\<close>
-method_setup prefer_last = \<open>Scan.succeed (fn _ => SIMPLE_METHOD (PRIMITIVE (Thm.permute_prems 0 ~1)))\<close>
+method_setup defer_tac =
+  \<open>Scan.succeed (fn _ => SIMPLE_METHOD (defer_tac 1))\<close>
+  \<open>make first subgoal the last subgoal. Like "defer" but as proof method\<close>
+
+method_setup prefer_last =
+  \<open>Scan.succeed (fn _ => SIMPLE_METHOD (PRIMITIVE (Thm.permute_prems 0 ~1)))\<close>
+  \<open>make last subgoal the first subgoal.\<close>
+
 
 method_setup all =
  \<open>Method.text_closure >> (fn m => fn ctxt => fn facts =>
@@ -71,7 +81,8 @@ method_setup all =
        |> Seq.map (Goal.unrestrict i)
 
    in SIMPLE_METHOD (ALLGOALS tac) facts end)
-\<close>
+ \<close>
+ \<open>apply parameter method to all subgoals\<close>
 
 method_setup determ =
  \<open>Method.text_closure >> (fn m => fn ctxt => fn facts =>
@@ -79,7 +90,8 @@ method_setup determ =
      fun tac st' = method_evaluate m ctxt facts st'
 
    in SIMPLE_METHOD (DETERM tac) facts end)
-\<close>
+ \<close>
+ \<open>constrain result sequence to 0 or 1 elements\<close>
 
 method_setup changed =
  \<open>Method.text_closure >> (fn m => fn ctxt => fn facts =>
@@ -87,7 +99,8 @@ method_setup changed =
      fun tac st' = method_evaluate m ctxt facts st'
 
    in SIMPLE_METHOD (CHANGED tac) facts end)
-\<close>
+ \<close>
+ \<open>fail if the proof state has not changed after parameter method has run\<close>
 
 
 text \<open>The following \<open>fails\<close> and \<open>succeeds\<close> methods protect the goal from the effect
@@ -103,7 +116,8 @@ method_setup fails =
         | NONE => Seq.single st')
 
    in SIMPLE_METHOD fail_tac facts end)
-\<close>
+ \<close>
+ \<open>succeed if the parameter method fails\<close>
 
 method_setup succeeds =
  \<open>Method.text_closure >> (fn m => fn ctxt => fn facts =>
@@ -114,7 +128,8 @@ method_setup succeeds =
         | NONE => Seq.empty)
 
    in SIMPLE_METHOD can_tac facts end)
-\<close>
+ \<close>
+ \<open>succeed without proof state change if the parameter method has non-empty result sequence\<close>
 
 
 
@@ -130,6 +145,6 @@ method_setup find_goal =
          | NONE => Seq.empty)) i THEN prefer_tac i
 
    in SIMPLE_METHOD (FIRSTGOAL prefer_first) facts end)\<close>
-
+  \<open>find first subgoal where parameter method succeeds, make this the first subgoal, and run method\<close>
 
 end

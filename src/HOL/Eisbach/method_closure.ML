@@ -13,9 +13,9 @@ sig
   val apply_method: Proof.context -> string -> term list -> thm list list ->
     (Proof.context -> Method.method) list -> Proof.context -> thm list -> context_tactic
   val method: binding -> (binding * typ option * mixfix) list -> binding list ->
-    binding list -> binding list -> Token.src -> local_theory -> string * local_theory
+    binding list -> binding list -> string -> Token.src -> local_theory -> string * local_theory
   val method_cmd: binding -> (binding * string option * mixfix) list -> binding list ->
-    binding list -> binding list -> Token.src -> local_theory -> string * local_theory
+    binding list -> binding list -> string -> Token.src -> local_theory -> string * local_theory
 end;
 
 structure Method_Closure: METHOD_CLOSURE =
@@ -174,7 +174,7 @@ fun parse_method_args method_args =
       | rep (m :: ms) x = ((Method.text_closure >> pair m) ::: rep ms) x;
   in rep method_args >> fold bind_method end;
 
-fun gen_method add_fixes name vars uses declares methods source lthy =
+fun gen_method add_fixes name vars uses declares methods cmt source lthy =
   let
     val (uses_internal, lthy1) = lthy
       |> Proof_Context.concealed
@@ -228,7 +228,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Method.local_setup name
         (Args.context :|-- (fn ctxt =>
           let val {body, vars, ...} = get_closure ctxt full_name in
-            parser vars (recursive_method full_name vars body) end)) ""
+            parser vars (recursive_method full_name vars body) end)) cmt
     |> pair full_name
   end;
 
@@ -245,8 +245,9 @@ val _ =
       ((Scan.optional (\<^keyword>\<open>methods\<close> |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
         (Scan.optional (\<^keyword>\<open>uses\<close> |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
       (Scan.optional (\<^keyword>\<open>declares\<close> |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
+      (Scan.optional Parse.embedded "") --
       Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.args1 (K true)) >>
-      (fn ((((name, vars), (methods, uses)), declares), src) =>
-        #2 o method_cmd name vars uses declares methods src));
+      (fn (((((name, vars), (methods, uses)), declares), cmt), src) =>
+        #2 o method_cmd name vars uses declares methods cmt src));
 
 end;

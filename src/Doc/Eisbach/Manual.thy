@@ -11,14 +11,15 @@ text \<open>
   methods by combining existing ones with their usual syntax. Specifically it
   allows compound proof methods to be named, and to extend the name space of
   basic methods accordingly. Method definitions may abstract over parameters:
-  terms, facts, or other methods.
+  terms, facts, or other methods. They may also provide an optional text
+  description for display in @{command_ref print_methods}.
 
   \<^medskip>
   The syntax diagram below refers to some syntactic categories that are
   further defined in \<^cite>\<open>"isabelle-isar-ref"\<close>.
 
   \<^rail>\<open>
-    @@{command method} name args @'=' method
+    @@{command method} name args description @'=' method
     ;
     args: term_args? method_args? \<newline> fact_args? decl_args?
     ;
@@ -29,6 +30,8 @@ text \<open>
     fact_args: @'uses' (name+)
     ;
     decl_args: @'declares' (name+)
+    ;
+    description: @{syntax text}?
   \<close>
 \<close>
 
@@ -60,8 +63,13 @@ text \<open>
   once when the method is defined and cannot be changed later. This makes the
   method stable in the sense of \<^emph>\<open>static scoping\<close>: naming another fact \<open>impI\<close>
   in a later context won't affect the behaviour of \<open>prop_solver\<^sub>1\<close>.
+
+  The following example defines the same method and gives it a description for the
+  @{command_ref print_methods} command.
 \<close>
 
+    method prop_solver\<^sub>2 \<open>solver for propositional formulae\<close> =
+      ((rule impI, (erule conjE)?) | assumption)+
 
 section \<open>Term abstraction\<close>
 
