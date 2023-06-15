@@ -241,7 +241,7 @@ object SSH {
       if (cmd.nonEmpty) run_sftp(cmd + " " + sftp_path(path))
     }
 
-    override def set_executable(path: Path, flag: Boolean): Unit =
+    override def set_executable(path: Path, flag: Boolean = false): Unit =
       if (!execute("chmod a" + (if (flag) "+" else "-") + "x " + bash_path(path)).ok) {
         error("Failed to change executable status of " + quote(remote_path(path)))
       }
@@ -402,7 +402,8 @@ object SSH {
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
     def delete(path: Path): Unit = path.file.delete
-    def set_executable(path: Path, flag: Boolean): Unit = File.set_executable(path, flag)
+    def set_executable(path: Path, flag: Boolean = false): Unit =
+      File.set_executable(path, flag = flag)
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
     def rm_tree(dir: Path): Unit = Isabelle_System.rm_tree(dir)
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)

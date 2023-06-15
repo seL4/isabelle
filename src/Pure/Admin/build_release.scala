@@ -318,7 +318,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 """
     val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
     File.write(script_path, script)
-    File.set_executable(script_path, true)
+    File.set_executable(script_path)
 
     val component_dir = isabelle_target + Path.explode("contrib/Isabelle_app")
     Isabelle_System.move_file(
@@ -744,7 +744,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             val cygwin_bat = Path.explode("Cygwin-Setup.bat")
             File.write(isabelle_target + cygwin_bat,
               File.read(cygwin_template + cygwin_bat).replace("{MIRROR}", cygwin_mirror))
-            File.set_executable(isabelle_target + cygwin_bat, true)
+            File.set_executable(isabelle_target + cygwin_bat)
 
             for (name <- List("isabelle/postinstall", "isabelle/rebaseall")) {
               val path = Path.explode(name)
@@ -784,7 +784,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             Bytes.write(context.dist_dir + isabelle_exe,
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
-            File.set_executable(context.dist_dir + isabelle_exe, true)
+            File.set_executable(context.dist_dir + isabelle_exe)
         }
 
         other_isabelle.cleanup()

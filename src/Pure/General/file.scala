@@ -367,7 +367,7 @@ object File {
     else path.file.canExecute
   }
 
-  def set_executable(path: Path, flag: Boolean): Unit = {
+  def set_executable(path: Path, flag: Boolean = false): Unit = {
     if (Platform.is_windows && flag) Isabelle_System.chmod("a+x", path)
     else if (Platform.is_windows) Isabelle_System.chmod("a-x", path)
     else path.file.setExecutable(flag, false)

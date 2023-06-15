@@ -72,7 +72,7 @@ classpath "$ISABELLE_SQLITE_HOME/lib/""" + download_name + """.jar"
         Isabelle_System.copy_file(jar_dir + Path.explode(file), target)
       }
 
-      File.set_executable(component_dir.path + Path.explode("x86_64-windows/sqlitejdbc.dll"), true)
+      File.set_executable(component_dir.path + Path.explode("x86_64-windows/sqlitejdbc.dll"))
     }
   }
 

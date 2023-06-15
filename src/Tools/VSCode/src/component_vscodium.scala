@@ -217,7 +217,7 @@ object Component_VSCodium {
             val name = file.getName
             File.is_dll(name) || File.is_exe(name) || File.is_node(name)
           })
-        files.foreach(file => File.set_executable(File.path(file), true))
+        files.foreach(file => File.set_executable(File.path(file)))
         Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
       }
     }
