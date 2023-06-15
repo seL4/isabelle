@@ -483,7 +483,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       progress.echo_warning("Creating release archive " + context.isabelle_archive + " ...")
 
-      execute(context.dist_dir, """chmod -R a+r . && chmod -R u+w . && chmod -R g=o .""")
+      execute(context.dist_dir, """chmod -R a+r,u+w,g=o .""")
       execute(context.dist_dir,
         """find . -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w""")
       execute_tar(context.dist_dir, "-czf " +
@@ -852,8 +852,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
           other_isabelle.isabelle_home_user.file.delete
 
-          execute(tmp_dir, "chmod -R a+r " + Bash.string(context.dist_name))
-          execute(tmp_dir, "chmod -R g=o " + Bash.string(context.dist_name))
+          execute(tmp_dir, "chmod -R a+r,g=o " + Bash.string(context.dist_name))
           execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
             " " + Bash.string(context.dist_name + "/browser_info"))
         }
