@@ -1496,6 +1496,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       input_dirs.map(_ + database(name)).find(_.is_file)
 
     def build_database_server: Boolean = options.bool("build_database_server")
+    def build_database_test: Boolean = options.bool("build_database_test")
 
     def open_database_server(): PostgreSQL.Database =
       PostgreSQL.open_database(
@@ -1515,7 +1516,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val build_database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
     def open_build_database(): Option[SQL.Database] =
-      if (!options.bool("build_database_test")) None
+      if (!build_database_test) None
       else if (build_database_server) Some(open_database_server())
       else Some(SQLite.open_database(build_database, restrict = true))
 
