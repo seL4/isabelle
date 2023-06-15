@@ -314,8 +314,7 @@ object Build_History {
 
           val properties =
             if (database.is_file) {
-              using(SQLite.open_database(database))(db =>
-                store.read_ml_statistics(db, session_name))
+              using(SQLite.open_database(database))(store.read_ml_statistics(_, session_name))
             }
             else if (log_gz.is_file) {
               Build_Log.Log_File(log_gz).parse_session_info(ml_statistics = true).ml_statistics
@@ -340,7 +339,7 @@ object Build_History {
           val errors =
             if (database.is_file) {
               try {
-                using(SQLite.open_database(database))(db => store.read_errors(db, session_name))
+                using(SQLite.open_database(database))(store.read_errors(_, session_name))
               } // column "errors" could be missing
               catch { case _: java.sql.SQLException => Nil }
             }

@@ -429,7 +429,7 @@ object Server {
   }
 
   def exit(name: String = default_name): Boolean = {
-    using(SQLite.open_database(Data.database))(db =>
+    using(SQLite.open_database(Data.database)) { db =>
       db.transaction_lock(Data.tables) {
         find(db, name) match {
           case Some(server_info) =>
@@ -438,7 +438,8 @@ object Server {
             true
           case None => false
         }
-      })
+      }
+    }
   }
 
 
