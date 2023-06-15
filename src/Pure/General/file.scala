@@ -362,6 +362,8 @@ object File {
 
   /* permissions */
 
+  def restrict(path: Path): Unit = Isabelle_System.chmod("g-rwx,o-rwx", path)
+
   def is_executable(path: Path): Boolean = {
     if (Platform.is_windows) Isabelle_System.bash("test -x " + bash_path(path)).check.ok
     else path.file.canExecute

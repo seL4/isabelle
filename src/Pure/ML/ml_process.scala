@@ -77,13 +77,13 @@ object ML_Process {
     // options
     val eval_options = if (session_heaps.isEmpty) Nil else List("Options.load_default ()")
     val isabelle_process_options = Isabelle_System.tmp_file("options")
-    Isabelle_System.chmod("600", File.path(isabelle_process_options))
+    File.restrict(File.path(isabelle_process_options))
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
 
     // session resources
     val eval_init_session = if (session_heaps.isEmpty) Nil else List("Resources.init_session_env ()")
     val init_session = Isabelle_System.tmp_file("init_session")
-    Isabelle_System.chmod("600", File.path(init_session))
+    File.restrict(File.path(init_session))
     File.write(init_session, new Resources(session_background).init_session_yxml)
 
     // process

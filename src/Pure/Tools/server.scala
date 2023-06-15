@@ -399,7 +399,7 @@ object Server {
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(Data.database)) { db =>
       db.transaction {
-        Isabelle_System.chmod("600", Data.database)
+        File.restrict(Data.database)
         Data.tables.create_lock(db)
         list(db).filterNot(_.active).foreach(server_info =>
           db.execute_statement(Data.table.delete(sql = Data.name.where_equal(server_info.name))))

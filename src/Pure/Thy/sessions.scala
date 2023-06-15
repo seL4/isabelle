@@ -1519,7 +1519,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
       else if (database_server) Some(open_database_server())
       else {
         val db = SQLite.open_database(build_database)
-        try { Isabelle_System.chmod("600", build_database) }
+        try { File.restrict(build_database) }
         catch { case exn: Throwable => db.close(); throw exn }
         Some(db)
       }
