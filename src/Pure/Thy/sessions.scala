@@ -1495,7 +1495,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def find_database(name: String): Option[Path] =
       input_dirs.map(_ + database(name)).find(_.is_file)
 
-    def database_server: Boolean = options.bool("build_database_server")
+    def build_database_server: Boolean = options.bool("build_database_server")
 
     def open_database_server(): PostgreSQL.Database =
       PostgreSQL.open_database(
@@ -1516,13 +1516,13 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def open_build_database(): Option[SQL.Database] =
       if (!options.bool("build_database_test")) None
-      else if (database_server) Some(open_database_server())
+      else if (build_database_server) Some(open_database_server())
       else Some(SQLite.open_database(build_database, restrict = true))
 
     def try_open_database(
       name: String,
       output: Boolean = false,
-      server: Boolean = database_server
+      server: Boolean = build_database_server
     ): Option[SQL.Database] = {
       def check(db: SQL.Database): Option[SQL.Database] =
         if (output || session_info_exists(db)) Some(db) else { db.close(); None }
@@ -1548,7 +1548,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def clean_output(name: String): Option[Boolean] = {
       val relevant_db =
-        database_server &&
+        build_database_server &&
           using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
 
       val del =
