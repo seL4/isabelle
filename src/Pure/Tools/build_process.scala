@@ -126,7 +126,7 @@ object Build_Process {
         val shared_db = db.is_postgresql
         db.transaction_lock(Data.all_tables, create = true) {
           Data.clean_build(db)
-          if (shared_db) store.all_tables.create_lock(db)
+          if (shared_db) store.all_tables.lock(db, create = true)
         }
         db.vacuum(Data.all_tables ::: (if (shared_db) store.all_tables else SQL.Tables.empty))
       }

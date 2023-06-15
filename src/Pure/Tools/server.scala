@@ -398,8 +398,7 @@ object Server {
     log: Logger = No_Logger
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(Data.database, restrict = true)) { db =>
-      db.transaction {
-        Data.tables.create_lock(db)
+      db.transaction_lock(Data.tables, create = true) {
         list(db).filterNot(_.active).foreach(server_info =>
           db.execute_statement(Data.table.delete(sql = Data.name.where_equal(server_info.name))))
       }
