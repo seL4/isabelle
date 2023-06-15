@@ -122,7 +122,7 @@ object Build_Process {
       }
 
     def prepare_database(): Unit = {
-      using_option(store.open_build_database()) { db =>
+      using_option(store.maybe_open_build_database(Data.database)) { db =>
         val shared_db = db.is_postgresql
         db.transaction_lock(Data.all_tables, create = true) {
           Data.clean_build(db)
@@ -288,6 +288,8 @@ object Build_Process {
   /** SQL data model **/
 
   object Data {
+    val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+
     def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_build" + if_proper(name, "_" + name), columns, body = body)
 
@@ -839,7 +841,8 @@ extends AutoCloseable {
 
   /* progress backed by database */
 
-  private val _database: Option[SQL.Database] = store.open_build_database()
+  private val _database: Option[SQL.Database] =
+    store.maybe_open_build_database(Build_Process.Data.database)
 
   protected val (progress, worker_uuid) = synchronized {
     _database match {

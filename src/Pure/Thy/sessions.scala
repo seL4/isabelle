@@ -1513,12 +1513,12 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
 
-    val build_database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+    def open_build_database(path: Path): SQL.Database =
+      if (build_database_server) open_database_server()
+      else SQLite.open_database(path, restrict = true)
 
-    def open_build_database(): Option[SQL.Database] =
-      if (!build_database_test) None
-      else if (build_database_server) Some(open_database_server())
-      else Some(SQLite.open_database(build_database, restrict = true))
+    def maybe_open_build_database(path: Path): Option[SQL.Database] =
+      if (!build_database_test) None else Some(open_build_database(path))
 
     def try_open_database(
       name: String,
