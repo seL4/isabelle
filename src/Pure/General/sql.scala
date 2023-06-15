@@ -240,12 +240,6 @@ object SQL {
     def iterator: Iterator[Table] = list.iterator
 
     // requires transaction
-    def create_lock(db: Database): Unit = {
-      foreach(db.create_table(_))
-      lock(db)
-    }
-
-    // requires transaction
     def lock(db: Database, create: Boolean = false): Unit = {
       if (create) foreach(db.create_table(_))
       val sql = db.lock_tables(list)
