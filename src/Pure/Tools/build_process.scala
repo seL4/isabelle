@@ -864,6 +864,7 @@ extends AutoCloseable {
       case db_progress: Database_Progress =>
         db_progress.exit()
         db_progress.db.close()
+      case _ =>
     }
   }
 
