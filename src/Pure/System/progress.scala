@@ -42,6 +42,8 @@ object Progress {
   /* SQL data model */
 
   object Data {
+    val database: Path = Path.explode("$ISABELLE_HOME_USER/progress.db")
+
     def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_progress" + if_proper(name, "_" + name), columns, body = body)
 

@@ -848,9 +848,7 @@ extends AutoCloseable {
     _database match {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
-        val progress_db =
-          if (db.is_postgresql) store.open_database_server()
-          else db
+        val progress_db = store.open_build_database(Progress.Data.database)
         val progress =
           new Database_Progress(progress_db, build_progress,
             hostname = hostname,
