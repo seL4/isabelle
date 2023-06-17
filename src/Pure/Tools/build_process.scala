@@ -122,12 +122,11 @@ object Build_Process {
       }
 
     def prepare_database(): Unit = {
-      using_option(store.open_build_database()) { db =>
+      using_option(store.maybe_open_build_database(Data.database)) { db =>
         val shared_db = db.is_postgresql
-        db.transaction {
-          Data.all_tables.create_lock(db)
+        db.transaction_lock(Data.all_tables, create = true) {
           Data.clean_build(db)
-          if (shared_db) store.all_tables.create_lock(db)
+          if (shared_db) store.all_tables.lock(db, create = true)
         }
         db.vacuum(Data.all_tables ::: (if (shared_db) store.all_tables else SQL.Tables.empty))
       }
@@ -144,24 +143,17 @@ object Build_Process {
 
   /** dynamic state **/
 
-  type Progress_Messages = SortedMap[Long, Progress.Message]
-  val progress_messages_empty: Progress_Messages = SortedMap.empty
-
   case class Build(
-    build_uuid: String,
+    build_uuid: String,   // Database_Progress.context_uuid
     ml_platform: String,
     options: String,
     start: Date,
-    stop: Option[Date],
-    progress_stopped: Boolean
+    stop: Option[Date]
   )
 
   case class Worker(
-    worker_uuid: String,
+    worker_uuid: String,  // Database_Progress.agent_uuid
     build_uuid: String,
-    hostname: String,
-    java_pid: Long,
-    java_start: Date,
     start: Date,
     stamp: Date,
     stop: Option[Date],
@@ -202,7 +194,6 @@ object Build_Process {
   }
 
   sealed case class Snapshot(
-    progress_messages: Progress_Messages,
     builds: List[Build],        // available build configurations
     workers: List[Worker],      // available worker processes
     sessions: State.Sessions,   // static build targets
@@ -224,8 +215,6 @@ object Build_Process {
 
   sealed case class State(
     serial: Long = 0,
-    progress_seen: Long = 0,
-    numa_next: Int = 0,
     sessions: State.Sessions = Map.empty,
     pending: State.Pending = Nil,
     running: State.Running = Map.empty,
@@ -237,26 +226,6 @@ object Build_Process {
       require(serial <= i, "non-monotonic change of serial")
       copy(serial = i)
     }
-
-    def progress_serial(message_serial: Long = serial): State =
-      if (message_serial > progress_seen) copy(progress_seen = message_serial)
-      else error("Bad serial " + message_serial + " for progress output (already seen)")
-
-    def next_numa_node(numa_nodes: List[Int]): (Option[Int], State) =
-      if (numa_nodes.isEmpty) (None, this)
-      else {
-        val available = numa_nodes.zipWithIndex
-        val used =
-          Set.from(for (job <- running.valuesIterator; i <- job.node_info.numa_node) yield i)
-
-        val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
-        val candidates = available.drop(numa_index) ::: available.take(numa_index)
-        val (n, i) =
-          candidates.find({ case (n, i) => i == numa_index && !used(n) }) orElse
-          candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-
-        (Some(n), copy(numa_next = numa_nodes((i + 1) % numa_nodes.length)))
-      }
 
     def finished: Boolean = pending.isEmpty
 
@@ -299,6 +268,8 @@ object Build_Process {
   /** SQL data model **/
 
   object Data {
+    val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+
     def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_build" + if_proper(name, "_" + name), columns, body = body)
 
@@ -361,10 +332,8 @@ object Build_Process {
       val options = SQL.Column.string("options")
       val start = SQL.Column.date("start")
       val stop = SQL.Column.date("stop")
-      val progress_stopped = SQL.Column.bool("progress_stopped")
 
-      val table =
-        make_table("", List(build_uuid, ml_platform, options, start, stop, progress_stopped))
+      val table = make_table("", List(build_uuid, ml_platform, options, start, stop))
     }
 
     def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] =
@@ -377,16 +346,14 @@ object Build_Process {
           val options = res.string(Base.options)
           val start = res.date(Base.start)
           val stop = res.get_date(Base.stop)
-          val progress_stopped = res.bool(Base.progress_stopped)
-          Build(build_uuid, ml_platform, options, start, stop, progress_stopped)
+          Build(build_uuid, ml_platform, options, start, stop)
         })
 
     def start_build(
       db: SQL.Database,
       build_uuid: String,
       ml_platform: String,
-      options: String,
-      progress_stopped: Boolean
+      options: String
     ): Unit = {
       db.execute_statement(Base.table.insert(), body =
         { stmt =>
@@ -395,7 +362,6 @@ object Build_Process {
           stmt.string(3) = options
           stmt.date(4) = db.now()
           stmt.date(5) = None
-          stmt.bool(6) = progress_stopped
         })
     }
 
@@ -483,106 +449,22 @@ object Build_Process {
     }
 
 
-    /* progress */
-
-    object Progress {
-      val serial = SQL.Column.long("serial").make_primary_key
-      val kind = SQL.Column.int("kind")
-      val text = SQL.Column.string("text")
-      val verbose = SQL.Column.bool("verbose")
-      val build_uuid = Generic.build_uuid
-
-      val table = make_table("progress", List(serial, kind, text, verbose, build_uuid))
-    }
-
-    def read_progress(db: SQL.Database, seen: Long = 0, build_uuid: String = ""): Progress_Messages =
-      db.execute_query_statement(
-        Progress.table.select(
-          sql =
-            SQL.where(
-              SQL.and(
-                if (seen <= 0) "" else Progress.serial.ident + " > " + seen,
-                Generic.sql(build_uuid = build_uuid)))),
-        SortedMap.from[Long, isabelle.Progress.Message],
-        { res =>
-          val serial = res.long(Progress.serial)
-          val kind = isabelle.Progress.Kind(res.int(Progress.kind))
-          val text = res.string(Progress.text)
-          val verbose = res.bool(Progress.verbose)
-          serial -> isabelle.Progress.Message(kind, text, verbose = verbose)
-        }
-      )
-
-    def write_progress(
-      db: SQL.Database,
-      message_serial: Long,
-      message: isabelle.Progress.Message,
-      build_uuid: String
-    ): Unit = {
-      db.execute_statement(Progress.table.insert(), body =
-        { stmt =>
-          stmt.long(1) = message_serial
-          stmt.int(2) = message.kind.id
-          stmt.string(3) = message.text
-          stmt.bool(4) = message.verbose
-          stmt.string(5) = build_uuid
-        })
-    }
-
-    def sync_progress(
-      db: SQL.Database,
-      seen: Long,
-      build_uuid: String,
-      build_progress: Progress
-    ): (Progress_Messages, Boolean) = {
-      require(build_uuid.nonEmpty)
-
-      val messages = read_progress(db, seen = seen, build_uuid = build_uuid)
-
-      val stopped_db =
-        db.execute_query_statementO[Boolean](
-          Base.table.select(List(Base.progress_stopped),
-            sql = SQL.where(Base.build_uuid.equal(build_uuid))),
-          res => res.bool(Base.progress_stopped)
-        ).getOrElse(false)
-
-      def stop_db(): Unit =
-        db.execute_statement(
-          Base.table.update(
-            List(Base.progress_stopped), sql = Base.build_uuid.where_equal(build_uuid)),
-          body = { stmt => stmt.bool(1) = true })
-
-      val stopped = build_progress.stopped
-
-      if (stopped_db && !stopped) build_progress.stop()
-      if (stopped && !stopped_db) stop_db()
-
-      (messages, messages.isEmpty && stopped_db == stopped)
-    }
-
-
     /* workers */
 
     object Workers {
       val worker_uuid = Generic.worker_uuid.make_primary_key
       val build_uuid = Generic.build_uuid
-      val hostname = SQL.Column.string("hostname")
-      val java_pid = SQL.Column.long("java_pid")
-      val java_start = SQL.Column.date("java_start")
       val start = SQL.Column.date("start")
       val stamp = SQL.Column.date("stamp")
       val stop = SQL.Column.date("stop")
       val serial = SQL.Column.long("serial")
 
-      val table = make_table("workers",
-        List(worker_uuid, build_uuid, hostname, java_pid, java_start, start, stamp, stop, serial))
-
-      val serial_max = serial.copy(expr = "MAX(" + serial.ident + ")")
+      val table = make_table("workers", List(worker_uuid, build_uuid, start, stamp, stop, serial))
     }
 
     def read_serial(db: SQL.Database): Long =
       db.execute_query_statementO[Long](
-        Workers.table.select(List(Workers.serial_max)), _.long(Workers.serial)).getOrElse(0L)
+        Workers.table.select(List(Workers.serial.max)), _.long(Workers.serial)).getOrElse(0L)
 
     def read_workers(
       db: SQL.Database,
@@ -597,9 +479,6 @@ object Build_Process {
             Worker(
               worker_uuid = res.string(Workers.worker_uuid),
               build_uuid = res.string(Workers.build_uuid),
-              hostname = res.string(Workers.hostname),
-              java_pid = res.long(Workers.java_pid),
-              java_start = res.date(Workers.java_start),
               start = res.date(Workers.start),
               stamp = res.date(Workers.stamp),
               stop = res.get_date(Workers.stop),
@@ -611,9 +490,6 @@ object Build_Process {
       db: SQL.Database,
       worker_uuid: String,
       build_uuid: String,
-      hostname: String,
-      java_pid: Long,
-      java_start: Date,
       serial: Long
     ): Unit = {
       def err(msg: String): Nothing =
@@ -635,13 +511,10 @@ object Build_Process {
           val now = db.now()
           stmt.string(1) = worker_uuid
           stmt.string(2) = build_uuid
-          stmt.string(3) = hostname
-          stmt.long(4) = java_pid
-          stmt.date(5) = java_start
-          stmt.date(6) = now
-          stmt.date(7) = now
-          stmt.date(8) = None
-          stmt.long(9) = serial
+          stmt.date(3) = now
+          stmt.date(4) = now
+          stmt.date(5) = None
+          stmt.long(6) = serial
         })
     }
 
@@ -858,12 +731,10 @@ object Build_Process {
       SQL.Tables(
         Base.table,
         Workers.table,
-        Progress.table,
         Sessions.table,
         Pending.table,
         Running.table,
-        Results.table,
-        Host.Data.Node_Info.table)
+        Results.table)
 
     val build_uuid_tables =
       all_tables.filter(table =>
@@ -881,14 +752,13 @@ object Build_Process {
         val serial = serial_db max state.serial
         stamp_worker(db, worker_uuid, serial)
 
-        val numa_next = Host.Data.read_numa_next(db, hostname)
         val sessions = pull1(read_sessions_domain(db), read_sessions(db, _), state.sessions)
         val pending = read_pending(db)
         val running = pull0(read_running(db), state.running)
         val results = pull1(read_results_domain(db), read_results(db, _), state.results)
 
-        state.copy(serial = serial, numa_next = numa_next, sessions = sessions,
-          pending = pending, running = running, results = results)
+        state.copy(serial = serial, sessions = sessions, pending = pending,
+          running = running, results = results)
       }
     }
 
@@ -904,8 +774,7 @@ object Build_Process {
           update_sessions(db, state.sessions),
           update_pending(db, state.pending),
           update_running(db, state.running),
-          update_results(db, state.results),
-          Host.Data.update_numa_next(db, hostname, state.numa_next))
+          update_results(db, state.results))
 
       val serial0 = state.serial
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
@@ -932,89 +801,60 @@ extends AutoCloseable {
   protected final val build_deps: Sessions.Deps = build_context.build_deps
   protected final val hostname: String = build_context.hostname
   protected final val build_uuid: String = build_context.build_uuid
-  protected final val worker_uuid: String = UUID.random().toString
 
-  override def toString: String =
-    "Build_Process(worker_uuid = " + quote(worker_uuid) + ", build_uuid = " + quote(build_uuid) +
-      if_proper(build_context.master, ", master = true") + ")"
 
+  /* progress backed by database */
+
+  private val _database: Option[SQL.Database] =
+    store.maybe_open_build_database(Build_Process.Data.database)
+
+  private val _host_database: Option[SQL.Database] =
+    store.maybe_open_build_database(Host.Data.database)
+
+  protected val (progress, worker_uuid) = synchronized {
+    _database match {
+      case None => (build_progress, UUID.random().toString)
+      case Some(db) =>
+        val progress_db = store.open_build_database(Progress.Data.database)
+        val progress =
+          new Database_Progress(progress_db, build_progress,
+            hostname = hostname,
+            context_uuid = build_uuid)
+        (progress, progress.agent_uuid)
+    }
+  }
+
+  protected val log: Logger = Logger.make_system_log(progress, build_options)
+
+  def close(): Unit = synchronized {
+    _database.foreach(_.close())
+    _host_database.foreach(_.close())
+    progress match {
+      case db_progress: Database_Progress =>
+        db_progress.exit()
+        db_progress.db.close()
+      case _ =>
+    }
+  }
 
   /* global state: internal var vs. external database */
 
   private var _state: Build_Process.State = Build_Process.State()
 
-  private val _database: Option[SQL.Database] = store.open_build_database()
-
-  def close(): Unit = synchronized { _database.foreach(_.close()) }
-
-  protected def synchronized_database[A](body: => A): A =
-    synchronized {
-      _database match {
-        case None => body
-        case Some(db) =>
-          def pull_database(): Unit = {
-            _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
-          }
-
-          def sync_database(): Unit = {
-            _state =
-              Build_Process.Data.update_database(db, worker_uuid, build_uuid, hostname, _state)
-          }
-
-          def attempt(): Either[A, Build_Process.Progress_Messages] = {
-            val (messages, sync) =
-              Build_Process.Data.sync_progress(
-                db, _state.progress_seen, build_uuid, build_progress)
-            if (sync) Left { pull_database(); val res = body; sync_database(); res }
-            else Right(messages)
-          }
-
-          @tailrec def attempts(): A = {
-            db.transaction_lock(Build_Process.Data.all_tables) { attempt() } match {
-              case Left(res) => res
-              case Right(messages) =>
-                for ((message_serial, message) <- messages) {
-                  _state = _state.progress_serial(message_serial = message_serial)
-                  if (build_progress.do_output(message)) build_progress.output(message)
-                }
-                attempts()
-            }
-          }
-          attempts()
-      }
-    }
-
-
-  /* progress backed by database */
-
-  private def progress_output(message: Progress.Message, build_progress_output: => Unit): Unit = {
-    synchronized_database {
-      _state = _state.inc_serial.progress_serial()
-      for (db <- _database) {
-        Build_Process.Data.write_progress(db, _state.serial, message, build_uuid)
-        Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial)
-      }
-      build_progress_output
+  protected def synchronized_database[A](body: => A): A = synchronized {
+    _database match {
+      case None => body
+      case Some(db) =>
+        db.transaction_lock(Build_Process.Data.all_tables) {
+          progress.asInstanceOf[Database_Progress].sync()
+          _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
+          val res = body
+          _state =
+            Build_Process.Data.update_database(db, worker_uuid, build_uuid, hostname, _state)
+          res
+        }
     }
   }
-
-  protected object progress extends Progress {
-    override def verbose: Boolean = build_progress.verbose
-
-    override def output(message: Progress.Message): Unit =
-      progress_output(message, if (do_output(message)) build_progress.output(message))
-
-    override def theory(theory: Progress.Theory): Unit =
-      progress_output(theory.message, build_progress.theory(theory))
-
-    override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit =
-      build_progress.nodes_status(nodes_status)
-
-    override def stop(): Unit = build_progress.stop()
-    override def stopped: Boolean = build_progress.stopped
-  }
-
-  protected val log: Logger = Logger.make_system_log(progress, build_options)
 
 
   /* policy operations */
@@ -1086,7 +926,13 @@ extends AutoCloseable {
         .make_result(result_name, Process_Result.undefined, output_shasum)
     }
     else {
-      val (numa_node, state1) = state.next_numa_node(build_context.numa_nodes)
+      def used_nodes: Set[Int] =
+        Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
+      val numa_node =
+        for {
+          db <- _host_database
+          n <- Host.next_numa_node(db, hostname, build_context.numa_nodes, used_nodes)
+        } yield n
       val node_info = Host.Node_Info(hostname, numa_node)
 
       progress.echo(
@@ -1101,7 +947,7 @@ extends AutoCloseable {
 
       val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
 
-      state1.add_running(job)
+      state.add_running(job)
     }
   }
 
@@ -1114,7 +960,7 @@ extends AutoCloseable {
   protected final def start_build(): Unit = synchronized_database {
     for (db <- _database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
-        build_context.sessions_structure.session_prefs, progress.stopped)
+        build_context.sessions_structure.session_prefs)
     }
   }
 
@@ -1126,12 +972,8 @@ extends AutoCloseable {
 
   protected final def start_worker(): Unit = synchronized_database {
     for (db <- _database) {
-      val java = ProcessHandle.current()
-      val java_pid = java.pid
-      val java_start = Date.instant(java.info.startInstant.get)
       _state = _state.inc_serial
-      Build_Process.Data.start_worker(
-        db, worker_uuid, build_uuid, hostname, java_pid, java_start, _state.serial)
+      Build_Process.Data.start_worker(db, worker_uuid, build_uuid, _state.serial)
     }
   }
 
@@ -1211,16 +1053,14 @@ extends AutoCloseable {
   /* snapshot */
 
   def snapshot(): Build_Process.Snapshot = synchronized_database {
-    val (progress_messages, builds, workers) =
+    val (builds, workers) =
       _database match {
-        case None => (Build_Process.progress_messages_empty, Nil, Nil)
+        case None => (Nil, Nil)
         case Some(db) =>
-          (Build_Process.Data.read_progress(db),
-           Build_Process.Data.read_builds(db),
+          (Build_Process.Data.read_builds(db),
            Build_Process.Data.read_workers(db))
       }
     Build_Process.Snapshot(
-      progress_messages = progress_messages,
       builds = builds,
       workers = workers,
       sessions = _state.sessions,
@@ -1228,4 +1068,11 @@ extends AutoCloseable {
       running = _state.running,
       results = _state.results)
   }
+
+
+  /* toString */
+
+  override def toString: String =
+    "Build_Process(worker_uuid = " + quote(worker_uuid) + ", build_uuid = " + quote(build_uuid) +
+      if_proper(build_context.master, ", master = true") + ")"
 }

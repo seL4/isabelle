@@ -53,7 +53,7 @@ object Component_CVC5 {
 
       Isabelle_System.make_directory(platform_dir)
       Isabelle_System.download_file(url, platform_exe, progress = progress)
-      File.set_executable(platform_exe, true)
+      File.set_executable(platform_exe)
     }
 
 

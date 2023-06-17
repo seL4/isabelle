@@ -12,7 +12,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
   InputStreamReader, File => JFile, IOException}
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
-import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermission}
 import java.net.{URI, URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
@@ -362,12 +362,33 @@ object File {
 
   /* permissions */
 
+  private val restrict_perms: List[PosixFilePermission] =
+    List(
+      PosixFilePermission.GROUP_READ,
+      PosixFilePermission.GROUP_WRITE,
+      PosixFilePermission.GROUP_EXECUTE,
+      PosixFilePermission.OTHERS_READ,
+      PosixFilePermission.OTHERS_WRITE,
+      PosixFilePermission.OTHERS_EXECUTE)
+
+  def restrict(path: Path): Unit =
+    if (Platform.is_windows) Isabelle_System.chmod("g-rwx,o-rwx", path)
+    else {
+      val perms = Files.getPosixFilePermissions(path.java_path)
+      var perms_changed = false
+      for (p <- restrict_perms if perms.contains(p)) {
+        perms.remove(p)
+        perms_changed = true
+      }
+      if (perms_changed) Files.setPosixFilePermissions(path.java_path, perms)
+    }
+
   def is_executable(path: Path): Boolean = {
     if (Platform.is_windows) Isabelle_System.bash("test -x " + bash_path(path)).check.ok
     else path.file.canExecute
   }
 
-  def set_executable(path: Path, flag: Boolean): Unit = {
+  def set_executable(path: Path, flag: Boolean = false): Unit = {
     if (Platform.is_windows && flag) Isabelle_System.chmod("a+x", path)
     else if (Platform.is_windows) Isabelle_System.chmod("a-x", path)
     else path.file.setExecutable(flag, false)

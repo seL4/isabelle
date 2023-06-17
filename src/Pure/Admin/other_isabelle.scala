@@ -112,7 +112,7 @@ final class Other_Isabelle private(
     if (!ssh.is_file(dummy_stty_remote)) {
       ssh.make_directory(dummy_stty_remote.dir)
       ssh.write_file(dummy_stty_remote, dummy_stty)
-      ssh.set_executable(dummy_stty_remote, true)
+      ssh.set_executable(dummy_stty_remote)
     }
     try {
       bash(

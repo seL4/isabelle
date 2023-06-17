@@ -318,7 +318,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 """
     val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
     File.write(script_path, script)
-    File.set_executable(script_path, true)
+    File.set_executable(script_path)
 
     val component_dir = isabelle_target + Path.explode("contrib/Isabelle_app")
     Isabelle_System.move_file(
@@ -483,7 +483,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       progress.echo_warning("Creating release archive " + context.isabelle_archive + " ...")
 
-      execute(context.dist_dir, """chmod -R a+r . && chmod -R u+w . && chmod -R g=o .""")
+      execute(context.dist_dir, """chmod -R a+r,u+w,g=o .""")
       execute(context.dist_dir,
         """find . -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w""")
       execute_tar(context.dist_dir, "-czf " +
@@ -744,7 +744,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             val cygwin_bat = Path.explode("Cygwin-Setup.bat")
             File.write(isabelle_target + cygwin_bat,
               File.read(cygwin_template + cygwin_bat).replace("{MIRROR}", cygwin_mirror))
-            File.set_executable(isabelle_target + cygwin_bat, true)
+            File.set_executable(isabelle_target + cygwin_bat)
 
             for (name <- List("isabelle/postinstall", "isabelle/rebaseall")) {
               val path = Path.explode(name)
@@ -784,7 +784,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             Bytes.write(context.dist_dir + isabelle_exe,
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
-            File.set_executable(context.dist_dir + isabelle_exe, true)
+            File.set_executable(context.dist_dir + isabelle_exe)
         }
 
         other_isabelle.cleanup()
@@ -852,8 +852,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
           other_isabelle.isabelle_home_user.file.delete
 
-          execute(tmp_dir, "chmod -R a+r " + Bash.string(context.dist_name))
-          execute(tmp_dir, "chmod -R g=o " + Bash.string(context.dist_name))
+          execute(tmp_dir, "chmod -R a+r,g=o " + Bash.string(context.dist_name))
           execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
             " " + Bash.string(context.dist_name + "/browser_info"))
         }

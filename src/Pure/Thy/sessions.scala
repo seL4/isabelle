@@ -119,10 +119,9 @@ object Sessions {
       SQL.Table("isabelle_sources", List(session_name, name, digest, compressed, body))
 
     def where_equal(session_name: String, name: String = ""): SQL.Source =
-      SQL.where(
-        SQL.and(
-          Sources.session_name.equal(session_name),
-          if_proper(name, Sources.name.equal(name))))
+      SQL.where_and(
+        Sources.session_name.equal(session_name),
+        if_proper(name, Sources.name.equal(name)))
 
     def load(session_base: Base, cache: Compress.Cache = Compress.Cache.none): Sources =
       new Sources(
@@ -1496,7 +1495,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     def find_database(name: String): Option[Path] =
       input_dirs.map(_ + database(name)).find(_.is_file)
 
-    def database_server: Boolean = options.bool("build_database_server")
+    def build_database_server: Boolean = options.bool("build_database_server")
+    def build_database_test: Boolean = options.bool("build_database_test")
 
     def open_database_server(): PostgreSQL.Database =
       PostgreSQL.open_database(
@@ -1513,22 +1513,17 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
               port = options.int("build_database_ssh_port"))),
         ssh_close = true)
 
-    val build_database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+    def open_build_database(path: Path): SQL.Database =
+      if (build_database_server) open_database_server()
+      else SQLite.open_database(path, restrict = true)
 
-    def open_build_database(): Option[SQL.Database] =
-      if (!options.bool("build_database_test")) None
-      else if (database_server) Some(open_database_server())
-      else {
-        val db = SQLite.open_database(build_database)
-        try { Isabelle_System.chmod("600", build_database) }
-        catch { case exn: Throwable => db.close(); throw exn }
-        Some(db)
-      }
+    def maybe_open_build_database(path: Path): Option[SQL.Database] =
+      if (!build_database_test) None else Some(open_build_database(path))
 
     def try_open_database(
       name: String,
       output: Boolean = false,
-      server: Boolean = database_server
+      server: Boolean = build_database_server
     ): Option[SQL.Database] = {
       def check(db: SQL.Database): Option[SQL.Database] =
         if (output || session_info_exists(db)) Some(db) else { db.close(); None }
@@ -1554,7 +1549,7 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
     def clean_output(name: String): Option[Boolean] = {
       val relevant_db =
-        database_server &&
+        build_database_server &&
           using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
 
       val del =
@@ -1619,10 +1614,8 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
     val all_tables: SQL.Tables =
       SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
 
-    def init_session_info(db: SQL.Database, name: String): Boolean = {
-      db.transaction {
-        all_tables.create_lock(db)
-
+    def init_session_info(db: SQL.Database, name: String): Boolean =
+      db.transaction_lock(all_tables, create = true) {
         val already_defined = session_info_defined(db, name)
 
         db.execute_statement(
@@ -1639,7 +1632,6 @@ Usage: isabelle sessions [OPTIONS] [SESSIONS ...]
 
         already_defined
       }
-    }
 
     def session_info_exists(db: SQL.Database): Boolean = {
       val tables = db.tables

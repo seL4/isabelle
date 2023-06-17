@@ -7,6 +7,7 @@ Auxiliary operations on (unbounded) integers.
 signature INTEGER =
 sig
   val build: (int -> int) -> int
+  val build1: (int -> int) -> int
   val min: int -> int -> int
   val max: int -> int -> int
   val add: int -> int -> int
@@ -31,6 +32,7 @@ structure Integer : INTEGER =
 struct
 
 fun build (f: int -> int) = f 0;
+fun build1 (f: int -> int) = f 1;
 
 fun min x y = Int.min (x, y);
 fun max x y = Int.max (x, y);
@@ -38,8 +40,8 @@ fun max x y = Int.max (x, y);
 fun add x y = x + y;
 fun mult x y = x * y;
 
-fun sum xs = fold add xs 0;
-fun prod xs = fold mult xs 1;
+val sum = build o fold add;
+val prod = build1 o fold mult;
 
 fun sign x = int_ord (x, 0);
 

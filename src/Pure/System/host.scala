@@ -96,6 +96,8 @@ object Host {
   /* SQL data model */
 
   object Data {
+    val database: Path = Path.explode("$ISABELLE_HOME_USER/host.db")
+
     def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_host" + if_proper(name, "_" + name), columns, body = body)
 
@@ -106,6 +108,8 @@ object Host {
       val table = make_table("node_info", List(hostname, numa_next))
     }
 
+    val all_tables: SQL.Tables = SQL.Tables(Node_Info.table)
+
     def read_numa_next(db: SQL.Database, hostname: String): Int =
       db.execute_query_statementO[Int](
         Node_Info.table.select(List(Node_Info.numa_next),
@@ -113,16 +117,38 @@ object Host {
         res => res.int(Node_Info.numa_next)
       ).getOrElse(0)
 
-    def update_numa_next(db: SQL.Database, hostname: String, numa_next: Int): Boolean =
-      if (read_numa_next(db, hostname) != numa_next) {
-        db.execute_statement(Node_Info.table.delete(sql = Node_Info.hostname.where_equal(hostname)))
-        db.execute_statement(Node_Info.table.insert(), body =
-          { stmt =>
-            stmt.string(1) = hostname
-            stmt.int(2) = numa_next
-          })
-        true
-      }
-      else false
+    def write_numa_next(db: SQL.Database, hostname: String, numa_next: Int): Unit = {
+      db.execute_statement(Node_Info.table.delete(sql = Node_Info.hostname.where_equal(hostname)))
+      db.execute_statement(Node_Info.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = hostname
+          stmt.int(2) = numa_next
+        })
+    }
   }
+
+  def next_numa_node(
+    db: SQL.Database,
+    hostname: String,
+    available_nodes: List[Int],
+    used_nodes: => Set[Int]
+  ): Option[Int] =
+    if (available_nodes.isEmpty) None
+    else {
+      val available = available_nodes.zipWithIndex
+      val used = used_nodes
+      db.transaction_lock(Data.all_tables, create = true) {
+        val numa_next = Data.read_numa_next(db, hostname)
+        val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
+        val candidates = available.drop(numa_index) ::: available.take(numa_index)
+        val (n, i) =
+          candidates.find({ case (n, i) => i == numa_index && !used(n) }) orElse
+          candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
+
+        val numa_next1 = available_nodes((i + 1) % available_nodes.length)
+        if (numa_next != numa_next1) Data.write_numa_next(db, hostname, numa_next1)
+
+        Some(n)
+      }
+    }
 }

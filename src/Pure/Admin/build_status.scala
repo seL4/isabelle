@@ -61,15 +61,14 @@ object Build_Status {
         (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
 
       Build_Log.Data.universal_table.select(columns, distinct = true, sql =
-        SQL.where(
-          SQL.and(
-            Build_Log.Data.pull_date(afp).ident + " > " + Build_Log.Data.recent_time(days(options)),
-            Build_Log.Data.status.member(
-              List(
-                Build_Log.Session_Status.finished.toString,
-                Build_Log.Session_Status.failed.toString)),
-            if_proper(only_sessions, Build_Log.Data.session_name.member(only_sessions)),
-            if_proper(sql, SQL.enclose(sql)))))
+        SQL.where_and(
+          Build_Log.Data.pull_date(afp).ident + " > " + Build_Log.Data.recent_time(days(options)),
+          Build_Log.Data.status.member(
+            List(
+              Build_Log.Session_Status.finished.toString,
+              Build_Log.Session_Status.failed.toString)),
+          if_proper(only_sessions, Build_Log.Data.session_name.member(only_sessions)),
+          if_proper(sql, SQL.enclose(sql))))
     }
   }
 

@@ -44,11 +44,10 @@ object Export {
     val tables = SQL.Tables(table)
 
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
-      SQL.where(
-        SQL.and(
-          Data.session_name.equal(session_name),
-          if_proper(theory_name, Data.theory_name.equal(theory_name)),
-          if_proper(name, Data.name.equal(name))))
+      SQL.where_and(
+        Data.session_name.equal(session_name),
+        if_proper(theory_name, Data.theory_name.equal(theory_name)),
+        if_proper(name, Data.name.equal(name)))
   }
 
   def compound_name(a: String, b: String): String =
@@ -252,7 +251,7 @@ object Export {
   /* context for database access */
 
   def open_database_context(store: Sessions.Store): Database_Context = {
-    val database_server = if (store.database_server) Some(store.open_database_server()) else None
+    val database_server = if (store.build_database_server) Some(store.open_database_server()) else None
     new Database_Context(store, database_server)
   }
 
@@ -535,7 +534,7 @@ object Export {
           Isabelle_System.make_directory(path.dir)
           val bytes = entry.bytes
           if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
-          File.set_executable(path, entry.executable)
+          File.set_executable(path, flag = entry.executable)
         }
       }
     }

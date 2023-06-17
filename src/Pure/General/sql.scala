@@ -72,13 +72,17 @@ object SQL {
   val TRUE: Source = "TRUE"
   val FALSE: Source = "FALSE"
 
-  def equal(sql: Source, s: String): Source = sql + " = " + string(s)
+  def equal(sql: Source, x: Int): Source = sql + " = " + x
+  def equal(sql: Source, x: Long): Source = sql + " = " + x
+  def equal(sql: Source, x: String): Source = sql + " = " + string(x)
 
   def member(sql: Source, set: Iterable[String]): Source =
     if (set.isEmpty) FALSE
     else OR(set.iterator.map(equal(sql, _)).toList)
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
+  def where_and(args: Source*): Source = where(and(args:_*))
+  def where_or(args: Source*): Source = where(or(args:_*))
 
 
   /* types */
@@ -146,11 +150,18 @@ object SQL {
     def defined: String = ident + " IS NOT NULL"
     def undefined: String = ident + " IS NULL"
 
-    def equal(s: String): Source = SQL.equal(ident, s)
-    def member(set: Iterable[String]): Source = SQL.member(ident, set)
+    def equal(x: Int): Source = SQL.equal(ident, x)
+    def equal(x: Long): Source = SQL.equal(ident, x)
+    def equal(x: String): Source = SQL.equal(ident, x)
 
-    def where_equal(s: String): Source = SQL.where(equal(s))
+    def where_equal(x: Int): Source = SQL.where(equal(x))
+    def where_equal(x: Long): Source = SQL.where(equal(x))
+    def where_equal(x: String): Source = SQL.where(equal(x))
+
+    def member(set: Iterable[String]): Source = SQL.member(ident, set)
     def where_member(set: Iterable[String]): Source = SQL.where(member(set))
+
+    def max: Column = copy(expr = "MAX(" + ident + ")")
 
     override def toString: Source = ident
   }
@@ -229,13 +240,8 @@ object SQL {
     def iterator: Iterator[Table] = list.iterator
 
     // requires transaction
-    def create_lock(db: Database): Unit = {
-      foreach(db.create_table(_))
-      lock(db)
-    }
-
-    // requires transaction
-    def lock(db: Database): Unit = {
+    def lock(db: Database, create: Boolean = false): Unit = {
+      if (create) foreach(db.create_table(_))
       val sql = db.lock_tables(list)
       if (sql.nonEmpty) db.execute_statement(sql)
     }
@@ -398,8 +404,8 @@ object SQL {
       finally { connection.setAutoCommit(auto_commit) }
     }
 
-    def transaction_lock[A](tables: Tables)(body: => A): A =
-      transaction { tables.lock(db); body }
+    def transaction_lock[A](tables: Tables, create: Boolean = false)(body: => A): A =
+      transaction { tables.lock(db, create = create); body }
 
     def lock_tables(tables: List[Table]): Source = ""  // PostgreSQL only
 
@@ -482,13 +488,18 @@ object SQLite {
     Class.forName("org.sqlite.JDBC")
   }
 
-  def open_database(path: Path): Database = {
+  def open_database(path: Path, restrict: Boolean = false): Database = {
     init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
     val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
     val connection = DriverManager.getConnection("jdbc:sqlite:" + s1)
-    new Database(path0.toString, connection)
+    val db = new Database(path0.toString, connection)
+
+    try { if (restrict) File.restrict(path0) }
+    catch { case exn: Throwable => db.close(); throw exn }
+
+    db
   }
 
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {

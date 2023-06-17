@@ -686,7 +686,7 @@ object Build_Log {
       val version2 = Prop.afp_version
       build_log_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
         SQL.select(List(version1, version2), distinct = true) + meta_info_table +
-          SQL.where(SQL.and(version1.defined, version2.defined)))
+          SQL.where_and(version1.defined, version2.defined))
     }
 
 
@@ -729,9 +729,9 @@ object Build_Log {
 
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns, sql =
-          SQL.where(
-            SQL.or(pull_date(afp)(table).ident + " > " + recent_time(days),
-              SQL.and(eq_rev, eq_rev2)))))
+          SQL.where_or(
+            pull_date(afp)(table).ident + " > " + recent_time(days),
+            SQL.and(eq_rev, eq_rev2))))
     }
 
     def select_recent_log_names(days: Int): PostgreSQL.Source = {
@@ -1102,11 +1102,10 @@ object Build_Log {
         else (columns1, table1.ident)
 
       val where =
-        SQL.where(
-          SQL.and(
-            Data.log_name(table1).equal(log_name),
-            Data.session_name(table1).ident + " <> ''",
-            if_proper(session_names, Data.session_name(table1).member(session_names))))
+        SQL.where_and(
+          Data.log_name(table1).equal(log_name),
+          Data.session_name(table1).ident + " <> ''",
+          if_proper(session_names, Data.session_name(table1).member(session_names)))
 
       val sessions =
         db.execute_query_statement(

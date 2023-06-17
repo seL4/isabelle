@@ -397,10 +397,8 @@ object Server {
     existing_server: Boolean = false,
     log: Logger = No_Logger
   ): (Info, Option[Server]) = {
-    using(SQLite.open_database(Data.database)) { db =>
-      db.transaction {
-        Isabelle_System.chmod("600", Data.database)
-        Data.tables.create_lock(db)
+    using(SQLite.open_database(Data.database, restrict = true)) { db =>
+      db.transaction_lock(Data.tables, create = true) {
         list(db).filterNot(_.active).foreach(server_info =>
           db.execute_statement(Data.table.delete(sql = Data.name.where_equal(server_info.name))))
       }
@@ -429,7 +427,7 @@ object Server {
   }
 
   def exit(name: String = default_name): Boolean = {
-    using(SQLite.open_database(Data.database))(db =>
+    using(SQLite.open_database(Data.database)) { db =>
       db.transaction_lock(Data.tables) {
         find(db, name) match {
           case Some(server_info) =>
@@ -438,7 +436,8 @@ object Server {
             true
           case None => false
         }
-      })
+      }
+    }
   }
 
 
