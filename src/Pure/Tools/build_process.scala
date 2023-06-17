@@ -154,9 +154,6 @@ object Build_Process {
   case class Worker(
     worker_uuid: String,
     build_uuid: String,
-    hostname: String,
-    java_pid: Long,
-    java_start: Date,
     start: Date,
     stamp: Date,
     stop: Option[Date],
@@ -472,18 +469,14 @@ object Build_Process {
     /* workers */
 
     object Workers {
-      val worker_uuid = Generic.worker_uuid.make_primary_key
-      val build_uuid = Generic.build_uuid
-      val hostname = SQL.Column.string("hostname")
-      val java_pid = SQL.Column.long("java_pid")
-      val java_start = SQL.Column.date("java_start")
+      val worker_uuid = Generic.worker_uuid.make_primary_key  // progress.agent_uuid
+      val build_uuid = Generic.build_uuid  // progress.context_uuid
       val start = SQL.Column.date("start")
       val stamp = SQL.Column.date("stamp")
       val stop = SQL.Column.date("stop")
       val serial = SQL.Column.long("serial")
 
-      val table = make_table("workers",
-        List(worker_uuid, build_uuid, hostname, java_pid, java_start, start, stamp, stop, serial))
+      val table = make_table("workers", List(worker_uuid, build_uuid, start, stamp, stop, serial))
     }
 
     def read_serial(db: SQL.Database): Long =
@@ -503,9 +496,6 @@ object Build_Process {
             Worker(
               worker_uuid = res.string(Workers.worker_uuid),
               build_uuid = res.string(Workers.build_uuid),
-              hostname = res.string(Workers.hostname),
-              java_pid = res.long(Workers.java_pid),
-              java_start = res.date(Workers.java_start),
               start = res.date(Workers.start),
               stamp = res.date(Workers.stamp),
               stop = res.get_date(Workers.stop),
@@ -517,9 +507,6 @@ object Build_Process {
       db: SQL.Database,
       worker_uuid: String,
       build_uuid: String,
-      hostname: String,
-      java_pid: Long,
-      java_start: Date,
       serial: Long
     ): Unit = {
       def err(msg: String): Nothing =
@@ -541,13 +528,10 @@ object Build_Process {
           val now = db.now()
           stmt.string(1) = worker_uuid
           stmt.string(2) = build_uuid
-          stmt.string(3) = hostname
-          stmt.long(4) = java_pid
-          stmt.date(5) = java_start
-          stmt.date(6) = now
-          stmt.date(7) = now
-          stmt.date(8) = None
-          stmt.long(9) = serial
+          stmt.date(3) = now
+          stmt.date(4) = now
+          stmt.date(5) = None
+          stmt.long(6) = serial
         })
     }
 
@@ -998,12 +982,8 @@ extends AutoCloseable {
 
   protected final def start_worker(): Unit = synchronized_database {
     for (db <- _database) {
-      val java = ProcessHandle.current()
-      val java_pid = java.pid
-      val java_start = Date.instant(java.info.startInstant.get)
       _state = _state.inc_serial
-      Build_Process.Data.start_worker(
-        db, worker_uuid, build_uuid, hostname, java_pid, java_start, _state.serial)
+      Build_Process.Data.start_worker(db, worker_uuid, build_uuid, _state.serial)
     }
   }
 
