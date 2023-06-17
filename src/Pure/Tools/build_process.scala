@@ -144,7 +144,7 @@ object Build_Process {
   /** dynamic state **/
 
   case class Build(
-    build_uuid: String,
+    build_uuid: String,   // Database_Progress.context_uuid
     ml_platform: String,
     options: String,
     start: Date,
@@ -152,7 +152,7 @@ object Build_Process {
   )
 
   case class Worker(
-    worker_uuid: String,
+    worker_uuid: String,  // Database_Progress.agent_uuid
     build_uuid: String,
     start: Date,
     stamp: Date,
@@ -469,8 +469,8 @@ object Build_Process {
     /* workers */
 
     object Workers {
-      val worker_uuid = Generic.worker_uuid.make_primary_key  // progress.agent_uuid
-      val build_uuid = Generic.build_uuid  // progress.context_uuid
+      val worker_uuid = Generic.worker_uuid.make_primary_key
+      val build_uuid = Generic.build_uuid
       val start = SQL.Column.date("start")
       val stamp = SQL.Column.date("stamp")
       val stop = SQL.Column.date("stop")
