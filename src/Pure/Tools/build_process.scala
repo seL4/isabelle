@@ -828,6 +828,7 @@ extends AutoCloseable {
 
   def close(): Unit = synchronized {
     _database.foreach(_.close())
+    _host_database.foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
         db_progress.exit()
