@@ -215,7 +215,6 @@ object Build_Process {
 
   sealed case class State(
     serial: Long = 0,
-    numa_next: Int = 0,
     sessions: State.Sessions = Map.empty,
     pending: State.Pending = Nil,
     running: State.Running = Map.empty,
@@ -227,22 +226,6 @@ object Build_Process {
       require(serial <= i, "non-monotonic change of serial")
       copy(serial = i)
     }
-
-    def next_numa_node(numa_nodes: List[Int]): (Option[Int], State) =
-      if (numa_nodes.isEmpty) (None, this)
-      else {
-        val available = numa_nodes.zipWithIndex
-        val used =
-          Set.from(for (job <- running.valuesIterator; i <- job.node_info.numa_node) yield i)
-
-        val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
-        val candidates = available.drop(numa_index) ::: available.take(numa_index)
-        val (n, i) =
-          candidates.find({ case (n, i) => i == numa_index && !used(n) }) orElse
-          candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
-
-        (Some(n), copy(numa_next = numa_nodes((i + 1) % numa_nodes.length)))
-      }
 
     def finished: Boolean = pending.isEmpty
 
@@ -751,8 +734,7 @@ object Build_Process {
         Sessions.table,
         Pending.table,
         Running.table,
-        Results.table,
-        Host.Data.Node_Info.table)
+        Results.table)
 
     val build_uuid_tables =
       all_tables.filter(table =>
@@ -770,14 +752,13 @@ object Build_Process {
         val serial = serial_db max state.serial
         stamp_worker(db, worker_uuid, serial)
 
-        val numa_next = Host.Data.read_numa_next(db, hostname)
         val sessions = pull1(read_sessions_domain(db), read_sessions(db, _), state.sessions)
         val pending = read_pending(db)
         val running = pull0(read_running(db), state.running)
         val results = pull1(read_results_domain(db), read_results(db, _), state.results)
 
-        state.copy(serial = serial, numa_next = numa_next, sessions = sessions,
-          pending = pending, running = running, results = results)
+        state.copy(serial = serial, sessions = sessions, pending = pending,
+          running = running, results = results)
       }
     }
 
@@ -793,8 +774,7 @@ object Build_Process {
           update_sessions(db, state.sessions),
           update_pending(db, state.pending),
           update_running(db, state.running),
-          update_results(db, state.results),
-          Host.Data.update_numa_next(db, hostname, state.numa_next))
+          update_results(db, state.results))
 
       val serial0 = state.serial
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
@@ -827,6 +807,9 @@ extends AutoCloseable {
 
   private val _database: Option[SQL.Database] =
     store.maybe_open_build_database(Build_Process.Data.database)
+
+  private val _host_database: Option[SQL.Database] =
+    store.maybe_open_build_database(Host.Data.database)
 
   protected val (progress, worker_uuid) = synchronized {
     _database match {
@@ -942,7 +925,13 @@ extends AutoCloseable {
         .make_result(result_name, Process_Result.undefined, output_shasum)
     }
     else {
-      val (numa_node, state1) = state.next_numa_node(build_context.numa_nodes)
+      def used_nodes: Set[Int] =
+        Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
+      val numa_node =
+        for {
+          db <- _host_database
+          n <- Host.next_numa_node(db, hostname, build_context.numa_nodes, used_nodes)
+        } yield n
       val node_info = Host.Node_Info(hostname, numa_node)
 
       progress.echo(
@@ -957,7 +946,7 @@ extends AutoCloseable {
 
       val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
 
-      state1.add_running(job)
+      state.add_running(job)
     }
   }
 
