@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2023
 -----------------------------
 
+* August 2022 - July 2023: Hannah Lachnitt, Stanford and Mathias Fleury, UFR
+  Start work toward reconstructing cvc5 proof in the SMT method. This
+  is currently very experimental and is also changing on the cvc5 side.
+
 * October 2022: Jeremy Sylvestre
   Lemmas for Fun and List.
 

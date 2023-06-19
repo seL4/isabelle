@@ -121,7 +121,7 @@ val cvc5: SMT_Solver.solver_config = {
   avail = make_avail "CVC5",
   command = make_command "CVC5",
   options = cvc5_options,
-  smt_options = [(":produce-unsat-cores", "true")],
+  smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
     [((2, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
@@ -133,7 +133,7 @@ val cvc5: SMT_Solver.solver_config = {
      ((2, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
-  replay = NONE }
+  replay = SOME CVC5_Replay.replay }
 
 end
 

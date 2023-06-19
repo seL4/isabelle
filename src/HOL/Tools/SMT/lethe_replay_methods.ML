@@ -50,7 +50,10 @@ sig
      (*For compression*)
      Theory_Resolution2 |
      (*Extended rules*)
-     Symm | Not_Symm | Reordering | Tmp_Quantifier_Simplify
+     Symm | Not_Symm | Reordering | Tmp_Quantifier_Simplify |
+     (*CVC5 to support new rules declared later (like BV rules)*)
+     Other_Rule of string |
+     Hole
 
   val requires_subproof_assms : string list -> string -> bool
   val requires_local_input: string list -> string -> bool
@@ -73,7 +76,7 @@ sig
   val rewrite_equiv_simplify: lethe_tac
   val rewrite_implies_simplify: lethe_tac
   val rewrite_or_simplify: lethe_tac
-  val cong: lethe_tac
+  val cong: string -> lethe_tac
   val rewrite_connective_def: lethe_tac
   val duplicate_literals: lethe_tac
   val eq_congruent: lethe_tac
@@ -104,7 +107,7 @@ sig
   val la_generic: lethe_tac_args
   val la_rw_eq: lethe_tac
   val lia_generic: lethe_tac
-  val refl: lethe_tac
+  val refl: string -> lethe_tac
   val normalized_input: lethe_tac
   val not_and_rule: lethe_tac
   val not_equiv1: lethe_tac
@@ -139,11 +142,19 @@ sig
   val not_symm: lethe_tac
   val reordering: lethe_tac
 
-(*
-  val : lethe_tac
-*)
+
+  (*Extension to declare new alethe rules*)
+  val declare_alethe_rule:  string -> lethe_tac_args -> Context.generic -> Context.generic
+  val rm_alethe_rule: string -> Context.generic -> Context.generic
+  val get_alethe_tac: string -> Context.generic -> lethe_tac_args option
+  val print_alethe_tac: Context.generic -> Pretty.T
+
+  (*Useful lifting of tactics*)
   val REPEAT_CHANGED: ('a -> tactic) -> 'a -> tactic
   val TRY': ('a -> tactic) -> 'a -> tactic
+
+  val simplify_tac: Proof.context -> thm list -> int -> tactic
+  val replay_error: Proof.context -> string -> verit_rule -> thm list -> term -> 'a
 
 end;
 
@@ -213,7 +224,10 @@ datatype verit_rule =
    (*For compression*)
    Theory_Resolution2 |
    (*Extended rules*)
-   Symm | Not_Symm | Reordering | Tmp_Quantifier_Simplify
+   Symm | Not_Symm | Reordering | Tmp_Quantifier_Simplify |
+   (*CVC5*)
+   Other_Rule of string |
+   Hole
 
 fun string_of_verit_rule Bind = "Bind"
   | string_of_verit_rule Cong = "Cong"
@@ -297,8 +311,67 @@ fun string_of_verit_rule Bind = "Bind"
   | string_of_verit_rule Tautological_Clause = "tautology"
   | string_of_verit_rule Duplicate_Literals = Lethe_Proof.contract_rule
   | string_of_verit_rule Qnt_CNF = "qnt_cnf"
+  | string_of_verit_rule (Other_Rule r) = r
   | string_of_verit_rule r = "Unknown rule: " ^ \<^make_string> r
 
+(** Context Extension for Rules **)
+(*We currently do not distinguish between the extension required for each solver. Maybe later
+it will be needed.*)
+type alethe_rule_ext = {rules: (string * lethe_tac_args) list}
+
+fun mk_alethe_rule_ext rules : alethe_rule_ext = 
+   {rules=rules}
+
+val empty_data = mk_alethe_rule_ext []
+
+fun merge_data ({rules=rules1}:alethe_rule_ext, {rules=rules2}:alethe_rule_ext) : alethe_rule_ext =
+  mk_alethe_rule_ext (AList.merge (op =) (fn _ => true) (rules1, rules2))
+
+structure Data = Generic_Data
+(
+  type T = alethe_rule_ext
+  val empty = empty_data
+  val merge = merge_data
+)
+
+fun declare_alethe_rule rule tac context =
+  let
+    val {rules} = Data.get context
+  in
+    Data.map
+      (K (mk_alethe_rule_ext (AList.update (op =) (rule, tac) rules)))
+      context
+  end
+
+fun rm_alethe_rule stgy context =
+  let
+    val {rules} = Data.get context
+  in
+    Data.map
+      (K (mk_alethe_rule_ext (AList.delete (op =) stgy rules)))
+      context
+  end
+
+fun get_alethe_tac rule context =
+  let
+    val {rules} = Data.get context
+  in
+    AList.lookup (op =) rules rule
+  end
+
+fun print_alethe_tac context =
+  let
+    val {rules} = Data.get context
+  in
+    rules
+    |> map (fn (a, b) => a ^ "->" ^ @{make_string} b)
+    |> map Pretty.str
+    |> Pretty.big_list "Declared alethe rules:\n"
+  end
+
+
+(** Tactics for Reconstruction **)
+(**)
 fun replay_error ctxt msg rule thms t =
   SMT_Replay_Methods.replay_error ctxt msg (string_of_verit_rule rule) thms t
 
@@ -331,7 +404,7 @@ fun partial_simplify_tac ctxt thms =
   |> (fn ctxt => ctxt addsimps @{thms simp_thms} addsimps thms)
   |> Simplifier.full_simp_tac
 
-val try_provers = SMT_Replay_Methods.try_provers "verit"
+val try_provers = SMT_Replay_Methods.try_provers
 
 fun TRY' tac = fn i => TRY (tac i)
 fun REPEAT' tac = fn i => REPEAT (tac i)
@@ -446,19 +519,19 @@ fun bind ctxt [prems] args t =
 
 (* Congruence/Refl *)
 
-fun cong ctxt thms = try_provers ctxt
+fun cong name ctxt thms = try_provers name ctxt
     (string_of_verit_rule Cong) [
   ("basic", SMT_Replay_Methods.cong_basic ctxt thms),
   ("unfolding then reflexivity", SMT_Replay_Methods.cong_unfolding_trivial ctxt thms),
   ("unfolding then auto", SMT_Replay_Methods.cong_unfolding_first ctxt thms),
   ("full", SMT_Replay_Methods.cong_full ctxt thms)] thms
 
-fun refl ctxt thm t =
+fun refl name ctxt thm t =
   (case find_first (fn thm => t = Thm.full_prop_of thm) thm of
       SOME thm => thm
     | NONE =>
         (case try (fn t => SMT_Replay_Methods.match_instantiate ctxt t @{thm refl}) t of
-          NONE => cong ctxt thm t
+          NONE => cong name ctxt thm t
         | SOME thm => thm))
 
 (* Instantiation *)

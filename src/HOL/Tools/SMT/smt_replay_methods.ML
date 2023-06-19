@@ -103,7 +103,7 @@ fun pretty_goal ctxt msg rule thms t =
 
 fun replay_error ctxt msg rule thms t = error (Pretty.string_of (pretty_goal ctxt msg rule thms t))
 
-fun replay_rule_error name ctxt = replay_error ctxt ("Failed to replay" ^ name ^ " proof step")
+fun replay_rule_error name ctxt = replay_error ctxt ("Failed to replay " ^ name ^ " proof step")
 
 fun trace_goal ctxt rule thms t =
   trace ctxt (fn () => Pretty.string_of (pretty_goal ctxt "Goal" rule thms t))

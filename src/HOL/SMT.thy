@@ -660,9 +660,11 @@ ML_file \<open>Tools/SMT/z3_replay_rules.ML\<close>
 ML_file \<open>Tools/SMT/z3_replay_methods.ML\<close>
 ML_file \<open>Tools/SMT/z3_replay.ML\<close>
 ML_file \<open>Tools/SMT/lethe_replay_methods.ML\<close>
+ML_file \<open>Tools/SMT/cvc5_replay_methods.ML\<close>
 ML_file \<open>Tools/SMT/verit_replay_methods.ML\<close>
 ML_file \<open>Tools/SMT/verit_strategies.ML\<close>
 ML_file \<open>Tools/SMT/verit_replay.ML\<close>
+ML_file \<open>Tools/SMT/cvc5_replay.ML\<close>
 ML_file \<open>Tools/SMT/smt_systems.ML\<close>
 
 
@@ -715,7 +717,7 @@ options.
 \<close>
 
 declare [[cvc4_options = ""]]
-declare [[cvc5_options = ""]]
+declare [[cvc5_options = "--proof-format-mode=alethe --proof-granularity=dsl-rewrite"]]
 declare [[verit_options = ""]]
 declare [[z3_options = ""]]
 

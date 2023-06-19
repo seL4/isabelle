@@ -10,6 +10,7 @@ sig
   val smtlibC: SMT_Util.class
   val hosmtlibC: SMT_Util.class
   val bvsmlibC: SMT_Util.class
+  val realsmlibC: SMT_Util.class
   val add_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
   val del_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
   val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
@@ -25,6 +26,7 @@ val hoC = ["ho"]
 val smtlibC = ["smtlib"]   (* SMT-LIB 2 *)
 val hosmtlibC = smtlibC @ hoC   (* possibly SMT-LIB 3 *)
 val bvsmlibC = smtlibC @ ["BV"] (* if BV are supported *)
+val realsmlibC = ["Real"]
 
 (* builtins *)
 
@@ -138,7 +140,7 @@ fun named_sterm s t = SMTLIB.S [SMTLIB.Sym "!", t, SMTLIB.Key "named", SMTLIB.Sy
 
 val conjecture_prefix = "conjecture" (* FUDGE *)
 val hypothesis_prefix = "hypothesis" (* FUDGE *)
-val axiom_prefix = "axiom" (* FUDGE *)
+val axiom_prefix = "a" (* matching Alethe's convention *)
 
 fun assert_prefix_of_role SMT_Util.Conjecture = conjecture_prefix
   | assert_prefix_of_role SMT_Util.Hypothesis = hypothesis_prefix
