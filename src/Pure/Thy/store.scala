@@ -137,7 +137,7 @@ object Store {
 
     def read_sources(
       db: SQL.Database,
-      cache: Term.Cache,
+      cache: Compress.Cache,
       session_name: String,
       name: String = ""
     ): List[Source_File] = {
@@ -150,7 +150,7 @@ object Store {
           val digest = SHA1.fake_digest(res.string(Sources.digest))
           val compressed = res.bool(Sources.compressed)
           val body = res.bytes(Sources.body)
-          Source_File(res_name, digest, compressed, body, cache.compress)
+          Source_File(res_name, digest, compressed, body, cache)
         }
       )
     }
@@ -437,5 +437,5 @@ class Store private(val options: Options, val cache: Term.Cache) {
   }
 
   def read_sources(db: SQL.Database, session: String, name: String = ""): List[Store.Source_File] =
-    Store.Data.read_sources(db, cache, session, name = name)
+    Store.Data.read_sources(db, cache.compress, session, name = name)
 }
