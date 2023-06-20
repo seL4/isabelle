@@ -230,7 +230,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def find_heap_shasum(name: String): SHA1.Shasum =
     (for {
       path <- find_heap(name)
-      digest <- ML_Heap.read_digest(path)
+      digest <- ML_Heap.read_file_digest(path)
     } yield SHA1.shasum(digest, name)).getOrElse(SHA1.no_shasum)
 
   def the_heap(name: String): Path =

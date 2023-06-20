@@ -451,7 +451,7 @@ object Build_Job {
 
         val output_shasum =
           if (process_result.ok && store_heap && store.output_heap(session_name).is_file) {
-            SHA1.shasum(ML_Heap.write_digest(store.output_heap(session_name)), session_name)
+            SHA1.shasum(ML_Heap.write_file_digest(store.output_heap(session_name)), session_name)
           }
           else SHA1.no_shasum
 
