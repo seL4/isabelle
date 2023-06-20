@@ -22,7 +22,7 @@ object Browser_Info {
     def dir(path: Path): Config =
       new Config {
         def enabled: Boolean = true
-        override def presentation_dir(store: Sessions.Store): Path = path
+        override def presentation_dir(store: Store): Path = path
       }
 
     def make(s: String): Config =
@@ -32,7 +32,7 @@ object Browser_Info {
   abstract class Config private {
     def enabled: Boolean
     def enabled(info: Sessions.Info): Boolean = enabled || info.browser_info
-    def presentation_dir(store: Sessions.Store): Path = store.presentation_dir
+    def presentation_dir(store: Store): Path = store.presentation_dir
   }
 
 
@@ -668,7 +668,7 @@ object Browser_Info {
 
   def build(
     browser_info: Config,
-    store: Sessions.Store,
+    store: Store,
     deps: Sessions.Deps,
     sessions: List[String],
     progress: Progress = new Progress

@@ -15,7 +15,7 @@ object Profiling_Report {
     clean_name: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
-    val store = Sessions.store(options)
+    val store = Store(options)
 
     using(Export.open_session_context0(store, session)) { session_context =>
       session_context.session_db().map(db => store.read_theories(db, session)) match {

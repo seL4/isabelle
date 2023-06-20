@@ -264,7 +264,7 @@ object Build_History {
 
       /* output log */
 
-      val store = Sessions.store(options + "build_database_server=false")
+      val store = Store(options + "build_database_server=false")
 
       val meta_info =
         Properties.lines_nonempty(Build_Log.Prop.build_tags.name, build_tags) :::

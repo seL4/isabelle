@@ -250,16 +250,16 @@ object Export {
 
   /* context for database access */
 
-  def open_database_context(store: Sessions.Store): Database_Context = {
+  def open_database_context(store: Store): Database_Context = {
     val database_server = if (store.build_database_server) Some(store.open_database_server()) else None
     new Database_Context(store, database_server)
   }
 
-  def open_session_context0(store: Sessions.Store, session: String): Session_Context =
+  def open_session_context0(store: Store, session: String): Session_Context =
     open_database_context(store).open_session0(session, close_database_context = true)
 
   def open_session_context(
-    store: Sessions.Store,
+    store: Store,
     session_background: Sessions.Background,
     document_snapshot: Option[Document.Snapshot] = None
   ): Session_Context = {
@@ -268,7 +268,7 @@ object Export {
   }
 
   class Database_Context private[Export](
-    val store: Sessions.Store,
+    val store: Store,
     val database_server: Option[SQL.Database]
   ) extends AutoCloseable {
     database_context =>
@@ -420,7 +420,7 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
-    def get_source_file(name: String): Option[Sessions.Source_File] = {
+    def get_source_file(name: String): Option[Store.Source_File] = {
       val store = database_context.store
       (for {
         database <- db_hierarchy.iterator
@@ -428,7 +428,7 @@ object Export {
       } yield file).nextOption()
     }
 
-    def source_file(name: String): Sessions.Source_File =
+    def source_file(name: String): Store.Source_File =
       get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
 
     def theory_source(theory: String, unicode_symbols: Boolean = false): String = {
@@ -506,7 +506,7 @@ object Export {
   /* export to file-system */
 
   def export_files(
-    store: Sessions.Store,
+    store: Store,
     session_name: String,
     export_dir: Path,
     progress: Progress = new Progress,
@@ -608,7 +608,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
         /* export files */
 
-        val store = Sessions.store(options)
+        val store = Store(options)
         export_files(store, session_name, export_dir, progress = progress, export_prune = export_prune,
           export_list = export_list, export_patterns = export_patterns)
       })

@@ -15,7 +15,7 @@ object Sync {
   ): List[String] = {
     if (session_images.isEmpty) Nil
     else {
-      val store = Sessions.store(options)
+      val store = Store(options)
       val sessions_structure = Sessions.load_structure(options, dirs = dirs)
       sessions_structure.build_requirements(session_images).flatMap { session =>
         val heap =

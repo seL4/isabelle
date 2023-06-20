@@ -296,7 +296,7 @@ class Language_Server(
       catch { case ERROR(msg) => reply_error(msg); None }
 
     for ((session_background, session) <- try_session) {
-      val store = Sessions.store(options)
+      val store = Store(options)
       val session_heaps =
         ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
 

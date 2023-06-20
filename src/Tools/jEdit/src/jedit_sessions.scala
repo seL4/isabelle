@@ -46,11 +46,11 @@ object JEdit_Sessions {
 
   /* database store */
 
-  def sessions_store(options: Options = PIDE.options.value): Sessions.Store =
-    Sessions.store(session_options(options))
+  def sessions_store(options: Options = PIDE.options.value): Store =
+    Store(session_options(options))
 
   def open_session_context(
-    store: Sessions.Store = sessions_store(),
+    store: Store = sessions_store(),
     session_background: Sessions.Background = PIDE.resources.session_background,
     document_snapshot: Option[Document.Snapshot] = None
   ): Export.Session_Context = {

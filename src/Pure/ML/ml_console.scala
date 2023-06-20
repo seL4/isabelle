@@ -48,7 +48,7 @@ Usage: isabelle console [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
 
-      val store = Sessions.store(options)
+      val store = Store(options)
 
       // build logic
       if (!no_build && !raw_ml_system) {

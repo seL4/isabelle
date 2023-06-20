@@ -182,6 +182,7 @@ sources = \
   src/Pure/Thy/html.scala \
   src/Pure/Thy/latex.scala \
   src/Pure/Thy/sessions.scala \
+  src/Pure/Thy/store.scala \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
   src/Pure/Thy/thy_syntax.scala \

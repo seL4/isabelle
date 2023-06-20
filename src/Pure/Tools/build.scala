@@ -22,7 +22,7 @@ object Build {
   }
 
   class Results private(
-    val store: Sessions.Store,
+    val store: Store,
     val deps: Sessions.Deps,
     results: Map[String, Process_Result]
   ) {
@@ -69,9 +69,9 @@ object Build {
   def hostname(options: Options): String =
     Isabelle_System.hostname(options.string("build_hostname"))
 
-  def build_init(options: Options, cache: Term.Cache = Term.Cache.make()): Sessions.Store = {
+  def build_init(options: Options, cache: Term.Cache = Term.Cache.make()): Store = {
     val build_options = options + "completion_limit=0" + "editor_tracing_messages=0"
-    val store = Sessions.store(build_options, cache = cache)
+    val store = Store(build_options, cache = cache)
 
     Isabelle_Fonts.init()
 
@@ -471,7 +471,7 @@ Usage: isabelle build_worker [OPTIONS] ...]
     def read_xml(name: String): XML.Body =
       YXML.parse_body(decode_bytes(read(name).bytes), cache = theory_context.cache)
 
-    def read_source_file(name: String): Sessions.Source_File =
+    def read_source_file(name: String): Store.Source_File =
       theory_context.session_context.source_file(name)
 
     for {
@@ -541,7 +541,7 @@ Usage: isabelle build_worker [OPTIONS] ...]
     metric: Pretty.Metric = Symbol.Metric,
     unicode_symbols: Boolean = false
   ): Unit = {
-    val store = Sessions.store(options)
+    val store = Store(options)
     val session = new Session(options, Resources.bootstrap)
 
     def check(filter: List[Regex], make_string: => String): Boolean =

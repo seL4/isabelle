@@ -16,7 +16,7 @@ object ML_Process {
     SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
 
   def session_heaps(
-    store: Sessions.Store,
+    store: Store,
     session_background: Sessions.Background,
     logic: String = ""
   ): List[Path] = {
@@ -173,7 +173,7 @@ Usage: isabelle process [OPTIONS]
       val more_args = getopts(args)
       if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-      val store = Sessions.store(options)
+      val store = Store(options)
       val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
       val session_heaps = ML_Process.session_heaps(store, session_background, logic = logic)
       val result =

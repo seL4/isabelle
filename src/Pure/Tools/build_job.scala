@@ -39,7 +39,7 @@ object Build_Job {
       session_prefs: String,
       sources_shasum: SHA1.Shasum,
       timeout: Time,
-      store: Sessions.Store,
+      store: Store,
       progress: Progress = new Progress
     ): Session_Context = {
       def default: Session_Context =
@@ -105,7 +105,7 @@ object Build_Job {
     private val options: Options = node_info.process_policy(info.options)
 
     private val session_sources =
-      Sessions.Sources.load(session_background.base, cache = store.cache.compress)
+      Store.Sources.load(session_background.base, cache = store.cache.compress)
 
     private val store_heap = build_context.store_heap(session_name)
 
@@ -477,7 +477,7 @@ object Build_Job {
             build_log =
               if (process_result.timeout) build_log.error("Timeout") else build_log,
             build =
-              Sessions.Build_Info(
+              Store.Build_Info(
                 sources = build_context.sources_shasum(session_name),
                 input_heaps = input_shasum,
                 output_heap = output_shasum,
@@ -531,7 +531,7 @@ object Build_Job {
     def read_xml(name: String): XML.Body =
       YXML.parse_body(decode_bytes(read(name).bytes), cache = theory_context.cache)
 
-    def read_source_file(name: String): Sessions.Source_File =
+    def read_source_file(name: String): Store.Source_File =
       theory_context.session_context.source_file(name)
 
     for {

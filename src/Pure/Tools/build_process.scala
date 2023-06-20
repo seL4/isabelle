@@ -18,7 +18,7 @@ object Build_Process {
 
   object Context {
     def apply(
-      store: Sessions.Store,
+      store: Store,
       build_deps: Sessions.Deps,
       progress: Progress = new Progress,
       ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
@@ -89,7 +89,7 @@ object Build_Process {
   }
 
   final class Context private(
-    val store: Sessions.Store,
+    val store: Store,
     val build_deps: Sessions.Deps,
     val sessions: State.Sessions,
     val ordering: Ordering[String],
@@ -796,7 +796,7 @@ class Build_Process(
 extends AutoCloseable {
   /* context */
 
-  protected final val store: Sessions.Store = build_context.store
+  protected final val store: Store = build_context.store
   protected final val build_options: Options = store.options
   protected final val build_deps: Sessions.Deps = build_context.build_deps
   protected final val hostname: String = build_context.hostname
