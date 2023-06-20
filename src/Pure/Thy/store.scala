@@ -15,7 +15,20 @@ object Store {
     new Store(options, cache)
 
 
-  /* source files */
+  /* session build info */
+
+  sealed case class Build_Info(
+    sources: SHA1.Shasum,
+    input_heaps: SHA1.Shasum,
+    output_heap: SHA1.Shasum,
+    return_code: Int,
+    uuid: String
+  ) {
+    def ok: Boolean = return_code == 0
+  }
+
+
+  /* session sources */
 
   sealed case class Source_File(
     name: String,
@@ -30,20 +43,6 @@ object Store {
   }
 
   object Sources {
-    val session_name = SQL.Column.string("session_name").make_primary_key
-    val name = SQL.Column.string("name").make_primary_key
-    val digest = SQL.Column.string("digest")
-    val compressed = SQL.Column.bool("compressed")
-    val body = SQL.Column.bytes("body")
-
-    val table =
-      SQL.Table("isabelle_sources", List(session_name, name, digest, compressed, body))
-
-    def where_equal(session_name: String, name: String = ""): SQL.Source =
-      SQL.where_and(
-        Sources.session_name.equal(session_name),
-        if_proper(name, Sources.name.equal(name)))
-
     def load(session_base: Sessions.Base, cache: Compress.Cache = Compress.Cache.none): Sources =
       new Sources(
         session_base.session_sources.foldLeft(Map.empty) {
@@ -76,46 +75,88 @@ object Store {
   }
 
 
+  /* SQL data model */
 
-  /* session info */
+  object Data {
+    object Session_Info {
+      val session_name = SQL.Column.string("session_name").make_primary_key
 
-  sealed case class Build_Info(
-    sources: SHA1.Shasum,
-    input_heaps: SHA1.Shasum,
-    output_heap: SHA1.Shasum,
-    return_code: Int,
-    uuid: String
-  ) {
-    def ok: Boolean = return_code == 0
-  }
+      // Build_Log.Session_Info
+      val session_timing = SQL.Column.bytes("session_timing")
+      val command_timings = SQL.Column.bytes("command_timings")
+      val theory_timings = SQL.Column.bytes("theory_timings")
+      val ml_statistics = SQL.Column.bytes("ml_statistics")
+      val task_statistics = SQL.Column.bytes("task_statistics")
+      val errors = SQL.Column.bytes("errors")
+      val build_log_columns =
+        List(session_name, session_timing, command_timings, theory_timings,
+          ml_statistics, task_statistics, errors)
 
-  object Session_Info {
-    val session_name = SQL.Column.string("session_name").make_primary_key
+      // Build_Info
+      val sources = SQL.Column.string("sources")
+      val input_heaps = SQL.Column.string("input_heaps")
+      val output_heap = SQL.Column.string("output_heap")
+      val return_code = SQL.Column.int("return_code")
+      val uuid = SQL.Column.string("uuid")
+      val build_columns = List(sources, input_heaps, output_heap, return_code, uuid)
 
-    // Build_Log.Session_Info
-    val session_timing = SQL.Column.bytes("session_timing")
-    val command_timings = SQL.Column.bytes("command_timings")
-    val theory_timings = SQL.Column.bytes("theory_timings")
-    val ml_statistics = SQL.Column.bytes("ml_statistics")
-    val task_statistics = SQL.Column.bytes("task_statistics")
-    val errors = SQL.Column.bytes("errors")
-    val build_log_columns =
-      List(session_name, session_timing, command_timings, theory_timings,
-        ml_statistics, task_statistics, errors)
+      val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
 
-    // Build_Info
-    val sources = SQL.Column.string("sources")
-    val input_heaps = SQL.Column.string("input_heaps")
-    val output_heap = SQL.Column.string("output_heap")
-    val return_code = SQL.Column.int("return_code")
-    val uuid = SQL.Column.string("uuid")
-    val build_columns = List(sources, input_heaps, output_heap, return_code, uuid)
+      val augment_table: PostgreSQL.Source =
+        "ALTER TABLE IF EXISTS " + table.ident +
+        " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
+    }
 
-    val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
+    object Sources {
+      val session_name = SQL.Column.string("session_name").make_primary_key
+      val name = SQL.Column.string("name").make_primary_key
+      val digest = SQL.Column.string("digest")
+      val compressed = SQL.Column.bool("compressed")
+      val body = SQL.Column.bytes("body")
 
-    val augment_table: PostgreSQL.Source =
-      "ALTER TABLE IF EXISTS " + table.ident +
-      " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
+      val table =
+        SQL.Table("isabelle_sources", List(session_name, name, digest, compressed, body))
+
+      def where_equal(session_name: String, name: String = ""): SQL.Source =
+        SQL.where_and(
+          Sources.session_name.equal(session_name),
+          if_proper(name, Sources.name.equal(name)))
+    }
+
+    def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit =
+      for (source_file <- sources) {
+        db.execute_statement(Sources.table.insert(), body =
+          { stmt =>
+            stmt.string(1) = session_name
+            stmt.string(2) = source_file.name
+            stmt.string(3) = source_file.digest.toString
+            stmt.bool(4) = source_file.compressed
+            stmt.bytes(5) = source_file.body
+          })
+      }
+
+    def read_sources(
+      db: SQL.Database,
+      cache: Term.Cache,
+      session_name: String,
+      name: String = ""
+    ): List[Source_File] = {
+      db.execute_query_statement(
+        Sources.table.select(
+          sql = Sources.where_equal(session_name, name = name) + SQL.order_by(List(Sources.name))),
+        List.from[Source_File],
+        { res =>
+          val res_name = res.string(Sources.name)
+          val digest = SHA1.fake_digest(res.string(Sources.digest))
+          val compressed = res.bool(Sources.compressed)
+          val body = res.bytes(Sources.body)
+          Source_File(res_name, digest, compressed, body, cache.compress)
+        }
+      )
+    }
+
+    val all_tables: SQL.Tables =
+      SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
   }
 }
 
@@ -284,8 +325,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
     db.execute_query_statementO[Bytes](
-      Store.Session_Info.table.select(List(column),
-        sql = Store.Session_Info.session_name.where_equal(name)),
+      Store.Data.Session_Info.table.select(List(column),
+        sql = Store.Data.Session_Info.session_name.where_equal(name)),
       res => res.bytes(column)
     ).getOrElse(Bytes.empty)
 
@@ -295,19 +336,17 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   /* session info */
 
-  val all_tables: SQL.Tables =
-    SQL.Tables(Store.Session_Info.table, Store.Sources.table, Export.Data.table,
-      Document_Build.Data.table)
-
   def init_session_info(db: SQL.Database, name: String): Boolean =
-    db.transaction_lock(all_tables, create = true) {
+    db.transaction_lock(Store.Data.all_tables, create = true) {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
-        Store.Session_Info.table.delete(sql = Store.Session_Info.session_name.where_equal(name)))
-      if (db.is_postgresql) db.execute_statement(Store.Session_Info.augment_table)
+        Store.Data.Session_Info.table.delete(
+          sql = Store.Data.Session_Info.session_name.where_equal(name)))
+      if (db.is_postgresql) db.execute_statement(Store.Data.Session_Info.augment_table)
 
-      db.execute_statement(Store.Sources.table.delete(sql = Store.Sources.where_equal(name)))
+      db.execute_statement(Store.Data.Sources.table.delete(
+        sql = Store.Data.Sources.where_equal(name)))
 
       db.execute_statement(
         Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))
@@ -320,13 +359,13 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   def session_info_exists(db: SQL.Database): Boolean = {
     val tables = db.tables
-    all_tables.forall(table => tables.contains(table.name))
+    Store.Data.all_tables.forall(table => tables.contains(table.name))
   }
 
   def session_info_defined(db: SQL.Database, name: String): Boolean =
     db.execute_query_statementB(
-      Store.Session_Info.table.select(List(Store.Session_Info.session_name),
-        sql = Store.Session_Info.session_name.where_equal(name)))
+      Store.Data.Session_Info.table.select(List(Store.Data.Session_Info.session_name),
+        sql = Store.Data.Session_Info.session_name.where_equal(name)))
 
   def write_session_info(
     db: SQL.Database,
@@ -335,9 +374,9 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    db.transaction_lock(all_tables) {
-      write_sources(db, session_name, sources)
-      db.execute_statement(Store.Session_Info.table.insert(), body =
+    db.transaction_lock(Store.Data.all_tables) {
+      Store.Data.write_sources(db, session_name, sources)
+      db.execute_statement(Store.Data.Session_Info.table.insert(), body =
         { stmt =>
           stmt.string(1) = session_name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
@@ -356,39 +395,40 @@ class Store private(val options: Options, val cache: Term.Cache) {
   }
 
   def read_session_timing(db: SQL.Database, name: String): Properties.T =
-    Properties.decode(read_bytes(db, name, Store.Session_Info.session_timing), cache = cache)
+    Properties.decode(read_bytes(db, name, Store.Data.Session_Info.session_timing), cache = cache)
 
   def read_command_timings(db: SQL.Database, name: String): Bytes =
-    read_bytes(db, name, Store.Session_Info.command_timings)
+    read_bytes(db, name, Store.Data.Session_Info.command_timings)
 
   def read_theory_timings(db: SQL.Database, name: String): List[Properties.T] =
-    read_properties(db, name, Store.Session_Info.theory_timings)
+    read_properties(db, name, Store.Data.Session_Info.theory_timings)
 
   def read_ml_statistics(db: SQL.Database, name: String): List[Properties.T] =
-    read_properties(db, name, Store.Session_Info.ml_statistics)
+    read_properties(db, name, Store.Data.Session_Info.ml_statistics)
 
   def read_task_statistics(db: SQL.Database, name: String): List[Properties.T] =
-    read_properties(db, name, Store.Session_Info.task_statistics)
+    read_properties(db, name, Store.Data.Session_Info.task_statistics)
 
   def read_theories(db: SQL.Database, name: String): List[String] =
     read_theory_timings(db, name).flatMap(Markup.Name.unapply)
 
   def read_errors(db: SQL.Database, name: String): List[String] =
-    Build_Log.uncompress_errors(read_bytes(db, name, Store.Session_Info.errors), cache = cache)
+    Build_Log.uncompress_errors(read_bytes(db, name, Store.Data.Session_Info.errors), cache = cache)
 
   def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
-    if (db.tables.contains(Store.Session_Info.table.name)) {
+    if (db.tables.contains(Store.Data.Session_Info.table.name)) {
       db.execute_query_statementO[Store.Build_Info](
-        Store.Session_Info.table.select(sql = Store.Session_Info.session_name.where_equal(name)),
+        Store.Data.Session_Info.table.select(
+          sql = Store.Data.Session_Info.session_name.where_equal(name)),
         { res =>
           val uuid =
-            try { Option(res.string(Store.Session_Info.uuid)).getOrElse("") }
+            try { Option(res.string(Store.Data.Session_Info.uuid)).getOrElse("") }
             catch { case _: SQLException => "" }
           Store.Build_Info(
-            SHA1.fake_shasum(res.string(Store.Session_Info.sources)),
-            SHA1.fake_shasum(res.string(Store.Session_Info.input_heaps)),
-            SHA1.fake_shasum(res.string(Store.Session_Info.output_heap)),
-            res.int(Store.Session_Info.return_code),
+            SHA1.fake_shasum(res.string(Store.Data.Session_Info.sources)),
+            SHA1.fake_shasum(res.string(Store.Data.Session_Info.input_heaps)),
+            SHA1.fake_shasum(res.string(Store.Data.Session_Info.output_heap)),
+            res.int(Store.Data.Session_Info.return_code),
             uuid)
         }
       )
@@ -396,37 +436,6 @@ class Store private(val options: Options, val cache: Term.Cache) {
     else None
   }
 
-
-  /* session sources */
-
-  def write_sources(db: SQL.Database, session_name: String, sources: Store.Sources): Unit =
-    for (source_file <- sources) {
-      db.execute_statement(Store.Sources.table.insert(), body =
-        { stmt =>
-          stmt.string(1) = session_name
-          stmt.string(2) = source_file.name
-          stmt.string(3) = source_file.digest.toString
-          stmt.bool(4) = source_file.compressed
-          stmt.bytes(5) = source_file.body
-        })
-    }
-
-  def read_sources(
-    db: SQL.Database,
-    session_name: String,
-    name: String = ""
-  ): List[Store.Source_File] = {
-    db.execute_query_statement(
-      Store.Sources.table.select(sql =
-        Store.Sources.where_equal(session_name, name = name) + SQL.order_by(List(Store.Sources.name))),
-      List.from[Store.Source_File],
-      { res =>
-        val res_name = res.string(Store.Sources.name)
-        val digest = SHA1.fake_digest(res.string(Store.Sources.digest))
-        val compressed = res.bool(Store.Sources.compressed)
-        val body = res.bytes(Store.Sources.body)
-        Store.Source_File(res_name, digest, compressed, body, cache.compress)
-      }
-    )
-  }
+  def read_sources(db: SQL.Database, session: String, name: String = ""): List[Store.Source_File] =
+    Store.Data.read_sources(db, cache, session, name = name)
 }
