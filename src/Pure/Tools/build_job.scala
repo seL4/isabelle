@@ -451,7 +451,15 @@ object Build_Job {
 
         val output_shasum =
           if (process_result.ok && store_heap && store.output_heap(session_name).is_file) {
-            SHA1.shasum(ML_Heap.write_file_digest(store.output_heap(session_name)), session_name)
+            val database =
+              if (store.build_database_test && store.build_database_server) {
+                Some(store.open_database_server())
+              }
+              else None
+            val digest =
+              try { ML_Heap.write_digest(database, store.output_heap(session_name)) }
+              finally { database.foreach(_.close()) }
+            SHA1.shasum(digest, session_name)
           }
           else SHA1.no_shasum
 

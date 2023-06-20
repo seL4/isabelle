@@ -43,4 +43,110 @@ object ML_Heap {
 
   /* SQL data model */
 
+  object Data {
+    def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
+      SQL.Table("isabelle_heaps" + if_proper(name, "_" + name), columns, body = body)
+
+    object Generic {
+      val name = SQL.Column.string("name").make_primary_key
+    }
+
+    object Base {
+      val name = Generic.name
+      val size = SQL.Column.long("size")
+      val digest = SQL.Column.string("digest")
+
+      val table = make_table("", List(name, size, digest))
+    }
+
+    object Slices {
+      val name = Generic.name
+      val slice = SQL.Column.int("slice").make_primary_key
+      val content = SQL.Column.bytes("content")
+
+      val table = make_table("slices", List(name, slice, content))
+    }
+
+    def known_entry(db: SQL.Database, name: String): Boolean =
+      db.execute_query_statementB(
+        Base.table.select(List(Base.name), sql = Base.name.where_equal(name)))
+
+    def defined_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
+      db.execute_query_statementO[String](
+        Base.table.select(List(Base.digest), sql = Generic.name.where_equal(name)),
+        _.string(Base.digest)
+      ).flatMap(proper_string).map(SHA1.fake_digest)
+
+    def clean_entry(db: SQL.Database, name: String): Unit = {
+      for (table <- List(Base.table, Slices.table)) {
+        db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
+      }
+    }
+
+    def prepare_entry(db: SQL.Database, name: String): Unit =
+      db.execute_statement(Base.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = name
+          stmt.long(2) = None
+          stmt.string(3) = None
+        })
+
+    def write_entry(db: SQL.Database, name: String, slice: Int, content: Bytes): Unit =
+      db.execute_statement(Slices.table.insert(), body =
+      { stmt =>
+        stmt.string(1) = name
+        stmt.int(2) = slice
+        stmt.bytes(3) = content
+      })
+
+    def finish_entry(db: SQL.Database, name: String, size: Long, digest: SHA1.Digest): Unit =
+      db.execute_statement(
+        Base.table.update(List(Base.size, Base.digest), sql = Base.name.where_equal(name)),
+        body =
+          { stmt =>
+            stmt.long(1) = size
+            stmt.string(2) = digest.toString
+          })
+
+    val all_tables: SQL.Tables = SQL.Tables(Base.table, Slices.table)
+  }
+
+  def write_digest(
+    database: Option[SQL.Database],
+    heap: Path,
+    cache: Compress.Cache = Compress.Cache.none,
+    slice_size: Long = Space.MiB(50).bytes
+  ): SHA1.Digest = {
+    val digest = write_file_digest(heap)
+    database match {
+      case Some(db) =>
+        val name = heap.file_name
+        val size = File.space(heap).bytes - sha1_prefix.length - SHA1.digest_length
+
+        val slices = (size.toDouble / slice_size.toDouble).ceil.toInt
+        val step = (size.toDouble / slices.toDouble).ceil.toLong
+
+        try {
+          db.transaction_lock(Data.all_tables, create = true) { Data.prepare_entry(db, name) }
+
+          for (i <- 0 until slices) {
+            val j = i + 1
+            val offset = step * i
+            val limit = if (j < slices) step * j else size
+            val content =
+              Bytes.read_file(heap.file, offset = offset, limit = limit)
+                .compress(cache = cache)
+            db.transaction_lock(Data.all_tables) { Data.write_entry(db, name, i, content) }
+          }
+
+          db.transaction_lock(Data.all_tables) { Data.finish_entry(db, name, size, digest) }
+        }
+        catch { case exn: Throwable =>
+          db.transaction_lock(Data.all_tables, create = true) { Data.clean_entry(db, name) }
+          throw exn
+        }
+      case None =>
+    }
+    digest
+  }
 }
