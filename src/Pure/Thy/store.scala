@@ -123,6 +123,30 @@ object Store {
           if_proper(name, Sources.name.equal(name)))
     }
 
+    def write_session_info(
+      db: SQL.Database,
+      cache: Compress.Cache,
+      session_name: String,
+      build_log: Build_Log.Session_Info,
+      build: Build_Info
+    ): Unit = {
+      db.execute_statement(Store.Data.Session_Info.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = session_name
+          stmt.bytes(2) = Properties.encode(build_log.session_timing)
+          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache)
+          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache)
+          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache)
+          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache)
+          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache)
+          stmt.string(8) = build.sources.toString
+          stmt.string(9) = build.input_heaps.toString
+          stmt.string(10) = build.output_heap.toString
+          stmt.int(11) = build.return_code
+          stmt.string(12) = build.uuid
+        })
+    }
+
     def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit =
       for (source_file <- sources) {
         db.execute_statement(Sources.table.insert(), body =
@@ -336,6 +360,16 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   /* session info */
 
+  def session_info_exists(db: SQL.Database): Boolean = {
+    val tables = db.tables
+    Store.Data.all_tables.forall(table => tables.contains(table.name))
+  }
+
+  def session_info_defined(db: SQL.Database, name: String): Boolean =
+    db.execute_query_statementB(
+      Store.Data.Session_Info.table.select(List(Store.Data.Session_Info.session_name),
+        sql = Store.Data.Session_Info.session_name.where_equal(name)))
+
   def init_session_info(db: SQL.Database, name: String): Boolean =
     db.transaction_lock(Store.Data.all_tables, create = true) {
       val already_defined = session_info_defined(db, name)
@@ -357,16 +391,6 @@ class Store private(val options: Options, val cache: Term.Cache) {
       already_defined
     }
 
-  def session_info_exists(db: SQL.Database): Boolean = {
-    val tables = db.tables
-    Store.Data.all_tables.forall(table => tables.contains(table.name))
-  }
-
-  def session_info_defined(db: SQL.Database, name: String): Boolean =
-    db.execute_query_statementB(
-      Store.Data.Session_Info.table.select(List(Store.Data.Session_Info.session_name),
-        sql = Store.Data.Session_Info.session_name.where_equal(name)))
-
   def write_session_info(
     db: SQL.Database,
     session_name: String,
@@ -376,21 +400,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   ): Unit = {
     db.transaction_lock(Store.Data.all_tables) {
       Store.Data.write_sources(db, session_name, sources)
-      db.execute_statement(Store.Data.Session_Info.table.insert(), body =
-        { stmt =>
-          stmt.string(1) = session_name
-          stmt.bytes(2) = Properties.encode(build_log.session_timing)
-          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache.compress)
-          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache.compress)
-          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache.compress)
-          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache.compress)
-          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache.compress)
-          stmt.string(8) = build.sources.toString
-          stmt.string(9) = build.input_heaps.toString
-          stmt.string(10) = build.output_heap.toString
-          stmt.int(11) = build.return_code
-          stmt.string(12) = build.uuid
-        })
+      Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }
   }
 
