@@ -195,7 +195,7 @@ option build_engine : string = ""
 option build_database_test : bool = false
   -- "expose state of build process via central database"
 
-option build_database_slice : real = 50.0
+option build_database_slice : real = 300
   -- "slice size in MiB for ML heap stored within database"
 
 
