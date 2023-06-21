@@ -453,8 +453,11 @@ object Build_Job {
           val heap = store.output_heap(session_name)
           if (process_result.ok && store_heap && heap.is_file) {
             val database = store.maybe_open_heaps_database()
-            try { SHA1.shasum(ML_Heap.write_digest(database, heap), session_name) }
-            finally { database.foreach(_.close()) }
+            val slice = Space.MiB(options.real("build_database_slice")).bytes
+            val digest =
+              try { ML_Heap.write_digest(database, heap, slice = slice) }
+              finally { database.foreach(_.close()) }
+            SHA1.shasum(digest, session_name)
           }
           else SHA1.no_shasum
         }

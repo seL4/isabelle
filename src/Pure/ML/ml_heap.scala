@@ -114,8 +114,8 @@ object ML_Heap {
   def write_digest(
     database: Option[SQL.Database],
     heap: Path,
+    slice: Long,
     cache: Compress.Cache = Compress.Cache.none,
-    slice_size: Long = Space.MiB(50).bytes
   ): SHA1.Digest = {
     val digest = write_file_digest(heap)
     database match {
@@ -123,7 +123,7 @@ object ML_Heap {
         val name = heap.file_name
         val size = File.space(heap).bytes - sha1_prefix.length - SHA1.digest_length
 
-        val slices = (size.toDouble / slice_size.toDouble).ceil.toInt
+        val slices = (size.toDouble / slice.toDouble).ceil.toInt
         val step = (size.toDouble / slices.toDouble).ceil.toLong
 
         try {
