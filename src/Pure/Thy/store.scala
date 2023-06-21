@@ -299,7 +299,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
 
-  def clean_output(name: String): Option[Boolean] = {
+  def clean_output(name: String, init: Boolean = false): Option[Boolean] = {
     val relevant_db =
       build_database_server &&
         using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
@@ -312,12 +312,9 @@ class Store private(val options: Options, val cache: Term.Cache) {
         path = dir + file if path.is_file
       } yield path.file.delete
 
-    if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
-  }
+    if (init) using(open_database(name, output = true))(init_session_info(_, name))
 
-  def init_output(name: String): Unit = {
-    clean_output(name)
-    using(open_database(name, output = true))(init_session_info(_, name))
+    if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
   }
 
   def check_output(

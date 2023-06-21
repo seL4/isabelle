@@ -939,7 +939,7 @@ extends AutoCloseable {
         (if (store_heap) "Building " else "Running ") + session_name +
           if_proper(node_info.numa_node, " on " + node_info) + " ...")
 
-      store.init_output(session_name)
+      store.clean_output(session_name, init = true)
 
       val build =
         Build_Job.start_session(build_context, progress, log,
