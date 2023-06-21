@@ -111,7 +111,7 @@ object ML_Heap {
   def clean_entry(db: SQL.Database, name: String): Unit =
     Data.transaction_lock(db, create = true) { Data.clean_entry(db, name) }
 
-  def write_digest(
+  def store(
     database: Option[SQL.Database],
     heap: Path,
     slice: Long,
