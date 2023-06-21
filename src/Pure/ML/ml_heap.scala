@@ -111,6 +111,9 @@ object ML_Heap {
     val all_tables: SQL.Tables = SQL.Tables(Base.table, Slices.table)
   }
 
+  def clean_entry(db: SQL.Database, name: String): Unit =
+    db.transaction_lock(Data.all_tables, create = true) { Data.clean_entry(db, name) }
+
   def write_digest(
     database: Option[SQL.Database],
     heap: Path,

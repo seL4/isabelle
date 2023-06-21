@@ -312,7 +312,12 @@ class Store private(val options: Options, val cache: Term.Cache) {
         path = dir + file if path.is_file
       } yield path.file.delete
 
-    if (init) using(open_database(name, output = true))(init_session_info(_, name))
+    if (init) {
+      using(open_database(name, output = true)) { db =>
+        if (build_database_test && build_database_server) ML_Heap.clean_entry(db, name)
+        init_session_info(db, name)
+      }
+    }
 
     if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
   }
