@@ -124,11 +124,11 @@ object Build_Process {
     def prepare_database(): Unit = {
       using_option(store.maybe_open_build_database(Data.database)) { db =>
         val shared_db = db.is_postgresql
-        db.transaction_lock(Data.all_tables, create = true) {
+        Data.transaction_lock(db, create = true) {
           Data.clean_build(db)
-          if (shared_db) Store.Data.all_tables.lock(db, create = true)
+          if (shared_db) Store.Data.tables.lock(db, create = true)
         }
-        db.vacuum(Data.all_tables ::: (if (shared_db) Store.Data.all_tables else SQL.Tables.empty))
+        Data.vacuum(db, more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
       }
     }
 
@@ -267,11 +267,8 @@ object Build_Process {
 
   /** SQL data model **/
 
-  object Data {
+  object Data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
-
-    def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
-      SQL.Table("isabelle_build" + if_proper(name, "_" + name), columns, body = body)
 
     def pull_data[A <: Library.Named](
       data_domain: Set[String],
@@ -727,7 +724,7 @@ object Build_Process {
 
     /* collective operations */
 
-    val all_tables: SQL.Tables =
+    override val tables =
       SQL.Tables(
         Base.table,
         Workers.table,
@@ -737,7 +734,7 @@ object Build_Process {
         Results.table)
 
     val build_uuid_tables =
-      all_tables.filter(table =>
+      tables.filter(table =>
         table.columns.exists(column => column.name == Generic.build_uuid.name))
 
     def pull_database(
@@ -845,7 +842,7 @@ extends AutoCloseable {
     _database match {
       case None => body
       case Some(db) =>
-        db.transaction_lock(Build_Process.Data.all_tables) {
+        Build_Process.Data.transaction_lock(db) {
           progress.asInstanceOf[Database_Progress].sync()
           _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
           val res = body

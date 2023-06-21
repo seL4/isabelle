@@ -247,6 +247,26 @@ object SQL {
     }
   }
 
+  abstract class Data(table_prefix: String = "") {
+    def tables: Tables = Tables.empty
+
+    def transaction_lock[A](
+      db: Database,
+      more_tables: Tables = Tables.empty,
+      create: Boolean = false
+    )(body: => A): A = db.transaction { (tables ::: more_tables).lock(db, create = create); body }
+
+    def vacuum(db: Database, more_tables: Tables = Tables.empty): Unit =
+      db.vacuum(tables = tables ::: more_tables)
+
+    def make_table(name: String, columns: List[Column], body: String = ""): Table = {
+      val table_name =
+        List(proper_string(table_prefix), proper_string(name)).flatten.mkString("_")
+      require(table_name.nonEmpty, "Undefined database table name")
+      Table(table_name, columns, body = body)
+    }
+  }
+
 
 
   /** SQL database operations **/

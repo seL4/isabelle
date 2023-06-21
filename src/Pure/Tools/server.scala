@@ -363,7 +363,7 @@ object Server {
 
   val default_name = "isabelle"
 
-  object Data {
+  object Data extends SQL.Data() {
     val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
 
     val name = SQL.Column.string("name").make_primary_key
@@ -371,7 +371,7 @@ object Server {
     val password = SQL.Column.string("password")
     val table = SQL.Table("isabelle_servers", List(name, port, password))
 
-    val tables = SQL.Tables(table)
+    override val tables = SQL.Tables(table)
   }
 
   def list(db: SQLite.Database): List[Info] =
@@ -398,11 +398,11 @@ object Server {
     log: Logger = No_Logger
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(Data.database, restrict = true)) { db =>
-      db.transaction_lock(Data.tables, create = true) {
+      Data.transaction_lock(db, create = true) {
         list(db).filterNot(_.active).foreach(server_info =>
           db.execute_statement(Data.table.delete(sql = Data.name.where_equal(server_info.name))))
       }
-      db.transaction_lock(Data.tables) {
+      Data.transaction_lock(db) {
         find(db, name) match {
           case Some(server_info) => (server_info, None)
           case None =>
@@ -428,7 +428,7 @@ object Server {
 
   def exit(name: String = default_name): Boolean = {
     using(SQLite.open_database(Data.database)) { db =>
-      db.transaction_lock(Data.tables) {
+      Data.transaction_lock(db) {
         find(db, name) match {
           case Some(server_info) =>
             using(server_info.connection())(_.write_line_message("shutdown"))

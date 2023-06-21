@@ -95,11 +95,10 @@ object Host {
 
   /* SQL data model */
 
-  object Data {
+  object Data extends SQL.Data("isabelle_host") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/host.db")
 
-    def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
-      SQL.Table("isabelle_host" + if_proper(name, "_" + name), columns, body = body)
+    override lazy val tables = SQL.Tables(Node_Info.table)
 
     object Node_Info {
       val hostname = SQL.Column.string("hostname").make_primary_key
@@ -107,8 +106,6 @@ object Host {
 
       val table = make_table("node_info", List(hostname, numa_next))
     }
-
-    val all_tables: SQL.Tables = SQL.Tables(Node_Info.table)
 
     def read_numa_next(db: SQL.Database, hostname: String): Int =
       db.execute_query_statementO[Int](
@@ -137,7 +134,7 @@ object Host {
     else {
       val available = available_nodes.zipWithIndex
       val used = used_nodes
-      db.transaction_lock(Data.all_tables, create = true) {
+      Data.transaction_lock(db, create = true) {
         val numa_next = Data.read_numa_next(db, hostname)
         val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
         val candidates = available.drop(numa_index) ::: available.take(numa_index)

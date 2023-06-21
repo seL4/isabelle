@@ -41,11 +41,10 @@ object Progress {
 
   /* SQL data model */
 
-  object Data {
+  object Data extends SQL.Data("isabelle_progress") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/progress.db")
 
-    def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
-      SQL.Table("isabelle_progress" + if_proper(name, "_" + name), columns, body = body)
+    override lazy val tables = SQL.Tables(Base.table, Agents.table, Messages.table)
 
     object Base {
       val context_uuid = SQL.Column.string("context_uuid").make_primary_key
@@ -82,8 +81,6 @@ object Progress {
 
       val table = make_table("messages", List(context, serial, kind, text, verbose))
     }
-
-    val all_tables: SQL.Tables = SQL.Tables(Base.table, Agents.table, Messages.table)
 
     def read_progress_context(db: SQL.Database, context_uuid: String): Option[Long] =
       db.execute_query_statementO(
@@ -252,11 +249,8 @@ extends Progress {
 
   def agent_uuid: String = synchronized { _agent_uuid }
 
-  private def transaction_lock[A](body: => A, create: Boolean = false): A =
-    db.transaction_lock(Progress.Data.all_tables, create = create)(body)
-
   private def init(): Unit = synchronized {
-    transaction_lock(create = true, body = {
+    Progress.Data.transaction_lock(db, create = true) {
       Progress.Data.read_progress_context(db, context_uuid) match {
         case Some(context) =>
           _context = context
@@ -286,13 +280,13 @@ extends Progress {
         stmt.date(8) = None
         stmt.long(9) = 0L
       })
-    })
-    if (context_uuid == _agent_uuid) db.vacuum(Progress.Data.all_tables)
+    }
+    if (context_uuid == _agent_uuid) Progress.Data.vacuum(db)
   }
 
   def exit(): Unit = synchronized {
     if (_context > 0) {
-      transaction_lock {
+      Progress.Data.transaction_lock(db) {
         Progress.Data.update_agent(db, _agent_uuid, _seen, stop = true)
       }
       _context = 0
@@ -301,7 +295,7 @@ extends Progress {
 
   private def sync_database[A](body: => A): A = synchronized {
     require(_context > 0)
-    transaction_lock {
+    Progress.Data.transaction_lock(db) {
       val stopped_db = Progress.Data.read_progress_stopped(db, _context)
       val stopped = base_progress.stopped
 

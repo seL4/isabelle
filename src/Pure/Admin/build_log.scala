@@ -630,11 +630,7 @@ object Build_Log {
 
   /* SQL data model */
 
-  object Data {
-    def build_log_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
-      SQL.Table("isabelle_build_log" + if_proper(name, "_" + name), columns, body)
-
-
+  object Data extends SQL.Data("isabelle_build_log") {
     /* main content */
 
     val log_name = SQL.Column.string("log_name").make_primary_key
@@ -662,21 +658,21 @@ object Build_Log {
     val known = SQL.Column.bool("known")
 
     val meta_info_table =
-      build_log_table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
+      make_table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
 
     val sessions_table =
-      build_log_table("sessions",
+      make_table("sessions",
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
           heap_size, status, errors, sources))
 
     val theories_table =
-      build_log_table("theories",
+      make_table("theories",
         List(log_name, session_name, theory_name, theory_timing_elapsed, theory_timing_cpu,
           theory_timing_gc))
 
     val ml_statistics_table =
-      build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
+      make_table("ml_statistics", List(log_name, session_name, ml_statistics))
 
 
     /* AFP versions */
@@ -684,7 +680,7 @@ object Build_Log {
     val isabelle_afp_versions_table: SQL.Table = {
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
-      build_log_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
+      make_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
         SQL.select(List(version1, version2), distinct = true) + meta_info_table +
           SQL.where_and(version1.defined, version2.defined))
     }
@@ -701,7 +697,7 @@ object Build_Log {
         if (afp) ("afp_pull_date", List(Prop.isabelle_version, Prop.afp_version))
         else ("pull_date", List(Prop.isabelle_version))
 
-      build_log_table(name, versions.map(_.make_primary_key) ::: List(pull_date(afp)),
+      make_table(name, versions.map(_.make_primary_key) ::: List(pull_date(afp)),
         "SELECT " + versions.mkString(", ") +
           ", min(" + Prop.build_start + ") AS " + pull_date(afp) +
         " FROM " + meta_info_table +
@@ -798,7 +794,7 @@ object Build_Log {
           b_table.query_named + SQL.join_inner + sessions_table +
           " ON " + log_name(b_table) + " = " + log_name(sessions_table))
 
-      build_log_table("", c_columns ::: List(ml_statistics),
+      make_table("", c_columns ::: List(ml_statistics),
         {
           SQL.select(c_columns.map(_.apply(c_table)) ::: List(ml_statistics)) +
           c_table.query_named + SQL.join_outer + ml_statistics_table + " ON " +

@@ -77,7 +77,10 @@ object Store {
 
   /* SQL data model */
 
-  object Data {
+  object Data extends SQL.Data() {
+    override lazy val tables =
+      SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
+
     object Session_Info {
       val session_name = SQL.Column.string("session_name").make_primary_key
 
@@ -178,9 +181,6 @@ object Store {
         }
       )
     }
-
-    val all_tables: SQL.Tables =
-      SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
   }
 }
 
@@ -367,7 +367,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   def session_info_exists(db: SQL.Database): Boolean = {
     val tables = db.tables
-    Store.Data.all_tables.forall(table => tables.contains(table.name))
+    Store.Data.tables.forall(table => tables.contains(table.name))
   }
 
   def session_info_defined(db: SQL.Database, name: String): Boolean =
@@ -376,7 +376,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         sql = Store.Data.Session_Info.session_name.where_equal(name)))
 
   def init_session_info(db: SQL.Database, name: String): Boolean =
-    db.transaction_lock(Store.Data.all_tables, create = true) {
+    Store.Data.transaction_lock(db, create = true) {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
@@ -403,7 +403,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    db.transaction_lock(Store.Data.all_tables) {
+    Store.Data.transaction_lock(db) {
       Store.Data.write_sources(db, session_name, sources)
       Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }

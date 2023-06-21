@@ -43,9 +43,8 @@ object ML_Heap {
 
   /* SQL data model */
 
-  object Data {
-    def make_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
-      SQL.Table("isabelle_heaps" + if_proper(name, "_" + name), columns, body = body)
+  object Data extends SQL.Data("isabelle_heaps") {
+    override lazy val tables = SQL.Tables(Base.table, Slices.table)
 
     object Generic {
       val name = SQL.Column.string("name").make_primary_key
@@ -107,12 +106,10 @@ object ML_Heap {
             stmt.long(1) = size
             stmt.string(2) = digest.toString
           })
-
-    val all_tables: SQL.Tables = SQL.Tables(Base.table, Slices.table)
   }
 
   def clean_entry(db: SQL.Database, name: String): Unit =
-    db.transaction_lock(Data.all_tables, create = true) { Data.clean_entry(db, name) }
+    Data.transaction_lock(db, create = true) { Data.clean_entry(db, name) }
 
   def write_digest(
     database: Option[SQL.Database],
@@ -130,7 +127,7 @@ object ML_Heap {
         val step = (size.toDouble / slices.toDouble).ceil.toLong
 
         try {
-          db.transaction_lock(Data.all_tables, create = true) { Data.prepare_entry(db, name) }
+          Data.transaction_lock(db, create = true) { Data.prepare_entry(db, name) }
 
           for (i <- 0 until slices) {
             val j = i + 1
@@ -139,13 +136,13 @@ object ML_Heap {
             val content =
               Bytes.read_file(heap.file, offset = offset, limit = limit)
                 .compress(cache = cache)
-            db.transaction_lock(Data.all_tables) { Data.write_entry(db, name, i, content) }
+            Data.transaction_lock(db) { Data.write_entry(db, name, i, content) }
           }
 
-          db.transaction_lock(Data.all_tables) { Data.finish_entry(db, name, size, digest) }
+          Data.transaction_lock(db) { Data.finish_entry(db, name, size, digest) }
         }
         catch { case exn: Throwable =>
-          db.transaction_lock(Data.all_tables, create = true) { Data.clean_entry(db, name) }
+          Data.transaction_lock(db, create = true) { Data.clean_entry(db, name) }
           throw exn
         }
       case None =>
