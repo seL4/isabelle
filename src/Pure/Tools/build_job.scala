@@ -449,19 +449,15 @@ object Build_Job {
 
         /* output heap */
 
-        val output_shasum =
-          if (process_result.ok && store_heap && store.output_heap(session_name).is_file) {
-            val database =
-              if (store.build_database_test && store.build_database_server) {
-                Some(store.open_database_server())
-              }
-              else None
-            val digest =
-              try { ML_Heap.write_digest(database, store.output_heap(session_name)) }
-              finally { database.foreach(_.close()) }
-            SHA1.shasum(digest, session_name)
+        val output_shasum = {
+          val heap = store.output_heap(session_name)
+          if (process_result.ok && store_heap && heap.is_file) {
+            val database = store.maybe_open_heaps_database()
+            try { SHA1.shasum(ML_Heap.write_digest(database, heap), session_name) }
+            finally { database.foreach(_.close()) }
           }
           else SHA1.no_shasum
+        }
 
         val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
 
