@@ -103,6 +103,14 @@ object Bytes {
     using(new FileOutputStream(file))(bytes.write_stream(_))
 
   def write(path: Path, bytes: Bytes): Unit = write(path.file, bytes)
+
+
+  /* append */
+
+  def append(file: JFile, bytes: Bytes): Unit =
+    using(new FileOutputStream(file, true))(bytes.write_stream(_))
+
+  def append(path: Path, bytes: Bytes): Unit = append(path.file, bytes)
 }
 
 final class Bytes private(
