@@ -115,7 +115,7 @@ object ML_Heap {
     database: Option[SQL.Database],
     heap: Path,
     slice: Long,
-    cache: Compress.Cache = Compress.Cache.none,
+    cache: Compress.Cache = Compress.Cache.none
   ): SHA1.Digest = {
     val digest = write_file_digest(heap)
     database match {
