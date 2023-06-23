@@ -901,22 +901,24 @@ extends AutoCloseable {
         fresh_build = build_context.fresh_build,
         store_heap = store_heap)
 
-    val all_current = current && ancestor_results.forall(_.current)
+    val finished = current && ancestor_results.forall(_.current)
+    val skipped = build_context.no_build
+    val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     val result_name = (session_name, worker_uuid, build_uuid)
 
-    if (all_current) {
+    if (finished) {
       state
         .remove_pending(session_name)
         .make_result(result_name, Process_Result.ok, output_shasum, current = true)
     }
-    else if (build_context.no_build) {
+    else if (skipped) {
       progress.echo("Skipping " + session_name + " ...", verbose = true)
       state.
         remove_pending(session_name).
         make_result(result_name, Process_Result.error, output_shasum)
     }
-    else if (progress.stopped || !ancestor_results.forall(_.ok)) {
+    else if (cancelled) {
       progress.echo(session_name + " CANCELLED")
       state
         .remove_pending(session_name)
