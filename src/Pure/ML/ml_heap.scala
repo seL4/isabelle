@@ -70,11 +70,17 @@ object ML_Heap {
       db.execute_query_statementB(
         Base.table.select(List(Base.name), sql = Base.name.where_equal(name)))
 
-    def defined_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
+    def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
       db.execute_query_statementO[String](
         Base.table.select(List(Base.digest), sql = Generic.name.where_equal(name)),
         _.string(Base.digest)
       ).flatMap(proper_string).map(SHA1.fake_digest)
+
+    def read_entry(db: SQL.Database, name: String): List[Bytes] =
+      db.execute_query_statement(
+        Slices.table.select(List(Slices.content),
+          sql = Generic.name.where_equal(name) + SQL.order_by(List(Slices.slice))),
+        List.from[Bytes], _.bytes(Slices.content))
 
     def clean_entry(db: SQL.Database, name: String): Unit = {
       for (table <- List(Base.table, Slices.table)) {
@@ -110,6 +116,9 @@ object ML_Heap {
 
   def clean_entry(db: SQL.Database, name: String): Unit =
     Data.transaction_lock(db, create = true) { Data.clean_entry(db, name) }
+
+  def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
+    Data.transaction_lock(db, create = true) { Data.get_entry(db, name) }
 
   def store(
     database: Option[SQL.Database],
@@ -148,5 +157,27 @@ object ML_Heap {
       case None =>
     }
     digest
+  }
+
+  def restore(
+    db: SQL.Database,
+    heap: Path,
+    cache: Compress.Cache = Compress.Cache.none
+  ): Unit = {
+    val name = heap.file_name
+    Data.transaction_lock(db, create = true) {
+      val db_digest = Data.get_entry(db, name)
+      val file_digest = read_file_digest(heap)
+
+      if (db_digest.isDefined && db_digest != file_digest) {
+        Isabelle_System.make_directory(heap.expand.dir)
+        Bytes.write(heap, Bytes.empty)
+          for (slice <- Data.read_entry(db, name)) {
+            Bytes.append(heap, slice.uncompress(cache = cache))
+          }
+        val digest = write_file_digest(heap)
+        if (db_digest.get != digest) error("Incoherent content for file " + heap)
+      }
+    }
   }
 }

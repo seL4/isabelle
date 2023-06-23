@@ -227,16 +227,20 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def find_heap(name: String): Option[Path] =
     input_dirs.map(_ + heap(name)).find(_.is_file)
 
-  def find_heap_shasum(name: String): SHA1.Shasum =
-    (for {
-      path <- find_heap(name)
-      digest <- ML_Heap.read_file_digest(path)
-    } yield SHA1.shasum(digest, name)).getOrElse(SHA1.no_shasum)
-
   def the_heap(name: String): Path =
     find_heap(name) getOrElse
       error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
         cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
+
+  def heap_shasum(database: Option[SQL.Database], name: String): SHA1.Shasum = {
+    def get_database = database.flatMap(ML_Heap.get_entry(_, name))
+    def get_file = find_heap(name).flatMap(ML_Heap.read_file_digest)
+
+    get_database orElse get_file match {
+      case Some(digest) => SHA1.shasum(digest, name)
+      case None => SHA1.no_shasum
+    }
+  }
 
 
   /* databases for build process and session content */
@@ -333,18 +337,20 @@ class Store private(val options: Options, val cache: Term.Cache) {
   ): (Boolean, SHA1.Shasum) = {
     try_open_database(name) match {
       case Some(db) =>
-        using(db)(read_build(_, name)) match {
-          case Some(build) =>
-            val output_shasum = find_heap_shasum(name)
-            val current =
-              !fresh_build &&
-              build.ok &&
-              Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
-              build.input_heaps == input_shasum &&
-              build.output_heap == output_shasum &&
-              !(store_heap && output_shasum.is_empty)
-            (current, output_shasum)
-          case None => (false, SHA1.no_shasum)
+        using(db) { _ =>
+          read_build(db, name) match {
+            case Some(build) =>
+              val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
+              val current =
+                !fresh_build &&
+                  build.ok &&
+                  Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
+                  build.input_heaps == input_shasum &&
+                  build.output_heap == output_shasum &&
+                  !(store_heap && output_shasum.is_empty)
+              (current, output_shasum)
+            case None => (false, SHA1.no_shasum)
+          }
         }
       case None => (false, SHA1.no_shasum)
     }
