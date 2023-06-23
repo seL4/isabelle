@@ -906,13 +906,10 @@ extends AutoCloseable {
     val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     if (!skipped && !cancelled) {
-      val database = store.maybe_open_heaps_database()
-      try {
-        for (db <- database) {
-          ML_Heap.restore(db, store.output_heap(session_name), cache = store.cache.compress)
-        }
+      using_optional(store.maybe_open_heaps_database()) { database =>
+        database.foreach(
+          ML_Heap.restore(_, store.output_heap(session_name), cache = store.cache.compress))
       }
-      finally { database.foreach(_.close()) }
     }
 
     val result_name = (session_name, worker_uuid, build_uuid)

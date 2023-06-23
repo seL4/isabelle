@@ -23,6 +23,16 @@ object Library {
   def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
     opt.map(a => using(a)(f))
 
+  def using_optional[A <: AutoCloseable, B](opt: Option[A])(f: Option[A] => B): B = {
+    try { f(opt) }
+    finally {
+      opt match {
+        case Some(a) if a != null => a.close()
+        case _ =>
+      }
+    }
+  }
+
 
   /* integers */
 

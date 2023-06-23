@@ -13,6 +13,8 @@ package object isabelle {
     Library.using(a)(f)
   def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
     Library.using_option(opt)(f)
+  def using_optional[A <: AutoCloseable, B](opt: Option[A])(f: Option[A] => B): B =
+    Library.using_optional(opt)(f)
 
   val space_explode = Library.space_explode _
   val split_lines = Library.split_lines _

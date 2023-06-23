@@ -316,8 +316,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
         path = dir + file if path.is_file
       } yield path.file.delete
 
-    for (db <- maybe_open_heaps_database()) {
-      using(db)(ML_Heap.clean_entry(_, name))
+    using_optional(maybe_open_heaps_database()) { database =>
+      database.foreach(ML_Heap.clean_entry(_, name))
     }
 
     if (init) {
