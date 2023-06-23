@@ -66,10 +66,6 @@ object ML_Heap {
       val table = make_table("slices", List(name, slice, content))
     }
 
-    def known_entry(db: SQL.Database, name: String): Boolean =
-      db.execute_query_statementB(
-        Base.table.select(List(Base.name), sql = Base.name.where_equal(name)))
-
     def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
       db.execute_query_statementO[String](
         Base.table.select(List(Base.digest), sql = Generic.name.where_equal(name)),
