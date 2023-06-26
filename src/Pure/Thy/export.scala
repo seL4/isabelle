@@ -250,10 +250,8 @@ object Export {
 
   /* context for database access */
 
-  def open_database_context(store: Store): Database_Context = {
-    val database_server = if (store.build_database_server) Some(store.open_database_server()) else None
-    new Database_Context(store, database_server)
-  }
+  def open_database_context(store: Store): Database_Context =
+    new Database_Context(store, store.maybe_open_database_server())
 
   def open_session_context0(store: Store, session: String): Session_Context =
     open_database_context(store).open_session0(session, close_database_context = true)
