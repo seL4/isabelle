@@ -79,7 +79,8 @@ object Store {
 
   object Data extends SQL.Data() {
     override lazy val tables =
-      SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
+      SQL.Tables(Session_Info.table, Sources.table,
+        Export.Data.Base.table, Document_Build.Data.table)
 
     object Session_Info {
       val session_name = SQL.Column.string("session_name").make_primary_key
@@ -395,7 +396,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         sql = Store.Data.Sources.where_equal(name)))
 
       db.execute_statement(
-        Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))
+        Export.Data.Base.table.delete(sql = Export.Data.Base.session_name.where_equal(name)))
 
       db.execute_statement(
         Document_Build.Data.table.delete(sql = Document_Build.Data.session_name.where_equal(name)))

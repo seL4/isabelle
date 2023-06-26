@@ -30,24 +30,26 @@ object Export {
   /* SQL data model */
 
   object Data {
-    val session_name = SQL.Column.string("session_name").make_primary_key
-    val theory_name = SQL.Column.string("theory_name").make_primary_key
-    val name = SQL.Column.string("name").make_primary_key
-    val executable = SQL.Column.bool("executable")
-    val compressed = SQL.Column.bool("compressed")
-    val body = SQL.Column.bytes("body")
+    object Base {
+      val session_name = SQL.Column.string("session_name").make_primary_key
+      val theory_name = SQL.Column.string("theory_name").make_primary_key
+      val name = SQL.Column.string("name").make_primary_key
+      val executable = SQL.Column.bool("executable")
+      val compressed = SQL.Column.bool("compressed")
+      val body = SQL.Column.bytes("body")
 
-    val table =
-      SQL.Table("isabelle_exports",
-        List(session_name, theory_name, name, executable, compressed, body))
+      val table =
+        SQL.Table("isabelle_exports",
+          List(session_name, theory_name, name, executable, compressed, body))
+    }
 
-    val tables = SQL.Tables(table)
+    val tables = SQL.Tables(Base.table)
 
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
       SQL.where_and(
-        Data.session_name.equal(session_name),
-        if_proper(theory_name, Data.theory_name.equal(theory_name)),
-        if_proper(name, Data.name.equal(name)))
+        Base.session_name.equal(session_name),
+        if_proper(theory_name, Base.theory_name.equal(theory_name)),
+        if_proper(name, Base.name.equal(name)))
   }
 
   def compound_name(a: String, b: String): String =
@@ -66,18 +68,18 @@ object Export {
 
     def readable(db: SQL.Database): Boolean = {
       db.execute_query_statementB(
-        Data.table.select(List(Data.name),
+        Data.Base.table.select(List(Data.Base.name),
           sql = Data.where_equal(session, theory, name)))
     }
 
     def read(db: SQL.Database, cache: XML.Cache): Option[Entry] =
       db.execute_query_statementO[Entry](
-        Data.table.select(List(Data.executable, Data.compressed, Data.body),
+        Data.Base.table.select(List(Data.Base.executable, Data.Base.compressed, Data.Base.body),
           sql = Data.where_equal(session, theory, name)),
         { res =>
-          val executable = res.bool(Data.executable)
-          val compressed = res.bool(Data.compressed)
-          val bytes = res.bytes(Data.body)
+          val executable = res.bool(Data.Base.executable)
+          val compressed = res.bool(Data.Base.compressed)
+          val bytes = res.bytes(Data.Base.body)
           val body = Future.value(compressed, bytes)
           Entry(this, executable, body, cache)
         }
@@ -86,20 +88,21 @@ object Export {
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] =
     db.execute_query_statement(
-      Data.table.select(List(Data.theory_name), distinct = true,
-        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.theory_name))),
-      List.from[String], res => res.string(Data.theory_name))
+      Data.Base.table.select(List(Data.Base.theory_name), distinct = true,
+        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.Base.theory_name))),
+      List.from[String], res => res.string(Data.Base.theory_name))
 
   def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
     db.execute_query_statement(
-      Data.table.select(List(Data.theory_name, Data.name),
-        sql = Data.where_equal(session_name)) + SQL.order_by(List(Data.theory_name, Data.name)),
+      Data.Base.table.select(List(Data.Base.theory_name, Data.Base.name),
+        sql = Data.where_equal(session_name)) +
+          SQL.order_by(List(Data.Base.theory_name, Data.Base.name)),
       List.from[Entry_Name],
       { res =>
         Entry_Name(
           session = session_name,
-          theory = res.string(Data.theory_name),
-          name = res.string(Data.name))
+          theory = res.string(Data.Base.theory_name),
+          name = res.string(Data.Base.name))
       })
 
   def message(msg: String, theory_name: String, name: String): String =
@@ -165,7 +168,7 @@ object Export {
 
     def write(db: SQL.Database): Unit = {
       val (compressed, bs) = body.join
-      db.execute_statement(Data.table.insert(), body =
+      db.execute_statement(Data.Base.table.insert(), body =
         { stmt =>
           stmt.string(1) = session_name
           stmt.string(2) = theory_name
