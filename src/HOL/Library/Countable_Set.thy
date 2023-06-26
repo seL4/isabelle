@@ -14,6 +14,9 @@ subsection \<open>Predicate for countable sets\<close>
 definition countable :: "'a set \<Rightarrow> bool" where
   "countable S \<longleftrightarrow> (\<exists>f::'a \<Rightarrow> nat. inj_on f S)"
 
+lemma countable_as_injective_image_subset: "countable S \<longleftrightarrow> (\<exists>f. \<exists>K::nat set. S = f ` K \<and> inj_on f K)"
+  by (metis countable_def inj_on_the_inv_into the_inv_into_onto)
+   
 lemma countableE:
   assumes S: "countable S" obtains f :: "'a \<Rightarrow> nat" where "inj_on f S"
   using S by (auto simp: countable_def)

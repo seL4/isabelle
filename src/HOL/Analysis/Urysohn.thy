@@ -161,7 +161,7 @@ proof -
     qed
   qed
   then have contf: "continuous_map X (top_of_set {0..1}) f"
-    by (force simp add: Met_TC.continuous_map_to_metric dist_real_def continuous_map_in_subtopology fim simp flip: Met_TC.mtopology_is_euclideanreal)
+    by (force simp add: Met_TC.continuous_map_to_metric dist_real_def continuous_map_in_subtopology fim simp flip: mtopology_is_euclidean)
   define g where "g \<equiv> \<lambda>x. a + (b - a) * f x"
   show thesis
   proof
@@ -1976,8 +1976,8 @@ proof -
         regular_space (subtopology ?Y (topspace ?Y - {None})) \<and> locally_compact_space (subtopology ?Y (topspace ?Y - {None}))"
     by (rule regular_space_one_point_compactification) (auto simp: compactin_subtopology closedin_subtopology closedin_Alexandroff_I)
   also have "... \<longleftrightarrow> regular_space X \<and> locally_compact_space X"
-    using embedding_map_Some embedding_map_imp_homeomorphic_space homeomorphic_locally_compact_space homeomorphic_regular_space 
-      by fastforce
+    by (metis embedding_map_Some embedding_map_imp_homeomorphic_space homeomorphic_locally_compact_space 
+        homeomorphic_regular_space topspace_Alexandroff_compactification_delete)
   finally show ?thesis .
 qed
 

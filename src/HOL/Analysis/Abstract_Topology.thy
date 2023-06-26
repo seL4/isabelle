@@ -3033,7 +3033,7 @@ subsection\<open>Relation of homeomorphism between topological spaces\<close>
 definition homeomorphic_space (infixr "homeomorphic'_space" 50)
   where "X homeomorphic_space Y \<equiv> \<exists>f g. homeomorphic_maps X Y f g"
 
-lemma homeomorphic_space_refl: "X homeomorphic_space X"
+lemma homeomorphic_space_refl [iff]: "X homeomorphic_space X"
   by (meson homeomorphic_maps_id homeomorphic_space_def)
 
 lemma homeomorphic_space_sym:

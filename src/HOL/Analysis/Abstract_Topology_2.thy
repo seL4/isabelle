@@ -1644,6 +1644,11 @@ lemma real_shrink_Galois:
   shows "(x / (1 + \<bar>x\<bar>) = y) \<longleftrightarrow> (\<bar>y\<bar> < 1 \<and> y / (1 - \<bar>y\<bar>) = x)"
   using real_grow_shrink by (fastforce simp add: distrib_left)
 
+lemma real_shrink_eq:
+  fixes x y::real
+  shows "(x / (1 + \<bar>x\<bar>) = y / (1 + \<bar>y\<bar>)) \<longleftrightarrow> x = y"
+  by (metis real_shrink_Galois)
+
 lemma real_shrink_lt:
   fixes x::real
   shows "x / (1 + \<bar>x\<bar>) < y / (1 + \<bar>y\<bar>) \<longleftrightarrow> x < y"

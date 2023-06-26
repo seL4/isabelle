@@ -3,7 +3,7 @@
 section \<open>Various Forms of Topological Spaces\<close>
 
 theory Abstract_Topological_Spaces
-  imports Lindelof_Spaces Locally Sum_Topology FSigma
+  imports Lindelof_Spaces Locally Abstract_Euclidean_Space Sum_Topology FSigma
 begin
 
 
@@ -1122,7 +1122,7 @@ lemma open_map_Kolmogorov_quotient_explicit:
 
 
 lemma open_map_Kolmogorov_quotient_gen:
-   "open_map (subtopology X S) (subtopology X (image (Kolmogorov_quotient X) S)) (Kolmogorov_quotient X)"
+   "open_map (subtopology X S) (subtopology X (Kolmogorov_quotient X ` S)) (Kolmogorov_quotient X)"
 proof (clarsimp simp: open_map_def openin_subtopology_alt image_iff)
   fix U
   assume "openin X U"
@@ -1233,11 +1233,10 @@ qed
 
 lemma Kolmogorov_quotient_lift_exists:
   assumes "S \<subseteq> topspace X" "t0_space Y" and f: "continuous_map (subtopology X S) Y f"
-  obtains g where "continuous_map (subtopology X (image (Kolmogorov_quotient X) S)) Y g"
+  obtains g where "continuous_map (subtopology X (Kolmogorov_quotient X ` S)) Y g"
               "\<And>x. x \<in> S \<Longrightarrow> g(Kolmogorov_quotient X x) = f x"
 proof -
-  have "\<And>x y. \<lbrakk>x \<in> S; y \<in> S; Kolmogorov_quotient X x = Kolmogorov_quotient X y\<rbrakk>
-            \<Longrightarrow> f x = f y"
+  have "\<And>x y. \<lbrakk>x \<in> S; y \<in> S; Kolmogorov_quotient X x = Kolmogorov_quotient X y\<rbrakk> \<Longrightarrow> f x = f y"
     using assms
     apply (simp add: Kolmogorov_quotient_eq t0_space_def continuous_map_def Int_absorb1 openin_subtopology)
     by (smt (verit, del_insts) Int_iff mem_Collect_eq)
@@ -1253,8 +1252,7 @@ qed
 subsection\<open>Closed diagonals and graphs\<close>
 
 lemma Hausdorff_space_closedin_diagonal:
-  "Hausdorff_space X \<longleftrightarrow>
-        closedin (prod_topology X X) ((\<lambda>x. (x,x)) ` topspace X)"
+  "Hausdorff_space X \<longleftrightarrow> closedin (prod_topology X X) ((\<lambda>x. (x,x)) ` topspace X)"
 proof -
   have \<section>: "((\<lambda>x. (x, x)) ` topspace X) \<subseteq> topspace X \<times> topspace X"
     by auto
@@ -1296,6 +1294,26 @@ proof -
   qed
 qed
 
+lemma forall_in_closure_of:
+  assumes "x \<in> X closure_of S" "\<And>x. x \<in> S \<Longrightarrow> P x"
+    and "closedin X {x \<in> topspace X. P x}"
+  shows "P x"
+  by (smt (verit, ccfv_threshold) Diff_iff assms closedin_def in_closure_of mem_Collect_eq)
+
+lemma forall_in_closure_of_eq:
+  assumes x: "x \<in> X closure_of S"
+    and Y: "Hausdorff_space Y" 
+    and f: "continuous_map X Y f" and g: "continuous_map X Y g"
+    and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
+  shows "f x = g x"
+proof -
+  have "closedin X {x \<in> topspace X. f x = g x}"
+    using Y closedin_continuous_maps_eq f g by blast
+  then show ?thesis
+    using forall_in_closure_of [OF x fg]
+    by fastforce
+qed
+    
 lemma retract_of_space_imp_closedin:
   assumes "Hausdorff_space X" and S: "S retract_of_space X"
   shows "closedin X S"
@@ -3066,6 +3084,23 @@ next
           imageI open_map_component_injection open_map_def)
   qed
 qed
+
+lemma locally_compact_space_euclidean:
+  "locally_compact_space (euclidean::'a::heine_borel topology)" 
+  unfolding locally_compact_space_def
+proof (intro strip)
+  fix x::'a
+  assume "x \<in> topspace euclidean"
+  have "ball x 1 \<subseteq> cball x 1"
+    by auto
+  then show "\<exists>U K. openin euclidean U \<and> compactin euclidean K \<and> x \<in> U \<and> U \<subseteq> K"
+    by (metis Elementary_Metric_Spaces.open_ball centre_in_ball compact_cball compactin_euclidean_iff open_openin zero_less_one)
+qed
+
+lemma locally_compact_Euclidean_space:
+  "locally_compact_space(Euclidean_space n)"
+  using homeomorphic_locally_compact_space [OF homeomorphic_Euclidean_space_product_topology] 
+  using locally_compact_space_product_topology locally_compact_space_euclidean by fastforce
 
 proposition quotient_map_prod_right:
   assumes loc: "locally_compact_space Z" 
