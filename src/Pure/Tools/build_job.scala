@@ -454,7 +454,7 @@ object Build_Job {
           if (process_result.ok && store_heap && heap.is_file) {
             val slice = Space.MiB(options.real("build_database_slice")).bytes
             val digest =
-              using_optional(store.maybe_open_heaps_database())(
+              using_optional(store.maybe_open_database_server())(
                 ML_Heap.store(_, session_name, heap, slice))
             SHA1.shasum(digest, session_name)
           }

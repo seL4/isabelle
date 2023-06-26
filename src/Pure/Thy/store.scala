@@ -266,15 +266,15 @@ class Store private(val options: Options, val cache: Term.Cache) {
             port = options.int("build_database_ssh_port"))),
       ssh_close = true)
 
+  def maybe_open_database_server(): Option[SQL.Database] =
+    if (build_database_server) Some(open_database_server()) else None
+
   def open_build_database(path: Path): SQL.Database =
     if (build_database_server) open_database_server()
     else SQLite.open_database(path, restrict = true)
 
   def maybe_open_build_database(path: Path): Option[SQL.Database] =
     if (build_database_test) Some(open_build_database(path)) else None
-
-  def maybe_open_heaps_database(): Option[SQL.Database] =
-    if (build_database_test && build_database_server) Some(open_database_server()) else None
 
   def try_open_database(
     name: String,
@@ -316,7 +316,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         path = dir + file if path.is_file
       } yield path.file.delete
 
-    using_optional(maybe_open_heaps_database()) { database =>
+    using_optional(maybe_open_database_server()) { database =>
       database.foreach(ML_Heap.clean_entry(_, name))
     }
 

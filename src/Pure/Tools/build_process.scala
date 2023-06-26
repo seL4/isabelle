@@ -906,7 +906,7 @@ extends AutoCloseable {
     val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     if (!skipped && !cancelled) {
-      using_optional(store.maybe_open_heaps_database())(
+      using_optional(store.maybe_open_database_server())(
         ML_Heap.restore(_, session_name, store.output_heap(session_name),
           cache = store.cache.compress))
     }
