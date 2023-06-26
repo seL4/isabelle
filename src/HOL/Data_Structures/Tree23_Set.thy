@@ -103,7 +103,7 @@ fun node32 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a upD \<Rightarrow> 'a 
 "node32 t1 a (UF t2) b (Node3 t3 c t4 d t5) = TD(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
 
 fun node33 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a upD \<Rightarrow> 'a upD" where
-"node33 l a m b (TD r) = TD(Node3 l a m b r)" |
+"node33 t1 a t2 b (TD t3) = TD(Node3 t1 a t2 b t3)" |
 "node33 t1 a (Node2 t2 b t3) c (UF t4) = TD(Node2 t1 a (Node3 t2 b t3 c t4))" |
 "node33 t1 a (Node3 t2 b t3 c t4) d (UF t5) = TD(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
 
