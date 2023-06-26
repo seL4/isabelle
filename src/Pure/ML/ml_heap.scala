@@ -110,29 +110,30 @@ object ML_Heap {
           })
   }
 
-  def clean_entry(db: SQL.Database, name: String): Unit =
-    Data.transaction_lock(db, create = true) { Data.clean_entry(db, name) }
+  def clean_entry(db: SQL.Database, session_name: String): Unit =
+    Data.transaction_lock(db, create = true) { Data.clean_entry(db, session_name) }
 
-  def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
-    Data.transaction_lock(db, create = true) { Data.get_entry(db, name) }
+  def get_entry(db: SQL.Database, session_name: String): Option[SHA1.Digest] =
+    Data.transaction_lock(db, create = true) { Data.get_entry(db, session_name) }
 
   def store(
     database: Option[SQL.Database],
+    session_name: String,
     heap: Path,
     slice: Long,
     cache: Compress.Cache = Compress.Cache.none
   ): SHA1.Digest = {
     val digest = write_file_digest(heap)
     database match {
+      case None =>
       case Some(db) =>
-        val name = heap.file_name
         val size = File.space(heap).bytes - sha1_prefix.length - SHA1.digest_length
 
         val slices = (size.toDouble / slice.toDouble).ceil.toInt
         val step = (size.toDouble / slices.toDouble).ceil.toLong
 
         try {
-          Data.transaction_lock(db, create = true) { Data.prepare_entry(db, name) }
+          Data.transaction_lock(db, create = true) { Data.prepare_entry(db, session_name) }
 
           for (i <- 0 until slices) {
             val j = i + 1
@@ -141,39 +142,42 @@ object ML_Heap {
             val content =
               Bytes.read_file(heap.file, offset = offset, limit = limit)
                 .compress(cache = cache)
-            Data.transaction_lock(db) { Data.write_entry(db, name, i, content) }
+            Data.transaction_lock(db) { Data.write_entry(db, session_name, i, content) }
           }
 
-          Data.transaction_lock(db) { Data.finish_entry(db, name, size, digest) }
+          Data.transaction_lock(db) { Data.finish_entry(db, session_name, size, digest) }
         }
         catch { case exn: Throwable =>
-          Data.transaction_lock(db, create = true) { Data.clean_entry(db, name) }
+          Data.transaction_lock(db, create = true) { Data.clean_entry(db, session_name) }
           throw exn
         }
-      case None =>
     }
     digest
   }
 
   def restore(
-    db: SQL.Database,
+    database: Option[SQL.Database],
+    session_name: String,
     heap: Path,
     cache: Compress.Cache = Compress.Cache.none
   ): Unit = {
-    val name = heap.file_name
-    Data.transaction_lock(db, create = true) {
-      val db_digest = Data.get_entry(db, name)
-      val file_digest = read_file_digest(heap)
+    database match {
+      case None =>
+      case Some(db) =>
+        Data.transaction_lock(db, create = true) {
+          val db_digest = Data.get_entry(db, session_name)
+          val file_digest = read_file_digest(heap)
 
-      if (db_digest.isDefined && db_digest != file_digest) {
-        Isabelle_System.make_directory(heap.expand.dir)
-        Bytes.write(heap, Bytes.empty)
-          for (slice <- Data.read_entry(db, name)) {
-            Bytes.append(heap, slice.uncompress(cache = cache))
+          if (db_digest.isDefined && db_digest != file_digest) {
+            Isabelle_System.make_directory(heap.expand.dir)
+            Bytes.write(heap, Bytes.empty)
+              for (slice <- Data.read_entry(db, session_name)) {
+                Bytes.append(heap, slice.uncompress(cache = cache))
+              }
+            val digest = write_file_digest(heap)
+            if (db_digest.get != digest) error("Incoherent content for file " + heap)
           }
-        val digest = write_file_digest(heap)
-        if (db_digest.get != digest) error("Incoherent content for file " + heap)
-      }
+        }
     }
   }
 }
