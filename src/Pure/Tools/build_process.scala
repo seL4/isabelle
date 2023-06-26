@@ -802,14 +802,14 @@ extends AutoCloseable {
 
   /* progress backed by database */
 
-  private val _database: Option[SQL.Database] =
+  private val _build_database: Option[SQL.Database] =
     store.maybe_open_build_database(Build_Process.Data.database)
 
   private val _host_database: Option[SQL.Database] =
     store.maybe_open_build_database(Host.Data.database)
 
   protected val (progress, worker_uuid) = synchronized {
-    _database match {
+    _build_database match {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
         val progress_db = store.open_build_database(Progress.Data.database)
@@ -824,7 +824,7 @@ extends AutoCloseable {
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
   def close(): Unit = synchronized {
-    _database.foreach(_.close())
+    _build_database.foreach(_.close())
     _host_database.foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
@@ -839,7 +839,7 @@ extends AutoCloseable {
   private var _state: Build_Process.State = Build_Process.State()
 
   protected def synchronized_database[A](body: => A): A = synchronized {
-    _database match {
+    _build_database match {
       case None => body
       case Some(db) =>
         Build_Process.Data.transaction_lock(db) {
@@ -964,27 +964,27 @@ extends AutoCloseable {
     !Long_Name.is_qualified(job_name)
 
   protected final def start_build(): Unit = synchronized_database {
-    for (db <- _database) {
+    for (db <- _build_database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
         build_context.sessions_structure.session_prefs)
     }
   }
 
   protected final def stop_build(): Unit = synchronized_database {
-    for (db <- _database) {
+    for (db <- _build_database) {
       Build_Process.Data.stop_build(db, build_uuid)
     }
   }
 
   protected final def start_worker(): Unit = synchronized_database {
-    for (db <- _database) {
+    for (db <- _build_database) {
       _state = _state.inc_serial
       Build_Process.Data.start_worker(db, worker_uuid, build_uuid, _state.serial)
     }
   }
 
   protected final def stop_worker(): Unit = synchronized_database {
-    for (db <- _database) {
+    for (db <- _build_database) {
       Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop = true)
     }
   }
@@ -1060,7 +1060,7 @@ extends AutoCloseable {
 
   def snapshot(): Build_Process.Snapshot = synchronized_database {
     val (builds, workers) =
-      _database match {
+      _build_database match {
         case None => (Nil, Nil)
         case Some(db) =>
           (Build_Process.Data.read_builds(db),
