@@ -194,6 +194,10 @@ proof
     unfolding product_topology_def using PiE_def by (auto)
 qed
 
+lemma topspace_product_topology_alt:
+  "topspace (product_topology X I) = {x \<in> extensional I. \<forall>i \<in> I. x i \<in> topspace(X i)}"
+  by (fastforce simp: PiE_iff)
+
 lemma product_topology_basis:
   assumes "\<And>i. openin (T i) (X i)" "finite {i. X i \<noteq> topspace (T i)}"
   shows "openin (product_topology T I) (\<Pi>\<^sub>E i\<in>I. X i)"
@@ -1575,6 +1579,78 @@ proof -
       using minor [OF f major \<open>i \<in> I\<close>] PQ by auto
   qed
   then show ?thesis by metis
+qed
+
+subsection \<open>Limits\<close>
+
+text \<open>The original HOL Light proof was a mess, yuk\<close>
+lemma limitin_componentwise:
+   "limitin (product_topology X I) f l F \<longleftrightarrow>
+        l \<in> extensional I \<and>
+        eventually (\<lambda>a. f a \<in> topspace(product_topology X I)) F \<and>
+        (\<forall>i \<in> I. limitin (X i) (\<lambda>c. f c i) (l i) F)"
+    (is "?L \<longleftrightarrow> _ \<and> ?R1 \<and> ?R2")
+proof (cases "l \<in> extensional I")
+  case l: True
+  show ?thesis
+  proof (cases "\<forall>i\<in>I. l i \<in> topspace (X i)")
+    case True
+    have ?R1 if ?L
+      by (metis limitin_subtopology subtopology_topspace that)
+    moreover
+    have ?R2 if ?L
+      unfolding limitin_def
+    proof (intro conjI strip)
+      fix i U
+      assume "i \<in> I" and U: "openin (X i) U \<and> l i \<in> U"
+      then have "openin (product_topology X I) ({y. y i \<in> U} \<inter> topspace (product_topology X I))"
+        unfolding openin_product_topology arbitrary_union_of_relative_to [symmetric]
+        apply (simp add: relative_to_def topspace_product_topology_alt)
+        by (smt (verit, del_insts) Collect_cong arbitrary_union_of_inc finite_intersection_of_inc inf_commute)
+      moreover have "l \<in> {y. y i \<in> U} \<inter> topspace (product_topology X I)"
+        using U True l by (auto simp: extensional_def)
+      ultimately have "eventually (\<lambda>x. f x \<in> {y. y i \<in> U} \<inter> topspace (product_topology X I)) F"
+        by (metis limitin_def that)
+      then show "\<forall>\<^sub>F x in F. f x i \<in> U"
+        by (simp add: eventually_conj_iff)
+    qed (use True in auto)
+    moreover
+    have ?L if R1: ?R1 and R2: ?R2
+      unfolding limitin_def openin_product_topology all_union_of imp_conjL arbitrary_def
+    proof (intro conjI strip)
+      show l: "l \<in> topspace (product_topology X I)"
+        by (simp add: PiE_iff True l)
+      fix \<V>
+      assume "\<V> \<subseteq> Collect (finite intersection_of (\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U)
+                   relative_to topspace (product_topology X I))"
+        and "l \<in> \<Union> \<V>"
+      then obtain \<W> where "finite \<W>" and \<W>X: "\<forall>X\<in>\<W>. l \<in> X"
+               and \<W>: "\<And>C. C \<in> \<W> \<Longrightarrow> C \<in> {{x. x i \<in> U} |i U. i \<in> I \<and> openin (X i) U}" 
+               and \<W>\<V>: "topspace (product_topology X I) \<inter> \<Inter> \<W> \<in> \<V>"
+        by (fastforce simp: intersection_of_def relative_to_def subset_eq)
+      have "\<forall>\<^sub>F x in F. f x \<in> topspace (product_topology X I) \<inter> \<Inter>\<W>"
+      proof -
+        have "\<And>W. W \<in> {{x. x i \<in> U} | i U. i \<in> I \<and> openin (X i) U} \<Longrightarrow> W \<in> \<W> \<Longrightarrow> \<forall>\<^sub>F x in F. f x \<in> W"
+          using \<W>X R2 by (auto simp: limitin_def)
+        with \<W> have "\<forall>\<^sub>F x in F. \<forall>W\<in>\<W>. f x \<in> W"
+          by (simp add: \<open>finite \<W>\<close> eventually_ball_finite)
+        with R1 show ?thesis
+          by (simp add: eventually_conj_iff)
+      qed
+      then show "\<forall>\<^sub>F x in F. f x \<in> \<Union>\<V>"
+        by (smt (verit, ccfv_threshold) \<W>\<V> UnionI eventually_mono)
+    qed
+    ultimately show ?thesis
+      using l by blast
+  next
+    case False
+    then show ?thesis
+      by (metis PiE_iff limitin_def topspace_product_topology)
+   qed
+next
+  case False
+  then show ?thesis
+    by (simp add: limitin_def PiE_iff)
 qed
 
 end

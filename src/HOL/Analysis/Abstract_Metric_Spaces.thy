@@ -144,21 +144,6 @@ proof -
     by (auto simp: openin_mtopology)
 qed
 
-lemma mcball_eq_cball [simp]: "Met_TC.mcball = cball"
-  by force
-
-lemma mball_eq_ball [simp]: "Met_TC.mball = ball"
-  by force
-
-lemma mopen_eq_open [simp]: "Met_TC.mopen = open"
-  by (force simp: open_contains_ball Met_TC.mopen_def)
-
-lemma limitin_iff_tendsto [iff]: "limitin Met_TC.mtopology \<sigma> x F = tendsto \<sigma> x F"
-  by (simp add: Met_TC.mtopology_def)
-
-lemma mtopology_is_euclideanreal [simp]: "Met_TC.mtopology = euclideanreal"
-  by (simp add: Met_TC.mtopology_def)
-
 (*
 lemma metric_injective_image:
    "\<And>f m s.
@@ -419,7 +404,26 @@ proof -
   qed auto
 qed
 
-end
+
+end (*Metric_space*)
+
+lemma mcball_eq_cball [simp]: "Met_TC.mcball = cball"
+  by force
+
+lemma mball_eq_ball [simp]: "Met_TC.mball = ball"
+  by force
+
+lemma mopen_eq_open [simp]: "Met_TC.mopen = open"
+  by (force simp: open_contains_ball Met_TC.mopen_def)
+
+lemma limitin_iff_tendsto [iff]: "limitin Met_TC.mtopology \<sigma> x F = tendsto \<sigma> x F"
+  by (simp add: Met_TC.mtopology_def)
+
+lemma mtopology_is_euclidean [simp]: "Met_TC.mtopology = euclidean"
+  by (simp add: Met_TC.mtopology_def)
+
+lemma mbounded_iff_bounded [iff]: "Met_TC.mbounded A \<longleftrightarrow> bounded A"
+  by (metis Met_TC.mbounded UNIV_I all_not_in_conv bounded_def)
 
 
 subsection\<open>Subspace of a metric space\<close>
@@ -472,7 +476,6 @@ lemma (in Metric_space) submetric_empty [iff]: "Submetric M d {}"
 
 subsection \<open>Abstract type of metric spaces\<close>
 
-
 typedef 'a metric = "{(M::'a set,d). Metric_space M d}"
   morphisms "dest_metric" "metric"
 proof -
@@ -486,7 +489,7 @@ definition mspace where "mspace m \<equiv> fst (dest_metric m)"
 
 definition mdist where "mdist m \<equiv> snd (dest_metric m)"
 
-lemma Metric_space_mspace_mdist: "Metric_space (mspace m) (mdist m)"
+lemma Metric_space_mspace_mdist [iff]: "Metric_space (mspace m) (mdist m)"
   by (metis Product_Type.Collect_case_prodD dest_metric mdist_def mspace_def)
 
 lemma mdist_nonneg [simp]: "\<And>x y. 0 \<le> mdist m x y"
@@ -524,11 +527,17 @@ lemma (in Metric_space) mtopology_of [simp]:
 
 definition "mball_of \<equiv> \<lambda>m. Metric_space.mball (mspace m) (mdist m)"
 
+lemma in_mball_of [simp]: "y \<in> mball_of m x r \<longleftrightarrow> x \<in> mspace m \<and> y \<in> mspace m \<and> mdist m x y < r"
+  by (simp add: Metric_space.in_mball mball_of_def)
+
 lemma (in Metric_space) mball_of [simp]:
   "mball_of (metric (M,d)) = mball"
   by (simp add: mball_of_def)
 
 definition "mcball_of \<equiv> \<lambda>m. Metric_space.mcball (mspace m) (mdist m)"
+
+lemma in_mcball_of [simp]: "y \<in> mcball_of m x r \<longleftrightarrow> x \<in> mspace m \<and> y \<in> mspace m \<and> mdist m x y \<le> r"
+  by (simp add: Metric_space.in_mcball mcball_of_def)
 
 lemma (in Metric_space) mcball_of [simp]:
   "mcball_of (metric (M,d)) = mcball"
@@ -544,6 +553,15 @@ lemma mdist_euclidean_metric [simp]: "mdist euclidean_metric = dist"
 
 lemma mtopology_of_euclidean [simp]: "mtopology_of euclidean_metric = euclidean"
   by (simp add: Met_TC.mtopology_def mtopology_of_def)
+
+text \<open>Allows reference to the current metric space within the locale as a value\<close>
+definition (in Metric_space) "Self \<equiv> metric (M,d)"
+
+lemma (in Metric_space) mspace_Self [simp]: "mspace Self = M"
+  by (simp add: Self_def)
+
+lemma (in Metric_space) mdist_Self [simp]: "mdist Self = d"
+  by (simp add: Self_def)
 
 text\<open> Subspace of a metric space\<close>
 
@@ -821,12 +839,6 @@ qed
 lemma open_imp_fsigma_in:
    "\<lbrakk>metrizable_space X; openin X S\<rbrakk> \<Longrightarrow> fsigma_in X S"
   by (meson closed_imp_gdelta_in fsigma_in_gdelta_in openin_closedin openin_subset)
-
-lemma mball_eq_ball [simp]: "Met_TC.mball = ball"
-  by force
-
-lemma mopen_eq_open [simp]: "Met_TC.mopen = open"
-  by (force simp: open_contains_ball Met_TC.mopen_def)
 
 lemma metrizable_space_euclidean:
   "metrizable_space (euclidean :: 'a::metric_space topology)"
@@ -1551,15 +1563,29 @@ qed
 
 end
 
+definition mcomplete_of :: "'a metric \<Rightarrow> bool"
+  where "mcomplete_of \<equiv> \<lambda>m. Metric_space.mcomplete (mspace m) (mdist m)"
+
+lemma (in Metric_space) mcomplete_of [simp]: "mcomplete_of (metric (M,d)) = mcomplete"
+  by (simp add: mcomplete_of_def)
+
+lemma mcomplete_trivial: "Metric_space.mcomplete {} (\<lambda>x y. 0)"
+  using Metric_space.intro Metric_space.mcomplete_empty_mspace by force
+
+lemma mcomplete_trivial_singleton: "Metric_space.mcomplete {\<lambda>x. a} (\<lambda>x y. 0)"
+proof -
+  interpret Metric_space "{\<lambda>x. a}" "\<lambda>x y. 0"
+    by unfold_locales auto
+  show ?thesis
+    unfolding mcomplete_def MCauchy_def image_subset_iff by (metis UNIV_I limit_metric_sequentially)
+qed
+
 lemma MCauchy_iff_Cauchy [iff]: "Met_TC.MCauchy = Cauchy"
   by (force simp: Cauchy_def Met_TC.MCauchy_def)
 
 lemma mcomplete_iff_complete [iff]:
   "Met_TC.mcomplete (Pure.type ::'a::metric_space itself) \<longleftrightarrow> complete (UNIV::'a set)"
   by (auto simp: Met_TC.mcomplete_def complete_def)
-
-lemma euclidean_metric: "Met_TC.mcomplete (Pure.type ::'a::euclidean_space itself)"
-  using complete_UNIV mcomplete_iff_complete by blast
 
 context Submetric
 begin 
@@ -1592,7 +1618,6 @@ lemma sequentially_closedin_mcomplete_imp_mcomplete:
   using assms closedin_mcomplete_imp_mcomplete metric_closedin_iff_sequentially_closed subset by blast
 
 end
-
 
 context Metric_space
 begin
@@ -2745,9 +2770,9 @@ lemma completely_metrizable_space_discrete_topology:
   unfolding completely_metrizable_space_def
   by (metis discrete_metric.mcomplete_discrete_metric discrete_metric.mtopology_discrete_metric metric_M_dd)
 
-lemma completely_metrizable_space_euclideanreal:
-    "completely_metrizable_space euclideanreal"
-  by (metis Met_TC.mtopology_is_euclideanreal Met_TC.completely_metrizable_space_mtopology euclidean_metric)
+lemma completely_metrizable_space_euclidean:
+    "completely_metrizable_space (euclidean:: 'a::complete_space topology)"
+  using Met_TC.completely_metrizable_space_mtopology complete_UNIV by auto
 
 lemma completely_metrizable_space_closedin:
   assumes X: "completely_metrizable_space X" and S: "closedin X S"
@@ -2771,6 +2796,9 @@ proof -
       by (metis Metric_space_axioms Xeq sub Submetric.intro Submetric.mtopology_submetric)
   qed
 qed
+
+lemma completely_metrizable_space_cbox: "completely_metrizable_space (top_of_set (cbox a b))"
+    using closed_closedin completely_metrizable_space_closedin completely_metrizable_space_euclidean by blast
 
 lemma homeomorphic_completely_metrizable_space_aux:
   assumes homXY: "X homeomorphic_space Y" and X: "completely_metrizable_space X"
@@ -3363,6 +3391,14 @@ proof (cases "a \<in> topspace X")
     using openin_subset by (intro ex_cong) auto
   finally show ?thesis by (simp add: True)
 qed (simp add: atin_within_def)
+
+lemma eventually_within_imp:
+   "eventually P (atin_within X a S) \<longleftrightarrow> eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) (atin X a)"
+  by (auto simp add: eventually_atin_within eventually_atin)
+
+lemma limit_within_subset:
+   "\<lbrakk>limitin X f l (atin_within Y a S); T \<subseteq> S\<rbrakk> \<Longrightarrow> limitin X f l (atin_within Y a T)"
+  by (smt (verit) eventually_atin_within limitin_def subset_eq)
 
 lemma atin_subtopology_within:
   assumes "a \<in> S"
@@ -4504,7 +4540,7 @@ proof -
     using assms continuous_map_compose continuous_map_metric by blast
 qed
 
-lemma continuous_map_mdist:
+lemma continuous_map_mdist [continuous_intros]:
   assumes f: "continuous_map X (mtopology_of m) f" 
       and g: "continuous_map X (mtopology_of m) g"
   shows "continuous_map X euclidean (\<lambda>x. mdist m (f x) (g x))"
@@ -4560,6 +4596,542 @@ lemma (in Metric_space12) isometry_imp_homeomorphic_map:
   assumes fim: "f ` M1 = M2" and d: "\<And>x y. \<lbrakk>x \<in> M1; y \<in> M1\<rbrakk> \<Longrightarrow> d2 (f x) (f y) = d1 x y"
   shows "homeomorphic_map M1.mtopology M2.mtopology f"
   by (metis M1.topspace_mtopology M2.subtopology_mspace d embedding_map_def fim isometry_imp_embedding_map subsetI)
+subsection\<open>"Capped" equivalent bounded metrics and general product metrics\<close>
+
+definition (in Metric_space) capped_dist where
+  "capped_dist \<equiv> \<lambda>\<delta> x y. if \<delta> > 0 then min \<delta> (d x y) else d x y"
+
+lemma (in Metric_space) capped_dist: "Metric_space M (capped_dist \<delta>)"
+proof
+  fix x y
+  assume "x \<in> M" "y \<in> M"
+  then show "(capped_dist \<delta> x y = 0) = (x = y)"
+    by (smt (verit, best) capped_dist_def zero)
+  fix z 
+  assume "z \<in> M"
+  show "capped_dist \<delta> x z \<le> capped_dist \<delta> x y + capped_dist \<delta> y z"
+    unfolding capped_dist_def using \<open>x \<in> M\<close> \<open>y \<in> M\<close> \<open>z \<in> M\<close> 
+    by (smt (verit, del_insts) Metric_space.mdist_pos_eq Metric_space_axioms mdist_reverse_triangle)
+qed (use capped_dist_def commute in auto)
+
+
+definition capped_metric where
+  "capped_metric \<delta> m \<equiv> metric(mspace m, Metric_space.capped_dist (mdist m) \<delta>)"
+
+lemma capped_metric:
+  "capped_metric \<delta> m = (if \<delta> \<le> 0 then m else metric(mspace m, \<lambda>x y. min \<delta> (mdist m x y)))"
+proof -
+  interpret Metric_space "mspace m" "mdist m"
+    by (simp add: Metric_space_mspace_mdist)
+  show ?thesis
+    by (auto simp: capped_metric_def capped_dist_def)
+qed
+
+lemma capped_metric_mspace [simp]:
+  "mspace (capped_metric \<delta> m) = mspace m"
+  apply (simp add: capped_metric not_le)
+  by (smt (verit, ccfv_threshold) Metric_space.mspace_metric Metric_space_def Metric_space_mspace_mdist)
+
+lemma capped_metric_mdist:
+  "mdist (capped_metric \<delta> m) = (\<lambda>x y. if \<delta> \<le> 0 then mdist m x y else min \<delta> (mdist m x y))"
+  apply (simp add: capped_metric not_le)
+  by (smt (verit, del_insts) Metric_space.mdist_metric Metric_space_def Metric_space_mspace_mdist)
+
+lemma mdist_capped_le: "mdist (capped_metric \<delta> m) x y \<le> mdist m x y"
+  by (simp add: capped_metric_mdist)
+
+lemma mdist_capped: "\<delta> > 0 \<Longrightarrow> mdist (capped_metric \<delta> m) x y \<le> \<delta>"
+  by (simp add: capped_metric_mdist)
+
+lemma mball_of_capped_metric [simp]: 
+  assumes "x \<in> mspace m" "r > \<delta>" "\<delta> > 0" 
+  shows "mball_of (capped_metric \<delta> m) x r = mspace m"
+proof -
+  interpret Metric_space "mspace m" "mdist m"
+    by (simp add: Metric_space_mspace_mdist)
+  have "Metric_space.mball (mspace m) (mdist (capped_metric \<delta> m)) x r \<subseteq> mspace m"
+    by (metis Metric_space.mball_subset_mspace Metric_space_mspace_mdist capped_metric_mspace)
+  moreover have "mspace m \<subseteq> Metric_space.mball (mspace m) (mdist (capped_metric \<delta> m)) x r"
+    by (smt (verit) Metric_space.in_mball Metric_space_mspace_mdist assms capped_metric_mspace mdist_capped subset_eq)
+  ultimately show ?thesis
+    by (simp add: mball_of_def)
+qed
+
+lemma Metric_space_capped_dist[simp]:
+  "Metric_space (mspace m) (Metric_space.capped_dist (mdist m) \<delta>)"
+  using Metric_space.capped_dist Metric_space_mspace_mdist by blast
+
+lemma mtopology_capped_metric:
+  "mtopology_of(capped_metric \<delta> m) = mtopology_of m"
+proof (cases "\<delta> > 0")
+  case True
+  interpret Metric_space "mspace m" "mdist m"
+    by (simp add: Metric_space_mspace_mdist)
+  interpret Cap: Metric_space "mspace m" "mdist (capped_metric \<delta> m)"
+    by (metis Metric_space_mspace_mdist capped_metric_mspace)
+  show ?thesis
+    unfolding topology_eq
+  proof
+    fix S
+    show "openin (mtopology_of (capped_metric \<delta> m)) S = openin (mtopology_of m) S"
+    proof (cases "S \<subseteq> mspace m")
+      case True
+      have "mball x r \<subseteq> Cap.mball x r" for x r
+        by (smt (verit, ccfv_SIG) Cap.in_mball in_mball mdist_capped_le subsetI)
+      moreover have "\<exists>r>0. Cap.mball x r \<subseteq> S" if "r>0" "x \<in> S" and r: "mball x r \<subseteq> S" for r x
+      proof (intro exI conjI)
+        show "min (\<delta>/2) r > 0"
+          using \<open>r>0\<close> \<open>\<delta>>0\<close> by force
+        show "Cap.mball x (min (\<delta>/2) r) \<subseteq> S"
+          using that
+          by clarsimp (smt (verit) capped_metric_mdist field_sum_of_halves in_mball subsetD)
+      qed
+      ultimately have "(\<exists>r>0. Cap.mball x r \<subseteq> S) = (\<exists>r>0. mball x r \<subseteq> S)" if "x \<in> S" for x
+        by (meson subset_trans that)
+      then show ?thesis
+        by (simp add: mtopology_of_def openin_mtopology Cap.openin_mtopology)
+    qed (simp add: openin_closedin_eq)
+  qed
+qed (simp add: capped_metric)
+
+text \<open>Might have been easier to prove this within the locale to start with (using Self)\<close>
+lemma (in Metric_space) mtopology_capped_metric:
+  "Metric_space.mtopology M (capped_dist \<delta>) = mtopology"
+  using mtopology_capped_metric [of \<delta> "metric(M,d)"]
+  by (simp add: Metric_space.mtopology_of capped_dist capped_metric_def)
+
+lemma (in Metric_space) MCauchy_capped_metric:
+  "Metric_space.MCauchy M (capped_dist \<delta>) \<sigma> \<longleftrightarrow> MCauchy \<sigma>"
+proof (cases "\<delta> > 0")
+  case True
+  interpret Cap: Metric_space "M" "capped_dist \<delta>"
+    by (simp add: capped_dist)
+  show ?thesis
+  proof
+    assume \<sigma>: "Cap.MCauchy \<sigma>"
+    show "MCauchy \<sigma>"
+      unfolding MCauchy_def
+    proof (intro conjI strip)
+      show "range \<sigma> \<subseteq> M"
+        using Cap.MCauchy_def \<sigma> by presburger
+      fix \<epsilon> :: real
+      assume "\<epsilon> > 0"
+      with True \<sigma>
+      obtain N where "\<forall>n n'. N \<le> n \<longrightarrow> N \<le> n' \<longrightarrow> capped_dist \<delta> (\<sigma> n) (\<sigma> n') < min \<delta> \<epsilon>"
+        unfolding Cap.MCauchy_def by (metis min_less_iff_conj)
+      with True show "\<exists>N. \<forall>n n'. N \<le> n \<longrightarrow> N \<le> n' \<longrightarrow> d (\<sigma> n) (\<sigma> n') < \<epsilon>"
+        by (force simp: capped_dist_def)
+    qed
+  next
+    assume "MCauchy \<sigma>"
+    then show "Cap.MCauchy \<sigma>"
+      unfolding MCauchy_def Cap.MCauchy_def by (force simp: capped_dist_def)
+  qed
+qed (simp add: capped_dist_def)
+
+
+lemma (in Metric_space) mcomplete_capped_metric:
+   "Metric_space.mcomplete M (capped_dist \<delta>) \<longleftrightarrow> mcomplete"
+  by (simp add: MCauchy_capped_metric Metric_space.mcomplete_def capped_dist mtopology_capped_metric mcomplete_def)
+
+lemma bounded_equivalent_metric:
+  assumes "\<delta> > 0"
+  obtains m' where "mspace m' = mspace m" "mtopology_of m' = mtopology_of m" "\<And>x y. mdist m' x y < \<delta>"
+proof
+  let ?m = "capped_metric (\<delta>/2) m"
+  fix x y
+  show "mdist ?m x y < \<delta>"
+    by (smt (verit, best) assms field_sum_of_halves mdist_capped)    
+qed (auto simp: mtopology_capped_metric)
+
+text \<open>A technical lemma needed below\<close>
+lemma Sup_metric_cartesian_product:
+  fixes I m
+  defines "S \<equiv> PiE I (mspace \<circ> m)"
+  defines "D \<equiv> \<lambda>x y. if x \<in> S \<and> y \<in> S then SUP i\<in>I. mdist (m i) (x i) (y i) else 0"
+  defines "m' \<equiv> metric(S,D)"
+  assumes "I \<noteq> {}"
+    and c: "\<And>i x y. \<lbrakk>i \<in> I; x \<in> mspace(m i); y \<in> mspace(m i)\<rbrakk> \<Longrightarrow> mdist (m i) x y \<le> c"
+  shows "Metric_space S D" 
+    and "\<forall>x \<in> S. \<forall>y \<in> S. \<forall>b. D x y \<le> b \<longleftrightarrow> (\<forall>i \<in> I. mdist (m i) (x i) (y i) \<le> b)"  (is "?the2")
+proof -
+  have bdd: "bdd_above ((\<lambda>i. mdist (m i) (x i) (y i)) ` I)"
+    if "x \<in> S" "y \<in> S" for x y 
+    using c that by (force simp: S_def bdd_above_def)
+  have D_iff: "D x y \<le> b \<longleftrightarrow> (\<forall>i \<in> I. mdist (m i) (x i) (y i) \<le> b)"
+    if "x \<in> S" "y \<in> S" for x y b
+    using that \<open>I \<noteq> {}\<close> by (simp add: D_def PiE_iff cSup_le_iff bdd)
+  show "Metric_space S D"
+  proof
+    fix x y
+    show D0: "0 \<le> D x y"
+      using bdd  
+      apply (simp add: D_def)
+      by (meson \<open>I \<noteq> {}\<close> cSUP_upper dual_order.trans ex_in_conv mdist_nonneg)
+    show "D x y = D y x"
+      by (simp add: D_def mdist_commute)
+    assume "x \<in> S" and "y \<in> S"
+    then
+    have "D x y = 0 \<longleftrightarrow> (\<forall>i\<in>I. mdist (m i) (x i) (y i) = 0)"
+      using D0 D_iff [of x y 0] nle_le by fastforce
+    also have "... \<longleftrightarrow> x = y"
+      using \<open>x \<in> S\<close> \<open>y \<in> S\<close> by (fastforce simp: S_def PiE_iff extensional_def)
+    finally show "(D x y = 0) \<longleftrightarrow> (x = y)" .
+    fix z
+    assume "z \<in> S"
+    have "mdist (m i) (x i) (z i) \<le> D x y + D y z" if "i \<in> I" for i
+    proof -
+      have "mdist (m i) (x i) (z i) \<le> mdist (m i) (x i) (y i) + mdist (m i) (y i) (z i)"
+        by (metis PiE_E S_def \<open>x \<in> S\<close> \<open>y \<in> S\<close> \<open>z \<in> S\<close> comp_apply mdist_triangle that)
+      also have "... \<le> D x y + D y z"
+        using \<open>x \<in> S\<close> \<open>y \<in> S\<close> \<open>z \<in> S\<close> by (meson D_iff add_mono order_refl that)
+      finally show ?thesis .
+    qed
+    then show "D x z \<le> D x y + D y z"
+      by (simp add: D_iff \<open>x \<in> S\<close> \<open>z \<in> S\<close>)
+  qed
+  then interpret Metric_space S D .
+  show ?the2
+  proof (intro strip)
+    show "(D x y \<le> b) = (\<forall>i\<in>I. mdist (m i) (x i) (y i) \<le> b)"
+      if "x \<in> S" and "y \<in> S" for x y b
+      using that by (simp add: D_iff m'_def)
+  qed
+qed
+
+lemma metrizable_topology_A:
+  assumes "metrizable_space (product_topology X I)"
+  shows "topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. metrizable_space (X i))"
+    by (meson assms metrizable_space_retraction_map_image retraction_map_product_projection)
+
+lemma metrizable_topology_C:
+  assumes "completely_metrizable_space (product_topology X I)"
+  shows "topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. completely_metrizable_space (X i))"
+    by (meson assms completely_metrizable_space_retraction_map_image retraction_map_product_projection)
+
+lemma metrizable_topology_B:
+  fixes a X I
+  defines "L \<equiv> {i \<in> I. \<nexists>a. topspace (X i) \<subseteq> {a}}"
+  assumes "topspace (product_topology X I) \<noteq> {}"
+    and met: "metrizable_space (product_topology X I)"
+    and "\<And>i. i \<in> I \<Longrightarrow> metrizable_space (X i)"
+  shows  "countable L"
+proof -
+  have "\<And>i. \<exists>p q. i \<in> L \<longrightarrow> p \<in> topspace(X i) \<and> q \<in> topspace(X i) \<and> p \<noteq> q"
+    unfolding L_def by blast
+  then obtain \<phi> \<psi> where \<phi>: "\<And>i. i \<in> L \<Longrightarrow> \<phi> i \<in> topspace(X i) \<and> \<psi> i \<in> topspace(X i) \<and> \<phi> i \<noteq> \<psi> i"
+    by metis
+  obtain z where z: "z \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+    using assms(2) by fastforce
+  define p where "p \<equiv> \<lambda>i. if i \<in> L then \<phi> i else z i"
+  define q where "q \<equiv> \<lambda>i j. if j = i then \<psi> i else p j"
+  have p: "p \<in> topspace(product_topology X I)"
+    using z \<phi> by (auto simp: p_def L_def)
+  then have q: "\<And>i. i \<in> L \<Longrightarrow> q i \<in> topspace (product_topology X I)" 
+    by (auto simp: L_def q_def \<phi>)
+  have fin: "finite {i \<in> L. q i \<notin> U}" if U: "openin (product_topology X I) U" "p \<in> U" for U
+  proof -
+    obtain V where V: "finite {i \<in> I. V i \<noteq> topspace (X i)}" "(\<forall>i\<in>I. openin (X i) (V i))" "p \<in> Pi\<^sub>E I V" "Pi\<^sub>E I V \<subseteq> U"
+      using U by (force simp: openin_product_topology_alt)
+    moreover 
+    have "V x \<noteq> topspace (X x)" if "x \<in> L" and "q x \<notin> U" for x
+      using that V q
+      by (smt (verit, del_insts) PiE_iff q_def subset_eq topspace_product_topology)
+    then have "{i \<in> L. q i \<notin> U} \<subseteq> {i \<in> I. V i \<noteq> topspace (X i)}"
+      by (force simp: L_def)
+    ultimately show ?thesis
+      by (meson finite_subset)
+  qed
+  obtain M d where "Metric_space M d" and XI: "product_topology X I = Metric_space.mtopology M d"
+    using met metrizable_space_def by blast
+  then interpret Metric_space M d
+    by blast
+  define C where "C \<equiv> \<Union>n::nat. {i \<in> L. q i \<notin> mball p (inverse (Suc n))}"
+  have "finite {i \<in> L. q i \<notin> mball p (inverse (real (Suc n)))}" for n
+    using XI p  by (intro fin; force)
+  then have "countable C"
+    unfolding C_def
+    by (meson countableI_type countable_UN countable_finite)
+  moreover have "L \<subseteq> C"
+  proof (clarsimp simp: C_def)
+    fix i
+    assume "i \<in> L" and "q i \<in> M" and "p \<in> M"
+    then show "\<exists>n. \<not> d p (q i) < inverse (1 + real n)"
+      using reals_Archimedean [of "d p (q i)"]
+      by (metis \<phi> mdist_pos_eq not_less_iff_gr_or_eq of_nat_Suc p_def q_def)
+  qed
+  ultimately show ?thesis
+    using countable_subset by blast
+qed
+
+lemma metrizable_topology_DD:
+  assumes "topspace (product_topology X I) \<noteq> {}"
+    and co: "countable {i \<in> I. \<nexists>a. topspace (X i) \<subseteq> {a}}"
+    and m: "\<And>i. i \<in> I \<Longrightarrow> X i = mtopology_of (m i)"
+  obtains M d where "Metric_space M d" "product_topology X I = Metric_space.mtopology M d"
+                    "(\<And>i. i \<in> I \<Longrightarrow> mcomplete_of (m i)) \<Longrightarrow> Metric_space.mcomplete M d"
+proof (cases "I = {}")
+  case True
+  then show ?thesis
+    by (metis discrete_metric.mcomplete_discrete_metric discrete_metric.mtopology_discrete_metric metric_M_dd product_topology_empty_discrete that)
+next
+  case False
+  obtain nk and C:: "nat set" where nk: "{i \<in> I. \<nexists>a. topspace (X i) \<subseteq> {a}} = nk ` C" and "inj_on nk C"
+    using co by (force simp: countable_as_injective_image_subset)
+  then obtain kn where kn: "\<And>w. w \<in> C \<Longrightarrow> kn (nk w) = w"
+    by (metis inv_into_f_f)
+  define cm where "cm \<equiv> \<lambda>i. capped_metric (inverse(Suc(kn i))) (m i)"
+  have mspace_cm: "mspace (cm i) = mspace (m i)" for i
+    by (simp add: cm_def)
+  have c1: "\<And>i x y. mdist (cm i) x y \<le> 1"
+    by (simp add: cm_def capped_metric_mdist min_le_iff_disj divide_simps)
+  then have bdd: "bdd_above ((\<lambda>i. mdist (cm i) (x i) (y i)) ` I)" for x y
+    by (meson bdd_above.I2)
+  define M where "M \<equiv> Pi\<^sub>E I (mspace \<circ> cm)"
+  define d where "d \<equiv> \<lambda>x y. if x \<in> M \<and> y \<in> M then SUP i\<in>I. mdist (cm i) (x i) (y i) else 0"
+
+  have d_le1: "d x y \<le> 1" for x y
+    using \<open>I \<noteq> {}\<close> c1 by (simp add: d_def bdd cSup_le_iff)
+  with \<open>I \<noteq> {}\<close> Sup_metric_cartesian_product [of I cm]
+  have "Metric_space M d" 
+    and *: "\<forall>x\<in>M. \<forall>y\<in>M. \<forall>b. (d x y \<le> b) \<longleftrightarrow> (\<forall>i\<in>I. mdist (cm i) (x i) (y i) \<le> b)"
+    by (auto simp: False bdd M_def d_def cSUP_le_iff intro: c1) 
+  then interpret Metric_space M d 
+    by metis
+  have le_d: "mdist (cm i) (x i) (y i) \<le> d x y" if "i \<in> I" "x \<in> M" "y \<in> M" for i x y
+    using "*" that by blast
+  have product_m: "PiE I (\<lambda>i. mspace (m i)) = topspace(product_topology X I)"
+    using m by force
+
+  define m' where "m' = metric (M,d)"
+  define J where "J \<equiv> \<lambda>U. {i \<in> I. U i \<noteq> topspace (X i)}"
+  have 1: "\<exists>U. finite (J U) \<and> (\<forall>i\<in>I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> mball z r"
+    if "x \<in> M" "z \<in> M" and r: "0 < r" "d z x < r" for x z r
+  proof -
+    have x: "\<And>i. i \<in> I \<Longrightarrow> x i \<in> topspace(X i)"
+      using M_def m mspace_cm that(1) by auto
+    have z: "\<And>i. i \<in> I \<Longrightarrow> z i \<in> topspace(X i)"
+      using M_def m mspace_cm that(2) by auto
+    obtain R where "0 < R" "d z x < R" "R < r"
+      using r dense by (smt (verit, ccfv_threshold))
+    define U where "U \<equiv> \<lambda>i. if R \<le> inverse(Suc(kn i)) then mball_of (m i) (z i) R else topspace(X i)"
+    show ?thesis
+    proof (intro exI conjI)
+      obtain n where n: "real n * R > 1"
+        using \<open>0 < R\<close> ex_less_of_nat_mult by blast
+      have "finite (nk ` (C \<inter> {..n}))"
+        by force
+      moreover 
+      have "\<exists>m. m \<in> C \<and> m \<le> n \<and> i = nk m"
+        if R: "R \<le> inverse (1 + real (kn i))" and "i \<in> I" 
+          and neq: "mball_of (m i) (z i) R \<noteq> topspace (X i)" for i 
+      proof -
+        interpret MI: Metric_space "mspace (m i)" "mdist (m i)"
+          by auto
+        have "MI.mball (z i) R \<noteq> topspace (X i)"
+          by (metis mball_of_def neq)
+        then have "\<nexists>a. topspace (X i) \<subseteq> {a}"
+          using \<open>0 < R\<close> m subset_antisym \<open>i \<in> I\<close> z by fastforce
+        then have "i \<in> nk ` C"
+          using nk \<open>i \<in> I\<close> by auto
+        then show ?thesis
+          by (smt (verit, ccfv_SIG) R \<open>0 < R\<close> image_iff kn lift_Suc_mono_less_iff mult_mono n not_le_imp_less of_nat_0_le_iff of_nat_Suc right_inverse)
+      qed
+      then have "J U \<subseteq> nk ` (C \<inter> {..n})"
+        by (auto simp: image_iff Bex_def J_def U_def split: if_split_asm)
+      ultimately show "finite (J U)"
+        using finite_subset by blast
+      show "\<forall>i\<in>I. openin (X i) (U i)"
+        by (simp add: Metric_space.openin_mball U_def mball_of_def mtopology_of_def m)
+      have xin: "x \<in> Pi\<^sub>E I (topspace \<circ> X)"
+        using M_def \<open>x \<in> M\<close> x by auto
+      moreover 
+      have "\<And>i. \<lbrakk>i \<in> I; R \<le> inverse (1 + real (kn i))\<rbrakk> \<Longrightarrow> mdist (m i) (z i) (x i) < R"
+        by (smt (verit, ccfv_SIG) \<open>d z x < R\<close> capped_metric_mdist cm_def le_d of_nat_Suc that)
+      ultimately show "x \<in> Pi\<^sub>E I U"
+        using m z by (auto simp: U_def PiE_iff)
+      show "Pi\<^sub>E I U \<subseteq> mball z r"
+      proof
+        fix y
+        assume y: "y \<in> Pi\<^sub>E I U"
+        then have "y \<in> M"
+          by (force simp: PiE_iff M_def U_def m mspace_cm split: if_split_asm)
+        moreover 
+        have "\<forall>i\<in>I. mdist (cm i) (z i) (y i) \<le> R"
+          by (smt (verit) PiE_mem U_def cm_def in_mball_of inverse_Suc mdist_capped mdist_capped_le y)
+        then have "d z y \<le> R"
+          by (simp add: \<open>y \<in> M\<close> \<open>z \<in> M\<close> *)
+        ultimately show "y \<in> mball z r"
+          using \<open>R < r\<close> \<open>z \<in> M\<close> by force
+      qed
+    qed
+  qed
+  have 2: "\<exists>r>0. mball x r \<subseteq> S"
+    if "finite (J U)" and x: "x \<in> Pi\<^sub>E I U" and S: "Pi\<^sub>E I U \<subseteq> S"
+      and U: "\<And>i. i\<in>I \<Longrightarrow> openin (X i) (U i)" 
+      and "x \<in> S" for U S x
+  proof -
+    { fix i
+      assume "i \<in> J U"
+      then have "i \<in> I"
+        by (auto simp: J_def)
+      then have "openin (mtopology_of (m i)) (U i)"
+        using U m by force
+      then have "openin (mtopology_of (cm i)) (U i)"
+        by (simp add: Abstract_Metric_Spaces.mtopology_capped_metric cm_def)
+      then have "\<exists>r>0. mball_of (cm i) (x i) r \<subseteq> U i"
+        using x
+        by (simp add: Metric_space.openin_mtopology PiE_mem \<open>i \<in> I\<close> mball_of_def mtopology_of_def) 
+    }
+    then obtain rf where rf: "\<And>j. j \<in> J U \<Longrightarrow> rf j >0 \<and> mball_of (cm j) (x j) (rf j) \<subseteq> U j"
+      by metis
+    define r where "r \<equiv> Min (insert 1 (rf ` J U))"
+    show ?thesis
+    proof (intro exI conjI)
+      show "r > 0"
+        by (simp add: \<open>finite (J U)\<close> r_def rf)
+      have r [simp]: "\<And>j. j \<in> J U \<Longrightarrow> r \<le> rf j" "r \<le> 1"
+        by (auto simp: r_def that(1))
+      have *: "mball_of (cm i) (x i) r \<subseteq> U i" if "i \<in> I" for i
+      proof (cases "i \<in> J U")
+        case True
+        with r show ?thesis
+          by (smt (verit) Metric_space.in_mball Metric_space_mspace_mdist mball_of_def rf subset_eq)
+      next
+        case False
+        then show ?thesis
+          by (simp add: J_def cm_def m subset_eq that)
+      qed
+      show "mball x r \<subseteq> S"
+        by (smt (verit) x * in_mball_of M_def Metric_space.in_mball Metric_space_axioms PiE_iff le_d o_apply subset_eq S)
+    qed
+  qed
+  have 3: "x \<in> M"
+    if \<section>: "\<And>x. x\<in>S \<Longrightarrow> \<exists>U. finite (J U) \<and> (\<forall>i\<in>I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> S"
+      and "x \<in> S" for S x
+    using \<section> [OF \<open>x \<in> S\<close>] m openin_subset by (fastforce simp: M_def PiE_iff cm_def)
+  show thesis
+  proof
+    show "Metric_space M d"
+      using Metric_space_axioms by blast
+    show eq: "product_topology X I = Metric_space.mtopology M d"
+      unfolding topology_eq openin_mtopology openin_product_topology_alt  
+      using J_def 1 2 3 subset_iff zero by (smt (verit, ccfv_threshold))
+    show "mcomplete" if "\<And>i. i \<in> I \<Longrightarrow> mcomplete_of (m i)" 
+      unfolding mcomplete_def
+    proof (intro strip)
+      fix \<sigma>
+      assume \<sigma>: "MCauchy \<sigma>"
+      have "\<exists>y. i \<in> I \<longrightarrow> limitin (X i) (\<lambda>n. \<sigma> n i) y sequentially" for i
+      proof (cases "i \<in> I")
+        case True
+        interpret MI: Metric_space "mspace (m i)" "mdist (m i)"
+          by auto
+        have "\<And>\<sigma>. MI.MCauchy \<sigma> \<longrightarrow> (\<exists>x. limitin MI.mtopology \<sigma> x sequentially)"
+          by (meson MI.mcomplete_def True mcomplete_of_def that)
+        moreover have "MI.MCauchy (\<lambda>n. \<sigma> n i)"
+          unfolding MI.MCauchy_def
+        proof (intro conjI strip)
+          show "range (\<lambda>n. \<sigma> n i) \<subseteq> mspace (m i)"
+            by (smt (verit, ccfv_threshold) MCauchy_def PiE_iff True \<sigma> eq image_subset_iff m topspace_mtopology topspace_mtopology_of topspace_product_topology)
+          fix \<epsilon>::real
+          define r where "r \<equiv> min \<epsilon> (inverse(Suc (kn i)))"
+          assume "\<epsilon> > 0"
+          then have "r > 0"
+            by (simp add: r_def)
+          then obtain N where N: "\<And>n n'. N \<le> n \<and> N \<le> n' \<Longrightarrow> d (\<sigma> n) (\<sigma> n') < r"
+            using \<sigma> unfolding MCauchy_def by meson
+          show "\<exists>N. \<forall>n n'. N \<le> n \<longrightarrow> N \<le> n' \<longrightarrow> mdist (m i) (\<sigma> n i) (\<sigma> n' i) < \<epsilon>"
+          proof (intro strip exI)
+            fix n n'
+            assume "N \<le> n" and "N \<le> n'"
+            then have "mdist (cm i) (\<sigma> n i) (\<sigma> n' i) < r"
+              using *
+              by (smt (verit) Metric_space.MCauchy_def Metric_space_axioms N True \<sigma> rangeI subsetD)
+            then
+            show "mdist (m i) (\<sigma> n i) (\<sigma> n' i) < \<epsilon>"
+              unfolding cm_def r_def
+              by (smt (verit, ccfv_SIG) capped_metric_mdist)
+          qed
+        qed
+        ultimately show ?thesis
+          by (simp add: m mtopology_of_def)
+      qed auto
+      then obtain y where "\<And>i. i \<in> I \<Longrightarrow> limitin (X i) (\<lambda>n. \<sigma> n i) (y i) sequentially"
+        by metis
+      with \<sigma> show "\<exists>x. limitin mtopology \<sigma> x sequentially"
+        apply (rule_tac x="\<lambda>i\<in>I. y i" in exI)
+        apply (simp add: MCauchy_def limitin_componentwise flip: eq)
+        by (metis eq eventually_at_top_linorder range_subsetD topspace_mtopology topspace_product_topology)
+    qed
+  qed
+qed
+
+
+lemma metrizable_topology_D:
+  assumes "topspace (product_topology X I) \<noteq> {}"
+    and co: "countable {i \<in> I. \<nexists>a. topspace (X i) \<subseteq> {a}}"
+    and met: "\<And>i. i \<in> I \<Longrightarrow> metrizable_space (X i)"
+  shows "metrizable_space (product_topology X I)"
+proof -
+  have "\<And>i. i \<in> I \<Longrightarrow> \<exists>m. X i = mtopology_of m"
+    by (metis Metric_space.mtopology_of met metrizable_space_def)
+  then obtain m where m: "\<And>i. i \<in> I \<Longrightarrow> X i = mtopology_of (m i)"
+    by metis 
+  then show ?thesis
+    using metrizable_topology_DD [of X I m] assms by (force simp: metrizable_space_def)
+qed
+
+lemma metrizable_topology_E:
+  assumes "topspace (product_topology X I) \<noteq> {}"
+    and "countable {i \<in> I. \<nexists>a. topspace (X i) \<subseteq> {a}}"
+    and met: "\<And>i. i \<in> I \<Longrightarrow> completely_metrizable_space (X i)"
+  shows "completely_metrizable_space (product_topology X I)"
+proof -
+  have "\<And>i. i \<in> I \<Longrightarrow> \<exists>m. mcomplete_of m \<and> X i = mtopology_of m"
+    using met Metric_space.mtopology_of Metric_space.mcomplete_of unfolding completely_metrizable_space_def
+    by metis 
+  then obtain m where "\<And>i. i \<in> I \<Longrightarrow> mcomplete_of (m i) \<and> X i = mtopology_of (m i)"
+    by metis 
+  then show ?thesis
+    using  metrizable_topology_DD [of X I m] assms unfolding metrizable_space_def
+    by (metis (full_types) completely_metrizable_space_def)
+qed
+
+
+lemma metrizable_space_product_topology:
+  "metrizable_space (product_topology X I) \<longleftrightarrow>
+        topspace (product_topology X I) = {} \<or>
+        countable {i \<in> I. \<not> (\<exists>a. topspace(X i) \<subseteq> {a})} \<and>
+        (\<forall>i \<in> I. metrizable_space (X i))"
+  by (metis (mono_tags, lifting) empty_metrizable_space metrizable_topology_A metrizable_topology_B metrizable_topology_D)
+
+lemma completely_metrizable_space_product_topology:
+  "completely_metrizable_space (product_topology X I) \<longleftrightarrow>
+        topspace (product_topology X I) = {} \<or>
+        countable {i \<in> I. \<not> (\<exists>a. topspace(X i) \<subseteq> {a})} \<and>
+        (\<forall>i \<in> I. completely_metrizable_space (X i))"
+  by (metis (mono_tags, lifting) completely_metrizable_imp_metrizable_space empty_completely_metrizable_space metrizable_topology_B metrizable_topology_C metrizable_topology_E)
+
+
+lemma completely_metrizable_Euclidean_space:
+  "completely_metrizable_space(Euclidean_space n)"
+  unfolding Euclidean_space_def
+proof (rule completely_metrizable_space_closedin)
+  show "completely_metrizable_space (powertop_real (UNIV::nat set))"
+    by (simp add: completely_metrizable_space_product_topology completely_metrizable_space_euclidean)
+  show "closedin (powertop_real UNIV) {x. \<forall>i\<ge>n. x i = 0}"
+    using closedin_Euclidean_space topspace_Euclidean_space by auto
+qed
+
+lemma metrizable_Euclidean_space:
+   "metrizable_space(Euclidean_space n)"
+  by (simp add: completely_metrizable_Euclidean_space completely_metrizable_imp_metrizable_space)
+
+lemma locally_connected_Euclidean_space:
+   "locally_connected_space(Euclidean_space n)"
+  by (simp add: locally_path_connected_Euclidean_space locally_path_connected_imp_locally_connected_space)
+
 
 end
 

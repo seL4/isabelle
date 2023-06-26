@@ -1,7 +1,7 @@
 section \<open>Equipollence and Other Relations Connected with Cardinality\<close>
 
 theory "Equipollence"
-  imports FuncSet 
+  imports FuncSet Countable_Set
 begin
 
 subsection\<open>Eqpoll\<close>
@@ -47,11 +47,7 @@ lemma lepoll_trans1 [trans]: "\<lbrakk>A \<approx> B; B \<lesssim> C\<rbrakk> \<
   by (meson card_of_ordLeq eqpoll_iff_card_of_ordIso lepoll_def lepoll_trans ordIso_iff_ordLeq)
 
 lemma lepoll_trans2 [trans]: "\<lbrakk>A \<lesssim> B; B \<approx> C\<rbrakk> \<Longrightarrow> A \<lesssim> C"
-  apply (clarsimp simp: eqpoll_def lepoll_def bij_betw_def)
-  apply (rename_tac f g)
-  apply (rule_tac x="g \<circ> f" in exI)
-  apply (auto simp: image_subset_iff inj_on_def)
-  done
+  by (metis bij_betw_def eqpoll_def lepoll_def lepoll_trans order_refl)
 
 lemma eqpoll_sym: "A \<approx> B \<Longrightarrow> B \<approx> A"
   unfolding eqpoll_def
@@ -87,9 +83,7 @@ lemma image_lepoll: "f ` A \<lesssim> A"
   by (auto simp: lepoll_iff)
 
 lemma infinite_le_lepoll: "infinite A \<longleftrightarrow> (UNIV::nat set) \<lesssim> A"
-apply (auto simp: lepoll_def)
-  apply (simp add: infinite_countable_subset)
-  using infinite_iff_countable_subset by blast
+  by (simp add: infinite_iff_countable_subset lepoll_def)
 
 lemma lepoll_Pow_self: "A \<lesssim> Pow A"
   unfolding lepoll_def inj_def
@@ -121,12 +115,7 @@ lemma singleton_eqpoll: "{x} \<approx> {y}"
   by (blast intro: lepoll_antisym singleton_lepoll)
 
 lemma subset_singleton_iff_lepoll: "(\<exists>x. S \<subseteq> {x}) \<longleftrightarrow> S \<lesssim> {()}"
-proof safe
-  show "S \<lesssim> {()}" if "S \<subseteq> {x}" for x
-    using subset_imp_lepoll [OF that] by (simp add: singleton_eqpoll lepoll_trans2)
-  show "\<exists>x. S \<subseteq> {x}" if "S \<lesssim> {()}"
-  by (metis (no_types, opaque_lifting) image_empty image_insert lepoll_iff that)
-qed
+  using lepoll_iff by fastforce
 
 lemma infinite_insert_lepoll:
   assumes "infinite A" shows "insert a A \<lesssim> A"
@@ -157,6 +146,12 @@ proof -
   then show ?thesis
     using \<open>infinite A\<close> infinite_le_lepoll lepoll_trans by auto
 qed
+
+lemma countable_lepoll: "\<lbrakk>countable A; B \<lesssim> A\<rbrakk> \<Longrightarrow> countable B"
+  by (meson countable_image countable_subset lepoll_iff)
+
+lemma countable_eqpoll: "\<lbrakk>countable A; B \<approx> A\<rbrakk> \<Longrightarrow> countable B"
+  using countable_lepoll eqpoll_imp_lepoll by blast
 
 subsection\<open>The strict relation\<close>
 
@@ -191,6 +186,9 @@ lemma lesspoll_Pow_self: "A \<prec> Pow A"
 lemma finite_lesspoll_infinite:
   assumes "infinite A" "finite B" shows "B \<prec> A"
   by (meson assms eqpoll_finite_iff finite_lepoll_infinite lesspoll_def)
+
+lemma countable_lesspoll: "\<lbrakk>countable A; B \<prec> A\<rbrakk> \<Longrightarrow> countable B"
+  using countable_lepoll lesspoll_def by blast
 
 subsection\<open>Mapping by an injection\<close>
 
