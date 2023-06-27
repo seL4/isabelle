@@ -121,7 +121,9 @@ object Build_Process {
         case None => Nil
       }
 
-    def prepare_database(): Unit = {
+    def store_init(): Unit = {
+      Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
+
       using_option(store.maybe_open_build_database(Data.database)) { db =>
         val shared_db = db.is_postgresql
         Data.transaction_lock(db, create = true) {

@@ -168,8 +168,7 @@ object Build {
         numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, session_setup = session_setup, master = true)
 
-    store.prepare_output()
-    build_context.prepare_database()
+    build_context.store_init()
 
     if (clean_build) {
       using_optional(store.maybe_open_database_server()) { database_server =>

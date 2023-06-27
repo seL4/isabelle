@@ -302,8 +302,6 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def open_database(name: String, output: Boolean = false): SQL.Database =
     try_open_database(name, output = output) getOrElse error_database(name)
 
-  def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
-
   def clean_output(
     database_server: Option[SQL.Database],
     name: String,
