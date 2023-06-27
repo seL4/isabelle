@@ -29,7 +29,9 @@ object Export {
 
   /* SQL data model */
 
-  object Data {
+  object Data extends SQL.Data() {
+    override lazy val tables = SQL.Tables(Base.table)
+
     object Base {
       val session_name = SQL.Column.string("session_name").make_primary_key
       val theory_name = SQL.Column.string("theory_name").make_primary_key
@@ -43,8 +45,6 @@ object Export {
           List(session_name, theory_name, name, executable, compressed, body))
     }
 
-    val tables = SQL.Tables(Base.table)
-
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
       SQL.where_and(
         Base.session_name.equal(session_name),
@@ -53,18 +53,18 @@ object Export {
 
     def readable_entry(db: SQL.Database, entry_name: Entry_Name): Boolean = {
       db.execute_query_statementB(
-        Data.Base.table.select(List(Base.name),
+        Base.table.select(List(Base.name),
           sql = where_equal(entry_name.session, entry_name.theory, entry_name.name)))
     }
 
     def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
       db.execute_query_statementO[Entry](
-        Data.Base.table.select(List(Data.Base.executable, Data.Base.compressed, Data.Base.body),
+        Base.table.select(List(Base.executable, Base.compressed, Base.body),
           sql = Data.where_equal(entry_name.session, entry_name.theory, entry_name.name)),
         { res =>
-          val executable = res.bool(Data.Base.executable)
-          val compressed = res.bool(Data.Base.compressed)
-          val bytes = res.bytes(Data.Base.body)
+          val executable = res.bool(Base.executable)
+          val compressed = res.bool(Base.compressed)
+          val bytes = res.bytes(Base.body)
           val body = Future.value(compressed, bytes)
           Entry(entry_name, executable, body, cache)
         }
@@ -81,6 +81,24 @@ object Export {
         stmt.bytes(6) = bs
       })
     }
+
+    def read_theory_names(db: SQL.Database, session_name: String): List[String] =
+      db.execute_query_statement(
+        Base.table.select(List(Base.theory_name), distinct = true,
+          sql = Data.where_equal(session_name) + SQL.order_by(List(Base.theory_name))),
+        List.from[String], res => res.string(Base.theory_name))
+
+    def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
+      db.execute_query_statement(
+        Base.table.select(List(Base.theory_name, Base.name),
+          sql = Data.where_equal(session_name)) + SQL.order_by(List(Base.theory_name, Base.name)),
+        List.from[Entry_Name],
+        { res =>
+          Entry_Name(
+            session = session_name,
+            theory = res.string(Base.theory_name),
+            name = res.string(Base.name))
+        })
   }
 
   def compound_name(a: String, b: String): String =
@@ -97,25 +115,6 @@ object Export {
       else Path.make(elems.drop(prune))
     }
   }
-
-  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-    db.execute_query_statement(
-      Data.Base.table.select(List(Data.Base.theory_name), distinct = true,
-        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.Base.theory_name))),
-      List.from[String], res => res.string(Data.Base.theory_name))
-
-  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
-    db.execute_query_statement(
-      Data.Base.table.select(List(Data.Base.theory_name, Data.Base.name),
-        sql = Data.where_equal(session_name)) +
-          SQL.order_by(List(Data.Base.theory_name, Data.Base.name)),
-      List.from[Entry_Name],
-      { res =>
-        Entry_Name(
-          session = session_name,
-          theory = res.string(Data.Base.theory_name),
-          name = res.string(Data.Base.name))
-      })
 
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
@@ -335,8 +334,8 @@ object Export {
   extends AutoCloseable {
     def close(): Unit = ()
 
-    lazy private [Export] val theory_names: List[String] = read_theory_names(db, session)
-    lazy private [Export] val entry_names: List[Entry_Name] = read_entry_names(db, session)
+    lazy private [Export] val theory_names: List[String] = Data.read_theory_names(db, session)
+    lazy private [Export] val entry_names: List[Entry_Name] = Data.read_entry_names(db, session)
   }
 
   class Session_Context private[Export](
@@ -515,7 +514,7 @@ object Export {
     export_patterns: List[String] = Nil
   ): Unit = {
     using(store.open_database(session_name)) { db =>
-      val entry_names = read_entry_names(db, session_name)
+      val entry_names = Data.read_entry_names(db, session_name)
 
       // list
       if (export_list) {
