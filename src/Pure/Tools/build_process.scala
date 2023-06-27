@@ -802,33 +802,40 @@ extends AutoCloseable {
 
   /* progress backed by database */
 
+  private val _database_server: Option[SQL.Database] =
+    try { store.maybe_open_database_server() }
+    catch { case exn: Throwable => close(); throw exn }
+
   private val _build_database: Option[SQL.Database] =
-    store.maybe_open_build_database(Build_Process.Data.database)
+    try { store.maybe_open_build_database(Build_Process.Data.database) }
+    catch { case exn: Throwable => close(); throw exn }
 
   private val _host_database: Option[SQL.Database] =
-    store.maybe_open_build_database(Host.Data.database)
-
-  private val _database_server: Option[SQL.Database] =
-    store.maybe_open_database_server()
+    try { store.maybe_open_build_database(Host.Data.database) }
+    catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
     _build_database match {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
-        val progress_db = store.open_build_database(Progress.Data.database)
-        val progress =
-          new Database_Progress(progress_db, build_progress,
-            hostname = hostname,
-            context_uuid = build_uuid)
-        (progress, progress.agent_uuid)
+        try {
+          val progress_db = store.open_build_database(Progress.Data.database)
+          val progress =
+            new Database_Progress(progress_db, build_progress,
+              hostname = hostname,
+              context_uuid = build_uuid)
+          (progress, progress.agent_uuid)
+        }
+        catch { case exn: Throwable => close(); throw exn }
     }
   }
 
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
   def close(): Unit = synchronized {
-    _build_database.foreach(_.close())
-    _host_database.foreach(_.close())
+    Option(_database_server).flatten.foreach(_.close())
+    Option(_build_database).flatten.foreach(_.close())
+    Option(_host_database).flatten.foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
         db_progress.exit()
