@@ -233,8 +233,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
       error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
         cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
-  def heap_shasum(database: Option[SQL.Database], name: String): SHA1.Shasum = {
-    def get_database = database.flatMap(ML_Heap.get_entry(_, name))
+  def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
+    def get_database = database_server.flatMap(ML_Heap.get_entry(_, name))
     def get_file = find_heap(name).flatMap(ML_Heap.read_file_digest)
 
     get_database orElse get_file match {
@@ -307,7 +307,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def clean_output(name: String, init: Boolean = false): Option[Boolean] = {
     val relevant_db =
       build_database_server &&
-        using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
+        using_option(try_open_database(name))(clean_session_info(_, name)).getOrElse(false)
 
     val del =
       for {
@@ -322,7 +322,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     }
 
     if (init) {
-      using(open_database(name, output = true))(init_session_info(_, name))
+      using(open_database(name, output = true))(clean_session_info(_, name))
     }
 
     if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
@@ -383,7 +383,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
       Store.Data.Session_Info.table.select(List(Store.Data.Session_Info.session_name),
         sql = Store.Data.Session_Info.session_name.where_equal(name)))
 
-  def init_session_info(db: SQL.Database, name: String): Boolean =
+  def clean_session_info(db: SQL.Database, name: String): Boolean =
     Store.Data.transaction_lock(db, create = true) {
       val already_defined = session_info_defined(db, name)
 
