@@ -172,11 +172,13 @@ object Build {
     build_context.prepare_database()
 
     if (clean_build) {
-      for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
-        store.clean_output(name) match {
-          case None =>
-          case Some(true) => progress.echo("Cleaned " + name)
-          case Some(false) => progress.echo(name + " FAILED to clean")
+      using_optional(store.maybe_open_database_server()) { database_server =>
+        for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
+          store.clean_output(database_server, name) match {
+            case None =>
+            case Some(true) => progress.echo("Cleaned " + name)
+            case Some(false) => progress.echo(name + " FAILED to clean")
+          }
         }
       }
     }

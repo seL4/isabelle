@@ -808,6 +808,9 @@ extends AutoCloseable {
   private val _host_database: Option[SQL.Database] =
     store.maybe_open_build_database(Host.Data.database)
 
+  private val _database_server: Option[SQL.Database] =
+    store.maybe_open_database_server()
+
   protected val (progress, worker_uuid) = synchronized {
     _build_database match {
       case None => (build_progress, UUID.random().toString)
@@ -906,9 +909,8 @@ extends AutoCloseable {
     val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     if (!skipped && !cancelled) {
-      using_optional(store.maybe_open_database_server())(
-        ML_Heap.restore(_, session_name, store.output_heap(session_name),
-          cache = store.cache.compress))
+      ML_Heap.restore(_database_server, session_name, store.output_heap(session_name),
+        cache = store.cache.compress)
     }
 
     val result_name = (session_name, worker_uuid, build_uuid)
@@ -944,10 +946,10 @@ extends AutoCloseable {
         (if (store_heap) "Building " else "Running ") + session_name +
           if_proper(node_info.numa_node, " on " + node_info) + " ...")
 
-      store.clean_output(session_name, init = true)
+      store.clean_output(_database_server, session_name, init = true)
 
       val build =
-        Build_Job.start_session(build_context, progress, log,
+        Build_Job.start_session(build_context, progress, log, _database_server,
           build_deps.background(session_name), input_shasum, node_info)
 
       val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))

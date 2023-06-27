@@ -23,11 +23,13 @@ object Build_Job {
     build_context: Build_Process.Context,
     progress: Progress,
     log: Logger,
+    database_server: Option[SQL.Database],
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
     node_info: Host.Node_Info
   ): Session_Job = {
-    new Session_Job(build_context, progress, log, session_background, input_shasum, node_info)
+    new Session_Job(build_context, progress, log, database_server,
+      session_background, input_shasum, node_info)
   }
 
   object Session_Context {
@@ -93,6 +95,7 @@ object Build_Job {
     build_context: Build_Process.Context,
     progress: Progress,
     log: Logger,
+    database_server: Option[SQL.Database],
     session_background: Sessions.Background,
     input_shasum: SHA1.Shasum,
     node_info: Host.Node_Info
@@ -453,9 +456,7 @@ object Build_Job {
           val heap = store.output_heap(session_name)
           if (process_result.ok && store_heap && heap.is_file) {
             val slice = Space.MiB(options.real("build_database_slice")).bytes
-            val digest =
-              using_optional(store.maybe_open_database_server())(
-                ML_Heap.store(_, session_name, heap, slice))
+            val digest = ML_Heap.store(database_server, session_name, heap, slice)
             SHA1.shasum(digest, session_name)
           }
           else SHA1.no_shasum

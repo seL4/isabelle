@@ -304,10 +304,16 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
 
-  def clean_output(name: String, init: Boolean = false): Option[Boolean] = {
+  def clean_output(
+    database_server: Option[SQL.Database],
+    name: String,
+    init: Boolean = false
+  ): Option[Boolean] = {
     val relevant_db =
-      build_database_server &&
-        using_option(try_open_database(name))(clean_session_info(_, name)).getOrElse(false)
+      database_server match {
+        case Some(db) => clean_session_info(db, name)
+        case None => false
+      }
 
     val del =
       for {
@@ -317,9 +323,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         path = dir + file if path.is_file
       } yield path.file.delete
 
-    using_optional(maybe_open_database_server()) { database =>
-      database.foreach(ML_Heap.clean_entry(_, name))
-    }
+    database_server.foreach(ML_Heap.clean_entry(_, name))
 
     if (init) {
       using(open_database(name, output = true))(clean_session_info(_, name))
@@ -384,7 +388,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         sql = Store.Data.Session_Info.session_name.where_equal(name)))
 
   def clean_session_info(db: SQL.Database, name: String): Boolean =
-    Store.Data.transaction_lock(db, create = true) {
+    Store.Data.transaction_lock(db, create = true, synchronized = true) {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
@@ -411,7 +415,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    Store.Data.transaction_lock(db) {
+    Store.Data.transaction_lock(db, synchronized = true) {
       Store.Data.write_sources(db, session_name, sources)
       Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }
