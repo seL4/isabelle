@@ -200,6 +200,15 @@ object Export {
     (entry_name: Entry_Name) => regs.exists(_.matches(entry_name.compound_name))
   }
 
+  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
+    Data.transaction_lock(db) { Data.read_theory_names(db, session_name) }
+
+  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
+    Data.transaction_lock(db) { Data.read_entry_names(db, session_name) }
+
+  def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
+    Data.transaction_lock(db) { Data.read_entry(db, entry_name, cache) }
+
 
   /* database consumer thread */
 
@@ -215,7 +224,7 @@ object Export {
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
-              db.transaction {
+              Data.transaction_lock(db) {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {
@@ -334,8 +343,8 @@ object Export {
   extends AutoCloseable {
     def close(): Unit = ()
 
-    lazy private [Export] val theory_names: List[String] = Data.read_theory_names(db, session)
-    lazy private [Export] val entry_names: List[Entry_Name] = Data.read_entry_names(db, session)
+    lazy private [Export] val theory_names: List[String] = read_theory_names(db, session)
+    lazy private [Export] val entry_names: List[Entry_Name] = read_entry_names(db, session)
   }
 
   class Session_Context private[Export](
@@ -403,7 +412,7 @@ object Export {
       def db_entry: Option[Entry] =
         db_hierarchy.view.map { database =>
           val entry_name = Export.Entry_Name(session = database.session, theory = theory, name = name)
-          Data.read_entry(database.db, entry_name, cache)
+          read_entry(database.db, entry_name, cache)
         }.collectFirst({ case Some(entry) => entry })
 
       snapshot_entry orElse db_entry
@@ -514,7 +523,7 @@ object Export {
     export_patterns: List[String] = Nil
   ): Unit = {
     using(store.open_database(session_name)) { db =>
-      val entry_names = Data.read_entry_names(db, session_name)
+      val entry_names = read_entry_names(db, session_name)
 
       // list
       if (export_list) {
@@ -526,7 +535,7 @@ object Export {
         val matcher = make_matcher(export_patterns)
         for {
           entry_name <- entry_names if matcher(entry_name)
-          entry <- Data.read_entry(db, entry_name, store.cache)
+          entry <- read_entry(db, entry_name, store.cache)
         } {
           val path = export_dir + entry_name.make_path(prune = export_prune)
           progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
