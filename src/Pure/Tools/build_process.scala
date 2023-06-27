@@ -16,79 +16,89 @@ import scala.annotation.tailrec
 object Build_Process {
   /** static context **/
 
-  object Context {
-    def apply(
-      store: Store,
-      build_deps: Sessions.Deps,
-      progress: Progress = new Progress,
-      ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
-      hostname: String = Isabelle_System.hostname(),
-      numa_shuffling: Boolean = false,
-      build_heap: Boolean = false,
-      max_jobs: Int = 1,
-      fresh_build: Boolean = false,
-      no_build: Boolean = false,
-      session_setup: (String, Session) => Unit = (_, _) => (),
-      build_uuid: String = UUID.random().toString,
-      master: Boolean = false,
-    ): Context = {
-      val sessions_structure = build_deps.sessions_structure
-      val build_graph = sessions_structure.build_graph
+  def init_context(
+    store: Store,
+    build_deps: Sessions.Deps,
+    progress: Progress = new Progress,
+    ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
+    hostname: String = Isabelle_System.hostname(),
+    numa_shuffling: Boolean = false,
+    build_heap: Boolean = false,
+    max_jobs: Int = 1,
+    fresh_build: Boolean = false,
+    no_build: Boolean = false,
+    session_setup: (String, Session) => Unit = (_, _) => (),
+    build_uuid: String = UUID.random().toString,
+    master: Boolean = false,
+  ): Context = {
+    val sessions_structure = build_deps.sessions_structure
+    val build_graph = sessions_structure.build_graph
 
-      val sessions =
-        Map.from(
-          for ((name, (info, _)) <- build_graph.iterator)
-          yield {
-            val deps = info.parent.toList
-            val ancestors = sessions_structure.build_requirements(deps)
-            val sources_shasum = build_deps.sources_shasum(name)
-            val session_context =
-              Build_Job.Session_Context.load(
-                build_uuid, name, deps, ancestors, info.session_prefs, sources_shasum,
-                info.timeout, store, progress = progress)
-            name -> session_context
-          })
+    val sessions =
+      Map.from(
+        for ((name, (info, _)) <- build_graph.iterator)
+        yield {
+          val deps = info.parent.toList
+          val ancestors = sessions_structure.build_requirements(deps)
+          val sources_shasum = build_deps.sources_shasum(name)
+          val session_context =
+            Build_Job.Session_Context.load(
+              build_uuid, name, deps, ancestors, info.session_prefs, sources_shasum,
+              info.timeout, store, progress = progress)
+          name -> session_context
+        })
 
-      val sessions_time = {
-        val maximals = build_graph.maximals.toSet
-        def descendants_time(name: String): Double = {
-          if (maximals.contains(name)) sessions(name).old_time.seconds
-          else {
-            val descendants = build_graph.all_succs(List(name)).toSet
-            val g = build_graph.restrict(descendants)
-            (0.0 :: g.maximals.flatMap { desc =>
-              val ps = g.all_preds(List(desc))
-              if (ps.exists(p => !sessions.isDefinedAt(p))) None
-              else Some(ps.map(p => sessions(p).old_time.seconds).sum)
-            }).max
-          }
+    val sessions_time = {
+      val maximals = build_graph.maximals.toSet
+      def descendants_time(name: String): Double = {
+        if (maximals.contains(name)) sessions(name).old_time.seconds
+        else {
+          val descendants = build_graph.all_succs(List(name)).toSet
+          val g = build_graph.restrict(descendants)
+          (0.0 :: g.maximals.flatMap { desc =>
+            val ps = g.all_preds(List(desc))
+            if (ps.exists(p => !sessions.isDefinedAt(p))) None
+            else Some(ps.map(p => sessions(p).old_time.seconds).sum)
+          }).max
         }
-        Map.from(
-          for (name <- sessions.keysIterator)
-          yield name -> descendants_time(name)).withDefaultValue(0.0)
+      }
+      Map.from(
+        for (name <- sessions.keysIterator)
+        yield name -> descendants_time(name)).withDefaultValue(0.0)
+    }
+
+    val ordering =
+      new Ordering[String] {
+        def compare(name1: String, name2: String): Int =
+          sessions_time(name2) compare sessions_time(name1) match {
+            case 0 =>
+              sessions(name2).timeout compare sessions(name1).timeout match {
+                case 0 => name1 compare name2
+                case ord => ord
+              }
+            case ord => ord
+          }
       }
 
-      val ordering =
-        new Ordering[String] {
-          def compare(name1: String, name2: String): Int =
-            sessions_time(name2) compare sessions_time(name1) match {
-              case 0 =>
-                sessions(name2).timeout compare sessions(name1).timeout match {
-                  case 0 => name1 compare name2
-                  case ord => ord
-                }
-              case ord => ord
-            }
-        }
+    Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
 
-      val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
-      new Context(store, build_deps, sessions, ordering, ml_platform, hostname, numa_nodes,
-        build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, session_setup, build_uuid = build_uuid, master = master)
+    using_option(store.maybe_open_build_database(Data.database)) { db =>
+      val shared_db = db.is_postgresql
+      Data.transaction_lock(db, create = true) {
+        Data.clean_build(db)
+        if (shared_db) Store.Data.tables.lock(db, create = true)
+      }
+      Data.vacuum(db, more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
     }
+
+    val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
+
+    new Context(store, build_deps, sessions, ordering, ml_platform, hostname, numa_nodes,
+      build_heap = build_heap, max_jobs = max_jobs, fresh_build = fresh_build,
+      no_build = no_build, session_setup, build_uuid = build_uuid, master = master)
   }
 
-  final class Context private(
+  final class Context private[Build_Process](
     val store: Store,
     val build_deps: Sessions.Deps,
     val sessions: State.Sessions,
@@ -120,19 +130,6 @@ object Build_Process {
           Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache)
         case None => Nil
       }
-
-    def store_init(): Unit = {
-      Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
-
-      using_option(store.maybe_open_build_database(Data.database)) { db =>
-        val shared_db = db.is_postgresql
-        Data.transaction_lock(db, create = true) {
-          Data.clean_build(db)
-          if (shared_db) Store.Data.tables.lock(db, create = true)
-        }
-        Data.vacuum(db, more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
-      }
-    }
 
     def store_heap(name: String): Boolean =
       build_heap || Sessions.is_pure(name) ||
