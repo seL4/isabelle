@@ -398,14 +398,23 @@ object Build_Process {
           old_time, old_command_timings, build_uuid))
     }
 
-    def read_sessions_domain(db: SQL.Database): Set[String] =
+    def read_sessions_domain(db: SQL.Database, build_uuid: String = ""): Set[String] =
       db.execute_query_statement(
-        Sessions.table.select(List(Sessions.name)),
+        Sessions.table.select(List(Sessions.name),
+          sql = if_proper(build_uuid, Sessions.name.where_equal(build_uuid))),
         Set.from[String], res => res.string(Sessions.name))
 
-    def read_sessions(db: SQL.Database, names: Iterable[String] = Nil): State.Sessions =
+    def read_sessions(db: SQL.Database,
+      names: Iterable[String] = Nil,
+      build_uuid: String = ""
+    ): State.Sessions =
       db.execute_query_statement(
-        Sessions.table.select(sql = if_proper(names, Sessions.name.where_member(names))),
+        Sessions.table.select(
+          sql =
+            SQL.where_and(
+              if_proper(names, Sessions.name.member(names)),
+              if_proper(build_uuid, Sessions.build_uuid.equal(build_uuid)))
+        ),
         Map.from[String, Build_Job.Session_Context],
         { res =>
           val name = res.string(Sessions.name)
@@ -422,7 +431,7 @@ object Build_Process {
         }
       )
 
-    def update_sessions(db:SQL.Database, sessions: State.Sessions): Boolean = {
+    def update_sessions(db: SQL.Database, sessions: State.Sessions): Boolean = {
       val old_sessions = read_sessions_domain(db)
       val insert = sessions.iterator.filterNot(p => old_sessions.contains(p._1)).toList
 
@@ -779,6 +788,14 @@ object Build_Process {
       state.set_serial(serial)
     }
   }
+
+  def read_builds(db: SQL.Database): List[Build] =
+    Data.transaction_lock(db) { Data.read_builds(db) }
+
+  def read_sessions(db: SQL.Database, build_uuid: String = ""): List[String] =
+    Data.transaction_lock(db) {
+      Data.read_sessions_domain(db, build_uuid = build_uuid).toList.sorted
+    }
 }
 
 
