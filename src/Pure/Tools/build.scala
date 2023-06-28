@@ -418,7 +418,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val build_options = store.options
 
     val sessions =
-      using_optional(Store(options).maybe_open_build_database(Build_Process.Data.database)) {
+      using_optional(store.maybe_open_build_database(Build_Process.Data.database)) {
         case None => error("Cannot access build database")
         case Some(db) => Build_Process.read_sessions(db, build_master.build_uuid)
       }
