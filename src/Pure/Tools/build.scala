@@ -383,7 +383,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   def read_builds(options: Options): List[Build_Process.Build] =
     using_option(Store(options).maybe_open_build_database(Build_Process.Data.database))(
-      Build_Process.read_builds).getOrElse(Nil)
+      Build_Process.read_builds).getOrElse(Nil).filter(_.active)
 
   def print_builds(options: Options, builds: List[Build_Process.Build]): String =
     using_optional(Store(options).maybe_open_build_database(Build_Process.Data.database)) { build_database =>

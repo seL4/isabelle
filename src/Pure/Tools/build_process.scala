@@ -148,7 +148,9 @@ object Build_Process {
     options: String,
     start: Date,
     stop: Option[Date]
-  )
+  ) {
+    def active: Boolean = stop.isEmpty
+  }
 
   case class Worker(
     worker_uuid: String,  // Database_Progress.agent_uuid
