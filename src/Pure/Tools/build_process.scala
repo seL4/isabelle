@@ -792,10 +792,10 @@ object Build_Process {
   }
 
   def read_builds(db: SQL.Database): List[Build] =
-    Data.transaction_lock(db) { Data.read_builds(db) }
+    Data.transaction_lock(db, create = true) { Data.read_builds(db) }
 
   def read_sessions(db: SQL.Database, build_uuid: String = ""): List[String] =
-    Data.transaction_lock(db) {
+    Data.transaction_lock(db, create = true) {
       Data.read_sessions_domain(db, build_uuid = build_uuid).toList.sorted
     }
 }
