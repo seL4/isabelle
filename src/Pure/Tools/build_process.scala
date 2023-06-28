@@ -147,7 +147,8 @@ object Build_Process {
     ml_platform: String,
     options: String,
     start: Date,
-    stop: Option[Date]
+    stop: Option[Date],
+    sessions: List[String]
   ) {
     def active: Boolean = stop.isEmpty
   }
@@ -334,18 +335,25 @@ object Build_Process {
       val table = make_table("", List(build_uuid, ml_platform, options, start, stop))
     }
 
-    def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] =
-      db.execute_query_statement(
-        Base.table.select(sql = Generic.sql_where(build_uuid = build_uuid)),
-        List.from[Build],
-        { res =>
-          val build_uuid = res.string(Base.build_uuid)
-          val ml_platform = res.string(Base.ml_platform)
-          val options = res.string(Base.options)
-          val start = res.date(Base.start)
-          val stop = res.get_date(Base.stop)
-          Build(build_uuid, ml_platform, options, start, stop)
-        }).sortBy(_.start)(Date.Ordering)
+    def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] = {
+      val builds =
+        db.execute_query_statement(
+          Base.table.select(sql = Generic.sql_where(build_uuid = build_uuid)),
+          List.from[Build],
+          { res =>
+            val build_uuid = res.string(Base.build_uuid)
+            val ml_platform = res.string(Base.ml_platform)
+            val options = res.string(Base.options)
+            val start = res.date(Base.start)
+            val stop = res.get_date(Base.stop)
+            Build(build_uuid, ml_platform, options, start, stop, Nil)
+          })
+
+      for (build <- builds.sortBy(_.start)(Date.Ordering)) yield {
+        val sessions = Data.read_sessions_domain(db, build_uuid = build.build_uuid)
+        build.copy(sessions = sessions.toList.sorted)
+      }
+    }
 
     def start_build(
       db: SQL.Database,
@@ -793,11 +801,6 @@ object Build_Process {
 
   def read_builds(db: SQL.Database): List[Build] =
     Data.transaction_lock(db, create = true) { Data.read_builds(db) }
-
-  def read_sessions(db: SQL.Database, build_uuid: String = ""): List[String] =
-    Data.transaction_lock(db, create = true) {
-      Data.read_sessions_domain(db, build_uuid = build_uuid).toList.sorted
-    }
 }
 
 

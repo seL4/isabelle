@@ -432,15 +432,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val store = build_init(options, cache = cache)
     val build_options = store.options
 
-    val sessions =
-      using_optional(store.maybe_open_build_database()) {
-        case None => error("Cannot access build database")
-        case Some(db) => Build_Process.read_sessions(db, build_master.build_uuid)
-      }
-
     val sessions_structure =
       Sessions.load_structure(build_options, dirs = dirs).
-        selection(Sessions.Selection(sessions = sessions))
+        selection(Sessions.Selection(sessions = build_master.sessions))
 
     val build_deps =
       Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
