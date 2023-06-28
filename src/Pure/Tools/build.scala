@@ -385,21 +385,36 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     using_option(Store(options).maybe_open_build_database(Build_Process.Data.database))(
       Build_Process.read_builds).getOrElse(Nil)
 
-  def print_builds(builds: List[Build_Process.Build]): String =
-    if (builds.isEmpty) "No build processes available"
-    else {
-      "Available build processes:" +
-        (for ((build, i) <- builds.iterator.zipWithIndex)
-          yield "\n  " + (i + 1) + ": " + build.build_uuid).mkString
+  def print_builds(options: Options, builds: List[Build_Process.Build]): String =
+    using_optional(Store(options).maybe_open_build_database(Build_Process.Data.database)) { build_database =>
+      val print_database =
+        build_database match {
+          case None => ""
+          case Some(db) => " (database " + db + ")"
+        }
+      if (builds.isEmpty) "No build processes available" + print_database
+      else {
+        "Available build processes" + print_database + ":" +
+          (for ((build, i) <- builds.iterator.zipWithIndex)
+            yield {
+              "\n  " + (i + 1) + ": " + build.build_uuid +
+                " (platform: " + build.ml_platform +
+                ", start: " + Build_Log.print_date(build.start) + ")"
+            }).mkString
+      }
     }
 
-  def id_builds(id: String, builds: List[Build_Process.Build]): Build_Process.Build =
+  def id_builds(
+    options: Options,
+    id: String,
+    builds: List[Build_Process.Build]
+  ): Build_Process.Build =
     (id, builds.length) match {
       case (Value.Int(i), n) if 1 <= i && i <= n => builds(i - 1)
       case (UUID(_), _) if builds.exists(_.build_uuid == id) => builds.find(_.build_uuid == id).get
-      case ("", 0) => error(print_builds(builds))
+      case ("", 0) => error(print_builds(options, builds))
       case ("", 1) => builds.head
-      case _ => cat_error("Cannot identify build process " + quote(id), print_builds(builds))
+      case _ => cat_error("Cannot identify build process " + quote(id), print_builds(options, builds))
     }
 
 
@@ -484,10 +499,10 @@ Usage: isabelle build_worker [OPTIONS]
 
       val builds = read_builds(options)
 
-      if (list_builds) progress.echo(print_builds(builds))
+      if (list_builds) progress.echo(print_builds(options, builds))
 
       if (!list_builds || build_id.nonEmpty) {
-        val build = id_builds(build_id, builds)
+        val build = id_builds(options, build_id, builds)
 
         val results =
           progress.interrupt_handler {
