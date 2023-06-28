@@ -253,8 +253,12 @@ object SQL {
     def transaction_lock[A](
       db: Database,
       more_tables: Tables = Tables.empty,
-      create: Boolean = false
-    )(body: => A): A = db.transaction { (tables ::: more_tables).lock(db, create = create); body }
+      create: Boolean = false,
+      synchronized: Boolean = false,
+    )(body: => A): A = {
+      def run: A = db.transaction { (tables ::: more_tables).lock(db, create = create); body }
+      if (synchronized) db.synchronized { run } else run
+    }
 
     def vacuum(db: Database, more_tables: Tables = Tables.empty): Unit =
       db.vacuum(tables = tables ::: more_tables)

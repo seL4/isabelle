@@ -29,25 +29,76 @@ object Export {
 
   /* SQL data model */
 
-  object Data {
-    val session_name = SQL.Column.string("session_name").make_primary_key
-    val theory_name = SQL.Column.string("theory_name").make_primary_key
-    val name = SQL.Column.string("name").make_primary_key
-    val executable = SQL.Column.bool("executable")
-    val compressed = SQL.Column.bool("compressed")
-    val body = SQL.Column.bytes("body")
+  object Data extends SQL.Data() {
+    override lazy val tables = SQL.Tables(Base.table)
 
-    val table =
-      SQL.Table("isabelle_exports",
-        List(session_name, theory_name, name, executable, compressed, body))
+    object Base {
+      val session_name = SQL.Column.string("session_name").make_primary_key
+      val theory_name = SQL.Column.string("theory_name").make_primary_key
+      val name = SQL.Column.string("name").make_primary_key
+      val executable = SQL.Column.bool("executable")
+      val compressed = SQL.Column.bool("compressed")
+      val body = SQL.Column.bytes("body")
 
-    val tables = SQL.Tables(table)
+      val table =
+        SQL.Table("isabelle_exports",
+          List(session_name, theory_name, name, executable, compressed, body))
+    }
 
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
       SQL.where_and(
-        Data.session_name.equal(session_name),
-        if_proper(theory_name, Data.theory_name.equal(theory_name)),
-        if_proper(name, Data.name.equal(name)))
+        Base.session_name.equal(session_name),
+        if_proper(theory_name, Base.theory_name.equal(theory_name)),
+        if_proper(name, Base.name.equal(name)))
+
+    def readable_entry(db: SQL.Database, entry_name: Entry_Name): Boolean = {
+      db.execute_query_statementB(
+        Base.table.select(List(Base.name),
+          sql = where_equal(entry_name.session, entry_name.theory, entry_name.name)))
+    }
+
+    def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
+      db.execute_query_statementO[Entry](
+        Base.table.select(List(Base.executable, Base.compressed, Base.body),
+          sql = Data.where_equal(entry_name.session, entry_name.theory, entry_name.name)),
+        { res =>
+          val executable = res.bool(Base.executable)
+          val compressed = res.bool(Base.compressed)
+          val bytes = res.bytes(Base.body)
+          val body = Future.value(compressed, bytes)
+          Entry(entry_name, executable, body, cache)
+        }
+      )
+
+    def write_entry(db: SQL.Database, entry: Entry): Unit = {
+      val (compressed, bs) = entry.body.join
+      db.execute_statement(Base.table.insert(), body = { stmt =>
+        stmt.string(1) = entry.session_name
+        stmt.string(2) = entry.theory_name
+        stmt.string(3) = entry.name
+        stmt.bool(4) = entry.executable
+        stmt.bool(5) = compressed
+        stmt.bytes(6) = bs
+      })
+    }
+
+    def read_theory_names(db: SQL.Database, session_name: String): List[String] =
+      db.execute_query_statement(
+        Base.table.select(List(Base.theory_name), distinct = true,
+          sql = Data.where_equal(session_name) + SQL.order_by(List(Base.theory_name))),
+        List.from[String], res => res.string(Base.theory_name))
+
+    def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
+      db.execute_query_statement(
+        Base.table.select(List(Base.theory_name, Base.name),
+          sql = Data.where_equal(session_name)) + SQL.order_by(List(Base.theory_name, Base.name)),
+        List.from[Entry_Name],
+        { res =>
+          Entry_Name(
+            session = session_name,
+            theory = res.string(Base.theory_name),
+            name = res.string(Base.name))
+        })
   }
 
   def compound_name(a: String, b: String): String =
@@ -63,44 +114,7 @@ object Export {
       }
       else Path.make(elems.drop(prune))
     }
-
-    def readable(db: SQL.Database): Boolean = {
-      db.execute_query_statementB(
-        Data.table.select(List(Data.name),
-          sql = Data.where_equal(session, theory, name)))
-    }
-
-    def read(db: SQL.Database, cache: XML.Cache): Option[Entry] =
-      db.execute_query_statementO[Entry](
-        Data.table.select(List(Data.executable, Data.compressed, Data.body),
-          sql = Data.where_equal(session, theory, name)),
-        { res =>
-          val executable = res.bool(Data.executable)
-          val compressed = res.bool(Data.compressed)
-          val bytes = res.bytes(Data.body)
-          val body = Future.value(compressed, bytes)
-          Entry(this, executable, body, cache)
-        }
-      )
   }
-
-  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-    db.execute_query_statement(
-      Data.table.select(List(Data.theory_name), distinct = true,
-        sql = Data.where_equal(session_name) + SQL.order_by(List(Data.theory_name))),
-      List.from[String], res => res.string(Data.theory_name))
-
-  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
-    db.execute_query_statement(
-      Data.table.select(List(Data.theory_name, Data.name),
-        sql = Data.where_equal(session_name)) + SQL.order_by(List(Data.theory_name, Data.name)),
-      List.from[Entry_Name],
-      { res =>
-        Entry_Name(
-          session = session_name,
-          theory = res.string(Data.theory_name),
-          name = res.string(Data.name))
-      })
 
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
@@ -135,8 +149,8 @@ object Export {
   final class Entry private(
     val entry_name: Entry_Name,
     val executable: Boolean,
-    body: Future[(Boolean, Bytes)],
-    cache: XML.Cache
+    val body: Future[(Boolean, Bytes)],
+    val cache: XML.Cache
   ) {
     def session_name: String = entry_name.session
     def theory_name: String = entry_name.theory
@@ -162,19 +176,6 @@ object Export {
     def text: String = bytes.text
 
     def yxml: XML.Body = YXML.parse_body(UTF8.decode_permissive(bytes), cache = cache)
-
-    def write(db: SQL.Database): Unit = {
-      val (compressed, bs) = body.join
-      db.execute_statement(Data.table.insert(), body =
-        { stmt =>
-          stmt.string(1) = session_name
-          stmt.string(2) = theory_name
-          stmt.string(3) = name
-          stmt.bool(4) = executable
-          stmt.bool(5) = compressed
-          stmt.bytes(6) = bs
-        })
-    }
   }
 
   def make_regex(pattern: String): Regex = {
@@ -199,6 +200,15 @@ object Export {
     (entry_name: Entry_Name) => regs.exists(_.matches(entry_name.compound_name))
   }
 
+  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
+    Data.transaction_lock(db) { Data.read_theory_names(db, session_name) }
+
+  def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
+    Data.transaction_lock(db) { Data.read_entry_names(db, session_name) }
+
+  def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
+    Data.transaction_lock(db) { Data.read_entry(db, entry_name, cache) }
+
 
   /* database consumer thread */
 
@@ -214,21 +224,21 @@ object Export {
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
-              db.transaction {
+              Data.transaction_lock(db) {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {
                     entry.cancel()
                     Exn.Res(())
                   }
-                  else if (entry.entry_name.readable(db)) {
+                  else if (Data.readable_entry(db, entry.entry_name)) {
                     if (strict) {
                       val msg = message("Duplicate export", entry.theory_name, entry.name)
                       errors.change(msg :: _)
                     }
                     Exn.Res(())
                   }
-                  else Exn.capture { entry.write(db) }
+                  else Exn.capture { Data.write_entry(db, entry) }
                 }
               }
             (results, true)
@@ -250,10 +260,8 @@ object Export {
 
   /* context for database access */
 
-  def open_database_context(store: Store): Database_Context = {
-    val database_server = if (store.build_database_server) Some(store.open_database_server()) else None
-    new Database_Context(store, database_server)
-  }
+  def open_database_context(store: Store): Database_Context =
+    new Database_Context(store, store.maybe_open_database_server())
 
   def open_session_context0(store: Store, session: String): Session_Context =
     open_database_context(store).open_session0(session, close_database_context = true)
@@ -402,10 +410,10 @@ object Export {
           entry <- snapshot.all_exports.get(entry_name)
         } yield entry
       def db_entry: Option[Entry] =
-        db_hierarchy.view.map(database =>
-          Export.Entry_Name(session = database.session, theory = theory, name = name)
-            .read(database.db, cache))
-          .collectFirst({ case Some(entry) => entry })
+        db_hierarchy.view.map { database =>
+          val entry_name = Export.Entry_Name(session = database.session, theory = theory, name = name)
+          read_entry(database.db, entry_name, cache)
+        }.collectFirst({ case Some(entry) => entry })
 
       snapshot_entry orElse db_entry
     }
@@ -527,7 +535,7 @@ object Export {
         val matcher = make_matcher(export_patterns)
         for {
           entry_name <- entry_names if matcher(entry_name)
-          entry <- entry_name.read(db, store.cache)
+          entry <- read_entry(db, entry_name, store.cache)
         } {
           val path = export_dir + entry_name.make_path(prune = export_prune)
           progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))

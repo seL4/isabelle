@@ -81,6 +81,14 @@ object Build {
 
   /* build */
 
+  def build_results(options: Options, context: Build_Process.Context, progress: Progress): Results =
+    Isabelle_Thread.uninterruptible {
+      val engine = get_engine(options.string("build_engine"))
+      using(engine.init(context, progress)) { build_process =>
+        Results(context, build_process.run())
+      }
+    }
+
   def build(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -163,32 +171,24 @@ object Build {
     /* build process and results */
 
     val build_context =
-      Build_Process.Context(store, build_deps, progress = progress,
+      Build_Process.init_context(store, build_deps, progress = progress,
         hostname = hostname(build_options), build_heap = build_heap,
         numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
         no_build = no_build, session_setup = session_setup, master = true)
 
-    store.prepare_output()
-    build_context.prepare_database()
-
     if (clean_build) {
-      for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
-        store.clean_output(name) match {
-          case None =>
-          case Some(true) => progress.echo("Cleaned " + name)
-          case Some(false) => progress.echo(name + " FAILED to clean")
+      using_optional(store.maybe_open_database_server()) { database_server =>
+        for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
+          store.clean_output(database_server, name) match {
+            case None =>
+            case Some(true) => progress.echo("Cleaned " + name)
+            case Some(false) => progress.echo(name + " FAILED to clean")
+          }
         }
       }
     }
 
-    val results =
-      Isabelle_Thread.uninterruptible {
-        val engine = get_engine(build_options.string("build_engine"))
-        using(engine.init(build_context, progress)) { build_process =>
-          val res = build_process.run()
-          Results(build_context, res)
-        }
-      }
+    val results = build_results(build_options, build_context, progress)
 
     if (export_files) {
       for (name <- full_sessions_selection.iterator if results(name).ok) {
@@ -379,25 +379,72 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   /** "isabelle build_worker" **/
 
+  /* identified builds */
+
+  def read_builds(options: Options): List[Build_Process.Build] =
+    using_option(Store(options).maybe_open_build_database())(
+      Build_Process.read_builds).getOrElse(Nil).filter(_.active)
+
+  def print_builds(options: Options, builds: List[Build_Process.Build]): String =
+    using_optional(Store(options).maybe_open_build_database()) { build_database =>
+      val print_database =
+        build_database match {
+          case None => ""
+          case Some(db) => " (database: " + db + ")"
+        }
+      if (builds.isEmpty) "No build processes available" + print_database
+      else {
+        "Available build processes" + print_database +
+          (for ((build, i) <- builds.iterator.zipWithIndex)
+            yield {
+              "\n  " + (i + 1) + ": " + build.build_uuid +
+                " (platform: " + build.ml_platform +
+                ", start: " + Build_Log.print_date(build.start) + ")"
+            }).mkString
+      }
+    }
+
+  def id_builds(
+    options: Options,
+    id: String,
+    builds: List[Build_Process.Build]
+  ): Build_Process.Build =
+    (id, builds.length) match {
+      case (Value.Int(i), n) if 1 <= i && i <= n => builds(i - 1)
+      case (UUID(_), _) if builds.exists(_.build_uuid == id) => builds.find(_.build_uuid == id).get
+      case ("", 0) => error(print_builds(options, builds))
+      case ("", 1) => builds.head
+      case _ => cat_error("Cannot identify build process " + quote(id), print_builds(options, builds))
+    }
+
+
   /* build_worker */
 
   def build_worker(
     options: Options,
-    build_uuid: String,
+    build_master: Build_Process.Build,
     progress: Progress = new Progress,
     dirs: List[Path] = Nil,
-    infos: List[Sessions.Info] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
-    session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Term.Cache = Term.Cache.make()
   ): Results = {
     val store = build_init(options, cache = cache)
     val build_options = store.options
 
-    progress.echo("build worker for " + build_uuid)
-    progress.echo_warning("FIXME")
-    ???
+    val sessions_structure =
+      Sessions.load_structure(build_options, dirs = dirs).
+        selection(Sessions.Selection(sessions = build_master.sessions))
+
+    val build_deps =
+      Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
+
+    val build_context =
+      Build_Process.init_context(store, build_deps, progress = progress,
+        hostname = hostname(build_options), numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        build_uuid = build_master.build_uuid)
+
+    build_results(build_options, build_context, progress)
   }
 
 
@@ -406,51 +453,63 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   val isabelle_tool2 = Isabelle_Tool("build_worker", "external worker for session build process",
     Scala_Project.here,
     { args =>
+      var build_id = ""
+      var list_builds = false
       var numa_shuffling = false
       var dirs: List[Path] = Nil
       var max_jobs = 1
-      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
+      var options =
+        Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
+          List(Options.Spec.make("build_database_test")))
       var verbose = false
-      var build_uuid = ""
 
       val getopts = Getopts("""
-Usage: isabelle build_worker [OPTIONS] ...]
+Usage: isabelle build_worker [OPTIONS]
 
   Options are:
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -U UUID      Universally Unique Identifier of the build process
     -d DIR       include session directory
+    -i ID        identify build process, either via index (starting from 1) or
+                 Universally Unique Identifier (UUID)
     -j INT       maximum number of parallel jobs (default 1)
+    -l           list build processes
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
 
   Run as external worker for session build process, as identified via
-  option -U UUID.
+  option -i. The latter can be omitted, if there is exactly one build.
 """,
         "N" -> (_ => numa_shuffling = true),
-        "U:" -> (arg => build_uuid = arg),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "i:" -> (arg => build_id = arg),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "l" -> (_ => list_builds = true),
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      if (build_uuid.isEmpty) error("Missing UUID for build process (option -U)")
-
       val progress = new Console_Progress(verbose = verbose)
 
-      val results =
-        progress.interrupt_handler {
-          build_worker(options, build_uuid,
-            progress = progress,
-            dirs = dirs,
-            numa_shuffling = Host.numa_check(progress, numa_shuffling),
-            max_jobs = max_jobs)
-        }
+      val builds = read_builds(options)
 
-      sys.exit(results.rc)
+      if (list_builds) progress.echo(print_builds(options, builds))
+
+      if (!list_builds || build_id.nonEmpty) {
+        val build = id_builds(options, build_id, builds)
+
+        val results =
+          progress.interrupt_handler {
+            build_worker(options, build,
+              progress = progress,
+              dirs = dirs,
+              numa_shuffling = Host.numa_check(progress, numa_shuffling),
+              max_jobs = max_jobs)
+          }
+
+        sys.exit(results.rc)
+      }
     })
 
 

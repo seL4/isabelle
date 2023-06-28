@@ -79,7 +79,8 @@ object Store {
 
   object Data extends SQL.Data() {
     override lazy val tables =
-      SQL.Tables(Session_Info.table, Sources.table, Export.Data.table, Document_Build.Data.table)
+      SQL.Tables(Session_Info.table, Sources.table,
+        Export.Data.Base.table, Document_Build.Data.table)
 
     object Session_Info {
       val session_name = SQL.Column.string("session_name").make_primary_key
@@ -232,8 +233,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
       error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
         cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
-  def heap_shasum(database: Option[SQL.Database], name: String): SHA1.Shasum = {
-    def get_database = database.flatMap(ML_Heap.get_entry(_, name))
+  def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
+    def get_database = database_server.flatMap(ML_Heap.get_entry(_, name))
     def get_file = find_heap(name).flatMap(ML_Heap.read_file_digest)
 
     get_database orElse get_file match {
@@ -266,15 +267,16 @@ class Store private(val options: Options, val cache: Term.Cache) {
             port = options.int("build_database_ssh_port"))),
       ssh_close = true)
 
+  def maybe_open_database_server(): Option[SQL.Database] =
+    if (build_database_server) Some(open_database_server()) else None
+
   def open_build_database(path: Path): SQL.Database =
     if (build_database_server) open_database_server()
     else SQLite.open_database(path, restrict = true)
 
-  def maybe_open_build_database(path: Path): Option[SQL.Database] =
-    if (build_database_test) Some(open_build_database(path)) else None
-
-  def maybe_open_heaps_database(): Option[SQL.Database] =
-    if (build_database_test && build_database_server) Some(open_database_server()) else None
+  def maybe_open_build_database(
+    path: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+  ): Option[SQL.Database] = if (build_database_test) Some(open_build_database(path)) else None
 
   def try_open_database(
     name: String,
@@ -301,12 +303,18 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def open_database(name: String, output: Boolean = false): SQL.Database =
     try_open_database(name, output = output) getOrElse error_database(name)
 
-  def prepare_output(): Unit = Isabelle_System.make_directory(output_dir + Path.basic("log"))
-
-  def clean_output(name: String, init: Boolean = false): Option[Boolean] = {
+  def clean_output(
+    database_server: Option[SQL.Database],
+    name: String,
+    session_init: Boolean = false
+  ): Option[Boolean] = {
     val relevant_db =
-      build_database_server &&
-        using_option(try_open_database(name))(init_session_info(_, name)).getOrElse(false)
+      database_server match {
+        case Some(db) =>
+          ML_Heap.clean_entry(db, name)
+          clean_session_info(db, name)
+        case None => false
+      }
 
     val del =
       for {
@@ -316,12 +324,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
         path = dir + file if path.is_file
       } yield path.file.delete
 
-    using_optional(maybe_open_heaps_database()) { database =>
-      database.foreach(ML_Heap.clean_entry(_, name))
-    }
-
-    if (init) {
-      using(open_database(name, output = true))(init_session_info(_, name))
+    if (database_server.isEmpty && session_init) {
+      using(open_database(name, output = true))(clean_session_info(_, name))
     }
 
     if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
@@ -382,8 +386,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
       Store.Data.Session_Info.table.select(List(Store.Data.Session_Info.session_name),
         sql = Store.Data.Session_Info.session_name.where_equal(name)))
 
-  def init_session_info(db: SQL.Database, name: String): Boolean =
-    Store.Data.transaction_lock(db, create = true) {
+  def clean_session_info(db: SQL.Database, name: String): Boolean =
+    Store.Data.transaction_lock(db, create = true, synchronized = true) {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
@@ -395,7 +399,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         sql = Store.Data.Sources.where_equal(name)))
 
       db.execute_statement(
-        Export.Data.table.delete(sql = Export.Data.session_name.where_equal(name)))
+        Export.Data.Base.table.delete(sql = Export.Data.Base.session_name.where_equal(name)))
 
       db.execute_statement(
         Document_Build.Data.table.delete(sql = Document_Build.Data.session_name.where_equal(name)))
@@ -410,7 +414,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    Store.Data.transaction_lock(db) {
+    Store.Data.transaction_lock(db, synchronized = true) {
       Store.Data.write_sources(db, session_name, sources)
       Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }
