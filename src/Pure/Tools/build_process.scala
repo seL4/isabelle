@@ -82,7 +82,7 @@ object Build_Process {
 
     Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
 
-    using_option(store.maybe_open_build_database(Data.database)) { db =>
+    using_option(store.maybe_open_build_database()) { db =>
       val shared_db = db.is_postgresql
       Data.transaction_lock(db, create = true) {
         Data.clean_build(db)
@@ -825,11 +825,11 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   private val _build_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(Build_Process.Data.database) }
+    try { store.maybe_open_build_database() }
     catch { case exn: Throwable => close(); throw exn }
 
   private val _host_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(Host.Data.database) }
+    try { store.maybe_open_build_database(path = Host.Data.database) }
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {

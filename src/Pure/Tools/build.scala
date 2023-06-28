@@ -382,11 +382,11 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   /* identified builds */
 
   def read_builds(options: Options): List[Build_Process.Build] =
-    using_option(Store(options).maybe_open_build_database(Build_Process.Data.database))(
+    using_option(Store(options).maybe_open_build_database())(
       Build_Process.read_builds).getOrElse(Nil).filter(_.active)
 
   def print_builds(options: Options, builds: List[Build_Process.Build]): String =
-    using_optional(Store(options).maybe_open_build_database(Build_Process.Data.database)) { build_database =>
+    using_optional(Store(options).maybe_open_build_database()) { build_database =>
       val print_database =
         build_database match {
           case None => ""
@@ -433,7 +433,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val build_options = store.options
 
     val sessions =
-      using_optional(store.maybe_open_build_database(Build_Process.Data.database)) {
+      using_optional(store.maybe_open_build_database()) {
         case None => error("Cannot access build database")
         case Some(db) => Build_Process.read_sessions(db, build_master.build_uuid)
       }

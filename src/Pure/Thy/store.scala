@@ -274,8 +274,9 @@ class Store private(val options: Options, val cache: Term.Cache) {
     if (build_database_server) open_database_server()
     else SQLite.open_database(path, restrict = true)
 
-  def maybe_open_build_database(path: Path): Option[SQL.Database] =
-    if (build_database_test) Some(open_build_database(path)) else None
+  def maybe_open_build_database(
+    path: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
+  ): Option[SQL.Database] = if (build_database_test) Some(open_build_database(path)) else None
 
   def try_open_database(
     name: String,
