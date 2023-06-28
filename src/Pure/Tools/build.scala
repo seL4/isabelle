@@ -390,11 +390,11 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val print_database =
         build_database match {
           case None => ""
-          case Some(db) => " (database " + db + ")"
+          case Some(db) => " (database: " + db + ")"
         }
       if (builds.isEmpty) "No build processes available" + print_database
       else {
-        "Available build processes" + print_database + ":" +
+        "Available build processes" + print_database +
           (for ((build, i) <- builds.iterator.zipWithIndex)
             yield {
               "\n  " + (i + 1) + ": " + build.build_uuid +
