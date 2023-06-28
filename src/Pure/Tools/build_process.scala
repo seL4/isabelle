@@ -343,7 +343,7 @@ object Build_Process {
           val start = res.date(Base.start)
           val stop = res.get_date(Base.stop)
           Build(build_uuid, ml_platform, options, start, stop)
-        })
+        }).sortBy(_.start)(Date.Ordering)
 
     def start_build(
       db: SQL.Database,
