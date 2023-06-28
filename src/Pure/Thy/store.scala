@@ -313,9 +313,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
         case Some(db) =>
           ML_Heap.clean_entry(db, name)
           clean_session_info(db, name)
-        case None =>
-          if (session_init) using(open_database(name, output = true))(clean_session_info(_, name))
-          false
+        case None => false
       }
 
     val del =
@@ -325,6 +323,10 @@ class Store private(val options: Options, val cache: Term.Cache) {
         file <- List(heap(name), database(name), log(name), log_gz(name))
         path = dir + file if path.is_file
       } yield path.file.delete
+
+    if (database_server.isEmpty && session_init) {
+      using(open_database(name, output = true))(clean_session_info(_, name))
+    }
 
     if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
   }
