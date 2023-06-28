@@ -441,7 +441,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     val build_context =
       Build_Process.init_context(store, build_deps, progress = progress,
-        hostname = hostname(build_options), numa_shuffling = numa_shuffling, max_jobs = max_jobs)
+        hostname = hostname(build_options), numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        build_uuid = build_master.build_uuid)
 
     build_results(build_options, build_context, progress)
   }
