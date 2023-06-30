@@ -75,9 +75,13 @@ object Build {
     def build_process(build_context: Build_Process.Context, build_progress: Progress): Build_Process =
       new Build_Process(build_context, build_progress)
 
-    final def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store = {
+    final def build_store(options: Options, cache: Term.Cache = Term.Cache.make()): Store = {
       val store = Store(build_options(options), cache = cache)
+
+      Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
+
       Isabelle_Fonts.init()
+
       store
     }
 
@@ -119,7 +123,7 @@ object Build {
   ): Results = {
     val build_engine = Engine(engine_name(options))
 
-    val store = build_engine.store(options, cache = cache)
+    val store = build_engine.build_store(options, cache = cache)
     val build_options = store.options
 
 
@@ -438,7 +442,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   ): Results = {
     val build_engine = Engine(engine_name(options))
 
-    val store = build_engine.store(options, cache = cache)
+    val store = build_engine.build_store(options, cache = cache)
     val build_options = store.options
 
     val sessions_structure =

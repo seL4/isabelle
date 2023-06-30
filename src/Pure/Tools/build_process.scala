@@ -80,8 +80,6 @@ object Build_Process {
           }
       }
 
-    Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
-
     using_option(store.maybe_open_build_database()) { db =>
       val shared_db = db.is_postgresql
       Data.transaction_lock(db, create = true) {
