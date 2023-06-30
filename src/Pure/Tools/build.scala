@@ -14,6 +14,15 @@ import scala.util.matching.Regex
 object Build {
   /** "isabelle build" **/
 
+  /* options */
+
+  def hostname(options: Options): String =
+    Isabelle_System.hostname(options.string("build_hostname"))
+
+  def engine_name(options: Options): String = options.string("build_engine")
+
+
+
   /* results */
 
   object Results {
@@ -49,45 +58,41 @@ object Build {
 
   /* engine */
 
+  object Engine {
+    lazy val services: List[Engine] =
+      Isabelle_System.make_services(classOf[Engine])
+
+    def apply(name: String): Engine =
+      services.find(_.name == name).getOrElse(error("Bad build engine " + quote(name)))
+  }
+
   class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
-    def init(build_context: Build_Process.Context, build_progress: Progress): Build_Process =
+
+    def build_options(options: Options): Options =
+      options + "completion_limit=0" + "editor_tracing_messages=0"
+
+    def build_process(build_context: Build_Process.Context, build_progress: Progress): Build_Process =
       new Build_Process(build_context, build_progress)
+
+    final def store(options: Options, cache: Term.Cache = Term.Cache.make()): Store = {
+      val store = Store(build_options(options), cache = cache)
+      Isabelle_Fonts.init()
+      store
+    }
+
+    final def run(context: Build_Process.Context, progress: Progress): Results =
+      Isabelle_Thread.uninterruptible {
+        using(build_process(context, progress)) { build_process =>
+          Results(context, build_process.run())
+        }
+      }
   }
 
   class Default_Engine extends Engine("") { override def toString: String = "<default>" }
 
-  lazy val engines: List[Engine] =
-    Isabelle_System.make_services(classOf[Engine])
-
-  def get_engine(name: String): Engine =
-    engines.find(_.name == name).getOrElse(error("Bad build engine " + quote(name)))
-
-
-  /* options */
-
-  def hostname(options: Options): String =
-    Isabelle_System.hostname(options.string("build_hostname"))
-
-  def build_init(options: Options, cache: Term.Cache = Term.Cache.make()): Store = {
-    val build_options = options + "completion_limit=0" + "editor_tracing_messages=0"
-    val store = Store(build_options, cache = cache)
-
-    Isabelle_Fonts.init()
-
-    store
-  }
-
 
   /* build */
-
-  def build_results(options: Options, context: Build_Process.Context, progress: Progress): Results =
-    Isabelle_Thread.uninterruptible {
-      val engine = get_engine(options.string("build_engine"))
-      using(engine.init(context, progress)) { build_process =>
-        Results(context, build_process.run())
-      }
-    }
 
   def build(
     options: Options,
@@ -112,7 +117,9 @@ object Build {
     session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Term.Cache = Term.Cache.make()
   ): Results = {
-    val store = build_init(options, cache = cache)
+    val build_engine = Engine(engine_name(options))
+
+    val store = build_engine.store(options, cache = cache)
     val build_options = store.options
 
 
@@ -188,7 +195,7 @@ object Build {
       }
     }
 
-    val results = build_results(build_options, build_context, progress)
+    val results = build_engine.run(build_context, progress)
 
     if (export_files) {
       for (name <- full_sessions_selection.iterator if results(name).ok) {
@@ -429,7 +436,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     max_jobs: Int = 1,
     cache: Term.Cache = Term.Cache.make()
   ): Results = {
-    val store = build_init(options, cache = cache)
+    val build_engine = Engine(engine_name(options))
+
+    val store = build_engine.store(options, cache = cache)
     val build_options = store.options
 
     val sessions_structure =
@@ -444,7 +453,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         hostname = hostname(build_options), numa_shuffling = numa_shuffling, max_jobs = max_jobs,
         build_uuid = build_master.build_uuid)
 
-    build_results(build_options, build_context, progress)
+    build_engine.run(build_context, progress)
   }
 
 
