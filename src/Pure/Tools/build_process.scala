@@ -80,15 +80,6 @@ object Build_Process {
           }
       }
 
-    using_option(store.maybe_open_build_database()) { db =>
-      val shared_db = db.is_postgresql
-      Data.transaction_lock(db, create = true) {
-        Data.clean_build(db)
-        if (shared_db) Store.Data.tables.lock(db, create = true)
-      }
-      Data.vacuum(db, more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
-    }
-
     val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
 
     new Context(store, build_deps, sessions, ordering, ml_platform, hostname, numa_nodes,
@@ -826,7 +817,18 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   private val _build_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database() }
+    try {
+      for (db <- store.maybe_open_build_database()) yield {
+        val shared_db = db.is_postgresql
+        Build_Process.Data.transaction_lock(db, create = true) {
+          Build_Process.Data.clean_build(db)
+          if (shared_db) Store.Data.tables.lock(db, create = true)
+        }
+        Build_Process.Data.vacuum(db,
+          more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
+        db
+      }
+    }
     catch { case exn: Throwable => close(); throw exn }
 
   private val _host_database: Option[SQL.Database] =
