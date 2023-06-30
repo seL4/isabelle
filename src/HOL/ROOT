@@ -308,6 +308,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Queue_2Lists
     Heaps
     Leftist_Heap
+    Leftist_Heap_List
     Binomial_Heap
     Selection
   document_files "root.tex" "root.bib"
