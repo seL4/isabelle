@@ -774,7 +774,7 @@ proof
     using that by (auto split: if_splits)
 qed
 
-lemma insert_UNIV: "insert x UNIV = UNIV"
+lemma insert_UNIV[simp]: "insert x UNIV = UNIV"
   by auto
 
 
