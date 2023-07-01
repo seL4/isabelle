@@ -45,7 +45,7 @@ object Build_Process {
 
   /** dynamic state **/
 
-  case class Build(
+  sealed case class Build(
     build_uuid: String,   // Database_Progress.context_uuid
     ml_platform: String,
     options: String,
@@ -56,7 +56,7 @@ object Build_Process {
     def active: Boolean = stop.isEmpty
   }
 
-  case class Worker(
+  sealed case class Worker(
     worker_uuid: String,  // Database_Progress.agent_uuid
     build_uuid: String,
     start: Date,
@@ -65,7 +65,7 @@ object Build_Process {
     serial: Long
   )
 
-  case class Task(
+  sealed case class Task(
     name: String,
     deps: List[String],
     info: JSON.Object.T,
@@ -76,7 +76,7 @@ object Build_Process {
       if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
   }
 
-  case class Job(
+  sealed case class Job(
     name: String,
     worker_uuid: String,
     build_uuid: String,
@@ -86,7 +86,7 @@ object Build_Process {
     def no_build: Job = copy(build = None)
   }
 
-  case class Result(
+  sealed case class Result(
     name: String,
     worker_uuid: String,
     build_uuid: String,
