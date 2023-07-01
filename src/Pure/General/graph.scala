@@ -66,7 +66,16 @@ object Graph {
 }
 
 
-final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[Key]))]) {
+final class Graph[Key, A] private(
+  protected val rep: SortedMap[Key, (A, (SortedSet[Key], SortedSet[Key]))]
+) {
+  override def hashCode: Int = rep.hashCode
+  override def equals(that: Any): Boolean =
+    that match {
+      case other: Graph[_, _] => rep == other.rep
+      case _ => false
+    }
+
   type Keys = SortedSet[Key]
   type Entry = (A, (Keys, Keys))
 
