@@ -182,10 +182,10 @@ object Build {
     /* build process and results */
 
     val build_context =
-      Build_Process.init_context(store, build_deps, progress = progress,
-        hostname = hostname(build_options), build_heap = build_heap,
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-        no_build = no_build, session_setup = session_setup, master = true)
+      Build_Process.Context(store, build_deps, hostname = hostname(build_options),
+        build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+        fresh_build = fresh_build, no_build = no_build, session_setup = session_setup,
+        master = true)
 
     if (clean_build) {
       using_optional(store.maybe_open_database_server()) { database_server =>
@@ -453,9 +453,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
     val build_context =
-      Build_Process.init_context(store, build_deps, progress = progress,
-        hostname = hostname(build_options), numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-        build_uuid = build_master.build_uuid)
+      Build_Process.Context(store, build_deps, hostname = hostname(build_options),
+        numa_shuffling = numa_shuffling, max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
     build_engine.run(build_context, progress)
   }

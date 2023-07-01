@@ -21,15 +21,18 @@ object Build_Job {
 
   def start_session(
     build_context: Build_Process.Context,
+    session_context: Session_Context,
     progress: Progress,
     log: Logger,
     database_server: Option[SQL.Database],
     session_background: Sessions.Background,
+    sources_shasum: SHA1.Shasum,
     input_shasum: SHA1.Shasum,
-    node_info: Host.Node_Info
+    node_info: Host.Node_Info,
+    store_heap: Boolean
   ): Session_Job = {
-    new Session_Job(build_context, progress, log, database_server,
-      session_background, input_shasum, node_info)
+    new Session_Job(build_context, session_context, progress, log, database_server,
+      session_background, sources_shasum, input_shasum, node_info, store_heap)
   }
 
   object Session_Context {
@@ -93,12 +96,15 @@ object Build_Job {
 
   class Session_Job private[Build_Job](
     build_context: Build_Process.Context,
+    session_context: Session_Context,
     progress: Progress,
     log: Logger,
     database_server: Option[SQL.Database],
     session_background: Sessions.Background,
+    sources_shasum: SHA1.Shasum,
     input_shasum: SHA1.Shasum,
-    node_info: Host.Node_Info
+    node_info: Host.Node_Info,
+    store_heap: Boolean
   ) extends Build_Job {
     private val store = build_context.store
 
@@ -109,8 +115,6 @@ object Build_Job {
 
     private val session_sources =
       Store.Sources.load(session_background.base, cache = store.cache.compress)
-
-    private val store_heap = build_context.store_heap(session_name)
 
     private val future_result: Future[(Process_Result, SHA1.Shasum)] =
       Future.thread("build", uninterruptible = true) {
@@ -159,7 +163,8 @@ object Build_Job {
 
         val resources =
           new Resources(session_background, log = log,
-            command_timings = build_context.old_command_timings(session_name))
+            command_timings =
+              Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache))
 
         val session =
           new Session(options, resources) {
@@ -485,7 +490,7 @@ object Build_Job {
               if (process_result.timeout) build_log.error("Timeout") else build_log,
             build =
               Store.Build_Info(
-                sources = build_context.sources_shasum(session_name),
+                sources = sources_shasum,
                 input_heaps = input_shasum,
                 output_heap = output_shasum,
                 process_result.rc,
