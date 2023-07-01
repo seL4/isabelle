@@ -65,6 +65,8 @@ object SHA1 {
 
     def is_empty: Boolean = rep.isEmpty
 
+    def - (other: Shasum): Shasum = new Shasum(rep.filterNot(other.rep.toSet.contains))
+
     def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
 
     def filter(pred: String => Boolean): Shasum = new Shasum(rep.filter(pred))
