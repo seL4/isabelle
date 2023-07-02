@@ -548,15 +548,20 @@ object Build_Process {
       db: SQL.Database,
       worker_uuid: String,
       serial: Long,
-      stop: Boolean = false
+      stop_now: Boolean = false
     ): Unit = {
+      val sql = Workers.worker_uuid.where_equal(worker_uuid)
+
+      val stop =
+        db.execute_query_statementO(
+          Workers.table.select(List(Workers.stop), sql = sql), _.get_date(Workers.stop)).flatten
+
       db.execute_statement(
-        Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial),
-          sql = Workers.worker_uuid.where_equal(worker_uuid)),
+        Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial), sql = sql),
         body = { stmt =>
           val now = db.now()
           stmt.date(1) = now
-          stmt.date(2) = if (stop) Some(now) else None
+          stmt.date(2) = if (stop_now) Some(now) else stop
           stmt.long(3) = serial
         })
     }
@@ -1038,7 +1043,7 @@ extends AutoCloseable {
 
   protected final def stop_worker(): Unit = synchronized_database {
     for (db <- _build_database) {
-      Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop = true)
+      Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop_now = true)
     }
   }
 

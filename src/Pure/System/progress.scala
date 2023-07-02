@@ -107,17 +107,22 @@ object Progress {
       db: SQL.Database,
       agent_uuid: String,
       seen: Long,
-      stop: Boolean = false
+      stop_now: Boolean = false
     ): Unit = {
-      val sql =
-        Agents.table.update(List(Agents.stamp, Agents.stop, Agents.seen),
-          sql = Agents.agent_uuid.where_equal(agent_uuid))
-      db.execute_statement(sql, body = { stmt =>
-        val now = db.now()
-        stmt.date(1) = now
-        stmt.date(2) = if (stop) Some(now) else None
-        stmt.long(3) = seen
-      })
+      val sql = Agents.agent_uuid.where_equal(agent_uuid)
+
+      val stop =
+        db.execute_query_statementO(
+          Agents.table.select(List(Agents.stop), sql = sql), _.get_date(Agents.stop)).flatten
+
+      db.execute_statement(
+        Agents.table.update(List(Agents.stamp, Agents.stop, Agents.seen), sql = sql),
+        body = { stmt =>
+          val now = db.now()
+          stmt.date(1) = now
+          stmt.date(2) = if (stop_now) Some(now) else stop
+          stmt.long(3) = seen
+        })
     }
 
     def next_messages_serial(db: SQL.Database, context: Long): Long =
@@ -290,7 +295,7 @@ extends Progress {
   def exit(close: Boolean = false): Unit = synchronized {
     if (_context > 0) {
       Progress.Data.transaction_lock(db) {
-        Progress.Data.update_agent(db, _agent_uuid, _seen, stop = true)
+        Progress.Data.update_agent(db, _agent_uuid, _seen, stop_now = true)
       }
       _context = 0
     }
