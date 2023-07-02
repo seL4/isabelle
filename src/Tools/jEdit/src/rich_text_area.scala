@@ -533,11 +533,11 @@ class Rich_Text_Area(
             if (chunks != null) {
               try {
                 val line_start = buffer.getLineStartOffset(line)
-                gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
+                gfx.clipRect(x0, y + line_height * i, Int.MaxValue, line_height)
                 val w =
                   paint_chunk_list(rendering, font_subst, gfx,
                     line_start, chunks, x0.toFloat, y0.toFloat)
-                gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
+                gfx.clipRect(x0 + w.toInt, 0, Int.MaxValue, Int.MaxValue)
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)
               } finally { gfx.setClip(clip) }
@@ -699,7 +699,7 @@ class Rich_Text_Area(
 
             val clip = gfx.getClip
             try {
-              gfx.clipRect(x, y, Integer.MAX_VALUE, painter.getLineHeight)
+              gfx.clipRect(x, y, Int.MaxValue, painter.getLineHeight)
               gfx.drawString(astr.getIterator, x, y1)
             }
             finally { gfx.setClip(clip) }

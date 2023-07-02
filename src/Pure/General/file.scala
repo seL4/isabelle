@@ -183,7 +183,7 @@ object File {
       val options =
         if (follow_links) EnumSet.of(FileVisitOption.FOLLOW_LINKS)
         else EnumSet.noneOf(classOf[FileVisitOption])
-      Files.walkFileTree(start.toPath, options, Integer.MAX_VALUE,
+      Files.walkFileTree(start.toPath, options, Int.MaxValue,
         new SimpleFileVisitor[JPath] {
           override def preVisitDirectory(
             path: JPath,

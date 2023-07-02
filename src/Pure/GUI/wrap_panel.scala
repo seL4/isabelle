@@ -33,7 +33,7 @@ object Wrap_Panel {
     private def layout_size(target: Container, preferred: Boolean): Dimension = {
       target.getTreeLock.synchronized {
         val target_width =
-          if (target.getSize.width == 0) Integer.MAX_VALUE
+          if (target.getSize.width == 0) Int.MaxValue
           else target.getSize.width
 
         val hgap = getHgap

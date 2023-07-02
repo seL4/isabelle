@@ -219,7 +219,7 @@ object Build_Process {
     type Results = Map[String, Result]
 
     def inc_serial(serial: Long): Long = {
-      require(serial < java.lang.Long.MAX_VALUE, "serial overflow")
+      require(serial < Long.MaxValue, "serial overflow")
       serial + 1
     }
   }
@@ -282,7 +282,7 @@ object Build_Process {
   object Data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
-    def pull_data[A <: Library.Named](
+    def pull[A <: Library.Named](
       data_domain: Set[String],
       data_iterator: Set[String] => Iterator[A],
       old_data: Map[String, A]
@@ -297,7 +297,7 @@ object Build_Process {
       new_data: Map[String, A],
       old_data: Map[String, A]
     ): Map[String, A] = {
-      pull_data(new_data.keySet, dom => new_data.valuesIterator.filter(a => dom(a.name)), old_data)
+      pull(new_data.keySet, dom => new_data.valuesIterator.filter(a => dom(a.name)), old_data)
     }
 
     def pull1[A <: Library.Named](
@@ -305,7 +305,7 @@ object Build_Process {
       data_base: Set[String] => Map[String, A],
       old_data: Map[String, A]
     ): Map[String, A] = {
-      pull_data(data_domain, dom => data_base(dom).valuesIterator, old_data)
+      pull(data_domain, dom => data_base(dom).valuesIterator, old_data)
     }
 
     object Generic {
@@ -548,16 +548,20 @@ object Build_Process {
       db: SQL.Database,
       worker_uuid: String,
       serial: Long,
-      stop: Boolean = false
+      stop_now: Boolean = false
     ): Unit = {
-      val sql =
-        Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial),
-          sql = Workers.worker_uuid.where_equal(worker_uuid))
-      db.execute_statement(sql, body =
-        { stmt =>
+      val sql = Workers.worker_uuid.where_equal(worker_uuid)
+
+      val stop =
+        db.execute_query_statementO(
+          Workers.table.select(List(Workers.stop), sql = sql), _.get_date(Workers.stop)).flatten
+
+      db.execute_statement(
+        Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial), sql = sql),
+        body = { stmt =>
           val now = db.now()
           stmt.date(1) = now
-          stmt.date(2) = if (stop) Some(now) else None
+          stmt.date(2) = if (stop_now) Some(now) else stop
           stmt.long(3) = serial
         })
     }
@@ -866,7 +870,8 @@ extends AutoCloseable {
           val progress =
             new Database_Progress(progress_db, build_progress,
               hostname = hostname,
-              context_uuid = build_uuid)
+              context_uuid = build_uuid,
+              kind = "build_process")
           (progress, progress.agent_uuid)
         }
         catch { case exn: Throwable => close(); throw exn }
@@ -881,8 +886,7 @@ extends AutoCloseable {
     Option(_host_database).flatten.foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
-        db_progress.exit()
-        db_progress.db.close()
+        db_progress.exit(close = true)
       case _ =>
     }
   }
@@ -1039,7 +1043,7 @@ extends AutoCloseable {
 
   protected final def stop_worker(): Unit = synchronized_database {
     for (db <- _build_database) {
-      Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop = true)
+      Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop_now = true)
     }
   }
 
@@ -1074,8 +1078,8 @@ extends AutoCloseable {
     }
     else {
       if (build_context.master) start_build()
-
       start_worker()
+
       if (build_context.master && !build_context.worker_active) {
         progress.echo("Waiting for external workers ...")
       }

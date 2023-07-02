@@ -57,6 +57,7 @@ object Progress {
     object Agents {
       val agent_uuid = SQL.Column.string("agent_uuid").make_primary_key
       val context_uuid = SQL.Column.string("context_uuid").make_primary_key
+      val kind = SQL.Column.string("kind")
       val hostname = SQL.Column.string("hostname")
       val java_pid = SQL.Column.long("java_pid")
       val java_start = SQL.Column.date("java_start")
@@ -66,7 +67,7 @@ object Progress {
       val seen = SQL.Column.long("seen")
 
       val table = make_table("agents",
-        List(agent_uuid, context_uuid, hostname, java_pid, java_start, start, stamp, stop, seen))
+        List(agent_uuid, context_uuid, kind, hostname, java_pid, java_start, start, stamp, stop, seen))
     }
 
     object Messages {
@@ -106,17 +107,22 @@ object Progress {
       db: SQL.Database,
       agent_uuid: String,
       seen: Long,
-      stop: Boolean = false
+      stop_now: Boolean = false
     ): Unit = {
-      val sql =
-        Agents.table.update(List(Agents.stamp, Agents.stop, Agents.seen),
-          sql = Agents.agent_uuid.where_equal(agent_uuid))
-      db.execute_statement(sql, body = { stmt =>
-        val now = db.now()
-        stmt.date(1) = now
-        stmt.date(2) = if (stop) Some(now) else None
-        stmt.long(3) = seen
-      })
+      val sql = Agents.agent_uuid.where_equal(agent_uuid)
+
+      val stop =
+        db.execute_query_statementO(
+          Agents.table.select(List(Agents.stop), sql = sql), _.get_date(Agents.stop)).flatten
+
+      db.execute_statement(
+        Agents.table.update(List(Agents.stamp, Agents.stop, Agents.seen), sql = sql),
+        body = { stmt =>
+          val now = db.now()
+          stmt.date(1) = now
+          stmt.date(2) = if (stop_now) Some(now) else stop
+          stmt.long(3) = seen
+        })
     }
 
     def next_messages_serial(db: SQL.Database, context: Long): Long =
@@ -238,6 +244,7 @@ extends Progress {
 class Database_Progress(
   val db: SQL.Database,
   val base_progress: Progress,
+  val kind: String = "progress",
   val hostname: String = Isabelle_System.hostname(),
   val context_uuid: String = UUID.random().toString)
 extends Progress {
@@ -272,25 +279,27 @@ extends Progress {
 
         stmt.string(1) = _agent_uuid
         stmt.string(2) = context_uuid
-        stmt.string(3) = hostname
-        stmt.long(4) = java_pid
-        stmt.date(5) = java_start
-        stmt.date(6) = now
+        stmt.string(3) = kind
+        stmt.string(4) = hostname
+        stmt.long(5) = java_pid
+        stmt.date(6) = java_start
         stmt.date(7) = now
-        stmt.date(8) = None
-        stmt.long(9) = 0L
+        stmt.date(8) = now
+        stmt.date(9) = None
+        stmt.long(10) = 0L
       })
     }
     if (context_uuid == _agent_uuid) Progress.Data.vacuum(db)
   }
 
-  def exit(): Unit = synchronized {
+  def exit(close: Boolean = false): Unit = synchronized {
     if (_context > 0) {
       Progress.Data.transaction_lock(db) {
-        Progress.Data.update_agent(db, _agent_uuid, _seen, stop = true)
+        Progress.Data.update_agent(db, _agent_uuid, _seen, stop_now = true)
       }
       _context = 0
     }
+    if (close) db.close()
   }
 
   private def sync_database[A](body: => A): A = synchronized {

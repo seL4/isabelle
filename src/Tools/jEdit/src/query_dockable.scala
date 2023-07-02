@@ -43,7 +43,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
         if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) apply_query()
         super.processKeyEvent(evt)
       }
-      { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
+      { val max = getPreferredSize; max.width = Int.MaxValue; setMaximumSize(max) }
       setColumns(40)
       setToolTipText(tooltip)
       setFont(GUI.imitate_font(getFont, scale = 1.2))

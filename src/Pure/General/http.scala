@@ -69,7 +69,7 @@ object HTTP {
     ): HttpURLConnection = {
       url.openConnection match {
         case connection: HttpURLConnection =>
-          if (0 < timeout.ms && timeout.ms <= Integer.MAX_VALUE) {
+          if (0 < timeout.ms && timeout.ms <= Int.MaxValue) {
             val ms = timeout.ms.toInt
             connection.setConnectTimeout(ms)
             connection.setReadTimeout(ms)

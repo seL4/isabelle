@@ -35,7 +35,7 @@ object Kodkod {
   def execute(source: String,
     solve_all: Boolean = false,
     prove: Boolean = false,
-    max_solutions: Int = Integer.MAX_VALUE,
+    max_solutions: Int = Int.MaxValue,
     cleanup_inst: Boolean = false,
     timeout: Time = Time.zero,
     max_threads: Int = 0

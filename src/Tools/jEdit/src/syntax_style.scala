@@ -67,7 +67,7 @@ object Syntax_Style {
 
   object Base_Extender extends SyntaxUtilities.StyleExtender {
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] = {
-      val new_styles = Array.fill[SyntaxStyle](java.lang.Byte.MAX_VALUE)(styles(0))
+      val new_styles = Array.fill[SyntaxStyle](Byte.MaxValue)(styles(0))
       for (i <- 0 until full_range) {
         new_styles(i) = styles(i % plain_range)
       }
@@ -85,7 +85,7 @@ object Syntax_Style {
       val style0 = styles(0)
       val font0 = style0.getFont
 
-      val new_styles = Array.fill[SyntaxStyle](java.lang.Byte.MAX_VALUE)(styles(0))
+      val new_styles = Array.fill[SyntaxStyle](Byte.MaxValue)(styles(0))
       for (i <- 0 until plain_range) {
         val style = styles(i)
         new_styles(i) = style
