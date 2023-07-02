@@ -551,10 +551,11 @@ object Build_Process {
       stop: Boolean = false
     ): Unit = {
       val sql =
+
+      db.execute_statement(
         Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial),
-          sql = Workers.worker_uuid.where_equal(worker_uuid))
-      db.execute_statement(sql, body =
-        { stmt =>
+          sql = Workers.worker_uuid.where_equal(worker_uuid)),
+        body = { stmt =>
           val now = db.now()
           stmt.date(1) = now
           stmt.date(2) = if (stop) Some(now) else None
@@ -1075,8 +1076,8 @@ extends AutoCloseable {
     }
     else {
       if (build_context.master) start_build()
-
       start_worker()
+
       if (build_context.master && !build_context.worker_active) {
         progress.echo("Waiting for external workers ...")
       }
