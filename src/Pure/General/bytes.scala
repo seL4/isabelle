@@ -52,10 +52,10 @@ object Bytes {
 
   /* read */
 
-  def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE, hint: Int = 1024): Bytes =
+  def read_stream(stream: InputStream, limit: Int = Int.MaxValue, hint: Int = 1024): Bytes =
     if (limit == 0) empty
     else {
-      val out_size = (if (limit == Integer.MAX_VALUE) hint else limit) max 1024
+      val out_size = (if (limit == Int.MaxValue) hint else limit) max 1024
       val out = new ByteArrayOutputStream(out_size)
       val buf = new Array[Byte](8192)
       var m = 0
@@ -74,7 +74,7 @@ object Bytes {
   def read_file(file: JFile, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
     val start = offset.max(0L)
     val len = (file.length - start).max(0L).min(limit)
-    if (len > Integer.MAX_VALUE) error("Cannot read large file slice: " + Space.bytes(len).print)
+    if (len > Int.MaxValue) error("Cannot read large file slice: " + Space.bytes(len).print)
     else if (len == 0L) empty
     else {
       using(FileChannel.open(file.toPath, StandardOpenOption.READ)) { java_path =>
@@ -246,7 +246,7 @@ final class Bytes private(
   def uncompress_zstd(cache: Compress.Cache = Compress.Cache.none): Bytes = {
     Zstd.init()
     val n = zstd.Zstd.decompressedSize(bytes, offset, length)
-    if (n > 0 && n < Integer.MAX_VALUE) {
+    if (n > 0 && n < Int.MaxValue) {
       Bytes(zstd.Zstd.decompress(array, n.toInt))
     }
     else {

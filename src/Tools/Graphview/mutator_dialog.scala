@@ -158,7 +158,7 @@ class Mutator_Dialog(
     private val enabledBox = new Check_Box_Input("Enabled", initials.enabled)
 
     border = new EmptyBorder(5, 5, 5, 5)
-    maximumSize = new Dimension(Integer.MAX_VALUE, 30)
+    maximumSize = new Dimension(Int.MaxValue, 30)
     background = initials.color
 
     contents += new Label(initials.mutator.name) {

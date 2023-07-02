@@ -25,7 +25,7 @@ object Text {
     def length(text: CharSequence): Range = Range(0, text.length)
 
     val zero: Range = apply(0)
-    val full: Range = apply(0, Integer.MAX_VALUE / 2)
+    val full: Range = apply(0, Int.MaxValue / 2)
     val offside: Range = apply(-1)
 
     object Ordering extends scala.math.Ordering[Range] {

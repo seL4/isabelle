@@ -73,10 +73,10 @@ object Scan {
       repeated(pred, 0, 1)
 
     def many(pred: Symbol.Symbol => Boolean): Parser[String] =
-      repeated(pred, 0, Integer.MAX_VALUE)
+      repeated(pred, 0, Int.MaxValue)
 
     def many1(pred: Symbol.Symbol => Boolean): Parser[String] =
-      repeated(pred, 1, Integer.MAX_VALUE)
+      repeated(pred, 1, Int.MaxValue)
 
 
     /* character */

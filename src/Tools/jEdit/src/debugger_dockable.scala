@@ -236,7 +236,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         }
         super.processKeyEvent(evt)
       }
-      { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
+      { val max = getPreferredSize; max.width = Int.MaxValue; setMaximumSize(max) }
       setColumns(40)
       setToolTipText(expression_label.tooltip)
       setFont(GUI.imitate_font(getFont, scale = 1.2))

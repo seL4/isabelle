@@ -219,7 +219,7 @@ object Build_Process {
     type Results = Map[String, Result]
 
     def inc_serial(serial: Long): Long = {
-      require(serial < java.lang.Long.MAX_VALUE, "serial overflow")
+      require(serial < Long.MaxValue, "serial overflow")
       serial + 1
     }
   }
