@@ -883,8 +883,7 @@ extends AutoCloseable {
     Option(_host_database).flatten.foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
-        db_progress.exit()
-        db_progress.db.close()
+        db_progress.exit(close = true)
       case _ =>
     }
   }

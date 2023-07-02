@@ -287,13 +287,14 @@ extends Progress {
     if (context_uuid == _agent_uuid) Progress.Data.vacuum(db)
   }
 
-  def exit(): Unit = synchronized {
+  def exit(close: Boolean = false): Unit = synchronized {
     if (_context > 0) {
       Progress.Data.transaction_lock(db) {
         Progress.Data.update_agent(db, _agent_uuid, _seen, stop = true)
       }
       _context = 0
     }
+    if (close) db.close()
   }
 
   private def sync_database[A](body: => A): A = synchronized {
