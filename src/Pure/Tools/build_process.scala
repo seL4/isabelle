@@ -550,8 +550,6 @@ object Build_Process {
       serial: Long,
       stop: Boolean = false
     ): Unit = {
-      val sql =
-
       db.execute_statement(
         Workers.table.update(List(Workers.stamp, Workers.stop, Workers.serial),
           sql = Workers.worker_uuid.where_equal(worker_uuid)),
