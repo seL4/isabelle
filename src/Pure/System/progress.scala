@@ -57,6 +57,7 @@ object Progress {
     object Agents {
       val agent_uuid = SQL.Column.string("agent_uuid").make_primary_key
       val context_uuid = SQL.Column.string("context_uuid").make_primary_key
+      val kind = SQL.Column.string("kind")
       val hostname = SQL.Column.string("hostname")
       val java_pid = SQL.Column.long("java_pid")
       val java_start = SQL.Column.date("java_start")
@@ -66,7 +67,7 @@ object Progress {
       val seen = SQL.Column.long("seen")
 
       val table = make_table("agents",
-        List(agent_uuid, context_uuid, hostname, java_pid, java_start, start, stamp, stop, seen))
+        List(agent_uuid, context_uuid, kind, hostname, java_pid, java_start, start, stamp, stop, seen))
     }
 
     object Messages {
@@ -238,6 +239,7 @@ extends Progress {
 class Database_Progress(
   val db: SQL.Database,
   val base_progress: Progress,
+  val kind: String = "progress",
   val hostname: String = Isabelle_System.hostname(),
   val context_uuid: String = UUID.random().toString)
 extends Progress {
@@ -272,13 +274,14 @@ extends Progress {
 
         stmt.string(1) = _agent_uuid
         stmt.string(2) = context_uuid
-        stmt.string(3) = hostname
-        stmt.long(4) = java_pid
-        stmt.date(5) = java_start
-        stmt.date(6) = now
+        stmt.string(3) = kind
+        stmt.string(4) = hostname
+        stmt.long(5) = java_pid
+        stmt.date(6) = java_start
         stmt.date(7) = now
-        stmt.date(8) = None
-        stmt.long(9) = 0L
+        stmt.date(8) = now
+        stmt.date(9) = None
+        stmt.long(10) = 0L
       })
     }
     if (context_uuid == _agent_uuid) Progress.Data.vacuum(db)

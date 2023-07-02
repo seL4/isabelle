@@ -866,7 +866,8 @@ extends AutoCloseable {
           val progress =
             new Database_Progress(progress_db, build_progress,
               hostname = hostname,
-              context_uuid = build_uuid)
+              context_uuid = build_uuid,
+              kind = "build_process")
           (progress, progress.agent_uuid)
         }
         catch { case exn: Throwable => close(); throw exn }
