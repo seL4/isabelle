@@ -282,7 +282,7 @@ object Build_Process {
   object Data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
-    def pull_data[A <: Library.Named](
+    def pull[A <: Library.Named](
       data_domain: Set[String],
       data_iterator: Set[String] => Iterator[A],
       old_data: Map[String, A]
@@ -297,7 +297,7 @@ object Build_Process {
       new_data: Map[String, A],
       old_data: Map[String, A]
     ): Map[String, A] = {
-      pull_data(new_data.keySet, dom => new_data.valuesIterator.filter(a => dom(a.name)), old_data)
+      pull(new_data.keySet, dom => new_data.valuesIterator.filter(a => dom(a.name)), old_data)
     }
 
     def pull1[A <: Library.Named](
@@ -305,7 +305,7 @@ object Build_Process {
       data_base: Set[String] => Map[String, A],
       old_data: Map[String, A]
     ): Map[String, A] = {
-      pull_data(data_domain, dom => data_base(dom).valuesIterator, old_data)
+      pull(data_domain, dom => data_base(dom).valuesIterator, old_data)
     }
 
     object Generic {
