@@ -76,6 +76,9 @@ antiquotations.
   - Made clausifier more robust in the face of nested lambdas.
     Minor INCOMPATIBILITY.
 
+* Command "try0":
+  - Add proof method "order".
+
 * 'primcorec': Made the internal tactic more robust in the face of
   nested corecursion.
 
