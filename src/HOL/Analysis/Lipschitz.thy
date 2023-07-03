@@ -125,8 +125,8 @@ lemma Lipschitz_map_euclidean [simp]:
 proof
   show "?lhs \<Longrightarrow> ?rhs"
     by (force simp add: Lipschitz_continuous_map_pos lipschitz_on_def less_le_not_le)
-  show "?rhs \<Longrightarrow> ?lhs"
-  by (metis Lipschitz_continuous_map_def lipschitz_onD mdist_euclidean_metric mspace_euclidean_metric top_greatest)
+  show "?rhs \<Longrightarrow> ?lhs"                             
+    by (auto simp: Lipschitz_continuous_map_def lipschitz_on_def)
 qed
 
 subsubsection \<open>Continuity\<close>

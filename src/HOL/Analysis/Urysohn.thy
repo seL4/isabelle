@@ -2516,8 +2516,9 @@ proof -
   show ?thesis
     unfolding Lipschitz_continuous_map_pos
   proof
-    show "f ` mspace (submetric m1 T) \<subseteq> mspace m2"
-      by (metis cmf Metric_space.metric_continuous_map Metric_space_mspace_mdist  mtopology_of_def mtopology_of_submetric)
+    show "f \<in> mspace (submetric m1 T) \<rightarrow> mspace m2"
+      by (metis cmf Metric_space.metric_continuous_map Metric_space_mspace_mdist  mtopology_of_def 
+          mtopology_of_submetric image_subset_iff_funcset)
     define X where "X \<equiv> prod_topology (subtopology L.M1.mtopology T) (subtopology L.M1.mtopology T)"
     obtain B::real where "B > 0" and B: "\<forall>(x,y) \<in> S\<times>S. mdist m2 (f x) (f y) \<le> B * mdist m1 x y"
       using lcf \<open>S \<subseteq> mspace m1\<close>  by (force simp: Lipschitz_continuous_map_pos)
@@ -2608,8 +2609,9 @@ proof -
   show ?thesis
     unfolding uniformly_continuous_map_def
     proof (intro conjI strip)
-    show "f ` mspace (submetric m1 T) \<subseteq> mspace m2"
-      by (metis cmf Metric_space.metric_continuous_map Metric_space_mspace_mdist  mtopology_of_def mtopology_of_submetric)
+    show "f \<in> mspace (submetric m1 T) \<rightarrow> mspace m2"
+      by (metis cmf Metric_space.metric_continuous_map Metric_space_mspace_mdist  
+          mtopology_of_def mtopology_of_submetric image_subset_iff_funcset)
     fix \<epsilon>::real
     assume "\<epsilon> > 0"
     then obtain \<delta> where "\<delta>>0" and \<delta>: "\<forall>(x,y) \<in> S\<times>S. mdist m1 x y < \<delta> \<longrightarrow> mdist m2 (f x) (f y) \<le> \<epsilon>/2"
@@ -3143,7 +3145,7 @@ definition cfunspace where
 
 lemma mspace_cfunspace [simp]:
   "mspace (cfunspace X m) = 
-     {f. f ` topspace X \<subseteq> mspace m \<and> f \<in> extensional (topspace X) \<and>
+     {f. f \<in> topspace X \<rightarrow> mspace m \<and> f \<in> extensional (topspace X) \<and>
          Metric_space.mbounded (mspace m) (mdist m) (f ` (topspace X)) \<and>
          continuous_map X (mtopology_of m) f}"
   by (auto simp: cfunspace_def Metric_space.fspace_def)
@@ -3278,7 +3280,7 @@ proof -
       assume g: "range \<sigma> \<subseteq> mspace (cfunspace X Self) \<and> limitin F.mtopology \<sigma> g sequentially"
       show "g \<in> mspace (cfunspace X Self)"
       proof (simp add: mtopology_of_def, intro conjI)
-        show "g ` topspace X \<subseteq> M" "g \<in> extensional (topspace X)" "mbounded (g ` topspace X)"
+        show "g \<in> topspace X \<rightarrow> M" "g \<in> extensional (topspace X)" "mbounded (g ` topspace X)"
           using g F.limitin_mspace by (force simp: fspace_def)+
         show "continuous_map X mtopology g"
           using * g by blast
@@ -3296,7 +3298,7 @@ lemma (in Metric_space) metric_completion_explicit:
   obtains f :: "['a,'a] \<Rightarrow> real" and S where
       "S \<subseteq> mspace(funspace M euclidean_metric)"
       "mcomplete_of (submetric (funspace M euclidean_metric) S)"
-      "f ` M \<subseteq> S"
+      "f \<in> M \<rightarrow> S"
       "mtopology_of(funspace M euclidean_metric) closure_of f ` M = S"
       "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk>
             \<Longrightarrow> mdist (funspace M euclidean_metric) (f x) (f y) = d x y"
@@ -3337,7 +3339,7 @@ proof -
         using Metric_space.mcomplete_funspace Met_TC.Metric_space_axioms by (fastforce simp: mcomplete_of_def)
       ultimately show "mcomplete_of (submetric (funspace M euclidean_metric) S)"
         by (simp add: S.closedin_eq_mcomplete mcomplete_of_def)
-      show "f ` M \<subseteq> S"
+      show "f \<in> M \<rightarrow> S"
         using S_def fim in_closure_of m'_def by fastforce
       show "mtopology_of (funspace M euclidean_metric) closure_of f ` M = S"
         by (auto simp: f_def S_def mtopology_of_def)
@@ -3363,14 +3365,14 @@ qed
 lemma (in Metric_space) metric_completion:
   obtains f :: "['a,'a] \<Rightarrow> real" and m' where
     "mcomplete_of m'"
-    "f ` M \<subseteq> mspace m' "
+    "f \<in> M \<rightarrow> mspace m' "
     "mtopology_of m' closure_of f ` M = mspace m'"
     "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> mdist m' (f x) (f y) = d x y"
 proof -
   obtain f :: "['a,'a] \<Rightarrow> real" and S where
     Ssub: "S \<subseteq> mspace(funspace M euclidean_metric)"
     and mcom: "mcomplete_of (submetric (funspace M euclidean_metric) S)"
-    and fim: "f ` M \<subseteq> S"
+    and fim: "f \<in> M \<rightarrow> S"
     and eqS: "mtopology_of(funspace M euclidean_metric) closure_of f ` M = S"
     and eqd: "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> mdist (funspace M euclidean_metric) (f x) (f y) = d x y"
     using metric_completion_explicit by metis
@@ -3379,11 +3381,11 @@ proof -
   proof
     show "mcomplete_of m'"
       by (simp add: mcom m'_def)
-    show "f ` M \<subseteq> mspace m'"
+    show "f \<in> M \<rightarrow> mspace m'"
       using Ssub fim m'_def by auto
     show "mtopology_of m' closure_of f ` M = mspace m'"
       using eqS fim Ssub
-      by (force simp: m'_def mtopology_of_submetric closure_of_subtopology Int_absorb1)
+      by (force simp: m'_def mtopology_of_submetric closure_of_subtopology Int_absorb1 image_subset_iff_funcset)
     show "mdist m' (f x) (f y) = d x y" if "x \<in> M" and "y \<in> M" for x y
       using that eqd m'_def by force 
   qed 
@@ -3400,10 +3402,10 @@ proof -
   then interpret Metric_space M d by simp
   obtain f :: "['a,'a] \<Rightarrow> real" and m' where
     "mcomplete_of m'"
-    and fim: "f ` M \<subseteq> mspace m' "
+    and fim: "f \<in> M \<rightarrow> mspace m' "
     and m': "mtopology_of m' closure_of f ` M = mspace m'"
     and eqd: "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> mdist m' (f x) (f y) = d x y"
-    by (meson metric_completion)
+    by (metis metric_completion)
   show thesis
   proof
     show "completely_metrizable_space (mtopology_of m')"
@@ -3412,7 +3414,8 @@ proof -
       by (metis Metric_space_mspace_mdist)
     show "embedding_map X (mtopology_of m') f"
       using Metric_space12.isometry_imp_embedding_map
-      by (metis Metric_space12_def Metric_space_axioms Metric_space_mspace_mdist Xeq eqd fim mtopology_of_def)
+      by (metis Metric_space12_def Metric_space_axioms Metric_space_mspace_mdist Xeq eqd fim 
+             mtopology_of_def)
     show "(mtopology_of m') closure_of f ` topspace X = topspace (mtopology_of m')"
       by (simp add: Xeq m')
   qed
@@ -3424,7 +3427,7 @@ subsection\<open>Contractions\<close>
 
 lemma (in Metric_space) contraction_imp_unique_fixpoint:
   assumes "f x = x" "f y = y"
-    and "f ` M \<subseteq> M"
+    and "f \<in> M \<rightarrow> M"
     and "k < 1"
     and "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> d (f x) (f y) \<le> k * d x y"
     and "x \<in> M" "y \<in> M"
@@ -3433,7 +3436,7 @@ lemma (in Metric_space) contraction_imp_unique_fixpoint:
 
 text \<open>Banach Fixed-Point Theorem (aka, Contraction Mapping Principle)\<close>
 lemma (in Metric_space) Banach_fixedpoint_thm:
-  assumes mcomplete and "M \<noteq> {}" and fim: "f ` M \<subseteq> M"    
+  assumes mcomplete and "M \<noteq> {}" and fim: "f \<in> M \<rightarrow> M"    
     and "k < 1"
     and con: "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> d (f x) (f y) \<le> k * d x y"
   obtains x where "x \<in> M" "f x = x"
@@ -3444,7 +3447,7 @@ proof -
   proof (cases "\<forall>x \<in> M. f x = f a")
     case True
     then show ?thesis
-      by (metis \<open>a \<in> M\<close> fim image_subset_iff that)
+      by (metis \<open>a \<in> M\<close> fim image_subset_iff image_subset_iff_funcset that)
   next
     case False
     then obtain b where "b \<in> M" and b: "f b \<noteq> f a"
@@ -3472,7 +3475,7 @@ proof -
           fix \<epsilon>::real
           assume "\<epsilon>>0"
           with \<open>k < 1\<close> \<open>f a \<noteq> a\<close> \<open>a \<in> M\<close> fim have gt0: "((1 - k) * \<epsilon>) / d a (f a) > 0"
-            by (fastforce simp: divide_simps)
+            by (fastforce simp: divide_simps Pi_iff)
           obtain N where "k^N < ((1-k) * \<epsilon>) / d a (f a)"
             using real_arch_pow_inv [OF gt0 \<open>k < 1\<close>] by blast
           then have N: "\<And>n. n \<ge> N \<Longrightarrow> k^n < ((1-k) * \<epsilon>) / d a (f a)"
@@ -3992,11 +3995,11 @@ lemma completely_regular_space_cube_embedding_explicit:
   shows "embedding_map X
              (product_topology (\<lambda>f. top_of_set {0..1::real})
                 (mspace (submetric (cfunspace X euclidean_metric)
-                  {f. f ` topspace X \<subseteq> {0..1}})) )
-             (\<lambda>x. \<lambda>f \<in> mspace (submetric (cfunspace X euclidean_metric) {f. f ` topspace X \<subseteq> {0..1}}).
+                  {f. f \<in> topspace X \<rightarrow> {0..1}})) )
+             (\<lambda>x. \<lambda>f \<in> mspace (submetric (cfunspace X euclidean_metric) {f. f \<in> topspace X \<rightarrow> {0..1}}).
               f x)"
 proof -
-  define K where "K \<equiv> mspace(submetric (cfunspace X euclidean_metric) {f. f ` topspace X \<subseteq> {0..1::real}})"
+  define K where "K \<equiv> mspace(submetric (cfunspace X euclidean_metric) {f. f \<in> topspace X \<rightarrow> {0..1::real}})"
   define e where "e \<equiv> \<lambda>x. \<lambda>f\<in>K. f x"
   have "e x \<noteq> e y" if xy: "x \<noteq> y" "x \<in> topspace X" "y \<in> topspace X" for x y
   proof -
@@ -4023,14 +4026,14 @@ proof -
     assume "e x \<in> K \<rightarrow>\<^sub>E {0..1}" and "x \<in> topspace X" and "openin X U" and "x \<in> U"
     then obtain g where contg: "continuous_map X (top_of_set {0..1}) g" and "g x = 0" 
           and gim: "g ` (topspace X - U) \<subseteq> {1::real}"
-      using \<open>completely_regular_space X\<close> unfolding completely_regular_space_def
+      using \<open>completely_regular_space X\<close> unfolding completely_regular_space_def 
       by (metis Diff_iff openin_closedin_eq)
     then have "bounded (g ` topspace X)"
       by (meson bounded_closed_interval bounded_subset continuous_map_in_subtopology)
-    moreover have "g ` topspace X \<subseteq> {0..1}"
-      using contg by (simp add: continuous_map_in_subtopology)
+    moreover have "g \<in> topspace X \<rightarrow> {0..1}"
+      using contg by (simp add: continuous_map_def)
     ultimately have g_in_K: "restrict g (topspace X) \<in> K"
-      using contg by (simp add: K_def continuous_map_in_subtopology)
+      using contg by (force simp add: K_def continuous_map_in_subtopology)
     have "openin (top_of_set {0..1}) {0..<1::real}"
       using open_real_greaterThanLessThan[of "-1" 1] by (force simp: openin_open)
     moreover have "e x \<in> (\<Pi>\<^sub>E f\<in>K. if f = restrict g (topspace X) then {0..<1} else {0..1})"

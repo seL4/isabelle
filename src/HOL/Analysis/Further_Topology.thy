@@ -231,7 +231,7 @@ proof -
   qed
   have conT0: "continuous_on (T - {0}) (\<lambda>y. inverse(norm y) *\<^sub>R y)"
     by (intro continuous_intros) auto
-  have sub0T: "(\<lambda>y. y /\<^sub>R norm y) ` (T - {0}) \<subseteq> sphere 0 1 \<inter> T"
+  have sub0T: "(\<lambda>y. y /\<^sub>R norm y) \<in> (T - {0}) \<rightarrow> sphere 0 1 \<inter> T"
     by (fastforce simp: assms(2) subspace_mul)
   obtain c where homhc: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) h (\<lambda>x. c)"
   proof
@@ -307,7 +307,7 @@ proposition inessential_spheremap_lowdim_gen:
   assumes "convex S" "bounded S" "convex T" "bounded T"
       and affST: "aff_dim S < aff_dim T"
       and contf: "continuous_on (rel_frontier S) f"
-      and fim: "f ` (rel_frontier S) \<subseteq> rel_frontier T"
+      and fim: "f \<in> (rel_frontier S) \<rightarrow> rel_frontier T"
   obtains c where "homotopic_with_canon (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
 proof (cases "S = {}")
   case True
@@ -319,7 +319,7 @@ next
   proof (cases "T = {}")
     case True
     then show ?thesis
-      using fim that by auto
+      using fim that by (simp add: Pi_iff)
   next
     case False
     obtain T':: "'a set"
@@ -345,7 +345,7 @@ next
     have "\<exists>c. homotopic_with_canon (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
       using spheremap_lemma2 homotopy_eqv_cohomotopic_triviality_null[OF relS] 
       using homotopy_eqv_homotopic_triviality_null_imp [OF relT contf fim]
-      by (metis \<open>S' \<subseteq> T'\<close> \<open>subspace S'\<close> \<open>subspace T'\<close> dimST')
+      by (metis \<open>S' \<subseteq> T'\<close> \<open>subspace S'\<close> \<open>subspace T'\<close> dimST' image_subset_iff_funcset)
     with that show ?thesis by blast
   qed
 qed
@@ -353,7 +353,7 @@ qed
 lemma inessential_spheremap_lowdim:
   fixes f :: "'M::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes
-   "DIM('M) < DIM('a)" and f: "continuous_on (sphere a r) f" "f ` (sphere a r) \<subseteq> (sphere b s)"
+   "DIM('M) < DIM('a)" and f: "continuous_on (sphere a r) f" "f \<in> (sphere a r) \<rightarrow> (sphere b s)"
    obtains c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
 proof (cases "s \<le> 0")
   case True then show ?thesis
@@ -505,7 +505,7 @@ next
           using \<open>C \<in> \<F>\<close> \<open>D face_of C\<close> face_of_polytope_polytope poly polytope_imp_polyhedron by auto
         ultimately have relf_sub: "rel_frontier D \<subseteq> \<Union> {E. E face_of C \<and> aff_dim E < p}"
           by (simp add: rel_frontier_of_polyhedron Union_mono)
-        then have him_relf: "h ` rel_frontier D \<subseteq> rel_frontier T"
+        then have him_relf: "h \<in> rel_frontier D \<rightarrow> rel_frontier T"
           using \<open>C \<in> \<F>\<close> him by blast
         have "convex D"
           by (simp add: \<open>polyhedron D\<close> polyhedron_imp_convex)
@@ -516,9 +516,9 @@ next
         then have *: "(\<exists>c. homotopic_with_canon (\<lambda>x. True) (rel_frontier D) (rel_frontier T) h (\<lambda>x. c)) =
                       (\<exists>g. continuous_on UNIV g \<and>  range g \<subseteq> rel_frontier T \<and>
                            (\<forall>x\<in>rel_frontier D. g x = h x))"
-          by (simp add: assms rel_frontier_eq_empty him_relf nullhomotopic_into_rel_frontier_extension [OF closed_rel_frontier])
-        have "(\<exists>c. homotopic_with_canon (\<lambda>x. True) (rel_frontier D) (rel_frontier T) h (\<lambda>x. c))"
-          by (metis inessential_spheremap_lowdim_gen
+          by (simp add: assms image_subset_iff_funcset rel_frontier_eq_empty him_relf nullhomotopic_into_rel_frontier_extension [OF closed_rel_frontier])
+        have "\<exists>c. homotopic_with_canon (\<lambda>x. True) (rel_frontier D) (rel_frontier T) h (\<lambda>x. c)"
+          by (metis inessential_spheremap_lowdim_gen 
                  [OF \<open>convex D\<close> \<open>bounded D\<close> \<open>convex T\<close> \<open>bounded T\<close> affD_lessT contDh him_relf])
         then obtain g where contg: "continuous_on UNIV g"
                         and gim: "range g \<subseteq> rel_frontier T"
@@ -852,11 +852,11 @@ theorem extend_map_cell_complex_to_sphere:
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X < aff_dim T"
       and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> rel_frontier T"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> rel_frontier T"
   obtains g where "continuous_on (\<Union>\<F>) g"
      "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
-  obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g ` V \<subseteq> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+  obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g \<in> V \<rightarrow> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     using neighbourhood_extension_into_ANR [OF contf fim _ \<open>closed S\<close>] ANR_rel_frontier_convex T by blast
   have "compact S"
     by (meson assms compact_Union poly polytope_imp_compact seq_compact_closed_subset seq_compact_eq_compact)
@@ -906,11 +906,11 @@ theorem extend_map_cell_complex_to_sphere_cofinite:
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> aff_dim T"
       and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> rel_frontier T"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> rel_frontier T"
   obtains C g where "finite C" "disjnt C S" "continuous_on (\<Union>\<F> - C) g"
      "g ` (\<Union>\<F> - C) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
-  obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g ` V \<subseteq> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+  obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g \<in> V \<rightarrow> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     using neighbourhood_extension_into_ANR [OF contf fim _ \<open>closed S\<close>] ANR_rel_frontier_convex T by blast
   have "compact S"
     by (meson assms compact_Union poly polytope_imp_compact seq_compact_closed_subset seq_compact_eq_compact)
@@ -974,13 +974,13 @@ proposition extend_map_affine_to_sphere_cofinite_simple:
   assumes "compact S" "convex U" "bounded U"
       and aff: "aff_dim T \<le> aff_dim U"
       and "S \<subseteq> T" and contf: "continuous_on S f"
-      and fim: "f ` S \<subseteq> rel_frontier U"
+      and fim: "f \<in> S \<rightarrow> rel_frontier U"
  obtains K g where "finite K" "K \<subseteq> T" "disjnt K S" "continuous_on (T - K) g"
-                   "g ` (T - K) \<subseteq> rel_frontier U"
+                   "g \<in> (T - K) \<rightarrow> rel_frontier U"
                    "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
   have "\<exists>K g. finite K \<and> disjnt K S \<and> continuous_on (T - K) g \<and>
-              g ` (T - K) \<subseteq> rel_frontier U \<and> (\<forall>x \<in> S. g x = f x)"
+              g \<in> (T - K) \<rightarrow> rel_frontier U \<and> (\<forall>x \<in> S. g x = f x)"
        if "affine T" "S \<subseteq> T" and aff: "aff_dim T \<le> aff_dim U"  for T
   proof (cases "S = {}")
     case True
@@ -1089,7 +1089,8 @@ proof -
         by (metis image_comp image_mono cpt_subset)
       also have "... \<subseteq> rel_frontier U"
         by (rule gim)
-      finally show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) ` (T - K) \<subseteq> rel_frontier U" .
+      finally show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) \<in> (T - K) \<rightarrow> rel_frontier U"
+        by blast
       show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) x = f x" if "x \<in> S" for x
       proof -
         have "(g \<circ> closest_point (cbox (- c) c \<inter> T)) x = g x"
@@ -1103,7 +1104,7 @@ proof -
   qed
   then obtain K g where "finite K" "disjnt K S"
                and contg: "continuous_on (affine hull T - K) g"
-               and gim:  "g ` (affine hull T - K) \<subseteq> rel_frontier U"
+               and gim:  "g \<in> (affine hull T - K) \<rightarrow> rel_frontier U"
                and gf:   "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     by (metis aff affine_affine_hull aff_dim_affine_hull
               order_trans [OF \<open>S \<subseteq> T\<close> hull_subset [of T affine]])
@@ -1123,14 +1124,14 @@ subsection\<open>Extending maps to spheres\<close>
 lemma extend_map_affine_to_sphere1:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::topological_space"
   assumes "finite K" "affine U" and contf: "continuous_on (U - K) f"
-      and fim: "f ` (U - K) \<subseteq> T"
+      and fim: "f \<in> (U - K) \<rightarrow> T"
       and comps: "\<And>C. \<lbrakk>C \<in> components(U - S); C \<inter> K \<noteq> {}\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
       and clo: "closedin (top_of_set U) S" and K: "disjnt K S" "K \<subseteq> U"
-  obtains g where "continuous_on (U - L) g" "g ` (U - L) \<subseteq> T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+  obtains g where "continuous_on (U - L) g" "g \<in> (U - L) \<rightarrow> T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof (cases "K = {}")
   case True
   then show ?thesis
-    by (metis Diff_empty Diff_subset contf fim continuous_on_subset image_subsetI image_eqI subset_iff that)
+    by (metis DiffD1 Diff_empty Diff_subset PiE Pi_I contf continuous_on_subset fim that)
 next
   case False
   have "S \<subseteq> U"
@@ -1194,7 +1195,7 @@ next
     then obtain r where contr: "continuous_on (U - {a}) r"
                     and rim: "r ` (U - {a}) \<subseteq> sphere a d"  "r ` (U - {a}) \<subseteq> U"
                     and req: "\<And>x. x \<in> sphere a d \<inter> U \<Longrightarrow> r x = x"
-      using \<open>affine U\<close> by (auto simp: retract_of_def retraction_def hull_same)
+      using \<open>affine U\<close> by (force simp: retract_of_def retraction_def hull_same)
     define j where "j \<equiv> \<lambda>x. if x \<in> ball a d then r x else x"
     have kj: "\<And>x. x \<in> S \<Longrightarrow> k (j x) = x"
       using \<open>C \<subseteq> U - S\<close> \<open>S \<subseteq> U\<close> \<open>ball a d \<inter> U \<subseteq> C\<close> j_def subC by auto
@@ -1256,7 +1257,7 @@ next
       have ST: "\<And>x. x \<in> S \<Longrightarrow> (f \<circ> k \<circ> j) x \<in> T"
       proof (simp add: kj)
         show "\<And>x. x \<in> S \<Longrightarrow> f x \<in> T"
-          using K unfolding disjnt_iff by (metis DiffI \<open>S \<subseteq> U\<close> subsetD fim image_subset_iff)
+          using K \<open>S \<subseteq> U\<close> fT unfolding disjnt_iff by auto
       qed
       moreover have "(f \<circ> k \<circ> j) x \<in> T" if "x \<in> C" "x \<noteq> a" "x \<notin> S" for x
       proof -
@@ -1410,7 +1411,7 @@ next
       using image_mono order_trans by blast
     moreover have "f ` ((U - L) \<inter> (S \<union> \<Union>G)) \<subseteq> T"
       using fim SUG by blast
-    ultimately show "(\<lambda>x. if x \<in> S \<union> \<Union>G then f x else g x) ` (U - L) \<subseteq> T"
+    ultimately show "(\<lambda>x. if x \<in> S \<union> \<Union>G then f x else g x) \<in> (U - L) \<rightarrow> T"
        by force
     show "\<And>x. x \<in> S \<Longrightarrow> (if x \<in> S \<union> \<Union>G then f x else g x) = f x"
       by (simp add: F_def G_def)
@@ -1423,15 +1424,15 @@ lemma extend_map_affine_to_sphere2:
   assumes "compact S" "convex U" "bounded U" "affine T" "S \<subseteq> T"
       and affTU: "aff_dim T \<le> aff_dim U"
       and contf: "continuous_on S f"
-      and fim: "f ` S \<subseteq> rel_frontier U"
+      and fim: "f \<in> S \<rightarrow> rel_frontier U"
       and ovlap: "\<And>C. C \<in> components(T - S) \<Longrightarrow> C \<inter> L \<noteq> {}"
     obtains K g where "finite K" "K \<subseteq> L" "K \<subseteq> T" "disjnt K S"
-                      "continuous_on (T - K) g" "g ` (T - K) \<subseteq> rel_frontier U"
+                      "continuous_on (T - K) g" "g \<in> (T - K) \<rightarrow> rel_frontier U"
                       "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
   obtain K g where K: "finite K" "K \<subseteq> T" "disjnt K S"
                and contg: "continuous_on (T - K) g"
-               and gim: "g ` (T - K) \<subseteq> rel_frontier U"
+               and gim: "g \<in> (T - K) \<rightarrow> rel_frontier U"
                and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
      using assms extend_map_affine_to_sphere_cofinite_simple by metis
   have "(\<exists>y C. C \<in> components (T - S) \<and> x \<in> C \<and> y \<in> C \<and> y \<in> L)" if "x \<in> K" for x
@@ -1446,7 +1447,7 @@ proof -
   then obtain \<xi> where \<xi>: "\<And>x. x \<in> K \<Longrightarrow> \<exists>C. C \<in> components (T - S) \<and> x \<in> C \<and> \<xi> x \<in> C \<and> \<xi> x \<in> L"
     by metis
   obtain h where conth: "continuous_on (T - \<xi> ` K) h"
-             and him: "h ` (T - \<xi> ` K) \<subseteq> rel_frontier U"
+             and him: "h \<in> (T - \<xi> ` K) \<rightarrow> rel_frontier U"
              and hg: "\<And>x. x \<in> S \<Longrightarrow> h x = g x"
   proof (rule extend_map_affine_to_sphere1 [OF \<open>finite K\<close> \<open>affine T\<close> contg gim, of S "\<xi> ` K"])
     show cloTS: "closedin (top_of_set T) S"
@@ -1475,10 +1476,10 @@ proposition extend_map_affine_to_sphere_cofinite_gen:
   assumes SUT: "compact S" "convex U" "bounded U" "affine T" "S \<subseteq> T"
       and aff: "aff_dim T \<le> aff_dim U"
       and contf: "continuous_on S f"
-      and fim: "f ` S \<subseteq> rel_frontier U"
+      and fim: "f \<in> S \<rightarrow> rel_frontier U"
       and dis: "\<And>C. \<lbrakk>C \<in> components(T - S); bounded C\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
  obtains K g where "finite K" "K \<subseteq> L" "K \<subseteq> T" "disjnt K S" "continuous_on (T - K) g"
-                   "g ` (T - K) \<subseteq> rel_frontier U"
+                   "g \<in> (T - K) \<rightarrow> rel_frontier U"
                    "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof (cases "S = {}")
   case True
@@ -1615,8 +1616,8 @@ next
     have "g (closest_point (cbox (- c) c \<inter> T) x) \<in> rel_frontier U"
          if "x \<in> T" "x \<in> K \<longrightarrow> x \<notin> cbox (- b - One) (b + One)" for x
       using gim [THEN subsetD] that cloTK by blast
-    then show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) ` (T - K \<inter> cbox (- (b + One)) (b + One))
-               \<subseteq> rel_frontier U"
+    then show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) \<in> (T - K \<inter> cbox (- (b + One)) (b + One))
+               \<rightarrow> rel_frontier U"
       by force
     show "\<And>x. x \<in> S \<Longrightarrow> (g \<circ> closest_point (cbox (- c) c \<inter> T)) x = f x"
       by simp (metis (mono_tags, lifting) IntI \<open>S \<subseteq> T\<close> cT_ne clo_cT closest_point_refl gf subsetD S_sub_cc)
@@ -1629,23 +1630,26 @@ corollary extend_map_affine_to_sphere_cofinite:
   assumes SUT: "compact S" "affine T" "S \<subseteq> T"
       and aff: "aff_dim T \<le> DIM('b)" and "0 \<le> r"
       and contf: "continuous_on S f"
-      and fim: "f ` S \<subseteq> sphere a r"
+      and fim: "f \<in> S \<rightarrow> sphere a r"
       and dis: "\<And>C. \<lbrakk>C \<in> components(T - S); bounded C\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
   obtains K g where "finite K" "K \<subseteq> L" "K \<subseteq> T" "disjnt K S" "continuous_on (T - K) g"
-                    "g ` (T - K) \<subseteq> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+                    "g \<in> (T - K) \<rightarrow> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof (cases "r = 0")
   case True
   with fim show ?thesis
     by (rule_tac K="{}" and g = "\<lambda>x. a" in that) (auto)
 next
   case False
-  with assms have "0 < r" by auto
-  then have "aff_dim T \<le> aff_dim (cball a r)"
-    by (simp add: aff aff_dim_cball)
-  then show ?thesis
-    using extend_map_affine_to_sphere_cofinite_gen
-            [OF \<open>compact S\<close> convex_cball bounded_cball \<open>affine T\<close> \<open>S \<subseteq> T\<close> _ contf]
-    using fim by (fastforce simp: assms False that dest: dis)
+  show thesis
+  proof (rule  extend_map_affine_to_sphere_cofinite_gen
+      [OF \<open>compact S\<close> convex_cball bounded_cball \<open>affine T\<close> \<open>S \<subseteq> T\<close> _ contf])
+    have "0 < r"
+      using assms False by auto
+    then show "aff_dim T \<le> aff_dim (cball a r)"
+      by (simp add: aff aff_dim_cball)
+    show "f \<in> S \<rightarrow> rel_frontier (cball a r)"
+      by (simp add: False fim)
+  qed (use dis False that in auto)
 qed
 
 corollary extend_map_UNIV_to_sphere_cofinite:
@@ -1653,10 +1657,10 @@ corollary extend_map_UNIV_to_sphere_cofinite:
   assumes "DIM('a) \<le> DIM('b)" and "0 \<le> r"
       and "compact S"
       and "continuous_on S f"
-      and "f ` S \<subseteq> sphere a r"
+      and "f \<in> S \<rightarrow> sphere a r"
       and "\<And>C. \<lbrakk>C \<in> components(- S); bounded C\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
   obtains K g where "finite K" "K \<subseteq> L" "disjnt K S" "continuous_on (- K) g"
-                    "g ` (- K) \<subseteq> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+                    "g \<in> (- K) \<rightarrow> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
   using extend_map_affine_to_sphere_cofinite
         [OF \<open>compact S\<close> affine_UNIV subset_UNIV] assms
   by (metis Compl_eq_Diff_UNIV aff_dim_UNIV of_nat_le_iff)
@@ -1666,9 +1670,9 @@ corollary extend_map_UNIV_to_sphere_no_bounded_component:
   assumes aff: "DIM('a) \<le> DIM('b)" and "0 \<le> r"
       and SUT: "compact S"
       and contf: "continuous_on S f"
-      and fim: "f ` S \<subseteq> sphere a r"
+      and fim: "f \<in> S \<rightarrow> sphere a r"
       and dis: "\<And>C. C \<in> components(- S) \<Longrightarrow> \<not> bounded C"
-  obtains g where "continuous_on UNIV g" "g ` UNIV \<subseteq> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+  obtains g where "continuous_on UNIV g" "g \<in> UNIV \<rightarrow> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
   using extend_map_UNIV_to_sphere_cofinite [OF aff \<open>0 \<le> r\<close> \<open>compact S\<close> contf fim, of "{}"]
   by (metis Compl_empty_eq dis subset_empty)
 
@@ -1677,7 +1681,7 @@ theorem Borsuk_separation_theorem_gen:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S"
     shows "(\<forall>c \<in> components(- S). \<not>bounded c) \<longleftrightarrow>
-           (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
+           (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> sphere (0::'a) 1
                 \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
 proof
@@ -1685,14 +1689,14 @@ proof
   show ?rhs
   proof clarify
     fix f :: "'a \<Rightarrow> 'a"
-    assume contf: "continuous_on S f" and fim: "f ` S \<subseteq> sphere 0 1"
-    obtain g where contg: "continuous_on UNIV g" and gim: "range g \<subseteq> sphere 0 1"
+    assume contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> sphere 0 1"
+    obtain g where contg: "continuous_on UNIV g" and gim: "g \<in> UNIV \<rightarrow> sphere 0 1"
                and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
       by (rule extend_map_UNIV_to_sphere_no_bounded_component [OF _ _ \<open>compact S\<close> contf fim L]) auto
     then obtain c where c: "homotopic_with_canon (\<lambda>h. True) UNIV (sphere 0 1) g (\<lambda>x. c)"
-      using contractible_UNIV nullhomotopic_from_contractible by blast
+      by (metis contractible_UNIV nullhomotopic_from_contractible)
     then show "\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)"
-      by (metis assms compact_imp_closed contf contg contractible_empty fim gf gim nullhomotopic_from_contractible nullhomotopic_into_sphere_extension)
+      by (metis assms compact_imp_closed contf contg contractible_empty fim gf gim nullhomotopic_from_contractible nullhomotopic_into_sphere_extension image_subset_iff_funcset)
   qed
 next
   assume R [rule_format]: ?rhs
@@ -1717,7 +1721,7 @@ corollary Borsuk_separation_theorem:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and 2: "2 \<le> DIM('a)"
     shows "connected(- S) \<longleftrightarrow>
-           (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
+           (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> sphere (0::'a) 1
                 \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
 proof
@@ -2881,7 +2885,7 @@ proposition simply_connected_eq_contractible_circlemap:
 corollary homotopy_eqv_simple_connectedness:
   fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
   shows "S homotopy_eqv T \<Longrightarrow> simply_connected S \<longleftrightarrow> simply_connected T"
-  by (simp add: simply_connected_eq_homotopic_circlemaps homotopy_eqv_homotopic_triviality)
+  by (simp add: simply_connected_eq_homotopic_circlemaps homotopy_eqv_homotopic_triviality image_subset_iff_funcset)
 
 
 subsection\<open>Homeomorphism of simple closed curves to circles\<close>
@@ -3673,10 +3677,10 @@ next
   then obtain g where contg: "continuous_on S g" and f: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
     by metis
   obtain a where "homotopic_with_canon (\<lambda>h. True) S (- {of_real 0}) (exp \<circ> g) (\<lambda>x. a)"
-  proof (rule nullhomotopic_through_contractible [OF contg subset_UNIV _ _ contractible_UNIV])
+  proof (rule nullhomotopic_through_contractible [OF contg _ _ _ contractible_UNIV])
     show "continuous_on (UNIV::complex set) exp"
       by (intro continuous_intros)
-    show "range exp \<subseteq> - {0}"
+    show "exp \<in> UNIV \<rightarrow> -{of_real 0}"
       by auto
   qed force
   then have "homotopic_with_canon (\<lambda>h. True) S (- {0}) f (\<lambda>t. a)"
@@ -3719,11 +3723,11 @@ next
   proof (rule nullhomotopic_through_contractible)
     show "continuous_on S (complex_of_real \<circ> g)"
       by (intro conjI contg continuous_intros)
-    show "(complex_of_real \<circ> g) ` S \<subseteq> \<real>"
+    show "(complex_of_real \<circ> g) \<in> S \<rightarrow> \<real>"
       by auto
     show "continuous_on \<real> (exp \<circ> (*)\<i>)"
       by (intro continuous_intros)
-    show "(exp \<circ> (*)\<i>) ` \<real> \<subseteq> sphere 0 1"
+    show "(exp \<circ> (*)\<i>) \<in> \<real> \<rightarrow> sphere 0 1"
       by (auto simp: complex_is_Real_iff)
   qed (auto simp: convex_Reals convex_imp_contractible)
   moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> (*)\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
@@ -4012,7 +4016,7 @@ lemma continuous_logarithm_on_contractible:
 proof -
   obtain c where hom: "homotopic_with_canon (\<lambda>h. True) S (-{0}) f (\<lambda>x. c)"
     using nullhomotopic_from_contractible assms
-    by (metis imageE subset_Compl_singleton)
+    by (metis imageE subset_Compl_singleton image_subset_iff_funcset)
   then show ?thesis
     by (metis inessential_eq_continuous_logarithm that)
 qed
@@ -4023,7 +4027,7 @@ lemma continuous_logarithm_on_simply_connected:
       and f: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
   obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
   using covering_space_lift [OF covering_space_exp_punctured_plane S contf]
-  by (metis (full_types) f imageE subset_Compl_singleton)
+  by (metis (full_types) f imageE subset_Compl_singleton image_subset_iff_funcset)
 
 lemma continuous_logarithm_on_cball:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
@@ -4077,7 +4081,7 @@ subsection\<open>Another simple case where sphere maps are nullhomotopic\<close>
 lemma inessential_spheremap_2_aux:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
   assumes 2: "2 < DIM('a)" and contf: "continuous_on (sphere a r) f" 
-      and fim: "f `(sphere a r) \<subseteq> (sphere 0 1)" 
+      and fim: "f \<in> (sphere a r) \<rightarrow> (sphere 0 1)" 
   obtains c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere 0 1) f (\<lambda>x. c)"
 proof -
   obtain g where contg: "continuous_on (sphere a r) g" 
@@ -4095,7 +4099,8 @@ proof -
     show "continuous_on (sphere a r) (Im \<circ> g)"
       by (intro contg continuous_intros continuous_on_compose)
     show "\<forall>x\<in>sphere a r. f x = exp (\<i> * complex_of_real ((Im \<circ> g) x))"
-      using exp_eq_polar feq fim norm_exp_eq_Re by auto
+      using exp_eq_polar feq fim norm_exp_eq_Re
+      by (auto simp flip: image_subset_iff_funcset)
   qed
   with inessential_eq_continuous_logarithm_circle that show ?thesis 
     by metis
@@ -4104,7 +4109,7 @@ qed
 lemma inessential_spheremap_2:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes a2: "2 < DIM('a)" and b2: "DIM('b) = 2" 
-      and contf: "continuous_on (sphere a r) f" and fim: "f `(sphere a r) \<subseteq> (sphere b s)"
+      and contf: "continuous_on (sphere a r) f" and fim: "f \<in> (sphere a r) \<rightarrow> (sphere b s)"
   obtains c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
 proof (cases "s \<le> 0")
   case True
@@ -4118,20 +4123,20 @@ next
     by (auto simp: homeomorphic_def)
   then have conth: "continuous_on (sphere b s) h"
        and  contk: "continuous_on (sphere 0 1) k"
-       and  him: "h ` sphere b s \<subseteq> sphere 0 1"
-       and  kim: "k ` sphere 0 1 \<subseteq> sphere b s"
-    by (simp_all add: homeomorphism_def)
+       and  him: "h \<in> sphere b s \<rightarrow> sphere 0 1"
+       and  kim: "k \<in> sphere 0 1 \<rightarrow> sphere b s"
+    by (force simp: homeomorphism_def)+
   obtain c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere 0 1) (h \<circ> f) (\<lambda>x. c)"
   proof (rule inessential_spheremap_2_aux [OF a2])
     show "continuous_on (sphere a r) (h \<circ> f)"
-      by (meson continuous_on_compose [OF contf] conth continuous_on_subset fim)
-    show "(h \<circ> f) ` sphere a r \<subseteq> sphere 0 1"
+      by (meson contf conth continuous_on_compose continuous_on_subset fim image_subset_iff_funcset)
+    show "(h \<circ> f) \<in> sphere a r \<rightarrow> sphere 0 1"
       using fim him by force
   qed auto
   then have "homotopic_with_canon (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
     by (rule homotopic_with_compose_continuous_left [OF _ contk kim])
   moreover have "\<And>x. r = dist a x \<Longrightarrow> f x = k (h (f x))"
-    by (metis fim hk homeomorphism_def image_subset_iff mem_sphere)
+    by (metis fim hk homeomorphism_def image_subset_iff mem_sphere image_subset_iff_funcset)
   ultimately have "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
     by (auto intro: homotopic_with_eq)
   then show ?thesis
@@ -4330,16 +4335,16 @@ text\<open>This doesn't have a standard name. Kuratowski uses ``contractible wit
 
 definition\<^marker>\<open>tag important\<close> Borsukian where
     "Borsukian S \<equiv>
-        \<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
+        \<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> (- {0::complex})
             \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) S (- {0}) f (\<lambda>x. a))"
 
 lemma Borsukian_retraction_gen:
   assumes "Borsukian S" "continuous_on S h" "h ` S = T"
-          "continuous_on T k"  "k ` T \<subseteq> S"  "\<And>y. y \<in> T \<Longrightarrow> h(k y) = y"
+          "continuous_on T k"  "k \<in> T \<rightarrow> S"  "\<And>y. y \<in> T \<Longrightarrow> h(k y) = y"
     shows "Borsukian T"
 proof -
   interpret R: Retracts S h T k
-    using assms by (simp add: Retracts.intro)
+    using assms by (simp add: image_subset_iff_funcset Retracts.intro)
   show ?thesis
     using assms
     apply (clarsimp simp add: Borsukian_def)
@@ -4348,7 +4353,7 @@ proof -
 qed
 
 lemma retract_of_Borsukian: "\<lbrakk>Borsukian T; S retract_of T\<rbrakk> \<Longrightarrow> Borsukian S"
-  by (smt (verit) Borsukian_retraction_gen retract_of_def retraction retraction_def retraction_subset)
+  by (smt (verit) Borsukian_retraction_gen retract_of_def retraction retraction_def retraction_subset image_subset_iff_funcset)
 
 lemma homeomorphic_Borsukian: "\<lbrakk>Borsukian S; S homeomorphic T\<rbrakk> \<Longrightarrow> Borsukian T"
   using Borsukian_retraction_gen order_refl
@@ -4374,29 +4379,29 @@ lemma homotopy_eqv_Borsukianness:
     and T :: "'b::real_normed_vector set"
    assumes "S homotopy_eqv T"
      shows "(Borsukian S \<longleftrightarrow> Borsukian T)"
-  by (meson Borsukian_def assms homotopy_eqv_cohomotopic_triviality_null)
+  by (meson Borsukian_def assms homotopy_eqv_cohomotopic_triviality_null image_subset_iff_funcset)
 
 lemma Borsukian_alt:
   fixes S :: "'a::real_normed_vector set"
   shows
    "Borsukian S \<longleftrightarrow>
-        (\<forall>f g. continuous_on S f \<and> f ` S \<subseteq> -{0} \<and>
-               continuous_on S g \<and> g ` S \<subseteq> -{0}
+        (\<forall>f g. continuous_on S f \<and> f \<in> S \<rightarrow> -{0} \<and>
+               continuous_on S g \<and> g \<in> S \<rightarrow> -{0}
                \<longrightarrow> homotopic_with_canon (\<lambda>h. True) S (- {0::complex}) f g)"
   unfolding Borsukian_def homotopic_triviality
-  by (simp add: path_connected_punctured_universe)
+  by (force simp add: path_connected_punctured_universe)
 
 lemma Borsukian_continuous_logarithm:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
-            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
+            (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> (- {0::complex})
                  \<longrightarrow> (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))))"
   by (simp add: Borsukian_def inessential_eq_continuous_logarithm)
 
 lemma Borsukian_continuous_logarithm_circle:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
-             (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
+             (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> sphere (0::complex) 1
                   \<longrightarrow> (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))))"
    (is "?lhs = ?rhs")
 proof
@@ -4405,12 +4410,12 @@ proof
 next
   assume RHS [rule_format]: ?rhs
   show ?lhs
-  proof (clarsimp simp: Borsukian_continuous_logarithm)
+  proof (clarsimp simp: Borsukian_continuous_logarithm Pi_iff)
     fix f :: "'a \<Rightarrow> complex"
-    assume contf: "continuous_on S f" and 0: "0 \<notin> f ` S"
+    assume contf: "continuous_on S f" and 0: "\<forall>i\<in>S. f i \<noteq> 0"
     then have "continuous_on S (\<lambda>x. f x / complex_of_real (cmod (f x)))"
       by (intro continuous_intros) auto
-    moreover have "(\<lambda>x. f x / complex_of_real (cmod (f x))) ` S \<subseteq> sphere 0 1"
+    moreover have "(\<lambda>x. f x / complex_of_real (cmod (f x))) \<in> S \<rightarrow> sphere 0 1"
       using 0 by (auto simp: norm_divide)
     ultimately obtain g where contg: "continuous_on S g"
                   and fg: "\<forall>x \<in> S. f x / complex_of_real (cmod (f x)) = exp(g x)"
@@ -4431,7 +4436,7 @@ qed
 lemma Borsukian_continuous_logarithm_circle_real:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
-         (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
+         (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> sphere (0::complex) 1
               \<longrightarrow> (\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x \<in> S. f x = exp(\<i> * of_real(g x)))))"
    (is "?lhs = ?rhs")
 proof
@@ -4439,11 +4444,11 @@ proof
   show ?rhs
   proof (clarify)
     fix f :: "'a \<Rightarrow> complex"
-    assume "continuous_on S f" and f01: "f ` S \<subseteq> sphere 0 1"
+    assume "continuous_on S f" and f01: "f \<in> S \<rightarrow> sphere 0 1"
     then obtain g where contg: "continuous_on S g" and "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
       using LHS by (auto simp: Borsukian_continuous_logarithm_circle)
     then have "\<forall>x\<in>S. f x = exp (\<i> * complex_of_real ((Im \<circ> g) x))"
-      using f01 exp_eq_polar norm_exp_eq_Re by auto
+      using f01 exp_eq_polar norm_exp_eq_Re by (fastforce simp: Pi_iff)
     then show "\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x\<in>S. f x = exp (\<i> * complex_of_real (g x)))"
       by (rule_tac x="Im \<circ> g" in exI) (force intro: continuous_intros contg)
   qed
@@ -4452,7 +4457,7 @@ next
   show ?lhs
   proof (clarsimp simp: Borsukian_continuous_logarithm_circle)
     fix f :: "'a \<Rightarrow> complex"
-    assume "continuous_on S f" and f01: "f ` S \<subseteq> sphere 0 1"
+    assume "continuous_on S f" and f01: "f \<in> S \<rightarrow> sphere 0 1"
     then obtain g where contg: "continuous_on S (complex_of_real \<circ> g)" and "\<And>x. x \<in> S \<Longrightarrow> f x =  exp(\<i> * of_real(g x))"
       by (metis RHS)
     then show "\<exists>g. continuous_on S g \<and> (\<forall>x\<in>S. f x = exp (g x))"
@@ -4463,17 +4468,18 @@ qed
 lemma Borsukian_circle:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
-         (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
+         (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> sphere (0::complex) 1
               \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) S (sphere (0::complex) 1) f (\<lambda>x. a)))"
 by (simp add: inessential_eq_continuous_logarithm_circle Borsukian_continuous_logarithm_circle_real)
 
 lemma contractible_imp_Borsukian: "contractible S \<Longrightarrow> Borsukian S"
-  by (meson Borsukian_def nullhomotopic_from_contractible)
+  by (meson Borsukian_def nullhomotopic_from_contractible image_subset_iff_funcset)
 
 lemma simply_connected_imp_Borsukian:
   fixes S :: "'a::real_normed_vector set"
   shows  "\<lbrakk>simply_connected S; locally path_connected S\<rbrakk> \<Longrightarrow> Borsukian S"
-  by (metis (no_types, lifting) Borsukian_continuous_logarithm continuous_logarithm_on_simply_connected image_eqI subset_Compl_singleton)
+  by (smt (verit, del_insts) continuous_logarithm_on_simply_connected Borsukian_continuous_logarithm_circle
+      PiE mem_sphere_0 norm_eq_zero zero_neq_one)
 
 lemma starlike_imp_Borsukian:
   fixes S :: "'a::real_normed_vector set"
@@ -4504,19 +4510,19 @@ lemma Borsukian_Un_lemma:
                  \<lbrakk>continuous_on S f; continuous_on T g; \<And>x. x \<in> S \<and> x \<in> T \<Longrightarrow> f x = g x\<rbrakk>
            \<Longrightarrow> continuous_on (S \<union> T) (\<lambda>x. if x \<in> S then f x else g x)"
   shows "Borsukian(S \<union> T)"
-proof (clarsimp simp add: Borsukian_continuous_logarithm)
+proof (clarsimp simp add: Borsukian_continuous_logarithm Pi_iff)
   fix f :: "'a \<Rightarrow> complex"
-  assume contf: "continuous_on (S \<union> T) f" and 0: "0 \<notin> f ` (S \<union> T)"
+  assume contf: "continuous_on (S \<union> T) f" and 0: "\<forall>i\<in>S \<union> T. f i \<noteq> 0"
   then have contfS: "continuous_on S f" and contfT: "continuous_on T f"
     using continuous_on_subset by auto
   have "\<lbrakk>continuous_on S f; f ` S \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))"
     using BS by (auto simp: Borsukian_continuous_logarithm)
   then obtain g where contg: "continuous_on S g" and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
-    using "0" contfS by blast
+    using "0" contfS by force
   have "\<lbrakk>continuous_on T f; f ` T \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on T g \<and> (\<forall>x \<in> T. f x = exp(g x))"
     using BT by (auto simp: Borsukian_continuous_logarithm)
   then obtain h where conth: "continuous_on T h" and fh: "\<And>x. x \<in> T \<Longrightarrow> f x = exp(h x)"
-    using "0" contfT by blast
+    using "0" contfT by force
   show "\<exists>g. continuous_on (S \<union> T) g \<and> (\<forall>x\<in>S \<union> T. f x = exp (g x))"
   proof (cases "S \<inter> T = {}")
     case True
@@ -4592,9 +4598,9 @@ lemma Borsukian_monotone_image_compact:
   assumes "Borsukian S" and contf: "continuous_on S f" and fim: "f ` S = T"
       and "compact S" and conn: "\<And>y. y \<in> T \<Longrightarrow> connected {x. x \<in> S \<and> f x = y}"
     shows "Borsukian T"
-proof (clarsimp simp add: Borsukian_continuous_logarithm)
+proof (clarsimp simp: Borsukian_continuous_logarithm Pi_iff)
   fix g :: "'b \<Rightarrow> complex"
-  assume contg: "continuous_on T g" and 0: "0 \<notin> g ` T"
+  assume contg: "continuous_on T g" and 0: "\<forall>i\<in>T. g i \<noteq> 0"
   have "continuous_on S (g \<circ> f)"
     using contf contg continuous_on_compose fim by blast
   moreover have "(g \<circ> f) ` S \<subseteq> -{0}"
@@ -4631,7 +4637,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     proof (rule continuous_from_closed_graph [of "h ` S"])
       show "compact (h ` S)"
         by (simp add: \<open>compact S\<close> compact_continuous_image conth)
-      show "(h \<circ> f') ` T \<subseteq> h ` S"
+      show "(h \<circ> f') \<in> T \<rightarrow> h ` S"
         by (auto simp: f')
       have "h x = h (f' (f x))" if "x \<in> S" for x
         using * [of "f x"] fim that unfolding constant_on_def by clarsimp (metis f' imageI right_minus_eq)
@@ -4660,10 +4666,10 @@ lemma Borsukian_open_map_image_compact:
     shows "Borsukian T"
 proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
   fix g :: "'b \<Rightarrow> complex"
-  assume contg: "continuous_on T g" and gim: "g ` T \<subseteq> sphere 0 1"
+  assume contg: "continuous_on T g" and gim: "g \<in> T \<rightarrow> sphere 0 1"
   have "continuous_on S (g \<circ> f)"
     using contf contg continuous_on_compose fim by blast
-  moreover have "(g \<circ> f) ` S \<subseteq> sphere 0 1"
+  moreover have "(g \<circ> f) \<in> S \<rightarrow> sphere 0 1"
     using fim gim by auto
   ultimately obtain h where cont_cxh: "continuous_on S (complex_of_real \<circ> h)"
                        and gfh: "\<And>x. x \<in> S \<Longrightarrow> (g \<circ> f) x = exp(\<i> * of_real(h x))"
@@ -4677,7 +4683,8 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
       show "continuous_on {x \<in> S. f x = y} h"
         by (rule continuous_on_subset [OF conth]) auto
       have "compact (S \<inter> f -` {y})"
-        by (rule proper_map_from_compact [OF contf _ \<open>compact S\<close>, of T]) (simp_all add: fim that)
+        using that proper_map_from_compact [OF contf _ \<open>compact S\<close>] fim
+        by force
       then show "compact {x \<in> S. f x = y}" 
         by (auto simp: vimage_def Int_def)
     qed
@@ -4985,7 +4992,7 @@ proof clarify
       with qV qW show ?thesis by force
     qed
     obtain g where contg: "continuous_on U g"
-      and circle: "g ` U \<subseteq> sphere 0 1"
+      and circle: "g \<in> U \<rightarrow> sphere 0 1"
       and S: "\<And>x. x \<in> S \<Longrightarrow> g x = exp(pi * \<i> * q x)"
       and T: "\<And>x. x \<in> T \<Longrightarrow> g x = 1 / exp(pi * \<i> * q x)"
     proof
@@ -5415,7 +5422,7 @@ proof
     proof (rule Borsuk_homotopy_extension_homotopic [OF _ _ continuous_on_const _ homotopic_with_symD [OF a]])
       show "closedin (top_of_set UNIV) S"
         using assms by auto
-      show "range (\<lambda>t. a) \<subseteq> - {0}"
+      show "(\<lambda>t. a) \<in> UNIV \<rightarrow> - {0}"
         using a homotopic_with_imp_subset2 False by blast
     qed (use anr that in \<open>force+\<close>)
     then show ?thesis

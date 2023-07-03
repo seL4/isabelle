@@ -2645,7 +2645,7 @@ qed
 
 lemma continuous_map_uniform_limit_alt:
   assumes contf: "\<forall>\<^sub>F \<xi> in F. continuous_map X mtopology (f \<xi>)"
-    and gim: "g ` (topspace X) \<subseteq> M"
+    and gim: "g \<in> topspace X \<rightarrow> M"
     and dfg: "\<And>\<epsilon>. 0 < \<epsilon> \<Longrightarrow> \<forall>\<^sub>F \<xi> in F. \<forall>x \<in> topspace X. d (f \<xi> x) (g x) < \<epsilon>"
     and nontriv: "\<not> trivial_limit F"
   shows "continuous_map X mtopology g"
@@ -2653,7 +2653,7 @@ proof (rule continuous_map_uniform_limit [OF contf])
   fix \<epsilon> :: real
   assume "\<epsilon> > 0"
   with gim dfg show "\<forall>\<^sub>F \<xi> in F. \<forall>x\<in>topspace X. g x \<in> M \<and> d (f \<xi> x) (g x) < \<epsilon>"
-    by (simp add: image_subset_iff)
+    by (simp add: Pi_iff)
 qed (use nontriv in auto)
 
 
@@ -2800,14 +2800,16 @@ qed
 lemma completely_metrizable_space_cbox: "completely_metrizable_space (top_of_set (cbox a b))"
     using closed_closedin completely_metrizable_space_closedin completely_metrizable_space_euclidean by blast
 
+
 lemma homeomorphic_completely_metrizable_space_aux:
   assumes homXY: "X homeomorphic_space Y" and X: "completely_metrizable_space X"
   shows "completely_metrizable_space Y"
 proof -
   obtain f g where hmf: "homeomorphic_map X Y f" and hmg: "homeomorphic_map Y X g"
-    and fg: "(\<forall>x \<in> topspace X. g(f x) = x) \<and> (\<forall>y \<in> topspace Y. f(g y) = y)"
-    and fim: "f ` (topspace X) = topspace Y" and gim: "g ` (topspace Y) = topspace X"
-    by (smt (verit, best) homXY homeomorphic_imp_surjective_map homeomorphic_maps_map homeomorphic_space_def)
+    and fg: "\<And>x. x \<in> topspace X \<Longrightarrow> g(f x) = x" "\<And>y. y \<in> topspace Y \<Longrightarrow> f(g y) = y"
+    and fim: "f \<in> topspace X \<rightarrow> topspace Y" and gim: "g \<in> topspace Y \<rightarrow> topspace X"
+    using homXY
+    using homeomorphic_space_unfold by blast
   obtain M d where Md: "Metric_space M d" "Metric_space.mcomplete M d" and Xeq: "X = Metric_space.mtopology M d"
     using X by (auto simp: completely_metrizable_space_def)
   then interpret MX: Metric_space M d by metis
@@ -2816,7 +2818,7 @@ proof -
   proof
     show "(D x y = 0) \<longleftrightarrow> (x = y)" if "x \<in> topspace Y" "y \<in> topspace Y" for x y
       unfolding D_def
-      by (metis that MX.topspace_mtopology MX.zero Xeq fg gim imageI)
+      by (metis that MX.topspace_mtopology MX.zero Xeq fg gim Pi_iff)
     show "D x z \<le> D x y +D y z"
       if "x \<in> topspace Y" "y \<in> topspace Y" "z \<in> topspace Y" for x y z
       using that MX.triangle Xeq gim by (auto simp: D_def)
@@ -2828,8 +2830,8 @@ proof -
     show "Metric_space (topspace Y) D"
       using MY.Metric_space_axioms by blast
     have gball: "g ` MY.mball y r = MX.mball (g y) r" if "y \<in> topspace Y" for y r
-      using that MX.topspace_mtopology Xeq gim
-      unfolding MX.mball_def MY.mball_def by (auto simp: subset_iff image_iff D_def)
+      using that MX.topspace_mtopology Xeq gim hmg homeomorphic_imp_surjective_map
+      unfolding MX.mball_def MY.mball_def  by (fastforce simp: D_def)
     have "\<exists>r>0. MY.mball y r \<subseteq> S" if "openin Y S" and "y \<in> S" for S y
     proof -
       have "openin X (g`S)"
@@ -3783,16 +3785,16 @@ subsubsection \<open>Lipschitz continuity\<close>
 
 definition Lipschitz_continuous_map 
   where "Lipschitz_continuous_map \<equiv> 
-      \<lambda>m1 m2 f. f ` mspace m1 \<subseteq> mspace m2 \<and>
+      \<lambda>m1 m2 f. f \<in> mspace m1 \<rightarrow> mspace m2 \<and>
         (\<exists>B. \<forall>x \<in> mspace m1. \<forall>y \<in> mspace m1. mdist m2 (f x) (f y) \<le> B * mdist m1 x y)"
 
 lemma Lipschitz_continuous_map_image: 
-  "Lipschitz_continuous_map m1 m2 f \<Longrightarrow> f ` mspace m1 \<subseteq> mspace m2"
+  "Lipschitz_continuous_map m1 m2 f \<Longrightarrow> f \<in> mspace m1 \<rightarrow> mspace m2"
   by (simp add: Lipschitz_continuous_map_def)
 
 lemma Lipschitz_continuous_map_pos:
    "Lipschitz_continuous_map m1 m2 f \<longleftrightarrow>
-    f ` mspace m1 \<subseteq> mspace m2 \<and>
+    f \<in> mspace m1 \<rightarrow> mspace m2 \<and>
         (\<exists>B>0. \<forall>x \<in> mspace m1. \<forall>y \<in> mspace m1. mdist m2 (f x) (f y) \<le> B * mdist m1 x y)"
 proof -
   have "B * mdist m1 x y \<le> (\<bar>B\<bar> + 1) * mdist m1 x y" "\<bar>B\<bar> + 1 > 0" for x y B
@@ -3805,15 +3807,14 @@ qed
 lemma Lipschitz_continuous_map_eq:
   assumes "Lipschitz_continuous_map m1 m2 f" "\<And>x. x \<in> mspace m1 \<Longrightarrow> f x = g x"
   shows "Lipschitz_continuous_map m1 m2 g"
-  using Lipschitz_continuous_map_def assms
-  by (metis (no_types, opaque_lifting) image_subset_iff)
+  using Lipschitz_continuous_map_def assms by (simp add: Lipschitz_continuous_map_pos Pi_iff)
 
 lemma Lipschitz_continuous_map_from_submetric:
   assumes "Lipschitz_continuous_map m1 m2 f"
   shows "Lipschitz_continuous_map (submetric m1 S) m2 f"
   unfolding Lipschitz_continuous_map_def 
 proof
-  show "f ` mspace (submetric m1 S) \<subseteq> mspace m2"
+  show "f \<in> mspace (submetric m1 S) \<rightarrow> mspace m2"
     using Lipschitz_continuous_map_pos assms by fastforce
 qed (use assms in \<open>fastforce simp: Lipschitz_continuous_map_def\<close>)
 
@@ -3824,37 +3825,36 @@ lemma Lipschitz_continuous_map_from_submetric_mono:
 
 lemma Lipschitz_continuous_map_into_submetric:
    "Lipschitz_continuous_map m1 (submetric m2 S) f \<longleftrightarrow>
-        f ` mspace m1 \<subseteq> S \<and> Lipschitz_continuous_map m1 m2 f"
+        f \<in> mspace m1 \<rightarrow> S \<and> Lipschitz_continuous_map m1 m2 f"
   by (auto simp: Lipschitz_continuous_map_def)
 
 lemma Lipschitz_continuous_map_const:
   "Lipschitz_continuous_map m1 m2 (\<lambda>x. c) \<longleftrightarrow>
         mspace m1 = {} \<or> c \<in> mspace m2"
-  unfolding Lipschitz_continuous_map_def image_subset_iff
+  unfolding Lipschitz_continuous_map_def Pi_iff
   by (metis all_not_in_conv mdist_nonneg mdist_zero mult_1)
 
 lemma Lipschitz_continuous_map_id:
    "Lipschitz_continuous_map m1 m1 (\<lambda>x. x)"
-  by (metis Lipschitz_continuous_map_def image_ident mult_1 order_refl)
+  unfolding Lipschitz_continuous_map_def by (metis funcset_id mult_1 order_refl)
 
 lemma Lipschitz_continuous_map_compose:
   assumes f: "Lipschitz_continuous_map m1 m2 f" and g: "Lipschitz_continuous_map m2 m3 g"
   shows "Lipschitz_continuous_map m1 m3 (g \<circ> f)"
-  unfolding Lipschitz_continuous_map_def image_subset_iff
+  unfolding Lipschitz_continuous_map_def 
 proof
-  show "\<forall>x\<in>mspace m1. (g \<circ> f) x \<in> mspace m3"
-    by (metis Lipschitz_continuous_map_def assms comp_apply image_subset_iff)
+  show "g \<circ> f \<in> mspace m1 \<rightarrow> mspace m3"
+    by (smt (verit, best) Lipschitz_continuous_map_image Pi_iff comp_apply f g)
   obtain B where B: "\<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m2 (f x) (f y) \<le> B * mdist m1 x y"
     using assms unfolding Lipschitz_continuous_map_def by presburger
   obtain C where "C>0" and C: "\<forall>x\<in>mspace m2. \<forall>y\<in>mspace m2. mdist m3 (g x) (g y) \<le> C * mdist m2 x y"
     using assms unfolding Lipschitz_continuous_map_pos by metis
   show "\<exists>B. \<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m3 ((g \<circ> f) x) ((g \<circ> f) y) \<le> B * mdist m1 x y"
-    apply (rule_tac x="C*B" in exI)
-  proof clarify
+  proof (intro strip exI)
     fix x y
     assume \<section>: "x \<in> mspace m1" "y \<in> mspace m1"
     then have "mdist m3 ((g \<circ> f) x) ((g \<circ> f) y) \<le> C * mdist m2 (f x) (f y)"
-      by (metis C Lipschitz_continuous_map_def f comp_apply image_subset_iff)
+      using C Lipschitz_continuous_map_image f by fastforce
     also have "\<dots> \<le> C * B * mdist m1 x y"
       by (simp add: "\<section>" B \<open>0 < C\<close>)
     finally show "mdist m3 ((g \<circ> f) x) ((g \<circ> f) y) \<le> C * B * mdist m1 x y" .
@@ -3865,12 +3865,12 @@ subsubsection \<open>Uniform continuity\<close>
 
 definition uniformly_continuous_map 
   where "uniformly_continuous_map \<equiv> 
-      \<lambda>m1 m2 f. f ` mspace m1 \<subseteq> mspace m2 \<and>
+      \<lambda>m1 m2 f. f \<in> mspace m1 \<rightarrow> mspace m2 \<and>
         (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x \<in> mspace m1. \<forall>y \<in> mspace m1. 
                            mdist m1 y x < \<delta> \<longrightarrow> mdist m2 (f y) (f x) < \<epsilon>)"
 
-lemma uniformly_continuous_map_image: 
-  "uniformly_continuous_map m1 m2 f \<Longrightarrow> f ` mspace m1 \<subseteq> mspace m2"
+lemma uniformly_continuous_map_funspace: 
+  "uniformly_continuous_map m1 m2 f \<Longrightarrow> f \<in> mspace m1 \<rightarrow> mspace m2"
   by (simp add: uniformly_continuous_map_def)
 
 lemma ucmap_A:
@@ -3898,7 +3898,7 @@ lemma ucmap_C:
   assumes \<section>: "\<And>\<rho> \<sigma> \<epsilon>. \<lbrakk>\<epsilon> > 0; range \<rho> \<subseteq> mspace m1; range \<sigma> \<subseteq> mspace m1;
                        ((\<lambda>n. mdist m1 (\<rho> n) (\<sigma> n)) \<longlonglongrightarrow> 0)\<rbrakk>
                       \<Longrightarrow> \<exists>n. mdist m2 (f (\<rho> n)) (f (\<sigma> n)) < \<epsilon>"
-    and fim: "f ` mspace m1 \<subseteq> mspace m2"
+    and fim: "f \<in> mspace m1 \<rightarrow> mspace m2"
   shows "uniformly_continuous_map m1 m2 f"
 proof -
   {assume "\<not> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m1 y x < \<delta> \<longrightarrow> mdist m2 (f y) (f x) < \<epsilon>)" 
@@ -3921,13 +3921,13 @@ qed
 
 lemma uniformly_continuous_map_sequentially:
   "uniformly_continuous_map m1 m2 f \<longleftrightarrow>
-    f ` mspace m1 \<subseteq> mspace m2 \<and>
+    f \<in> mspace m1 \<rightarrow> mspace m2 \<and>
     (\<forall>\<rho> \<sigma>. range \<rho> \<subseteq> mspace m1 \<and> range \<sigma> \<subseteq> mspace m1 \<and> (\<lambda>n. mdist m1 (\<rho> n) (\<sigma> n)) \<longlonglongrightarrow> 0
           \<longrightarrow> (\<lambda>n. mdist m2 (f (\<rho> n)) (f (\<sigma> n))) \<longlonglongrightarrow> 0)"
    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show "?lhs \<Longrightarrow> ?rhs"
-    by (simp add: ucmap_A uniformly_continuous_map_image)
+    by (simp add: ucmap_A uniformly_continuous_map_funspace)
   show "?rhs \<Longrightarrow> ?lhs"
     by (intro ucmap_B ucmap_C) auto
 qed
@@ -3935,14 +3935,14 @@ qed
 
 lemma uniformly_continuous_map_sequentially_alt:
     "uniformly_continuous_map m1 m2 f \<longleftrightarrow>
-      f ` mspace m1 \<subseteq> mspace m2 \<and>
+      f \<in> mspace m1 \<rightarrow> mspace m2 \<and>
       (\<forall>\<epsilon>>0. \<forall>\<rho> \<sigma>. range \<rho> \<subseteq> mspace m1 \<and> range \<sigma> \<subseteq> mspace m1 \<and>
             ((\<lambda>n. mdist m1 (\<rho> n) (\<sigma> n)) \<longlonglongrightarrow> 0)
             \<longrightarrow> (\<exists>n. mdist m2 (f (\<rho> n)) (f (\<sigma> n)) < \<epsilon>))"
    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show "?lhs \<Longrightarrow> ?rhs"
-    using uniformly_continuous_map_image by (intro conjI strip ucmap_B | force simp: ucmap_A)+
+    using uniformly_continuous_map_funspace by (intro conjI strip ucmap_B | fastforce simp: ucmap_A)+
   show "?rhs \<Longrightarrow> ?lhs"
     by (intro ucmap_C) auto
 qed
@@ -3951,14 +3951,14 @@ qed
 lemma uniformly_continuous_map_eq:
    "\<lbrakk>\<And>x. x \<in> mspace m1 \<Longrightarrow> f x = g x; uniformly_continuous_map m1 m2 f\<rbrakk>
       \<Longrightarrow> uniformly_continuous_map m1 m2 g"
-  by (simp add: uniformly_continuous_map_def)
+  by (simp add: uniformly_continuous_map_def Pi_iff)
 
 lemma uniformly_continuous_map_from_submetric:
   assumes "uniformly_continuous_map m1 m2 f"
   shows "uniformly_continuous_map (submetric m1 S) m2 f"
   unfolding uniformly_continuous_map_def 
 proof
-  show "f ` mspace (submetric m1 S) \<subseteq> mspace m2"
+  show "f \<in> mspace (submetric m1 S) \<rightarrow> mspace m2"
     using assms by (auto simp: uniformly_continuous_map_def)
 qed (use assms in \<open>force simp: uniformly_continuous_map_def\<close>)
 
@@ -3969,23 +3969,23 @@ lemma uniformly_continuous_map_from_submetric_mono:
 
 lemma uniformly_continuous_map_into_submetric:
    "uniformly_continuous_map m1 (submetric m2 S) f \<longleftrightarrow>
-        f ` mspace m1 \<subseteq> S \<and> uniformly_continuous_map m1 m2 f"
+        f \<in> mspace m1 \<rightarrow> S \<and> uniformly_continuous_map m1 m2 f"
   by (auto simp: uniformly_continuous_map_def)
 
 lemma uniformly_continuous_map_const:
   "uniformly_continuous_map m1 m2 (\<lambda>x. c) \<longleftrightarrow>
         mspace m1 = {} \<or> c \<in> mspace m2"
-  unfolding uniformly_continuous_map_def image_subset_iff
+  unfolding uniformly_continuous_map_def Pi_iff
   by (metis empty_iff equals0I mdist_zero)
 
 lemma uniformly_continuous_map_id [simp]:
    "uniformly_continuous_map m1 m1 (\<lambda>x. x)"
-  by (metis image_ident order_refl uniformly_continuous_map_def)
+  by (metis funcset_id uniformly_continuous_map_def)
 
 lemma uniformly_continuous_map_compose:
   assumes f: "uniformly_continuous_map m1 m2 f" and g: "uniformly_continuous_map m2 m3 g"
   shows "uniformly_continuous_map m1 m3 (g \<circ> f)"
-  by (smt (verit, ccfv_threshold) comp_apply f g image_subset_iff uniformly_continuous_map_def)
+  by (smt (verit, ccfv_threshold) comp_apply f g Pi_iff uniformly_continuous_map_def)
 
 lemma uniformly_continuous_map_real_const [simp]:
    "uniformly_continuous_map m euclidean_metric (\<lambda>x. c)"
@@ -4009,9 +4009,9 @@ lemma Cauchy_continuous_map_euclidean [simp]:
      = Cauchy_continuous_on S f"
   by (auto simp add: Cauchy_continuous_map_def Cauchy_continuous_on_def Cauchy_def Met_TC.subspace Metric_space.MCauchy_def)
 
-lemma Cauchy_continuous_map_image:
+lemma Cauchy_continuous_map_funspace:
   assumes "Cauchy_continuous_map m1 m2 f"
-  shows "f ` mspace m1 \<subseteq> mspace m2"
+  shows "f \<in> mspace m1 \<rightarrow> mspace m2"
 proof clarsimp
   fix x
   assume "x \<in> mspace m1"
@@ -4042,14 +4042,14 @@ lemma Cauchy_continuous_map_from_submetric_mono:
 
 lemma Cauchy_continuous_map_into_submetric:
    "Cauchy_continuous_map m1 (submetric m2 S) f \<longleftrightarrow>
-   f ` mspace m1 \<subseteq> S \<and> Cauchy_continuous_map m1 m2 f"  (is "?lhs \<longleftrightarrow> ?rhs")
+   f \<in> mspace m1 \<rightarrow> S \<and> Cauchy_continuous_map m1 m2 f"  (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   have "?lhs \<Longrightarrow> Cauchy_continuous_map m1 m2 f"
     by (simp add: Cauchy_continuous_map_def Metric_space.MCauchy_def [OF Metric_space_mspace_mdist])
   moreover have "?rhs \<Longrightarrow> ?lhs"
-    by (bestsimp simp add: Cauchy_continuous_map_def  Metric_space.MCauchy_def [OF Metric_space_mspace_mdist])
+    by (auto simp: Cauchy_continuous_map_def  Metric_space.MCauchy_def [OF Metric_space_mspace_mdist])
   ultimately show ?thesis
-    by (metis Cauchy_continuous_map_image le_inf_iff mspace_submetric)
+    by (metis Cauchy_continuous_map_funspace Int_iff funcsetI funcset_mem mspace_submetric)
 qed
 
 lemma Cauchy_continuous_map_const [simp]:
@@ -4060,7 +4060,7 @@ proof -
   moreover have "c \<in> mspace m2 \<Longrightarrow> Cauchy_continuous_map m1 m2 (\<lambda>x. c)"
     by (simp add: Cauchy_continuous_map_def o_def Metric_space.MCauchy_const [OF Metric_space_mspace_mdist])
   ultimately show ?thesis
-    using Cauchy_continuous_map_image by blast
+    using Cauchy_continuous_map_funspace by blast
 qed
 
 lemma Cauchy_continuous_map_id [simp]:
@@ -4076,7 +4076,7 @@ lemma Lipschitz_imp_uniformly_continuous_map:
   assumes "Lipschitz_continuous_map m1 m2 f"
   shows "uniformly_continuous_map m1 m2 f"
   proof -
-  have "f ` mspace m1 \<subseteq> mspace m2"
+  have "f \<in> mspace m1 \<rightarrow> mspace m2"
     by (simp add: Lipschitz_continuous_map_image assms)
   moreover have "\<exists>\<delta>>0. \<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m1 y x < \<delta> \<longrightarrow> mdist m2 (f y) (f x) < \<epsilon>"
     if "\<epsilon> > 0" for \<epsilon>
@@ -4097,7 +4097,7 @@ lemma uniformly_imp_Cauchy_continuous_map:
    "uniformly_continuous_map m1 m2 f \<Longrightarrow> Cauchy_continuous_map m1 m2 f"
   unfolding uniformly_continuous_map_def Cauchy_continuous_map_def
   apply (simp add: image_subset_iff o_def Metric_space.MCauchy_def [OF Metric_space_mspace_mdist])
-  by meson
+  by (metis funcset_mem)
 
 lemma locally_Cauchy_continuous_map:
   assumes "\<epsilon> > 0"
@@ -4137,7 +4137,7 @@ proof (intro strip)
     then have "\<sigma> n \<in> mball_of m1 (\<sigma> n) \<epsilon>"
       by (simp add: Metric_space.centre_in_mball_iff Metric_space_mspace_mdist assms(1) mball_of_def)
     then show "(f \<circ> \<sigma>) n \<in> mspace m2"
-      using Cauchy_continuous_map_image [OF \<section> [of "\<sigma> n"]] \<open>\<sigma> n \<in> mspace m1\<close> by auto
+      using Cauchy_continuous_map_funspace [OF \<section> [of "\<sigma> n"]] \<open>\<sigma> n \<in> mspace m1\<close> by auto
   qed
 qed
 
@@ -4154,7 +4154,7 @@ proof (clarsimp simp: continuous_map_atin)
     unfolding limit_atin_sequentially
   proof (intro conjI strip)
     show "f x \<in> M2"
-      using Cauchy_continuous_map_image \<open>x \<in> M1\<close> assms by fastforce
+      using Cauchy_continuous_map_funspace \<open>x \<in> M1\<close> assms by fastforce
     fix \<sigma>
     assume "range \<sigma> \<subseteq> M1 - {x} \<and> limitin M1.mtopology \<sigma> x sequentially"
     then have "M1.MCauchy (\<lambda>n. if even n then \<sigma> (n div 2) else x)"
@@ -4221,8 +4221,8 @@ lemma Cauchy_imp_uniformly_continuous_map:
   shows "uniformly_continuous_map m1 m2 f"
   unfolding uniformly_continuous_map_sequentially_alt imp_conjL
 proof (intro conjI strip)
-  show "f ` mspace m1 \<subseteq> mspace m2"
-    by (simp add: Cauchy_continuous_map_image f)
+  show "f \<in> mspace m1 \<rightarrow> mspace m2"
+    by (simp add: Cauchy_continuous_map_funspace f)
   interpret M1: Metric_space "mspace m1" "mdist m1"
     by (simp add: Metric_space_mspace_mdist)
   interpret M2: Metric_space "mspace m2" "mdist m2"
@@ -4286,7 +4286,7 @@ lemma Cauchy_eq_uniformly_continuous_map:
 lemma Lipschitz_continuous_map_projections:
   "Lipschitz_continuous_map (prod_metric m1 m2) m1 fst"
   "Lipschitz_continuous_map (prod_metric m1 m2) m2 snd"
-  by (simp add: Lipschitz_continuous_map_def prod_dist_def; 
+  by (simp add: Lipschitz_continuous_map_def prod_dist_def fst_Pi snd_Pi; 
       metis mult_numeral_1 real_sqrt_sum_squares_ge1 real_sqrt_sum_squares_ge2)+
 
 lemma Lipschitz_continuous_map_pairwise:
@@ -4308,11 +4308,11 @@ proof
     show ?thesis
       unfolding Lipschitz_continuous_map_pos
     proof (intro exI conjI strip)
-      have f1im: "f1 ` mspace m \<subseteq> mspace m1"
+      have f1im: "f1 \<in> mspace m \<rightarrow> mspace m1"
         by (simp add: Lipschitz_continuous_map_image f1)
-      moreover have f2im: "f2 ` mspace m \<subseteq> mspace m2"
+      moreover have f2im: "f2 \<in> mspace m \<rightarrow> mspace m2"
         by (simp add: Lipschitz_continuous_map_image f2)
-      ultimately show "(\<lambda>x. (f1 x, f2 x)) ` mspace m \<subseteq> mspace (prod_metric m1 m2)"
+      ultimately show "(\<lambda>x. (f1 x, f2 x)) \<in> mspace m \<rightarrow> mspace (prod_metric m1 m2)"
         by auto
       show "B1+B2 > 0"
         using \<open>0 < B1\<close> \<open>0 < B2\<close> by linarith
@@ -4343,11 +4343,11 @@ proof
     show ?thesis
       unfolding uniformly_continuous_map_def
     proof (intro conjI strip)
-      have f1im: "f1 ` mspace m \<subseteq> mspace m1"
-        by (simp add: uniformly_continuous_map_image f1)
-      moreover have f2im: "f2 ` mspace m \<subseteq> mspace m2"
-        by (simp add: uniformly_continuous_map_image f2)
-      ultimately show "(\<lambda>x. (f1 x, f2 x)) ` mspace m \<subseteq> mspace (prod_metric m1 m2)"
+      have f1im: "f1 \<in> mspace m \<rightarrow> mspace m1"
+        by (simp add: uniformly_continuous_map_funspace f1)
+      moreover have f2im: "f2 \<in> mspace m \<rightarrow> mspace m2"
+        by (simp add: uniformly_continuous_map_funspace f2)
+      ultimately show "(\<lambda>x. (f1 x, f2 x)) \<in> mspace m \<rightarrow> mspace (prod_metric m1 m2)"
         by auto
       fix \<epsilon>:: real
       assume "\<epsilon> > 0"
@@ -4402,9 +4402,9 @@ lemma mbounded_Lipschitz_continuous_image:
   assumes f: "Lipschitz_continuous_map m1 m2 f" and S: "Metric_space.mbounded (mspace m1) (mdist m1) S"
   shows "Metric_space.mbounded (mspace m2) (mdist m2) (f`S)"
 proof -
-  obtain B where fim: "f ` mspace m1 \<subseteq> mspace m2"
+  obtain B where fim: "f \<in> mspace m1 \<rightarrow> mspace m2"
     and "B>0" and B: "\<And>x y. \<lbrakk>x \<in> mspace m1; y \<in> mspace m1\<rbrakk> \<Longrightarrow> mdist m2 (f x) (f y) \<le> B * mdist m1 x y"
-    by (meson Lipschitz_continuous_map_pos f)
+    by (metis Lipschitz_continuous_map_pos f)
   show ?thesis
     unfolding Metric_space.mbounded_alt_pos [OF Metric_space_mspace_mdist]
   proof
@@ -4429,7 +4429,7 @@ proof (intro conjI strip)
   have "S \<subseteq> mspace m1"
     using S by (simp add: Metric_space.mtotally_bounded_sequentially[OF Metric_space_mspace_mdist])
   then show "f ` S \<subseteq> mspace m2"
-    using Cauchy_continuous_map_image f by blast
+    using Cauchy_continuous_map_funspace f by blast
   fix \<sigma> :: "nat \<Rightarrow> 'b"
   assume "range \<sigma> \<subseteq> f ` S"
   then have "\<forall>n. \<exists>x. \<sigma> n = f x \<and> x \<in> S"
@@ -4448,11 +4448,11 @@ qed
 
 lemma Lipschitz_coefficient_pos:
   assumes "x \<in> mspace m" "y \<in> mspace m" "f x \<noteq> f y" 
-    and "f ` mspace m \<subseteq> mspace m2" 
+    and "f \<in> mspace m \<rightarrow> mspace m2" 
     and "\<And>x y. \<lbrakk>x \<in> mspace m; y \<in> mspace m\<rbrakk>
             \<Longrightarrow> mdist m2 (f x) (f y) \<le> k * mdist m x y"
   shows  "0 < k"
-  using assms by (smt (verit, best) image_subset_iff mdist_nonneg mdist_zero mult_nonpos_nonneg)
+  using assms by (smt (verit, best) Pi_iff mdist_nonneg mdist_zero mult_nonpos_nonneg)
 
 lemma Lipschitz_continuous_map_metric:
    "Lipschitz_continuous_map (prod_metric m m) euclidean_metric (\<lambda>(x,y). mdist m x y)"
@@ -4563,7 +4563,7 @@ lemma continuous_on_mdist:
 subsection \<open>Isometries\<close>
 
 lemma (in Metric_space12) isometry_imp_embedding_map:
-  assumes fim: "f ` M1 \<subseteq> M2" and d: "\<And>x y. \<lbrakk>x \<in> M1; y \<in> M1\<rbrakk> \<Longrightarrow> d2 (f x) (f y) = d1 x y"
+  assumes fim: "f \<in> M1 \<rightarrow> M2" and d: "\<And>x y. \<lbrakk>x \<in> M1; y \<in> M1\<rbrakk> \<Longrightarrow> d2 (f x) (f y) = d1 x y"
   shows "embedding_map M1.mtopology M2.mtopology f"
 proof -
   have "inj_on f M1"
@@ -4574,7 +4574,10 @@ proof -
     unfolding homeomorphic_maps_def
   proof (intro conjI; clarsimp)
     show "continuous_map M1.mtopology (subtopology M2.mtopology (f ` M1)) f"
-      by (metis M1.metric_continuous_map M1.topspace_mtopology M2.Metric_space_axioms continuous_map_into_subtopology d fim order_refl)
+    proof (rule continuous_map_into_subtopology)
+      show "continuous_map M1.mtopology M2.mtopology f"
+        by (metis M1.metric_continuous_map M2.Metric_space_axioms d fim image_subset_iff_funcset)
+    qed simp
     have "Lipschitz_continuous_map (submetric (metric(M2,d2)) (f ` M1)) (metric(M1,d1)) g"
       unfolding Lipschitz_continuous_map_def
     proof (intro conjI exI strip; simp)
@@ -4595,7 +4598,8 @@ qed
 lemma (in Metric_space12) isometry_imp_homeomorphic_map:
   assumes fim: "f ` M1 = M2" and d: "\<And>x y. \<lbrakk>x \<in> M1; y \<in> M1\<rbrakk> \<Longrightarrow> d2 (f x) (f y) = d1 x y"
   shows "homeomorphic_map M1.mtopology M2.mtopology f"
-  by (metis M1.topspace_mtopology M2.subtopology_mspace d embedding_map_def fim isometry_imp_embedding_map subsetI)
+  by (metis image_eqI M1.topspace_mtopology M2.subtopology_mspace d embedding_map_def fim isometry_imp_embedding_map Pi_iff)
+
 subsection\<open>"Capped" equivalent bounded metrics and general product metrics\<close>
 
 definition (in Metric_space) capped_dist where
@@ -5131,7 +5135,6 @@ lemma metrizable_Euclidean_space:
 lemma locally_connected_Euclidean_space:
    "locally_connected_space(Euclidean_space n)"
   by (simp add: locally_path_connected_Euclidean_space locally_path_connected_imp_locally_connected_space)
-
 
 end
 

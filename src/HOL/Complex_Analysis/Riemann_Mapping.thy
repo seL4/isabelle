@@ -1624,7 +1624,7 @@ proof
     qed
     show "continuous_on UNIV (\<lambda>w. \<zeta> + exp w)"
       by (rule continuous_intros)+
-    show "range (\<lambda>w. \<zeta> + exp w) \<subseteq> -{\<zeta>}"
+    show "(\<lambda>w. \<zeta> + exp w) \<in> UNIV \<rightarrow> -{\<zeta>}"
       by auto
   qed
   then have "homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r) {0..1} (-{\<zeta>}) p (\<lambda>x. \<zeta> + 1)"

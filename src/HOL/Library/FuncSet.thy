@@ -148,9 +148,10 @@ lemma Pi_cancel_fupd[simp]: "i \<notin> I \<Longrightarrow> x(i := a) \<in> Pi I
   by (auto simp: Pi_def)
 
 lemma Pi_fupd_iff: "i \<in> I \<Longrightarrow> f \<in> Pi I (B(i := A)) \<longleftrightarrow> f \<in> Pi (I - {i}) B \<and> f i \<in> A"
-  apply auto
-  apply (metis PiE fun_upd_apply)
-  by force
+  using mk_disjoint_insert by fastforce
+
+lemma fst_Pi: "fst \<in> A \<times> B \<rightarrow> A" and snd_Pi: "snd \<in> A \<times> B \<rightarrow> B"
+  by auto
 
 
 subsection \<open>Composition With a Restricted Domain: \<^term>\<open>compose\<close>\<close>
