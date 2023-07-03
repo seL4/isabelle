@@ -575,7 +575,7 @@ qed
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Quotient maps\<close>
 
 lemma quotient_map_imp_continuous_open:
-  assumes T: "f ` S \<subseteq> T"
+  assumes T: "f \<in> S \<rightarrow> T"
       and ope: "\<And>U. U \<subseteq> T
               \<Longrightarrow> (openin (top_of_set S) (S \<inter> f -` U) \<longleftrightarrow>
                    openin (top_of_set T) U)"
@@ -587,7 +587,7 @@ proof -
 qed
 
 lemma quotient_map_imp_continuous_closed:
-  assumes T: "f ` S \<subseteq> T"
+  assumes T: "f \<in> S \<rightarrow> T"
       and ope: "\<And>U. U \<subseteq> T
                   \<Longrightarrow> (closedin (top_of_set S) (S \<inter> f -` U) \<longleftrightarrow>
                        closedin (top_of_set T) U)"
@@ -635,8 +635,8 @@ next
 qed
 
 lemma continuous_right_inverse_imp_quotient_map:
-  assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T"
-      and contg: "continuous_on T g" and img: "g ` T \<subseteq> S"
+  assumes contf: "continuous_on S f" and imf: "f \<in> S \<rightarrow> T"
+      and contg: "continuous_on T g" and img: "g \<in> T \<rightarrow> S"
       and fg [simp]: "\<And>y. y \<in> T \<Longrightarrow> f(g y) = y"
       and U: "U \<subseteq> T"
     shows "openin (top_of_set S) (S \<inter> f -` U) \<longleftrightarrow>
@@ -657,13 +657,13 @@ proof -
     finally have eq: "T \<inter> g -` (g ` T \<inter> (S \<inter> f -` U)) = U" .
     assume ?lhs
     then have *: "openin (top_of_set (g ` T)) (g ` T \<inter> (S \<inter> f -` U))"
-      by (meson img openin_Int openin_subtopology_Int_subset openin_subtopology_self)
+      by (meson img openin_Int openin_subtopology_Int_subset openin_subtopology_self image_subset_iff_funcset)
     show ?rhs
       using g [OF *] eq by auto
   next
     assume rhs: ?rhs
     show ?lhs
-      by (metis f fg image_eqI image_subset_iff imf img openin_subopen openin_subtopology_self openin_trans rhs)
+      using assms continuous_openin_preimage rhs by blast
   qed
 qed
 
@@ -696,7 +696,7 @@ lemma pasting_lemma:
     shows "continuous_map X Y g"
   unfolding continuous_map_openin_preimage_eq
 proof (intro conjI allI impI)
-  show "g ` topspace X \<subseteq> topspace Y"
+  show "g \<in> topspace X \<rightarrow> topspace Y"
     using g cont continuous_map_image_subset_topspace by fastforce
 next
   fix U
@@ -737,7 +737,7 @@ lemma pasting_lemma_locally_finite:
   shows "continuous_map X Y g"
   unfolding continuous_map_closedin_preimage_eq
 proof (intro conjI allI impI)
-  show "g ` topspace X \<subseteq> topspace Y"
+  show "g \<in> topspace X \<rightarrow> topspace Y"
     using g cont continuous_map_image_subset_topspace by fastforce
 next
   fix U
@@ -885,7 +885,7 @@ subsection \<open>Retractions\<close>
 
 definition\<^marker>\<open>tag important\<close> retraction :: "('a::topological_space) set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
 where "retraction S T r \<longleftrightarrow>
-  T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
+  T \<subseteq> S \<and> continuous_on S r \<and> r \<in> S \<rightarrow> T \<and> (\<forall>x\<in>T. r x = x)"
 
 definition\<^marker>\<open>tag important\<close> retract_of (infixl "retract'_of" 50) where
 "T retract_of S  \<longleftrightarrow>  (\<exists>r. retraction S T r)"
@@ -899,20 +899,20 @@ lemma invertible_fixpoint_property:
   fixes S :: "'a::topological_space set"
     and T :: "'b::topological_space set"
   assumes contt: "continuous_on T i"
-    and "i ` T \<subseteq> S"
+    and "i \<in> T \<rightarrow> S"
     and contr: "continuous_on S r"
-    and "r ` S \<subseteq> T"
+    and "r \<in> S \<rightarrow> T"
     and ri: "\<And>y. y \<in> T \<Longrightarrow> r (i y) = y"
-    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
+    and FP: "\<And>f. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
     and contg: "continuous_on T g"
-    and "g ` T \<subseteq> T"
+    and "g \<in> T \<rightarrow> T"
   obtains y where "y \<in> T" and "g y = y"
 proof -
   have "\<exists>x\<in>S. (i \<circ> g \<circ> r) x = x"
   proof (rule FP)
     show "continuous_on S (i \<circ> g \<circ> r)"
-      by (meson contt contr assms(4) contg assms(8) continuous_on_compose continuous_on_subset)
-    show "(i \<circ> g \<circ> r) ` S \<subseteq> S"
+      by (metis assms(4) assms(8) contg continuous_on_compose continuous_on_subset contr contt funcset_image)
+    show "(i \<circ> g \<circ> r) \<in> S \<rightarrow> S"
       using assms(2,4,8) by force
   qed
   then obtain x where x: "x \<in> S" "(i \<circ> g \<circ> r) x = x" ..
@@ -928,8 +928,8 @@ lemma homeomorphic_fixpoint_property:
   fixes S :: "'a::topological_space set"
     and T :: "'b::topological_space set"
   assumes "S homeomorphic T"
-  shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> S \<longrightarrow> (\<exists>x\<in>S. f x = x)) \<longleftrightarrow>
-         (\<forall>g. continuous_on T g \<and> g ` T \<subseteq> T \<longrightarrow> (\<exists>y\<in>T. g y = y))"
+  shows "(\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> S \<longrightarrow> (\<exists>x\<in>S. f x = x)) \<longleftrightarrow>
+         (\<forall>g. continuous_on T g \<and> g \<in> T \<rightarrow> T \<longrightarrow> (\<exists>y\<in>T. g y = y))"
          (is "?lhs = ?rhs")
 proof -
   obtain r i where r:
@@ -940,11 +940,11 @@ proof -
   proof
     assume ?lhs
     with r show ?rhs
-      by (metis invertible_fixpoint_property[of T i S r] order_refl)
+      by (smt (verit, del_insts) Pi_iff image_eqI invertible_fixpoint_property[of T i S r])
   next
     assume ?rhs
     with r show ?lhs
-      by (metis invertible_fixpoint_property[of S r T i] order_refl)
+      by (smt (verit, del_insts) Pi_iff image_eqI invertible_fixpoint_property[of S r T i])
   qed
 qed
 
@@ -952,9 +952,9 @@ lemma retract_fixpoint_property:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
     and S :: "'a set"
   assumes "T retract_of S"
-    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
+    and FP: "\<And>f. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
     and contg: "continuous_on T g"
-    and "g ` T \<subseteq> T"
+    and "g \<in> T \<rightarrow> T"
   obtains y where "y \<in> T" and "g y = y"
 proof -
   obtain h where "retraction S T h"
@@ -962,23 +962,24 @@ proof -
   then show ?thesis
     unfolding retraction_def
     using invertible_fixpoint_property[OF continuous_on_id _ _ _ _ FP]
-    by (metis assms(4) contg image_ident that)
+    by (smt (verit, del_insts) Pi_iff assms(4) contg subsetD that)
 qed
 
 lemma retraction:
-  "retraction S T r \<longleftrightarrow>
-    T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
-  by (force simp: retraction_def)
+  "retraction S T r \<longleftrightarrow> T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
+  by (force simp: retraction_def simp flip: image_subset_iff_funcset)
 
 lemma retractionE: \<comment> \<open>yields properties normalized wrt. simp -- less likely to loop\<close>
   assumes "retraction S T r"
-  obtains "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
+  obtains "T = r ` S" "r \<in> S \<rightarrow> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
 proof (rule that)
   from retraction [of S T r] assms
   have "T \<subseteq> S" "continuous_on S r" "r ` S = T" and "\<forall>x \<in> T. r x = x"
     by simp_all
-  then show "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r"
-    by simp_all
+  then show  "r \<in> S \<rightarrow> S" "continuous_on S r"
+    by auto
+  then show "T = r ` S"
+    using \<open>r ` S = T\<close> by blast
   from \<open>\<forall>x \<in> T. r x = x\<close> have "r x = x" if "x \<in> T" for x
     using that by simp
   with \<open>r ` S = T\<close> show "r (r x) = r x" if "x \<in> S" for x
@@ -987,7 +988,7 @@ qed
 
 lemma retract_ofE: \<comment> \<open>yields properties normalized wrt. simp -- less likely to loop\<close>
   assumes "T retract_of S"
-  obtains r where "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
+  obtains r where "T = r ` S" "r \<in> S \<rightarrow> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
 proof -
   from assms obtain r where "retraction S T r"
     by (auto simp add: retract_of_def)
@@ -996,30 +997,31 @@ proof -
 qed
 
 lemma retract_of_imp_extensible:
-  assumes "S retract_of T" and "continuous_on S f" and "f ` S \<subseteq> U"
-  obtains g where "continuous_on T g" "g ` T \<subseteq> U" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+  assumes "S retract_of T" and "continuous_on S f" and "f \<in> S \<rightarrow> U"
+  obtains g where "continuous_on T g" "g \<in> T \<rightarrow> U" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
   from \<open>S retract_of T\<close> obtain r where "retraction T S r"
     by (auto simp add: retract_of_def)
-  show thesis
-    by (rule that [of "f \<circ> r"])
-      (use \<open>continuous_on S f\<close> \<open>f ` S \<subseteq> U\<close> \<open>retraction T S r\<close> in \<open>auto simp: continuous_on_compose2 retraction\<close>)
+  then have "continuous_on T (f \<circ> r)"
+      by (metis assms(2) continuous_on_compose retraction)
+  then show thesis
+    by (smt (verit, best) Pi_iff \<open>retraction T S r\<close> assms(3) comp_apply retraction_def that)
 qed
 
 lemma idempotent_imp_retraction:
-  assumes "continuous_on S f" and "f ` S \<subseteq> S" and "\<And>x. x \<in> S \<Longrightarrow> f(f x) = f x"
+  assumes "continuous_on S f" and "f \<in> S \<rightarrow> S" and "\<And>x. x \<in> S \<Longrightarrow> f(f x) = f x"
     shows "retraction S (f ` S) f"
-by (simp add: assms retraction)
+  by (simp add: assms funcset_image retraction)
 
 lemma retraction_subset:
-  assumes "retraction S T r" and "T \<subseteq> s'" and "s' \<subseteq> S"
-  shows "retraction s' T r"
+  assumes "retraction S T r" and "T \<subseteq> S'" and "S' \<subseteq> S"
+  shows "retraction S' T r"
   unfolding retraction_def
-  by (metis assms continuous_on_subset image_mono retraction)
+  by (metis assms continuous_on_subset image_mono image_subset_iff_funcset retraction)
 
 lemma retract_of_subset:
-  assumes "T retract_of S" and "T \<subseteq> s'" and "s' \<subseteq> S"
-    shows "T retract_of s'"
+  assumes "T retract_of S" and "T \<subseteq> S'" and "S' \<subseteq> S"
+    shows "T retract_of S'"
 by (meson assms retract_of_def retraction_subset)
 
 lemma retraction_refl [simp]: "retraction S S (\<lambda>x. x)"
@@ -1054,10 +1056,10 @@ lemma closedin_retract:
   assumes "S retract_of T"
     shows "closedin (top_of_set T) S"
 proof -
-  obtain r where r: "S \<subseteq> T" "continuous_on T r" "r ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
+  obtain r where r: "S \<subseteq> T" "continuous_on T r" "r \<in> T \<rightarrow> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
     using assms by (auto simp: retract_of_def retraction_def)
   have "S = {x\<in>T. x = r x}"
-    using r by auto
+    using r by force
   also have "\<dots> = T \<inter> ((\<lambda>x. (x, r x)) -` ({y. \<exists>x. y = (x, x)}))"
     unfolding vimage_def mem_Times_iff fst_conv snd_conv
     using r
@@ -1088,14 +1090,14 @@ lemma retraction_openin_vimage_iff:
   shows "openin (top_of_set S) (S \<inter> r -` U) \<longleftrightarrow> openin (top_of_set T) U" (is "?lhs = ?rhs")
 proof
   show "?lhs \<Longrightarrow> ?rhs"
-    using r retraction_def retractionE
-    by (smt (verit, best) continuous_right_inverse_imp_quotient_map retraction_subset \<open>U \<subseteq> T\<close>)
+    using r
+    by (smt (verit, del_insts) assms(2) continuous_right_inverse_imp_quotient_map image_subset_iff_funcset r retractionE retraction_def retraction_subset)
   show "?rhs \<Longrightarrow> ?lhs"
-    by (meson continuous_openin_preimage r retraction_def)
+    by (metis continuous_on_open r retraction)
 qed
 
 lemma retract_of_Times:
-   "\<lbrakk>S retract_of s'; T retract_of t'\<rbrakk> \<Longrightarrow> (S \<times> T) retract_of (s' \<times> t')"
+   "\<lbrakk>S retract_of S'; T retract_of T'\<rbrakk> \<Longrightarrow> (S \<times> T) retract_of (S' \<times> T')"
 apply (simp add: retract_of_def retraction_def Sigma_mono, clarify)
 apply (rename_tac f g)
 apply (rule_tac x="\<lambda>z. ((f \<circ> fst) z, (g \<circ> snd) z)" in exI)
@@ -1238,7 +1240,7 @@ lemma path_start_in_topspace: "pathin X g \<Longrightarrow> g 0 \<in> topspace X
 lemma path_finish_in_topspace: "pathin X g \<Longrightarrow> g 1 \<in> topspace X"
   by (force simp: pathin_def continuous_map)
 
-lemma path_image_subset_topspace: "pathin X g \<Longrightarrow> g ` ({0..1}) \<subseteq> topspace X"
+lemma path_image_subset_topspace: "pathin X g \<Longrightarrow> g \<in> ({0..1}) \<rightarrow> topspace X"
   by (force simp: pathin_def continuous_map)
 
 definition path_connected_space :: "'a topology \<Rightarrow> bool"
@@ -1262,9 +1264,9 @@ lemma path_connectedin_subtopology:
 lemma path_connectedin:
      "path_connectedin X S \<longleftrightarrow>
         S \<subseteq> topspace X \<and>
-        (\<forall>x \<in> S. \<forall>y \<in> S. \<exists>g. pathin X g \<and> g ` {0..1} \<subseteq> S \<and> g 0 = x \<and> g 1 = y)"
+        (\<forall>x \<in> S. \<forall>y \<in> S. \<exists>g. pathin X g \<and> g \<in> {0..1} \<rightarrow> S \<and> g 0 = x \<and> g 1 = y)"
   unfolding path_connectedin_def path_connected_space_def pathin_def continuous_map_in_subtopology
-  by (intro conj_cong refl ball_cong) (simp_all add: inf.absorb_iff2)
+  by (intro conj_cong refl ball_cong) (simp_all add: inf.absorb_iff2 flip: image_subset_iff_funcset)
 
 lemma path_connectedin_topspace:
      "path_connectedin X (topspace X) \<longleftrightarrow> path_connected_space X"
@@ -1310,21 +1312,21 @@ lemma path_connectedin_continuous_map_image:
   assumes f: "continuous_map X Y f" and S: "path_connectedin X S"
   shows "path_connectedin Y (f ` S)"
 proof -
-  have fX: "f ` (topspace X) \<subseteq> topspace Y"
-    by (metis f continuous_map_image_subset_topspace)
+  have fX: "f \<in> (topspace X) \<rightarrow> topspace Y"
+    using continuous_map_def f by fastforce
   show ?thesis
     unfolding path_connectedin
   proof (intro conjI ballI; clarify?)
     fix x
     assume "x \<in> S"
     show "f x \<in> topspace Y"
-      by (meson S fX \<open>x \<in> S\<close> image_subset_iff path_connectedin_subset_topspace set_mp)
+      using S \<open>x \<in> S\<close> fX path_connectedin_subset_topspace by fastforce
   next
     fix x y
     assume "x \<in> S" and "y \<in> S"
-    then obtain g where g: "pathin X g" "g ` {0..1} \<subseteq> S" "g 0 = x" "g 1 = y"
+    then obtain g where g: "pathin X g" "g \<in> {0..1} \<rightarrow> S" "g 0 = x" "g 1 = y"
       using S  by (force simp: path_connectedin)
-    show "\<exists>g. pathin Y g \<and> g ` {0..1} \<subseteq> f ` S \<and> g 0 = f x \<and> g 1 = f y"
+    show "\<exists>g. pathin Y g \<and> g \<in> {0..1} \<rightarrow> f ` S \<and> g 0 = f x \<and> g 1 = f y"
     proof (intro exI conjI)
       show "pathin Y (f \<circ> g)"
         using \<open>pathin X g\<close> f pathin_compose by auto
@@ -1361,7 +1363,7 @@ lemma homeomorphic_map_path_connectedness:
   shows "path_connectedin Y (f ` U) \<longleftrightarrow> path_connectedin X U"
   unfolding path_connectedin_def
 proof (intro conj_cong homeomorphic_path_connected_space)
-  show "(f ` U \<subseteq> topspace Y) = (U \<subseteq> topspace X)"
+  show "f ` U \<subseteq> topspace Y \<longleftrightarrow> (U \<subseteq> topspace X)"
     using assms homeomorphic_imp_surjective_map by blast
 next
   assume "U \<subseteq> topspace X"

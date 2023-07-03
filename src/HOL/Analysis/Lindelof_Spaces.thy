@@ -253,7 +253,7 @@ proof (clarsimp simp: Lindelof_space_alt)
         show "x \<in> \<Union> (\<Union> (\<V> ` I))" if "x \<in> topspace X" for x
         proof -
           have "f x \<in> topspace Y"
-            by (meson f image_subset_iff proper_map_imp_subset_topspace that)
+            using f proper_map_imp_subset_topspace that by fastforce
           then show ?thesis
             using that I by auto
         qed

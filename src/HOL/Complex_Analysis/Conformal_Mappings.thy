@@ -1145,7 +1145,7 @@ subsubsection \<open> Holomorphism of covering maps and lifts.\<close>
 lemma covering_space_lift_is_holomorphic:
   assumes cov: "covering_space C p S"
       and C: "open C" "p holomorphic_on C"
-      and holf: "f holomorphic_on U" and fim: "f ` U \<subseteq> S" and gim: "g ` U \<subseteq> C"
+      and holf: "f holomorphic_on U" and fim: "f \<in> U \<rightarrow> S" and gim: "g \<in> U \<rightarrow> C"
       and contg: "continuous_on U g" and pg_f: "\<And>x. x \<in> U \<Longrightarrow> p(g x) = f x"
     shows "g holomorphic_on U"
   unfolding holomorphic_on_def
@@ -1161,7 +1161,7 @@ proof (intro strip)
   then have "\<And>W. W \<in> \<V> \<Longrightarrow> open W \<and> W \<subseteq> C"
     by (metis \<open>open C\<close> inf_le1 open_Int openin_open) 
   then obtain V where "V \<in> \<V>" "g z \<in> V" "open V" "V \<subseteq> C"
-    by (metis IntI UnionE image_subset_iff vimageI UV \<open>f z \<in> T\<close> \<open>z \<in> U\<close> gim pg_f)
+    by (metis IntI UnionE image_subset_iff vimageI UV \<open>f z \<in> T\<close> \<open>z \<in> U\<close> gim pg_f image_subset_iff_funcset)
   have holp: "p holomorphic_on V"
     using \<open>V \<subseteq> C\<close> \<open>p holomorphic_on C\<close> holomorphic_on_subset by blast
   moreover have injp: "inj_on p V"
@@ -1201,15 +1201,14 @@ qed
 lemma covering_space_lift_holomorphic:
   assumes cov: "covering_space C p S"
       and C: "open C" "p holomorphic_on C"
-      and f: "f holomorphic_on U" "f ` U \<subseteq> S" 
+      and f: "f holomorphic_on U" "f \<in> U \<rightarrow> S" 
       and U: "simply_connected U" "locally path_connected U"
-    obtains g where  "g holomorphic_on U" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+  obtains g where "g holomorphic_on U" "g \<in> U \<rightarrow> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
 proof -
-  obtain g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-    using covering_space_lift [OF cov U]
-    using f holomorphic_on_imp_continuous_on by blast
+  obtain g where "continuous_on U g" "g \<in> U \<rightarrow> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
+    using covering_space_lift [OF cov U] f holomorphic_on_imp_continuous_on by blast
   then show ?thesis
-    by (metis C cov covering_space_lift_is_holomorphic f that)
+    by (metis C cov covering_space_lift_is_holomorphic f image_subset_iff_funcset that)
 qed
 
 subsection\<open>The Schwarz Lemma\<close>

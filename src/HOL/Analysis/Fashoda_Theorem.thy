@@ -174,8 +174,8 @@ proof (rule ccontr)
       "(negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) x = x"
     apply (rule brouwer_weak[of "cbox (- 1) (1::real^2)" "negatex \<circ> sqprojection \<circ> ?F"])
     apply (rule compact_cbox convex_box)+
-    unfolding interior_cbox
-    apply (rule 1 2 3)+
+    unfolding interior_cbox image_subset_iff_funcset [symmetric]
+       apply (rule 1 2 3)+
     apply blast
     done
   have "?F x \<noteq> 0"

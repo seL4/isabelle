@@ -1819,13 +1819,13 @@ next
   qed
   moreover
   { assume R: ?rhs
-    then have fgim: "f ` topspace X \<subseteq> topspace X'" "g ` topspace Y \<subseteq> topspace Y'" 
+    then have fgim: "f \<in> topspace X \<rightarrow> topspace X'" "g \<in> topspace Y \<rightarrow> topspace Y'" 
           and cm: "closed_map X X' f" "closed_map Y Y' g"
       by (auto simp: proper_map_def closed_map_imp_subset_topspace)
     have "closed_map (prod_topology X Y) (prod_topology X' Y') h"
       unfolding closed_map_fibre_neighbourhood imp_conjL
     proof (intro conjI strip)
-      show "h ` topspace (prod_topology X Y) \<subseteq> topspace (prod_topology X' Y')"
+      show "h \<in> topspace (prod_topology X Y) \<rightarrow> topspace (prod_topology X' Y')"
         unfolding h_def using fgim by auto
       fix W w
       assume W: "openin (prod_topology X Y) W"
@@ -1960,7 +1960,7 @@ lemma perfect_map_from_composition_right_inj:
    "\<lbrakk>perfect_map X Z (g \<circ> f); f ` topspace X = topspace Y;
      continuous_map X Y f; continuous_map Y Z g; inj_on g (topspace Y)\<rbrakk>
     \<Longrightarrow> perfect_map X Y f"
-  by (meson continuous_map_image_subset_topspace perfect_map_def proper_map_from_composition_right_inj)
+  by (meson continuous_map_openin_preimage_eq perfect_map_def proper_map_from_composition_right_inj)
 
 
 subsection \<open>Regular spaces\<close>
@@ -2285,7 +2285,7 @@ proof (intro strip)
   fix C assume "closedin Z C"
   then have "C \<subseteq> topspace Z"
     by (simp add: closedin_subset)
-  have "f ` topspace Z \<subseteq> topspace X" "g ` topspace Z \<subseteq> topspace Y"
+  have "f \<in> topspace Z \<rightarrow> topspace X" "g \<in> topspace Z \<rightarrow> topspace Y"
     by (simp_all add: assms closed_map_imp_subset_topspace)
   show "closedin (prod_topology X Y) ((\<lambda>x. (f x, g x)) ` C)"
     unfolding closedin_def topspace_prod_topology
@@ -2293,7 +2293,7 @@ proof (intro strip)
     have "closedin Y (g ` C)"
       using \<open>closedin Z C\<close> assms(3) closed_map_def by blast
     with assms show "(\<lambda>x. (f x, g x)) ` C \<subseteq> topspace X \<times> topspace Y"
-      using \<open>C \<subseteq> topspace Z\<close> \<open>f ` topspace Z \<subseteq> topspace X\<close> continuous_map_closedin subsetD by fastforce
+      by (smt (verit) SigmaI \<open>closedin Z C\<close> closed_map_def closedin_subset image_subset_iff)
     have *: "\<exists>T. openin (prod_topology X Y) T \<and> (y1,y2) \<in> T \<and> T \<subseteq> topspace X \<times> topspace Y - (\<lambda>x. (f x, g x)) ` C"
       if "(y1,y2) \<notin> (\<lambda>x. (f x, g x)) ` C" and y1: "y1 \<in> topspace X" and y2: "y2 \<in> topspace Y"
       for y1 y2
@@ -5157,7 +5157,7 @@ proof -
 qed
 
 lemma closed_map_into_k_space:
-  assumes "k_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y"
+  assumes "k_space Y" and fim: "f \<in> (topspace X) \<rightarrow> topspace Y"
     and f: "\<And>K. compactin Y K
                 \<Longrightarrow> closed_map(subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f"
   shows "closed_map X Y f"
@@ -5176,13 +5176,13 @@ proof (intro strip)
   qed
   then show "closedin Y (f ` C)"
     using \<open>k_space Y\<close> unfolding k_space
-    by (meson \<open>closedin X C\<close> closedin_subset dual_order.trans fim image_mono)
+    by (meson \<open>closedin X C\<close> closedin_subset order.trans fim funcset_image subset_image_iff)
 qed
 
 
 text \<open>Essentially the same proof\<close>
 lemma open_map_into_k_space:
-  assumes "k_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y"
+  assumes "k_space Y" and fim: "f \<in> (topspace X) \<rightarrow> topspace Y"
     and f: "\<And>K. compactin Y K
                  \<Longrightarrow> open_map (subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f"
   shows "open_map X Y f"
@@ -5201,7 +5201,7 @@ proof (intro strip)
   qed
   then show "openin Y (f ` C)"
     using \<open>k_space Y\<close> unfolding k_space_open
-    by (meson \<open>openin X C\<close> openin_subset dual_order.trans fim image_mono)
+    by (meson \<open>openin X C\<close> openin_subset order.trans fim funcset_image subset_image_iff)
 qed
 
 lemma quotient_map_into_k_space:
@@ -5255,7 +5255,7 @@ lemma quotient_map_into_k_space_eq:
 lemma open_map_into_k_space_eq:
   assumes "k_space Y"
   shows "open_map X Y f \<longleftrightarrow>
-         f ` (topspace X) \<subseteq> topspace Y \<and>
+         f \<in> (topspace X) \<rightarrow> topspace Y \<and>
          (\<forall>k. compactin Y k
               \<longrightarrow> open_map (subtopology X {x \<in> topspace X. f x \<in> k}) (subtopology Y k) f)"
        (is "?lhs=?rhs")
@@ -5269,7 +5269,7 @@ qed
 lemma closed_map_into_k_space_eq:
   assumes "k_space Y"
   shows "closed_map X Y f \<longleftrightarrow>
-         f ` (topspace X) \<subseteq> topspace Y \<and>
+         f \<in> (topspace X) \<rightarrow> topspace Y \<and>
          (\<forall>k. compactin Y k
               \<longrightarrow> closed_map (subtopology X {x \<in> topspace X. f x \<in> k}) (subtopology Y k) f)"
        (is "?lhs \<longleftrightarrow> ?rhs")
@@ -5281,7 +5281,7 @@ proof
 qed
 
 lemma proper_map_into_k_space:
-  assumes "k_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y"
+  assumes "k_space Y" and fim: "f \<in> (topspace X) \<rightarrow> topspace Y"
     and f: "\<And>K. compactin Y K
                  \<Longrightarrow> proper_map (subtopology X {x \<in> topspace X. f x \<in> K})
                                 (subtopology Y K) f"
@@ -5297,7 +5297,7 @@ qed
 lemma proper_map_into_k_space_eq:
   assumes "k_space Y"
   shows "proper_map X Y f \<longleftrightarrow>
-         f ` (topspace X) \<subseteq> topspace Y \<and>
+         f \<in> (topspace X) \<rightarrow> topspace Y \<and>
          (\<forall>K. compactin Y K
               \<longrightarrow> proper_map (subtopology X {x \<in> topspace X. f x \<in> K}) (subtopology Y K) f)"
          (is "?lhs \<longleftrightarrow> ?rhs")
@@ -5305,11 +5305,11 @@ proof
   show "?lhs \<Longrightarrow> ?rhs"
     by (simp add: proper_map_imp_subset_topspace proper_map_restriction)
   show "?rhs \<Longrightarrow> ?lhs"
-    by (simp add: assms proper_map_into_k_space)
+    by (simp add: assms funcset_image proper_map_into_k_space)
 qed
 
 lemma compact_imp_proper_map:
-  assumes "k_space Y" "kc_space Y" and fim: "f ` (topspace X) \<subseteq> topspace Y" 
+  assumes "k_space Y" "kc_space Y" and fim: "f \<in> (topspace X) \<rightarrow> topspace Y" 
     and f: "continuous_map X Y f \<or> kc_space X" 
     and comp: "\<And>K. compactin Y K \<Longrightarrow> compactin X {x \<in> topspace X. f x \<in> K}"
   shows "proper_map X Y f"
@@ -5325,12 +5325,12 @@ lemma proper_eq_compact_map:
   assumes "k_space Y" "kc_space Y" 
     and f: "continuous_map X Y f \<or> kc_space X" 
   shows  "proper_map X Y f \<longleftrightarrow>
-             f ` (topspace X) \<subseteq> topspace Y \<and>
+             f \<in> (topspace X) \<rightarrow> topspace Y \<and>
              (\<forall>K. compactin Y K \<longrightarrow> compactin X {x \<in> topspace X. f x \<in> K})"
          (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show "?lhs \<Longrightarrow> ?rhs"
-    by (simp add: proper_map_alt proper_map_imp_subset_topspace)
+    using \<open>k_space Y\<close> compactin_proper_map_preimage proper_map_into_k_space_eq by blast
 qed (use assms compact_imp_proper_map in auto)
 
 lemma compact_imp_perfect_map:
@@ -5338,7 +5338,7 @@ lemma compact_imp_perfect_map:
     and "continuous_map X Y f" 
     and "\<And>K. compactin Y K \<Longrightarrow> compactin X {x \<in> topspace X. f x \<in> K}"
   shows "perfect_map X Y f"
-  by (simp add: assms compact_imp_proper_map perfect_map_def)
+  by (simp add: assms compact_imp_proper_map perfect_map_def flip: image_subset_iff_funcset)
 
 end
 

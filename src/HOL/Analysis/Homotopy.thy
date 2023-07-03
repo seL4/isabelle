@@ -124,6 +124,14 @@ lemma homotopic_with_imp_subset2:
      "homotopic_with_canon P X Y f g \<Longrightarrow> g ` X \<subseteq> Y"
   by (meson continuous_map_subtopology_eu homotopic_with_imp_continuous_maps)
 
+lemma homotopic_with_imp_funspace1:
+     "homotopic_with_canon P X Y f g \<Longrightarrow> f \<in> X \<rightarrow> Y"
+  using homotopic_with_imp_subset1 by blast
+
+lemma homotopic_with_imp_funspace2:
+     "homotopic_with_canon P X Y f g \<Longrightarrow> g \<in> X \<rightarrow> Y"
+  using homotopic_with_imp_subset2 by blast
+
 lemma homotopic_with_subset_left:
      "\<lbrakk>homotopic_with_canon P X Y f g; Z \<subseteq> X\<rbrakk> \<Longrightarrow> homotopic_with_canon P Z Y f g"
   unfolding homotopic_with_def by (auto elim!: continuous_on_subset ex_forward)
@@ -150,7 +158,7 @@ proof -
   have *: "continuous_map (prod_topology ?I01 X) (prod_topology ?I01 X) ?j"
   proof -
     have "continuous_map (prod_topology ?I01 X) (subtopology (prod_topology euclideanreal X) ({0..1} \<times> topspace X)) ?j"
-      by (simp add: continuous_map_into_subtopology [OF 1] image_subset_iff)
+      by (simp add: continuous_map_into_subtopology [OF 1] image_subset_iff flip: image_subset_iff_funcset)
     then show ?thesis
       by (simp add: prod_topology_subtopology(1))
   qed
@@ -262,14 +270,14 @@ corollary homotopic_compose:
   by (metis assms homotopic_with_compose_continuous_map_left homotopic_with_compose_continuous_map_right homotopic_with_imp_continuous_maps homotopic_with_trans)
 
 proposition homotopic_with_compose_continuous_right:
-    "\<lbrakk>homotopic_with_canon (\<lambda>f. p (f \<circ> h)) X Y f g; continuous_on W h; h ` W \<subseteq> X\<rbrakk>
+    "\<lbrakk>homotopic_with_canon (\<lambda>f. p (f \<circ> h)) X Y f g; continuous_on W h; h \<in> W \<rightarrow> X\<rbrakk>
      \<Longrightarrow> homotopic_with_canon p W Y (f \<circ> h) (g \<circ> h)"
-  by (simp add: homotopic_with_compose_continuous_map_right)
+  by (simp add: homotopic_with_compose_continuous_map_right image_subset_iff_funcset)
 
 proposition homotopic_with_compose_continuous_left:
-     "\<lbrakk>homotopic_with_canon (\<lambda>f. p (h \<circ> f)) X Y f g; continuous_on Y h; h ` Y \<subseteq> Z\<rbrakk>
+     "\<lbrakk>homotopic_with_canon (\<lambda>f. p (h \<circ> f)) X Y f g; continuous_on Y h; h \<in> Y \<rightarrow> Z\<rbrakk>
       \<Longrightarrow> homotopic_with_canon p X Z (h \<circ> f) (h \<circ> g)"
-  by (simp add: homotopic_with_compose_continuous_map_left)
+  by (simp add: homotopic_with_compose_continuous_map_left image_subset_iff_funcset)
 
 lemma homotopic_from_subtopology:
    "homotopic_with P X X' f g \<Longrightarrow> homotopic_with P (subtopology X S) X' f g"
@@ -397,15 +405,15 @@ qed
 
 text\<open>Homotopic triviality implicitly incorporates path-connectedness.\<close>
 lemma homotopic_triviality:
-  shows  "(\<forall>f g. continuous_on S f \<and> f ` S \<subseteq> T \<and>
-                 continuous_on S g \<and> g ` S \<subseteq> T
+  shows  "(\<forall>f g. continuous_on S f \<and> f \<in> S \<rightarrow> T \<and>
+                 continuous_on S g \<and> g \<in> S \<rightarrow> T
                  \<longrightarrow> homotopic_with_canon (\<lambda>x. True) S T f g) \<longleftrightarrow>
           (S = {} \<or> path_connected T) \<and>
-          (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> T \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)))"
+          (\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> T \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)))"
           (is "?lhs = ?rhs")
 proof (cases "S = {} \<or> T = {}")
   case True then show ?thesis
-    by (auto simp: homotopic_on_emptyI)
+    by (auto simp: homotopic_on_emptyI simp flip: image_subset_iff_funcset)
 next
   case False show ?thesis
   proof
@@ -418,7 +426,7 @@ next
         using False homotopic_constant_maps [of "top_of_set S" "top_of_set T" a b] by auto
     qed
     moreover
-    have "\<exists>c. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)" if "continuous_on S f" "f ` S \<subseteq> T" for f
+    have "\<exists>c. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)" if "continuous_on S f" "f \<in> S \<rightarrow> T" for f
       using False LHS continuous_on_const that by blast
     ultimately show ?rhs
       by (simp add: path_connected_component)
@@ -429,9 +437,9 @@ next
     show ?lhs
     proof clarify
       fix f g
-      assume "continuous_on S f" "f ` S \<subseteq> T" "continuous_on S g" "g ` S \<subseteq> T"
+      assume "continuous_on S f" "f \<in> S \<rightarrow> T" "continuous_on S g" "g \<in> S \<rightarrow> T"
       obtain c d where c: "homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)" and d: "homotopic_with_canon (\<lambda>x. True) S T g (\<lambda>x. d)"
-        using False \<open>continuous_on S f\<close> \<open>f ` S \<subseteq> T\<close>  RHS \<open>continuous_on S g\<close> \<open>g ` S \<subseteq> T\<close> by blast
+        using RHS \<open>continuous_on S f\<close> \<open>continuous_on S g\<close> \<open>f \<in> S \<rightarrow> T\<close> \<open>g \<in> S \<rightarrow> T\<close> by presburger
       with T have "path_component T c d"
         by (metis False ex_in_conv homotopic_with_imp_subset2 image_subset_iff path_connected_component)
       then have "homotopic_with_canon (\<lambda>x. True) S T (\<lambda>x. c) (\<lambda>x. d)"
@@ -454,7 +462,7 @@ definition\<^marker>\<open>tag important\<close> homotopic_paths :: "['a set, re
 lemma homotopic_paths:
    "homotopic_paths S p q \<longleftrightarrow>
       (\<exists>h. continuous_on ({0..1} \<times> {0..1}) h \<and>
-          h ` ({0..1} \<times> {0..1}) \<subseteq> S \<and>
+          h \<in> ({0..1} \<times> {0..1}) \<rightarrow> S \<and>
           (\<forall>x \<in> {0..1}. h(0,x) = p x) \<and>
           (\<forall>x \<in> {0..1}. h(1,x) = q x) \<and>
           (\<forall>t \<in> {0..1::real}. pathstart(h \<circ> Pair t) = pathstart p \<and>
@@ -500,7 +508,7 @@ proposition homotopic_paths_reparametrize:
   assumes "path p"
       and pips: "path_image p \<subseteq> S"
       and contf: "continuous_on {0..1} f"
-      and f01:"f ` {0..1} \<subseteq> {0..1}"
+      and f01 :"f \<in> {0..1} \<rightarrow> {0..1}"
       and [simp]: "f(0) = 0" "f(1) = 1"
       and q: "\<And>t. t \<in> {0..1} \<Longrightarrow> q(t) = p(f t)"
     shows "homotopic_paths S p q"
@@ -508,15 +516,15 @@ proof -
   have contp: "continuous_on {0..1} p"
     by (metis \<open>path p\<close> path_def)
   then have "continuous_on {0..1} (p \<circ> f)"
-    using contf continuous_on_compose continuous_on_subset f01 by blast
+    by (meson assms(4) contf continuous_on_compose continuous_on_subset image_subset_iff_funcset)
   then have "path q"
     by (simp add: path_def) (metis q continuous_on_cong)
   have piqs: "path_image q \<subseteq> S"
-    by (metis (no_types, opaque_lifting) pips f01 image_subset_iff path_image_def q)
+    by (smt (verit, ccfv_threshold) Pi_iff assms(2) assms(4) assms(7) image_subset_iff path_defs(4))
   have fb0: "\<And>a b. \<lbrakk>0 \<le> a; a \<le> 1; 0 \<le> b; b \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> (1 - a) * f b + a * b"
     using f01 by force
   have fb1: "\<lbrakk>0 \<le> a; a \<le> 1; 0 \<le> b; b \<le> 1\<rbrakk> \<Longrightarrow> (1 - a) * f b + a * b \<le> 1" for a b
-    using f01 [THEN subsetD, of "f b"] by (simp add: convex_bound_le)
+    by (intro convex_bound_le) (use f01 in auto)
   have "homotopic_paths S q p"
   proof (rule homotopic_paths_trans)
     show "homotopic_paths S q (p \<circ> f)"
@@ -585,9 +593,9 @@ proposition homotopic_paths_join:
   done
 
 proposition homotopic_paths_continuous_image:
-    "\<lbrakk>homotopic_paths S f g; continuous_on S h; h ` S \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_paths t (h \<circ> f) (h \<circ> g)"
+    "\<lbrakk>homotopic_paths S f g; continuous_on S h; h \<in> S \<rightarrow> t\<rbrakk> \<Longrightarrow> homotopic_paths t (h \<circ> f) (h \<circ> g)"
   unfolding homotopic_paths_def
-  by (simp add: homotopic_with_compose_continuous_map_left pathfinish_compose pathstart_compose)
+  by (simp add: homotopic_with_compose_continuous_map_left pathfinish_compose pathstart_compose image_subset_iff_funcset)
 
 
 subsection\<open>Group properties for homotopy of paths\<close>
@@ -711,9 +719,9 @@ proposition homotopic_loops_eq:
   by (auto intro: homotopic_with_eq [OF homotopic_with_refl [where f = p, THEN iffD2]])
 
 proposition homotopic_loops_continuous_image:
-   "\<lbrakk>homotopic_loops S f g; continuous_on S h; h ` S \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_loops t (h \<circ> f) (h \<circ> g)"
+   "\<lbrakk>homotopic_loops S f g; continuous_on S h; h \<in> S \<rightarrow> t\<rbrakk> \<Longrightarrow> homotopic_loops t (h \<circ> f) (h \<circ> g)"
   unfolding homotopic_loops_def
-  by (simp add: homotopic_with_compose_continuous_map_left pathfinish_def pathstart_def)
+  by (simp add: homotopic_with_compose_continuous_map_left pathfinish_def pathstart_def image_subset_iff_funcset)
 
 
 subsection\<open>Relations between the two variants of homotopy\<close>
@@ -731,11 +739,11 @@ proof -
   have pip: "path_image p \<subseteq> S" by (metis assms homotopic_loops_imp_subset)
   let ?A = "{0..1::real} \<times> {0..1::real}"
   obtain h where conth: "continuous_on ?A h"
-             and hs: "h ` ?A \<subseteq> S"
+             and hs: "h \<in> ?A \<rightarrow> S"
              and h0[simp]: "\<And>x. x \<in> {0..1} \<Longrightarrow> h(0,x) = p x"
              and h1[simp]: "\<And>x. x \<in> {0..1} \<Longrightarrow> h(1,x) = a"
              and ends: "\<And>t. t \<in> {0..1} \<Longrightarrow> pathfinish (h \<circ> Pair t) = pathstart (h \<circ> Pair t)"
-    using assms by (auto simp: homotopic_loops homotopic_with)
+    using assms by (auto simp: homotopic_loops homotopic_with image_subset_iff_funcset)
   have conth0: "path (\<lambda>u. h (u, 0))"
     unfolding path_def
   proof (rule continuous_on_compose [of _ _ h, unfolded o_def])
@@ -783,12 +791,13 @@ proof -
                +++ subpath (fst y) 0 (\<lambda>u. h (u, 0))) (snd y)" 
     have "continuous_on ?A ?h"
       by (intro continuous_on_homotopic_join_lemma; simp add: path_defs joinpaths_def subpath_def conth c1 c2)
-    moreover have "?h ` ?A \<subseteq> S"
+    moreover have "?h \<in> ?A \<rightarrow> S"
+      using hs
       unfolding joinpaths_def subpath_def
-      by (force simp: algebra_simps mult_le_one mult_left_le intro: hs [THEN subsetD] adhoc_le)
+      by (force simp: algebra_simps mult_le_one mult_left_le  intro: adhoc_le)
   ultimately show "continuous_map (prod_topology (top_of_set {0..1}) (top_of_set {0..1}))
                          (top_of_set S) ?h"
-    by (simp add: subpath_reversepath)
+    by (simp add: subpath_reversepath image_subset_iff_funcset)
   qed (use ploop in \<open>simp_all add: reversepath_def path_defs joinpaths_def o_def subpath_def conth c1 c2\<close>)
   moreover have "homotopic_paths S ((\<lambda>u. h (u, 0)) +++ linepath a a +++ reversepath (\<lambda>u. h (u, 0)))
                                    (linepath (pathstart p) (pathstart p))"
@@ -999,7 +1008,7 @@ proof -
       show "continuous_on {0..1} ?f"
         unfolding split_01
         by (rule continuous_on_cases continuous_intros | force simp: pathfinish_def joinpaths_def dest!: t2)+
-      show "?f ` {0..1} \<subseteq> {0..1}"
+      show "?f \<in> {0..1} \<rightarrow> {0..1}"
         using False assms
         by (force simp: field_simps not_le mult_left_mono affine_ineq dest!: 1 2)
       show "(subpath u v g +++ subpath v w g) t = subpath u w g (?f t)" if "t \<in> {0..1}" for t 
@@ -1057,12 +1066,12 @@ lemma path_component_imp_homotopic_points:
   assumes "path_component S a b"
   shows "homotopic_loops S (linepath a a) (linepath b b)"
 proof -
-  obtain g :: "real \<Rightarrow> 'a" where g: "continuous_on {0..1} g" "g ` {0..1} \<subseteq> S" "g 0 = a" "g 1 = b"
+  obtain g :: "real \<Rightarrow> 'a" where g: "continuous_on {0..1} g" "g \<in> {0..1} \<rightarrow> S" "g 0 = a" "g 1 = b"
     using assms by (auto simp: path_defs)
   then have "continuous_on ({0..1} \<times> {0..1}) (g \<circ> fst)"
     by (fastforce intro!: continuous_intros)+
   with g show ?thesis
-    by (auto simp: homotopic_loops_def homotopic_with_def path_defs image_subset_iff)
+    by (auto simp: homotopic_loops_def homotopic_with_def path_defs Pi_iff)
 qed
 
 lemma homotopic_loops_imp_path_component_value:
@@ -1289,39 +1298,39 @@ by (simp add: contractible_imp_simply_connected simply_connected_imp_path_connec
 
 lemma nullhomotopic_through_contractible:
   fixes S :: "_::topological_space set"
-  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
-      and g: "continuous_on T g" "g ` T \<subseteq> U"
+  assumes f: "continuous_on S f" "f \<in> S \<rightarrow> T"
+      and g: "continuous_on T g" "g \<in> T \<rightarrow> U"
       and T: "contractible T"
     obtains c where "homotopic_with_canon (\<lambda>h. True) S U (g \<circ> f) (\<lambda>x. c)"
 proof -
   obtain b where b: "homotopic_with_canon (\<lambda>x. True) T T id (\<lambda>x. b)"
     using assms by (force simp: contractible_def)
   have "homotopic_with_canon (\<lambda>f. True) T U (g \<circ> id) (g \<circ> (\<lambda>x. b))"
-    by (metis Abstract_Topology.continuous_map_subtopology_eu b g homotopic_with_compose_continuous_map_left)
+    by (metis b continuous_map_subtopology_eu g homotopic_with_compose_continuous_map_left image_subset_iff_funcset)
   then have "homotopic_with_canon (\<lambda>f. True) S U (g \<circ> id \<circ> f) (g \<circ> (\<lambda>x. b) \<circ> f)"
-    by (simp add: f homotopic_with_compose_continuous_map_right)
+    by (simp add: f homotopic_with_compose_continuous_map_right image_subset_iff_funcset)
   then show ?thesis
     by (simp add: comp_def that)
 qed
 
 lemma nullhomotopic_into_contractible:
-  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+  assumes f: "continuous_on S f" "f \<in> S \<rightarrow> T"
       and T: "contractible T"
     obtains c where "homotopic_with_canon (\<lambda>h. True) S T f (\<lambda>x. c)"
   by (rule nullhomotopic_through_contractible [OF f, of id T]) (use assms in auto)
 
 lemma nullhomotopic_from_contractible:
-  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+  assumes f: "continuous_on S f" "f \<in> S \<rightarrow> T"
       and S: "contractible S"
     obtains c where "homotopic_with_canon (\<lambda>h. True) S T f (\<lambda>x. c)"
   by (auto simp: comp_def intro: nullhomotopic_through_contractible [OF continuous_on_id _ f S])
 
 lemma homotopic_through_contractible:
   fixes S :: "_::real_normed_vector set"
-  assumes "continuous_on S f1" "f1 ` S \<subseteq> T"
-          "continuous_on T g1" "g1 ` T \<subseteq> U"
-          "continuous_on S f2" "f2 ` S \<subseteq> T"
-          "continuous_on T g2" "g2 ` T \<subseteq> U"
+  assumes "continuous_on S f1" "f1 \<in> S \<rightarrow> T"
+          "continuous_on T g1" "g1 \<in> T \<rightarrow> U"
+          "continuous_on S f2" "f2 \<in> S \<rightarrow> T"
+          "continuous_on T g2" "g2 \<in> T \<rightarrow> U"
           "contractible T" "path_connected U"
    shows "homotopic_with_canon (\<lambda>h. True) S U (g1 \<circ> f1) (g2 \<circ> f2)"
 proof -
@@ -1346,8 +1355,8 @@ qed
 
 lemma homotopic_into_contractible:
   fixes S :: "'a::real_normed_vector set" and T:: "'b::real_normed_vector set"
-  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
-    and g: "continuous_on S g" "g ` S \<subseteq> T"
+  assumes f: "continuous_on S f" "f \<in> S \<rightarrow> T"
+    and g: "continuous_on S g" "g \<in> S \<rightarrow> T"
     and T: "contractible T"
   shows "homotopic_with_canon (\<lambda>h. True) S T f g"
   using homotopic_through_contractible [of S f T id T g id]
@@ -1355,8 +1364,8 @@ lemma homotopic_into_contractible:
 
 lemma homotopic_from_contractible:
   fixes S :: "'a::real_normed_vector set" and T:: "'b::real_normed_vector set"
-  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
-    and g: "continuous_on S g" "g ` S \<subseteq> T"
+  assumes f: "continuous_on S f" "f \<in> S \<rightarrow> T"
+    and g: "continuous_on S g" "g \<in> S \<rightarrow> T"
     and "contractible S" "path_connected T"
   shows "homotopic_with_canon (\<lambda>h. True) S T f g"
   using homotopic_through_contractible [of S id S f T id g]
@@ -1478,15 +1487,15 @@ lemma contractible_Times:
   shows "contractible (S \<times> T)"
 proof -
   obtain a h where conth: "continuous_on ({0..1} \<times> S) h"
-             and hsub: "h ` ({0..1} \<times> S) \<subseteq> S"
+             and hsub: "h \<in> ({0..1} \<times> S) \<rightarrow> S"
              and [simp]: "\<And>x. x \<in> S \<Longrightarrow> h (0, x) = x"
              and [simp]: "\<And>x. x \<in> S \<Longrightarrow>  h (1::real, x) = a"
-    using S by (auto simp: contractible_def homotopic_with)
+    using S by (force simp: contractible_def homotopic_with)
   obtain b k where contk: "continuous_on ({0..1} \<times> T) k"
-             and ksub: "k ` ({0..1} \<times> T) \<subseteq> T"
+             and ksub: "k \<in> ({0..1} \<times> T) \<rightarrow> T"
              and [simp]: "\<And>x. x \<in> T \<Longrightarrow> k (0, x) = x"
              and [simp]: "\<And>x. x \<in> T \<Longrightarrow>  k (1::real, x) = b"
-    using T by (auto simp: contractible_def homotopic_with)
+    using T by (force simp: contractible_def homotopic_with)
   show ?thesis
     apply (simp add: contractible_def homotopic_with)
     apply (rule exI [where x=a])
@@ -3210,7 +3219,7 @@ proof -
     by (rule hom)
   then have "homotopic_with_canon Q U t (h \<circ> (k \<circ> f)) (h \<circ> (k \<circ> g))"
     apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
-    using Q by (auto simp: conth imh)
+    using Q conth imh by force+
   then show ?thesis
   proof (rule homotopic_with_eq; simp)
     show "\<And>h k. (\<And>x. x \<in> U \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
@@ -3240,7 +3249,7 @@ proof -
     by (metis hom)
   then have "homotopic_with_canon Q U t (h \<circ> (k \<circ> f)) (h \<circ> (\<lambda>x. c))"
     apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
-    using Q by (auto simp: conth imh)
+    using Q conth imh by force+
   then have "homotopic_with_canon Q U t f (\<lambda>x. h c)"
   proof (rule homotopic_with_eq)
     show "\<And>x. x \<in> topspace (top_of_set U) \<Longrightarrow> f x = (h \<circ> (k \<circ> f)) x"
@@ -3281,7 +3290,7 @@ proof -
     by (rule hom)
   then have "homotopic_with_canon Q t U (f \<circ> h \<circ> k) (g \<circ> h \<circ> k)"
     apply (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
-    using Q by (auto simp: contk imk)
+    using Q contk imk by force+
   then show ?thesis
   proof (rule homotopic_with_eq)
     show "f x = (f \<circ> h \<circ> k) x" "g x = (g \<circ> h \<circ> k) x" 
@@ -3312,7 +3321,7 @@ proof -
   proof (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
     show "\<And>h. \<lbrakk>continuous_map (top_of_set S) (top_of_set U) h; P h\<rbrakk> \<Longrightarrow> Q (h \<circ> k)"
       using Q by auto
-  qed (auto simp: contk imk)
+  qed (use contk imk in force)+
   moreover have "homotopic_with_canon Q t U f (\<lambda>x. c)"
     using homotopic_with_eq [OF \<section>] feq Qeq by fastforce
   ultimately show ?thesis 
@@ -3789,14 +3798,9 @@ abbreviation\<^marker>\<open>tag important\<close> homotopy_eqv :: "'a::topologi
              (infix "homotopy'_eqv" 50)
   where "S homotopy_eqv T \<equiv> top_of_set S homotopy_equivalent_space top_of_set T"
 
-
-
-
-
 lemma homeomorphic_imp_homotopy_eqv: "S homeomorphic T \<Longrightarrow> S homotopy_eqv T"
   unfolding homeomorphic_def homeomorphism_def homotopy_equivalent_space_def
   by (metis continuous_map_subtopology_eu homotopic_with_id2 openin_imp_subset openin_subtopology_self topspace_euclidean_subtopology)
-
 
 lemma homotopy_eqv_inj_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -3814,25 +3818,25 @@ lemma homotopy_eqv_homotopic_triviality_imp:
     and T :: "'b::real_normed_vector set"
     and U :: "'c::real_normed_vector set"
   assumes "S homotopy_eqv T"
-      and f: "continuous_on U f" "f ` U \<subseteq> T"
-      and g: "continuous_on U g" "g ` U \<subseteq> T"
-      and homUS: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> S;
-                         continuous_on U g; g ` U \<subseteq> S\<rbrakk>
+      and f: "continuous_on U f" "f \<in> U \<rightarrow> T"
+      and g: "continuous_on U g" "g \<in> U \<rightarrow> T"
+      and homUS: "\<And>f g. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S;
+                         continuous_on U g; g \<in> U \<rightarrow> S\<rbrakk>
                          \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) U S f g"
     shows "homotopic_with_canon (\<lambda>x. True) U T f g"
 proof -
-  obtain h k where h: "continuous_on S h" "h ` S \<subseteq> T"
-               and k: "continuous_on T k" "k ` T \<subseteq> S"
+  obtain h k where h: "continuous_on S h" "h \<in> S \<rightarrow> T"
+               and k: "continuous_on T k" "k \<in> T \<rightarrow> S"
                and hom: "homotopic_with_canon (\<lambda>x. True) S S (k \<circ> h) id"
                         "homotopic_with_canon (\<lambda>x. True) T T (h \<circ> k) id"
-    using assms by (auto simp: homotopy_equivalent_space_def)
+    using assms by (force simp: homotopy_equivalent_space_def image_subset_iff_funcset)
   have "homotopic_with_canon (\<lambda>f. True) U S (k \<circ> f) (k \<circ> g)"
   proof (rule homUS)
     show "continuous_on U (k \<circ> f)" "continuous_on U (k \<circ> g)"
-      using continuous_on_compose continuous_on_subset f g k by blast+
+      using continuous_on_compose continuous_on_subset f g k by (metis funcset_image)+
   qed (use f g k in \<open>(force simp: o_def)+\<close> )
   then have "homotopic_with_canon (\<lambda>x. True) U T (h \<circ> (k \<circ> f)) (h \<circ> (k \<circ> g))"
-    by (rule homotopic_with_compose_continuous_left; simp add: h)
+    by (simp add: h homotopic_with_compose_continuous_map_left image_subset_iff_funcset)
   moreover have "homotopic_with_canon (\<lambda>x. True) U T (h \<circ> k \<circ> f) (id \<circ> f)"
     by (rule homotopic_with_compose_continuous_right [where X=T and Y=T]; simp add: hom f)
   moreover have "homotopic_with_canon (\<lambda>x. True) U T (h \<circ> k \<circ> g) (id \<circ> g)"
@@ -3847,11 +3851,11 @@ lemma homotopy_eqv_homotopic_triviality:
     and T :: "'b::real_normed_vector set"
     and U :: "'c::real_normed_vector set"
   assumes "S homotopy_eqv T"
-    shows "(\<forall>f g. continuous_on U f \<and> f ` U \<subseteq> S \<and>
-                   continuous_on U g \<and> g ` U \<subseteq> S
+    shows "(\<forall>f g. continuous_on U f \<and> f \<in> U \<rightarrow> S \<and>
+                   continuous_on U g \<and> g \<in> U \<rightarrow> S
                    \<longrightarrow> homotopic_with_canon (\<lambda>x. True) U S f g) \<longleftrightarrow>
-           (\<forall>f g. continuous_on U f \<and> f ` U \<subseteq> T \<and>
-                  continuous_on U g \<and> g ` U \<subseteq> T
+           (\<forall>f g. continuous_on U f \<and> f \<in> U \<rightarrow> T \<and>
+                  continuous_on U g \<and> g \<in> U \<rightarrow> T
                   \<longrightarrow> homotopic_with_canon (\<lambda>x. True) U T f g)"
       (is "?lhs = ?rhs")
 proof
@@ -3873,20 +3877,20 @@ lemma homotopy_eqv_cohomotopic_triviality_null_imp:
     and T :: "'b::real_normed_vector set"
     and U :: "'c::real_normed_vector set"
   assumes "S homotopy_eqv T"
-      and f: "continuous_on T f" "f ` T \<subseteq> U"
-      and homSU: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> U\<rbrakk>
+      and f: "continuous_on T f" "f \<in> T \<rightarrow> U"
+      and homSU: "\<And>f. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> U\<rbrakk>
                       \<Longrightarrow> \<exists>c. homotopic_with_canon (\<lambda>x. True) S U f (\<lambda>x. c)"
   obtains c where "homotopic_with_canon (\<lambda>x. True) T U f (\<lambda>x. c)"
 proof -
-  obtain h k where h: "continuous_on S h" "h ` S \<subseteq> T"
-               and k: "continuous_on T k" "k ` T \<subseteq> S"
+  obtain h k where h: "continuous_on S h" "h \<in> S \<rightarrow> T"
+               and k: "continuous_on T k" "k \<in> T \<rightarrow> S"
                and hom: "homotopic_with_canon (\<lambda>x. True) S S (k \<circ> h) id"
                         "homotopic_with_canon (\<lambda>x. True) T T (h \<circ> k) id"
-    using assms by (auto simp: homotopy_equivalent_space_def)
+    using assms by (force simp: homotopy_equivalent_space_def image_subset_iff_funcset)
   obtain c where "homotopic_with_canon (\<lambda>x. True) S U (f \<circ> h) (\<lambda>x. c)"
   proof (rule exE [OF homSU])
     show "continuous_on S (f \<circ> h)"
-      using continuous_on_compose continuous_on_subset f h by blast
+      by (metis continuous_on_compose continuous_on_subset f h funcset_image)
   qed (use f h in force)
   then have "homotopic_with_canon (\<lambda>x. True) T U ((f \<circ> h) \<circ> k) ((\<lambda>x. c) \<circ> k)"
     by (rule homotopic_with_compose_continuous_right [where X=S]) (use k in auto)
@@ -3902,9 +3906,9 @@ lemma homotopy_eqv_cohomotopic_triviality_null:
     and T :: "'b::real_normed_vector set"
     and U :: "'c::real_normed_vector set"
   assumes "S homotopy_eqv T"
-    shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> U
+    shows "(\<forall>f. continuous_on S f \<and> f \<in> S \<rightarrow> U
                 \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S U f (\<lambda>x. c))) \<longleftrightarrow>
-           (\<forall>f. continuous_on T f \<and> f ` T \<subseteq> U
+           (\<forall>f. continuous_on T f \<and> f \<in> T \<rightarrow> U
                 \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) T U f (\<lambda>x. c)))"
 by (rule iffI; metis assms homotopy_eqv_cohomotopic_triviality_null_imp homotopy_equivalent_space_sym)
 
@@ -3914,20 +3918,20 @@ lemma homotopy_eqv_homotopic_triviality_null_imp:
     and T :: "'b::real_normed_vector set"
     and U :: "'c::real_normed_vector set"
   assumes "S homotopy_eqv T"
-      and f: "continuous_on U f" "f ` U \<subseteq> T"
-      and homSU: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S\<rbrakk>
+      and f: "continuous_on U f" "f \<in> U \<rightarrow> T"
+      and homSU: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S\<rbrakk>
                       \<Longrightarrow> \<exists>c. homotopic_with_canon (\<lambda>x. True) U S f (\<lambda>x. c)"
     shows "\<exists>c. homotopic_with_canon (\<lambda>x. True) U T f (\<lambda>x. c)"
 proof -
-  obtain h k where h: "continuous_on S h" "h ` S \<subseteq> T"
-               and k: "continuous_on T k" "k ` T \<subseteq> S"
+  obtain h k where h: "continuous_on S h" "h \<in> S \<rightarrow> T"
+               and k: "continuous_on T k" "k \<in> T \<rightarrow> S"
                and hom: "homotopic_with_canon (\<lambda>x. True) S S (k \<circ> h) id"
                         "homotopic_with_canon (\<lambda>x. True) T T (h \<circ> k) id"
-    using assms by (auto simp: homotopy_equivalent_space_def)
+    using assms by (force simp: homotopy_equivalent_space_def image_subset_iff_funcset)
   obtain c::'a where "homotopic_with_canon (\<lambda>x. True) U S (k \<circ> f) (\<lambda>x. c)"
   proof (rule exE [OF homSU [of "k \<circ> f"]])
     show "continuous_on U (k \<circ> f)"
-      using continuous_on_compose continuous_on_subset f k by blast
+      using continuous_on_compose continuous_on_subset f k by (metis funcset_image)
   qed (use f k in force)
   then have "homotopic_with_canon (\<lambda>x. True) U T (h \<circ> (k \<circ> f)) (h \<circ> (\<lambda>x. c))"
     by (rule homotopic_with_compose_continuous_left [where Y=S]) (use h in auto)
@@ -3943,9 +3947,9 @@ lemma homotopy_eqv_homotopic_triviality_null:
     and T :: "'b::real_normed_vector set"
     and U :: "'c::real_normed_vector set"
   assumes "S homotopy_eqv T"
-    shows "(\<forall>f. continuous_on U f \<and> f ` U \<subseteq> S
+    shows "(\<forall>f. continuous_on U f \<and> f \<in> U \<rightarrow> S
                   \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) U S f (\<lambda>x. c))) \<longleftrightarrow>
-           (\<forall>f. continuous_on U f \<and> f ` U \<subseteq> T
+           (\<forall>f. continuous_on U f \<and> f \<in> U \<rightarrow> T
                   \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) U T f (\<lambda>x. c)))"
 by (rule iffI; metis assms homotopy_eqv_homotopic_triviality_null_imp homotopy_equivalent_space_sym)
 

@@ -4202,7 +4202,7 @@ lemma compact_convex_collinear_segment:
 
 lemma proper_map_from_compact:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T" and "compact S"
+  assumes contf: "continuous_on S f" and imf: "f \<in> S \<rightarrow> T" and "compact S"
           "closedin (top_of_set T) K"
   shows "compact (S \<inter> f -` K)"
 by (rule closedin_compact [OF \<open>compact S\<close>] continuous_closedin_preimage_gen assms)+
@@ -5820,7 +5820,7 @@ qed
 
 lemma continuous_closed_graph_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes "compact T" and fim: "f ` S \<subseteq> T"
+  assumes "compact T" and fim: "f \<in> S \<rightarrow> T"
   shows "continuous_on S f \<longleftrightarrow>
          closedin (top_of_set (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
          (is "?lhs = ?rhs")
@@ -5848,7 +5848,7 @@ qed (simp add: \<open>closed S\<close> closed_Times)
 
 lemma continuous_from_closed_graph:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes "compact T" and fim: "f ` S \<subseteq> T" and clo: "closed ((\<lambda>x. Pair x (f x)) ` S)"
+  assumes "compact T" and fim: "f \<in> S \<rightarrow> T" and clo: "closed ((\<lambda>x. Pair x (f x)) ` S)"
   shows "continuous_on S f"
     using fim clo
     by (auto intro: closed_subset simp: continuous_closed_graph_eq [OF \<open>compact T\<close> fim])

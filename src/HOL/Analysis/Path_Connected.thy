@@ -1484,7 +1484,7 @@ definition\<^marker>\<open>tag important\<close> "path_connected S \<longleftrig
 
 lemma path_connectedin_iff_path_connected_real [simp]:
      "path_connectedin euclideanreal S \<longleftrightarrow> path_connected S"
-  by (simp add: path_connectedin path_connected_def path_defs)
+  by (simp add: path_connectedin path_connected_def path_defs image_subset_iff_funcset) 
 
 lemma path_connected_component: "path_connected S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>y\<in>S. path_component S x y)"
   unfolding path_connected_def path_component_def by auto
@@ -1929,12 +1929,12 @@ abbreviation path_component_of_set
 definition path_components_of :: "'a topology \<Rightarrow> 'a set set"
   where "path_components_of X \<equiv> path_component_of_set X ` topspace X"
 
-lemma pathin_canon_iff: "pathin (top_of_set T) g \<longleftrightarrow> path g \<and> g ` {0..1} \<subseteq> T"
-  by (simp add: path_def pathin_def)
+lemma pathin_canon_iff: "pathin (top_of_set T) g \<longleftrightarrow> path g \<and> g \<in> {0..1} \<rightarrow> T"
+  by (simp add: path_def pathin_def image_subset_iff_funcset)
 
 lemma path_component_of_canon_iff [simp]:
   "path_component_of (top_of_set T) a b \<longleftrightarrow> path_component T a b"
-  by (simp add: path_component_of_def pathin_canon_iff path_defs)
+  by (simp add: path_component_of_def pathin_canon_iff path_defs image_subset_iff_funcset)
 
 lemma path_component_in_topspace:
    "path_component_of X x y \<Longrightarrow> x \<in> topspace X \<and> y \<in> topspace X"
