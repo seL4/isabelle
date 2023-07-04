@@ -1095,7 +1095,6 @@ lemma real_archimedian_rdiv_eq_0:
   shows "x = 0"
   by (metis reals_Archimedean3 dual_order.order_iff_strict le0 le_less_trans not_le x0 xc)
 
-
 lemma inverse_Suc: "inverse (Suc n) > 0"
   using of_nat_0_less_iff positive_imp_inverse_positive zero_less_Suc by blast
 
@@ -1116,6 +1115,24 @@ next
     unfolding eventually_sequentially
     using order_le_less_trans by blast
 qed
+
+(*HOL Light's FORALL_POS_MONO_1_EQ*)
+text \<open>On the relationship between two different ways of converting to 0\<close> 
+lemma Inter_eq_Inter_inverse_Suc:
+  assumes "\<And>r' r. r' < r \<Longrightarrow> A r' \<subseteq> A r"
+  shows "\<Inter> (A ` {0<..}) = (\<Inter>n. A(inverse(Suc n)))"
+proof 
+  have "x \<in> A \<epsilon>"
+    if x: "\<forall>n. x \<in> A (inverse (Suc n))" and "\<epsilon>>0" for x and \<epsilon> :: real
+  proof -
+    obtain n where "inverse (Suc n) < \<epsilon>"
+      using \<open>\<epsilon>>0\<close> reals_Archimedean by blast
+    with assms x show ?thesis
+      by blast
+  qed
+  then show "(\<Inter>n. A(inverse(Suc n))) \<subseteq> (\<Inter>\<epsilon>\<in>{0<..}. A \<epsilon>)"
+    by auto    
+qed (use inverse_Suc in fastforce)
 
 subsection \<open>Rationals\<close>
 

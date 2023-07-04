@@ -968,5 +968,191 @@ next
   qed
 qed
 
+subsection \<open>Dimension of a topological space\<close>
+
+text\<open>Basic definition of the small inductive dimension relation. Works in any topological space.\<close>
+
+inductive dimension_le :: "['a topology, int] \<Rightarrow> bool" (infix "dim'_le" 50) 
+  where "\<lbrakk>-1 \<le> n;
+        \<And>V a. \<lbrakk>openin X V; a \<in> V\<rbrakk> \<Longrightarrow> \<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and> (subtopology X (X frontier_of U)) dim_le (n-1)\<rbrakk>
+              \<Longrightarrow> X dim_le (n::int)"
+
+lemma dimension_le_neighbourhood_base:
+   "X dim_le n \<longleftrightarrow>
+   -1 \<le> n \<and> neighbourhood_base_of (\<lambda>U. openin X U \<and> (subtopology X (X frontier_of U)) dim_le (n-1)) X"
+  by (smt (verit, best) dimension_le.simps open_neighbourhood_base_of)
+
+lemma dimension_le_bound: "X dim_le n \<Longrightarrow>-1 \<le> n"
+  using dimension_le.simps by blast
+  
+lemma dimension_le_mono [rule_format]:
+  assumes "X dim_le m"
+  shows "m \<le> n \<longrightarrow> X dim_le n"
+  using assms
+proof (induction arbitrary: n rule: dimension_le.induct)
+  case (1 m X)
+  show ?case
+  proof (intro strip dimension_le.intros)
+    show "-1 \<le> n" if "m \<le> n" for n :: int using that using "1.hyps" by fastforce    
+    show "\<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and> subtopology X (X frontier_of U) dim_le n-1"
+      if "m \<le> n" and "openin X V" and "a \<in> V" for n V a
+      using that by (meson "1.IH" diff_right_mono)
+  qed
+qed
+
+lemma dimension_le_eq_empty:
+   "X dim_le -1 \<longleftrightarrow> topspace X = {}"
+proof
+  assume "X dim_le (-1)"
+  then show "topspace X = {}"
+    by (smt (verit, ccfv_threshold) Diff_empty Diff_eq_empty_iff dimension_le.cases openin_topspace subset_eq)
+next
+  assume "topspace X = {}"
+  then show "X dim_le (-1)"
+    using dimension_le.simps openin_subset by fastforce
+qed
+
+lemma dimension_le_0_neighbourhood_base_of_clopen:
+  "X dim_le 0 \<longleftrightarrow> neighbourhood_base_of (\<lambda>U. closedin X U \<and> openin X U) X"
+proof -
+  have "(subtopology X (X frontier_of U) dim_le -1) =
+        closedin X U" if "openin X U" for U
+    by (metis dimension_le_eq_empty frontier_of_eq_empty frontier_of_subset_topspace openin_subset that topspace_subtopology_subset)
+  then show ?thesis
+    by (smt (verit, del_insts) dimension_le.simps open_neighbourhood_base_of)
+qed
+
+lemma dimension_le_subtopology:
+  "X dim_le n \<Longrightarrow> subtopology X S dim_le n"
+proof (induction arbitrary: S rule: dimension_le.induct)
+  case (1 n X)
+  show ?case 
+  proof (intro dimension_le.intros)
+    show "- 1 \<le> n"
+      by (simp add: "1.hyps")
+    fix U' a
+    assume U': "openin (subtopology X S) U'" and "a \<in> U'"
+    then obtain U where U: "openin X U" "U' = U \<inter> S"
+      by (meson openin_subtopology)
+    then obtain V where "a \<in> V" "V \<subseteq> U" "openin X V" 
+      and subV: "subtopology X (X frontier_of V) dim_le n-1" 
+      and dimV: "\<And>T. subtopology X (X frontier_of V \<inter> T) dim_le n-1"
+      by (metis "1.IH" Int_iff \<open>a \<in> U'\<close> subtopology_subtopology)
+    show "\<exists>W. a \<in> W \<and> W \<subseteq> U' \<and> openin (subtopology X S) W \<and> subtopology (subtopology X S) (subtopology X S frontier_of W) dim_le n-1"
+    proof (intro exI conjI)
+      show "a \<in> S \<inter> V" "S \<inter> V \<subseteq> U'"
+        using \<open>U' = U \<inter> S\<close> \<open>a \<in> U'\<close> \<open>a \<in> V\<close> \<open>V \<subseteq> U\<close> by blast+
+      show "openin (subtopology X S) (S \<inter> V)"
+        by (simp add: \<open>openin X V\<close> openin_subtopology_Int2)
+      have "S \<inter> subtopology X S frontier_of V \<subseteq> X frontier_of V"
+        by (simp add: frontier_of_subtopology_subset)
+      then show "subtopology (subtopology X S) (subtopology X S frontier_of (S \<inter> V)) dim_le n-1"
+        by (metis dimV frontier_of_restrict inf.absorb_iff2 inf_left_idem subtopology_subtopology topspace_subtopology)
+    qed
+  qed
+qed
+
+lemma dimension_le_subtopologies:
+   "\<lbrakk>subtopology X T dim_le n; S \<subseteq> T\<rbrakk> \<Longrightarrow> (subtopology X S) dim_le n"
+  by (metis dimension_le_subtopology inf.absorb_iff2 subtopology_subtopology)
+
+lemma dimension_le_eq_subtopology:
+   "(subtopology X S) dim_le n \<longleftrightarrow>
+    -1 \<le> n \<and>
+    (\<forall>V a. openin X V \<and> a \<in> V \<and> a \<in> S
+           \<longrightarrow> (\<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and>
+                    subtopology X (subtopology X S frontier_of (S \<inter> U)) dim_le (n-1)))"
+proof -
+  have *: "(\<exists>T. a \<in> T \<and> T \<inter> S \<subseteq> V \<inter> S \<and> openin X T \<and> subtopology X (S \<inter> (subtopology X S frontier_of (T \<inter> S))) dim_le n-1)
+       \<longleftrightarrow> (\<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and> subtopology X (subtopology X S frontier_of (S \<inter> U)) dim_le n-1)"
+    if "a \<in> V" "a \<in> S" "openin X V" for a V
+  proof -
+    have "\<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and> subtopology X (subtopology X S frontier_of (S \<inter> U)) dim_le n-1"
+      if "a \<in> T" and sub: "T \<inter> S \<subseteq> V \<inter> S" and "openin X T"
+        and dim: "subtopology X (S \<inter> subtopology X S frontier_of (T \<inter> S)) dim_le n-1"
+      for T 
+    proof (intro exI conjI)
+      show "openin X (T \<inter> V)"
+        using \<open>openin X V\<close> \<open>openin X T\<close> by blast
+      show "subtopology X (subtopology X S frontier_of (S \<inter> (T \<inter> V))) dim_le n-1"
+        by (metis dim frontier_of_subset_subtopology inf.boundedE inf_absorb2 inf_assoc inf_commute sub)
+    qed (use \<open>a \<in> V\<close> \<open>a \<in> T\<close> in auto)
+    moreover have "\<exists>T. a \<in> T \<and> T \<inter> S \<subseteq> V \<inter> S \<and> openin X T \<and> subtopology X (S \<inter> subtopology X S frontier_of (T \<inter> S)) dim_le n-1"
+      if "a \<in> U" and "U \<subseteq> V" and "openin X U"
+        and dim: "subtopology X (subtopology X S frontier_of (S \<inter> U)) dim_le n-1"
+      for U
+      by (metis that frontier_of_subset_subtopology inf_absorb2 inf_commute inf_le1 le_inf_iff)
+    ultimately show ?thesis
+      by safe
+  qed
+  show ?thesis
+    apply (simp add: dimension_le.simps [of _ n] subtopology_subtopology openin_subtopology flip: *)
+    by (safe; metis Int_iff inf_le2 le_inf_iff)
+qed
+
+
+lemma homeomorphic_space_dimension_le_aux:
+  assumes "X homeomorphic_space Y" "X dim_le of_nat n - 1"
+  shows "Y dim_le of_nat n - 1"
+  using assms
+proof (induction n arbitrary: X Y)
+  case 0
+  then show ?case
+    by (simp add: dimension_le_eq_empty homeomorphic_empty_space)
+next
+  case (Suc n)
+  then have X_dim_n: "X dim_le n"
+    by simp
+  show ?case 
+  proof (clarsimp simp add: dimension_le.simps [of Y n])
+    fix V b
+    assume "openin Y V" and "b \<in> V"
+    obtain f g where fg: "homeomorphic_maps X Y f g"
+      using \<open>X homeomorphic_space Y\<close> homeomorphic_space_def by blast
+    then have "openin X (g ` V)"
+      using \<open>openin Y V\<close> homeomorphic_map_openness_eq homeomorphic_maps_map by blast
+    then obtain U where "g b \<in> U" "openin X U" and gim: "U \<subseteq> g ` V" and sub: "subtopology X (X frontier_of U) dim_le int n - int 1"
+      using X_dim_n unfolding dimension_le.simps [of X n] by (metis \<open>b \<in> V\<close> imageI of_nat_eq_1_iff)
+    show "\<exists>U. b \<in> U \<and> U \<subseteq> V \<and> openin Y U \<and> subtopology Y (Y frontier_of U) dim_le int n - 1"
+    proof (intro conjI exI)
+      show "b \<in> f ` U"
+        by (metis (no_types, lifting) \<open>b \<in> V\<close> \<open>g b \<in> U\<close> \<open>openin Y V\<close> fg homeomorphic_maps_map image_iff openin_subset subsetD)
+      show "f ` U \<subseteq> V"
+        by (smt (verit, ccfv_threshold) \<open>openin Y V\<close> fg gim homeomorphic_maps_map image_iff openin_subset subset_iff)
+      show "openin Y (f ` U)"
+        using \<open>openin X U\<close> fg homeomorphic_map_openness_eq homeomorphic_maps_map by blast
+      show "subtopology Y (Y frontier_of f ` U) dim_le int n-1"
+      proof (rule Suc.IH)
+        have "homeomorphic_maps (subtopology X (X frontier_of U)) (subtopology Y (Y frontier_of f ` U)) f g"
+          using \<open>openin X U\<close> fg
+          by (metis frontier_of_subset_topspace homeomorphic_map_frontier_of homeomorphic_maps_map homeomorphic_maps_subtopologies openin_subset topspace_subtopology topspace_subtopology_subset)
+        then show "subtopology X (X frontier_of U) homeomorphic_space subtopology Y (Y frontier_of f ` U)"
+          using homeomorphic_space_def by blast
+        show "subtopology X (X frontier_of U) dim_le int n-1"
+          using sub by fastforce
+      qed
+    qed
+  qed
+qed
+
+lemma homeomorphic_space_dimension_le:
+  assumes "X homeomorphic_space Y"
+  shows "X dim_le n \<longleftrightarrow> Y dim_le n"
+proof (cases "n \<ge> -1")
+  case True
+  then show ?thesis
+    using homeomorphic_space_dimension_le_aux [of _ _ "nat(n+1)"] by (smt (verit) assms homeomorphic_space_sym nat_eq_iff)
+next
+  case False
+  then show ?thesis
+    by (metis dimension_le_bound)
+qed
+
+lemma dimension_le_retraction_map_image:
+   "\<lbrakk>retraction_map X Y r; X dim_le n\<rbrakk> \<Longrightarrow> Y dim_le n"
+  by (meson dimension_le_subtopology homeomorphic_space_dimension_le retraction_map_def retraction_maps_section_image2)
+
+lemma dimension_le_discrete_topology [simp]: "(discrete_topology U) dim_le 0"
+  using dimension_le.simps dimension_le_eq_empty by fastforce
 
 end

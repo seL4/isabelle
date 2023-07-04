@@ -2716,42 +2716,48 @@ lemma log_pow_cancel [simp]:
 lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp: floor_eq_iff powr_le_iff less_powr_iff)
 
-lemma floor_log_nat_eq_powr_iff: fixes b n k :: nat
-  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow>
-  floor (log b (real k)) = n \<longleftrightarrow> b^n \<le> k \<and> k < b^(n+1)"
+lemma power_of_nat_log_ge: "b > 1 \<Longrightarrow> b ^ nat \<lceil>log b x\<rceil> \<ge> x"
+  by (smt (verit) less_log_of_power of_nat_ceiling)
+
+lemma floor_log_nat_eq_powr_iff: 
+  fixes b n k :: nat
+  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow> floor (log b (real k)) = n \<longleftrightarrow> b^n \<le> k \<and> k < b^(n+1)"
 by (auto simp: floor_log_eq_powr_iff powr_add powr_realpow
                of_nat_power[symmetric] of_nat_mult[symmetric] ac_simps
          simp del: of_nat_power of_nat_mult)
 
-lemma floor_log_nat_eq_if: fixes b n k :: nat
+lemma floor_log_nat_eq_if: 
+  fixes b n k :: nat
   assumes "b^n \<le> k" "k < b^(n+1)" "b \<ge> 2"
-  shows "floor (log b (real k)) = n"
+  shows "floor (log b (real k)) = n" 
 proof -
-  have "k \<ge> 1" using assms(1,3) one_le_power[of b n] by linarith
-  with assms show ?thesis by(simp add: floor_log_nat_eq_powr_iff)
+  have "k \<ge> 1"
+    using assms linorder_le_less_linear by force
+  with assms show ?thesis 
+    by(simp add: floor_log_nat_eq_powr_iff)
 qed
 
-lemma ceiling_log_eq_powr_iff: "\<lbrakk> x > 0; b > 1 \<rbrakk>
-  \<Longrightarrow> \<lceil>log b x\<rceil> = int k + 1 \<longleftrightarrow> b powr k < x \<and> x \<le> b powr (k + 1)"
-by (auto simp: ceiling_eq_iff powr_less_iff le_powr_iff)
+lemma ceiling_log_eq_powr_iff: 
+  "\<lbrakk> x > 0; b > 1 \<rbrakk> \<Longrightarrow> \<lceil>log b x\<rceil> = int k + 1 \<longleftrightarrow> b powr k < x \<and> x \<le> b powr (k + 1)"
+  by (auto simp: ceiling_eq_iff powr_less_iff le_powr_iff)
 
-lemma ceiling_log_nat_eq_powr_iff: fixes b n k :: nat
-  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow>
-  ceiling (log b (real k)) = int n + 1 \<longleftrightarrow> (b^n < k \<and> k \<le> b^(n+1))"
-using ceiling_log_eq_powr_iff
-by (auto simp: powr_add powr_realpow of_nat_power[symmetric] of_nat_mult[symmetric] ac_simps
-         simp del: of_nat_power of_nat_mult)
+lemma ceiling_log_nat_eq_powr_iff: 
+  fixes b n k :: nat
+  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow> ceiling (log b (real k)) = int n + 1 \<longleftrightarrow> (b^n < k \<and> k \<le> b^(n+1))"
+  using ceiling_log_eq_powr_iff
+  by (auto simp: powr_add powr_realpow of_nat_power[symmetric] of_nat_mult[symmetric] ac_simps
+      simp del: of_nat_power of_nat_mult)
 
-lemma ceiling_log_nat_eq_if: fixes b n k :: nat
+lemma ceiling_log_nat_eq_if: 
+  fixes b n k :: nat
   assumes "b^n < k" "k \<le> b^(n+1)" "b \<ge> 2"
-  shows "ceiling (log b (real k)) = int n + 1"
-proof -
-  have "k \<ge> 1" using assms(1,3) one_le_power[of b n] by linarith
-  with assms show ?thesis by(simp add: ceiling_log_nat_eq_powr_iff)
-qed
+  shows "\<lceil>log (real b) (real k)\<rceil> = int n + 1"
+  using assms ceiling_log_nat_eq_powr_iff by force
 
-lemma floor_log2_div2: fixes n :: nat assumes "n \<ge> 2"
-shows "floor(log 2 n) = floor(log 2 (n div 2)) + 1"
+lemma floor_log2_div2: 
+  fixes n :: nat 
+  assumes "n \<ge> 2"
+  shows "\<lfloor>log 2 (real n)\<rfloor> = \<lfloor>log 2 (n div 2)\<rfloor> + 1"
 proof cases
   assume "n=2" thus ?thesis by simp
 next
@@ -2768,8 +2774,9 @@ next
   show ?thesis by simp
 qed
 
-lemma ceiling_log2_div2: assumes "n \<ge> 2"
-shows "ceiling(log 2 (real n)) = ceiling(log 2 ((n-1) div 2 + 1)) + 1"
+lemma ceiling_log2_div2: 
+  assumes "n \<ge> 2"
+  shows "ceiling(log 2 (real n)) = ceiling(log 2 ((n-1) div 2 + 1)) + 1"
 proof cases
   assume "n=2" thus ?thesis by simp
 next
@@ -2797,17 +2804,7 @@ lemma powr_numeral [simp]: "0 \<le> x \<Longrightarrow> x powr (numeral n :: rea
 lemma powr_int:
   assumes "x > 0"
   shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1 / x ^ nat (-i))"
-proof (cases "i < 0")
-  case True
-  have r: "x powr i = 1 / x powr (- i)"
-    by (simp add: powr_minus field_simps)
-  show ?thesis using \<open>i < 0\<close> \<open>x > 0\<close>
-    by (simp add: r field_simps powr_realpow[symmetric])
-next
-  case False
-  then show ?thesis
-    by (simp add: assms powr_realpow[symmetric])
-qed
+  by (simp add: assms inverse_eq_divide powr_real_of_int)
 
 definition powr_real :: "real \<Rightarrow> real \<Rightarrow> real"
   where [code_abbrev, simp]: "powr_real = Transcendental.powr"

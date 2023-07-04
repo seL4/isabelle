@@ -8,9 +8,9 @@ section \<open>Abstract Topology 2\<close>
 
 theory Abstract_Topology_2
   imports
-    Elementary_Topology
-    Abstract_Topology
+    Elementary_Topology Abstract_Topology
     "HOL-Library.Indicator_Function"
+    "HOL-Library.Equipollence"
 begin
 
 text \<open>Combination of Elementary and Abstract Topology\<close>
@@ -1693,6 +1693,32 @@ next
   then show ?lhs
     using connected_continuous_image 
     by (metis continuous_on_subset continuous_shrink subset_UNIV)
+qed
+
+lemma card_eq_real_subset:
+  fixes a b::real
+  assumes "a < b" and S: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> x \<in> S"
+  shows "S \<approx> (UNIV::real set)"
+proof (rule lepoll_antisym)
+  show "S \<lesssim> (UNIV::real set)"
+    by (simp add: subset_imp_lepoll)
+  define f where "f \<equiv> \<lambda>x. (a+b) / 2 + (b-a) / 2 * (x / (1 + \<bar>x\<bar>))"
+  show "(UNIV::real set) \<lesssim> S"
+    unfolding lepoll_def
+  proof (intro exI conjI)
+    show "inj f"
+      unfolding inj_on_def f_def
+      by (smt (verit, ccfv_SIG) real_shrink_eq \<open>a<b\<close> divide_eq_0_iff mult_cancel_left times_divide_eq_right)
+    have pos: "(b-a) / 2 > 0"
+      using \<open>a<b\<close> by auto
+    have *: "a < (a + b) / 2 + (b - a) / 2 * x \<longleftrightarrow> (b - a) > (b - a) * -x"
+            "(a + b) / 2 + (b - a) / 2 * x < b \<longleftrightarrow> (b - a) * x < (b - a)" for x
+      by (auto simp: field_simps)
+    show "range f \<subseteq> S"
+      using shrink_range [of UNIV] \<open>a < b\<close>
+      unfolding subset_iff f_def greaterThanLessThan_iff image_iff
+      by (smt (verit, best) S * mult_less_cancel_left2 mult_minus_right)
+  qed
 qed
 
 end

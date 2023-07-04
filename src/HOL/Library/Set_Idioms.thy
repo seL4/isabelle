@@ -340,12 +340,8 @@ lemma relative_to_compl:
   unfolding relative_to_def
   by (metis Diff_Diff_Int Diff_eq double_compl inf.absorb_iff2)
 
-lemma relative_to_subset:
-   "S \<subseteq> T \<and> P S \<Longrightarrow> (P relative_to T) S"
-  unfolding relative_to_def by auto
-
 lemma relative_to_subset_trans:
-   "(P relative_to U) S \<and> S \<subseteq> T \<and> T \<subseteq> U \<Longrightarrow> (P relative_to T) S"
+   "\<lbrakk>(P relative_to U) S; S \<subseteq> T; T \<subseteq> U\<rbrakk> \<Longrightarrow> (P relative_to T) S"
   unfolding relative_to_def by auto
 
 lemma relative_to_mono:

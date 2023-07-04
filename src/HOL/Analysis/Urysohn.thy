@@ -1263,6 +1263,27 @@ next
 qed
 
 
+lemma zero_dimensional_imp_completely_regular_space:
+  assumes "X dim_le 0" 
+  shows "completely_regular_space X"
+proof (clarsimp simp: completely_regular_space_def)
+  fix C a
+  assume "closedin X C" and "a \<in> topspace X" and "a \<notin> C"
+  then obtain U where "closedin X U" "openin X U" "a \<in> U" and U: "U \<subseteq> topspace X - C"
+    using assms by (force simp add: closedin_def dimension_le_0_neighbourhood_base_of_clopen open_neighbourhood_base_of)
+  show "\<exists>f. continuous_map X (top_of_set {0::real..1}) f \<and> f a = 0 \<and> f ` C \<subseteq> {1}"
+  proof (intro exI conjI)
+    have "continuous_map X euclideanreal (\<lambda>x. if x \<in> U then 0 else 1)"
+      using \<open>closedin X U\<close> \<open>openin X U\<close> apply (clarsimp simp: continuous_map_def closedin_def)
+      by (smt (verit) Diff_iff mem_Collect_eq openin_subopen subset_eq)
+    then show "continuous_map X (top_of_set {0::real..1}) (\<lambda>x. if x \<in> U then 0 else 1)"
+      by (auto simp: continuous_map_in_subtopology)
+  qed (use U \<open>a \<in> U\<close> in auto)
+qed
+
+lemma zero_dimensional_imp_regular_space: "X dim_le 0 \<Longrightarrow> regular_space X"
+  by (simp add: completely_regular_imp_regular_space zero_dimensional_imp_completely_regular_space)
+
 lemma (in Metric_space) t1_space_mtopology:
    "t1_space mtopology"
   using Hausdorff_space_mtopology t1_or_Hausdorff_space by blast
@@ -4300,5 +4321,865 @@ proof -
       by (simp add: gf hg)
   qed
 qed
+
+subsection\<open>Size bounds on connected or path-connected spaces\<close>
+
+lemma connected_space_imp_card_ge_alt:
+  assumes "connected_space X" "completely_regular_space X" "closedin X S" "S \<noteq> {}" "S \<noteq> topspace X"
+  shows "(UNIV::real set) \<lesssim> topspace X"
+proof -
+  have "S \<subseteq> topspace X"
+    using \<open>closedin X S\<close> closedin_subset by blast
+  then obtain a where "a \<in> topspace X" "a \<notin> S"
+    using \<open>S \<noteq> topspace X\<close> by blast
+  have "(UNIV::real set) \<lesssim> {0..1::real}"
+    using card_eq_real_subset 
+    by (meson atLeastAtMost_iff eqpoll_imp_lepoll eqpoll_sym less_eq_real_def zero_less_one)
+  also have "\<dots> \<lesssim> topspace X"
+  proof -
+    obtain f where contf: "continuous_map X euclidean f"
+      and fim: "f \<in> (topspace X) \<rightarrow> {0..1::real}"
+      and f0: "f a = 0" and f1: "f ` S \<subseteq> {1}"
+      using \<open>completely_regular_space X\<close>
+      unfolding completely_regular_space_def
+      by (metis Diff_iff \<open>a \<in> topspace X\<close> \<open>a \<notin> S\<close> \<open>closedin X S\<close> continuous_map_in_subtopology image_subset_iff_funcset)
+    have "\<exists>y\<in>topspace X. x = f y" if "0 \<le> x" and "x \<le> 1" for x
+    proof -
+      have "connectedin euclidean (f ` topspace X)"
+        using \<open>connected_space X\<close> connectedin_continuous_map_image connectedin_topspace contf by blast
+      moreover have "\<exists>y. 0 = f y \<and> y \<in> topspace X"
+        using \<open>a \<in> topspace X\<close> f0 by auto
+      moreover have "\<exists>y. 1 = f y \<and> y \<in> topspace X"
+        using \<open>S \<subseteq> topspace X\<close> \<open>S \<noteq> {}\<close> f1 by fastforce
+      ultimately show ?thesis
+        using that by (fastforce simp: is_interval_1 simp flip: is_interval_connected_1)
+    qed
+    then show ?thesis
+      unfolding lepoll_iff using atLeastAtMost_iff by blast
+  qed
+  finally show ?thesis .
+qed
+
+
+lemma connected_space_imp_card_ge_gen:
+  assumes "connected_space X" "normal_space X" "closedin X S" "closedin X T" "S \<noteq> {}" "T \<noteq> {}" "disjnt S T"
+  shows "(UNIV::real set) \<lesssim> topspace X"
+proof -
+  have "(UNIV::real set) \<lesssim> {0..1::real}"
+    by (metis atLeastAtMost_iff card_eq_real_subset eqpoll_imp_lepoll eqpoll_sym less_le_not_le zero_less_one)
+  also have "\<dots>\<lesssim> topspace X"
+  proof -
+    obtain f where contf: "continuous_map X euclidean f"
+       and fim: "f \<in> (topspace X) \<rightarrow> {0..1::real}"
+       and f0: "f ` S \<subseteq> {0}" and f1: "f ` T \<subseteq> {1}"
+      using assms by (metis continuous_map_in_subtopology normal_space_iff_Urysohn image_subset_iff_funcset)
+    have "\<exists>y\<in>topspace X. x = f y" if "0 \<le> x" and "x \<le> 1" for x
+    proof -
+      have "connectedin euclidean (f ` topspace X)"
+        using \<open>connected_space X\<close> connectedin_continuous_map_image connectedin_topspace contf by blast
+      moreover have "\<exists>y. 0 = f y \<and> y \<in> topspace X"
+        using \<open>closedin X S\<close> \<open>S \<noteq> {}\<close> closedin_subset f0 by fastforce
+      moreover have "\<exists>y. 1 = f y \<and> y \<in> topspace X"
+        using \<open>closedin X T\<close> \<open>T \<noteq> {}\<close> closedin_subset f1 by fastforce
+      ultimately show ?thesis
+        using that by (fastforce simp: is_interval_1 simp flip: is_interval_connected_1)
+    qed
+    then show ?thesis
+      unfolding lepoll_iff using atLeastAtMost_iff by blast
+  qed
+  finally show ?thesis .
+qed
+
+lemma connected_space_imp_card_ge:
+  assumes "connected_space X" "normal_space X" "t1_space X" and nosing: "\<not> (\<exists>a. topspace X \<subseteq> {a})"
+  shows "(UNIV::real set) \<lesssim> topspace X"
+proof -
+  obtain a b where "a \<in> topspace X" "b \<in> topspace X" "a \<noteq> b"
+    by (metis nosing singletonI subset_iff)
+  then have "{a} \<noteq> topspace X"
+    by force
+  with connected_space_imp_card_ge_alt assms show ?thesis
+    by (metis \<open>a \<in> topspace X\<close> closedin_t1_singleton insert_not_empty normal_imp_completely_regular_space_A)
+qed
+
+lemma connected_space_imp_infinite_gen:
+   "\<lbrakk>connected_space X; t1_space X; \<nexists>a. topspace X \<subseteq> {a}\<rbrakk> \<Longrightarrow> infinite(topspace X)"
+  by (metis connected_space_discrete_topology finite_t1_space_imp_discrete_topology)
+
+lemma connected_space_imp_infinite:
+   "\<lbrakk>connected_space X; Hausdorff_space X; \<nexists>a. topspace X \<subseteq> {a}\<rbrakk> \<Longrightarrow> infinite(topspace X)"
+  by (simp add: Hausdorff_imp_t1_space connected_space_imp_infinite_gen)
+
+lemma connected_space_imp_infinite_alt:
+  assumes "connected_space X" "regular_space X" "closedin X S" "S \<noteq> {}" "S \<noteq> topspace X"
+  shows "infinite(topspace X)"
+proof -
+  have "S \<subseteq> topspace X"
+    using \<open>closedin X S\<close> closedin_subset by blast
+  then obtain a where a: "a \<in> topspace X" "a \<notin> S"
+    using \<open>S \<noteq> topspace X\<close> by blast
+  have "\<exists>\<Phi>. \<forall>n. (disjnt (\<Phi> n) S \<and> a \<in> \<Phi> n \<and> openin X (\<Phi> n)) \<and> \<Phi>(Suc n) \<subset> \<Phi> n"
+  proof (rule dependent_nat_choice)
+    show "\<exists>T. disjnt T S \<and> a \<in> T \<and> openin X T"
+      by (metis Diff_iff a \<open>closedin X S\<close> closedin_def disjnt_iff)
+    fix V n
+    assume \<section>: "disjnt V S \<and> a \<in> V \<and> openin X V"
+    then obtain U C where U: "openin X U" "closedin X C" "a \<in> U" "U \<subseteq> C" "C \<subseteq> V"
+      using \<open>regular_space X\<close> by (metis neighbourhood_base_of neighbourhood_base_of_closedin)
+    with assms have "U \<subset> V"
+      by (metis "\<section>" \<open>S \<subseteq> topspace X\<close> connected_space_clopen_in disjnt_def empty_iff inf.absorb_iff2 inf.orderE psubsetI subset_trans)
+    with U show "\<exists>U. (disjnt U S \<and> a \<in> U \<and> openin X U) \<and> U \<subset> V"
+      using "\<section>" disjnt_subset1 by blast
+  qed
+  then obtain \<Phi> where \<Phi>: "\<And>n. disjnt (\<Phi> n) S \<and> a \<in> \<Phi> n \<and> openin X (\<Phi> n)"
+    and \<Phi>sub: "\<And>n. \<Phi> (Suc n) \<subset> \<Phi> n" by metis
+  then have "decseq \<Phi>"
+    by (simp add: decseq_SucI psubset_eq)
+  have "\<forall>n. \<exists>x. x \<in> \<Phi> n \<and> x \<notin> \<Phi>(Suc n)"
+    by (meson \<Phi>sub psubsetE subsetI)
+  then obtain f where fin: "\<And>n. f n \<in> \<Phi> n" and fout: "\<And>n. f n \<notin> \<Phi>(Suc n)"
+    by metis
+  have "range f \<subseteq> topspace X"
+    by (meson \<Phi> fin image_subset_iff openin_subset subset_iff)
+  moreover have "inj f"
+    by (metis Suc_le_eq \<open>decseq \<Phi>\<close> decseq_def fin fout linorder_injI subsetD)
+  ultimately show ?thesis
+    using infinite_iff_countable_subset by blast
+qed
+
+lemma path_connected_space_imp_card_ge:
+  assumes "path_connected_space X" "Hausdorff_space X" and nosing: "\<not> (\<exists>x. topspace X \<subseteq> {x})"
+  shows "(UNIV::real set) \<lesssim> topspace X"
+proof -
+  obtain a b where "a \<in> topspace X" "b \<in> topspace X" "a \<noteq> b"
+    by (metis nosing singletonI subset_iff)
+  then obtain \<gamma> where \<gamma>: "pathin X \<gamma>" "\<gamma> 0 = a" "\<gamma> 1 = b"
+    by (meson \<open>a \<in> topspace X\<close> \<open>b \<in> topspace X\<close> \<open>path_connected_space X\<close> path_connected_space_def)
+  let ?Y = "subtopology X (\<gamma> ` (topspace (subtopology euclidean {0..1})))"
+  have "(UNIV::real set) \<lesssim>  topspace ?Y"
+  proof (intro compact_Hausdorff_or_regular_imp_normal_space connected_space_imp_card_ge)
+    show "connected_space ?Y"
+      using \<open>pathin X \<gamma>\<close> connectedin_def connectedin_path_image by auto
+    show "Hausdorff_space ?Y \<or> regular_space ?Y"
+      using Hausdorff_space_subtopology \<open>Hausdorff_space X\<close> by blast
+    show "t1_space ?Y"
+      using Hausdorff_imp_t1_space \<open>Hausdorff_space X\<close> t1_space_subtopology by blast
+    show "compact_space ?Y"
+      by (simp add: \<open>pathin X \<gamma>\<close> compact_space_subtopology compactin_path_image)
+    have "a \<in> topspace ?Y" "b \<in> topspace ?Y"
+      using \<gamma> pathin_subtopology by fastforce+
+    with \<open>a \<noteq> b\<close> show "\<nexists>x. topspace ?Y \<subseteq> {x}"
+      by blast
+  qed
+  also have "\<dots> \<lesssim> \<gamma> ` {0..1}"
+    by (simp add: subset_imp_lepoll)
+  also have "\<dots> \<lesssim> topspace X"
+    by (meson \<gamma> path_image_subset_topspace subset_imp_lepoll image_subset_iff_funcset)
+  finally show ?thesis .
+qed
+
+lemma connected_space_imp_uncountable:
+  assumes "connected_space X" "regular_space X" "Hausdorff_space X" "\<not> (\<exists>a. topspace X \<subseteq> {a})"
+  shows "\<not> countable(topspace X)"
+proof
+  assume coX: "countable (topspace X)"
+  with \<open>regular_space X\<close> have "normal_space X"
+    using countable_imp_Lindelof_space regular_Lindelof_imp_normal_space by blast
+  then have "(UNIV::real set) \<lesssim> topspace X"
+    by (simp add: Hausdorff_imp_t1_space assms connected_space_imp_card_ge)
+  with coX show False
+    using countable_lepoll uncountable_UNIV_real by blast
+qed
+
+lemma path_connected_space_imp_uncountable:
+  assumes "path_connected_space X" "t1_space X" and nosing: "\<not> (\<exists>a. topspace X \<subseteq> {a})"
+  shows "\<not> countable(topspace X)"
+proof 
+  assume coX: "countable (topspace X)"
+  obtain a b where "a \<in> topspace X" "b \<in> topspace X" "a \<noteq> b"
+    by (metis nosing singletonI subset_iff)
+  then obtain \<gamma> where "pathin X \<gamma>" "\<gamma> 0 = a" "\<gamma> 1 = b"
+    by (meson \<open>a \<in> topspace X\<close> \<open>b \<in> topspace X\<close> \<open>path_connected_space X\<close> path_connected_space_def)
+  then have "\<gamma> ` {0..1} \<lesssim> topspace X"
+    by (meson path_image_subset_topspace subset_imp_lepoll image_subset_iff_funcset)
+  define \<A> where "\<A> \<equiv> ((\<lambda>a. {x \<in> {0..1}. \<gamma> x \<in> {a}}) ` topspace X) - {{}}"
+  have \<A>01: "\<A> = {{0..1}}"
+  proof (rule real_Sierpinski_lemma)
+    show "countable \<A>"
+      using \<A>_def coX by blast
+    show "disjoint \<A>"
+      by (auto simp: \<A>_def disjnt_iff pairwise_def)
+    show "\<Union>\<A> = {0..1}"
+      using \<open>pathin X \<gamma>\<close> path_image_subset_topspace by (fastforce simp: \<A>_def Bex_def)
+    fix C
+    assume "C \<in> \<A>"
+    then obtain a where "a \<in> topspace X" and C: "C = {x \<in> {0..1}. \<gamma> x \<in> {a}}" "C \<noteq> {}"
+      by (auto simp: \<A>_def)
+    then have "closedin X {a}"
+      by (meson \<open>t1_space X\<close> closedin_t1_singleton)
+    then have "closedin (top_of_set {0..1}) C"
+      using C \<open>pathin X \<gamma>\<close> closedin_continuous_map_preimage pathin_def by fastforce
+    then show "closed C \<and> C \<noteq> {}"
+      using C closedin_closed_trans by blast
+  qed auto
+  then have "{0..1} \<in> \<A>"
+    by blast
+  then have "\<exists>a \<in> topspace X. {0..1} \<subseteq> {x. \<gamma> x = a}"
+    using \<A>_def image_iff by auto
+  then show False
+    using \<open>\<gamma> 0 = a\<close> \<open>\<gamma> 1 = b\<close> \<open>a \<noteq> b\<close> atLeastAtMost_iff zero_less_one_class.zero_le_one by blast
+qed
+
+
+subsection\<open>Lavrentiev extension etc\<close>
+
+lemma (in Metric_space) convergent_eq_zero_oscillation_gen:
+  assumes "mcomplete" and fim: "f \<in> (topspace X \<inter> S) \<rightarrow> M"
+  shows "(\<exists>l. limitin mtopology f l (atin_within X a S)) \<longleftrightarrow>
+         M \<noteq> {} \<and>
+         (a \<in> topspace X
+            \<longrightarrow> (\<forall>\<epsilon>>0. \<exists>U. openin X U \<and> a \<in> U \<and>
+                           (\<forall>x \<in> (S \<inter> U) - {a}. \<forall>y \<in> (S \<inter> U) - {a}. d (f x) (f y) < \<epsilon>)))"
+proof (cases "M = {}")
+  case True
+  with limitin_mspace show ?thesis
+    by blast
+next
+  case False
+  show ?thesis
+  proof (cases "a \<in> topspace X")
+    case True
+    let ?R = "\<forall>\<epsilon>>0. \<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>)"
+    show ?thesis
+    proof (cases "a \<in> X derived_set_of S")
+      case True
+      have ?R
+        if "limitin mtopology f l (atin_within X a S)" for l
+      proof (intro strip)
+        fix \<epsilon>::real
+        assume "\<epsilon>>0"
+        with that \<open>a \<in> topspace X\<close> 
+        obtain U where U: "openin X U" "a \<in> U" "l \<in> M"
+          and Uless: "\<forall>x\<in>U - {a}. x \<in> S \<longrightarrow> f x \<in> M \<and> d (f x) l < \<epsilon>/2"
+          unfolding limitin_metric eventually_within_imp eventually_atin
+          using half_gt_zero by blast
+        show "\<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>)"
+        proof (intro exI strip conjI)
+          fix x y
+          assume x: "x \<in> S \<inter> U - {a}" and y: "y \<in> S \<inter> U - {a}"
+          then have "d (f x) l < \<epsilon>/2" "d (f y) l < \<epsilon>/2" "f x \<in> M" "f y \<in> M"
+            using Uless by auto
+          then show "d (f x) (f y) < \<epsilon>"
+            using triangle' \<open>l \<in> M\<close> by fastforce
+        qed (auto simp add: U)
+      qed
+      moreover have "\<exists>l. limitin mtopology f l (atin_within X a S)" 
+        if R [rule_format]: ?R
+      proof -
+        define F where "F \<equiv> \<lambda>U. mtopology closure_of f ` (S \<inter> U - {a})"
+        define \<C> where "\<C> \<equiv> F ` {U. openin X U \<and> a \<in> U}"
+        have \<C>_clo: "\<forall>C \<in> \<C>. closedin mtopology C"
+          by (force simp add: \<C>_def F_def)
+        moreover have sub_mcball: "\<exists>C a. C \<in> \<C> \<and> C \<subseteq> mcball a \<epsilon>" if "\<epsilon>>0" for \<epsilon>
+        proof -
+          obtain U where U: "openin X U" "a \<in> U" 
+            and Uless: "\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>"
+            using R [OF \<open>\<epsilon>>0\<close>] by blast
+          then obtain b where b: "b \<noteq> a" "b \<in> S" "b \<in> U"
+            using True by (auto simp add: in_derived_set_of)
+          have "U \<subseteq> topspace X"
+            by (simp add: U(1) openin_subset)
+          have "f b \<in> M"
+            using b \<open>openin X U\<close> by (metis image_subset_iff_funcset Int_iff fim image_eqI openin_subset subsetD)
+          moreover
+          have "mtopology closure_of f ` ((S \<inter> U) - {a}) \<subseteq> mcball (f b) \<epsilon>"
+          proof (rule closure_of_minimal)
+            have "f y \<in> M" if "y \<in> S" and "y \<in> U" for y
+              using \<open>U \<subseteq> topspace X\<close> fim that by (auto simp: Pi_iff)
+            moreover
+            have "d (f b) (f y) \<le> \<epsilon>" if "y \<in> S" "y \<in> U" "y \<noteq> a" for y
+              using that Uless b by force
+            ultimately show "f ` (S \<inter> U - {a}) \<subseteq> mcball (f b) \<epsilon>"
+              by (force simp: \<open>f b \<in> M\<close>)
+          qed auto
+          ultimately show ?thesis
+            using U by (auto simp add: \<C>_def F_def)
+        qed
+        moreover have "\<Inter>\<F> \<noteq> {}" if "finite \<F>" "\<F> \<subseteq> \<C>" for \<F>
+        proof -
+          obtain \<G> where sub: "\<G> \<subseteq> {U. openin X U \<and> a \<in> U}" and eq: "\<F> = F ` \<G>" and "finite \<G>"
+            by (metis (no_types, lifting) \<C>_def \<open>\<F> \<subseteq> \<C>\<close> \<open>finite \<F>\<close> finite_subset_image)
+          then have "U \<subseteq> topspace X" if "U \<in> \<G>" for U
+            using openin_subset that by auto
+          then have "T \<subseteq> mtopology closure_of T" 
+            if "T \<in> (\<lambda>U. f ` (S \<inter> U - {a})) ` \<G>" for T
+            using that fim by (fastforce simp add: intro!: closure_of_subset)
+          moreover
+          have ain: "a \<in> \<Inter> (insert (topspace X) \<G>)" "openin X (\<Inter> (insert (topspace X) \<G>))"
+            using True in_derived_set_of sub \<open>finite \<G>\<close> by (fastforce intro!: openin_Inter)+
+          then obtain y where "y \<noteq> a" "y \<in> S" and y: "y \<in> \<Inter> (insert (topspace X) \<G>)"
+            by (meson \<open>a \<in> X derived_set_of S\<close> sub in_derived_set_of) 
+          then have "f y \<in> \<Inter>\<F>"
+            using eq that ain fim by (auto simp add: F_def image_subset_iff in_closure_of)
+          then show ?thesis by blast
+        qed
+        ultimately have "\<Inter>\<C> \<noteq> {}"
+          using \<open>mcomplete\<close> mcomplete_fip by metis
+        then obtain b where "b \<in> \<Inter>\<C>"
+          by auto
+        then have "b \<in> M"
+          using sub_mcball \<C>_clo mbounded_alt_pos mbounded_empty metric_closedin_iff_sequentially_closed by force
+        have "limitin mtopology f b (atin_within X a S)"
+        proof (clarsimp simp: limitin_metric \<open>b \<in> M\<close>)
+          fix \<epsilon> :: real
+          assume "\<epsilon> > 0"
+          then obtain U where U: "openin X U" "a \<in> U" and subU: "U \<subseteq> topspace X"
+            and Uless: "\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>/2"
+            by (metis R half_gt_zero openin_subset) 
+          then obtain x where x: "x \<in> S" "x \<in> U" "x \<noteq> a" and fx: "f x \<in> mball b (\<epsilon>/2)"
+            using \<open>b \<in> \<Inter>\<C>\<close> 
+            apply (simp add: \<C>_def F_def closure_of_def del: divide_const_simps)
+            by (metis Diff_iff Int_iff centre_in_mball_iff in_mball openin_mball singletonI zero_less_numeral)
+          moreover
+          have "d (f y) b < \<epsilon>" if "y \<in> U" "y \<noteq> a" "y \<in> S" for y
+          proof -
+            have "d (f x) (f y) < \<epsilon>/2"
+              using Uless that x by force
+            moreover have "d b (f x)  < \<epsilon>/2"
+              using fx by simp
+            ultimately show ?thesis
+              using triangle [of b "f x" "f y"] subU that \<open>b \<in> M\<close> commute fim fx by fastforce
+          qed
+          ultimately show "\<forall>\<^sub>F x in atin_within X a S. f x \<in> M \<and> d (f x) b < \<epsilon>"
+            using fim U
+            apply (simp add: eventually_atin eventually_within_imp del: divide_const_simps flip: image_subset_iff_funcset)
+            by (smt (verit, del_insts) Diff_iff Int_iff imageI insertI1 openin_subset subsetD)
+        qed
+        then show ?thesis ..
+      qed
+      ultimately
+      show ?thesis
+        by (meson True \<open>M \<noteq> {}\<close> in_derived_set_of)
+    next
+      case False
+      have "(\<exists>l. limitin mtopology f l (atin_within X a S))"
+        by (metis \<open>M \<noteq> {}\<close> False derived_set_of_trivial_limit equals0I limitin_trivial topspace_mtopology)
+      moreover have "\<forall>e>0. \<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < e)"
+        by (metis Diff_iff False IntE True in_derived_set_of insert_iff)
+      ultimately show ?thesis
+        using limitin_mspace by blast
+    qed
+  next
+    case False
+    then show ?thesis
+      by (metis derived_set_of_trivial_limit ex_in_conv in_derived_set_of limitin_mspace limitin_trivial topspace_mtopology)
+  qed
+qed
+
+text \<open>The HOL Light proof uses some ugly tricks to share common parts of what are two separate proofs for the two cases\<close>
+lemma (in Metric_space) gdelta_in_points_of_convergence_within:
+  assumes "mcomplete"
+    and f: "continuous_map (subtopology X S) mtopology f \<or> t1_space X \<and> f \<in> S \<rightarrow> M"
+  shows "gdelta_in X {x \<in> topspace X. \<exists>l. limitin mtopology f l (atin_within X x S)}"
+proof -
+  have fim: "f \<in> (topspace X \<inter> S) \<rightarrow> M"
+    using continuous_map_image_subset_topspace f by force
+  show ?thesis
+  proof (cases "M={}")
+    case True
+    then show ?thesis
+      by (smt (verit) Collect_cong empty_def empty_iff gdelta_in_empty limitin_mspace)
+  next
+    case False
+    define A where "A \<equiv> {a \<in> topspace X. \<forall>\<epsilon>>0. \<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>)}"
+    have "gdelta_in X A"
+      using f 
+    proof (elim disjE conjE)
+      assume cm: "continuous_map (subtopology X S) mtopology f"
+      define C where "C \<equiv> \<lambda>r. \<Union>{U. openin X U \<and> (\<forall>x \<in> S\<inter>U. \<forall>y \<in> S\<inter>U. d (f x) (f y) < r)}"
+      define B where "B \<equiv> (\<Inter>n. C(inverse(Suc n)))"
+      define D where "D \<equiv> (\<Inter> (C ` {0<..}))"
+      have "D=B"
+        unfolding B_def C_def D_def
+        apply (intro Inter_eq_Inter_inverse_Suc Sup_subset_mono)
+        by (smt (verit, ccfv_threshold) Collect_mono_iff)
+      have "B \<subseteq> topspace X"
+        using openin_subset by (force simp add: B_def C_def)
+      have "(countable intersection_of openin X) B"
+        unfolding B_def C_def 
+        by (intro relative_to_inc countable_intersection_of_Inter countable_intersection_of_inc) auto
+      then have "gdelta_in X B"
+        unfolding gdelta_in_def by (intro relative_to_subset_inc \<open>B \<subseteq> topspace X\<close>)
+      moreover have "A=D"
+      proof (intro equalityI subsetI)
+        fix a
+        assume x: "a \<in> A"
+        then have "a \<in> topspace X"
+          using A_def by blast
+        show "a \<in> D"
+        proof (clarsimp simp: D_def C_def \<open>a \<in> topspace X\<close>)
+          fix \<epsilon>::real assume "\<epsilon> > 0"
+          then obtain U where "openin X U" "a \<in> U" and U: "(\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>)"
+            using x by (force simp: A_def)
+          show "\<exists>T. openin X T \<and> (\<forall>x\<in>S \<inter> T. \<forall>y\<in>S \<inter> T. d (f x) (f y) < \<epsilon>) \<and> a \<in> T"
+          proof (cases "a \<in> S")
+            case True
+            then obtain V where "openin X V" "a \<in> V" and V: "\<forall>x. x \<in> S \<and> x \<in> V \<longrightarrow> f a \<in> M \<and> f x \<in> M \<and> d (f a) (f x) < \<epsilon>"
+              using \<open>a \<in> topspace X\<close> \<open>\<epsilon> > 0\<close> cm
+              by (force simp add: continuous_map_to_metric openin_subtopology_alt Ball_def)
+            show ?thesis
+            proof (intro exI conjI strip)
+              show "openin X (U \<inter> V)"
+                using \<open>openin X U\<close> \<open>openin X V\<close> by blast 
+              show "a \<in> U \<inter> V"
+                using \<open>a \<in> U\<close> \<open>a \<in> V\<close> by blast
+              show "\<And>x y. \<lbrakk>x \<in> S \<inter> (U \<inter> V); y \<in> S \<inter> (U \<inter> V)\<rbrakk> \<Longrightarrow> d (f x) (f y) < \<epsilon>"
+                by (metis DiffI Int_iff U V commute singletonD)
+            qed
+          next
+            case False then show ?thesis
+              using U \<open>a \<in> U\<close> \<open>openin X U\<close> by auto
+          qed
+        qed
+      next
+        fix x
+        assume x: "x \<in> D"
+        then have "x \<in> topspace X"
+          using \<open>B \<subseteq> topspace X\<close> \<open>D=B\<close> by blast
+        with x show "x \<in> A"
+          apply (clarsimp simp: D_def C_def A_def)
+          by (meson DiffD1 greaterThan_iff)
+      qed
+      ultimately show ?thesis
+        by (simp add: \<open>D=B\<close>)
+    next
+      assume "t1_space X" "f \<in> S \<rightarrow> M"
+      define C where "C \<equiv> \<lambda>r. \<Union>{U. openin X U \<and> 
+                           (\<exists>b \<in> topspace X. \<forall>x \<in> S\<inter>U - {b}. \<forall>y \<in> S\<inter>U - {b}. d (f x) (f y) < r)}"
+      define B where "B \<equiv> (\<Inter>n. C(inverse(Suc n)))"
+      define D where "D \<equiv> (\<Inter> (C ` {0<..}))"
+      have "D=B"
+        unfolding B_def C_def D_def
+        apply (intro Inter_eq_Inter_inverse_Suc Sup_subset_mono)
+        by (smt (verit, ccfv_threshold) Collect_mono_iff)
+      have "B \<subseteq> topspace X"
+        using openin_subset by (force simp add: B_def C_def)
+      have "(countable intersection_of openin X) B"
+        unfolding B_def C_def 
+        by (intro relative_to_inc countable_intersection_of_Inter countable_intersection_of_inc) auto
+      then have "gdelta_in X B"
+        unfolding gdelta_in_def by (intro relative_to_subset_inc \<open>B \<subseteq> topspace X\<close>)
+      moreover have "A=D"
+      proof (intro equalityI subsetI)
+        fix x
+        assume x: "x \<in> D"
+        then have "x \<in> topspace X"
+          using \<open>B \<subseteq> topspace X\<close> \<open>D=B\<close> by blast
+        show "x \<in> A"
+        proof (clarsimp simp: A_def \<open>x \<in> topspace X\<close>)
+          fix \<epsilon> :: real
+          assume "\<epsilon>>0"
+          then obtain U b where "openin X U" "b \<in> topspace X"
+                  and U: "\<forall>x\<in>S \<inter> U - {b}. \<forall>y\<in>S \<inter> U - {b}. d (f x) (f y) < \<epsilon>" and "x \<in> U"
+            using x by (auto simp: D_def C_def A_def Ball_def)
+          then have "openin X (U-{b})"
+            by (meson \<open>t1_space X\<close> t1_space_openin_delete_alt)
+          then show "\<exists>U. openin X U \<and> x \<in> U \<and> (\<forall>xa\<in>S \<inter> U - {x}. \<forall>y\<in>S \<inter> U - {x}. d (f xa) (f y) < \<epsilon>)"
+            using U \<open>openin X U\<close> \<open>x \<in> U\<close> by auto
+        qed
+      next
+        show "\<And>x. x \<in> A \<Longrightarrow> x \<in> D"
+          unfolding A_def D_def C_def
+          by clarsimp meson
+      qed
+      ultimately show ?thesis
+        by (simp add: \<open>D=B\<close>)
+    qed
+    then show ?thesis
+      by (simp add: A_def convergent_eq_zero_oscillation_gen False fim \<open>mcomplete\<close> cong: conj_cong)
+  qed
+qed
+
+
+lemma gdelta_in_points_of_convergence_within:
+  assumes Y: "completely_metrizable_space Y"
+    and f: "continuous_map (subtopology X S) Y f \<or> t1_space X \<and> f \<in> S \<rightarrow> topspace Y"
+  shows "gdelta_in X {x \<in> topspace X. \<exists>l. limitin Y f l (atin_within X x S)}"
+  using assms
+  unfolding completely_metrizable_space_def
+  using Metric_space.gdelta_in_points_of_convergence_within Metric_space.topspace_mtopology by fastforce
+
+
+lemma Lavrentiev_extension_gen:
+  assumes "S \<subseteq> topspace X" and Y: "completely_metrizable_space Y" 
+    and contf: "continuous_map (subtopology X S) Y f"
+  obtains U g where "gdelta_in X U" "S \<subseteq> U" 
+            "continuous_map (subtopology X (X closure_of S \<inter> U)) Y g" 
+             "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+proof -
+  define U where "U \<equiv> {x \<in> topspace X. \<exists>l. limitin Y f l (atin_within X x S)}"
+  have "S \<subseteq> U"
+    using that contf limit_continuous_map_within subsetD [OF \<open>S \<subseteq> topspace X\<close>] 
+    by (fastforce simp: U_def)
+  then have "S \<subseteq> X closure_of S \<inter> U"
+    by (simp add: \<open>S \<subseteq> topspace X\<close> closure_of_subset)
+  moreover
+  have "\<And>t. t \<in> X closure_of S \<inter> U - S \<Longrightarrow> \<exists>l. limitin Y f l (atin_within X t S)"
+    using U_def by blast
+  moreover have "regular_space Y"
+    by (simp add: Y completely_metrizable_imp_metrizable_space metrizable_imp_regular_space)
+  ultimately
+  obtain g where g: "continuous_map (subtopology X (X closure_of S \<inter> U)) Y g" 
+    and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+    using continuous_map_extension_pointwise_alt assms by blast 
+  show thesis
+  proof
+    show "gdelta_in X U"
+      by (simp add: U_def Y contf gdelta_in_points_of_convergence_within)
+    show "continuous_map (subtopology X (X closure_of S \<inter> U)) Y g"
+      by (simp add: g)
+  qed (use \<open>S \<subseteq> U\<close> gf in auto)
+qed
+
+lemma Lavrentiev_extension:
+  assumes "S \<subseteq> topspace X" 
+    and X: "metrizable_space X \<or> topspace X \<subseteq> X closure_of S" 
+    and Y: "completely_metrizable_space Y" 
+    and contf: "continuous_map (subtopology X S) Y f"
+  obtains U g where "gdelta_in X U" "S \<subseteq> U" "U \<subseteq> X closure_of S"
+            "continuous_map (subtopology X U) Y g"  "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+proof -
+  obtain U g where "gdelta_in X U" "S \<subseteq> U" 
+    and contg: "continuous_map (subtopology X (X closure_of S \<inter> U)) Y g" 
+    and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+    using Lavrentiev_extension_gen Y assms(1) contf by blast
+  define V where "V \<equiv> X closure_of S \<inter> U"
+  show thesis
+  proof
+    show "gdelta_in X V"
+      by (metis V_def X \<open>gdelta_in X U\<close> closed_imp_gdelta_in closedin_closure_of closure_of_subset_topspace gdelta_in_Int gdelta_in_topspace subset_antisym)
+    show "S \<subseteq> V"
+      by (simp add: V_def \<open>S \<subseteq> U\<close> assms(1) closure_of_subset)
+    show "continuous_map (subtopology X V) Y g"
+      by (simp add: V_def contg)
+  qed (auto simp: gf V_def)
+qed
+
+subsection\<open>Embedding in products and hence more about completely metrizable spaces\<close>
+
+lemma (in Metric_space) gdelta_homeomorphic_space_closedin_product:
+  assumes S: "\<And>i. i \<in> I \<Longrightarrow> openin mtopology (S i)"
+  obtains T where "closedin (prod_topology mtopology (powertop_real I)) T"
+                  "subtopology mtopology (\<Inter>i \<in> I. S i) homeomorphic_space
+                   subtopology (prod_topology mtopology (powertop_real I)) T"
+proof (cases "I={}")
+  case True
+  then have top: "topspace (prod_topology mtopology (powertop_real I)) = (M \<times> {(\<lambda>x. undefined)})"
+    by simp
+  show ?thesis
+  proof
+    show "closedin (prod_topology mtopology (powertop_real I)) (M \<times> {(\<lambda>x. undefined)})"
+      by (metis top closedin_topspace)
+    have "subtopology mtopology (\<Inter>(S ` I)) homeomorphic_space mtopology"
+      by (simp add: True product_topology_empty_discrete)
+    also have "\<dots> homeomorphic_space (prod_topology mtopology (powertop_real {}))"
+      by (metis PiE_empty_domain homeomorphic_space_sym prod_topology_homeomorphic_space_left topspace_product_topology)
+    finally
+    show "subtopology mtopology (\<Inter>(S ` I)) homeomorphic_space subtopology (prod_topology mtopology (powertop_real I)) (M \<times> {(\<lambda>x. undefined)})"
+      by (smt (verit) True subtopology_topspace top)
+  qed   
+next
+  case False
+  have SM: "\<And>i. i \<in> I \<Longrightarrow> S i \<subseteq> M"
+    using assms openin_mtopology by blast
+  then have "(\<Inter>i \<in> I. S i) \<subseteq> M"
+    using False by blast
+  define dd where "dd \<equiv> \<lambda>i. if i\<notin>I \<or> S i = M then \<lambda>u. 1 else (\<lambda>u. INF x \<in> M - S i. d u x)"
+  have [simp]: "bdd_below (d u ` A)" for u A
+    by (meson bdd_belowI2 nonneg)
+  have cont_dd: "continuous_map (subtopology mtopology (S i)) euclidean (dd i)" if "i \<in> I" for i
+  proof -
+    have "dist (Inf (d x ` (M - S i))) (Inf (d y ` (M - S i))) \<le> d x y" 
+      if "x \<in> S i" "x \<in> M" "y \<in> S i" "y \<in> M" "S i \<noteq> M" for x y
+    proof -
+      have [simp]: "\<not> M \<subseteq> S i"
+        using SM \<open>S i \<noteq> M\<close> \<open>i \<in> I\<close> by auto
+      have "\<And>u. \<lbrakk>u \<in> M; u \<notin> S i\<rbrakk> \<Longrightarrow> Inf (d x ` (M - S i)) \<le> d x y + d y u"
+        apply (clarsimp simp add: cInf_le_iff_less)
+        by (smt (verit) DiffI triangle \<open>x \<in> M\<close> \<open>y \<in> M\<close>)
+      then have "Inf (d x ` (M - S i)) - d x y \<le> Inf (d y ` (M - S i))"
+        by (force simp add: le_cInf_iff)
+      moreover
+      have "\<And>u. \<lbrakk>u \<in> M; u \<notin> S i\<rbrakk> \<Longrightarrow> Inf (d y ` (M - S i)) \<le> d x u + d x y"
+        apply (clarsimp simp add: cInf_le_iff_less)
+        by (smt (verit) DiffI triangle'' \<open>x \<in> M\<close> \<open>y \<in> M\<close>)
+      then have "Inf (d y ` (M - S i)) - d x y \<le> Inf (d x ` (M - S i))"
+        by (force simp add: le_cInf_iff)
+      ultimately show ?thesis
+        by (simp add: dist_real_def abs_le_iff)
+    qed
+    then have *: "Lipschitz_continuous_map (submetric Self (S i)) euclidean_metric (\<lambda>u. Inf (d u ` (M - S i)))"
+      unfolding Lipschitz_continuous_map_def by (force intro!: exI [where x=1])
+    then show ?thesis
+      using Lipschitz_continuous_imp_continuous_map [OF *]
+      by (simp add: dd_def Self_def mtopology_of_submetric )
+  qed 
+  have dd_pos: "0 < dd i x" if "x \<in> S i" for i x
+  proof (clarsimp simp add: dd_def)
+    assume "i \<in> I" and "S i \<noteq> M"
+    have opeS: "openin mtopology (S i)"
+      by (simp add: \<open>i \<in> I\<close> assms)
+    then obtain r where "r>0" and r: "\<And>y. \<lbrakk>y \<in> M; d x y < r\<rbrakk> \<Longrightarrow> y \<in> S i"
+      by (meson \<open>x \<in> S i\<close> in_mball openin_mtopology subsetD)
+    then have "\<And>y. y \<in> M - S i \<Longrightarrow> d x y \<ge> r"
+      by (meson Diff_iff linorder_not_le)
+    then have "Inf (d x ` (M - S i)) \<ge> r"
+      by (meson Diff_eq_empty_iff SM \<open>S i \<noteq> M\<close> \<open>i \<in> I\<close> cINF_greatest set_eq_subset)
+    with \<open>r>0\<close> show "0 < Inf (d x ` (M - S i))" by simp
+  qed
+  define f where "f \<equiv> \<lambda>x. (x, \<lambda>i\<in>I. inverse(dd i x))"
+  define T where "T \<equiv> f ` (\<Inter>i \<in> I. S i)"
+  show ?thesis
+  proof
+    show "closedin (prod_topology mtopology (powertop_real I)) T"
+      unfolding closure_of_subset_eq [symmetric]
+    proof
+      show "T \<subseteq> topspace (prod_topology mtopology (powertop_real I))"
+        using False SM by (auto simp: T_def f_def)
+
+      have "(x,ds) \<in> T"
+        if \<section>: "\<And>U. \<lbrakk>(x, ds) \<in> U; openin (prod_topology mtopology (powertop_real I)) U\<rbrakk> \<Longrightarrow> \<exists>y\<in>T. y \<in> U"
+          and "x \<in> M" and ds: "ds \<in> I \<rightarrow>\<^sub>E UNIV" for x ds
+      proof -
+        have ope: "\<exists>x. x \<in> \<Inter>(S ` I) \<and> f x \<in> U \<times> V"
+          if "x \<in> U" and "ds \<in> V" and "openin mtopology U" and "openin (powertop_real I) V" for U V
+          using \<section> [of "U\<times>V"] that by (force simp add: T_def openin_prod_Times_iff)
+        have x_in_INT: "x \<in> \<Inter>(S ` I)"
+        proof clarify
+          fix i
+          assume "i \<in> I"
+          show "x \<in> S i"
+          proof (rule ccontr)
+            assume "x \<notin> S i"
+            have "openin (powertop_real I) {z \<in> topspace (powertop_real I). z i \<in> {ds i - 1 <..< ds i + 1}}"
+            proof (rule openin_continuous_map_preimage)
+              show "continuous_map (powertop_real I) euclidean (\<lambda>x. x i)"
+                by (metis \<open>i \<in> I\<close> continuous_map_product_projection)
+            qed auto
+            then obtain y where "y \<in> S i" "y \<in> M" and dxy: "d x y < inverse (\<bar>ds i\<bar> + 1)"
+                          and intvl: "inverse (dd i y) \<in> {ds i - 1 <..< ds i + 1}"
+              using ope [of "mball x (inverse(abs(ds i) + 1))" "{z \<in> topspace(powertop_real I). z i \<in> {ds i - 1<..<ds i + 1}}"]
+                    \<open>x \<in> M\<close> \<open>ds \<in> I \<rightarrow>\<^sub>E UNIV\<close> \<open>i \<in> I\<close>
+              by (fastforce simp add: f_def)
+            have "\<not> M \<subseteq> S i"
+              using \<open>x \<notin> S i\<close> \<open>x \<in> M\<close> by blast
+            have "inverse (\<bar>ds i\<bar> + 1) \<le> dd i y"
+              using intvl \<open>y \<in> S i\<close> dd_pos [of y i]
+              by (smt (verit, ccfv_threshold) greaterThanLessThan_iff inverse_inverse_eq le_imp_inverse_le)
+            also have "\<dots> \<le> d x y"
+              using \<open>i \<in> I\<close> \<open>\<not> M \<subseteq> S i\<close> \<open>x \<notin> S i\<close> \<open>x \<in> M\<close>
+              apply (simp add: dd_def cInf_le_iff_less)
+              using commute by force
+            finally show False
+              using dxy by linarith
+          qed
+        qed
+        moreover have "ds = (\<lambda>i\<in>I. inverse (dd i x))"
+        proof (rule PiE_ext [OF ds])
+          fix i
+          assume "i \<in> I"
+          define e where "e \<equiv> \<bar>ds i - inverse (dd i x)\<bar>"
+          { assume con: "e > 0"
+            have "continuous_map (subtopology mtopology (S i)) euclidean (\<lambda>x. inverse (dd i x))" 
+              using dd_pos cont_dd \<open>i \<in> I\<close> 
+              by (fastforce simp:  intro!: continuous_map_real_inverse)
+             then have "openin (subtopology mtopology (S i))
+                         {z \<in> topspace (subtopology mtopology (S i)). 
+                          inverse (dd i z) \<in> {inverse(dd i x) - e/2<..<inverse(dd i x) + e/2}}"
+               using openin_continuous_map_preimage open_greaterThanLessThan open_openin by blast
+             then obtain U where "openin mtopology U"
+                  and U: "{z \<in> S i. inverse (dd i x) - e/2 < inverse (dd i z) \<and>
+                           inverse (dd i z) < inverse (dd i x) + e/2}
+                         = U \<inter> S i"
+               using SM \<open>i \<in> I\<close>  by (auto simp: openin_subtopology)
+             have "x \<in> U"
+               using U x_in_INT \<open>i \<in> I\<close> con by fastforce
+             have "ds \<in> {z \<in> topspace (powertop_real I). z i \<in> {ds i - e / 2<..<ds i + e/2}}"
+               by (simp add: con ds)
+             moreover
+             have  "openin (powertop_real I) {z \<in> topspace (powertop_real I). z i \<in> {ds i - e / 2<..<ds i + e/2}}"
+             proof (rule openin_continuous_map_preimage)
+               show "continuous_map (powertop_real I) euclidean (\<lambda>x. x i)"
+                 by (metis \<open>i \<in> I\<close> continuous_map_product_projection)
+             qed auto
+             ultimately obtain y where "y \<in> \<Inter>(S ` I) \<and> f y \<in> U \<times> {z \<in> topspace (powertop_real I). z i \<in> {ds i - e / 2<..<ds i + e/2}}"
+               using ope \<open>x \<in> U\<close> \<open>openin mtopology U\<close> \<open>x \<in> U\<close>
+               by presburger 
+             with \<open>i \<in> I\<close> U 
+             have False unfolding set_eq_iff f_def e_def by simp (smt (verit) field_sum_of_halves)
+          }
+          then show "ds i = (\<lambda>i\<in>I. inverse (dd i x)) i"
+            using \<open>i \<in> I\<close> by (force simp: e_def)
+        qed auto
+        ultimately show ?thesis
+          by (auto simp: T_def f_def)
+      qed
+      then show "prod_topology mtopology (powertop_real I) closure_of T \<subseteq> T"
+        by (auto simp: closure_of_def)
+    qed
+    have eq: "(\<Inter>(S ` I) \<times> (I \<rightarrow>\<^sub>E UNIV) \<inter> f ` (M \<inter> \<Inter>(S ` I))) = (f ` \<Inter>(S ` I))"
+      using False SM by (force simp: f_def image_iff)
+    have "continuous_map (subtopology mtopology (\<Inter>(S ` I))) euclidean (dd i)" if "i \<in> I" for i
+      by (meson INT_lower cont_dd continuous_map_from_subtopology_mono that)
+    then have "continuous_map (subtopology mtopology (\<Inter>(S ` I))) (powertop_real I) (\<lambda>x. \<lambda>i\<in>I. inverse (dd i x))"
+      using dd_pos by (fastforce simp: continuous_map_componentwise intro!: continuous_map_real_inverse)
+    then have "embedding_map (subtopology mtopology (\<Inter>(S ` I))) (prod_topology (subtopology mtopology (\<Inter>(S ` I))) (powertop_real I)) f"
+      by (simp add: embedding_map_graph f_def)
+    moreover have "subtopology (prod_topology (subtopology mtopology (\<Inter>(S ` I))) (powertop_real I))
+                     (f ` topspace (subtopology mtopology (\<Inter>(S ` I)))) =
+                   subtopology (prod_topology mtopology (powertop_real I)) T"
+      by (simp add: prod_topology_subtopology subtopology_subtopology T_def eq)
+    ultimately
+    show "subtopology mtopology (\<Inter>(S ` I)) homeomorphic_space subtopology (prod_topology mtopology (powertop_real I)) T"
+      by (metis embedding_map_imp_homeomorphic_space)
+  qed
+qed
+
+
+lemma gdelta_homeomorphic_space_closedin_product:
+  assumes "metrizable_space X" and "\<And>i. i \<in> I \<Longrightarrow> openin X (S i)"
+  obtains T where "closedin (prod_topology X (powertop_real I)) T"
+                  "subtopology X (\<Inter>i \<in> I. S i) homeomorphic_space
+                   subtopology (prod_topology X (powertop_real I)) T"
+  using Metric_space.gdelta_homeomorphic_space_closedin_product
+  by (metis assms metrizable_space_def)
+
+lemma open_homeomorphic_space_closedin_product:
+  assumes "metrizable_space X" and "openin X S"
+  obtains T where "closedin (prod_topology X euclideanreal) T"
+    "subtopology X S homeomorphic_space
+                   subtopology (prod_topology X euclideanreal) T"
+proof -
+  obtain T where cloT: "closedin (prod_topology X (powertop_real {()})) T"
+    and homT: "subtopology X S homeomorphic_space
+                   subtopology (prod_topology X (powertop_real {()})) T"
+    using gdelta_homeomorphic_space_closedin_product [of X "{()}" "\<lambda>i. S"] assms
+    by auto
+  have "prod_topology X (powertop_real {()}) homeomorphic_space prod_topology X euclideanreal"
+    by (meson homeomorphic_space_prod_topology homeomorphic_space_refl homeomorphic_space_singleton_product)
+  then obtain f where f: "homeomorphic_map (prod_topology X (powertop_real {()})) (prod_topology X euclideanreal) f"
+    unfolding homeomorphic_space by metis
+  show thesis
+  proof
+    show "closedin (prod_topology X euclideanreal) (f ` T)"
+      using cloT f homeomorphic_map_closedness_eq by blast
+    moreover have "T = topspace (subtopology (prod_topology X (powertop_real {()})) T)"
+      by (metis cloT closedin_subset topspace_subtopology_subset)
+    ultimately show "subtopology X S homeomorphic_space subtopology (prod_topology X euclideanreal) (f ` T)"
+      by (smt (verit, best) closedin_subset f homT homeomorphic_map_subtopologies homeomorphic_space 
+          homeomorphic_space_trans topspace_subtopology topspace_subtopology_subset)
+  qed
+qed
+
+lemma completely_metrizable_space_gdelta_in_alt:
+  assumes X: "completely_metrizable_space X" 
+    and S: "(countable intersection_of openin X) S"
+  shows "completely_metrizable_space (subtopology X S)"
+proof -
+  obtain \<U> where "countable \<U>" "S = \<Inter>\<U>" and ope: "\<And>U. U \<in> \<U> \<Longrightarrow> openin X U"
+    using S by (force simp add: intersection_of_def)
+  then have \<U>: "completely_metrizable_space (powertop_real \<U>)"
+    by (simp add: completely_metrizable_space_euclidean completely_metrizable_space_product_topology)
+  obtain C where "closedin (prod_topology X (powertop_real \<U>)) C"
+                and sub: "subtopology X (\<Inter>\<U>) homeomorphic_space
+                   subtopology (prod_topology X (powertop_real \<U>)) C"
+    by (metis gdelta_homeomorphic_space_closedin_product  X completely_metrizable_imp_metrizable_space ope INF_identity_eq)
+  moreover have "completely_metrizable_space (prod_topology X (powertop_real \<U>))"
+    by (simp add: completely_metrizable_space_prod_topology X \<U>)
+  ultimately have "completely_metrizable_space (subtopology (prod_topology X (powertop_real \<U>)) C)"
+    using completely_metrizable_space_closedin by blast
+  then show ?thesis
+    using \<open>S = \<Inter>\<U>\<close> sub homeomorphic_completely_metrizable_space by blast
+qed
+
+lemma completely_metrizable_space_gdelta_in:
+   "\<lbrakk>completely_metrizable_space X; gdelta_in X S\<rbrakk>
+        \<Longrightarrow> completely_metrizable_space (subtopology X S)"
+  by (simp add: completely_metrizable_space_gdelta_in_alt gdelta_in_alt)
+
+lemma completely_metrizable_space_openin:
+   "\<lbrakk>completely_metrizable_space X; openin X S\<rbrakk>
+        \<Longrightarrow> completely_metrizable_space (subtopology X S)"
+  by (simp add: completely_metrizable_space_gdelta_in open_imp_gdelta_in)
+
+
+lemma (in Metric_space) locally_compact_imp_completely_metrizable_space:
+  assumes "locally_compact_space mtopology"
+  shows "completely_metrizable_space mtopology"
+proof -
+  obtain f :: "['a,'a] \<Rightarrow> real" and m' where
+    "mcomplete_of m'" and fim: "f \<in> M \<rightarrow> mspace m'"
+    and clo: "mtopology_of m' closure_of f ` M = mspace m'"
+    and d: "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> mdist m' (f x) (f y) = d x y"
+    by (metis metric_completion)
+  then have "embedding_map mtopology (mtopology_of m') f"
+    unfolding mtopology_of_def
+    by (metis Metric_space12.isometry_imp_embedding_map Metric_space12_mspace_mdist mdist_metric mspace_metric)
+  then have hom: "mtopology homeomorphic_space subtopology (mtopology_of m') (f ` M)"
+    by (metis embedding_map_imp_homeomorphic_space topspace_mtopology)
+  have "locally_compact_space (subtopology (mtopology_of m') (f ` M))"
+    using assms hom homeomorphic_locally_compact_space by blast
+  moreover have "Hausdorff_space (mtopology_of m')"
+    by (simp add: Metric_space.Hausdorff_space_mtopology mtopology_of_def)
+  ultimately have "openin (mtopology_of m') (f ` M)"
+    by (simp add: clo dense_locally_compact_openin_Hausdorff_space fim image_subset_iff_funcset)
+  then
+  have "completely_metrizable_space (subtopology (mtopology_of m') (f ` M))"
+    using \<open>mcomplete_of m'\<close> unfolding mcomplete_of_def mtopology_of_def
+    by (metis Metric_space.completely_metrizable_space_mtopology Metric_space_mspace_mdist completely_metrizable_space_openin )
+  then show ?thesis
+    using hom homeomorphic_completely_metrizable_space by blast
+qed
+
+lemma locally_compact_imp_completely_metrizable_space:
+  assumes "metrizable_space X" and "locally_compact_space X"
+  shows "completely_metrizable_space X"
+  by (metis Metric_space.locally_compact_imp_completely_metrizable_space assms metrizable_space_def)
+
+
+lemma completely_metrizable_space_imp_gdelta_in:
+  assumes X: "metrizable_space X" and "S \<subseteq> topspace X" 
+    and XS: "completely_metrizable_space (subtopology X S)"
+  shows "gdelta_in X S"
+proof -
+  obtain U f where "gdelta_in X U" "S \<subseteq> U" and U: "U \<subseteq> X closure_of S"
+            and contf: "continuous_map (subtopology X U) (subtopology X S) f" 
+            and fid: "\<And>x. x \<in> S \<Longrightarrow> f x = x"
+    using Lavrentiev_extension[of S X "subtopology X S" id] assms by auto
+  then have "f ` topspace (subtopology X U) \<subseteq> topspace (subtopology X S)"
+    using continuous_map_image_subset_topspace by blast
+  then have "f`U \<subseteq> S"
+    by (metis \<open>gdelta_in X U\<close> \<open>S \<subseteq> topspace X\<close> gdelta_in_subset topspace_subtopology_subset)
+  moreover 
+  have "Hausdorff_space (subtopology X U)"
+    by (simp add: Hausdorff_space_subtopology X metrizable_imp_Hausdorff_space)
+  then have "\<And>x. x \<in> U \<Longrightarrow> f x = x"
+    using U fid contf forall_in_closure_of_eq [of _ "subtopology X U" S "subtopology X U" f id]
+    by (metis \<open>S \<subseteq> U\<close> closure_of_subtopology_open continuous_map_id continuous_map_in_subtopology id_apply inf.orderE subtopology_subtopology)
+  ultimately have "U \<subseteq> S"
+    by auto
+  then show ?thesis
+    using \<open>S \<subseteq> U\<close> \<open>gdelta_in X U\<close> by auto
+qed
+
+lemma completely_metrizable_space_eq_gdelta_in:
+   "\<lbrakk>completely_metrizable_space X; S \<subseteq> topspace X\<rbrakk>
+        \<Longrightarrow> completely_metrizable_space (subtopology X S) \<longleftrightarrow> gdelta_in X S"
+  using completely_metrizable_imp_metrizable_space completely_metrizable_space_gdelta_in completely_metrizable_space_imp_gdelta_in by blast
+
+lemma gdelta_in_eq_completely_metrizable_space:
+   "completely_metrizable_space X
+    \<Longrightarrow> gdelta_in X S \<longleftrightarrow> S \<subseteq> topspace X \<and> completely_metrizable_space (subtopology X S)"
+  by (metis completely_metrizable_space_eq_gdelta_in gdelta_in_alt)
 
 end

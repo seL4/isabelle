@@ -27,7 +27,7 @@ proof -
     by (simp add: countable_intersection_of_inc)
   then show ?thesis
     unfolding gdelta_in_def
-    by (metis countable_intersection_of_inter relative_to_def relative_to_imp_subset relative_to_subset)
+    by (metis countable_intersection_of_inter relative_to_def relative_to_imp_subset relative_to_subset_inc)
 qed
 
 lemma fsigma_in_subset: "fsigma_in X S \<Longrightarrow> S \<subseteq> topspace X"

@@ -1438,7 +1438,7 @@ next
     have "topspace Y = topspace X"
       by (auto simp: Y_def)
     have "openin X T \<longrightarrow> openin Y T" for T
-      by (simp add: Y_def arbitrary_union_of_inc finite_intersection_of_inc openin_subbase openin_subset relative_to_subset)
+      by (simp add: Y_def arbitrary_union_of_inc finite_intersection_of_inc openin_subbase openin_subset relative_to_subset_inc)
     have "compact_space Y"
     proof (rule Alexander_subbase_alt)
       show "\<exists>\<F>'. finite \<F>' \<and> \<F>' \<subseteq> \<C> \<and> topspace X \<subseteq> \<Union> \<F>'" 
@@ -1465,7 +1465,7 @@ next
     have "Y = X"
       using R \<open>\<And>S. openin X S \<longrightarrow> openin Y S\<close> \<open>compact_space Y\<close> \<open>topspace Y = topspace X\<close> by blast
     moreover have "openin Y (topspace X - S)"
-      by (simp add: Y_def arbitrary_union_of_inc finite_intersection_of_inc openin_subbase relative_to_subset)
+      by (simp add: Y_def arbitrary_union_of_inc finite_intersection_of_inc openin_subbase relative_to_subset_inc)
     ultimately show "closedin X S"
       unfolding closedin_def using S compactin_subset_topspace by blast
   qed
@@ -2578,7 +2578,6 @@ next
     qed
   qed
 qed
-
 
 
 subsection\<open>Locally compact spaces\<close>
@@ -3896,6 +3895,9 @@ proof
     unfolding quasi_component_of_def
     by (metis Diff_disjoint Diff_iff Un_Diff_cancel closedin_def disjnt_def inf_commute sup.orderE sup_commute)
 qed
+
+lemma quasi_components_lepoll_topspace: "quasi_components_of X \<lesssim> topspace X"
+  by (simp add: image_lepoll quasi_components_of_def)
 
 lemma quasi_component_of_separated:
    "quasi_component_of X x y \<longleftrightarrow>

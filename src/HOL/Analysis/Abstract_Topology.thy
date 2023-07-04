@@ -4490,7 +4490,7 @@ proof (intro ext iffI)
   next
     case (Basis s)
     then show ?case
-      by (simp add: Sup_upper arbitrary_union_of_inc finite'_intersection_of_inc relative_to_subset)
+      by (simp add: Sup_upper arbitrary_union_of_inc finite'_intersection_of_inc relative_to_subset_inc)
   qed auto
 next
   fix A

@@ -18,6 +18,20 @@ definition lesspoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl 
 lemma lepoll_empty_iff_empty [simp]: "A \<lesssim> {} \<longleftrightarrow> A = {}"
   by (auto simp: lepoll_def)
 
+(*The HOL Light CARD_LE_RELATIONAL_FULL*)
+lemma lepoll_relational_full:
+  assumes "\<And>y. y \<in> B \<Longrightarrow> \<exists>x. x \<in> A \<and> R x y"
+    and "\<And>x y y'. \<lbrakk>x \<in> A; y \<in> B; y' \<in> B; R x y; R x y'\<rbrakk> \<Longrightarrow> y = y'"
+  shows "B \<lesssim> A"
+proof -
+  obtain f where f: "\<And>y. y \<in> B \<Longrightarrow> f y \<in> A \<and> R (f y) y"
+    using assms by metis
+  with assms have "inj_on f B"
+    by (metis inj_onI)
+  with f show ?thesis
+    unfolding lepoll_def by blast
+qed
+
 lemma eqpoll_iff_card_of_ordIso: "A \<approx> B \<longleftrightarrow> ordIso2 (card_of A) (card_of B)"
   by (simp add: card_of_ordIso eqpoll_def)
 
@@ -189,6 +203,18 @@ lemma finite_lesspoll_infinite:
 
 lemma countable_lesspoll: "\<lbrakk>countable A; B \<prec> A\<rbrakk> \<Longrightarrow> countable B"
   using countable_lepoll lesspoll_def by blast
+
+lemma lepoll_iff_card_le: "\<lbrakk>finite A; finite B\<rbrakk> \<Longrightarrow> A \<lesssim> B \<longleftrightarrow> card A \<le> card B"
+  by (simp add: inj_on_iff_card_le lepoll_def)
+
+lemma lepoll_iff_finite_card: "A \<lesssim> {..<n::nat} \<longleftrightarrow> finite A \<and> card A \<le> n"
+  by (metis card_lessThan finite_lessThan finite_surj lepoll_iff lepoll_iff_card_le)
+
+lemma eqpoll_iff_finite_card: "A \<approx> {..<n::nat} \<longleftrightarrow> finite A \<and> card A = n"
+  by (metis card_lessThan eqpoll_finite_iff eqpoll_iff_card finite_lessThan)
+
+lemma lesspoll_iff_finite_card: "A \<prec> {..<n::nat} \<longleftrightarrow> finite A \<and> card A < n"
+  by (metis eqpoll_iff_finite_card lepoll_iff_finite_card lesspoll_def order_less_le)
 
 subsection\<open>Mapping by an injection\<close>
 
