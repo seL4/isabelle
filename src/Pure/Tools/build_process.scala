@@ -1081,7 +1081,7 @@ extends AutoCloseable {
       start_worker()
 
       if (build_context.master && !build_context.worker_active) {
-        progress.echo("Waiting for external workers ...")
+        build_progress.echo("Waiting for external workers ...")
       }
 
       try {
