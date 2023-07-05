@@ -421,7 +421,7 @@ object Build_Process {
     def read_sessions_domain(db: SQL.Database, build_uuid: String = ""): Set[String] =
       db.execute_query_statement(
         Sessions.table.select(List(Sessions.name),
-          sql = if_proper(build_uuid, Sessions.name.where_equal(build_uuid))),
+          sql = if_proper(build_uuid, Sessions.build_uuid.where_equal(build_uuid))),
         Set.from[String], res => res.string(Sessions.name))
 
     def read_sessions(db: SQL.Database,
