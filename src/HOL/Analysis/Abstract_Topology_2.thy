@@ -8,7 +8,7 @@ section \<open>Abstract Topology 2\<close>
 
 theory Abstract_Topology_2
   imports
-    Elementary_Topology Abstract_Topology
+    Elementary_Topology Abstract_Topology Continuum_Not_Denumerable
     "HOL-Library.Indicator_Function"
     "HOL-Library.Equipollence"
 begin
@@ -315,8 +315,8 @@ lemma constant_on_subset: "\<lbrakk>f constant_on A; B \<subseteq> A\<rbrakk> \<
 lemma injective_not_constant:
   fixes S :: "'a::{perfect_space} set"
   shows "\<lbrakk>open S; inj_on f S; f constant_on S\<rbrakk> \<Longrightarrow> S = {}"
-unfolding constant_on_def
-by (metis equals0I inj_on_contraD islimpt_UNIV islimpt_def)
+  unfolding constant_on_def
+  by (metis equals0I inj_on_contraD islimpt_UNIV islimpt_def)
 
 lemma constant_on_compose:
   assumes "f constant_on A"
@@ -1695,7 +1695,9 @@ next
     by (metis continuous_on_subset continuous_shrink subset_UNIV)
 qed
 
-lemma card_eq_real_subset:
+subsection \<open>A few cardinality results\<close>
+
+lemma eqpoll_real_subset:
   fixes a b::real
   assumes "a < b" and S: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> x \<in> S"
   shows "S \<approx> (UNIV::real set)"
@@ -1720,5 +1722,175 @@ proof (rule lepoll_antisym)
       by (smt (verit, best) S * mult_less_cancel_left2 mult_minus_right)
   qed
 qed
+
+lemma reals01_lepoll_nat_sets: "{0..<1::real} \<lesssim> (UNIV::nat set set)"
+proof -
+  define nxt where "nxt \<equiv> \<lambda>x::real. if x < 1/2 then (True, 2*x) else (False, 2*x - 1)"
+  have nxt_fun: "nxt \<in> {0..<1} \<rightarrow> UNIV \<times> {0..<1}"
+    by (simp add: nxt_def Pi_iff)
+  define \<sigma> where "\<sigma> \<equiv> \<lambda>x. rec_nat (True, x) (\<lambda>n (b,y). nxt y)"
+  have \<sigma>Suc [simp]: "\<sigma> x (Suc k) = nxt (snd (\<sigma> x k))" for k x
+    by (simp add: \<sigma>_def case_prod_beta')
+  have \<sigma>01: "x \<in> {0..<1} \<Longrightarrow> \<sigma> x n \<in> UNIV \<times> {0..<1}" for x n
+  proof (induction n)
+    case 0
+    then show ?case                                           
+      by (simp add: \<sigma>_def)
+   next
+    case (Suc n)
+    with nxt_fun show ?case
+      by (force simp add: Pi_iff split: prod.split)
+  qed
+  define f where "f \<equiv> \<lambda>x. {n. fst (\<sigma> x (Suc n))}"
+  have snd_nxt: "snd (nxt y) - snd (nxt x) = 2 * (y-x)" 
+    if "fst (nxt x) = fst (nxt y)" for x y
+    using that by (simp add: nxt_def split: if_split_asm)
+  have False if "f x = f y" "x < y" "0 \<le> x" "x < 1" "0 \<le> y" "y < 1" for x y :: real
+  proof -
+    have "\<And>k. fst (\<sigma> x (Suc k)) = fst (\<sigma> y (Suc k))"
+      using that by (force simp add: f_def)
+    then have eq: "\<And>k. fst (nxt (snd (\<sigma> x k))) = fst (nxt (snd (\<sigma> y k)))"
+      by (metis \<sigma>_def case_prod_beta' rec_nat_Suc_imp)
+    have *: "snd (\<sigma> y k) - snd (\<sigma> x k) = 2 ^ k * (y-x)" for k
+    proof (induction k)
+      case 0
+      then show ?case
+        by (simp add: \<sigma>_def)
+    next
+      case (Suc k)
+      then show ?case
+        by (simp add: eq snd_nxt)
+    qed
+    define n where "n \<equiv> nat (\<lceil>log 2 (1 / (y - x))\<rceil>)"
+    have "2^n \<ge> 1 / (y - x)"
+      by (simp add: n_def power_of_nat_log_ge)
+    then have "2^n * (y-x) \<ge> 1"
+      using \<open>x < y\<close> by (simp add: n_def field_simps)
+    with * have "snd (\<sigma> y n) - snd (\<sigma> x n) \<ge> 1"
+      by presburger
+    moreover have "snd (\<sigma> x n) \<in> {0..<1}" "snd (\<sigma> y n) \<in> {0..<1}"
+      using that by (meson \<sigma>01 atLeastLessThan_iff mem_Times_iff)+
+    ultimately show False by simp
+  qed
+  then have "inj_on f {0..<1}"
+    by (meson atLeastLessThan_iff linorder_inj_onI')
+  then show ?thesis
+    unfolding lepoll_def by blast
+qed
+
+lemma nat_sets_lepoll_reals01: "(UNIV::nat set set) \<lesssim> {0..<1::real}"
+proof -
+  define F where "F \<equiv> \<lambda>S i. if i\<in>S then (inverse 3::real) ^ i else 0"
+  have Fge0: "F S i \<ge> 0" for S i
+    by (simp add: F_def)
+  have F: "summable (F S)" for S
+    unfolding F_def by (force intro: summable_comparison_test_ev [where g = "power (inverse 3)"])
+  have "sum (F S) {..<n} \<le> 3/2" for n S
+  proof (cases n)
+    case (Suc n')
+    have "sum (F S) {..<n} \<le> (\<Sum>i<n. inverse 3 ^ i)"
+      by (simp add: F_def sum_mono)
+    also have "\<dots> = (\<Sum>i=0..n'. inverse 3 ^ i)"
+      using Suc atLeast0AtMost lessThan_Suc_atMost by presburger
+    also have "\<dots> = (3/2) * (1 - inverse 3 ^ n)"
+      using sum_gp_multiplied [of 0 n' "inverse (3::real)"] by (simp add: Suc field_simps)
+    also have "\<dots> \<le> 3/2"
+      by (simp add: field_simps)
+    finally show ?thesis .
+  qed auto
+  then have F32: "suminf (F S) \<le> 3/2" for S
+    using F suminf_le_const by blast
+  define f where "f \<equiv> \<lambda>S. suminf (F S) / 2"
+  have monoF: "F S n \<le> F T n" if "S \<subseteq> T" for S T n
+    using F_def that by auto
+  then have monof: "f S \<le> f T" if "S \<subseteq> T" for S T
+    using that F by (simp add: f_def suminf_le)
+  have "f S \<in> {0..<1::real}" for S
+  proof -
+    have "0 \<le> suminf (F S)"
+      using F by (simp add: F_def suminf_nonneg)
+    with F32[of S] show ?thesis
+      by (auto simp: f_def)
+  qed
+  moreover have "inj f"
+  proof
+    fix S T
+    assume "f S = f T" 
+    show "S = T"
+    proof (rule ccontr)
+      assume "S \<noteq> T"
+      then have ST_ne: "(S-T) \<union> (T-S) \<noteq> {}"
+        by blast
+      define n where "n \<equiv> LEAST n. n \<in> (S-T) \<union> (T-S)"
+      have sum_split: "suminf (F U) = sum (F U) {..<Suc n} + (\<Sum>k. F U (k + Suc n))"  for U
+        by (metis F add.commute suminf_split_initial_segment)
+      have yes: "f U \<ge> (sum (F U) {..<n} + (inverse 3::real) ^ n) / 2" 
+        if "n \<in> U" for U
+      proof -
+        have "0 \<le> (\<Sum>k. F U (k + Suc n))"
+          by (metis F Fge0 suminf_nonneg summable_iff_shift)
+        moreover have "F U n = (1/3) ^ n"
+          by (simp add: F_def that)
+        ultimately show ?thesis
+          by (simp add: sum_split f_def)
+      qed
+      have *: "(\<Sum>k. F UNIV (k + n)) = (\<Sum>k. F UNIV k) * (inverse 3::real) ^ n" for n
+        by (simp add: F_def power_add suminf_mult2)
+      have no: "f U < (sum (F U) {..<n} + (inverse 3::real) ^ n) / 2" 
+        if "n \<notin> U" for U
+      proof -
+        have [simp]: "F U n = 0"
+          by (simp add: F_def that)
+        have "(\<Sum>k. F U (k + Suc n)) \<le> (\<Sum>k. F UNIV (k + Suc n))"
+          by (metis F monoF subset_UNIV suminf_le summable_ignore_initial_segment)
+        then have "suminf (F U) \<le> (\<Sum>k. F UNIV (k + Suc n)) + (\<Sum>i<n. F U i)"
+          by (simp add: sum_split)
+        also have "\<dots> < (inverse 3::real) ^ n + (\<Sum>i<n. F U i)"
+          unfolding * using F32[of UNIV] by simp
+        finally have "suminf (F U) < inverse 3 ^ n + sum (F U) {..<n}" .
+        then show ?thesis
+          by (simp add: f_def)
+      qed
+      have "S \<inter> {..<n} = T \<inter> {..<n}"
+        using not_less_Least by (fastforce simp add: n_def)
+      then have "sum (F S) {..<n} = sum (F T) {..<n}"
+        by (metis (no_types, lifting) F_def Int_iff sum.cong)
+      moreover consider "n \<in> S-T" | "n \<in> T-S"
+        by (metis LeastI_ex ST_ne UnE ex_in_conv n_def)
+      ultimately show False
+        by (smt (verit, best) Diff_iff \<open>f S = f T\<close> yes no)
+    qed
+  qed
+  ultimately show ?thesis
+    by (meson image_subsetI lepoll_def)
+qed
+
+lemma open_interval_eqpoll_reals:
+  fixes a b::real
+  shows "{a<..<b} \<approx> (UNIV::real set) \<longleftrightarrow> a<b"
+  using bij_betw_tan bij_betw_open_intervals eqpoll_def
+  by (smt (verit, best) UNIV_I eqpoll_real_subset eqpoll_iff_bijections greaterThanLessThan_iff)
+
+lemma closed_interval_eqpoll_reals:
+  fixes a b::real
+  shows "{a..b} \<approx> (UNIV::real set) \<longleftrightarrow> a < b"
+proof
+  show "{a..b} \<approx> (UNIV::real set) \<Longrightarrow> a < b"
+    using eqpoll_finite_iff infinite_Icc_iff infinite_UNIV_char_0 by blast
+qed (auto simp: eqpoll_real_subset)
+
+
+lemma reals_lepoll_reals01: "(UNIV::real set) \<lesssim> {0..<1::real}"
+proof -
+  have "(UNIV::real set) \<approx> {0<..<1::real}"
+    by (simp add: open_interval_eqpoll_reals eqpoll_sym)
+  also have "\<dots> \<lesssim> {0..<1::real}"
+    by (simp add: greaterThanLessThan_subseteq_atLeastLessThan_iff subset_imp_lepoll)
+  finally show ?thesis .
+qed
+
+lemma nat_sets_eqpoll_reals: "(UNIV::nat set set) \<approx> (UNIV::real set)"
+  by (metis (mono_tags, opaque_lifting) reals_lepoll_reals01 lepoll_antisym lepoll_trans 
+      nat_sets_lepoll_reals01 reals01_lepoll_nat_sets subset_UNIV subset_imp_lepoll)
 
 end

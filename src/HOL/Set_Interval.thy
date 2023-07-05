@@ -2265,6 +2265,20 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma geometric_sum_less:
+  assumes "0 < x" "x < 1" "finite S"
+  shows "(\<Sum>i\<in>S. x ^ i) < 1 / (1 - x::'a::linordered_field)"
+proof -
+  define n where "n \<equiv> Suc (Max S)" 
+  have "(\<Sum>i\<in>S. x ^ i) \<le> (\<Sum>i<n. x ^ i)"
+    unfolding n_def using assms  by (fastforce intro!: sum_mono2 le_imp_less_Suc)
+  also have "\<dots> = (1 - x ^ n) / (1 - x)"
+    using assms by (simp add: geometric_sum field_simps)
+  also have "\<dots> < 1 / (1-x)"
+    using assms by (simp add: field_simps power_Suc_less)
+  finally show ?thesis .
+qed
+
 lemma diff_power_eq_sum:
   fixes y :: "'a::{comm_ring,monoid_mult}"
   shows

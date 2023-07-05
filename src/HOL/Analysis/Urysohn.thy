@@ -4333,7 +4333,7 @@ proof -
   then obtain a where "a \<in> topspace X" "a \<notin> S"
     using \<open>S \<noteq> topspace X\<close> by blast
   have "(UNIV::real set) \<lesssim> {0..1::real}"
-    using card_eq_real_subset 
+    using eqpoll_real_subset 
     by (meson atLeastAtMost_iff eqpoll_imp_lepoll eqpoll_sym less_eq_real_def zero_less_one)
   also have "\<dots> \<lesssim> topspace X"
   proof -
@@ -4366,7 +4366,7 @@ lemma connected_space_imp_card_ge_gen:
   shows "(UNIV::real set) \<lesssim> topspace X"
 proof -
   have "(UNIV::real set) \<lesssim> {0..1::real}"
-    by (metis atLeastAtMost_iff card_eq_real_subset eqpoll_imp_lepoll eqpoll_sym less_le_not_le zero_less_one)
+    by (metis atLeastAtMost_iff eqpoll_real_subset eqpoll_imp_lepoll eqpoll_sym less_le_not_le zero_less_one)
   also have "\<dots>\<lesssim> topspace X"
   proof -
     obtain f where contf: "continuous_map X euclidean f"
