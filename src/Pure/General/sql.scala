@@ -642,7 +642,7 @@ object PostgreSQL {
     // see https://www.postgresql.org/docs/current/explicit-locking.html
 
     override def lock_tables(tables: List[SQL.Table]): PostgreSQL.Source =
-      "LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE"
+      if_proper(tables, "LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE")
 
 
     /* notifications: IPC via database server */
