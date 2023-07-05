@@ -421,7 +421,7 @@ object Build_Process {
     def read_sessions_domain(db: SQL.Database, build_uuid: String = ""): Set[String] =
       db.execute_query_statement(
         Sessions.table.select(List(Sessions.name),
-          sql = if_proper(build_uuid, Sessions.name.where_equal(build_uuid))),
+          sql = if_proper(build_uuid, Sessions.build_uuid.where_equal(build_uuid))),
         Set.from[String], res => res.string(Sessions.name))
 
     def read_sessions(db: SQL.Database,
@@ -845,13 +845,12 @@ extends AutoCloseable {
   private val _build_database: Option[SQL.Database] =
     try {
       for (db <- store.maybe_open_build_database()) yield {
-        val shared_db = db.is_postgresql
+        val more_tables = if (db.is_postgresql) Store.Data.tables else SQL.Tables.empty
         Build_Process.Data.transaction_lock(db, create = true) {
           Build_Process.Data.clean_build(db)
-          if (shared_db) Store.Data.tables.lock(db, create = true)
+          more_tables.lock(db, create = true)
         }
-        Build_Process.Data.vacuum(db,
-          more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
+        Build_Process.Data.vacuum(db, more_tables = more_tables)
         db
       }
     }
@@ -1081,7 +1080,7 @@ extends AutoCloseable {
       start_worker()
 
       if (build_context.master && !build_context.worker_active) {
-        progress.echo("Waiting for external workers ...")
+        build_progress.echo("Waiting for external workers ...")
       }
 
       try {
