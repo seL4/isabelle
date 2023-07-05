@@ -845,13 +845,12 @@ extends AutoCloseable {
   private val _build_database: Option[SQL.Database] =
     try {
       for (db <- store.maybe_open_build_database()) yield {
-        val shared_db = db.is_postgresql
+        val more_tables = if (db.is_postgresql) Store.Data.tables else SQL.Tables.empty
         Build_Process.Data.transaction_lock(db, create = true) {
           Build_Process.Data.clean_build(db)
-          if (shared_db) Store.Data.tables.lock(db, create = true)
+          more_tables.lock(db, create = true)
         }
-        Build_Process.Data.vacuum(db,
-          more_tables = if (shared_db) Store.Data.tables else SQL.Tables.empty)
+        Build_Process.Data.vacuum(db, more_tables = more_tables)
         db
       }
     }
