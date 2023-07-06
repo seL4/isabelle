@@ -218,6 +218,10 @@ lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B
 lemma inj_onI [intro?]: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<Longrightarrow> x = y) \<Longrightarrow> inj_on f A"
   by (simp add: inj_on_def)
 
+text \<open>For those frequent proofs by contradiction\<close>
+lemma inj_onCI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<Longrightarrow> x \<noteq> y \<Longrightarrow> False) \<Longrightarrow> inj_on f A"
+  by (force simp: inj_on_def)
+
 lemma inj_on_inverseI: "(\<And>x. x \<in> A \<Longrightarrow> g (f x) = x) \<Longrightarrow> inj_on f A"
   by (auto dest: arg_cong [of concl: g] simp add: inj_on_def)
 

@@ -719,6 +719,9 @@ lemma set_diff_eq: "A - B = {x. x \<in> A \<and> x \<notin> B}"
 lemma Compl_eq_Diff_UNIV: "- A = (UNIV - A)"
   by blast
 
+abbreviation sym_diff :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "sym_diff A B \<equiv> ((A - B) \<union> (B-A))"
+
 
 subsubsection \<open>Augmenting a set -- \<^const>\<open>insert\<close>\<close>
 

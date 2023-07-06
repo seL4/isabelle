@@ -8,10 +8,6 @@ theory Equivalence_Measurable_On_Borel
   imports Equivalence_Lebesgue_Henstock_Integration Improper_Integral Continuous_Extension
 begin
 
-(*Borrowed from Ergodic_Theory/SG_Library_Complement*)
-abbreviation sym_diff :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "sym_diff A B \<equiv> ((A - B) \<union> (B-A))"
-
 subsection\<open>Austin's Lemma\<close>
 
 lemma Austin_Lemma:
