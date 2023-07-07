@@ -132,7 +132,7 @@ object Store {
       build_log: Build_Log.Session_Info,
       build: Build_Info
     ): Unit = {
-      db.execute_statement(Data.Session_Info.table.insert(), body =
+      db.execute_statement(Session_Info.table.insert(), body =
         { stmt =>
           stmt.string(1) = session_name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
