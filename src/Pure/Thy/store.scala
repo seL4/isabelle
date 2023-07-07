@@ -125,6 +125,54 @@ object Store {
           if_proper(name, Sources.name.equal(name)))
     }
 
+    def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
+      db.execute_query_statementO[Bytes](
+        Session_Info.table.select(List(column), sql = Session_Info.session_name.where_equal(name)),
+        res => res.bytes(column)
+      ).getOrElse(Bytes.empty)
+
+    def read_properties(
+      db: SQL.Database, name: String, column: SQL.Column, cache: Term.Cache
+    ): List[Properties.T] = Properties.uncompress(read_bytes(db, name, column), cache = cache)
+
+    def read_session_timing(db: SQL.Database, name: String, cache: Term.Cache): Properties.T =
+      Properties.decode(read_bytes(db, name, Session_Info.session_timing), cache = cache)
+
+    def read_command_timings(db: SQL.Database, name: String): Bytes =
+      read_bytes(db, name, Session_Info.command_timings)
+
+    def read_theory_timings(db: SQL.Database, name: String, cache: Term.Cache): List[Properties.T] =
+      read_properties(db, name, Session_Info.theory_timings, cache)
+
+    def read_ml_statistics(db: SQL.Database, name: String, cache: Term.Cache): List[Properties.T] =
+      read_properties(db, name, Session_Info.ml_statistics, cache)
+
+    def read_task_statistics(db: SQL.Database, name: String, cache: Term.Cache): List[Properties.T] =
+      read_properties(db, name, Session_Info.task_statistics, cache)
+
+    def read_errors(db: SQL.Database, name: String, cache: Term.Cache): List[String] =
+      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
+
+    def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
+      if (db.tables.contains(Session_Info.table.name)) {
+        db.execute_query_statementO[Store.Build_Info](
+          Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
+          { res =>
+            val uuid =
+              try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+              catch { case _: SQLException => "" }
+            Store.Build_Info(
+              SHA1.fake_shasum(res.string(Session_Info.sources)),
+              SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
+              SHA1.fake_shasum(res.string(Session_Info.output_heap)),
+              res.int(Session_Info.return_code),
+              uuid)
+          }
+        )
+      }
+      else None
+    }
+
     def write_session_info(
       db: SQL.Database,
       cache: Compress.Cache,
@@ -163,9 +211,9 @@ object Store {
 
     def read_sources(
       db: SQL.Database,
-      cache: Compress.Cache,
       session_name: String,
-      name: String = ""
+      name: String,
+      cache: Compress.Cache
     ): List[Source_File] = {
       db.execute_query_statement(
         Sources.table.select(
@@ -359,19 +407,6 @@ class Store private(val options: Options, val cache: Term.Cache) {
   }
 
 
-  /* SQL database content */
-
-  def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
-    db.execute_query_statementO[Bytes](
-      Store.Data.Session_Info.table.select(List(column),
-        sql = Store.Data.Session_Info.session_name.where_equal(name)),
-      res => res.bytes(column)
-    ).getOrElse(Bytes.empty)
-
-  def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
-    Properties.uncompress(read_bytes(db, name, column), cache = cache)
-
-
   /* session info */
 
   def session_info_exists(db: SQL.Database): Boolean = {
@@ -416,48 +451,30 @@ class Store private(val options: Options, val cache: Term.Cache) {
     }
   }
 
-  def read_session_timing(db: SQL.Database, name: String): Properties.T =
-    Properties.decode(read_bytes(db, name, Store.Data.Session_Info.session_timing), cache = cache)
+  def read_session_timing(db: SQL.Database, session: String): Properties.T =
+    Store.Data.transaction_lock(db) { Store.Data.read_session_timing(db, session, cache) }
 
-  def read_command_timings(db: SQL.Database, name: String): Bytes =
-    read_bytes(db, name, Store.Data.Session_Info.command_timings)
+  def read_command_timings(db: SQL.Database, session: String): Bytes =
+    Store.Data.transaction_lock(db) { Store.Data.read_command_timings(db, session) }
 
-  def read_theory_timings(db: SQL.Database, name: String): List[Properties.T] =
-    read_properties(db, name, Store.Data.Session_Info.theory_timings)
+  def read_theory_timings(db: SQL.Database, session: String): List[Properties.T] =
+    Store.Data.transaction_lock(db) { Store.Data.read_theory_timings(db, session, cache) }
 
-  def read_ml_statistics(db: SQL.Database, name: String): List[Properties.T] =
-    read_properties(db, name, Store.Data.Session_Info.ml_statistics)
+  def read_ml_statistics(db: SQL.Database, session: String): List[Properties.T] =
+    Store.Data.transaction_lock(db) { Store.Data.read_ml_statistics(db, session, cache) }
 
-  def read_task_statistics(db: SQL.Database, name: String): List[Properties.T] =
-    read_properties(db, name, Store.Data.Session_Info.task_statistics)
+  def read_task_statistics(db: SQL.Database, session: String): List[Properties.T] =
+    Store.Data.transaction_lock(db) { Store.Data.read_task_statistics(db, session, cache) }
 
-  def read_theories(db: SQL.Database, name: String): List[String] =
-    read_theory_timings(db, name).flatMap(Markup.Name.unapply)
+  def read_theories(db: SQL.Database, session: String): List[String] =
+    read_theory_timings(db, session).flatMap(Markup.Name.unapply)
 
-  def read_errors(db: SQL.Database, name: String): List[String] =
-    Build_Log.uncompress_errors(read_bytes(db, name, Store.Data.Session_Info.errors), cache = cache)
+  def read_errors(db: SQL.Database, session: String): List[String] =
+    Store.Data.transaction_lock(db) { Store.Data.read_errors(db, session, cache) }
 
-  def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
-    if (db.tables.contains(Store.Data.Session_Info.table.name)) {
-      db.execute_query_statementO[Store.Build_Info](
-        Store.Data.Session_Info.table.select(
-          sql = Store.Data.Session_Info.session_name.where_equal(name)),
-        { res =>
-          val uuid =
-            try { Option(res.string(Store.Data.Session_Info.uuid)).getOrElse("") }
-            catch { case _: SQLException => "" }
-          Store.Build_Info(
-            SHA1.fake_shasum(res.string(Store.Data.Session_Info.sources)),
-            SHA1.fake_shasum(res.string(Store.Data.Session_Info.input_heaps)),
-            SHA1.fake_shasum(res.string(Store.Data.Session_Info.output_heap)),
-            res.int(Store.Data.Session_Info.return_code),
-            uuid)
-        }
-      )
-    }
-    else None
-  }
+  def read_build(db: SQL.Database, session: String): Option[Store.Build_Info] =
+    Store.Data.transaction_lock(db) { Store.Data.read_build(db, session) }
 
   def read_sources(db: SQL.Database, session: String, name: String = ""): List[Store.Source_File] =
-    Store.Data.read_sources(db, cache.compress, session, name = name)
+    Store.Data.transaction_lock(db) { Store.Data.read_sources(db, session, name, cache.compress) }
 }
