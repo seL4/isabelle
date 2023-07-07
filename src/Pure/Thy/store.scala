@@ -78,9 +78,7 @@ object Store {
   /* SQL data model */
 
   object Data extends SQL.Data() {
-    override lazy val tables =
-      SQL.Tables(Session_Info.table, Sources.table,
-        Export.Data.Base.table, Document_Build.Data.table)
+    override lazy val tables = SQL.Tables(Session_Info.table, Sources.table)
 
     object Session_Info {
       val session_name = SQL.Column.string("session_name").make_primary_key
@@ -134,7 +132,7 @@ object Store {
       build_log: Build_Log.Session_Info,
       build: Build_Info
     ): Unit = {
-      db.execute_statement(Store.Data.Session_Info.table.insert(), body =
+      db.execute_statement(Data.Session_Info.table.insert(), body =
         { stmt =>
           stmt.string(1) = session_name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
@@ -386,7 +384,10 @@ class Store private(val options: Options, val cache: Term.Cache) {
       Store.Data.Session_Info.table.select(List(Store.Data.Session_Info.session_name),
         sql = Store.Data.Session_Info.session_name.where_equal(name)))
 
-  def clean_session_info(db: SQL.Database, name: String): Boolean =
+  def clean_session_info(db: SQL.Database, name: String): Boolean = {
+    Export.clean_session(db, name)
+    Document_Build.clean_session(db, name)
+
     Store.Data.transaction_lock(db, create = true, synchronized = true) {
       val already_defined = session_info_defined(db, name)
 
@@ -398,14 +399,9 @@ class Store private(val options: Options, val cache: Term.Cache) {
       db.execute_statement(Store.Data.Sources.table.delete(
         sql = Store.Data.Sources.where_equal(name)))
 
-      db.execute_statement(
-        Export.Data.Base.table.delete(sql = Export.Data.Base.session_name.where_equal(name)))
-
-      db.execute_statement(
-        Document_Build.Data.table.delete(sql = Document_Build.Data.session_name.where_equal(name)))
-
       already_defined
     }
+  }
 
   def write_session_info(
     db: SQL.Database,
