@@ -75,17 +75,6 @@ object Document_Build {
     def clean_session(db: SQL.Database, session_name: String): Unit =
       db.execute_statement(Base.table.delete(sql = Base.session_name.where_equal(session_name)))
 
-    def read_documents(db: SQL.Database, session_name: String): List[Document_Input] =
-      db.execute_query_statement(
-        Base.table.select(List(Base.name, Base.sources), sql = where_equal(session_name)),
-        List.from[Document_Input],
-        { res =>
-          val name = res.string(Base.name)
-          val sources = res.string(Base.sources)
-          Document_Input(name, SHA1.fake_shasum(sources))
-        }
-      )
-
     def read_document(
       db: SQL.Database,
       session_name: String,
@@ -116,9 +105,6 @@ object Document_Build {
 
   def clean_session(db: SQL.Database, session_name: String): Unit =
     Data.transaction_lock(db, create = true) { Data.clean_session(db, session_name) }
-
-  def read_documents(db: SQL.Database, session_name: String): List[Document_Input] =
-    Data.transaction_lock(db) { Data.read_documents(db, session_name) }
 
   def read_document(db: SQL.Database, session_name: String, name: String): Option[Document_Output] =
     Data.transaction_lock(db) { Data.read_document(db, session_name, name) }
