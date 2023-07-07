@@ -252,11 +252,10 @@ object SQL {
 
     def transaction_lock[A](
       db: Database,
-      more_tables: Tables = Tables.empty,
       create: Boolean = false,
       synchronized: Boolean = false,
     )(body: => A): A = {
-      def run: A = db.transaction { (tables ::: more_tables).lock(db, create = create); body }
+      def run: A = db.transaction { tables.lock(db, create = create); body }
       if (synchronized) db.synchronized { run } else run
     }
 
