@@ -260,9 +260,6 @@ object SQL {
       if (synchronized) db.synchronized { run } else run
     }
 
-    def vacuum(db: Database, more_tables: Tables = Tables.empty): Unit =
-      db.vacuum(tables = tables ::: more_tables)
-
     def make_table(name: String, columns: List[Column], body: String = ""): Table = {
       val table_name =
         List(proper_string(table_prefix), proper_string(name)).flatten.mkString("_")

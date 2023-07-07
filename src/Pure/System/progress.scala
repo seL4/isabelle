@@ -289,7 +289,7 @@ extends Progress {
         stmt.long(10) = 0L
       })
     }
-    if (context_uuid == _agent_uuid) Progress.Data.vacuum(db)
+    if (context_uuid == _agent_uuid) db.vacuum(Progress.Data.tables)
   }
 
   def exit(close: Boolean = false): Unit = synchronized {

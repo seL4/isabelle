@@ -850,7 +850,7 @@ extends AutoCloseable {
           Build_Process.Data.clean_build(db)
           more_tables.lock(db, create = true)
         }
-        Build_Process.Data.vacuum(db, more_tables = more_tables)
+        db.vacuum(Build_Process.Data.tables ::: more_tables)
         db
       }
     }
