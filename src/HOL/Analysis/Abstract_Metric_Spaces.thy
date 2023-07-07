@@ -144,24 +144,6 @@ proof -
     by (auto simp: openin_mtopology)
 qed
 
-(*
-lemma metric_injective_image:
-   "\<And>f m s.
-        f ` s \<subseteq> M \<and>
-        (\<forall>x y. x \<in> s \<and> y \<in> s \<and> f x = f y \<Longrightarrow> x = y)
-        \<Longrightarrow> (mspace(metric(s,\<lambda>(x,y). d (f x) (f y))) = s) \<and>
-            (d(metric(s,\<lambda>(x,y). d (f x) (f y))) =
-             \<lambda>(x,y). d (f x) (f y))"
-oops
-  REWRITE_TAC[\<subseteq>; FORALL_IN_IMAGE; INJECTIVE_ON_ALT] THEN
-  REPEAT GEN_TAC THEN STRIP_TAC THEN
-  REWRITE_TAC[mspace; d; GSYM PAIR_EQ] THEN
-  REWRITE_TAC[GSYM(CONJUNCT2 metric_tybij); is_metric_space] THEN
-  REWRITE_TAC[GSYM mspace; GSYM d] THEN
-  ASM_SIMP_TAC[MDIST_POS_LE; MDIST_TRIANGLE; MDIST_0] THEN
-  ASM_MESON_TAC[MDIST_SYM]);;
-*)
-
 lemma mtopology_base:
    "mtopology = topology(arbitrary union_of (\<lambda>U. \<exists>x \<in> M. \<exists>r>0. U = mball x r))"
 proof -
@@ -265,8 +247,6 @@ proof clarify
   then show "\<exists>U V. openin mtopology U \<and> openin mtopology V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
     by (metis centre_in_mball_iff gt0 openin_mball topspace_mtopology x y)
 qed
-
-
 
 subsection\<open>Bounded sets\<close>
 
@@ -655,6 +635,33 @@ definition metrizable_space where
 
 lemma (in Metric_space) metrizable_space_mtopology: "metrizable_space mtopology"
   using local.Metric_space_axioms metrizable_space_def by blast
+
+lemma (in Metric_space) first_countable_mtopology: "first_countable mtopology"
+proof (clarsimp simp add: first_countable_def)
+  fix x
+  assume "x \<in> M"
+  define \<B> where "\<B> \<equiv> mball x ` {r \<in> \<rat>. 0 < r}"
+  show "\<exists>\<B>. countable \<B> \<and> (\<forall>V\<in>\<B>. openin mtopology V) \<and> (\<forall>U. openin mtopology U \<and> x \<in> U \<longrightarrow> (\<exists>V\<in>\<B>. x \<in> V \<and> V \<subseteq> U))"
+  proof (intro exI conjI ballI)
+    show "countable \<B>"
+      by (simp add: \<B>_def countable_rat)
+    show "\<forall>U. openin mtopology U \<and> x \<in> U \<longrightarrow> (\<exists>V\<in>\<B>. x \<in> V \<and> V \<subseteq> U)"
+    proof clarify
+      fix U
+      assume "openin mtopology U" and "x \<in> U"
+      then obtain r where "r>0" and r: "mball x r \<subseteq> U"
+        by (meson openin_mtopology)
+      then obtain q where "q \<in> Rats" "0 < q" "q < r"
+        using Rats_dense_in_real by blast
+      then show "\<exists>V\<in>\<B>. x \<in> V \<and> V \<subseteq> U"
+        unfolding \<B>_def using \<open>x \<in> M\<close> r by fastforce
+    qed
+  qed (auto simp: \<B>_def)
+qed
+
+lemma metrizable_imp_first_countable:
+   "metrizable_space X \<Longrightarrow> first_countable X"
+  by (force simp add: metrizable_space_def Metric_space.first_countable_mtopology)
 
 lemma openin_mtopology_eq_open [simp]: "openin Met_TC.mtopology = open"
   by (simp add: Met_TC.mtopology_def)
