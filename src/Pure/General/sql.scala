@@ -609,9 +609,7 @@ object PostgreSQL {
     override def toString: String = name
 
     override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
-      if (tables.list.nonEmpty) {
-        execute_statement("VACUUM" + if_proper(tables.list, " " + commas(tables.list.map(_.ident))))
-      }
+      for (table <- tables) execute_statement("VACUUM " + table.ident)
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
