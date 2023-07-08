@@ -55,7 +55,7 @@ object ML_Heap {
       val size = SQL.Column.long("size")
       val digest = SQL.Column.string("digest")
 
-      val table = make_table("", List(name, size, digest))
+      val table = make_table(List(name, size, digest))
     }
 
     object Slices {
@@ -63,7 +63,7 @@ object ML_Heap {
       val slice = SQL.Column.int("slice").make_primary_key
       val content = SQL.Column.bytes("content")
 
-      val table = make_table("slices", List(name, slice, content))
+      val table = make_table(List(name, slice, content), name = "slices")
     }
 
     def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =

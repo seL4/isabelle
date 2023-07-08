@@ -342,7 +342,7 @@ object Build_Process {
       val start = SQL.Column.date("start")
       val stop = SQL.Column.date("stop")
 
-      val table = make_table("", List(build_uuid, ml_platform, options, start, stop))
+      val table = make_table(List(build_uuid, ml_platform, options, start, stop))
     }
 
     def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] = {
@@ -413,9 +413,11 @@ object Build_Process {
       val old_command_timings = SQL.Column.bytes("old_command_timings")
       val build_uuid = Generic.build_uuid
 
-      val table = make_table("sessions",
-        List(name, deps, ancestors, options, sources, timeout,
-          old_time, old_command_timings, build_uuid))
+      val table =
+        make_table(
+          List(name, deps, ancestors, options, sources, timeout,
+            old_time, old_command_timings, build_uuid),
+          name = "sessions")
     }
 
     def read_sessions_domain(db: SQL.Database, build_uuid: String = ""): Set[String] =
@@ -485,7 +487,8 @@ object Build_Process {
       val stop = SQL.Column.date("stop")
       val serial = SQL.Column.long("serial")
 
-      val table = make_table("workers", List(worker_uuid, build_uuid, start, stamp, stop, serial))
+      val table =
+        make_table(List(worker_uuid, build_uuid, start, stamp, stop, serial), name = "workers")
     }
 
     def read_serial(db: SQL.Database): Long =
@@ -575,7 +578,7 @@ object Build_Process {
       val info = SQL.Column.string("info")
       val build_uuid = Generic.build_uuid
 
-      val table = make_table("pending", List(name, deps, info, build_uuid))
+      val table = make_table(List(name, deps, info, build_uuid), name = "pending")
     }
 
     def read_pending(db: SQL.Database): List[Task] =
@@ -622,7 +625,8 @@ object Build_Process {
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
 
-      val table = make_table("running", List(name, worker_uuid, build_uuid, hostname, numa_node))
+      val table =
+        make_table(List(name, worker_uuid, build_uuid, hostname, numa_node), name = "running")
     }
 
     def read_running(db: SQL.Database): State.Running =
@@ -683,9 +687,10 @@ object Build_Process {
       val current = SQL.Column.bool("current")
 
       val table =
-        make_table("results",
+        make_table(
           List(name, worker_uuid, build_uuid, hostname, numa_node,
-            rc, out, err, timing_elapsed, timing_cpu, timing_gc, output_shasum, current))
+            rc, out, err, timing_elapsed, timing_cpu, timing_gc, output_shasum, current),
+          name = "results")
     }
 
     def read_results_domain(db: SQL.Database): Set[String] =

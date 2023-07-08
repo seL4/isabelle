@@ -51,7 +51,7 @@ object Progress {
       val context = SQL.Column.long("context").make_primary_key
       val stopped = SQL.Column.bool("stopped")
 
-      val table = make_table("", List(context_uuid, context, stopped))
+      val table = make_table(List(context_uuid, context, stopped))
     }
 
     object Agents {
@@ -66,8 +66,10 @@ object Progress {
       val stop = SQL.Column.date("stop")
       val seen = SQL.Column.long("seen")
 
-      val table = make_table("agents",
-        List(agent_uuid, context_uuid, kind, hostname, java_pid, java_start, start, stamp, stop, seen))
+      val table =
+        make_table(
+          List(agent_uuid, context_uuid, kind, hostname, java_pid, java_start, start, stamp, stop, seen),
+          name = "agents")
     }
 
     object Messages {
@@ -80,7 +82,7 @@ object Progress {
       val text = SQL.Column.string("text")
       val verbose = SQL.Column.bool("verbose")
 
-      val table = make_table("messages", List(context, serial, kind, text, verbose))
+      val table = make_table(List(context, serial, kind, text, verbose), name = "messages")
     }
 
     def read_progress_context(db: SQL.Database, context_uuid: String): Option[Long] =

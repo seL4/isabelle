@@ -64,7 +64,7 @@ object Document_Build {
       val log_xz = SQL.Column.bytes("log_xz")
       val pdf = SQL.Column.bytes("pdf")
 
-      val table = make_table("", List(session_name, name, sources, log_xz, pdf))
+      val table = make_table(List(session_name, name, sources, log_xz, pdf))
     }
 
     def where_equal(session_name: String, name: String = ""): SQL.Source =

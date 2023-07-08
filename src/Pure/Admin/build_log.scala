@@ -658,21 +658,23 @@ object Build_Log {
     val known = SQL.Column.bool("known")
 
     val meta_info_table =
-      make_table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
+      make_table(log_name :: Prop.all_props ::: Settings.all_settings, name = "meta_info")
 
     val sessions_table =
-      make_table("sessions",
+      make_table(
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
-          heap_size, status, errors, sources))
+          heap_size, status, errors, sources),
+        name = "sessions")
 
     val theories_table =
-      make_table("theories",
+      make_table(
         List(log_name, session_name, theory_name, theory_timing_elapsed, theory_timing_cpu,
-          theory_timing_gc))
+          theory_timing_gc),
+        name = "theories")
 
     val ml_statistics_table =
-      make_table("ml_statistics", List(log_name, session_name, ml_statistics))
+      make_table(List(log_name, session_name, ml_statistics), name = "ml_statistics")
 
 
     /* AFP versions */
@@ -680,9 +682,11 @@ object Build_Log {
     val isabelle_afp_versions_table: SQL.Table = {
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
-      make_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
-        SQL.select(List(version1, version2), distinct = true) + meta_info_table +
-          SQL.where_and(version1.defined, version2.defined))
+      make_table(List(version1.make_primary_key, version2),
+        body =
+          SQL.select(List(version1, version2), distinct = true) + meta_info_table +
+            SQL.where_and(version1.defined, version2.defined),
+        name = "isabelle_afp_versions")
     }
 
 
@@ -697,12 +701,14 @@ object Build_Log {
         if (afp) ("afp_pull_date", List(Prop.isabelle_version, Prop.afp_version))
         else ("pull_date", List(Prop.isabelle_version))
 
-      make_table(name, versions.map(_.make_primary_key) ::: List(pull_date(afp)),
-        "SELECT " + versions.mkString(", ") +
-          ", min(" + Prop.build_start + ") AS " + pull_date(afp) +
-        " FROM " + meta_info_table +
-        " WHERE " + SQL.AND((versions ::: List(Prop.build_start)).map(_.defined)) +
-        " GROUP BY " + versions.mkString(", "))
+      make_table(versions.map(_.make_primary_key) ::: List(pull_date(afp)),
+        body =
+          "SELECT " + versions.mkString(", ") +
+            ", min(" + Prop.build_start + ") AS " + pull_date(afp) +
+          " FROM " + meta_info_table +
+          " WHERE " + SQL.AND((versions ::: List(Prop.build_start)).map(_.defined)) +
+          " GROUP BY " + versions.mkString(", "),
+        name = name)
     }
 
 
@@ -794,14 +800,13 @@ object Build_Log {
           b_table.query_named + SQL.join_inner + sessions_table +
           " ON " + log_name(b_table) + " = " + log_name(sessions_table))
 
-      make_table("", c_columns ::: List(ml_statistics),
-        {
+      make_table(c_columns ::: List(ml_statistics),
+        body =
           SQL.select(c_columns.map(_.apply(c_table)) ::: List(ml_statistics)) +
           c_table.query_named + SQL.join_outer + ml_statistics_table + " ON " +
             SQL.and(
               log_name(c_table).ident + " = " + log_name(ml_statistics_table).ident,
-              session_name(c_table).ident + " = " + session_name(ml_statistics_table).ident)
-        })
+              session_name(c_table).ident + " = " + session_name(ml_statistics_table).ident))
     }
   }
 

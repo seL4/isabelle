@@ -259,7 +259,7 @@ object SQL {
       if (synchronized) db.synchronized { run } else run
     }
 
-    def make_table(name: String, columns: List[Column], body: String = ""): Table = {
+    def make_table(columns: List[Column], body: String = "", name: String = ""): Table = {
       val table_name =
         List(proper_string(table_prefix), proper_string(name)).flatten.mkString("_")
       require(table_name.nonEmpty, "Undefined database table name")
