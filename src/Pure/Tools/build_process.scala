@@ -288,7 +288,7 @@ object Build_Process {
       old_data: Map[String, A]
     ): Map[String, A] = {
       val dom = data_domain -- old_data.keysIterator
-      val data = old_data -- old_data.keysIterator.filterNot(dom)
+      val data = old_data -- old_data.keysIterator.filterNot(data_domain)
       if (dom.isEmpty) data
       else data_iterator(dom).foldLeft(data) { case (map, a) => map + (a.name -> a) }
     }
