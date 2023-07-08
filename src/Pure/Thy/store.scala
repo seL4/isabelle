@@ -103,10 +103,6 @@ object Store {
       val build_columns = List(sources, input_heaps, output_heap, return_code, uuid)
 
       val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
-
-      val augment_table: PostgreSQL.Source =
-        "ALTER TABLE IF EXISTS " + table.ident +
-        " ADD COLUMN IF NOT EXISTS " + uuid.decl(SQL.sql_type_postgresql)
     }
 
     object Sources {
@@ -429,7 +425,6 @@ class Store private(val options: Options, val cache: Term.Cache) {
       db.execute_statement(
         Store.Data.Session_Info.table.delete(
           sql = Store.Data.Session_Info.session_name.where_equal(name)))
-      if (db.is_postgresql) db.execute_statement(Store.Data.Session_Info.augment_table)
 
       db.execute_statement(Store.Data.Sources.table.delete(
         sql = Store.Data.Sources.where_equal(name)))
