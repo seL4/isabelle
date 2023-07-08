@@ -526,7 +526,7 @@ object SQLite {
     override def toString: String = name
 
     override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
-      execute_statement("VACUUM")  // always FULL
+      if (tables.list.nonEmpty) execute_statement("VACUUM")  // always FULL
 
     override def now(): Date = Date.now()
 
@@ -609,7 +609,9 @@ object PostgreSQL {
     override def toString: String = name
 
     override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
-      execute_statement("VACUUM" + if_proper(tables.list, " " + commas(tables.list.map(_.ident))))
+      if (tables.list.nonEmpty) {
+        execute_statement("VACUUM" + if_proper(tables.list, " " + commas(tables.list.map(_.ident))))
+      }
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
