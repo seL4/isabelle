@@ -733,8 +733,12 @@ object Build_Process {
       )
 
     def update_results(db: SQL.Database, results: State.Results): Boolean = {
-      val old_results = read_results_domain(db)
-      val insert = results.valuesIterator.filterNot(res => old_results.contains(res.name)).toList
+      val insert =
+        if (results.isEmpty) Nil
+        else {
+          val old_results = read_results_domain(db)
+          results.valuesIterator.filterNot(res => old_results.contains(res.name)).toList
+        }
 
       for (result <- insert) {
         val process_result = result.process_result
