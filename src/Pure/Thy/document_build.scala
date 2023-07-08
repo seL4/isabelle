@@ -54,58 +54,63 @@ object Document_Build {
 
   /* SQL data model */
 
-  object Data {
-    val session_name = SQL.Column.string("session_name").make_primary_key
-    val name = SQL.Column.string("name").make_primary_key
-    val sources = SQL.Column.string("sources")
-    val log_xz = SQL.Column.bytes("log_xz")
-    val pdf = SQL.Column.bytes("pdf")
+  object Data extends SQL.Data("isabelle_documents") {
+    override lazy val tables = SQL.Tables(Base.table)
 
-    val table = SQL.Table("isabelle_documents", List(session_name, name, sources, log_xz, pdf))
+    object Base {
+      val session_name = SQL.Column.string("session_name").make_primary_key
+      val name = SQL.Column.string("name").make_primary_key
+      val sources = SQL.Column.string("sources")
+      val log_xz = SQL.Column.bytes("log_xz")
+      val pdf = SQL.Column.bytes("pdf")
+
+      val table = make_table(List(session_name, name, sources, log_xz, pdf))
+    }
 
     def where_equal(session_name: String, name: String = ""): SQL.Source =
       SQL.where_and(
-        Data.session_name.equal(session_name),
-        if_proper(name, Data.name.equal(name)))
+        Base.session_name.equal(session_name),
+        if_proper(name, Base.name.equal(name)))
+
+    def clean_session(db: SQL.Database, session_name: String): Unit =
+      db.execute_statement(Base.table.delete(sql = Base.session_name.where_equal(session_name)))
+
+    def read_document(
+      db: SQL.Database,
+      session_name: String,
+      name: String
+    ): Option[Document_Output] = {
+      db.execute_query_statementO[Document_Output](
+        Base.table.select(sql = where_equal(session_name, name = name)),
+        { res =>
+          val name = res.string(Base.name)
+          val sources = res.string(Base.sources)
+          val log_xz = res.bytes(Base.log_xz)
+          val pdf = res.bytes(Base.pdf)
+          Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf)
+        }
+      )
+    }
+
+    def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
+      db.execute_statement(Base.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = session_name
+          stmt.string(2) = doc.name
+          stmt.string(3) = doc.sources.toString
+          stmt.bytes(4) = doc.log_xz
+          stmt.bytes(5) = doc.pdf
+        })
   }
 
-  def read_documents(db: SQL.Database, session_name: String): List[Document_Input] =
-    db.execute_query_statement(
-      Data.table.select(List(Data.name, Data.sources), sql = Data.where_equal(session_name)),
-      List.from[Document_Input],
-      { res =>
-        val name = res.string(Data.name)
-        val sources = res.string(Data.sources)
-        Document_Input(name, SHA1.fake_shasum(sources))
-      }
-    )
+  def clean_session(db: SQL.Database, session_name: String): Unit =
+    Data.transaction_lock(db, create = true) { Data.clean_session(db, session_name) }
 
-  def read_document(
-    db: SQL.Database,
-    session_name: String,
-    name: String
-  ): Option[Document_Output] = {
-    db.execute_query_statementO[Document_Output](
-      Data.table.select(sql = Data.where_equal(session_name, name)),
-      { res =>
-        val name = res.string(Data.name)
-        val sources = res.string(Data.sources)
-        val log_xz = res.bytes(Data.log_xz)
-        val pdf = res.bytes(Data.pdf)
-        Document_Output(name, SHA1.fake_shasum(sources), log_xz, pdf)
-      }
-    )
-  }
+  def read_document(db: SQL.Database, session_name: String, name: String): Option[Document_Output] =
+    Data.transaction_lock(db) { Data.read_document(db, session_name, name) }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
-    db.execute_statement(Data.table.insert(), body =
-      { stmt =>
-        stmt.string(1) = session_name
-        stmt.string(2) = doc.name
-        stmt.string(3) = doc.sources.toString
-        stmt.bytes(4) = doc.log_xz
-        stmt.bytes(5) = doc.pdf
-      })
+    Data.transaction_lock(db) { Data.write_document(db, session_name, doc) }
 
 
   /* background context */

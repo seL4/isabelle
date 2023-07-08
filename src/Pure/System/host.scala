@@ -104,7 +104,7 @@ object Host {
       val hostname = SQL.Column.string("hostname").make_primary_key
       val numa_next = SQL.Column.int("numa_next")
 
-      val table = make_table("node_info", List(hostname, numa_next))
+      val table = make_table(List(hostname, numa_next), name = "node_info")
     }
 
     def read_numa_next(db: SQL.Database, hostname: String): Int =

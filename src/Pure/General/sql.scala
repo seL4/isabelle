@@ -252,18 +252,14 @@ object SQL {
 
     def transaction_lock[A](
       db: Database,
-      more_tables: Tables = Tables.empty,
       create: Boolean = false,
       synchronized: Boolean = false,
     )(body: => A): A = {
-      def run: A = db.transaction { (tables ::: more_tables).lock(db, create = create); body }
+      def run: A = db.transaction { tables.lock(db, create = create); body }
       if (synchronized) db.synchronized { run } else run
     }
 
-    def vacuum(db: Database, more_tables: Tables = Tables.empty): Unit =
-      db.vacuum(tables = tables ::: more_tables)
-
-    def make_table(name: String, columns: List[Column], body: String = ""): Table = {
+    def make_table(columns: List[Column], body: String = "", name: String = ""): Table = {
       val table_name =
         List(proper_string(table_prefix), proper_string(name)).flatten.mkString("_")
       require(table_name.nonEmpty, "Undefined database table name")

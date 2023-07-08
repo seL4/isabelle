@@ -51,6 +51,9 @@ object Export {
         if_proper(theory_name, Base.theory_name.equal(theory_name)),
         if_proper(name, Base.name.equal(name)))
 
+    def clean_session(db: SQL.Database, session_name: String): Unit =
+      db.execute_statement(Base.table.delete(sql = where_equal(session_name)))
+
     def readable_entry(db: SQL.Database, entry_name: Entry_Name): Boolean = {
       db.execute_query_statementB(
         Base.table.select(List(Base.name),
@@ -199,6 +202,9 @@ object Export {
     val regs = pats.map(make_regex)
     (entry_name: Entry_Name) => regs.exists(_.matches(entry_name.compound_name))
   }
+
+  def clean_session(db: SQL.Database, session_name: String): Unit =
+    Data.transaction_lock(db, create = true) { Data.clean_session(db, session_name) }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] =
     Data.transaction_lock(db) { Data.read_theory_names(db, session_name) }
