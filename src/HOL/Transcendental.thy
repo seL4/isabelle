@@ -2716,9 +2716,6 @@ lemma log_pow_cancel [simp]:
 lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp: floor_eq_iff powr_le_iff less_powr_iff)
 
-lemma power_of_nat_log_ge: "b > 1 \<Longrightarrow> b ^ nat \<lceil>log b x\<rceil> \<ge> x"
-  by (smt (verit) less_log_of_power of_nat_ceiling)
-
 lemma floor_log_nat_eq_powr_iff: 
   fixes b n k :: nat
   shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow> floor (log b (real k)) = n \<longleftrightarrow> b^n \<le> k \<and> k < b^(n+1)"
@@ -2805,6 +2802,19 @@ lemma powr_int:
   assumes "x > 0"
   shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1 / x ^ nat (-i))"
   by (simp add: assms inverse_eq_divide powr_real_of_int)
+
+lemma power_of_nat_log_ge: "b > 1 \<Longrightarrow> b ^ nat \<lceil>log b x\<rceil> \<ge> x"
+  by (smt (verit) less_log_of_power of_nat_ceiling)
+
+lemma power_of_nat_log_le:
+  assumes "b > 1" "x\<ge>1"
+  shows "b ^ nat \<lfloor>log b x\<rfloor> \<le> x"
+proof -
+  have "\<lfloor>log b x\<rfloor> \<ge> 0"
+    using assms by auto
+  then show ?thesis
+    by (smt (verit) assms le_log_iff of_int_floor_le powr_int)
+qed
 
 definition powr_real :: "real \<Rightarrow> real \<Rightarrow> real"
   where [code_abbrev, simp]: "powr_real = Transcendental.powr"
