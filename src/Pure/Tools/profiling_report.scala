@@ -29,7 +29,7 @@ object Profiling_Report {
             (for {
               thy <- used_theories.iterator
               if theories.isEmpty || theories.contains(thy)
-              snapshot <- Build_Job.read_theory(session_context.theory(thy)).iterator
+              snapshot <- Build.read_theory(session_context.theory(thy)).iterator
               (Protocol.ML_Profiling(report), _) <- snapshot.messages.iterator
             } yield if (clean_name) report.clean_name else report).toList
 
