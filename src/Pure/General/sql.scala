@@ -379,7 +379,16 @@ object SQL {
     def is_sqlite: Boolean = isInstanceOf[SQLite.Database]
     def is_postgresql: Boolean = isInstanceOf[PostgreSQL.Database]
 
-    def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit
+    def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
+      if (tables.list.nonEmpty) {
+        postgresql_major_version match {
+          case Some(m) if m <= 10 =>
+            for (table <- tables) execute_statement("VACUUM " + table.ident)
+          case Some(_) =>
+            execute_statement("VACUUM" + commas(tables.list.map(_.ident)))
+          case None => execute_statement("VACUUM")
+        }
+      }
 
     def now(): Date
 
@@ -406,6 +415,21 @@ object SQL {
     def the_postgresql_connection: PGConnection =
       postgresql_connection getOrElse
         error("PostgreSQL connection expected, but found " + connection.getClass.getName)
+
+    def postgresql_major_version: Option[Int] =
+      if (is_postgresql) {
+        def err(s: String): Nothing = error("Bad PostgreSQL version " + s)
+
+        the_postgresql_connection.getParameterStatus("server_version") match {
+          case null => err("null")
+          case str =>
+            str.iterator.takeWhile(Symbol.is_ascii_digit).mkString match {
+              case Value.Int(m) => Some(m)
+              case _ => err(quote(str))
+            }
+        }
+      }
+      else None
 
     def close(): Unit = connection.close()
 
@@ -525,9 +549,6 @@ object SQLite {
   class Database private[SQLite](name: String, val connection: Connection) extends SQL.Database {
     override def toString: String = name
 
-    override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
-      if (tables.list.nonEmpty) execute_statement("VACUUM")  // always FULL
-
     override def now(): Date = Date.now()
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
@@ -607,9 +628,6 @@ object PostgreSQL {
     port_forwarding: Option[SSH.Port_Forwarding]
   ) extends SQL.Database {
     override def toString: String = name
-
-    override def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
-      for (table <- tables) execute_statement("VACUUM " + table.ident)
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
