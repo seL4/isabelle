@@ -15,8 +15,17 @@ definition lepoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl "\
 definition lesspoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl \<open>\<prec>\<close> 50)
   where "A \<prec> B == A \<lesssim> B \<and> ~(A \<approx> B)"
 
+lemma lepoll_def': "lepoll A B \<equiv> \<exists>f. inj_on f A \<and> f \<in> A \<rightarrow> B"
+  by (simp add: Pi_iff image_subset_iff lepoll_def)
+
+lemma eqpoll_empty_iff_empty [simp]: "A \<approx> {} \<longleftrightarrow> A={}"
+  by (simp add: bij_betw_iff_bijections eqpoll_def)
+
 lemma lepoll_empty_iff_empty [simp]: "A \<lesssim> {} \<longleftrightarrow> A = {}"
   by (auto simp: lepoll_def)
+
+lemma not_lesspoll_empty: "\<not> A \<prec> {}"
+  by (simp add: lesspoll_def)
 
 (*The HOL Light CARD_LE_RELATIONAL_FULL*)
 lemma lepoll_relational_full:
@@ -46,16 +55,36 @@ lemma eqpoll_iff_card:
   shows  "A \<approx> B \<longleftrightarrow> card A = card B"
   using assms by (auto simp: bij_betw_iff_card eqpoll_def)
 
+lemma eqpoll_singleton_iff: "A \<approx> {x} \<longleftrightarrow> (\<exists>u. A = {u})"
+  by (metis card.infinite card_1_singleton_iff eqpoll_finite_iff eqpoll_iff_card not_less_eq_eq)
+
+lemma eqpoll_doubleton_iff: "A \<approx> {x,y} \<longleftrightarrow> (\<exists>u v. A = {u,v} \<and> (u=v \<longleftrightarrow> x=y))"
+proof (cases "x=y")
+  case True
+  then show ?thesis
+    by (simp add: eqpoll_singleton_iff)
+next
+  case False
+  then show ?thesis
+    by (smt (verit, ccfv_threshold) card_1_singleton_iff card_Suc_eq_finite eqpoll_finite_iff
+        eqpoll_iff_card finite.insertI singleton_iff)
+qed
+
 lemma lepoll_antisym:
   assumes "A \<lesssim> B" "B \<lesssim> A" shows "A \<approx> B"
   using assms unfolding eqpoll_def lepoll_def by (metis Schroeder_Bernstein)
 
-lemma lepoll_trans [trans]: "\<lbrakk>A \<lesssim> B; B \<lesssim> C\<rbrakk> \<Longrightarrow> A \<lesssim> C"
-  apply (clarsimp simp: lepoll_def)
-  apply (rename_tac f g)
-  apply (rule_tac x="g \<circ> f" in exI)
-  apply (auto simp: image_subset_iff inj_on_def)
-  done
+lemma lepoll_trans [trans]:
+  assumes "A \<lesssim> B" " B \<lesssim> C" shows "A \<lesssim> C"
+proof -
+  obtain f g where fg: "inj_on f A" "inj_on g B" and "f : A \<rightarrow> B" "g \<in> B \<rightarrow> C"
+    by (metis assms lepoll_def')
+  then have "g \<circ> f \<in> A \<rightarrow> C"
+    by auto
+  with fg show ?thesis
+    unfolding lepoll_def
+    by (metis \<open>f \<in> A \<rightarrow> B\<close> comp_inj_on image_subset_iff_funcset inj_on_subset)
+qed
 
 lemma lepoll_trans1 [trans]: "\<lbrakk>A \<approx> B; B \<lesssim> C\<rbrakk> \<Longrightarrow> A \<lesssim> C"
   by (meson card_of_ordLeq eqpoll_iff_card_of_ordIso lepoll_def lepoll_trans ordIso_iff_ordLeq)
@@ -716,8 +745,7 @@ qed auto
 
 corollary finite_funcset_iff:
   "finite(I \<rightarrow>\<^sub>E S) \<longleftrightarrow> (\<exists>a. S \<subseteq> {a}) \<or> I = {} \<or> finite I \<and> finite S"
-  apply (auto simp: finite_PiE_iff PiE_eq_empty_iff dest: not_finite_existsD)
-  using finite.simps by auto
+  by (fastforce simp: finite_PiE_iff PiE_eq_empty_iff dest: subset_singletonD)
 
 lemma lists_lepoll_mono:
   assumes "A \<lesssim> B" shows "lists A \<lesssim> lists B"
