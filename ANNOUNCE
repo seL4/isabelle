@@ -1,37 +1,32 @@
-Subject: Announcing Isabelle2022
+Subject: Announcing Isabelle2023
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2022 is now available.
+Isabelle2023 is now available.
 
-This version introduces notable changes over Isabelle2021-1: see the
+This version introduces notable changes over Isabelle2022: see the
 NEWS file for further details. Here are various details:
 
-* HTML presentation is more robust and covers more files and links.
 
-* Display of instantiation for schematic goals.
+* ML heap usage and stored heap size has been significantly reduced.
 
-* PIDE: improved Isabelle/VSCode based on bundled VSCodium engine.
+* PIDE: interactive document preparation via Isabelle/jEdit panel.
+
+* Demo documents for well-known LaTeX classes.
 
 * HOL: various improvements of theory libraries.
 
 * HOL: updates and improvements of Sledgehammer.
 
-* HOL: improved simproc support for record types.
+* ML: improved implementations of functor Table() and corresponding Set().
 
-* ML: scalable type Bytes.T with support for XZ compression.
+* Scala and ML: support for Zstd compression.
 
-* System: bundled Node.js/Chromium/Electron platform (via VSCodium).
+* System: more robust "isabelle sync" thanks to bundled "rsync" executables.
 
-* System: Isabelle/Scala is based on Scala 3 (dotty compiler).
-
-* System: tools to sync hg repositories, notably Isabelle + AFP.
-
-* System: improved "isabelle log" tool with regex filtering.
-
-* System: more robust SSH support in Isabelle/Scala.
+* Support for the Dotnet platform (.NET) and Fsharp (F#).
 
 
-You may get Isabelle2022 from the following mirror sites:
+You may get Isabelle2023 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
