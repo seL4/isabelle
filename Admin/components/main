@@ -7,7 +7,7 @@ cvc4-1.8
 e-2.6-1
 easychair-3.5
 eptcs-1.7.0
-flatlaf-2.4
+flatlaf-2.6
 foiltex-2.1.4b
 idea-icons-20210508
 isabelle_fonts-20211004
@@ -18,7 +18,7 @@ jfreechart-1.5.3
 jortho-1.0-2
 jsoup-1.15.4
 kodkodi-1.5.7
-lipics-3.1.2
+lipics-3.1.3
 llncs-2.22
 minisat-2.2.1-1
 mlton-20210117-1
@@ -32,7 +32,7 @@ rsync-3.2.7
 scala-3.3.0
 smbc-0.4.1
 spass-3.8ds-2
-sqlite-jdbc-3.41.0.0
+sqlite-jdbc-3.42.0.0
 stack-2.7.3
 vampire-4.6
 verit-2021.06.2-rmx
