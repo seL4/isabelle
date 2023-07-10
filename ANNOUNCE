@@ -8,11 +8,13 @@ NEWS file for further details. Here are various details:
 
 * ML heap usage and stored heap size has been significantly reduced.
 
-* Interactive document preparation via Isabelle/jEdit panel.
+* Documents: interactive document preparation via Isabelle/jEdit panel.
 
-* Demo documents for well-known LaTeX classes.
+* Documents: demos for well-known LaTeX classes.
 
-* HOL: various improvements of theory libraries.
+* Documents: more formal LaTeX citations.
+
+* HOL: various improvements of theory libraries, notably in HOL-Analysis.
 
 * HOL: updates and improvements of Sledgehammer.
 
