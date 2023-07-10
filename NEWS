@@ -26,7 +26,8 @@ library:
   class.order.of_class.intro  ~> order.intro_of_class
 
 * The Eisbach 'method' command now takes an optional description for
-display with print_methods, similar to the 'method_setup' command.
+display with 'print_methods', similar to the 'method_setup' command.
+
 
 *** Document preparation ***
 
@@ -80,7 +81,7 @@ antiquotations.
   - Add proof method "order".
 
 * 'primcorec': Made the internal tactic more robust in the face of
-  nested corecursion.
+nested corecursion.
 
 * Theory "HOL.Map":
   - Map.empty has been demoted to an input abbreviation.
