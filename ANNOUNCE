@@ -6,8 +6,6 @@ Isabelle2023 is now available.
 This version introduces notable changes over Isabelle2022: see the
 NEWS file for further details. Here are various details:
 
-* ML heap usage and stored heap size has been significantly reduced.
-
 * Documents: interactive document preparation via Isabelle/jEdit panel.
 
 * Documents: demos for well-known LaTeX classes.
@@ -17,6 +15,8 @@ NEWS file for further details. Here are various details:
 * HOL: various improvements of theory libraries, notably in HOL-Analysis.
 
 * HOL: updates and improvements of Sledgehammer.
+
+* ML: heap usage and stored heap size has been significantly reduced.
 
 * ML: improved implementations of functor Table() and corresponding Set().
 
