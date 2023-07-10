@@ -109,7 +109,7 @@ object Update {
             seen_theory += theory
             val theory_context = session_context.theory(theory)
             for {
-              theory_snapshot <- Build_Job.read_theory(theory_context)
+              theory_snapshot <- Build.read_theory(theory_context)
               node_name <- theory_snapshot.node_files
               snapshot = theory_snapshot.switch(node_name)
               if snapshot.node.source_wellformed

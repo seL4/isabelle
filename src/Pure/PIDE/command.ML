@@ -123,7 +123,12 @@ fun read keywords thy master_dir init blobs_info span =
       else Outer_Syntax.parse_span thy init (resolve_files master_dir blobs_info span);
     val _ =
       if Toplevel.is_ignored tr orelse Toplevel.is_malformed tr then ()
-      else Position.report (#1 core_range) (Markup.command_span (Toplevel.name_of tr));
+      else
+        let
+          val name = Toplevel.name_of tr;
+          val kind = the_default "" (Keyword.command_kind (Thy_Header.get_keywords thy) name);
+          val markup = Markup.command_span {name = name, kind = kind};
+        in Position.report (#1 core_range) markup end;
   in tr end;
 
 end;

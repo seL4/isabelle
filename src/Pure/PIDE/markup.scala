@@ -420,7 +420,22 @@ object Markup {
   /* outer syntax */
 
   val COMMAND_SPAN = "command_span"
-  val Command_Span = new Markup_String(COMMAND_SPAN, NAME)
+  object Command_Span {
+    sealed case class Arg(name: String, kind: String) {
+      def properties: Properties.T =
+        (if (name.isEmpty) Nil else Name(name)) :::
+        (if (kind.isEmpty) Nil else Kind(kind))
+    }
+
+    def apply(arg: Arg): Markup = Markup(COMMAND_SPAN, arg.properties)
+    def apply(name: String, kind: String): Markup = apply(Arg(name, kind))
+
+    def unapply(markup: Markup): Option[Arg] =
+      if (markup.name == COMMAND_SPAN) {
+        Some(Arg(Name.get(markup.properties), Kind.get(markup.properties)))
+      }
+      else None
+  }
 
   val COMMAND = "command"
   val KEYWORD = "keyword"
