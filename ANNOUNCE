@@ -6,10 +6,9 @@ Isabelle2023 is now available.
 This version introduces notable changes over Isabelle2022: see the
 NEWS file for further details. Here are various details:
 
-
 * ML heap usage and stored heap size has been significantly reduced.
 
-* PIDE: interactive document preparation via Isabelle/jEdit panel.
+* Interactive document preparation via Isabelle/jEdit panel.
 
 * Demo documents for well-known LaTeX classes.
 
@@ -21,7 +20,7 @@ NEWS file for further details. Here are various details:
 
 * Scala and ML: support for Zstd compression.
 
-* System: more robust "isabelle sync" thanks to bundled "rsync" executables.
+* System: more robust "isabelle sync" tool via bundled "rsync" executables.
 
 * Support for the Dotnet platform (.NET) and Fsharp (F#).
 
