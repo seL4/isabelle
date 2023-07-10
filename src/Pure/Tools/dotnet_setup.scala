@@ -52,7 +52,7 @@ object Dotnet_Setup {
 
   def default_target_dir: Path = Components.default_components_base
   def default_install_url: String = "https://dot.net/v1/dotnet-install"
-  def default_version: String = "6.0.402"
+  def default_version: String = "6.0.411"
 
   def dotnet_setup(
     platform_spec: String = default_platform,
