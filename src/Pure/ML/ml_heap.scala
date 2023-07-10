@@ -66,6 +66,17 @@ object ML_Heap {
       val table = make_table(List(name, slice, content), name = "slices")
     }
 
+    object Slices_Size {
+      val name = Generic.name
+      val slice = SQL.Column.int("slice").make_primary_key
+      val size = SQL.Column.long("size")
+
+      val table = make_table(List(name, slice, size),
+        body = "SELECT name, slice, pg_size_pretty(length(content)::bigint) as size FROM " +
+          Slices.table.ident,
+        name = "slices_size")
+    }
+
     def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
       db.execute_query_statementO[String](
         Base.table.select(List(Base.digest), sql = Generic.name.where_equal(name)),
@@ -82,6 +93,7 @@ object ML_Heap {
       for (table <- List(Base.table, Slices.table)) {
         db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
       }
+      db.create_view(Slices_Size.table)
     }
 
     def prepare_entry(db: SQL.Database, name: String): Unit =

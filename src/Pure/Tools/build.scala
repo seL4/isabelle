@@ -643,7 +643,7 @@ Usage: isabelle build_worker [OPTIONS]
             for (thy <- print_theories) {
               val thy_heading = "\nTheory " + quote(thy) + " (in " + session_name + ")" + ":"
 
-              Build_Job.read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
+              Build.read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
                 case None => progress.echo(thy_heading + " MISSING")
                 case Some(snapshot) =>
                   val rendering = new Rendering(snapshot, options, session)

@@ -598,7 +598,7 @@ object Browser_Info {
       def err(): Nothing =
         error("Missing document information for theory: " + quote(theory_name))
 
-      val snapshot = Build_Job.read_theory(session_context.theory(theory_name)) getOrElse err()
+      val snapshot = Build.read_theory(session_context.theory(theory_name)) getOrElse err()
       val theory = context.theory_by_name(session_name, theory_name) getOrElse err()
 
       progress.echo("Presenting theory " + quote(theory_name), verbose = true)
