@@ -3442,7 +3442,6 @@ proof -
 qed
 
 
-
 subsection\<open>Contractions\<close>
 
 lemma (in Metric_space) contraction_imp_unique_fixpoint:
@@ -3452,7 +3451,7 @@ lemma (in Metric_space) contraction_imp_unique_fixpoint:
     and "\<And>x y. \<lbrakk>x \<in> M; y \<in> M\<rbrakk> \<Longrightarrow> d (f x) (f y) \<le> k * d x y"
     and "x \<in> M" "y \<in> M"
   shows "x = y"
-  by (smt (verit, ccfv_SIG) Metric_space.mdist_pos_less Metric_space_axioms assms mult_le_cancel_right1)
+  by (smt (verit, ccfv_SIG) mdist_pos_less mult_le_cancel_right1 assms)
 
 text \<open>Banach Fixed-Point Theorem (aka, Contraction Mapping Principle)\<close>
 lemma (in Metric_space) Banach_fixedpoint_thm:
