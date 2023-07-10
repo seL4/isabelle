@@ -49,7 +49,7 @@ definition mball where "mball x r \<equiv> {y. x \<in> M \<and> y \<in> M \<and>
 definition mcball where "mcball x r \<equiv> {y. x \<in> M \<and> y \<in> M \<and> d x y \<le> r}"
 
 lemma in_mball [simp]: "y \<in> mball x r \<longleftrightarrow> x \<in> M \<and> y \<in> M \<and> d x y < r"
-  by (simp add: local.Metric_space_axioms Metric_space.mball_def)
+  by (simp add: mball_def)
 
 lemma centre_in_mball_iff [iff]: "x \<in> mball x r \<longleftrightarrow> x \<in> M \<and> 0 < r"
   using in_mball mdist_zero by force
@@ -70,7 +70,7 @@ lemma mball_subset_concentric: "r \<le> s \<Longrightarrow> mball x r \<subseteq
   by auto
 
 lemma in_mcball [simp]: "y \<in> mcball x r \<longleftrightarrow> x \<in> M \<and> y \<in> M \<and> d x y \<le> r"
-  by (simp add: local.Metric_space_axioms Metric_space.mcball_def)
+  by (simp add: mcball_def)
 
 lemma centre_in_mcball_iff [iff]: "x \<in> mcball x r \<longleftrightarrow> x \<in> M \<and> 0 \<le> r"
   using mdist_zero by force
@@ -181,13 +181,13 @@ lemma mball_iff_mcball: "(\<exists>r>0. mball x r \<subseteq> U) = (\<exists>r>0
 
 lemma openin_mtopology_mcball:
   "openin mtopology U \<longleftrightarrow> U \<subseteq> M \<and> (\<forall>x. x \<in> U \<longrightarrow> (\<exists>r. 0 < r \<and> mcball x r \<subseteq> U))"
-  using mball_iff_mcball openin_mtopology by presburger
+  by (simp add: mball_iff_mcball openin_mtopology)
 
 lemma metric_derived_set_of:
   "mtopology derived_set_of S = {x \<in> M. \<forall>r>0. \<exists>y\<in>S. y\<noteq>x \<and> y \<in> mball x r}" (is "?lhs=?rhs")
 proof
   show "?lhs \<subseteq> ?rhs"
-    unfolding openin_mtopology derived_set_of_def 
+    unfolding openin_mtopology derived_set_of_def
     by clarsimp (metis in_mball openin_mball openin_mtopology zero)
   show "?rhs \<subseteq> ?lhs"
     unfolding openin_mtopology derived_set_of_def 
@@ -375,10 +375,8 @@ proof -
       by blast
     with \<open>S \<subseteq> M\<close> gt_ex have "S \<subseteq> \<Union>(range (mball a))"
       by force
-    moreover have "\<forall>U \<in> range (mball a). openin mtopology U"
-      by (simp add: openin_mball)
-    ultimately obtain \<F> where "finite \<F>" "\<F> \<subseteq> range (mball a)" "S \<subseteq> \<Union>\<F>"
-      by (meson com)
+    then obtain \<F> where "finite \<F>" "\<F> \<subseteq> range (mball a)" "S \<subseteq> \<Union>\<F>"
+      by (metis (no_types, opaque_lifting) com imageE openin_mball)
   then show ?thesis
       using mbounded_Union mbounded_subset by fastforce
   qed auto
@@ -451,7 +449,7 @@ lemma mbounded_submetric: "sub.mbounded T \<longleftrightarrow> mbounded T \<and
 end
 
 lemma (in Metric_space) submetric_empty [iff]: "Submetric M d {}"
-  by (simp add: Metric_space_axioms Submetric.intro Submetric_axioms_def)
+proof qed auto
 
 
 subsection \<open>Abstract type of metric spaces\<close>
@@ -486,11 +484,11 @@ lemma mdist_triangle: "\<And>x y z. \<lbrakk>x \<in> mspace m; y \<in> mspace m;
 
 lemma (in Metric_space) mspace_metric[simp]: 
   "mspace (metric (M,d)) = M"
-  by (simp add: mspace_def Metric_space_axioms metric_inverse)
+  by (simp add: metric_inverse mspace_def subspace)
 
 lemma (in Metric_space) mdist_metric[simp]: 
   "mdist (metric (M,d)) = d"
-  by (simp add: mdist_def Metric_space_axioms metric_inverse)
+  by (simp add: mdist_def metric_inverse subspace)
 
 lemma metric_collapse [simp]: "metric (mspace m, mdist m) = m"
   by (simp add: dest_metric_inverse mdist_def mspace_def)
@@ -849,8 +847,7 @@ lemma open_imp_fsigma_in:
 
 lemma metrizable_space_euclidean:
   "metrizable_space (euclidean :: 'a::metric_space topology)"
-  unfolding metrizable_space_def
-  by (metis Met_TC.Metric_space_axioms Met_TC.mtopology_def mopen_eq_open)
+  using Met_TC.metrizable_space_mtopology by auto
 
 lemma (in Metric_space) regular_space_mtopology:
    "regular_space mtopology"
@@ -1109,7 +1106,7 @@ proof (intro conjI strip)
   then obtain N where "\<And>n. n\<ge>N \<Longrightarrow> \<sigma> n \<in> M \<and> d (\<sigma> n) l < \<epsilon>/2"
     by (force simp: eventually_sequentially)
   then show "\<exists>N. \<forall>n n'. N \<le> n \<longrightarrow> N \<le> n' \<longrightarrow> d (\<sigma> n) (\<sigma> n') < \<epsilon>"
-    by (smt (verit) Metric_space.limitin_mspace Metric_space.mdist_reverse_triangle Metric_space_axioms field_sum_of_halves lim)
+    by (smt (verit) limitin_mspace mdist_reverse_triangle field_sum_of_halves lim)
 qed (use assms in blast)
 
 
@@ -1233,7 +1230,7 @@ next
             and dynn': "d (y (n div 2)) (y (n' div 2)) < \<epsilon>/2"
         using Nx Ny Nxy by blast+
       have inM: "x (n div 2) \<in> M" "x (n' div 2) \<in> M""y (n div 2) \<in> M" "y (n' div 2) \<in> M"
-        using Metric_space.MCauchy_def Metric_space_axioms R by blast+
+        using MCauchy_def R by blast+
       show "d (if even n then x (n div 2) else y (n div 2)) (if even n' then x (n' div 2) else y (n' div 2)) < \<epsilon>"
       proof (cases "even n")
         case nt: True
@@ -1846,7 +1843,7 @@ proof (cases "S \<subseteq> M")
         then have "j > i" and dxj: "d x (\<sigma> j) < \<epsilon>/4" 
           by auto
         have "(\<sigma> -` mball x (\<epsilon>/4)) \<subseteq> (\<sigma> -` mball y (\<epsilon>/2))" if "d x y < \<epsilon>/4" "y \<in> M" for y
-          using that by (simp add: mball_subset Metric_space_axioms vimage_mono)
+          using that by (simp add: mball_subset vimage_mono)
         then have infj: "infinite (\<sigma> -` mball (\<sigma> j) (\<epsilon>/2))"
           by (meson True \<open>d x (\<sigma> j) < \<epsilon>/4\<close> \<sigma> in_mono infx rangeI finite_subset)
         have "\<sigma> i \<in> M" "\<sigma> j \<in> M" "x \<in> M"  
@@ -1981,7 +1978,7 @@ lemma mtotally_bounded_submetric:
   shows "Metric_space.mtotally_bounded T d S"
 proof -
   interpret Submetric M d T
-    by (simp add: Metric_space_axioms assms Submetric.intro Submetric_axioms.intro)
+    using \<open>T \<subseteq> M\<close> by unfold_locales
   show ?thesis
     using assms
     unfolding sub.mtotally_bounded_def mtotally_bounded_def
@@ -1994,10 +1991,10 @@ proof -
   have "mtotally_bounded S" if "S \<subseteq> M" "Metric_space.mtotally_bounded S d S"
   proof -
     interpret Submetric M d S
-      by (simp add: Metric_space_axioms Submetric_axioms.intro Submetric_def \<open>S \<subseteq> M\<close>)
+      using \<open>S \<subseteq> M\<close> by unfold_locales
     show ?thesis
       using that
-      by (metis MCauchy_submetric Metric_space.mtotally_bounded_sequentially Metric_space_axioms subspace)
+      by (meson MCauchy_submetric mtotally_bounded_sequentially sub.mtotally_bounded_sequentially)
   qed
   moreover have "mtotally_bounded S \<Longrightarrow> Metric_space.mtotally_bounded S d S"
     by (simp add: mtotally_bounded_imp_subset mtotally_bounded_submetric)
