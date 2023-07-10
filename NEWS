@@ -322,7 +322,7 @@ by Jakob von Raumer.
 
 * Session "HOL-Analysis":
   - Imported the HOL Light abstract metric space library and numerous
-    associated topological developments.
+    results in abstract topology (1200+ lemmas).
   - New material on infinite sums and integration, due to Manuel Eberl
     and Wenda Li.
 

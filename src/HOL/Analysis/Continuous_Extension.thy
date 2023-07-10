@@ -5,7 +5,7 @@
 section \<open>Continuous Extensions of Functions\<close>
 
 theory Continuous_Extension
-imports Starlike
+imports Starlike 
 begin
 
 subsection\<open>Partitions of unity subordinate to locally finite open coverings\<close>
@@ -152,9 +152,7 @@ proof -
     proof -
       have "f x = b \<longleftrightarrow> (setdist {x} S / (setdist {x} S + setdist {x} T)) = 1"
         unfolding f_def
-        apply (rule iffI)
-         apply (metis  \<open>a \<noteq> b\<close> add_diff_cancel_left' eq_iff_diff_eq_0 pth_1 real_vector.scale_right_imp_eq, force)
-        done
+        by (metis add_diff_cancel_left' \<open>a \<noteq> b\<close> diff_add_cancel eq_iff_diff_eq_0 scaleR_cancel_right scaleR_one)
       also have "...  \<longleftrightarrow> setdist {x} T = 0 \<and> setdist {x} S \<noteq> 0"
         using sdpos that
         by (simp add: field_split_simps) linarith
@@ -164,6 +162,47 @@ proof -
       finally show ?thesis .
     qed
   qed
+qed
+
+lemma Urysohn_local_strong_aux:
+  assumes US: "closedin (top_of_set U) S"
+      and UT: "closedin (top_of_set U) T"
+      and "S \<inter> T = {}" "a \<noteq> b" "S \<noteq> {}"
+  obtains f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    where "continuous_on U f"
+          "\<And>x. x \<in> U \<Longrightarrow> f x \<in> closed_segment a b"
+          "\<And>x. x \<in> U \<Longrightarrow> (f x = a \<longleftrightarrow> x \<in> S)"
+          "\<And>x. x \<in> U \<Longrightarrow> (f x = b \<longleftrightarrow> x \<in> T)"
+proof (cases "T = {}")
+  case True show ?thesis
+  proof (cases "S = U")
+    case True with \<open>T = {}\<close> \<open>a \<noteq> b\<close> show ?thesis
+      by (rule_tac f = "\<lambda>x. a" in that) (auto)
+  next
+    case False
+    with US closedin_subset obtain c where c: "c \<in> U" "c \<notin> S"
+      by fastforce
+    obtain f where f: "continuous_on U f"
+      "\<And>x. x \<in> U \<Longrightarrow> f x \<in> closed_segment a (midpoint a b)"
+      "\<And>x. x \<in> U \<Longrightarrow> (f x = midpoint a b \<longleftrightarrow> x = c)"
+      "\<And>x. x \<in> U \<Longrightarrow> (f x = a \<longleftrightarrow> x \<in> S)"
+      apply (rule Urysohn_both_ne [of U S "{c}" a "midpoint a b"])
+      using c \<open>S \<noteq> {}\<close> assms apply simp_all
+      apply (metis midpoint_eq_endpoint)
+      done
+    show ?thesis
+      apply (rule_tac f=f in that)
+      using \<open>S \<noteq> {}\<close> \<open>T = {}\<close> f  \<open>a \<noteq> b\<close>
+         apply simp_all
+       apply (metis (no_types) closed_segment_commute csegment_midpoint_subset midpoint_sym subset_iff)
+      apply (metis closed_segment_commute midpoint_sym notin_segment_midpoint)
+      done
+  qed
+next
+  case False
+  show ?thesis
+    using Urysohn_both_ne [OF US UT \<open>S \<inter> T = {}\<close> \<open>S \<noteq> {}\<close> \<open>T \<noteq> {}\<close> \<open>a \<noteq> b\<close>] that
+    by blast
 qed
 
 proposition Urysohn_local_strong:
@@ -191,62 +230,13 @@ proof (cases "S = {}")
     qed
   next
     case False
-    show ?thesis
-    proof (cases "T = U")
-      case True with \<open>S = {}\<close> \<open>a \<noteq> b\<close> show ?thesis
-        by (rule_tac f = "\<lambda>x. b" in that) (auto)
-    next
-      case False
-      with UT closedin_subset obtain c where c: "c \<in> U" "c \<notin> T"
-        by fastforce
-      obtain f where f: "continuous_on U f"
-                "\<And>x. x \<in> U \<Longrightarrow> f x \<in> closed_segment (midpoint a b) b"
-                "\<And>x. x \<in> U \<Longrightarrow> (f x = midpoint a b \<longleftrightarrow> x = c)"
-                "\<And>x. x \<in> U \<Longrightarrow> (f x = b \<longleftrightarrow> x \<in> T)"
-        apply (rule Urysohn_both_ne [of U "{c}" T "midpoint a b" "b"])
-        using c \<open>T \<noteq> {}\<close> assms apply simp_all
-        done
-      show ?thesis
-        apply (rule_tac f=f in that)
-        using \<open>S = {}\<close> \<open>T \<noteq> {}\<close> f csegment_midpoint_subset notin_segment_midpoint [OF \<open>a \<noteq> b\<close>]
-        apply force+
-        done
-    qed
+    with Urysohn_local_strong_aux [OF UT US] assms show ?thesis
+      by (smt (verit) True closed_segment_commute inf_bot_right that)
   qed
 next
   case False
-  show ?thesis
-  proof (cases "T = {}")
-    case True show ?thesis
-    proof (cases "S = U")
-      case True with \<open>T = {}\<close> \<open>a \<noteq> b\<close> show ?thesis
-        by (rule_tac f = "\<lambda>x. a" in that) (auto)
-    next
-      case False
-      with US closedin_subset obtain c where c: "c \<in> U" "c \<notin> S"
-        by fastforce
-      obtain f where f: "continuous_on U f"
-                "\<And>x. x \<in> U \<Longrightarrow> f x \<in> closed_segment a (midpoint a b)"
-                "\<And>x. x \<in> U \<Longrightarrow> (f x = midpoint a b \<longleftrightarrow> x = c)"
-                "\<And>x. x \<in> U \<Longrightarrow> (f x = a \<longleftrightarrow> x \<in> S)"
-        apply (rule Urysohn_both_ne [of U S "{c}" a "midpoint a b"])
-        using c \<open>S \<noteq> {}\<close> assms apply simp_all
-        apply (metis midpoint_eq_endpoint)
-        done
-      show ?thesis
-        apply (rule_tac f=f in that)
-        using \<open>S \<noteq> {}\<close> \<open>T = {}\<close> f  \<open>a \<noteq> b\<close>
-        apply simp_all
-        apply (metis (no_types) closed_segment_commute csegment_midpoint_subset midpoint_sym subset_iff)
-        apply (metis closed_segment_commute midpoint_sym notin_segment_midpoint)
-        done
-    qed
-  next
-    case False
-    show ?thesis
-      using Urysohn_both_ne [OF US UT \<open>S \<inter> T = {}\<close> \<open>S \<noteq> {}\<close> \<open>T \<noteq> {}\<close> \<open>a \<noteq> b\<close>] that
-      by blast
-  qed
+  with Urysohn_local_strong_aux [OF assms] show ?thesis
+    using that by blast
 qed
 
 lemma Urysohn_local:
@@ -263,12 +253,8 @@ proof (cases "a = b")
     by (rule_tac f = "\<lambda>x. b" in that) (auto)
 next
   case False
-  then show ?thesis
-    apply (rule Urysohn_local_strong [OF assms])
-    apply (erule that, assumption)
-    apply (meson US closedin_singleton closedin_trans)
-    apply (meson UT closedin_singleton closedin_trans)
-    done
+  with Urysohn_local_strong [OF assms] show ?thesis
+    by (smt (verit) US UT closedin_imp_subset subset_eq that)
 qed
 
 lemma Urysohn_strong:
@@ -298,20 +284,6 @@ subsection\<open>Dugundji's Extension Theorem and Tietze Variants\<close>
 
 text \<open>See \<^cite>\<open>"dugundji"\<close>.\<close>
 
-lemma convex_supp_sum:
-  assumes "convex S" and 1: "supp_sum u I = 1"
-      and "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> u i \<and> (u i = 0 \<or> f i \<in> S)"
-    shows "supp_sum (\<lambda>i. u i *\<^sub>R f i) I \<in> S"
-proof -
-  have fin: "finite {i \<in> I. u i \<noteq> 0}"
-    using 1 sum.infinite by (force simp: supp_sum_def support_on_def)
-  then have "supp_sum (\<lambda>i. u i *\<^sub>R f i) I = sum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
-    by (force intro: sum.mono_neutral_left simp: supp_sum_def support_on_def)
-  also have "... \<in> S"
-    using 1 assms by (force simp: supp_sum_def support_on_def intro: convex_sum [OF fin \<open>convex S\<close>])
-  finally show ?thesis .
-qed
-
 theorem Dugundji:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "convex C" "C \<noteq> {}"
@@ -320,11 +292,13 @@ theorem Dugundji:
   obtains g where "continuous_on U g" "g ` U \<subseteq> C"
                   "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof (cases "S = {}")
-  case True then show thesis
-    apply (rule_tac g="\<lambda>x. SOME y. y \<in> C" in that)
-      apply (rule continuous_intros)
-     apply (meson all_not_in_conv \<open>C \<noteq> {}\<close> image_subsetI someI_ex, simp)
-    done
+  case True show thesis
+  proof
+    show "continuous_on U (\<lambda>x. SOME y. y \<in> C)"
+      by (rule continuous_intros)
+    show "(\<lambda>x. SOME y. y \<in> C) ` U \<subseteq> C"
+      by (simp add: \<open>C \<noteq> {}\<close> image_subsetI some_in_eq)
+  qed (use True in auto)
 next
   case False
   then have sd_pos: "\<And>x. \<lbrakk>x \<in> U; x \<notin> S\<rbrakk> \<Longrightarrow> 0 < setdist {x} S"
@@ -348,9 +322,7 @@ next
       using setdist_ltE [of "{v}" S "2 * setdist {v} S"]
       using False sd_pos by force
     with v show ?thesis
-      apply (rule_tac x=v in exI)
-      apply (rule_tac x=a in exI, auto)
-      done
+      by force
   qed
   then obtain \<V> \<A> where
     VA: "\<And>T. T \<in> \<C> \<Longrightarrow> \<V> T \<in> U \<and> \<V> T \<notin> S \<and> \<A> T \<in> S \<and>

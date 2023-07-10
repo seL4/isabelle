@@ -3401,7 +3401,7 @@ lemma injective_eq_monotone_map:
         strict_mono_iff_mono top_greatest topspace_euclidean topspace_euclidean_subtopology)
 
 
-subsection\<open>Normal spaces including Urysohn's lemma and the Tietze extension theorem\<close>
+subsection\<open>Normal spaces\<close>
 
 definition normal_space 
   where "normal_space X \<equiv>
