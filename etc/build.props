@@ -40,6 +40,7 @@ sources = \
   src/Pure/Admin/component_scala.scala \
   src/Pure/Admin/component_spass.scala \
   src/Pure/Admin/component_sqlite.scala \
+  src/Pure/Admin/component_stack.scala \
   src/Pure/Admin/component_vampire.scala \
   src/Pure/Admin/component_verit.scala \
   src/Pure/Admin/component_zipperposition.scala \

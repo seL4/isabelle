@@ -183,6 +183,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_SPASS.isabelle_tool,
   Component_SQLite.isabelle_tool,
   Component_Scala.isabelle_tool,
+  Component_Stack.isabelle_tool,
   Component_Vampire.isabelle_tool,
   Component_VeriT.isabelle_tool,
   Component_Zipperposition.isabelle_tool,
