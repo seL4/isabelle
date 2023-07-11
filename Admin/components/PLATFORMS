@@ -47,7 +47,7 @@ Official platforms:
                     macOS 13 Ventura (mini3 Mac14,12 -- MacMini M2)
 
   x86_64-windows    Windows 10
-  x86_64-cygwin     Cygwin 3.3.x https://isabelle.sketis.net/cygwin_2022 (x86_64/release)
+  x86_64-cygwin     Cygwin 3.4.x https://isabelle.sketis.net/cygwin_2023 (x86_64/release)
 
 Experimental platforms:
 

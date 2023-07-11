@@ -21,6 +21,7 @@ Cygwin
   - https://isabelle.sketis.net/cygwin_2021  (Isabelle2021)
   - https://isabelle.sketis.net/cygwin_2021-1  (Isabelle2021-1)
   - https://isabelle.sketis.net/cygwin_2022  (Isabelle2022)
+  - https://isabelle.sketis.net/cygwin_2023  (Isabelle2023)
 
 * Apache2 redirects for virtual host isabelle.conf:
 ```
@@ -52,6 +53,10 @@ Cygwin
   Redirect /cygwin_2021-1/noarch/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
   Redirect /cygwin_2022/x86_64/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
   Redirect /cygwin_2022/noarch/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
+  Redirect /cygwin_2022/x86_64/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
+  Redirect /cygwin_2022/noarch/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
+  Redirect /cygwin_2023/x86_64/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
+  Redirect /cygwin_2023/noarch/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
 ```
 
 * Quasi-component: "isabelle component_cygwin" (as Administrator)

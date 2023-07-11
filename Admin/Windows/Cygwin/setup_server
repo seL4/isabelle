@@ -21,3 +21,5 @@ function download()
 download "$CYGWIN_MAIN/setup-x86_64.exe"
 download "$CYGWIN_MIRROR/x86_64/setup.xz" "x86_64"
 download "$CYGWIN_MIRROR/x86_64/setup.xz.sig" "x86_64"
+download "$CYGWIN_MIRROR/x86_64/setup.zst" "x86_64"
+download "$CYGWIN_MIRROR/x86_64/setup.zst.sig" "x86_64"
