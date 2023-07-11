@@ -451,7 +451,8 @@ proof clarify
   fix x y
   assume x: "x \<in> topspace X" and y: "y \<in> topspace X" and "x \<noteq> y"
   then obtain U V where "openin Y U" "openin Y V" "f x \<in> U" "f y \<in> V" "disjnt U V"
-    using assms unfolding Hausdorff_space_def continuous_map_def by (meson inj_onD)
+    using assms
+    by (smt (verit, ccfv_threshold) Hausdorff_space_def continuous_map image_subset_iff inj_on_def)
   show "\<exists>U V. openin X U \<and> openin X V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
   proof (intro exI conjI)
     show "openin X {x \<in> topspace X. f x \<in> U}"
@@ -501,12 +502,12 @@ proof
       if "(x,y) \<in> topspace (prod_topology X Y) - (\<lambda>x. (x, f x)) ` topspace X"
       for x y
     proof -
-      have "x \<in> topspace X" "y \<in> topspace Y" "y \<noteq> f x"
+      have "x \<in> topspace X" and y: "y \<in> topspace Y" "y \<noteq> f x"
         using that by auto
-      moreover have "f x \<in> topspace Y"
-        by (meson \<open>x \<in> topspace X\<close> continuous_map_def f)
-      ultimately obtain U V where UV: "openin Y U" "openin Y V" "f x \<in> U" "y \<in> V" "disjnt U V"
-        using Y Hausdorff_space_def by metis
+      then have "f x \<in> topspace Y"
+        using continuous_map_image_subset_topspace f by blast
+      then obtain U V where UV: "openin Y U" "openin Y V" "f x \<in> U" "y \<in> V" "disjnt U V"
+        using Y y Hausdorff_space_def by metis
       show ?thesis
       proof (intro exI conjI)
         show "openin X {x \<in> topspace X. f x \<in> U}"
@@ -547,10 +548,8 @@ proof (rule continuous_map_from_subtopology_mono [OF _ \<open>S \<subseteq> f ` 
   show "continuous_map (subtopology Y (f ` (topspace X))) X g"
     unfolding continuous_map_closedin
   proof (intro conjI ballI allI impI)
-    fix x
-    assume "x \<in> topspace (subtopology Y (f ` topspace X))"
-    then show "g x \<in> topspace X"
-      by (auto simp: gf)
+    show "g \<in> topspace (subtopology Y (f ` topspace X)) \<rightarrow> topspace X"
+      using gf by auto
   next
     fix C
     assume C: "closedin X C"
