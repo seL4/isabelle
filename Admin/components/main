@@ -32,7 +32,7 @@ rsync-3.2.7
 scala-3.3.0
 smbc-0.4.1
 spass-3.8ds-2
-sqlite-jdbc-3.42.0.0
+sqlite-jdbc-3.42.0.0-1
 stack-2.9.3
 vampire-4.6
 verit-2021.06.2-rmx
