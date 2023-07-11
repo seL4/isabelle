@@ -548,7 +548,7 @@ object Export {
           Isabelle_System.make_directory(path.dir)
           val bytes = entry.bytes
           if (!path.is_file || Bytes.read(path) != bytes) Bytes.write(path, bytes)
-          File.set_executable(path, flag = entry.executable)
+          File.set_executable(path, reset = !entry.executable)
         }
       }
     }

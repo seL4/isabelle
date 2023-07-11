@@ -456,6 +456,9 @@ depend on verbose mode.
 via Compress.Options and Compress.Cache. Bytes.uncompress automatically
 detects the compression scheme.
 
+* File.set_executable in Isabelle/Scala has changed its mandatory "flag"
+to optional "reset", which opposite polarity. INCOMPATIBILITY.
+
 
 
 New in Isabelle2022 (October 2022)

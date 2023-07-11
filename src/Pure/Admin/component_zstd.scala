@@ -15,7 +15,7 @@ object Component_Zstd {
       val source = jar_dir + Path.explode(template.replace("{V}", version))
       val target = Isabelle_System.make_directory(component_dir + Path.basic(name))
       Isabelle_System.copy_file(source, target)
-      if (exe) File.set_executable(target + source.base, true)
+      if (exe) File.set_executable(target + source.base)
     }
   }
 
