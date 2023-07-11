@@ -461,6 +461,10 @@ to optional "reset", which opposite polarity. INCOMPATIBILITY.
 
 * Update to GHC stack 2.9.3 with support for arm64-linux.
 
+* System option "ML_system_apple" now defaults to "false", for more
+stability: Poly/ML for ARM64 is still somewhat unstable and not
+yet officially released.
+
 
 
 New in Isabelle2022 (October 2022)
