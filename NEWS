@@ -459,6 +459,8 @@ detects the compression scheme.
 * File.set_executable in Isabelle/Scala has changed its mandatory "flag"
 to optional "reset", which opposite polarity. INCOMPATIBILITY.
 
+* Update to GHC stack 2.9.3 with support for arm64-linux.
+
 
 
 New in Isabelle2022 (October 2022)
