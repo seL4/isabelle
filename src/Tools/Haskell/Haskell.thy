@@ -1253,8 +1253,8 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/position.ML\<close>.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Isabelle.Position (
-  T, line_of, column_of, offset_of, end_offset_of, file_of, id_of,
-  start, none, put_file, file, file_only, put_id, id, id_only,
+  T, line_of, column_of, offset_of, end_offset_of, label_of, file_of, id_of,
+  start, none, label, put_file, file, file_only, put_id, id, id_only,
   symbol, symbol_explode, symbol_explode_string, shift_offsets,
   of_properties, properties_of, def_properties_of, entity_markup, make_entity_markup,
   Report, Report_Text, is_reported, is_reported_range, here,
