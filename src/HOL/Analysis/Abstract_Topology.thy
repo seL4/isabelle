@@ -1454,7 +1454,7 @@ of type classes, as defined below.\<close>
 
 definition continuous_map where
   "continuous_map X Y f \<equiv>
-     (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and>
+     f \<in> topspace X \<rightarrow> topspace Y \<and>
      (\<forall>U. openin Y U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
 
 lemma continuous_map:
@@ -1466,17 +1466,24 @@ lemma continuous_map_image_subset_topspace:
    "continuous_map X Y f \<Longrightarrow> f ` (topspace X) \<subseteq> topspace Y"
   by (auto simp: continuous_map_def)
 
+lemma continuous_map_funspace:
+   "continuous_map X Y f \<Longrightarrow> f \<in> topspace X \<rightarrow> topspace Y"
+  by (auto simp: continuous_map_def)
+
 lemma continuous_map_on_empty: "topspace X = {} \<Longrightarrow> continuous_map X Y f"
+  by (auto simp: continuous_map_def)
+
+lemma continuous_map_on_empty2: "topspace Y = {} \<Longrightarrow> continuous_map X Y f \<longleftrightarrow> topspace X = {}"
   by (auto simp: continuous_map_def)
 
 lemma continuous_map_closedin:
    "continuous_map X Y f \<longleftrightarrow>
-         (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and>
+         f \<in> topspace X \<rightarrow> topspace Y \<and>
          (\<forall>C. closedin Y C \<longrightarrow> closedin X {x \<in> topspace X. f x \<in> C})"
 proof -
   have "(\<forall>U. openin Y U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U}) =
         (\<forall>C. closedin Y C \<longrightarrow> closedin X {x \<in> topspace X. f x \<in> C})"
-    if "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+    if "f \<in> topspace X \<rightarrow> topspace Y"
   proof -
     have eq: "{x \<in> topspace X. f x \<in> topspace Y \<and> f x \<notin> C} = (topspace X - {x \<in> topspace X. f x \<in> C})" for C
       using that by blast
@@ -1555,9 +1562,7 @@ lemma continuous_map_subset_aux2:
   shows "continuous_map X Y f"
   unfolding continuous_map_closedin
 proof (intro conjI ballI allI impI)
-  fix x
-  assume "x \<in> topspace X"
-  then show "f x \<in> topspace Y"
+  show "f \<in> topspace X \<rightarrow> topspace Y"
     using assms closure_of_subset_topspace by fastforce
 next
   fix C
@@ -1588,9 +1593,9 @@ lemma continuous_map_eq_image_closure_subset_alt:
 
 lemma continuous_map_eq_image_closure_subset_gen:
      "continuous_map X Y f \<longleftrightarrow>
-        f ` (topspace X) \<subseteq> topspace Y \<and>
+        f \<in> topspace X \<rightarrow> topspace Y \<and>
         (\<forall>S. f ` (X closure_of S) \<subseteq> Y closure_of f ` S)"
-  using continuous_map_subset_aux1 continuous_map_subset_aux2 continuous_map_image_subset_topspace by metis
+  by (meson Pi_iff continuous_map continuous_map_eq_image_closure_subset image_subset_iff)
 
 lemma continuous_map_closure_preimage_subset:
    "continuous_map X Y f
@@ -1650,15 +1655,13 @@ lemma continuous_map_compose [continuous_intros]:
   shows "continuous_map X X'' (g \<circ> f)"
   unfolding continuous_map_def
 proof (intro conjI ballI allI impI)
-  fix x
-  assume "x \<in> topspace X"
-  then show "(g \<circ> f) x \<in> topspace X''"
+  show "g \<circ> f \<in> topspace X \<rightarrow> topspace X''"
     using assms unfolding continuous_map_def by force
 next
   fix U
   assume "openin X'' U"
   have eq: "{x \<in> topspace X. (g \<circ> f) x \<in> U} = {x \<in> topspace X. f x \<in> {y. y \<in> topspace X' \<and> g y \<in> U}}"
-    by auto (meson f continuous_map_def)
+    using continuous_map_image_subset_topspace f by force
   show "openin X {x \<in> topspace X. (g \<circ> f) x \<in> U}"
     unfolding eq
     using assms unfolding continuous_map_def
@@ -1672,7 +1675,7 @@ proof -
   have eq: "{x \<in> topspace X. f x \<in> U} = {x \<in> topspace X. g x \<in> U}" for U
     using assms by auto
   show ?thesis
-    using assms by (simp add: continuous_map_def eq)
+    using assms by (force simp add: continuous_map_def eq)
 qed
 
 lemma restrict_continuous_map [simp]:
@@ -2327,8 +2330,8 @@ lemma continuous_compose_quotient_map:
   shows "continuous_map X' X'' g"
   unfolding quotient_map_def continuous_map_def
 proof (intro conjI ballI allI impI)
-  show "\<And>x'. x' \<in> topspace X' \<Longrightarrow> g x' \<in> topspace X''"
-    using assms unfolding quotient_map_def
+  show "g \<in> topspace X' \<rightarrow> topspace X''"
+    using assms unfolding quotient_map_def Pi_iff
     by (metis (no_types, opaque_lifting) continuous_map_image_subset_topspace image_comp image_subset_iff)
 next
   fix U'' :: "'c set"
@@ -2657,7 +2660,7 @@ lemma homeomorphic_maps_eq:
        \<And>x. x \<in> topspace X \<Longrightarrow> f x = f' x; \<And>y. y \<in> topspace Y \<Longrightarrow> g y = g' y\<rbrakk>
       \<Longrightarrow> homeomorphic_maps X Y f' g'"
   unfolding homeomorphic_maps_def
-  by (metis continuous_map_eq continuous_map_eq_image_closure_subset_gen image_subset_iff)
+  by (metis continuous_map_eq continuous_map_image_subset_topspace image_subset_iff) 
 
 lemma homeomorphic_maps_sym:
      "homeomorphic_maps X Y f g \<longleftrightarrow> homeomorphic_maps Y X g f"
@@ -2711,7 +2714,7 @@ lemma homeomorphic_maps_compose:
         homeomorphic_maps Y X'' g k
         \<Longrightarrow> homeomorphic_maps X X'' (g \<circ> f) (h \<circ> k)"
   unfolding homeomorphic_maps_def
-  by (auto simp: continuous_map_compose; simp add: continuous_map_def)
+  by (auto simp: continuous_map_compose; simp add: continuous_map_def Pi_iff)
 
 lemma homeomorphic_eq_everything_map:
    "homeomorphic_map X Y f \<longleftrightarrow>
@@ -2784,11 +2787,13 @@ proof
   show ?rhs
   proof (intro conjI bijective_open_imp_homeomorphic_map L)
     show "open_map X Y f"
-      using L using open_eq_continuous_inverse_map [of concl: X Y f g] by (simp add: continuous_map_def)
+      using L using open_eq_continuous_inverse_map [of concl: X Y f g] 
+      by (simp add: continuous_map_def Pi_iff)
     show "open_map Y X g"
-      using L using open_eq_continuous_inverse_map [of concl: Y X g f] by (simp add: continuous_map_def)
+      using L using open_eq_continuous_inverse_map [of concl: Y X g f] 
+      by (simp add: continuous_map_def Pi_iff)
     show "f ` topspace X = topspace Y" "g ` topspace Y = topspace X"
-      using L by (force simp: continuous_map_closedin)+
+      using L by (force simp: continuous_map_closedin Pi_iff)+
     show "inj_on f (topspace X)" "inj_on g (topspace Y)"
       using L unfolding inj_on_def by metis+
   qed
@@ -3020,7 +3025,7 @@ proof -
     have "f ` (topspace X \<inter> S) \<subseteq> topspace Y \<inter> T"
       using S hom homeomorphic_imp_surjective_map by fastforce
     then show "f ` (topspace X \<inter> S) = topspace Y \<inter> T"
-      using that unfolding homeomorphic_maps_def continuous_map_def
+      using that unfolding homeomorphic_maps_def continuous_map_def Pi_iff
       by (smt (verit, del_insts) Int_iff S image_iff subsetI subset_antisym)
   qed
   then show ?thesis
@@ -3064,8 +3069,8 @@ lemma homeomorphic_empty_space:
 lemma homeomorphic_empty_space_eq:
   assumes "topspace X = {}"
   shows "X homeomorphic_space Y \<longleftrightarrow> topspace Y = {}"
-  unfolding homeomorphic_maps_def homeomorphic_space_def
-  by (metis assms continuous_map_on_empty continuous_map_closedin ex_in_conv)
+  using assms
+  by (auto simp: homeomorphic_maps_def homeomorphic_space_def continuous_map_def)
 
 lemma homeomorphic_space_unfold:
   assumes "X homeomorphic_space Y"
@@ -3993,7 +3998,8 @@ definition retraction_map :: "'a topology \<Rightarrow> 'b topology \<Rightarrow
 lemma retraction_maps_eq:
    "\<lbrakk>retraction_maps X Y f g; \<And>x. x \<in> topspace X \<Longrightarrow> f x = f' x; \<And>x. x \<in> topspace Y \<Longrightarrow> g x = g' x\<rbrakk>
         \<Longrightarrow> retraction_maps X Y f' g'"
-  unfolding retraction_maps_def by (metis (no_types, lifting) continuous_map_def continuous_map_eq)
+  unfolding retraction_maps_def
+  by (metis continuous_map_eq continuous_map_image_subset_topspace image_subset_iff)
 
 lemma section_map_eq:
    "\<lbrakk>section_map X Y f; \<And>x. x \<in> topspace X \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> section_map X Y g"
@@ -4012,8 +4018,8 @@ lemma section_and_retraction_eq_homeomorphic_map:
 proof
   assume ?lhs
   then obtain g where "homeomorphic_maps X Y f g"
-    unfolding homeomorphic_maps_def retraction_map_def section_map_def
-    by (smt (verit, best) continuous_map_def retraction_maps_def)
+    unfolding homeomorphic_maps_def retraction_map_def section_map_def 
+    by (smt (verit) Pi_iff continuous_map_def retraction_maps_def)
   then show ?rhs
     using homeomorphic_map_maps by blast
 next
@@ -4034,7 +4040,7 @@ lemma retraction_imp_quotient_map:
   unfolding quotient_map_def
 proof (intro conjI subsetI allI impI)
   show "f ` topspace X = topspace Y"
-    using assms by (force simp: retraction_map_def retraction_maps_def continuous_map_def)
+    using assms by (force simp: retraction_map_def retraction_maps_def continuous_map_def Pi_iff)
 next
   fix U
   assume U: "U \<subseteq> topspace Y"
@@ -4043,12 +4049,13 @@ next
        "openin Y {x \<in> topspace Y. g x \<in> {x \<in> topspace X. f x \<in> U}}" for g
     using openin_subopen U that by fastforce
   then show "openin X {x \<in> topspace X. f x \<in> U} = openin Y U"
-    using assms by (auto simp: retraction_map_def retraction_maps_def continuous_map_def)
+    using assms by (auto simp: retraction_map_def retraction_maps_def continuous_map_def Pi_iff)
 qed
 
 lemma retraction_maps_compose:
    "\<lbrakk>retraction_maps X Y f f'; retraction_maps Y Z g g'\<rbrakk> \<Longrightarrow> retraction_maps X Z (g \<circ> f) (f' \<circ> g')"
-  by (clarsimp simp: retraction_maps_def continuous_map_compose) (simp add: continuous_map_def)
+  unfolding retraction_maps_def
+  by (smt (verit, ccfv_threshold) comp_apply continuous_map_compose continuous_map_image_subset_topspace image_subset_iff)
 
 lemma retraction_map_compose:
    "\<lbrakk>retraction_map X Y f; retraction_map Y Z g\<rbrakk> \<Longrightarrow> retraction_map X Z (g \<circ> f)"
@@ -4567,16 +4574,16 @@ lemma continuous_map_into_topology_base_eq:
   assumes P: "openin Y = arbitrary union_of P"
   shows
    "continuous_map X Y f \<longleftrightarrow>
-    (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and> (\<forall>U. P U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
+    f \<in> topspace X \<rightarrow> topspace Y \<and> (\<forall>U. P U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
  (is "?lhs=?rhs")
 proof
   assume L: ?lhs 
-  then have "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
-    by (meson continuous_map_def)
+  then have "f \<in> topspace X \<rightarrow> topspace Y"
+    by (simp add: continuous_map_funspace)
   moreover have "\<And>U. P U \<Longrightarrow> openin X {x \<in> topspace X. f x \<in> U}"
     using L assms continuous_map openin_topology_base_unique by fastforce
   ultimately show ?rhs by auto
-qed (simp add: assms continuous_map_into_topology_base)
+qed (simp add: assms Pi_iff continuous_map_into_topology_base)
 
 lemma continuous_map_into_topology_subbase:
   fixes U P
@@ -4613,13 +4620,13 @@ lemma continuous_map_into_topology_subbase_eq:
   assumes "Y = topology(arbitrary union_of (finite intersection_of P relative_to U))"
   shows
    "continuous_map X Y f \<longleftrightarrow>
-    (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and> (\<forall>U. P U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
+    f \<in> topspace X \<rightarrow> topspace Y \<and> (\<forall>U. P U \<longrightarrow> openin X {x \<in> topspace X. f x \<in> U})"
    (is "?lhs=?rhs")
 proof
   assume L: ?lhs 
   show ?rhs
   proof (intro conjI strip)
-    show "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y"
+    show "f \<in> topspace X \<rightarrow> topspace Y"
       using L continuous_map_def by fastforce
     fix V
     assume "P V"
@@ -5048,8 +5055,9 @@ proof (intro strip conjI)
   with fim inj have eq: "{x \<in> topspace X. f x = y} = {x \<in> topspace X. (g \<circ> f) x = g y}"
     by (auto simp: Pi_iff inj_onD)
   show "compactin X {x \<in> topspace X. f x = y}"
-    unfolding eq
-    by (smt (verit) Collect_cong \<open>y \<in> topspace Y\<close> contf continuous_map_closedin gf proper_map_def)
+    using contf gf \<open>y \<in> topspace Y\<close>
+    unfolding eq continuous_map_def proper_map_def
+ by blast
 qed
 
 

@@ -490,10 +490,10 @@ proof (rule continuous_on_generated_topo)
     using H(2) \<open>J \<subseteq> I\<close> \<open>finite J\<close> assms(1) by blast
   ultimately show "openin T1 (f-`U \<inter> topspace T1)" by simp
 next
-  have "f ` topspace T1 \<subseteq> topspace (product_topology T I)"
-    using assms continuous_map_def by fastforce
+  have "f \<in> topspace T1 \<rightarrow> topspace (product_topology T I)"
+    using assms continuous_map_funspace by (force simp: Pi_iff)
   then show "f `topspace T1 \<subseteq> \<Union>{Pi\<^sub>E I X |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
-    by (simp add: product_topology_def)
+    by (fastforce simp add: product_topology_def Pi_iff)
 qed
 
 lemma continuous_map_product_then_coordinatewise [intro]:

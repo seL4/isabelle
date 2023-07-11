@@ -4026,7 +4026,7 @@ proposition embedding_map_into_euclideanreal:
         qed auto
       qed
       then show "continuous_map (top_of_set ?S) X g"
-        by (simp add: continuous_map_def gf)
+        by (simp add: "1" continuous_map)
     qed (auto simp: gf)
   qed
 qed

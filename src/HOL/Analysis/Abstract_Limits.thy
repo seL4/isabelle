@@ -178,7 +178,7 @@ lemma continuous_map_limit:
   shows "limitin Y (g \<circ> f) (g l) F"
 proof -
   have "g l \<in> topspace Y"
-    by (meson assms continuous_map_def limitin_topspace)
+    by (meson assms continuous_map f image_eqI in_mono limitin_def)
   moreover
   have "\<And>U. \<lbrakk>\<forall>V. openin X V \<and> l \<in> V \<longrightarrow> (\<forall>\<^sub>F x in F. f x \<in> V); openin Y U; g l \<in> U\<rbrakk>
             \<Longrightarrow> \<forall>\<^sub>F x in F. g (f x) \<in> U"
@@ -194,14 +194,14 @@ subsection\<open>Pointwise continuity in topological spaces\<close>
 definition topcontinuous_at where
   "topcontinuous_at X Y f x \<longleftrightarrow>
      x \<in> topspace X \<and>
-     (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and>
+     f \<in> topspace X \<rightarrow> topspace Y \<and>
      (\<forall>V. openin Y V \<and> f x \<in> V
           \<longrightarrow> (\<exists>U. openin X U \<and> x \<in> U \<and> (\<forall>y \<in> U. f y \<in> V)))"
 
 lemma topcontinuous_at_atin:
    "topcontinuous_at X Y f x \<longleftrightarrow>
         x \<in> topspace X \<and>
-        (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and>
+        f \<in> topspace X \<rightarrow> topspace Y \<and>
         limitin Y f (f x) (atin X x)"
   unfolding topcontinuous_at_def
   by (fastforce simp add: limitin_atin)+

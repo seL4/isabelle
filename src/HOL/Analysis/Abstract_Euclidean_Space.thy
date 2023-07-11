@@ -109,7 +109,7 @@ qed
 lemma cm_Euclidean_space_iff_continuous_on:
   "continuous_map (subtopology (Euclidean_space m) S) (Euclidean_space n) f
    \<longleftrightarrow> continuous_on (topspace (subtopology (Euclidean_space m) S)) f \<and>
-       f ` (topspace (subtopology (Euclidean_space m) S)) \<subseteq> topspace (Euclidean_space n)"
+       f \<in> (topspace (subtopology (Euclidean_space m) S)) \<rightarrow> topspace (Euclidean_space n)"
   (is "?P \<longleftrightarrow> ?Q \<and> ?R")
 proof -
   have ?Q if ?P
