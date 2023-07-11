@@ -13,16 +13,16 @@ package isabelle
 object Component_CVC5 {
   /* platform information */
 
-  sealed case class CVC5_Platform(platform_name: String, download_name: String) {
+  sealed case class Download_Platform(platform_name: String, download_name: String) {
     def is_windows: Boolean = platform_name.endsWith("-windows")
   }
 
-  val platforms: List[CVC5_Platform] =
+  val platforms: List[Download_Platform] =
     List(
-      CVC5_Platform("arm64-darwin", "cvc5-macOS-arm64"),
-      CVC5_Platform("x86_64-darwin", "cvc5-macOS"),
-      CVC5_Platform("x86_64-linux", "cvc5-Linux"),
-      CVC5_Platform("x86_64-windows", "cvc5-Win64.exe"))
+      Download_Platform("arm64-darwin", "cvc5-macOS-arm64"),
+      Download_Platform("x86_64-darwin", "cvc5-macOS"),
+      Download_Platform("x86_64-linux", "cvc5-Linux"),
+      Download_Platform("x86_64-windows", "cvc5-Win64.exe"))
 
 
   /* build cvc5 */

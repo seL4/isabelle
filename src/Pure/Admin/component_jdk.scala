@@ -14,20 +14,20 @@ import java.nio.file.attribute.PosixFilePermission
 object Component_JDK {
   /* platform information */
 
-  sealed case class JDK_Platform(name: String, url_template: String) {
+  sealed case class Download_Platform(name: String, url_template: String) {
     override def toString: String = name
 
     def url(base_url: String, jdk_version: String, zulu_version: String): String =
       base_url + "/" + url_template.replace("{V}", jdk_version).replace("{Z}", zulu_version)
   }
 
-  val platforms: List[JDK_Platform] =
+  val platforms: List[Download_Platform] =
     List(
-      JDK_Platform("arm64-darwin", "zulu{Z}-jdk{V}-macosx_aarch64.tar.gz"),
-      JDK_Platform("arm64-linux", "zulu{Z}-jdk{V}-linux_aarch64.tar.gz"),
-      JDK_Platform("x86_64-darwin", "zulu{Z}-jdk{V}-macosx_x64.tar.gz"),
-      JDK_Platform("x86_64-linux", "zulu{Z}-jdk{V}-linux_x64.tar.gz"),
-      JDK_Platform("x86_64-windows", "zulu{Z}-jdk{V}-win_x64.zip"))
+      Download_Platform("arm64-darwin", "zulu{Z}-jdk{V}-macosx_aarch64.tar.gz"),
+      Download_Platform("arm64-linux", "zulu{Z}-jdk{V}-linux_aarch64.tar.gz"),
+      Download_Platform("x86_64-darwin", "zulu{Z}-jdk{V}-macosx_x64.tar.gz"),
+      Download_Platform("x86_64-linux", "zulu{Z}-jdk{V}-linux_x64.tar.gz"),
+      Download_Platform("x86_64-windows", "zulu{Z}-jdk{V}-win_x64.zip"))
 
 
   /* build jdk */
