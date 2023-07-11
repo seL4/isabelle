@@ -15,7 +15,7 @@ object Docker_Build {
   private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux(?:_arm)?\.tar\.gz$""".r
 
   val packages: List[String] =
-    List("curl", "less", "libfontconfig1", "libgomp1", "openssh-client", "pwgen")
+    List("curl", "less", "libfontconfig1", "libgomp1", "openssh-client", "perl", "pwgen", "rlwrap")
 
   val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
@@ -71,8 +71,8 @@ WORKDIR /home/isabelle
       else "COPY Isabelle.tar.gz .") + """
 RUN tar xzf Isabelle.tar.gz && \
   mv """ + isabelle_name + """ Isabelle && \
-  sed -i -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
-  sed -i -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
+  perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
+  perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
   Isabelle/bin/isabelle build -o system_heaps -b """ + logic + """ && \
   rm Isabelle.tar.gz""" + (if (entrypoint) """
 
