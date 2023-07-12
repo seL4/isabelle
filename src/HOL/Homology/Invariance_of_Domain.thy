@@ -54,7 +54,7 @@ proof (cases "n = 0")
     moreover have "topspace (nsphere n) \<inter> {f. f n = 0} = topspace (nsphere (n - Suc 0))"
       by (metis subt_eq topspace_subtopology)
     ultimately show ?thesis
-      using cmr continuous_map_def by fastforce
+      using fim by auto
   qed
   then have fimeq: "f ` (topspace (nsphere n) \<inter> equator n) \<subseteq> topspace (nsphere n) \<inter> equator n"
     using fim cmf by (auto simp: equator_def continuous_map_def image_subset_iff)
@@ -623,7 +623,7 @@ proof -
         using rm_ret [OF \<open>squashable 0 UNIV\<close>] by auto
       then have "ret 0 x \<in> topspace (Euclidean_space n)"
         if "x \<in> topspace (Euclidean_space (Suc n))" "-1 < x n" "x n < 1" for x
-        using that by (simp add: continuous_map_def retraction_maps_def)
+        using that by (metis continuous_map_image_subset_topspace image_subset_iff retraction_maps_def)
       then show "(ret 0) ` (lo \<inter> hi) \<subseteq> topspace (Euclidean_space n) - S"
         by (auto simp: local.cong ret_def hi_def lo_def)
       show "homotopic_with (\<lambda>h. h ` (lo \<inter> hi) \<subseteq> lo \<inter> hi) (Euclidean_space (Suc n)) (Euclidean_space (Suc n)) (ret 0) id"
@@ -1353,7 +1353,7 @@ next
     have "openin (Euclidean_space n) (h ` e ` {- r<..<r})"
       unfolding 1
     proof (subst homeomorphic_map_openness [OF hom_e', symmetric])
-      show "h ` e ` {- r<..<r} \<subseteq> topspace (Euclidean_space 1)"
+      show hesub: "h ` e ` {- r<..<r} \<subseteq> topspace (Euclidean_space 1)"
         using "1" C_def \<open>\<And>r. B r \<subseteq> C r\<close> cmh continuous_map_image_subset_topspace eBr by fastforce
       have cont: "continuous_on {- r<..<r} (e' \<circ> h \<circ> e)"
       proof (intro continuous_on_compose)
@@ -1365,12 +1365,10 @@ next
           by (auto simp: eBr \<open>\<And>r. B r \<subseteq> C r\<close>) (auto simp: B_def)
         with cmh show "continuous_on (e ` {- r<..<r}) h"
           by (meson cm_Euclidean_space_iff_continuous_on continuous_on_subset)
-        have "h ` (e ` {- r<..<r}) \<subseteq> topspace ?E"
-          using subCr cmh by (simp add: continuous_map_def image_subset_iff)
-        moreover have "continuous_on (topspace ?E) e'"
+         have "continuous_on (topspace ?E) e'"
           by (metis "1" continuous_map_Euclidean_space_iff hom_ee' homeomorphic_maps_def)
-        ultimately show "continuous_on (h ` e ` {- r<..<r}) e'"
-          by (simp add: e'_def continuous_on_subset)
+        then show "continuous_on (h ` e ` {- r<..<r}) e'"
+          using hesub by (simp add: 1 e'_def continuous_on_subset)
       qed
       show "openin euclideanreal (e' ` h ` e ` {- r<..<r})"
         using injective_eq_1d_open_map_UNIV [OF cont] inj by (simp add: image_image is_interval_1)

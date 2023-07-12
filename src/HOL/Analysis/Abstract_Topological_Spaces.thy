@@ -894,7 +894,8 @@ proof clarify
 qed
 
 subsection \<open>Neigbourhood bases EXTRAS\<close>
-(* Neigbourhood bases (useful for "local" properties of various kind).       *)
+
+text \<open>Neigbourhood bases: useful for "local" properties of various kinds\<close>
 
 lemma openin_topology_neighbourhood_base_unique:
    "openin X = arbitrary union_of P \<longleftrightarrow>
@@ -1192,7 +1193,7 @@ lemma Kolmogorov_quotient_continuous_map:
   assumes "continuous_map X Y f" "t0_space Y" and x: "x \<in> topspace X"
   shows "f (Kolmogorov_quotient X x) = f x"
   using assms unfolding continuous_map_def t0_space_def
-  by (smt (verit, ccfv_SIG) Kolmogorov_quotient_in_open Kolmogorov_quotient_in_topspace x mem_Collect_eq)
+  by (smt (verit, ccfv_threshold) Kolmogorov_quotient_in_open Kolmogorov_quotient_in_topspace PiE mem_Collect_eq)
 
 lemma t0_space_Kolmogorov_quotient:
   "t0_space (subtopology X (Kolmogorov_quotient X ` topspace X))"
@@ -1239,7 +1240,7 @@ proof -
   have "\<And>x y. \<lbrakk>x \<in> S; y \<in> S; Kolmogorov_quotient X x = Kolmogorov_quotient X y\<rbrakk> \<Longrightarrow> f x = f y"
     using assms
     apply (simp add: Kolmogorov_quotient_eq t0_space_def continuous_map_def Int_absorb1 openin_subtopology)
-    by (smt (verit, del_insts) Int_iff mem_Collect_eq)
+    by (smt (verit, del_insts) Int_iff mem_Collect_eq Pi_iff)
   then obtain g where g: "continuous_map (subtopology X (Kolmogorov_quotient X ` S)) Y g"
     "g ` (topspace X \<inter> Kolmogorov_quotient X ` S) = f ` S"
     "\<And>x. x \<in> S \<Longrightarrow> g (Kolmogorov_quotient X x) = f x"
@@ -1321,7 +1322,7 @@ proof -
   obtain r where r: "continuous_map X (subtopology X S) r" "\<forall>x\<in>S. r x = x"
     using assms by (meson retract_of_space_def)
   then have \<section>: "S = {x \<in> topspace X. r x = x}"
-    using S retract_of_space_imp_subset by (force simp: continuous_map_def)
+    using S retract_of_space_imp_subset by (force simp: continuous_map_def Pi_iff)
   show ?thesis
     unfolding \<section> 
     using r continuous_map_into_fulltopology assms
@@ -1345,7 +1346,8 @@ next
   assume ?rhs
   then show ?lhs
     unfolding homeomorphic_maps_def
-    by (smt (verit, ccfv_threshold) continuous_map_eq continuous_map_subtopology_fst embedding_map_def embedding_map_graph homeomorphic_eq_everything_map  image_cong image_iff prod.collapse prod.inject)
+    by (smt (verit, del_insts) continuous_map_eq continuous_map_subtopology_fst embedding_map_def 
+        embedding_map_graph homeomorphic_eq_everything_map image_cong image_iff prod.sel(1))
 qed
 
 
@@ -1663,9 +1665,8 @@ proof (intro conjI strip)
       have "continuous_map (subtopology X A) (subtopology Y K) f" if "kc_space X"
         unfolding continuous_map_closedin
       proof (intro conjI strip)
-        show "f x \<in> topspace (subtopology Y K)"
-          if "x \<in> topspace (subtopology X A)" for x
-          using that A_def K compactin_subset_topspace by auto
+        show "f \<in> topspace (subtopology X A) \<rightarrow> topspace (subtopology Y K)"
+          using A_def K compactin_subset_topspace by fastforce
       next
         fix C
         assume C: "closedin (subtopology Y K) C"
@@ -1927,7 +1928,7 @@ lemma proper_map_pairwise:
   using proper_map_paired [OF assms] by (simp add: o_def)
 
 lemma proper_map_from_composition_right:
-  assumes "Hausdorff_space Y" "proper_map X Z (g \<circ> f)" and "continuous_map X Y f"
+  assumes "Hausdorff_space Y" "proper_map X Z (g \<circ> f)" and contf: "continuous_map X Y f"
     and contg: "continuous_map Y Z g"
   shows "proper_map X Y f"
 proof -
@@ -1935,7 +1936,7 @@ proof -
   have "proper_map X Y (fst \<circ> (\<lambda>x. (f x, (g \<circ> f) x)))"
   proof (rule proper_map_compose)
     have [simp]: "x \<in> topspace X \<Longrightarrow> f x \<in> topspace Y" for x
-      by (meson assms(3) continuous_map_def)
+      using contf continuous_map_preimage_topspace by auto
     show "proper_map X YZ (\<lambda>x. (f x, (g \<circ> f) x))"
       unfolding YZ_def
       using assms
@@ -2558,7 +2559,8 @@ next
       using \<open>closed_map X Y f\<close> \<open>closedin X C\<close> \<open>openin X U2\<close> closed_map_def by blast
     moreover
     have "f x \<in> topspace Y - f ` (C - U2)"
-      using \<open>closedin X C\<close> \<open>continuous_map X Y f\<close> \<open>x \<in> topspace X\<close> closedin_subset continuous_map_def subV by fastforce
+      using \<open>closedin X C\<close> \<open>continuous_map X Y f\<close> \<open>x \<in> topspace X\<close> closedin_subset continuous_map_def subV 
+      by (fastforce simp: Pi_iff)
     ultimately
     obtain V1 V2 where VV: "openin Y V1" "openin Y V2" "f x \<in> V1" 
                 and subV2: "f ` (C - U2) \<subseteq> V2" and "disjnt V1 V2"
@@ -3213,7 +3215,7 @@ proof (intro strip)
   assume x: "x \<in> topspace X"
   then obtain U K where "openin X' U" "compactin X' K" "f x \<in> U" "U \<subseteq> K"
     using assms unfolding locally_compact_space_def perfect_map_def
-    by (metis (no_types, lifting) continuous_map_closedin)
+    by (metis (no_types, lifting) continuous_map_closedin Pi_iff)
   show "\<exists>U K. openin X U \<and> compactin X K \<and> x \<in> U \<and> U \<subseteq> K"
   proof (intro exI conjI)
     have "continuous_map X X' f"
@@ -3433,7 +3435,7 @@ proof clarify
       by (auto simp: retraction_maps_def)
     show "S \<subseteq> {x \<in> topspace Y. r' x \<in> U}" "T \<subseteq> {x \<in> topspace Y. r' x \<in> V}"
       using openin_continuous_map_preimage UV r' \<open>closedin Y S\<close> \<open>closedin Y T\<close> 
-      by (auto simp add: closedin_def continuous_map_closedin retraction_maps_def subset_iff)
+      by (auto simp add: closedin_def continuous_map_closedin retraction_maps_def subset_iff Pi_iff)
     show "disjnt {x \<in> topspace Y. r' x \<in> U} {x \<in> topspace Y. r' x \<in> V}"
       using \<open>disjnt U V\<close> by (auto simp: disjnt_def)
   qed
@@ -4293,7 +4295,7 @@ lemma quasi_component_of_continuous_image:
   unfolding quasi_component_of_def
 proof (intro strip conjI)
   show "f x \<in> topspace Y" "f y \<in> topspace Y"
-    using assms by (simp_all add: continuous_map_def quasi_component_of_def)
+    using assms by (simp_all add: continuous_map_def quasi_component_of_def Pi_iff)
   fix T
   assume "closedin Y T \<and> openin Y T"
   with assms show "(f x \<in> T) = (f y \<in> T)"

@@ -380,7 +380,7 @@ proof -
       and ga: "g ` SA \<subseteq> {- d}" and gb: "g ` SB \<subseteq> {d}"
       using Urysohn_lemma \<open>normal_space X\<close> by metis
     then have g_le_d: "\<And>x. x \<in> topspace X \<Longrightarrow> \<bar>g x\<bar> \<le> d"
-      by (simp add: abs_le_iff continuous_map_def minus_le_iff)
+      by (fastforce simp: abs_le_iff continuous_map_def minus_le_iff)
     have g_eq_d: "\<And>x. \<lbrakk>x \<in> S; f x - h x \<le> -d\<rbrakk> \<Longrightarrow> g x = -d"
       using ga by (auto simp: SA_def)
     have g_eq_negd: "\<And>x. \<lbrakk>x \<in> S; f x - h x \<ge> d\<rbrakk> \<Longrightarrow> g x = d"

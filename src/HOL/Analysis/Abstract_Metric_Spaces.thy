@@ -2583,7 +2583,7 @@ lemma continuous_map_to_metric:
 proof
   show "?lhs \<Longrightarrow> ?rhs"
     unfolding continuous_map_eq_topcontinuous_at topcontinuous_at_def
-    by (metis centre_in_mball_iff openin_mball topspace_mtopology)
+    by (metis PiE centre_in_mball_iff openin_mball topspace_mtopology)
 next
   assume R: ?rhs
   then have "\<forall>x\<in>topspace X. f x \<in> M"
@@ -2598,7 +2598,7 @@ qed
 
 lemma continuous_map_from_metric:
    "continuous_map mtopology X f \<longleftrightarrow>
-    f ` M \<subseteq> topspace X \<and>
+    f \<in> M \<rightarrow> topspace X \<and>
     (\<forall>a \<in> M. \<forall>U. openin X U \<and> f a \<in> U \<longrightarrow> (\<exists>r>0. \<forall>x. x \<in> M \<and> d a x < r \<longrightarrow> f x \<in> U))"
 proof (cases "f ` M \<subseteq> topspace X")
   case True
@@ -2607,7 +2607,7 @@ proof (cases "f ` M \<subseteq> topspace X")
 next
   case False
   then show ?thesis
-    by (simp add: continuous_map_eq_image_closure_subset_gen)
+    by (simp add: continuous_map_def image_subset_iff_funcset)
 qed
 
 text \<open>An abstract formulation, since the limits do not have to be sequential\<close>
@@ -2671,7 +2671,7 @@ lemma continuous_map_uniformly_Cauchy_limit:
 proof -
   have "\<And>x. x \<in> topspace X \<Longrightarrow> \<exists>l. limitin mtopology (\<lambda>n. f n x) l sequentially"
     using \<open>mcomplete\<close> [unfolded mcomplete, rule_format] assms
-    by (smt (verit) contf continuous_map_def eventually_mono topspace_mtopology)
+    by (smt (verit) contf continuous_map_def eventually_mono topspace_mtopology Pi_iff)
   then obtain g where g: "\<And>x. x \<in> topspace X \<Longrightarrow> limitin mtopology (\<lambda>n. f n x) (g x) sequentially"
     by metis
   show thesis
@@ -5107,14 +5107,14 @@ proof -
 qed
 
 
-lemma metrizable_space_product_topology:
+proposition metrizable_space_product_topology:
   "metrizable_space (product_topology X I) \<longleftrightarrow>
         topspace (product_topology X I) = {} \<or>
         countable {i \<in> I. \<not> (\<exists>a. topspace(X i) \<subseteq> {a})} \<and>
         (\<forall>i \<in> I. metrizable_space (X i))"
   by (metis (mono_tags, lifting) empty_metrizable_space metrizable_topology_A metrizable_topology_B metrizable_topology_D)
 
-lemma completely_metrizable_space_product_topology:
+proposition completely_metrizable_space_product_topology:
   "completely_metrizable_space (product_topology X I) \<longleftrightarrow>
         topspace (product_topology X I) = {} \<or>
         countable {i \<in> I. \<not> (\<exists>a. topspace(X i) \<subseteq> {a})} \<and>

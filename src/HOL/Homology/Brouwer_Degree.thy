@@ -1026,7 +1026,7 @@ proof -
     have rimeq: "r ` (topspace (subtopology (nsphere n) {x. x k \<le> 0}) \<inter> {x. x k = 0})
                = topspace (subtopology (nsphere n) {x. 0 \<le> x k}) \<inter> {x. x k = 0}"
       using continuous_map_eq_topcontinuous_at continuous_map_nsphere_reflection topcontinuous_at_atin
-      by (fastforce simp: r_def)
+      by (fastforce simp: r_def Pi_iff)
     show "?f \<in> iso ?G (relative_homology_group p (subtopology (nsphere n) {x. x k \<ge> 0}) {x. x k = 0})"
       using homeomorphic_map_relative_homology_iso [OF hmrs Int_lower1 rimeq]
       by (metis hom_induced_restrict relative_homology_group_restrict)
