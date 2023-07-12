@@ -1,8 +1,9 @@
 /*  Title:      Pure/General/toml.scala
-    Author: Fabian Huch, TU Muenchen
+    Author:     Fabian Huch, TU Muenchen
 
 Support for TOML: https://toml.io/en/v1.0.0
- */
+*/
+
 package isabelle
 
 
@@ -229,10 +230,10 @@ object TOML {
 
   trait Parsers extends combinator.Parsers {
     type Elem = Token
-    
-    
+
+
     /* parse structure */
-    
+
     type Keys = List[Key]
 
     sealed trait V
@@ -243,14 +244,14 @@ object TOML {
     sealed trait Def
     case class Table(key: Keys, elems: List[(Keys, V)]) extends Def
     case class Array_Of_Tables(key: Keys, elems: List[(Keys, V)]) extends Def
-    
+
     case class File(elems: List[(Keys, V)], defs: List[Def])
-    
+
 
     /* top-level syntax structure */
-    
+
     def key: Parser[Keys] = rep1sep(keys, $$$(".")) ^^ (_.flatten)
-    
+
     def string: Parser[String] =
       elem("string", e => e.is_string || e.is_multiline_string) ^^ (s => String(s.text))
     def integer: Parser[Integer] =
@@ -275,7 +276,7 @@ object TOML {
 
     def inline_table: Parser[Inline_Table] =
       $$$("{") ~>! repsep(pair, $$$(",")) <~! $$$("}") ^^ Inline_Table.apply
-    
+
     def pair: Parser[(Keys, V)] = (key <~! $$$("=")) ~! toml_value ^^ { case ks ~ v => (ks, v) }
 
     def table: Parser[Table] = $$$("[") ~> (key <~! $$$("]") ~! line_sep) ~! content ^^
