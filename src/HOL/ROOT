@@ -847,7 +847,7 @@ session "HOL-TPTP" in TPTP = HOL +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  options [timeout = 300]
+  options [timeout = 600]
   sessions
     "HOL-Combinatorics"
   theories
