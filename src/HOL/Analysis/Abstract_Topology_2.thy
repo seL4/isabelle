@@ -872,7 +872,7 @@ proof (rule continuous_map_cases_alt)
     show "continuous_map (subtopology X ?T) Y g"
       by (simp add: contg)
     have "X closure_of {x \<in> topspace X. p x \<notin> U} \<subseteq> X closure_of {x \<in> topspace X. p x \<in> topspace Z - U}"
-      by (smt (verit, del_insts) DiffI mem_Collect_eq subset_iff closure_of_mono continuous_map_closedin contp) 
+      by (smt (verit) Collect_mono_iff DiffI closure_of_mono continuous_map contp image_subset_iff)
     then show "X closure_of {x \<in> topspace X. p x \<notin> U} \<subseteq> ?T"
       by (rule order_trans [OF _ continuous_map_closure_preimage_subset [OF contp]])
   qed
@@ -1352,7 +1352,7 @@ lemma path_connected_space_discrete_topology:
 lemma homeomorphic_path_connected_space_imp:
      "\<lbrakk>path_connected_space X; X homeomorphic_space Y\<rbrakk> \<Longrightarrow> path_connected_space Y"
   unfolding homeomorphic_space_def homeomorphic_maps_def
-  by (metis (no_types, opaque_lifting) continuous_map_closedin continuous_map_image_subset_topspace imageI order_class.order.antisym path_connectedin_continuous_map_image path_connectedin_topspace subsetI)
+  by (smt (verit, ccfv_threshold) homeomorphic_imp_surjective_map homeomorphic_maps_def homeomorphic_maps_map path_connectedin_continuous_map_image path_connectedin_topspace)
 
 lemma homeomorphic_path_connected_space:
    "X homeomorphic_space Y \<Longrightarrow> path_connected_space X \<longleftrightarrow> path_connected_space Y"

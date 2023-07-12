@@ -190,7 +190,7 @@ proof -
   have f: "f x = (?g x, ?h x)" for x
     by auto
   show ?thesis
-  proof (cases "(\<forall>x \<in> topspace Z. ?g x \<in> topspace X) \<and> (\<forall>x \<in> topspace Z. ?h x \<in> topspace Y)")
+  proof (cases "?g \<in> topspace Z \<rightarrow> topspace X \<and> ?h \<in> topspace Z \<rightarrow> topspace Y")
     case True
     show ?thesis
     proof safe
@@ -199,7 +199,7 @@ proof -
         unfolding continuous_map_def using True that
         apply clarify
         apply (drule_tac x="U \<times> topspace Y" in spec)
-        by (simp add: openin_prod_Times_iff mem_Times_iff cong: conj_cong)
+        by (auto simp: openin_prod_Times_iff mem_Times_iff Pi_iff cong: conj_cong)
       with True show "continuous_map Z X (fst \<circ> f)"
         by (auto simp: continuous_map_def)
     next
@@ -208,7 +208,7 @@ proof -
         unfolding continuous_map_def using True that
         apply clarify
         apply (drule_tac x="topspace X \<times> V" in spec)
-        by (simp add: openin_prod_Times_iff mem_Times_iff cong: conj_cong)
+        by (simp add: openin_prod_Times_iff mem_Times_iff Pi_iff cong: conj_cong)
       with True show "continuous_map Z Y (snd \<circ> f)"
         by (auto simp: continuous_map_def)
     next
@@ -227,9 +227,9 @@ proof -
           done
       qed
       show "continuous_map Z (prod_topology X Y) f"
-        using True by (simp add: continuous_map_def openin_prod_topology_alt mem_Times_iff *)
+        using True by (force simp: continuous_map_def openin_prod_topology_alt mem_Times_iff *)
     qed
-  qed (auto simp: continuous_map_def)
+  qed (force simp: continuous_map_def)
 qed
 
 lemma continuous_map_paired:
@@ -402,7 +402,7 @@ next
       using \<C> by simp
     obtain \<U> \<V> where \<U>: "\<And>U. U \<in> \<U> \<Longrightarrow> openin X U" "\<Y>' = (\<lambda>U. U \<times> topspace Y) ` \<U>"
       and \<V>: "\<And>V. V \<in> \<V> \<Longrightarrow> openin Y V" "\<X>' = (\<lambda>V. topspace X \<times> V) ` \<V>"
-      using XY by (clarsimp simp add: \<X>_def \<Y>_def subset_image_iff) (force simp add: subset_iff)
+      using XY by (clarsimp simp add: \<X>_def \<Y>_def subset_image_iff) (force simp: subset_iff)
     have "\<exists>\<D>. finite \<D> \<and> \<D> \<subseteq> \<X>' \<union> \<Y>' \<and> topspace X \<times> topspace Y \<subseteq> \<Union> \<D>"
     proof -
       have "topspace X \<subseteq> \<Union>\<U> \<or> topspace Y \<subseteq> \<Union>\<V>"
@@ -463,7 +463,7 @@ next
           show "(finite intersection_of (\<lambda>x. x \<in> \<X> \<or> x \<in> \<Y>)) (U \<times> V)"
             apply (simp add: intersection_of_def \<X>_def \<Y>_def)
             apply (rule_tac x="{(U \<times> topspace Y),(topspace X \<times> V)}" in exI)
-            using \<open>openin X U\<close> \<open>openin Y V\<close> openin_subset UV apply (fastforce simp add:)
+            using \<open>openin X U\<close> \<open>openin Y V\<close> openin_subset UV apply (fastforce simp:)
             done
         qed
         ultimately show ?thesis
@@ -489,12 +489,18 @@ subsection\<open>Homeomorphic maps\<close>
 
 lemma homeomorphic_maps_prod:
    "homeomorphic_maps (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) (\<lambda>(x,y). (f' x, g' y)) \<longleftrightarrow>
-        topspace(prod_topology X Y) = {} \<and>
-        topspace(prod_topology X' Y') = {} \<or>
-        homeomorphic_maps X X' f f' \<and>
-        homeomorphic_maps Y Y' g g'"
+        topspace(prod_topology X Y) = {} \<and> topspace(prod_topology X' Y') = {} 
+      \<or> homeomorphic_maps X X' f f' \<and> homeomorphic_maps Y Y' g g'"  (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
   unfolding homeomorphic_maps_def continuous_map_prod_top
-  by (auto simp: continuous_map_def homeomorphic_maps_def continuous_map_prod_top)
+  by (auto simp: continuous_map_on_empty continuous_map_on_empty2 ball_conj_distrib)
+next
+  show "?rhs \<Longrightarrow> ?lhs"
+  unfolding homeomorphic_maps_def 
+  by (auto simp: continuous_map_prod_top continuous_map_on_empty continuous_map_on_empty2)
+qed
+
 
 lemma homeomorphic_maps_swap:
    "homeomorphic_maps (prod_topology X Y) (prod_topology Y X)

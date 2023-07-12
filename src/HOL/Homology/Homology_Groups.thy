@@ -508,8 +508,8 @@ proof -
         hom_relmap p X (topspace X \<inter> S) Y (topspace Y \<inter> T) f c
            \<in> carrier (relative_homology_group p Y T)"
       for p X S Y f T c
-      using hom_carrier [OF 1 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p]]
-      by (simp add: image_subset_iff subtopology_restrict continuous_map_def)
+      using hom_carrier [OF 1 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p]] 
+            continuous_map_image_subset_topspace by fastforce
     have inhom: "(\<lambda>c. if continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and>
                       c \<in> carrier (relative_homology_group p X S)
             then hom_relmap p X (topspace X \<inter> S) Y (topspace Y \<inter> T) f c
@@ -530,10 +530,10 @@ proof -
         proof (cases "continuous_map X Y f")
           case True
           then have "f ` (topspace X \<inter> S) \<subseteq> topspace Y"
-            by (meson IntE continuous_map_def image_subsetI)
+            using continuous_map_image_subset_topspace by blast
           then show ?thesis
             using True False that
-          using 1 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p]
+            using 1 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p]
           by (simp add: 4 continuous_map_image_subset_topspace hom_mult not_less group.is_monoid monoid.m_closed Int_left_absorb)
         qed (simp add: group.is_monoid)
       qed
@@ -543,7 +543,7 @@ proof -
               f (homologous_rel_set p X S c) = homologous_rel_set p Y T (chain_map p f c)"
         for p X S Y T f c
       using 2 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p c]
-      by simp (meson IntE continuous_map_def image_subsetI)
+            continuous_map_image_subset_topspace by fastforce
     show ?thesis
       apply (rule_tac x="\<lambda>p X S Y T f c.
                if continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and>
