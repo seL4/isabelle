@@ -104,6 +104,7 @@ sources = \
   src/Pure/General/symbol.scala \
   src/Pure/General/time.scala \
   src/Pure/General/timing.scala \
+  src/Pure/General/toml.scala \
   src/Pure/General/untyped.scala \
   src/Pure/General/url.scala \
   src/Pure/General/utf8.scala \
