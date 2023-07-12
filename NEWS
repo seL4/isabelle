@@ -370,6 +370,10 @@ the default 64_32 platform (4 bytes per machine word):
 
 *** System ***
 
+* Isabelle/Scala supports TOML (Tom's Obvious, Minimal Language), which
+aims to be a minimal configuration file format. See also
+https://toml.io/en/v1.0.0
+
 * System options "context_theory_tracing" and "context_proof_tracing"
 store information about persistent context values (ML types theory,
 local_theory, Proof.context). This may reveal "memory leaks" in
