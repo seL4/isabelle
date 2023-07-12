@@ -699,7 +699,7 @@ lemma simplex_map_eq:
    "\<lbrakk>singular_simplex p X c;
      \<And>x. x \<in> topspace X \<Longrightarrow> f x = g x\<rbrakk>
     \<Longrightarrow> simplex_map p f c = simplex_map p g c"
-  by (auto simp: singular_simplex_def simplex_map_def continuous_map_def)
+  by (auto simp: singular_simplex_def simplex_map_def continuous_map_def Pi_iff)
 
 lemma simplex_map_id_gen:
    "\<lbrakk>singular_simplex p X c;
@@ -879,14 +879,14 @@ proof
     have "continuous_map (subtopology (product_topology (\<lambda>n. euclideanreal) UNIV) (standard_simplex p)) X f"
       using \<open>singular_simplex p X f\<close> singular_simplex_def by blast
     then have "\<And>c. c \<notin> standard_simplex p \<or> f c = a"
-      by (simp add: assms continuous_map_def)
+      by (simp add: assms continuous_map_def Pi_iff)
     then show ?thesis
       by (metis (no_types) L extensional_restrict restrict_ext singular_simplex_def)
   qed
 next
   assume ?rhs
   with assms show ?lhs
-    by (auto simp: singular_simplex_def topspace_subtopology)
+    by (auto simp: singular_simplex_def)
 qed
 
 lemma singular_chain_singleton:
