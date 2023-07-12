@@ -1,15 +1,14 @@
-(*  Author:     Makarius
-    LICENSE:    Isabelle (BSD-3)
+(*  Title:      Tools/profiling.ML
+    Author:     Makarius
 
-Statistics on already loaded theories, intended for dynamic invocation via
-"isabelle process".
+Session profiling based on loaded ML image.
 *)
 
-theory Statistics
+theory Profiling
   imports Pure
 begin
 
-ML_file "statistics.ML"
-ML_command \<open>Statistics.main ()\<close>
+ML_file "profiling.ML"
+ML_command \<open>Profiling.main ()\<close>
 
 end

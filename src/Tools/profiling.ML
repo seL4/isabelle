@@ -1,7 +1,7 @@
-(*  Author:     Makarius
-    LICENSE:    Isabelle (BSD-3)
+(*  Title:      Tools/profiling.ML
+    Author:     Makarius
 
-Statistics for theory content.
+Session profiling based on loaded ML image.
 *)
 
 type theory_statistics =
@@ -17,7 +17,7 @@ type session_statistics =
   sizeof_types: int,
   sizeof_spaces: int};
 
-structure Statistics:
+structure Profiling:
 sig
   val locale_names: theory -> string list
   val locale_thms: theory -> string -> thm list
@@ -142,7 +142,7 @@ val encode_result = let open XML.Encode in pair encode_theories_result encode_se
 in
 
 fun main () =
-  (case getenv "AUTOCORRES_STATISTICS" of
+  (case getenv "ISABELLE_PROFILING" of
     "" => ()
   | dir_name =>
       let

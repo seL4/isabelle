@@ -3,6 +3,7 @@ chapter Misc
 session Tools = Pure +
   theories
     Code_Generator
+    Profiling
 
 session SML in SML = Pure +
   theories

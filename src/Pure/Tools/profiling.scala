@@ -1,17 +1,16 @@
-/*  Author:     Makarius
-    LICENSE:    Isabelle (BSD-3)
+/*  Title:      Pure/Tools/profiling_report.scala
+    Author:     Makarius
 
-Isabelle/Scala command-line tool for AutoCorres profiling.
+Build sessions for profiling of ML heap content.
 */
 
-package isabelle.autocorres
+package isabelle
 
-import isabelle._
 
 import java.util.Locale
 
 
-object AutoCorres_Profiling {
+object Profiling {
   /* percentage: precision in permille */
 
   def percentage(a: Long, b: Long): Percentage =
@@ -21,7 +20,7 @@ object AutoCorres_Profiling {
 
   def percentage_space(a: Space, b: Space): Percentage = percentage(a.bytes, b.bytes)
 
-  final class Percentage private[AutoCorres_Profiling](val permille: Int) extends AnyVal {
+  final class Percentage private[Profiling](val permille: Int) extends AnyVal {
     def percent: Double = permille.toDouble / 10
 
     override def toString: String = (permille / 10).toString + "." + (permille % 10).toString + "%"
@@ -100,14 +99,14 @@ object AutoCorres_Profiling {
         { import XML.Decode._; pair(decode_theories_result, decode_session_result)(body) }
 
     def make(
-      store: Sessions.Store,
-      session_base_info: Sessions.Base_Info,
+      store: Store,
+      session_background: Sessions.Background,
       parent: Option[Statistics] = None,
       anonymous_theories: Boolean = false
     ): Statistics = {
-      val session_base = session_base_info.base
+      val session_base = session_background.base
       val session_name = session_base.session_name
-      val sessions_structure = session_base_info.sessions_structure
+      val sessions_structure = session_background.sessions_structure
 
       val theories_name = session_base.used_theories.map(p => p._1.theory)
       val theories_index =
@@ -118,13 +117,13 @@ object AutoCorres_Profiling {
       val (theories0, session) = {
         val args = theories_name
         val eval_args =
-          List("--eval", "use_thy " +
-            ML_Syntax.print_string_bytes("$AUTOCORRES_HOME/autocorres/profiling/Statistics"))
-        Isabelle_System.with_tmp_dir("statistics") { dir =>
-          val put_env = List("AUTOCORRES_STATISTICS" -> dir.implode)
+          List("--eval", "use_thy " + ML_Syntax.print_string_bytes("~~/src/Tools/Profiling"))
+        Isabelle_System.with_tmp_dir("profiling") { dir =>
+          val put_env = List("ISABELLE_PROFILING" -> dir.implode)
           File.write(dir + Path.explode("args.yxml"), YXML.string_of_body(encode_args(args)))
-          ML_Process(store.options, sessions_structure, store, logic = session_name,
-            session_base = Some(session_base), args = eval_args,
+          val session_heaps =
+            ML_Process.session_heaps(store, session_background, logic = session_name)
+          ML_Process(store.options, session_background, session_heaps, args = eval_args,
             env = Isabelle_System.settings(put_env)).result().check
           decode_result(YXML.parse_body(File.read(dir + Path.explode("result.yxml"))))
         }
@@ -202,7 +201,7 @@ object AutoCorres_Profiling {
   }
 
 
-  /* autocorres profiling */
+  /* profiling results */
 
   sealed case class Results(build_results: Build.Results, sessions: List[Statistics]) {
     def output(
@@ -222,7 +221,7 @@ object AutoCorres_Profiling {
     }
   }
 
-  def autocorres_profiling(
+  def profiling(
     options: Options,
     selection: Sessions.Selection = Sessions.Selection.empty,
     progress: Progress = new Progress,
@@ -230,8 +229,7 @@ object AutoCorres_Profiling {
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
-    anonymous_theories: Boolean = false,
-    verbose: Boolean = false
+    anonymous_theories: Boolean = false
   ): Results = {
     /* sessions structure */
 
@@ -248,7 +246,7 @@ object AutoCorres_Profiling {
 
     /* build session */
 
-    val store = Sessions.store(options)
+    val store = Store(options)
 
     def build(
       selection: Sessions.Selection,
@@ -258,8 +256,7 @@ object AutoCorres_Profiling {
       val results =
         Build.build(options, progress = progress,
           selection = selection, build_heap = build_heap, clean_build = clean_build,
-          dirs = sessions_dirs, numa_shuffling = numa_shuffling,
-          max_jobs = max_jobs, verbose = verbose)
+          dirs = sessions_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs)
 
       if (results.ok) results else error("Build failed")
     }
@@ -288,7 +285,7 @@ object AutoCorres_Profiling {
           } yield parent_stats
         val stats =
           Statistics.make(store,
-            build_results.deps.base_info(session_name),
+            build_results.deps.background(session_name),
             parent = parent,
             anonymous_theories = anonymous_theories)
         seen += (session_name -> stats)
@@ -303,13 +300,11 @@ object AutoCorres_Profiling {
 
   /* Isabelle tool wrapper */
 
-  val default_output_dir: Path = Path.explode("autocorres_profiling")
+  val default_output_dir: Path = Path.explode("profiling")
 
   val isabelle_tool =
-    Isabelle_Tool("autocorres_profiling", "profiling for AutoCorres",
+    Isabelle_Tool("profiling", "build sessions for profiling of ML heap content",
       Scala_Project.here, { args =>
-        val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
-
         var base_sessions: List[String] = Nil
         var select_dirs: List[Path] = Nil
         var numa_shuffling = false
@@ -320,12 +315,12 @@ object AutoCorres_Profiling {
         var session_groups: List[String] = Nil
         var max_jobs = 1
         var anonymous_theories = false
-        var options = Options.init(opts = build_options)
+        var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
         var verbose = false
         var exclude_sessions: List[String] = Nil
 
         val getopts = Getopts("""
-Usage: isabelle autocorres_profiling [OPTIONS] [SESSIONS ...]
+Usage: isabelle profiling [OPTIONS] [SESSIONS ...]
 
   Options are:
     -B NAME      include session NAME and all descendants
@@ -343,7 +338,7 @@ Usage: isabelle autocorres_profiling [OPTIONS] [SESSIONS ...]
     -x NAME      exclude session NAME and all descendants
 
   Build specified sessions, with options similar to "isabelle build" and
-  implicit modifications for profiling of AutoCorress sessions.""",
+  implicit modifications for profiling of ML heap content.""",
           "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
           "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
           "N" -> (_ => numa_shuffling = true),
@@ -364,7 +359,7 @@ Usage: isabelle autocorres_profiling [OPTIONS] [SESSIONS ...]
 
         val results =
           progress.interrupt_handler {
-            autocorres_profiling(options,
+            profiling(options,
               selection = Sessions.Selection(
                 all_sessions = all_sessions,
                 base_sessions = base_sessions,
@@ -375,14 +370,11 @@ Usage: isabelle autocorres_profiling [OPTIONS] [SESSIONS ...]
               progress = progress,
               dirs = dirs,
               select_dirs = select_dirs,
-              numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
+              numa_shuffling = Host.numa_check(progress, numa_shuffling),
               max_jobs = max_jobs,
-              anonymous_theories = anonymous_theories,
-              verbose = verbose)
+              anonymous_theories = anonymous_theories)
           }
 
         results.output(output_dir = output_dir.absolute, progress = progress)
       })
 }
-
-class Tools extends Isabelle_Scala_Tools(AutoCorres_Profiling.isabelle_tool)
