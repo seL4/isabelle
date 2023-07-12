@@ -9,6 +9,16 @@ New in Isabelle2023 (August 2023)
 
 *** General ***
 
+* Session build dependencies (sources and heaps) are now recorded in
+more details, with one SHA1 digest per file and a symbolic version of
+the file name -- similar to the Unix command-line tool "sha1sum". For
+portability of results, well-known directory names are folded into path
+variables according to cumulative "isabelle_directory" declarations in
+etc/settings (user projects may add to that). See also "isabelle getenv
+ISABELLE_DIRECTORIES" for the effective result, which is used by the
+Isabelle/Scala function isabelle.File.symbolic_path() for its
+first-match policy in reverse order.
+
 * ML heap usage and stored heap size has been significantly reduced,
 especially for applications with a lot 'locale' or 'class' context
 switches, e.g. "definition (in loc)". The shrink factor is usually in
