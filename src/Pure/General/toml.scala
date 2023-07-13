@@ -88,9 +88,9 @@ object TOML {
             case Some(value) => value
             case None =>
               error("Expected" + classTag[A].runtimeClass.getName +
-                ", got " + v.getClass.getSimpleName + " for key " + quote(k))
+                ", got " + v.getClass.getSimpleName + " for key " + Format.key(k))
           }
-          case None => error("Key " + quote(k) + " does not exist")
+          case None => error("Key " + Format.key(k) + " does not exist")
         }
     }
 
@@ -114,7 +114,7 @@ object TOML {
           (v0, v) match {
             case (t0: Table, t: Table) => t0 ++ t
             case (a0: Array, a: Array) => a0 ++ a
-            case _ => error("Key already present: " + quote(k))
+            case _ => error("Key already present: " + Format.key(k))
           }
       }
       new Table(rep + (k -> v1))
@@ -391,21 +391,24 @@ object TOML {
       val (rest0, rest1) = rest.splitAt(split)
       val implicitly_seen = prefixes(rest1.dropRight(1)).map(rest0 ::: _)
 
-      if (seen.inlines.exists(rest.startsWith(_))) error("Attempting to update an inline value")
+      seen.inlines.find(rest.startsWith(_)).foreach(ks =>
+        error("Attempting to update an inline value at " + Format.keys(ks)))
 
       val (inlines, tables) =
         elem match {
           case _: Parsers.Primitive =>
             (seen.inlines, seen.tables ++ implicitly_seen)
           case _: Parsers.Array =>
-            if (seen_tables.contains(ks)) error("Attempting to append with an inline array")
+            if (seen_tables.contains(ks))
+              error("Attempting to append with an inline array at " + Format.keys(ks))
             (seen.inlines + rest, seen.tables ++ implicitly_seen)
           case _: Parsers.Inline_Table =>
-            if (seen.tables.exists(_.startsWith(rest)))
-              error("Attempting to add with an inline table")
+            seen.tables.find(_.startsWith(rest)).foreach(ks =>
+              error("Attempting to add with an inline table at " + Format.keys(ks)))
             (seen.inlines + rest, seen.tables ++ implicitly_seen)
           case _: Parsers.Table =>
-            if (seen.tables.contains(rest)) error("Attempting to define a table twice")
+            if (seen.tables.contains(rest))
+              error("Attempting to define a table twice at" + Format.keys(ks))
             (seen.inlines, seen.tables + rest)
           case _: Parsers.Array_Of_Tables => (Set.empty, Set.empty)
         }
@@ -433,8 +436,9 @@ object TOML {
         case Parsers.Primitive(t) => (t, Set.empty)
         case Parsers.Array(rep) => (Array(rep.map(to_toml(_)._1)), Set.empty)
         case Parsers.Inline_Table(elems) =>
-          elems.foreach(e => if (elems.count(_._1 == e._1) > 1)
-            error("Duplicate key in inline table"))
+          elems.find(e => elems.count(_._1 == e._1) > 1).foreach((ks, _) =>
+            error("Duplicate key " + Format.keys(ks) + " in inline table at " +
+              Format.keys(ks0 ::: ks1)))
 
           val (tables, pfxs, key_spaces) =
             elems.map { (ks, v) =>
@@ -443,7 +447,7 @@ object TOML {
             }.unzip3
 
           pfxs.foreach(pfx => if (key_spaces.count(pfx.intersect(_).nonEmpty) > 1)
-            error("Inline table not self-contained"))
+            error("Inline table not self-contained at " + Format.keys(ks0 ::: ks1)))
 
           (tables.foldLeft(Table())(_ ++ _), pfxs.toSet.flatten ++ key_spaces.toSet.flatten)
       }
@@ -451,36 +455,42 @@ object TOML {
       to_toml(v)._1
     }
 
-    def update(map: Table, ks: Keys, value: T): Table = {
-      val updated =
-        if (ks.length == 1) {
-          map.any.get(ks.head) match {
-            case Some(a: Array) =>
-              value match {
-                case a2: Array => a ++ a2
-                case _ => error("Table conflicts with previous array of tables")
+    def update(map: Table, ks0: Keys, value: T): Table = {
+      def update_rec(hd: Keys, map: Table, ks: Keys): Table = {
+        val updated =
+          if (ks.length == 1) {
+            map.any.get(ks.head) match {
+              case Some(a: Array) =>
+                value match {
+                  case a2: Array => a ++ a2
+                  case _ =>
+                    error("Table conflicts with previous array of tables at " + Format.keys(ks0))
+                }
+              case Some(t: Table) => value match {
+                case t2: Table =>
+                  if (t.domain.intersect(t2.domain).nonEmpty)
+                    error("Attempting to redefine existing value in super-table at " +
+                      Format.keys(ks0))
+                  else t ++ t2
+                case _ => error("Attempting to redefine a table at " + Format.keys(ks0))
               }
-            case Some(t: Table) => value match {
-              case t2: Table =>
-                if (t.domain.intersect(t2.domain).nonEmpty)
-                  error("Attempting to redefine existing value in super-table")
-                else t ++ t2
-              case _ => error("Attempting to redefine a table")
+              case Some(_) => error("Attempting to redefine a value at " + Format.keys(ks0))
+              case None => value
             }
-            case Some(_) => error("Attempting to redefine a value")
-            case None => value
           }
-        }
-        else {
-          map.any.get(ks.head) match {
-            case Some(t: Table) => update(t, ks.tail, value)
-            case Some(a: Array) =>
-              Array(a.table.values.dropRight(1) :+ update(a.table.values.last, ks.tail, value))
-            case Some(_) => error("Attempting to redefine a value")
-            case None => update(Table(), ks.tail, value)
+          else {
+            val hd1 = hd :+ ks.head
+            map.any.get(ks.head) match {
+              case Some(t: Table) => update_rec(hd1, t, ks.tail)
+              case Some(a: Array) =>
+                Array(a.table.values.dropRight(1) :+ update_rec(hd1, a.table.values.last, ks.tail))
+              case Some(_) => error("Attempting to redefine a value at " + Format.keys(hd1))
+              case None => update_rec(hd1, Table(), ks.tail)
+            }
           }
-        }
-      (map - ks.head) + (ks.head -> updated)
+        (map - ks.head) + (ks.head -> updated)
+      }
+      update_rec(Nil, map, ks0)
     }
 
     def fold(elems: List[(Keys, T)]): Table =
