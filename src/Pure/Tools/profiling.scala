@@ -110,14 +110,14 @@ object Profiling {
         "locales",
         "locale_thms",
         "global_thms",
-        "locale_thms_percentage",
-        "global_thms_percentage",
+        "locale_thms%",
+        "global_thms%",
         "heap_size",
-        "thys_id_size_percentage",
-        "thms_id_size_percentage",
-        "terms_size_percentage",
-        "types_size_percentage",
-        "spaces_size_percentage")
+        "thys_id_size%",
+        "thms_id_size%",
+        "terms_size%",
+        "types_size%",
+        "spaces_size%")
 
     def header: List[String] = "session" :: header0 ::: header0.map(_ + "_cumulative")
   }
