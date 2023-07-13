@@ -119,7 +119,8 @@ object Profiling {
         "types_size%",
         "spaces_size%")
 
-    def header: List[String] = "session" :: header0 ::: header0.map(_ + "_cumulative")
+    def header: List[String] =
+      "session" :: header0.flatMap(a => List(a, "\u2211" + a))
   }
 
   final class Statistics private(
@@ -142,7 +143,7 @@ object Profiling {
     private def thms_percentage(thms: Int): Percentage =
       percentage(thms, locale_thms + global_thms)
 
-    def fields0: List[Any] =
+    val fields0: List[Any] =
       List(
         theories,
         locales,
@@ -157,7 +158,8 @@ object Profiling {
         size_percentage(types_size).toString,
         size_percentage(spaces_size).toString)
 
-    def fields: List[Any] = session :: fields0 ::: cumulative.fields0
+    def fields: List[Any] =
+      session :: fields0.zipWithIndex.flatMap({ case (a, i) => List(a, cumulative.fields0(i)) })
 
     lazy val cumulative: Statistics =
       parent match {
