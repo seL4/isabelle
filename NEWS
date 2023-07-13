@@ -384,6 +384,11 @@ the default 64_32 platform (4 bytes per machine word):
 aims to be a minimal configuration file format. See also
 https://toml.io/en/v1.0.0
 
+* The command-line tool "isabelle profiling" produces per-session
+statistics from ML heap images. Command-line options are similar to
+"isabelle build". Output is in CSV format, which can be opened by common
+spreadsheet applications (e.g. LibreOffice Calc).
+
 * System options "context_theory_tracing" and "context_proof_tracing"
 store information about persistent context values (ML types theory,
 local_theory, Proof.context). This may reveal "memory leaks" in
