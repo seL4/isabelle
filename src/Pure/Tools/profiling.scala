@@ -27,37 +27,13 @@ object Profiling {
   }
 
 
-  /* session and theory statistics */
-
-  object Theory_Statistics {
-    def sum(name: String, theories: List[Theory_Statistics]): Theory_Statistics =
-      theories.foldLeft(Theory_Statistics(name = name))(_ + _)
-
-    val header: List[String] =
-      List("name", "locales", "locale_thms", "global_thms",
-        "locale_thms_percentage", "global_thms_percentage")
-  }
-
-  sealed case class Theory_Statistics(
-    name: String = "",
-    locales: Int = 0,
-    locale_thms: Int = 0,
-    global_thms: Int = 0
-  ) {
-    def + (other: Theory_Statistics): Theory_Statistics =
-      copy(
-        locales = other.locales + locales,
-        locale_thms = other.locale_thms + locale_thms,
-        global_thms = other.global_thms + global_thms)
-
-    def thms: Int = locale_thms + global_thms
-
-    def fields: List[Any] =
-      List(name, locales, locale_thms, global_thms,
-        percentage(locale_thms, thms), percentage(global_thms, thms))
-  }
+  /* session statistics */
 
   sealed case class Session_Statistics(
+    theories: Int = 0,
+    locales: Int = 0,
+    locale_thms: Int = 0,
+    global_thms: Int = 0,
     sizeof_thys_id: Space = Space.zero,
     sizeof_thms_id: Space = Space.zero,
     sizeof_terms: Space = Space.zero,
@@ -69,53 +45,37 @@ object Profiling {
       (args: List[String]) =>
         { import XML.Encode._; list(string)(args) }
 
-    private val decode_theories_result: XML.Decode.T[List[Theory_Statistics]] =
-      (body: XML.Body) =>
-        { import XML.Decode._; list(pair(string, pair(int, pair(int, int))))(body) } map {
-          case (a, (b, (c, d))) =>
-            Theory_Statistics(
-              name = a,
-              locales = b,
-              locale_thms = c,
-              global_thms = d)
-        }
-
-    private val decode_session_result: XML.Decode.T[Session_Statistics] =
+    private val decode_result: XML.Decode.T[Session_Statistics] =
       (body: XML.Body) =>
         {
-          val (a, (b, (c, (d, e)))) = {
+          val (a, (b, (c, (d, (e, (f, (g, (h, i)))))))) = {
             import XML.Decode._
-            pair(long, pair(long, pair(long, pair(long, long))))(body)
+            pair(int, pair(int, pair(int, pair(int,
+              pair(long, pair(long, pair(long, pair(long, long))))))))(body)
           }
           Session_Statistics(
-            sizeof_thys_id = Space.bytes(a),
-            sizeof_thms_id = Space.bytes(b),
-            sizeof_terms = Space.bytes(c),
-            sizeof_types = Space.bytes(d),
-            sizeof_spaces = Space.bytes(e))
+            theories = a,
+            locales = b,
+            locale_thms = c,
+            global_thms = d,
+            sizeof_thys_id = Space.bytes(e),
+            sizeof_thms_id = Space.bytes(f),
+            sizeof_terms = Space.bytes(g),
+            sizeof_types = Space.bytes(h),
+            sizeof_spaces = Space.bytes(i))
         }
-    private val decode_result: XML.Decode.T[(List[Theory_Statistics], Session_Statistics)] =
-      (body: XML.Body) =>
-        { import XML.Decode._; pair(decode_theories_result, decode_session_result)(body) }
 
     def make(
       store: Store,
       session_background: Sessions.Background,
-      parent: Option[Statistics] = None,
-      anonymous_theories: Boolean = false
+      parent: Option[Statistics] = None
     ): Statistics = {
       val session_base = session_background.base
       val session_name = session_base.session_name
       val sessions_structure = session_background.sessions_structure
 
-      val theories_name = session_base.used_theories.map(p => p._1.theory)
-      val theories_index =
-        Map.from(
-          for ((name, i) <- theories_name.zipWithIndex)
-            yield name -> String.format(Locale.ROOT, "%s.%04d", session_name, i + 1))
-
-      val (theories0, session) = {
-        val args = theories_name
+      val session = {
+        val args = session_base.used_theories.map(p => p._1.theory)
         val eval_args =
           List("--eval", "use_thy " + ML_Syntax.print_string_bytes("~~/src/Tools/Profiling"))
         Isabelle_System.with_tmp_dir("profiling") { dir =>
@@ -129,11 +89,11 @@ object Profiling {
         }
       }
 
-      val theories =
-        if (anonymous_theories) theories0.map(a => a.copy(name = theories_index(a.name)))
-        else theories0
-
-      new Statistics(parent = parent, session_name = session_name, theories = theories,
+      new Statistics(parent = parent, session = session_name,
+        theories = session.theories,
+        locales = session.locales,
+        locale_thms = session.locale_thms,
+        global_thms = session.global_thms,
         heap_size = Space.bytes(store.the_heap(session_name).file.length),
         thys_id_size = session.sizeof_thys_id,
         thms_id_size = session.sizeof_thms_id,
@@ -144,21 +104,31 @@ object Profiling {
 
     val empty: Statistics = new Statistics()
 
-    val header: List[String] =
-      Theory_Statistics.header :::
-        List("heap_size",
-          "thys_id_size_percentage",
-          "thms_id_size_percentage",
-          "terms_size_percentage",
-          "types_size_percentage",
-          "spaces_size_percentage")
-    val header_cumulative: List[String] = header ::: header.tail.map(_ + "_cumulative")
+    val header0: List[String] =
+      List(
+        "theories",
+        "locales",
+        "locale_thms",
+        "global_thms",
+        "locale_thms_percentage",
+        "global_thms_percentage",
+        "heap_size",
+        "thys_id_size_percentage",
+        "thms_id_size_percentage",
+        "terms_size_percentage",
+        "types_size_percentage",
+        "spaces_size_percentage")
+
+    def header: List[String] = "session" :: header0 ::: header0.map(_ + "_cumulative")
   }
 
   final class Statistics private(
     val parent: Option[Statistics] = None,
-    val session_name: String = "",
-    val theories: List[Theory_Statistics] = Nil,
+    val session: String = "",
+    val theories: Int = 0,
+    val locales: Int = 0,
+    val locale_thms: Int = 0,
+    val global_thms: Int = 0,
     val heap_size: Space = Space.zero,
     val thys_id_size: Space = Space.zero,
     val thms_id_size: Space = Space.zero,
@@ -169,26 +139,36 @@ object Profiling {
     private def size_percentage(space: Space): Percentage =
       percentage_space(space, heap_size)
 
-    def fields: List[Any] =
-      session.fields :::
-        List(heap_size.print,
-          size_percentage(thys_id_size).toString,
-          size_percentage(thms_id_size).toString,
-          size_percentage(terms_size).toString,
-          size_percentage(types_size).toString,
-          size_percentage(spaces_size).toString)
-    def fields_cumulative: List[Any] = fields ::: cumulative.fields.tail
+    private def thms_percentage(thms: Int): Percentage =
+      percentage(thms, locale_thms + global_thms)
 
-    lazy val session: Theory_Statistics =
-      Theory_Statistics.sum(session_name, theories)
+    def fields0: List[Any] =
+      List(
+        theories,
+        locales,
+        locale_thms,
+        global_thms,
+        thms_percentage(locale_thms).toString,
+        thms_percentage(global_thms).toString,
+        heap_size.print,
+        size_percentage(thys_id_size).toString,
+        size_percentage(thms_id_size).toString,
+        size_percentage(terms_size).toString,
+        size_percentage(types_size).toString,
+        size_percentage(spaces_size).toString)
+
+    def fields: List[Any] = session :: fields0 ::: cumulative.fields0
 
     lazy val cumulative: Statistics =
       parent match {
         case None => this
         case Some(other) =>
           new Statistics(parent = None,
-            session_name = session_name,
-            theories = other.cumulative.theories ::: theories,
+            session = session,
+            theories = other.cumulative.theories + theories,
+            locales = other.cumulative.locales + locales,
+            locale_thms = other.cumulative.locale_thms + locale_thms,
+            global_thms = other.cumulative.global_thms + global_thms,
             heap_size = other.cumulative.heap_size + heap_size,
             thys_id_size = other.cumulative.thys_id_size + thys_id_size,
             thms_id_size = other.cumulative.thms_id_size + thms_id_size,
@@ -197,7 +177,7 @@ object Profiling {
             spaces_size = other.cumulative.spaces_size + spaces_size)
       }
 
-    override def toString: String = "Statistics(" + session_name + ")"
+    override def toString: String = "Statistics(" + session + ")"
   }
 
 
@@ -210,14 +190,8 @@ object Profiling {
     ): Unit = {
       progress.echo("Output directory " + output_dir.absolute)
       Isabelle_System.make_directory(output_dir)
-
-      val sessions_records =
-        for (stats <- sessions) yield {
-          CSV.File("session_" + stats.session_name, Theory_Statistics.header,
-            stats.theories.map(thy => CSV.Record(thy.fields:_*))).write(output_dir)
-          CSV.Record(stats.fields_cumulative:_*)
-        }
-      CSV.File("all_sessions", Statistics.header_cumulative, sessions_records).write(output_dir)
+      val csv_records = for (session <- sessions) yield CSV.Record(session.fields:_*)
+      CSV.File("sessions", Statistics.header, csv_records).write(output_dir)
     }
   }
 
@@ -228,8 +202,7 @@ object Profiling {
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
-    max_jobs: Int = 1,
-    anonymous_theories: Boolean = false
+    max_jobs: Int = 1
   ): Results = {
     /* sessions structure */
 
@@ -286,8 +259,7 @@ object Profiling {
         val stats =
           Statistics.make(store,
             build_results.deps.background(session_name),
-            parent = parent,
-            anonymous_theories = anonymous_theories)
+            parent = parent)
         seen += (session_name -> stats)
         stats
       }
@@ -314,7 +286,6 @@ object Profiling {
         var dirs: List[Path] = Nil
         var session_groups: List[String] = Nil
         var max_jobs = 1
-        var anonymous_theories = false
         var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
         var verbose = false
         var exclude_sessions: List[String] = Nil
@@ -332,7 +303,6 @@ Usage: isabelle profiling [OPTIONS] [SESSIONS ...]
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
-    -n           anonymous theories: suppress details of private projects
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -348,7 +318,6 @@ Usage: isabelle profiling [OPTIONS] [SESSIONS ...]
           "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
           "g:" -> (arg => session_groups = session_groups ::: List(arg)),
           "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-          "n" -> (_ => anonymous_theories = true),
           "o:" -> (arg => options = options + arg),
           "v" -> (_ => verbose = true),
           "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
@@ -371,8 +340,7 @@ Usage: isabelle profiling [OPTIONS] [SESSIONS ...]
               dirs = dirs,
               select_dirs = select_dirs,
               numa_shuffling = Host.numa_check(progress, numa_shuffling),
-              max_jobs = max_jobs,
-              anonymous_theories = anonymous_theories)
+              max_jobs = max_jobs)
           }
 
         results.output(output_dir = output_dir.absolute, progress = progress)

@@ -4,33 +4,33 @@
 Session profiling based on loaded ML image.
 *)
 
-type theory_statistics =
- {theory: string,
-  locales: int,
-  locale_thms: int,
-  global_thms: int};
-
-type session_statistics =
- {sizeof_thys_id: int,
-  sizeof_thms_id: int,
-  sizeof_terms: int,
-  sizeof_types: int,
-  sizeof_spaces: int};
-
-structure Profiling:
+signature PROFILING =
 sig
-  val locale_names: theory -> string list
+  val locales: theory -> string list
   val locale_thms: theory -> string -> thm list
+  val locales_thms: theory -> thm list
   val global_thms: theory -> thm list
   val all_thms: theory -> thm list
-  val statistics: string list -> theory_statistics list * session_statistics
+  type session_statistics =
+   {theories: int,
+    locales: int,
+    locale_thms: int,
+    global_thms: int,
+    sizeof_thys_id: int,
+    sizeof_thms_id: int,
+    sizeof_terms: int,
+    sizeof_types: int,
+    sizeof_spaces: int}
+  val session_statistics: string list -> session_statistics
   val main: unit -> unit
-end =
+end;
+
+structure Profiling: PROFILING =
 struct
 
 (* theory content *)
 
-fun locale_names thy =
+fun locales thy =
   let
     val parent_spaces = map Locale.locale_space (Theory.parents_of thy);
     fun add name =
@@ -44,19 +44,20 @@ fun locale_thms thy loc =
   (Locale.locale_notes thy loc, []) |->
     (fold (#2 #> fold (#2 #> (fold (#1 #> fold (fn thm => proper_thm thm ? cons thm ))))));
 
+fun locales_thms thy =
+  maps (locale_thms thy) (locales thy);
+
 fun global_thms thy =
   Facts.dest_static true
     (map Global_Theory.facts_of (Theory.parents_of thy)) (Global_Theory.facts_of thy)
   |> maps #2;
 
-fun all_thms thy =
-  let val locales = locale_names thy
-  in maps (locale_thms thy) locales @ global_thms thy end;
+fun all_thms thy = locales_thms thy @ global_thms thy;
 
 
 (* session content *)
 
-fun theories_content thys =
+fun session_content thys =
   let
     val thms = maps all_thms thys;
     val thys_id = map Context.theory_id thys;
@@ -79,19 +80,20 @@ fun theories_content thys =
 fun sizeof_diff (a, b) = ML_Heap.sizeof a - ML_Heap.sizeof b;
 
 
-(* collect statistics *)
+(* session statistics *)
 
-fun theory_statistics thy : theory_statistics =
-  let
-    val locales = locale_names thy;
-  in
-   {theory = Context.theory_long_name thy,
-    locales = length locales,
-    locale_thms = length (maps (locale_thms thy) locales),
-    global_thms = length (global_thms thy)}
-  end;
+type session_statistics =
+ {theories: int,
+  locales: int,
+  locale_thms: int,
+  global_thms: int,
+  sizeof_thys_id: int,
+  sizeof_thms_id: int,
+  sizeof_terms: int,
+  sizeof_types: int,
+  sizeof_spaces: int};
 
-fun statistics theories =
+fun session_statistics theories : session_statistics =
   let
     val theories_member = Symtab.defined (Symtab.make_set theories) o Context.theory_long_name;
 
@@ -106,38 +108,41 @@ fun statistics theories =
     val base_thys = filter theories_member all_thys;
 
     val {thys_id = all_thys_id, thms_id = all_thms_id, terms = all_terms,
-          types = all_types, spaces = all_spaces} = theories_content all_thys;
+          types = all_types, spaces = all_spaces} = session_content all_thys;
     val {thys_id = base_thys_id, thms_id = base_thms_id, terms = base_terms,
-          types = base_types, spaces = base_spaces} = theories_content base_thys;
-    val session_statistics =
-      {sizeof_thys_id = sizeof_diff (all_thys_id, base_thys_id),
-       sizeof_thms_id = sizeof_diff (all_thms_id, base_thms_id),
-       sizeof_terms = sizeof_diff (all_terms, base_terms),
-       sizeof_types = sizeof_diff (all_types, base_types),
-       sizeof_spaces = sizeof_diff (all_spaces, base_spaces)};
-  in (map theory_statistics loaded_thys, session_statistics) end;
+          types = base_types, spaces = base_spaces} = session_content base_thys;
+  in
+    {theories = length loaded_thys,
+     locales = Integer.sum (map (length o locales) loaded_thys),
+     locale_thms = Integer.sum (map (length o locales_thms) loaded_thys),
+     global_thms = Integer.sum (map (length o global_thms) loaded_thys),
+     sizeof_thys_id = sizeof_diff (all_thys_id, base_thys_id),
+     sizeof_thms_id = sizeof_diff (all_thms_id, base_thms_id),
+     sizeof_terms = sizeof_diff (all_terms, base_terms),
+     sizeof_types = sizeof_diff (all_types, base_types),
+     sizeof_spaces = sizeof_diff (all_spaces, base_spaces)}
+  end;
 
 
-(* main entry point for "isabelle process" *)
+(* main entry point for external process *)
 
 local
 
 val decode_args : string list XML.Decode.T =
   let open XML.Decode in list string end;
 
-val encode_theories_result : theory_statistics list XML.Encode.T =
-  map (fn {theory = a, locales = b, locale_thms = c, global_thms = d} => (a, (b, (c, d))))
-  #> let open XML.Encode in list (pair string (pair int (pair int int))) end;
-
-val encode_session_result : session_statistics XML.Encode.T =
-  (fn {sizeof_thys_id = a,
-       sizeof_thms_id = b,
-       sizeof_terms = c,
-       sizeof_types = d,
-       sizeof_spaces = e} => (a, (b, (c, (d, e)))))
-  #> let open XML.Encode in pair int (pair int (pair int (pair int int))) end;
-
-val encode_result = let open XML.Encode in pair encode_theories_result encode_session_result end;
+val encode_result : session_statistics XML.Encode.T =
+  (fn {theories = a,
+       locales = b,
+       locale_thms = c,
+       global_thms = d,
+       sizeof_thys_id = e,
+       sizeof_thms_id = f,
+       sizeof_terms = g,
+       sizeof_types = h,
+       sizeof_spaces = i} => (a, (b, (c, (d, (e, (f, (g, (h, i))))))))) #>
+  let open XML.Encode
+  in pair int (pair int (pair int (pair int (pair int (pair int (pair int (pair int int))))))) end;
 
 in
 
@@ -148,7 +153,7 @@ fun main () =
       let
         val dir = Path.explode dir_name;
         val args = decode_args (YXML.parse_body (File.read (dir + \<^path>\<open>args.yxml\<close>)));
-        val result = statistics args;
+        val result = session_statistics args;
       in File.write (dir + \<^path>\<open>result.yxml\<close>) (YXML.string_of_body (encode_result result)) end);
 
 end;
