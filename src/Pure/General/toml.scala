@@ -501,91 +501,84 @@ object TOML {
   /* Format TOML */
 
   object Format {
+    private def basic_string(s: Str): Str =
+      "\"" + s.iterator.map {
+        case '\b' => "\\b" case '\t' => "\\t" case '\n' => "\\n" case '\f' => "\\f"
+        case '\r' => "\\r" case '"' => "\\\"" case '\\' => "\\\\" case c =>
+        if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
+      }.mkString + "\""
+
+    private def multiline_basic_string(s: Str): Str =
+      "\"\"\"\n" + s.iterator.map {
+        case '\b' => "\\b" case '\t' => "\t" case '\n' => "\n" case '\f' => "\\f"
+        case '\r' => "\r" case '"' => "\\\"" case '\\' => "\\\\" case c =>
+          if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
+      }.mkString.replace("\"\"\"", "\"\"\\\"") + "\"\"\""
+
+    def key(k: Key): Str = {
+      val Bare_Key = """[A-Za-z0-9_-]+""".r
+      k match {
+        case Bare_Key() => k
+        case _ => basic_string(k)
+      }
+    }
+
+    def keys(ks: Keys): Str = ks.mkString(".")
+
+    def inline(t: T, indent: Int = 0): Str = {
+      val result = new StringBuilder
+      def indentation(i: Int): Unit = for (_ <- Range(0, i)) result ++= "  "
+
+      indentation(indent)
+      t match {
+        case s: String =>
+          if (s.rep.contains("\n") && s.rep.length > 20) result ++= multiline_basic_string(s.rep)
+          else result ++= basic_string(s.rep)
+        case i: Integer => result ++= i.rep.toString
+        case f: Float => result ++= f.rep.toString
+        case b: Boolean => result ++= b.rep.toString
+        case o: Offset_Date_Time => result ++= o.rep.toString
+        case l: Local_Date_Time => result ++= l.rep.toString
+        case l: Local_Date => result ++= l.rep.toString
+        case l: Local_Time => result ++= l.rep.toString
+        case a: Array =>
+          if (a.is_empty) result ++= "[]"
+          else {
+            result ++= "[\n"
+            a.any.values.foreach { elem =>
+              result ++= inline(elem, indent + 1)
+              result ++= ",\n"
+            }
+            indentation(indent)
+            result += ']'
+          }
+        case table: Table =>
+          if (table.is_empty) result ++= "{}"
+          else {
+            result ++= "{ "
+            Library.separate(None, table.any.values.map(Some(_))).foreach {
+              case None => result ++= ", "
+              case Some((k, v)) =>
+                result ++= key(k)
+                result ++= " = "
+                result ++= inline(v)
+            }
+            result ++= " }"
+          }
+      }
+      result.toString()
+    }
+
     def apply(toml: Table): Str = {
       val result = new StringBuilder
-
-      /* keys */
-
-      def key(k: Key): Unit = {
-        val Bare_Key = """[A-Za-z0-9_-]+""".r
-        k match {
-          case Bare_Key() => result ++= k
-          case _ => result ++= basic_string(k)
-        }
-      }
-
-      def keys(ks: List[Key]): Unit =
-        Library.separate(None, ks.reverse.map(Some(_))).foreach {
-          case None => result += '.'
-          case Some(k) => key(k)
-        }
-
-      /* string */
-
-      def basic_string(s: Str): Str =
-        "\"" + s.iterator.map {
-            case '\b' => "\\b" case '\t' => "\\t" case '\n' => "\\n" case '\f' => "\\f"
-            case '\r' => "\\r" case '"' => "\\\"" case '\\' => "\\\\" case c =>
-              if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
-          }.mkString + "\""
-
-      def multiline_basic_string(s: Str): Str =
-        "\"\"\"\n" + s.iterator.map {
-          case '\b' => "\\b" case '\t' => "\t" case '\n' => "\n" case '\f' => "\\f"
-          case '\r' => "\r" case '"' => "\\\"" case '\\' => "\\\\" case c =>
-            if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
-        }.mkString.replace("\"\"\"", "\"\"\\\"") + "\"\"\""
-
-
-      def `inline`(t: T, indent: Int = 0): Unit = {
-        def indentation(i: Int): Unit = for (_ <- Range(0, i)) result ++= "  "
-
-        indentation(indent)
-        t match {
-          case s: String =>
-            if (s.rep.contains("\n") && s.rep.length > 20) result ++= multiline_basic_string(s.rep)
-            else result ++= basic_string(s.rep)
-          case i: Integer => result ++= i.rep.toString
-          case f: Float => result ++= f.rep.toString
-          case b: Boolean => result ++= b.rep.toString
-          case o: Offset_Date_Time => result ++= o.rep.toString
-          case l: Local_Date_Time => result ++= l.rep.toString
-          case l: Local_Date => result ++= l.rep.toString
-          case l: Local_Time => result ++= l.rep.toString
-          case a: Array =>
-            if (a.is_empty) result ++= "[]"
-            else {
-              result ++= "[\n"
-              a.any.values.foreach { elem =>
-                `inline`(elem, indent + 1)
-                result ++= ",\n"
-              }
-              indentation(indent)
-              result += ']'
-            }
-          case table: Table =>
-            if (table.is_empty) result ++= "{}"
-            else {
-              result += '{'
-              table.any.values.foreach { case (k, v) =>
-                key(k)
-                result ++= " = "
-                `inline`(v)
-              }
-              result += '}'
-            }
-        }
-      }
-
-      /* array */
 
       def inline_values(path: List[Key], t: T): Unit =
         t match {
           case t: Table => t.any.values.foreach { case (k, v1) => inline_values(k :: path, v1) }
           case _ =>
-            keys(path)
+            result ++= keys(path.reverse)
             result ++= " = "
-            `inline`(t)
+            result ++= inline(t)
             result += '\n'
         }
 
@@ -603,19 +596,17 @@ object TOML {
           inline_values(path.take(1), a)
         else a.table.values.foreach { t =>
           result ++= "\n[["
-          keys(path)
+          result ++= keys(path.reverse)
           result ++= "]]\n"
           table(path, t, is_table_entry = true)
         }
-
-      /* table */
 
       def table(path: List[Key], t: Table, is_table_entry: Bool = false): Unit = {
         val (values, nodes) = t.any.values.partition(kv => is_inline(kv._2))
 
         if (!is_table_entry && path.nonEmpty) {
           result ++= "\n["
-          keys(path)
+          result ++= keys(path.reverse)
           result ++= "]\n"
         }
 
