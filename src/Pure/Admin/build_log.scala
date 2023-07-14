@@ -816,7 +816,7 @@ object Build_Log {
   def store(options: Options, cache: XML.Cache = XML.Cache.make()): Store =
     new Store(options, cache)
 
-  class Store private[Build_Log](options: Options, val cache: XML.Cache) {
+  class Store private[Build_Log](val options: Options, val cache: XML.Cache) {
     override def toString: String = {
       val s =
         Exn.capture { open_database() } match {
@@ -835,16 +835,17 @@ object Build_Log {
       database: String = options.string("build_log_database_name"),
       host: String = options.string("build_log_database_host"),
       port: Int = options.int("build_log_database_port"),
-      ssh_host: String = options.string("build_log_ssh_host"),
-      ssh_user: String = options.string("build_log_ssh_user"),
-      ssh_port: Int = options.int("build_log_ssh_port")
+      ssh: Option[SSH.Session] =
+        proper_string(options.string("build_log_ssh_host")).map(ssh_host =>
+          SSH.open_session(options,
+            host = ssh_host,
+            user = options.string("build_log_ssh_user"),
+            port = options.int("build_log_ssh_port"))),
+      ssh_close: Boolean = true
     ): PostgreSQL.Database = {
       PostgreSQL.open_database(
         user = user, password = password, database = database, host = host, port = port,
-        ssh =
-          if (ssh_host == "") None
-          else Some(SSH.open_session(options, host = ssh_host, user = ssh_user, port = ssh_port)),
-        ssh_close = true)
+        ssh = ssh, ssh_close = ssh_close)
     }
 
     def snapshot_database(
