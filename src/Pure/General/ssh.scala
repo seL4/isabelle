@@ -317,7 +317,7 @@ object SSH {
     /* port forwarding */
 
     def port_forwarding(
-      remote_port: Int,
+      remote_port: Int = 0,
       remote_host: String = "localhost",
       local_port: Int = 0,
       local_host: String = "localhost",
