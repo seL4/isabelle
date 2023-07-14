@@ -408,7 +408,7 @@ object TOML {
             (seen.inlines + rest, seen.tables ++ implicitly_seen)
           case _: Parsers.Table =>
             if (seen.tables.contains(rest))
-              error("Attempting to define a table twice at" + Format.keys(ks))
+              error("Attempting to define a table twice at " + Format.keys(ks))
             (seen.inlines, seen.tables + rest)
           case _: Parsers.Array_Of_Tables => (Set.empty, Set.empty)
         }
