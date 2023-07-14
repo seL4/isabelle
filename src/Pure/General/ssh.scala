@@ -323,9 +323,9 @@ object SSH {
       local_host: String = "localhost",
       ssh_close: Boolean = false
     ): Port_Forwarding = {
-      val port = if (local_port > 0) local_port else Isabelle_System.local_port()
-
-      val forward = List(local_host, port, remote_host, remote_port).mkString(":")
+      val forward_host = local_host
+      val forward_port = if (local_port > 0) local_port else Isabelle_System.local_port()
+      val forward = List(forward_host, forward_port, remote_host, remote_port).mkString(":")
       val forward_option = "-L " + Bash.string(forward)
 
       val cancel: () => Unit =
@@ -357,7 +357,7 @@ object SSH {
       val shutdown_hook =
         Isabelle_System.create_shutdown_hook { cancel() }
 
-      new Port_Forwarding(host, port, remote_host, remote_port) {
+      new Port_Forwarding(forward_host, forward_port) {
         override def toString: String = forward
         override def close(): Unit = {
           cancel()
@@ -368,11 +368,17 @@ object SSH {
     }
   }
 
+  def no_port_forwarding(port: Int = 0, host: String = "localhost"): Port_Forwarding = {
+    val forward = if_proper(host, host + ":") + port
+    new Port_Forwarding(host, port) {
+      override def toString: String = forward
+      override def close(): Unit = ()
+    }
+  }
+
   abstract class Port_Forwarding private[SSH](
     val host: String,
-    val port: Int,
-    val remote_host: String,
-    val remote_port: Int
+    val port: Int
   ) extends AutoCloseable
 
 

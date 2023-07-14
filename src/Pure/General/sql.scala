@@ -598,34 +598,30 @@ object PostgreSQL {
     val db_port = if (port > 0 && port != default_port) ":" + port else ""
     val db_name = "/" + (proper_string(database) getOrElse user)
 
-    val (url, name, port_forwarding) =
+    val fw =
       ssh match {
         case None =>
-          val spec = db_host + db_port + db_name
-          val url = "jdbc:postgresql://" + spec
-          val name = user + "@" + spec
-          (url, name, None)
+          SSH.no_port_forwarding(port = if (port > 0) port else default_port, host = db_host)
         case Some(ssh) =>
-          val fw =
-            ssh.port_forwarding(remote_host = db_host,
-              remote_port = if (port > 0) port else default_port,
-              ssh_close = ssh_close)
-          val url = "jdbc:postgresql://localhost:" + fw.port + db_name
-          val name = user + "@" + fw + db_name + " via ssh " + ssh
-          (url, name, Some(fw))
+          ssh.port_forwarding(
+            remote_port = if (port > 0) port else default_port,
+            remote_host = db_host,
+            ssh_close = ssh_close)
       }
     try {
+      val url = "jdbc:postgresql://" + fw.host + ":" + fw.port + db_name
+      val name = user + "@" + fw + db_name + if_proper(ssh, " via ssh " + ssh.get)
       val connection = DriverManager.getConnection(url, user, password)
       connection.setTransactionIsolation(transaction_isolation)
-      new Database(name, connection, port_forwarding)
+      new Database(name, connection, fw)
     }
-    catch { case exn: Throwable => port_forwarding.foreach(_.close()); throw exn }
+    catch { case exn: Throwable => fw.close(); throw exn }
   }
 
   class Database private[PostgreSQL](
     name: String,
     val connection: Connection,
-    port_forwarding: Option[SSH.Port_Forwarding]
+    val port_forwarding: SSH.Port_Forwarding
   ) extends SQL.Database {
     override def toString: String = name
 
@@ -678,6 +674,6 @@ object PostgreSQL {
       }
 
 
-    override def close(): Unit = { super.close(); port_forwarding.foreach(_.close()) }
+    override def close(): Unit = { super.close(); port_forwarding.close() }
   }
 }
