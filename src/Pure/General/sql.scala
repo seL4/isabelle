@@ -601,7 +601,7 @@ object PostgreSQL {
     val fw =
       ssh match {
         case None =>
-          SSH.no_port_forwarding(port = if (port > 0) port else default_port, host = db_host)
+          SSH.local_port_forwarding(port = if (port > 0) port else default_port, host = db_host)
         case Some(ssh) =>
           ssh.port_forwarding(
             remote_port = if (port > 0) port else default_port,

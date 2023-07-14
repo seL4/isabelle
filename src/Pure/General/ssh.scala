@@ -368,18 +368,27 @@ object SSH {
     }
   }
 
-  def no_port_forwarding(port: Int = 0, host: String = "localhost"): Port_Forwarding = {
-    val forward = if_proper(host, host + ":") + port
-    new Port_Forwarding(host, port) {
-      override def toString: String = forward
-      override def close(): Unit = ()
-    }
-  }
-
-  abstract class Port_Forwarding private[SSH](
+  class Port_Forwarding private[SSH](
     val host: String,
     val port: Int
-  ) extends AutoCloseable
+  ) extends AutoCloseable {
+    def defined: Boolean = host.nonEmpty && port > 0
+    override def close(): Unit = ()
+  }
+
+  class Local_Port_Forwarding private[SSH](host: String, port: Int)
+    extends Port_Forwarding(host, port) {
+    override def toString: String = if_proper(host, host + ":") + port
+  }
+
+  class No_Port_Forwarding extends Port_Forwarding("", 0) {
+    override def toString: String = "0"
+  }
+
+  def local_port_forwarding(port: Int = 0, host: String = "localhost"): Port_Forwarding =
+    new Local_Port_Forwarding(host, port)
+
+  val no_port_forwarding: Port_Forwarding = new No_Port_Forwarding
 
 
   /* system operations */
