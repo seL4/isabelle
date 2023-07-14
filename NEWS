@@ -332,6 +332,8 @@ nested corecursion.
 by Jakob von Raumer.
 
 * Session "HOL-Analysis":
+  - Some results reformulated to use f \<in> A\<rightarrow>B rather than f`A \<subseteq> B,
+    INCOMPATIBILITY, use image_subset_iff_funcset to fix.
   - Imported the HOL Light abstract metric space library and numerous
     results in abstract topology (1200+ lemmas).
   - New material on infinite sums and integration, due to Manuel Eberl
