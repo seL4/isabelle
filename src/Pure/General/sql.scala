@@ -595,22 +595,19 @@ object PostgreSQL {
     if (user == "") error("Undefined database user")
 
     val db_host = proper_string(host) getOrElse "localhost"
-    val db_port = if (port > 0 && port != default_port) ":" + port else ""
-    val db_name = "/" + (proper_string(database) getOrElse user)
+    val db_port = if (port > 0) port else default_port
+    val db_name = proper_string(database) getOrElse user
 
     val fw =
       ssh match {
         case None =>
-          SSH.local_port_forwarding(port = if (port > 0) port else default_port, host = db_host)
+          SSH.local_port_forwarding(port = db_port, host = db_host)
         case Some(ssh) =>
-          ssh.port_forwarding(
-            remote_port = if (port > 0) port else default_port,
-            remote_host = db_host,
-            ssh_close = ssh_close)
+          ssh.port_forwarding(remote_port = db_port, remote_host = db_host, ssh_close = ssh_close)
       }
     try {
-      val url = "jdbc:postgresql://" + fw.host + ":" + fw.port + db_name
-      val name = user + "@" + fw + db_name + if_proper(ssh, " via ssh " + ssh.get)
+      val url = "jdbc:postgresql://" + fw.host + ":" + fw.port + "/" + db_name
+      val name = user + "@" + fw + "/" + db_name + if_proper(ssh, " via ssh " + ssh.get)
       val connection = DriverManager.getConnection(url, user, password)
       connection.setTransactionIsolation(transaction_isolation)
       new Database(name, connection, fw)
