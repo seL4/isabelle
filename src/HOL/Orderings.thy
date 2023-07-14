@@ -584,6 +584,34 @@ method_setup order = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (HOL_Order_Tac.tac [] ctxt))
 \<close> "partial and linear order reasoner"
 
+text \<open>                                                                                      
+  The method @{method order} allows one to use the order tactic located in
+   \<^file>\<open>../Provers/order_tac.ML\<close> in a standalone fashion.
+  
+  The tactic rearranges the goal to prove \<^const>\<open>False\<close>, then retrieves order literals of partial
+  and linear orders (i.e. \<^term>\<open>x = y\<close>, \<^term>\<open>x \<le> y\<close>, \<^term>\<open>x < y\<close>, and their negated versions)
+  from the premises and finally tries to derive a contradiction. Its main use case is as a solver to
+  @{method simp} (see below), where it e.g. solves premises of conditional rewrite rules.
+
+  The tactic has two configuration attributes that control its behaviour:
+  \<^item> @{attribute order_trace} toggles tracing for the solver.
+  \<^item> @{attribute order_split_limit} limits the number of order literals of the form
+    \<^term>\<open>\<not> (x::'a::order) < y\<close> that are passed to the tactic.
+    This is helpful since these literals lead to case splitting and thus exponential runtime.
+    This only applies to partial orders.
+
+  We setup the solver for HOL with the structure @{ML_structure HOL_Order_Tac} here but the prover
+  is agnostic to the object logic.
+  It is possible to register orders with the prover using the functions
+  @{ML HOL_Order_Tac.declare_order} and @{ML HOL_Order_Tac.declare_linorder}, which we do below
+  for the type classes @{class order} and @{class linorder}.
+  If possible, one should instantiate these type classes instead of registering new orders with the
+  solver. One can also interpret the type class locales @{locale order} and @{locale linorder}.
+  An example can be seen in \<^file>\<open>Library/Sublist.thy\<close>, which contains e.g. the prefix order on lists.
+
+  The diagnostic command @{command print_orders} shows all orders known to the tactic in the current
+  context.
+\<close>
 
 text \<open>Declarations to set up transitivity reasoner of partial and linear orders.\<close>
 
