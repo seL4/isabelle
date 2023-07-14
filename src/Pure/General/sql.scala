@@ -575,7 +575,7 @@ object SQLite {
 object PostgreSQL {
   type Source = SQL.Source
 
-  val default_port = 5432
+  val default: SSH.Port_Forwarding = SSH.local_port_forwarding(port = 5432, host = "localhost")
 
   lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
 
@@ -594,8 +594,8 @@ object PostgreSQL {
 
     if (user == "") error("Undefined database user")
 
-    val db_host = proper_string(host) getOrElse "localhost"
-    val db_port = if (port > 0) port else default_port
+    val db_host = proper_string(host) getOrElse default.host
+    val db_port = if (port > 0) port else default.port
     val db_name = proper_string(database) getOrElse user
 
     val fw =
