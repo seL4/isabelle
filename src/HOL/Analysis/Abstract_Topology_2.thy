@@ -1128,8 +1128,8 @@ lemma retract_of_space_topspace:
   using retract_of_space_def by force
 
 lemma retract_of_space_empty [simp]:
-   "{} retract_of_space X \<longleftrightarrow> topspace X = {}"
-  by (auto simp: continuous_map_def retract_of_space_def)
+   "{} retract_of_space X \<longleftrightarrow> X = trivial_topology"
+  by (auto simp: retract_of_space_def)
 
 lemma retract_of_space_singleton [simp]:
   "{a} retract_of_space X \<longleftrightarrow> a \<in> topspace X"
@@ -1155,7 +1155,7 @@ lemma retract_of_space_subtopology:
   by (metis continuous_map_from_subtopology inf.absorb2 subtopology_subtopology)
 
 lemma retract_of_space_clopen:
-  assumes "openin X S" "closedin X S" "S = {} \<Longrightarrow> topspace X = {}"
+  assumes "openin X S" "closedin X S" "S = {} \<Longrightarrow> X = trivial_topology"
   shows "S retract_of_space X"
 proof (cases "S = {}")
   case False
@@ -1181,7 +1181,7 @@ proof (cases "S = {}")
 qed (use assms in auto)
 
 lemma retract_of_space_disjoint_union:
-  assumes "openin X S" "openin X T" and ST: "disjnt S T" "S \<union> T = topspace X" and "S = {} \<Longrightarrow> topspace X = {}"
+  assumes "openin X S" "openin X T" and ST: "disjnt S T" "S \<union> T = topspace X" and "S = {} \<Longrightarrow> X = trivial_topology"
   shows "S retract_of_space X"
 proof (rule retract_of_space_clopen)
   have "S \<inter> T = {}"
@@ -1230,10 +1230,9 @@ lemma pathin_subtopology:
      "pathin (subtopology X S) g \<longleftrightarrow> pathin X g \<and> (\<forall>x \<in> {0..1}. g x \<in> S)"
   by (auto simp: pathin_def continuous_map_in_subtopology)
 
-lemma pathin_const:
-   "pathin X (\<lambda>x. a) \<longleftrightarrow> a \<in> topspace X"
-  by (simp add: pathin_def)
-   
+lemma pathin_const [simp]: "pathin X (\<lambda>x. a) \<longleftrightarrow> a \<in> topspace X"
+  using pathin_subtopology by (fastforce simp add: pathin_def)
+
 lemma path_start_in_topspace: "pathin X g \<Longrightarrow> g 0 \<in> topspace X"
   by (force simp: pathin_def continuous_map)
 
@@ -1293,7 +1292,7 @@ lemma path_connectedin_imp_connectedin:
   by (simp add: connectedin_def path_connected_imp_connected_space path_connectedin_def)
 
 lemma path_connected_space_topspace_empty:
-     "topspace X = {} \<Longrightarrow> path_connected_space X"
+     "path_connected_space trivial_topology"
   by (simp add: path_connected_space_def)
 
 lemma path_connectedin_empty [simp]: "path_connectedin X {}"
@@ -1524,23 +1523,23 @@ proof
 qed
 
 lemma connected_components_of_eq_empty:
-   "connected_components_of X = {} \<longleftrightarrow> topspace X = {}"
+   "connected_components_of X = {} \<longleftrightarrow> X = trivial_topology"
   by (simp add: connected_components_of_def)
 
 lemma connected_components_of_empty_space:
-   "topspace X = {} \<Longrightarrow> connected_components_of X = {}"
+   "connected_components_of trivial_topology = {}"
   by (simp add: connected_components_of_eq_empty)
 
 lemma connected_components_of_subset_sing:
-   "connected_components_of X \<subseteq> {S} \<longleftrightarrow> connected_space X \<and> (topspace X = {} \<or> topspace X = S)"
-proof (cases "topspace X = {}")
+   "connected_components_of X \<subseteq> {S} \<longleftrightarrow> connected_space X \<and> (X = trivial_topology \<or> topspace X = S)"
+proof (cases "X = trivial_topology")
   case True
   then show ?thesis
-    by (simp add: connected_components_of_empty_space connected_space_topspace_empty)
+    by (simp add: connected_components_of_empty_space)
 next
   case False
   then have "\<lbrakk>connected_components_of X \<subseteq> {S}\<rbrakk> \<Longrightarrow> topspace X = S"
-    by (metis Sup_empty Union_connected_components_of ccpo_Sup_singleton subset_singleton_iff)
+    using Union_connected_components_of connected_components_of_eq_empty by fastforce
   with False show ?thesis
     unfolding connected_components_of_def
     by (metis connected_space_connected_component_set empty_iff image_subset_iff insert_iff)
@@ -1551,21 +1550,20 @@ lemma connected_space_iff_components_subset_singleton:
   by (simp add: connected_components_of_subset_sing)
 
 lemma connected_components_of_eq_singleton:
-   "connected_components_of X = {S}
-\<longleftrightarrow> connected_space X \<and> topspace X \<noteq> {} \<and> S = topspace X"
-  by (metis ccpo_Sup_singleton connected_components_of_subset_sing insert_not_empty subset_singleton_iff)
+   "connected_components_of X = {S} \<longleftrightarrow> connected_space X \<and> X \<noteq> trivial_topology \<and> S = topspace X"
+  by (metis connected_components_of_eq_empty connected_components_of_subset_sing insert_not_empty subset_singleton_iff)
 
 lemma connected_components_of_connected_space:
-   "connected_space X \<Longrightarrow> connected_components_of X = (if topspace X = {} then {} else {topspace X})"
+   "connected_space X \<Longrightarrow> connected_components_of X = (if X = trivial_topology then {} else {topspace X})"
   by (simp add: connected_components_of_eq_empty connected_components_of_eq_singleton)
 
 lemma exists_connected_component_of_superset:
-  assumes "connectedin X S" and ne: "topspace X \<noteq> {}"
+  assumes "connectedin X S" and ne: "X \<noteq> trivial_topology"
   shows "\<exists>C. C \<in> connected_components_of X \<and> S \<subseteq> C"
 proof (cases "S = {}")
   case True
   then show ?thesis
-    using ne connected_components_of_def by blast
+    using ne connected_components_of_eq_empty by fastforce
 next
   case False
   then show ?thesis

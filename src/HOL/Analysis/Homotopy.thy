@@ -284,24 +284,24 @@ lemma homotopic_from_subtopology:
   by (metis continuous_map_id_subt homotopic_with_compose_continuous_map_right o_id)
 
 lemma homotopic_on_emptyI:
-    assumes "topspace X = {}" "P f" "P g"
-    shows "homotopic_with P X X' f g"
-  by (metis assms continuous_map_on_empty empty_iff homotopic_with_equal)
+  assumes "P f" "P g"
+  shows "homotopic_with P trivial_topology X f g"
+  by (metis assms continuous_map_on_empty empty_iff homotopic_with_equal topspace_discrete_topology)
 
 lemma homotopic_on_empty:
-   "topspace X = {} \<Longrightarrow> (homotopic_with P X X' f g \<longleftrightarrow> P f \<and> P g)"
+   "(homotopic_with P trivial_topology X f g \<longleftrightarrow> P f \<and> P g)"
   using homotopic_on_emptyI homotopic_with_imp_property by metis
 
-lemma homotopic_with_canon_on_empty [simp]: "homotopic_with_canon (\<lambda>x. True) {} t f g"
+lemma homotopic_with_canon_on_empty: "homotopic_with_canon (\<lambda>x. True) {} t f g"
   by (auto intro: homotopic_with_equal)
 
 lemma homotopic_constant_maps:
    "homotopic_with (\<lambda>x. True) X X' (\<lambda>x. a) (\<lambda>x. b) \<longleftrightarrow>
-    topspace X = {} \<or> path_component_of X' a b" (is "?lhs = ?rhs")
-proof (cases "topspace X = {}")
+    X = trivial_topology \<or> path_component_of X' a b" (is "?lhs = ?rhs")
+proof (cases "X = trivial_topology")
   case False
   then obtain c where c: "c \<in> topspace X"
-    by blast
+    by fastforce
   have "\<exists>g. continuous_map (top_of_set {0..1::real}) X' g \<and> g 0 = a \<and> g 1 = b"
     if "x \<in> topspace X" and hom: "homotopic_with (\<lambda>x. True) X X' (\<lambda>x. a) (\<lambda>x. b)" for x
   proof -
@@ -310,7 +310,7 @@ proof (cases "topspace X = {}")
         and h: "\<And>x. h (0, x) = a" "\<And>x. h (1, x) = b"
       using hom by (auto simp: homotopic_with_def)
     have cont: "continuous_map (top_of_set {0..1}) X' (h \<circ> (\<lambda>t. (t, c)))"
-      by (rule continuous_map_compose [OF _ conth] continuous_intros c | simp)+
+      by (rule continuous_map_compose [OF _ conth] continuous_intros | simp add: c)+
     then show ?thesis
       by (force simp: h)
   qed
@@ -320,7 +320,8 @@ proof (cases "topspace X = {}")
     unfolding homotopic_with_def
     by (force intro!: continuous_map_compose continuous_intros c that)
   ultimately show ?thesis
-    using False by (auto simp: path_component_of_def pathin_def)
+    using False
+    by (metis c path_component_of_set pathin_def)
 qed (simp add: homotopic_on_empty)
 
 proposition homotopic_with_eq:
@@ -423,7 +424,8 @@ next
       have "homotopic_with_canon (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. b)"
         by (simp add: LHS image_subset_iff that)
       then show ?thesis
-        using False homotopic_constant_maps [of "top_of_set S" "top_of_set T" a b] by auto
+        using False homotopic_constant_maps [of "top_of_set S" "top_of_set T" a b]
+        by (metis path_component_of_canon_iff topspace_discrete_topology topspace_euclidean_subtopology)
     qed
     moreover
     have "\<exists>c. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)" if "continuous_on S f" "f \<in> S \<rightarrow> T" for f
@@ -1274,7 +1276,7 @@ next
   obtain a where a: "homotopic_with_canon (\<lambda>x. True) S S id (\<lambda>x. a)"
     using assms by (force simp: contractible_def)
   then have "a \<in> S"
-    by (metis False homotopic_constant_maps homotopic_with_symD homotopic_with_trans path_component_in_topspace topspace_euclidean_subtopology)
+    using False homotopic_with_imp_funspace2 by fastforce
   have "\<forall>p. path p \<and>
             path_image p \<subseteq> S \<and> pathfinish p = pathstart p \<longrightarrow>
             homotopic_loops S p (linepath a a)"
@@ -1344,11 +1346,12 @@ proof -
   next
     case False
     with c1 c2 have "c1 \<in> U" "c2 \<in> U"
-      using homotopic_with_imp_continuous_maps by fastforce+
+      using homotopic_with_imp_continuous_maps
+       by (metis PiE equals0I homotopic_with_imp_funspace2)+
     with \<open>path_connected U\<close> show ?thesis by blast
   qed
   then have "homotopic_with_canon (\<lambda>h. True) S U (\<lambda>x. c2) (\<lambda>x. c1)"
-    by (simp add: path_component homotopic_constant_maps)
+    by (auto simp add: path_component homotopic_constant_maps)
   then show ?thesis
     using c1 c2 homotopic_with_symD homotopic_with_trans by blast
 qed
@@ -3475,16 +3478,16 @@ definition contractible_space where
 lemma contractible_space_top_of_set [simp]:"contractible_space (top_of_set S) \<longleftrightarrow> contractible S"
   by (auto simp: contractible_space_def contractible_def)
 
-lemma contractible_space_empty:
-   "topspace X = {} \<Longrightarrow> contractible_space X"
+lemma contractible_space_empty [simp]:
+   "contractible_space trivial_topology"
   unfolding contractible_space_def homotopic_with_def
   apply (rule_tac x=undefined in exI)
   apply (rule_tac x="\<lambda>(t,x). if t = 0 then x else undefined" in exI)
   apply (auto simp: continuous_map_on_empty)
   done
 
-lemma contractible_space_singleton:
-  "topspace X = {a} \<Longrightarrow> contractible_space X"
+lemma contractible_space_singleton [simp]:
+  "contractible_space (discrete_topology{a})"
   unfolding contractible_space_def homotopic_with_def
   apply (rule_tac x=a in exI)
   apply (rule_tac x="\<lambda>(t,x). if t = 0 then x else a" in exI)
@@ -3493,17 +3496,17 @@ lemma contractible_space_singleton:
 
 lemma contractible_space_subset_singleton:
    "topspace X \<subseteq> {a} \<Longrightarrow> contractible_space X"
-  by (meson contractible_space_empty contractible_space_singleton subset_singletonD)
+  by (metis contractible_space_empty contractible_space_singleton null_topspace_iff_trivial subset_singletonD subtopology_eq_discrete_topology_sing)
 
-lemma contractible_space_subtopology_singleton:
-   "contractible_space(subtopology X {a})"
+lemma contractible_space_subtopology_singleton [simp]:
+   "contractible_space (subtopology X {a})"
   by (meson contractible_space_subset_singleton insert_subset path_connectedin_singleton path_connectedin_subtopology subsetI)
 
 lemma contractible_space:
    "contractible_space X \<longleftrightarrow>
-        topspace X = {} \<or>
+        X = trivial_topology \<or>
         (\<exists>a \<in> topspace X. homotopic_with (\<lambda>x. True) X X id (\<lambda>x. a))"
-proof (cases "topspace X = {}")
+proof (cases "X = trivial_topology")
   case False
   then show ?thesis
     using homotopic_with_imp_continuous_maps  by (fastforce simp: contractible_space_def)
@@ -3511,7 +3514,7 @@ qed (simp add: contractible_space_empty)
 
 lemma contractible_imp_path_connected_space:
   assumes "contractible_space X" shows "path_connected_space X"
-proof (cases "topspace X = {}")
+proof (cases "X = trivial_topology")
   case False
   have *: "path_connected_space X"
     if "a \<in> topspace X" and conth: "continuous_map (prod_topology (top_of_set {0..1}) X) X h"
@@ -3552,13 +3555,13 @@ proof
     proof (rule homotopic_with_trans [OF a])
       show "homotopic_with (\<lambda>x. True) X X (\<lambda>x. a) (\<lambda>x. b)"
         using homotopic_constant_maps path_connected_space_imp_path_component_of
-        by (metis (full_types) X a continuous_map_const contractible_imp_path_connected_space homotopic_with_imp_continuous_maps that)
+        by (metis X a contractible_imp_path_connected_space homotopic_with_sym homotopic_with_trans path_component_of_equiv that)
     qed
   qed
 next
   assume R: ?rhs
   then show ?lhs
-    unfolding contractible_space_def by (metis equals0I homotopic_on_emptyI)
+    using contractible_space_def by fastforce
 qed
 
 
@@ -3623,8 +3626,8 @@ lemma homotopic_through_contractible_space:
         \<Longrightarrow> homotopic_with (\<lambda>h. True) X Z (g \<circ> f) (g' \<circ> f')"
   using nullhomotopic_through_contractible_space [of X Y f Z g]
   using nullhomotopic_through_contractible_space [of X Y f' Z g']
-  by (metis continuous_map_const homotopic_constant_maps homotopic_with_imp_continuous_maps 
-      homotopic_with_trans path_connected_space_iff_path_component homotopic_with_sym)
+  by (smt (verit) continuous_map_const homotopic_constant_maps homotopic_with_imp_continuous_maps
+      homotopic_with_symD homotopic_with_trans path_connected_space_imp_path_component_of)
 
 lemma homotopic_from_contractible_space:
    "continuous_map X Y f \<and> continuous_map X Y g \<and>
@@ -3640,8 +3643,8 @@ lemma homotopic_into_contractible_space:
 
 lemma contractible_eq_homotopy_equivalent_singleton_subtopology:
    "contractible_space X \<longleftrightarrow>
-        topspace X = {} \<or> (\<exists>a \<in> topspace X. X homotopy_equivalent_space (subtopology X {a}))"(is "?lhs = ?rhs")
-proof (cases "topspace X = {}")
+        X = trivial_topology \<or> (\<exists>a \<in> topspace X. X homotopy_equivalent_space (subtopology X {a}))"(is "?lhs = ?rhs")
+proof (cases "X = trivial_topology")
   case False
   show ?thesis
   proof
@@ -3684,10 +3687,10 @@ qed
 
 lemma contractible_space_prod_topology:
    "contractible_space(prod_topology X Y) \<longleftrightarrow>
-    topspace X = {} \<or> topspace Y = {} \<or> contractible_space X \<and> contractible_space Y"
-proof (cases "topspace X = {} \<or> topspace Y = {}")
+    X = trivial_topology \<or> Y = trivial_topology \<or> contractible_space X \<and> contractible_space Y"
+proof (cases "X = trivial_topology \<or> Y = trivial_topology")
   case True
-  then have "topspace (prod_topology X Y) = {}"
+  then have "(prod_topology X Y) = trivial_topology"
     by simp
   then show ?thesis
     by (auto simp: contractible_space_empty)
@@ -3726,8 +3729,8 @@ qed
 
 lemma contractible_space_product_topology:
   "contractible_space(product_topology X I) \<longleftrightarrow>
-    topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. contractible_space(X i))"
-proof (cases "topspace (product_topology X I) = {}")
+    (product_topology X I) = trivial_topology \<or> (\<forall>i \<in> I. contractible_space(X i))"
+proof (cases "(product_topology X I) = trivial_topology")
   case False
   have 1: "contractible_space (X i)"
     if XI: "contractible_space (product_topology X I)" and "i \<in> I"
@@ -3749,8 +3752,8 @@ proof (cases "topspace (product_topology X I) = {}")
       by (auto simp: contractible_space_def)
   qed
   show ?thesis
-    using False 1 2 by blast
-qed (simp add: contractible_space_empty)
+    using False 1 2 by (meson equals0I subtopology_eq_discrete_topology_empty)
+qed auto
 
 
 lemma contractible_space_subtopology_euclideanreal [simp]:
@@ -3960,7 +3963,7 @@ lemma homotopy_eqv_contractible_sets:
     shows "S homotopy_eqv T"
 proof (cases "S = {}")
   case True with assms show ?thesis
-    by (simp add: homeomorphic_imp_homotopy_eqv)
+    using homeomorphic_imp_homotopy_eqv by fastforce
 next
   case False
   with assms obtain a b where "a \<in> S" "b \<in> T"
@@ -3978,7 +3981,7 @@ lemma homotopy_eqv_empty1 [simp]:
 proof
   assume ?lhs then show ?rhs
     by (metis continuous_map_subtopology_eu empty_iff equalityI homotopy_equivalent_space_def image_subset_iff subsetI)
-qed (simp add: homotopy_eqv_contractible_sets)
+qed (use homeomorphic_imp_homotopy_eqv in force)
 
 lemma homotopy_eqv_empty2 [simp]:
   fixes S :: "'a::real_normed_vector set"
@@ -3993,10 +3996,7 @@ lemma homotopy_eqv_contractibility:
 lemma homotopy_eqv_sing:
   fixes S :: "'a::real_normed_vector set" and a :: "'b::real_normed_vector"
   shows "S homotopy_eqv {a} \<longleftrightarrow> S \<noteq> {} \<and> contractible S"
-proof (cases "S = {}")
-  case False then show ?thesis
-    by (metis contractible_sing empty_not_insert homotopy_eqv_contractibility homotopy_eqv_contractible_sets)
-qed simp
+  by (metis contractible_sing empty_not_insert homotopy_eqv_contractibility homotopy_eqv_contractible_sets homotopy_eqv_empty2)
 
 lemma homeomorphic_contractible_eq:
   fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"

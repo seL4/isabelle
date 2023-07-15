@@ -358,7 +358,7 @@ proof (cases "n = 0")
   have "u [^]\<^bsub>?rhgn (equator n)\<^esub> Brouwer_degree2 n f = ?hi_ee f u"
   proof -
     have ne: "topspace (nsphere n) \<inter> equator n \<noteq> {}"
-      by (metis equ(1) nonempty_nsphere topspace_subtopology)
+      using False equator_def in_topspace_nsphere by fastforce
     have eq1: "hom_boundary n (nsphere n) (equator n) u
                = \<one>\<^bsub>reduced_homology_group (int n - 1) (subtopology (nsphere n) (equator n))\<^esub>"
       using one_reduced_homology_group u_def un_z uncarr up_z upcarr by force
@@ -2132,7 +2132,7 @@ lemma homeomorphic_affine_Euclidean_space:
 proof (cases "S = {}")
   case True
   with assms show ?thesis
-    using homeomorphic_empty_space nonempty_Euclidean_space by fastforce
+    using homeomorphic_empty_space nontrivial_Euclidean_space by fastforce
 next
   case False
   then obtain a where "a \<in> S"

@@ -16,8 +16,8 @@ lemma topspace_Euclidean_space:
    "topspace(Euclidean_space n) = {x. \<forall>i\<ge>n. x i = 0}"
   by (simp add: Euclidean_space_def)
 
-lemma nonempty_Euclidean_space: "topspace(Euclidean_space n) \<noteq> {}"
-  by (force simp: topspace_Euclidean_space)
+lemma nontrivial_Euclidean_space: "Euclidean_space n \<noteq> trivial_topology"
+  using topspace_Euclidean_space [of n] by force
 
 lemma subset_Euclidean_space [simp]:
    "topspace(Euclidean_space m) \<subseteq> topspace(Euclidean_space n) \<longleftrightarrow> m \<le> n"
@@ -166,9 +166,10 @@ lemma locally_path_connected_Euclidean_space:
                    locally_path_connected_space_product_topology)
   using locally_path_connected_space_euclideanreal by auto
 
-lemma compact_Euclidean_space:
+lemma compact_Euclidean_space [simp]:
    "compact_space (Euclidean_space n) \<longleftrightarrow> n = 0"
-  by (auto simp: homeomorphic_compact_space [OF homeomorphic_Euclidean_space_product_topology] compact_space_product_topology)
+  using homeomorphic_compact_space [OF homeomorphic_Euclidean_space_product_topology] 
+  by (auto simp: product_topology_trivial_iff compact_space_product_topology)
 
 
 subsection\<open>n-dimensional spheres\<close>
@@ -188,8 +189,8 @@ lemma continuous_map_nsphere_projection: "continuous_map (nsphere n) euclideanre
 lemma in_topspace_nsphere: "(\<lambda>n. if n = 0 then 1 else 0) \<in> topspace (nsphere n)"
   by (simp add: nsphere_def topspace_Euclidean_space power2_eq_square if_distrib [where f = "\<lambda>x. x * _"] cong: if_cong)
 
-lemma nonempty_nsphere [simp]: "~ (topspace(nsphere n) = {})"
-  using in_topspace_nsphere by auto
+lemma nonempty_nsphere [simp]: "(nsphere n) \<noteq> trivial_topology"
+  by (metis discrete_topology_unique empty_iff in_topspace_nsphere)
 
 lemma subtopology_nsphere_equator:
   "subtopology (nsphere (Suc n)) {x. x(Suc n) = 0} = nsphere n"
@@ -344,7 +345,7 @@ proof -
     proof (rule continuous_map_compose)
       have "continuous_map (prod_topology ?T01 (nsphere p)) euclideanreal ((\<lambda>x. f x k) \<circ> snd)" for k
         unfolding nsphere
-        apply (simp add: continuous_map_of_snd)
+        apply (simp add: continuous_map_of_snd flip: null_topspace_iff_trivial)
         apply (rule continuous_map_compose [of _ "nsphere p" f, unfolded o_def])
         using f apply (simp add: nsphere)
         by (simp add: continuous_map_nsphere_projection)

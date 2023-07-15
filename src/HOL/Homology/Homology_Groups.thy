@@ -1709,7 +1709,7 @@ corollary isomorphic_integer_zeroth_homology_group:
   shows "homology_group 0 X \<cong> integer_group"
 proof -
   obtain a where a: "a \<in> topspace X"
-    using assms by auto
+    using assms by blast
   have "singular_simplex 0 X (restrict (\<lambda>x. a) (standard_simplex 0))"
     by (simp add: singular_simplex_def a)
   then show ?thesis
@@ -2084,7 +2084,7 @@ proof
       using that by auto
     show "inj_on (hom_induced p (subtopology X {}) {} X {} id)
                (carrier (homology_group p (subtopology X {})))"
-      by auto
+      by (meson inj_on_hom_induced_inclusion)
     show "hom_induced p X {} X {} id ` carrier (homology_group p X) = carrier (homology_group p X)"
       by (metis epi_hom_induced_relativization)
   next

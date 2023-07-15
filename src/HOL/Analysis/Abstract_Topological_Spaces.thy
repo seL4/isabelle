@@ -1050,16 +1050,16 @@ lemma t0_space_prod_topologyI: "\<lbrakk>t0_space X; t0_space Y\<rbrakk> \<Longr
 
 
 lemma t0_space_prod_topology_iff:
-   "t0_space (prod_topology X Y) \<longleftrightarrow> topspace (prod_topology X Y) = {} \<or> t0_space X \<and> t0_space Y" (is "?lhs=?rhs")
+   "t0_space (prod_topology X Y) \<longleftrightarrow> prod_topology X Y = trivial_topology \<or> t0_space X \<and> t0_space Y" (is "?lhs=?rhs")
 proof
   assume ?lhs
   then show ?rhs
-    by (metis Sigma_empty1 Sigma_empty2 retraction_map_fst retraction_map_snd t0_space_retraction_map_image topspace_prod_topology)
-qed (metis empty_iff t0_space_def t0_space_prod_topologyI)
+    by (metis prod_topology_trivial_iff retraction_map_fst retraction_map_snd t0_space_retraction_map_image)
+qed (metis t0_space_discrete_topology t0_space_prod_topologyI)
 
 proposition t0_space_product_topology:
-   "t0_space (product_topology X I) \<longleftrightarrow>
-        topspace(product_topology X I) = {} \<or> (\<forall>i \<in> I. t0_space (X i))" (is "?lhs=?rhs")
+   "t0_space (product_topology X I) \<longleftrightarrow> product_topology X I = trivial_topology \<or> (\<forall>i \<in> I. t0_space (X i))" 
+    (is "?lhs=?rhs")
 proof
   assume ?lhs
   then show ?rhs
@@ -1067,7 +1067,7 @@ proof
 next
   assume R: ?rhs 
   show ?lhs
-  proof (cases "topspace(product_topology X I) = {}")
+  proof (cases "product_topology X I = trivial_topology")
     case True
     then show ?thesis
       by (simp add: t0_space_def)
@@ -1762,12 +1762,10 @@ qed
 
 lemma proper_map_prod:
    "proper_map (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) \<longleftrightarrow>
-    topspace(prod_topology X Y) = {} \<or> proper_map X X' f \<and> proper_map Y Y' g"
+    (prod_topology X Y) = trivial_topology \<or> proper_map X X' f \<and> proper_map Y Y' g"
    (is "?lhs \<longleftrightarrow> _ \<or> ?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
-  case True
-  then show ?thesis
-    by (simp add: proper_map_on_empty)
+proof (cases "(prod_topology X Y) = trivial_topology")
+  case True then show ?thesis by auto
 next
   case False
   then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
@@ -2060,7 +2058,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma regular_space_discrete_topology:
+lemma regular_space_discrete_topology [simp]:
    "regular_space (discrete_topology S)"
   using neighbourhood_base_of_closedin neighbourhood_base_of_discrete_topology by fastforce
 
@@ -2102,9 +2100,6 @@ proof clarify
     using assms unfolding Hausdorff_space_compact_sets
     by (metis closedin_compact_space compactin_sing disjnt_empty1 insert_subset disjnt_insert1)
 qed
-
-lemma regular_space_topspace_empty: "topspace X = {} \<Longrightarrow> regular_space X"
-  by (simp add: Hausdorff_space_topspace_empty compact_Hausdorff_imp_regular_space compact_space_topspace_empty)
 
 lemma neighbourhood_base_of_closed_Hausdorff_space:
    "regular_space X \<and> Hausdorff_space X \<longleftrightarrow>
@@ -2181,7 +2176,7 @@ qed
 
 lemma regular_space_prod_topology:
    "regular_space (prod_topology X Y) \<longleftrightarrow>
-        topspace X = {} \<or> topspace Y = {} \<or> regular_space X \<and> regular_space Y" (is "?lhs=?rhs")
+        X = trivial_topology \<or> Y = trivial_topology \<or> regular_space X \<and> regular_space Y" (is "?lhs=?rhs")
 proof
   assume ?lhs
   then show ?rhs
@@ -2189,10 +2184,8 @@ proof
 next
   assume R: ?rhs  
   show ?lhs
-  proof (cases "topspace X = {} \<or> topspace Y = {}")
-    case True
-    then show ?thesis
-      by (simp add: regular_space_topspace_empty)
+  proof (cases "X = trivial_topology \<or> Y = trivial_topology")
+    case True then show ?thesis by auto
   next
     case False
     then have "regular_space X" "regular_space Y"
@@ -2223,7 +2216,7 @@ qed
 
 lemma regular_space_product_topology:
    "regular_space (product_topology X I) \<longleftrightarrow>
-    topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. regular_space (X i))" (is "?lhs=?rhs")
+    (product_topology X I) = trivial_topology \<or> (\<forall>i \<in> I. regular_space (X i))" (is "?lhs=?rhs")
 proof
   assume ?lhs
   then show ?rhs
@@ -2231,14 +2224,14 @@ proof
 next
   assume R: ?rhs  
   show ?lhs
-  proof (cases "topspace(product_topology X I) = {}")
+  proof (cases "product_topology X I = trivial_topology")
     case True
     then show ?thesis
-      by (simp add: regular_space_topspace_empty)
+      by auto
   next
     case False
     then obtain x where x: "x \<in> topspace (product_topology X I)"
-      by blast
+      by (meson ex_in_conv null_topspace_iff_trivial)
     define \<F> where "\<F> \<equiv> {Pi\<^sub>E I U |U. finite {i \<in> I. U i \<noteq> topspace (X i)}
                         \<and> (\<forall>i\<in>I. openin (X i) (U i))}"
     have oo: "openin (product_topology X I) = arbitrary union_of (\<lambda>W. W \<in> \<F>)"
@@ -2957,20 +2950,20 @@ lemma dense_locally_compact_openin_Hausdorff_space:
 
 lemma locally_compact_space_prod_topology:
   "locally_compact_space (prod_topology X Y) \<longleftrightarrow>
-        topspace (prod_topology X Y) = {} \<or>
+        (prod_topology X Y) = trivial_topology \<or>
         locally_compact_space X \<and> locally_compact_space Y" (is "?lhs=?rhs")
-proof (cases "topspace (prod_topology X Y) = {}")
+proof (cases "(prod_topology X Y) = trivial_topology")
   case True
   then show ?thesis
-    unfolding locally_compact_space_def by blast
+    using locally_compact_space_discrete_topology by force
 next
   case False
   then obtain w z where wz: "w \<in> topspace X" "z \<in> topspace Y"
-    by auto
+    by fastforce
   show ?thesis 
   proof
     assume L: ?lhs then show ?rhs
-      by (metis wz empty_iff locally_compact_space_retraction_map_image retraction_map_fst retraction_map_snd)
+      by (metis locally_compact_space_retraction_map_image prod_topology_trivial_iff retraction_map_fst retraction_map_snd)
   next
     assume R: ?rhs 
     show ?lhs
@@ -2999,9 +2992,9 @@ qed
 
 lemma locally_compact_space_product_topology:
    "locally_compact_space(product_topology X I) \<longleftrightarrow>
-        topspace(product_topology X I) = {} \<or>
+        product_topology X I = trivial_topology \<or>
         finite {i \<in> I. \<not> compact_space(X i)} \<and> (\<forall>i \<in> I. locally_compact_space(X i))" (is "?lhs=?rhs")
-proof (cases "topspace (product_topology X I) = {}")
+proof (cases "(product_topology X I) = trivial_topology")
   case True
   then show ?thesis
     by (simp add: locally_compact_space_def)
@@ -3011,7 +3004,8 @@ next
   proof
     assume L: ?lhs
     obtain z where z: "z \<in> topspace (product_topology X I)"
-      using False by auto
+      using False
+      by (meson ex_in_conv null_topspace_iff_trivial)
     with L z obtain U C where "openin (product_topology X I) U" "compactin (product_topology X I) C" "z \<in> U" "U \<subseteq> C"
       by (meson locally_compact_space_def)
     then obtain V where finV: "finite {i \<in> I. V i \<noteq> topspace (X i)}" and "\<forall>i \<in> I. openin (X i) (V i)" 
@@ -3968,11 +3962,11 @@ lemma quasi_component_in_quasi_components_of:
   by (metis (no_types, lifting) image_iff quasi_component_of_eq_empty quasi_components_of_def)
 
 lemma quasi_components_of_eq_empty [simp]:
-   "quasi_components_of X = {} \<longleftrightarrow> topspace X = {}"
+   "quasi_components_of X = {} \<longleftrightarrow> X = trivial_topology"
   by (simp add: quasi_components_of_def)
 
-lemma quasi_components_of_empty_space:
-   "topspace X = {} \<Longrightarrow> quasi_components_of X = {}"
+lemma quasi_components_of_empty_space [simp]:
+   "quasi_components_of trivial_topology = {}"
   by simp
 
 lemma quasi_component_of_set:
@@ -4098,16 +4092,16 @@ lemma connected_space_iff_quasi_components_eq:
   by (metis connected_space_iff_quasi_component mem_Collect_eq quasi_component_of_equiv)
 
 lemma quasi_components_of_subset_sing:
-   "quasi_components_of X \<subseteq> {S} \<longleftrightarrow> connected_space X \<and> (topspace X = {} \<or> topspace X = S)"
+   "quasi_components_of X \<subseteq> {S} \<longleftrightarrow> connected_space X \<and> (X = trivial_topology \<or> topspace X = S)"
 proof (cases "quasi_components_of X = {}")
   case True
   then show ?thesis
-    by (simp add: connected_space_topspace_empty subset_singleton_iff)
+    by (simp add: subset_singleton_iff)
 next
   case False
   then show ?thesis
     apply (simp add: connected_space_iff_quasi_components_eq subset_iff Ball_def)
-    by (metis quasi_components_of_subset subsetI subset_antisym subset_empty topspace_imp_quasi_components_of)
+    by (metis False Union_quasi_components_of ccpo_Sup_singleton insert_iff is_singletonE is_singletonI')
 qed
 
 lemma connected_space_iff_quasi_components_subset_sing:
@@ -4116,12 +4110,12 @@ lemma connected_space_iff_quasi_components_subset_sing:
 
 lemma quasi_components_of_eq_singleton:
    "quasi_components_of X = {S} \<longleftrightarrow>
-        connected_space X \<and> \<not> (topspace X = {}) \<and> S = topspace X"
-  by (metis ccpo_Sup_singleton insert_not_empty quasi_components_of_subset_sing subset_singleton_iff)
+        connected_space X \<and> \<not> (X = trivial_topology) \<and> S = topspace X"
+  by (metis empty_not_insert quasi_components_of_eq_empty quasi_components_of_subset_sing subset_singleton_iff)
 
 lemma quasi_components_of_connected_space:
    "connected_space X
-        \<Longrightarrow> quasi_components_of X = (if topspace X = {} then {} else {topspace X})"
+        \<Longrightarrow> quasi_components_of X = (if X = trivial_topology then {} else {topspace X})"
   by (simp add: quasi_components_of_eq_singleton)
 
 lemma separated_between_singletons:
@@ -4745,7 +4739,9 @@ proof -
     using locally_compact_space_compact_closed_compact [of "subtopology X (U - {a})"] assms
     by (smt (verit, del_insts) Diff_empty compactin_subtopology open_in_Hausdorff_delete openin_open_subtopology subset_Diff_insert)
   then obtain D where D: "D \<in> connected_components_of (subtopology X K)" and "C \<subseteq> D"
-    using C by (metis bot.extremum_unique connectedin_subtopology order.trans exists_connected_component_of_superset subtopology_topspace)
+    using C
+    by (metis compactin_subset_topspace connected_component_in_connected_components_of        
+              connected_component_of_maximal connectedin_subtopology subset_empty subset_eq topspace_subtopology_subset)
   show thesis
   proof
     have cloD: "closedin (subtopology X K) D"

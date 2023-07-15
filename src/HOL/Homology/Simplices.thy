@@ -389,7 +389,7 @@ lemma singular_relcycle_diff:
 
 lemma singular_cycle:
    "singular_relcycle p X {} c \<longleftrightarrow> singular_chain p X c \<and> chain_boundary p c = 0"
-  by (simp add: singular_relcycle_def)
+  using mod_subset_empty by (auto simp: singular_relcycle_def)
 
 lemma singular_cycle_mono:
    "\<lbrakk>singular_relcycle p (subtopology X T) {} c; T \<subseteq> S\<rbrakk>
@@ -428,11 +428,11 @@ lemma singular_relboundary:
 lemma singular_boundary:
    "singular_relboundary p X {} c \<longleftrightarrow>
     (\<exists>d. singular_chain (Suc p) X d \<and> chain_boundary (Suc p) d = c)"
-  by (simp add: singular_relboundary_def)
+  by (meson mod_subset_empty singular_relboundary_def)
 
 lemma singular_boundary_imp_chain:
    "singular_relboundary p X {} c \<Longrightarrow> singular_chain p X c"
-  by (auto simp: singular_relboundary singular_chain_boundary_alt singular_chain_empty topspace_subtopology)
+  by (auto simp: singular_relboundary singular_chain_boundary_alt singular_chain_empty)
 
 lemma singular_boundary_mono:
    "\<lbrakk>T \<subseteq> S; singular_relboundary p (subtopology X T) {} c\<rbrakk>

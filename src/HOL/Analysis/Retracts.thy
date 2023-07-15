@@ -1910,7 +1910,7 @@ proposition\<^marker>\<open>tag unimportant\<close> Borsuk_map_essential_bounded
    (is "?lhs = ?rhs")
 proof (cases "S = {}")
   case True then show ?thesis
-    by simp
+    by (simp add: homotopic_on_emptyI)
 next
   case False
   have "closed S" "bounded S"

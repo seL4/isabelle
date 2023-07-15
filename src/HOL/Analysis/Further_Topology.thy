@@ -312,14 +312,16 @@ proposition inessential_spheremap_lowdim_gen:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    by (simp add: that)
+    using homotopic_with_canon_on_empty that by auto
 next
   case False
   then show ?thesis
   proof (cases "T = {}")
     case True
+    then have "rel_frontier S = {}" "rel_frontier T = {}"
+      using fim by fastforce+
     then show ?thesis
-      using fim that by (simp add: Pi_iff)
+      using that by (simp add: homotopic_on_emptyI)
   next
     case False
     obtain T':: "'a set"
@@ -1729,7 +1731,8 @@ proof
   show ?rhs
   proof (cases "S = {}")
     case True
-    then show ?thesis by auto
+    then show ?thesis
+      using homotopic_with_canon_on_empty by blast
   next
     case False
     then have "(\<forall>c\<in>components (- S). \<not> bounded c)"
@@ -3767,8 +3770,9 @@ proof -
     have "S = {} \<or> path_component (sphere 0 1) 1 c"
       using homotopic_with_imp_subset2 [OF that] path_connected_sphere [of "0::complex" 1]
       by (auto simp: path_connected_component)
-    then have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. 1) (\<lambda>x. c)"
-      by (simp add: homotopic_constant_maps)
+    with subtopology_empty_iff_trivial 
+    have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. 1) (\<lambda>x. c)"
+      by (force simp add: homotopic_constant_maps)
     then show ?thesis
       using homotopic_with_symD homotopic_with_trans that by blast
   qed
@@ -5474,7 +5478,7 @@ lemma inessential_on_clopen_Union:
 proof (cases "\<Union>\<F> = {}")
   case True
   with that show ?thesis
-    by force
+    using homotopic_with_canon_on_empty by fastforce
 next
   case False
   then obtain C where "C \<in> \<F>" "C \<noteq> {}"
@@ -5503,7 +5507,7 @@ next
         using T \<open>a \<in> T\<close> by (simp add: homotopic_constant_maps path_connected_component)
       then show ?thesis
         using c homotopic_with_symD homotopic_with_trans by blast
-    qed auto
+    qed (simp add: homotopic_on_empty)
   qed
   then show ?thesis ..
 qed

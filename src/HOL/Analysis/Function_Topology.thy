@@ -194,6 +194,10 @@ proof
     unfolding product_topology_def using PiE_def by (auto)
 qed
 
+lemma product_topology_trivial_iff:
+   "product_topology X I = trivial_topology \<longleftrightarrow> (\<exists>i \<in> I. X i = trivial_topology)"
+  by (auto simp: PiE_eq_empty_iff simp flip: null_topspace_iff_trivial)
+
 lemma topspace_product_topology_alt:
   "topspace (product_topology X I) = {x \<in> extensional I. \<forall>i \<in> I. x i \<in> topspace(X i)}"
   by (fastforce simp: PiE_iff)
@@ -251,7 +255,7 @@ lemma openin_product_topology:
            relative_to topspace (product_topology X I))"
   by (simp add: istopology_subbase product_topology)
 
-lemma subtopology_PiE:
+lemma subtopology_product_topology:
   "subtopology (product_topology X I) (\<Pi>\<^sub>E i\<in>I. (S i)) = product_topology (\<lambda>i. subtopology (X i) (S i)) I"
 proof -
   let ?P = "\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U"
@@ -1132,19 +1136,20 @@ qed
 lemma retraction_map_product_projection:
   assumes "i \<in> I"
   shows "(retraction_map (product_topology X I) (X i) (\<lambda>x. x i) \<longleftrightarrow>
-         (topspace (product_topology X I) = {}) \<longrightarrow> topspace (X i) = {})"
+         ((product_topology X I) = trivial_topology) \<longrightarrow> (X i) = trivial_topology)"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then show ?rhs
-    using retraction_imp_surjective_map by force
+    using retraction_imp_surjective_map
+    by (metis image_empty subtopology_eq_discrete_topology_empty)
 next
   assume R: ?rhs
   show ?lhs
-  proof (cases "topspace (product_topology X I) = {}")
+  proof (cases "(product_topology X I) = trivial_topology")
     case True
     then show ?thesis
-      using R by (auto simp: retraction_map_def retraction_maps_def continuous_map_on_empty)
+      using R by (auto simp: retraction_map_def retraction_maps_def)
   next
     case False
     have *: "\<exists>g. continuous_map (X i) (product_topology X I) g \<and> (\<forall>x\<in>topspace (X i). g x i = x)"
@@ -1156,9 +1161,8 @@ next
         using \<open>i \<in> I\<close> that
         by (rule_tac x="\<lambda>x j. if j = i then x else z j" in exI) (auto simp: continuous_map_componentwise PiE_iff extensional_def cm)
     qed
-    show ?thesis
-      using \<open>i \<in> I\<close> False
-      by (auto simp: retraction_map_def retraction_maps_def assms continuous_map_product_projection *)
+    with  \<open>i \<in> I\<close> False assms show ?thesis
+      by (auto simp: retraction_map_def retraction_maps_def simp flip: null_topspace_iff_trivial)
   qed
 qed
 
@@ -1167,7 +1171,7 @@ subsection \<open>Open Pi-sets in the product topology\<close>
 proposition openin_PiE_gen:
   "openin (product_topology X I) (PiE I S) \<longleftrightarrow>
         PiE I S = {} \<or>
-        finite {i \<in> I. ~(S i = topspace(X i))} \<and> (\<forall>i \<in> I. openin (X i) (S i))"
+        finite {i \<in> I. S i \<noteq> topspace (X i)} \<and> (\<forall>i \<in> I. openin (X i) (S i))"
   (is "?lhs \<longleftrightarrow> _ \<or> ?rhs")
 proof (cases "PiE I S = {}")
   case False
@@ -1216,12 +1220,12 @@ corollary openin_PiE:
 
 proposition compact_space_product_topology:
    "compact_space(product_topology X I) \<longleftrightarrow>
-    topspace(product_topology X I) = {} \<or> (\<forall>i \<in> I. compact_space(X i))"
+    (product_topology X I) = trivial_topology \<or> (\<forall>i \<in> I. compact_space(X i))"
     (is "?lhs = ?rhs")
-proof (cases "topspace(product_topology X I) = {}")
+proof (cases "(product_topology X I) = trivial_topology")
   case False
   then obtain z where z: "z \<in> (\<Pi>\<^sub>E i\<in>I. topspace(X i))"
-    by auto
+    by (auto simp flip: null_topspace_iff_trivial)
   show ?thesis
   proof
     assume L: ?lhs
@@ -1293,16 +1297,16 @@ proof (cases "topspace(product_topology X I) = {}")
               using UC by blast
           qed
         qed (simp add: product_topology)
-      qed (simp add: compact_space_topspace_empty)
+      qed simp
     qed
   qed
-qed (simp add: compact_space_topspace_empty)
+qed auto
 
 corollary compactin_PiE:
    "compactin (product_topology X I) (PiE I S) \<longleftrightarrow>
         PiE I S = {} \<or> (\<forall>i \<in> I. compactin (X i) (S i))"
-  by (auto simp: compactin_subspace subtopology_PiE subset_PiE compact_space_product_topology
-       PiE_eq_empty_iff)
+  by (fastforce simp add: compactin_subspace subtopology_product_topology compact_space_product_topology
+      subset_PiE product_topology_trivial_iff subtopology_trivial_iff)
 
 lemma in_product_topology_closure_of:
    "z \<in> (product_topology X I) closure_of S
@@ -1324,7 +1328,7 @@ subsection\<open>Relationship with connected spaces, paths, etc.\<close>
 
 proposition connected_space_product_topology:
    "connected_space(product_topology X I) \<longleftrightarrow>
-    (\<Pi>\<^sub>E i\<in>I. topspace (X i)) = {} \<or> (\<forall>i \<in> I. connected_space(X i))"
+    (\<exists>i \<in> I. X i = trivial_topology) \<or> (\<forall>i \<in> I. connected_space(X i))"
   (is "?lhs \<longleftrightarrow> ?eq \<or> ?rhs")
 proof (cases ?eq)
   case False
@@ -1339,7 +1343,7 @@ proof (cases ?eq)
         by (simp add: \<open>i \<in> I\<close> continuous_map_product_projection)
       show ?thesis
         using connectedin_continuous_map_image [OF cm ci] \<open>i \<in> I\<close>
-        by (simp add: False image_projection_PiE)
+        by (simp add: False image_projection_PiE PiE_eq_empty_iff)
     qed
     ultimately show ?rhs
       by (meson connectedin_topspace)
@@ -1484,13 +1488,14 @@ proof (cases ?eq)
   qed
   ultimately show ?thesis
     by simp
-qed (simp add: connected_space_topspace_empty)
+qed (metis connected_space_trivial_topology product_topology_trivial_iff)
 
 
 lemma connectedin_PiE:
    "connectedin (product_topology X I) (PiE I S) \<longleftrightarrow>
         PiE I S = {} \<or> (\<forall>i \<in> I. connectedin (X i) (S i))"
-  by (fastforce simp add: connectedin_def subtopology_PiE connected_space_product_topology subset_PiE PiE_eq_empty_iff)
+  by (auto simp: connectedin_def subtopology_product_topology connected_space_product_topology subset_PiE 
+      PiE_eq_empty_iff subtopology_trivial_iff)
 
 lemma path_connected_space_product_topology:
    "path_connected_space(product_topology X I) \<longleftrightarrow>
@@ -1509,7 +1514,7 @@ proof (cases ?eq)
         by (simp add: \<open>i \<in> I\<close> continuous_map_product_projection)
       show "path_connectedin (X i) (topspace (X i))"
         using path_connectedin_continuous_map_image [OF cm L [unfolded path_connectedin_topspace [symmetric]]]
-        by (metis \<open>i \<in> I\<close> False retraction_imp_surjective_map retraction_map_product_projection)
+        by (metis \<open>i \<in> I\<close> False retraction_imp_surjective_map retraction_map_product_projection topspace_discrete_topology)
     qed
   next
     assume R [rule_format]: ?rhs
@@ -1530,28 +1535,30 @@ proof (cases ?eq)
   qed
   ultimately show ?thesis
     by simp
-qed (simp add: path_connected_space_topspace_empty)
+next
+qed (force simp: path_connected_space_topspace_empty iff: null_topspace_iff_trivial)
 
 lemma path_connectedin_PiE:
    "path_connectedin (product_topology X I) (PiE I S) \<longleftrightarrow>
     PiE I S = {} \<or> (\<forall>i \<in> I. path_connectedin (X i) (S i))"
-  by (fastforce simp add: path_connectedin_def subtopology_PiE path_connected_space_product_topology subset_PiE PiE_eq_empty_iff topspace_subtopology_subset)
+  by (fastforce simp add: path_connectedin_def subtopology_product_topology path_connected_space_product_topology subset_PiE PiE_eq_empty_iff topspace_subtopology_subset)
 
 subsection \<open>Projections from a function topology to a component\<close>
 
 lemma quotient_map_product_projection:
   assumes "i \<in> I"
   shows "quotient_map(product_topology X I) (X i) (\<lambda>x. x i) \<longleftrightarrow>
-           (topspace(product_topology X I) = {} \<longrightarrow> topspace(X i) = {})"
-  by (metis assms image_empty quotient_imp_surjective_map retraction_imp_quotient_map 
-      retraction_map_product_projection)
+           ((product_topology X I) = trivial_topology \<longrightarrow> (X i) = trivial_topology)"
+  by (metis (no_types) assms image_is_empty null_topspace_iff_trivial quotient_imp_surjective_map 
+      retraction_imp_quotient_map retraction_map_product_projection)
 
 lemma product_topology_homeomorphic_component:
   assumes "i \<in> I" "\<And>j. \<lbrakk>j \<in> I; j \<noteq> i\<rbrakk> \<Longrightarrow> \<exists>a. topspace(X j) = {a}"
   shows "product_topology X I homeomorphic_space (X i)"
 proof -
   have "quotient_map (product_topology X I) (X i) (\<lambda>x. x i)"
-    using assms by (force simp add: quotient_map_product_projection PiE_eq_empty_iff)
+    using assms  by (metis (full_types) discrete_topology_unique empty_not_insert 
+             product_topology_trivial_iff quotient_map_product_projection)  
   moreover
   have "inj_on (\<lambda>x. x i) (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
     using assms by (auto simp: inj_on_def PiE_iff) (metis extensionalityI singletonD)
@@ -1566,15 +1573,15 @@ lemma topological_property_of_product_component:
                       \<Longrightarrow> P(subtopology (product_topology X I) (PiE I (\<lambda>j. if j = i then topspace(X i) else {z j})))"
                (is "\<And>z i. \<lbrakk>_; _; _\<rbrakk> \<Longrightarrow> P (?SX z i)")
     and PQ:  "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> Q X')"
-  shows "(\<Pi>\<^sub>E i\<in>I. topspace(X i)) = {} \<or> (\<forall>i \<in> I. Q(X i))"
+  shows "(\<exists>i\<in>I. (X i) = trivial_topology) \<or> (\<forall>i \<in> I. Q(X i))"
 proof -
-  have "Q(X i)" if "(\<Pi>\<^sub>E i\<in>I. topspace(X i)) \<noteq> {}" "i \<in> I" for i
+  have "Q(X i)" if "\<forall>i\<in>I. (X i) \<noteq> trivial_topology" "i \<in> I" for i
   proof -
     from that obtain f where f: "f \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))" 
-      by force
+      by (meson null_topspace_iff_trivial PiE_eq_empty_iff ex_in_conv)
     have "?SX f i homeomorphic_space X i"
       using f product_topology_homeomorphic_component [OF \<open>i \<in> I\<close>, of "\<lambda>j. subtopology (X j) (if j = i then topspace (X i) else {f j})"]
-      by (force simp add: subtopology_PiE)
+      by (force simp add: subtopology_product_topology)
     then show ?thesis
       using minor [OF f major \<open>i \<in> I\<close>] PQ by auto
   qed

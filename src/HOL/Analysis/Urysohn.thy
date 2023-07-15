@@ -1152,7 +1152,7 @@ lemma completely_regular_eq_regular_space:
 
 lemma completely_regular_space_prod_topology:
    "completely_regular_space (prod_topology X Y) \<longleftrightarrow>
-      topspace (prod_topology X Y) = {} \<or>
+      (prod_topology X Y) = trivial_topology \<or>
       completely_regular_space X \<and> completely_regular_space Y" (is "?lhs=?rhs")
 proof
   assume ?lhs then show ?rhs
@@ -1161,7 +1161,7 @@ proof
 next
   assume R: ?rhs
   show ?lhs
-  proof (cases "topspace(prod_topology X Y) = {}")
+  proof (cases "(prod_topology X Y) = trivial_topology")
     case False
     then have X: "completely_regular_space X" and Y: "completely_regular_space Y"
       using R by blast+
@@ -1206,7 +1206,7 @@ qed
 
 proposition completely_regular_space_product_topology:
    "completely_regular_space (product_topology X I) \<longleftrightarrow>
-    (\<Pi>\<^sub>E i\<in>I. topspace(X i)) = {} \<or> (\<forall>i \<in> I. completely_regular_space (X i))" 
+    (\<exists>i\<in>I. X i = trivial_topology) \<or> (\<forall>i \<in> I. completely_regular_space (X i))" 
    (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs then show ?rhs
@@ -1215,7 +1215,7 @@ proof
 next
   assume R: ?rhs
   show ?lhs
-  proof (cases "(\<Pi>\<^sub>E i\<in>I. topspace(X i)) = {}")
+  proof (cases "\<exists>i\<in>I. X i = trivial_topology")
     case False
     show ?thesis
       unfolding completely_regular_space_alt'
@@ -2062,9 +2062,9 @@ proof (cases "a \<in> topspace X")
         by (simp add: Hausdorff_space_def)
     next
       case False
-      then have "kc_space X"
+      with R True have "kc_space X"
         using kc_space_retraction_map_image [of "prod_topology X (subtopology X (topspace X - {a}))" X fst]
-        by (metis Diff_subset R True insert_Diff retraction_map_fst topspace_subtopology_subset)
+        by (metis Diff_subset insert_Diff retraction_map_fst topspace_discrete_topology topspace_subtopology_subset)
       have "closedin (subtopology (prod_topology X (subtopology X (topspace X - {a}))) K) (K \<inter> D)" 
         if "compactin (prod_topology X (subtopology X (topspace X - {a}))) K" for K
       proof (intro closedin_subtopology_Int_subset[where V=K] closedin_subset_topspace)
@@ -3198,7 +3198,7 @@ lemma cfunspace_mdist_lt:
 lemma mdist_cfunspace_le:
   assumes "0 \<le> B" and B: "\<And>x. x \<in> topspace X \<Longrightarrow> mdist m (f x) (g x) \<le> B"
   shows "mdist (cfunspace X m) f g \<le> B"
-proof (cases "topspace X = {}")
+proof (cases "X = trivial_topology")
   case True
   then show ?thesis
     by (simp add: Metric_space.fdist_empty \<open>B\<ge>0\<close> cfunspace_def)
@@ -3236,7 +3236,7 @@ proof -
       by (metis cfunspace_subset_funspace mdist_Self mspace_Self mspace_funspace)
   qed
   show ?thesis
-  proof (cases "topspace X = {}")
+  proof (cases "X = trivial_topology")
     case True
     then show ?thesis
       by (simp add: mcomplete_of_def mcomplete_trivial_singleton mdist_cfunspace_eq_mdist_funspace cong: conj_cong)
@@ -3272,12 +3272,15 @@ proof -
         proof -
           have *: "d (\<sigma> N x0) (g x0) \<le> \<epsilon>/3" if "x0 \<in> topspace X" for x0
           proof -
-            have "bdd_above ((\<lambda>x. d (\<sigma> N x) (g x)) ` topspace X)"
-              by (metis F.limit_metric_sequentially False N bdd_above_dist g order_refl)
+            have "g \<in> fspace (topspace X)"
+              using F.limit_metric_sequentially g by blast
+            with N that have "bdd_above ((\<lambda>x. d (\<sigma> N x) (g x)) ` topspace X)"
+              by (force intro: bdd_above_dist)
             then have "d (\<sigma> N x0) (g x0) \<le> Sup ((\<lambda>x. d (\<sigma> N x) (g x)) ` topspace X)"
               by (simp add: cSup_upper that)
             also have "\<dots> \<le> \<epsilon>/3"
-              by (smt (verit) F.limit_metric_sequentially False N Sup.SUP_cong fdist_def g order_refl)
+              using g False N \<open>g \<in> fspace (topspace X)\<close> 
+                by (fastforce simp: F.limit_metric_sequentially fdist_def)
             finally show ?thesis .
           qed
           have "d (g x) (g y) \<le> d (g x) (\<sigma> N x) + d (\<sigma> N x) (g y)"
@@ -4880,11 +4883,11 @@ proof (cases "I={}")
       by (metis top closedin_topspace)
     have "subtopology mtopology (\<Inter>(S ` I)) homeomorphic_space mtopology"
       by (simp add: True product_topology_empty_discrete)
-    also have "\<dots> homeomorphic_space (prod_topology mtopology (powertop_real {}))"
-      by (metis PiE_empty_domain homeomorphic_space_sym prod_topology_homeomorphic_space_left topspace_product_topology)
+    also have "\<dots> homeomorphic_space (prod_topology mtopology (discrete_topology {\<lambda>x. undefined}))"
+      by (meson homeomorphic_space_sym prod_topology_homeomorphic_space_left)
     finally
     show "subtopology mtopology (\<Inter>(S ` I)) homeomorphic_space subtopology (prod_topology mtopology (powertop_real I)) (M \<times> {(\<lambda>x. undefined)})"
-      by (smt (verit) True subtopology_topspace top)
+      by (smt (verit, ccfv_SIG) True product_topology_empty_discrete subtopology_topspace top)
   qed   
 next
   case False
@@ -5461,8 +5464,12 @@ next
       show ?case
       proof (cases "n\<le>1")
         case True
-        with less.prems connected_components_of_empty_space show ?thesis
-          by (force simp add: le_Suc_eq eqpoll_iff_finite_card card_Suc_eq simp flip: ex_simps)
+        with less.prems have "topspace X \<noteq> {}" "n=1"
+          by (fastforce simp add: connected_components_of_def)+
+        then have "{} \<notin> {topspace X}"
+          by blast
+        with \<open>n=1\<close> show ?thesis
+          by (simp add: eqpoll_iff_finite_card card_Suc_eq flip: ex_simps)
       next
         case False
         then have "n-1 \<noteq> 0"

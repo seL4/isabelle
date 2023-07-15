@@ -227,6 +227,10 @@ lemma subtopology_eq_discrete_topology_sing:
    "X = discrete_topology {a} \<longleftrightarrow> topspace X = {a}"
   by (metis discrete_topology_unique openin_topspace singletonD)
 
+abbreviation trivial_topology where "trivial_topology \<equiv> discrete_topology {}"
+
+lemma null_topspace_iff_trivial [simp]: "topspace X = {} \<longleftrightarrow> X = trivial_topology"
+  by (simp add: subtopology_eq_discrete_topology_empty)
 
 subsection \<open>Subspace topology\<close>
 
@@ -316,6 +320,9 @@ lemma openin_subtopology_refl: "openin (subtopology U V) V \<longleftrightarrow>
   unfolding openin_subtopology
   by auto (metis IntD1 in_mono openin_subset)
 
+lemma subtopology_trivial_iff: "subtopology X S = trivial_topology \<longleftrightarrow> X = trivial_topology \<or> topspace X \<inter> S = {}"
+  by (auto simp flip: null_topspace_iff_trivial)
+
 lemma subtopology_subtopology:
    "subtopology (subtopology X S) T = subtopology X (S \<inter> T)"
 proof -
@@ -356,6 +363,9 @@ lemma subtopology_topspace[simp]: "subtopology U (topspace U) = U"
 lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
+lemma subtopology_empty_iff_trivial [simp]: "subtopology X {} = trivial_topology"
+  by (simp add: subtopology_eq_discrete_topology_empty)
+
 lemma subtopology_restrict:
    "subtopology X (topspace X \<inter> S) = subtopology X S"
   by (metis subtopology_subtopology subtopology_topspace)
@@ -372,11 +382,11 @@ lemma closedin_subtopology_refl [simp]:
   "closedin (subtopology U X) X \<longleftrightarrow> X \<subseteq> topspace U"
   by (metis closedin_def closedin_topspace inf.absorb_iff2 le_inf_iff topspace_subtopology)
 
-lemma closedin_topspace_empty: "topspace T = {} \<Longrightarrow> (closedin T S \<longleftrightarrow> S = {})"
+lemma closedin_topspace_empty [simp]: "closedin trivial_topology S \<longleftrightarrow> S = {}"
   by (simp add: closedin_def)
 
-lemma open_in_topspace_empty:
-   "topspace X = {} \<Longrightarrow> openin X S \<longleftrightarrow> S = {}"
+lemma openin_topspace_empty [simp]:
+   "openin trivial_topology S \<longleftrightarrow> S = {}"
   by (simp add: openin_closedin_eq)
 
 lemma openin_imp_subset:
@@ -440,6 +450,10 @@ declare closed_closedin [symmetric, simp]
 
 lemma openin_subtopology_self [simp]: "openin (top_of_set S) S"
   by (metis openin_topspace topspace_euclidean_subtopology)
+
+lemma euclidean_nontrivial [simp]: "euclidean \<noteq> trivial_topology"
+  by (simp add: subtopology_eq_discrete_topology_empty)
+
 
 subsubsection\<open>The most basic facts about the usual topology and metric on R\<close>
 
@@ -1470,11 +1484,11 @@ lemma continuous_map_funspace:
    "continuous_map X Y f \<Longrightarrow> f \<in> topspace X \<rightarrow> topspace Y"
   by (auto simp: continuous_map_def)
 
-lemma continuous_map_on_empty: "topspace X = {} \<Longrightarrow> continuous_map X Y f"
+lemma continuous_map_on_empty [simp]: "continuous_map trivial_topology Y f"
   by (auto simp: continuous_map_def)
 
-lemma continuous_map_on_empty2: "topspace Y = {} \<Longrightarrow> continuous_map X Y f \<longleftrightarrow> topspace X = {}"
-  by (auto simp: continuous_map_def)
+lemma continuous_map_on_empty2 [simp]: "continuous_map X trivial_topology f \<longleftrightarrow> X = trivial_topology"
+  using continuous_map_image_subset_topspace by fastforce
 
 lemma continuous_map_closedin:
    "continuous_map X Y f \<longleftrightarrow>
@@ -1633,9 +1647,9 @@ proof
 qed
 
 lemma continuous_map_const [simp]:
-   "continuous_map X Y (\<lambda>x. C) \<longleftrightarrow> topspace X = {} \<or> C \<in> topspace Y"
-proof (cases "topspace X = {}")
-  case False
+   "continuous_map X Y (\<lambda>x. C) \<longleftrightarrow> X = trivial_topology \<or> C \<in> topspace Y"
+proof (cases "X = trivial_topology")
+  case nontriv: False
   show ?thesis
   proof (cases "C \<in> topspace Y")
     case True
@@ -1643,10 +1657,10 @@ proof (cases "topspace X = {}")
       by (auto simp: continuous_map_def)
   next
     case False
-    then show ?thesis
-      unfolding continuous_map_def by fastforce
+    with nontriv show ?thesis
+      using continuous_map_image_subset_topspace discrete_topology_unique image_subset_iff by fastforce 
   qed
-qed (auto simp: continuous_map_on_empty)
+qed auto
 
 declare continuous_map_const [THEN iffD2, continuous_intros]
 
@@ -1788,17 +1802,16 @@ lemma open_map_imp_subset_topspace:
      "open_map X1 X2 f \<Longrightarrow> f \<in> (topspace X1) \<rightarrow> topspace X2"
   unfolding open_map_def using openin_subset by fastforce
 
-lemma open_map_on_empty:
-   "topspace X = {} \<Longrightarrow> open_map X Y f"
-  by (metis empty_iff imageE in_mono open_map_def openin_subopen openin_subset)
+lemma open_map_on_empty [simp]: "open_map trivial_topology Y f"
+  by (simp add: open_map_def)
 
 lemma closed_map_on_empty:
-   "topspace X = {} \<Longrightarrow> closed_map X Y f"
+   "closed_map trivial_topology Y f"
   by (simp add: closed_map_def closedin_topspace_empty)
 
 lemma closed_map_const:
-   "closed_map X Y (\<lambda>x. c) \<longleftrightarrow> topspace X = {} \<or> closedin Y {c}"
-  by (metis closed_map_def closed_map_on_empty closedin_empty closedin_topspace image_constant_conv)
+   "closed_map X Y (\<lambda>x. c) \<longleftrightarrow> X = trivial_topology \<or> closedin Y {c}"
+  by (metis closed_map_def closed_map_on_empty closedin_topspace discrete_topology_unique equals0D image_constant_conv)
 
 lemma open_map_imp_subset:
     "\<lbrakk>open_map X1 X2 f; S \<subseteq> topspace X1\<rbrakk> \<Longrightarrow> f \<in> S \<rightarrow> topspace X2"
@@ -3063,14 +3076,14 @@ lemma homeomorphic_map_imp_homeomorphic_space:
   using homeomorphic_space_def by blast
 
 lemma homeomorphic_empty_space:
-     "X homeomorphic_space Y \<Longrightarrow> topspace X = {} \<longleftrightarrow> topspace Y = {}"
-  by (metis homeomorphic_eq_everything_map homeomorphic_space image_is_empty)
+     "X homeomorphic_space Y \<Longrightarrow> X = trivial_topology \<longleftrightarrow> Y = trivial_topology"
+  by (meson continuous_map_on_empty2 homeomorphic_maps_def homeomorphic_space_def)
 
 lemma homeomorphic_empty_space_eq:
-  assumes "topspace X = {}"
-  shows "X homeomorphic_space Y \<longleftrightarrow> topspace Y = {}"
-  using assms
-  by (auto simp: homeomorphic_maps_def homeomorphic_space_def continuous_map_def)
+  assumes "X = trivial_topology"
+  shows "X homeomorphic_space Y \<longleftrightarrow> Y = trivial_topology"
+  using assms funcset_mem
+  by (fastforce simp:  homeomorphic_maps_def homeomorphic_space_def continuous_map_def)
 
 lemma homeomorphic_space_unfold:
   assumes "X homeomorphic_space Y"
@@ -3193,8 +3206,7 @@ qed
 lemma connectedin_empty [simp]: "connectedin X {}"
   by (simp add: connectedin)
 
-lemma connected_space_topspace_empty:
-     "topspace X = {} \<Longrightarrow> connected_space X"
+lemma connected_space_trivial_topology [simp]: "connected_space trivial_topology"
   using connectedin_topspace by fastforce
 
 lemma connectedin_sing [simp]: "connectedin X {a} \<longleftrightarrow> a \<in> topspace X"
@@ -3558,8 +3570,7 @@ lemma finite_imp_compactin:
 lemma compactin_empty [iff]: "compactin X {}"
   by (simp add: finite_imp_compactin)
 
-lemma compact_space_topspace_empty:
-   "topspace X = {} \<Longrightarrow> compact_space X"
+lemma compact_space_trivial_topology [simp]: "compact_space trivial_topology"
   by (simp add: compact_space_def)
 
 lemma finite_imp_compactin_eq:
@@ -3705,11 +3716,10 @@ proposition compact_space_fip:
    "compact_space X \<longleftrightarrow>
     (\<forall>\<U>. (\<forall>C\<in>\<U>. closedin X C) \<and> (\<forall>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<longrightarrow> \<Inter>\<F> \<noteq> {}) \<longrightarrow> \<Inter>\<U> \<noteq> {})"
    (is "_ = ?rhs")
-proof (cases "topspace X = {}")
+proof (cases "X = trivial_topology")
   case True
   then show ?thesis
-    unfolding compact_space_def
-    by (metis Sup_bot_conv(1) closedin_topspace_empty compactin_empty finite.emptyI finite_UnionD order_refl)
+    by (metis Pow_iff closedin_topspace_empty compact_space_trivial_topology finite.emptyI finite_Pow_iff finite_subset subsetI)
 next
   case False
   show ?thesis
@@ -3724,7 +3734,7 @@ next
     ultimately obtain \<F> where \<F>: "finite \<F>" "\<F> \<subseteq> \<U>" "topspace X \<subseteq> topspace X - \<Inter>\<F>"
       by (auto simp: ex_finite_subset_image \<V>_def)
     moreover have "\<F> \<noteq> {}"
-      using \<F> \<open>topspace X \<noteq> {}\<close> by blast
+      using \<F> False by force
     ultimately show "False"
       using * [of \<F>]
       by auto (metis Diff_iff Inter_iff clo closedin_def subsetD)
@@ -3736,7 +3746,7 @@ next
       fix \<U> :: "'a set set"
       define \<V> where "\<V> \<equiv> (\<lambda>S. topspace X - S) ` \<U>"
       assume "\<forall>C\<in>\<U>. openin X C" and "topspace X \<subseteq> \<Union>\<U>"
-      with \<open>topspace X \<noteq> {}\<close> have *: "\<forall>V \<in> \<V>. closedin X V" "\<U> \<noteq> {}"
+      with False have *: "\<forall>V \<in> \<V>. closedin X V" "\<U> \<noteq> {}"
         by (auto simp: \<V>_def)
       show "\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> topspace X \<subseteq> \<Union>\<F>"
       proof (rule ccontr; simp)
@@ -4965,8 +4975,7 @@ lemma proper_map_alt:
   qed
 qed (simp add: proper_imp_closed_map)
 
-lemma proper_map_on_empty:
-   "topspace X = {} \<Longrightarrow> proper_map X Y f"
+lemma proper_map_on_empty [simp]: "proper_map trivial_topology Y f"
   by (auto simp: proper_map_def closed_map_on_empty)
 
 lemma proper_map_id [simp]:
@@ -5001,11 +5010,11 @@ proof -
 qed
 
 lemma proper_map_const:
-   "proper_map X Y (\<lambda>x. c) \<longleftrightarrow> compact_space X \<and> (topspace X = {} \<or> closedin Y {c})"
-proof (cases "topspace X = {}")
+   "proper_map X Y (\<lambda>x. c) \<longleftrightarrow> compact_space X \<and> (X = trivial_topology \<or> closedin Y {c})"
+proof (cases "X = trivial_topology")
   case True
   then show ?thesis
-    by (simp add: compact_space_topspace_empty proper_map_on_empty)
+    by simp
 next
   case False
   have *: "compactin X {x \<in> topspace X. c = y}" if "compact_space X" for y

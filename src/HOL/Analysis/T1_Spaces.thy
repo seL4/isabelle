@@ -17,7 +17,7 @@ lemma t1_space_alt:
    "t1_space X \<longleftrightarrow> (\<forall>x \<in> topspace X. \<forall>y \<in> topspace X. x\<noteq>y \<longrightarrow> (\<exists>U. closedin X U \<and> x \<in> U \<and> y \<notin> U))"
  by (metis DiffE DiffI closedin_def openin_closedin_eq t1_space_def)
 
-lemma t1_space_empty: "topspace X = {} \<Longrightarrow> t1_space X"
+lemma t1_space_empty [iff]: "t1_space trivial_topology"
   by (simp add: t1_space_def)
 
 lemma t1_space_derived_set_of_singleton:
@@ -176,15 +176,15 @@ lemma homeomorphic_t1_space: "X homeomorphic_space Y \<Longrightarrow> (t1_space
 
 proposition t1_space_product_topology:
    "t1_space (product_topology X I)
-\<longleftrightarrow> topspace(product_topology X I) = {} \<or> (\<forall>i \<in> I. t1_space (X i))"
-proof (cases "topspace(product_topology X I) = {}")
+\<longleftrightarrow> (product_topology X I) = trivial_topology \<or> (\<forall>i \<in> I. t1_space (X i))"
+proof (cases "(product_topology X I) = trivial_topology")
   case True
   then show ?thesis
-    using True t1_space_empty by blast
+    using True t1_space_empty by force
 next
   case False
   then obtain f where f: "f \<in> (\<Pi>\<^sub>E i\<in>I. topspace(X i))"
-    by fastforce
+    using discrete_topology_unique by (fastforce iff: null_topspace_iff_trivial)
   have "t1_space (product_topology X I) \<longleftrightarrow> (\<forall>i\<in>I. t1_space (X i))"
   proof (intro iffI ballI)
     show "t1_space (X i)" if "t1_space (product_topology X I)" and "i \<in> I" for i
@@ -210,17 +210,19 @@ next
 qed
 
 lemma t1_space_prod_topology:
-   "t1_space(prod_topology X Y) \<longleftrightarrow> topspace(prod_topology X Y) = {} \<or> t1_space X \<and> t1_space Y"
-proof (cases "topspace (prod_topology X Y) = {}")
+   "t1_space(prod_topology X Y) \<longleftrightarrow> (prod_topology X Y) = trivial_topology \<or> t1_space X \<and> t1_space Y"
+proof (cases "(prod_topology X Y) = trivial_topology")
   case True then show ?thesis
-  by (auto simp: t1_space_empty)
+  by auto
 next
   case False
-  have eq: "{(x,y)} = {x} \<times> {y}" for x y
+  have eq: "{(x,y)} = {x} \<times> {y}" for x::'a and y::'b
     by simp
   have "t1_space (prod_topology X Y) \<longleftrightarrow> (t1_space X \<and> t1_space Y)"
-    using False
-    by (force simp: t1_space_closedin_singleton closedin_prod_Times_iff eq simp del: insert_Times_insert)
+    using False  
+    apply(simp add: t1_space_closedin_singleton closedin_prod_Times_iff eq 
+               del: insert_Times_insert flip: null_topspace_iff_trivial ex_in_conv)
+    by blast
   with False show ?thesis
     by simp
 qed
@@ -237,8 +239,7 @@ lemma Hausdorff_space_expansive:
    "\<lbrakk>Hausdorff_space X; topspace X = topspace Y; \<And>U. openin X U \<Longrightarrow> openin Y U\<rbrakk> \<Longrightarrow> Hausdorff_space Y"
   by (metis Hausdorff_space_def)
 
-lemma Hausdorff_space_topspace_empty:
-   "topspace X = {} \<Longrightarrow> Hausdorff_space X"
+lemma Hausdorff_space_topspace_empty [iff]: "Hausdorff_space trivial_topology"
   by (simp add: Hausdorff_space_def)
 
 lemma Hausdorff_imp_t1_space:
@@ -604,7 +605,7 @@ lemma proper_map_paired_continuous_map_left:
   by (metis (mono_tags, lifting) Pair_inject inj_onI)
 
 lemma Hausdorff_space_prod_topology:
-  "Hausdorff_space(prod_topology X Y) \<longleftrightarrow> topspace(prod_topology X Y) = {} \<or> Hausdorff_space X \<and> Hausdorff_space Y"
+  "Hausdorff_space(prod_topology X Y) \<longleftrightarrow> (prod_topology X Y) = trivial_topology \<or> Hausdorff_space X \<and> Hausdorff_space Y"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -655,7 +656,7 @@ next
       then show "x = x' \<and> y = y'"
         by blast
     qed
-  qed (simp add: Hausdorff_space_topspace_empty)
+  qed force
 qed
 
 
@@ -665,16 +666,15 @@ lemma Hausdorff_space_product_topology:
 proof
   assume ?lhs
   then show ?rhs
-    apply (rule topological_property_of_product_component)
-     apply (blast dest: Hausdorff_space_subtopology homeomorphic_Hausdorff_space)+
-    done
+    by (simp add: Hausdorff_space_subtopology PiE_eq_empty_iff homeomorphic_Hausdorff_space 
+                  topological_property_of_product_component)
 next
   assume R: ?rhs
   show ?lhs
   proof (cases "(\<Pi>\<^sub>E i\<in>I. topspace(X i)) = {}")
     case True
     then show ?thesis
-      by (simp add: Hausdorff_space_topspace_empty)
+      by (simp add: Hausdorff_space_def)
   next
     case False
     have "\<exists>U V. openin (product_topology X I) U \<and> openin (product_topology X I) V \<and> f \<in> U \<and> g \<in> V \<and> disjnt U V"
