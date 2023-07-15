@@ -575,7 +575,7 @@ object SQLite {
 object PostgreSQL {
   type Source = SQL.Source
 
-  val default: SSH.Port_Forwarding = SSH.local_port_forwarding(port = 5432, host = "localhost")
+  val default_server: SSH.Server = SSH.local_server(port = 5432)
 
   lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
 
@@ -594,31 +594,31 @@ object PostgreSQL {
 
     if (user == "") error("Undefined database user")
 
-    val db_host = proper_string(host) getOrElse default.host
-    val db_port = if (port > 0) port else default.port
+    val db_host = proper_string(host) getOrElse default_server.host
+    val db_port = if (port > 0) port else default_server.port
     val db_name = proper_string(database) getOrElse user
 
-    val fw =
+    val server =
       ssh match {
         case None =>
-          SSH.local_port_forwarding(port = db_port, host = db_host)
+          SSH.local_server(port = db_port, host = db_host)
         case Some(ssh) =>
-          ssh.port_forwarding(remote_port = db_port, remote_host = db_host, ssh_close = ssh_close)
+          ssh.open_server(remote_port = db_port, remote_host = db_host, ssh_close = ssh_close)
       }
     try {
-      val url = "jdbc:postgresql://" + fw.host + ":" + fw.port + "/" + db_name
-      val name = user + "@" + fw + "/" + db_name + if_proper(ssh, " via ssh " + ssh.get)
+      val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + db_name
+      val name = user + "@" + server + "/" + db_name + if_proper(ssh, " via ssh " + ssh.get)
       val connection = DriverManager.getConnection(url, user, password)
       connection.setTransactionIsolation(transaction_isolation)
-      new Database(name, connection, fw)
+      new Database(name, connection, server)
     }
-    catch { case exn: Throwable => fw.close(); throw exn }
+    catch { case exn: Throwable => server.close(); throw exn }
   }
 
   class Database private[PostgreSQL](
     name: String,
     val connection: Connection,
-    val port_forwarding: SSH.Port_Forwarding
+    server: SSH.Server
   ) extends SQL.Database {
     override def toString: String = name
 
@@ -671,6 +671,6 @@ object PostgreSQL {
       }
 
 
-    override def close(): Unit = { super.close(); port_forwarding.close() }
+    override def close(): Unit = { super.close(); server.close() }
   }
 }

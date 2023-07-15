@@ -314,15 +314,15 @@ object SSH {
     }
 
 
-    /* port forwarding */
+    /* open server on remote host */
 
-    def port_forwarding(
+    def open_server(
       remote_port: Int = 0,
       remote_host: String = "localhost",
       local_port: Int = 0,
       local_host: String = "localhost",
       ssh_close: Boolean = false
-    ): Port_Forwarding = {
+    ): Server = {
       val forward_host = local_host
       val forward_port = if (local_port > 0) local_port else Isabelle_System.local_port()
       val forward = List(forward_host, forward_port, remote_host, remote_port).mkString(":")
@@ -335,7 +335,7 @@ object SSH {
         }
         else {
           val result = Synchronized[Exn.Result[Boolean]](Exn.Res(false))
-          val thread = Isabelle_Thread.fork("port_forwarding") {
+          val thread = Isabelle_Thread.fork("ssh_server") {
             val opts =
               forward_option +
                 " " + Config.option("SessionType", "none") +
@@ -357,7 +357,7 @@ object SSH {
       val shutdown_hook =
         Isabelle_System.create_shutdown_hook { cancel() }
 
-      new Port_Forwarding(forward_host, forward_port) {
+      new Server(forward_host, forward_port) {
         override def toString: String = forward
         override def close(): Unit = {
           cancel()
@@ -368,7 +368,7 @@ object SSH {
     }
   }
 
-  class Port_Forwarding private[SSH](
+  class Server private[SSH](
     val host: String,
     val port: Int
   ) extends AutoCloseable {
@@ -376,19 +376,18 @@ object SSH {
     override def close(): Unit = ()
   }
 
-  class Local_Port_Forwarding private[SSH](host: String, port: Int)
-    extends Port_Forwarding(host, port) {
+  class Local_Server private[SSH](host: String, port: Int) extends Server(host, port) {
     override def toString: String = if_proper(host, host + ":") + port
   }
 
-  class No_Port_Forwarding extends Port_Forwarding("", 0) {
+  class No_Server extends Server("", 0) {
     override def toString: String = "0"
   }
 
-  def local_port_forwarding(port: Int = 0, host: String = "localhost"): Port_Forwarding =
-    new Local_Port_Forwarding(host, port)
+  def local_server(port: Int = 0, host: String = "localhost"): Server =
+    new Local_Server(host, port)
 
-  val no_port_forwarding: Port_Forwarding = new No_Port_Forwarding
+  val no_server: Server = new No_Server
 
 
   /* system operations */
