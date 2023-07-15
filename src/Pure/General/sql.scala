@@ -618,8 +618,6 @@ object PostgreSQL {
     database: String = "",
     server: SSH.Server = default_server,
     server_close: Boolean = false,
-    // see https://www.postgresql.org/docs/current/transaction-iso.html
-    transaction_isolation: Int = Connection.TRANSACTION_SERIALIZABLE
   ): Database = {
     init_jdbc
 
@@ -633,7 +631,6 @@ object PostgreSQL {
     val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
 
     val connection = DriverManager.getConnection(url, user, password)
-    connection.setTransactionIsolation(transaction_isolation)
     new Database(connection, print, server, server_close)
   }
 
