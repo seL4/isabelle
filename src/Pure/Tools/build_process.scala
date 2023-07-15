@@ -859,7 +859,7 @@ extends AutoCloseable {
           Build_Process.Data.clean_build(db)
           store_tables.lock(db, create = true)
         }
-        db.vacuum(Build_Process.Data.tables ::: store_tables)
+        if (build_context.master) db.vacuum(Build_Process.Data.tables ::: store_tables)
         db
       }
     }
