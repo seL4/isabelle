@@ -2181,11 +2181,11 @@ proof (intro iffI ballI)
 qed (auto simp: path_connected_space_path_component_set)
 
 lemma path_components_of_eq_empty:
-   "path_components_of X = {} \<longleftrightarrow> topspace X = {}"
-  using Union_path_components_of nonempty_path_components_of by fastforce
+   "path_components_of X = {} \<longleftrightarrow> X = trivial_topology"
+  by (metis image_is_empty path_components_of_def subtopology_eq_discrete_topology_empty)
 
 lemma path_components_of_empty_space:
-   "topspace X = {} \<Longrightarrow> path_components_of X = {}"
+   "path_components_of trivial_topology = {}"
   by (simp add: path_components_of_eq_empty)
 
 lemma path_components_of_subset_singleton:
@@ -2294,7 +2294,8 @@ proof -
       by (simp add: path_component_of_subset_topspace)
     moreover have "g ` Collect(path_component_of Y (f x)) \<subseteq> Collect (path_component_of X (g (f x)))"
       using f g x unfolding homeomorphic_maps_def
-      by (metis image_Collect_subsetI image_eqI mem_Collect_eq path_component_of_equiv path_component_of_maximal path_connectedin_continuous_map_image path_connectedin_path_component_of)
+      by (metis image_Collect_subsetI image_eqI mem_Collect_eq path_component_of_equiv path_component_of_maximal 
+          path_connectedin_continuous_map_image path_connectedin_path_component_of)
     ultimately show "Collect (path_component_of Y (f x)) \<subseteq> f ` Collect (path_component_of X x)"
       using g x unfolding homeomorphic_maps_def continuous_map_def image_iff subset_iff
       by metis
@@ -2329,7 +2330,7 @@ lemma path_connected_space_prod_topology:
 proof (cases "topspace(prod_topology X Y) = {}")
   case True
   then show ?thesis
-    by (simp add: path_connected_space_topspace_empty)
+    using path_connected_space_topspace_empty by force
 next
   case False
   have "path_connected_space (prod_topology X Y)" 
@@ -2352,8 +2353,8 @@ next
     qed
   qed
   then show ?thesis
-    by (metis False Sigma_empty1 Sigma_empty2 topspace_prod_topology path_connected_space_retraction_map_image
-        retraction_map_fst  retraction_map_snd) 
+    by (metis False path_connected_space_quotient_map_image prod_topology_trivial1 prod_topology_trivial2 
+        quotient_map_fst quotient_map_snd topspace_discrete_topology)
 qed
 
 lemma path_connectedin_Times:

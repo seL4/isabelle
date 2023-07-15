@@ -339,7 +339,7 @@ lemma path_connected_eq_connected_space:
 
 lemma locally_path_connected_space_product_topology:
    "locally_path_connected_space(product_topology X I) \<longleftrightarrow>
-        topspace(product_topology X I) = {} \<or>
+        (product_topology X I) = trivial_topology \<or>
         finite {i. i \<in> I \<and> ~path_connected_space(X i)} \<and>
         (\<forall>i \<in> I. locally_path_connected_space(X i))"
     (is "?lhs \<longleftrightarrow> ?empty \<or> ?rhs")
@@ -350,7 +350,7 @@ proof (cases ?empty)
 next
   case False
   then obtain z where z: "z \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
-    by auto
+    using discrete_topology_unique_derived_set by (fastforce iff: null_topspace_iff_trivial)
   have ?rhs if L: ?lhs
   proof -
     obtain U C where U: "openin (product_topology X I) U"
@@ -474,20 +474,20 @@ lemma locally_path_connected_real_interval:
 
 lemma locally_path_connected_space_prod_topology:
    "locally_path_connected_space (prod_topology X Y) \<longleftrightarrow>
-      topspace (prod_topology X Y) = {} \<or>
+      (prod_topology X Y) = trivial_topology \<or>
       locally_path_connected_space X \<and> locally_path_connected_space Y" (is "?lhs=?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
+proof (cases "(prod_topology X Y) = trivial_topology")
   case True
   then show ?thesis
-    by (metis equals0D locally_path_connected_space_def neighbourhood_base_of_def)
+    using locally_path_connected_space_discrete_topology by force
 next
   case False
-  then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
+  then have ne: "X \<noteq> trivial_topology" "Y \<noteq> trivial_topology"
     by simp_all
   show ?thesis
   proof
     assume ?lhs then show ?rhs
-      by (metis ne locally_path_connected_space_retraction_map_image retraction_map_fst retraction_map_snd)
+      by (meson locally_path_connected_space_quotient_map_image ne(1) ne(2) quotient_map_fst quotient_map_snd)
   next
     assume ?rhs
     with False have X: "locally_path_connected_space X" and Y: "locally_path_connected_space Y"
@@ -789,15 +789,15 @@ qed
 (*Similar proof to locally_connected_space_prod_topology*)
 lemma locally_connected_space_prod_topology:
    "locally_connected_space (prod_topology X Y) \<longleftrightarrow>
-      topspace (prod_topology X Y) = {} \<or>
+      (prod_topology X Y) = trivial_topology \<or>
       locally_connected_space X \<and> locally_connected_space Y" (is "?lhs=?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
+proof (cases "(prod_topology X Y) = trivial_topology")
   case True
   then show ?thesis
     using locally_connected_space_iff_weak by force
 next
   case False
-  then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
+  then have ne: "X \<noteq> trivial_topology" "Y \<noteq> trivial_topology"
     by simp_all
   show ?thesis
   proof
@@ -832,7 +832,7 @@ qed
 (*Same proof as locally_path_connected_space_product_topology*)
 lemma locally_connected_space_product_topology:
    "locally_connected_space(product_topology X I) \<longleftrightarrow>
-        topspace(product_topology X I) = {} \<or>
+        (product_topology X I) = trivial_topology \<or>
         finite {i. i \<in> I \<and> ~connected_space(X i)} \<and>
         (\<forall>i \<in> I. locally_connected_space(X i))"
     (is "?lhs \<longleftrightarrow> ?empty \<or> ?rhs")
@@ -843,7 +843,7 @@ proof (cases ?empty)
 next
   case False
   then obtain z where z: "z \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
-    by auto
+    using discrete_topology_unique_derived_set by (fastforce iff: null_topspace_iff_trivial)
   have ?rhs if L: ?lhs
   proof -
     obtain U C where U: "openin (product_topology X I) U"
@@ -1000,14 +1000,16 @@ proof (induction arbitrary: n rule: dimension_le.induct)
   qed
 qed
 
-lemma dimension_le_eq_empty:
-   "X dim_le -1 \<longleftrightarrow> topspace X = {}"
+inductive_simps dim_le_minus2 [simp]: "X dim_le -2"
+
+lemma dimension_le_eq_empty [simp]:
+   "X dim_le -1 \<longleftrightarrow> X = trivial_topology"
 proof
-  assume "X dim_le (-1)"
-  then show "topspace X = {}"
-    by (smt (verit, ccfv_threshold) Diff_empty Diff_eq_empty_iff dimension_le.cases openin_topspace subset_eq)
+  assume L: "X dim_le (-1)"
+  show "X = trivial_topology"
+    by (force intro: dimension_le.cases [OF L])
 next
-  assume "topspace X = {}"
+  assume "X = trivial_topology"
   then show "X dim_le (-1)"
     using dimension_le.simps openin_subset by fastforce
 qed
@@ -1015,9 +1017,10 @@ qed
 lemma dimension_le_0_neighbourhood_base_of_clopen:
   "X dim_le 0 \<longleftrightarrow> neighbourhood_base_of (\<lambda>U. closedin X U \<and> openin X U) X"
 proof -
-  have "(subtopology X (X frontier_of U) dim_le -1) =
-        closedin X U" if "openin X U" for U
-    by (metis dimension_le_eq_empty frontier_of_eq_empty frontier_of_subset_topspace openin_subset that topspace_subtopology_subset)
+  have "(subtopology X (X frontier_of U) dim_le -1) = closedin X U" 
+      if "openin X U" for U
+    using that clopenin_eq_frontier_of openin_subset 
+    by (fastforce simp add: subtopology_trivial_iff frontier_of_subset_topspace Int_absorb1)
   then show ?thesis
     by (smt (verit, del_insts) dimension_le.simps open_neighbourhood_base_of)
 qed

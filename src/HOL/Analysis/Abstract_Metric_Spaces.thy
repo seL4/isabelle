@@ -675,12 +675,12 @@ qed
 lemma compactin_mtopology_eq_compact [simp]: "compactin Met_TC.mtopology = compact"
   by (simp add: compactin_def compact_eq_Heine_Borel fun_eq_iff) meson
 
-lemma metrizable_space_discrete_topology:
+lemma metrizable_space_discrete_topology [simp]:
    "metrizable_space(discrete_topology U)"
   by (metis discrete_metric.mtopology_discrete_metric metric_M_dd metrizable_space_def)
 
-lemma empty_metrizable_space: "topspace X = {} \<Longrightarrow> metrizable_space X"
-  by (metis metrizable_space_discrete_topology subtopology_eq_discrete_topology_empty)
+lemma empty_metrizable_space: "metrizable_space trivial_topology"
+  by simp
 
 lemma metrizable_space_subtopology:
   assumes "metrizable_space X"
@@ -2757,7 +2757,7 @@ definition completely_metrizable_space where
      \<exists>M d. Metric_space M d \<and> Metric_space.mcomplete M d \<and> X = Metric_space.mtopology M d"
 
 lemma empty_completely_metrizable_space: 
-  "topspace X = {} \<Longrightarrow> completely_metrizable_space X"
+  "completely_metrizable_space trivial_topology"
   unfolding completely_metrizable_space_def subtopology_eq_discrete_topology_empty [symmetric]
   by (metis Metric_space.mcomplete_empty_mspace discrete_metric.mtopology_discrete_metric metric_M_dd)
 
@@ -3300,12 +3300,12 @@ end
 
 lemma metrizable_space_prod_topology:
    "metrizable_space (prod_topology X Y) \<longleftrightarrow>
-    topspace(prod_topology X Y) = {} \<or> metrizable_space X \<and> metrizable_space Y"
+    (prod_topology X Y) = trivial_topology \<or> metrizable_space X \<and> metrizable_space Y"
    (is "?lhs \<longleftrightarrow> ?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
+proof (cases "(prod_topology X Y) = trivial_topology")
   case False
   then obtain x y where "x \<in> topspace X" "y \<in> topspace Y"
-    by auto
+    by fastforce
   show ?thesis
   proof
     show "?rhs \<Longrightarrow> ?lhs"
@@ -3326,18 +3326,18 @@ proof (cases "topspace(prod_topology X Y) = {}")
     ultimately show ?rhs
       by (simp add: homeomorphic_metrizable_space)
   qed
-qed (simp add: empty_metrizable_space)
+qed auto
 
 
 lemma completely_metrizable_space_prod_topology:
    "completely_metrizable_space (prod_topology X Y) \<longleftrightarrow>
-    topspace(prod_topology X Y) = {} \<or>
+    (prod_topology X Y) = trivial_topology \<or>
     completely_metrizable_space X \<and> completely_metrizable_space Y"
    (is "?lhs \<longleftrightarrow> ?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
+proof (cases "(prod_topology X Y) = trivial_topology")
   case False
   then obtain x y where "x \<in> topspace X" "y \<in> topspace Y"
-    by auto
+    by fastforce
   show ?thesis
   proof
     show "?rhs \<Longrightarrow> ?lhs"
@@ -3365,7 +3365,10 @@ proof (cases "topspace(prod_topology X Y) = {}")
     ultimately show ?rhs
       by (simp add: homeomorphic_completely_metrizable_space)
   qed
-qed (simp add: empty_completely_metrizable_space)
+next
+  case True then show ?thesis
+    using empty_completely_metrizable_space by auto
+qed 
 
 
 subsection \<open>The "atin-within" filter for topologies\<close>
@@ -4809,12 +4812,12 @@ qed
 
 lemma metrizable_topology_A:
   assumes "metrizable_space (product_topology X I)"
-  shows "topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. metrizable_space (X i))"
+  shows "(product_topology X I) = trivial_topology \<or> (\<forall>i \<in> I. metrizable_space (X i))"
     by (meson assms metrizable_space_retraction_map_image retraction_map_product_projection)
 
 lemma metrizable_topology_C:
   assumes "completely_metrizable_space (product_topology X I)"
-  shows "topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. completely_metrizable_space (X i))"
+  shows "(product_topology X I) = trivial_topology \<or> (\<forall>i \<in> I. completely_metrizable_space (X i))"
     by (meson assms completely_metrizable_space_retraction_map_image retraction_map_product_projection)
 
 lemma metrizable_topology_B:
@@ -5109,17 +5112,17 @@ qed
 
 proposition metrizable_space_product_topology:
   "metrizable_space (product_topology X I) \<longleftrightarrow>
-        topspace (product_topology X I) = {} \<or>
+        (product_topology X I) = trivial_topology \<or>
         countable {i \<in> I. \<not> (\<exists>a. topspace(X i) \<subseteq> {a})} \<and>
         (\<forall>i \<in> I. metrizable_space (X i))"
-  by (metis (mono_tags, lifting) empty_metrizable_space metrizable_topology_A metrizable_topology_B metrizable_topology_D)
+  by (metis (mono_tags, lifting) empty_metrizable_space metrizable_topology_A metrizable_topology_B metrizable_topology_D subtopology_eq_discrete_topology_empty)
 
 proposition completely_metrizable_space_product_topology:
   "completely_metrizable_space (product_topology X I) \<longleftrightarrow>
-        topspace (product_topology X I) = {} \<or>
+        (product_topology X I) = trivial_topology \<or>
         countable {i \<in> I. \<not> (\<exists>a. topspace(X i) \<subseteq> {a})} \<and>
         (\<forall>i \<in> I. completely_metrizable_space (X i))"
-  by (metis (mono_tags, lifting) completely_metrizable_imp_metrizable_space empty_completely_metrizable_space metrizable_topology_B metrizable_topology_C metrizable_topology_E)
+  by (smt (verit, del_insts) Collect_cong completely_metrizable_imp_metrizable_space empty_completely_metrizable_space metrizable_topology_B metrizable_topology_C metrizable_topology_E subtopology_eq_discrete_topology_empty)
 
 
 lemma completely_metrizable_Euclidean_space:

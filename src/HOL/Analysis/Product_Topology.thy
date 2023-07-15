@@ -54,6 +54,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma prod_topology_trivial_iff [simp]:
+  "prod_topology X Y = trivial_topology \<longleftrightarrow> X = trivial_topology \<or> Y = trivial_topology"
+  by (metis (full_types) Sigma_empty1 null_topspace_iff_trivial subset_empty times_subset_iff topspace_prod_topology)
+
 lemma subtopology_Times:
   shows "subtopology (prod_topology X Y) (S \<times> T) = prod_topology (subtopology X S) (subtopology Y T)"
 proof -
@@ -142,11 +146,11 @@ qed
 text \<open>Missing the opposite direction. Does it hold? A converse is proved for proper maps, a stronger condition\<close>
 lemma closed_map_prod:
   assumes "closed_map (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y))"
-  shows "topspace(prod_topology X Y) = {} \<or> closed_map X X' f \<and> closed_map Y Y' g"
-proof (cases "topspace(prod_topology X Y) = {}")
+  shows "(prod_topology X Y) = trivial_topology \<or> closed_map X X' f \<and> closed_map Y Y' g"
+proof (cases "(prod_topology X Y) = trivial_topology")
   case False
   then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
-    by auto
+    by (auto simp flip: null_topspace_iff_trivial)
   have "closed_map X X' f"
     unfolding closed_map_def
   proof (intro strip)
@@ -271,6 +275,12 @@ lemma continuous_map_if [continuous_intros]: "\<lbrakk>P \<Longrightarrow> conti
       \<Longrightarrow> continuous_map X Y (\<lambda>x. if P then f x else g x)"
   by simp
 
+lemma prod_topology_trivial1 [simp]: "prod_topology trivial_topology Y = trivial_topology"
+  using continuous_map_fst continuous_map_on_empty2 by blast
+
+lemma prod_topology_trivial2 [simp]: "prod_topology X trivial_topology = trivial_topology"
+  using continuous_map_snd continuous_map_on_empty2 by blast
+
 lemma continuous_map_subtopology_fst [continuous_intros]: "continuous_map (subtopology (prod_topology X Y) Z) X fst"
       using continuous_map_from_subtopology continuous_map_fst by force
 
@@ -278,20 +288,22 @@ lemma continuous_map_subtopology_snd [continuous_intros]: "continuous_map (subto
       using continuous_map_from_subtopology continuous_map_snd by force
 
 lemma quotient_map_fst [simp]:
-   "quotient_map(prod_topology X Y) X fst \<longleftrightarrow> (topspace Y = {} \<longrightarrow> topspace X = {})"
-  by (auto simp: continuous_open_quotient_map open_map_fst continuous_map_fst)
+   "quotient_map(prod_topology X Y) X fst \<longleftrightarrow> (Y = trivial_topology \<longrightarrow> X = trivial_topology)"
+  apply (simp add: continuous_open_quotient_map open_map_fst continuous_map_fst)
+  by (metis null_topspace_iff_trivial)
 
 lemma quotient_map_snd [simp]:
-   "quotient_map(prod_topology X Y) Y snd \<longleftrightarrow> (topspace X = {} \<longrightarrow> topspace Y = {})"
-  by (auto simp: continuous_open_quotient_map open_map_snd continuous_map_snd)
+   "quotient_map(prod_topology X Y) Y snd \<longleftrightarrow> (X = trivial_topology \<longrightarrow> Y = trivial_topology)"
+  apply (simp add: continuous_open_quotient_map open_map_snd continuous_map_snd)
+  by (metis null_topspace_iff_trivial)
 
 lemma retraction_map_fst:
-   "retraction_map (prod_topology X Y) X fst \<longleftrightarrow> (topspace Y = {} \<longrightarrow> topspace X = {})"
-proof (cases "topspace Y = {}")
+   "retraction_map (prod_topology X Y) X fst \<longleftrightarrow> (Y = trivial_topology \<longrightarrow> X = trivial_topology)"
+proof (cases "Y = trivial_topology")
   case True
   then show ?thesis
     using continuous_map_image_subset_topspace
-    by (fastforce simp: retraction_map_def retraction_maps_def continuous_map_fst continuous_map_on_empty)
+    by (auto simp: retraction_map_def retraction_maps_def continuous_map_pairwise)
 next
   case False
   have "\<exists>g. continuous_map X (prod_topology X Y) g \<and> (\<forall>x\<in>topspace X. fst (g x) = x)"
@@ -304,12 +316,12 @@ next
 qed
 
 lemma retraction_map_snd:
-   "retraction_map (prod_topology X Y) Y snd \<longleftrightarrow> (topspace X = {} \<longrightarrow> topspace Y = {})"
-proof (cases "topspace X = {}")
+   "retraction_map (prod_topology X Y) Y snd \<longleftrightarrow> (X = trivial_topology \<longrightarrow> Y = trivial_topology)"
+proof (cases "X = trivial_topology")
   case True
   then show ?thesis
     using continuous_map_image_subset_topspace
-    by (fastforce simp: retraction_map_def retraction_maps_def continuous_map_fst continuous_map_on_empty)
+    by (fastforce simp: retraction_map_def retraction_maps_def continuous_map_fst)
 next
   case False
   have "\<exists>g. continuous_map Y (prod_topology X Y) g \<and> (\<forall>y\<in>topspace Y. snd (g y) = y)"
@@ -323,8 +335,8 @@ qed
 
 
 lemma continuous_map_of_fst:
-   "continuous_map (prod_topology X Y) Z (f \<circ> fst) \<longleftrightarrow> topspace Y = {} \<or> continuous_map X Z f"
-proof (cases "topspace Y = {}")
+   "continuous_map (prod_topology X Y) Z (f \<circ> fst) \<longleftrightarrow> Y = trivial_topology \<or> continuous_map X Z f"
+proof (cases "Y = trivial_topology")
   case True
   then show ?thesis
     by (simp add: continuous_map_on_empty)
@@ -335,8 +347,8 @@ next
 qed
 
 lemma continuous_map_of_snd:
-   "continuous_map (prod_topology X Y) Z (f \<circ> snd) \<longleftrightarrow> topspace X = {} \<or> continuous_map Y Z f"
-proof (cases "topspace X = {}")
+   "continuous_map (prod_topology X Y) Z (f \<circ> snd) \<longleftrightarrow> X = trivial_topology \<or> continuous_map Y Z f"
+proof (cases "X = trivial_topology")
   case True
   then show ?thesis
     by (simp add: continuous_map_on_empty)
@@ -348,16 +360,13 @@ qed
 
 lemma continuous_map_prod_top:
    "continuous_map (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) \<longleftrightarrow>
-    topspace (prod_topology X Y) = {} \<or> continuous_map X X' f \<and> continuous_map Y Y' g"
-proof (cases "topspace (prod_topology X Y) = {}")
-  case True
-  then show ?thesis
-    by (simp add: continuous_map_on_empty)
-next
+    (prod_topology X Y) = trivial_topology \<or> continuous_map X X' f \<and> continuous_map Y Y' g"
+proof (cases "(prod_topology X Y) = trivial_topology")
   case False
   then show ?thesis
-    by (simp add: continuous_map_paired case_prod_unfold continuous_map_of_fst [unfolded o_def] continuous_map_of_snd [unfolded o_def])
-qed
+    by (auto simp: continuous_map_paired case_prod_unfold 
+               continuous_map_of_fst [unfolded o_def] continuous_map_of_snd [unfolded o_def])
+qed auto
 
 lemma in_prod_topology_closure_of:
   assumes  "z \<in> (prod_topology X Y) closure_of S"
@@ -368,11 +377,11 @@ lemma in_prod_topology_closure_of:
 
 
 proposition compact_space_prod_topology:
-   "compact_space(prod_topology X Y) \<longleftrightarrow> topspace(prod_topology X Y) = {} \<or> compact_space X \<and> compact_space Y"
-proof (cases "topspace(prod_topology X Y) = {}")
+   "compact_space(prod_topology X Y) \<longleftrightarrow> (prod_topology X Y) = trivial_topology \<or> compact_space X \<and> compact_space Y"
+proof (cases "(prod_topology X Y) = trivial_topology")
   case True
   then show ?thesis
-    using compact_space_topspace_empty by blast
+    by fastforce
 next
   case False
   then have non_mt: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
@@ -385,7 +394,7 @@ next
     have "compactin Y (snd ` (topspace X \<times> topspace Y))"
       by (metis compact_space_def continuous_map_snd image_compactin that topspace_prod_topology)
     ultimately show "compact_space X" "compact_space Y"
-      by (simp_all add: non_mt compact_space_def)
+      using non_mt by (auto simp: compact_space_def)
   qed
   moreover
   define \<X> where "\<X> \<equiv> (\<lambda>V. topspace X \<times> V) ` Collect (openin Y)"
@@ -483,28 +492,26 @@ qed
 
 lemma compactin_Times:
    "compactin (prod_topology X Y) (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> compactin X S \<and> compactin Y T"
-  by (auto simp: compactin_subspace subtopology_Times compact_space_prod_topology)
+  by (auto simp: compactin_subspace subtopology_Times compact_space_prod_topology subtopology_trivial_iff)
+
 
 subsection\<open>Homeomorphic maps\<close>
 
 lemma homeomorphic_maps_prod:
    "homeomorphic_maps (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) (\<lambda>(x,y). (f' x, g' y)) \<longleftrightarrow>
-        topspace(prod_topology X Y) = {} \<and> topspace(prod_topology X' Y') = {} 
+        (prod_topology X Y) = trivial_topology \<and> (prod_topology X' Y') = trivial_topology 
       \<or> homeomorphic_maps X X' f f' \<and> homeomorphic_maps Y Y' g g'"  (is "?lhs = ?rhs")
 proof
   show "?lhs \<Longrightarrow> ?rhs"
-  unfolding homeomorphic_maps_def continuous_map_prod_top
-  by (auto simp: continuous_map_on_empty continuous_map_on_empty2 ball_conj_distrib)
+    by (fastforce simp: homeomorphic_maps_def continuous_map_prod_top ball_conj_distrib)
 next
   show "?rhs \<Longrightarrow> ?lhs"
-  unfolding homeomorphic_maps_def 
-  by (auto simp: continuous_map_prod_top continuous_map_on_empty continuous_map_on_empty2)
+  by (auto simp: homeomorphic_maps_def continuous_map_prod_top)
 qed
 
 
 lemma homeomorphic_maps_swap:
-   "homeomorphic_maps (prod_topology X Y) (prod_topology Y X)
-                          (\<lambda>(x,y). (y,x)) (\<lambda>(y,x). (x,y))"
+   "homeomorphic_maps (prod_topology X Y) (prod_topology Y X) (\<lambda>(x,y). (y,x)) (\<lambda>(y,x). (x,y))"
   by (auto simp: homeomorphic_maps_def case_prod_unfold continuous_map_fst continuous_map_pairedI continuous_map_snd)
 
 lemma homeomorphic_map_swap:
@@ -542,23 +549,25 @@ lemma homeomorphic_space_prod_topology:
 using homeomorphic_maps_prod unfolding homeomorphic_space_def by blast
 
 lemma prod_topology_homeomorphic_space_left:
-   "topspace Y = {b} \<Longrightarrow> prod_topology X Y homeomorphic_space X"
+   "Y = discrete_topology {b} \<Longrightarrow> prod_topology X Y homeomorphic_space X"
   unfolding homeomorphic_space_def
-  by (rule_tac x=fst in exI) (simp add: homeomorphic_map_def inj_on_def flip: homeomorphic_map_maps)
+  apply (rule_tac x=fst in exI)
+  apply (simp add: homeomorphic_map_def inj_on_def discrete_topology_unique flip: homeomorphic_map_maps)
+  done
 
 lemma prod_topology_homeomorphic_space_right:
-   "topspace X = {a} \<Longrightarrow> prod_topology X Y homeomorphic_space Y"
+   "X = discrete_topology {a} \<Longrightarrow> prod_topology X Y homeomorphic_space Y"
   unfolding homeomorphic_space_def
-  by (rule_tac x=snd in exI) (simp add: homeomorphic_map_def inj_on_def flip: homeomorphic_map_maps)
+  by (meson homeomorphic_space_def homeomorphic_space_prod_topology_swap homeomorphic_space_trans prod_topology_homeomorphic_space_left)
 
 
 lemma homeomorphic_space_prod_topology_sing1:
      "b \<in> topspace Y \<Longrightarrow> X homeomorphic_space (prod_topology X (subtopology Y {b}))"
-  by (metis empty_subsetI homeomorphic_space_sym inf.absorb_iff2 insert_subset prod_topology_homeomorphic_space_left topspace_subtopology)
+  by (metis empty_subsetI homeomorphic_space_sym insert_subset prod_topology_homeomorphic_space_left subtopology_eq_discrete_topology_sing topspace_subtopology_subset)
 
 lemma homeomorphic_space_prod_topology_sing2:
      "a \<in> topspace X \<Longrightarrow> Y homeomorphic_space (prod_topology (subtopology X {a}) Y)"
-  by (metis empty_subsetI homeomorphic_space_sym inf.absorb_iff2 insert_subset prod_topology_homeomorphic_space_right topspace_subtopology)
+  by (metis empty_subsetI homeomorphic_space_sym insert_subset prod_topology_homeomorphic_space_right subtopology_eq_discrete_topology_sing topspace_subtopology_subset)
 
 lemma topological_property_of_prod_component:
   assumes major: "P(prod_topology X Y)"
@@ -566,7 +575,7 @@ lemma topological_property_of_prod_component:
     and Y: "\<And>y. \<lbrakk>y \<in> topspace Y; P(prod_topology X Y)\<rbrakk> \<Longrightarrow> P(subtopology (prod_topology X Y) (topspace X \<times> {y}))"
     and PQ:  "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> Q X')"
     and PR: "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> R X')"
-  shows "topspace(prod_topology X Y) = {} \<or> Q X \<and> R Y"
+  shows "(prod_topology X Y) = trivial_topology \<or> Q X \<and> R Y"
 proof -
   have "Q X \<and> R Y" if "topspace(prod_topology X Y) \<noteq> {}"
   proof -
@@ -576,7 +585,7 @@ proof -
       using X [OF a major] and Y [OF b major] homeomorphic_space_prod_topology_sing1 [OF b, of X] homeomorphic_space_prod_topology_sing2 [OF a, of Y]
       by (simp add: subtopology_Times) (meson PQ PR homeomorphic_space_prod_topology_sing2 homeomorphic_space_sym)
   qed
-  then show ?thesis by metis
+  then show ?thesis by force
 qed
 
 lemma limitin_pairwise:
@@ -625,11 +634,11 @@ qed
 
 proposition connected_space_prod_topology:
    "connected_space(prod_topology X Y) \<longleftrightarrow>
-    topspace(prod_topology X Y) = {} \<or> connected_space X \<and> connected_space Y" (is "?lhs=?rhs")
-proof (cases "topspace(prod_topology X Y) = {}")
+    (prod_topology X Y) = trivial_topology \<or> connected_space X \<and> connected_space Y" (is "?lhs=?rhs")
+proof (cases "(prod_topology X Y) = trivial_topology")
   case True
   then show ?thesis
-    using connected_space_topspace_empty by blast
+    by auto
 next
   case False
   then have nonempty: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
@@ -638,7 +647,8 @@ next
   proof
     assume ?lhs
     then show ?rhs
-      by (meson connected_space_quotient_map_image nonempty quotient_map_fst quotient_map_snd)
+      by (metis connected_space_quotient_map_image nonempty quotient_map_fst quotient_map_snd 
+          subtopology_eq_discrete_topology_empty)
   next
     assume ?rhs
     then have conX: "connected_space X" and conY: "connected_space Y"
@@ -684,7 +694,7 @@ qed
 lemma connectedin_Times:
    "connectedin (prod_topology X Y) (S \<times> T) \<longleftrightarrow>
         S = {} \<or> T = {} \<or> connectedin X S \<and> connectedin Y T"
-  by (force simp: connectedin_def subtopology_Times connected_space_prod_topology)
+  by (auto simp: connectedin_def subtopology_Times connected_space_prod_topology subtopology_trivial_iff)
 
 end
 
