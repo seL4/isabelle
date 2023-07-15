@@ -829,24 +829,16 @@ object Build_Log {
       "Store(" + s + ")"
     }
 
-    def open_database(
-      user: String = options.string("build_log_database_user"),
-      password: String = options.string("build_log_database_password"),
-      database: String = options.string("build_log_database_name"),
-      host: String = options.string("build_log_database_host"),
-      port: Int = options.int("build_log_database_port"),
-      ssh: Option[SSH.Session] =
-        proper_string(options.string("build_log_ssh_host")).map(ssh_host =>
-          SSH.open_session(options,
-            host = ssh_host,
-            user = options.string("build_log_ssh_user"),
-            port = options.int("build_log_ssh_port"))),
-      ssh_close: Boolean = true
-    ): PostgreSQL.Database = {
-      PostgreSQL.open_database(
-        user = user, password = password, database = database, host = host, port = port,
-        ssh = ssh, ssh_close = ssh_close)
-    }
+    def open_database(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
+      PostgreSQL.open_database_server(options, server = server,
+        user = options.string("build_log_database_user"),
+        password = options.string("build_log_database_password"),
+        database = options.string("build_log_database_name"),
+        host = options.string("build_log_database_host"),
+        port = options.int("build_log_database_port"),
+        ssh_host = options.string("build_log_ssh_host"),
+        ssh_port = options.int("build_log_ssh_port"),
+        ssh_user = options.string("build_log_ssh_user"))
 
     def snapshot_database(
       db: PostgreSQL.Database,

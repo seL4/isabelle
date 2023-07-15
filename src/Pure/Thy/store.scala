@@ -294,20 +294,16 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def build_database_server: Boolean = options.bool("build_database_server")
   def build_database_test: Boolean = options.bool("build_database_test")
 
-  def open_database_server(): PostgreSQL.Database =
-    PostgreSQL.open_database(
+  def open_database_server(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
+    PostgreSQL.open_database_server(options, server = server,
       user = options.string("build_database_user"),
       password = options.string("build_database_password"),
       database = options.string("build_database_name"),
       host = options.string("build_database_host"),
       port = options.int("build_database_port"),
-      ssh =
-        proper_string(options.string("build_database_ssh_host")).map(ssh_host =>
-          SSH.open_session(options,
-            host = ssh_host,
-            user = options.string("build_database_ssh_user"),
-            port = options.int("build_database_ssh_port"))),
-      ssh_close = true)
+      ssh_host = options.string("build_database_ssh_host"),
+      ssh_port = options.int("build_database_ssh_port"),
+      ssh_user = options.string("build_database_ssh_user"))
 
   def maybe_open_database_server(): Option[SQL.Database] =
     if (build_database_server) Some(open_database_server()) else None

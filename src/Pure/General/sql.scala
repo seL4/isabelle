@@ -575,52 +575,75 @@ object SQLite {
 object PostgreSQL {
   type Source = SQL.Source
 
+  lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
+
   val default_server: SSH.Server = SSH.local_server(port = 5432)
 
-  lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
+  def open_database_server(
+    options: Options,
+    user: String = "",
+    password: String = "",
+    database: String = "",
+    host: String = "",
+    port: Int = 0,
+    ssh_host: String = "",
+    ssh_port: Int = 0,
+    ssh_user: String = "",
+    server: SSH.Server = SSH.no_server
+  ): PostgreSQL.Database = {
+    val (db_server, server_close) =
+      if (server.defined) (server, false)
+      else {
+        val server_host = proper_string(host).getOrElse(default_server.host)
+        val server_port = if (port > 0) port else default_server.port
+        val db_server =
+          if (ssh_host.isEmpty) SSH.local_server(host = server_host, port = server_port)
+          else {
+            SSH.open_server(options, host = ssh_host, port = ssh_port, user = ssh_user,
+              remote_host = server_host, remote_port = server_port)
+          }
+        (db_server, true)
+      }
+
+    try {
+      open_database(user = user, password = password, database = database,
+        server = db_server, server_close = server_close)
+    }
+    catch { case exn: Throwable => if (server_close) db_server.close(); throw exn }
+  }
 
   def open_database(
     user: String,
     password: String,
     database: String = "",
-    host: String = "",
-    port: Int = 0,
-    ssh: Option[SSH.Session] = None,
-    ssh_close: Boolean = false,
+    server: SSH.Server = default_server,
+    server_close: Boolean = false,
     // see https://www.postgresql.org/docs/current/transaction-iso.html
     transaction_isolation: Int = Connection.TRANSACTION_SERIALIZABLE
   ): Database = {
     init_jdbc
 
-    if (user == "") error("Undefined database user")
+    if (user.isEmpty) error("Undefined database user")
+    if (server.host.isEmpty) error("Undefined database server host")
+    if (server.port <= 0) error("Undefined database server port")
 
-    val db_host = proper_string(host) getOrElse default_server.host
-    val db_port = if (port > 0) port else default_server.port
-    val db_name = proper_string(database) getOrElse user
+    val name = proper_string(database) getOrElse user
+    val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + name
+    val ssh = server.ssh_system.ssh_session
+    val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
 
-    val server =
-      ssh match {
-        case None =>
-          SSH.local_server(port = db_port, host = db_host)
-        case Some(ssh) =>
-          ssh.open_server(remote_port = db_port, remote_host = db_host, ssh_close = ssh_close)
-      }
-    try {
-      val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + db_name
-      val name = user + "@" + server + "/" + db_name + if_proper(ssh, " via ssh " + ssh.get)
-      val connection = DriverManager.getConnection(url, user, password)
-      connection.setTransactionIsolation(transaction_isolation)
-      new Database(name, connection, server)
-    }
-    catch { case exn: Throwable => server.close(); throw exn }
+    val connection = DriverManager.getConnection(url, user, password)
+    connection.setTransactionIsolation(transaction_isolation)
+    new Database(connection, print, server, server_close)
   }
 
   class Database private[PostgreSQL](
-    name: String,
     val connection: Connection,
-    server: SSH.Server
+    print: String,
+    server: SSH.Server,
+    server_close: Boolean
   ) extends SQL.Database {
-    override def toString: String = name
+    override def toString: String = print
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
@@ -671,6 +694,6 @@ object PostgreSQL {
       }
 
 
-    override def close(): Unit = { super.close(); server.close() }
+    override def close(): Unit = { super.close(); if (server_close) server.close() }
   }
 }

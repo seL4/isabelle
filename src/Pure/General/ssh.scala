@@ -397,7 +397,7 @@ object SSH {
   class Server private[SSH](
     val host: String,
     val port: Int,
-    val system: System
+    val ssh_system: System
   ) extends AutoCloseable {
     def defined: Boolean = host.nonEmpty && port > 0
     override def close(): Unit = ()
