@@ -907,8 +907,8 @@ extends AutoCloseable {
     _build_database match {
       case None => body
       case Some(db) =>
+        progress.asInstanceOf[Database_Progress].sync()
         Build_Process.Data.transaction_lock(db) {
-          progress.asInstanceOf[Database_Progress].sync()
           _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
           val res = body
           _state =
