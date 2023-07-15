@@ -105,7 +105,7 @@ object SSH {
   ) extends System {
     ssh =>
 
-    override def is_local: Boolean = false
+    override def ssh_session: Option[Session] = Some(ssh)
 
     def port_suffix: String = if (port > 0) ":" + port else ""
     def user_prefix: String = if (user.nonEmpty) user + "@" else ""
@@ -357,7 +357,7 @@ object SSH {
       val shutdown_hook =
         Isabelle_System.create_shutdown_hook { cancel() }
 
-      new Server(forward_host, forward_port) {
+      new Server(forward_host, forward_port, ssh) {
         override def toString: String = forward
         override def close(): Unit = {
           cancel()
@@ -368,26 +368,49 @@ object SSH {
     }
   }
 
-  class Server private[SSH](
-    val host: String,
-    val port: Int
-  ) extends AutoCloseable {
-    def defined: Boolean = host.nonEmpty && port > 0
-    override def close(): Unit = ()
-  }
 
-  class Local_Server private[SSH](host: String, port: Int) extends Server(host, port) {
-    override def toString: String = if_proper(host, host + ":") + port
-  }
+  /* server port forwarding */
 
-  class No_Server extends Server("", 0) {
-    override def toString: String = "0"
+  def open_server(
+    options: Options,
+    host: String,
+    port: Int = 0,
+    user: String = "",
+    remote_port: Int = 0,
+    remote_host: String = "localhost",
+    local_port: Int = 0,
+    local_host: String = "localhost"
+  ): Server = {
+    val ssh = open_session(options, host, port = port, user = user)
+    try {
+      ssh.open_server(remote_port = remote_port, remote_host = remote_host,
+        local_port = local_port, local_host = local_host, ssh_close = true)
+    }
+    catch { case exn: Throwable => ssh.close(); throw exn }
   }
 
   def local_server(port: Int = 0, host: String = "localhost"): Server =
     new Local_Server(host, port)
 
   val no_server: Server = new No_Server
+
+  class Server private[SSH](
+    val host: String,
+    val port: Int,
+    val system: System
+  ) extends AutoCloseable {
+    def defined: Boolean = host.nonEmpty && port > 0
+    override def close(): Unit = ()
+  }
+
+  class Local_Server private[SSH](host: String, port: Int)
+  extends Server(host, port, Local) {
+    override def toString: String = if_proper(host, host + ":") + port
+  }
+
+  class No_Server extends Server("", 0, Local) {
+    override def toString: String = "0"
+  }
 
 
   /* system operations */
@@ -403,7 +426,8 @@ object SSH {
   }
 
   trait System extends AutoCloseable {
-    def is_local: Boolean
+    def ssh_session: Option[Session]
+    def is_local: Boolean = ssh_session.isEmpty
 
     def close(): Unit = ()
 
@@ -463,6 +487,6 @@ object SSH {
   }
 
   object Local extends System {
-    override def is_local: Boolean = true
+    override def ssh_session: Option[Session] = None
   }
 }
