@@ -104,13 +104,19 @@ object Document_Build {
   }
 
   def clean_session(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true) { Data.clean_session(db, session_name) }
+    Data.transaction_lock(db, create = true, label = "Document_Build.clean_session") {
+      Data.clean_session(db, session_name)
+    }
 
   def read_document(db: SQL.Database, session_name: String, name: String): Option[Document_Output] =
-    Data.transaction_lock(db) { Data.read_document(db, session_name, name) }
+    Data.transaction_lock(db, label = "Document_Build.read_document") {
+      Data.read_document(db, session_name, name)
+    }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
-    Data.transaction_lock(db) { Data.write_document(db, session_name, doc) }
+    Data.transaction_lock(db, label = "Document_Build.write_document") {
+      Data.write_document(db, session_name, doc)
+    }
 
 
   /* background context */

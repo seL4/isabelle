@@ -134,7 +134,7 @@ object Host {
     else {
       val available = available_nodes.zipWithIndex
       val used = used_nodes
-      Data.transaction_lock(db, create = true) {
+      Data.transaction_lock(db, create = true, label = "Host.next_numa_node") {
         val numa_next = Data.read_numa_next(db, hostname)
         val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
         val candidates = available.drop(numa_index) ::: available.take(numa_index)

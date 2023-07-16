@@ -256,10 +256,11 @@ object SQL {
     def transaction_lock[A](
       db: Database,
       create: Boolean = false,
+      label: String = "",
       log: Logger = new System_Logger,
       synchronized: Boolean = false,
     )(body: => A): A = {
-      def run: A = db.transaction_lock(tables, create = create, log = log)(body)
+      def run: A = db.transaction_lock(tables, create = create, label = label, log = log)(body)
       if (synchronized) db.synchronized { run } else run
     }
 
@@ -461,6 +462,7 @@ object SQL {
     def transaction_lock[A](
       tables: Tables,
       create: Boolean = false,
+      label: String = "",
       log: Logger = new System_Logger
     )(body: => A): A = {
       val trace_enabled = System.getProperty("isabelle.transaction_log", "") == "true"
@@ -471,7 +473,8 @@ object SQL {
       def trace(msg: => String, nl: Boolean = false): Unit = {
         if (trace_enabled) {
           val trace_time = Time.now() - trace_start
-          log((if (nl) "\n" else "") + trace_time + " transaction " + trace_count + ": " + msg)
+          log((if (nl) "\n" else "") + trace_time + " transaction " +
+            (if (label.isEmpty) "" else label + " ") + trace_count + ": " + msg)
         }
       }
 

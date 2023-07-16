@@ -204,16 +204,24 @@ object Export {
   }
 
   def clean_session(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true) { Data.clean_session(db, session_name) }
+    Data.transaction_lock(db, create = true, label = "Export.clean_session") {
+      Data.clean_session(db, session_name)
+    }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-    Data.transaction_lock(db) { Data.read_theory_names(db, session_name) }
+    Data.transaction_lock(db, label = "Export.read_theory_names") {
+      Data.read_theory_names(db, session_name)
+    }
 
   def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
-    Data.transaction_lock(db) { Data.read_entry_names(db, session_name) }
+    Data.transaction_lock(db, label = "Export.read_entry_names") {
+      Data.read_entry_names(db, session_name)
+    }
 
   def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
-    Data.transaction_lock(db) { Data.read_entry(db, entry_name, cache) }
+    Data.transaction_lock(db, label = "Export.read_entry") {
+      Data.read_entry(db, entry_name, cache)
+    }
 
 
   /* database consumer thread */
@@ -230,7 +238,7 @@ object Export {
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
-              Data.transaction_lock(db) {
+              Data.transaction_lock(db, label = "Export.consumer") {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {

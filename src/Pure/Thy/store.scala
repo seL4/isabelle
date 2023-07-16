@@ -415,7 +415,11 @@ class Store private(val options: Options, val cache: Term.Cache) {
     Export.clean_session(db, name)
     Document_Build.clean_session(db, name)
 
-    Store.Data.transaction_lock(db, create = true, synchronized = true) {
+    Store.Data.transaction_lock(db,
+      create = true,
+      synchronized = true,
+      label = "Store.clean_session_info"
+    ) {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
@@ -436,36 +440,52 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    Store.Data.transaction_lock(db, synchronized = true) {
+    Store.Data.transaction_lock(db, synchronized = true, label = "Store.write_session_info") {
       Store.Data.write_sources(db, session_name, sources)
       Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }
   }
 
   def read_session_timing(db: SQL.Database, session: String): Properties.T =
-    Store.Data.transaction_lock(db) { Store.Data.read_session_timing(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_session_timing") {
+      Store.Data.read_session_timing(db, session, cache)
+    }
 
   def read_command_timings(db: SQL.Database, session: String): Bytes =
-    Store.Data.transaction_lock(db) { Store.Data.read_command_timings(db, session) }
+    Store.Data.transaction_lock(db, label = "Store.read_command_timings") {
+      Store.Data.read_command_timings(db, session)
+    }
 
   def read_theory_timings(db: SQL.Database, session: String): List[Properties.T] =
-    Store.Data.transaction_lock(db) { Store.Data.read_theory_timings(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_theory_timings") {
+      Store.Data.read_theory_timings(db, session, cache)
+    }
 
   def read_ml_statistics(db: SQL.Database, session: String): List[Properties.T] =
-    Store.Data.transaction_lock(db) { Store.Data.read_ml_statistics(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_ml_statistics") {
+      Store.Data.read_ml_statistics(db, session, cache)
+    }
 
   def read_task_statistics(db: SQL.Database, session: String): List[Properties.T] =
-    Store.Data.transaction_lock(db) { Store.Data.read_task_statistics(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_task_statistics") {
+      Store.Data.read_task_statistics(db, session, cache)
+    }
 
   def read_theories(db: SQL.Database, session: String): List[String] =
     read_theory_timings(db, session).flatMap(Markup.Name.unapply)
 
   def read_errors(db: SQL.Database, session: String): List[String] =
-    Store.Data.transaction_lock(db) { Store.Data.read_errors(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_errors") {
+      Store.Data.read_errors(db, session, cache)
+    }
 
   def read_build(db: SQL.Database, session: String): Option[Store.Build_Info] =
-    Store.Data.transaction_lock(db) { Store.Data.read_build(db, session) }
+    Store.Data.transaction_lock(db, label = "Store.read_build") {
+      Store.Data.read_build(db, session)
+    }
 
   def read_sources(db: SQL.Database, session: String, name: String = ""): List[Store.Source_File] =
-    Store.Data.transaction_lock(db) { Store.Data.read_sources(db, session, name, cache.compress) }
+    Store.Data.transaction_lock(db, label = "Store.read_sources") {
+      Store.Data.read_sources(db, session, name, cache.compress)
+    }
 }
