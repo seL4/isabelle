@@ -1015,8 +1015,6 @@ extends AutoCloseable {
         (if (store_heap) "Building " else "Running ") + session_name +
           if_proper(node_info.numa_node, " on " + node_info) + " ...")
 
-      store.clean_output(_database_server, session_name, session_init = true)
-
       val session = state.sessions(session_name)
 
       val build =

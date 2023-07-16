@@ -106,18 +106,20 @@ object Build_Job {
     node_info: Host.Node_Info,
     store_heap: Boolean
   ) extends Build_Job {
-    private val store = build_context.store
-
     def session_name: String = session_background.session_name
-
-    private val info: Sessions.Info = session_background.sessions_structure(session_name)
-    private val options: Options = node_info.process_policy(info.options)
-
-    private val session_sources =
-      Store.Sources.load(session_background.base, cache = store.cache.compress)
 
     private val future_result: Future[(Process_Result, SHA1.Shasum)] =
       Future.thread("build", uninterruptible = true) {
+        val info = session_background.sessions_structure(session_name)
+        val options = node_info.process_policy(info.options)
+
+        val store = build_context.store
+
+        store.clean_output(database_server, session_name, session_init = true)
+
+        val session_sources =
+          Store.Sources.load(session_background.base, cache = store.cache.compress)
+
         val env =
           Isabelle_System.settings(
             List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
