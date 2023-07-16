@@ -464,7 +464,7 @@ object SQL {
       val prop = "isabelle.transaction_trace"
       val trace_min =
         System.getProperty(prop, "") match {
-          case Value.Long(ms) => Time.ms(ms)
+          case Value.Seconds(t) => t
           case "true" => Time.min
           case "false" | "" => Time.max
           case s => error("Bad system property " + prop + ": " + quote(s))
