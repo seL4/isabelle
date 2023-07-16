@@ -238,7 +238,7 @@ object Export {
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
-              Data.transaction_lock(db, label = "Export.consumer") {
+              Data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {
