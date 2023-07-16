@@ -455,10 +455,6 @@ object SQL {
       finally { connection.setAutoCommit(auto_commit) }
     }
 
-    private var _transaction_count: Int = 0
-    private def transaction_count(): Int =
-      synchronized { _transaction_count += 1; _transaction_count }
-
     def transaction_lock[A](
       tables: Tables,
       create: Boolean = false,
@@ -474,7 +470,7 @@ object SQL {
           case s => error("Bad system property " + prop + ": " + quote(s))
         }
 
-      val trace_count = transaction_count()
+      val trace_count = - SQL.transaction_count()
       val trace_start = Time.now()
       var trace_nl = false
 
@@ -564,6 +560,9 @@ object SQL {
       }
     }
   }
+
+
+  private val transaction_count = Counter.make()
 }
 
 
