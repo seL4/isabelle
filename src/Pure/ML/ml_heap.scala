@@ -123,12 +123,12 @@ object ML_Heap {
   }
 
   def clean_entry(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true, synchronized = true, label = "ML_Heap.clean_entry") {
+    Data.transaction_lock(db, create = true, label = "ML_Heap.clean_entry") {
       Data.clean_entry(db, session_name)
     }
 
   def get_entry(db: SQL.Database, session_name: String): Option[SHA1.Digest] =
-    Data.transaction_lock(db, create = true, synchronized = true, label = "ML_Heap.get_entry") {
+    Data.transaction_lock(db, create = true, label = "ML_Heap.get_entry") {
       Data.get_entry(db, session_name)
     }
 
@@ -149,7 +149,7 @@ object ML_Heap {
         val step = (size.toDouble / slices.toDouble).ceil.toLong
 
         try {
-          Data.transaction_lock(db, create = true, synchronized = true, label = "ML_Heap.store1") {
+          Data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
             Data.prepare_entry(db, session_name)
           }
 
@@ -160,17 +160,17 @@ object ML_Heap {
             val content =
               Bytes.read_file(heap.file, offset = offset, limit = limit)
                 .compress(cache = cache)
-            Data.transaction_lock(db, synchronized = true, label = "ML_Heap.store2") {
+            Data.transaction_lock(db, label = "ML_Heap.store2") {
               Data.write_entry(db, session_name, i, content)
             }
           }
 
-          Data.transaction_lock(db, synchronized = true, label = "ML_Heap.store3") {
+          Data.transaction_lock(db, label = "ML_Heap.store3") {
             Data.finish_entry(db, session_name, size, digest)
           }
         }
         catch { case exn: Throwable =>
-          Data.transaction_lock(db, create = true, synchronized = true, label = "ML_Heap.store4") {
+          Data.transaction_lock(db, create = true, label = "ML_Heap.store4") {
             Data.clean_entry(db, session_name)
           }
           throw exn
@@ -188,7 +188,7 @@ object ML_Heap {
     database match {
       case None =>
       case Some(db) =>
-        Data.transaction_lock(db, create = true, synchronized = true, label = "ML_Heap.restore") {
+        Data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
           val db_digest = Data.get_entry(db, session_name)
           val file_digest = read_file_digest(heap)
 

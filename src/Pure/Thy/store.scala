@@ -423,11 +423,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     Export.clean_session(db, name)
     Document_Build.clean_session(db, name)
 
-    Store.Data.transaction_lock(db,
-      create = true,
-      synchronized = true,
-      label = "Store.clean_session_info"
-    ) {
+    Store.Data.transaction_lock(db, create = true, label = "Store.clean_session_info") {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
@@ -448,7 +444,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    Store.Data.transaction_lock(db, synchronized = true, label = "Store.write_session_info") {
+    Store.Data.transaction_lock(db, label = "Store.write_session_info") {
       Store.Data.write_sources(db, session_name, sources)
       Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }

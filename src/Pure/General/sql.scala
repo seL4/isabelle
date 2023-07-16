@@ -257,11 +257,9 @@ object SQL {
       db: Database,
       create: Boolean = false,
       label: String = "",
-      log: Logger = new System_Logger,
-      synchronized: Boolean = false,
+      log: Logger = new System_Logger
     )(body: => A): A = {
-      def run: A = db.transaction_lock(tables, create = create, label = label, log = log)(body)
-      if (synchronized) db.synchronized { run } else run
+      db.transaction_lock(tables, create = create, label = label, log = log)(body)
     }
 
     def make_table(columns: List[Column], body: String = "", name: String = ""): Table = {
@@ -440,7 +438,7 @@ object SQL {
 
     override def close(): Unit = connection.close()
 
-    def transaction[A](body: => A): A = {
+    def transaction[A](body: => A): A = connection.synchronized {
       val auto_commit = connection.getAutoCommit()
       try {
         connection.setAutoCommit(false)
