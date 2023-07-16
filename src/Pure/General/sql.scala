@@ -257,7 +257,7 @@ object SQL {
       create: Boolean = false,
       synchronized: Boolean = false,
     )(body: => A): A = {
-      def run: A = db.transaction { tables.lock(db, create = create); body }
+      def run: A = db.transaction_lock(tables, create = create)(body)
       if (synchronized) db.synchronized { run } else run
     }
 
