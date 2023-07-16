@@ -313,26 +313,30 @@ class Store private(val options: Options, val cache: Term.Cache) {
       ssh_port = options.int("build_database_ssh_port"),
       ssh_user = options.string("build_database_ssh_user"))
 
-  def maybe_open_database_server(): Option[SQL.Database] =
-    if (build_database_server) Some(open_database_server()) else None
+  def maybe_open_database_server(server: SSH.Server = SSH.no_server): Option[SQL.Database] =
+    if (build_database_server) Some(open_database_server(server = server)) else None
 
-  def open_build_database(path: Path): SQL.Database =
-    if (build_database_server) open_database_server()
+  def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
+    if (build_database_server) open_database_server(server = server)
     else SQLite.open_database(path, restrict = true)
 
   def maybe_open_build_database(
-    path: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
-  ): Option[SQL.Database] = if (build_database_test) Some(open_build_database(path)) else None
+    path: Path = Path.explode("$ISABELLE_HOME_USER/build.db"),
+    server: SSH.Server = SSH.no_server
+  ): Option[SQL.Database] = {
+    if (build_database_test) Some(open_build_database(path, server = server)) else None
+  }
 
   def try_open_database(
     name: String,
     output: Boolean = false,
+    server: SSH.Server = SSH.no_server,
     server_mode: Boolean = build_database_server
   ): Option[SQL.Database] = {
     def check(db: SQL.Database): Option[SQL.Database] =
       if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
-    if (server_mode) check(open_database_server())
+    if (server_mode) check(open_database_server(server = server))
     else if (output) Some(SQLite.open_database(output_database(name)))
     else {
       (for {
@@ -346,8 +350,13 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def error_database(name: String): Nothing =
     error("Missing build database for session " + quote(name))
 
-  def open_database(name: String, output: Boolean = false): SQL.Database =
-    try_open_database(name, output = output) getOrElse error_database(name)
+  def open_database(
+    name: String,
+    output: Boolean = false,
+    server: SSH.Server = SSH.no_server
+  ): SQL.Database = {
+    try_open_database(name, output = output, server = server) getOrElse error_database(name)
+  }
 
   def clean_output(
     database_server: Option[SQL.Database],
@@ -378,6 +387,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   }
 
   def check_output(
+    server: SSH.Server,
     name: String,
     session_options: Options,
     sources_shasum: SHA1.Shasum,
@@ -385,7 +395,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     fresh_build: Boolean,
     store_heap: Boolean
   ): (Boolean, SHA1.Shasum) = {
-    try_open_database(name) match {
+    try_open_database(name, server = server) match {
       case Some(db) =>
         using(db) { _ =>
           read_build(db, name) match {

@@ -128,7 +128,11 @@ object Build_Process {
       make(data(dom).foldLeft(graph.restrict(dom)) { case (g, e) => g.new_node(e.name, e) })
     }
 
-    def init(build_context: Context, progress: Progress = new Progress): Sessions = {
+    def init(
+      build_context: Context,
+      progress: Progress = new Progress,
+      server: SSH.Server = SSH.no_server
+    ): Sessions = {
       val sessions_structure = build_context.sessions_structure
       make(
         sessions_structure.build_graph.iterator.foldLeft(graph) {
@@ -167,7 +171,7 @@ object Build_Process {
               val session =
                 Build_Job.Session_Context.load(
                   build_context.build_uuid, name, deps, ancestors, prefs, sources_shasum,
-                  info.timeout, build_context.store, progress = progress)
+                  info.timeout, build_context.store, progress = progress, server = server)
               graph0.new_node(name, session)
             }
         }
@@ -835,7 +839,8 @@ object Build_Process {
 
 class Build_Process(
   protected final val build_context: Build_Process.Context,
-  protected final val build_progress: Progress
+  protected final val build_progress: Progress,
+  protected final val server: SSH.Server
 )
 extends AutoCloseable {
   /* context */
@@ -850,12 +855,12 @@ extends AutoCloseable {
   /* progress backed by database */
 
   private val _database_server: Option[SQL.Database] =
-    try { store.maybe_open_database_server() }
+    try { store.maybe_open_database_server(server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   private val _build_database: Option[SQL.Database] =
     try {
-      for (db <- store.maybe_open_build_database()) yield {
+      for (db <- store.maybe_open_build_database(server = server)) yield {
         val store_tables = if (db.is_postgresql) Store.Data.tables else SQL.Tables.empty
         Build_Process.Data.transaction_lock(db,
           create = true,
@@ -871,7 +876,7 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   private val _host_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(path = Host.Data.database) }
+    try { store.maybe_open_build_database(path = Host.Data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
@@ -879,7 +884,7 @@ extends AutoCloseable {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
         try {
-          val progress_db = store.open_build_database(Progress.Data.database)
+          val progress_db = store.open_build_database(Progress.Data.database, server = server)
           val progress =
             new Database_Progress(progress_db, build_progress,
               hostname = hostname,
@@ -966,7 +971,7 @@ extends AutoCloseable {
       state.sessions.iterator.exists(_.ancestors.contains(session_name))
 
     val (current, output_shasum) =
-      store.check_output(session_name,
+      store.check_output(server, session_name,
         session_options = build_context.sessions_structure(session_name).options,
         sources_shasum = sources_shasum,
         input_shasum = input_shasum,
@@ -1018,7 +1023,7 @@ extends AutoCloseable {
       val session = state.sessions(session_name)
 
       val build =
-        Build_Job.start_session(build_context, session, progress, log, _database_server,
+        Build_Job.start_session(build_context, session, progress, log, server,
           build_deps.background(session_name), sources_shasum, input_shasum, node_info, store_heap)
 
       val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
