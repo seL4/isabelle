@@ -2,6 +2,8 @@
     Author:     Makarius
 
 Support for SQL databases: SQLite and PostgreSQL.
+
+See https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Connection.html
 */
 
 package isabelle
@@ -571,6 +573,9 @@ object SQLite {
 
 
 /** PostgreSQL **/
+
+// see https://www.postgresql.org/docs/current/index.html
+// see https://jdbc.postgresql.org/documentation
 
 object PostgreSQL {
   type Source = SQL.Source
