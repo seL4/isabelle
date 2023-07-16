@@ -242,10 +242,11 @@ object SQL {
     def iterator: Iterator[Table] = list.iterator
 
     // requires transaction
-    def lock(db: Database, create: Boolean = false): Unit = {
+    def lock(db: Database, create: Boolean = false): Boolean = {
       if (create) foreach(db.create_table(_))
       val sql = db.lock_tables(list)
-      if (sql.nonEmpty) db.execute_statement(sql)
+      if (sql.nonEmpty) { db.execute_statement(sql); true }
+      else false
     }
   }
 
@@ -255,9 +256,10 @@ object SQL {
     def transaction_lock[A](
       db: Database,
       create: Boolean = false,
+      log: Logger = new System_Logger,
       synchronized: Boolean = false,
     )(body: => A): A = {
-      def run: A = db.transaction_lock(tables, create = create)(body)
+      def run: A = db.transaction_lock(tables, create = create, log = log)(body)
       if (synchronized) db.synchronized { run } else run
     }
 
@@ -452,8 +454,38 @@ object SQL {
       finally { connection.setAutoCommit(auto_commit) }
     }
 
-    def transaction_lock[A](tables: Tables, create: Boolean = false)(body: => A): A =
-      transaction { tables.lock(db, create = create); body }
+    private var _transaction_count: Int = 0
+    private def transaction_count(): Int =
+      synchronized { _transaction_count += 1; _transaction_count }
+
+    def transaction_lock[A](
+      tables: Tables,
+      create: Boolean = false,
+      log: Logger = new System_Logger
+    )(body: => A): A = {
+      val trace_enabled = System.getProperty("isabelle.transaction_log", "") == "true"
+
+      val trace_count = if (trace_enabled) transaction_count() else 0
+      val trace_start = Time.now()
+
+      def trace(msg: => String, nl: Boolean = false): Unit = {
+        if (trace_enabled) {
+          val trace_time = Time.now() - trace_start
+          log((if (nl) "\n" else "") + trace_time + " transaction " + trace_count + ": " + msg)
+        }
+      }
+
+      val res =
+        transaction {
+          trace("begin", nl = true)
+          if (tables.lock(db, create = create)) trace("locked")
+          val res = Exn.capture { body }
+          trace("end")
+          res
+        }
+      trace("commit")
+      Exn.release(res)
+    }
 
     def lock_tables(tables: List[Table]): Source = ""  // PostgreSQL only
 
