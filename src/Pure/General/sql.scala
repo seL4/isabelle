@@ -325,7 +325,7 @@ object SQL {
     def execute(): Boolean = rep.execute()
     def execute_query(): Result = new Result(this, rep.executeQuery())
 
-    def close(): Unit = rep.close()
+    override def close(): Unit = rep.close()
   }
 
 
@@ -435,7 +435,7 @@ object SQL {
       }
       else None
 
-    def close(): Unit = connection.close()
+    override def close(): Unit = connection.close()
 
     def transaction[A](body: => A): A = {
       val auto_commit = connection.getAutoCommit()
