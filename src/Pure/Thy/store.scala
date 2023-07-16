@@ -294,6 +294,14 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def build_database_server: Boolean = options.bool("build_database_server")
   def build_database_test: Boolean = options.bool("build_database_test")
 
+  def open_server(): SSH.Server =
+    PostgreSQL.open_server(options,
+      host = options.string("build_database_host"),
+      port = options.int("build_database_port"),
+      ssh_host = options.string("build_database_ssh_host"),
+      ssh_port = options.int("build_database_ssh_port"),
+      ssh_user = options.string("build_database_ssh_user"))
+
   def open_database_server(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
     PostgreSQL.open_database_server(options, server = server,
       user = options.string("build_database_user"),

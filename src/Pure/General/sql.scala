@@ -633,37 +633,48 @@ object PostgreSQL {
 
   val default_server: SSH.Server = SSH.local_server(port = 5432)
 
+  def open_server(
+    options: Options,
+    host: String = "",
+    port: Int = 0,
+    ssh_host: String = "",
+    ssh_port: Int = 0,
+    ssh_user: String = ""
+  ): SSH.Server = {
+    val server_host = proper_string(host).getOrElse(default_server.host)
+    val server_port = if (port > 0) port else default_server.port
+
+    if (ssh_host.isEmpty) SSH.local_server(host = server_host, port = server_port)
+    else {
+      SSH.open_server(options, host = ssh_host, port = ssh_port, user = ssh_user,
+        remote_host = server_host, remote_port = server_port)
+    }
+  }
+
   def open_database_server(
     options: Options,
     user: String = "",
     password: String = "",
     database: String = "",
+    server: SSH.Server = SSH.no_server,
     host: String = "",
     port: Int = 0,
     ssh_host: String = "",
     ssh_port: Int = 0,
-    ssh_user: String = "",
-    server: SSH.Server = SSH.no_server
+    ssh_user: String = ""
   ): PostgreSQL.Database = {
-    val (db_server, server_close) =
-      if (server.defined) (server, false)
+    val db_server =
+      if (server.defined) server
       else {
-        val server_host = proper_string(host).getOrElse(default_server.host)
-        val server_port = if (port > 0) port else default_server.port
-        val db_server =
-          if (ssh_host.isEmpty) SSH.local_server(host = server_host, port = server_port)
-          else {
-            SSH.open_server(options, host = ssh_host, port = ssh_port, user = ssh_user,
-              remote_host = server_host, remote_port = server_port)
-          }
-        (db_server, true)
+        open_server(options, host = host, port = port, ssh_host = ssh_host,
+          ssh_port = ssh_port, ssh_user = ssh_user)
       }
-
+    val server_close = !server.defined
     try {
       open_database(user = user, password = password, database = database,
         server = db_server, server_close = server_close)
     }
-    catch { case exn: Throwable => if (server_close) db_server.close(); throw exn }
+    catch { case exn: Throwable if server_close => db_server.close(); throw exn }
   }
 
   def open_database(
