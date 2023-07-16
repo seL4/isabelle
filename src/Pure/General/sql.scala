@@ -734,6 +734,10 @@ object PostgreSQL {
     override def lock_tables(tables: List[SQL.Table]): PostgreSQL.Source =
       if_proper(tables, "LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE")
 
+    override def transaction[A](body: => A): A = super.transaction {
+      execute_statement("START TRANSACTION")
+      body
+    }
 
     /* notifications: IPC via database server */
     // see https://www.postgresql.org/docs/current/sql-notify.html
