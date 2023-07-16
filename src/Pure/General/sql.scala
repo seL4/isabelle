@@ -331,7 +331,7 @@ object SQL {
 
   /* results */
 
-  class Result private[SQL](val stmt: Statement, val rep: ResultSet) {
+  class Result private[SQL](val stmt: Statement, val rep: ResultSet) extends AutoCloseable {
     res =>
 
     def next(): Boolean = rep.next()
@@ -370,6 +370,8 @@ object SQL {
     def get_string(column: Column): Option[String] = get(column, string)
     def get_bytes(column: Column): Option[Bytes] = get(column, bytes)
     def get_date(column: Column): Option[Date] = get(column, date)
+
+    override def close(): Unit = rep.close()
   }
 
 
@@ -471,13 +473,17 @@ object SQL {
       sql: Source,
       make_result: Iterator[A] => B,
       get: Result => A
-    ): B = using_statement(sql)(stmt => make_result(stmt.execute_query().iterator(get)))
+    ): B = {
+      using_statement(sql) { stmt =>
+        using(stmt.execute_query()) { res => make_result(res.iterator(get)) }
+      }
+    }
 
     def execute_query_statementO[A](sql: Source, get: Result => A): Option[A] =
       execute_query_statement[A, Option[A]](sql, _.nextOption, get)
 
     def execute_query_statementB(sql: Source): Boolean =
-      using_statement(sql)(stmt => stmt.execute_query().next())
+      using_statement(sql)(stmt => using(stmt.execute_query())(_.next()))
 
     def update_date(stmt: Statement, i: Int, date: Date): Unit
     def date(res: Result, column: Column): Date

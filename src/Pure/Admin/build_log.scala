@@ -883,12 +883,13 @@ object Build_Log {
               db2.using_statement(table.insert()) { stmt2 =>
                 db.using_statement(
                   Data.recent_pull_date_table(days, afp_rev = afp_rev).query) { stmt =>
-                  val res = stmt.execute_query()
-                  while (res.next()) {
-                    for ((c, i) <- table.columns.zipWithIndex) {
-                      stmt2.string(i + 1) = res.get_string(c)
+                  using(stmt.execute_query()) { res =>
+                    while (res.next()) {
+                      for ((c, i) <- table.columns.zipWithIndex) {
+                        stmt2.string(i + 1) = res.get_string(c)
+                      }
+                      stmt2.execute()
                     }
-                    stmt2.execute()
                   }
                 }
               }
