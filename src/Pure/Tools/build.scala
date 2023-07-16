@@ -392,40 +392,45 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   /* identified builds */
 
-  def read_builds(options: Options): List[Build_Process.Build] =
-    using_option(Store(options).maybe_open_build_database())(
-      Build_Process.read_builds).getOrElse(Nil).filter(_.active)
-
-  def print_builds(options: Options, builds: List[Build_Process.Build]): String =
-    using_optional(Store(options).maybe_open_build_database()) { build_database =>
-      val print_database =
-        build_database match {
-          case None => ""
-          case Some(db) => " (database: " + db + ")"
-        }
-      if (builds.isEmpty) "No build processes available" + print_database
-      else {
-        "Available build processes" + print_database +
-          (for ((build, i) <- builds.iterator.zipWithIndex)
-            yield {
-              "\n  " + (i + 1) + ": " + build.build_uuid +
-                " (platform: " + build.ml_platform +
-                ", start: " + Build_Log.print_date(build.start) + ")"
-            }).mkString
-      }
+  def read_builds(build_database: Option[SQL.Database]): List[Build_Process.Build] =
+    build_database match {
+      case None => Nil
+      case Some(db) => Build_Process.read_builds(db).filter(_.active)
     }
 
+  def print_builds(build_database: Option[SQL.Database], builds: List[Build_Process.Build]): String =
+  {
+    val print_database =
+      build_database match {
+        case None => ""
+        case Some(db) => " (database: " + db + ")"
+      }
+    if (builds.isEmpty) "No build processes available" + print_database
+    else {
+      "Available build processes" + print_database +
+        (for ((build, i) <- builds.iterator.zipWithIndex)
+          yield {
+            "\n  " + (i + 1) + ": " + build.build_uuid +
+              " (platform: " + build.ml_platform +
+              ", start: " + Build_Log.print_date(build.start) + ")"
+          }).mkString
+    }
+  }
+
   def id_builds(
-    options: Options,
-    id: String,
+    build_database: Option[SQL.Database],
+    build_id: String,
     builds: List[Build_Process.Build]
   ): Build_Process.Build =
-    (id, builds.length) match {
+    (build_id, builds.length) match {
       case (Value.Int(i), n) if 1 <= i && i <= n => builds(i - 1)
-      case (UUID(_), _) if builds.exists(_.build_uuid == id) => builds.find(_.build_uuid == id).get
-      case ("", 0) => error(print_builds(options, builds))
+      case (UUID(_), _) if builds.exists(_.build_uuid == build_id) =>
+        builds.find(_.build_uuid == build_id).get
+      case ("", 0) => error(print_builds(build_database, builds))
       case ("", 1) => builds.head
-      case _ => cat_error("Cannot identify build process " + quote(id), print_builds(options, builds))
+      case _ =>
+        cat_error("Cannot identify build process " + quote(build_id),
+          print_builds(build_database, builds))
     }
 
 
@@ -433,30 +438,42 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   def build_worker(
     options: Options,
-    build_master: Build_Process.Build,
+    build_id: String,
     progress: Progress = new Progress,
+    list_builds: Boolean = false,
     dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
     cache: Term.Cache = Term.Cache.make()
-  ): Results = {
+  ): Option[Results] = {
     val build_engine = Engine(engine_name(options))
-
-    val store = build_engine.build_store(options, cache = cache)
+    val store = build_engine.build_store(options)
     val build_options = store.options
 
-    val sessions_structure =
-      Sessions.load_structure(build_options, dirs = dirs).
-        selection(Sessions.Selection(sessions = build_master.sessions))
+    using_optional(store.maybe_open_build_database()) { build_database =>
+      val builds = read_builds(build_database)
 
-    val build_deps =
-      Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
+      if (list_builds) progress.echo(print_builds(build_database, builds))
 
-    val build_context =
-      Build_Process.Context(store, build_deps, hostname = hostname(build_options),
-        numa_shuffling = numa_shuffling, max_jobs = max_jobs, build_uuid = build_master.build_uuid)
+      if (!list_builds || build_id.nonEmpty) {
+        val build_master = id_builds(build_database, build_id, builds)
 
-    build_engine.run(build_context, progress)
+        val sessions_structure =
+          Sessions.load_structure(build_options, dirs = dirs).
+            selection(Sessions.Selection(sessions = build_master.sessions))
+
+        val build_deps =
+          Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
+
+        val build_context =
+          Build_Process.Context(store, build_deps, hostname = hostname(build_options),
+            numa_shuffling = numa_shuffling, max_jobs = max_jobs,
+            build_uuid = build_master.build_uuid)
+
+        Some(build_engine.run(build_context, progress))
+      }
+      else None
+    }
   }
 
 
@@ -504,23 +521,19 @@ Usage: isabelle build_worker [OPTIONS]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val builds = read_builds(options)
+      val res =
+        progress.interrupt_handler {
+          build_worker(options, build_id,
+            progress = progress,
+            list_builds = list_builds,
+            dirs = dirs,
+            numa_shuffling = Host.numa_check(progress, numa_shuffling),
+            max_jobs = max_jobs)
+        }
 
-      if (list_builds) progress.echo(print_builds(options, builds))
-
-      if (!list_builds || build_id.nonEmpty) {
-        val build = id_builds(options, build_id, builds)
-
-        val results =
-          progress.interrupt_handler {
-            build_worker(options, build,
-              progress = progress,
-              dirs = dirs,
-              numa_shuffling = Host.numa_check(progress, numa_shuffling),
-              max_jobs = max_jobs)
-          }
-
-        sys.exit(results.rc)
+      res match {
+        case Some(results) if !results.ok => sys.exit(results.rc)
+        case _ =>
       }
     })
 
