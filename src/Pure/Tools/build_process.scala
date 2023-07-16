@@ -1071,7 +1071,7 @@ extends AutoCloseable {
 
     def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-        build_options.seconds("editor_input_delay").sleep()
+        build_options.seconds("build_delay").sleep()
       }
 
     def start_job(): Boolean = synchronized_database("Build_Process.start_job") {
