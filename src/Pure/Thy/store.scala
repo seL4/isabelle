@@ -327,12 +327,12 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def try_open_database(
     name: String,
     output: Boolean = false,
-    server: Boolean = build_database_server
+    server_mode: Boolean = build_database_server
   ): Option[SQL.Database] = {
     def check(db: SQL.Database): Option[SQL.Database] =
       if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
-    if (server) check(open_database_server())
+    if (server_mode) check(open_database_server())
     else if (output) Some(SQLite.open_database(output_database(name)))
     else {
       (for {
