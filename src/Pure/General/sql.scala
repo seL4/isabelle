@@ -477,7 +477,7 @@ object SQL {
       def trace(msg: String, nl: Boolean = false): Unit = {
         val trace_time = Time.now() - trace_start
         if (trace_time >= trace_min) {
-          val nl = if (trace_nl) { trace_nl = true; "\n" } else ""
+          val nl = if (trace_nl) "" else { trace_nl = true; "\n" }
           log(nl + trace_time + " transaction " + trace_count +
             if_proper(label, " " + label) + ": " + msg)
         }
