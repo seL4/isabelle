@@ -465,14 +465,21 @@ object SQL {
       label: String = "",
       log: Logger = new System_Logger
     )(body: => A): A = {
-      val trace_enabled = System.getProperty("isabelle.transaction_log", "") == "true"
+      val prop = "isabelle.transaction_trace"
+      val trace_min =
+        System.getProperty(prop, "") match {
+          case Value.Long(ms) => Time.ms(ms)
+          case "true" => Time.min
+          case "false" | "" => Time.max
+          case s => error("Bad system property " + prop + ": " + quote(s))
+        }
 
-      val trace_count = if (trace_enabled) transaction_count() else 0
+      val trace_count = transaction_count()
       val trace_start = Time.now()
 
       def trace(msg: => String, nl: Boolean = false): Unit = {
-        if (trace_enabled) {
-          val trace_time = Time.now() - trace_start
+        val trace_time = Time.now() - trace_start
+        if (trace_time >= trace_min) {
           log((if (nl) "\n" else "") + trace_time + " transaction " +
             (if (label.isEmpty) "" else label + " ") + trace_count + ": " + msg)
         }
