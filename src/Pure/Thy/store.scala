@@ -150,7 +150,7 @@ object Store {
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
     def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
-      if (db.exists_table(Session_Info.table)) {
+      if (session_info_exists(db)) {
         db.execute_query_statementO[Store.Build_Info](
           Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
           { res =>
