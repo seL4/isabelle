@@ -1079,7 +1079,7 @@ extends AutoCloseable {
         build_options.seconds("build_delay").sleep()
       }
 
-    def start_job(): Boolean = synchronized_database("Build_Process.start_job") {
+    def check_job(): Boolean = synchronized_database("Build_Process.check_job") {
       next_job(_state) match {
         case Some(name) =>
           if (is_session_name(name)) {
@@ -1118,7 +1118,7 @@ extends AutoCloseable {
             }
           }
 
-          if (!start_job()) sleep()
+          if (!check_job()) sleep()
         }
       }
       finally {
