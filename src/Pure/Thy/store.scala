@@ -150,7 +150,7 @@ object Store {
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
     def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
-      if (db.tables.contains(Session_Info.table.name)) {
+      if (db.exists_table(Session_Info.table)) {
         db.execute_query_statementO[Store.Build_Info](
           Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
           { res =>
@@ -421,10 +421,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   /* session info */
 
-  def session_info_exists(db: SQL.Database): Boolean = {
-    val tables = db.tables
-    Store.Data.tables.forall(table => tables.contains(table.name))
-  }
+  def session_info_exists(db: SQL.Database): Boolean =
+    Store.Data.tables.forall(db.exists_table)
 
   def session_info_defined(db: SQL.Database, name: String): Boolean =
     db.execute_query_statementB(

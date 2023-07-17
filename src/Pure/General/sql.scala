@@ -536,12 +536,22 @@ object SQL {
 
     /* tables and views */
 
-    def tables: List[String] = {
+    def get_tables(pattern: String = "%"): List[String] = {
       val result = new mutable.ListBuffer[String]
-      val rs = connection.getMetaData.getTables(null, null, "%", null)
+      val rs = connection.getMetaData.getTables(null, null, pattern, null)
       while (rs.next) { result += rs.getString(3) }
       result.toList
     }
+
+    def exists_table(name: String): Boolean = {
+      val escape = connection.getMetaData.getSearchStringEscape
+      val pattern =
+        name.iterator.map(c =>
+          (if (c == '_' || c == '%' || c == escape(0)) escape else "") + c).mkString
+      get_tables(pattern = pattern).nonEmpty
+    }
+
+    def exists_table(table: Table): Boolean = exists_table(table.name)
 
     def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit = {
       execute_statement(table.create(strict, sql_type) + SQL.separate(sql))
@@ -558,7 +568,7 @@ object SQL {
       execute_statement(table.create_index(name, columns, strict, unique))
 
     def create_view(table: Table, strict: Boolean = false): Unit = {
-      if (strict || !tables.contains(table.name)) {
+      if (strict || exists_table(table)) {
         execute_statement("CREATE VIEW " + table + " AS " + { table.query; table.body })
       }
     }
