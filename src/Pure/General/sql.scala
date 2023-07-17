@@ -481,18 +481,21 @@ object SQL {
         }
       }
 
-      val res =
-        transaction {
-          trace("begin")
-          if (tables.lock(db, create = create)) {
-            trace("locked " + commas_quote(tables.list.map(_.name)), force = true)
+      try {
+        val res =
+          transaction {
+            trace("begin")
+            if (tables.lock(db, create = create)) {
+              trace("locked " + commas_quote(tables.list.map(_.name)), force = true)
+            }
+            val res = Exn.capture { body }
+            trace("end")
+            res
           }
-          val res = Exn.capture { body }
-          trace("end")
-          res
-        }
-      trace("commit")
-      Exn.release(res)
+        trace("commit")
+        Exn.release(res)
+      }
+      catch { case exn: Throwable => trace("crash"); throw exn }
     }
 
     def lock_tables(tables: List[Table]): Source = ""  // PostgreSQL only
