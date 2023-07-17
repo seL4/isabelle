@@ -253,7 +253,7 @@ extends Progress {
   database_progress =>
 
   private var _agent_uuid: String = ""
-  private var _context: Long = 0
+  private var _context: Long = -1
   private var _seen: Long = 0
 
   def agent_uuid: String = synchronized { _agent_uuid }
@@ -305,7 +305,9 @@ extends Progress {
   }
 
   private def sync_database[A](body: => A): A = synchronized {
-    require(_context > 0)
+    if (_context < 0) throw new IllegalStateException("Database_Progress before init")
+    if (_context == 0) throw new IllegalStateException("Database_Progress after exit")
+
     Progress.Data.transaction_lock(db, label = "Database_Progress.sync") {
       val stopped_db = Progress.Data.read_progress_stopped(db, _context)
       val stopped = base_progress.stopped
