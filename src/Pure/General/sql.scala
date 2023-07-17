@@ -568,7 +568,7 @@ object SQL {
       execute_statement(table.create_index(name, columns, strict, unique))
 
     def create_view(table: Table, strict: Boolean = false): Unit = {
-      if (strict || exists_table(table)) {
+      if (strict || !exists_table(table)) {
         execute_statement("CREATE VIEW " + table + " AS " + { table.query; table.body })
       }
     }
