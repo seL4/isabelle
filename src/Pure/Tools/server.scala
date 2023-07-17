@@ -375,7 +375,7 @@ object Server {
   }
 
   def list(db: SQLite.Database): List[Info] =
-    if (db.tables.contains(Data.table.name)) {
+    if (db.exists_table(Data.table)) {
       db.execute_query_statement(Data.table.select(),
         List.from[Info],
         { res =>

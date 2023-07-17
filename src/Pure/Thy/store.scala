@@ -149,25 +149,20 @@ object Store {
     def read_errors(db: SQL.Database, name: String, cache: Term.Cache): List[String] =
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
-    def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
-      if (db.tables.contains(Session_Info.table.name)) {
-        db.execute_query_statementO[Store.Build_Info](
-          Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
-          { res =>
-            val uuid =
-              try { Option(res.string(Session_Info.uuid)).getOrElse("") }
-              catch { case _: SQLException => "" }
-            Store.Build_Info(
-              SHA1.fake_shasum(res.string(Session_Info.sources)),
-              SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
-              SHA1.fake_shasum(res.string(Session_Info.output_heap)),
-              res.int(Session_Info.return_code),
-              uuid)
-          }
-        )
-      }
-      else None
-    }
+    def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] =
+      db.execute_query_statementO[Store.Build_Info](
+        Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
+        { res =>
+          val uuid =
+            try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+            catch { case _: SQLException => "" }
+          Store.Build_Info(
+            SHA1.fake_shasum(res.string(Session_Info.sources)),
+            SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
+            SHA1.fake_shasum(res.string(Session_Info.output_heap)),
+            res.int(Session_Info.return_code),
+            uuid)
+        })
 
     def write_session_info(
       db: SQL.Database,
@@ -294,41 +289,49 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def build_database_server: Boolean = options.bool("build_database_server")
   def build_database_test: Boolean = options.bool("build_database_test")
 
-  def open_database_server(): PostgreSQL.Database =
-    PostgreSQL.open_database(
+  def open_server(): SSH.Server =
+    PostgreSQL.open_server(options,
+      host = options.string("build_database_host"),
+      port = options.int("build_database_port"),
+      ssh_host = options.string("build_database_ssh_host"),
+      ssh_port = options.int("build_database_ssh_port"),
+      ssh_user = options.string("build_database_ssh_user"))
+
+  def open_database_server(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
+    PostgreSQL.open_database_server(options, server = server,
       user = options.string("build_database_user"),
       password = options.string("build_database_password"),
       database = options.string("build_database_name"),
       host = options.string("build_database_host"),
       port = options.int("build_database_port"),
-      ssh =
-        proper_string(options.string("build_database_ssh_host")).map(ssh_host =>
-          SSH.open_session(options,
-            host = ssh_host,
-            user = options.string("build_database_ssh_user"),
-            port = options.int("build_database_ssh_port"))),
-      ssh_close = true)
+      ssh_host = options.string("build_database_ssh_host"),
+      ssh_port = options.int("build_database_ssh_port"),
+      ssh_user = options.string("build_database_ssh_user"))
 
-  def maybe_open_database_server(): Option[SQL.Database] =
-    if (build_database_server) Some(open_database_server()) else None
+  def maybe_open_database_server(server: SSH.Server = SSH.no_server): Option[SQL.Database] =
+    if (build_database_server) Some(open_database_server(server = server)) else None
 
-  def open_build_database(path: Path): SQL.Database =
-    if (build_database_server) open_database_server()
+  def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
+    if (build_database_server) open_database_server(server = server)
     else SQLite.open_database(path, restrict = true)
 
   def maybe_open_build_database(
-    path: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
-  ): Option[SQL.Database] = if (build_database_test) Some(open_build_database(path)) else None
+    path: Path = Path.explode("$ISABELLE_HOME_USER/build.db"),
+    server: SSH.Server = SSH.no_server
+  ): Option[SQL.Database] = {
+    if (build_database_test) Some(open_build_database(path, server = server)) else None
+  }
 
   def try_open_database(
     name: String,
     output: Boolean = false,
-    server: Boolean = build_database_server
+    server: SSH.Server = SSH.no_server,
+    server_mode: Boolean = build_database_server
   ): Option[SQL.Database] = {
     def check(db: SQL.Database): Option[SQL.Database] =
       if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
-    if (server) check(open_database_server())
+    if (server_mode) check(open_database_server(server = server))
     else if (output) Some(SQLite.open_database(output_database(name)))
     else {
       (for {
@@ -342,8 +345,13 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def error_database(name: String): Nothing =
     error("Missing build database for session " + quote(name))
 
-  def open_database(name: String, output: Boolean = false): SQL.Database =
-    try_open_database(name, output = output) getOrElse error_database(name)
+  def open_database(
+    name: String,
+    output: Boolean = false,
+    server: SSH.Server = SSH.no_server
+  ): SQL.Database = {
+    try_open_database(name, output = output, server = server) getOrElse error_database(name)
+  }
 
   def clean_output(
     database_server: Option[SQL.Database],
@@ -374,6 +382,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   }
 
   def check_output(
+    database_server: Option[SQL.Database],
     name: String,
     session_options: Options,
     sources_shasum: SHA1.Shasum,
@@ -381,34 +390,34 @@ class Store private(val options: Options, val cache: Term.Cache) {
     fresh_build: Boolean,
     store_heap: Boolean
   ): (Boolean, SHA1.Shasum) = {
-    try_open_database(name) match {
-      case Some(db) =>
-        using(db) { _ =>
-          read_build(db, name) match {
-            case Some(build) =>
-              val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
-              val current =
-                !fresh_build &&
-                  build.ok &&
-                  Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
-                  build.input_heaps == input_shasum &&
-                  build.output_heap == output_shasum &&
-                  !(store_heap && output_shasum.is_empty)
-              (current, output_shasum)
-            case None => (false, SHA1.no_shasum)
-          }
-        }
-      case None => (false, SHA1.no_shasum)
+    def no_check: (Boolean, SHA1.Shasum) = (false, SHA1.no_shasum)
+
+    def check(db: SQL.Database): (Boolean, SHA1.Shasum) =
+      read_build(db, name) match {
+        case Some(build) =>
+          val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
+          val current =
+            !fresh_build &&
+              build.ok &&
+              Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
+              build.input_heaps == input_shasum &&
+              build.output_heap == output_shasum &&
+              !(store_heap && output_shasum.is_empty)
+          (current, output_shasum)
+        case None => no_check
+      }
+
+    database_server match {
+      case Some(db) => if (session_info_exists(db)) check(db) else no_check
+      case None => using_option(try_open_database(name))(check) getOrElse no_check
     }
   }
 
 
   /* session info */
 
-  def session_info_exists(db: SQL.Database): Boolean = {
-    val tables = db.tables
-    Store.Data.tables.forall(table => tables.contains(table.name))
-  }
+  def session_info_exists(db: SQL.Database): Boolean =
+    Store.Data.tables.forall(db.exists_table)
 
   def session_info_defined(db: SQL.Database, name: String): Boolean =
     db.execute_query_statementB(
@@ -419,7 +428,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     Export.clean_session(db, name)
     Document_Build.clean_session(db, name)
 
-    Store.Data.transaction_lock(db, create = true, synchronized = true) {
+    Store.Data.transaction_lock(db, create = true, label = "Store.clean_session_info") {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
@@ -440,36 +449,52 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build_log: Build_Log.Session_Info,
     build: Store.Build_Info
   ): Unit = {
-    Store.Data.transaction_lock(db, synchronized = true) {
+    Store.Data.transaction_lock(db, label = "Store.write_session_info") {
       Store.Data.write_sources(db, session_name, sources)
       Store.Data.write_session_info(db, cache.compress, session_name, build_log, build)
     }
   }
 
   def read_session_timing(db: SQL.Database, session: String): Properties.T =
-    Store.Data.transaction_lock(db) { Store.Data.read_session_timing(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_session_timing") {
+      Store.Data.read_session_timing(db, session, cache)
+    }
 
   def read_command_timings(db: SQL.Database, session: String): Bytes =
-    Store.Data.transaction_lock(db) { Store.Data.read_command_timings(db, session) }
+    Store.Data.transaction_lock(db, label = "Store.read_command_timings") {
+      Store.Data.read_command_timings(db, session)
+    }
 
   def read_theory_timings(db: SQL.Database, session: String): List[Properties.T] =
-    Store.Data.transaction_lock(db) { Store.Data.read_theory_timings(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_theory_timings") {
+      Store.Data.read_theory_timings(db, session, cache)
+    }
 
   def read_ml_statistics(db: SQL.Database, session: String): List[Properties.T] =
-    Store.Data.transaction_lock(db) { Store.Data.read_ml_statistics(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_ml_statistics") {
+      Store.Data.read_ml_statistics(db, session, cache)
+    }
 
   def read_task_statistics(db: SQL.Database, session: String): List[Properties.T] =
-    Store.Data.transaction_lock(db) { Store.Data.read_task_statistics(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_task_statistics") {
+      Store.Data.read_task_statistics(db, session, cache)
+    }
 
   def read_theories(db: SQL.Database, session: String): List[String] =
     read_theory_timings(db, session).flatMap(Markup.Name.unapply)
 
   def read_errors(db: SQL.Database, session: String): List[String] =
-    Store.Data.transaction_lock(db) { Store.Data.read_errors(db, session, cache) }
+    Store.Data.transaction_lock(db, label = "Store.read_errors") {
+      Store.Data.read_errors(db, session, cache)
+    }
 
   def read_build(db: SQL.Database, session: String): Option[Store.Build_Info] =
-    Store.Data.transaction_lock(db) { Store.Data.read_build(db, session) }
+    Store.Data.transaction_lock(db, label = "Store.read_build") {
+      if (session_info_exists(db)) Store.Data.read_build(db, session) else None
+    }
 
   def read_sources(db: SQL.Database, session: String, name: String = ""): List[Store.Source_File] =
-    Store.Data.transaction_lock(db) { Store.Data.read_sources(db, session, name, cache.compress) }
+    Store.Data.transaction_lock(db, label = "Store.read_sources") {
+      Store.Data.read_sources(db, session, name, cache.compress)
+    }
 }

@@ -259,90 +259,91 @@ object Build_Status {
         progress.echo(sql, verbose = true)
 
         db.using_statement(sql) { stmt =>
-          val res = stmt.execute_query()
-          while (res.next()) {
-            val session_name = res.string(Build_Log.Data.session_name)
-            val chapter = res.string(Build_Log.Data.chapter)
-            val groups = split_lines(res.string(Build_Log.Data.groups))
-            val threads = {
-              val threads1 =
-                res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
-                  case Threads_Option(Value.Int(i)) => i
-                  case _ => 1
-                }
-              val threads2 = res.get_int(Build_Log.Data.threads).getOrElse(1)
-              threads1 max threads2
-            }
-            val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
-            val ml_platform_64 =
-              ml_platform.startsWith("x86_64-") || ml_platform.startsWith("arm64-")
-            val data_name =
-              profile.description +
-                (if (ml_platform_64) ", 64bit" else "") +
-                (if (threads == 1) "" else ", " + threads + " threads")
-
-            res.get_string(Build_Log.Prop.build_host).foreach(host =>
-              data_hosts += (data_name -> (get_hosts(data_name) + host)))
-
-            data_stretch += (data_name -> profile.stretch(options))
-
-            val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
-            val afp_version = res.string(Build_Log.Prop.afp_version)
-
-            val ml_stats =
-              ML_Statistics(
-                if (ml_statistics) {
-                  Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics), cache = store.cache)
-                }
-                else Nil,
-                domain = ml_statistics_domain,
-                heading = session_name + print_version(isabelle_version, afp_version, chapter))
-
-            val entry =
-              Entry(
-                chapter = chapter,
-                pull_date = res.date(Build_Log.Data.pull_date(afp = false)),
-                afp_pull_date =
-                  if (afp) res.get_date(Build_Log.Data.pull_date(afp = true)) else None,
-                isabelle_version = isabelle_version,
-                afp_version = afp_version,
-                timing =
-                  res.timing(
-                    Build_Log.Data.timing_elapsed,
-                    Build_Log.Data.timing_cpu,
-                    Build_Log.Data.timing_gc),
-                ml_timing =
-                  res.timing(
-                    Build_Log.Data.ml_timing_elapsed,
-                    Build_Log.Data.ml_timing_cpu,
-                    Build_Log.Data.ml_timing_gc),
-                maximum_code = Space.B(ml_stats.maximum(ML_Statistics.CODE_SIZE)),
-                average_code = Space.B(ml_stats.average(ML_Statistics.CODE_SIZE)),
-                maximum_stack = Space.B(ml_stats.maximum(ML_Statistics.STACK_SIZE)),
-                average_stack = Space.B(ml_stats.average(ML_Statistics.STACK_SIZE)),
-                maximum_heap = Space.B(ml_stats.maximum(ML_Statistics.HEAP_SIZE)),
-                average_heap = Space.B(ml_stats.average(ML_Statistics.HEAP_SIZE)),
-                stored_heap = Space.bytes(res.long(Build_Log.Data.heap_size)),
-                status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
-                errors =
-                  Build_Log.uncompress_errors(
-                    res.bytes(Build_Log.Data.errors), cache = store.cache))
-
-            val sessions = data_entries.getOrElse(data_name, Map.empty)
-            val session =
-              sessions.get(session_name) match {
-                case None =>
-                  Session(session_name, threads, List(entry), ml_stats, entry.date)
-                case Some(old) =>
-                  val (ml_stats1, ml_stats1_date) =
-                    if (entry.date > old.ml_statistics_date) (ml_stats, entry.date)
-                    else (old.ml_statistics, old.ml_statistics_date)
-                  Session(session_name, threads, entry :: old.entries, ml_stats1, ml_stats1_date)
+          using(stmt.execute_query()) { res =>
+            while (res.next()) {
+              val session_name = res.string(Build_Log.Data.session_name)
+              val chapter = res.string(Build_Log.Data.chapter)
+              val groups = split_lines(res.string(Build_Log.Data.groups))
+              val threads = {
+                val threads1 =
+                  res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
+                    case Threads_Option(Value.Int(i)) => i
+                    case _ => 1
+                  }
+                val threads2 = res.get_int(Build_Log.Data.threads).getOrElse(1)
+                threads1 max threads2
               }
+              val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
+              val ml_platform_64 =
+                ml_platform.startsWith("x86_64-") || ml_platform.startsWith("arm64-")
+              val data_name =
+                profile.description +
+                  (if (ml_platform_64) ", 64bit" else "") +
+                  (if (threads == 1) "" else ", " + threads + " threads")
 
-            if ((!afp || chapter == AFP.chapter) &&
-                (!profile.bulky || groups.exists(AFP.groups_bulky.toSet))) {
-              data_entries += (data_name -> (sessions + (session_name -> session)))
+              res.get_string(Build_Log.Prop.build_host).foreach(host =>
+                data_hosts += (data_name -> (get_hosts(data_name) + host)))
+
+              data_stretch += (data_name -> profile.stretch(options))
+
+              val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
+              val afp_version = res.string(Build_Log.Prop.afp_version)
+
+              val ml_stats =
+                ML_Statistics(
+                  if (ml_statistics) {
+                    Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics), cache = store.cache)
+                  }
+                  else Nil,
+                  domain = ml_statistics_domain,
+                  heading = session_name + print_version(isabelle_version, afp_version, chapter))
+
+              val entry =
+                Entry(
+                  chapter = chapter,
+                  pull_date = res.date(Build_Log.Data.pull_date(afp = false)),
+                  afp_pull_date =
+                    if (afp) res.get_date(Build_Log.Data.pull_date(afp = true)) else None,
+                  isabelle_version = isabelle_version,
+                  afp_version = afp_version,
+                  timing =
+                    res.timing(
+                      Build_Log.Data.timing_elapsed,
+                      Build_Log.Data.timing_cpu,
+                      Build_Log.Data.timing_gc),
+                  ml_timing =
+                    res.timing(
+                      Build_Log.Data.ml_timing_elapsed,
+                      Build_Log.Data.ml_timing_cpu,
+                      Build_Log.Data.ml_timing_gc),
+                  maximum_code = Space.B(ml_stats.maximum(ML_Statistics.CODE_SIZE)),
+                  average_code = Space.B(ml_stats.average(ML_Statistics.CODE_SIZE)),
+                  maximum_stack = Space.B(ml_stats.maximum(ML_Statistics.STACK_SIZE)),
+                  average_stack = Space.B(ml_stats.average(ML_Statistics.STACK_SIZE)),
+                  maximum_heap = Space.B(ml_stats.maximum(ML_Statistics.HEAP_SIZE)),
+                  average_heap = Space.B(ml_stats.average(ML_Statistics.HEAP_SIZE)),
+                  stored_heap = Space.bytes(res.long(Build_Log.Data.heap_size)),
+                  status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
+                  errors =
+                    Build_Log.uncompress_errors(
+                      res.bytes(Build_Log.Data.errors), cache = store.cache))
+
+              val sessions = data_entries.getOrElse(data_name, Map.empty)
+              val session =
+                sessions.get(session_name) match {
+                  case None =>
+                    Session(session_name, threads, List(entry), ml_stats, entry.date)
+                  case Some(old) =>
+                    val (ml_stats1, ml_stats1_date) =
+                      if (entry.date > old.ml_statistics_date) (ml_stats, entry.date)
+                      else (old.ml_statistics, old.ml_statistics_date)
+                    Session(session_name, threads, entry :: old.entries, ml_stats1, ml_stats1_date)
+                }
+
+              if ((!afp || chapter == AFP.chapter) &&
+                  (!profile.bulky || groups.exists(AFP.groups_bulky.toSet))) {
+                data_entries += (data_name -> (sessions + (session_name -> session)))
+              }
             }
           }
         }

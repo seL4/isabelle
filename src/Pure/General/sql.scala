@@ -2,6 +2,8 @@
     Author:     Makarius
 
 Support for SQL databases: SQLite and PostgreSQL.
+
+See https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Connection.html
 */
 
 package isabelle
@@ -240,10 +242,11 @@ object SQL {
     def iterator: Iterator[Table] = list.iterator
 
     // requires transaction
-    def lock(db: Database, create: Boolean = false): Unit = {
+    def lock(db: Database, create: Boolean = false): Boolean = {
       if (create) foreach(db.create_table(_))
       val sql = db.lock_tables(list)
-      if (sql.nonEmpty) db.execute_statement(sql)
+      if (sql.nonEmpty) { db.execute_statement(sql); true }
+      else false
     }
   }
 
@@ -253,10 +256,10 @@ object SQL {
     def transaction_lock[A](
       db: Database,
       create: Boolean = false,
-      synchronized: Boolean = false,
+      label: String = "",
+      log: Logger = new System_Logger
     )(body: => A): A = {
-      def run: A = db.transaction { tables.lock(db, create = create); body }
-      if (synchronized) db.synchronized { run } else run
+      db.transaction_lock(tables, create = create, label = label, log = log)(body)
     }
 
     def make_table(columns: List[Column], body: String = "", name: String = ""): Table = {
@@ -323,13 +326,13 @@ object SQL {
     def execute(): Boolean = rep.execute()
     def execute_query(): Result = new Result(this, rep.executeQuery())
 
-    def close(): Unit = rep.close()
+    override def close(): Unit = rep.close()
   }
 
 
   /* results */
 
-  class Result private[SQL](val stmt: Statement, val rep: ResultSet) {
+  class Result private[SQL](val stmt: Statement, val rep: ResultSet) extends AutoCloseable {
     res =>
 
     def next(): Boolean = rep.next()
@@ -368,6 +371,8 @@ object SQL {
     def get_string(column: Column): Option[String] = get(column, string)
     def get_bytes(column: Column): Option[Bytes] = get(column, bytes)
     def get_date(column: Column): Option[Date] = get(column, date)
+
+    override def close(): Unit = rep.close()
   }
 
 
@@ -431,25 +436,66 @@ object SQL {
       }
       else None
 
-    def close(): Unit = connection.close()
+    override def close(): Unit = connection.close()
 
-    def transaction[A](body: => A): A = {
-      val auto_commit = connection.getAutoCommit()
+    def transaction[A](body: => A): A = connection.synchronized {
+      require(connection.getAutoCommit(), "transaction already active")
       try {
         connection.setAutoCommit(false)
-        val savepoint = connection.setSavepoint()
         try {
           val result = body
           connection.commit()
           result
         }
-        catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
+        catch { case exn: Throwable => connection.rollback(); throw exn }
       }
-      finally { connection.setAutoCommit(auto_commit) }
+      finally { connection.setAutoCommit(true) }
     }
 
-    def transaction_lock[A](tables: Tables, create: Boolean = false)(body: => A): A =
-      transaction { tables.lock(db, create = create); body }
+    def transaction_lock[A](
+      tables: Tables,
+      create: Boolean = false,
+      label: String = "",
+      log: Logger = new System_Logger
+    )(body: => A): A = {
+      val prop = "isabelle.transaction_trace"
+      val trace_min =
+        System.getProperty(prop, "") match {
+          case Value.Seconds(t) => t
+          case "true" => Time.min
+          case "false" | "" => Time.max
+          case s => error("Bad system property " + prop + ": " + quote(s))
+        }
+
+      val trace_count = - SQL.transaction_count()
+      val trace_start = Time.now()
+      var trace_nl = false
+
+      def trace(msg: String): Unit = {
+        val trace_time = Time.now() - trace_start
+        if (trace_time >= trace_min) {
+          val nl = if (trace_nl) "" else { trace_nl = true; "\n" }
+          log(nl + trace_time + " transaction " + trace_count +
+            if_proper(label, " " + label) + ": " + msg)
+        }
+      }
+
+      try {
+        val res =
+          transaction {
+            trace("begin")
+            if (tables.lock(db, create = create)) {
+              trace("locked " + commas_quote(tables.list.map(_.name)))
+            }
+            val res = Exn.capture { body }
+            trace("end")
+            res
+          }
+        trace("commit")
+        Exn.release(res)
+      }
+      catch { case exn: Throwable => trace("crash"); throw exn }
+    }
 
     def lock_tables(tables: List[Table]): Source = ""  // PostgreSQL only
 
@@ -469,13 +515,17 @@ object SQL {
       sql: Source,
       make_result: Iterator[A] => B,
       get: Result => A
-    ): B = using_statement(sql)(stmt => make_result(stmt.execute_query().iterator(get)))
+    ): B = {
+      using_statement(sql) { stmt =>
+        using(stmt.execute_query()) { res => make_result(res.iterator(get)) }
+      }
+    }
 
     def execute_query_statementO[A](sql: Source, get: Result => A): Option[A] =
       execute_query_statement[A, Option[A]](sql, _.nextOption, get)
 
     def execute_query_statementB(sql: Source): Boolean =
-      using_statement(sql)(stmt => stmt.execute_query().next())
+      using_statement(sql)(stmt => using(stmt.execute_query())(_.next()))
 
     def update_date(stmt: Statement, i: Int, date: Date): Unit
     def date(res: Result, column: Column): Date
@@ -485,12 +535,22 @@ object SQL {
 
     /* tables and views */
 
-    def tables: List[String] = {
+    def get_tables(pattern: String = "%"): List[String] = {
       val result = new mutable.ListBuffer[String]
-      val rs = connection.getMetaData.getTables(null, null, "%", null)
+      val rs = connection.getMetaData.getTables(null, null, pattern, null)
       while (rs.next) { result += rs.getString(3) }
       result.toList
     }
+
+    def exists_table(name: String): Boolean = {
+      val escape = connection.getMetaData.getSearchStringEscape
+      val pattern =
+        name.iterator.map(c =>
+          (if (c == '_' || c == '%' || c == escape(0)) escape else "") + c).mkString
+      get_tables(pattern = pattern).nonEmpty
+    }
+
+    def exists_table(table: Table): Boolean = exists_table(table.name)
 
     def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit = {
       execute_statement(table.create(strict, sql_type) + SQL.separate(sql))
@@ -507,11 +567,14 @@ object SQL {
       execute_statement(table.create_index(name, columns, strict, unique))
 
     def create_view(table: Table, strict: Boolean = false): Unit = {
-      if (strict || !tables.contains(table.name)) {
+      if (strict || !exists_table(table)) {
         execute_statement("CREATE VIEW " + table + " AS " + { table.query; table.body })
       }
     }
   }
+
+
+  private val transaction_count = Counter.make()
 }
 
 
@@ -572,62 +635,89 @@ object SQLite {
 
 /** PostgreSQL **/
 
+// see https://www.postgresql.org/docs/current/index.html
+// see https://jdbc.postgresql.org/documentation
+
 object PostgreSQL {
   type Source = SQL.Source
 
-  val default_port = 5432
-
   lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
+
+  val default_server: SSH.Server = SSH.local_server(port = 5432)
 
   def open_database(
     user: String,
     password: String,
     database: String = "",
-    host: String = "",
-    port: Int = 0,
-    ssh: Option[SSH.Session] = None,
-    ssh_close: Boolean = false,
-    // see https://www.postgresql.org/docs/current/transaction-iso.html
-    transaction_isolation: Int = Connection.TRANSACTION_SERIALIZABLE
+    server: SSH.Server = default_server,
+    server_close: Boolean = false,
   ): Database = {
     init_jdbc
 
-    if (user == "") error("Undefined database user")
+    if (user.isEmpty) error("Undefined database user")
+    if (server.host.isEmpty) error("Undefined database server host")
+    if (server.port <= 0) error("Undefined database server port")
 
-    val db_host = proper_string(host) getOrElse "localhost"
-    val db_port = if (port > 0 && port != default_port) ":" + port else ""
-    val db_name = "/" + (proper_string(database) getOrElse user)
+    val name = proper_string(database) getOrElse user
+    val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + name
+    val ssh = server.ssh_system.ssh_session
+    val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
 
-    val (url, name, port_forwarding) =
-      ssh match {
-        case None =>
-          val spec = db_host + db_port + db_name
-          val url = "jdbc:postgresql://" + spec
-          val name = user + "@" + spec
-          (url, name, None)
-        case Some(ssh) =>
-          val fw =
-            ssh.port_forwarding(remote_host = db_host,
-              remote_port = if (port > 0) port else default_port,
-              ssh_close = ssh_close)
-          val url = "jdbc:postgresql://localhost:" + fw.port + db_name
-          val name = user + "@" + fw + db_name + " via ssh " + ssh
-          (url, name, Some(fw))
-      }
-    try {
-      val connection = DriverManager.getConnection(url, user, password)
-      connection.setTransactionIsolation(transaction_isolation)
-      new Database(name, connection, port_forwarding)
+    val connection = DriverManager.getConnection(url, user, password)
+    new Database(connection, print, server, server_close)
+  }
+
+  def open_server(
+    options: Options,
+    host: String = "",
+    port: Int = 0,
+    ssh_host: String = "",
+    ssh_port: Int = 0,
+    ssh_user: String = ""
+  ): SSH.Server = {
+    val server_host = proper_string(host).getOrElse(default_server.host)
+    val server_port = if (port > 0) port else default_server.port
+
+    if (ssh_host.isEmpty) SSH.local_server(host = server_host, port = server_port)
+    else {
+      SSH.open_server(options, host = ssh_host, port = ssh_port, user = ssh_user,
+        remote_host = server_host, remote_port = server_port)
     }
-    catch { case exn: Throwable => port_forwarding.foreach(_.close()); throw exn }
+  }
+
+  def open_database_server(
+    options: Options,
+    user: String = "",
+    password: String = "",
+    database: String = "",
+    server: SSH.Server = SSH.no_server,
+    host: String = "",
+    port: Int = 0,
+    ssh_host: String = "",
+    ssh_port: Int = 0,
+    ssh_user: String = ""
+  ): PostgreSQL.Database = {
+    val db_server =
+      if (server.defined) server
+      else {
+        open_server(options, host = host, port = port, ssh_host = ssh_host,
+          ssh_port = ssh_port, ssh_user = ssh_user)
+      }
+    val server_close = !server.defined
+    try {
+      open_database(user = user, password = password, database = database,
+        server = db_server, server_close = server_close)
+    }
+    catch { case exn: Throwable if server_close => db_server.close(); throw exn }
   }
 
   class Database private[PostgreSQL](
-    name: String,
     val connection: Connection,
-    port_forwarding: Option[SSH.Port_Forwarding]
+    print: String,
+    server: SSH.Server,
+    server_close: Boolean
   ) extends SQL.Database {
-    override def toString: String = name
+    override def toString: String = print
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
@@ -678,6 +768,6 @@ object PostgreSQL {
       }
 
 
-    override def close(): Unit = { super.close(); port_forwarding.foreach(_.close()) }
+    override def close(): Unit = { super.close(); if (server_close) server.close() }
   }
 }

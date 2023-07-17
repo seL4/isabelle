@@ -204,16 +204,24 @@ object Export {
   }
 
   def clean_session(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true) { Data.clean_session(db, session_name) }
+    Data.transaction_lock(db, create = true, label = "Export.clean_session") {
+      Data.clean_session(db, session_name)
+    }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-    Data.transaction_lock(db) { Data.read_theory_names(db, session_name) }
+    Data.transaction_lock(db, label = "Export.read_theory_names") {
+      Data.read_theory_names(db, session_name)
+    }
 
   def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
-    Data.transaction_lock(db) { Data.read_entry_names(db, session_name) }
+    Data.transaction_lock(db, label = "Export.read_entry_names") {
+      Data.read_entry_names(db, session_name)
+    }
 
   def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
-    Data.transaction_lock(db) { Data.read_entry(db, entry_name, cache) }
+    Data.transaction_lock(db, label = "Export.read_entry") {
+      Data.read_entry(db, entry_name, cache)
+    }
 
 
   /* database consumer thread */
@@ -230,7 +238,7 @@ object Export {
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
-              Data.transaction_lock(db) {
+              Data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {
@@ -266,18 +274,25 @@ object Export {
 
   /* context for database access */
 
-  def open_database_context(store: Store): Database_Context =
-    new Database_Context(store, store.maybe_open_database_server())
+  def open_database_context(store: Store, server: SSH.Server = SSH.no_server): Database_Context =
+    new Database_Context(store, store.maybe_open_database_server(server = server))
 
-  def open_session_context0(store: Store, session: String): Session_Context =
-    open_database_context(store).open_session0(session, close_database_context = true)
+  def open_session_context0(
+    store: Store,
+    session: String,
+    server: SSH.Server = SSH.no_server
+  ): Session_Context = {
+    open_database_context(store, server = server)
+      .open_session0(session, close_database_context = true)
+  }
 
   def open_session_context(
     store: Store,
     session_background: Sessions.Background,
-    document_snapshot: Option[Document.Snapshot] = None
+    document_snapshot: Option[Document.Snapshot] = None,
+    server: SSH.Server = SSH.no_server
   ): Session_Context = {
-    open_database_context(store).open_session(
+    open_database_context(store, server = server).open_session(
       session_background, document_snapshot = document_snapshot, close_database_context = true)
   }
 
@@ -324,7 +339,8 @@ object Export {
           case Some(db) => session_hierarchy.map(name => new Session_Database(name, db))
           case None =>
             val attempts =
-              session_hierarchy.map(name => name -> store.try_open_database(name, server = false))
+              for (name <- session_hierarchy)
+                yield name -> store.try_open_database(name, server_mode = false)
             attempts.collectFirst({ case (name, None) => name }) match {
               case Some(bad) =>
                 for ((_, Some(db)) <- attempts) db.close()

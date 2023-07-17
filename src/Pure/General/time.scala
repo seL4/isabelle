@@ -20,6 +20,8 @@ object Time {
   def now(): Time = ms(System.currentTimeMillis())
 
   val zero: Time = ms(0)
+  val min: Time = ms(Long.MinValue)
+  val max: Time = ms(Long.MaxValue)
 
   def print_seconds(s: Double): String =
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])

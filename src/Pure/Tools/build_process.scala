@@ -128,7 +128,11 @@ object Build_Process {
       make(data(dom).foldLeft(graph.restrict(dom)) { case (g, e) => g.new_node(e.name, e) })
     }
 
-    def init(build_context: Context, progress: Progress = new Progress): Sessions = {
+    def init(
+      build_context: Context,
+      database_server: Option[SQL.Database],
+      progress: Progress = new Progress
+    ): Sessions = {
       val sessions_structure = build_context.sessions_structure
       make(
         sessions_structure.build_graph.iterator.foldLeft(graph) {
@@ -165,7 +169,7 @@ object Build_Process {
             }
             else {
               val session =
-                Build_Job.Session_Context.load(
+                Build_Job.Session_Context.load(database_server,
                   build_context.build_uuid, name, deps, ancestors, prefs, sources_shasum,
                   info.timeout, build_context.store, progress = progress)
               graph0.new_node(name, session)
@@ -824,7 +828,9 @@ object Build_Process {
   }
 
   def read_builds(db: SQL.Database): List[Build] =
-    Data.transaction_lock(db, create = true) { Data.read_builds(db) }
+    Data.transaction_lock(db, create = true, label = "Build_Process.read_builds") {
+      Data.read_builds(db)
+    }
 }
 
 
@@ -833,7 +839,8 @@ object Build_Process {
 
 class Build_Process(
   protected final val build_context: Build_Process.Context,
-  protected final val build_progress: Progress
+  protected final val build_progress: Progress,
+  protected final val server: SSH.Server
 )
 extends AutoCloseable {
   /* context */
@@ -848,25 +855,28 @@ extends AutoCloseable {
   /* progress backed by database */
 
   private val _database_server: Option[SQL.Database] =
-    try { store.maybe_open_database_server() }
+    try { store.maybe_open_database_server(server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   private val _build_database: Option[SQL.Database] =
     try {
-      for (db <- store.maybe_open_build_database()) yield {
+      for (db <- store.maybe_open_build_database(server = server)) yield {
         val store_tables = if (db.is_postgresql) Store.Data.tables else SQL.Tables.empty
-        Build_Process.Data.transaction_lock(db, create = true) {
+        Build_Process.Data.transaction_lock(db,
+          create = true,
+          label = "Build_Process.build_database"
+        ) {
           Build_Process.Data.clean_build(db)
           store_tables.lock(db, create = true)
         }
-        db.vacuum(Build_Process.Data.tables ::: store_tables)
+        if (build_context.master) db.vacuum(Build_Process.Data.tables ::: store_tables)
         db
       }
     }
     catch { case exn: Throwable => close(); throw exn }
 
   private val _host_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(path = Host.Data.database) }
+    try { store.maybe_open_build_database(path = Host.Data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
@@ -874,7 +884,7 @@ extends AutoCloseable {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
         try {
-          val progress_db = store.open_build_database(Progress.Data.database)
+          val progress_db = store.open_build_database(Progress.Data.database, server = server)
           val progress =
             new Database_Progress(progress_db, build_progress,
               hostname = hostname,
@@ -903,26 +913,27 @@ extends AutoCloseable {
 
   private var _state: Build_Process.State = Build_Process.State()
 
-  protected def synchronized_database[A](body: => A): A = synchronized {
-    _build_database match {
-      case None => body
-      case Some(db) =>
-        Build_Process.Data.transaction_lock(db) {
+  protected def synchronized_database[A](label: String)(body: => A): A =
+    synchronized {
+      _build_database match {
+        case None => body
+        case Some(db) =>
           progress.asInstanceOf[Database_Progress].sync()
-          _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
-          val res = body
-          _state =
-            Build_Process.Data.update_database(db, worker_uuid, build_uuid, hostname, _state)
-          res
-        }
+          Build_Process.Data.transaction_lock(db, label = label) {
+            _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
+            val res = body
+            _state =
+              Build_Process.Data.update_database(db, worker_uuid, build_uuid, hostname, _state)
+            res
+          }
+      }
     }
-  }
 
 
   /* policy operations */
 
   protected def init_state(state: Build_Process.State): Build_Process.State = {
-    val sessions1 = state.sessions.init(build_context, progress = build_progress)
+    val sessions1 = state.sessions.init(build_context, _database_server, progress = build_progress)
 
     val old_pending = state.pending.iterator.map(_.name).toSet
     val new_pending =
@@ -960,7 +971,7 @@ extends AutoCloseable {
       state.sessions.iterator.exists(_.ancestors.contains(session_name))
 
     val (current, output_shasum) =
-      store.check_output(session_name,
+      store.check_output(_database_server, session_name,
         session_options = build_context.sessions_structure(session_name).options,
         sources_shasum = sources_shasum,
         input_shasum = input_shasum,
@@ -1009,12 +1020,10 @@ extends AutoCloseable {
         (if (store_heap) "Building " else "Running ") + session_name +
           if_proper(node_info.numa_node, " on " + node_info) + " ...")
 
-      store.clean_output(_database_server, session_name, session_init = true)
-
       val session = state.sessions(session_name)
 
       val build =
-        Build_Job.start_session(build_context, session, progress, log, _database_server,
+        Build_Job.start_session(build_context, session, progress, log, server,
           build_deps.background(session_name), sources_shasum, input_shasum, node_info, store_heap)
 
       val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
@@ -1029,27 +1038,27 @@ extends AutoCloseable {
   final def is_session_name(job_name: String): Boolean =
     !Long_Name.is_qualified(job_name)
 
-  protected final def start_build(): Unit = synchronized_database {
+  protected final def start_build(): Unit = synchronized_database("Build_Process.start_build") {
     for (db <- _build_database) {
       Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
         build_context.sessions_structure.session_prefs)
     }
   }
 
-  protected final def stop_build(): Unit = synchronized_database {
+  protected final def stop_build(): Unit = synchronized_database("Build_Process.stop_build") {
     for (db <- _build_database) {
       Build_Process.Data.stop_build(db, build_uuid)
     }
   }
 
-  protected final def start_worker(): Unit = synchronized_database {
+  protected final def start_worker(): Unit = synchronized_database("Build_Process.start_worker") {
     for (db <- _build_database) {
       _state = _state.inc_serial
       Build_Process.Data.start_worker(db, worker_uuid, build_uuid, _state.serial)
     }
   }
 
-  protected final def stop_worker(): Unit = synchronized_database {
+  protected final def stop_worker(): Unit = synchronized_database("Build_Process.stop_worker") {
     for (db <- _build_database) {
       Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop_now = true)
     }
@@ -1059,16 +1068,18 @@ extends AutoCloseable {
   /* run */
 
   def run(): Map[String, Process_Result] = {
-    if (build_context.master) synchronized_database { _state = init_state(_state) }
+    if (build_context.master) {
+      synchronized_database("Build_Process.init") { _state = init_state(_state) }
+    }
 
-    def finished(): Boolean = synchronized_database { _state.finished }
+    def finished(): Boolean = synchronized_database("Build_Process.test") { _state.finished }
 
     def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-        build_options.seconds("editor_input_delay").sleep()
+        build_options.seconds("build_delay").sleep()
       }
 
-    def start_job(): Boolean = synchronized_database {
+    def check_job(): Boolean = synchronized_database("Build_Process.check_job") {
       next_job(_state) match {
         case Some(name) =>
           if (is_session_name(name)) {
@@ -1094,7 +1105,7 @@ extends AutoCloseable {
 
       try {
         while (!finished()) {
-          synchronized_database {
+          synchronized_database("Build_Process.main") {
             if (progress.stopped) _state.stop_running()
 
             for (job <- _state.finished_running()) {
@@ -1107,7 +1118,7 @@ extends AutoCloseable {
             }
           }
 
-          if (!start_job()) sleep()
+          if (!check_job()) sleep()
         }
       }
       finally {
@@ -1115,7 +1126,7 @@ extends AutoCloseable {
         if (build_context.master) stop_build()
       }
 
-      synchronized_database {
+      synchronized_database("Build_Process.result") {
         for ((name, result) <- _state.results) yield name -> result.process_result
       }
     }
@@ -1124,7 +1135,7 @@ extends AutoCloseable {
 
   /* snapshot */
 
-  def snapshot(): Build_Process.Snapshot = synchronized_database {
+  def snapshot(): Build_Process.Snapshot = synchronized_database("Build_Process.snapshot") {
     val (builds, workers) =
       _build_database match {
         case None => (Nil, Nil)

@@ -671,12 +671,13 @@ object Browser_Info {
     store: Store,
     deps: Sessions.Deps,
     sessions: List[String],
-    progress: Progress = new Progress
+    progress: Progress = new Progress,
+    server: SSH.Server = SSH.no_server
   ): Unit = {
     val root_dir = browser_info.presentation_dir(store).absolute
     progress.echo("Presentation in " + root_dir)
 
-    using(Export.open_database_context(store)) { database_context =>
+    using(Export.open_database_context(store, server = server)) { database_context =>
       val context0 = context(deps.sessions_structure, root_dir = root_dir)
 
       val sessions1 =

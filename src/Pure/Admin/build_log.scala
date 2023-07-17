@@ -816,7 +816,7 @@ object Build_Log {
   def store(options: Options, cache: XML.Cache = XML.Cache.make()): Store =
     new Store(options, cache)
 
-  class Store private[Build_Log](options: Options, val cache: XML.Cache) {
+  class Store private[Build_Log](val options: Options, val cache: XML.Cache) {
     override def toString: String = {
       val s =
         Exn.capture { open_database() } match {
@@ -829,23 +829,16 @@ object Build_Log {
       "Store(" + s + ")"
     }
 
-    def open_database(
-      user: String = options.string("build_log_database_user"),
-      password: String = options.string("build_log_database_password"),
-      database: String = options.string("build_log_database_name"),
-      host: String = options.string("build_log_database_host"),
-      port: Int = options.int("build_log_database_port"),
-      ssh_host: String = options.string("build_log_ssh_host"),
-      ssh_user: String = options.string("build_log_ssh_user"),
-      ssh_port: Int = options.int("build_log_ssh_port")
-    ): PostgreSQL.Database = {
-      PostgreSQL.open_database(
-        user = user, password = password, database = database, host = host, port = port,
-        ssh =
-          if (ssh_host == "") None
-          else Some(SSH.open_session(options, host = ssh_host, user = ssh_user, port = ssh_port)),
-        ssh_close = true)
-    }
+    def open_database(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
+      PostgreSQL.open_database_server(options, server = server,
+        user = options.string("build_log_database_user"),
+        password = options.string("build_log_database_password"),
+        database = options.string("build_log_database_name"),
+        host = options.string("build_log_database_host"),
+        port = options.int("build_log_database_port"),
+        ssh_host = options.string("build_log_ssh_host"),
+        ssh_port = options.int("build_log_ssh_port"),
+        ssh_user = options.string("build_log_ssh_user"))
 
     def snapshot_database(
       db: PostgreSQL.Database,
@@ -890,12 +883,13 @@ object Build_Log {
               db2.using_statement(table.insert()) { stmt2 =>
                 db.using_statement(
                   Data.recent_pull_date_table(days, afp_rev = afp_rev).query) { stmt =>
-                  val res = stmt.execute_query()
-                  while (res.next()) {
-                    for ((c, i) <- table.columns.zipWithIndex) {
-                      stmt2.string(i + 1) = res.get_string(c)
+                  using(stmt.execute_query()) { res =>
+                    while (res.next()) {
+                      for ((c, i) <- table.columns.zipWithIndex) {
+                        stmt2.string(i + 1) = res.get_string(c)
+                      }
+                      stmt2.execute()
                     }
-                    stmt2.execute()
                   }
                 }
               }
