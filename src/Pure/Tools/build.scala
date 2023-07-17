@@ -228,7 +228,7 @@ object Build {
           results.sessions_ok.filter(name => browser_info.enabled(results.info(name)))
         if (presentation_sessions.nonEmpty && !progress.stopped) {
           Browser_Info.build(browser_info, results.store, results.deps, presentation_sessions,
-            progress = progress)
+            progress = progress, server = server)
         }
 
         if (!results.ok && (progress.verbose || !no_build)) {

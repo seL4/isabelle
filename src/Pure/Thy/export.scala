@@ -274,18 +274,25 @@ object Export {
 
   /* context for database access */
 
-  def open_database_context(store: Store): Database_Context =
-    new Database_Context(store, store.maybe_open_database_server())
+  def open_database_context(store: Store, server: SSH.Server = SSH.no_server): Database_Context =
+    new Database_Context(store, store.maybe_open_database_server(server = server))
 
-  def open_session_context0(store: Store, session: String): Session_Context =
-    open_database_context(store).open_session0(session, close_database_context = true)
+  def open_session_context0(
+    store: Store,
+    session: String,
+    server: SSH.Server = SSH.no_server
+  ): Session_Context = {
+    open_database_context(store, server = server)
+      .open_session0(session, close_database_context = true)
+  }
 
   def open_session_context(
     store: Store,
     session_background: Sessions.Background,
-    document_snapshot: Option[Document.Snapshot] = None
+    document_snapshot: Option[Document.Snapshot] = None,
+    server: SSH.Server = SSH.no_server
   ): Session_Context = {
-    open_database_context(store).open_session(
+    open_database_context(store, server = server).open_session(
       session_background, document_snapshot = document_snapshot, close_database_context = true)
   }
 
