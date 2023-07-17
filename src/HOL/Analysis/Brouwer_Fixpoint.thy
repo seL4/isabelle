@@ -22,40 +22,39 @@ subsection \<open>Retractions\<close>
 
 lemma retract_of_contractible:
   assumes "contractible T" "S retract_of T"
-    shows "contractible S"
-using assms
-apply (clarsimp simp add: retract_of_def contractible_def retraction_def homotopic_with image_subset_iff_funcset)
-apply (rule_tac x="r a" in exI)
-apply (rule_tac x="r \<circ> h" in exI)
-apply (intro conjI continuous_intros continuous_on_compose)
-apply (erule continuous_on_subset | force)+
-done
+  shows "contractible S"
+  using assms
+  apply (clarsimp simp add: retract_of_def contractible_def retraction_def homotopic_with image_subset_iff_funcset)
+  apply (rule_tac x="r a" in exI)
+  apply (rule_tac x="r \<circ> h" in exI)
+  apply (intro conjI continuous_intros continuous_on_compose)
+      apply (erule continuous_on_subset | force)+
+  done
 
 lemma retract_of_path_connected:
     "\<lbrakk>path_connected T; S retract_of T\<rbrakk> \<Longrightarrow> path_connected S"
   by (metis path_connected_continuous_image retract_of_def retraction)
 
 lemma retract_of_simply_connected:
-    "\<lbrakk>simply_connected T; S retract_of T\<rbrakk> \<Longrightarrow> simply_connected S"
-apply (simp add: retract_of_def retraction_def, clarify)
-apply (rule simply_connected_retraction_gen)
-apply (force elim!: continuous_on_subset)+
-done
+  "\<lbrakk>simply_connected T; S retract_of T\<rbrakk> \<Longrightarrow> simply_connected S"
+  apply (simp add: retract_of_def retraction_def Pi_iff, clarify)
+  apply (rule simply_connected_retraction_gen)
+       apply (force elim!: continuous_on_subset)+
+  done
 
 lemma retract_of_homotopically_trivial:
   assumes ts: "T retract_of S"
-      and hom: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> S;
-                       continuous_on U g; g ` U \<subseteq> S\<rbrakk>
+      and hom: "\<And>f g. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S;
+                       continuous_on U g; g \<in> U \<rightarrow> S\<rbrakk>
                        \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) U S f g"
-      and "continuous_on U f" "f ` U \<subseteq> T"
-      and "continuous_on U g" "g ` U \<subseteq> T"
+      and "continuous_on U f" "f \<in> U \<rightarrow> T"
+      and "continuous_on U g" "g \<in> U \<rightarrow> T"
     shows "homotopic_with_canon (\<lambda>x. True) U T f g"
 proof -
-  obtain r where "r ` S \<subseteq> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
+  obtain r where "r \<in> S \<rightarrow> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
     using ts by (auto simp: retract_of_def retraction)
   then obtain k where "Retracts S r T k"
-    unfolding Retracts_def
-    by (metis continuous_on_subset dual_order.trans image_iff image_mono)
+    unfolding Retracts_def using continuous_on_id by blast
   then show ?thesis
     apply (rule Retracts.homotopically_trivial_retraction_gen)
     using assms
@@ -65,16 +64,15 @@ qed
 
 lemma retract_of_homotopically_trivial_null:
   assumes ts: "T retract_of S"
-      and hom: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S\<rbrakk>
+      and hom: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S\<rbrakk>
                      \<Longrightarrow> \<exists>c. homotopic_with_canon (\<lambda>x. True) U S f (\<lambda>x. c)"
-      and "continuous_on U f" "f ` U \<subseteq> T"
+      and "continuous_on U f" "f \<in> U \<rightarrow> T"
   obtains c where "homotopic_with_canon (\<lambda>x. True) U T f (\<lambda>x. c)"
 proof -
-  obtain r where "r ` S \<subseteq> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
+  obtain r where "r \<in> S \<rightarrow> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
     using ts by (auto simp: retract_of_def retraction)
   then obtain k where "Retracts S r T k"
-    unfolding Retracts_def
-    by (metis continuous_on_subset dual_order.trans image_iff image_mono)
+    unfolding Retracts_def by fastforce
   then show ?thesis
     apply (rule Retracts.homotopically_trivial_retraction_null_gen)
     apply (rule TrueI refl assms that | assumption)+
@@ -92,25 +90,24 @@ lemma retract_of_locally_compact:
   by (metis locally_compact_closedin closedin_retract)
 
 lemma homotopic_into_retract:
-   "\<lbrakk>f ` S \<subseteq> T; g ` S \<subseteq> T; T retract_of U; homotopic_with_canon (\<lambda>x. True) S U f g\<rbrakk>
+   "\<lbrakk>f \<in> S \<rightarrow> T; g \<in> S \<rightarrow> T; T retract_of U; homotopic_with_canon (\<lambda>x. True) S U f g\<rbrakk>
         \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) S T f g"
-apply (subst (asm) homotopic_with_def)
-apply (simp add: homotopic_with retract_of_def retraction_def, clarify)
-apply (rule_tac x="r \<circ> h" in exI)
-apply (rule conjI continuous_intros | erule continuous_on_subset | force simp: image_subset_iff)+
-done
+  apply (subst (asm) homotopic_with_def)
+  apply (simp add: homotopic_with retract_of_def retraction_def Pi_iff, clarify)
+  apply (rule_tac x="r \<circ> h" in exI)
+  by (smt (verit, ccfv_SIG) comp_def continuous_on_compose continuous_on_subset image_subset_iff)
 
 lemma retract_of_locally_connected:
   assumes "locally connected T" "S retract_of T"
   shows "locally connected S"
   using assms
-  by (auto simp: idempotent_imp_retraction intro!: retraction_openin_vimage_iff elim!: locally_connected_quotient_image retract_ofE)
+  by (metis Abstract_Topology_2.retraction_openin_vimage_iff idempotent_imp_retraction locally_connected_quotient_image retract_ofE)
 
 lemma retract_of_locally_path_connected:
   assumes "locally path_connected T" "S retract_of T"
   shows "locally path_connected S"
   using assms
-  by (auto simp: idempotent_imp_retraction intro!: retraction_openin_vimage_iff elim!: locally_path_connected_quotient_image retract_ofE)
+  by (metis Abstract_Topology_2.retraction_openin_vimage_iff idempotent_imp_retraction locally_path_connected_quotient_image retract_ofE)
 
 text \<open>A few simple lemmas about deformation retracts\<close>
 
@@ -133,7 +130,7 @@ qed
 lemma deformation_retract:
   fixes S :: "'a::euclidean_space set"
     shows "(\<exists>r. homotopic_with_canon (\<lambda>x. True) S S id r \<and> retraction S T r) \<longleftrightarrow>
-           T retract_of S \<and> (\<exists>f. homotopic_with_canon (\<lambda>x. True) S S id f \<and> f ` S \<subseteq> T)"
+           T retract_of S \<and> (\<exists>f. homotopic_with_canon (\<lambda>x. True) S S id f \<and> f \<in> S \<rightarrow> T)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -147,7 +144,7 @@ next
      apply (rule homotopic_with_trans, assumption)
      apply (rule_tac f = "r \<circ> f" and g="r \<circ> id" in homotopic_with_eq)
         apply (rule_tac Y=S in homotopic_with_compose_continuous_left)
-         apply (auto simp: homotopic_with_sym)
+         apply (auto simp: homotopic_with_sym Pi_iff)
     done
 qed
 
@@ -161,10 +158,10 @@ proof -
   moreover have "homotopic_with_canon (\<lambda>x. True) S S id (\<lambda>x. a)"
       using assms
       by (auto simp: contractible_def homotopic_into_contractible image_subset_iff)
-  moreover have "(\<lambda>x. a) ` S \<subseteq> {a}"
+  moreover have "(\<lambda>x. a) \<in> S \<rightarrow> {a}"
     by (simp add: image_subsetI)
   ultimately show ?thesis
-    using that deformation_retract  by metis
+    by (metis that deformation_retract)
 qed
 
 
