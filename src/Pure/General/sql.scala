@@ -439,7 +439,7 @@ object SQL {
     override def close(): Unit = connection.close()
 
     def transaction[A](body: => A): A = connection.synchronized {
-      val auto_commit = connection.getAutoCommit()
+      require(connection.getAutoCommit(), "transaction already active")
       try {
         connection.setAutoCommit(false)
         val savepoint = connection.setSavepoint()
@@ -450,7 +450,7 @@ object SQL {
         }
         catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
       }
-      finally { connection.setAutoCommit(auto_commit) }
+      finally { connection.setAutoCommit(true) }
     }
 
     def transaction_lock[A](
