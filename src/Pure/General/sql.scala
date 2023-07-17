@@ -442,13 +442,12 @@ object SQL {
       require(connection.getAutoCommit(), "transaction already active")
       try {
         connection.setAutoCommit(false)
-        val savepoint = connection.setSavepoint()
         try {
           val result = body
           connection.commit()
           result
         }
-        catch { case exn: Throwable => connection.rollback(savepoint); throw exn }
+        catch { case exn: Throwable => connection.rollback(); throw exn }
       }
       finally { connection.setAutoCommit(true) }
     }
@@ -749,10 +748,6 @@ object PostgreSQL {
     override def lock_tables(tables: List[SQL.Table]): PostgreSQL.Source =
       if_proper(tables, "LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE")
 
-    override def transaction[A](body: => A): A = super.transaction {
-      execute_statement("START TRANSACTION")
-      body
-    }
 
     /* notifications: IPC via database server */
     // see https://www.postgresql.org/docs/current/sql-notify.html
