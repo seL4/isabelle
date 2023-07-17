@@ -646,6 +646,28 @@ object PostgreSQL {
 
   val default_server: SSH.Server = SSH.local_server(port = 5432)
 
+  def open_database(
+    user: String,
+    password: String,
+    database: String = "",
+    server: SSH.Server = default_server,
+    server_close: Boolean = false,
+  ): Database = {
+    init_jdbc
+
+    if (user.isEmpty) error("Undefined database user")
+    if (server.host.isEmpty) error("Undefined database server host")
+    if (server.port <= 0) error("Undefined database server port")
+
+    val name = proper_string(database) getOrElse user
+    val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + name
+    val ssh = server.ssh_system.ssh_session
+    val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
+
+    val connection = DriverManager.getConnection(url, user, password)
+    new Database(connection, print, server, server_close)
+  }
+
   def open_server(
     options: Options,
     host: String = "",
@@ -688,28 +710,6 @@ object PostgreSQL {
         server = db_server, server_close = server_close)
     }
     catch { case exn: Throwable if server_close => db_server.close(); throw exn }
-  }
-
-  def open_database(
-    user: String,
-    password: String,
-    database: String = "",
-    server: SSH.Server = default_server,
-    server_close: Boolean = false,
-  ): Database = {
-    init_jdbc
-
-    if (user.isEmpty) error("Undefined database user")
-    if (server.host.isEmpty) error("Undefined database server host")
-    if (server.port <= 0) error("Undefined database server port")
-
-    val name = proper_string(database) getOrElse user
-    val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + name
-    val ssh = server.ssh_system.ssh_session
-    val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
-
-    val connection = DriverManager.getConnection(url, user, password)
-    new Database(connection, print, server, server_close)
   }
 
   class Database private[PostgreSQL](
