@@ -149,25 +149,20 @@ object Store {
     def read_errors(db: SQL.Database, name: String, cache: Term.Cache): List[String] =
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = cache)
 
-    def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] = {
-      if (session_info_exists(db)) {
-        db.execute_query_statementO[Store.Build_Info](
-          Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
-          { res =>
-            val uuid =
-              try { Option(res.string(Session_Info.uuid)).getOrElse("") }
-              catch { case _: SQLException => "" }
-            Store.Build_Info(
-              SHA1.fake_shasum(res.string(Session_Info.sources)),
-              SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
-              SHA1.fake_shasum(res.string(Session_Info.output_heap)),
-              res.int(Session_Info.return_code),
-              uuid)
-          }
-        )
-      }
-      else None
-    }
+    def read_build(db: SQL.Database, name: String): Option[Store.Build_Info] =
+      db.execute_query_statementO[Store.Build_Info](
+        Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
+        { res =>
+          val uuid =
+            try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+            catch { case _: SQLException => "" }
+          Store.Build_Info(
+            SHA1.fake_shasum(res.string(Session_Info.sources)),
+            SHA1.fake_shasum(res.string(Session_Info.input_heaps)),
+            SHA1.fake_shasum(res.string(Session_Info.output_heap)),
+            res.int(Session_Info.return_code),
+            uuid)
+        })
 
     def write_session_info(
       db: SQL.Database,
@@ -495,7 +490,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   def read_build(db: SQL.Database, session: String): Option[Store.Build_Info] =
     Store.Data.transaction_lock(db, label = "Store.read_build") {
-      Store.Data.read_build(db, session)
+      if (session_info_exists(db)) Store.Data.read_build(db, session) else None
     }
 
   def read_sources(db: SQL.Database, session: String, name: String = ""): List[Store.Source_File] =
