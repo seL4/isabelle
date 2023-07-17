@@ -472,9 +472,9 @@ object SQL {
       val trace_start = Time.now()
       var trace_nl = false
 
-      def trace(msg: String, nl: Boolean = false, force: Boolean = false): Unit = {
+      def trace(msg: String): Unit = {
         val trace_time = Time.now() - trace_start
-        if (trace_time >= trace_min || force) {
+        if (trace_time >= trace_minx) {
           val nl = if (trace_nl) "" else { trace_nl = true; "\n" }
           log(nl + trace_time + " transaction " + trace_count +
             if_proper(label, " " + label) + ": " + msg)
@@ -486,7 +486,7 @@ object SQL {
           transaction {
             trace("begin")
             if (tables.lock(db, create = create)) {
-              trace("locked " + commas_quote(tables.list.map(_.name)), force = true)
+              trace("locked " + commas_quote(tables.list.map(_.name)))
             }
             val res = Exn.capture { body }
             trace("end")
