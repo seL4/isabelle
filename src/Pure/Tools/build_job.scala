@@ -37,6 +37,7 @@ object Build_Job {
 
   object Session_Context {
     def load(
+      database_server: Option[SQL.Database],
       build_uuid: String,
       name: String,
       deps: List[String],
@@ -45,40 +46,41 @@ object Build_Job {
       sources_shasum: SHA1.Shasum,
       timeout: Time,
       store: Store,
-      progress: Progress = new Progress,
-      server: SSH.Server = SSH.no_server
+      progress: Progress = new Progress
     ): Session_Context = {
       def default: Session_Context =
         Session_Context(
           name, deps, ancestors, session_prefs, sources_shasum, timeout,
           Time.zero, Bytes.empty, build_uuid)
 
-      store.try_open_database(name, server = server) match {
-        case None => default
-        case Some(db) =>
-          def ignore_error(msg: String) = {
-            progress.echo_warning(
-              "Ignoring bad database " + db + " for session " + quote(name) +
-              if_proper(msg, ":\n" + msg))
-            default
-          }
-          try {
-            val command_timings = store.read_command_timings(db, name)
-            val elapsed =
-              store.read_session_timing(db, name) match {
-                case Markup.Elapsed(s) => Time.seconds(s)
-                case _ => Time.zero
-              }
-            new Session_Context(
-              name, deps, ancestors, session_prefs, sources_shasum, timeout,
-              elapsed, command_timings, build_uuid)
-          }
-          catch {
-            case ERROR(msg) => ignore_error(msg)
-            case exn: java.lang.Error => ignore_error(Exn.message(exn))
-            case _: XML.Error => ignore_error("XML.Error")
-          }
-          finally { db.close() }
+      def read(db: SQL.Database): Session_Context = {
+        def ignore_error(msg: String) = {
+          progress.echo_warning(
+            "Ignoring bad database " + db + " for session " + quote(name) +
+            if_proper(msg, ":\n" + msg))
+          default
+        }
+        try {
+          val command_timings = store.read_command_timings(db, name)
+          val elapsed =
+            store.read_session_timing(db, name) match {
+              case Markup.Elapsed(s) => Time.seconds(s)
+              case _ => Time.zero
+            }
+          new Session_Context(
+            name, deps, ancestors, session_prefs, sources_shasum, timeout,
+            elapsed, command_timings, build_uuid)
+        }
+        catch {
+          case ERROR(msg) => ignore_error(msg)
+          case exn: java.lang.Error => ignore_error(Exn.message(exn))
+          case _: XML.Error => ignore_error("XML.Error")
+        }
+      }
+
+      database_server match {
+        case Some(db) => if (store.session_info_exists(db)) read(db) else default
+        case None => using_option(store.try_open_database(name))(read) getOrElse default
       }
     }
   }
@@ -489,7 +491,7 @@ object Build_Job {
           else File.write(store.output_log(session_name), terminate_lines(log_lines))
 
           // write database
-          using(store.open_database(session_name, output = true, server = server))(db =>
+          def write_info(db: SQL.Database): Unit =
             store.write_session_info(db, session_name, session_sources,
               build_log =
                 if (process_result.timeout) build_log.error("Timeout") else build_log,
@@ -499,7 +501,11 @@ object Build_Job {
                   input_heaps = input_shasum,
                   output_heap = output_shasum,
                   process_result.rc,
-                  build_context.build_uuid)))
+                  build_context.build_uuid))
+          database_server match {
+            case Some(db) => write_info(db)
+            case None => using(store.open_database(session_name, output = true))(write_info)
+          }
 
           // messages
           process_result.err_lines.foreach(progress.echo(_))

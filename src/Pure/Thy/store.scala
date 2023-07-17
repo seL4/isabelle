@@ -387,7 +387,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   }
 
   def check_output(
-    server: SSH.Server,
+    database_server: Option[SQL.Database],
     name: String,
     session_options: Options,
     sources_shasum: SHA1.Shasum,
@@ -395,24 +395,26 @@ class Store private(val options: Options, val cache: Term.Cache) {
     fresh_build: Boolean,
     store_heap: Boolean
   ): (Boolean, SHA1.Shasum) = {
-    try_open_database(name, server = server) match {
-      case Some(db) =>
-        using(db) { _ =>
-          read_build(db, name) match {
-            case Some(build) =>
-              val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
-              val current =
-                !fresh_build &&
-                  build.ok &&
-                  Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
-                  build.input_heaps == input_shasum &&
-                  build.output_heap == output_shasum &&
-                  !(store_heap && output_shasum.is_empty)
-              (current, output_shasum)
-            case None => (false, SHA1.no_shasum)
-          }
-        }
-      case None => (false, SHA1.no_shasum)
+    def no_check: (Boolean, SHA1.Shasum) = (false, SHA1.no_shasum)
+
+    def check(db: SQL.Database): (Boolean, SHA1.Shasum) =
+      read_build(db, name) match {
+        case Some(build) =>
+          val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
+          val current =
+            !fresh_build &&
+              build.ok &&
+              Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
+              build.input_heaps == input_shasum &&
+              build.output_heap == output_shasum &&
+              !(store_heap && output_shasum.is_empty)
+          (current, output_shasum)
+        case None => no_check
+      }
+
+    database_server match {
+      case Some(db) => if (session_info_exists(db)) check(db) else no_check
+      case None => using_option(try_open_database(name))(check) getOrElse no_check
     }
   }
 

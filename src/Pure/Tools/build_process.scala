@@ -130,8 +130,8 @@ object Build_Process {
 
     def init(
       build_context: Context,
-      progress: Progress = new Progress,
-      server: SSH.Server = SSH.no_server
+      database_server: Option[SQL.Database],
+      progress: Progress = new Progress
     ): Sessions = {
       val sessions_structure = build_context.sessions_structure
       make(
@@ -169,9 +169,9 @@ object Build_Process {
             }
             else {
               val session =
-                Build_Job.Session_Context.load(
+                Build_Job.Session_Context.load(database_server,
                   build_context.build_uuid, name, deps, ancestors, prefs, sources_shasum,
-                  info.timeout, build_context.store, progress = progress, server = server)
+                  info.timeout, build_context.store, progress = progress)
               graph0.new_node(name, session)
             }
         }
@@ -933,7 +933,7 @@ extends AutoCloseable {
   /* policy operations */
 
   protected def init_state(state: Build_Process.State): Build_Process.State = {
-    val sessions1 = state.sessions.init(build_context, progress = build_progress)
+    val sessions1 = state.sessions.init(build_context, _database_server, progress = build_progress)
 
     val old_pending = state.pending.iterator.map(_.name).toSet
     val new_pending =
@@ -971,7 +971,7 @@ extends AutoCloseable {
       state.sessions.iterator.exists(_.ancestors.contains(session_name))
 
     val (current, output_shasum) =
-      store.check_output(server, session_name,
+      store.check_output(_database_server, session_name,
         session_options = build_context.sessions_structure(session_name).options,
         sources_shasum = sources_shasum,
         input_shasum = input_shasum,
