@@ -29,7 +29,7 @@ object Export {
 
   /* SQL data model */
 
-  object Data extends SQL.Data() {
+  object private_data extends SQL.Data() {
     override lazy val tables = SQL.Tables(Base.table)
 
     object Base {
@@ -63,7 +63,7 @@ object Export {
     def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
       db.execute_query_statementO[Entry](
         Base.table.select(List(Base.executable, Base.compressed, Base.body),
-          sql = Data.where_equal(entry_name.session, entry_name.theory, entry_name.name)),
+          sql = private_data.where_equal(entry_name.session, entry_name.theory, entry_name.name)),
         { res =>
           val executable = res.bool(Base.executable)
           val compressed = res.bool(Base.compressed)
@@ -88,13 +88,13 @@ object Export {
     def read_theory_names(db: SQL.Database, session_name: String): List[String] =
       db.execute_query_statement(
         Base.table.select(List(Base.theory_name), distinct = true,
-          sql = Data.where_equal(session_name) + SQL.order_by(List(Base.theory_name))),
+          sql = private_data.where_equal(session_name) + SQL.order_by(List(Base.theory_name))),
         List.from[String], res => res.string(Base.theory_name))
 
     def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
       db.execute_query_statement(
         Base.table.select(List(Base.theory_name, Base.name),
-          sql = Data.where_equal(session_name)) + SQL.order_by(List(Base.theory_name, Base.name)),
+          sql = private_data.where_equal(session_name)) + SQL.order_by(List(Base.theory_name, Base.name)),
         List.from[Entry_Name],
         { res =>
           Entry_Name(
@@ -204,23 +204,23 @@ object Export {
   }
 
   def clean_session(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true, label = "Export.clean_session") {
-      Data.clean_session(db, session_name)
+    private_data.transaction_lock(db, create = true, label = "Export.clean_session") {
+      private_data.clean_session(db, session_name)
     }
 
   def read_theory_names(db: SQL.Database, session_name: String): List[String] =
-    Data.transaction_lock(db, label = "Export.read_theory_names") {
-      Data.read_theory_names(db, session_name)
+    private_data.transaction_lock(db, label = "Export.read_theory_names") {
+      private_data.read_theory_names(db, session_name)
     }
 
   def read_entry_names(db: SQL.Database, session_name: String): List[Entry_Name] =
-    Data.transaction_lock(db, label = "Export.read_entry_names") {
-      Data.read_entry_names(db, session_name)
+    private_data.transaction_lock(db, label = "Export.read_entry_names") {
+      private_data.read_entry_names(db, session_name)
     }
 
   def read_entry(db: SQL.Database, entry_name: Entry_Name, cache: XML.Cache): Option[Entry] =
-    Data.transaction_lock(db, label = "Export.read_entry") {
-      Data.read_entry(db, entry_name, cache)
+    private_data.transaction_lock(db, label = "Export.read_entry") {
+      private_data.read_entry(db, entry_name, cache)
     }
 
 
@@ -238,21 +238,21 @@ object Export {
         consume =
           { (args: List[(Entry, Boolean)]) =>
             val results =
-              Data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
+              private_data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
                 for ((entry, strict) <- args)
                 yield {
                   if (progress.stopped) {
                     entry.cancel()
                     Exn.Res(())
                   }
-                  else if (Data.readable_entry(db, entry.entry_name)) {
+                  else if (private_data.readable_entry(db, entry.entry_name)) {
                     if (strict) {
                       val msg = message("Duplicate export", entry.theory_name, entry.name)
                       errors.change(msg :: _)
                     }
                     Exn.Res(())
                   }
-                  else Exn.capture { Data.write_entry(db, entry) }
+                  else Exn.capture { private_data.write_entry(db, entry) }
                 }
               }
             (results, true)

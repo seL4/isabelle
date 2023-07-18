@@ -95,7 +95,7 @@ object Host {
 
   /* SQL data model */
 
-  object Data extends SQL.Data("isabelle_host") {
+  object private_data extends SQL.Data("isabelle_host") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/host.db")
 
     override lazy val tables = SQL.Tables(Node_Info.table)
@@ -134,8 +134,8 @@ object Host {
     else {
       val available = available_nodes.zipWithIndex
       val used = used_nodes
-      Data.transaction_lock(db, create = true, label = "Host.next_numa_node") {
-        val numa_next = Data.read_numa_next(db, hostname)
+      private_data.transaction_lock(db, create = true, label = "Host.next_numa_node") {
+        val numa_next = private_data.read_numa_next(db, hostname)
         val numa_index = available.collectFirst({ case (n, i) if n == numa_next => i }).getOrElse(0)
         val candidates = available.drop(numa_index) ::: available.take(numa_index)
         val (n, i) =
@@ -143,7 +143,7 @@ object Host {
           candidates.find({ case (n, _) => !used(n) }) getOrElse candidates.head
 
         val numa_next1 = available_nodes((i + 1) % available_nodes.length)
-        if (numa_next != numa_next1) Data.write_numa_next(db, hostname, numa_next1)
+        if (numa_next != numa_next1) private_data.write_numa_next(db, hostname, numa_next1)
 
         Some(n)
       }

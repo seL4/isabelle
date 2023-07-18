@@ -41,7 +41,7 @@ object Progress {
 
   /* SQL data model */
 
-  object Data extends SQL.Data("isabelle_progress") {
+  object private_data extends SQL.Data("isabelle_progress") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/progress.db")
 
     override lazy val tables = SQL.Tables(Base.table, Agents.table, Messages.table)
@@ -259,21 +259,21 @@ extends Progress {
   def agent_uuid: String = synchronized { _agent_uuid }
 
   private def init(): Unit = synchronized {
-    Progress.Data.transaction_lock(db, create = true, label = "Database_Progress.init") {
-      Progress.Data.read_progress_context(db, context_uuid) match {
+    Progress.private_data.transaction_lock(db, create = true, label = "Database_Progress.init") {
+      Progress.private_data.read_progress_context(db, context_uuid) match {
         case Some(context) =>
           _context = context
           _agent_uuid = UUID.random().toString
         case None =>
-          _context = Progress.Data.next_progress_context(db)
+          _context = Progress.private_data.next_progress_context(db)
           _agent_uuid = context_uuid
-          db.execute_statement(Progress.Data.Base.table.insert(), { stmt =>
+          db.execute_statement(Progress.private_data.Base.table.insert(), { stmt =>
             stmt.string(1) = context_uuid
             stmt.long(2) = _context
             stmt.bool(3) = false
           })
       }
-      db.execute_statement(Progress.Data.Agents.table.insert(), { stmt =>
+      db.execute_statement(Progress.private_data.Agents.table.insert(), { stmt =>
         val java = ProcessHandle.current()
         val java_pid = java.pid
         val java_start = Date.instant(java.info.startInstant.get)
@@ -291,13 +291,13 @@ extends Progress {
         stmt.long(10) = 0L
       })
     }
-    if (context_uuid == _agent_uuid) db.vacuum(Progress.Data.tables.list)
+    if (context_uuid == _agent_uuid) db.vacuum(Progress.private_data.tables.list)
   }
 
   def exit(close: Boolean = false): Unit = synchronized {
     if (_context > 0) {
-      Progress.Data.transaction_lock(db, label = "Database_Progress.exit") {
-        Progress.Data.update_agent(db, _agent_uuid, _seen, stop_now = true)
+      Progress.private_data.transaction_lock(db, label = "Database_Progress.exit") {
+        Progress.private_data.update_agent(db, _agent_uuid, _seen, stop_now = true)
       }
       _context = 0
     }
@@ -308,19 +308,19 @@ extends Progress {
     if (_context < 0) throw new IllegalStateException("Database_Progress before init")
     if (_context == 0) throw new IllegalStateException("Database_Progress after exit")
 
-    Progress.Data.transaction_lock(db, label = "Database_Progress.sync") {
-      val stopped_db = Progress.Data.read_progress_stopped(db, _context)
+    Progress.private_data.transaction_lock(db, label = "Database_Progress.sync") {
+      val stopped_db = Progress.private_data.read_progress_stopped(db, _context)
       val stopped = base_progress.stopped
 
       if (stopped_db && !stopped) base_progress.stop()
-      if (stopped && !stopped_db) Progress.Data.write_progress_stopped(db, _context, true)
+      if (stopped && !stopped_db) Progress.private_data.write_progress_stopped(db, _context, true)
 
-      val messages = Progress.Data.read_messages(db, _context, seen = _seen)
+      val messages = Progress.private_data.read_messages(db, _context, seen = _seen)
       for ((seen, message) <- messages) {
         if (base_progress.do_output(message)) base_progress.output(message)
         _seen = _seen max seen
       }
-      if (messages.nonEmpty) Progress.Data.update_agent(db, _agent_uuid, _seen)
+      if (messages.nonEmpty) Progress.private_data.update_agent(db, _agent_uuid, _seen)
 
       body
     }
@@ -330,13 +330,13 @@ extends Progress {
 
   private def output_database(message: Progress.Message, body: => Unit): Unit =
     sync_database {
-      val serial = Progress.Data.next_messages_serial(db, _context)
-      Progress.Data.write_messages(db, _context, serial, message)
+      val serial = Progress.private_data.next_messages_serial(db, _context)
+      Progress.private_data.write_messages(db, _context, serial, message)
 
       body
 
       _seen = _seen max serial
-      Progress.Data.update_agent(db, _agent_uuid, _seen)
+      Progress.private_data.update_agent(db, _agent_uuid, _seen)
     }
 
   override def output(message: Progress.Message): Unit =

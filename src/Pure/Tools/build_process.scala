@@ -283,7 +283,7 @@ object Build_Process {
 
   /** SQL data model **/
 
-  object Data extends SQL.Data("isabelle_build") {
+  object private_data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
     def pull[A <: Library.Named](
@@ -364,7 +364,7 @@ object Build_Process {
           })
 
       for (build <- builds.sortBy(_.start)(Date.Ordering)) yield {
-        val sessions = Data.read_sessions_domain(db, build_uuid = build.build_uuid)
+        val sessions = private_data.read_sessions_domain(db, build_uuid = build.build_uuid)
         build.copy(sessions = sessions.toList.sorted)
       }
     }
@@ -828,8 +828,8 @@ object Build_Process {
   }
 
   def read_builds(db: SQL.Database): List[Build] =
-    Data.transaction_lock(db, create = true, label = "Build_Process.read_builds") {
-      Data.read_builds(db)
+    private_data.transaction_lock(db, create = true, label = "Build_Process.read_builds") {
+      private_data.read_builds(db)
     }
 }
 
@@ -862,16 +862,16 @@ extends AutoCloseable {
     try {
       for (db <- store.maybe_open_build_database(server = server)) yield {
         val store_tables = db.is_postgresql
-        Build_Process.Data.transaction_lock(db,
+        Build_Process.private_data.transaction_lock(db,
           create = true,
           label = "Build_Process.build_database"
         ) {
-          Build_Process.Data.clean_build(db)
-          if (store_tables) Store.Data.tables.lock(db, create = true)
+          Build_Process.private_data.clean_build(db)
+          if (store_tables) Store.private_data.tables.lock(db, create = true)
         }
         if (build_context.master) {
-          db.vacuum(Build_Process.Data.tables.list)
-          if (store_tables) db.vacuum(Store.Data.tables.list)
+          db.vacuum(Build_Process.private_data.tables.list)
+          if (store_tables) db.vacuum(Store.private_data.tables.list)
         }
         db
       }
@@ -879,7 +879,7 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   private val _host_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(path = Host.Data.database, server = server) }
+    try { store.maybe_open_build_database(path = Host.private_data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
@@ -887,7 +887,7 @@ extends AutoCloseable {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
         try {
-          val progress_db = store.open_build_database(Progress.Data.database, server = server)
+          val progress_db = store.open_build_database(Progress.private_data.database, server = server)
           val progress =
             new Database_Progress(progress_db, build_progress,
               hostname = hostname,
@@ -922,11 +922,11 @@ extends AutoCloseable {
         case None => body
         case Some(db) =>
           progress.asInstanceOf[Database_Progress].sync()
-          Build_Process.Data.transaction_lock(db, label = label) {
-            _state = Build_Process.Data.pull_database(db, worker_uuid, hostname, _state)
+          Build_Process.private_data.transaction_lock(db, label = label) {
+            _state = Build_Process.private_data.pull_database(db, worker_uuid, hostname, _state)
             val res = body
             _state =
-              Build_Process.Data.update_database(db, worker_uuid, build_uuid, hostname, _state)
+              Build_Process.private_data.update_database(db, worker_uuid, build_uuid, hostname, _state)
             res
           }
       }
@@ -1046,27 +1046,27 @@ extends AutoCloseable {
 
   protected final def start_build(): Unit = synchronized_database("Build_Process.start_build") {
     for (db <- _build_database) {
-      Build_Process.Data.start_build(db, build_uuid, build_context.ml_platform,
+      Build_Process.private_data.start_build(db, build_uuid, build_context.ml_platform,
         build_context.sessions_structure.session_prefs)
     }
   }
 
   protected final def stop_build(): Unit = synchronized_database("Build_Process.stop_build") {
     for (db <- _build_database) {
-      Build_Process.Data.stop_build(db, build_uuid)
+      Build_Process.private_data.stop_build(db, build_uuid)
     }
   }
 
   protected final def start_worker(): Unit = synchronized_database("Build_Process.start_worker") {
     for (db <- _build_database) {
       _state = _state.inc_serial
-      Build_Process.Data.start_worker(db, worker_uuid, build_uuid, _state.serial)
+      Build_Process.private_data.start_worker(db, worker_uuid, build_uuid, _state.serial)
     }
   }
 
   protected final def stop_worker(): Unit = synchronized_database("Build_Process.stop_worker") {
     for (db <- _build_database) {
-      Build_Process.Data.stamp_worker(db, worker_uuid, _state.serial, stop_now = true)
+      Build_Process.private_data.stamp_worker(db, worker_uuid, _state.serial, stop_now = true)
     }
   }
 
@@ -1145,8 +1145,8 @@ extends AutoCloseable {
       _build_database match {
         case None => (Nil, Nil)
         case Some(db) =>
-          (Build_Process.Data.read_builds(db),
-           Build_Process.Data.read_workers(db))
+          (Build_Process.private_data.read_builds(db),
+           Build_Process.private_data.read_workers(db))
       }
     Build_Process.Snapshot(
       builds = builds,

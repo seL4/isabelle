@@ -43,7 +43,7 @@ object ML_Heap {
 
   /* SQL data model */
 
-  object Data extends SQL.Data("isabelle_heaps") {
+  object private_data extends SQL.Data("isabelle_heaps") {
     override lazy val tables = SQL.Tables(Base.table, Slices.table)
 
     object Generic {
@@ -123,13 +123,13 @@ object ML_Heap {
   }
 
   def clean_entry(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true, label = "ML_Heap.clean_entry") {
-      Data.clean_entry(db, session_name)
+    private_data.transaction_lock(db, create = true, label = "ML_Heap.clean_entry") {
+      private_data.clean_entry(db, session_name)
     }
 
   def get_entry(db: SQL.Database, session_name: String): Option[SHA1.Digest] =
-    Data.transaction_lock(db, create = true, label = "ML_Heap.get_entry") {
-      Data.get_entry(db, session_name)
+    private_data.transaction_lock(db, create = true, label = "ML_Heap.get_entry") {
+      private_data.get_entry(db, session_name)
     }
 
   def store(
@@ -149,8 +149,8 @@ object ML_Heap {
         val step = (size.toDouble / slices.toDouble).ceil.toLong
 
         try {
-          Data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
-            Data.prepare_entry(db, session_name)
+          private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
+            private_data.prepare_entry(db, session_name)
           }
 
           for (i <- 0 until slices) {
@@ -160,18 +160,18 @@ object ML_Heap {
             val content =
               Bytes.read_file(heap.file, offset = offset, limit = limit)
                 .compress(cache = cache)
-            Data.transaction_lock(db, label = "ML_Heap.store2") {
-              Data.write_entry(db, session_name, i, content)
+            private_data.transaction_lock(db, label = "ML_Heap.store2") {
+              private_data.write_entry(db, session_name, i, content)
             }
           }
 
-          Data.transaction_lock(db, label = "ML_Heap.store3") {
-            Data.finish_entry(db, session_name, size, digest)
+          private_data.transaction_lock(db, label = "ML_Heap.store3") {
+            private_data.finish_entry(db, session_name, size, digest)
           }
         }
         catch { case exn: Throwable =>
-          Data.transaction_lock(db, create = true, label = "ML_Heap.store4") {
-            Data.clean_entry(db, session_name)
+          private_data.transaction_lock(db, create = true, label = "ML_Heap.store4") {
+            private_data.clean_entry(db, session_name)
           }
           throw exn
         }
@@ -188,14 +188,14 @@ object ML_Heap {
     database match {
       case None =>
       case Some(db) =>
-        Data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
-          val db_digest = Data.get_entry(db, session_name)
+        private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
+          val db_digest = private_data.get_entry(db, session_name)
           val file_digest = read_file_digest(heap)
 
           if (db_digest.isDefined && db_digest != file_digest) {
             Isabelle_System.make_directory(heap.expand.dir)
             Bytes.write(heap, Bytes.empty)
-              for (slice <- Data.read_entry(db, session_name)) {
+              for (slice <- private_data.read_entry(db, session_name)) {
                 Bytes.append(heap, slice.uncompress(cache = cache))
               }
             val digest = write_file_digest(heap)

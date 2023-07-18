@@ -54,7 +54,7 @@ object Document_Build {
 
   /* SQL data model */
 
-  object Data extends SQL.Data("isabelle_documents") {
+  object private_data extends SQL.Data("isabelle_documents") {
     override lazy val tables = SQL.Tables(Base.table)
 
     object Base {
@@ -104,18 +104,18 @@ object Document_Build {
   }
 
   def clean_session(db: SQL.Database, session_name: String): Unit =
-    Data.transaction_lock(db, create = true, label = "Document_Build.clean_session") {
-      Data.clean_session(db, session_name)
+    private_data.transaction_lock(db, create = true, label = "Document_Build.clean_session") {
+      private_data.clean_session(db, session_name)
     }
 
   def read_document(db: SQL.Database, session_name: String, name: String): Option[Document_Output] =
-    Data.transaction_lock(db, label = "Document_Build.read_document") {
-      Data.read_document(db, session_name, name)
+    private_data.transaction_lock(db, label = "Document_Build.read_document") {
+      private_data.read_document(db, session_name, name)
     }
 
   def write_document(db: SQL.Database, session_name: String, doc: Document_Output): Unit =
-    Data.transaction_lock(db, label = "Document_Build.write_document") {
-      Data.write_document(db, session_name, doc)
+    private_data.transaction_lock(db, label = "Document_Build.write_document") {
+      private_data.write_document(db, session_name, doc)
     }
 
 
