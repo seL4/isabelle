@@ -198,12 +198,6 @@ object SQL {
         ident + " " + enclosure(columns.map(_.decl(sql_type)) ::: primary_key)
     }
 
-    def create_index(index_name: String, index_columns: List[Column],
-        strict: Boolean = false, unique: Boolean = false): Source =
-      "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
-        (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
-        ident + " " + enclosure(index_columns.map(_.name))
-
     def insert_cmd(cmd: Source = "INSERT", sql: Source = ""): Source =
       cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) + SQL.separate(sql)
 
@@ -555,10 +549,6 @@ object SQL {
         }
       }
     }
-
-    def create_index(table: Table, name: String, columns: List[Column],
-        strict: Boolean = false, unique: Boolean = false): Unit =
-      execute_statement(table.create_index(name, columns, strict, unique))
 
     def create_view(table: Table, strict: Boolean = false): Unit = {
       if (strict || !exists_table(table)) {
