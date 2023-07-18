@@ -382,15 +382,12 @@ object SQL {
     def is_postgresql: Boolean = isInstanceOf[PostgreSQL.Database]
 
     def vacuum(tables: List[SQL.Table] = Nil): Unit =
-      if (tables.nonEmpty) {
-        postgresql_major_version match {
-          case Some(m) if m <= 10 =>
-            for (table <- tables) execute_statement("VACUUM " + table.ident)
-          case Some(_) =>
-            execute_statement("VACUUM" + commas(tables.map(_.ident)))
-          case None => execute_statement("VACUUM")
-        }
+      if (is_sqlite) execute_statement("VACUUM")  // always FULL
+      else if (tables.isEmpty) execute_statement("VACUUM FULL")
+      else if (postgresql_major_version.get <= 10) {
+        for (t <- tables) execute_statement("VACUUM " + t.ident)
       }
+      else execute_statement("VACUUM" + commas(tables.map(_.ident)))
 
     def now(): Date
 
