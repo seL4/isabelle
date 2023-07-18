@@ -861,15 +861,18 @@ extends AutoCloseable {
   private val _build_database: Option[SQL.Database] =
     try {
       for (db <- store.maybe_open_build_database(server = server)) yield {
-        val store_tables = if (db.is_postgresql) Store.Data.tables else SQL.Tables.empty
+        val store_tables = db.is_postgresql
         Build_Process.Data.transaction_lock(db,
           create = true,
           label = "Build_Process.build_database"
         ) {
           Build_Process.Data.clean_build(db)
-          store_tables.lock(db, create = true)
+          if (store_tables) Store.Data.tables.lock(db, create = true)
         }
-        if (build_context.master) db.vacuum(Build_Process.Data.tables ::: store_tables)
+        if (build_context.master) {
+          db.vacuum(Build_Process.Data.tables.list :::
+            (if (store_tables) Store.Data.tables.list else Nil))
+        }
         db
       }
     }

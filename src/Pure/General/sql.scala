@@ -230,14 +230,11 @@ object SQL {
 
   object Tables {
     def list(list: List[Table]): Tables = new Tables(list)
-    val empty: Tables = list(Nil)
     def apply(args: Table*): Tables = list(args.toList)
   }
 
   final class Tables private(val list: List[Table]) extends Iterable[Table] {
     override def toString: String = list.mkString("SQL.Tables(", ", ", ")")
-
-    def ::: (other: Tables): Tables = new Tables(other.list ::: list)
 
     def iterator: Iterator[Table] = list.iterator
 
@@ -251,7 +248,7 @@ object SQL {
   }
 
   abstract class Data(table_prefix: String = "") {
-    def tables: Tables = Tables.empty
+    def tables: Tables
 
     def transaction_lock[A](
       db: Database,
@@ -384,13 +381,13 @@ object SQL {
     def is_sqlite: Boolean = isInstanceOf[SQLite.Database]
     def is_postgresql: Boolean = isInstanceOf[PostgreSQL.Database]
 
-    def vacuum(tables: SQL.Tables = SQL.Tables.empty): Unit =
-      if (tables.list.nonEmpty) {
+    def vacuum(tables: List[SQL.Table] = Nil): Unit =
+      if (tables.nonEmpty) {
         postgresql_major_version match {
           case Some(m) if m <= 10 =>
             for (table <- tables) execute_statement("VACUUM " + table.ident)
           case Some(_) =>
-            execute_statement("VACUUM" + commas(tables.list.map(_.ident)))
+            execute_statement("VACUUM" + commas(tables.map(_.ident)))
           case None => execute_statement("VACUUM")
         }
       }

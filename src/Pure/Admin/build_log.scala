@@ -631,6 +631,9 @@ object Build_Log {
   /* SQL data model */
 
   object Data extends SQL.Data("isabelle_build_log") {
+    override def tables: SQL.Tables = ???
+
+
     /* main content */
 
     val log_name = SQL.Column.string("log_name").make_primary_key
