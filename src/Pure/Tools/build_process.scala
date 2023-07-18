@@ -951,13 +951,16 @@ extends AutoCloseable {
       pending = pending1)
   }
 
-  protected def next_job(state: Build_Process.State): Option[String] =
-    if (progress.stopped || state.running.size < build_context.max_jobs) {
+  protected def next_jobs(state: Build_Process.State): List[String] = {
+    val running = List.from(state.running.valuesIterator.filter(_.worker_uuid == worker_uuid))
+    val limit = if (progress.stopped) Int.MaxValue else build_context.max_jobs - running.length
+    if (limit > 0) {
       state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
         .sortBy(_.name)(state.sessions.ordering)
-        .headOption.map(_.name)
+        .take(limit).map(_.name)
     }
-    else None
+    else Nil
+  }
 
   protected def start_session(state: Build_Process.State, session_name: String): Build_Process.State = {
     val ancestor_results =
@@ -1082,16 +1085,15 @@ extends AutoCloseable {
         build_options.seconds("build_delay").sleep()
       }
 
-    def check_job(): Boolean = synchronized_database("Build_Process.check_job") {
-      next_job(_state) match {
-        case Some(name) =>
-          if (is_session_name(name)) {
-            _state = start_session(_state, name)
-            true
-          }
-          else error("Unsupported build job name " + quote(name))
-        case None => false
+    def check_jobs(): Boolean = synchronized_database("Build_Process.check_jobs") {
+      val jobs = next_jobs(_state)
+      for (name <- jobs) {
+        if (is_session_name(name)) {
+          _state = start_session(_state, name)
+        }
+        else build_progress.echo_warning("Unsupported build job " + quote(name))
       }
+      jobs.nonEmpty
     }
 
     if (finished()) {
@@ -1121,7 +1123,7 @@ extends AutoCloseable {
             }
           }
 
-          if (!check_job()) sleep()
+          if (!check_jobs()) sleep()
         }
       }
       finally {
