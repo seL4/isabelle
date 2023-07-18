@@ -198,7 +198,7 @@ option build_database_test : bool = false
 option build_database_slice : real = 300
   -- "slice size in MiB for ML heap stored within database"
 
-option build_delay : real = 0.2
+option build_delay : real = 0.5
   -- "delay build process main loop"
 
 
