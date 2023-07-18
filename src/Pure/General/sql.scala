@@ -188,14 +188,13 @@ object SQL {
 
     def query_named: Source = query + " AS " + SQL.ident(name)
 
-    def create(strict: Boolean, sql_type: Type.Value => Source): Source = {
+    def create(sql_type: Type.Value => Source): Source = {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
           case keys => List("PRIMARY KEY " + enclosure(keys))
         }
-      "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        ident + " " + enclosure(columns.map(_.decl(sql_type)) ::: primary_key)
+      "CREATE TABLE " + ident + " " + enclosure(columns.map(_.decl(sql_type)) ::: primary_key)
     }
 
     def insert_cmd(cmd: Source = "INSERT", sql: Source = ""): Source =
@@ -540,18 +539,20 @@ object SQL {
 
     def exists_table(table: Table): Boolean = exists_table(table.name)
 
-    def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit = {
-      execute_statement(table.create(strict, sql_type) + SQL.separate(sql))
-      if (is_postgresql) {
-        for (column <- table.columns if column.T == SQL.Type.Bytes) {
-          execute_statement(
-            "ALTER TABLE " + table + " ALTER COLUMN " + column + " SET STORAGE EXTERNAL")
+    def create_table(table: Table, sql: Source = ""): Unit = {
+      if (!exists_table(table)) {
+        execute_statement(table.create(sql_type) + SQL.separate(sql))
+        if (is_postgresql) {
+          for (column <- table.columns if column.T == SQL.Type.Bytes) {
+            execute_statement(
+              "ALTER TABLE " + table + " ALTER COLUMN " + column + " SET STORAGE EXTERNAL")
+          }
         }
       }
     }
 
-    def create_view(table: Table, strict: Boolean = false): Unit = {
-      if (strict || !exists_table(table)) {
+    def create_view(table: Table): Unit = {
+      if (!exists_table(table)) {
         execute_statement("CREATE VIEW " + table + " AS " + { table.query; table.body })
       }
     }
