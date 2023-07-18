@@ -366,30 +366,32 @@ object Server {
   object private_data extends SQL.Data() {
     val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
 
-    val name = SQL.Column.string("name").make_primary_key
-    val port = SQL.Column.int("port")
-    val password = SQL.Column.string("password")
-    val table = SQL.Table("isabelle_servers", List(name, port, password))
+    override lazy val tables = SQL.Tables(Base.table)
 
-    override val tables = SQL.Tables(table)
-  }
-
-  def list(db: SQLite.Database): List[Info] =
-    if (db.exists_table(private_data.table)) {
-      db.execute_query_statement(private_data.table.select(),
-        List.from[Info],
-        { res =>
-          val name = res.string(private_data.name)
-          val port = res.int(private_data.port)
-          val password = res.string(private_data.password)
-          Info(name, port, password)
-        }
-      ).sortBy(_.name)
+    object Base {
+      val name = SQL.Column.string("name").make_primary_key
+      val port = SQL.Column.int("port")
+      val password = SQL.Column.string("password")
+      val table = SQL.Table("isabelle_servers", List(name, port, password))
     }
-    else Nil
 
-  def find(db: SQLite.Database, name: String): Option[Info] =
-    list(db).find(server_info => server_info.name == name && server_info.active)
+    def list(db: SQLite.Database): List[Info] =
+      if (db.exists_table(Base.table)) {
+        db.execute_query_statement(Base.table.select(),
+          List.from[Info],
+          { res =>
+            val name = res.string(Base.name)
+            val port = res.int(Base.port)
+            val password = res.string(Base.password)
+            Info(name, port, password)
+          }
+        ).sortBy(_.name)
+      }
+      else Nil
+
+    def find(db: SQLite.Database, name: String): Option[Info] =
+      list(db).find(server_info => server_info.name == name && server_info.active)
+  }
 
   def init(
     name: String = default_name,
@@ -399,11 +401,13 @@ object Server {
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(private_data.database, restrict = true)) { db =>
       private_data.transaction_lock(db, create = true) {
-        list(db).filterNot(_.active).foreach(server_info =>
-          db.execute_statement(private_data.table.delete(sql = private_data.name.where_equal(server_info.name))))
+        private_data.list(db).filterNot(_.active).foreach(server_info =>
+          db.execute_statement(
+            private_data.Base.table.delete(sql =
+              private_data.Base.name.where_equal(server_info.name))))
       }
       private_data.transaction_lock(db) {
-        find(db, name) match {
+        private_data.find(db, name) match {
           case Some(server_info) => (server_info, None)
           case None =>
             if (existing_server) error("Isabelle server " + quote(name) + " not running")
@@ -411,8 +415,9 @@ object Server {
             val server = new Server(port, log)
             val server_info = Info(name, server.port, server.password)
 
-            db.execute_statement(private_data.table.delete(sql = private_data.name.where_equal(name)))
-            db.execute_statement(private_data.table.insert(), body =
+            db.execute_statement(
+              private_data.Base.table.delete(sql = private_data.Base.name.where_equal(name)))
+            db.execute_statement(private_data.Base.table.insert(), body =
               { stmt =>
                 stmt.string(1) = server_info.name
                 stmt.int(2) = server_info.port
@@ -429,7 +434,7 @@ object Server {
   def exit(name: String = default_name): Boolean = {
     using(SQLite.open_database(private_data.database)) { db =>
       private_data.transaction_lock(db) {
-        find(db, name) match {
+        private_data.find(db, name) match {
           case Some(server_info) =>
             using(server_info.connection())(_.write_line_message("shutdown"))
             while(server_info.active) { Time.seconds(0.05).sleep() }
@@ -481,7 +486,7 @@ Usage: isabelle server [OPTIONS]
 
         if (operation_list) {
           for {
-            server_info <- using(SQLite.open_database(private_data.database))(list)
+            server_info <- using(SQLite.open_database(private_data.database))(private_data.list)
             if server_info.active
           } Output.writeln(server_info.toString, stdout = true)
         }
