@@ -13,6 +13,14 @@ Contributions to Isabelle2023
 * October 2022: Jeremy Sylvestre
   Lemmas for Fun and List.
 
+* 2022/2023: Makarius Wenzel
+  Support for interactive document preparation in PIDE, including demo
+  documents for well-known LaTeX styles.
+
+* March 2023 - June 2023: Makarius Wenzel
+  ML heap usage and stored heap size has been significantly reduced;
+  based on new command-line tool "isabelle profiling".
+
 
 Contributions to Isabelle2022
 -----------------------------
