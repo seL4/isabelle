@@ -636,6 +636,7 @@ object PostgreSQL {
     database: String = "",
     server: SSH.Server = default_server,
     server_close: Boolean = false,
+    synchronous_commit: String = "off"
   ): Database = {
     init_jdbc
 
@@ -649,7 +650,14 @@ object PostgreSQL {
     val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
 
     val connection = DriverManager.getConnection(url, user, password)
-    new Database(connection, print, server, server_close)
+    val db = new Database(connection, print, server, server_close)
+
+    try {
+      db.execute_statement("SET synchronous_commit = " + SQL.string(synchronous_commit))
+    }
+    catch { case exn: Throwable => db.close(); throw exn }
+
+    db
   }
 
   def open_server(
@@ -680,7 +688,8 @@ object PostgreSQL {
     port: Int = 0,
     ssh_host: String = "",
     ssh_port: Int = 0,
-    ssh_user: String = ""
+    ssh_user: String = "",
+    synchronous_commit: String = "off"
   ): PostgreSQL.Database = {
     val db_server =
       if (server.defined) server
@@ -691,7 +700,7 @@ object PostgreSQL {
     val server_close = !server.defined
     try {
       open_database(user = user, password = password, database = database,
-        server = db_server, server_close = server_close)
+        server = db_server, server_close = server_close, synchronous_commit = synchronous_commit)
     }
     catch { case exn: Throwable if server_close => db_server.close(); throw exn }
   }

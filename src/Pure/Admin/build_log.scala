@@ -841,7 +841,8 @@ object Build_Log {
         port = options.int("build_log_database_port"),
         ssh_host = options.string("build_log_ssh_host"),
         ssh_port = options.int("build_log_ssh_port"),
-        ssh_user = options.string("build_log_ssh_user"))
+        ssh_user = options.string("build_log_ssh_user"),
+        synchronous_commit = options.string("build_log_database_synchronous_commit"))
 
     def snapshot_database(
       db: PostgreSQL.Database,

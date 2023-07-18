@@ -306,7 +306,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
       port = options.int("build_database_port"),
       ssh_host = options.string("build_database_ssh_host"),
       ssh_port = options.int("build_database_ssh_port"),
-      ssh_user = options.string("build_database_ssh_user"))
+      ssh_user = options.string("build_database_ssh_user"),
+      synchronous_commit = options.string("build_database_synchronous_commit"))
 
   def maybe_open_database_server(server: SSH.Server = SSH.no_server): Option[SQL.Database] =
     if (build_database_server) Some(open_database_server(server = server)) else None
