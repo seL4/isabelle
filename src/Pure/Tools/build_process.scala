@@ -870,8 +870,8 @@ extends AutoCloseable {
           if (store_tables) Store.Data.tables.lock(db, create = true)
         }
         if (build_context.master) {
-          db.vacuum(Build_Process.Data.tables.list :::
-            (if (store_tables) Store.Data.tables.list else Nil))
+          db.vacuum(Build_Process.Data.tables.list)
+          if (store_tables) db.vacuum(Store.Data.tables.list)
         }
         db
       }
