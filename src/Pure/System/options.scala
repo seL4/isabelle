@@ -140,6 +140,7 @@ object Options {
       STANDARD + FOR
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
+  val specs_syntax: Outer_Syntax = prefs_syntax + ","
 
   trait Parsers extends Parse.Parsers {
     val option_name: Parser[String] = atom("option name", _.is_name)
@@ -153,6 +154,9 @@ object Options {
     val option_tag: Parser[String] = atom("option tag", _.is_name)
     val option_tags: Parser[List[String]] =
       $$$(FOR) ~! rep(option_tag) ^^ { case _ ~ x => x } | success(Nil)
+    val option_spec: Parser[Spec] =
+      option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
+        { case x ~ y => Options.Spec(x, y) }
   }
 
   private object Parsers extends Parsers {
@@ -198,6 +202,17 @@ object Options {
 
   def read_prefs(file: Path = PREFS): String =
     if (file.is_file) File.read(file) else ""
+
+  def parse_specs(content: String): List[Spec] = {
+    val parser = Parsers.repsep(Parsers.option_spec, Parsers.$$$(","))
+    val reader = Token.reader(Token.explode(specs_syntax.keywords, content), Token.Pos.none)
+    Parsers.parse_all(parser, reader) match {
+      case Parsers.Success(result, _) => result
+      case bad => error(bad.toString)
+    }
+  }
+
+  def inline(content: String): Options = Parsers.parse_file(empty, "inline", content)
 
   def init(prefs: String = read_prefs(file = PREFS), specs: List[Spec] = Nil): Options = {
     var options = empty
@@ -273,6 +288,8 @@ final class Options private(
   options: Map[String, Options.Entry] = Map.empty,
   val section: String = ""
 ) {
+  def defined(name: String): Boolean = options.isDefinedAt(name)
+
   def iterator: Iterator[Options.Entry] = options.valuesIterator
 
   override def toString: String = iterator.mkString("Options(", ",", ")")
@@ -405,7 +422,7 @@ final class Options private(
 
   def + (spec: Options.Spec): Options = {
     val name = spec.name
-    if (spec.permissive && !options.isDefinedAt(name)) {
+    if (spec.permissive && !defined(name)) {
       val value = spec.value.getOrElse("")
       val opt =
         Options.Entry(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")

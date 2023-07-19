@@ -1117,10 +1117,7 @@ object Sessions {
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
 
     private val session_entry: Parser[Session_Entry] = {
-      val option =
-        option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
-          { case x ~ y => Options.Spec(x, y) }
-      val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
+      val options = $$$("[") ~> rep1sep(option_spec, $$$(",")) <~ $$$("]")
 
       val theory_entry =
         position(theory_name) ~ opt_keyword(GLOBAL) ^^ { case x ~ y => (x, y) }
