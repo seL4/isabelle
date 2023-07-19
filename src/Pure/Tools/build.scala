@@ -464,7 +464,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   def build_worker(
     options: Options,
     build_id: String = "",
-    worker_id: String = "",
     progress: Progress = new Progress,
     list_builds: Boolean = false,
     dirs: List[Path] = Nil,
@@ -524,7 +523,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 Usage: isabelle build_worker [OPTIONS]
 
   Options are:
-    -B UUID      identify build process: mandatory for multiple active builds
+    -B UUID      existing UUID for build process (default: from database)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -d DIR       include session directory
     -j INT       maximum number of parallel jobs (default 1)
@@ -547,7 +546,8 @@ Usage: isabelle build_worker [OPTIONS]
 
       val res =
         progress.interrupt_handler {
-          build_worker(options, build_id,
+          build_worker(options,
+            build_id = build_id,
             progress = progress,
             list_builds = list_builds,
             dirs = dirs.toList,
