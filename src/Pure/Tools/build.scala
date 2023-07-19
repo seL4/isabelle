@@ -304,7 +304,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -H HOST      add host for distrubuted build
+    -H HOST      additional host for distributed build ("NAME:PARAMETERS")
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -327,10 +327,14 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Build and manage Isabelle sessions: ML heaps, session databases, documents.
 
+  Parameters for host specifications (option -H), apart from system options:
+""" + Library.indent_lines(4, Build_Cluster.Host.parameters.print()) +
+"""
+
   Notable system options: see "isabelle options -l -t build"
 
   Notable system settings:
-""" + Library.indent_lines(4,  Build_Log.Settings.show()) + "\n",
+""" + Library.indent_lines(4, Build_Log.Settings.show()) + "\n",
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
         "H:" -> (arg => build_hosts += Build_Cluster.Host.parse(arg)),
