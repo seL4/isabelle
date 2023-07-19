@@ -879,8 +879,14 @@ extends AutoCloseable {
     }
     catch { case exn: Throwable => close(); throw exn }
 
-  protected val build_delay: Time =
-    build_options.seconds(if (_build_database.isEmpty) "build_delay" else "build_database_delay")
+  protected val build_delay: Time = {
+    val option =
+      _build_database match {
+        case Some(db) if db.is_postgresql => "build_cluster_delay"
+        case _ => "build_delay"
+      }
+    build_options.seconds(option)
+  }
 
   private val _host_database: Option[SQL.Database] =
     try { store.maybe_open_build_database(path = Host.private_data.database, server = server) }

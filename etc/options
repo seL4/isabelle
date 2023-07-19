@@ -202,10 +202,10 @@ option build_database_slice : real = 300
   -- "slice size in MiB for ML heap stored within database"
 
 option build_delay : real = 0.2
-  -- "delay build process main loop"
+  -- "delay build process main loop (local)"
 
-option build_database_delay : real = 1.0
-  -- "delay build process main loop (via central database)"
+option build_cluster_delay : real = 1.0
+  -- "delay build process main loop (cluster)"
 
 
 section "Editor Session"
