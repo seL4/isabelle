@@ -435,35 +435,36 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "Available build processes" + print_database +
         (for ((build, i) <- builds.iterator.zipWithIndex)
           yield {
-            "\n  " + (i + 1) + ": " + build.build_uuid +
+            "\n  " + build.build_uuid +
               " (platform: " + build.ml_platform +
               ", start: " + Build_Log.print_date(build.start) + ")"
           }).mkString
     }
   }
 
-  def id_builds(
+  def find_builds(
     build_database: Option[SQL.Database],
     build_id: String,
     builds: List[Build_Process.Build]
-  ): Build_Process.Build =
+  ): Build_Process.Build = {
     (build_id, builds.length) match {
-      case (Value.Int(i), n) if 1 <= i && i <= n => builds(i - 1)
       case (UUID(_), _) if builds.exists(_.build_uuid == build_id) =>
         builds.find(_.build_uuid == build_id).get
-      case ("", 0) => error(print_builds(build_database, builds))
       case ("", 1) => builds.head
+      case ("", 0) => error(print_builds(build_database, builds))
       case _ =>
         cat_error("Cannot identify build process " + quote(build_id),
           print_builds(build_database, builds))
     }
+  }
 
 
   /* build_worker */
 
   def build_worker(
     options: Options,
-    build_id: String,
+    build_id: String = "",
+    worker_id: String = "",
     progress: Progress = new Progress,
     list_builds: Boolean = false,
     dirs: List[Path] = Nil,
@@ -482,7 +483,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         if (list_builds) progress.echo(print_builds(build_database, builds))
 
         if (!list_builds || build_id.nonEmpty) {
-          val build_master = id_builds(build_database, build_id, builds)
+          val build_master = find_builds(build_database, build_id, builds)
 
           val sessions_structure =
             Sessions.load_structure(build_options, dirs = dirs).
@@ -523,21 +524,17 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 Usage: isabelle build_worker [OPTIONS]
 
   Options are:
+    -B UUID      identify build process: mandatory for multiple active builds
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -d DIR       include session directory
-    -i ID        identify build process, either via index (starting from 1) or
-                 Universally Unique Identifier (UUID)
     -j INT       maximum number of parallel jobs (default 1)
     -l           list build processes
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
-
-  Run as external worker for session build process, as identified via
-  option -i. The latter can be omitted, if there is exactly one build.
 """,
+        "B:" -> (arg => build_id = arg),
         "N" -> (_ => numa_shuffling = true),
         "d:" -> (arg => dirs += Path.explode(arg)),
-        "i:" -> (arg => build_id = arg),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
         "l" -> (_ => list_builds = true),
         "o:" -> (arg => options = options + arg),
