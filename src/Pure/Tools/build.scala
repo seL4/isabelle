@@ -137,7 +137,7 @@ object Build {
   ): Results = {
     val build_engine = Engine(engine_name(options))
 
-    val store = build_engine.build_store(options, cache = cache)
+    val store = build_engine.build_store(options, build_hosts = build_hosts, cache = cache)
     val build_options = store.options
 
     using(store.open_server()) { server =>
