@@ -19,6 +19,7 @@ object Build_Process {
   sealed case class Context(
     store: Store,
     build_deps: isabelle.Sessions.Deps,
+    build_hosts: List[Build_Cluster.Host] = Nil,
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
@@ -1103,6 +1104,11 @@ extends AutoCloseable {
     else {
       if (build_context.master) start_build()
       start_worker()
+
+      if (build_context.master && build_context.build_hosts.nonEmpty) {
+        build_progress.echo("Remote build hosts:\n" +
+          cat_lines(build_context.build_hosts.map("  " + _)))
+      }
 
       if (build_context.master && !build_context.worker_active) {
         build_progress.echo("Waiting for external workers ...")

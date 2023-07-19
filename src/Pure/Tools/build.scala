@@ -69,8 +69,11 @@ object Build {
   class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
 
-    def build_options(options: Options): Options =
-      options + "completion_limit=0" + "editor_tracing_messages=0"
+    def build_options(options: Options, build_hosts: List[Build_Cluster.Host] = Nil): Options = {
+      val options1 = options + "completion_limit=0" + "editor_tracing_messages=0"
+      if (build_hosts.isEmpty) options1
+      else options1 + "build_database_server" + "build_database_test"
+    }
 
     def build_process(
       build_context: Build_Process.Context,
@@ -78,8 +81,11 @@ object Build {
       server: SSH.Server
     ): Build_Process = new Build_Process(build_context, build_progress, server)
 
-    final def build_store(options: Options, cache: Term.Cache = Term.Cache.make()): Store = {
-      val store = Store(build_options(options), cache = cache)
+    final def build_store(options: Options,
+      build_hosts: List[Build_Cluster.Host] = Nil,
+      cache: Term.Cache = Term.Cache.make()
+    ): Store = {
+      val store = Store(build_options(options, build_hosts = build_hosts), cache = cache)
 
       Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
 
@@ -107,6 +113,7 @@ object Build {
 
   def build(
     options: Options,
+    build_hosts: List[Build_Cluster.Host] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty,
     browser_info: Browser_Info.Config = Browser_Info.Config.none,
     progress: Progress = new Progress,
@@ -192,10 +199,10 @@ object Build {
         /* build process and results */
 
         val build_context =
-          Build_Process.Context(store, build_deps, hostname = hostname(build_options),
-            build_heap = build_heap, numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-            fresh_build = fresh_build, no_build = no_build, session_setup = session_setup,
-            master = true)
+          Build_Process.Context(store, build_deps, build_hosts = build_hosts,
+            hostname = hostname(build_options), build_heap = build_heap,
+            numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
+            no_build = no_build, session_setup = session_setup, master = true)
 
         if (clean_build) {
           for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
@@ -270,6 +277,7 @@ object Build {
     { args =>
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
+      val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
       var numa_shuffling = false
       var browser_info = Browser_Info.Config.none
       var requirements = false
@@ -296,6 +304,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
+    -H HOST      add host for distrubuted build
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -324,6 +333,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 """ + Library.indent_lines(4,  Build_Log.Settings.show()) + "\n",
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "H:" -> (arg => build_hosts += Build_Cluster.Host.parse(arg)),
         "N" -> (_ => numa_shuffling = true),
         "P:" -> (arg => browser_info = Browser_Info.Config.make(arg)),
         "R" -> (_ => requirements = true),
@@ -381,7 +391,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             fresh_build = fresh_build,
             no_build = no_build,
             soft_build = soft_build,
-            export_files = export_files)
+            export_files = export_files,
+            build_hosts = build_hosts.toList)
         }
       val stop_date = Date.now()
       val elapsed_time = stop_date.time - start_date.time

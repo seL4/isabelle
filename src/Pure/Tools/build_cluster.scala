@@ -22,6 +22,8 @@ object Build_Cluster {
       numa: Boolean = false,
       options: List[Options.Spec] = Nil
     ): Host = new Host(host, user, port, jobs, numa, options)
+
+    def parse(str: String): Host = Host(host = str)  // FIXME proper parse
   }
 
   final class Host private(
