@@ -275,28 +275,28 @@ object Build {
   val isabelle_tool1 = Isabelle_Tool("build", "build and manage Isabelle sessions",
     Scala_Project.here,
     { args =>
-      var base_sessions: List[String] = Nil
-      var select_dirs: List[Path] = Nil
+      val base_sessions = new mutable.ListBuffer[String]
+      val select_dirs = new mutable.ListBuffer[Path]
       val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
       var numa_shuffling = false
       var browser_info = Browser_Info.Config.none
       var requirements = false
       var soft_build = false
-      var exclude_session_groups: List[String] = Nil
+      val exclude_session_groups = new mutable.ListBuffer[String]
       var all_sessions = false
       var build_heap = false
       var clean_build = false
-      var dirs: List[Path] = Nil
+      val dirs = new mutable.ListBuffer[Path]
       var export_files = false
       var fresh_build = false
-      var session_groups: List[String] = Nil
+      val session_groups = new mutable.ListBuffer[String]
       var max_jobs = 1
       var check_keywords: Set[String] = Set.empty
       var list_files = false
       var no_build = false
       var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var verbose = false
-      var exclude_sessions: List[String] = Nil
+      val exclude_sessions = new mutable.ListBuffer[String]
 
       val getopts = Getopts("""
 Usage: isabelle build [OPTIONS] [SESSIONS ...]
@@ -331,28 +331,28 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Notable system settings:
 """ + Library.indent_lines(4,  Build_Log.Settings.show()) + "\n",
-        "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-        "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "B:" -> (arg => base_sessions += arg),
+        "D:" -> (arg => select_dirs += Path.explode(arg)),
         "H:" -> (arg => build_hosts += Build_Cluster.Host.parse(arg)),
         "N" -> (_ => numa_shuffling = true),
         "P:" -> (arg => browser_info = Browser_Info.Config.make(arg)),
         "R" -> (_ => requirements = true),
         "S" -> (_ => soft_build = true),
-        "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+        "X:" -> (arg => exclude_session_groups += arg),
         "a" -> (_ => all_sessions = true),
         "b" -> (_ => build_heap = true),
         "c" -> (_ => clean_build = true),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "d:" -> (arg => dirs += Path.explode(arg)),
         "e" -> (_ => export_files = true),
         "f" -> (_ => fresh_build = true),
-        "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "g:" -> (arg => session_groups += arg),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
         "k:" -> (arg => check_keywords = check_keywords + arg),
         "l" -> (_ => list_files = true),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose = true),
-        "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+        "x:" -> (arg => exclude_sessions += arg))
 
       val sessions = getopts(args)
 
@@ -372,18 +372,18 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             selection = Sessions.Selection(
               requirements = requirements,
               all_sessions = all_sessions,
-              base_sessions = base_sessions,
-              exclude_session_groups = exclude_session_groups,
-              exclude_sessions = exclude_sessions,
-              session_groups = session_groups,
+              base_sessions = base_sessions.toList,
+              exclude_session_groups = exclude_session_groups.toList,
+              exclude_sessions = exclude_sessions.toList,
+              session_groups = session_groups.toList,
               sessions = sessions),
             browser_info = browser_info,
             progress = progress,
             check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
             build_heap = build_heap,
             clean_build = clean_build,
-            dirs = dirs,
-            select_dirs = select_dirs,
+            dirs = dirs.toList,
+            select_dirs = select_dirs.toList,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
             max_jobs = max_jobs,
             list_files = list_files,
@@ -508,7 +508,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       var build_id = ""
       var list_builds = false
       var numa_shuffling = false
-      var dirs: List[Path] = Nil
+      val dirs = new mutable.ListBuffer[Path]
       var max_jobs = 1
       var options =
         Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
@@ -532,7 +532,7 @@ Usage: isabelle build_worker [OPTIONS]
   option -i. The latter can be omitted, if there is exactly one build.
 """,
         "N" -> (_ => numa_shuffling = true),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "d:" -> (arg => dirs += Path.explode(arg)),
         "i:" -> (arg => build_id = arg),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
         "l" -> (_ => list_builds = true),
@@ -549,7 +549,7 @@ Usage: isabelle build_worker [OPTIONS]
           build_worker(options, build_id,
             progress = progress,
             list_builds = list_builds,
-            dirs = dirs,
+            dirs = dirs.toList,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
             max_jobs = max_jobs)
         }
@@ -737,10 +737,10 @@ Usage: isabelle build_worker [OPTIONS]
     { args =>
       /* arguments */
 
-      var message_head = List.empty[Regex]
-      var message_body = List.empty[Regex]
+      val message_head = new mutable.ListBuffer[Regex]
+      val message_body = new mutable.ListBuffer[Regex]
       var unicode_symbols = false
-      var theories: List[String] = Nil
+      val theories = new mutable.ListBuffer[String]
       var margin = Pretty.default_margin
       var options = Options.init()
       var verbose = false
@@ -765,9 +765,9 @@ Usage: isabelle build_log [OPTIONS] [SESSIONS ...]
   match. Patterns match any substring, but ^ or $ may be used to match the
   start or end explicitly.
 """,
-        "H:" -> (arg => message_head = message_head ::: List(arg.r)),
-        "M:" -> (arg => message_body = message_body ::: List(arg.r)),
-        "T:" -> (arg => theories = theories ::: List(arg)),
+        "H:" -> (arg => message_head += arg.r),
+        "M:" -> (arg => message_body += arg.r),
+        "T:" -> (arg => theories += arg),
         "U" -> (_ => unicode_symbols = true),
         "m:" -> (arg => margin = Value.Double.parse(arg)),
         "o:" -> (arg => options = options + arg),
@@ -779,8 +779,8 @@ Usage: isabelle build_log [OPTIONS] [SESSIONS ...]
 
       if (sessions.isEmpty) progress.echo_warning("No sessions to print")
       else {
-        print_log(options, sessions, theories = theories, message_head = message_head,
-          message_body = message_body, margin = margin, progress = progress,
+        print_log(options, sessions, theories = theories.toList, message_head = message_head.toList,
+          message_body = message_body.toList, margin = margin, progress = progress,
           unicode_symbols = unicode_symbols)
       }
     })
