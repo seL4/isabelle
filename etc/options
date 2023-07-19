@@ -183,6 +183,9 @@ public option ML_system_apple : bool = true for build
 
 section "Build Process"
 
+option build_context : string = ""
+  -- "free-form information for session build (to be interpreted in Isabelle/ML)"
+
 option build_thorough : bool = false
   -- "observe dependencies on options with tag 'content' or 'document'"
 
