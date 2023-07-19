@@ -653,7 +653,9 @@ object PostgreSQL {
     val db = new Database(connection, print, server, server_close)
 
     try {
-      db.execute_statement("SET synchronous_commit = " + SQL.string(synchronous_commit))
+      if (synchronous_commit.nonEmpty) {
+        db.execute_statement("SET synchronous_commit = " + SQL.string(synchronous_commit))
+      }
     }
     catch { case exn: Throwable => db.close(); throw exn }
 
@@ -689,7 +691,7 @@ object PostgreSQL {
     ssh_host: String = "",
     ssh_port: Int = 0,
     ssh_user: String = "",
-    synchronous_commit: String = "off"
+    synchronous_commit: String = ""
   ): PostgreSQL.Database = {
     val db_server =
       if (server.defined) server
