@@ -879,6 +879,9 @@ extends AutoCloseable {
     }
     catch { case exn: Throwable => close(); throw exn }
 
+  protected val build_delay: Time =
+    build_options.seconds(if (_build_database.isEmpty) "build_delay" else "build_database_delay")
+
   private val _host_database: Option[SQL.Database] =
     try { store.maybe_open_build_database(path = Host.private_data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
@@ -1082,9 +1085,7 @@ extends AutoCloseable {
     def finished(): Boolean = synchronized_database("Build_Process.test") { _state.finished }
 
     def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
-        build_options.seconds("build_delay").sleep()
-      }
+      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
 
     def check_jobs(): Boolean = synchronized_database("Build_Process.check_jobs") {
       val jobs = next_jobs(_state)
