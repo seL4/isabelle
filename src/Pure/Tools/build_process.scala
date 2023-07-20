@@ -853,7 +853,7 @@ extends AutoCloseable {
   protected final val build_uuid: String = build_context.build_uuid
 
 
-  /* progress backed by database */
+  /* global resources with common close() operation */
 
   private val _database_server: Option[SQL.Database] =
     try { store.maybe_open_database_server(server = server) }
@@ -911,16 +911,31 @@ extends AutoCloseable {
 
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
+  protected def init_cluster(remote_hosts: List[Build_Cluster.Host]): Build_Cluster =
+    new Build_Cluster(build_context, remote_hosts, progress = build_progress)
+
+  private val _build_cluster =
+    try {
+      val remote_hosts = build_context.build_hosts.filter(_.is_remote)
+      if (build_context.master && _build_database.isDefined && remote_hosts.nonEmpty) {
+        Some(init_cluster(remote_hosts))
+      }
+      else None
+    }
+    catch { case exn: Throwable => close(); throw exn }
+
   def close(): Unit = synchronized {
     Option(_database_server).flatten.foreach(_.close())
     Option(_build_database).flatten.foreach(_.close())
     Option(_host_database).flatten.foreach(_.close())
+    Option(_build_cluster).flatten.foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
         db_progress.exit(close = true)
       case _ =>
     }
   }
+
 
   /* global state: internal var vs. external database */
 
@@ -1111,13 +1126,9 @@ extends AutoCloseable {
     else {
       if (build_context.master) start_build()
       start_worker()
+      _build_cluster.foreach(_.start())
 
-      if (build_context.master && build_context.build_hosts.nonEmpty) {
-        build_progress.echo("Remote build hosts:\n" +
-          cat_lines(build_context.build_hosts.map("  " + _)))
-      }
-
-      if (build_context.master && !build_context.worker_active) {
+      if (build_context.master && !build_context.worker_active && _build_cluster.isDefined) {
         build_progress.echo("Waiting for external workers ...")
       }
 
@@ -1140,6 +1151,7 @@ extends AutoCloseable {
         }
       }
       finally {
+        _build_cluster.foreach(_.stop())
         stop_worker()
         if (build_context.master) stop_build()
       }

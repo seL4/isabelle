@@ -9,6 +9,8 @@ package isabelle
 
 
 object Build_Cluster {
+  /* host specifications */
+
   object Host {
     private val rfc822_specials = """()<>@,;:\"[]"""
 
@@ -75,6 +77,8 @@ object Build_Cluster {
     numa: Boolean,
     options: List[Options.Spec]
   ) {
+    def is_remote: Boolean = host.nonEmpty
+
     override def toString: String = print
 
     def print: String = {
@@ -95,4 +99,29 @@ object Build_Cluster {
     def open_ssh_session(options: Options): SSH.Session =
       SSH.open_session(options, host, port = port, user = user)
   }
+
+
+  /* remote sessions */
+
+  class Session(host: Host) extends AutoCloseable {
+    override def close(): Unit = ()
+  }
+}
+
+// class extensible via Build.Engine.build_process() and Build_Process.init_cluster()
+class Build_Cluster(
+  build_context: Build_Process.Context,
+  remote_hosts: List[Build_Cluster.Host],
+  progress: Progress = new Progress
+) extends AutoCloseable {
+  require(remote_hosts.nonEmpty && remote_hosts.forall(_.is_remote), "remote hosts required")
+
+  override def toString: String = remote_hosts.mkString("Build_Cluster(", ", ", ")")
+
+  progress.echo("Remote hosts:\n" + cat_lines(remote_hosts.map("  " + _)))
+
+  def start(): Unit = ()
+  def stop(): Unit = ()
+
+  override def close(): Unit = ()
 }
