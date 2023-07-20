@@ -25,6 +25,8 @@ object AFP {
 
   val BASE: Path = Path.explode("$AFP_BASE")
 
+  def main_dir(base_dir: Path = BASE): Path = base_dir + Path.explode("thys")
+
   def init(options: Options, base_dir: Path = BASE): AFP =
     new AFP(options, base_dir)
 
@@ -68,7 +70,7 @@ object AFP {
 class AFP private(options: Options, val base_dir: Path) {
   override def toString: String = base_dir.expand.toString
 
-  val main_dir: Path = base_dir + Path.explode("thys")
+  val main_dir: Path = AFP.main_dir(base_dir = base_dir)
 
 
   /* metadata */
