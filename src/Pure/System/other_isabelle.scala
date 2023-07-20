@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/other_isabelle.scala
+/*  Title:      Pure/System/other_isabelle.scala
     Author:     Makarius
 
 Manage other Isabelle distributions: support historic versions starting from

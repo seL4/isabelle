@@ -47,7 +47,6 @@ sources = \
   src/Pure/Admin/component_zstd.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
   src/Pure/Admin/isabelle_devel.scala \
-  src/Pure/Admin/other_isabelle.scala \
   src/Pure/Concurrent/consumer_thread.scala \
   src/Pure/Concurrent/counter.scala \
   src/Pure/Concurrent/delay.scala \
@@ -168,6 +167,7 @@ sources = \
   src/Pure/System/mingw.scala \
   src/Pure/System/nodejs.scala \
   src/Pure/System/options.scala \
+  src/Pure/System/other_isabelle.scala \
   src/Pure/System/platform.scala \
   src/Pure/System/posix_interrupt.scala \
   src/Pure/System/process_result.scala \
