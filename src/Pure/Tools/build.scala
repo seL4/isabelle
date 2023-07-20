@@ -117,6 +117,7 @@ object Build {
     check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
+    afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     infos: List[Sessions.Info] = Nil,
@@ -137,6 +138,12 @@ object Build {
     val store = build_engine.build_store(options, build_hosts = build_hosts, cache = cache)
     val build_options = store.options
 
+    val afp_dirs =
+      afp_root match {
+        case None => Nil
+        case Some(dir) => List(AFP.main_dir(base_dir = dir))
+      }
+
     using(store.open_server()) { server =>
       using_optional(store.maybe_open_database_server(server = server)) { database_server =>
 
@@ -144,8 +151,8 @@ object Build {
         /* session selection and dependencies */
 
         val full_sessions =
-          Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos,
-            augment_options = augment_options)
+          Sessions.load_structure(build_options, dirs = afp_dirs ::: dirs,
+            select_dirs = select_dirs, infos = infos, augment_options = augment_options)
         val full_sessions_selection = full_sessions.imports_selection(selection)
 
         val build_deps = {
@@ -272,6 +279,7 @@ object Build {
   val isabelle_tool1 = Isabelle_Tool("build", "build and manage Isabelle sessions",
     Scala_Project.here,
     { args =>
+      var afp_root: Option[Path] = None
       val base_sessions = new mutable.ListBuffer[String]
       val select_dirs = new mutable.ListBuffer[Path]
       val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
@@ -299,6 +307,7 @@ object Build {
 Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -H HOST      additional host for distributed build ("NAME:PARAMETERS")
@@ -332,6 +341,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Notable system settings:
 """ + Library.indent_lines(4, Build_Log.Settings.show()) + "\n",
+        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
         "H:" -> (arg => build_hosts += Build_Cluster.Host.parse(arg)),
