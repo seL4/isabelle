@@ -384,10 +384,6 @@ the default 64_32 platform (4 bytes per machine word):
 
 *** System ***
 
-* Isabelle/Scala supports TOML (Tom's Obvious, Minimal Language), which
-aims to be a minimal configuration file format. See also
-https://toml.io/en/v1.0.0
-
 * The command-line tool "isabelle build" now supports option -A to
 include AFP as directory, without selecting any sessions yet.
 
@@ -395,6 +391,18 @@ include AFP as directory, without selecting any sessions yet.
 statistics from ML heap images. Command-line options are similar to
 "isabelle build". Output is in CSV format, which can be opened by common
 spreadsheet applications (e.g. LibreOffice Calc).
+
+* The command-line tool "isabelle update" is now directly based on
+"isabelle build" instead of "isabelle dump". Thus it has become more
+scalable, and supports most options from "isabelle build". Partial
+builds are supported as well, e.g. "isabelle update -n -a".
+
+* The command-line tool "isabelle log" has been renamed to "isabelle
+build_log", to emphasize its relation to "isabelle build".
+
+* The command-line tool "isabelle build_docker" has been renamed to
+"isabelle docker_build", to emphasize its non-relation to "isabelle
+build".
 
 * System options "context_theory_tracing" and "context_proof_tracing"
 store information about persistent context values (ML types theory,
@@ -437,18 +445,6 @@ causes a fresh build. For example:
   isabelle build -o build_thorough -o show_types FOL  # changed
   isabelle build -o build_thorough FOL  # changed
 
-* The command-line tool "isabelle update" is now directly based on
-"isabelle build" instead of "isabelle dump". Thus it has become more
-scalable, and supports most options from "isabelle build". Partial
-builds are supported as well, e.g. "isabelle update -n -a".
-
-* The command-line tool "isabelle log" has been renamed to "isabelle
-build_log", to emphasize its relation to "isabelle build".
-
-* The command-line tool "isabelle build_docker" has been renamed to
-"isabelle docker_build", to emphasize its non-relation to "isabelle
-build".
-
 * System option "build_pide_reports" has been discontinued: it coincides
 with "pide_reports".
 
@@ -486,6 +482,10 @@ detects the compression scheme.
 to optional "reset", which opposite polarity. INCOMPATIBILITY.
 
 * Update to GHC stack 2.9.3 with support for arm64-linux.
+
+* Isabelle/Scala supports TOML (Tom's Obvious, Minimal Language), which
+aims to be a minimal configuration file format. See also
+https://toml.io/en/v1.0.0
 
 
 
