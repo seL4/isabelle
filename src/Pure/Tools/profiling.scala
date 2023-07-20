@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/profiling_report.scala
+/*  Title:      Pure/Tools/profiling.scala
     Author:     Makarius
 
 Build sessions for profiling of ML heap content.

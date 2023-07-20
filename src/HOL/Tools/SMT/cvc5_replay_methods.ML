@@ -1,8 +1,8 @@
-(*  Title:      HOL/Tools/SMT/cvc4_replay_methods.ML
+(*  Title:      HOL/Tools/SMT/cvc5_replay_methods.ML
     Author:     Mathias Fleury, JKU, Uni Freiburg
     Author:     Hanna Lachnitt, Stanford University
 
-Proof method for replaying veriT proofs.
+Proof method for replaying cvc5 proofs.
 *)
 
 signature CVC5_REPLAY_METHODS =

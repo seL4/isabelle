@@ -1,8 +1,8 @@
-(*  Title:      HOL/Tools/SMT/cvc4_replay.ML
+(*  Title:      HOL/Tools/SMT/cvc5_replay.ML
     Author:     Mathias Fleury, JKU
     Author:     Hanna Lachnitt, Stanford University
 
-CVC4 proof parsing and replay.
+Proof parsing and replay for cvc5.
 *)
 
 signature CVC5_REPLAY =
