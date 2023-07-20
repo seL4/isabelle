@@ -138,12 +138,6 @@ object Build {
     val store = build_engine.build_store(options, build_hosts = build_hosts, cache = cache)
     val build_options = store.options
 
-    val afp_dirs =
-      afp_root match {
-        case None => Nil
-        case Some(dir) => List(AFP.main_dir(base_dir = dir))
-      }
-
     using(store.open_server()) { server =>
       using_optional(store.maybe_open_database_server(server = server)) { database_server =>
 
@@ -151,7 +145,7 @@ object Build {
         /* session selection and dependencies */
 
         val full_sessions =
-          Sessions.load_structure(build_options, dirs = afp_dirs ::: dirs,
+          Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
             select_dirs = select_dirs, infos = infos, augment_options = augment_options)
         val full_sessions_selection = full_sessions.imports_selection(selection)
 
@@ -203,7 +197,7 @@ object Build {
         /* build process and results */
 
         val build_context =
-          Build_Process.Context(store, build_deps, build_hosts = build_hosts,
+          Build_Process.Context(store, build_deps, afp_root = afp_root, build_hosts = build_hosts,
             hostname = hostname(build_options), build_heap = build_heap,
             numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup, master = true)
@@ -473,6 +467,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     build_id: String = "",
     progress: Progress = new Progress,
     list_builds: Boolean = false,
+    afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
@@ -492,16 +487,16 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           val build_master = find_builds(build_database, build_id, builds)
 
           val sessions_structure =
-            Sessions.load_structure(build_options, dirs = dirs).
+            Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs).
               selection(Sessions.Selection(sessions = build_master.sessions))
 
           val build_deps =
             Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
           val build_context =
-            Build_Process.Context(store, build_deps, hostname = hostname(build_options),
-              numa_shuffling = numa_shuffling, max_jobs = max_jobs,
-              build_uuid = build_master.build_uuid)
+            Build_Process.Context(store, build_deps, afp_root = afp_root,
+              hostname = hostname(build_options), numa_shuffling = numa_shuffling,
+              max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
           Some(build_engine.run_process(build_context, progress, server))
         }
@@ -516,6 +511,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   val isabelle_tool2 = Isabelle_Tool("build_worker", "external worker for session build process",
     Scala_Project.here,
     { args =>
+      var afp_root: Option[Path] = None
       var build_id = ""
       var list_builds = false
       var numa_shuffling = false
@@ -530,6 +526,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 Usage: isabelle build_worker [OPTIONS]
 
   Options are:
+    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -B UUID      existing UUID for build process (default: from database)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -d DIR       include session directory
@@ -538,6 +535,7 @@ Usage: isabelle build_worker [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
 """,
+        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => build_id = arg),
         "N" -> (_ => numa_shuffling = true),
         "d:" -> (arg => dirs += Path.explode(arg)),
@@ -557,6 +555,7 @@ Usage: isabelle build_worker [OPTIONS]
             build_id = build_id,
             progress = progress,
             list_builds = list_builds,
+            afp_root = afp_root,
             dirs = dirs.toList,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
             max_jobs = max_jobs)

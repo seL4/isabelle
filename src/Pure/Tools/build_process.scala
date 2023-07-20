@@ -19,6 +19,7 @@ object Build_Process {
   sealed case class Context(
     store: Store,
     build_deps: isabelle.Sessions.Deps,
+    afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
