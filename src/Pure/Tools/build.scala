@@ -75,35 +75,32 @@ object Build {
       else options1 + "build_database_server" + "build_database_test"
     }
 
+    final def build_store(options: Options,
+      build_hosts: List[Build_Cluster.Host] = Nil,
+      cache: Term.Cache = Term.Cache.make()
+    ): Store = {
+      val store = Store(build_options(options, build_hosts = build_hosts), cache = cache)
+      Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
+      Isabelle_Fonts.init()
+      store
+    }
+
     def build_process(
       build_context: Build_Process.Context,
       build_progress: Progress,
       server: SSH.Server
     ): Build_Process = new Build_Process(build_context, build_progress, server)
 
-    final def build_store(options: Options,
-      build_hosts: List[Build_Cluster.Host] = Nil,
-      cache: Term.Cache = Term.Cache.make()
-    ): Store = {
-      val store = Store(build_options(options, build_hosts = build_hosts), cache = cache)
-
-      Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
-
-      Isabelle_Fonts.init()
-
-      store
-    }
-
-    final def run(
+    final def run_process(
       context: Build_Process.Context,
       progress: Progress,
       server: SSH.Server
-    ): Results =
+    ): Results = {
       Isabelle_Thread.uninterruptible {
-        using(build_process(context, progress, server)) { build_process =>
-          Results(context, build_process.run())
-        }
+        using(build_process(context, progress, server))(
+          build_process => Results(context, build_process.run()))
       }
+    }
   }
 
   class Default_Engine extends Engine("") { override def toString: String = "<default>" }
@@ -214,7 +211,7 @@ object Build {
           }
         }
 
-        val results = build_engine.run(build_context, progress, server)
+        val results = build_engine.run_process(build_context, progress, server)
 
         if (export_files) {
           for (name <- full_sessions_selection.iterator if results(name).ok) {
@@ -496,7 +493,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
               numa_shuffling = numa_shuffling, max_jobs = max_jobs,
               build_uuid = build_master.build_uuid)
 
-          Some(build_engine.run(build_context, progress, server))
+          Some(build_engine.run_process(build_context, progress, server))
         }
         else None
       }
