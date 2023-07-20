@@ -32,21 +32,21 @@ object Build_Cluster {
     lazy val test_options: Options = Options.init0()
 
     def apply(
-      host: String = "",
+      name: String = "",
       user: String = parameters.string(USER),
       port: Int = parameters.int(PORT),
       jobs: Int = parameters.int(JOBS),
       numa: Boolean = parameters.bool(NUMA),
       options: List[Options.Spec] = Nil
-    ): Host = new Host(host, user, port, jobs, numa, options)
+    ): Host = new Host(name, user, port, jobs, numa, options)
 
     def parse(str: String): Host = {
-      val host = str.takeWhile(c => !rfc822_specials.contains(c))
+      val name = str.takeWhile(c => !rfc822_specials.contains(c))
       val (params, options) =
         try {
           val rest = {
             val n = str.length
-            val m = host.length
+            val m = name.length
             val l =
               if (m == n) n
               else if (str(m) == ':') m + 1
@@ -60,7 +60,7 @@ object Build_Cluster {
           case ERROR(msg) =>
             cat_error(msg, "The error(s) above occurred in host specification " + quote(str))
         }
-      apply(host = host,
+      apply(name = name,
         user = params.string(USER),
         port = params.int(PORT),
         jobs = params.int(JOBS),
@@ -70,14 +70,14 @@ object Build_Cluster {
   }
 
   final class Host private(
-    host: String,
+    name: String,
     user: String,
     port: Int,
     jobs: Int,
     numa: Boolean,
     options: List[Options.Spec]
   ) {
-    def is_remote: Boolean = host.nonEmpty
+    def is_remote: Boolean = name.nonEmpty
 
     override def toString: String = print
 
@@ -91,13 +91,13 @@ object Build_Cluster {
         ).filter(_.nonEmpty)
       val rest = (params ::: options).mkString(",")
 
-      if (host.isEmpty) ":" + rest
-      else if (rest.isEmpty) host
-      else host + ":" + rest
+      if (name.isEmpty) ":" + rest
+      else if (rest.isEmpty) name
+      else name + ":" + rest
     }
 
     def open_ssh_session(options: Options): SSH.Session =
-      SSH.open_session(options, host, port = port, user = user)
+      SSH.open_session(options, name, port = port, user = user)
   }
 
 
