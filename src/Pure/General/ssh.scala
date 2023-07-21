@@ -80,6 +80,15 @@ object SSH {
   }
 
 
+  /* local host (not "localhost") */
+
+  val LOCAL = "local"
+
+  def is_local(host: String): Boolean = host.isEmpty || host == LOCAL
+
+  def print_local(host: String): String = if (is_local(host)) LOCAL else host
+
+
   /* open session */
 
   def open_session(
@@ -88,6 +97,8 @@ object SSH {
     port: Int = 0,
     user: String = ""
   ): Session = {
+    require(!is_local(host), "Illegal host name " + quote(host))
+
     val multiplex = options.bool("ssh_multiplexing") && !Platform.is_windows
     val (control_master, control_path) =
       if (multiplex) (true, Isabelle_System.tmp_file("ssh", initialized = false).getPath)
@@ -431,7 +442,7 @@ object SSH {
 
     def close(): Unit = ()
 
-    override def toString: String = "SSH.Local"
+    override def toString: String = LOCAL
     def print: String = ""
     def hg_url: String = ""
     def client_command: String = ""

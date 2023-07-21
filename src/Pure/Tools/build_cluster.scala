@@ -12,8 +12,6 @@ object Build_Cluster {
   /* host specifications */
 
   object Host {
-    val LOCAL = "local"
-
     private val rfc822_specials = """()<>@,;:\"[]"""
 
     private val USER = "user"
@@ -79,7 +77,7 @@ object Build_Cluster {
     numa: Boolean,
     options: List[Options.Spec]
   ) {
-    def is_local: Boolean = name.isEmpty || name == Host.LOCAL
+    def is_local: Boolean = SSH.is_local(name)
 
     override def toString: String = print
 
@@ -93,7 +91,7 @@ object Build_Cluster {
         ).filter(_.nonEmpty)
       val rest = (params ::: options).mkString(",")
 
-      (if (is_local) Host.LOCAL else name) + if_proper(rest, ":" + rest)
+      SSH.print_local(name) + if_proper(rest, ":" + rest)
     }
 
     def open_ssh_session(options: Options): SSH.Session =
