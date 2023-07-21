@@ -20,7 +20,7 @@ object Build_Job {
   /* build session */
 
   def start_session(
-    build_context: Build_Process.Context,
+    build_context: Build.Context,
     session_context: Session_Context,
     progress: Progress,
     log: Logger,
@@ -98,7 +98,7 @@ object Build_Job {
   ) extends Library.Named
 
   class Session_Job private[Build_Job](
-    build_context: Build_Process.Context,
+    build_context: Build.Context,
     session_context: Session_Context,
     progress: Progress,
     log: Logger,

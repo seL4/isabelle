@@ -110,7 +110,7 @@ object Build_Cluster {
 
 // class extensible via Build.Engine.build_process() and Build_Process.init_cluster()
 class Build_Cluster(
-  build_context: Build_Process.Context,
+  build_context: Build.Context,
   remote_hosts: List[Build_Cluster.Host],
   progress: Progress = new Progress
 ) extends AutoCloseable {

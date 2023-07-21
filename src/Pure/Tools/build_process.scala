@@ -14,38 +14,7 @@ import scala.annotation.tailrec
 
 
 object Build_Process {
-  /** static context **/
-
-  sealed case class Context(
-    store: Store,
-    build_deps: isabelle.Sessions.Deps,
-    afp_root: Option[Path] = None,
-    build_hosts: List[Build_Cluster.Host] = Nil,
-    ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
-    hostname: String = Isabelle_System.hostname(),
-    numa_shuffling: Boolean = false,
-    build_heap: Boolean = false,
-    max_jobs: Int = 1,
-    fresh_build: Boolean = false,
-    no_build: Boolean = false,
-    session_setup: (String, Session) => Unit = (_, _) => (),
-    build_uuid: String = UUID.random().toString,
-    master: Boolean = false
-  ) {
-    override def toString: String =
-      "Build_Process.Context(build_uuid = " + quote(build_uuid) +
-        if_proper(master, ", master = true") + ")"
-
-    def build_options: Options = store.options
-
-    def sessions_structure: isabelle.Sessions.Structure = build_deps.sessions_structure
-
-    def worker_active: Boolean = max_jobs > 0
-  }
-
-
-
-  /** dynamic state **/
+  /** state vs. database **/
 
   sealed case class Build(
     build_uuid: String,   // Database_Progress.context_uuid
@@ -131,7 +100,7 @@ object Build_Process {
     }
 
     def init(
-      build_context: Context,
+      build_context: isabelle.Build.Context,
       database_server: Option[SQL.Database],
       progress: Progress = new Progress
     ): Sessions = {
@@ -840,7 +809,7 @@ object Build_Process {
 /** main process **/
 
 class Build_Process(
-  protected final val build_context: Build_Process.Context,
+  protected final val build_context: Build.Context,
   protected final val build_progress: Progress,
   protected final val server: SSH.Server
 )

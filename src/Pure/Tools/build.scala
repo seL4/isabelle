@@ -23,10 +23,39 @@ object Build {
 
 
 
+  /* context */
+
+  sealed case class Context(
+    store: Store,
+    build_deps: isabelle.Sessions.Deps,
+    afp_root: Option[Path] = None,
+    build_hosts: List[Build_Cluster.Host] = Nil,
+    ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
+    hostname: String = Isabelle_System.hostname(),
+    numa_shuffling: Boolean = false,
+    build_heap: Boolean = false,
+    max_jobs: Int = 1,
+    fresh_build: Boolean = false,
+    no_build: Boolean = false,
+    session_setup: (String, Session) => Unit = (_, _) => (),
+    build_uuid: String = UUID.random().toString,
+    master: Boolean = false
+  ) {
+    override def toString: String =
+      "Build.Context(build_uuid = " + quote(build_uuid) + if_proper(master, ", master = true") + ")"
+
+    def build_options: Options = store.options
+
+    def sessions_structure: isabelle.Sessions.Structure = build_deps.sessions_structure
+
+    def worker_active: Boolean = max_jobs > 0
+  }
+
+
   /* results */
 
   object Results {
-    def apply(context: Build_Process.Context, results: Map[String, Process_Result]): Results =
+    def apply(context: Context, results: Map[String, Process_Result]): Results =
       new Results(context.store, context.build_deps, results)
   }
 
@@ -86,13 +115,13 @@ object Build {
     }
 
     def build_process(
-      build_context: Build_Process.Context,
+      build_context: Context,
       build_progress: Progress,
       server: SSH.Server
     ): Build_Process = new Build_Process(build_context, build_progress, server)
 
     final def run_process(
-      context: Build_Process.Context,
+      context: Context,
       progress: Progress,
       server: SSH.Server
     ): Results = {
@@ -197,7 +226,7 @@ object Build {
         /* build process and results */
 
         val build_context =
-          Build_Process.Context(store, build_deps, afp_root = afp_root, build_hosts = build_hosts,
+          Context(store, build_deps, afp_root = afp_root, build_hosts = build_hosts,
             hostname = hostname(build_options), build_heap = build_heap,
             numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup, master = true)
@@ -494,7 +523,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
           val build_context =
-            Build_Process.Context(store, build_deps, afp_root = afp_root,
+            Context(store, build_deps, afp_root = afp_root,
               hostname = hostname(build_options), numa_shuffling = numa_shuffling,
               max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
