@@ -84,12 +84,12 @@ object Build_Cluster {
   }
 
   final class Host private(
-    name: String,
-    user: String,
-    port: Int,
-    jobs: Int,
-    numa: Boolean,
-    options: List[Options.Spec]
+    val name: String,
+    val user: String,
+    val port: Int,
+    val jobs: Int,
+    val numa: Boolean,
+    val options: List[Options.Spec]
   ) {
     def is_local: Boolean = SSH.is_local(name)
 
