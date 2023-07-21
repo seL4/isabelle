@@ -647,7 +647,8 @@ object PostgreSQL {
     val name = proper_string(database) getOrElse user
     val url = "jdbc:postgresql://" + server.host + ":" + server.port + "/" + name
     val ssh = server.ssh_system.ssh_session
-    val print = user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
+    val print =
+      "server " + user + "@" + server + "/" + name + if_proper(ssh, " via ssh " + ssh.get)
 
     val connection = DriverManager.getConnection(url, user, password)
     val db = new Database(connection, print, server, server_close)
