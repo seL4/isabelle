@@ -497,8 +497,7 @@ final class Command private(
   def blobs: List[Exn.Result[Command.Blob]] = blobs_info.blobs
   def blobs_index: Int = blobs_info.index
 
-  def blobs_ok: Boolean =
-    blobs.forall({ case Exn.Res(_) => true case _ => false })
+  def blobs_ok: Boolean = blobs.forall(Exn.the_res.isDefinedAt)
 
   def blobs_names: List[Document.Node.Name] =
     for (Exn.Res(blob) <- blobs) yield blob.name
