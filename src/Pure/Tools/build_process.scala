@@ -886,7 +886,7 @@ extends AutoCloseable {
 
   private val _build_cluster =
     try {
-      val remote_hosts = build_context.build_hosts.filter(_.is_remote)
+      val remote_hosts = build_context.build_hosts.filterNot(_.is_local)
       if (build_context.master && _build_database.isDefined && remote_hosts.nonEmpty) {
         Some(init_cluster(remote_hosts))
       }

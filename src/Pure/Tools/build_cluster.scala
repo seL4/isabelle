@@ -12,6 +12,8 @@ object Build_Cluster {
   /* host specifications */
 
   object Host {
+    val LOCAL = "local"
+
     private val rfc822_specials = """()<>@,;:\"[]"""
 
     private val USER = "user"
@@ -77,7 +79,7 @@ object Build_Cluster {
     numa: Boolean,
     options: List[Options.Spec]
   ) {
-    def is_remote: Boolean = name.nonEmpty
+    def is_local: Boolean = name.isEmpty || name == Host.LOCAL
 
     override def toString: String = print
 
@@ -91,9 +93,7 @@ object Build_Cluster {
         ).filter(_.nonEmpty)
       val rest = (params ::: options).mkString(",")
 
-      if (name.isEmpty) ":" + rest
-      else if (rest.isEmpty) name
-      else name + ":" + rest
+      (if (is_local) Host.LOCAL else name) + if_proper(rest, ":" + rest)
     }
 
     def open_ssh_session(options: Options): SSH.Session =
@@ -114,7 +114,7 @@ class Build_Cluster(
   remote_hosts: List[Build_Cluster.Host],
   progress: Progress = new Progress
 ) extends AutoCloseable {
-  require(remote_hosts.nonEmpty && remote_hosts.forall(_.is_remote), "remote hosts required")
+  require(remote_hosts.nonEmpty && !remote_hosts.exists(_.is_local), "remote hosts required")
 
   override def toString: String = remote_hosts.mkString("Build_Cluster(", ", ", ")")
 
