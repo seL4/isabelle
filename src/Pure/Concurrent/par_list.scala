@@ -12,7 +12,8 @@ object Par_List {
   def managed_results[A, B](
     f: A => B,
     xs: List[A],
-    sequential: Boolean = false
+    sequential: Boolean = false,
+    thread: Boolean = false
   ) : List[Exn.Result[B]] = {
     if (sequential || xs.isEmpty || xs.tail.isEmpty) xs.map(x => Exn.capture { f(x) })
     else {
@@ -30,12 +31,13 @@ object Par_List {
       try {
         state.change(_ =>
           (xs.iterator.zipWithIndex.map({ case (x, self) =>
-            Future.fork {
+            def run =
               Exn.capture { f(x) } match {
                 case Exn.Exn(exn) => cancel_other(self); throw exn
                 case Exn.Res(res) => res
               }
-            }
+            if (thread) Future.thread("Par_List.managed_results") { run }
+            else Future.fork { run }
           }).toList, false))
 
         state.value._1.map(_.join_result)
@@ -44,8 +46,12 @@ object Par_List {
     }
   }
 
-  def map[A, B](f: A => B, xs: List[A], sequential: Boolean = false): List[B] =
-    Exn.release_first(managed_results(f, xs, sequential = sequential))
+  def map[A, B](f: A => B, xs: List[A],
+    sequential: Boolean = false,
+    thread: Boolean = false
+  ): List[B] = {
+    Exn.release_first(managed_results(f, xs, sequential = sequential, thread = thread))
+  }
 
   private class Found(val res: Any) extends Exception
 
