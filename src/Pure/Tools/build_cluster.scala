@@ -50,7 +50,7 @@ object Build_Cluster {
             val l =
               if (m == n) n
               else if (str(m) == ':') m + 1
-              else error("Colon (:) expected after host name")
+              else error("Missing \":\" after host name")
             str.substring(l)
           }
           val (specs1, specs2) = Options.parse_specs(rest).partition(is_parameter)
