@@ -881,14 +881,20 @@ extends AutoCloseable {
 
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
-  protected def init_cluster(remote_hosts: List[Build_Cluster.Host]): Build_Cluster =
+  protected def init_build_cluster(remote_hosts: List[Build_Cluster.Host]): Build_Cluster =
     new Build_Cluster(build_context, remote_hosts, progress = build_progress)
+
+  protected def exit_build_cluster(build_cluster: Build_Cluster): Boolean = {
+    val results = build_cluster.join
+    build_cluster.close()
+    results.forall({ case Exn.Res(res) => res.ok case _ => false })
+  }
 
   private val _build_cluster =
     try {
       val remote_hosts = build_context.build_hosts.filterNot(_.is_local)
       if (build_context.master && _build_database.isDefined && remote_hosts.nonEmpty) {
-        Some(init_cluster(remote_hosts))
+        Some(init_build_cluster(remote_hosts))
       }
       else None
     }
@@ -1121,7 +1127,7 @@ extends AutoCloseable {
         }
       }
       finally {
-        _build_cluster.foreach(_.stop())
+        _build_cluster.foreach(exit_build_cluster)
         stop_worker()
         if (build_context.master) stop_build()
       }
