@@ -173,7 +173,7 @@ class Progress {
   def verbose: Boolean = false
   final def do_output(message: Progress.Message): Boolean = !message.verbose || verbose
 
-  def output(message: Progress.Message) = {}
+  def output(message: Progress.Message): Unit = {}
 
   final def echo(msg: String, verbose: Boolean = false): Unit =
     output(Progress.Message(Progress.Kind.writeln, msg, verbose = verbose))
@@ -186,6 +186,12 @@ class Progress {
 
   def theory(theory: Progress.Theory): Unit = output(theory.message)
   def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
+
+  final def capture[A](e: => A, msg: String, err: Throwable => String): Exn.Result[A] = {
+    echo(msg)
+    try { Exn.Res(e) }
+    catch { case exn: Throwable => echo_error_message(err(exn)); Exn.Exn[A](exn) }
+  }
 
   final def timeit[A](
     body: => A,
