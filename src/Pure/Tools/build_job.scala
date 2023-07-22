@@ -114,7 +114,7 @@ object Build_Job {
     private val future_result: Future[(Process_Result, SHA1.Shasum)] =
       Future.thread("build", uninterruptible = true) {
         val info = session_background.sessions_structure(session_name)
-        val options = node_info.process_policy(info.options)
+        val options = build_context.engine.process_options(info.options, node_info)
 
         val store = build_context.store
 

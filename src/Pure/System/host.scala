@@ -17,7 +17,7 @@ object Host {
   def numactl(node: Int): String = "numactl -m" + node + " -N" + node
   def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
 
-  def process_policy(options: Options, numa_node: Option[Int]): Options =
+  def process_policy_options(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
       case None => options
       case Some(node) =>
@@ -32,9 +32,6 @@ object Host {
   sealed case class Node_Info(hostname: String, numa_node: Option[Int]) {
     override def toString: String =
       hostname + if_proper(numa_node, "/" + numa_node.get.toString)
-
-    def process_policy(options: Options): Options =
-      Host.process_policy(options, numa_node)
   }
 
 

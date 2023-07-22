@@ -27,6 +27,7 @@ object Build {
 
   sealed case class Context(
     store: Store,
+    engine: Engine,
     build_deps: isabelle.Sessions.Deps,
     afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
@@ -103,6 +104,9 @@ object Build {
       if (build_hosts.isEmpty) options1
       else options1 + "build_database_server" + "build_database_test"
     }
+
+    def process_options(options: Options, node_info: Host.Node_Info): Options =
+      Host.process_policy_options(options, node_info.numa_node)
 
     final def build_store(options: Options,
       build_hosts: List[Build_Cluster.Host] = Nil,
@@ -226,7 +230,7 @@ object Build {
         /* build process and results */
 
         val build_context =
-          Context(store, build_deps, afp_root = afp_root, build_hosts = build_hosts,
+          Context(store, build_engine, build_deps, afp_root = afp_root, build_hosts = build_hosts,
             hostname = hostname(build_options), build_heap = build_heap,
             numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup, master = true)
@@ -523,7 +527,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
           val build_context =
-            Context(store, build_deps, afp_root = afp_root,
+            Context(store, build_engine, build_deps, afp_root = afp_root,
               hostname = hostname(build_options), numa_shuffling = numa_shuffling,
               max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 

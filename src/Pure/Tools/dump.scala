@@ -98,7 +98,7 @@ object Dump {
     ): Context = {
       val session_options: Options = {
         val options1 =
-          Host.process_policy(options, Host.numa_node0()) +
+          Host.process_policy_options(options, Host.numa_node0()) +
             "parallel_proofs=0" +
             "completion_limit=0" +
             "editor_tracing_messages=0"
