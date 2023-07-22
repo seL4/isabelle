@@ -131,36 +131,65 @@ object Build_Cluster {
 
     def options: Options = ssh.options
 
-    def start(): Result = {
-      val res = Process_Result.ok     // FIXME
-      Result(host, res)
+    def start(): Process_Result = {
+      Process_Result.ok  // FIXME
     }
 
     override def close(): Unit = ssh.close()
   }
 
-  sealed case class Result(host: Host, process_result: Process_Result) {
-    def ok: Boolean = process_result.ok
+  sealed case class Result(host: Host, process_result: Exn.Result[Process_Result]) {
+    def ok: Boolean =
+      process_result match {
+        case Exn.Res(res) => res.ok
+        case Exn.Exn(_) => false
+      }
+  }
+
+
+  /* build clusters */
+
+  val none: Build_Cluster = new No_Build_Cluster
+
+  def make(build_context: Build.Context, progress: Progress = new Progress): Build_Cluster = {
+    val remote_hosts = build_context.build_hosts.filterNot(_.is_local)
+    if (remote_hosts.isEmpty) none
+    else new Remote_Build_Cluster(build_context, remote_hosts, progress = progress)
   }
 }
 
-// class extensible via Build.Engine.build_process() and Build_Process.init_cluster()
-class Build_Cluster(
+// NB: extensible via Build.Engine.build_process() and Build_Process.init_cluster()
+trait Build_Cluster extends AutoCloseable {
+  def open(): Unit = ()
+  def init(): Unit = ()
+  def start(): Unit = ()
+  def active(): Boolean = false
+  def join: List[Build_Cluster.Result] = Nil
+  def stop(): Unit = { join; close() }
+  override def close(): Unit = ()
+}
+
+final class No_Build_Cluster extends Build_Cluster {
+  override def toString: String = "Build_Cluster.none"
+}
+
+class Remote_Build_Cluster(
   build_context: Build.Context,
   remote_hosts: List[Build_Cluster.Host],
   progress: Progress = new Progress
-) extends AutoCloseable {
+) extends Build_Cluster {
   require(remote_hosts.nonEmpty && !remote_hosts.exists(_.is_local), "remote hosts required")
 
-  override def toString: String = remote_hosts.mkString("Build_Cluster(", ", ", ")")
+  override def toString: String =
+    remote_hosts.iterator.map(_.name).mkString("Build_Cluster(", ", ", ")")
 
 
-  /* SSH sessions */
+  /* remote sessions */
 
   private var _sessions = List.empty[Build_Cluster.Session]
 
-  def open(): Unit = synchronized {
-    require(_sessions.isEmpty)
+  override def open(): Unit = synchronized {
+    require(_sessions.isEmpty, "build cluster already open")
 
     val attempts =
       Par_List.map((host: Build_Cluster.Host) =>
@@ -172,6 +201,7 @@ class Build_Cluster(
 
     if (attempts.forall(Exn.the_res.isDefinedAt)) {
       _sessions = attempts.map(Exn.the_res)
+      _sessions
     }
     else {
       for (Exn.Res(session) <- attempts) session.close()
@@ -179,31 +209,38 @@ class Build_Cluster(
     }
   }
 
-  override def close(): Unit = synchronized {
-    join
-    _sessions.foreach(_.close())
-    _sessions = Nil
-  }
-
 
   /* workers */
 
-  private var _workers = List.empty[Future[Build_Cluster.Result]]
+  private var _workers = List.empty[Future[Process_Result]]
 
-  def start(): Unit = synchronized {
-    require(_sessions.nonEmpty && _workers.isEmpty)
+  override def active(): Boolean = synchronized { _workers.nonEmpty }
+
+  override def start(): Unit = synchronized {
+    require(_sessions.nonEmpty, "build cluster not yet open")
+    require(_workers.isEmpty, "build cluster already active")
+
     _workers = _sessions.map(session =>
       Future.thread(session.host.message("session")) { session.start() })
   }
 
-  def join: List[Exn.Result[Build_Cluster.Result]] = synchronized {
-    val res = _workers.map(_.join_result)
-    _workers = Nil
-    res
+  override def join: List[Build_Cluster.Result] = synchronized {
+    if (_workers.isEmpty) Nil
+    else {
+      assert(_sessions.length == _workers.length)
+      for ((session, worker) <- _sessions zip _workers)
+        yield Build_Cluster.Result(session.host, worker.join_result)
+    }
   }
 
 
-  /* init */
+  /* close */
 
-  open()
+  override def close(): Unit = synchronized {
+    _workers.foreach(_.cancel())
+    join
+    _sessions.foreach(_.close())
+    _workers = Nil
+    _sessions = Nil
+  }
 }

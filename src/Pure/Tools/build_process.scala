@@ -881,22 +881,16 @@ extends AutoCloseable {
 
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
-  protected def init_build_cluster(remote_hosts: List[Build_Cluster.Host]): Build_Cluster =
-    new Build_Cluster(build_context, remote_hosts, progress = build_progress)
-
-  protected def exit_build_cluster(build_cluster: Build_Cluster): Boolean = {
-    val results = build_cluster.join
-    build_cluster.close()
-    results.forall({ case Exn.Res(res) => res.ok case _ => false })
+  protected def open_build_cluster(): Build_Cluster = {
+    val build_cluster = Build_Cluster.make(build_context, progress = build_progress)
+    build_cluster.open()
+    build_cluster
   }
 
   private val _build_cluster =
     try {
-      val remote_hosts = build_context.build_hosts.filterNot(_.is_local)
-      if (build_context.master && _build_database.isDefined && remote_hosts.nonEmpty) {
-        Some(init_build_cluster(remote_hosts))
-      }
-      else None
+      if (build_context.master && _build_database.isDefined) open_build_cluster()
+      else Build_Cluster.none
     }
     catch { case exn: Throwable => close(); throw exn }
 
@@ -904,7 +898,7 @@ extends AutoCloseable {
     Option(_database_server).flatten.foreach(_.close())
     Option(_build_database).flatten.foreach(_.close())
     Option(_host_database).flatten.foreach(_.close())
-    Option(_build_cluster).flatten.foreach(_.close())
+    Option(_build_cluster).foreach(_.close())
     progress match {
       case db_progress: Database_Progress =>
         db_progress.exit(close = true)
@@ -1076,6 +1070,7 @@ extends AutoCloseable {
 
   def run(): Map[String, Process_Result] = {
     if (build_context.master) {
+      _build_cluster.init()
       synchronized_database("Build_Process.init") { _state = init_state(_state) }
     }
 
@@ -1102,9 +1097,9 @@ extends AutoCloseable {
     else {
       if (build_context.master) start_build()
       start_worker()
-      _build_cluster.foreach(_.start())
+      _build_cluster.start()
 
-      if (build_context.master && !build_context.worker_active && _build_cluster.isDefined) {
+      if (build_context.master && !build_context.worker_active && _build_cluster.active()) {
         build_progress.echo("Waiting for external workers ...")
       }
 
@@ -1127,7 +1122,7 @@ extends AutoCloseable {
         }
       }
       finally {
-        _build_cluster.foreach(exit_build_cluster)
+        _build_cluster.stop()
         stop_worker()
         if (build_context.master) stop_build()
       }
