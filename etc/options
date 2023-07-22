@@ -135,6 +135,9 @@ option strict_facts : bool = false for content
 
 section "Global Session Parameters"
 
+option context : string = "" for content
+  -- "free-form information for session content (to be interpreted in Isabelle/ML)"
+
 option condition : string = "" for content
   -- "required environment variables for subsequent theories (separated by commas)"
 
@@ -182,9 +185,6 @@ public option ML_system_apple : bool = true for build
 
 
 section "Build Process"
-
-option build_context : string = ""
-  -- "free-form information for session build (to be interpreted in Isabelle/ML)"
 
 option build_thorough : bool = false
   -- "observe dependencies on options with tag 'content' or 'document'"
