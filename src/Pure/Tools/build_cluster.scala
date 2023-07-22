@@ -114,27 +114,22 @@ object Build_Cluster {
 
   /* remote sessions */
 
-  def capture_open_session(
-    options: Options,
-    host: Host,
-    progress: Progress = new Progress
-  ): Exn.Result[Session] = {
-    progress.echo(host.message("connect ..."))
-    try {
+  object Session {
+    def open(options: Options, host: Host, progress: Progress = new Progress): Session = {
       val ssh_options = options ++ host.options
       val ssh = SSH.open_session(ssh_options, host.name, port = host.port, user = host.user)
-      Exn.Res[Session](new Session(host, ssh))
-    }
-    catch {
-      case exn: Throwable =>
-        progress.echo_error_message(host.message("failed to connect\n" + Exn.message(exn)))
-        Exn.Exn[Session](exn)
+      new Session(host, ssh, progress)
     }
   }
 
-  final class Session private[Build_Cluster](val host: Host, val ssh: SSH.Session)
-  extends AutoCloseable {
+  final class Session private(
+    val host: Host,
+    val ssh: SSH.Session,
+    val progress: Progress
+  ) extends AutoCloseable {
     override def toString: String = ssh.toString
+
+    def options: Options = ssh.options
 
     def start(): Result = {
       val res = Process_Result.ok     // FIXME
@@ -168,8 +163,11 @@ class Build_Cluster(
     require(_sessions.isEmpty)
 
     val attempts =
-      Par_List.map(
-        Build_Cluster.capture_open_session(build_context.build_options, _, progress = progress),
+      Par_List.map((host: Build_Cluster.Host) =>
+        progress.capture(
+          Build_Cluster.Session.open(build_context.build_options, host, progress = progress),
+          msg = host.message("open ..."),
+          err = exn => host.message("failed to open\n" + Exn.message(exn))),
         remote_hosts, thread = true)
 
     if (attempts.forall(Exn.the_res.isDefinedAt)) {
