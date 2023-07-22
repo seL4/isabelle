@@ -3,6 +3,10 @@
 
 Management of build cluster: independent ssh hosts with access to shared
 PostgreSQL server.
+
+NB: extensible classes allow quite different implementations in user-space,
+via the service class Build.Engine and overridable methods
+Build.Engine.open_build_process(), Build_Process.open_build_cluster().
 */
 
 package isabelle
@@ -83,7 +87,7 @@ object Build_Cluster {
     }
   }
 
-  final class Host private(
+  class Host(
     val name: String,
     val user: String,
     val port: Int,
@@ -91,45 +95,44 @@ object Build_Cluster {
     val numa: Boolean,
     val options: List[Options.Spec]
   ) {
-    def is_local: Boolean = SSH.is_local(name)
+    host =>
+
+    def is_local: Boolean = SSH.is_local(host.name)
 
     override def toString: String = print
 
     def print: String = {
       val params =
         List(
-          if (user.isEmpty) "" else Properties.Eq(Host.USER, Host.print_name(user)),
-          if (port == 0) "" else Properties.Eq(Host.PORT, port.toString),
-          if (jobs == 1) "" else Properties.Eq(Host.JOBS, jobs.toString),
-          if_proper(numa, Host.NUMA)
+          if (host.user.isEmpty) "" else Properties.Eq(Host.USER, Host.print_name(host.user)),
+          if (host.port == 0) "" else Properties.Eq(Host.PORT, host.port.toString),
+          if (host.jobs == 1) "" else Properties.Eq(Host.JOBS, host.jobs.toString),
+          if_proper(host.numa, Host.NUMA)
         ).filter(_.nonEmpty)
-      val rest = (params ::: options.map(Host.print_option)).mkString(",")
+      val rest = (params ::: host.options.map(Host.print_option)).mkString(",")
 
-      SSH.print_local(name) + if_proper(rest, ":" + rest)
+      SSH.print_local(host.name) + if_proper(rest, ":" + rest)
     }
 
-    def message(msg: String): String = "Host " + quote(name) + if_proper(msg, ": " + msg)
-  }
+    def message(msg: String): String = "Host " + quote(host.name) + if_proper(msg, ": " + msg)
 
-
-  /* remote sessions */
-
-  object Session {
-    def open(options: Options, host: Host, progress: Progress = new Progress): Session = {
-      val ssh_options = options ++ host.options
-      val ssh = SSH.open_session(ssh_options, host.name, port = host.port, user = host.user)
-      new Session(host, ssh, progress)
+    def open_session(options: Options, progress: Progress = new Progress): Session = {
+      val session_options = options ++ host.options
+      val ssh = SSH.open_session(session_options, host.name, port = host.port, user = host.user)
+      new Session(host, session_options, ssh, progress)
     }
   }
 
-  final class Session private(
+
+  /* SSH sessions */
+
+  class Session(
     val host: Host,
-    val ssh: SSH.Session,
+    val options: Options,
+    val ssh: SSH.System,
     val progress: Progress
   ) extends AutoCloseable {
     override def toString: String = ssh.toString
-
-    def options: Options = ssh.options
 
     def start(): Process_Result = {
       Process_Result.ok  // FIXME
@@ -138,7 +141,7 @@ object Build_Cluster {
     override def close(): Unit = ssh.close()
   }
 
-  sealed case class Result(host: Host, process_result: Exn.Result[Process_Result]) {
+  class Result(val host: Host, val process_result: Exn.Result[Process_Result]) {
     def ok: Boolean =
       process_result match {
         case Exn.Res(res) => res.ok
@@ -149,7 +152,9 @@ object Build_Cluster {
 
   /* build clusters */
 
-  val none: Build_Cluster = new No_Build_Cluster
+  object none extends Build_Cluster {
+    override def toString: String = "Build_Cluster.none"
+  }
 
   def make(build_context: Build.Context, progress: Progress = new Progress): Build_Cluster = {
     val remote_hosts = build_context.build_hosts.filterNot(_.is_local)
@@ -169,14 +174,10 @@ trait Build_Cluster extends AutoCloseable {
   override def close(): Unit = ()
 }
 
-final class No_Build_Cluster extends Build_Cluster {
-  override def toString: String = "Build_Cluster.none"
-}
-
 class Remote_Build_Cluster(
-  build_context: Build.Context,
-  remote_hosts: List[Build_Cluster.Host],
-  progress: Progress = new Progress
+  val build_context: Build.Context,
+  val remote_hosts: List[Build_Cluster.Host],
+  val progress: Progress = new Progress
 ) extends Build_Cluster {
   require(remote_hosts.nonEmpty && !remote_hosts.exists(_.is_local), "remote hosts required")
 
@@ -194,7 +195,7 @@ class Remote_Build_Cluster(
     val attempts =
       Par_List.map((host: Build_Cluster.Host) =>
         progress.capture(
-          Build_Cluster.Session.open(build_context.build_options, host, progress = progress),
+          host.open_session(build_context.build_options, progress = progress),
           msg = host.message("open ..."),
           err = exn => host.message("failed to open\n" + Exn.message(exn))),
         remote_hosts, thread = true)

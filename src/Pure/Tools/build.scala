@@ -118,19 +118,19 @@ object Build {
       store
     }
 
-    def build_process(
+    def open_build_process(
       build_context: Context,
       build_progress: Progress,
       server: SSH.Server
     ): Build_Process = new Build_Process(build_context, build_progress, server)
 
-    final def run_process(
+    final def run_build_process(
       context: Context,
       progress: Progress,
       server: SSH.Server
     ): Results = {
       Isabelle_Thread.uninterruptible {
-        using(build_process(context, progress, server))(
+        using(open_build_process(context, progress, server))(
           build_process => Results(context, build_process.run()))
       }
     }
@@ -245,7 +245,7 @@ object Build {
           }
         }
 
-        val results = build_engine.run_process(build_context, progress, server)
+        val results = build_engine.run_build_process(build_context, progress, server)
 
         if (export_files) {
           for (name <- full_sessions_selection.iterator if results(name).ok) {
@@ -531,7 +531,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
               hostname = hostname(build_options), numa_shuffling = numa_shuffling,
               max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
-          Some(build_engine.run_process(build_context, progress, server))
+          Some(build_engine.run_build_process(build_context, progress, server))
         }
         else None
       }
