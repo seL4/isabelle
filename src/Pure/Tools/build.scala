@@ -420,6 +420,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             check_unknown_files = Mercurial.is_repository(Path.ISABELLE_HOME),
             build_heap = build_heap,
             clean_build = clean_build,
+            afp_root = afp_root,
             dirs = dirs.toList,
             select_dirs = select_dirs.toList,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
