@@ -47,14 +47,13 @@ object Process_Result {
 
     def merge(rcs: IterableOnce[Int]): Int = rcs.iterator.foldLeft(ok)(merge)
 
+    def apply(ok: Boolean): Int = if (ok) RC.ok else RC.error
+    def apply(exn: Throwable): Int = if (Exn.is_interrupt(exn)) interrupt else error
     def apply(result: Exn.Result[Process_Result]): Int =
       result match {
         case Exn.Res(res) => res.rc
-        case Exn.Exn(Exn.Interrupt()) => interrupt
-        case Exn.Exn(_) => error
+        case Exn.Exn(exn) => apply(exn)
       }
-
-    def apply(ok: Boolean): Int = if (ok) RC.ok else RC.error
   }
 
   val undefined: Process_Result = Process_Result(RC.undefined)
