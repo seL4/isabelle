@@ -25,7 +25,7 @@ object Process_Result {
           case `ok` => "OK"
           case `error` => "ERROR"
           case `failure` => "FAILURE"
-          case 127 => "COMMAND NOT FOUND"
+          case `startup_failure` => "COMMAND NOT FOUND"
           case `interrupt` => "INTERRUPT"
           case 131 => "QUIT SIGNAL"
           case 137 => "KILL SIGNAL"
@@ -40,6 +40,21 @@ object Process_Result {
 
     def print_long(rc: Int): String = "Return code: " + rc + text(rc)
     def print(rc: Int): String = "return code " + rc + text(rc)
+
+    def merge(rc1: Int, rc2: Int): Int =
+      if (rc1 == interrupt || rc2 == interrupt) interrupt
+      else rc1 max rc2
+
+    def merge(rcs: IterableOnce[Int]): Int = rcs.iterator.foldLeft(ok)(merge)
+
+    def apply(result: Exn.Result[Process_Result]): Int =
+      result match {
+        case Exn.Res(res) => res.rc
+        case Exn.Exn(Exn.Interrupt()) => interrupt
+        case Exn.Exn(_) => error
+      }
+
+    def apply(ok: Boolean): Int = if (ok) RC.ok else RC.error
   }
 
   val undefined: Process_Result = Process_Result(RC.undefined)
