@@ -288,8 +288,8 @@ class Remote_Build_Cluster(
   override def rc: Int = synchronized { _rc }
 
   override def close(): Unit = synchronized {
-    _init.foreach(_.cancel())
-    _workers.foreach(_.cancel())
+    _init.foreach(_.join)
+    _workers.foreach(_.join)
     join
     _sessions.foreach(_.close())
 
