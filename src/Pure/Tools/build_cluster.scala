@@ -115,7 +115,6 @@ object Build_Cluster {
     }
 
     def message(msg: String): String = "Host " + quote(host.name) + if_proper(msg, ": " + msg)
-    def err_message(msg: String)(exn: Throwable): String = message(msg + "\n" + Exn.message(exn))
 
     def open_session(build_context: Build.Context, progress: Progress = new Progress): Session = {
       val session_options = build_context.build_options ++ host.options
