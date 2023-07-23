@@ -62,7 +62,7 @@ object Kodkod {
       private val out = new StringBuilder
       private val err = new StringBuilder
 
-      def return_code(i: Int): Unit = synchronized { rc = rc max i}
+      def return_code(i: Int): Unit = synchronized { rc = Process_Result.RC.merge(rc, i) }
 
       override def output(s: String): Unit = synchronized {
         Exn.Interrupt.expose()

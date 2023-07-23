@@ -519,7 +519,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           cat_lines(for ((_, log_path) <- results) yield log_path.implode))
       }
 
-      val rc = results.foldLeft(Process_Result.RC.ok) { case (rc, (res, _)) => rc max res.rc }
+      val rc = Process_Result.RC.merge(results.map(p => p._1.rc))
       if (rc != Process_Result.RC.ok && exit_code) sys.exit(rc)
     }
   }
