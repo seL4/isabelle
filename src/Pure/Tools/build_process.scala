@@ -1068,7 +1068,7 @@ extends AutoCloseable {
 
   /* run */
 
-  def run(): Map[String, Process_Result] = {
+  def run(): Build.Results = {
     if (build_context.master) {
       _build_cluster.init()
       synchronized_database("Build_Process.init") { _state = init_state(_state) }
@@ -1092,7 +1092,7 @@ extends AutoCloseable {
 
     if (finished()) {
       progress.echo_warning("Nothing to build")
-      Map.empty[String, Process_Result]
+      Build.Results(build_context)
     }
     else {
       if (build_context.master) start_build()
@@ -1128,7 +1128,8 @@ extends AutoCloseable {
       }
 
       synchronized_database("Build_Process.result") {
-        for ((name, result) <- _state.results) yield name -> result.process_result
+        val results = for ((name, result) <- _state.results) yield name -> result.process_result
+        Build.Results(build_context, results = results, other_rc = _build_cluster.rc)
       }
     }
   }

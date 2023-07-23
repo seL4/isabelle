@@ -56,14 +56,20 @@ object Build {
   /* results */
 
   object Results {
-    def apply(context: Context, results: Map[String, Process_Result]): Results =
-      new Results(context.store, context.build_deps, results)
+    def apply(
+      context: Context,
+      results: Map[String, Process_Result] = Map.empty,
+      other_rc: Int = Process_Result.RC.ok
+    ): Results = {
+      new Results(context.store, context.build_deps, results, other_rc)
+    }
   }
 
   class Results private(
     val store: Store,
     val deps: Sessions.Deps,
-    results: Map[String, Process_Result]
+    results: Map[String, Process_Result],
+    other_rc: Int
   ) {
     def cache: Term.Cache = store.cache
 
@@ -77,7 +83,10 @@ object Build {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = !results(name).defined
     def apply(name: String): Process_Result = results(name).strict
-    val rc: Int = results.valuesIterator.map(_.strict.rc).foldLeft(Process_Result.RC.ok)(_ max _)
+
+    val rc: Int =
+      Process_Result.RC.merge(other_rc,
+        Process_Result.RC.merge(results.valuesIterator.map(_.strict.rc)))
     def ok: Boolean = rc == Process_Result.RC.ok
 
     def unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
@@ -130,8 +139,7 @@ object Build {
       server: SSH.Server
     ): Results = {
       Isabelle_Thread.uninterruptible {
-        using(open_build_process(context, progress, server))(
-          build_process => Results(context, build_process.run()))
+        using(open_build_process(context, progress, server))(_.run())
       }
     }
   }
