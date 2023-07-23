@@ -117,14 +117,10 @@ object Build_Cluster {
     def message(msg: String): String = "Host " + quote(host.name) + if_proper(msg, ": " + msg)
     def err_message(msg: String)(exn: Throwable): String = message(msg + "\n" + Exn.message(exn))
 
-    def open_session(
-      options: Options,
-      afp_root: Option[Path] = None,
-      progress: Progress = new Progress
-    ): Session = {
-      val session_options = options ++ host.options
+    def open_session(build_context: Build.Context, progress: Progress = new Progress): Session = {
+      val session_options = build_context.build_options ++ host.options
       val ssh = SSH.open_session(session_options, host.name, port = host.port, user = host.user)
-      new Session(host, session_options, afp_root, ssh, progress)
+      new Session(build_context, host, session_options, ssh, progress)
     }
   }
 
@@ -132,9 +128,9 @@ object Build_Cluster {
   /* SSH sessions */
 
   class Session(
+    val build_context: Build.Context,
     val host: Host,
     val options: Options,
-    val afp_root: Option[Path],
     val ssh: SSH.System,
     val progress: Progress
   ) extends AutoCloseable {
@@ -143,21 +139,30 @@ object Build_Cluster {
     val remote_identifier: String = options.string("build_cluster_identifier")
     val remote_root: Path = Path.explode(options.string("build_cluster_root"))
     val remote_isabelle_home: Path = remote_root + Path.explode("isabelle")
-    val remote_afp: Path = remote_isabelle_home + Path.explode("AFP")
+    val remote_afp_root: Option[Path] =
+      if (build_context.afp_root.isEmpty) None
+      else Some(remote_isabelle_home + Path.explode("AFP"))
 
     lazy val remote_isabelle: Other_Isabelle =
       Other_Isabelle(remote_isabelle_home, isabelle_identifier = remote_identifier, ssh = ssh)
 
     def sync(): Other_Isabelle = {
       Sync.sync(options, Rsync.Context(ssh = ssh), remote_isabelle_home,
-        afp_root = afp_root, purge_heaps = true, preserve_jars = true)
+        afp_root = build_context.afp_root,
+        purge_heaps = true,
+        preserve_jars = true)
       remote_isabelle
     }
 
     def init(): Unit = remote_isabelle.init()
 
     def start(): Process_Result = {
-      Process_Result.ok  // FIXME
+      val script =
+        Build.build_worker_command(host, ssh = ssh,
+          build_id = build_context.build_uuid,
+          isabelle_home = remote_isabelle_home,
+          afp_root = remote_afp_root)
+      remote_isabelle.bash(script)
     }
 
     override def close(): Unit = ssh.close()
@@ -220,7 +225,9 @@ class Remote_Build_Cluster(
     e: => A,
     msg: String = host.message(op + " ..."),
     err: Throwable => String = { exn => return_code(exn); host.message("failed to " + op) }
-  ): Exn.Result[A] = progress.capture(e, msg = msg, err = err)
+  ): Exn.Result[A] = {
+    progress.capture(e, msg = msg, err = err)
+  }
 
 
   /* open remote sessions */
@@ -232,7 +239,7 @@ class Remote_Build_Cluster(
 
     val attempts =
       Par_List.map((host: Build_Cluster.Host) =>
-        capture(host, "open") { host.open_session(build_context.build_options, progress = progress) },
+        capture(host, "open") { host.open_session(build_context, progress = progress) },
         remote_hosts, thread = true)
 
     if (attempts.forall(Exn.the_res.isDefinedAt)) {
@@ -280,7 +287,9 @@ class Remote_Build_Cluster(
 
     _workers =
       for (session <- _sessions) yield {
-        Future.thread(session.host.message("worker")) { session.start() }
+        Future.thread(session.host.message("start")) {
+          Exn.release(capture(session.host, "start") { session.start() })
+        }
       }
   }
 

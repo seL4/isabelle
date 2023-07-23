@@ -504,6 +504,25 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   /* build_worker */
 
+  def build_worker_command(
+    host: Build_Cluster.Host,
+    ssh: SSH.System = SSH.Local,
+    build_id: String = "",
+    isabelle_home: Path = Path.current,
+    afp_root: Option[Path] = None,
+    dirs: List[Path] = Nil,
+    verbose: Boolean = false
+  ): String = {
+    ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " build_worker" +
+      if_proper(build_id, " -B " + Bash.string(build_id)) +
+      if_proper(afp_root, " -A " + ssh.bash_path(afp_root.get)) +
+      dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
+      if_proper(host.numa, " -N")
+      + " -j" + host.jobs +
+      host.options.map(opt => " -o " + Bash.string(Build_Cluster.Host.print_option(opt))).mkString +
+      if_proper(verbose, " -v")
+  }
+
   def build_worker(
     options: Options,
     build_id: String = "",
