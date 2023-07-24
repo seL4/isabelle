@@ -31,6 +31,7 @@ object Profiling {
 
   sealed case class Session_Statistics(
     theories: Int = 0,
+    garbage_theories: Int = 0,
     locales: Int = 0,
     locale_thms: Int = 0,
     global_thms: Int = 0,
@@ -48,21 +49,22 @@ object Profiling {
     private val decode_result: XML.Decode.T[Session_Statistics] =
       (body: XML.Body) =>
         {
-          val (a, (b, (c, (d, (e, (f, (g, (h, i)))))))) = {
+          val (a, (b, (c, (d, (e, (f, (g, (h, (i, j))))))))) = {
             import XML.Decode._
-            pair(int, pair(int, pair(int, pair(int,
-              pair(long, pair(long, pair(long, pair(long, long))))))))(body)
+            pair(int, pair(int, pair(int, pair(int, pair(int,
+              pair(long, pair(long, pair(long, pair(long, long)))))))))(body)
           }
           Session_Statistics(
             theories = a,
-            locales = b,
-            locale_thms = c,
-            global_thms = d,
-            sizeof_thys_id = Space.bytes(e),
-            sizeof_thms_id = Space.bytes(f),
-            sizeof_terms = Space.bytes(g),
-            sizeof_types = Space.bytes(h),
-            sizeof_spaces = Space.bytes(i))
+            garbage_theories = b,
+            locales = c,
+            locale_thms = d,
+            global_thms = e,
+            sizeof_thys_id = Space.bytes(f),
+            sizeof_thms_id = Space.bytes(g),
+            sizeof_terms = Space.bytes(h),
+            sizeof_types = Space.bytes(i),
+            sizeof_spaces = Space.bytes(j))
         }
 
     def make(
@@ -91,6 +93,7 @@ object Profiling {
 
       new Statistics(parent = parent, session = session_name,
         theories = session.theories,
+        garbage_theories = session.garbage_theories,
         locales = session.locales,
         locale_thms = session.locale_thms,
         global_thms = session.global_thms,
@@ -107,6 +110,7 @@ object Profiling {
     val header0: List[String] =
       List(
         "theories",
+        "garbage_theories%",
         "locales",
         "locale_thms",
         "global_thms",
@@ -127,6 +131,7 @@ object Profiling {
     val parent: Option[Statistics] = None,
     val session: String = "",
     val theories: Int = 0,
+    val garbage_theories: Int = 0,
     val locales: Int = 0,
     val locale_thms: Int = 0,
     val global_thms: Int = 0,
@@ -137,6 +142,9 @@ object Profiling {
     val types_size: Space = Space.zero,
     val spaces_size: Space = Space.zero
   ) {
+    def garbage_theories_percentage: Percentage =
+      percentage(garbage_theories, theories + garbage_theories)
+
     private def size_percentage(space: Space): Percentage =
       percentage_space(space, heap_size)
 
@@ -146,6 +154,7 @@ object Profiling {
     val fields0: List[Any] =
       List(
         theories,
+        garbage_theories_percentage.toString,
         locales,
         locale_thms,
         global_thms,
@@ -168,6 +177,7 @@ object Profiling {
           new Statistics(parent = None,
             session = session,
             theories = other.cumulative.theories + theories,
+            garbage_theories = other.cumulative.garbage_theories + garbage_theories,
             locales = other.cumulative.locales + locales,
             locale_thms = other.cumulative.locale_thms + locale_thms,
             global_thms = other.cumulative.global_thms + global_thms,

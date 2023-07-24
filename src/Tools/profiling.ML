@@ -13,6 +13,7 @@ sig
   val all_thms: theory -> thm list
   type session_statistics =
    {theories: int,
+    garbage_theories: int,
     locales: int,
     locale_thms: int,
     global_thms: int,
@@ -84,6 +85,7 @@ fun sizeof_diff (a, b) = ML_Heap.sizeof a - ML_Heap.sizeof b;
 
 type session_statistics =
  {theories: int,
+  garbage_theories: int,
   locales: int,
   locale_thms: int,
   global_thms: int,
@@ -103,6 +105,7 @@ fun session_statistics theories : session_statistics =
 
     val loader_thys = map Thy_Info.get_theory (Thy_Info.get_names ());
     val loaded_thys = filter theories_member loader_thys;
+    val loaded_context_thys = filter theories_member context_thys;
 
     val all_thys = loader_thys @ context_thys;
     val base_thys = filter_out theories_member all_thys;
@@ -111,8 +114,12 @@ fun session_statistics theories : session_statistics =
           types = all_types, spaces = all_spaces} = session_content all_thys;
     val {thys_id = base_thys_id, thms_id = base_thms_id, terms = base_terms,
           types = base_types, spaces = base_spaces} = session_content base_thys;
+
+    val n = length loaded_thys;
+    val m = length loaded_context_thys - n;
   in
-    {theories = length loaded_thys,
+    {theories = n,
+     garbage_theories = m,
      locales = Integer.sum (map (length o locales) loaded_thys),
      locale_thms = Integer.sum (map (length o locales_thms) loaded_thys),
      global_thms = Integer.sum (map (length o global_thms) loaded_thys),
@@ -133,16 +140,17 @@ val decode_args : string list XML.Decode.T =
 
 val encode_result : session_statistics XML.Encode.T =
   (fn {theories = a,
-       locales = b,
-       locale_thms = c,
-       global_thms = d,
-       sizeof_thys_id = e,
-       sizeof_thms_id = f,
-       sizeof_terms = g,
-       sizeof_types = h,
-       sizeof_spaces = i} => (a, (b, (c, (d, (e, (f, (g, (h, i))))))))) #>
+       garbage_theories = b,
+       locales = c,
+       locale_thms = d,
+       global_thms = e,
+       sizeof_thys_id = f,
+       sizeof_thms_id = g,
+       sizeof_terms = h,
+       sizeof_types = i,
+       sizeof_spaces = j} => ((a, (b, (c, (d, (e, (f, (g, (h, (i, j))))))))))) #>
   let open XML.Encode
-  in pair int (pair int (pair int (pair int (pair int (pair int (pair int (pair int int))))))) end;
+  in pair int (pair int (pair int (pair int (pair int (pair int (pair int (pair int (pair int int)))))))) end;
 
 in
 
