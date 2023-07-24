@@ -105,7 +105,7 @@ fun session_statistics theories : session_statistics =
     val loaded_thys = filter theories_member loader_thys;
 
     val all_thys = loader_thys @ context_thys;
-    val base_thys = filter theories_member all_thys;
+    val base_thys = filter_out theories_member all_thys;
 
     val {thys_id = all_thys_id, thms_id = all_thms_id, terms = all_terms,
           types = all_types, spaces = all_spaces} = session_content all_thys;
