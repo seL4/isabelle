@@ -225,11 +225,12 @@ object Profiling {
 
     def build(
       selection: Sessions.Selection,
+      build_options: Options = options,
       build_heap: Boolean = false,
       clean_build: Boolean = false
     ): Build.Results = {
       val results =
-        Build.build(options, progress = progress,
+        Build.build(build_options, progress = progress,
           selection = selection, build_heap = build_heap, clean_build = clean_build,
           dirs = sessions_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs)
 
@@ -244,7 +245,11 @@ object Profiling {
     progress.echo("DONE")
 
     progress.echo("Build sessions:")
-    val build_results = build(sessions_selection, build_heap = true, clean_build = true)
+    val build_results =
+      build(sessions_selection,
+        build_options = options + "context_theory_tracing",
+        build_heap = true,
+        clean_build = true)
     progress.echo("DONE")
 
     val sessions = {
