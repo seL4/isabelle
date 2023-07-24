@@ -378,7 +378,7 @@ object Isabelle_Cronjob {
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP", "lrzcloud2",
+        Remote_Build("AFP", "lrzcloud2", history = 120,
           java_heap = "8g",
           options = "-m32 -M1x5 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
