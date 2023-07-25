@@ -111,7 +111,7 @@ fun note_eqns_register note add_registration
     fun register (dep, eqns) ctxt =
       ctxt |> add_registration
         {inst = dep,
-          mixin = Option.map (rpair true) (Element.eq_morphism (eqns @ eqns')),
+          mixin = Option.map (rpair true) (Element.eq_morphism ctxt (eqns @ eqns')),
           export = export};
   in ctxt'' |> fold register (deps' ~~ eqnss') end;
 

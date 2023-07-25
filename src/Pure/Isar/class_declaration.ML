@@ -75,7 +75,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       $> Morphism.binding_morphism "class_binding" (Binding.prefix false (Class.class_prefix class))
       $> Element.satisfy_morphism (the_list some_witn);
     val eq_morph =
-      Element.eq_morphism (Class.these_defs thy sups)
+      Element.eq_morphism thy_ctxt (Class.these_defs thy sups)
       |> Option.map (Morphism.set_context thy);
 
     (* assm_intro *)

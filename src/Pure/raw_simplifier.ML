@@ -33,6 +33,7 @@ sig
     loopers: string list,
     unsafe_solvers: string list,
     safe_solvers: string list}
+  val dest_simps: simpset -> thm list
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val cert_simproc: theory -> string ->
@@ -107,7 +108,9 @@ sig
     (Proof.context -> thm -> thm option) -> Proof.context -> thm -> thm
   val generic_rewrite_goal_tac: bool * bool * bool ->
     (Proof.context -> tactic) -> Proof.context -> int -> tactic
+  val rewrite0: Proof.context -> bool -> conv
   val rewrite: Proof.context -> bool -> thm list -> conv
+  val rewrite0_rule: Proof.context -> thm -> thm
 end;
 
 structure Raw_Simplifier: RAW_SIMPLIFIER =
@@ -293,6 +296,8 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
   loopers = map fst loop_tacs,
   unsafe_solvers = map solver_name (#1 solvers),
   safe_solvers = map solver_name (#2 solvers)};
+
+fun dest_simps (Simpset ({rules, ...}, _)) = map #thm (Net.entries rules);
 
 
 (* empty *)
@@ -1366,10 +1371,12 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
 val simple_prover =
   SINGLE o (fn ctxt => ALLGOALS (resolve_tac ctxt (prems_of ctxt)));
 
-fun rewrite _ _ [] = Thm.reflexive
-  | rewrite ctxt full thms =
-      rewrite_cterm (full, false, false) simple_prover (init_simpset thms ctxt);
+fun rewrite0 ctxt full = rewrite_cterm (full, false, false) simple_prover ctxt;
 
+fun rewrite _ _ [] = Thm.reflexive
+  | rewrite ctxt full thms = rewrite0 (init_simpset thms ctxt) full;
+
+fun rewrite0_rule ctxt = Conv.fconv_rule (rewrite0 ctxt true);
 fun rewrite_rule ctxt = Conv.fconv_rule o rewrite ctxt true;
 
 (*simple term rewriting -- no proof*)

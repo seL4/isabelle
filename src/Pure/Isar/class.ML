@@ -156,10 +156,12 @@ fun these_operations thy = maps (#operations o the_class_data thy) o ancestry th
 
 val base_morphism = #base_morph oo the_class_data;
 
-fun morphism thy class =
-  Morphism.set_context thy
-   (base_morphism thy class $>
-    Morphism.default (Element.eq_morphism (these_defs thy [class])));
+fun morphism ctxt class =
+  let val thy = Proof_Context.theory_of ctxt in
+    Morphism.set_context thy
+     (base_morphism thy class $>
+      Morphism.default (Element.eq_morphism ctxt (these_defs thy [class])))
+  end;
 
 val export_morphism = #export_morph oo the_class_data;
 
@@ -230,8 +232,8 @@ fun register class sups params base_sort base_morph export_morph
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;
 
-fun activate_defs class thms thy =
-  (case Element.eq_morphism thms of
+fun activate_defs context class thms thy =
+  (case Element.eq_morphism (Context.proof_of context) thms of
     SOME eq_morph =>
       fold (fn cls => fn thy' =>
         (Context.theory_map o Locale.amend_registration)
@@ -261,7 +263,7 @@ fun register_def class def_thm thy =
     thy
     |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apfst)
         (Item_Net.update sym_thm)
-    |> activate_defs class [sym_thm]
+    |> activate_defs (Context.Theory thy) class [sym_thm]
   end;
 
 
@@ -408,7 +410,7 @@ in
 
 fun const class ((b, mx), lhs) params lthy =
   let
-    val phi = morphism (Proof_Context.theory_of lthy) class;
+    val phi = morphism lthy class;
     val dangling_params = map (Morphism.term phi) (uncurry append (dangling_params_for lthy class params));
   in
     lthy
@@ -463,7 +465,7 @@ in
 fun abbrev class prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val phi = morphism thy class;
+    val phi = morphism lthy class;
     val rhs_generic =
       perhaps (try (Pattern.rewrite_term_top thy (these_unchecks_reversed thy [class]) [])) rhs;
   in
@@ -504,7 +506,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
     |> Local_Theory.raw_theory
       (Axclass.add_classrel classrel
       #> Class_Data.map (Graph.add_edge (sub, sup))
-      #> activate_defs sub (these_defs thy diff_sort))
+      #> activate_defs (Context.Proof lthy) sub (these_defs thy diff_sort))
     |> add_dependency
     |> synchronize_class_syntax_target sub
   end;
