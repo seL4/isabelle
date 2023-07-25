@@ -49,7 +49,7 @@ fun check_bibtex_entry ctxt (name, pos) =
     fun decode yxml =
       let
         val props = XML.Decode.properties (YXML.parse_body yxml);
-        val name = the_default "" (Properties.get props Markup.nameN);
+        val name = Properties.get_string props Markup.nameN;
         val pos = Position.of_properties props;
       in (name, pos) end;
   in
