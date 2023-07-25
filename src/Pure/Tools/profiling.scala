@@ -109,8 +109,8 @@ object Profiling {
 
     val header0: List[String] =
       List(
-        "theories",
-        "garbage_theories%",
+        "named_theories",
+        "total_theories",
         "locales",
         "locale_thms",
         "global_thms",
@@ -142,8 +142,12 @@ object Profiling {
     val types_size: Space = Space.zero,
     val spaces_size: Space = Space.zero
   ) {
-    def garbage_theories_percentage: Percentage =
-      percentage(garbage_theories, theories + garbage_theories)
+    private def print_total_theories: String =
+      if (theories == 0) "0"
+      else {
+        val x = (theories + garbage_theories).toDouble / theories
+        String.format(Locale.ROOT, "%.1f", x.asInstanceOf[AnyRef])
+      }
 
     private def size_percentage(space: Space): Percentage =
       percentage_space(space, heap_size)
@@ -154,7 +158,7 @@ object Profiling {
     val fields0: List[Any] =
       List(
         theories,
-        garbage_theories_percentage.toString,
+        print_total_theories,
         locales,
         locale_thms,
         global_thms,

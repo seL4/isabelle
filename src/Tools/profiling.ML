@@ -116,7 +116,7 @@ fun session_statistics theories : session_statistics =
           types = base_types, spaces = base_spaces} = session_content base_thys;
 
     val n = length loaded_thys;
-    val m = length loaded_context_thys - n;
+    val m = (case length loaded_context_thys of 0 => 0 | l => l - n);
   in
     {theories = n,
      garbage_theories = m,
