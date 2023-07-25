@@ -317,10 +317,8 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SMLNJ=sml" +
             " -e ISABELLE_SWIPL=swipl",
           args = "-a -d '~~/src/Benchmarks'")),
-/*
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
-*/
       List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
         options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         args = "-a -d '~~/src/Benchmarks'")),
