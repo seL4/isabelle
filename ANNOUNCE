@@ -24,6 +24,8 @@ NEWS file for further details. Here are various details:
 
 * System: more robust "isabelle sync" tool via bundled "rsync" executables.
 
+* System: "isabelle profiling" tool produces ML heap statistics.
+
 * Support for the Dotnet platform (.NET) and Fsharp (F#).
 
 
