@@ -11,8 +11,10 @@ sig
   val is_empty: T -> bool
   val properties: Properties.T -> T -> T
   val nameN: string val name: string -> T -> T
+  val name_proper: string -> Properties.T
   val xnameN: string val xname: string -> T -> T
-  val kindN: string
+  val kindN: string val kind: string -> T -> T
+  val kind_proper: string -> Properties.T
   val serialN: string
   val serial_properties: int -> Properties.T
   val instanceN: string
@@ -312,11 +314,14 @@ fun markup_int name prop = (name, fn i => (name, [(prop, Value.print_int i)]): T
 
 val nameN = "name";
 fun name a = properties [(nameN, a)];
+val name_proper = Properties.make_string nameN;
 
 val xnameN = "xname";
 fun xname a = properties [(xnameN, a)];
 
 val kindN = "kind";
+fun kind a = properties [(kindN, a)];
+val kind_proper = Properties.make_string kindN;
 
 val serialN = "serial";
 fun serial_properties i = [(serialN, Value.print_int i)];
@@ -385,9 +390,7 @@ val language_mixfix =
 val (bindingN, binding) = markup_elem "binding";
 
 val entityN = "entity";
-fun entity kind name =
-  (entityN,
-    (if name = "" then [] else [(nameN, name)]) @ (if kind = "" then [] else [(kindN, kind)]));
+fun entity kind name = (entityN, name_proper name @ kind_proper kind);
 
 val defN = "def";
 val refN = "ref";
@@ -434,7 +437,7 @@ fun def_name a =
 (* expression *)
 
 val expressionN = "expression";
-fun expression kind = (expressionN, if kind = "" then [] else [(kindN, kind)]);
+fun expression kind = (expressionN, kind_proper kind);
 
 
 (* citation *)
@@ -597,9 +600,7 @@ val (latex_headingN, latex_heading) = markup_string "latex_heading" kindN;
 val (latex_bodyN, latex_body) = markup_string "latex_body" kindN;
 val (latex_citeN, _) = markup_elem "latex_cite";
 fun latex_cite {kind, citations} =
-  (latex_citeN,
-    (if kind = "" then [] else [(kindN, kind)]) @
-    (if citations = "" then [] else [("citations", citations)]));
+  (latex_citeN, kind_proper kind @ Properties.make_string "citations" citations);
 val (latex_index_itemN, latex_index_item) = markup_elem "latex_index_item";
 val (latex_index_entryN, latex_index_entry) = markup_string "latex_index_entry" kindN;
 val (latex_delimN, latex_delim) = markup_string "latex_delim" nameN;
@@ -632,9 +633,7 @@ fun input delimited props = (inputN, (delimitedN, Value.print_bool delimited) ::
 val (command_keywordN, command_keyword) = markup_elem "command_keyword";
 
 val command_spanN = "command_span";
-fun command_span {name, kind} : T =
-  (command_spanN,
-    (if name = "" then [] else [(nameN, name)]) @ (if kind = "" then [] else [(kindN, kind)]));
+fun command_span {name, kind} : T = (command_spanN, name_proper name @ kind_proper kind);
 
 val commandN = "command"; val command_properties = properties [(kindN, commandN)];
 val keywordN = "keyword"; val keyword_properties = properties [(kindN, keywordN)];
