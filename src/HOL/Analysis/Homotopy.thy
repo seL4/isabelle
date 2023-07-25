@@ -2971,7 +2971,7 @@ lemma isometry_subset_subspace:
   assumes S: "subspace S"
       and T: "subspace T"
       and d: "dim S \<le> dim T"
-  obtains f where "linear f" "f ` S \<subseteq> T" "\<And>x. x \<in> S \<Longrightarrow> norm(f x) = norm x"
+  obtains f where "linear f" "f \<in> S \<rightarrow> T" "\<And>x. x \<in> S \<Longrightarrow> norm(f x) = norm x"
 proof -
   obtain B where "B \<subseteq> S" and Borth: "pairwise orthogonal B"
              and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
@@ -3011,7 +3011,7 @@ proof -
       by (simp add: norm_eq_sqrt_inner)
   qed
   then show ?thesis
-    by (rule that [OF \<open>linear f\<close> \<open>f ` S \<subseteq> T\<close>])
+    by (meson \<open>f ` S \<subseteq> T\<close> \<open>linear f\<close> image_subset_iff_funcset that)
 qed
 
 proposition isometries_subspaces:
@@ -3190,36 +3190,36 @@ locale\<^marker>\<open>tag important\<close> Retracts =
   assumes conth: "continuous_on S h"
       and imh: "h ` S = t"
       and contk: "continuous_on t k"
-      and imk: "k ` t \<subseteq> S"
+      and imk: "k \<in> t \<rightarrow> S"
       and idhk: "\<And>y. y \<in> t \<Longrightarrow> h(k y) = y"
 
 begin
 
 lemma homotopically_trivial_retraction_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
-      and Q: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
+      and Q: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
       and Qeq: "\<And>h k. (\<And>x. x \<in> U \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> S; P f;
-                       continuous_on U g; g ` U \<subseteq> S; P g\<rbrakk>
+      and hom: "\<And>f g. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S; P f;
+                       continuous_on U g; g \<in> U \<rightarrow> S; P g\<rbrakk>
                        \<Longrightarrow> homotopic_with_canon P U S f g"
-      and contf: "continuous_on U f" and imf: "f ` U \<subseteq> t" and Qf: "Q f"
-      and contg: "continuous_on U g" and img: "g ` U \<subseteq> t" and Qg: "Q g"
+      and contf: "continuous_on U f" and imf: "f \<in> U \<rightarrow> t" and Qf: "Q f"
+      and contg: "continuous_on U g" and img: "g \<in> U \<rightarrow> t" and Qg: "Q g"
     shows "homotopic_with_canon Q U t f g"
 proof -
   have "continuous_on U (k \<circ> f)"
-    using contf continuous_on_compose continuous_on_subset contk imf by blast
+    by (meson contf continuous_on_compose continuous_on_subset contk funcset_image imf)
   moreover have "(k \<circ> f) ` U \<subseteq> S"
     using imf imk by fastforce
   moreover have "P (k \<circ> f)"
     by (simp add: P Qf contf imf)
   moreover have "continuous_on U (k \<circ> g)"
-    using contg continuous_on_compose continuous_on_subset contk img by blast
+    by (meson contg continuous_on_compose continuous_on_subset contk funcset_image img)
   moreover have "(k \<circ> g) ` U \<subseteq> S"
     using img imk by fastforce
   moreover have "P (k \<circ> g)"
     by (simp add: P Qg contg img)
   ultimately have "homotopic_with_canon P U S (k \<circ> f) (k \<circ> g)"
-    by (rule hom)
+    by (simp add: hom image_subset_iff)
   then have "homotopic_with_canon Q U t (h \<circ> (k \<circ> f)) (h \<circ> (k \<circ> g))"
     apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
     using Q conth imh by force+
@@ -3228,23 +3228,23 @@ proof -
     show "\<And>h k. (\<And>x. x \<in> U \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
       using Qeq topspace_euclidean_subtopology by blast
     show "\<And>x. x \<in> U \<Longrightarrow> f x = h (k (f x))" "\<And>x. x \<in> U \<Longrightarrow> g x = h (k (g x))"
-      using idhk imf img by auto
+      using idhk imf img by fastforce+
   qed 
 qed
 
 lemma homotopically_trivial_retraction_null_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
-      and Q: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> t; Q f\<rbrakk> \<Longrightarrow> P(k \<circ> f)"
+      and Q: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S; P f\<rbrakk> \<Longrightarrow> Q(h \<circ> f)"
       and Qeq: "\<And>h k. (\<And>x. x \<in> U \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S; P f\<rbrakk>
+      and hom: "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S; P f\<rbrakk>
                      \<Longrightarrow> \<exists>c. homotopic_with_canon P U S f (\<lambda>x. c)"
-      and contf: "continuous_on U f" and imf:"f ` U \<subseteq> t" and Qf: "Q f"
+      and contf: "continuous_on U f" and imf:"f \<in> U \<rightarrow> t" and Qf: "Q f"
   obtains c where "homotopic_with_canon Q U t f (\<lambda>x. c)"
 proof -
   have feq: "\<And>x. x \<in> U \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
   have "continuous_on U (k \<circ> f)"
-    using contf continuous_on_compose continuous_on_subset contk imf by blast
-  moreover have "(k \<circ> f) ` U \<subseteq> S"
+    by (meson contf continuous_on_compose continuous_on_subset contk funcset_image imf)
+  moreover have "(k \<circ> f) \<in> U \<rightarrow> S"
     using imf imk by fastforce
   moreover have "P (k \<circ> f)"
     by (simp add: P Qf contf imf)
@@ -3265,32 +3265,32 @@ proof -
 qed
 
 lemma cohomotopically_trivial_retraction_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> U; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
-      and Q: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> U; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f \<in> t \<rightarrow> U; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
+      and Q: "\<And>f. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> U; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
       and Qeq: "\<And>h k. (\<And>x. x \<in> t \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f g. \<lbrakk>continuous_on S f; f ` S \<subseteq> U; P f;
-                       continuous_on S g; g ` S \<subseteq> U; P g\<rbrakk>
+      and hom: "\<And>f g. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> U; P f;
+                       continuous_on S g; g \<in> S \<rightarrow> U; P g\<rbrakk>
                        \<Longrightarrow> homotopic_with_canon P S U f g"
-      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> U" and Qf: "Q f"
-      and contg: "continuous_on t g" and img: "g ` t \<subseteq> U" and Qg: "Q g"
+      and contf: "continuous_on t f" and imf: "f \<in> t \<rightarrow> U" and Qf: "Q f"
+      and contg: "continuous_on t g" and img: "g \<in> t \<rightarrow> U" and Qg: "Q g"
     shows "homotopic_with_canon Q t U f g"
 proof -
   have feq: "\<And>x. x \<in> t \<Longrightarrow> (f \<circ> h \<circ> k) x = f x" using idhk imf by auto
   have geq: "\<And>x. x \<in> t \<Longrightarrow> (g \<circ> h \<circ> k) x = g x" using idhk img by auto
   have "continuous_on S (f \<circ> h)"
     using contf conth continuous_on_compose imh by blast
-  moreover have "(f \<circ> h) ` S \<subseteq> U"
+  moreover have "(f \<circ> h) \<in> S \<rightarrow> U"
     using imf imh by fastforce
   moreover have "P (f \<circ> h)"
     by (simp add: P Qf contf imf)
   moreover have "continuous_on S (g \<circ> h)"
     using contg continuous_on_compose continuous_on_subset conth imh by blast
-  moreover have "(g \<circ> h) ` S \<subseteq> U"
+  moreover have "(g \<circ> h) \<in> S \<rightarrow> U"
     using img imh by fastforce
   moreover have "P (g \<circ> h)"
     by (simp add: P Qg contg img)
   ultimately have "homotopic_with_canon P S U (f \<circ> h) (g \<circ> h)"
-    by (rule hom)
+    by (simp add: hom)
   then have "homotopic_with_canon Q t U (f \<circ> h \<circ> k) (g \<circ> h \<circ> k)"
     apply (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
     using Q contk imk by force+
@@ -3303,18 +3303,18 @@ proof -
 qed
 
 lemma cohomotopically_trivial_retraction_null_gen:
-  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> U; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
-      and Q: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> U; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
+  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f \<in> t \<rightarrow> U; Q f\<rbrakk> \<Longrightarrow> P(f \<circ> h)"
+      and Q: "\<And>f. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> U; P f\<rbrakk> \<Longrightarrow> Q(f \<circ> k)"
       and Qeq: "\<And>h k. (\<And>x. x \<in> t \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
-      and hom: "\<And>f g. \<lbrakk>continuous_on S f; f ` S \<subseteq> U; P f\<rbrakk>
+      and hom: "\<And>f g. \<lbrakk>continuous_on S f; f \<in> S \<rightarrow> U; P f\<rbrakk>
                        \<Longrightarrow> \<exists>c. homotopic_with_canon P S U f (\<lambda>x. c)"
-      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> U" and Qf: "Q f"
+      and contf: "continuous_on t f" and imf: "f \<in> t \<rightarrow> U" and Qf: "Q f"
   obtains c where "homotopic_with_canon Q t U f (\<lambda>x. c)"
 proof -
   have feq: "\<And>x. x \<in> t \<Longrightarrow> (f \<circ> h \<circ> k) x = f x" using idhk imf by auto
   have "continuous_on S (f \<circ> h)"
     using contf conth continuous_on_compose imh by blast
-  moreover have "(f \<circ> h) ` S \<subseteq> U"
+  moreover have "(f \<circ> h) \<in> S \<rightarrow> U"
     using imf imh by fastforce
   moreover have "P (f \<circ> h)"
     by (simp add: P Qf contf imf)
@@ -3335,12 +3335,12 @@ end
 
 lemma simply_connected_retraction_gen:
   shows "\<lbrakk>simply_connected S; continuous_on S h; h ` S = T;
-          continuous_on T k; k ` T \<subseteq> S; \<And>y. y \<in> T \<Longrightarrow> h(k y) = y\<rbrakk>
+          continuous_on T k; k \<in> T \<rightarrow> S; \<And>y. y \<in> T \<Longrightarrow> h(k y) = y\<rbrakk>
         \<Longrightarrow> simply_connected T"
 apply (simp add: simply_connected_def path_def path_image_def homotopic_loops_def, clarify)
 apply (rule Retracts.homotopically_trivial_retraction_gen
         [of S h _ k _ "\<lambda>p. pathfinish p = pathstart p"  "\<lambda>p. pathfinish p = pathstart p"])
-apply (simp_all add: Retracts_def pathfinish_def pathstart_def)
+apply (simp_all add: Retracts_def pathfinish_def pathstart_def image_subset_iff_funcset)
 done
 
 lemma homeomorphic_simply_connected:

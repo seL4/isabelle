@@ -214,18 +214,13 @@ lemma face_of_disjoint_interior:
       fixes S :: "'a::real_normed_vector set"
       assumes "T face_of S" "T \<noteq> S"
         shows "T \<inter> interior S = {}"
-proof -
-  have "T \<inter> interior S \<subseteq> rel_interior S"
-    by (meson inf_sup_ord(2) interior_subset_rel_interior order.trans)
-  thus ?thesis
-    by (metis (no_types) Int_greatest assms face_of_disjoint_rel_interior inf_sup_ord(1) subset_empty)
-qed
+  using assms face_of_disjoint_rel_interior interior_subset_rel_interior by fastforce
 
 lemma face_of_subset_rel_boundary:
   fixes S :: "'a::real_normed_vector set"
   assumes "T face_of S" "T \<noteq> S"
     shows "T \<subseteq> (S - rel_interior S)"
-by (meson DiffI assms disjoint_iff_not_equal face_of_disjoint_rel_interior face_of_imp_subset rev_subsetD subsetI)
+  by (meson DiffI assms disjoint_iff_not_equal face_of_disjoint_rel_interior face_of_imp_subset subset_iff)
 
 lemma face_of_subset_rel_frontier:
     fixes S :: "'a::real_normed_vector set"
@@ -241,13 +236,8 @@ proof -
   have "aff_dim T \<le> aff_dim S"
     by (simp add: face_of_imp_subset aff_dim_subset assms)
   moreover have "aff_dim T \<noteq> aff_dim S"
-  proof (cases "T = {}")
-    case True then show ?thesis
-      by (metis aff_dim_empty \<open>T \<noteq> S\<close>)
-  next 
-    case False then show ?thesis
-      by (smt (verit) aff_dim_empty assms convex_rel_frontier_aff_dim face_of_imp_convex face_of_subset_rel_frontier)
-  qed
+    by (metis aff_dim_empty assms convex_rel_frontier_aff_dim face_of_imp_convex 
+        face_of_subset_rel_frontier order_less_irrefl)
   ultimately show ?thesis
     by simp
 qed
@@ -258,7 +248,7 @@ lemma subset_of_face_of_affine_hull:
   shows "U \<subseteq> T"
 proof (rule subset_of_face_of [OF T \<open>U \<subseteq> S\<close>])
   show "T \<inter> rel_interior U \<noteq> {}"
-    using face_of_imp_eq_affine_Int [OF \<open>convex S\<close> T] rel_interior_subset [of U] dis \<open>U \<subseteq> S\<close> disjnt_def 
+    using face_of_imp_eq_affine_Int [OF \<open>convex S\<close> T] rel_interior_subset dis \<open>U \<subseteq> S\<close> disjnt_def 
     by fastforce
 qed
 
@@ -478,7 +468,7 @@ next
 qed
 
 lemma faces_of_translation:
-   "{F. F face_of image (\<lambda>x. a + x) S} = image (image (\<lambda>x. a + x)) {F. F face_of S}"
+   "{F. F face_of (+) a ` S} = (image ((+) a)) ` {F. F face_of S}"
 proof -
   have "\<And>F. F face_of (+) a ` S \<Longrightarrow> \<exists>G. G face_of S \<and> F = (+) a ` G"
     by (metis face_of_imp_subset face_of_translation_eq subset_imageE)
@@ -560,15 +550,12 @@ proof
     qed
     with fst snd show ?thesis by metis
   qed
-next
-  assume ?rhs with face_of_Times show ?lhs by auto
-qed
+qed (use face_of_Times in auto)
 
 lemma face_of_Times_eq:
-    fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
-    shows "(F \<times> F') face_of (S \<times> S') \<longleftrightarrow>
-           F = {} \<or> F' = {} \<or> F face_of S \<and> F' face_of S'"
-by (auto simp: face_of_Times_decomp times_eq_iff)
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  shows "(F \<times> F') face_of (S \<times> S') \<longleftrightarrow> F = {} \<or> F' = {} \<or> F face_of S \<and> F' face_of S'"
+  by (auto simp: face_of_Times_decomp times_eq_iff)
 
 lemma hyperplane_face_of_halfspace_le: "{x. a \<bullet> x = b} face_of {x. a \<bullet> x \<le> b}"
 proof -
@@ -588,8 +575,7 @@ qed
 
 lemma face_of_halfspace_le:
   fixes a :: "'n::euclidean_space"
-  shows "F face_of {x. a \<bullet> x \<le> b} \<longleftrightarrow>
-         F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<le> b}"
+  shows "F face_of {x. a \<bullet> x \<le> b} \<longleftrightarrow> F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<le> b}"
      (is "?lhs = ?rhs")
 proof (cases "a = 0")
   case True then show ?thesis
@@ -623,9 +609,8 @@ qed
 
 lemma face_of_halfspace_ge:
   fixes a :: "'n::euclidean_space"
-  shows "F face_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow>
-         F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<ge> b}"
-using face_of_halfspace_le [of F "-a" "-b"] by simp
+  shows "F face_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow> F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<ge> b}"
+  using face_of_halfspace_le [of F "-a" "-b"] by simp
 
 subsection\<open>Exposed faces\<close>
 
@@ -670,31 +655,31 @@ proof
 qed
 
 lemma exposed_face_of_Int_supporting_hyperplane_le:
-   "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
-by (force simp: exposed_face_of_def face_of_Int_supporting_hyperplane_le)
+  "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
+  by (force simp: exposed_face_of_def face_of_Int_supporting_hyperplane_le)
 
 lemma exposed_face_of_Int_supporting_hyperplane_ge:
-   "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
-using exposed_face_of_Int_supporting_hyperplane_le [of S "-a" "-b"] by simp
+  "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
+  using exposed_face_of_Int_supporting_hyperplane_le [of S "-a" "-b"] by simp
 
 proposition exposed_face_of_Int:
   assumes "T exposed_face_of S"
-      and "u exposed_face_of S"
-    shows "(T \<inter> u) exposed_face_of S"
+      and "U exposed_face_of S"
+    shows "(T \<inter> U) exposed_face_of S"
 proof -
   obtain a b where T: "S \<inter> {x. a \<bullet> x = b} face_of S"
                and S: "S \<subseteq> {x. a \<bullet> x \<le> b}"
                and teq: "T = S \<inter> {x. a \<bullet> x = b}"
     using assms by (auto simp: exposed_face_of_def)
-  obtain a' b' where u: "S \<inter> {x. a' \<bullet> x = b'} face_of S"
+  obtain a' b' where U: "S \<inter> {x. a' \<bullet> x = b'} face_of S"
                  and s': "S \<subseteq> {x. a' \<bullet> x \<le> b'}"
-                 and ueq: "u = S \<inter> {x. a' \<bullet> x = b'}"
+                 and ueq: "U = S \<inter> {x. a' \<bullet> x = b'}"
     using assms by (auto simp: exposed_face_of_def)
-  have tu: "T \<inter> u face_of S"
-    using T teq u ueq by (simp add: face_of_Int)
+  have tu: "T \<inter> U face_of S"
+    using T teq U ueq by (simp add: face_of_Int)
   have ss: "S \<subseteq> {x. (a + a') \<bullet> x \<le> b + b'}"
     using S s' by (force simp: inner_left_distrib)
-  have "S \<subseteq> {x. (a + a') \<bullet> x \<le> b + b'} \<and> T \<inter> u = S \<inter> {x. (a + a') \<bullet> x = b + b'}"
+  have "S \<subseteq> {x. (a + a') \<bullet> x \<le> b + b'} \<and> T \<inter> U = S \<inter> {x. (a + a') \<bullet> x = b + b'}"
     using S s' by (fastforce simp: ss inner_left_distrib teq ueq)
   then show ?thesis
     using exposed_face_of_def tu by auto
@@ -860,8 +845,8 @@ lemma extreme_point_of_stillconvex:
   by (fastforce simp add: convex_contains_segment extreme_point_of_def open_segment_def)
 
 lemma face_of_singleton:
-   "{x} face_of S \<longleftrightarrow> x extreme_point_of S"
-by (fastforce simp add: extreme_point_of_def face_of_def)
+  "{x} face_of S \<longleftrightarrow> x extreme_point_of S"
+  by (fastforce simp add: extreme_point_of_def face_of_def)
 
 lemma extreme_point_not_in_REL_INTERIOR:
     fixes S :: "'a::real_normed_vector set"
@@ -871,11 +856,7 @@ lemma extreme_point_not_in_REL_INTERIOR:
 lemma extreme_point_not_in_interior:
   fixes S :: "'a::{real_normed_vector, perfect_space} set"
   assumes "x extreme_point_of S" shows "x \<notin> interior S"
-proof (cases "S = {x}")
-  case False
-  then show ?thesis
-    by (meson assms subsetD extreme_point_not_in_REL_INTERIOR interior_subset_rel_interior)
-qed (simp add: empty_interior_finite)
+  using assms extreme_point_not_in_REL_INTERIOR interior_subset_rel_interior by fastforce
 
 lemma extreme_point_of_face:
      "F face_of S \<Longrightarrow> v extreme_point_of F \<longleftrightarrow> v extreme_point_of S \<and> v \<in> F"
@@ -914,8 +895,8 @@ lemma extreme_points_of_translation_subtract:
   by simp
 
 lemma extreme_point_of_Int:
-   "\<lbrakk>x extreme_point_of S; x extreme_point_of T\<rbrakk> \<Longrightarrow> x extreme_point_of (S \<inter> T)"
-by (simp add: extreme_point_of_def)
+  "\<lbrakk>x extreme_point_of S; x extreme_point_of T\<rbrakk> \<Longrightarrow> x extreme_point_of (S \<inter> T)"
+  by (simp add: extreme_point_of_def)
 
 lemma extreme_point_of_Int_supporting_hyperplane_le:
    "\<lbrakk>S \<inter> {x. a \<bullet> x = b} = {c}; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> c extreme_point_of S"
@@ -965,16 +946,16 @@ lemma facet_of_imp_subset: "F facet_of S \<Longrightarrow> F \<subseteq> S"
   by (simp add: face_of_imp_subset facet_of_def)
 
 lemma hyperplane_facet_of_halfspace_le:
-   "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<le> b}"
-unfolding facet_of_def hyperplane_eq_empty
-by (auto simp: hyperplane_face_of_halfspace_ge hyperplane_face_of_halfspace_le
-           Suc_leI of_nat_diff aff_dim_halfspace_le)
+  "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<le> b}"
+  unfolding facet_of_def hyperplane_eq_empty
+  by (auto simp: hyperplane_face_of_halfspace_ge hyperplane_face_of_halfspace_le
+      Suc_leI of_nat_diff aff_dim_halfspace_le)
 
 lemma hyperplane_facet_of_halfspace_ge:
-    "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<ge> b}"
-unfolding facet_of_def hyperplane_eq_empty
-by (auto simp: hyperplane_face_of_halfspace_le hyperplane_face_of_halfspace_ge
-           Suc_leI of_nat_diff aff_dim_halfspace_ge)
+  "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<ge> b}"
+  unfolding facet_of_def hyperplane_eq_empty
+  by (auto simp: hyperplane_face_of_halfspace_le hyperplane_face_of_halfspace_ge
+      Suc_leI of_nat_diff aff_dim_halfspace_ge)
 
 lemma facet_of_halfspace_le:
     "F facet_of {x. a \<bullet> x \<le> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
@@ -989,8 +970,8 @@ next
 qed
 
 lemma facet_of_halfspace_ge:
-    "F facet_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
-using facet_of_halfspace_le [of F "-a" "-b"] by simp
+  "F facet_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
+  using facet_of_halfspace_le [of F "-a" "-b"] by simp
 
 subsection \<open>Edges: faces of affine dimension 1\<close> (*FIXME too small subsection, rearrange? *)
 
@@ -1161,12 +1142,7 @@ proof
     qed
 next
   show "convex hull {x. x extreme_point_of S} \<subseteq> S"
-  proof -
-    have "{a. a extreme_point_of S} \<subseteq> S"
-      using extreme_point_of_def by blast
-    then show ?thesis
-      by (simp add: \<open>convex S\<close> hull_minimal)
-  qed
+    using \<open>convex S\<close> extreme_point_of_stillconvex subset_hull by fastforce
 qed
 
 
@@ -1183,9 +1159,9 @@ corollary Krein_Milman_polytope:
 lemma extreme_points_of_convex_hull_eq:
   fixes S :: "'a::euclidean_space set"
   shows
-   "\<lbrakk>compact S; \<And>T. T \<subset> S \<Longrightarrow> convex hull T \<noteq> convex hull S\<rbrakk>
+    "\<lbrakk>compact S; \<And>T. T \<subset> S \<Longrightarrow> convex hull T \<noteq> convex hull S\<rbrakk>
         \<Longrightarrow> {x. x extreme_point_of (convex hull S)} = S"
-by (metis (full_types) Krein_Milman_Minkowski compact_convex_hull convex_convex_hull extreme_points_of_convex_hull psubsetI)
+  by (metis (full_types) Krein_Milman_Minkowski compact_convex_hull convex_convex_hull extreme_points_of_convex_hull psubsetI)
 
 
 lemma extreme_point_of_convex_hull_eq:
@@ -1221,33 +1197,23 @@ text\<open>Elementary proofs exist, not requiring Euclidean spaces and all this 
 lemma extreme_point_of_convex_hull_2:
   fixes x :: "'a::euclidean_space"
   shows "x extreme_point_of (convex hull {a,b}) \<longleftrightarrow> x = a \<or> x = b"
-proof -
-  have "x extreme_point_of (convex hull {a,b}) \<longleftrightarrow> x \<in> {a,b}"
-    by (intro extreme_point_of_convex_hull_affine_independent affine_independent_2)
-  then show ?thesis
-    by simp
-qed
+  by (simp add: extreme_point_of_convex_hull_affine_independent)
 
 lemma extreme_point_of_segment:
   fixes x :: "'a::euclidean_space"
-  shows
-   "x extreme_point_of closed_segment a b \<longleftrightarrow> x = a \<or> x = b"
-by (simp add: extreme_point_of_convex_hull_2 segment_convex_hull)
+  shows "x extreme_point_of closed_segment a b \<longleftrightarrow> x = a \<or> x = b"
+  by (simp add: extreme_point_of_convex_hull_2 segment_convex_hull)
 
 lemma face_of_convex_hull_subset:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and T: "T face_of (convex hull S)"
-  obtains s' where "s' \<subseteq> S" "T = convex hull s'"
+  obtains S' where "S' \<subseteq> S" "T = convex hull S'"
 proof
   show "{x. x extreme_point_of T} \<subseteq> S"
     using T extreme_point_of_convex_hull extreme_point_of_face by blast
   show "T = convex hull {x. x extreme_point_of T}"
-  proof (rule Krein_Milman_Minkowski)
-    show "compact T"
-      using T assms compact_convex_hull face_of_imp_compact by auto
-    show "convex T"
-      using T face_of_imp_convex by blast
-  qed
+    by (metis Krein_Milman_Minkowski assms compact_convex_hull convex_convex_hull 
+        face_of_imp_compact face_of_imp_convex)
 qed
 
 
@@ -1431,14 +1397,14 @@ proof
     by (meson \<open>T face_of convex hull S\<close> aff_independent_finite assms face_of_convex_hull_subset finite_imp_compact)
 next
   assume ?rhs
-  then obtain c where "c \<subseteq> S" and T: "T = convex hull c"
+  then obtain C where "C \<subseteq> S" and T: "T = convex hull C"
     by blast
-  have "affine hull c \<inter> affine hull (S - c) = {}"
-    by (intro disjoint_affine_hull [OF assms \<open>c \<subseteq> S\<close>], auto)
-  then have "affine hull c \<inter> convex hull (S - c) = {}"
+  have "affine hull C \<inter> affine hull (S - C) = {}"
+    by (intro disjoint_affine_hull [OF assms \<open>C \<subseteq> S\<close>], auto)
+  then have "affine hull C \<inter> convex hull (S - C) = {}"
     using convex_hull_subset_affine_hull by fastforce
   then show ?lhs
-    by (metis face_of_convex_hulls \<open>c \<subseteq> S\<close> aff_independent_finite assms T)
+    by (metis face_of_convex_hulls \<open>C \<subseteq> S\<close> aff_independent_finite assms T)
 qed
 
 lemma facet_of_convex_hull_affine_independent:
@@ -1555,13 +1521,9 @@ subsection\<open>Polytopes\<close>
 definition\<^marker>\<open>tag important\<close> polytope where
  "polytope S \<equiv> \<exists>v. finite v \<and> S = convex hull v"
 
-lemma polytope_translation_eq: "polytope (image (\<lambda>x. a + x) S) \<longleftrightarrow> polytope S"
-proof -
-  have "\<And>a A. polytope A \<Longrightarrow> polytope ((+) a ` A)"
-    by (metis (no_types) convex_hull_translation finite_imageI polytope_def)
-  then show ?thesis
-    by (metis (no_types) add.left_inverse image_add_0 translation_assoc)
-qed
+lemma polytope_translation_eq: "polytope ((+) a ` S) \<longleftrightarrow> polytope S"
+  unfolding polytope_def
+  by (metis (no_types, opaque_lifting) add.left_inverse convex_hull_translation finite_imageI image_add_0 translation_assoc)
 
 lemma polytope_linear_image: "\<lbrakk>linear f; polytope p\<rbrakk> \<Longrightarrow> polytope(image f p)"
   unfolding polytope_def using convex_hull_linear_image by blast
@@ -1604,12 +1566,12 @@ by (simp add: assms facet_of_def finite_polytope_faces)
 
 lemma polytope_scaling:
   assumes "polytope S"  shows "polytope (image (\<lambda>x. c *\<^sub>R x) S)"
-by (simp add: assms polytope_linear_image)
+  by (simp add: assms polytope_linear_image)
 
 lemma polytope_imp_compact:
   fixes S :: "'a::real_normed_vector set"
   shows "polytope S \<Longrightarrow> compact S"
-by (metis finite_imp_compact_convex_hull polytope_def)
+  by (metis finite_imp_compact_convex_hull polytope_def)
 
 lemma polytope_imp_convex: "polytope S \<Longrightarrow> convex S"
   by (metis convex_convex_hull polytope_def)
@@ -1617,12 +1579,12 @@ lemma polytope_imp_convex: "polytope S \<Longrightarrow> convex S"
 lemma polytope_imp_closed:
   fixes S :: "'a::real_normed_vector set"
   shows "polytope S \<Longrightarrow> closed S"
-by (simp add: compact_imp_closed polytope_imp_compact)
+  by (simp add: compact_imp_closed polytope_imp_compact)
 
 lemma polytope_imp_bounded:
   fixes S :: "'a::real_normed_vector set"
   shows "polytope S \<Longrightarrow> bounded S"
-by (simp add: compact_imp_bounded polytope_imp_compact)
+  by (simp add: compact_imp_bounded polytope_imp_compact)
 
 lemma polytope_interval: "polytope(cbox a b)"
   unfolding polytope_def by (meson closed_interval_as_convex_hull)
