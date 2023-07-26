@@ -231,6 +231,25 @@ In such situations you can put the abstractions back by explicitly $\eta$-expand
 Instead of a single variable \verb!z! you can give a whole list \verb!x y z!
 to perform multiple $\eta$-expansions.
 
+
+\subsection{Breaks and boxes}
+
+Printing longer formulas can easily lead to line breaks in unwanted places.
+This can be avoided by putting \LaTeX-like mboxes in formulas.
+There is a function @{const_typ mbox} that you can wrap around subterms and that
+is pretty-printed as a \LaTeX\ \verb$\mbox{ }$.
+If you are printing a term or formula, you can just insert @{const mbox}
+wherever you want. You can also insert it into theorems by
+virtue of the fact that @{const mbox} is defined as an identity function. Of course
+you need to adapt the proof accordingly.
+
+Unless the argument of @{const mbox} is an identifier or an application (i.e.\ of the highest precedence),
+it will be enclosed in parentheses. Thus \verb!x < mbox(f y)! results in @{term "x < mbox(f y)"}
+but \verb!x < mbox(y+z)! results in @{term "x < mbox(y+z)"}. You can switch off the
+parentheses by using the variant @{const mbox0} instead of @{const mbox}:
+\verb!x < mbox0(y+z)! results in @{term "x < mbox0(y+z)"}.
+
+
 \subsection{Inference rules}
 
 To print theorems as inference rules you need to include Didier
