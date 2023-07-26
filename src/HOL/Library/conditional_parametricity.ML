@@ -502,7 +502,7 @@ fun gen_parametric_constant settings prep_att prep_thm (raw_b : Attrib.binding, 
     val thm = prove_goal settings lthy (SOME eq) goal;
     val (res, lthy') = Local_Theory.note (b, [thm]) lthy;
     val _ = if #suppress_print_theorem settings then () else
-      Proof_Display.print_results true (Position.thread_data ()) lthy' (("theorem",""), [res]);
+      Proof_Display.print_theorem (Position.thread_data ()) lthy' res;
   in
     (the_single (snd res), lthy')
   end;

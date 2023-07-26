@@ -204,8 +204,12 @@ fun enabled_tracing () = ! theory_tracing orelse ! proof_tracing;
 
 local
 
+val m = Integer.pow 18 2;
+
 fun cons_tokens var token =
-  Synchronized.change var (fn (n, tokens) => (n + 1, Weak.weak (SOME token) :: tokens));
+  Synchronized.change var (fn (n, tokens) =>
+    let val tokens' = if n mod m = 0 then filter Unsynchronized.weak_active tokens else tokens
+    in (n + 1, Weak.weak (SOME token) :: tokens') end);
 
 fun finish_tokens var =
   Synchronized.change_result var (fn (n, tokens) =>

@@ -615,7 +615,7 @@ fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name
 
 val theoremK = "theorem";
 
-fun legacy_get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
+fun legacy_get_kind thm = Properties.get_string (Thm.get_tags thm) Markup.kindN;
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 
