@@ -9,6 +9,11 @@ New in Isabelle2023 (September 2023)
 
 *** General ***
 
+* Toplevel results --- like declared consts and proven theorems --- are
+printed as regular "writeln" message instead of "state", which is no
+specifically for proof states. This affects Isabelle/jEdit panels for
+Output vs. State in particular.
+
 * Session build dependencies (sources and heaps) are now recorded in
 more details, with one SHA1 digest per file and a symbolic version of
 the file name -- similar to the Unix command-line tool "sha1sum". For

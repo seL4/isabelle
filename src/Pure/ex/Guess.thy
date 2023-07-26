@@ -149,7 +149,8 @@ fun gen_guess prep_var raw_vars int state =
     val goal = Var guess;
     val pos = Position.thread_data ();
     fun print_result ctxt' (k, [(s, [_, th])]) =
-      Proof_Display.print_results int pos ctxt' (k, [(s, [th])]);
+      Proof_Display.print_results {interactive = int, pos = pos, proof_state = true}
+        ctxt' (k, [(s, [th])]);
     val before_qed =
       Method.primitive_text (fn ctxt =>
         Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>

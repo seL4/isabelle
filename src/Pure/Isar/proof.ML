@@ -1153,7 +1153,7 @@ fun global_goal_inst ((goal_ctxt, Goal goal), result_ctxt: context) =
     val _ =
       (case Proof_Display.pretty_goal_inst goal_ctxt propss goal of
         [] => ()
-      | prts => Output.state (Pretty.string_of (Pretty.chunks prts)));
+      | prts => Pretty.writeln (Pretty.chunks prts));
   in result_ctxt end;
 
 fun global_qed arg =
@@ -1231,7 +1231,9 @@ fun internal_goal print_results mode =
 local
 
 fun gen_have prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int =
-  local_goal (Proof_Display.print_results int (Position.thread_data ()))
+  local_goal
+    (Proof_Display.print_results
+      {interactive = int, pos = Position.thread_data (), proof_state = true})
     prep_statement prep_att strict_asm "have" before_qed after_qed fixes assumes shows;
 
 fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int state =
@@ -1246,7 +1248,7 @@ fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assum
     val pos = Position.thread_data ();
     fun print_results ctxt res =
       if ! testing then ()
-      else Proof_Display.print_results int pos ctxt res;
+      else Proof_Display.print_results {interactive = int, pos = pos, proof_state = true} ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then

@@ -456,7 +456,7 @@ fun begin_main_target begin f = transaction (fn _ =>
           val _ =
             (case Local_Theory.pretty lthy of
               [] => ()
-            | prts => Output.state (Pretty.string_of (Pretty.chunks prts)));
+            | prts => Pretty.writeln (Pretty.chunks prts));
         in (Theory gthy, lthy) end
     | _ => raise UNDEF));
 
