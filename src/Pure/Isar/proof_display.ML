@@ -26,6 +26,7 @@ sig
   val show_results: bool Config.T
   val print_results: bool -> Position.T -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
+  val print_theorem: Position.T -> Proof.context -> string * thm list -> unit
   val print_consts: bool -> Position.T -> Proof.context ->
     (string * typ -> bool) -> (string * typ) list -> unit
   val markup_extern_label: Position.T -> (Markup.T * xstring) option
@@ -361,6 +362,9 @@ fun print_results int pos ctxt ((kind, name), facts) =
           Proof_Context.pretty_fact ctxt fact])
       | _ => Pretty.blk (1, [pretty_fact_name pos (kind, name), Pretty.fbrk,
           Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
+
+fun print_theorem pos ctxt fact =
+  print_results true pos ctxt ((Thm.theoremK, ""), [fact]);
 
 end;
 
