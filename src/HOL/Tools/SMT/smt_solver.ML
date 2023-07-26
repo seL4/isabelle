@@ -40,6 +40,17 @@ sig
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
   val smt_tac': Proof.context -> thm list -> int -> tactic
+
+  (*solver information*)
+  type solver_info = {
+    command: unit -> string list,
+    smt_options: (string * string) list,
+    good_slices: ((int * bool * bool * int * string) * string list) list,
+    parse_proof: Proof.context -> SMT_Translate.replay_data ->
+      ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
+      parsed_proof,
+    replay: Proof.context -> SMT_Translate.replay_data -> string list -> thm}
+  val name_and_info_of: Proof.context -> string * solver_info
 end;
 
 structure SMT_Solver: SMT_SOLVER =

@@ -330,7 +330,12 @@ fun extract_name_bindings t (tab, exp_tab) =
         SMTLIB.S [SMTLIB.Sym "forall", SMTLIB.S _, body] => extract body (tab, new)
       | SMTLIB.S [SMTLIB.Sym "exists", SMTLIB.S _, body] => extract body (tab, new)
       | SMTLIB.S [SMTLIB.Sym "choice", SMTLIB.S _, body] => extract body (tab, new)
-      | SMTLIB.S [SMTLIB.Sym "let", SMTLIB.S bindings, body] =>
+      | SMTLIB.S [SMTLIB.Sym "let",  SMTLIB.S lets, body] => (
+          let val bindings = map (fn SMTLIB.S (var :: bindings) => bindings) lets in
+            fold (fn bdgs => fn st => fold extract bdgs st) bindings (tab, new)
+            |> extract body
+          end)
+      | SMTLIB.S [SMTLIB.Sym "let", SMTLIB.S [_, bindings], body] =>
           raise (Fail "unsupported let construction in name extraction")
       | SMTLIB.S (SMTLIB.Sym "!" :: t :: [SMTLIB.Key _, SMTLIB.Sym name]) =>
           extract t (tab, new)
