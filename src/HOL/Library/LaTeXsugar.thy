@@ -8,6 +8,18 @@ theory LaTeXsugar
 imports Main
 begin
 
+(* Boxing *)
+
+definition mbox :: "'a \<Rightarrow> 'a" where
+"mbox x = x"
+
+definition mbox0 :: "'a \<Rightarrow> 'a" where
+"mbox0 x = x"
+
+notation (latex) mbox ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>" [999] 999)
+
+notation (latex) mbox0 ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>" [0] 999)
+
 (* LOGIC *)
 notation (latex output)
   If  ("(\<^latex>\<open>\\textsf{\<close>if\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>then\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>else\<^latex>\<open>}\<close> (_))" 10)
