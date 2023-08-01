@@ -108,7 +108,7 @@ fun cvc5_rule_of "bind" = Bind
      else if r = Lethe_Proof.th_resolution_rule then Theory_Resolution
      else if r = Lethe_Proof.equiv_pos2_rule then Equiv_pos2
      else if r = Lethe_Proof.hole orelse r = "undefined" then Hole
-     else (@{print} ("maybe unsupported rule", r); Other_Rule r)
+     else Other_Rule r
 
 fun normalized_input ctxt prems t = SMT_Replay_Methods.prove ctxt t (fn _ =>
 let
