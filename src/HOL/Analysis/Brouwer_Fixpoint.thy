@@ -391,22 +391,22 @@ proof (rule kuhn_counting_lemma)
 qed fact
 
 locale kuhn_simplex =
-  fixes p n and base upd and s :: "(nat \<Rightarrow> nat) set"
+  fixes p n and base upd and S :: "(nat \<Rightarrow> nat) set"
   assumes base: "base \<in> {..< n} \<rightarrow> {..< p}"
   assumes base_out: "\<And>i. n \<le> i \<Longrightarrow> base i = p"
   assumes upd: "bij_betw upd {..< n} {..< n}"
-  assumes s_pre: "s = (\<lambda>i j. if j \<in> upd`{..< i} then Suc (base j) else base j) ` {.. n}"
+  assumes s_pre: "S = (\<lambda>i j. if j \<in> upd`{..< i} then Suc (base j) else base j) ` {.. n}"
 begin
 
 definition "enum i j = (if j \<in> upd`{..< i} then Suc (base j) else base j)"
 
-lemma s_eq: "s = enum ` {.. n}"
+lemma s_eq: "S = enum ` {.. n}"
   unfolding s_pre enum_def[abs_def] ..
 
 lemma upd_space: "i < n \<Longrightarrow> upd i < n"
   using upd by (auto dest!: bij_betwE)
 
-lemma s_space: "s \<subseteq> {..< n} \<rightarrow> {.. p}"
+lemma s_space: "S \<subseteq> {..< n} \<rightarrow> {.. p}"
 proof -
   { fix i assume "i \<le> n" then have "enum i \<in> {..< n} \<rightarrow> {.. p}"
     proof (induct i)
@@ -437,19 +437,19 @@ qed
 lemma enum_0: "enum 0 = base"
   by (simp add: enum_def[abs_def])
 
-lemma base_in_s: "base \<in> s"
+lemma base_in_s: "base \<in> S"
   unfolding s_eq by (subst enum_0[symmetric]) auto
 
-lemma enum_in: "i \<le> n \<Longrightarrow> enum i \<in> s"
+lemma enum_in: "i \<le> n \<Longrightarrow> enum i \<in> S"
   unfolding s_eq by auto
 
 lemma one_step:
-  assumes a: "a \<in> s" "j < n"
-  assumes *: "\<And>a'. a' \<in> s \<Longrightarrow> a' \<noteq> a \<Longrightarrow> a' j = p'"
+  assumes a: "a \<in> S" "j < n"
+  assumes *: "\<And>a'. a' \<in> S \<Longrightarrow> a' \<noteq> a \<Longrightarrow> a' j = p'"
   shows "a j \<noteq> p'"
 proof
   assume "a j = p'"
-  with * a have "\<And>a'. a' \<in> s \<Longrightarrow> a' j = p'"
+  with * a have "\<And>a'. a' \<in> S \<Longrightarrow> a' j = p'"
     by auto
   then have "\<And>i. i \<le> n \<Longrightarrow> enum i j = p'"
     unfolding s_eq by auto
@@ -481,16 +481,16 @@ lemma enum_mono: "i \<le> n \<Longrightarrow> j \<le> n \<Longrightarrow> enum i
 lemma enum_strict_mono: "i \<le> n \<Longrightarrow> j \<le> n \<Longrightarrow> enum i < enum j \<longleftrightarrow> i < j"
   using enum_mono[of i j] enum_inj[of i j] by (auto simp: le_less)
 
-lemma chain: "a \<in> s \<Longrightarrow> b \<in> s \<Longrightarrow> a \<le> b \<or> b \<le> a"
+lemma chain: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> a \<le> b \<or> b \<le> a"
   by (auto simp: s_eq enum_mono)
 
-lemma less: "a \<in> s \<Longrightarrow> b \<in> s \<Longrightarrow> a i < b i \<Longrightarrow> a < b"
+lemma less: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> a i < b i \<Longrightarrow> a < b"
   using chain[of a b] by (auto simp: less_fun_def le_fun_def not_le[symmetric])
 
-lemma enum_0_bot: "a \<in> s \<Longrightarrow> a = enum 0 \<longleftrightarrow> (\<forall>a'\<in>s. a \<le> a')"
+lemma enum_0_bot: "a \<in> S \<Longrightarrow> a = enum 0 \<longleftrightarrow> (\<forall>a'\<in>S. a \<le> a')"
   unfolding s_eq by (auto simp: enum_mono Ball_def)
 
-lemma enum_n_top: "a \<in> s \<Longrightarrow> a = enum n \<longleftrightarrow> (\<forall>a'\<in>s. a' \<le> a)"
+lemma enum_n_top: "a \<in> S \<Longrightarrow> a = enum n \<longleftrightarrow> (\<forall>a'\<in>S. a' \<le> a)"
   unfolding s_eq by (auto simp: enum_mono Ball_def)
 
 lemma enum_Suc: "i < n \<Longrightarrow> enum (Suc i) = (enum i)(upd i := Suc (enum i (upd i)))"
@@ -499,51 +499,51 @@ lemma enum_Suc: "i < n \<Longrightarrow> enum (Suc i) = (enum i)(upd i := Suc (e
 lemma enum_eq_p: "i \<le> n \<Longrightarrow> n \<le> j \<Longrightarrow> enum i j = p"
   by (induct i) (auto simp: enum_Suc enum_0 base_out upd_space not_less[symmetric])
 
-lemma out_eq_p: "a \<in> s \<Longrightarrow> n \<le> j \<Longrightarrow> a j = p"
+lemma out_eq_p: "a \<in> S \<Longrightarrow> n \<le> j \<Longrightarrow> a j = p"
   unfolding s_eq by (auto simp: enum_eq_p)
 
-lemma s_le_p: "a \<in> s \<Longrightarrow> a j \<le> p"
+lemma s_le_p: "a \<in> S \<Longrightarrow> a j \<le> p"
   using out_eq_p[of a j] s_space by (cases "j < n") auto
 
-lemma le_Suc_base: "a \<in> s \<Longrightarrow> a j \<le> Suc (base j)"
+lemma le_Suc_base: "a \<in> S \<Longrightarrow> a j \<le> Suc (base j)"
   unfolding s_eq by (auto simp: enum_def)
 
-lemma base_le: "a \<in> s \<Longrightarrow> base j \<le> a j"
+lemma base_le: "a \<in> S \<Longrightarrow> base j \<le> a j"
   unfolding s_eq by (auto simp: enum_def)
 
 lemma enum_le_p: "i \<le> n \<Longrightarrow> j < n \<Longrightarrow> enum i j \<le> p"
   using enum_in[of i] s_space by auto
 
-lemma enum_less: "a \<in> s \<Longrightarrow> i < n \<Longrightarrow> enum i < a \<longleftrightarrow> enum (Suc i) \<le> a"
+lemma enum_less: "a \<in> S \<Longrightarrow> i < n \<Longrightarrow> enum i < a \<longleftrightarrow> enum (Suc i) \<le> a"
   unfolding s_eq by (auto simp: enum_strict_mono enum_mono)
 
 lemma ksimplex_0:
-  "n = 0 \<Longrightarrow> s = {(\<lambda>x. p)}"
+  "n = 0 \<Longrightarrow> S = {(\<lambda>x. p)}"
   using s_eq enum_def base_out by auto
 
 lemma replace_0:
-  assumes "j < n" "a \<in> s" and p: "\<forall>x\<in>s - {a}. x j = 0" and "x \<in> s"
+  assumes "j < n" "a \<in> S" and p: "\<forall>x\<in>S - {a}. x j = 0" and "x \<in> S"
   shows "x \<le> a"
 proof cases
   assume "x \<noteq> a"
   have "a j \<noteq> 0"
     using assms by (intro one_step[where a=a]) auto
-  with less[OF \<open>x\<in>s\<close> \<open>a\<in>s\<close>, of j] p[rule_format, of x] \<open>x \<in> s\<close> \<open>x \<noteq> a\<close>
+  with less[OF \<open>x\<in>S\<close> \<open>a\<in>S\<close>, of j] p[rule_format, of x] \<open>x \<in> S\<close> \<open>x \<noteq> a\<close>
   show ?thesis
     by auto
 qed simp
 
 lemma replace_1:
-  assumes "j < n" "a \<in> s" and p: "\<forall>x\<in>s - {a}. x j = p" and "x \<in> s"
+  assumes "j < n" "a \<in> S" and p: "\<forall>x\<in>S - {a}. x j = p" and "x \<in> S"
   shows "a \<le> x"
 proof cases
   assume "x \<noteq> a"
   have "a j \<noteq> p"
     using assms by (intro one_step[where a=a]) auto
-  with enum_le_p[of _ j] \<open>j < n\<close> \<open>a\<in>s\<close>
+  with enum_le_p[of _ j] \<open>j < n\<close> \<open>a\<in>S\<close>
   have "a j < p"
     by (auto simp: less_le s_eq)
-  with less[OF \<open>a\<in>s\<close> \<open>x\<in>s\<close>, of j] p[rule_format, of x] \<open>x \<in> s\<close> \<open>x \<noteq> a\<close>
+  with less[OF \<open>a\<in>S\<close> \<open>x\<in>S\<close>, of j] p[rule_format, of x] \<open>x \<in> S\<close> \<open>x \<noteq> a\<close>
   show ?thesis
     by auto
 qed simp

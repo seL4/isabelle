@@ -1751,7 +1751,7 @@ proof -
         have "(*) ((cmod z)\<^sup>2) integrable_on {0..1}"
           by (metis ident_integrable_on integrable_0 integrable_eq integrable_on_cmult_iff lambda_zero)
         then show "(\<lambda>t. (norm z)\<^sup>2 * t / (r - norm z) * C) integrable_on {0..1}"
-          using integrable_on_cmult_right[where 'b=real, simplified] integrable_on_cdivide [where 'b=real, simplified]
+          using integrable_on_cmult_right[where 'b=real, simplified] integrable_on_divide [where 'b=real, simplified]
           by blast
       qed (simp add: norm_mult power2_eq_square 4)
       then have int_le: "norm (f z - deriv f 0 * z) \<le> (norm z)\<^sup>2 * norm(deriv f 0) / ((r - norm z))"

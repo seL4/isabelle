@@ -712,7 +712,7 @@ proposition homotopic_loops_trans:
 
 proposition homotopic_loops_subset:
    "\<lbrakk>homotopic_loops S p q; S \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_loops t p q"
-  by (fastforce simp add: homotopic_loops)
+  by (fastforce simp: homotopic_loops)
 
 proposition homotopic_loops_eq:
    "\<lbrakk>path p; path_image p \<subseteq> S; pathfinish p = pathstart p; \<And>t. t \<in> {0..1} \<Longrightarrow> p(t) = q(t)\<rbrakk>
@@ -1040,17 +1040,15 @@ proof -
   have "homotopic_paths S (subpath u w g +++ subpath w v g) 
                           ((subpath u v g +++ subpath v w g) +++ subpath w v g)"
     by (simp add: hom homotopic_paths_join homotopic_paths_sym wvg)
-  also have "homotopic_paths S ((subpath u v g +++ subpath v w g) +++ subpath w v g) 
-                               (subpath u v g +++ subpath v w g +++ subpath w v g)"
+  also have "homotopic_paths S \<dots>  (subpath u v g +++ subpath v w g +++ subpath w v g)"
     using wvg vug \<open>path g\<close>
     by (metis homotopic_paths_assoc homotopic_paths_sym path_image_subpath_commute path_subpath
         pathfinish_subpath pathstart_subpath u v w)
-  also have "homotopic_paths S (subpath u v g +++ subpath v w g +++ subpath w v g)
-                               (subpath u v g +++ linepath (pathfinish (subpath u v g)) (pathfinish (subpath u v g)))"
+  also have "homotopic_paths S \<dots> (subpath u v g +++ linepath (pathfinish (subpath u v g)) (pathfinish (subpath u v g)))"
     using wvg vug \<open>path g\<close>
     by (metis homotopic_paths_join homotopic_paths_linv homotopic_paths_refl path_image_subpath_commute
         path_subpath pathfinish_subpath pathstart_join pathstart_subpath reversepath_subpath u v)
-  also have "homotopic_paths S (subpath u v g +++ linepath (pathfinish (subpath u v g)) (pathfinish (subpath u v g))) (subpath u v g)"
+  also have "homotopic_paths S \<dots> (subpath u v g)"
     using vug \<open>path g\<close> by (metis homotopic_paths_rid path_image_subpath_commute path_subpath u v)
   finally have "homotopic_paths S (subpath u w g +++ subpath w v g) (subpath u v g)" .
   then show ?thesis
@@ -1077,11 +1075,11 @@ proof -
 qed
 
 lemma homotopic_loops_imp_path_component_value:
-   "\<lbrakk>homotopic_loops S p q; 0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> path_component S (p t) (q t)"
-apply (clarsimp simp: homotopic_loops_def homotopic_with_def path_defs)
-apply (rule_tac x="h \<circ> (\<lambda>u. (u, t))" in exI)
-apply (fastforce elim!: continuous_on_subset intro!: continuous_intros)
-done
+  "\<lbrakk>homotopic_loops S p q; 0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> path_component S (p t) (q t)"
+  apply (clarsimp simp: homotopic_loops_def homotopic_with_def path_defs)
+  apply (rule_tac x="h \<circ> (\<lambda>u. (u, t))" in exI)
+  apply (fastforce elim!: continuous_on_subset intro!: continuous_intros)
+  done
 
 lemma homotopic_points_eq_path_component:
    "homotopic_loops S (linepath a a) (linepath b b) \<longleftrightarrow> path_component S a b"
@@ -1109,12 +1107,12 @@ lemma simply_connected_empty [iff]: "simply_connected {}"
 lemma simply_connected_imp_path_connected:
   fixes S :: "_::real_normed_vector set"
   shows "simply_connected S \<Longrightarrow> path_connected S"
-by (simp add: simply_connected_def path_connected_eq_homotopic_points)
+  by (simp add: simply_connected_def path_connected_eq_homotopic_points)
 
 lemma simply_connected_imp_connected:
   fixes S :: "_::real_normed_vector set"
   shows "simply_connected S \<Longrightarrow> connected S"
-by (simp add: path_connected_imp_connected simply_connected_imp_path_connected)
+  by (simp add: path_connected_imp_connected simply_connected_imp_path_connected)
 
 lemma simply_connected_eq_contractible_loop_any:
   fixes S :: "_::real_normed_vector set"
@@ -1123,13 +1121,10 @@ lemma simply_connected_eq_contractible_loop_any:
                   \<longrightarrow> homotopic_loops S p (linepath a a))"
         (is "?lhs = ?rhs")
 proof
-  assume ?lhs then show ?rhs
-    unfolding simply_connected_def by force
-next
   assume ?rhs then show ?lhs
     unfolding simply_connected_def
     by (metis pathfinish_in_path_image subsetD  homotopic_loops_trans homotopic_loops_sym)
-qed
+qed (force simp: simply_connected_def)
 
 lemma simply_connected_eq_contractible_loop_some:
   fixes S :: "_::real_normed_vector set"
@@ -1154,15 +1149,7 @@ lemma simply_connected_eq_contractible_loop_all:
          S = {} \<or>
          (\<exists>a \<in> S. \<forall>p. path p \<and> path_image p \<subseteq> S \<and> pathfinish p = pathstart p
                 \<longrightarrow> homotopic_loops S p (linepath a a))"
-        (is "?lhs = ?rhs")
-proof (cases "S = {}")
-  case True then show ?thesis by force
-next
-  case False
-  then obtain a where "a \<in> S" by blast
-  then show ?thesis
-    by (meson False homotopic_loops_sym homotopic_loops_trans simply_connected_def simply_connected_eq_contractible_loop_any)
-qed
+  by (meson ex_in_conv homotopic_loops_sym homotopic_loops_trans simply_connected_def simply_connected_eq_contractible_loop_any)
 
 lemma simply_connected_eq_contractible_path:
   fixes S :: "_::real_normed_vector set"
@@ -1207,14 +1194,12 @@ proof
       using that
       by (smt (verit, best) homotopic_paths_join homotopic_paths_linv homotopic_paths_rid homotopic_paths_sym 
           homotopic_paths_trans pathstart_linepath)
-    also have "homotopic_paths S (p +++ reversepath q +++ q)
-                                 ((p +++ reversepath q) +++ q)"
+    also have "homotopic_paths S \<dots> ((p +++ reversepath q) +++ q)"
       by (simp add: that homotopic_paths_assoc)
-    also have "homotopic_paths S ((p +++ reversepath q) +++ q)
-                                 (linepath (pathstart q) (pathstart q) +++ q)"
+    also have "homotopic_paths S \<dots> (linepath (pathstart q) (pathstart q) +++ q)"
       using * [of "p +++ reversepath q"] that
       by (simp add: homotopic_paths_assoc homotopic_paths_join path_image_join)
-    also have "homotopic_paths S (linepath (pathstart q) (pathstart q) +++ q) q"
+    also have "homotopic_paths S \<dots> q"
       using that homotopic_paths_lid by blast
     finally show ?thesis .
   qed
@@ -1238,7 +1223,7 @@ proof -
     have "path (fst \<circ> p)"
       by (simp add: continuous_on_fst Path_Connected.path_continuous_image [OF \<open>path p\<close>])
     moreover have "path_image (fst \<circ> p) \<subseteq> S"
-      using that by (force simp add: path_image_def)
+      using that by (force simp: path_image_def)
     ultimately have p1: "homotopic_loops S (fst \<circ> p) (linepath a a)"
       using S that
       by (simp add: simply_connected_eq_contractible_loop_any pathfinish_def pathstart_def)
@@ -1291,12 +1276,12 @@ qed
 corollary contractible_imp_connected:
   fixes S :: "_::real_normed_vector set"
   shows "contractible S \<Longrightarrow> connected S"
-by (simp add: contractible_imp_simply_connected simply_connected_imp_connected)
+  by (simp add: contractible_imp_simply_connected simply_connected_imp_connected)
 
 lemma contractible_imp_path_connected:
   fixes S :: "_::real_normed_vector set"
   shows "contractible S \<Longrightarrow> path_connected S"
-by (simp add: contractible_imp_simply_connected simply_connected_imp_path_connected)
+  by (simp add: contractible_imp_simply_connected simply_connected_imp_path_connected)
 
 lemma nullhomotopic_through_contractible:
   fixes S :: "_::topological_space set"
@@ -1351,7 +1336,7 @@ proof -
     with \<open>path_connected U\<close> show ?thesis by blast
   qed
   then have "homotopic_with_canon (\<lambda>h. True) S U (\<lambda>x. c2) (\<lambda>x. c1)"
-    by (auto simp add: path_component homotopic_constant_maps)
+    by (auto simp: path_component homotopic_constant_maps)
   then show ?thesis
     using c1 c2 homotopic_with_symD homotopic_with_trans by blast
 qed
@@ -1419,7 +1404,7 @@ proof -
     using \<open>a \<in> S\<close>
     unfolding homotopic_with_def
     apply (rule_tac x="\<lambda>y. (1 - (fst y)) *\<^sub>R snd y + (fst y) *\<^sub>R a" in exI)
-    apply (force simp add: P intro: continuous_intros)
+    apply (force simp: P intro: continuous_intros)
     done
   then show ?thesis
     using that by blast
@@ -1516,18 +1501,17 @@ definition\<^marker>\<open>tag important\<close> locally :: "('a::topological_sp
 where
  "locally P S \<equiv>
         \<forall>w x. openin (top_of_set S) w \<and> x \<in> w
-              \<longrightarrow> (\<exists>u v. openin (top_of_set S) u \<and> P v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
+              \<longrightarrow> (\<exists>U V. openin (top_of_set S) U \<and> P V \<and> x \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> w)"
 
 lemma locallyI:
   assumes "\<And>w x. \<lbrakk>openin (top_of_set S) w; x \<in> w\<rbrakk>
-                  \<Longrightarrow> \<exists>u v. openin (top_of_set S) u \<and> P v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w"
+                  \<Longrightarrow> \<exists>U V. openin (top_of_set S) U \<and> P V \<and> x \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> w"
     shows "locally P S"
 using assms by (force simp: locally_def)
 
 lemma locallyE:
   assumes "locally P S" "openin (top_of_set S) w" "x \<in> w"
-  obtains u v where "openin (top_of_set S) u"
-                    "P v" "x \<in> u" "u \<subseteq> v" "v \<subseteq> w"
+  obtains U V where "openin (top_of_set S) U" "P V" "x \<in> U" "U \<subseteq> V" "V \<subseteq> w"
   using assms unfolding locally_def by meson
 
 lemma locally_mono:
@@ -1636,28 +1620,26 @@ proof (clarsimp simp: locally_def)
     using \<open>f ` S = T\<close> f \<open>V \<subseteq> S\<close> by auto
   have contvf: "continuous_on V f"
     using \<open>V \<subseteq> S\<close> continuous_on_subset f(3) by blast
-  have "f ` V \<subseteq> W"
-    using uv using Int_lower2 gw image_subsetI mem_Collect_eq subset_iff by auto
-  then have contvg: "continuous_on (f ` V) g"
-    using \<open>W \<subseteq> T\<close> continuous_on_subset [OF g(3)] by blast
-  have "V \<subseteq> g ` f ` V"
-    by (metis \<open>V \<subseteq> S\<close> hom homeomorphism_def homeomorphism_of_subsets order_refl)
-  then have homv: "homeomorphism V (f ` V) f g"
-    using \<open>V \<subseteq> S\<close> f by (auto simp: homeomorphism_def contvf contvg)
   have "openin (top_of_set (g ` T)) U"
     using \<open>g ` T = S\<close> by (simp add: osu)
   then have "openin (top_of_set T) (T \<inter> g -` U)"
     using \<open>continuous_on T g\<close> continuous_on_open [THEN iffD1] by blast
   moreover have "\<exists>V. Q V \<and> y \<in> (T \<inter> g -` U) \<and> (T \<inter> g -` U) \<subseteq> V \<and> V \<subseteq> W"
   proof (intro exI conjI)
+    show "f ` V \<subseteq> W"
+      using uv using Int_lower2 gw image_subsetI mem_Collect_eq subset_iff by auto
+    then have contvg: "continuous_on (f ` V) g"
+      using \<open>W \<subseteq> T\<close> continuous_on_subset [OF g(3)] by blast
+    have "V \<subseteq> g ` f ` V"
+      by (metis \<open>V \<subseteq> S\<close> hom homeomorphism_def homeomorphism_of_subsets order_refl)
+    then have homv: "homeomorphism V (f ` V) f g"
+      using \<open>V \<subseteq> S\<close> f by (auto simp: homeomorphism_def contvf contvg)
     show "Q (f ` V)"
       using Q homv \<open>P V\<close> by blast
     show "y \<in> T \<inter> g -` U"
       using T(2) \<open>y \<in> W\<close> \<open>g y \<in> U\<close> by blast
     show "T \<inter> g -` U \<subseteq> f ` V"
       using g(1) image_iff uv(3) by fastforce
-    show "f ` V \<subseteq> W"
-      using \<open>f ` V \<subseteq> W\<close> by blast
   qed
   ultimately show "\<exists>U. openin (top_of_set T) U \<and> (\<exists>v. Q v \<and> y \<in> U \<and> U \<subseteq> v \<and> v \<subseteq> W)"
     by meson
@@ -1692,8 +1674,7 @@ lemma locally_injective_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "linear f" "inj f" and iff: "\<And>S. P (f ` S) \<longleftrightarrow> Q S"
   shows "locally P (f ` S) \<longleftrightarrow> locally Q S"
-  using homeomorphism_locally [of "f`S" _ _ f] linear_homeomorphism_image [OF f]
-  by (metis (no_types, lifting) homeomorphism_image2 iff)
+  by (smt (verit) f homeomorphism_image2 homeomorphism_locally iff linear_homeomorphism_image)
 
 lemma locally_open_map_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -1782,8 +1763,8 @@ lemma connected_equivalence_relation:
     shows "R a b"
 proof -
   have "\<And>a b c. \<lbrakk>a \<in> S; b \<in> S; c \<in> S; R a b\<rbrakk> \<Longrightarrow> R a c"
-    apply (rule connected_induction_simple [OF \<open>connected S\<close>], simp_all)
-    by (meson local.sym local.trans opI openin_imp_subset subsetCE)
+    by (smt (verit, ccfv_threshold) connected_induction_simple [OF \<open>connected S\<close>] 
+            assms openin_imp_subset subset_eq)
   then show ?thesis by (metis etc opI)
 qed
 
@@ -1833,13 +1814,13 @@ next
               compact v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> S \<inter> T"
           if "open T" "x \<in> S" "x \<in> T" for x T
   proof -
-    obtain u v where uv: "x \<in> u" "u \<subseteq> v" "v \<subseteq> S" "compact v" "openin (top_of_set S) u"
+    obtain U V where uv: "x \<in> U" "U \<subseteq> V" "V \<subseteq> S" "compact V" "openin (top_of_set S) U"
       using r [OF \<open>x \<in> S\<close>] by auto
     obtain e where "e>0" and e: "cball x e \<subseteq> T"
       using open_contains_cball \<open>open T\<close> \<open>x \<in> T\<close> by blast
     show ?thesis
-      apply (rule_tac x="(S \<inter> ball x e) \<inter> u" in exI)
-      apply (rule_tac x="cball x e \<inter> v" in exI)
+      apply (rule_tac x="(S \<inter> ball x e) \<inter> U" in exI)
+      apply (rule_tac x="cball x e \<inter> V" in exI)
       using that \<open>e > 0\<close> e uv
       apply auto
       done
@@ -1860,16 +1841,8 @@ lemma locally_compact_alt:
   shows "locally compact S \<longleftrightarrow>
          (\<forall>x \<in> S. \<exists>U. x \<in> U \<and>
                     openin (top_of_set S) U \<and> compact(closure U) \<and> closure U \<subseteq> S)"
-        (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs
-    by (meson bounded_subset closure_minimal compact_closure compact_imp_bounded 
-              compact_imp_closed dual_order.trans locally_compactE)
-next
-  assume ?rhs then show ?lhs
-    by (meson closure_subset locally_compact)
-qed
+  by (smt (verit, ccfv_threshold) bounded_subset closure_closed closure_mono closure_subset 
+      compact_closure compact_imp_closed order.trans locally_compact)
 
 lemma locally_compact_Int_cball:
   fixes S :: "'a :: heine_borel set"
@@ -2008,8 +1981,9 @@ proof
   then show ?rhs
     unfolding locally_def
     apply (elim all_forward imp_forward asm_rl exE)
-    apply (rule_tac x = "u \<inter> ball x 1" in exI)
-    apply (rule_tac x = "v \<inter> cball x 1" in exI)
+    apply (rename_tac U V)
+    apply (rule_tac x = "U \<inter> ball x 1" in exI)
+    apply (rule_tac x = "V \<inter> cball x 1" in exI)
     apply (force intro: openin_trans)
     done
 next
@@ -2019,7 +1993,7 @@ qed
 
 lemma locally_compact_openin_Un:
   fixes S :: "'a::euclidean_space set"
-  assumes LCS: "locally compact S" and LCT:"locally compact T"
+  assumes LCS: "locally compact S" and LCT: "locally compact T"
       and opS: "openin (top_of_set (S \<union> T)) S"
       and opT: "openin (top_of_set (S \<union> T)) T"
     shows "locally compact (S \<union> T)"
@@ -2453,7 +2427,7 @@ lemma locally_path_connected_1:
     "\<And>v x. \<lbrakk>openin (top_of_set S) v; x \<in> v\<rbrakk>
               \<Longrightarrow> \<exists>u. openin (top_of_set S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
    shows "locally path_connected S"
-  by (force simp add: locally_def dest: assms)
+  by (force simp: locally_def dest: assms)
 
 lemma locally_path_connected_2:
   assumes "locally path_connected S"
@@ -2525,7 +2499,7 @@ proposition locally_connected_im_kleinen:
 proof
   assume ?lhs
   then show ?rhs
-    by (fastforce simp add: locally_connected)
+    by (fastforce simp: locally_connected)
 next
   assume ?rhs
   have *: "\<exists>T. openin (top_of_set S) T \<and> x \<in> T \<and> T \<subseteq> c"
@@ -3577,7 +3551,7 @@ proof -
   show thesis
     using homotopic_with_compose_continuous_map_right
            [OF homotopic_with_compose_continuous_map_left [OF b g] f]
-    by (force simp add: that)
+    by (force simp: that)
 qed
 
 lemma nullhomotopic_into_contractible_space:
@@ -3901,7 +3875,7 @@ proof -
     by (rule homotopic_with_compose_continuous_left [where Y=T])
        (use f in \<open>auto simp: hom homotopic_with_symD\<close>)
   ultimately show ?thesis
-    using that homotopic_with_trans by (fastforce simp add: o_def)
+    using that homotopic_with_trans by (fastforce simp: o_def)
 qed
 
 lemma homotopy_eqv_cohomotopic_triviality_null:
@@ -3942,7 +3916,7 @@ proof -
     by (rule homotopic_with_compose_continuous_right [where X=T])
        (use f in \<open>auto simp: hom homotopic_with_symD\<close>)
   ultimately show ?thesis
-    using homotopic_with_trans by (fastforce simp add: o_def)
+    using homotopic_with_trans by (fastforce simp: o_def)
 qed
 
 lemma homotopy_eqv_homotopic_triviality_null:
@@ -5002,7 +4976,7 @@ proof (cases "2 \<le> DIM('a)")
       using \<gamma> by (auto simp: pairwise_def bij_betw_def inj_on_def)
   qed (use affine_hull_open assms that in auto)
   then show ?thesis
-    using \<gamma> \<open>P \<subseteq> U\<close> bij_betwE by (fastforce simp add: intro!: that)
+    using \<gamma> \<open>P \<subseteq> U\<close> bij_betwE by (fastforce simp: intro!: that)
 next
   case False
   with DIM_positive have "DIM('a) = 1"
@@ -5089,7 +5063,7 @@ proof (cases "2 \<le> aff_dim S")
       using \<gamma> by (auto simp: pairwise_def bij_betw_def inj_on_def)
   qed
   then show ?thesis
-    using \<gamma> \<open>P \<subseteq> U\<close> bij_betwE by (fastforce simp add: intro!: that)
+    using \<gamma> \<open>P \<subseteq> U\<close> bij_betwE by (fastforce simp: intro!: that)
 next
   case False
   with aff_dim_geq [of S] consider "aff_dim S = -1" | "aff_dim S = 0" | "aff_dim S = 1" by linarith
@@ -5173,9 +5147,9 @@ next
             using \<open>T \<subseteq> affine hull S\<close> h by auto
         qed
         show "\<And>x. x \<in> T \<Longrightarrow> g' (f' x) = x"
-          using h j hom homeomorphism_apply1 by (fastforce simp add: f'_def g'_def)
+          using h j hom homeomorphism_apply1 by (fastforce simp: f'_def g'_def)
         show "\<And>y. y \<in> T \<Longrightarrow> f' (g' y) = y"
-          using h j hom homeomorphism_apply2 by (fastforce simp add: f'_def g'_def)
+          using h j hom homeomorphism_apply2 by (fastforce simp: f'_def g'_def)
       qed
     next
       have \<section>: "\<And>x y. \<lbrakk>x \<in> affine hull S; h x = h y; y \<in> S\<rbrakk> \<Longrightarrow> x \<in> S"
@@ -5241,7 +5215,7 @@ proof (clarsimp simp: continuous_on_eq_continuous_within Ball_def)
            and d: "\<And>x'. \<lbrakk>dist x' a \<le> r; x' \<noteq> a; dist x' x < d\<rbrakk> \<Longrightarrow>
                                  dist (g x') (g x) < e"
           using contg False x \<open>e>0\<close>
-          unfolding continuous_on_iff by (fastforce simp add: dist_commute intro: that)
+          unfolding continuous_on_iff by (fastforce simp: dist_commute intro: that)
         show ?thesis
           using \<open>d > 0\<close> \<open>x \<noteq> a\<close>
           by (rule_tac x="min d (norm(x - a))" in exI)
@@ -5287,7 +5261,7 @@ next
   next
     assume ?rhs
     then show ?lhs
-      using equal continuous_on_const by (force simp add: homotopic_with)
+      using equal continuous_on_const by (force simp: homotopic_with)
   qed
 next
   case greater

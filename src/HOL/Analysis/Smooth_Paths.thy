@@ -16,11 +16,8 @@ lemma path_connected_arc_complement:
 proof -
   have "path_image \<gamma> homeomorphic {0..1::real}"
     by (simp add: assms homeomorphic_arc_image_interval)
-  then
-  show ?thesis
-    apply (rule path_connected_complement_homeomorphic_convex_compact)
-      apply (auto simp: assms)
-    done
+  then show ?thesis
+    by (intro path_connected_complement_homeomorphic_convex_compact) (auto simp: assms)
 qed
 
 lemma connected_arc_complement:
@@ -39,15 +36,11 @@ proof (cases "DIM('a) = 1")
     using assms connected_arc_image connected_convex_1_gen inside_convex by blast
 next
   case False
+  then have "connected (- path_image \<gamma>)"
+      by (metis DIM_ge_Suc0 One_nat_def Suc_1 antisym assms connected_arc_complement not_less_eq_eq)
+    then
   show ?thesis
-  proof (rule inside_bounded_complement_connected_empty)
-    show "connected (- path_image \<gamma>)"
-      apply (rule connected_arc_complement [OF assms])
-      using False
-      by (metis DIM_ge_Suc0 One_nat_def Suc_1 not_less_eq_eq order_class.order.antisym)
-    show "bounded (path_image \<gamma>)"
-      by (simp add: assms bounded_arc_image)
-  qed
+    by (simp add: assms bounded_arc_image inside_bounded_complement_connected_empty)
 qed
 
 lemma inside_simple_curve_imp_closed:
@@ -59,18 +52,18 @@ lemma inside_simple_curve_imp_closed:
 subsection \<open>Piecewise differentiability of paths\<close>
 
 lemma continuous_on_joinpaths_D1:
-    "continuous_on {0..1} (g1 +++ g2) \<Longrightarrow> continuous_on {0..1} g1"
-  apply (rule continuous_on_eq [of _ "(g1 +++ g2) \<circ> ((*)(inverse 2))"])
-  apply (rule continuous_intros | simp)+
-  apply (auto elim!: continuous_on_subset simp: joinpaths_def)
-  done
+  assumes "continuous_on {0..1} (g1 +++ g2)"
+  shows "continuous_on {0..1} g1"
+proof (rule continuous_on_eq)
+  have "continuous_on {0..1/2} (g1 +++ g2)"
+    using assms continuous_on_subset split_01 by auto
+  then show "continuous_on {0..1} (g1 +++ g2 \<circ> (*) (inverse 2))"
+    by (intro continuous_intros) force
+qed (auto simp: joinpaths_def)
 
 lemma continuous_on_joinpaths_D2:
     "\<lbrakk>continuous_on {0..1} (g1 +++ g2); pathfinish g1 = pathstart g2\<rbrakk> \<Longrightarrow> continuous_on {0..1} g2"
-  apply (rule continuous_on_eq [of _ "(g1 +++ g2) \<circ> (\<lambda>x. inverse 2*x + 1/2)"])
-  apply (rule continuous_intros | simp)+
-  apply (auto elim!: continuous_on_subset simp add: joinpaths_def pathfinish_def pathstart_def Ball_def)
-  done
+  using path_def path_join by blast
 
 lemma piecewise_differentiable_D1:
   assumes "(g1 +++ g2) piecewise_differentiable_on {0..1}"
@@ -145,8 +138,8 @@ proof -
   proof (rule differentiable_transform_within)
     show "g1 +++ g2 \<circ> (*) (inverse 2) differentiable at x"
       using that g12D
-      apply (simp only: joinpaths_def)
-      by (rule differentiable_chain_at derivative_intros | force)+
+      unfolding joinpaths_def
+      by (intro differentiable_chain_at derivative_intros | force)+
     show "\<And>x'. \<lbrakk>dist x' x < dist (x/2) (1/2)\<rbrakk>
           \<Longrightarrow> (g1 +++ g2 \<circ> (*) (inverse 2)) x' = g1 x'"
       using that by (auto simp: dist_real_def joinpaths_def)
@@ -173,10 +166,9 @@ proof -
   qed
   have "continuous_on ({0..1} - insert 1 ((*) 2 ` S))
                       ((\<lambda>x. 1/2 * vector_derivative (g1 \<circ> (*)2) (at x)) \<circ> (*)(1/2))"
-    apply (rule continuous_intros)+
     using coDhalf
-    apply (simp add: scaleR_conv_of_real image_set_diff image_image)
-    done
+    apply (intro continuous_intros)
+    by (simp add: scaleR_conv_of_real image_set_diff image_image)
   then have con_g1: "continuous_on ({0..1} - insert 1 ((*) 2 ` S)) (\<lambda>x. vector_derivative g1 (at x))"
     by (rule continuous_on_eq) (simp add: scaleR_conv_of_real)
   have "continuous_on {0..1} g1"
@@ -201,7 +193,7 @@ proof -
   proof (rule differentiable_transform_within)
     show "g1 +++ g2 \<circ> (\<lambda>x. (x + 1) / 2) differentiable at x"
       using g12D that
-      apply (simp only: joinpaths_def)
+      unfolding joinpaths_def
       apply (drule_tac x= "(x+1) / 2" in bspec, force simp: field_split_simps)
       apply (rule differentiable_chain_at derivative_intros | force)+
       done
@@ -238,10 +230,7 @@ proof -
   have "continuous_on {0..1} g2"
     using continuous_on_joinpaths_D2 assms piecewise_C1_differentiable_on_def by blast
   with \<open>finite S\<close> show ?thesis
-    apply (clarsimp simp add: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
-    apply (rule_tac x="insert 0 ((\<lambda>x. 2 * x - 1) ` S)" in exI)
-    apply (simp add: g2D con_g2)
-  done
+    by (meson C1_differentiable_on_eq con_g2 finite_imageI finite_insert g2D piecewise_C1_differentiable_on_def)
 qed
 
 
@@ -305,12 +294,8 @@ proof -
     next
       show "vector_derivative g (at t) * deriv f (g t) = vector_derivative (f \<circ> g) (at t)"
           when "t \<in> {0..1} - S" for t
-        proof (rule vector_derivative_chain_at_general[symmetric])
-          show "g differentiable at t" by (meson C1_differentiable_on_eq g_diff that)
-        next
-          have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
-          then show "f field_differentiable at (g t)" using der by auto
-        qed
+        by (metis C1_differentiable_on_eq DiffD1 der g_diff imageI path_image_def that 
+                  vector_derivative_chain_at_general)
     qed
   ultimately have "f \<circ> g C1_differentiable_on {0..1} - S"
     using C1_differentiable_on_eq by blast
@@ -379,10 +364,8 @@ proof -
     by (auto intro!: continuous_intros finite_vimageI [where h = "(\<lambda>x. 2*x - 1)"] inj_onI
              simp: image_affinity_atLeastAtMost_diff continuous_on_joinpaths)
   ultimately show ?thesis
-    apply (simp only: valid_path_def continuous_on_joinpaths joinpaths_def)
-    apply (rule piecewise_C1_differentiable_cases)
-    apply (auto simp: o_def)
-    done
+    unfolding valid_path_def continuous_on_joinpaths joinpaths_def
+    by (intro piecewise_C1_differentiable_cases) (auto simp: o_def)
 qed
 
 lemma valid_path_join_D1:
@@ -406,31 +389,24 @@ lemma valid_path_shiftpath [intro]:
   assumes "valid_path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
     shows "valid_path(shiftpath a g)"
   using assms
-  apply (auto simp: valid_path_def shiftpath_alt_def)
-  apply (rule piecewise_C1_differentiable_cases)
-  apply (auto simp: algebra_simps)
-  apply (rule piecewise_C1_differentiable_affine [of g 1 a, simplified o_def scaleR_one])
-  apply (auto simp: pathfinish_def pathstart_def elim: piecewise_C1_differentiable_on_subset)
-  apply (rule piecewise_C1_differentiable_affine [of g 1 "a-1", simplified o_def scaleR_one algebra_simps])
-  apply (auto simp: pathfinish_def pathstart_def elim: piecewise_C1_differentiable_on_subset)
+  unfolding valid_path_def shiftpath_alt_def
+  apply (intro piecewise_C1_differentiable_cases)
+      apply (simp_all add: add.commute)
+    apply (rule piecewise_C1_differentiable_affine [of g 1 a, simplified o_def scaleR_one])
+    apply (force simp: pathfinish_def pathstart_def elim: piecewise_C1_differentiable_on_subset)
+   apply (rule piecewise_C1_differentiable_affine [of g 1 "a-1", simplified o_def scaleR_one algebra_simps])
+   apply (auto simp: pathfinish_def pathstart_def elim: piecewise_C1_differentiable_on_subset)
   done
 
 lemma vector_derivative_linepath_within:
     "x \<in> {0..1} \<Longrightarrow> vector_derivative (linepath a b) (at x within {0..1}) = b - a"
-  apply (rule vector_derivative_within_cbox [of 0 "1::real", simplified])
-  apply (auto simp: has_vector_derivative_linepath_within)
-  done
+  by (simp add: has_vector_derivative_linepath_within vector_derivative_at_within_ivl)
 
 lemma vector_derivative_linepath_at [simp]: "vector_derivative (linepath a b) (at x) = b - a"
   by (simp add: has_vector_derivative_linepath_within vector_derivative_at)
 
 lemma valid_path_linepath [iff]: "valid_path (linepath a b)"
-  apply (simp add: valid_path_def piecewise_C1_differentiable_on_def C1_differentiable_on_eq continuous_on_linepath)
-  apply (rule_tac x="{}" in exI)
-  apply (simp add: differentiable_on_def differentiable_def)
-  using has_vector_derivative_def has_vector_derivative_linepath_within
-  apply (fastforce simp add: continuous_on_eq_continuous_within)
-  done
+  using C1_differentiable_on_eq piecewise_C1_differentiable_on_def valid_path_def by fastforce
 
 lemma valid_path_subpath:
   fixes g :: "real \<Rightarrow> 'a :: real_normed_vector"
@@ -443,15 +419,19 @@ proof (cases "v=u")
     by (force intro: C1_differentiable_on_const C1_differentiable_imp_piecewise)
 next
   case False
-  have "(g \<circ> (\<lambda>x. ((v-u) * x + u))) piecewise_C1_differentiable_on {0..1}"
-    apply (rule piecewise_C1_differentiable_compose)
-    apply (simp add: C1_differentiable_imp_piecewise)
-     apply (simp add: image_affinity_atLeastAtMost)
-    using assms False
-    apply (auto simp: algebra_simps valid_path_def piecewise_C1_differentiable_on_subset)
-    apply (subst Int_commute)
-    apply (auto simp: inj_on_def algebra_simps crossproduct_eq finite_vimage_IntI)
-    done
+  let ?f = "\<lambda>x. ((v-u) * x + u)"
+  have "(g \<circ> ?f) piecewise_C1_differentiable_on {0..1}"
+  proof (rule piecewise_C1_differentiable_compose)
+    show "?f piecewise_C1_differentiable_on {0..1}"
+      by (simp add: C1_differentiable_imp_piecewise)
+    have "g piecewise_C1_differentiable_on (if u \<le> v then {u..v} else {v..u})"
+      using assms piecewise_C1_differentiable_on_subset valid_path_def by force
+    then show "g piecewise_C1_differentiable_on ?f ` {0..1}"
+      by (simp add: image_affinity_atLeastAtMost split: if_split_asm)
+    show "\<And>x. finite ({0..1} \<inter> ?f -` {x})"
+      using False
+      by (simp add: Int_commute [of "{0..1}"] inj_on_def crossproduct_eq finite_vimage_IntI)
+  qed
   then show ?thesis
     by (auto simp: o_def valid_path_def subpath_def)
 qed

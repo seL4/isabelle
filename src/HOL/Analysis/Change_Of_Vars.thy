@@ -48,10 +48,8 @@ proof -
       by (metis \<open>m \<noteq> n\<close> axis_index_axis eq_iff_diff_eq_0 negligible_hyperplane)
     moreover have "(cbox a ?c \<inter> {x. ?mn \<bullet> x \<le> a $ m} \<inter> (cbox a ?c \<inter> {x. ?mn \<bullet> x \<ge> b$m})) \<subseteq> {x. ?mn \<bullet> x = b$m}"
       using \<open>m \<noteq> n\<close> ab_ne
-      apply (auto simp: algebra_simps mem_box_cart inner_axis')
-      apply (drule_tac x=m in spec)+
-      apply simp
-      done
+      apply (clarsimp simp: algebra_simps mem_box_cart inner_axis')
+      by (smt (verit, ccfv_SIG) interval_ne_empty_cart(1))
     ultimately show "negligible (cbox a ?c \<inter> {x. ?mn \<bullet> x \<le> a $ m} \<inter> (cbox a ?c \<inter> {x. ?mn \<bullet> x \<ge> b$m}))"
       by (rule negligible_subset)
     show "?f ` cbox a b \<union> cbox a ?c \<inter> {x. ?mn \<bullet> x \<le> a $ m} \<union> cbox a ?c \<inter> {x. ?mn \<bullet> x \<ge> b$m} = cbox a ?c" (is "?lhs = _")
@@ -59,9 +57,8 @@ proof -
       show "?lhs \<subseteq> cbox a ?c"
         by (auto simp: mem_box_cart add_mono) (meson add_increasing2 an order_trans)
       show "cbox a ?c \<subseteq> ?lhs"
-        apply (auto simp: algebra_simps image_iff inner_axis' lambda_add_Galois [OF \<open>m \<noteq> n\<close>])
-        apply (auto simp: mem_box_cart split: if_split_asm)
-        done
+        apply (clarsimp simp: algebra_simps image_iff inner_axis' lambda_add_Galois [OF \<open>m \<noteq> n\<close>])
+        by (smt (verit, del_insts) mem_box_cart(2) vec_lambda_beta)
     qed
   qed (fact fab)
   let ?d = "\<chi> i. if i = m then a $ m - b $ m else 0"
@@ -106,17 +103,15 @@ proof -
       by (rule negligible_subset)
   qed
   have ac_ne: "cbox a ?c \<noteq> {}"
-    using ab_ne an
-    by (clarsimp simp: interval_eq_empty_cart) (meson add_less_same_cancel1 le_less_linear less_le_trans)
+    by (smt (verit, del_insts) ab_ne an interval_ne_empty_cart(1) vec_lambda_beta)
   have ax_ne: "cbox a (\<chi> i. if i = m then a $ m + b $ n else b $ i) \<noteq> {}"
     using ab_ne an
-    by (clarsimp simp: interval_eq_empty_cart) (meson add_less_same_cancel1 le_less_linear less_le_trans)
+    by (smt (verit, ccfv_threshold) interval_ne_empty_cart(1) vec_lambda_beta)
   have eq3: "measure lebesgue (cbox a ?c) = measure lebesgue (cbox a (\<chi> i. if i = m then a$m + b$n else b$i)) + measure lebesgue (cbox a b)"
     by (simp add: content_cbox_if_cart ab_ne ac_ne ax_ne algebra_simps prod.delta_remove
              if_distrib [of "\<lambda>u. u - z" for z] prod.remove)
   show ?Q
-    using eq1 eq2 eq3
-    by (simp add: algebra_simps)
+    using eq1 eq2 eq3 by (simp add: algebra_simps)
 qed
 
 
@@ -214,10 +209,8 @@ proof -
       by auto
     have nfS: "negligible (?f ` S)"
       by (rule negligible_subset [OF negligible_standard_hyperplane_cart]) (use \<open>m k = 0\<close> in auto)
-    then have "(?f ` S) \<in> lmeasurable"
-      by (simp add: negligible_iff_measure)
-    with nfS show ?thesis
-      by (simp add: prm negligible_iff_measure0)
+    then show ?thesis
+      by (simp add: negligible_iff_measure prm)
   qed
   then show "(?f ` S) \<in> lmeasurable" ?MEQ
     by metis+
@@ -297,10 +290,7 @@ proof -
     then have 1: "\<bar>det (matrix ?h)\<bar> = 1"
       by (simp add: det_permute_columns permutes_swap_id sign_swap_id abs_mult)
     show "?h ` S \<in> lmeasurable \<and> ?Q ?h S"
-    proof
-      show "?h ` S \<in> lmeasurable" "?Q ?h S"
-        using measure_linear_sufficient [OF lin \<open>S \<in> lmeasurable\<close>] meq 1 by force+
-    qed
+      using measure_linear_sufficient [OF lin \<open>S \<in> lmeasurable\<close>] meq 1 by force
   next
     fix m n :: "'n" and S :: "(real, 'n) vec set"
     assume "m \<noteq> n" and "S \<in> lmeasurable"
@@ -355,7 +345,7 @@ proof -
         by (rule ssubst) (rule measure_translation)
       also have "\<dots> = measure lebesgue ((\<lambda>v. \<chi> i. if i = m then v $ m + v $ n else v $ i) ` cbox (?v +a) (?v + b))"
         by (metis (no_types, lifting) cbox_translation)
-      also have "\<dots> = measure lebesgue ((+) (\<chi> i. if i = n then - a $ n else 0) ` cbox a b)"
+      also have "\<dots> = measure lebesgue ((+) ?v ` cbox a b)"
         apply (subst measure_shear_interval)
         using \<open>m \<noteq> n\<close> ne apply auto
         apply (simp add: cbox_translation)
@@ -617,9 +607,7 @@ proof -
           have inj: "inj_on (\<lambda>(x, y). ball x y) K"
             by (force simp: inj_on_def ball_eq_ball_iff dest: gt0)
           have disjnt: "disjoint ((\<lambda>(x, y). ball x y) ` K)"
-            using pwC that
-            apply (clarsimp simp: pairwise_def case_prod_unfold ball_eq_ball_iff)
-            by (metis subsetD fst_conv snd_conv)
+            using pwC that pairwise_image pairwise_mono by fastforce
           have "?l \<le> (\<Sum>i\<in>K. ?\<mu> (case i of (x, s) \<Rightarrow> f ` (S \<inter> ball x s)))"
           proof (rule measure_UNION_le [OF \<open>finite K\<close>], clarify)
             fix x r
@@ -630,8 +618,7 @@ proof -
               by (meson Int_lower1 S differentiable_on_subset f_diff fmeasurableD lmeasurable_ball order_refl sets.Int differentiable_image_in_sets_lebesgue)
           qed
           also have "\<dots> \<le> (\<Sum>(x,s) \<in> K. (B + e) * ?\<mu> (ball x s))"
-            apply (rule sum_mono)
-            using Csub r \<open>K \<subseteq> C\<close> by auto
+            using Csub r \<open>K \<subseteq> C\<close>  by (intro sum_mono) auto
           also have "\<dots> = (B + e) * (\<Sum>(x,s) \<in> K. ?\<mu> (ball x s))"
             by (simp add: prod.case_distrib sum_distrib_left)
           also have "\<dots> = (B + e) * sum ?\<mu> ((\<lambda>(x, y). ball x y) ` K)"
@@ -641,8 +628,8 @@ proof -
             by (subst measure_Union') (auto simp: disjnt measure_Union')
           also have "\<dots> \<le> (B + e) * ?\<mu> T"
             using \<open>B \<ge> 0\<close> \<open>e > 0\<close> that apply simp
-            apply (rule measure_mono_fmeasurable [OF _ _ \<open>T \<in> lmeasurable\<close>])
-            using Csub rT by force+
+            using measure_mono_fmeasurable [OF _ _ \<open>T \<in> lmeasurable\<close>] Csub rT
+            by (smt (verit) SUP_least measure_nonneg measure_notin_sets mem_Collect_eq old.prod.case subset_iff)
           also have "\<dots> \<le> (B + e) * (?\<mu> S + d)"
             using \<open>B \<ge> 0\<close> \<open>e > 0\<close> Tless by simp
           finally show ?thesis .
@@ -732,10 +719,8 @@ proof -
       using set_integrable_subset [OF aint_S] meas_t T_def by blast
     have Seq: "S = (\<Union>n. T n)"
       apply (auto simp: T_def)
-      apply (rule_tac x="nat(floor(abs(det(matrix(f' x))) / e))" in exI)
-      using that apply auto
-      using of_int_floor_le pos_le_divide_eq apply blast
-      by (metis add.commute pos_divide_less_eq real_of_int_floor_add_one_gt)
+      apply (rule_tac x = "nat \<lfloor>\<bar>det (matrix (f' x))\<bar> / e\<rfloor>" in exI)
+      by (smt (verit, del_insts) divide_nonneg_nonneg floor_eq_iff of_nat_nat pos_divide_less_eq that zero_le_floor)
     have meas_ft: "f ` T n \<in> lmeasurable" for n
     proof (rule measurable_bounded_differentiable_image)
       show "T n \<in> lmeasurable"
@@ -779,8 +764,8 @@ proof -
         case (less m n)
         have False if "T n \<subseteq> T m" "x \<in> T n" for x
           using \<open>e > 0\<close> \<open>m < n\<close> that
-          apply (auto simp: T_def  mult.commute intro: less_le_trans dest!: subsetD)
-          by (metis add.commute less_le_trans nat_less_real_le not_le mult_le_cancel_iff2)
+          apply (auto simp: T_def mult.commute intro: less_le_trans dest!: subsetD)
+          by (smt (verit, best) mult_less_cancel_left_disj nat_less_real_le)
         then show ?case
           using less.prems by blast
       qed auto
@@ -839,10 +824,10 @@ proof -
           unfolding m_def
         proof (rule integral_subset_le)
           have "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on (\<Union>k\<le>n. T k)"
-            apply (rule set_integrable_subset [OF aint_S])
-             apply (intro measurable meas_t fmeasurableD)
-            apply (force simp: Seq)
-            done
+          proof (rule set_integrable_subset [OF aint_S])
+            show "\<Union> (T ` {..n}) \<in> sets lebesgue"
+              by (intro measurable meas_t fmeasurableD)
+          qed (force simp: Seq)
           then show "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on (\<Union>k\<le>n. T k)"
             using absolutely_integrable_on_def by blast
         qed (use Seq int in auto)
@@ -905,9 +890,9 @@ proof -
   let ?I = "\<lambda>n::nat. cbox (vec (-n)) (vec n) \<inter> S"
   let ?\<mu> = "measure lebesgue"
   have "x \<in> cbox (vec (- real (nat \<lceil>norm x\<rceil>))) (vec (real (nat \<lceil>norm x\<rceil>)))" for x :: "real^'n::_"
-    apply (auto simp: mem_box_cart)
-    apply (metis abs_le_iff component_le_norm_cart minus_le_iff of_nat_ceiling order.trans)
-    by (meson abs_le_D1 norm_bound_component_le_cart real_nat_ceiling_ge)
+    apply (simp add: mem_box_cart)
+    by (smt (verit, best) Finite_Cartesian_Product.norm_nth_le nat_ceiling_le_eq 
+        real_nat_ceiling_ge real_norm_def)
   then have Seq: "S = (\<Union>n. ?I n)"
     by auto
   have fIn: "f ` ?I n \<in> lmeasurable"
@@ -918,14 +903,7 @@ proof -
     moreover have "\<And>x. x \<in> ?I n \<Longrightarrow> (f has_derivative f' x) (at x within ?I n)"
       by (meson Int_iff deriv has_derivative_subset subsetI)
     moreover have int_In: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on ?I n"
-    proof -
-      have "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on S"
-        using int absolutely_integrable_integrable_bound by force
-      then have "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on ?I n"
-        by (metis (no_types) Int_lower1 In fmeasurableD inf_commute set_integrable_subset)
-      then show ?thesis
-        using absolutely_integrable_on_def by blast
-    qed
+      by (metis (mono_tags) Int_commute int integrable_altD(1) integrable_restrict_Int)
     ultimately have "f ` ?I n \<in> lmeasurable" "?\<mu> (f ` ?I n) \<le> integral (?I n) (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
       using m_diff_image_weak by metis+
     moreover have "integral (?I n) (\<lambda>x. \<bar>det (matrix (f' x))\<bar>) \<le> integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
@@ -972,14 +950,16 @@ proof
     proof -
       have g: "g n x \<le> g (N + n) x" for N
         by (rule transitive_stepwise_le) (use inc_g in auto)
-      have "\<exists>na\<ge>N. g n x - f x \<le> dist (g na x) (f x)" for N
-        apply (rule_tac x="N+n" in exI)
-        using g [of N] by (auto simp: dist_norm)
+      have "\<exists>m\<ge>N. g n x - f x \<le> dist (g m x) (f x)" for N
+      proof
+        show "N \<le> N + n \<and> g n x - f x \<le> dist (g (N + n) x) (f x)"
+          using g [of N] by (auto simp: dist_norm)
+      qed
       with that show ?thesis
         using diff_gt_0_iff_gt by blast
     qed
     with lim show ?thesis
-      apply (auto simp: lim_sequentially)
+      unfolding lim_sequentially
       by (meson less_le_not_le not_le_imp_less)
   qed
   moreover
@@ -993,10 +973,8 @@ proof
       fix k::real
       assume "k \<in> \<int>" and k: "\<bar>k\<bar> \<le> 2 ^ (2*n)"
       show "0 \<le> k/2^n * ?\<Omega> n k x"
-        using f \<open>k \<in> \<int>\<close> apply (auto simp: indicator_def field_split_simps Ints_def)
-        apply (drule spec [where x=x])
-        using zero_le_power [of "2::real" n] mult_nonneg_nonneg [of "f x" "2^n"]
-        by linarith
+        using f \<open>k \<in> \<int>\<close> apply (clarsimp simp: indicator_def field_split_simps Ints_def)
+        by (smt (verit) int_less_real_le mult_nonneg_nonneg of_int_0 zero_le_power)
     qed
     show "?g n x \<le> ?g (Suc n) x" for n x
     proof -
@@ -1049,19 +1027,12 @@ proof
             show "finite {k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)}"
               by (rule finite_abs_int_segment)
             show "(*) 2 ` {k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2^(2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2^(2*n)} \<subseteq> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)}"
-              apply auto
+              apply (clarsimp simp: image_subset_iff)
               using one_le_power [of "2::real" "2*n"]  by linarith
             have *: "\<lbrakk>x \<in> (S \<union> T) - U; \<And>x. x \<in> S \<Longrightarrow> x \<in> U; \<And>x. x \<in> T \<Longrightarrow> x \<in> U\<rbrakk> \<Longrightarrow> P x" for S T U P
               by blast
             have "0 \<le> b" if "b \<in> \<int>" "f x * (2 * 2^n) < b + 1" for b
-            proof -
-              have "0 \<le> f x * (2 * 2^n)"
-                by (simp add: f)
-              also have "\<dots> < b+1"
-                by (simp add: that)
-              finally show "0 \<le> b"
-                using \<open>b \<in> \<int>\<close> by (auto simp: elim!: Ints_cases)
-            qed
+              by (smt (verit, ccfv_SIG) Ints_cases f int_le_real_less mult_nonneg_nonneg of_int_add one_le_power that)
             then show "0 \<le> b/2 ^ Suc n * indicator {y. b/2 ^ Suc n \<le> f y \<and> f y < (b + 1)/2 ^ Suc n} x"
                   if "b \<in> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)} -
                           ((*) 2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)})" for b
@@ -1125,10 +1096,8 @@ proof
           using N2 by (simp add: divide_simps mult.commute) linarith
         also have "\<dots> \<le> \<bar>2^n\<bar> * e"
           using that \<open>e > 0\<close> by auto
-        finally have "dist (?m/2^n) (f x) < e"
-          by (simp add: dist_norm)
-        then show ?thesis
-          using eq by linarith
+        finally show ?thesis
+          using eq by (simp add: dist_real_def)
       qed
       then show "\<exists>no. \<forall>n\<ge>no. dist (\<Sum>k | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n). k * ?\<Omega> n k x/2^n) (f x) < e"
         by force
@@ -1213,9 +1182,7 @@ proof -
   ultimately have dim: "dim {x. f x = 0} = DIM('a)"
     by force
   then show ?thesis
-    using dim_eq_full
-    by (metis (mono_tags, lifting) eq_0_on_span eucl.span_Basis linear_axioms linear_eq_stdbasis
-        mem_Collect_eq module_hom_zero span_base span_raw_def)
+    by (metis (mono_tags, lifting) dim_eq_full UNIV_I eq_0_on_span mem_Collect_eq span_raw_def)
 qed
 
 lemma lemma_partial_derivatives:
@@ -1368,8 +1335,7 @@ proof -
             next
               case False
               have "\<bar>v \<bullet> (y - x)\<bar> < norm v * e / 2 / real (CARD('m) ^ CARD('m)) * norm (x - y)"
-                apply (rule dless)
-                using False \<open>y \<in> S\<close> d by (auto simp: norm_minus_commute)
+                by (metis Diff_iff False \<open>y \<in> S\<close> d dless empty_iff insert_iff norm_minus_commute)
               also have "\<dots> \<le> norm v * e * min d r / (2 * real CARD('m) ^ CARD('m))"
                 using d r \<open>e > 0\<close> by (simp add: field_simps norm_minus_commute mult_left_mono)
               finally show ?thesis .
@@ -1500,8 +1466,7 @@ proof -
             also have "\<dots> = UNIV"
             proof -
               have "dim ?CA \<le> CARD('m)"
-                using dim_subset_UNIV[of ?CA]
-                by auto
+                using dim_subset_UNIV[of ?CA] by auto
               moreover have "False" if less: "dim ?CA < CARD('m)"
               proof -
                 obtain d where "d \<noteq> 0" and d: "\<And>y. y \<in> span ?CA \<Longrightarrow> orthogonal d y"
@@ -1570,7 +1535,7 @@ proof -
                 proof (rule eventuallyI)
                   fix n
                   show "0 \<le> \<bar>d \<bullet> ((\<gamma> n - x) /\<^sub>R norm (\<gamma> n - x))\<bar> - \<xi>"
-                  using \<gamma>le [of n] \<gamma>Sx by (auto simp: abs_mult divide_simps)
+                    using \<gamma>le [of n] \<gamma>Sx by (auto simp: abs_mult divide_simps)
                 qed
                 ultimately have "\<xi> \<le> \<bar>d \<bullet> z\<bar>"
                   using tendsto_lowerbound [where a=0] by fastforce
@@ -1599,8 +1564,7 @@ proof -
                       also have "\<dots> \<le> 1/(Suc j) * norm (\<gamma> p - x) + 1/(Suc i) * norm (\<gamma> p - x)"
                         by (metis A Diff_iff \<gamma>Sx dist_norm p add_mono)
                       also have "\<dots> \<le> 1/N * norm (\<gamma> p - x) + 1/N * norm (\<gamma> p - x)"
-                        apply (intro add_mono mult_right_mono)
-                        using ij \<open>N > 0\<close> by (auto simp: field_simps)
+                        using ij \<open>N > 0\<close> by (intro add_mono mult_right_mono) (auto simp: field_simps)
                       also have "\<dots> = 2 / N * norm (\<gamma> p - x)"
                         by simp
                       finally have no_le: "norm ((A i - A j) *v (\<gamma> p - x)) \<le> 2 / N * norm (\<gamma> p - x)" .
@@ -1807,8 +1771,12 @@ proof -
                       by metis
                   qed
                   also have "\<dots> \<le> e * norm (y - x) / 4"
-                    using \<open>e > 0\<close> apply (simp add: norm_mult abs_mult)
-                    by (metis component_le_norm_cart vector_minus_component)
+                  proof -
+                    have "\<bar>y $ n - x $ n\<bar> \<le> norm (y - x)"
+                      by (metis component_le_norm_cart vector_minus_component)
+                    with \<open>e > 0\<close> show ?thesis
+                      by (simp add: norm_mult abs_mult)
+                  qed
                   finally show "norm ((matrix (f' x) - B) *v (y - x) - ((?A - B) *v (y - x))) \<le> e * norm (y - x) / 4" .
                   show "0 < e * norm (y - x)"
                     by (simp add: False \<open>e > 0\<close>)
@@ -1869,12 +1837,7 @@ qed
 lemma sets_lebesgue_almost_borel:
   assumes "S \<in> sets lebesgue"
   obtains B N where "B \<in> sets borel" "negligible N" "B \<union> N = S"
-proof -
-  obtain T N N' where "S = T \<union> N" "N \<subseteq> N'" "N' \<in> null_sets lborel" "T \<in> sets borel"
-    using sets_completionE [OF assms] by auto
-  then show thesis
-    by (metis negligible_iff_null_sets negligible_subset null_sets_completionI that)
-qed
+  by (metis assms negligible_iff_null_sets negligible_subset null_sets_completionI sets_completionE sets_lborel)
 
 lemma double_lebesgue_sets:
  assumes S: "S \<in> sets lebesgue" and T: "T \<in> sets lebesgue" and fim: "f ` S \<subseteq> T"
@@ -1906,8 +1869,7 @@ next
      and 2 [rule_format]: "\<forall>U. negligible U \<and> U \<subseteq> T \<longrightarrow> {x \<in> S. f x \<in> U} \<in> sets lebesgue"
      and "U \<in> sets lebesgue" "U \<subseteq> T"
   then obtain C N where C: "C \<in> sets borel \<and> negligible N \<and> C \<union> N = U"
-    using sets_lebesgue_almost_borel
-    by metis
+    using sets_lebesgue_almost_borel by metis
   then have "{x \<in> S. f x \<in> C} \<in> sets lebesgue"
     by (blast intro: 1)
   moreover have "{x \<in> S. f x \<in> N} \<in> sets lebesgue"
@@ -1974,12 +1936,7 @@ proof -
     and mS: "measure lebesgue S \<le> (2 * e) * (2 * m) ^ (CARD('n) - 1)"
   proof (rule Sard_lemma00 [of "norm a" "axis k (1::real)" "T-`P" m e])
     have "norm a *\<^sub>R axis k 1 \<bullet> x = 0" if "T x \<in> P" for x
-    proof -
-      have "a \<bullet> T x = 0"
-        using P that by blast
-      then show ?thesis
-        by (metis (no_types, lifting) T a orthogonal_orthogonal_transformation orthogonal_def)
-    qed
+      by (smt (verit, del_insts) P T a mem_Collect_eq orthogonal_transformation_def subset_eq that)
     then show "T -` P \<subseteq> {x. norm a *\<^sub>R axis k 1 \<bullet> x = 0}"
       by auto
   qed (use assms T in auto)
@@ -1990,22 +1947,11 @@ proof -
     have "{z. norm z \<le> m \<and> (\<exists>t\<in>P. norm (z - t) \<le> e)} \<subseteq> T ` {z. norm z \<le> m \<and> (\<exists>t\<in>T -` P. norm (z - t) \<le> e)}"
     proof clarsimp
       fix x t
-      assume "norm x \<le> m" "t \<in> P" "norm (x - t) \<le> e"
+      assume \<section>: "norm x \<le> m" "t \<in> P" "norm (x - t) \<le> e"
       then have "norm (inv T x) \<le> m"
         using orthogonal_transformation_inv [OF T] by (simp add: orthogonal_transformation_norm)
       moreover have "\<exists>t\<in>T -` P. norm (inv T x - t) \<le> e"
-      proof
-        have "T (inv T x - inv T t) = x - t"
-          using T linear_diff orthogonal_transformation_def
-          by (metis (no_types, opaque_lifting) Tinv)
-        then have "norm (inv T x - inv T t) = norm (x - t)"
-          by (metis T orthogonal_transformation_norm)
-        then show "norm (inv T x - inv T t) \<le> e"
-          using \<open>norm (x - t) \<le> e\<close> by linarith
-       next
-         show "inv T t \<in> T -` P"
-           using \<open>t \<in> P\<close> by force
-      qed
+        by (smt (verit, del_insts) T Tinv \<section> linear_diff orthogonal_transformation_def orthogonal_transformation_norm vimage_eq)
       ultimately show "x \<in> T ` {z. norm z \<le> m \<and> (\<exists>t\<in>T -` P. norm (z - t) \<le> e)}"
         by force
     qed
@@ -2124,8 +2070,8 @@ proof -
             and subT: "{z. norm(z - f x) \<le> (2 * B) * norm(v - u) \<and> (\<exists>t \<in> range (f' x). norm(z - f x - t) \<le> d * norm(v - u))} \<subseteq> T"
             and measT: "?\<mu> T \<le> (2 * (d * norm(v - u))) * (2 * ((2 * B) * norm(v - u))) ^ (?n - 1)"
                         (is "_ \<le> ?DVU")
-        apply (rule Sard_lemma1 [of "range (f' x)" "(2 * B) * norm(v - u)" "d * norm(v - u)" "f x"])
-        using \<open>B > 0\<close> \<open>d > 0\<close> by simp_all
+        using Sard_lemma1 [of "range (f' x)" "(2 * B) * norm(v - u)" "d * norm(v - u)"]
+        using \<open>B > 0\<close> \<open>d > 0\<close> by auto
       show ?thesis
       proof (intro exI conjI)
         have "f ` (K \<inter> S) \<subseteq> {z. norm(z - f x) \<le> (2 * B) * norm(v - u) \<and> (\<exists>t \<in> range (f' x). norm(z - f x - t) \<le> d * norm(v - u))}"
@@ -2150,18 +2096,13 @@ proof -
             have "norm (f' x (y - x)) \<le> onorm (f' x) * norm (y - x)"
               using onorm [of "f' x" "y-x"] by (meson IntE lin_f' linear_linear x(1))
             also have "\<dots> \<le> B * norm (v - u)"
-            proof (rule mult_mono)
-              show "onorm (f' x) \<le> B"
-                using B x by blast
-            qed (use \<open>B > 0\<close> yx_le in auto)
+              by (meson B IntE lin_f' linear_linear mult_mono' norm_ge_zero onorm_pos_le x(1) yx_le)
             finally show "norm (f' x (y - x)) \<le> B * norm (v - u)" .
             show "d * norm (y - x) \<le> B * norm (v - u)"
               using \<open>B > 0\<close> by (auto intro: mult_mono [OF \<open>d \<le> B\<close> yx_le])
           qed
           show "\<exists>t. norm (f y - f x - f' x t) \<le> d * norm (v - u)"
-            apply (rule_tac x="y-x" in exI)
-            using \<open>d > 0\<close> yx_le le_dyx mult_left_mono [where c=d]
-            by (meson order_trans mult_le_cancel_iff2)
+            by (smt (verit, best) \<open>0 < d\<close> le_dyx mult_le_cancel_left_pos yx_le)
         qed
         with subT show "f ` (K \<inter> S) \<subseteq> T" by blast
         show "?\<mu> T \<le> e / (2*c) ^ ?m * ?\<mu> K"
@@ -2355,8 +2296,12 @@ proof -
       have "(\<lambda>x. if x \<in> {t. h n (g t) = y} then ?D x else 0) integrable_on S"
       proof (rule measurable_bounded_by_integrable_imp_integrable)
         have "(\<lambda>x. ?D x) \<in> borel_measurable (lebesgue_on ({t. h n (g t) = y} \<inter> S))"
-          apply (intro borel_measurable_abs borel_measurable_det_Jacobian [OF h_lmeas, where f=g])
-          by (meson der_g IntD2 has_derivative_subset inf_le2)
+        proof -
+          have "(\<lambda>v. det (matrix (g' v))) \<in> borel_measurable (lebesgue_on (S \<inter> {v. h n (g v) = y}))"
+            by (metis Int_lower1 S assms(4) borel_measurable_det_Jacobian measurable_restrict_mono)
+          then show ?thesis
+            by (simp add: Int_commute)
+        qed
         then have "(\<lambda>x. if x \<in> {t. h n (g t) = y} \<inter> S then ?D x else 0) \<in> borel_measurable lebesgue"
           by (rule borel_measurable_if_I [OF _ h_lmeas])
         then show "(\<lambda>x. if x \<in> {t. h n (g t) = y} then ?D x else 0) \<in> borel_measurable (lebesgue_on S)"
@@ -2371,28 +2316,23 @@ proof -
       then have int_det: "(\<lambda>t. \<bar>det (matrix (g' t))\<bar>) integrable_on ({t. h n (g t) = y} \<inter> S)"
         using integrable_restrict_Int by force
       have "(g ` ({t. h n (g t) = y} \<inter> S)) \<in> lmeasurable"
-        apply (rule measurable_differentiable_image [OF h_lmeas])
-         apply (blast intro: has_derivative_subset [OF der_g])
-        apply (rule int_det)
-        done
+        by (blast intro: has_derivative_subset [OF der_g]  measurable_differentiable_image [OF h_lmeas] int_det)
       moreover have "g ` ({t. h n (g t) = y} \<inter> S) = {x. h n x = y} \<inter> g ` S"
         by blast
       moreover have "measure lebesgue (g ` ({t. h n (g t) = y} \<inter> S))
                      \<le> integral ({t. h n (g t) = y} \<inter> S) (\<lambda>t. \<bar>det (matrix (g' t))\<bar>)"
-        apply (rule measure_differentiable_image [OF h_lmeas _ int_det])
-        apply (blast intro: has_derivative_subset [OF der_g])
-        done
+        by (blast intro: has_derivative_subset [OF der_g] measure_differentiable_image [OF h_lmeas _ int_det])
       ultimately show ?thesis
         using \<open>y > 0\<close> integral_restrict_Int [of S "{t. h n (g t) = y}" "\<lambda>t. \<bar>det (matrix (g' t))\<bar> * y"]
         apply (simp add: integrable_on_indicator integral_indicator)
         apply (simp add: indicator_def of_bool_def if_distrib cong: if_cong)
         done
     qed
-    have hn_int: "h n integrable_on g ` S"
-      apply (subst hn_eq)
-      using yind by (force intro: integrable_sum [OF fin_R])
-    then show ?thesis
+    show ?thesis
     proof
+      show "h n integrable_on g ` S"
+        apply (subst hn_eq)
+        using yind by (force intro: integrable_sum [OF fin_R])
       have "?lhs = integral (g ` S) (\<lambda>x. \<Sum>y\<in>range (h n). y * indicat_real {x. h n x = y} x)"
         by (metis hn_eq)
       also have "\<dots> = (\<Sum>y\<in>range (h n). integral (g ` S) (\<lambda>x. y * indicat_real {x. h n x = y} x))"
@@ -2414,8 +2354,8 @@ proof -
         next
           fix x
           assume "x \<in> S"
-          have "y * indicat_real {x. h n x = y} (g x) \<le> f (g x)"
-            by (metis \<open>x \<in> S\<close> h_le_f indicator_simps(1) indicator_simps(2) mem_Collect_eq mult.commute mult.left_neutral mult_zero_left nonneg_fg)
+          then have "y * indicat_real {x. h n x = y} (g x) \<le> f (g x)"
+            by (metis (full_types) h_le_f indicator_simps mem_Collect_eq mult.right_neutral mult_zero_right nonneg_fg)
           with \<open>y \<ge> 0\<close> show "norm (?D x * y * indicat_real {x. h n x = y} (g x)) \<le> ?D x * f(g x)"
             by (simp add: abs_mult mult.assoc mult_left_mono)
         qed (use S det_int_fg in auto)
@@ -2522,8 +2462,10 @@ proof -
         by (rule Df_borel)
       finally have *: "(\<lambda>x. \<bar>?D x\<bar> * f (g x)) \<in> borel_measurable (lebesgue_on S')"
         by (simp add: borel_measurable_if_D)
-      have "?h \<in> borel_measurable (lebesgue_on S')"
-        by (intro * S' der_gS' borel_measurable_det_Jacobian measurable) (blast intro: der_gS')
+      have "(\<lambda>v. det (matrix (g' v))) \<in> borel_measurable (lebesgue_on S')"
+        using S' borel_measurable_det_Jacobian der_gS' by blast
+      then have "?h \<in> borel_measurable (lebesgue_on S')"
+        using "*" borel_measurable_abs borel_measurable_inverse borel_measurable_scaleR by blast
       moreover have "?h x = f(g x)" if "x \<in> S'" for x
         using that by (auto simp: S'_def)
       ultimately have "(\<lambda>x. f(g x)) \<in> borel_measurable (lebesgue_on S')"
@@ -2586,8 +2528,8 @@ proof -
     then have "f integrable_on g ` {x \<in> S. ?D x \<noteq> 0}"
       by (auto simp: image_iff elim!: integrable_eq)
     then show "f integrable_on g ` S"
-      apply (rule integrable_spike_set [OF _ empty_imp_negligible negligible_subset])
-      using negg null by auto
+      using negg null
+      by (auto intro: integrable_spike_set [OF _ empty_imp_negligible negligible_subset])
     have "integral (g ` S) f = integral (g ` {x \<in> S. ?D x \<noteq> 0}) f"
       using negg by (auto intro: negligible_subset integral_spike_set)
     also have "\<dots> = integral (g ` {x \<in> S. ?D x \<noteq> 0}) (\<lambda>x. if x \<in> g ` ?F then f x else 0)"
@@ -2653,15 +2595,15 @@ proof -
 
   have der_gP: "(g has_derivative g' x) (at x within ?P)" if "x \<in> ?P" for x
       using der_g has_derivative_subset that by force
-  have "f integrable_on g ` ?P \<and> integral (g ` ?P) f \<le> integral ?P ?D"
-  proof (rule integral_on_image_ubound_nonneg [OF _ der_gP])
-    have "?D integrable_on {x \<in> S. 0 < ?D x}"
-      using Dgt
-      by (auto intro: set_lebesgue_integral_eq_integral [OF set_integrable_subset] intS)
-    then show "?D integrable_on ?P"
-      apply (rule integrable_spike_set)
-      by (auto simp: zero_less_mult_iff empty_imp_negligible)
-  qed auto
+    have "f integrable_on g ` ?P \<and> integral (g ` ?P) f \<le> integral ?P ?D"
+    proof (rule integral_on_image_ubound_nonneg [OF _ der_gP])
+      show "?D integrable_on ?P"
+      proof (rule integrable_spike_set)
+        show "?D integrable_on {x \<in> S. 0 < ?D x}"
+          using Dgt
+          by (auto intro: set_lebesgue_integral_eq_integral [OF set_integrable_subset] intS)
+      qed (auto simp: zero_less_mult_iff empty_imp_negligible)
+    qed auto
   then have "f integrable_on g ` ?P"
     by metis
   moreover have "g ` ?P = {y \<in> g ` S. f y > 0}"
@@ -2730,8 +2672,7 @@ proof -
         if "x \<in> T" for x
       proof -
         have "matrix (h' x) ** matrix (g' (h x)) = mat 1"
-          using that id[OF that] der_g[of "h x"] gh[OF that] left_inverse_linear has_derivative_linear
-          by (subst matrix_compose[symmetric]) (force simp: matrix_id_mat_1 has_derivative_linear)+
+          by (metis der_g der_h gh has_derivative_linear local.id matrix_compose matrix_id_mat_1 that)
         then have "\<bar>det (matrix (h' x))\<bar> * \<bar>det (matrix (g' (h x)))\<bar> = 1"
           by (metis abs_1 abs_mult det_I det_mul)
         then show ?thesis
@@ -2740,10 +2681,7 @@ proof -
       have "?D integrable_on (h ` T)"
       proof (intro set_lebesgue_integral_eq_integral absolutely_integrable_on_image_real)
         show "(\<lambda>x. ?fgh x) absolutely_integrable_on T"
-        proof (subst absolutely_integrable_on_iff_nonneg)
-          show "(\<lambda>x. ?fgh x) integrable_on T"
-            using ddf fT integrable_eq by force
-        qed (simp add: zero_le_mult_iff f0 gh)
+          by (smt (verit, del_insts) abs_absolutely_integrableI_1 ddf f0 fT integrable_eq)
       qed (use der_h in auto)
       with Seq show "(\<lambda>x. ?D x) integrable_on S"
         by simp
@@ -2755,9 +2693,8 @@ proof -
       qed (use f0 gh der_h in auto)
       also have "\<dots> = integral T f"
         by (force simp: ddf intro: integral_cong)
-      also have "\<dots> \<le> b"
-        by (rule intf)
-      finally show "integral S (\<lambda>x. ?D x) \<le> b" .
+      finally show "integral S (\<lambda>x. ?D x) \<le> b"
+        using intf by linarith 
     qed
   next
     assume R: ?rhs
@@ -2850,15 +2787,16 @@ proof -
       using "-" [of "integral {x \<in> S. f(g x) < 0} ?DN"] aN
       by (auto simp: set_lebesgue_integral_eq_integral has_integral_iff integrable_neg_iff)
     have faN: "f absolutely_integrable_on {y \<in> T. f y < 0}"
-      apply (rule absolutely_integrable_integrable_bound [where g = "\<lambda>x. - f x"])
-      using fN by (auto simp: integrable_neg_iff)
+    proof (rule absolutely_integrable_integrable_bound)
+      show "(\<lambda>x. - f x) integrable_on {y \<in> T. f y < 0}"
+        using fN by (auto simp: integrable_neg_iff)
+    qed (use fN in auto)
     have fP: "f integrable_on {y \<in> T. f y > 0}"
              "integral {y \<in> T. f y > 0} f = integral {x \<in> S. f (g x) > 0} ?DP"
       using "+" [of "integral {x \<in> S. f(g x) > 0} ?DP"] aP
       by (auto simp: set_lebesgue_integral_eq_integral has_integral_iff integrable_neg_iff)
     have faP: "f absolutely_integrable_on {y \<in> T. f y > 0}"
-      apply (rule absolutely_integrable_integrable_bound [where g = f])
-      using fP by auto
+      using fP(1) nonnegative_absolutely_integrable_1 by fastforce
     have fa: "f absolutely_integrable_on ({y \<in> T. f y < 0} \<union> {y \<in> T. f y > 0})"
       by (rule absolutely_integrable_Un [OF faN faP])
     show ?rhs
@@ -2904,8 +2842,7 @@ proof -
     have aint: "f absolutely_integrable_on {y. y \<in> T \<and> 0 < (f y)}"
                "f absolutely_integrable_on {y. y \<in> T \<and> (f y) < 0}"
          and intT: "integral T f = b"
-      using set_integrable_subset [of _ T] TP TN RHS
-      by blast+
+      using set_integrable_subset [of _ T] TP TN RHS by blast+
     show ?lhs
     proof
       have fN: "f integrable_on {v \<in> T. f v < 0}"
@@ -3162,10 +3099,7 @@ proof -
             by (meson der_g differentiableI UnionI differentiable_on_def differentiable_on_subset rangeI subsetI)
         qed auto
       qed
-    next
-      show "(\<lambda>n. integral (?U n) ?D) \<longlonglongrightarrow> integral (\<Union>n. F n) ?D"
-        by (rule DU)
-    qed
+    qed (use DU in metis)
   next
     assume fs: "f absolutely_integrable_on (\<Union>x. g ` F x)"
       and b: "b = integral ((\<Union>x. g ` F x)) f"
@@ -3194,8 +3128,7 @@ proof -
           unfolding integrable_restrict_UNIV absolutely_integrable_on_def by (simp add: image_UN)
         { fix n::nat
           have "(norm \<circ> f) absolutely_integrable_on (\<Union>m\<le>n. g ` F m)"
-            apply (rule absolutely_integrable_norm)
-            using fgU by blast
+            using absolutely_integrable_norm fgU by blast
           then have "integral (?U n) (norm \<circ> ?D) = integral (g ` ?U n) (norm \<circ> f)"
             using iff [of n "?lift \<circ> norm \<circ> f" "integral (g ` ?U n) (?lift \<circ> norm \<circ> f)"]
             unfolding absolutely_integrable_on_1_iff integral_on_1_eq image_UN by (auto simp: o_def)
@@ -3233,11 +3166,9 @@ proof -
       unfolding absolutely_integrable_restrict_UNIV by simp
     show "integral (\<Union>n. F n) ?D = integral ((\<Union>x. g ` F x)) f"
     proof (rule LIMSEQ_unique)
-      show "(\<lambda>n. integral (\<Union>m\<le>n. g ` F m) f) \<longlonglongrightarrow> integral (\<Union>x. g ` F x) f"
-        by (rule fgU)
       show "(\<lambda>n. integral (\<Union>m\<le>n. g ` F m) f) \<longlonglongrightarrow> integral (\<Union>n. F n) ?D"
         unfolding D_int [symmetric] by (rule integral_countable_UN [OF Dai F_leb])
-    qed
+    qed (use fgU in metis)
   qed
 qed
 

@@ -75,7 +75,7 @@ lemma field_differentiable_within_exp: "exp field_differentiable (at z within s)
 lemma continuous_within_exp:
   fixes z::"'a::{real_normed_field,banach}"
   shows "continuous (at z within s) exp"
-by (simp add: continuous_at_imp_continuous_within)
+  by (simp add: continuous_at_imp_continuous_within)
 
 lemma holomorphic_on_exp [holomorphic_intros]: "exp holomorphic_on s"
   by (simp add: field_differentiable_within_exp holomorphic_on_def)
@@ -153,7 +153,7 @@ lemma cos_exp_eq:  "cos z = (exp(\<i> * z) + exp(-(\<i> * z))) / 2"
 
 theorem Euler: "exp(z) = of_real(exp(Re z)) *
               (of_real(cos(Im z)) + \<i> * of_real(sin(Im z)))"
-by (cases z) (simp add: exp_add exp_Euler cos_of_real exp_of_real sin_of_real Complex_eq)
+  by (simp add: Complex_eq cis.code exp_eq_polar)
 
 lemma Re_sin: "Re(sin z) = sin(Re z) * (exp(Im z) + exp(-(Im z))) / 2"
   by (simp add: sin_exp_eq field_simps Re_divide Im_exp)
@@ -568,8 +568,8 @@ lemma sin_eq:
 
 lemma cos_eq:
    "cos x = cos y \<longleftrightarrow> (\<exists>n \<in> \<int>. x = y + 2*n*pi \<or> x = -y + 2*n*pi)"
-  using complex_cos_eq [of x y]
-  by (simp only: cos_of_real Re_complex_of_real of_real_add [symmetric] of_real_minus [symmetric] of_real_mult [symmetric] of_real_eq_iff)
+  using complex_cos_eq [of x y] unfolding cos_of_real 
+  by (metis Re_complex_of_real of_real_add of_real_minus)
 
 lemma sinh_complex:
   fixes z :: complex
@@ -635,7 +635,7 @@ qed
 lemma norm_cos_plus1_le:
   fixes z::complex
   shows "norm(1 + cos z) \<le> 2 * exp(norm z)"
-  by (smt (verit, best) exp_ge_add_one_self norm_cos_le norm_ge_zero norm_one norm_triangle_ineq)
+  by (metis mult_2 norm_cos_le norm_ge_zero norm_one norm_triangle_mono one_le_exp_iff)
 
 lemma sinh_conv_sin: "sinh z = -\<i> * sin (\<i>*z)"
   by (simp add: sinh_field_def sin_i_times exp_minus)
@@ -3854,8 +3854,7 @@ proof -
              \<i> * (of_nat k * (of_real pi * 2)) + \<i> * (of_int z * (of_nat n * (of_real pi * 2)))) \<longleftrightarrow> j mod n = k mod n" .
    note * = this
   show ?thesis
-    using assms
-    by (simp add: exp_eq field_split_simps *)
+    using assms by (simp add: exp_eq field_split_simps *)
 qed
 
 corollary bij_betw_roots_unity:
