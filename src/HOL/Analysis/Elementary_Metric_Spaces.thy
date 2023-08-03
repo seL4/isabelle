@@ -1090,8 +1090,7 @@ subsubsection \<open>Complete the chain of compactness variants\<close>
 proposition compact_eq_Bolzano_Weierstrass:
   fixes S :: "'a::metric_space set"
   shows "compact S \<longleftrightarrow> (\<forall>T. infinite T \<and> T \<subseteq> S \<longrightarrow> (\<exists>x \<in> S. x islimpt T))"
-  using Bolzano_Weierstrass_imp_seq_compact Heine_Borel_imp_Bolzano_Weierstrass compact_eq_seq_compact_metric 
-  by blast
+  by (meson Bolzano_Weierstrass_imp_seq_compact Heine_Borel_imp_Bolzano_Weierstrass seq_compact_imp_Heine_Borel)
 
 proposition Bolzano_Weierstrass_imp_bounded:
   "(\<And>T. \<lbrakk>infinite T; T \<subseteq> S\<rbrakk> \<Longrightarrow> (\<exists>x \<in> S. x islimpt T)) \<Longrightarrow> bounded S"
@@ -1511,10 +1510,8 @@ proof (unfold seq_compact_def, clarify)
     using bounded_imp_convergent_subsequence [OF \<open>bounded (range f)\<close>] by auto
   from f have fr: "\<forall>n. (f \<circ> r) n \<in> S"
     by simp
-  have "l \<in> S" using \<open>closed S\<close> fr l
-    by (rule closed_sequentially)
-  show "\<exists>l\<in>S. \<exists>r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
-    using \<open>l \<in> S\<close> r l by blast
+  show "\<exists>l\<in>S. \<exists>r. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
+    using assms(2) closed_sequentially fr l r by blast
 qed
 
 lemma compact_eq_bounded_closed:
@@ -2829,7 +2826,7 @@ proof -
     moreover have "(\<lambda>i. (x \<circ> r) (i + n)) \<longlonglongrightarrow> l"
       using lr(3) by (rule LIMSEQ_ignore_initial_segment)
     ultimately show "l \<in> S n"
-      by (rule closed_sequentially)
+      by (metis closed_sequentially)
   qed
   then show ?thesis 
     using that by blast

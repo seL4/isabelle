@@ -1776,9 +1776,9 @@ proof -
     by blast
   have "?thesis1 \<and> ?thesis2 \<and> ?thesis3"
     apply (rule *)
-    using continuous_disconnected_range_constant apply metis
-    apply clarify
-    apply (frule discrete_subset_disconnected; blast)
+    using continuous_disconnected_range_constant
+    apply (metis image_subset_iff_funcset)
+    apply (smt (verit, best) discrete_subset_disconnected mem_Collect_eq subsetD subsetI)
     apply (blast dest: finite_implies_discrete)
     apply (blast intro!: finite_range_constant_imp_connected)
     done

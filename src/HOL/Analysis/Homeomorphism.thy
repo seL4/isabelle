@@ -210,7 +210,7 @@ proof -
     ultimately have *: "continuous (at x within affine hull S) (\<lambda>x. surf (proj x))"
       by (simp add: continuous_within Lim_transform_within_set continuous_on_eq_continuous_within)
     show ?thesis
-      by (intro continuous_within_subset [where s = "affine hull S", OF _ Int_lower2] continuous_intros *)
+      by (intro continuous_within_subset [where S = "affine hull S", OF _ Int_lower2] continuous_intros *)
   qed
   have cont_nosp2: "continuous_on ?CBALL (\<lambda>x. norm x *\<^sub>R ((surf o proj) x))"
     by (simp add: continuous_on_eq_continuous_within cont_nosp)

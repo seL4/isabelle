@@ -163,27 +163,27 @@ lemma bounded_linear_imp_differentiable_on: "bounded_linear f \<Longrightarrow> 
 lemma linear_imp_differentiable_on:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   shows "linear f \<Longrightarrow> f differentiable_on S"
-by (simp add: differentiable_on_def linear_imp_differentiable)
+  by (simp add: differentiable_on_def linear_imp_differentiable)
 
 lemma differentiable_on_minus [simp, derivative_intros]:
-   "f differentiable_on S \<Longrightarrow> (\<lambda>z. -(f z)) differentiable_on S"
-by (simp add: differentiable_on_def)
+  "f differentiable_on S \<Longrightarrow> (\<lambda>z. -(f z)) differentiable_on S"
+  by (simp add: differentiable_on_def)
 
 lemma differentiable_on_add [simp, derivative_intros]:
-   "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) differentiable_on S"
-by (simp add: differentiable_on_def)
+  "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) differentiable_on S"
+  by (simp add: differentiable_on_def)
 
 lemma differentiable_on_diff [simp, derivative_intros]:
-   "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) differentiable_on S"
-by (simp add: differentiable_on_def)
+  "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) differentiable_on S"
+  by (simp add: differentiable_on_def)
 
 lemma differentiable_on_inverse [simp, derivative_intros]:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
   shows "f differentiable_on S \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> f x \<noteq> 0) \<Longrightarrow> (\<lambda>x. inverse (f x)) differentiable_on S"
-by (simp add: differentiable_on_def)
+  by (simp add: differentiable_on_def)
 
 lemma differentiable_on_scaleR [derivative_intros, simp]:
-   "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>x. f x *\<^sub>R g x) differentiable_on S"
+  "\<lbrakk>f differentiable_on S; g differentiable_on S\<rbrakk> \<Longrightarrow> (\<lambda>x. f x *\<^sub>R g x) differentiable_on S"
   unfolding differentiable_on_def
   by (blast intro: differentiable_scaleR)
 
@@ -195,22 +195,22 @@ lemma has_derivative_sqnorm_at [derivative_intros, simp]:
 lemma differentiable_sqnorm_at [derivative_intros, simp]:
   fixes a :: "'a :: {real_normed_vector,real_inner}"
   shows "(\<lambda>x. (norm x)\<^sup>2) differentiable (at a)"
-by (force simp add: differentiable_def intro: has_derivative_sqnorm_at)
+  by (force simp add: differentiable_def intro: has_derivative_sqnorm_at)
 
 lemma differentiable_on_sqnorm [derivative_intros, simp]:
   fixes S :: "'a :: {real_normed_vector,real_inner} set"
   shows "(\<lambda>x. (norm x)\<^sup>2) differentiable_on S"
-by (simp add: differentiable_at_imp_differentiable_on)
+  by (simp add: differentiable_at_imp_differentiable_on)
 
 lemma differentiable_norm_at [derivative_intros, simp]:
   fixes a :: "'a :: {real_normed_vector,real_inner}"
   shows "a \<noteq> 0 \<Longrightarrow> norm differentiable (at a)"
-using differentiableI has_derivative_norm by blast
+  using differentiableI has_derivative_norm by blast
 
 lemma differentiable_on_norm [derivative_intros, simp]:
   fixes S :: "'a :: {real_normed_vector,real_inner} set"
   shows "0 \<notin> S \<Longrightarrow> norm differentiable_on S"
-by (metis differentiable_at_imp_differentiable_on differentiable_norm_at)
+  by (metis differentiable_at_imp_differentiable_on differentiable_norm_at)
 
 
 subsection \<open>Frechet derivative and Jacobian matrix\<close>
@@ -480,12 +480,7 @@ lemma frechet_derivative_unique_within_open_interval:
   assumes x: "x \<in> box a b"
     and f: "(f has_derivative f' ) (at x within box a b)" "(f has_derivative f'') (at x within box a b)"
   shows "f' = f''"
-proof -
-  have "at x within box a b = at x"
-    by (metis x at_within_interior interior_open open_box)
-  with f show "f' = f''"
-    by (simp add: has_derivative_unique)
-qed
+  by (metis at_within_open assms has_derivative_unique open_box)
 
 lemma frechet_derivative_at:
   "(f has_derivative f') (at x) \<Longrightarrow> f' = frechet_derivative f (at x)"
@@ -613,7 +608,7 @@ lemma mvt_very_simple:
   shows "\<exists>x\<in>{a..b}. f b - f a = f' x (b - a)"
 proof (cases "a = b")
   interpret bounded_linear "f' b"
-    using assms(2) assms(1) by auto
+    using assms by auto
   case True
   then show ?thesis
     by force
@@ -944,10 +939,12 @@ lemma field_differentiable_bound:
       and dn:  "\<And>z. z \<in> S \<Longrightarrow> norm (f' z) \<le> B"
       and "x \<in> S"  "y \<in> S"
     shows "norm(f x - f y) \<le> B * norm(x - y)"
-  apply (rule differentiable_bound [OF cvs])
-  apply (erule df [unfolded has_field_derivative_def])
-  apply (rule onorm_le, simp_all add: norm_mult mult_right_mono assms)
-  done
+proof (rule differentiable_bound [OF cvs])
+  show "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative (*) (f' x)) (at x within S)"
+    by (simp add: df has_field_derivative_imp_has_derivative)
+  show "\<And>x. x \<in> S \<Longrightarrow> onorm ((*) (f' x)) \<le> B"
+    by (metis (no_types, opaque_lifting) dn norm_mult onorm_le order.refl order_trans)
+qed (use assms in auto)
 
 lemma
   differentiable_bound_segment:
