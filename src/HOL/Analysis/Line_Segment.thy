@@ -33,24 +33,13 @@ qed
 lemma sphere_eq_empty [simp]:
   fixes a :: "'a::{real_normed_vector, perfect_space}"
   shows "sphere a r = {} \<longleftrightarrow> r < 0"
-by (auto simp: sphere_def dist_norm) (metis dist_norm le_less_linear vector_choose_dist)
+  by (metis empty_iff linorder_not_less mem_sphere sphere_empty vector_choose_dist)
 
 lemma cone_closure:
   fixes S :: "'a::real_normed_vector set"
   assumes "cone S"
   shows "cone (closure S)"
-proof (cases "S = {}")
-  case True
-  then show ?thesis by auto
-next
-  case False
-  then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` S = S)"
-    using cone_iff[of S] assms by auto
-  then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` closure S = closure S)"
-    using closure_subset by (auto simp: closure_scaleR)
-  then show ?thesis
-    using False cone_iff[of "closure S"] by auto
-qed
+  by (metis UnCI assms closure_Un_frontier closure_eq_empty closure_scaleR cone_iff)
 
 
 corollary component_complement_connected:
@@ -63,7 +52,7 @@ corollary component_complement_connected:
 proposition clopen:
   fixes S :: "'a :: real_normed_vector set"
   shows "closed S \<and> open S \<longleftrightarrow> S = {} \<or> S = UNIV"
-  by (force intro!: connected_UNIV [unfolded connected_clopen, rule_format])
+  using  connected_UNIV by (force simp add: connected_clopen)
 
 corollary compact_open:
   fixes S :: "'a :: euclidean_space set"
@@ -97,20 +86,12 @@ proof (rule ccontr)
   then obtain u where "0 < u" "u \<le> 1" and u: "u < e / dist x y"
     using field_lbound_gt_zero[of 1 "e / dist x y"] xy \<open>e>0\<close> by auto
   then have "f ((1-u) *\<^sub>R x + u *\<^sub>R y) \<le> (1-u) * f x + u * f y"
-    using \<open>x\<in>s\<close> \<open>y\<in>s\<close>
-    using assms(2)[unfolded convex_on_def,
-      THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x="1-u"]]
-    by auto
+    using \<open>x\<in>s\<close> \<open>y\<in>s\<close> by (smt (verit) assms(2) convex_on_def)
   moreover
   have *: "x - ((1 - u) *\<^sub>R x + u *\<^sub>R y) = u *\<^sub>R (x - y)"
     by (simp add: algebra_simps)
   have "(1 - u) *\<^sub>R x + u *\<^sub>R y \<in> ball x e"
-    unfolding mem_ball dist_norm
-    unfolding * and norm_scaleR and abs_of_pos[OF \<open>0<u\<close>]
-    unfolding dist_norm[symmetric]
-    using u
-    unfolding pos_less_divide_eq[OF xy]
-    by auto
+    by (smt (verit) "*" \<open>0 < u\<close> dist_norm mem_ball norm_scaleR pos_less_divide_eq u xy)
   then have "f x \<le> f ((1 - u) *\<^sub>R x + u *\<^sub>R y)"
     using assms(4) by auto
   ultimately show False
@@ -256,8 +237,8 @@ lemma midpoint_plus_self [simp]: "midpoint a b + midpoint a b = a + b"
   using midpoint_eq_iff by metis
 
 lemma midpoint_linear_image:
-   "linear f \<Longrightarrow> midpoint(f a)(f b) = f(midpoint a b)"
-by (simp add: linear_iff midpoint_def)
+  "linear f \<Longrightarrow> midpoint(f a)(f b) = f(midpoint a b)"
+  by (simp add: linear_iff midpoint_def)
 
 
 subsection \<open>Open and closed segments\<close>
@@ -288,29 +269,24 @@ lemma open_segment_linear_image:
   by (force simp: open_segment_def closed_segment_linear_image inj_on_def)
 
 lemma closed_segment_translation:
-    "closed_segment (c + a) (c + b) = image (\<lambda>x. c + x) (closed_segment a b)"
-apply safe
-apply (rule_tac x="x-c" in image_eqI)
-apply (auto simp: in_segment algebra_simps)
-done
+    "closed_segment (c + a) (c + b) = (\<lambda>x. c + x) ` (closed_segment a b)" (is "?L = _ ` ?R")
+proof -
+  have "\<And>x. x \<in> ?L \<Longrightarrow> x - c \<in> ?R" "\<And>x. \<lbrakk>x \<in> ?R\<rbrakk> \<Longrightarrow> c + x \<in> ?L"
+    by (auto simp: in_segment algebra_simps)
+  then show ?thesis by force
+qed
 
 lemma open_segment_translation:
-    "open_segment (c + a) (c + b) = image (\<lambda>x. c + x) (open_segment a b)"
-by (simp add: open_segment_def closed_segment_translation translation_diff)
+  "open_segment (c + a) (c + b) = image (\<lambda>x. c + x) (open_segment a b)"
+  by (simp add: open_segment_def closed_segment_translation translation_diff)
 
 lemma closed_segment_of_real:
     "closed_segment (of_real x) (of_real y) = of_real ` closed_segment x y"
-  apply (auto simp: image_iff in_segment scaleR_conv_of_real)
-    apply (rule_tac x="(1-u)*x + u*y" in bexI)
-  apply (auto simp: in_segment)
-  done
+  by (simp add: closed_segment_linear_image linearI scaleR_conv_of_real)
 
 lemma open_segment_of_real:
     "open_segment (of_real x) (of_real y) = of_real ` open_segment x y"
-  apply (auto simp: image_iff in_segment scaleR_conv_of_real)
-    apply (rule_tac x="(1-u)*x + u*y" in bexI)
-  apply (auto simp: in_segment)
-  done
+  by (simp add: closed_segment_of_real image_set_diff inj_of_real open_segment_def)
 
 lemma closed_segment_Reals:
     "\<lbrakk>x \<in> Reals; y \<in> Reals\<rbrakk> \<Longrightarrow> closed_segment x y = of_real ` closed_segment (Re x) (Re y)"
@@ -333,13 +309,9 @@ lemma closed_segment_translation_eq [simp]:
     "d + x \<in> closed_segment (d + a) (d + b) \<longleftrightarrow> x \<in> closed_segment a b"
 proof -
   have *: "\<And>d x a b. x \<in> closed_segment a b \<Longrightarrow> d + x \<in> closed_segment (d + a) (d + b)"
-    apply (simp add: closed_segment_def)
-    apply (erule ex_forward)
-    apply (simp add: algebra_simps)
-    done
+    using closed_segment_translation by blast
   show ?thesis
-  using * [where d = "-d"] *
-  by (fastforce simp add:)
+    using * [where d = "-d"] * by fastforce
 qed
 
 lemma open_segment_translation_eq [simp]:
@@ -348,13 +320,11 @@ lemma open_segment_translation_eq [simp]:
 
 lemma of_real_closed_segment [simp]:
   "of_real x \<in> closed_segment (of_real a) (of_real b) \<longleftrightarrow> x \<in> closed_segment a b"
-  apply (auto simp: in_segment scaleR_conv_of_real elim!: ex_forward)
-  using of_real_eq_iff by fastforce
+  by (simp add: closed_segment_of_real image_iff)
 
 lemma of_real_open_segment [simp]:
   "of_real x \<in> open_segment (of_real a) (of_real b) \<longleftrightarrow> x \<in> open_segment a b"
-  apply (auto simp: in_segment scaleR_conv_of_real elim!: ex_forward del: exE)
-  using of_real_eq_iff by fastforce
+  by (simp add: image_iff open_segment_of_real)
 
 lemma convex_contains_segment:
   "convex S \<longleftrightarrow> (\<forall>a\<in>S. \<forall>b\<in>S. closed_segment a b \<subseteq> S)"
@@ -389,12 +359,11 @@ lemma open_closed_segment: "u \<in> open_segment w z \<Longrightarrow> u \<in> c
 
 lemma segment_open_subset_closed:
    "open_segment a b \<subseteq> closed_segment a b"
-  by (auto simp: closed_segment_def open_segment_def)
+  by (simp add: open_closed_segment subsetI)
 
 lemma bounded_closed_segment:
   fixes a :: "'a::real_normed_vector" shows "bounded (closed_segment a b)"
-  by (rule boundedI[where B="max (norm a) (norm b)"])
-    (auto simp: closed_segment_def max_def convex_bound_le intro!: norm_triangle_le)
+  by (simp add: bounded_convex_hull segment_convex_hull)
 
 lemma bounded_open_segment:
     fixes a :: "'a::real_normed_vector" shows "bounded (open_segment a b)"
@@ -403,8 +372,7 @@ lemma bounded_open_segment:
 lemmas bounded_segment = bounded_closed_segment open_closed_segment
 
 lemma ends_in_segment [iff]: "a \<in> closed_segment a b" "b \<in> closed_segment a b"
-  unfolding segment_convex_hull
-  by (auto intro!: hull_subset[unfolded subset_eq, rule_format])
+  by (simp_all add: hull_inc segment_convex_hull)
 
 
 lemma eventually_closed_segment:
@@ -420,10 +388,10 @@ proof -
   proof eventually_elim
     case (elim x)
     have "x0 \<in> ball x0 e" using \<open>e > 0\<close> by simp
-    from convex_ball[unfolded convex_contains_segment, rule_format, OF this elim]
-    have "closed_segment x0 x \<subseteq> ball x0 e" .
-    also note \<open>\<dots> \<subseteq> X0\<close>
-    finally show ?case .
+    then have "closed_segment x0 x \<subseteq> ball x0 e"
+      using closed_segment_subset elim by blast 
+    then show ?case
+      using e(2) by auto 
   qed
 qed
 
@@ -438,26 +406,33 @@ lemma segment_bound1:
   assumes "x \<in> closed_segment a b"
   shows "norm (x - a) \<le> norm (b - a)"
 proof -
-  obtain u where "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 \<le> u" "u \<le> 1"
+  obtain u where u: "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 \<le> u" "u \<le> 1"
     using assms by (auto simp add: closed_segment_def)
-  then show "norm (x - a) \<le> norm (b - a)"
-    apply clarify
-    apply (auto simp: algebra_simps)
-    apply (simp add: scaleR_diff_right [symmetric] mult_left_le_one_le)
-    done
+  then have "norm (u *\<^sub>R b - u *\<^sub>R a) \<le> norm (b - a)"
+    by (simp add: mult_left_le_one_le flip: scaleR_diff_right)
+  with u show ?thesis
+    by (metis add_diff_cancel_left scaleR_collapse)
 qed
 
 lemma segment_bound:
   assumes "x \<in> closed_segment a b"
   shows "norm (x - a) \<le> norm (b - a)" "norm (x - b) \<le> norm (b - a)"
-by (metis assms closed_segment_commute dist_commute dist_norm segment_bound1)+
+  by (metis assms closed_segment_commute dist_commute dist_norm segment_bound1)+
+
+lemma open_segment_bound1:
+  assumes "x \<in> open_segment a b"
+  shows "norm (x - a) < norm (b - a)"
+proof -
+  obtain u where u: "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 < u" "u < 1"
+    by (meson assms in_segment)
+  then have "norm (u *\<^sub>R b - u *\<^sub>R a) < norm (b - a)"
+    using assms in_segment(2) less_eq_real_def by (fastforce simp flip: scaleR_diff_right)
+  with u show ?thesis
+    by (metis add_diff_cancel_left scaleR_collapse)
+qed
 
 lemma open_segment_commute: "open_segment a b = open_segment b a"
-proof -
-  have "{a, b} = {b, a}" by auto
-  thus ?thesis
-    by (simp add: closed_segment_commute open_segment_def)
-qed
+  by (simp add: closed_segment_commute insert_commute open_segment_def)
 
 lemma closed_segment_idem [simp]: "closed_segment a a = {a}"
   unfolding segment by (auto simp add: algebra_simps)
@@ -494,8 +469,7 @@ qed
 lemma closed_segment_eq_real_ivl:
   fixes a b::real
   shows "closed_segment a b = (if a \<le> b then {a .. b} else {b .. a})"
-  using closed_segment_eq_real_ivl1[of a b] closed_segment_eq_real_ivl1[of b a]
-  by (auto simp: closed_segment_commute)
+  by (metis closed_segment_commute closed_segment_eq_real_ivl1 nle_le)
 
 lemma open_segment_eq_real_ivl:
   fixes a b::real
@@ -504,7 +478,7 @@ by (auto simp: closed_segment_eq_real_ivl open_segment_def split: if_split_asm)
 
 lemma closed_segment_real_eq:
   fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
-  by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
+  by (simp add: closed_segment_eq_real_ivl image_affinity_atLeastAtMost)
 
 lemma closed_segment_same_Re:
   assumes "Re a = Re b"
@@ -546,57 +520,13 @@ lemma dist_in_closed_segment:
   fixes a :: "'a :: euclidean_space"
   assumes "x \<in> closed_segment a b"
     shows "dist x a \<le> dist a b \<and> dist x b \<le> dist a b"
-proof (intro conjI)
-  obtain u where u: "0 \<le> u" "u \<le> 1" and x: "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
-    using assms by (force simp: in_segment algebra_simps)
-  have "dist x a = u * dist a b"
-    apply (simp add: dist_norm algebra_simps x)
-    by (metis \<open>0 \<le> u\<close> abs_of_nonneg norm_minus_commute norm_scaleR real_vector.scale_right_diff_distrib)
-  also have "...  \<le> dist a b"
-    by (simp add: mult_left_le_one_le u)
-  finally show "dist x a \<le> dist a b" .
-  have "dist x b = norm ((1-u) *\<^sub>R a - (1-u) *\<^sub>R b)"
-    by (simp add: dist_norm algebra_simps x)
-  also have "... = (1-u) * dist a b"
-  proof -
-    have "norm ((1 - 1 * u) *\<^sub>R (a - b)) = (1 - 1 * u) * norm (a - b)"
-      using \<open>u \<le> 1\<close> by force
-    then show ?thesis
-      by (simp add: dist_norm real_vector.scale_right_diff_distrib)
-  qed
-  also have "... \<le> dist a b"
-    by (simp add: mult_left_le_one_le u)
-  finally show "dist x b \<le> dist a b" .
-qed
+  by (metis assms dist_commute dist_norm segment_bound(2) segment_bound1)
 
 lemma dist_in_open_segment:
   fixes a :: "'a :: euclidean_space"
   assumes "x \<in> open_segment a b"
-    shows "dist x a < dist a b \<and> dist x b < dist a b"
-proof (intro conjI)
-  obtain u where u: "0 < u" "u < 1" and x: "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
-    using assms by (force simp: in_segment algebra_simps)
-  have "dist x a = u * dist a b"
-    apply (simp add: dist_norm algebra_simps x)
-    by (metis abs_of_nonneg less_eq_real_def norm_minus_commute norm_scaleR real_vector.scale_right_diff_distrib \<open>0 < u\<close>)
-  also have *: "...  < dist a b"
-    using assms mult_less_cancel_right2 u(2) by fastforce
-  finally show "dist x a < dist a b" .
-  have ab_ne0: "dist a b \<noteq> 0"
-    using * by fastforce
-  have "dist x b = norm ((1-u) *\<^sub>R a - (1-u) *\<^sub>R b)"
-    by (simp add: dist_norm algebra_simps x)
-  also have "... = (1-u) * dist a b"
-  proof -
-    have "norm ((1 - 1 * u) *\<^sub>R (a - b)) = (1 - 1 * u) * norm (a - b)"
-      using \<open>u < 1\<close> by force
-    then show ?thesis
-      by (simp add: dist_norm real_vector.scale_right_diff_distrib)
-  qed
-  also have "... < dist a b"
-    using ab_ne0 \<open>0 < u\<close> by simp
-  finally show "dist x b < dist a b" .
-qed
+  shows "dist x a < dist a b \<and> dist x b < dist a b"
+  by (metis assms dist_commute dist_norm open_segment_bound1 open_segment_commute)
 
 lemma dist_decreases_open_segment_0:
   fixes x :: "'a :: euclidean_space"
@@ -650,9 +580,7 @@ corollary dist_decreases_closed_segment:
   fixes a :: "'a :: euclidean_space"
   assumes "x \<in> closed_segment a b"
     shows "dist c x \<le> dist c a \<or> dist c x \<le> dist c b"
-apply (cases "x \<in> open_segment a b")
- using dist_decreases_open_segment less_eq_real_def apply blast
-by (metis DiffI assms empty_iff insertE open_segment_def order_refl)
+  by (smt (verit, ccfv_threshold) Un_iff assms closed_segment_eq_open dist_norm empty_iff insertE open_segment_furthest_le)
 
 corollary segment_furthest_le:
   fixes a b x y :: "'a::euclidean_space"
@@ -663,19 +591,18 @@ corollary segment_furthest_le:
 lemma convex_intermediate_ball:
   fixes a :: "'a :: euclidean_space"
   shows "\<lbrakk>ball a r \<subseteq> T; T \<subseteq> cball a r\<rbrakk> \<Longrightarrow> convex T"
-apply (simp add: convex_contains_open_segment, clarify)
-by (metis (no_types, opaque_lifting) less_le_trans mem_ball mem_cball subsetCE dist_decreases_open_segment)
+  by (smt (verit) convex_contains_open_segment dist_decreases_open_segment mem_ball mem_cball subset_eq)
 
 lemma csegment_midpoint_subset: "closed_segment (midpoint a b) b \<subseteq> closed_segment a b"
   apply (clarsimp simp: midpoint_def in_segment)
   apply (rule_tac x="(1 + u) / 2" in exI)
-  apply (auto simp: algebra_simps add_divide_distrib diff_divide_distrib)
+  apply (simp add: algebra_simps add_divide_distrib diff_divide_distrib)
   by (metis field_sum_of_halves scaleR_left.add)
 
 lemma notin_segment_midpoint:
   fixes a :: "'a :: euclidean_space"
   shows "a \<noteq> b \<Longrightarrow> a \<notin> closed_segment (midpoint a b) b"
-by (auto simp: dist_midpoint dest!: dist_in_closed_segment)
+  by (auto simp: dist_midpoint dest!: dist_in_closed_segment)
 
 subsubsection\<open>More lemmas, especially for working with the underlying formula\<close>
 
@@ -687,27 +614,18 @@ lemma segment_eq_compose:
 lemma segment_degen_1:
   fixes a :: "'a :: real_vector"
   shows "(1 - u) *\<^sub>R a + u *\<^sub>R b = b \<longleftrightarrow> a=b \<or> u=1"
-proof -
-  { assume "(1 - u) *\<^sub>R a + u *\<^sub>R b = b"
-    then have "(1 - u) *\<^sub>R a = (1 - u) *\<^sub>R b"
-      by (simp add: algebra_simps)
-    then have "a=b \<or> u=1"
-      by simp
-  } then show ?thesis
-      by (auto simp: algebra_simps)
-qed
+  by (smt (verit, best) add_right_cancel scaleR_cancel_left scaleR_collapse)
 
 lemma segment_degen_0:
     fixes a :: "'a :: real_vector"
     shows "(1 - u) *\<^sub>R a + u *\<^sub>R b = a \<longleftrightarrow> a=b \<or> u=0"
-  using segment_degen_1 [of "1-u" b a]
-  by (auto simp: algebra_simps)
+  using segment_degen_1 [of "1-u" b a] by (auto simp: algebra_simps)
 
 lemma add_scaleR_degen:
   fixes a b ::"'a::real_vector"
   assumes  "(u *\<^sub>R b + v *\<^sub>R a) = (u *\<^sub>R a + v *\<^sub>R b)"  "u \<noteq> v"
   shows "a=b"
-  by (metis (no_types, opaque_lifting) add.commute add_diff_eq diff_add_cancel real_vector.scale_cancel_left real_vector.scale_left_diff_distrib assms)
+  by (smt (verit) add_diff_cancel_left' add_diff_eq assms scaleR_cancel_left scaleR_left.diff)
   
 lemma closed_segment_image_interval:
      "closed_segment a b = (\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0..1}"
@@ -723,14 +641,7 @@ lemma closed_segment_neq_empty [simp]: "closed_segment a b \<noteq> {}"
   by auto
 
 lemma open_segment_eq_empty [simp]: "open_segment a b = {} \<longleftrightarrow> a = b"
-proof -
-  { assume a1: "open_segment a b = {}"
-    have "{} \<noteq> {0::real<..<1}"
-      by simp
-    then have "a = b"
-      using a1 open_segment_image_interval by fastforce
-  } then show ?thesis by auto
-qed
+  by (simp add: segment_image_interval(2))
 
 lemma open_segment_eq_empty' [simp]: "{} = open_segment a b \<longleftrightarrow> a = b"
   using open_segment_eq_empty by blast
@@ -751,11 +662,9 @@ proof
 qed
 
 lemma finite_closed_segment [simp]: "finite(closed_segment a b) \<longleftrightarrow> a = b"
-  apply auto
-  apply (rule ccontr)
-  apply (simp add: segment_image_interval)
-  using infinite_Icc [OF zero_less_one] finite_imageD [OF _ inj_segment] apply blast
-  done
+  using infinite_Icc [OF zero_less_one] finite_imageD [OF _ inj_segment [of a b]]
+  unfolding segment_image_interval
+  by (smt (verit, del_insts) finite.emptyI finite_insert finite_subset image_subset_iff insertCI segment_degen_0)
 
 lemma finite_open_segment [simp]: "finite(open_segment a b) \<longleftrightarrow> a = b"
   by (auto simp: open_segment_def)
@@ -769,19 +678,6 @@ lemma open_segment_eq_sing: "open_segment a b \<noteq> {c}"
   by (metis finite_insert finite_open_segment insert_not_empty open_segment_image_interval)
 
 lemmas segment_eq_sing = closed_segment_eq_sing open_segment_eq_sing
-
-lemma open_segment_bound1:
-  assumes "x \<in> open_segment a b"
-  shows "norm (x - a) < norm (b - a)"
-proof -
-  obtain u where "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 < u" "u < 1" "a \<noteq> b"
-    using assms by (auto simp add: open_segment_image_interval split: if_split_asm)
-  then show "norm (x - a) < norm (b - a)"
-    apply clarify
-    apply (auto simp: algebra_simps)
-    apply (simp add: scaleR_diff_right [symmetric])
-    done
-qed
 
 lemma compact_segment [simp]:
   fixes a :: "'a::real_normed_vector"
@@ -801,8 +697,7 @@ lemma closure_closed_segment [simp]:
 lemma open_segment_bound:
   assumes "x \<in> open_segment a b"
   shows "norm (x - a) < norm (b - a)" "norm (x - b) < norm (b - a)"
-apply (simp add: assms open_segment_bound1)
-by (metis assms norm_minus_commute open_segment_bound1 open_segment_commute)
+  by (metis assms norm_minus_commute open_segment_bound1 open_segment_commute)+
 
 lemma closure_open_segment [simp]:
   "closure (open_segment a b) = (if a = b then {} else closed_segment a b)"
@@ -814,12 +709,10 @@ proof (cases "a = b")
 next
   case False
   have "closure ((\<lambda>u. u *\<^sub>R (b - a)) ` {0<..<1}) = (\<lambda>u. u *\<^sub>R (b - a)) ` closure {0<..<1}"
-    apply (rule closure_injective_linear_image [symmetric])
-     apply (use False in \<open>auto intro!: injI\<close>)
-    done
+  proof (rule closure_injective_linear_image [symmetric])
+  qed (use False in \<open>auto intro!: injI\<close>)
   then have "closure
-     ((\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0<..<1}) =
-    (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b) ` closure {0<..<1}"
+     ((\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0<..<1}) = (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b) ` closure {0<..<1}"
     using closure_translation [of a "((\<lambda>x. x *\<^sub>R b - x *\<^sub>R a) ` {0<..<1})"]
     by (simp add: segment_eq_compose field_simps scaleR_diff_left scaleR_diff_right image_image)
   then show ?thesis
@@ -852,12 +745,12 @@ lemmas convex_segment = convex_closed_segment convex_open_segment
 lemma subset_closed_segment:
     "closed_segment a b \<subseteq> closed_segment c d \<longleftrightarrow>
      a \<in> closed_segment c d \<and> b \<in> closed_segment c d"
-  by auto (meson contra_subsetD convex_closed_segment convex_contains_segment)
+  using closed_segment_subset convex_closed_segment ends_in_segment in_mono by blast
 
 lemma subset_co_segment:
-    "closed_segment a b \<subseteq> open_segment c d \<longleftrightarrow>
+  "closed_segment a b \<subseteq> open_segment c d \<longleftrightarrow>
      a \<in> open_segment c d \<and> b \<in> open_segment c d"
-using closed_segment_subset by blast
+  using closed_segment_subset by blast
 
 lemma subset_open_segment:
   fixes a :: "'a::euclidean_space"
@@ -890,8 +783,7 @@ next
         have "\<not> p \<le> 0" "\<not> q \<le> 0"
           using p q not_less by blast+
         then show ?thesis
-          by (metis \<open>ua \<noteq> ub\<close> add_less_cancel_left add_less_cancel_right add_mono_thms_linordered_field(5)
-                    less_eq_real_def mult_cancel_left1 mult_less_cancel_left2 uab(2) uab(4))
+          by (smt (verit) \<open>ua \<noteq> ub\<close> mult_cancel_left1 mult_left_le uab(2) uab(4))
       qed
       then have "(1 - u) * ua + u * ub < 1" using u \<open>ua \<noteq> ub\<close>
         by (metis diff_add_cancel diff_gt_0_iff_gt)
@@ -925,10 +817,14 @@ lemma closed_segment_same_snd:
 lemma subset_oc_segment:
   fixes a :: "'a::euclidean_space"
   shows "open_segment a b \<subseteq> closed_segment c d \<longleftrightarrow>
-         a = b \<or> a \<in> closed_segment c d \<and> b \<in> closed_segment c d"
-  apply (rule iffI)
-   apply (metis closure_closed_segment closure_mono closure_open_segment subset_closed_segment)
-  by (meson dual_order.trans segment_open_subset_closed subset_open_segment)
+         a = b \<or> a \<in> closed_segment c d \<and> b \<in> closed_segment c d" 
+    (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis closure_closed_segment closure_mono closure_open_segment subset_closed_segment)
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (meson dual_order.trans segment_open_subset_closed subset_open_segment)
+qed
 
 lemmas subset_segment = subset_closed_segment subset_co_segment subset_oc_segment subset_open_segment
 
@@ -1048,12 +944,12 @@ definition\<^marker>\<open>tag important\<close> "between = (\<lambda>(a,b) x. x
 lemma betweenI:
   assumes "0 \<le> u" "u \<le> 1" "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
   shows "between (a, b) x"
-using assms unfolding between_def closed_segment_def by auto
+  using assms unfolding between_def closed_segment_def by auto
 
 lemma betweenE:
   assumes "between (a, b) x"
   obtains u where "0 \<le> u" "u \<le> 1" "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
-using assms unfolding between_def closed_segment_def by auto
+  using assms unfolding between_def closed_segment_def by auto
 
 lemma between_implies_scaled_diff:
   assumes "between (S, T) X" "between (S, T) Y" "S \<noteq> Y"
@@ -1064,11 +960,7 @@ proof -
   from \<open>between (S, T) Y\<close> obtain u\<^sub>Y where Y: "Y = u\<^sub>Y *\<^sub>R S + (1 - u\<^sub>Y) *\<^sub>R T"
     by (metis add.commute betweenE eq_diff_eq)
   have "X - Y = (u\<^sub>X - u\<^sub>Y) *\<^sub>R (S - T)"
-  proof -
-    from X Y have "X - Y =  u\<^sub>X *\<^sub>R S - u\<^sub>Y *\<^sub>R S + ((1 - u\<^sub>X) *\<^sub>R T - (1 - u\<^sub>Y) *\<^sub>R T)" by simp
-    also have "\<dots> = (u\<^sub>X - u\<^sub>Y) *\<^sub>R S - (u\<^sub>X - u\<^sub>Y) *\<^sub>R T" by (simp add: scaleR_left.diff)
-    finally show ?thesis by (simp add: real_vector.scale_right_diff_distrib)
-  qed
+    by (simp add: X Y scaleR_left.diff scaleR_right_diff_distrib)
   moreover from Y have "S - Y = (1 - u\<^sub>Y) *\<^sub>R (S - T)"
     by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
   moreover note \<open>S \<noteq> Y\<close>
@@ -1154,17 +1046,17 @@ lemma between_triv2 [simp]: "between (a,b) b"
   by (auto simp: between_def)
 
 lemma between_commute:
-   "between (a,b) = between (b,a)"
-by (auto simp: between_def closed_segment_commute)
+  "between (a,b) = between (b,a)"
+  by (auto simp: between_def closed_segment_commute)
 
 lemma between_antisym:
   fixes a :: "'a :: euclidean_space"
   shows "\<lbrakk>between (b,c) a; between (a,c) b\<rbrakk> \<Longrightarrow> a = b"
-by (auto simp: between dist_commute)
+  by (auto simp: between dist_commute)
 
 lemma between_trans:
-    fixes a :: "'a :: euclidean_space"
-    shows "\<lbrakk>between (b,c) a; between (a,c) d\<rbrakk> \<Longrightarrow> between (b,c) d"
+  fixes a :: "'a :: euclidean_space"
+  shows "\<lbrakk>between (b,c) a; between (a,c) d\<rbrakk> \<Longrightarrow> between (b,c) d"
   using dist_triangle2 [of b c d] dist_triangle3 [of b d a]
   by (auto simp: between dist_commute)
 
@@ -1178,7 +1070,7 @@ lemma between_swap:
   assumes "between (A, B) X"
   assumes "between (A, B) Y"
   shows "between (X, B) Y \<longleftrightarrow> between (A, Y) X"
-using assms by (auto simp add: between)
+  using assms by (auto simp add: between)
 
 lemma between_translation [simp]: "between (a + y,a + z) (a + x) \<longleftrightarrow> between (y,z) x"
   by (auto simp: between_def)
@@ -1191,7 +1083,7 @@ lemma between_trans_2:
 lemma between_scaleR_lift [simp]:
   fixes v :: "'a::euclidean_space"
   shows "between (a *\<^sub>R v, b *\<^sub>R v) (c *\<^sub>R v) \<longleftrightarrow> v = 0 \<or> between (a, b) c"
-  by (simp add: between dist_norm scaleR_left_diff_distrib [symmetric] distrib_right [symmetric])
+  by (simp add: between dist_norm flip: scaleR_left_diff_distrib distrib_right)
 
 lemma between_1:
   fixes x::real
