@@ -30,70 +30,66 @@ lemma card_cart_basis: "card (cart_basis::('a::zero_neq_one^'i) set) = CARD('i)"
 interpretation vec: vector_space "(*s) "
   by unfold_locales (vector algebra_simps)+
 
-lemma independent_cart_basis:
-  "vec.independent (cart_basis)"
+lemma independent_cart_basis: "vec.independent (cart_basis)"
 proof (rule vec.independent_if_scalars_zero)
   show "finite (cart_basis)" using finite_cart_basis .
   fix f::"('a, 'b) vec \<Rightarrow> 'a" and x::"('a, 'b) vec"
   assume eq_0: "(\<Sum>x\<in>cart_basis. f x *s x) = 0" and x_in: "x \<in> cart_basis"
   obtain i where x: "x = axis i 1" using x_in unfolding cart_basis_def by auto
   have sum_eq_0: "(\<Sum>x\<in>(cart_basis) - {x}. f x * (x $ i)) = 0"
-  proof (rule sum.neutral, rule ballI)
-    fix xa assume xa: "xa \<in> cart_basis - {x}"
-    obtain a where a: "xa = axis a 1" and a_not_i: "a \<noteq> i"
-      using xa x unfolding cart_basis_def by auto
-    have "xa $ i = 0" unfolding a axis_def using a_not_i by auto
-    thus "f xa * xa $ i = 0" by simp
+  proof (intro sum.neutral ballI)
+    fix y assume y: "y \<in> cart_basis - {x}"
+    obtain a where a: "y = axis a 1" and a_not_i: "a \<noteq> i"
+      using y x unfolding cart_basis_def by auto
+    have "y $ i = 0" unfolding a axis_def using a_not_i by auto
+    thus "f y * y $ i = 0" by simp
   qed
   have "0 = (\<Sum>x\<in>cart_basis. f x *s x) $ i" using eq_0 by simp
-  also have "... = (\<Sum>x\<in>cart_basis. (f x *s x) $ i)" unfolding sum_component ..
-  also have "... = (\<Sum>x\<in>cart_basis. f x * (x $ i))" unfolding vector_smult_component ..
-  also have "... = f x * (x $ i) + (\<Sum>x\<in>(cart_basis) - {x}. f x * (x $ i))"
+  also have "\<dots> = (\<Sum>x\<in>cart_basis. (f x *s x) $ i)" unfolding sum_component ..
+  also have "\<dots> = (\<Sum>x\<in>cart_basis. f x * (x $ i))" unfolding vector_smult_component ..
+  also have "\<dots> = f x * (x $ i) + (\<Sum>x\<in>(cart_basis) - {x}. f x * (x $ i))"
     by (rule sum.remove[OF finite_cart_basis x_in])
-  also have "... =  f x * (x $ i)" unfolding sum_eq_0 by simp
-  also have "... = f x" unfolding x axis_def by auto
+  also have "\<dots> =  f x * (x $ i)" unfolding sum_eq_0 by simp
+  also have "\<dots> = f x" unfolding x axis_def by auto
   finally show "f x = 0" ..
 qed
 
-lemma span_cart_basis:
-  "vec.span (cart_basis) = UNIV"
-proof (auto)
-  fix x::"('a, 'b) vec"
-  let ?f="\<lambda>v. x $ (THE i. v = axis i 1)"
-  show "x \<in> vec.span (cart_basis)"
-    apply (unfold vec.span_finite[OF finite_cart_basis])
-    apply (rule image_eqI[of _ _ ?f])
-     apply (subst  vec_eq_iff)
-     apply clarify
+lemma span_cart_basis [simp]: "vec.span (cart_basis) = UNIV"
+proof -
+  have "x \<in> vec.span cart_basis" for x :: "('a, 'b) vec"
   proof -
-    fix i::'b
-    let ?w = "axis i (1::'a)"
-    have the_eq_i: "(THE a. ?w = axis a 1) = i"
-      by (rule the_equality, auto simp: axis_eq_axis)
-    have sum_eq_0: "(\<Sum>v\<in>(cart_basis) - {?w}. x $ (THE i. v = axis i 1) * v $ i) = 0"
-    proof (rule sum.neutral, rule ballI)
-      fix xa::"('a, 'b) vec"
-      assume xa: "xa \<in> cart_basis - {?w}"
-      obtain j where j: "xa = axis j 1" and i_not_j: "i \<noteq> j" using xa unfolding cart_basis_def by auto
-      have the_eq_j: "(THE i. xa = axis i 1) = j"
-      proof (rule the_equality)
-        show "xa = axis j 1" using j .
-        show "\<And>i. xa = axis i 1 \<Longrightarrow> i = j" by (metis axis_eq_axis j zero_neq_one)
+    let ?f="\<lambda>v. x $ (THE i. v = axis i 1)"
+    have "x $ i = (\<Sum>v\<in>cart_basis. x $ (THE i. v = axis i 1) *s v) $ i" for i::'b
+    proof -
+      let ?w = "axis i (1::'a)"
+      have the_eq_i: "(THE a. ?w = axis a 1) = i"
+        by (rule the_equality, auto simp: axis_eq_axis)
+      have sum_eq_0: "(\<Sum>v\<in>(cart_basis) - {?w}. x $ (THE i. v = axis i 1) * v $ i) = 0"
+      proof (intro sum.neutral ballI)
+        fix y:: "('a, 'b) vec"
+        assume y: "y \<in> cart_basis - {?w}"
+        obtain j where j: "y = axis j 1" and i_not_j: "i \<noteq> j" 
+          using y unfolding cart_basis_def by auto
+        have the_eq_j: "(THE i. y = axis i 1) = j"
+          by (simp add: axis_eq_axis j)
+        show "x $ (THE i. y = axis i 1) * y $ i = 0"
+          by (simp add: axis_def i_not_j j)
       qed
-      show "x $ (THE i. xa = axis i 1) * xa $ i = 0"
-        apply (subst (2) j)
-        unfolding the_eq_j unfolding axis_def using i_not_j by simp
+      have "(\<Sum>v\<in>cart_basis. x $ (THE i. v = axis i 1) *s v) $ i 
+           = (\<Sum>v\<in>cart_basis. x $ (THE i. v = axis i 1) * v $ i)"
+        by force
+      also have "\<dots> = x $ (THE a. ?w = axis a 1) * ?w $ i + (\<Sum>v\<in>(cart_basis) - {?w}. x $ (THE i. v = axis i 1) * v $ i)"
+        by (rule sum.remove[OF finite_cart_basis], auto simp add: cart_basis_def)
+      also have "\<dots> = x $ (THE a. ?w = axis a 1) * ?w $ i" 
+        unfolding sum_eq_0 by simp
+      also have "\<dots> = x $ i" 
+        unfolding the_eq_i unfolding axis_def by auto
+      finally show ?thesis by simp
     qed
-    have "(\<Sum>v\<in>cart_basis. x $ (THE i. v = axis i 1) *s v) $ i =
-  (\<Sum>v\<in>cart_basis. (x $ (THE i. v = axis i 1) *s v) $ i)" unfolding sum_component ..
-    also have "... = (\<Sum>v\<in>cart_basis. x $ (THE i. v = axis i 1) * v $ i)"
-      unfolding vector_smult_component ..
-    also have "... = x $ (THE a. ?w = axis a 1) * ?w $ i + (\<Sum>v\<in>(cart_basis) - {?w}. x $ (THE i. v = axis i 1) * v $ i)"
-      by (rule sum.remove[OF finite_cart_basis], auto simp add: cart_basis_def)
-    also have "... = x $ (THE a. ?w = axis a 1) * ?w $ i" unfolding sum_eq_0 by simp
-    also have "... = x $ i" unfolding the_eq_i unfolding axis_def by auto
-    finally show "x $ i = (\<Sum>v\<in>cart_basis. x $ (THE i. v = axis i 1) *s v) $ i" by simp
-  qed simp
+    then show "x \<in> vec.span (cart_basis)"
+      by (metis (no_types, lifting) vec.span_base vec.span_scale vec.span_sum vec_eq_iff)
+  qed
+  then show ?thesis by auto
 qed
 
 (*Some interpretations:*)
@@ -138,10 +134,12 @@ interpretation vec: finite_dimensional_vector_space_pair "(*s)" cart_basis "(*s)
 lemma matrix_works:
   assumes lf: "Vector_Spaces.linear (*s) (*s) f"
   shows "matrix f *v x = f (x::'a::field ^ 'n)"
-  apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult.commute)
-  apply clarify
-  apply (rule linear_componentwise[OF lf, symmetric])
-  done
+proof -
+  have "\<forall>i. (\<Sum>j\<in>UNIV. x $ j * f (axis j 1) $ i) = f x $ i"
+    by (simp add: Cartesian_Space.linear_componentwise lf)
+  then show ?thesis
+    by (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult.commute)
+qed
 
 lemma matrix_of_matrix_vector_mul[simp]: "matrix(\<lambda>x. A *v (x :: 'a::field ^ 'n)) = A"
   by (simp add: matrix_eq matrix_works)
@@ -190,44 +188,27 @@ proof safe
 next
   assume "inj ((*v) A)"
   from vec.linear_injective_left_inverse[OF matrix_vector_mul_linear_gen this]
-  obtain g where "Vector_Spaces.linear (*s) (*s) g" and g: "g \<circ> (*v) A = id"
+  obtain g where "Vector_Spaces.linear (*s) (*s) g" and "g \<circ> (*v) A = id"
     by blast
-  have "matrix g ** A = mat 1"
-    by (metis matrix_vector_mul_linear_gen \<open>Vector_Spaces.linear (*s) (*s) g\<close> g matrix_compose_gen
-        matrix_eq matrix_id_mat_1 matrix_vector_mul(1))
+  then have "matrix g ** A = mat 1"
+    by (metis matrix_compose_gen matrix_id_mat_1 matrix_of_matrix_vector_mul vec.linear_axioms)
   then show "\<exists>B. B ** A = mat 1"
     by metis
 qed
 
 lemma matrix_left_invertible_ker:
   "(\<exists>B. (B::'a::{field} ^'m^'n) ** (A::'a::{field}^'n^'m) = mat 1) \<longleftrightarrow> (\<forall>x. A *v x = 0 \<longrightarrow> x = 0)"
-  unfolding matrix_left_invertible_injective
-  using vec.inj_on_iff_eq_0[OF vec.subspace_UNIV, of A]
-  by (simp add: inj_on_def)
+  by (simp add: matrix_left_invertible_injective vec.inj_iff_eq_0)
 
 lemma matrix_right_invertible_surjective:
   "(\<exists>B. (A::'a::field^'n^'m) ** (B::'a::field^'m^'n) = mat 1) \<longleftrightarrow> surj (\<lambda>x. A *v x)"
 proof -
-  { fix B :: "'a ^'m^'n"
-    assume AB: "A ** B = mat 1"
-    { fix x :: "'a ^ 'm"
-      have "A *v (B *v x) = x"
-        by (simp add: matrix_vector_mul_assoc AB) }
-    hence "surj ((*v) A)" unfolding surj_def by metis }
-  moreover
-  { assume sf: "surj ((*v) A)"
-    from vec.linear_surjective_right_inverse[OF _ this]
-    obtain g:: "'a ^'m \<Rightarrow> 'a ^'n" where g: "Vector_Spaces.linear (*s) (*s) g" "(*v) A \<circ> g = id"
-      by blast
-
-    have "A ** (matrix g) = mat 1"
-      unfolding matrix_eq  matrix_vector_mul_lid
-        matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
-      using g(2) unfolding o_def fun_eq_iff id_def
-      .
-    hence "\<exists>B. A ** (B::'a^'m^'n) = mat 1" by blast
-  }
-  ultimately show ?thesis unfolding surj_def by blast
+  have "\<And>B x. A ** B = mat 1 \<Longrightarrow> \<exists>y. x = A *v y"
+    by (metis matrix_vector_mul_assoc matrix_vector_mul_lid)
+  moreover have "\<forall>x. \<exists>xa. x = A *v xa \<Longrightarrow> \<exists>B. A ** B = mat 1"
+    by (metis (mono_tags, lifting) matrix_compose_gen matrix_id_mat_1 matrix_of_matrix_vector_mul surj_def vec.linear_axioms vec.linear_surjective_right_inverse)
+  ultimately show ?thesis
+    by (auto simp: image_def set_eq_iff)
 qed
 
 lemma matrix_left_invertible_independent_columns:
@@ -237,33 +218,20 @@ lemma matrix_left_invertible_independent_columns:
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   let ?U = "UNIV :: 'n set"
-  { assume k: "\<forall>x. A *v x = 0 \<longrightarrow> x = 0"
-    { fix c i
-      assume c: "sum (\<lambda>i. c i *s column i A) ?U = 0" and i: "i \<in> ?U"
-      let ?x = "\<chi> i. c i"
-      have th0:"A *v ?x = 0"
-        using c
-        by (vector matrix_mult_sum)
-      from k[rule_format, OF th0] i
-      have "c i = 0" by (vector vec_eq_iff)}
-    hence ?rhs by blast }
-  moreover
-  { assume H: ?rhs
-    { fix x assume x: "A *v x = 0"
-      let ?c = "\<lambda>i. ((x$i ):: 'a)"
-      from H[rule_format, of ?c, unfolded matrix_mult_sum[symmetric], OF x]
-      have "x = 0" by vector }
-  }
-  ultimately show ?thesis unfolding matrix_left_invertible_ker by auto
+  have "c i = 0"
+    if "\<forall>x. A *v x = 0 \<longrightarrow> x = 0" "sum (\<lambda>i. c i *s column i A) ?U = 0" for c i
+    by (metis (no_types) UNIV_I matrix_mult_sum vec_lambda_eta vec_nth_cases zero_vec_def that)
+  moreover have "x = 0" if "A *v x = 0" ?rhs for x
+    by (metis (full_types) matrix_mult_sum that vec_eq_iff zero_index)
+  ultimately show ?thesis 
+    unfolding matrix_left_invertible_ker by auto
 qed
 
 lemma matrix_right_invertible_independent_rows:
   fixes A :: "'a::{field}^'n^'m"
   shows "(\<exists>(B::'a^'m^'n). A ** B = mat 1) \<longleftrightarrow>
-    (\<forall>c. sum (\<lambda>i. c i *s row i A) (UNIV :: 'm set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
-  unfolding left_invertible_transpose[symmetric]
-    matrix_left_invertible_independent_columns
-  by (simp add:)
+         (\<forall>c. sum (\<lambda>i::'m. c i *s row i A) UNIV = 0 \<longrightarrow> (\<forall>i. c i = 0))"
+  by (simp add: matrix_left_invertible_independent_columns flip: left_invertible_transpose)
 
 lemma matrix_right_invertible_span_columns:
   "(\<exists>(B::'a::field ^'n^'m). (A::'a ^'m^'n) ** B = mat 1) \<longleftrightarrow>
@@ -277,14 +245,10 @@ proof -
   have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> vec.span (columns A))" by blast
   { assume h: ?lhs
     { fix x:: "'a ^'n"
-      from h[unfolded lhseq, rule_format, of x] obtain y :: "'a ^'m"
-        where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
-      have "x \<in> vec.span (columns A)"
-        unfolding y[symmetric] scalar_mult_eq_scaleR
-      proof (rule vec.span_sum [OF vec.span_scale])
-        show "column i A \<in> vec.span (columns A)" for i
-          using columns_def vec.span_superset by auto
-      qed
+      obtain y :: "'a ^'m" where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x"
+        using h lhseq by blast
+      then have "x \<in> vec.span (columns A)"
+        by (metis (mono_tags, lifting) columns_def mem_Collect_eq vec.span_base vec.span_scale vec.span_sum)
     }
     then have ?rhs unfolding rhseq by blast }
   moreover
@@ -313,14 +277,14 @@ proof -
             using i(1) by (simp add: field_simps)
           have "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
               else (x$xa) * ((column xa A$j))) ?U = sum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
-            by (rule sum.cong[OF refl]) (use th in blast)
+            using th by force
           also have "\<dots> = sum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
             by (simp add: sum.distrib)
           also have "\<dots> = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-            unfolding sum.delta[OF fU]
-            using i(1) by simp
+            unfolding sum.delta[OF fU] using i(1) by simp
           finally show "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
-            else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
+                                            else (x$xa) * ((column xa A$j))) ?U 
+                      = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
         qed
       qed
     }
@@ -331,10 +295,7 @@ qed
 
 lemma matrix_left_invertible_span_rows_gen:
   "(\<exists>(B::'a^'m^'n). B ** (A::'a::field^'n^'m) = mat 1) \<longleftrightarrow> vec.span (rows A) = UNIV"
-  unfolding right_invertible_transpose[symmetric]
-  unfolding columns_transpose[symmetric]
-  unfolding matrix_right_invertible_span_columns
-  ..
+  by (metis columns_transpose matrix_right_invertible_span_columns right_invertible_transpose)
 
 lemma matrix_left_invertible_span_rows:
   "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
@@ -348,17 +309,13 @@ proof -
     assume AA': "A ** A' = mat 1"
     have sA: "surj ((*v) A)"
       using AA' matrix_right_invertible_surjective by auto
-    from vec.linear_surjective_isomorphism[OF matrix_vector_mul_linear_gen sA]
     obtain f' :: "'a ^'n \<Rightarrow> 'a ^'n"
-      where f': "Vector_Spaces.linear (*s) (*s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x" by blast
-    have th: "matrix f' ** A = mat 1"
-      by (simp add: matrix_eq matrix_works[OF f'(1)]
-          matrix_vector_mul_assoc[symmetric] f'(2)[rule_format])
-    hence "(matrix f' ** A) ** A' = mat 1 ** A'" by simp
-    hence "matrix f' = A'"
-      by (simp add: matrix_mul_assoc[symmetric] AA')
-    hence "matrix f' ** A = A' ** A" by simp
-    hence "A' ** A = mat 1" by (simp add: th)
+      where f': "Vector_Spaces.linear (*s) (*s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x"
+      using sA vec.linear_surjective_isomorphism by blast 
+    have "matrix f' ** A = mat 1"
+      by (metis f' matrix_eq matrix_vector_mul_assoc matrix_vector_mul_lid matrix_works)
+    hence "A' ** A = mat 1"
+      by (metis AA' matrix_mul_assoc matrix_mul_lid)
   }
   then show ?thesis by blast
 qed
@@ -382,22 +339,12 @@ proof -
     using inv_A unfolding invertible_def by blast
   obtain B' where BB': "B ** B' = mat 1" and B'B: "B' ** B = mat 1" 
     using inv_B unfolding invertible_def by blast
-  show ?thesis
-  proof (unfold invertible_def, rule exI[of _ "B'**A'"], rule conjI)
-    have "A ** B ** (B' ** A') = A ** (B ** (B' ** A'))" 
-      using matrix_mul_assoc[of A B "(B' ** A')", symmetric] .
-    also have "... = A ** (B ** B' ** A')" unfolding matrix_mul_assoc[of B "B'" "A'"] ..
-    also have "... = A ** (mat 1 ** A')" unfolding BB' ..
-    also have "... = A ** A'" unfolding matrix_mul_lid ..
-    also have "... = mat 1" unfolding AA' ..
-    finally show "A ** B ** (B' ** A') = mat (1::'a)" .    
-    have "B' ** A' ** (A ** B) = B' ** (A' ** (A ** B))" using matrix_mul_assoc[of B' A' "(A ** B)", symmetric] .
-    also have "... =  B' ** (A' ** A ** B)" unfolding matrix_mul_assoc[of A' A B] ..
-    also have "... =  B' ** (mat 1 ** B)" unfolding A'A ..
-    also have "... = B' ** B"  unfolding matrix_mul_lid ..
-    also have "... = mat 1" unfolding B'B ..
-    finally show "B' ** A' ** (A ** B) = mat 1" .
-  qed
+  have "A ** B ** (B' ** A') = mat 1"
+    by (metis AA' BB' matrix_mul_assoc matrix_mul_rid)
+  moreover have "B' ** A' ** (A ** B) = mat 1"
+    by (metis A'A B'B matrix_mul_assoc matrix_mul_rid)
+  ultimately show ?thesis
+    using invertible_def by blast
 qed
 
 lemma transpose_invertible:
@@ -409,12 +356,7 @@ lemma transpose_invertible:
 lemma vector_matrix_mul_assoc:
   fixes v :: "('a::comm_semiring_1)^'n"
   shows "(v v* M) v* N = v v* (M ** N)"
-proof -
-  from matrix_vector_mul_assoc
-  have "transpose N *v (transpose M *v v) = (transpose N ** transpose M) *v v" by fast
-  thus "(v v* M) v* N = v v* (M ** N)"
-    by (simp add: matrix_transpose_mul [symmetric])
-qed
+  by (metis (no_types, opaque_lifting) matrix_transpose_mul matrix_vector_mul_assoc transpose_matrix_vector)
 
 lemma matrix_scaleR_vector_ac:
   fixes A :: "real^('m::finite)^'n"
@@ -426,8 +368,7 @@ lemma scaleR_matrix_vector_assoc:
   shows "k *\<^sub>R (A *v v) = k *\<^sub>R A *v v"
   by (metis matrix_scaleR_vector_ac matrix_vector_mult_scaleR)
 
-(*Finally, some interesting theorems and interpretations that don't appear in any file of the
-  library.*)
+subsection \<open>Some interesting theorems and interpretations\<close>
 
 locale linear_first_finite_dimensional_vector_space =
   l?: Vector_Spaces.linear scaleB scaleC f +
@@ -438,25 +379,10 @@ locale linear_first_finite_dimensional_vector_space =
   and f :: "('b=>'c)"
 
 lemma vec_dim_card: "vec.dim (UNIV::('a::{field}^'n) set) = CARD ('n)"
-proof -
-  let ?f="\<lambda>i::'n. axis i (1::'a)"
-  have "vec.dim (UNIV::('a::{field}^'n) set) = card (cart_basis::('a^'n) set)"
-    unfolding vec.dim_UNIV ..
-  also have "... = card ({i. i\<in> UNIV}::('n) set)"
-    proof (rule bij_betw_same_card[of ?f, symmetric], unfold bij_betw_def, auto)
-      show "inj (\<lambda>i::'n. axis i (1::'a))"  by (simp add: inj_on_def axis_eq_axis)
-      fix i::'n
-      show "axis i 1 \<in> cart_basis" unfolding cart_basis_def by auto
-      fix x::"'a^'n"
-      assume "x \<in> cart_basis"
-      thus "x \<in> range (\<lambda>i. axis i 1)" unfolding cart_basis_def by auto
-    qed
-  also have "... = CARD('n)" by auto
-  finally show ?thesis .
-qed
+  by (simp add: card_cart_basis)
 
 interpretation vector_space_over_itself: vector_space "(*) :: 'a::field \<Rightarrow> 'a \<Rightarrow> 'a"
-by unfold_locales (simp_all add: algebra_simps)
+  by unfold_locales (simp_all add: algebra_simps)
 
 lemmas [simp del] = vector_space_over_itself.scale_scale
 
@@ -484,24 +410,12 @@ lemma matrix_mult_dot: "A *v x = (\<chi> i. inner (A$i) x)"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
-  apply (rule adjoint_unique)
-  apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def
-    sum_distrib_right sum_distrib_left)
-  apply (subst sum.swap)
-  apply (simp add:  ac_simps)
-  done
+  by (metis adjoint_unique dot_lmul_matrix vector_transpose_matrix)
 
-lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
+lemma matrix_adjoint: 
+  assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   shows "matrix(adjoint f) = transpose(matrix f)"
-proof -
-  have "matrix(adjoint f) = matrix(adjoint ((*v) (matrix f)))"
-    by (simp add: lf)
-  also have "\<dots> = transpose(matrix f)"
-    unfolding adjoint_matrix matrix_of_matrix_vector_mul
-    apply rule
-    done
-  finally show ?thesis .
-qed
+  by (metis adjoint_matrix assms matrix_of_matrix_vector_mul matrix_vector_mul(2))
 
 
 subsection\<open> Rank of a matrix\<close>
@@ -511,10 +425,8 @@ text\<open>Equivalence of row and column rank is taken from George Mackiw's pape
 lemma matrix_vector_mult_in_columnspace_gen:
   fixes A :: "'a::field^'n^'m"
   shows "(A *v x) \<in> vec.span(columns A)"
-  apply (simp add: matrix_vector_column columns_def transpose_def column_def)
-  apply (intro vec.span_sum vec.span_scale)
-  apply (force intro: vec.span_base)
-  done
+  unfolding columns_def
+  by (metis (mono_tags, lifting) matrix_mult_sum mem_Collect_eq vec.span_base vec.span_scale vec.span_sum)
 
 lemma matrix_vector_mult_in_columnspace:
   fixes A :: "real^'n^'m"
@@ -576,9 +488,7 @@ proof -
     then have ind: "independent ((*v) A ` B)"
       by (rule linear_independent_injective_image [OF Finite_Cartesian_Product.matrix_vector_mul_linear \<open>independent B\<close>])
     have "dim (span (rows A)) \<le> card ((*v) A ` B)"
-      unfolding B(2)[symmetric]
-      using inj
-      by (auto simp: card_image inj_on_subset span_superset)
+      by (metis B(2) card_image inj inj_on_subset order.refl span_superset)
     also have "\<dots> \<le> dim (span (columns A))"
       using _ ind
       by (rule independent_card_le_dim) (auto intro!: matrix_vector_mult_in_columnspace)
@@ -613,13 +523,7 @@ lemma rank_dim_range:
   fixes A :: "real^'n^'m"
   shows "rank A = dim(range (\<lambda>x. A *v x))"
   unfolding column_rank_def
-proof (rule span_eq_dim)
-  have "span (columns A) \<subseteq> span (range ((*v) A))" (is "?l \<subseteq> ?r")
-    by (simp add: columns_image_basis image_subsetI span_mono)
-  then show "?l = ?r"
-    by (metis (no_types, lifting) image_subset_iff matrix_vector_mult_in_columnspace
-        span_eq span_span)
-qed
+  by (smt (verit, best) columns_image_basis dim_span image_subset_iff iso_tuple_UNIV_I matrix_vector_mult_in_columnspace span_eq)
 
 lemma rank_bound:
   fixes A :: "real^'n^'m"
@@ -636,8 +540,7 @@ lemma full_rank_injective:
 lemma full_rank_surjective:
   fixes A :: "real^'n^'m"
   shows "rank A = CARD('m) \<longleftrightarrow> surj ((*v) A)"
-  by (simp add: matrix_right_invertible_surjective [symmetric] left_invertible_transpose [symmetric]
-                matrix_left_invertible_injective full_rank_injective [symmetric] rank_transpose)
+  by (metis (no_types, opaque_lifting) dim_eq_full dim_vec_eq rank_dim_range span_vec_eq vec.span_UNIV vec.span_image vec_dim_card)
 
 lemma rank_I: "rank(mat 1::real^'n^'n) = CARD('n)"
   by (simp add: full_rank_injective inj_on_def)
@@ -645,7 +548,7 @@ lemma rank_I: "rank(mat 1::real^'n^'n) = CARD('n)"
 lemma less_rank_noninjective:
   fixes A :: "real^'n^'m"
   shows "rank A < CARD('n) \<longleftrightarrow> \<not> inj ((*v) A)"
-using less_le rank_bound by (auto simp: full_rank_injective [symmetric])
+  using less_le rank_bound by (auto simp: full_rank_injective [symmetric])
 
 lemma matrix_nonfull_linear_equations_eq:
   fixes A :: "real^'n^'m"
@@ -680,9 +583,10 @@ lemma exhaust_2:
   shows "x = 1 \<or> x = 2"
 proof (induct x)
   case (of_int z)
-  then have "0 \<le> z" and "z < 2" by simp_all
-  then have "z = 0 | z = 1" by arith
-  then show ?case by auto
+  then have "z = 0 | z = 1"
+    by fastforce
+  then show ?case 
+    by auto
 qed
 
 lemma forall_2: "(\<forall>i::2. P i) \<longleftrightarrow> P 1 \<and> P 2"
@@ -693,8 +597,7 @@ lemma exhaust_3:
   shows "x = 1 \<or> x = 2 \<or> x = 3"
 proof (induct x)
   case (of_int z)
-  then have "0 \<le> z" and "z < 3" by simp_all
-  then have "z = 0 \<or> z = 1 \<or> z = 2" by arith
+  then have "z = 0 \<or> z = 1 \<or> z = 2" by fastforce
   then show ?case by auto
 qed
 
@@ -706,8 +609,7 @@ lemma exhaust_4:
   shows "x = 1 \<or> x = 2 \<or> x = 3 \<or> x = 4"
 proof (induct x)
   case (of_int z)
-  then have "0 \<le> z" and "z < 4" by simp_all
-  then have "z = 0 \<or> z = 1 \<or> z = 2 \<or> z = 3" by arith
+  then have "z = 0 \<or> z = 1 \<or> z = 2 \<or> z = 3" by fastforce
   then show ?case by auto
 qed
 
@@ -744,10 +646,7 @@ lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
   by (simp add: vec_eq_iff)
 
 lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x. P(\<chi> i. x))"
-  apply auto
-  apply (erule_tac x= "x$1" in allE)
-  apply (simp only: vector_one[symmetric])
-  done
+  by (metis vector_one)
 
 lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
   by (simp add: norm_vec_def)
@@ -791,7 +690,7 @@ lemma has_derivative_vector_1:
   shows "((\<lambda>x. vec (g (x $ 1))) has_derivative (*\<^sub>R) (g' a))
          (at ((vec a)::real^1) within vec ` S)"
     using der_g
-    apply (auto simp: Deriv.has_derivative_within bounded_linear_scaleR_right norm_vector_1)
+    apply (clarsimp simp: Deriv.has_derivative_within bounded_linear_scaleR_right norm_vector_1)
     apply (drule tendsto_at_within_vector_1, vector)
     apply (auto simp: algebra_simps eventually_at tendsto_def)
     done
@@ -817,46 +716,33 @@ lemma forall_vector_1: "(\<forall>v::'a::zero^1. P v) \<longleftrightarrow> (\<f
   by (metis vector_1 vector_one)
 
 lemma forall_vector_2: "(\<forall>v::'a::zero^2. P v) \<longleftrightarrow> (\<forall>x y. P(vector[x, y]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (erule_tac x="v$2" in allE)
-  apply (subgoal_tac "vector [v$1, v$2] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_2)
-  done
+proof -
+  have "P v" if "\<And>x y. P (vector [x, y])" for v
+  proof -
+    have "vector [v$1, v$2] = v"
+      by (smt (verit, best) exhaust_2 vec_eq_iff vector_2)
+    then show ?thesis
+      by (metis that)
+  qed
+  then show ?thesis by auto
+qed
 
 lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<forall>x y z. P(vector[x, y, z]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (erule_tac x="v$2" in allE)
-  apply (erule_tac x="v$3" in allE)
-  apply (subgoal_tac "vector [v$1, v$2, v$3] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_3)
-  done
+proof -
+  have "P v" if "\<And>x y z. P (vector [x, y, z])" for v
+  proof -
+    have "vector [v$1, v$2, v$3] = v"
+      by (smt (verit, best) exhaust_3 vec_eq_iff vector_3)
+    then show ?thesis
+      by (metis that)
+  qed
+  then show ?thesis by auto
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>lambda skolemization on cartesian products\<close>
 
-lemma lambda_skolem: "(\<forall>i. \<exists>x. P i x) \<longleftrightarrow>
-   (\<exists>x::'a ^ 'n. \<forall>i. P i (x $ i))" (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
-  let ?S = "(UNIV :: 'n set)"
-  { assume H: "?rhs"
-    then have ?lhs by auto }
-  moreover
-  { assume H: "?lhs"
-    then obtain f where f:"\<forall>i. P i (f i)" unfolding choice_iff by metis
-    let ?x = "(\<chi> i. (f i)) :: 'a ^ 'n"
-    { fix i
-      from f have "P i (f i)" by metis
-      then have "P i (?x $ i)" by auto
-    }
-    hence "\<forall>i. P i (?x$i)" by metis
-    hence ?rhs by metis }
-  ultimately show ?thesis by metis
-qed
+lemma lambda_skolem: "(\<forall>i. \<exists>x. P i x) \<longleftrightarrow> (\<exists>x::'a ^ 'n. \<forall>i. P i (x $ i))"
+  by (metis vec_lambda_beta)
 
 
 text \<open>The same result in terms of square matrices.\<close>
@@ -885,8 +771,7 @@ lemma dot_matrix_vector_mul:
   fixes A B :: "real ^'n ^'n" and x y :: "real ^'n"
   shows "(A *v x) \<bullet> (B *v y) =
       (((rowvector x :: real^'n^1) ** ((transpose A ** B) ** (columnvector y :: real ^1^'n)))$1)$1"
-  unfolding dot_matrix_product transpose_columnvector[symmetric]
-    dot_rowvector_columnvector matrix_transpose_mul matrix_mul_assoc ..
+  by (metis dot_lmul_matrix dot_matrix_product dot_rowvector_columnvector matrix_mul_assoc vector_transpose_matrix)
 
 
 lemma dim_substandard_cart: "vec.dim {x::'a::field^'n. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0} = card d"
@@ -931,7 +816,7 @@ proof
   hence "m *s x = y - c" by (simp add: field_simps)
   hence "inverse m *s (m *s x) = inverse m *s (y - c)" by simp
   then show "x = inverse m *s y + - (inverse m *s c)"
-    using m0 by (simp add: vector_smult_assoc vector_ssub_ldistrib)
+    by (simp add: m0 vec.scale_right_diff_distrib)
 next
   assume h: "x = inverse m *s y + - (inverse m *s c)"
   show "m *s x + c = y" unfolding h
@@ -940,8 +825,7 @@ qed
 
 lemma vector_eq_affinity:
     "(m::'a::field) \<noteq> 0 ==> (y = m *s x + c \<longleftrightarrow> inverse(m) *s y + -(inverse(m) *s c) = x)"
-  using vector_affinity_eq[where m=m and x=x and y=y and c=c]
-  by metis
+  by (metis vector_affinity_eq)
 
 lemma vector_cart:
   fixes f :: "real^'n \<Rightarrow> real"
@@ -1017,14 +901,9 @@ proof -
       by blast
   }
   moreover
-  {
-    assume lf: "Vector_Spaces.linear (*s) (*s) f" and om: "orthogonal_matrix ?mf"
-    from lf om have ?lhs
-      unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
-      apply (simp only: matrix_works[OF lf, symmetric] dot_matrix_vector_mul)
-      apply (simp add: dot_matrix_product linear_def scalar_mult_eq_scaleR)
-      done
-  }
+  have ?lhs if "Vector_Spaces.linear (*s) (*s) f" and "orthogonal_matrix ?mf"
+    using that unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
+      by (metis dot_matrix_product dot_matrix_vector_mul linear_matrix_vector_mul_eq matrix_mul_lid matrix_vector_mul(2))
   ultimately show ?thesis
     by (auto simp: linear_def scalar_mult_eq_scaleR)
 qed
@@ -1052,7 +931,7 @@ lemma  orthogonal_matrix_orthonormal_rows:
           (\<forall>i j. i \<noteq> j \<longrightarrow> orthogonal (row i A) (row j A))"
   using orthogonal_matrix_orthonormal_columns [of "transpose A"] by simp
 
-proposition  orthogonal_matrix_exists_basis:
+proposition orthogonal_matrix_exists_basis:
   fixes a :: "real^'n"
   assumes "norm a = 1"
   obtains A where "orthogonal_matrix A" "A *v (axis k 1) = a"
@@ -1084,16 +963,13 @@ lemma  orthogonal_transformation_exists_1:
   assumes "norm a = 1" "norm b = 1"
   obtains f where "orthogonal_transformation f" "f a = b"
 proof -
-  obtain k::'n where True
-    by simp
-  obtain A B where AB: "orthogonal_matrix A" "orthogonal_matrix B" and eq: "A *v (axis k 1) = a" "B *v (axis k 1) = b"
+  obtain k A B where AB: "orthogonal_matrix A" "orthogonal_matrix B" and eq: "A *v (axis k 1) = a" "B *v (axis k 1) = b"
     using orthogonal_matrix_exists_basis assms by metis
   let ?f = "\<lambda>x. (B ** transpose A) *v x"
   show thesis
   proof
     show "orthogonal_transformation ?f"
-      by (subst orthogonal_transformation_matrix)
-        (auto simp: AB orthogonal_matrix_mul)
+      by (simp add: AB orthogonal_matrix_mul orthogonal_transformation_matrix)
   next
     show "?f a = b"
       using \<open>orthogonal_matrix A\<close> unfolding orthogonal_matrix_def
@@ -1101,7 +977,7 @@ proof -
   qed
 qed
 
-proposition  orthogonal_transformation_exists:
+proposition orthogonal_transformation_exists:
   fixes a b :: "real^'n"
   assumes "norm a = norm b"
   obtains f where "orthogonal_transformation f" "f a = b"
@@ -1114,16 +990,7 @@ next
   then obtain f where f: "orthogonal_transformation f" and eq: "f (a /\<^sub>R norm a) = (b /\<^sub>R norm b)"
     by (auto intro: orthogonal_transformation_exists_1 [of "a /\<^sub>R norm a" "b /\<^sub>R norm b"])
   show ?thesis
-  proof
-    interpret linear f
-      using f by (simp add: orthogonal_transformation_linear)
-    have "f a /\<^sub>R norm a = f (a /\<^sub>R norm a)"
-      by (simp add: scale)
-    also have "\<dots> = b /\<^sub>R norm a"
-      by (simp add: eq assms [symmetric])
-    finally show "f a = b"
-      using False by auto
-  qed (use f in auto)
+    using False assms eq f orthogonal_transformation_scaleR that by fastforce
 qed
 
 
@@ -1157,9 +1024,7 @@ text \<open>Hence another formulation of orthogonal transformation\<close>
 proposition  orthogonal_transformation_isometry:
   "orthogonal_transformation f \<longleftrightarrow> f(0::'a::real_inner) = (0::'a) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
   unfolding orthogonal_transformation
-  apply (auto simp: linear_0 isometry_linear)
-   apply (metis (no_types, opaque_lifting) dist_norm linear_diff)
-  by (metis dist_0_norm)
+  by (metis dist_0_norm dist_norm isometry_linear linear_0 linear_diff)
 
 
 text \<open>Can extend an isometry from unit sphere:\<close>
@@ -1369,10 +1234,7 @@ proof -
       apply (simp add: if_if_eq_conj sum.neutral conj_commute cong: conj_cong)
       done
     show ?thesis
-      apply (subst eq)
-      apply (intro mult idplus that)
-       apply (auto intro: diagonal)
-      done
+      unfolding eq by (intro mult idplus that) (auto intro: diagonal)
   qed
   show ?thesis
     by (rule induct_matrix_elementary) (auto intro: assms *)
