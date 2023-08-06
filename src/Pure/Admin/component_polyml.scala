@@ -283,10 +283,10 @@ source distribution from
 https://github.com/polyml/polyml/commit/""" + polyml_version + """
 
 The Isabelle repository provides an administrative tool "isabelle
-build_polyml", which can be used in the polyml component directory as
-follows.
+component_polyml", which can be used in the polyml component directory as
+follows:
 
-* Linux and macOS:
+* Linux and macOS
 
   $ isabelle component_polyml
 
