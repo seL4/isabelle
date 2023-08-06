@@ -45,6 +45,21 @@ Quick start in 30min
 
     isabelle/bin/isabelle doc system
 
+6. Find historical evidence about good or bad behaviour
+   (e.g. in Isabelle/jEdit):
+
+    cd isabelle
+    hg bisect --reset
+    Admin/init -R   #alternative: "hg up -r REV"
+
+    Admin/init && bin/isabelle jedit
+    hg bisect --good
+
+    Admin/init && bin/isabelle jedit
+    hg bisect --bad
+
+    ...
+
 
 Introduction
 ------------
