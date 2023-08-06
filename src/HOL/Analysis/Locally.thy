@@ -44,24 +44,18 @@ lemma open_neighbourhood_base_at:
 lemma open_neighbourhood_base_of:
   "(\<forall>S. P S \<longrightarrow> openin X S)
         \<Longrightarrow> neighbourhood_base_of P X \<longleftrightarrow> (\<forall>W x. openin X W \<and> x \<in> W \<longrightarrow> (\<exists>U. P U \<and> x \<in> U \<and> U \<subseteq> W))"
-  apply (simp add: neighbourhood_base_of, safe, blast)
-  by meson
+  by (smt (verit) neighbourhood_base_of subsetD)
 
 lemma neighbourhood_base_of_open_subset:
    "\<lbrakk>neighbourhood_base_of P X; openin X S\<rbrakk>
         \<Longrightarrow> neighbourhood_base_of P (subtopology X S)"
-  apply (clarsimp simp add: neighbourhood_base_of openin_subtopology_alt image_def)
-  apply (rename_tac x V)
-  apply (drule_tac x="S \<inter> V" in spec)
-  apply (simp add: Int_ac)
-  by (metis IntI le_infI1 openin_Int)
+  by (smt (verit, ccfv_SIG) neighbourhood_base_of openin_open_subtopology subset_trans)
 
 lemma neighbourhood_base_of_topology_base:
    "openin X = arbitrary union_of (\<lambda>W. W \<in> \<B>)
         \<Longrightarrow> neighbourhood_base_of P X \<longleftrightarrow>
              (\<forall>W x. W \<in> \<B> \<and> x \<in> W  \<longrightarrow> (\<exists>U V. openin X U \<and> P V \<and> x \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> W))"
-  apply (auto simp: openin_topology_base_unique neighbourhood_base_of)
-  by (meson subset_trans)
+  by (smt (verit, del_insts) neighbourhood_base_of openin_topology_base_unique subset_trans)
 
 lemma neighbourhood_base_at_unlocalized:
   assumes "\<And>S T. \<lbrakk>P S; openin X T; x \<in> T; T \<subseteq> S\<rbrakk> \<Longrightarrow> P T"
@@ -86,9 +80,7 @@ qed (simp add: neighbourhood_base_at_def)
 lemma neighbourhood_base_at_with_subset:
    "\<lbrakk>openin X U; x \<in> U\<rbrakk>
         \<Longrightarrow> (neighbourhood_base_at x P X \<longleftrightarrow> neighbourhood_base_at x (\<lambda>T. T \<subseteq> U \<and> P T) X)"
-  apply (simp add: neighbourhood_base_at_def)
-  apply (metis IntI Int_subset_iff openin_Int)
-  done
+  unfolding neighbourhood_base_at_def by (metis IntI Int_subset_iff openin_Int)
 
 lemma neighbourhood_base_of_with_subset:
    "neighbourhood_base_of P X \<longleftrightarrow> neighbourhood_base_of (\<lambda>t. t \<subseteq> topspace X \<and> P t) X"
@@ -140,9 +132,8 @@ proof -
     qed
   qed
   moreover have ?Q if ?R
-    using that
-    apply (simp add: open_neighbourhood_base_of)
-    by (metis mem_Collect_eq openin_subset path_component_of_refl path_connectedin_path_component_of path_connectedin_subtopology that topspace_subtopology_subset)
+    by (smt (verit) mem_Collect_eq open_neighbourhood_base_of openin_subset path_component_of_refl 
+        path_connectedin_path_component_of path_connectedin_subtopology that topspace_subtopology_subset)
   ultimately show "?P = ?Q" "?P = ?R"
     by blast+
 qed
@@ -154,23 +145,24 @@ lemma locally_path_connected_space:
 
 lemma locally_path_connected_space_open_path_components:
    "locally_path_connected_space X \<longleftrightarrow>
-        (\<forall>U c. openin X U \<and> c \<in> path_components_of(subtopology X U) \<longrightarrow> openin X c)"
-  apply (auto simp: locally_path_connected_space_eq_open_path_component_of path_components_of_def)
-  by (metis imageI inf.absorb_iff2 openin_closedin_eq)
+        (\<forall>U C. openin X U \<and> C \<in> path_components_of(subtopology X U) \<longrightarrow> openin X C)"
+  apply (simp add: locally_path_connected_space_eq_open_path_component_of path_components_of_def)
+  by (smt (verit, ccfv_threshold) Int_iff image_iff openin_subset subset_iff)
 
 lemma openin_path_component_of_locally_path_connected_space:
    "locally_path_connected_space X \<Longrightarrow> openin X (Collect (path_component_of X x))"
-  apply (auto simp: locally_path_connected_space_eq_open_path_component_of)
-  by (metis openin_empty openin_topspace path_component_of_eq_empty subtopology_topspace)
+  using locally_path_connected_space_eq_open_path_component_of openin_subopen path_component_of_eq_empty 
+  by fastforce
 
 lemma openin_path_components_of_locally_path_connected_space:
-   "\<lbrakk>locally_path_connected_space X; c \<in> path_components_of X\<rbrakk> \<Longrightarrow> openin X c"
-  apply (auto simp: locally_path_connected_space_eq_open_path_component_of)
-  by (metis (no_types, lifting) imageE openin_topspace path_components_of_def subtopology_topspace)
+   "\<lbrakk>locally_path_connected_space X; C \<in> path_components_of X\<rbrakk> \<Longrightarrow> openin X C"
+  using locally_path_connected_space_open_path_components by force
 
 lemma closedin_path_components_of_locally_path_connected_space:
-   "\<lbrakk>locally_path_connected_space X; c \<in> path_components_of X\<rbrakk> \<Longrightarrow> closedin X c"
-  by (simp add: closedin_def complement_path_components_of_Union openin_path_components_of_locally_path_connected_space openin_clauses(3) path_components_of_subset)
+   "\<lbrakk>locally_path_connected_space X; C \<in> path_components_of X\<rbrakk> \<Longrightarrow> closedin X C"
+  unfolding closedin_def
+  by (metis Diff_iff complement_path_components_of_Union openin_clauses(3) openin_closedin_eq 
+      openin_path_components_of_locally_path_connected_space)
 
 lemma closedin_path_component_of_locally_path_connected_space:
   assumes "locally_path_connected_space X"
@@ -193,8 +185,7 @@ lemma weakly_locally_path_connected_at:
          (is "?lhs = ?rhs")
 proof
   assume ?lhs then show ?rhs
-    apply (simp add: weakly_locally_path_connected_at_def neighbourhood_base_at_def)
-    by (meson order_trans subsetD)
+    by (smt (verit) neighbourhood_base_at_def subset_iff weakly_locally_path_connected_at_def)
 next
   have *: "\<exists>V. path_connectedin X V \<and> U \<subseteq> V \<and> V \<subseteq> W"
     if "(\<forall>y\<in>U. \<exists>C. path_connectedin X C \<and> C \<subseteq> W \<and> x \<in> C \<and> y \<in> C)"
@@ -218,18 +209,22 @@ lemma locally_path_connected_space_im_kleinen:
       (\<forall>V x. openin X V \<and> x \<in> V
              \<longrightarrow> (\<exists>U. openin X U \<and>
                     x \<in> U \<and> U \<subseteq> V \<and>
-                    (\<forall>y \<in> U. \<exists>c. path_connectedin X c \<and>
-                                c \<subseteq> V \<and> x \<in> c \<and> y \<in> c)))"
-  apply (simp add: locally_path_connected_space_def neighbourhood_base_of_def)
-  apply (simp add: weakly_locally_path_connected_at flip: weakly_locally_path_connected_at_def)
-  using openin_subset apply force
-  done
+                    (\<forall>y \<in> U. \<exists>C. path_connectedin X C \<and>
+                                C \<subseteq> V \<and> x \<in> C \<and> y \<in> C)))"
+         (is "?lhs = ?rhs")
+proof
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis locally_path_connected_space)
+  assume ?rhs
+  then show ?lhs
+    unfolding locally_path_connected_space_def neighbourhood_base_of
+    by (metis neighbourhood_base_at_def weakly_locally_path_connected_at weakly_locally_path_connected_at_def)
+qed
 
 lemma locally_path_connected_space_open_subset:
-   "\<lbrakk>locally_path_connected_space X; openin X s\<rbrakk>
-        \<Longrightarrow> locally_path_connected_space (subtopology X s)"
-  apply (simp add: locally_path_connected_space_def neighbourhood_base_of openin_open_subtopology path_connectedin_subtopology)
-  by (meson order_trans)
+   "\<lbrakk>locally_path_connected_space X; openin X S\<rbrakk>
+        \<Longrightarrow> locally_path_connected_space (subtopology X S)"
+  by (smt (verit, best) locally_path_connected_space openin_open_subtopology path_connectedin_subtopology subset_trans)
 
 lemma locally_path_connected_space_quotient_map_image:
   assumes f: "quotient_map X Y f" and X: "locally_path_connected_space X"
@@ -247,19 +242,20 @@ proof clarify
     let ?T = "Collect (path_component_of (subtopology X {z \<in> topspace X. f z \<in> V}) x)"
     show "\<exists>T. openin X T \<and> x \<in> T \<and> T \<subseteq> {x \<in> topspace X. f x \<in> C}"
     proof (intro exI conjI)
-      have "\<exists>U. openin X U \<and> ?T \<in> path_components_of (subtopology X U)"
+      have *: "\<exists>U. openin X U \<and> ?T \<in> path_components_of (subtopology X U)"
       proof (intro exI conjI)
         show "openin X ({z \<in> topspace X. f z \<in> V})"
           using V f openin_subset quotient_map_def by fastforce
-        show "Collect (path_component_of (subtopology X {z \<in> topspace X. f z \<in> V}) x)
-        \<in> path_components_of (subtopology X {z \<in> topspace X. f z \<in> V})"
-          by (metis (no_types, lifting) Int_iff \<open>f x \<in> C\<close> c mem_Collect_eq path_component_in_path_components_of path_components_of_subset topspace_subtopology topspace_subtopology_subset x)
+        have "x \<in> topspace (subtopology X {z \<in> topspace X. f z \<in> V})"
+          using \<open>f x \<in> C\<close> c path_components_of_subset x by force
+        then show "Collect (path_component_of (subtopology X {z \<in> topspace X. f z \<in> V}) x)
+            \<in> path_components_of (subtopology X {z \<in> topspace X. f z \<in> V})"
+          by (meson path_component_in_path_components_of)
       qed
       with X show "openin X ?T"
         using locally_path_connected_space_open_path_components by blast
       show x: "x \<in> ?T"
-        using V \<open>f x \<in> C\<close> c openin_subset path_component_of_equiv path_components_of_subset topspace_subtopology topspace_subtopology_subset x
-        by fastforce
+        using * nonempty_path_components_of path_component_of_eq path_component_of_eq_empty by fastforce
       have "f ` ?T \<subseteq> C"
       proof (rule path_components_of_maximal)
         show "C \<in> path_components_of (subtopology Y V)"
@@ -285,12 +281,9 @@ qed
 lemma homeomorphic_locally_path_connected_space:
   assumes "X homeomorphic_space Y"
   shows "locally_path_connected_space X \<longleftrightarrow> locally_path_connected_space Y"
-proof -
-  obtain f g where "homeomorphic_maps X Y f g"
-    using assms homeomorphic_space_def by fastforce
-  then show ?thesis
-    by (metis (no_types) homeomorphic_map_def homeomorphic_maps_map locally_path_connected_space_quotient_map_image)
-qed
+  using assms
+    unfolding homeomorphic_space_def homeomorphic_map_def homeomorphic_maps_map
+    by (metis locally_path_connected_space_quotient_map_image)
 
 lemma locally_path_connected_space_retraction_map_image:
    "\<lbrakk>retraction_map X Y r; locally_path_connected_space X\<rbrakk>
@@ -314,14 +307,21 @@ lemma locally_path_connected_space_discrete_topology:
 
 lemma path_component_eq_connected_component_of:
   assumes "locally_path_connected_space X"
-  shows "(path_component_of_set X x = connected_component_of_set X x)"
+  shows "path_component_of_set X x = connected_component_of_set X x"
 proof (cases "x \<in> topspace X")
   case True
-  then show ?thesis
-    using connectedin_connected_component_of [of X x]
-    apply (clarsimp simp add: connectedin_def connected_space_clopen_in topspace_subtopology_subset cong: conj_cong)
-    apply (drule_tac x="path_component_of_set X x" in spec)
-    by (metis assms closedin_closed_subtopology closedin_connected_component_of closedin_path_component_of_locally_path_connected_space inf.absorb_iff2 inf.orderE openin_path_component_of_locally_path_connected_space openin_subtopology path_component_of_eq_empty path_component_subset_connected_component_of)
+  have "path_component_of_set X x \<subseteq> connected_component_of_set X x"
+    by (simp add: path_component_subset_connected_component_of)
+  moreover have "closedin X (path_component_of_set X x)"
+    by (simp add: assms closedin_path_component_of_locally_path_connected_space)
+  moreover have "openin X (path_component_of_set X x)"
+    by (simp add: assms openin_path_component_of_locally_path_connected_space)
+  moreover have "path_component_of_set X x \<noteq> {}"
+    by (meson True path_component_of_eq_empty)
+  ultimately show ?thesis
+    using connectedin_connected_component_of [of X x] unfolding connectedin_def
+    by (metis closedin_subset_topspace connected_space_clopen_in  
+        subset_openin_subtopology topspace_subtopology_subset)
 next
   case False
   then show ?thesis
@@ -356,8 +356,7 @@ next
     obtain U C where U: "openin (product_topology X I) U"
       and V: "path_connectedin (product_topology X I) C"
       and "z \<in> U" "U \<subseteq> C" and Csub: "C \<subseteq> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
-      using L apply (clarsimp simp add: locally_path_connected_space_def neighbourhood_base_of)
-      by (metis openin_topspace topspace_product_topology z)
+      by (metis L locally_path_connected_space openin_topspace topspace_product_topology z)
     then obtain V where finV: "finite {i \<in> I. V i \<noteq> topspace (X i)}"
       and XV: "\<And>i. i\<in>I \<Longrightarrow> openin (X i) (V i)" and "z \<in> Pi\<^sub>E I V" and subU: "Pi\<^sub>E I V \<subseteq> U"
       by (force simp: openin_product_topology_alt)
@@ -366,8 +365,7 @@ next
       have "path_connected_space (X i)" if "i \<in> I" "V i = topspace (X i)" for i
       proof -
         have pc: "path_connectedin (X i) ((\<lambda>x. x i) ` C)"
-          apply (rule path_connectedin_continuous_map_image [OF _ V])
-          by (simp add: continuous_map_product_projection \<open>i \<in> I\<close>)
+          by (metis V continuous_map_product_projection path_connectedin_continuous_map_image that(1))
         moreover have "((\<lambda>x. x i) ` C) = topspace (X i)"
         proof
           show "(\<lambda>x. x i) ` C \<subseteq> topspace (X i)"
@@ -388,8 +386,7 @@ next
         using finite_subset by blast
     next
       show "locally_path_connected_space (X i)" if "i \<in> I" for i
-        apply (rule locally_path_connected_space_quotient_map_image [OF _ L, where f = "\<lambda>x. x i"])
-        by (metis False Abstract_Topology.retraction_imp_quotient_map retraction_map_product_projection that)
+        by (meson False L locally_path_connected_space_quotient_map_image quotient_map_product_projection that)
     qed
   qed
   moreover have ?lhs if R: ?rhs
@@ -407,20 +404,12 @@ next
       fix i assume "i \<in> I"
       have "locally_path_connected_space (X i)"
         by (simp add: R \<open>i \<in> I\<close>)
-      moreover have "openin (X i) (W i) " "z i \<in> W i"
+      moreover have *:"openin (X i) (W i) " "z i \<in> W i"
         using \<open>z \<in> Pi\<^sub>E I W\<close> opeW \<open>i \<in> I\<close> by auto
       ultimately obtain U C where UC: "openin (X i) U" "path_connectedin (X i) C" "z i \<in> U" "U \<subseteq> C" "C \<subseteq> W i"
         using \<open>i \<in> I\<close> by (force simp: locally_path_connected_space_def neighbourhood_base_of)
       show "?\<Phi> i"
-      proof (cases "W i = topspace (X i) \<and> path_connected_space(X i)")
-        case True
-        then show ?thesis
-          using \<open>z i \<in> W i\<close> path_connectedin_topspace by blast
-      next
-        case False
-        then show ?thesis
-          by (meson UC)
-      qed
+        by (metis UC * openin_subset path_connectedin_topspace)
     qed
     then obtain U C where
       *: "\<And>i. i \<in> I \<Longrightarrow> openin (X i) (U i) \<and> path_connectedin (X i) (C i) \<and> z i \<in> (U i) \<and> (U i) \<subseteq> (C i) \<and> (C i) \<subseteq> W i \<and>
@@ -434,15 +423,12 @@ next
       by (simp add: that finW)
     ultimately have "finite {i \<in> I. U i \<noteq> topspace (X i)}"
       using finite_subset by auto
-    then have "openin (product_topology X I) (Pi\<^sub>E I U)"
-      using * by (simp add: openin_PiE_gen)
+    with * have "openin (product_topology X I) (Pi\<^sub>E I U)"
+      by (simp add: openin_PiE_gen)
     then show "\<exists>U. openin (product_topology X I) U \<and>
-            (\<exists>V. path_connectedin (product_topology X I) V \<and> z \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> F)"
-      apply (rule_tac x="PiE I U" in exI, simp)
-      apply (rule_tac x="PiE I C" in exI)
-      using \<open>z \<in> Pi\<^sub>E I W\<close> \<open>Pi\<^sub>E I W \<subseteq> F\<close> *
-      apply (simp add: path_connectedin_PiE subset_PiE PiE_iff PiE_mono dual_order.trans)
-      done
+              (\<exists>V. path_connectedin (product_topology X I) V \<and> z \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> F)"
+      by (metis (no_types, opaque_lifting) subsetI \<open>z \<in> Pi\<^sub>E I W\<close> \<open>Pi\<^sub>E I W \<subseteq> F\<close> * path_connectedin_PiE 
+          PiE_iff PiE_mono order.trans)
   qed
   ultimately show ?thesis
     using False by blast
@@ -507,7 +493,7 @@ next
       show "\<exists>U V. openin (prod_topology X Y) U \<and> path_connectedin (prod_topology X Y) V \<and> (x, y) \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> UV"
         apply (rule_tac x="C \<times> D" in exI)
         apply (rule_tac x="K \<times> L" in exI)
-        apply (auto simp: openin_prod_Times_iff path_connectedin_Times)
+        apply (fastforce simp: openin_prod_Times_iff path_connectedin_Times)
         done
     qed
   qed
@@ -555,10 +541,10 @@ definition locally_connected_space
   where "locally_connected_space X \<equiv> neighbourhood_base_of (connectedin X) X"
 
 
-lemma locally_connected_A: "(\<forall>U x. openin X U \<and> x \<in> U
-              \<longrightarrow> openin X (connected_component_of_set (subtopology X U) x))
+lemma locally_connected_A: "(\<forall>U x. openin X U \<and> x \<in> U \<longrightarrow> openin X (connected_component_of_set (subtopology X U) x))
        \<Longrightarrow> neighbourhood_base_of (\<lambda>U. openin X U \<and> connectedin X U) X"
-  by (smt (verit, best) connected_component_of_refl connectedin_connected_component_of connectedin_subtopology mem_Collect_eq neighbourhood_base_of openin_subset topspace_subtopology_subset)
+  unfolding neighbourhood_base_of
+  by (metis (full_types) connected_component_of_refl connectedin_connected_component_of connectedin_subtopology mem_Collect_eq openin_subset topspace_subtopology_subset)
 
 lemma locally_connected_B: "locally_connected_space X \<Longrightarrow> 
           (\<forall>U x. openin X U \<and> x \<in> U \<longrightarrow> openin X (connected_component_of_set (subtopology X U) x))"
@@ -594,12 +580,12 @@ lemma locally_path_connected_imp_locally_connected_space:
 lemma locally_connected_space_open_connected_components:
   "locally_connected_space X \<longleftrightarrow>
    (\<forall>U C. openin X U \<and> C \<in> connected_components_of(subtopology X U) \<longrightarrow> openin X C)"
-  apply (simp add: locally_connected_space_eq_open_connected_component_of connected_components_of_def)
-  by (smt (verit) imageE image_eqI inf.orderE inf_commute openin_subset)
+  unfolding connected_components_of_def locally_connected_space_eq_open_connected_component_of
+  by (smt (verit, best) image_iff openin_subset topspace_subtopology_subset)
 
 lemma openin_connected_component_of_locally_connected_space:
    "locally_connected_space X \<Longrightarrow> openin X (connected_component_of_set X x)"
-  by (metis connected_component_of_eq_empty locally_connected_space_eq_open_connected_component_of openin_empty openin_topspace subtopology_topspace)
+  by (metis connected_component_of_eq_empty locally_connected_B openin_empty openin_topspace subtopology_topspace)
 
 lemma openin_connected_components_of_locally_connected_space:
    "\<lbrakk>locally_connected_space X; C \<in> connected_components_of X\<rbrakk> \<Longrightarrow> openin X C"
@@ -651,8 +637,8 @@ lemma locally_connected_space_im_kleinen:
 
 lemma locally_connected_space_open_subset:
    "\<lbrakk>locally_connected_space X; openin X S\<rbrakk> \<Longrightarrow> locally_connected_space (subtopology X S)"
-  apply (simp add: locally_connected_space_def)
-  by (smt (verit, ccfv_threshold) connectedin_subtopology neighbourhood_base_of openin_open_subtopology subset_trans)
+  unfolding locally_connected_space_def neighbourhood_base_of
+  by (smt (verit) connectedin_subtopology openin_open_subtopology subset_trans)
 
 lemma locally_connected_space_quotient_map_image:
   assumes X: "locally_connected_space X" and f: "quotient_map X Y f"
@@ -731,9 +717,8 @@ lemma locally_path_connected_imp_locally_connected_at:
   by (simp add: locally_connected_at_def locally_path_connected_at_def neighbourhood_base_at_mono path_connectedin_imp_connectedin)
 
 lemma weakly_locally_path_connected_imp_weakly_locally_connected_at:
-   "weakly_locally_path_connected_at x X
-             \<Longrightarrow> weakly_locally_connected_at x X"
-  by (simp add: neighbourhood_base_at_mono path_connectedin_imp_connectedin weakly_locally_connected_at_def weakly_locally_path_connected_at_def)
+   "weakly_locally_path_connected_at x X \<Longrightarrow> weakly_locally_connected_at x X"
+  by (metis path_connectedin_imp_connectedin weakly_locally_connected_at weakly_locally_path_connected_at)
 
 
 lemma interior_of_locally_connected_subspace_component:
@@ -859,8 +844,7 @@ next
       have "connected_space (X i)" if "i \<in> I" "V i = topspace (X i)" for i
       proof -
         have pc: "connectedin (X i) ((\<lambda>x. x i) ` C)"
-          apply (rule connectedin_continuous_map_image [OF _ V])
-          by (simp add: continuous_map_product_projection \<open>i \<in> I\<close>)
+          by (metis V connectedin_continuous_map_image continuous_map_product_projection that(1))
         moreover have "((\<lambda>x. x i) ` C) = topspace (X i)"
         proof
           show "(\<lambda>x. x i) ` C \<subseteq> topspace (X i)"
@@ -899,20 +883,12 @@ next
       fix i assume "i \<in> I"
       have "locally_connected_space (X i)"
         by (simp add: R \<open>i \<in> I\<close>)
-      moreover have "openin (X i) (W i) " "z i \<in> W i"
+      moreover have *: "openin (X i) (W i)" "z i \<in> W i"
         using \<open>z \<in> Pi\<^sub>E I W\<close> opeW \<open>i \<in> I\<close> by auto
-      ultimately obtain U C where UC: "openin (X i) U" "connectedin (X i) C" "z i \<in> U" "U \<subseteq> C" "C \<subseteq> W i"
+      ultimately obtain U C where "openin (X i) U" "connectedin (X i) C" "z i \<in> U" "U \<subseteq> C" "C \<subseteq> W i"
         using \<open>i \<in> I\<close> by (force simp: locally_connected_space_def neighbourhood_base_of)
-      show "?\<Phi> i"
-      proof (cases "W i = topspace (X i) \<and> connected_space(X i)")
-        case True
-        then show ?thesis
-          using \<open>z i \<in> W i\<close> connectedin_topspace by blast
-      next
-        case False
-        then show ?thesis
-          by (meson UC)
-      qed
+      then show "?\<Phi> i"
+        by (metis * connectedin_topspace openin_subset)
     qed
     then obtain U C where
       *: "\<And>i. i \<in> I \<Longrightarrow> openin (X i) (U i) \<and> connectedin (X i) (C i) \<and> z i \<in> (U i) \<and> (U i) \<subseteq> (C i) \<and> (C i) \<subseteq> W i \<and>
@@ -930,11 +906,8 @@ next
       using * by (simp add: openin_PiE_gen)
     then show "\<exists>U. openin (product_topology X I) U \<and>
             (\<exists>V. connectedin (product_topology X I) V \<and> z \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> F)"
-      apply (rule_tac x="PiE I U" in exI, simp)
-      apply (rule_tac x="PiE I C" in exI)
       using \<open>z \<in> Pi\<^sub>E I W\<close> \<open>Pi\<^sub>E I W \<subseteq> F\<close> *
-      apply (simp add: connectedin_PiE subset_PiE PiE_iff PiE_mono dual_order.trans)
-      done
+      by (metis (no_types, opaque_lifting) PiE_iff PiE_mono connectedin_PiE subset_iff)
   qed
   ultimately show ?thesis
     using False by blast
@@ -990,27 +963,17 @@ lemma dimension_le_mono [rule_format]:
   shows "m \<le> n \<longrightarrow> X dim_le n"
   using assms
 proof (induction arbitrary: n rule: dimension_le.induct)
-  case (1 m X)
-  show ?case
-  proof (intro strip dimension_le.intros)
-    show "-1 \<le> n" if "m \<le> n" for n :: int using that using "1.hyps" by fastforce    
-    show "\<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and> subtopology X (X frontier_of U) dim_le n-1"
-      if "m \<le> n" and "openin X V" and "a \<in> V" for n V a
-      using that by (meson "1.IH" diff_right_mono)
-  qed
-qed
+qed (smt (verit) dimension_le.simps)
 
 inductive_simps dim_le_minus2 [simp]: "X dim_le -2"
 
 lemma dimension_le_eq_empty [simp]:
    "X dim_le -1 \<longleftrightarrow> X = trivial_topology"
 proof
-  assume L: "X dim_le (-1)"
-  show "X = trivial_topology"
-    by (force intro: dimension_le.cases [OF L])
+  show "X dim_le (-1) \<Longrightarrow> X = trivial_topology"
+    by (force intro: dimension_le.cases)
 next
-  assume "X = trivial_topology"
-  then show "X dim_le (-1)"
+  show "X = trivial_topology \<Longrightarrow> X dim_le (-1)"
     using dimension_le.simps openin_subset by fastforce
 qed
 
@@ -1144,7 +1107,8 @@ lemma homeomorphic_space_dimension_le:
 proof (cases "n \<ge> -1")
   case True
   then show ?thesis
-    using homeomorphic_space_dimension_le_aux [of _ _ "nat(n+1)"] by (smt (verit) assms homeomorphic_space_sym nat_eq_iff)
+    using homeomorphic_space_dimension_le_aux [of _ _ "nat(n+1)"] 
+    by (smt (verit) assms homeomorphic_space_sym nat_eq_iff)
 next
   case False
   then show ?thesis
