@@ -98,7 +98,7 @@ session "HOL-Library" (main timing) in Library = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Analysis" (main timing) in Analysis = HOL +
-  options [timeout=1800, document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
+  options [document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   sessions
     "HOL-Library"
@@ -111,7 +111,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     "root.bib"
 
 session "HOL-Complex_Analysis" (main timing) in Complex_Analysis = "HOL-Analysis" +
-  options [timeout=300, document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
+  options [document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   theories
     Complex_Analysis
@@ -125,7 +125,7 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
     Metric_Arith_Examples
 
 session "HOL-Homology" (timing) in Homology = "HOL-Analysis" +
-  options [timeout=300, document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
+  options [document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   sessions
     "HOL-Algebra"
@@ -322,7 +322,6 @@ session "HOL-Number_Theory" (main timing) in Number_Theory = "HOL-Computational_
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
   "
-  options [timeout = 300]
   sessions
     "HOL-Algebra"
   theories
@@ -847,7 +846,6 @@ session "HOL-TPTP" in TPTP = HOL +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  options [timeout = 600]
   sessions
     "HOL-Combinatorics"
   theories
