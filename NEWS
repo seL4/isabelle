@@ -492,6 +492,9 @@ to optional "reset", which opposite polarity. INCOMPATIBILITY.
 aims to be a minimal configuration file format. See also
 https://toml.io/en/v1.0.0
 
+* Update of Poly/ML with more robust support for ARM64 platform, notably
+Apple Silicon M1/M2.
+
 
 
 New in Isabelle2022 (October 2022)

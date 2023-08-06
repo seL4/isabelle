@@ -154,7 +154,7 @@ object Component_PolyML {
   /** skeleton for component **/
 
   val default_polyml_url = "https://github.com/polyml/polyml/archive"
-  val default_polyml_version = "5e9c8155ea96"
+  val default_polyml_version = "219e0a248f70"
   val default_polyml_name = "polyml-5.9"
 
   val default_sha1_url = "https://isabelle.sketis.net/repos/sha1/archive"
