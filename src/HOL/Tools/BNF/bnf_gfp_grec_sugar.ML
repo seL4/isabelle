@@ -598,16 +598,20 @@ fun derive_cong_ctr_intros ctxt cong_ctor_intro =
     val fpT as Type (fpT_name, fp_argTs) = range_type (fastype_of ctor);
 
     val SOME {pre_bnf, absT_info = {abs_inverse, ...},
-        fp_ctr_sugar = {ctr_defs, ctr_sugar = {ctrs = ctrs0, ...}, ...}, ...} =
+        fp_ctr_sugar = {ctr_defs, ctr_sugar = {ctrs = ctrs0, ...}, ...},
+		live_nesting_bnfs = live_nesting_bnfs, ...} =
       fp_sugar_of ctxt fpT_name;
 
     val ctrs = map (mk_ctr fp_argTs) ctrs0;
     val pre_rel_def = rel_def_of_bnf pre_bnf;
 
+    val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
+
     fun prove ctr_def goal =
       Variable.add_free_names ctxt goal []
       |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
-        mk_cong_intro_ctr_or_friend_tac ctxt ctr_def [pre_rel_def, abs_inverse] cong_ctor_intro))
+        mk_cong_intro_ctr_or_friend_tac ctxt ctr_def
+		  ([pre_rel_def, abs_inverse] @ live_nesting_rel_eqs) cong_ctor_intro))
       |> Thm.close_derivation \<^here>;
 
     val goals = map (mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong) ctrs;
