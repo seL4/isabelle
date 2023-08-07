@@ -348,6 +348,12 @@ object Isabelle_Cronjob {
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(
+        Remote_Build("macOS 13 Ventura (ARM64)", "mini3",
+          options = "-m32 -B -M1x4,2x2,4 -p pide_session=false" +
+            " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
+            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
+          args = "-a -d '~~/src/Benchmarks'")),
+      List(
         Remote_Build("macOS 12 Monterey", "monterey", user = "makarius",
           options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
           args = "-a -d '~~/src/Benchmarks'")),
