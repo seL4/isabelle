@@ -349,7 +349,7 @@ object Isabelle_Cronjob {
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
       List(
         Remote_Build("macOS 13 Ventura (ARM64)", "mini3",
-          options = "-m32 -B -M1x4,2x2,4 -p pide_session=false" +
+          options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
             " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),

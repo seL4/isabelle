@@ -16,10 +16,14 @@ object Build_History {
 
   /* augment settings */
 
+  def make_64_32(platform: String): String =
+    platform.replace("x86_64-", "x86_64_32-").replace("arm64-", "arm64_32-")
+
   def augment_settings(
     other_isabelle: Other_Isabelle,
     threads: Int,
     arch_64: Boolean,
+    arch_apple: Boolean,
     heap: Int,
     max_heap: Option[Int],
     more_settings: List[String]
@@ -31,7 +35,9 @@ object Build_History {
       val windows_64_32 = "x86_64_32-windows"
       val platform_32 = other_isabelle.getenv("ISABELLE_PLATFORM32")
       val platform_64 = other_isabelle.getenv("ISABELLE_PLATFORM64")
-      val platform_64_32 = platform_64.replace("x86_64-", "x86_64_32-")
+      val platform_64_32 = make_64_32(platform_64)
+      val platform_apple_64 = other_isabelle.getenv("ISABELLE_APPLE_PLATFORM64")
+      val platform_apple_64_32 = make_64_32(platform_apple_64)
 
       val polyml_home =
         try { Path.explode(other_isabelle.getenv("ML_HOME")).dir }
@@ -54,6 +60,12 @@ object Build_History {
           else if (check_dir(cygwin_32)) cygwin_32
           else if (check_dir(windows_32)) windows_32
           else err(windows_32)
+        }
+        else if (arch_apple && arch_64) {
+          if (check_dir(platform_apple_64)) platform_apple_64 else err(platform_apple_64)
+        }
+        else if (arch_apple) {
+          if (check_dir(platform_apple_64_32)) platform_apple_64_32 else err(platform_apple_64_32)
         }
         else if (arch_64) {
           if (check_dir(platform_64)) platform_64 else err(platform_64)
@@ -112,6 +124,7 @@ object Build_History {
     multicore_base: Boolean = false,
     multicore_list: List[(Int, Int)] = List(default_multicore),
     arch_64: Boolean = false,
+    arch_apple: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
     more_settings: List[String] = Nil,
@@ -199,7 +212,8 @@ object Build_History {
       other_isabelle.init_settings(component_settings)
       resolve_components()
       val ml_platform =
-        augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
+        augment_settings(
+          other_isabelle, threads, arch_64, arch_apple, heap, max_heap, more_settings)
 
       File.write(other_isabelle.etc_preferences, cat_lines(more_preferences))
 
@@ -413,6 +427,7 @@ object Build_History {
       var afp_partition = 0
       var clean_archives = false
       var component_repository = Components.static_component_repository
+      var arch_apple = false
       var more_settings: List[String] = Nil
       var more_preferences: List[String] = Nil
       var fresh = false
@@ -432,8 +447,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: """ +
       quote(Components.dynamic_components_base) + """)
-    -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
-      default_heap * 2 + """ for x86_64)
+    -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for 32bit, """ +
+      default_heap * 2 + """ for 64bit)
     -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -O PLATFORMS clean resolved components, retaining only the given list
@@ -443,11 +458,12 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -R URL       remote repository for Isabelle components (default: """ +
       Components.static_component_repository + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
+    -a           processor architecture is Apple Silicon (ARM64)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)
     -h NAME      override local hostname
     -i TEXT      initial text for generated etc/settings
-    -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
+    -m ARCH      processor architecture (32, 64, default: 32)
     -n           no build: sync only
     -o FILE      output file for log names (default: stdout)
     -p TEXT      additional text for generated etc/preferences
@@ -473,13 +489,14 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "Q" -> (_ => clean_archives = true),
         "R:" -> (arg => component_repository = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
+        "a" -> (_ => arch_apple = true),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
         "h:" -> (arg => hostname = arg),
         "m:" ->
           {
-            case "32" | "x86" => arch_64 = false
-            case "64" | "x86_64" => arch_64 = true
+            case "32" => arch_64 = false
+            case "64" => arch_64 = true
             case bad => error("Bad processor architecture: " + quote(bad))
           },
         "o:" -> (arg => output_file = arg),
@@ -505,7 +522,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           component_repository = component_repository, components_base = components_base,
           clean_platforms = clean_platforms, clean_archives = clean_archives,
           fresh = fresh, hostname = hostname, multicore_base = multicore_base,
-          multicore_list = multicore_list, arch_64 = arch_64,
+          multicore_list = multicore_list, arch_64 = arch_64, arch_apple = arch_apple,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, more_settings = more_settings,
           more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,
