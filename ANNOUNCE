@@ -16,6 +16,8 @@ NEWS file for further details. Here are various details:
 
 * HOL: updates and improvements of Sledgehammer.
 
+* ML: more robust support for ARM64 platform (native Apple Silicon).
+
 * ML: heap usage and stored heap size has been significantly reduced.
 
 * ML: improved implementations of functor Table() and corresponding Set().
