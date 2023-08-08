@@ -292,9 +292,9 @@ fun update f g state =
   Runtime.controlled_execution (try generic_theory_of state)
     (fn () =>
       let
-        val prev_thy = previous_theory_of state;
-        val node_pr' = f (node_of state);
-      in present_state true g node_pr' prev_thy end) ();
+        val node = node_of state;
+        val prev_thy = get_theory node;
+      in present_state true g (f node) prev_thy end) ();
 
 fun apply_tr int trans state =
   (case (trans, node_of state) of
