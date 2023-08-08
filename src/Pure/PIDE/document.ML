@@ -289,7 +289,8 @@ fun update_keywords name nodes =
     else
       let
         val {master, header, errors} = get_header node;
-        val imports_keywords = map (node_keywords name o get_node nodes o #1) (#imports header);
+        val imports_keywords = #imports header
+          |> map (fn (import, _) => node_keywords import (get_node nodes import));
         val keywords = Library.foldl Keyword.merge_keywords (pure_keywords (), imports_keywords);
         val (keywords', errors') =
           (Keyword.add_keywords (#keywords header) keywords, errors)
