@@ -136,7 +136,7 @@ fun mk_const_transfer_goal ctxt (s, var_T) =
 
 fun mk_abs_transfer ctxt fpT_name =
   let
-    val SOME {pre_bnf, absT_info = {absT, repT, abs, type_definition, ...}, ...} =
+    val SOME {pre_bnf, absT_info = {absT, repT, abs, type_definition, ...}, live_nesting_bnfs,...} =
       fp_sugar_of ctxt fpT_name;
   in
     if absT = repT then
@@ -144,6 +144,7 @@ fun mk_abs_transfer ctxt fpT_name =
     else
       let
         val rel_def = rel_def_of_bnf pre_bnf;
+        val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
 
         val absT = T_of_bnf pre_bnf
           |> singleton (freeze_types ctxt (map dest_TVar (lives_of_bnf pre_bnf)));
@@ -152,7 +153,7 @@ fun mk_abs_transfer ctxt fpT_name =
       in
         Variable.add_free_names ctxt goal []
         |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
-          unfold_thms_tac ctxt [rel_def] THEN
+          unfold_thms_tac ctxt (rel_def :: live_nesting_rel_eqs) THEN
           HEADGOAL (rtac ctxt refl ORELSE'
             rtac ctxt (@{thm Abs_transfer} OF [type_definition, type_definition]))))
       end
@@ -160,13 +161,15 @@ fun mk_abs_transfer ctxt fpT_name =
 
 fun mk_rep_transfer ctxt fpT_name =
   let
-    val SOME {pre_bnf, absT_info = {absT, repT, rep, ...}, ...} = fp_sugar_of ctxt fpT_name;
+    val SOME {pre_bnf, absT_info = {absT, repT, rep, ...}, live_nesting_bnfs, ...} =
+      fp_sugar_of ctxt fpT_name;
   in
     if absT = repT then
       raise Fail "no abs/rep"
     else
       let
         val rel_def = rel_def_of_bnf pre_bnf;
+        val live_nesting_rel_eqs = map rel_eq_of_bnf live_nesting_bnfs;
 
         val absT = T_of_bnf pre_bnf
           |> singleton (freeze_types ctxt (map dest_TVar (lives_of_bnf pre_bnf)));
@@ -175,7 +178,7 @@ fun mk_rep_transfer ctxt fpT_name =
       in
         Variable.add_free_names ctxt goal []
         |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
-          unfold_thms_tac ctxt [rel_def] THEN
+          unfold_thms_tac ctxt (rel_def :: live_nesting_rel_eqs) THEN
           HEADGOAL (rtac ctxt refl ORELSE' rtac ctxt @{thm vimage2p_rel_fun})))
       end
   end;
