@@ -207,15 +207,14 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 val pure_keywords = Thy_Header.get_keywords o Theory.get_pure;
 
-fun theory_keywords name =
-  (case Thy_Info.lookup_theory name of
-    SOME thy => Thy_Header.get_keywords thy
-  | NONE => Keyword.empty_keywords);
-
 fun node_keywords name node =
-  (case node of
-    Node {keywords = SOME keywords, ...} => keywords
-  | _ => theory_keywords name);
+  let
+    val keywords1 = Option.map Thy_Header.get_keywords (Thy_Info.lookup_theory name);
+    val keywords2 = (case node of Node {keywords, ...} => keywords);
+  in
+    join_options Keyword.merge_keywords (keywords1, keywords2)
+    |> the_default Keyword.empty_keywords
+  end;
 
 
 (* node edits and associated executions *)
@@ -289,7 +288,8 @@ fun update_keywords name nodes =
     else
       let
         val {master, header, errors} = get_header node;
-        val imports_keywords = map (node_keywords name o get_node nodes o #1) (#imports header);
+        val imports_keywords = #imports header
+          |> map (fn (import, _) => node_keywords import (get_node nodes import));
         val keywords = Library.foldl Keyword.merge_keywords (pure_keywords (), imports_keywords);
         val (keywords', errors') =
           (Keyword.add_keywords (#keywords header) keywords, errors)
