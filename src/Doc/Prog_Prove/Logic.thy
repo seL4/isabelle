@@ -841,7 +841,7 @@ T &\to& \varepsilon \quad\mid\quad TaTb
 \]
 as two inductive predicates.
 If you think of \<open>a\<close> and \<open>b\<close> as ``\<open>(\<close>'' and  ``\<open>)\<close>'',
-the grammar defines strings of balanced parentheses.
+the grammars define balanced strings of parentheses.
 Prove \<^prop>\<open>T w \<Longrightarrow> S w\<close> and \mbox{\<^prop>\<open>S w \<Longrightarrow> T w\<close>} separately and conclude
 \<^prop>\<open>S w = T w\<close>.
 \end{exercise}
