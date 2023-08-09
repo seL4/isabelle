@@ -1159,7 +1159,7 @@ lemma vimage_snd: "snd -` A = UNIV \<times> A"
   by auto
 
 lemma insert_Times_insert [simp]:
-  "insert a A \<times> insert b B = insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
+  "insert a A \<times> insert b B = insert (a,b) (A \<times> insert b B \<union> {a} \<times> B)"
   by blast
 
 lemma vimage_Times: "f -` (A \<times> B) = (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
