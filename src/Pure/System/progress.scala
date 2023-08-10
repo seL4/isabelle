@@ -14,10 +14,18 @@ import scala.collection.immutable.SortedMap
 
 
 object Progress {
-  /* messages */
+  /* output */
+
+  sealed abstract class Output { def message: Message }
 
   object Kind extends Enumeration { val writeln, warning, error_message = Value }
-  sealed case class Message(kind: Kind.Value, text: String, verbose: Boolean = false) {
+  sealed case class Message(
+    kind: Kind.Value,
+    text: String,
+    verbose: Boolean = false
+  ) extends Output {
+    override def message: Message = this
+
     def output_text: String =
       kind match {
         case Kind.writeln => Output.writeln_text(text)
@@ -28,7 +36,11 @@ object Progress {
     override def toString: String = output_text
   }
 
-  sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None) {
+  sealed case class Theory(
+    theory: String,
+    session: String = "",
+    percentage: Option[Int] = None
+  ) extends Output {
     def message: Message =
       Message(Kind.writeln, print_session + print_theory + print_percentage, verbose = true)
 
@@ -334,22 +346,24 @@ extends Progress {
 
   def sync(): Unit = sync_database {}
 
-  private def output_database(message: Progress.Message, body: => Unit): Unit =
+  private def output_database(out: Progress.Output): Unit =
     sync_database {
       val serial = Progress.private_data.next_messages_serial(db, _context)
-      Progress.private_data.write_messages(db, _context, serial, message)
 
-      body
+      Progress.private_data.write_messages(db, _context, serial, out.message)
+
+      out match {
+        case message: Progress.Message =>
+          if (do_output(message)) base_progress.output(message)
+        case theory: Progress.Theory => base_progress.theory(theory)
+      }
 
       _seen = _seen max serial
       Progress.private_data.update_agent(db, _agent_uuid, _seen)
     }
 
-  override def output(message: Progress.Message): Unit =
-    output_database(message, if (do_output(message)) base_progress.output(message))
-
-  override def theory(theory: Progress.Theory): Unit =
-    output_database(theory.message, base_progress.theory(theory))
+  override def output(message: Progress.Message): Unit = output_database(message)
+  override def theory(theory: Progress.Theory): Unit = output_database(theory)
 
   override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit =
     base_progress.nodes_status(nodes_status)
