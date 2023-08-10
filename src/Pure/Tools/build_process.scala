@@ -1094,12 +1094,15 @@ extends AutoCloseable {
       val jobs = next_jobs(_state)
       for (name <- jobs) {
         if (is_session_name(name)) {
-          _state.ancestor_results(name) match {
-            case Some(results) => _state = start_session(_state, name, results)
-            case None =>
-              build_progress.echo_warning(
-                "Broken build job " + quote(name) + ": no ancestor results")
+          if (build_context.sessions_structure.defined(name)) {
+            _state.ancestor_results(name) match {
+              case Some(results) => _state = start_session(_state, name, results)
+              case None =>
+                build_progress.echo_warning(
+                  "Broken build job " + quote(name) + ": no ancestor results")
+            }
           }
+          else build_progress.echo_warning("Broken build job " + quote(name) + ": no session info")
         }
         else build_progress.echo_warning("Unsupported build job " + quote(name))
       }
