@@ -217,8 +217,10 @@ class Remote_Build_Cluster(
 
   private var _rc: Int = Process_Result.RC.ok
 
-  override def rc: Int = synchronized { _rc }
-  override def return_code(rc: Int): Unit = synchronized { _rc = Process_Result.RC.merge(_rc, rc) }
+  override def rc: Int = _rc.synchronized { _rc }
+
+  override def return_code(rc: Int): Unit =
+    _rc.synchronized { _rc = Process_Result.RC.merge(_rc, rc) }
 
   def capture[A](host: Build_Cluster.Host, op: String)(
     e: => A,
