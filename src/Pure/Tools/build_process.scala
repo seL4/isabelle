@@ -77,6 +77,7 @@ object Build_Process {
   final class Sessions private(val graph: Sessions.Graph) {
     override def toString: String = graph.toString
 
+    def defined(name: String): Boolean = graph.defined(name)
     def apply(name: String): Build_Job.Session_Context = graph.get_node(name)
 
     def iterator: Iterator[Build_Job.Session_Context] =
@@ -247,6 +248,13 @@ object Build_Process {
       val result =
         Result(name, worker_uuid, build_uuid, node_info, process_result, output_shasum, current)
       copy(results = results + (name -> result))
+    }
+
+    def ancestor_results(name: String): Option[List[Result]] = {
+      val defined =
+        sessions.defined(name) &&
+        sessions(name).ancestors.forall(a => sessions.defined(a) && results.isDefinedAt(a))
+      if (defined) Some(sessions(name).ancestors.map(results)) else None
     }
   }
 
@@ -957,10 +965,11 @@ extends AutoCloseable {
     else Nil
   }
 
-  protected def start_session(state: Build_Process.State, session_name: String): Build_Process.State = {
-    val ancestor_results =
-      for (a <- state.sessions(session_name).ancestors) yield state.results(a)
-
+  protected def start_session(
+    state: Build_Process.State,
+    session_name: String,
+    ancestor_results: List[Build_Process.Result]
+  ): Build_Process.State = {
     val sources_shasum = state.sessions(session_name).sources_shasum
 
     val input_shasum =
@@ -1083,7 +1092,12 @@ extends AutoCloseable {
       val jobs = next_jobs(_state)
       for (name <- jobs) {
         if (is_session_name(name)) {
-          _state = start_session(_state, name)
+          _state.ancestor_results(name) match {
+            case Some(results) => _state = start_session(_state, name, results)
+            case None =>
+              build_progress.echo_warning(
+                "Broken build job " + quote(name) + ": no ancestor results")
+          }
         }
         else build_progress.echo_warning("Unsupported build job " + quote(name))
       }
