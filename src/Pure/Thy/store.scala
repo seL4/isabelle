@@ -271,8 +271,15 @@ class Store private(val options: Options, val cache: Term.Cache) {
         cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
-    def get_database = database_server.flatMap(ML_Heap.get_entry(_, name))
-    def get_file = find_heap(name).flatMap(ML_Heap.read_file_digest)
+    def get_database: Option[SHA1.Digest] = {
+      for {
+        db <- database_server
+        digest <- ML_Heap.get_entries(db, List(name)).valuesIterator.nextOption()
+      } yield digest
+    }
+
+    def get_file: Option[SHA1.Digest] =
+      find_heap(name).flatMap(ML_Heap.read_file_digest)
 
     get_database orElse get_file match {
       case Some(digest) => SHA1.shasum(digest, name)

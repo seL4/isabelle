@@ -77,11 +77,19 @@ object ML_Heap {
         name = "slices_size")
     }
 
-    def get_entry(db: SQL.Database, name: String): Option[SHA1.Digest] =
-      db.execute_query_statementO[String](
-        Base.table.select(List(Base.digest), sql = Generic.name.where_equal(name)),
-        _.string(Base.digest)
-      ).flatMap(proper_string).map(SHA1.fake_digest)
+    def get_entries(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] = {
+      require(names.nonEmpty)
+
+      db.execute_query_statement(
+        Base.table.select(List(Base.name, Base.digest),
+          sql = Generic.name.where_member(names)),
+        List.from[(String, String)],
+        res => res.string(Base.name) -> res.string(Base.digest)
+      ).flatMap({
+        case (_, "") => None
+        case (name, digest) => Some(name -> SHA1.fake_digest(digest))
+      }).toMap
+    }
 
     def read_entry(db: SQL.Database, name: String): List[Bytes] =
       db.execute_query_statement(
@@ -127,9 +135,9 @@ object ML_Heap {
       private_data.clean_entry(db, session_name)
     }
 
-  def get_entry(db: SQL.Database, session_name: String): Option[SHA1.Digest] =
-    private_data.transaction_lock(db, create = true, label = "ML_Heap.get_entry") {
-      private_data.get_entry(db, session_name)
+  def get_entries(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
+    private_data.transaction_lock(db, create = true, label = "ML_Heap.get_entries") {
+      private_data.get_entries(db, names)
     }
 
   def store(
@@ -181,33 +189,35 @@ object ML_Heap {
 
   def restore(
     database: Option[SQL.Database],
-    session_name: String,
-    heap: Path,
+    heaps: List[Path],
     cache: Compress.Cache = Compress.Cache.none
   ): Unit = {
     database match {
-      case None =>
-      case Some(db) =>
+      case Some(db) if heaps.nonEmpty =>
         private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
-          val db_digest = private_data.get_entry(db, session_name)
-          val file_digest = read_file_digest(heap)
-
-          if (db_digest.isDefined && db_digest != file_digest) {
-            val base_dir = Isabelle_System.make_directory(heap.expand.dir)
-            Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
-              Bytes.write(tmp, Bytes.empty)
-              for (slice <- private_data.read_entry(db, session_name)) {
-                Bytes.append(tmp, slice.uncompress(cache = cache))
+          val db_digests = private_data.get_entries(db, heaps.map(_.file_name))
+          for (heap <- heaps) {
+            val session_name = heap.file_name
+            val file_digest = read_file_digest(heap)
+            val db_digest = db_digests.get(session_name)
+            if (db_digest.isDefined && db_digest != file_digest) {
+              val base_dir = Isabelle_System.make_directory(heap.expand.dir)
+              Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
+                Bytes.write(tmp, Bytes.empty)
+                for (slice <- private_data.read_entry(db, session_name)) {
+                  Bytes.append(tmp, slice.uncompress(cache = cache))
+                }
+                val digest = write_file_digest(tmp)
+                if (db_digest.get == digest) {
+                  Isabelle_System.chmod("a+r", tmp)
+                  Isabelle_System.move_file(tmp, heap)
+                }
+                else error("Incoherent content for session heap " + quote(session_name))
               }
-              val digest = write_file_digest(tmp)
-              if (db_digest.get == digest) {
-                Isabelle_System.chmod("a+r", tmp)
-                Isabelle_System.move_file(tmp, heap)
-              }
-              else error("Incoherent content for session heap " + quote(session_name))
             }
           }
         }
+      case _ =>
     }
   }
 }

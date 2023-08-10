@@ -995,8 +995,8 @@ extends AutoCloseable {
     val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     if (!skipped && !cancelled) {
-      ML_Heap.restore(_database_server, session_name, store.output_heap(session_name),
-        cache = store.cache.compress)
+      val heaps = (session_name :: ancestor_results.map(_.name)).map(store.output_heap)
+      ML_Heap.restore(_database_server, heaps, cache = store.cache.compress)
     }
 
     val result_name = (session_name, worker_uuid, build_uuid)
