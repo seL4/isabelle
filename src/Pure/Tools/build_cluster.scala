@@ -226,7 +226,10 @@ class Remote_Build_Cluster(
   def capture[A](host: Build_Cluster.Host, op: String)(
     e: => A,
     msg: String = host.message(op + " ..."),
-    err: Throwable => String = { exn => return_code(exn); host.message("failed to " + op) }
+    err: Throwable => String = { exn =>
+      return_code(exn)
+      host.message("failed to " + op + "\n" + Exn.print(exn))
+    }
   ): Exn.Result[A] = {
     progress.capture(e, msg = msg, err = err)
   }
