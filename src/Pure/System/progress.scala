@@ -272,7 +272,7 @@ extends Progress {
 
   private var _agent_uuid: String = ""
   private var _context: Long = -1
-  private var _seen: Long = 0
+  private var _serial: Long = 0
 
   def agent_uuid: String = synchronized { _agent_uuid }
 
@@ -315,7 +315,7 @@ extends Progress {
   def exit(close: Boolean = false): Unit = synchronized {
     if (_context > 0) {
       Progress.private_data.transaction_lock(db, label = "Database_Progress.exit") {
-        Progress.private_data.update_agent(db, _agent_uuid, _seen, stop_now = true)
+        Progress.private_data.update_agent(db, _agent_uuid, _serial, stop_now = true)
       }
       _context = 0
     }
@@ -333,12 +333,12 @@ extends Progress {
       if (stopped_db && !stopped) base_progress.stop()
       if (stopped && !stopped_db) Progress.private_data.write_progress_stopped(db, _context, true)
 
-      val messages = Progress.private_data.read_messages(db, _context, seen = _seen)
-      for ((seen, message) <- messages) {
+      val messages = Progress.private_data.read_messages(db, _context, seen = _serial)
+      for ((message_serial, message) <- messages) {
         if (base_progress.do_output(message)) base_progress.output(message)
-        _seen = _seen max seen
+        _serial = _serial max message_serial
       }
-      if (messages.nonEmpty) Progress.private_data.update_agent(db, _agent_uuid, _seen)
+      if (messages.nonEmpty) Progress.private_data.update_agent(db, _agent_uuid, _serial)
 
       body
     }
@@ -358,8 +358,8 @@ extends Progress {
         case theory: Progress.Theory => base_progress.theory(theory)
       }
 
-      _seen = _seen max serial
-      Progress.private_data.update_agent(db, _agent_uuid, _seen)
+      _serial = _serial max serial
+      Progress.private_data.update_agent(db, _agent_uuid, _serial)
     }
 
   override def output(message: Progress.Message): Unit = output_database(message)
