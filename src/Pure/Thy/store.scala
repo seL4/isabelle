@@ -294,7 +294,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     input_dirs.map(_ + database(name)).find(_.is_file)
 
   def build_database_server: Boolean = options.bool("build_database_server")
-  def build_database_test: Boolean = options.bool("build_database_test")
+  def build_database: Boolean = options.bool("build_database")
 
   def open_server(): SSH.Server =
     PostgreSQL.open_server(options,
@@ -327,7 +327,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     path: Path = Path.explode("$ISABELLE_HOME_USER/build.db"),
     server: SSH.Server = SSH.no_server
   ): Option[SQL.Database] = {
-    if (build_database_test) Some(open_build_database(path, server = server)) else None
+    if (build_database) Some(open_build_database(path, server = server)) else None
   }
 
   def try_open_database(

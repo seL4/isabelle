@@ -111,7 +111,7 @@ object Build {
     def build_options(options: Options, build_hosts: List[Build_Cluster.Host] = Nil): Options = {
       val options1 = options + "completion_limit=0" + "editor_tracing_messages=0"
       if (build_hosts.isEmpty) options1
-      else options1 + "build_database_server" + "build_database_test"
+      else options1 + "build_database_server" + "build_database"
     }
 
     def process_options(options: Options, node_info: Host.Node_Info): Options =
@@ -581,7 +581,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       var max_jobs = 1
       var options =
         Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(Options.Spec.make("build_database_test")))
+          List(Options.Spec.make("build_database")))
       var verbose = false
 
       val getopts = Getopts("""

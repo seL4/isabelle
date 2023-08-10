@@ -195,7 +195,7 @@ option build_hostname : string = ""
 option build_engine : string = ""
   -- "alternative session build engine"
 
-option build_database_test : bool = false
+option build_database : bool = false
   -- "expose state of build process via central database"
 
 option build_database_slice : real = 300
