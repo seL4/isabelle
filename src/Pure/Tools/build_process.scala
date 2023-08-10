@@ -121,8 +121,8 @@ object Build_Process {
               val sources_shasum0 = session0.sources_shasum
 
               def err(msg: String, a: String, b: String): Nothing =
-                error("Conflicting dependencies for session " + quote(name) + ": " +
-                  msg + "\n" + a + "\nvs.\n" + b)
+                error("Conflicting dependencies for session " + quote(name) + ": " + msg + "\n" +
+                  Library.indent_lines(2, a) + "\nvs.\n" + Library.indent_lines(2, b))
 
               if (prefs0 != prefs) {
                 err("preferences disagree",
@@ -134,7 +134,9 @@ object Build_Process {
               if (sources_shasum0 != sources_shasum) {
                 val a = sources_shasum0 - sources_shasum
                 val b = sources_shasum - sources_shasum0
-                err("sources disagree", a.toString, b.toString)
+                err("sources disagree",
+                  Library.trim_line(a.toString),
+                  Library.trim_line(b.toString))
               }
 
               graph0
