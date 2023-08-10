@@ -532,13 +532,25 @@ object Sessions {
 
   /* cumulative session info */
 
-  val BUILD_PREFS = "<build_prefs>"
+  private val BUILD_PREFS_BG = "<build_prefs:"
+  private val BUILD_PREFS_EN = ">"
+
+  def make_build_prefs(name: String): String =
+    BUILD_PREFS_BG + name + BUILD_PREFS_EN
+
+  def is_build_prefs(s: String): Boolean = {
+    val i = s.indexOf('<')
+    i >= 0 && {
+      val s1 = s.substring(i)
+      s1.startsWith(BUILD_PREFS_BG) && s1.endsWith(BUILD_PREFS_EN)
+    }
+  }
 
   def eq_sources(options: Options, shasum1: SHA1.Shasum, shasum2: SHA1.Shasum): Boolean =
     if (options.bool("build_thorough")) shasum1 == shasum2
     else {
       def trim(shasum: SHA1.Shasum): SHA1.Shasum =
-        shasum.filter(s => !s.endsWith(BUILD_PREFS))
+        shasum.filter(s => !is_build_prefs(s))
 
       trim(shasum1) == trim(shasum2)
     }
@@ -577,8 +589,9 @@ object Sessions {
         val session_prefs =
           session_options.make_prefs(defaults = session_options0, filter = _.session_content)
 
-        val build_prefs =
-          session_options.make_prefs(defaults = options0, filter = _.session_content)
+        val build_prefs_digests =
+          session_options.changed(defaults = options0, filter = _.session_content)
+            .map(ch => SHA1.digest(ch.print_prefs) -> make_build_prefs(ch.name))
 
         val theories =
           entry.theories.map({ case (opts, thys) =>
@@ -617,8 +630,7 @@ object Sessions {
               entry.theories_no_position, conditions, entry.document_theories_no_position).toString)
 
         val meta_info =
-          SHA1.shasum_meta_info(meta_digest) :::
-          SHA1.shasum(SHA1.digest(build_prefs), BUILD_PREFS)
+          SHA1.shasum_meta_info(meta_digest) ::: SHA1.shasum_sorted(build_prefs_digests)
 
         val chapter_groups = chapter_defs(chapter).groups
         val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
