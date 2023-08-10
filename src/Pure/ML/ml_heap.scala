@@ -193,13 +193,19 @@ object ML_Heap {
           val file_digest = read_file_digest(heap)
 
           if (db_digest.isDefined && db_digest != file_digest) {
-            Isabelle_System.make_directory(heap.expand.dir)
-            Bytes.write(heap, Bytes.empty)
+            val base_dir = Isabelle_System.make_directory(heap.expand.dir)
+            Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
+              Bytes.write(tmp, Bytes.empty)
               for (slice <- private_data.read_entry(db, session_name)) {
-                Bytes.append(heap, slice.uncompress(cache = cache))
+                Bytes.append(tmp, slice.uncompress(cache = cache))
               }
-            val digest = write_file_digest(heap)
-            if (db_digest.get != digest) error("Incoherent content for file " + heap)
+              val digest = write_file_digest(tmp)
+              if (db_digest.get == digest) {
+                Isabelle_System.chmod("a+r", tmp)
+                Isabelle_System.move_file(tmp, heap)
+              }
+              else error("Incoherent content for session heap " + quote(session_name))
+            }
           }
         }
     }
