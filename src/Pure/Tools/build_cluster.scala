@@ -161,7 +161,8 @@ object Build_Cluster {
           build_id = build_context.build_uuid,
           isabelle_home = remote_isabelle_home,
           afp_root = remote_afp_root)
-      remote_isabelle.bash(script).check
+      Console.println(script)
+      remote_isabelle.bash(script).print.check
     }
 
     override def close(): Unit = ssh.close()

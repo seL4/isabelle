@@ -348,9 +348,9 @@ extends Progress {
 
   private def output_database(out: Progress.Output): Unit =
     sync_database {
-      val serial = Progress.private_data.next_messages_serial(db, _context)
+      _serial = _serial max Progress.private_data.next_messages_serial(db, _context)
 
-      Progress.private_data.write_messages(db, _context, serial, out.message)
+      Progress.private_data.write_messages(db, _context, _serial, out.message)
 
       out match {
         case message: Progress.Message =>
@@ -358,7 +358,6 @@ extends Progress {
         case theory: Progress.Theory => base_progress.theory(theory)
       }
 
-      _serial = _serial max serial
       Progress.private_data.update_agent(db, _agent_uuid, _serial)
     }
 
