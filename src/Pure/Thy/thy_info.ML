@@ -17,6 +17,7 @@ sig
   val lookup_theory: string -> theory option
   val defined_theory: string -> bool
   val get_theory: string -> theory
+  val check_theory: Proof.context -> string * Position.T -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
   val use_theories: Options.T -> string -> (string * Position.T) list ->
@@ -150,6 +151,8 @@ fun get_theory name =
   | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
 
 val get_imports = Resources.imports_of o get_theory;
+
+val check_theory = Theory.check_theory {get = get_theory, all = get_names};
 
 
 

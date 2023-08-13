@@ -15,6 +15,8 @@ sig
   val get_pure: unit -> theory
   val get_pure_bootstrap: unit -> theory
   val get_markup: theory -> Markup.T
+  val check_theory: {get: string -> theory, all: unit -> string list} ->
+    Proof.context -> string * Position.T -> theory
   val check: {long: bool} -> Proof.context -> string * Position.T -> theory
   val axiom_table: theory -> term Name_Space.table
   val axiom_space: theory -> Name_Space.T
@@ -137,23 +139,27 @@ fun get_markup thy =
   let val {pos, id, ...} = rep_theory thy
   in theory_markup {def = false} (Context.theory_long_name thy) id pos end;
 
-fun check long ctxt (name, pos) =
+fun check_theory {get, all} ctxt (name, pos) =
+  let
+    val thy = get name handle ERROR msg =>
+      let
+        val completion_report =
+          Completion.make_report (name, pos)
+            (fn completed =>
+              all ()
+              |> filter (completed o Long_Name.base_name)
+              |> sort_strings
+              |> map (fn a => (a, (Markup.theoryN, a))));
+      in error (msg ^ Position.here pos ^ completion_report) end;
+    val _ = Context_Position.report ctxt pos (get_markup thy);
+  in thy end;
+
+fun check long ctxt arg =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val thy' =
-      Context.get_theory long thy name
-        handle ERROR msg =>
-          let
-            val completion_report =
-              Completion.make_report (name, pos)
-                (fn completed =>
-                  map (Context.theory_name long) (ancestors_of thy)
-                  |> filter (completed o Long_Name.base_name)
-                  |> sort_strings
-                  |> map (fn a => (a, (Markup.theoryN, a))));
-          in error (msg ^ Position.here pos ^ completion_report) end;
-    val _ = Context_Position.report ctxt pos (get_markup thy');
-  in thy' end;
+    val get = Context.get_theory long thy;
+    fun all () = map (Context.theory_name long) (ancestors_of thy);
+  in check_theory {get = get, all = all} ctxt arg end;
 
 
 (* basic operations *)
