@@ -88,7 +88,7 @@ keywords
     "print_antiquotations" "print_ML_antiquotations" "thy_deps"
     "locale_deps" "class_deps" "thm_deps" "thm_oracles" "print_term_bindings"
     "print_facts" "print_cases" "print_statement" "thm" "prf" "full_prf"
-    "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
+    "prop" "term" "typ" "print_codesetup" "print_context_tracing" "unused_thms" :: diag
   and "print_state" :: diag
   and "welcome" :: diag
   and "end" :: thy_end
@@ -1297,6 +1297,11 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_codesetup\<close> "print code generator setup"
     (Scan.succeed (Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
+
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>print_context_tracing\<close>
+    "print result of context tracing from ML heap"
+    (Scan.succeed (Toplevel.keep (fn _ => Session.print_context_tracing (K true))));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_state\<close>

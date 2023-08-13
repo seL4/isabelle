@@ -423,7 +423,8 @@ heap later:
   isabelle process -l ZF -e "Session.print_context_tracing (K true)"
 
 An alternative to "isabelle process -l ZF" is "isabelle jedit -l ZF"
-with the subsequent ML snippets in an arbitrary theory context:
+with with the Isar command 'print_context_tracing' or with the
+subsequent ML snippets (in an arbitrary theory context):
 
   ML_command \<open>Session.print_context_tracing (K true)\<close>
   ML \<open>Context.finish_tracing ()\<close>
