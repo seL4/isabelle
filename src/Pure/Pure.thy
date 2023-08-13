@@ -1301,7 +1301,17 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_context_tracing\<close>
     "print result of context tracing from ML heap"
-    (Scan.succeed (Toplevel.keep (fn _ => Session.print_context_tracing (K true))));
+    (Scan.repeat Parse.name_position >> (fn raw_names => Toplevel.keep (fn st =>
+      let
+        val pred =
+          if null raw_names then K true
+          else
+            let
+              val ctxt = Toplevel.context_of st;
+              val insert = Symset.insert o Context.theory_long_name o Thy_Info.check_theory ctxt;
+              val names = Symset.build (fold insert raw_names);
+            in Symset.member names o Context.theory_long_name o Context.theory_of end;
+      in Session.print_context_tracing pred end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_state\<close>
