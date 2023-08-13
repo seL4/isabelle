@@ -28,7 +28,6 @@ NEWS file for further details. Here are various details:
 
 * System: "isabelle profiling" tool produces ML heap statistics.
 
-* Support for the Dotnet platform (.NET) and Fsharp (F#).
 
 
 You may get Isabelle2023 from the following mirror sites:
