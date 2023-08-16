@@ -217,6 +217,7 @@ class Progress {
     if (Thread.interrupted()) is_stopped = true
     is_stopped
   }
+  def stopped_local: Boolean = false
 
   final def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop() } { e }
   final def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
@@ -264,6 +265,7 @@ extends Progress {
 class Database_Progress(
   val db: SQL.Database,
   val base_progress: Progress,
+  val output_stopped: Boolean = false,
   val kind: String = "progress",
   val hostname: String = Isabelle_System.hostname(),
   val context_uuid: String = UUID.random().toString)
@@ -273,6 +275,7 @@ extends Progress {
   private var _agent_uuid: String = ""
   private var _context: Long = -1
   private var _serial: Long = 0
+  private var _stopped_db: Boolean = false
 
   def agent_uuid: String = synchronized { _agent_uuid }
 
@@ -327,11 +330,12 @@ extends Progress {
     if (_context == 0) throw new IllegalStateException("Database_Progress after exit")
 
     Progress.private_data.transaction_lock(db, label = "Database_Progress.sync") {
-      val stopped_db = Progress.private_data.read_progress_stopped(db, _context)
-      val stopped = base_progress.stopped
+      _stopped_db = Progress.private_data.read_progress_stopped(db, _context)
 
-      if (stopped_db && !stopped) base_progress.stop()
-      if (stopped && !stopped_db) Progress.private_data.write_progress_stopped(db, _context, true)
+      if (_stopped_db && !base_progress.stopped) base_progress.stop()
+      if (!_stopped_db && base_progress.stopped && output_stopped) {
+        Progress.private_data.write_progress_stopped(db, _context, true)
+      }
 
       val messages = Progress.private_data.read_messages(db, _context, seen = _serial)
       for ((message_serial, message) <- messages) {
@@ -371,6 +375,7 @@ extends Progress {
 
   override def stop(): Unit = synchronized { base_progress.stop(); sync() }
   override def stopped: Boolean = sync_database { base_progress.stopped }
+  override def stopped_local: Boolean = sync_database { base_progress.stopped && !_stopped_db }
 
   override def toString: String = super.toString + ": database " + db
 

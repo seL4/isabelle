@@ -13,7 +13,7 @@ import scala.collection.mutable
 trait Build_Job {
   def cancel(): Unit = ()
   def is_finished: Boolean = false
-  def join: (Process_Result, SHA1.Shasum) = (Process_Result.undefined, SHA1.no_shasum)
+  def join: Option[(Process_Result, SHA1.Shasum)] = None
 }
 
 object Build_Job {
@@ -111,7 +111,7 @@ object Build_Job {
   ) extends Build_Job {
     def session_name: String = session_background.session_name
 
-    private val future_result: Future[(Process_Result, SHA1.Shasum)] =
+    private val future_result: Future[Option[(Process_Result, SHA1.Shasum)]] =
       Future.thread("build", uninterruptible = true) {
         val info = session_background.sessions_structure(session_name)
         val options = build_context.engine.process_options(info.options, node_info)
@@ -502,10 +502,16 @@ object Build_Job {
                   output_heap = output_shasum,
                   process_result.rc,
                   build_context.build_uuid))
-          database_server match {
-            case Some(db) => write_info(db)
-            case None => using(store.open_database(session_name, output = true))(write_info)
-          }
+
+          val valid =
+            if (progress.stopped_local) false
+            else {
+              database_server match {
+                case Some(db) => write_info(db)
+                case None => using(store.open_database(session_name, output = true))(write_info)
+              }
+              true
+            }
 
           // messages
           process_result.err_lines.foreach(progress.echo(_))
@@ -531,12 +537,12 @@ object Build_Job {
             }
           }
 
-          (process_result.copy(out_lines = log_lines), output_shasum)
+          if (valid) Some((process_result.copy(out_lines = log_lines), output_shasum)) else None
         }
       }
 
     override def cancel(): Unit = future_result.cancel()
     override def is_finished: Boolean = future_result.is_finished
-    override def join: (Process_Result, SHA1.Shasum) = future_result.join
+    override def join: Option[(Process_Result, SHA1.Shasum)] = future_result.join
   }
 }

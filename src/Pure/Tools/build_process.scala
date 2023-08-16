@@ -55,6 +55,7 @@ object Build_Process {
     build: Option[Build_Job]
   ) extends Library.Named {
     def no_build: Job = copy(build = None)
+    def join_build: Option[(Process_Result, SHA1.Shasum)] = build.flatMap(_.join)
   }
 
   sealed case class Result(
@@ -217,8 +218,6 @@ object Build_Process {
       copy(serial = i)
     }
 
-    def finished: Boolean = pending.isEmpty
-
     def remove_pending(name: String): State =
       copy(pending = pending.flatMap(
         entry => if (entry.name == name) None else Some(entry.resolve(name))))
@@ -228,10 +227,13 @@ object Build_Process {
     def stop_running(): Unit =
       for (job <- running.valuesIterator; build <- job.build) build.cancel()
 
+    def build_running: List[Build_Job] =
+      List.from(for (job <- running.valuesIterator; build <- job.build) yield build)
+
     def finished_running(): List[Job] =
       List.from(
         for (job <- running.valuesIterator; build <- job.build if build.is_finished)
-        yield job)
+          yield job)
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -880,6 +882,7 @@ extends AutoCloseable {
           val progress_db = store.open_build_database(Progress.private_data.database, server = server)
           val progress =
             new Database_Progress(progress_db, build_progress,
+              output_stopped = build_context.master,
               hostname = hostname,
               context_uuid = build_uuid,
               kind = "build_process")
@@ -957,8 +960,10 @@ extends AutoCloseable {
   }
 
   protected def next_jobs(state: Build_Process.State): List[String] = {
-    val running = List.from(state.running.valuesIterator.filter(_.worker_uuid == worker_uuid))
-    val limit = if (progress.stopped) Int.MaxValue else build_context.max_jobs - running.length
+    val limit = {
+      if (progress.stopped) { if (build_context.master) Int.MaxValue else 0 }
+      else build_context.max_jobs - state.build_running.length
+    }
     if (limit > 0) {
       state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
         .sortBy(_.name)(state.sessions.ordering)
@@ -1013,10 +1018,13 @@ extends AutoCloseable {
         make_result(result_name, Process_Result.error, output_shasum)
     }
     else if (cancelled) {
-      progress.echo(session_name + " CANCELLED")
-      state
-        .remove_pending(session_name)
-        .make_result(result_name, Process_Result.undefined, output_shasum)
+      if (build_context.master) {
+        progress.echo(session_name + " CANCELLED")
+        state
+          .remove_pending(session_name)
+          .make_result(result_name, Process_Result.undefined, output_shasum)
+      }
+      else state
     }
     else {
       def used_nodes: Set[Int] =
@@ -1085,7 +1093,10 @@ extends AutoCloseable {
       synchronized_database("Build_Process.init") { _state = init_state(_state) }
     }
 
-    def finished(): Boolean = synchronized_database("Build_Process.test") { _state.finished }
+    def finished(): Boolean = synchronized_database("Build_Process.test") {
+      if (!build_context.master && progress.stopped) _state.build_running.isEmpty
+      else _state.pending.isEmpty
+    }
 
     def sleep(): Unit =
       Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
@@ -1128,12 +1139,17 @@ extends AutoCloseable {
             if (progress.stopped) _state.stop_running()
 
             for (job <- _state.finished_running()) {
-              val result_name = (job.name, worker_uuid, build_uuid)
-              val (process_result, output_shasum) = job.build.get.join
-              _state = _state.
-                remove_pending(job.name).
-                remove_running(job.name).
-                make_result(result_name, process_result, output_shasum, node_info = job.node_info)
+              job.join_build match {
+                case None =>
+                  _state = _state.remove_running(job.name)
+                case Some((process_result, output_shasum)) =>
+                  val result_name = (job.name, worker_uuid, build_uuid)
+                  _state = _state.
+                    remove_pending(job.name).
+                    remove_running(job.name).
+                    make_result(result_name, process_result, output_shasum,
+                      node_info = job.node_info)
+              }
             }
           }
 
