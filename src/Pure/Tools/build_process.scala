@@ -55,7 +55,7 @@ object Build_Process {
     build: Option[Build_Job]
   ) extends Library.Named {
     def no_build: Job = copy(build = None)
-    def join_build: Option[(Process_Result, SHA1.Shasum)] = build.flatMap(_.join)
+    def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
   }
 
   sealed case class Result(
@@ -1142,12 +1142,14 @@ extends AutoCloseable {
               job.join_build match {
                 case None =>
                   _state = _state.remove_running(job.name)
-                case Some((process_result, output_shasum)) =>
+                case Some(result) =>
                   val result_name = (job.name, worker_uuid, build_uuid)
                   _state = _state.
                     remove_pending(job.name).
                     remove_running(job.name).
-                    make_result(result_name, process_result, output_shasum,
+                    make_result(result_name,
+                      result.process_result,
+                      result.output_shasum,
                       node_info = job.node_info)
               }
             }
