@@ -25,7 +25,7 @@ object Consumer_Thread {
     def consume_single(args: List[A]): (List[Exn.Result[Unit]], Boolean) = {
       assert(args.length == 1)
       Exn.capture { consume(args.head) } match {
-        case Exn.Res(continue) => (List(Exn.Res(())), continue)
+        case Exn.Res(cont) => (List(Exn.Res(())), cont)
         case Exn.Exn(exn) => (List(Exn.Exn(exn)), true)
       }
     }
@@ -88,7 +88,7 @@ final class Consumer_Thread[A] private(
             .getOrElse(msgs.take(1))
             .map(_.get)
 
-        val (results, continue) = consume(reqs.map(_.arg))
+        val (results, cont) = consume(reqs.map(_.arg))
 
         for {
           (Some(req), Some(res)) <- reqs.map(Some(_)).zipAll(results.map(Some(_)), None, None)
@@ -100,7 +100,7 @@ final class Consumer_Thread[A] private(
           }
         }
 
-        if (continue) main_loop(msgs.drop(reqs.length))
+        if (cont) main_loop(msgs.drop(reqs.length))
         else robust_finish()
     }
 
