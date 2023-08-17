@@ -274,6 +274,10 @@ class Database_Progress(
 extends Progress {
   database_progress =>
 
+  if (UUID.unapply(context_uuid).isEmpty) {
+    error("Bad Database_Progress.context_uuid: " + quote(context_uuid))
+  }
+
   private var _agent_uuid: String = ""
   private var _context: Long = -1
   private var _serial: Long = 0
