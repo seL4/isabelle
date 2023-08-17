@@ -885,7 +885,8 @@ extends AutoCloseable {
               output_stopped = build_context.master,
               hostname = hostname,
               context_uuid = build_uuid,
-              kind = "build_process")
+              kind = "build_process",
+              timeout = Some(build_delay))
           (progress, progress.agent_uuid)
         }
         catch { case exn: Throwable => close(); throw exn }
@@ -929,7 +930,6 @@ extends AutoCloseable {
       _build_database match {
         case None => body
         case Some(db) =>
-          progress.asInstanceOf[Database_Progress].sync()
           Build_Process.private_data.transaction_lock(db, label = label) {
             _state = Build_Process.private_data.pull_database(db, worker_uuid, hostname, _state)
             val res = body
