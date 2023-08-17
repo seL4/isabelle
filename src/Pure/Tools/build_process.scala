@@ -882,6 +882,7 @@ extends AutoCloseable {
           val progress_db = store.open_build_database(Progress.private_data.database, server = server)
           val progress =
             new Database_Progress(progress_db, build_progress,
+              input_messages = build_context.master,
               output_stopped = build_context.master,
               hostname = hostname,
               context_uuid = build_uuid,

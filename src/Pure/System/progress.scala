@@ -265,6 +265,7 @@ extends Progress {
 class Database_Progress(
   db: SQL.Database,
   base_progress: Progress,
+  input_messages: Boolean = false,
   output_stopped: Boolean = false,
   kind: String = "progress",
   hostname: String = Isabelle_System.hostname(),
@@ -370,12 +371,19 @@ extends Progress {
         Progress.private_data.write_progress_stopped(db, _context, true)
       }
 
-      val messages = Progress.private_data.read_messages(db, _context, seen = _serial)
-      for ((message_serial, message) <- messages) {
-        if (base_progress.do_output(message)) base_progress.output(message)
-        _serial = _serial max message_serial
+      val serial0 = _serial
+      if (input_messages) {
+        val messages = Progress.private_data.read_messages(db, _context, seen = _serial)
+        for ((message_serial, message) <- messages) {
+          if (base_progress.do_output(message)) base_progress.output(message)
+          _serial = _serial max message_serial
+        }
       }
-      if (messages.nonEmpty) Progress.private_data.update_agent(db, _agent_uuid, _serial)
+      else {
+        _serial = _serial max Progress.private_data.read_messages_serial(db, _context)
+      }
+
+      if (_serial != serial0) Progress.private_data.update_agent(db, _agent_uuid, _serial)
 
       body
     }
