@@ -14,12 +14,12 @@ import scala.util.matching.Regex
 object Export {
   /* artefact names */
 
-  val DOCUMENT_ID = "PIDE/document_id"
-  val FILES = "PIDE/files"
-  val MARKUP = "PIDE/markup"
-  val MESSAGES = "PIDE/messages"
-  val DOCUMENT_PREFIX = "document/"
-  val DOCUMENT_LATEX = DOCUMENT_PREFIX + "latex"
+  val DOCUMENT_ID: String = "PIDE/document_id"
+  val FILES: String = "PIDE/files"
+  val MARKUP: String = "PIDE/markup"
+  val MESSAGES: String = "PIDE/messages"
+  val DOCUMENT_PREFIX: String = "document/"
+  val DOCUMENT_LATEX: String = DOCUMENT_PREFIX + "latex"
   val THEORY_PREFIX: String = "theory/"
   val PROOFS_PREFIX: String = "proofs/"
 
