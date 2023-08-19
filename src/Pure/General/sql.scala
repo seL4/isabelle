@@ -10,7 +10,7 @@ package isabelle
 
 
 import java.time.OffsetDateTime
-import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
+import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet, SQLException}
 
 import org.sqlite.jdbc4.JDBC4Connection
 import org.postgresql.{PGConnection, PGNotification}
@@ -266,6 +266,8 @@ object SQL {
 
   /* statements */
 
+  class Batch_Error(val results: List[Int]) extends SQLException
+
   class Statement private[SQL](val db: Database, val rep: PreparedStatement) extends AutoCloseable {
     stmt =>
 
@@ -314,6 +316,15 @@ object SQL {
     }
 
     def execute(): Boolean = rep.execute()
+
+    def execute_batch(batch: Statement => IterableOnce[Unit]): Unit = {
+      for (() <- batch(this).iterator) rep.addBatch()
+      val res = rep.executeBatch()
+      if (!res.forall(i => i >= 0 || i == java.sql.Statement.SUCCESS_NO_INFO)) {
+        throw new Batch_Error(res.toList)
+      }
+    }
+
     def execute_query(): Result = new Result(this, rep.executeQuery())
 
     override def close(): Unit = rep.close()
@@ -497,6 +508,11 @@ object SQL {
 
     def execute_statement(sql: Source, body: Statement => Unit = _ => ()): Unit =
       using_statement(sql) { stmt => body(stmt); stmt.execute() }
+
+    def execute_batch_statement(
+      sql: Source,
+      batch: Statement => IterableOnce[Unit] = _ => Nil
+    ): Unit = using_statement(sql) { stmt => stmt.execute_batch(batch) }
 
     def execute_query_statement[A, B](
       sql: Source,
