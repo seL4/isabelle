@@ -317,11 +317,14 @@ object SQL {
 
     def execute(): Boolean = rep.execute()
 
-    def execute_batch(batch: Statement => IterableOnce[Unit]): Unit = {
-      for (() <- batch(this).iterator) rep.addBatch()
-      val res = rep.executeBatch()
-      if (!res.forall(i => i >= 0 || i == java.sql.Statement.SUCCESS_NO_INFO)) {
-        throw new Batch_Error(res.toList)
+    def execute_batch(batch: Statement => IterableOnce[Boolean]): Unit = {
+      var proper = false
+      for (ok <- batch(this).iterator if ok) { rep.addBatch(); proper = true }
+      if (proper) {
+        val res = rep.executeBatch()
+        if (!res.forall(i => i >= 0 || i == java.sql.Statement.SUCCESS_NO_INFO)) {
+          throw new Batch_Error(res.toList)
+        }
       }
     }
 
@@ -511,7 +514,7 @@ object SQL {
 
     def execute_batch_statement(
       sql: Source,
-      batch: Statement => IterableOnce[Unit] = _ => Nil
+      batch: Statement => IterableOnce[Boolean] = _ => Nil
     ): Unit = using_statement(sql) { stmt => stmt.execute_batch(batch) }
 
     def execute_query_statement[A, B](
