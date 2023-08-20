@@ -261,46 +261,47 @@ object Export {
       Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
         bulk = { case (entry, _) => entry.is_finished },
         consume =
-          { (args: List[(Entry, Boolean)]) =>
-            for ((entry, _) <- args) {
-              if (progress.stopped) entry.cancel() else entry.body.join
-            }
-            private_data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
-              var known = private_data.known_entries(db, args.map(p => p._1.entry_name))
-              val buffer = new mutable.ListBuffer[Option[Entry]]
+          { (args0: List[(Entry, Boolean)]) =>
+            val results: List[List[Exn.Result[Unit]]] =
+              for (args <- args0.grouped(20).toList) yield {
+                for ((entry, _) <- args) {
+                  if (progress.stopped) entry.cancel() else entry.body.join
+                }
+                private_data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
+                  var known = private_data.known_entries(db, args.map(p => p._1.entry_name))
+                  val buffer = new mutable.ListBuffer[Option[Entry]]
 
-              for ((entry, strict) <- args) {
-                if (progress.stopped) {
-                  buffer += None
-                }
-                else if (known(entry.entry_name)) {
-                  if (strict) {
-                    val msg = message("Duplicate export", entry.theory_name, entry.name)
-                    errors.change(msg :: _)
+                  for ((entry, strict) <- args) {
+                    if (progress.stopped) {
+                      buffer += None
+                    }
+                    else if (known(entry.entry_name)) {
+                      if (strict) {
+                        val msg = message("Duplicate export", entry.theory_name, entry.name)
+                        errors.change(msg :: _)
+                      }
+                      buffer += None
+                    }
+                    else {
+                      known += entry.entry_name
+                      buffer += Some(entry)
+                    }
                   }
-                  buffer += None
-                }
-                else {
-                  known += entry.entry_name
-                  buffer += Some(entry)
+
+                  val entries = buffer.toList
+                  try {
+                    private_data.write_entries(db, entries)
+                    val ok = Exn.Res[Unit](())
+                    entries.map(_ => ok)
+                  }
+                  catch {
+                    case exn: Throwable =>
+                      val err = Exn.Exn[Unit](exn)
+                      entries.map(_ => err)
+                  }
                 }
               }
-
-              val entries = buffer.toList
-              val results =
-                try {
-                  private_data.write_entries(db, entries)
-                  val ok = Exn.Res[Unit](())
-                  entries.map(_ => ok)
-                }
-                catch {
-                  case exn: Throwable =>
-                    val err = Exn.Exn[Unit](exn)
-                    entries.map(_ => err)
-                }
-
-              (results, true)
-            }
+            (results.flatten, true)
           })
 
     def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {

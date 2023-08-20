@@ -325,35 +325,39 @@ extends Progress {
 
     _consumer = Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
       bulk = _ => true, timeout = timeout,
-      consume = { bulk_output =>
-        val serial = _serial
-        val serial_db = Progress.private_data.read_messages_serial(db, _context)
+      consume = { bulk_output0 =>
+        val results =
+          for (bulk_output <- bulk_output0.grouped(200).toList) yield {
+            val serial = _serial
+            val serial_db = Progress.private_data.read_messages_serial(db, _context)
 
-        _serial = _serial max serial_db
+            _serial = _serial max serial_db
 
-        if (bulk_output.nonEmpty) {
-          for (out <- bulk_output) {
-            out match {
-              case message: Progress.Message =>
-                if (do_output(message)) base_progress.output(message)
-              case theory: Progress.Theory => base_progress.theory(theory)
+            if (bulk_output.nonEmpty) {
+              for (out <- bulk_output) {
+                out match {
+                  case message: Progress.Message =>
+                    if (do_output(message)) base_progress.output(message)
+                  case theory: Progress.Theory => base_progress.theory(theory)
+                }
+              }
+
+              val messages =
+                for ((out, i) <- bulk_output.zipWithIndex)
+                  yield (_serial + i + 1) -> out.message
+
+              Progress.private_data.write_messages(db, _context, messages)
+
+              _serial = messages.last._1
             }
+
+            if (_serial != serial_db) {
+              Progress.private_data.update_agent(db, _agent_uuid, _serial)
+            }
+
+            bulk_output.map(_ => Exn.Res(()))
           }
-
-          val messages =
-            for ((out, i) <- bulk_output.zipWithIndex)
-              yield (_serial + i + 1) -> out.message
-
-          Progress.private_data.write_messages(db, _context, messages)
-
-          _serial = messages.last._1
-        }
-
-        if (_serial != serial_db) {
-          Progress.private_data.update_agent(db, _agent_uuid, _serial)
-        }
-
-        (bulk_output.map(_ => Exn.Res(())), true)
+        (results.flatten, true)
       })
   }
 
