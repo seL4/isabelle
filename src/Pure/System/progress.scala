@@ -176,7 +176,6 @@ object Progress {
           stmt.int(3) = message.kind.id
           stmt.string(4) = message.text
           stmt.bool(5) = message.verbose
-          true
         })
     }
   }

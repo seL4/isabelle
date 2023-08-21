@@ -459,7 +459,6 @@ object Build_Process {
             stmt.long(7) = session.old_time.ms
             stmt.bytes(8) = session.old_command_timings_blob
             stmt.string(9) = session.build_uuid
-            true
           })
       }
 
@@ -602,7 +601,6 @@ object Build_Process {
             stmt.string(2) = cat_lines(task.deps)
             stmt.string(3) = JSON.Format(task.info)
             stmt.string(4) = task.build_uuid
-            true
           })
       }
 
@@ -659,7 +657,6 @@ object Build_Process {
             stmt.string(3) = job.build_uuid
             stmt.string(4) = job.node_info.hostname
             stmt.int(5) = job.node_info.numa_node
-            true
           })
       }
 
@@ -755,7 +752,6 @@ object Build_Process {
             stmt.long(11) = process_result.timing.gc.ms
             stmt.string(12) = result.output_shasum.toString
             stmt.bool(13) = result.current
-            true
           })
       }
 

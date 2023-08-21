@@ -94,22 +94,17 @@ object Export {
         }
       )
 
-    def write_entries(db: SQL.Database, entries: List[Option[Entry]]): Unit =
+    def write_entries(db: SQL.Database, entries: List[Entry]): Unit =
       db.execute_batch_statement(Base.table.insert(), batch =
-        entries.map({
-          case None => _ => false
-          case Some(entry) => { (stmt: SQL.Statement) =>
-            val (compressed, bs) = entry.body.join
-            stmt.string(1) = entry.session_name
-            stmt.string(2) = entry.theory_name
-            stmt.string(3) = entry.name
-            stmt.bool(4) = entry.executable
-            stmt.bool(5) = compressed
-            stmt.bytes(6) = bs
-            true
-          }
+        for (entry <- entries) yield { (stmt: SQL.Statement) =>
+          val (compressed, bs) = entry.body.join
+          stmt.string(1) = entry.session_name
+          stmt.string(2) = entry.theory_name
+          stmt.string(3) = entry.name
+          stmt.bool(4) = entry.executable
+          stmt.bool(5) = compressed
+          stmt.bytes(6) = bs
         })
-      )
 
     def read_theory_names(db: SQL.Database, session_name: String): List[String] =
       db.execute_query_statement(
@@ -288,7 +283,7 @@ object Export {
 
                   val entries = buffer.toList
                   try {
-                    private_data.write_entries(db, entries)
+                    private_data.write_entries(db, entries.flatten)
                     val ok = Exn.Res[Unit](())
                     entries.map(_ => ok)
                   }
