@@ -7,17 +7,17 @@ begin
 (* TODO: Move *)
 text \<open>TODO: Better than @{thm deriv_compose_linear}?\<close>
 lemma deriv_compose_linear':
-  assumes "f field_differentiable at (c * z+a)"
-  shows "deriv (\<lambda>w. f (c * w+a)) z = c * deriv f (c * z+a)"
-  apply (subst deriv_chain[where f="\<lambda>w. c * w+a",unfolded comp_def])
+  assumes "f field_differentiable at (c*z + a)"
+  shows "deriv (\<lambda>w. f (c*w + a)) z = c * deriv f (c*z + a)"
+  apply (subst deriv_chain[where f="\<lambda>w. c*w + a",unfolded comp_def])
   using assms by (auto intro:derivative_intros)
 
 text \<open>TODO: Better than @{thm higher_deriv_compose_linear}?\<close>
 lemma higher_deriv_compose_linear':
   fixes z::complex
   assumes f: "f holomorphic_on T" and S: "open S" and T: "open T" and z: "z \<in> S"
-      and fg: "\<And>w. w \<in> S \<Longrightarrow> u * w+c \<in> T"
-    shows "(deriv ^^ n) (\<lambda>w. f (u * w+c)) z = u^n * (deriv ^^ n) f (u * z+c)"
+      and fg: "\<And>w. w \<in> S \<Longrightarrow> u*w + c \<in> T"
+    shows "(deriv ^^ n) (\<lambda>w. f (u*w + c)) z = u^n * (deriv ^^ n) f (u*z + c)"
 using z
 proof (induction n arbitrary: z)
   case 0 then show ?case by simp
@@ -116,14 +116,7 @@ qed
 instance fls :: (semiring_char_0) semiring_char_0
 proof
   show "inj (of_nat :: nat \<Rightarrow> 'a fls)"
-  proof
-    fix m n :: nat
-    assume "of_nat m = (of_nat n :: 'a fls)"
-    hence "fls_nth (of_nat m) 0 = (fls_nth (of_nat n) 0 :: 'a)"
-      by (simp only: )
-    thus "m = n"
-      by (simp add: fls_of_nat_nth)
-  qed
+    by (metis fls_regpart_of_nat injI of_nat_eq_iff)
 qed
 
 lemma fls_const_eq_0_iff [simp]: "fls_const c = 0 \<longleftrightarrow> c = 0"
@@ -547,20 +540,14 @@ lemma holomorphic_on_eval_fls' [holomorphic_intros]:
   assumes "g holomorphic_on A"
   assumes "g ` A \<subseteq> eball 0 (fls_conv_radius f) - (if fls_subdegree f \<ge> 0 then {} else {0})"
   shows   "(\<lambda>x. eval_fls f (g x)) holomorphic_on A"
-proof -
-  have "eval_fls f \<circ> g holomorphic_on A"
-    by (intro holomorphic_on_compose[OF assms(1) holomorphic_on_eval_fls]) (use assms in auto)
-  thus ?thesis
-    by (simp add: o_def)
-qed
+  by (meson assms holomorphic_on_compose holomorphic_on_eval_fls holomorphic_transform o_def)
 
 lemma continuous_on_eval_fls:
   fixes f
   defines "n \<equiv> fls_subdegree f"
   assumes "A \<subseteq> eball 0 (fls_conv_radius f) - (if n \<ge> 0 then {} else {0})"
   shows   "continuous_on A (eval_fls f)"
-  by (intro holomorphic_on_imp_continuous_on holomorphic_on_eval_fls)
-     (use assms in auto)
+  using assms holomorphic_on_eval_fls holomorphic_on_imp_continuous_on by blast
 
 lemma continuous_on_eval_fls' [continuous_intros]:
   fixes f
@@ -568,9 +555,7 @@ lemma continuous_on_eval_fls' [continuous_intros]:
   assumes "g ` A \<subseteq> eball 0 (fls_conv_radius f) - (if n \<ge> 0 then {} else {0})"
   assumes "continuous_on A g"
   shows   "continuous_on A (\<lambda>x. eval_fls f (g x))"
-  using assms(3)
-  by (intro continuous_on_compose2[OF continuous_on_eval_fls _ assms(2)])
-     (auto simp: n_def)
+  by (metis assms continuous_on_compose2 continuous_on_eval_fls order.refl)
 
 lemmas has_field_derivative_eval_fps' [derivative_intros] =
   DERIV_chain2[OF has_field_derivative_eval_fps]
@@ -621,7 +606,7 @@ qed
 lemma eval_fls_deriv:
   assumes "z \<in> eball 0 (fls_conv_radius F) - {0}"
   shows   "eval_fls (fls_deriv F) z = deriv (eval_fls F) z"
-  by (rule sym, rule DERIV_imp_deriv, rule has_field_derivative_eval_fls, rule assms)
+  by (metis DERIV_imp_deriv assms has_field_derivative_eval_fls)
 
 lemma analytic_on_eval_fls:
   assumes "A \<subseteq> eball 0 (fls_conv_radius f) - (if fls_subdegree f \<ge> 0 then {} else {0})"
@@ -781,8 +766,12 @@ lemma has_laurent_expansion_imp_is_pole:
 lemma is_pole_imp_neg_fls_subdegree:
   assumes F: "(\<lambda>x. f (z + x)) has_laurent_expansion F" and "is_pole f z"
   shows   "fls_subdegree F < 0"
-  apply (rule is_pole_0_imp_neg_fls_subdegree[OF F])
-  using assms(2) is_pole_shift_0 by blast
+proof -
+  have "is_pole (\<lambda>x. f (z + x)) 0"
+    using assms(2) is_pole_shift_0 by blast
+  then show ?thesis
+    using F is_pole_0_imp_neg_fls_subdegree by blast
+qed
 
 lemma is_pole_fls_subdegree_iff:
   assumes "(\<lambda>x. f (z + x)) has_laurent_expansion F"
@@ -2587,13 +2576,8 @@ proof -
     by auto
 qed
 
-lemma analytic_on_prod [analytic_intros]:
-  assumes "\<And>x. x \<in> A \<Longrightarrow> f x analytic_on B"
-  shows   "(\<lambda>z. \<Prod>x\<in>A. f x z) analytic_on B"
-  using assms by (induction A rule: infinite_finite_induct) (auto intro!: analytic_intros)
-
 lemma zorder_const [simp]: "c \<noteq> 0 \<Longrightarrow> zorder (\<lambda>_. c) z = 0"
-  by (intro zorder_eqI[where s = UNIV]) auto
+  by (intro zorder_eqI[where S = UNIV]) auto
 
 lemma zorder_prod_analytic:
   assumes "\<And>x. x \<in> A \<Longrightarrow> f x analytic_on {z}"
@@ -2613,12 +2597,7 @@ qed auto
 lemma zorder_eq_0I:
   assumes "g analytic_on {z}" "g z \<noteq> 0"
   shows   "zorder g z = 0"
-proof -
-  from assms obtain r where r: "r > 0" "g holomorphic_on ball z r"
-    unfolding analytic_on_def by blast
-  thus ?thesis using assms
-    by (intro zorder_eqI[of "ball z r" _ g]) auto
-qed
+  using analytic_at assms zorder_eqI by fastforce
 
 lemma zorder_pos_iff:
   assumes "f holomorphic_on A" "open A" "z \<in> A" "frequently (\<lambda>z. f z \<noteq> 0) (at z)"
@@ -2651,12 +2630,7 @@ qed
 lemma zorder_pos_iff':
   assumes "f analytic_on {z}" "frequently (\<lambda>z. f z \<noteq> 0) (at z)"
   shows   "zorder f z > 0 \<longleftrightarrow> f z = 0"
-proof -
-  from assms(1) obtain A where A: "open A" "{z} \<subseteq> A" "f holomorphic_on A"
-    unfolding analytic_on_holomorphic by auto
-  with zorder_pos_iff [OF A(3,1), of z] assms show ?thesis
-    by auto
-qed
+  using analytic_at assms zorder_pos_iff by blast
 
 lemma zorder_ge_0:
   assumes "f analytic_on {z}" "frequently (\<lambda>z. f z \<noteq> 0) (at z)"
@@ -2673,15 +2647,7 @@ qed
 lemma zorder_eq_0_iff:
   assumes "f analytic_on {z}" "frequently (\<lambda>w. f w \<noteq> 0) (at z)"
   shows   "zorder f z = 0 \<longleftrightarrow> f z \<noteq> 0"
-proof
-  assume "f z \<noteq> 0"
-  thus "zorder f z = 0"
-    using assms zorder_eq_0I by blast
-next
-  assume "zorder f z = 0"
-  thus "f z \<noteq> 0"
-    using assms zorder_pos_iff' by fastforce
-qed
+  using assms zorder_eq_0I zorder_pos_iff' by fastforce
 
 lemma dist_mult_left:
   "dist (a * b) (a * c :: 'a :: real_normed_field) = norm a * dist b c"
@@ -2835,15 +2801,7 @@ proof -
 qed
 
 lemma fps_to_fls_eq_fls_const_iff [simp]: "fps_to_fls F = fls_const c \<longleftrightarrow> F = fps_const c"
-proof
-  assume "F = fps_const c"
-  thus "fps_to_fls F = fls_const c"
-    by simp
-next
-  assume "fps_to_fls F = fls_const c"
-  thus "F = fps_const c"
-    by (metis fls_regpart_const fls_regpart_fps_trivial)
-qed
+  using fps_to_fls_eq_iff by fastforce
 
 lemma zorder_compose':
   assumes "isolated_singularity_at f (g z)" "not_essential f (g z)"

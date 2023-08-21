@@ -1692,19 +1692,14 @@ definition\<^marker>\<open>tag important\<close> seq_compact :: "'a::topological
     (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l))"
 
 lemma seq_compactI:
-  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
+  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
   shows "seq_compact S"
   unfolding seq_compact_def using assms by fast
 
 lemma seq_compactE:
   assumes "seq_compact S" "\<forall>n. f n \<in> S"
-  obtains l r where "l \<in> S" "strict_mono (r :: nat \<Rightarrow> nat)" "((f \<circ> r) \<longlongrightarrow> l) sequentially"
+  obtains l r where "l \<in> S" "strict_mono (r :: nat \<Rightarrow> nat)" "(f \<circ> r) \<longlonglongrightarrow> l"
   using assms unfolding seq_compact_def by fast
-
-lemma closed_sequentially: (* TODO: move upwards *)
-  assumes "closed S" and "\<And>n. f n \<in> S" and "f \<longlonglongrightarrow> l"
-  shows "l \<in> S"
-  by (metis Lim_in_closed_set assms eventually_sequentially trivial_limit_sequentially)
 
 lemma seq_compact_Int_closed:
   assumes "seq_compact S" and "closed T"

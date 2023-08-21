@@ -32,13 +32,8 @@ proof -
       by (simp add: norm_divide norm_mult)
     also have "cmod ?one / abs t + cmod ?two / abs t \<le>
         ((- (a * t))^2 / 2) / abs t + ((- (b * t))^2 / 2) / abs t"
-      apply (rule add_mono)
-      apply (rule divide_right_mono)
-      using iexp_approx1 [of "-(t * a)" 1] apply (simp add: field_simps eval_nat_numeral)
-      apply force
-      apply (rule divide_right_mono)
-      using iexp_approx1 [of "-(t * b)" 1] apply (simp add: field_simps eval_nat_numeral)
-      by force
+      using iexp_approx1 [of "-(t * _)" 1]
+      by (intro add_mono divide_right_mono abs_ge_zero) (auto simp: field_simps eval_nat_numeral)
     also have "\<dots> = a^2 / 2 * abs t + b^2 / 2 * abs t"
       using \<open>t \<noteq> 0\<close> apply (case_tac "t \<ge> 0", simp add: field_simps power2_eq_square)
       using \<open>t \<noteq> 0\<close> by (subst (1 2) abs_of_neg, auto simp add: field_simps power2_eq_square)
@@ -88,6 +83,8 @@ proof -
     assume "T \<ge> 0"
     let ?f' = "\<lambda>(t, x). indicator {-T<..<T} t *\<^sub>R ?f t x"
     { fix x
+      have int: "interval_lebesgue_integrable lborel (ereal 0) (ereal T) (\<lambda>t. 2 * (sin (t * (x-w)) / t))" for w
+        using integrable_sinc' interval_lebesgue_integrable_mult_right by blast
       have 1: "complex_interval_lebesgue_integrable lborel u v (\<lambda>t. ?f t x)" for u v :: real
         using Levy_Inversion_aux2[of "x - b" "x - a"]
         apply (simp add: interval_lebesgue_integrable_def set_integrable_def del: times_divide_eq_left)
@@ -110,21 +107,18 @@ proof -
       also have "\<dots> = (CLBINT t=(0::real)..T. complex_of_real(
           2 * (sin (t * (x - a)) / t) - 2 * (sin (t * (x - b)) / t)))"
         using \<open>T \<ge> 0\<close>
-        apply (intro interval_integral_cong)
-        apply (simp add: field_simps cis.ctr Im_divide Re_divide Im_exp Re_exp complex_eq_iff)
-        unfolding minus_diff_eq[symmetric, of "y * x" "y * a" for y a] sin_minus cos_minus
-        apply (simp add: field_simps power2_eq_square)
-        done
+        by (intro interval_integral_cong) (simp add: divide_simps Im_divide Re_divide Im_exp Re_exp complex_eq_iff)
       also have "\<dots> = complex_of_real (LBINT t=(0::real)..T.
           2 * (sin (t * (x - a)) / t) - 2 * (sin (t * (x - b)) / t))"
         by (rule interval_lebesgue_integral_of_real)
+      also have "\<dots> = complex_of_real ((LBINT t=ereal 0..ereal T. 2 * (sin (t * (x - a)) / t)) -
+                                       (LBINT t=ereal 0..ereal T. 2 * (sin (t * (x - b)) / t)))"
+        unfolding interval_lebesgue_integral_diff
+        using int by auto
       also have "\<dots> = complex_of_real (2 * (sgn (x - a) * Si (T * abs (x - a)) -
           sgn (x - b) * Si (T * abs (x - b))))"
-        apply (subst interval_lebesgue_integral_diff)
-        apply (rule interval_lebesgue_integrable_mult_right, rule integrable_sinc')+
-        apply (subst interval_lebesgue_integral_mult_right)+
-        apply (simp add: zero_ereal_def[symmetric] LBINT_I0c_sin_scale_divide[OF \<open>T \<ge> 0\<close>])
-        done
+        unfolding interval_lebesgue_integral_mult_right
+        by (simp add: zero_ereal_def[symmetric] LBINT_I0c_sin_scale_divide[OF \<open>T \<ge> 0\<close>])
       finally have "(CLBINT t. ?f' (t, x)) =
           2 * (sgn (x - a) * Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b)))" .
     } note main_eq = this
@@ -287,22 +281,15 @@ proof -
     assume "u > 0" and "x \<noteq> 0"
     hence "(CLBINT t:{-u..u}. 1 - iexp (t * x)) = (CLBINT t=-u..u. 1 - iexp (t * x))"
       by (subst interval_integral_Icc, auto)
-    also have "\<dots> = (CLBINT t=-u..0. 1 - iexp (t * x)) + (CLBINT t=0..u. 1 - iexp (t * x))"
+    also have "\<dots> = (CLBINT t=-u..ereal 0. 1 - iexp (t * x)) + (CLBINT t= ereal 0..u. 1 - iexp (t * x))"
       using \<open>u > 0\<close>
-      apply (subst interval_integral_sum)
-      apply (simp add: min_absorb1 min_absorb2 max_absorb1 max_absorb2)
-      apply (rule interval_integrable_isCont)
-      apply auto
-      done
+      by (subst interval_integral_sum; force simp add: interval_integrable_isCont)
     also have "\<dots> = (CLBINT t=ereal 0..u. 1 - iexp (t * -x)) + (CLBINT t=ereal 0..u. 1 - iexp (t * x))"
-      apply (subgoal_tac "0 = ereal 0", erule ssubst)
       by (subst interval_integral_reflect, auto)
+    also have "... = CLBINT xa=ereal 0..ereal u. 1 - iexp (xa * - x) + (1 - iexp (xa * x))"
+      by (subst interval_lebesgue_integral_add (2) [symmetric]) (auto simp: interval_integrable_isCont)
     also have "\<dots> = (LBINT t=ereal 0..u. 2 - 2 * cos (t * x))"
-      apply (subst interval_lebesgue_integral_add (2) [symmetric])
-      apply ((rule interval_integrable_isCont, auto)+) [2]
-      unfolding exp_Euler cos_of_real
-      apply (simp add: of_real_mult interval_lebesgue_integral_of_real[symmetric])
-      done
+      unfolding exp_Euler cos_of_real by (simp flip: interval_lebesgue_integral_of_real)
     also have "\<dots> = 2 * u - 2 * sin (u * x) / x"
       by (subst interval_lebesgue_integral_diff)
          (auto intro!: interval_integrable_isCont
@@ -375,13 +362,11 @@ proof -
   proof -
     fix \<epsilon> :: real
     assume "\<epsilon> > 0"
-    note M'.isCont_char [of 0]
-    hence "\<exists>d>0. \<forall>t. abs t < d \<longrightarrow> cmod (char M' t - 1) < \<epsilon> / 4"
-      apply (subst (asm) continuous_at_eps_delta)
-      apply (drule_tac x = "\<epsilon> / 4" in spec)
-      using \<open>\<epsilon> > 0\<close> by (auto simp add: dist_real_def dist_complex_def M'.char_zero)
-    then obtain d where "d > 0 \<and> (\<forall>t. (abs t < d \<longrightarrow> cmod (char M' t - 1) < \<epsilon> / 4))" ..
-    hence d0: "d > 0" and d1: "\<And>t. abs t < d \<Longrightarrow> cmod (char M' t - 1) < \<epsilon> / 4" by auto
+    with M'.isCont_char [of 0]
+    obtain d where d0: "d>0" and "\<forall>x'. dist x' 0 < d \<longrightarrow> dist (char M' x') (char M' 0) < \<epsilon>/4"
+      unfolding continuous_at_eps_delta by (metis \<open>0 < \<epsilon>\<close> divide_pos_pos zero_less_numeral)
+    then have d1: "\<And>t. abs t < d \<Longrightarrow> cmod (char M' t - 1) < \<epsilon> / 4"
+      by (simp add: M'.char_zero dist_norm)
     have 1: "\<And>x. cmod (1 - char M' x) \<le> 2"
       by (rule order_trans [OF norm_triangle_ineq4], auto simp add: M'.cmod_char_le_1)
     then have 2: "\<And>u v. complex_set_integrable lborel {u..v} (\<lambda>x. 1 - char M' x)"
@@ -395,15 +380,18 @@ proof -
       using integral_norm_bound[of _ "\<lambda>x. indicator {u..v} x *\<^sub>R (1 - char M' x)" for u v] by simp
     also have 4: "\<dots> \<le> LBINT t:{-d/2..d/2}. \<epsilon> / 4"
       unfolding set_lebesgue_integral_def
-      apply (rule integral_mono [OF 3])
-       apply (simp add: emeasure_lborel_Icc_eq)
-      apply (case_tac "x \<in> {-d/2..d/2}")
-       apply auto
-      apply (subst norm_minus_commute)
-      apply (rule less_imp_le)
-      apply (rule d1 [simplified])
-      using d0 apply auto
-      done
+    proof (rule integral_mono [OF 3])
+
+      show "indicat_real {- d / 2..d / 2} x *\<^sub>R cmod (1 - char M' x)
+         \<le> indicat_real {- d / 2..d / 2} x *\<^sub>R (\<epsilon> / 4)"
+        if "x \<in> space lborel" for x
+      proof (cases "x \<in> {-d/2..d/2}")
+        case True
+        show ?thesis
+          using d0 d1 that True [simplified]
+          by (smt (verit, best) field_sum_of_halves minus_diff_eq norm_minus_cancel indicator_pos_le scaleR_left_mono)
+      qed auto
+    qed (simp add: emeasure_lborel_Icc_eq)
     also from d0 4 have "\<dots> = d * \<epsilon> / 4"
       unfolding set_lebesgue_integral_def by simp
     finally have bound: "cmod (CLBINT t:{-d/2..d/2}. 1 - char M' t) \<le> d * \<epsilon> / 4" .
@@ -450,14 +438,7 @@ proof -
         apply (subst Mn.borel_UNIV [symmetric])
         by (subst Mn.prob_compl, auto)
       also have "UNIV - {x. abs x \<ge> 2 / (d / 2)} = {x. -(4 / d) < x \<and> x < (4 / d)}"
-        using d0 apply (auto simp add: field_simps)
-        (* very annoying -- this should be automatic *)
-        apply (case_tac "x \<ge> 0", auto simp add: field_simps)
-        apply (subgoal_tac "0 \<le> x * d", arith, rule mult_nonneg_nonneg, auto)
-        apply (case_tac "x \<ge> 0", auto simp add: field_simps)
-        apply (subgoal_tac "x * d \<le> 0", arith)
-        apply (rule mult_nonpos_nonneg, auto)
-        by (case_tac "x \<ge> 0", auto simp add: field_simps)
+        using d0  by (simp add: set_eq_iff divide_simps abs_if) (smt (verit, best) mult_less_0_iff)
       finally have "measure (M n) {x. -(4 / d) < x \<and> x < (4 / d)} > 1 - \<epsilon>"
         by auto
     } note 6 = this
@@ -470,8 +451,7 @@ proof -
       hence "(\<lambda>k. measure (M n) {- real k<..real k}) \<longlonglongrightarrow> 1"
         using Mn.prob_space unfolding * Mn.borel_UNIV by simp
       hence "eventually (\<lambda>k. measure (M n) {- real k<..real k} > 1 - \<epsilon>) sequentially"
-        apply (elim order_tendstoD (1))
-        using \<open>\<epsilon> > 0\<close> by auto
+        using \<open>\<epsilon> > 0\<close> order_tendstoD by fastforce
     } note 7 = this
     { fix n :: nat
       have "eventually (\<lambda>k. \<forall>m < n. measure (M m) {- real k<..real k} > 1 - \<epsilon>) sequentially"
@@ -490,20 +470,18 @@ proof -
     hence K: "\<And>m. m < N \<Longrightarrow> 1 - \<epsilon> < Sigma_Algebra.measure (M m) {- real K<..real K}"
       by auto
     let ?K' = "max K (4 / d)"
-    have "-?K' < ?K' \<and> (\<forall>n. 1 - \<epsilon> < measure (M n) {-?K'<..?K'})"
-      using d0 apply auto
-      apply (rule max.strict_coboundedI2, auto)
-    proof -
-      fix n
-      show " 1 - \<epsilon> < measure (M n) {- max (real K) (4 / d)<..max (real K) (4 / d)}"
-        apply (case_tac "n < N")
-        apply (rule order_less_le_trans)
-        apply (erule K)
-        apply (rule Mn.finite_measure_mono, auto)
-        apply (rule order_less_le_trans)
-        apply (rule 6, erule leI)
-        by (rule Mn.finite_measure_mono, auto)
+    have "1 - \<epsilon> < measure (M n) {- max (real K) (4 / d)<..max (real K) (4 / d)}" for n
+    proof (cases "n < N")
+      case True
+      then show ?thesis
+        by (force intro: order_less_le_trans [OF K Mn.finite_measure_mono])
+    next
+      case False
+      then show ?thesis
+        by (force intro: order_less_le_trans [OF 6 Mn.finite_measure_mono])
     qed
+    then have "-?K' < ?K' \<and> (\<forall>n. 1 - \<epsilon> < measure (M n) {-?K'<..?K'})"
+      using d0 by (simp add: less_max_iff_disj minus_less_iff)
     thus "\<exists>a b. a < b \<and> (\<forall>n. 1 - \<epsilon> < measure (M n) {a<..b})" by (intro exI)
   qed
   have tight: "tight M"

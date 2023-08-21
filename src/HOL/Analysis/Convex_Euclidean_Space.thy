@@ -437,7 +437,7 @@ proof -
     then obtain L where L: "subspace L" "affine_parallel S L"
       using assms affine_parallel_subspace[of S] by auto
     then obtain a where a: "S = ((+) a ` L)"
-      using affine_parallel_def[of L S] affine_parallel_commut by auto
+      using affine_parallel_def[of L S] affine_parallel_commute by auto
     from L have "closed L" using closed_subspace by auto
     then have "closed S"
       using closed_translation a by auto

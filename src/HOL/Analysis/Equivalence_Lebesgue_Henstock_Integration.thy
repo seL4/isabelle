@@ -1373,7 +1373,7 @@ proof -
       obtain a where "a \<in> interior (convex hull insert 0 B)"
       proof (rule interior_simplex_nonempty [OF indB])
         show "finite B"
-          by (simp add: indB independent_finite)
+          by (simp add: indB independent_imp_finite)
         show "card B = DIM('N)"
           by (simp add: cardB 2)
       qed

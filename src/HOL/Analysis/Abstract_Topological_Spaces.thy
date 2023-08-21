@@ -35,10 +35,6 @@ lemma connectedin_clopen_cases:
    "\<lbrakk>connectedin X C; closedin X T; openin X T\<rbrakk> \<Longrightarrow> C \<subseteq> T \<or> disjnt C T"
   by (metis Diff_eq_empty_iff Int_empty_right clopenin_eq_frontier_of connectedin_Int_frontier_of disjnt_def)
 
-lemma connected_space_quotient_map_image:
-   "\<lbrakk>quotient_map X X' q; connected_space X\<rbrakk> \<Longrightarrow> connected_space X'"
-  by (metis connectedin_continuous_map_image connectedin_topspace quotient_imp_continuous_map quotient_imp_surjective_map)
-
 lemma connected_space_retraction_map_image:
    "\<lbrakk>retraction_map X X' r; connected_space X\<rbrakk> \<Longrightarrow> connected_space X'"
   using connected_space_quotient_map_image retraction_imp_quotient_map by blast
@@ -291,8 +287,6 @@ proof -
     by (simp add: Ceq \<open>a \<in> U\<close> \<open>a \<in> topspace X\<close> connected_component_in_connected_components_of)
 qed
 
-thm connected_space_iff_components_eq
-
 lemma open_in_finite_connected_components:
   assumes "finite(connected_components_of X)" "C \<in> connected_components_of X"
   shows "openin X C"
@@ -307,12 +301,7 @@ thm connected_component_of_eq_overlap
 lemma connected_components_of_disjoint:
   assumes "C \<in> connected_components_of X" "C' \<in> connected_components_of X"
     shows "(disjnt C C' \<longleftrightarrow> (C \<noteq> C'))"
-proof -
-  have "C \<noteq> {}"
-    using nonempty_connected_components_of assms by blast
-  with assms show ?thesis
-    by (metis disjnt_self_iff_empty pairwiseD pairwise_disjoint_connected_components_of)
-qed
+  using assms nonempty_connected_components_of pairwiseD pairwise_disjoint_connected_components_of by fastforce
 
 lemma connected_components_of_overlap:
    "\<lbrakk>C \<in> connected_components_of X; C' \<in> connected_components_of X\<rbrakk> \<Longrightarrow> C \<inter> C' \<noteq> {} \<longleftrightarrow> C = C'"
@@ -439,8 +428,7 @@ proof (cases "x \<in> topspace(product_topology X I)")
 next
   case False
   then show ?thesis
-    apply (simp add: PiE_iff)
-    by (smt (verit) Collect_empty_eq False PiE_eq_empty_iff PiE_iff connected_component_of_eq_empty)
+    by (smt (verit, best) PiE_eq_empty_iff PiE_iff connected_component_of_eq_empty topspace_product_topology)
 qed
 
 
@@ -490,11 +478,14 @@ lemma monotone_map_in_subtopology:
 
 lemma monotone_map_from_subtopology:
   assumes "monotone_map X Y f" 
-    "\<And>x y. x \<in> topspace X \<and> y \<in> topspace X \<and> x \<in> S \<and> f x = f y \<Longrightarrow> y \<in> S"
+    "\<And>x y. \<lbrakk>x \<in> topspace X; y \<in> topspace X; x \<in> S; f x = f y\<rbrakk> \<Longrightarrow> y \<in> S"
   shows "monotone_map (subtopology X S) Y f"
-  using assms
-  unfolding monotone_map_def connectedin_subtopology
-  by (smt (verit, del_insts) Collect_cong Collect_empty_eq IntE IntI connectedin_empty image_subset_iff mem_Collect_eq subsetI topspace_subtopology)
+proof -
+  have "\<And>y. y \<in> topspace Y \<Longrightarrow> connectedin X {x \<in> topspace X. x \<in> S \<and> f x = y}"
+    by (smt (verit) Collect_cong assms connectedin_empty empty_def monotone_map_def)
+  then show ?thesis
+    using assms by (auto simp: monotone_map_def connectedin_subtopology)
+qed
 
 lemma monotone_map_restriction:
   "monotone_map X Y f \<and> {x \<in> topspace X. f x \<in> v} = u
@@ -5115,17 +5106,10 @@ proof -
           locally_compact_space_prod_topology by blast
 qed
 
-text \<open>Essentially the same proof\<close>
 lemma k_space_prod_topology_right:
   assumes "k_space X" and Y: "locally_compact_space Y" "Hausdorff_space Y \<or> regular_space Y"
   shows "k_space (prod_topology X Y)"
-proof -
-  obtain q and Z :: "('a set * 'a) topology" where "locally_compact_space Z" and q: "quotient_map Z X q"
-    using \<open>k_space X\<close> k_space_as_quotient by blast
-  then show ?thesis
-    using quotient_map_prod_left [OF Y q] using Y k_space_quotient_map_image locally_compact_imp_k_space 
-          locally_compact_space_prod_topology by blast
-qed
+  using assms homeomorphic_k_space homeomorphic_space_prod_topology_swap k_space_prod_topology_left by blast
 
 
 lemma continuous_map_from_k_space:
@@ -5258,13 +5242,7 @@ lemma open_map_into_k_space_eq:
          f \<in> (topspace X) \<rightarrow> topspace Y \<and>
          (\<forall>k. compactin Y k
               \<longrightarrow> open_map (subtopology X {x \<in> topspace X. f x \<in> k}) (subtopology Y k) f)"
-       (is "?lhs=?rhs")
-proof
-  show "?lhs \<Longrightarrow> ?rhs"
-    by (simp add: open_map_imp_subset_topspace open_map_restriction)
-  show "?rhs \<Longrightarrow> ?lhs"
-    by (simp add: assms open_map_into_k_space)
-qed
+  using assms open_map_imp_subset_topspace open_map_into_k_space open_map_restriction by fastforce
 
 lemma closed_map_into_k_space_eq:
   assumes "k_space Y"
