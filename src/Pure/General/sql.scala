@@ -60,6 +60,10 @@ object SQL {
   val join_inner: Source = " INNER JOIN "
   def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
+  def MULTI(args: Iterable[Source]): Source =
+    args.iterator.filter(_.nonEmpty).mkString(";\n")
+  def multi(args: Source*): Source = MULTI(args)
+
   def infix(op: Source, args: Iterable[Source]): Source = {
     val body = args.iterator.filter(_.nonEmpty).mkString(" " + op + " ")
     if_proper(body, enclose(body))
