@@ -19,6 +19,8 @@ import scala.collection.mutable
 
 
 object SQL {
+  lazy val time_start = Time.now()
+
   /** SQL language **/
 
   type Source = String
@@ -479,7 +481,7 @@ object SQL {
       def trace(msg: String): Unit = {
         val trace_time = Time.now() - trace_start
         if (trace_time >= trace_min) {
-          val nl = if (trace_nl) "" else { trace_nl = true; "\n" }
+          val nl = if (trace_nl) "" else { trace_nl = true; "\nnow = " + (Time.now() - time_start).toString + "\n" }
           log(nl + trace_time + " transaction " + trace_count +
             if_proper(label, " " + label) + ": " + msg)
         }
