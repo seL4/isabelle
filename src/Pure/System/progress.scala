@@ -328,29 +328,25 @@ extends Progress {
       consume = { bulk_output0 =>
         val results =
           for (bulk_output <- bulk_output0.grouped(200).toList) yield {
-            val serial_db = Progress.private_data.read_messages_serial(db, _context)
-            _serial = _serial max serial_db
-
-            if (bulk_output.nonEmpty) {
-              for (out <- bulk_output) {
-                out match {
-                  case message: Progress.Message =>
-                    if (do_output(message)) base_progress.output(message)
-                  case theory: Progress.Theory => base_progress.theory(theory)
+            sync_database {
+              if (bulk_output.nonEmpty) {
+                for (out <- bulk_output) {
+                  out match {
+                    case message: Progress.Message =>
+                      if (do_output(message)) base_progress.output(message)
+                    case theory: Progress.Theory => base_progress.theory(theory)
+                  }
                 }
+
+                val messages =
+                  for ((out, i) <- bulk_output.zipWithIndex)
+                    yield (_serial + i + 1) -> out.message
+
+                Progress.private_data.write_messages(db, _context, messages)
+                _serial = messages.last._1
               }
-
-              val messages =
-                for ((out, i) <- bulk_output.zipWithIndex)
-                  yield (_serial + i + 1) -> out.message
-
-              Progress.private_data.write_messages(db, _context, messages)
-              _serial = messages.last._1
+              bulk_output.map(_ => Exn.Res(()))
             }
-
-            if (_serial != serial_db) Progress.private_data.update_agent(db, _agent_uuid, _serial)
-
-            bulk_output.map(_ => Exn.Res(()))
           }
         (results.flatten, true)
       })
@@ -397,9 +393,11 @@ extends Progress {
         _serial = _serial max Progress.private_data.read_messages_serial(db, _context)
       }
 
+      val res = body
+
       if (_serial != serial0) Progress.private_data.update_agent(db, _agent_uuid, _serial)
 
-      body
+      res
     }
   }
 
@@ -414,8 +412,8 @@ extends Progress {
   override def verbose: Boolean = base_progress.verbose
 
   override def stop(): Unit = sync_context { base_progress.stop(); sync() }
-  override def stopped: Boolean = sync_database { base_progress.stopped }
-  override def stopped_local: Boolean = sync_database { base_progress.stopped && !_stopped_db }
+  override def stopped: Boolean = sync_context { base_progress.stopped }
+  override def stopped_local: Boolean = sync_context { base_progress.stopped && !_stopped_db }
 
   override def toString: String = super.toString + ": database " + db
 
