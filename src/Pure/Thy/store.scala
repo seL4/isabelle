@@ -188,17 +188,20 @@ object Store {
         })
     }
 
-    def write_sources(db: SQL.Database, session_name: String, sources: Sources): Unit =
-      for (source_file <- sources) {
-        db.execute_statement(Sources.table.insert(), body =
-          { stmt =>
-            stmt.string(1) = session_name
-            stmt.string(2) = source_file.name
-            stmt.string(3) = source_file.digest.toString
-            stmt.bool(4) = source_file.compressed
-            stmt.bytes(5) = source_file.body
-          })
-      }
+    def write_sources(
+      db: SQL.Database,
+      session_name: String,
+      source_files: Iterable[Source_File]
+    ): Unit = {
+      db.execute_batch_statement(Sources.table.insert(), batch =
+        for (source_file <- source_files) yield { (stmt: SQL.Statement) =>
+          stmt.string(1) = session_name
+          stmt.string(2) = source_file.name
+          stmt.string(3) = source_file.digest.toString
+          stmt.bool(4) = source_file.compressed
+          stmt.bytes(5) = source_file.body
+        })
+    }
 
     def read_sources(
       db: SQL.Database,
@@ -440,11 +443,11 @@ class Store private(val options: Options, val cache: Term.Cache) {
       val already_defined = session_info_defined(db, name)
 
       db.execute_statement(
-        Store.private_data.Session_Info.table.delete(
-          sql = Store.private_data.Session_Info.session_name.where_equal(name)))
-
-      db.execute_statement(Store.private_data.Sources.table.delete(
-        sql = Store.private_data.Sources.where_equal(name)))
+        SQL.multi(
+          Store.private_data.Session_Info.table.delete(
+            sql = Store.private_data.Session_Info.session_name.where_equal(name)),
+          Store.private_data.Sources.table.delete(
+            sql = Store.private_data.Sources.where_equal(name))))
 
       already_defined
     }
@@ -458,7 +461,9 @@ class Store private(val options: Options, val cache: Term.Cache) {
     build: Store.Build_Info
   ): Unit = {
     Store.private_data.transaction_lock(db, label = "Store.write_session_info") {
-      Store.private_data.write_sources(db, session_name, sources)
+      for (source_files <- sources.iterator.toList.grouped(200)) {
+        Store.private_data.write_sources(db, session_name, source_files)
+      }
       Store.private_data.write_session_info(db, cache.compress, session_name, build_log, build)
     }
   }
