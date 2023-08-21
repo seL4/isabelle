@@ -440,9 +440,12 @@ object Build_Process {
       )
     }
 
-    def update_sessions(db: SQL.Database, sessions: Build_Process.Sessions): Boolean = {
-      val old_sessions = read_sessions_domain(db)
-      val insert = sessions.iterator.filterNot(s => old_sessions.contains(s.name)).toList
+    def update_sessions(
+      db: SQL.Database,
+      sessions: Build_Process.Sessions,
+      old_sessions: Build_Process.Sessions
+    ): Boolean = {
+      val insert = sessions.iterator.filterNot(s => old_sessions.defined(s.name)).toList
 
       if (insert.nonEmpty) {
         db.execute_batch_statement(Sessions.table.insert(), batch =
@@ -580,8 +583,11 @@ object Build_Process {
           Task(name, split_lines(deps), JSON.Object.parse(info), build_uuid)
         })
 
-    def update_pending(db: SQL.Database, pending: State.Pending): Boolean = {
-      val old_pending = read_pending(db)
+    def update_pending(
+      db: SQL.Database,
+      pending: State.Pending,
+      old_pending: State.Pending
+    ): Boolean = {
       val (delete, insert) = Library.symmetric_difference(old_pending, pending)
 
       if (delete.nonEmpty) {
@@ -631,8 +637,12 @@ object Build_Process {
         }
       )
 
-    def update_running(db: SQL.Database, running: State.Running): Boolean = {
-      val running0 = read_running(db).valuesIterator.toList
+    def update_running(
+      db: SQL.Database,
+      running: State.Running,
+      old_running: State.Running
+    ): Boolean = {
+      val running0 = old_running.valuesIterator.toList
       val running1 = running.valuesIterator.map(_.no_build).toList
       val (delete, insert) = Library.symmetric_difference(running0, running1)
 
@@ -720,13 +730,13 @@ object Build_Process {
         }
       )
 
-    def update_results(db: SQL.Database, results: State.Results): Boolean = {
+    def update_results(
+      db: SQL.Database,
+      results: State.Results,
+      old_results: State.Results
+    ): Boolean = {
       val insert =
-        if (results.isEmpty) Nil
-        else {
-          val old_results = read_results_domain(db)
-          results.valuesIterator.filterNot(res => old_results.contains(res.name)).toList
-        }
+        results.valuesIterator.filterNot(res => old_results.isDefinedAt(res.name)).toList
 
       if (insert.nonEmpty) {
         db.execute_batch_statement(Results.table.insert(), batch =
@@ -785,13 +795,18 @@ object Build_Process {
       }
     }
 
-    def update_database(db: SQL.Database, worker_uuid: String, state: State): State = {
+    def update_database(
+      db: SQL.Database,
+      worker_uuid: String,
+      state: State,
+      old_state: State
+    ): State = {
       val changed =
         List(
-          update_sessions(db, state.sessions),
-          update_pending(db, state.pending),
-          update_running(db, state.running),
-          update_results(db, state.results))
+          update_sessions(db, state.sessions, old_state.sessions),
+          update_pending(db, state.pending, old_state.pending),
+          update_running(db, state.running, old_state.running),
+          update_results(db, state.results, old_state.results))
 
       val serial0 = state.serial
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
@@ -923,9 +938,10 @@ extends AutoCloseable {
         case None => body
         case Some(db) =>
           Build_Process.private_data.transaction_lock(db, label = label) {
-            _state = Build_Process.private_data.pull_database(db, worker_uuid, _state)
+            val old_state = Build_Process.private_data.pull_database(db, worker_uuid, _state)
+            _state = old_state
             val res = body
-            _state = Build_Process.private_data.update_database(db, worker_uuid, _state)
+            _state = Build_Process.private_data.update_database(db, worker_uuid, _state, old_state)
             res
           }
       }
