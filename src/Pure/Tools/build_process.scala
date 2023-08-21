@@ -765,12 +765,7 @@ object Build_Process {
       tables.filter(table =>
         table.columns.exists(column => column.name == Generic.build_uuid.name))
 
-    def pull_database(
-      db: SQL.Database,
-      worker_uuid: String,
-      hostname: String,
-      state: State
-    ): State = {
+    def pull_database(db: SQL.Database, worker_uuid: String, state: State): State = {
       val serial_db = read_serial(db)
       if (serial_db == state.serial) state
       else {
@@ -787,13 +782,7 @@ object Build_Process {
       }
     }
 
-    def update_database(
-      db: SQL.Database,
-      worker_uuid: String,
-      build_uuid: String,
-      hostname: String,
-      state: State
-    ): State = {
+    def update_database(db: SQL.Database, worker_uuid: String, state: State): State = {
       val changed =
         List(
           update_sessions(db, state.sessions),
@@ -931,10 +920,9 @@ extends AutoCloseable {
         case None => body
         case Some(db) =>
           Build_Process.private_data.transaction_lock(db, label = label) {
-            _state = Build_Process.private_data.pull_database(db, worker_uuid, hostname, _state)
+            _state = Build_Process.private_data.pull_database(db, worker_uuid, _state)
             val res = body
-            _state =
-              Build_Process.private_data.update_database(db, worker_uuid, build_uuid, hostname, _state)
+            _state = Build_Process.private_data.update_database(db, worker_uuid, _state)
             res
           }
       }
