@@ -95,10 +95,10 @@ object Export {
       )
 
     def write_entries(db: SQL.Database, entries: List[Option[Entry]]): Unit =
-      db.execute_batch_statement(Base.table.insert(), batch = { stmt =>
-        entries.iterator.map({
-          case None => false
-          case Some(entry) =>
+      db.execute_batch_statement(Base.table.insert(), batch =
+        entries.map({
+          case None => _ => false
+          case Some(entry) => { (stmt: SQL.Statement) =>
             val (compressed, bs) = entry.body.join
             stmt.string(1) = entry.session_name
             stmt.string(2) = entry.theory_name
@@ -107,8 +107,9 @@ object Export {
             stmt.bool(5) = compressed
             stmt.bytes(6) = bs
             true
+          }
         })
-      })
+      )
 
     def read_theory_names(db: SQL.Database, session_name: String): List[String] =
       db.execute_query_statement(

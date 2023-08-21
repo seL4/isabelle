@@ -169,16 +169,15 @@ object Progress {
       context: Long,
       messages: List[(Long, Message)]
     ): Unit = {
-      db.execute_batch_statement(Messages.table.insert(), batch = { stmt =>
-        for ((serial, message) <- messages.iterator) yield {
+      db.execute_batch_statement(Messages.table.insert(), batch =
+        for ((serial, message) <- messages) yield { (stmt: SQL.Statement) =>
           stmt.long(1) = context
           stmt.long(2) = serial
           stmt.int(3) = message.kind.id
           stmt.string(4) = message.text
           stmt.bool(5) = message.verbose
           true
-        }
-      })
+        })
     }
   }
 }
