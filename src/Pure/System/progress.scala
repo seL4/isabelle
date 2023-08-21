@@ -377,7 +377,7 @@ extends Progress {
   }
 
   private def sync_database[A](body: => A): A = {
-    Progress.private_data.transaction_lock(db, label = "Database_Progress.sync") {
+    Progress.private_data.transaction_lock(db, label = "Database_Progress.sync_database") {
       _stopped_db = Progress.private_data.read_progress_stopped(db, _context)
 
       if (_stopped_db && !base_progress.stopped) base_progress.stop()
