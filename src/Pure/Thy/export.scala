@@ -272,19 +272,16 @@ object Export {
                   val buffer = new mutable.ListBuffer[Option[Entry]]
 
                   for ((entry, strict) <- args) {
-                    if (progress.stopped) {
+                    if (progress.stopped || known(entry.entry_name)) {
                       buffer += None
-                    }
-                    else if (known(entry.entry_name)) {
-                      if (strict) {
+                      if (strict && known(entry.entry_name)) {
                         val msg = message("Duplicate export", entry.theory_name, entry.name)
                         errors.change(msg :: _)
                       }
-                      buffer += None
                     }
                     else {
-                      known += entry.entry_name
                       buffer += Some(entry)
+                      known += entry.entry_name
                     }
                   }
 
