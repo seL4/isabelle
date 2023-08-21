@@ -380,9 +380,8 @@ object Build_Process {
           List.from[String], res => res.string(Base.build_uuid))
 
       if (old.nonEmpty) {
-        for (table <- build_uuid_tables) {
-          db.execute_statement(table.delete(sql = Generic.build_uuid.where_member(old)))
-        }
+        val sql = Generic.build_uuid.where_member(old)
+        db.execute_statement(SQL.MULTI(build_uuid_tables.map(_.delete(sql = sql))))
       }
     }
 
