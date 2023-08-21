@@ -505,6 +505,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   /* build_worker */
 
   def build_worker_command(
+    base_options: List[Options.Spec],
     host: Build_Cluster.Host,
     ssh: SSH.System = SSH.Local,
     build_id: String = "",
@@ -513,7 +514,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     dirs: List[Path] = Nil,
     verbose: Boolean = false
   ): String = {
-    val options = Options.Spec("build_hostname", Some(host.name)) :: host.options
+    val options =
+      base_options ::: Options.Spec("build_hostname", Some(host.name)) :: host.options
     ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " build_worker" +
       if_proper(build_id, " -B " + Bash.string(build_id)) +
       if_proper(afp_root, " -A " + ssh.bash_path(afp_root.get)) +

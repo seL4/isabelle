@@ -83,6 +83,8 @@ object Options {
     description: String,
     section: String
   ) {
+    def spec: Spec = Spec(name, Some(value))
+
     private def print_value(x: String): String = if (typ == Options.String) quote(x) else x
     private def print_standard: String =
       standard_value match {
