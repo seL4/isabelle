@@ -328,9 +328,7 @@ extends Progress {
       consume = { bulk_output0 =>
         val results =
           for (bulk_output <- bulk_output0.grouped(200).toList) yield {
-            val serial = _serial
             val serial_db = Progress.private_data.read_messages_serial(db, _context)
-
             _serial = _serial max serial_db
 
             if (bulk_output.nonEmpty) {
@@ -347,13 +345,10 @@ extends Progress {
                   yield (_serial + i + 1) -> out.message
 
               Progress.private_data.write_messages(db, _context, messages)
-
               _serial = messages.last._1
             }
 
-            if (_serial != serial_db) {
-              Progress.private_data.update_agent(db, _agent_uuid, _serial)
-            }
+            if (_serial != serial_db) Progress.private_data.update_agent(db, _agent_uuid, _serial)
 
             bulk_output.map(_ => Exn.Res(()))
           }
