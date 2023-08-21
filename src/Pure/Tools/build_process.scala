@@ -444,9 +444,9 @@ object Build_Process {
       val old_sessions = read_sessions_domain(db)
       val insert = sessions.iterator.filterNot(s => old_sessions.contains(s.name)).toList
 
-      for (session <- insert) {
-        db.execute_statement(Sessions.table.insert(), body =
-          { stmt =>
+      if (insert.nonEmpty) {
+        db.execute_batch_statement(Sessions.table.insert(), batch =
+          for (session <- insert) yield { (stmt: SQL.Statement) =>
             stmt.string(1) = session.name
             stmt.string(2) = cat_lines(session.deps)
             stmt.string(3) = cat_lines(session.ancestors)
@@ -456,6 +456,7 @@ object Build_Process {
             stmt.long(7) = session.old_time.ms
             stmt.bytes(8) = session.old_command_timings_blob
             stmt.string(9) = session.build_uuid
+            true
           })
       }
 
@@ -588,13 +589,14 @@ object Build_Process {
           Pending.table.delete(sql = Generic.sql_where(names = delete.map(_.name))))
       }
 
-      for (task <- insert) {
-        db.execute_statement(Pending.table.insert(), body =
-          { stmt =>
+      if (insert.nonEmpty) {
+        db.execute_batch_statement(Pending.table.insert(), batch =
+          for (task <- insert) yield { (stmt: SQL.Statement) =>
             stmt.string(1) = task.name
             stmt.string(2) = cat_lines(task.deps)
             stmt.string(3) = JSON.Format(task.info)
             stmt.string(4) = task.build_uuid
+            true
           })
       }
 
@@ -632,7 +634,6 @@ object Build_Process {
     def update_running(db: SQL.Database, running: State.Running): Boolean = {
       val running0 = read_running(db).valuesIterator.toList
       val running1 = running.valuesIterator.map(_.no_build).toList
-
       val (delete, insert) = Library.symmetric_difference(running0, running1)
 
       if (delete.nonEmpty) {
@@ -640,14 +641,15 @@ object Build_Process {
           Running.table.delete(sql = Generic.sql_where(names = delete.map(_.name))))
       }
 
-      for (job <- insert) {
-        db.execute_statement(Running.table.insert(), body =
-          { stmt =>
+      if (insert.nonEmpty) {
+        db.execute_batch_statement(Running.table.insert(), batch =
+          for (job <- insert) yield { (stmt: SQL.Statement) =>
             stmt.string(1) = job.name
             stmt.string(2) = job.worker_uuid
             stmt.string(3) = job.build_uuid
             stmt.string(4) = job.node_info.hostname
             stmt.int(5) = job.node_info.numa_node
+            true
           })
       }
 
@@ -726,10 +728,10 @@ object Build_Process {
           results.valuesIterator.filterNot(res => old_results.contains(res.name)).toList
         }
 
-      for (result <- insert) {
-        val process_result = result.process_result
-        db.execute_statement(Results.table.insert(), body =
-          { stmt =>
+      if (insert.nonEmpty) {
+        db.execute_batch_statement(Results.table.insert(), batch =
+          for (result <- insert) yield { (stmt: SQL.Statement) =>
+            val process_result = result.process_result
             stmt.string(1) = result.name
             stmt.string(2) = result.worker_uuid
             stmt.string(3) = result.build_uuid
@@ -743,6 +745,7 @@ object Build_Process {
             stmt.long(11) = process_result.timing.gc.ms
             stmt.string(12) = result.output_shasum.toString
             stmt.bool(13) = result.current
+            true
           })
       }
 
