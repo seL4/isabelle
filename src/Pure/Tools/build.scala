@@ -456,7 +456,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
 
 
-  /** "isabelle build_worker" **/
+  /** build cluster management **/
 
   /* identified builds */
 
@@ -502,7 +502,54 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   }
 
 
-  /* build_worker */
+  /* "isabelle build_process" */
+
+  def build_process(
+    options: Options,
+    list_builds: Boolean = false,
+    progress: Progress = new Progress
+  ): Unit = {
+    val build_engine = Engine(engine_name(options))
+    val store = build_engine.build_store(options)
+
+    using(store.open_server()) { server =>
+      using_optional(store.maybe_open_build_database(server = server)) { build_database =>
+        val builds = read_builds(build_database)
+
+        if (list_builds) progress.echo(print_builds(build_database, builds))
+      }
+    }
+  }
+
+  val isabelle_tool2 = Isabelle_Tool("build_process", "manage session build process",
+    Scala_Project.here,
+    { args =>
+      var list_builds = false
+      var options =
+        Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
+          List(Options.Spec.make("build_database")))
+
+      val getopts = Getopts("""
+Usage: isabelle build_process [OPTIONS]
+
+  Options are:
+    -l           list build processes
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+""",
+        "l" -> (_ => list_builds = true),
+        "o:" -> (arg => options = options + arg))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val progress = new Console_Progress()
+
+      build_process(options, list_builds = list_builds, progress = progress)
+    })
+
+
+
+  /* "isabelle build_worker" */
 
   def build_worker_command(
     host: Build_Cluster.Host,
@@ -529,12 +576,10 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     options: Options,
     build_id: String = "",
     progress: Progress = new Progress,
-    list_builds: Boolean = false,
     afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
-    max_jobs: Int = 1,
-    cache: Term.Cache = Term.Cache.make()
+    max_jobs: Int = 1
   ): Option[Results] = {
     val build_engine = Engine(engine_name(options))
     val store = build_engine.build_store(options)
@@ -544,39 +589,30 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       using_optional(store.maybe_open_build_database(server = server)) { build_database =>
         val builds = read_builds(build_database)
 
-        if (list_builds) progress.echo(print_builds(build_database, builds))
+        val build_master = find_builds(build_database, build_id, builds)
 
-        if (!list_builds || build_id.nonEmpty) {
-          val build_master = find_builds(build_database, build_id, builds)
+        val sessions_structure =
+          Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs).
+            selection(Sessions.Selection(sessions = build_master.sessions))
 
-          val sessions_structure =
-            Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs).
-              selection(Sessions.Selection(sessions = build_master.sessions))
+        val build_deps =
+          Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
-          val build_deps =
-            Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
+        val build_context =
+          Context(store, build_engine, build_deps, afp_root = afp_root,
+            hostname = hostname(build_options), numa_shuffling = numa_shuffling,
+            max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
-          val build_context =
-            Context(store, build_engine, build_deps, afp_root = afp_root,
-              hostname = hostname(build_options), numa_shuffling = numa_shuffling,
-              max_jobs = max_jobs, build_uuid = build_master.build_uuid)
-
-          Some(build_engine.run_build_process(build_context, progress, server))
-        }
-        else None
+        Some(build_engine.run_build_process(build_context, progress, server))
       }
     }
   }
 
-
-  /* command-line wrapper */
-
-  val isabelle_tool2 = Isabelle_Tool("build_worker", "external worker for session build process",
+  val isabelle_tool3 = Isabelle_Tool("build_worker", "start worker for session build process",
     Scala_Project.here,
     { args =>
       var afp_root: Option[Path] = None
       var build_id = ""
-      var list_builds = false
       var numa_shuffling = false
       val dirs = new mutable.ListBuffer[Path]
       var max_jobs = 1
@@ -594,7 +630,6 @@ Usage: isabelle build_worker [OPTIONS]
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -d DIR       include session directory
     -j INT       maximum number of parallel jobs (default 1)
-    -l           list build processes
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
 """,
@@ -603,7 +638,6 @@ Usage: isabelle build_worker [OPTIONS]
         "N" -> (_ => numa_shuffling = true),
         "d:" -> (arg => dirs += Path.explode(arg)),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-        "l" -> (_ => list_builds = true),
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose = true))
 
@@ -617,7 +651,6 @@ Usage: isabelle build_worker [OPTIONS]
           build_worker(options,
             build_id = build_id,
             progress = progress,
-            list_builds = list_builds,
             afp_root = afp_root,
             dirs = dirs.toList,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
@@ -802,7 +835,7 @@ Usage: isabelle build_worker [OPTIONS]
 
   /* command-line wrapper */
 
-  val isabelle_tool3 = Isabelle_Tool("build_log", "print messages from session build database",
+  val isabelle_tool4 = Isabelle_Tool("build_log", "print messages from session build database",
     Scala_Project.here,
     { args =>
       /* arguments */
