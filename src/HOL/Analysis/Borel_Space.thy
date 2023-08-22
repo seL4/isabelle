@@ -1894,8 +1894,16 @@ proof -
   then show ?thesis unfolding A_def by simp
 qed
 
+text \<open>Logically equivalent to those with the opposite orientation, still these are needed\<close>
+lemma measurable_inequality_set_flipped:
+  fixes f g::"_ \<Rightarrow> 'a::{second_countable_topology, linorder_topology}"
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  shows "{x \<in> space M. f x \<ge> g x} \<in> sets M"
+        "{x \<in> space M. f x > g x} \<in> sets M"
+  by auto
+
 lemmas measurable_inequality_set [measurable] =
-  borel_measurable_le borel_measurable_less borel_measurable_le borel_measurable_less
+  borel_measurable_le borel_measurable_less measurable_inequality_set_flipped
 
 proposition measurable_limit [measurable]:
   fixes f::"nat \<Rightarrow> 'a \<Rightarrow> 'b::first_countable_topology"
