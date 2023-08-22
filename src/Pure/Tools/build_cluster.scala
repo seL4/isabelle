@@ -157,10 +157,9 @@ object Build_Cluster {
 
     def start(): Process_Result = {
       val script =
-        Build.build_worker_command(
-          List(options.check_name("build_database_server").spec),
-          host,
+        Build.build_worker_command(host,
           ssh = ssh,
+          build_options = List(options.check_name("build_database_server").spec),
           build_id = build_context.build_uuid,
           isabelle_home = remote_isabelle_home,
           afp_root = remote_afp_root)
