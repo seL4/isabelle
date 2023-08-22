@@ -253,49 +253,46 @@ object Export {
   class Consumer private[Export](db: SQL.Database, cache: XML.Cache, progress: Progress) {
     private val errors = Synchronized[List[String]](Nil)
 
+    private def consume(args: List[(Entry, Boolean)]): List[Exn.Result[Unit]] = {
+      for ((entry, _) <- args) {
+        if (progress.stopped) entry.cancel() else entry.body.join
+      }
+      private_data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
+        var known = private_data.known_entries(db, args.map(p => p._1.entry_name))
+        val buffer = new mutable.ListBuffer[Option[Entry]]
+
+        for ((entry, strict) <- args) {
+          if (progress.stopped || known(entry.entry_name)) {
+            buffer += None
+            if (strict && known(entry.entry_name)) {
+              val msg = message("Duplicate export", entry.theory_name, entry.name)
+              errors.change(msg :: _)
+            }
+          }
+          else {
+            buffer += Some(entry)
+            known += entry.entry_name
+          }
+        }
+
+        val entries = buffer.toList
+        try {
+          private_data.write_entries(db, entries.flatten)
+          val ok = Exn.Res[Unit](())
+          entries.map(_ => ok)
+        }
+        catch {
+          case exn: Throwable =>
+            val err = Exn.Exn[Unit](exn)
+            entries.map(_ => err)
+        }
+      }
+    }
+
     private val consumer =
       Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
         bulk = { case (entry, _) => entry.is_finished },
-        consume =
-          { (args0: List[(Entry, Boolean)]) =>
-            val results: List[List[Exn.Result[Unit]]] =
-              for (args <- args0.grouped(20).toList) yield {
-                for ((entry, _) <- args) {
-                  if (progress.stopped) entry.cancel() else entry.body.join
-                }
-                private_data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
-                  var known = private_data.known_entries(db, args.map(p => p._1.entry_name))
-                  val buffer = new mutable.ListBuffer[Option[Entry]]
-
-                  for ((entry, strict) <- args) {
-                    if (progress.stopped || known(entry.entry_name)) {
-                      buffer += None
-                      if (strict && known(entry.entry_name)) {
-                        val msg = message("Duplicate export", entry.theory_name, entry.name)
-                        errors.change(msg :: _)
-                      }
-                    }
-                    else {
-                      buffer += Some(entry)
-                      known += entry.entry_name
-                    }
-                  }
-
-                  val entries = buffer.toList
-                  try {
-                    private_data.write_entries(db, entries.flatten)
-                    val ok = Exn.Res[Unit](())
-                    entries.map(_ => ok)
-                  }
-                  catch {
-                    case exn: Throwable =>
-                      val err = Exn.Exn[Unit](exn)
-                      entries.map(_ => err)
-                  }
-                }
-              }
-            (results.flatten, true)
-          })
+        consume = args => (args.grouped(20).toList.flatMap(consume), true))
 
     def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
       if (!progress.stopped && !body.is_empty) {

@@ -321,33 +321,29 @@ extends Progress {
     }
     if (context_uuid == _agent_uuid) db.vacuum(Progress.private_data.tables.list)
 
+    def consume(bulk_output: List[Progress.Output]): List[Exn.Result[Unit]] = sync_database {
+      if (bulk_output.nonEmpty) {
+        for (out <- bulk_output) {
+          out match {
+            case message: Progress.Message =>
+              if (do_output(message)) base_progress.output(message)
+            case theory: Progress.Theory => base_progress.theory(theory)
+          }
+        }
+
+        val messages =
+          for ((out, i) <- bulk_output.zipWithIndex)
+            yield (_serial + i + 1) -> out.message
+
+        Progress.private_data.write_messages(db, _context, messages)
+        _serial = messages.last._1
+      }
+      bulk_output.map(_ => Exn.Res(()))
+    }
+
     _consumer = Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
       bulk = _ => true, timeout = timeout,
-      consume = { bulk_output0 =>
-        val results =
-          for (bulk_output <- bulk_output0.grouped(200).toList) yield {
-            sync_database {
-              if (bulk_output.nonEmpty) {
-                for (out <- bulk_output) {
-                  out match {
-                    case message: Progress.Message =>
-                      if (do_output(message)) base_progress.output(message)
-                    case theory: Progress.Theory => base_progress.theory(theory)
-                  }
-                }
-
-                val messages =
-                  for ((out, i) <- bulk_output.zipWithIndex)
-                    yield (_serial + i + 1) -> out.message
-
-                Progress.private_data.write_messages(db, _context, messages)
-                _serial = messages.last._1
-              }
-              bulk_output.map(_ => Exn.Res(()))
-            }
-          }
-        (results.flatten, true)
-      })
+      consume = bulk_output => (bulk_output.grouped(200).toList.flatMap(consume), true))
   }
 
   def exit(close: Boolean = false): Unit = synchronized {
