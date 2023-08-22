@@ -83,8 +83,6 @@ object Options {
     description: String,
     section: String
   ) {
-    def spec: Spec = Spec(name, Some(value))
-
     private def print_value(x: String): String = if (typ == Options.String) quote(x) else x
     private def print_standard: String =
       standard_value match {
@@ -303,6 +301,9 @@ final class Options private(
     cat_lines(iterator.filter(filter).toList.sortBy(_.name).map(print_entry))
 
   def description(name: String): String = check_name(name).description
+
+  def spec(name: String): Options.Spec =
+    Options.Spec(name, Some(check_name(name).value))
 
 
   /* check */
