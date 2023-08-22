@@ -343,7 +343,11 @@ extends Progress {
 
     _consumer = Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
       bulk = _ => true, timeout = timeout,
-      consume = bulk_output => (bulk_output.grouped(200).toList.flatMap(consume), true))
+      consume = { bulk_output =>
+        val results =
+          if (bulk_output.isEmpty) consume(Nil)
+          else bulk_output.grouped(200).toList.flatMap(consume)
+        (results, true) })
   }
 
   def exit(close: Boolean = false): Unit = synchronized {
