@@ -22,13 +22,15 @@ object Build_Cluster {
     private val PORT = "port"
     private val JOBS = "jobs"
     private val NUMA = "numa"
+    private val SHARED = "shared"
 
     val parameters: Options =
       Options.inline("""
-        option user : string = ""   -- "explicit SSH user"
-        option port : int = 0       -- "explicit SSH port"
-        option jobs : int = 1       -- "maximum number of parallel jobs"
-        option numa : bool = false  -- "cyclic shuffling of NUMA CPU nodes"
+        option user : string = ""    -- "explicit SSH user"
+        option port : int = 0        -- "explicit SSH port"
+        option jobs : int = 1        -- "maximum number of parallel jobs"
+        option numa : bool = false   -- "cyclic shuffling of NUMA CPU nodes"
+        option shared : bool = false -- "shared directory: omit sync + init"
       """)
 
     def is_parameter(spec: Options.Spec): Boolean = parameters.defined(spec.name)
@@ -41,8 +43,9 @@ object Build_Cluster {
       port: Int = parameters.int(PORT),
       jobs: Int = parameters.int(JOBS),
       numa: Boolean = parameters.bool(NUMA),
+      shared: Boolean = parameters.bool(SHARED),
       options: List[Options.Spec] = Nil
-    ): Host = new Host(name, user, port, jobs, numa, options)
+    ): Host = new Host(name, user, port, jobs, numa, shared, options)
 
     def parse(str: String): Host = {
       val name = str.takeWhile(c => !rfc822_specials.contains(c))
@@ -69,6 +72,7 @@ object Build_Cluster {
         port = params.int(PORT),
         jobs = params.int(JOBS),
         numa = params.bool(NUMA),
+        shared = params.bool(SHARED),
         options = options)
     }
   }
@@ -79,6 +83,7 @@ object Build_Cluster {
     val port: Int,
     val jobs: Int,
     val numa: Boolean,
+    val shared: Boolean,
     val options: List[Options.Spec]
   ) {
     host =>
@@ -93,7 +98,8 @@ object Build_Cluster {
           if (host.user.isEmpty) "" else Options.Spec.print(Host.USER, host.user),
           if (host.port == 0) "" else Options.Spec.print(Host.PORT, host.port.toString),
           if (host.jobs == 1) "" else Options.Spec.print(Host.JOBS, host.jobs.toString),
-          if_proper(host.numa, Host.NUMA)
+          if_proper(host.numa, Host.NUMA),
+          if_proper(host.shared, Host.SHARED)
         ).filter(_.nonEmpty)
       val rest = (params ::: host.options.map(_.print)).mkString(",")
 
@@ -254,7 +260,7 @@ class Remote_Build_Cluster(
 
     if (_init.isEmpty) {
       _init =
-        for (session <- _sessions) yield {
+        for (session <- _sessions if !session.host.shared) yield {
           Future.thread(session.host.message("session")) {
             capture(session.host, "sync") { session.sync() }
             capture(session.host, "init") { session.init() }
