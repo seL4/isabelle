@@ -89,7 +89,7 @@ object Build {
         Process_Result.RC.merge(results.valuesIterator.map(_.strict.rc)))
     def ok: Boolean = rc == Process_Result.RC.ok
 
-    def unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
+    lazy val unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
 
     override def toString: String = rc.toString
   }
@@ -277,7 +277,7 @@ object Build {
             progress = progress, server = server)
         }
 
-        if (!results.ok && (progress.verbose || !no_build)) {
+        if (results.unfinished.nonEmpty && (progress.verbose || !no_build)) {
           progress.echo("Unfinished session(s): " + commas(results.unfinished))
         }
 
