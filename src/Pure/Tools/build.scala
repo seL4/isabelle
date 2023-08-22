@@ -520,9 +520,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       if_proper(build_id, " -B " + Bash.string(build_id)) +
       if_proper(afp_root, " -A " + ssh.bash_path(afp_root.get)) +
       dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
-      if_proper(host.numa, " -N")
-      + " -j" + host.jobs +
-      options.map(opt => " -o " + Bash.string(Build_Cluster.Host.print_option(opt))).mkString +
+      if_proper(host.numa, " -N") + " -j" + host.jobs +
+      options.map(opt => " -o " + Bash.string(opt.print)).mkString +
       if_proper(verbose, " -v")
   }
 

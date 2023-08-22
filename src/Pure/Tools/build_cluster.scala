@@ -71,20 +71,6 @@ object Build_Cluster {
         numa = params.bool(NUMA),
         options = options)
     }
-
-    def print_name(s: String): String =
-      Token.quote_name(Options.specs_syntax.keywords, s)
-
-    def print_option(spec: Options.Spec): String = {
-      def print_value =
-        spec.value.get match {
-          case s@Value.Boolean(_) => s
-          case s@Value.Long(_) => s
-          case s@Value.Double(_) => s
-          case s => print_name(s)
-        }
-      spec.name + if_proper(spec.value, "=" + print_value)
-    }
   }
 
   class Host(
@@ -104,12 +90,12 @@ object Build_Cluster {
     def print: String = {
       val params =
         List(
-          if (host.user.isEmpty) "" else Properties.Eq(Host.USER, Host.print_name(host.user)),
-          if (host.port == 0) "" else Properties.Eq(Host.PORT, host.port.toString),
-          if (host.jobs == 1) "" else Properties.Eq(Host.JOBS, host.jobs.toString),
+          if (host.user.isEmpty) "" else Options.Spec.print(Host.USER, host.user),
+          if (host.port == 0) "" else Options.Spec.print(Host.PORT, host.port.toString),
+          if (host.jobs == 1) "" else Options.Spec.print(Host.JOBS, host.jobs.toString),
           if_proper(host.numa, Host.NUMA)
         ).filter(_.nonEmpty)
-      val rest = (params ::: host.options.map(Host.print_option)).mkString(",")
+      val rest = (params ::: host.options.map(_.print)).mkString(",")
 
       SSH.print_local(host.name) + if_proper(rest, ":" + rest)
     }
