@@ -881,7 +881,8 @@ extends AutoCloseable {
       case None => (build_progress, UUID.random().toString)
       case Some(db) =>
         try {
-          val progress_db = store.open_build_database(Progress.private_data.database, server = server)
+          val progress_db =
+            store.open_build_database(Progress.private_data.database, server = server)
           val progress =
             new Database_Progress(progress_db, build_progress,
               input_messages = build_context.master,
@@ -917,8 +918,7 @@ extends AutoCloseable {
     Option(_host_database).flatten.foreach(_.close())
     Option(_build_cluster).foreach(_.close())
     progress match {
-      case db_progress: Database_Progress =>
-        db_progress.exit(close = true)
+      case db_progress: Database_Progress => db_progress.exit(close = true)
       case _ =>
     }
   }
