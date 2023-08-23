@@ -54,7 +54,6 @@ object Build_Process {
     node_info: Host.Node_Info,
     build: Option[Build_Job]
   ) extends Library.Named {
-    def no_build: Job = copy(build = None)
     def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
   }
 
@@ -641,7 +640,7 @@ object Build_Process {
       old_running: State.Running
     ): Boolean = {
       val running0 = old_running.valuesIterator.toList
-      val running1 = running.valuesIterator.map(_.no_build).toList
+      val running1 = running.valuesIterator.toList
       val (delete, insert) = Library.symmetric_difference(running0, running1)
 
       if (delete.nonEmpty) {
@@ -807,8 +806,11 @@ object Build_Process {
       val serial0 = state.serial
       val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
 
-      stamp_worker(db, worker_uuid, serial)
-      state.set_serial(serial)
+      if (serial0 != serial) {
+        stamp_worker(db, worker_uuid, serial)
+        state.set_serial(serial)
+      }
+      else state
     }
   }
 
