@@ -195,11 +195,6 @@ object Build_Process {
     type Pending = List[Task]
     type Running = Map[String, Job]
     type Results = Map[String, Result]
-
-    def inc_serial(serial: Long): Long = {
-      require(serial < Long.MaxValue, "serial overflow")
-      serial + 1
-    }
   }
 
   sealed case class State(
@@ -211,10 +206,9 @@ object Build_Process {
     results: State.Results = Map.empty
   ) {
     require(serial >= 0, "serial underflow")
-    def inc_serial: State = copy(serial = State.inc_serial(serial))
-    def set_serial(i: Long): State = {
-      require(serial <= i, "non-monotonic change of serial")
-      copy(serial = i)
+    def inc_serial: State = {
+      require(serial < Long.MaxValue, "serial overflow")
+      copy(serial = serial + 1)
     }
 
     def remove_pending(name: String): State =
@@ -803,14 +797,10 @@ object Build_Process {
           update_running(db, state.running, old_state.running),
           update_results(db, state.results, old_state.results))
 
-      val serial0 = state.serial
-      val serial = if (changed.exists(identity)) State.inc_serial(serial0) else serial0
+      val state1 = if (changed.exists(identity)) state.inc_serial else state
+      if (state1.serial != state.serial) stamp_worker(db, worker_uuid, state1.serial)
 
-      if (serial0 != serial) {
-        stamp_worker(db, worker_uuid, serial)
-        state.set_serial(serial)
-      }
-      else state
+      state1
     }
   }
 
