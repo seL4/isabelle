@@ -1039,7 +1039,8 @@ extends AutoCloseable {
 
       progress.echo(
         (if (store_heap) "Building " else "Running ") + session_name +
-          if_proper(node_info.numa_node, " on " + node_info) + " ...")
+          (if (_build_database.isDefined || node_info.numa_node.isDefined) " on " + node_info
+           else "") + " ...")
 
       val session = state.sessions(session_name)
 
