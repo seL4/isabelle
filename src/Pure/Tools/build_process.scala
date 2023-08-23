@@ -877,23 +877,21 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
-    _build_database match {
-      case None => (build_progress, UUID.random().toString)
-      case Some(db) =>
-        try {
-          val progress_db =
-            store.open_build_database(Progress.private_data.database, server = server)
-          val progress =
-            new Database_Progress(progress_db, build_progress,
-              input_messages = build_context.master,
-              output_stopped = build_context.master,
-              hostname = hostname,
-              context_uuid = build_uuid,
-              kind = "build_process",
-              timeout = Some(build_delay))
-          (progress, progress.agent_uuid)
-        }
-        catch { case exn: Throwable => close(); throw exn }
+    if (_build_database.isEmpty) (build_progress, UUID.random().toString)
+    else {
+      try {
+        val db = store.open_build_database(Progress.private_data.database, server = server)
+        val progress =
+          new Database_Progress(db, build_progress,
+            input_messages = build_context.master,
+            output_stopped = build_context.master,
+            hostname = hostname,
+            context_uuid = build_uuid,
+            kind = "build_process",
+            timeout = Some(build_delay))
+        (progress, progress.agent_uuid)
+      }
+      catch { case exn: Throwable => close(); throw exn }
     }
   }
 
