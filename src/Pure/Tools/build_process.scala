@@ -954,10 +954,7 @@ extends AutoCloseable {
           yield Build_Process.Task(session.name, session.deps, JSON.Object.empty, build_uuid))
     val pending1 = new_pending ::: state.pending
 
-    state.copy(
-      numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling),
-      sessions = sessions1,
-      pending = pending1)
+    state.copy(sessions = sessions1, pending = pending1)
   }
 
   protected def next_jobs(state: Build_Process.State): List[String] = {
@@ -1090,9 +1087,12 @@ extends AutoCloseable {
   /* run */
 
   def run(): Build.Results = {
-    if (build_context.master) {
-      _build_cluster.init()
-      synchronized_database("Build_Process.init") { _state = init_state(_state) }
+    synchronized_database("Build_Process.init") {
+      if (build_context.master) {
+        _build_cluster.init()
+        _state = init_state(_state)
+      }
+      _state = _state.copy(numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling))
     }
 
     def finished(): Boolean = synchronized_database("Build_Process.test") {
