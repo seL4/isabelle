@@ -148,6 +148,11 @@ object Build_Cluster {
     def init(): Unit = remote_isabelle.init()
 
     def start(): Process_Result = {
+      val remote_ml_platform = remote_isabelle.getenv("ML_PLATFORM")
+      if (remote_ml_platform != build_context.ml_platform) {
+        error("Bad ML_PLATFORM: found " + remote_ml_platform +
+          ", but expected " + build_context.ml_platform)
+      }
       val script =
         Build.build_worker_command(host,
           ssh = ssh,
