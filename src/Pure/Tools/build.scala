@@ -580,7 +580,7 @@ Usage: isabelle build_process [OPTIONS]
     dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1
-  ): Option[Results] = {
+  ): Results = {
     val build_engine = Engine(engine_name(options))
     val store = build_engine.build_store(options)
     val build_options = store.options
@@ -603,7 +603,7 @@ Usage: isabelle build_process [OPTIONS]
             hostname = hostname(build_options), numa_shuffling = numa_shuffling,
             max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
-        Some(build_engine.run_build_process(build_context, progress, server))
+        build_engine.run_build_process(build_context, progress, server)
       }
     }
   }
@@ -646,7 +646,7 @@ Usage: isabelle build_worker [OPTIONS]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val res =
+      val results =
         progress.interrupt_handler {
           build_worker(options,
             build_id = build_id,
@@ -657,10 +657,7 @@ Usage: isabelle build_worker [OPTIONS]
             max_jobs = max_jobs)
         }
 
-      res match {
-        case Some(results) if !results.ok => sys.exit(results.rc)
-        case _ =>
-      }
+      if (!results.ok) sys.exit(results.rc)
     })
 
 
