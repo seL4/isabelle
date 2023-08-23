@@ -44,14 +44,14 @@ lemma not_integrable_contour_integral: "\<not> f contour_integrable_on g \<Longr
   unfolding contour_integrable_on_def contour_integral_def by blast
 
 lemma contour_integral_unique: "(f has_contour_integral i) g \<Longrightarrow> contour_integral g f = i"
-  apply (simp add: contour_integral_def has_contour_integral_def contour_integrable_on_def)
+  unfolding contour_integral_def has_contour_integral_def contour_integrable_on_def
   using has_integral_unique by blast
 
 lemma has_contour_integral_eqpath:
-     "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>;
+  "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>;
        contour_integral p f = contour_integral \<gamma> f\<rbrakk>
       \<Longrightarrow> (f has_contour_integral y) \<gamma>"
-using contour_integrable_on_def contour_integral_unique by auto
+  using contour_integrable_on_def contour_integral_unique by auto
 
 lemma has_contour_integral_integral:
     "f contour_integrable_on i \<Longrightarrow> (f has_contour_integral (contour_integral i f)) i"
@@ -329,12 +329,12 @@ proof -
 qed
 
 lemma contour_integrable_join [simp]:
-    "\<lbrakk>valid_path g1; valid_path g2\<rbrakk>
+  "\<lbrakk>valid_path g1; valid_path g2\<rbrakk>
      \<Longrightarrow> f contour_integrable_on (g1 +++ g2) \<longleftrightarrow> f contour_integrable_on g1 \<and> f contour_integrable_on g2"
-using contour_integrable_joinD1 contour_integrable_joinD2 contour_integrable_joinI by blast
+  using contour_integrable_joinD1 contour_integrable_joinD2 contour_integrable_joinI by blast
 
 lemma contour_integral_join [simp]:
-    "\<lbrakk>f contour_integrable_on g1; f contour_integrable_on g2; valid_path g1; valid_path g2\<rbrakk>
+  "\<lbrakk>f contour_integrable_on g1; f contour_integrable_on g2; valid_path g1; valid_path g2\<rbrakk>
         \<Longrightarrow> contour_integral (g1 +++ g2) f = contour_integral g1 f + contour_integral g2 f"
   by (simp add: has_contour_integral_integral has_contour_integral_join contour_integral_unique)
 
@@ -353,11 +353,7 @@ proof -
     using assms by (auto simp: has_contour_integral)
   then have i: "i = integral {a..1} (\<lambda>x. f (g x) * vector_derivative g (at x)) +
                     integral {0..a} (\<lambda>x. f (g x) * vector_derivative g (at x))"
-    apply (rule has_integral_unique)
-    apply (subst add.commute)
-    apply (subst Henstock_Kurzweil_Integration.integral_combine)
-    using assms * integral_unique by auto
-
+    by (smt (verit, ccfv_threshold) Henstock_Kurzweil_Integration.integral_combine a add.commute atLeastAtMost_iff has_integral_iff)
   have vd1: "vector_derivative (shiftpath a g) (at x) = vector_derivative g (at (x + a))"
     if "0 \<le> x" "x + a < 1" "x \<notin> (\<lambda>x. x - a) ` S" for x
     unfolding shiftpath_def
@@ -371,8 +367,7 @@ proof -
       then show "(g has_vector_derivative vector_derivative g (at (a + x))) (at (x + a))"
         by (metis add.commute vector_derivative_works)
     qed
-    then
-    show "((\<lambda>x. g (a + x)) has_vector_derivative vector_derivative g (at (x + a))) (at x)"
+    then show "((\<lambda>x. g (a + x)) has_vector_derivative vector_derivative g (at (x + a))) (at x)"
       by (auto simp: field_simps)
     show "0 < dist (1 - a) x"
       using that by auto
@@ -474,8 +469,8 @@ lemma has_contour_integral_shiftpath_eq:
 
 lemma contour_integrable_on_shiftpath_eq:
   assumes "valid_path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
-    shows "f contour_integrable_on (shiftpath a g) \<longleftrightarrow> f contour_integrable_on g"
-using assms contour_integrable_on_def has_contour_integral_shiftpath_eq by auto
+  shows "f contour_integrable_on (shiftpath a g) \<longleftrightarrow> f contour_integrable_on g"
+  using assms contour_integrable_on_def has_contour_integral_shiftpath_eq by auto
 
 lemma contour_integral_shiftpath:
   assumes "valid_path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
@@ -556,26 +551,17 @@ qed
 lemma contour_integrable_subpath:
   assumes "f contour_integrable_on g" "valid_path g" "u \<in> {0..1}" "v \<in> {0..1}"
     shows "f contour_integrable_on (subpath u v g)"
-proof (cases u v rule: linorder_class.le_cases)
-  case le
-  then show ?thesis
-    by (metis contour_integrable_on_def has_contour_integral_subpath [OF assms])
-next
-  case ge
-  with assms show ?thesis
-    by (metis (no_types, lifting) contour_integrable_on_def contour_integrable_reversepath_eq has_contour_integral_subpath reversepath_subpath valid_path_subpath)
-qed
+  by (smt (verit, ccfv_threshold) assms contour_integrable_on_def contour_integrable_reversepath_eq
+      has_contour_integral_subpath reversepath_subpath valid_path_subpath)
 
 lemma has_integral_contour_integral_subpath:
   assumes "f contour_integrable_on g" "valid_path g" "u \<in> {0..1}" "v \<in> {0..1}" "u \<le> v"
-    shows "(((\<lambda>x. f(g x) * vector_derivative g (at x)))
+    shows "((\<lambda>x. f(g x) * vector_derivative g (at x))
             has_integral  contour_integral (subpath u v g) f) {u..v}"
-  using assms
+          (is "(?fg has_integral _)_")
 proof -
-  have "(\<lambda>r. f (g r) * vector_derivative g (at r)) integrable_on {u..v}"
-    by (metis (full_types) assms(1) assms(3) assms(4) atLeastAtMost_iff atLeastatMost_subset_iff contour_integrable_on integrable_on_subinterval)
-  then have "((\<lambda>r. f (g r) * vector_derivative g (at r)) has_integral integral {u..v} (\<lambda>r. f (g r) * vector_derivative g (at r))) {u..v}"
-    by blast
+  have "(?fg has_integral integral {u..v} ?fg) {u..v}"
+    using assms contour_integrable_on integrable_on_subinterval by fastforce
   then show ?thesis
     by (metis (full_types) assms contour_integral_unique has_contour_integral_subpath)
 qed
@@ -653,9 +639,9 @@ proof (rule integral_spike)
 next
   fix x assume "x \<in> {0..1} - ({0, 1} \<union> g -` A \<inter> {0<..<1})"
   hence "g x \<in> path_image g - A" by (auto simp: path_image_def)
-  from assms(4)[OF this] and assms(3)
-    show "f' (g' x) * vector_derivative g' (at x) = f (g x) * vector_derivative g (at x)" by simp
-  qed
+  with assms show "f' (g' x) * vector_derivative g' (at x) = f (g x) * vector_derivative g (at x)" 
+    by simp
+qed
 
 
 text \<open>Contour integral along a segment on the real axis\<close>
@@ -664,7 +650,7 @@ lemma has_contour_integral_linepath_Reals_iff:
   fixes a b :: complex and f :: "complex \<Rightarrow> complex"
   assumes "a \<in> Reals" "b \<in> Reals" "Re a < Re b"
   shows   "(f has_contour_integral I) (linepath a b) \<longleftrightarrow>
-             ((\<lambda>x. f (of_real x)) has_integral I) {Re a..Re b}"
+           ((\<lambda>x. f (of_real x)) has_integral I) {Re a..Re b}"
 proof -
   from assms have [simp]: "of_real (Re a) = a" "of_real (Re b) = b"
     by (simp_all add: complex_eq_iff)
@@ -738,9 +724,8 @@ proof -
     have "((\<lambda>x. f (g x)) has_vector_derivative f' (g x) * vector_derivative g (at x within {a..b})) (at x within {a..b})"
       using diff_chain_within [OF gdiff fdiff]
       by (simp add: has_vector_derivative_def scaleR_conv_of_real o_def mult_ac)
-  } note * = this
-  show ?thesis
-    using assms cfg *
+  } then show ?thesis
+    using assms cfg 
     by (force simp: at_within_Icc_at intro: fundamental_theorem_of_calculus_interior_strong [OF \<open>finite K\<close>])
 qed
 
@@ -759,7 +744,7 @@ corollary Cauchy_theorem_primitive:
     shows "(f' has_contour_integral 0) g"
   using assms by (metis diff_self contour_integral_primitive)
 
-text\<open>Existence of path integral for continuous function\<close>
+
 lemma contour_integrable_continuous_linepath:
   assumes "continuous_on (closed_segment a b) f"
   shows "f contour_integrable_on (linepath a b)"
@@ -951,10 +936,9 @@ lemma contour_integrable_div:
   by fastforce
 
 lemma contour_integrable_sum:
-    "\<lbrakk>finite s; \<And>a. a \<in> s \<Longrightarrow> (f a) contour_integrable_on p\<rbrakk>
+  "\<lbrakk>finite s; \<And>a. a \<in> s \<Longrightarrow> (f a) contour_integrable_on p\<rbrakk>
      \<Longrightarrow> (\<lambda>x. sum (\<lambda>a. f a x) s) contour_integrable_on p"
-   unfolding contour_integrable_on_def
-   by (metis has_contour_integral_sum)
+  unfolding contour_integrable_on_def by (metis has_contour_integral_sum)
 
 lemma contour_integrable_neg_iff:
   "(\<lambda>x. -f x) contour_integrable_on g \<longleftrightarrow> f contour_integrable_on g"
@@ -1027,10 +1011,10 @@ next
       apply (simp add: divide_simps mult.commute [of _ "1-k"] image_affinity_atLeastAtMost ** bc)
       apply (auto dest: has_integral_cmul [where k = "(1 - k) *\<^sub>R j" and c = "inverse (1 - k)"])
       done
-  } note fj = this
-  show ?thesis
+  } 
+  then show ?thesis
     using f k unfolding has_contour_integral_linepath
-    by (simp add: linepath_def has_integral_combine [OF _ _ fi fj])
+    by (simp add: linepath_def has_integral_combine [OF _ _ fi])
 qed
 
 lemma continuous_on_closed_segment_transform:
@@ -1107,10 +1091,10 @@ proof -
   then have gvcon': "continuous_on (cbox (0, 0) (1, 1::real)) (\<lambda>z. vector_derivative g (at (fst z)))"
        and  hvcon': "continuous_on (cbox (0, 0) (1::real, 1)) (\<lambda>x. vector_derivative h (at (snd x)))"
     by auto
-  have "continuous_on (cbox (0, 0) (1, 1)) ((\<lambda>(y1, y2). f y1 y2) \<circ> (\<lambda>w. ((g \<circ> fst) w, (h \<circ> snd) w)))"
-    apply (intro gcon hcon continuous_intros | simp)+
-    apply (auto simp: path_image_def intro: continuous_on_subset [OF fcon])
-    done
+  have "continuous_on ((\<lambda>x. (g (fst x), h (snd x))) ` cbox (0,0) (1,1)) (\<lambda>(y1, y2). f y1 y2)"
+    by (auto simp: path_image_def intro: continuous_on_subset [OF fcon])
+  then have "continuous_on (cbox (0, 0) (1, 1)) ((\<lambda>(y1, y2). f y1 y2) \<circ> (\<lambda>w. ((g \<circ> fst) w, (h \<circ> snd) w)))"
+    by (intro gcon hcon continuous_intros | simp)+
   then have fgh: "continuous_on (cbox (0, 0) (1, 1)) (\<lambda>x. f (g (fst x)) (h (snd x)))"
     by auto
   have "integral {0..1} (\<lambda>x. contour_integral h (f (g x)) * vector_derivative g (at x)) =
@@ -1186,7 +1170,7 @@ lemma C1_differentiable_polynomial_function:
 lemma valid_path_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
   shows "polynomial_function p \<Longrightarrow> valid_path p"
-by (force simp: valid_path_def piecewise_C1_differentiable_on_def continuous_on_polymonial_function C1_differentiable_polynomial_function)
+  by (force simp: valid_path_def piecewise_C1_differentiable_on_def continuous_on_polymonial_function C1_differentiable_polynomial_function)
 
 lemma valid_path_subpath_trivial [simp]:
     fixes g :: "real \<Rightarrow> 'a::euclidean_space"
@@ -1199,15 +1183,15 @@ definition\<^marker>\<open>tag important\<close> part_circlepath :: "[complex, r
   where "part_circlepath z r s t \<equiv> \<lambda>x. z + of_real r * exp (\<i> * of_real (linepath s t x))"
 
 lemma pathstart_part_circlepath [simp]:
-     "pathstart(part_circlepath z r s t) = z + r*exp(\<i> * s)"
-by (metis part_circlepath_def pathstart_def pathstart_linepath)
+  "pathstart(part_circlepath z r s t) = z + r*exp(\<i> * s)"
+  by (metis part_circlepath_def pathstart_def pathstart_linepath)
 
 lemma pathfinish_part_circlepath [simp]:
-     "pathfinish(part_circlepath z r s t) = z + r*exp(\<i>*t)"
-by (metis part_circlepath_def pathfinish_def pathfinish_linepath)
+  "pathfinish(part_circlepath z r s t) = z + r*exp(\<i>*t)"
+  by (metis part_circlepath_def pathfinish_def pathfinish_linepath)
 
 lemma reversepath_part_circlepath[simp]:
-    "reversepath (part_circlepath z r s t) = part_circlepath z r t s"
+  "reversepath (part_circlepath z r s t) = part_circlepath z r t s"
   unfolding part_circlepath_def reversepath_def linepath_def
   by (auto simp:algebra_simps)
 
@@ -1284,24 +1268,12 @@ by (auto simp: path_image_part_circlepath sphere_def dist_norm algebra_simps nor
 lemma in_path_image_part_circlepath:
   assumes "w \<in> path_image(part_circlepath z r s t)" "s \<le> t" "0 \<le> r"
     shows "norm(w - z) = r"
-proof -
-  have "w \<in> {c. dist z c = r}"
-    by (metis (no_types) path_image_part_circlepath_subset sphere_def subset_eq assms)
-  thus ?thesis
-    by (simp add: dist_norm norm_minus_commute)
-qed
+  by (smt (verit) assms dist_norm mem_Collect_eq norm_minus_commute path_image_part_circlepath_subset sphere_def subsetD)
 
 lemma path_image_part_circlepath_subset':
   assumes "r \<ge> 0"
   shows   "path_image (part_circlepath z r s t) \<subseteq> sphere z r"
-proof (cases "s \<le> t")
-  case True
-  thus ?thesis using path_image_part_circlepath_subset[of s t r z] assms by simp
-next
-  case False
-  thus ?thesis using path_image_part_circlepath_subset[of t s r z] assms
-    by (subst reversepath_part_circlepath [symmetric], subst path_image_reversepath) simp_all
-qed
+  by (smt (verit) assms path_image_part_circlepath_subset reversepath_part_circlepath reversepath_simps(2))
 
 lemma part_circlepath_cnj: "cnj (part_circlepath c r a b x) = part_circlepath (cnj c) r (-a) (-b) x"
   by (simp add: part_circlepath_def exp_cnj linepath_def algebra_simps)
@@ -1458,7 +1430,7 @@ proof -
     have *: "\<And>x. \<lbrakk>0 \<le> x; x \<le> 1; part_circlepath z r s t x \<notin> k\<rbrakk> \<Longrightarrow> cmod (f (part_circlepath z r s t x)) \<le> B"
       by (auto intro!: B [unfolded path_image_def image_def])
     show ?thesis
-      apply (rule has_integral_bound [where 'a=real, simplified, OF _ **, simplified])
+      using has_integral_bound [where 'a=real, simplified, OF _ **]
       using assms le * "2" \<open>r > 0\<close> by (auto simp add: norm_mult vector_derivative_part_circlepath)
   qed
 qed
@@ -1520,13 +1492,16 @@ next
   qed
   have abs_away: "\<And>P. (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. P \<bar>x - y\<bar>) \<longleftrightarrow> (\<forall>x::real. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> P x)"
     by force
+  have "\<And>x n. \<lbrakk>s \<noteq> t; \<bar>s - t\<bar> \<le> 2 * pi; 0 \<le> x; x < 1;
+            x * (t - s) = 2 * (real_of_int n * pi)\<rbrakk>
+           \<Longrightarrow> x = 0"
+    by (rule ccontr) (auto simp: 2 field_split_simps abs_mult dest: of_int_leD)
+  then
   show ?thesis using False
     apply (simp add: simple_path_def loop_free_def)
     apply (simp add: part_circlepath_def linepath_def exp_eq  * ** abs01 del: Set.insert_iff)
     apply (subst abs_away)
     apply (auto simp: 1)
-    apply (rule ccontr)
-    apply (auto simp: 2 field_split_simps abs_mult dest: of_int_leD)
     done
 qed
 
@@ -1719,16 +1694,18 @@ proof -
                and inta: "(\<lambda>t. f a (\<gamma> t) * vector_derivative \<gamma> (at t)) integrable_on {0..1}"
       using eventually_happens [OF eventually_conj]
       by (fastforce simp: contour_integrable_on path_image_def)
-    have Ble: "B * e / (\<bar>B\<bar> + 1) \<le> e"
-      using \<open>0 \<le> B\<close>  \<open>0 < e\<close> by (simp add: field_split_simps)
     have "\<exists>h. (\<forall>x\<in>{0..1}. cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - h x) \<le> e) \<and> h integrable_on {0..1}"
     proof (intro exI conjI ballI)
       show "cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - f a (\<gamma> x) * vector_derivative \<gamma> (at x)) \<le> e"
         if "x \<in> {0..1}" for x
-        apply (rule order_trans [OF _ Ble])
-        using noleB [OF that] fga [OF that] \<open>0 \<le> B\<close> \<open>0 < e\<close>
-        apply (fastforce simp: mult_ac dest: mult_mono [OF less_imp_le] simp add: norm_mult left_diff_distrib [symmetric] norm_minus_commute divide_simps)
-        done
+      proof -
+        have "cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - f a (\<gamma> x) * vector_derivative \<gamma> (at x)) \<le> B * e / (\<bar>B\<bar> + 1)"
+          using noleB [OF that] fga [OF that] \<open>0 \<le> B\<close> \<open>0 < e\<close>
+          by (fastforce simp: mult_ac dest: mult_mono [OF less_imp_le] simp add: norm_mult left_diff_distrib [symmetric] norm_minus_commute divide_simps)
+        also have "\<dots> \<le> e"
+          using \<open>0 \<le> B\<close>  \<open>0 < e\<close> by (simp add: field_split_simps)
+        finally show ?thesis .
+      qed
     qed (rule inta)
   }
   then show lintg: "l contour_integrable_on \<gamma>"

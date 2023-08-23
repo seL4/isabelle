@@ -50,16 +50,6 @@ lemma path_continuous_image: "path g \<Longrightarrow> continuous_on (path_image
   unfolding path_def path_image_def
   using continuous_on_compose by blast
 
-lemma continuous_on_translation_eq:
-  fixes g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_vector"
-  shows "continuous_on A ((+) a \<circ> g) = continuous_on A g"
-proof -
-  have g: "g = (\<lambda>x. -a + x) \<circ> ((\<lambda>x. a + x) \<circ> g)"
-    by (rule ext) simp
-  show ?thesis
-    by (metis (no_types, opaque_lifting) g continuous_on_compose homeomorphism_def homeomorphism_translation)
-qed
-
 lemma path_translation_eq:
   fixes g :: "real \<Rightarrow> 'a :: real_normed_vector"
   shows "path((\<lambda>x. a + x) \<circ> g) = path g"
@@ -251,23 +241,11 @@ lemma pathfinish_join[simp]: "pathfinish (g1 +++ g2) = pathfinish g2"
   by auto
 
 lemma path_image_reversepath[simp]: "path_image (reversepath g) = path_image g"
-proof -
-  have *: "\<And>g. path_image (reversepath g) \<subseteq> path_image g"
-    unfolding path_image_def subset_eq reversepath_def Ball_def image_iff
-    by force
-  show ?thesis
-    using *[of g] *[of "reversepath g"]
-    unfolding reversepath_reversepath
-    by auto
-qed
+  by (metis cancel_comm_monoid_add_class.diff_cancel diff_zero image_comp 
+      image_diff_atLeastAtMost path_image_def reversepath_o)
 
 lemma path_reversepath [simp]: "path (reversepath g) \<longleftrightarrow> path g"
-proof -
-  have *: "\<And>g. path g \<Longrightarrow> path (reversepath g)"
-    by (metis cancel_comm_monoid_add_class.diff_cancel continuous_on_compose 
-        continuous_on_op_minus diff_zero image_diff_atLeastAtMost path_def reversepath_o)
-  then show ?thesis by force
-qed
+  by (metis continuous_on_compose continuous_on_op_minus image_comp image_ident path_def path_image_def path_image_reversepath reversepath_o reversepath_reversepath)
 
 lemma arc_reversepath:
   assumes "arc g" shows "arc(reversepath g)"
@@ -375,8 +353,8 @@ lemma path_image_join_subset: "path_image (g1 +++ g2) \<subseteq> path_image g1 
   by auto
 
 lemma subset_path_image_join:
-  assumes "path_image g1 \<subseteq> s" and "path_image g2 \<subseteq> s"
-  shows "path_image (g1 +++ g2) \<subseteq> s"
+  assumes "path_image g1 \<subseteq> S" and "path_image g2 \<subseteq> S"
+  shows "path_image (g1 +++ g2) \<subseteq> S"
   using path_image_join_subset[of g1 g2] and assms
   by auto
 
@@ -495,16 +473,10 @@ lemma arc_join:
           "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g2}"
     shows "arc(g1 +++ g2)"
 proof -
-  have injg1: "inj_on g1 {0..1}"
+  have injg1: "inj_on g1 {0..1}" and injg2: "inj_on g2 {0..1}" 
+     and g11: "g1 1 = g2 0" and sb: "g1 ` {0..1} \<inter> g2 ` {0..1} \<subseteq> {g2 0}"
     using assms
-    by (simp add: arc_def)
-  have injg2: "inj_on g2 {0..1}"
-    using assms
-    by (simp add: arc_def)
-  have g11: "g1 1 = g2 0"
-   and sb:  "g1 ` {0..1} \<inter> g2 ` {0..1} \<subseteq> {g2 0}"
-    using assms
-    by (simp_all add: arc_def pathfinish_def pathstart_def path_image_def)
+    by (auto simp: arc_def pathfinish_def pathstart_def path_image_def)
   { fix x and y::real
     assume xy: "g2 (2 * x - 1) = g1 (2 * y)" "x \<le> 1" "0 \<le> y" " y * 2 \<le> 1" "\<not> x * 2 \<le> 1"
     then have "g1 (2 * y) = g2 0"
@@ -660,9 +632,9 @@ qed
 
 lemma simple_path_join_loop_eq:
   assumes "pathfinish g2 = pathstart g1" "pathfinish g1 = pathstart g2"
-    shows "simple_path(g1 +++ g2) \<longleftrightarrow>
+  shows "simple_path(g1 +++ g2) \<longleftrightarrow>
              arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
-by (metis assms simple_path_joinE simple_path_join_loop)
+  by (metis assms simple_path_joinE simple_path_join_loop)
 
 lemma arc_join_eq:
   assumes "pathfinish g1 = pathstart g2"
@@ -672,8 +644,8 @@ lemma arc_join_eq:
 proof
   assume ?lhs then show ?rhs 
     using reversepath_simps assms
-    by (smt (verit, ccfv_threshold) Int_commute arc_distinct_ends arc_imp_simple_path arc_reversepath 
-            in_mono insertE pathfinish_join reversepath_joinpaths simple_path_joinE subsetI)
+    by (smt (verit, best) Int_commute arc_reversepath arc_simple_path in_mono insertE pathstart_join 
+          reversepath_joinpaths simple_path_joinE subsetI)
 next
   assume ?rhs then show ?lhs
     using assms
@@ -681,18 +653,17 @@ next
 qed
 
 lemma arc_join_eq_alt:
-        "pathfinish g1 = pathstart g2
-        \<Longrightarrow> (arc(g1 +++ g2) \<longleftrightarrow>
-             arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 = {pathstart g2})"
-using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
+  "pathfinish g1 = pathstart g2
+   \<Longrightarrow> arc(g1 +++ g2) \<longleftrightarrow> arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 = {pathstart g2}"
+  using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>The joining of paths is associative\<close>
 
 lemma path_assoc:
-    "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
      \<Longrightarrow> path(p +++ (q +++ r)) \<longleftrightarrow> path((p +++ q) +++ r)"
-by simp
+  by simp
 
 lemma simple_path_assoc:
   assumes "pathfinish p = pathstart q" "pathfinish q = pathstart r"
@@ -740,18 +711,18 @@ by (simp add: arc_simple_path simple_path_assoc)
 subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Symmetry and loops\<close>
 
 lemma path_sym:
-    "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> path(p +++ q) \<longleftrightarrow> path(q +++ p)"
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> path(p +++ q) \<longleftrightarrow> path(q +++ p)"
   by auto
 
 lemma simple_path_sym:
-    "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
      \<Longrightarrow> simple_path(p +++ q) \<longleftrightarrow> simple_path(q +++ p)"
-by (metis (full_types) inf_commute insert_commute simple_path_joinE simple_path_join_loop)
+  by (metis (full_types) inf_commute insert_commute simple_path_joinE simple_path_join_loop)
 
 lemma path_image_sym:
-    "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
      \<Longrightarrow> path_image(p +++ q) = path_image(q +++ p)"
-by (simp add: path_image_join sup_commute)
+  by (simp add: path_image_join sup_commute)
 
 
 subsection\<open>Subpath\<close>
@@ -821,7 +792,7 @@ qed
 
 lemma sum_le_prod1:
   fixes a::real shows "\<lbrakk>a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a + b \<le> 1 + a * b"
-by (metis add.commute affine_ineq mult.right_neutral)
+  by (metis add.commute affine_ineq mult.right_neutral)
 
 lemma simple_path_subpath_eq:
   "simple_path(subpath u v g) \<longleftrightarrow>
@@ -871,9 +842,8 @@ lemma simple_path_subpath:
   assumes "simple_path g" "u \<in> {0..1}" "v \<in> {0..1}" "u \<noteq> v"
   shows "simple_path(subpath u v g)"
   using assms
-  apply (simp add: simple_path_subpath_eq simple_path_imp_path)
-  apply (simp add: simple_path_def loop_free_def closed_segment_real_eq image_affinity_atLeastAtMost, fastforce)
-  done
+  unfolding simple_path_subpath_eq
+  by (force simp:  simple_path_def loop_free_def closed_segment_real_eq image_affinity_atLeastAtMost)
 
 lemma arc_simple_path_subpath:
     "\<lbrakk>simple_path g; u \<in> {0..1}; v \<in> {0..1}; g u \<noteq> g v\<rbrakk> \<Longrightarrow> arc(subpath u v g)"
@@ -1049,7 +1019,7 @@ lemma endpoints_shiftpath:
   shows "pathfinish (shiftpath a g) = g a"
     and "pathstart (shiftpath a g) = g a"
   using assms
-  by (auto intro!: pathfinish_shiftpath pathstart_shiftpath)
+  by (simp_all add: pathstart_shiftpath pathfinish_shiftpath)
 
 lemma closed_shiftpath:
   assumes "pathfinish g = pathstart g"
@@ -1082,7 +1052,7 @@ proof -
     proof (rule continuous_on_eq)
       show "continuous_on {1-a..1} (g \<circ> (+) (a - 1))"
         by (intro continuous_intros continuous_on_subset [OF contg]) (use \<open>a \<in> {0..1}\<close> in auto)
-    qed (auto simp:  "**" add.commute add_diff_eq)
+    qed (auto simp: "**" add.commute add_diff_eq)
   qed auto
 qed
 
@@ -1699,19 +1669,8 @@ lemma path_connected_path_image: "path p \<Longrightarrow> path_connected(path_i
 
 lemma path_connected_path_component [simp]:
   "path_connected (path_component_set S x)"
-proof (clarsimp simp: path_connected_def)
-  fix y z
-  assume pa: "path_component S x y" "path_component S x z"
-  then have pae: "path_component_set S x = path_component_set S y"
-    using path_component_eq by auto
-  obtain g where g: "path g \<and> path_image g \<subseteq> S \<and> pathstart g = y \<and> pathfinish g = z"
-    using pa path_component_sym path_component_trans path_component_def by metis
-  then have "path_image g \<subseteq> path_component_set S x"
-    using pae path_component_maximal path_connected_path_image by blast
-  then show "\<exists>g. path g \<and> path_image g \<subseteq> path_component_set S x \<and>
-                 pathstart g = y \<and> pathfinish g = z"
-    using g by blast
-qed
+  by (smt (verit) mem_Collect_eq path_component_def path_component_eq path_component_maximal 
+      path_connected_component path_connected_path_image pathstart_in_path_image)
 
 lemma path_component: 
   "path_component S x y \<longleftrightarrow> (\<exists>t. path_connected t \<and> t \<subseteq> S \<and> x \<in> t \<and> y \<in> t)"
@@ -1726,13 +1685,7 @@ qed
 
 lemma path_component_path_component [simp]:
    "path_component_set (path_component_set S x) x = path_component_set S x"
-proof (cases "x \<in> S")
-  case True show ?thesis
-    by (metis True mem_Collect_eq path_component_refl path_connected_component_set path_connected_path_component)
-next
-  case False then show ?thesis
-    by (metis False empty_iff path_component_eq_empty)
-qed
+  by (metis (full_types) mem_Collect_eq path_component_eq_empty path_component_refl path_connected_component_set path_connected_path_component)
 
 lemma path_component_subset_connected_component:
    "(path_component_set S x) \<subseteq> (connected_component_set S x)"
@@ -1750,8 +1703,8 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>Lemmas about path-conne
 lemma path_connected_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "path_connected S" "bounded_linear f"
-    shows "path_connected(f ` S)"
-by (auto simp: linear_continuous_on assms path_connected_continuous_image)
+  shows "path_connected(f ` S)"
+  by (auto simp: linear_continuous_on assms path_connected_continuous_image)
 
 lemma is_interval_path_connected: "is_interval S \<Longrightarrow> path_connected S"
   by (simp add: convex_imp_path_connected is_interval_convex)
@@ -1814,8 +1767,8 @@ qed
 lemma linear_homeomorphic_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
-    shows "S homeomorphic f ` S"
-by (meson homeomorphic_def homeomorphic_sym linear_homeomorphism_image [OF assms])
+  shows "S homeomorphic f ` S"
+  by (meson homeomorphic_def homeomorphic_sym linear_homeomorphism_image [OF assms])
 
 lemma path_connected_Times:
   assumes "path_connected s" "path_connected t"
@@ -1851,7 +1804,7 @@ qed
 lemma is_interval_path_connected_1:
   fixes s :: "real set"
   shows "is_interval s \<longleftrightarrow> path_connected s"
-using is_interval_connected_1 is_interval_path_connected path_connected_imp_connected by blast
+  using is_interval_connected_1 is_interval_path_connected path_connected_imp_connected by blast
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Path components\<close>
@@ -1885,20 +1838,15 @@ next
 qed
 
 lemma path_component_unique:
-  assumes "x \<in> c" "c \<subseteq> S" "path_connected c"
-          "\<And>c'. \<lbrakk>x \<in> c'; c' \<subseteq> S; path_connected c'\<rbrakk> \<Longrightarrow> c' \<subseteq> c"
-   shows "path_component_set S x = c"
-    (is "?lhs = ?rhs")
-proof 
-  show "?lhs \<subseteq> ?rhs"
-    using assms
-    by (metis mem_Collect_eq path_component_refl path_component_subset path_connected_path_component subsetD)
-qed (simp add: assms path_component_maximal)
+  assumes "x \<in> C" "C \<subseteq> S" "path_connected C"
+          "\<And>C'. \<lbrakk>x \<in> C'; C' \<subseteq> S; path_connected C'\<rbrakk> \<Longrightarrow> C' \<subseteq> C"
+        shows "path_component_set S x = C"
+  by (smt (verit, best) Collect_cong assms path_component path_component_of_subset path_connected_component_set)
 
 lemma path_component_intermediate_subset:
-   "path_component_set u a \<subseteq> t \<and> t \<subseteq> u
-        \<Longrightarrow> path_component_set t a = path_component_set u a"
-by (metis (no_types) path_component_mono path_component_path_component subset_antisym)
+  "path_component_set U a \<subseteq> T \<and> T \<subseteq> U
+        \<Longrightarrow> path_component_set T a = path_component_set U a"
+  by (metis (no_types) path_component_mono path_component_path_component subset_antisym)
 
 lemma complement_path_component_Union:
   fixes x :: "'a :: topological_space"
@@ -2078,9 +2026,8 @@ lemma path_component_of_equiv:
 proof
   assume ?lhs
   then show ?rhs
-    apply (simp add: fun_eq_iff path_component_in_topspace)
-    apply (meson path_component_of_sym path_component_of_trans)
-    done
+    unfolding fun_eq_iff path_component_in_topspace
+    by (metis path_component_in_topspace path_component_of_sym path_component_of_trans)
 qed (simp add: path_component_of_refl)
 
 lemma path_component_of_disjoint:
@@ -2105,7 +2052,7 @@ proof -
   have "topspace (subtopology X (path_component_of_set X x)) = path_component_of_set X x"
     by (meson path_component_of_subset_topspace topspace_subtopology_subset)
   then have "path_connected_space (subtopology X (path_component_of_set X x))"
-    by (metis (full_types) path_component_of_aux mem_Collect_eq path_component_of_equiv path_connected_space_iff_path_component)
+    by (metis mem_Collect_eq path_component_of_aux path_component_of_equiv path_connected_space_iff_path_component)
   then show ?thesis
     by (simp add: path_component_of_subset_topspace path_connectedin_def)
 qed
@@ -2152,13 +2099,14 @@ lemma path_component_in_path_components_of:
   by (metis imageI nonempty_path_components_of path_component_of_eq_empty path_components_of_def)
 
 lemma path_connectedin_Union:
-  assumes \<A>: "\<And>S. S \<in> \<A> \<Longrightarrow> path_connectedin X S" "\<Inter>\<A> \<noteq> {}"
+  assumes \<A>: "\<And>S. S \<in> \<A> \<Longrightarrow> path_connectedin X S" and "\<Inter>\<A> \<noteq> {}"
   shows "path_connectedin X (\<Union>\<A>)"
 proof -
   obtain a where "\<And>S. S \<in> \<A> \<Longrightarrow> a \<in> S"
     using assms by blast
   then have "\<And>x. x \<in> topspace (subtopology X (\<Union>\<A>)) \<Longrightarrow> path_component_of (subtopology X (\<Union>\<A>)) a x"
-    by simp (meson Union_upper \<A> path_component_of path_connectedin_subtopology)
+    unfolding topspace_subtopology path_component_of
+    by (metis (full_types) IntD2 Union_iff Union_upper \<A> path_connectedin_subtopology)
   then show ?thesis
     using \<A> unfolding path_connectedin_def
     by (metis Sup_le_iff path_component_of_equiv path_connected_space_iff_path_component)
@@ -2462,8 +2410,8 @@ lemma path_components_of_product_topology:
     {PiE I B |B. \<forall>i \<in> I. B i \<in> path_components_of(X i)}"  (is "?lhs=?rhs")
 proof
   show "?lhs \<subseteq> ?rhs"
-    apply (simp add: path_components_of_def image_subset_iff)
-    by (smt (verit, best) PiE_iff image_eqI path_component_of_product_topology)
+    unfolding path_components_of_def image_subset_iff
+    by (smt (verit) image_iff mem_Collect_eq path_component_of_product_topology topspace_product_topology_alt)
 next
   show "?rhs \<subseteq> ?lhs"
   proof
@@ -2542,14 +2490,6 @@ proposition path_connected_sphere:
   assumes "2 \<le> DIM('a)"
   shows "path_connected(sphere a r)"
 proof (cases r "0::real" rule: linorder_cases)
-  case less
-  then show ?thesis
-    by simp
-next
-  case equal
-  then show ?thesis
-    by simp
-next
   case greater
   then have eq: "(sphere (0::'a) r) = (\<lambda>x. (r / norm x) *\<^sub>R x) ` (- {0::'a})"
     by (force simp: image_iff split: if_split_asm)
@@ -2557,13 +2497,11 @@ next
     by (intro continuous_intros) auto
   then have "path_connected ((\<lambda>x. (r / norm x) *\<^sub>R x) ` (- {0::'a}))"
     by (intro path_connected_continuous_image path_connected_punctured_universe assms)
-  with eq have "path_connected (sphere (0::'a) r)"
-    by auto
-  then have "path_connected((+) a ` (sphere (0::'a) r))"
+  with eq have "path_connected((+) a ` (sphere (0::'a) r))"
     by (simp add: path_connected_translation)
   then show ?thesis
     by (metis add.right_neutral sphere_translation)
-qed
+qed auto
 
 lemma connected_sphere:
     fixes a :: "'a :: euclidean_space"
@@ -3000,14 +2938,13 @@ lemma cobounded_unique_unbounded_component:
 proof -
   obtain i::'a where i: "i \<in> Basis"
     using nonempty_Basis by blast
-  obtain B where B: "B>0" "-S \<subseteq> ball 0 B"
+  obtain B where "B>0" and B: "-S \<subseteq> ball 0 B"
     using bounded_subset_ballD [OF bs, of 0] by auto
   then have *: "\<And>x. B \<le> norm x \<Longrightarrow> x \<in> S"
     by (force simp: ball_def dist_norm)
-  obtain x' where x': "connected_component S x x'" "norm x' > B"
-    using B(1) bo(1) bounded_pos by force
-  obtain y' where y': "connected_component S y y'" "norm y' > B"
-    using B(1) bo(2) bounded_pos by force
+  obtain x' y' where x': "connected_component S x x'" "norm x' > B"
+  and  y': "connected_component S y y'" "norm y' > B"
+    using \<open>B>0\<close> bo bounded_pos by (metis linorder_not_le mem_Collect_eq) 
   have x'y': "connected_component S x' y'"
     unfolding connected_component_def
   proof (intro exI conjI)
@@ -3197,8 +3134,8 @@ lemma not_outside_connected_component_le:
   fixes S :: "'a::euclidean_space set"
   assumes S: "bounded S"  "2 \<le> DIM('a)"
   shows "- (outside S) = {x. \<forall>B. \<exists>y. B \<le> norm(y) \<and> \<not> connected_component (- S) x y}"
-  apply (auto intro: less_imp_le simp: not_outside_connected_component_lt [OF assms])
-  by (meson gt_ex less_le_trans)
+  unfolding not_outside_connected_component_lt [OF assms]
+  by (metis (no_types, opaque_lifting) dual_order.strict_trans1 gt_ex pinf(8))
 
 lemma inside_connected_component_lt:
     fixes S :: "'a::euclidean_space set"
@@ -3327,10 +3264,10 @@ proof (rule ccontr)
 qed
 
 lemma connected_component_UNIV [simp]:
-    fixes x :: "'a::real_normed_vector"
-    shows "connected_component_set UNIV x = UNIV"
-using connected_iff_eq_connected_component_set [of "UNIV::'a set"] connected_UNIV
-by auto
+  fixes x :: "'a::real_normed_vector"
+  shows "connected_component_set UNIV x = UNIV"
+  using connected_iff_eq_connected_component_set [of "UNIV::'a set"] connected_UNIV
+  by auto
 
 lemma connected_component_eq_UNIV:
     fixes x :: "'a::real_normed_vector"
@@ -3484,10 +3421,8 @@ by (metis Diff_subset assms convex_closure frontier_def outside_frontier_misses_
 lemma inside_frontier_eq_interior:
      fixes S :: "'a :: {real_normed_vector, perfect_space} set"
      shows "\<lbrakk>bounded S; convex S\<rbrakk> \<Longrightarrow> inside(frontier S) = interior S"
-  apply (simp add: inside_outside outside_frontier_eq_complement_closure)
-  using closure_subset interior_subset
-  apply (auto simp: frontier_def)
-  done
+  unfolding inside_outside outside_frontier_eq_complement_closure
+  using closure_subset interior_subset by (auto simp: frontier_def)
 
 lemma open_inside:
     fixes S :: "'a::real_normed_vector set"
@@ -3527,10 +3462,10 @@ proof -
 qed
 
 lemma closure_inside_subset:
-    fixes S :: "'a::real_normed_vector set"
-    assumes "closed S"
-      shows "closure(inside S) \<subseteq> S \<union> inside S"
-by (metis assms closure_minimal open_closed open_outside sup.cobounded2 union_with_inside)
+  fixes S :: "'a::real_normed_vector set"
+  assumes "closed S"
+  shows "closure(inside S) \<subseteq> S \<union> inside S"
+  by (metis assms closure_minimal open_closed open_outside sup.cobounded2 union_with_inside)
 
 lemma frontier_inside_subset:
     fixes S :: "'a::real_normed_vector set"
@@ -3594,7 +3529,7 @@ lemma inside_inside_subset: "inside(inside S) \<subseteq> S"
 lemma inside_outside_intersect_connected:
       "\<lbrakk>connected T; inside S \<inter> T \<noteq> {}; outside S \<inter> T \<noteq> {}\<rbrakk> \<Longrightarrow> S \<inter> T \<noteq> {}"
   apply (simp add: inside_def outside_def ex_in_conv [symmetric] disjoint_eq_subset_Compl, clarify)
-  by (metis (no_types, opaque_lifting) Compl_anti_mono connected_component_eq connected_component_maximal contra_subsetD double_compl)
+  by (metis compl_le_swap1 connected_componentI connected_component_eq mem_Collect_eq)
 
 lemma outside_bounded_nonempty:
   fixes S :: "'a :: {real_normed_vector, perfect_space} set"
@@ -4045,7 +3980,8 @@ proof
     have "embedding_map (top_of_set S) euclideanreal f"
       using that embedding_map_into_euclideanreal [of "top_of_set S" f] assms by auto
     then show ?thesis
-      by (simp add: embedding_map_def) (metis all_closedin_homeomorphic_image f homeomorphism_injective_closed_map that)
+      unfolding embedding_map_def topspace_euclidean_subtopology
+      by (metis f homeomorphic_map_closedness_eq homeomorphism_injective_closed_map that)
   qed
 qed (metis homeomorphism_def inj_onI)
 
