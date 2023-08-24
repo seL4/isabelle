@@ -109,8 +109,7 @@ proof -
     with q have a: "a = Suc n * q - 2" by simp
     with B have "q + n * q < n + n + 2" by auto
     then have "m * q < m * 2" by (simp add: m_def)
-    with \<open>m > 0\<close> have "q < 2" by simp
-    with \<open>q > 0\<close> have "q = 1" by simp
+    with \<open>m > 0\<close> \<open>q > 0\<close> have "q = 1" by simp
     with a have "a = n - 1" by simp
     with \<open>n > 0\<close> C show False by simp
   qed
@@ -212,7 +211,6 @@ next
     from \<open>m dvd Suc n\<close> obtain q where "Suc n = m * q" ..
     with \<open>Suc (Suc n) \<le> m\<close> have "Suc (m * q) \<le> m" by simp
     then have "m * q < m" by arith
-    then have "q = 0" by simp
     with \<open>Suc n = m * q\<close> show ?thesis by simp
   qed
   have aux2: "m dvd q"
@@ -303,15 +301,7 @@ qed
 
 lemma primes_upto_sieve [code]:
   "primes_upto n = map fst (filter snd (enumerate 2 (sieve 1 (replicate (n - 1) True))))"
-proof -
-  have "primes_upto n = sorted_list_of_set (numbers_of_marks 2 (sieve 1 (replicate (n - 1) True)))"
-    apply (rule sorted_distinct_set_unique)
-    apply (simp_all only: set_primes_upto_sieve numbers_of_marks_def)
-    apply auto
-    done
-  then show ?thesis
-    by (simp add: sorted_list_of_set_numbers_of_marks)
-qed
+  using primes_upto_def set_primes_upto set_primes_upto_sieve sorted_list_of_set_numbers_of_marks by presburger
 
 lemma prime_in_primes_upto: "prime n \<longleftrightarrow> n \<in> set (primes_upto n)"
   by (simp add: set_primes_upto)

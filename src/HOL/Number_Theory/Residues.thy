@@ -59,12 +59,18 @@ proof -
 qed
 
 lemma comm_monoid: "comm_monoid R"
-  unfolding R_m_def residue_ring_def
-  apply (rule comm_monoidI)
-    using m_gt_one  apply auto
-  apply (metis mod_mult_right_eq mult.assoc mult.commute)
-  apply (metis mult.commute)
-  done
+proof -
+  have "\<And>x y z. \<lbrakk>x \<in> carrier R; y \<in> carrier R; z \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> y \<otimes> z = x \<otimes> (y \<otimes> z)"
+    "\<And>x y. \<lbrakk>x \<in> carrier R; y \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> y = y \<otimes> x"
+    unfolding R_m_def residue_ring_def
+    by (simp_all add: algebra_simps mod_mult_right_eq)
+  then show ?thesis
+    unfolding R_m_def residue_ring_def
+    by unfold_locales (use m_gt_one in simp_all)
+qed
+
+interpretation comm_monoid R
+  using comm_monoid by blast
 
 lemma cring: "cring R"
   apply (intro cringI abelian_group comm_monoid)
@@ -101,21 +107,31 @@ lemma res_zero_eq: "\<zero> = 0"
 lemma res_one_eq: "\<one> = 1"
   by (auto simp: R_m_def residue_ring_def units_of_def)
 
-lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
-  using m_gt_one
-  apply (auto simp add: Units_def R_m_def residue_ring_def ac_simps invertible_coprime intro: ccontr)
-  apply (subst (asm) coprime_iff_invertible'_int)
-   apply (auto simp add: cong_def)
-  done
+lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}" (is "_ = ?rhs")
+proof
+  show "Units R \<subseteq> ?rhs"
+    using zero_less_mult_iff invertible_coprime 
+    by (fastforce simp: Units_def R_m_def residue_ring_def)
+next
+  show "?rhs \<subseteq> Units R"
+    unfolding Units_def R_m_def residue_ring_def 
+    by (force simp add: cong_def coprime_iff_invertible'_int mult.commute)
+qed
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
-  using m_gt_one unfolding R_m_def a_inv_def m_inv_def residue_ring_def
-  apply simp
-  apply (rule the_equality)
-   apply (simp add: mod_add_right_eq)
-   apply (simp add: add.commute mod_add_right_eq)
-  apply (metis add.right_neutral minus_add_cancel mod_add_right_eq mod_pos_pos_trivial)
-  done
+proof -
+  have "\<ominus> x = (THE y. 0 \<le> y \<and> y < m \<and> (x + y) mod m = 0 \<and> (y + x) mod m = 0)"
+    by (simp add: R_m_def a_inv_def m_inv_def residue_ring_def)
+  also have "\<dots> = (- x) mod m"
+  proof -
+    have "\<And>y. 0 \<le> y \<and> y < m \<and> (x + y) mod m = 0 \<and> (y + x) mod m = 0 \<Longrightarrow>
+         y = - x mod m"
+      by (metis minus_add_cancel mod_add_eq plus_int_code(1) zmod_trivial_iff)
+    then show ?thesis
+      by (intro the_equality) (use m_gt_one  in \<open>simp add: add.commute mod_add_right_eq\<close>)
+  qed
+  finally show ?thesis .
+qed
 
 lemma finite [iff]: "finite (carrier R)"
   by (simp add: res_carrier_eq)
@@ -148,10 +164,15 @@ lemma one_cong: "\<one> = 1 mod m"
 (* FIXME revise algebra library to use 1? *)
 lemma pow_cong: "(x mod m) [^] n = x^n mod m"
   using m_gt_one
-  apply (induct n)
-  apply (auto simp add: nat_pow_def one_cong)
-  apply (metis mult.commute mult_cong)
-  done
+proof (induct n)
+  case 0
+  then show ?case
+    by (simp add: one_cong) 
+next
+  case (Suc n)
+  then show ?case
+    by (simp add: mult_cong power_commutes) 
+qed
 
 lemma neg_cong: "\<ominus> (x mod m) = (- x) mod m"
   by (metis mod_minus_eq res_neg_eq)
@@ -189,10 +210,7 @@ lemmas res_to_cong_simps =
 
 text \<open>Other useful facts about the residue ring.\<close>
 lemma one_eq_neg_one: "\<one> = \<ominus> \<one> \<Longrightarrow> m = 2"
-  apply (simp add: res_one_eq res_neg_eq)
-  apply (metis add.commute add_diff_cancel mod_mod_trivial one_add_one uminus_add_conv_diff
-    zero_neq_one zmod_zminus1_eq_if)
-  done
+  using one_cong res_neg_eq res_one_eq zmod_zminus1_eq_if by fastforce
 
 end
 
@@ -206,9 +224,7 @@ locale residues_prime =
 
 sublocale residues_prime < residues p
   unfolding R_def residues_def
-  using p_prime apply auto
-  apply (metis (full_types) of_nat_1 of_nat_less_iff prime_gt_1_nat)
-  done
+  by (auto simp: p_prime prime_gt_1_int)
 
 context residues_prime
 begin
@@ -227,7 +243,7 @@ lemma p_coprime_left_int:
 
 lemma p_coprime_right_int:
   "coprime a (int p) \<longleftrightarrow> \<not> int p dvd a"
-  using p_coprime_left_int [of a] by (simp add: ac_simps)
+  using coprime_commute p_coprime_left_int by blast
 
 lemma is_field: "field R"
 proof -
@@ -239,9 +255,7 @@ proof -
 qed
 
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
-  apply (subst res_units_eq)
-  apply (auto simp add: p_coprime_right_int zdvd_not_zless)
-  done
+  by (auto simp add: res_units_eq p_coprime_right_int zdvd_not_zless)
 
 end
 
@@ -277,7 +291,7 @@ proof  -
 qed
 
 lemma (in residues_prime) prime_totient_eq: "totient p = p - 1"
-  using totient_eq by (simp add: res_prime_units_eq)
+  using p_prime totient_prime by blast
 
 lemma (in residues) euler_theorem:
   assumes "coprime a m"
@@ -322,9 +336,8 @@ subsection \<open>Wilson's theorem\<close>
 
 lemma (in field) inv_pair_lemma: "x \<in> Units R \<Longrightarrow> y \<in> Units R \<Longrightarrow>
     {x, inv x} \<noteq> {y, inv y} \<Longrightarrow> {x, inv x} \<inter> {y, inv y} = {}"
-  apply auto
-  apply (metis Units_inv_inv)+
-  done
+  by auto
+
 
 lemma (in residues_prime) wilson_theorem1:
   assumes a: "p > 2"
@@ -333,27 +346,20 @@ proof -
   let ?Inverse_Pairs = "{{x, inv x}| x. x \<in> Units R - {\<one>, \<ominus> \<one>}}"
   have UR: "Units R = {\<one>, \<ominus> \<one>} \<union> \<Union>?Inverse_Pairs"
     by auto
+  have 11: "\<one> \<noteq> \<ominus> \<one>"
+    using a one_eq_neg_one by force
   have "(\<Otimes>i\<in>Units R. i) = (\<Otimes>i\<in>{\<one>, \<ominus> \<one>}. i) \<otimes> (\<Otimes>i\<in>\<Union>?Inverse_Pairs. i)"
     apply (subst UR)
     apply (subst finprod_Un_disjoint)
-         apply (auto intro: funcsetI)
-    using inv_one apply auto[1]
-    using inv_eq_neg_one_eq apply auto
+    using inv_one inv_eq_neg_one_eq apply (auto intro!: funcsetI)+
     done
   also have "(\<Otimes>i\<in>{\<one>, \<ominus> \<one>}. i) = \<ominus> \<one>"
-    apply (subst finprod_insert)
-        apply auto
-    apply (frule one_eq_neg_one)
-    using a apply force
-    done
+    by (simp add: 11)
   also have "(\<Otimes>i\<in>(\<Union>?Inverse_Pairs). i) = (\<Otimes>A\<in>?Inverse_Pairs. (\<Otimes>y\<in>A. y))"
-    apply (subst finprod_Union_disjoint)
-       apply (auto simp: pairwise_def disjnt_def)
-     apply (metis Units_inv_inv)+
-    done
+    by (rule finprod_Union_disjoint) (auto simp: pairwise_def disjnt_def dest!: inv_eq_imp_eq)
   also have "\<dots> = \<one>"
     apply (rule finprod_one_eqI)
-     apply auto
+    apply clarsimp
     apply (subst finprod_insert)
         apply auto
     apply (metis inv_eq_self)
@@ -365,11 +371,8 @@ proof -
   also have "\<dots> = (\<Prod>i\<in>Units R. i) mod p"
     by (rule prod_cong) auto
   also have "\<dots> = fact (p - 1) mod p"
-    apply (simp add: fact_prod)
     using assms
-    apply (subst res_prime_units_eq)
-    apply (simp add: int_prod zmod_int prod_int_eq)
-    done
+    by (simp add: res_prime_units_eq int_prod zmod_int prod_int_eq fact_prod)
   finally have "fact (p - 1) mod p = \<ominus> \<one>" .
   then show ?thesis
     by (simp add: cong_def res_neg_eq res_one_eq zmod_int)
@@ -396,7 +399,7 @@ text \<open>
 lemma mod_nat_int_pow_eq:
   fixes n :: nat and p a :: int
   shows "a \<ge> 0 \<Longrightarrow> p \<ge> 0 \<Longrightarrow> (nat a ^ n) mod (nat p) = nat ((a ^ n) mod p)"
-  by (simp add: int_one_le_iff_zero_less nat_mod_distrib order_less_imp_le nat_power_eq[symmetric])
+  by (simp add: nat_mod_as_int)
 
 theorem residue_prime_mult_group_has_gen:
  fixes p :: nat
