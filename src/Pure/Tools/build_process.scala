@@ -1026,10 +1026,13 @@ extends AutoCloseable {
         } yield n
       val node_info = Host.Node_Info(hostname, numa_node)
 
+      val print_node_info =
+        node_info.numa_node.isDefined ||
+        _build_database.isDefined && _build_database.get.is_postgresql
+
       progress.echo(
         (if (store_heap) "Building " else "Running ") + session_name +
-          (if (_build_database.isDefined || node_info.numa_node.isDefined) " on " + node_info
-           else "") + " ...")
+          (if (print_node_info) " (on " + node_info + ")" else "") + " ...")
 
       val session = state.sessions(session_name)
 
