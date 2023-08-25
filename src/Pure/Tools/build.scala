@@ -345,7 +345,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -H HOST      additional host for distributed build ("NAME:PARAMETERS")
+    -H HOSTS     additional build cluster host specifications, of the form
+                 "NAMES:PARAMETERS" (separated by commas)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -379,7 +380,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
-        "H:" -> (arg => build_hosts += Build_Cluster.Host.parse(arg)),
+        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(arg)),
         "N" -> (_ => numa_shuffling = true),
         "P:" -> (arg => browser_info = Browser_Info.Config.make(arg)),
         "R" -> (_ => requirements = true),

@@ -47,13 +47,13 @@ object Build_Cluster {
       options: List[Options.Spec] = Nil
     ): Host = new Host(name, user, port, jobs, numa, shared, options)
 
-    def parse(str: String): Host = {
-      val name = str.takeWhile(c => !rfc822_specials.contains(c))
+    def parse(str: String): List[Host] = {
+      val names = str.takeWhile(c => !rfc822_specials.contains(c) || c == ',')
       val (params, options) =
         try {
           val rest = {
             val n = str.length
-            val m = name.length
+            val m = names.length
             val l =
               if (m == n) n
               else if (str(m) == ':') m + 1
@@ -67,13 +67,15 @@ object Build_Cluster {
           case ERROR(msg) =>
             cat_error(msg, "The error(s) above occurred in host specification " + quote(str))
         }
-      apply(name = name,
-        user = params.string(USER),
-        port = params.int(PORT),
-        jobs = params.int(JOBS),
-        numa = params.bool(NUMA),
-        shared = params.bool(SHARED),
-        options = options)
+      for (name <- space_explode(',', names)) yield {
+        apply(name = name,
+          user = params.string(USER),
+          port = params.int(PORT),
+          jobs = params.int(JOBS),
+          numa = params.bool(NUMA),
+          shared = params.bool(SHARED),
+          options = options)
+      }
     }
   }
 
