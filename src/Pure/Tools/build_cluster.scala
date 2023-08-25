@@ -292,8 +292,8 @@ class Remote_Build_Cluster(
 
     _workers =
       for (session <- _sessions) yield {
-        Future.thread(session.host.message("start")) {
-          Exn.release(capture(session.host, "start") { session.start() })
+        Future.thread(session.host.message("run")) {
+          Exn.release(capture(session.host, "run") { session.start() })
         }
       }
   }
