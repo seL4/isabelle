@@ -22,6 +22,7 @@ object Build_Cluster {
     private val PORT = "port"
     private val JOBS = "jobs"
     private val NUMA = "numa"
+    private val DIRS = "dirs"
     private val SHARED = "shared"
 
     val parameters: Options =
@@ -30,6 +31,7 @@ object Build_Cluster {
         option port : int = 0        -- "explicit SSH port"
         option jobs : int = 1        -- "maximum number of parallel jobs"
         option numa : bool = false   -- "cyclic shuffling of NUMA CPU nodes"
+        option dirs : string = ""    -- "additional session directories (separated by colon)"
         option shared : bool = false -- "shared directory: omit sync + init"
       """)
 
@@ -43,9 +45,13 @@ object Build_Cluster {
       port: Int = parameters.int(PORT),
       jobs: Int = parameters.int(JOBS),
       numa: Boolean = parameters.bool(NUMA),
+      dirs: String = parameters.string(DIRS),
       shared: Boolean = parameters.bool(SHARED),
       options: List[Options.Spec] = Nil
-    ): Host = new Host(name, user, port, jobs, numa, shared, options)
+    ): Host = {
+      Path.split(dirs)  // check
+      new Host(name, user, port, jobs, numa, dirs, shared, options)
+    }
 
     def parse(str: String): List[Host] = {
       val names = str.takeWhile(c => !rfc822_specials.contains(c) || c == ',')
@@ -73,6 +79,7 @@ object Build_Cluster {
           port = params.int(PORT),
           jobs = params.int(JOBS),
           numa = params.bool(NUMA),
+          dirs = params.string(DIRS),
           shared = params.bool(SHARED),
           options = options)
       }
@@ -85,6 +92,7 @@ object Build_Cluster {
     val port: Int,
     val jobs: Int,
     val numa: Boolean,
+    val dirs: String,
     val shared: Boolean,
     val options: List[Options.Spec]
   ) {
@@ -101,6 +109,7 @@ object Build_Cluster {
           if (host.port == 0) "" else Options.Spec.print(Host.PORT, host.port.toString),
           if (host.jobs == 1) "" else Options.Spec.print(Host.JOBS, host.jobs.toString),
           if_proper(host.numa, Host.NUMA),
+          if_proper(dirs, Options.Spec.print(Host.DIRS, host.dirs)),
           if_proper(host.shared, Host.SHARED)
         ).filter(_.nonEmpty)
       val rest = (params ::: host.options.map(_.print)).mkString(",")
@@ -161,7 +170,8 @@ object Build_Cluster {
           build_options = List(options.spec("build_database_server")),
           build_id = build_context.build_uuid,
           isabelle_home = remote_isabelle_home,
-          afp_root = remote_afp_root)
+          afp_root = remote_afp_root,
+          dirs = Path.split(host.dirs).map(remote_isabelle.expand_path))
       remote_isabelle.bash(script).print.check
     }
 
