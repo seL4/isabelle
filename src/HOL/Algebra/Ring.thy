@@ -878,7 +878,7 @@ lemma (in comm_monoid) comm_inv_char: "x \<in> carrier G \<Longrightarrow> y \<i
 lemma (in ring) inv_neg_one [simp]: "inv (\<ominus> \<one>) = \<ominus> \<one>"
   by (simp add: inv_char local.ring_axioms ring.r_minus)
 
-lemma (in monoid) inv_eq_imp_eq: "x \<in> Units G \<Longrightarrow> y \<in> Units G \<Longrightarrow> inv x = inv y \<Longrightarrow> x = y"
+lemma (in monoid) inv_eq_imp_eq [dest!]: "inv x = inv y \<Longrightarrow> x \<in> Units G \<Longrightarrow> y \<in> Units G \<Longrightarrow> x = y"
   by (metis Units_inv_inv)
 
 lemma (in ring) Units_minus_one_closed [intro]: "\<ominus> \<one> \<in> Units R"
