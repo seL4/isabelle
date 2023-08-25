@@ -527,7 +527,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       var list_builds = false
       var options =
         Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(Options.Spec.make("build_database")))
+          List(
+            Options.Spec.make("build_database_server"),
+            Options.Spec.make("build_database")))
 
       val getopts = Getopts("""
 Usage: isabelle build_process [OPTIONS]
@@ -618,7 +620,9 @@ Usage: isabelle build_process [OPTIONS]
       var max_jobs = 1
       var options =
         Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(Options.Spec.make("build_database")))
+          List(
+            Options.Spec.make("build_database_server"),
+            Options.Spec.make("build_database")))
       var verbose = false
 
       val getopts = Getopts("""
