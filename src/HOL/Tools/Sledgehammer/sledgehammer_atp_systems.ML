@@ -390,15 +390,22 @@ val vampire_config : atp_config =
    prem_role = Hypothesis,
    generate_isabelle_info = false,
    good_slices =
-     (* FUDGE *)
-     K [((2, false, false, 512, meshN), (TX1, "mono_native_fool", combsN, false, sosN)),
-      ((2, false, false, 1024, meshN), (TX1, "mono_native_fool", liftingN, false, sosN)),
-      ((2, false, false, 256, mashN), (TX1, "mono_native_fool", liftingN, false, no_sosN)),
-      ((2, false, true, 512, mepoN), (TF1, "poly_native", liftingN, false, no_sosN)),
-      ((2, false, false, 16, meshN), (TX1, "mono_native_fool", liftingN, false, no_sosN)),
-      ((2, false, false, 32, meshN), (TX1, "mono_native_fool", combsN, false, no_sosN)),
-      ((2, false, false, 64, meshN), (TX1, "mono_native_fool", combs_or_liftingN, false, no_sosN)),
-      ((2, false, false, 128, meshN), (TX1, "mono_native_fool", liftingN, false, no_sosN))],
+     let
+       (* Older versions of Vampire have unsound handling of Booleans. *)
+       val mono_native =
+         if string_ord (getenv "VAMPIRE_VERSION", "4.8") <> LESS then "mono_native_fool"
+         else "mono_native"
+     in
+       (* FUDGE *)
+       K [((2, false, false, 512, meshN), (TX1, mono_native, combsN, false, sosN)),
+        ((2, false, false, 1024, meshN), (TX1, mono_native, liftingN, false, sosN)),
+        ((2, false, false, 256, mashN), (TX1, mono_native, liftingN, false, no_sosN)),
+        ((2, false, true, 512, mepoN), (TF1, "poly_native", liftingN, false, no_sosN)),
+        ((2, false, false, 16, meshN), (TX1, mono_native, liftingN, false, no_sosN)),
+        ((2, false, false, 32, meshN), (TX1, mono_native, combsN, false, no_sosN)),
+        ((2, false, false, 64, meshN), (TX1, mono_native, combs_or_liftingN, false, no_sosN)),
+        ((2, false, false, 128, meshN), (TX1, mono_native, liftingN, false, no_sosN))]
+      end,
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
