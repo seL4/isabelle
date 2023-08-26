@@ -3,10 +3,10 @@
 section \<open>1-2 Brother Tree Implementation of Sets\<close>
 
 theory Brother12_Set
-imports
-  Cmp
-  Set_Specs
-  "HOL-Number_Theory.Fib"
+  imports
+    Cmp
+    Set_Specs
+    "HOL-Number_Theory.Fib"
 begin
 
 subsection \<open>Data Type and Operations\<close>
@@ -20,28 +20,28 @@ datatype 'a bro =
   N3 "'a bro" 'a "'a bro" 'a "'a bro"
 
 definition empty :: "'a bro" where
-"empty = N0"
+  "empty = N0"
 
 fun inorder :: "'a bro \<Rightarrow> 'a list" where
-"inorder N0 = []" |
-"inorder (N1 t) = inorder t" |
-"inorder (N2 l a r) = inorder l @ a # inorder r" |
-"inorder (L2 a) = [a]" |
-"inorder (N3 t1 a1 t2 a2 t3) = inorder t1 @ a1 # inorder t2 @ a2 # inorder t3"
+  "inorder N0 = []" |
+  "inorder (N1 t) = inorder t" |
+  "inorder (N2 l a r) = inorder l @ a # inorder r" |
+  "inorder (L2 a) = [a]" |
+  "inorder (N3 t1 a1 t2 a2 t3) = inorder t1 @ a1 # inorder t2 @ a2 # inorder t3"
 
 fun isin :: "'a bro \<Rightarrow> 'a::linorder \<Rightarrow> bool" where
-"isin N0 x = False" |
-"isin (N1 t) x = isin t x" |
-"isin (N2 l a r) x =
+  "isin N0 x = False" |
+  "isin (N1 t) x = isin t x" |
+  "isin (N2 l a r) x =
   (case cmp x a of
      LT \<Rightarrow> isin l x |
      EQ \<Rightarrow> True |
      GT \<Rightarrow> isin r x)"
 
 fun n1 :: "'a bro \<Rightarrow> 'a bro" where
-"n1 (L2 a) = N2 N0 a N0" |
-"n1 (N3 t1 a1 t2 a2 t3) = N2 (N2 t1 a1 t2) a2 (N1 t3)" |
-"n1 t = N1 t"
+  "n1 (L2 a) = N2 N0 a N0" |
+  "n1 (N3 t1 a1 t2 a2 t3) = N2 (N2 t1 a1 t2) a2 (N1 t3)" |
+  "n1 t = N1 t"
 
 hide_const (open) insert
 
@@ -49,30 +49,30 @@ locale insert
 begin
 
 fun n2 :: "'a bro \<Rightarrow> 'a \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"n2 (L2 a1) a2 t = N3 N0 a1 N0 a2 t" |
-"n2 (N3 t1 a1 t2 a2 t3) a3 (N1 t4) = N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4)" |
-"n2 (N3 t1 a1 t2 a2 t3) a3 t4 = N3 (N2 t1 a1 t2) a2 (N1 t3) a3 t4" |
-"n2 t1 a1 (L2 a2) = N3 t1 a1 N0 a2 N0" |
-"n2 (N1 t1) a1 (N3 t2 a2 t3 a3 t4) = N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4)" |
-"n2 t1 a1 (N3 t2 a2 t3 a3 t4) = N3 t1 a1 (N1 t2) a2 (N2 t3 a3 t4)" |
-"n2 t1 a t2 = N2 t1 a t2"
+  "n2 (L2 a1) a2 t = N3 N0 a1 N0 a2 t" |
+  "n2 (N3 t1 a1 t2 a2 t3) a3 (N1 t4) = N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4)" |
+  "n2 (N3 t1 a1 t2 a2 t3) a3 t4 = N3 (N2 t1 a1 t2) a2 (N1 t3) a3 t4" |
+  "n2 t1 a1 (L2 a2) = N3 t1 a1 N0 a2 N0" |
+  "n2 (N1 t1) a1 (N3 t2 a2 t3 a3 t4) = N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4)" |
+  "n2 t1 a1 (N3 t2 a2 t3 a3 t4) = N3 t1 a1 (N1 t2) a2 (N2 t3 a3 t4)" |
+  "n2 t1 a t2 = N2 t1 a t2"
 
 fun ins :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"ins x N0 = L2 x" |
-"ins x (N1 t) = n1 (ins x t)" |
-"ins x (N2 l a r) =
+  "ins x N0 = L2 x" |
+  "ins x (N1 t) = n1 (ins x t)" |
+  "ins x (N2 l a r) =
   (case cmp x a of
      LT \<Rightarrow> n2 (ins x l) a r |
      EQ \<Rightarrow> N2 l a r |
      GT \<Rightarrow> n2 l a (ins x r))"
 
 fun tree :: "'a bro \<Rightarrow> 'a bro" where
-"tree (L2 a) = N2 N0 a N0" |
-"tree (N3 t1 a1 t2 a2 t3) = N2 (N2 t1 a1 t2) a2 (N1 t3)" |
-"tree t = t"
+  "tree (L2 a) = N2 N0 a N0" |
+  "tree (N3 t1 a1 t2 a2 t3) = N2 (N2 t1 a1 t2) a2 (N1 t3)" |
+  "tree t = t"
 
 definition insert :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"insert x t = tree(ins x t)"
+  "insert x t = tree(ins x t)"
 
 end
 
@@ -80,36 +80,36 @@ locale delete
 begin
 
 fun n2 :: "'a bro \<Rightarrow> 'a \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"n2 (N1 t1) a1 (N1 t2) = N1 (N2 t1 a1 t2)" |
-"n2 (N1 (N1 t1)) a1 (N2 (N1 t2) a2 (N2 t3 a3 t4)) =
+  "n2 (N1 t1) a1 (N1 t2) = N1 (N2 t1 a1 t2)" |
+  "n2 (N1 (N1 t1)) a1 (N2 (N1 t2) a2 (N2 t3 a3 t4)) =
   N1 (N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4))" |
-"n2 (N1 (N1 t1)) a1 (N2 (N2 t2 a2 t3) a3 (N1 t4)) =
+  "n2 (N1 (N1 t1)) a1 (N2 (N2 t2 a2 t3) a3 (N1 t4)) =
   N1 (N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4))" |
-"n2 (N1 (N1 t1)) a1 (N2 (N2 t2 a2 t3) a3 (N2 t4 a4 t5)) =
+  "n2 (N1 (N1 t1)) a1 (N2 (N2 t2 a2 t3) a3 (N2 t4 a4 t5)) =
   N2 (N2 (N1 t1) a1 (N2 t2 a2 t3)) a3 (N1 (N2 t4 a4 t5))" |
-"n2 (N2 (N1 t1) a1 (N2 t2 a2 t3)) a3 (N1 (N1 t4)) =
+  "n2 (N2 (N1 t1) a1 (N2 t2 a2 t3)) a3 (N1 (N1 t4)) =
   N1 (N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4))" |
-"n2 (N2 (N2 t1 a1 t2) a2 (N1 t3)) a3 (N1 (N1 t4)) =
+  "n2 (N2 (N2 t1 a1 t2) a2 (N1 t3)) a3 (N1 (N1 t4)) =
   N1 (N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4))" |
-"n2 (N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4)) a5 (N1 (N1 t5)) =
+  "n2 (N2 (N2 t1 a1 t2) a2 (N2 t3 a3 t4)) a5 (N1 (N1 t5)) =
   N2 (N1 (N2 t1 a1 t2)) a2 (N2 (N2 t3 a3 t4) a5 (N1 t5))" |
-"n2 t1 a1 t2 = N2 t1 a1 t2"
+  "n2 t1 a1 t2 = N2 t1 a1 t2"
 
 fun split_min :: "'a bro \<Rightarrow> ('a \<times> 'a bro) option" where
-"split_min N0 = None" |
-"split_min (N1 t) =
+  "split_min N0 = None" |
+  "split_min (N1 t) =
   (case split_min t of
      None \<Rightarrow> None |
      Some (a, t') \<Rightarrow> Some (a, N1 t'))" |
-"split_min (N2 t1 a t2) =
+  "split_min (N2 t1 a t2) =
   (case split_min t1 of
      None \<Rightarrow> Some (a, N1 t2) |
      Some (b, t1') \<Rightarrow> Some (b, n2 t1' a t2))"
 
 fun del :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"del _ N0         = N0" |
-"del x (N1 t)     = N1 (del x t)" |
-"del x (N2 l a r) =
+  "del _ N0         = N0" |
+  "del x (N1 t)     = N1 (del x t)" |
+  "del x (N2 l a r) =
   (case cmp x a of
      LT \<Rightarrow> n2 (del x l) a r |
      GT \<Rightarrow> n2 l a (del x r) |
@@ -118,35 +118,35 @@ fun del :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
               Some (b, r') \<Rightarrow> n2 l b r'))"
 
 fun tree :: "'a bro \<Rightarrow> 'a bro" where
-"tree (N1 t) = t" |
-"tree t = t"
+  "tree (N1 t) = t" |
+  "tree t = t"
 
 definition delete :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"delete a t = tree (del a t)"
+  "delete a t = tree (del a t)"
 
 end
 
 subsection \<open>Invariants\<close>
 
 fun B :: "nat \<Rightarrow> 'a bro set"
-and U :: "nat \<Rightarrow> 'a bro set" where
-"B 0 = {N0}" |
-"B (Suc h) = { N2 t1 a t2 | t1 a t2. 
+  and U :: "nat \<Rightarrow> 'a bro set" where
+  "B 0 = {N0}" |
+  "B (Suc h) = { N2 t1 a t2 | t1 a t2. 
   t1 \<in> B h \<union> U h \<and> t2 \<in> B h \<or> t1 \<in> B h \<and> t2 \<in> B h \<union> U h}" |
-"U 0 = {}" |
-"U (Suc h) = N1 ` B h"
+  "U 0 = {}" |
+  "U (Suc h) = N1 ` B h"
 
 abbreviation "T h \<equiv> B h \<union> U h"
 
 fun Bp :: "nat \<Rightarrow> 'a bro set" where
-"Bp 0 = B 0 \<union> L2 ` UNIV" |
-"Bp (Suc 0) = B (Suc 0) \<union> {N3 N0 a N0 b N0|a b. True}" |
-"Bp (Suc(Suc h)) = B (Suc(Suc h)) \<union>
+  "Bp 0 = B 0 \<union> L2 ` UNIV" |
+  "Bp (Suc 0) = B (Suc 0) \<union> {N3 N0 a N0 b N0|a b. True}" |
+  "Bp (Suc(Suc h)) = B (Suc(Suc h)) \<union>
   {N3 t1 a t2 b t3 | t1 a t2 b t3. t1 \<in> B (Suc h) \<and> t2 \<in> U (Suc h) \<and> t3 \<in> B (Suc h)}"
 
 fun Um :: "nat \<Rightarrow> 'a bro set" where
-"Um 0 = {}" |
-"Um (Suc h) = N1 ` T h"
+  "Um 0 = {}" |
+  "Um (Suc h) = N1 ` T h"
 
 
 subsection "Functional Correctness Proofs"
@@ -155,29 +155,29 @@ subsubsection "Proofs for isin"
 
 lemma isin_set:
   "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set(inorder t))"
-by(induction h arbitrary: t) (fastforce simp: isin_simps split: if_splits)+
+  by(induction h arbitrary: t) (fastforce simp: isin_simps split: if_splits)+
 
 subsubsection "Proofs for insertion"
 
 lemma inorder_n1: "inorder(n1 t) = inorder t"
-by(cases t rule: n1.cases) (auto simp: sorted_lems)
+  by(cases t rule: n1.cases) (auto simp: sorted_lems)
 
 context insert
 begin
 
 lemma inorder_n2: "inorder(n2 l a r) = inorder l @ a # inorder r"
-by(cases "(l,a,r)" rule: n2.cases) (auto simp: sorted_lems)
+  by(cases "(l,a,r)" rule: n2.cases) (auto simp: sorted_lems)
 
 lemma inorder_tree: "inorder(tree t) = inorder t"
-by(cases t) auto
+  by(cases t) auto
 
 lemma inorder_ins: "t \<in> T h \<Longrightarrow>
   sorted(inorder t) \<Longrightarrow> inorder(ins a t) = ins_list a (inorder t)"
-by(induction h arbitrary: t) (auto simp: ins_list_simps inorder_n1 inorder_n2)
+  by(induction h arbitrary: t) (auto simp: ins_list_simps inorder_n1 inorder_n2)
 
 lemma inorder_insert: "t \<in> T h \<Longrightarrow>
   sorted(inorder t) \<Longrightarrow> inorder(insert a t) = ins_list a (inorder t)"
-by(simp add: insert_def inorder_ins inorder_tree)
+  by(simp add: insert_def inorder_ins inorder_tree)
 
 end
 
@@ -187,27 +187,27 @@ context delete
 begin
 
 lemma inorder_tree: "inorder(tree t) = inorder t"
-by(cases t) auto
+  by(cases t) auto
 
 lemma inorder_n2: "inorder(n2 l a r) = inorder l @ a # inorder r"
-by(cases "(l,a,r)" rule: n2.cases) (auto)
+  by(cases "(l,a,r)" rule: n2.cases) (auto)
 
 lemma inorder_split_min:
   "t \<in> T h \<Longrightarrow> (split_min t = None \<longleftrightarrow> inorder t = []) \<and>
   (split_min t = Some(a,t') \<longrightarrow> inorder t = a # inorder t')"
-by(induction h arbitrary: t a t') (auto simp: inorder_n2 split: option.splits)
+  by(induction h arbitrary: t a t') (auto simp: inorder_n2 split: option.splits)
 
 lemma inorder_del:
   "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
   apply (induction h arbitrary: t) 
   apply (auto simp: del_list_simps inorder_n2 split: option.splits)
   apply (auto simp: del_list_simps inorder_n2
-     inorder_split_min[OF UnI1] inorder_split_min[OF UnI2] split: option.splits)
+      inorder_split_min[OF UnI1] inorder_split_min[OF UnI2] split: option.splits)
   done
 
 lemma inorder_delete:
   "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
-by(simp add: delete_def inorder_del inorder_tree)
+  by(simp add: delete_def inorder_del inorder_tree)
 
 end
 
@@ -217,38 +217,41 @@ subsection \<open>Invariant Proofs\<close>
 subsubsection \<open>Proofs for insertion\<close>
 
 lemma n1_type: "t \<in> Bp h \<Longrightarrow> n1 t \<in> T (Suc h)"
-by(cases h rule: Bp.cases) auto
+  by(cases h rule: Bp.cases) auto
 
 context insert
 begin
 
 lemma tree_type: "t \<in> Bp h \<Longrightarrow> tree t \<in> B h \<union> B (Suc h)"
-by(cases h rule: Bp.cases) auto
+  by(cases h rule: Bp.cases) auto
 
 lemma n2_type:
   "(t1 \<in> Bp h \<and> t2 \<in> T h \<longrightarrow> n2 t1 a t2 \<in> Bp (Suc h)) \<and>
    (t1 \<in> T h \<and> t2 \<in> Bp h \<longrightarrow> n2 t1 a t2 \<in> Bp (Suc h))"
-apply(cases h rule: Bp.cases)
-apply (auto)[2]
-apply(rule conjI impI | erule conjE exE imageE | simp | erule disjE)+
-done
+  apply(cases h rule: Bp.cases)
+    apply (auto)[2]
+  apply(rule conjI impI | erule conjE exE imageE | simp | erule disjE)+
+  done
 
 lemma Bp_if_B: "t \<in> B h \<Longrightarrow> t \<in> Bp h"
-by (cases h rule: Bp.cases) simp_all
+  by (cases h rule: Bp.cases) simp_all
 
 text\<open>An automatic proof:\<close>
 
 lemma
   "(t \<in> B h \<longrightarrow> ins x t \<in> Bp h) \<and> (t \<in> U h \<longrightarrow> ins x t \<in> T h)"
-apply(induction h arbitrary: t)
- apply (simp)
-apply (fastforce simp: Bp_if_B n2_type dest: n1_type)
-done
+proof (induction h arbitrary: t)
+  case 0
+  then show ?case by simp
+next
+  case (Suc h)
+  then show ?case by (fastforce simp: Bp_if_B n2_type dest: n1_type)
+qed
 
 text\<open>A detailed proof:\<close>
 
 lemma ins_type:
-shows "t \<in> B h \<Longrightarrow> ins x t \<in> Bp h" and "t \<in> U h \<Longrightarrow> ins x t \<in> T h"
+  shows "t \<in> B h \<Longrightarrow> ins x t \<in> Bp h" and "t \<in> U h \<Longrightarrow> ins x t \<in> T h"
 proof(induction h arbitrary: t)
   case 0
   { case 1 thus ?case by simp
@@ -300,7 +303,7 @@ qed
 
 lemma insert_type:
   "t \<in> B h \<Longrightarrow> insert x t \<in> B h \<union> B (Suc h)"
-unfolding insert_def by (metis ins_type(1) tree_type)
+  unfolding insert_def by (metis ins_type(1) tree_type)
 
 end
 
@@ -311,37 +314,38 @@ lemma B_simps[simp]:
   "L2 y \<in> B h = False"
   "(N3 t1 a1 t2 a2 t3) \<in> B h = False"
   "N0 \<in> B h \<longleftrightarrow> h = 0"
-by (cases h, auto)+
+  by (cases h, auto)+
 
 context delete
 begin
 
 lemma n2_type1:
   "\<lbrakk>t1 \<in> Um h; t2 \<in> B h\<rbrakk> \<Longrightarrow> n2 t1 a t2 \<in> T (Suc h)"
-apply(cases h rule: Bp.cases)
-apply auto[2]
-apply(erule exE bexE conjE imageE | simp | erule disjE)+
-done
+  apply(cases h rule: Bp.cases)
+    apply auto[2]
+  apply(erule exE bexE conjE imageE | simp | erule disjE)+
+  done
 
 lemma n2_type2:
   "\<lbrakk>t1 \<in> B h ; t2 \<in> Um h \<rbrakk> \<Longrightarrow> n2 t1 a t2 \<in> T (Suc h)"
-apply(cases h rule: Bp.cases)
-apply auto[2]
-apply(erule exE bexE conjE imageE | simp | erule disjE)+
-done
+  apply(cases h rule: Bp.cases)
+  using Um.simps(1) apply blast
+   apply force
+  apply(erule exE bexE conjE imageE | simp | erule disjE)+
+  done
 
 lemma n2_type3:
   "\<lbrakk>t1 \<in> T h ; t2 \<in> T h \<rbrakk> \<Longrightarrow> n2 t1 a t2 \<in> T (Suc h)"
-apply(cases h rule: Bp.cases)
-apply auto[2]
-apply(erule exE bexE conjE imageE | simp | erule disjE)+
-done
+  apply(cases h rule: Bp.cases)
+    apply auto[2]
+  apply(erule exE bexE conjE imageE | simp | erule disjE)+
+  done
 
 lemma split_minNoneN0: "\<lbrakk>t \<in> B h; split_min t = None\<rbrakk> \<Longrightarrow>  t = N0"
-by (cases t) (auto split: option.splits)
+  by (cases t) (auto split: option.splits)
 
 lemma split_minNoneN1 : "\<lbrakk>t \<in> U h; split_min t = None\<rbrakk> \<Longrightarrow> t = N1 N0"
-by (cases h) (auto simp: split_minNoneN0  split: option.splits)
+  by (cases h) (auto simp: split_minNoneN0  split: option.splits)
 
 lemma split_min_type:
   "t \<in> B h \<Longrightarrow> split_min t = Some (a, t') \<Longrightarrow> t' \<in> T h"
@@ -459,11 +463,11 @@ proof (induction h arbitrary: x t)
 qed auto
 
 lemma tree_type: "t \<in> T (h+1) \<Longrightarrow> tree t \<in> B (h+1) \<union> B h"
-by(auto)
+  by(auto)
 
 lemma delete_type: "t \<in> B h \<Longrightarrow> delete x t \<in> B h \<union> B(h-1)"
-unfolding delete_def
-by (cases h) (simp, metis del_type(1) tree_type Suc_eq_plus1 diff_Suc_1)
+  unfolding delete_def
+  by (cases h) (simp, metis del_type(1) tree_type Suc_eq_plus1 diff_Suc_1)
 
 end
 
@@ -471,8 +475,8 @@ end
 subsection "Overall correctness"
 
 interpretation Set_by_Ordered
-where empty = empty and isin = isin and insert = insert.insert
-and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> B h"
+  where empty = empty and isin = isin and insert = insert.insert
+    and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> B h"
 proof (standard, goal_cases)
   case 2 thus ?case by(auto intro!: isin_set)
 next
@@ -506,27 +510,27 @@ fun size :: "'a bro \<Rightarrow> nat" where
 | "size (N2 t1 _ t2) = 1 + size t1 + size t2"
 
 lemma fib_tree_B: "fib_tree h \<in> B h"
-by (induction h rule: fib_tree.induct) auto
+  by (induction h rule: fib_tree.induct) auto
 
 declare [[names_short]]
 
 lemma size_fib': "size (fib_tree h) = fib' h"
-by (induction h rule: fib_tree.induct) auto
+  by (induction h rule: fib_tree.induct) auto
 
 lemma fibfib: "fib' h + 1 = fib (Suc(Suc h))"
-by (induction h rule: fib_tree.induct) auto
+  by (induction h rule: fib_tree.induct) auto
 
 lemma B_N2_cases[consumes 1]:
-assumes "N2 t1 a t2 \<in> B (Suc n)"
-obtains 
-  (BB) "t1 \<in> B n" and "t2 \<in> B n" |
-  (UB) "t1 \<in> U n" and "t2 \<in> B n" |
-  (BU) "t1 \<in> B n" and "t2 \<in> U n"
-using assms by auto
+  assumes "N2 t1 a t2 \<in> B (Suc n)"
+  obtains 
+    (BB) "t1 \<in> B n" and "t2 \<in> B n" |
+    (UB) "t1 \<in> U n" and "t2 \<in> B n" |
+    (BU) "t1 \<in> B n" and "t2 \<in> U n"
+  using assms by auto
 
 lemma size_bounded: "t \<in> B h \<Longrightarrow> size t \<ge> size (fib_tree h)"
-unfolding size_fib' proof (induction h arbitrary: t rule: fib'.induct)
-case (3 h t')
+  unfolding size_fib' proof (induction h arbitrary: t rule: fib'.induct)
+  case (3 h t')
   note main = 3
   then obtain t1 a t2 where t': "t' = N2 t1 a t2" by auto
   with main have "N2 t1 a t2 \<in> B (Suc (Suc h))" by auto
@@ -546,7 +550,7 @@ case (3 h t')
 qed auto
 
 theorem "t \<in> B h \<Longrightarrow> fib (h + 2) \<le> size t + 1"
-using size_bounded
-by (simp add: size_fib' fibfib[symmetric] del: fib.simps)
+  using size_bounded
+  by (simp add: size_fib' fibfib[symmetric] del: fib.simps)
 
 end
