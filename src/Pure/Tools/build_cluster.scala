@@ -226,12 +226,12 @@ class Remote_Build_Cluster(
 
   /* cumulative return code */
 
-  private var _rc: Int = Process_Result.RC.ok
+  private val _rc = Synchronized(Process_Result.RC.ok)
 
-  override def rc: Int = _rc.synchronized { _rc }
+  override def rc: Int = _rc.value
 
   override def return_code(rc: Int): Unit =
-    _rc.synchronized { _rc = Process_Result.RC.merge(_rc, rc) }
+    _rc.change(rc0 => Process_Result.RC.merge(rc0, rc))
 
   def capture[A](host: Build_Cluster.Host, op: String)(
     e: => A,
