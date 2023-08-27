@@ -172,7 +172,7 @@ object Build_Cluster {
           isabelle_home = remote_isabelle_home,
           afp_root = remote_afp_root,
           dirs = Path.split(host.dirs).map(remote_isabelle.expand_path))
-      remote_isabelle.bash(script).print.check
+      remote_isabelle.bash(script).check
     }
 
     override def close(): Unit = ssh.close()
