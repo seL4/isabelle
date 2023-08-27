@@ -43,6 +43,22 @@ library:
 * The Eisbach 'method' command now takes an optional description for
 display with 'print_methods', similar to the 'method_setup' command.
 
+* Experimental support for distributed build clusters, based on SSH and
+PostgreSQL. Example for 3 nodes (local, host1, host2):
+
+    isabelle build -a -j2 -o threads=8 \
+      -H host1:jobs=2,threads=8
+      -H host2:jobs=4:threads=4,numa,shared
+
+Like the "isabelle sync" tool, this requires a proper Isabelle
+repository clone (e.g. via "isabelle/Admin/init -r Isabelle2023").
+
+The build database server needs to be specified for each remote node in
+$USER_HOME/.isabelle/build_cluster (according to option
+"build_cluster_identifier").
+
+See also "isabelle build_process -?" and "isabelle build_worker -?".
+
 
 *** Document preparation ***
 

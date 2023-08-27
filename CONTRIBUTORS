@@ -21,6 +21,9 @@ Contributions to Isabelle2023
   ML heap usage and stored heap size has been significantly reduced;
   based on new command-line tool "isabelle profiling".
 
+* 2023: Makarius Wenzel and Fabian Huch
+  Support for distributed build clusters, based on SSH and PostgreSQL.
+
 
 Contributions to Isabelle2022
 -----------------------------

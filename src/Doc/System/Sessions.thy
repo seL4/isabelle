@@ -360,8 +360,11 @@ text \<open>
 \<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -A ROOT      include AFP with given root directory (":" for $AFP_BASE)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
+    -H HOSTS     additional build cluster host specifications, of the form
+                 "NAMES:PARAMETERS" (separated by commas)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -383,6 +386,9 @@ text \<open>
     -x NAME      exclude session NAME and all descendants
 
   Build and manage Isabelle sessions: ML heaps, session databases, documents.
+
+  Parameters for host specifications (option -H), apart from system options:
+     ...
 
   Notable system options: see "isabelle options -l -t build"
 
@@ -506,6 +512,25 @@ text \<open>
   possible to use option \<^verbatim>\<open>-k\<close> repeatedly to check multiple keywords. The
   theory sources are checked for conflicts wrt.\ this hypothetical change of
   syntax, e.g.\ to reveal occurrences of identifiers that need to be quoted.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-H\<close> augments the cluster hosts to be used in this build process.
+  Each \<^verbatim>\<open>-H\<close> option accepts multiple host names (separated by commas), which
+  all share the same (optional) parameters. Multiple \<^verbatim>\<open>-H\<close> options may be
+  given to specify further hosts (with different parameters). For example:
+  \<^verbatim>\<open>-H host1,host2:jobs=2,threads=4 -H host3:jobs=4,threads=6\<close>.
+
+  The syntax for host parameters follows Isabelle outer syntax, notably with
+  double-quoted string literals. On the command-line, this may require extra
+  single quotes or escapes. For example: \<^verbatim>\<open>-H 'host4:dirs="..."'\<close>.
+
+  The presence of at least one \<^verbatim>\<open>-H\<close> option changes the mode of operation of
+  \<^verbatim>\<open>isabelle build\<close> substantially. It uses a shared PostgreSQL database
+  server, which needs to be accessible from each node via local system options
+  such as @{system_option "build_database_server"}, @{system_option
+  "build_database_host"}, or @{system_option "build_database_ssh_host"}.
+  Remote host connections are managed via regular SSH configuration, see also
+  \<^path>\<open>$HOME/.ssh/config\<close> on each node.
 \<close>
 
 
@@ -565,6 +590,12 @@ text \<open>
   Inform about the status of all sessions required for AFP, without building
   anything yet:
   @{verbatim [display] \<open>  isabelle build -D '$AFP' -R -v -n\<close>}
+
+  \<^smallskip>
+  Run a distributed build on 3 cluster hosts (local, \<^verbatim>\<open>host1\<close>, \<^verbatim>\<open>host2\<close>):
+  @{verbatim [display] \<open>  isabelle build -a -j2 -o threads=8 \
+    -H host1:jobs=2,threads=8
+    -H host2:jobs=4:threads=4,numa,shared\<close>}
 \<close>
 
 
