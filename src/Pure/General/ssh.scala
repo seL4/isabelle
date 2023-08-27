@@ -97,7 +97,7 @@ object SSH {
     port: Int = 0,
     user: String = ""
   ): Session = {
-    require(!is_local(host), "Illegal host name " + quote(host))
+    if (is_local(host)) error("Illegal SSH host name " + quote(host))
 
     val multiplex = options.bool("ssh_multiplexing") && !Platform.is_windows
     val (control_master, control_path) =
