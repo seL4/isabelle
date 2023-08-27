@@ -28,6 +28,7 @@ NEWS file for further details. Here are various details:
 
 * System: "isabelle profiling" tool produces ML heap statistics.
 
+* System: experimental support for distributed build clusters.
 
 
 You may get Isabelle2023 from the following mirror sites:
