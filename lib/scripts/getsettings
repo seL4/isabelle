@@ -78,7 +78,7 @@ fi
 
 ISABELLE_NAME="${ISABELLE_IDENTIFIER:-Isabelle}"
 
-ISABELLE_HOSTNAME="$(hostname -s)"
+ISABELLE_HOSTNAME="$(hostname -s 2>/dev/null || uname -n)"
 
 
 # components
