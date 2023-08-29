@@ -278,7 +278,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val auto_build_button =
     new JEdit_Options.Bool_GUI(document_auto, "Auto") {
-      tooltip = Word.capitalize(document_auto.description)
+      tooltip = Word.capitalized(document_auto.description)
       override def clicked(state: Boolean): Unit = {
         super.clicked(state)
 

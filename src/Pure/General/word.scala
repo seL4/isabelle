@@ -25,16 +25,16 @@ object Word {
   def lowercase(str: String): String = str.toLowerCase(Locale.ROOT)
   def uppercase(str: String): String = str.toUpperCase(Locale.ROOT)
 
-  def capitalize(str: String): String =
+  def capitalized(str: String): String =
     if (str.length == 0) str
     else {
       val n = Character.charCount(str.codePointAt(0))
       uppercase(str.substring(0, n)) + lowercase(str.substring(n))
     }
 
-  def perhaps_capitalize(str: String): String =
+  def perhaps_capitalized(str: String): String =
     if (Codepoint.iterator(str).forall(c => Character.isLowerCase(c) || Character.isDigit(c)))
-      capitalize(str)
+      capitalized(str)
     else str
 
   object Case {
@@ -42,7 +42,7 @@ object Word {
       c match {
         case Case.lowercase => Word.lowercase(str)
         case Case.uppercase => Word.uppercase(str)
-        case Case.capitalized => Word.capitalize(str)
+        case Case.capitalized => Word.capitalized(str)
       }
     def unapply(str: String): Option[Case] =
       if (str.nonEmpty) {
