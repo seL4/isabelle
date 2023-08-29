@@ -133,11 +133,9 @@ object TOML {
 
   /* lexer */
 
-  object Kind extends Enumeration {
-    val KEYWORD, VALUE, STRING, MULTILINE_STRING, LINE_SEP, ERROR = Value
-  }
+  enum Kind { case KEYWORD, VALUE, STRING, MULTILINE_STRING, LINE_SEP, ERROR }
 
-  sealed case class Token(kind: Kind.Value, text: Str) {
+  sealed case class Token(kind: Kind, text: Str) {
     def is_keyword(name: Str): Bool = kind == Kind.KEYWORD && text == name
     def is_value: Bool = kind == Kind.VALUE
     def is_string: Bool = kind == Kind.STRING
