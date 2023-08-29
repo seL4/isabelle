@@ -65,30 +65,32 @@ private class Value_Future[A](x: A) extends Future[A] {
 /* task future via thread pool */
 
 private class Task_Future[A](body: => A) extends Future[A] {
-  private sealed abstract class Status
-  private case object Ready extends Status
-  private case class Running(thread: Thread) extends Status
-  private case object Terminated extends Status
-  private case class Finished(result: Exn.Result[A]) extends Status
+  private enum Status {
+    case Ready extends Status
+    case Running(thread: Thread) extends Status
+    case Terminated extends Status
+    case Finished(result: Exn.Result[A]) extends Status
+  }
 
-  private val status = Synchronized[Status](Ready)
+  private val status = Synchronized[Status](Status.Ready)
 
   def peek: Option[Exn.Result[A]] =
     status.value match {
-      case Finished(result) => Some(result)
+      case Status.Finished(result) => Some(result)
       case _ => None
     }
 
   private def try_run(): Unit = {
     val do_run =
       status.change_result {
-        case Ready => (true, Running(Thread.currentThread))
+        case Status.Ready => (true, Status.Running(Thread.currentThread))
         case st => (false, st)
       }
     if (do_run) {
       val result = Exn.capture(body)
-      status.change(_ => Terminated)
-      status.change(_ => Finished(if (Thread.interrupted()) Exn.Exn(Exn.Interrupt()) else result))
+      status.change(_ => Status.Terminated)
+      status.change(_ =>
+        Status.Finished(if (Thread.interrupted()) Exn.Exn(Exn.Interrupt()) else result))
     }
   }
   private val task = Isabelle_Thread.pool.submit(new Callable[Unit] { def call = try_run() })
@@ -96,15 +98,15 @@ private class Task_Future[A](body: => A) extends Future[A] {
   def join_result: Exn.Result[A] = {
     try_run()
     status.guarded_access {
-      case st @ Finished(result) => Some((result, st))
+      case st @ Status.Finished(result) => Some((result, st))
       case _ => None
     }
   }
 
   def cancel(): Unit = {
     status.change {
-      case Ready => task.cancel(false); Finished(Exn.Exn(Exn.Interrupt()))
-      case st @ Running(thread) => thread.interrupt(); st
+      case Status.Ready => task.cancel(false); Status.Finished(Exn.Exn(Exn.Interrupt()))
+      case st @ Status.Running(thread) => thread.interrupt(); st
       case st => st
     }
   }
