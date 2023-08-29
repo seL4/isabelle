@@ -286,13 +286,13 @@ object Symbol {
 
   /** defined symbols **/
 
-  object Argument extends Enumeration {
-    val none, cartouche, space_cartouche = Value
-
-    def unapply(s: String): Option[Value] =
-      try { Some(withName(s)) }
-      catch { case _: NoSuchElementException => None}
+  object Argument {
+    def unapply(s: String): Option[Argument] =
+      try { Some(valueOf(s)) }
+      catch { case _: IllegalArgumentException => None}
   }
+
+  enum Argument { case none, cartouche, space_cartouche }
 
   object Entry {
     private val Name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
@@ -339,7 +339,7 @@ object Symbol {
   class Entry private(
     val symbol: Symbol,
     val name: String,
-    val argument: Symbol.Argument.Value,
+    val argument: Symbol.Argument,
     val code: Option[Int],
     val font: Option[String],
     val groups: List[String],
