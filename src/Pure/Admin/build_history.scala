@@ -112,7 +112,6 @@ object Build_History {
     root: Path,
     progress: Progress = new Progress,
     afp: Boolean = false,
-    afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
     component_repository: String = Components.static_component_repository,
@@ -167,22 +166,9 @@ object Build_History {
     }
 
     val isabelle_directory = directory(root)
-    val afp_directory = if (afp) Some(directory(root + Path.explode("AFP"))) else None
-
-    val (afp_build_args, afp_sessions) =
-      if (afp_directory.isEmpty) (Nil, Nil)
-      else {
-        val (opt, sessions) = {
-          if (afp_partition == 0) ("-d", Nil)
-          else {
-            try {
-              val afp_info = AFP.init(options, base_dir = afp_directory.get.root)
-              ("-d", afp_info.partition(afp_partition))
-            } catch { case ERROR(_) => ("-D", Nil) }
-          }
-        }
-        (List(opt, "~~/AFP/thys"), sessions)
-      }
+    val (afp_directory, afp_build_args) =
+      if (afp) (Some(directory(root + Path.explode("AFP"))), List("-d", "~~/AFP/thys"))
+      else (None, Nil)
 
 
     /* main */
@@ -266,7 +252,7 @@ object Build_History {
       val build_result =
         Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
           progress = build_out_progress)
-        .bash("bin/isabelle build " + Bash.strings(build_args1 ::: afp_sessions),
+        .bash("bin/isabelle build " + Bash.strings(build_args1),
           redirect = true, echo = true, strict = false)
 
       val build_end = Date.now()
@@ -424,7 +410,6 @@ object Build_History {
       var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
       var clean_platforms: Option[List[Platform.Family]] = None
-      var afp_partition = 0
       var clean_archives = false
       var component_repository = Components.static_component_repository
       var arch_apple = false
@@ -453,7 +438,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -O PLATFORMS clean resolved components, retaining only the given list
                  platform families (separated by commas; default: do nothing)
-    -P NUMBER    AFP partition number (0, 1, 2, default: 0=unrestricted)
     -Q           clean archives of downloaded components
     -R URL       remote repository for Isabelle components (default: """ +
       Components.static_component_repository + """)
@@ -485,7 +469,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
         "O:" -> (arg => clean_platforms = Some(space_explode(',',arg).map(Platform.Family.parse))),
-        "P:" -> (arg => afp_partition = Value.Int.parse(arg)),
         "Q" -> (_ => clean_archives = true),
         "R:" -> (arg => component_repository = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
@@ -516,8 +499,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
       val progress = new Console_Progress(stderr = true)
 
       val results =
-        local_build(Options.init(), root, progress = progress,
-          afp = afp, afp_partition = afp_partition,
+        local_build(Options.init(), root, progress = progress, afp = afp,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
           component_repository = component_repository, components_base = components_base,
           clean_platforms = clean_platforms, clean_archives = clean_archives,
