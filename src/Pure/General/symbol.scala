@@ -327,9 +327,10 @@ object Symbol {
           case _ => None
         }
 
-      val groups = proper_list(for ((Group.name, a) <- props) yield a).getOrElse(List("unsorted"))
+      val groups =
+        proper_list(for (case (Group.name, a) <- props) yield a).getOrElse(List("unsorted"))
 
-      val abbrevs = for ((Abbrev.name, a) <- props) yield a
+      val abbrevs = for (case (Abbrev.name, a) <- props) yield a
 
       new Entry(symbol, name, argument, code, Font.unapply(props), groups, abbrevs)
     }

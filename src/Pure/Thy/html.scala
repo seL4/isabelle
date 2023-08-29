@@ -151,7 +151,7 @@ object HTML {
   def check_control_blocks(body: XML.Body): Boolean = {
     var ok = true
     var open = List.empty[Symbol.Symbol]
-    for { XML.Text(text) <- body; sym <- Symbol.iterator(text) } {
+    for { case XML.Text(text) <- body; sym <- Symbol.iterator(text) } {
       if (is_control_block_begin(sym)) open ::= sym
       else if (is_control_block_end(sym)) {
         open match {

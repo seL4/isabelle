@@ -27,7 +27,7 @@ object Prismjs {
     val components_json = JSON.parse(File.read(components_path))
     JSON.value(components_json, "languages") match {
       case Some(JSON.Object(langs)) =>
-        (for ((name, JSON.Object(info)) <- langs.iterator if name != "meta") yield {
+        (for (case (name, JSON.Object(info)) <- langs.iterator if name != "meta") yield {
           val alias =
             JSON.Value.List.unapply(info.getOrElse("alias", Nil), JSON.Value.String.unapply)
               .getOrElse(Nil)

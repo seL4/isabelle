@@ -400,13 +400,13 @@ final class Layout private(
     output_graph.get_node(Layout.Node(node))
 
   def nodes_iterator: Iterator[Layout.Info] =
-    for ((_: Layout.Node, (info, _)) <- output_graph.iterator) yield info
+    for (case (_: Layout.Node, (info, _)) <- output_graph.iterator) yield info
 
 
   /* dummies */
 
   def dummies_iterator: Iterator[Layout.Info] =
-    for ((_: Layout.Dummy, (info, _)) <- output_graph.iterator) yield info
+    for (case (_: Layout.Dummy, (info, _)) <- output_graph.iterator) yield info
 
   def dummies_iterator(edge: Graph_Display.Edge): Iterator[Layout.Info] =
     new Iterator[Layout.Info] {

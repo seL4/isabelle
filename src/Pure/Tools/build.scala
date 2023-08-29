@@ -723,7 +723,7 @@ Usage: isabelle build_worker [OPTIONS]
 
       val results =
         Command.Results.make(
-          for (elem @ XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
+          for (case elem@XML.Elem(Markup(_, Markup.Serial(i)), _) <- read_xml(Export.MESSAGES))
             yield i -> elem)
 
       val command =

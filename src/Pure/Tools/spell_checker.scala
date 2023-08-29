@@ -129,7 +129,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
     val permanent_updates =
       if (dictionary.user_path.is_file)
         for {
-          Spell_Checker.Decl(word, include) <- split_lines(File.read(dictionary.user_path))
+          case Spell_Checker.Decl(word, include) <- split_lines(File.read(dictionary.user_path))
         } yield (word, Spell_Checker.Update(include, true))
       else Nil
 

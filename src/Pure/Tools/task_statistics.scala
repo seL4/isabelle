@@ -29,7 +29,7 @@ final class Task_Statistics private(
 
   def chart(bins: Int = 100): JFreeChart = {
     val values = new Array[Double](task_statistics.length)
-    for ((Run(x), i) <- task_statistics.iterator.zipWithIndex)
+    for (case (Run(x), i) <- task_statistics.iterator.zipWithIndex)
       values(i) = java.lang.Math.log10((x max 1).toDouble / 1000000)
 
     val data = new HistogramDataset

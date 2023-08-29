@@ -189,7 +189,7 @@ directory individually.
   def get_bundled_components(dir: Path, platform: Platform.Family.Value): (List[String], String) = {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
-      for { Bundled(name) <- Components.Directory(dir).read_components() } yield name
+      for { case Bundled(name) <- Components.Directory(dir).read_components() } yield name
     val jdk_component =
       components.find(_.startsWith("jdk")) getOrElse error("Missing jdk component")
     (components, jdk_component)

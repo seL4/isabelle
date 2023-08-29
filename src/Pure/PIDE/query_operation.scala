@@ -76,7 +76,7 @@ class Query_Operation[Editor_Context](
           val command_results = snapshot.command_results(cmd)
           val results =
             (for {
-              (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
+              case (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
               if props.contains((Markup.INSTANCE, state0.instance))
             } yield elem).toList
           val removed = !snapshot.get_node(cmd.node_name).commands.contains(cmd)
@@ -116,7 +116,7 @@ class Query_Operation[Editor_Context](
 
     val new_output =
       for {
-        XML.Elem(_, List(XML.Elem(markup, body))) <- results
+        case XML.Elem(_, List(XML.Elem(markup, body))) <- results
         if Markup.messages.contains(markup.name)
         body1 = resolve_sendback(body)
       } yield Protocol.make_message(body1, markup.name, props = markup.properties)

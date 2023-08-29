@@ -785,7 +785,7 @@ object Document {
             case some => Some(some)
           }
       }
-      for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1, status))
+      for (case Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1, status))
         yield Text.Info(r, x)
     }
   }
@@ -1262,7 +1262,7 @@ object Document {
       val pending_edits1 =
         (for {
           change <- history.undo_list.takeWhile(_ != stable)
-          (name, Node.Edits(es)) <- change.rev_edits
+          case (name, Node.Edits(es)) <- change.rev_edits
         } yield (name -> es)).foldLeft(pending_edits)(_ + _)
 
       new Snapshot(this, version, node_name, pending_edits1, snippet_command)
