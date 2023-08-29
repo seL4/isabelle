@@ -97,22 +97,24 @@ object SQL {
 
   enum Type { case Boolean, Int, Long, Double, String, Bytes, Date }
 
-  val sql_type_postgresql: Type => Source = {
-    case Type.Boolean => "BOOLEAN"
-    case Type.Int => "INTEGER"
-    case Type.Long => "BIGINT"
-    case Type.Double => "DOUBLE PRECISION"
-    case Type.String => "TEXT"
-    case Type.Bytes => "BYTEA"
-    case Type.Date => "TIMESTAMP WITH TIME ZONE"
-  }
+  val sql_type_postgresql: Type => Source =
+    {
+      case Type.Boolean => "BOOLEAN"
+      case Type.Int => "INTEGER"
+      case Type.Long => "BIGINT"
+      case Type.Double => "DOUBLE PRECISION"
+      case Type.String => "TEXT"
+      case Type.Bytes => "BYTEA"
+      case Type.Date => "TIMESTAMP WITH TIME ZONE"
+    }
 
-  val sql_type_sqlite: Type => Source = {
-    case Type.Boolean => "INTEGER"
-    case Type.Bytes => "BLOB"
-    case Type.Date => "TEXT"
-    case t => sql_type_postgresql(t)
-  }
+  val sql_type_sqlite: Type => Source =
+    {
+      case Type.Boolean => "INTEGER"
+      case Type.Bytes => "BLOB"
+      case Type.Date => "TEXT"
+      case t => sql_type_postgresql(t)
+    }
 
 
   /* columns */
