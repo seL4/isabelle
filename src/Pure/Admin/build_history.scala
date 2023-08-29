@@ -117,7 +117,7 @@ object Build_History {
     ml_statistics_step: Int = 1,
     component_repository: String = Components.static_component_repository,
     components_base: String = Components.dynamic_components_base,
-    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_platforms: Option[List[Platform.Family]] = None,
     clean_archives: Boolean = false,
     fresh: Boolean = false,
     hostname: String = "",
@@ -423,7 +423,7 @@ object Build_History {
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
-      var clean_platforms: Option[List[Platform.Family.Value]] = None
+      var clean_platforms: Option[List[Platform.Family]] = None
       var afp_partition = 0
       var clean_archives = false
       var component_repository = Components.static_component_repository

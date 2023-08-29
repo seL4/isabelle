@@ -11,7 +11,7 @@ object Dotnet_Setup {
   /* platforms */
 
   sealed case class Platform_Info(
-    family: Platform.Family.Value,
+    family: Platform.Family,
     name: String,
     os: String = "",
     arch: String = "x64",
