@@ -230,9 +230,7 @@ object Document_Status {
 
   /* nodes status */
 
-  object Overall_Node_Status extends Enumeration {
-    val ok, failed, pending = Value
-  }
+  enum Overall_Node_Status { case ok, failed, pending }
 
   object Nodes_Status {
     val empty: Nodes_Status = new Nodes_Status(Map.empty, Document.Nodes.empty)
@@ -259,7 +257,7 @@ object Document_Status {
         case None => false
       }
 
-    def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
+    def overall_node_status(name: Document.Node.Name): Overall_Node_Status =
       rep.get(name) match {
         case Some(st) if st.consolidated =>
           if (st.ok) Overall_Node_Status.ok else Overall_Node_Status.failed
