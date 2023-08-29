@@ -443,7 +443,7 @@ object Build_Log {
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started1 = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
-    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) on \S+ \.\.\.$""")
+    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on \S+\)? \.\.\.$""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
