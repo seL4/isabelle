@@ -95,26 +95,24 @@ object SQL {
 
   /* types */
 
-  object Type extends Enumeration {
-    val Boolean = Value("BOOLEAN")
-    val Int = Value("INTEGER")
-    val Long = Value("BIGINT")
-    val Double = Value("DOUBLE PRECISION")
-    val String = Value("TEXT")
-    val Bytes = Value("BLOB")
-    val Date = Value("TIMESTAMP WITH TIME ZONE")
+  enum Type { case Boolean, Int, Long, Double, String, Bytes, Date }
+
+  val sql_type_postgresql: Type => Source = {
+    case Type.Boolean => "BOOLEAN"
+    case Type.Int => "INTEGER"
+    case Type.Long => "BIGINT"
+    case Type.Double => "DOUBLE PRECISION"
+    case Type.String => "TEXT"
+    case Type.Bytes => "BYTEA"
+    case Type.Date => "TIMESTAMP WITH TIME ZONE"
   }
 
-  def sql_type_default(T: Type.Value): Source = T.toString
-
-  def sql_type_sqlite(T: Type.Value): Source =
-    if (T == Type.Boolean) "INTEGER"
-    else if (T == Type.Date) "TEXT"
-    else sql_type_default(T)
-
-  def sql_type_postgresql(T: Type.Value): Source =
-    if (T == Type.Bytes) "BYTEA"
-    else sql_type_default(T)
+  val sql_type_sqlite: Type => Source = {
+    case Type.Boolean => "INTEGER"
+    case Type.Bytes => "BLOB"
+    case Type.Date => "TEXT"
+    case t => sql_type_postgresql(t)
+  }
 
 
   /* columns */
@@ -138,7 +136,7 @@ object SQL {
 
   sealed case class Column(
     name: String,
-    T: Type.Value,
+    T: Type,
     strict: Boolean = false,
     primary_key: Boolean = false,
     expr: SQL.Source = ""
@@ -152,7 +150,7 @@ object SQL {
       if (expr == "") SQL.ident(name)
       else enclose(expr) + " AS " + SQL.ident(name)
 
-    def decl(sql_type: Type.Value => Source): Source =
+    def decl(sql_type: Type => Source): Source =
       ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
     def defined: String = ident + " IS NOT NULL"
@@ -194,7 +192,7 @@ object SQL {
 
     def query_named: Source = query + " AS " + SQL.ident(name)
 
-    def create(sql_type: Type.Value => Source): Source = {
+    def create(sql_type: Type => Source): Source = {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
@@ -407,7 +405,7 @@ object SQL {
 
     /* types */
 
-    def sql_type(T: Type.Value): Source
+    def sql_type(T: Type): Source
 
 
     /* connection */
@@ -627,7 +625,7 @@ object SQLite {
 
     override def now(): Date = Date.now()
 
-    def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
+    def sql_type(T: SQL.Type): SQL.Source = SQL.sql_type_sqlite(T)
 
     def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
       if (date == null) stmt.string(i) = (null: String)
@@ -751,7 +749,7 @@ object PostgreSQL {
         .getOrElse(error("Failed to get current date/time from database server " + toString))
     }
 
-    def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)
+    def sql_type(T: SQL.Type): SQL.Source = SQL.sql_type_postgresql(T)
 
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
     def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
