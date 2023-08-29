@@ -16,7 +16,7 @@ object Mutator_Event {
   case class Add(m: Mutator.Info) extends Message
   case class New_List(m: List[Mutator.Info]) extends Message
 
-  type Receiver = PartialFunction[Message, Unit]
+  type Receiver = Message => Unit
 
   class Bus {
     private val receivers = Synchronized[List[Receiver]](Nil)
