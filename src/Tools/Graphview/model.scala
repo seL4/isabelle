@@ -20,12 +20,12 @@ class Mutator_Container(val available: List[Mutator]) {
   def apply(): List[Mutator.Info] = _mutators
   def apply(mutators: List[Mutator.Info]): Unit = {
     _mutators = mutators
-    events.event(Mutator_Event.New_List(mutators))
+    events.event(Mutator_Event.Message.New_List(mutators))
   }
 
   def add(mutator: Mutator.Info): Unit = {
     _mutators = _mutators ::: List(mutator)
-    events.event(Mutator_Event.Add(mutator))
+    events.event(Mutator_Event.Message.Add(mutator))
   }
 }
 

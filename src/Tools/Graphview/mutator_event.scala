@@ -12,9 +12,10 @@ import isabelle._
 
 
 object Mutator_Event {
-  sealed abstract class Message
-  case class Add(m: Mutator.Info) extends Message
-  case class New_List(m: List[Mutator.Info]) extends Message
+  enum Message {
+    case Add(m: Mutator.Info) extends Message
+    case New_List(m: List[Mutator.Info]) extends Message
+  }
 
   type Receiver = Message => Unit
 
