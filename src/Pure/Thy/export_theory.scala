@@ -239,14 +239,12 @@ object Export_Theory {
 
   /* approximative syntax */
 
-  object Assoc extends Enumeration {
-    val NO_ASSOC, LEFT_ASSOC, RIGHT_ASSOC = Value
-  }
+  enum Assoc { case NO_ASSOC, LEFT_ASSOC, RIGHT_ASSOC }
 
   sealed abstract class Syntax
   case object No_Syntax extends Syntax
   case class Prefix(delim: String) extends Syntax
-  case class Infix(assoc: Assoc.Value, delim: String, pri: Int) extends Syntax
+  case class Infix(assoc: Assoc, delim: String, pri: Int) extends Syntax
 
   def decode_syntax: XML.Decode.T[Syntax] =
     XML.Decode.variant(List(
@@ -255,7 +253,7 @@ object Export_Theory {
       { case (Nil, body) =>
           import XML.Decode._
           val (ass, delim, pri) = triple(int, string, int)(body)
-          Infix(Assoc(ass), delim, pri) }))
+          Infix(Assoc.fromOrdinal(ass), delim, pri) }))
 
 
   /* types */
