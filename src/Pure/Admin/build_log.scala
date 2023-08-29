@@ -395,9 +395,7 @@ object Build_Log {
 
   val SESSION_NAME = "session_name"
 
-  object Session_Status extends Enumeration {
-    val existing, finished, failed, cancelled = Value
-  }
+  enum Session_Status { case existing, finished, failed, cancelled }
 
   sealed case class Session_Entry(
     chapter: String = "",
@@ -407,7 +405,7 @@ object Build_Log {
     ml_timing: Timing = Timing.zero,
     sources: Option[String] = None,
     heap_size: Option[Space] = None,
-    status: Option[Session_Status.Value] = None,
+    status: Option[Session_Status] = None,
     errors: List[String] = Nil,
     theory_timings: Map[String, Timing] = Map.empty,
     ml_statistics: List[Properties.T] = Nil
@@ -1129,7 +1127,7 @@ object Build_Log {
                     Data.ml_timing_gc),
                 sources = res.get_string(Data.sources),
                 heap_size = res.get_long(Data.heap_size).map(Space.bytes),
-                status = res.get_string(Data.status).map(Session_Status.withName),
+                status = res.get_string(Data.status).map(Session_Status.valueOf),
                 errors = uncompress_errors(res.bytes(Data.errors), cache = cache),
                 ml_statistics =
                   if (ml_statistics) {

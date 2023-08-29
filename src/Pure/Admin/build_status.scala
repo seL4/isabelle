@@ -196,7 +196,7 @@ object Build_Status {
     maximum_heap: Space,
     average_heap: Space,
     stored_heap: Space,
-    status: Build_Log.Session_Status.Value,
+    status: Build_Log.Session_Status,
     errors: List[String]
   ) {
     val date: Long = (afp_pull_date getOrElse pull_date).unix_epoch
@@ -323,7 +323,7 @@ object Build_Status {
                   maximum_heap = Space.B(ml_stats.maximum(ML_Statistics.HEAP_SIZE)),
                   average_heap = Space.B(ml_stats.average(ML_Statistics.HEAP_SIZE)),
                   stored_heap = Space.bytes(res.long(Build_Log.Data.heap_size)),
-                  status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
+                  status = Build_Log.Session_Status.valueOf(res.string(Build_Log.Data.status)),
                   errors =
                     Build_Log.uncompress_errors(
                       res.bytes(Build_Log.Data.errors), cache = store.cache))
