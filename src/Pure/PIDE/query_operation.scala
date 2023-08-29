@@ -9,11 +9,7 @@ package isabelle
 
 
 object Query_Operation {
-  object Status extends Enumeration {
-    val WAITING = Value("waiting")
-    val RUNNING = Value("running")
-    val FINISHED = Value("finished")
-  }
+  enum Status { case waiting, running, finished }
 
   object State {
     val empty: State = State()
@@ -22,7 +18,7 @@ object Query_Operation {
       State(instance = Document_ID.make().toString,
         location = Some(command),
         query = query,
-        status = Status.WAITING)
+        status = Status.waiting)
   }
 
   sealed case class State(
@@ -31,7 +27,7 @@ object Query_Operation {
     query: List[String] = Nil,
     update_pending: Boolean = false,
     output: List[XML.Tree] = Nil,
-    status: Status.Value = Status.FINISHED,
+    status: Status = Status.finished,
     exec_id: Document_ID.Exec = Document_ID.none)
 }
 
@@ -39,7 +35,7 @@ class Query_Operation[Editor_Context](
   editor: Editor[Editor_Context],
   editor_context: Editor_Context,
   operation_name: String,
-  consume_status: Query_Operation.Status.Value => Unit,
+  consume_status: Query_Operation.Status => Unit,
   consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit
 ) {
   private val print_function = operation_name + "_query"
@@ -124,21 +120,20 @@ class Query_Operation[Editor_Context](
 
     /* status */
 
-    def get_status(name: String, status: Query_Operation.Status.Value)
-        : Option[Query_Operation.Status.Value] =
+    def get_status(name: String, status: Query_Operation.Status): Option[Query_Operation.Status] =
       results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
-      if (removed) Query_Operation.Status.FINISHED
+      if (removed) Query_Operation.Status.finished
       else
-        get_status(Markup.FINISHED, Query_Operation.Status.FINISHED) orElse
-        get_status(Markup.RUNNING, Query_Operation.Status.RUNNING) getOrElse
-        Query_Operation.Status.WAITING
+        get_status(Markup.FINISHED, Query_Operation.Status.finished) orElse
+        get_status(Markup.RUNNING, Query_Operation.Status.running) getOrElse
+        Query_Operation.Status.waiting
 
 
     /* state update */
 
-    if (new_status == Query_Operation.Status.RUNNING)
+    if (new_status == Query_Operation.Status.running)
       results.collectFirst(
       {
         case XML.Elem(Markup(_, Position.Id(id)), List(elem: XML.Elem))
@@ -157,7 +152,7 @@ class Query_Operation[Editor_Context](
         if (state0.status != new_status) {
           current_state.change(_.copy(status = new_status))
           consume_status(new_status)
-          if (new_status == Query_Operation.Status.FINISHED)
+          if (new_status == Query_Operation.Status.finished)
             remove_overlay()
         }
       }
@@ -214,7 +209,7 @@ class Query_Operation[Editor_Context](
         state.location match {
           case Some(command)
           if state.update_pending ||
-            (state.status != Query_Operation.Status.FINISHED &&
+            (state.status != Query_Operation.Status.finished &&
               changed.commands.contains(command)) =>
             editor.send_dispatcher { content_update() }
           case _ =>
@@ -230,6 +225,6 @@ class Query_Operation[Editor_Context](
     remove_overlay()
     current_state.change(_ => Query_Operation.State.empty)
     consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
-    consume_status(Query_Operation.Status.FINISHED)
+    consume_status(Query_Operation.Status.finished)
   }
 }
