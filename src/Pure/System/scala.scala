@@ -275,9 +275,7 @@ object Scala {
 
   /* invoke function */
 
-  object Tag extends Enumeration {
-    val NULL, OK, ERROR, FAIL, INTERRUPT = Value
-  }
+  enum Tag { case NULL, OK, ERROR, FAIL, INTERRUPT }
 
   def function_thread(name: String): Boolean =
     functions.find(fun => fun.name == name) match {
@@ -285,7 +283,7 @@ object Scala {
       case None => false
     }
 
-  def function_body(session: Session, name: String, args: List[Bytes]): (Tag.Value, List[Bytes]) =
+  def function_body(session: Session, name: String, args: List[Bytes]): (Tag, List[Bytes]) =
     functions.find(fun => fun.name == name) match {
       case Some(fun) =>
         Exn.capture { fun.invoke(session, args) } match {
@@ -312,10 +310,11 @@ object Scala {
       futures = Map.empty
     }
 
-    private def result(id: String, tag: Scala.Tag.Value, res: List[Bytes]): Unit =
+    private def result(id: String, tag: Scala.Tag, res: List[Bytes]): Unit =
       synchronized {
         if (futures.isDefinedAt(id)) {
-          session.protocol_command_raw("Scala.result", Bytes(id) :: Bytes(tag.id.toString) :: res)
+          session.protocol_command_raw(
+            "Scala.result", Bytes(id) :: Bytes(tag.ordinal.toString) :: res)
           futures -= id
         }
       }
