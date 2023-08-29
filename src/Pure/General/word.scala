@@ -37,31 +37,28 @@ object Word {
       capitalize(str)
     else str
 
-  sealed abstract class Case
-  case object Lowercase extends Case
-  case object Uppercase extends Case
-  case object Capitalized extends Case
-
   object Case {
     def apply(c: Case, str: String): String =
       c match {
-        case Lowercase => lowercase(str)
-        case Uppercase => uppercase(str)
-        case Capitalized => capitalize(str)
+        case Case.lowercase => Word.lowercase(str)
+        case Case.uppercase => Word.uppercase(str)
+        case Case.capitalized => Word.capitalize(str)
       }
     def unapply(str: String): Option[Case] =
       if (str.nonEmpty) {
-        if (Codepoint.iterator(str).forall(Character.isLowerCase)) Some(Lowercase)
-        else if (Codepoint.iterator(str).forall(Character.isUpperCase)) Some(Uppercase)
+        if (Codepoint.iterator(str).forall(Character.isLowerCase)) Some(Case.lowercase)
+        else if (Codepoint.iterator(str).forall(Character.isUpperCase)) Some(Case.uppercase)
         else {
           val it = Codepoint.iterator(str)
           if (Character.isUpperCase(it.next()) && it.forall(Character.isLowerCase))
-            Some(Capitalized)
+            Some(Case.capitalized)
           else None
         }
       }
       else None
   }
+
+  enum Case { case lowercase, uppercase, capitalized }
 
 
   /* sequence of words */
