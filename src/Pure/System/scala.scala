@@ -102,11 +102,10 @@ object Scala {
 
   object Compiler {
     object Message {
-      object Kind extends Enumeration {
-        val error, warning, info, other = Value
-      }
+      enum Kind { case error, warning, info, other }
+
       private val Header = """^--.* (Error|Warning|Info): .*$""".r
-      val header_kind: String => Kind.Value =
+      val header_kind: String => Kind =
         {
           case "Error" => Kind.error
           case "Warning" => Kind.warning
@@ -139,7 +138,7 @@ object Scala {
       }
     }
 
-    sealed case class Message(kind: Message.Kind.Value, text: String)
+    sealed case class Message(kind: Message.Kind, text: String)
     {
       def is_error: Boolean = kind == Message.Kind.error
       override def toString: String = text
