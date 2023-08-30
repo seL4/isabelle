@@ -905,11 +905,11 @@ text \<open>
 
   \begin{matharray}{lll}
     \<open>c\<^sub>i\<close> & \<open>::\<close> & \<open>\<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i\<close> \\
-    \<open>c\<^sub>i_update\<close> & \<open>::\<close> & \<open>\<sigma>\<^sub>i \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>\<close> \\
+    \<open>c\<^sub>i_update\<close> & \<open>::\<close> & \<open>(\<sigma>\<^sub>i \<Rightarrow> \<sigma>\<^sub>i) \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>\<close> \\
   \end{matharray}
 
   There is special syntax for application of updates: \<open>r\<lparr>x := a\<rparr>\<close> abbreviates
-  term \<open>x_update a r\<close>. Further notation for repeated updates is also
+  term \<open>x_update (\<lambda>_. a) r\<close>. Further notation for repeated updates is also
   available: \<open>r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z := c\<rparr>\<close> may be written \<open>r\<lparr>x := a, y := b, z
   := c\<rparr>\<close>. Note that because of postfix notation the order of fields shown here
   is reverse than in the actual term. Since repeated updates are just function
@@ -938,7 +938,7 @@ text \<open>
   \<^medskip>
   \begin{tabular}{lll}
     \<open>c\<^sub>i\<close> & \<open>::\<close> & \<open>\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i\<close> \\
-    \<open>c\<^sub>i_update\<close> & \<open>::\<close> & \<open>\<sigma>\<^sub>i \<Rightarrow>
+    \<open>c\<^sub>i_update\<close> & \<open>::\<close> & \<open>(\<sigma>\<^sub>i \<Rightarrow> \<sigma>\<^sub>i) \<Rightarrow>
       \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow>
       \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>\<close> \\
     \<open>t.make\<close> & \<open>::\<close> & \<open>\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow>
