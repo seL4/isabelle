@@ -299,24 +299,26 @@ lemma "\<exists>r. xpos r = x"
   apply (simp)
   done
 
+
 subsection \<open>Simprocs for update and equality\<close>
 
 record alph1 =
-a::nat
-b::nat
+  a :: nat
+  b :: nat
 
 record alph2 = alph1 +
-c::nat
-d::nat
+  c :: nat
+  d :: nat
 
-record alph3 = alph2 + 
-  e::nat
-  f::nat
+record alph3 = alph2 +
+  e :: nat
+  f :: nat
 
-text \<open>The simprocs that are activated by default are:
-\<^item> @{ML [source] Record.simproc}: field selection of (nested) record updates.
-\<^item> @{ML [source] Record.upd_simproc}: nested record updates.
-\<^item> @{ML [source] Record.eq_simproc}: (componentwise) equality of records.
+text \<open>
+  The simprocs that are activated by default are:
+    \<^item> @{ML [source] Record.simproc}: field selection of (nested) record updates.
+    \<^item> @{ML [source] Record.upd_simproc}: nested record updates.
+    \<^item> @{ML [source] Record.eq_simproc}: (componentwise) equality of records.
 \<close>
 
 
@@ -325,15 +327,15 @@ schematic_goal "r\<lparr>b := x, a:= y\<rparr> = ?X"
   by simp
 
 text \<open>Normalisation towards an update ordering (string ordering of update function names) can
-be configured as follows.\<close>
+  be configured as follows.\<close>
 schematic_goal "r\<lparr>b := y, a := x\<rparr> = ?X"
   supply [[record_sort_updates]]
   by simp
 
 text \<open>Note the interplay between update ordering and record equality. Without update ordering
-the following equality is handled by @{ML [source] Record.eq_simproc}. Record equality is thus
-solved by componentwise comparison of all the fields of the records which can be expensive 
-in the presence of many fields.\<close>
+  the following equality is handled by @{ML [source] Record.eq_simproc}. Record equality is thus
+  solved by componentwise comparison of all the fields of the records which can be expensive
+  in the presence of many fields.\<close>
 
 lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
   by simp
@@ -344,7 +346,7 @@ lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
   oops
 
 text \<open>With update ordering the equality is already established after update normalisation. There
-is no need for componentwise comparison.\<close>
+  is no need for componentwise comparison.\<close>
 
 lemma "r\<lparr>f := x1, a:= x2\<rparr> = r\<lparr>a := x2, f:= x1\<rparr>"
   supply [[record_sort_updates, simproc del: Record.eq]]
@@ -391,13 +393,13 @@ record not_so_large_record =
 
 
 setup \<open>
-let
- val N = 300
-in
-  Record.add_record {overloaded=false} ([], \<^binding>\<open>large_record\<close>) NONE 
-    (map (fn i => (Binding.make ("fld_" ^ string_of_int i, \<^here>), @{typ nat}, Mixfix.NoSyn)) 
-      (1 upto N))
-end
+  let
+   val N = 300
+  in
+    Record.add_record {overloaded = false} ([], \<^binding>\<open>large_record\<close>) NONE
+      (map (fn i => (Binding.make ("fld_" ^ string_of_int i, \<^here>), @{typ nat}, Mixfix.NoSyn))
+        (1 upto N))
+  end
 \<close>
 
 declare [[record_codegen]]
