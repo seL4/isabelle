@@ -7,6 +7,11 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** System ***
+
+* Isabelle/Scala and derived Scala tools now use the syntax of Scala 3.3
+(the "-old-syntax" variant). Minor INCOMPATIBILITY.
+
 
 
 New in Isabelle2023 (September 2023)
