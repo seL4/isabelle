@@ -530,7 +530,7 @@ text \<open>
   such as @{system_option "build_database_server"}, @{system_option
   "build_database_host"}, or @{system_option "build_database_ssh_host"}.
   Remote host connections are managed via regular SSH configuration, see also
-  \<^path>\<open>$HOME/.ssh/config\<close> on each node.
+  \<^verbatim>\<open>$HOME/.ssh/config\<close> on each node.
 \<close>
 
 
