@@ -82,7 +82,11 @@ fi
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 
 # Location for temporary files (should be on a local file system).
-ISABELLE_TMP_PREFIX="/tmp/isabelle-${USER:-$LOGNAME}"
+if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
+  ISABELLE_TMP_PREFIX="$TMPDIR/isabelle"
+else
+  ISABELLE_TMP_PREFIX="/tmp/isabelle-${USER:-$LOGNAME}"
+fi
 
 # Heap locations.
 ISABELLE_HEAPS="$ISABELLE_HOME_USER/heaps"
