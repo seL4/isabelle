@@ -35,11 +35,19 @@ type result = {
   redirected_output: string list,
   return_code: int}
 
+fun try_read_lines path =
+  let
+    fun loop n =
+      (case try File.read_lines path of
+        SOME lines => lines
+      | NONE => if n > 0 then (OS.Process.sleep (seconds 0.05); loop (n - 1)) else [])
+  in if File.exists path then loop (if ML_System.platform_is_windows then 20 else 0) else [] end
+
 fun raw_run make_cmd str in_path out_path =
   let
     val _ = File.write in_path str
     val (out2, rc) = Isabelle_System.bash_output (make_cmd in_path out_path)
-    val out1 = the_default [] (try File.read_lines out_path)
+    val out1 = try_read_lines out_path
   in {output = split_lines out2, redirected_output = out1, return_code = rc} end
 
 fun run make_cmd str =
