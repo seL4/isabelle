@@ -503,6 +503,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   def build_process(
     options: Options,
     list_builds: Boolean = false,
+    remove_builds: Boolean = false,
+    force: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
     val build_engine = Engine(engine_name(options))
@@ -510,9 +512,29 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     using(store.open_server()) { server =>
       using_optional(store.maybe_open_build_database(server = server)) { build_database =>
-        val builds = read_builds(build_database)
+        def print(builds: List[Build_Process.Build]): Unit =
+          if (list_builds) progress.echo(print_builds(build_database, builds))
 
-        if (list_builds) progress.echo(print_builds(build_database, builds))
+        build_database match {
+          case None => print(Nil)
+          case Some(db) =>
+            Build_Process.private_data.transaction_lock(db, create = true, label = "build_process") {
+              val builds = Build_Process.private_data.read_builds(db)
+              val remove =
+                if (!remove_builds) Nil
+                else if (force) builds.map(_.build_uuid)
+                else builds.flatMap(build => if (build.active) None else Some(build.build_uuid))
+
+              print(builds)
+              if (remove.nonEmpty) {
+                if (remove_builds) {
+                  progress.echo("Removing " + commas(remove) + " ...")
+                  Build_Process.private_data.remove_builds(db, remove)
+                  print(Build_Process.private_data.read_builds(db))
+                }
+              }
+            }
+        }
       }
     }
   }
@@ -520,29 +542,37 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   val isabelle_tool2 = Isabelle_Tool("build_process", "manage session build process",
     Scala_Project.here,
     { args =>
+      var force = false
       var list_builds = false
       var options =
         Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
           List(
             Options.Spec.make("build_database_server"),
             Options.Spec.make("build_database")))
+      var remove_builds = false
 
       val getopts = Getopts("""
 Usage: isabelle build_process [OPTIONS]
 
   Options are:
+    -f           extra force for option -r
     -l           list build processes
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -r           remove data from build processes: inactive processes (default)
+                 or all processes (option -f)
 """,
+        "f" -> (_ => force = true),
         "l" -> (_ => list_builds = true),
-        "o:" -> (arg => options = options + arg))
+        "o:" -> (arg => options = options + arg),
+        "r" -> (_ => remove_builds = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress()
 
-      build_process(options, list_builds = list_builds, progress = progress)
+      build_process(options, list_builds = list_builds, remove_builds = remove_builds,
+        force = force, progress = progress)
     })
 
 
