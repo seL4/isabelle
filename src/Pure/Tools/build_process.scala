@@ -839,7 +839,7 @@ extends AutoCloseable {
     try {
       for (db <- store.maybe_open_build_database(server = server)) yield {
         if (!db.is_postgresql) {
-          error("Required PostgreSQL for cluster build (option database_server)")
+          error("Distributed build requires PostgreSQL (option database_server)")
         }
         val store_tables = db.is_postgresql
         Build_Process.private_data.transaction_lock(db,
