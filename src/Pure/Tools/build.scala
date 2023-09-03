@@ -464,7 +464,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   def read_builds(build_database: Option[SQL.Database]): List[Build_Process.Build] =
     build_database match {
       case None => Nil
-      case Some(db) => Build_Process.read_builds(db).filter(_.active)
+      case Some(db) => Build_Process.read_builds(db)
     }
 
   def print_builds(build_database: Option[SQL.Database], builds: List[Build_Process.Build]): String =
@@ -472,7 +472,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val print_database =
       build_database match {
         case None => ""
-        case Some(db) => " (database: " + db + ")"
+        case Some(db) => " (database " + db + ")"
       }
     if (builds.isEmpty) "No build processes available" + print_database
     else {
@@ -587,7 +587,7 @@ Usage: isabelle build_process [OPTIONS]
       using_optional(store.maybe_open_build_database(server = server)) { build_database =>
         val builds = read_builds(build_database)
 
-        val build_master = find_builds(build_database, build_id, builds)
+        val build_master = find_builds(build_database, build_id, builds.filter(_.active))
 
         val sessions_structure =
           Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs).
