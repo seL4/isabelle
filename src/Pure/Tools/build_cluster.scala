@@ -171,7 +171,8 @@ object Build_Cluster {
           build_id = build_context.build_uuid,
           isabelle_home = remote_isabelle_home,
           afp_root = remote_afp_root,
-          dirs = Path.split(host.dirs).map(remote_isabelle.expand_path))
+          dirs = Path.split(host.dirs).map(remote_isabelle.expand_path),
+          quiet = true)
       remote_isabelle.bash(script).check
     }
 
