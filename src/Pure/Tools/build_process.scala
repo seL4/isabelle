@@ -325,11 +325,9 @@ object Build_Process {
       val table = make_table(List(build_uuid, ml_platform, options, start, stop))
     }
 
-    def read_builds(db: SQL.Database, build_uuid: String = ""): List[Build] = {
+    def read_builds(db: SQL.Database): List[Build] = {
       val builds =
-        db.execute_query_statement(
-          Base.table.select(sql = Generic.sql_where(build_uuid = build_uuid)),
-          List.from[Build],
+        db.execute_query_statement(Base.table.select(), List.from[Build],
           { res =>
             val build_uuid = res.string(Base.build_uuid)
             val ml_platform = res.string(Base.ml_platform)
