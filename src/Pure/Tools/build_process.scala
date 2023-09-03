@@ -347,6 +347,12 @@ object Build_Process {
       }
     }
 
+    def remove_builds(db: SQL.Database, remove: List[String]): Unit =
+      if (remove.nonEmpty) {
+        val sql = Generic.build_uuid.where_member(remove)
+        db.execute_statement(SQL.MULTI(build_uuid_tables.map(_.delete(sql = sql))))
+      }
+
     def start_build(
       db: SQL.Database,
       build_uuid: String,
@@ -369,15 +375,12 @@ object Build_Process {
         body = { stmt => stmt.date(1) = db.now() })
 
     def clean_build(db: SQL.Database): Unit = {
-      val old =
+      val remove =
         db.execute_query_statement(
           Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.defined)),
           List.from[String], res => res.string(Base.build_uuid))
 
-      if (old.nonEmpty) {
-        val sql = Generic.build_uuid.where_member(old)
-        db.execute_statement(SQL.MULTI(build_uuid_tables.map(_.delete(sql = sql))))
-      }
+      remove_builds(db, remove)
     }
 
 
