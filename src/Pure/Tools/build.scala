@@ -475,10 +475,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         case Some(db) => " (database " + db + ")"
       }
     if (builds.isEmpty) "No build processes" + print_database
-    else {
-      "Build processes" + print_database +
-        (for (build <- builds.iterator) yield "\n  " + build.print).mkString
-    }
+    else "Build processes" + print_database + builds.map(build => "\n  " + build.print).mkString
   }
 
   def find_builds(
