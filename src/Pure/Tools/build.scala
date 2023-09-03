@@ -477,12 +477,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     if (builds.isEmpty) "No build processes available" + print_database
     else {
       "Available build processes" + print_database +
-        (for ((build, i) <- builds.iterator.zipWithIndex)
-          yield {
-            "\n  " + build.build_uuid +
-              " (platform: " + build.ml_platform +
-              ", start: " + Build_Log.print_date(build.start) + ")"
-          }).mkString
+        (for (build <- builds.iterator) yield "\n  " + build.print).mkString
     }
   }
 

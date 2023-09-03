@@ -25,6 +25,10 @@ object Build_Process {
     sessions: List[String]
   ) {
     def active: Boolean = stop.isEmpty
+
+    def print: String =
+      build_uuid + " (platform: " + ml_platform + ", start: " + Build_Log.print_date(start) +
+        if_proper(stop, ", stop: " + Build_Log.print_date(stop.get)) + ")"
   }
 
   sealed case class Worker(
