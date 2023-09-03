@@ -208,7 +208,7 @@ object Simplifier_Trace {
                       def purge(queue: Vector[Long]): Unit =
                         queue match {
                           case s +: rest =>
-                            for (Item(Markup.SIMP_TRACE_STEP, data) <- results.get(s))
+                            for (case Item(Markup.SIMP_TRACE_STEP, data) <- results.get(s))
                               memory -= Index.of_data(data)
                             val children = memory_children.getOrElse(s, Set.empty)
                             memory_children -= s

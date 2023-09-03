@@ -100,7 +100,7 @@ object Mercurial {
 
   sealed case class Archive_Info(lines: List[String]) {
     def id: Option[String] = lines.collectFirst({ case Archive_Node(a) => a })
-    def tags: List[String] = for (Archive_Tag(tag) <- lines if tag != "tip") yield tag
+    def tags: List[String] = for (case Archive_Tag(tag) <- lines if tag != "tip") yield tag
   }
 
   def archive_info(root: Path): Option[Archive_Info] = {

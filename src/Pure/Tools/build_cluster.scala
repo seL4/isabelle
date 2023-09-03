@@ -263,7 +263,7 @@ class Remote_Build_Cluster(
       _sessions
     }
     else {
-      for (Exn.Res(session) <- attempts) session.close()
+      for (case Exn.Res(session) <- attempts) session.close()
       error("Failed to connect build cluster")
     }
   }

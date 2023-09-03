@@ -1220,6 +1220,11 @@ lemma lim_explicit:
   "f \<longlonglongrightarrow> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
   unfolding tendsto_def eventually_sequentially by auto
 
+lemma closed_sequentially:
+  assumes "closed S" and "\<And>n. f n \<in> S" and "f \<longlonglongrightarrow> l"
+  shows "l \<in> S"
+  by (metis Lim_in_closed_set assms eventually_sequentially trivial_limit_sequentially)
+
 
 subsection \<open>Monotone sequences and subsequences\<close>
 

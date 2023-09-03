@@ -91,7 +91,7 @@ object JEdit_Sessions {
   extends GUI.Selector[String](batches: _*) with JEdit_Options.Entry {
     name = option_name
     tooltip =
-      if (standalone) Word.capitalize(options.value.description(option_name))
+      if (standalone) Word.capitalized(options.value.description(option_name))
       else options.value.check_name(option_name).print_default
 
     override val title: String =

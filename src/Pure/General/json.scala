@@ -41,11 +41,9 @@ object JSON {
 
   /* lexer */
 
-  object Kind extends Enumeration {
-    val KEYWORD, STRING, NUMBER, ERROR = this.Value
-  }
+  enum Kind { case KEYWORD, STRING, NUMBER, ERROR }
 
-  sealed case class Token(kind: Kind.Value, text: String) {
+  sealed case class Token(kind: Kind, text: String) {
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_keyword(name: String): Boolean = kind == Kind.KEYWORD && text == name
     def is_string: Boolean = kind == Kind.STRING

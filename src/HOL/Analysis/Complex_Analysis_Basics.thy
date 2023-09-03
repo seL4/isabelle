@@ -138,25 +138,23 @@ lemma real_lim:
   fixes l::complex
   assumes "(f \<longlongrightarrow> l) F" and "\<not> trivial_limit F" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
   shows  "l \<in> \<real>"
-proof (rule Lim_in_closed_set[OF closed_complex_Reals _ assms(2,1)])
-  show "eventually (\<lambda>x. f x \<in> \<real>) F"
-    using assms(3, 4) by (auto intro: eventually_mono)
-qed
+  using Lim_in_closed_set[OF closed_complex_Reals] assms
+  by (smt (verit) eventually_mono)
 
 lemma real_lim_sequentially:
   fixes l::complex
   shows "(f \<longlongrightarrow> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
-by (rule real_lim [where F=sequentially]) (auto simp: eventually_sequentially)
+  by (rule real_lim [where F=sequentially]) (auto simp: eventually_sequentially)
 
 lemma real_series:
   fixes l::complex
   shows "f sums l \<Longrightarrow> (\<And>n. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
-unfolding sums_def
-by (metis real_lim_sequentially sum_in_Reals)
+  unfolding sums_def
+  by (metis real_lim_sequentially sum_in_Reals)
 
 lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
-  by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
+  using Lim_null_comparison assms tendsto_Re by fastforce
 
 subsection\<open>Holomorphic functions\<close>
 
@@ -191,25 +189,11 @@ lemma holomorphic_on_open:
 lemma holomorphic_on_UN_open:
   assumes "\<And>n. n \<in> I \<Longrightarrow> f holomorphic_on A n" "\<And>n. n \<in> I \<Longrightarrow> open (A n)"
   shows   "f holomorphic_on (\<Union>n\<in>I. A n)"
-proof -
-  have "f field_differentiable at z within (\<Union>n\<in>I. A n)" if "z \<in> (\<Union>n\<in>I. A n)" for z
-  proof -
-    from that obtain n where "n \<in> I" "z \<in> A n"
-      by blast
-    hence "f holomorphic_on A n" "open (A n)"
-      by (simp add: assms)+
-    with \<open>z \<in> A n\<close> have "f field_differentiable at z"
-      by (auto simp: holomorphic_on_open field_differentiable_def)
-    thus ?thesis
-      by (meson field_differentiable_at_within)
-  qed
-  thus ?thesis
-    by (auto simp: holomorphic_on_def)
-qed
+  by (metis UN_E assms holomorphic_on_open open_UN)
 
 lemma holomorphic_on_imp_continuous_on:
     "f holomorphic_on s \<Longrightarrow> continuous_on s f"
-  by (metis field_differentiable_imp_continuous_at continuous_on_eq_continuous_within holomorphic_on_def)
+  using differentiable_imp_continuous_on holomorphic_on_imp_differentiable_on by blast
 
 lemma holomorphic_closedin_preimage_constant:
   assumes "f holomorphic_on D" 
@@ -247,22 +231,15 @@ lemma holomorphic_on_id [simp, holomorphic_intros]: "id holomorphic_on s"
 lemma constant_on_imp_holomorphic_on:
   assumes "f constant_on A"
   shows   "f holomorphic_on A"
-proof -
-  from assms obtain c where c: "\<forall>x\<in>A. f x = c"
-    unfolding constant_on_def by blast
-  have "f holomorphic_on A \<longleftrightarrow> (\<lambda>_. c) holomorphic_on A"
-    by (intro holomorphic_cong) (use c in auto)
-  thus ?thesis
-    by simp
-qed
+  by (metis assms constant_on_def holomorphic_on_const holomorphic_transform)
 
 lemma holomorphic_on_compose:
-  "f holomorphic_on s \<Longrightarrow> g holomorphic_on (f ` s) \<Longrightarrow> (g o f) holomorphic_on s"
+  "f holomorphic_on s \<Longrightarrow> g holomorphic_on (f ` s) \<Longrightarrow> (g \<circ> f) holomorphic_on s"
   using field_differentiable_compose_within[of f _ s g]
   by (auto simp: holomorphic_on_def)
 
 lemma holomorphic_on_compose_gen:
-  "f holomorphic_on s \<Longrightarrow> g holomorphic_on t \<Longrightarrow> f ` s \<subseteq> t \<Longrightarrow> (g o f) holomorphic_on s"
+  "f holomorphic_on s \<Longrightarrow> g holomorphic_on t \<Longrightarrow> f ` s \<subseteq> t \<Longrightarrow> (g \<circ> f) holomorphic_on s"
   by (metis holomorphic_on_compose holomorphic_on_subset)
 
 lemma holomorphic_on_balls_imp_entire:
@@ -284,15 +261,10 @@ qed auto
 lemma holomorphic_on_balls_imp_entire':
   assumes "\<And>r. r > 0 \<Longrightarrow> f holomorphic_on ball c r"
   shows   "f holomorphic_on B"
-proof (rule holomorphic_on_balls_imp_entire)
-  {
-    fix M :: real
-    have "\<exists>x. x > max M 0" by (intro gt_ex)
-    hence "\<exists>x>0. x > M" by auto
-  }
-  thus "\<not>bdd_above {(0::real)<..}" unfolding bdd_above_def
-    by (auto simp: not_le)
-qed (insert assms, auto)
+proof (rule holomorphic_on_balls_imp_entire)  
+  show "\<not>bdd_above {(0::real)<..}" unfolding bdd_above_def
+    by (meson greaterThan_iff gt_ex less_le_not_le order_le_less_trans)
+qed (use assms in auto)
 
 lemma holomorphic_on_minus [holomorphic_intros]: "f holomorphic_on A \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on A"
   by (metis field_differentiable_minus holomorphic_on_def)
@@ -357,8 +329,7 @@ lemma holomorphic_on_scaleR [holomorphic_intros]:
 lemma holomorphic_on_Un [holomorphic_intros]:
   assumes "f holomorphic_on A" "f holomorphic_on B" "open A" "open B"
   shows   "f holomorphic_on (A \<union> B)"
-  using assms by (auto simp: holomorphic_on_def  at_within_open[of _ A]
-                             at_within_open[of _ B]  at_within_open[of _ "A \<union> B"] open_Un)
+  by (metis Un_iff assms holomorphic_on_open open_Un)
 
 lemma holomorphic_on_If_Un [holomorphic_intros]:
   assumes "f holomorphic_on A" "g holomorphic_on B" "open A" "open B"
@@ -374,19 +345,16 @@ next
   also have "g holomorphic_on B \<longleftrightarrow> ?h holomorphic_on B"
     using assms by (intro holomorphic_cong) auto
   finally show \<dots> .
-qed (insert assms, auto)
+qed (use assms in auto)
 
 lemma holomorphic_derivI:
-     "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk>
-      \<Longrightarrow> (f has_field_derivative deriv f x) (at x within T)"
-by (metis DERIV_deriv_iff_field_differentiable at_within_open  holomorphic_on_def has_field_derivative_at_within)
+     "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk> \<Longrightarrow> (f has_field_derivative deriv f x) (at x within T)"
+  by (metis DERIV_deriv_iff_field_differentiable at_within_open  holomorphic_on_def has_field_derivative_at_within)
 
 lemma complex_derivative_transform_within_open:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk>
    \<Longrightarrow> deriv f z = deriv g z"
-  unfolding holomorphic_on_def
-  by (rule DERIV_imp_deriv)
-     (metis DERIV_deriv_iff_field_differentiable has_field_derivative_transform_within_open at_within_open)
+  by (smt (verit) DERIV_imp_deriv has_field_derivative_transform_within_open holomorphic_on_open)
 
 lemma holomorphic_on_compose_cnj_cnj:
   assumes "f holomorphic_on cnj ` A" "open A"
@@ -408,13 +376,13 @@ lemma holomorphic_nonconstant:
 subsection\<open>Analyticity on a set\<close>
 
 definition\<^marker>\<open>tag important\<close> analytic_on (infixl "(analytic'_on)" 50)
-  where "f analytic_on S \<equiv> \<forall>x \<in> S. \<exists>e. 0 < e \<and> f holomorphic_on (ball x e)"
+  where "f analytic_on S \<equiv> \<forall>x \<in> S. \<exists>\<epsilon>. 0 < \<epsilon> \<and> f holomorphic_on (ball x \<epsilon>)"
 
 named_theorems\<^marker>\<open>tag important\<close> analytic_intros "introduction rules for proving analyticity"
 
 lemma analytic_imp_holomorphic: "f analytic_on S \<Longrightarrow> f holomorphic_on S"
-  by (simp add: at_within_open [OF _ open_ball] analytic_on_def holomorphic_on_def)
-     (metis centre_in_ball field_differentiable_at_within)
+  unfolding analytic_on_def holomorphic_on_def
+  using centre_in_ball field_differentiable_at_within field_differentiable_within_open by blast
 
 lemma analytic_on_open: "open S \<Longrightarrow> f analytic_on S \<longleftrightarrow> f holomorphic_on S"
   by (meson analytic_imp_holomorphic analytic_on_def holomorphic_on_subset openE)
@@ -426,15 +394,12 @@ lemma analytic_on_imp_differentiable_at:
 lemma analytic_at_imp_isCont:
   assumes "f analytic_on {z}"
   shows   "isCont f z"
-  using assms by (meson analytic_on_imp_differentiable_at field_differentiable_imp_continuous_at insertI1)
+  by (meson analytic_on_imp_differentiable_at assms field_differentiable_imp_continuous_at insertCI)
 
 lemma analytic_at_neq_imp_eventually_neq:
   assumes "f analytic_on {x}" "f x \<noteq> c"
   shows   "eventually (\<lambda>y. f y \<noteq> c) (at x)"
-proof (intro tendsto_imp_eventually_ne)
-  show "f \<midarrow>x\<rightarrow> f x"
-    using assms by (simp add: analytic_at_imp_isCont isContD)
-qed (use assms in auto)
+  using analytic_at_imp_isCont assms isContD tendsto_imp_eventually_ne by blast
 
 lemma analytic_on_subset: "f analytic_on S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> f analytic_on T"
   by (auto simp: analytic_on_def)
@@ -455,18 +420,21 @@ proof -
   have "?lhs \<longleftrightarrow> (\<exists>T. open T \<and> S \<subseteq> T \<and> f analytic_on T)"
   proof safe
     assume "f analytic_on S"
-    then show "\<exists>T. open T \<and> S \<subseteq> T \<and> f analytic_on T"
-      apply (simp add: analytic_on_def)
-      apply (rule exI [where x="\<Union>{U. open U \<and> f analytic_on U}"], auto)
-      apply (metis open_ball analytic_on_open centre_in_ball)
-      by (metis analytic_on_def)
+    then have "\<forall>x \<in> \<Union>{U. open U \<and> f analytic_on U}. \<exists>\<epsilon>>0. f holomorphic_on ball x \<epsilon>"
+      using analytic_on_def by force
+    moreover have "S \<subseteq> \<Union>{U. open U \<and> f analytic_on U}"
+      using \<open>f analytic_on S\<close>
+      by (smt (verit, best) open_ball Union_iff analytic_on_def analytic_on_open centre_in_ball mem_Collect_eq subsetI)
+    ultimately show "\<exists>T. open T \<and> S \<subseteq> T \<and> f analytic_on T"
+      unfolding analytic_on_def
+      by (metis (mono_tags, lifting) mem_Collect_eq open_Union)
   next
     fix T
     assume "open T" "S \<subseteq> T" "f analytic_on T"
     then show "f analytic_on S"
         by (metis analytic_on_subset)
   qed
-  also have "... \<longleftrightarrow> ?rhs"
+  also have "\<dots> \<longleftrightarrow> ?rhs"
     by (auto simp: analytic_on_open)
   finally show ?thesis .
 qed
@@ -486,7 +454,7 @@ lemma analytic_on_id [analytic_intros]: "id analytic_on S"
 lemma analytic_on_compose:
   assumes f: "f analytic_on S"
       and g: "g analytic_on (f ` S)"
-    shows "(g o f) analytic_on S"
+    shows "(g \<circ> f) analytic_on S"
 unfolding analytic_on_def
 proof (intro ballI)
   fix x
@@ -500,21 +468,19 @@ proof (intro ballI)
   with e' obtain d where d: "0 < d" and fd: "f ` ball x d \<subseteq> ball (f x) e'"
      by (auto simp: continuous_at_ball)
   have "g \<circ> f holomorphic_on ball x (min d e)"
-    apply (rule holomorphic_on_compose)
-    apply (metis fh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
-    by (metis fd gh holomorphic_on_subset image_mono min.cobounded1 subset_ball)
+    by (meson fd fh gh holomorphic_on_compose_gen holomorphic_on_subset image_mono min.cobounded1 min.cobounded2 subset_ball)
   then show "\<exists>e>0. g \<circ> f holomorphic_on ball x e"
     by (metis d e min_less_iff_conj)
 qed
 
 lemma analytic_on_compose_gen:
   "f analytic_on S \<Longrightarrow> g analytic_on T \<Longrightarrow> (\<And>z. z \<in> S \<Longrightarrow> f z \<in> T)
-             \<Longrightarrow> g o f analytic_on S"
-by (metis analytic_on_compose analytic_on_subset image_subset_iff)
+             \<Longrightarrow> g \<circ> f analytic_on S"
+  by (metis analytic_on_compose analytic_on_subset image_subset_iff)
 
 lemma analytic_on_neg [analytic_intros]:
   "f analytic_on S \<Longrightarrow> (\<lambda>z. -(f z)) analytic_on S"
-by (metis analytic_on_holomorphic holomorphic_on_minus)
+  by (metis analytic_on_holomorphic holomorphic_on_minus)
 
 lemma analytic_on_add [analytic_intros]:
   assumes f: "f analytic_on S"
@@ -529,30 +495,8 @@ proof (intro ballI)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball z e'" using g
     by (metis analytic_on_def g z)
   have "(\<lambda>z. f z + g z) holomorphic_on ball z (min e e')"
-    apply (rule holomorphic_on_add)
-    apply (metis fh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
-    by (metis gh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
+    by (metis fh gh holomorphic_on_add holomorphic_on_subset linorder_linear min_def subset_ball)
   then show "\<exists>e>0. (\<lambda>z. f z + g z) holomorphic_on ball z e"
-    by (metis e e' min_less_iff_conj)
-qed
-
-lemma analytic_on_diff [analytic_intros]:
-  assumes f: "f analytic_on S"
-      and g: "g analytic_on S"
-    shows "(\<lambda>z. f z - g z) analytic_on S"
-unfolding analytic_on_def
-proof (intro ballI)
-  fix z
-  assume z: "z \<in> S"
-  then obtain e where e: "0 < e" and fh: "f holomorphic_on ball z e" using f
-    by (metis analytic_on_def)
-  obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball z e'" using g
-    by (metis analytic_on_def g z)
-  have "(\<lambda>z. f z - g z) holomorphic_on ball z (min e e')"
-    apply (rule holomorphic_on_diff)
-    apply (metis fh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
-    by (metis gh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
-  then show "\<exists>e>0. (\<lambda>z. f z - g z) holomorphic_on ball z e"
     by (metis e e' min_less_iff_conj)
 qed
 
@@ -569,11 +513,21 @@ proof (intro ballI)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball z e'" using g
     by (metis analytic_on_def g z)
   have "(\<lambda>z. f z * g z) holomorphic_on ball z (min e e')"
-    apply (rule holomorphic_on_mult)
-    apply (metis fh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
-    by (metis gh holomorphic_on_subset min.bounded_iff order_refl subset_ball)
+    by (metis fh gh holomorphic_on_mult holomorphic_on_subset min.absorb_iff2 min_def subset_ball)
   then show "\<exists>e>0. (\<lambda>z. f z * g z) holomorphic_on ball z e"
     by (metis e e' min_less_iff_conj)
+qed
+
+lemma analytic_on_diff [analytic_intros]:
+  assumes f: "f analytic_on S" and g: "g analytic_on S"
+  shows "(\<lambda>z. f z - g z) analytic_on S"
+proof -
+  have "(\<lambda>z. - g z) analytic_on S"
+    by (simp add: analytic_on_neg g)
+  then have "(\<lambda>z. f z + - g z) analytic_on S"
+    using analytic_on_add f by blast
+  then show ?thesis
+    by fastforce
 qed
 
 lemma analytic_on_inverse [analytic_intros]:
@@ -591,24 +545,20 @@ proof (intro ballI)
   then obtain e' where e': "0 < e'" and nz': "\<And>y. dist z y < e' \<Longrightarrow> f y \<noteq> 0"
     by (metis open_ball centre_in_ball continuous_on_open_avoid e z nz)
   have "(\<lambda>z. inverse (f z)) holomorphic_on ball z (min e e')"
-    apply (rule holomorphic_on_inverse)
-    apply (metis fh holomorphic_on_subset min.cobounded2 min.commute subset_ball)
-    by (metis nz' mem_ball min_less_iff_conj)
+    using fh holomorphic_on_inverse holomorphic_on_open nz' by fastforce
   then show "\<exists>e>0. (\<lambda>z. inverse (f z)) holomorphic_on ball z e"
     by (metis e e' min_less_iff_conj)
 qed
 
 lemma analytic_on_divide [analytic_intros]:
-  assumes f: "f analytic_on S"
-      and g: "g analytic_on S"
-      and nz: "(\<And>z. z \<in> S \<Longrightarrow> g z \<noteq> 0)"
-    shows "(\<lambda>z. f z / g z) analytic_on S"
-unfolding divide_inverse
-by (metis analytic_on_inverse analytic_on_mult f g nz)
+  assumes f: "f analytic_on S" and g: "g analytic_on S"
+    and nz: "(\<And>z. z \<in> S \<Longrightarrow> g z \<noteq> 0)"
+  shows "(\<lambda>z. f z / g z) analytic_on S"
+  unfolding divide_inverse by (metis analytic_on_inverse analytic_on_mult f g nz)
 
 lemma analytic_on_power [analytic_intros]:
   "f analytic_on S \<Longrightarrow> (\<lambda>z. (f z) ^ n) analytic_on S"
-by (induct n) (auto simp: analytic_on_mult)
+  by (induct n) (auto simp: analytic_on_mult)
 
 lemma analytic_on_power_int [analytic_intros]:
   assumes nz: "n \<ge> 0 \<or> (\<forall>x\<in>A. f x \<noteq> 0)" and f: "f analytic_on A"
@@ -645,15 +595,15 @@ lemma deriv_left_inverse:
 proof -
   have "deriv f w * deriv g (f w) = deriv g (f w) * deriv f w"
     by (simp add: algebra_simps)
-  also have "... = deriv (g o f) w"
+  also have "\<dots> = deriv (g \<circ> f) w"
     using assms
     by (metis analytic_on_imp_differentiable_at analytic_on_open deriv_chain image_subset_iff)
-  also have "... = deriv id w"
+  also have "\<dots> = deriv id w"
   proof (rule complex_derivative_transform_within_open [where s=S])
     show "g \<circ> f holomorphic_on S"
       by (rule assms holomorphic_on_compose_gen holomorphic_intros)+
   qed (use assms in auto)
-  also have "... = 1"
+  also have "\<dots> = 1"
     by simp
   finally show ?thesis .
 qed
@@ -679,19 +629,16 @@ lemma analytic_on_analytic_at:
 
 lemma analytic_at_two:
   "f analytic_on {z} \<and> g analytic_on {z} \<longleftrightarrow>
-   (\<exists>s. open s \<and> z \<in> s \<and> f holomorphic_on s \<and> g holomorphic_on s)"
+   (\<exists>S. open S \<and> z \<in> S \<and> f holomorphic_on S \<and> g holomorphic_on S)"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then obtain s t
-    where st: "open s" "z \<in> s" "f holomorphic_on s"
-              "open t" "z \<in> t" "g holomorphic_on t"
+  then obtain S T
+    where st: "open S" "z \<in> S" "f holomorphic_on S"
+              "open T" "z \<in> T" "g holomorphic_on T"
     by (auto simp: analytic_at)
-  show ?rhs
-    apply (rule_tac x="s \<inter> t" in exI)
-    using st
-    apply (auto simp: holomorphic_on_subset)
-    done
+  then show ?rhs
+    by (metis Int_iff holomorphic_on_subset inf_le1 inf_le2 open_Int)
 next
   assume ?rhs
   then show ?lhs
@@ -707,32 +654,23 @@ lemma
     and complex_derivative_mult_at: "deriv (\<lambda>w. f w * g w) z =
            f z * deriv g z + deriv f z * g z"
 proof -
-  obtain s where s: "open s" "z \<in> s" "f holomorphic_on s" "g holomorphic_on s"
-    using assms by (metis analytic_at_two)
   show "deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
-    apply (rule DERIV_imp_deriv [OF DERIV_add])
-    using s
-    apply (auto simp: holomorphic_on_open field_differentiable_def DERIV_deriv_iff_field_differentiable)
-    done
+    using analytic_on_imp_differentiable_at assms by auto
   show "deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
-    apply (rule DERIV_imp_deriv [OF DERIV_diff])
-    using s
-    apply (auto simp: holomorphic_on_open field_differentiable_def DERIV_deriv_iff_field_differentiable)
-    done
-  show "deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
-    apply (rule DERIV_imp_deriv [OF DERIV_mult'])
-    using s
-    apply (auto simp: holomorphic_on_open field_differentiable_def DERIV_deriv_iff_field_differentiable)
-    done
+    using analytic_on_imp_differentiable_at assms by force
+  obtain S where "open S" "z \<in> S" "f holomorphic_on S" "g holomorphic_on S"
+    using assms by (metis analytic_at_two)
+  then show "deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
+    by (simp add: DERIV_imp_deriv [OF DERIV_mult'] holomorphic_derivI)
 qed
 
 lemma deriv_cmult_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. c * f w) z = c * deriv f z"
-by (auto simp: complex_derivative_mult_at)
+  by (auto simp: complex_derivative_mult_at)
 
 lemma deriv_cmult_right_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
-by (auto simp: complex_derivative_mult_at)
+  by (auto simp: complex_derivative_mult_at)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Complex differentiation of sequences and series\<close>
 
@@ -748,27 +686,16 @@ lemma has_complex_derivative_sequence:
 proof -
   from assms obtain x l where x: "x \<in> S" and tf: "((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
     by blast
-  { fix e::real assume e: "e > 0"
-    then obtain N where N: "\<forall>n\<ge>N. \<forall>x. x \<in> S \<longrightarrow> cmod (f' n x - g' x) \<le> e"
-      by (metis conv)
-    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
-    proof (rule exI [of _ N], clarify)
-      fix n y h
-      assume "N \<le> n" "y \<in> S"
-      then have "cmod (f' n y - g' y) \<le> e"
-        by (metis N)
-      then have "cmod h * cmod (f' n y - g' y) \<le> cmod h * e"
-        by (auto simp: antisym_conv2 mult_le_cancel_left norm_triangle_ineq2)
-      then show "cmod (f' n y * h - g' y * h) \<le> e * cmod h"
-        by (simp add: norm_mult [symmetric] field_simps)
-    qed
-  } note ** = this
   show ?thesis
     unfolding has_field_derivative_def
   proof (rule has_derivative_sequence [OF cvs _ _ x])
     show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
       by (rule tf)
-  next show "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
+  next 
+    have **: "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. cmod (f' n x * h - g' x * h) \<le> \<epsilon> * cmod h"
+      if "\<epsilon> > 0" for \<epsilon>::real 
+      by (metis that left_diff_distrib mult_right_mono norm_ge_zero norm_mult conv)
+    show "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
       unfolding eventually_sequentially by (blast intro: **)
   qed (metis has_field_derivative_def df)
 qed
@@ -784,19 +711,17 @@ lemma has_complex_derivative_series:
 proof -
   from assms obtain x l where x: "x \<in> S" and sf: "((\<lambda>n. f n x) sums l)"
     by blast
-  { fix e::real assume e: "e > 0"
+  { fix \<epsilon>::real assume e: "\<epsilon> > 0"
     then obtain N where N: "\<forall>n x. n \<ge> N \<longrightarrow> x \<in> S
-            \<longrightarrow> cmod ((\<Sum>i<n. f' i x) - g' x) \<le> e"
+            \<longrightarrow> cmod ((\<Sum>i<n. f' i x) - g' x) \<le> \<epsilon>"
       by (metis conv)
-    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
+    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> \<epsilon> * cmod h"
     proof (rule exI [of _ N], clarify)
       fix n y h
       assume "N \<le> n" "y \<in> S"
-      then have "cmod ((\<Sum>i<n. f' i y) - g' y) \<le> e"
-        by (metis N)
-      then have "cmod h * cmod ((\<Sum>i<n. f' i y) - g' y) \<le> cmod h * e"
-        by (auto simp: antisym_conv2 mult_le_cancel_left norm_triangle_ineq2)
-      then show "cmod ((\<Sum>i<n. h * f' i y) - g' y * h) \<le> e * cmod h"
+      have "cmod h * cmod ((\<Sum>i<n. f' i y) - g' y) \<le> cmod h * \<epsilon>"
+        by (simp add: N \<open>N \<le> n\<close> \<open>y \<in> S\<close> mult_le_cancel_left)
+      then show "cmod ((\<Sum>i<n. h * f' i y) - g' y * h) \<le> \<epsilon> * cmod h"
         by (simp add: norm_mult [symmetric] field_simps sum_distrib_left)
     qed
   } note ** = this
@@ -818,8 +743,8 @@ subsection\<^marker>\<open>tag unimportant\<close> \<open>Taylor on Complex Numb
 
 lemma sum_Suc_reindex:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
-    shows  "sum f {0..n} = f 0 - f (Suc n) + sum (\<lambda>i. f (Suc i)) {0..n}"
-by (induct n) auto
+  shows "sum f {0..n} = f 0 - f (Suc n) + sum (\<lambda>i. f (Suc i)) {0..n}"
+  by (induct n) auto
 
 lemma field_Taylor:
   assumes S: "convex S"
@@ -836,7 +761,7 @@ proof -
     assume "u \<in> closed_segment w z"
     then have "u \<in> S"
       by (metis wzs subsetD)
-    have "(\<Sum>i\<le>n. f i u * (- of_nat i * (z-u)^(i - 1)) / (fact i) +
+    have *: "(\<Sum>i\<le>n. f i u * (- of_nat i * (z-u)^(i - 1)) / (fact i) +
                       f (Suc i) u * (z-u)^i / (fact i)) =
               f (Suc n) u * (z-u) ^ n / (fact n)"
     proof (induction n)
@@ -849,7 +774,7 @@ proof -
            f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n) / (fact (Suc n)) -
            f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n) / (fact (Suc n))"
         using Suc by simp
-      also have "... = f (Suc (Suc n)) u * (z-u) ^ Suc n / (fact (Suc n))"
+      also have "\<dots> = f (Suc (Suc n)) u * (z-u) ^ Suc n / (fact (Suc n))"
       proof -
         have "(fact(Suc n)) *
              (f(Suc n) u *(z-u) ^ n / (fact n) +
@@ -859,29 +784,26 @@ proof -
             ((fact(Suc n)) *(f(Suc(Suc n)) u *((z-u) *(z-u) ^ n)) / (fact(Suc n))) -
             ((fact(Suc n)) *(f(Suc n) u *(of_nat(Suc n) *(z-u) ^ n))) / (fact(Suc n))"
           by (simp add: algebra_simps del: fact_Suc)
-        also have "... = ((fact (Suc n)) * (f (Suc n) u * (z-u) ^ n)) / (fact n) +
+        also have "\<dots> = ((fact (Suc n)) * (f (Suc n) u * (z-u) ^ n)) / (fact n) +
                          (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
                          (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
           by (simp del: fact_Suc)
-        also have "... = (of_nat (Suc n) * (f (Suc n) u * (z-u) ^ n)) +
+        also have "\<dots> = (of_nat (Suc n) * (f (Suc n) u * (z-u) ^ n)) +
                          (f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)) -
                          (f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n))"
           by (simp only: fact_Suc of_nat_mult ac_simps) simp
-        also have "... = f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)"
+        also have "\<dots> = f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n)"
           by (simp add: algebra_simps)
         finally show ?thesis
         by (simp add: mult_left_cancel [where c = "(fact (Suc n))", THEN iffD1] del: fact_Suc)
       qed
       finally show ?case .
     qed
-    then have "((\<lambda>v. (\<Sum>i\<le>n. f i v * (z - v)^i / (fact i)))
+    have "((\<lambda>v. (\<Sum>i\<le>n. f i v * (z - v)^i / (fact i)))
                 has_field_derivative f (Suc n) u * (z-u) ^ n / (fact n))
                (at u within S)"
-      apply (intro derivative_eq_intros)
-      apply (blast intro: assms \<open>u \<in> S\<close>)
-      apply (rule refl)+
-      apply (auto simp: field_simps)
-      done
+      unfolding * [symmetric]
+      by (rule derivative_eq_intros assms \<open>u \<in> S\<close> refl | auto simp: field_simps)+
   } note sum_deriv = this
   { fix u
     assume u: "u \<in> closed_segment w z"
@@ -889,9 +811,9 @@ proof -
       by (metis wzs subsetD)
     have "norm (f (Suc n) u) * norm (z - u) ^ n \<le> norm (f (Suc n) u) * norm (u - z) ^ n"
       by (metis norm_minus_commute order_refl)
-    also have "... \<le> norm (f (Suc n) u) * norm (z - w) ^ n"
+    also have "\<dots> \<le> norm (f (Suc n) u) * norm (z - w) ^ n"
       by (metis mult_left_mono norm_ge_zero power_mono segment_bound [OF u])
-    also have "... \<le> B * norm (z - w) ^ n"
+    also have "\<dots> \<le> B * norm (z - w) ^ n"
       by (metis norm_ge_zero zero_le_power mult_right_mono  B [OF us])
     finally have "norm (f (Suc n) u) * norm (z - u) ^ n \<le> B * norm (z - w) ^ n" .
   } note cmod_bound = this
@@ -903,14 +825,14 @@ proof -
                 \<le> norm ((\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)) -
                         (\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)))"
     by (simp add: norm_minus_commute)
-  also have "... \<le> B * norm (z - w) ^ n / (fact n) * norm (w - z)"
-    apply (rule field_differentiable_bound
-      [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
-         and S = "closed_segment w z", OF convex_closed_segment])
-    apply (auto simp: DERIV_subset [OF sum_deriv wzs]
-                  norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
-    done
-  also have "...  \<le> B * norm (z - w) ^ Suc n / (fact n)"
+  also have "\<dots> \<le> B * norm (z - w) ^ n / (fact n) * norm (w - z)"
+  proof (rule field_differentiable_bound)
+    show "\<And>x. x \<in> closed_segment w z \<Longrightarrow>
+          ((\<lambda>\<xi>. \<Sum>i\<le>n. f i \<xi> * (z - \<xi>) ^ i / fact i) has_field_derivative f (Suc n) x * (z - x) ^ n / fact n)
+           (at x within closed_segment w z)"
+      using DERIV_subset sum_deriv wzs by blast
+  qed (auto simp: norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
+  also have "\<dots>  \<le> B * norm (z - w) ^ Suc n / (fact n)"
     by (simp add: algebra_simps norm_minus_commute)
   finally show ?thesis .
 qed
@@ -921,8 +843,7 @@ lemma complex_Taylor:
       and B: "\<And>x. x \<in> S \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
       and w: "w \<in> S"
       and z: "z \<in> S"
-    shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
-          \<le> B * cmod(z - w)^(Suc n) / fact n"
+    shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i))) \<le> B * cmod(z - w)^(Suc n) / fact n"
   using assms by (rule field_Taylor)
 
 
@@ -932,20 +853,22 @@ lemma complex_mvt_line:
   assumes "\<And>u. u \<in> closed_segment w z \<Longrightarrow> (f has_field_derivative f'(u)) (at u)"
     shows "\<exists>u. u \<in> closed_segment w z \<and> Re(f z) - Re(f w) = Re(f'(u) * (z - w))"
 proof -
-  have twz: "\<And>t. (1 - t) *\<^sub>R w + t *\<^sub>R z = w + t *\<^sub>R (z - w)"
-    by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
+  define \<phi> where "\<phi> \<equiv> \<lambda>t. (1 - t) *\<^sub>R w + t *\<^sub>R z"
+  have twz: "\<And>t. \<phi> t = w + t *\<^sub>R (z - w)"
+    by (simp add: \<phi>_def real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
   note assms[unfolded has_field_derivative_def, derivative_intros]
-  show ?thesis
-    apply (cut_tac mvt_simple
-                     [of 0 1 "Re o f o (\<lambda>t. (1 - t) *\<^sub>R w +  t *\<^sub>R z)"
-                      "\<lambda>u. Re o (\<lambda>h. f'((1 - u) *\<^sub>R w + u *\<^sub>R z) * h) o (\<lambda>t. t *\<^sub>R (z - w))"])
-    apply auto
-    apply (rule_tac x="(1 - x) *\<^sub>R w + x *\<^sub>R z" in exI)
-    apply (auto simp: closed_segment_def twz) []
-    apply (intro derivative_eq_intros has_derivative_at_withinI, simp_all)
-    apply (simp add: fun_eq_iff real_vector.scale_right_diff_distrib)
-    apply (force simp: twz closed_segment_def)
-    done
+  have *: "\<And>x. \<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
+        \<Longrightarrow> (Re \<circ> f \<circ> \<phi> has_derivative Re \<circ> (*) (f' (\<phi> x)) \<circ> (\<lambda>t. t *\<^sub>R (z - w)))
+            (at x within {0..1})"
+    unfolding \<phi>_def
+    by (intro derivative_eq_intros has_derivative_at_withinI) 
+       (auto simp: in_segment scaleR_right_diff_distrib)
+  obtain x where "0<x" "x<1" "(Re \<circ> f \<circ> \<phi>) 1 -
+       (Re \<circ> f \<circ> \<phi>) 0 = (Re \<circ> (*) (f' (\<phi> x)) \<circ> (\<lambda>t. t *\<^sub>R (z - w))) (1 - 0)"
+    using mvt_simple [OF zero_less_one *] by force
+  then show ?thesis
+    unfolding \<phi>_def
+    by (smt (verit) comp_apply in_segment(1) scaleR_left_distrib scaleR_one scaleR_zero_left)
 qed
 
 lemma complex_Taylor_mvt:
@@ -967,30 +890,27 @@ proof -
                  (f (Suc (Suc i)) u * ((z-u) ^ Suc i) - of_nat (Suc i) * (f (Suc i) u * (z-u) ^ i)) /
                  (fact (Suc i)))"
        by (subst sum_Suc_reindex) simp
-    also have "... = f (Suc 0) u -
+    also have "\<dots> = f (Suc 0) u -
              (f (Suc (Suc n)) u * ((z-u) ^ Suc n) - (of_nat (Suc n)) * (z-u) ^ n * f (Suc n) u) /
              (fact (Suc n)) +
              (\<Sum>i = 0..n.
                  f (Suc (Suc i)) u * ((z-u) ^ Suc i) / (fact (Suc i))  -
                  f (Suc i) u * (z-u) ^ i / (fact i))"
       by (simp only: diff_divide_distrib fact_cancel ac_simps)
-    also have "... = f (Suc 0) u -
+    also have "\<dots> = f (Suc 0) u -
              (f (Suc (Suc n)) u * (z-u) ^ Suc n - of_nat (Suc n) * (z-u) ^ n * f (Suc n) u) /
              (fact (Suc n)) +
              f (Suc (Suc n)) u * (z-u) ^ Suc n / (fact (Suc n)) - f (Suc 0) u"
       by (subst sum_Suc_diff) auto
-    also have "... = f (Suc n) u * (z-u) ^ n / (fact n)"
+    also have "\<dots> = f (Suc n) u * (z-u) ^ n / (fact n)"
       by (simp only: algebra_simps diff_divide_distrib fact_cancel)
-    finally have "(\<Sum>i = 0..n. (f (Suc i) u * (z - u) ^ i
+    finally have *: "(\<Sum>i = 0..n. (f (Suc i) u * (z - u) ^ i
                              - of_nat i * (f i u * (z-u) ^ (i - Suc 0))) / (fact i)) =
                   f (Suc n) u * (z - u) ^ n / (fact n)" .
-    then have "((\<lambda>u. \<Sum>i = 0..n. f i u * (z - u) ^ i / (fact i)) has_field_derivative
+    have "((\<lambda>u. \<Sum>i = 0..n. f i u * (z - u) ^ i / (fact i)) has_field_derivative
                 f (Suc n) u * (z - u) ^ n / (fact n))  (at u)"
-      apply (intro derivative_eq_intros)+
-      apply (force intro: u assms)
-      apply (rule refl)+
-      apply (auto simp: ac_simps)
-      done
+      unfolding * [symmetric]
+      by (rule derivative_eq_intros assms u refl | auto simp: field_simps)+
   }
   then show ?thesis
     apply (cut_tac complex_mvt_line [of w z "\<lambda>u. \<Sum>i = 0..n. f i u * (z-u) ^ i / (fact i)"

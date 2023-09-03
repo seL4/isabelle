@@ -37,8 +37,8 @@ class Mutator_Dialog(
 
   container.events +=
     {
-      case Mutator_Event.Add(m) => add_panel(new Mutator_Panel(m))
-      case Mutator_Event.New_List(ms) => panels = get_panels(ms)
+      case Mutator_Event.Message.Add(m) => add_panel(new Mutator_Panel(m))
+      case Mutator_Event.Message.New_List(ms) => panels = get_panels(ms)
     }
 
   override def open(): Unit = {

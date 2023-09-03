@@ -35,7 +35,7 @@ object Components {
 
   /* platforms */
 
-  private val family_platforms: Map[Platform.Family.Value, List[String]] =
+  private val family_platforms: Map[Platform.Family, List[String]] =
     Map(
       Platform.Family.linux_arm -> List("arm64-linux", "arm64_32-linux"),
       Platform.Family.linux -> List("x86_64-linux", "x86_64_32-linux"),
@@ -47,7 +47,7 @@ object Components {
   private val platform_names: Set[String] =
     Set("x86-linux", "x86-cygwin") ++ family_platforms.iterator.flatMap(_._2)
 
-  def platform_purge(platforms: List[Platform.Family.Value]): String => Boolean = {
+  def platform_purge(platforms: List[Platform.Family]): String => Boolean = {
     val preserve =
       (for {
         family <- platforms.iterator
@@ -91,7 +91,7 @@ object Components {
 
   def clean(
     component_dir: Path,
-    platforms: List[Platform.Family.Value] = Platform.Family.list,
+    platforms: List[Platform.Family] = Platform.Family.list,
     ssh: SSH.System = SSH.Local,
     progress: Progress = new Progress
   ): Unit = {
@@ -108,7 +108,7 @@ object Components {
 
   def clean_base(
     base_dir: Path,
-    platforms: List[Platform.Family.Value] = Platform.Family.list,
+    platforms: List[Platform.Family] = Platform.Family.list,
     ssh: SSH.System = SSH.Local,
     progress: Progress = new Progress
   ): Unit = {
@@ -124,7 +124,7 @@ object Components {
     name: String,
     target_dir: Option[Path] = None,
     copy_dir: Option[Path] = None,
-    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_platforms: Option[List[Platform.Family]] = None,
     clean_archives: Boolean = false,
     component_repository: String = Components.static_component_repository,
     ssh: SSH.System = SSH.Local,

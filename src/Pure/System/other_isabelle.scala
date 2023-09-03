@@ -89,7 +89,7 @@ final class Other_Isabelle private(
 
   def resolve_components(
     echo: Boolean = false,
-    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_platforms: Option[List[Platform.Family]] = None,
     clean_archives: Boolean = false,
     component_repository: String = Components.static_component_repository
   ): Unit = {
@@ -152,7 +152,7 @@ final class Other_Isabelle private(
     other_settings: List[String] = init_components(),
     fresh: Boolean = false,
     echo: Boolean = false,
-    clean_platforms: Option[List[Platform.Family.Value]] = None,
+    clean_platforms: Option[List[Platform.Family]] = None,
     clean_archives: Boolean = false,
     component_repository: String = Components.static_component_repository
   ): Unit = {

@@ -69,7 +69,7 @@ object JSON_API {
   sealed case class Links(json: JSON.T) {
     def get_next: Option[Service] =
       for {
-        JSON.Value.String(next) <- JSON.value(json, "next")
+        case JSON.Value.String(next) <- JSON.value(json, "next")
         if Url.is_wellformed(next)
       } yield new Service(Url(next))
 

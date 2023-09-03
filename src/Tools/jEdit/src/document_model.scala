@@ -255,12 +255,12 @@ object Document_Model {
             val open_nodes =
               (for ((_, model) <- st.buffer_models.iterator) yield model.node_name).toList
             val touched_nodes = model_edits.map(_._1)
-            val pending_nodes = for ((node_name, None) <- purged) yield node_name
+            val pending_nodes = for (case (node_name, None) <- purged) yield node_name
             (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
           }
           val retain = PIDE.resources.dependencies(imports).theories.toSet
 
-          for ((node_name, Some(edits)) <- purged if !retain(node_name); edit <- edits)
+          for (case (node_name, Some(edits)) <- purged if !retain(node_name); edit <- edits)
             yield edit
         }
         else Nil

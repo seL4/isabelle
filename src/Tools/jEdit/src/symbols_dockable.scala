@@ -169,7 +169,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     }
 
     for (page <- pages)
-      page.title = Word.implode(Word.explode('_', page.title).map(Word.perhaps_capitalize))
+      page.title = Word.implode(Word.explode('_', page.title).map(Word.perhaps_capitalized))
   }
   set_content(group_tabs)
 

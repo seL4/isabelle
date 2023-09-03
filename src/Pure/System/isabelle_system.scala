@@ -481,7 +481,7 @@ object Isabelle_System {
             (entry, result)
           }
         for {
-          (entry, Some(res)) <- items
+          case (entry, Some(res)) <- items
           if !entry.isDirectory
           t <- Option(entry.getLastModifiedTime)
         } Files.setLastModifiedTime(res, t)

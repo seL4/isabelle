@@ -71,7 +71,7 @@ directory individually.
 """)
     }
 
-    def bundle_info(platform: Platform.Family.Value): Bundle_Info =
+    def bundle_info(platform: Platform.Family): Bundle_Info =
       platform match {
         case Platform.Family.linux_arm =>
           Bundle_Info(platform, "Linux (ARM)", dist_name + "_linux_arm.tar.gz")
@@ -82,7 +82,7 @@ directory individually.
   }
 
   sealed case class Bundle_Info(
-    platform: Platform.Family.Value,
+    platform: Platform.Family,
     platform_description: String,
     name: String
   ) {
@@ -150,7 +150,7 @@ directory individually.
 
   /* bundled components */
 
-  class Bundled(platform: Option[Platform.Family.Value] = None) {
+  class Bundled(platform: Option[Platform.Family] = None) {
     def detect(s: String): Boolean =
       s.startsWith("#bundled") && !s.startsWith("#bundled ")
 
@@ -186,17 +186,16 @@ directory individually.
         } yield bundled(line)).toList))
   }
 
-  def get_bundled_components(dir: Path, platform: Platform.Family.Value): (List[String], String) = {
+  def get_bundled_components(dir: Path, platform: Platform.Family): (List[String], String) = {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
-      for { Bundled(name) <- Components.Directory(dir).read_components() } yield name
+      for { case Bundled(name) <- Components.Directory(dir).read_components() } yield name
     val jdk_component =
       components.find(_.startsWith("jdk")) getOrElse error("Missing jdk component")
     (components, jdk_component)
   }
 
-  def activate_components(
-    dir: Path, platform: Platform.Family.Value, more_names: List[String]): Unit = {
+  def activate_components(dir: Path, platform: Platform.Family, more_names: List[String]): Unit = {
     def contrib_name(name: String): String =
       Components.contrib(name = name).implode
 
@@ -219,7 +218,7 @@ directory individually.
 
   private def build_heaps(
     options: Options,
-    platform: Platform.Family.Value,
+    platform: Platform.Family,
     build_sessions: List[String],
     local_dir: Path,
     progress: Progress = new Progress,
@@ -275,7 +274,7 @@ directory individually.
   }
 
   def make_isabelle_app(
-    platform: Platform.Family.Value,
+    platform: Platform.Family,
     isabelle_target: Path,
     isabelle_name: String,
     jdk_component: String,
@@ -491,13 +490,13 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     }
   }
 
-  def default_platform_families: List[Platform.Family.Value] = Platform.Family.list0
+  def default_platform_families: List[Platform.Family] = Platform.Family.list0
 
   def build_release(
     options: Options,
     context: Release_Context,
     afp_rev: String = "",
-    platform_families: List[Platform.Family.Value] = default_platform_families,
+    platform_families: List[Platform.Family] = default_platform_families,
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,

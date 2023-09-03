@@ -91,28 +91,28 @@ object Server {
       case _ => JSON.Object.empty
     }
 
-  object Reply extends Enumeration {
-    val OK, ERROR, FINISHED, FAILED, NOTE = Value
-
+  object Reply {
     def message(msg: String, kind: String = ""): JSON.Object.T =
       JSON.Object(Markup.KIND -> proper_string(kind).getOrElse(Markup.WRITELN), "message" -> msg)
 
     def error_message(msg: String): JSON.Object.T =
       message(msg, kind = Markup.ERROR)
 
-    def unapply(msg: String): Option[(Reply.Value, Any)] = {
+    def unapply(msg: String): Option[(Reply, Any)] = {
       if (msg == "") None
       else {
         val (name, argument) = Argument.split(msg)
         for {
           reply <-
-            try { Some(withName(name)) }
-            catch { case _: NoSuchElementException => None }
+            try { Some(Reply.valueOf(name)) }
+            catch { case _: IllegalArgumentException => None }
           arg <- Argument.unapply(argument)
         } yield (reply, arg)
       }
     }
   }
+
+  enum Reply { case OK, ERROR, FINISHED, FAILED, NOTE }
 
 
   /* handler: port, password, thread */
@@ -194,7 +194,7 @@ object Server {
     def write_byte_message(chunks: List[Bytes]): Unit =
       out_lock.synchronized { Byte_Message.write_message(out, chunks) }
 
-    def reply(r: Reply.Value, arg: Any): Unit = {
+    def reply(r: Reply, arg: Any): Unit = {
       val argument = Argument.print(arg)
       write_line_message(if (argument == "") r.toString else r.toString + " " + argument)
     }
@@ -216,7 +216,7 @@ object Server {
 
     def command_list: List[String] = command_table.keys.toList.sorted
 
-    def reply(r: Reply.Value, arg: Any): Unit = connection.reply(r, arg)
+    def reply(r: Reply, arg: Any): Unit = connection.reply(r, arg)
     def notify(arg: Any): Unit = connection.notify(arg)
     def message(kind: String, msg: String, more: JSON.Object.Entry*): Unit =
       notify(Reply.message(msg, kind = kind) ++ more)

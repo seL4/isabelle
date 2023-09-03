@@ -34,13 +34,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val process_indicator = new Process_Indicator
 
-  private def consume_status(status: Query_Operation.Status.Value): Unit = {
+  private def consume_status(status: Query_Operation.Status): Unit = {
     status match {
-      case Query_Operation.Status.WAITING =>
+      case Query_Operation.Status.waiting =>
         process_indicator.update("Waiting for evaluation of context ...", 5)
-      case Query_Operation.Status.RUNNING =>
+      case Query_Operation.Status.running =>
         process_indicator.update("Sledgehammering ...", 15)
-      case Query_Operation.Status.FINISHED =>
+      case Query_Operation.Status.finished =>
         process_indicator.update(null, 0)
     }
   }

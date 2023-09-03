@@ -316,15 +316,13 @@ proof -
                  ((\<lambda>u. f u / (u - w)) has_contour_integral (\<lambda>x. 2 * of_real pi * \<i> * f x) w) (circlepath z r)"
     by (rule Cauchy_integral_circlepath [OF contf holf]) (simp add: dist_norm norm_minus_commute)
   show ?thes1
-    apply (simp add: power2_eq_square)
-    apply (rule Cauchy_next_derivative_circlepath [OF f _ _ w, where k=1, simplified])
-    apply (blast intro: int)
-    done
+    unfolding power2_eq_square
+    using int Cauchy_next_derivative_circlepath [OF f _ _ w, where k=1]
+    by fastforce
   have "((\<lambda>x. 2 * of_real pi * \<i> * f x) has_field_derivative contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)^2)) (at w)"
-    apply (simp add: power2_eq_square)
-    apply (rule Cauchy_next_derivative_circlepath [OF f _ _ w, where k=1 and g = "\<lambda>x. 2 * of_real pi * \<i> * f x", simplified])
-    apply (blast intro: int)
-    done
+    unfolding power2_eq_square
+    using int Cauchy_next_derivative_circlepath [OF f _ _ w, where k=1 and g = "\<lambda>x. 2 * of_real pi * \<i> * f x"]
+    by fastforce
   then have fder: "(f has_field_derivative contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)^2) / (2 * of_real pi * \<i>)) (at w)"
     by (rule DERIV_cdivide [where f = "\<lambda>x. 2 * of_real pi * \<i> * f x" and c = "2 * of_real pi * \<i>", simplified])
   show ?thes2
@@ -396,8 +394,7 @@ lemma analytic_higher_deriv [analytic_intros]: "f analytic_on S \<Longrightarrow
 lemma has_field_derivative_higher_deriv:
      "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk>
       \<Longrightarrow> ((deriv ^^ n) f has_field_derivative (deriv ^^ (Suc n)) f x) (at x)"
-by (metis (no_types, opaque_lifting) DERIV_deriv_iff_field_differentiable at_within_open comp_apply
-         funpow.simps(2) holomorphic_higher_deriv holomorphic_on_def)
+  using holomorphic_derivI holomorphic_higher_deriv by fastforce
   
 lemma higher_deriv_cmult:
   assumes "f holomorphic_on A" "x \<in> A" "open A"
@@ -644,7 +641,7 @@ next
     by (meson f fg holomorphic_higher_deriv holomorphic_on_subset image_subset_iff T)
   have holo3: "(\<lambda>z. u ^ n * (deriv ^^ n) f (u * z)) holomorphic_on S"
     by (intro holo2 holomorphic_on_compose [where g="(deriv ^^ n) f", unfolded o_def] holomorphic_intros)
-  have "(*) u holomorphic_on S" "f holomorphic_on (*) u ` S"
+  have u: "(*) u holomorphic_on S" "f holomorphic_on (*) u ` S"
     by (rule holo0 holomorphic_intros)+
   then have holo1: "(\<lambda>w. f (u * w)) holomorphic_on S"
     by (rule holomorphic_on_compose [where g=f, unfolded o_def])
@@ -658,12 +655,7 @@ next
     have "(deriv ^^ n) f analytic_on T"
       by (simp add: analytic_on_open f holomorphic_higher_deriv T)
     then have "(\<lambda>w. (deriv ^^ n) f (u * w)) analytic_on S"
-    proof -
-      have "(deriv ^^ n) f \<circ> (*) u holomorphic_on S"
-        by (simp add: holo2 holomorphic_on_compose)
-      then show ?thesis
-        by (simp add: S analytic_on_open o_def)
-    qed
+      by (meson S u analytic_on_open holo2 holomorphic_on_compose holomorphic_transform o_def)
     then show ?thesis
       by (intro deriv_cmult analytic_on_imp_differentiable_at [OF _ Suc.prems])
   qed
@@ -1298,15 +1290,15 @@ text\<open>Sometimes convenient to compare with a complex series of positive rea
 lemma series_and_derivative_comparison_complex:
   fixes S :: "complex set"
   assumes S: "open S"
-      and hfd: "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
-      and to_g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>d h. 0 < d \<and> summable h \<and> range h \<subseteq> \<real>\<^sub>\<ge>\<^sub>0 \<and> (\<forall>\<^sub>F n in sequentially. \<forall>y\<in>ball x d \<inter> S. cmod(f n y) \<le> cmod (h n))"
+    and hfd: "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+    and to_g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>d h. 0 < d \<and> summable h \<and> range h \<subseteq> \<real>\<^sub>\<ge>\<^sub>0 \<and> (\<forall>\<^sub>F n in sequentially. \<forall>y\<in>ball x d \<inter> S. cmod(f n y) \<le> cmod (h n))"
   shows "\<exists>g g'. \<forall>x \<in> S. ((\<lambda>n. f n x) sums g x) \<and> ((\<lambda>n. f' n x) sums g' x) \<and> (g has_field_derivative g' x) (at x)"
-apply (rule series_and_derivative_comparison_local [OF S hfd], assumption)
-apply (rule ex_forward [OF to_g], assumption)
-apply (erule exE)
-apply (rule_tac x="Re \<circ> h" in exI)
-apply (force simp: summable_Re o_def nonneg_Reals_cmod_eq_Re image_subset_iff)
-done
+  apply (rule series_and_derivative_comparison_local [OF S hfd], assumption)
+  apply (rule ex_forward [OF to_g], assumption)
+  apply (erule exE)
+  apply (rule_tac x="Re \<circ> h" in exI)
+  apply (force simp: summable_Re o_def nonneg_Reals_cmod_eq_Re image_subset_iff)
+  done
 
 text\<open>Sometimes convenient to compare with a complex series of positive reals. (?)\<close>
 lemma series_differentiable_comparison_complex:
@@ -1410,9 +1402,8 @@ qed
 corollary holomorphic_iff_power_series:
      "f holomorphic_on ball z r \<longleftrightarrow>
       (\<forall>w \<in> ball z r. (\<lambda>n. (deriv ^^ n) f z / (fact n) * (w - z)^n) sums f w)"
-  apply (intro iffI ballI holomorphic_power_series, assumption+)
-  apply (force intro: power_series_holomorphic [where a = "\<lambda>n. (deriv ^^ n) f z / (fact n)"])
-  done
+  using power_series_holomorphic [where a = "\<lambda>n. (deriv ^^ n) f z / (fact n)"] holomorphic_power_series
+  by blast
 
 lemma power_series_analytic:
      "(\<And>w. w \<in> ball z r \<Longrightarrow> (\<lambda>n. a n*(w - z)^n) sums f w) \<Longrightarrow> f analytic_on ball z r"
@@ -1670,12 +1661,8 @@ proof -
     obtain \<delta> where "\<delta>>0" and \<delta>: "cball w \<delta> \<subseteq> U" using open_contains_cball \<open>open U\<close> \<open>w \<in> U\<close> by force
     let ?TZ = "cball w \<delta>  \<times> closed_segment a b"
     have "uniformly_continuous_on ?TZ (\<lambda>(x,y). F x y)"
-    proof (rule compact_uniformly_continuous)
-      show "continuous_on ?TZ (\<lambda>(x,y). F x y)"
-        by (rule continuous_on_subset[OF cond_uu]) (use SigmaE \<delta> abu in blast)
-      show "compact ?TZ"
-        by (simp add: compact_Times)
-    qed
+      by (metis Sigma_mono \<delta> abu compact_Times compact_cball compact_segment compact_uniformly_continuous 
+          cond_uu continuous_on_subset)
     then obtain \<eta> where "\<eta>>0"
         and \<eta>: "\<And>x x'. \<lbrakk>x\<in>?TZ; x'\<in>?TZ; dist x' x < \<eta>\<rbrakk> \<Longrightarrow>
                          dist ((\<lambda>(x,y). F x y) x') ((\<lambda>(x,y). F x y) x) < \<epsilon>/norm(b - a)"
@@ -1992,16 +1979,10 @@ proof -
           by (auto intro: continuous_on_swap_args cond_uu)
       qed
       have cont_cint_d\<gamma>: "continuous_on {0..1} ((\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w)) \<circ> \<gamma>)"
-      proof (rule continuous_on_compose)
-        show "continuous_on {0..1} \<gamma>"
-          using \<open>path \<gamma>\<close> path_def by blast
-        show "continuous_on (\<gamma> ` {0..1}) (\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w))"
-          using pasz unfolding path_image_def
-          by (auto intro!: continuous_on_subset [OF cont_cint_d])
-      qed
+        by (metis Diff_subset \<open>path \<gamma>\<close> cont_cint_d continuous_on_compose continuous_on_subset pasz path_def path_image_def)
       have "continuous_on {0..1} (\<lambda>x. vector_derivative \<gamma> (at x))"
         using pf\<gamma>' by (simp add: continuous_on_polymonial_function vector_derivative_at [OF \<gamma>'])
-      then      have cint_cint: "(\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w)) contour_integrable_on \<gamma>"
+      then have cint_cint: "(\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w)) contour_integrable_on \<gamma>"
         apply (simp add: contour_integrable_on)
         apply (rule integrable_continuous_real)
         by (rule continuous_on_mult [OF cont_cint_d\<gamma> [unfolded o_def]])
@@ -2632,8 +2613,8 @@ proof -
   have g_nz: "g \<noteq> 0"
   proof -
     define z :: complex where "z = (if r = \<infinity> then 1 else of_real (real_of_ereal r / 2))"
-    from \<open>r > 0\<close> have "z \<in> eball 0 r"
-      by (cases r) (auto simp: z_def eball_def)
+    have "z \<in> eball 0 r"
+      using \<open>r > 0\<close> ereal_less_real_iff z_def by fastforce
     moreover have "z \<noteq> 0" using \<open>r > 0\<close> 
       by (cases r) (auto simp: z_def)
     ultimately have "eval_fps g z \<noteq> 0" by (rule assms(6))

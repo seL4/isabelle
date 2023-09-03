@@ -129,7 +129,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
     val permanent_updates =
       if (dictionary.user_path.is_file)
         for {
-          Spell_Checker.Decl(word, include) <- split_lines(File.read(dictionary.user_path))
+          case Spell_Checker.Decl(word, include) <- split_lines(File.read(dictionary.user_path))
         } yield (word, Spell_Checker.Update(include, true))
       else Nil
 
@@ -201,7 +201,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
 
   def check(word: String): Boolean =
     word match {
-      case Word.Case(c) if c != Word.Lowercase =>
+      case Word.Case(c) if c != Word.Case.lowercase =>
         contains(word) || contains(Word.lowercase(word))
       case _ =>
         contains(word)
@@ -231,7 +231,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
         }
       val result =
         word_case match {
-          case Some(c) if c != Word.Lowercase =>
+          case Some(c) if c != Word.Case.lowercase =>
             suggestions(word) orElse suggestions(Word.lowercase(word))
           case _ =>
             suggestions(word)

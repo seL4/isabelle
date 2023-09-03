@@ -117,7 +117,7 @@ object Options {
           case word :: rest if word == strip => rest
           case _ => words
         }
-      Word.implode(words1.map(Word.perhaps_capitalize))
+      Word.implode(words1.map(Word.perhaps_capitalized))
     }
     def title_jedit: String = title("jedit")
 

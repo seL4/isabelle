@@ -18,9 +18,9 @@ object Progress {
 
   sealed abstract class Output { def message: Message }
 
-  object Kind extends Enumeration { val writeln, warning, error_message = Value }
+  enum Kind { case writeln, warning, error_message }
   sealed case class Message(
-    kind: Kind.Value,
+    kind: Kind,
     text: String,
     verbose: Boolean = false
   ) extends Output {
@@ -157,7 +157,7 @@ object Progress {
         SortedMap.from[Long, Message],
         { res =>
           val serial = res.long(Messages.serial)
-          val kind = Kind(res.int(Messages.kind))
+          val kind = Kind.fromOrdinal(res.int(Messages.kind))
           val text = res.string(Messages.text)
           val verbose = res.bool(Messages.verbose)
           serial -> Message(kind, text, verbose = verbose)
@@ -173,7 +173,7 @@ object Progress {
         for ((serial, message) <- messages) yield { (stmt: SQL.Statement) =>
           stmt.long(1) = context
           stmt.long(2) = serial
-          stmt.int(3) = message.kind.id
+          stmt.int(3) = message.kind.ordinal
           stmt.string(4) = message.text
           stmt.bool(5) = message.verbose
         })

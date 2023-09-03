@@ -55,14 +55,14 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   def consume_status(
     process_indicator: Process_Indicator,
-    status: Query_Operation.Status.Value
+    status: Query_Operation.Status
   ): Unit = {
     status match {
-      case Query_Operation.Status.WAITING =>
+      case Query_Operation.Status.waiting =>
         process_indicator.update("Waiting for evaluation of context ...", 5)
-      case Query_Operation.Status.RUNNING =>
+      case Query_Operation.Status.running =>
         process_indicator.update("Running find operation ...", 15)
-      case Query_Operation.Status.FINISHED =>
+      case Query_Operation.Status.finished =>
         process_indicator.update(null, 0)
     }
   }

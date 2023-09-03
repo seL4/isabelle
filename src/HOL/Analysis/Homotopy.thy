@@ -2950,11 +2950,11 @@ proof -
   obtain B where "B \<subseteq> S" and Borth: "pairwise orthogonal B"
              and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "finite B" "card B = dim S" "span B = S"
-    by (metis orthonormal_basis_subspace [OF S] independent_finite)
+    by (metis orthonormal_basis_subspace [OF S] independent_imp_finite)
   obtain C where "C \<subseteq> T" and Corth: "pairwise orthogonal C"
              and C1:"\<And>x. x \<in> C \<Longrightarrow> norm x = 1"
              and "independent C" "finite C" "card C = dim T" "span C = T"
-    by (metis orthonormal_basis_subspace [OF T] independent_finite)
+    by (metis orthonormal_basis_subspace [OF T] independent_imp_finite)
   obtain fb where "fb ` B \<subseteq> C" "inj_on fb B"
     by (metis \<open>card B = dim S\<close> \<open>card C = dim T\<close> \<open>finite B\<close> \<open>finite C\<close> card_le_inj d)
   then have pairwise_orth_fb: "pairwise (\<lambda>v j. orthogonal (fb v) (fb j)) B"
@@ -3003,11 +3003,11 @@ proof -
   obtain B where "B \<subseteq> S" and Borth: "pairwise orthogonal B"
              and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "finite B" "card B = dim S" "span B = S"
-    by (metis orthonormal_basis_subspace [OF S] independent_finite)
+    by (metis orthonormal_basis_subspace [OF S] independent_imp_finite)
   obtain C where "C \<subseteq> T" and Corth: "pairwise orthogonal C"
              and C1:"\<And>x. x \<in> C \<Longrightarrow> norm x = 1"
              and "independent C" "finite C" "card C = dim T" "span C = T"
-    by (metis orthonormal_basis_subspace [OF T] independent_finite)
+    by (metis orthonormal_basis_subspace [OF T] independent_imp_finite)
   obtain fb where "bij_betw fb B C"
     by (metis \<open>finite B\<close> \<open>finite C\<close> bij_betw_iff_card \<open>card B = dim S\<close> \<open>card C = dim T\<close> d)
   then have pairwise_orth_fb: "pairwise (\<lambda>v j. orthogonal (fb v) (fb j)) B"

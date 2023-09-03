@@ -102,11 +102,10 @@ object Scala {
 
   object Compiler {
     object Message {
-      object Kind extends Enumeration {
-        val error, warning, info, other = Value
-      }
+      enum Kind { case error, warning, info, other }
+
       private val Header = """^--.* (Error|Warning|Info): .*$""".r
-      val header_kind: String => Kind.Value =
+      val header_kind: String => Kind =
         {
           case "Error" => Kind.error
           case "Warning" => Kind.warning
@@ -139,7 +138,7 @@ object Scala {
       }
     }
 
-    sealed case class Message(kind: Message.Kind.Value, text: String)
+    sealed case class Message(kind: Message.Kind, text: String)
     {
       def is_error: Boolean = kind == Message.Kind.error
       override def toString: String = text
@@ -275,9 +274,7 @@ object Scala {
 
   /* invoke function */
 
-  object Tag extends Enumeration {
-    val NULL, OK, ERROR, FAIL, INTERRUPT = Value
-  }
+  enum Tag { case NULL, OK, ERROR, FAIL, INTERRUPT }
 
   def function_thread(name: String): Boolean =
     functions.find(fun => fun.name == name) match {
@@ -285,7 +282,7 @@ object Scala {
       case None => false
     }
 
-  def function_body(session: Session, name: String, args: List[Bytes]): (Tag.Value, List[Bytes]) =
+  def function_body(session: Session, name: String, args: List[Bytes]): (Tag, List[Bytes]) =
     functions.find(fun => fun.name == name) match {
       case Some(fun) =>
         Exn.capture { fun.invoke(session, args) } match {
@@ -312,10 +309,11 @@ object Scala {
       futures = Map.empty
     }
 
-    private def result(id: String, tag: Scala.Tag.Value, res: List[Bytes]): Unit =
+    private def result(id: String, tag: Scala.Tag, res: List[Bytes]): Unit =
       synchronized {
         if (futures.isDefinedAt(id)) {
-          session.protocol_command_raw("Scala.result", Bytes(id) :: Bytes(tag.id.toString) :: res)
+          session.protocol_command_raw(
+            "Scala.result", Bytes(id) :: Bytes(tag.ordinal.toString) :: res)
           futures -= id
         }
       }

@@ -11,10 +11,10 @@ imports
 begin
 
 lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"
-  by (subst log_le_cancel_iff) auto
+  by simp
 
 lemma log_less: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x < y \<Longrightarrow> log a x < log a y"
-  by (subst log_less_cancel_iff) auto
+  by simp
 
 lemma sum_cartesian_product':
   "(\<Sum>x\<in>A \<times> B. f x) = (\<Sum>x\<in>A. sum (\<lambda>y. f (x, y)) B)"
@@ -94,13 +94,11 @@ proof (subst integral_real_density)
     using f nn by (intro density_RN_deriv_density) auto
   then have eq: "AE x in M. RN_deriv M (density M f) x = f x"
     using f nn by (intro density_unique) auto
-  show "(\<integral>x. f x * entropy_density b M (density M (\<lambda>x. ennreal (f x))) x \<partial>M) = (\<integral>x. f x * log b (f x) \<partial>M)"
-    apply (intro integral_cong_AE)
-    apply measurable
-    using eq nn
-    apply eventually_elim
-    apply (auto simp: entropy_density_def)
-    done
+  have "AE x in M. f x * entropy_density b M (density M (\<lambda>x. ennreal (f x))) x =
+               f x * log b (f x)"
+    using eq nn by (auto simp: entropy_density_def)
+  then show "(\<integral>x. f x * entropy_density b M (density M (\<lambda>x. ennreal (f x))) x \<partial>M) = (\<integral>x. f x * log b (f x) \<partial>M)"
+    by (intro integral_cong_AE) measurable
 qed fact+
 
 lemma (in sigma_finite_measure) KL_density_density:
@@ -240,10 +238,7 @@ proof -
   have "AE x in M. 1 = RN_deriv M M x"
   proof (rule RN_deriv_unique)
     show "density M (\<lambda>x. 1) = M"
-      apply (auto intro!: measure_eqI emeasure_density)
-      apply (subst emeasure_density)
-      apply auto
-      done
+      by (simp add: density_1)
   qed auto
   then have "AE x in M. log b (enn2real (RN_deriv M M x)) = 0"
     by (elim AE_mp) simp
@@ -373,9 +368,7 @@ proof -
       by (simp add: emeasure_pair_measure_Times) }
   then show ?thesis
     unfolding absolutely_continuous_def
-    apply (auto simp: null_sets_distr_iff)
-    apply (auto simp: null_sets_def intro!: measurable_sets)
-    done
+    by (metis emeasure_distr measurable_fst null_setsD1 null_setsD2 null_setsI sets_distr subsetI)
 qed
 
 lemma ac_snd:
@@ -390,9 +383,7 @@ proof -
       by (simp add: emeasure_pair_measure_Times) }
   then show ?thesis
     unfolding absolutely_continuous_def
-    apply (auto simp: null_sets_distr_iff)
-    apply (auto simp: null_sets_def intro!: measurable_sets)
-    done
+    by (metis emeasure_distr measurable_snd null_setsD1 null_setsD2 null_setsI sets_distr subsetI)
 qed
 
 lemma (in information_space) finite_entropy_integrable:
@@ -473,7 +464,7 @@ proof safe
         unfolding \<open>Q = P\<close> by (intro measure_eqI) (auto simp: emeasure_density)
     qed auto
     then have ae_0: "AE x in P. entropy_density b P Q x = 0"
-      by eventually_elim (auto simp: entropy_density_def)
+      by (auto simp: entropy_density_def)
     then have "integrable P (entropy_density b P Q) \<longleftrightarrow> integrable Q (\<lambda>x. 0::real)"
       using ed unfolding \<open>Q = P\<close> by (intro integrable_cong_AE) auto
     then show "integrable Q (entropy_density b P Q)" by simp
@@ -579,7 +570,7 @@ proof -
   have B: "(AE x in ?P. Py (snd x) = 0 \<longrightarrow> Pxy x = 0)"
     by (rule subdensity_real[OF measurable_snd Pxy Py]) (insert Py_nn Pxy_nn, auto simp: space_pair_measure)
   ultimately have ac: "AE x in ?P. Px (fst x) * Py (snd x) = 0 \<longrightarrow> Pxy x = 0"
-    by eventually_elim auto
+    by auto
 
   show "?M = ?R"
     unfolding M f_def using Pxy_nn Px_nn Py_nn
@@ -599,9 +590,8 @@ proof -
       intro!: borel_measurable_times borel_measurable_log borel_measurable_divide)
   ultimately have int: "integrable (S \<Otimes>\<^sub>M T) f"
     apply (rule integrable_cong_AE_imp)
-    using A B AE_space
-    by eventually_elim
-       (auto simp: f_def log_divide_eq log_mult_eq field_simps space_pair_measure Px_nn Py_nn Pxy_nn
+    using A B
+    by  (auto simp: f_def log_divide_eq log_mult_eq field_simps space_pair_measure Px_nn Py_nn Pxy_nn
                   less_le)
 
   show "0 \<le> ?M" unfolding M
@@ -683,7 +673,7 @@ proof -
   have "(AE x in ?P. Py (snd x) = 0 \<longrightarrow> Pxy x = 0)"
     by (rule subdensity_real[OF measurable_snd Pxy Py]) (insert Py_nn Pxy_nn, auto simp: space_pair_measure)
   ultimately have ac: "AE x in ?P. Px (fst x) * Py (snd x) = 0 \<longrightarrow> Pxy x = 0"
-    by eventually_elim auto
+    by auto
 
   show "?M = ?R"
     unfolding M f_def
@@ -784,17 +774,10 @@ lemma (in prob_space) distributed_RN_deriv:
   assumes X: "distributed M S X Px"
   shows "AE x in S. RN_deriv S (density S Px) x = Px x"
 proof -
-  note D = distributed_measurable[OF X] distributed_borel_measurable[OF X]
-  interpret X: prob_space "distr M S X"
-    using D(1) by (rule prob_space_distr)
-
-  have sf: "sigma_finite_measure (distr M S X)" by standard
-  show ?thesis
-    using D
-    apply (subst eq_commute)
-    apply (intro RN_deriv_unique_sigma_finite)
-    apply (auto simp: distributed_distr_eq_density[symmetric, OF X] sf)
-    done
+  have "distributed M S X (RN_deriv S (density S Px))"
+    by (metis RN_derivI assms borel_measurable_RN_deriv distributed_def)
+  then show ?thesis
+    using assms distributed_unique by blast
 qed
 
 lemma (in information_space)
@@ -806,14 +789,9 @@ proof -
   note ae = distributed_RN_deriv[OF X]
   note distributed_real_measurable[OF nn X, measurable]
 
-  have ae_eq: "AE x in distr M MX X. log b (enn2real (RN_deriv MX (distr M MX X) x)) =
-    log b (f x)"
+  have ae_eq: "AE x in distr M MX X. log b (enn2real (RN_deriv MX (distr M MX X) x)) = log b (f x)"
     unfolding distributed_distr_eq_density[OF X]
-    apply (subst AE_density)
-    using D apply simp
-    using ae apply eventually_elim
-    apply auto
-    done
+    using D ae by (auto simp: AE_density)
 
   have int_eq: "(\<integral> x. f x * log b (f x) \<partial>MX) = (\<integral> x. log b (f x) \<partial>distr M MX X)"
     unfolding distributed_distr_eq_density[OF X]
@@ -1078,14 +1056,16 @@ proof -
     by (subst STP.nn_integral_snd[symmetric])
        (auto simp add: split_beta' ennreal_mult[symmetric] space_pair_measure intro!: nn_integral_cong)
   also have "\<dots> = (\<integral>\<^sup>+x. ennreal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
-    apply (rule nn_integral_cong_AE)
-    using aeX1 aeX2 aeX3 AE_space
-    apply eventually_elim
-  proof (case_tac x, simp add: space_pair_measure)
-    fix a b assume "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "a \<in> space T \<and> b \<in> space P"
-      "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) \<partial>S) = ennreal (Pz b)"
-    then show "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) * ennreal (Pyz (a, b) / Pz b) \<partial>S) = ennreal (Pyz (a, b))"
-      by (subst nn_integral_multc) (auto split: prod.split simp: ennreal_mult[symmetric])
+  proof -
+    have D: "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) * ennreal (Pyz (a, b) / Pz b) \<partial>S) = ennreal (Pyz (a, b))"
+      if "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "a \<in> space T \<and> b \<in> space P"
+        "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) \<partial>S) = ennreal (Pz b)"
+      for a b
+      using that by (subst nn_integral_multc) (auto split: prod.split simp: ennreal_mult[symmetric])
+    show ?thesis
+      apply (rule nn_integral_cong_AE)
+      using aeX1 aeX2 aeX3 
+      by (force simp add: space_pair_measure D)
   qed
   also have "\<dots> = 1"
     using Q.emeasure_space_1 distributed_distr_eq_density[OF Pyz]
@@ -1103,8 +1083,8 @@ proof -
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. ?g x = 0"
       by (intro nn_integral_0_iff_AE[THEN iffD1]) auto
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
-      using ae1 ae2 ae3 ae4 AE_space
-      by eventually_elim (auto split: if_split_asm simp: mult_le_0_iff divide_le_0_iff space_pair_measure)
+      using ae1 ae2 ae3 ae4 
+      by (auto split: if_split_asm simp: mult_le_0_iff divide_le_0_iff space_pair_measure)
     then have "(\<integral>\<^sup>+ x. ennreal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
       by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
     with P.emeasure_space_1 show False
@@ -1112,11 +1092,7 @@ proof -
   qed
 
   have neg: "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) = 0"
-    apply (rule nn_integral_0_iff_AE[THEN iffD2])
-    apply simp
-    apply (subst AE_density)
-    apply (auto simp: space_pair_measure ennreal_neg)
-    done
+    by (subst nn_integral_0_iff_AE) (auto simp: space_pair_measure ennreal_neg)
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
     apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ Bochner_Integration.integrable_diff[OF I1 I2]])
@@ -1136,8 +1112,6 @@ proof -
     qed simp
     then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"
       apply (rule nn_integral_eq_integral)
-      apply (subst AE_density)
-      apply simp
       apply (auto simp: space_pair_measure ennreal_neg)
       done
     with pos le1
@@ -1148,35 +1122,31 @@ proof -
   proof (rule P.jensens_inequality[where a=0 and b=1 and I="{0<..}"])
     show "AE x in ?P. ?f x \<in> {0<..}"
       unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
-      using ae1 ae2 ae3 ae4 AE_space
-      by eventually_elim (auto simp: space_pair_measure less_le)
+      using ae1 ae2 ae3 ae4 
+      by (auto simp: space_pair_measure less_le)
     show "integrable ?P ?f"
       unfolding real_integrable_def
       using fin neg by (auto simp: split_beta')
-    show "integrable ?P (\<lambda>x. - log b (?f x))"
-      apply (subst integrable_real_density)
-      apply simp
-      apply (auto simp: space_pair_measure) []
-      apply simp
+    have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
-      apply simp
-      apply simp
-      using ae1 ae2 ae3 ae4 AE_space
-      apply eventually_elim
+      using ae1 ae2 ae3 ae4 
       apply (auto simp: log_divide_eq log_mult_eq zero_le_mult_iff zero_less_mult_iff zero_less_divide_iff field_simps
-        less_le space_pair_measure)
+          less_le space_pair_measure)
       done
+    then
+    show "integrable ?P (\<lambda>x. - log b (?f x))"
+      by (subst integrable_real_density) (auto simp: space_pair_measure) 
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
     unfolding \<open>?eq\<close>
     apply (subst integral_real_density)
-    apply simp
-    apply (auto simp: space_pair_measure) []
-    apply simp
+       apply simp
+      apply (force simp: space_pair_measure) 
+     apply simp
     apply (intro integral_cong_AE)
     using ae1 ae2 ae3 ae4
-    apply (auto simp: log_divide_eq zero_less_mult_iff zero_less_divide_iff field_simps
-      space_pair_measure less_le)
+      apply (auto simp: log_divide_eq zero_less_mult_iff zero_less_divide_iff field_simps
+        space_pair_measure less_le)
     done
   finally show ?nonneg
     by simp
@@ -1276,10 +1246,8 @@ proof -
     using Pxyz Px Pyz by simp
   ultimately have I1: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Px x * Pyz (y, z))))"
     apply (rule integrable_cong_AE_imp)
-    using ae1 ae4 AE_space
-    by eventually_elim
-       (insert Px_nn Pyz_nn Pxyz_nn,
-        auto simp: log_divide_eq log_mult_eq field_simps zero_less_mult_iff space_pair_measure less_le)
+    using ae1 ae4 Px_nn Pyz_nn Pxyz_nn 
+    by (auto simp: log_divide_eq log_mult_eq field_simps zero_less_mult_iff space_pair_measure less_le)
 
   have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)
     (\<lambda>x. Pxyz x * log b (Pxz (fst x, snd (snd x))) - Pxyz x * log b (Px (fst x)) - Pxyz x * log b (Pz (snd (snd x))))"
@@ -1292,20 +1260,14 @@ proof -
     by auto
   ultimately have I2: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxz (x, z) / (Px x * Pz z)))"
     apply (rule integrable_cong_AE_imp)
-    using ae1 ae2 ae3 ae4 AE_space
-    by eventually_elim
-       (insert Px_nn Pz_nn Pxz_nn Pyz_nn Pxyz_nn,
-         auto simp: log_divide_eq log_mult_eq field_simps zero_less_mult_iff less_le space_pair_measure)
+    using ae1 ae2 ae3 ae4  Px_nn Pz_nn Pxz_nn Pyz_nn Pxyz_nn
+    by (auto simp: log_divide_eq log_mult_eq field_simps zero_less_mult_iff less_le space_pair_measure)
 
   from ae I1 I2 show ?eq
-    unfolding conditional_mutual_information_def
-    apply (subst mi_eq)
-    apply (subst mutual_information_distr[OF S TP Px Px_nn Pyz Pyz_nn Pxyz Pxyz_nn])
-    apply simp
-    apply simp
-    apply (simp add: space_pair_measure)
+    unfolding conditional_mutual_information_def mi_eq
+    apply (subst mutual_information_distr[OF S TP Px Px_nn Pyz Pyz_nn Pxyz Pxyz_nn]; simp add: space_pair_measure)
     apply (subst Bochner_Integration.integral_diff[symmetric])
-    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: Bochner_Integration.integral_diff)
+      apply (auto intro!: integral_cong_AE simp: split_beta' simp del: Bochner_Integration.integral_diff)
     done
 
   let ?P = "density (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) Pxyz"
@@ -1335,15 +1297,15 @@ proof -
     by (subst STP.nn_integral_snd[symmetric])
        (auto simp add: split_beta' ennreal_mult[symmetric] space_pair_measure intro!: nn_integral_cong)
   also have "\<dots> = (\<integral>\<^sup>+x. ennreal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
-    apply (rule nn_integral_cong_AE)
-    using aeX1 aeX2 aeX3 AE_space
-    apply eventually_elim
-  proof (case_tac x, simp add: space_pair_measure)
-    fix a b assume "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "0 \<le> Pz b" "a \<in> space T \<and> b \<in> space P"
-      "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) \<partial>S) = ennreal (Pz b)"
-    then show "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) * ennreal (Pyz (a, b) / Pz b) \<partial>S) = ennreal (Pyz (a, b))"
-      using Pyz_nn[of "(a,b)"]
+  proof -
+    have *: "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) * ennreal (Pyz (a, b) / Pz b) \<partial>S) = ennreal (Pyz (a, b))"
+      if "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "0 \<le> Pz b" "a \<in> space T \<and> b \<in> space P"
+        "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) \<partial>S) = ennreal (Pz b)" for a b
+      using Pyz_nn[of "(a,b)"] that
       by (subst nn_integral_multc) (auto simp: space_pair_measure ennreal_mult[symmetric])
+    show ?thesis
+      using aeX1 aeX2 aeX3 AE_space
+      by (force simp: * space_pair_measure intro: nn_integral_cong_AE)
   qed
   also have "\<dots> = 1"
     using Q.emeasure_space_1 Pyz_nn distributed_distr_eq_density[OF Pyz]
@@ -1362,9 +1324,8 @@ proof -
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. ?g x = 0"
       by (intro nn_integral_0_iff_AE[THEN iffD1]) auto
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
-      using ae1 ae2 ae3 ae4 AE_space
-      by eventually_elim
-         (insert Px_nn Pz_nn Pxz_nn Pyz_nn,
+      using ae1 ae2 ae3 ae4 
+      by  (insert Px_nn Pz_nn Pxz_nn Pyz_nn,
            auto split: if_split_asm simp: mult_le_0_iff divide_le_0_iff space_pair_measure)
     then have "(\<integral>\<^sup>+ x. ennreal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
       by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
@@ -1382,19 +1343,12 @@ proof -
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
     apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ Bochner_Integration.integrable_diff[OF I1 I2]])
     using ae
-    apply (auto simp: split_beta')
-    done
+    by (auto simp: split_beta')
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
   proof (intro le_imp_neg_le log_le[OF b_gt_1])
     have If: "integrable ?P ?f"
-      unfolding real_integrable_def
-    proof (intro conjI)
-      from neg show "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) \<noteq> \<infinity>"
-        by simp
-      from fin show "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>"
-        by simp
-    qed simp
+      using neg fin by (force simp add: real_integrable_def)
     then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"
       using Pz_nn Pxz_nn Pyz_nn Pxyz_nn
       by (intro nn_integral_eq_integral)
@@ -1407,25 +1361,19 @@ proof -
   proof (rule P.jensens_inequality[where a=0 and b=1 and I="{0<..}"])
     show "AE x in ?P. ?f x \<in> {0<..}"
       unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
-      using ae1 ae2 ae3 ae4 AE_space
-      by eventually_elim (insert Pxyz_nn Pyz_nn Pz_nn Pxz_nn, auto simp: space_pair_measure less_le)
+      using ae1 ae2 ae3 ae4 
+      by (insert Pxyz_nn Pyz_nn Pz_nn Pxz_nn, auto simp: space_pair_measure less_le)
     show "integrable ?P ?f"
       unfolding real_integrable_def
       using fin neg by (auto simp: split_beta')
-    show "integrable ?P (\<lambda>x. - log b (?f x))"
-      using Pz_nn Pxz_nn Pyz_nn Pxyz_nn
-      apply (subst integrable_real_density)
-      apply simp
-      apply simp
-      apply simp
+    have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
-      apply simp
-      apply simp
-      using ae1 ae2 ae3 ae4 AE_space
-      apply eventually_elim
-      apply (auto simp: log_divide_eq log_mult_eq zero_le_mult_iff zero_less_mult_iff
-                        zero_less_divide_iff field_simps space_pair_measure less_le)
-      done
+      using Pz_nn Pxz_nn Pyz_nn Pxyz_nn ae2 ae3 ae4 
+      by (auto simp: log_divide_eq log_mult_eq zero_le_mult_iff zero_less_mult_iff
+          zero_less_divide_iff field_simps space_pair_measure less_le)
+    then
+    show "integrable ?P (\<lambda>x. - log b (?f x))"
+      using Pxyz_nn by (auto simp: integrable_real_density)
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
     unfolding \<open>?eq\<close>
@@ -1435,9 +1383,9 @@ proof -
     apply simp
     apply simp
     apply (intro integral_cong_AE)
-    using ae1 ae2 ae3 ae4 AE_space
+    using ae1 ae2 ae3 ae4 
     apply (auto simp: log_divide_eq zero_less_mult_iff zero_less_divide_iff
-                      field_simps space_pair_measure less_le)
+                      field_simps space_pair_measure less_le integral_cong_AE)
     done
   finally show ?nonneg
     by simp
@@ -1504,24 +1452,18 @@ proof -
   note sd = simple_distributedI[OF _ _ refl]
   note sp = simple_function_Pair
   show ?thesis
-   apply (rule conditional_mutual_information_generic_nonneg[OF sf[OF X] sf[OF Y] sf[OF Z]])
-   apply (rule simple_distributed[OF sd[OF X]])
-   apply simp
-   apply simp
-   apply (rule simple_distributed[OF sd[OF Z]])
-   apply simp
-   apply simp
-   apply (rule simple_distributed_joint[OF sd[OF sp[OF Y Z]]])
-   apply simp
-   apply simp
-   apply (rule simple_distributed_joint[OF sd[OF sp[OF X Z]]])
-   apply simp
-   apply simp
-   apply (rule simple_distributed_joint2[OF sd[OF sp[OF X sp[OF Y Z]]]])
-   apply simp
-   apply simp
-   apply (auto intro!: integrable_count_space simp: X Y Z simple_functionD)
-   done
+    apply (rule conditional_mutual_information_generic_nonneg[OF sf[OF X] sf[OF Y] sf[OF Z]])
+               apply (force intro: simple_distributed[OF sd[OF X]])
+              apply simp
+             apply (force intro: simple_distributed[OF sd[OF Z]])
+            apply simp
+           apply (force intro: simple_distributed_joint[OF sd[OF sp[OF Y Z]]])
+          apply simp
+         apply (force intro: simple_distributed_joint[OF sd[OF sp[OF X Z]]])
+        apply simp
+       apply (fastforce intro:  simple_distributed_joint2[OF sd[OF sp[OF X sp[OF Y Z]]]])
+      apply (auto intro!: integrable_count_space simp: X Y Z simple_functionD)
+    done
 qed
 
 subsection \<open>Conditional Entropy\<close>
@@ -1560,11 +1502,8 @@ proof -
   have "AE x in density (S \<Otimes>\<^sub>M T) (\<lambda>x. ennreal (Pxy x)). Py (snd x) = enn2real (RN_deriv T (distr M T Y) (snd x))"
     unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
     unfolding distributed_distr_eq_density[OF Py]
-    apply (rule ST.AE_pair_measure)
-    apply auto
     using distributed_RN_deriv[OF Py]
-    apply auto
-    done
+    by (force intro: ST.AE_pair_measure)
   ultimately
   have "conditional_entropy b S T X Y = - (\<integral>x. Pxy x * log b (Pxy x / Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
     unfolding conditional_entropy_def neg_equal_iff_equal
@@ -1613,17 +1552,14 @@ proof -
     using Py by (intro ST.AE_pair_measure) (auto simp: comp_def intro!: measurable_snd'')
   ultimately have "AE x in S \<Otimes>\<^sub>M T. 0 \<le> Pxy x \<and> 0 \<le> Py (snd x) \<and>
     (Pxy x = 0 \<or> (Pxy x \<noteq> 0 \<longrightarrow> 0 < Pxy x \<and> 0 < Py (snd x)))"
-    using AE_space by eventually_elim (auto simp: space_pair_measure less_le)
+    by (auto simp: space_pair_measure less_le)
   then have ae: "AE x in S \<Otimes>\<^sub>M T.
      Pxy x * log b (Pxy x) - Pxy x * log b (Py (snd x)) = Pxy x * log b (Pxy x / Py (snd x))"
-    by eventually_elim (auto simp: log_simps field_simps b_gt_1)
+    by (auto simp: log_simps field_simps b_gt_1)
   have "conditional_entropy b S T X Y =
     - (\<integral>x. Pxy x * log b (Pxy x) - Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
     unfolding conditional_entropy_generic_eq[OF S T Py Py_nn Pxy Pxy_nn, simplified] neg_equal_iff_equal
-    apply (intro integral_cong_AE)
-    using ae
-    apply auto
-    done
+    using ae by (force intro: integral_cong_AE)
   also have "\<dots> = - (\<integral>x. Pxy x * log b (Pxy x) \<partial>(S \<Otimes>\<^sub>M T)) - - (\<integral>x.  Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
     by (simp add: Bochner_Integration.integral_diff[OF I1 I2])
   finally show ?thesis
@@ -1671,7 +1607,7 @@ proof (subst conditional_entropy_generic_eq[OF _ _
   from Y show "- (\<integral> (x, y). ?f (x, y) * log b (?f (x, y) / Py y) \<partial>?P) =
     - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
     by (auto intro!: sum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite eq sum.If_cases split_beta')
-qed (insert Y XY, auto)
+qed (use Y XY in auto)
 
 lemma (in information_space) conditional_mutual_information_eq_conditional_entropy:
   assumes X: "simple_function M X" and Y: "simple_function M Y"
@@ -1891,7 +1827,7 @@ proof -
   have "0 \<le> mutual_information b S T X Y"
     by (rule mutual_information_nonneg') fact+
   also have "\<dots> = entropy b S X - conditional_entropy b S T X Y"
-    apply (rule mutual_information_eq_entropy_conditional_entropy')
+    apply (intro mutual_information_eq_entropy_conditional_entropy')
     using assms
     by (auto intro!: finite_entropy_integrable finite_entropy_distributed
       finite_entropy_integrable_transform[OF Px]
@@ -1933,14 +1869,22 @@ proof -
   have eq: "(\<lambda>x. ((f \<circ> X) x, X x)) ` space M = (\<lambda>x. (f x, x)) ` X ` space M" by auto
   have inj: "\<And>A. inj_on (\<lambda>x. (f x, x)) A"
     by (auto simp: inj_on_def)
-  show ?thesis
-    apply (subst entropy_chain_rule[symmetric, OF fX X])
-    apply (subst entropy_simple_distributed[OF simple_distributedI[OF simple_function_Pair[OF fX X] measure_nonneg refl]])
-    apply (subst entropy_simple_distributed[OF simple_distributedI[OF X measure_nonneg refl]])
+
+  have "\<H>(X) = - (\<Sum>x\<in>X ` space M. prob (X -` {x} \<inter> space M) * log b (prob (X -` {x} \<inter> space M)))"
+    by (simp add: entropy_simple_distributed[OF simple_distributedI[OF X measure_nonneg refl]])
+  also have "\<dots> =  - (\<Sum>x\<in>(\<lambda>x. ((f \<circ> X) x, X x)) ` space M.
+                       prob ((\<lambda>x. ((f \<circ> X) x, X x)) -` {x} \<inter> space M) *
+                       log b (prob ((\<lambda>x. ((f \<circ> X) x, X x)) -` {x} \<inter> space M)))"
     unfolding eq
     apply (subst sum.reindex[OF inj])
     apply (auto intro!: sum.cong arg_cong[where f="\<lambda>A. prob A * log b (prob A)"])
     done
+  also have "... = \<H>(\<lambda>x. ((f \<circ> X) x, X x))"
+    using entropy_simple_distributed[OF simple_distributedI[OF simple_function_Pair[OF fX X] measure_nonneg refl]]
+    by fastforce
+  also have "\<dots> = \<H>(f \<circ> X) + \<H>(X|f \<circ> X)"
+    using X entropy_chain_rule by blast
+  finally show ?thesis .
 qed
 
 corollary (in information_space) entropy_data_processing:

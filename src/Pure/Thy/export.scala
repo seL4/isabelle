@@ -379,10 +379,10 @@ object Export {
                 yield name -> store.try_open_database(name, server_mode = false)
             attempts.collectFirst({ case (name, None) => name }) match {
               case Some(bad) =>
-                for ((_, Some(db)) <- attempts) db.close()
+                for (case (_, Some(db)) <- attempts) db.close()
                 store.error_database(bad)
               case None =>
-                for ((name, Some(db)) <- attempts) yield {
+                for (case (name, Some(db)) <- attempts) yield {
                   new Session_Database(name, db) { override def close(): Unit = this.db.close() }
                 }
             }

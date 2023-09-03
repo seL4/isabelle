@@ -17,37 +17,41 @@ object Platform {
 
   def is_arm: Boolean = cpu_arch.startsWith("arm")
 
-  def family: Family.Value =
+  def family: Family =
     if (is_linux && is_arm) Family.linux_arm
     else if (is_linux) Family.linux
     else if (is_macos) Family.macos
     else if (is_windows) Family.windows
     else error("Failed to determine current platform family")
 
-  object Family extends Enumeration {
-    val linux_arm, linux, macos, windows = Value
-    val list0: List[Value] = List(linux, windows, macos)
-    val list: List[Value] = List(linux, linux_arm, windows, macos)
+  object Family {
+    val list0: List[Family] = List(Family.linux, Family.windows, Family.macos)
+    val list: List[Family] = List(Family.linux, Family.linux_arm, Family.windows, Family.macos)
 
-    def unapply(name: String): Option[Value] =
-      try { Some(withName(name)) }
-      catch { case _: NoSuchElementException => None }
+    def unapply(name: String): Option[Family] =
+      try { Some(Family.valueOf(name)) }
+      catch { case _: IllegalArgumentException => None }
 
-    def parse(name: String): Value =
+    def parse(name: String): Family =
       unapply(name) getOrElse error("Bad platform family: " + quote(name))
 
-    def standard(platform: Value): String =
-      if (platform == linux_arm) "arm64-linux"
-      else if (platform == linux) "x86_64-linux"
-      else if (platform == macos) "x86_64-darwin"
-      else if (platform == windows) "x86_64-cygwin"
-      else error("Bad platform family: " + quote(platform.toString))
+    val standard: Family => String =
+      {
+        case Family.linux_arm => "arm64-linux"
+        case Family.linux => "x86_64-linux"
+        case Family.macos => "x86_64-darwin"
+        case Family.windows => "x86_64-cygwin"
+      }
 
-    def native(platform: Value): String =
-      if (platform == macos) "arm64-darwin"
-      else if (platform == windows) "x86_64-windows"
-      else standard(platform)
+    val native: Family => String =
+      {
+        case Family.macos => "arm64-darwin"
+        case Family.windows => "x86_64-windows"
+        case platform => standard(platform)
+      }
   }
+
+  enum Family { case linux_arm, linux, macos, windows }
 
 
   /* platform identifiers */

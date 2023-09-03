@@ -841,7 +841,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     /* repository information */
 
     sealed case class Repository(
-      vcs: VCS.Value,
+      vcs: VCS,
       id: Long,
       phid: String,
       name: String,
@@ -853,12 +853,11 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       def is_hg: Boolean = vcs == VCS.hg
     }
 
-    object VCS extends Enumeration {
-      val hg, git, svn = Value
-      def read(s: String): Value =
-        try { withName(s) }
-        catch { case _: java.util.NoSuchElementException => error("Unknown vcs type " + quote(s)) }
-    }
+    enum VCS { case hg, git, svn }
+
+    def read_vcs(s: String): VCS =
+      try { VCS.valueOf(s) }
+      catch { case _: IllegalArgumentException => error("Unknown vcs type " + quote(s)) }
 
     def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
       List(JSON.Object("type" -> typ, "value" -> value))
@@ -999,7 +998,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
                 importing <- JSON.bool(fields, "isImporting")
               }
               yield {
-                val vcs = API.VCS.read(vcs_name)
+                val vcs = API.read_vcs(vcs_name)
                 val url_path =
                   if (short_name.isEmpty) "/diffusion/" + id else "/source/" + short_name
                 val ssh_url =
@@ -1024,7 +1023,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       short_name: String = "",  // unique name
       description: String = "",
       public: Boolean = false,
-      vcs: API.VCS.Value = API.VCS.hg
+      vcs: API.VCS = API.VCS.hg
     ): API.Repository = {
       require(name.nonEmpty, "bad repository name")
 

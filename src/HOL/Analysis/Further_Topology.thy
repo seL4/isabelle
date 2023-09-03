@@ -30,9 +30,9 @@ proof
   proof
     have "\<And>u. \<lbrakk>u \<in> S; norm u *\<^sub>R f (u /\<^sub>R norm u) \<notin> T\<rbrakk> \<Longrightarrow> u = 0"
       by (metis (mono_tags, lifting) DiffI subS01 subspace_mul [OF \<open>subspace T\<close>] fim image_subset_iff inf_le2 singletonD)
-    then have "g ` (S - {0}) \<subseteq> T"
+    then have "g \<in> (S - {0}) \<rightarrow> T"
       using g_def by blast
-    moreover have "g ` (S - {0}) \<subseteq> UNIV - {0}"
+    moreover have "g \<in> (S - {0}) \<rightarrow> UNIV - {0}"
     proof (clarsimp simp: g_def)
       fix y
       assume "y \<in> S" and f0: "f (y /\<^sub>R norm y) = 0"
@@ -159,30 +159,24 @@ lemma spheremap_lemma2:
   assumes ST: "subspace S" "subspace T" "dim S < dim T"
       and "S \<subseteq> T"
       and contf: "continuous_on (sphere 0 1 \<inter> S) f"
-      and fim: "f ` (sphere 0 1 \<inter> S) \<subseteq> sphere 0 1 \<inter> T"
+      and fim: "f \<in> (sphere 0 1 \<inter> S) \<rightarrow> sphere 0 1 \<inter> T"
     shows "\<exists>c. homotopic_with_canon (\<lambda>x. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) f (\<lambda>x. c)"
 proof -
   have [simp]: "\<And>x. \<lbrakk>norm x = 1; x \<in> S\<rbrakk> \<Longrightarrow> norm (f x) = 1"
-    using fim by (simp add: image_subset_iff)
+    using fim by auto
   have "compact (sphere 0 1 \<inter> S)"
     by (simp add: \<open>subspace S\<close> closed_subspace compact_Int_closed)
-  then obtain g where pfg: "polynomial_function g" and gim: "g ` (sphere 0 1 \<inter> S) \<subseteq> T"
+  then obtain g where pfg: "polynomial_function g" and gim: "g \<in> (sphere 0 1 \<inter> S) \<rightarrow> T"
                 and g12: "\<And>x. x \<in> sphere 0 1 \<inter> S \<Longrightarrow> norm(f x - g x) < 1/2"
-    using Stone_Weierstrass_polynomial_function_subspace [OF _ contf _ \<open>subspace T\<close>, of "1/2"] fim by auto
+    using Stone_Weierstrass_polynomial_function_subspace [OF _ contf _ \<open>subspace T\<close>, of "1/2"] fim
+    by (auto simp: image_subset_iff_funcset)
   have gnz: "g x \<noteq> 0" if "x \<in> sphere 0 1 \<inter> S" for x
-  proof -
-    have "norm (f x) = 1"
-      using fim that by (simp add: image_subset_iff)
-    then show ?thesis
-      using g12 [OF that] by auto
-  qed
+    using g12 that by fastforce
   have diffg: "g differentiable_on sphere 0 1 \<inter> S"
     by (metis pfg differentiable_on_polynomial_function)
   define h where "h \<equiv> \<lambda>x. inverse(norm(g x)) *\<^sub>R g x"
   have h: "x \<in> sphere 0 1 \<inter> S \<Longrightarrow> h x \<in> sphere 0 1 \<inter> T" for x
-    unfolding h_def
-    using gnz [of x]
-    by (auto simp: subspace_mul [OF \<open>subspace T\<close>] subsetD [OF gim])
+    unfolding h_def using \<open>subspace T\<close> gim gnz subspace_mul by fastforce
   have diffh: "h differentiable_on sphere 0 1 \<inter> S"
     unfolding h_def using gnz
     by (fastforce intro: derivative_intros diffg differentiable_on_compose [OF diffg])
@@ -205,7 +199,7 @@ proof -
       have "convex T"
         by (simp add: \<open>subspace T\<close> subspace_imp_convex)
       then have "convex hull {f x, g x} \<subseteq> T"
-        by (metis IntD2 closed_segment_subset fim gim image_subset_iff segment_convex_hull that)
+        by (metis IntD2 PiE closed_segment_subset fim gim segment_convex_hull that)
       then show ?thesis
         using that non0fg segment_convex_hull by fastforce
     qed
@@ -279,14 +273,9 @@ next
       then have affS_eq: "aff_dim S = aff_dim (ball 0 1 \<inter> T)"
         using \<open>aff_dim T = aff_dim S\<close> by simp
       have "rel_frontier S homeomorphic rel_frontier(ball 0 1 \<inter> T)"
-      proof (rule homeomorphic_rel_frontiers_convex_bounded_sets [OF \<open>convex S\<close> \<open>bounded S\<close>])
-        show "convex (ball 0 1 \<inter> T)"
-          by (simp add: \<open>subspace T\<close> convex_Int subspace_imp_convex)
-        show "bounded (ball 0 1 \<inter> T)"
-          by (simp add: bounded_Int)
-        show "aff_dim S = aff_dim (ball 0 1 \<inter> T)"
-          by (rule affS_eq)
-      qed
+        using homeomorphic_rel_frontiers_convex_bounded_sets [OF \<open>convex S\<close> \<open>bounded S\<close>]
+        by (simp add: \<open>subspace T\<close> affS_eq assms bounded_Int convex_Int 
+            homeomorphic_rel_frontiers_convex_bounded_sets subspace_imp_convex)
       also have "... = frontier (ball 0 1) \<inter> T"
       proof (rule convex_affine_rel_frontier_Int [OF convex_ball])
         show "affine T"
@@ -318,10 +307,8 @@ next
   then show ?thesis
   proof (cases "T = {}")
     case True
-    then have "rel_frontier S = {}" "rel_frontier T = {}"
-      using fim by fastforce+
     then show ?thesis
-      using that by (simp add: homotopic_on_emptyI)
+      by (smt (verit, best) False affST aff_dim_negative_iff)
   next
     case False
     obtain T':: "'a set"
@@ -383,16 +370,16 @@ lemma extending_maps_Union_aux:
   assumes fin: "finite \<F>"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
       and "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>; S \<noteq> T\<rbrakk> \<Longrightarrow> S \<inter> T \<subseteq> K"
-      and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>g. continuous_on S g \<and> g ` S \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
-   shows "\<exists>g. continuous_on (\<Union>\<F>) g \<and> g ` (\<Union>\<F>) \<subseteq> T \<and> (\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x)"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>g. continuous_on S g \<and> g \<in> S \<rightarrow> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
+   shows "\<exists>g. continuous_on (\<Union>\<F>) g \<and> g \<in> (\<Union>\<F>) \<rightarrow> T \<and> (\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x)"
 using assms
 proof (induction \<F>)
   case empty show ?case by simp
 next
   case (insert S \<F>)
-  then obtain f where contf: "continuous_on (S) f" and fim: "f ` S \<subseteq> T" and feq: "\<forall>x \<in> S \<inter> K. f x = h x"
-    by (meson insertI1)
-  obtain g where contg: "continuous_on (\<Union>\<F>) g" and gim: "g ` \<Union>\<F> \<subseteq> T" and geq: "\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x"
+  then obtain f where contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> T" and feq: "\<forall>x \<in> S \<inter> K. f x = h x"
+    by (metis funcset_image insert_iff)
+  obtain g where contg: "continuous_on (\<Union>\<F>) g" and gim: "g \<in> (\<Union>\<F>) \<rightarrow> T" and geq: "\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x"
     using insert by auto
   have fg: "f x = g x" if "x \<in> T" "T \<in> \<F>" "x \<in> S" for x T
   proof -
@@ -403,38 +390,38 @@ next
   qed
   moreover have "continuous_on (S \<union> \<Union> \<F>) (\<lambda>x. if x \<in> S then f x else g x)"
     by (auto simp: insert closed_Union contf contg  intro: fg continuous_on_cases)
+  moreover have "S \<union> \<Union> \<F> = \<Union> (insert S \<F>)"
+    by auto
   ultimately show ?case
-    by (smt (verit, del_insts) Int_iff UnE complete_lattice_class.Sup_insert feq fim geq gim image_subset_iff)
+    by (smt (verit) Int_iff Pi_iff UnE feq fim geq gim)
 qed
 
 lemma extending_maps_Union:
   assumes fin: "finite \<F>"
-      and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>g. continuous_on S g \<and> g ` S \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
-      and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
-      and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; \<not> X \<subseteq> Y; \<not> Y \<subseteq> X\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
-    shows "\<exists>g. continuous_on (\<Union>\<F>) g \<and> g ` (\<Union>\<F>) \<subseteq> T \<and> (\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x)"
-apply (simp flip: Union_maximal_sets [OF fin])
-apply (rule extending_maps_Union_aux)
-apply (simp_all add: Union_maximal_sets [OF fin] assms)
-by (metis K psubsetI)
-
+    and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>g. continuous_on S g \<and> g \<in> S \<rightarrow> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
+    and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
+    and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; \<not> X \<subseteq> Y; \<not> Y \<subseteq> X\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
+  shows "\<exists>g. continuous_on (\<Union>\<F>) g \<and> g \<in> (\<Union>\<F>) \<rightarrow> T \<and> (\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x)"
+proof -
+  have "\<And>S T. \<lbrakk>S \<in> \<F>; \<forall>U\<in>\<F>. \<not> S \<subset> U; T \<in> \<F>; \<forall>U\<in>\<F>. \<not> T \<subset> U; S \<noteq> T\<rbrakk> \<Longrightarrow> S \<inter> T \<subseteq> K"
+    by (metis K psubsetI)
+  then show ?thesis
+    apply (simp flip: Union_maximal_sets [OF fin])
+    apply (rule extending_maps_Union_aux, simp_all add: Union_maximal_sets [OF fin] assms)
+    done
+qed
 
 lemma extend_map_lemma:
   assumes "finite \<F>" "\<G> \<subseteq> \<F>" "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> - \<G> \<Longrightarrow> aff_dim X < aff_dim T"
       and face: "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S"
-      and contf: "continuous_on (\<Union>\<G>) f" and fim: "f ` (\<Union>\<G>) \<subseteq> rel_frontier T"
-  obtains g where "continuous_on (\<Union>\<F>) g" "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
+      and contf: "continuous_on (\<Union>\<G>) f" and fim: "f \<in> (\<Union>\<G>) \<rightarrow> rel_frontier T"
+  obtains g where "continuous_on (\<Union>\<F>) g" "g \<in> (\<Union>\<F>) \<rightarrow> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
 proof (cases "\<F> - \<G> = {}")
   case True
   show ?thesis
-  proof
-    show "continuous_on (\<Union> \<F>) f"
-      using True \<open>\<G> \<subseteq> \<F>\<close> contf by auto
-    show "f ` \<Union> \<F> \<subseteq> rel_frontier T"
-      using True fim by auto
-  qed auto
+    using True assms(2) contf fim that by force
 next
   case False
   then have "0 \<le> aff_dim T"
@@ -467,14 +454,14 @@ next
       using Suc.IH [OF ple] by auto
     let ?Faces = "{D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D \<le> p}"
     have extendh: "\<exists>g. continuous_on D g \<and>
-                       g ` D \<subseteq> rel_frontier T \<and>
+                       g \<in> D \<rightarrow> rel_frontier T \<and>
                        (\<forall>x \<in> D \<inter> \<Union>(\<G> \<union> {D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D < p}). g x = h x)"
       if D: "D \<in> \<G> \<union> ?Faces" for D
     proof (cases "D \<subseteq> \<Union>(\<G> \<union> {D. \<exists>C \<in> \<F>. D face_of C \<and> aff_dim D < p})")
       case True
       have "continuous_on D h"
         using True conth continuous_on_subset by blast
-      moreover have "h ` D \<subseteq> rel_frontier T"
+      moreover have "h \<in> D \<rightarrow> rel_frontier T"
         using True him by blast
       ultimately show ?thesis
         by blast
@@ -574,7 +561,7 @@ next
      show ?thesis
        using that
         apply clarsimp
-        by (smt (verit, ccfv_SIG) IntI face_of_aff_dim_lt face_of_imp_convex [of X] face_of_imp_convex [of Y] face_of_trans ff)
+       by (smt (verit) IntI face_of_aff_dim_lt face_of_imp_convex face_of_trans ff inf_commute)
     qed
     obtain g where "continuous_on (\<Union>(\<G> \<union> ?Faces)) g"
                    "g ` \<Union>(\<G> \<union> ?Faces) \<subseteq> rel_frontier T"
@@ -589,23 +576,20 @@ next
     show "\<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < int i}) \<subseteq> \<Union>\<F>"
       using \<open>\<G> \<subseteq> \<F>\<close> face_of_imp_subset by fastforce
     show "\<Union>\<F> \<subseteq> \<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < i})"
-    proof (rule Union_mono)
-      show "\<F> \<subseteq> \<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < int i}"
-        using face by (fastforce simp: aff i)
-    qed
+        using face by (intro Union_mono) (fastforce simp: aff i)
   qed
   have "int i \<le> aff_dim T" by (simp add: i)
   then show ?thesis
-    using extendf [of i] unfolding eq by (metis that)
+    using extendf [of i] that unfolding eq by fastforce
 qed
 
 lemma extend_map_lemma_cofinite0:
   assumes "finite \<F>"
       and "pairwise (\<lambda>S T. S \<inter> T \<subseteq> K) \<F>"
-      and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (S - {a}) g \<and> g ` (S - {a}) \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (S - {a}) g \<and> g \<in> (S - {a}) \<rightarrow> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
     shows "\<exists>C g. finite C \<and> disjnt C U \<and> card C \<le> card \<F> \<and>
-                 continuous_on (\<Union>\<F> - C) g \<and> g ` (\<Union>\<F> - C) \<subseteq> T
+                 continuous_on (\<Union>\<F> - C) g \<and> g \<in> (\<Union>\<F> - C) \<rightarrow> T
                   \<and> (\<forall>x \<in> (\<Union>\<F> - C) \<inter> K. g x = h x)"
   using assms
 proof induction
@@ -614,18 +598,18 @@ proof induction
 next
   case (insert X \<F>)
   then have "closed X" and clo: "\<And>X. X \<in> \<F> \<Longrightarrow> closed X"
-        and \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (S - {a}) g \<and> g ` (S - {a}) \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
+        and \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (S - {a}) g \<and> g \<in> (S - {a}) \<rightarrow> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
         and pwX: "\<And>Y. Y \<in> \<F> \<and> Y \<noteq> X \<longrightarrow> X \<inter> Y \<subseteq> K \<and> Y \<inter> X \<subseteq> K"
         and pwF: "pairwise (\<lambda> S T. S \<inter> T \<subseteq> K) \<F>"
     by (simp_all add: pairwise_insert)
   obtain C g where C: "finite C" "disjnt C U" "card C \<le> card \<F>"
                and contg: "continuous_on (\<Union>\<F> - C) g"
-               and gim: "g ` (\<Union>\<F> - C) \<subseteq> T"
+               and gim: "g \<in> (\<Union>\<F> - C) \<rightarrow> T"
                and gh:  "\<And>x. x \<in> (\<Union>\<F> - C) \<inter> K \<Longrightarrow> g x = h x"
     using insert.IH [OF pwF \<F> clo] by auto
   obtain a f where "a \<notin> U"
                and contf: "continuous_on (X - {a}) f"
-               and fim: "f ` (X - {a}) \<subseteq> T"
+               and fim: "f \<in> (X - {a}) \<rightarrow> T"
                and fh: "(\<forall>x \<in> X \<inter> K. f x = h x)"
     using insert.prems by (meson insertI1)
   show ?case
@@ -652,19 +636,19 @@ next
       by (blast intro: continuous_on_subset)
     show "\<forall>x\<in>(\<Union>(insert X \<F>) - insert a C) \<inter> K. (if x \<in> X then f x else g x) = h x"
       using gh by (auto simp: fh)
-    show "(\<lambda>a. if a \<in> X then f a else g a) ` (\<Union>(insert X \<F>) - insert a C) \<subseteq> T"
-      using fim gim by auto force
+    show "(\<lambda>a. if a \<in> X then f a else g a) \<in> (\<Union>(insert X \<F>) - insert a C) \<rightarrow> T"
+      using fim gim Pi_iff by fastforce
   qed
 qed
 
 
 lemma extend_map_lemma_cofinite1:
 assumes "finite \<F>"
-    and \<F>: "\<And>X. X \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (X - {a}) g \<and> g ` (X - {a}) \<subseteq> T \<and> (\<forall>x \<in> X \<inter> K. g x = h x)"
+    and \<F>: "\<And>X. X \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (X - {a}) g \<and> g \<in> (X - {a}) \<rightarrow> T \<and> (\<forall>x \<in> X \<inter> K. g x = h x)"
     and clo: "\<And>X. X \<in> \<F> \<Longrightarrow> closed X"
     and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; \<not> X \<subseteq> Y; \<not> Y \<subseteq> X\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
   obtains C g where "finite C" "disjnt C U" "card C \<le> card \<F>" "continuous_on (\<Union>\<F> - C) g"
-                    "g ` (\<Union>\<F> - C) \<subseteq> T"
+                    "g \<in> (\<Union>\<F> - C) \<rightarrow> T"
                     "\<And>x. x \<in> (\<Union>\<F> - C) \<inter> K \<Longrightarrow> g x = h x"
 proof -
   let ?\<F> = "{X \<in> \<F>. \<forall>Y\<in>\<F>. \<not> X \<subset> Y}"
@@ -678,7 +662,7 @@ proof -
     by (simp add: \<open>finite \<F>\<close> card_mono)
   moreover
   obtain C g where "finite C \<and> disjnt C U \<and> card C \<le> card ?\<F> \<and>
-                 continuous_on (\<Union>?\<F> - C) g \<and> g ` (\<Union>?\<F> - C) \<subseteq> T
+                 continuous_on (\<Union>?\<F> - C) g \<and> g \<in> (\<Union>?\<F> - C) \<rightarrow> T
                   \<and> (\<forall>x \<in> (\<Union>?\<F> - C) \<inter> K. g x = h x)"
     using extend_map_lemma_cofinite0 [OF fin pw, of U T h] by (fastforce intro!: clo \<F>)
   ultimately show ?thesis
@@ -689,12 +673,12 @@ qed
 lemma extend_map_lemma_cofinite:
   assumes "finite \<F>" "\<G> \<subseteq> \<F>" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
-      and contf: "continuous_on (\<Union>\<G>) f" and fim: "f ` (\<Union>\<G>) \<subseteq> rel_frontier T"
+      and contf: "continuous_on (\<Union>\<G>) f" and fim: "f \<in> (\<Union>\<G>) \<rightarrow> rel_frontier T"
       and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and aff: "\<And>X. X \<in> \<F> - \<G> \<Longrightarrow> aff_dim X \<le> aff_dim T"
   obtains C g where
      "finite C" "disjnt C (\<Union>\<G>)" "card C \<le> card \<F>" "continuous_on (\<Union>\<F> - C) g"
-     "g ` (\<Union> \<F> - C) \<subseteq> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
+     "g \<in> (\<Union> \<F> - C) \<rightarrow> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
 proof -
   define \<H> where "\<H> \<equiv> \<G> \<union> {D. \<exists>C \<in> \<F> - \<G>. D face_of C \<and> aff_dim D < aff_dim T}"
   have "finite \<G>"
@@ -707,7 +691,7 @@ proof -
     by (metis face inf_commute)
   have *: "\<And>X Y. \<lbrakk>X \<in> \<H>; Y \<in> \<H>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X"
     by (simp add: \<H>_def) (smt (verit) \<open>\<G> \<subseteq> \<F>\<close> DiffE face' face_of_Int_subface in_mono inf.idem)
-  obtain h where conth: "continuous_on (\<Union>\<H>) h" and him: "h ` (\<Union>\<H>) \<subseteq> rel_frontier T"
+  obtain h where conth: "continuous_on (\<Union>\<H>) h" and him: "h \<in> (\<Union>\<H>) \<rightarrow> rel_frontier T"
              and hf: "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> h x = f x" 
   proof (rule extend_map_lemma [OF \<open>finite \<H>\<close> [unfolded \<H>_def] Un_upper1 T])
     show "\<And>X. \<lbrakk>X \<in> \<G> \<union> {D. \<exists>C\<in>\<F> - \<G>. D face_of C \<and> aff_dim D < aff_dim T}\<rbrakk> \<Longrightarrow> polytope X"
@@ -720,11 +704,11 @@ proof -
   then obtain a where a: "a \<notin> \<Union>\<G>"
     by blast
   have \<F>: "\<exists>a g. a \<notin> \<Union>\<G> \<and> continuous_on (D - {a}) g \<and>
-                  g ` (D - {a}) \<subseteq> rel_frontier T \<and> (\<forall>x \<in> D \<inter> \<Union>\<H>. g x = h x)"
+                  g \<in> (D - {a}) \<rightarrow> rel_frontier T \<and> (\<forall>x \<in> D \<inter> \<Union>\<H>. g x = h x)"
        if "D \<in> \<F>" for D
   proof (cases "D \<subseteq> \<Union>\<H>")
     case True
-    then have "h ` (D - {a}) \<subseteq> rel_frontier T" "continuous_on (D - {a}) h"
+    then have "h \<in> (D - {a}) \<rightarrow> rel_frontier T" "continuous_on (D - {a}) h"
       using him by (blast intro!: \<open>a \<notin> \<Union>\<G>\<close> continuous_on_subset [OF conth])+
     then show ?thesis
       using a by blast
@@ -755,7 +739,7 @@ proof -
           by (simp add: rel_frontier_retract_of_punctured_affine_hull poly polytope_imp_bounded polytope_imp_convex that brelD)
         then obtain r where relfD: "rel_frontier D \<subseteq> affine hull D - {b}"
                         and contr: "continuous_on (affine hull D - {b}) r"
-                        and rim: "r ` (affine hull D - {b}) \<subseteq> rel_frontier D"
+                        and rim: "r \<in> (affine hull D - {b}) \<rightarrow> rel_frontier D"
                         and rid: "\<And>x. x \<in> rel_frontier D \<Longrightarrow> r x = x"
           by (auto simp: retract_of_def retraction_def)
         show ?thesis
@@ -774,7 +758,7 @@ proof -
           have "r ` (D - {b}) \<subseteq> r ` (affine hull D - {b})"
             by (simp add: Diff_mono hull_subset image_mono)
           also have "... \<subseteq> rel_frontier D"
-            by (rule rim)
+            using rim by auto
           also have "... \<subseteq> \<Union>{E. E face_of D \<and> aff_dim E < aff_dim T}"
             using affD
             by (force simp: rel_frontier_of_polyhedron [OF \<open>polyhedron D\<close>] facet_of_def)
@@ -788,7 +772,7 @@ proof -
             show "continuous_on (r ` (D - {b})) h"
               by (simp add: Diff_mono hull_subset continuous_on_subset [OF conth rsub])
           qed
-          show "(h \<circ> r) ` (D - {b}) \<subseteq> rel_frontier T"
+          show "(h \<circ> r) \<in> (D - {b}) \<rightarrow> rel_frontier T"
             using brelD him rsub by fastforce
           show "(h \<circ> r) x = h x" if x: "x \<in> D \<inter> \<Union>\<H>" for x
           proof -
@@ -825,7 +809,7 @@ proof -
   have clo: "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
     by (simp add: poly polytope_imp_closed)
   obtain C g where "finite C" "disjnt C (\<Union>\<G>)" "card C \<le> card \<F>" "continuous_on (\<Union>\<F> - C) g"
-                   "g ` (\<Union>\<F> - C) \<subseteq> rel_frontier T"
+                   "g \<in> (\<Union>\<F> - C) \<rightarrow> rel_frontier T"
                and gh: "\<And>x. x \<in> (\<Union>\<F> - C) \<inter> \<Union>\<H> \<Longrightarrow> g x = h x"
   proof (rule extend_map_lemma_cofinite1 [OF \<open>finite \<F>\<close> \<F> clo])
     show "X \<inter> Y \<subseteq> \<Union>\<H>" if XY: "X \<in> \<F>" "Y \<in> \<F>" and "\<not> X \<subseteq> Y" "\<not> Y \<subseteq> X" for X Y
@@ -856,7 +840,7 @@ theorem extend_map_cell_complex_to_sphere:
       and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> rel_frontier T"
   obtains g where "continuous_on (\<Union>\<F>) g"
-     "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+     "g \<in> (\<Union>\<F>) \<rightarrow> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
   obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g \<in> V \<rightarrow> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     using neighbourhood_extension_into_ANR [OF contf fim _ \<open>closed S\<close>] ANR_rel_frontier_convex T by blast
@@ -877,12 +861,12 @@ proof -
   proof (rule extend_map_lemma [of \<G> "\<G> \<inter> Pow V" T g])
     show "continuous_on (\<Union>(\<G> \<inter> Pow V)) g"
       by (metis Union_Int_subset Union_Pow_eq \<open>continuous_on V g\<close> continuous_on_subset le_inf_iff)
-  qed (use \<open>finite \<G>\<close> T polyG affG faceG gim in fastforce)+
+  qed (use \<open>finite \<G>\<close> T polyG affG faceG gim image_subset_iff_funcset in auto)
   show ?thesis
   proof
     show "continuous_on (\<Union>\<F>) h"
       using \<open>\<Union>\<G> = \<Union>\<F>\<close> conth by auto
-    show "h ` \<Union>\<F> \<subseteq> rel_frontier T"
+    show "h \<in> \<Union>\<F> \<rightarrow> rel_frontier T"
       using \<open>\<Union>\<G> = \<Union>\<F>\<close> him by auto
     show "h x = f x" if "x \<in> S" for x
     proof -
@@ -910,7 +894,7 @@ theorem extend_map_cell_complex_to_sphere_cofinite:
       and face: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>\<rbrakk> \<Longrightarrow> (X \<inter> Y) face_of X"
       and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> rel_frontier T"
   obtains C g where "finite C" "disjnt C S" "continuous_on (\<Union>\<F> - C) g"
-     "g ` (\<Union>\<F> - C) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+     "g \<in> (\<Union>\<F> - C) \<rightarrow> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof -
   obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g \<in> V \<rightarrow> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     using neighbourhood_extension_into_ANR [OF contf fim _ \<open>closed S\<close>] ANR_rel_frontier_convex T by blast
@@ -926,15 +910,15 @@ proof -
     by (rule cell_complex_subdivision_exists [OF \<open>d>0\<close> \<open>finite \<F>\<close> poly aff face]) auto
   obtain C h where "finite C" and dis: "disjnt C (\<Union>(\<G> \<inter> Pow V))"
                and card: "card C \<le> card \<G>" and conth: "continuous_on (\<Union>\<G> - C) h"
-               and him: "h ` (\<Union>\<G> - C) \<subseteq> rel_frontier T"
+               and him: "h \<in> (\<Union>\<G> - C) \<rightarrow> rel_frontier T"
                and hg: "\<And>x. x \<in> \<Union>(\<G> \<inter> Pow V) \<Longrightarrow> h x = g x"
   proof (rule extend_map_lemma_cofinite [of \<G> "\<G> \<inter> Pow V" T g])
     show "continuous_on (\<Union>(\<G> \<inter> Pow V)) g"
       by (metis Union_Int_subset Union_Pow_eq \<open>continuous_on V g\<close> continuous_on_subset le_inf_iff)
-    show "g ` \<Union>(\<G> \<inter> Pow V) \<subseteq> rel_frontier T"
+    show "g \<in> \<Union>(\<G> \<inter> Pow V) \<rightarrow> rel_frontier T"
       using gim by force
   qed (auto intro: \<open>finite \<G>\<close> T polyG affG dest: faceG)
-  have Ssub: "S \<subseteq> \<Union>(\<G> \<inter> Pow V)"
+  have "S \<subseteq> \<Union>(\<G> \<inter> Pow V)"
   proof
     fix x
     assume "x \<in> S"
@@ -948,23 +932,8 @@ proof -
     then show "x \<in> \<Union>(\<G> \<inter> Pow V)"
       using \<open>X \<in> \<G>\<close> \<open>x \<in> X\<close> by blast
   qed
-  show ?thesis
-  proof
-    show "continuous_on (\<Union>\<F>-C) h"
-      using \<open>\<Union>\<G> = \<Union>\<F>\<close> conth by auto
-    show "h ` (\<Union>\<F> - C) \<subseteq> rel_frontier T"
-      using \<open>\<Union>\<G> = \<Union>\<F>\<close> him by auto
-    show "h x = f x" if "x \<in> S" for x
-    proof -
-      have "h x = g x"
-        using Ssub hg that by blast
-      also have "... = f x"
-        by (simp add: gf that)
-      finally show "h x = f x" .
-    qed
-    show "disjnt C S"
-      using dis Ssub  by (meson disjnt_iff subset_eq)
-  qed (intro \<open>finite C\<close>)
+  then show ?thesis
+    by (metis PowI Union_Pow_eq \<open>\<Union> \<G> = \<Union> \<F>\<close> \<open>finite C\<close> conth dis disjnt_Union2 gf hg him subsetD that)
 qed
 
 
@@ -1021,7 +990,7 @@ proof -
       by (metis aff aff_dim_subset inf_commute inf_le1 order_trans)
     obtain K g where K: "finite K" "disjnt K S"
                  and contg: "continuous_on (\<Union>{bbox \<inter> T} - K) g"
-                 and gim: "g ` (\<Union>{bbox \<inter> T} - K) \<subseteq> rel_frontier U"
+                 and gim: "g \<in> (\<Union>{bbox \<inter> T} - K) \<rightarrow> rel_frontier U"
                  and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     proof (rule extend_map_cell_complex_to_sphere_cofinite
               [OF _ Ssub _ \<open>convex U\<close> \<open>bounded U\<close> _ _ _ contf fim])
@@ -1090,7 +1059,7 @@ proof -
       have "(g \<circ> closest_point (cbox (- c) c \<inter> T)) ` (T - K) \<subseteq> g ` (\<Union>{bbox \<inter> T} - K)"
         by (metis image_comp image_mono cpt_subset)
       also have "... \<subseteq> rel_frontier U"
-        by (rule gim)
+        using gim by blast
       finally show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) \<in> (T - K) \<rightarrow> rel_frontier U"
         by blast
       show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) x = f x" if "x \<in> S" for x
@@ -1112,7 +1081,7 @@ proof -
               order_trans [OF \<open>S \<subseteq> T\<close> hull_subset [of T affine]])
   then obtain K g where "finite K" "disjnt K S"
                and contg: "continuous_on (T - K) g"
-               and gim:  "g ` (T - K) \<subseteq> rel_frontier U"
+               and gim:  "g \<in> (T - K) \<rightarrow> rel_frontier U"
                and gf:   "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     by (rule_tac K=K and g=g in that) (auto simp: hull_inc elim: continuous_on_subset)
   then show ?thesis
@@ -1195,7 +1164,7 @@ next
     ultimately have "frontier (cball a d) \<inter> U retract_of (U - {a})"
       by metis
     then obtain r where contr: "continuous_on (U - {a}) r"
-                    and rim: "r ` (U - {a}) \<subseteq> sphere a d"  "r ` (U - {a}) \<subseteq> U"
+                    and rim: "r \<in> (U - {a}) \<rightarrow> sphere a d"  "r \<in> (U - {a}) \<rightarrow> U"
                     and req: "\<And>x. x \<in> sphere a d \<inter> U \<Longrightarrow> r x = x"
       using \<open>affine U\<close> by (force simp: retract_of_def retraction_def hull_same)
     define j where "j \<equiv> \<lambda>x. if x \<in> ball a d then r x else x"
@@ -1212,8 +1181,7 @@ next
         using rim by auto
       then show "j y \<in> S \<union> C - ball a d"
         unfolding j_def
-        using \<open>r y \<in> sphere a d\<close> \<open>y \<in> U - {a}\<close> \<open>y \<in> S \<union> (C - {a})\<close> d rim
-        by (metis Diff_iff Int_iff Un_iff subsetD cball_diff_eq_sphere image_subset_iff)
+        using \<open>y \<in> S \<union> (C - {a})\<close> \<open>y \<in> U - {a}\<close> d rim(2) by auto
     qed
     have contj: "continuous_on (U - {a}) j"
       unfolding j_def Uaeq
@@ -1437,7 +1405,7 @@ proof -
                and gim: "g \<in> (T - K) \<rightarrow> rel_frontier U"
                and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
      using assms extend_map_affine_to_sphere_cofinite_simple by metis
-  have "(\<exists>y C. C \<in> components (T - S) \<and> x \<in> C \<and> y \<in> C \<and> y \<in> L)" if "x \<in> K" for x
+  have "\<exists>y C. C \<in> components (T - S) \<and> x \<in> C \<and> y \<in> C \<and> y \<in> L" if "x \<in> K" for x
   proof -
     have "x \<in> T-S"
       using \<open>K \<subseteq> T\<close> \<open>disjnt K S\<close> disjnt_def that by fastforce
@@ -1446,7 +1414,7 @@ proof -
     with ovlap [of C] show ?thesis
       by blast
   qed
-  then obtain \<xi> where \<xi>: "\<And>x. x \<in> K \<Longrightarrow> \<exists>C. C \<in> components (T - S) \<and> x \<in> C \<and> \<xi> x \<in> C \<and> \<xi> x \<in> L"
+  then obtain \<xi> where \<xi>: "\<And>x. x \<in> K \<Longrightarrow> \<exists>C. C \<in> components (T - S) \<and> x \<in> C \<and> \<xi> x \<in> C \<and> \<xi> x \<in> L" 
     by metis
   obtain h where conth: "continuous_on (T - \<xi> ` K) h"
              and him: "h \<in> (T - \<xi> ` K) \<rightarrow> rel_frontier U"
@@ -1525,7 +1493,7 @@ next
   define LU where "LU \<equiv> L \<union> (\<Union> {C \<in> components (T - S). \<not>bounded C} - cbox (-(b+One)) (b+One))"
   obtain K g where "finite K" "K \<subseteq> LU" "K \<subseteq> T" "disjnt K S"
                and contg: "continuous_on (T - K) g"
-               and gim: "g ` (T - K) \<subseteq> rel_frontier U"
+               and gim: "g \<in> (T - K) \<rightarrow> rel_frontier U"
                and gf:  "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
   proof (rule extend_map_affine_to_sphere2 [OF SUT aff contf fim])
     show "C \<inter> LU \<noteq> {}" if "C \<in> components (T - S)" for C
@@ -1577,7 +1545,7 @@ next
     proof (cases "x \<in> cbox (- c) c")
       case True
       with \<open>x \<in> T\<close> show ?thesis
-        using cbsub(3) Knot  by (force simp: closest_point_self)
+        using cbsub(3) Knot by (force simp: closest_point_self)
     next
       case False
       have clo_in_rf: "closest_point (cbox (- c) c \<inter> T) x \<in> rel_frontier (cbox (- c) c \<inter> T)"
@@ -1617,7 +1585,7 @@ next
       by (intro continuous_on_compose continuous_on_closest_point continuous_on_subset [OF contg]; force)
     have "g (closest_point (cbox (- c) c \<inter> T) x) \<in> rel_frontier U"
          if "x \<in> T" "x \<in> K \<longrightarrow> x \<notin> cbox (- b - One) (b + One)" for x
-      using gim [THEN subsetD] that cloTK by blast
+      using cloTK gim that by auto
     then show "(g \<circ> closest_point (cbox (- c) c \<inter> T)) \<in> (T - K \<inter> cbox (- (b + One)) (b + One))
                \<rightarrow> rel_frontier U"
       by force
@@ -1663,8 +1631,7 @@ corollary extend_map_UNIV_to_sphere_cofinite:
       and "\<And>C. \<lbrakk>C \<in> components(- S); bounded C\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
   obtains K g where "finite K" "K \<subseteq> L" "disjnt K S" "continuous_on (- K) g"
                     "g \<in> (- K) \<rightarrow> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-  using extend_map_affine_to_sphere_cofinite
-        [OF \<open>compact S\<close> affine_UNIV subset_UNIV] assms
+  using assms extend_map_affine_to_sphere_cofinite [OF \<open>compact S\<close> affine_UNIV subset_UNIV] 
   by (metis Compl_eq_Diff_UNIV aff_dim_UNIV of_nat_le_iff)
 
 corollary extend_map_UNIV_to_sphere_no_bounded_component:
@@ -1789,14 +1756,7 @@ proof -
     by auto
   moreover
   have "connected (- S) = connected (- sphere a r)"
-  proof (rule homotopy_eqv_separation)
-    show "S homotopy_eqv sphere a r"
-      using hom homeomorphic_imp_homotopy_eqv by blast
-    show "compact (sphere a r)"
-      by simp
-    then show " compact S"
-      using hom homeomorphic_compactness by blast
-  qed
+    by (meson hom compact_sphere homeomorphic_compactness homeomorphic_imp_homotopy_eqv homotopy_eqv_separation)
   ultimately show ?thesis
     using connected_Int_frontier [of "- sphere a r" "ball a r"] by (auto simp: \<open>0 < r\<close>)
 qed
@@ -1831,7 +1791,7 @@ next
       using S by (auto simp: homeomorphic_def)
     show "connected (- T)" if "closed T" "T \<subset> S" for T
     proof -
-      have "f ` T \<subseteq> sphere a r"
+      have "f \<in> T \<rightarrow> sphere a r"
         using \<open>T \<subset> S\<close> hom homeomorphism_image1 by blast
       moreover have "f ` T \<noteq> sphere a r"
         using \<open>T \<subset> S\<close> hom
@@ -1844,7 +1804,7 @@ next
       moreover then have "compact (f ` T)"
         by (meson compact_continuous_image continuous_on_subset hom homeomorphism_def psubsetE \<open>T \<subset> S\<close>)
       moreover have "T homotopy_eqv f ` T"
-        by (meson \<open>f ` T \<subseteq> sphere a r\<close> dual_order.strict_implies_order hom homeomorphic_def homeomorphic_imp_homotopy_eqv homeomorphism_of_subsets \<open>T \<subset> S\<close>)
+        by (meson hom homeomorphic_def homeomorphic_imp_homotopy_eqv homeomorphism_of_subsets order.refl psubsetE that(2))
       ultimately show ?thesis
         using homotopy_eqv_separation [of T "f`T"] by blast
     qed
@@ -1986,7 +1946,7 @@ qed
 
 lemma inv_of_domain_ss0:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
-  assumes contf: "continuous_on U f" and injf: "inj_on f U" and fim: "f ` U \<subseteq> S"
+  assumes contf: "continuous_on U f" and injf: "inj_on f U" and fim: "f \<in> U \<rightarrow> S"
       and "subspace S" and dimS: "dim S = DIM('b::euclidean_space)"
       and ope: "openin (top_of_set S) U"
     shows "openin (top_of_set S) (f ` U)"
@@ -2019,19 +1979,20 @@ proof -
     show "open (k ` U)"
       by (simp add: ope_iff homeomorphism_imp_open_map [OF homkh ope])
     show "inj_on (k \<circ> f \<circ> h) (k ` U)"
-      by (smt (verit) comp_apply inj_on_def \<open>U \<subseteq> S\<close> fim homeomorphism_apply2 homhk image_iff injf subsetD)
+      unfolding inj_on_def 
+      by (smt (verit, ccfv_threshold) PiE \<open>U \<subseteq> S\<close> assms(3) comp_apply homeomorphism_def homhk imageE inj_on_def injf subset_eq)
   qed
   moreover
   have eq: "f ` U = h ` (k \<circ> f \<circ> h \<circ> k) ` U"
     unfolding image_comp [symmetric] using \<open>U \<subseteq> S\<close> fim
-    by (metis homeomorphism_image2 homeomorphism_of_subsets homkh subset_image_iff)
+    by (metis homeomorphism_image2 homeomorphism_of_subsets homhk homkh image_subset_iff_funcset top_greatest)
   ultimately show ?thesis
     by (metis (no_types, opaque_lifting) homeomorphism_imp_open_map homhk image_comp open_openin subtopology_UNIV)
 qed
 
 lemma inv_of_domain_ss1:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
-  assumes contf: "continuous_on U f" and injf: "inj_on f U" and fim: "f ` U \<subseteq> S"
+  assumes contf: "continuous_on U f" and injf: "inj_on f U" and fim: "f \<in> U \<rightarrow> S"
       and "subspace S"
       and ope: "openin (top_of_set S) U"
     shows "openin (top_of_set S) (f ` U)"
@@ -2045,7 +2006,7 @@ proof -
     show "continuous_on (U \<times> S') g"
       unfolding  g_def
       by (auto intro!: continuous_intros continuous_on_compose2 [OF contf continuous_on_fst])
-    show "g ` (U \<times> S') \<subseteq> S \<times> S'"
+    show "g \<in> (U \<times> S') \<rightarrow> S \<times> S'"
       using fim  by (auto simp: g_def)
     show "inj_on g (U \<times> S')"
       using injf by (auto simp: g_def inj_on_def)
@@ -2073,7 +2034,7 @@ corollary invariance_of_domain_subspaces:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (top_of_set U) S"
       and "subspace U" "subspace V" and VU: "dim V \<le> dim U"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> V"
       and injf: "inj_on f S"
     shows "openin (top_of_set V) (f ` S)"
 proof -
@@ -2087,7 +2048,7 @@ proof -
   have eq: "f ` S = k ` (h \<circ> f) ` S"
   proof -
     have "k ` h ` f ` S = f ` S"
-      by (meson fim homeomorphism_def homeomorphism_of_subsets homhk subset_refl)
+      by (meson equalityD2 fim funcset_image homeomorphism_image2 homeomorphism_of_subsets homhk)
     then show ?thesis
       by (simp add: image_comp)
   qed
@@ -2101,11 +2062,11 @@ proof -
     moreover have "openin (top_of_set U) ((h \<circ> f) ` S)"
     proof (rule inv_of_domain_ss1)
       show "continuous_on S (h \<circ> f)"
-        by (meson contf continuous_on_compose continuous_on_subset fim homeomorphism_cont1 homhk)
+        by (meson contf continuous_on_compose continuous_on_subset fim funcset_image homeomorphism_cont2 homkh)
       show "inj_on (h \<circ> f) S"
-        by (smt (verit, ccfv_SIG) comp_apply fim inj_on_def homeomorphism_apply2 [OF homkh] image_subset_iff injf)
-      show "(h \<circ> f) ` S \<subseteq> U"
-        using \<open>V' \<subseteq> U\<close> hfV' by auto
+        by (smt (verit, ccfv_SIG) Pi_iff comp_apply fim homeomorphism_apply2 homkh inj_on_def injf)
+      show "h \<circ> f \<in> S \<rightarrow> U"
+        using \<open>V' \<subseteq> U\<close> hfV' by blast
       qed (auto simp: assms)
     ultimately show "openin (top_of_set V') ((h \<circ> f) ` S)"
       using openin_subset_trans \<open>V' \<subseteq> U\<close> by force
@@ -2116,7 +2077,7 @@ corollary invariance_of_dimension_subspaces:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (top_of_set U) S"
       and "subspace U" "subspace V"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> V"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "dim U \<le> dim V"
 proof -
@@ -2130,11 +2091,12 @@ proof -
     then obtain h k where homhk: "homeomorphism V T h k"
       using homeomorphic_def  by blast
     have "continuous_on S (h \<circ> f)"
-      by (meson contf continuous_on_compose continuous_on_subset fim homeomorphism_cont1 homhk)
+      by (meson contf continuous_on_compose continuous_on_subset fim homeomorphism_def homhk image_subset_iff_funcset)
     moreover have "(h \<circ> f) ` S \<subseteq> U"
       using \<open>T \<subseteq> U\<close> fim homeomorphism_image1 homhk by fastforce
     moreover have "inj_on (h \<circ> f) S"
-      by (smt (verit, best) comp_apply inj_on_def fim homeomorphism_apply1 homhk image_subset_iff injf)
+      unfolding inj_on_def
+      by (metis Pi_iff comp_apply fim homeomorphism_def homhk inj_on_def injf)
     ultimately have ope_hf: "openin (top_of_set U) ((h \<circ> f) ` S)"
       using invariance_of_domain_subspaces [OF ope \<open>subspace U\<close> \<open>subspace U\<close>] by blast
     have "(h \<circ> f) ` S \<subseteq> T"
@@ -2155,7 +2117,7 @@ corollary invariance_of_domain_affine_sets:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (top_of_set U) S"
       and aff: "affine U" "affine V" "aff_dim V \<le> aff_dim U"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> V"
       and injf: "inj_on f S"
     shows "openin (top_of_set V) (f ` S)"
 proof (cases "S = {}")
@@ -2177,7 +2139,7 @@ next
       by (metis \<open>a \<in> U\<close> \<open>b \<in> V\<close> aff_dim_eq_dim affine_hull_eq aff of_nat_le_iff)
     show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
       by (metis contf continuous_on_compose homeomorphism_cont2 homeomorphism_translation translation_galois)
-    show "((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S \<subseteq> (+) (- b) ` V"
+    show "(+) (- b) \<circ> f \<circ> (+) a \<in> (+) (- a) ` S \<rightarrow> (+) (- b) ` V"
       using fim by auto
     show "inj_on ((+) (- b) \<circ> f \<circ> (+) a) ((+) (- a) ` S)"
       by (auto simp: inj_on_def) (meson inj_onD injf)
@@ -2190,7 +2152,7 @@ corollary invariance_of_dimension_affine_sets:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (top_of_set U) S"
       and aff: "affine U" "affine V"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> V"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "aff_dim U \<le> aff_dim V"
 proof -
@@ -2206,7 +2168,7 @@ proof -
       by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace_subtract \<open>affine V\<close> cong: image_cong_simp)
     show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
       by (metis contf continuous_on_compose homeomorphism_cont2 homeomorphism_translation translation_galois)
-    show "((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S \<subseteq> (+) (- b) ` V"
+    show "(+) (- b) \<circ> f \<circ> (+) a \<in> (+) (- a) ` S \<rightarrow> (+) (- b) ` V"
       using fim by auto
     show "inj_on ((+) (- b) \<circ> f \<circ> (+) a) ((+) (- a) ` S)"
       by (auto simp: inj_on_def) (meson inj_onD injf)
@@ -2227,7 +2189,7 @@ corollary invariance_of_dimension:
 corollary continuous_injective_image_subspace_dim_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "subspace S" "subspace T"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> T"
       and injf: "inj_on f S"
     shows "dim S \<le> dim T"
   using invariance_of_dimension_subspaces [of S S _ f] assms by (auto simp: subspace_affine)
@@ -2235,7 +2197,7 @@ corollary continuous_injective_image_subspace_dim_le:
 lemma invariance_of_dimension_convex_domain:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "convex S"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> affine hull T"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> affine hull T"
       and injf: "inj_on f S"
     shows "aff_dim S \<le> aff_dim T"
 proof (cases "S = {}")
@@ -2249,7 +2211,7 @@ next
       by (simp add: openin_rel_interior)
     show "continuous_on (rel_interior S) f"
       using contf continuous_on_subset rel_interior_subset by blast
-    show "f ` rel_interior S \<subseteq> affine hull T"
+    show "f \<in> rel_interior S \<rightarrow> affine hull T"
       using fim rel_interior_subset by blast
     show "inj_on f (rel_interior S)"
       using inj_on_subset injf rel_interior_subset by blast
@@ -2271,8 +2233,8 @@ proof -
   proof (rule invariance_of_dimension_convex_domain [OF \<open>convex S\<close>])
     show "continuous_on S h"
       using homeomorphism_def homhk by blast
-    show "h ` S \<subseteq> affine hull T"
-      by (metis homeomorphism_def homhk hull_subset)
+    show "h \<in> S \<rightarrow> affine hull T"
+      using homeomorphism_image1 homhk hull_subset by fastforce
     show "inj_on h S"
       by (meson homeomorphism_apply1 homhk inj_on_inverseI)
   qed
@@ -2342,13 +2304,13 @@ corollary invariance_of_domain_homeomorphic:
 lemma continuous_image_subset_interior:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f" "inj_on f S" "DIM('b) \<le> DIM('a)"
-  shows "f ` (interior S) \<subseteq> interior(f ` S)"
+  shows "f \<in> (interior S) \<rightarrow> interior(f ` S)"
 proof -
   have "open (f ` interior S)"
     using assms
     by (intro invariance_of_domain_gen) (auto simp: subset_inj_on interior_subset continuous_on_subset)
   then show ?thesis
-    by (simp add: image_mono interior_maximal interior_subset)
+    by (simp add: image_mono interiorI interior_subset)
 qed
 
 lemma homeomorphic_interiors_same_dimension:
@@ -2363,9 +2325,9 @@ proof (clarify elim!: ex_forward)
      and contf: "continuous_on S f" and contg: "continuous_on T g"
   then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
     by (auto simp: inj_on_def intro: rev_image_eqI) metis+
-  have fim: "f ` interior S \<subseteq> interior T"
+  have fim: "f \<in> interior S \<rightarrow> interior T"
     using continuous_image_subset_interior [OF contf \<open>inj_on f S\<close>] dimeq fST by simp
-  have gim: "g ` interior T \<subseteq> interior S"
+  have gim: "g \<in> interior T \<rightarrow> interior S"
     using continuous_image_subset_interior [OF contg \<open>inj_on g T\<close>] dimeq gTS by simp
   show "homeomorphism (interior S) (interior T) f g"
     unfolding homeomorphism_def
@@ -2437,16 +2399,14 @@ proof (clarify elim!: ex_forward)
      and contf: "continuous_on S f" and contg: "continuous_on T g"
   then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
     by (auto simp: inj_on_def intro: rev_image_eqI) metis+
-  have "g ` interior T \<subseteq> interior S"
+  have "g \<in> interior T \<rightarrow> interior S"
     using continuous_image_subset_interior [OF contg \<open>inj_on g T\<close>] dimeq gTS by simp
   then have fim: "f ` frontier S \<subseteq> frontier T"
-    unfolding frontier_def
-    using continuous_image_subset_interior assms(2) assms(3) S by auto
-  have "f ` interior S \<subseteq> interior T"
+    unfolding frontier_def using Pi_mem S assms by fastforce
+  have "f \<in> interior S \<rightarrow> interior T"
     using continuous_image_subset_interior [OF contf \<open>inj_on f S\<close>] dimeq fST by simp
   then have gim: "g ` frontier T \<subseteq> frontier S"
-    unfolding frontier_def
-    using continuous_image_subset_interior T assms(2) assms(3) by auto
+    unfolding frontier_def using Pi_mem T assms by fastforce
   show "homeomorphism (frontier S) (frontier T) f g"
     unfolding homeomorphism_def
   proof (intro conjI ballI)
@@ -2500,9 +2460,10 @@ qed
 
 lemma continuous_image_subset_rel_interior:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f \<in> S \<rightarrow> T"
       and TS: "aff_dim T \<le> aff_dim S"
-  shows "f ` (rel_interior S) \<subseteq> rel_interior(f ` S)"
+    shows "f \<in> (rel_interior S) \<rightarrow> rel_interior(f ` S)"
+unfolding image_subset_iff_funcset [symmetric]
 proof (rule rel_interior_maximal)
   show "f ` rel_interior S \<subseteq> f ` S"
     by(simp add: image_mono rel_interior_subset)
@@ -2511,9 +2472,9 @@ proof (rule rel_interior_maximal)
     show "openin (top_of_set (affine hull S)) (rel_interior S)"
       by (simp add: openin_rel_interior)
     show "aff_dim (affine hull f ` S) \<le> aff_dim (affine hull S)"
-      by (metis aff_dim_affine_hull aff_dim_subset fim TS order_trans)
-    show "f ` rel_interior S \<subseteq> affine hull f ` S"
-      by (meson \<open>f ` rel_interior S \<subseteq> f ` S\<close> hull_subset order_trans)
+      by (metis TS aff_dim_affine_hull aff_dim_subset fim image_subset_iff_funcset order_trans)
+    show "f \<in> rel_interior S \<rightarrow> affine hull f ` S"
+      using \<open>f ` rel_interior S \<subseteq> f ` S\<close> hull_subset by fastforce
     show "continuous_on (rel_interior S) f"
       using contf continuous_on_subset rel_interior_subset by blast
     show "inj_on f (rel_interior S)"
@@ -2533,10 +2494,10 @@ proof (clarify elim!: ex_forward)
      and contf: "continuous_on S f" and contg: "continuous_on T g"
   then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
     by (auto simp: inj_on_def intro: rev_image_eqI) metis+
-  have fim: "f ` rel_interior S \<subseteq> rel_interior T"
-    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
-  have gim: "g ` rel_interior T \<subseteq> rel_interior S"
-    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior gTS order_refl)
+  have fim: "f \<in> rel_interior S \<rightarrow> rel_interior T"
+    by (smt (verit, best) PiE Pi_I S \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST)
+  have gim: "g \<in> rel_interior T \<rightarrow> rel_interior S"
+    by (metis T \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior dual_order.refl funcsetI gTS)
   show "homeomorphism (rel_interior S) (rel_interior T) f g"
     unfolding homeomorphism_def
   proof (intro conjI ballI)
@@ -2553,7 +2514,7 @@ proof (clarify elim!: ex_forward)
         by (metis fg \<open>x \<in> rel_interior T\<close> imageI)
     qed
     moreover have "f ` rel_interior S \<subseteq> rel_interior T"
-      by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+      using fim by blast
     ultimately show "f ` rel_interior S = rel_interior T"
       by blast
     show "continuous_on (rel_interior S) f"
@@ -2587,8 +2548,8 @@ proof -
   proof (rule invariance_of_dimension_affine_sets)
     show "continuous_on (rel_interior S) f"
       using contf continuous_on_subset rel_interior_subset by blast
-    show "f ` rel_interior S \<subseteq> affine hull T"
-      by (meson S hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    show "f \<in> rel_interior S \<rightarrow> affine hull T"
+      by (simp add: S hull_inc mem_rel_interior_ball)
     show "inj_on f (rel_interior S)"
       by (metis S inj_on_inverseI inj_on_subset rel_interior_subset)
   qed (simp_all add: openin_rel_interior assms)
@@ -2625,10 +2586,10 @@ proof (clarify elim!: ex_forward)
      and contf: "continuous_on S f" and contg: "continuous_on T g"
   then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
     by (auto simp: inj_on_def intro: rev_image_eqI) metis+
-  have fim: "f ` rel_interior S \<subseteq> rel_interior T"
-    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
-  have gim: "g ` rel_interior T \<subseteq> rel_interior S"
-    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior gTS order_refl)
+  have fim: "f \<in> rel_interior S \<rightarrow> rel_interior T"
+    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior dual_order.refl fST image_subset_iff_funcset)
+  have gim: "g \<in> rel_interior T \<rightarrow> rel_interior S"
+    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior dual_order.refl gTS image_subset_iff_funcset)
   show "homeomorphism (S - rel_interior S) (T - rel_interior T) f g"
     unfolding homeomorphism_def
   proof (intro conjI ballI)
@@ -2637,11 +2598,11 @@ proof (clarify elim!: ex_forward)
     show fg: "\<And>y. y \<in> T - rel_interior T \<Longrightarrow> f (g y) = y"
       using T mem_rel_interior_ball by blast
     show "f ` (S - rel_interior S) = T - rel_interior T"
-      using S fST fim gim by auto
+      using S fST fim gim image_subset_iff_funcset by fastforce
     show "continuous_on (S - rel_interior S) f"
       using contf continuous_on_subset rel_interior_subset by blast
     show "g ` (T - rel_interior T) = S - rel_interior S"
-      using T gTS gim fim by auto
+      using T gTS gim fim image_subset_iff_funcset by fastforce
     show "continuous_on (T - rel_interior T) g"
       using contg continuous_on_subset rel_interior_subset by blast
   qed
@@ -2744,7 +2705,7 @@ lemma homotopic_loops_imp_homotopic_circlemaps:
                           (q \<circ> (\<lambda>z. (Arg2pi z / (2 * pi))))"
 proof -
   obtain h where conth: "continuous_on ({0..1::real} \<times> {0..1}) h"
-             and him: "h ` ({0..1} \<times> {0..1}) \<subseteq> S"
+             and him: "h \<in> ({0..1} \<times> {0..1}) \<rightarrow> S"
              and h0: "(\<forall>x. h (0, x) = p x)"
              and h1: "(\<forall>x. h (1, x) = q x)"
              and h01: "(\<forall>t\<in>{0..1}. h (t, 1) = h (t, 0)) "
@@ -2795,13 +2756,13 @@ unfolding simply_connected_def using homotopic_loops_refl by metis
 lemma simply_connected_eq_homotopic_circlemaps1:
   fixes f :: "complex \<Rightarrow> 'a::topological_space" and g :: "complex \<Rightarrow> 'a"
   assumes S: "simply_connected S"
-      and contf: "continuous_on (sphere 0 1) f" and fim: "f ` (sphere 0 1) \<subseteq> S"
-      and contg: "continuous_on (sphere 0 1) g" and gim: "g ` (sphere 0 1) \<subseteq> S"
+      and contf: "continuous_on (sphere 0 1) f" and fim: "f \<in> (sphere 0 1) \<rightarrow> S"
+      and contg: "continuous_on (sphere 0 1) g" and gim: "g \<in> (sphere 0 1) \<rightarrow> S"
     shows "homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g"
 proof -
   let ?h = "(\<lambda>t. complex_of_real (2 * pi * t) * \<i>)"
   have "homotopic_loops S (f \<circ> exp \<circ> ?h) (f \<circ> exp \<circ> ?h) \<and> homotopic_loops S (g \<circ> exp \<circ> ?h) (g \<circ> exp \<circ> ?h)"
-    by (simp add: homotopic_circlemaps_imp_homotopic_loops contf fim contg gim)
+    by (simp add: homotopic_circlemaps_imp_homotopic_loops contf fim contg gim image_subset_iff_funcset)
   then have "homotopic_loops S (f \<circ> exp \<circ> ?h) (g \<circ> exp \<circ> ?h)"
     using S simply_connected_homotopic_loops by blast
   then show ?thesis
@@ -2812,19 +2773,19 @@ qed
 
 lemma simply_connected_eq_homotopic_circlemaps2a:
   fixes h :: "complex \<Rightarrow> 'a::topological_space"
-  assumes conth: "continuous_on (sphere 0 1) h" and him: "h ` (sphere 0 1) \<subseteq> S"
+  assumes conth: "continuous_on (sphere 0 1) h" and him: "h \<in> sphere 0 1 \<rightarrow> S"
       and hom: "\<And>f g::complex \<Rightarrow> 'a.
-                \<lbrakk>continuous_on (sphere 0 1) f; f ` (sphere 0 1) \<subseteq> S;
-                continuous_on (sphere 0 1) g; g ` (sphere 0 1) \<subseteq> S\<rbrakk>
+                \<lbrakk>continuous_on (sphere 0 1) f; f \<in> (sphere 0 1) \<rightarrow> S;
+                continuous_on (sphere 0 1) g; g \<in> (sphere 0 1) \<rightarrow> S\<rbrakk>
                 \<Longrightarrow> homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g"
             shows "\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S h (\<lambda>x. a)"
-  by (metis conth continuous_on_const him hom image_subset_iff)
+  by (metis conth continuous_on_const him hom image_subset_iff image_subset_iff_funcset)
 
 lemma simply_connected_eq_homotopic_circlemaps2b:
   fixes S :: "'a::real_normed_vector set"
   assumes "\<And>f g::complex \<Rightarrow> 'a.
-                \<lbrakk>continuous_on (sphere 0 1) f; f ` (sphere 0 1) \<subseteq> S;
-                continuous_on (sphere 0 1) g; g ` (sphere 0 1) \<subseteq> S\<rbrakk>
+                \<lbrakk>continuous_on (sphere 0 1) f; f \<in> (sphere 0 1) \<rightarrow> S;
+                continuous_on (sphere 0 1) g; g \<in> (sphere 0 1) \<rightarrow> S\<rbrakk>
                 \<Longrightarrow> homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g"
   shows "path_connected S"
 proof (clarsimp simp add: path_connected_eq_homotopic_points)
@@ -2869,10 +2830,10 @@ proposition simply_connected_eq_homotopic_circlemaps:
   fixes S :: "'a::real_normed_vector set"
   shows "simply_connected S \<longleftrightarrow>
          (\<forall>f g::complex \<Rightarrow> 'a.
-              continuous_on (sphere 0 1) f \<and> f ` (sphere 0 1) \<subseteq> S \<and>
-              continuous_on (sphere 0 1) g \<and> g ` (sphere 0 1) \<subseteq> S
+              continuous_on (sphere 0 1) f \<and> f \<in> (sphere 0 1) \<rightarrow> S \<and>
+              continuous_on (sphere 0 1) g \<and> g \<in> (sphere 0 1) \<rightarrow> S
               \<longrightarrow> homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f g)"
-  by (metis simply_connected_eq_homotopic_circlemaps1 simply_connected_eq_homotopic_circlemaps2a 
+  by (metis image_subset_iff_funcset simply_connected_eq_homotopic_circlemaps1 simply_connected_eq_homotopic_circlemaps2a
       simply_connected_eq_homotopic_circlemaps2b simply_connected_eq_homotopic_circlemaps3)
 
 proposition simply_connected_eq_contractible_circlemap:
@@ -2882,7 +2843,7 @@ proposition simply_connected_eq_contractible_circlemap:
          (\<forall>f::complex \<Rightarrow> 'a.
               continuous_on (sphere 0 1) f \<and> f `(sphere 0 1) \<subseteq> S
               \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S f (\<lambda>x. a)))"
-  by (metis simply_connected_eq_homotopic_circlemaps simply_connected_eq_homotopic_circlemaps2a 
+  by (metis image_subset_iff_funcset simply_connected_eq_homotopic_circlemaps simply_connected_eq_homotopic_circlemaps2a 
       simply_connected_eq_homotopic_circlemaps3 simply_connected_imp_path_connected)
 
 corollary homotopy_eqv_simple_connectedness:
@@ -2966,12 +2927,7 @@ proof
   then obtain f g where hom: "homeomorphism S T f g"
     using homeomorphic_def by blast
   show "dim S = dim T"
-  proof (rule order_antisym)
-    show "dim S \<le> dim T"
-      by (metis assms dual_order.refl inj_onI homeomorphism_cont1 [OF hom] homeomorphism_apply1 [OF hom] homeomorphism_image1 [OF hom] continuous_injective_image_subspace_dim_le)
-    show "dim T \<le> dim S"
-      by (metis assms dual_order.refl inj_onI homeomorphism_cont2 [OF hom] homeomorphism_apply2 [OF hom] homeomorphism_image2 [OF hom] continuous_injective_image_subspace_dim_le)
-  qed
+    by (metis \<open>S homeomorphic T\<close> aff_dim_subspace assms homeomorphic_convex_sets of_nat_eq_iff subspace_imp_convex)
 next
   assume "dim S = dim T"
   then show "S homeomorphic T"
@@ -3034,11 +2990,11 @@ proof -
   qed
 qed
 
-subsection\<open>more invariance of domain\<close>(*FIX ME title? *)
+subsection\<open>more invariance of domain\<close>  (*FIX ME title? *)
 
 proposition invariance_of_domain_sphere_affine_set_gen:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f \<in> S \<rightarrow> T"
       and U: "bounded U" "convex U"
       and "affine T" and affTU: "aff_dim T < aff_dim U"
       and ope: "openin (top_of_set (rel_frontier U)) S"
@@ -3085,8 +3041,8 @@ next
     qed (use contf continuous_on_subset hgsub in blast)
     show "inj_on (f \<circ> h) (g ` (S - {b}))"
       by (smt (verit, del_insts) SU homeomorphism_def inj_on_def injf gh Diff_iff comp_apply imageE subset_iff)
-    show "(f \<circ> h) ` g ` (S - {b}) \<subseteq> T"
-      by (metis fim image_comp image_mono hgsub subset_trans)
+    show "f \<circ> h \<in> g ` (S - {b}) \<rightarrow> T"
+      using fim hgsub by fastforce
   qed (auto simp: assms)
   moreover
   have "openin (top_of_set T) ((f \<circ> k) ` j ` (S - {c}))"
@@ -3100,20 +3056,15 @@ next
     qed (use contf continuous_on_subset kjsub in blast)
     show "inj_on (f \<circ> k) (j ` (S - {c}))"
       by (smt (verit, del_insts) SU homeomorphism_def inj_on_def injf jk Diff_iff comp_apply imageE subset_iff)
-    show "(f \<circ> k) ` j ` (S - {c}) \<subseteq> T"
-      by (metis fim image_comp image_mono kjsub subset_trans)
+    show "f \<circ> k \<in> j ` (S - {c}) \<rightarrow> T"
+      using fim kjsub by fastforce
   qed (auto simp: assms)
   ultimately have "openin (top_of_set T) ((f \<circ> h) ` g ` (S - {b}) \<union> ((f \<circ> k) ` j ` (S - {c})))"
     by (rule openin_Un)
   moreover have "(f \<circ> h) ` g ` (S - {b}) = f ` (S - {b})"
   proof -
     have "h ` g ` (S - {b}) = (S - {b})"
-    proof
-      show "h ` g ` (S - {b}) \<subseteq> S - {b}"
-        using homeomorphism_apply1 [OF gh] SU by (fastforce simp add: image_iff image_subset_iff)
-      show "S - {b} \<subseteq> h ` g ` (S - {b})"
-        by (metis Diff_mono SU gh homeomorphism_image2 homeomorphism_of_subsets set_eq_subset)
-    qed
+      by (meson Diff_mono Diff_subset SU gh homeomorphism_def homeomorphism_of_subsets subset_singleton_iff)
     then show ?thesis
       by (metis image_comp)
   qed
@@ -3134,7 +3085,7 @@ qed
 
 lemma invariance_of_domain_sphere_affine_set:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f \<in> S \<rightarrow> T"
       and "r \<noteq> 0" "affine T" and affTU: "aff_dim T < DIM('a)"
       and ope: "openin (top_of_set (sphere a r)) S"
    shows "openin (top_of_set T) (f ` S)"
@@ -3166,9 +3117,10 @@ proof -
     then have "\<not> open (f ` sphere a r)"
       using compact_open
       by (metis assms(3) image_is_empty not_less_iff_gr_or_eq sphere_eq_empty)
-    then show False
-      using invariance_of_domain_sphere_affine_set [OF contf injf subset_UNIV] \<open>r > 0\<close>
-      by (metis aff_dim_UNIV affine_UNIV less_irrefl of_nat_less_iff open_openin openin_subtopology_self subtopology_UNIV that)
+    then have "r=0"
+      by (metis Pi_I UNIV_I aff_dim_UNIV affine_UNIV contf injf invariance_of_domain_sphere_affine_set
+               of_nat_less_iff open_openin openin_subtopology_self subtopology_UNIV that)
+    with \<open>r>0\<close> show False by auto
   qed
   then show ?thesis
     using not_less by blast
@@ -3712,10 +3664,10 @@ proof
   assume L: ?lhs
   then obtain g where contg: "continuous_on S g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
     using inessential_imp_continuous_logarithm_circle by blast
-  have "f ` S \<subseteq> sphere 0 1"
-    by (metis L homotopic_with_imp_subset1)
+  have "f \<in> S \<rightarrow> sphere 0 1"
+    by (metis L image_subset_iff_funcset homotopic_with_imp_subset1)
   then have "\<And>x. x \<in> S \<Longrightarrow> Re (g x) = 0"
-    using g by auto
+    using g by (simp add: Pi_iff)
   then show ?rhs
     by (rule_tac x="Im \<circ> g" in exI) (auto simp: Euler g intro: contg continuous_intros)
 next
@@ -3747,7 +3699,7 @@ proposition homotopic_with_sphere_times:
     shows "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x * h x) (\<lambda>x. g x * h x)"
 proof -
   obtain k where contk: "continuous_on ({0..1::real} \<times> S) k"
-             and kim: "k ` ({0..1} \<times> S) \<subseteq> sphere 0 1"
+             and kim: "k \<in> ({0..1} \<times> S) \<rightarrow> sphere 0 1"
              and k0:  "\<And>x. k(0, x) = f x"
              and k1: "\<And>x. k(1, x) = g x"
     using hom by (auto simp: homotopic_with_def)
@@ -3760,8 +3712,8 @@ qed
 proposition homotopic_circlemaps_divide:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
     shows "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
-           continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
-           continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
+           continuous_on S f \<and> f \<in> S \<rightarrow> sphere 0 1 \<and>
+           continuous_on S g \<and> g \<in> S \<rightarrow> sphere 0 1 \<and>
            (\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c))"
 proof -
   have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
@@ -3780,8 +3732,8 @@ proof -
                 homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
     by auto
   have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
-           continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
-           continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
+           continuous_on S f \<and> f \<in> S \<rightarrow> sphere 0 1 \<and>
+           continuous_on S g \<and> g \<in> S \<rightarrow> sphere 0 1 \<and>
            homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
         (is "?lhs \<longleftrightarrow> ?rhs")
   proof
@@ -3802,7 +3754,7 @@ proof -
       using homotopic_with_eq [OF homotopic_with_sphere_times [OF L cont]]
       by (auto simp: divide_inverse norm_inverse)
     with L show ?rhs
-      by (simp add: homotopic_with_imp_continuous homotopic_with_imp_subset1 homotopic_with_imp_subset2)
+      by (simp add: homotopic_with_imp_continuous homotopic_with_imp_funspace1)
   next
     assume ?rhs then show ?lhs
       by (elim conjE homotopic_with_eq [OF homotopic_with_sphere_times]; force)
@@ -3882,7 +3834,7 @@ next
 qed
 
 lemma open_map_iff_lower_hemicontinuous_preimage:
-  assumes "f ` S \<subseteq> T"
+  assumes "f \<in> S \<rightarrow> T"
     shows "((\<forall>U. openin (top_of_set S) U
                  \<longrightarrow> openin (top_of_set T) (f ` U)) \<longleftrightarrow>
             (\<forall>U. closedin (top_of_set S) U
@@ -3913,7 +3865,7 @@ next
 qed
 
 lemma closed_map_iff_upper_hemicontinuous_preimage:
-  assumes "f ` S \<subseteq> T"
+  assumes "f \<in> S \<rightarrow> T"
     shows "((\<forall>U. closedin (top_of_set S) U
                  \<longrightarrow> closedin (top_of_set T) (f ` U)) \<longleftrightarrow>
             (\<forall>U. openin (top_of_set S) U
@@ -4519,11 +4471,11 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm Pi_iff)
   assume contf: "continuous_on (S \<union> T) f" and 0: "\<forall>i\<in>S \<union> T. f i \<noteq> 0"
   then have contfS: "continuous_on S f" and contfT: "continuous_on T f"
     using continuous_on_subset by auto
-  have "\<lbrakk>continuous_on S f; f ` S \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))"
+  have "\<lbrakk>continuous_on S f; f \<in> S \<rightarrow> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))"
     using BS by (auto simp: Borsukian_continuous_logarithm)
   then obtain g where contg: "continuous_on S g" and fg: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
     using "0" contfS by force
-  have "\<lbrakk>continuous_on T f; f ` T \<subseteq> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on T g \<and> (\<forall>x \<in> T. f x = exp(g x))"
+  have "\<lbrakk>continuous_on T f; f \<in> T \<rightarrow> -{0}\<rbrakk> \<Longrightarrow> \<exists>g. continuous_on T g \<and> (\<forall>x \<in> T. f x = exp(g x))"
     using BT by (auto simp: Borsukian_continuous_logarithm)
   then obtain h where conth: "continuous_on T h" and fh: "\<And>x. x \<in> T \<Longrightarrow> f x = exp(h x)"
     using "0" contfT by force
@@ -4718,12 +4670,12 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
     proof (rule upper_lower_hemicontinuous_explicit [of T "\<lambda>y. {z \<in> S. f z = y}" S])
       show "\<And>U. openin (top_of_set S) U
                  \<Longrightarrow> openin (top_of_set T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
-        using closed_map_iff_upper_hemicontinuous_preimage [OF fim [THEN equalityD1]]
-        by (simp add: Abstract_Topology_2.continuous_imp_closed_map \<open>compact S\<close> contf fim)
+        using closed_map_iff_upper_hemicontinuous_preimage [of f S T] fim contf \<open>compact S\<close>
+        using Abstract_Topology_2.continuous_imp_closed_map by blast
       show "\<And>U. closedin (top_of_set S) U \<Longrightarrow>
                  closedin (top_of_set T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
-        using ope open_map_iff_lower_hemicontinuous_preimage [OF fim [THEN equalityD1]]
-        by meson
+        using ope open_map_iff_lower_hemicontinuous_preimage[of f S T] fim [THEN equalityD1]
+        by blast
       show "bounded {z \<in> S. f z = y}"
         by (metis (no_types, lifting) compact_imp_bounded [OF \<open>compact S\<close>] bounded_subset mem_Collect_eq subsetI)
     qed (use \<open>y \<in> T\<close> \<open>0 < d\<close> fk kTS in \<open>force+\<close>)
@@ -4918,7 +4870,7 @@ proof -
     assume "connected U" "connected V" and T: "T = U \<union> V"
       and cloU: "closedin (top_of_set T) U"
       and cloV: "closedin (top_of_set T) V"
-    have "f ` (g ` U \<inter> g ` V) \<subseteq> U" "f ` (g ` U \<inter> g ` V) \<subseteq> V"
+    have "f \<in> (g ` U \<inter> g ` V) \<rightarrow> U" "f \<in> (g ` U \<inter> g ` V) \<rightarrow> V"
       using gf fim T by auto (metis UnCI image_iff)+
     moreover have "U \<inter> V \<subseteq> f ` (g ` U \<inter> g ` V)"
       using gf fim by (force simp: image_iff T)
@@ -5393,14 +5345,8 @@ lemma separation_by_Un_open:
 lemma nonseparation_by_component_eq:
   fixes S :: "'a :: euclidean_space set"
   assumes "open S \<or> closed S"
-  shows "((\<forall>C \<in> components S. connected(-C)) \<longleftrightarrow> connected(- S))" (is "?lhs = ?rhs")
-proof
-  assume ?lhs with assms show ?rhs
-    by (meson separation_by_component_closed separation_by_component_open)
-next
-  assume ?rhs with assms show ?lhs
-    using component_complement_connected by force
-qed
+  shows "((\<forall>C \<in> components S. connected(-C)) \<longleftrightarrow> connected(- S))" 
+  by (metis assms component_complement_connected double_complement separation_by_component_closed separation_by_component_open)
 
 
 text\<open>Another interesting equivalent of an inessential mapping into C-{0}\<close>
@@ -5421,7 +5367,7 @@ proof
     case False
     have anr: "ANR (-{0::complex})"
       by (simp add: ANR_delete open_Compl open_imp_ANR)
-    obtain g where contg: "continuous_on UNIV g" and gim: "g ` UNIV \<subseteq> -{0}"
+    obtain g where contg: "continuous_on UNIV g" and gim: "g \<in> UNIV \<rightarrow> -{0}"
                    and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     proof (rule Borsuk_homotopy_extension_homotopic [OF _ _ continuous_on_const _ homotopic_with_symD [OF a]])
       show "closedin (top_of_set UNIV) S"
@@ -5456,13 +5402,7 @@ next
         by (auto intro: continuous_on_subset [OF contj] simp flip: homeomorphism_image2 [OF hk])
     qed
     show "f x = exp ((j \<circ> k) x)" if "x \<in> S" for x
-    proof -
-      have "f x = (g \<circ> h) (k x)"
-        by (simp add: gf that)
-      also have "... = exp (j (k x))"
-        by (metis rangeI homeomorphism_image2 [OF hk] j)
-      finally show ?thesis by simp
-    qed
+      by (metis UNIV_I comp_apply gf hk homeomorphism_def image_eqI j that)
   qed
   then show ?lhs
     by (simp add: inessential_eq_continuous_logarithm)
@@ -5487,7 +5427,7 @@ next
     and ope: "openin (top_of_set (\<Union>\<F>)) C"
     and "homotopic_with_canon (\<lambda>x. True) C T f (\<lambda>x. a)"
     using assms by blast
-  with \<open>C \<noteq> {}\<close> have "f ` C \<subseteq> T" "a \<in> T"
+  with \<open>C \<noteq> {}\<close> have "f \<in> C \<rightarrow> T" "a \<in> T"
     using homotopic_with_imp_subset1 homotopic_with_imp_subset2 by blast+
   have "homotopic_with_canon (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
   proof (rule homotopic_on_clopen_Union)
@@ -5514,15 +5454,9 @@ qed
 
 proposition Janiszewski_dual:
   fixes S :: "complex set"
-  assumes
-   "compact S" "compact T" "connected S" "connected T" "connected(- (S \<union> T))"
+  assumes "compact S" "compact T" "connected S" "connected T" "connected(- (S \<union> T))"
  shows "connected(S \<inter> T)"
-proof -
-  have ST: "compact (S \<union> T)"
-    by (simp add: assms compact_Un)
-  with Borsukian_imp_unicoherent [of "S \<union> T"] ST assms
-  show ?thesis
-    by (simp add: Borsukian_separation_compact closed_subset compact_imp_closed unicoherentD)
-qed
+  by (meson Borsukian_imp_unicoherent Borsukian_separation_compact assms closed_subset compact_Un 
+      compact_imp_closed sup_ge1 sup_ge2 unicoherentD)
 
 end

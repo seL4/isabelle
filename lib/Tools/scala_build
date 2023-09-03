@@ -51,12 +51,6 @@ shift $(($OPTIND - 1))
 
 ## main
 
-#remove historic material
-rm -rf \
-  "$ISABELLE_HOME/lib/classes/Pure.jar" \
-  "$ISABELLE_HOME/lib/classes/Pure.shasum" \
-  "$ISABELLE_HOME/src/Tools/jEdit/dist"
-
 classpath "$CLASSPATH"; export CLASSPATH=""
 
 eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"

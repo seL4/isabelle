@@ -842,7 +842,7 @@ proof -
     by (simp add: has_field_derivative_def has_derivative_at2 bounded_linear_mult_right)
 qed
 
-(** Existence of a primitive.*)
+text \<open>Existence of a primitive\<close>
 lemma holomorphic_starlike_primitive:
   fixes f :: "complex \<Rightarrow> complex"
   assumes contf: "continuous_on S f"
@@ -1017,8 +1017,7 @@ lemma contour_integral_local_primitive_lemma:
   assumes gpd: "g piecewise_differentiable_on {a..b}"
       and dh: "\<And>x. x \<in> S \<Longrightarrow> (f has_field_derivative f' x) (at x within S)"
       and gs: "\<And>x. x \<in> {a..b} \<Longrightarrow> g x \<in> S"
-  shows 
-    "(\<lambda>x. f' (g x) * vector_derivative g (at x within {a..b})) integrable_on {a..b}"
+    shows "(\<lambda>x. f' (g x) * vector_derivative g (at x within {a..b})) integrable_on {a..b}"
 proof (cases "cbox a b = {}")
   case False
   then show ?thesis
