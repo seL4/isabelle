@@ -587,6 +587,7 @@ Usage: isabelle build_process [OPTIONS]
     isabelle_home: Path = Path.current,
     afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
+    quiet: Boolean = false,
     verbose: Boolean = false
   ): String = {
     val options =
@@ -597,6 +598,7 @@ Usage: isabelle build_process [OPTIONS]
       dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
       if_proper(host.numa, " -N") + " -j" + host.jobs +
       options.map(opt => " -o " + Bash.string(opt.print)).mkString +
+      if_proper(quiet, " -q") +
       if_proper(verbose, " -v")
   }
 
@@ -649,6 +651,7 @@ Usage: isabelle build_process [OPTIONS]
           List(
             Options.Spec.make("build_database_server"),
             Options.Spec.make("build_database")))
+      var quiet = false
       var verbose = false
 
       val getopts = Getopts("""
@@ -661,6 +664,7 @@ Usage: isabelle build_worker [OPTIONS]
     -d DIR       include session directory
     -j INT       maximum number of parallel jobs (default 1)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -q           quiet mode: no progress
     -v           verbose
 """,
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
@@ -669,12 +673,16 @@ Usage: isabelle build_worker [OPTIONS]
         "d:" -> (arg => dirs += Path.explode(arg)),
         "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
         "o:" -> (arg => options = options + arg),
+        "q" -> (_ => quiet = true),
         "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      val progress = new Console_Progress(verbose = verbose)
+      val progress =
+        if (quiet && verbose) new Progress { override def verbose: Boolean = true }
+        else if (quiet) new Progress
+        else new Console_Progress(verbose = verbose)
 
       val results =
         progress.interrupt_handler {
