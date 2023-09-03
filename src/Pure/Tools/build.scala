@@ -474,9 +474,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         case None => ""
         case Some(db) => " (database " + db + ")"
       }
-    if (builds.isEmpty) "No build processes available" + print_database
+    if (builds.isEmpty) "No build processes" + print_database
     else {
-      "Available build processes" + print_database +
+      "Build processes" + print_database +
         (for (build <- builds.iterator) yield "\n  " + build.print).mkString
     }
   }
