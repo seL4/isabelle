@@ -58,11 +58,7 @@ fun attributes ({stack_limit, interrupts, ...}: params) =
     (if interrupts then Thread_Attributes.public_interrupts else Thread_Attributes.no_interrupts);
 
 fun fork (params: params) body =
-  Thread.fork (fn () =>
-    Exn.trace General.exnMessage tracing (fn () =>
-      (set_name (#name params); body ())
-        handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn),
-    attributes params);
+  Thread.fork (fn () => (set_name (#name params); body ()), attributes params);
 
 
 (* join *)

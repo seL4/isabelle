@@ -19,13 +19,7 @@ structure Async_Manager_Legacy : ASYNC_MANAGER_LEGACY =
 struct
 
 fun make_thread interrupts body =
-  Thread.fork
-    (fn () =>
-      Runtime.debugging NONE body () handle exn =>
-        if Exn.is_interrupt exn then ()
-        else writeln ("## INTERNAL ERROR ##\n" ^ Runtime.exn_message exn),
-      Isabelle_Thread.attributes
-        {name = "async_manager", stack_limit = NONE, interrupts = interrupts});
+  Isabelle_Thread.fork {name = "async_manager", stack_limit = NONE, interrupts = interrupts} body;
 
 fun implode_message (workers, work) =
   space_implode " " (Try.serial_commas "and" workers) ^ work
