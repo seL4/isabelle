@@ -262,7 +262,7 @@ fun analyze_prover_result_for_inconsistency (result as {outcome, used_facts, ...
           | facts => "The goal is falsified by these facts: " ^ commas facts)
         else
           "Derived \"False\" from these facts alone: " ^
-          commas (map fst used_facts)))
+          space_implode " " (map fst used_facts)))
 
 fun check_expected_outcome ctxt prover_name expect outcome =
   let
@@ -513,7 +513,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
         fun massage_message proof_or_inconsistency s =
           let val s' = strip_time s in
             if member (op =) (Synchronized.value seen_messages) s' then
-              "Found duplicate " ^ proof_or_inconsistency
+              "Duplicate " ^ proof_or_inconsistency
             else
               (Synchronized.change seen_messages (cons s'); s)
           end
