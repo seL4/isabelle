@@ -87,7 +87,8 @@ fun get_debugging () = the_default [] (Thread_Data.get debugging_var);
 val is_debugging = not o null o get_debugging;
 
 fun with_debugging e =
-  Thread_Data.setmp debugging_var (SOME (PolyML.DebuggerInterface.debugState (Thread.self ()))) e ();
+  Thread_Data.setmp debugging_var
+    (SOME (PolyML.DebuggerInterface.debugState (Thread.Thread.self ()))) e ();
 
 fun the_debug_state thread_name index =
   (case get_debugging () of
@@ -110,7 +111,7 @@ fun put_stepping stepping = Thread_Data.put stepping_var (SOME (Stepping steppin
 
 fun is_stepping () =
   let
-    val stack = PolyML.DebuggerInterface.debugState (Thread.self ());
+    val stack = PolyML.DebuggerInterface.debugState (Thread.Thread.self ());
     val Stepping (stepping, depth) = get_stepping ();
   in stepping andalso (depth < 0 orelse length stack <= depth) end;
 

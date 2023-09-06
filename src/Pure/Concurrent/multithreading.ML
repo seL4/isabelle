@@ -9,11 +9,12 @@ sig
   val max_threads: unit -> int
   val max_threads_update: int -> unit
   val parallel_proofs: int ref
-  val sync_wait: Time.time option -> ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
+  val sync_wait: Time.time option -> Thread.ConditionVar.conditionVar -> Thread.Mutex.mutex ->
+    bool Exn.result
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
-  val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
+  val synchronized: string -> Thread.Mutex.mutex -> (unit -> 'a) -> 'a
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -24,9 +25,9 @@ struct
 local
 
 fun num_processors () =
-  (case Thread.numPhysicalProcessors () of
+  (case Thread.Thread.numPhysicalProcessors () of
     SOME n => n
-  | NONE => Thread.numProcessors ());
+  | NONE => Thread.Thread.numProcessors ());
 
 fun max_threads_result m =
   if Thread_Data.is_virtual then 1
@@ -55,8 +56,8 @@ fun sync_wait time cond lock =
     (Thread_Attributes.sync_interrupts (Thread_Attributes.get_attributes ()))
     (fn _ =>
       (case time of
-        SOME t => Exn.Res (ConditionVar.waitUntil (cond, lock, t))
-      | NONE => (ConditionVar.wait (cond, lock); Exn.Res true))
+        SOME t => Exn.Res (Thread.ConditionVar.waitUntil (cond, lock, t))
+      | NONE => (Thread.ConditionVar.wait (cond, lock); Exn.Res true))
       handle exn => Exn.Exn exn);
 
 
@@ -86,24 +87,24 @@ fun synchronized name lock e =
     if ! trace > 0 then
       let
         val immediate =
-          if Mutex.trylock lock then true
+          if Thread.Mutex.trylock lock then true
           else
             let
               val _ = tracing 5 (fn () => name ^ ": locking ...");
               val timer = Timer.startRealTimer ();
-              val _ = Mutex.lock lock;
+              val _ = Thread.Mutex.lock lock;
               val time = Timer.checkRealTimer timer;
               val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
             in false end;
         val result = Exn.capture (restore_attributes e) ();
         val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
-        val _ = Mutex.unlock lock;
+        val _ = Thread.Mutex.unlock lock;
       in result end
     else
       let
-        val _ = Mutex.lock lock;
+        val _ = Thread.Mutex.lock lock;
         val result = Exn.capture (restore_attributes e) ();
-        val _ = Mutex.unlock lock;
+        val _ = Thread.Mutex.unlock lock;
       in result end) ());
 
 end;

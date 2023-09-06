@@ -88,7 +88,7 @@ fun group_status_unsynchronized (Group {parent, status, ...}) =
   the_list (! status) @
     (case parent of NONE => [] | SOME group => group_status_unsynchronized group);
 
-val lock = Mutex.mutex ();
+val lock = Thread.Mutex.mutex ();
 fun SYNCHRONIZED e = Multithreading.synchronized "group_status" lock e;
 
 in

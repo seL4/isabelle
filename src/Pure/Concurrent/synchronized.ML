@@ -27,10 +27,10 @@ struct
 
 datatype 'a state =
     Immutable of 'a
-  | Mutable of {lock: Mutex.mutex, cond: ConditionVar.conditionVar, content: 'a};
+  | Mutable of {lock: Thread.Mutex.mutex, cond: Thread.ConditionVar.conditionVar, content: 'a};
 
 fun init_state x =
-  Mutable {lock = Mutex.mutex (), cond = ConditionVar.conditionVar (), content = x};
+  Mutable {lock = Thread.Mutex.mutex (), cond = Thread.ConditionVar.conditionVar (), content = x};
 
 fun immutable_fail name = raise Fail ("Illegal access to immutable value " ^ name);
 
@@ -59,7 +59,7 @@ fun assign (Var {name, state}) x =
         | Mutable _ =>
             Thread_Attributes.uninterruptible (fn _ => fn () =>
              (state := Immutable x; RunCall.clearMutableBit state;
-               ConditionVar.broadcast cond)) ())));
+               Thread.ConditionVar.broadcast cond)) ())));
 
 
 (* synchronized access *)
@@ -83,7 +83,7 @@ fun timed_access (Var {name, state}) time_limit f =
                 | SOME (y, x') =>
                     Thread_Attributes.uninterruptible (fn _ => fn () =>
                       (state := Mutable {lock = lock, cond = cond, content = x'};
-                        ConditionVar.broadcast cond; SOME y)) ()));
+                        Thread.ConditionVar.broadcast cond; SOME y)) ()));
         in try_change () end));
 
 fun guarded_access var f = the (timed_access var (fn _ => NONE) f);

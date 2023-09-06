@@ -121,12 +121,12 @@ val _ =
 
 (* synchronization *)
 
-val scheduler_event = ConditionVar.conditionVar ();
-val work_available = ConditionVar.conditionVar ();
-val work_finished = ConditionVar.conditionVar ();
+val scheduler_event = Thread.ConditionVar.conditionVar ();
+val work_available = Thread.ConditionVar.conditionVar ();
+val work_finished = Thread.ConditionVar.conditionVar ();
 
 local
-  val lock = Mutex.mutex ();
+  val lock = Thread.Mutex.mutex ();
 in
 
 fun SYNCHRONIZED name = Multithreading.synchronized name lock;
@@ -138,10 +138,10 @@ fun wait_timeout timeout cond = (*requires SYNCHRONIZED*)
   Multithreading.sync_wait (SOME (Time.now () + timeout)) cond lock;
 
 fun signal cond = (*requires SYNCHRONIZED*)
-  ConditionVar.signal cond;
+  Thread.ConditionVar.signal cond;
 
 fun broadcast cond = (*requires SYNCHRONIZED*)
-  ConditionVar.broadcast cond;
+  Thread.ConditionVar.broadcast cond;
 
 end;
 

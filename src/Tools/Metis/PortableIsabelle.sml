@@ -13,7 +13,7 @@ val ml = "isabelle"
 fun pointerEqual (x : 'a, y : 'a) = pointer_eq (x, y)
 
 local
-  val lock = Mutex.mutex ();
+  val lock = Thread.Mutex.mutex ();
 in
   fun critical e () = Multithreading.synchronized "metis" lock e
 end;
