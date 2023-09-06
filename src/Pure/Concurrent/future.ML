@@ -121,12 +121,12 @@ val _ =
 
 (* synchronization *)
 
-val scheduler_event = ConditionVar.conditionVar ();
-val work_available = ConditionVar.conditionVar ();
-val work_finished = ConditionVar.conditionVar ();
+val scheduler_event = Thread.ConditionVar.conditionVar ();
+val work_available = Thread.ConditionVar.conditionVar ();
+val work_finished = Thread.ConditionVar.conditionVar ();
 
 local
-  val lock = Mutex.mutex ();
+  val lock = Thread.Mutex.mutex ();
 in
 
 fun SYNCHRONIZED name = Multithreading.synchronized name lock;
@@ -138,10 +138,10 @@ fun wait_timeout timeout cond = (*requires SYNCHRONIZED*)
   Multithreading.sync_wait (SOME (Time.now () + timeout)) cond lock;
 
 fun signal cond = (*requires SYNCHRONIZED*)
-  ConditionVar.signal cond;
+  Thread.ConditionVar.signal cond;
 
 fun broadcast cond = (*requires SYNCHRONIZED*)
-  ConditionVar.broadcast cond;
+  Thread.ConditionVar.broadcast cond;
 
 end;
 
@@ -150,7 +150,7 @@ end;
 
 val queue = Unsynchronized.ref Task_Queue.empty;
 val next = Unsynchronized.ref 0;
-val scheduler = Unsynchronized.ref (NONE: Thread.thread option);
+val scheduler = Unsynchronized.ref (NONE: Isabelle_Thread.T option);
 val canceled = Unsynchronized.ref ([]: group list);
 val do_shutdown = Unsynchronized.ref false;
 val max_workers = Unsynchronized.ref 0;
@@ -161,7 +161,7 @@ val last_round = Unsynchronized.ref Time.zeroTime;
 val next_round = seconds 0.05;
 
 datatype worker_state = Working | Waiting | Sleeping;
-val workers = Unsynchronized.ref ([]: (Thread.thread * worker_state Unsynchronized.ref) list);
+val workers = Unsynchronized.ref ([]: (Isabelle_Thread.T * worker_state Unsynchronized.ref) list);
 
 fun count_workers state = (*requires SYNCHRONIZED*)
   fold (fn (_, state_ref) => fn i => if ! state_ref = state then i + 1 else i) (! workers) 0;
@@ -245,18 +245,19 @@ fun worker_exec (task, jobs) =
   in () end;
 
 fun worker_wait worker_state cond = (*requires SYNCHRONIZED*)
-  (case AList.lookup Thread.equal (! workers) (Thread.self ()) of
+  (case AList.lookup Isabelle_Thread.equal (! workers) (Isabelle_Thread.self ()) of
     SOME state => Unsynchronized.setmp state worker_state wait cond
   | NONE => wait cond);
 
 fun worker_next () = (*requires SYNCHRONIZED*)
   if length (! workers) > ! max_workers then
-    (Unsynchronized.change workers (AList.delete Thread.equal (Thread.self ()));
+    (Unsynchronized.change workers (AList.delete Isabelle_Thread.equal (Isabelle_Thread.self ()));
      signal work_available;
      NONE)
   else
     let val urgent_only = count_workers Working > ! max_active in
-      (case Unsynchronized.change_result queue (Task_Queue.dequeue (Thread.self ()) urgent_only) of
+      (case Unsynchronized.change_result queue
+          (Task_Queue.dequeue (Isabelle_Thread.self ()) urgent_only) of
         NONE => (worker_wait Sleeping work_available; worker_next ())
       | some => (signal work_available; some))
     end;
@@ -297,10 +298,10 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       then ML_statistics () else ();
 
     val _ =
-      if not tick orelse forall (Thread.isActive o #1) (! workers) then ()
+      if not tick orelse forall (Isabelle_Thread.is_active o #1) (! workers) then ()
       else
         let
-          val (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
+          val (alive, dead) = List.partition (Isabelle_Thread.is_active o #1) (! workers);
           val _ = workers := alive;
         in
           Multithreading.tracing 0 (fn () =>
@@ -374,7 +375,7 @@ fun scheduler_loop () =
   do (); last_round := Time.zeroTime);
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
-  (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
+  (case ! scheduler of NONE => false | SOME thread => Isabelle_Thread.is_active thread);
 
 fun scheduler_check () = (*requires SYNCHRONIZED*)
  (do_shutdown := false;
@@ -509,7 +510,8 @@ local
 fun join_next atts deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
   else
-    (case Unsynchronized.change_result queue (Task_Queue.dequeue_deps (Thread.self ()) deps) of
+    (case Unsynchronized.change_result queue
+        (Task_Queue.dequeue_deps (Isabelle_Thread.self ()) deps) of
       (NONE, []) => NONE
     | (NONE, deps') =>
        (worker_waiting deps' (fn () =>
@@ -571,7 +573,7 @@ fun task_context name group f x =
       val (result, job) = future_job group orig_atts (fn () => f x);
       val task =
         SYNCHRONIZED "enroll" (fn () =>
-          Unsynchronized.change_result queue (Task_Queue.enroll (Thread.self ()) name group));
+          Unsynchronized.change_result queue (Task_Queue.enroll (Isabelle_Thread.self ()) name group));
       val _ = worker_exec (task, [job]);
     in
       (case Single_Assignment.peek result of
@@ -670,7 +672,7 @@ fun fulfill_result (Future {promised = true, task, result}) res =
               val passive_job =
                 SYNCHRONIZED "fulfill_result" (fn () =>
                   Unsynchronized.change_result queue
-                    (Task_Queue.dequeue_passive (Thread.self ()) task));
+                    (Task_Queue.dequeue_passive (Isabelle_Thread.self ()) task));
             in
               (case passive_job of
                 SOME true => worker_exec (task, [job])

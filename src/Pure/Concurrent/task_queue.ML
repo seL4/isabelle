@@ -35,16 +35,16 @@ sig
   val all_passive: queue -> bool
   val total_jobs: queue -> int
   val status: queue -> {ready: int, pending: int, running: int, passive: int, urgent: int}
-  val cancel: queue -> group -> Thread.thread list
-  val cancel_all: queue -> group list * Thread.thread list
+  val cancel: queue -> group -> Isabelle_Thread.T list
+  val cancel_all: queue -> group list * Isabelle_Thread.T list
   val finish: task -> queue -> bool * queue
-  val enroll: Thread.thread -> string -> group -> queue -> task * queue
+  val enroll: Isabelle_Thread.T -> string -> group -> queue -> task * queue
   val enqueue_passive: group -> string -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
-  val dequeue_passive: Thread.thread -> task -> queue -> bool option * queue
-  val dequeue: Thread.thread -> bool -> queue -> (task * (bool -> bool) list) option * queue
-  val dequeue_deps: Thread.thread -> task list -> queue ->
+  val dequeue_passive: Isabelle_Thread.T -> task -> queue -> bool option * queue
+  val dequeue: Isabelle_Thread.T -> bool -> queue -> (task * (bool -> bool) list) option * queue
+  val dequeue_deps: Isabelle_Thread.T -> task list -> queue ->
     (((task * (bool -> bool) list) option * task list) * queue)
 end;
 
@@ -88,7 +88,7 @@ fun group_status_unsynchronized (Group {parent, status, ...}) =
   the_list (! status) @
     (case parent of NONE => [] | SOME group => group_status_unsynchronized group);
 
-val lock = Mutex.mutex ();
+val lock = Thread.Mutex.mutex ();
 fun SYNCHRONIZED e = Multithreading.synchronized "group_status" lock e;
 
 in
@@ -224,7 +224,7 @@ fun del_task (gid, task) groups =
 
 datatype job =
   Job of (bool -> bool) list |
-  Running of Thread.thread |
+  Running of Isabelle_Thread.T |
   Passive of unit -> bool;
 
 type jobs = job Task_Graph.T;
@@ -299,7 +299,7 @@ fun cancel (Queue {groups, jobs, ...}) group =
     val _ = cancel_group group Exn.Interrupt;
     val running =
       Tasks.fold (fn task =>
-          (case get_job jobs task of Running thread => insert Thread.equal thread | _ => I))
+          (case get_job jobs task of Running thread => insert Isabelle_Thread.equal thread | _ => I))
         (get_tasks groups (group_id group)) [];
   in running end;
 
@@ -311,7 +311,7 @@ fun cancel_all (Queue {jobs, ...}) =
         val _ = cancel_group group Exn.Interrupt;
       in
         (case job of
-          Running t => (insert eq_group group groups, insert Thread.equal t running)
+          Running t => (insert eq_group group groups, insert Isabelle_Thread.equal t running)
         | _ => (groups, running))
       end;
     val running = Task_Graph.fold cancel_job jobs ([], []);

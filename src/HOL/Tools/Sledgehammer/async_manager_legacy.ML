@@ -19,34 +19,28 @@ structure Async_Manager_Legacy : ASYNC_MANAGER_LEGACY =
 struct
 
 fun make_thread interrupts body =
-  Thread.fork
-    (fn () =>
-      Runtime.debugging NONE body () handle exn =>
-        if Exn.is_interrupt exn then ()
-        else writeln ("## INTERNAL ERROR ##\n" ^ Runtime.exn_message exn),
-      Isabelle_Thread.attributes
-        {name = "async_manager", stack_limit = NONE, interrupts = interrupts});
+  Isabelle_Thread.fork {name = "async_manager", stack_limit = NONE, interrupts = interrupts} body;
 
 fun implode_message (workers, work) =
   space_implode " " (Try.serial_commas "and" workers) ^ work
 
 structure Thread_Heap = Heap
 (
-  type elem = Time.time * Thread.thread
+  type elem = Time.time * Isabelle_Thread.T
   fun ord ((a, _), (b, _)) = Time.compare (a, b)
 )
 
-fun lookup_thread xs = AList.lookup Thread.equal xs
-fun delete_thread xs = AList.delete Thread.equal xs
-fun update_thread xs = AList.update Thread.equal xs
+fun lookup_thread xs = AList.lookup Isabelle_Thread.equal xs
+fun delete_thread xs = AList.delete Isabelle_Thread.equal xs
+fun update_thread xs = AList.update Isabelle_Thread.equal xs
 
 type state =
-  {manager: Thread.thread option,
+  {manager: Isabelle_Thread.T option,
    timeout_heap: Thread_Heap.T,
    active:
-     (Thread.thread
+     (Isabelle_Thread.T
       * (string * Time.time * Time.time * (string * string))) list,
-   canceling:  (Thread.thread * (string * Time.time * (string * string))) list,
+   canceling:  (Isabelle_Thread.T * (string * Time.time * (string * string))) list,
    messages: (bool * (string * (string * string))) list}
 
 fun make_state manager timeout_heap active canceling messages : state =
@@ -91,7 +85,7 @@ fun print_new_messages () =
 
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages} =>
-    if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
+    if (case manager of SOME thread => Isabelle_Thread.is_active thread | NONE => false) then state
     else let val manager = SOME (make_thread false (fn () =>
       let
         fun time_limit timeout_heap =
@@ -102,14 +96,14 @@ fun check_thread_manager () = Synchronized.change global_state
         (*action: find threads whose timeout is reached, and interrupt canceling threads*)
         fun action {manager, timeout_heap, active, canceling, messages} =
           let val (timeout_threads, timeout_heap') =
-            Thread_Heap.upto (Time.now (), Thread.self ()) timeout_heap
+            Thread_Heap.upto (Time.now (), Isabelle_Thread.self ()) timeout_heap
           in
             if null timeout_threads andalso null canceling then
               NONE
             else
               let
                 val _ = List.app (Isabelle_Thread.interrupt_unsynchronized o #1) canceling
-                val canceling' = filter (Thread.isActive o #1) canceling
+                val canceling' = filter (Isabelle_Thread.is_active o #1) canceling
                 val state' = make_state manager timeout_heap' active canceling' messages
               in SOME (map #2 timeout_threads, state') end
           end
@@ -144,7 +138,7 @@ fun thread tool birth_time death_time desc f =
   (make_thread true
        (fn () =>
            let
-             val self = Thread.self ()
+             val self = Isabelle_Thread.self ()
              val _ = register tool birth_time death_time desc self
            in unregister (f ()) self end);
    ())
