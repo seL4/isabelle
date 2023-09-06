@@ -35,7 +35,7 @@ fun apply' {physical, timeout} f x =
   else
     Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn orig_atts =>
       let
-        val self = Thread.self ();
+        val self = Isabelle_Thread.self ();
         val start = Time.now ();
 
         val request =

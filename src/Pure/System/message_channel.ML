@@ -17,7 +17,7 @@ struct
 
 datatype message = Shutdown | Message of XML.body list;
 
-datatype T = Message_Channel of {mbox: message Mailbox.T, thread: Thread.thread};
+datatype T = Message_Channel of {mbox: message Mailbox.T, thread: Isabelle_Thread.T};
 
 fun shutdown (Message_Channel {mbox, thread}) =
  (Mailbox.send mbox Shutdown;

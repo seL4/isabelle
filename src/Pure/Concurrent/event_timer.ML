@@ -92,7 +92,7 @@ fun next_event (now, gc_now) (requests: requests) =
 datatype status = Normal | Shutdown_Req | Shutdown_Ack;
 
 datatype state =
-  State of {requests: requests, status: status, manager: Thread.thread option};
+  State of {requests: requests, status: status, manager: Isabelle_Thread.T option};
 
 fun make_state (requests, status, manager) =
   State {requests = requests, status = status, manager = manager};
@@ -128,7 +128,7 @@ fun manager_loop () =
   then manager_loop () else ();
 
 fun manager_check manager =
-  if is_some manager andalso Thread.isActive (the manager) then manager
+  if is_some manager andalso Isabelle_Thread.is_active (the manager) then manager
   else
     SOME (Isabelle_Thread.fork {name = "event_timer", stack_limit = NONE, interrupts = false}
       manager_loop);

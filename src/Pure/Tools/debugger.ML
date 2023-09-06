@@ -22,7 +22,7 @@ fun output_message kind msg =
   if msg = "" then ()
   else
     Output.protocol_message
-      (Markup.debugger_output (Isabelle_Thread.get_name ()))
+      (Markup.debugger_output (Isabelle_Thread.print (Isabelle_Thread.self ())))
       [[XML.Text (Markup.markup (kind, Markup.serial_properties (serial ())) msg)]];
 
 val writeln_message = output_message Markup.writelnN;
@@ -250,7 +250,7 @@ val _ =
         (SOME (fn (_, break) =>
           if not (is_debugging ()) andalso (! break orelse is_break () orelse is_stepping ())
           then
-            (case try Isabelle_Thread.get_name () of
+            (case try (Isabelle_Thread.print o Isabelle_Thread.self) () of
               SOME thread_name => debugger_loop thread_name
             | NONE => ())
           else ()))));
