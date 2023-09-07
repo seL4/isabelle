@@ -15,7 +15,7 @@ sig
   val search_bound: int Config.T
   val trace_simp: bool Config.T
   val trace_types: bool Config.T
-  val hounifiers: Context.generic * Envir.env * ((term * term) list) ->
+  val hounifiers: (string * typ) list -> Context.generic * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
   val unifiers: Context.generic * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
@@ -581,7 +581,8 @@ fun print_dpairs context msg (env, dpairs) =
 (*Unify the dpairs in the environment.
   Returns flex-flex disagreement pairs NOT IN normal form.
   SIMPL may raise exception CANTUNIFY. *)
-fun hounifiers (context, env, tus : (term * term) list) : (Envir.env * (term * term) list) Seq.seq =
+fun hounifiers binders (context, env, tus : (term * term) list)
+  : (Envir.env * (term * term) list) Seq.seq =
   let
     val trace_bound = Config.get_generic context trace_bound;
     val search_bound = Config.get_generic context search_bound;
@@ -611,13 +612,13 @@ fun hounifiers (context, env, tus : (term * term) list) : (Envir.env * (term * t
          (if tdepth > trace_bound andalso Context_Position.is_visible_generic context
           then tracing "Failure node"
           else (); Seq.pull reseq));
-    val dps = map (fn (t, u) => ([], t, u)) tus;
+    val dps = map (fn (t, u) => (binders, t, u)) tus;
   in add_unify 1 ((env, dps), Seq.empty) end;
 
 fun unifiers (params as (context, env, tus)) =
   Seq.cons (fold (Pattern.unify context) tus env, []) Seq.empty
     handle Pattern.Unif => Seq.empty
-      | Pattern.Pattern => hounifiers params;
+      | Pattern.Pattern => hounifiers [] params;
 
 
 (*For smash_flexflex1*)
