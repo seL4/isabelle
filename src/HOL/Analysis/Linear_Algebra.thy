@@ -704,7 +704,7 @@ qed
 
 text \<open>Low-dimensional subset is in a hyperplane (weak orthogonal complement).\<close>
 
-lemma span_not_univ_orthogonal:
+lemma span_not_UNIV_orthogonal:
   fixes S :: "'a::euclidean_space set"
   assumes sU: "span S \<noteq> UNIV"
   shows "\<exists>a::'a. a \<noteq> 0 \<and> (\<forall>x \<in> span S. a \<bullet> x = 0)"
@@ -754,7 +754,7 @@ lemma span_not_univ_subset_hyperplane:
   fixes S :: "'a::euclidean_space set"
   assumes SU: "span S \<noteq> UNIV"
   shows "\<exists> a. a \<noteq>0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
-  using span_not_univ_orthogonal[OF SU] by auto
+  using span_not_UNIV_orthogonal[OF SU] by auto
 
 lemma lowdim_subset_hyperplane:
   fixes S :: "'a::euclidean_space set"

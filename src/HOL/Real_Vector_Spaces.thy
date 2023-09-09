@@ -142,7 +142,7 @@ lemmas linear_injective_0 = linear_inj_iff_eq_0
 
 lemma scaleR_minus1_left [simp]: "scaleR (-1) x = - x"
   for x :: "'a::real_vector"
-  using scaleR_minus_left [of 1 x] by simp
+  by simp
 
 lemma scaleR_2:
   fixes x :: "'a::real_vector"
@@ -785,6 +785,11 @@ lemma (in real_normed_algebra_1) scaleR_power [simp]: "(scaleR x y) ^ n = scaleR
 
 class real_normed_div_algebra = real_div_algebra + real_normed_vector +
   assumes norm_mult: "norm (x * y) = norm x * norm y"
+
+lemma divideR_right:
+  fixes x y :: "'a::real_normed_vector"
+  shows "r \<noteq> 0 \<Longrightarrow> y = x /\<^sub>R r \<longleftrightarrow> r *\<^sub>R y = x"
+  by auto
 
 class real_normed_field = real_field + real_normed_div_algebra
 
