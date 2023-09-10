@@ -217,6 +217,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "auto-tools.png"
     "bibtex-mode.png"
     "cite-completion.png"
+    "document-panel.png"
     "isabelle-jedit.png"
     "markdown-document.png"
     "ml-debugger.png"

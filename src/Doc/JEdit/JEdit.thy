@@ -1846,7 +1846,7 @@ text \<open>
   The ultimate purpose of Isabelle is to produce nicely rendered documents
   with the Isabelle document preparation system, which is based on {\LaTeX};
   see also \<^cite>\<open>"isabelle-system" and "isabelle-isar-ref"\<close>. Isabelle/jEdit
-  provides some additional support for document editing.
+  provides some additional support to edit, build, and view documents.
 \<close>
 
 
@@ -1958,6 +1958,101 @@ text \<open>
   Both actions show document sources in a regular Web browser, which may be
   also used to print the result in a more portable manner than the Java
   printer dialog of the jEdit @{action_ref print} action.
+\<close>
+
+
+section \<open>Build and view documents interactively\<close>
+
+text \<open>
+  The \<^emph>\<open>Document\<close> panel (\figref{fig:document}) allows to manage the build
+  process of formal documents. Theory sources are taken from the running PIDE
+  editor session, as specified in the \<^emph>\<open>session selector\<close> and the \<^emph>\<open>Input\<close>
+  tab. {\LaTeX} tools are run in various stages, as shown in the \<^emph>\<open>Output\<close>
+  tab. The resulting PDF document may be viewed by an external browser.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{document-panel}
+  \end{center}
+  \caption{Document panel with separate instances for \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close>}
+  \label{fig:document}
+  \end{figure}
+
+  The traditional batch-build works on the command-line, e.g.\ via
+  \<^verbatim>\<open>isabelle build -o document\<close>~\<open>SESSION\<close> (see also \<^cite>\<open>\<open>\S3\<close> in
+  "isabelle-system"\<close>). The corresponding session \<^verbatim>\<open>ROOT\<close> entry determines
+  \isakeyword{theories} and \isakeyword{document\_files} for the overall
+  {\LaTeX} job. The latter is run as a monolithic process, using all theories
+  and taking contents from the file-system.
+
+  In contrast, an interactive build within Isabelle/jEdit allows to select a
+  subset of theory sources, with contents taken from the PIDE editor model.
+  Beware that \isakeyword{document\_files} and the overall session
+  specification are still taken from the \<^verbatim>\<open>ROOT\<close> entry: that information is
+  only processed on startup of Isabelle/jEdit, so changes to \<^verbatim>\<open>ROOT\<close> require a
+  restart.
+
+  \<^medskip> The GUI elements of the \<^emph>\<open>Document\<close> panel (\figref{fig:document}), and its
+  sub-panels for \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> are described below (from left to
+  right). The screenshot of has two instances of the panel, to illustrate both
+  \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> for this explanation.
+
+    \<^item> The \<^emph>\<open>session selector\<close> tells, which session should be the basis of the
+    document build job. This determines, which theories may be selected in the
+    \<^emph>\<open>Input\<close> tab (dynamically), and which \isakeyword{document\_files} should
+    be used (statically).
+
+    \<^item> The \<^emph>\<open>progress indicator\<close> provides some visual feedback on the document
+    build process. The ``spinning wheel'' is either active while waiting for
+    selected document theories to be processed in the Prover IDE, or while
+    {\LaTeX} tools are running.
+
+    \<^item> The \<^emph>\<open>Auto\<close> checkbox may be selected to say that the {\LaTeX} job should
+    be started automatically (after a timeout). This happens, whenever the
+    selected theories have been fully processed in the Prover IDE (see also
+    the \<^emph>\<open>Build\<close> botton). If successful, the resulting PDF will be shown
+    by an external browser (see also the \<^emph>\<open>View\<close> button).
+
+    \<^item> The \<^emph>\<open>Build\<close> button invokes the {\LaTeX} job manually, when \<^emph>\<open>Input\<close>
+    theories have been fully processed. The \<^emph>\<open>Output\<close> tab follows the stages
+    of the build job, with information about sources, log output, error
+    messages.
+
+    \<^item> The \<^emph>\<open>View\<close> button invokes an external browser application on the
+    resulting PDF file: its location is always the same, given within the
+    \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> directory. Multiple invocations should normally
+    refresh the viewer application, at the same document position as last
+    time. Beware that window focus handling depends on the application (and
+    the operating system): there may be conflicts with with the editor
+    window focus.
+
+    \<^item> The \<^emph>\<open>Input\<close> sub-panel is similar to the regular \<^emph>\<open>Theories\<close> panel
+    (\secref{sec:theories}). The selection is limited to the theories of the
+    underlying document session (see also the \<^emph>\<open>session selector\<close>). Each
+    theory may be selected or de-selected separately, using the checkbox next
+    to its name. Alternatively, there are buttons \<^emph>\<open>All\<close> and \<^emph>\<open>None\<close> to change
+    this state for the whole session. The document selection state is also
+    displayed in the regular \<^emph>\<open>Theories\<close> panel as a ``document'' icon attached
+    to the theory name: that is only shown when at least one \<^emph>\<open>Document\<close> panel
+    is active. The \<^emph>\<open>Purge\<close> button is a clone of the same button on a regular
+    \<^emph>\<open>Theories\<close> panel: it allows to remove unused theories from the PIDE
+    document model (that affects everything, not just document theories).
+
+    Non-selected theories are turned into an (almost) empty {\LaTeX} source
+    file: formal \<open>\<^cite>\<close> antiquotations (\<^cite>\<open>"isabelle-isar-ref"\<close>) are
+    included, everything else is left blank. Thus the {\LaTeX} and Bib{\TeX}
+    document setup should normally work, independently on the selected subset
+    of theories. References to sections or pages might be missing, though.
+
+    \<^item> The \<^emph>\<open>Output\<close> sub-panel provides a structured view and the running build
+    process. Its \<^emph>\<open>progress\<close> output consists of a two-level hierarchy of
+    messages. The outer level displays overall programs with timing
+    information. Hovering over the program name reveals the inner level with
+    program log information or error messages.
+
+    The initial stage of \<^verbatim>\<open>Creating directory\<close> shows a directory listing of
+    the {\LaTeX} job that has been generated from all document sources. This
+    may help to explore structural failures of the {\LaTeX} job.
 \<close>
 
 
