@@ -3,9 +3,9 @@
 section "Sorting"
 
 theory Sorting
-imports
-  Complex_Main
-  "HOL-Library.Multiset"
+  imports
+    Complex_Main
+    "HOL-Library.Multiset"
 begin
 
 hide_const List.insort
@@ -16,40 +16,31 @@ declare Let_def [simp]
 subsection "Insertion Sort"
 
 fun insort1 :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"insort1 x [] = [x]" |
-"insort1 x (y#ys) =
+  "insort1 x [] = [x]" |
+  "insort1 x (y#ys) =
   (if x \<le> y then x#y#ys else y#(insort1 x ys))"
 
 fun insort :: "'a::linorder list \<Rightarrow> 'a list" where
-"insort [] = []" |
-"insort (x#xs) = insort1 x (insort xs)"
+  "insort [] = []" |
+  "insort (x#xs) = insort1 x (insort xs)"
 
 
 subsubsection "Functional Correctness"
 
 lemma mset_insort1: "mset (insort1 x xs) = {#x#} + mset xs"
-apply(induction xs)
-apply auto
-done
+  by (induction xs) auto
 
 lemma mset_insort: "mset (insort xs) = mset xs"
-apply(induction xs)
-apply simp
-apply (simp add: mset_insort1)
-done
+  by (induction xs) (auto simp: mset_insort1)
 
 lemma set_insort1: "set (insort1 x xs) = {x} \<union> set xs"
-by(simp add: mset_insort1 flip: set_mset_mset)
+  by(simp add: mset_insort1 flip: set_mset_mset)
 
 lemma sorted_insort1: "sorted (insort1 a xs) = sorted xs"
-apply(induction xs)
-apply(auto simp add: set_insort1)
-done
+  by (induction xs) (auto simp: set_insort1)
 
 lemma sorted_insort: "sorted (insort xs)"
-apply(induction xs)
-apply(auto simp: sorted_insort1)
-done
+  by (induction xs) (auto simp: sorted_insort1)
 
 
 subsubsection "Time Complexity"
@@ -62,8 +53,8 @@ text\<open>
   (if x \<le> y then x#y#ys else y#(insort1 x ys))\<close>
 \<close>
 fun T_insort1 :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> nat" where
-"T_insort1 x [] = 1" |
-"T_insort1 x (y#ys) =
+  "T_insort1 x [] = 1" |
+  "T_insort1 x (y#ys) =
   (if x \<le> y then 0 else T_insort1 x ys) + 1"
 
 text\<open>
@@ -71,24 +62,18 @@ text\<open>
 \<open>insort (x#xs) = insort1 x (insort xs)\<close>
 \<close>
 fun T_insort :: "'a::linorder list \<Rightarrow> nat" where
-"T_insort [] = 1" |
-"T_insort (x#xs) = T_insort xs + T_insort1 x (insort xs) + 1"
+  "T_insort [] = 1" |
+  "T_insort (x#xs) = T_insort xs + T_insort1 x (insort xs) + 1"
 
 
 lemma T_insort1_length: "T_insort1 x xs \<le> length xs + 1"
-apply(induction xs)
-apply auto
-done
+  by (induction xs) auto
 
 lemma length_insort1: "length (insort1 x xs) = length xs + 1"
-apply(induction xs)
-apply auto
-done
+  by (induction xs) auto
 
 lemma length_insort: "length (insort xs) = length xs"
-apply(induction xs)
-apply (auto simp: length_insort1)
-done
+  by (metis Sorting.mset_insort size_mset)
 
 lemma T_insort_length: "T_insort xs \<le> (length xs + 1) ^ 2"
 proof(induction xs)
@@ -109,12 +94,12 @@ qed
 subsection "Merge Sort"
 
 fun merge :: "'a::linorder list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"merge [] ys = ys" |
-"merge xs [] = xs" |
-"merge (x#xs) (y#ys) = (if x \<le> y then x # merge xs (y#ys) else y # merge (x#xs) ys)"
+  "merge [] ys = ys" |
+  "merge xs [] = xs" |
+  "merge (x#xs) (y#ys) = (if x \<le> y then x # merge xs (y#ys) else y # merge (x#xs) ys)"
 
 fun msort :: "'a::linorder list \<Rightarrow> 'a list" where
-"msort xs = (let n = length xs in
+  "msort xs = (let n = length xs in
   if n \<le> 1 then xs
   else merge (msort (take (n div 2) xs)) (msort (drop (n div 2) xs)))"
 
@@ -124,7 +109,7 @@ declare msort.simps [simp del]
 subsubsection "Functional Correctness"
 
 lemma mset_merge: "mset(merge xs ys) = mset xs + mset ys"
-by(induction xs ys rule: merge.induct) auto
+  by(induction xs ys rule: merge.induct) auto
 
 lemma mset_msort: "mset (msort xs) = mset xs"
 proof(induction xs rule: msort.induct)
@@ -151,13 +136,13 @@ qed
 text \<open>Via the previous lemma or directly:\<close>
 
 lemma set_merge: "set(merge xs ys) = set xs \<union> set ys"
-by (metis mset_merge set_mset_mset set_mset_union)
+  by (metis mset_merge set_mset_mset set_mset_union)
 
 lemma "set(merge xs ys) = set xs \<union> set ys"
-by(induction xs ys rule: merge.induct) (auto)
+  by(induction xs ys rule: merge.induct) (auto)
 
 lemma sorted_merge: "sorted (merge xs ys) \<longleftrightarrow> (sorted xs \<and> sorted ys)"
-by(induction xs ys rule: merge.induct) (auto simp: set_merge)
+  by(induction xs ys rule: merge.induct) (auto simp: set_merge)
 
 lemma sorted_msort: "sorted (msort xs)"
 proof(induction xs rule: msort.induct)
@@ -180,15 +165,15 @@ subsubsection "Time Complexity"
 text \<open>We only count the number of comparisons between list elements.\<close>
 
 fun C_merge :: "'a::linorder list \<Rightarrow> 'a list \<Rightarrow> nat" where
-"C_merge [] ys = 0" |
-"C_merge xs [] = 0" |
-"C_merge (x#xs) (y#ys) = 1 + (if x \<le> y then C_merge xs (y#ys) else C_merge (x#xs) ys)"
+  "C_merge [] ys = 0" |
+  "C_merge xs [] = 0" |
+  "C_merge (x#xs) (y#ys) = 1 + (if x \<le> y then C_merge xs (y#ys) else C_merge (x#xs) ys)"
 
 lemma C_merge_ub: "C_merge xs ys \<le> length xs + length ys"
-by (induction xs ys rule: C_merge.induct) auto
+  by (induction xs ys rule: C_merge.induct) auto
 
 fun C_msort :: "'a::linorder list \<Rightarrow> nat" where
-"C_msort xs =
+  "C_msort xs =
   (let n = length xs;
        ys = take (n div 2) xs;
        zs = drop (n div 2) xs
@@ -198,9 +183,7 @@ fun C_msort :: "'a::linorder list \<Rightarrow> nat" where
 declare C_msort.simps [simp del]
 
 lemma length_merge: "length(merge xs ys) = length xs + length ys"
-apply (induction xs ys rule: merge.induct)
-apply auto
-done
+  by (induction xs ys rule: merge.induct) auto
 
 lemma length_msort: "length(msort xs) = length xs"
 proof (induction xs rule: msort.induct)
@@ -245,78 +228,77 @@ qed
 
 (* Beware of implicit conversions: *)
 lemma C_msort_log: "length xs = 2^k \<Longrightarrow> C_msort xs \<le> length xs * log 2 (length xs)"
-using C_msort_le[of xs k] apply (simp add: log_nat_power algebra_simps)
-by (metis (mono_tags) numeral_power_eq_of_nat_cancel_iff of_nat_le_iff of_nat_mult)
+  using C_msort_le[of xs k]
+  by (metis log2_of_power_eq mult.commute of_nat_mono of_nat_mult) 
 
 
 subsection "Bottom-Up Merge Sort"
 
 fun merge_adj :: "('a::linorder) list list \<Rightarrow> 'a list list" where
-"merge_adj [] = []" |
-"merge_adj [xs] = [xs]" |
-"merge_adj (xs # ys # zss) = merge xs ys # merge_adj zss"
+  "merge_adj [] = []" |
+  "merge_adj [xs] = [xs]" |
+  "merge_adj (xs # ys # zss) = merge xs ys # merge_adj zss"
 
 text \<open>For the termination proof of \<open>merge_all\<close> below.\<close>
 lemma length_merge_adjacent[simp]: "length (merge_adj xs) = (length xs + 1) div 2"
-by (induction xs rule: merge_adj.induct) auto
+  by (induction xs rule: merge_adj.induct) auto
 
 fun merge_all :: "('a::linorder) list list \<Rightarrow> 'a list" where
-"merge_all [] = []" |
-"merge_all [xs] = xs" |
-"merge_all xss = merge_all (merge_adj xss)"
+  "merge_all [] = []" |
+  "merge_all [xs] = xs" |
+  "merge_all xss = merge_all (merge_adj xss)"
 
 definition msort_bu :: "('a::linorder) list \<Rightarrow> 'a list" where
-"msort_bu xs = merge_all (map (\<lambda>x. [x]) xs)"
+  "msort_bu xs = merge_all (map (\<lambda>x. [x]) xs)"
 
 
 subsubsection "Functional Correctness"
 
 abbreviation mset_mset :: "'a list list \<Rightarrow> 'a multiset" where
-"mset_mset xss \<equiv> \<Sum>\<^sub># (image_mset mset (mset xss))"
+  "mset_mset xss \<equiv> \<Sum>\<^sub># (image_mset mset (mset xss))"
 
 lemma mset_merge_adj:
   "mset_mset (merge_adj xss) = mset_mset xss"
-by(induction xss rule: merge_adj.induct) (auto simp: mset_merge)
+  by(induction xss rule: merge_adj.induct) (auto simp: mset_merge)
 
 lemma mset_merge_all:
   "mset (merge_all xss) = mset_mset xss"
-by(induction xss rule: merge_all.induct) (auto simp: mset_merge mset_merge_adj)
+  by(induction xss rule: merge_all.induct) (auto simp: mset_merge mset_merge_adj)
 
 lemma mset_msort_bu: "mset (msort_bu xs) = mset xs"
-by(simp add: msort_bu_def mset_merge_all multiset.map_comp comp_def)
+  by(simp add: msort_bu_def mset_merge_all multiset.map_comp comp_def)
 
 lemma sorted_merge_adj:
   "\<forall>xs \<in> set xss. sorted xs \<Longrightarrow> \<forall>xs \<in> set (merge_adj xss). sorted xs"
-by(induction xss rule: merge_adj.induct) (auto simp: sorted_merge)
+  by(induction xss rule: merge_adj.induct) (auto simp: sorted_merge)
 
 lemma sorted_merge_all:
   "\<forall>xs \<in> set xss. sorted xs \<Longrightarrow> sorted (merge_all xss)"
-apply(induction xss rule: merge_all.induct)
-using [[simp_depth_limit=3]] by (auto simp add: sorted_merge_adj)
+  by (induction xss rule: merge_all.induct) (auto simp add: sorted_merge_adj)
 
 lemma sorted_msort_bu: "sorted (msort_bu xs)"
-by(simp add: msort_bu_def sorted_merge_all)
+  by(simp add: msort_bu_def sorted_merge_all)
 
 
 subsubsection "Time Complexity"
 
 fun C_merge_adj :: "('a::linorder) list list \<Rightarrow> nat" where
-"C_merge_adj [] = 0" |
-"C_merge_adj [xs] = 0" |
-"C_merge_adj (xs # ys # zss) = C_merge xs ys + C_merge_adj zss"
+  "C_merge_adj [] = 0" |
+  "C_merge_adj [xs] = 0" |
+  "C_merge_adj (xs # ys # zss) = C_merge xs ys + C_merge_adj zss"
 
 fun C_merge_all :: "('a::linorder) list list \<Rightarrow> nat" where
-"C_merge_all [] = 0" |
-"C_merge_all [xs] = 0" |
-"C_merge_all xss = C_merge_adj xss + C_merge_all (merge_adj xss)"
+  "C_merge_all [] = 0" |
+  "C_merge_all [xs] = 0" |
+  "C_merge_all xss = C_merge_adj xss + C_merge_all (merge_adj xss)"
 
 definition C_msort_bu :: "('a::linorder) list \<Rightarrow> nat" where
-"C_msort_bu xs = C_merge_all (map (\<lambda>x. [x]) xs)"
+  "C_msort_bu xs = C_merge_all (map (\<lambda>x. [x]) xs)"
 
 lemma length_merge_adj:
   "\<lbrakk> even(length xss); \<forall>xs \<in> set xss. length xs = m \<rbrakk>
   \<Longrightarrow> \<forall>xs \<in> set (merge_adj xss). length xs = 2*m"
-by(induction xss rule: merge_adj.induct) (auto simp: length_merge)
+  by(induction xss rule: merge_adj.induct) (auto simp: length_merge)
 
 lemma C_merge_adj: "\<forall>xs \<in> set xss. length xs = m \<Longrightarrow> C_merge_adj xss \<le> m * length xss"
 proof(induction xss rule: C_merge_adj.induct)
@@ -354,27 +336,24 @@ next
 qed
 
 corollary C_msort_bu: "length xs = 2 ^ k \<Longrightarrow> C_msort_bu xs \<le> k * 2 ^ k"
-using C_merge_all[of "map (\<lambda>x. [x]) xs" 1] by (simp add: C_msort_bu_def)
+  using C_merge_all[of "map (\<lambda>x. [x]) xs" 1] by (simp add: C_msort_bu_def)
 
 
 subsection "Quicksort"
 
 fun quicksort :: "('a::linorder) list \<Rightarrow> 'a list" where
-"quicksort []     = []" |
-"quicksort (x#xs) = quicksort (filter (\<lambda>y. y < x) xs) @ [x] @ quicksort (filter (\<lambda>y. x \<le> y) xs)"
+  "quicksort []     = []" |
+  "quicksort (x#xs) = quicksort (filter (\<lambda>y. y < x) xs) @ [x] @ quicksort (filter (\<lambda>y. x \<le> y) xs)"
 
 lemma mset_quicksort: "mset (quicksort xs) = mset xs"
-apply (induction xs rule: quicksort.induct)
-apply (auto simp: not_le)
-done
+  by (induction xs rule: quicksort.induct) (auto simp: not_le)
 
 lemma set_quicksort: "set (quicksort xs) = set xs"
-by(rule mset_eq_setD[OF mset_quicksort])
+  by(rule mset_eq_setD[OF mset_quicksort])
 
 lemma sorted_quicksort: "sorted (quicksort xs)"
-apply (induction xs rule: quicksort.induct)
-apply (auto simp add: sorted_append set_quicksort)
-done
+proof (induction xs rule: quicksort.induct)
+qed (auto simp: sorted_append set_quicksort)
 
 
 subsection "Insertion Sort w.r.t. Keys and Stability"
@@ -382,45 +361,45 @@ subsection "Insertion Sort w.r.t. Keys and Stability"
 hide_const List.insort_key
 
 fun insort1_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"insort1_key f x [] = [x]" |
-"insort1_key f x (y # ys) = (if f x \<le> f y then x # y # ys else y # insort1_key f x ys)"
+  "insort1_key f x [] = [x]" |
+  "insort1_key f x (y # ys) = (if f x \<le> f y then x # y # ys else y # insort1_key f x ys)"
 
 fun insort_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"insort_key f [] = []" |
-"insort_key f (x # xs) = insort1_key f x (insort_key f xs)"
+  "insort_key f [] = []" |
+  "insort_key f (x # xs) = insort1_key f x (insort_key f xs)"
 
 
 subsubsection "Standard functional correctness"
 
 lemma mset_insort1_key: "mset (insort1_key f x xs) = {#x#} + mset xs"
-by(induction xs) simp_all
+  by(induction xs) simp_all
 
 lemma mset_insort_key: "mset (insort_key f xs) = mset xs"
-by(induction xs) (simp_all add: mset_insort1_key)
+  by(induction xs) (simp_all add: mset_insort1_key)
 
 (* Inductive proof simpler than derivation from mset lemma: *)
 lemma set_insort1_key: "set (insort1_key f x xs) = {x} \<union> set xs"
-by (induction xs) auto
+  by (induction xs) auto
 
 lemma sorted_insort1_key: "sorted (map f (insort1_key f a xs)) = sorted (map f xs)"
-by(induction xs)(auto simp: set_insort1_key)
+  by(induction xs)(auto simp: set_insort1_key)
 
 lemma sorted_insort_key: "sorted (map f (insort_key f xs))"
-by(induction xs)(simp_all add: sorted_insort1_key)
+  by(induction xs)(simp_all add: sorted_insort1_key)
 
 
 subsubsection "Stability"
 
 lemma insort1_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort1_key f a xs = a # xs"
-by (cases xs) auto
+  by (cases xs) auto
 
 lemma filter_insort1_key_neg:
   "\<not> P x \<Longrightarrow> filter P (insort1_key f x xs) = filter P xs"
-by (induction xs) simp_all
+  by (induction xs) simp_all
 
 lemma filter_insort1_key_pos:
   "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort1_key f x xs) = insort1_key f x (filter P xs)"
-by (induction xs) (auto, subst insort1_is_Cons, auto)
+  by (induction xs) (auto, subst insort1_is_Cons, auto)
 
 lemma sort_key_stable: "filter (\<lambda>y. f y = k) (insort_key f xs) = filter (\<lambda>y. f y = k) xs"
 proof (induction xs)

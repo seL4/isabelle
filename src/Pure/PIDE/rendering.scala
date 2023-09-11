@@ -405,7 +405,7 @@ class Rendering(
                 Some(snapshot.convert(info.range))
               else None)
         })
-    for (Text.Info(range, Some(range1)) <- result)
+    for (case Text.Info(range, Some(range1)) <- result)
       yield Text.Info(range, range1)
   }
 

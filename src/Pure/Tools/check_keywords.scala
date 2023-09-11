@@ -22,7 +22,7 @@ object Check_Keywords {
 
       val result =
         parse_all(rep(item), Token.reader(Token.explode(keywords, input), start)) match {
-          case Success(res, _) => for (Some(x) <- res) yield x
+          case Success(res, _) => for (case Some(x) <- res) yield x
           case bad => error(bad.toString)
         }
     }

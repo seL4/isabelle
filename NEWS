@@ -4,6 +4,17 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** System ***
+
+* Isabelle/Scala and derived Scala tools now use the syntax of Scala
+3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
+before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
+
+
+
 New in Isabelle2023 (September 2023)
 ------------------------------------
 

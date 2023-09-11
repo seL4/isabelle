@@ -21,8 +21,6 @@ object AFP {
 
   val chapter: String = "AFP"
 
-  val force_partition1: List[String] = List("Category3", "HOL-ODE")
-
   val BASE: Path = Path.explode("$AFP_BASE")
 
   def main_dir(base_dir: Path = BASE): Path = base_dir + Path.explode("thys")
@@ -207,19 +205,4 @@ class AFP private(options: Options, val base_dir: Path) {
   }
  }"""
     }).mkString("[", ", ", "\n]\n")
-
-
-  /* partition sessions */
-
-  def partition(n: Int): List[String] =
-    n match {
-      case 0 => Nil
-      case 1 | 2 =>
-        val graph = sessions_structure.build_graph.restrict(sessions.toSet)
-        val force_part1 =
-          graph.all_preds(graph.all_succs(AFP.force_partition1.filter(graph.defined))).toSet
-        val (part1, part2) = graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
-        if (n == 1) part1 else part2
-      case _ => error("Bad AFP partition: " + n + " (should be 0, 1, 2)")
-    }
 }

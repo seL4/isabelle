@@ -201,7 +201,7 @@ object Build_Log {
     /* inlined text */
 
     def filter(Marker: Protocol_Message.Marker): List[String] =
-      for (Marker(text) <- lines) yield text
+      for (case Marker(text) <- lines) yield text
 
     def find(Marker: Protocol_Message.Marker): Option[String] =
       lines.collectFirst({ case Marker(text) => text })
@@ -395,9 +395,7 @@ object Build_Log {
 
   val SESSION_NAME = "session_name"
 
-  object Session_Status extends Enumeration {
-    val existing, finished, failed, cancelled = Value
-  }
+  enum Session_Status { case existing, finished, failed, cancelled }
 
   sealed case class Session_Entry(
     chapter: String = "",
@@ -407,7 +405,7 @@ object Build_Log {
     ml_timing: Timing = Timing.zero,
     sources: Option[String] = None,
     heap_size: Option[Space] = None,
-    status: Option[Session_Status.Value] = None,
+    status: Option[Session_Status] = None,
     errors: List[String] = Nil,
     theory_timings: Map[String, Timing] = Map.empty,
     ml_statistics: List[Properties.T] = Nil
@@ -445,7 +443,7 @@ object Build_Log {
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started1 = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
-    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) on \S+ \.\.\.$""")
+    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on \S+\)? \.\.\.$""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
@@ -1040,13 +1038,13 @@ object Build_Log {
           Par_List.map[JFile, Exn.Result[Log_File]](
             file => Exn.capture { Log_File(file) }, file_group)
         db.transaction {
-          for (Exn.Res(log_file) <- log_files) {
+          for (case Exn.Res(log_file) <- log_files) {
             progress.echo("Log " + quote(log_file.name), verbose = true)
             try { status.foreach(_.update(log_file)) }
             catch { case exn: Throwable => add_error(log_file.name, exn) }
           }
         }
-        for ((file, Exn.Exn(exn)) <- file_group.zip(log_files)) {
+        for (case (file, Exn.Exn(exn)) <- file_group.zip(log_files)) {
           add_error(Log_File.plain_name(file), exn)
         }
       }
@@ -1071,8 +1069,8 @@ object Build_Log {
                else
                 res.get_string(c)))
           val n = Prop.all_props.length
-          val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
-          val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
+          val props = for (case (x, Some(y)) <- results.take(n)) yield (x, y)
+          val settings = for (case (x, Some(y)) <- results.drop(n)) yield (x, y)
           Meta_Info(props, settings)
         }
       )
@@ -1129,7 +1127,7 @@ object Build_Log {
                     Data.ml_timing_gc),
                 sources = res.get_string(Data.sources),
                 heap_size = res.get_long(Data.heap_size).map(Space.bytes),
-                status = res.get_string(Data.status).map(Session_Status.withName),
+                status = res.get_string(Data.status).map(Session_Status.valueOf),
                 errors = uncompress_errors(res.bytes(Data.errors), cache = cache),
                 ml_statistics =
                   if (ml_statistics) {

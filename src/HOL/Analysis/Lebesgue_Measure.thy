@@ -1092,11 +1092,6 @@ lemma lebesgue_real_scale:
   shows   "lebesgue = density (distr lebesgue lebesgue (\<lambda>x. c * x)) (\<lambda>x. ennreal \<bar>c\<bar>)"
   using assms by (subst lebesgue_affine_euclidean[of "\<lambda>_. c" 0]) simp_all
 
-lemma divideR_right:
-  fixes x y :: "'a::real_normed_vector"
-  shows "r \<noteq> 0 \<Longrightarrow> y = x /\<^sub>R r \<longleftrightarrow> r *\<^sub>R y = x"
-  using scaleR_cancel_left[of r y "x /\<^sub>R r"] by simp
-
 lemma lborel_has_bochner_integral_real_affine_iff:
   fixes x :: "'a :: {banach, second_countable_topology}"
   shows "c \<noteq> 0 \<Longrightarrow>

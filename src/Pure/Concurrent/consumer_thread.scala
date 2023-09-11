@@ -89,7 +89,7 @@ final class Consumer_Thread[A] private(
 
     val (results, cont) = consume(reqs.map(_.arg))
     for {
-      (Some(req), Some(res)) <- reqs.map(Some(_)).zipAll(results.map(Some(_)), None, None)
+      case (Some(req), Some(res)) <- reqs.map(Some(_)).zipAll(results.map(Some(_)), None, None)
     } {
       (req.ack, res) match {
         case (Some(a), _) => a.change(_ => Some(res))

@@ -262,7 +262,7 @@ fun analyze_prover_result_for_inconsistency (result as {outcome, used_facts, ...
           | facts => "The goal is falsified by these facts: " ^ commas facts)
         else
           "Derived \"False\" from these facts alone: " ^
-          commas (map fst used_facts)))
+          space_implode " " (map fst used_facts)))
 
 fun check_expected_outcome ctxt prover_name expect outcome =
   let
@@ -464,7 +464,7 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
   end
 
 fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules, max_facts,
-    max_proofs, slices, ...}) mode writeln_result i (fact_override as {only, ...}) state =
+    max_proofs, slices, timeout, ...}) mode writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set"
   else
@@ -513,7 +513,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
         fun massage_message proof_or_inconsistency s =
           let val s' = strip_time s in
             if member (op =) (Synchronized.value seen_messages) s' then
-              "Found duplicate " ^ proof_or_inconsistency
+              "Duplicate " ^ proof_or_inconsistency
             else
               (Synchronized.change seen_messages (cons s'); s)
           end
@@ -577,6 +577,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
             val launch = launch_prover_and_preplay params mode has_already_found_something
               found_something massage_message writeln_result learn
 
+            val timer = Timer.startRealTimer ()
+
             val schedule =
               if mode = Auto_Try then provers
               else schedule_of_provers provers slices
@@ -597,7 +599,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
             else
               (learn chained_thms;
                Par_List.map (fn (prover, slice) =>
-                   if Synchronized.value found_proofs_and_falsifications < max_proofs then
+                   if Synchronized.value found_proofs_and_falsifications < max_proofs
+                      andalso Timer.checkRealTimer timer < timeout then
                      launch problem slice prover
                    else
                      (SH_None, ""))

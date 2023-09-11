@@ -6,38 +6,63 @@ Isabelle-specific thread management.
 
 signature ISABELLE_THREAD =
 sig
-  val is_self: Thread.thread -> bool
-  val get_name: unit -> string
+  type T
+  val get_thread: T -> Thread.Thread.thread
+  val get_name: T -> string
+  val get_id: T -> int
+  val equal: T * T -> bool
+  val print: T -> string
+  val self: unit -> T
+  val is_self: T -> bool
   val stack_limit: unit -> int option
   type params = {name: string, stack_limit: int option, interrupts: bool}
-  val attributes: params -> Thread.threadAttribute list
-  val fork: params -> (unit -> unit) -> Thread.thread
-  val join: Thread.thread -> unit
-  val interrupt_unsynchronized: Thread.thread -> unit
+  val attributes: params -> Thread.Thread.threadAttribute list
+  val fork: params -> (unit -> unit) -> T
+  val is_active: T -> bool
+  val join: T -> unit
+  val interrupt_unsynchronized: T -> unit
 end;
 
 structure Isabelle_Thread: ISABELLE_THREAD =
 struct
 
+(* abstract type *)
+
+abstype T = T of {thread: Thread.Thread.thread, name: string, id: int}
+with
+  val make = T;
+  fun dest (T args) = args;
+end;
+
+val get_thread = #thread o dest;
+val get_name = #name o dest;
+val get_id = #id o dest;
+
+val equal = Thread.Thread.equal o apply2 get_thread;
+
+fun print t =
+  (case get_name t of "" => "ML" | a => "Isabelle." ^ a) ^
+    "-" ^ string_of_int (get_id t);
+
+
 (* self *)
 
-fun is_self thread = Thread.equal (Thread.self (), thread);
-
-
-(* unique name *)
+val make_id = Counter.make ();
 
 local
-  val name_var = Thread_Data.var () : string Thread_Data.var;
-  val count = Counter.make ();
+  val self_var = Thread_Data.var () : T Thread_Data.var;
 in
 
-fun get_name () =
-  (case Thread_Data.get name_var of
-    SOME name => name
-  | NONE => raise Fail "Isabelle-specific thread required");
+fun set_self t = Thread_Data.put self_var (SOME t);
 
-fun set_name base =
-  Thread_Data.put name_var (SOME ("Isabelle." ^ base ^ "-" ^ string_of_int (count ())));
+fun self () =
+  (case Thread_Data.get self_var of
+    SOME t => t
+  | NONE =>
+      let val t = make {thread = Thread.Thread.self (), name = "", id = make_id ()}
+      in set_self t; t end);
+
+fun is_self t = equal (t, self ());
 
 end;
 
@@ -53,28 +78,31 @@ fun stack_limit () =
 type params = {name: string, stack_limit: int option, interrupts: bool};
 
 fun attributes ({stack_limit, interrupts, ...}: params) =
-  Thread.MaximumMLStack stack_limit ::
+  Thread.Thread.MaximumMLStack stack_limit ::
   Thread_Attributes.convert_attributes
     (if interrupts then Thread_Attributes.public_interrupts else Thread_Attributes.no_interrupts);
 
 fun fork (params: params) body =
-  Thread.fork (fn () =>
-    Exn.trace General.exnMessage tracing (fn () =>
-      (set_name (#name params); body ())
-        handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn),
-    attributes params);
+  let
+    val name = #name params;
+    val id = make_id ();
+    fun main () = (set_self (make {thread = Thread.Thread.self (), name = name, id = id}); body ());
+    val thread = Thread.Thread.fork (main, attributes params);
+  in make {thread = thread, name = name, id = id} end;
 
 
 (* join *)
 
-fun join thread =
-  while Thread.isActive thread
+val is_active = Thread.Thread.isActive o get_thread;
+
+fun join t =
+  while is_active t
   do OS.Process.sleep (seconds 0.1);
 
 
 (* interrupt *)
 
-fun interrupt_unsynchronized thread =
-  Thread.interrupt thread handle Thread _ => ();
+fun interrupt_unsynchronized t =
+  Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
 
 end;

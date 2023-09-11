@@ -151,7 +151,7 @@ object HTML {
   def check_control_blocks(body: XML.Body): Boolean = {
     var ok = true
     var open = List.empty[Symbol.Symbol]
-    for { XML.Text(text) <- body; sym <- Symbol.iterator(text) } {
+    for { case XML.Text(text) <- body; sym <- Symbol.iterator(text) } {
       if (is_control_block_begin(sym)) open ::= sym
       else if (is_control_block_end(sym)) {
         open match {
@@ -355,15 +355,13 @@ object HTML {
   /* GUI layout */
 
   object Wrap_Panel {
-    object Alignment extends Enumeration {
-      val left, right, center = Value
-    }
+    enum Alignment { case left, right, center }
 
     def apply(
       contents: List[XML.Elem],
       name: String = "",
       action: String = "",
-      alignment: Alignment.Value = Alignment.right
+      alignment: Alignment = Alignment.right
     ): XML.Elem = {
       val body = Library.separate(XML.Text(" "), contents)
       GUI.form(List(div(body) + ("style" -> ("text-align: " + alignment))),

@@ -289,7 +289,8 @@ fun run_atp mode name
           val _ =
             if mode = Normal andalso not (is_conjecture_used_in_proof atp_proof)
                andalso not (Logic.get_goal (Thm.prop_of goal) subgoal aconv @{prop False}) then
-              warning ("Derived \"False\" from these facts alone: " ^ commas (map fst used_facts))
+              warning ("Derived \"False\" from these facts alone: " ^
+                space_implode " " (map fst used_facts))
             else
               ()
 

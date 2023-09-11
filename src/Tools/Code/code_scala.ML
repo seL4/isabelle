@@ -70,7 +70,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
       | print_tupled_typ tyvars (tys, ty) =
           concat [enum "," "(" ")" (map (print_typ tyvars NOBR) tys),
             str "=>", print_typ tyvars NOBR ty];
-    fun constraint p1 p2 = Pretty.block [p1, str ":", Pretty.brk 1, p2];
+    fun constraint p1 p2 = Pretty.block [p1, str " : ", p2];
     fun print_var vars NONE = str "_"
       | print_var vars (SOME v) = (str o lookup_var vars) v;
     fun applify_dict tyvars (Dict (_, d)) = applify_plain_dict tyvars d

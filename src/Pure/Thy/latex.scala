@@ -93,9 +93,7 @@ object Latex {
   /* tags */
 
   object Tags {
-    object Op extends Enumeration {
-      val fold, drop, keep = Value
-    }
+    enum Op { case fold, drop, keep }
 
     val standard = "document,theory,proof,ML,visible,-invisible,important,unimportant"
 
@@ -103,7 +101,7 @@ object Latex {
 
     def apply(spec: String): Tags =
       new Tags(spec,
-        (explode(standard) ::: explode(spec)).foldLeft(TreeMap.empty[String, Op.Value]) {
+        (explode(standard) ::: explode(spec)).foldLeft(TreeMap.empty[String, Op]) {
           case (m, tag) =>
             tag.toList match {
               case '/' :: cs => m + (cs.mkString -> Op.fold)
@@ -116,10 +114,10 @@ object Latex {
     val empty: Tags = apply("")
   }
 
-  class Tags private(spec: String, map: TreeMap[String, Tags.Op.Value]) {
+  class Tags private(spec: String, map: TreeMap[String, Tags.Op]) {
     override def toString: String = spec
 
-    def get(name: String): Option[Tags.Op.Value] = map.get(name)
+    def get(name: String): Option[Tags.Op] = map.get(name)
 
     def sty(comment_latex: Boolean): File.Content = {
       val path = Path.explode("isabelletags.sty")

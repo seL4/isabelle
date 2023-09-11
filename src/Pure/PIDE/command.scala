@@ -147,13 +147,13 @@ object Command {
       else other.rep.iterator.foldLeft(this)(_ + _)
 
     def redirection_iterator: Iterator[Document_ID.Generic] =
-      for (Markup_Index(_, Symbol.Text_Chunk.Id(id)) <- rep.keysIterator)
+      for (case Markup_Index(_, Symbol.Text_Chunk.Id(id)) <- rep.keysIterator)
         yield id
 
     def redirect(other_id: Document_ID.Generic): Markups = {
       val rep1 =
         (for {
-          (Markup_Index(status, Symbol.Text_Chunk.Id(id)), markup) <- rep.iterator
+          case (Markup_Index(status, Symbol.Text_Chunk.Id(id)), markup) <- rep.iterator
           if other_id == id
         } yield (Markup_Index(status, Symbol.Text_Chunk.Default), markup)).toMap
       if (rep1.isEmpty) Markups.empty else new Markups(rep1)
@@ -500,13 +500,13 @@ final class Command private(
   def blobs_ok: Boolean = blobs.forall(Exn.the_res.isDefinedAt)
 
   def blobs_names: List[Document.Node.Name] =
-    for (Exn.Res(blob) <- blobs) yield blob.name
+    for (case Exn.Res(blob) <- blobs) yield blob.name
 
   def blobs_undefined: List[Document.Node.Name] =
-    for (Exn.Res(blob) <- blobs if blob.content.isEmpty) yield blob.name
+    for (case Exn.Res(blob) <- blobs if blob.content.isEmpty) yield blob.name
 
   def blobs_defined: List[(Document.Node.Name, SHA1.Digest)] =
-    for (Exn.Res(blob) <- blobs; (digest, _) <- blob.content) yield (blob.name, digest)
+    for (case Exn.Res(blob) <- blobs; (digest, _) <- blob.content) yield (blob.name, digest)
 
   def blobs_changed(doc_blobs: Document.Blobs): Boolean =
     blobs.exists({ case Exn.Res(blob) => doc_blobs.changed(blob.name) case _ => false })
@@ -518,7 +518,7 @@ final class Command private(
 
   val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
-      (for (Exn.Res(blob) <- blobs; (_, file) <- blob.content)
+      (for (case Exn.Res(blob) <- blobs; (_, file) <- blob.content)
         yield blob.chunk_file -> file)).toMap
 
   def length: Int = source.length

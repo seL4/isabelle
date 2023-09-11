@@ -102,13 +102,11 @@ lemma (in product_prob_space) measure_PiM_emb:
 
 lemma sets_Collect_single':
   "i \<in> I \<Longrightarrow> {x\<in>space (M i). P x} \<in> sets (M i) \<Longrightarrow> {x\<in>space (PiM I M). P (x i)} \<in> sets (PiM I M)"
-  using sets_Collect_single[of i I "{x\<in>space (M i). P x}" M]
-  by (simp add: space_PiM PiE_iff cong: conj_cong)
+  by auto
 
 lemma (in finite_product_prob_space) finite_measure_PiM_emb:
   "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> measure (PiM I M) (Pi\<^sub>E I A) = (\<Prod>i\<in>I. measure (M i) (A i))"
-  using measure_PiM_emb[of I A] finite_index prod_emb_PiE_same_index[OF sets.sets_into_space, of I A M]
-  by auto
+  by (rule prob_times)
 
 lemma (in product_prob_space) PiM_component:
   assumes "i \<in> I"

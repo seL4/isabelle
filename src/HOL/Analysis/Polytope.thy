@@ -28,8 +28,12 @@ qed
 
 lemma face_of_linear_image:
   assumes "linear f" "inj f"
-    shows "(f ` c face_of f ` S) \<longleftrightarrow> c face_of S"
-by (simp add: face_of_def inj_image_subset_iff inj_image_mem_iff open_segment_linear_image assms)
+  shows "(f ` c face_of f ` S) \<longleftrightarrow> c face_of S"
+  by (simp add: face_of_def inj_image_subset_iff inj_image_mem_iff open_segment_linear_image assms)
+
+lemma faces_of_linear_image:
+   "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> {T. T face_of (f ` S)} = (image f) ` {T. T face_of S}"
+  by (smt (verit) Collect_cong face_of_def face_of_linear_image setcompr_eq_image subset_imageE)
 
 lemma face_of_refl: "convex S \<Longrightarrow> S face_of S"
   by (auto simp: face_of_def)
@@ -267,6 +271,39 @@ proof -
     by (simp add: algebra_simps) (simp add: scaleR_left_distrib [symmetric] field_split_simps)
   then show ?thesis
     using \<open>affine S\<close> xy by (auto simp: affine_alt)
+qed
+
+proposition face_of_conic:
+  assumes "conic S" "f face_of S"
+  shows "conic f"
+  unfolding conic_def
+proof (intro strip)
+  fix x and c::real
+  assume "x \<in> f" and "0 \<le> c"
+  have f: "\<And>a b x. \<lbrakk>a \<in> S; b \<in> S; x \<in> f; x \<in> open_segment a b\<rbrakk> \<Longrightarrow> a \<in> f \<and> b \<in> f"
+    using \<open>f face_of S\<close> face_ofD by blast
+  show "c *\<^sub>R x \<in> f"
+  proof (cases "x=0 \<or> c=1")
+    case True
+    then show ?thesis
+      using \<open>x \<in> f\<close> by auto
+  next
+    case False
+    with \<open>0 \<le> c\<close> obtain d e where de: "0 \<le> d" "0 \<le> e" "d < 1" "1 < e" "d < e" "(d = c \<or> e = c)"
+      apply (simp add: neq_iff)
+      by (metis gt_ex less_eq_real_def order_less_le_trans zero_less_one)
+    then obtain [simp]: "c *\<^sub>R x \<in> S" "e *\<^sub>R x \<in> S" \<open>x \<in> S\<close>
+      using \<open>x \<in> f\<close> assms conic_mul face_of_imp_subset by blast
+    have "x \<in> open_segment (d *\<^sub>R x) (e *\<^sub>R x)" if "c *\<^sub>R x \<notin> f"
+      using de False that
+      apply (simp add: in_segment)
+      apply (rule_tac x="(1 - d) / (e - d)" in exI)
+      apply (simp add: field_simps)
+      by (smt (verit, del_insts) add_divide_distrib divide_self scaleR_collapse)
+    then show ?thesis
+      using \<open>conic S\<close> f [of "d *\<^sub>R x" "e *\<^sub>R x" x] de \<open>x \<in> f\<close>
+      by (force simp: conic_def in_segment)
+  qed
 qed
 
 proposition face_of_convex_hulls:
@@ -926,6 +963,18 @@ proof (cases "a \<in> S")
    using face_of_convex_hulls [of "insert a S" "{a}"] assms
    by (auto simp: face_of_singleton hull_same)
 qed (use assms  in \<open>simp add: hull_inc\<close>)
+
+lemma extreme_point_of_conic:
+  assumes "conic S" and x: "x extreme_point_of S"
+  shows "x = 0"
+proof -
+  have "{x} face_of S"
+    by (simp add: face_of_singleton x)
+  then have "conic{x}"
+    using assms(1) face_of_conic by blast
+  then show ?thesis
+    by (force simp: conic_def)
+qed
 
 subsection\<open>Facets\<close>
 
@@ -3826,5 +3875,135 @@ proof -
       using that by (auto simp: in\<T>)
   qed
 qed
+section \<open>Finitely generated cone is polyhedral, and hence closed\<close>
+
+proposition polyhedron_convex_cone_hull:
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite S"
+  shows "polyhedron(convex_cone hull S)"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (simp add: affine_imp_polyhedron)
+next
+  case False
+  then have "polyhedron(convex hull (insert 0 S))"
+    by (simp add: assms polyhedron_convex_hull)
+  then obtain F a b where "finite F" 
+         and F: "convex hull (insert 0 S) = \<Inter> F" 
+         and ab: "\<And>h. h \<in> F \<Longrightarrow> a h \<noteq> 0 \<and> h = {x. a h \<bullet> x \<le> b h}"
+    unfolding polyhedron_def by metis
+  then have "F \<noteq> {}"
+    by (metis bounded_convex_hull finite_imp_bounded Inf_empty assms finite_insert not_bounded_UNIV)
+  show ?thesis
+    unfolding polyhedron_def
+  proof (intro exI conjI)
+    show "convex_cone hull S = \<Inter> {h \<in> F. b h = 0}" (is "?lhs = ?rhs")
+    proof
+      show "?lhs \<subseteq> ?rhs"
+      proof (rule hull_minimal)
+        show "S \<subseteq> \<Inter> {h \<in> F. b h = 0}"
+          by (smt (verit, best) F InterE InterI hull_subset insert_subset mem_Collect_eq subset_eq)
+        have "\<And>S. \<lbrakk>S \<in> F; b S = 0\<rbrakk> \<Longrightarrow> convex_cone S"
+          by (metis ab convex_cone_halfspace_le)
+        then show "convex_cone (\<Inter> {h \<in> F. b h = 0})"
+          by (force intro: convex_cone_Inter)
+      qed
+      have "x \<in> convex_cone hull S"
+        if x: "\<And>h. \<lbrakk>h \<in> F; b h = 0\<rbrakk> \<Longrightarrow> x \<in> h" for x
+      proof -
+        have "\<exists>t. 0 < t \<and> (t *\<^sub>R x) \<in> h" if "h \<in> F" for h
+        proof (cases "b h = 0")
+          case True
+          then show ?thesis
+            by (metis x linordered_field_no_ub mult_1 scaleR_one that zero_less_mult_iff)
+        next
+          case False
+          then have "b h > 0"
+            by (smt (verit, del_insts) F InterE ab hull_subset inner_zero_right insert_subset mem_Collect_eq that)
+          then have "0 \<in> interior {x. a h \<bullet> x \<le> b h}"
+            by (simp add: ab that)
+          then have "0 \<in> interior h"
+            using ab that by auto
+          then obtain \<epsilon> where "0 < \<epsilon>" and \<epsilon>: "ball 0 \<epsilon> \<subseteq> h"
+            using mem_interior by blast
+          show ?thesis
+          proof (cases "x=0")
+            case True
+            then show ?thesis
+              using \<epsilon> \<open>0 < \<epsilon>\<close> by auto
+          next
+            case False
+            with \<epsilon> \<open>0 < \<epsilon>\<close> show ?thesis
+              by (rule_tac x="\<epsilon> / (2 * norm x)" in exI) (auto simp: divide_simps)
+          qed
+        qed
+        then obtain t where t: "\<And>h. h \<in> F \<Longrightarrow> 0 < t h \<and> (t h *\<^sub>R x) \<in> h" 
+          by metis
+        then have "Inf (t ` F) *\<^sub>R x /\<^sub>R Inf (t ` F) = x"
+          by (smt (verit) \<open>F \<noteq> {}\<close> \<open>finite F\<close> divideR_right finite_imageI finite_less_Inf_iff image_iff image_is_empty)
+        moreover have "Inf (t ` F) *\<^sub>R x /\<^sub>R Inf (t ` F) \<in> convex_cone hull S"
+        proof (rule conicD [OF conic_convex_cone_hull])
+          have "Inf (t ` F) *\<^sub>R x \<in> \<Inter> F"
+          proof clarify
+            fix h
+            assume  "h \<in> F"
+            have eq: "Inf (t ` F) *\<^sub>R x = (1 - Inf(t ` F) / t h) *\<^sub>R 0 + (Inf(t ` F) / t h) *\<^sub>R t h *\<^sub>R x"
+              using \<open>h \<in> F\<close> t by force
+            show "Inf (t ` F) *\<^sub>R x \<in> h"
+              unfolding eq
+            proof (rule convexD_alt)
+              have "h = {x. a h \<bullet> x \<le> b h}"
+                by (simp add: \<open>h \<in> F\<close> ab)
+              then show "convex h"
+                by (metis convex_halfspace_le)
+              show "0 \<in> h"
+                by (metis F InterE \<open>h \<in> F\<close> hull_subset insertCI subsetD)
+              show "t h *\<^sub>R x \<in> h"
+                by (simp add: \<open>h \<in> F\<close> t)
+              show "0 \<le> Inf (t ` F) / t h"
+                by (metis \<open>F \<noteq> {}\<close> \<open>h \<in> F\<close> cINF_greatest divide_nonneg_pos less_eq_real_def t)
+              show "Inf (t ` F) / t h \<le> 1"
+                by (simp add: \<open>finite F\<close> \<open>h \<in> F\<close> cInf_le_finite t)
+            qed
+          qed
+          moreover have "convex hull (insert 0 S) \<subseteq> convex_cone hull S"
+            by (simp add: convex_cone_hull_contains_0 convex_convex_cone_hull hull_minimal hull_subset)
+          ultimately show "Inf (t ` F) *\<^sub>R x \<in> convex_cone hull S"
+            using F by blast
+          show "0 \<le> inverse (Inf (t ` F))"
+            using t by (simp add: \<open>F \<noteq> {}\<close> \<open>finite F\<close> finite_less_Inf_iff less_eq_real_def)
+        qed
+        ultimately show ?thesis
+          by auto
+      qed
+      then show "?rhs \<subseteq> ?lhs"
+        by auto
+    qed
+    show "\<forall>h\<in>{h \<in> F. b h = 0}. \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}"
+      using ab by blast
+  qed (auto simp: \<open>finite F\<close>)
+qed
+
+
+lemma closed_convex_cone_hull:
+  fixes S :: "'a::euclidean_space set"
+  shows "finite S \<Longrightarrow> closed(convex_cone hull S)"
+  by (simp add: polyhedron_convex_cone_hull polyhedron_imp_closed)
+
+lemma polyhedron_convex_cone_hull_polytope:
+  fixes S :: "'a::euclidean_space set"
+  shows "polytope S \<Longrightarrow> polyhedron(convex_cone hull S)"
+  by (metis convex_cone_hull_separate hull_hull polyhedron_convex_cone_hull polytope_def)
+
+lemma polyhedron_conic_hull_polytope:
+  fixes S :: "'a::euclidean_space set"
+  shows "polytope S \<Longrightarrow> polyhedron(conic hull S)"
+  by (metis conic_hull_eq_empty convex_cone_hull_separate_nonempty hull_hull polyhedron_convex_cone_hull_polytope polyhedron_empty polytope_def)
+
+lemma closed_conic_hull_strong:
+  fixes S :: "'a::euclidean_space set"
+  shows "0 \<in> rel_interior S \<or> polytope S \<or> compact S \<and> ~(0 \<in> S) \<Longrightarrow> closed(conic hull S)"
+  using closed_conic_hull polyhedron_conic_hull_polytope polyhedron_imp_closed by blast
 
 end

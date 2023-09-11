@@ -152,12 +152,6 @@ object Dump {
       val session_graph = deps.sessions_structure.build_graph
       val all_sessions = session_graph.topological_order
 
-      val afp_sessions =
-        (for (name <- all_sessions if session_info(name).is_afp) yield name).toSet
-
-      val afp_bulky_sessions =
-        (for (name <- all_sessions if session_info(name).is_afp_bulky) yield name).toList
-
       val base_sessions =
         session_graph.all_preds_rev(List(logic).filter(session_graph.defined))
 
@@ -187,25 +181,12 @@ object Dump {
       val main =
         make_session(
           session_graph.topological_order.filterNot(name =>
-            afp_sessions.contains(name) ||
             base_sessions.contains(name) ||
             proof_sessions.contains(name)))
 
       val proofs = make_session(proof_sessions, session_logic = PURE, record_proofs = true)
 
-      val afp =
-        if (afp_sessions.isEmpty) Nil
-        else {
-          val (part1, part2) = {
-            val graph = session_graph.restrict(afp_sessions -- afp_bulky_sessions)
-            val force_partition1 = AFP.force_partition1.filter(graph.defined)
-            val force_part1 = graph.all_preds(graph.all_succs(force_partition1)).toSet
-            graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
-          }
-          List(part1, part2, afp_bulky_sessions).flatMap(make_session(_))
-        }
-
-      proofs ::: base ::: main ::: afp
+      proofs ::: base ::: main
     }
 
 

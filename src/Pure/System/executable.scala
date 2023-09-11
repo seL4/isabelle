@@ -31,7 +31,7 @@ object Executable {
       if (Platform.is_macos) {
         val Pattern = """^\s*(/.+)\s+\(.*\)$""".r
         for {
-          Pattern(lib) <- ldd_lines
+          case Pattern(lib) <- ldd_lines
           if !lib.startsWith("@executable_path/") && filter(lib_name(lib))
         } yield lib
       }
@@ -42,7 +42,7 @@ object Executable {
             case None => ""
             case Some(path) => path.absolute.implode
           }
-        for { Pattern(lib) <- ldd_lines if filter(lib_name(lib)) }
+        for { case Pattern(lib) <- ldd_lines if filter(lib_name(lib)) }
           yield prefix + lib
       }
 

@@ -58,7 +58,7 @@ object Component_VSCodium {
   /* platform info */
 
   sealed case class Platform_Info(
-    platform: Platform.Family.Value,
+    platform: Platform.Family,
     download_template: String,
     build_name: String,
     env: List[String]
@@ -233,7 +233,7 @@ object Component_VSCodium {
       .text.replaceAll("=", "")
   }
 
-  private val platform_infos: Map[Platform.Family.Value, Platform_Info] =
+  private val platform_infos: Map[Platform.Family, Platform_Info] =
     Iterator(
       Platform_Info(Platform.Family.linux, "linux-x64-{VERSION}.tar.gz", "VSCode-linux-x64",
         List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True")),
@@ -250,7 +250,7 @@ object Component_VSCodium {
           "SHOULD_BUILD_MSI_NOUP=no")))
       .map(info => info.platform -> info).toMap
 
-  def the_platform_info(platform: Platform.Family.Value): Platform_Info =
+  def the_platform_info(platform: Platform.Family): Platform_Info =
     platform_infos.getOrElse(platform, error("No platform info for " + quote(platform.toString)))
 
   def linux_platform_info: Platform_Info =
@@ -259,7 +259,7 @@ object Component_VSCodium {
 
   /* check system */
 
-  def check_system(platforms: List[Platform.Family.Value]): Unit = {
+  def check_system(platforms: List[Platform.Family]): Unit = {
     if (Platform.family != Platform.Family.linux) error("Not a Linux/x86_64 system")
 
     Isabelle_System.require_command("git")
@@ -301,11 +301,11 @@ object Component_VSCodium {
 
   /* build vscodium */
 
-  def default_platforms: List[Platform.Family.Value] = Platform.Family.list
+  def default_platforms: List[Platform.Family] = Platform.Family.list
 
   def component_vscodium(
     target_dir: Path = Path.current,
-    platforms: List[Platform.Family.Value] = default_platforms,
+    platforms: List[Platform.Family] = default_platforms,
     progress: Progress = new Progress
   ): Unit = {
     check_system(platforms)

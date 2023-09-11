@@ -493,7 +493,7 @@ object SSH {
 
     def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
 
-    def isabelle_platform_family: Platform.Family.Value =
+    def isabelle_platform_family: Platform.Family =
       Platform.Family.parse(isabelle_platform.ISABELLE_PLATFORM_FAMILY)
   }
 
