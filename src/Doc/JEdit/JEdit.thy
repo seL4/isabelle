@@ -1979,39 +1979,39 @@ text \<open>
   \end{figure}
 
   The traditional batch-build works on the command-line, e.g.\ via
-  \<^verbatim>\<open>isabelle build -o document\<close>~\<open>SESSION\<close> (see also \<^cite>\<open>\<open>\S3\<close> in
-  "isabelle-system"\<close>). The corresponding session \<^verbatim>\<open>ROOT\<close> entry determines
+  \<^verbatim>\<open>isabelle build -o document\<close>~\<open>SESSION\<close>, see also \<^cite>\<open>\<open>\S3\<close> in
+  "isabelle-system"\<close>. The corresponding session \<^verbatim>\<open>ROOT\<close> entry determines
   \isakeyword{theories} and \isakeyword{document\_files} for the overall
   {\LaTeX} job. The latter is run as a monolithic process, using all theories
   and taking contents from the file-system.
 
   In contrast, an interactive build within Isabelle/jEdit allows to select a
-  subset of theory sources, with contents taken from the PIDE editor model.
-  Beware that \isakeyword{document\_files} and the overall session
+  subset of theory sources, and contents are taken from the PIDE document
+  model. Beware that \isakeyword{document\_files} and the overall session
   specification are still taken from the \<^verbatim>\<open>ROOT\<close> entry: that information is
   only processed on startup of Isabelle/jEdit, so changes to \<^verbatim>\<open>ROOT\<close> require a
   restart.
 
   \<^medskip> The GUI elements of the \<^emph>\<open>Document\<close> panel (\figref{fig:document}), and its
   sub-panels for \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> are described below (from left to
-  right). The screenshot of has two instances of the panel, to illustrate both
-  \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> for this explanation.
+  right). The screenshot of has two instances of the panel to illustrate both
+  \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> simultaneously.
 
     \<^item> The \<^emph>\<open>session selector\<close> tells, which session should be the basis of the
     document build job. This determines, which theories may be selected in the
-    \<^emph>\<open>Input\<close> tab (dynamically), and which \isakeyword{document\_files} should
+    \<^emph>\<open>Input\<close> tab (dynamically) and which \isakeyword{document\_files} should
     be used (statically).
 
     \<^item> The \<^emph>\<open>progress indicator\<close> provides some visual feedback on the document
-    build process. The ``spinning wheel'' is either active while waiting for
-    selected document theories to be processed in the Prover IDE, or while
-    {\LaTeX} tools are running.
+    build process. The ``spinning wheel'' is either active while processing
+    selected document theories in the Prover IDE, or while {\LaTeX} tools are
+    running.
 
     \<^item> The \<^emph>\<open>Auto\<close> checkbox may be selected to say that the {\LaTeX} job should
-    be started automatically (after a timeout). This happens, whenever the
+    be started automatically (after a timeout). This happens whenever the
     selected theories have been fully processed in the Prover IDE (see also
-    the \<^emph>\<open>Build\<close> botton). If successful, the resulting PDF will be shown
-    by an external browser (see also the \<^emph>\<open>View\<close> button).
+    the \<^emph>\<open>Build\<close> button). If successful, the resulting PDF will be shown by an
+    external browser (see also the \<^emph>\<open>View\<close> button).
 
     \<^item> The \<^emph>\<open>Build\<close> button invokes the {\LaTeX} job manually, when \<^emph>\<open>Input\<close>
     theories have been fully processed. The \<^emph>\<open>Output\<close> tab follows the stages
@@ -2021,9 +2021,9 @@ text \<open>
     \<^item> The \<^emph>\<open>View\<close> button invokes an external browser application on the
     resulting PDF file: its location is always the same, given within the
     \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> directory. Multiple invocations should normally
-    refresh the viewer application, at the same document position as last
+    refresh the viewer application, with the same document position as last
     time. Beware that window focus handling depends on the application (and
-    the operating system): there may be conflicts with with the editor
+    the desktop environment): there may be conflicts with the editor
     window focus.
 
     \<^item> The \<^emph>\<open>Input\<close> sub-panel is similar to the regular \<^emph>\<open>Theories\<close> panel
@@ -2039,20 +2039,20 @@ text \<open>
     document model (that affects everything, not just document theories).
 
     Non-selected theories are turned into an (almost) empty {\LaTeX} source
-    file: formal \<open>\<^cite>\<close> antiquotations (\<^cite>\<open>"isabelle-isar-ref"\<close>) are
+    file: formal \<open>\<^cite>\<close> antiquotations \<^cite>\<open>"isabelle-isar-ref"\<close> are
     included, everything else is left blank. Thus the {\LaTeX} and Bib{\TeX}
-    document setup should normally work, independently on the selected subset
+    document setup should normally work, independently of the selected subset
     of theories. References to sections or pages might be missing, though.
 
-    \<^item> The \<^emph>\<open>Output\<close> sub-panel provides a structured view and the running build
-    process. Its \<^emph>\<open>progress\<close> output consists of a two-level hierarchy of
-    messages. The outer level displays overall programs with timing
-    information. Hovering over the program name reveals the inner level with
-    program log information or error messages.
+    \<^item> The \<^emph>\<open>Output\<close> sub-panel provides a structured view of the running build
+    process. Its progress output consists of a two-level hierarchy of
+    messages. The outer level displays program names with timing information.
+    Hovering over some name reveals the inner level with program log
+    information or error messages.
 
-    The initial stage of \<^verbatim>\<open>Creating directory\<close> shows a directory listing of
-    the {\LaTeX} job that has been generated from all document sources. This
-    may help to explore structural failures of the {\LaTeX} job.
+    The initial stage of ``\<^verbatim>\<open>Creating directory\<close>'' shows a directory listing
+    of the {\LaTeX} job that has been generated from all document sources.
+    This may help to explore structural failures of the {\LaTeX} job.
 \<close>
 
 
