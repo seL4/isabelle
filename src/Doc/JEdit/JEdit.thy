@@ -1994,7 +1994,7 @@ text \<open>
 
   \<^medskip> The GUI elements of the \<^emph>\<open>Document\<close> panel (\figref{fig:document}), and its
   sub-panels for \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> are described below (from left to
-  right). The screenshot of has two instances of the panel to illustrate both
+  right). The screenshot has two instances of the panel to illustrate both
   \<^emph>\<open>Input\<close> and \<^emph>\<open>Output\<close> simultaneously.
 
     \<^item> The \<^emph>\<open>session selector\<close> tells, which session should be the basis of the
