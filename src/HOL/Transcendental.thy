@@ -6241,51 +6241,10 @@ qed
 
 subsection \<open>Basics about polynomial functions: products, extremal behaviour and root counts\<close>
 
-lemma pairs_le_eq_Sigma: "{(i, j). i + j \<le> m} = Sigma (atMost m) (\<lambda>r. atMost (m - r))"
-  for m :: nat
-  by auto
-
-lemma sum_up_index_split: "(\<Sum>k\<le>m + n. f k) = (\<Sum>k\<le>m. f k) + (\<Sum>k = Suc m..m + n. f k)"
-  by (metis atLeast0AtMost Suc_eq_plus1 le0 sum.ub_add_nat)
-
-lemma Sigma_interval_disjoint: "(SIGMA i:A. {..v i}) \<inter> (SIGMA i:A.{v i<..w}) = {}"
-  for w :: "'a::order"
-  by auto
-
-lemma product_atMost_eq_Un: "A \<times> {..m} = (SIGMA i:A.{..m - i}) \<union> (SIGMA i:A.{m - i<..m})"
-  for m :: nat
-  by auto
-
-lemma polynomial_product: (*with thanks to Chaitanya Mangla*)
-  fixes x :: "'a::idom"
-  assumes m: "\<And>i. i > m \<Longrightarrow> a i = 0"
-    and n: "\<And>j. j > n \<Longrightarrow> b j = 0"
-  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) =
-         (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
-proof -
-  have "\<And>i j. \<lbrakk>m + n - i < j; a i \<noteq> 0\<rbrakk> \<Longrightarrow> b j = 0"
-    by (meson le_add_diff leI le_less_trans m n)
-  then have \<section>: "(\<Sum>(i,j)\<in>(SIGMA i:{..m+n}. {m+n - i<..m+n}). a i * x ^ i * (b j * x ^ j)) = 0"
-    by (clarsimp simp add: sum_Un Sigma_interval_disjoint intro!: sum.neutral)
-  have "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = (\<Sum>i\<le>m. \<Sum>j\<le>n. (a i * x ^ i) * (b j * x ^ j))"
-    by (rule sum_product)
-  also have "\<dots> = (\<Sum>i\<le>m + n. \<Sum>j\<le>n + m. a i * x ^ i * (b j * x ^ j))"
-    using assms by (auto simp: sum_up_index_split)
-  also have "\<dots> = (\<Sum>r\<le>m + n. \<Sum>j\<le>m + n - r. a r * x ^ r * (b j * x ^ j))"
-    by (simp add: add_ac sum.Sigma product_atMost_eq_Un sum_Un Sigma_interval_disjoint \<section>)
-  also have "\<dots> = (\<Sum>(i,j)\<in>{(i,j). i+j \<le> m+n}. (a i * x ^ i) * (b j * x ^ j))"
-    by (auto simp: pairs_le_eq_Sigma sum.Sigma)
-  also have "... = (\<Sum>k\<le>m + n. \<Sum>i\<le>k. a i * x ^ i * (b (k - i) * x ^ (k - i)))"
-    by (rule sum.triangle_reindex_eq)
-  also have "\<dots> = (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
-    by (auto simp: algebra_simps sum_distrib_left simp flip: power_add intro!: sum.cong)
-  finally show ?thesis .
-qed
-
 lemma polynomial_product_nat:
   fixes x :: nat
-  assumes m: "\<And>i. i > m \<Longrightarrow> a i = 0"
-    and n: "\<And>j. j > n \<Longrightarrow> b j = 0"
+  assumes m: "\<And>i. i > m \<Longrightarrow> int (a i) = 0"
+    and n: "\<And>j. j > n \<Longrightarrow> int (b j) = 0"
   shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) =
          (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
   using polynomial_product [of m a n b x] assms
