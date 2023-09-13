@@ -4,6 +4,16 @@ begin
 
 section \<open>Further issues \label{sec:further}\<close>
 
+subsection \<open>Runtime environments for \<^text>\<open>Haskell\<close> and \<^text>\<open>OCaml\<close>\<close>
+
+text \<open>
+  The Isabelle System Manual \<^cite>\<open>"isabelle-system"\<close> provides some hints
+  how runtime environments for \<^text>\<open>Haskell\<close> and \<^text>\<open>OCaml\<close> can be
+  set up and maintained conveniently using managed installations within
+  the Isabelle environments.
+\<close>
+
+
 subsection \<open>Incorporating generated code directly into the system runtime -- \<open>code_reflect\<close>\<close>
 
 subsubsection \<open>Static embedding of generated code into the system runtime\<close>

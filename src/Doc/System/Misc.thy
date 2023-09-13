@@ -466,4 +466,30 @@ text \<open>
   \<^url>\<open>https://isabelle.sketis.net/repos/isabelle/archive/tip.tar.gz\<close>).
 \<close>
 
+
+section \<open>Managed installations of \<^text>\<open>Haskell\<close> and \<^text>\<open>OCaml\<close>\<close>
+
+text \<open>
+  Code generated in Isabelle \<^cite>\<open>"Haftmann-codegen"\<close> for \<^text>\<open>SML\<close>
+  or \<^text>\<open>Scala\<close> integrates easily using Isabelle/ML or Isabelle/Scala
+  respectively.
+
+  To facilitate integration with further target languages, there are
+  tools to provide managed installations of the required ecosystems:
+
+  \<^item> Tool @{tool_def ghc_setup} provides a basic \<^text>\<open>Haskell\<close> \<^cite>\<open>"Thompson-Haskell"\<close> environment
+    consisting of the Glasgow Haskell Compiler and the Haskell Tool Stack.
+
+  \<^item> Tool @{tool_def ghc_stack} provides an interface to that \<^text>\<open>Haskell\<close>
+    environment; use \<^verbatim>\<open>isabelle ghc_stack --help\<close> for elementary
+    instructions.
+
+  \<^item> Tool @{tool_def ocaml_setup} provides a basic \<^text>\<open>OCaml\<close> \<^cite>\<open>OCaml\<close> environment
+    consisting of the OCaml compiler and the OCaml Package Manager.
+
+  \<^item> Tool @{tool_def ocaml_opam} provides an interface to that \<^text>\<open>OCaml\<close>
+    environment; use \<^verbatim>\<open>isabelle ocaml_opam --help\<close> for elementary
+    instructions.
+\<close>
+
 end
