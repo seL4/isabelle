@@ -101,8 +101,8 @@ text \<open>
 \<close>
 
 class %quote semigroup =
-  fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<otimes>" 70)
-  assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+  fixes mult :: \<open>\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>\<close>   (infixl \<open>\<otimes>\<close> 70)
+  assumes assoc: \<open>(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)\<close>
 
 text \<open>
   \<^noindent> This @{command class} specification consists of two parts:
@@ -110,9 +110,9 @@ text \<open>
   "fixes"}), the \qn{logical} part specifies properties on them
   (@{element "assumes"}).  The local @{element "fixes"} and @{element
   "assumes"} are lifted to the theory toplevel, yielding the global
-  parameter @{term [source] "mult :: \<alpha>::semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
-  global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y z ::
-  \<alpha>::semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
+  parameter @{term [source] \<open>mult :: \<alpha>::semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>\<close>} and the
+  global theorem @{fact "semigroup.assoc:"}~@{prop [source] \<open>\<And>x y z ::
+  \<alpha>::semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)\<close>}.
 \<close>
 
 
@@ -128,11 +128,11 @@ instantiation %quote int :: semigroup
 begin
 
 definition %quote
-  mult_int_def: "i \<otimes> j = i + (j::int)"
+  mult_int_def: \<open>i \<otimes> j = i + (j::int)\<close>
 
 instance %quote proof
-  fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
-  then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
+  fix i j k :: int have \<open>(i + j) + k = i + (j + k)\<close> by simp
+  then show \<open>(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)\<close>
     unfolding mult_int_def .
 qed
 
@@ -160,12 +160,12 @@ instantiation %quote nat :: semigroup
 begin
 
 primrec %quote mult_nat where
-  "(0::nat) \<otimes> n = n"
-  | "Suc m \<otimes> n = Suc (m \<otimes> n)"
+  \<open>(0::nat) \<otimes> n = n\<close>
+  | \<open>Suc m \<otimes> n = Suc (m \<otimes> n)\<close>
 
 instance %quote proof
   fix m n q :: nat 
-  show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
+  show \<open>m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)\<close>
     by (induct m) auto
 qed
 
@@ -191,11 +191,11 @@ instantiation %quote prod :: (semigroup, semigroup) semigroup
 begin
 
 definition %quote
-  mult_prod_def: "p\<^sub>1 \<otimes> p\<^sub>2 = (fst p\<^sub>1 \<otimes> fst p\<^sub>2, snd p\<^sub>1 \<otimes> snd p\<^sub>2)"
+  mult_prod_def: \<open>p\<^sub>1 \<otimes> p\<^sub>2 = (fst p\<^sub>1 \<otimes> fst p\<^sub>2, snd p\<^sub>1 \<otimes> snd p\<^sub>2)\<close>
 
 instance %quote proof
-  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "\<alpha>::semigroup \<times> \<beta>::semigroup"
-  show "p\<^sub>1 \<otimes> p\<^sub>2 \<otimes> p\<^sub>3 = p\<^sub>1 \<otimes> (p\<^sub>2 \<otimes> p\<^sub>3)"
+  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: \<open>\<alpha>::semigroup \<times> \<beta>::semigroup\<close>
+  show \<open>p\<^sub>1 \<otimes> p\<^sub>2 \<otimes> p\<^sub>3 = p\<^sub>1 \<otimes> (p\<^sub>2 \<otimes> p\<^sub>3)\<close>
     unfolding mult_prod_def by (simp add: assoc)
 qed      
 
@@ -220,8 +220,8 @@ text \<open>
 \<close>
 
 class %quote monoidl = semigroup +
-  fixes neutral :: "\<alpha>" ("\<one>")
-  assumes neutl: "\<one> \<otimes> x = x"
+  fixes neutral :: \<open>\<alpha>\<close> (\<open>\<one>\<close>)
+  assumes neutl: \<open>\<one> \<otimes> x = x\<close>
 
 text \<open>
   \<^noindent> Again, we prove some instances, by providing suitable
@@ -234,18 +234,18 @@ instantiation %quote nat and int :: monoidl
 begin
 
 definition %quote
-  neutral_nat_def: "\<one> = (0::nat)"
+  neutral_nat_def: \<open>\<one> = (0::nat)\<close>
 
 definition %quote
-  neutral_int_def: "\<one> = (0::int)"
+  neutral_int_def: \<open>\<one> = (0::int)\<close>
 
 instance %quote proof
   fix n :: nat
-  show "\<one> \<otimes> n = n"
+  show \<open>\<one> \<otimes> n = n\<close>
     unfolding neutral_nat_def by simp
 next
   fix k :: int
-  show "\<one> \<otimes> k = k"
+  show \<open>\<one> \<otimes> k = k\<close>
     unfolding neutral_int_def mult_int_def by simp
 qed
 
@@ -255,11 +255,11 @@ instantiation %quote prod :: (monoidl, monoidl) monoidl
 begin
 
 definition %quote
-  neutral_prod_def: "\<one> = (\<one>, \<one>)"
+  neutral_prod_def: \<open>\<one> = (\<one>, \<one>)\<close>
 
 instance %quote proof
-  fix p :: "\<alpha>::monoidl \<times> \<beta>::monoidl"
-  show "\<one> \<otimes> p = p"
+  fix p :: \<open>\<alpha>::monoidl \<times> \<beta>::monoidl\<close>
+  show \<open>\<one> \<otimes> p = p\<close>
     unfolding neutral_prod_def mult_prod_def by (simp add: neutl)
 qed
 
@@ -271,18 +271,18 @@ text \<open>
 \<close>
 
 class %quote monoid = monoidl +
-  assumes neutr: "x \<otimes> \<one> = x"
+  assumes neutr: \<open>x \<otimes> \<one> = x\<close>
 
 instantiation %quote nat and int :: monoid 
 begin
 
 instance %quote proof
   fix n :: nat
-  show "n \<otimes> \<one> = n"
+  show \<open>n \<otimes> \<one> = n\<close>
     unfolding neutral_nat_def by (induct n) simp_all
 next
   fix k :: int
-  show "k \<otimes> \<one> = k"
+  show \<open>k \<otimes> \<one> = k\<close>
     unfolding neutral_int_def mult_int_def by simp
 qed
 
@@ -292,8 +292,8 @@ instantiation %quote prod :: (monoid, monoid) monoid
 begin
 
 instance %quote proof 
-  fix p :: "\<alpha>::monoid \<times> \<beta>::monoid"
-  show "p \<otimes> \<one> = p"
+  fix p :: \<open>\<alpha>::monoid \<times> \<beta>::monoid\<close>
+  show \<open>p \<otimes> \<one> = p\<close>
     unfolding neutral_prod_def mult_prod_def by (simp add: neutr)
 qed
 
@@ -304,19 +304,19 @@ text \<open>
 \<close>
 
 class %quote group = monoidl +
-  fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<div>)" [1000] 999)
-  assumes invl: "x\<div> \<otimes> x = \<one>"
+  fixes inverse :: \<open>\<alpha> \<Rightarrow> \<alpha>\<close>    (\<open>(_\<div>)\<close> [1000] 999)
+  assumes invl: \<open>x\<div> \<otimes> x = \<one>\<close>
 
 instantiation %quote int :: group
 begin
 
 definition %quote
-  inverse_int_def: "i\<div> = - (i::int)"
+  inverse_int_def: \<open>i\<div> = - (i::int)\<close>
 
 instance %quote proof
   fix i :: int
-  have "-i + i = 0" by simp
-  then show "i\<div> \<otimes> i = \<one>"
+  have \<open>-i + i = 0\<close> by simp
+  then show \<open>i\<div> \<otimes> i = \<one>\<close>
     unfolding mult_int_def neutral_int_def inverse_int_def .
 qed
 
@@ -335,20 +335,20 @@ text \<open>
 \<close>
 
 class %quote idem =
-  fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
-  assumes idem: "f (f x) = f x"
+  fixes f :: \<open>\<alpha> \<Rightarrow> \<alpha>\<close>
+  assumes idem: \<open>f (f x) = f x\<close>
 
 text \<open>
   \<^noindent> essentially introduces the locale
 \<close> (*<*)setup %invisible \<open>Sign.add_path "foo"\<close>
 (*>*)
 locale %quote idem =
-  fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
-  assumes idem: "f (f x) = f x"
+  fixes f :: \<open>\<alpha> \<Rightarrow> \<alpha>\<close>
+  assumes idem: \<open>f (f x) = f x\<close>
 
 text \<open>\<^noindent> together with corresponding constant(s):\<close>
 
-consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
+consts %quote f :: \<open>\<alpha> \<Rightarrow> \<alpha>\<close>
 
 text \<open>
   \<^noindent> The connection to the type system is done by means of a
@@ -357,7 +357,7 @@ text \<open>
 \<close>
 
 interpretation %quote idem_class:
-  idem "f :: (\<alpha>::idem) \<Rightarrow> \<alpha>"
+  idem \<open>f :: (\<alpha>::idem) \<Rightarrow> \<alpha>\<close>
 (*<*)sorry(*>*)
 
 text \<open>
@@ -375,26 +375,26 @@ text \<open>
   states that the function \<open>(x \<otimes>)\<close> is injective:
 \<close>
 
-lemma %quote (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
+lemma %quote (in group) left_cancel: \<open>x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z\<close>
 proof
-  assume "x \<otimes> y = x \<otimes> z"
-  then have "x\<div> \<otimes> (x \<otimes> y) = x\<div> \<otimes> (x \<otimes> z)" by simp
-  then have "(x\<div> \<otimes> x) \<otimes> y = (x\<div> \<otimes> x) \<otimes> z" using assoc by simp
-  then show "y = z" using neutl and invl by simp
+  assume \<open>x \<otimes> y = x \<otimes> z\<close>
+  then have \<open>x\<div> \<otimes> (x \<otimes> y) = x\<div> \<otimes> (x \<otimes> z)\<close> by simp
+  then have \<open>(x\<div> \<otimes> x) \<otimes> y = (x\<div> \<otimes> x) \<otimes> z\<close> using assoc by simp
+  then show \<open>y = z\<close> using neutl and invl by simp
 next
-  assume "y = z"
-  then show "x \<otimes> y = x \<otimes> z" by simp
+  assume \<open>y = z\<close>
+  then show \<open>x \<otimes> y = x \<otimes> z\<close> by simp
 qed
 
 text \<open>
   \<^noindent> Here the \qt{@{keyword "in"} \<^class>\<open>group\<close>} target
   specification indicates that the result is recorded within that
   context for later use.  This local theorem is also lifted to the
-  global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z ::
-  \<alpha>::group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.  Since type \<open>int\<close> has been
+  global one @{fact "group.left_cancel:"} @{prop [source] \<open>\<And>x y z ::
+  \<alpha>::group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z\<close>}.  Since type \<open>int\<close> has been
   made an instance of \<open>group\<close> before, we may refer to that
-  fact as well: @{prop [source] "\<And>x y z :: int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
-  z"}.
+  fact as well: @{prop [source] \<open>\<And>x y z :: int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
+  z\<close>}.
 \<close>
 
 
@@ -404,14 +404,14 @@ text \<open>
   Isabelle locales are targets which support local definitions:
 \<close>
 
-primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
-  "pow_nat 0 x = \<one>"
-  | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
+primrec %quote (in monoid) pow_nat :: \<open>nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>\<close> where
+  \<open>pow_nat 0 x = \<one>\<close>
+  | \<open>pow_nat (Suc n) x = x \<otimes> pow_nat n x\<close>
 
 text \<open>
   \<^noindent> If the locale \<open>group\<close> is also a class, this local
   definition is propagated onto a global definition of @{term [source]
-  "pow_nat :: nat \<Rightarrow> \<alpha>::monoid \<Rightarrow> \<alpha>::monoid"} with corresponding theorems
+  \<open>pow_nat :: nat \<Rightarrow> \<alpha>::monoid \<Rightarrow> \<alpha>::monoid\<close>} with corresponding theorems
 
   @{thm pow_nat.simps [no_vars]}.
 
@@ -438,7 +438,7 @@ text \<open>
   for lists:
 \<close>
 
-interpretation %quote list_monoid: monoid append "[]"
+interpretation %quote list_monoid: monoid append \<open>[]\<close>
   proof qed auto
 
 text \<open>
@@ -449,18 +449,18 @@ text \<open>
   be appropriate to map derived definitions accordingly:
 \<close>
 
-primrec %quote replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list" where
-  "replicate 0 _ = []"
-  | "replicate (Suc n) xs = xs @ replicate n xs"
+primrec %quote replicate :: \<open>nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list\<close> where
+  \<open>replicate 0 _ = []\<close>
+  | \<open>replicate (Suc n) xs = xs @ replicate n xs\<close>
 
-interpretation %quote list_monoid: monoid append "[]" rewrites
-  "monoid.pow_nat append [] = replicate"
+interpretation %quote list_monoid: monoid append \<open>[]\<close> rewrites
+  \<open>monoid.pow_nat append [] = replicate\<close>
 proof -
-  interpret monoid append "[]" ..
-  show "monoid.pow_nat append [] = replicate"
+  interpret monoid append \<open>[]\<close> ..
+  show \<open>monoid.pow_nat append [] = replicate\<close>
   proof
     fix n
-    show "monoid.pow_nat append [] n = replicate n"
+    show \<open>monoid.pow_nat append [] n = replicate n\<close>
       by (induct n) auto
   qed
 qed intro_locales
@@ -486,9 +486,9 @@ text \<open>
 subclass %quote (in group) monoid
 proof
   fix x
-  from invl have "x\<div> \<otimes> x = \<one>" by simp
-  with assoc [symmetric] neutl invl have "x\<div> \<otimes> (x \<otimes> \<one>) = x\<div> \<otimes> x" by simp
-  with left_cancel show "x \<otimes> \<one> = x" by simp
+  from invl have \<open>x\<div> \<otimes> x = \<one>\<close> by simp
+  with assoc [symmetric] neutl invl have \<open>x\<div> \<otimes> (x \<otimes> \<one>) = x\<div> \<otimes> x\<close> by simp
+  with left_cancel show \<open>x \<otimes> \<one> = x\<close> by simp
 qed
 
 text \<open>
@@ -530,14 +530,14 @@ text \<open>
   For illustration, a derived definition in \<open>group\<close> using \<open>pow_nat\<close>
 \<close>
 
-definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
-  "pow_int k x = (if k >= 0
+definition %quote (in group) pow_int :: \<open>int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>\<close> where
+  \<open>pow_int k x = (if k \<ge> 0
     then pow_nat (nat k) x
-    else (pow_nat (nat (- k)) x)\<div>)"
+    else (pow_nat (nat (- k)) x)\<div>)\<close>
 
 text \<open>
-  \<^noindent> yields the global definition of @{term [source] "pow_int ::
-  int \<Rightarrow> \<alpha>::group \<Rightarrow> \<alpha>::group"} with the corresponding theorem @{thm
+  \<^noindent> yields the global definition of @{term [source] \<open>pow_int ::
+  int \<Rightarrow> \<alpha>::group \<Rightarrow> \<alpha>::group\<close>} with the corresponding theorem @{thm
   pow_int_def [no_vars]}.
 \<close>
 
@@ -552,12 +552,12 @@ text \<open>
 context %quote semigroup
 begin
 
-term %quote "x \<otimes> y" \<comment> \<open>example 1\<close>
-term %quote "(x::nat) \<otimes> y" \<comment> \<open>example 2\<close>
+term %quote \<open>x \<otimes> y\<close> \<comment> \<open>example 1\<close>
+term %quote \<open>(x::nat) \<otimes> y\<close> \<comment> \<open>example 2\<close>
 
 end  %quote
 
-term %quote "x \<otimes> y" \<comment> \<open>example 3\<close>
+term %quote \<open>x \<otimes> y\<close> \<comment> \<open>example 3\<close>
 
 text \<open>
   \<^noindent> Here in example 1, the term refers to the local class
@@ -583,7 +583,7 @@ text \<open>
 \<close>
 
 definition %quote example :: int where
-  "example = pow_int 10 (-2)"
+  \<open>example = pow_int 10 (-2)\<close>
 
 text \<open>
   \<^noindent> This maps to Haskell as follows:
@@ -628,4 +628,3 @@ text \<open>
 \<close>
 
 end
-
