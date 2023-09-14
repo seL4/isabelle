@@ -283,7 +283,7 @@ fun satisfied_application wanted ({ dom, range, ... }, ts) =
   let
     val given = length ts;
     val delta = wanted - given;
-    val (_, rty) = unfold_fun_n wanted range;
+    val rty = drop wanted dom `--> range;
   in
     if delta = 0 then
       (([], (ts, rty)), [])
