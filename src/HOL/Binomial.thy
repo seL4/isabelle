@@ -6,7 +6,7 @@
     Author:     Manuel Eberl
 *)
 
-section \<open>Binomial Coefficients and Binomial Theorem\<close>
+section \<open>Binomial Coefficients, Binomial Theorem, Inclusion-exclusion Principle\<close>
 
 theory Binomial
   imports Presburger Factorial
@@ -793,7 +793,7 @@ next
 qed
 
 
-subsubsection \<open>Summation on the upper index\<close>
+subsection \<open>Summation on the upper index\<close>
 
 text \<open>
   Another summation formula is equation 5.10 of the reference material \<^cite>\<open>\<open>p.~160\<close> in GKP_CM\<close>,
@@ -1087,7 +1087,148 @@ next
 qed
 
 
+subsection \<open>More on Binomial Coefficients\<close>
+
+text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is \<^term>\<open>(N + m - 1) choose N\<close>:\<close>
+lemma card_length_sum_list_rec:
+  assumes "m \<ge> 1"
+  shows "card {l::nat list. length l = m \<and> sum_list l = N} =
+      card {l. length l = (m - 1) \<and> sum_list l = N} +
+      card {l. length l = m \<and> sum_list l + 1 = N}"
+    (is "card ?C = card ?A + card ?B")
+proof -
+  let ?A' = "{l. length l = m \<and> sum_list l = N \<and> hd l = 0}"
+  let ?B' = "{l. length l = m \<and> sum_list l = N \<and> hd l \<noteq> 0}"
+  let ?f = "\<lambda>l. 0 # l"
+  let ?g = "\<lambda>l. (hd l + 1) # tl l"
+  have 1: "xs \<noteq> [] \<Longrightarrow> x = hd xs \<Longrightarrow> x # tl xs = xs" for x :: nat and xs
+    by simp
+  have 2: "xs \<noteq> [] \<Longrightarrow> sum_list(tl xs) = sum_list xs - hd xs" for xs :: "nat list"
+    by (auto simp add: neq_Nil_conv)
+  have f: "bij_betw ?f ?A ?A'"
+    by (rule bij_betw_byWitness[where f' = tl]) (use assms in \<open>auto simp: 2 1 simp flip: length_0_conv\<close>)
+  have 3: "xs \<noteq> [] \<Longrightarrow> hd xs + (sum_list xs - hd xs) = sum_list xs" for xs :: "nat list"
+    by (metis 1 sum_list_simps(2) 2)
+  have g: "bij_betw ?g ?B ?B'"
+    apply (rule bij_betw_byWitness[where f' = "\<lambda>l. (hd l - 1) # tl l"])
+    using assms
+    by (auto simp: 2 simp flip: length_0_conv intro!: 3)
+  have fin: "finite {xs. size xs = M \<and> set xs \<subseteq> {0..<N}}" for M N :: nat
+    using finite_lists_length_eq[OF finite_atLeastLessThan] conj_commute by auto
+  have fin_A: "finite ?A" using fin[of _ "N+1"]
+    by (intro finite_subset[where ?A = "?A" and ?B = "{xs. size xs = m - 1 \<and> set xs \<subseteq> {0..<N+1}}"])
+      (auto simp: member_le_sum_list less_Suc_eq_le)
+  have fin_B: "finite ?B"
+    by (intro finite_subset[where ?A = "?B" and ?B = "{xs. size xs = m \<and> set xs \<subseteq> {0..<N}}"])
+      (auto simp: member_le_sum_list less_Suc_eq_le fin)
+  have uni: "?C = ?A' \<union> ?B'"
+    by auto
+  have disj: "?A' \<inter> ?B' = {}" by blast
+  have "card ?C = card(?A' \<union> ?B')"
+    using uni by simp
+  also have "\<dots> = card ?A + card ?B"
+    using card_Un_disjoint[OF _ _ disj] bij_betw_finite[OF f] bij_betw_finite[OF g]
+      bij_betw_same_card[OF f] bij_betw_same_card[OF g] fin_A fin_B
+    by presburger
+  finally show ?thesis .
+qed
+
+lemma card_length_sum_list: "card {l::nat list. size l = m \<and> sum_list l = N} = (N + m - 1) choose N"
+  \<comment> \<open>by Holden Lee, tidied by Tobias Nipkow\<close>
+proof (cases m)
+  case 0
+  then show ?thesis
+    by (cases N) (auto cong: conj_cong)
+next
+  case (Suc m')
+  have m: "m \<ge> 1"
+    by (simp add: Suc)
+  then show ?thesis
+  proof (induct "N + m - 1" arbitrary: N m)
+    case 0  \<comment> \<open>In the base case, the only solution is [0].\<close>
+    have [simp]: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
+      by (auto simp: length_Suc_conv)
+    have "m = 1 \<and> N = 0"
+      using 0 by linarith
+    then show ?case
+      by simp
+  next
+    case (Suc k)
+    have c1: "card {l::nat list. size l = (m - 1) \<and> sum_list l =  N} = (N + (m - 1) - 1) choose N"
+    proof (cases "m = 1")
+      case True
+      with Suc.hyps have "N \<ge> 1"
+        by auto
+      with True show ?thesis
+        by (simp add: binomial_eq_0)
+    next
+      case False
+      then show ?thesis
+        using Suc by fastforce
+    qed
+    from Suc have c2: "card {l::nat list. size l = m \<and> sum_list l + 1 = N} =
+      (if N > 0 then ((N - 1) + m - 1) choose (N - 1) else 0)"
+    proof -
+      have *: "n > 0 \<Longrightarrow> Suc m = n \<longleftrightarrow> m = n - 1" for m n
+        by arith
+      from Suc have "N > 0 \<Longrightarrow>
+        card {l::nat list. size l = m \<and> sum_list l + 1 = N} =
+          ((N - 1) + m - 1) choose (N - 1)"
+        by (simp add: *)
+      then show ?thesis
+        by auto
+    qed
+    from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> sum_list l = N} +
+          card {l::nat list. size l = m \<and> sum_list l + 1 = N}) = (N + m - 1) choose N"
+      by (auto simp: c1 c2 choose_reduce_nat[of "N + m - 1" N] simp del: One_nat_def)
+    then show ?case
+      using card_length_sum_list_rec[OF Suc.prems] by auto
+  qed
+qed
+
+lemma card_disjoint_shuffles:
+  assumes "set xs \<inter> set ys = {}"
+  shows   "card (shuffles xs ys) = (length xs + length ys) choose length xs"
+using assms
+proof (induction xs ys rule: shuffles.induct)
+  case (3 x xs y ys)
+  have "shuffles (x # xs) (y # ys) = (#) x ` shuffles xs (y # ys) \<union> (#) y ` shuffles (x # xs) ys"
+    by (rule shuffles.simps)
+  also have "card \<dots> = card ((#) x ` shuffles xs (y # ys)) + card ((#) y ` shuffles (x # xs) ys)"
+    by (rule card_Un_disjoint) (insert "3.prems", auto)
+  also have "card ((#) x ` shuffles xs (y # ys)) = card (shuffles xs (y # ys))"
+    by (rule card_image) auto
+  also have "\<dots> = (length xs + length (y # ys)) choose length xs"
+    using "3.prems" by (intro "3.IH") auto
+  also have "card ((#) y ` shuffles (x # xs) ys) = card (shuffles (x # xs) ys)"
+    by (rule card_image) auto
+  also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
+    using "3.prems" by (intro "3.IH") auto
+  also have "length xs + length (y # ys) choose length xs + \<dots> =
+               (length (x # xs) + length (y # ys)) choose length (x # xs)" by simp
+  finally show ?case .
+qed auto
+
+lemma Suc_times_binomial_add: "Suc a * (Suc (a + b) choose Suc a) = Suc b * (Suc (a + b) choose a)"
+  \<comment> \<open>by Lukas Bulwahn\<close>
+proof -
+  have dvd: "Suc a * (fact a * fact b) dvd fact (Suc (a + b))" for a b
+    using fact_fact_dvd_fact[of "Suc a" "b", where 'a=nat]
+    by (simp only: fact_Suc add_Suc[symmetric] of_nat_id mult.assoc)
+  have "Suc a * (fact (Suc (a + b)) div (Suc a * fact a * fact b)) =
+      Suc a * fact (Suc (a + b)) div (Suc a * (fact a * fact b))"
+    by (subst div_mult_swap[symmetric]; simp only: mult.assoc dvd)
+  also have "\<dots> = Suc b * fact (Suc (a + b)) div (Suc b * (fact a * fact b))"
+    by (simp only: div_mult_mult1)
+  also have "\<dots> = Suc b * (fact (Suc (a + b)) div (Suc b * (fact a * fact b)))"
+    using dvd[of b a] by (subst div_mult_swap[symmetric]; simp only: ac_simps dvd)
+  finally show ?thesis
+    by (subst (1 2) binomial_altdef_nat)
+      (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
+qed
+
 subsection \<open>Inclusion-exclusion principle\<close>
+text \<open>Ported from HOL Light by lcp\<close>
 
 lemma Inter_over_Union:
   "\<Inter> {\<Union> (\<F> x) |x. x \<in> S} = \<Union> {\<Inter> (G ` S) |G. \<forall>x\<in>S. G x \<in> \<F> x}" 
@@ -1269,144 +1410,126 @@ lemma card_UNION_nonneg:
   shows "(\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (- 1) ^ (card I + 1) * int (card (\<Inter>I))) \<ge> 0"
   using int_card_UNION [OF assms] by presburger
 
-subsection \<open>More on Binomial Coefficients\<close>
 
-text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is \<^term>\<open>(N + m - 1) choose N\<close>:\<close>
-lemma card_length_sum_list_rec:
-  assumes "m \<ge> 1"
-  shows "card {l::nat list. length l = m \<and> sum_list l = N} =
-      card {l. length l = (m - 1) \<and> sum_list l = N} +
-      card {l. length l = m \<and> sum_list l + 1 = N}"
-    (is "card ?C = card ?A + card ?B")
+subsection \<open>General "Moebius inversion" inclusion-exclusion principle\<close>
+
+text \<open>This "symmetric" form is from Ira Gessel: "Symmetric Inclusion-Exclusion" \<close>
+
+lemma sum_Un_eq:
+   "\<lbrakk>S \<inter> T = {}; S \<union> T = U; finite U\<rbrakk>
+           \<Longrightarrow> (sum f S + sum f T = sum f U)"
+  by (metis finite_Un sum.union_disjoint)
+
+lemma card_adjust_lemma: "\<lbrakk>inj_on f S; x = y + card (f ` S)\<rbrakk> \<Longrightarrow> x = y + card S"
+  by (simp add: card_image)
+
+lemma card_subsets_step:
+  assumes "finite S" "x \<notin> S" "U \<subseteq> S"
+  shows "card {T. T \<subseteq> (insert x S) \<and> U \<subseteq> T \<and> odd(card T)} 
+       = card {T. T \<subseteq> S \<and> U \<subseteq> T \<and> odd(card T)} + card {T. T \<subseteq> S \<and> U \<subseteq> T \<and> even(card T)} \<and>
+         card {T. T \<subseteq> (insert x S) \<and> U \<subseteq> T \<and> even(card T)} 
+       = card {T. T \<subseteq> S \<and> U \<subseteq> T \<and> even(card T)} + card {T. T \<subseteq> S \<and> U \<subseteq> T \<and> odd(card T)}"
 proof -
-  let ?A' = "{l. length l = m \<and> sum_list l = N \<and> hd l = 0}"
-  let ?B' = "{l. length l = m \<and> sum_list l = N \<and> hd l \<noteq> 0}"
-  let ?f = "\<lambda>l. 0 # l"
-  let ?g = "\<lambda>l. (hd l + 1) # tl l"
-  have 1: "xs \<noteq> [] \<Longrightarrow> x = hd xs \<Longrightarrow> x # tl xs = xs" for x :: nat and xs
-    by simp
-  have 2: "xs \<noteq> [] \<Longrightarrow> sum_list(tl xs) = sum_list xs - hd xs" for xs :: "nat list"
-    by (auto simp add: neq_Nil_conv)
-  have f: "bij_betw ?f ?A ?A'"
-    by (rule bij_betw_byWitness[where f' = tl]) (use assms in \<open>auto simp: 2 1 simp flip: length_0_conv\<close>)
-  have 3: "xs \<noteq> [] \<Longrightarrow> hd xs + (sum_list xs - hd xs) = sum_list xs" for xs :: "nat list"
-    by (metis 1 sum_list_simps(2) 2)
-  have g: "bij_betw ?g ?B ?B'"
-    apply (rule bij_betw_byWitness[where f' = "\<lambda>l. (hd l - 1) # tl l"])
-    using assms
-    by (auto simp: 2 simp flip: length_0_conv intro!: 3)
-  have fin: "finite {xs. size xs = M \<and> set xs \<subseteq> {0..<N}}" for M N :: nat
-    using finite_lists_length_eq[OF finite_atLeastLessThan] conj_commute by auto
-  have fin_A: "finite ?A" using fin[of _ "N+1"]
-    by (intro finite_subset[where ?A = "?A" and ?B = "{xs. size xs = m - 1 \<and> set xs \<subseteq> {0..<N+1}}"])
-      (auto simp: member_le_sum_list less_Suc_eq_le)
-  have fin_B: "finite ?B"
-    by (intro finite_subset[where ?A = "?B" and ?B = "{xs. size xs = m \<and> set xs \<subseteq> {0..<N}}"])
-      (auto simp: member_le_sum_list less_Suc_eq_le fin)
-  have uni: "?C = ?A' \<union> ?B'"
-    by auto
-  have disj: "?A' \<inter> ?B' = {}" by blast
-  have "card ?C = card(?A' \<union> ?B')"
-    using uni by simp
-  also have "\<dots> = card ?A + card ?B"
-    using card_Un_disjoint[OF _ _ disj] bij_betw_finite[OF f] bij_betw_finite[OF g]
-      bij_betw_same_card[OF f] bij_betw_same_card[OF g] fin_A fin_B
-    by presburger
+  have inj: "inj_on (insert x) {T. T \<subseteq> S \<and> P T}" for P
+    using assms by (auto simp: inj_on_def)
+  have [simp]: "finite {T. T \<subseteq> S \<and> P T}"  "finite (insert x ` {T. T \<subseteq> S \<and> P T})" for P
+    using \<open>finite S\<close> by auto
+  have [simp]: "disjnt {T. T \<subseteq> S \<and> P T} (insert x ` {T. T \<subseteq> S \<and> Q T})" for P Q
+    using assms by (auto simp: disjnt_iff)
+  have eq: "{T. T \<subseteq> S \<and> U \<subseteq> T \<and> P T} \<union> insert x ` {T. T \<subseteq> S \<and> U \<subseteq> T \<and> Q T}
+          = {T. T \<subseteq> insert x S \<and> U \<subseteq> T \<and> P T}"  (is "?L = ?R")
+    if "\<And>A. A \<subseteq> S \<Longrightarrow> Q (insert x A) \<longleftrightarrow> P A" "\<And>A. \<not> Q A \<longleftrightarrow> P A" for P Q
+  proof
+    show "?L \<subseteq> ?R"
+      by (clarsimp simp: image_iff subset_iff) (meson subsetI that)
+    show "?R \<subseteq> ?L"
+      using \<open>U \<subseteq> S\<close>
+      by (clarsimp simp: image_iff) (smt (verit) insert_iff mk_disjoint_insert subset_iff that)
+  qed
+  have [simp]: "\<And>A. A \<subseteq> S \<Longrightarrow> even (card (insert x A)) \<longleftrightarrow> odd (card A)"
+    by (metis \<open>finite S\<close> \<open>x \<notin> S\<close> card_insert_disjoint even_Suc finite_subset subsetD)
+  show ?thesis
+    by (intro conjI card_adjust_lemma [OF inj]; simp add: eq flip: card_Un_disjnt)
+qed
+
+lemma card_subsupersets_even_odd:
+  assumes "finite S" "U \<subset> S"
+  shows "card {T. T \<subseteq> S \<and> U \<subseteq> T \<and> even(card T)} 
+       = card {T. T \<subseteq> S \<and> U \<subseteq> T \<and> odd(card T)}"
+  using assms
+proof (induction "card S" arbitrary: S rule: less_induct)
+  case (less S)
+  then obtain x where "x \<notin> U" "x \<in> S"
+    by blast
+  then have U: "U \<subseteq> S - {x}"
+    using less.prems(2) by blast
+  let ?V = "S - {x}"
+  show ?case
+    using card_subsets_step [of ?V x U] less.prems U
+    by (simp add: insert_absorb \<open>x \<in> S\<close>)
+qed
+
+lemma sum_alternating_cancels:
+  assumes "finite S" "card {x. x \<in> S \<and> even(f x)} = card {x. x \<in> S \<and> odd(f x)}"
+  shows "(\<Sum>x\<in>S. (-1) ^ f x) = (0::'b::ring_1)"
+proof -
+  have "(\<Sum>x\<in>S. (-1) ^ f x)
+      = (\<Sum>x | x \<in> S \<and> even (f x). (-1) ^ f x) + (\<Sum>x | x \<in> S \<and> odd (f x). (-1) ^ f x)"
+    by (rule sum_Un_eq [symmetric]; force simp: \<open>finite S\<close>)
+  also have "... = (0::'b::ring_1)"
+    by (simp add: minus_one_power_iff assms cong: conj_cong)
   finally show ?thesis .
 qed
 
-lemma card_length_sum_list: "card {l::nat list. size l = m \<and> sum_list l = N} = (N + m - 1) choose N"
-  \<comment> \<open>by Holden Lee, tidied by Tobias Nipkow\<close>
-proof (cases m)
-  case 0
-  then show ?thesis
-    by (cases N) (auto cong: conj_cong)
-next
-  case (Suc m')
-  have m: "m \<ge> 1"
-    by (simp add: Suc)
-  then show ?thesis
-  proof (induct "N + m - 1" arbitrary: N m)
-    case 0  \<comment> \<open>In the base case, the only solution is [0].\<close>
-    have [simp]: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
-      by (auto simp: length_Suc_conv)
-    have "m = 1 \<and> N = 0"
-      using 0 by linarith
-    then show ?case
-      by simp
-  next
-    case (Suc k)
-    have c1: "card {l::nat list. size l = (m - 1) \<and> sum_list l =  N} = (N + (m - 1) - 1) choose N"
-    proof (cases "m = 1")
-      case True
-      with Suc.hyps have "N \<ge> 1"
-        by auto
-      with True show ?thesis
-        by (simp add: binomial_eq_0)
-    next
-      case False
-      then show ?thesis
-        using Suc by fastforce
-    qed
-    from Suc have c2: "card {l::nat list. size l = m \<and> sum_list l + 1 = N} =
-      (if N > 0 then ((N - 1) + m - 1) choose (N - 1) else 0)"
-    proof -
-      have *: "n > 0 \<Longrightarrow> Suc m = n \<longleftrightarrow> m = n - 1" for m n
-        by arith
-      from Suc have "N > 0 \<Longrightarrow>
-        card {l::nat list. size l = m \<and> sum_list l + 1 = N} =
-          ((N - 1) + m - 1) choose (N - 1)"
-        by (simp add: *)
-      then show ?thesis
-        by auto
-    qed
-    from Suc.prems have "(card {l::nat list. size l = (m - 1) \<and> sum_list l = N} +
-          card {l::nat list. size l = m \<and> sum_list l + 1 = N}) = (N + m - 1) choose N"
-      by (auto simp: c1 c2 choose_reduce_nat[of "N + m - 1" N] simp del: One_nat_def)
-    then show ?case
-      using card_length_sum_list_rec[OF Suc.prems] by auto
+lemma inclusion_exclusion_symmetric:
+  fixes f :: "'a set \<Rightarrow> 'b::ring_1"
+  assumes \<section>: "\<And>S. finite S \<Longrightarrow> g S = (\<Sum>T \<in> Pow S. (-1) ^ card T * f T)"
+    and "finite S"
+  shows "f S = (\<Sum>T \<in> Pow S. (-1) ^ card T * g T)"
+proof -
+  have "(-1) ^ card T * g T = (-1) ^ card T * (\<Sum>U | U \<subseteq> S \<and> U \<subseteq> T. (-1) ^ card U * f U)" 
+    if "T \<subseteq> S" for T
+  proof -
+    have [simp]: "{U. U \<subseteq> S \<and> U \<subseteq> T} = Pow T"
+      using that by auto
+    show ?thesis
+      using that by (simp add: \<open>finite S\<close> finite_subset \<section>)
   qed
+  then have "(\<Sum>T \<in> Pow S. (-1) ^ card T * g T)
+      = (\<Sum>T\<in>Pow S. (-1) ^ card T * (\<Sum>U | U \<in> {U. U \<subseteq> S} \<and> U \<subseteq> T. (-1) ^ card U * f U))"
+    by simp
+  also have "... = (\<Sum>U\<in>Pow S. (\<Sum>T | T \<subseteq> S \<and> U \<subseteq> T. (-1) ^ card T) * (-1) ^ card U * f U)"
+    unfolding sum_distrib_left
+    by (subst sum.swap_restrict; simp add: \<open>finite S\<close> algebra_simps sum_distrib_right Pow_def)
+  also have "... = (\<Sum>U\<in>Pow S. if U=S then f S else 0)"
+  proof -
+    have [simp]: "{T. T \<subseteq> S \<and> S \<subseteq> T} = {S}"
+      by auto
+    show ?thesis
+      apply (rule sum.cong [OF refl])
+      by (simp add: sum_alternating_cancels card_subsupersets_even_odd \<open>finite S\<close> flip: power_add)
+  qed
+  also have "... = f S"
+    by (simp add: \<open>finite S\<close>)
+  finally show ?thesis
+    by presburger
 qed
 
-lemma card_disjoint_shuffles:
-  assumes "set xs \<inter> set ys = {}"
-  shows   "card (shuffles xs ys) = (length xs + length ys) choose length xs"
-using assms
-proof (induction xs ys rule: shuffles.induct)
-  case (3 x xs y ys)
-  have "shuffles (x # xs) (y # ys) = (#) x ` shuffles xs (y # ys) \<union> (#) y ` shuffles (x # xs) ys"
-    by (rule shuffles.simps)
-  also have "card \<dots> = card ((#) x ` shuffles xs (y # ys)) + card ((#) y ` shuffles (x # xs) ys)"
-    by (rule card_Un_disjoint) (insert "3.prems", auto)
-  also have "card ((#) x ` shuffles xs (y # ys)) = card (shuffles xs (y # ys))"
-    by (rule card_image) auto
-  also have "\<dots> = (length xs + length (y # ys)) choose length xs"
-    using "3.prems" by (intro "3.IH") auto
-  also have "card ((#) y ` shuffles (x # xs) ys) = card (shuffles (x # xs) ys)"
-    by (rule card_image) auto
-  also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
-    using "3.prems" by (intro "3.IH") auto
-  also have "length xs + length (y # ys) choose length xs + \<dots> =
-               (length (x # xs) + length (y # ys)) choose length (x # xs)" by simp
-  finally show ?case .
-qed auto
-
-lemma Suc_times_binomial_add: "Suc a * (Suc (a + b) choose Suc a) = Suc b * (Suc (a + b) choose a)"
-  \<comment> \<open>by Lukas Bulwahn\<close>
+text\<open> The more typical non-symmetric version.                                   \<close>
+lemma inclusion_exclusion_mobius:
+  fixes f :: "'a set \<Rightarrow> 'b::ring_1"
+  assumes \<section>: "\<And>S. finite S \<Longrightarrow> g S = sum f (Pow S)" and "finite S"
+  shows "f S = (\<Sum>T \<in> Pow S. (-1) ^ (card S - card T) * g T)" (is "_ = ?rhs")
 proof -
-  have dvd: "Suc a * (fact a * fact b) dvd fact (Suc (a + b))" for a b
-    using fact_fact_dvd_fact[of "Suc a" "b", where 'a=nat]
-    by (simp only: fact_Suc add_Suc[symmetric] of_nat_id mult.assoc)
-  have "Suc a * (fact (Suc (a + b)) div (Suc a * fact a * fact b)) =
-      Suc a * fact (Suc (a + b)) div (Suc a * (fact a * fact b))"
-    by (subst div_mult_swap[symmetric]; simp only: mult.assoc dvd)
-  also have "\<dots> = Suc b * fact (Suc (a + b)) div (Suc b * (fact a * fact b))"
-    by (simp only: div_mult_mult1)
-  also have "\<dots> = Suc b * (fact (Suc (a + b)) div (Suc b * (fact a * fact b)))"
-    using dvd[of b a] by (subst div_mult_swap[symmetric]; simp only: ac_simps dvd)
-  finally show ?thesis
-    by (subst (1 2) binomial_altdef_nat)
-      (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
+  have "(- 1) ^ card S * f S = (\<Sum>T\<in>Pow S. (- 1) ^ card T * g T)"
+    by (rule inclusion_exclusion_symmetric; simp add: assms flip: power_add mult.assoc)
+  then have "((- 1) ^ card S * (- 1) ^ card S) * f S = ((- 1) ^ card S) * (\<Sum>T\<in>Pow S. (- 1) ^ card T * g T)"
+    by (simp add: mult_ac)
+  then have "f S = (\<Sum>T\<in>Pow S. (- 1) ^ (card S + card T) * g T)"
+    by (simp add: sum_distrib_left flip: power_add mult.assoc)
+  also have "... = ?rhs"
+    by (simp add: \<open>finite S\<close> card_mono neg_one_power_add_eq_neg_one_power_diff)
+  finally show ?thesis .
 qed
 
 
