@@ -23,9 +23,6 @@ hide_fact (open) div_less mod_less mod_less_eq_dividend mod_mult2_eq div_mult2_e
 context unique_euclidean_semiring_numeral
 begin
 
-context
-begin
-
 lemma divmod_digit_1 [no_atp]:
   assumes "0 \<le> a" "0 < b" and "b \<le> a mod (2 * b)"
   shows "2 * (a div (2 * b)) + 1 = a div b" (is "?P")
@@ -75,7 +72,7 @@ proof -
     by (simp_all add: div mod)
 qed
 
-lemma mod_double_modulus: \<comment>\<open>This is actually useful and should be transferred to a suitable type class\<close>
+lemma mod_double_modulus [no_atp]:
   assumes "m > 0" "x \<ge> 0"
   shows   "x mod (2 * m) = x mod m \<or> x mod (2 * m) = x mod m + m"
 proof (cases "x mod (2 * m) < m")
@@ -89,8 +86,6 @@ next
     by (subst * [symmetric], subst le_add_diff_inverse2) (use False in auto)
   thus ?thesis by simp
 qed
-
-end
 
 end
 

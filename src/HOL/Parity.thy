@@ -307,6 +307,12 @@ proof (induct n rule: less_induct)
   qed
 qed
 
+lemma mod_double_nat:
+  \<open>n mod (2 * m) = n mod m \<or> n mod (2 * m) = n mod m + m\<close>
+  for m n :: nat
+  by (cases \<open>even (n div m)\<close>)
+    (simp_all add: mod_mult2_eq ac_simps even_iff_mod_2_eq_zero)
+
 context semiring_parity
 begin
 
@@ -788,6 +794,10 @@ qed
 lemma of_bool_half_eq_0 [simp]:
   \<open>of_bool b div 2 = 0\<close>
   by simp
+
+lemma of_nat_mod_double:
+  \<open>of_nat n mod (2 * of_nat m) = of_nat n mod of_nat m \<or> of_nat n mod (2 * of_nat m) = of_nat n mod of_nat m + of_nat m\<close>
+  by (simp add: mod_double_nat flip: of_nat_mod of_nat_add of_nat_mult of_nat_numeral)
 
 end
 

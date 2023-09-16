@@ -1651,7 +1651,6 @@ next
 qed
 
 
-
 subsection \<open>Division on \<^typ>\<open>int\<close>\<close>
 
 text \<open>
