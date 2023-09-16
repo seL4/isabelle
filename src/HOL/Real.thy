@@ -1041,10 +1041,17 @@ lemma real_of_card: "real (card A) = sum (\<lambda>x. 1) A"
   by simp
 
 lemma nat_less_real_le: "n < m \<longleftrightarrow> real n + 1 \<le> real m"
-  by (metis discrete of_nat_1 of_nat_add of_nat_le_iff)
+proof -
+  have \<open>n < m \<longleftrightarrow> Suc n \<le> m\<close>
+    by (simp add: less_eq_Suc_le)
+  also have \<open>\<dots> \<longleftrightarrow> real (Suc n) \<le> real m\<close>
+    by (simp only: of_nat_le_iff)
+  also have \<open>\<dots> \<longleftrightarrow> real n + 1 \<le> real m\<close>
+    by (simp add: ac_simps)
+  finally show ?thesis .
+qed
 
 lemma nat_le_real_less: "n \<le> m \<longleftrightarrow> real n < real m + 1"
-  for m n :: nat
   by (meson nat_less_real_le not_le)
 
 lemma real_of_nat_div_aux: "real x / real d = real (x div d) + real (x mod d) / real d"

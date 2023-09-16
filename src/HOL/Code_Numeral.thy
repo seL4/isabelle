@@ -5,7 +5,7 @@
 section \<open>Numeric types for code generation onto target language numerals only\<close>
 
 theory Code_Numeral
-imports Divides Lifting Bit_Operations
+imports Lifting Bit_Operations
 begin
 
 subsection \<open>Type of target language integers\<close>
