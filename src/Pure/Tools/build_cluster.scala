@@ -258,7 +258,7 @@ class Remote_Build_Cluster(
         capture(host, "open") { host.open_session(build_context, progress = progress) },
         remote_hosts, thread = true)
 
-    if (attempts.forall(Exn.the_res.isDefinedAt)) {
+    if (attempts.forall(Exn.is_res)) {
       _sessions = attempts.map(Exn.the_res)
       _sessions
     }

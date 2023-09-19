@@ -17,6 +17,8 @@ sig
   val polyml_location: exn -> PolyML.location option
   val reraise: exn -> 'a
   datatype 'a result = Res of 'a | Exn of exn
+  val is_res: 'a result -> bool
+  val is_exn: 'a result -> bool
   val get_res: 'a result -> 'a option
   val get_exn: 'a result -> exn option
   val capture: ('a -> 'b) -> 'a -> 'b result
@@ -61,6 +63,12 @@ fun cat_error "" msg = error msg
 datatype 'a result =
   Res of 'a |
   Exn of exn;
+
+fun is_res (Res _) = true
+  | is_res _ = false;
+
+fun is_exn (Exn _) = true
+  | is_exn _ = false;
 
 fun get_res (Res x) = SOME x
   | get_res _ = NONE;

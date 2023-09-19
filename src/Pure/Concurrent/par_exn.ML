@@ -58,11 +58,11 @@ fun dest (Par_Exn exns) = SOME exns
 (* parallel results *)
 
 fun is_interrupted results =
-  exists (fn Exn.Exn _ => true | _ => false) results andalso
+  exists Exn.is_exn results andalso
     Exn.is_interrupt (make (map_filter Exn.get_exn results));
 
 fun release_all results =
-  if forall (fn Exn.Res _ => true | _ => false) results
+  if forall Exn.is_res results
   then map Exn.release results
   else raise make (map_filter Exn.get_exn results);
 

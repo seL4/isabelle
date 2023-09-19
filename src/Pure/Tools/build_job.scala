@@ -391,7 +391,7 @@ object Build_Job {
 
           val (document_output, document_errors) =
             try {
-              if (Exn.the_res.isDefinedAt(build_errors) && result0.ok && info.documents.nonEmpty) {
+              if (Exn.is_res(build_errors) && result0.ok && info.documents.nonEmpty) {
                 using(Export.open_database_context(store, server = server)) { database_context =>
                   val documents =
                     using(database_context.open_session(session_background)) {

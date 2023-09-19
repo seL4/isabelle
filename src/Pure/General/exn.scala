@@ -53,6 +53,9 @@ object Exn {
   case class Res[A](res: A) extends Result[A]
   case class Exn[A](exn: Throwable) extends Result[A]
 
+  def is_res[A](result: Result[A]): Boolean = result.isInstanceOf[Res[A]]
+  def is_exn[A](result: Result[A]): Boolean = result.isInstanceOf[Exn[A]]
+
   def the_res[A]: PartialFunction[Result[A], A] = { case Res(res) => res }
   def the_exn[A]: PartialFunction[Result[A], Throwable] = { case Exn(exn) => exn }
 
