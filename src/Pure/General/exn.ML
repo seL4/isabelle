@@ -30,8 +30,6 @@ sig
   val interrupt_exn: 'a result
   val is_interrupt_exn: 'a result -> bool
   val interruptible_capture: ('a -> 'b) -> 'a -> 'b result
-  val return_code: exn -> int -> int
-  val capture_exit: int -> ('a -> 'b) -> 'a -> 'b
   exception EXCEPTIONS of exn list
   val trace: (exn -> string) -> (string -> unit) -> (unit -> 'a) -> 'a
 end;
@@ -100,15 +98,6 @@ fun is_interrupt_exn (Exn exn) = is_interrupt exn
 
 fun interruptible_capture f x =
   Res (f x) handle e => if is_interrupt e then reraise e else Exn e;
-
-
-(* POSIX return code *)
-
-fun return_code exn rc =
-  if is_interrupt exn then 130 else rc;
-
-fun capture_exit rc f x =
-  f x handle exn => exit (return_code exn rc);
 
 
 (* concatenated exceptions *)

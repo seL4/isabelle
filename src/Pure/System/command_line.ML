@@ -15,9 +15,11 @@ struct
 fun tool body =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
+      fun return_code exn =
+        if Exn.is_interrupt exn then 130 else 2;
       val rc =
-        (restore_attributes body (); 0)
-          handle exn => Exn.capture_exit 2 (fn () => (Runtime.exn_error_message exn; raise exn)) ();
+        (restore_attributes body (); 0) handle exn =>
+          ((Runtime.exn_error_message exn; return_code exn) handle err => return_code err);
     in exit rc end) ();
 
 end;
