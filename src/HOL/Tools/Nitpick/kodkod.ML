@@ -1049,7 +1049,7 @@ fun uncached_solve_any_problem kodkod_scala overlord deadline max_threads0 max_s
       in
         if not (null ps) orelse rc = 0 then Normal (ps, js, first_error)
         else if rc = 2 then TimedOut js
-        else if rc = 130 then raise Exn.Interrupt
+        else if rc = 130 then Exn.interrupt ()
         else Error (if first_error = "" then "Unknown error" else first_error, js)
       end
   end
