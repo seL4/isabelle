@@ -394,9 +394,10 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
     Clausification
     Message
     Proxies
+    Sets
+    Sledgehammer_Isar_Proofs
     Tarski
     Trans_Closure
-    Sets
 
 session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
   description "
