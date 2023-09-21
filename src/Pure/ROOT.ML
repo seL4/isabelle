@@ -121,8 +121,8 @@ ML_file "ML/exn_properties.ML";
 ML_file_no_debug "ML/exn_debugger.ML";
 
 ML_file "Concurrent/thread_data_virtual.ML";
-ML_file "Concurrent/isabelle_thread.ML";
 ML_file "Concurrent/single_assignment.ML";
+ML_file "Concurrent/isabelle_thread.ML";
 
 ML_file "Concurrent/par_exn.ML";
 ML_file "Concurrent/task_queue.ML";

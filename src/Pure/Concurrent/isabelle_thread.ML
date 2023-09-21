@@ -84,11 +84,15 @@ fun attributes ({stack_limit, interrupts, ...}: params) =
 
 fun fork (params: params) body =
   let
-    val name = #name params;
-    val id = make_id ();
-    fun main () = (set_self (make {thread = Thread.Thread.self (), name = name, id = id}); body ());
-    val thread = Thread.Thread.fork (main, attributes params);
-  in make {thread = thread, name = name, id = id} end;
+    val self = Single_Assignment.var "self";
+    fun main () =
+      let
+        val t = make {thread = Thread.Thread.self (), name = #name params, id = make_id ()};
+        val _ = set_self t;
+        val _ = Single_Assignment.assign self t;
+      in body () end;
+    val _ = Thread.Thread.fork (main, attributes params);
+  in Single_Assignment.await self end;
 
 
 (* join *)
