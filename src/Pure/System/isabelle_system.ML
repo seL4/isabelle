@@ -68,7 +68,7 @@ fun bash_process params =
               if head = Bash.server_uuid andalso length args = 1 then
                 loop (SOME (hd args)) s
               else if head = Bash.server_interrupt andalso null args then
-                Exn.interrupt ()
+                Isabelle_Thread.interrupt_self ()
               else if head = Bash.server_failure andalso length args = 1 then
                 raise Fail (hd args)
               else if head = Bash.server_result andalso length args >= 4 then

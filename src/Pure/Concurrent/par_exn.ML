@@ -21,7 +21,7 @@ struct
 
 exception Par_Exn of exn list;
   (*non-empty list with unique identified elements sorted by Exn_Properties.ord;
-    no occurrences of Par_Exn or Exn.Interrupt*)
+    no occurrences of Par_Exn or Exn.is_interrupt*)
 
 fun par_exns (Par_Exn exns) = exns
   | par_exns exn = if Exn.is_interrupt exn then [] else [Exn_Properties.identify [] exn];
@@ -30,7 +30,7 @@ fun make exns =
   let
     val exnss = map par_exns exns;
     val exns' = Ord_List.unions Exn_Properties.ord exnss handle Option.Option => flat exnss;
-  in if null exns' then Exn.Interrupt else Par_Exn exns' end;
+  in if null exns' then Isabelle_Thread.interrupt else Par_Exn exns' end;
 
 fun dest (Par_Exn exns) = SOME exns
   | dest exn = if Exn.is_interrupt exn then SOME [] else NONE;

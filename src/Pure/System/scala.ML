@@ -35,7 +35,7 @@ val _ =
           | ("1", _) => Exn.Res rest
           | ("2", [msg]) => Exn.Exn (ERROR (Bytes.content msg))
           | ("3", [msg]) => Exn.Exn (Fail (Bytes.content msg))
-          | ("4", []) => Exn.interrupt_exn
+          | ("4", []) => Isabelle_Thread.interrupt_exn
           | _ => raise Fail "Malformed Scala.result");
       in Synchronized.change results (Symtab.map_entry (Bytes.content id) (K result)) end);
 
@@ -57,7 +57,7 @@ fun function_bytes name args =
             (case Symtab.lookup tab id of
               SOME (Exn.Exn Match) => NONE
             | SOME result => SOME (result, Symtab.delete id tab)
-            | NONE => SOME (Exn.interrupt_exn, tab)));
+            | NONE => SOME (Isabelle_Thread.interrupt_exn, tab)));
     in
       invoke ();
       Exn.release (restore_attributes await_result ())

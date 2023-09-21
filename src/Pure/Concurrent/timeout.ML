@@ -40,7 +40,7 @@ fun apply' {physical, timeout} f x =
 
         val request =
           Event_Timer.request {physical = physical} (start + scale_time timeout)
-            (fn () => Isabelle_Thread.interrupt_unsynchronized self);
+            (fn () => Isabelle_Thread.interrupt_other self);
         val result =
           Exn.capture (fn () => Thread_Attributes.with_attributes orig_atts (fn _ => f x)) ();
 

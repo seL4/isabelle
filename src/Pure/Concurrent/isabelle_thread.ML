@@ -20,7 +20,10 @@ sig
   val fork: params -> (unit -> unit) -> T
   val is_active: T -> bool
   val join: T -> unit
-  val interrupt_unsynchronized: T -> unit
+  val interrupt: exn
+  val interrupt_exn: 'a Exn.result
+  val interrupt_self: unit -> 'a
+  val interrupt_other: T -> unit
 end;
 
 structure Isabelle_Thread: ISABELLE_THREAD =
@@ -102,9 +105,14 @@ fun join t =
   do OS.Process.sleep (seconds 0.1);
 
 
-(* interrupt *)
+(* interrupts *)
 
-fun interrupt_unsynchronized t =
+val interrupt = Thread.Thread.Interrupt;
+val interrupt_exn = Exn.Exn interrupt;
+
+fun interrupt_self () = raise interrupt;
+
+fun interrupt_other t =
   Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
 
 end;

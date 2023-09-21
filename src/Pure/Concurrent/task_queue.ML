@@ -296,7 +296,7 @@ fun status (Queue {jobs, urgent, ...}) =
 
 fun cancel (Queue {groups, jobs, ...}) group =
   let
-    val _ = cancel_group group Exn.Interrupt;
+    val _ = cancel_group group Isabelle_Thread.interrupt;
     val running =
       Tasks.fold (fn task =>
           (case get_job jobs task of Running thread => insert Isabelle_Thread.equal thread | _ => I))
@@ -308,7 +308,7 @@ fun cancel_all (Queue {jobs, ...}) =
     fun cancel_job (task, (job, _)) (groups, running) =
       let
         val group = group_of_task task;
-        val _ = cancel_group group Exn.Interrupt;
+        val _ = cancel_group group Isabelle_Thread.interrupt;
       in
         (case job of
           Running t => (insert eq_group group groups, insert Isabelle_Thread.equal t running)

@@ -195,13 +195,13 @@ fun cancel_now group = (*requires SYNCHRONIZED*)
     val running = Task_Queue.cancel (! queue) group;
     val _ = running |> List.app (fn thread =>
       if Isabelle_Thread.is_self thread then ()
-      else Isabelle_Thread.interrupt_unsynchronized thread);
+      else Isabelle_Thread.interrupt_other thread);
   in running end;
 
 fun cancel_all () = (*requires SYNCHRONIZED*)
   let
     val (groups, threads) = Task_Queue.cancel_all (! queue);
-    val _ = List.app Isabelle_Thread.interrupt_unsynchronized threads;
+    val _ = List.app Isabelle_Thread.interrupt_other threads;
   in groups end;
 
 fun cancel_later group = (*requires SYNCHRONIZED*)
@@ -450,7 +450,7 @@ fun future_job group atts (e: unit -> 'a) =
             Exn.capture (fn () =>
               Thread_Attributes.with_attributes atts (fn _ =>
                 (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ())) ()
-          else Exn.interrupt_exn;
+          else Isabelle_Thread.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
   in (result, job) end;
 
@@ -645,7 +645,7 @@ fun promise_name name abort : 'a future =
   let
     val group = worker_subgroup ();
     val result = Single_Assignment.var "promise" : 'a result;
-    fun assign () = assign_result group result Exn.interrupt_exn
+    fun assign () = assign_result group result Isabelle_Thread.interrupt_exn
       handle Fail _ => true
         | exn =>
             if Exn.is_interrupt exn
@@ -665,7 +665,8 @@ fun fulfill_result (Future {promised = true, task, result}) res =
         val group = Task_Queue.group_of_task task;
         val pos = Position.thread_data ();
         fun job ok =
-          assign_result group result (if ok then identify_result pos res else Exn.interrupt_exn);
+          assign_result group result
+            (if ok then identify_result pos res else Isabelle_Thread.interrupt_exn);
         val _ =
           Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn _ =>
             let

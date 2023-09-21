@@ -1121,7 +1121,8 @@ paragraph \<open>Interrupts.\<close>
 text \<open>
   These indicate arbitrary system events: both the ML runtime system and the
   Isabelle/ML infrastructure signal various exceptional situations by raising
-  the special \<^ML>\<open>Exn.Interrupt\<close> exception in user code.
+  special exceptions user code, satisfying the predicate
+  \<^ML>\<open>Exn.is_interrupt\<close>.
 
   This is the one and only way that physical events can intrude an Isabelle/ML
   program. Such an interrupt can mean out-of-memory, stack overflow, timeout,

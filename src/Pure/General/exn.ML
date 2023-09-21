@@ -26,10 +26,7 @@ sig
   val map_res: ('a -> 'b) -> 'a result -> 'b result
   val maps_res: ('a -> 'b result) -> 'a result -> 'b result
   val map_exn: (exn -> exn) -> 'a result -> 'a result
-  exception Interrupt
-  val interrupt: unit -> 'a
   val is_interrupt: exn -> bool
-  val interrupt_exn: 'a result
   val is_interrupt_exn: 'a result -> bool
   val interruptible_capture: ('a -> 'b) -> 'a -> 'b result
   val failure_rc: exn -> int
@@ -92,15 +89,9 @@ fun map_exn f (Res x) = Res x
 
 (* interrupts *)
 
-exception Interrupt = Thread.Thread.Interrupt;
-
-fun interrupt () = raise Interrupt;
-
-fun is_interrupt Interrupt = true
+fun is_interrupt Thread.Thread.Interrupt = true
   | is_interrupt (IO.Io {cause, ...}) = is_interrupt cause
   | is_interrupt _ = false;
-
-val interrupt_exn = Exn Interrupt;
 
 fun is_interrupt_exn (Exn exn) = is_interrupt exn
   | is_interrupt_exn _ = false;
