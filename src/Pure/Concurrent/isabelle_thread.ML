@@ -53,14 +53,13 @@ local
   val self_var = Thread_Data.var () : T Thread_Data.var;
 in
 
-fun set_self t = Thread_Data.put self_var (SOME t);
+fun init_self args =
+  let val t = make args in Thread_Data.put self_var (SOME t); t end;
 
 fun self () =
   (case Thread_Data.get self_var of
     SOME t => t
-  | NONE =>
-      let val t = make {thread = Thread.Thread.self (), name = "", id = make_id ()}
-      in set_self t; t end);
+  | NONE => init_self {thread = Thread.Thread.self (), name = "", id = make_id ()});
 
 fun is_self t = equal (t, self ());
 
@@ -87,8 +86,7 @@ fun fork (params: params) body =
     val self = Single_Assignment.var "self";
     fun main () =
       let
-        val t = make {thread = Thread.Thread.self (), name = #name params, id = make_id ()};
-        val _ = set_self t;
+        val t = init_self {thread = Thread.Thread.self (), name = #name params, id = make_id ()};
         val _ = Single_Assignment.assign self t;
       in body () end;
     val _ = Thread.Thread.fork (main, attributes params);
