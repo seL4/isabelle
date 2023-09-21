@@ -419,7 +419,7 @@ fun identify_result pos res =
       (case Position.id_of pos of
         NONE => []
       | SOME id => [(Markup.exec_idN, id)])
-    in Par_Exn.identify exec_id exn end);
+    in Exn_Properties.identify exec_id exn end);
 
 fun assign_result group result res =
   let

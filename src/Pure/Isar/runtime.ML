@@ -75,9 +75,9 @@ fun robust_context NONE _ _ = []
 
 fun identify exn =
   let
-    val exn' = Par_Exn.identify [] exn;
+    val exn' = Exn_Properties.identify [] exn;
     val exec_id = Properties.get (Exn_Properties.get exn') Markup.exec_idN;
-    val i = Par_Exn.the_serial exn' handle Option.Option => serial ();
+    val i = Exn_Properties.the_serial exn' handle Option.Option => serial ();
   in ((i, exn'), exec_id) end;
 
 fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn

@@ -9,7 +9,9 @@ sig
   val position_of_polyml_location: ML_Compiler0.polyml_location -> Position.T
   val position: exn -> Position.T
   val get: exn -> Properties.T
-  val update: Properties.T -> exn -> exn
+  val identify: Properties.T -> exn -> exn
+  val the_serial: exn -> int
+  val ord: exn ord
 end;
 
 structure Exn_Properties: EXN_PROPERTIES =
@@ -67,5 +69,22 @@ fun update entries exn =
             PolyML.raiseWithLocation (exn, loc') handle exn' => exn') ()
         end
     end;
+
+
+(* identification via serial numbers *)
+
+fun identify default_props exn =
+  let
+    val props = get exn;
+    val update_serial =
+      if Properties.defined props Markup.serialN then []
+      else [(Markup.serialN, serial_string ())];
+    val update_props = filter_out (Properties.defined props o #1) default_props;
+  in update (update_serial @ update_props) exn end;
+
+fun the_serial exn =
+  Value.parse_int (the (Properties.get (get exn) Markup.serialN));
+
+val ord = rev_order o int_ord o apply2 the_serial;
 
 end;
