@@ -48,39 +48,39 @@ fun get exn =
   | SOME loc => props_of_polyml_location loc);
 
 fun update entries exn =
-  if Exn.is_interrupt exn then exn
-  else
-    let
-      val loc =
-        the_default {file = "", startLine = 0, endLine = 0, startPosition = 0, endPosition = 0}
-          (Exn.polyml_location exn);
-      val props = props_of_polyml_location loc;
-      val props' = fold Properties.put entries props;
-    in
-      if props = props' then exn
-      else
-        let
-          val loc' =
-            {file = YXML.string_of_body (XML.Encode.properties props'),
-              startLine = #startLine loc, endLine = #endLine loc,
-              startPosition = #startPosition loc, endPosition = #endPosition loc};
-        in
-          Thread_Attributes.uninterruptible (fn _ => fn () =>
-            PolyML.raiseWithLocation (exn, loc') handle exn' => exn') ()
-        end
-    end;
+  let
+    val loc =
+      the_default {file = "", startLine = 0, endLine = 0, startPosition = 0, endPosition = 0}
+        (Exn.polyml_location exn);
+    val props = props_of_polyml_location loc;
+    val props' = fold Properties.put entries props;
+  in
+    if props = props' then exn
+    else
+      let
+        val loc' =
+          {file = YXML.string_of_body (XML.Encode.properties props'),
+            startLine = #startLine loc, endLine = #endLine loc,
+            startPosition = #startPosition loc, endPosition = #endPosition loc};
+      in
+        Thread_Attributes.uninterruptible (fn _ => fn () =>
+          PolyML.raiseWithLocation (exn, loc') handle exn' => exn') ()
+      end
+  end;
 
 
 (* identification via serial numbers *)
 
 fun identify default_props exn =
-  let
-    val props = get exn;
-    val update_serial =
-      if Properties.defined props Markup.serialN then []
-      else [(Markup.serialN, serial_string ())];
-    val update_props = filter_out (Properties.defined props o #1) default_props;
-  in update (update_serial @ update_props) exn end;
+  if Exn.is_interrupt exn then exn
+  else
+    let
+      val props = get exn;
+      val update_serial =
+        if Properties.defined props Markup.serialN then []
+        else [(Markup.serialN, serial_string ())];
+      val update_props = filter_out (Properties.defined props o #1) default_props;
+    in update (update_serial @ update_props) exn end;
 
 fun the_serial exn =
   Value.parse_int (the (Properties.get (get exn) Markup.serialN));
