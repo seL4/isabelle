@@ -78,6 +78,9 @@ object Exn {
 
   /* interrupts */
 
+  def cause(exn: Throwable): Throwable =
+    isabelle.setup.Exn.cause(exn)
+
   def is_interrupt(exn: Throwable): Boolean =
     isabelle.setup.Exn.is_interrupt(exn)
 

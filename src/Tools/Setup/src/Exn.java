@@ -16,15 +16,18 @@ public class Exn
 {
     /* interrupts */
 
-    public static boolean is_interrupt(Throwable exn)
+    public static Throwable cause(Throwable exn)
     {
-        boolean found_interrupt = false;
         Throwable e = exn;
-        while (!found_interrupt && e != null) {
-            found_interrupt = e instanceof InterruptedException;
+        while (e != null && e.getCause() != null) {
             e = e.getCause();
         }
-        return found_interrupt;
+        return e;
+    }
+
+    public static boolean is_interrupt(Throwable exn)
+    {
+        return cause(exn) instanceof InterruptedException;
     }
 
     public static int failure_rc(Throwable exn)
