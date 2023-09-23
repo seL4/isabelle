@@ -16,8 +16,8 @@ begin
 text \<open>Combination of Elementary and Abstract Topology\<close>
 
 lemma approachable_lt_le2: 
-    "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
-by (meson dense less_eq_real_def order_le_less_trans)
+  "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
+  by (meson dense less_eq_real_def order_le_less_trans)
 
 lemma triangle_lemma:
   fixes x y z :: real
@@ -113,7 +113,7 @@ text \<open>If a connnected set is written as the union of two nonempty closed s
 lemma connected_as_closed_union:
   assumes "connected C" "C = A \<union> B" "closed A" "closed B" "A \<noteq> {}" "B \<noteq> {}"
   shows "A \<inter> B \<noteq> {}"
-by (metis assms closed_Un connected_closed_set)
+  by (metis assms closed_Un connected_closed_set)
 
 lemma closedin_subset_trans:
   "closedin (top_of_set U) S \<Longrightarrow> S \<subseteq> T \<Longrightarrow> T \<subseteq> U \<Longrightarrow>
@@ -126,13 +126,13 @@ lemma openin_subset_trans:
   by (auto simp: openin_open)
 
 lemma closedin_compact:
-   "\<lbrakk>compact S; closedin (top_of_set S) T\<rbrakk> \<Longrightarrow> compact T"
-by (metis closedin_closed compact_Int_closed)
+  "\<lbrakk>compact S; closedin (top_of_set S) T\<rbrakk> \<Longrightarrow> compact T"
+  by (metis closedin_closed compact_Int_closed)
 
 lemma closedin_compact_eq:
   fixes S :: "'a::t2_space set"
   shows "compact S \<Longrightarrow> (closedin (top_of_set S) T \<longleftrightarrow> compact T \<and> T \<subseteq> S)"
-by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
+  by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
 
 
 subsection \<open>Closure\<close>
@@ -303,6 +303,11 @@ proof -
     using closure_minimal[of S "(closure S \<inter> f -` T)"] by auto
   then show ?thesis by auto
 qed
+
+lemma continuous_image_closure_subset:
+  assumes "continuous_on A f" "closure B \<subseteq> A"
+  shows   "f ` closure B \<subseteq> closure (f ` B)"
+  using assms by (meson closed_closure closure_subset continuous_on_subset image_closure_subset)
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>A function constant on a set\<close>
 
