@@ -2480,6 +2480,11 @@ lemma powr_powr: "(x powr a) powr b = x powr (a * b)"
   for a b x :: real
   by (simp add: powr_def)
 
+lemma powr_power: 
+  fixes z:: "'a::{real_normed_field,ln}"
+  shows "z \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> (z powr u) ^ n = z powr (of_nat n * u)"
+  by (induction n) (auto simp: algebra_simps powr_add)
+
 lemma powr_powr_swap: "(x powr a) powr b = (x powr b) powr a"
   for a b x :: real
   by (simp add: powr_powr mult.commute)

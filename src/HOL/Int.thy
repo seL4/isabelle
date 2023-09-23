@@ -1487,6 +1487,9 @@ proof
     using pos_zmult_eq_1_iff_lemma [OF L] L by force
 qed auto
 
+lemma zmult_eq_neg1_iff: "a * b = (-1 :: int) \<longleftrightarrow> a = 1 \<and> b = -1 \<or> a = -1 \<and> b = 1"
+  using zmult_eq_1_iff[of a "-b"] by auto
+
 lemma infinite_UNIV_int [simp]: "\<not> finite (UNIV::int set)"
 proof
   assume "finite (UNIV::int set)"
