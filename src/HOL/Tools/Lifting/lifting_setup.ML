@@ -970,11 +970,7 @@ fun pointer_of_bundle_name bundle_name ctxt =
     fun err () = error "The provided bundle is not a lifting bundle"
   in
     (case bundle of
-      [(_, [arg_src])] => 
-        let
-          val (name, _) = Token.syntax (Scan.lift Parse.string) arg_src ctxt
-            handle ERROR _ => err ()
-        in name end
+      [(_, [arg_src])] => (Token.read ctxt Parse.string arg_src handle ERROR _ => err ())
     | _ => err ())
   end
 

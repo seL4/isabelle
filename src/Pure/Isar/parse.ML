@@ -534,7 +534,7 @@ fun read_embedded ctxt keywords parse input =
   end;
 
 fun read_embedded_src ctxt keywords parse src =
-  Token.syntax (Scan.lift embedded_input) src ctxt
-  |> #1 |> read_embedded ctxt keywords parse;
+  Token.read ctxt embedded_input src
+  |> read_embedded ctxt keywords parse;
 
 end;

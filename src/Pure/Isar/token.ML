@@ -111,6 +111,7 @@ sig
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
+  val read: Proof.context -> 'a parser -> src -> 'a
 end;
 
 structure Token: TOKEN =
@@ -832,6 +833,8 @@ fun syntax_generic scan src0 context =
   end;
 
 fun syntax scan src = apsnd Context.the_proof o syntax_generic scan src o Context.Proof;
+
+fun read ctxt scan src = syntax (Scan.lift scan) src ctxt |> #1;
 
 end;
 

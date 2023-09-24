@@ -348,7 +348,7 @@ val _ = Theory.setup
   ML_Context.add_antiquotation \<^binding>\<open>if_none\<close> true
     (fn _ => fn src => fn ctxt =>
       let
-        val (s, _) = Token.syntax (Scan.lift Parse.embedded_input) src ctxt;
+        val s = Token.read ctxt Parse.embedded_input src;
         val tokenize = ML_Lex.tokenize_no_range;
 
         val (decl, ctxt') = ML_Context.read_antiquotes s ctxt;

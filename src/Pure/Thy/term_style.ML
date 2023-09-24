@@ -34,7 +34,7 @@ fun parse_single ctxt =
   Parse.token Parse.name ::: Parse.args >> (fn src0 =>
     let
       val (src, parse) = Token.check_src ctxt get_data src0;
-      val (f, _) = Token.syntax (Scan.lift parse) src ctxt;
+      val f = Token.read ctxt parse src;
     in f ctxt end);
 
 val parse = Args.context :|-- (fn ctxt => Scan.lift
