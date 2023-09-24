@@ -351,7 +351,7 @@ val _ = Theory.setup
         val (s, _) = Token.syntax (Scan.lift Parse.embedded_input) src ctxt;
         val tokenize = ML_Lex.tokenize_no_range;
 
-        val (decl, ctxt') = ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt;
+        val (decl, ctxt') = ML_Context.read_antiquotes s ctxt;
         fun decl' ctxt'' =
           let
             val (ml_env, ml_body) = decl ctxt'';

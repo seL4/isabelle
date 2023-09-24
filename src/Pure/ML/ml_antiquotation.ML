@@ -75,7 +75,7 @@ fun special_form binding operator =
         val tokenize = ML_Lex.tokenize_no_range;
         val tokenize_range = ML_Lex.tokenize_range (Input.range_of s);
 
-        val (decl, ctxt') = ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt;
+        val (decl, ctxt') = ML_Context.read_antiquotes s ctxt;
         fun decl' ctxt'' =
           let
             val (ml_env, ml_body) = decl ctxt'';
@@ -90,8 +90,7 @@ fun conditional binding check =
   ML_Context.add_antiquotation binding true
     (fn _ => fn src => fn ctxt =>
       let val (s, _) = Token.syntax (Scan.lift Parse.embedded_input) src ctxt in
-        if check ctxt then
-          ML_Context.expand_antiquotes (ML_Lex.read_source s) ctxt
+        if check ctxt then ML_Context.read_antiquotes s ctxt
         else (K ([], []), ctxt)
       end);
 

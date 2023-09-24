@@ -18,6 +18,7 @@ sig
     Proof.context -> decl * Proof.context
   val expand_antiquotes_list: ML_Lex.token Antiquote.antiquote list list ->
     Proof.context -> decls * Proof.context
+  val read_antiquotes: Input.source -> Proof.context -> decl * Proof.context
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
   val eval_file: ML_Compiler.flags -> Path.T -> unit
   val eval_source: ML_Compiler.flags -> Input.source -> unit
@@ -128,6 +129,8 @@ fun expand_antiquotes_list antss ctxt =
   in (decl', ctxt') end
 
 end;
+
+val read_antiquotes = expand_antiquotes o ML_Lex.read_source;
 
 
 (* evaluation *)
