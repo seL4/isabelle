@@ -55,11 +55,11 @@ val keywords =
   "type", "val", "where", "while", "with", "withtype"];
 
 val keywords2 =
- ["and", "case", "do", "else", "end", "if", "in", "let", "local", "of",
+ Symset.make ["and", "case", "do", "else", "end", "if", "in", "let", "local", "of",
   "sig", "struct", "then", "while", "with"];
 
 val keywords3 =
- ["handle", "open", "raise"];
+ Symset.make ["handle", "open", "raise"];
 
 val lexicon = Scan.make_lexicon (map raw_explode keywords);
 
@@ -168,8 +168,8 @@ fun token_report (tok as Token ((pos, _), (kind, x))) =
     val (markup, txt) =
       if not (is_keyword tok) then token_kind_markup kind
       else if is_delimiter tok then (Markup.ML_delimiter, "")
-      else if member (op =) keywords2 x then (Markup.ML_keyword2 |> Markup.keyword_properties, "")
-      else if member (op =) keywords3 x then (Markup.ML_keyword3 |> Markup.keyword_properties, "")
+      else if Symset.member keywords2 x then (Markup.ML_keyword2 |> Markup.keyword_properties, "")
+      else if Symset.member keywords3 x then (Markup.ML_keyword3 |> Markup.keyword_properties, "")
       else (Markup.ML_keyword1 |> Markup.keyword_properties, "");
   in ((pos, markup), txt) end;
 
@@ -196,8 +196,9 @@ val scan_letdigs =
 val scan_alphanumeric =
   Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) ::: scan_letdigs;
 
-val scan_symbolic =
-  Scan.many1 (member (op =) (raw_explode "!#$%&*+-/:<=>?@\\^`|~") o Symbol_Pos.symbol);
+val symbolic = Symset.make (raw_explode "!#$%&*+-/:<=>?@\\^`|~");
+
+val scan_symbolic = Scan.many1 (Symset.member symbolic o Symbol_Pos.symbol);
 
 in
 
@@ -244,8 +245,10 @@ val scan_blanks1 = Scan.many1 (Symbol.is_ascii_blank o Symbol_Pos.symbol);
 
 local
 
+val escape = Symset.make (raw_explode "\"\\abtnvfr");
+
 val scan_escape =
-  Scan.one (member (op =) (raw_explode "\"\\abtnvfr") o Symbol_Pos.symbol) >> single ||
+  Scan.one (Symset.member escape o Symbol_Pos.symbol) >> single ||
   $$$ "^" @@@
     (Scan.one (fn (s, _) => Char.ord #"@" <= ord s andalso ord s <= Char.ord #"_") >> single) ||
   Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --
