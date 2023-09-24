@@ -343,8 +343,8 @@ in end;
 (* special forms for option type *)
 
 val _ = Theory.setup
- (ML_Antiquotation.special_form \<^binding>\<open>try\<close> "() |> Basics.try" #>
-  ML_Antiquotation.special_form \<^binding>\<open>can\<close> "() |> Basics.can" #>
+ (ML_Antiquotation.special_form \<^binding>\<open>try\<close> "Isabelle_Thread.try" #>
+  ML_Antiquotation.special_form \<^binding>\<open>can\<close> "Isabelle_Thread.can" #>
   ML_Context.add_antiquotation \<^binding>\<open>if_none\<close> true
     (fn _ => fn src => fn ctxt =>
       let

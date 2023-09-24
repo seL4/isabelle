@@ -24,6 +24,8 @@ sig
   val interrupt_exn: 'a Exn.result
   val interrupt_self: unit -> 'a
   val interrupt_other: T -> unit
+  val try: (unit -> 'a) -> 'a option
+  val can: (unit -> 'a) -> bool
 end;
 
 structure Isabelle_Thread: ISABELLE_THREAD =
@@ -114,5 +116,8 @@ fun interrupt_self () = raise interrupt;
 
 fun interrupt_other t =
   Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
+
+fun try e = Basics.try e ();
+fun can e = Basics.can e ();
 
 end;
