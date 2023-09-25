@@ -157,21 +157,23 @@ fun theorems_of thy =
          (Global_Theory.all_thms_of thy true)
 
 fun check_formulas tsp =
-  let
-    fun is_type_actually_monotonic T =
-      Nitpick_Mono.formulas_monotonic hol_ctxt binarize T tsp
-    val free_Ts = fold Term.add_tfrees ((op @) tsp) [] |> map TFree
-    val (mono_free_Ts, nonmono_free_Ts) =
-      Timeout.apply mono_timeout
-          (List.partition is_type_actually_monotonic) free_Ts
-  in
-    if not (null mono_free_Ts) then "MONO"
-    else if not (null nonmono_free_Ts) then "NONMONO"
-    else "NIX"
-  end
-  handle Timeout.TIMEOUT _ => "TIMEOUT"
-       | NOT_SUPPORTED _ => "UNSUP"
-       | exn => if Exn.is_interrupt exn then Exn.reraise exn else "UNKNOWN"
+  \<^try>\<open>
+    let
+      fun is_type_actually_monotonic T =
+        Nitpick_Mono.formulas_monotonic hol_ctxt binarize T tsp
+      val free_Ts = fold Term.add_tfrees ((op @) tsp) [] |> map TFree
+      val (mono_free_Ts, nonmono_free_Ts) =
+        Timeout.apply mono_timeout
+            (List.partition is_type_actually_monotonic) free_Ts
+    in
+      if not (null mono_free_Ts) then "MONO"
+      else if not (null nonmono_free_Ts) then "NONMONO"
+      else "NIX"
+    end
+    catch Timeout.TIMEOUT _ => "TIMEOUT"
+      | NOT_SUPPORTED _ => "UNSUP"
+      | _ => "UNKNOWN"
+  \<close>
 
 fun check_theory thy =
   let

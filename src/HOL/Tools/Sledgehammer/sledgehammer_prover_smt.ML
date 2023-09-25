@@ -104,13 +104,10 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
     val birth = Timer.checkRealTimer timer
 
     val filter_result as {outcome, ...} =
-      SMT_Solver.smt_filter ctxt goal facts i run_timeout options
-      handle exn =>
-      if Exn.is_interrupt exn orelse debug then
-        Exn.reraise exn
-      else
-        {outcome = SOME (SMT_Failure.Other_Failure (Runtime.exn_message exn)), fact_ids = NONE,
-         atp_proof = K []}
+      \<^try>\<open>SMT_Solver.smt_filter ctxt goal facts i run_timeout options
+        catch exn =>
+          {outcome = SOME (SMT_Failure.Other_Failure (Runtime.exn_message exn)), fact_ids = NONE,
+           atp_proof = K []}\<close>
 
     val death = Timer.checkRealTimer timer
     val run_time = death - birth

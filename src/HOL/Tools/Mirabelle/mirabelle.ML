@@ -95,9 +95,7 @@ fun print_exn exn =
   | exn => "exception: " ^ General.exnMessage exn);
 
 fun run_action_function f =
-  f () handle exn =>
-    if Exn.is_interrupt exn then Exn.reraise exn
-    else print_exn exn;
+  \<^try>\<open>f () catch exn => print_exn exn\<close>;
 
 fun make_action_path ({index, label, name, ...} : action_context) =
   Path.basic (if label = "" then string_of_int index ^ "." ^ name else label);
