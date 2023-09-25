@@ -141,8 +141,7 @@ val debug = Attrib.setup_config_bool \<^binding>\<open>test_code_debug\<close> (
 fun with_debug_dir name f =
   (Path.explode "$ISABELLE_HOME_USER" + Path.basic (name ^ serial_string ()))
   |> Isabelle_System.make_directory
-  |> Exn.capture f
-  |> Exn.release;
+  |> f
 
 fun dynamic_value_strict ctxt t compiler =
   let
