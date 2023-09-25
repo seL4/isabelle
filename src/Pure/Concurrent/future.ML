@@ -234,7 +234,7 @@ fun worker_exec (task, jobs) =
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
-        val test = Exn.capture Isabelle_Thread.expose_interrupt ();
+        val test = Isabelle_Thread.expose_interrupt_result ();
         val _ =
           if ok andalso not (Exn.is_interrupt_exn test) then ()
           else if null (cancel_now group) then ()
