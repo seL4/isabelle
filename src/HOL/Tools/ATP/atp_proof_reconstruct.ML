@@ -107,6 +107,8 @@ fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
 
 fun lambda' v = Term.lambda_name (term_name' v, v)
 
+fun If_const T = Const (\<^const_name>\<open>If\<close>, HOLogic.boolT --> T --> T --> T)
+
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda' v t
 fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda' v t
 
@@ -240,6 +242,8 @@ fun slack_fastype_of t = fastype_of t handle TERM _ => Type_Infer.anyT \<^sort>\
 val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
 
+val zip_internal_ite_prefix = "zip_internal_ite_"
+
 fun var_index_of_textual textual = if textual then 0 else 1
 
 fun quantify_over_var textual quant_of var_s var_T t =
@@ -302,6 +306,7 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_ho_exists then HOLogic.exists_const dummyT
         else if s = tptp_hilbert_choice then HOLogic.choice_const dummyT
         else if s = tptp_hilbert_the then \<^term>\<open>The\<close>
+        else if String.isPrefix zip_internal_ite_prefix s then If_const dummyT
         else
           (case unprefix_and_unascii const_prefix s of
             SOME s' =>
@@ -768,6 +773,17 @@ fun introduce_spass_skolems proof =
     input_steps @ sko_steps @ map repair_deps other_steps
   end
 
+val zf_stmt_prefix = "zf_stmt_"
+
+fun is_if_True_or_False_axiom true_or_false t =
+  (case t of
+    @{const Trueprop} $
+     (Const (@{const_name HOL.eq}, _) $
+       (Const (@{const_name If}, _) $ cond $ Var _ $ Var _) $
+       Var _) =>
+     cond aconv true_or_false
+  | _ => false)
+
 fun factify_atp_proof facts hyp_ts concl_t atp_proof =
   let
     fun factify_step ((num, ss), role, t, rule, deps) =
@@ -779,7 +795,18 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
             else ([], Hypothesis, close_form (nth hyp_ts j))
           | _ =>
             (case resolve_facts facts (num :: ss) of
-              [] => (ss, if member (op =) [Definition, Lemma] role then role else Plain, t)
+              [] =>
+              if role = Axiom andalso String.isPrefix zf_stmt_prefix num
+                 andalso is_if_True_or_False_axiom @{const True} t then
+                (["if_True"], Axiom, t)
+              else if role = Axiom andalso String.isPrefix zf_stmt_prefix num
+                 andalso is_if_True_or_False_axiom @{const False} t then
+                (["if_False"], Axiom, t)
+              else
+                (ss,
+                 if role = Definition then Definition
+                 else if role = Lemma then Lemma
+                 else Plain, t)
             | facts => (map fst facts, Axiom, t)))
       in
         ((num, ss'), role', t', rule, deps)
