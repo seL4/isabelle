@@ -90,7 +90,7 @@ fun message {elapsed, cpu, gc} =
 fun cond_timeit enabled msg e =
   if enabled then
     let
-      val (t, result) = timing (Exn.interruptible_capture e) ();
+      val (t, result) = timing (Exn.result e) ();
       val _ =
         if is_relevant t then
           let val end_msg = message t
@@ -111,7 +111,7 @@ fun protocol_message name pos t =
 
 fun protocol name pos f x =
   let
-    val (t, result) = timing (Exn.interruptible_capture f) x;
+    val (t, result) = timing (Exn.result f) x;
     val _ = protocol_message name pos t;
   in Exn.release result end;
 

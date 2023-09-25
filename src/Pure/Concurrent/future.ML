@@ -614,10 +614,10 @@ fun value x = value_result (Exn.Res x);
 
 fun cond_forks args es =
   if enabled () then forks args es
-  else map (fn e => value_result (Exn.interruptible_capture e ())) es;
+  else map (fn e => value_result (Exn.result e ())) es;
 
 fun map_future f x =
-  if is_finished x then value_result (Exn.interruptible_capture (f o join) x)
+  if is_finished x then value_result (Exn.result (f o join) x)
   else
     let
       val task = task_of x;

@@ -29,7 +29,7 @@ sig
   val cause: exn -> exn
   val is_interrupt: exn -> bool
   val is_interrupt_exn: 'a result -> bool
-  val interruptible_capture: ('a -> 'b) -> 'a -> 'b result
+  val result: ('a -> 'b) -> 'a -> 'b result
   val failure_rc: exn -> int
   exception EXCEPTIONS of exn list
   val trace: (exn -> string) -> (string -> unit) -> (unit -> 'a) -> 'a
@@ -101,7 +101,7 @@ fun is_interrupt exn =
 fun is_interrupt_exn (Exn exn) = is_interrupt exn
   | is_interrupt_exn _ = false;
 
-fun interruptible_capture f x =
+fun result f x =
   Res (f x) handle e => if is_interrupt e then reraise e else Exn e;
 
 fun failure_rc exn = if is_interrupt exn then 130 else 2;

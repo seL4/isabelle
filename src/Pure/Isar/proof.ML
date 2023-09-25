@@ -1259,7 +1259,7 @@ fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assum
     val test_proof =
       local_skip_proof true
       |> Unsynchronized.setmp testing true
-      |> Exn.interruptible_capture;
+      |> Exn.result;
 
     fun after_qed' (result_ctxt, results) state' = state'
       |> refine_goals print_rule result_ctxt (flat results)

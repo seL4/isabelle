@@ -45,7 +45,7 @@ fun capture_exception_trace e =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val _ = start_trace ();
-      val result = Exn.interruptible_capture (restore_attributes e) ();
+      val result = Exn.result (restore_attributes e) ();
       val trace = stop_trace ();
       val trace' =
         (case result of

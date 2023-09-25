@@ -157,8 +157,7 @@ fun dynamic_value_strict ctxt t compiler =
         (driver ctxt ((apfst o map) (apfst Long_Name.implode #> apsnd Bytes.content) result))
       |> parse_result compiler
     fun evaluator program _ vs_ty deps =
-      Exn.interruptible_capture eval
-        (Code_Target.compilation_text ctxt target program deps true vs_ty)
+      Exn.result eval (Code_Target.compilation_text ctxt target program deps true vs_ty)
     fun postproc f = map (apsnd (Option.map (map f)))
   in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t) end
 

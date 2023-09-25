@@ -81,7 +81,7 @@ fun resolve_files master_dir (blobs, blobs_index) toks =
                   let val _ = Position.report pos (Markup.language_path delimited) in
                     case content of
                       NONE =>
-                        Exn.interruptible_capture (fn () =>
+                        Exn.result (fn () =>
                           Resources.read_file_node file_node master_dir (src_path, pos)) ()
                     | SOME (digest, lines) => Exn.Res (blob_file src_path lines digest file_node)
                   end

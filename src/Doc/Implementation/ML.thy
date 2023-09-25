@@ -1958,7 +1958,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{define_ML_type 'a "Exn.result"} \\
   @{define_ML Exn.capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
-  @{define_ML Exn.interruptible_capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
+  @{define_ML Exn.result: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
   @{define_ML Exn.release: "'a Exn.result -> 'a"} \\
   @{define_ML Par_Exn.release_all: "'a Exn.result list -> 'a list"} \\
   @{define_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
@@ -1973,8 +1973,8 @@ text %mlref \<open>
   precautions apply to user code: interrupts must not be absorbed
   accidentally!
 
-  \<^descr> \<^ML>\<open>Exn.interruptible_capture\<close> is similar to \<^ML>\<open>Exn.capture\<close>, but
-  interrupts are immediately re-raised as required for user code.
+  \<^descr> \<^ML>\<open>Exn.result\<close> is similar to \<^ML>\<open>Exn.capture\<close>, but interrupts are
+  immediately re-raised as required for user code.
 
   \<^descr> \<^ML>\<open>Exn.release\<close>~\<open>result\<close> releases the original runtime result, exposing
   its regular value or raising the reified exception.

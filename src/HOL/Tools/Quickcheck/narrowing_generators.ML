@@ -315,7 +315,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
 fun dynamic_value_strict opts cookie ctxt postproc t =
   let
     fun evaluator program _ vs_ty_t deps =
-      Exn.interruptible_capture (value opts ctxt cookie)
+      Exn.result (value opts ctxt cookie)
         (Code_Target.compilation_text ctxt target program deps true vs_ty_t)
   in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t) end
 

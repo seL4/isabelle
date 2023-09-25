@@ -215,7 +215,7 @@ fun parsetree_to_ast ctxt trf parsetree =
         [ast] => ast
       | asts => raise Ast.AST ("parsetree_to_ast: malformed parsetree", asts));
 
-    val ast = Exn.interruptible_capture ast_of parsetree;
+    val ast = Exn.result ast_of parsetree;
   in (! reports, ast) end;
 
 
@@ -310,7 +310,7 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
                 SOME (qs, (x, id)) => (report ps (markup_bound {def = false} qs) (x, id); t)
               | NONE => t);
 
-        val tm' = Exn.interruptible_capture (fn () => decode [] [] [] tm) ();
+        val tm' = Exn.result (fn () => decode [] [] [] tm) ();
       in (! reports, tm') end;
 
 end;
@@ -370,7 +370,7 @@ fun parse_tree ctxt root input =
     val (ambig_msgs, asts) = parse_asts ctxt false root input;
     val results =
       (map o apsnd o Exn.maps_res)
-        (Ast.normalize ctxt parse_rules #> Exn.interruptible_capture (ast_to_term ctxt tr)) asts;
+        (Ast.normalize ctxt parse_rules #> Exn.result (ast_to_term ctxt tr)) asts;
   in (ambig_msgs, results) end;
 
 
