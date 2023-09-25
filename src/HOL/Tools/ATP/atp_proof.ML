@@ -524,7 +524,7 @@ fun parse_simple_hol_term x =
                     else
                       I))
             ys t)
-  || Scan.this_string tptp_not |-- parse_hol_term >> mk_app (mk_simple_aterm tptp_not)
+  || Scan.this_string tptp_not |-- parse_simple_hol_term >> mk_app (mk_simple_aterm tptp_not)
   || scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
     >> (fn (var, typ_opt) => ATerm ((var, the_list typ_opt), []))
   || parse_hol_quantifier >> mk_simple_aterm
