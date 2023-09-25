@@ -18,6 +18,7 @@ sig
     Meson_Method |
     SMT_Method of SMT_backend |
     SATx_Method |
+    Argo_Method |
     Blast_Method |
     Simp_Method |
     Auto_Method |
@@ -60,6 +61,7 @@ datatype proof_method =
   Meson_Method |
   SMT_Method of SMT_backend |
   SATx_Method |
+  Argo_Method |
   Blast_Method |
   Simp_Method |
   Auto_Method |
@@ -101,6 +103,7 @@ fun string_of_proof_method ss meth =
       | SMT_Method (SMT_Verit strategy) =>
         "smt (" ^ commas ("verit" :: (if strategy = "default" then [] else [strategy])) ^ ")"
       | SATx_Method => "satx"
+      | Argo_Method => "argo"
       | Blast_Method => "blast"
       | Simp_Method => if null ss then "simp" else "simp add:"
       | Auto_Method => "auto"
@@ -141,6 +144,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
         Method.insert_tac ctxt global_facts THEN'
         (case meth of
           SATx_Method => SAT.satx_tac ctxt
+        | Argo_Method => Argo_Tactic.argo_tac ctxt []
         | Blast_Method => blast_tac ctxt
         | Auto_Method => SELECT_GOAL (Clasimp.auto_tac ctxt)
         | Fastforce_Method => Clasimp.fast_force_tac ctxt
