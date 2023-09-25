@@ -120,10 +120,13 @@ fun interrupt_other t =
   Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
 
 fun try_catch e f =
-  e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn;
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+    restore_attributes e ()
+      handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn) ();
 
 fun try_finally e f =
-  Exn.release (Exn.capture e () before f ());
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+    Exn.release (Exn.capture (restore_attributes e) () before f ())) ();
 
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();
