@@ -529,6 +529,7 @@ fun parse_simple_hol_term x =
     >> (fn (var, typ_opt) => ATerm ((var, the_list typ_opt), []))
   || parse_hol_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_hol_term --| $$ ")"
+  || Scan.this_string tptp_not >> mk_simple_aterm
   || parse_literal_binary_op >> mk_simple_aterm
   || parse_nonliteral_binary_op >> mk_simple_aterm) x
 and parse_applied_hol_term x =
