@@ -13,7 +13,6 @@ sig
   val same: ('a, 'b) function
   val commit: 'a operation -> 'a -> 'a
   val function: ('a -> 'b option) -> ('a, 'b) function
-  val capture: ('a, 'b) function -> 'a -> 'b option
   val map: 'a operation -> 'a list operation
   val map_option: ('a, 'b) function -> ('a option, 'b option) function
 end;
@@ -28,8 +27,6 @@ type 'a operation = ('a, 'a) function;
 
 fun same _ = raise SAME;
 fun commit f x = f x handle SAME => x;
-
-fun capture f x = SOME (f x) handle SAME => NONE;
 
 fun function f x =
   (case f x of
