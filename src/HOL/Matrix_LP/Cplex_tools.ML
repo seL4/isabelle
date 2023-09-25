@@ -1150,15 +1150,17 @@ fun solve_glpk prog =
     val command = (wrap cplex)^" --lpt "^(wrap lpname)^" --output "^(wrap resultname)
     val answer = #1 (Isabelle_System.bash_output command)
     in
-    let
-        val result = load_glpkResult resultname
-        val _ = OS.FileSys.remove lpname
-        val _ = OS.FileSys.remove resultname
-    in
-        result
-    end
-    handle (Load_cplexResult s) => raise (Execute ("Load_cplexResult: "^s^"\nExecute: "^answer))
-         | exn => if Exn.is_interrupt exn then Exn.reraise exn else raise (Execute answer)
+    \<^try>\<open>
+      let
+          val result = load_glpkResult resultname
+          val _ = OS.FileSys.remove lpname
+          val _ = OS.FileSys.remove resultname
+      in
+          result
+      end
+      catch Load_cplexResult s => raise Execute ("Load_cplexResult: "^s^"\nExecute: "^answer)
+        | _ => raise Execute answer
+    \<close>
     end
 
 fun solve_cplex prog =
