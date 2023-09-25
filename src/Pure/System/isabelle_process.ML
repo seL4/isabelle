@@ -197,6 +197,7 @@ fun init_options () =
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
   Multithreading.parallel_proofs := Options.default_int "parallel_proofs";
+  Isabelle_Thread.threads_stack_limit := Options.default_real "threads_stack_limit";
   if Options.default_bool "export_standard_proofs" then Proofterm.proofs := 2 else ();
   let val proofs = Options.default_int "record_proofs"
   in if proofs < 0 then () else Proofterm.proofs := proofs end;

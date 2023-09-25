@@ -14,6 +14,7 @@ sig
   val print: T -> string
   val self: unit -> T
   val is_self: T -> bool
+  val threads_stack_limit: real Unsynchronized.ref
   val stack_limit: unit -> int option
   type params = {name: string, stack_limit: int option, interrupts: bool}
   val attributes: params -> Thread.Thread.threadAttribute list
@@ -45,11 +46,11 @@ val get_thread = #thread o dest;
 val get_name = #name o dest;
 val get_id = #id o dest;
 
-val equal = Thread.Thread.equal o apply2 get_thread;
+fun equal (t1, t2) = Thread.Thread.equal (get_thread t1, get_thread t2);
 
 fun print t =
   (case get_name t of "" => "ML" | a => "Isabelle." ^ a) ^
-    "-" ^ string_of_int (get_id t);
+    "-" ^ Int.toString (get_id t);
 
 
 (* self *)
@@ -75,11 +76,12 @@ end;
 
 (* fork *)
 
+val threads_stack_limit = Unsynchronized.ref 0.25;
+
 fun stack_limit () =
   let
-    val threads_stack_limit =
-      Real.floor (Options.default_real "threads_stack_limit" * 1024.0 * 1024.0 * 1024.0);
-  in if threads_stack_limit <= 0 then NONE else SOME threads_stack_limit end;
+    val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0);
+  in if limit <= 0 then NONE else SOME limit end;
 
 type params = {name: string, stack_limit: int option, interrupts: bool};
 
