@@ -211,8 +211,7 @@ fun exec verbose code =
 fun with_overlord_dir name f =
   (Path.explode "$ISABELLE_HOME_USER" + Path.basic (name ^ serial_string ()))
   |> Isabelle_System.make_directory
-  |> Exn.capture f
-  |> Exn.release
+  |> f
 
 fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
     ctxt cookie (code_modules_bytes, _) =
