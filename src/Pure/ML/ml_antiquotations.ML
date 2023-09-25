@@ -344,8 +344,6 @@ in end;
 
 local
 
-val tokenize = ML_Lex.tokenize_no_range;
-val tokenize_range = ML_Lex.tokenize_range o Input.range_of;
 val tokenize_text = map Antiquote.Text o ML_Lex.tokenize_no_range;
 
 val bg_expr = tokenize_text "(fn () =>";
