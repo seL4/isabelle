@@ -345,14 +345,15 @@ in end;
 local
 
 val tokenize_text = map Antiquote.Text o ML_Lex.tokenize_no_range;
+val tokenize_range_text = map Antiquote.Text oo ML_Lex.tokenize_range;
 
 val bg_expr = tokenize_text "(fn () =>";
 val en_expr = tokenize_text ")";
 fun make_expr a = bg_expr @ a @ en_expr;
 
-val bg_handler = tokenize_text "(fn";
-val en_handler = tokenize_text "| exn => Exn.reraise exn)";
-fun make_handler a = bg_handler @ a @ en_handler;
+fun make_handler range a =
+  tokenize_range_text range "(fn" @ a @
+  tokenize_range_text range "| exn => Exn.reraise exn)";
 
 fun report_special tok = (ML_Lex.pos_of tok, Markup.keyword3);
 
@@ -378,7 +379,7 @@ fun parse_try ctxt input =
         let val (a, b) = ants |> chop_prefix (not o is_special_text) ||> tl in
           if is_finally s
           then ("Isabelle_Thread.try_finally", [make_expr a, make_expr b])
-          else ("Isabelle_Thread.try_catch", [make_expr a, make_handler b])
+          else ("Isabelle_Thread.try_catch", [make_expr a, make_handler (ML_Lex.range_of s) b])
         end
     | _ => error ("Too many special keywords: " ^ commas (map print_special specials)))
   end;
