@@ -257,10 +257,12 @@ fun quantify_over_var textual quant_of var_s var_T t =
       | norm_var_types t = t
   in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
 
-(* This assumes that distinct names are mapped to distinct names by "Variable.variant_frees". This
-   does not hold in general but should hold for ATP-generated Skolem function names, since these end
-   with a digit and "variant_frees" appends letters. *)
-fun fresh_up ctxt s = fst (hd (Variable.variant_frees ctxt [] [(s, ())]))
+(* This assumes that distinct names are mapped to distinct names by
+   "Variable.variant_frees". This does not hold in general but should hold for
+   ATP-generated Skolem function names, since these end with a digit and
+   "variant_frees" appends letters. *)
+fun desymbolize_and_fresh_up ctxt s =
+  fst (hd (Variable.variant_frees ctxt [] [(Name.desymbolize (SOME false) s, ())]))
 
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
    are typed. The code is similar to "term_of_atp_fo". *)
@@ -346,7 +348,7 @@ fun term_of_atp_ho ctxt sym_tab =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
                 | NONE =>
-                  if not (is_tptp_variable s) then Free (fresh_up ctxt s, T)
+                  if not (is_tptp_variable s) then Free (desymbolize_and_fresh_up ctxt s, T)
                   else Var ((repair_var_name s, var_index), T))
             in list_comb (t, ts) end))
   in do_term end
@@ -437,7 +439,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
                   SOME s => Free (s, T)
                 | NONE =>
                   if textual andalso not (is_tptp_variable s) then
-                    Free (s |> textual ? fresh_up ctxt, T)
+                    Free (desymbolize_and_fresh_up ctxt s, T)
                   else
                     Var ((repair_var_name s, var_index), T))
             in list_comb (t, ts) end))
