@@ -214,7 +214,7 @@ fun interruptible_task f x =
      then Thread_Attributes.private_interrupts
      else Thread_Attributes.public_interrupts)
     (fn _ => f x)
-  before Thread_Attributes.expose_interrupt ();
+  before Isabelle_Thread.expose_interrupt ();
 
 
 (* worker threads *)
@@ -234,7 +234,7 @@ fun worker_exec (task, jobs) =
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
-        val test = Exn.capture Thread_Attributes.expose_interrupt ();
+        val test = Exn.capture Isabelle_Thread.expose_interrupt ();
         val _ =
           if ok andalso not (Exn.is_interrupt_exn test) then ()
           else if null (cancel_now group) then ()

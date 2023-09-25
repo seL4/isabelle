@@ -222,7 +222,7 @@ fun status tr m =
 
 fun eval_state keywords span tr ({state, ...}: eval_state) =
   let
-    val _ = Thread_Attributes.expose_interrupt ();
+    val _ = Isabelle_Thread.expose_interrupt ();
 
     val st = reset_state keywords tr state;
 
