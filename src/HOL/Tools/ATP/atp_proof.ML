@@ -541,7 +541,14 @@ and parse_literal_hol_term x =
 and parse_hol_term x =
   (parse_literal_hol_term -- Scan.repeat (parse_nonliteral_binary_op -- parse_literal_hol_term)
     >> (fn (t1, c_ti_s) =>
-          fold (fn (c, ti) => fn left => mk_apps (mk_simple_aterm c) [left, ti]) c_ti_s t1)) x
+          let
+            val cs = map fst c_ti_s
+            val tis = t1 :: map snd c_ti_s
+            val (tis_but_k, tk) = split_last tis
+          in
+            fold_rev (fn (ti, c) => fn right => mk_apps (mk_simple_aterm c) [ti, right])
+              (tis_but_k ~~ cs) tk
+          end)) x
 
 fun parse_hol_formula x = (parse_hol_term #>> remove_hol_app #>> AAtom) x
 
