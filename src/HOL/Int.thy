@@ -1738,6 +1738,12 @@ lemma power_int_of_nat [simp]: "power_int x (int n) = x ^ n"
 lemma power_int_numeral [simp]: "power_int x (numeral n) = x ^ numeral n"
   by (simp add: power_int_def)
 
+lemma powi_numeral_reduce: "x powi numeral n = x * x powi int (pred_numeral n)"
+  by (simp add: numeral_eq_Suc)
+
+lemma powi_minus_numeral_reduce: "x powi - (numeral n) = inverse x * x powi - int(pred_numeral n)"
+  by (simp add: numeral_eq_Suc power_int_def)
+
 lemma int_cases4 [case_names nonneg neg]:
   fixes m :: int
   obtains n where "m = int n" | n where "n > 0" "m = -int n"

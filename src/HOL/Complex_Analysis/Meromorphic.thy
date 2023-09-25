@@ -2,23 +2,6 @@ theory Meromorphic
   imports Laurent_Convergence Riemann_Mapping
 begin
 
-lemma analytic_at_cong:
-  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
-  shows "f analytic_on {x} \<longleftrightarrow> g analytic_on {y}"
-proof -
-  have "g analytic_on {x}" if "f analytic_on {x}" "eventually (\<lambda>x. f x = g x) (nhds x)" for f g
-  proof -
-    have "(\<lambda>y. f (x + y)) has_fps_expansion fps_expansion f x"
-      by (rule analytic_at_imp_has_fps_expansion) fact
-    also have "?this \<longleftrightarrow> (\<lambda>y. g (x + y)) has_fps_expansion fps_expansion f x"
-      using that by (intro has_fps_expansion_cong refl) (auto simp: nhds_to_0' eventually_filtermap)
-    finally show ?thesis
-      by (rule has_fps_expansion_imp_analytic)
-  qed
-  from this[of f g] this[of g f] show ?thesis using assms
-    by (auto simp: eq_commute)
-qed
-
 definition remove_sings :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
   "remove_sings f z = (if \<exists>c. f \<midarrow>z\<rightarrow> c then Lim (at z) f else 0)"
 
