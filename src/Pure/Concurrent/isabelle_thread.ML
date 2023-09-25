@@ -24,6 +24,8 @@ sig
   val interrupt_exn: 'a Exn.result
   val interrupt_self: unit -> 'a
   val interrupt_other: T -> unit
+  val try_catch: (unit -> 'a) -> (exn -> 'a) -> 'a
+  val try_finally: (unit -> 'a) -> (unit -> unit) -> 'a
   val try: (unit -> 'a) -> 'a option
   val can: (unit -> 'a) -> bool
 end;
@@ -116,6 +118,12 @@ fun interrupt_self () = raise interrupt;
 
 fun interrupt_other t =
   Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
+
+fun try_catch e f =
+  e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn;
+
+fun try_finally e f =
+  Exn.release (Exn.capture e () before f ());
 
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();
