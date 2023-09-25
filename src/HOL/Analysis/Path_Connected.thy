@@ -447,6 +447,18 @@ lemma nonempty_simple_path_endless:
     "simple_path c \<Longrightarrow> path_image c - {pathstart c,pathfinish c} \<noteq> {}"
   by (simp add: simple_path_endless)
 
+lemma simple_path_continuous_image:
+  assumes "simple_path f" "continuous_on (path_image f) g" "inj_on g (path_image f)"
+  shows   "simple_path (g \<circ> f)"
+  unfolding simple_path_def
+proof
+  show "path (g \<circ> f)"
+    using assms unfolding simple_path_def by (intro path_continuous_image) auto
+  from assms have [simp]: "g (f x) = g (f y) \<longleftrightarrow> f x = f y" if "x \<in> {0..1}" "y \<in> {0..1}" for x y
+    unfolding inj_on_def path_image_def using that by fastforce
+  show "loop_free (g \<circ> f)"
+    using assms(1) by (auto simp: loop_free_def simple_path_def)
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>The operations on paths\<close>
 

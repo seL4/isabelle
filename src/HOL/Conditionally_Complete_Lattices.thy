@@ -590,6 +590,68 @@ lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{co
 lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, dense_linorder}} = y"
   by (auto intro!: cInf_eq_non_empty intro: dense_ge_bounded)
 
+lemma Sup_inverse_eq_inverse_Inf:
+  fixes f::"'b \<Rightarrow> 'a::{conditionally_complete_linorder,linordered_field}"
+  assumes "bdd_above (range f)" "L > 0" and geL: "\<And>x. f x \<ge> L"
+  shows "(SUP x. 1 / f x) = 1 / (INF x. f x)"
+proof (rule antisym)
+  have bdd_f: "bdd_below (range f)"
+    by (meson assms bdd_belowI2)
+  have "Inf (range f) \<ge> L"
+    by (simp add: cINF_greatest geL)
+  have bdd_invf: "bdd_above (range (\<lambda>x. 1 / f x))"
+  proof (rule bdd_aboveI2)
+    show "\<And>x. 1 / f x \<le> 1/L"
+      using assms by (auto simp: divide_simps)
+  qed
+  moreover have le_inverse_Inf: "1 / f x \<le> 1 / Inf (range f)" for x
+  proof -
+    have "Inf (range f) \<le> f x"
+      by (simp add: bdd_f cInf_lower)
+    then show ?thesis
+      using assms \<open>L \<le> Inf (range f)\<close> by (auto simp: divide_simps)
+  qed
+  ultimately show *: "(SUP x. 1 / f x) \<le> 1 / Inf (range f)"
+    by (auto simp: cSup_le_iff cINF_lower)
+  have "1 / (SUP x. 1 / f x) \<le> f y" for y
+  proof (cases "(SUP x. 1 / f x) < 0")
+    case True
+    with assms show ?thesis
+      by (meson less_asym' order_trans linorder_not_le zero_le_divide_1_iff)
+  next
+    case False
+    have "1 / f y \<le> (SUP x. 1 / f x)"
+      by (simp add: bdd_invf cSup_upper)
+    with False assms show ?thesis
+      by (metis (no_types) div_by_1 divide_divide_eq_right dual_order.strict_trans1 inverse_eq_divide 
+          inverse_le_imp_le mult.left_neutral)
+  qed
+  then have "1 / (SUP x. 1 / f x) \<le> Inf (range f)"
+    using bdd_f by (simp add: le_cInf_iff)
+  moreover have "(SUP x. 1 / f x) > 0"
+    using assms cSUP_upper [OF _ bdd_invf] by (meson UNIV_I less_le_trans zero_less_divide_1_iff)
+  ultimately show "1 / Inf (range f) \<le> (SUP t. 1 / f t)"
+    using \<open>L \<le> Inf (range f)\<close> \<open>L>0\<close> by (auto simp: field_simps)
+qed 
+
+lemma Inf_inverse_eq_inverse_Sup:
+  fixes f::"'b \<Rightarrow> 'a::{conditionally_complete_linorder,linordered_field}"
+  assumes "bdd_above (range f)" "L > 0" and geL: "\<And>x. f x \<ge> L"
+  shows  "(INF x. 1 / f x) = 1 / (SUP x. f x)"
+proof -
+  obtain M where "M>0" and M: "\<And>x. f x \<le> M"
+    by (meson assms cSup_upper dual_order.strict_trans1 rangeI)
+  have bdd: "bdd_above (range (inverse \<circ> f))"
+    using assms le_imp_inverse_le by (auto simp: bdd_above_def)
+  have "f x > 0" for x
+    using \<open>L>0\<close> geL order_less_le_trans by blast
+  then have [simp]: "1 / inverse(f x) = f x" "1 / M \<le> 1 / f x" for x
+    using M \<open>M>0\<close> by (auto simp: divide_simps)
+  show ?thesis
+    using Sup_inverse_eq_inverse_Inf [OF bdd, of "inverse M"] \<open>M>0\<close>
+    by (simp add: inverse_eq_divide)
+qed
+
 lemma Inf_insert_finite:
   fixes S :: "'a::conditionally_complete_linorder set"
   shows "finite S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"

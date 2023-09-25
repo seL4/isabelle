@@ -56,12 +56,28 @@ lemma uniform_limit_at_le_iff:
   unfolding uniform_limit_iff eventually_at
   by (fastforce dest: spec[where x = "e / 2" for e])
 
+lemma uniform_limit_compose:
+  assumes ul: "uniform_limit X g l F"  
+    and cont: "uniformly_continuous_on U f"
+    and g: "\<forall>\<^sub>F n in F. g n ` X \<subseteq> U" and l: "l ` X \<subseteq> U"
+  shows "uniform_limit X (\<lambda>a b. f (g a b)) (f \<circ> l) F"
+proof (rule uniform_limitI)
+  fix \<epsilon>::real
+  assume "0 < \<epsilon>" 
+  then obtain \<delta> where "\<delta> > 0" and \<delta>: "\<And>u v. \<lbrakk>u\<in>U; v\<in>U; dist u v < \<delta>\<rbrakk> \<Longrightarrow> dist (f u) (f v) < \<epsilon>"
+    by (metis cont uniformly_continuous_on_def)
+  show "\<forall>\<^sub>F n in F. \<forall>x\<in>X. dist (f (g n x)) ((f \<circ> l) x) < \<epsilon>"
+    using uniform_limitD [OF ul \<open>\<delta>>0\<close>] g unfolding o_def
+    by eventually_elim (use \<delta> l in blast)
+qed
+
 lemma metric_uniform_limit_imp_uniform_limit:
   assumes f: "uniform_limit S f a F"
   assumes le: "eventually (\<lambda>x. \<forall>y\<in>S. dist (g x y) (b y) \<le> dist (f x y) (a y)) F"
   shows "uniform_limit S g b F"
 proof (rule uniform_limitI)
-  fix e :: real assume "0 < e"
+  fix e :: real 
+  assume "0 < e"
   from uniform_limitD[OF f this] le
   show "\<forall>\<^sub>F x in F. \<forall>y\<in>S. dist (g x y) (b y) < e"
     by eventually_elim force
