@@ -261,6 +261,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
             and is_referenced_in_proof l (Proof {steps, ...}) =
               exists (is_referenced_in_step l) steps
 
+            (* We try to introduce pure lemmas (not "obtains") close to where
+               they are used. *)
             fun insert_lemma_in_step lem
                 (step as Prove {qualifiers, obtains, label, goal, subproofs, facts = (ls, gs),
                  proof_methods, comment}) =
@@ -286,7 +288,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               end
             and insert_lemma_in_steps lem [] = [lem]
               | insert_lemma_in_steps lem (step :: steps) =
-                if is_referenced_in_step (the (label_of_isar_step lem)) step then
+                if not (null (obtains_of_isar_step lem))
+                   orelse is_referenced_in_step (the (label_of_isar_step lem)) step then
                   insert_lemma_in_step lem step @ steps
                 else
                   step :: insert_lemma_in_steps lem steps

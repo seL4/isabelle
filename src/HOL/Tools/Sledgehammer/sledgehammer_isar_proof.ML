@@ -46,6 +46,7 @@ sig
   val steps_of_isar_proof : isar_proof -> isar_step list
   val isar_proof_with_steps : isar_proof -> isar_step list -> isar_proof
 
+  val obtains_of_isar_step : isar_step -> (string * typ) list
   val label_of_isar_step : isar_step -> label option
   val facts_of_isar_step : isar_step -> facts
   val proof_methods_of_isar_step : isar_step -> proof_method list
@@ -129,6 +130,9 @@ fun sort_facts (lfs, gfs) = (sort (label_ord o swap) lfs, sort string_ord gfs)
 fun steps_of_isar_proof (Proof {steps, ...}) = steps
 fun isar_proof_with_steps (Proof {fixes, assumptions, ...}) steps =
   Proof {fixes = fixes, assumptions = assumptions, steps = steps}
+
+fun obtains_of_isar_step (Prove {obtains, ...}) = obtains
+  | obtains_of_isar_step _ = []
 
 fun label_of_isar_step (Prove {label, ...}) = SOME label
   | label_of_isar_step _ = NONE

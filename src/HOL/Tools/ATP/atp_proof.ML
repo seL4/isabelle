@@ -514,8 +514,9 @@ fun parse_hol_typed_var x =
    || $$ "(" |-- parse_hol_typed_var --| $$ ")") x
 
 fun parse_simple_hol_term x =
-  (parse_fol_quantifier -- ($$ "[" |-- parse_hol_typed_var --| $$ "]" --| $$ ":") -- parse_hol_term
-      >> (fn ((q, ys), t) =>
+  (parse_fol_quantifier -- ($$ "[" |-- parse_hol_typed_var --| $$ "]" --| $$ ":")
+      -- parse_simple_hol_term
+    >> (fn ((q, ys), t) =>
           fold_rev
             (fn (var, ty) => fn r =>
                 AAbs (((var, the_default dummy_atype ty), r), [])
@@ -632,7 +633,7 @@ val parse_dot_name = scan_general_id --| $$ "." --| scan_general_id
 val parse_spass_annotations =
   Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name --| Scan.option ($$ ","))) []
 
-(* We ignore the stars and the pluses that follow literals. *)
+(* We ignore the stars and the pluses that follow literals in SPASS's output. *)
 fun parse_decorated_atom x =
   (parse_fol_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 

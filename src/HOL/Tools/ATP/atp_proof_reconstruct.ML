@@ -271,12 +271,16 @@ fun term_of_atp_ho ctxt sym_tab =
 
     fun do_term opt_T u =
       (case u of
-        AAbs (((var, ty), term), []) =>
+        AAbs (((var, ty), term), us) =>
         let
           val typ = typ_of_atp_type ctxt ty
           val var_name = repair_var_name var
           val tm = do_term NONE term
-        in quantify_over_var true lambda' var_name typ tm end
+          val lam = quantify_over_var true lambda' var_name typ tm
+          val args = map (do_term NONE) us
+        in
+          list_comb (lam, args)
+        end
       | ATerm ((s, tys), us) =>
         if s = "" (* special marker generated on parse error *) then
           error "Isar proof reconstruction failed because the ATP proof contains unparsable \
