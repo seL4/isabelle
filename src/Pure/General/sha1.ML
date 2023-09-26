@@ -158,9 +158,9 @@ fun with_memory n =
   Thread_Attributes.uninterruptible (fn run => fn f =>
     let
       val mem = Foreign.Memory.malloc (Word.fromInt n);
-      val res = Exn.capture (run f) mem;
+      val result = Exn.capture (run f) mem;
       val _ = Foreign.Memory.free mem;
-    in Exn.release res end);
+    in Exn.release result end);
 
 
 (* digesting *)
