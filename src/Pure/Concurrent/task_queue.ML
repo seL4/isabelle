@@ -156,10 +156,10 @@ fun str_of_task (Task {name, id, ...}) =
 fun str_of_task_groups task = str_of_task task ^ " in " ^ str_of_groups (group_of_task task);
 
 fun update_timing update (Task {timing, ...}) e =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn run => fn () =>
     let
       val start = Time.now ();
-      val result = Exn.capture (restore_attributes e) ();
+      val result = Exn.capture (run e) ();
       val t = Time.now () - start;
       val _ = (case timing of NONE => () | SOME var => Synchronized.change var (update t));
     in Exn.release result end) ();

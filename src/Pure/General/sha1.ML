@@ -155,10 +155,10 @@ val library_call =
       (Foreign.cByteArray, Foreign.cUlong, Foreign.cPointer), Foreign.cPointer);
 
 fun with_memory n =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn f =>
+  Thread_Attributes.uninterruptible (fn run => fn f =>
     let
       val mem = Foreign.Memory.malloc (Word.fromInt n);
-      val res = Exn.capture (restore_attributes f) mem;
+      val res = Exn.capture (run f) mem;
       val _ = Foreign.Memory.free mem;
     in Exn.release res end);
 

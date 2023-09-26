@@ -550,7 +550,7 @@ fun join x = Exn.release (join_result x);
 (* forked results: nested parallel evaluation *)
 
 fun forked_results {name, deps} es =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn run => fn () =>
     let
       val (group, pri) =
         (case worker_task () of
@@ -560,7 +560,7 @@ fun forked_results {name, deps} es =
       val futures =
         forks {name = name, group = SOME group, deps = deps, pri = pri, interrupts = true} es;
     in
-      restore_attributes join_results futures
+      run join_results futures
         handle exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn)
     end) ();
 

@@ -30,11 +30,11 @@ fun put (Var (i, tag)) data =
     | SOME x => Inttab.update (i, Universal.tagInject tag x));
 
 fun setmp v data f x =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn run => fn () =>
     let
       val orig_data = get v;
       val _ = put v data;
-      val result = Exn.capture (restore_attributes f) x;
+      val result = Exn.capture (run f) x;
       val _ = put v orig_data;
     in Exn.release result end) ();
 

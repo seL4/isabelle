@@ -39,11 +39,11 @@ fun dec i = (i := ! i - (1: int); ! i);
 fun add i n = (i := ! i + (n: int); ! i);
 
 fun setmp flag value f x =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn run => fn () =>
     let
       val orig_value = ! flag;
       val _ = flag := value;
-      val result = Exn.capture0 (restore_attributes f) x;
+      val result = Exn.capture0 (run f) x;
       val _ = flag := orig_value;
     in Exn.release result end) ();
 

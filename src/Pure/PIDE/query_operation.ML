@@ -19,7 +19,7 @@ fun register {name, pri} f =
   Command.print_function (name ^ "_query")
     (fn {args = instance :: args, ...} =>
       SOME {delay = NONE, pri = pri, persistent = false, strict = false,
-        print_fn = fn _ => Thread_Attributes.uninterruptible (fn restore_attributes => fn state =>
+        print_fn = fn _ => Thread_Attributes.uninterruptible (fn run => fn state =>
           let
             fun output_result s = Output.result [(Markup.instanceN, instance)] [s];
             fun status m = output_result (Markup.markup_only m);
@@ -28,11 +28,11 @@ fun register {name, pri} f =
               output_result (Markup.markup Markup.error (Runtime.exn_message exn));
 
             val _ = status Markup.running;
-            fun run () =
+            fun main () =
               f {state = state, args = args, output_result = output_result,
                   writeln_result = writeln_result};
             val _ =
-              (case Exn.capture (*sic!*) (restore_attributes run) () of
+              (case Exn.capture (*sic!*) (run main) () of
                 Exn.Res () => ()
               | Exn.Exn exn => toplevel_error exn);
             val _ = status Markup.finished;

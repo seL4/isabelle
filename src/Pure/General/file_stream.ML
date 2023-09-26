@@ -27,10 +27,10 @@ local
 val platform_path = ML_System.platform_path o Path.implode o Path.expand;
 
 fun with_file open_file close_file f =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn path =>
+  Thread_Attributes.uninterruptible (fn run => fn path =>
     let
       val file = open_file path;
-      val result = Exn.capture (restore_attributes f) file;
+      val result = Exn.capture (run f) file;
     in close_file file; Exn.release result end);
 
 in

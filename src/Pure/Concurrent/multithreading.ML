@@ -83,7 +83,7 @@ fun tracing_time detailed time =
 (* synchronized evaluation *)
 
 fun synchronized name lock e =
-  Exn.release (Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Exn.release (Thread_Attributes.uninterruptible (fn run => fn () =>
     if ! trace > 0 then
       let
         val immediate =
@@ -96,14 +96,14 @@ fun synchronized name lock e =
               val time = Timer.checkRealTimer timer;
               val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
             in false end;
-        val result = Exn.capture0 (restore_attributes e) ();
+        val result = Exn.capture0 (run e) ();
         val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
         val _ = Thread.Mutex.unlock lock;
       in result end
     else
       let
         val _ = Thread.Mutex.lock lock;
-        val result = Exn.capture0 (restore_attributes e) ();
+        val result = Exn.capture0 (run e) ();
         val _ = Thread.Mutex.unlock lock;
       in result end) ());
 
