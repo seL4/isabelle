@@ -149,9 +149,13 @@ fun with_tmp_file name ext f =
 
 fun rm_tree path = scala_function "rm_tree" [path];
 
-fun with_tmp_dir name f =
-  let val path = create_tmp_path name ""
-  in Exn.release (Exn.capture f (make_directory path) before ignore (try rm_tree path)) end;
+fun with_tmp_dir name f = Thread_Attributes.uninterruptible (fn run => fn () =>
+  let
+    val path = create_tmp_path name "";
+    val _ = make_directory path;
+    val result = Exn.capture (run f) path;
+    val _ = try rm_tree path;
+  in Exn.release result end) ();
 
 
 (* download file *)
