@@ -18,6 +18,7 @@ sig
   val safe_interrupts: attributes -> attributes
   val with_attributes: attributes -> (attributes -> 'a) -> 'a
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
+  val uninterruptible_body: ((('b -> 'c) -> 'b -> 'c) -> 'a) -> 'a
 end;
 
 structure Thread_Attributes: THREAD_ATTRIBUTES =
@@ -105,5 +106,8 @@ end;
 fun uninterruptible f x =
   with_attributes no_interrupts (fn atts =>
     f (fn g => fn y => with_attributes atts (fn _ => g y)) x);
+
+fun uninterruptible_body body =
+  uninterruptible (fn run => fn () => body run) ();
 
 end;

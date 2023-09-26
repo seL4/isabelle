@@ -156,13 +156,13 @@ fun str_of_task (Task {name, id, ...}) =
 fun str_of_task_groups task = str_of_task task ^ " in " ^ str_of_groups (group_of_task task);
 
 fun update_timing update (Task {timing, ...}) e =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val start = Time.now ();
       val result = Exn.capture (run e) ();
       val t = Time.now () - start;
       val _ = (case timing of NONE => () | SOME var => Synchronized.change var (update t));
-    in Exn.release result end) ();
+    in Exn.release result end);
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
   prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));

@@ -141,12 +141,12 @@ fun expose_interrupt_result () =
 val expose_interrupt = Exn.release o expose_interrupt_result;
 
 fun try_catch e f =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
-    run e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn) ();
+  Thread_Attributes.uninterruptible_body (fn run =>
+    run e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn);
 
 fun try_finally e f =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
-    Exn.release (Exn.capture (run e) () before f ())) ();
+  Thread_Attributes.uninterruptible_body (fn run =>
+    Exn.release (Exn.capture (run e) () before f ()));
 
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();

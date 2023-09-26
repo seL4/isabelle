@@ -229,13 +229,13 @@ fun debugger_command thread_name =
 in
 
 fun debugger_loop thread_name =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       fun loop () =
         (debugger_state thread_name; if debugger_command thread_name then loop () else ());
       val result = Exn.capture (run with_debugging) loop;
       val _ = debugger_state thread_name;
-    in Exn.release result end) ();
+    in Exn.release result end);
 
 end;
 

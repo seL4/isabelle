@@ -85,7 +85,7 @@ fun force_result _ (Value a) = Exn.Res a
       (case peek (Lazy var) of
         SOME res => res
       | NONE =>
-          Thread_Attributes.uninterruptible (fn run => fn () =>
+          Thread_Attributes.uninterruptible_body (fn run =>
             let
               val (expr, x) =
                 Synchronized.change_result var
@@ -115,7 +115,7 @@ fun force_result _ (Value a) = Exn.Res a
                       else Synchronized.change var (fn _ => Expr (name, e));
                   in res end
               | NONE => Exn.capture (run (fn () => Future.join x)) ())
-            end) ());
+            end));
 
 end;
 

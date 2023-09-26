@@ -42,7 +42,7 @@ val _ =
 in
 
 fun function_bytes name args =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val id = new_id ();
       fun invoke () =
@@ -62,7 +62,7 @@ fun function_bytes name args =
       invoke ();
       Exn.release (run await_result ())
         handle exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn)
-    end) ();
+    end);
 
 val function1_bytes = singleton o function_bytes;
 

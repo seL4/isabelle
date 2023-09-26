@@ -61,9 +61,9 @@ fun assign (Var {name, state}) x =
         (case ! state of
           Set _ => assign_fail name
         | Unset _ =>
-            Thread_Attributes.uninterruptible (fn _ => fn () =>
+            Thread_Attributes.uninterruptible_body (fn _ =>
              (state := Set x; RunCall.clearMutableBit state;
-               Thread.ConditionVar.broadcast cond)) ())));
+               Thread.ConditionVar.broadcast cond)))));
 
 end;
 

@@ -13,11 +13,11 @@ structure Command_Line: COMMAND_LINE =
 struct
 
 fun tool body =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val rc =
         (run body (); 0) handle exn =>
           ((Runtime.exn_error_message exn; Exn.failure_rc exn) handle err => Exn.failure_rc err);
-    in exit rc end) ();
+    in exit rc end);
 
 end;

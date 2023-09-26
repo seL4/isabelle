@@ -67,9 +67,9 @@ val trace = ref 0;
 
 fun tracing level msg =
   if ! trace < level then ()
-  else Thread_Attributes.uninterruptible (fn _ => fn () =>
+  else Thread_Attributes.uninterruptible_body (fn _ =>
     (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
-      handle _ (*sic*) => ()) ();
+      handle _ (*sic*) => ());
 
 fun tracing_time detailed time =
   tracing
@@ -83,7 +83,7 @@ fun tracing_time detailed time =
 (* synchronized evaluation *)
 
 fun synchronized name lock e =
-  Exn.release (Thread_Attributes.uninterruptible (fn run => fn () =>
+  Exn.release (Thread_Attributes.uninterruptible_body (fn run =>
     if ! trace > 0 then
       let
         val immediate =
@@ -105,6 +105,6 @@ fun synchronized name lock e =
         val _ = Thread.Mutex.lock lock;
         val result = Exn.capture0 (run e) ();
         val _ = Thread.Mutex.unlock lock;
-      in result end) ());
+      in result end));
 
 end;

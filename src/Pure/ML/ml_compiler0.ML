@@ -117,12 +117,12 @@ fun ML {name_space, print_depth, here, print, error, ...} {line, file, verbose, 
 
 end;
 
-fun ML_file context {verbose, debug} file = Thread_Attributes.uninterruptible (fn run => fn () =>
+fun ML_file context {verbose, debug} file = Thread_Attributes.uninterruptible_body (fn run =>
   let
     val instream = TextIO.openIn file;
     val result = Exn.capture (run TextIO.inputAll) instream;
     val _ = TextIO.closeIn instream;
-  in ML context {line = 1, file = file, verbose = verbose, debug = debug} (Exn.release result) end) ();
+  in ML context {line = 1, file = file, verbose = verbose, debug = debug} (Exn.release result) end);
 
 fun ML_file_operations (f: bool option -> string -> unit) =
   {ML_file = f NONE, ML_file_debug = f (SOME true), ML_file_no_debug = f (SOME false)};

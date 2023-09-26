@@ -59,7 +59,7 @@ fun bash_process params =
           with_streams (fn s => Byte_Message.write_message_string (#2 s) [Bash.server_kill, uuid])
       | kill NONE = ();
   in
-    Thread_Attributes.uninterruptible (fn run => fn () =>
+    Thread_Attributes.uninterruptible_body (fn run =>
       let
         fun err () = raise Fail "Malformed result from bash_process server";
         fun loop maybe_uuid s =
@@ -91,7 +91,7 @@ fun bash_process params =
           handle exn => (kill maybe_uuid; Exn.reraise exn);
       in
         with_streams (fn s => (Byte_Message.write_message_string (#2 s) server_run; loop NONE s))
-      end) ()
+      end)
   end;
 
 val bash = Bash.script #> bash_process #> Process_Result.print #> Process_Result.rc;
@@ -149,13 +149,13 @@ fun with_tmp_file name ext f =
 
 fun rm_tree path = scala_function "rm_tree" [path];
 
-fun with_tmp_dir name f = Thread_Attributes.uninterruptible (fn run => fn () =>
+fun with_tmp_dir name f = Thread_Attributes.uninterruptible_body (fn run =>
   let
     val path = create_tmp_path name "";
     val _ = make_directory path;
     val result = Exn.capture (run f) path;
     val _ = try rm_tree path;
-  in Exn.release result end) ();
+  in Exn.release result end);
 
 
 (* download file *)

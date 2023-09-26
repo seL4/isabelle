@@ -39,13 +39,13 @@ fun dec i = (i := ! i - (1: int); ! i);
 fun add i n = (i := ! i + (n: int); ! i);
 
 fun setmp flag value f x =
-  Thread_Attributes.uninterruptible (fn run => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val orig_value = ! flag;
       val _ = flag := value;
       val result = Exn.capture0 (run f) x;
       val _ = flag := orig_value;
-    in Exn.release result end) ();
+    in Exn.release result end);
 
 
 (* weak references *)
