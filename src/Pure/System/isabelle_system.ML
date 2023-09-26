@@ -140,9 +140,12 @@ fun create_tmp_path name ext =
       raise Fail ("Temporary file already exists: " ^ Path.print path);
   in path end;
 
-fun with_tmp_file name ext f =
-  let val path = create_tmp_path name ext
-  in Exn.release (Exn.capture f path before ignore (try File.rm path)) end;
+fun with_tmp_file name ext = Thread_Attributes.uninterruptible (fn run => fn f =>
+  let
+    val path = create_tmp_path name ext;
+    val result = Exn.capture (run f) path;
+    val _ = try File.rm path;
+  in Exn.release result end);
 
 
 (* tmp dirs *)
