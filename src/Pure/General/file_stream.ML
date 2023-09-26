@@ -31,7 +31,8 @@ fun with_file open_file close_file f =
     let
       val file = open_file path;
       val result = Exn.capture (run f) file;
-    in close_file file; Exn.release result end);
+      val _ = close_file file;
+    in Exn.release result end);
 
 in
 
