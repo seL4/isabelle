@@ -43,7 +43,7 @@ fun setmp flag value f x =
     let
       val orig_value = ! flag;
       val _ = flag := value;
-      val result = Exn.capture (restore_attributes f) x;
+      val result = Exn.capture0 (restore_attributes f) x;
       val _ = flag := orig_value;
     in Exn.release result end) ();
 

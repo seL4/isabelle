@@ -25,6 +25,7 @@ sig
   val interrupt_exn: 'a Exn.result
   val interrupt_self: unit -> 'a
   val interrupt_other: T -> unit
+  structure Exn: EXN
   val expose_interrupt_result: unit -> unit Exn.result
   val expose_interrupt: unit -> unit  (*exception Interrupt*)
   val try_catch: (unit -> 'a) -> (exn -> 'a) -> 'a
@@ -123,6 +124,12 @@ fun interrupt_self () = raise interrupt;
 fun interrupt_other t =
   Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
 
+structure Exn: EXN =
+struct
+  open Exn;
+  val capture = capture0;
+end;
+
 fun expose_interrupt_result () =
   let
     val orig_atts = Thread_Attributes.safe_interrupts (Thread_Attributes.get_attributes ());
@@ -146,3 +153,5 @@ fun try e = Basics.try e ();
 fun can e = Basics.can e ();
 
 end;
+
+structure Exn = Isabelle_Thread.Exn;

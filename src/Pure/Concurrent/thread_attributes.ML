@@ -95,7 +95,7 @@ fun with_attributes new_atts e =
     if atts1 = atts2 then e atts1
     else
       let
-        val result = Exn.capture (fn () => (set_attributes atts2; e atts1)) ();
+        val result = Exn.capture0 (fn () => (set_attributes atts2; e atts1)) ();
         val _ = set_attributes atts1;
       in Exn.release result end
   end;

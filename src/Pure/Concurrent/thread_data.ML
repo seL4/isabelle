@@ -34,7 +34,7 @@ fun setmp v data f x =
     let
       val orig_data = get v;
       val _ = put v data;
-      val result = Exn.capture (restore_attributes f) x;
+      val result = Exn.capture0 (restore_attributes f) x;
       val _ = put v orig_data;
     in Exn.release result end) ();
 
