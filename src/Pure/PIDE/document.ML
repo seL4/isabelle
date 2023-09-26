@@ -783,10 +783,10 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
               Command.print0 {pri = Task_Queue.urgent_pri + 1, print_fn = fn _ => fn _ =>
                 let
                   val _ = Output.status [Markup.markup_only Markup.consolidating];
-                  val res = Exn.capture (Thy_Info.apply_presentation context) thy;
+                  val result = Exn.capture (Thy_Info.apply_presentation context) thy;
                   val _ = Lazy.force (get_consolidated node);
                   val _ = Output.status [Markup.markup_only Markup.consolidated];
-                in Exn.release res end};
+                in Exn.release result end};
             val result_entry =
               (case lookup_entry node id of
                 NONE => err_undef "result command entry" id

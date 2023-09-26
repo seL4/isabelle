@@ -216,9 +216,9 @@ fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
   | consolidate_theory (Exn.Res (Result {theory, exec_id, ...})) =
       let
         val _ = Execution.join [exec_id];
-        val res = Exn.capture Thm.consolidate_theory theory;
+        val result = Exn.capture Thm.consolidate_theory theory;
         val exns = maps Task_Queue.group_status (Execution.peek exec_id);
-      in res :: map Exn.Exn exns end;
+      in result :: map Exn.Exn exns end;
 
 fun present_theory (Exn.Exn exn) = [Exn.Exn exn]
   | present_theory (Exn.Res (Result {theory, present, ...})) =
