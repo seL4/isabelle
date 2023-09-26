@@ -149,7 +149,7 @@ fun with_tmp_file name ext f =
 
 fun rm_tree path = scala_function "rm_tree" [path];
 
-fun with_tmp_dir name f = Thread_Attributes.uninterruptible_body (fn run =>
+fun with_tmp_dir name = Thread_Attributes.uninterruptible (fn run => fn f =>
   let
     val path = create_tmp_path name "";
     val _ = make_directory path;
