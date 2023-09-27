@@ -379,8 +379,14 @@ proof -
 qed
 
 lemma holomorphic_deriv [holomorphic_intros]:
-    "\<lbrakk>f holomorphic_on S; open S\<rbrakk> \<Longrightarrow> (deriv f) holomorphic_on S"
-by (metis DERIV_deriv_iff_field_differentiable at_within_open derivative_is_holomorphic holomorphic_on_def)
+  "\<lbrakk>f holomorphic_on S; open S\<rbrakk> \<Longrightarrow> (deriv f) holomorphic_on S"
+  by (metis DERIV_deriv_iff_field_differentiable at_within_open derivative_is_holomorphic holomorphic_on_def)
+
+lemma holomorphic_deriv_compose:
+  assumes g: "g holomorphic_on B" and f: "f holomorphic_on A" and "f ` A \<subseteq> B" "open B"
+  shows   "(\<lambda>x. deriv g (f x)) holomorphic_on A"
+  using holomorphic_on_compose_gen [OF f holomorphic_deriv[OF g]] assms
+  by (auto simp: o_def)
 
 lemma analytic_deriv [analytic_intros]: "f analytic_on S \<Longrightarrow> (deriv f) analytic_on S"
   using analytic_on_holomorphic holomorphic_deriv by auto
@@ -625,50 +631,63 @@ using z
 by (induction i arbitrary: z)
    (auto simp: fg intro: complex_derivative_transform_within_open holomorphic_higher_deriv assms)
 
-lemma higher_deriv_compose_linear:
+lemma higher_deriv_compose_linear':
   fixes z::complex
   assumes f: "f holomorphic_on T" and S: "open S" and T: "open T" and z: "z \<in> S"
-      and fg: "\<And>w. w \<in> S \<Longrightarrow> u * w \<in> T"
-    shows "(deriv ^^ n) (\<lambda>w. f (u * w)) z = u^n * (deriv ^^ n) f (u * z)"
+      and fg: "\<And>w. w \<in> S \<Longrightarrow> u*w + c \<in> T"
+    shows "(deriv ^^ n) (\<lambda>w. f (u*w + c)) z = u^n * (deriv ^^ n) f (u*z + c)"
 using z
 proof (induction n arbitrary: z)
   case 0 then show ?case by simp
 next
   case (Suc n z)
-  have holo0: "f holomorphic_on (*) u ` S"
+  have holo0: "f holomorphic_on (\<lambda>w. u * w+c) ` S"
     by (meson fg f holomorphic_on_subset image_subset_iff)
-  have holo2: "(deriv ^^ n) f holomorphic_on (*) u ` S"
+  have holo2: "(deriv ^^ n) f holomorphic_on (\<lambda>w. u * w+c) ` S"
     by (meson f fg holomorphic_higher_deriv holomorphic_on_subset image_subset_iff T)
-  have holo3: "(\<lambda>z. u ^ n * (deriv ^^ n) f (u * z)) holomorphic_on S"
+  have holo3: "(\<lambda>z. u ^ n * (deriv ^^ n) f (u * z+c)) holomorphic_on S"
     by (intro holo2 holomorphic_on_compose [where g="(deriv ^^ n) f", unfolded o_def] holomorphic_intros)
-  have u: "(*) u holomorphic_on S" "f holomorphic_on (*) u ` S"
+  have "(\<lambda>w. u * w+c) holomorphic_on S" "f holomorphic_on (\<lambda>w. u * w+c) ` S"
     by (rule holo0 holomorphic_intros)+
-  then have holo1: "(\<lambda>w. f (u * w)) holomorphic_on S"
+  then have holo1: "(\<lambda>w. f (u * w+c)) holomorphic_on S"
     by (rule holomorphic_on_compose [where g=f, unfolded o_def])
-  have "deriv ((deriv ^^ n) (\<lambda>w. f (u * w))) z = deriv (\<lambda>z. u^n * (deriv ^^ n) f (u*z)) z"
+  have "deriv ((deriv ^^ n) (\<lambda>w. f (u * w+c))) z = deriv (\<lambda>z. u^n * (deriv ^^ n) f (u*z+c)) z"
   proof (rule complex_derivative_transform_within_open [OF _ holo3 S Suc.prems])
-    show "(deriv ^^ n) (\<lambda>w. f (u * w)) holomorphic_on S"
+    show "(deriv ^^ n) (\<lambda>w. f (u * w+c)) holomorphic_on S"
       by (rule holomorphic_higher_deriv [OF holo1 S])
   qed (simp add: Suc.IH)
-  also have "\<dots> = u^n * deriv (\<lambda>z. (deriv ^^ n) f (u * z)) z"
+  also have "\<dots> = u^n * deriv (\<lambda>z. (deriv ^^ n) f (u * z+c)) z"
   proof -
     have "(deriv ^^ n) f analytic_on T"
       by (simp add: analytic_on_open f holomorphic_higher_deriv T)
-    then have "(\<lambda>w. (deriv ^^ n) f (u * w)) analytic_on S"
-      by (meson S u analytic_on_open holo2 holomorphic_on_compose holomorphic_transform o_def)
+    then have "(\<lambda>w. (deriv ^^ n) f (u * w+c)) analytic_on S"
+    proof -
+      have "(deriv ^^ n) f \<circ> (\<lambda>w. u * w+c) holomorphic_on S"
+        using holomorphic_on_compose[OF _ holo2] \<open>(\<lambda>w. u * w+c) holomorphic_on S\<close>
+        by simp
+      then show ?thesis
+        by (simp add: S analytic_on_open o_def)
+    qed
     then show ?thesis
       by (intro deriv_cmult analytic_on_imp_differentiable_at [OF _ Suc.prems])
   qed
-  also have "\<dots> = u * u ^ n * deriv ((deriv ^^ n) f) (u * z)"
+  also have "\<dots> = u * u ^ n * deriv ((deriv ^^ n) f) (u * z+c)"
   proof -
-    have "(deriv ^^ n) f field_differentiable at (u * z)"
+    have "(deriv ^^ n) f field_differentiable at (u * z+c)"
       using Suc.prems T f fg holomorphic_higher_deriv holomorphic_on_imp_differentiable_at by blast
     then show ?thesis
-      by (simp add: deriv_compose_linear)
+      by (simp add: deriv_compose_linear')
   qed
   finally show ?case
     by simp
 qed
+
+lemma higher_deriv_compose_linear:
+  fixes z::complex
+  assumes f: "f holomorphic_on T" and S: "open S" and T: "open T" and z: "z \<in> S"
+      and fg: "\<And>w. w \<in> S \<Longrightarrow> u * w \<in> T"
+    shows "(deriv ^^ n) (\<lambda>w. f (u * w)) z = u^n * (deriv ^^ n) f (u * z)"
+  using higher_deriv_compose_linear' [where c=0] assms by simp
 
 lemma higher_deriv_add_at:
   assumes "f analytic_on {z}" "g analytic_on {z}"

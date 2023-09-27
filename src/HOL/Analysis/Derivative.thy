@@ -2403,6 +2403,12 @@ lemma deriv_sum [simp]:
   unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
+lemma deriv_compose_linear':
+  assumes "f field_differentiable at (c*z + a)"
+  shows "deriv (\<lambda>w. f (c*w + a)) z = c * deriv f (c*z + a)"
+  apply (subst deriv_chain [where f="\<lambda>w. c*w + a",unfolded comp_def])
+  using assms by (auto intro: derivative_intros)
+
 lemma deriv_compose_linear:
   assumes "f field_differentiable at (c * z)"
   shows "deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
@@ -2412,7 +2418,6 @@ proof -
   then show ?thesis
     by simp
 qed
-
 
 lemma nonzero_deriv_nonconstant:
   assumes df: "DERIV f \<xi> :> df" and S: "open S" "\<xi> \<in> S" and "df \<noteq> 0"

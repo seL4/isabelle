@@ -1121,6 +1121,11 @@ proof -
     by (metis Diff_empty contour_integrable_holomorphic finite.emptyI g os)
 qed
 
+lemma analytic_imp_contour_integrable:
+  assumes "f analytic_on path_image p" "valid_path p"
+  shows   "f contour_integrable_on p"
+  by (meson analytic_on_holomorphic assms contour_integrable_holomorphic_simple)
+
 lemma continuous_on_inversediff:
   fixes z:: "'a::real_normed_field" shows "z \<notin> S \<Longrightarrow> continuous_on S (\<lambda>w. 1 / (w - z))"
   by (rule continuous_intros | force)+
