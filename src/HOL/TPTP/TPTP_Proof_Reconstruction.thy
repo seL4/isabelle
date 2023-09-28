@@ -75,6 +75,11 @@ declare [[
   tptp_informative_failure = true
 ]]
 
+ML \<open>
+exception UNSUPPORTED_ROLE
+exception INTERPRET_INFERENCE
+\<close>
+
 ML_file \<open>TPTP_Parser/tptp_reconstruct_library.ML\<close>
 ML "open TPTP_Reconstruct_Library"
 ML_file \<open>TPTP_Parser/tptp_reconstruct.ML\<close>
@@ -867,16 +872,18 @@ doesn't work with polymorphism (for which we'd need to use type unification) -- 
           SOME (rev acc)
         else NONE
       else
-        let
-          val (arg_ty, val_ty) = Term.dest_funT cur_ty
-          (*now find a param of type arg_ty*)
-          val (candidate_param, params') =
-            find_and_remove (snd #> pair arg_ty #> (op =)) params
-        in
-          use_candidate target_ty params' (candidate_param :: acc) val_ty
-        end
-        handle TYPE ("dest_funT", _, _) => NONE  (* FIXME fragile *)
+        \<^try>\<open>
+          let
+            val (arg_ty, val_ty) = Term.dest_funT cur_ty
+            (*now find a param of type arg_ty*)
+            val (candidate_param, params') =
+              find_and_remove (snd #> pair arg_ty #> (op =)) params
+          in
+            use_candidate target_ty params' (candidate_param :: acc) val_ty
+          end
+          catch TYPE ("dest_funT", _, _) => NONE  (* FIXME fragile *)
              | _ => NONE  (* FIXME avoid catch-all handler *)
+        \<close>
 
     val (skolem_const_ty, params') = skolem_const_info_of conclusion
 
@@ -2012,9 +2019,6 @@ fun oracle_based_reconstruction_tac ctxt prob_name n =
 subsection "Leo2 reconstruction tactic"
 
 ML \<open>
-exception UNSUPPORTED_ROLE
-exception INTERPRET_INFERENCE
-
 (*Failure reports can be adjusted to avoid interrupting
   an overall reconstruction process*)
 fun fail ctxt x =
