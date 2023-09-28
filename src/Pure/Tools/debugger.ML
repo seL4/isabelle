@@ -137,7 +137,7 @@ fun operations SML = if SML then ML_Env.SML_operations else ML_Env.Isabelle_oper
 
 fun evaluate {SML, verbose} =
   ML_Context.eval
-    {environment = environment SML, redirect = false, verbose = verbose,
+    {environment = environment SML, redirect = false, verbose = verbose, catch_all = SML,
       debug = SOME false, writeln = writeln_message, warning = warning_message}
     Position.none;
 

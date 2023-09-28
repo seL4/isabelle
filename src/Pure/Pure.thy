@@ -246,7 +246,7 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {environment = ML_Env.SML_export, redirect = false, verbose = true,
+          {environment = ML_Env.SML_export, redirect = false, verbose = true, catch_all = true,
             debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.theory
@@ -258,7 +258,7 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {environment = ML_Env.SML_import, redirect = false, verbose = true,
+          {environment = ML_Env.SML_import, redirect = false, verbose = true, catch_all = true,
             debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.generic_theory
@@ -1557,5 +1557,7 @@ next
 qed
 
 declare [[ML_write_global = false]]
+
+ML_command \<open>\<^assert> (not (can ML_command \<open>() handle _ => ()\<close>))\<close>
 
 end

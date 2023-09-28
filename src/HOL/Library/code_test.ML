@@ -311,8 +311,8 @@ fun main () =
     val _ = File.write driver_path driver
     val _ =
       ML_Context.eval
-        {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
-          writeln = writeln, warning = warning}
+        {environment = ML_Env.SML, redirect = false, verbose = false, catch_all = true,
+          debug = NONE, writeln = writeln, warning = warning}
         Position.none
         (ML_Lex.read_text (code, Position.file (File.symbolic_path code_path)) @
          ML_Lex.read_text (driver, Position.file (File.symbolic_path driver_path)) @

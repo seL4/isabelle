@@ -613,6 +613,7 @@ val _ = Theory.setup
   register_config_string ML_Env.ML_environment #>
   register_config_bool ML_Env.ML_read_global #>
   register_config_bool ML_Env.ML_write_global #>
+  register_config_bool ML_Compiler.ML_catch_all #>
   register_config_bool ML_Options.source_trace #>
   register_config_bool ML_Options.exception_trace #>
   register_config_bool ML_Options.exception_debugger #>
