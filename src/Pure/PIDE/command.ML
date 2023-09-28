@@ -193,11 +193,13 @@ fun run keywords int tr st =
     in Toplevel.command_errors int tr2 st end
   else Toplevel.command_errors int tr st;
 
+fun check_comments ctxt =
+  Document_Output.check_comments ctxt o Input.source_explode o Token.input_of;
+
 fun check_token_comments ctxt tok =
-  (Document_Output.check_comments ctxt (Input.source_explode (Token.input_of tok)); [])
-    handle exn =>
-      if Exn.is_interrupt exn then Exn.reraise exn
-      else Runtime.exn_messages exn;
+  (case Exn.result (fn () => check_comments ctxt tok) () of
+    Exn.Res () => []
+  | Exn.Exn exn => Runtime.exn_messages exn);
 
 fun check_span_comments ctxt span tr =
   Toplevel.setmp_thread_position tr (fn () => maps (check_token_comments ctxt) span) ();
@@ -298,11 +300,13 @@ local
 val print_functions =
   Synchronized.var "Command.print_functions" ([]: (string * print_function) list);
 
+fun print_wrapper tr opt_context =
+  Toplevel.setmp_thread_position tr o Runtime.controlled_execution opt_context;
+
 fun print_error tr opt_context e =
-  (Toplevel.setmp_thread_position tr o Runtime.controlled_execution opt_context) e ()
-    handle exn =>
-      if Exn.is_interrupt exn then Exn.reraise exn
-      else List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages exn);
+  (case Exn.result (fn () => print_wrapper tr opt_context e ()) () of
+    Exn.Res res => res
+  | Exn.Exn exn => List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages exn));
 
 fun print_finished (Print {print_process, ...}) = Lazy.is_finished print_process;
 

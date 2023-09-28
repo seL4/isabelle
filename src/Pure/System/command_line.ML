@@ -15,9 +15,14 @@ struct
 fun tool body =
   Thread_Attributes.uninterruptible_body (fn run =>
     let
+      fun print_failure exn = (Runtime.exn_error_message exn; Exn.failure_rc exn);
       val rc =
-        (run body (); 0) handle exn =>
-          ((Runtime.exn_error_message exn; Exn.failure_rc exn) handle err => Exn.failure_rc err);
+        (case Exn.capture (run body) () of
+          Exn.Res () => 0
+        | Exn.Exn exn =>
+            (case Exn.capture print_failure exn of
+              Exn.Res rc => rc
+            | Exn.Exn crash => Exn.failure_rc crash));
     in exit rc end);
 
 end;

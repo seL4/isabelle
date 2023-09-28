@@ -62,7 +62,7 @@ fun bash_process params =
     Thread_Attributes.uninterruptible_body (fn run =>
       let
         fun err () = raise Fail "Malformed result from bash_process server";
-        fun loop maybe_uuid s =
+        fun loop_body s =
           (case run Byte_Message.read_message_string (#1 s) of
             SOME (head :: args) =>
               if head = Bash.server_uuid andalso length args = 1 then
@@ -88,7 +88,10 @@ fun bash_process params =
                  end
                else err ()
           | _ => err ())
-          handle exn => (kill maybe_uuid; Exn.reraise exn);
+        and loop maybe_uuid s =
+          (case Exn.capture (fn () => loop_body s) () of
+            Exn.Res res => res
+          | Exn.Exn exn => (kill maybe_uuid; Exn.reraise exn));
       in
         with_streams (fn s => (Byte_Message.write_message_string (#2 s) server_run; loop NONE s))
       end)

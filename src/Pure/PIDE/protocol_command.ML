@@ -40,8 +40,9 @@ fun run name args =
   (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle protocol command " ^ quote name)
   | SOME cmd =>
-      (Runtime.exn_trace_system (fn () => cmd args)
-        handle exn =>
+      (case Exn.capture (fn () => Runtime.exn_trace_system (fn () => cmd args)) () of
+        Exn.Res res => res
+      | Exn.Exn exn =>
           if is_protocol_exn exn then Exn.reraise exn
           else error ("Isabelle protocol command failure: " ^ quote name)));
 

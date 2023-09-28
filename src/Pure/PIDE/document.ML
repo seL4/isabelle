@@ -550,6 +550,18 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
           (fn deps => fn (name, node) =>
             if Symset.member required name orelse visible_node node orelse pending_result node then
               let
+                fun body () =
+                 (Execution.worker_task_active true name;
+                  if forall finished_import deps then
+                    iterate_entries (fn (_, opt_exec) => fn () =>
+                      (case opt_exec of
+                        SOME exec =>
+                          if Execution.is_running execution_id
+                          then SOME (Command.exec execution_id exec)
+                          else NONE
+                      | NONE => NONE)) node ()
+                  else ();
+                  Execution.worker_task_active false name);
                 val future =
                   (singleton o Future.forks)
                    {name = "theory:" ^ name,
@@ -557,21 +569,12 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
                     deps = delay :: Execution.active_tasks name @ maps (the_list o #2 o #2) deps,
                     pri = 0, interrupts = false}
                   (fn () =>
-                   (Execution.worker_task_active true name;
-                    if forall finished_import deps then
-                      iterate_entries (fn (_, opt_exec) => fn () =>
-                        (case opt_exec of
-                          SOME exec =>
-                            if Execution.is_running execution_id
-                            then SOME (Command.exec execution_id exec)
-                            else NONE
-                        | NONE => NONE)) node ()
-                    else ();
-                    Execution.worker_task_active false name)
-                      handle exn =>
+                    (case Exn.capture body () of
+                      Exn.Res () => ()
+                    | Exn.Exn exn =>
                        (Output.system_message (Runtime.exn_message exn);
                         Execution.worker_task_active false name;
-                        Exn.reraise exn));
+                        Exn.reraise exn)));
               in (node, SOME (Future.task_of future)) end
             else (node, NONE));
       val execution' =

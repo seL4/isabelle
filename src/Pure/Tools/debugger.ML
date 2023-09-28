@@ -29,10 +29,10 @@ val writeln_message = output_message Markup.writelnN;
 val warning_message = output_message Markup.warningN;
 val error_message = output_message Markup.errorN;
 
-fun error_wrapper e = e ()
-  handle exn =>
-    if Exn.is_interrupt exn then Exn.reraise exn
-    else error_message (Runtime.exn_message exn);
+fun error_wrapper e =
+  (case Exn.result e () of
+    Exn.Res res => res
+  | Exn.Exn exn => error_message (Runtime.exn_message exn));
 
 
 (* thread input *)
