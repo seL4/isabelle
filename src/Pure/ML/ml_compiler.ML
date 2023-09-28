@@ -201,8 +201,13 @@ fun eval (flags: flags) pos toks =
 
     val error_buffer = Unsynchronized.ref Buffer.empty;
     fun err msg = Unsynchronized.change error_buffer (Buffer.add msg #> Buffer.add "\n");
-    fun flush_error () = #writeln flags (trim_line (Buffer.content (! error_buffer)));
-    fun raise_error msg = error (trim_line (Buffer.content (Buffer.add msg (! error_buffer))));
+
+    fun expose_error verbose =
+      let
+        val msg = Buffer.content (! error_buffer);
+        val is_err = msg <> "";
+        val _ = if is_err orelse verbose then (output_warnings (); output_writeln ()) else ();
+      in if is_err then error (trim_line msg) else () end;
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
@@ -294,12 +299,8 @@ fun eval (flags: flags) pos toks =
                 STATIC_ERRORS () => ""
               | Runtime.TOPLEVEL_ERROR => ""
               | _ => "Exception- " ^ Pretty.string_of (Runtime.pretty_exn exn) ^ " raised");
-            val _ = output_warnings ();
-            val _ = output_writeln ();
-          in raise_error exn_msg end;
-  in
-    if #verbose flags then (output_warnings (); flush_error (); output_writeln ())
-    else ()
-  end;
+            val _ = err exn_msg;
+          in expose_error true end;
+  in expose_error (#verbose flags) end;
 
 end;
