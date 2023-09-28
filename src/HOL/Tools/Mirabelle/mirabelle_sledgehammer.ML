@@ -273,31 +273,32 @@ fun proof_method_from_msg args msg =
 local
 
 fun run_sh params keep pos state =
-  let
-    fun set_file_name (SOME (dir, keep_probs, keep_proofs)) =
-        let
-          val filename = "prob_" ^
-            StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
-            StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
-        in
-          Config.put Sledgehammer_Prover_ATP.atp_problem_prefix (filename ^ "__")
-          #> (keep_probs ? Config.put Sledgehammer_Prover_ATP.atp_problem_dest_dir dir)
-          #> (keep_proofs ? Config.put Sledgehammer_Prover_ATP.atp_proof_dest_dir dir)
-          #> Config.put SMT_Config.debug_files (dir ^ "/" ^ filename ^ "__" ^ serial_string ())
-        end
-      | set_file_name NONE = I
-    val state' = state
-      |> Proof.map_context (set_file_name keep)
+  \<^try>\<open>
+    let
+      fun set_file_name (SOME (dir, keep_probs, keep_proofs)) =
+          let
+            val filename = "prob_" ^
+              StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
+              StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
+          in
+            Config.put Sledgehammer_Prover_ATP.atp_problem_prefix (filename ^ "__")
+            #> (keep_probs ? Config.put Sledgehammer_Prover_ATP.atp_problem_dest_dir dir)
+            #> (keep_proofs ? Config.put Sledgehammer_Prover_ATP.atp_proof_dest_dir dir)
+            #> Config.put SMT_Config.debug_files (dir ^ "/" ^ filename ^ "__" ^ serial_string ())
+          end
+        | set_file_name NONE = I
+      val state' = state
+        |> Proof.map_context (set_file_name keep)
 
-    val ((_, (sledgehammer_outcome, msg)), cpu_time) = Mirabelle.cpu_time (fn () =>
-      Sledgehammer.run_sledgehammer params Sledgehammer_Prover.Normal NONE 1
-        Sledgehammer_Fact.no_fact_override state') ()
-  in
-    (sledgehammer_outcome, msg, cpu_time)
-  end
-  handle
-    ERROR msg => (Sledgehammer.SH_Unknown, " error: " ^ msg, 0)
-  | _ => (Sledgehammer.SH_Unknown, " error: unexpected error", 0)
+      val ((_, (sledgehammer_outcome, msg)), cpu_time) = Mirabelle.cpu_time (fn () =>
+        Sledgehammer.run_sledgehammer params Sledgehammer_Prover.Normal NONE 1
+          Sledgehammer_Fact.no_fact_override state') ()
+    in
+      (sledgehammer_outcome, msg, cpu_time)
+    end
+    catch ERROR msg => (Sledgehammer.SH_Unknown, " error: " ^ msg, 0)
+      | _ => (Sledgehammer.SH_Unknown, " error: unexpected error", 0)
+  \<close>
 
 in
 
