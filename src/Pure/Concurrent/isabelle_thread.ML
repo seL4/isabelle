@@ -14,6 +14,7 @@ sig
   val print: T -> string
   val self: unit -> T
   val is_self: T -> bool
+  val threads_stack_limit: real Unsynchronized.ref
   val stack_limit: unit -> int option
   type params = {name: string, stack_limit: int option, interrupts: bool}
   val attributes: params -> Thread.Thread.threadAttribute list
@@ -24,6 +25,11 @@ sig
   val interrupt_exn: 'a Exn.result
   val interrupt_self: unit -> 'a
   val interrupt_other: T -> unit
+  structure Exn: EXN
+  val expose_interrupt_result: unit -> unit Exn.result
+  val expose_interrupt: unit -> unit  (*exception Interrupt*)
+  val try_catch: (unit -> 'a) -> (exn -> 'a) -> 'a
+  val try_finally: (unit -> 'a) -> (unit -> unit) -> 'a
   val try: (unit -> 'a) -> 'a option
   val can: (unit -> 'a) -> bool
 end;
@@ -43,11 +49,11 @@ val get_thread = #thread o dest;
 val get_name = #name o dest;
 val get_id = #id o dest;
 
-val equal = Thread.Thread.equal o apply2 get_thread;
+fun equal (t1, t2) = Thread.Thread.equal (get_thread t1, get_thread t2);
 
 fun print t =
   (case get_name t of "" => "ML" | a => "Isabelle." ^ a) ^
-    "-" ^ string_of_int (get_id t);
+    "-" ^ Int.toString (get_id t);
 
 
 (* self *)
@@ -73,11 +79,12 @@ end;
 
 (* fork *)
 
+val threads_stack_limit = Unsynchronized.ref 0.25;
+
 fun stack_limit () =
   let
-    val threads_stack_limit =
-      Real.floor (Options.default_real "threads_stack_limit" * 1024.0 * 1024.0 * 1024.0);
-  in if threads_stack_limit <= 0 then NONE else SOME threads_stack_limit end;
+    val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0);
+  in if limit <= 0 then NONE else SOME limit end;
 
 type params = {name: string, stack_limit: int option, interrupts: bool};
 
@@ -117,7 +124,33 @@ fun interrupt_self () = raise interrupt;
 fun interrupt_other t =
   Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
 
+structure Exn: EXN =
+struct
+  open Exn;
+  val capture = capture0;
+end;
+
+fun expose_interrupt_result () =
+  let
+    val orig_atts = Thread_Attributes.safe_interrupts (Thread_Attributes.get_attributes ());
+    val _ = Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
+    val test = Exn.capture Thread.Thread.testInterrupt ();
+    val _ = Thread_Attributes.set_attributes orig_atts;
+  in test end;
+
+val expose_interrupt = Exn.release o expose_interrupt_result;
+
+fun try_catch e f =
+  Thread_Attributes.uninterruptible_body (fn run =>
+    run e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn);
+
+fun try_finally e f =
+  Thread_Attributes.uninterruptible_body (fn run =>
+    Exn.release (Exn.capture (run e) () before f ()));
+
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();
 
 end;
+
+structure Exn = Isabelle_Thread.Exn;

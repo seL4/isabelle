@@ -109,8 +109,12 @@ val _ =
             else e ();
         in
           exec (fn () =>
-            (Future.interruptible_task (fn () => (build (); (0, []))) () handle exn =>
-              ((1, Runtime.exn_message_list exn) handle _ (*sic!*) => (2, ["CRASHED"])))
+            (case Exn.capture (Future.interruptible_task build) () of
+              Exn.Res () => (0, [])
+            | Exn.Exn exn =>
+                (case Exn.capture Runtime.exn_message_list exn of
+                  Exn.Res errs => (1, errs)
+                | Exn.Exn _ (*sic!*) => (2, ["CRASHED"])))
           |> let open XML.Encode in pair int (list string) end
           |> single
           |> Output.protocol_message Markup.build_session_finished)

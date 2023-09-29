@@ -99,7 +99,7 @@ fun run_compilation_text cookie ctxt comp vs_t args =
     val (program_code, value_name) = comp vs_t;
     val value_code = space_implode " "
       (value_name :: "()" :: map (enclose "(" ")") args);
-  in Exn.interruptible_capture (value ctxt cookie) (program_code, value_code) end;
+  in Exn.result (value ctxt cookie) (program_code, value_code) end;
 
 fun partiality_as_none e = SOME (Exn.release e)
   handle General.Match => NONE
@@ -390,7 +390,7 @@ fun prechecked_conv T raw_conv ctxt =
 
 fun checked_computation cTs raw_computation ctxt =
   check_computation_input ctxt cTs
-  #> Exn.interruptible_capture raw_computation
+  #> Exn.result raw_computation
   #> partiality_as_none;
 
 fun mount_computation ctxt cTs T raw_computation lift_postproc =

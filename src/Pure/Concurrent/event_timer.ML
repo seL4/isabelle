@@ -134,14 +134,14 @@ fun manager_check manager =
       manager_loop);
 
 fun shutdown () =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     if Synchronized.change_result state (fn st as State {requests, manager, ...} =>
       if is_shutdown Normal st then (false, st)
       else if is_shutdown Shutdown_Ack st orelse is_shutdown_req st then
         raise Fail "Concurrent attempt to shutdown event timer"
       else (true, make_state (requests, Shutdown_Req, manager_check manager)))
     then
-      restore_attributes (fn () =>
+      run (fn () =>
         Synchronized.guarded_access state
           (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE)) ()
       handle exn =>
@@ -149,7 +149,7 @@ fun shutdown () =
           Synchronized.change state (fn State {requests, manager, ...} =>
             make_state (requests, Normal, manager))
         else ()
-    else ()) ();
+    else ());
 
 
 (* main operations *)
@@ -170,12 +170,12 @@ fun cancel req =
     in (canceled, make_state (requests', status, manager')) end);
 
 fun future physical time =
-  Thread_Attributes.uninterruptible (fn _ => fn () =>
+  Thread_Attributes.uninterruptible_body (fn _ =>
     let
       val req: request Single_Assignment.var = Single_Assignment.var "req";
       fun abort () = ignore (cancel (Single_Assignment.await req));
       val promise: unit future = Future.promise_name "event_timer" abort;
       val _ = Single_Assignment.assign req (request physical time (Future.fulfill promise));
-    in promise end) ();
+    in promise end);
 
 end;

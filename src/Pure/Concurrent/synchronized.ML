@@ -57,9 +57,9 @@ fun assign (Var {name, state}) x =
         (case ! state of
           Immutable _ => immutable_fail name
         | Mutable _ =>
-            Thread_Attributes.uninterruptible (fn _ => fn () =>
+            Thread_Attributes.uninterruptible_body (fn _ =>
              (state := Immutable x; RunCall.clearMutableBit state;
-               Thread.ConditionVar.broadcast cond)) ())));
+               Thread.ConditionVar.broadcast cond)))));
 
 
 (* synchronized access *)
@@ -81,9 +81,9 @@ fun timed_access (Var {name, state}) time_limit f =
                     | Exn.Res false => NONE
                     | Exn.Exn exn => Exn.reraise exn)
                 | SOME (y, x') =>
-                    Thread_Attributes.uninterruptible (fn _ => fn () =>
+                    Thread_Attributes.uninterruptible_body (fn _ =>
                       (state := Mutable {lock = lock, cond = cond, content = x'};
-                        Thread.ConditionVar.broadcast cond; SOME y)) ()));
+                        Thread.ConditionVar.broadcast cond; SOME y))));
         in try_change () end));
 
 fun guarded_access var f = the (timed_access var (fn _ => NONE) f);

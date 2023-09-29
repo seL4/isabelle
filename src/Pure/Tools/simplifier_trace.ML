@@ -400,17 +400,24 @@ val _ = Theory.setup
 
 val _ =
   Protocol_Command.define "Simplifier_Trace.reply"
-    (fn [serial_string, reply] =>
-      let
-        val serial = Value.parse_int serial_string
-        val result =
-          Synchronized.change_result futures
-            (fn tab => (Inttab.lookup tab serial, Inttab.delete_safe serial tab))
-      in
-        (case result of
-          SOME promise => Future.fulfill promise reply
-        | NONE => ()) (* FIXME handle protocol failure, just like in active.ML (!?) *)
-      end handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn)
+    let
+      fun body serial_string reply =
+        let
+          val serial = Value.parse_int serial_string
+          val result =
+            Synchronized.change_result futures
+              (fn tab => (Inttab.lookup tab serial, Inttab.delete_safe serial tab))
+        in
+          (case result of
+            SOME promise => Future.fulfill promise reply
+          | NONE => ()) (* FIXME handle protocol failure, just like in active.ML (!?) *)
+        end
+    in
+      fn [serial_string, reply] =>
+        (case Exn.capture (fn () => body serial_string reply) () of
+          Exn.Res () => ()
+        | Exn.Exn exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn)
+    end;
 
 
 

@@ -262,7 +262,7 @@ fun gen_mk_tester lookup ctxt v =
       try tester v
     else
       let (* FIXME !?!? *)
-        val tester = Exn.interruptible_capture tester v
+        val tester = Exn.result tester v
       in
         (case Exn.get_res tester of
           NONE => SOME (Exn.release tester)

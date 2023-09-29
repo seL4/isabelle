@@ -154,14 +154,20 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     fun protocol_loop () =
       let
-        val _ =
+        fun body () =
           (case Byte_Message.read_message in_stream of
             NONE => raise Protocol_Command.STOP 0
           | SOME [] => Output.system_message "Isabelle process: no input"
-          | SOME (name :: args) => Protocol_Command.run (Bytes.content name) args)
-          handle exn =>
-            if Protocol_Command.is_protocol_exn exn then Exn.reraise exn
-            else (Runtime.exn_system_message exn handle crash => recover crash);
+          | SOME (name :: args) => Protocol_Command.run (Bytes.content name) args);
+        val _ =
+          (case Exn.capture body () of
+            Exn.Res () => ()
+          | Exn.Exn exn =>
+              if Protocol_Command.is_protocol_exn exn then Exn.reraise exn
+              else
+                (case Exn.capture Runtime.exn_system_message exn of
+                  Exn.Res () => ()
+                | Exn.Exn crash => recover crash));
       in protocol_loop () end;
 
     fun protocol () =
@@ -197,6 +203,7 @@ fun init_options () =
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
   Multithreading.parallel_proofs := Options.default_int "parallel_proofs";
+  Isabelle_Thread.threads_stack_limit := Options.default_real "threads_stack_limit";
   if Options.default_bool "export_standard_proofs" then Proofterm.proofs := 2 else ();
   let val proofs = Options.default_int "record_proofs"
   in if proofs < 0 then () else Proofterm.proofs := proofs end;

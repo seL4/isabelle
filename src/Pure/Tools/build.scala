@@ -856,7 +856,7 @@ Usage: isabelle build_worker [OPTIONS]
 
     val errors = new mutable.ListBuffer[String]
     for (session_name <- sessions) {
-      Exn.interruptible_capture(print(session_name)) match {
+      Exn.result(print(session_name)) match {
         case Exn.Res(_) =>
         case Exn.Exn(exn) => errors += Exn.message(exn)
       }

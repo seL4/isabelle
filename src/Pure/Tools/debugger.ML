@@ -29,10 +29,10 @@ val writeln_message = output_message Markup.writelnN;
 val warning_message = output_message Markup.warningN;
 val error_message = output_message Markup.errorN;
 
-fun error_wrapper e = e ()
-  handle exn =>
-    if Exn.is_interrupt exn then Exn.reraise exn
-    else error_message (Runtime.exn_message exn);
+fun error_wrapper e =
+  (case Exn.result e () of
+    Exn.Res res => res
+  | Exn.Exn exn => error_message (Runtime.exn_message exn));
 
 
 (* thread input *)
@@ -137,7 +137,7 @@ fun operations SML = if SML then ML_Env.SML_operations else ML_Env.Isabelle_oper
 
 fun evaluate {SML, verbose} =
   ML_Context.eval
-    {environment = environment SML, redirect = false, verbose = verbose,
+    {environment = environment SML, redirect = false, verbose = verbose, catch_all = SML,
       debug = SOME false, writeln = writeln_message, warning = warning_message}
     Position.none;
 
@@ -229,13 +229,13 @@ fun debugger_command thread_name =
 in
 
 fun debugger_loop thread_name =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       fun loop () =
         (debugger_state thread_name; if debugger_command thread_name then loop () else ());
-      val result = Exn.capture (restore_attributes with_debugging) loop;
+      val result = Exn.capture (run with_debugging) loop;
       val _ = debugger_state thread_name;
-    in Exn.release result end) ();
+    in Exn.release result end);
 
 end;
 

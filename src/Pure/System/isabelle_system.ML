@@ -40,7 +40,7 @@ fun bash_process params =
   let
     val {script, input, cwd, putenv, redirect, timeout, description} =
       Bash.dest_params params;
-    val run =
+    val server_run =
       [Bash.server_run, script, input,
         let open XML.Encode in YXML.string_of_body (option (string o absolute_path) cwd) end,
         let open XML.Encode in YXML.string_of_body o list (pair string string) end
@@ -59,11 +59,11 @@ fun bash_process params =
           with_streams (fn s => Byte_Message.write_message_string (#2 s) [Bash.server_kill, uuid])
       | kill NONE = ();
   in
-    Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+    Thread_Attributes.uninterruptible_body (fn run =>
       let
         fun err () = raise Fail "Malformed result from bash_process server";
-        fun loop maybe_uuid s =
-          (case restore_attributes Byte_Message.read_message_string (#1 s) of
+        fun loop_body s =
+          (case run Byte_Message.read_message_string (#1 s) of
             SOME (head :: args) =>
               if head = Bash.server_uuid andalso length args = 1 then
                 loop (SOME (hd args)) s
@@ -88,8 +88,13 @@ fun bash_process params =
                  end
                else err ()
           | _ => err ())
-          handle exn => (kill maybe_uuid; Exn.reraise exn);
-      in with_streams (fn s => (Byte_Message.write_message_string (#2 s) run; loop NONE s)) end) ()
+        and loop maybe_uuid s =
+          (case Exn.capture (fn () => loop_body s) () of
+            Exn.Res res => res
+          | Exn.Exn exn => (kill maybe_uuid; Exn.reraise exn));
+      in
+        with_streams (fn s => (Byte_Message.write_message_string (#2 s) server_run; loop NONE s))
+      end)
   end;
 
 val bash = Bash.script #> bash_process #> Process_Result.print #> Process_Result.rc;
@@ -138,18 +143,25 @@ fun create_tmp_path name ext =
       raise Fail ("Temporary file already exists: " ^ Path.print path);
   in path end;
 
-fun with_tmp_file name ext f =
-  let val path = create_tmp_path name ext
-  in Exn.release (Exn.capture f path before ignore (try File.rm path)) end;
+fun with_tmp_file name ext = Thread_Attributes.uninterruptible (fn run => fn f =>
+  let
+    val path = create_tmp_path name ext;
+    val result = Exn.capture (run f) path;
+    val _ = try File.rm path;
+  in Exn.release result end);
 
 
 (* tmp dirs *)
 
 fun rm_tree path = scala_function "rm_tree" [path];
 
-fun with_tmp_dir name f =
-  let val path = create_tmp_path name ""
-  in Exn.release (Exn.capture f (make_directory path) before ignore (try rm_tree path)) end;
+fun with_tmp_dir name = Thread_Attributes.uninterruptible (fn run => fn f =>
+  let
+    val path = create_tmp_path name "";
+    val _ = make_directory path;
+    val result = Exn.capture (run f) path;
+    val _ = try rm_tree path;
+  in Exn.release result end);
 
 
 (* download file *)

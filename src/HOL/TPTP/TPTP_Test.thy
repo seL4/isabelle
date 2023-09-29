@@ -56,15 +56,11 @@ ML \<open>
     let
       val _ = TPTP_Syntax.debug tracing (msg ^ " " ^ Path.print file_name)
     in
-     (f file_name; ())
+     \<^try>\<open>(f file_name; ()) catch exn =>
      (*otherwise report exceptions as warnings*)
-     handle exn =>
-       if Exn.is_interrupt exn then
-         Exn.reraise exn
-       else
-         (report ctxt (msg ^ " test: file " ^ Path.print file_name ^
-          " raised exception: " ^ Runtime.exn_message exn);
-          default_val)
+       (report ctxt (msg ^ " test: file " ^ Path.print file_name ^
+        " raised exception: " ^ Runtime.exn_message exn);
+        default_val)\<close>
     end
 
   fun timed_test ctxt f test_files =

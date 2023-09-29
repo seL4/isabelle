@@ -42,7 +42,7 @@ val _ =
 in
 
 fun function_bytes name args =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val id = new_id ();
       fun invoke () =
@@ -60,9 +60,10 @@ fun function_bytes name args =
             | NONE => SOME (Isabelle_Thread.interrupt_exn, tab)));
     in
       invoke ();
-      Exn.release (restore_attributes await_result ())
-        handle exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn)
-    end) ();
+      (case Exn.capture (fn () => Exn.release (run await_result ())) () of
+        Exn.Res res => res
+      | Exn.Exn exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn))
+    end);
 
 val function1_bytes = singleton o function_bytes;
 

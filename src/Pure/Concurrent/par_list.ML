@@ -37,7 +37,7 @@ fun managed_results {name, sequential} f xs =
 
 fun map' params f xs = Par_Exn.release_first (managed_results params f xs);
 fun map f = map' {name = "", sequential = false} f;
-fun map_independent f = map (Exn.interruptible_capture f) #> Par_Exn.release_all;
+fun map_independent f = map (Exn.result f) #> Par_Exn.release_all;
 
 fun get_some f xs =
   let

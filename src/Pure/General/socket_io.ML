@@ -88,11 +88,13 @@ fun open_streams socket_name =
   handle OS.SysErr (msg, _) => error (msg ^ ": failed to open socket " ^ socket_name);
 
 fun with_streams f =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn socket_name =>
+  Thread_Attributes.uninterruptible (fn run => fn socket_name =>
     let
       val streams = open_streams socket_name;
-      val result = Exn.capture (restore_attributes f) streams;
-    in BinIO.closeIn (#1 streams); BinIO.closeOut (#2 streams); Exn.release result end);
+      val result = Exn.capture (run f) streams;
+      val _ = BinIO.closeIn (#1 streams);
+      val _ = BinIO.closeOut (#2 streams);
+    in Exn.release result end);
 
 fun with_streams' f socket_name password =
   with_streams (fn streams =>

@@ -279,7 +279,7 @@ fun run_atp mode name
          (output, run_time, used_from, atp_problem, tstplike_proof, atp_proof,
           atp_abduce_candidates, outcome),
          (format, type_enc)) =
-      with_cleanup clean_up run () |> tap export
+      \<^try>\<open>run () finally clean_up ()\<close> |> tap export
 
     val (outcome, used_facts, preferred_methss, message) =
       (case outcome of

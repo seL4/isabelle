@@ -7,11 +7,12 @@ Runtime compilation and evaluation.
 signature ML_COMPILER =
 sig
   type flags =
-    {environment: string, redirect: bool, verbose: bool,
+    {environment: string, redirect: bool, verbose: bool, catch_all: bool,
       debug: bool option, writeln: string -> unit, warning: string -> unit}
   val debug_flags: bool option -> flags
   val flags: flags
   val verbose: bool -> flags -> flags
+  val ML_catch_all: bool Config.T
   val eval: flags -> Position.T -> ML_Lex.token list -> unit
 end;
 
@@ -21,18 +22,18 @@ struct
 (* flags *)
 
 type flags =
-  {environment: string, redirect: bool, verbose: bool,
+  {environment: string, redirect: bool, verbose: bool, catch_all: bool,
     debug: bool option, writeln: string -> unit, warning: string -> unit};
 
 fun debug_flags opt_debug : flags =
-  {environment = "", redirect = false, verbose = false,
+  {environment = "", redirect = false, verbose = false, catch_all = false,
     debug = opt_debug, writeln = writeln, warning = warning};
 
 val flags = debug_flags NONE;
 
-fun verbose b (flags: flags) =
-  {environment = #environment flags, redirect = #redirect flags, verbose = b,
-    debug = #debug flags, writeln = #writeln flags, warning = #warning flags};
+fun verbose b ({environment, redirect, verbose = _, catch_all, debug, writeln, warning}: flags) =
+  {environment = environment, redirect = redirect, verbose = b, catch_all = catch_all,
+    debug = debug, writeln = writeln, warning = warning};
 
 
 (* parse trees *)
@@ -147,6 +148,8 @@ fun report_parse_tree redirect depth name_space parse_tree =
 
 (* eval ML source tokens *)
 
+val ML_catch_all = Config.declare_bool ("ML_catch_all", \<^here>) (K false);
+
 fun eval (flags: flags) pos toks =
   let
     val opt_context = Context.get_generic_context ();
@@ -201,16 +204,29 @@ fun eval (flags: flags) pos toks =
 
     val error_buffer = Unsynchronized.ref Buffer.empty;
     fun err msg = Unsynchronized.change error_buffer (Buffer.add msg #> Buffer.add "\n");
-    fun flush_error () = #writeln flags (trim_line (Buffer.content (! error_buffer)));
-    fun raise_error msg = error (trim_line (Buffer.content (Buffer.add msg (! error_buffer))));
+
+    fun expose_error verbose =
+      let
+        val msg = Buffer.content (! error_buffer);
+        val is_err = msg <> "";
+        val _ = if is_err orelse verbose then (output_warnings (); output_writeln ()) else ();
+      in if is_err then error (trim_line msg) else () end;
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
         val pos = Exn_Properties.position_of_polyml_location loc;
-        val txt =
-          (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
-          Pretty.string_of (Pretty.from_polyml msg);
-      in if hard then err txt else warn txt end;
+        val s = Pretty.string_of (Pretty.from_polyml msg);
+        val catch_all =
+          #catch_all flags orelse
+            (case opt_context of
+              NONE => false
+            | SOME context => Config.get_generic context ML_catch_all);
+        val is_err =
+          hard orelse
+            (not catch_all andalso
+              String.isPrefix "Handler catches all exceptions" (XML.content_of (YXML.parse_body s)));
+        val txt = (if is_err then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^ s;
+      in if is_err then err txt else warn txt end;
 
 
     (* results *)
@@ -294,12 +310,8 @@ fun eval (flags: flags) pos toks =
                 STATIC_ERRORS () => ""
               | Runtime.TOPLEVEL_ERROR => ""
               | _ => "Exception- " ^ Pretty.string_of (Runtime.pretty_exn exn) ^ " raised");
-            val _ = output_warnings ();
-            val _ = output_writeln ();
-          in raise_error exn_msg end;
-  in
-    if #verbose flags then (output_warnings (); flush_error (); output_writeln ())
-    else ()
-  end;
+            val _ = err exn_msg;
+          in expose_error true end;
+  in expose_error (#verbose flags) end;
 
 end;

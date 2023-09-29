@@ -141,8 +141,7 @@ val debug = Attrib.setup_config_bool \<^binding>\<open>test_code_debug\<close> (
 fun with_debug_dir name f =
   (Path.explode "$ISABELLE_HOME_USER" + Path.basic (name ^ serial_string ()))
   |> Isabelle_System.make_directory
-  |> Exn.capture f
-  |> Exn.release;
+  |> f
 
 fun dynamic_value_strict ctxt t compiler =
   let
@@ -157,8 +156,7 @@ fun dynamic_value_strict ctxt t compiler =
         (driver ctxt ((apfst o map) (apfst Long_Name.implode #> apsnd Bytes.content) result))
       |> parse_result compiler
     fun evaluator program _ vs_ty deps =
-      Exn.interruptible_capture eval
-        (Code_Target.compilation_text ctxt target program deps true vs_ty)
+      Exn.result eval (Code_Target.compilation_text ctxt target program deps true vs_ty)
     fun postproc f = map (apsnd (Option.map (map f)))
   in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t) end
 
@@ -313,8 +311,8 @@ fun main () =
     val _ = File.write driver_path driver
     val _ =
       ML_Context.eval
-        {environment = ML_Env.SML, redirect = false, verbose = false, debug = NONE,
-          writeln = writeln, warning = warning}
+        {environment = ML_Env.SML, redirect = false, verbose = false, catch_all = true,
+          debug = NONE, writeln = writeln, warning = warning}
         Position.none
         (ML_Lex.read_text (code, Position.file (File.symbolic_path code_path)) @
          ML_Lex.read_text (driver, Position.file (File.symbolic_path driver_path)) @

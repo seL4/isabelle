@@ -11,7 +11,7 @@ sig
   val cat_error: string -> string -> 'a
 end;
 
-signature EXN =
+signature EXN0 =
 sig
   include BASIC_EXN
   val polyml_location: exn -> PolyML.location option
@@ -21,7 +21,7 @@ sig
   val is_exn: 'a result -> bool
   val get_res: 'a result -> 'a option
   val get_exn: 'a result -> exn option
-  val capture: ('a -> 'b) -> 'a -> 'b result
+  val capture0: ('a -> 'b) -> 'a -> 'b result  (*unmanaged interrupts*)
   val release: 'a result -> 'a
   val map_res: ('a -> 'b) -> 'a result -> 'b result
   val maps_res: ('a -> 'b result) -> 'a result -> 'b result
@@ -29,13 +29,19 @@ sig
   val cause: exn -> exn
   val is_interrupt: exn -> bool
   val is_interrupt_exn: 'a result -> bool
-  val interruptible_capture: ('a -> 'b) -> 'a -> 'b result
+  val result: ('a -> 'b) -> 'a -> 'b result
   val failure_rc: exn -> int
   exception EXCEPTIONS of exn list
   val trace: (exn -> string) -> (string -> unit) -> (unit -> 'a) -> 'a
 end;
 
-structure Exn: EXN =
+signature EXN =
+sig
+  include EXN0
+  val capture: ('a -> 'b) -> 'a -> 'b result  (*managed interrupts*)
+end;
+
+structure Exn: EXN0 =
 struct
 
 (* location *)
@@ -74,7 +80,7 @@ fun get_res (Res x) = SOME x
 fun get_exn (Exn exn) = SOME exn
   | get_exn _ = NONE;
 
-fun capture f x = Res (f x) handle e => Exn e;
+fun capture0 f x = Res (f x) handle e => Exn e;
 
 fun release (Res y) = y
   | release (Exn e) = reraise e;
@@ -101,7 +107,7 @@ fun is_interrupt exn =
 fun is_interrupt_exn (Exn exn) = is_interrupt exn
   | is_interrupt_exn _ = false;
 
-fun interruptible_capture f x =
+fun result f x =
   Res (f x) handle e => if is_interrupt e then reraise e else Exn e;
 
 fun failure_rc exn = if is_interrupt exn then 130 else 2;

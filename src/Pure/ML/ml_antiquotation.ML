@@ -18,7 +18,9 @@ sig
   val inline_embedded: binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
   val value_embedded: binding -> string context_parser -> theory -> theory
-  val special_form: binding -> string -> theory -> theory
+  val special_form: binding ->
+    (Proof.context -> Input.source -> string * ML_Lex.token Antiquote.antiquote list list) ->
+    theory -> theory
   val conditional: binding -> (Proof.context -> bool) -> theory -> theory
 end;
 
@@ -67,23 +69,31 @@ end;
 
 (* ML macros *)
 
-fun special_form binding operator =
+fun special_form binding parse =
   ML_Context.add_antiquotation binding true
     (fn _ => fn src => fn ctxt =>
       let
-        val s = Token.read ctxt Parse.embedded_input src;
+        val input = Token.read ctxt Parse.embedded_input src;
         val tokenize = ML_Lex.tokenize_no_range;
-        val tokenize_range = ML_Lex.tokenize_range (Input.range_of s);
+        val tokenize_range = ML_Lex.tokenize_range (Input.range_of input);
+        val eq = tokenize " = ";
 
-        val (decl, ctxt') = ML_Context.read_antiquotes s ctxt;
+        val (operator, sections) = parse ctxt input;
+        val (decls, ctxt') = ML_Context.expand_antiquotes_list sections ctxt;
         fun decl' ctxt'' =
           let
-            val (ml_env, ml_body) = decl ctxt'';
+            val (sections_env, sections_body) = split_list (decls ctxt'');
+            val sections_bind =
+              sections_body |> map_index (fn (i, body) =>
+                let
+                  val name = tokenize ("expr" ^ (if i = 0 then "" else string_of_int i));
+                  val bind = if i = 0 then tokenize "val " else tokenize "and ";
+                in (bind @ name @ eq @ body, name) end);
             val ml_body' =
-              tokenize "let val expr = (fn () => " @ ml_body @ tokenize ");" @
-              tokenize " val " @ tokenize_range "result" @
-              tokenize (" = " ^ operator ^ " expr; in result end");
-          in (ml_env, ml_body') end;
+              tokenize "let " @ maps #1 sections_bind @
+              tokenize " val " @ tokenize_range "result" @ eq @
+              tokenize operator @ maps #2 sections_bind @ tokenize " in result end";
+          in (flat sections_env, ml_body') end;
       in (decl', ctxt') end);
 
 fun conditional binding check =

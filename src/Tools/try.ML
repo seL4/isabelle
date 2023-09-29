@@ -83,17 +83,18 @@ fun print_function ({name, weight, auto_option, body}: tool) =
           persistent = true,
           strict = true,
           print_fn = fn _ => fn st =>
-            let
-              val state = Toplevel.proof_of st
-                |> Proof.map_context (Context_Position.set_visible false)
-              val auto_time_limit = Options.default_real \<^system_option>\<open>auto_time_limit\<close>
-            in
-              if auto_time_limit > 0.0 then
-                (case Timeout.apply_physical (seconds auto_time_limit) (fn () => body true state) () of
-                  (true, (_, outcome)) => List.app Output.information outcome
-                | _ => ())
-              else ()
-            end handle exn => if Exn.is_interrupt exn then Exn.reraise exn else ()}
+            \<^try>\<open>
+              let
+                val state = Toplevel.proof_of st
+                  |> Proof.map_context (Context_Position.set_visible false)
+                val auto_time_limit = Options.default_real \<^system_option>\<open>auto_time_limit\<close>
+              in
+                if auto_time_limit > 0.0 then
+                  (case Timeout.apply_physical (seconds auto_time_limit) (fn () => body true state) () of
+                    (true, (_, outcome)) => List.app Output.information outcome
+                  | _ => ())
+                else ()
+              end catch _ => ()\<close>}
       else NONE);
 
 

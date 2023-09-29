@@ -214,7 +214,7 @@ fun interruptible_task f x =
      then Thread_Attributes.private_interrupts
      else Thread_Attributes.public_interrupts)
     (fn _ => f x)
-  before Thread_Attributes.expose_interrupt ();
+  before Isabelle_Thread.expose_interrupt ();
 
 
 (* worker threads *)
@@ -234,7 +234,7 @@ fun worker_exec (task, jobs) =
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
-        val test = Exn.capture Thread_Attributes.expose_interrupt ();
+        val test = Isabelle_Thread.expose_interrupt_result ();
         val _ =
           if ok andalso not (Exn.is_interrupt_exn test) then ()
           else if null (cancel_now group) then ()
@@ -550,7 +550,7 @@ fun join x = Exn.release (join_result x);
 (* forked results: nested parallel evaluation *)
 
 fun forked_results {name, deps} es =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val (group, pri) =
         (case worker_task () of
@@ -560,9 +560,9 @@ fun forked_results {name, deps} es =
       val futures =
         forks {name = name, group = SOME group, deps = deps, pri = pri, interrupts = true} es;
     in
-      restore_attributes join_results futures
+      run join_results futures
         handle exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn)
-    end) ();
+    end);
 
 
 (* task context for running thread *)
@@ -614,10 +614,10 @@ fun value x = value_result (Exn.Res x);
 
 fun cond_forks args es =
   if enabled () then forks args es
-  else map (fn e => value_result (Exn.interruptible_capture e ())) es;
+  else map (fn e => value_result (Exn.result e ())) es;
 
 fun map_future f x =
-  if is_finished x then value_result (Exn.interruptible_capture (f o join) x)
+  if is_finished x then value_result (Exn.result (f o join) x)
   else
     let
       val task = task_of x;

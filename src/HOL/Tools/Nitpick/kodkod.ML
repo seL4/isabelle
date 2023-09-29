@@ -1006,23 +1006,25 @@ fun uncached_solve_any_problem kodkod_scala overlord deadline max_threads0 max_s
                 if overlord then ()
                 else List.app (ignore o try File.rm) [kki_path, out_path, err_path]
             in
-              let
-                val _ = File.write kki_path kki
-                val rc =
-                  Isabelle_System.bash ("cd " ^ Bash.string temp_dir ^ ";\n\
-                    \\"$KODKODI/bin/kodkodi\"" ^
-                    (" -max-msecs " ^ string_of_int timeout) ^
-                    (if solve_all then " -solve-all" else "") ^
-                    " -max-solutions " ^ string_of_int max_solutions ^
-                    (if max_threads > 0 then " -max-threads " ^ string_of_int max_threads else "") ^
-                    " < " ^ File.bash_path kki_path ^
-                    " > " ^ File.bash_path out_path ^
-                    " 2> " ^ File.bash_path err_path)
-                val out = File.read out_path
-                val err = File.read err_path
-                val _ = remove_temporary_files ()
-              in (rc, out, err) end
-              handle exn => (remove_temporary_files (); Exn.reraise exn)
+              \<^try>\<open>
+                let
+                  val _ = File.write kki_path kki
+                  val rc =
+                    Isabelle_System.bash ("cd " ^ Bash.string temp_dir ^ ";\n\
+                      \\"$KODKODI/bin/kodkodi\"" ^
+                      (" -max-msecs " ^ string_of_int timeout) ^
+                      (if solve_all then " -solve-all" else "") ^
+                      " -max-solutions " ^ string_of_int max_solutions ^
+                      (if max_threads > 0 then " -max-threads " ^ string_of_int max_threads else "") ^
+                      " < " ^ File.bash_path kki_path ^
+                      " > " ^ File.bash_path out_path ^
+                      " 2> " ^ File.bash_path err_path)
+                  val out = File.read out_path
+                  val err = File.read err_path
+                  val _ = remove_temporary_files ()
+                in (rc, out, err) end
+                finally remove_temporary_files ()
+              \<close>
             end
           else
             (timeout, (solve_all, (max_solutions, (max_threads, kki))))

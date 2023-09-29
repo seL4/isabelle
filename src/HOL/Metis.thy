@@ -10,7 +10,10 @@ theory Metis
 imports ATP
 begin
 
-ML_file \<open>~~/src/Tools/Metis/metis.ML\<close>
+context notes [[ML_catch_all]]
+begin
+  ML_file \<open>~~/src/Tools/Metis/metis.ML\<close>
+end
 
 
 subsection \<open>Literal selection and lambda-lifting helpers\<close>

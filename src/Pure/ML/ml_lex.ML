@@ -12,6 +12,7 @@ sig
     Space | Comment of Comment.kind option | Error of string | EOF
   eqtype token
   val stopper: token Scan.stopper
+  val is_ident_with: (string -> bool) -> token -> bool
   val is_regular: token -> bool
   val is_improper: token -> bool
   val is_comment: token -> bool
@@ -109,6 +110,9 @@ fun is_keyword (Token (_, (Keyword, _))) = true
 
 fun is_delimiter (Token (_, (Keyword, x))) = not (Symbol.is_ascii_identifier x)
   | is_delimiter _ = false;
+
+fun is_ident_with pred (Token (_, (Ident, x))) = pred x
+  | is_ident_with _ _ = false;
 
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false

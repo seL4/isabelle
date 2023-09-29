@@ -42,10 +42,10 @@ local
 in
 
 fun capture_exception_trace e =
-  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible_body (fn run =>
     let
       val _ = start_trace ();
-      val result = Exn.interruptible_capture (restore_attributes e) ();
+      val result = Exn.result (run e) ();
       val trace = stop_trace ();
       val trace' =
         (case result of
@@ -54,7 +54,7 @@ fun capture_exception_trace e =
             trace
             |> map_filter (fn (entry, e) => if eq_exn (exn, e) then SOME entry else NONE)
             |> rev);
-    in (trace', result) end) ();
+    in (trace', result) end);
 
 end;
 

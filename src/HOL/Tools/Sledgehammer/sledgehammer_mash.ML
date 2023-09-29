@@ -578,20 +578,17 @@ fun add_node kind name parents feats deps (accum as (access_G, (fact_xtab, feat_
   handle Symtab.DUP _ => accum (* robustness (in case the state file violates the invariant) *)
 
 fun try_graph ctxt when def f =
-  f ()
-  handle
-    Graph.CYCLES (cycle :: _) =>
-    (trace_msg ctxt (fn () => "Cycle involving " ^ commas cycle ^ " when " ^ when); def)
-  | Graph.DUP name =>
-    (trace_msg ctxt (fn () => "Duplicate fact " ^ quote name ^ " when " ^ when); def)
-  | Graph.UNDEF name =>
-    (trace_msg ctxt (fn () => "Unknown fact " ^ quote name ^ " when " ^ when); def)
-  | exn =>
-    if Exn.is_interrupt exn then
-      Exn.reraise exn
-    else
-      (trace_msg ctxt (fn () => "Internal error when " ^ when ^ ":\n" ^ Runtime.exn_message exn);
-       def)
+  \<^try>\<open>f ()
+    catch
+      Graph.CYCLES (cycle :: _) =>
+      (trace_msg ctxt (fn () => "Cycle involving " ^ commas cycle ^ " when " ^ when); def)
+    | Graph.DUP name =>
+      (trace_msg ctxt (fn () => "Duplicate fact " ^ quote name ^ " when " ^ when); def)
+    | Graph.UNDEF name =>
+      (trace_msg ctxt (fn () => "Unknown fact " ^ quote name ^ " when " ^ when); def)
+    | exn =>
+        (trace_msg ctxt (fn () => "Internal error when " ^ when ^ ":\n" ^ Runtime.exn_message exn);
+         def)\<close>
 
 fun graph_info G =
   string_of_int (length (Graph.keys G)) ^ " node(s), " ^

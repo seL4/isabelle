@@ -18,7 +18,7 @@ sig
   val safe_interrupts: attributes -> attributes
   val with_attributes: attributes -> (attributes -> 'a) -> 'a
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
-  val expose_interrupt: unit -> unit  (*exception Interrupt*)
+  val uninterruptible_body: ((('b -> 'c) -> 'b -> 'c) -> 'a) -> 'a
 end;
 
 structure Thread_Attributes: THREAD_ATTRIBUTES =
@@ -96,7 +96,7 @@ fun with_attributes new_atts e =
     if atts1 = atts2 then e atts1
     else
       let
-        val result = Exn.capture (fn () => (set_attributes atts2; e atts1)) ();
+        val result = Exn.capture0 (fn () => (set_attributes atts2; e atts1)) ();
         val _ = set_attributes atts1;
       in Exn.release result end
   end;
@@ -107,12 +107,7 @@ fun uninterruptible f x =
   with_attributes no_interrupts (fn atts =>
     f (fn g => fn y => with_attributes atts (fn _ => g y)) x);
 
-fun expose_interrupt () =
-  let
-    val orig_atts = safe_interrupts (get_attributes ());
-    val _ = set_attributes test_interrupts;
-    val test = Exn.capture Thread.Thread.testInterrupt ();
-    val _ = set_attributes orig_atts;
-  in Exn.release test end;
+fun uninterruptible_body body =
+  uninterruptible (fn run => fn () => body run) ();
 
 end;
