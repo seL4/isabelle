@@ -16,6 +16,19 @@ before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
 *** ML ***
 
+* ML antiquotation "try" provides variants of exception handling that
+avoids accidental capture of physical interrupts (which could affect ML
+semantics in unpredictable ways):
+
+  \<^try>\<open>EXPR catch HANDLER\<close>
+  \<^try>\<open>EXPR finally HANDLER\<close>
+  \<^try>\<open>EXPR\<close>
+
+See also the implementations Isabelle_Thread.try_catch / try_finally /
+try. The HANDLER always runs as uninterruptible, but the EXPR uses the
+the current thread attributes (normally interruptible). Various examples
+occur in the Isabelle sources (.ML and .thy files).
+
 * Isabelle/ML explicitly rejects 'handle' with catch-all patterns.
 INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
 as last resort declare [[ML_catch_all]] within the theory context.
