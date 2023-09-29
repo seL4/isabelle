@@ -160,14 +160,15 @@ in
 fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proofs
     exhaustive_preplay thy_index trivial pos st =
   let
-    val thy = Proof.theory_of st
-    val thy_long_name = Context.theory_long_name thy
-    val session_name = Long_Name.qualifier thy_long_name
-    val thy_name = Long_Name.base_name thy_long_name
     val triv_str = if trivial then "[T] " else ""
     val keep =
       if keep_probs orelse keep_proofs then
-        let val subdir = StringCvt.padLeft #"0" 4 (string_of_int thy_index) ^ "_" ^ thy_name in
+        let
+          val thy_long_name = Context.theory_long_name (Proof.theory_of st)
+          val session_name = Long_Name.qualifier thy_long_name
+          val thy_name = Long_Name.base_name thy_long_name
+          val subdir = StringCvt.padLeft #"0" 4 (string_of_int thy_index) ^ "_" ^ thy_name
+        in
           Path.append (Path.append output_dir (Path.basic session_name)) (Path.basic subdir)
           |> Isabelle_System.make_directory
           |> Path.implode
