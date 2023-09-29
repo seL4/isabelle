@@ -377,7 +377,7 @@ fun override_params prover type_enc timeout =
    ("slice", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
-fun run_proof_method trivial full name meth named_thms timeout pos st =
+fun run_proof_method trivial name meth named_thms timeout pos st =
   let
     fun do_method named_thms ctxt =
       let
@@ -400,9 +400,6 @@ fun run_proof_method trivial full name meth named_thms timeout pos st =
           ORELSE' SMT_Solver.smt_tac ctxt thms
         else if meth = "smt" then
           SMT_Solver.smt_tac ctxt thms
-        else if full then
-          Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
-            ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
         else if String.isPrefix "metis (" meth then
           let
             val (type_encs, lam_trans) =
@@ -477,7 +474,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
             val (log2, change_data2) =
               (case proof_method_and_used_thms of
                 SOME (proof_method, used_thms) =>
-                run_proof_method trivial false name proof_method used_thms timeout pos pre
+                run_proof_method trivial name proof_method used_thms timeout pos pre
                 |> apfst (prefix (proof_method ^ " (sledgehammer): "))
               | NONE => ("", I))
             val () = Synchronized.change data
