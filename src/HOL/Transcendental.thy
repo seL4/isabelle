@@ -1867,7 +1867,7 @@ lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
   by (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
     (auto intro: DERIV_cong [OF DERIV_exp exp_ln] isCont_ln)
 
-lemma DERIV_ln_divide: "0 < x \<Longrightarrow> DERIV ln x :> 1 / x"
+lemma DERIV_ln_divide: "0 < x \<Longrightarrow> DERIV ln x :> 1/x"
   for x :: real
   by (rule DERIV_ln[THEN DERIV_cong]) (simp_all add: divide_inverse)
 
@@ -1890,7 +1890,7 @@ proof -
     then have "0 < x" and "x < 2" by auto
     have "norm (1 - x) < 1"
       using \<open>0 < x\<close> and \<open>x < 2\<close> by auto
-    have "1 / x = 1 / (1 - (1 - x))" by auto
+    have "1/x = 1 / (1 - (1 - x))" by auto
     also have "\<dots> = (\<Sum> n. (1 - x)^n)"
       using geometric_sums[OF \<open>norm (1 - x) < 1\<close>] by (rule sums_unique)
     also have "\<dots> = suminf (?f' x)"
@@ -2218,9 +2218,8 @@ lemma ln_eq_minus_one:
   shows "x = 1"
 proof -
   let ?l = "\<lambda>y. ln y - y + 1"
-  have D: "\<And>x::real. 0 < x \<Longrightarrow> DERIV ?l x :> (1 / x - 1)"
+  have D: "\<And>x::real. 0 < x \<Longrightarrow> DERIV ?l x :> (1/x - 1)"
     by (auto intro!: derivative_eq_intros)
-
   show ?thesis
   proof (cases rule: linorder_cases)
     assume "x < 1"
@@ -2257,6 +2256,12 @@ proof -
   qed
 qed
 
+lemma ln_add_one_self_less_self:
+  fixes x :: real
+  assumes "x > 0" 
+  shows "ln (1 + x) < x"
+  by (smt (verit, best) assms ln_eq_minus_one ln_le_minus_one)
+
 lemma ln_x_over_x_tendsto_0: "((\<lambda>x::real. ln x / x) \<longlongrightarrow> 0) at_top"
 proof (rule lhospital_at_top_at_top[where f' = inverse and g' = "\<lambda>_. 1"])
   from eventually_gt_at_top[of "0::real"]
@@ -2264,6 +2269,16 @@ proof (rule lhospital_at_top_at_top[where f' = inverse and g' = "\<lambda>_. 1"]
     by eventually_elim (auto intro!: derivative_eq_intros simp: field_simps)
 qed (use tendsto_inverse_0 in
       \<open>auto simp: filterlim_ident dest!: tendsto_mono[OF at_top_le_at_infinity]\<close>)
+
+corollary exp_1_gt_powr:
+  assumes "x > (0::real)"
+  shows   "exp 1 > (1 + 1/x) powr x" 
+proof -
+  have "ln (1 + 1/x) < 1/x"
+    using ln_add_one_self_less_self assms by simp
+  thus "exp 1 > (1 + 1/x) powr x" using assms
+    by (simp add: field_simps powr_def)
+qed
 
 lemma exp_ge_one_plus_x_over_n_power_n:
   assumes "x \<ge> - real n" "n > 0"
@@ -2805,7 +2820,7 @@ lemma powr_numeral [simp]: "0 \<le> x \<Longrightarrow> x powr (numeral n :: rea
 
 lemma powr_int:
   assumes "x > 0"
-  shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1 / x ^ nat (-i))"
+  shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1/x ^ nat (-i))"
   by (simp add: assms inverse_eq_divide powr_real_of_int)
 
 lemma power_of_nat_log_ge: "b > 1 \<Longrightarrow> b ^ nat \<lceil>log b x\<rceil> \<ge> x"
@@ -2836,11 +2851,11 @@ lemma powr_one: "0 \<le> x \<Longrightarrow> x powr 1 = x"
   for x :: real
   using powr_realpow [of x 1] by simp
 
-lemma powr_neg_one: "0 < x \<Longrightarrow> x powr - 1 = 1 / x"
+lemma powr_neg_one: "0 < x \<Longrightarrow> x powr - 1 = 1/x"
   for x :: real
   using powr_int [of x "- 1"] by simp
 
-lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr - numeral n = 1 / x ^ numeral n"
+lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr - numeral n = 1/x ^ numeral n"
   for x :: real
   using powr_int [of x "- numeral n"] by simp
 
@@ -6184,7 +6199,7 @@ lemma arctan_monotone': "x \<le> y \<Longrightarrow> arctan x \<le> arctan y"
 
 lemma arctan_inverse:
   assumes "x \<noteq> 0"
-  shows "arctan (1 / x) = sgn x * pi/2 - arctan x"
+  shows "arctan (1/x) = sgn x * pi/2 - arctan x"
 proof (rule arctan_unique)
   have \<section>: "x > 0 \<Longrightarrow> arctan x < pi"
     using arctan_bounded [of x] by linarith 
@@ -6193,7 +6208,7 @@ proof (rule arctan_unique)
   show "sgn x * pi/2 - arctan x < pi/2"
     using arctan_bounded [of "- x"] assms
     by (auto simp: algebra_simps sgn_real_def arctan_minus)
-  show "tan (sgn x * pi/2 - arctan x) = 1 / x"
+  show "tan (sgn x * pi/2 - arctan x) = 1/x"
     unfolding tan_inverse [of "arctan x", unfolded tan_arctan] sgn_real_def
     by (simp add: tan_def cos_arctan sin_arctan sin_diff cos_diff)
 qed
