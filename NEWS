@@ -34,6 +34,15 @@ INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally',
 as last resort declare [[ML_catch_all]] within the theory context.
 
 
+*** HOL ***
+
+* Mirabelle:
+  - Removed proof reconstruction from "sledgehammer" action; the related option
+  "proof_method" was removed. Proof reconstruction is supported directly
+  by Sledgehammer and should be used instead. For more information, see
+  Sledgehammer's documentation relating to "preplay_timeout". INCOMPATIBILITY.
+
+
 
 New in Isabelle2023 (September 2023)
 ------------------------------------
