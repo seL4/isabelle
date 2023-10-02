@@ -160,12 +160,10 @@ fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
     if time = Time.zeroTime then "" else string_of_ext_time (true, time) ^ ", timed out"
   | string_of_play_outcome Play_Failed = "failed"
 
-fun play_outcome_ord (Played time1, Played time2) =
-    int_ord (apply2 Time.toMilliseconds (time1, time2))
+fun play_outcome_ord (Played time1, Played time2) = Time.compare (time1, time2)
   | play_outcome_ord (Played _, _) = LESS
   | play_outcome_ord (_, Played _) = GREATER
-  | play_outcome_ord (Play_Timed_Out time1, Play_Timed_Out time2) =
-    int_ord (apply2 Time.toMilliseconds (time1, time2))
+  | play_outcome_ord (Play_Timed_Out time1, Play_Timed_Out time2) = Time.compare (time1, time2)
   | play_outcome_ord (Play_Timed_Out _, _) = LESS
   | play_outcome_ord (_, Play_Timed_Out _) = GREATER
   | play_outcome_ord (Play_Failed, Play_Failed) = EQUAL
