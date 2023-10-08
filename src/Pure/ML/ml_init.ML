@@ -8,7 +8,7 @@ val seconds = Time.fromReal;
 
 val _ =
   List.app ML_Name_Space.forget_val
-    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat"];
+    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat", "Interrupt"];
 
 val ord = SML90.ord;
 val chr = SML90.chr;
@@ -18,8 +18,6 @@ val implode = String.concat;
 val pointer_eq = PolyML.pointerEq;
 
 val error_depth = PolyML.error_depth;
-
-datatype illegal = Interrupt;
 
 structure Basic_Exn: BASIC_EXN = Exn;
 open Basic_Exn;

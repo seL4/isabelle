@@ -27,7 +27,7 @@ sig
   val interrupt_other: T -> unit
   structure Exn: EXN
   val expose_interrupt_result: unit -> unit Exn.result
-  val expose_interrupt: unit -> unit  (*exception Interrupt*)
+  val expose_interrupt: unit -> unit  (*exception Exn.is_interrupt*)
   val try_catch: (unit -> 'a) -> (exn -> 'a) -> 'a
   val try_finally: (unit -> 'a) -> (unit -> unit) -> 'a
   val try: (unit -> 'a) -> 'a option

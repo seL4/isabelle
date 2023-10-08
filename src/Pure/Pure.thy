@@ -1559,5 +1559,6 @@ qed
 declare [[ML_write_global = false]]
 
 ML_command \<open>\<^assert> (not (can ML_command \<open>() handle _ => ()\<close>))\<close>
+ML_command \<open>\<^assert> (not (can ML_command \<open>() handle Interrupt => ()\<close>))\<close>
 
 end
