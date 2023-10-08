@@ -1106,8 +1106,9 @@ text \<open>
   These exceptions indicate a genuine breakdown of the program, so the main
   purpose is to determine quickly what has happened where. Traditionally, the
   (short) exception message would include the name of an ML function, although
-  this is no longer necessary, because the ML runtime system attaches detailed
-  source position stemming from the corresponding \<^ML_text>\<open>raise\<close> keyword.
+  this is not strictly necessary, because the ML runtime system attaches
+  detailed source position stemming from the corresponding \<^ML_text>\<open>raise\<close>
+  keyword.
 
   \<^medskip>
   User modules can always introduce their own custom exceptions locally, e.g.\
@@ -1120,8 +1121,8 @@ text \<open>
 paragraph \<open>Interrupts.\<close>
 text \<open>
   These indicate arbitrary system events: both the ML runtime system and the
-  Isabelle/ML infrastructure signal various exceptional situations by raising
-  special exceptions user code, satisfying the predicate
+  Isabelle/ML infrastructure may signal various exceptional situations by
+  raising special exceptions user code, satisfying the predicate
   \<^ML>\<open>Exn.is_interrupt\<close>.
 
   This is the one and only way that physical events can intrude an Isabelle/ML
@@ -1159,10 +1160,6 @@ text %mlref \<open>
   @{define_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
-  \<^rail>\<open>
-    (@@{ML_antiquotation try} | @@{ML_antiquotation can}) embedded
-  \<close>
-
   \<^descr> \<^ML>\<open>try\<close>~\<open>f x\<close> makes the partiality of evaluating \<open>f x\<close> explicit via the
   option datatype. Interrupts are \<^emph>\<open>not\<close> handled here, i.e.\ this form serves
   as safe replacement for the \<^emph>\<open>unsafe\<close> version \<^ML_text>\<open>(SOME\<close>~\<open>f
@@ -1199,6 +1196,10 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "assert"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "undefined"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
+
+  \<^rail>\<open>
+    (@@{ML_antiquotation try} | @@{ML_antiquotation can}) embedded
+  \<close>
 
   \<^descr> \<open>@{try}\<close> and \<open>{can}\<close> are similar to the corresponding functions, but the
   argument is taken directly as ML expression: functional abstraction and
@@ -1238,7 +1239,7 @@ text \<open>
   instead:
 \<close>
 
-ML \<open>fun undefined _ = \<^undefined>\<close>
+ML \<open>fun undefined _ = @{undefined}\<close>
 
 text \<open>
   \<^medskip>
@@ -1249,8 +1250,9 @@ text \<open>
 ML \<open>fun undefined _ = \<^undefined>\<close>
 
 text \<open>
-  \<^medskip> Semantically, all forms are equivalent to a function definition
-  without any clauses, but that is syntactically not allowed in ML.
+  \<^medskip>
+  Semantically, all forms are equivalent to a function definition without any
+  clauses, but that is syntactically not allowed in ML.
 \<close>
 
 
