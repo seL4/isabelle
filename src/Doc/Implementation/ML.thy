@@ -1070,8 +1070,13 @@ section \<open>Exceptions \label{sec:exceptions}\<close>
 
 text \<open>
   The Standard ML semantics of strict functional evaluation together with
-  exceptions is rather well defined, but some delicate points need to be
-  observed to avoid that ML programs go wrong despite static type-checking.
+  exceptions is rather well defined, but some fine points need to be observed
+  to avoid that ML programs go wrong despite static type-checking.
+
+  Unlike official Standard ML, Isabelle/ML rejects catch-all patterns in
+  \<^ML_text>\<open>handle\<close> clauses: this improves the robustness of ML programs,
+  especially against arbitrary physical events (interrupts).
+
   Exceptions in Isabelle/ML are subsequently categorized as follows.
 \<close>
 
@@ -1100,15 +1105,15 @@ text \<open>
 paragraph \<open>Program failures.\<close>
 text \<open>
   There is a handful of standard exceptions that indicate general failure
-  situations, or failures of core operations on logical entities (types,
-  terms, theorems, theories, see \chref{ch:logic}).
+  situations (e.g.\ \<^ML>\<open>Fail\<close>), or failures of core operations on logical
+  entities (types, terms, theorems, theories, see \chref{ch:logic}).
 
   These exceptions indicate a genuine breakdown of the program, so the main
-  purpose is to determine quickly what has happened where. Traditionally, the
-  (short) exception message would include the name of an ML function, although
-  this is not strictly necessary, because the ML runtime system attaches
-  detailed source position stemming from the corresponding \<^ML_text>\<open>raise\<close>
-  keyword.
+  purpose is to determine quickly what has happened in the ML program.
+  Traditionally, the (short) exception message would include the name of an ML
+  function, although this is not strictly necessary, because the ML runtime
+  system attaches detailed source position stemming from the corresponding
+  \<^ML_text>\<open>raise\<close> keyword.
 
   \<^medskip>
   User modules can always introduce their own custom exceptions locally, e.g.\
@@ -1129,24 +1134,23 @@ text \<open>
   program. Such an interrupt can mean out-of-memory, stack overflow, timeout,
   internal signaling of threads, or a POSIX process signal. An Isabelle/ML
   program that intercepts interrupts becomes dependent on physical effects of
-  the environment. Even worse, exception handling patterns that are too
-  general by accident, e.g.\ by misspelled exception constructors, will cover
-  interrupts unintentionally and thus render the program semantics
-  ill-defined.
+  the environment (e.g.\ via \<^ML>\<open>Exn.capture\<close> without subsequent
+  \<^ML>\<open>Exn.release\<close>).
 
-  Note that the Interrupt exception dates back to the original SML90 language
-  definition. It was excluded from the SML97 version to avoid its malign
-  impact on ML program semantics, but without providing a viable alternative.
-  Isabelle/ML recovers physical interruptibility (which is an indispensable
-  tool to implement managed evaluation of command transactions), but requires
-  user code to be strictly transparent wrt.\ interrupts.
+  Note that the original SML90 language had an \<^verbatim>\<open>Interrupt\<close> exception, but
+  that was excluded from SML97 to simplify ML the mathematical semantics.
+  Isabelle/ML does support physical interrupts thanks to special features of
+  the underlying Poly/ML compiler and runtime system. This works robustly,
+  because the old \<^ML_text>\<open>Interrupt\<close> constructor has been removed from the
+  ML environment, and catch-all patterns \<^ML_text>\<open>handle\<close> are rejected.
+  Thus user code becomes strictly transparent wrt.\ interrupts: physical
+  events are exposed to the toplevel, and the mathematical meaning of the
+  program becomes a partial function that is otherwise unchanged.
 
-  \begin{warn}
-  Isabelle/ML user code needs to terminate promptly on interruption, without
-  guessing at its meaning to the system infrastructure. Temporary handling of
-  interrupts for cleanup of global resources etc.\ needs to be followed
-  immediately by re-raising of the original exception.
-  \end{warn}
+  The Isabelle/ML antiquotation @{ML_antiquotation try}, with its syntactic
+  variants for \<^ML_text>\<open>catch\<close> or \<^ML_text>\<open>finally\<close>, supports
+  intermediate handling of interrupts and subsequent cleanup-operations,
+  without swallowing such physical event.
 \<close>
 
 text %mlref \<open>
@@ -1160,11 +1164,11 @@ text %mlref \<open>
   @{define_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
-  \<^descr> \<^ML>\<open>try\<close>~\<open>f x\<close> makes the partiality of evaluating \<open>f x\<close> explicit via the
-  option datatype. Interrupts are \<^emph>\<open>not\<close> handled here, i.e.\ this form serves
-  as safe replacement for the \<^emph>\<open>unsafe\<close> version \<^ML_text>\<open>(SOME\<close>~\<open>f
+  \<^descr> \<^ML>\<open>try\<close>~\<open>f x\<close> makes the partiality of evaluating \<open>f x\<close> explicit via
+  the option datatype. Interrupts are \<^emph>\<open>not\<close> handled here, i.e.\ this form
+  serves as safe replacement for the \<^emph>\<open>fragile\<close> version \<^ML_text>\<open>(SOME\<close>~\<open>f
   x\<close>~\<^ML_text>\<open>handle _ => NONE)\<close> that is occasionally seen in books about
-  SML97, but not in Isabelle/ML.
+  SML97.
 
   \<^descr> \<^ML>\<open>can\<close> is similar to \<^ML>\<open>try\<close> with more abstract result.
 
@@ -1172,11 +1176,13 @@ text %mlref \<open>
   raised indirectly via the \<^ML>\<open>error\<close> function (see
   \secref{sec:message-channels}).
 
-  \<^descr> \<^ML>\<open>Fail\<close>~\<open>msg\<close> represents general program failures.
+  \<^descr> \<^ML>\<open>Fail\<close>~\<open>msg\<close> represents general program failures, but not user errors.
 
-  \<^descr> \<^ML>\<open>Exn.is_interrupt\<close> identifies interrupts robustly, without mentioning
-  concrete exception constructors in user code. Handled interrupts need to be
-  re-raised promptly!
+  \<^descr> \<^ML>\<open>Exn.is_interrupt\<close> identifies interrupts, without mentioning
+  concrete exception constructors in user code. Since \<^ML_text>\<open>handle\<close> with
+  catch-all patterns is rejected, it cannot handle interrupts at all. In the
+  rare situations where this is really required, use \<^ML>\<open>Exn.capture\<close> and
+  \<^ML>\<open>Exn.release\<close> (\secref{sec:managed-eval}).
 
   \<^descr> \<^ML>\<open>Exn.reraise\<close>~\<open>exn\<close> raises exception \<open>exn\<close> while preserving its implicit
   position information (if possible, depending on the ML platform).
@@ -1201,9 +1207,41 @@ text %mlantiq \<open>
     (@@{ML_antiquotation try} | @@{ML_antiquotation can}) embedded
   \<close>
 
-  \<^descr> \<open>@{try}\<close> and \<open>{can}\<close> are similar to the corresponding functions, but the
-  argument is taken directly as ML expression: functional abstraction and
-  application is done implicitly.
+
+  \<^descr> \<open>@{try}\<close> and \<open>{can}\<close> take embedded ML source as arguments, and modify the
+  evaluation analogously to the combinators \<^ML>\<open>try\<close> and \<^ML>\<open>can\<close> above,
+  but with special treatment of the interrupt state of the underlying ML
+  thread. There are also variants to support \<^verbatim>\<open>try_catch\<close> and \<^verbatim>\<open>try_finally\<close>
+  blocks similar to Scala.
+
+  The substructure of the embedded argument supports the following syntax
+  variants:
+
+  \<^rail>\<open>
+    @{syntax_def try_catch}: @{syntax expr} @'catch' @{syntax handler};
+    @{syntax_def try_finally}: @{syntax expr} @'finally' @{syntax cleanup};
+    @{syntax_def try}: @{syntax expr};
+    @{syntax_def can}: @{syntax expr}
+  \<close>
+
+  The @{syntax handler} of \<^verbatim>\<open>try_catch\<close> follows the syntax of \<^ML_text>\<open>fn\<close>
+  patterns, so it is similar to \<^ML_text>\<open>handle\<close>: the key difference is
+  that interrupts are always passed-through via \<^ML>\<open>Exn.reraise\<close>.
+
+  The @{syntax cleanup} expression of \<^verbatim>\<open>try_finally\<close> is always invoked,
+  regardless of the overall exception result, and afterwards exceptions are
+  passed-through via \<^ML>\<open>Exn.reraise\<close>.
+
+  Both the @{syntax handler} and @{syntax cleanup} are evaluated with further
+  interrupts disabled! These expressions should terminate promptly; timeouts
+  don't work here.
+
+  \<^medskip>
+  Implementation details can be seen in \<^ML>\<open>Isabelle_Thread.try_catch\<close>,
+  \<^ML>\<open>Isabelle_Thread.try_finally\<close>, \<^ML>\<open>Isabelle_Thread.try\<close>, and
+  \<^ML>\<open>Isabelle_Thread.can\<close>, respectively. The ML antiquotations add
+  functional abstractions as required for these ``special forms'' of
+  Isabelle/ML.
 
   \<^descr> \<open>@{assert}\<close> inlines a function \<^ML_type>\<open>bool -> unit\<close> that raises
   \<^ML>\<open>Fail\<close> if the argument is \<^ML>\<open>false\<close>. Due to inlining the source
@@ -1214,16 +1252,21 @@ text %mlantiq \<open>
 \<close>
 
 text %mlex \<open>
-  We define a total version of division: any failures are swept under the
+
+  We define total versions of division: any failures are swept under the
   carpet and mapped to a default value. Thus division-by-zero becomes 0, but
-  there could be other exceptions like overflow that produce the same result
-  (for unbounded integers this does not happen).
+  there could be other exceptions like overflow that produce the same result.
+
+  For unbounded integers such side-errors do not happen, but it might still be
+  better to be explicit about exception patterns (second version below).
 \<close>
 
 ML \<open>
-  fun div_total x y = \<^try>\<open>x div y\<close> |> the_default 0;
+  fun div_total1 x y = \<^try>\<open>x div y catch _ => 0\<close>;
+  fun div_total2 x y = \<^try>\<open>x div y catch Div => 0\<close>;
 
-  \<^assert> (div_total 1 0 = 0);
+  \<^assert> (div_total1 1 0 = 0);
+  \<^assert> (div_total2 1 0 = 0);
 \<close>
 
 text \<open>
@@ -1910,7 +1953,7 @@ text \<open>
 \<close>
 
 
-section \<open>Managed evaluation\<close>
+section \<open>Managed evaluation \label{sec:managed-eval}\<close>
 
 text \<open>
   Execution of Standard ML follows the model of strict functional evaluation
