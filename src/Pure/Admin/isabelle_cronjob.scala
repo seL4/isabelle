@@ -339,14 +339,17 @@ object Isabelle_Cronjob {
             " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'"),
+          args = "-a -d '~~/src/Benchmarks'",
+          active = () => false),
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           args = "-a -o quick_and_dirty",
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty")),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty"),
+          active = () => false),
         Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"))),
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
+          active = () => false)),
       List(
         Remote_Build("macOS 13 Ventura (ARM64)", "mini3",
           history_base = "8e590adaac5e",
