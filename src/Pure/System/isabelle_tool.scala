@@ -170,6 +170,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_Easychair.isabelle_tool,
   Component_Foiltex.isabelle_tool,
   Component_Fonts.isabelle_tool,
+  Component_Hugo.isabelle_tool,
   Component_JDK.isabelle_tool,
   Component_JEdit.isabelle_tool,
   Component_Jsoup.isabelle_tool,
