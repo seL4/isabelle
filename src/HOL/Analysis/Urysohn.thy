@@ -4562,8 +4562,7 @@ next
         with that \<open>a \<in> topspace X\<close> 
         obtain U where U: "openin X U" "a \<in> U" "l \<in> M"
           and Uless: "\<forall>x\<in>U - {a}. x \<in> S \<longrightarrow> f x \<in> M \<and> d (f x) l < \<epsilon>/2"
-          unfolding limitin_metric eventually_within_imp eventually_atin
-          using half_gt_zero by blast
+          unfolding limitin_metric eventually_atin_within by (metis Diff_iff insertI1  half_gt_zero [OF \<open>\<epsilon>>0\<close>])
         show "\<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x\<in>S \<inter> U - {a}. \<forall>y\<in>S \<inter> U - {a}. d (f x) (f y) < \<epsilon>)"
         proof (intro exI strip conjI)
           fix x y
@@ -4653,7 +4652,7 @@ next
           qed
           ultimately show "\<forall>\<^sub>F x in atin_within X a S. f x \<in> M \<and> d (f x) b < \<epsilon>"
             using fim U
-            apply (simp add: eventually_atin eventually_within_imp del: divide_const_simps flip: image_subset_iff_funcset)
+            apply (simp add: eventually_atin_within del: divide_const_simps flip: image_subset_iff_funcset)
             by (smt (verit, del_insts) Diff_iff Int_iff imageI insertI1 openin_subset subsetD)
         qed
         then show ?thesis ..

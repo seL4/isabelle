@@ -9,9 +9,14 @@ definition nhdsin :: "'a topology \<Rightarrow> 'a \<Rightarrow> 'a filter"
   where "nhdsin X a =
            (if a \<in> topspace X then (INF S\<in>{S. openin X S \<and> a \<in> S}. principal S) else bot)"
 
-definition atin :: "'a topology \<Rightarrow> 'a \<Rightarrow> 'a filter"
-  where "atin X a \<equiv> inf (nhdsin X a) (principal (topspace X - {a}))"
+definition atin_within :: "['a topology, 'a, 'a set] \<Rightarrow> 'a filter"
+  where "atin_within X a S = inf (nhdsin X a) (principal (topspace X \<inter> S - {a}))"
 
+abbreviation atin :: "'a topology \<Rightarrow> 'a \<Rightarrow> 'a filter"
+  where "atin X a \<equiv> atin_within X a UNIV"
+
+lemma atin_def: "atin X a = inf (nhdsin X a) (principal (topspace X - {a}))"
+  by (simp add: atin_within_def)
 
 lemma nhdsin_degenerate [simp]: "a \<notin> topspace X \<Longrightarrow> nhdsin X a = bot"
   and atin_degenerate [simp]: "a \<notin> topspace X \<Longrightarrow> atin X a = bot"
@@ -28,18 +33,23 @@ proof (cases "a \<in> topspace X")
   finally show ?thesis using True by simp
 qed auto
 
+lemma eventually_atin_within:
+  "eventually P (atin_within X a S) \<longleftrightarrow> a \<notin> topspace X \<or> (\<exists>T. openin X T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<in> S \<and> x \<noteq> a \<longrightarrow> P x))"
+proof (cases "a \<in> topspace X")
+  case True
+  hence "eventually P (atin_within X a S) \<longleftrightarrow> 
+         (\<exists>T. openin X T \<and> a \<in> T \<and>
+          (\<forall>x\<in>T. x \<in> topspace X \<and> x \<in> S \<and> x \<noteq> a \<longrightarrow> P x))"
+    by (simp add: atin_within_def eventually_inf_principal eventually_nhdsin)
+  also have "\<dots> \<longleftrightarrow> (\<exists>T. openin X T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<in> S \<and> x \<noteq> a \<longrightarrow> P x))"
+    using openin_subset by (intro ex_cong) auto
+  finally show ?thesis by (simp add: True)
+qed (simp add: atin_within_def)
+
 lemma eventually_atin:
   "eventually P (atin X a) \<longleftrightarrow> a \<notin> topspace X \<or>
              (\<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x \<in> U - {a}. P x))"
-proof (cases "a \<in> topspace X")
-  case True
-  hence "eventually P (atin X a) \<longleftrightarrow> (\<exists>S. openin X S \<and>
-           a \<in> S \<and> (\<forall>x\<in>S. x \<in> topspace X \<and> x \<noteq> a \<longrightarrow> P x))"
-    by (simp add: atin_def eventually_inf_principal eventually_nhdsin)
-  also have "\<dots> \<longleftrightarrow> (\<exists>U. openin X U \<and> a \<in> U \<and> (\<forall>x \<in> U - {a}. P x))"
-    using openin_subset by (intro ex_cong) auto
-  finally show ?thesis by (simp add: True)
-qed auto
+  by (auto simp add: eventually_atin_within)
 
 lemma nontrivial_limit_atin:
    "atin X a \<noteq> bot \<longleftrightarrow> a \<in> X derived_set_of topspace X"
@@ -64,11 +74,49 @@ next
   qed
 qed
 
+lemma eventually_atin_subtopology:
+  assumes "a \<in> topspace X"
+  shows "eventually P (atin (subtopology X S) a) \<longleftrightarrow> 
+    (a \<in> S \<longrightarrow> (\<exists>U. openin (subtopology X S) U \<and> a \<in> U \<and> (\<forall>x\<in>U - {a}. P x)))"
+  using assms by (simp add: eventually_atin)
+
+lemma eventually_within_imp:
+   "eventually P (atin_within X a S) \<longleftrightarrow> eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) (atin X a)"
+  by (auto simp add: eventually_atin_within eventually_atin)
+
+lemma atin_subtopology_within:
+  assumes "a \<in> S"
+  shows "atin (subtopology X S) a = atin_within X a S"
+proof -
+  have "eventually P (atin (subtopology X S) a) \<longleftrightarrow> eventually P (atin_within X a S)" for P
+    unfolding eventually_atin eventually_atin_within openin_subtopology
+    using assms by auto
+  then show ?thesis
+    by (meson le_filter_def order.eq_iff)
+qed
+
+lemma atin_subtopology_within_if:
+  shows "atin (subtopology X S) a = (if a \<in> S then atin_within X a S else bot)"
+  by (simp add: atin_subtopology_within)
+
+lemma trivial_limit_atpointof_within:
+   "trivial_limit(atin_within X a S) \<longleftrightarrow>
+        (a \<notin> X derived_set_of S)"
+  by (auto simp: trivial_limit_def eventually_atin_within in_derived_set_of)
+
+lemma derived_set_of_trivial_limit:
+   "a \<in> X derived_set_of S \<longleftrightarrow> \<not> trivial_limit(atin_within X a S)"
+  by (simp add: trivial_limit_atpointof_within)
+
 
 subsection\<open>Limits in a topological space\<close>
 
 definition limitin :: "'a topology \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" where
   "limitin X f l F \<equiv> l \<in> topspace X \<and> (\<forall>U. openin X U \<and> l \<in> U \<longrightarrow> eventually (\<lambda>x. f x \<in> U) F)"
+
+lemma limit_within_subset:
+   "\<lbrakk>limitin X f l (atin_within Y a S); T \<subseteq> S\<rbrakk> \<Longrightarrow> limitin X f l (atin_within Y a T)"
+  by (smt (verit) eventually_atin_within limitin_def subset_eq)
 
 lemma limitinD: "\<lbrakk>limitin X f l F; openin X U; l \<in> U\<rbrakk> \<Longrightarrow> eventually (\<lambda>x. f x \<in> U) F"
   by (simp add: limitin_def)
@@ -217,10 +265,7 @@ next
   assume R: ?rhs
   then show ?lhs
     apply (auto simp: continuous_map_def topcontinuous_at_def)
-    apply (subst openin_subopen, safe)
-    apply (drule bspec, assumption)
-    using openin_subset[of X] apply (auto simp: subset_iff dest!: spec)
-    done
+    by (smt (verit, del_insts) mem_Collect_eq openin_subopen openin_subset subset_eq)
 qed
 
 lemma continuous_map_atin:
@@ -230,6 +275,11 @@ lemma continuous_map_atin:
 lemma limitin_continuous_map:
    "\<lbrakk>continuous_map X Y f; a \<in> topspace X; f a = b\<rbrakk> \<Longrightarrow> limitin Y f b (atin X a)"
   by (auto simp: continuous_map_atin)
+
+lemma limit_continuous_map_within:
+   "\<lbrakk>continuous_map (subtopology X S) Y f; a \<in> S; a \<in> topspace X\<rbrakk>
+    \<Longrightarrow> limitin Y f (f a) (atin_within X a S)"
+  by (metis Int_iff atin_subtopology_within continuous_map_atin topspace_subtopology)
 
 
 subsection\<open>Combining theorems for continuous functions into the reals\<close>
