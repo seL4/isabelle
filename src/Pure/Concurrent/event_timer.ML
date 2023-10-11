@@ -139,14 +139,17 @@ fun shutdown () =
         raise Fail "Concurrent attempt to shutdown event timer"
       else (true, make_state (requests, Shutdown_Req, manager_check manager)))
     then
-      run (fn () =>
-        Synchronized.guarded_access state
-          (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE)) ()
-      handle exn =>
-        if Exn.is_interrupt exn then
+      let
+        fun main () =
+          Synchronized.guarded_access state
+            (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE);
+        val result = Exn.capture (run main) ();
+      in
+        if Exn.is_interrupt_exn result then
           Synchronized.change state (fn State {requests, manager, ...} =>
             make_state (requests, Normal, manager))
-        else ()
+        else Exn.release result
+      end
     else ());
 
 
