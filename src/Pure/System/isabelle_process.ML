@@ -175,7 +175,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
       ml_statistics ();
       protocol_loop ());
 
-    val result = Exn.capture (message_context protocol) ();
+    val result = Exn.capture_body (message_context protocol);
 
 
     (* shutdown *)
