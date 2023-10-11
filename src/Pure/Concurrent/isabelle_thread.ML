@@ -85,8 +85,7 @@ end;
 val threads_stack_limit = Unsynchronized.ref 0.25;
 
 fun default_stack_limit () =
-  let
-    val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0);
+  let val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0)
   in if limit <= 0 then NONE else SOME limit end;
 
 abstype params = Params of {name: string, stack_limit: int option, interrupts: bool}
