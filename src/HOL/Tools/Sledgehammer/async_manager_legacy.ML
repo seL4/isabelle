@@ -132,7 +132,7 @@ fun register tool birth_time death_time desc thread =
   check_thread_manager ())
 
 fun thread tool birth_time death_time desc f =
-  (Isabelle_Thread.fork (Isabelle_Thread.params "async_manager" |> Isabelle_Thread.interrupts)
+  (Isabelle_Thread.fork (Isabelle_Thread.params "async_worker" |> Isabelle_Thread.interrupts)
        (fn () =>
            let
              val self = Isabelle_Thread.self ()
