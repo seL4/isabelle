@@ -498,12 +498,12 @@ fun fork e =
 fun get_result x =
   (case peek x of
     NONE => Exn.Exn (Fail "Unfinished future")
-  | SOME res =>
-      if Exn.is_interrupt_exn res then
+  | SOME result =>
+      if Exn.is_interrupt_exn result then
         (case Task_Queue.group_status (Task_Queue.group_of_task (task_of x)) of
-          [] => res
+          [] => result
         | exns => Exn.Exn (Par_Exn.make exns))
-      else res);
+      else result);
 
 local
 
