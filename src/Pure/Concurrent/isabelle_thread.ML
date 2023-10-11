@@ -15,8 +15,11 @@ sig
   val self: unit -> T
   val is_self: T -> bool
   val threads_stack_limit: real Unsynchronized.ref
-  val stack_limit: unit -> int option
-  type params = {name: string, stack_limit: int option, interrupts: bool}
+  val default_stack_limit: unit -> int option
+  type params
+  val params: string -> params
+  val stack_limit: int -> params -> params
+  val interrupts: params -> params
   val attributes: params -> Thread.Thread.threadAttribute list
   val fork: params -> (unit -> unit) -> T
   val is_active: T -> bool
@@ -81,24 +84,41 @@ end;
 
 val threads_stack_limit = Unsynchronized.ref 0.25;
 
-fun stack_limit () =
+fun default_stack_limit () =
   let
     val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0);
   in if limit <= 0 then NONE else SOME limit end;
 
-type params = {name: string, stack_limit: int option, interrupts: bool};
+abstype params = Params of {name: string, stack_limit: int option, interrupts: bool}
+with
 
-fun attributes ({stack_limit, interrupts, ...}: params) =
-  Thread.Thread.MaximumMLStack stack_limit ::
+fun make_params (name, stack_limit, interrupts) =
+  Params {name = name, stack_limit = stack_limit, interrupts = interrupts};
+
+fun params name = make_params (name, default_stack_limit (), false);
+fun stack_limit limit (Params {name, interrupts, ...}) = make_params (name, SOME limit, interrupts);
+fun interrupts (Params {name, stack_limit, ...}) = make_params (name, stack_limit, true);
+
+fun params_name (Params {name, ...}) = name;
+fun params_stack_limit (Params {stack_limit, ...}) = stack_limit;
+fun params_interrupts (Params {interrupts, ...}) = interrupts;
+
+end;
+
+fun attributes params =
+  Thread.Thread.MaximumMLStack (params_stack_limit params) ::
   Thread_Attributes.convert_attributes
-    (if interrupts then Thread_Attributes.public_interrupts else Thread_Attributes.no_interrupts);
+    (if params_interrupts params
+     then Thread_Attributes.public_interrupts
+     else Thread_Attributes.no_interrupts);
 
-fun fork (params: params) body =
+fun fork params body =
   let
     val self = Single_Assignment.var "self";
     fun main () =
       let
-        val t = init_self {thread = Thread.Thread.self (), name = #name params, id = make_id ()};
+        val name = params_name params;
+        val t = init_self {thread = Thread.Thread.self (), name = name, id = make_id ()};
         val _ = Single_Assignment.assign self t;
       in body () end;
     val _ = Thread.Thread.fork (main, attributes params);

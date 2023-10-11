@@ -129,9 +129,7 @@ fun manager_loop () =
 
 fun manager_check manager =
   if is_some manager andalso Isabelle_Thread.is_active (the manager) then manager
-  else
-    SOME (Isabelle_Thread.fork {name = "event_timer", stack_limit = NONE, interrupts = false}
-      manager_loop);
+  else SOME (Isabelle_Thread.fork (Isabelle_Thread.params "event_timer") manager_loop);
 
 fun shutdown () =
   Thread_Attributes.uninterruptible_body (fn run =>

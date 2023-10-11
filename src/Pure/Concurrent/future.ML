@@ -269,10 +269,7 @@ fun worker_loop name =
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   let
-    val worker =
-      Isabelle_Thread.fork
-        {name = "worker", stack_limit = Isabelle_Thread.stack_limit (), interrupts = false}
-        (fn () => worker_loop name);
+    val worker = Isabelle_Thread.fork (Isabelle_Thread.params "worker") (fn () => worker_loop name);
   in Unsynchronized.change workers (cons (worker, Unsynchronized.ref Working)) end
   handle Fail msg => Multithreading.tracing 0 (fn () => "SCHEDULER: " ^ msg);
 
@@ -380,10 +377,7 @@ fun scheduler_active () = (*requires SYNCHRONIZED*)
 fun scheduler_check () = (*requires SYNCHRONIZED*)
  (do_shutdown := false;
   if scheduler_active () then ()
-  else
-    scheduler :=
-      SOME (Isabelle_Thread.fork {name = "scheduler", stack_limit = NONE, interrupts = false}
-        scheduler_loop));
+  else scheduler := SOME (Isabelle_Thread.fork (Isabelle_Thread.params "scheduler") scheduler_loop));
 
 
 
