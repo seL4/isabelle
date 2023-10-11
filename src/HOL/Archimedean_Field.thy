@@ -719,6 +719,57 @@ lemma frac_1_eq: "frac (x+1) = frac x"
   by (simp add: frac_def)
 
 
+subsection \<open>Fractional part arithmetic\<close>
+text \<open>Many thanks to Stepan Holub\<close>
+
+lemma frac_non_zero: "frac x \<noteq> 0 \<Longrightarrow> frac (-x) =  1 - frac x"
+  using frac_eq_0_iff frac_neg by metis
+
+lemma frac_add_simps [simp]: 
+   "frac (frac a + b) = frac (a + b)"
+   "frac (a + frac b) = frac (a + b)"      
+  by (simp_all add: frac_add)
+
+lemma frac_neg_frac:  "frac (- frac x) = frac (-x)"
+  unfolding frac_neg frac_frac by force
+
+lemma frac_diff_simp: "frac (y - frac x) = frac (y - x)"
+    unfolding diff_conv_add_uminus frac_add frac_neg_frac..
+
+lemma frac_diff: "frac (a - b) = frac (frac a + (- frac b))" 
+  unfolding frac_add_simps(1) 
+  unfolding ab_group_add_class.ab_diff_conv_add_uminus[symmetric] frac_diff_simp..
+
+lemma frac_diff_pos: "frac x \<le> frac y \<Longrightarrow> frac (y - x) = frac y - frac x"
+  unfolding diff_conv_add_uminus frac_add frac_neg
+  using frac_lt_1 by force 
+   
+lemma frac_diff_neg: assumes "frac y < frac x" 
+  shows "frac (y - x) = frac y + 1 - frac x"
+proof-
+  have "x \<notin> \<int>"
+    unfolding frac_gt_0_iff[symmetric]
+    using assms frac_ge_0[of y] by order
+  have "frac y + (1 + - frac x) < 1"
+    using frac_lt_1[of x] assms by fastforce
+  show ?thesis
+    unfolding diff_conv_add_uminus frac_add frac_neg 
+    if_not_P[OF \<open>x \<notin> \<int>\<close>] if_P[OF \<open>frac y + (1 + - frac x) < 1\<close>]
+    by simp
+qed
+
+lemma frac_diff_eq: assumes "frac y = frac x" 
+  shows "frac (y - x) = 0"
+  by (simp add: assms frac_diff_pos)
+
+lemma frac_diff_zero: assumes "frac (x - y) = 0"
+  shows "frac x = frac y"
+  using frac_add_simps(1)[of "x - y" y, symmetric]
+  unfolding assms add.group_left_neutral diff_add_cancel.
+
+lemma frac_neg_eq_iff: "frac (-x) = frac (-y) \<longleftrightarrow> frac x = frac y"
+  using add.inverse_inverse frac_neg_frac by metis
+
 subsection \<open>Rounding to the nearest integer\<close>
 
 definition round :: "'a::floor_ceiling \<Rightarrow> int"

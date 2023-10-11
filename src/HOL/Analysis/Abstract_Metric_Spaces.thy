@@ -2562,12 +2562,12 @@ lemma derived_set_of_infinite_2:
 lemma derived_set_of_infinite_mball:
   "mtopology derived_set_of S = {x \<in> M. \<forall>e>0. infinite(S \<inter> mball x e)}"
   unfolding derived_set_of_infinite_openin_metric
-  by (meson centre_in_mball_iff openin_mball derived_set_of_infinite_1 derived_set_of_infinite_2)
+  by (metis (no_types, opaque_lifting) centre_in_mball_iff openin_mball derived_set_of_infinite_1 derived_set_of_infinite_2)
 
 lemma derived_set_of_infinite_mcball:
   "mtopology derived_set_of S = {x \<in> M. \<forall>e>0. infinite(S \<inter> mcball x e)}"
   unfolding derived_set_of_infinite_openin_metric
-  by (meson centre_in_mball_iff openin_mball derived_set_of_infinite_1 derived_set_of_infinite_2)
+  by (metis (no_types, opaque_lifting) centre_in_mball_iff openin_mball derived_set_of_infinite_1 derived_set_of_infinite_2)
 
 end
 
@@ -2671,7 +2671,8 @@ lemma continuous_map_uniformly_Cauchy_limit:
 proof -
   have "\<And>x. x \<in> topspace X \<Longrightarrow> \<exists>l. limitin mtopology (\<lambda>n. f n x) l sequentially"
     using \<open>mcomplete\<close> [unfolded mcomplete, rule_format] assms
-    by (smt (verit) contf continuous_map_def eventually_mono topspace_mtopology Pi_iff)
+    unfolding continuous_map_def Pi_iff topspace_mtopology
+    by (smt (verit, del_insts) eventually_mono)
   then obtain g where g: "\<And>x. x \<in> topspace X \<Longrightarrow> limitin mtopology (\<lambda>n. f n x) (g x) sequentially"
     by metis
   show thesis
@@ -3992,7 +3993,8 @@ lemma uniformly_continuous_map_id [simp]:
 lemma uniformly_continuous_map_compose:
   assumes f: "uniformly_continuous_map m1 m2 f" and g: "uniformly_continuous_map m2 m3 g"
   shows "uniformly_continuous_map m1 m3 (g \<circ> f)"
-  by (smt (verit, ccfv_threshold) comp_apply f g Pi_iff uniformly_continuous_map_def)
+  using f g unfolding uniformly_continuous_map_def comp_apply Pi_iff
+  by metis
 
 lemma uniformly_continuous_map_real_const [simp]:
    "uniformly_continuous_map m euclidean_metric (\<lambda>x. c)"
@@ -5108,7 +5110,6 @@ proof -
     using  metrizable_topology_DD [of X I m] assms unfolding metrizable_space_def
     by (metis (full_types) completely_metrizable_space_def)
 qed
-
 
 proposition metrizable_space_product_topology:
   "metrizable_space (product_topology X I) \<longleftrightarrow>
