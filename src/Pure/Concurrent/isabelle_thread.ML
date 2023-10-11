@@ -153,8 +153,10 @@ end;
 fun expose_interrupt_result () =
   let
     val orig_atts = Thread_Attributes.safe_interrupts (Thread_Attributes.get_attributes ());
-    val _ = Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
-    val test = Exn.capture Thread.Thread.testInterrupt ();
+    fun main () =
+      (Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
+       Thread.Thread.testInterrupt ());
+    val test = Exn.capture main ();
     val _ = Thread_Attributes.set_attributes orig_atts;
   in test end;
 
