@@ -441,9 +441,9 @@ fun future_job group atts (e: unit -> 'a) =
       let
         val res =
           if ok then
-            Exn.capture (fn () =>
+            Exn.capture_body (fn () =>
               Thread_Attributes.with_attributes atts (fn _ =>
-                (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ())) ()
+                (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ()))
           else Isabelle_Thread.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
   in (result, job) end;

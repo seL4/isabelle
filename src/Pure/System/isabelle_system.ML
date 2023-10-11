@@ -89,7 +89,7 @@ fun bash_process params =
                else err ()
           | _ => err ())
         and loop maybe_uuid s =
-          (case Exn.capture (fn () => loop_body s) () of
+          (case Exn.capture_body (fn () => loop_body s) of
             Exn.Res res => res
           | Exn.Exn exn => (kill maybe_uuid; Exn.reraise exn));
       in

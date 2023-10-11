@@ -331,7 +331,7 @@ fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
 in
 
 fun apply_capture int name markers trans state =
-  (case Exn.capture (fn () => apply_body int trans state |> apply_markers name markers) () of
+  (case Exn.capture_body (fn () => apply_body int trans state |> apply_markers name markers) of
     Exn.Res res => res
   | Exn.Exn exn => (state, SOME exn));
 

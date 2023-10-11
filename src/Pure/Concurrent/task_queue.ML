@@ -159,7 +159,7 @@ fun update_timing update (Task {timing, ...}) e =
   Thread_Attributes.uninterruptible_body (fn run =>
     let
       val start = Time.now ();
-      val result = Exn.capture (run e) ();
+      val result = Exn.capture_body (run e);
       val t = Time.now () - start;
       val _ = (case timing of NONE => () | SOME var => Synchronized.change var (update t));
     in Exn.release result end);

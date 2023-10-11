@@ -118,7 +118,7 @@ fun manager_loop () =
       (case next_event (Time.now (), ML_Heap.gc_now ()) requests of
         SOME (event, requests') =>
           let
-            val _ = Exn.capture event ();  (*sic!*)
+            val _ = Exn.capture_body event;  (*sic!*)
             val state' = make_state (requests', status, manager);
           in SOME (true, state') end
       | NONE =>
@@ -143,7 +143,7 @@ fun shutdown () =
         fun main () =
           Synchronized.guarded_access state
             (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE);
-        val result = Exn.capture (run main) ();
+        val result = Exn.capture_body (run main);
       in
         if Exn.is_interrupt_exn result then
           Synchronized.change state (fn State {requests, manager, ...} =>

@@ -148,6 +148,7 @@ structure Exn: EXN =
 struct
   open Exn;
   val capture = capture0;
+  fun capture_body e = capture e ();
 end;
 
 fun expose_interrupt_result () =
@@ -156,7 +157,7 @@ fun expose_interrupt_result () =
     fun main () =
       (Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
        Thread.Thread.testInterrupt ());
-    val test = Exn.capture main ();
+    val test = Exn.capture_body main;
     val _ = Thread_Attributes.set_attributes orig_atts;
   in test end;
 
@@ -168,7 +169,7 @@ fun try_catch e f =
 
 fun try_finally e f =
   Thread_Attributes.uninterruptible_body (fn run =>
-    Exn.release (Exn.capture (run e) () before f ()));
+    Exn.release (Exn.capture_body (run e) before f ()));
 
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();

@@ -60,7 +60,7 @@ fun function_bytes name args =
             | NONE => SOME (Isabelle_Thread.interrupt_exn, tab)));
     in
       invoke ();
-      (case Exn.capture (fn () => Exn.release (run await_result ())) () of
+      (case Exn.capture_body (fn () => Exn.release (run await_result ())) of
         Exn.Res res => res
       | Exn.Exn exn => (if Exn.is_interrupt exn then cancel () else (); Exn.reraise exn))
     end);

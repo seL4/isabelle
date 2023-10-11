@@ -154,13 +154,13 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
 
     fun protocol_loop () =
       let
-        fun body () =
+        fun main () =
           (case Byte_Message.read_message in_stream of
             NONE => raise Protocol_Command.STOP 0
           | SOME [] => Output.system_message "Isabelle process: no input"
           | SOME (name :: args) => Protocol_Command.run (Bytes.content name) args);
         val _ =
-          (case Exn.capture body () of
+          (case Exn.capture_body main of
             Exn.Res () => ()
           | Exn.Exn exn =>
               if Protocol_Command.is_protocol_exn exn then Exn.reraise exn
