@@ -106,13 +106,13 @@ fun ML {name_space, print_depth, here, print, error, ...} {line, file, verbose, 
       PolyML.Compiler.CPDebug debug] @
      (case print_depth of NONE => [] | SOME d => [PolyML.Compiler.CPPrintDepth (fn () => d)]);
     val _ =
-      (while not (List.null (! in_buffer)) do
-        PolyML.compiler (get, parameters) ())
-      handle exn =>
-        if Exn.is_interrupt exn then Exn.reraise exn
-        else
+      Isabelle_Thread.try_catch
+        (fn () =>
+          (while not (List.null (! in_buffer)) do
+            PolyML.compiler (get, parameters) ()))
+        (fn exn =>
          (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-          error (output ()); Exn.reraise exn);
+          error (output ()); Exn.reraise exn));
   in if verbose then print (output ()) else () end;
 
 end;
