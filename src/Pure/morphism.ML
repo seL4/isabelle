@@ -83,9 +83,9 @@ type 'a funs = (string * (theory option -> 'a -> 'a)) list;
 
 exception MORPHISM of string * exn;
 
-fun app context (name, f) x = f context x
-  handle exn =>
-    if Exn.is_interrupt exn then Exn.reraise exn else raise MORPHISM (name, exn);
+fun app context (name, f) x =
+  Isabelle_Thread.try_catch (fn () => f context x)
+    (fn exn => raise MORPHISM (name, exn));
 
 
 (* optional context *)

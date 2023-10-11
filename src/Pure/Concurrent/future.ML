@@ -279,7 +279,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 fun scheduler_end () = (*requires SYNCHRONIZED*)
   (ML_statistics (); scheduler := NONE);
 
-fun scheduler_next () = (*requires SYNCHRONIZED*)
+fun scheduler_next0 () = (*requires SYNCHRONIZED*)
   let
     val now = Time.now ();
     val tick = ! last_round + next_round <= now;
@@ -354,15 +354,19 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ = if continue then () else scheduler_end ();
 
     val _ = broadcast scheduler_event;
-  in continue end
-  handle exn =>
-   (Multithreading.tracing 1 (fn () => "SCHEDULER: " ^ General.exnMessage exn);
-    if Exn.is_interrupt exn then
-     (List.app cancel_later (cancel_all ());
-      signal work_available; true)
-    else
-     (scheduler_end ();
-      Exn.reraise exn));
+  in continue end;
+
+fun scheduler_next () =
+  (case Exn.capture_body scheduler_next0 of
+    Exn.Res res => res
+  | Exn.Exn exn =>
+     (Multithreading.tracing 1 (fn () => "SCHEDULER: " ^ General.exnMessage exn);
+      if Exn.is_interrupt exn then
+       (List.app cancel_later (cancel_all ());
+        signal work_available; true)
+      else
+       (scheduler_end ();
+        Exn.reraise exn)));
 
 fun scheduler_loop () =
  (while
@@ -417,11 +421,13 @@ fun identify_result pos res =
 
 fun assign_result group result res =
   let
-    val _ = Single_Assignment.assign result res
-      handle exn as Fail _ =>
-        (case Single_Assignment.peek result of
-          SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt e then e else exn)
-        | _ => Exn.reraise exn);
+    val _ =
+      (case Exn.capture_body (fn () => Single_Assignment.assign result res) of
+        Exn.Exn (exn as Fail _) =>
+          (case Single_Assignment.peek result of
+            SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt e then e else exn)
+          | _ => Exn.reraise exn)
+      | _ => ());
     val ok =
       (case the (Single_Assignment.peek result) of
         Exn.Exn exn =>
@@ -554,8 +560,9 @@ fun forked_results {name, deps} es =
       val futures =
         forks {name = name, group = SOME group, deps = deps, pri = pri, interrupts = true} es;
     in
-      run join_results futures
-        handle exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn)
+      (case Exn.capture_body (fn () => run join_results futures) of
+        Exn.Res res => res
+      | Exn.Exn exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn))
     end);
 
 
@@ -639,12 +646,14 @@ fun promise_name name abort : 'a future =
   let
     val group = worker_subgroup ();
     val result = Single_Assignment.var "promise" : 'a result;
-    fun assign () = assign_result group result Isabelle_Thread.interrupt_exn
-      handle Fail _ => true
-        | exn =>
-            if Exn.is_interrupt exn
-            then raise Fail "Concurrent attempt to fulfill promise"
-            else Exn.reraise exn;
+    fun assign () =
+      (case Exn.capture_body (fn () => assign_result group result Isabelle_Thread.interrupt_exn) of
+        Exn.Res res => res
+      | Exn.Exn (Fail _) => true
+      | Exn.Exn exn =>
+          if Exn.is_interrupt exn
+          then raise Fail "Concurrent attempt to fulfill promise"
+          else Exn.reraise exn);
     fun job () =
       Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
         (fn _ => Exn.release (Exn.capture assign () before abort ()));

@@ -299,11 +299,11 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPBindingSeq serial];
 
     val _ =
-      (while not (List.null (! input_buffer)) do
-        ML_Recursive.recursive env (fn () => PolyML.compiler (get, parameters) ()))
-      handle exn =>
-        if Exn.is_interrupt exn then Exn.reraise exn
-        else
+      Isabelle_Thread.try_catch
+        (fn () =>
+          (while not (List.null (! input_buffer)) do
+            ML_Recursive.recursive env (fn () => PolyML.compiler (get, parameters) ())))
+        (fn exn =>
           let
             val exn_msg =
               (case exn of
@@ -311,7 +311,7 @@ fun eval (flags: flags) pos toks =
               | Runtime.TOPLEVEL_ERROR => ""
               | _ => "Exception- " ^ Pretty.string_of (Runtime.pretty_exn exn) ^ " raised");
             val _ = err exn_msg;
-          in expose_error true end;
+          in expose_error true end);
   in expose_error (#verbose flags) end;
 
 end;
