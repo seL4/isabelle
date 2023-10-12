@@ -236,7 +236,7 @@ fun worker_exec (task, jobs) =
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
         val test = Isabelle_Thread.expose_interrupt_result ();
         val _ =
-          if ok andalso not (Exn.is_interrupt_exn test) then ()
+          if ok andalso not (Exn.is_interrupt_proper_exn test) then ()
           else if null (cancel_now group) then ()
           else cancel_later group;
         val _ = broadcast work_finished;
@@ -361,7 +361,7 @@ fun scheduler_next () =
     Exn.Res res => res
   | Exn.Exn exn =>
      (Multithreading.tracing 1 (fn () => "SCHEDULER: " ^ General.exnMessage exn);
-      if Exn.is_interrupt exn then
+      if Exn.is_interrupt_proper exn then
        (List.app cancel_later (cancel_all ());
         signal work_available; true)
       else
@@ -425,7 +425,7 @@ fun assign_result group result res =
       (case Exn.capture_body (fn () => Single_Assignment.assign result res) of
         Exn.Exn (exn as Fail _) =>
           (case Single_Assignment.peek result of
-            SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt e then e else exn)
+            SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt_proper e then e else exn)
           | _ => Exn.reraise exn)
       | _ => ());
     val ok =
@@ -499,7 +499,7 @@ fun get_result x =
   (case peek x of
     NONE => Exn.Exn (Fail "Unfinished future")
   | SOME result =>
-      if Exn.is_interrupt_exn result then
+      if Exn.is_interrupt_proper_exn result then
         (case Task_Queue.group_status (Task_Queue.group_of_task (task_of x)) of
           [] => result
         | exns => Exn.Exn (Par_Exn.make exns))
@@ -562,7 +562,9 @@ fun forked_results {name, deps} es =
     in
       (case Exn.capture_body (fn () => run join_results futures) of
         Exn.Res res => res
-      | Exn.Exn exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn))
+      | Exn.Exn exn =>
+         (if Exn.is_interrupt_proper exn then cancel_group group else ();
+          Exn.reraise exn))
     end);
 
 
@@ -651,7 +653,7 @@ fun promise_name name abort : 'a future =
         Exn.Res res => res
       | Exn.Exn (Fail _) => true
       | Exn.Exn exn =>
-          if Exn.is_interrupt exn
+          if Exn.is_interrupt_proper exn
           then raise Fail "Concurrent attempt to fulfill promise"
           else Exn.reraise exn);
     fun job () =

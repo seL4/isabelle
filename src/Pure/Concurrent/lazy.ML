@@ -61,7 +61,7 @@ fun is_running (Value _) = false
       | Result res => not (Future.is_finished res));
 
 fun is_finished_future res =
-  Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res));
+  Future.is_finished res andalso not (Exn.is_interrupt_proper_exn (Future.join_result res));
 
 fun is_finished (Value _) = true
   | is_finished (Lazy var) =
@@ -105,7 +105,7 @@ fun force_result _ (Value a) = Exn.Res a
                     val _ = Exn.capture_body (fn () => Future.fulfill_result x res0);
                     val res = Future.get_result x;
                     val _ =
-                      if not (Exn.is_interrupt_exn res) then
+                      if not (Exn.is_interrupt_proper_exn res) then
                         Synchronized.assign var (Result (Future.value_result res))
                       else if strict then
                         Synchronized.assign var

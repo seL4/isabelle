@@ -47,8 +47,11 @@ fun apply' {physical, timeout} f x =
         val stop = Time.now ();
         val was_timeout = not (Event_Timer.cancel request);
         val test = Isabelle_Thread.expose_interrupt_result ();
+        val was_interrupt =
+          Exn.is_interrupt_proper_exn result orelse
+          Exn.is_interrupt_proper_exn test;
       in
-        if was_timeout andalso (Exn.is_interrupt_exn result orelse Exn.is_interrupt_exn test)
+        if was_timeout andalso was_interrupt
         then raise TIMEOUT (stop - start)
         else (Exn.release test; Exn.release result)
       end);
