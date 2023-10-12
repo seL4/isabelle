@@ -29,7 +29,7 @@ object Mercurial {
       val server_root = Future.promise[String]
       Isabelle_Thread.fork("hg") {
         val process =
-          Exn.capture { Bash.process(hg.command_line("serve", options = "--port 0 --print-url")) }
+          Exn.result { Bash.process(hg.command_line("serve", options = "--port 0 --print-url")) }
         server_process.fulfill_result(process)
         Exn.release(process).result(progress_stdout =
           line => if (!server_root.is_finished) {

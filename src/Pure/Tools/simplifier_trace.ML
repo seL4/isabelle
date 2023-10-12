@@ -414,7 +414,7 @@ val _ =
         end
     in
       fn [serial_string, reply] =>
-        (case Exn.capture (fn () => body serial_string reply) () of
+        (case Exn.capture_body (fn () => body serial_string reply) of
           Exn.Res () => ()
         | Exn.Exn exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn)
     end;

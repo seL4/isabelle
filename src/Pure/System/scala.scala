@@ -289,7 +289,8 @@ object Scala {
           case Exn.Res(null) => (Tag.NULL, Nil)
           case Exn.Res(res) => (Tag.OK, res)
           case Exn.Exn(Exn.Interrupt()) => (Tag.INTERRUPT, Nil)
-          case Exn.Exn(e) => (Tag.ERROR, List(Bytes(Exn.message(e))))
+          case Exn.Exn(ERROR(msg)) => (Tag.ERROR, List(Bytes(msg)))
+          case Exn.Exn(e) => (Tag.FAIL, List(Bytes(Exn.message(e))))
         }
       case None => (Tag.FAIL, List(Bytes("Unknown Isabelle/Scala function: " + quote(name))))
     }

@@ -164,7 +164,7 @@ val _ =
 val _ =
   Protocol_Command.define "Document.dialog_result"
     (fn [serial, result] =>
-      (case Exn.capture (fn () => Active.dialog_result (Value.parse_int serial) result) () of
+      (case Exn.capture_body (fn () => Active.dialog_result (Value.parse_int serial) result) of
         Exn.Res () => ()
       | Exn.Exn exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn));
 

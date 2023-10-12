@@ -91,7 +91,7 @@ val _ =
                   Exn.Res loaded_theories =>
                     Exn.capture (apply_hooks session_name) (flat loaded_theories)
                 | Exn.Exn exn => Exn.Exn exn);
-              val res2 = Exn.capture Session.finish ();
+              val res2 = Exn.capture_body Session.finish;
 
               val _ = Resources.finish_session_base ();
               val _ = Par_Exn.release_all [res1, res2];
@@ -102,14 +102,12 @@ val _ =
 
           fun exec e =
             if can Theory.get_pure () then
-              Isabelle_Thread.fork
-                {name = "build_session", stack_limit = Isabelle_Thread.stack_limit (),
-                  interrupts = false} e
+              Isabelle_Thread.fork (Isabelle_Thread.params "build_session") e
               |> ignore
             else e ();
         in
           exec (fn () =>
-            (case Exn.capture (Future.interruptible_task build) () of
+            (case Exn.capture_body (Future.interruptible_task build) of
               Exn.Res () => (0, [])
             | Exn.Exn exn =>
                 (case Exn.capture Runtime.exn_message_list exn of

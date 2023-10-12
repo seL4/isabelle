@@ -38,8 +38,7 @@ fun make stream =
       | dispatch (Shutdown :: _) = ()
       | dispatch (Message chunks :: rest) =
           (Byte_Message.write_message_yxml stream chunks; dispatch rest);
-    val thread =
-      Isabelle_Thread.fork {name = "message_channel", stack_limit = NONE, interrupts = false} loop;
+    val thread = Isabelle_Thread.fork (Isabelle_Thread.params "message_channel") loop;
   in Message_Channel {mbox = mbox, thread = thread} end;
 
 end;

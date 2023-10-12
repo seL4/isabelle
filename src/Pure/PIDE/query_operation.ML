@@ -32,7 +32,7 @@ fun register {name, pri} f =
               f {state = state, args = args, output_result = output_result,
                   writeln_result = writeln_result};
             val _ =
-              (case Exn.capture (*sic!*) (run main) () of
+              (case Exn.capture_body (*sic!*) (run main) of
                 Exn.Res () => ()
               | Exn.Exn exn => toplevel_error exn);
             val _ = status Markup.finished;

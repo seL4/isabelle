@@ -550,7 +550,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
           (fn deps => fn (name, node) =>
             if Symset.member required name orelse visible_node node orelse pending_result node then
               let
-                fun body () =
+                fun main () =
                  (Execution.worker_task_active true name;
                   if forall finished_import deps then
                     iterate_entries (fn (_, opt_exec) => fn () =>
@@ -569,7 +569,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
                     deps = delay :: Execution.active_tasks name @ maps (the_list o #2 o #2) deps,
                     pri = 0, interrupts = false}
                   (fn () =>
-                    (case Exn.capture body () of
+                    (case Exn.capture_body main of
                       Exn.Res () => ()
                     | Exn.Exn exn =>
                        (Output.system_message (Runtime.exn_message exn);

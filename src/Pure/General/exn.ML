@@ -27,7 +27,14 @@ sig
   val maps_res: ('a -> 'b result) -> 'a result -> 'b result
   val map_exn: (exn -> exn) -> 'a result -> 'a result
   val cause: exn -> exn
+  exception Interrupt_Break
+  exception Interrupt_Breakdown
+  val is_interrupt_raw: exn -> bool
+  val is_interrupt_break: exn -> bool
+  val is_interrupt_breakdown: exn -> bool
+  val is_interrupt_proper: exn -> bool
   val is_interrupt: exn -> bool
+  val is_interrupt_proper_exn: 'a result -> bool
   val is_interrupt_exn: 'a result -> bool
   val result: ('a -> 'b) -> 'a -> 'b result
   val failure_rc: exn -> int
@@ -39,6 +46,7 @@ signature EXN =
 sig
   include EXN0
   val capture: ('a -> 'b) -> 'a -> 'b result  (*managed interrupts*)
+  val capture_body: (unit -> 'a) -> 'a result
 end;
 
 structure Exn: EXN0 =
@@ -99,10 +107,17 @@ fun map_exn f (Res x) = Res x
 fun cause (IO.Io {cause = exn, ...}) = cause exn
   | cause exn = exn;
 
-fun is_interrupt exn =
-  (case cause exn of
-    Thread.Thread.Interrupt => true
-  | _ => false);
+exception Interrupt_Break;
+exception Interrupt_Breakdown;
+
+fun is_interrupt_raw exn = (case cause exn of Thread.Thread.Interrupt => true | _ => false);
+fun is_interrupt_break exn = (case cause exn of Interrupt_Break => true | _ => false);
+fun is_interrupt_breakdown exn = (case cause exn of Interrupt_Breakdown => true | _ => false);
+fun is_interrupt_proper exn = is_interrupt_raw exn orelse is_interrupt_break exn;
+fun is_interrupt exn = is_interrupt_proper exn orelse is_interrupt_breakdown exn;
+
+fun is_interrupt_proper_exn (Exn exn) = is_interrupt_proper exn
+  | is_interrupt_proper_exn _ = false;
 
 fun is_interrupt_exn (Exn exn) = is_interrupt exn
   | is_interrupt_exn _ = false;

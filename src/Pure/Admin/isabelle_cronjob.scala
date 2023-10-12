@@ -481,7 +481,7 @@ object Isabelle_Cronjob {
 
     def run_task(start_date: Date, task: Logger_Task): Unit = {
       val logger = start_logger(start_date, task.name)
-      val res = Exn.capture { task.body(logger) }
+      val res = Exn.result { task.body(logger) }
       val end_date = Date.now()
       val err =
         res match {

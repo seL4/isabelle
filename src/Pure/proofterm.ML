@@ -2238,14 +2238,16 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val open_proof = not named ? rew_proof thy;
 
+    fun export_body () = join_proof body' |> open_proof |> export_proof thy i prop1;
     val export =
       if export_enabled () then
         Lazy.lazy (fn () =>
-          join_proof body' |> open_proof |> export_proof thy i prop1 handle exn =>
-            if Exn.is_interrupt exn then
-              raise Fail ("Interrupt: potential resource problems while exporting proof " ^
-                string_of_int i)
-            else Exn.reraise exn)
+          (case Exn.capture_body export_body of
+            Exn.Res res => res
+          | Exn.Exn exn =>
+              if Exn.is_interrupt_breakdown exn then
+                raise Fail ("Resource problems while exporting proof " ^ string_of_int i)
+              else Exn.reraise exn))
       else no_export;
 
     val thm_body = prune_body body';

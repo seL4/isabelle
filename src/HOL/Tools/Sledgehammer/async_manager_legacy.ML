@@ -18,9 +18,6 @@ end;
 structure Async_Manager_Legacy : ASYNC_MANAGER_LEGACY =
 struct
 
-fun make_thread interrupts body =
-  Isabelle_Thread.fork {name = "async_manager", stack_limit = NONE, interrupts = interrupts} body;
-
 fun implode_message (workers, work) =
   space_implode " " (Try.serial_commas "and" workers) ^ work
 
@@ -86,7 +83,7 @@ fun print_new_messages () =
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages} =>
     if (case manager of SOME thread => Isabelle_Thread.is_active thread | NONE => false) then state
-    else let val manager = SOME (make_thread false (fn () =>
+    else let val manager = SOME (Isabelle_Thread.fork (Isabelle_Thread.params "async_manager") (fn () =>
       let
         fun time_limit timeout_heap =
           (case try Thread_Heap.min timeout_heap of
@@ -135,7 +132,7 @@ fun register tool birth_time death_time desc thread =
   check_thread_manager ())
 
 fun thread tool birth_time death_time desc f =
-  (make_thread true
+  (Isabelle_Thread.fork (Isabelle_Thread.params "async_worker" |> Isabelle_Thread.interrupts)
        (fn () =>
            let
              val self = Isabelle_Thread.self ()

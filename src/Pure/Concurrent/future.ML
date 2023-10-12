@@ -236,7 +236,7 @@ fun worker_exec (task, jobs) =
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
         val test = Isabelle_Thread.expose_interrupt_result ();
         val _ =
-          if ok andalso not (Exn.is_interrupt_exn test) then ()
+          if ok andalso not (Exn.is_interrupt_proper_exn test) then ()
           else if null (cancel_now group) then ()
           else cancel_later group;
         val _ = broadcast work_finished;
@@ -269,10 +269,7 @@ fun worker_loop name =
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   let
-    val worker =
-      Isabelle_Thread.fork
-        {name = "worker", stack_limit = Isabelle_Thread.stack_limit (), interrupts = false}
-        (fn () => worker_loop name);
+    val worker = Isabelle_Thread.fork (Isabelle_Thread.params "worker") (fn () => worker_loop name);
   in Unsynchronized.change workers (cons (worker, Unsynchronized.ref Working)) end
   handle Fail msg => Multithreading.tracing 0 (fn () => "SCHEDULER: " ^ msg);
 
@@ -282,7 +279,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 fun scheduler_end () = (*requires SYNCHRONIZED*)
   (ML_statistics (); scheduler := NONE);
 
-fun scheduler_next () = (*requires SYNCHRONIZED*)
+fun scheduler_next0 () = (*requires SYNCHRONIZED*)
   let
     val now = Time.now ();
     val tick = ! last_round + next_round <= now;
@@ -357,15 +354,19 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ = if continue then () else scheduler_end ();
 
     val _ = broadcast scheduler_event;
-  in continue end
-  handle exn =>
-   (Multithreading.tracing 1 (fn () => "SCHEDULER: " ^ General.exnMessage exn);
-    if Exn.is_interrupt exn then
-     (List.app cancel_later (cancel_all ());
-      signal work_available; true)
-    else
-     (scheduler_end ();
-      Exn.reraise exn));
+  in continue end;
+
+fun scheduler_next () =
+  (case Exn.capture_body scheduler_next0 of
+    Exn.Res res => res
+  | Exn.Exn exn =>
+     (Multithreading.tracing 1 (fn () => "SCHEDULER: " ^ General.exnMessage exn);
+      if Exn.is_interrupt_proper exn then
+       (List.app cancel_later (cancel_all ());
+        signal work_available; true)
+      else
+       (scheduler_end ();
+        Exn.reraise exn)));
 
 fun scheduler_loop () =
  (while
@@ -380,10 +381,7 @@ fun scheduler_active () = (*requires SYNCHRONIZED*)
 fun scheduler_check () = (*requires SYNCHRONIZED*)
  (do_shutdown := false;
   if scheduler_active () then ()
-  else
-    scheduler :=
-      SOME (Isabelle_Thread.fork {name = "scheduler", stack_limit = NONE, interrupts = false}
-        scheduler_loop));
+  else scheduler := SOME (Isabelle_Thread.fork (Isabelle_Thread.params "scheduler") scheduler_loop));
 
 
 
@@ -423,11 +421,13 @@ fun identify_result pos res =
 
 fun assign_result group result res =
   let
-    val _ = Single_Assignment.assign result res
-      handle exn as Fail _ =>
-        (case Single_Assignment.peek result of
-          SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt e then e else exn)
-        | _ => Exn.reraise exn);
+    val _ =
+      (case Exn.capture_body (fn () => Single_Assignment.assign result res) of
+        Exn.Exn (exn as Fail _) =>
+          (case Single_Assignment.peek result of
+            SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt_proper e then e else exn)
+          | _ => Exn.reraise exn)
+      | _ => ());
     val ok =
       (case the (Single_Assignment.peek result) of
         Exn.Exn exn =>
@@ -447,9 +447,9 @@ fun future_job group atts (e: unit -> 'a) =
       let
         val res =
           if ok then
-            Exn.capture (fn () =>
+            Exn.capture_body (fn () =>
               Thread_Attributes.with_attributes atts (fn _ =>
-                (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ())) ()
+                (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ()))
           else Isabelle_Thread.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
   in (result, job) end;
@@ -498,12 +498,12 @@ fun fork e =
 fun get_result x =
   (case peek x of
     NONE => Exn.Exn (Fail "Unfinished future")
-  | SOME res =>
-      if Exn.is_interrupt_exn res then
+  | SOME result =>
+      if Exn.is_interrupt_proper_exn result then
         (case Task_Queue.group_status (Task_Queue.group_of_task (task_of x)) of
-          [] => res
+          [] => result
         | exns => Exn.Exn (Par_Exn.make exns))
-      else res);
+      else result);
 
 local
 
@@ -560,8 +560,11 @@ fun forked_results {name, deps} es =
       val futures =
         forks {name = name, group = SOME group, deps = deps, pri = pri, interrupts = true} es;
     in
-      run join_results futures
-        handle exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn)
+      (case Exn.capture_body (fn () => run join_results futures) of
+        Exn.Res res => res
+      | Exn.Exn exn =>
+         (if Exn.is_interrupt_proper exn then cancel_group group else ();
+          Exn.reraise exn))
     end);
 
 
@@ -645,12 +648,14 @@ fun promise_name name abort : 'a future =
   let
     val group = worker_subgroup ();
     val result = Single_Assignment.var "promise" : 'a result;
-    fun assign () = assign_result group result Isabelle_Thread.interrupt_exn
-      handle Fail _ => true
-        | exn =>
-            if Exn.is_interrupt exn
-            then raise Fail "Concurrent attempt to fulfill promise"
-            else Exn.reraise exn;
+    fun assign () =
+      (case Exn.capture_body (fn () => assign_result group result Isabelle_Thread.interrupt_exn) of
+        Exn.Res res => res
+      | Exn.Exn (Fail _) => true
+      | Exn.Exn exn =>
+          if Exn.is_interrupt_proper exn
+          then raise Fail "Concurrent attempt to fulfill promise"
+          else Exn.reraise exn);
     fun job () =
       Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
         (fn _ => Exn.release (Exn.capture assign () before abort ()));

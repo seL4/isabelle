@@ -12,12 +12,12 @@ end;
 structure Command_Line: COMMAND_LINE =
 struct
 
-fun tool body =
+fun tool main =
   Thread_Attributes.uninterruptible_body (fn run =>
     let
       fun print_failure exn = (Runtime.exn_error_message exn; Exn.failure_rc exn);
       val rc =
-        (case Exn.capture (run body) () of
+        (case Exn.capture_body (run main) of
           Exn.Res () => 0
         | Exn.Exn exn =>
             (case Exn.capture print_failure exn of

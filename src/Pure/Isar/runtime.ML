@@ -197,17 +197,16 @@ fun controlled_execution opt_context f x =
   (f |> debugging opt_context |> Future.interruptible_task
     |> ML_Profiling.profile (Options.default_string "profiling")) x;
 
-fun toplevel_error output_exn f x = f x
-  handle exn =>
-    if Exn.is_interrupt exn then Exn.reraise exn
-    else
+fun toplevel_error output_exn f x =
+  Isabelle_Thread.try_catch (fn () => f x)
+    (fn exn =>
       let
         val opt_ctxt =
           (case Context.get_generic_context () of
             NONE => NONE
           | SOME context => try Context.proof_of context);
         val _ = output_exn (exn_context opt_ctxt exn);
-      in raise TOPLEVEL_ERROR end;
+      in raise TOPLEVEL_ERROR end);
 
 fun toplevel_program body =
   (body |> controlled_execution NONE |> toplevel_error exn_error_message) ();

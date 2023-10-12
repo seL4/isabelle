@@ -15,8 +15,11 @@ sig
   val self: unit -> T
   val is_self: T -> bool
   val threads_stack_limit: real Unsynchronized.ref
-  val stack_limit: unit -> int option
-  type params = {name: string, stack_limit: int option, interrupts: bool}
+  val default_stack_limit: unit -> int option
+  type params
+  val params: string -> params
+  val stack_limit: int -> params -> params
+  val interrupts: params -> params
   val attributes: params -> Thread.Thread.threadAttribute list
   val fork: params -> (unit -> unit) -> T
   val is_active: T -> bool
@@ -39,7 +42,7 @@ struct
 
 (* abstract type *)
 
-abstype T = T of {thread: Thread.Thread.thread, name: string, id: int}
+abstype T = T of {thread: Thread.Thread.thread, name: string, id: int, break: bool Synchronized.var}
 with
   val make = T;
   fun dest (T args) = args;
@@ -64,13 +67,16 @@ local
   val self_var = Thread_Data.var () : T Thread_Data.var;
 in
 
-fun init_self args =
-  let val t = make args in Thread_Data.put self_var (SOME t); t end;
+fun init_self name =
+  let
+    val break = Synchronized.var "Isabelle_Thread.break" false;
+    val t = make {thread = Thread.Thread.self (), name = name, id = make_id (), break = break};
+  in Thread_Data.put self_var (SOME t); t end;
 
 fun self () =
   (case Thread_Data.get self_var of
     SOME t => t
-  | NONE => init_self {thread = Thread.Thread.self (), name = "", id = make_id ()});
+  | NONE => init_self "");
 
 fun is_self t = equal (t, self ());
 
@@ -81,24 +87,39 @@ end;
 
 val threads_stack_limit = Unsynchronized.ref 0.25;
 
-fun stack_limit () =
-  let
-    val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0);
+fun default_stack_limit () =
+  let val limit = Real.floor (! threads_stack_limit * 1024.0 * 1024.0 * 1024.0)
   in if limit <= 0 then NONE else SOME limit end;
 
-type params = {name: string, stack_limit: int option, interrupts: bool};
+abstype params = Params of {name: string, stack_limit: int option, interrupts: bool}
+with
 
-fun attributes ({stack_limit, interrupts, ...}: params) =
-  Thread.Thread.MaximumMLStack stack_limit ::
+fun make_params (name, stack_limit, interrupts) =
+  Params {name = name, stack_limit = stack_limit, interrupts = interrupts};
+
+fun params name = make_params (name, default_stack_limit (), false);
+fun stack_limit limit (Params {name, interrupts, ...}) = make_params (name, SOME limit, interrupts);
+fun interrupts (Params {name, stack_limit, ...}) = make_params (name, stack_limit, true);
+
+fun params_name (Params {name, ...}) = name;
+fun params_stack_limit (Params {stack_limit, ...}) = stack_limit;
+fun params_interrupts (Params {interrupts, ...}) = interrupts;
+
+end;
+
+fun attributes params =
+  Thread.Thread.MaximumMLStack (params_stack_limit params) ::
   Thread_Attributes.convert_attributes
-    (if interrupts then Thread_Attributes.public_interrupts else Thread_Attributes.no_interrupts);
+    (if params_interrupts params
+     then Thread_Attributes.public_interrupts
+     else Thread_Attributes.no_interrupts);
 
-fun fork (params: params) body =
+fun fork params body =
   let
     val self = Single_Assignment.var "self";
     fun main () =
       let
-        val t = init_self {thread = Thread.Thread.self (), name = #name params, id = make_id ()};
+        val t = init_self (params_name params);
         val _ = Single_Assignment.assign self t;
       in body () end;
     val _ = Thread.Thread.fork (main, attributes params);
@@ -116,25 +137,40 @@ fun join t =
 
 (* interrupts *)
 
-val interrupt = Thread.Thread.Interrupt;
+val interrupt = Exn.Interrupt_Break;
 val interrupt_exn = Exn.Exn interrupt;
 
 fun interrupt_self () = raise interrupt;
 
 fun interrupt_other t =
-  Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
+  Synchronized.change (#break (dest t))
+    (fn b => (Thread.Thread.interrupt (get_thread t); true) handle Thread.Thread _ => b);
+
+fun check_interrupt exn =
+  if Exn.is_interrupt_raw exn then
+    let
+      val t = self ();
+      val break = Synchronized.change_result (#break (dest t)) (fn b => (b, false));
+    in if break then Exn.Interrupt_Break else Exn.Interrupt_Breakdown end
+  else exn;
+
+fun check_interrupt_exn result =
+  Exn.map_exn check_interrupt result;
 
 structure Exn: EXN =
 struct
   open Exn;
-  val capture = capture0;
+  fun capture f x = Res (f x) handle e => Exn (check_interrupt e);
+  fun capture_body e = capture e ();
 end;
 
 fun expose_interrupt_result () =
   let
     val orig_atts = Thread_Attributes.safe_interrupts (Thread_Attributes.get_attributes ());
-    val _ = Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
-    val test = Exn.capture Thread.Thread.testInterrupt ();
+    fun main () =
+      (Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
+       Thread.Thread.testInterrupt ());
+    val test = check_interrupt_exn (Exn.capture_body main);
     val _ = Thread_Attributes.set_attributes orig_atts;
   in test end;
 
@@ -142,11 +178,12 @@ val expose_interrupt = Exn.release o expose_interrupt_result;
 
 fun try_catch e f =
   Thread_Attributes.uninterruptible_body (fn run =>
-    run e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn);
+    run e () handle exn =>
+      if Exn.is_interrupt exn then Exn.reraise (check_interrupt exn) else f exn);
 
 fun try_finally e f =
   Thread_Attributes.uninterruptible_body (fn run =>
-    Exn.release (Exn.capture (run e) () before f ()));
+    Exn.release (check_interrupt_exn (Exn.capture_body (run e)) before f ()));
 
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();

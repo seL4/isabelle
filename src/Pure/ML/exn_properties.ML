@@ -72,7 +72,7 @@ fun update entries exn =
 (* identification via serial numbers *)
 
 fun identify default_props exn =
-  if Exn.is_interrupt exn then exn
+  if Exn.is_interrupt_proper exn then exn
   else
     let
       val props = get exn;

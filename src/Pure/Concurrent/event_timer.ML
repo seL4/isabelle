@@ -118,7 +118,7 @@ fun manager_loop () =
       (case next_event (Time.now (), ML_Heap.gc_now ()) requests of
         SOME (event, requests') =>
           let
-            val _ = Exn.capture event ();
+            val _ = Exn.capture_body event;  (*sic!*)
             val state' = make_state (requests', status, manager);
           in SOME (true, state') end
       | NONE =>
@@ -129,9 +129,7 @@ fun manager_loop () =
 
 fun manager_check manager =
   if is_some manager andalso Isabelle_Thread.is_active (the manager) then manager
-  else
-    SOME (Isabelle_Thread.fork {name = "event_timer", stack_limit = NONE, interrupts = false}
-      manager_loop);
+  else SOME (Isabelle_Thread.fork (Isabelle_Thread.params "event_timer") manager_loop);
 
 fun shutdown () =
   Thread_Attributes.uninterruptible_body (fn run =>
@@ -141,14 +139,17 @@ fun shutdown () =
         raise Fail "Concurrent attempt to shutdown event timer"
       else (true, make_state (requests, Shutdown_Req, manager_check manager)))
     then
-      run (fn () =>
-        Synchronized.guarded_access state
-          (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE)) ()
-      handle exn =>
-        if Exn.is_interrupt exn then
+      let
+        fun main () =
+          Synchronized.guarded_access state
+            (fn st => if is_shutdown Shutdown_Ack st then SOME ((), normal_state) else NONE);
+        val result = Exn.capture_body (run main);
+      in
+        if Exn.is_interrupt_exn result then
           Synchronized.change state (fn State {requests, manager, ...} =>
             make_state (requests, Normal, manager))
-        else ()
+        else Exn.release result
+      end
     else ());
 
 
