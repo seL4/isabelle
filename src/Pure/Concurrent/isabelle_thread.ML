@@ -42,7 +42,7 @@ struct
 
 (* abstract type *)
 
-abstype T = T of {thread: Thread.Thread.thread, name: string, id: int}
+abstype T = T of {thread: Thread.Thread.thread, name: string, id: int, break: bool Synchronized.var}
 with
   val make = T;
   fun dest (T args) = args;
@@ -69,7 +69,8 @@ in
 
 fun init_self name =
   let
-    val t = make {thread = Thread.Thread.self (), name = name, id = make_id ()};
+    val break = Synchronized.var "Isabelle_Thread.break" false;
+    val t = make {thread = Thread.Thread.self (), name = name, id = make_id (), break = break};
   in Thread_Data.put self_var (SOME t); t end;
 
 fun self () =
@@ -136,13 +137,25 @@ fun join t =
 
 (* interrupts *)
 
-val interrupt = Thread.Thread.Interrupt;
+val interrupt = Exn.Interrupt_Break;
 val interrupt_exn = Exn.Exn interrupt;
 
 fun interrupt_self () = raise interrupt;
 
 fun interrupt_other t =
-  Thread.Thread.interrupt (get_thread t) handle Thread.Thread _ => ();
+  Synchronized.change (#break (dest t))
+    (fn b => (Thread.Thread.interrupt (get_thread t); true) handle Thread.Thread _ => b);
+
+fun check_interrupt exn =
+  if Exn.is_interrupt_raw exn then
+    let
+      val t = self ();
+      val break = Synchronized.change_result (#break (dest t)) (fn b => (b, false));
+    in if break then Exn.Interrupt_Break else Exn.Interrupt_Breakdown end
+  else exn;
+
+fun check_interrupt_exn result =
+  Exn.map_exn check_interrupt result;
 
 structure Exn: EXN =
 struct
@@ -157,7 +170,7 @@ fun expose_interrupt_result () =
     fun main () =
       (Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
        Thread.Thread.testInterrupt ());
-    val test = Exn.capture_body main;
+    val test = check_interrupt_exn (Exn.capture_body main);
     val _ = Thread_Attributes.set_attributes orig_atts;
   in test end;
 
@@ -165,11 +178,12 @@ val expose_interrupt = Exn.release o expose_interrupt_result;
 
 fun try_catch e f =
   Thread_Attributes.uninterruptible_body (fn run =>
-    run e () handle exn => if Exn.is_interrupt exn then Exn.reraise exn else f exn);
+    run e () handle exn =>
+      if Exn.is_interrupt exn then Exn.reraise (check_interrupt exn) else f exn);
 
 fun try_finally e f =
   Thread_Attributes.uninterruptible_body (fn run =>
-    Exn.release (Exn.capture_body (run e) before f ()));
+    Exn.release (check_interrupt_exn (Exn.capture_body (run e)) before f ()));
 
 fun try e = Basics.try e ();
 fun can e = Basics.can e ();

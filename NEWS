@@ -33,6 +33,12 @@ occur in the Isabelle sources (.ML and .thy files).
 INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
 as last resort declare [[ML_catch_all]] within the theory context.
 
+* Proper interrupts (e.g. timeouts) are now distinguished from Poly/ML
+runtime system breakdown, using Exn.Interrupt_Breakdown as quasi-error.
+Exn.is_interrupt covers all kinds of interrupts as before, but
+Exn.is_interrupt_proper and Exn.is_interrupt_breakdown are more
+specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
+
 
 *** HOL ***
 

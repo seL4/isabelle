@@ -2245,9 +2245,8 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
           (case Exn.capture_body export_body of
             Exn.Res res => res
           | Exn.Exn exn =>
-              if Exn.is_interrupt exn then
-                raise Fail ("Interrupt: potential resource problems while exporting proof " ^
-                  string_of_int i)
+              if Exn.is_interrupt_breakdown exn then
+                raise Fail ("Resource problems while exporting proof " ^ string_of_int i)
               else Exn.reraise exn))
       else no_export;
 

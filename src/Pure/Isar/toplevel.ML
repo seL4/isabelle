@@ -662,7 +662,7 @@ fun command_exception int tr st =
   (case transition int tr st of
     (st', NONE) => st'
   | (_, SOME (exn, info)) =>
-      if Exn.is_interrupt exn then Exn.reraise exn
+      if Exn.is_interrupt_proper exn then Exn.reraise exn
       else raise Runtime.EXCURSION_FAIL (exn, info));
 
 val command = command_exception false;

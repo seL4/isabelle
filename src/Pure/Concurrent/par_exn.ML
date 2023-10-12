@@ -21,10 +21,10 @@ struct
 
 exception Par_Exn of exn list;
   (*non-empty list with unique identified elements sorted by Exn_Properties.ord;
-    no occurrences of Par_Exn or Exn.is_interrupt*)
+    no occurrences of Par_Exn or Exn.is_interrupt_proper*)
 
 fun par_exns (Par_Exn exns) = exns
-  | par_exns exn = if Exn.is_interrupt exn then [] else [Exn_Properties.identify [] exn];
+  | par_exns exn = if Exn.is_interrupt_proper exn then [] else [Exn_Properties.identify [] exn];
 
 fun make exns =
   let
@@ -33,14 +33,14 @@ fun make exns =
   in if null exns' then Isabelle_Thread.interrupt else Par_Exn exns' end;
 
 fun dest (Par_Exn exns) = SOME exns
-  | dest exn = if Exn.is_interrupt exn then SOME [] else NONE;
+  | dest exn = if Exn.is_interrupt_proper exn then SOME [] else NONE;
 
 
 (* parallel results *)
 
 fun is_interrupted results =
   exists Exn.is_exn results andalso
-    Exn.is_interrupt (make (map_filter Exn.get_exn results));
+    Exn.is_interrupt_proper (make (map_filter Exn.get_exn results));
 
 fun release_all results =
   if forall Exn.is_res results
@@ -49,7 +49,7 @@ fun release_all results =
 
 fun plain_exn (Exn.Res _) = NONE
   | plain_exn (Exn.Exn (Par_Exn _)) = NONE
-  | plain_exn (Exn.Exn exn) = if Exn.is_interrupt exn then NONE else SOME exn;
+  | plain_exn (Exn.Exn exn) = if Exn.is_interrupt_proper exn then NONE else SOME exn;
 
 fun release_first results =
   (case get_first plain_exn results of
