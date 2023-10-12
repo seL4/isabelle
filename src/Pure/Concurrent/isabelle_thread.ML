@@ -160,7 +160,7 @@ fun check_interrupt_exn result =
 structure Exn: EXN =
 struct
   open Exn;
-  val capture = capture0;
+  fun capture f x = Res (f x) handle e => Exn (check_interrupt e);
   fun capture_body e = capture e ();
 end;
 
