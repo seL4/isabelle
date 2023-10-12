@@ -243,7 +243,7 @@ object HTTP {
       val input = using(http.getRequestBody)(Bytes.read_stream(_))
       if (http.getRequestMethod == method) {
         val request = new Request(server_name, name, uri, input)
-        Exn.capture(apply(request)) match {
+        Exn.result(apply(request)) match {
           case Exn.Res(Some(response)) =>
             response.write(http, 200)
           case Exn.Res(None) =>

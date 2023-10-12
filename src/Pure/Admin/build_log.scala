@@ -820,7 +820,7 @@ object Build_Log {
   class Store private[Build_Log](val options: Options, val cache: XML.Cache) {
     override def toString: String = {
       val s =
-        Exn.capture { open_database() } match {
+        Exn.result { open_database() } match {
           case Exn.Res(db) =>
             val db_name = db.toString
             db.close()
@@ -1036,7 +1036,7 @@ object Build_Log {
       for (file_group <- file_groups) {
         val log_files =
           Par_List.map[JFile, Exn.Result[Log_File]](
-            file => Exn.capture { Log_File(file) }, file_group)
+            file => Exn.result { Log_File(file) }, file_group)
         db.transaction {
           for (case Exn.Res(log_file) <- log_files) {
             progress.echo("Log " + quote(log_file.name), verbose = true)
