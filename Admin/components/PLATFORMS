@@ -35,11 +35,8 @@ Official platforms:
 
   x86_64-linux      Ubuntu 18.04 LTS
 
-  x86_64-darwin     macOS 10.13 High Sierra (lapbroy68 MacBookPro11,2)
-                    macOS 10.14 Mojave (???)
-                    macOS 10.15 Catalina (???)
-                    macOS 11 Big Sur (mini1 Macmini8,1)
-                    macOS 12 Monterey (laramac01 Macmini8,1)
+  x86_64-darwin     macOS 11 Big Sur (mini1 Macmini8,1)
+                    macOS 12 Monterey (???)
                     macOS 13 Ventura (mini3 Mac14,12 -- MacMini M2 Pro, 6+4 cores)
                     macOS 14 Sonoma (mini2 Macmini8,1)
 

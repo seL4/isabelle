@@ -319,11 +319,8 @@ object Isabelle_Cronjob {
           args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
-      List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
-        options = "-m32 -B -M1,2,4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
-        args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("macOS 11 Big Sur", "mini1",
+        Remote_Build("macOS 11 Big Sur (Intel)", "mini1",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
@@ -353,15 +350,11 @@ object Isabelle_Cronjob {
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
           active = () => false)),
       List(
-        Remote_Build("macOS 13 Ventura (ARM64)", "mini3",
+        Remote_Build("macOS 13 Ventura (ARM)", "mini3",
           history_base = "8e590adaac5e",
           options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
             " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
-      List(
-        Remote_Build("macOS 12 Monterey", "monterey", user = "makarius",
-          options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
