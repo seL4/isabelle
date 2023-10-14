@@ -51,7 +51,7 @@ object Executable {
 
       if (Platform.is_linux) {
         if (patchelf) {
-          // requires e.g. Ubuntu 16.04 LTS
+          // requires e.g. Ubuntu 18.04 LTS
           Isabelle_System.require_command("patchelf")
           Isabelle_System.bash("patchelf --force-rpath --set-rpath '$ORIGIN' " + File.bash_path(exe_path)).check
         }
