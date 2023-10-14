@@ -2,6 +2,8 @@
     Author:     Makarius
 
 Build Poly/ML from sources.
+
+Note: macOS 14 Sonoma requires "LDFLAGS=... -ld64".
 */
 
 package isabelle
