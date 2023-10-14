@@ -332,15 +332,17 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("macOS 10.14 Mojave", "mini2",
+        Remote_Build("macOS 14 Sonoma (ARM)", "studio1-sonoma",
+          options = "-m32 -B -M1x4,2x4,4x2,8 -p pide_session=false" +
+            " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
+            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
+          args = "-a -d '~~/src/Benchmarks'"),
+        Remote_Build("macOS 14 Sonoma (Intel)", "mini2-sonoma",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-            " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'",
-          active = () => false),
+          args = "-a -d '~~/src/Benchmarks'"),
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           args = "-a -o quick_and_dirty",
