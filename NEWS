@@ -48,6 +48,11 @@ specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
 before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
+* Update to official Poly/ML 5.9.1.
+
+* No longer support for very old versions of macOS and Linux: base-line
+is Ubuntu Linux 18.04 LTS and macOS 11 Big Sur.
+
 
 
 New in Isabelle2023 (September 2023)
