@@ -7,11 +7,13 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
-*** System ***
+*** HOL ***
 
-* Isabelle/Scala and derived Scala tools now use the syntax of Scala
-3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
-before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
+* Mirabelle:
+  - Removed proof reconstruction from "sledgehammer" action; the related option
+  "proof_method" was removed. Proof reconstruction is supported directly
+  by Sledgehammer and should be used instead. For more information, see
+  Sledgehammer's documentation relating to "preplay_timeout". INCOMPATIBILITY.
 
 
 *** ML ***
@@ -40,13 +42,11 @@ Exn.is_interrupt_proper and Exn.is_interrupt_breakdown are more
 specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 
 
-*** HOL ***
+*** System ***
 
-* Mirabelle:
-  - Removed proof reconstruction from "sledgehammer" action; the related option
-  "proof_method" was removed. Proof reconstruction is supported directly
-  by Sledgehammer and should be used instead. For more information, see
-  Sledgehammer's documentation relating to "preplay_timeout". INCOMPATIBILITY.
+* Isabelle/Scala and derived Scala tools now use the syntax of Scala
+3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
+before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
 
 
