@@ -306,8 +306,8 @@ will be placed in /usr/local).
 
 * Download:
 
-  $ curl https://gmplib.org/download/gmp/gmp-6.2.1.tar.bz2 | tar xjf -
-  $ cd gmp-6.2.1
+  $ curl https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2 | tar xjf -
+  $ cd gmp-6.3.0
 
 * build:
 
