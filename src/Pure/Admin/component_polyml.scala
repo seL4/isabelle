@@ -160,7 +160,7 @@ object Component_PolyML {
   val default_polyml_name = "polyml-5.9.1"
 
   val default_sha1_url = "https://isabelle.sketis.net/repos/sha1/archive"
-  val default_sha1_version = "e0239faa6f42"
+  val default_sha1_version = "0ce12663fe76"
 
   private def init_src_root(src_dir: Path, input: String, output: String): Unit = {
     val lines = split_lines(File.read(src_dir + Path.explode(input)))
