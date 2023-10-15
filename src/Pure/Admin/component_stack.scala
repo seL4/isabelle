@@ -19,6 +19,7 @@ object Component_Stack {
 
   val platforms: List[Download_Platform] =
     List(
+      Download_Platform("arm64-darwin", "osx-aarch64"),
       Download_Platform("arm64-linux", "linux-aarch64"),
       Download_Platform("x86_64-darwin", "osx-x86_64"),
       Download_Platform("x86_64-linux", "linux-x86_64"),
@@ -28,7 +29,7 @@ object Component_Stack {
   /* build stack */
 
   val default_url = "https://github.com/commercialhaskell/stack/releases/download"
-  val default_version = "2.9.3"
+  val default_version = "2.13.1"
 
   def build_stack(
     base_url: String = default_url,
@@ -69,7 +70,7 @@ object Component_Stack {
     /* settings */
 
     component_dir.write_settings("""
-ISABELLE_STACK="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/stack"
+ISABELLE_STACK="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}/stack"
 """)
 
 
@@ -80,8 +81,6 @@ ISABELLE_STACK="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/
 
 See also https://www.haskellstack.org and executables from
 """ + base_url + """
-
-The oldest supported version of macOS is 10.14 Mojave.
 
 The downloaded files were renamed and made executable.
 
