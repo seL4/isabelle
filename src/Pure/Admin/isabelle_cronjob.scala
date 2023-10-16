@@ -334,7 +334,8 @@ object Isabelle_Cronjob {
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'"),
+          args = "-a -d '~~/src/Benchmarks'")),
+      List(
         Remote_Build("macOS 14 Sonoma (Intel)", "mini2-sonoma",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
