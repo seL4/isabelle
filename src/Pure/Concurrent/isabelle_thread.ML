@@ -146,13 +146,13 @@ fun interrupt_other t =
   Synchronized.change (#break (dest t))
     (fn b => (Thread.Thread.interrupt (get_thread t); true) handle Thread.Thread _ => b);
 
+fun reset_interrupt () =
+  Synchronized.change_result (#break (dest (self ()))) (fn b => (b, false));
+
+fun make_interrupt break = if break then Exn.Interrupt_Break else Exn.Interrupt_Breakdown;
+
 fun check_interrupt exn =
-  if Exn.is_interrupt_raw exn then
-    let
-      val t = self ();
-      val break = Synchronized.change_result (#break (dest t)) (fn b => (b, false));
-    in if break then Exn.Interrupt_Break else Exn.Interrupt_Breakdown end
-  else exn;
+  if Exn.is_interrupt_raw exn then make_interrupt (reset_interrupt ()) else exn;
 
 fun check_interrupt_exn result =
   Exn.map_exn check_interrupt result;
