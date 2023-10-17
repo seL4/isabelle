@@ -6,9 +6,11 @@ Simprocs for linear arithmetic.
 
 signature INT_NUMERAL_SIMPROCS =
 sig
-  val cancel_numerals: simproc list
-  val combine_numerals: simproc
-  val combine_numerals_prod: simproc
+  val inteq_cancel_numerals_proc: Proof.context -> cterm -> thm option
+  val intless_cancel_numerals_proc: Proof.context -> cterm -> thm option
+  val intle_cancel_numerals_proc: Proof.context -> cterm -> thm option
+  val int_combine_numerals_proc: Proof.context -> cterm -> thm option
+  val int_combine_numerals_prod_proc: Proof.context -> cterm -> thm option
 end
 
 structure Int_Numeral_Simprocs: INT_NUMERAL_SIMPROCS =
@@ -50,7 +52,7 @@ fun dest_numeral \<^Const_>\<open>integ_of for w\<close> = dest_bin w
 fun find_first_numeral past (t::terms) =
         ((dest_numeral t, rev past @ terms)
          handle TERM _ => find_first_numeral (t::past) terms)
-  | find_first_numeral past [] = raise TERM("find_first_numeral", []);
+  | find_first_numeral _ [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_numeral 0;
 fun mk_plus (t, u) = \<^Const>\<open>zadd for t u\<close>;
@@ -99,7 +101,7 @@ fun dest_coeff sign \<^Const_>\<open>zminus for t\<close> = dest_coeff (~sign) t
     in (sign*n, mk_prod ts') end;
 
 (*Find first coefficient-term THAT MATCHES u*)
-fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
+fun find_first_coeff _ _ [] = raise TERM("find_first_coeff", [])
   | find_first_coeff past u (t::terms) =
         let val (n,u') = dest_coeff 1 t
         in  if u aconv u' then (n, rev past @ terms)
@@ -204,25 +206,9 @@ structure LeCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm le_add_iff2} RS @{thm iff_trans}
 );
 
-val cancel_numerals =
- [Simplifier.make_simproc \<^context> "inteq_cancel_numerals"
-   {lhss =
-     [\<^term>\<open>l $+ m = n\<close>, \<^term>\<open>l = m $+ n\<close>,
-      \<^term>\<open>l $- m = n\<close>, \<^term>\<open>l = m $- n\<close>,
-      \<^term>\<open>l $* m = n\<close>, \<^term>\<open>l = m $* n\<close>],
-    proc = K EqCancelNumerals.proc},
-  Simplifier.make_simproc \<^context> "intless_cancel_numerals"
-   {lhss =
-     [\<^term>\<open>l $+ m $< n\<close>, \<^term>\<open>l $< m $+ n\<close>,
-      \<^term>\<open>l $- m $< n\<close>, \<^term>\<open>l $< m $- n\<close>,
-      \<^term>\<open>l $* m $< n\<close>, \<^term>\<open>l $< m $* n\<close>],
-    proc = K LessCancelNumerals.proc},
-  Simplifier.make_simproc \<^context> "intle_cancel_numerals"
-   {lhss =
-     [\<^term>\<open>l $+ m $\<le> n\<close>, \<^term>\<open>l $\<le> m $+ n\<close>,
-      \<^term>\<open>l $- m $\<le> n\<close>, \<^term>\<open>l $\<le> m $- n\<close>,
-      \<^term>\<open>l $* m $\<le> n\<close>, \<^term>\<open>l $\<le> m $* n\<close>],
-    proc = K LeCancelNumerals.proc}];
+val inteq_cancel_numerals_proc = EqCancelNumerals.proc;
+val intless_cancel_numerals_proc = LessCancelNumerals.proc;
+val intle_cancel_numerals_proc = LeCancelNumerals.proc;
 
 
 (*version without the hyps argument*)
@@ -263,11 +249,7 @@ structure CombineNumeralsData =
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
-
-val combine_numerals =
-  Simplifier.make_simproc \<^context> "int_combine_numerals"
-    {lhss = [\<^term>\<open>i $+ j\<close>, \<^term>\<open>i $- j\<close>],
-     proc = K CombineNumerals.proc};
+val int_combine_numerals_proc = CombineNumerals.proc
 
 
 
@@ -310,16 +292,6 @@ end;
 
 
 structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
-
-val combine_numerals_prod =
-  Simplifier.make_simproc \<^context> "int_combine_numerals_prod"
-   {lhss = [\<^term>\<open>i $* j\<close>], proc = K CombineNumeralsProd.proc};
+val int_combine_numerals_prod_proc = CombineNumeralsProd.proc;
 
 end;
-
-val _ =
-  Theory.setup (Simplifier.map_theory_simpset (fn ctxt =>
-    ctxt addsimprocs
-      (Int_Numeral_Simprocs.cancel_numerals @
-       [Int_Numeral_Simprocs.combine_numerals,
-        Int_Numeral_Simprocs.combine_numerals_prod])));
