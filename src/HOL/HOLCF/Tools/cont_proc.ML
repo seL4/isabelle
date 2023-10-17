@@ -8,8 +8,7 @@ sig
   val cont_thms: term -> thm list
   val all_cont_thms: term -> thm list
   val cont_tac: Proof.context -> int -> tactic
-  val cont_proc: simproc
-  val setup: theory -> theory
+  val cont_proc: Proof.context -> cterm -> thm option
 end
 
 structure ContProc : CONT_PROC =
@@ -115,18 +114,10 @@ fun cont_tac ctxt =
       cont_tac_of_term (HOLogic.dest_Trueprop t) i)
   end
 
-local
-  fun solve_cont ctxt ct =
-    let
-      val t = Thm.term_of ct
-      val tr = Thm.instantiate' [] [SOME (Thm.cterm_of ctxt t)] @{thm Eq_TrueI}
-    in Option.map fst (Seq.pull (cont_tac ctxt 1 tr)) end
-in
-  val cont_proc =
-    Simplifier.make_simproc \<^context> "cont_proc"
-     {lhss = [\<^term>\<open>cont f\<close>], proc = K solve_cont}
-end
-
-val setup = map_theory_simpset (fn ctxt => ctxt addsimprocs [cont_proc])
+fun cont_proc ctxt ct =
+  let
+    val t = Thm.term_of ct
+    val tr = Thm.instantiate' [] [SOME (Thm.cterm_of ctxt t)] @{thm Eq_TrueI}
+  in Option.map fst (Seq.pull (cont_tac ctxt 1 tr)) end
 
 end
