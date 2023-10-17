@@ -99,7 +99,7 @@ fun check_thread_manager () = Synchronized.change global_state
               NONE
             else
               let
-                val _ = List.app (Isabelle_Thread.interrupt_other o #1) canceling
+                val _ = List.app (Isabelle_Thread.interrupt_thread o #1) canceling
                 val canceling' = filter (Isabelle_Thread.is_active o #1) canceling
                 val state' = make_state manager timeout_heap' active canceling' messages
               in SOME (map #2 timeout_threads, state') end

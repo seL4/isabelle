@@ -244,7 +244,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
           val _ = status tr Markup.failed;
           val _ = status tr Markup.finished;
           val _ =
-            if null errs then (status tr Markup.canceled; Isabelle_Thread.interrupt_self ())
+            if null errs then (status tr Markup.canceled; Isabelle_Thread.raise_interrupt ())
             else ();
         in {failed = true, command = tr, state = st} end
     | SOME st' =>

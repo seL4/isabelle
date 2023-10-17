@@ -195,13 +195,13 @@ fun cancel_now group = (*requires SYNCHRONIZED*)
     val running = Task_Queue.cancel (! queue) group;
     val _ = running |> List.app (fn thread =>
       if Isabelle_Thread.is_self thread then ()
-      else Isabelle_Thread.interrupt_other thread);
+      else Isabelle_Thread.interrupt_thread thread);
   in running end;
 
 fun cancel_all () = (*requires SYNCHRONIZED*)
   let
     val (groups, threads) = Task_Queue.cancel_all (! queue);
-    val _ = List.app Isabelle_Thread.interrupt_other threads;
+    val _ = List.app Isabelle_Thread.interrupt_thread threads;
   in groups end;
 
 fun cancel_later group = (*requires SYNCHRONIZED*)

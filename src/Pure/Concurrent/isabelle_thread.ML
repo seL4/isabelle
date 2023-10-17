@@ -26,8 +26,8 @@ sig
   val join: T -> unit
   val interrupt: exn
   val interrupt_exn: 'a Exn.result
-  val interrupt_self: unit -> 'a
-  val interrupt_other: T -> unit
+  val raise_interrupt: unit -> 'a
+  val interrupt_thread: T -> unit
   structure Exn: EXN
   val expose_interrupt_result: unit -> unit Exn.result
   val expose_interrupt: unit -> unit  (*exception Exn.is_interrupt*)
@@ -140,9 +140,9 @@ fun join t =
 val interrupt = Exn.Interrupt_Break;
 val interrupt_exn = Exn.Exn interrupt;
 
-fun interrupt_self () = raise interrupt;
+fun raise_interrupt () = raise interrupt;
 
-fun interrupt_other t =
+fun interrupt_thread t =
   Synchronized.change (#break (dest t))
     (fn b => (Thread.Thread.interrupt (get_thread t); true) handle Thread.Thread _ => b);
 
