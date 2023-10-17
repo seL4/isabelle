@@ -68,7 +68,7 @@ fun get_def ctxt ct =
 val _ =
   (Theory.setup o Named_Target.theory_map)
     (Simplifier.define_simproc \<^binding>\<open>expand_def\<close>
-      {lhss = [Free ("x", TFree ("'a", []))], proc = K get_def});
+      {lhss = [Free ("x", TFree ("'a", []))], passive = false, proc = K get_def});
 
 
 (* Isar command *)

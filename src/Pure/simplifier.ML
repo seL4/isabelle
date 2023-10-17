@@ -37,8 +37,10 @@ sig
   val cong_del: attribute
   val check_simproc: Proof.context -> xstring * Position.T -> string * simproc
   val the_simproc: Proof.context -> string -> simproc
-  type 'a simproc_spec = {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option}
-  val make_simproc: Proof.context -> string -> term simproc_spec -> simproc
+  val make_simproc: Proof.context -> string ->
+    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
+  type 'a simproc_spec =
+    {lhss: 'a list, passive: bool, proc: morphism -> Proof.context -> cterm -> thm option}
   val define_simproc: binding -> term simproc_spec -> local_theory -> local_theory
   val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> local_theory
   val pretty_simpset: bool -> Proof.context -> Pretty.T
@@ -120,8 +122,6 @@ val _ = Theory.setup
 
 (* define simprocs *)
 
-type 'a simproc_spec = {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option};
-
 fun make_simproc ctxt name {lhss, proc} =
   let
     val ctxt' = fold Proof_Context.augment lhss ctxt;
@@ -131,9 +131,14 @@ fun make_simproc ctxt name {lhss, proc} =
       {lhss = lhss', proc = Morphism.entity proc}
   end;
 
+type 'a simproc_spec =
+ {lhss: 'a list,
+  passive: bool,
+  proc: morphism -> Proof.context -> cterm -> thm option};
+
 local
 
-fun def_simproc prep b {lhss, proc} lthy =
+fun def_simproc prep b {lhss, passive, proc} lthy =
   let
     val simproc0 =
       make_simproc lthy (Local_Theory.full_name lthy b) {lhss = prep lthy lhss, proc = proc};
@@ -146,7 +151,7 @@ fun def_simproc prep b {lhss, proc} lthy =
         in
           context
           |> Simprocs.map (#2 o Name_Space.define context true (b', simproc'))
-          |> map_ss (fn ctxt => ctxt addsimprocs [simproc'])
+          |> not passive ? map_ss (fn ctxt => ctxt addsimprocs [simproc'])
         end)
   end;
 

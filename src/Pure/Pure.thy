@@ -8,7 +8,7 @@ theory Pure
 keywords
     "!!" "!" "+" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "binder" "by" "in" "infix" "infixl" "infixr" "is" "open" "output"
-    "overloaded" "pervasive" "premises" "structure" "unchecked"
+    "overloaded" "passive" "pervasive" "premises" "structure" "unchecked"
   and "private" "qualified" :: before_command
   and "assumes" "constrains" "defines" "fixes" "for" "if" "includes" "notes" "rewrites"
     "obtains" "shows" "when" "where" "|" :: quasi_command
@@ -334,8 +334,10 @@ val _ =
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>simproc_setup\<close> "define simproc in ML"
     (Parse.name_position --
-      (\<^keyword>\<open>(\<close> |-- Parse.enum1 "|" Parse.term --| \<^keyword>\<open>)\<close> --| \<^keyword>\<open>=\<close>) --
-      Parse.ML_source >> (fn ((a, b), c) => Isar_Cmd.simproc_setup a b c));
+      (\<^keyword>\<open>(\<close> |-- Parse.enum1 "|" Parse.term --| \<^keyword>\<open>)\<close>) --
+      (\<^keyword>\<open>=\<close> |-- Parse.ML_source) --
+      Parse.opt_keyword "passive"
+    >> (fn (((a, b), c), d) => Isar_Cmd.simproc_setup a b c d));
 
 in end\<close>
 

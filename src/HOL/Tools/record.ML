@@ -1062,6 +1062,7 @@ in
 *)
 val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>select_update\<close>
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
+    passive = false,
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1166,6 +1167,7 @@ fun insert_unique_hd ord (x::xs) = x :: insert_unique ord x xs
   both a more update and an update to a field within it.*)
 val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>update\<close>
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
+    passive = false,
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1306,6 +1308,7 @@ end;
 
 val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>eq\<close>
    {lhss = [\<^term>\<open>r = s\<close>],
+    passive = false,
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         \<^Const_>\<open>HOL.eq T for _ _\<close> =>
@@ -1359,6 +1362,7 @@ fun split_simproc P =
 
 val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>ex_sel_eq\<close>
    {lhss = [\<^term>\<open>Ex t\<close>],
+    passive = false,
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
