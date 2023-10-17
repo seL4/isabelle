@@ -170,9 +170,10 @@ fun expose_interrupt_result () =
     fun main () =
       (Thread_Attributes.set_attributes Thread_Attributes.test_interrupts;
        Thread.Thread.testInterrupt ());
-    val test = check_interrupt_exn (Exn.capture_body main);
+    val test = Exn.capture0 main ();
     val _ = Thread_Attributes.set_attributes orig_atts;
-  in test end;
+    val break = reset_interrupt ();
+  in if Exn.is_interrupt_exn test then Exn.Exn (make_interrupt break) else test end;
 
 val expose_interrupt = Exn.release o expose_interrupt_result;
 
