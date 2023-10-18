@@ -886,8 +886,8 @@ extends AutoCloseable {
     build_options.seconds(option)
   }
 
-  private val _host_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(path = Host.private_data.database, server = server) }
+  protected val _host_database: SQL.Database =
+    try { store.open_build_database(path = Host.private_data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
@@ -927,7 +927,7 @@ extends AutoCloseable {
   def close(): Unit = synchronized {
     Option(_database_server).flatten.foreach(_.close())
     Option(_build_database).flatten.foreach(_.close())
-    Option(_host_database).flatten.foreach(_.close())
+    Option(_host_database).foreach(_.close())
     Option(_build_cluster).foreach(_.close())
     progress match {
       case db_progress: Database_Progress => db_progress.exit(close = true)
@@ -987,11 +987,7 @@ extends AutoCloseable {
   protected def next_node_info(state: Build_Process.State, session_name: String): Host.Node_Info = {
     def used_nodes: Set[Int] =
       Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
-    val numa_node =
-      for {
-        db <- _host_database
-        n <- Host.next_numa_node(db, hostname, state.numa_nodes, used_nodes)
-      } yield n
+    val numa_node = Host.next_numa_node(_host_database, hostname, state.numa_nodes, used_nodes)
     Host.Node_Info(hostname, numa_node, Nil)
   }
 
