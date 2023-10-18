@@ -125,14 +125,15 @@ object Host {
   def num_cpus(): Int = Runtime.getRuntime.availableProcessors
 
   object Info {
-    def gather(hostname: String, ssh: SSH.System = SSH.Local): Info =
-      Info(hostname, numa_nodes(ssh = ssh), num_cpus())
+    def gather(hostname: String, ssh: SSH.System = SSH.Local, score: Option[Double] = None): Info =
+      Info(hostname, numa_nodes(ssh = ssh), num_cpus(), score)
   }
 
   sealed case class Info(
     hostname: String,
     numa_nodes: List[Int],
-    num_cpus: Int)
+    num_cpus: Int,
+    benchmark_score: Option[Double])
 
 
   /* shuffling of NUMA nodes */
@@ -189,9 +190,10 @@ object Host {
       val hostname = SQL.Column.string("hostname").make_primary_key
       val numa_info = SQL.Column.string("numa_info")
       val num_cpus = SQL.Column.int("num_cpus")
+      val benchmark_score = SQL.Column.double("benchmark_score")
 
       val table =
-        make_table(List(hostname, numa_info, num_cpus), name = "info")
+        make_table(List(hostname, numa_info, num_cpus, benchmark_score), name = "info")
     }
 
     def write_info(db: SQL.Database, info: Info): Unit = {
@@ -201,6 +203,7 @@ object Host {
           stmt.string(1) = info.hostname
           stmt.string(2) = info.numa_nodes.mkString(",")
           stmt.int(3) = info.num_cpus
+          stmt.double(4) = info.benchmark_score
         })
     }
 
@@ -210,8 +213,9 @@ object Host {
         { res =>
           val numa_info = res.string(Info.numa_info)
           val num_cpus = res.int(Info.num_cpus)
+          val benchmark_score = res.get_double(Info.benchmark_score)
 
-          Host.Info(hostname, parse_numa_info(numa_info), num_cpus)
+          Host.Info(hostname, parse_numa_info(numa_info), num_cpus, benchmark_score)
         })
   }
 
