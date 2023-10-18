@@ -56,6 +56,7 @@ object Build_Process {
     worker_uuid: String,
     build_uuid: String,
     node_info: Host.Node_Info,
+    start_date: Date,
     build: Option[Build_Job]
   ) extends Library.Named {
     def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
@@ -615,10 +616,12 @@ object Build_Process {
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
       val rel_cpus = SQL.Column.string("rel_cpus")
+      val start_date = SQL.Column.date("start_date")
 
       val table =
         make_table(
-          List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus), name = "running")
+          List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus, start_date),
+          name = "running")
     }
 
     def read_running(db: SQL.Database): State.Running =
@@ -632,9 +635,10 @@ object Build_Process {
           val hostname = res.string(Running.hostname)
           val numa_node = res.get_int(Running.numa_node)
           val rel_cpus = res.string(Running.rel_cpus)
+          val start_date = res.date(Running.start_date)
 
           val node_info = Host.Node_Info(hostname, numa_node, Host.Range.from(rel_cpus))
-          name -> Job(name, worker_uuid, build_uuid, node_info, None)
+          name -> Job(name, worker_uuid, build_uuid, node_info, start_date, None)
         }
       )
 
@@ -661,6 +665,7 @@ object Build_Process {
             stmt.string(4) = job.node_info.hostname
             stmt.int(5) = job.node_info.numa_node
             stmt.string(6) = Host.Range(job.node_info.rel_cpus)
+            stmt.date(7) = job.start_date
           })
       }
 
@@ -1057,7 +1062,8 @@ extends AutoCloseable {
         Build_Job.start_session(build_context, session, progress, log, server,
           build_deps.background(session_name), sources_shasum, input_shasum, node_info, store_heap)
 
-      val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
+      val job =
+        Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Date.now(), Some(build))
 
       state.add_running(job)
     }
