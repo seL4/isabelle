@@ -12,6 +12,42 @@ package isabelle
 
 
 object Host {
+
+  object Range {
+    val Single = """^(\d+)$""".r
+    val Multiple = """^(\d+)-(\d+)$""".r
+
+    def apply(range: List[Int]): String =
+      range match {
+        case Nil => ""
+        case x :: xs =>
+          def elem(start: Int, stop: Int): String =
+            if (start == stop) start.toString else start.toString + "-" + stop.toString
+
+          val (elems, (r0, rn)) =
+            xs.foldLeft((List.empty[String], (x, x))) {
+              case ((rs, (r0, rn)), x) =>
+                if (rn + 1 == x) (rs, (r0, x)) else (rs :+ elem(r0, rn), (x, x))
+            }
+
+          (elems :+ elem(r0, rn)).mkString(",")
+      }
+
+    def unapply(s: String): Option[List[Int]] =
+      space_explode(',', s).foldRight(Option(List.empty[Int])) {
+        case (Single(Value.Int(i)), Some(elems)) => Some(i :: elems)
+        case (Multiple(Value.Int(i), Value.Int(j)), Some(elems)) => Some((i to j).toList ::: elems)
+        case _ => None
+      }
+
+    def from(s: String) =
+      s match {
+        case Range(r) => r
+        case _ => Nil
+      }
+  }
+
+
   /* process policy via numactl tool */
 
   def numactl(node: Int): String = "numactl -m" + node + " -N" + node
@@ -39,23 +75,18 @@ object Host {
 
   private val numa_info_linux: Path = Path.explode("/sys/devices/system/node/online")
 
+  def parse_numa_info(numa_info: String): List[Int] =
+    numa_info match {
+      case Range(nodes) => nodes
+      case s => error("Cannot parse CPU NUMA node specification: " + quote(s))
+    }
+
   def numa_nodes(enabled: Boolean = true, ssh: SSH.System = SSH.Local): List[Int] = {
-    val Single = """^(\d+)$""".r
-    val Multiple = """^(\d+)-(\d+)$""".r
-
-    def parse(s: String): List[Int] =
-      s match {
-        case Single(Value.Int(i)) => List(i)
-        case Multiple(Value.Int(i), Value.Int(j)) => (i to j).toList
-        case _ => error("Cannot parse CPU NUMA node specification: " + quote(s))
-      }
-
     val numa_info = if (ssh.isabelle_platform.is_linux) Some(numa_info_linux) else None
     for {
       path <- numa_info.toList
       if enabled && ssh.is_file(path)
-      s <- space_explode(',', ssh.read(path).trim)
-      n <- parse(s)
+      n <- parse_numa_info(ssh.read(path).trim)
     } yield n
   }
 
