@@ -152,9 +152,9 @@ fun check_holds ctxt evaluator vs_t ct =
     Thm.mk_binop iff ct (if result then \<^cprop>\<open>PROP Code_Generator.holds\<close> else ct)
   end;
 
-val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>holds_by_evaluation\<close>,
-  fn (ctxt, evaluator, vs_t, ct) => check_holds ctxt evaluator vs_t ct)));
+val (_, raw_check_holds_oracle) =
+  Theory.setup_result (Thm.add_oracle (\<^binding>\<open>holds_by_evaluation\<close>,
+    fn (ctxt, evaluator, vs_t, ct) => check_holds ctxt evaluator vs_t ct));
 
 fun check_holds_oracle ctxt evaluator vs_ty_t ct =
   raw_check_holds_oracle (ctxt, evaluator, vs_ty_t, ct);
@@ -417,8 +417,7 @@ local
 fun holds ct = Thm.mk_binop \<^cterm>\<open>Pure.eq :: prop \<Rightarrow> prop \<Rightarrow> prop\<close>
   ct \<^cprop>\<open>PROP Code_Generator.holds\<close>;
 
-val (_, holds_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>holds\<close>, holds)));
+val (_, holds_oracle) = Theory.setup_result (Thm.add_oracle (\<^binding>\<open>holds\<close>, holds));
 
 in
 

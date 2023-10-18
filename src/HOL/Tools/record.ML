@@ -1060,7 +1060,7 @@ in
   - If X is a more-selector we have to make sure that S is not in the updated
     subrecord.
 *)
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>select_update\<close>
+val  _ = Named_Target.global_setup (Simplifier.define_simproc \<^binding>\<open>select_update\<close>
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     passive = false,
     proc = fn _ => fn ctxt => fn ct =>
@@ -1115,7 +1115,7 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
               end
             else NONE
         | _ => NONE)
-      end}));
+      end});
 
 val simproc =
   #2 (Simplifier.check_simproc (Context.the_local_context ()) ("select_update", Position.none));
@@ -1165,7 +1165,7 @@ fun insert_unique_hd ord (x::xs) = x :: insert_unique ord x xs
   In both cases "more" updates complicate matters: for this reason
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>update\<close>
+val  _ = Named_Target.global_setup (Simplifier.define_simproc \<^binding>\<open>update\<close>
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     passive = false,
     proc = fn _ => fn ctxt => fn ct =>
@@ -1283,7 +1283,7 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
             (prove_unfold_defs thy upd_funs noops' [simproc]
               (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
         else NONE
-      end}));
+      end});
 
 val upd_simproc =
   #2 (Simplifier.check_simproc (Context.the_local_context ()) ("update", Position.none));
@@ -1306,7 +1306,7 @@ end;
  Complexity: #components * #updates     #updates
 *)
 
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>eq\<close>
+val  _ = Named_Target.global_setup (Simplifier.define_simproc \<^binding>\<open>eq\<close>
    {lhss = [\<^term>\<open>r = s\<close>],
     passive = false,
     proc = fn _ => fn ctxt => fn ct =>
@@ -1318,7 +1318,7 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
               (case get_equalities (Proof_Context.theory_of ctxt) name of
                 NONE => NONE
               | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
-      | _ => NONE)}));
+      | _ => NONE)});
 
 val eq_simproc =
   #2 (Simplifier.check_simproc (Context.the_local_context ()) ("eq", Position.none));
@@ -1360,7 +1360,7 @@ fun split_simproc P =
           else NONE
       | _ => NONE)};
 
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>ex_sel_eq\<close>
+val  _ = Named_Target.global_setup (Simplifier.define_simproc \<^binding>\<open>ex_sel_eq\<close>
    {lhss = [\<^term>\<open>Ex t\<close>],
     passive = false,
     proc = fn _ => fn ctxt => fn ct =>
@@ -1399,7 +1399,7 @@ val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^bin
                     addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
             end handle TERM _ => NONE)
         | _ => NONE)
-      end}));
+      end});
 
 val ex_sel_eq_simproc =
   #2 (Simplifier.check_simproc (Context.the_local_context ()) ("ex_sel_eq", Position.none));

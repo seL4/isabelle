@@ -10,7 +10,9 @@ sig
   val ancestors_of: theory -> theory list
   val nodes_of: theory -> theory list
   val setup: (theory -> theory) -> unit
+  val setup_result: (theory -> 'a * theory) -> 'a
   val local_setup: (Proof.context -> Proof.context) -> unit
+  val local_setup_result: (Proof.context -> 'a * Proof.context) -> 'a
   val install_pure: theory -> unit
   val get_pure: unit -> theory
   val get_pure_bootstrap: unit -> theory
@@ -49,7 +51,10 @@ val ancestors_of = Context.ancestors_of;
 fun nodes_of thy = thy :: ancestors_of thy;
 
 fun setup f = Context.>> (Context.map_theory f);
+fun setup_result f = Context.>>> (Context.map_theory_result f);
+
 fun local_setup f = Context.>> (Context.map_proof f);
+fun local_setup_result f = Context.>>> (Context.map_proof_result f);
 
 
 (* implicit theory Pure *)

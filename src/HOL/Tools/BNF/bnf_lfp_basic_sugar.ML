@@ -194,8 +194,8 @@ fun fp_sugar_of_prod ctxt =
         set_inducts = []}}
   end;
 
-val _ = Theory.setup (Named_Target.theory_map (fn lthy =>
+val _ = Named_Target.global_setup (fn lthy =>
   fold (BNF_FP_Def_Sugar.register_fp_sugars (K true) o single o (fn f => f lthy))
-    [fp_sugar_of_sum, fp_sugar_of_prod] lthy));
+    [fp_sugar_of_sum, fp_sugar_of_prod] lthy);
 
 end;

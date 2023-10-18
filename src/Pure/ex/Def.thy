@@ -66,7 +66,7 @@ fun get_def ctxt ct =
 (* simproc setup *)
 
 val _ =
-  (Theory.setup o Named_Target.theory_map)
+  Named_Target.global_setup
     (Simplifier.define_simproc \<^binding>\<open>expand_def\<close>
       {lhss = [Free ("x", TFree ("'a", []))], passive = false, proc = K get_def});
 

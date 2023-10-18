@@ -119,9 +119,9 @@ fun unoverload_impl cconst thm =
 
 (** END OF THE CRITICAL CODE **)
 
-val (_, unoverload_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>unoverload\<close>,
-  fn (const, thm) => unoverload_impl const  thm)));
+val (_, unoverload_oracle) =
+  Theory.setup_result
+    (Thm.add_oracle (\<^binding>\<open>unoverload\<close>, fn (const, thm) => unoverload_impl const  thm));
 
 fun unoverload const thm = unoverload_oracle (const, thm);
 

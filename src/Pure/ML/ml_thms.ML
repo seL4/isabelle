@@ -122,8 +122,7 @@ val get_stored_thm = hd o get_stored_thms;
 fun ml_store get (name, ths) =
   let
     val (_, ths') =
-      Context.>>> (Context.map_theory_result
-        (Global_Theory.note_thms "" ((Binding.name name, []), [(ths, [])])));
+      Theory.setup_result (Global_Theory.note_thms "" ((Binding.name name, []), [(ths, [])]));
     val _ = Theory.setup (Data.put ths');
     val _ =
       if name = "" then ()

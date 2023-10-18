@@ -27,8 +27,7 @@ local
     \<^instantiate>\<open>x = ct and y = \<open>Thm.cterm_of ctxt (term_of_int_list ks)\<close>
       in cterm \<open>x \<equiv> y\<close> for x y :: \<open>int list\<close>\<close>;
 
-  val (_, sort_oracle) = Context.>>> (Context.map_theory_result
-    (Thm.add_oracle (\<^binding>\<open>sort\<close>, raw_sort)));
+  val (_, sort_oracle) = Theory.setup_result (Thm.add_oracle (\<^binding>\<open>sort\<close>, raw_sort));
 
 in
 
