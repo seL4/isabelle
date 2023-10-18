@@ -400,6 +400,7 @@ object Build_Log {
   sealed case class Session_Entry(
     chapter: String = "",
     groups: List[String] = Nil,
+    hostname: Option[String] = None,
     threads: Option[Int] = None,
     timing: Timing = Timing.zero,
     ml_timing: Timing = Timing.zero,
@@ -443,7 +444,7 @@ object Build_Log {
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started1 = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
-    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on \S+\)? \.\.\.$""")
+    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on ([^\s/]+)/?(\d+)\)? \.\.\.$""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
@@ -460,6 +461,7 @@ object Build_Log {
 
     var chapter = Map.empty[String, String]
     var groups = Map.empty[String, List[String]]
+    var hostnames = Map.empty[String, String]
     var threads = Map.empty[String, Int]
     var timing = Map.empty[String, Timing]
     var ml_timing = Map.empty[String, Timing]
@@ -489,8 +491,9 @@ object Build_Log {
         case Session_Started1(name) =>
           started += name
 
-        case Session_Started2(name) =>
+        case Session_Started2(name, hostname, numa_node) =>
           started += name
+          hostnames += (name -> hostname)
 
         case Session_Finished1(name,
             Value.Int(e1), Value.Int(e2), Value.Int(e3),
@@ -555,6 +558,7 @@ object Build_Log {
             Session_Entry(
               chapter = chapter.getOrElse(name, ""),
               groups = groups.getOrElse(name, Nil),
+              hostname = hostnames.get(name),
               threads = threads.get(name),
               timing = timing.getOrElse(name, Timing.zero),
               ml_timing = ml_timing.getOrElse(name, Timing.zero),
@@ -629,7 +633,16 @@ object Build_Log {
   /* SQL data model */
 
   object Data extends SQL.Data("isabelle_build_log") {
-    override def tables: SQL.Tables = ???
+    override def tables: SQL.Tables =
+      SQL.Tables(
+        meta_info_table,
+        sessions_table,
+        theories_table,
+        ml_statistics_table,
+        isabelle_afp_versions_table,
+        universal_table,
+        pull_date_table(afp = true),
+        pull_date_table())
 
 
     /* main content */
@@ -639,6 +652,7 @@ object Build_Log {
     val theory_name = SQL.Column.string("theory_name").make_primary_key
     val chapter = SQL.Column.string("chapter")
     val groups = SQL.Column.string("groups")
+    val hostname = SQL.Column.string("hostname")
     val threads = SQL.Column.int("threads")
     val timing_elapsed = SQL.Column.long("timing_elapsed")
     val timing_cpu = SQL.Column.long("timing_cpu")
@@ -663,7 +677,7 @@ object Build_Log {
 
     val sessions_table =
       make_table(
-        List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
+        List(log_name, session_name, chapter, groups, hostname, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
           heap_size, status, errors, sources),
         name = "sessions")
@@ -930,19 +944,20 @@ object Build_Log {
           stmt.string(2) = session_name
           stmt.string(3) = proper_string(session.chapter)
           stmt.string(4) = session.proper_groups
-          stmt.int(5) = session.threads
-          stmt.long(6) = session.timing.elapsed.proper_ms
-          stmt.long(7) = session.timing.cpu.proper_ms
-          stmt.long(8) = session.timing.gc.proper_ms
-          stmt.double(9) = session.timing.factor
-          stmt.long(10) = session.ml_timing.elapsed.proper_ms
-          stmt.long(11) = session.ml_timing.cpu.proper_ms
-          stmt.long(12) = session.ml_timing.gc.proper_ms
-          stmt.double(13) = session.ml_timing.factor
-          stmt.long(14) = session.heap_size.map(_.bytes)
-          stmt.string(15) = session.status.map(_.toString)
-          stmt.bytes(16) = compress_errors(session.errors, cache = cache.compress)
-          stmt.string(17) = session.sources
+          stmt.string(5) = session.hostname
+          stmt.int(6) = session.threads
+          stmt.long(7) = session.timing.elapsed.proper_ms
+          stmt.long(8) = session.timing.cpu.proper_ms
+          stmt.long(9) = session.timing.gc.proper_ms
+          stmt.double(10) = session.timing.factor
+          stmt.long(11) = session.ml_timing.elapsed.proper_ms
+          stmt.long(12) = session.ml_timing.cpu.proper_ms
+          stmt.long(13) = session.ml_timing.gc.proper_ms
+          stmt.double(14) = session.ml_timing.factor
+          stmt.long(15) = session.heap_size.map(_.bytes)
+          stmt.string(16) = session.status.map(_.toString)
+          stmt.bytes(17) = compress_errors(session.errors, cache = cache.compress)
+          stmt.string(18) = session.sources
           stmt.execute()
         }
       }
@@ -1114,6 +1129,7 @@ object Build_Log {
               Session_Entry(
                 chapter = res.string(Data.chapter),
                 groups = split_lines(res.string(Data.groups)),
+                hostname = res.get_string(Data.hostname),
                 threads = res.get_int(Data.threads),
                 timing =
                   res.timing(
