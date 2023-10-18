@@ -66,9 +66,8 @@ fun get_def ctxt ct =
 (* simproc setup *)
 
 val _ =
-  Named_Target.global_setup
-    (Simplifier.define_simproc \<^binding>\<open>expand_def\<close>
-      {lhss = [Free ("x", TFree ("'a", []))], passive = false, proc = K get_def});
+  Simplifier.simproc_setup_global
+    {name = \<^binding>\<open>expand_def\<close>, lhss = ["x::'a"], passive = false, proc = K get_def};
 
 
 (* Isar command *)

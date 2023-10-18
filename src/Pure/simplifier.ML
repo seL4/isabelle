@@ -41,8 +41,14 @@ sig
     {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
   type 'a simproc_spec =
     {lhss: 'a list, passive: bool, proc: morphism -> Proof.context -> cterm -> thm option}
-  val define_simproc: binding -> term simproc_spec -> local_theory -> local_theory
-  val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> local_theory
+  val define_simproc: binding -> term simproc_spec -> local_theory -> simproc * local_theory
+  val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> simproc * local_theory
+  type 'a simproc_setup = {name: binding, lhss: string list, passive: bool, proc: 'a}
+  val simproc_setup_local:
+    (morphism -> Proof.context -> cterm -> thm option) simproc_setup -> simproc
+  val simproc_setup_global:
+    (morphism -> Proof.context -> cterm -> thm option) simproc_setup -> simproc
+  val simproc_setup_ml: Input.source simproc_setup -> ML_Lex.token Antiquote.antiquote list
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
@@ -153,6 +159,7 @@ fun def_simproc prep b {lhss, passive, proc} lthy =
           |> Simprocs.map (#2 o Name_Space.define context true (b', simproc'))
           |> not passive ? map_ss (fn ctxt => ctxt addsimprocs [simproc'])
         end)
+    |> pair simproc0
   end;
 
 in
@@ -161,6 +168,27 @@ val define_simproc = def_simproc Syntax.check_terms;
 val define_simproc_cmd = def_simproc Syntax.read_terms;
 
 end;
+
+
+(* implicit simproc_setup *)
+
+type 'a simproc_setup = {name: binding, lhss: string list, passive: bool, proc: 'a};
+
+fun simproc_setup_local {name, lhss, passive, proc} =
+  Theory.local_setup_result
+    (define_simproc_cmd name {lhss = lhss, passive = passive, proc = proc});
+
+fun simproc_setup_global {name, lhss, passive, proc} =
+  Named_Target.global_setup_result Raw_Simplifier.transform_simproc
+    (define_simproc_cmd name {lhss = lhss, passive = passive, proc = proc});
+
+fun simproc_setup_ml {name, lhss, passive, proc} =
+  ML_Lex.read
+    ("{name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
+     ", lhss = " ^ ML_Syntax.print_strings lhss ^
+     ", passive = " ^ Bool.toString passive ^
+     ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}";
+
 
 
 (** congruence rule to protect foundational terms of local definitions **)
