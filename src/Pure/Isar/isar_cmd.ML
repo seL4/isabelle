@@ -17,7 +17,6 @@ sig
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
-  val simproc_setup: Input.source Simplifier.simproc_setup -> local_theory -> local_theory
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text_range * Method.text_range option ->
     Toplevel.transition -> Toplevel.transition
@@ -132,14 +131,6 @@ fun declaration {syntax, pervasive} source =
         ", pos = " ^ ML_Syntax.print_position (Position.thread_data ()) ^ "} (") @
      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.proof_map;
-
-
-(* simprocs *)
-
-fun simproc_setup arg =
-  Context.proof_map
-    (ML_Context.expression (Input.pos_of (#proc arg))
-      (ML_Lex.read "Simplifier.simproc_setup_local " @ Simplifier.simproc_setup_ml arg));
 
 
 (* local endings *)

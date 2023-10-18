@@ -333,12 +333,10 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>simproc_setup\<close> "define simproc in ML"
-    (Parse.binding --
-      (\<^keyword>\<open>(\<close> |-- Parse.enum1 "|" Parse.term --| \<^keyword>\<open>)\<close>) --
-      (\<^keyword>\<open>=\<close> |-- Parse.ML_source) --
-      Parse.opt_keyword "passive"
-    >> (fn (((name, lhss), proc), passive) =>
-        Isar_Cmd.simproc_setup {name = name, lhss = lhss, passive = passive, proc = proc}));
+    (Simplifier.simproc_setup_parser >> (fn arg =>
+      Context.proof_map
+        (ML_Context.expression (Input.pos_of (#proc arg))
+          (ML_Lex.read "Simplifier.simproc_setup_local " @ Simplifier.simproc_setup_ml arg))));
 
 in end\<close>
 
