@@ -493,7 +493,7 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s |> Symtab.defined tptp_built
         "[" ^ commas (map of_term ts) ^ "]"
       else if is_tptp_equal s then
         space_implode (" " ^ tptp_equal ^ " ") (map of_term ts)
-        |> (is_format_higher_order format orelse is_format_with_fool format) ? parens
+        |> (is_format_higher_order format orelse true) ? parens
       else if s = tptp_ho_forall orelse s = tptp_ho_exists then
         (case ts of
           [AAbs (((s', ty), tm), [])] =>
