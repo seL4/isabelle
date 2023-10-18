@@ -115,7 +115,7 @@ object Build {
     }
 
     def process_options(options: Options, node_info: Host.Node_Info): Options =
-      Host.process_policy_options(options, node_info.numa_node)
+      Host.node_options(options, node_info)
 
     final def build_store(options: Options,
       build_hosts: List[Build_Cluster.Host] = Nil,

@@ -48,26 +48,49 @@ object Host {
   }
 
 
-  /* process policy via numactl tool */
+  /* process policy via numactl and taskset tools */
 
-  def numactl(node: Int): String = "numactl -m" + node + " -N" + node
-  def numactl_ok(node: Int): Boolean = Isabelle_System.bash(numactl(node) + " true").ok
+  def taskset(cpus: List[Int]): String = "taskset --cpu-list " + Range(cpus)
+  def taskset_ok(cpus: List[Int]): Boolean = Isabelle_System.bash(taskset(cpus) + " true").ok
 
-  def process_policy_options(options: Options, numa_node: Option[Int]): Options =
+  def numactl(node: Int, rel_cpus: List[Int] = Nil): String =
+    "numactl -m" + node + " -N" + node + if_proper(rel_cpus, " -C+" + Range(rel_cpus))
+  def numactl_ok(node: Int, rel_cpus: List[Int] = Nil): Boolean =
+    Isabelle_System.bash(numactl(node, rel_cpus) + " true").ok
+
+  def numa_options(options: Options, numa_node: Option[Int]): Options =
     numa_node match {
       case None => options
       case Some(node) =>
         options.string("process_policy") = if (numactl_ok(node)) numactl(node) else ""
     }
 
+  def node_options(options: Options, node: Node_Info): Options = {
+    val threads_options =
+      if (node.rel_cpus.isEmpty) options else options.int("threads") = node.rel_cpus.length
+
+    node.numa_node match {
+      case None if node.rel_cpus.isEmpty =>
+        threads_options
+      case Some(numa_node) =>
+        threads_options.string("process_policy") =
+          if (numactl_ok(numa_node, node.rel_cpus)) numactl(numa_node, node.rel_cpus) else ""
+      case _ =>
+        threads_options.string("process_policy") =
+          if (taskset_ok(node.rel_cpus)) taskset(node.rel_cpus) else ""
+    }
+  }
+
 
   /* allocated resources */
 
-  object Node_Info { def none: Node_Info = Node_Info("", None) }
+  object Node_Info { def none: Node_Info = Node_Info("", None, Nil) }
 
-  sealed case class Node_Info(hostname: String, numa_node: Option[Int]) {
+  sealed case class Node_Info(hostname: String, numa_node: Option[Int], rel_cpus: List[Int]) {
     override def toString: String =
-      hostname + if_proper(numa_node, "/" + numa_node.get.toString)
+      hostname +
+        if_proper(numa_node, "/" + numa_node.get.toString) +
+        if_proper(rel_cpus, "+" + Range(rel_cpus))
   }
 
 
