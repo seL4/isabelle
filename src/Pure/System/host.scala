@@ -71,7 +71,7 @@ object Host {
   }
 
 
-  /* available NUMA nodes */
+  /* statically available resources */
 
   private val numa_info_linux: Path = Path.explode("/sys/devices/system/node/online")
 
@@ -99,6 +99,17 @@ object Host {
     }
     catch { case ERROR(_) => None }
 
+  def num_cpus(): Int = Runtime.getRuntime.availableProcessors
+
+  object Info {
+    def gather(hostname: String, ssh: SSH.System = SSH.Local): Info =
+      Info(hostname, numa_nodes(ssh = ssh), num_cpus())
+  }
+
+  sealed case class Info(
+    hostname: String,
+    numa_nodes: List[Int],
+    num_cpus: Int)
 
 
   /* shuffling of NUMA nodes */
@@ -126,7 +137,7 @@ object Host {
   object private_data extends SQL.Data("isabelle_host") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/host.db")
 
-    override lazy val tables = SQL.Tables(Node_Info.table)
+    override lazy val tables = SQL.Tables(Node_Info.table, Info.table)
 
     object Node_Info {
       val hostname = SQL.Column.string("hostname").make_primary_key
@@ -150,6 +161,35 @@ object Host {
           stmt.int(2) = numa_next
         })
     }
+
+    object Info {
+      val hostname = SQL.Column.string("hostname").make_primary_key
+      val numa_info = SQL.Column.string("numa_info")
+      val num_cpus = SQL.Column.int("num_cpus")
+
+      val table =
+        make_table(List(hostname, numa_info, num_cpus), name = "info")
+    }
+
+    def write_info(db: SQL.Database, info: Info): Unit = {
+      db.execute_statement(Info.table.delete(sql = Info.hostname.where_equal(info.hostname)))
+      db.execute_statement(Info.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = info.hostname
+          stmt.string(2) = info.numa_nodes.mkString(",")
+          stmt.int(3) = info.num_cpus
+        })
+    }
+
+    def read_info(db: SQL.Database, hostname: String): Option[Host.Info] =
+      db.execute_query_statementO[Host.Info](
+        Info.table.select(Info.table.columns.tail, sql = Info.hostname.where_equal(hostname)),
+        { res =>
+          val numa_info = res.string(Info.numa_info)
+          val num_cpus = res.int(Info.num_cpus)
+
+          Host.Info(hostname, parse_numa_info(numa_info), num_cpus)
+        })
   }
 
   def next_numa_node(
@@ -175,5 +215,14 @@ object Host {
 
         Some(n)
       }
+    }
+
+  def write_info(db: SQL.Database, info: Info): Unit =
+    private_data.transaction_lock(db, create = true, label = "Host.write_info") {
+      private_data.write_info(db, info)
+    }
+  def read_info(db: SQL.Database, hostname: String): Option[Host.Info] =
+    private_data.transaction_lock(db, create = true, label = "Host.read_info") {
+      private_data.read_info(db, hostname)
     }
 }

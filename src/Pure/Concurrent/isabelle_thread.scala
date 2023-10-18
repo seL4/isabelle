@@ -74,7 +74,7 @@ object Isabelle_Thread {
 
   def max_threads(): Int = {
     val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
-    if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
+    if (m > 0) m else (Host.num_cpus() max 1) min 8
   }
 
   lazy val pool: ThreadPoolExecutor = {
