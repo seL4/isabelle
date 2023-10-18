@@ -984,6 +984,17 @@ extends AutoCloseable {
     else Nil
   }
 
+  protected def next_node_info(state: Build_Process.State, session_name: String): Host.Node_Info = {
+    def used_nodes: Set[Int] =
+      Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
+    val numa_node =
+      for {
+        db <- _host_database
+        n <- Host.next_numa_node(db, hostname, state.numa_nodes, used_nodes)
+      } yield n
+    Host.Node_Info(hostname, numa_node, Nil)
+  }
+
   protected def start_session(
     state: Build_Process.State,
     session_name: String,
@@ -1039,14 +1050,7 @@ extends AutoCloseable {
       else state
     }
     else {
-      def used_nodes: Set[Int] =
-        Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
-      val numa_node =
-        for {
-          db <- _host_database
-          n <- Host.next_numa_node(db, hostname, state.numa_nodes, used_nodes)
-        } yield n
-      val node_info = Host.Node_Info(hostname, numa_node, Nil)
+      val node_info = next_node_info(state, session_name)
 
       val print_node_info =
         node_info.numa_node.isDefined || node_info.rel_cpus.nonEmpty  ||
