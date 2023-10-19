@@ -40,10 +40,10 @@ sig
   val make_simproc: Proof.context -> string ->
     {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
   type 'a simproc_spec =
-    {lhss: 'a list, passive: bool, proc: morphism -> Proof.context -> cterm -> thm option}
+    {passive: bool, lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option}
   val define_simproc: binding -> term simproc_spec -> local_theory -> simproc * local_theory
   val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> simproc * local_theory
-  type 'a simproc_setup = {name: binding, lhss: string list, passive: bool, proc: 'a}
+  type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a}
   type simproc_setup_input = Input.source simproc_setup
   type simproc_setup_internal = (morphism -> Proof.context -> cterm -> thm option) simproc_setup
   val simproc_setup_parser: Input.source simproc_setup parser
@@ -138,13 +138,13 @@ fun make_simproc ctxt name {lhss, proc} =
   end;
 
 type 'a simproc_spec =
- {lhss: 'a list,
-  passive: bool,
+ {passive: bool,
+  lhss: 'a list,
   proc: morphism -> Proof.context -> cterm -> thm option};
 
 local
 
-fun def_simproc prep b {lhss, passive, proc} lthy =
+fun def_simproc prep b {passive, lhss, proc} lthy =
   let
     val simproc0 =
       make_simproc lthy (Local_Theory.full_name lthy b) {lhss = prep lthy lhss, proc = proc};
@@ -172,21 +172,22 @@ end;
 
 (* implicit simproc_setup *)
 
-type 'a simproc_setup = {name: binding, lhss: string list, passive: bool, proc: 'a};
+type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a};
 type simproc_setup_input = Input.source simproc_setup;
 type simproc_setup_internal = (morphism -> Proof.context -> cterm -> thm option) simproc_setup;
 
 val simproc_setup_parser : simproc_setup_input parser =
-  Parse.binding -- (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")") --
-    (Parse.$$$ "=" |-- Parse.ML_source) -- Parse.opt_keyword "passive"
-  >> (fn (((name, lhss), proc), passive) =>
-        {name = name, lhss = lhss, passive = passive, proc = proc});
+  Scan.optional (Parse.$$$ "passive" >> K true) false --
+  Parse.binding --
+    (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")") --
+    (Parse.$$$ "=" |-- Parse.ML_source)
+  >> (fn (((a, b), c), d) => {passive = a, name = b, lhss = c, proc = d});
 
-fun simproc_setup_ml ({name, lhss, passive, proc}: simproc_setup_input) =
+fun simproc_setup_ml ({name, passive, lhss, proc}: simproc_setup_input) =
   ML_Lex.read
-    ("{name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
+    ("{passive = " ^ Bool.toString passive ^
+     ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
      ", lhss = " ^ ML_Syntax.print_strings lhss ^
-     ", passive = " ^ Bool.toString passive ^
      ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}";
 
 fun simproc_setup ({name, lhss, passive, proc}: simproc_setup_internal) =

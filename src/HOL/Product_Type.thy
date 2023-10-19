@@ -1303,9 +1303,8 @@ subsection \<open>Simproc for rewriting a set comprehension into a pointfree exp
 
 ML_file \<open>Tools/set_comprehension_pointfree.ML\<close>
 
-simproc_setup set_comprehension ("Collect P") =
+simproc_setup passive set_comprehension ("Collect P") =
   \<open>K Set_Comprehension_Pointfree.code_simproc\<close>
-  (passive)
 
 setup \<open>Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs [\<^simproc>\<open>set_comprehension\<close>])\<close>
 

@@ -1542,15 +1542,14 @@ structure Induct = Induct
 
 ML_file \<open>~~/src/Tools/induction.ML\<close>
 
-simproc_setup swap_induct_false ("induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q") =
+simproc_setup passive swap_induct_false ("induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q") =
   \<open>fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       _ $ (P as _ $ \<^Const_>\<open>induct_false\<close>) $ (_ $ Q $ _) =>
         if P <> Q then SOME Drule.swap_prems_eq else NONE
     | _ => NONE)\<close>
- (passive)
 
-simproc_setup induct_equal_conj_curry ("induct_conj P Q \<Longrightarrow> PROP R") =
+simproc_setup passive induct_equal_conj_curry ("induct_conj P Q \<Longrightarrow> PROP R") =
   \<open>fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       _ $ (_ $ P) $ _ =>
@@ -1562,7 +1561,6 @@ simproc_setup induct_equal_conj_curry ("induct_conj P Q \<Longrightarrow> PROP R
             | is_conj _ = false
         in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
       | _ => NONE)\<close>
- (passive)
 
 declaration \<open>
   K (Induct.map_simpset (fn ss => ss
@@ -1934,12 +1932,11 @@ end
 declare eq_equal [symmetric, code_post]
 declare eq_equal [code]
 
-simproc_setup equal (HOL.eq) =
+simproc_setup passive equal (HOL.eq) =
   \<open>fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       Const (_, Type (\<^type_name>\<open>fun\<close>, [Type _, _])) => SOME @{thm eq_equal}
     | _ => NONE)\<close>
-  (passive)
 
 setup \<open>Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs [\<^simproc>\<open>equal\<close>])\<close>
 
