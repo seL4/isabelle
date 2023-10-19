@@ -39,9 +39,10 @@ sig
   val the_simproc: Proof.context -> string -> simproc
   val make_simproc: Proof.context -> string ->
     {lhss: term list, proc: morphism -> proc} -> simproc
-  type 'a simproc_spec = {passive: bool, lhss: 'a list, proc: morphism -> proc}
-  val define_simproc: binding -> term simproc_spec -> local_theory -> simproc * local_theory
-  val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> simproc * local_theory
+  val define_simproc: {passive: bool, name: binding, lhss: term list, proc: morphism -> proc} ->
+    local_theory -> simproc * local_theory
+  val define_simproc_cmd: {passive: bool, name: binding, lhss: string list, proc: morphism -> proc} ->
+    local_theory -> simproc * local_theory
   type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a}
   type simproc_setup_input = Input.source simproc_setup
   type simproc_setup_internal = (morphism -> proc) simproc_setup
@@ -136,26 +137,21 @@ fun make_simproc ctxt name {lhss, proc} =
       {lhss = lhss', proc = Morphism.entity proc}
   end;
 
-type 'a simproc_spec =
- {passive: bool,
-  lhss: 'a list,
-  proc: morphism -> proc};
-
 local
 
-fun def_simproc prep b {passive, lhss, proc} lthy =
+fun def_simproc prep {passive, name, lhss, proc} lthy =
   let
     val simproc0 =
-      make_simproc lthy (Local_Theory.full_name lthy b) {lhss = prep lthy lhss, proc = proc};
+      make_simproc lthy (Local_Theory.full_name lthy name) {lhss = prep lthy lhss, proc = proc};
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of b}
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of name}
       (fn phi => fn context =>
         let
-          val b' = Morphism.binding phi b;
+          val name' = Morphism.binding phi name;
           val simproc' = simproc0 |> transform_simproc phi |> trim_context_simproc;
         in
           context
-          |> Simprocs.map (#2 o Name_Space.define context true (b', simproc'))
+          |> Simprocs.map (#2 o Name_Space.define context true (name', simproc'))
           |> not passive ? map_ss (fn ctxt => ctxt addsimprocs [simproc'])
         end)
     |> pair simproc0
@@ -189,9 +185,9 @@ fun simproc_setup_ml ({name, passive, lhss, proc}: simproc_setup_input) =
      ", lhss = " ^ ML_Syntax.print_strings lhss ^
      ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}";
 
-fun simproc_setup ({name, lhss, passive, proc}: simproc_setup_internal) =
+fun simproc_setup args =
   Named_Target.setup_result Raw_Simplifier.transform_simproc
-    (define_simproc_cmd name {lhss = lhss, passive = passive, proc = proc});
+    (define_simproc_cmd args);
 
 
 
