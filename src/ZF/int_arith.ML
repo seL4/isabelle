@@ -6,11 +6,11 @@ Simprocs for linear arithmetic.
 
 signature INT_NUMERAL_SIMPROCS =
 sig
-  val inteq_cancel_numerals_proc: Proof.context -> cterm -> thm option
-  val intless_cancel_numerals_proc: Proof.context -> cterm -> thm option
-  val intle_cancel_numerals_proc: Proof.context -> cterm -> thm option
-  val int_combine_numerals_proc: Proof.context -> cterm -> thm option
-  val int_combine_numerals_prod_proc: Proof.context -> cterm -> thm option
+  val inteq_cancel_numerals_proc: Simplifier.proc
+  val intless_cancel_numerals_proc: Simplifier.proc
+  val intle_cancel_numerals_proc: Simplifier.proc
+  val int_combine_numerals_proc: Simplifier.proc
+  val int_combine_numerals_prod_proc: Simplifier.proc
 end
 
 structure Int_Numeral_Simprocs: INT_NUMERAL_SIMPROCS =

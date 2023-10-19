@@ -557,7 +557,7 @@ ML \<open>
 
 signature LIST_TO_SET_COMPREHENSION =
 sig
-  val simproc : Proof.context -> cterm -> thm option
+  val simproc : Simplifier.proc
 end
 
 structure List_to_Set_Comprehension : LIST_TO_SET_COMPREHENSION =

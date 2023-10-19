@@ -27,7 +27,7 @@ end;
 
 signature CANCEL_DIV_MOD =
 sig
-  val proc: Proof.context -> cterm -> thm option
+  val proc: Simplifier.proc
 end;
 
 

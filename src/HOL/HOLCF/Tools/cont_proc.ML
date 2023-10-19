@@ -8,7 +8,7 @@ sig
   val cont_thms: term -> thm list
   val all_cont_thms: term -> thm list
   val cont_tac: Proof.context -> int -> tactic
-  val cont_proc: Proof.context -> cterm -> thm option
+  val cont_proc: Simplifier.proc
 end
 
 structure ContProc : CONT_PROC =

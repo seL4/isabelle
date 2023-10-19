@@ -7,8 +7,8 @@ natural numbers and numerals.
 
 signature MULTISET_SIMPROCS =
 sig
-  val subset_cancel_msets: Proof.context -> cterm -> thm option
-  val subseteq_cancel_msets: Proof.context -> cterm -> thm option
+  val subset_cancel_msets: Simplifier.proc
+  val subseteq_cancel_msets: Simplifier.proc
 end;
 
 structure Multiset_Simprocs : MULTISET_SIMPROCS =

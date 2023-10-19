@@ -38,14 +38,13 @@ sig
   val check_simproc: Proof.context -> xstring * Position.T -> string * simproc
   val the_simproc: Proof.context -> string -> simproc
   val make_simproc: Proof.context -> string ->
-    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
-  type 'a simproc_spec =
-    {passive: bool, lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option}
+    {lhss: term list, proc: morphism -> proc} -> simproc
+  type 'a simproc_spec = {passive: bool, lhss: 'a list, proc: morphism -> proc}
   val define_simproc: binding -> term simproc_spec -> local_theory -> simproc * local_theory
   val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> simproc * local_theory
   type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a}
   type simproc_setup_input = Input.source simproc_setup
-  type simproc_setup_internal = (morphism -> Proof.context -> cterm -> thm option) simproc_setup
+  type simproc_setup_internal = (morphism -> proc) simproc_setup
   val simproc_setup_parser: Input.source simproc_setup parser
   val simproc_setup_ml: Input.source simproc_setup -> ML_Lex.token Antiquote.antiquote list
   val simproc_setup: simproc_setup_internal -> simproc
@@ -140,7 +139,7 @@ fun make_simproc ctxt name {lhss, proc} =
 type 'a simproc_spec =
  {passive: bool,
   lhss: 'a list,
-  proc: morphism -> Proof.context -> cterm -> thm option};
+  proc: morphism -> proc};
 
 local
 
@@ -174,7 +173,7 @@ end;
 
 type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a};
 type simproc_setup_input = Input.source simproc_setup;
-type simproc_setup_internal = (morphism -> Proof.context -> cterm -> thm option) simproc_setup;
+type simproc_setup_internal = (morphism -> proc) simproc_setup;
 
 val simproc_setup_parser : simproc_setup_input parser =
   Scan.optional (Parse.$$$ "passive" >> K true) false --

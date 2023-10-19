@@ -7,9 +7,9 @@ Simproc for rewriting set comprehensions to pointfree expressions.
 
 signature SET_COMPREHENSION_POINTFREE =
 sig
-  val base_simproc : Proof.context -> cterm -> thm option
-  val code_simproc : Proof.context -> cterm -> thm option
-  val simproc : Proof.context -> cterm -> thm option
+  val base_simproc : Simplifier.proc
+  val code_simproc : Simplifier.proc
+  val simproc : Simplifier.proc
 end
 
 structure Set_Comprehension_Pointfree : SET_COMPREHENSION_POINTFREE =

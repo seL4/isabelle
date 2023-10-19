@@ -17,24 +17,24 @@ and d = gcd(m,m') and n=m/d and n'=m'/d.
 signature NUMERAL_SIMPROCS =
 sig
   val trans_tac: Proof.context -> thm option -> tactic
-  val assoc_fold: Proof.context -> cterm -> thm option
-  val combine_numerals: Proof.context -> cterm -> thm option
-  val eq_cancel_numerals: Proof.context -> cterm -> thm option
-  val less_cancel_numerals: Proof.context -> cterm -> thm option
-  val le_cancel_numerals: Proof.context -> cterm -> thm option
-  val eq_cancel_factor: Proof.context -> cterm -> thm option
-  val le_cancel_factor: Proof.context -> cterm -> thm option
-  val less_cancel_factor: Proof.context -> cterm -> thm option
-  val div_cancel_factor: Proof.context -> cterm -> thm option
-  val mod_cancel_factor: Proof.context -> cterm -> thm option
-  val dvd_cancel_factor: Proof.context -> cterm -> thm option
-  val divide_cancel_factor: Proof.context -> cterm -> thm option
-  val eq_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val less_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val le_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val div_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val divide_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val field_combine_numerals: Proof.context -> cterm -> thm option
+  val assoc_fold: Simplifier.proc
+  val combine_numerals: Simplifier.proc
+  val eq_cancel_numerals: Simplifier.proc
+  val less_cancel_numerals: Simplifier.proc
+  val le_cancel_numerals: Simplifier.proc
+  val eq_cancel_factor: Simplifier.proc
+  val le_cancel_factor: Simplifier.proc
+  val less_cancel_factor: Simplifier.proc
+  val div_cancel_factor: Simplifier.proc
+  val mod_cancel_factor: Simplifier.proc
+  val dvd_cancel_factor: Simplifier.proc
+  val divide_cancel_factor: Simplifier.proc
+  val eq_cancel_numeral_factor: Simplifier.proc
+  val less_cancel_numeral_factor: Simplifier.proc
+  val le_cancel_numeral_factor: Simplifier.proc
+  val div_cancel_numeral_factor: Simplifier.proc
+  val divide_cancel_numeral_factor: Simplifier.proc
+  val field_combine_numerals: Simplifier.proc
   val field_divide_cancel_numeral_factor: simproc
   val num_ss: simpset
   val field_comp_conv: Proof.context -> conv

@@ -1648,7 +1648,7 @@ ML \<open>
 signature REORIENT_PROC =
 sig
   val add : (term -> bool) -> theory -> theory
-  val proc : Proof.context -> cterm -> thm option
+  val proc : Simplifier.proc
 end;
 
 structure Reorient_Proc : REORIENT_PROC =

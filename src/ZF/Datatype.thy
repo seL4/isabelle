@@ -63,7 +63,7 @@ structure CoData_Package =
 structure Data_Free:
 sig
   val trace: bool Config.T
-  val proc: Proof.context -> cterm -> thm option
+  val proc: Simplifier.proc
 end =
 struct
 

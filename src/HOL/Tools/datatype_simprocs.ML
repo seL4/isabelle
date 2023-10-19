@@ -6,7 +6,7 @@ either side is a proper subterm of the other.
 *)
 
 signature DATATYPE_SIMPROCS = sig
-  val no_proper_subterm_simproc : Proof.context -> cterm -> thm option
+  val no_proper_subterm_simproc : Simplifier.proc
 end
 
 structure Datatype_Simprocs : DATATYPE_SIMPROCS = struct

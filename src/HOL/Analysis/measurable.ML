@@ -22,7 +22,7 @@ sig
 
   val measurable_tac : Proof.context -> thm list -> tactic
 
-  val simproc : Proof.context -> cterm -> thm option
+  val simproc : Simplifier.proc
 
   val add_preprocessor : string -> preprocessor -> Context.generic -> Context.generic
   val del_preprocessor : string -> Context.generic -> Context.generic

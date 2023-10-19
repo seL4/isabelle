@@ -93,7 +93,7 @@ signature FAST_LIN_ARITH =
 sig
   val prems_lin_arith_tac: Proof.context -> int -> tactic
   val lin_arith_tac: Proof.context -> int -> tactic
-  val lin_arith_simproc: Proof.context -> cterm -> thm option
+  val lin_arith_simproc: Simplifier.proc
   val map_data:
     ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: simpset,

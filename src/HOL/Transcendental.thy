@@ -7352,9 +7352,9 @@ val sqrt : int option -> int -> int option
 val sqrt' : int option -> int -> int option
 val nth_root : int option -> int -> int -> int option
 val nth_root' : int option -> int -> int -> int option
-val sqrt_simproc : Proof.context -> cterm -> thm option
-val root_simproc : int * int -> Proof.context -> cterm -> thm option
-val powr_simproc : int * int -> Proof.context -> cterm -> thm option
+val sqrt_simproc : Simplifier.proc
+val root_simproc : int * int -> Simplifier.proc
+val powr_simproc : int * int -> Simplifier.proc
 
 end
 

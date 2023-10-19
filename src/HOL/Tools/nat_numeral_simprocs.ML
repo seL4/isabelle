@@ -5,21 +5,21 @@ Simprocs for nat numerals.
 
 signature NAT_NUMERAL_SIMPROCS =
 sig
-  val combine_numerals: Proof.context -> cterm -> thm option
-  val eq_cancel_numerals: Proof.context -> cterm -> thm option
-  val less_cancel_numerals: Proof.context -> cterm -> thm option
-  val le_cancel_numerals: Proof.context -> cterm -> thm option
-  val diff_cancel_numerals: Proof.context -> cterm -> thm option
-  val eq_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val less_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val le_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val div_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val dvd_cancel_numeral_factor: Proof.context -> cterm -> thm option
-  val eq_cancel_factor: Proof.context -> cterm -> thm option
-  val less_cancel_factor: Proof.context -> cterm -> thm option
-  val le_cancel_factor: Proof.context -> cterm -> thm option
-  val div_cancel_factor: Proof.context -> cterm -> thm option
-  val dvd_cancel_factor: Proof.context -> cterm -> thm option
+  val combine_numerals: Simplifier.proc
+  val eq_cancel_numerals: Simplifier.proc
+  val less_cancel_numerals: Simplifier.proc
+  val le_cancel_numerals: Simplifier.proc
+  val diff_cancel_numerals: Simplifier.proc
+  val eq_cancel_numeral_factor: Simplifier.proc
+  val less_cancel_numeral_factor: Simplifier.proc
+  val le_cancel_numeral_factor: Simplifier.proc
+  val div_cancel_numeral_factor: Simplifier.proc
+  val dvd_cancel_numeral_factor: Simplifier.proc
+  val eq_cancel_factor: Simplifier.proc
+  val less_cancel_factor: Simplifier.proc
+  val le_cancel_factor: Simplifier.proc
+  val div_cancel_factor: Simplifier.proc
+  val dvd_cancel_factor: Simplifier.proc
 end;
 
 structure Nat_Numeral_Simprocs : NAT_NUMERAL_SIMPROCS =

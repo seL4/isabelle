@@ -38,7 +38,7 @@ end;
 
 functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
   sig
-  val proc: Proof.context -> cterm -> thm option
+  val proc: Simplifier.proc
   end
 =
 struct

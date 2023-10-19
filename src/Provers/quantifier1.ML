@@ -65,12 +65,12 @@ end;
 
 signature QUANTIFIER1 =
 sig
-  val rearrange_all: Proof.context -> cterm -> thm option
-  val rearrange_All: Proof.context -> cterm -> thm option
-  val rearrange_Ball: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
-  val rearrange_Ex: Proof.context -> cterm -> thm option
-  val rearrange_Bex: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
-  val rearrange_Collect: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
+  val rearrange_all: Simplifier.proc
+  val rearrange_All: Simplifier.proc
+  val rearrange_Ball: (Proof.context -> tactic) -> Simplifier.proc
+  val rearrange_Ex: Simplifier.proc
+  val rearrange_Bex: (Proof.context -> tactic) -> Simplifier.proc
+  val rearrange_Collect: (Proof.context -> tactic) -> Simplifier.proc
 end;
 
 functor Quantifier1(Data: QUANTIFIER1_DATA): QUANTIFIER1 =

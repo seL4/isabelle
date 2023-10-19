@@ -7,9 +7,9 @@ Arithmetic simplification: cancellation of common terms
 signature ARITH_DATA =
 sig
   (*the main outcome*)
-  val nateq_cancel_numerals_proc: Proof.context -> cterm -> thm option
-  val natless_cancel_numerals_proc: Proof.context -> cterm -> thm option
-  val natdiff_cancel_numerals_proc: Proof.context -> cterm -> thm option
+  val nateq_cancel_numerals_proc: Simplifier.proc
+  val natless_cancel_numerals_proc: Simplifier.proc
+  val natdiff_cancel_numerals_proc: Simplifier.proc
   (*tools for use in similar applications*)
   val gen_trans_tac: Proof.context -> thm -> thm option -> tactic
   val prove_conv: string -> tactic list -> Proof.context -> thm list -> term * term -> thm option
