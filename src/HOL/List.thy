@@ -557,7 +557,7 @@ ML \<open>
 
 signature LIST_TO_SET_COMPREHENSION =
 sig
-  val simproc : Simplifier.proc
+  val proc: Simplifier.proc
 end
 
 structure List_to_Set_Comprehension : LIST_TO_SET_COMPREHENSION =
@@ -717,7 +717,7 @@ fun tac ctxt [] =
 
 in
 
-fun simproc ctxt redex =
+fun proc ctxt redex =
   let
     fun make_inner_eqs bound_vs Tis eqs t =
       (case dest_case ctxt t of
@@ -774,7 +774,7 @@ end
 \<close>
 
 simproc_setup list_to_set_comprehension ("set xs") =
-  \<open>K List_to_Set_Comprehension.simproc\<close>
+  \<open>K List_to_Set_Comprehension.proc\<close>
 
 code_datatype set coset
 hide_const (open) coset

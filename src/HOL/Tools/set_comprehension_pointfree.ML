@@ -7,9 +7,9 @@ Simproc for rewriting set comprehensions to pointfree expressions.
 
 signature SET_COMPREHENSION_POINTFREE =
 sig
-  val base_simproc : Simplifier.proc
-  val code_simproc : Simplifier.proc
-  val simproc : Simplifier.proc
+  val base_proc : Simplifier.proc
+  val code_proc : Simplifier.proc
+  val proc : Simplifier.proc
 end
 
 structure Set_Comprehension_Pointfree : SET_COMPREHENSION_POINTFREE =
@@ -484,7 +484,7 @@ fun conv ctxt t =
     Option.map (export o post o unfold o mk_thm) (rewrite_term t'')
   end;
 
-fun base_simproc ctxt redex =
+fun base_proc ctxt redex =
   let
     val set_compr = Thm.term_of redex
   in
@@ -500,7 +500,7 @@ fun instantiate_arg_cong ctxt pred =
     infer_instantiate ctxt [(f, Thm.cterm_of ctxt pred)] arg_cong
   end;
 
-fun simproc ctxt redex =
+fun proc ctxt redex =
   let
     val pred $ set_compr = Thm.term_of redex
     val arg_cong' = instantiate_arg_cong ctxt pred
@@ -509,14 +509,14 @@ fun simproc ctxt redex =
     |> Option.map (fn thm => thm RS arg_cong' RS @{thm eq_reflection})
   end;
 
-fun code_simproc ctxt redex =
+fun code_proc ctxt redex =
   let
     fun unfold_conv thms =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
         (empty_simpset ctxt addsimps thms)
     val prep_thm = unfold_conv @{thms eq_equal[symmetric]} redex
   in
-    case base_simproc ctxt (Thm.rhs_of prep_thm) of
+    case base_proc ctxt (Thm.rhs_of prep_thm) of
       SOME rewr_thm => SOME (transitive_thm OF [transitive_thm OF [prep_thm, rewr_thm],
         unfold_conv @{thms eq_equal} (Thm.rhs_of rewr_thm)])
     | NONE => NONE

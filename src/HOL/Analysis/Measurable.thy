@@ -67,7 +67,8 @@ attribute_setup measurable_cong = Measurable.cong_thm_attr
 method_setup\<^marker>\<open>tag important\<close> measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
   "measurability prover"
 
-simproc_setup\<^marker>\<open>tag important\<close> measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
+simproc_setup\<^marker>\<open>tag important\<close> measurable ("A \<in> sets M" | "f \<in> measurable M N") =
+  \<open>K Measurable.proc\<close>
 
 setup \<open>
   Global_Theory.add_thms_dynamic (\<^binding>\<open>measurable\<close>, Measurable.get_all)
