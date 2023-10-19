@@ -336,7 +336,7 @@ val _ =
     (Simplifier.simproc_setup_parser >> (fn arg =>
       Context.proof_map
         (ML_Context.expression (Input.pos_of (#proc arg))
-          (ML_Lex.read "Simplifier.simproc_setup_local " @ Simplifier.simproc_setup_ml arg))));
+          (ML_Lex.read "Simplifier.simproc_setup " @ Simplifier.simproc_setup_ml arg))));
 
 in end\<close>
 

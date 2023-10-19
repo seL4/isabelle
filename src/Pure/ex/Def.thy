@@ -66,7 +66,7 @@ fun get_def ctxt ct =
 (* simproc setup *)
 
 val _ =
-  Simplifier.simproc_setup_global
+  Simplifier.simproc_setup
     {name = \<^binding>\<open>expand_def\<close>, lhss = ["x::'a"], passive = false, proc = K get_def};
 
 

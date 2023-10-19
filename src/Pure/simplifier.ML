@@ -48,8 +48,7 @@ sig
   type simproc_setup_internal = (morphism -> Proof.context -> cterm -> thm option) simproc_setup
   val simproc_setup_parser: Input.source simproc_setup parser
   val simproc_setup_ml: Input.source simproc_setup -> ML_Lex.token Antiquote.antiquote list
-  val simproc_setup_local: simproc_setup_internal -> simproc
-  val simproc_setup_global: simproc_setup_internal -> simproc
+  val simproc_setup: simproc_setup_internal -> simproc
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
@@ -190,12 +189,8 @@ fun simproc_setup_ml ({name, lhss, passive, proc}: simproc_setup_input) =
      ", passive = " ^ Bool.toString passive ^
      ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}";
 
-fun simproc_setup_local ({name, lhss, passive, proc}: simproc_setup_internal) =
-  Theory.local_setup_result
-    (define_simproc_cmd name {lhss = lhss, passive = passive, proc = proc});
-
-fun simproc_setup_global ({name, lhss, passive, proc}: simproc_setup_internal) =
-  Named_Target.global_setup_result Raw_Simplifier.transform_simproc
+fun simproc_setup ({name, lhss, passive, proc}: simproc_setup_internal) =
+  Named_Target.setup_result Raw_Simplifier.transform_simproc
     (define_simproc_cmd name {lhss = lhss, passive = passive, proc = proc});
 
 

@@ -1116,7 +1116,7 @@ fun select_update_proc ctxt ct =
   end;
 
 val simproc =
-  Simplifier.simproc_setup_global
+  Simplifier.simproc_setup
    {name = \<^binding>\<open>select_update\<close>, lhss = ["x::'a::{}"], proc = K select_update_proc,
      passive = false};
 
@@ -1284,7 +1284,7 @@ fun upd_proc ctxt ct =
   end;
 
 val upd_simproc =
-  Simplifier.simproc_setup_global
+  Simplifier.simproc_setup
     {name = \<^binding>\<open>update\<close>, lhss = ["x::'a::{}"], proc = K upd_proc, passive = false};
 
 end;
@@ -1317,7 +1317,7 @@ fun eq_proc ctxt ct =
   | _ => NONE);
 
 val eq_simproc =
-  Simplifier.simproc_setup_global
+  Simplifier.simproc_setup
     {name = \<^binding>\<open>eq\<close>, lhss = ["r = s"], proc = K eq_proc, passive = false};
 
 
@@ -1396,7 +1396,7 @@ fun ex_sel_eq_proc ctxt ct =
   end;
 
 val ex_sel_eq_simproc =
-  Simplifier.simproc_setup_global
+  Simplifier.simproc_setup
     {name = \<^binding>\<open>ex_sel_eq\<close>, lhss = ["Ex t"], proc = K ex_sel_eq_proc, passive = true};
 
 

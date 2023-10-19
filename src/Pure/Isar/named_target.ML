@@ -16,9 +16,9 @@ sig
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
     theory -> 'b * theory
-  val global_setup: (local_theory -> local_theory) -> unit
-  val global_setup_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) -> 'b
-  val global_setup_result0: (local_theory -> 'a * local_theory) -> 'a
+  val setup: (local_theory -> local_theory) -> unit
+  val setup_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) -> 'b
+  val setup_result0: (local_theory -> 'a * local_theory) -> 'a
   val revoke_reinitializability: local_theory -> local_theory
   val exit_global_reinitialize: local_theory -> (theory -> local_theory) * theory
 end;
@@ -144,9 +144,10 @@ val theory_init = init [] "";
 fun theory_map g = theory_init #> g #> Local_Theory.exit_global;
 fun theory_map_result f g = theory_init #> g #> Local_Theory.exit_result_global f;
 
-val global_setup = Theory.setup o theory_map;
-fun global_setup_result f g = Theory.setup_result (theory_map_result f g);
-fun global_setup_result0 g = global_setup_result (K I) g;
+fun setup g = Context.>> (Context.mapping (theory_map g) g);
+fun setup_result f g =
+  Context.>>> (Context.mapping_result (theory_map_result f g) (g #>> f Morphism.identity));
+fun setup_result0 g = setup_result (K I) g;
 
 val revoke_reinitializability = (Data.map o Option.map o apsnd) (K false);
 
