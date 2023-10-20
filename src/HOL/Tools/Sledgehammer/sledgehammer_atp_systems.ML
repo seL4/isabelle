@@ -426,25 +426,25 @@ val new_vampire_config : atp_config =
   let val infinity = 1000 in
     (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing *)
     make_vampire_config new_vampire_basic_options 256
-    [(((infinity, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
-     (((infinity, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
-     (((infinity, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
-     (((infinity, false, false, 1024, meshN), (TF1, "poly_native", liftingN, false, ""))),
-     (((infinity, false, false,  256, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((infinity, false, false, 1024, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
-     (((infinity, false, false,  256, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
-     (((infinity, false, false, 2048, meshN), (TF1, "poly_native", combsN, false, ""))),
-     (((infinity, false, false,  256, meshN), (TX1, "poly_native_fool", liftingN, false, ""))),
-     (((infinity, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((infinity, false, false, 2048, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((infinity, false, false,   64, meshN), (TF1, "poly_native", combsN, false, ""))),
-     (((infinity, false, false,  256, meshN), (TH1_MINUS, "poly_native_higher", keep_lamsN, false, ""))),
-     (((infinity, false, false,  256, meshN), (TF0, "mono_native", combsN, false, ""))),
-     (((infinity, false, false,  256, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((infinity, false, false,   32, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((infinity, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((infinity, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
-     (((infinity, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
+    [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 1024, meshN), (TF1, "poly_native", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF1, "poly_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TX1, "poly_native_fool", liftingN, false, ""))),
+     (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   64, meshN), (TF1, "poly_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TH1_MINUS, "poly_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  256, meshN), (TF0, "mono_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   32, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
   end
 
 in
