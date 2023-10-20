@@ -27,8 +27,8 @@ FIXMES:
 
 signature NOMINAL_PERMEQ =
 sig
-  val perm_simproc_fun : simproc
-  val perm_simproc_app : simproc
+  val perm_fun_simproc : simproc
+  val perm_app_simproc : simproc
 
   val perm_simp_tac : Proof.context -> int -> tactic
   val perm_extend_simp_tac : Proof.context -> int -> tactic
@@ -85,7 +85,7 @@ fun NO_DEBUG _ (_,tac) = CHANGED tac;
 (* of applications; just adding this rule to the simplifier   *)
 (* would loop; it also needs careful tuning with the simproc  *)
 (* for functions to avoid further possibilities for looping   *)
-fun perm_simproc_app' ctxt ct =
+fun perm_app_proc ctxt ct =
   let
     val thy = Proof_Context.theory_of ctxt
     val redex = Thm.term_of ct
@@ -112,12 +112,10 @@ fun perm_simproc_app' ctxt ct =
       | _ => NONE
   end
 
-val perm_simproc_app =
-  Simplifier.make_simproc \<^context> "perm_simproc_app"
-   {lhss = [\<^term>\<open>Nominal.perm pi x\<close>], proc = K perm_simproc_app'}
+val perm_app_simproc = \<^simproc_setup>\<open>passive perm_app ("Nominal.perm pi x") = \<open>K perm_app_proc\<close>\<close>
 
 (* a simproc that deals with permutation instances in front of functions  *)
-fun perm_simproc_fun' ctxt ct =
+fun perm_fun_proc ctxt ct =
    let
      val redex = Thm.term_of ct
      fun applicable_fun t =
@@ -134,9 +132,7 @@ fun perm_simproc_fun' ctxt ct =
       | _ => NONE
    end
 
-val perm_simproc_fun =
-  Simplifier.make_simproc \<^context> "perm_simproc_fun"
-   {lhss = [\<^term>\<open>Nominal.perm pi x\<close>], proc = K perm_simproc_fun'}
+val perm_fun_simproc = \<^simproc_setup>\<open>passive perm_fun ("Nominal.perm pi x") = \<open>K perm_fun_proc\<close>\<close>
 
 (* function for simplyfying permutations          *)
 (* stac contains the simplifiation tactic that is *)
@@ -146,7 +142,7 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
     let
        val ctxt' = ctxt
          addsimps (maps (Proof_Context.get_thms ctxt) dyn_thms @ eqvt_thms)
-         addsimprocs [perm_simproc_fun, perm_simproc_app]
+         addsimprocs [perm_fun_simproc, perm_app_simproc]
          |> fold Simplifier.del_cong weak_congs
          |> fold Simplifier.add_cong strong_congs
     in
@@ -188,7 +184,7 @@ val eqvt_asm_full_simp_tac_i = eqvt_simp_tac_gen_i asm_full_simp_tac
 (* generating perm_aux'es for the outermost permutation and then un-   *)
 (* folding the definition                                              *)
 
-fun perm_compose_simproc' ctxt ct =
+fun perm_compose_proc ctxt ct =
   (case Thm.term_of ct of
      (Const (\<^const_name>\<open>Nominal.perm\<close>, Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>list\<close>,
        [Type (\<^type_name>\<open>Product_Type.prod\<close>, [T as Type (tname,_),_])]),_])) $ pi1 $ (Const (\<^const_name>\<open>Nominal.perm\<close>,
@@ -217,9 +213,7 @@ fun perm_compose_simproc' ctxt ct =
   | _ => NONE);
 
 val perm_compose_simproc =
-  Simplifier.make_simproc \<^context> "perm_compose"
-   {lhss = [\<^term>\<open>Nominal.perm pi1 (Nominal.perm pi2 t)\<close>],
-    proc = K perm_compose_simproc'}
+  \<^simproc_setup>\<open>passive perm_compose ("perm pi1 (perm pi2 t)") = \<open>K perm_compose_proc\<close>\<close>;
 
 fun perm_compose_tac ctxt i =
   ("analysing permutation compositions on the lhs",
