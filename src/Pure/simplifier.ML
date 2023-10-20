@@ -43,12 +43,9 @@ sig
     local_theory -> simproc * local_theory
   val define_simproc_cmd: {passive: bool, name: binding, lhss: string list, proc: morphism -> proc} ->
     local_theory -> simproc * local_theory
-  type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a}
-  type simproc_setup_input = Input.source simproc_setup
-  type simproc_setup_internal = (morphism -> proc) simproc_setup
-  val simproc_setup_parser: Input.source simproc_setup parser
-  val simproc_setup_ml: Input.source simproc_setup -> ML_Lex.token Antiquote.antiquote list
-  val simproc_setup: simproc_setup_internal -> simproc
+  val simproc_setup:
+    {passive: bool, name: binding, lhss: string list, proc: morphism -> proc} -> simproc
+  val simproc_setup_command: (local_theory -> local_theory) parser
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
@@ -167,18 +164,14 @@ end;
 
 (* implicit simproc_setup *)
 
-type 'a simproc_setup = {passive: bool, name: binding, lhss: string list, proc: 'a};
-type simproc_setup_input = Input.source simproc_setup;
-type simproc_setup_internal = (morphism -> proc) simproc_setup;
-
-val simproc_setup_parser : simproc_setup_input parser =
+val simproc_setup_parser =
   Scan.optional (Parse.$$$ "passive" >> K true) false --
   Parse.binding --
     (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")") --
     (Parse.$$$ "=" |-- Parse.ML_source)
   >> (fn (((a, b), c), d) => {passive = a, name = b, lhss = c, proc = d});
 
-fun simproc_setup_ml ({name, passive, lhss, proc}: simproc_setup_input) =
+fun simproc_setup_ml {name, passive, lhss, proc} =
   ML_Lex.read
     ("{passive = " ^ Bool.toString passive ^
      ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
@@ -188,6 +181,12 @@ fun simproc_setup_ml ({name, passive, lhss, proc}: simproc_setup_input) =
 fun simproc_setup args =
   Named_Target.setup_result Raw_Simplifier.transform_simproc
     (define_simproc_cmd args);
+
+val simproc_setup_command =
+  simproc_setup_parser >> (fn args =>
+    Context.proof_map
+      (ML_Context.expression (Input.pos_of (#proc args))
+        (ML_Lex.read "Simplifier.simproc_setup " @ simproc_setup_ml args)));
 
 
 

@@ -333,10 +333,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>simproc_setup\<close> "define simproc in ML"
-    (Simplifier.simproc_setup_parser >> (fn arg =>
-      Context.proof_map
-        (ML_Context.expression (Input.pos_of (#proc arg))
-          (ML_Lex.read "Simplifier.simproc_setup " @ Simplifier.simproc_setup_ml arg))));
+    Simplifier.simproc_setup_command;
 
 in end\<close>
 
