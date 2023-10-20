@@ -31,6 +31,15 @@ try. The HANDLER always runs as uninterruptible, but the EXPR uses the
 the current thread attributes (normally interruptible). Various examples
 occur in the Isabelle sources (.ML and .thy files).
 
+* ML antiquotation "simproc_setup" inlines an invocation of
+Simplifier.simproc_setup, using the same concrete syntax as the
+corresponding Isar command. This allows to introduce a new simproc
+conveniently within an ML module, and refer directly to its ML value.
+For example, the simproc "Record.eq" is defined in
+~~/src/HOL/Tools/record.ML as follows:
+
+  val eq_simproc = \<^simproc_setup>\<open>eq ("r = s") = \<open>K eq_proc\<close>\<close>;
+
 * Isabelle/ML explicitly rejects 'handle' with catch-all patterns.
 INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
 as last resort declare [[ML_catch_all]] within the theory context.

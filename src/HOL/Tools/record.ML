@@ -1115,10 +1115,7 @@ fun select_update_proc ctxt ct =
     | _ => NONE)
   end;
 
-val simproc =
-  Simplifier.simproc_setup
-   {passive = false, name = \<^binding>\<open>select_update\<close>, lhss = ["x::'a::{}"],
-     proc = K select_update_proc};
+val simproc = \<^simproc_setup>\<open>select_update ("x::'a::{}") = \<open>K select_update_proc\<close>\<close>
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
@@ -1283,9 +1280,7 @@ fun upd_proc ctxt ct =
     else NONE
   end;
 
-val upd_simproc =
-  Simplifier.simproc_setup
-    {passive = false, name = \<^binding>\<open>update\<close>, lhss = ["x::'a::{}"], proc = K upd_proc};
+val upd_simproc = \<^simproc_setup>\<open>update ("x::'a::{}") = \<open>K upd_proc\<close>\<close>
 
 end;
 
@@ -1316,9 +1311,7 @@ fun eq_proc ctxt ct =
           | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
   | _ => NONE);
 
-val eq_simproc =
-  Simplifier.simproc_setup
-    {passive = false, name = \<^binding>\<open>eq\<close>, lhss = ["r = s"], proc = K eq_proc};
+val eq_simproc = \<^simproc_setup>\<open>eq ("r = s") = \<open>K eq_proc\<close>\<close>;
 
 
 (* split_simproc *)
@@ -1395,9 +1388,7 @@ fun ex_sel_eq_proc ctxt ct =
     | _ => NONE)
   end;
 
-val ex_sel_eq_simproc =
-  Simplifier.simproc_setup
-    {passive = true, name = \<^binding>\<open>ex_sel_eq\<close>, lhss = ["Ex t"], proc = K ex_sel_eq_proc};
+val ex_sel_eq_simproc = \<^simproc_setup>\<open>passive ex_sel_eq ("Ex t") = \<open>K ex_sel_eq_proc\<close>\<close>;
 
 
 (* split_simp_tac *)

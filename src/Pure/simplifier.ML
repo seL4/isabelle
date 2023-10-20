@@ -41,9 +41,9 @@ sig
     {lhss: term list, proc: morphism -> proc} -> simproc
   val define_simproc: {passive: bool, name: binding, lhss: term list, proc: morphism -> proc} ->
     local_theory -> simproc * local_theory
-  val define_simproc_cmd: {passive: bool, name: binding, lhss: string list, proc: morphism -> proc} ->
-    local_theory -> simproc * local_theory
   val simproc_setup:
+    {passive: bool, name: binding, lhss: term list, proc: morphism -> proc} -> simproc
+  val simproc_setup_cmd:
     {passive: bool, name: binding, lhss: string list, proc: morphism -> proc} -> simproc
   val simproc_setup_command: (local_theory -> local_theory) parser
   val pretty_simpset: bool -> Proof.context -> Pretty.T
@@ -134,12 +134,10 @@ fun make_simproc ctxt name {lhss, proc} =
       {lhss = lhss', proc = Morphism.entity proc}
   end;
 
-local
-
-fun def_simproc prep {passive, name, lhss, proc} lthy =
+fun define_simproc {passive, name, lhss, proc} lthy =
   let
     val simproc0 =
-      make_simproc lthy (Local_Theory.full_name lthy name) {lhss = prep lthy lhss, proc = proc};
+      make_simproc lthy (Local_Theory.full_name lthy name) {lhss = lhss, proc = proc};
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of name}
       (fn phi => fn context =>
@@ -154,15 +152,16 @@ fun def_simproc prep {passive, name, lhss, proc} lthy =
     |> pair simproc0
   end;
 
-in
 
-val define_simproc = def_simproc Syntax.check_terms;
-val define_simproc_cmd = def_simproc Syntax.read_terms;
+(* simproc_setup with concrete syntax *)
 
-end;
+val simproc_setup =
+  Named_Target.setup_result Raw_Simplifier.transform_simproc o define_simproc;
 
-
-(* implicit simproc_setup *)
+fun simproc_setup_cmd {passive, name, lhss, proc} =
+  Named_Target.setup_result Raw_Simplifier.transform_simproc (fn lthy =>
+    lthy |> define_simproc
+      {passive = passive, name = name, lhss = Syntax.read_terms lthy lhss, proc = proc});
 
 val simproc_setup_parser =
   Scan.optional (Parse.$$$ "passive" >> K true) false --
@@ -171,22 +170,37 @@ val simproc_setup_parser =
     (Parse.$$$ "=" |-- Parse.ML_source)
   >> (fn (((a, b), c), d) => {passive = a, name = b, lhss = c, proc = d});
 
-fun simproc_setup_ml {name, passive, lhss, proc} =
-  ML_Lex.read
-    ("{passive = " ^ Bool.toString passive ^
-     ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
-     ", lhss = " ^ ML_Syntax.print_strings lhss ^
-     ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}";
+val _ = Theory.setup
+  (ML_Context.add_antiquotation_embedded \<^binding>\<open>simproc_setup\<close>
+    (fn _ => fn input => fn ctxt =>
+      let
+        val ml = ML_Lex.tokenize_no_range;
 
-fun simproc_setup args =
-  Named_Target.setup_result Raw_Simplifier.transform_simproc
-    (define_simproc_cmd args);
+        val {passive, name, lhss, proc} = input
+          |> Parse.read_embedded ctxt (Thy_Header.get_keywords' ctxt) simproc_setup_parser;
+        val lhss' = Syntax.read_terms ctxt lhss;
+
+        val (decl, ctxt') = ML_Context.read_antiquotes proc ctxt;
+        fun decl' ctxt'' =
+          let
+            val (ml_env, ml_body) = decl ctxt'';
+            val ml_body' =
+              ml "Simplifier.simproc_setup {passive = " @ ml (Bool.toString passive) @
+              ml ", name = " @ ml (ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name)) @
+              ml ", lhss = " @ ml (ML_Syntax.print_list ML_Syntax.print_term lhss') @
+              ml ", proc = (" @ ml_body @ ml ")}";
+          in (ml_env, ml_body') end;
+      in (decl', ctxt') end));
 
 val simproc_setup_command =
-  simproc_setup_parser >> (fn args =>
+  simproc_setup_parser >> (fn {passive, name, lhss, proc} =>
     Context.proof_map
-      (ML_Context.expression (Input.pos_of (#proc args))
-        (ML_Lex.read "Simplifier.simproc_setup " @ simproc_setup_ml args)));
+      (ML_Context.expression (Input.pos_of proc)
+        (ML_Lex.read
+          ("Simplifier.simproc_setup_cmd {passive = " ^ Bool.toString passive ^
+           ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
+           ", lhss = " ^ ML_Syntax.print_strings lhss ^
+           ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}")));
 
 
 
