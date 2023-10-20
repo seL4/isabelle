@@ -229,11 +229,11 @@ val ml_string = ml o ML_Syntax.print_string;
 fun ml_pair (x, y) = ml_parens (ml_commas [x, y]);
 
 fun type_antiquotation binding {function} =
-  ML_Context.add_antiquotation binding true
-    (fn range => fn src => fn ctxt =>
+  ML_Context.add_antiquotation_embedded binding
+    (fn range => fn input => fn ctxt =>
       let
-        val ((s, type_args), fn_body) = src
-          |> Parse.read_embedded_src ctxt keywords (parse_name_args -- parse_body function);
+        val ((s, type_args), fn_body) = input
+          |> Parse.read_embedded ctxt keywords (parse_name_args -- parse_body function);
         val pos = Input.pos_of s;
 
         val Type (c, Ts) =
@@ -264,11 +264,11 @@ fun type_antiquotation binding {function} =
       in (decl', ctxt2) end);
 
 fun const_antiquotation binding {pattern, function} =
-  ML_Context.add_antiquotation binding true
-    (fn range => fn src => fn ctxt =>
+  ML_Context.add_antiquotation_embedded binding
+    (fn range => fn input => fn ctxt =>
       let
-        val (((s, type_args), term_args), fn_body) = src
-          |> Parse.read_embedded_src ctxt keywords
+        val (((s, type_args), term_args), fn_body) = input
+          |> Parse.read_embedded ctxt keywords
               (parse_name_args -- parse_for_args -- parse_body function);
 
         val Const (c, T) =
@@ -400,13 +400,12 @@ end;
 (* special form for option type *)
 
 val _ = Theory.setup
-  (ML_Context.add_antiquotation \<^binding>\<open>if_none\<close> true
-    (fn _ => fn src => fn ctxt =>
+  (ML_Context.add_antiquotation_embedded \<^binding>\<open>if_none\<close>
+    (fn _ => fn input => fn ctxt =>
       let
-        val s = Token.read ctxt Parse.embedded_input src;
         val tokenize = ML_Lex.tokenize_no_range;
 
-        val (decl, ctxt') = ML_Context.read_antiquotes s ctxt;
+        val (decl, ctxt') = ML_Context.read_antiquotes input ctxt;
         fun decl' ctxt'' =
           let
             val (ml_env, ml_body) = decl ctxt'';

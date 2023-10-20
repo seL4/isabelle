@@ -11,8 +11,9 @@ sig
   val variant: string -> Proof.context -> string * Proof.context
   type decl = Proof.context -> ML_Lex.token list * ML_Lex.token list
   type decls = Proof.context -> (ML_Lex.token list * ML_Lex.token list) list
-  type antiquotation = Position.range -> Token.src -> Proof.context -> decl * Proof.context
-  val add_antiquotation: binding -> bool -> antiquotation -> theory -> theory
+  type 'a antiquotation = Position.range -> 'a -> Proof.context -> decl * Proof.context
+  val add_antiquotation: binding -> bool -> Token.src antiquotation -> theory -> theory
+  val add_antiquotation_embedded: binding -> Input.source antiquotation -> theory -> theory
   val print_antiquotations: bool -> Proof.context -> unit
   val expand_antiquotes: ML_Lex.token Antiquote.antiquote list ->
     Proof.context -> decl * Proof.context
@@ -62,12 +63,11 @@ type decl =
 
 type decls = Proof.context -> (ML_Lex.token list * ML_Lex.token list) list;
 
-type antiquotation =
-  Position.range -> Token.src -> Proof.context -> decl * Proof.context;
+type 'a antiquotation = Position.range -> 'a -> Proof.context -> decl * Proof.context;
 
 structure Antiquotations = Theory_Data
 (
-  type T = (bool * antiquotation) Name_Space.table;
+  type T = (bool * Token.src antiquotation) Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
   fun merge data : T = Name_Space.merge_tables data;
 );
@@ -80,6 +80,11 @@ fun check_antiquotation ctxt =
 fun add_antiquotation name embedded antiquotation thy =
   thy |> Antiquotations.map
     (Name_Space.define (Context.Theory thy) true (name, (embedded, antiquotation)) #> #2);
+
+fun add_antiquotation_embedded name antiquotation =
+  add_antiquotation name true
+    (fn range => fn src => fn ctxt =>
+      antiquotation range (Token.read ctxt Parse.embedded_input src) ctxt);
 
 fun print_antiquotations verbose ctxt =
   Pretty.big_list "ML antiquotations:"

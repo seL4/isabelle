@@ -70,10 +70,9 @@ end;
 (* ML macros *)
 
 fun special_form binding parse =
-  ML_Context.add_antiquotation binding true
-    (fn _ => fn src => fn ctxt =>
+  ML_Context.add_antiquotation_embedded binding
+    (fn _ => fn input => fn ctxt =>
       let
-        val input = Token.read ctxt Parse.embedded_input src;
         val tokenize = ML_Lex.tokenize_no_range;
         val tokenize_range = ML_Lex.tokenize_range (Input.range_of input);
         val eq = tokenize " = ";
@@ -97,12 +96,10 @@ fun special_form binding parse =
       in (decl', ctxt') end);
 
 fun conditional binding check =
-  ML_Context.add_antiquotation binding true
-    (fn _ => fn src => fn ctxt =>
-      let val s = Token.read ctxt Parse.embedded_input src in
-        if check ctxt then ML_Context.read_antiquotes s ctxt
-        else (K ([], []), ctxt)
-      end);
+  ML_Context.add_antiquotation_embedded binding
+    (fn _ => fn input => fn ctxt =>
+      if check ctxt then ML_Context.read_antiquotes input ctxt
+      else (K ([], []), ctxt));
 
 
 (* basic antiquotations *)
