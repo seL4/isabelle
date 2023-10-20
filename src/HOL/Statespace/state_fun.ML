@@ -54,9 +54,8 @@ fun isTrue (Const (\<^const_name>\<open>True\<close>, _)) = true
 in
 
 val lazy_conj_simproc =
-  Simplifier.make_simproc \<^context> "lazy_conj_simp"
-   {lhss = [\<^term>\<open>P & Q\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
+  \<^simproc_setup>\<open>passive lazy_conj_simp ("P & Q") =
+    \<open>fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (\<^const_name>\<open>HOL.conj\<close>,_) $ P $ Q =>
           let
@@ -75,7 +74,7 @@ val lazy_conj_simproc =
                 else SOME (conj_cong OF [P_P', Q_Q'])
               end
            end
-      | _ => NONE)};
+      | _ => NONE)\<close>\<close>;
 
 fun string_eq_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt
@@ -122,9 +121,8 @@ fun trace_data context =
 val _ = Theory.setup (Context.theory_map (Data.put (lookup_ss, ex_lookup_ss, false)));
 
 val lookup_simproc =
-  Simplifier.make_simproc \<^context> "lookup_simp"
-   {lhss = [\<^term>\<open>lookup d n (update d' c m v s)\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
+  \<^simproc_setup>\<open>passive lookup_simp ("lookup d n (update d' c m v s)") =
+    \<open>fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of (Const (\<^const_name>\<open>StateFun.lookup\<close>, lT) $ destr $ n $
                    (s as Const (\<^const_name>\<open>StateFun.update\<close>, uT) $ _ $ _ $ _ $ _ $ _)) =>
         (let
@@ -166,8 +164,7 @@ val lookup_simproc =
           else SOME thm
         end
         handle Option.Option => NONE)
-      | _ => NONE)};
-
+      | _ => NONE)\<close>\<close>;
 
 local
 
@@ -182,9 +179,8 @@ val ss' =
 in
 
 val update_simproc =
-  Simplifier.make_simproc \<^context> "update_simp"
-   {lhss = [\<^term>\<open>update d c n v s\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
+  \<^simproc_setup>\<open>passive update_simp ("update d c n v s") =
+    \<open>fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (\<^const_name>\<open>StateFun.update\<close>, uT) $ _ $ _ $ _ $ _ $ _ =>
           let
@@ -271,7 +267,7 @@ val update_simproc =
                 in SOME (Thm.transitive eq1 eq2) end
             | _ => NONE)
           end
-      | _ => NONE)};
+      | _ => NONE)\<close>\<close>;
 
 end;
 
@@ -287,9 +283,8 @@ fun is_selector thy T sel =
 in
 
 val ex_lookup_eq_simproc =
-  Simplifier.make_simproc \<^context> "ex_lookup_eq_simproc"
-   {lhss = [\<^term>\<open>Ex t\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
+  \<^simproc_setup>\<open>passive ex_lookup_eq ("Ex t") =
+    \<open>fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
         val t = Thm.term_of ct;
@@ -336,7 +331,7 @@ val ex_lookup_eq_simproc =
               val thm' = if swap then swap_ex_eq OF [thm] else thm
             in SOME thm' end handle TERM _ => NONE)
         | _ => NONE)
-      end handle Option.Option => NONE};
+      end handle Option.Option => NONE\<close>\<close>;
 
 end;
 
