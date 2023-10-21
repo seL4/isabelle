@@ -437,23 +437,21 @@ val div_cancel_numeral_factor = DivCancelNumeralFactor.proc
 val divide_cancel_numeral_factor = DivideCancelNumeralFactor.proc
 
 val field_divide_cancel_numeral_factor =
-  Simplifier.make_simproc \<^context> "field_divide_cancel_numeral_factor"
-   {lhss =
-     [\<^term>\<open>((l::'a::field) * m) / n\<close>,
-      \<^term>\<open>(l::'a::field) / (m * n)\<close>,
-      \<^term>\<open>((numeral v)::'a::field) / (numeral w)\<close>,
-      \<^term>\<open>((numeral v)::'a::field) / (- numeral w)\<close>,
-      \<^term>\<open>((- numeral v)::'a::field) / (numeral w)\<close>,
-      \<^term>\<open>((- numeral v)::'a::field) / (- numeral w)\<close>],
-    proc = K DivideCancelNumeralFactor.proc}
+  \<^simproc_setup>\<open>passive field_divide_cancel_numeral_factor
+    ("((l::'a::field) * m) / n" | "(l::'a::field) / (m * n)" |
+      "((numeral v)::'a::field) / (numeral w)" |
+      "((numeral v)::'a::field) / (- numeral w)" |
+      "((- numeral v)::'a::field) / (numeral w)" |
+      "((- numeral v)::'a::field) / (- numeral w)") =
+    \<open>K DivideCancelNumeralFactor.proc\<close>\<close>;
+
+val field_eq_cancel_numeral_factor =
+  \<^simproc_setup>\<open>passive field_eq_cancel_numeral_factor
+    ("(l::'a::field) * m = n" | "(l::'a::field) = m * n") =
+    \<open>K EqCancelNumeralFactor.proc\<close>\<close>;
 
 val field_cancel_numeral_factors =
-  [Simplifier.make_simproc \<^context> "field_eq_cancel_numeral_factor"
-    {lhss =
-       [\<^term>\<open>(l::'a::field) * m = n\<close>,
-        \<^term>\<open>(l::'a::field) = m * n\<close>],
-      proc = K EqCancelNumeralFactor.proc},
-   field_divide_cancel_numeral_factor]
+  [field_divide_cancel_numeral_factor, field_eq_cancel_numeral_factor]
 
 
 (** Declarations for ExtractCommonTerm **)
@@ -599,7 +597,7 @@ fun prove_nz ctxt T t =
           (Thm.apply (Thm.apply eq t) z)))
   in Thm.equal_elim (Thm.symmetric th) TrueI end
 
-fun proc ctxt ct =
+fun add_frac_frac_proc ctxt ct =
   let
     val ((x,y),(w,z)) =
          (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
@@ -610,7 +608,7 @@ fun proc ctxt ct =
   in SOME (Thm.implies_elim (Thm.implies_elim th y_nz) z_nz) end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
-fun proc2 ctxt ct =
+fun add_frac_num_proc ctxt ct =
   let
     val (l,r) = Thm.dest_binop ct
     val T = Thm.ctyp_of_cterm l
@@ -636,7 +634,7 @@ fun is_number (Const(\<^const_name>\<open>Rings.divide\<close>,_)$a$b) = is_numb
 
 val is_number = is_number o Thm.term_of
 
-fun proc3 ctxt ct =
+fun ord_frac_proc ct =
   (case Thm.term_of ct of
     Const(\<^const_name>\<open>Orderings.less\<close>,_)$(Const(\<^const_name>\<open>Rings.divide\<close>,_)$_$_)$_ =>
       let
@@ -683,25 +681,22 @@ fun proc3 ctxt ct =
   | _ => NONE) handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
 
 val add_frac_frac_simproc =
-  Simplifier.make_simproc \<^context> "add_frac_frac_simproc"
-   {lhss = [\<^term>\<open>(x::'a::field) / y + (w::'a::field) / z\<close>],
-    proc = K proc}
+  \<^simproc_setup>\<open>passive add_frac_frac ("(x::'a::field) / y + (w::'a::field) / z") =
+    \<open>K add_frac_frac_proc\<close>\<close>
 
 val add_frac_num_simproc =
-  Simplifier.make_simproc \<^context> "add_frac_num_simproc"
-   {lhss = [\<^term>\<open>(x::'a::field) / y + z\<close>, \<^term>\<open>z + (x::'a::field) / y\<close>],
-    proc = K proc2}
+  \<^simproc_setup>\<open>passive add_frac_num ("(x::'a::field) / y + z" | "z + (x::'a::field) / y") =
+    \<open>K add_frac_num_proc\<close>\<close>
 
 val ord_frac_simproc =
-  Simplifier.make_simproc \<^context> "ord_frac_simproc"
-   {lhss =
-     [\<^term>\<open>(a::'a::{field,ord}) / b < c\<close>,
-      \<^term>\<open>(a::'a::{field,ord}) / b \<le> c\<close>,
-      \<^term>\<open>c < (a::'a::{field,ord}) / b\<close>,
-      \<^term>\<open>c \<le> (a::'a::{field,ord}) / b\<close>,
-      \<^term>\<open>c = (a::'a::{field,ord}) / b\<close>,
-      \<^term>\<open>(a::'a::{field, ord}) / b = c\<close>],
-    proc = K proc3}
+  \<^simproc_setup>\<open>passive ord_frac
+    ("(a::'a::{field,ord}) / b < c" |
+     "(a::'a::{field,ord}) / b \<le> c" |
+     "c < (a::'a::{field,ord}) / b" |
+     "c \<le> (a::'a::{field,ord}) / b" |
+     "c = (a::'a::{field,ord}) / b" |
+     "(a::'a::{field, ord}) / b = c") =
+    \<open>K (K ord_frac_proc)\<close>\<close>
 
 val field_comp_ss =
   simpset_of

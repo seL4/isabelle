@@ -171,9 +171,7 @@ fun mk_swap_rrule ctxt ct =
   | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
 val rearrange_eqs_simproc =
-  Simplifier.make_simproc \<^context> "rearrange_eqs"
-   {lhss = [\<^term>\<open>Pure.all (t :: 'a::{} \<Rightarrow> prop)\<close>],
-    proc = fn _ => fn ctxt => fn ct => mk_swap_rrule ctxt ct};
+  \<^simproc_setup>\<open>passive rearrange_eqs ("Pure.all (t :: 'a::{} \<Rightarrow> prop)") = \<open>K mk_swap_rrule\<close>\<close>;
 
 
 (* rotate k premises to the left by j, skipping over first j premises *)

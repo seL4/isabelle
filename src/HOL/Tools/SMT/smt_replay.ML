@@ -140,20 +140,22 @@ local
   end
   handle THM _ => NONE
 
+  val fast_int_arith_simproc =
+    \<^simproc_setup>\<open>passive fast_int_arith ("(m::int) < n" | "(m::int) \<le> n" | "(m::int) = n") =
+      \<open>K Lin_Arith.simproc\<close>\<close>
+
+  val antisym_le_simproc =
+    \<^simproc_setup>\<open>passive antisym_le ("(x::'a::order) \<le> y") = \<open>K prove_antisym_le\<close>\<close>
+
+  val antisym_less_simproc =
+    \<^simproc_setup>\<open>passive antisym_less ("\<not> (x::'a::linorder) < y") = \<open>K prove_antisym_less\<close>\<close>
+
   val basic_simpset =
     simpset_of (put_simpset HOL_ss \<^context>
       addsimps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
         arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
-      addsimprocs [\<^simproc>\<open>numeral_divmod\<close>,
-        Simplifier.make_simproc \<^context> "fast_int_arith"
-         {lhss = [\<^term>\<open>(m::int) < n\<close>, \<^term>\<open>(m::int) \<le> n\<close>, \<^term>\<open>(m::int) = n\<close>],
-          proc = K Lin_Arith.simproc},
-        Simplifier.make_simproc \<^context> "antisym_le"
-         {lhss = [\<^term>\<open>(x::'a::order) \<le> y\<close>],
-          proc = K prove_antisym_le},
-        Simplifier.make_simproc \<^context> "antisym_less"
-         {lhss = [\<^term>\<open>\<not> (x::'a::linorder) < y\<close>],
-          proc = K prove_antisym_less}])
+      addsimprocs [\<^simproc>\<open>numeral_divmod\<close>, fast_int_arith_simproc,
+        antisym_le_simproc, antisym_less_simproc])
 
   structure Simpset = Generic_Data
   (

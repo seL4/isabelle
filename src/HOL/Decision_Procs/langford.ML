@@ -127,7 +127,7 @@ fun is_eqx x eq =
 
 local
 
-fun proc ctxt ct =
+fun reduce_ex_proc ctxt ct =
   (case Thm.term_of ct of
     \<^Const_>\<open>Ex _ for \<open>Abs _\<close>\<close> =>
       let
@@ -168,9 +168,7 @@ fun proc ctxt ct =
 
 in
 
-val reduce_ex_simproc =
-  Simplifier.make_simproc \<^context> "reduce_ex_simproc"
-    {lhss = [\<^term>\<open>\<exists>x. P x\<close>], proc = K proc};
+val reduce_ex_simproc = \<^simproc_setup>\<open>passive reduce_ex ("\<exists>x. P x") = \<open>K reduce_ex_proc\<close>\<close>;
 
 end;
 
