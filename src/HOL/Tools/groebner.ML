@@ -779,9 +779,11 @@ val poly_eq_simproc =
       let val th = poly_eq_conv ct
       in if Thm.is_reflexive th then NONE else SOME th end
   in
-    Simplifier.cert_simproc (Thm.theory_of_thm idl_sub) "poly_eq_simproc"
-     {lhss = [Thm.term_of (Thm.lhs_of idl_sub)],
-      proc = Morphism.entity (fn _ => fn _ => proc)}
+    Simplifier.cert_simproc (Thm.theory_of_thm idl_sub)
+     {name = "poly_eq_simproc",
+      lhss = [Thm.term_of (Thm.lhs_of idl_sub)],
+      proc = Morphism.entity (fn _ => fn _ => proc),
+      identifier = []}
   end;
 
 val poly_eq_ss =

@@ -36,8 +36,8 @@ sig
     safe_solvers: string list}
   val dest_simps: simpset -> thm list
   type simproc
-  val eq_simproc: simproc * simproc -> bool
-  val cert_simproc: theory -> string -> {lhss: term list, proc: proc Morphism.entity} -> simproc
+  val cert_simproc: theory ->
+    {name: string, lhss: term list, proc: proc Morphism.entity, identifier: thm list} -> simproc
   val transform_simproc: morphism -> simproc -> simproc
   val trim_context_simproc: simproc -> simproc
   val simpset_of: Proof.context -> simpset
@@ -215,10 +215,12 @@ datatype simproc0 =
    {name: string,
     lhs: term,
     proc: proc Morphism.entity,
-    stamp: stamp};
+    id: stamp * thm list};
 
-fun eq_simproc0 (Simproc0 {stamp = stamp1, ...}, Simproc0 {stamp = stamp2, ...}) =
-  stamp1 = stamp2;
+fun eq_simproc_id ((s1: stamp, ths1: thm list), (s2, ths2)) =
+  s1 = s2 andalso eq_list Thm.eq_thm_prop (ths1, ths2);
+
+fun eq_simproc0 (Simproc0 a, Simproc0 b) = eq_simproc_id (#id a, #id b);
 
 
 (* solvers *)
@@ -291,8 +293,8 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
  {simps = Net.entries rules
     |> map (fn {name, thm, ...} => (name, thm)),
   procs = Net.entries procs
-    |> map (fn Simproc0 {name, lhs, stamp, ...} => ((name, lhs), stamp))
-    |> partition_eq (eq_snd op =)
+    |> map (fn Simproc0 {name, lhs, id, ...} => ((name, lhs), id))
+    |> partition_eq (eq_snd eq_simproc_id)
     |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps)),
   congs = congs |> fst |> Congtab.dest,
   weak_congs = congs |> snd,
@@ -719,26 +721,28 @@ datatype simproc =
     {name: string,
      lhss: term list,
      proc: proc Morphism.entity,
-     stamp: stamp};
+     id: stamp * thm list};
 
-fun eq_simproc (Simproc {stamp = stamp1, ...}, Simproc {stamp = stamp2, ...}) = stamp1 = stamp2;
+fun cert_simproc thy {name, lhss, proc, identifier} =
+  Simproc
+   {name = name,
+    lhss = map (Sign.cert_term thy) lhss,
+    proc = proc,
+    id = (stamp (), map (Thm.transfer thy) identifier)};
 
-fun cert_simproc thy name {lhss, proc} =
-  Simproc {name = name, lhss = map (Sign.cert_term thy) lhss, proc = proc, stamp = stamp ()};
-
-fun transform_simproc phi (Simproc {name, lhss, proc, stamp}) =
+fun transform_simproc phi (Simproc {name, lhss, proc, id = (stamp, identifier)}) =
   Simproc
    {name = name,
     lhss = map (Morphism.term phi) lhss,
     proc = Morphism.transform phi proc,
-    stamp = stamp};
+    id = (stamp, Morphism.fact phi identifier)};
 
-fun trim_context_simproc (Simproc {name, lhss, proc, stamp}) =
+fun trim_context_simproc (Simproc {name, lhss, proc, id = (stamp, identifier)}) =
   Simproc
    {name = name,
     lhss = lhss,
     proc = Morphism.entity_reset_context proc,
-    stamp = stamp};
+    id = (stamp, map Thm.trim_context identifier)};
 
 local
 
@@ -762,8 +766,8 @@ fun del_proc (proc as Simproc0 {name, lhs, ...}) ctxt =
     (cond_warning ctxt (fn () => "Simplification procedure " ^ quote name ^ " not in simpset");
       ctxt);
 
-fun prep_procs (Simproc {name, lhss, proc, stamp}) =
-  lhss |> map (fn lhs => Simproc0 {name = name, lhs = lhs, proc = proc, stamp = stamp});
+fun prep_procs (Simproc {name, lhss, proc, id}) =
+  lhss |> map (fn lhs => Simproc0 {name = name, lhs = lhs, proc = proc, id = id});
 
 in
 

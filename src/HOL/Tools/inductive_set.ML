@@ -38,8 +38,9 @@ struct
 val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
-  Simplifier.make_simproc \<^context> "strong_ind"
-   {lhss = [\<^term>\<open>x::'a::{}\<close>],
+  Simplifier.make_simproc \<^context>
+   {name = "strong_ind",
+    lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
         fun close p t f =
@@ -102,7 +103,8 @@ fun strong_ind_simproc tab =
               end
             else NONE
         | _ => NONE)
-      end};
+      end,
+    identifier = []};
 
 (* only eta contract terms occurring as arguments of functions satisfying p *)
 fun eta_contract p =
@@ -318,11 +320,13 @@ fun is_pred tab t =
 fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
-    Simplifier.make_simproc \<^context> "to_pred"
-      {lhss = [anyt],
+    Simplifier.make_simproc \<^context>
+      {name = "to_pred",
+       lhss = [anyt],
        proc = fn _ => fn ctxt => fn ct =>
         lookup_rule (Proof_Context.theory_of ctxt)
-          (Thm.prop_of #> Logic.dest_equals) rules' (Thm.term_of ct)}
+          (Thm.prop_of #> Logic.dest_equals) rules' (Thm.term_of ct),
+       identifier = []}
   end;
 
 fun to_pred_proc thy rules t =

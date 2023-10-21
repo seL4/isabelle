@@ -40,6 +40,22 @@ For example, the simproc "Record.eq" is defined in
 
   val eq_simproc = \<^simproc_setup>\<open>eq ("r = s") = \<open>K eq_proc\<close>\<close>;
 
+* Simplification procedures may be distinguished via characteristic
+theorems that are specified as 'identifier' in ML antiquotation
+"simproc_setup" (but not in the corresponding Isar command). This allows
+to work with several versions of the simproc, e.g. due to locale
+interpretations. For example:
+
+  locale test = fixes x y :: 'a assumes eq: "x = y"
+  begin
+
+  ML \<open>
+    \<^simproc_setup>\<open>foo (x) = \<open>fn _ => fn _ => fn _ => SOME @{thm eq}\<close>
+      identifier test_axioms\<close>
+  \<close>
+
+  end
+
 * Isabelle/ML explicitly rejects 'handle' with catch-all patterns.
 INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
 as last resort declare [[ML_catch_all]] within the theory context.

@@ -37,14 +37,16 @@ sig
   val cong_del: attribute
   val check_simproc: Proof.context -> xstring * Position.T -> string * simproc
   val the_simproc: Proof.context -> string -> simproc
-  val make_simproc: Proof.context -> string ->
-    {lhss: term list, proc: morphism -> proc} -> simproc
-  type ('a, 'b) simproc_spec = {passive: bool, name: binding, lhss: 'a list, proc: 'b}
-  val read_simproc_spec: Proof.context -> (string, 'a) simproc_spec -> (term, 'a) simproc_spec
-  val define_simproc: (term, morphism -> proc) simproc_spec -> local_theory ->
+  val make_simproc: Proof.context ->
+    {name: string, lhss: term list, proc: morphism -> proc, identifier: thm list} -> simproc
+  type ('a, 'b, 'c) simproc_spec =
+    {passive: bool, name: binding, lhss: 'a list, proc: 'b, identifier: 'c}
+  val read_simproc_spec: Proof.context ->
+    (string, 'b, 'c) simproc_spec -> (term, 'b, 'c) simproc_spec
+  val define_simproc: (term, morphism -> proc, thm list) simproc_spec -> local_theory ->
     simproc * local_theory
-  val simproc_setup: (term, morphism -> proc) simproc_spec -> simproc
-  val simproc_setup_cmd: (string, morphism -> proc) simproc_spec -> simproc
+  val simproc_setup: (term, morphism -> proc, thm list) simproc_spec -> simproc
+  val simproc_setup_cmd: (string, morphism -> proc, thm list) simproc_spec -> simproc
   val simproc_setup_command: (local_theory -> local_theory) parser
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
@@ -125,28 +127,30 @@ val _ = Theory.setup
 
 (* define simprocs *)
 
-fun make_simproc ctxt name {lhss, proc} =
+fun make_simproc ctxt {name, lhss, proc, identifier} =
   let
     val ctxt' = fold Proof_Context.augment lhss ctxt;
     val lhss' = Variable.export_terms ctxt' ctxt lhss;
   in
-    cert_simproc (Proof_Context.theory_of ctxt) name
-      {lhss = lhss', proc = Morphism.entity proc}
+    cert_simproc (Proof_Context.theory_of ctxt)
+      {name = name, lhss = lhss', proc = Morphism.entity proc, identifier = identifier}
   end;
 
-type ('a, 'b) simproc_spec = {passive: bool, name: binding, lhss: 'a list, proc: 'b};
+type ('a, 'b, 'c) simproc_spec =
+  {passive: bool, name: binding, lhss: 'a list, proc: 'b, identifier: 'c};
 
-fun read_simproc_spec ctxt {passive, name, lhss, proc} : (term, 'a) simproc_spec =
+fun read_simproc_spec ctxt {passive, name, lhss, proc, identifier} =
   let
     val lhss' =
       Syntax.read_terms ctxt lhss handle ERROR msg =>
         error (msg ^ Position.here_list (map Syntax.read_input_pos lhss));
-  in {passive = passive, name = name, lhss = lhss', proc = proc} end;
+  in {passive = passive, name = name, lhss = lhss', proc = proc, identifier = identifier} end;
 
-fun define_simproc {passive, name, lhss, proc} lthy =
+fun define_simproc {passive, name, lhss, proc, identifier} lthy =
   let
     val simproc0 =
-      make_simproc lthy (Local_Theory.full_name lthy name) {lhss = lhss, proc = proc};
+      make_simproc lthy
+        {name = Local_Theory.full_name lthy name, lhss = lhss, proc = proc, identifier = identifier};
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of name}
       (fn phi => fn context =>
@@ -171,12 +175,14 @@ fun simproc_setup_cmd args =
   Named_Target.setup_result Raw_Simplifier.transform_simproc
     (fn lthy => lthy |> define_simproc (read_simproc_spec lthy args));
 
-val simproc_setup_parser =
+
+val parse_simproc_spec =
   Scan.optional (Parse.$$$ "passive" >> K true) false --
   Parse.binding --
     (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")") --
-    (Parse.$$$ "=" |-- Parse.ML_source)
-  >> (fn (((a, b), c), d) => {passive = a, name = b, lhss = c, proc = d});
+    (Parse.$$$ "=" |-- Parse.ML_source) --
+    Scan.option ((Parse.position (Parse.$$$ "identifier") >> #2) -- Parse.thms1)
+  >> (fn ((((a, b), c), d), e) => {passive = a, name = b, lhss = c, proc = d, identifier = e});
 
 val _ = Theory.setup
   (ML_Context.add_antiquotation_embedded \<^binding>\<open>simproc_setup\<close>
@@ -184,31 +190,44 @@ val _ = Theory.setup
       let
         val ml = ML_Lex.tokenize_no_range;
 
-        val {passive, name, lhss, proc} = input
-          |> Parse.read_embedded ctxt (Thy_Header.get_keywords' ctxt) simproc_setup_parser
+        val {passive, name, lhss, proc, identifier} = input
+          |> Parse.read_embedded ctxt (Thy_Header.get_keywords' ctxt) parse_simproc_spec
           |> read_simproc_spec ctxt;
 
-        val (decl, ctxt') = ML_Context.read_antiquotes proc ctxt;
-        fun decl' ctxt'' =
+        val (decl1, ctxt1) = ML_Context.read_antiquotes proc ctxt;
+        val (decl2, ctxt2) =
+          (case identifier of
+            NONE => (K ("", "[]"), ctxt1)
+          | SOME (_, thms) => ML_Thms.thm_binding "thms" false (Attrib.eval_thms ctxt1 thms) ctxt1);
+
+        fun decl' ctxt' =
           let
-            val (ml_env, ml_body) = decl ctxt'';
+            val (ml_env1, ml_body1) = decl1 ctxt';
+            val (ml_env2, ml_body2) = decl2 ctxt' |> apply2 ml;
             val ml_body' =
               ml "Simplifier.simproc_setup {passive = " @ ml (Bool.toString passive) @
               ml ", name = " @ ml (ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name)) @
               ml ", lhss = " @ ml (ML_Syntax.print_list ML_Syntax.print_term lhss) @
-              ml ", proc = (" @ ml_body @ ml ")}";
-          in (ml_env, ml_body') end;
-      in (decl', ctxt') end));
+              ml ", proc = (" @ ml_body1 @ ml ")" @
+              ml ", identifier = (" @ ml_body2 @ ml ")}";
+          in (ml_env1 @ ml_env2, ml_body') end;
+      in (decl', ctxt2) end));
 
 val simproc_setup_command =
-  simproc_setup_parser >> (fn {passive, name, lhss, proc} =>
-    Context.proof_map
-      (ML_Context.expression (Input.pos_of proc)
-        (ML_Lex.read
-          ("Simplifier.simproc_setup_cmd {passive = " ^ Bool.toString passive ^
-           ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
-           ", lhss = " ^ ML_Syntax.print_strings lhss ^
-           ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read ")}")));
+  parse_simproc_spec >> (fn {passive, name, lhss, proc, identifier} =>
+    (case identifier of
+      NONE =>
+        Context.proof_map
+          (ML_Context.expression (Input.pos_of proc)
+            (ML_Lex.read
+              ("Simplifier.simproc_setup_cmd {passive = " ^ Bool.toString passive ^
+               ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
+               ", lhss = " ^ ML_Syntax.print_strings lhss ^
+               ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read "), identifier = []}"))
+    | SOME (pos, _) =>
+        error ("Bad command " ^ Markup.markup Markup.keyword1 "simproc_setup" ^
+          " with " ^ Markup.markup Markup.keyword2 "identifier" ^
+          ": this is only supported in\nML antiquotation \<^simproc_setup>\<open>...\<close>" ^ Position.here pos)));
 
 
 

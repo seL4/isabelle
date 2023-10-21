@@ -8,6 +8,8 @@ signature ML_THMS =
 sig
   val the_attributes: Proof.context -> int -> Token.src list
   val the_thmss: Proof.context -> thm list list
+  val thm_binding: string -> bool -> thm list -> Proof.context ->
+    (Proof.context -> string * string) * Proof.context
   val embedded_lemma: (Proof.context -> thm list * (term list * Proof.context)) parser
   val get_stored_thms: unit -> thm list
   val get_stored_thm: unit -> thm

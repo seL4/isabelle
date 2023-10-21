@@ -1322,8 +1322,9 @@ val eq_simproc = \<^simproc_setup>\<open>eq ("r = s") = \<open>K eq_proc\<close>
     P t = ~1: completely split
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
-  Simplifier.make_simproc \<^context> "record_split"
-   {lhss = [\<^term>\<open>x::'a::{}\<close>],
+  Simplifier.make_simproc \<^context>
+   {name = "record_split",
+    lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
@@ -1348,7 +1349,8 @@ fun split_simproc P =
                   else NONE
                 end)
           else NONE
-      | _ => NONE)};
+      | _ => NONE),
+    identifier = []};
 
 fun ex_sel_eq_proc ctxt ct =
   let
