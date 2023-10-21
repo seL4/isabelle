@@ -10,6 +10,7 @@ signature POSITION =
 sig
   eqtype T
   val ord: T ord
+  val make0: int -> int -> int -> string -> string -> string -> T
   val make: Thread_Position.T -> T
   val dest: T -> Thread_Position.T
   val line_of: T -> int option
@@ -77,6 +78,10 @@ struct
 (* datatype position *)
 
 datatype T = Pos of Thread_Position.T;
+
+fun make0 line offset end_offset label file id =
+  Pos {line = line, offset = offset, end_offset = end_offset,
+    props = {label = label, file = file, id = id}};
 
 val make = Pos;
 fun dest (Pos args) = args;
