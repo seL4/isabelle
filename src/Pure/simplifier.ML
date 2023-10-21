@@ -39,12 +39,10 @@ sig
   val the_simproc: Proof.context -> string -> simproc
   val make_simproc: Proof.context -> string ->
     {lhss: term list, proc: morphism -> proc} -> simproc
-  val define_simproc: {passive: bool, name: binding, lhss: term list, proc: morphism -> proc} ->
-    local_theory -> simproc * local_theory
-  val simproc_setup:
-    {passive: bool, name: binding, lhss: term list, proc: morphism -> proc} -> simproc
-  val simproc_setup_cmd:
-    {passive: bool, name: binding, lhss: string list, proc: morphism -> proc} -> simproc
+  type 'a simproc_spec = {passive: bool, name: binding, lhss: 'a list, proc: morphism -> proc}
+  val define_simproc: term simproc_spec -> local_theory -> simproc * local_theory
+  val simproc_setup: term simproc_spec -> simproc
+  val simproc_setup_cmd: string simproc_spec -> simproc
   val simproc_setup_command: (local_theory -> local_theory) parser
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
@@ -133,6 +131,8 @@ fun make_simproc ctxt name {lhss, proc} =
     cert_simproc (Proof_Context.theory_of ctxt) name
       {lhss = lhss', proc = Morphism.entity proc}
   end;
+
+type 'a simproc_spec = {passive: bool, name: binding, lhss: 'a list, proc: morphism -> proc};
 
 fun define_simproc {passive, name, lhss, proc} lthy =
   let
