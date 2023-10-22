@@ -217,10 +217,8 @@ datatype simproc0 =
     proc: proc Morphism.entity,
     id: stamp * thm list};
 
-fun eq_simproc_id ((s1: stamp, ths1: thm list), (s2, ths2)) =
+fun eq_simproc0 (Simproc0 {id = (s1, ths1), ...}, Simproc0 {id = (s2, ths2), ...}) =
   s1 = s2 andalso eq_list Thm.eq_thm_prop (ths1, ths2);
-
-fun eq_simproc0 (Simproc0 a, Simproc0 b) = eq_simproc_id (#id a, #id b);
 
 
 (* solvers *)
@@ -293,9 +291,8 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
  {simps = Net.entries rules
     |> map (fn {name, thm, ...} => (name, thm)),
   procs = Net.entries procs
-    |> map (fn Simproc0 {name, lhs, id, ...} => ((name, lhs), id))
-    |> partition_eq (eq_snd eq_simproc_id)
-    |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps)),
+    |> partition_eq eq_simproc0
+    |> map (fn ps as Simproc0 {name, ...} :: _ => (name, map (fn Simproc0 {lhs, ...} => lhs) ps)),
   congs = congs |> fst |> Congtab.dest,
   weak_congs = congs |> snd,
   loopers = map fst loop_tacs,
