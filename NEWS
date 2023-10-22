@@ -44,18 +44,7 @@ For example, the simproc "Record.eq" is defined in
 theorems that are specified as 'identifier' in ML antiquotation
 "simproc_setup" (but not in the corresponding Isar command). This allows
 to work with several versions of the simproc, e.g. due to locale
-interpretations. For example:
-
-  locale test = fixes x y :: 'a assumes eq: "x = y"
-  begin
-
-  ML \<open>
-    \<^simproc_setup>\<open>foo (x) =
-      \<open>fn phi => fn _ => fn _ => SOME (Morphism.thm phi @{thm eq})\<close>
-      identifier test_axioms\<close>
-  \<close>
-
-  end
+interpretations.
 
 * Isabelle/ML explicitly rejects 'handle' with catch-all patterns.
 INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
