@@ -50,7 +50,8 @@ interpretations. For example:
   begin
 
   ML \<open>
-    \<^simproc_setup>\<open>foo (x) = \<open>fn _ => fn _ => fn _ => SOME @{thm eq}\<close>
+    \<^simproc_setup>\<open>foo (x) =
+      \<open>fn phi => fn _ => fn _ => SOME (Morphism.thm phi @{thm eq})\<close>
       identifier test_axioms\<close>
   \<close>
 
