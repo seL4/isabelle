@@ -643,8 +643,7 @@ fun fnorm (ctxt, ct, t) =
   \<^instantiate>\<open>x = ct and y = \<open>Thm.cterm_of ctxt t\<close>
     in cterm \<open>x \<equiv> y\<close> for x y :: \<open>pexpr \<times> pexpr \<times> pexpr list\<close>\<close>;
 
-val (_, raw_fnorm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>fnorm\<close>, fnorm)));
+val (_, raw_fnorm_oracle) = Theory.setup_result (Thm.add_oracle (\<^binding>\<open>fnorm\<close>, fnorm));
 
 fun fnorm_oracle ctxt ct t = raw_fnorm_oracle (ctxt, ct, t);
 

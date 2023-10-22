@@ -782,53 +782,78 @@ declare [[simp_break "?x \<and> ?y"]]
 subsection \<open>Simplification procedures \label{sec:simproc}\<close>
 
 text \<open>
-  Simplification procedures are ML functions that produce proven rewrite rules
-  on demand. They are associated with higher-order patterns that approximate
-  the left-hand sides of equations. The Simplifier first matches the current
-  redex against one of the LHS patterns; if this succeeds, the corresponding
-  ML function is invoked, passing the Simplifier context and redex term. Thus
-  rules may be specifically fashioned for particular situations, resulting in
-  a more powerful mechanism than term rewriting by a fixed set of rules.
+  A \<^emph>\<open>simplification procedure\<close> or \<^emph>\<open>simproc\<close> is an ML function that produces
+  proven rewrite rules on demand. Simprocs are guarded by multiple \<^emph>\<open>patterns\<close>
+  for the left-hand sides of equations. The Simplifier first matches the
+  current redex against one of the LHS patterns; if this succeeds, the
+  corresponding ML function is invoked, passing the Simplifier context and
+  redex term. The function may choose to succeed with a specific result for
+  the redex, or fail.
 
-  Any successful result needs to be a (possibly conditional) rewrite rule \<open>t \<equiv>
-  u\<close> that is applicable to the current redex. The rule will be applied just as
-  any ordinary rewrite rule. It is expected to be already in \<^emph>\<open>internal form\<close>,
-  bypassing the automatic preprocessing of object-level equivalences.
+  The successful result of a simproc needs to be a (possibly conditional)
+  rewrite rule \<open>t \<equiv> u\<close> that is applicable to the current redex. The rule will
+  be applied just as any ordinary rewrite rule. It is expected to be already
+  in \<^emph>\<open>internal form\<close> of the Pure logic, bypassing the automatic preprocessing
+  of object-level equivalences.
 
   \begin{matharray}{rcl}
     @{command_def "simproc_setup"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{ML_antiquotation_def "simproc_setup"} & : & \<open>ML antiquotation\<close> \\
     simproc & : & \<open>attribute\<close> \\
   \end{matharray}
 
   \<^rail>\<open>
-    @@{command simproc_setup} @{syntax name} '(' (@{syntax term} + '|') ')' '='
-      @{syntax text};
-
+    @{syntax_def simproc_setup}: (@'passive')? @{syntax name}
+      patterns '=' @{syntax embedded}
+    ;
+    @{syntax_def simproc_setup_id}:
+      @{syntax simproc_setup} (@'identifier' @{syntax thms})?
+    ;
+    patterns: '(' (@{syntax term} + '|') ')'
+    ;
+    @@{command simproc_setup} @{syntax simproc_setup}
+    ;
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
   \<close>
 
-  \<^descr> @{command "simproc_setup"} defines a named simplification procedure that
-  is invoked by the Simplifier whenever any of the given term patterns match
-  the current redex. The implementation, which is provided as ML source text,
-  needs to be of type
-  \<^ML_type>\<open>morphism -> Proof.context -> cterm -> thm option\<close>, where the
-  \<^ML_type>\<open>cterm\<close> represents the current redex \<open>r\<close> and the result is supposed
-  to be some proven rewrite rule \<open>r \<equiv> r'\<close> (or a generalized version), or \<^ML>\<open>NONE\<close> to indicate failure. The \<^ML_type>\<open>Proof.context\<close> argument holds the
-  full context of the current Simplifier invocation. The \<^ML_type>\<open>morphism\<close>
-  informs about the difference of the original compilation context wrt.\ the
-  one of the actual application later on.
+  \<^descr> Command @{command "simproc_setup"} defines a named simplification
+  procedure that is invoked by the Simplifier whenever any of the given term
+  patterns match the current redex. The implementation, which is provided as
+  embedded ML source, needs to be of type
+  \<^ML_type>\<open>morphism -> Proof.context -> cterm -> thm option\<close>,
+  where the \<^ML_type>\<open>cterm\<close> represents the current redex \<open>r\<close> and the result
+  is supposed to be \<^ML>\<open>SOME\<close> proven rewrite rule \<open>r \<equiv> r'\<close> (or a
+  generalized version); \<^ML>\<open>NONE\<close> indicates failure. The
+  \<^ML_type>\<open>Proof.context\<close> argument holds the full context of the current
+  Simplifier invocation.
 
-  Morphisms are only relevant for simprocs that are defined within a local
-  target context, e.g.\ in a locale.
+  The \<^ML_type>\<open>morphism\<close> tells how to move from the abstract context of the
+  original definition into the concrete context of applications. This is only
+  relevant for simprocs that are defined ``\<^theory_text>\<open>in\<close>'' a local theory context
+  (e.g.\ @{command "locale"} with later @{command "interpretation"}).
 
-  \<^descr> \<open>simproc add: name\<close> and \<open>simproc del: name\<close> add or delete named simprocs
-  to the current Simplifier context. The default is to add a simproc. Note
-  that @{command "simproc_setup"} already adds the new simproc to the
-  subsequent context.
+  By default, the simproc is declared to the current Simplifier context and
+  thus \<^emph>\<open>active\<close>. The keyword \<^theory_text>\<open>passive\<close> avoids that: it merely defines a
+  simproc that can be activated in a different context later on.
+
+  \<^descr> ML antiquotation @{ML_antiquotation_ref simproc_setup} is like command
+  @{command simproc_setup}, with slightly extended syntax following @{syntax
+  simproc_setup_id}. It allows to introduce a new simproc conveniently within
+  an ML module, and refer directly to its ML value. For example, see various
+  uses in @{file "~~/src/HOL/Tools/record.ML"}.
+
+  The optional \<^theory_text>\<open>identifier\<close> specifies characteristic theorems to distinguish
+  simproc instances after application of morphisms, e.g.\ @{command locale}
+  with multiple @{command interpretation}. See also the minimal example below.
+
+  \<^descr> Attributes \<open>[simproc add: name]\<close> and \<open>[simproc del: name]\<close> add or delete
+  named simprocs to the current Simplifier context. The default is to add a
+  simproc. Note that @{command "simproc_setup"} already adds the new simproc
+  by default, unless it specified as \<^theory_text>\<open>passive\<close>.
 \<close>
 
 
-subsubsection \<open>Example\<close>
+subsubsection \<open>Examples\<close>
 
 text \<open>
   The following simplification procedure for @{thm [source = false,
@@ -847,7 +872,22 @@ simproc_setup unit ("x::unit") =
 
 text \<open>
   Since the Simplifier applies simplification procedures frequently, it is
-  important to make the failure check in ML reasonably fast.\<close>
+  important to make the failure check in ML reasonably fast.
+
+  \<^medskip> The subsequent example shows how to define a local simproc with extra
+  identifier to distinguish its instances after interpretation:
+\<close>
+
+locale loc = fixes x y :: 'a assumes eq: "x = y"
+begin
+
+ML \<open>
+  \<^simproc_setup>\<open>proc (x) =
+    \<open>fn phi => fn _ => fn _ => SOME (Morphism.thm phi @{thm eq})\<close>
+    identifier loc_axioms\<close>
+\<close>
+
+end
 
 
 subsection \<open>Configurable Simplifier strategies \label{sec:simp-strategies}\<close>

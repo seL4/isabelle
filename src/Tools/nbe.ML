@@ -78,9 +78,9 @@ local
 
 val get_triv_classes = map fst o Triv_Class_Data.get;
 
-val (_, triv_of_class) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>triv_of_class\<close>, fn (thy, T, class) =>
-    Thm.global_cterm_of thy (Logic.mk_of_class (T, class)))));
+val (_, triv_of_class) =
+  Theory.setup_result (Thm.add_oracle (\<^binding>\<open>triv_of_class\<close>,
+    fn (thy, T, class) => Thm.global_cterm_of thy (Logic.mk_of_class (T, class))));
 
 in
 
@@ -592,10 +592,10 @@ fun mk_equals ctxt lhs raw_rhs =
     val rhs = Thm.cterm_of ctxt raw_rhs;
   in Thm.mk_binop eq lhs rhs end;
 
-val (_, raw_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>normalization_by_evaluation\<close>,
+val (_, raw_oracle) =
+  Theory.setup_result (Thm.add_oracle (\<^binding>\<open>normalization_by_evaluation\<close>,
     fn (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct) =>
-      mk_equals ctxt ct (normalize_term nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
+      mk_equals ctxt ct (normalize_term nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps)));
 
 fun oracle nbe_program_idx_tab ctxt vs_ty_t deps ct =
   raw_oracle (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct);

@@ -40,14 +40,16 @@ fun mk_perm_bool ctxt pi th =
   th RS infer_instantiate ctxt [(#1 (dest_Var (Thm.term_of perm_boolI_pi)), pi)] perm_boolI;
 
 fun mk_perm_bool_simproc names =
-  Simplifier.make_simproc \<^context> "perm_bool"
-   {lhss = [\<^term>\<open>perm pi x\<close>],
+  Simplifier.make_simproc \<^context>
+   {name = "perm_bool",
+    lhss = [\<^term>\<open>perm pi x\<close>],
     proc = fn _ => fn _ => fn ct =>
       (case Thm.term_of ct of
         Const (\<^const_name>\<open>Nominal.perm\<close>, _) $ _ $ t =>
           if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
           then SOME perm_bool else NONE
-      | _ => NONE)};
+      | _ => NONE),
+    identifier = []};
 
 fun transp ([] :: _) = []
   | transp xs = map hd xs :: transp (map tl xs);
@@ -279,7 +281,7 @@ fun prove_strong_ind s avoids lthy =
       put_simpset HOL_basic_ss ctxt
         addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
         addsimprocs [mk_perm_bool_simproc [\<^const_name>\<open>Fun.id\<close>],
-          NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
+          NominalPermeq.perm_app_simproc, NominalPermeq.perm_fun_simproc];
     val fresh_bij = Global_Theory.get_thms thy "fresh_bij";
     val perm_bij = Global_Theory.get_thms thy "perm_bij";
     val fs_atoms = map (fn aT => Global_Theory.get_thm thy
@@ -467,7 +469,7 @@ fun prove_strong_ind s avoids lthy =
     fun cases_eqvt_simpset ctxt =
       put_simpset HOL_ss ctxt
         addsimps eqvt_thms @ swap_simps @ perm_pi_simp
-        addsimprocs [NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
+        addsimprocs [NominalPermeq.perm_app_simproc, NominalPermeq.perm_fun_simproc];
 
     fun simp_fresh_atm ctxt =
       Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps fresh_atm);
@@ -626,7 +628,7 @@ fun prove_eqvt s xatoms lthy =
     fun eqvt_simpset ctxt = put_simpset HOL_basic_ss ctxt addsimps
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names,
-       NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
+       NominalPermeq.perm_app_simproc, NominalPermeq.perm_fun_simproc];
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
     fun eqvt_tac ctxt pi (intr, vs) st =

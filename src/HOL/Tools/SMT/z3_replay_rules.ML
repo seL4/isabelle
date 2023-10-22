@@ -6,7 +6,7 @@ Custom rules for Z3 proof replay.
 
 signature Z3_REPLAY_RULES =
 sig
-  val apply: Proof.context -> cterm -> thm option
+  val apply: Simplifier.proc
 end;
 
 structure Z3_Replay_Rules: Z3_REPLAY_RULES =

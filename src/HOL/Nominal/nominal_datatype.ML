@@ -93,7 +93,7 @@ fun dest_permT (Type (\<^type_name>\<open>fun\<close>,
 fun permTs_of (Const (\<^const_name>\<open>Nominal.perm\<close>, T) $ t $ u) = fst (dest_permT T) :: permTs_of u
   | permTs_of _ = [];
 
-fun perm_simproc' ctxt ct =
+fun perm_proc ctxt ct =
   (case Thm.term_of ct of
     Const (\<^const_name>\<open>Nominal.perm\<close>, T) $ t $ (u as Const (\<^const_name>\<open>Nominal.perm\<close>, U) $ r $ s) =>
       let
@@ -115,9 +115,7 @@ fun perm_simproc' ctxt ct =
       end
   | _ => NONE);
 
-val perm_simproc =
-  Simplifier.make_simproc \<^context> "perm_simp"
-   {lhss = [\<^term>\<open>pi1 \<bullet> (pi2 \<bullet> x)\<close>], proc = K perm_simproc'};
+val perm_simproc = \<^simproc_setup>\<open>passive perm_simp ("pi1 \<bullet> (pi2 \<bullet> x)") = \<open>K perm_proc\<close>\<close>;
 
 fun projections ctxt rule =
   Project_Rule.projections ctxt rule
@@ -1562,7 +1560,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                  resolve_tac ctxt [rec_induct] 1 THEN REPEAT
                  (simp_tac (put_simpset HOL_basic_ss ctxt
                     addsimps flat perm_simps'
-                    addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
+                    addsimprocs [NominalPermeq.perm_app_simproc]) 1 THEN
                   (resolve_tac ctxt rec_intrs THEN_ALL_NEW
                    asm_simp_tac (put_simpset HOL_ss ctxt addsimps (fresh_bij @ perm_bij))) 1))))
         val ths' = map (fn ((P, Q), th) =>
@@ -1975,7 +1973,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                              [cut_facts_tac [th'] 1,
                               full_simp_tac (put_simpset HOL_ss ctxt
                                 addsimps rec_eqns @ pi1_pi2_eqs @ perm_swap
-                                addsimprocs [NominalPermeq.perm_simproc_app]) 1,
+                                addsimprocs [NominalPermeq.perm_app_simproc]) 1,
                               full_simp_tac (put_simpset HOL_ss context'' addsimps (calc_atm @
                                 fresh_prems' @ freshs2' @ perm_fresh_fresh)) 1])
                       end;
@@ -2008,7 +2006,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                         (fold_rev (mk_perm []) pi1 rhs', fold_rev (mk_perm []) pi2 lhs')))
                       (fn _ => simp_tac (put_simpset HOL_ss context''
                            addsimps pi1_pi2_eqs @ rec_eqns
-                           addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
+                           addsimprocs [NominalPermeq.perm_app_simproc]) 1 THEN
                          TRY (simp_tac (put_simpset HOL_ss context'' addsimps
                            (fresh_prems' @ freshs2' @ calc_atm @ perm_fresh_fresh)) 1));
 

@@ -44,7 +44,7 @@ end;
 
 signature CANCEL_NUMERALS =
 sig
-  val proc: Proof.context -> cterm -> thm option
+  val proc: Simplifier.proc
 end;
 
 functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA): CANCEL_NUMERALS =

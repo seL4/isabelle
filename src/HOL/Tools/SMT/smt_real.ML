@@ -116,10 +116,9 @@ end
 
 (* Z3 proof replay *)
 
-val real_linarith_proc =
-  Simplifier.make_simproc \<^context> "fast_real_arith"
-   {lhss = [\<^term>\<open>(m::real) < n\<close>, \<^term>\<open>(m::real) \<le> n\<close>, \<^term>\<open>(m::real) = n\<close>],
-    proc = K Lin_Arith.simproc}
+val real_linarith_simproc =
+  \<^simproc_setup>\<open>passive fast_real_arith ("(m::real) < n" | "(m::real) \<le> n" | "(m::real) = n") =
+    \<open>K Lin_Arith.simproc\<close>\<close>;
 
 
 (* setup *)
@@ -128,6 +127,6 @@ val _ = Theory.setup (Context.theory_map (
   SMTLIB_Interface.add_logic (10, smtlib_logic) #>
   setup_builtins #>
   Z3_Interface.add_mk_builtins smt_mk_builtins #>
-  SMT_Replay.add_simproc real_linarith_proc))
+  SMT_Replay.add_simproc real_linarith_simproc))
 
 end;

@@ -697,11 +697,11 @@ fun procedure t =
 
 end;
 
-val (_, oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>cooper\<close>,
+val (_, oracle) =
+  Theory.setup_result (Thm.add_oracle (\<^binding>\<open>cooper\<close>,
     (fn (ctxt, t) =>
       (Thm.cterm_of ctxt o Logic.mk_equals o apply2 HOLogic.mk_Trueprop)
-        (t, procedure t)))));
+        (t, procedure t))));
 
 val comp_ss =
   simpset_of (put_simpset HOL_ss \<^context> addsimps @{thms semiring_norm});

@@ -7,10 +7,10 @@ Cancelation simprocs declaration.
 
 signature CANCEL_SIMPROCS =
 sig
-  val eq_cancel: Proof.context -> cterm -> thm option
-  val less_cancel: Proof.context -> cterm -> thm option
-  val less_eq_cancel: Proof.context -> cterm -> thm option
-  val diff_cancel: Proof.context -> cterm -> thm option
+  val eq_cancel: Simplifier.proc
+  val less_cancel: Simplifier.proc
+  val less_eq_cancel: Simplifier.proc
+  val diff_cancel: Simplifier.proc
 end;
 
 structure Cancel_Simprocs : CANCEL_SIMPROCS =

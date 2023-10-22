@@ -123,7 +123,6 @@ sig
   val embedded_ml: ML_Lex.token Antiquote.antiquote list parser
   val read_antiq: Keyword.keywords -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
   val read_embedded: Proof.context -> Keyword.keywords -> 'a parser -> Input.source -> 'a
-  val read_embedded_src: Proof.context -> Keyword.keywords -> 'a parser -> Token.src -> 'a
 end;
 
 structure Parse: PARSE =
@@ -532,9 +531,5 @@ fun read_embedded ctxt keywords parse input =
       SOME res => res
     | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
   end;
-
-fun read_embedded_src ctxt keywords parse src =
-  Token.read ctxt embedded_input src
-  |> read_embedded ctxt keywords parse;
 
 end;

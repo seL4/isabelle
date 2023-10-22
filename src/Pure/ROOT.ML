@@ -277,6 +277,7 @@ ML_file "Isar/interpretation.ML";
 ML_file "Isar/class_declaration.ML";
 ML_file "Isar/target_context.ML";
 ML_file "Isar/experiment.ML";
+ML_file "ML/ml_thms.ML";
 ML_file "simplifier.ML";
 ML_file "Tools/plugin.ML";
 
@@ -327,7 +328,6 @@ ML_file "PIDE/document.ML";
 
 (*ML add-ons*)
 ML_file "ML/ml_pp.ML";
-ML_file "ML/ml_thms.ML";
 ML_file "ML/ml_instantiate.ML";
 ML_file "ML/ml_file.ML";
 ML_file "ML/ml_pid.ML";

@@ -358,6 +358,8 @@ named_theorems domain_deflation "theorems like deflation a ==> deflation (foo_ma
 ML_file \<open>Tools/Domain/domain_take_proofs.ML\<close>
 ML_file \<open>Tools/cont_consts.ML\<close>
 ML_file \<open>Tools/cont_proc.ML\<close>
+simproc_setup cont ("cont f") = \<open>K ContProc.cont_proc\<close>
+
 ML_file \<open>Tools/Domain/domain_constructors.ML\<close>
 ML_file \<open>Tools/Domain/domain_induction.ML\<close>
 

@@ -35,7 +35,7 @@ To quote Provers/Arith/cancel_numerals.ML:
 
 signature CANCEL =
 sig
-  val proc: Proof.context -> cterm -> thm option
+  val proc: Simplifier.proc
 end;
 
 functor Cancel_Fun(Data: CANCEL_NUMERALS_DATA): CANCEL =

@@ -337,10 +337,10 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 val read_prop = certify o Simple_Syntax.read_prop;
 
 fun store_thm name th =
-  Context.>>> (Context.map_theory_result (Global_Theory.store_thm (name, th)));
+  Theory.setup_result (Global_Theory.store_thm (name, th));
 
 fun store_thm_open name th =
-  Context.>>> (Context.map_theory_result (Global_Theory.store_thm_open (name, th)));
+  Theory.setup_result (Global_Theory.store_thm_open (name, th));
 
 fun store_standard_thm name th = store_thm name (export_without_context th);
 fun store_standard_thm_open name th = store_thm_open name (export_without_context_open th);

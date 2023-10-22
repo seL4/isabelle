@@ -1060,64 +1060,62 @@ in
   - If X is a more-selector we have to make sure that S is not in the updated
     subrecord.
 *)
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>select_update\<close>
-   {lhss = [\<^term>\<open>x::'a::{}\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val t = Thm.term_of ct;
-      in
-        (case t of
-          (sel as Const (s, Type (_, [_, rangeS]))) $
-              ((upd as Const (u, Type (_, [_, Type (_, [rT, _])]))) $ k $ r) =>
-            if is_selector thy s andalso is_some (get_updates thy u) then
-              let
-                val {sel_upd = {updates, ...}, extfields, ...} = Data.get thy;
 
-                fun mk_eq_terms ((upd as Const (u, Type(_, [kT, _]))) $ k $ r) =
-                      (case Symtab.lookup updates u of
-                        NONE => NONE
-                      | SOME u_name =>
-                          if u_name = s then
-                            (case mk_eq_terms r of
-                              NONE =>
-                                let
-                                  val rv = ("r", rT);
-                                  val rb = Bound 0;
-                                  val (kv, kb) = K_skeleton "k" kT (Bound 1) k;
-                                in SOME (upd $ kb $ rb, kb $ (sel $ rb), [kv, rv]) end
-                            | SOME (trm, trm', vars) =>
-                                let
-                                  val (kv, kb) = K_skeleton "k" kT (Bound (length vars)) k;
-                                in SOME (upd $ kb $ trm, kb $ trm', kv :: vars) end)
-                          else if has_field extfields u_name rangeS orelse
-                            has_field extfields s (domain_type kT) then NONE
-                          else
-                            (case mk_eq_terms r of
-                              SOME (trm, trm', vars) =>
-                                let val (kv, kb) = K_skeleton "k" kT (Bound (length vars)) k
-                                in SOME (upd $ kb $ trm, trm', kv :: vars) end
-                            | NONE =>
-                                let
-                                  val rv = ("r", rT);
-                                  val rb = Bound 0;
-                                  val (kv, kb) = K_skeleton "k" kT (Bound 1) k;
-                                in SOME (upd $ kb $ rb, sel $ rb, [kv, rv]) end))
-                  | mk_eq_terms _ = NONE;
-              in
-                (case mk_eq_terms (upd $ k $ r) of
-                  SOME (trm, trm', vars) =>
-                    SOME
-                      (prove_unfold_defs thy [] [] []
-                        (Logic.list_all (vars, Logic.mk_equals (sel $ trm, trm'))))
-                | NONE => NONE)
-              end
-            else NONE
-        | _ => NONE)
-      end}));
+fun select_update_proc ctxt ct =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val t = Thm.term_of ct;
+  in
+    (case t of
+      (sel as Const (s, Type (_, [_, rangeS]))) $
+          ((upd as Const (u, Type (_, [_, Type (_, [rT, _])]))) $ k $ r) =>
+        if is_selector thy s andalso is_some (get_updates thy u) then
+          let
+            val {sel_upd = {updates, ...}, extfields, ...} = Data.get thy;
 
-val simproc =
-  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("select_update", Position.none));
+            fun mk_eq_terms ((upd as Const (u, Type(_, [kT, _]))) $ k $ r) =
+                  (case Symtab.lookup updates u of
+                    NONE => NONE
+                  | SOME u_name =>
+                      if u_name = s then
+                        (case mk_eq_terms r of
+                          NONE =>
+                            let
+                              val rv = ("r", rT);
+                              val rb = Bound 0;
+                              val (kv, kb) = K_skeleton "k" kT (Bound 1) k;
+                            in SOME (upd $ kb $ rb, kb $ (sel $ rb), [kv, rv]) end
+                        | SOME (trm, trm', vars) =>
+                            let
+                              val (kv, kb) = K_skeleton "k" kT (Bound (length vars)) k;
+                            in SOME (upd $ kb $ trm, kb $ trm', kv :: vars) end)
+                      else if has_field extfields u_name rangeS orelse
+                        has_field extfields s (domain_type kT) then NONE
+                      else
+                        (case mk_eq_terms r of
+                          SOME (trm, trm', vars) =>
+                            let val (kv, kb) = K_skeleton "k" kT (Bound (length vars)) k
+                            in SOME (upd $ kb $ trm, trm', kv :: vars) end
+                        | NONE =>
+                            let
+                              val rv = ("r", rT);
+                              val rb = Bound 0;
+                              val (kv, kb) = K_skeleton "k" kT (Bound 1) k;
+                            in SOME (upd $ kb $ rb, sel $ rb, [kv, rv]) end))
+              | mk_eq_terms _ = NONE;
+          in
+            (case mk_eq_terms (upd $ k $ r) of
+              SOME (trm, trm', vars) =>
+                SOME
+                  (prove_unfold_defs thy [] [] []
+                    (Logic.list_all (vars, Logic.mk_equals (sel $ trm, trm'))))
+            | NONE => NONE)
+          end
+        else NONE
+    | _ => NONE)
+  end;
+
+val simproc = \<^simproc_setup>\<open>select_update ("x::'a::{}") = \<open>K select_update_proc\<close>\<close>
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
@@ -1164,127 +1162,125 @@ fun insert_unique_hd ord (x::xs) = x :: insert_unique ord x xs
   In both cases "more" updates complicate matters: for this reason
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>update\<close>
-   {lhss = [\<^term>\<open>x::'a::{}\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val t = Thm.term_of ct;
-        (*We can use more-updators with other updators as long
-          as none of the other updators go deeper than any more
-          updator. min here is the depth of the deepest other
-          updator, max the depth of the shallowest more updator.*)
-        fun include_depth (dep, true) (min, max) =
-              if min <= dep
-              then SOME (min, if dep <= max orelse max = ~1 then dep else max)
-              else NONE
-          | include_depth (dep, false) (min, max) =
-              if dep <= max orelse max = ~1
-              then SOME (if min <= dep then dep else min, max)
-              else NONE;
 
-        fun getupdseq (term as (upd as Const (u, _)) $ f $ tm) min max =
-              (case get_update_details u thy of
-                SOME (s, dep, ismore) =>
-                  (case include_depth (dep, ismore) (min, max) of
-                    SOME (min', max') =>
-                      let val (us, bs, _) = getupdseq tm min' max'
-                      in ((upd, s, f) :: us, bs, fastype_of term) end
-                  | NONE => ([], term, HOLogic.unitT))
+fun upd_proc ctxt ct =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val t = Thm.term_of ct;
+    (*We can use more-updators with other updators as long
+      as none of the other updators go deeper than any more
+      updator. min here is the depth of the deepest other
+      updator, max the depth of the shallowest more updator.*)
+    fun include_depth (dep, true) (min, max) =
+          if min <= dep
+          then SOME (min, if dep <= max orelse max = ~1 then dep else max)
+          else NONE
+      | include_depth (dep, false) (min, max) =
+          if dep <= max orelse max = ~1
+          then SOME (if min <= dep then dep else min, max)
+          else NONE;
+
+    fun getupdseq (term as (upd as Const (u, _)) $ f $ tm) min max =
+          (case get_update_details u thy of
+            SOME (s, dep, ismore) =>
+              (case include_depth (dep, ismore) (min, max) of
+                SOME (min', max') =>
+                  let val (us, bs, _) = getupdseq tm min' max'
+                  in ((upd, s, f) :: us, bs, fastype_of term) end
               | NONE => ([], term, HOLogic.unitT))
-          | getupdseq term _ _ = ([], term, HOLogic.unitT);
+          | NONE => ([], term, HOLogic.unitT))
+      | getupdseq term _ _ = ([], term, HOLogic.unitT);
 
-        val (upds, base, baseT) = getupdseq t 0 ~1;
-        val orig_upds = map_index (fn (i, (x, y, z)) => (x, y, z, i)) upds
-        val upd_ord = rev_order o fast_string_ord o apply2 #2
-        val (upds, commuted) =
-          if not (null orig_upds) andalso Config.get ctxt sort_updates andalso not (sorted upd_ord orig_upds) then
-             (sort upd_ord orig_upds, true)
-          else
-             (orig_upds, false)
+    val (upds, base, baseT) = getupdseq t 0 ~1;
+    val orig_upds = map_index (fn (i, (x, y, z)) => (x, y, z, i)) upds
+    val upd_ord = rev_order o fast_string_ord o apply2 #2
+    val (upds, commuted) =
+      if not (null orig_upds) andalso Config.get ctxt sort_updates andalso not (sorted upd_ord orig_upds) then
+         (sort upd_ord orig_upds, true)
+      else
+         (orig_upds, false)
 
-        fun is_upd_noop s (Abs (n, T, Const (s', T') $ tm')) tm =
-              if s = s' andalso null (loose_bnos tm')
-                andalso subst_bound (HOLogic.unit, tm') = tm
-              then (true, Abs (n, T, Const (s', T') $ Bound 1))
-              else (false, HOLogic.unit)
-          | is_upd_noop _ _ _ = (false, HOLogic.unit);
+    fun is_upd_noop s (Abs (n, T, Const (s', T') $ tm')) tm =
+          if s = s' andalso null (loose_bnos tm')
+            andalso subst_bound (HOLogic.unit, tm') = tm
+          then (true, Abs (n, T, Const (s', T') $ Bound 1))
+          else (false, HOLogic.unit)
+      | is_upd_noop _ _ _ = (false, HOLogic.unit);
 
-        fun get_noop_simps (upd as Const _) (Abs (_, _, (acc as Const _) $ _)) =
-          let
-            val ss = get_sel_upd_defs thy;
-            val uathm = get_upd_acc_cong_thm upd acc thy ss;
-          in
-           [Drule.export_without_context (uathm RS updacc_noopE),
-            Drule.export_without_context (uathm RS updacc_noop_compE)]
-          end;
-
-        (*If f is constant then (f o g) = f.  We know that K_skeleton
-          only returns constant abstractions thus when we see an
-          abstraction we can discard inner updates.*)
-        fun add_upd (f as Abs _) _ = [f]
-          | add_upd f fs = (f :: fs);
-
-        (*mk_updterm returns
-          (orig-term-skeleton-update list , simplified-skeleton,
-            variables, duplicate-updates, simp-flag, noop-simps)
-
-          where duplicate-updates is a table used to pass upward
-          the list of update functions which can be composed
-          into an update above them, simp-flag indicates whether
-          any simplification was achieved, and noop-simps are
-          used for eliminating case (2) defined above*)
-        fun mk_updterm ((upd as Const (u, T), s, f, i) :: upds) above term =
-              let
-                val (lhs_upds, rhs, vars, dups, simp, noops) =
-                  mk_updterm upds (Symtab.update (u, ()) above) term;
-                val (fvar, skelf) =
-                  K_skeleton (Long_Name.base_name s) (domain_type T) (Bound (length vars)) f;
-                val (isnoop, skelf') = is_upd_noop s f term;
-                val funT = domain_type T;
-                fun mk_comp_local (f, f') =
-                  Const (\<^const_name>\<open>Fun.comp\<close>, funT --> funT --> funT) $ f $ f';
-              in
-                if isnoop then
-                  ((upd $ skelf', i)::lhs_upds, rhs, vars,
-                    Symtab.update (u, []) dups, true,
-                    if Symtab.defined noops u then noops
-                    else Symtab.update (u, get_noop_simps upd skelf') noops)
-                else if Symtab.defined above u then
-                  ((upd $ skelf, i)::lhs_upds, rhs, fvar :: vars,
-                    Symtab.map_default (u, []) (add_upd skelf) dups,
-                    true, noops)
-                else
-                  (case Symtab.lookup dups u of
-                    SOME fs =>
-                     ((upd $ skelf, i)::lhs_upds,
-                      upd $ foldr1 mk_comp_local (add_upd skelf fs) $ rhs,
-                      fvar :: vars, dups, true, noops)
-                  | NONE => ((upd $ skelf, i)::lhs_upds, upd $ skelf $ rhs, fvar :: vars, dups, simp, noops))
-              end
-          | mk_updterm [] _ _ =
-              ([], Bound 0, [("r", baseT)], Symtab.empty, false, Symtab.empty)
-          | mk_updterm us _ _ = raise TERM ("mk_updterm match", map (fn (x, _, _, _) => x) us);
-
-        val (lhs_upds, rhs, vars, _, simp, noops) = mk_updterm upds Symtab.empty base;
-        val orig_order_lhs_upds = lhs_upds |> sort (rev_order o int_ord o apply2 snd)
-        val lhs = Bound 0 |> fold (fn (upd, _) => fn s => upd $ s) orig_order_lhs_upds
-        (* Note that the simplifier works bottom up. So all nested updates are already
-           normalised, e.g. sorted. 'commuted' thus means that the outermost update has to be
-           inserted at its place inside the sorted nested updates. The necessary swaps can be
-           expressed via 'upd_funs' by replicating the outer update at the designated position: *)
-        val upd_funs = (if commuted then insert_unique_hd upd_ord orig_upds else orig_upds) |> map #1
-        val noops' = maps snd (Symtab.dest noops);
+    fun get_noop_simps (upd as Const _) (Abs (_, _, (acc as Const _) $ _)) =
+      let
+        val ss = get_sel_upd_defs thy;
+        val uathm = get_upd_acc_cong_thm upd acc thy ss;
       in
-        if simp orelse commuted then
-          SOME
-            (prove_unfold_defs thy upd_funs noops' [simproc]
-              (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
-        else NONE
-      end}));
+       [Drule.export_without_context (uathm RS updacc_noopE),
+        Drule.export_without_context (uathm RS updacc_noop_compE)]
+      end;
 
-val upd_simproc =
-  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("update", Position.none));
+    (*If f is constant then (f o g) = f.  We know that K_skeleton
+      only returns constant abstractions thus when we see an
+      abstraction we can discard inner updates.*)
+    fun add_upd (f as Abs _) _ = [f]
+      | add_upd f fs = (f :: fs);
+
+    (*mk_updterm returns
+      (orig-term-skeleton-update list , simplified-skeleton,
+        variables, duplicate-updates, simp-flag, noop-simps)
+
+      where duplicate-updates is a table used to pass upward
+      the list of update functions which can be composed
+      into an update above them, simp-flag indicates whether
+      any simplification was achieved, and noop-simps are
+      used for eliminating case (2) defined above*)
+    fun mk_updterm ((upd as Const (u, T), s, f, i) :: upds) above term =
+          let
+            val (lhs_upds, rhs, vars, dups, simp, noops) =
+              mk_updterm upds (Symtab.update (u, ()) above) term;
+            val (fvar, skelf) =
+              K_skeleton (Long_Name.base_name s) (domain_type T) (Bound (length vars)) f;
+            val (isnoop, skelf') = is_upd_noop s f term;
+            val funT = domain_type T;
+            fun mk_comp_local (f, f') =
+              Const (\<^const_name>\<open>Fun.comp\<close>, funT --> funT --> funT) $ f $ f';
+          in
+            if isnoop then
+              ((upd $ skelf', i)::lhs_upds, rhs, vars,
+                Symtab.update (u, []) dups, true,
+                if Symtab.defined noops u then noops
+                else Symtab.update (u, get_noop_simps upd skelf') noops)
+            else if Symtab.defined above u then
+              ((upd $ skelf, i)::lhs_upds, rhs, fvar :: vars,
+                Symtab.map_default (u, []) (add_upd skelf) dups,
+                true, noops)
+            else
+              (case Symtab.lookup dups u of
+                SOME fs =>
+                 ((upd $ skelf, i)::lhs_upds,
+                  upd $ foldr1 mk_comp_local (add_upd skelf fs) $ rhs,
+                  fvar :: vars, dups, true, noops)
+              | NONE => ((upd $ skelf, i)::lhs_upds, upd $ skelf $ rhs, fvar :: vars, dups, simp, noops))
+          end
+      | mk_updterm [] _ _ =
+          ([], Bound 0, [("r", baseT)], Symtab.empty, false, Symtab.empty)
+      | mk_updterm us _ _ = raise TERM ("mk_updterm match", map (fn (x, _, _, _) => x) us);
+
+    val (lhs_upds, rhs, vars, _, simp, noops) = mk_updterm upds Symtab.empty base;
+    val orig_order_lhs_upds = lhs_upds |> sort (rev_order o int_ord o apply2 snd)
+    val lhs = Bound 0 |> fold (fn (upd, _) => fn s => upd $ s) orig_order_lhs_upds
+    (* Note that the simplifier works bottom up. So all nested updates are already
+       normalised, e.g. sorted. 'commuted' thus means that the outermost update has to be
+       inserted at its place inside the sorted nested updates. The necessary swaps can be
+       expressed via 'upd_funs' by replicating the outer update at the designated position: *)
+    val upd_funs = (if commuted then insert_unique_hd upd_ord orig_upds else orig_upds) |> map #1
+    val noops' = maps snd (Symtab.dest noops);
+  in
+    if simp orelse commuted then
+      SOME
+        (prove_unfold_defs thy upd_funs noops' [simproc]
+          (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
+    else NONE
+  end;
+
+val upd_simproc = \<^simproc_setup>\<open>update ("x::'a::{}") = \<open>K upd_proc\<close>\<close>
 
 end;
 
@@ -1304,21 +1300,18 @@ end;
  Complexity: #components * #updates     #updates
 *)
 
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>eq\<close>
-   {lhss = [\<^term>\<open>r = s\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
-      (case Thm.term_of ct of
-        \<^Const_>\<open>HOL.eq T for _ _\<close> =>
-          (case rec_id ~1 T of
-            "" => NONE
-          | name =>
-              (case get_equalities (Proof_Context.theory_of ctxt) name of
-                NONE => NONE
-              | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
-      | _ => NONE)}));
+fun eq_proc ctxt ct =
+  (case Thm.term_of ct of
+    \<^Const_>\<open>HOL.eq T for _ _\<close> =>
+      (case rec_id ~1 T of
+        "" => NONE
+      | name =>
+          (case get_equalities (Proof_Context.theory_of ctxt) name of
+            NONE => NONE
+          | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
+  | _ => NONE);
 
-val eq_simproc =
-  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("eq", Position.none));
+val eq_simproc = \<^simproc_setup>\<open>eq ("r = s") = \<open>K eq_proc\<close>\<close>;
 
 
 (* split_simproc *)
@@ -1329,8 +1322,9 @@ val eq_simproc =
     P t = ~1: completely split
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
-  Simplifier.make_simproc \<^context> "record_split"
-   {lhss = [\<^term>\<open>x::'a::{}\<close>],
+  Simplifier.make_simproc \<^context>
+   {name = "record_split",
+    lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
@@ -1355,52 +1349,48 @@ fun split_simproc P =
                   else NONE
                 end)
           else NONE
-      | _ => NONE)};
+      | _ => NONE),
+    identifier = []};
 
-val  _ = Theory.setup (Named_Target.theory_map (Simplifier.define_simproc \<^binding>\<open>ex_sel_eq\<close>
-   {lhss = [\<^term>\<open>Ex t\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val t = Thm.term_of ct;
-        fun mkeq (lr, T, (sel, Tsel), x) i =
-          if is_selector thy sel then
-            let
-              val x' =
-                if not (Term.is_dependent x)
-                then Free ("x" ^ string_of_int i, range_type Tsel)
-                else raise TERM ("", [x]);
-              val sel' = Const (sel, Tsel) $ Bound 0;
-              val (l, r) = if lr then (sel', x') else (x', sel');
-            in \<^Const>\<open>HOL.eq T for l r\<close> end
-          else raise TERM ("", [Const (sel, Tsel)]);
+fun ex_sel_eq_proc ctxt ct =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val t = Thm.term_of ct;
+    fun mkeq (lr, T, (sel, Tsel), x) i =
+      if is_selector thy sel then
+        let
+          val x' =
+            if not (Term.is_dependent x)
+            then Free ("x" ^ string_of_int i, range_type Tsel)
+            else raise TERM ("", [x]);
+          val sel' = Const (sel, Tsel) $ Bound 0;
+          val (l, r) = if lr then (sel', x') else (x', sel');
+        in \<^Const>\<open>HOL.eq T for l r\<close> end
+      else raise TERM ("", [Const (sel, Tsel)]);
 
-        fun dest_sel_eq (\<^Const_>\<open>HOL.eq T\<close> $ (Const (sel, Tsel) $ Bound 0) $ X) =
-              (true, T, (sel, Tsel), X)
-          | dest_sel_eq (\<^Const_>\<open>HOL.eq T\<close> $ X $ (Const (sel, Tsel) $ Bound 0)) =
-              (false, T, (sel, Tsel), X)
-          | dest_sel_eq _ = raise TERM ("", []);
-      in
-        (case t of
-          \<^Const_>\<open>Ex T for \<open>Abs (s, _, t)\<close>\<close> =>
-           (let
-             val eq = mkeq (dest_sel_eq t) 0;
-             val prop =
-               Logic.list_all ([("r", T)],
-                 Logic.mk_equals (\<^Const>\<open>Ex T for \<open>Abs (s, T, eq)\<close>\<close>, \<^Const>\<open>True\<close>));
-            in
-              SOME (Goal.prove_sorry_global thy [] [] prop
-                (fn {context = ctxt', ...} =>
-                  simp_tac (put_simpset (get_simpset thy) ctxt'
-                    addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
-            end handle TERM _ => NONE)
-        | _ => NONE)
-      end}));
+    fun dest_sel_eq (\<^Const_>\<open>HOL.eq T\<close> $ (Const (sel, Tsel) $ Bound 0) $ X) =
+          (true, T, (sel, Tsel), X)
+      | dest_sel_eq (\<^Const_>\<open>HOL.eq T\<close> $ X $ (Const (sel, Tsel) $ Bound 0)) =
+          (false, T, (sel, Tsel), X)
+      | dest_sel_eq _ = raise TERM ("", []);
+  in
+    (case t of
+      \<^Const_>\<open>Ex T for \<open>Abs (s, _, t)\<close>\<close> =>
+       (let
+         val eq = mkeq (dest_sel_eq t) 0;
+         val prop =
+           Logic.list_all ([("r", T)],
+             Logic.mk_equals (\<^Const>\<open>Ex T for \<open>Abs (s, T, eq)\<close>\<close>, \<^Const>\<open>True\<close>));
+        in
+          SOME (Goal.prove_sorry_global thy [] [] prop
+            (fn {context = ctxt', ...} =>
+              simp_tac (put_simpset (get_simpset thy) ctxt'
+                addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
+        end handle TERM _ => NONE)
+    | _ => NONE)
+  end;
 
-val ex_sel_eq_simproc =
-  #2 (Simplifier.check_simproc (Context.the_local_context ()) ("ex_sel_eq", Position.none));
-
-val _ = Theory.setup (map_theory_simpset (fn ctxt => ctxt delsimprocs [ex_sel_eq_simproc]));
+val ex_sel_eq_simproc = \<^simproc_setup>\<open>passive ex_sel_eq ("Ex t") = \<open>K ex_sel_eq_proc\<close>\<close>;
 
 
 (* split_simp_tac *)

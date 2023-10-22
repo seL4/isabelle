@@ -364,14 +364,16 @@ fun distinctFieldSolver names =
   mk_solver "distinctFieldSolver" (distinctTree_tac names);
 
 fun distinct_simproc names =
-  Simplifier.make_simproc \<^context> "DistinctTreeProver.distinct_simproc"
-   {lhss = [\<^term>\<open>x = y\<close>],
+  Simplifier.make_simproc \<^context>
+   {name = "DistinctTreeProver.distinct_simproc",
+    lhss = [\<^term>\<open>x = y\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (\<^const_name>\<open>HOL.eq\<close>, _) $ x $ y =>
           Option.map (fn neq => @{thm neq_to_eq_False} OF [neq])
             (get_fst_success (neq_x_y ctxt x y) names)
-      | _ => NONE)};
+      | _ => NONE),
+    identifier = []};
 
 end;
 

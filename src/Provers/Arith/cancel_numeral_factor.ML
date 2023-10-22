@@ -37,7 +37,7 @@ end;
 
 
 functor CancelNumeralFactorFun(Data: CANCEL_NUMERAL_FACTOR_DATA):
-  sig val proc: Proof.context -> cterm -> thm option end =
+  sig val proc: Simplifier.proc end =
 struct
 
 (*the simplification procedure*)

@@ -702,7 +702,26 @@ lemma le_add_iff2: "(i$*u $+ m $\<le> j$*u $+ n) \<longleftrightarrow> (m $\<le>
 
 ML_file \<open>int_arith.ML\<close>
 
-subsection \<open>examples:\<close>
+simproc_setup inteq_cancel_numerals
+  ("l $+ m = n" | "l = m $+ n" | "l $- m = n" | "l = m $- n" | "l $* m = n" | "l = m $* n") =
+  \<open>K Int_Numeral_Simprocs.inteq_cancel_numerals_proc\<close>
+
+simproc_setup intless_cancel_numerals
+  ("l $+ m $< n" | "l $< m $+ n" | "l $- m $< n" | "l $< m $- n" | "l $* m $< n" | "l $< m $* n") =
+  \<open>K Int_Numeral_Simprocs.intless_cancel_numerals_proc\<close>
+
+simproc_setup intle_cancel_numerals
+  ("l $+ m $\<le> n" | "l $\<le> m $+ n" | "l $- m $\<le> n" | "l $\<le> m $- n" | "l $* m $\<le> n" | "l $\<le> m $* n") =
+  \<open>K Int_Numeral_Simprocs.intle_cancel_numerals_proc\<close>
+
+simproc_setup int_combine_numerals ("i $+ j" | "i $- j") =
+  \<open>K Int_Numeral_Simprocs.int_combine_numerals_proc\<close>
+
+simproc_setup int_combine_numerals_prod ("i $* j") =
+  \<open>K Int_Numeral_Simprocs.int_combine_numerals_prod_proc\<close>
+
+
+subsubsection \<open>Examples\<close>
 
 text \<open>\<open>combine_numerals_prod\<close> (products of separate literals)\<close>
 lemma "#5 $* x $* #3 = y" apply simp oops

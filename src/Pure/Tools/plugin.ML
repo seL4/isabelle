@@ -57,13 +57,13 @@ fun define binding rhs thy =
     val thy' = Data.put data' thy;
   in (name, thy') end;
 
-fun define_setup binding rhs = Context.>>> (Context.map_theory_result (define binding rhs));
+fun define_setup binding rhs = Theory.setup_result (define binding rhs);
 
 
 (* immediate entries *)
 
 fun declare binding thy = define binding [] thy;
-fun declare_setup binding = Context.>>> (Context.map_theory_result (declare binding));
+fun declare_setup binding = Theory.setup_result (declare binding);
 
 
 (* filter *)

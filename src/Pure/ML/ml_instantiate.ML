@@ -231,11 +231,11 @@ fun parse_body range =
   (command_name "lemma" >> #2) -- parse_schematic -- ML_Thms.embedded_lemma >> prepare_lemma range;
 
 val _ = Theory.setup
-  (ML_Context.add_antiquotation \<^binding>\<open>instantiate\<close> true
-    (fn range => fn src => fn ctxt =>
+  (ML_Context.add_antiquotation_embedded \<^binding>\<open>instantiate\<close>
+    (fn range => fn input => fn ctxt =>
       let
-        val (insts, prepare_val) = src
-          |> Parse.read_embedded_src ctxt (make_keywords ctxt)
+        val (insts, prepare_val) = input
+          |> Parse.read_embedded ctxt (make_keywords ctxt)
               ((parse_insts --| Parse.$$$ "in") -- parse_body range);
 
         val (((ml_env, ml_body), decls), ctxt1) = ctxt

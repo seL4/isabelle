@@ -7,8 +7,8 @@ The Pure theory, with definitions of Isar commands and some lemmas.
 theory Pure
 keywords
     "!!" "!" "+" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
-    "\<subseteq>" "]" "binder" "by" "in" "infix" "infixl" "infixr" "is" "open" "output"
-    "overloaded" "pervasive" "premises" "structure" "unchecked"
+    "\<subseteq>" "]" "binder" "by" "identifier" "in" "infix" "infixl" "infixr" "is" "open" "output"
+    "overloaded" "passive" "pervasive" "premises" "structure" "unchecked"
   and "private" "qualified" :: before_command
   and "assumes" "constrains" "defines" "fixes" "for" "if" "includes" "notes" "rewrites"
     "obtains" "shows" "when" "where" "|" :: quasi_command
@@ -333,9 +333,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>simproc_setup\<close> "define simproc in ML"
-    (Parse.name_position --
-      (\<^keyword>\<open>(\<close> |-- Parse.enum1 "|" Parse.term --| \<^keyword>\<open>)\<close> --| \<^keyword>\<open>=\<close>) --
-      Parse.ML_source >> (fn ((a, b), c) => Isar_Cmd.simproc_setup a b c));
+    Simplifier.simproc_setup_command;
 
 in end\<close>
 

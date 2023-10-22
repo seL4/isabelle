@@ -7,7 +7,9 @@ Arithmetic simplification: cancellation of common terms
 signature ARITH_DATA =
 sig
   (*the main outcome*)
-  val nat_cancel: simproc list
+  val nateq_cancel_numerals_proc: Simplifier.proc
+  val natless_cancel_numerals_proc: Simplifier.proc
+  val natdiff_cancel_numerals_proc: Simplifier.proc
   (*tools for use in similar applications*)
   val gen_trans_tac: Proof.context -> thm -> thm option -> tactic
   val prove_conv: string -> tactic list -> Proof.context -> thm list -> term * term -> thm option
@@ -184,87 +186,8 @@ structure DiffCancelNumeralsData =
 
 structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);
 
-
-val nat_cancel =
- [Simplifier.make_simproc \<^context> "nateq_cancel_numerals"
-   {lhss =
-     [\<^term>\<open>l #+ m = n\<close>, \<^term>\<open>l = m #+ n\<close>,
-      \<^term>\<open>l #* m = n\<close>, \<^term>\<open>l = m #* n\<close>,
-      \<^term>\<open>succ(m) = n\<close>, \<^term>\<open>m = succ(n)\<close>],
-    proc = K EqCancelNumerals.proc},
-  Simplifier.make_simproc \<^context> "natless_cancel_numerals"
-   {lhss =
-     [\<^term>\<open>l #+ m < n\<close>, \<^term>\<open>l < m #+ n\<close>,
-      \<^term>\<open>l #* m < n\<close>, \<^term>\<open>l < m #* n\<close>,
-      \<^term>\<open>succ(m) < n\<close>, \<^term>\<open>m < succ(n)\<close>],
-    proc = K LessCancelNumerals.proc},
-  Simplifier.make_simproc \<^context> "natdiff_cancel_numerals"
-   {lhss =
-     [\<^term>\<open>(l #+ m) #- n\<close>, \<^term>\<open>l #- (m #+ n)\<close>,
-      \<^term>\<open>(l #* m) #- n\<close>, \<^term>\<open>l #- (m #* n)\<close>,
-      \<^term>\<open>succ(m) #- n\<close>, \<^term>\<open>m #- succ(n)\<close>],
-    proc = K DiffCancelNumerals.proc}];
+val nateq_cancel_numerals_proc = EqCancelNumerals.proc;
+val natless_cancel_numerals_proc = LessCancelNumerals.proc;
+val natdiff_cancel_numerals_proc = DiffCancelNumerals.proc;
 
 end;
-
-val _ =
-  Theory.setup (Simplifier.map_theory_simpset (fn ctxt =>
-    ctxt addsimprocs ArithData.nat_cancel));
-
-
-(*examples:
-print_depth 22;
-set timing;
-set simp_trace;
-fun test s = (Goal s; by (Asm_simp_tac 1));
-
-test "x #+ y = x #+ z";
-test "y #+ x = x #+ z";
-test "x #+ y #+ z = x #+ z";
-test "y #+ (z #+ x) = z #+ x";
-test "x #+ y #+ z = (z #+ y) #+ (x #+ w)";
-test "x#*y #+ z = (z #+ y) #+ (y#*x #+ w)";
-
-test "x #+ succ(y) = x #+ z";
-test "x #+ succ(y) = succ(z #+ x)";
-test "succ(x) #+ succ(y) #+ z = succ(z #+ y) #+ succ(x #+ w)";
-
-test "(x #+ y) #- (x #+ z) = w";
-test "(y #+ x) #- (x #+ z) = dd";
-test "(x #+ y #+ z) #- (x #+ z) = dd";
-test "(y #+ (z #+ x)) #- (z #+ x) = dd";
-test "(x #+ y #+ z) #- ((z #+ y) #+ (x #+ w)) = dd";
-test "(x#*y #+ z) #- ((z #+ y) #+ (y#*x #+ w)) = dd";
-
-(*BAD occurrence of natify*)
-test "(x #+ succ(y)) #- (x #+ z) = dd";
-
-test "x #* y2 #+ y #* x2 = y #* x2 #+ x #* y2";
-
-test "(x #+ succ(y)) #- (succ(z #+ x)) = dd";
-test "(succ(x) #+ succ(y) #+ z) #- (succ(z #+ y) #+ succ(x #+ w)) = dd";
-
-(*use of typing information*)
-test "x : nat ==> x #+ y = x";
-test "x : nat --> x #+ y = x";
-test "x : nat ==> x #+ y < x";
-test "x : nat ==> x < y#+x";
-test "x : nat ==> x le succ(x)";
-
-(*fails: no typing information isn't visible*)
-test "x #+ y = x";
-
-test "x #+ y < x #+ z";
-test "y #+ x < x #+ z";
-test "x #+ y #+ z < x #+ z";
-test "y #+ z #+ x < x #+ z";
-test "y #+ (z #+ x) < z #+ x";
-test "x #+ y #+ z < (z #+ y) #+ (x #+ w)";
-test "x#*y #+ z < (z #+ y) #+ (y#*x #+ w)";
-
-test "x #+ succ(y) < x #+ z";
-test "x #+ succ(y) < succ(z #+ x)";
-test "succ(x) #+ succ(y) #+ z < succ(z #+ y) #+ succ(x #+ w)";
-
-test "x #+ succ(y) le succ(z #+ x)";
-*)

@@ -663,8 +663,7 @@ fun pol (ctxt, ct, t) =
   \<^instantiate>\<open>x = ct and y = \<open>Thm.cterm_of ctxt t\<close>
     in cterm \<open>x \<equiv> y\<close> for x y :: pol\<close>;
 
-val (_, raw_pol_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>pnsubstl\<close>, pol)));
+val (_, raw_pol_oracle) = Theory.setup_result (Thm.add_oracle (\<^binding>\<open>pnsubstl\<close>, pol));
 
 fun pol_oracle ctxt ct t = raw_pol_oracle (ctxt, ct, t);
 

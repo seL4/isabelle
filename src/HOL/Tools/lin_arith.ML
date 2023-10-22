@@ -9,7 +9,7 @@ sig
   val pre_tac: Proof.context -> int -> tactic
   val simple_tac: Proof.context -> int -> tactic
   val tac: Proof.context -> int -> tactic
-  val simproc: Proof.context -> cterm -> thm option
+  val simproc: Simplifier.proc
   val add_inj_thms: thm list -> Context.generic -> Context.generic
   val add_lessD: thm -> Context.generic -> Context.generic
   val add_simps: thm list -> Context.generic -> Context.generic

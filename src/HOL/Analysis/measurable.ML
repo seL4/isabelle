@@ -22,14 +22,14 @@ sig
 
   val measurable_tac : Proof.context -> thm list -> tactic
 
-  val simproc : Proof.context -> cterm -> thm option
+  val proc : Simplifier.proc
 
   val add_preprocessor : string -> preprocessor -> Context.generic -> Context.generic
   val del_preprocessor : string -> Context.generic -> Context.generic
   val add_local_cong : thm -> Proof.context -> Proof.context
 
   val prepare_facts : Proof.context -> thm list -> (thm list * Proof.context)
-end ;
+end
 
 structure Measurable : MEASURABLE =
 struct
@@ -256,7 +256,7 @@ fun measurable_tac ctxt facts =
 
   in debug_tac ctxt (K "start") (REPEAT (single_step_tac 1)) end;
 
-fun simproc ctxt redex =
+fun proc ctxt redex =
   let
     val t = HOLogic.mk_Trueprop (Thm.term_of redex);
     fun tac {context = ctxt, prems = _ } =

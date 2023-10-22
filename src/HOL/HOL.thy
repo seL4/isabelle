@@ -1542,33 +1542,32 @@ structure Induct = Induct
 
 ML_file \<open>~~/src/Tools/induction.ML\<close>
 
+simproc_setup passive swap_induct_false ("induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q") =
+  \<open>fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      _ $ (P as _ $ \<^Const_>\<open>induct_false\<close>) $ (_ $ Q $ _) =>
+        if P <> Q then SOME Drule.swap_prems_eq else NONE
+    | _ => NONE)\<close>
+
+simproc_setup passive induct_equal_conj_curry ("induct_conj P Q \<Longrightarrow> PROP R") =
+  \<open>fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      _ $ (_ $ P) $ _ =>
+        let
+          fun is_conj \<^Const_>\<open>induct_conj for P Q\<close> = is_conj P andalso is_conj Q
+            | is_conj \<^Const_>\<open>induct_equal _ for _ _\<close> = true
+            | is_conj \<^Const_>\<open>induct_true\<close> = true
+            | is_conj \<^Const_>\<open>induct_false\<close> = true
+            | is_conj _ = false
+        in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
+      | _ => NONE)\<close>
+
 declaration \<open>
-  fn _ => Induct.map_simpset (fn ss => ss
-    addsimprocs
-      [Simplifier.make_simproc \<^context> "swap_induct_false"
-        {lhss = [\<^term>\<open>induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q\<close>],
-         proc = fn _ => fn _ => fn ct =>
-          (case Thm.term_of ct of
-            _ $ (P as _ $ \<^Const_>\<open>induct_false\<close>) $ (_ $ Q $ _) =>
-              if P <> Q then SOME Drule.swap_prems_eq else NONE
-          | _ => NONE)},
-       Simplifier.make_simproc \<^context> "induct_equal_conj_curry"
-        {lhss = [\<^term>\<open>induct_conj P Q \<Longrightarrow> PROP R\<close>],
-         proc = fn _ => fn _ => fn ct =>
-          (case Thm.term_of ct of
-            _ $ (_ $ P) $ _ =>
-              let
-                fun is_conj \<^Const_>\<open>induct_conj for P Q\<close> =
-                      is_conj P andalso is_conj Q
-                  | is_conj \<^Const_>\<open>induct_equal _ for _ _\<close> = true
-                  | is_conj \<^Const_>\<open>induct_true\<close> = true
-                  | is_conj \<^Const_>\<open>induct_false\<close> = true
-                  | is_conj _ = false
-              in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
-            | _ => NONE)}]
+  K (Induct.map_simpset (fn ss => ss
+      addsimprocs [\<^simproc>\<open>swap_induct_false\<close>, \<^simproc>\<open>induct_equal_conj_curry\<close>]
     |> Simplifier.set_mksimps (fn ctxt =>
-        Simpdata.mksimps Simpdata.mksimps_pairs ctxt #>
-        map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback}))))
+      Simpdata.mksimps Simpdata.mksimps_pairs ctxt #>
+      map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback})))))
 \<close>
 
 text \<open>Pre-simplification of induction and cases rules\<close>
@@ -1649,7 +1648,7 @@ ML \<open>
 signature REORIENT_PROC =
 sig
   val add : (term -> bool) -> theory -> theory
-  val proc : Proof.context -> cterm -> thm option
+  val proc : Simplifier.proc
 end;
 
 structure Reorient_Proc : REORIENT_PROC =
@@ -1933,16 +1932,13 @@ end
 declare eq_equal [symmetric, code_post]
 declare eq_equal [code]
 
-setup \<open>
-  Code_Preproc.map_pre (fn ctxt =>
-    ctxt addsimprocs
-      [Simplifier.make_simproc \<^context> "equal"
-        {lhss = [\<^term>\<open>HOL.eq\<close>],
-         proc = fn _ => fn _ => fn ct =>
-          (case Thm.term_of ct of
-            Const (_, Type (\<^type_name>\<open>fun\<close>, [Type _, _])) => SOME @{thm eq_equal}
-          | _ => NONE)}])
-\<close>
+simproc_setup passive equal (HOL.eq) =
+  \<open>fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      Const (_, Type (\<^type_name>\<open>fun\<close>, [Type _, _])) => SOME @{thm eq_equal}
+    | _ => NONE)\<close>
+
+setup \<open>Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs [\<^simproc>\<open>equal\<close>])\<close>
 
 
 subsubsection \<open>Generic code generator foundation\<close>

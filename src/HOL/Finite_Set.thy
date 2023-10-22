@@ -24,7 +24,7 @@ inductive finite :: "'a set \<Rightarrow> bool"
 
 end
 
-simproc_setup finite_Collect ("finite (Collect P)") = \<open>K Set_Comprehension_Pointfree.simproc\<close>
+simproc_setup finite_Collect ("finite (Collect P)") = \<open>K Set_Comprehension_Pointfree.proc\<close>
 
 declare [[simproc del: finite_Collect]]
 

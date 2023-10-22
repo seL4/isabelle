@@ -9,9 +9,77 @@ theory ArithSimp
 imports Arith
 begin
 
+subsection \<open>Arithmetic simplification\<close>
+
 ML_file \<open>~~/src/Provers/Arith/cancel_numerals.ML\<close>
 ML_file \<open>~~/src/Provers/Arith/combine_numerals.ML\<close>
 ML_file \<open>arith_data.ML\<close>
+
+simproc_setup nateq_cancel_numerals
+  ("l #+ m = n" | "l = m #+ n" | "l #* m = n" | "l = m #* n" | "succ(m) = n" | "m = succ(n)") =
+  \<open>K ArithData.nateq_cancel_numerals_proc\<close>
+
+simproc_setup natless_cancel_numerals
+  ("l #+ m < n" | "l < m #+ n" | "l #* m < n" | "l < m #* n" | "succ(m) < n" | "m < succ(n)") =
+  \<open>K ArithData.natless_cancel_numerals_proc\<close>
+
+simproc_setup natdiff_cancel_numerals
+  ("(l #+ m) #- n" | "l #- (m #+ n)" | "(l #* m) #- n" | "l #- (m #* n)" |
+    "succ(m) #- n" | "m #- succ(n)") =
+  \<open>K ArithData.natdiff_cancel_numerals_proc\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+lemma "x #+ y = x #+ z" apply simp oops
+lemma "y #+ x = x #+ z" apply simp oops
+lemma "x #+ y #+ z = x #+ z" apply simp oops
+lemma "y #+ (z #+ x) = z #+ x" apply simp oops
+lemma "x #+ y #+ z = (z #+ y) #+ (x #+ w)" apply simp oops
+lemma "x#*y #+ z = (z #+ y) #+ (y#*x #+ w)" apply simp oops
+
+lemma "x #+ succ(y) = x #+ z" apply simp oops
+lemma "x #+ succ(y) = succ(z #+ x)" apply simp oops
+lemma "succ(x) #+ succ(y) #+ z = succ(z #+ y) #+ succ(x #+ w)" apply simp oops
+
+lemma "(x #+ y) #- (x #+ z) = w" apply simp oops
+lemma "(y #+ x) #- (x #+ z) = dd" apply simp oops
+lemma "(x #+ y #+ z) #- (x #+ z) = dd" apply simp oops
+lemma "(y #+ (z #+ x)) #- (z #+ x) = dd" apply simp oops
+lemma "(x #+ y #+ z) #- ((z #+ y) #+ (x #+ w)) = dd" apply simp oops
+lemma "(x#*y #+ z) #- ((z #+ y) #+ (y#*x #+ w)) = dd" apply simp oops
+
+(*BAD occurrence of natify*)
+lemma "(x #+ succ(y)) #- (x #+ z) = dd" apply simp oops
+
+lemma "x #* y2 #+ y #* x2 = y #* x2 #+ x #* y2" apply simp oops
+
+lemma "(x #+ succ(y)) #- (succ(z #+ x)) = dd" apply simp oops
+lemma "(succ(x) #+ succ(y) #+ z) #- (succ(z #+ y) #+ succ(x #+ w)) = dd" apply simp oops
+
+(*use of typing information*)
+lemma "x : nat ==> x #+ y = x" apply simp oops
+lemma "x : nat --> x #+ y = x" apply simp oops
+lemma "x : nat ==> x #+ y < x" apply simp oops
+lemma "x : nat ==> x < y#+x" apply simp oops
+lemma "x : nat ==> x \<le> succ(x)" apply simp oops
+
+(*fails: no typing information isn't visible*)
+lemma "x #+ y = x" apply simp? oops
+
+lemma "x #+ y < x #+ z" apply simp oops
+lemma "y #+ x < x #+ z" apply simp oops
+lemma "x #+ y #+ z < x #+ z" apply simp oops
+lemma "y #+ z #+ x < x #+ z" apply simp oops
+lemma "y #+ (z #+ x) < z #+ x" apply simp oops
+lemma "x #+ y #+ z < (z #+ y) #+ (x #+ w)" apply simp oops
+lemma "x#*y #+ z < (z #+ y) #+ (y#*x #+ w)" apply simp oops
+
+lemma "x #+ succ(y) < x #+ z" apply simp oops
+lemma "x #+ succ(y) < succ(z #+ x)" apply simp oops
+lemma "succ(x) #+ succ(y) #+ z < succ(z #+ y) #+ succ(x #+ w)" apply simp oops
+
+lemma "x #+ succ(y) \<le> succ(z #+ x)" apply simp oops
 
 
 subsection\<open>Difference\<close>

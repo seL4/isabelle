@@ -70,8 +70,9 @@ fun cancel_type_definition_cterm thm =
 
 (** END OF THE CRITICAL CODE **)
 
-val (_, cancel_type_definition_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (\<^binding>\<open>cancel_type_definition\<close>, cancel_type_definition_cterm)));
+val (_, cancel_type_definition_oracle) =
+  Theory.setup_result
+    (Thm.add_oracle (\<^binding>\<open>cancel_type_definition\<close>, cancel_type_definition_cterm));
 
 fun cancel_type_definition thm =
   Drule.implies_elim_list (cancel_type_definition_oracle thm) (map Thm.assume (Thm.chyps_of thm));

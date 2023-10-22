@@ -148,9 +148,9 @@ fun eq_imp_rel_get ctxt =
   map (OF1 eq_imp_rel) (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>))
 
 val regularize_simproc =
-  Simplifier.make_simproc \<^context> "regularize"
-    {lhss = [\<^term>\<open>Ball (Respects (R1 ===> R2)) P\<close>, \<^term>\<open>Bex (Respects (R1 ===> R2)) P\<close>],
-     proc = K ball_bex_range_simproc};
+  \<^simproc_setup>\<open>passive regularize
+    ("Ball (Respects (R1 ===> R2)) P" | "Bex (Respects (R1 ===> R2)) P") =
+    \<open>K ball_bex_range_simproc\<close>\<close>
 
 fun regularize_tac ctxt =
   let

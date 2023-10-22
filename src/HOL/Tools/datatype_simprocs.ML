@@ -6,7 +6,7 @@ either side is a proper subterm of the other.
 *)
 
 signature DATATYPE_SIMPROCS = sig
-  val no_proper_subterm_simproc : Proof.context -> cterm -> thm option
+  val no_proper_subterm_proc : Simplifier.proc
 end
 
 structure Datatype_Simprocs : DATATYPE_SIMPROCS = struct
@@ -86,7 +86,7 @@ val forbidden_types =
    - support for nested datatypes
    - replace size-based proof with proper subexpression relation
 *)
-fun no_proper_subterm_simproc ctxt ct =
+fun no_proper_subterm_proc ctxt ct =
   let
     val (clhs, crhs) = ct |> Thm.dest_comb |> apfst (Thm.dest_comb #> snd)
     val (lhs, rhs) = apply2 Thm.term_of (clhs, crhs)

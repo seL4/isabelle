@@ -17,8 +17,6 @@ sig
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
-  val simproc_setup: string * Position.T -> string list -> Input.source ->
-    local_theory -> local_theory
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text_range * Method.text_range option ->
     Toplevel.transition -> Toplevel.transition
@@ -117,10 +115,9 @@ fun oracle (name, range) source =
     (ML_Lex.read "val " @
      ML_Lex.read_range range name @
      ML_Lex.read
-      (" = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (" ^
+      (" = snd (Theory.setup_result (Thm.add_oracle (" ^
         ML_Syntax.make_binding (name, #1 range) ^ ", ") @
-     ML_Lex.read_source source @
-     ML_Lex.read "))))")
+     ML_Lex.read_source source @ ML_Lex.read ")))")
   |> Context.theory_map;
 
 
@@ -133,17 +130,6 @@ fun declaration {syntax, pervasive} source =
         Bool.toString syntax ^ ", pervasive = " ^ Bool.toString pervasive ^
         ", pos = " ^ ML_Syntax.print_position (Position.thread_data ()) ^ "} (") @
      ML_Lex.read_source source @ ML_Lex.read "))")
-  |> Context.proof_map;
-
-
-(* simprocs *)
-
-fun simproc_setup name lhss source =
-  ML_Context.expression (Input.pos_of source)
-    (ML_Lex.read
-      ("Theory.local_setup (Simplifier.define_simproc_cmd (" ^
-        ML_Syntax.make_binding name ^ ") {lhss = " ^ ML_Syntax.print_strings lhss ^
-        ", proc = (") @ ML_Lex.read_source source @ ML_Lex.read ")})")
   |> Context.proof_map;
 
 

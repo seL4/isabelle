@@ -23,24 +23,22 @@ struct
 val zeroth = Thm.symmetric (mk_meta_eq @{thm of_int_0});
 
 val zero_to_of_int_zero_simproc =
-  Simplifier.make_simproc \<^context> "zero_to_of_int_zero_simproc"
-   {lhss = [\<^term>\<open>0::'a::ring\<close>],
-    proc = fn _ => fn _ => fn ct =>
+  \<^simproc_setup>\<open>passive zero_to_of_int_zero ("0::'a::ring") =
+    \<open>fn _ => fn _ => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
         if Thm.typ_of T = \<^typ>\<open>int\<close> then NONE
         else SOME (Thm.instantiate' [SOME T] [] zeroth)
-      end};
+      end\<close>\<close>;
 
 val oneth = Thm.symmetric (mk_meta_eq @{thm of_int_1});
 
 val one_to_of_int_one_simproc =
-  Simplifier.make_simproc \<^context> "one_to_of_int_one_simproc"
-   {lhss = [\<^term>\<open>1::'a::ring_1\<close>],
-    proc = fn _ => fn _ => fn ct =>
+  \<^simproc_setup>\<open>passive one_to_of_int_one ("1::'a::ring_1") =
+    \<open>fn _ => fn _ => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
         if Thm.typ_of T = \<^typ>\<open>int\<close> then NONE
         else SOME (Thm.instantiate' [SOME T] [] oneth)
-      end};
+      end\<close>\<close>;
 
 fun check (Const (\<^const_name>\<open>Groups.one\<close>, \<^typ>\<open>int\<close>)) = false
   | check (Const (\<^const_name>\<open>Groups.one\<close>, _)) = true
@@ -63,14 +61,11 @@ val conv_ss =
   |> simpset_of;
 
 val zero_one_idom_simproc =
-  Simplifier.make_simproc \<^context> "zero_one_idom_simproc"
-   {lhss =
-      [\<^term>\<open>(x::'a::ring_char_0) = y\<close>,
-       \<^term>\<open>(x::'a::linordered_idom) < y\<close>,
-       \<^term>\<open>(x::'a::linordered_idom) \<le> y\<close>],
-    proc = fn _ => fn ctxt => fn ct =>
+  \<^simproc_setup>\<open>passive zero_one_idom
+    ("(x::'a::ring_char_0) = y" | "(u::'b::linordered_idom) < v" | "(u::'b::linordered_idom) \<le> v") =
+    \<open>fn _ => fn ctxt => fn ct =>
       if check (Thm.term_of ct)
       then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
-      else NONE};
+      else NONE\<close>\<close>
 
 end;

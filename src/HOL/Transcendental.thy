@@ -7352,9 +7352,9 @@ val sqrt : int option -> int -> int option
 val sqrt' : int option -> int -> int option
 val nth_root : int option -> int -> int -> int option
 val nth_root' : int option -> int -> int -> int option
-val sqrt_simproc : Proof.context -> cterm -> thm option
-val root_simproc : int * int -> Proof.context -> cterm -> thm option
-val powr_simproc : int * int -> Proof.context -> cterm -> thm option
+val sqrt_proc : Simplifier.proc
+val root_proc : int * int -> Simplifier.proc
+val powr_proc : int * int -> Simplifier.proc
 
 end
 
@@ -7428,7 +7428,7 @@ fun sqrt' threshold x =
     NONE => NONE
   | SOME y => if y * y = x then SOME y else NONE
 
-fun sqrt_simproc ctxt ct =
+fun sqrt_proc ctxt ct =
   let
     val n = ct |> Thm.term_of |> dest_comb |> snd |> dest_comb |> snd |> HOLogic.dest_numeral
   in
@@ -7440,7 +7440,7 @@ fun sqrt_simproc ctxt ct =
   end
     handle TERM _ => NONE
 
-fun root_simproc (threshold1, threshold2) ctxt ct =
+fun root_proc (threshold1, threshold2) ctxt ct =
   let
     val [n, x] = 
       ct |> Thm.term_of |> strip_comb |> snd |> map (dest_comb #> snd #> HOLogic.dest_numeral)
@@ -7455,7 +7455,7 @@ fun root_simproc (threshold1, threshold2) ctxt ct =
     handle TERM _ => NONE
          | Match => NONE
 
-fun powr_simproc (threshold1, threshold2) ctxt ct =
+fun powr_proc (threshold1, threshold2) ctxt ct =
   let
     val eq_thm = Conv.try_conv (Conv.rewr_conv @{thm numeral_powr_inverse_eq}) ct
     val ct = Thm.dest_equals_rhs (Thm.cprop_of eq_thm)
@@ -7484,14 +7484,14 @@ end
 end
 
 simproc_setup sqrt_numeral ("sqrt (numeral n)") = 
-  \<open>K Root_Numeral_Simproc.sqrt_simproc\<close>
+  \<open>K Root_Numeral_Simproc.sqrt_proc\<close>
   
 simproc_setup root_numeral ("root (numeral n) (numeral x)") = 
-  \<open>K (Root_Numeral_Simproc.root_simproc (200, Integer.pow 200 2))\<close>
+  \<open>K (Root_Numeral_Simproc.root_proc (200, Integer.pow 200 2))\<close>
 
 simproc_setup powr_divide_numeral 
   ("numeral x powr (m / numeral n :: real)" | "numeral x powr (inverse (numeral n) :: real)") = 
-    \<open>K (Root_Numeral_Simproc.powr_simproc (200, Integer.pow 200 2))\<close>
+    \<open>K (Root_Numeral_Simproc.powr_proc (200, Integer.pow 200 2))\<close>
 
 
 lemma "root 100 1267650600228229401496703205376 = 2"
