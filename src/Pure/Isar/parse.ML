@@ -8,6 +8,7 @@ signature PARSE =
 sig
   val group: (unit -> string) -> (Token.T list -> 'a) -> Token.T list -> 'a
   val !!! : (Token.T list -> 'a) -> Token.T list -> 'a
+  val !!!! : (Context.generic * Token.src -> 'a) -> Context.generic * Token.src -> 'a
   val not_eof: Token.T parser
   val token: 'a parser -> Token.T parser
   val range: 'a parser -> ('a * Position.range) parser
@@ -146,7 +147,10 @@ fun group s scan = scan || Scan.fail_with
 
 (* cut *)
 
-fun !!! scan = Scan.!!! "Outer syntax error" Token.input_position scan;
+val err_prefix = "Outer syntax error";
+
+fun !!! scan = Scan.!!! err_prefix Token.input_position scan;
+fun !!!! scan = Scan.!!! err_prefix Token.context_input_position scan;
 
 
 
@@ -236,7 +240,7 @@ fun enum_positions sep scan =
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
-fun enum1' sep scan = scan ::: Scan.repeat (Scan.lift ($$$ sep) |-- scan);
+fun enum1' sep scan = scan ::: Scan.repeat (Scan.lift ($$$ sep) |-- !!!! scan);
 fun enum' sep scan = enum1' sep scan || Scan.succeed [];
 
 fun and_list1 scan = enum1 "and" scan;
