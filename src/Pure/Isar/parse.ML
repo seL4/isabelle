@@ -8,7 +8,6 @@ signature PARSE =
 sig
   val group: (unit -> string) -> (Token.T list -> 'a) -> Token.T list -> 'a
   val !!! : (Token.T list -> 'a) -> Token.T list -> 'a
-  val !!!! : (Token.T list -> 'a) -> Token.T list -> 'a
   val not_eof: Token.T parser
   val token: 'a parser -> Token.T parser
   val range: 'a parser -> ('a * Position.range) parser
@@ -148,7 +147,6 @@ fun group s scan = scan || Scan.fail_with
 (* cut *)
 
 fun !!! scan = Scan.!!! "Outer syntax error" Token.input_position scan;
-fun !!!! scan = Scan.!!! "Corrupted outer syntax in presentation" Token.input_position scan;
 
 
 
