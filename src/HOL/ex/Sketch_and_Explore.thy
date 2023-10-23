@@ -6,7 +6,7 @@ chapter \<open>Experimental commands \<^text>\<open>sketch\<close> and \<^text>\
 
 theory Sketch_and_Explore
   imports Main \<comment> \<open>TODO: generalize existing sledgehammer functions to Pure\<close>
-  keywords "sketch" "explore" :: diag
+  keywords "sketch" "nxsketch" "explore" :: diag
 begin
 
 ML \<open>
@@ -63,8 +63,31 @@ fun print_isar_skeleton ctxt indent keyword stmt =
     s
   end;
 
-fun print_sketch ctxt method_text clauses =
+fun print_nonext_sketch ctxt method_text clauses =
   "proof" ^ method_text :: map (print_isar_skeleton ctxt 2 "show") clauses @ ["qed"];
+
+fun print_next_skeleton ctxt indent keyword stmt =
+  let
+    val ((fixes, assms, concl), ctxt') = eigen_context_for_statement stmt ctxt;
+    val prefix = replicate_string indent " ";
+    val prefix_sep = "\n" ^ prefix ^ "    and ";
+    val show_s = prefix ^ keyword ^ " " ^ print_term ctxt' concl;
+    val assumes_s = if null assms then NONE
+      else SOME (prefix ^ "  assume " ^ space_implode prefix_sep
+        (map (print_term ctxt') assms));
+    val fixes_s = if null fixes then NONE
+      else SOME (prefix ^ "fix " ^ space_implode prefix_sep
+        (map (fn (v, T) => v ^ " :: " ^ print_typ ctxt T) fixes));
+    val s = cat_lines (map_filter I [fixes_s, assumes_s] @ [show_s] @ [prefix ^ " sorry"]);
+  in
+    s
+  end;
+
+fun print_next_sketch ctxt method_text clauses =
+  "proof" ^ method_text :: separate "next" (map (print_next_skeleton ctxt 2 "show") clauses) @ ["qed"];
+
+fun print_sketch ctxt method_text [cl] = print_next_sketch ctxt method_text [cl]
+  | print_sketch ctxt method_text clauses = print_nonext_sketch ctxt method_text clauses;
 
 fun print_exploration ctxt method_text [clause] =
     ["proof -", print_isar_skeleton ctxt 2 "have" clause,
@@ -110,10 +133,15 @@ fun print_proof_text_from_state print (some_method_ref : ((Method.text * Positio
 
 val sketch = print_proof_text_from_state print_sketch;
 
+val next_sketch = print_proof_text_from_state print_next_sketch;
+
 fun explore method_ref = print_proof_text_from_state print_exploration (SOME method_ref);
 
 fun sketch_cmd some_method_text =
   Toplevel.keep_proof (K () o sketch some_method_text o Toplevel.proof_of)
+
+fun next_sketch_cmd some_method_text =
+  Toplevel.keep_proof (K () o next_sketch some_method_text o Toplevel.proof_of)
 
 fun explore_cmd method_text =
   Toplevel.keep_proof (K () o explore method_text o Toplevel.proof_of)
@@ -122,6 +150,11 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sketch\<close>
     "print sketch of Isar proof text after method application"
     (Scan.option (Scan.trace Method.parse) >> sketch_cmd);
+
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>nxsketch\<close>
+    "print sketch of Isar proof text after method application"
+    (Scan.option (Scan.trace Method.parse) >> next_sketch_cmd);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>explore\<close>
