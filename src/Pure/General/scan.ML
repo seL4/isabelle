@@ -14,6 +14,7 @@ sig
   type message = unit -> string
   (*error msg handler*)
   val !! : ('a * message option -> message) -> ('a -> 'b) -> 'a -> 'b
+  val !!! : string -> ('a -> string option) -> ('a -> 'b) -> 'a -> 'b
   (*apply function*)
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
   (*alternative*)
@@ -107,6 +108,20 @@ exception FAIL of message option;  (*try alternatives (reason of failure)*)
 exception ABORT of message;  (*dead end*)
 
 fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
+
+fun !!! prefix input_position scan =
+  let
+    fun print_position inp = the_default " (end-of-input)" (input_position inp);
+
+    fun err (inp, NONE) = (fn () => prefix ^ print_position inp)
+      | err (inp, SOME msg) =
+          (fn () =>
+            let val s = msg () in
+              if String.isPrefix prefix s then s
+              else prefix ^ print_position inp ^ ": " ^ s
+            end);
+  in !! err scan end;
+
 fun permissive scan xs = scan xs handle MORE () => raise FAIL NONE | ABORT _ => raise FAIL NONE;
 fun strict scan xs = scan xs handle MORE () => raise FAIL NONE;
 fun error scan xs = scan xs handle ABORT msg => Exn.error (msg ());

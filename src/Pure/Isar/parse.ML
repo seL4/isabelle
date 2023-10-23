@@ -147,22 +147,8 @@ fun group s scan = scan || Scan.fail_with
 
 (* cut *)
 
-fun cut kind scan =
-  let
-    fun get_pos [] = " (end-of-input)"
-      | get_pos (tok :: _) = Position.here (Token.pos_of tok);
-
-    fun err (toks, NONE) = (fn () => kind ^ get_pos toks)
-      | err (toks, SOME msg) =
-          (fn () =>
-            let val s = msg () in
-              if String.isPrefix kind s then s
-              else kind ^ get_pos toks ^ ": " ^ s
-            end);
-  in Scan.!! err scan end;
-
-fun !!! scan = cut "Outer syntax error" scan;
-fun !!!! scan = cut "Corrupted outer syntax in presentation" scan;
+fun !!! scan = Scan.!!! "Outer syntax error" Token.input_position scan;
+fun !!!! scan = Scan.!!! "Corrupted outer syntax in presentation" Token.input_position scan;
 
 
 

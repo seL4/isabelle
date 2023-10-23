@@ -142,21 +142,10 @@ end;
 
 (* parser combinators *)
 
-fun !!! scan =
-  let
-    val prefix = "Rail syntax error";
+fun input_position [] = NONE
+  | input_position (tok :: _) = SOME (Position.here (pos_of tok));
 
-    fun get_pos [] = " (end-of-input)"
-      | get_pos (tok :: _) = Position.here (pos_of tok);
-
-    fun err (toks, NONE) = (fn () => prefix ^ get_pos toks)
-      | err (toks, SOME msg) =
-          (fn () =>
-            let val s = msg () in
-              if String.isPrefix prefix s then s
-              else prefix ^ get_pos toks ^ ": " ^ s
-            end);
-  in Scan.!! err scan end;
+fun !!! scan = Scan.!!! "Rail syntax error" input_position scan;
 
 fun $$$ x =
   Scan.one (fn tok => kind_of tok = Keyword andalso content_of tok = x) ||

@@ -35,6 +35,7 @@ sig
     Output of XML.body option
   val pos_of: T -> Position.T
   val adjust_offsets: (int -> int option) -> T -> T
+  val input_position: src -> string option
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -214,6 +215,9 @@ fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
 fun adjust_offsets adjust (Token ((x, range), y, z)) =
   Token ((x, apply2 (Position.adjust_offsets adjust) range), y, z);
+
+fun input_position [] = NONE
+  | input_position (tok :: _) = SOME (Position.here (pos_of tok));
 
 
 (* stopper *)
