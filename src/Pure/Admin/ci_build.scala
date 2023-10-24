@@ -45,10 +45,9 @@ object CI_Build {
     clean: Boolean = true,
     include: List[Path] = Nil,
     select: List[Path] = Nil,
-    pre_hook: () => Result = () => Result.ok,
-    post_hook: (Build.Results, Time) => Result = (_, _) => Result.ok,
-    selection: Sessions.Selection = Sessions.Selection.empty
-  )
+    pre_hook: Options => Result = _ => Result.ok,
+    post_hook: (Build.Results, Options, Time) => Result = (_, _, _) => Result.ok,
+    selection: Sessions.Selection = Sessions.Selection.empty)
 
 
   /* ci build jobs */
@@ -105,16 +104,6 @@ object CI_Build {
 
   /* ci build */
 
-  private def load_properties(): JProperties = {
-    val props = new JProperties
-    val file_name = Isabelle_System.getenv("ISABELLE_CI_PROPERTIES")
-    if (file_name.nonEmpty) {
-      val path = Path.explode(file_name)
-      if (path.is_file) props.load(Files.newBufferedReader(path.java_path))
-    }
-    props
-  }
-
   private def compute_timing(results: Build.Results, group: Option[String]): Timing = {
     val timings =
       results.sessions.collect {
@@ -140,7 +129,7 @@ object CI_Build {
   def print_section(title: String): Unit =
     println(s"\n=== $title ===\n")
 
-  def ci_build(job: Job): Unit = {
+  def ci_build(options: Options, job: Job): Unit = {
     val profile = job.profile
     val config = job.config
 
@@ -153,20 +142,19 @@ object CI_Build {
 
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
-    val props = load_properties()
-    System.getProperties.asInstanceOf[JMap[AnyRef, AnyRef]].putAll(props)
 
-    val options =
-      with_documents(Options.init(), config)
+    val build_options =
+      with_documents(options, config)
         .int.update("parallel_proofs", 1)
         .int.update("threads", profile.threads)
+        + "system_heaps"
 
     println(s"jobs = ${profile.jobs}, threads = ${profile.threads}, numa = ${profile.numa}")
 
     print_section("BUILD")
     println(s"Build started at $formatted_time")
     println(s"Isabelle id $isabelle_id")
-    val pre_result = config.pre_hook()
+    val pre_result = config.pre_hook(options)
 
     print_section("LOG")
     val (results, elapsed_time) = {
@@ -174,7 +162,7 @@ object CI_Build {
       val start_time = Time.now()
       val results = progress.interrupt_handler {
         Build.build(
-          options + "system_heaps",
+          build_options,
           selection = config.selection,
           progress = progress,
           clean_build = config.clean,
@@ -208,7 +196,7 @@ object CI_Build {
       }
     }
 
-    val post_result = config.post_hook(results, start_time)
+    val post_result = config.post_hook(results, options, start_time)
 
     sys.exit(List(pre_result.rc, results.rc, post_result.rc).max)
   }
@@ -216,26 +204,33 @@ object CI_Build {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool =
-    Isabelle_Tool(
-      "ci_build", "builds Isabelle jobs in ci environments", Scala_Project.here,
-      { args =>
-        val getopts = Getopts("""
-Usage: isabelle ci_build [JOB]
+  val isabelle_tool = Isabelle_Tool("ci_build", "builds Isabelle jobs in ci environments",
+    Scala_Project.here,
+    { args =>
+      /* arguments */
+
+      var options = Options.init()
+
+      val getopts = Getopts("""
+Usage: isabelle ci_build [OPTIONS] JOB
+
+  Options are:
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
   Runs Isabelle builds in ci environment, with the following build jobs:
 
-""" + Library.indent_lines(4, show_jobs) + "\n")
+""" + Library.indent_lines(4, show_jobs) + "\n",
+        "o:" -> (arg => options = options + arg))
 
-        val more_args = getopts(args)
+      val more_args = getopts(args)
 
-        val job = more_args match {
-          case job :: Nil => the_job(job)
-          case _ => getopts.usage()
-        }
+      val job = more_args match {
+        case job :: Nil => the_job(job)
+        case _ => getopts.usage()
+      }
 
-        ci_build(job)
-      })
+      ci_build(options, job)
+    })
 }
 
 class Isabelle_CI_Builds(val jobs: CI_Build.Job*) extends Isabelle_System.Service

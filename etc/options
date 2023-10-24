@@ -433,3 +433,13 @@ section "Bash process execution server"
 option bash_process_debugging : bool = false for connection
 option bash_process_address : string = "" for connection
 option bash_process_password : string = "" for connection
+
+
+section "Continuous integration"
+
+option ci_mail_user : string = "" for connection
+option ci_mail_password : string = "" for connection
+option ci_mail_sender : string = "" for connection
+option ci_mail_smtp_host : string = "" for connection
+option ci_mail_smtp_port : int = 587 for connection
+option ci_mail_ssl : bool = true for connection
