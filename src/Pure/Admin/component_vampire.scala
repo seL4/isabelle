@@ -113,7 +113,7 @@ ISABELLE_VAMPIRE="$VAMPIRE_HOME/vampire"
 
       File.write(component_dir.README,
         "This Isabelle component provides Vampire " + version + """using the
-original sources from """.stripMargin + download_url + """
+original sources from """ + download_url + """
 
 The executables have been built via "cmake . && make"
 

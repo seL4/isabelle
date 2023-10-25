@@ -99,7 +99,7 @@ ISABELLE_MINISAT="$MINISAT_HOME/minisat"
 
       File.write(component_dir.README,
         "This Isabelle component provides Minisat " + version + """ using the
-sources from """.stripMargin + download_url + """
+sources from """ + download_url + """
 
 The executables have been built via "make r"; macOS requires to
 remove options "--static" and "-Wl,-soname,..." from the Makefile.
