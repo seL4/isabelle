@@ -925,21 +925,22 @@ object Build_Log {
         Set.from[String], res => res.string(column))
 
     def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit =
-      db.using_statement(db.insert_permissive(private_data.meta_info_table)) { stmt =>
-        stmt.string(1) = log_name
-        for ((c, i) <- private_data.meta_info_table.columns.tail.zipWithIndex) {
-          if (c.T == SQL.Type.Date) stmt.date(i + 2) = meta_info.get_date(c)
-          else stmt.string(i + 2) = meta_info.get(c)
+      db.execute_statement(db.insert_permissive(private_data.meta_info_table),
+        { stmt =>
+          stmt.string(1) = log_name
+          for ((c, i) <- private_data.meta_info_table.columns.tail.zipWithIndex) {
+            if (c.T == SQL.Type.Date) stmt.date(i + 2) = meta_info.get_date(c)
+            else stmt.string(i + 2) = meta_info.get(c)
+          }
         }
-        stmt.execute()
-      }
+      )
 
-    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
-      db.using_statement(db.insert_permissive(private_data.sessions_table)) { stmt =>
-        val sessions =
-          if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
-          else build_info.sessions
-        for ((session_name, session) <- sessions) {
+    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
+      val sessions =
+        if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
+        else build_info.sessions
+      db.execute_batch_statement(db.insert_permissive(private_data.sessions_table),
+        for ((session_name, session) <- sessions) yield { (stmt: SQL.Statement) =>
           stmt.string(1) = log_name
           stmt.string(2) = session_name
           stmt.string(3) = proper_string(session.chapter)
@@ -958,44 +959,44 @@ object Build_Log {
           stmt.string(16) = session.status.map(_.toString)
           stmt.bytes(17) = compress_errors(session.errors, cache = cache.compress)
           stmt.string(18) = session.sources
-          stmt.execute()
         }
-      }
+      )
+    }
 
-    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
-      db.using_statement(db.insert_permissive(private_data.theories_table)) { stmt =>
-        val sessions =
-          if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
-            Build_Info.sessions_dummy
-          else build_info.sessions
+    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
+      val sessions =
+        if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
+          Build_Info.sessions_dummy
+        else build_info.sessions
+      db.execute_batch_statement(db.insert_permissive(private_data.theories_table),
         for {
           (session_name, session) <- sessions
           (theory_name, timing) <- session.theory_timings
-        } {
+        } yield { (stmt: SQL.Statement) =>
           stmt.string(1) = log_name
           stmt.string(2) = session_name
           stmt.string(3) = theory_name
           stmt.long(4) = timing.elapsed.ms
           stmt.long(5) = timing.cpu.ms
           stmt.long(6) = timing.gc.ms
-          stmt.execute()
         }
-      }
+      )
+    }
 
-    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit =
-      db.using_statement(db.insert_permissive(private_data.ml_statistics_table)) { stmt =>
-        val ml_stats: List[(String, Option[Bytes])] =
-          Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-            { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.compress).proper) },
-            build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
-        val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
-        for ((session_name, ml_statistics) <- entries) {
+    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info): Unit = {
+      val ml_stats: List[(String, Option[Bytes])] =
+        Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
+          { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = cache.compress).proper) },
+          build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
+      val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
+      db.execute_batch_statement(db.insert_permissive(private_data.ml_statistics_table),
+        for ((session_name, ml_statistics) <- entries) yield { (stmt: SQL.Statement) =>
           stmt.string(1) = log_name
           stmt.string(2) = session_name
           stmt.bytes(3) = ml_statistics
-          stmt.execute()
         }
-      }
+      )
+    }
 
     def write_info(db: SQL.Database, files: List[JFile],
       ml_statistics: Boolean = false,
@@ -1044,15 +1045,15 @@ object Build_Log {
             }
           })
 
-      val file_groups =
+      val file_groups_iterator =
         files.filter(file => status.exists(_.required(file))).
           grouped(options.int("build_log_transaction_size") max 1)
 
-      for (file_group <- file_groups) {
+      for (file_group <- file_groups_iterator) {
         val log_files =
           Par_List.map[JFile, Exn.Result[Log_File]](
             file => Exn.result { Log_File(file) }, file_group)
-        db.transaction {
+        private_data.transaction_lock(db, create = true, label = "build_log_database") {
           for (case Exn.Res(log_file) <- log_files) {
             progress.echo("Log " + quote(log_file.name), verbose = true)
             try { status.foreach(_.update(log_file)) }
