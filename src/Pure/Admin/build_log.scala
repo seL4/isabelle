@@ -638,8 +638,7 @@ object Build_Log {
         meta_info_table,
         sessions_table,
         theories_table,
-        ml_statistics_table,
-        isabelle_afp_versions_table)
+        ml_statistics_table)
 
 
     /* main content */
@@ -687,19 +686,6 @@ object Build_Log {
 
     val ml_statistics_table =
       make_table(List(log_name, session_name, ml_statistics), name = "ml_statistics")
-
-
-    /* AFP versions */
-
-    val isabelle_afp_versions_table: SQL.Table = {
-      val version1 = Prop.isabelle_version
-      val version2 = Prop.afp_version
-      make_table(List(version1.make_primary_key, version2),
-        body =
-          SQL.select(List(version1, version2), distinct = true) + meta_info_table +
-            SQL.where_and(version1.defined, version2.defined),
-        name = "isabelle_afp_versions")
-    }
 
 
     /* earliest pull date for repository version (PostgreSQL queries) */
