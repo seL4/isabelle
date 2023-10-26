@@ -408,7 +408,7 @@ object Build_Schedule {
     private final lazy val _log_database: SQL.Database =
       try {
         val db = _log_store.open_database(server = this.server)
-        Build_Log.Data.tables.foreach(db.create_table(_))
+        Build_Log.private_data.tables.foreach(db.create_table(_))
         db
       }
       catch { case exn: Throwable => close(); throw exn }
@@ -447,8 +447,8 @@ object Build_Schedule {
       val build_history =
         for {
           log_name <- _log_database.execute_query_statement(
-            Build_Log.Data.meta_info_table.select(List(Build_Log.Data.log_name)),
-            List.from[String], res => res.string(Build_Log.Data.log_name))
+            Build_Log.private_data.meta_info_table.select(List(Build_Log.private_data.log_name)),
+            List.from[String], res => res.string(Build_Log.private_data.log_name))
           meta_info <- _log_store.read_meta_info(_log_database, log_name)
           build_info = _log_store.read_build_info(_log_database, log_name)
         } yield (meta_info, build_info)

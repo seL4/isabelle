@@ -118,14 +118,14 @@ object Isabelle_Cronjob {
     val afp = afp_rev.isDefined
 
     db.execute_query_statement(
-      Build_Log.Data.select_recent_versions(
+      Build_Log.private_data.select_recent_versions(
         days = days, rev = rev, afp_rev = afp_rev, sql = SQL.where(sql)),
       List.from[Item],
       { res =>
-        val known = res.bool(Build_Log.Data.known)
+        val known = res.bool(Build_Log.private_data.known)
         val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
         val afp_version = if (afp) proper_string(res.string(Build_Log.Prop.afp_version)) else None
-        val pull_date = res.date(Build_Log.Data.pull_date(afp))
+        val pull_date = res.date(Build_Log.private_data.pull_date(afp))
         Item(known, isabelle_version, afp_version, pull_date)
       })
   }

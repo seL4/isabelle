@@ -38,36 +38,36 @@ object Build_Status {
     ): PostgreSQL.Source = {
       val columns =
         List(
-          Build_Log.Data.pull_date(afp = false),
-          Build_Log.Data.pull_date(afp = true),
+          Build_Log.private_data.pull_date(afp = false),
+          Build_Log.private_data.pull_date(afp = true),
           Build_Log.Prop.build_host,
           Build_Log.Prop.isabelle_version,
           Build_Log.Prop.afp_version,
           Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
           Build_Log.Settings.ML_PLATFORM,
-          Build_Log.Data.session_name,
-          Build_Log.Data.chapter,
-          Build_Log.Data.groups,
-          Build_Log.Data.threads,
-          Build_Log.Data.timing_elapsed,
-          Build_Log.Data.timing_cpu,
-          Build_Log.Data.timing_gc,
-          Build_Log.Data.ml_timing_elapsed,
-          Build_Log.Data.ml_timing_cpu,
-          Build_Log.Data.ml_timing_gc,
-          Build_Log.Data.heap_size,
-          Build_Log.Data.status,
-          Build_Log.Data.errors) :::
-        (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
+          Build_Log.private_data.session_name,
+          Build_Log.private_data.chapter,
+          Build_Log.private_data.groups,
+          Build_Log.private_data.threads,
+          Build_Log.private_data.timing_elapsed,
+          Build_Log.private_data.timing_cpu,
+          Build_Log.private_data.timing_gc,
+          Build_Log.private_data.ml_timing_elapsed,
+          Build_Log.private_data.ml_timing_cpu,
+          Build_Log.private_data.ml_timing_gc,
+          Build_Log.private_data.heap_size,
+          Build_Log.private_data.status,
+          Build_Log.private_data.errors) :::
+        (if (ml_statistics) List(Build_Log.private_data.ml_statistics) else Nil)
 
-      Build_Log.Data.universal_table.select(columns, distinct = true, sql =
+      Build_Log.private_data.universal_table.select(columns, distinct = true, sql =
         SQL.where_and(
-          Build_Log.Data.pull_date(afp).ident + " > " + Build_Log.Data.recent_time(days(options)),
-          Build_Log.Data.status.member(
+          Build_Log.private_data.pull_date(afp).ident + " > " + Build_Log.private_data.recent_time(days(options)),
+          Build_Log.private_data.status.member(
             List(
               Build_Log.Session_Status.finished.toString,
               Build_Log.Session_Status.failed.toString)),
-          if_proper(only_sessions, Build_Log.Data.session_name.member(only_sessions)),
+          if_proper(only_sessions, Build_Log.private_data.session_name.member(only_sessions)),
           if_proper(sql, SQL.enclose(sql))))
     }
   }
@@ -261,16 +261,16 @@ object Build_Status {
         db.using_statement(sql) { stmt =>
           using(stmt.execute_query()) { res =>
             while (res.next()) {
-              val session_name = res.string(Build_Log.Data.session_name)
-              val chapter = res.string(Build_Log.Data.chapter)
-              val groups = split_lines(res.string(Build_Log.Data.groups))
+              val session_name = res.string(Build_Log.private_data.session_name)
+              val chapter = res.string(Build_Log.private_data.chapter)
+              val groups = split_lines(res.string(Build_Log.private_data.groups))
               val threads = {
                 val threads1 =
                   res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
                     case Threads_Option(Value.Int(i)) => i
                     case _ => 1
                   }
-                val threads2 = res.get_int(Build_Log.Data.threads).getOrElse(1)
+                val threads2 = res.get_int(Build_Log.private_data.threads).getOrElse(1)
                 threads1 max threads2
               }
               val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
@@ -292,7 +292,7 @@ object Build_Status {
               val ml_stats =
                 ML_Statistics(
                   if (ml_statistics) {
-                    Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics), cache = store.cache)
+                    Properties.uncompress(res.bytes(Build_Log.private_data.ml_statistics), cache = store.cache)
                   }
                   else Nil,
                   domain = ml_statistics_domain,
@@ -301,32 +301,32 @@ object Build_Status {
               val entry =
                 Entry(
                   chapter = chapter,
-                  pull_date = res.date(Build_Log.Data.pull_date(afp = false)),
+                  pull_date = res.date(Build_Log.private_data.pull_date(afp = false)),
                   afp_pull_date =
-                    if (afp) res.get_date(Build_Log.Data.pull_date(afp = true)) else None,
+                    if (afp) res.get_date(Build_Log.private_data.pull_date(afp = true)) else None,
                   isabelle_version = isabelle_version,
                   afp_version = afp_version,
                   timing =
                     res.timing(
-                      Build_Log.Data.timing_elapsed,
-                      Build_Log.Data.timing_cpu,
-                      Build_Log.Data.timing_gc),
+                      Build_Log.private_data.timing_elapsed,
+                      Build_Log.private_data.timing_cpu,
+                      Build_Log.private_data.timing_gc),
                   ml_timing =
                     res.timing(
-                      Build_Log.Data.ml_timing_elapsed,
-                      Build_Log.Data.ml_timing_cpu,
-                      Build_Log.Data.ml_timing_gc),
+                      Build_Log.private_data.ml_timing_elapsed,
+                      Build_Log.private_data.ml_timing_cpu,
+                      Build_Log.private_data.ml_timing_gc),
                   maximum_code = Space.B(ml_stats.maximum(ML_Statistics.CODE_SIZE)),
                   average_code = Space.B(ml_stats.average(ML_Statistics.CODE_SIZE)),
                   maximum_stack = Space.B(ml_stats.maximum(ML_Statistics.STACK_SIZE)),
                   average_stack = Space.B(ml_stats.average(ML_Statistics.STACK_SIZE)),
                   maximum_heap = Space.B(ml_stats.maximum(ML_Statistics.HEAP_SIZE)),
                   average_heap = Space.B(ml_stats.average(ML_Statistics.HEAP_SIZE)),
-                  stored_heap = Space.bytes(res.long(Build_Log.Data.heap_size)),
-                  status = Build_Log.Session_Status.valueOf(res.string(Build_Log.Data.status)),
+                  stored_heap = Space.bytes(res.long(Build_Log.private_data.heap_size)),
+                  status = Build_Log.Session_Status.valueOf(res.string(Build_Log.private_data.status)),
                   errors =
                     Build_Log.uncompress_errors(
-                      res.bytes(Build_Log.Data.errors), cache = store.cache))
+                      res.bytes(Build_Log.private_data.errors), cache = store.cache))
 
               val sessions = data_entries.getOrElse(data_name, Map.empty)
               val session =
