@@ -1003,7 +1003,6 @@ object Build_Log {
       }
 
       abstract class Table_Status(table: SQL.Table) {
-        db.create_table(table)
         private var known: Set[String] = domain(db, table, private_data.log_name)
 
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file))
