@@ -639,10 +639,7 @@ object Build_Log {
         sessions_table,
         theories_table,
         ml_statistics_table,
-        isabelle_afp_versions_table,
-        universal_table,
-        pull_date_table(afp = true),
-        pull_date_table())
+        isabelle_afp_versions_table)
 
 
     /* main content */
@@ -856,6 +853,15 @@ object Build_Log {
         ssh_user = options.string("build_log_ssh_user"),
         synchronous_commit = options.string("build_log_database_synchronous_commit"))
 
+    def init_database(db: SQL.Database, minimal: Boolean = false): Unit =
+      private_data.transaction_lock(db, create = true, label = "build_log_init") {
+        if (!minimal) {
+          db.create_view(private_data.pull_date_table())
+          db.create_view(private_data.pull_date_table(afp = true))
+        }
+        db.create_view(private_data.universal_table)
+      }
+
     def snapshot_database(
       db: PostgreSQL.Database,
       sqlite_database: Path,
@@ -1003,6 +1009,8 @@ object Build_Log {
       progress: Progress = new Progress,
       errors: Multi_Map[String, String] = Multi_Map.empty
     ): Multi_Map[String, String] = {
+      init_database(db)
+
       var errors1 = errors
       def add_error(name: String, exn: Throwable): Unit = {
         errors1 = errors1.insert(name, Exn.print(exn))
@@ -1053,7 +1061,7 @@ object Build_Log {
         val log_files =
           Par_List.map[JFile, Exn.Result[Log_File]](
             file => Exn.result { Log_File(file) }, file_group)
-        private_data.transaction_lock(db, create = true, label = "build_log_database") {
+        private_data.transaction_lock(db, label = "build_log_database") {
           for (case Exn.Res(log_file) <- log_files) {
             progress.echo("Log " + quote(log_file.name), verbose = true)
             try { status.foreach(_.update(log_file)) }
@@ -1064,10 +1072,6 @@ object Build_Log {
           add_error(Log_File.plain_name(file), exn)
         }
       }
-
-      db.create_view(private_data.pull_date_table())
-      db.create_view(private_data.pull_date_table(afp = true))
-      db.create_view(private_data.universal_table)
 
       errors1
     }

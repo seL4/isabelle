@@ -408,7 +408,7 @@ object Build_Schedule {
     private final lazy val _log_database: SQL.Database =
       try {
         val db = _log_store.open_database(server = this.server)
-        Build_Log.private_data.tables.foreach(db.create_table(_))
+        _log_store.init_database(db)
         db
       }
       catch { case exn: Throwable => close(); throw exn }
