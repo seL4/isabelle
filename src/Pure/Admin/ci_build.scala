@@ -50,6 +50,18 @@ object CI_Build {
     selection: Sessions.Selection = Sessions.Selection.empty)
 
 
+  def mail_server(options: Options): Mail.Server = {
+    val sender =
+      proper_string(options.string("ci_mail_sender")).map(Mail.address) getOrElse
+        Mail.default_address
+
+    new Mail.Server(sender,
+      smtp_host = options.string("ci_mail_smtp_host"),
+      smtp_port = options.int("ci_mail_smtp_port"),
+      user = options.string("ci_mail_user"),
+      password = options.string("ci_mail_password"))
+  }
+
   /* ci build jobs */
 
   sealed case class Job(name: String, description: String, profile: Profile, config: Build_Config) {

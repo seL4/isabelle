@@ -442,4 +442,3 @@ option ci_mail_password : string = "" for connection
 option ci_mail_sender : string = "" for connection
 option ci_mail_smtp_host : string = "" for connection
 option ci_mail_smtp_port : int = 587 for connection
-option ci_mail_ssl : bool = true for connection
