@@ -40,7 +40,7 @@ object Host {
         case _ => None
       }
 
-    def from(s: String) =
+    def from(s: String): List[Int] =
       s match {
         case Range(r) => r
         case _ => Nil
