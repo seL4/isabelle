@@ -5325,6 +5325,14 @@ lemma arg_min_list_in: "xs \<noteq> [] \<Longrightarrow> arg_min_list f xs \<in>
 
 subsubsection \<open>(In)finiteness\<close>
 
+lemma finite_list_length: "finite {xs::('a::finite) list. length xs = n}"
+proof(induction n)
+  case (Suc n)
+  have "{xs::'a list. length xs = Suc n} = (\<Union>x. (#) x ` {xs. length xs = n})"
+    by (auto simp: length_Suc_conv)
+  then show ?case using Suc by simp
+qed simp
+
 lemma finite_maxlen:
   "finite (M::'a list set) \<Longrightarrow> \<exists>n. \<forall>s\<in>M. size s < n"
 proof (induct rule: finite.induct)
