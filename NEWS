@@ -71,6 +71,10 @@ Apple Silicon.
 * No longer support for very old versions of macOS and Linux: base-line
 is Ubuntu Linux 18.04 LTS and macOS 11 Big Sur.
 
+* New component javamail 1.4.7 (from javax.mail).
+
+* Isabelle/Scala supports mailing via SMTP.
+
 
 
 New in Isabelle2023 (September 2023)
