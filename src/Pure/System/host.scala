@@ -122,11 +122,21 @@ object Host {
     }
     catch { case ERROR(_) => None }
 
-  def num_cpus(): Int = Runtime.getRuntime.availableProcessors
+  def num_cpus(ssh: SSH.System = SSH.Local): Int =
+    if (ssh.is_local) Runtime.getRuntime.availableProcessors
+    else {
+      val command =
+        if (ssh.isabelle_platform.is_macos) "sysctl -n hw.ncpu" else "nproc"
+      val result = ssh.execute(command).check
+      Library.trim_line(result.out) match {
+        case Value.Int(n) => n
+        case _ => 1
+      }
+    }
 
   object Info {
     def gather(hostname: String, ssh: SSH.System = SSH.Local, score: Option[Double] = None): Info =
-      Info(hostname, numa_nodes(ssh = ssh), num_cpus(), score)
+      Info(hostname, numa_nodes(ssh = ssh), num_cpus(ssh = ssh), score)
   }
 
   sealed case class Info(
