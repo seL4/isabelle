@@ -44,6 +44,9 @@ unfolding nlists_def by (cases "xs") auto
 lemma Cons_in_nlists_Suc [iff]: "(x#xs \<in> nlists (Suc n) A) \<longleftrightarrow> (x\<in>A \<and> xs \<in> nlists n A)"
 unfolding nlists_def by (auto)
 
+lemma nlists_Suc: "nlists (Suc n) A = (\<Union>a\<in>A. (#) a ` nlists n A)"
+by(auto simp: set_eq_iff image_iff in_nlists_Suc_iff)
+
 lemma nlists_not_empty: "A\<noteq>{} \<Longrightarrow> \<exists>xs. xs \<in> nlists n A"
 by (induct "n") (auto simp: in_nlists_Suc_iff)
 
