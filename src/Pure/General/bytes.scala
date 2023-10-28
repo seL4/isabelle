@@ -7,7 +7,8 @@ Immutable byte vectors versus UTF8 strings.
 package isabelle
 
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream, File as JFile}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream,
+  InputStream, OutputStream, File => JFile}
 import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel

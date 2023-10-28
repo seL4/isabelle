@@ -7,9 +7,10 @@ Support for sending text mails via SMTP.
 package isabelle
 
 
-import java.util.Properties as JProperties
+import java.util.{Properties => JProperties}
 import javax.mail.internet.{InternetAddress, MimeMessage}
-import javax.mail.{AuthenticationFailedException, Authenticator, Message, MessagingException, PasswordAuthentication, Transport as JTransport, Session as JSession}
+import javax.mail.{AuthenticationFailedException, Authenticator, Message, MessagingException,
+  PasswordAuthentication, Transport as JTransport, Session => JSession}
 
 
 object Mail {
