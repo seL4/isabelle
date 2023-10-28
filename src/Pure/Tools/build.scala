@@ -114,9 +114,6 @@ object Build {
       else options1 + "build_database_server" + "build_database"
     }
 
-    def process_options(options: Options, node_info: Host.Node_Info): Options =
-      Host.process_policy_options(options, node_info.numa_node)
-
     final def build_store(options: Options,
       build_hosts: List[Build_Cluster.Host] = Nil,
       cache: Term.Cache = Term.Cache.make()

@@ -158,6 +158,12 @@ object Build_Cluster {
 
     def init(): Unit = remote_isabelle.init()
 
+    def benchmark(): Unit = {
+      val script =
+        Benchmark.benchmark_command(host, ssh = ssh, isabelle_home = remote_isabelle_home)
+      remote_isabelle.bash(script).check
+    }
+
     def start(): Process_Result = {
       val remote_ml_platform = remote_isabelle.getenv("ML_PLATFORM")
       if (remote_ml_platform != build_context.ml_platform) {
@@ -207,6 +213,7 @@ trait Build_Cluster extends AutoCloseable {
   def return_code(exn: Throwable): Unit = return_code(Process_Result.RC(exn))
   def open(): Unit = ()
   def init(): Unit = ()
+  def benchmark(): Unit = ()
   def start(): Unit = ()
   def active(): Boolean = false
   def join: List[Build_Cluster.Result] = Nil
@@ -269,7 +276,7 @@ class Remote_Build_Cluster(
   }
 
 
-  /* init remote Isabelle distributions */
+  /* init and benchmark remote Isabelle distributions */
 
   private var _init = List.empty[Future[Unit]]
 
@@ -285,6 +292,17 @@ class Remote_Build_Cluster(
           }
         }
     }
+  }
+  
+  override def benchmark(): Unit = synchronized {
+    _init.foreach(_.join)
+    _init =
+      for (session <- _sessions if !session.host.shared) yield {
+        Future.thread(session.host.message("session")) {
+          capture(session.host, "benchmark") { session.benchmark() }
+        }
+      }
+    _init.foreach(_.join)
   }
 
 

@@ -153,6 +153,7 @@ sources = \
   src/Pure/PIDE/yxml.scala \
   src/Pure/ROOT.scala \
   src/Pure/System/bash.scala \
+  src/Pure/System/benchmark.scala \
   src/Pure/System/classpath.scala \
   src/Pure/System/command_line.scala \
   src/Pure/System/components.scala \
@@ -195,6 +196,7 @@ sources = \
   src/Pure/Tools/build_cluster.scala \
   src/Pure/Tools/build_job.scala \
   src/Pure/Tools/build_process.scala \
+  src/Pure/Tools/build_schedule.scala \
   src/Pure/Tools/check_keywords.scala \
   src/Pure/Tools/debugger.scala \
   src/Pure/Tools/doc.scala \
@@ -317,6 +319,7 @@ services = \
   isabelle.Bash$Handler \
   isabelle.Bibtex$File_Format \
   isabelle.Build$Default_Engine \
+  isabelle.Build_Schedule$Engine \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LIPIcs_LuaLaTeX_Engine \
   isabelle.Document_Build$LIPIcs_PDFLaTeX_Engine \

@@ -56,6 +56,7 @@ object Build_Process {
     worker_uuid: String,
     build_uuid: String,
     node_info: Host.Node_Info,
+    start_date: Date,
     build: Option[Build_Job]
   ) extends Library.Named {
     def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
@@ -614,9 +615,13 @@ object Build_Process {
       val build_uuid = Generic.build_uuid
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
+      val rel_cpus = SQL.Column.string("rel_cpus")
+      val start_date = SQL.Column.date("start_date")
 
       val table =
-        make_table(List(name, worker_uuid, build_uuid, hostname, numa_node), name = "running")
+        make_table(
+          List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus, start_date),
+          name = "running")
     }
 
     def read_running(db: SQL.Database): State.Running =
@@ -629,7 +634,11 @@ object Build_Process {
           val build_uuid = res.string(Running.build_uuid)
           val hostname = res.string(Running.hostname)
           val numa_node = res.get_int(Running.numa_node)
-          name -> Job(name, worker_uuid, build_uuid, Host.Node_Info(hostname, numa_node), None)
+          val rel_cpus = res.string(Running.rel_cpus)
+          val start_date = res.date(Running.start_date)
+
+          val node_info = Host.Node_Info(hostname, numa_node, Host.Range.from(rel_cpus))
+          name -> Job(name, worker_uuid, build_uuid, node_info, start_date, None)
         }
       )
 
@@ -655,6 +664,8 @@ object Build_Process {
             stmt.string(3) = job.build_uuid
             stmt.string(4) = job.node_info.hostname
             stmt.int(5) = job.node_info.numa_node
+            stmt.string(6) = Host.Range(job.node_info.rel_cpus)
+            stmt.date(7) = job.start_date
           })
       }
 
@@ -669,7 +680,8 @@ object Build_Process {
       val worker_uuid = Generic.worker_uuid
       val build_uuid = Generic.build_uuid
       val hostname = SQL.Column.string("hostname")
-      val numa_node = SQL.Column.string("numa_node")
+      val numa_node = SQL.Column.int("numa_node")
+      val rel_cpus = SQL.Column.string("rel_cpus")
       val rc = SQL.Column.int("rc")
       val out = SQL.Column.string("out")
       val err = SQL.Column.string("err")
@@ -681,7 +693,7 @@ object Build_Process {
 
       val table =
         make_table(
-          List(name, worker_uuid, build_uuid, hostname, numa_node,
+          List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus,
             rc, out, err, timing_elapsed, timing_cpu, timing_gc, output_shasum, current),
           name = "results")
     }
@@ -701,7 +713,8 @@ object Build_Process {
           val build_uuid = res.string(Results.build_uuid)
           val hostname = res.string(Results.hostname)
           val numa_node = res.get_int(Results.numa_node)
-          val node_info = Host.Node_Info(hostname, numa_node)
+          val rel_cpus = res.string(Results.rel_cpus)
+          val node_info = Host.Node_Info(hostname, numa_node, Host.Range.from(rel_cpus))
 
           val rc = res.int(Results.rc)
           val out = res.string(Results.out)
@@ -742,14 +755,15 @@ object Build_Process {
             stmt.string(3) = result.build_uuid
             stmt.string(4) = result.node_info.hostname
             stmt.int(5) = result.node_info.numa_node
-            stmt.int(6) = process_result.rc
-            stmt.string(7) = cat_lines(process_result.out_lines)
-            stmt.string(8) = cat_lines(process_result.err_lines)
-            stmt.long(9) = process_result.timing.elapsed.ms
-            stmt.long(10) = process_result.timing.cpu.ms
-            stmt.long(11) = process_result.timing.gc.ms
-            stmt.string(12) = result.output_shasum.toString
-            stmt.bool(13) = result.current
+            stmt.string(6) = Host.Range(result.node_info.rel_cpus)
+            stmt.int(7) = process_result.rc
+            stmt.string(8) = cat_lines(process_result.out_lines)
+            stmt.string(9) = cat_lines(process_result.err_lines)
+            stmt.long(10) = process_result.timing.elapsed.ms
+            stmt.long(11) = process_result.timing.cpu.ms
+            stmt.long(12) = process_result.timing.gc.ms
+            stmt.string(13) = result.output_shasum.toString
+            stmt.bool(14) = result.current
           })
       }
 
@@ -872,8 +886,8 @@ extends AutoCloseable {
     build_options.seconds(option)
   }
 
-  private val _host_database: Option[SQL.Database] =
-    try { store.maybe_open_build_database(path = Host.private_data.database, server = server) }
+  protected val _host_database: SQL.Database =
+    try { store.open_build_database(path = Host.private_data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
@@ -913,7 +927,7 @@ extends AutoCloseable {
   def close(): Unit = synchronized {
     Option(_database_server).flatten.foreach(_.close())
     Option(_build_database).flatten.foreach(_.close())
-    Option(_host_database).flatten.foreach(_.close())
+    Option(_host_database).foreach(_.close())
     Option(_build_cluster).foreach(_.close())
     progress match {
       case db_progress: Database_Progress => db_progress.exit(close = true)
@@ -968,6 +982,13 @@ extends AutoCloseable {
         .take(limit).map(_.name)
     }
     else Nil
+  }
+
+  protected def next_node_info(state: Build_Process.State, session_name: String): Host.Node_Info = {
+    def used_nodes: Set[Int] =
+      Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
+    val numa_node = Host.next_numa_node(_host_database, hostname, state.numa_nodes, used_nodes)
+    Host.Node_Info(hostname, numa_node, Nil)
   }
 
   protected def start_session(
@@ -1025,17 +1046,10 @@ extends AutoCloseable {
       else state
     }
     else {
-      def used_nodes: Set[Int] =
-        Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
-      val numa_node =
-        for {
-          db <- _host_database
-          n <- Host.next_numa_node(db, hostname, state.numa_nodes, used_nodes)
-        } yield n
-      val node_info = Host.Node_Info(hostname, numa_node)
+      val node_info = next_node_info(state, session_name)
 
       val print_node_info =
-        node_info.numa_node.isDefined ||
+        node_info.numa_node.isDefined || node_info.rel_cpus.nonEmpty  ||
         _build_database.isDefined && _build_database.get.is_postgresql
 
       progress.echo(
@@ -1048,7 +1062,8 @@ extends AutoCloseable {
         Build_Job.start_session(build_context, session, progress, log, server,
           build_deps.background(session_name), sources_shasum, input_shasum, node_info, store_heap)
 
-      val job = Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Some(build))
+      val job =
+        Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, Date.now(), Some(build))
 
       state.add_running(job)
     }

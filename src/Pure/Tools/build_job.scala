@@ -117,7 +117,7 @@ object Build_Job {
     private val future_result: Future[Option[Result]] =
       Future.thread("build", uninterruptible = true) {
         val info = session_background.sessions_structure(session_name)
-        val options = build_context.engine.process_options(info.options, node_info)
+        val options = Host.node_options(info.options, node_info)
 
         val store = build_context.store
 
