@@ -92,8 +92,10 @@ object Build_Log {
   object Log_File {
     /* log file */
 
+    val all_suffixes: List[String] = List(".log", ".log.gz", ".log.xz", ".gz", ".xz")
+
     def plain_name(name: String): String = {
-      List(".log", ".log.gz", ".log.xz", ".gz", ".xz").find(name.endsWith) match {
+      all_suffixes.find(name.endsWith) match {
         case Some(s) => Library.try_unsuffix(s, name).get
         case None => name
       }
@@ -120,11 +122,15 @@ object Build_Log {
 
     /* log file collections */
 
+    val log_prefixes: List[String] =
+      List(Build_History.log_prefix, Identify.log_prefix, Identify.log_prefix2,
+        Isatest.log_prefix, AFP_Test.log_prefix)
+
+    val log_suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
+
     def is_log(file: JFile,
-      prefixes: List[String] =
-        List(Build_History.log_prefix, Identify.log_prefix, Identify.log_prefix2,
-          Isatest.log_prefix, AFP_Test.log_prefix),
-      suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
+      prefixes: List[String] = log_prefixes,
+      suffixes: List[String] = log_suffixes
     ): Boolean = {
       val name = file.getName
 
