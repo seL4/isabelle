@@ -141,6 +141,10 @@ object Build_Log {
       name != "main.log"
     }
 
+    def find_files(starts: List[JFile]): List[JFile] =
+      starts.flatMap(start => File.find_files(start, pred = is_log(_), follow_links = true))
+        .sortBy(plain_name)
+
 
     /* date format */
 
@@ -1156,7 +1160,7 @@ object Build_Log {
 
   /** maintain build_log database **/
 
-  def build_log_database(options: Options, log_dirs: List[Path],
+  def build_log_database(options: Options, logs: List[Path],
     progress: Progress = new Progress,
     vacuum: Boolean = false,
     ml_statistics: Boolean = false,
@@ -1164,10 +1168,7 @@ object Build_Log {
   ): Unit = {
     val store = Build_Log.store(options)
 
-    val log_files =
-      log_dirs.flatMap(dir =>
-        File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true)
-      ).sortBy(Log_File.plain_name)
+    val log_files = Log_File.find_files(logs.map(_.file))
 
     using(store.open_database()) { db =>
       if (vacuum) db.vacuum()
