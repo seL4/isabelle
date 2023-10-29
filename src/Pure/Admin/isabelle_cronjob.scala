@@ -429,12 +429,18 @@ object Isabelle_Cronjob {
               options =
                 " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                 " -f " + r.build_history_options,
+
               args = "-o timeout=10800 " + r.args)
 
-          for ((log_name, bytes) <- results) {
-            logger.log(Date.now(), log_name)
-            Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
-          }
+          val log_files =
+            for ((log_name, bytes) <- results) yield {
+              val log_file = logger.log_dir + Path.explode(log_name)
+              logger.log(Date.now(), log_name)
+              Bytes.write(log_file, bytes)
+              log_file
+            }
+
+          Build_Log.build_log_database(logger.options, log_files, ml_statistics = true)
         }
       })
   }
@@ -597,7 +603,15 @@ object Isabelle_Cronjob {
         run_now(
           SEQ(List(
             init,
-            PAR(List(mailman_archives, build_release)),
+            PAR(
+              List(
+                mailman_archives,
+                build_release,
+                Logger_Task("build_log_database",
+                  logger =>
+                    Build_Log.build_log_database(logger.options, build_log_dirs,
+                      vacuum = true, ml_statistics = true,
+                      snapshot = Some(Isabelle_Devel.build_log_snapshot))))),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
@@ -607,11 +621,6 @@ object Isabelle_Cronjob {
                       (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
                       (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
                     } yield remote_build_history(rev, afp_rev, i, r)))),
-                Logger_Task("build_log_database",
-                  logger =>
-                    Build_Log.build_log_database(logger.options, build_log_dirs,
-                      vacuum = true, ml_statistics = true,
-                      snapshot = Some(Isabelle_Devel.build_log_snapshot))),
                 Logger_Task("build_status",
                   logger => Isabelle_Devel.build_status(logger.options)))))),
             exit)))))
