@@ -1209,7 +1209,7 @@ object Build_Log {
       var ml_statistics: Boolean = false
       var snapshot: Option[Path] = None
       var vacuum = false
-      var dirs: List[Path] = Nil
+      var logs: List[Path] = Nil
       var options = Options.init()
       var verbose = false
 
@@ -1220,17 +1220,17 @@ Usage: isabelle build_log_database [OPTIONS]
     -M           include ML statistics
     -S FILE      snapshot to SQLite db file
     -V           vacuum cleaning of database
-    -d DIR       include directory with log files
+    -d LOG       include log file start location
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
 
-  Update the build_log database server from log files, recursively collected
-  from given directories.
+  Update the build_log database server from log files, which are recursively
+  collected from given start locations (files or directories).
 """,
         "M" -> (_ => ml_statistics = true),
         "S:" -> (arg => snapshot = Some(Path.explode(arg))),
         "V" -> (_ => vacuum = true),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "d:" -> (arg => logs = logs ::: List(Path.explode(arg))),
         "o:" -> (arg => options = options + arg),
         "v" -> (_ => verbose = true))
 
@@ -1239,7 +1239,7 @@ Usage: isabelle build_log_database [OPTIONS]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      build_log_database(options, dirs, progress = progress, vacuum = vacuum,
+      build_log_database(options, logs, progress = progress, vacuum = vacuum,
         ml_statistics = ml_statistics, snapshot = snapshot)
     })
 }
