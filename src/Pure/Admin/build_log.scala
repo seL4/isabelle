@@ -921,10 +921,23 @@ object Build_Log {
       }
     }
 
-    def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
-      db.execute_query_statement(
-        table.select(List(column), distinct = true),
-        Set.from[String], res => res.string(column))
+    def read_domain(
+      db: SQL.Database,
+      table: SQL.Table,
+      column: SQL.Column,
+      restriction: Option[Iterable[String]] = None
+    ): Set[String] = {
+      private_data.transaction_lock(db, label = "Build_Log.read_domain") {
+        db.execute_query_statement(
+          table.select(List(column),
+            sql = restriction match {
+              case None => ""
+              case Some(names) => column.where_member(names)
+            },
+            distinct = true),
+          Set.from[String], res => cache.string(res.string(column)))
+      }
+    }
 
     def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info): Unit =
       db.execute_statement(db.insert_permissive(private_data.meta_info_table),
@@ -1012,8 +1025,15 @@ object Build_Log {
         errors1 = errors1.insert(name, Exn.print(exn))
       }
 
+      val files_domain = {
+        val names = files.map(Log_File.plain_name).toSet
+        if (names.size > 100) None else Some(names)
+      }
+
       abstract class Table_Status(table: SQL.Table) {
-        private var known: Set[String] = domain(db, table, private_data.log_name)
+        private var known: Set[String] =
+          read_domain(db, table, private_data.log_name,
+            restriction = files_domain)
 
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file))
         def required(log_file: Log_File): Boolean = !known(log_file.name)
@@ -1026,6 +1046,17 @@ object Build_Log {
           }
         }
       }
+
+      val ml_statistics_status =
+        if (ml_statistics) Nil
+        else {
+          List(
+            new Table_Status(private_data.ml_statistics_table) {
+              override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+                update_ml_statistics(db, log_file.name,
+                  log_file.parse_build_info(ml_statistics = true))
+            })
+        }
       val status =
         List(
           new Table_Status(private_data.meta_info_table) {
@@ -1039,14 +1070,8 @@ object Build_Log {
           new Table_Status(private_data.theories_table) {
             override def update_db(db: SQL.Database, log_file: Log_File): Unit =
               update_theories(db, log_file.name, log_file.parse_build_info())
-          },
-          new Table_Status(private_data.ml_statistics_table) {
-            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
-            if (ml_statistics) {
-              update_ml_statistics(db, log_file.name,
-                log_file.parse_build_info(ml_statistics = true))
-            }
-          })
+          }
+        ) ::: ml_statistics_status
 
       val file_groups_iterator =
         files.filter(file => status.exists(_.required(file))).
