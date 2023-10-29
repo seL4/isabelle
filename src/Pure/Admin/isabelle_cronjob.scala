@@ -307,6 +307,24 @@ object Isabelle_Cronjob {
         }
       }
 
+  val remote_build_studio1 =
+    Remote_Build("macOS 14 Sonoma (ARM)", "studio1-sonoma",
+      history_base = "8e590adaac5e",
+      options = "-m32 -B -M1x4,2x4,4x2,8 -p pide_session=false" +
+        " -e ISABELLE_GHC_SETUP=true" +
+        " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
+        " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
+      args = "-a -d '~~/src/Benchmarks'")
+
+  val remote_build_mini3 =
+    Remote_Build("macOS 13 Ventura (ARM)", "mini3",
+      history_base = "8e590adaac5e",
+      options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
+        " -e ISABELLE_GHC_SETUP=true" +
+        " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
+        " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
+      args = "-a -d '~~/src/Benchmarks'")
+
   val remote_builds1: List[List[Remote_Build]] = {
     List(
       List(Remote_Build("Linux A", "augsburg1",
@@ -328,21 +346,8 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
+      List(remote_build_studio1, remote_build_studio1),
       List(
-        Remote_Build("macOS 14 Sonoma (ARM)", "studio1-sonoma",
-          options = "-m32 -B -M1x4,2x4,4x2,8 -p pide_session=false" +
-            " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
-            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
-      List(
-        Remote_Build("macOS 14 Sonoma (Intel)", "mini2-sonoma",
-          options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
-            " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
-            " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
-            " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'"),
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           args = "-a -o quick_and_dirty",
@@ -352,14 +357,7 @@ object Isabelle_Cronjob {
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
           active = () => false)),
-      List(
-        Remote_Build("macOS 13 Ventura (ARM)", "mini3",
-          history_base = "8e590adaac5e",
-          options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
-            " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
-            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
+      List(remote_build_mini3, remote_build_mini3, remote_build_mini3),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
