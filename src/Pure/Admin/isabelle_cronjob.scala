@@ -558,11 +558,16 @@ object Isabelle_Cronjob {
 
     /* structured tasks */
 
-    def SEQ(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
-      for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "") run_now(task))
+    def SEQ(tasks: List[() => Option[Logger_Task]]): Logger_Task =
+      Logger_Task(body = _ =>
+        for {
+          t <- tasks.iterator
+          task <- t()
+          if !exclude_task(task.name) || task.name == ""
+        } run_now(task))
 
     def SEQUENTIAL(tasks: Logger_Task*): Logger_Task =
-      SEQ(tasks.toList)
+      SEQ(List.from(for (task <- tasks.iterator) yield () => Some(task)))
 
     def PAR(tasks: List[Logger_Task]): Logger_Task =
       Logger_Task(body =
@@ -615,15 +620,18 @@ object Isabelle_Cronjob {
                       snapshot = Some(Isabelle_Devel.build_log_snapshot))))),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
-              SEQUENTIAL(
-                PAR(remote_builds.map(_.filter(_.active())).map(seq =>
-                  SEQ(
-                    for {
-                      (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
-                      (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
-                    } yield remote_build_history(rev, afp_rev, i, r)))),
-                Logger_Task("build_status",
-                  logger => Isabelle_Devel.build_status(logger.options))))),
+                SEQUENTIAL(
+                  PAR(remote_builds.map(_.filter(_.active())).map(seq =>
+                    SEQ(
+                      for {
+                        (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
+                      } yield () => {
+                        r.pick(logger.options, hg.id(), history_base_filter(r))
+                          .map({ case (rev, afp_rev) => remote_build_history(rev, afp_rev, i, r) })
+                      }
+                    ))),
+                  Logger_Task("build_status",
+                    logger => Isabelle_Devel.build_status(logger.options))))),
             exit))))
 
     log_service.shutdown()
