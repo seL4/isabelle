@@ -30,6 +30,8 @@ object Isabelle_Cronjob {
   val build_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
 
+  val isabelle_devel: Path = Path.explode("~/html-data/devel")
+
 
 
   /** logger tasks **/
@@ -45,7 +47,13 @@ object Isabelle_Cronjob {
   val init: Logger_Task =
     Logger_Task("init",
       { logger =>
-        Isabelle_Devel.make_index()
+        val redirect = "https://isabelle-dev.sketis.net/home/menu/view/20"
+
+        HTML.write_document(isabelle_devel, "index.html",
+          List(
+            XML.Elem(Markup("meta",
+              List("http-equiv" -> "Refresh", "content" -> ("0; url=" + redirect))), Nil)),
+          List(HTML.link(redirect, HTML.text("Isabelle Development Resources"))))
 
         Mercurial.setup_repository(Isabelle_System.afp_repository.root, afp_repos)
 
@@ -57,7 +65,7 @@ object Isabelle_Cronjob {
             """ -a --include="*/" --include="plain_identify*" --exclude="*" """ +
             Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
 
-        val cronjob_log = Isabelle_Devel.isabelle_devel + Path.basic("cronjob-main.log")
+        val cronjob_log = isabelle_devel + Path.basic("cronjob-main.log")
         if (!cronjob_log.is_file) {
           Files.createSymbolicLink(cronjob_log.java_path, current_log.java_path)
         }
@@ -88,8 +96,21 @@ object Isabelle_Cronjob {
   val build_release: Logger_Task =
     Logger_Task("build_release", { logger =>
       build_release_log.file.delete
-      Isabelle_Devel.release_snapshot(logger.options, get_rev(), get_afp_rev(),
-        progress = new File_Progress(build_release_log))
+      val rev = get_rev()
+      val afp_rev = get_afp_rev()
+      val progress = new File_Progress(build_release_log)
+
+      Isabelle_System.with_tmp_dir("isadist") { target_dir =>
+        Isabelle_System.update_directory(isabelle_devel + Path.explode("release_snapshot"),
+          { website_dir =>
+            val context = Build_Release.Release_Context(target_dir, progress = progress)
+            Build_Release.build_release_archive(context, rev)
+            Build_Release.build_release(logger.options, context, afp_rev = afp_rev,
+              build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
+              website = Some(website_dir))
+          }
+        )
+      }
     })
 
 
@@ -618,7 +639,7 @@ object Isabelle_Cronjob {
                   logger =>
                     Build_Log.build_log_database(logger.options, build_log_dirs,
                       vacuum = true, ml_statistics = true,
-                      snapshot = Some(Isabelle_Devel.isabelle_devel + Path.explode("build_log.db")))))),
+                      snapshot = Some(isabelle_devel + Path.explode("build_log.db")))))),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
                 SEQUENTIAL(
@@ -631,8 +652,12 @@ object Isabelle_Cronjob {
                           .map({ case (rev, afp_rev) => remote_build_history(rev, afp_rev, i, r) })
                       }
                     ))),
-                  Logger_Task("build_status",
-                    logger => Isabelle_Devel.build_status(logger.options))))),
+                  Logger_Task("build_status", logger =>
+                    Isabelle_System.update_directory(
+                      isabelle_devel + Path.explode("build_status"),
+                      dir =>
+                        Build_Status.build_status(logger.options,
+                          target_dir = dir, ml_statistics = true)))))),
             exit))))
 
     log_service.shutdown()
