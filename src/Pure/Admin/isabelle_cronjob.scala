@@ -561,6 +561,9 @@ object Isabelle_Cronjob {
     def SEQ(tasks: List[Logger_Task]): Logger_Task = Logger_Task(body = _ =>
       for (task <- tasks.iterator if !exclude_task(task.name) || task.name == "") run_now(task))
 
+    def SEQUENTIAL(tasks: Logger_Task*): Logger_Task =
+      SEQ(tasks.toList)
+
     def PAR(tasks: List[Logger_Task]): Logger_Task =
       Logger_Task(body =
         { _ =>
@@ -599,7 +602,7 @@ object Isabelle_Cronjob {
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
         run_now(
-          SEQ(List(
+          SEQUENTIAL(
             init,
             PAR(
               List(
@@ -612,7 +615,7 @@ object Isabelle_Cronjob {
                       snapshot = Some(Isabelle_Devel.build_log_snapshot))))),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
-              SEQ(List(
+              SEQUENTIAL(
                 PAR(remote_builds.map(_.filter(_.active())).map(seq =>
                   SEQ(
                     for {
@@ -620,8 +623,8 @@ object Isabelle_Cronjob {
                       (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
                     } yield remote_build_history(rev, afp_rev, i, r)))),
                 Logger_Task("build_status",
-                  logger => Isabelle_Devel.build_status(logger.options)))))),
-            exit)))))
+                  logger => Isabelle_Devel.build_status(logger.options))))),
+            exit))))
 
     log_service.shutdown()
 
