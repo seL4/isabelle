@@ -57,8 +57,9 @@ object Isabelle_Cronjob {
             """ -a --include="*/" --include="plain_identify*" --exclude="*" """ +
             Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
 
-        if (!Isabelle_Devel.cronjob_log.is_file) {
-          Files.createSymbolicLink(Isabelle_Devel.cronjob_log.java_path, current_log.java_path)
+        val cronjob_log = Isabelle_Devel.isabelle_devel + Path.basic("cronjob-main.log")
+        if (!cronjob_log.is_file) {
+          Files.createSymbolicLink(cronjob_log.java_path, current_log.java_path)
         }
       })
 
@@ -617,7 +618,7 @@ object Isabelle_Cronjob {
                   logger =>
                     Build_Log.build_log_database(logger.options, build_log_dirs,
                       vacuum = true, ml_statistics = true,
-                      snapshot = Some(Isabelle_Devel.build_log_snapshot))))),
+                      snapshot = Some(Isabelle_Devel.isabelle_devel + Path.explode("build_log.db")))))),
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
                 SEQUENTIAL(

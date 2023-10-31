@@ -8,14 +8,7 @@ package isabelle
 
 
 object Isabelle_Devel {
-  val RELEASE_SNAPSHOT = "release_snapshot"
-  val BUILD_LOG_DB = "build_log.db"
-  val BUILD_STATUS = "build_status"
-  val CRONJOB_LOG = "cronjob-main.log"
-
-  val root: Path = Path.explode("~/html-data/devel")
-  val cronjob_log: Path = root + Path.basic(CRONJOB_LOG)
-  val build_log_snapshot: Path = root + Path.explode(BUILD_LOG_DB)
+  val isabelle_devel: Path = Path.explode("~/html-data/devel")
 
 
   /* index */
@@ -23,7 +16,7 @@ object Isabelle_Devel {
   def make_index(): Unit = {
     val redirect = "https://isabelle-dev.sketis.net/home/menu/view/20"
 
-    HTML.write_document(root, "index.html",
+    HTML.write_document(isabelle_devel, "index.html",
       List(
         XML.Elem(Markup("meta",
           List("http-equiv" -> "Refresh", "content" -> ("0; url=" + redirect))), Nil)),
@@ -37,7 +30,7 @@ object Isabelle_Devel {
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.with_tmp_dir("isadist") { target_dir =>
-      Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
+      Isabelle_System.update_directory(isabelle_devel + Path.explode("release_snapshot"),
         { website_dir =>
           val context = Build_Release.Release_Context(target_dir, progress = progress)
           Build_Release.build_release_archive(context, rev)
@@ -53,7 +46,7 @@ object Isabelle_Devel {
   /* present build status */
 
   def build_status(options: Options): Unit = {
-    Isabelle_System.update_directory(root + Path.explode(BUILD_STATUS),
+    Isabelle_System.update_directory(isabelle_devel + Path.explode("build_status"),
       dir => Build_Status.build_status(options, target_dir = dir, ml_statistics = true))
   }
 }
