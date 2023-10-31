@@ -45,7 +45,7 @@ final class Consumer_Thread[A] private(
   /* thread */
 
   private var active = true
-  private val mailbox = Mailbox[Option[Request]]
+  private val mailbox = Mailbox[Option[Request]]()
 
   private val thread = Isabelle_Thread.fork(name = name, daemon = daemon) { main_loop(Nil) }
   def is_active(): Boolean = active && thread.isAlive
