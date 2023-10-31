@@ -846,8 +846,7 @@ object Build_Log {
         port = options.int("build_log_database_port"),
         ssh_host = options.string("build_log_ssh_host"),
         ssh_port = options.int("build_log_ssh_port"),
-        ssh_user = options.string("build_log_ssh_user"),
-        synchronous_commit = options.string("build_log_database_synchronous_commit"))
+        ssh_user = options.string("build_log_ssh_user"))
 
     def init_database(db: SQL.Database, minimal: Boolean = false): Unit =
       private_data.transaction_lock(db, create = true, label = "build_log_init") {
