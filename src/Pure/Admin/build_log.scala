@@ -108,7 +108,7 @@ object Build_Log {
     def apply(name: String, text: String): Log_File =
       new Log_File(plain_name(name), Library.trim_split_lines(text))
 
-    def apply(file: JFile): Log_File = {
+    def read(file: JFile): Log_File = {
       val name = file.getName
       val text =
         if (File.is_gz(name)) File.read_gzip(file)
@@ -116,8 +116,6 @@ object Build_Log {
         else File.read(file)
       apply(name, text)
     }
-
-    def apply(path: Path): Log_File = apply(path.file)
 
 
     /* log file collections */
@@ -1086,7 +1084,7 @@ object Build_Log {
         for (file <- files.iterator if status.exists(_.required(file))) {
           val log_name = Log_File.plain_name(file)
           progress.echo("Log " + quote(log_name), verbose = true)
-          Exn.result { Log_File(file) } match {
+          Exn.result { Log_File.read(file) } match {
             case Exn.Res(log_file) => consumer.send(log_file)
             case Exn.Exn(exn) => add_error(log_name, exn)
           }

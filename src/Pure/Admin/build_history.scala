@@ -317,7 +317,8 @@ object Build_History {
               using(SQLite.open_database(database))(store.read_ml_statistics(_, session_name))
             }
             else if (log_gz.is_file) {
-              Build_Log.Log_File(log_gz).parse_session_info(ml_statistics = true).ml_statistics
+              Build_Log.Log_File.read(log_gz.file)
+                .parse_session_info(ml_statistics = true).ml_statistics
             }
             else Nil
 
