@@ -9,15 +9,17 @@ package isabelle
 
 
 object Mailbox {
-  def apply[A](): Mailbox[A] = new Mailbox[A]()
+  def apply[A](limit: Int = 0): Mailbox[A] = new Mailbox[A](limit)
 }
 
 
-class Mailbox[A] private() {
+class Mailbox[A] private(limit: Int) {
   private val mailbox = Synchronized[List[A]](Nil)
   override def toString: String = mailbox.value.reverse.mkString("Mailbox(", ",", ")")
 
-  def send(msg: A): Unit = mailbox.change(msg :: _)
+  def send(msg: A): Unit =
+    if (limit <= 0) mailbox.change(msg :: _)
+    else mailbox.guarded_access(msgs => if (msgs.length < limit) Some(((), msg :: msgs)) else None)
 
   def receive(timeout: Option[Time] = None): List[A] =
     (mailbox.timed_access(_ => timeout.map(t => Time.now() + t),
