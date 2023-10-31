@@ -1073,23 +1073,16 @@ object Build_Log {
           }
         ) ::: ml_statistics_status
 
-      val file_groups_iterator =
-        files.filter(file => status.exists(_.required(file))).
-          grouped(options.int("build_log_transaction_size") max 1)
-
-      for (file_group <- file_groups_iterator) {
-        val log_files =
-          Par_List.map[JFile, Exn.Result[Log_File]](
-            file => Exn.result { Log_File(file) }, file_group)
-        private_data.transaction_lock(db, label = "build_log_database") {
-          for (case Exn.Res(log_file) <- log_files) {
-            progress.echo("Log " + quote(log_file.name), verbose = true)
-            try { status.foreach(_.update(log_file)) }
-            catch { case exn: Throwable => add_error(log_file.name, exn) }
-          }
-        }
-        for (case (file, Exn.Exn(exn)) <- file_group.zip(log_files)) {
-          add_error(Log_File.plain_name(file), exn)
+      for (file <- files.iterator if status.exists(_.required(file))) {
+        val log_name = Log_File.plain_name(file)
+        progress.echo("Log " + quote(log_name), verbose = true)
+        Exn.result { Log_File(file) } match {
+          case Exn.Res(log_file) =>
+            private_data.transaction_lock(db, label = "build_log_database") {
+              try { status.foreach(_.update(log_file)) }
+              catch { case exn: Throwable => add_error(log_name, exn) }
+            }
+          case Exn.Exn(exn) => add_error(log_name, exn)
         }
       }
 
