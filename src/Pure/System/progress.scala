@@ -182,6 +182,9 @@ object Progress {
 }
 
 class Progress {
+  def now(): Date = Date.now()
+  val start: Date = now()
+
   def verbose: Boolean = false
   final def do_output(message: Progress.Message): Boolean = !message.verbose || verbose
 
@@ -276,6 +279,9 @@ class Database_Progress(
 extends Progress {
   database_progress =>
 
+  override def now(): Date = db.now()
+  override val start: Date = now()
+
   if (UUID.unapply(context_uuid).isEmpty) {
     error("Bad Database_Progress.context_uuid: " + quote(context_uuid))
   }
@@ -307,7 +313,6 @@ extends Progress {
         val java = ProcessHandle.current()
         val java_pid = java.pid
         val java_start = Date.instant(java.info.startInstant.get)
-        val now = db.now()
 
         stmt.string(1) = _agent_uuid
         stmt.string(2) = context_uuid
@@ -315,8 +320,8 @@ extends Progress {
         stmt.string(4) = hostname
         stmt.long(5) = java_pid
         stmt.date(6) = java_start
-        stmt.date(7) = now
-        stmt.date(8) = now
+        stmt.date(7) = start
+        stmt.date(8) = start
         stmt.date(9) = None
         stmt.long(10) = 0L
       })
