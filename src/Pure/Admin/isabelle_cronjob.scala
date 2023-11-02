@@ -19,6 +19,7 @@ object Isabelle_Cronjob {
   val main_dir: Path = Path.explode("~/cronjob")
   val main_state_file: Path = main_dir + Path.explode("run/main.state")
   val build_release_log: Path = main_dir + Path.explode("run/build_release.log")
+  val build_log_database_log: Path = main_dir + Path.explode("run/build_log_database.log")
   val current_log: Path = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
 
@@ -626,6 +627,8 @@ object Isabelle_Cronjob {
     val main_start_date = Date.now()
     File.write(main_state_file, main_start_date.toString + " " + log_service.hostname)
 
+    val build_log_database_progress = new File_Progress(build_log_database_log, verbose = true)
+
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
         run_now(
@@ -638,6 +641,7 @@ object Isabelle_Cronjob {
                 Logger_Task("build_log_database",
                   logger =>
                     Build_Log.build_log_database(logger.options, build_log_dirs,
+                      progress = build_log_database_progress,
                       vacuum = true, ml_statistics = true,
                       snapshot = Some(isabelle_devel + Path.explode("build_log.db")))))),
             PAR(

@@ -1071,10 +1071,22 @@ object Build_Log {
       val consumer =
         Consumer_Thread.fork[Log_File]("build_log_database")(
           consume = { log_file =>
+            val t0 = progress.start.time
+            val t1 = progress.now().time
+
             private_data.transaction_lock(db, label = "build_log_database") {
               try { status.foreach(_.update(log_file)) }
               catch { case exn: Throwable => add_error(log_file.name, exn) }
             }
+
+            val t2 = progress.now().time
+
+            progress.echo(verbose = true,
+              msg =
+                "Log " + quote(log_file.name) + " (" +
+                  (t1 - t0).message + " start time, " +
+                  (t2 - t1).message + " elapsed time)")
+
             true
           },
           limit = 1
@@ -1082,11 +1094,9 @@ object Build_Log {
 
       try {
         for (file <- files.iterator if status.exists(_.required(file))) {
-          val log_name = Log_File.plain_name(file)
-          progress.echo("Log " + quote(log_name), verbose = true)
           Exn.result { Log_File.read(file, cache = cache.compress) } match {
             case Exn.Res(log_file) => consumer.send(log_file)
-            case Exn.Exn(exn) => add_error(log_name, exn)
+            case Exn.Exn(exn) => add_error(Log_File.plain_name(file), exn)
           }
         }
       }
