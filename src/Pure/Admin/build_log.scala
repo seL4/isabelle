@@ -1208,15 +1208,8 @@ object Build_Log {
       if (vacuum) db.vacuum()
 
       progress.echo("Updating database " + db + " ...")
-      val errors0 = store.write_info(db, log_files, progress = progress)
-
       val errors =
-        if (ml_statistics) {
-          progress.echo("Updating database " + db + " (ML statistics) ...")
-          store.write_info(db, log_files, ml_statistics = true,
-            progress = progress, errors = errors0)
-        }
-        else errors0
+        store.write_info(db, log_files, ml_statistics = ml_statistics, progress = progress)
 
       if (errors.isEmpty) {
         for (path <- snapshot) {
