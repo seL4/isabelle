@@ -1070,6 +1070,7 @@ object Build_Log {
 
       val consumer =
         Consumer_Thread.fork[Log_File]("build_log_database")(
+          limit = 1,
           consume = { log_file =>
             val t0 = progress.start.time
             val t1 = progress.now().time
@@ -1081,16 +1082,13 @@ object Build_Log {
 
             val t2 = progress.now().time
 
-            progress.echo(verbose = true,
-              msg =
-                "Log " + quote(log_file.name) + " (" +
-                  (t1 - t0).message_hms + " start time, " +
-                  (t2 - t1).message + " elapsed time)")
+            progress.echo(verbose = true, msg =
+              "Log " + quote(log_file.name) + " (" +
+                (t1 - t0).message_hms + " start time, " +
+                (t2 - t1).message + " elapsed time)")
 
             true
-          },
-          limit = 1
-        )
+          })
 
       try {
         for (file <- files.iterator if status.exists(_.required(file))) {
