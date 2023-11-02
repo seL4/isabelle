@@ -342,7 +342,10 @@ subsubsection \<open>Difference\<close>
 lemma Suc_diff_diff [simp]: "(Suc m - n) - Suc k = m - n - k"
   by (simp add: diff_diff_add)
 
-lemma diff_Suc_1 [simp]: "Suc n - 1 = n"
+lemma diff_Suc_1: "Suc n - 1 = n"
+  by simp
+
+lemma diff_Suc_1' [simp]: "Suc n - Suc 0 = n"
   by simp
 
 
