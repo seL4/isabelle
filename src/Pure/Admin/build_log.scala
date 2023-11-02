@@ -1203,7 +1203,8 @@ object Build_Log {
       val errors =
         if (ml_statistics) {
           progress.echo("Updating database " + db + " (ML statistics) ...")
-          store.write_info(db, log_files, ml_statistics = true, errors = errors0)
+          store.write_info(db, log_files, ml_statistics = true,
+            progress = progress, errors = errors0)
         }
         else errors0
 
