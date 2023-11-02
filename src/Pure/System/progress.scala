@@ -243,18 +243,20 @@ class Progress {
 
 class Console_Progress(override val verbose: Boolean = false, stderr: Boolean = false)
 extends Progress {
-  override def output(message: Progress.Message): Unit =
+  override def output(message: Progress.Message): Unit = synchronized {
     if (do_output(message)) {
       Output.output(message.output_text, stdout = !stderr, include_empty = true)
     }
+  }
 
   override def toString: String = super.toString + ": console"
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
 extends Progress {
-  override def output(message: Progress.Message): Unit =
+  override def output(message: Progress.Message): Unit = synchronized {
     if (do_output(message)) File.append(path, message.output_text + "\n")
+  }
 
   override def toString: String = super.toString + ": " + path.toString
 }
