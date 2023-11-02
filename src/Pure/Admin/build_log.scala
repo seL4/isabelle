@@ -1084,7 +1084,7 @@ object Build_Log {
             progress.echo(verbose = true,
               msg =
                 "Log " + quote(log_file.name) + " (" +
-                  (t1 - t0).message + " start time, " +
+                  (t1 - t0).message_hms + " start time, " +
                   (t2 - t1).message + " elapsed time)")
 
             true
