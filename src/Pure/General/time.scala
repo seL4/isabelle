@@ -47,6 +47,8 @@ final class Time private(val ms: Long) extends AnyVal {
   def min(t: Time): Time = if (this < t) this else t
   def max(t: Time): Time = if (this > t) this else t
 
+  def scale(s: Double): Time = new Time((s * ms).ceil.toLong)
+
   def is_zero: Boolean = ms == 0
   def is_relevant: Boolean = ms >= 1
 
