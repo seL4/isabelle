@@ -430,7 +430,8 @@ object Isabelle_Cronjob {
     rev: String,
     afp_rev: Option[String],
     i: Int,
-    r: Remote_Build
+    r: Remote_Build,
+    progress: Progress = new Progress
   ) : Logger_Task = {
     val task_name = "build_history-" + r.host
     Logger_Task(task_name,
@@ -461,7 +462,8 @@ object Isabelle_Cronjob {
               log_file
             }
 
-          Build_Log.build_log_database(logger.options, log_files, ml_statistics = true)
+          Build_Log.build_log_database(logger.options, log_files,
+            progress = progress, ml_statistics = true)
         }
       })
   }
@@ -653,7 +655,9 @@ object Isabelle_Cronjob {
                         (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
                       } yield () => {
                         r.pick(logger.options, hg.id(), history_base_filter(r))
-                          .map({ case (rev, afp_rev) => remote_build_history(rev, afp_rev, i, r) })
+                          .map({ case (rev, afp_rev) =>
+                            remote_build_history(rev, afp_rev, i, r,
+                              progress = build_log_database_progress) })
                       }
                     ))),
                   Logger_Task("build_status", logger =>
