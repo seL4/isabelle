@@ -29,9 +29,6 @@ object Build_Schedule {
   class Timing_Data private(data: List[Timing_Entry], val host_infos: Host_Infos) {
     require(data.nonEmpty)
 
-    def speedup(time: Time, factor: Double): Time =
-      Time.ms((time.ms * factor).toLong)
-
     def is_empty = data.isEmpty
     def size = data.length
 
@@ -64,7 +61,7 @@ object Build_Schedule {
 
           def unify_hosts(data: Timing_Data): List[Time] =
             data.by_hostname.toList.map((hostname, data) =>
-              speedup(data.mean_time, hostname_factor(hostname, ref_hostname)))
+              data.mean_time.scale(hostname_factor(hostname, ref_hostname)))
 
           val entries =
             data.by_threads.toList.map((threads, data) =>
@@ -102,7 +99,7 @@ object Build_Schedule {
                   val approximated =
                     data.by_hostname.toList.flatMap((hostname1, data) =>
                       data.approximate_threads(threads).map(time =>
-                        speedup(time, hostname_factor(hostname1, hostname))))
+                        time.scale(hostname_factor(hostname1, hostname))))
 
                   if (approximated.nonEmpty) Timing_Data.mean_time(approximated)
                   else {
@@ -110,7 +107,7 @@ object Build_Schedule {
                     data.approximate_threads(threads).getOrElse {
                       // only single data point, use global curve to approximate
                       val global_factor = threads_factor(data.by_threads.keys.head, threads)
-                      speedup(data.by_threads.values.head.mean_time, global_factor)
+                      data.by_threads.values.head.mean_time.scale(global_factor)
                     }
                   }
                 }
@@ -119,7 +116,7 @@ object Build_Schedule {
               data.by_hostname.get(hostname).map(_.mean_time).getOrElse {
                 Timing_Data.median_time(
                   data.by_hostname.toList.map((hostname1, data) =>
-                    speedup(data.mean_time, hostname_factor(hostname1, hostname))))
+                    data.mean_time.scale(hostname_factor(hostname1, hostname))))
               }
           }
       }
