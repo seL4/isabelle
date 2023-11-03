@@ -525,10 +525,14 @@ object Build_Schedule {
     override def next_jobs(state: Build_Process.State): List[String] =
       if (cache.is_current(state)) cache.configs.map(_.job_name)
       else {
+        val start = Time.now()
         val next = scheduler.next(timing_data, state)
         val estimate = Date(Time.now() + scheduler.build_duration(timing_data, state))
-        progress.echo_if(build_context.master && cache.is_current_estimate(estimate),
-          "Estimated completion: " + estimate)
+        val elapsed = Time.now() - start
+
+        val timing_msg = if (elapsed.is_relevant) " (in " + elapsed.message + ")" else ""
+        progress.echo_if(build_context.master && !cache.is_current_estimate(estimate),
+          "Estimated completion: " + estimate + timing_msg)
 
         val configs = next.filter(_.node_info.hostname == hostname)
         cache = Cache(state, configs, estimate)
