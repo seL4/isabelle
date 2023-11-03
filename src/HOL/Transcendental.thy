@@ -4547,6 +4547,19 @@ lemma cos_int_2pin [simp]: "cos ((2 * pi) * of_int n) = 1"
 lemma sin_int_2pin [simp]: "sin ((2 * pi) * of_int n) = 0"
   by (metis Ints_of_int sin_integer_2pi)
 
+lemma sin_cos_eq_iff: "sin y = sin x \<and> cos y = cos x \<longleftrightarrow> (\<exists>n::int. y = x + 2 * pi * n)" (is "?L=?R")
+proof
+  assume ?L
+  then have "cos (y-x) = 1"
+    using cos_add [of y "-x"] by simp
+  then show ?R
+    by (metis cos_one_2pi_int add.commute diff_add_cancel mult.assoc mult.commute) 
+next
+  assume ?R
+  then show ?L
+    by (auto simp: sin_add cos_add)
+qed
+
 lemma sincos_principal_value: "\<exists>y. (- pi < y \<and> y \<le> pi) \<and> (sin y = sin x \<and> cos y = cos x)"
 proof -
   define y where "y \<equiv> pi - (2 * pi) * frac ((pi - x) / (2 * pi))"
@@ -4554,9 +4567,7 @@ proof -
     by (auto simp: field_simps frac_lt_1 y_def)
   moreover
   have "sin y = sin x" "cos y = cos x"
-    unfolding y_def
-     apply (simp_all add: frac_def divide_simps sin_add cos_add)
-    by (metis sin_int_2pin cos_int_2pin diff_zero add.right_neutral mult.commute mult.left_neutral mult_zero_left)+
+    by (simp_all add: y_def frac_def divide_simps sin_add cos_add mult_of_int_commute)
   ultimately
   show ?thesis by metis
 qed

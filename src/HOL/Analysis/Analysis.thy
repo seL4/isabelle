@@ -22,6 +22,7 @@ theory Analysis
   Line_Segment
   Derivative
   Cartesian_Euclidean_Space
+  Kronecker_Approximation_Theorem
   Weierstrass_Theorems
   (* Measure and Integration Theory *)
   Ball_Volume

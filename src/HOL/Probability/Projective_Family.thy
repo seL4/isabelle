@@ -9,7 +9,10 @@ theory Projective_Family
 imports Giry_Monad
 begin
 
-lemma vimage_restrict_preseve_mono:
+(** Something strange going on here regarding the syntax \<omega>(n := x) vs fun_upd \<omega> n x
+    See nn_integral_eP, etc. **)
+
+lemma vimage_restrict_preserve_mono:
   assumes J: "J \<subseteq> I"
   and sets: "A \<subseteq> (\<Pi>\<^sub>E i\<in>J. S i)" "B \<subseteq> (\<Pi>\<^sub>E i\<in>J. S i)" and ne: "(\<Pi>\<^sub>E i\<in>I. S i) \<noteq> {}"
   and eq: "(\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^sub>E i\<in>I. S i) \<subseteq> (\<lambda>x. restrict x J) -` B \<inter> (\<Pi>\<^sub>E i\<in>I. S i)"
@@ -56,7 +59,7 @@ lemma emb_preserve_mono:
   assumes "J \<subseteq> L" "L \<subseteq> I" and sets: "X \<in> sets (Pi\<^sub>M J M)" "Y \<in> sets (Pi\<^sub>M J M)"
   assumes "emb L J X \<subseteq> emb L J Y"
   shows "X \<subseteq> Y"
-proof (rule vimage_restrict_preseve_mono)
+proof (rule vimage_restrict_preserve_mono)
   show "X \<subseteq> (\<Pi>\<^sub>E i\<in>J. space (M i))" "Y \<subseteq> (\<Pi>\<^sub>E i\<in>J. space (M i))"
     using sets[THEN sets.sets_into_space] by (auto simp: space_PiM)
   show "(\<Pi>\<^sub>E i\<in>L. space (M i)) \<noteq> {}"
@@ -286,11 +289,11 @@ lemma measurable_eP[measurable]:
 
 lemma space_eP:
   "x \<in> space (PiM {0..<n} M) \<Longrightarrow> space (eP n x) = space (PiM {0..<Suc n} M)"
-  by (simp add: measurable_eP[THEN subprob_measurableD(1)])
+  by (simp add: eP_def)
 
 lemma sets_eP[measurable]:
   "x \<in> space (PiM {0..<n} M) \<Longrightarrow> sets (eP n x) = sets (PiM {0..<Suc n} M)"
-  by (simp add: measurable_eP[THEN subprob_measurableD(2)])
+  by (simp add: eP_def)
 
 lemma prob_space_eP: "x \<in> space (PiM {0..<n} M) \<Longrightarrow> prob_space (eP n x)"
   unfolding eP_def
@@ -298,13 +301,13 @@ lemma prob_space_eP: "x \<in> space (PiM {0..<n} M) \<Longrightarrow> prob_space
 
 lemma nn_integral_eP:
   "\<omega> \<in> space (PiM {0..<n} M) \<Longrightarrow> f \<in> borel_measurable (PiM {0..<Suc n} M) \<Longrightarrow>
-    (\<integral>\<^sup>+x. f x \<partial>eP n \<omega>) = (\<integral>\<^sup>+x. f (\<omega>(n := x)) \<partial>P n \<omega>)"
+    (\<integral>\<^sup>+x. f x \<partial>eP n \<omega>) = (\<integral>\<^sup>+x. f (fun_upd \<omega> n x) \<partial>P n \<omega>)"
   unfolding eP_def
   by (subst nn_integral_distr) (auto intro!: measurable_fun_upd[where J="{0..<n}"] simp: space_PiM PiE_iff)
 
 lemma emeasure_eP:
   assumes \<omega>[simp]: "\<omega> \<in> space (PiM {0..<n} M)" and A[measurable]: "A \<in> sets (PiM {0..<Suc n} M)"
-  shows "eP n \<omega> A = P n \<omega> ((\<lambda>x. \<omega>(n := x)) -` A \<inter> space (M n))"
+  shows "eP n \<omega> A = P n \<omega> ((\<lambda>x. fun_upd \<omega> n x) -` A \<inter> space (M n))"
   using nn_integral_eP[of \<omega> n "indicator A"]
   apply (simp add: sets_eP nn_integral_indicator[symmetric] sets_P del: nn_integral_indicator)
   apply (subst nn_integral_indicator[symmetric])
@@ -485,7 +488,7 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
 
   { fix \<omega> n assume \<omega>: "\<omega> \<in> space (PiM {0..<n} M)"
     let ?C = "\<lambda>i. emeasure (C n i \<omega>) (X (n + i))"
-    let ?C' = "\<lambda>i x. emeasure (C (Suc n) i (\<omega>(n:=x))) (X (Suc n + i))"
+    let ?C' = "\<lambda>i x. emeasure (C (Suc n) i (fun_upd \<omega> n x)) (X (Suc n + i))"
     have M: "\<And>i. ?C' i \<in> borel_measurable (P n \<omega>)"
       using \<omega>[measurable, simp] measurable_fun_upd[where J="{0..<n}"] by measurable auto
 
@@ -513,7 +516,7 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
       show "AE x in P n \<omega>. ?C' (Suc i) x \<le> ?C' i x" for i
       proof (rule AE_I2)
         fix x assume "x \<in> space (P n \<omega>)"
-        with \<omega> have \<omega>': "\<omega>(n := x) \<in> space (PiM {0..<Suc n} M)"
+        with \<omega> have \<omega>': "fun_upd \<omega> n x \<in> space (PiM {0..<Suc n} M)"
           by (auto simp: space_P[OF \<omega>] space_PiM PiE_iff extensional_def)
         with \<omega> show "?C' (Suc i) x \<le> ?C' i x"
           apply (subst emeasure_C[symmetric, of i "Suc i"])
@@ -534,7 +537,7 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
     then obtain x where "x \<in> space (M n)" "0 < (INF i. ?C' i x)"
       by (auto dest: frequently_ex)
     from this(2)[THEN less_INF_D, of 0] this(2)
-    have "\<exists>x. \<omega>(n := x) \<in> X (Suc n) \<and> 0 < (INF i. ?C' i x)"
+    have "\<exists>x. fun_upd \<omega> n x \<in> X (Suc n) \<and> 0 < (INF i. ?C' i x)"
       by (intro exI[of _ x]) (simp split: split_indicator_asm) }
   note step = this
 

@@ -104,7 +104,8 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     "HOL-Library"
     "HOL-Combinatorics"
     "HOL-Computational_Algebra"
-  theories
+    "HOL-Real_Asymp"
+theories
     Analysis
   document_files
     "root.tex"

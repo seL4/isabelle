@@ -2997,6 +2997,10 @@ lemma bounded_imp_bdd_below: "bounded S \<Longrightarrow> bdd_below (S :: real s
   by (auto simp: bounded_def bdd_below_def dist_real_def)
      (metis abs_le_D1 add.commute diff_le_eq)
 
+lemma bounded_norm_le_SUP_norm:
+  "bounded (range f) \<Longrightarrow> norm (f x) \<le> (SUP x. norm (f x))"
+  by (auto intro!: cSUP_upper bounded_imp_bdd_above simp: bounded_norm_comp)
+
 lemma bounded_has_Sup:
   fixes S :: "real set"
   assumes "bounded S"

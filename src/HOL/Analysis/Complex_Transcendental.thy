@@ -367,19 +367,6 @@ next
   qed
 qed
 
-lemma sin_cos_eq_iff: "sin y = sin x \<and> cos y = cos x \<longleftrightarrow> (\<exists>n::int. y = x + 2 * pi * n)" (is "?L=?R")
-proof
-  assume ?L
-  then have "cos (y-x) = 1"
-    using cos_add [of y "-x"] by simp
-  then show ?R
-    by (metis cos_one_2pi_int add.commute diff_add_cancel mult.assoc mult.commute) 
-next
-  assume ?R
-  then show ?L
-    by (auto simp: sin_add cos_add)
-qed
-
 lemma exp_i_ne_1:
   assumes "0 < x" "x < 2*pi"
   shows "exp(\<i> * of_real x) \<noteq> 1"

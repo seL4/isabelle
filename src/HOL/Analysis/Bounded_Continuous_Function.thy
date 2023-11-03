@@ -244,10 +244,6 @@ instance
 
 end
 
-lemma bounded_norm_le_SUP_norm:
-  "bounded (range f) \<Longrightarrow> norm (f x) \<le> (SUP x. norm (f x))"
-  by (auto intro!: cSUP_upper bounded_imp_bdd_above simp: bounded_norm_comp)
-
 instantiation\<^marker>\<open>tag unimportant\<close> bcontfun :: (topological_space, real_normed_vector) real_normed_vector
 begin
 
