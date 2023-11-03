@@ -12,6 +12,7 @@ package isabelle
 import java.time.OffsetDateTime
 import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet, SQLException}
 
+import org.sqlite.SQLiteConfig
 import org.sqlite.jdbc4.JDBC4Connection
 import org.postgresql.{PGConnection, PGNotification}
 
@@ -28,22 +29,18 @@ object SQL {
 
   /* concrete syntax */
 
-  def escape_char(c: Char): String =
-    c match {
-      case '\u0000' => "\\0"
-      case '\'' => "\\'"
-      case '\"' => "\\\""
-      case '\b' => "\\b"
-      case '\n' => "\\n"
-      case '\r' => "\\r"
-      case '\t' => "\\t"
-      case '\u001a' => "\\Z"
-      case '\\' => "\\\\"
-      case _ => c.toString
+  def string(s: String): Source = {
+    val q = '\''
+    val result = new StringBuilder(s.length + 10)
+    result += q
+    for (c <- s.iterator) {
+      if (c == '\u0000') error("Illegal NUL character in SQL string literal")
+      if (c == q) result += q
+      result += c
     }
-
-  def string(s: String): Source =
-    s.iterator.map(escape_char).mkString("'", "", "'")
+    result += q
+    result.toString
+  }
 
   def ident(s: String): Source =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
@@ -613,7 +610,11 @@ object SQLite {
     val path0 = path.expand
     val s0 = File.platform_path(path0)
     val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
-    val connection = DriverManager.getConnection("jdbc:sqlite:" + s1)
+
+    val config = new SQLiteConfig()
+    config.setEncoding(SQLiteConfig.Encoding.UTF8)
+    val connection = config.createConnection("jdbc:sqlite:" + s1)
+
     val db = new Database(path0.toString, connection)
 
     try { if (restrict) File.restrict(path0) }
@@ -679,7 +680,12 @@ object PostgreSQL {
         if_proper(ssh, " via ssh " + quote(ssh.get.toString))
 
     val connection = DriverManager.getConnection(url, user, password)
-    new Database(connection, print, server, server_close)
+    val db = new Database(connection, print, server, server_close)
+
+    try { db.execute_statement("SET standard_conforming_strings = on") }
+    catch { case exn: Throwable => db.close(); throw exn }
+
+    db
   }
 
   def open_server(
