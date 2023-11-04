@@ -189,11 +189,8 @@ object Isabelle_Cronjob {
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)
 
-    def pick(
-      options: Options,
-      rev: String = "",
-      filter: Item => Boolean = _ => true
-    ): Option[(String, Option[String])] = {
+    def pick(options: Options, filter: Item => Boolean): Option[(String, Option[String])] = {
+      val rev = get_rev()
       val afp_rev = if (afp) Some(get_afp_rev()) else None
 
       val store = Build_Log.store(options)
@@ -656,7 +653,7 @@ object Isabelle_Cronjob {
                       for {
                         (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
                       } yield () => {
-                        r.pick(logger.options, hg.id(), history_base_filter(r))
+                        r.pick(logger.options, history_base_filter(r))
                           .map({ case (rev, afp_rev) =>
                             remote_build_history(rev, afp_rev, i, r,
                               progress = build_log_database_progress) })
