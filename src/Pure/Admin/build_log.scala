@@ -720,11 +720,12 @@ object Build_Log {
 
     /* recent entries */
 
-    def recent_time(days: Int): PostgreSQL.Source =
-      "now() - INTERVAL '" + days.max(0) + " days'"
+    def recent(c: SQL.Column, days: Int): PostgreSQL.Source =
+      if (days <= 0) ""
+      else c.ident + " > now() - INTERVAL '" + days + " days'"
 
     def recent_pull_date_table(
-      days: Int,
+      days: Int = 0,
       rev: String = "",
       afp_rev: Option[String] = None
     ): SQL.Table = {
@@ -738,27 +739,27 @@ object Build_Log {
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns, sql =
           SQL.where_or(
-            pull_date(afp)(table).ident + " > " + recent_time(days),
+            recent(pull_date(afp)(table), days),
             SQL.and(eq_rev, eq_rev2))))
     }
 
-    def select_recent_log_names(days: Int): PostgreSQL.Source = {
+    def select_recent_log_names(days: Int = 0): PostgreSQL.Source = {
       val table1 = meta_info_table
-      val table2 = recent_pull_date_table(days)
+      val table2 = recent_pull_date_table(days = days)
       table1.select(List(log_name), distinct = true, sql =
         SQL.join_inner + table2.query_named +
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
     }
 
     def select_recent_versions(
-      days: Int,
+      days: Int = 0,
       rev: String = "",
       afp_rev: Option[String] = None,
       sql: PostgreSQL.Source = ""
     ): PostgreSQL.Source = {
       val afp = afp_rev.isDefined
       val version = Prop.isabelle_version
-      val table1 = recent_pull_date_table(days, rev = rev, afp_rev = afp_rev)
+      val table1 = recent_pull_date_table(days = days, rev = rev, afp_rev = afp_rev)
       val table2 = meta_info_table
       val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = sql))
 
@@ -875,7 +876,7 @@ object Build_Log {
 
             val recent_log_names =
               db.execute_query_statement(
-                private_data.select_recent_log_names(days),
+                private_data.select_recent_log_names(days = days),
                 List.from[String], res => res.string(private_data.log_name))
 
             for (log_name <- recent_log_names) {
@@ -897,7 +898,7 @@ object Build_Log {
               db2.create_table(table)
               db2.using_statement(table.insert()) { stmt2 =>
                 db.using_statement(
-                  private_data.recent_pull_date_table(days, afp_rev = afp_rev).query) { stmt =>
+                  private_data.recent_pull_date_table(days = days, afp_rev = afp_rev).query) { stmt =>
                   using(stmt.execute_query()) { res =>
                     while (res.next()) {
                       for ((c, i) <- table.columns.zipWithIndex) {

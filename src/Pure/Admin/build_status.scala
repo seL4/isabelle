@@ -62,8 +62,7 @@ object Build_Status {
 
       Build_Log.private_data.universal_table.select(columns, distinct = true, sql =
         SQL.where_and(
-          Build_Log.private_data.pull_date(afp).ident + " > " +
-            Build_Log.private_data.recent_time(days(options)),
+          Build_Log.private_data.recent(Build_Log.private_data.pull_date(afp), days(options)),
           Build_Log.private_data.status.member(
             List(
               Build_Log.Session_Status.finished.toString,
