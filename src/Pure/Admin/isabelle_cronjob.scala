@@ -207,7 +207,6 @@ object Isabelle_Cronjob {
             if (longest_run.isEmpty) None
             else Some(longest_run(longest_run.length / 2).versions)
           }
-          else if (rev != "") Some((rev, afp_rev))
           else runs.flatten.headOption.map(_.versions)
         }
 
