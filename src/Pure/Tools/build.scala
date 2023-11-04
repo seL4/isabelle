@@ -402,10 +402,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val start_date = Date.now()
-
       progress.echo(
-        "Started at " + Build_Log.print_date(start_date) +
+        "Started at " + Build_Log.print_date(progress.start) +
           " (" + Isabelle_System.ml_identifier() + " on " + hostname(options) +")",
         verbose = true)
       progress.echo(Build_Log.Settings.show() + "\n", verbose = true)
@@ -440,7 +438,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             build_hosts = build_hosts.toList)
         }
       val stop_date = Date.now()
-      val elapsed_time = stop_date.time - start_date.time
+      val elapsed_time = stop_date.time - progress.start.time
 
       progress.echo("\nFinished at " + Build_Log.print_date(stop_date), verbose = true)
 
