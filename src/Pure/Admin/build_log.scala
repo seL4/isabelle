@@ -1211,7 +1211,7 @@ object Build_Log {
 
       if (errors.isEmpty) {
         for (path <- snapshot) {
-          progress.echo("Writing database snapshot " + path)
+          progress.echo("Writing database snapshot " + path.expand)
           store.snapshot_database(db, path)
         }
       }
