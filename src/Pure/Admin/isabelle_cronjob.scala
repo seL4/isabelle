@@ -630,6 +630,8 @@ object Isabelle_Cronjob {
     File.write(main_state_file, main_start_date.toString + " " + log_service.hostname)
 
     val build_log_database_progress = new File_Progress(build_log_database_log, verbose = true)
+    build_log_database_progress.echo(
+      "Started at " + Build_Log.print_date(build_log_database_progress.start))
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
