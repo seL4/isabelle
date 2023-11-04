@@ -212,7 +212,8 @@ object Isabelle_Cronjob {
 
         pick_recent(options.int("build_log_history") max history, 2) orElse
         pick_recent(200, 5) orElse
-        pick_recent(2000, 1)
+        pick_recent(2000, 50) orElse
+        pick_recent(0, 1)
       }
     }
 
