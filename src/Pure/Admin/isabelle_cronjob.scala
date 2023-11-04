@@ -177,6 +177,8 @@ object Isabelle_Cronjob {
     detect: PostgreSQL.Source = "",
     active: () => Boolean = () => true
   ) {
+    def replicate(n: Int): List[Remote_Build] = Library.replicate(n, this)
+
     def open_session(options: Options): SSH.Session =
       SSH.open_session(options, host = host, user = user, port = port)
 
@@ -366,7 +368,7 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
-      List(remote_build_studio1),
+      remote_build_studio1.replicate(2),
       List(
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
@@ -377,7 +379,7 @@ object Isabelle_Cronjob {
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
           active = () => false)),
-      List(remote_build_mini3),
+      remote_build_mini3.replicate(3),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
