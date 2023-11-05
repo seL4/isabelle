@@ -163,7 +163,6 @@ object Isabelle_Cronjob {
     host: String,
     user: String = "",
     port: Int = 0,
-    historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
     components_base: String = Components.dynamic_components_base,
@@ -197,22 +196,20 @@ object Isabelle_Cronjob {
       using(store.open_database()) { db =>
         def pick_recent(days: Int, gap: Int): Option[(String, Option[String])] = {
           val items = recent_items(db, days, rev, afp_rev, sql).filter(filter)
-          def runs = unknown_runs(items).filter(run => run.length >= gap)
-
-          if (historic || items.exists(_.known_versions(rev, afp_rev))) {
-            val longest_run =
-              runs.foldLeft(List.empty[Item]) {
-                case (item1, item2) => if (item1.length >= item2.length) item1 else item2
-              }
-            if (longest_run.isEmpty) None
-            else Some(longest_run(longest_run.length / 2).versions)
-          }
-          else runs.flatten.headOption.map(_.versions)
+          val runs = unknown_runs(items).filter(run => run.length >= gap)
+          val (longest_run, longest_length) =
+            runs.foldLeft((List.empty[Item], 0)) {
+              case (res@(item1, len1), item2) =>
+                val len2 = item2.length
+                if (len1 >= len2) res else (item2, len2)
+            }
+          if (longest_run.isEmpty) None
+          else Some(longest_run(longest_length / 2).versions)
         }
 
         pick_recent(options.int("build_log_history") max history, 2) orElse
-        pick_recent(200, 5) orElse
-        pick_recent(2000, 50) orElse
+        pick_recent(300, 8) orElse
+        pick_recent(3000, 32) orElse
         pick_recent(0, 1)
       }
     }
@@ -239,7 +236,7 @@ object Isabelle_Cronjob {
         args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("Linux A", "lxbroy9",
         java_heap = "2g", options = "-m32 -B -M1x2,2", args = "-N -g timing"),
-      Remote_Build("Linux Benchmarks", "lxbroy5", historic = true, history = 90,
+      Remote_Build("Linux Benchmarks", "lxbroy5", history = 90,
         java_heap = "2g",
         options = "-m32 -B -M1x2,2 -t Benchmarks" +
           " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
@@ -337,7 +334,7 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SMLNJ=sml" +
             " -e ISABELLE_SWIPL=swipl",
           args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
+      List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("macOS 11 Big Sur (Intel)", "mini1",
@@ -375,7 +372,7 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
+        Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m32 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
@@ -385,7 +382,7 @@ object Isabelle_Cronjob {
           detect =
             Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
             Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
-        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90,
+        Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m64 -M4" +
             " -C /cygdrive/d/isatest/contrib" +
