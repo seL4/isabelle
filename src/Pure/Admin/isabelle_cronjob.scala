@@ -371,7 +371,7 @@ object Isabelle_Cronjob {
             " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
-      List(
+      Library.replicate(2,
         Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m32 -M4" +
@@ -381,7 +381,8 @@ object Isabelle_Cronjob {
           args = "-a",
           detect =
             Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
-            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows")),
+            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows"))) :::
+      Library.replicate(2,
         Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m64 -M4" +
