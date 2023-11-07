@@ -29,6 +29,9 @@ object Options {
       }
 
     def print(name: String, value: String): String = Properties.Eq(name, print_value(value))
+
+    def bash_strings(opts: Iterable[Spec]): String =
+      opts.iterator.map(opt => "-o " + Bash.string(opt.toString)).mkString(" ", " ", " ")
   }
 
   sealed case class Spec(name: String, value: Option[String] = None, permissive: Boolean = false) {

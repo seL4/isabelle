@@ -16,7 +16,7 @@ object Benchmark {
   ): String = {
     val options = Options.Spec("build_hostname", Some(host.name)) :: host.options
     ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " benchmark" +
-      options.map(opt => " -o " + Bash.string(opt.print)).mkString
+      Options.Spec.bash_strings(options)
   }
 
   def benchmark(options: Options, progress: Progress = new Progress()): Unit = {

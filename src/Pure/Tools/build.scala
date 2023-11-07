@@ -589,7 +589,7 @@ Usage: isabelle build_process [OPTIONS]
       if_proper(afp_root, " -A " + ssh.bash_path(afp_root.get)) +
       dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
       if_proper(host.numa, " -N") + " -j" + host.jobs +
-      options.map(opt => " -o " + Bash.string(opt.print)).mkString +
+      Options.Spec.bash_strings(options) +
       if_proper(quiet, " -q") +
       if_proper(verbose, " -v")
   }
