@@ -36,7 +36,11 @@ object Options {
 
   sealed case class Spec(name: String, value: Option[String] = None, permissive: Boolean = false) {
     override def toString: String = name + if_proper(value, "=" + value.get)
-    def print: String = name + if_proper(value, "=" + Spec.print_value(value.get))
+    def print: String =
+      value match {
+        case None => name
+        case Some(v) => Spec.print(name, v)
+      }
   }
 
   sealed case class Change(name: String, value: String, unknown: Boolean) {
