@@ -39,7 +39,7 @@ object Bash {
     if (s == "") "\"\""
     else UTF8.bytes(s).iterator.map(bash_chr).mkString
 
-  def strings(ss: List[String]): String =
+  def strings(ss: Iterable[String]): String =
     ss.iterator.map(Bash.string).mkString(" ")
 
 
