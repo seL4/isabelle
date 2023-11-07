@@ -11,6 +11,17 @@ object Options {
   val empty: Options = new Options()
 
   object Spec {
+    val syntax: Outer_Syntax = Outer_Syntax.empty + "=" + ","
+
+    def parse(content: String): List[Spec] = {
+      val parser = Parsers.repsep(Parsers.option_spec, Parsers.$$$(","))
+      val reader = Token.reader(Token.explode(syntax.keywords, content), Token.Pos.none)
+      Parsers.parse_all(parser, reader) match {
+        case Parsers.Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+    }
+
     def make(s: String): Spec =
       s match {
         case Properties.Eq(a, b) => Spec(a, Some(b))
@@ -25,7 +36,7 @@ object Options {
         case Value.Boolean(_) => s
         case Value.Long(_) => s
         case Value.Double(_) => s
-        case _ => Token.quote_name(specs_syntax.keywords, s)
+        case _ => Token.quote_name(syntax.keywords, s)
       }
 
     def print(name: String, value: String): String = Properties.Eq(name, print_value(value))
@@ -158,7 +169,6 @@ object Options {
       STANDARD + FOR
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
-  val specs_syntax: Outer_Syntax = prefs_syntax + ","
 
   trait Parsers extends Parse.Parsers {
     val option_name: Parser[String] = atom("option name", _.is_name)
@@ -220,15 +230,6 @@ object Options {
 
   def read_prefs(file: Path = PREFS): String =
     if (file.is_file) File.read(file) else ""
-
-  def parse_specs(content: String): List[Spec] = {
-    val parser = Parsers.repsep(Parsers.option_spec, Parsers.$$$(","))
-    val reader = Token.reader(Token.explode(specs_syntax.keywords, content), Token.Pos.none)
-    Parsers.parse_all(parser, reader) match {
-      case Parsers.Success(result, _) => result
-      case bad => error(bad.toString)
-    }
-  }
 
   def inline(content: String): Options = Parsers.parse_file(empty, "inline", content)
 

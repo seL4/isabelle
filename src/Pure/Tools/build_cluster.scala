@@ -66,7 +66,7 @@ object Build_Cluster {
               else error("Missing \":\" after host name")
             str.substring(l)
           }
-          val (specs1, specs2) = Options.parse_specs(rest).partition(is_parameter)
+          val (specs1, specs2) = Options.Spec.parse(rest).partition(is_parameter)
           (parameters ++ specs1, { test_options ++ specs2; specs2 })
         }
         catch {
