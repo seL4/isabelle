@@ -535,9 +535,8 @@ object TOML {
 
     def inline(t: T, indent: Int = 0): Str = {
       val result = new StringBuilder
-      def indentation(i: Int): Unit = for (_ <- Range(0, i)) result ++= "  "
 
-      indentation(indent)
+      result ++= Symbol.spaces(indent * 2)
       t match {
         case s: String =>
           if (s.rep.contains("\n") && s.rep.length > 20) result ++= multiline_basic_string(s.rep)
@@ -557,7 +556,7 @@ object TOML {
               result ++= inline(elem, indent + 1)
               result ++= ",\n"
             }
-            indentation(indent)
+            result ++= Symbol.spaces(indent * 2)
             result += ']'
           }
         case table: Table =>
