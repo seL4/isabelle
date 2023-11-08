@@ -306,19 +306,19 @@ object Build_Schedule {
     def finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
   }
 
-  abstract class Scheduler {
+  abstract class Scheduler(timing_data: Timing_Data) {
     def ready_jobs(state: Build_Process.State): Build_Process.State.Pending =
       state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
 
-    def next(timing: Timing_Data, state: Build_Process.State): List[Config]
+    def next(state: Build_Process.State): List[Config]
 
-    def build_duration(timing_data: Timing_Data, build_state: Build_Process.State): Time = {
+    def build_duration(build_state: Build_Process.State): Time = {
       @tailrec
       def simulate(state: State): State =
         if (state.finished) state
         else {
           val state1 =
-            next(timing_data, state.build_state).foldLeft(state)(_.start(_)).step(timing_data)
+            next(state.build_state).foldLeft(state)(_.start(_)).step(timing_data)
           simulate(state1)
         }
 
@@ -330,8 +330,8 @@ object Build_Schedule {
 
   /* heuristics */
 
-  class Timing_Heuristic(threshold: Time) extends Scheduler {
-    def next(timing_data: Timing_Data, state: Build_Process.State): List[Config] = {
+  class Timing_Heuristic(threshold: Time, timing_data: Timing_Data) extends Scheduler(timing_data) {
+    def next(state: Build_Process.State): List[Config] = {
       val host_infos = timing_data.host_infos
       val resources = host_infos.available(state)
 
@@ -378,26 +378,27 @@ object Build_Schedule {
     }
   }
 
-  class Meta_Heuristic(schedulers: List[Scheduler]) extends Scheduler {
+  class Meta_Heuristic(schedulers: List[Scheduler], timing_data: Timing_Data)
+    extends Scheduler(timing_data) {
     require(schedulers.nonEmpty)
 
-    def next(timing_data: Timing_Data, state: Build_Process.State): List[Config] = {
-      val (best, _) = schedulers.map(h => h -> h.build_duration(timing_data, state)).minBy(_._2.ms)
-      best.next(timing_data, state)
+    def next(state: Build_Process.State): List[Config] = {
+      val (best, _) = schedulers.map(h => h -> h.build_duration(state)).minBy(_._2.ms)
+      best.next(state)
     }
   }
 
 
   /* process for scheduled build */
 
-  class Scheduled_Build_Process(
-    scheduler: Scheduler,
+  abstract class Scheduled_Build_Process(
     build_context: Build.Context,
     build_progress: Progress,
     server: SSH.Server,
   ) extends Build_Process(build_context, build_progress, server) {
     protected val start_date = Date.now()
 
+    def init_scheduler(timing_data: Timing_Data): Scheduler
 
     /* global resources with common close() operation */
 
@@ -452,6 +453,7 @@ object Build_Schedule {
 
       Timing_Data.make(host_infos, build_history)
     }
+    private val scheduler = init_scheduler(timing_data)
 
     def write_build_log(results: Build.Results, state: Build_Process.State.Results): Unit = {
       val sessions =
@@ -515,7 +517,7 @@ object Build_Schedule {
     override def next_node_info(state: Build_Process.State, session_name: String): Node_Info = {
       val configs =
         if (cache.is_current(state)) cache.configs
-        else scheduler.next(timing_data, state)
+        else scheduler.next(state)
       configs.find(_.job_name == session_name).get.node_info
     }
 
@@ -523,8 +525,8 @@ object Build_Schedule {
       if (cache.is_current(state)) cache.configs.map(_.job_name)
       else {
         val start = Time.now()
-        val next = scheduler.next(timing_data, state)
-        val estimate = Date(Time.now() + scheduler.build_duration(timing_data, state))
+        val next = scheduler.next(state)
+        val estimate = Date(Time.now() + scheduler.build_duration(state))
         val elapsed = Time.now() - start
 
         val timing_msg = if (elapsed.is_relevant) " (in " + elapsed.message + ")" else ""
@@ -548,10 +550,13 @@ object Build_Schedule {
       context: Build.Context,
       progress: Progress,
       server: SSH.Server
-    ): Build_Process = {
-      val heuristics = List(5, 10, 20).map(minutes => Timing_Heuristic(Time.minutes(minutes)))
-      val scheduler = new Meta_Heuristic(heuristics)
-      new Scheduled_Build_Process(scheduler, context, progress, server)
-    }
+    ): Build_Process =
+      new Scheduled_Build_Process(context, progress, server) {
+        def init_scheduler(timing_data: Timing_Data): Scheduler = {
+          val heuristics =
+            List(5, 10, 20).map(minutes => Timing_Heuristic(Time.minutes(minutes), timing_data))
+          new Meta_Heuristic(heuristics, timing_data)
+        }
+      }
   }
 }
