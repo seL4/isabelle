@@ -68,6 +68,7 @@ object TOML {
   object Array {
     def apply(elems: Iterable[T]): Array = new Array(elems.toList.reverse)
     def apply(elems: T*): Array = Array(elems)
+    val empty: Array = apply()
   }
 
   class Table private(private val rep: Map[Key, T]) extends T {
@@ -128,6 +129,7 @@ object TOML {
   object Table {
     def apply(elems: Iterable[(Key, T)]): Table = elems.foldLeft(new Table(ListMap.empty))(_ + _)
     def apply(elems: (Key, T)*): Table = Table(elems)
+    val empty: Table = apply()
   }
 
 
