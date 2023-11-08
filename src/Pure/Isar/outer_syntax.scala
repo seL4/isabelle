@@ -170,13 +170,14 @@ final class Outer_Syntax private(
             case None => Command_Span.Malformed_Span
             case Some(cmd) =>
               val name = cmd.source
+              val keyword_kind = keywords.kinds.get(name)
               val offset =
                 content.takeWhile(_ != cmd).foldLeft(0) {
                   case (i, tok) => i + Symbol.length(tok.source)
                 }
               val end_offset = offset + Symbol.length(name)
               val range = Text.Range(offset, end_offset) + 1
-              Command_Span.Command_Span(name, Position.Range(range))
+              Command_Span.Command_Span(keyword_kind, name, Position.Range(range))
           }
       result += Command_Span.Span(kind, content)
     }

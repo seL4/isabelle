@@ -20,15 +20,14 @@ object Document_Structure {
   }
   case class Atom(length: Int) extends Document
 
-  def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =
-    command.span.is_kind(keywords,
-      kind => Keyword.theory(kind) && !Keyword.theory_end(kind), false)
+  def is_theory_command(command: Command): Boolean =
+    command.span.is_keyword_kind(kind => Keyword.theory(kind) && !Keyword.theory_end(kind))
 
-  def is_document_command(keywords: Keyword.Keywords, command: Command): Boolean =
-    command.span.is_kind(keywords, Keyword.document, false)
+  def is_document_command(command: Command): Boolean =
+    command.span.is_keyword_kind(Keyword.document)
 
-  def is_diag_command(keywords: Keyword.Keywords, command: Command): Boolean =
-    command.span.is_kind(keywords, Keyword.diag, false)
+  def is_diag_command(command: Command): Boolean =
+    command.span.is_keyword_kind(Keyword.diag)
 
   def is_heading_command(command: Command): Boolean =
     proper_heading_level(command).isDefined
@@ -44,9 +43,8 @@ object Document_Structure {
       case _ => None
     }
 
-  def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
-    proper_heading_level(command) orElse
-      (if (is_theory_command(keywords, command)) Some(6) else None)
+  def heading_level(command: Command): Option[Int] =
+    proper_heading_level(command) orElse (if (is_theory_command(command)) Some(6) else None)
 
 
 
@@ -58,8 +56,7 @@ object Document_Structure {
     text: CharSequence
   ): List[Document] = {
     def is_plain_theory(command: Command): Boolean =
-      is_theory_command(syntax.keywords, command) &&
-      !command.span.is_begin && !command.span.is_end
+      is_theory_command(command) && !command.span.is_begin && !command.span.is_end
 
 
     /* stack operations */
@@ -115,7 +112,7 @@ object Document_Structure {
 
   object No_Item extends Item
 
-  class Sections(keywords: Keyword.Keywords) {
+  class Sections {
     private def buffer(): mutable.ListBuffer[Document] = new mutable.ListBuffer[Document]
 
     private var stack: List[(Int, Item, mutable.ListBuffer[Document])] =
@@ -150,10 +147,10 @@ object Document_Structure {
 
   /* outer syntax sections */
 
-  private class Command_Item(keywords: Keyword.Keywords, command: Command) extends Item {
+  private class Command_Item(command: Command) extends Item {
     override def name: String = command.span.name
     override def source: String = command.source
-    override def heading_level: Option[Int] = Document_Structure.heading_level(keywords, command)
+    override def heading_level: Option[Int] = Document_Structure.heading_level(command)
   }
 
   def parse_sections(
@@ -161,12 +158,11 @@ object Document_Structure {
     node_name: Document.Node.Name,
     text: CharSequence
   ): List[Document] = {
-    val sections = new Sections(syntax.keywords)
+    val sections = new Sections
 
     for { span <- syntax.parse_spans(text) } {
       sections.add(
-        new Command_Item(syntax.keywords,
-          Command(Document_ID.none, node_name, Command.Blobs_Info.empty, span)))
+        new Command_Item(Command(Document_ID.none, node_name, Command.Blobs_Info.empty, span)))
     }
     sections.result()
   }
@@ -180,7 +176,7 @@ object Document_Structure {
   }
 
   def parse_ml_sections(SML: Boolean, text: CharSequence): List[Document] = {
-    val sections = new Sections(Keyword.Keywords.empty)
+    val sections = new Sections
     val nl = new ML_Item(ML_Lex.Token(ML_Lex.Kind.SPACE, "\n"), None)
 
     var context: Scan.Line_Context = Scan.Finished

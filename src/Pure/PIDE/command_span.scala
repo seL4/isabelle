@@ -55,15 +55,18 @@ object Command_Span {
   /* span kind */
 
   sealed abstract class Kind {
+    def keyword_kind: Option[String] = None
+
     override def toString: String =
       this match {
-        case Command_Span(name, _) => proper_string(name) getOrElse "<command>"
+        case command: Command_Span => proper_string(command.name) getOrElse "<command>"
         case Ignored_Span => "<ignored>"
         case Malformed_Span => "<malformed>"
         case Theory_Span => "<theory>"
       }
   }
-  case class Command_Span(name: String, pos: Position.T) extends Kind
+  case class Command_Span(override val keyword_kind: Option[String], name: String, pos: Position.T)
+    extends Kind
   case object Ignored_Span extends Kind
   case object Malformed_Span extends Kind
   case object Theory_Span extends Kind
@@ -87,8 +90,8 @@ object Command_Span {
         case _ => start
       }
 
-    def is_kind(keywords: Keyword.Keywords, pred: String => Boolean, other: Boolean): Boolean =
-      keywords.kinds.get(name) match {
+    def is_keyword_kind(pred: String => Boolean, other: Boolean = false): Boolean =
+      kind.keyword_kind match {
         case Some(k) => pred(k)
         case None => other
       }

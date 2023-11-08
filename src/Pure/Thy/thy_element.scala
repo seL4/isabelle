@@ -50,7 +50,7 @@ object Thy_Element {
 
   type Element_Command = Element[Command]
 
-  def parse_elements(keywords: Keyword.Keywords, commands: List[Command]): List[Element_Command] = {
+  def parse_elements(commands: List[Command]): List[Element_Command] = {
     case class Reader(in: List[Command]) extends input.Reader[Command] {
       def first: Command = in.head
       def rest: Reader = Reader(in.tail)
@@ -73,16 +73,16 @@ object Thy_Element {
           }
         }
 
-      def category(pred: String => Boolean, other: Boolean): Parser[Command] =
-        command(_.span.is_kind(keywords, pred, other))
+      def category(pred: String => Boolean, other: Boolean = false): Parser[Command] =
+        command(_.span.is_keyword_kind(pred, other = other))
 
       def theory_element: Parser[Element_Command] =
-        category(Keyword.theory_goal, false) ~ proof ^^ { case a ~ b => element(a, b) }
+        category(Keyword.theory_goal) ~ proof ^^ { case a ~ b => element(a, b) }
       def proof_element: Parser[Element_Command] =
-        category(Keyword.proof_goal, false) ~ proof ^^ { case a ~ b => element(a, b) } |
-        category(Keyword.proof_body, true) ^^ { case a => atom(a) }
+        category(Keyword.proof_goal) ~ proof ^^ { case a ~ b => element(a, b) } |
+        category(Keyword.proof_body, other = true) ^^ { case a => atom(a) }
       def proof: Parser[Proof[Command]] =
-        rep(proof_element) ~ category(Keyword.qed, false) ^^ { case a ~ b => (a, b) }
+        rep(proof_element) ~ category(Keyword.qed) ^^ { case a ~ b => (a, b) }
 
       val default_element: Parser[Element_Command] = command(_ => true) ^^ { case a => atom(a) }
 
