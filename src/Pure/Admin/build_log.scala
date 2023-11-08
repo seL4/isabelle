@@ -720,8 +720,8 @@ object Build_Log {
 
     /* recent entries */
 
-    def recent(c: SQL.Column, days: Int): PostgreSQL.Source =
-      if (days <= 0) ""
+    def recent(c: SQL.Column, days: Int, default: PostgreSQL.Source = ""): PostgreSQL.Source =
+      if (days <= 0) default
       else c.ident + " > now() - INTERVAL '" + days + " days'"
 
     def recent_pull_date_table(
@@ -739,7 +739,7 @@ object Build_Log {
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns, sql =
           SQL.where_or(
-            recent(pull_date(afp)(table), days),
+            recent(pull_date(afp)(table), days, default = SQL.TRUE),
             SQL.and(eq_rev, eq_rev2))))
     }
 
