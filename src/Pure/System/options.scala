@@ -41,8 +41,14 @@ object Options {
 
     def print(name: String, value: String): String = Properties.Eq(name, print_value(value))
 
-    def bash_strings(opts: Iterable[Spec]): String =
-      opts.iterator.map(opt => "-o " + Bash.string(opt.toString)).mkString(" ", " ", " ")
+    def bash_strings(opts: Iterable[Spec], bg: Boolean = false, en: Boolean = false): String = {
+      val it = opts.iterator
+      if (it.isEmpty) ""
+      else {
+        it.map(opt => "-o " + Bash.string(opt.toString))
+          .mkString(if (bg) " " else "", " ", if (en) " " else "")
+      }
+    }
   }
 
   sealed case class Spec(name: String, value: Option[String] = None, permissive: Boolean = false) {
