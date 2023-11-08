@@ -20,6 +20,9 @@ text \<open>These [simp] attributes are double-edged.
 lemma nlistsE_length [simp]: "xs \<in> nlists n A \<Longrightarrow> size xs = n"
   by (simp add: nlists_def)
 
+lemma in_nlists_UNIV: "xs \<in> nlists k UNIV \<longleftrightarrow> length xs = k"
+unfolding nlists_def by(auto)
+
 lemma less_lengthI: "\<lbrakk> xs \<in> nlists n A; p < n \<rbrakk> \<Longrightarrow> p < size xs"
 by (simp)
 
