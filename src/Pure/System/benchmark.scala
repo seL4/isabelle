@@ -14,7 +14,7 @@ object Benchmark {
     ssh: SSH.System = SSH.Local,
     isabelle_home: Path = Path.current,
   ): String = {
-    val options = Options.Spec("build_hostname", Some(host.name)) :: host.options
+    val options = Options.Spec.eq("build_hostname", host.name) :: host.options
     ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " benchmark" +
       Options.Spec.bash_strings(options, bg = true)
   }

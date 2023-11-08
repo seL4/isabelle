@@ -186,7 +186,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
           }
         text_area.peer.setInputVerifier({
             case text: JTextComponent =>
-              try { value + Options.Spec(opt_name, Some(text.getText)); true }
+              try { value + Options.Spec.eq(opt_name, text.getText); true }
               catch { case ERROR(_) => false }
             case _ => true
           })

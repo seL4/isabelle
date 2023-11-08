@@ -582,8 +582,7 @@ Usage: isabelle build_process [OPTIONS]
     quiet: Boolean = false,
     verbose: Boolean = false
   ): String = {
-    val options =
-      build_options ::: Options.Spec("build_hostname", Some(host.name)) :: host.options
+    val options = build_options ::: Options.Spec.eq("build_hostname", host.name) :: host.options
     ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " build_worker" +
       if_proper(build_id, " -B " + Bash.string(build_id)) +
       if_proper(afp_root, " -A " + ssh.bash_path(afp_root.get)) +

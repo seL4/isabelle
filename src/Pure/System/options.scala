@@ -22,9 +22,12 @@ object Options {
       }
     }
 
+    def eq(a: String, b: String, permissive: Boolean = false): Spec =
+      Spec(a, value = Some(b), permissive = permissive)
+
     def make(s: String): Spec =
       s match {
-        case Properties.Eq(a, b) => Spec(a, Some(b))
+        case Properties.Eq(a, b) => eq(a, b)
         case _ => Spec(s)
       }
 
@@ -61,7 +64,7 @@ object Options {
   }
 
   sealed case class Change(name: String, value: String, unknown: Boolean) {
-    def spec: Spec = Spec(name, Some(value))
+    def spec: Spec = Spec.eq(name, value)
 
     def print_prefs: String =
       name + " = " + Outer_Syntax.quote_string(value) +
@@ -190,7 +193,7 @@ object Options {
       $$$(FOR) ~! rep(option_tag) ^^ { case _ ~ x => x } | success(Nil)
     val option_spec: Parser[Spec] =
       option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
-        { case x ~ y => Options.Spec(x, y) }
+        { case x ~ y => Options.Spec(x, value = y) }
   }
 
   private object Parsers extends Parsers {
@@ -210,7 +213,7 @@ object Options {
     val prefs_entry: Parser[Options => Options] = {
       option_name ~ ($$$("=") ~! option_value) ^^
       { case a ~ (_ ~ b) => (options: Options) =>
-          options + Options.Spec(a, Some(b), permissive = true) }
+          options + Options.Spec.eq(a, b, permissive = true) }
     }
 
     def parse_file(
@@ -328,7 +331,7 @@ final class Options private(
   def description(name: String): String = check_name(name).description
 
   def spec(name: String): Options.Spec =
-    Options.Spec(name, Some(check_name(name).value))
+    Options.Spec.eq(name, check_name(name).value)
 
 
   /* check */
@@ -529,7 +532,7 @@ class Options_Variable(init_options: Options) {
 
   def value: Options = synchronized { _options }
   def change(f: Options => Options): Unit = synchronized { _options = f(_options) }
-  def += (name: String, x: String): Unit = change(options => options + Options.Spec(name, Some(x)))
+  def += (name: String, x: String): Unit = change(options => options + Options.Spec.eq(name, x))
 
   val bool: Options.Access_Variable[Boolean] =
     new Options.Access_Variable[Boolean](this, _.bool)
