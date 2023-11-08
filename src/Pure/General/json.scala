@@ -86,7 +86,7 @@ object JSON {
       elem("", "\"\\/".contains(_)) |
       elem("", "bfnrt".contains(_)) ^^
         { case 'b' => '\b' case 'f' => '\f' case 'n' => '\n' case 'r' => '\r' case 't' => '\t' } |
-      'u' ~> repeated(character("0123456789abcdefABCDEF".contains(_)), 4, 4) ^^
+      'u' ~> repeated(character(Symbol.is_ascii_hex), 4, 4) ^^
         (s => Integer.parseInt(s, 16).toChar)
 
     def string_failure: Parser[Token] = '\"' ~> failure("Unterminated string")

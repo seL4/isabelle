@@ -213,8 +213,8 @@ object TOML {
       elem("", "\"\\".contains(_)) |
         elem("", "btnfr".contains(_)) ^^
           { case 'b' => '\b' case 't' => '\t' case 'n' => '\n' case 'f' => '\f' case 'r' => '\r' } |
-        ('u' ~> repeated(character("0123456789abcdefABCDEF".contains(_)), 4, 4) |
-          'U' ~> repeated(character("0123456789abcdefABCDEF".contains(_)), 8, 8)) ^^
+        ('u' ~> repeated(character(Symbol.is_ascii_hex), 4, 4) |
+          'U' ~> repeated(character(Symbol.is_ascii_hex), 8, 8)) ^^
           (s => java.lang.Integer.parseInt(s, 16).toChar)
 
     private def literal_string_elem: Parser[Elem] = elem("", c => !is_control(c) && c != '\'')
