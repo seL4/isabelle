@@ -405,7 +405,6 @@ object Build_History {
     Command_Line.tool {
       var afp = false
       var multicore_base = false
-      var components_base = Components.dynamic_components_base
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
@@ -413,6 +412,7 @@ object Build_History {
       var clean_platforms: Option[List[Platform.Family]] = None
       var clean_archives = false
       var component_repository = Components.static_component_repository
+      var components_base = Components.dynamic_components_base
       var arch_apple = false
       var more_settings: List[String] = Nil
       var more_preferences: List[String] = Nil
@@ -431,8 +431,6 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
   Options are:
     -A           include $ISABELLE_HOME/AFP directory
     -B           first multicore build serves as base for scheduling information
-    -C DIR       base directory for Isabelle components (default: """ +
-      quote(Components.dynamic_components_base) + """)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for 32bit, """ +
       default_heap * 2 + """ for 64bit)
     -M MULTICORE multicore configurations (see below)
@@ -442,6 +440,8 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     -Q           clean archives of downloaded components
     -R URL       remote repository for Isabelle components (default: """ +
       Components.static_component_repository + """)
+    -S DIR       base directory for Isabelle components (default: """ +
+      quote(Components.dynamic_components_base) + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -a           processor architecture is Apple Silicon (ARM64)
     -e TEXT      additional text for generated etc/settings
@@ -465,13 +465,13 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
 """,
         "A" -> (_ => afp = true),
         "B" -> (_ => multicore_base = true),
-        "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
         "O:" -> (arg => clean_platforms = Some(space_explode(',',arg).map(Platform.Family.parse))),
         "Q" -> (_ => clean_archives = true),
         "R:" -> (arg => component_repository = arg),
+        "S:" -> (arg => components_base = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "a" -> (_ => arch_apple = true),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
@@ -587,7 +587,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           val script =
             ssh.bash_path(Path.explode("Admin/build_other")) +
               " -R " + Bash.string(component_repository) +
-              " -C " + Bash.string(components_base) +
+              " -S " + Bash.string(components_base) +
               (clean_platforms match {
                 case Some(ps) => " -O " + Bash.string(ps.mkString(","))
                 case None => ""
