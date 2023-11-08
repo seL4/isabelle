@@ -148,7 +148,7 @@ object Command_Span {
 
   val empty: Span = Span(Ignored_Span, Nil)
 
-  def unparsed(source: String, theory: Boolean): Span = {
+  def unparsed(source: String, theory: Boolean = false): Span = {
     val kind = if (theory) Theory_Span else Malformed_Span
     Span(kind, List(Token(Token.Kind.UNPARSED, source)))
   }
