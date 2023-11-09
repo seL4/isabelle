@@ -126,12 +126,10 @@ object Build_Schedule {
     def median_time(obs: List[Time]): Time = obs.sortBy(_.ms).drop(obs.length / 2).head
     def mean_time(obs: Iterable[Time]): Time = Time.ms(obs.map(_.ms).sum / obs.size)
 
-    private val dummy_entries =
+    private def dummy_entries(host: Host, host_factor: Double) =
       List(
-        Timing_Entry("dummy", "dummy", 1, Time.minutes(5)),
-        Timing_Entry("dummy", "dummy", 8, Time.minutes(1)))
-
-    def dummy: Timing_Data = new Timing_Data(dummy_entries, Host_Infos.dummy)
+        Timing_Entry("dummy", host.info.hostname, 1, Time.minutes(5).scale(host_factor)),
+        Timing_Entry("dummy", host.info.hostname, 8, Time.minutes(1).scale(host_factor)))
 
     def make(
       host_infos: Host_Infos,
@@ -150,7 +148,11 @@ object Build_Schedule {
         } yield (job_name, hostname, threads) -> session_info.timing.elapsed
 
       val entries =
-        if (measurements.isEmpty) dummy_entries
+        if (measurements.isEmpty) {
+          val default_host = host_infos.hosts.sorted(host_infos.host_speeds).head
+          host_infos.hosts.flatMap(host =>
+            dummy_entries(host, host_infos.host_factor(default_host, host)))
+        }
         else
           measurements.groupMap(_._1)(_._2).toList.map {
             case ((job_name, hostname, threads), timings) =>
