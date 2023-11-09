@@ -306,12 +306,16 @@ object Build_Schedule {
     def finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
   }
 
-  abstract class Scheduler(timing_data: Timing_Data) {
+  abstract class Scheduler {
     def ready_jobs(state: Build_Process.State): Build_Process.State.Pending =
       state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
 
     def next(state: Build_Process.State): List[Config]
 
+    def build_duration(build_state: Build_Process.State): Time
+  }
+
+  abstract class Heuristic(timing_data: Timing_Data) extends Scheduler {
     def build_duration(build_state: Build_Process.State): Time = {
       @tailrec
       def simulate(state: State): State =
@@ -327,6 +331,17 @@ object Build_Schedule {
     }
   }
 
+  class Meta_Heuristic(heuristics: List[Heuristic]) extends Scheduler {
+    require(heuristics.nonEmpty)
+
+    def best_result(state: Build_Process.State): (Heuristic, Time) =
+      heuristics.map(heuristic => heuristic -> heuristic.build_duration(state)).minBy(_._2.ms)
+
+    def next(state: Build_Process.State): List[Config] = best_result(state)._1.next(state)
+
+    def build_duration(state: Build_Process.State): Time = best_result(state)._2
+  }
+
 
   /* heuristics */
 
@@ -334,7 +349,7 @@ object Build_Schedule {
     threshold: Time,
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure
-  ) extends Scheduler(timing_data) {
+  ) extends Heuristic(timing_data) {
     /* pre-computed properties for efficient heuristic */
 
     type Node = String
@@ -406,16 +421,6 @@ object Build_Schedule {
 
         configs1 ::: configs2
       }
-    }
-  }
-
-  class Meta_Heuristic(schedulers: List[Scheduler], timing_data: Timing_Data)
-    extends Scheduler(timing_data) {
-    require(schedulers.nonEmpty)
-
-    def next(state: Build_Process.State): List[Config] = {
-      val (best, _) = schedulers.map(h => h -> h.build_duration(state)).minBy(_._2.ms)
-      best.next(state)
     }
   }
 
@@ -592,7 +597,7 @@ object Build_Schedule {
                 Time.minutes(minutes),
                 timing_data,
                 context.build_deps.sessions_structure))
-          new Meta_Heuristic(heuristics, timing_data)
+          new Meta_Heuristic(heuristics)
         }
       }
   }
