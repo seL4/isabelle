@@ -553,7 +553,9 @@ object Build_Schedule {
     }
 
     override def next_jobs(state: Build_Process.State): List[String] =
-      if (cache.is_current(state)) cache.configs.map(_.job_name)
+      if (progress.stopped)
+        state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name)).map(_.name)
+      else if (cache.is_current(state)) cache.configs.map(_.job_name)
       else {
         val start = Time.now()
         val next = scheduler.next(state)
