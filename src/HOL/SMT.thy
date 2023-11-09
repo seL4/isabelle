@@ -6,7 +6,7 @@
 section \<open>Bindings to Satisfiability Modulo Theories (SMT) solvers based on SMT-LIB 2\<close>
 
 theory SMT
-  imports Divides Numeral_Simprocs
+  imports Numeral_Simprocs
   keywords "smt_status" :: diag
 begin
 
