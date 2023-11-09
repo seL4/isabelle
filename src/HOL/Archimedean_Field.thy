@@ -412,7 +412,7 @@ qed
 
 lemma floor_divide_of_nat_eq: "\<lfloor>of_nat m / of_nat n\<rfloor> = of_nat (m div n)"
   for m n :: nat
-    by (metis floor_divide_of_int_eq of_int_of_nat_eq unique_euclidean_semiring_with_nat_class.of_nat_div)
+    by (metis floor_divide_of_int_eq of_int_of_nat_eq linordered_euclidean_semiring_class.of_nat_div)
 
 lemma floor_divide_lower:
   fixes q :: "'a::floor_ceiling"

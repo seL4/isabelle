@@ -18,6 +18,11 @@ New in this Isabelle version
 * Explicit type class for discrete_linear_ordered_semidom for integral
   semidomains with a discrete linear order.
 
+* Type class linordered_euclidean_semiring replaces the (rather technical)
+  type class unique_euclidean_semiring_with_nat;  type class
+  unique_euclidean_ring_with_nat, which barely admits instances other than
+  isomorphic to int, is discontinued.  Minor INCOMPATIBILITY.
+
 
 *** ML ***
 

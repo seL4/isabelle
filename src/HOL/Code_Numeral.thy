@@ -305,7 +305,7 @@ lemma [code]:
   "division_segment (k :: integer) = (if k \<ge> 0 then 1 else - 1)"
   by transfer (simp add: division_segment_int_def)
 
-instance integer :: unique_euclidean_ring_with_nat
+instance integer :: linordered_euclidean_semiring
   by (standard; transfer) (simp_all add: of_nat_div division_segment_int_def)
 
 instantiation integer :: ring_bit_operations
@@ -393,7 +393,7 @@ lemma [code]:
 
 end
 
-instantiation integer :: unique_euclidean_semiring_with_nat_division
+instantiation integer :: linordered_euclidean_semiring_division
 begin
 
 definition divmod_integer :: "num \<Rightarrow> num \<Rightarrow> integer \<times> integer"
@@ -1065,9 +1065,9 @@ lemma [code]:
   by (simp add: natural_eq_iff)
 
 instance natural :: discrete_linordered_semidom
-  by (standard; transfer) simp_all
+  by (standard; transfer) (simp_all add: Suc_le_eq)
 
-instance natural :: unique_euclidean_semiring_with_nat
+instance natural :: linordered_euclidean_semiring
   by (standard; transfer) simp_all
 
 instantiation natural :: semiring_bit_operations

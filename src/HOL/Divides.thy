@@ -7,7 +7,7 @@ theory Divides
 imports Parity
 begin
 
-class unique_euclidean_semiring_numeral = unique_euclidean_semiring_with_nat + discrete_linordered_semidom +
+class unique_euclidean_semiring_numeral = linordered_euclidean_semiring + discrete_linordered_semidom +
   assumes div_less [no_atp]: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less [no_atp]: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
     and div_positive [no_atp]: "0 < b \<Longrightarrow> b \<le> a \<Longrightarrow> a div b > 0"

@@ -2461,7 +2461,7 @@ qed
 
 end
 
-context unique_euclidean_semiring_with_nat
+context linordered_euclidean_semiring
 begin
 
 lemma gauss_sum:

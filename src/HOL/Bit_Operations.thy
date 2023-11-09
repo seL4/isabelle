@@ -2626,7 +2626,7 @@ lemma nat_mask_eq:
 subsection \<open>Common algebraic structure\<close>
 
 class unique_euclidean_semiring_with_bit_operations =
-  unique_euclidean_semiring_with_nat + semiring_bit_operations
+  linordered_euclidean_semiring + semiring_bit_operations
 begin
 
 lemma possible_bit [simp]:
