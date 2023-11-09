@@ -126,10 +126,13 @@ object Build_Cluster {
 
     def message(msg: String): String = "Host " + quote(host.name) + if_proper(msg, ": " + msg)
 
+    def open_ssh(options: Options): SSH.System =
+      SSH.open_system(options ++ host.options, ssh_host, port = host.port, user = host.user)
+
     def open_session(build_context: Build.Context, progress: Progress = new Progress): Session = {
-      val session_options = build_context.build_options ++ host.options
-      val ssh = SSH.open_session(session_options, ssh_host, port = host.port, user = host.user)
-      new Session(build_context, host, session_options, ssh, progress)
+      val ssh_options = build_context.build_options ++ host.options
+      val ssh = open_ssh(build_context.build_options)
+      new Session(build_context, host, ssh_options, ssh, progress)
     }
   }
 
