@@ -432,7 +432,7 @@ object SSH {
     port: Int = 0,
     user: String = ""
   ): System = {
-    if (host.isEmpty) Local
+    if (is_local(host)) Local
     else open_session(options, host = host, port = port, user = user)
   }
 
