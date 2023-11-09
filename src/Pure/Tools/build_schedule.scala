@@ -306,12 +306,8 @@ object Build_Schedule {
     def finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
   }
 
-  abstract class Scheduler {
-    def ready_jobs(state: Build_Process.State): Build_Process.State.Pending =
-      state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
-
+  trait Scheduler {
     def next(state: Build_Process.State): List[Config]
-
     def build_duration(build_state: Build_Process.State): Time
   }
 
@@ -321,8 +317,7 @@ object Build_Schedule {
       def simulate(state: State): State =
         if (state.finished) state
         else {
-          val state1 =
-            next(state.build_state).foldLeft(state)(_.start(_)).step(timing_data)
+          val state1 = next(state.build_state).foldLeft(state)(_.start(_)).step(timing_data)
           simulate(state1)
         }
 
@@ -391,7 +386,7 @@ object Build_Schedule {
         timing_data.best_threads(task.name).getOrElse(
           host_infos.hosts.map(_.info.num_cpus).max min 8)
 
-      val ready = ready_jobs(state)
+      val ready = state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
       val free = resources.unused_hosts
 
       if (ready.length <= free.length)
