@@ -423,10 +423,10 @@ object TOML {
   object Parse_Context {
     case class Seen(inlines: Set[Keys], tables: Set[Keys])
 
-    def empty: Parse_Context = new Parse_Context(Map(Nil -> Seen(Set.empty, Set.empty)))
+    def apply(): Parse_Context = new Parse_Context(Map(Nil -> Seen(Set.empty, Set.empty)))
   }
 
-  def parse(s: Str, context: Parse_Context = Parse_Context.empty): Table = {
+  def parse(s: Str, context: Parse_Context = Parse_Context()): Table = {
     val file = Parsers.parse(s)
 
     def convert(ks0: Keys, ks1: Keys, v: Parsers.V): T = {
