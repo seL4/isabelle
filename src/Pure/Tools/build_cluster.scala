@@ -18,6 +18,7 @@ object Build_Cluster {
   object Host {
     private val rfc822_specials = """()<>@,;:\"[]"""
 
+    private val HOSTNAME = "hostname"
     private val USER = "user"
     private val PORT = "port"
     private val JOBS = "jobs"
@@ -27,12 +28,13 @@ object Build_Cluster {
 
     val parameters: Options =
       Options.inline("""
-        option user : string = ""    -- "explicit SSH user"
-        option port : int = 0        -- "explicit SSH port"
-        option jobs : int = 1        -- "maximum number of parallel jobs"
-        option numa : bool = false   -- "cyclic shuffling of NUMA CPU nodes"
-        option dirs : string = ""    -- "additional session directories (separated by colon)"
-        option shared : bool = false -- "shared directory: omit sync + init"
+        option hostname : string = "" -- "explicit SSH hostname"
+        option user : string = ""     -- "explicit SSH user"
+        option port : int = 0         -- "explicit SSH port"
+        option jobs : int = 1         -- "maximum number of parallel jobs"
+        option numa : bool = false    -- "cyclic shuffling of NUMA CPU nodes"
+        option dirs : string = ""     -- "additional session directories (separated by colon)"
+        option shared : bool = false  -- "shared directory: omit sync + init"
       """)
 
     def is_parameter(spec: Options.Spec): Boolean = parameters.defined(spec.name)
@@ -41,6 +43,7 @@ object Build_Cluster {
 
     def apply(
       name: String = "",
+      hostname: String = parameters.string(HOSTNAME),
       user: String = parameters.string(USER),
       port: Int = parameters.int(PORT),
       jobs: Int = parameters.int(JOBS),
@@ -50,7 +53,7 @@ object Build_Cluster {
       options: List[Options.Spec] = Nil
     ): Host = {
       Path.split(dirs)  // check
-      new Host(name, user, port, jobs, numa, dirs, shared, options)
+      new Host(name, hostname, user, port, jobs, numa, dirs, shared, options)
     }
 
     def parse(str: String): List[Host] = {
@@ -75,6 +78,7 @@ object Build_Cluster {
         }
       for (name <- space_explode(',', names)) yield {
         apply(name = name,
+          hostname = params.string(HOSTNAME),
           user = params.string(USER),
           port = params.int(PORT),
           jobs = params.int(JOBS),
@@ -88,6 +92,7 @@ object Build_Cluster {
 
   class Host(
     val name: String,
+    val hostname: String,
     val user: String,
     val port: Int,
     val jobs: Int,
@@ -98,13 +103,15 @@ object Build_Cluster {
   ) {
     host =>
 
-    def is_local: Boolean = SSH.is_local(host.name)
+    def ssh_host: String = proper_string(hostname) getOrElse name
+    def is_local: Boolean = SSH.is_local(ssh_host)
 
     override def toString: String = print
 
     def print: String = {
       val params =
         List(
+          if (host.hostname.isEmpty) "" else Options.Spec.print(Host.HOSTNAME, host.hostname),
           if (host.user.isEmpty) "" else Options.Spec.print(Host.USER, host.user),
           if (host.port == 0) "" else Options.Spec.print(Host.PORT, host.port.toString),
           if (host.jobs == 1) "" else Options.Spec.print(Host.JOBS, host.jobs.toString),
@@ -121,7 +128,7 @@ object Build_Cluster {
 
     def open_session(build_context: Build.Context, progress: Progress = new Progress): Session = {
       val session_options = build_context.build_options ++ host.options
-      val ssh = SSH.open_session(session_options, host.name, port = host.port, user = host.user)
+      val ssh = SSH.open_session(session_options, ssh_host, port = host.port, user = host.user)
       new Session(build_context, host, session_options, ssh, progress)
     }
   }
