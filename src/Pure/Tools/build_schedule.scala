@@ -143,6 +143,7 @@ object Build_Schedule {
           (meta_info, build_info) <- build_history
           build_host <- meta_info.get(Build_Log.Prop.build_host).toList
           (job_name, session_info) <- build_info.sessions.toList
+          if build_info.finished_sessions.contains(job_name)
           hostname = session_info.hostname.getOrElse(build_host)
           host <- hosts.find(_.info.hostname == build_host).toList
           threads = session_info.threads.getOrElse(host.info.num_cpus)
