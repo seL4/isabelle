@@ -178,45 +178,58 @@ lemma integer_of_num_triv:
   "integer_of_num (Num.Bit0 Num.One) = 2"
   by simp_all
 
-instantiation integer :: "{linordered_idom, equal}"
+instantiation integer :: equal
 begin
 
-lift_definition abs_integer :: "integer \<Rightarrow> integer"
-  is "abs :: int \<Rightarrow> int"
+lift_definition equal_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> bool\<close>
+  is \<open>HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool\<close>
+  .
+
+instance
+  by (standard; transfer) (fact equal_eq)
+
+end
+
+instantiation integer :: linordered_idom
+begin
+
+lift_definition abs_integer :: \<open>integer \<Rightarrow> integer\<close>
+  is \<open>abs :: int \<Rightarrow> int\<close>
   .
 
 declare abs_integer.rep_eq [simp]
 
-lift_definition sgn_integer :: "integer \<Rightarrow> integer"
-  is "sgn :: int \<Rightarrow> int"
+lift_definition sgn_integer :: \<open>integer \<Rightarrow> integer\<close>
+  is \<open>sgn :: int \<Rightarrow> int\<close>
   .
 
 declare sgn_integer.rep_eq [simp]
 
-lift_definition less_eq_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
-  is "less_eq :: int \<Rightarrow> int \<Rightarrow> bool"
+lift_definition less_eq_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> bool\<close>
+  is \<open>less_eq :: int \<Rightarrow> int \<Rightarrow> bool\<close>
   .
 
 lemma integer_less_eq_iff:
-  "k \<le> l \<longleftrightarrow> int_of_integer k \<le> int_of_integer l"
+  \<open>k \<le> l \<longleftrightarrow> int_of_integer k \<le> int_of_integer l\<close>
   by (fact less_eq_integer.rep_eq)
 
-lift_definition less_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
-  is "less :: int \<Rightarrow> int \<Rightarrow> bool"
+lift_definition less_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> bool\<close>
+  is \<open>less :: int \<Rightarrow> int \<Rightarrow> bool\<close>
   .
 
 lemma integer_less_iff:
-  "k < l \<longleftrightarrow> int_of_integer k < int_of_integer l"
+  \<open>k < l \<longleftrightarrow> int_of_integer k < int_of_integer l\<close>
   by (fact less_integer.rep_eq)
 
-lift_definition equal_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
-  is "HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool"
-  .
-
 instance
-  by standard (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] mult_strict_right_mono linear)+
+  by (standard; transfer)
+    (simp_all add: algebra_simps less_le_not_le [symmetric] mult_strict_right_mono linear)
 
 end
+
+instance integer :: discrete_linordered_semidom
+  by (standard; transfer)
+    (fact less_iff_succ_less_eq)
 
 context
   includes lifting_syntax
@@ -1051,7 +1064,7 @@ lemma [code]:
   "division_segment (n::natural) = 1"
   by (simp add: natural_eq_iff)
 
-instance natural :: linordered_semidom
+instance natural :: discrete_linordered_semidom
   by (standard; transfer) simp_all
 
 instance natural :: unique_euclidean_semiring_with_nat

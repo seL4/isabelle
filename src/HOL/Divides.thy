@@ -7,7 +7,7 @@ theory Divides
 imports Parity
 begin
 
-class unique_euclidean_semiring_numeral = unique_euclidean_semiring_with_nat + linordered_semidom +
+class unique_euclidean_semiring_numeral = unique_euclidean_semiring_with_nat + discrete_linordered_semidom +
   assumes div_less [no_atp]: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less [no_atp]: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
     and div_positive [no_atp]: "0 < b \<Longrightarrow> b \<le> a \<Longrightarrow> a div b > 0"
@@ -16,15 +16,18 @@ class unique_euclidean_semiring_numeral = unique_euclidean_semiring_with_nat + l
     and pos_mod_sign [no_atp]: "0 < b \<Longrightarrow> 0 \<le> a mod b"
     and mod_mult2_eq [no_atp]: "0 \<le> c \<Longrightarrow> a mod (b * c) = b * (a div b mod c) + a mod b"
     and div_mult2_eq [no_atp]: "0 \<le> c \<Longrightarrow> a div (b * c) = a div b div c"
-  assumes discrete [no_atp]: "a < b \<longleftrightarrow> a + 1 \<le> b"
 
-hide_fact (open) div_less mod_less div_positive mod_less_eq_dividend pos_mod_bound pos_mod_sign mod_mult2_eq div_mult2_eq discrete
+hide_fact (open) div_less mod_less div_positive mod_less_eq_dividend pos_mod_bound pos_mod_sign mod_mult2_eq div_mult2_eq
 
 context unique_euclidean_semiring_numeral
 begin
 
 context
 begin
+
+qualified lemma discrete [no_atp]:
+  "a < b \<longleftrightarrow> a + 1 \<le> b"
+  by (fact less_iff_succ_less_eq)
 
 qualified lemma divmod_digit_1 [no_atp]:
   assumes "0 \<le> a" "0 < b" and "b \<le> a mod (2 * b)"

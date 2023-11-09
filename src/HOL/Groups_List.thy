@@ -421,7 +421,7 @@ lemma horner_sum_nonnegative:
 
 end
 
-context unique_euclidean_semiring_numeral
+context discrete_linordered_semidom
 begin
 
 lemma horner_sum_bound:
@@ -435,11 +435,16 @@ next
   moreover define a where \<open>a = 2 ^ length bs - horner_sum of_bool 2 bs\<close>
   ultimately have *: \<open>2 ^ length bs = horner_sum of_bool 2 bs + a\<close>
     by simp
-  have \<open>1 < a * 2\<close> if \<open>0 < a\<close>
-    using that add_mono [of 1 a 1 a]
-    by (simp add: mult_2_right discrete)
+  have \<open>0 < a\<close>
+    using Cons * by simp
+  moreover have \<open>1 \<le> a\<close>
+    using \<open>0 < a\<close> by (simp add: less_eq_iff_succ_less)
+  ultimately have \<open>0 + 1 < a + a\<close>
+    by (rule add_less_le_mono)
+  then have \<open>1 < a * 2\<close>
+    by (simp add: mult_2_right)
   with Cons show ?case
-    by (simp add: algebra_simps *)
+    by (simp add: * algebra_simps)
 qed
 
 end
@@ -448,7 +453,7 @@ lemma nat_horner_sum [simp]:
   \<open>nat (horner_sum of_bool 2 bs) = horner_sum of_bool 2 bs\<close>
   by (induction bs) (auto simp add: nat_add_distrib horner_sum_nonnegative)
 
-context unique_euclidean_semiring_numeral
+context discrete_linordered_semidom
 begin
 
 lemma horner_sum_less_eq_iff_lexordp_eq:

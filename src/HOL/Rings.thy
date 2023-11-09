@@ -2679,6 +2679,16 @@ lemma abs_split [no_atp]: \<open>P \<bar>a\<bar> \<longleftrightarrow> (0 \<le> 
 
 end
 
+class discrete_linordered_semidom = linordered_semidom +
+  assumes less_iff_succ_less_eq: \<open>a < b \<longleftrightarrow> a + 1 \<le> b\<close>
+begin
+
+lemma less_eq_iff_succ_less:
+  \<open>a \<le> b \<longleftrightarrow> a < b + 1\<close>
+  using less_iff_succ_less_eq [of a \<open>b + 1\<close>] by simp
+
+end
+
 text \<open>Reasoning about inequalities with division\<close>
 
 context linordered_semidom

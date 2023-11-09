@@ -15,6 +15,9 @@ New in this Isabelle version
   by Sledgehammer and should be used instead. For more information, see
   Sledgehammer's documentation relating to "preplay_timeout". INCOMPATIBILITY.
 
+* Explicit type class for discrete_linear_ordered_semidom for integral
+  semidomains with a discrete linear order.
+
 
 *** ML ***
 

@@ -181,6 +181,31 @@ qed
 
 end
 
+instance int :: discrete_linordered_semidom
+proof
+  fix k l :: int
+  show \<open>k < l \<longleftrightarrow> k + 1 \<le> l\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+  proof
+    assume ?Q
+    then show ?P
+      by simp
+  next
+    assume ?P
+    then have \<open>l - k > 0\<close>
+      by simp
+    with zero_less_imp_eq_int obtain n where \<open>l - k = int n\<close>
+      by blast
+    then have \<open>n > 0\<close>
+      using \<open>l - k > 0\<close> by simp
+    then have \<open>n \<ge> 1\<close>
+      by simp
+    then have \<open>int n \<ge> int 1\<close>
+      by (rule of_nat_mono)
+    with \<open>l - k = int n\<close> show ?Q
+      by simp
+  qed
+qed
+
 lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + 1 \<le> z"
   for w z :: int
   by transfer clarsimp
