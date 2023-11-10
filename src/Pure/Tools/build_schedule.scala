@@ -577,12 +577,14 @@ object Build_Schedule {
         case _ => false
     }
 
-    override def next_jobs(state: Build_Process.State): List[String] =
-      if (progress.stopped) state.ready.map(_.name)
+    override def next_jobs(state: Build_Process.State): List[String] = {
+      val finalize_limit = if (build_context.master) Int.MaxValue else 0
+
+      if (progress.stopped) state.ready.map(_.name).take(finalize_limit)
       else if (cache.is_current(state)) cache.configs.map(_.job_name)
       else {
         val current = state.ready.filter(task => is_current(state, task.name))
-        if (current.nonEmpty) current.map(_.name)
+        if (current.nonEmpty) current.map(_.name).take(finalize_limit)
         else {
           val start = Time.now()
           val next = scheduler.next(state)
@@ -598,6 +600,7 @@ object Build_Schedule {
           configs.map(_.job_name)
         }
       }
+    }
 
     override def run(): Build.Results = {
       val results = super.run()
