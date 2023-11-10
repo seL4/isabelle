@@ -852,7 +852,7 @@ extends AutoCloseable {
 
   /* global resources with common close() operation */
 
-  private val _database_server: Option[SQL.Database] =
+  protected val _database_server: Option[SQL.Database] =
     try { store.maybe_open_database_server(server = server) }
     catch { case exn: Throwable => close(); throw exn }
 

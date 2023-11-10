@@ -554,22 +554,49 @@ object Build_Schedule {
       configs.find(_.job_name == session_name).get.node_info
     }
 
+    def is_current(state: Build_Process.State, session_name: String): Boolean =
+      state.ancestor_results(session_name) match {
+        case Some(ancestor_results) if ancestor_results.forall(_.current) =>
+          val sources_shasum = state.sessions(session_name).sources_shasum
+
+          val input_shasum =
+            if (ancestor_results.isEmpty) ML_Process.bootstrap_shasum()
+            else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
+
+          val store_heap =
+            build_context.build_heap || Sessions.is_pure(session_name) ||
+              state.sessions.iterator.exists(_.ancestors.contains(session_name))
+
+          store.check_output(
+            _database_server, session_name,
+            session_options = build_context.sessions_structure(session_name).options,
+            sources_shasum = sources_shasum,
+            input_shasum = input_shasum,
+            fresh_build = build_context.fresh_build,
+            store_heap = store_heap)._1
+        case _ => false
+    }
+
     override def next_jobs(state: Build_Process.State): List[String] =
       if (progress.stopped) state.ready.map(_.name)
       else if (cache.is_current(state)) cache.configs.map(_.job_name)
       else {
-        val start = Time.now()
-        val next = scheduler.next(state)
-        val estimate = Date(Time.now() + scheduler.build_duration(state))
-        val elapsed = Time.now() - start
+        val current = state.ready.filter(task => is_current(state, task.name))
+        if (current.nonEmpty) current.map(_.name)
+        else {
+          val start = Time.now()
+          val next = scheduler.next(state)
+          val estimate = Date(Time.now() + scheduler.build_duration(state))
+          val elapsed = Time.now() - start
 
-        val timing_msg = if (elapsed.is_relevant) " (in " + elapsed.message + ")" else ""
-        progress.echo_if(build_context.master && !cache.is_current_estimate(estimate),
-          "Estimated completion: " + estimate + timing_msg)
+          val timing_msg = if (elapsed.is_relevant) " (in " + elapsed.message + ")" else ""
+          progress.echo_if(build_context.master && !cache.is_current_estimate(estimate),
+            "Estimated completion: " + estimate + timing_msg)
 
-        val configs = next.filter(_.node_info.hostname == hostname)
-        cache = Cache(state, configs, estimate)
-        configs.map(_.job_name)
+          val configs = next.filter(_.node_info.hostname == hostname)
+          cache = Cache(state, configs, estimate)
+          configs.map(_.job_name)
+        }
       }
 
     override def run(): Build.Results = {
