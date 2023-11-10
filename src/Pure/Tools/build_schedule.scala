@@ -389,22 +389,21 @@ object Build_Schedule {
         timing_data.best_threads(task.name).getOrElse(
           host_infos.hosts.map(_.info.num_cpus).max min 8)
 
-      val ready = state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name))
       val free = resources.unused_hosts
 
-      if (ready.length <= free.length)
-        resources.try_allocate_tasks(free, ready.map(task => task -> best_threads(task)))._1
+      if (state.ready.length <= free.length)
+        resources.try_allocate_tasks(free, state.ready.map(task => task -> best_threads(task)))._1
       else {
         val pending_tasks = state.pending.map(_.name).toSet
 
-        val critical_nodes = ready.toSet.flatMap(task => critical_path_nodes(task.name))
+        val critical_nodes = state.ready.toSet.flatMap(task => critical_path_nodes(task.name))
         def is_critical(node: Node): Boolean = critical_nodes.contains(node)
 
         def parallel_paths(node: Node): Int =
           build_graph.imm_succs(node).filter(is_critical).map(parallel_paths(_) max 1).sum max 1
 
         val (critical, other) =
-          ready.sortBy(task => remaining_time(task.name)).reverse.partition(task =>
+          state.ready.sortBy(task => remaining_time(task.name)).reverse.partition(task =>
             is_critical(task.name))
 
         val (critical_hosts, other_hosts) =
@@ -556,8 +555,7 @@ object Build_Schedule {
     }
 
     override def next_jobs(state: Build_Process.State): List[String] =
-      if (progress.stopped)
-        state.pending.filter(entry => entry.is_ready && !state.is_running(entry.name)).map(_.name)
+      if (progress.stopped) state.ready.map(_.name)
       else if (cache.is_current(state)) cache.configs.map(_.job_name)
       else {
         val start = Time.now()
