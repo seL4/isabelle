@@ -129,6 +129,23 @@ object Path {
   def split(str: String): List[Path] =
     space_explode(':', str).filterNot(_.isEmpty).map(explode)
 
+  def split_permissive(str: String): List[(Path, Boolean)] =
+    space_explode(':', str).flatMap(
+      {
+        case "" | "?" => None
+        case s =>
+          Library.try_unsuffix("?", s) match {
+            case None => Some(explode(s) -> false)
+            case Some(p) => Some(explode(p) -> true)
+          }
+      })
+
+  def split_permissive_files(str: String): List[Path] =
+    for {
+      (path, permissive) <- split_permissive(str)
+      if !permissive || path.is_file
+    } yield path
+
 
   /* encode */
 

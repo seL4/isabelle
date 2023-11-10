@@ -351,15 +351,12 @@ object Symbol {
       code.map(c => new String(Character.toChars(c)))
   }
 
-  lazy val symbols: Symbols = Symbols.load()
+  lazy val symbols: Symbols =
+    Symbols.make(cat_lines(Symbols.files().map(File.read)))
 
   object Symbols {
-    def load(static: Boolean = false): Symbols = {
-      val paths =
-        if (static) List(Path.explode("~~/etc/symbols"))
-        else Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS"))
-      make(cat_lines(for (path <- paths if path.is_file) yield File.read(path)))
-    }
+    def files(): List[Path] =
+      Path.split_permissive_files(Isabelle_System.getenv("ISABELLE_SYMBOLS"))
 
     def make(symbols_spec: String): Symbols = {
       val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)

@@ -26,8 +26,10 @@ object Component_VSCodium {
 
   /* Isabelle symbols (static subset only) */
 
+  lazy val symbols: Symbol.Symbols =
+    Symbol.Symbols.make(File.read(Path.explode("~~/etc/symbols")))
+
   def make_symbols(): File.Content = {
-    val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
       JSON.Format.pretty_print(
         for (entry <- symbols.entries) yield
@@ -41,7 +43,6 @@ object Component_VSCodium {
   }
 
   def make_isabelle_encoding(header: String): File.Content = {
-    val symbols = Symbol.Symbols.load(static = true)
     val symbols_js =
       JSON.Format.pretty_print(
         for (entry <- symbols.entries; code <- entry.code)
