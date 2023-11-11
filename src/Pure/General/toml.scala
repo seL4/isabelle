@@ -39,6 +39,21 @@ object TOML {
   case class Local_Date(rep: LocalDate) extends T
   case class Local_Time(rep: LocalTime) extends T
 
+  object Scalar {
+    def unapply(t: T): Option[Str] =
+      t match {
+        case s: String => Some(s.rep)
+        case i: Integer => Some(i.rep.toString)
+        case f: Float => Some(f.rep.toString)
+        case b: Boolean => Some(b.rep.toString)
+        case o: Offset_Date_Time => Some(o.rep.toString)
+        case l: Local_Date_Time => Some(l.rep.toString)
+        case l: Local_Date => Some(l.rep.toString)
+        case l: Local_Time => Some(l.rep.toString)
+        case _ => None
+      }
+  }
+
   class Array private(private val rep: List[T]) extends T {
     override def hashCode(): Int = rep.hashCode()
     override def equals(that: Any): Bool = that match {
@@ -544,17 +559,10 @@ object TOML {
       val result = new StringBuilder
 
       result ++= Symbol.spaces(indent * 2)
-      t match {
+      (t: @unchecked) match {
         case s: String =>
           if (s.rep.contains("\n") && s.rep.length > 20) result ++= multiline_basic_string(s.rep)
           else result ++= basic_string(s.rep)
-        case i: Integer => result ++= i.rep.toString
-        case f: Float => result ++= f.rep.toString
-        case b: Boolean => result ++= b.rep.toString
-        case o: Offset_Date_Time => result ++= o.rep.toString
-        case l: Local_Date_Time => result ++= l.rep.toString
-        case l: Local_Date => result ++= l.rep.toString
-        case l: Local_Time => result ++= l.rep.toString
         case a: Array =>
           if (a.is_empty) result ++= "[]"
           else {
@@ -579,6 +587,7 @@ object TOML {
             }
             result ++= " }"
           }
+        case Scalar(s) => result ++= s
       }
       result.toString()
     }
