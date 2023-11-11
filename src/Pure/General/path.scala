@@ -323,8 +323,12 @@ final class Path private(
   /* platform files */
 
   def file: JFile = File.platform_file(this)
+
   def is_file: Boolean = file.isFile
   def is_dir: Boolean = file.isDirectory
+
+  def check_file: Path = if (is_file) this else error("No such file: " + this)
+  def check_dir: Path = if (is_dir) this else error("No such directory: " + this)
 
   def java_path: JPath = file.toPath
 

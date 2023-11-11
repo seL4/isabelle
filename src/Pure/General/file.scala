@@ -131,15 +131,6 @@ object File {
   def bash_platform_path(path: Path): String = Bash.string(platform_path(path))
 
 
-  /* directory entries */
-
-  def check_dir(path: Path): Path =
-    if (path.is_dir) path else error("No such directory: " + path)
-
-  def check_file(path: Path): Path =
-    if (path.is_file) path else error("No such file: " + path)
-
-
   /* directory content */
 
   def read_dir(dir: Path): List[String] = {
@@ -420,5 +411,5 @@ object File {
   /* space */
 
   def space(path: Path): Space =
-    Space.bytes(check_file(path).file.length)
+    Space.bytes(path.check_file.file.length)
 }
