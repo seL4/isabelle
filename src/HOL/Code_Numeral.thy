@@ -357,7 +357,7 @@ instance by (standard; transfer)
 
 end
 
-instance integer :: unique_euclidean_semiring_with_bit_operations ..
+instance integer :: linordered_euclidean_semiring_bit_operations ..
 
 context
   includes bit_operations_syntax
@@ -1115,7 +1115,7 @@ instance by (standard; transfer)
 
 end
 
-instance natural :: unique_euclidean_semiring_with_bit_operations ..
+instance natural :: linordered_euclidean_semiring_bit_operations ..
 
 context
   includes bit_operations_syntax

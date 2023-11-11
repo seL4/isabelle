@@ -2625,7 +2625,7 @@ lemma nat_mask_eq:
 
 subsection \<open>Common algebraic structure\<close>
 
-class unique_euclidean_semiring_with_bit_operations =
+class linordered_euclidean_semiring_bit_operations =
   linordered_euclidean_semiring + semiring_bit_operations
 begin
 
@@ -2737,9 +2737,9 @@ qed
 
 end
 
-instance nat :: unique_euclidean_semiring_with_bit_operations ..
+instance nat :: linordered_euclidean_semiring_bit_operations ..
 
-instance int :: unique_euclidean_semiring_with_bit_operations ..
+instance int :: linordered_euclidean_semiring_bit_operations ..
 
 lemma drop_bit_Suc_minus_bit0 [simp]:
   \<open>drop_bit (Suc n) (- numeral (Num.Bit0 k)) = drop_bit n (- numeral k :: int)\<close>
@@ -2802,7 +2802,7 @@ lemma bit_minus_numeral_Bit1_0 [simp]:
 
 end
 
-context unique_euclidean_semiring_with_bit_operations
+context linordered_euclidean_semiring_bit_operations
 begin
 
 lemma bit_numeral_iff:
@@ -3655,7 +3655,7 @@ qed
 
 end
 
-context unique_euclidean_semiring_with_bit_operations
+context linordered_euclidean_semiring_bit_operations
 begin
 
 lemma bit_horner_sum_bit_iff [bit_simps]:

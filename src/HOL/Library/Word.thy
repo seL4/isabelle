@@ -1143,7 +1143,7 @@ lemma unsigned_take_bit_eq:
 
 end
 
-context unique_euclidean_semiring_with_bit_operations
+context linordered_euclidean_semiring_bit_operations
 begin
 
 lemma unsigned_drop_bit_eq:

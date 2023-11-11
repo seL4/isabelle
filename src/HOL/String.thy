@@ -51,7 +51,7 @@ lemma nat_of_char [simp]:
   by (cases c) (simp only: of_char_Char nat_horner_sum)
 
 
-context unique_euclidean_semiring_with_bit_operations
+context linordered_euclidean_semiring_bit_operations
 begin
 
 definition char_of :: \<open>'a \<Rightarrow> char\<close>
@@ -439,7 +439,7 @@ qualified lemma explode_implode_eq [simp]:
 
 end
 
-context unique_euclidean_semiring_with_bit_operations
+context linordered_euclidean_semiring_bit_operations
 begin
 
 context

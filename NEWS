@@ -21,7 +21,9 @@ New in this Isabelle version
 * Type class linordered_euclidean_semiring replaces the (rather technical)
   type class unique_euclidean_semiring_with_nat;  type class
   unique_euclidean_ring_with_nat, which barely admits instances other than
-  isomorphic to int, is discontinued.  Minor INCOMPATIBILITY.
+  isomorphic to int, is discontinued;  type class
+  unique_euclidean_semiring_with_bit_operations is renamed
+  to linordered_euclidean_semiring_bit_operations.  Minor INCOMPATIBILITY.
 
 
 *** ML ***
