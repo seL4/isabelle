@@ -8,10 +8,15 @@ package isabelle
 
 
 object Registry {
+  /* registry files */
+
   def files(): List[Path] =
     Path.split_permissive_files(Isabelle_System.getenv("ISABELLE_REGISTRY"))
 
   lazy val global: Registry = new Registry(TOML.parse_files(files()))
+
+
+  /* interpreted entries */
 
   def err(msg: String, name: String): Nothing =
     error(msg + " for registry entry " + quote(name))
@@ -31,6 +36,9 @@ object Registry {
         case _ => err("Table expected", Long_Name.qualify(prefix, name))
       }
   }
+
+
+  /* build cluster resources */
 
   object Host extends Table[List[Options.Spec]]("host") {
     def options_spec(a: TOML.Key, b: TOML.T): Option[Options.Spec] =
