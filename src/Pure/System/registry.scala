@@ -31,6 +31,14 @@ object Registry {
         case _ => err("Table expected", Long_Name.qualify(prefix, name))
       }
   }
+
+  object Host extends Table[List[Options.Spec]]("host") {
+    def options_spec(a: TOML.Key, b: TOML.T): Option[Options.Spec] =
+      TOML.Scalar.unapply(b).map(Options.Spec.eq(a, _, permissive = true))
+
+    override def table_value(a: String, t: TOML.Table): List[Options.Spec] =
+      for ((a, b) <- t.any.values; s <- options_spec(a, b)) yield s
+  }
 }
 
 class Registry private(val table: TOML.Table) {

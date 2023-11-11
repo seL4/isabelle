@@ -56,27 +56,32 @@ object Build_Cluster {
       new Host(name, hostname, user, port, jobs, numa, dirs, shared, options)
     }
 
-    def parse(str: String): List[Host] = {
+    def parse(registry: Registry, str: String): List[Host] = {
+      def err(msg: String): Nothing =
+        cat_error(msg, "The error(s) above occurred in host specification " + quote(str))
+
       val names = str.takeWhile(c => !rfc822_specials.contains(c) || c == ',')
-      val (params, options) =
+      val more_specs =
         try {
-          val rest = {
-            val n = str.length
-            val m = names.length
-            val l =
-              if (m == n) n
-              else if (str(m) == ':') m + 1
-              else error("Missing \":\" after host name")
-            str.substring(l)
-          }
-          val (specs1, specs2) = Options.Spec.parse(rest).partition(is_parameter)
-          (parameters ++ specs1, { test_options ++ specs2; specs2 })
+          val n = str.length
+          val m = names.length
+          val l =
+            if (m == n) n
+            else if (str(m) == ':') m + 1
+            else error("Missing \":\" after host name")
+          Options.Spec.parse(str.substring(l))
         }
-        catch {
-          case ERROR(msg) =>
-            cat_error(msg, "The error(s) above occurred in host specification " + quote(str))
-        }
+        catch { case ERROR(msg) => err(msg) }
+
       for (name <- space_explode(',', names)) yield {
+        val base_specs = registry.get(Registry.Host, name)
+        val (params, options) =
+          try {
+            val (specs1, specs2) = (base_specs ::: more_specs).partition(is_parameter)
+            (parameters ++ specs1, { test_options ++ specs2; specs2 })
+          }
+          catch { case ERROR(msg) => err(msg) }
+
         apply(name = name,
           hostname = params.string(HOSTNAME),
           user = params.string(USER),
@@ -89,8 +94,8 @@ object Build_Cluster {
       }
     }
 
-    def parse_single(str: String): Host =
-      Library.the_single(parse(str), "Single host expected: " + quote(str))
+    def parse_single(registry: Registry, str: String): Host =
+      Library.the_single(parse(registry, str), "Single host expected: " + quote(str))
   }
 
   class Host(

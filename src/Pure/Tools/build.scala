@@ -377,7 +377,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
-        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(arg)),
+        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(Registry.global, arg)),
         "N" -> (_ => numa_shuffling = true),
         "P:" -> (arg => browser_info = Browser_Info.Config.make(arg)),
         "R" -> (_ => requirements = true),
