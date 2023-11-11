@@ -14,4 +14,6 @@ object Registry {
   lazy val global: Registry = new Registry(TOML.parse_files(files()))
 }
 
-class Registry private(val toml: TOML.Table)
+class Registry private(val toml: TOML.Table) {
+  override def toString: String = TOML.Format(toml)
+}
