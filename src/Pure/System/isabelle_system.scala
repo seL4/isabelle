@@ -74,6 +74,7 @@ object Isabelle_System {
     synchronized {
       if (_classpath.isEmpty) _classpath = Some(Classpath())
     }
+    Registry.global
   }
 
 
