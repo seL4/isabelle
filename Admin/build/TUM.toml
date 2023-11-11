@@ -1,0 +1,20 @@
+# Build cluster resources at TUM
+
+[host.lxbroy10]
+hostname = "lxbroy10.informatik.tu-muenchen.de"
+numa = true
+
+[host.vmnipkow9]
+hostname = "vmnipkow9.informatik.tu-muenchen.de"
+
+[host.mini1]
+hostname = "131.159.47.71"
+
+[host.mini2]
+hostname = "131.159.47.72"
+
+[host.mini3]
+hostname = "131.159.46.69"
+
+[host.studio1]
+hostname = "131.159.46.182"
