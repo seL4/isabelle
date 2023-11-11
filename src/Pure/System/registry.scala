@@ -10,10 +10,12 @@ package isabelle
 object Registry {
   /* registry files */
 
-  def files(): List[Path] =
+  def load(files: Iterable[Path]): Registry = new Registry(TOML.parse_files(files))
+
+  def global_files(): List[Path] =
     Path.split_permissive_files(Isabelle_System.getenv("ISABELLE_REGISTRY"))
 
-  lazy val global: Registry = new Registry(TOML.parse_files(files()))
+  lazy val global: Registry = load(global_files())
 
 
   /* interpreted entries */
