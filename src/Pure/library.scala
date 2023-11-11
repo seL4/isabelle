@@ -278,10 +278,10 @@ object Library {
       res.toList
     }
 
-  def the_single[A](xs: List[A]): A =
+  def the_single[A](xs: List[A], message: => String = "Single argument expected"): A =
     xs match {
       case List(x) => x
-      case _ => error("Single argument expected")
+      case _ => error(message)
     }
 
   def symmetric_difference[A](xs: List[A], ys: List[A]): (List[A], List[A]) =

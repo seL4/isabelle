@@ -88,6 +88,9 @@ object Build_Cluster {
           options = options)
       }
     }
+
+    def parse_single(str: String): Host =
+      Library.the_single(parse(str), "Single host expected: " + quote(str))
   }
 
   class Host(
