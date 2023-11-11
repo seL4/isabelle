@@ -175,6 +175,7 @@ sources = \
   src/Pure/System/posix_interrupt.scala \
   src/Pure/System/process_result.scala \
   src/Pure/System/progress.scala \
+  src/Pure/System/registry.scala \
   src/Pure/System/scala.scala \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \

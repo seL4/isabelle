@@ -32,6 +32,22 @@ function tar() {
 }
 export -f tar
 
+#registry
+function isabelle_registry ()
+{
+  local X=""
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_REGISTRY" ]; then
+      ISABELLE_REGISTRY="$X"
+    elif [ -n "$X" ]; then
+      ISABELLE_REGISTRY="$ISABELLE_REGISTRY:$X"
+    fi
+  done
+  export ISABELLE_REGISTRY
+}
+export -f isabelle_registry
+
 #OCaml management via OPAM
 function isabelle_opam ()
 {

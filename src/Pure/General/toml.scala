@@ -507,6 +507,11 @@ object TOML {
     }
   }
 
+  def parse_files(files: Iterable[Path], context: Parse_Context = Parse_Context()): Table = {
+    val s = files.iterator.map(File.read).mkString("\n\n")
+    parse(s, context = context)
+  }
+
 
   /* Format TOML */
 

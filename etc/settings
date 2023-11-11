@@ -138,6 +138,14 @@ ISABELLE_EXTERNAL_FILES="bmp:eps:gif:jpeg:jpg:pdf:png:xmp"
 
 
 ###
+### Registry
+###
+
+isabelle_registry "$ISABELLE_HOME/etc/registry.toml?"
+isabelle_registry "$ISABELLE_HOME_USER/etc/registry.toml?"
+
+
+###
 ### Symbol rendering
 ###
 
