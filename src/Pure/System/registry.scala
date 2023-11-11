@@ -12,8 +12,39 @@ object Registry {
     Path.split_permissive_files(Isabelle_System.getenv("ISABELLE_REGISTRY"))
 
   lazy val global: Registry = new Registry(TOML.parse_files(files()))
+
+  def err(msg: String, name: String): Nothing =
+    error(msg + " for registry entry " + quote(name))
+
+  abstract class Category[A](val prefix: String) {
+    override def toString: String = "Registry.Category(" + quote(prefix) + ")"
+    def default_value: A
+    def value(name: String, t: TOML.T): A
+  }
+
+  abstract class Table[A](prefix: String) extends Category[A](prefix) {
+    def table_value(name: String, table: TOML.Table): A
+    override def default_value: A = table_value("", TOML.Table.empty)
+    override def value(name: String, t: TOML.T): A =
+      t match {
+        case table: TOML.Table => table_value(name, table)
+        case _ => err("Table expected", Long_Name.qualify(prefix, name))
+      }
+  }
 }
 
-class Registry private(val toml: TOML.Table) {
-  override def toString: String = TOML.Format(toml)
+class Registry private(val table: TOML.Table) {
+  override def toString: String = TOML.Format(table)
+
+  def get[A](category: Registry.Category[A], name: String): A = {
+    table.any.get(category.prefix) match {
+      case None => category.default_value
+      case Some(t: TOML.Table) =>
+        t.any.get(name) match {
+          case None => category.default_value
+          case Some(u) => category.value(name, u)
+        }
+      case Some(_) => Registry.err("Table expected", category.prefix)
+    }
+  }
 }
