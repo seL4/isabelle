@@ -67,6 +67,26 @@ specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 
 *** System ***
 
+* The Isabelle/Scala module isabelle.Registry provides hierarchic system
+configuration, based on a collection of TOML files (see also
+https://toml.io/en/v1.0.0). The settings variable ISABELLE_REGISTRY
+tells which files are included into isabelle.Registry.global by default.
+The bash function "isabelle_registry" may be used in component
+etc/settings or $ISABELLE_HOME_USER/etc/settings to append further
+files: a trailing question mark means that the entry is optional. The
+default settings use "$ISABELLE_HOME/etc/registry.toml?" and
+"$ISABELLE_HOME_USER/etc/registry.toml?" (in that order).
+
+* Isabelle build cluster specifications now refer to the underlying
+registry for default parameters and system options, using the TOML table
+"host". For example, the command "isabelle build -H abc:user=test" can
+be implicitly augmented by host parameters and options in
+$ISABELLE_HOME_USER/etc/registry.toml like this:
+
+  [host.abc]
+  hostname = "abc.acme.org"
+  ssh_compression = false
+
 * Isabelle/Scala and derived Scala tools now use the syntax of Scala
 3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
 before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
