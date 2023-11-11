@@ -22,7 +22,7 @@ object ML_Heap {
       val l = sha1_prefix.length
       val m = l + SHA1.digest_length
       val n = heap.file.length
-      val bs = Bytes.read_file(heap.file, offset = n - m)
+      val bs = Bytes.read_file(heap, offset = n - m)
       if (bs.length == m) {
         val s = bs.text
         if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(l)))
@@ -166,7 +166,7 @@ object ML_Heap {
             val offset = step * i
             val limit = if (j < slices) step * j else size
             val content =
-              Bytes.read_file(heap.file, offset = offset, limit = limit)
+              Bytes.read_file(heap, offset = offset, limit = limit)
                 .compress(cache = cache)
             private_data.transaction_lock(db, label = "ML_Heap.store2") {
               private_data.write_entry(db, session_name, i, content)
