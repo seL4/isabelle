@@ -74,6 +74,23 @@ object Registry {
   }
   object Host extends Host
   object Host_Strict extends Host with Strict
+  object Host_Cluster extends Host with Strict { override def prefix = Cluster.prefix }
+
+  object Cluster extends Table with Strict {
+    def prefix = "cluster"
+    def prefix_hosts = "hosts"
+    type A = List[(String, List[Options.Spec])]
+
+    override def table_value(registry: Registry, t: TOML.Table, a: String): A = {
+      val hosts =
+        t.array.get(prefix_hosts) match {
+          case Some(arr) => arr.string.values.map(_.rep)
+          case None => bad_value(Long_Name.qualify(a, prefix_hosts))
+        }
+      val cluster_specs = Host_Cluster.get(registry, a)
+      hosts.map(h => (h, Host_Strict.get(registry, h) ::: cluster_specs))
+    }
+  }
 }
 
 class Registry private(val root: TOML.Table) {

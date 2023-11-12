@@ -73,16 +73,22 @@ object Build_Cluster {
         }
         catch { case ERROR(msg) => err(msg) }
 
-      for (name <- space_explode(',', names)) yield {
-        val base_specs = Registry.Host.get(registry, name)
+      def get_registry(a: String): Registry.Cluster.A =
+        Registry.Cluster.try_unqualify(a) match {
+          case Some(b) => Registry.Cluster.get(registry, b)
+          case None => List(a -> Registry.Host.get(registry, a))
+        }
+
+      for (name <- space_explode(',', names); (host, host_specs) <- get_registry(name))
+      yield {
         val (params, options) =
           try {
-            val (specs1, specs2) = (base_specs ::: more_specs).partition(is_parameter)
+            val (specs1, specs2) = (host_specs ::: more_specs).partition(is_parameter)
             (parameters ++ specs1, { test_options ++ specs2; specs2 })
           }
           catch { case ERROR(msg) => err(msg) }
 
-        apply(name = name,
+        apply(name = host,
           hostname = params.string(HOSTNAME),
           user = params.string(USER),
           port = params.int(PORT),
