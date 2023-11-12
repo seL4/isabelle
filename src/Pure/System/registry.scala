@@ -22,8 +22,11 @@ object Registry {
 
   abstract class Category[A](val prefix: String) {
     override def toString: String = "Registry.Category(" + quote(prefix) + ")"
+    def qualify(name: String): String = Long_Name.qualify(prefix, name)
+    def try_unqualify(name: String): Option[String] = Long_Name.try_unqualify(prefix, name)
+
     def bad_value(name: String): Nothing =
-      error("Bad registry entry " + quote(Long_Name.qualify(prefix, name)))
+      error("Bad registry entry " + quote(qualify(name)))
     def default_value(name: String): A
     def value(name: String, t: TOML.T): A
   }
