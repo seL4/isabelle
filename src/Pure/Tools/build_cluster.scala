@@ -74,7 +74,7 @@ object Build_Cluster {
         catch { case ERROR(msg) => err(msg) }
 
       for (name <- space_explode(',', names)) yield {
-        val base_specs = registry.get(Registry.Host, name)
+        val base_specs = Registry.Host.get(registry, name)
         val (params, options) =
           try {
             val (specs1, specs2) = (base_specs ::: more_specs).partition(is_parameter)

@@ -28,16 +28,33 @@ object Registry {
 
     type A
     def bad_value(name: String): Nothing = error("Bad registry entry " + quote(qualify(name)))
-    def default_value(name: String): A
-    def value(name: String, t: TOML.T): A
+    def default_value(registry: Registry, name: String): A
+    def value(registry: Registry, t: TOML.T, name: String): A
+
+    def get(registry: Registry, name: String): A = {
+      registry.root.any.get(prefix) match {
+        case None => default_value(registry, name)
+        case Some(t: TOML.Table) =>
+          t.any.get(name) match {
+            case None => default_value(registry, name)
+            case Some(u) => value(registry, u, name)
+          }
+        case Some(_) => bad_value(name)
+      }
+    }
+  }
+
+  trait Strict extends Category {
+    override def default_value(registry: Registry, name: String): A = bad_value(name)
   }
 
   trait Table extends Category {
-    def table_value(name: String, table: TOML.Table): A
-    override def default_value(name: String): A = table_value(name, TOML.Table.empty)
-    override def value(name: String, t: TOML.T): A =
+    def table_value(registry: Registry, table: TOML.Table, name: String): A
+    override def default_value(registry: Registry, name: String): A =
+      table_value(registry, TOML.Table.empty, name)
+    override def value(registry: Registry, t: TOML.T, name: String): A =
       t match {
-        case table: TOML.Table => table_value(name, table)
+        case table: TOML.Table => table_value(registry, table, name)
         case _ => bad_value(name)
       }
   }
@@ -45,39 +62,29 @@ object Registry {
 
   /* build cluster resources */
 
-  object Host extends Table {
-    val prefix = "host"
+  trait Host extends Table {
+    def prefix = "host"
     type A = List[Options.Spec]
 
     def options_spec(a: TOML.Key, b: TOML.T): Option[Options.Spec] =
       TOML.Scalar.unapply(b).map(Options.Spec.eq(a, _))
 
-    override def table_value(a: String, t: TOML.Table): A =
+    override def table_value(registry: Registry, t: TOML.Table, a: String): A =
       for ((a, b) <- t.any.values; s <- options_spec(a, b)) yield s
   }
+  object Host extends Host
+  object Host_Strict extends Host with Strict
 }
 
-class Registry private(val table: TOML.Table) {
+class Registry private(val root: TOML.Table) {
   override def toString: String =
-    (for (a <- table.domain.toList.sorted.iterator) yield {
+    (for (a <- root.domain.toList.sorted.iterator) yield {
       val size =
-        table.any.get(a) match {
+        root.any.get(a) match {
           case Some(t: TOML.Array) => "(" + t.length + ")"
           case Some(t: TOML.Table) => "(" + t.domain.size + ")"
           case _ => ""
         }
       a + size
     }).mkString("Registry(", ", ", ")")
-
-  def get(category: Registry.Category, name: String): category.A = {
-    table.any.get(category.prefix) match {
-      case None => category.default_value(name)
-      case Some(t: TOML.Table) =>
-        t.any.get(name) match {
-          case None => category.default_value(name)
-          case Some(u) => category.value(name, u)
-        }
-      case Some(_) => category.bad_value(name)
-    }
-  }
 }
