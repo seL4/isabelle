@@ -376,15 +376,14 @@ object Mailman {
       try {
         val length = connection.getContentLengthLong
         val timestamp = connection.getLastModified
-        val file = path.file
-        if (file.isFile && file.length == length && file.lastModified == timestamp) None
+        if (path.is_file && File.size(path) == length && path.file.lastModified == timestamp) None
         else {
           Isabelle_System.make_directory(path.dir)
           progress.echo("Getting " + url)
           val bytes =
             using(connection.getInputStream)(Bytes.read_stream(_, hint = length.toInt max 1024))
-          Bytes.write(file, bytes)
-          file.setLastModified(timestamp)
+          Bytes.write(path, bytes)
+          path.file.setLastModified(timestamp)
           Some(path)
         }
       }

@@ -27,4 +27,12 @@ object Long_Name {
   def base_name(name: String): String =
     if (name == "") ""
     else explode(name).last
+
+  def try_unqualify(qual: String, name: String): Option[String] = {
+    val m = qual.length
+    val n = name.length
+    if (0 < m && m < n && name.startsWith(qual) && name(m) == separator_char)
+      Some(name.substring(m + 1))
+    else None
+  }
 }

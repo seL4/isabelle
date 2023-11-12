@@ -73,7 +73,7 @@ object Bytes {
   def read_url(name: String): Bytes = using(Url(name).openStream)(read_stream(_))
 
   def read_file(path: Path, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
-    val length = File.space(path).bytes
+    val length = File.size(path)
     val start = offset.max(0L)
     val len = (length - start).max(0L).min(limit)
     if (len > Int.MaxValue) error("Cannot read large file slice: " + Space.bytes(len).print)
