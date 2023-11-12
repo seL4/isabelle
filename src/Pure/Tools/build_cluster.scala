@@ -73,7 +73,7 @@ object Build_Cluster {
         }
         catch { case ERROR(msg) => err(msg) }
 
-      def get_registry(a: String): Registry.Cluster.A =
+      def get_registry(a: String): Registry.Cluster.Value =
         Registry.Cluster.try_unqualify(a) match {
           case Some(b) => Registry.Cluster.get(registry, b)
           case None => List(a -> Registry.Host.get(registry, a))
