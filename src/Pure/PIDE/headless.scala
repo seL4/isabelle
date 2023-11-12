@@ -92,7 +92,7 @@ object Headless {
       def finished: Load_State = Load_State(Nil, Nil, Space.zero)
 
       def count_file(name: Document.Node.Name): Long =
-        if (loaded_theory(name)) 0 else File.space(name.path).bytes
+        if (loaded_theory(name)) 0 else File.size(name.path)
     }
 
     private case class Load_State(

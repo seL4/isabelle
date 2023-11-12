@@ -151,7 +151,7 @@ object ML_Heap {
     database match {
       case None =>
       case Some(db) =>
-        val size = File.space(heap).bytes - sha1_prefix.length - SHA1.digest_length
+        val size = File.size(heap) - sha1_prefix.length - SHA1.digest_length
 
         val slices = (size.toDouble / slice.toDouble).ceil.toInt
         val step = (size.toDouble / slices.toDouble).ceil.toLong

@@ -357,7 +357,7 @@ object Build_History {
         build_info.finished_sessions.flatMap { session_name =>
           val heap = isabelle_output + Path.explode(session_name)
           if (heap.is_file) {
-            Some("Heap " + session_name + " (" + Value.Long(File.space(heap).bytes) + " bytes)")
+            Some("Heap " + session_name + " (" + Value.Long(File.size(heap)) + " bytes)")
           }
           else None
         }

@@ -408,8 +408,8 @@ object File {
   }
 
 
-  /* space */
+  /* strict file size */
 
-  def space(path: Path): Space =
-    Space.bytes(path.check_file.file.length)
+  def size(path: Path): Long = path.check_file.file.length
+  def space(path: Path): Space = Space.bytes(size(path))
 }
