@@ -52,7 +52,16 @@ object Registry {
 }
 
 class Registry private(val table: TOML.Table) {
-  override def toString: String = TOML.Format(table)
+  override def toString: String =
+    (for (a <- table.domain.toList.sorted.iterator) yield {
+      val size =
+        table.any.get(a) match {
+          case Some(t: TOML.Array) => "(" + t.length + ")"
+          case Some(t: TOML.Table) => "(" + t.domain.size + ")"
+          case _ => ""
+        }
+      a + size
+    }).mkString("Registry(", ", ", ")")
 
   def get[A](category: Registry.Category[A], name: String): A = {
     table.any.get(category.prefix) match {
