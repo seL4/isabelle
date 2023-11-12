@@ -20,18 +20,19 @@ object Registry {
 
   /* interpreted entries */
 
-  abstract class Category[A](val prefix: String) {
+  trait Category {
+    def prefix: String
     override def toString: String = "Registry.Category(" + quote(prefix) + ")"
     def qualify(name: String): String = Long_Name.qualify(prefix, name)
     def try_unqualify(name: String): Option[String] = Long_Name.try_unqualify(prefix, name)
 
-    def bad_value(name: String): Nothing =
-      error("Bad registry entry " + quote(qualify(name)))
+    type A
+    def bad_value(name: String): Nothing = error("Bad registry entry " + quote(qualify(name)))
     def default_value(name: String): A
     def value(name: String, t: TOML.T): A
   }
 
-  abstract class Table[A](prefix: String) extends Category[A](prefix) {
+  trait Table extends Category {
     def table_value(name: String, table: TOML.Table): A
     override def default_value(name: String): A = table_value(name, TOML.Table.empty)
     override def value(name: String, t: TOML.T): A =
@@ -44,11 +45,14 @@ object Registry {
 
   /* build cluster resources */
 
-  object Host extends Table[List[Options.Spec]]("host") {
+  object Host extends Table {
+    val prefix = "host"
+    type A = List[Options.Spec]
+
     def options_spec(a: TOML.Key, b: TOML.T): Option[Options.Spec] =
       TOML.Scalar.unapply(b).map(Options.Spec.eq(a, _))
 
-    override def table_value(a: String, t: TOML.Table): List[Options.Spec] =
+    override def table_value(a: String, t: TOML.Table): A =
       for ((a, b) <- t.any.values; s <- options_spec(a, b)) yield s
   }
 }
@@ -65,7 +69,7 @@ class Registry private(val table: TOML.Table) {
       a + size
     }).mkString("Registry(", ", ", ")")
 
-  def get[A](category: Registry.Category[A], name: String): A = {
+  def get(category: Registry.Category, name: String): category.A = {
     table.any.get(category.prefix) match {
       case None => category.default_value(name)
       case Some(t: TOML.Table) =>
