@@ -216,7 +216,15 @@ object Build_Schedule {
     host_infos: Host_Infos,
     allocated_nodes: Map[Host, List[Node_Info]]
   ) {
-    val unused_hosts: List[Host] = host_infos.hosts.filter(allocated(_).isEmpty)
+    def unused_nodes(threads: Int): List[Node_Info] = {
+      val fully_allocated =
+        host_infos.hosts.foldLeft(this) { case (resources, host) =>
+          if (!resources.available(host, threads)) resources
+          else resources.allocate(resources.next_node(host, threads))
+        }
+      val used_nodes = allocated_nodes.values.flatten.toSet
+      fully_allocated.allocated_nodes.values.flatten.toList.filterNot(used_nodes.contains)
+    }
 
     def allocated(host: Host): List[Node_Info] = allocated_nodes.getOrElse(host, Nil)
 
@@ -419,11 +427,15 @@ object Build_Schedule {
         timing_data.best_threads(task.name).getOrElse(
           host_infos.hosts.map(_.info.num_cpus).max min max_threads)
 
-      val free = resources.unused_hosts.map(_ -> max_threads)
+      val ordered_hosts =
+        host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads)
 
-      if (state.ready.length <= free.length) {
+      val fully_parallelizable =
+        parallel_paths(state.ready.map(_.name).toSet) <= resources.unused_nodes(max_threads).length
+
+      if (fully_parallelizable) {
         val all_tasks = state.ready.map(task => (task, best_threads(task), best_threads(task)))
-        resources.try_allocate_tasks(free, all_tasks)._1
+        resources.try_allocate_tasks(ordered_hosts, all_tasks)._1
       }
       else {
         val pending_tasks = state.pending.map(_.name).toSet
@@ -439,8 +451,7 @@ object Build_Schedule {
         val other_tasks = other.map(task => (task, 1, best_threads(task)))
 
         val (critical_hosts, other_hosts) =
-          host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads).splitAt(
-            parallel_paths(critical.map(_.name).toSet, is_critical))
+          ordered_hosts.splitAt(parallel_paths(critical.map(_.name).toSet, is_critical))
 
         val (configs1, resources1) = resources.try_allocate_tasks(critical_hosts, critical_tasks)
         val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other_tasks)
