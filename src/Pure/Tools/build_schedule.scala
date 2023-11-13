@@ -628,7 +628,7 @@ object Build_Schedule {
           val estimate = Date(Time.now() + scheduler.build_duration(state))
           val elapsed = Time.now() - start
 
-          val timing_msg = if (elapsed.is_relevant) " (in " + elapsed.message + ")" else ""
+          val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
           progress.echo_if(build_context.master && !cache.is_current_estimate(estimate),
             "Estimated completion: " + estimate + timing_msg)
 
