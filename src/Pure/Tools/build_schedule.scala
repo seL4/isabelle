@@ -368,12 +368,13 @@ object Build_Schedule {
       all_maximals.map(node => node -> build_graph.all_preds(List(node)).toSet).toMap
 
     val best_times = build_graph.keys.map(node => node -> timing_data.best_time(node)).toMap
-    val remaining_time = build_graph.node_height(best_times(_).ms)
+    val remaining_time_ms = build_graph.node_height(best_times(_).ms)
 
-    def elapsed_times(node: Node): Map[Node, Long] =
-      build_graph.reachable_length(best_times(_).ms, build_graph.imm_succs, List(node))
+    def elapsed_times(node: Node): Map[Node, Time] =
+      build_graph.reachable_length(best_times(_).ms, build_graph.imm_succs, List(node)).map(
+        (node, ms) => node -> Time.ms(ms))
 
-    def path_times(node: Node): Map[Node, Long] = {
+    def path_times(node: Node): Map[Node, Time] = {
       val maximals = all_maximals.intersect(build_graph.all_succs(List(node)).toSet)
       val elapsed_time = elapsed_times(node)
 
@@ -382,11 +383,9 @@ object Build_Schedule {
         .groupMapReduce(_._1)(_._2)(_ max _)
     }
 
-    def is_critical(ms: Long): Boolean = ms > threshold.ms
-
     val critical_path_nodes =
       build_graph.keys.map(node =>
-        node -> path_times(node).filter((_, time) => is_critical(time)).keySet).toMap
+        node -> path_times(node).filter((_, time) => time > threshold).keySet).toMap
 
     def parallel_paths(minimals: Set[Node], pred: Node => Boolean = _ => true): Int = {
       def start(node: Node): (Node, Time) = node -> best_times(node)
@@ -438,20 +437,17 @@ object Build_Schedule {
         resources.try_allocate_tasks(ordered_hosts, all_tasks)._1
       }
       else {
-        val pending_tasks = state.pending.map(_.name).toSet
-
         val critical_nodes = state.ready.toSet.flatMap(task => critical_path_nodes(task.name))
-        def is_critical(node: Node): Boolean = critical_nodes.contains(node)
 
         val (critical, other) =
-          state.ready.sortBy(task => remaining_time(task.name)).reverse.partition(task =>
-            is_critical(task.name))
+          state.ready.sortBy(task => remaining_time_ms(task.name)).reverse.partition(task =>
+            critical_nodes.contains(task.name))
 
         val critical_tasks = critical.map(task => (task, best_threads(task), best_threads(task)))
         val other_tasks = other.map(task => (task, 1, best_threads(task)))
 
         val (critical_hosts, other_hosts) =
-          ordered_hosts.splitAt(parallel_paths(critical.map(_.name).toSet, is_critical))
+          ordered_hosts.splitAt(parallel_paths(critical.map(_.name).toSet, critical_nodes.contains))
 
         val (configs1, resources1) = resources.try_allocate_tasks(critical_hosts, critical_tasks)
         val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other_tasks)
