@@ -576,9 +576,10 @@ object Build_Schedule {
     /* build process */
 
     case class Cache(state: Build_Process.State, configs: List[Config], estimate: Date) {
-      def is_current(state: Build_Process.State): Boolean = this.state == state
+      def is_current(state: Build_Process.State): Boolean =
+        this.state.pending.nonEmpty && this.state.results == state.results
       def is_current_estimate(estimate: Date): Boolean =
-        this.estimate.time - estimate.time >= Time.seconds(1)
+        Math.abs((this.estimate.time - estimate.time).ms) < Time.minutes(1).ms
     }
 
     private var cache = Cache(Build_Process.State(), Nil, Date.now())
@@ -617,7 +618,7 @@ object Build_Schedule {
       val finalize_limit = if (build_context.master) Int.MaxValue else 0
 
       if (progress.stopped) state.ready.map(_.name).take(finalize_limit)
-      else if (cache.is_current(state)) cache.configs.map(_.job_name)
+      else if (cache.is_current(state)) cache.configs.map(_.job_name).filterNot(state.is_running)
       else {
         val current = state.ready.filter(task => is_current(state, task.name))
         if (current.nonEmpty) current.map(_.name).take(finalize_limit)
