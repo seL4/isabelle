@@ -359,10 +359,11 @@ object Build_Schedule {
     val maximals_preds =
       all_maximals.map(node => node -> build_graph.all_preds(List(node)).toSet).toMap
 
-    val remaining_time = build_graph.node_height(timing_data.best_time(_).ms)
+    val best_times = build_graph.keys.map(node => node -> timing_data.best_time(node)).toMap
+    val remaining_time = build_graph.node_height(best_times(_).ms)
 
     def elapsed_times(node: Node): Map[Node, Long] =
-      build_graph.reachable_length(timing_data.best_time(_).ms, build_graph.imm_succs, List(node))
+      build_graph.reachable_length(best_times(_).ms, build_graph.imm_succs, List(node))
 
     def path_times(node: Node): Map[Node, Long] = {
       val maximals = all_maximals.intersect(build_graph.all_succs(List(node)).toSet)
@@ -378,6 +379,33 @@ object Build_Schedule {
     val critical_path_nodes =
       build_graph.keys.map(node =>
         node -> path_times(node).filter((_, time) => is_critical(time)).keySet).toMap
+
+    def parallel_paths(minimals: Set[Node], pred: Node => Boolean = _ => true): Int = {
+      def start(node: Node): (Node, Time) = node -> best_times(node)
+
+      def pass_time(elapsed: Time)(node: Node, time: Time): (Node, Time) =
+        node -> (time - elapsed)
+
+      def parallel_paths(running: Map[Node, Time]): (Int, Map[Node, Time]) =
+        if (running.isEmpty) (0, running)
+        else {
+          def get_next(node: Node): List[Node] =
+            build_graph.imm_succs(node).filter(pred).filter(
+              build_graph.imm_preds(_).intersect(running.keySet).isEmpty).toList
+
+          val (next, elapsed) = running.minBy(_._2.ms)
+          val (remaining, finished) =
+            running.toList.map(pass_time(elapsed)).partition(_._2 > Time.zero)
+
+          val running1 =
+            remaining.map(pass_time(elapsed)).toMap ++
+              finished.map(_._1).flatMap(get_next).map(start)
+          val (res, running2) = parallel_paths(running1)
+          (res max running1.size, running2)
+        }
+
+      parallel_paths(minimals.map(start).toMap)._1
+    }
 
 
     /* scheduling */
@@ -403,9 +431,6 @@ object Build_Schedule {
         val critical_nodes = state.ready.toSet.flatMap(task => critical_path_nodes(task.name))
         def is_critical(node: Node): Boolean = critical_nodes.contains(node)
 
-        def parallel_paths(node: Node): Int =
-          build_graph.imm_succs(node).filter(is_critical).map(parallel_paths(_) max 1).sum max 1
-
         val (critical, other) =
           state.ready.sortBy(task => remaining_time(task.name)).reverse.partition(task =>
             is_critical(task.name))
@@ -415,7 +440,7 @@ object Build_Schedule {
 
         val (critical_hosts, other_hosts) =
           host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads).splitAt(
-            critical.map(_.name).map(parallel_paths).sum)
+            parallel_paths(critical.map(_.name).toSet, is_critical))
 
         val (configs1, resources1) = resources.try_allocate_tasks(critical_hosts, critical_tasks)
         val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other_tasks)
