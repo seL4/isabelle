@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** HOL ***
 
+* Sledgehammer
+  - Update of bundled prover:
+    + Vampire 4.8 HO - Sledgehammer schedules (2023-10-19)
+
 * Mirabelle:
   - Removed proof reconstruction from "sledgehammer" action; the related option
   "proof_method" was removed. Proof reconstruction is supported directly
