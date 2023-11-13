@@ -226,16 +226,17 @@ object Build_Schedule {
     }
 
     def try_allocate_tasks(
-      hosts: List[Host],
-      tasks: List[(Build_Process.Task, Int)]
+      hosts: List[(Host, Int)],
+      tasks: List[(Build_Process.Task, Int, Int)],
     ): (List[Config], Resources) =
       tasks match {
         case Nil => (Nil, this)
-        case (task, threads) :: tasks =>
+        case (task, min_threads, max_threads) :: tasks =>
           val (config, resources) =
-            hosts.find(available(_, threads)) match {
-              case Some(host) =>
-                val node_info = next_node(host, threads)
+            hosts.find((host, _) => available(host, min_threads)) match {
+              case Some((host, host_max_threads)) =>
+                val free_threads = host.info.num_cpus - ((host.build.jobs - 1) * host_max_threads)
+                val node_info = next_node(host, (min_threads max free_threads) min max_threads)
                 (Some(Config(task.name, node_info)), allocate(node_info))
               case None => (None, this)
             }
@@ -346,7 +347,8 @@ object Build_Schedule {
   class Timing_Heuristic(
     threshold: Time,
     timing_data: Timing_Data,
-    sessions_structure: Sessions.Structure
+    sessions_structure: Sessions.Structure,
+    max_threads: Int = 8
   ) extends Heuristic(timing_data) {
     /* pre-computed properties for efficient heuristic */
 
@@ -387,12 +389,14 @@ object Build_Schedule {
 
       def best_threads(task: Build_Process.Task): Int =
         timing_data.best_threads(task.name).getOrElse(
-          host_infos.hosts.map(_.info.num_cpus).max min 8)
+          host_infos.hosts.map(_.info.num_cpus).max min max_threads)
 
-      val free = resources.unused_hosts
+      val free = resources.unused_hosts.map(_ -> max_threads)
 
-      if (state.ready.length <= free.length)
-        resources.try_allocate_tasks(free, state.ready.map(task => task -> best_threads(task)))._1
+      if (state.ready.length <= free.length) {
+        val all_tasks = state.ready.map(task => (task, best_threads(task), best_threads(task)))
+        resources.try_allocate_tasks(free, all_tasks)._1
+      }
       else {
         val pending_tasks = state.pending.map(_.name).toSet
 
@@ -406,15 +410,15 @@ object Build_Schedule {
           state.ready.sortBy(task => remaining_time(task.name)).reverse.partition(task =>
             is_critical(task.name))
 
+        val critical_tasks = critical.map(task => (task, best_threads(task), best_threads(task)))
+        val other_tasks = other.map(task => (task, 1, best_threads(task)))
+
         val (critical_hosts, other_hosts) =
-          host_infos.hosts.sorted(host_infos.host_speeds).reverse.splitAt(
+          host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads).splitAt(
             critical.map(_.name).map(parallel_paths).sum)
 
-        val (configs1, resources1) =
-          resources.try_allocate_tasks(critical_hosts,
-            critical.map(task => task -> best_threads(task)))
-
-        val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other.map(_ -> 1))
+        val (configs1, resources1) = resources.try_allocate_tasks(critical_hosts, critical_tasks)
+        val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other_tasks)
 
         configs1 ::: configs2
       }
