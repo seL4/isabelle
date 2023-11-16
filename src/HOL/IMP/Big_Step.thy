@@ -202,7 +202,7 @@ proof -
     from assm show ?thesis
     proof cases \<comment> \<open>rule inversion on \<open>(?iw, s) \<Rightarrow> t\<close>\<close>
       case IfFalse
-      hence "s = t" using \<open>(?iw, s) \<Rightarrow> t\<close> by blast
+      hence "s = t" by blast
       thus ?thesis using \<open>\<not>bval b s\<close> by blast
     next
       case IfTrue
