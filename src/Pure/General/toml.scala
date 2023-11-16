@@ -60,6 +60,7 @@ object TOML {
       case other: Array => rep == other.rep
       case _ => false
     }
+    override def toString: Str = "Array(" + length.toString + ")"
 
     class Values[A](pf: PartialFunction[T, A]) { def values: List[A] = rep.collect(pf).reverse }
     lazy val string = new Values({ case s: String => s })
@@ -93,6 +94,12 @@ object TOML {
         case other: Table => rep == other.rep
         case _ => false
       }
+    override def toString: Str =
+      rep.map {
+        case (k, t: Table) => k + "(" + t.domain.size + ")"
+        case (k, a: Array) => k + "(" + a.length + ")"
+        case (k, _) => k
+      }.mkString("Table(", ", ", ")")
 
     class Value[A: ClassTag](pf: PartialFunction[T, A]) {
       def values: List[(Key, A)] =
