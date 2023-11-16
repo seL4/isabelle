@@ -137,7 +137,7 @@ object TOML {
           (v0, v) match {
             case (t0: Table, t: Table) => t0 ++ t
             case (a0: Array, a: Array) => a0 ++ a
-            case _ => error("Key already present: " + Format.key(k))
+            case _ => v
           }
       }
       new Table(rep + (k -> v1))
