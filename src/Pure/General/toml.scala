@@ -529,11 +529,8 @@ object TOML {
     }
   }
 
-  def parse_files(files: Iterable[Path], context: Parse_Context = Parse_Context()): Table = {
-    // FIXME proper reset of table context for each file
-    val s = files.iterator.map(File.read).mkString("\n\n")
-    parse(s, context = context)
-  }
+  def parse_files(files: Iterable[Path], context: Parse_Context = Parse_Context()): Table =
+    files.map(File.read).map(parse(_, context)).foldLeft(Table())(_ ++ _)
 
 
   /* Format TOML */
