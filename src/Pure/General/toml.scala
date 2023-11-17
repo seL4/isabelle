@@ -406,15 +406,8 @@ object TOML {
 
     /* parse */
 
-    def parse(input: Str): File = {
-      val scanner = new Lexer.Scanner(Scan.char_reader(input + EofCh))
-      val result = phrase(toml)(scanner)
-      result match {
-        case Success(toml, _) => toml
-        case Failure(msg, next) => error("Malformed TOML input at " + next.pos + ": " + msg)
-        case Error(msg, next) => error("Error parsing toml at " + next.pos + ": " + msg)
-      }
-    }
+    def parse(input: Str): ParseResult[File] =
+      phrase(toml)(new Lexer.Scanner(Scan.char_reader(input + EofCh)))
   }
 
   object Parsers extends Parsers
@@ -441,7 +434,7 @@ object TOML {
       val (rest0, rest1) = rest.split(split)
       val implicitly_seen = rest1.parent.prefixes.map(rest0 + _)
 
-      def error[A](s: Str): A = this.error(s, ks, elem)
+      def error[A](s: Str): A = this.error(s, elem.pos, Some(ks))
 
       seen.inlines.find(rest.is_child_of).foreach(ks =>
         error("Attempting to update an inline value"))
@@ -470,10 +463,10 @@ object TOML {
 
     def for_file(file: Path): Parse_Context = new Parse_Context(seen_tables, Some(file))
 
-    def error[A](s: Str, ks: Parsers.Keys, elem: Positional): A = {
+    def error[A](s: Str, pos: input.Position, key: Option[Parsers.Keys] = None): A = {
+      val key_msg = if_proper(key, " in table " + Format.keys(key.get.rep))
       val file_msg = if_proper(file, " in " + file.get)
-      isabelle.error(
-        s + " in table " + Format.keys(ks.rep) + " at line " + elem.pos.line + file_msg)
+      isabelle.error(s + key_msg + " at line " + pos.line + file_msg)
     }
 
     def check_add_def(ks: Parsers.Keys, defn: Parsers.Def): Unit = check_add(0, ks, defn)
@@ -489,7 +482,13 @@ object TOML {
   }
 
   def parse(s: Str, context: Parse_Context = Parse_Context()): Table = {
-    val file = Parsers.parse(s)
+    val file =
+      Parsers.parse(s) match {
+        case Parsers.Success (toml, _) => toml
+        case Parsers.Error(msg, next) => context.error("Error parsing toml: " + msg, next.pos)
+        case Parsers.Failure (msg, next) =>
+          context.error("Malformed TOML input: " + msg, next.pos)
+      }
 
     def convert(ks0: Parsers.Keys, ks1: Parsers.Keys, v: Parsers.V): T = {
       def to_table(ks: Parsers.Keys, t: T): Table =
@@ -499,7 +498,8 @@ object TOML {
         case Parsers.Array(rep) => (Array(rep.map(to_toml(_)._1)), Set.empty)
         case Parsers.Inline_Table(elems) =>
           elems.find(e => elems.count(_._1 == e._1) > 1).foreach((ks, _) =>
-            context.error("Duplicate key " + Format.keys(ks.rep) + " in inline table", ks0 + ks1, v))
+            context.error(
+              "Duplicate key " + Format.keys(ks.rep) + " in inline table", v.pos, Some(ks0 + ks1)))
 
           val (tables, pfxs, key_spaces) =
             elems.map { (ks, v) =>
@@ -510,7 +510,7 @@ object TOML {
           for {
             pfx <- pfxs
             if key_spaces.count(pfx.intersect(_).nonEmpty) > 1
-          } context.error("Inline table not self-contained", ks0 + ks1, v)
+          } context.error("Inline table not self-contained", v.pos, Some(ks0 + ks1))
 
           (tables.foldLeft(Table())(_ ++ _), pfxs.toSet.flatten ++ key_spaces.toSet.flatten)
       }
@@ -519,7 +519,7 @@ object TOML {
     }
 
     def update(map: Table, ks0: Parsers.Keys, value: T): Table = {
-      def error[A](s: Str): A = context.error(s, ks0, ks0)
+      def error[A](s: Str): A = context.error(s, ks0.pos, Some(ks0))
 
       def update_rec(hd: Parsers.Keys, map: Table, ks: Parsers.Keys): Table = {
         val updated =
