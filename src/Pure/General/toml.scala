@@ -402,12 +402,6 @@ object TOML {
 
     private def content: Parser[List[(Keys, V)]] =
       rep((key <~! $$$("=")) ~! toml_value <~! line_sep ^^ { case ks ~ v => ks -> v })
-
-
-    /* parse */
-
-    def parse(input: Str): ParseResult[File] =
-      phrase(toml)(new Lexer.Scanner(Scan.char_reader(input + EofCh)))
   }
 
   object Parsers extends Parsers
@@ -483,7 +477,7 @@ object TOML {
 
   def parse(s: Str, context: Parse_Context = Parse_Context()): Table = {
     val file =
-      Parsers.parse(s) match {
+      Parsers.phrase(Parsers.toml)(new Lexer.Scanner(Scan.char_reader(s + EofCh))) match {
         case Parsers.Success (toml, _) => toml
         case Parsers.Error(msg, next) => context.error("Error parsing toml: " + msg, next.pos)
         case Parsers.Failure (msg, next) =>
