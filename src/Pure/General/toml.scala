@@ -422,7 +422,7 @@ object TOML {
 
   /* checking and translating parse structure into toml */
 
-  class Parse_Context private(var seen_tables: Map[Parsers.Keys, Seen]) {
+  class Parse_Context private(var seen_tables: Map[Parsers.Keys, Seen], file: Option[Path] = None) {
     private def recent_array(ks: Parsers.Keys): (Parsers.Keys, Seen, Parsers.Keys) =
       ks.splits.collectFirst {
         case (ks1, ks2) if seen_tables.contains(ks1) => (ks1, seen_tables(ks1), ks2)
@@ -467,8 +467,15 @@ object TOML {
 
       seen_tables += to -> Seen(inlines, tables)
     }
-    def error[A](s: Str, ks: Parsers.Keys, elem: Positional): A =
-      isabelle.error(s + " in table " + Format.keys(ks.rep) + " at line " + elem.pos.line)
+
+    def for_file(file: Path): Parse_Context = new Parse_Context(seen_tables, Some(file))
+
+    def error[A](s: Str, ks: Parsers.Keys, elem: Positional): A = {
+      val file_msg = if_proper(file, " in " + file.get)
+      isabelle.error(
+        s + " in table " + Format.keys(ks.rep) + " at line " + elem.pos.line + file_msg)
+    }
+
     def check_add_def(ks: Parsers.Keys, defn: Parsers.Def): Unit = check_add(0, ks, defn)
     def check_add_value(ks0: Parsers.Keys, ks1: Parsers.Keys, v: Parsers.V): Unit =
       check_add(ks0.length - 1, ks0 + ks1, v)
@@ -566,7 +573,11 @@ object TOML {
   }
 
   def parse_files(files: Iterable[Path], context: Parse_Context = Parse_Context()): Table =
-    files.map(File.read).map(parse(_, context)).foldLeft(Table())(_ ++ _)
+    files.foldLeft((Table(), context)) {
+      case ((t, context0), file) =>
+        val context = context0.for_file(file)
+        (t ++ parse(File.read(file), context), context)
+    }._1
 
 
   /* Format TOML */
