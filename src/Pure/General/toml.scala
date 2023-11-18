@@ -272,7 +272,7 @@ object TOML {
 
     /* top-level syntax structure */
 
-    def key: Parser[Keys] = positioned(rep1sep(keys, $$$(".")) ^^ (ks => Keys(ks.flatten)))
+    def key: Parser[Keys] = positioned(rep1sep(keys, $$$(".")) ^^ (_.reduce(_ + _)))
 
     def string: Parser[String] =
       elem("string", e => e.is_string || e.is_multiline_string) ^^ (s => String(s.text))
@@ -332,8 +332,8 @@ object TOML {
         s => parser(s.stripPrefix(prefix)))
 
     private def is_key(e: Elem): Bool = e.is_value && !e.text.exists("+: ".contains(_))
-    private def keys: Parser[List[Key]] =
-      token("string key", _.is_string, List(_)) | token("key", is_key, _.split('.').toList)
+    private def keys: Parser[Keys] =
+      token("string key", _.is_string, Keys.quoted) | token("key", is_key, Keys.dotted)
 
     private def sep_surrounded(s: Str): Bool =
       !s.startsWith("_") && !s.endsWith("_") && s.split('_').forall(_.nonEmpty)
@@ -382,30 +382,44 @@ object TOML {
 
   /* Keys for nested tables */
 
-  case class Keys(rep: List[Key]) extends Positional {
-    def last: Keys = Keys(rep.takeRight(1))
+  object Keys {
+    def empty: Keys = new Keys(Nil)
+    def quoted(s: Str): Keys = new Keys(List(s))
+    def dotted(s: Str): Keys = new Keys(s.split('.').toList)
+  }
+
+  class Keys private(val rep: List[Key]) extends Positional {
+    override def hashCode(): Int = rep.hashCode()
+    override def equals(obj: Any): Bool =
+      obj match {
+        case other: Keys => rep == other.rep
+        case _ => false
+      }
+    override def toString: Str = rep.mkString("Keys(", ".", ")")
+
+    def last: Keys = new Keys(rep.takeRight(1))
     def the_last: Key = rep.last
 
-    def head: Keys = Keys(rep.take(1))
+    def head: Keys = new Keys(rep.take(1))
     def the_head: Key = rep.head
 
     def length: Int = rep.length
 
-    def +(other: Keys): Keys = Keys(rep ::: other.rep)
+    def +(other: Keys): Keys = new Keys(rep ::: other.rep)
 
     def prefixes: Set[Keys] =
       if (rep.isEmpty) Set.empty
-      else Range.inclusive(1, length).toSet.map(i => Keys(rep.take(i)))
+      else Range.inclusive(1, length).toSet.map(i => new Keys(rep.take(i)))
 
     def splits: List[(Keys, Keys)] =
       Range.inclusive(0, length).toList.map(n =>
-        (Keys(rep.dropRight(n)), Keys(rep.takeRight(n))))
+        (new Keys(rep.dropRight(n)), new Keys(rep.takeRight(n))))
     def split(i: Int): (Keys, Keys) = {
       val (rep0, rep1) = rep.splitAt(i)
-      (Keys(rep0), Keys(rep1))
+      (new Keys(rep0), new Keys(rep1))
     }
 
-    def parent: Keys = Keys(rep.dropRight(1))
+    def parent: Keys = new Keys(rep.dropRight(1))
     def is_child_of(parent: Keys): Bool = rep.startsWith(parent.rep)
   }
 
@@ -475,7 +489,7 @@ object TOML {
     case class Seen(inlines: Set[Keys], tables: Set[Keys])
 
     def apply(): Parse_Context =
-      new Parse_Context(Map(Keys(Nil) -> Seen(Set.empty, Set.empty)))
+      new Parse_Context(Map(Keys.empty -> Seen(Set.empty, Set.empty)))
   }
 
   def parse(s: Str, context: Parse_Context = Parse_Context()): Table = {
@@ -552,13 +566,13 @@ object TOML {
         (map - ks.the_head) + (ks.the_head -> updated)
       }
 
-      update_rec(Keys(Nil), map, ks0)
+      update_rec(Keys.empty, map, ks0)
     }
 
     def fold(elems: List[(Keys, T)]): Table =
       elems.foldLeft(Table()) { case (t0, (ks1, t1)) => update(t0, ks1, t1) }
 
-    val t = fold(file.elems.map((ks, v) => (ks, convert(Keys(Nil), ks, v))))
+    val t = fold(file.elems.map((ks, v) => (ks, convert(Keys.empty, ks, v))))
     file.defs.foldLeft(t) {
       case (t0, defn@Parsers.Table(ks0, elems)) =>
         context.check_add_def(ks0, defn)
