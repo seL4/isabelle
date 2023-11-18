@@ -292,7 +292,8 @@ object Build_Status {
               val ml_stats =
                 ML_Statistics(
                   if (ml_statistics) {
-                    Properties.uncompress(res.bytes(Build_Log.private_data.ml_statistics), cache = store.cache)
+                    Properties.uncompress(
+                      res.bytes(Build_Log.private_data.ml_statistics), cache = store.cache)
                   }
                   else Nil,
                   domain = ml_statistics_domain,
