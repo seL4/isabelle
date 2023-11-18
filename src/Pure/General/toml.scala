@@ -272,7 +272,7 @@ object TOML {
 
     /* top-level syntax structure */
 
-    def key: Parser[Keys] = positioned(rep1sep(keys, $$$(".")) ^^ (_.reduce(_ + _)))
+    def key: Parser[Keys] = positioned(rep1sep(keys, $$$(".")) ^^ (_.reduce(_ ++ _)))
 
     def string: Parser[String] =
       elem("string", e => e.is_string || e.is_multiline_string) ^^ (s => String(s.text))
@@ -397,18 +397,16 @@ object TOML {
       }
     override def toString: Str = rep.mkString("Keys(", ".", ")")
 
-    def head: Keys = new Keys(rep.take(1))
+    def first: Keys = new Keys(rep.take(1))
     def last: Keys = new Keys(rep.takeRight(1))
     def next: Keys = new Keys(rep.drop(1))
     def parent: Keys = new Keys(rep.dropRight(1))
 
-    def the_last: Key = rep.last
-    def the_head: Key = rep.head
     def the_key: Key = Library.the_single(rep)
 
     def length: Int = rep.length
 
-    def +(other: Keys): Keys = new Keys(rep ::: other.rep)
+    def ++(other: Keys): Keys = new Keys(rep ::: other.rep)
 
     def prefixes: Set[Keys] = splits.map(_._1).toSet
     def splits: List[(Keys, Keys)] = Range.inclusive(0, length).toList.map(split).reverse
@@ -434,16 +432,16 @@ object TOML {
         elem match {
           case _: Parsers.Array_Of_Tables =>
             val (_, seen, rest) = recent_array(ks.parent)
-            (ks, seen, rest + ks.last, 0)
+            (ks, seen, rest ++ ks.last, 0)
           case _ =>
             val (to, seen, rest) = recent_array(ks)
             (to, seen, rest, start - to.length)
         }
       val (rest0, rest1) = rest.split(split)
-      val implicitly_seen = rest1.parent.prefixes.map(rest0 + _)
+      val implicitly_seen = rest1.parent.prefixes.map(rest0 ++ _)
 
       def error[A](s: Str): A = this.error(s, elem.pos, Some(ks))
-  
+
       seen.inlines.find(rest.is_child_of).foreach(ks =>
         error("Attempting to update an inline value"))
 
@@ -479,7 +477,7 @@ object TOML {
 
     def check_add_def(ks: Keys, defn: Parsers.Def): Unit = check_add(0, ks, defn)
     def check_add_value(ks0: Keys, ks1: Keys, v: Parsers.V): Unit =
-      check_add(ks0.length - 1, ks0 + ks1, v)
+      check_add(ks0.length - 1, ks0 ++ ks1, v)
   }
 
   object Parse_Context {
@@ -500,8 +498,8 @@ object TOML {
 
     def convert(ks0: Keys, ks1: Keys, v: Parsers.V): T = {
       def to_table(ks: Keys, t: T): Table =
-        if (ks.length == 1) Table(ks.head.the_key -> t)
-        else Table(ks.head.the_key -> to_table(ks.next, t))
+        if (ks.length == 1) Table(ks.first.the_key -> t)
+        else Table(ks.first.the_key -> to_table(ks.next, t))
 
       def to_toml(v: Parsers.V): (T, Set[Keys]) = v match {
         case Parsers.Primitive(t) => (t, Set.empty)
@@ -509,18 +507,18 @@ object TOML {
         case Parsers.Inline_Table(elems) =>
           elems.find(e => elems.count(_._1 == e._1) > 1).foreach((ks, _) =>
             context.error(
-              "Duplicate " + ks + " in inline table", v.pos, Some(ks0 + ks1)))
+              "Duplicate " + ks + " in inline table", v.pos, Some(ks0 ++ ks1)))
 
           val (tables, pfxs, key_spaces) =
             elems.map { (ks, v) =>
               val (t, keys) = to_toml(v)
-              (to_table(ks, t), ks.prefixes, keys.map(ks + _) + ks)
+              (to_table(ks, t), ks.prefixes, keys.map(ks ++ _) + ks)
             }.unzip3
 
           for {
             pfx <- pfxs
             if key_spaces.count(pfx.intersect(_).nonEmpty) > 1
-          } context.error("Inline table not self-contained", v.pos, Some(ks0 + ks1))
+          } context.error("Inline table not self-contained", v.pos, Some(ks0 ++ ks1))
 
           (tables.foldLeft(Table())(_ ++ _), pfxs.toSet.flatten ++ key_spaces.toSet.flatten)
       }
@@ -534,7 +532,7 @@ object TOML {
       def update_rec(hd: Keys, map: Table, ks: Keys): Table = {
         val updated =
           if (ks.length == 1) {
-            map.any.get(ks.head.the_key) match {
+            map.any.get(ks.first.the_key) match {
               case Some(a: Array) =>
                 value match {
                   case a2: Array => a ++ a2
@@ -552,8 +550,8 @@ object TOML {
             }
           }
           else {
-            val hd1 = hd + ks.head
-            map.any.get(ks.head.the_key) match {
+            val hd1 = hd ++ ks.first
+            map.any.get(ks.first.the_key) match {
               case Some(t: Table) => update_rec(hd1, t, ks.next)
               case Some(a: Array) =>
                 Array(a.table.values.dropRight(1) :+ update_rec(hd1, a.table.values.last, ks.next))
@@ -561,7 +559,7 @@ object TOML {
               case None => update_rec(hd1, Table(), ks.next)
             }
           }
-        (map - ks.head.the_key) + (ks.head.the_key -> updated)
+        (map - ks.first.the_key) + (ks.first.the_key -> updated)
       }
 
       update_rec(Keys.empty, map, ks0)
