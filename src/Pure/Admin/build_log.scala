@@ -1044,8 +1044,7 @@ object Build_Log {
       }
 
       val ml_statistics_status =
-        if (ml_statistics) Nil
-        else {
+        if (ml_statistics) {
           List(
             new Table_Status(private_data.ml_statistics_table) {
               override def update_db(db: SQL.Database, log_file: Log_File): Unit =
@@ -1053,6 +1052,7 @@ object Build_Log {
                   log_file.parse_build_info(ml_statistics = true))
             })
         }
+        else Nil
       val status =
         List(
           new Table_Status(private_data.meta_info_table) {
