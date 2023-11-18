@@ -255,33 +255,6 @@ object TOML {
   trait Parsers extends combinator.Parsers {
     type Elem = Token
 
-    case class Keys(rep: List[Key]) extends Positional {
-      def last: Keys = Keys(rep.takeRight(1))
-      def the_last: Key = rep.last
-      
-      def head: Keys = Keys(rep.take(1))
-      def the_head: Key = rep.head
-
-      def length: Int = rep.length
-
-      def +(other: Keys): Keys = Keys(rep ::: other.rep)
-
-      def prefixes: Set[Keys] =
-        if (rep.isEmpty) Set.empty
-        else Range.inclusive(1, length).toSet.map(i => Keys(rep.take(i)))
-
-      def splits: List[(Keys, Keys)] =
-        Range.inclusive(0, length).toList.map(n =>
-          (Keys(rep.dropRight(n)), Keys(rep.takeRight(n))))
-      def split(i: Int): (Keys, Keys) = {
-        val (rep0, rep1) = rep.splitAt(i)
-        (Keys(rep0), Keys(rep1))
-      }
-
-      def parent: Keys = Keys(rep.dropRight(1))
-      def is_child_of(parent: Keys): Bool = rep.startsWith(parent.rep)
-    }
-
 
     /* parse structure */
 
@@ -407,15 +380,45 @@ object TOML {
   object Parsers extends Parsers
 
 
+  /* Keys for nested tables */
+
+  case class Keys(rep: List[Key]) extends Positional {
+    def last: Keys = Keys(rep.takeRight(1))
+    def the_last: Key = rep.last
+
+    def head: Keys = Keys(rep.take(1))
+    def the_head: Key = rep.head
+
+    def length: Int = rep.length
+
+    def +(other: Keys): Keys = Keys(rep ::: other.rep)
+
+    def prefixes: Set[Keys] =
+      if (rep.isEmpty) Set.empty
+      else Range.inclusive(1, length).toSet.map(i => Keys(rep.take(i)))
+
+    def splits: List[(Keys, Keys)] =
+      Range.inclusive(0, length).toList.map(n =>
+        (Keys(rep.dropRight(n)), Keys(rep.takeRight(n))))
+    def split(i: Int): (Keys, Keys) = {
+      val (rep0, rep1) = rep.splitAt(i)
+      (Keys(rep0), Keys(rep1))
+    }
+
+    def parent: Keys = Keys(rep.dropRight(1))
+    def is_child_of(parent: Keys): Bool = rep.startsWith(parent.rep)
+  }
+
+
   /* checking and translating parse structure into toml */
 
-  class Parse_Context private(var seen_tables: Map[Parsers.Keys, Seen], file: Option[Path] = None) {
-    private def recent_array(ks: Parsers.Keys): (Parsers.Keys, Seen, Parsers.Keys) =
+  class Parse_Context private(var seen_tables: Map[Keys, Seen], file: Option[Path] = None) {
+    private def recent_array(ks: Keys): (Keys, Seen, Keys) =
       ks.splits.collectFirst {
         case (ks1, ks2) if seen_tables.contains(ks1) => (ks1, seen_tables(ks1), ks2)
       }.get
 
-    private def check_add(start: Int, ks: Parsers.Keys, elem: Parsers.Def | Parsers.V): Unit = {
+    private def check_add(start: Int, ks: Keys, elem: Parsers.Def | Parsers.V): Unit = {
       val (to, seen, rest, split) =
         elem match {
           case _: Parsers.Array_Of_Tables =>
@@ -429,7 +432,7 @@ object TOML {
       val implicitly_seen = rest1.parent.prefixes.map(rest0 + _)
 
       def error[A](s: Str): A = this.error(s, elem.pos, Some(ks))
-
+  
       seen.inlines.find(rest.is_child_of).foreach(ks =>
         error("Attempting to update an inline value"))
 
@@ -457,22 +460,22 @@ object TOML {
 
     def for_file(file: Path): Parse_Context = new Parse_Context(seen_tables, Some(file))
 
-    def error[A](s: Str, pos: input.Position, key: Option[Parsers.Keys] = None): A = {
+    def error[A](s: Str, pos: input.Position, key: Option[Keys] = None): A = {
       val key_msg = if_proper(key, " in table " + Format.keys(key.get.rep))
       val file_msg = if_proper(file, " in " + file.get)
       isabelle.error(s + key_msg + " at line " + pos.line + file_msg)
     }
 
-    def check_add_def(ks: Parsers.Keys, defn: Parsers.Def): Unit = check_add(0, ks, defn)
-    def check_add_value(ks0: Parsers.Keys, ks1: Parsers.Keys, v: Parsers.V): Unit =
+    def check_add_def(ks: Keys, defn: Parsers.Def): Unit = check_add(0, ks, defn)
+    def check_add_value(ks0: Keys, ks1: Keys, v: Parsers.V): Unit =
       check_add(ks0.length - 1, ks0 + ks1, v)
   }
 
   object Parse_Context {
-    case class Seen(inlines: Set[Parsers.Keys], tables: Set[Parsers.Keys])
+    case class Seen(inlines: Set[Keys], tables: Set[Keys])
 
     def apply(): Parse_Context =
-      new Parse_Context(Map(Parsers.Keys(Nil) -> Seen(Set.empty, Set.empty)))
+      new Parse_Context(Map(Keys(Nil) -> Seen(Set.empty, Set.empty)))
   }
 
   def parse(s: Str, context: Parse_Context = Parse_Context()): Table = {
@@ -484,10 +487,10 @@ object TOML {
           context.error("Malformed TOML input: " + msg, next.pos)
       }
 
-    def convert(ks0: Parsers.Keys, ks1: Parsers.Keys, v: Parsers.V): T = {
-      def to_table(ks: Parsers.Keys, t: T): Table =
+    def convert(ks0: Keys, ks1: Keys, v: Parsers.V): T = {
+      def to_table(ks: Keys, t: T): Table =
         ks.parent.rep.foldRight(Table(ks.the_last -> t))((k, v) => Table(k -> v))
-      def to_toml(v: Parsers.V): (T, Set[Parsers.Keys]) = v match {
+      def to_toml(v: Parsers.V): (T, Set[Keys]) = v match {
         case Parsers.Primitive(t) => (t, Set.empty)
         case Parsers.Array(rep) => (Array(rep.map(to_toml(_)._1)), Set.empty)
         case Parsers.Inline_Table(elems) =>
@@ -512,10 +515,10 @@ object TOML {
       to_toml(v)._1
     }
 
-    def update(map: Table, ks0: Parsers.Keys, value: T): Table = {
+    def update(map: Table, ks0: Keys, value: T): Table = {
       def error[A](s: Str): A = context.error(s, ks0.pos, Some(ks0))
 
-      def update_rec(hd: Parsers.Keys, map: Table, ks: Parsers.Keys): Table = {
+      def update_rec(hd: Keys, map: Table, ks: Keys): Table = {
         val updated =
           if (ks.length == 1) {
             map.any.get(ks.the_head) match {
@@ -549,13 +552,13 @@ object TOML {
         (map - ks.the_head) + (ks.the_head -> updated)
       }
 
-      update_rec(Parsers.Keys(Nil), map, ks0)
+      update_rec(Keys(Nil), map, ks0)
     }
 
-    def fold(elems: List[(Parsers.Keys, T)]): Table =
+    def fold(elems: List[(Keys, T)]): Table =
       elems.foldLeft(Table()) { case (t0, (ks1, t1)) => update(t0, ks1, t1) }
 
-    val t = fold(file.elems.map((ks, v) => (ks, convert(Parsers.Keys(Nil), ks, v))))
+    val t = fold(file.elems.map((ks, v) => (ks, convert(Keys(Nil), ks, v))))
     file.defs.foldLeft(t) {
       case (t0, defn@Parsers.Table(ks0, elems)) =>
         context.check_add_def(ks0, defn)
