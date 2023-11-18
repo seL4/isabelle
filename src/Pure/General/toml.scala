@@ -112,9 +112,9 @@ object TOML {
             case Some(value) => value
             case None =>
               error("Expected" + classTag[A].runtimeClass.getName +
-                ", got " + v.getClass.getSimpleName + " for key " + Format.key(k))
+                ", got " + v.getClass.getSimpleName + " for key " + quote(k))
           }
-          case None => error("Key " + Format.key(k) + " does not exist")
+          case None => error("Key " + quote(k) + " does not exist")
         }
     }
 
@@ -475,7 +475,7 @@ object TOML {
     def for_file(file: Path): Parse_Context = new Parse_Context(seen_tables, Some(file))
 
     def error[A](s: Str, pos: input.Position, key: Option[Keys] = None): A = {
-      val key_msg = if_proper(key, " in table " + Format.keys(key.get.rep))
+      val key_msg = if_proper(key, " in table " + key.get)
       val file_msg = if_proper(file, " in " + file.get)
       isabelle.error(s + key_msg + " at line " + pos.line + file_msg)
     }
@@ -510,7 +510,7 @@ object TOML {
         case Parsers.Inline_Table(elems) =>
           elems.find(e => elems.count(_._1 == e._1) > 1).foreach((ks, _) =>
             context.error(
-              "Duplicate key " + Format.keys(ks.rep) + " in inline table", v.pos, Some(ks0 + ks1)))
+              "Duplicate " + ks + " in inline table", v.pos, Some(ks0 + ks1)))
 
           val (tables, pfxs, key_spaces) =
             elems.map { (ks, v) =>
@@ -608,7 +608,7 @@ object TOML {
           if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
       }.mkString.replace("\"\"\"", "\"\"\\\"") + "\"\"\""
 
-    def key(k: Key): Str = {
+    private def key(k: Key): Str = {
       val Bare_Key = """[A-Za-z0-9_-]+""".r
       k match {
         case Bare_Key() => k
@@ -616,9 +616,9 @@ object TOML {
       }
     }
 
-    def keys(ks: List[Key]): Str = ks.map(key).mkString(".")
+    private def keys(ks: List[Key]): Str = ks.map(key).mkString(".")
 
-    def inline(t: T, indent: Int = 0): Str = {
+    private def inline(t: T, indent: Int = 0): Str = {
       val result = new StringBuilder
 
       result ++= Symbol.spaces(indent * 2)
