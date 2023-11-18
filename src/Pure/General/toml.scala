@@ -397,11 +397,12 @@ object TOML {
       }
     override def toString: Str = rep.mkString("Keys(", ".", ")")
 
-    def last: Keys = new Keys(rep.takeRight(1))
-    def the_last: Key = rep.last
-
     def head: Keys = new Keys(rep.take(1))
+    def last: Keys = new Keys(rep.takeRight(1))
     def next: Keys = new Keys(rep.drop(1))
+    def parent: Keys = new Keys(rep.dropRight(1))
+
+    def the_last: Key = rep.last
     def the_head: Key = rep.head
     def the_key: Key = Library.the_single(rep)
 
@@ -409,19 +410,13 @@ object TOML {
 
     def +(other: Keys): Keys = new Keys(rep ::: other.rep)
 
-    def prefixes: Set[Keys] =
-      if (rep.isEmpty) Set.empty
-      else Range.inclusive(1, length).toSet.map(i => new Keys(rep.take(i)))
-
-    def splits: List[(Keys, Keys)] =
-      Range.inclusive(0, length).toList.map(n =>
-        (new Keys(rep.dropRight(n)), new Keys(rep.takeRight(n))))
+    def prefixes: Set[Keys] = splits.map(_._1).toSet
+    def splits: List[(Keys, Keys)] = Range.inclusive(0, length).toList.map(split).reverse
     def split(i: Int): (Keys, Keys) = {
       val (rep0, rep1) = rep.splitAt(i)
       (new Keys(rep0), new Keys(rep1))
     }
 
-    def parent: Keys = new Keys(rep.dropRight(1))
     def is_child_of(parent: Keys): Bool = rep.startsWith(parent.rep)
   }
 
@@ -505,8 +500,8 @@ object TOML {
 
     def convert(ks0: Keys, ks1: Keys, v: Parsers.V): T = {
       def to_table(ks: Keys, t: T): Table =
-        if (ks.length == 1) Table(ks.the_head -> t)
-        else Table(ks.the_head -> to_table(ks.split(1)._2, t))
+        if (ks.length == 1) Table(ks.head.the_key -> t)
+        else Table(ks.head.the_key -> to_table(ks.next, t))
 
       def to_toml(v: Parsers.V): (T, Set[Keys]) = v match {
         case Parsers.Primitive(t) => (t, Set.empty)
@@ -539,7 +534,7 @@ object TOML {
       def update_rec(hd: Keys, map: Table, ks: Keys): Table = {
         val updated =
           if (ks.length == 1) {
-            map.any.get(ks.the_head) match {
+            map.any.get(ks.head.the_key) match {
               case Some(a: Array) =>
                 value match {
                   case a2: Array => a ++ a2
@@ -557,17 +552,16 @@ object TOML {
             }
           }
           else {
-            val (head, tail) = ks.split(1)
-            val hd1 = hd + head
-            map.any.get(ks.the_head) match {
-              case Some(t: Table) => update_rec(hd1, t, tail)
+            val hd1 = hd + ks.head
+            map.any.get(ks.head.the_key) match {
+              case Some(t: Table) => update_rec(hd1, t, ks.next)
               case Some(a: Array) =>
-                Array(a.table.values.dropRight(1) :+ update_rec(hd1, a.table.values.last, tail))
+                Array(a.table.values.dropRight(1) :+ update_rec(hd1, a.table.values.last, ks.next))
               case Some(_) => error("Attempting to redefine a value")
-              case None => update_rec(hd1, Table(), tail)
+              case None => update_rec(hd1, Table(), ks.next)
             }
           }
-        (map - ks.the_head) + (ks.the_head -> updated)
+        (map - ks.head.the_key) + (ks.head.the_key -> updated)
       }
 
       update_rec(Keys.empty, map, ks0)
