@@ -10,6 +10,7 @@ package isabelle
 import java.nio.file.Files
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 
 object Isabelle_Cronjob {
@@ -154,8 +155,14 @@ object Isabelle_Cronjob {
   }
 
   def unknown_runs(items: List[Item]): List[List[Item]] = {
-    val (run, rest) = Library.take_prefix[Item](_.unknown, items.dropWhile(_.known))
-    if (run.nonEmpty) run :: unknown_runs(rest) else Nil
+    var rest = items
+    val result = new mutable.ListBuffer[List[Item]]
+    while (rest.nonEmpty) {
+      val (run, r) = Library.take_prefix[Item](_.unknown, rest.dropWhile(_.known))
+      if (run.nonEmpty) result += run
+      rest = r
+    }
+    result.toList
   }
 
   sealed case class Remote_Build(
