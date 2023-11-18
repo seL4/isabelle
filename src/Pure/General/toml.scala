@@ -401,7 +401,9 @@ object TOML {
     def the_last: Key = rep.last
 
     def head: Keys = new Keys(rep.take(1))
+    def next: Keys = new Keys(rep.drop(1))
     def the_head: Key = rep.head
+    def the_key: Key = Library.the_single(rep)
 
     def length: Int = rep.length
 
