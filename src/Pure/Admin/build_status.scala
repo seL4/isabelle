@@ -40,6 +40,7 @@ object Build_Status {
         List(
           Build_Log.private_data.pull_date(afp = false),
           Build_Log.private_data.pull_date(afp = true),
+          Build_Log.Prop.build_start,
           Build_Log.Prop.build_host,
           Build_Log.Prop.isabelle_version,
           Build_Log.Prop.afp_version,
@@ -136,6 +137,7 @@ object Build_Status {
       val header =
         List("session_name",
           "chapter",
+          "build_date",
           "pull_date",
           "afp_pull_date",
           "isabelle_version",
@@ -159,6 +161,7 @@ object Build_Status {
         for (entry <- sorted_entries) yield {
           CSV.Record(name,
             entry.chapter,
+            date_format(entry.build_start),
             date_format(entry.pull_date),
             entry.afp_pull_date match { case Some(date) => date_format(date) case None => "" },
             entry.isabelle_version,
@@ -183,6 +186,7 @@ object Build_Status {
   }
   sealed case class Entry(
     chapter: String,
+    build_start: Date,
     pull_date: Date,
     afp_pull_date: Option[Date],
     isabelle_version: String,
@@ -302,6 +306,7 @@ object Build_Status {
               val entry =
                 Entry(
                   chapter = chapter,
+                  build_start = res.date(Build_Log.Prop.build_start),
                   pull_date = res.date(Build_Log.private_data.pull_date(afp = false)),
                   afp_pull_date =
                     if (afp) res.get_date(Build_Log.private_data.pull_date(afp = true)) else None,
