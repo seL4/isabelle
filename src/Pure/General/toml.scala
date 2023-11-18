@@ -388,7 +388,7 @@ object TOML {
     def dotted(s: Str): Keys = new Keys(s.split('.').toList)
   }
 
-  class Keys private(val rep: List[Key]) extends Positional {
+  class Keys private(private val rep: List[Key]) extends Positional {
     override def hashCode(): Int = rep.hashCode()
     override def equals(obj: Any): Bool =
       obj match {
@@ -503,7 +503,9 @@ object TOML {
 
     def convert(ks0: Keys, ks1: Keys, v: Parsers.V): T = {
       def to_table(ks: Keys, t: T): Table =
-        ks.parent.rep.foldRight(Table(ks.the_last -> t))((k, v) => Table(k -> v))
+        if (ks.length == 1) Table(ks.the_head -> t)
+        else Table(ks.the_head -> to_table(ks.split(1)._2, t))
+
       def to_toml(v: Parsers.V): (T, Set[Keys]) = v match {
         case Parsers.Primitive(t) => (t, Set.empty)
         case Parsers.Array(rep) => (Array(rep.map(to_toml(_)._1)), Set.empty)
