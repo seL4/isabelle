@@ -127,8 +127,8 @@ object Isabelle_Cronjob {
     def versions: (String, Option[String]) = (isabelle_version, afp_version)
 
     def known_versions(rev: String, afp_rev: Option[String]): Boolean =
-      known && rev != "" && isabelle_version == rev &&
-      (afp_rev.isEmpty || afp_rev.get != "" && afp_version == afp_rev)
+      known && rev.nonEmpty && isabelle_version == rev &&
+      (afp_rev.isEmpty || afp_rev.get.nonEmpty && afp_version == afp_rev)
   }
 
   def recent_items(
@@ -490,7 +490,7 @@ object Isabelle_Cronjob {
     val hostname: String = Isabelle_System.hostname()
 
     def log(date: Date, task_name: String, msg: String): Unit =
-      if (task_name != "") {
+      if (task_name.nonEmpty) {
         thread.send(
           "[" + Build_Log.print_date(date) + ", " + hostname + ", " + task_name + "]: " + msg)
       }
@@ -579,7 +579,7 @@ object Isabelle_Cronjob {
         for {
           t <- tasks.iterator
           task <- t()
-          if !exclude_task(task.name) || task.name == ""
+          if !exclude_task(task.name) || task.name.isEmpty
         } run_now(task))
 
     def SEQUENTIAL(tasks: Logger_Task*): Logger_Task =
