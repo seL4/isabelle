@@ -102,19 +102,16 @@ object Build_Log {
     }
     def plain_name(file: JFile): String = plain_name(file.getName)
 
-    def apply(name: String, lines: List[String]): Log_File =
-      new Log_File(plain_name(name), lines.map(Library.trim_line))
+    def apply(name: String, lines: List[String], cache: XML.Cache = XML.Cache.none): Log_File =
+      new Log_File(plain_name(name), lines.map(s => cache.string(Library.trim_line(s))), cache)
 
-    def apply(name: String, text: String): Log_File =
-      new Log_File(plain_name(name), Library.trim_split_lines(text))
-
-    def read(file: JFile, cache: Compress.Cache = Compress.Cache.none): Log_File = {
+    def read(file: JFile, cache: XML.Cache = XML.Cache.none): Log_File = {
       val name = file.getName
       val text =
         if (File.is_gz(name)) File.read_gzip(file)
-        else if (File.is_xz(name)) Bytes.read(file).uncompress_xz(cache = cache).text
+        else if (File.is_xz(name)) Bytes.read(file).uncompress_xz(cache = cache.compress).text
         else File.read(file)
-      apply(name, text)
+      apply(name, Library.trim_split_lines(text), cache = cache)
     }
 
 
@@ -186,7 +183,11 @@ object Build_Log {
     }
   }
 
-  class Log_File private(val name: String, val lines: List[String]) {
+  class Log_File private(
+    val name: String,
+    val lines: List[String],
+    val cache: XML.Cache
+  ) {
     log_file =>
 
     override def toString: String = name
@@ -235,10 +236,8 @@ object Build_Log {
 
     /* properties (YXML) */
 
-    val cache: XML.Cache = XML.Cache.make()
-
     def parse_props(text: String): Properties.T =
-      try { cache.props(XML.Decode.properties(YXML.parse_body(text))) }
+      try { cache.props(XML.Decode.properties(YXML.parse_body(text, cache = cache))) }
       catch { case _: XML.Error => log_file.err("malformed properties") }
 
     def filter_props(marker: Protocol_Message.Marker): List[Properties.T] =
@@ -1093,7 +1092,7 @@ object Build_Log {
 
       try {
         for (file <- files.iterator if status.exists(_.required(file))) {
-          Exn.result { Log_File.read(file, cache = cache.compress) } match {
+          Exn.result { Log_File.read(file, cache = cache) } match {
             case Exn.Res(log_file) => consumer.send(log_file)
             case Exn.Exn(exn) => add_error(Log_File.plain_name(file), exn)
           }

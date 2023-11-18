@@ -257,14 +257,14 @@ object Build_History {
 
       val build_end = Date.now()
 
+      val store = Store(options + "build_database_server=false")
+
       val build_info: Build_Log.Build_Info =
-        Build_Log.Log_File(log_path.file_name, build_result.out_lines).
+        Build_Log.Log_File(log_path.file_name, build_result.out_lines, cache = store.cache).
           parse_build_info(ml_statistics = true)
 
 
       /* output log */
-
-      val store = Store(options + "build_database_server=false")
 
       val meta_info =
         Properties.lines_nonempty(Build_Log.Prop.build_tags.name, build_tags) :::
@@ -317,7 +317,7 @@ object Build_History {
               using(SQLite.open_database(database))(store.read_ml_statistics(_, session_name))
             }
             else if (log_gz.is_file) {
-              Build_Log.Log_File.read(log_gz.file)
+              Build_Log.Log_File.read(log_gz.file, cache = store.cache)
                 .parse_session_info(ml_statistics = true).ml_statistics
             }
             else Nil

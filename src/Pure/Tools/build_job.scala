@@ -480,7 +480,7 @@ object Build_Job {
           val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
 
           val build_log =
-            Build_Log.Log_File(session_name, process_result.out_lines).
+            Build_Log.Log_File(session_name, process_result.out_lines, cache = store.cache).
               parse_session_info(
                 command_timings = true,
                 theory_timings = true,
