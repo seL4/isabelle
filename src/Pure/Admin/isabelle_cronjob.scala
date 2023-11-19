@@ -492,7 +492,7 @@ object Isabelle_Cronjob {
       log(end_date, msg)
     }
 
-    val log_dir = Isabelle_System.make_directory(main_dir + Build_Log.log_subdir(start_date))
+    val log_dir: Path = Isabelle_System.make_directory(main_dir + Build_Log.log_subdir(start_date))
 
     log(start_date, "started")
   }
