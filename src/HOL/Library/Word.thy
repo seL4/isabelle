@@ -991,12 +991,51 @@ lift_definition take_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 
   is \<open>\<lambda>n. take_bit (min LENGTH('a) n)\<close>
   by (simp add: ac_simps) (simp only: flip: take_bit_take_bit)
 
-instance apply (standard; transfer)
-  apply (auto simp add: minus_eq_not_minus_1 mask_eq_exp_minus_1
-    bit_simps set_bit_def flip_bit_def take_bit_drop_bit
-    simp flip: drop_bit_eq_div take_bit_eq_mod)
-   apply (simp_all add: drop_bit_take_bit flip: push_bit_eq_mult)
-  done
+context
+  includes bit_operations_syntax
+begin
+
+instance proof
+  fix v w :: \<open>'a word\<close> and n m :: nat
+  show \<open>v AND w = of_bool (odd v \<and> odd w) + 2 * (v div 2 AND w div 2)\<close>
+    apply transfer
+    apply (rule bit_eqI)
+    apply (auto simp add: even_bit_succ_iff bit_simps bit_0 simp flip: bit_Suc)
+    done
+  show \<open>v OR w = of_bool (odd v \<or> odd w) + 2 * (v div 2 OR w div 2)\<close>
+    apply transfer
+    apply (rule bit_eqI)
+    apply (auto simp add: even_bit_succ_iff bit_simps bit_0 simp flip: bit_Suc)
+    done
+  show \<open>v XOR w = of_bool (odd v \<noteq> odd w) + 2 * (v div 2 XOR w div 2)\<close>
+    apply transfer
+    apply (rule bit_eqI)
+    subgoal for k l n
+      apply (cases n)
+       apply (auto simp add: even_bit_succ_iff bit_simps bit_0 even_xor_iff simp flip: bit_Suc)
+      done
+    done
+  show \<open>mask n = 2 ^ n - (1 :: 'a word)\<close>
+    by transfer (simp flip: mask_eq_exp_minus_1)
+  show \<open>set_bit n v = v OR push_bit n 1\<close>
+    by transfer (simp add: take_bit_set_bit_eq set_bit_eq_or)
+  show \<open>bit (unset_bit m v) n \<longleftrightarrow> bit v n \<and> m \<noteq> n\<close>
+    by transfer (simp add: bit_simps)
+  show \<open>flip_bit n v = v XOR push_bit n 1\<close>
+    by transfer (simp add: take_bit_flip_bit_eq flip_bit_eq_xor)
+  show \<open>push_bit n v = v * 2 ^ n\<close>
+    by transfer (simp add: push_bit_eq_mult)
+  show \<open>drop_bit n v = v div 2 ^ n\<close>
+    by transfer (simp add: drop_bit_take_bit flip: drop_bit_eq_div)
+  show \<open>take_bit n v = v mod 2 ^ n\<close>
+    by transfer (simp flip: take_bit_eq_mod)
+  show \<open>bit (NOT v) n \<longleftrightarrow> 2 ^ n \<noteq> (0 :: 'a word) \<and> \<not> bit v n\<close>
+    by transfer (auto simp add: bit_simps)
+  show \<open>- v = NOT (v - 1)\<close>
+    by transfer (simp add: minus_eq_not_minus_1)
+qed
+
+end
 
 end
 

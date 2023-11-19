@@ -715,9 +715,9 @@ class semiring_bit_operations = semiring_bits +
     and push_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
     and drop_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
     and take_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  assumes bit_and_iff [bit_simps]: \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
-    and bit_or_iff [bit_simps]: \<open>bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
-    and bit_xor_iff [bit_simps]: \<open>bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
+  assumes and_rec: \<open>a AND b = of_bool (odd a \<and> odd b) + 2 * ((a div 2) AND (b div 2))\<close>
+    and or_rec: \<open>a OR b = of_bool (odd a \<or> odd b) + 2 * ((a div 2) OR (b div 2))\<close>
+    and xor_rec: \<open>a XOR b = of_bool (odd a \<noteq> odd b) + 2 * ((a div 2) XOR (b div 2))\<close>
     and mask_eq_exp_minus_1: \<open>mask n = 2 ^ n - 1\<close>
     and set_bit_eq_or: \<open>set_bit n a = a OR push_bit n 1\<close>
     and bit_unset_bit_iff [bit_simps]: \<open>bit (unset_bit m a) n \<longleftrightarrow> bit a n \<and> m \<noteq> n\<close>
@@ -742,6 +742,48 @@ text \<open>
   taking into account that specific instances of these can be implemented
   differently wrt. code generation.
 \<close>
+
+lemma bit_and_iff [bit_simps]:
+  \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
+proof (induction n arbitrary: a b)
+  case 0
+  show ?case
+    by (simp add: bit_0 and_rec [of a b] even_bit_succ_iff)
+next
+  case (Suc n)
+  from Suc [of \<open>a div 2\<close> \<open>b div 2\<close>]
+  show ?case
+    by (simp add: and_rec [of a b] bit_Suc)
+      (auto simp flip: bit_Suc simp add: bit_double_iff dest: bit_imp_possible_bit)
+qed
+
+lemma bit_or_iff [bit_simps]:
+  \<open>bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
+proof (induction n arbitrary: a b)
+  case 0
+  show ?case
+    by (simp add: bit_0 or_rec [of a b] even_bit_succ_iff)
+next
+  case (Suc n)
+  from Suc [of \<open>a div 2\<close> \<open>b div 2\<close>]
+  show ?case
+    by (simp add: or_rec [of a b] bit_Suc)
+      (auto simp flip: bit_Suc simp add: bit_double_iff dest: bit_imp_possible_bit)
+qed
+
+lemma bit_xor_iff [bit_simps]:
+  \<open>bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
+proof (induction n arbitrary: a b)
+  case 0
+  show ?case
+    by (simp add: bit_0 xor_rec [of a b] even_bit_succ_iff)
+next
+  case (Suc n)
+  from Suc [of \<open>a div 2\<close> \<open>b div 2\<close>]
+  show ?case
+    by (simp add: xor_rec [of a b] bit_Suc)
+      (auto simp flip: bit_Suc simp add: bit_double_iff dest: bit_imp_possible_bit)
+qed
 
 sublocale "and": semilattice \<open>(AND)\<close>
   by standard (auto simp add: bit_eq_iff bit_and_iff)
@@ -1606,12 +1648,12 @@ instance proof
   fix k l :: int and m n :: nat
   show \<open>- k = NOT (k - 1)\<close>
     by (simp add: not_int_def)
-  show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
-    by (fact bit_and_int_iff)
-  show \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
-    by (fact bit_or_int_iff)
-  show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
-    by (fact bit_xor_int_iff)
+  show \<open>k AND l = of_bool (odd k \<and> odd l) + 2 * (k div 2 AND l div 2)\<close>
+    by (fact and_int_rec)
+  show \<open>k OR l = of_bool (odd k \<or> odd l) + 2 * (k div 2 OR l div 2)\<close>
+    by (fact or_int_rec)
+  show \<open>k XOR l = of_bool (odd k \<noteq> odd l) + 2 * (k div 2 XOR l div 2)\<close>
+    by (fact xor_int_rec)
   show \<open>bit (unset_bit m k) n \<longleftrightarrow> bit k n \<and> m \<noteq> n\<close>
   proof -
     have \<open>unset_bit m k = k AND NOT (push_bit m 1)\<close>
@@ -2376,12 +2418,12 @@ definition flip_bit_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close
 
 instance proof
   fix m n q :: nat
-  show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
-    by (simp add: and_nat_def bit_simps)
-  show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
-    by (simp add: or_nat_def bit_simps)
-  show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
-    by (simp add: xor_nat_def bit_simps)
+  show \<open>m AND n = of_bool (odd m \<and> odd n) + 2 * (m div 2 AND n div 2)\<close>
+    by (simp add: and_nat_def and_rec [of \<open>int m\<close> \<open>int n\<close>] nat_add_distrib of_nat_div)
+  show \<open>m OR n = of_bool (odd m \<or> odd n) + 2 * (m div 2 OR n div 2)\<close>
+    by (simp add: or_nat_def or_rec [of \<open>int m\<close> \<open>int n\<close>] nat_add_distrib of_nat_div)
+  show \<open>m XOR n = of_bool (odd m \<noteq> odd n) + 2 * (m div 2 XOR n div 2)\<close>
+    by (simp add: xor_nat_def xor_rec [of \<open>int m\<close> \<open>int n\<close>] nat_add_distrib of_nat_div)
   show \<open>bit (unset_bit m n) q \<longleftrightarrow> bit n q \<and> m \<noteq> q\<close>
     by (simp add: unset_bit_nat_def bit_simps)
 qed (simp_all add: mask_nat_def set_bit_nat_def flip_bit_nat_def push_bit_nat_def drop_bit_nat_def take_bit_nat_def)
