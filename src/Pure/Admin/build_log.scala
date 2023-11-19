@@ -1190,6 +1190,88 @@ object Build_Log {
   }
 
 
+
+  /** build history **/
+
+  object History {
+    sealed case class Entry(
+      known: Boolean,
+      isabelle_version: String,
+      afp_version: Option[String],
+      pull_date: Date
+    ) {
+      def unknown: Boolean = !known
+      def versions: (String, Option[String]) = (isabelle_version, afp_version)
+
+      def known_versions(rev: String, afp_rev: Option[String]): Boolean =
+        known && rev.nonEmpty && isabelle_version == rev &&
+        (afp_rev.isEmpty || afp_rev.get.nonEmpty && afp_version == afp_rev)
+    }
+
+    object Run {
+      val empty: Run = Run()
+      def longest(runs: List[Run]): Run = runs.foldLeft(empty)(_ max _)
+    }
+
+    sealed case class Run(entries: List[Entry] = Nil) {
+      def is_empty: Boolean = entries.isEmpty
+      val length: Int = entries.length
+      def max(other: Run): Run = if (length >= other.length) this else other
+      def median: Option[Entry] = if (is_empty) None else Some(entries(length / 2))
+
+      override def toString: String = {
+        val s = if (is_empty) "" else "length = " + length + ", median = " + median.get.pull_date
+        "Build_Log.History.Run(" + s + ")"
+      }
+    }
+
+    def retrieve(
+      db: SQL.Database,
+      days: Int,
+      rev: String,
+      afp_rev: Option[String],
+      sql: PostgreSQL.Source
+    ): History = {
+      val afp = afp_rev.isDefined
+
+      val entries =
+        db.execute_query_statement(
+          private_data.select_recent_versions(
+            days = days, rev = rev, afp_rev = afp_rev, sql = SQL.where(sql)),
+          List.from[Entry],
+          { res =>
+            val known = res.bool(private_data.known)
+            val isabelle_version = res.string(Prop.isabelle_version)
+            val afp_version = if (afp) proper_string(res.string(Prop.afp_version)) else None
+            val pull_date = res.date(private_data.pull_date(afp))
+            Entry(known, isabelle_version, afp_version, pull_date)
+          })
+
+      new History(entries)
+    }
+  }
+
+  final class History private(val entries: List[History.Entry]) {
+    override def toString: String = "Build_Log.History(" + entries.length + ")"
+
+    def unknown_runs(
+      pre: History.Entry => Boolean = _ => true,
+      post: History.Run => Boolean = _ => true
+    ): List[History.Run] = {
+      var rest = entries.filter(pre)
+      val result = new mutable.ListBuffer[History.Run]
+      while (rest.nonEmpty) {
+        val (a, b) = Library.take_prefix[History.Entry](_.unknown, rest.dropWhile(_.known))
+        val run = History.Run(a)
+        if (!run.is_empty && post(run)) result += run
+        rest = b
+      }
+      result.toList
+    }
+  }
+
+
+
   /** maintain build_log database **/
 
   def build_log_database(options: Options, logs: List[Path],

@@ -118,53 +118,6 @@ object Isabelle_Cronjob {
 
   /* remote build_history */
 
-  sealed case class Item(
-    known: Boolean,
-    isabelle_version: String,
-    afp_version: Option[String],
-    pull_date: Date
-  ) {
-    def unknown: Boolean = !known
-    def versions: (String, Option[String]) = (isabelle_version, afp_version)
-
-    def known_versions(rev: String, afp_rev: Option[String]): Boolean =
-      known && rev.nonEmpty && isabelle_version == rev &&
-      (afp_rev.isEmpty || afp_rev.get.nonEmpty && afp_version == afp_rev)
-  }
-
-  def recent_items(
-    db: SQL.Database,
-    days: Int,
-    rev: String,
-    afp_rev: Option[String],
-    sql: PostgreSQL.Source
-  ): List[Item] = {
-    val afp = afp_rev.isDefined
-
-    db.execute_query_statement(
-      Build_Log.private_data.select_recent_versions(
-        days = days, rev = rev, afp_rev = afp_rev, sql = SQL.where(sql)),
-      List.from[Item],
-      { res =>
-        val known = res.bool(Build_Log.private_data.known)
-        val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
-        val afp_version = if (afp) proper_string(res.string(Build_Log.Prop.afp_version)) else None
-        val pull_date = res.date(Build_Log.private_data.pull_date(afp))
-        Item(known, isabelle_version, afp_version, pull_date)
-      })
-  }
-
-  def unknown_runs(items: List[Item]): List[List[Item]] = {
-    var rest = items
-    val result = new mutable.ListBuffer[List[Item]]
-    while (rest.nonEmpty) {
-      val (run, r) = Library.take_prefix[Item](_.unknown, rest.dropWhile(_.known))
-      if (run.nonEmpty) result += run
-      rest = r
-    }
-    result.toList
-  }
-
   sealed case class Remote_Build(
     description: String,
     host: String,
@@ -195,29 +148,26 @@ object Isabelle_Cronjob {
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)
 
-    def pick(options: Options, filter: Item => Boolean): Option[(String, Option[String])] = {
+    def pick(
+      options: Options,
+      filter: Build_Log.History.Entry => Boolean
+    ): Option[(String, Option[String])] = {
       val rev = get_rev()
       val afp_rev = if (afp) Some(get_afp_rev()) else None
 
       val store = Build_Log.store(options)
       using(store.open_database()) { db =>
-        def pick_recent(days: Int, gap: Int): Option[(String, Option[String])] = {
-          val items = recent_items(db, days, rev, afp_rev, sql).filter(filter)
-          val runs = unknown_runs(items).filter(run => run.length >= gap)
-          val (longest_run, longest_length) =
-            runs.foldLeft((List.empty[Item], 0)) {
-              case (res@(item1, len1), item2) =>
-                val len2 = item2.length
-                if (len1 >= len2) res else (item2, len2)
-            }
-          if (longest_run.isEmpty) None
-          else Some(longest_run(longest_length / 2).versions)
+        def get(days: Int, gap: Int): Option[(String, Option[String])] = {
+          val runs =
+            Build_Log.History.retrieve(db, days, rev, afp_rev, sql)
+              .unknown_runs(pre = filter, post = run => run.length >= gap)
+          Build_Log.History.Run.longest(runs).median.map(_.versions)
         }
 
-        pick_recent(options.int("build_log_history") max history, 2) orElse
-        pick_recent(300, 8) orElse
-        pick_recent(3000, 32) orElse
-        pick_recent(0, 1)
+        get(options.int("build_log_history") max history, 2) orElse
+        get(300, 8) orElse
+        get(3000, 32) orElse
+        get(0, 1)
       }
     }
 
@@ -615,10 +565,10 @@ object Isabelle_Cronjob {
     val hg = Mercurial.repository(isabelle_repos)
     val hg_graph = hg.graph()
 
-    def history_base_filter(r: Remote_Build): Item => Boolean = {
+    def history_base_filter(r: Remote_Build): Build_Log.History.Entry => Boolean = {
       val base_rev = hg.id(r.history_base)
       val nodes = hg_graph.all_succs(List(base_rev)).toSet
-      (item: Item) => nodes(item.isabelle_version)
+      (entry: Build_Log.History.Entry) => nodes(entry.isabelle_version)
     }
 
 
