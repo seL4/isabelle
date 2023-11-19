@@ -23,11 +23,10 @@ object Isabelle_Cronjob {
   val build_log_database_log: Path = main_dir + Path.explode("run/build_log_database.log")
   val current_log: Path = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
-
   val isabelle_repos: Path = main_dir + Path.explode("isabelle")
-  lazy val isabelle_hg: Mercurial.Repository = Mercurial.repository(isabelle_repos)
-
   val afp_repos: Path = main_dir + Path.explode("AFP")
+
+  lazy val isabelle_hg: Mercurial.Repository = Mercurial.self_repository()
   lazy val afp_hg: Mercurial.Repository = Mercurial.repository(afp_repos)
 
   val mailman_archives_dir = Path.explode("~/cronjob/Mailman")
@@ -46,7 +45,7 @@ object Isabelle_Cronjob {
 
   /* init and exit */
 
-  def get_rev(hg: Mercurial.Repository = isabelle_hg): String = hg.id()
+  def get_rev(): String = isabelle_hg.id()
   def get_afp_rev(): String = afp_hg.id()
 
   val init: Logger_Task =
@@ -153,15 +152,11 @@ object Isabelle_Cronjob {
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)
 
-    def history(
-      db: SQL.Database,
-      days: Int = 0,
-      hg: Mercurial.Repository = isabelle_hg
-    ): Build_Log.History = {
-      val rev = get_rev(hg = hg)
+    def history(db: SQL.Database, days: Int = 0): Build_Log.History = {
+      val rev = get_rev()
       val afp_rev = if (afp) Some(get_afp_rev()) else None
-      val base_rev = hg.id(history_base)
-      val filter_nodes = hg.graph().all_succs(List(base_rev)).toSet
+      val base_rev = isabelle_hg.id(history_base)
+      val filter_nodes = isabelle_hg.graph().all_succs(List(base_rev)).toSet
       Build_Log.History.retrieve(db, days, rev, afp_rev, sql,
         entry => filter_nodes(entry.isabelle_version))
     }
