@@ -310,7 +310,7 @@ object Isabelle_Cronjob {
           args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("macOS 14 Sonoma (ARM)", "studio1-sonoma",
-          history_base = "8e590adaac5e",
+          history_base = "68ffcf5cc94b",
           options = "-m32 -B -M1x4,2x4,4x2,8 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
@@ -329,7 +329,7 @@ object Isabelle_Cronjob {
           count = () => 0)),
       List(
         Remote_Build("macOS 13 Ventura (ARM)", "mini3",
-          history_base = "8e590adaac5e",
+          history_base = "68ffcf5cc94b",
           options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
