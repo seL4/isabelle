@@ -14,8 +14,7 @@ object Build_Status {
   val default_image_size = (800, 600)
   val default_history = 30
 
-  def default_profiles: List[Profile] =
-    Library.distinct(Isabelle_Cronjob.build_status_profiles)
+  def default_profiles: List[Profile] = Isabelle_Cronjob.build_status_profiles
 
 
   /* data profiles */
@@ -252,7 +251,7 @@ object Build_Status {
     val store = Build_Log.store(options)
 
     using(store.open_database()) { db =>
-      for (profile <- Library.distinct(profiles).sortBy(_.description)) {
+      for (profile <- profiles.sortBy(_.description)) {
         progress.echo("input " + quote(profile.description))
 
         val afp = profile.afp

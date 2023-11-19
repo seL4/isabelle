@@ -137,8 +137,10 @@ object Isabelle_Cronjob {
     bulky: Boolean = false,
     more_hosts: List[String] = Nil,
     detect: PostgreSQL.Source = "",
-    active: () => Boolean = () => true
+    count: () => Int = () => 1
   ) {
+    def active(): Boolean = count() > 0
+
     def open_session(options: Options): SSH.Session =
       SSH.open_session(options, host = host, user = user, port = port)
 
@@ -311,33 +313,35 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
-      Library.replicate(2,
+      List(
         Remote_Build("macOS 14 Sonoma (ARM)", "studio1-sonoma",
           history_base = "8e590adaac5e",
           options = "-m32 -B -M1x4,2x4,4x2,8 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
+          args = "-a -d '~~/src/Benchmarks'",
+          count = () => 2)),
       List(
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty"),
-          active = () => false),
+          count = () => 0),
         Remote_Build("macOS, skip_proofs", "mini2",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
-          active = () => false)),
-      Library.replicate(3,
+          count = () => 0)),
+      List(
         Remote_Build("macOS 13 Ventura (ARM)", "mini3",
           history_base = "8e590adaac5e",
           options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
-      Library.replicate(2,
+          args = "-a -d '~~/src/Benchmarks'",
+          count = () => 3)),
+      List(
         Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m32 -M4" +
@@ -347,8 +351,8 @@ object Isabelle_Cronjob {
           args = "-a",
           detect =
             Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
-            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows"))) :::
-      Library.replicate(2,
+            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows"),
+          count = () => 2),
         Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m64 -M4" +
@@ -357,7 +361,9 @@ object Isabelle_Cronjob {
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86_64-windows"))))
+          detect = Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86_64-windows"),
+          count = () => 2))
+    )
   }
 
   val remote_builds2: List[List[Remote_Build]] =
@@ -373,7 +379,7 @@ object Isabelle_Cronjob {
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
-          active = () => Date.now().unix_epoch_day % 2 == 0),
+          count = () => if (Date.now().unix_epoch_day % 2 == 0) 1 else 0),
         Remote_Build("AFP", "lrzcloud2",
           java_heap = "8g",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
@@ -381,7 +387,7 @@ object Isabelle_Cronjob {
           afp = true,
           bulky = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
-          active = () => Date.now().unix_epoch_day % 2 == 1)))
+          count = () => if (Date.now().unix_epoch_day % 2 == 1) 1 else 0)))
 
   def remote_build_history(
     rev: String,
@@ -596,10 +602,11 @@ object Isabelle_Cronjob {
             PAR(
               List(remote_builds1, remote_builds2).map(remote_builds =>
                 SEQUENTIAL(
-                  PAR(remote_builds.map(_.filter(_.active())).map(seq =>
+                  PAR(remote_builds.map(seq =>
                     SEQ(
                       for {
                         (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
+                        _ <- List.from(1 to r.count())
                       } yield () => {
                         r.pick(logger.options)
                           .map({ case (rev, afp_rev) =>
