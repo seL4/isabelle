@@ -1226,7 +1226,8 @@ object Build_Log {
       days: Int,
       rev: String,
       afp_rev: Option[String],
-      sql: PostgreSQL.Source
+      sql: PostgreSQL.Source,
+      filter: Entry => Boolean = _ => true
     ): History = {
       val afp = afp_rev.isDefined
 
@@ -1243,23 +1244,20 @@ object Build_Log {
             Entry(known, isabelle_version, afp_version, pull_date)
           })
 
-      new History(entries)
+      new History(entries.filter(filter))
     }
   }
 
   final class History private(val entries: List[History.Entry]) {
     override def toString: String = "Build_Log.History(" + entries.length + ")"
 
-    def unknown_runs(
-      pre: History.Entry => Boolean = _ => true,
-      post: History.Run => Boolean = _ => true
-    ): List[History.Run] = {
-      var rest = entries.filter(pre)
+    def unknown_runs(filter: History.Run => Boolean = _ => true): List[History.Run] = {
+      var rest = entries
       val result = new mutable.ListBuffer[History.Run]
       while (rest.nonEmpty) {
         val (a, b) = Library.take_prefix[History.Entry](_.unknown, rest.dropWhile(_.known))
         val run = History.Run(a)
-        if (!run.is_empty && post(run)) result += run
+        if (!run.is_empty && filter(run)) result += run
         rest = b
       }
       result.toList

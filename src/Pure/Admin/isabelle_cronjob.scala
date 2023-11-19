@@ -25,7 +25,10 @@ object Isabelle_Cronjob {
   val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
 
   val isabelle_repos: Path = main_dir + Path.explode("isabelle")
+  lazy val isabelle_hg: Mercurial.Repository = Mercurial.repository(isabelle_repos)
+
   val afp_repos: Path = main_dir + Path.explode("AFP")
+  lazy val afp_hg: Mercurial.Repository = Mercurial.repository(afp_repos)
 
   val mailman_archives_dir = Path.explode("~/cronjob/Mailman")
 
@@ -43,8 +46,8 @@ object Isabelle_Cronjob {
 
   /* init and exit */
 
-  def get_rev(): String = Mercurial.repository(isabelle_repos).id()
-  def get_afp_rev(): String = Mercurial.repository(afp_repos).id()
+  def get_rev(hg: Mercurial.Repository = isabelle_hg): String = hg.id()
+  def get_afp_rev(): String = afp_hg.id()
 
   val init: Logger_Task =
     Logger_Task("init",
@@ -148,19 +151,25 @@ object Isabelle_Cronjob {
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)
 
-    def pick(
-      options: Options,
-      filter: Build_Log.History.Entry => Boolean
-    ): Option[(String, Option[String])] = {
-      val rev = get_rev()
+    def history(
+      db: SQL.Database,
+      days: Int = 0,
+      hg: Mercurial.Repository = isabelle_hg
+    ): Build_Log.History = {
+      val rev = get_rev(hg = hg)
       val afp_rev = if (afp) Some(get_afp_rev()) else None
+      val base_rev = hg.id(history_base)
+      val filter_nodes = hg.graph().all_succs(List(base_rev)).toSet
+      Build_Log.History.retrieve(db, days, rev, afp_rev, sql,
+        entry => filter_nodes(entry.isabelle_version))
+    }
+
+    def pick(options: Options): Option[(String, Option[String])] = {
 
       val store = Build_Log.store(options)
       using(store.open_database()) { db =>
         def get(days: Int, gap: Int): Option[(String, Option[String])] = {
-          val runs =
-            Build_Log.History.retrieve(db, days, rev, afp_rev, sql)
-              .unknown_runs(pre = filter, post = run => run.length >= gap)
+          val runs = history(db, days = days).unknown_runs(filter = run => run.length >= gap)
           Build_Log.History.Run.longest(runs).median.map(_.versions)
         }
 
@@ -560,18 +569,6 @@ object Isabelle_Cronjob {
         })
 
 
-    /* repository structure */
-
-    val hg = Mercurial.repository(isabelle_repos)
-    val hg_graph = hg.graph()
-
-    def history_base_filter(r: Remote_Build): Build_Log.History.Entry => Boolean = {
-      val base_rev = hg.id(r.history_base)
-      val nodes = hg_graph.all_succs(List(base_rev)).toSet
-      (entry: Build_Log.History.Entry) => nodes(entry.isabelle_version)
-    }
-
-
     /* main */
 
     val main_start_date = Date.now()
@@ -604,7 +601,7 @@ object Isabelle_Cronjob {
                       for {
                         (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
                       } yield () => {
-                        r.pick(logger.options, history_base_filter(r))
+                        r.pick(logger.options)
                           .map({ case (rev, afp_rev) =>
                             remote_build_history(rev, afp_rev, i, r,
                               progress = build_log_database_progress) })
