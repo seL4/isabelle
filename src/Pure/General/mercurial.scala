@@ -352,18 +352,27 @@ object Mercurial {
       }
     }
 
-    def graph(): Graph = {
-      val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
-      val log_result =
-        log(template = """node: {node|short} {p1node|short} {p2node|short}\n""")
-      split_lines(log_result).foldLeft(Graph.string[Unit]) {
-        case (graph, Node(x, y, z)) =>
-          val deps = List(y, z).filterNot(s => s.forall(_ == '0'))
-          val graph1 = (x :: deps).foldLeft(graph)(_.default_node(_, ()))
-          deps.foldLeft(graph1)({ case (g, dep) => g.add_edge(dep, x) })
-        case (graph, _) => graph
-      }
-    }
+    private val cache_graph = Synchronized[(List[String], Graph)]((Nil, Graph.string[Unit]))
+
+    def graph(): Graph =
+      cache_graph.change_result({ case (old_topo, old_graph) =>
+        val topo = heads(options = "--topo")
+        val graph =
+          if (topo == old_topo) old_graph
+          else {
+            val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
+            val log_result =
+              log(template = """node: {node|short} {p1node|short} {p2node|short}\n""")
+            split_lines(log_result).foldLeft(Graph.string[Unit]) {
+              case (graph, Node(x, y, z)) =>
+                val deps = List(y, z).filterNot(s => s.forall(_ == '0'))
+                val graph1 = (x :: deps).foldLeft(graph)(_.default_node(_, ()))
+                deps.foldLeft(graph1)({ case (g, dep) => g.add_edge(dep, x) })
+              case (graph, _) => graph
+            }
+          }
+        (graph, (topo, graph))
+      })
   }
 
 
