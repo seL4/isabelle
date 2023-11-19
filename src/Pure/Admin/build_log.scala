@@ -1202,10 +1202,6 @@ object Build_Log {
     ) {
       def unknown: Boolean = !known
       def versions: (String, Option[String]) = (isabelle_version, afp_version)
-
-      def known_versions(rev: String, afp_rev: Option[String]): Boolean =
-        known && rev.nonEmpty && isabelle_version == rev &&
-        (afp_rev.isEmpty || afp_rev.get.nonEmpty && afp_version == afp_rev)
     }
 
     object Run {
