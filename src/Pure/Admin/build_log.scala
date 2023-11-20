@@ -1213,7 +1213,8 @@ object Build_Log {
       def is_empty: Boolean = entries.isEmpty
       val length: Int = entries.length
       def max(other: Run): Run = if (length >= other.length) this else other
-      def median: Option[Entry] = if (is_empty) None else Some(entries(length / 2))
+      def median: Option[Entry] =
+        if (is_empty) None else Some(entries((length - 1) / 2))
 
       override def toString: String = {
         val s = if (is_empty) "" else "length = " + length + ", median = " + median.get.pull_date
