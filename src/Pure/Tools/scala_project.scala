@@ -11,7 +11,7 @@ package isabelle
 object Scala_Project {
   /** build tools **/
 
-  val java_version: String = "17"
+  val java_version: String = "21"
   val scala_version: String = "3.3.0"
 
   abstract class Build_Tool {
