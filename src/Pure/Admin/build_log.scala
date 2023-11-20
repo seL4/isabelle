@@ -750,27 +750,6 @@ object Build_Log {
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
     }
 
-    def select_recent_versions(
-      days: Int = 0,
-      rev: String = "",
-      afp_rev: Option[String] = None,
-      sql: PostgreSQL.Source = ""
-    ): PostgreSQL.Source = {
-      val afp = afp_rev.isDefined
-      val version = Prop.isabelle_version
-      val table1 = recent_pull_date_table(days = days, rev = rev, afp_rev = afp_rev)
-      val table2 = meta_info_table
-      val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = sql))
-
-      val columns =
-        table1.columns.map(c => c(table1)) :::
-          List(known.copy(expr = log_name(aux_table).defined))
-      SQL.select(columns, distinct = true) +
-        table1.query_named + SQL.join_outer + aux_table.query_named +
-        " ON " + version(table1) + " = " + version(aux_table) +
-        SQL.order_by(List(pull_date(afp)(table1)), descending = true)
-    }
-
 
     /* universal view on main data */
 
@@ -1231,12 +1210,23 @@ object Build_Log {
       filter: Entry => Boolean = _ => true
     ): History = {
       val afp = afp_rev.isDefined
+      val select_recent_versions = {
+        val table1 = private_data.recent_pull_date_table(days = days, rev = rev, afp_rev = afp_rev)
+        val table2 = private_data.meta_info_table
+        val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = SQL.where(sql)))
+
+        val columns =
+          table1.columns.map(c => c(table1)) :::
+            List(private_data.known.copy(expr = private_data.log_name(aux_table).defined))
+
+        SQL.select(columns, distinct = true) +
+          table1.query_named + SQL.join_outer + aux_table.query_named +
+          " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(aux_table) +
+          SQL.order_by(List(private_data.pull_date(afp)(table1)), descending = true)
+      }
 
       val entries =
-        db.execute_query_statement(
-          private_data.select_recent_versions(
-            days = days, rev = rev, afp_rev = afp_rev, sql = SQL.where(sql)),
-          List.from[Entry],
+        db.execute_query_statement(select_recent_versions, List.from[Entry],
           { res =>
             val known = res.bool(private_data.known)
             val isabelle_version = res.string(Prop.isabelle_version)
