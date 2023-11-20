@@ -46,6 +46,7 @@ object Build_Status {
           Build_Log.Prop.afp_version,
           Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
           Build_Log.Settings.ML_PLATFORM,
+          Build_Log.private_data.log_name,
           Build_Log.private_data.session_name,
           Build_Log.private_data.chapter,
           Build_Log.private_data.groups,
@@ -111,13 +112,14 @@ object Build_Status {
   sealed case class Session(
     name: String,
     threads: Int,
-    entries: List[Entry],
+    entries: Map[String, Entry],
     ml_statistics: ML_Statistics,
     ml_statistics_date: Long
   ) {
     require(entries.nonEmpty, "no entries")
 
-    lazy val sorted_entries: List[Entry] = entries.sortBy(entry => - entry.date)
+    lazy val sorted_entries: List[Entry] =
+      entries.valuesIterator.toList.sortBy(entry => - entry.date)
 
     def head: Entry = sorted_entries.head
     def order: Long = - head.timing.elapsed.ms
@@ -265,6 +267,7 @@ object Build_Status {
         db.using_statement(sql) { stmt =>
           using(stmt.execute_query()) { res =>
             while (res.next()) {
+              val log_name = res.string(Build_Log.private_data.log_name)
               val session_name = res.string(Build_Log.private_data.session_name)
               val chapter = res.string(Build_Log.private_data.chapter)
               val groups = split_lines(res.string(Build_Log.private_data.groups))
@@ -338,17 +341,21 @@ object Build_Status {
               val session =
                 sessions.get(session_name) match {
                   case None =>
-                    Session(session_name, threads, List(entry), ml_stats, entry.date)
-                  case Some(old) =>
+                    val entries = Map(log_name -> entry)
+                    Some(Session(session_name, threads, entries, ml_stats, entry.date))
+                  case Some(old) if !old.entries.isDefinedAt(log_name) =>
+                    val entries1 = old.entries + (log_name -> entry)
                     val (ml_stats1, ml_stats1_date) =
                       if (entry.date > old.ml_statistics_date) (ml_stats, entry.date)
                       else (old.ml_statistics, old.ml_statistics_date)
-                    Session(session_name, threads, entry :: old.entries, ml_stats1, ml_stats1_date)
+                    Some(Session(session_name, threads, entries1, ml_stats1, ml_stats1_date))
+                  case Some(_) => None
                 }
 
-              if ((!afp || chapter == AFP.chapter) &&
+              if (session.isDefined &&
+                  (!afp || chapter == AFP.chapter) &&
                   (!profile.bulky || groups.exists(AFP.groups_bulky.toSet))) {
-                data_entries += (data_name -> (sessions + (session_name -> session)))
+                data_entries += (data_name -> (sessions + (session_name -> session.get)))
               }
             }
           }
