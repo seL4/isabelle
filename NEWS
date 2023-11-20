@@ -99,6 +99,8 @@ before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
 * Update to official Poly/ML 5.9.1.
 
+* Update to OpenJDK 21: the current long-term support version of Java.
+
 * Update to GHC stack 2.13.1 with support for all platforms, including
 Apple Silicon.
 
