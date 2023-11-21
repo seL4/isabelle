@@ -447,6 +447,10 @@ next
     by (simp add: * algebra_simps)
 qed
 
+lemma horner_sum_of_bool_2_less:
+  \<open>(horner_sum of_bool 2 bs) < 2 ^ length bs\<close>
+  by (fact horner_sum_bound)
+
 end
 
 lemma nat_horner_sum [simp]:

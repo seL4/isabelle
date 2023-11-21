@@ -72,9 +72,8 @@ qed
 
 lemma even_succ_mod_exp [simp]:
   \<open>(1 + a) mod 2 ^ n = 1 + (a mod 2 ^ n)\<close> if \<open>even a\<close> and \<open>n > 0\<close>
-  using div_mult_mod_eq [of \<open>1 + a\<close> \<open>2 ^ n\<close>] that
-  apply simp
-  by (metis local.add.left_commute local.add_left_cancel local.div_mult_mod_eq)
+  using div_mult_mod_eq [of \<open>1 + a\<close> \<open>2 ^ n\<close>] div_mult_mod_eq [of a \<open>2 ^ n\<close>] that
+  by simp (metis (full_types) add.left_commute add_left_imp_eq)
 
 lemma bits_mod_by_1 [simp]:
   \<open>a mod 1 = 0\<close>
@@ -155,33 +154,33 @@ lemma exp_eq_0_imp_not_bit:
   \<open>\<not> bit a n\<close> if \<open>2 ^ n = 0\<close>
   using that by (simp add: bit_iff_odd)
 
-definition
-  possible_bit :: "'a itself \<Rightarrow> nat \<Rightarrow> bool"
-  where
-  "possible_bit tyrep n = (2 ^ n \<noteq> (0 :: 'a))"
+definition possible_bit :: \<open>'a itself \<Rightarrow> nat \<Rightarrow> bool\<close>
+  where \<open>possible_bit TYPE('a) n \<longleftrightarrow> 2 ^ n \<noteq> 0\<close>
 
-lemma possible_bit_0[simp]:
-  "possible_bit ty 0"
+lemma possible_bit_0 [simp]:
+  \<open>possible_bit TYPE('a) 0\<close>
   by (simp add: possible_bit_def)
 
 lemma fold_possible_bit:
-  "2 ^ n = (0 :: 'a) \<longleftrightarrow> \<not> possible_bit TYPE('a) n"
+  \<open>2 ^ n = 0 \<longleftrightarrow> \<not> possible_bit TYPE('a) n\<close>
   by (simp add: possible_bit_def)
 
-lemmas impossible_bit = exp_eq_0_imp_not_bit[simplified fold_possible_bit]
-
 lemma bit_imp_possible_bit:
-  "bit a n \<Longrightarrow> possible_bit TYPE('a) n"
-  by (rule ccontr) (simp add: impossible_bit)
+  \<open>possible_bit TYPE('a) n\<close> if \<open>bit a n\<close>
+  using that by (auto simp add: possible_bit_def exp_eq_0_imp_not_bit)
+
+lemma impossible_bit:
+  \<open>\<not> bit a n\<close> if \<open>\<not> possible_bit TYPE('a) n\<close>
+  using that by (blast dest: bit_imp_possible_bit)
 
 lemma possible_bit_less_imp:
-  "possible_bit tyrep i \<Longrightarrow> j \<le> i \<Longrightarrow> possible_bit tyrep j"
-  using power_add[of "2 :: 'a" j "i - j"]
-  by (clarsimp simp: possible_bit_def eq_commute[where a=0])
+  \<open>possible_bit TYPE('a) j\<close> if \<open>possible_bit TYPE('a) i\<close> \<open>j \<le> i\<close>
+  using power_add [of 2 j \<open>i - j\<close>] that mult_not_zero [of \<open>2 ^ j\<close> \<open>2 ^ (i - j)\<close>]
+  by (simp add: possible_bit_def)
 
-lemma possible_bit_min[simp]:
-  "possible_bit tyrep (min i j) \<longleftrightarrow> possible_bit tyrep i \<or> possible_bit tyrep j"
-  by (auto simp: min_def elim: possible_bit_less_imp)
+lemma possible_bit_min [simp]:
+  \<open>possible_bit TYPE('a) (min i j) \<longleftrightarrow> possible_bit TYPE('a) i \<or> possible_bit TYPE('a) j\<close>
+  by (auto simp add: min_def elim: possible_bit_less_imp)
 
 lemma bit_eqI:
   \<open>a = b\<close> if \<open>\<And>n. possible_bit TYPE('a) n \<Longrightarrow> bit a n \<longleftrightarrow> bit b n\<close>
@@ -389,32 +388,36 @@ next
     by simp
 qed
 
+lemma bit_of_bool_iff [bit_simps]:
+  \<open>bit (of_bool b) n \<longleftrightarrow> b \<and> n = 0\<close>
+  by (simp add: bit_1_iff)
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
-  "P n" if zero: "P 0"
-    and even: "\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)"
-    and odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
+  \<open>P n\<close> if zero: \<open>P 0\<close>
+    and even: \<open>\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)\<close>
+    and odd: \<open>\<And>n. P n \<Longrightarrow> P (Suc (2 * n))\<close>
 proof (induction n rule: less_induct)
   case (less n)
-  show "P n"
-  proof (cases "n = 0")
+  show \<open>P n\<close>
+  proof (cases \<open>n = 0\<close>)
     case True with zero show ?thesis by simp
   next
     case False
-    with less have hyp: "P (n div 2)" by simp
+    with less have hyp: \<open>P (n div 2)\<close> by simp
     show ?thesis
-    proof (cases "even n")
+    proof (cases \<open>even n\<close>)
       case True
-      then have "n \<noteq> 1"
+      then have \<open>n \<noteq> 1\<close>
         by auto
-      with \<open>n \<noteq> 0\<close> have "n div 2 > 0"
+      with \<open>n \<noteq> 0\<close> have \<open>n div 2 > 0\<close>
         by simp
-      with \<open>even n\<close> hyp even [of "n div 2"] show ?thesis
+      with \<open>even n\<close> hyp even [of \<open>n div 2\<close>] show ?thesis
         by simp
     next
       case False
-      with hyp odd [of "n div 2"] show ?thesis
+      with hyp odd [of \<open>n div 2\<close>] show ?thesis
         by simp
     qed
   qed
@@ -466,8 +469,8 @@ qed (auto simp add: div_mult2_eq mod_mult2_eq power_add power_diff bit_nat_def)
 
 end
 
-lemma possible_bit_nat[simp]:
-  "possible_bit TYPE(nat) n"
+lemma possible_bit_nat [simp]:
+  \<open>possible_bit TYPE(nat) n\<close>
   by (simp add: possible_bit_def)
 
 lemma not_bit_Suc_0_Suc [simp]:
@@ -478,69 +481,8 @@ lemma not_bit_Suc_0_numeral [simp]:
   \<open>\<not> bit (Suc 0) (numeral n)\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma int_bit_induct [case_names zero minus even odd]:
-  "P k" if zero_int: "P 0"
-    and minus_int: "P (- 1)"
-    and even_int: "\<And>k. P k \<Longrightarrow> k \<noteq> 0 \<Longrightarrow> P (k * 2)"
-    and odd_int: "\<And>k. P k \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> P (1 + (k * 2))" for k :: int
-proof (cases "k \<ge> 0")
-  case True
-  define n where "n = nat k"
-  with True have "k = int n"
-    by simp
-  then show "P k"
-  proof (induction n arbitrary: k rule: nat_bit_induct)
-    case zero
-    then show ?case
-      by (simp add: zero_int)
-  next
-    case (even n)
-    have "P (int n * 2)"
-      by (rule even_int) (use even in simp_all)
-    with even show ?case
-      by (simp add: ac_simps)
-  next
-    case (odd n)
-    have "P (1 + (int n * 2))"
-      by (rule odd_int) (use odd in simp_all)
-    with odd show ?case
-      by (simp add: ac_simps)
-  qed
-next
-  case False
-  define n where "n = nat (- k - 1)"
-  with False have "k = - int n - 1"
-    by simp
-  then show "P k"
-  proof (induction n arbitrary: k rule: nat_bit_induct)
-    case zero
-    then show ?case
-      by (simp add: minus_int)
-  next
-    case (even n)
-    have "P (1 + (- int (Suc n) * 2))"
-      by (rule odd_int) (use even in \<open>simp_all add: algebra_simps\<close>)
-    also have "\<dots> = - int (2 * n) - 1"
-      by (simp add: algebra_simps)
-    finally show ?case
-      using even.prems by simp
-  next
-    case (odd n)
-    have "P (- int (Suc n) * 2)"
-      by (rule even_int) (use odd in \<open>simp_all add: algebra_simps\<close>)
-    also have "\<dots> = - int (Suc (2 * n)) - 1"
-      by (simp add: algebra_simps)
-    finally show ?case
-      using odd.prems by simp
-  qed
-qed
-
 context semiring_bits
 begin
-
-lemma bit_of_bool_iff [bit_simps]:
-  \<open>bit (of_bool b) n \<longleftrightarrow> b \<and> n = 0\<close>
-  by (simp add: bit_1_iff)
 
 lemma bit_of_nat_iff [bit_simps]:
   \<open>bit (of_nat m) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> bit m n\<close>
@@ -572,6 +514,63 @@ next
 qed
 
 end
+
+lemma int_bit_induct [case_names zero minus even odd]:
+  \<open>P k\<close> if zero_int: \<open>P 0\<close>
+    and minus_int: \<open>P (- 1)\<close>
+    and even_int: \<open>\<And>k. P k \<Longrightarrow> k \<noteq> 0 \<Longrightarrow> P (k * 2)\<close>
+    and odd_int: \<open>\<And>k. P k \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> P (1 + (k * 2))\<close> for k :: int
+proof (cases \<open>k \<ge> 0\<close>)
+  case True
+  define n where \<open>n = nat k\<close>
+  with True have \<open>k = int n\<close>
+    by simp
+  then show \<open>P k\<close>
+  proof (induction n arbitrary: k rule: nat_bit_induct)
+    case zero
+    then show ?case
+      by (simp add: zero_int)
+  next
+    case (even n)
+    have \<open>P (int n * 2)\<close>
+      by (rule even_int) (use even in simp_all)
+    with even show ?case
+      by (simp add: ac_simps)
+  next
+    case (odd n)
+    have \<open>P (1 + (int n * 2))\<close>
+      by (rule odd_int) (use odd in simp_all)
+    with odd show ?case
+      by (simp add: ac_simps)
+  qed
+next
+  case False
+  define n where \<open>n = nat (- k - 1)\<close>
+  with False have \<open>k = - int n - 1\<close>
+    by simp
+  then show \<open>P k\<close>
+  proof (induction n arbitrary: k rule: nat_bit_induct)
+    case zero
+    then show ?case
+      by (simp add: minus_int)
+  next
+    case (even n)
+    have \<open>P (1 + (- int (Suc n) * 2))\<close>
+      by (rule odd_int) (use even in \<open>simp_all add: algebra_simps\<close>)
+    also have \<open>\<dots> = - int (2 * n) - 1\<close>
+      by (simp add: algebra_simps)
+    finally show ?case
+      using even.prems by simp
+  next
+    case (odd n)
+    have \<open>P (- int (Suc n) * 2)\<close>
+      by (rule even_int) (use odd in \<open>simp_all add: algebra_simps\<close>)
+    also have \<open>\<dots> = - int (Suc (2 * n)) - 1\<close>
+      by (simp add: algebra_simps)
+    finally show ?case
+      using odd.prems by simp
+  qed
+qed
 
 instantiation int :: semiring_bits
 begin
@@ -644,13 +643,12 @@ qed (auto simp add: zdiv_zmult2_eq zmod_zmult2_eq power_add power_diff not_le bi
 
 end
 
-lemma possible_bit_int[simp]:
-  "possible_bit TYPE(int) n"
+lemma possible_bit_int [simp]:
+  \<open>possible_bit TYPE(int) n\<close>
   by (simp add: possible_bit_def)
 
 lemma bit_not_int_iff':
-  \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close>
-  for k :: int
+  \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close> for k :: int
 proof (induction n arbitrary: k)
   case 0
   show ?case
@@ -857,35 +855,35 @@ lemma div_push_bit_of_1_eq_drop_bit:
   by (simp add: push_bit_eq_mult drop_bit_eq_div)
 
 lemma bits_ident:
-  "push_bit n (drop_bit n a) + take_bit n a = a"
+  \<open>push_bit n (drop_bit n a) + take_bit n a = a\<close>
   using div_mult_mod_eq by (simp add: push_bit_eq_mult take_bit_eq_mod drop_bit_eq_div)
 
 lemma push_bit_push_bit [simp]:
-  "push_bit m (push_bit n a) = push_bit (m + n) a"
+  \<open>push_bit m (push_bit n a) = push_bit (m + n) a\<close>
   by (simp add: push_bit_eq_mult power_add ac_simps)
 
 lemma push_bit_0_id [simp]:
-  "push_bit 0 = id"
+  \<open>push_bit 0 = id\<close>
   by (simp add: fun_eq_iff push_bit_eq_mult)
 
 lemma push_bit_of_0 [simp]:
-  "push_bit n 0 = 0"
+  \<open>push_bit n 0 = 0\<close>
   by (simp add: push_bit_eq_mult)
 
 lemma push_bit_of_1 [simp]:
-  "push_bit n 1 = 2 ^ n"
+  \<open>push_bit n 1 = 2 ^ n\<close>
   by (simp add: push_bit_eq_mult)
 
 lemma push_bit_Suc [simp]:
-  "push_bit (Suc n) a = push_bit n (a * 2)"
+  \<open>push_bit (Suc n) a = push_bit n (a * 2)\<close>
   by (simp add: push_bit_eq_mult ac_simps)
 
 lemma push_bit_double:
-  "push_bit n (a * 2) = push_bit n a * 2"
+  \<open>push_bit n (a * 2) = push_bit n a * 2\<close>
   by (simp add: push_bit_eq_mult ac_simps)
 
 lemma push_bit_add:
-  "push_bit n (a + b) = push_bit n a + push_bit n b"
+  \<open>push_bit n (a + b) = push_bit n a + push_bit n b\<close>
   by (simp add: push_bit_eq_mult algebra_simps)
 
 lemma push_bit_numeral [simp]:
@@ -916,39 +914,39 @@ lemma take_bit_Suc_0 [simp]:
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_of_0 [simp]:
-  "take_bit n 0 = 0"
+  \<open>take_bit n 0 = 0\<close>
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_of_1 [simp]:
-  "take_bit n 1 = of_bool (n > 0)"
+  \<open>take_bit n 1 = of_bool (n > 0)\<close>
   by (cases n) (simp_all add: take_bit_Suc)
 
 lemma drop_bit_of_0 [simp]:
-  "drop_bit n 0 = 0"
+  \<open>drop_bit n 0 = 0\<close>
   by (simp add: drop_bit_eq_div)
 
 lemma drop_bit_of_1 [simp]:
-  "drop_bit n 1 = of_bool (n = 0)"
+  \<open>drop_bit n 1 = of_bool (n = 0)\<close>
   by (simp add: drop_bit_eq_div)
 
 lemma drop_bit_0 [simp]:
-  "drop_bit 0 = id"
+  \<open>drop_bit 0 = id\<close>
   by (simp add: fun_eq_iff drop_bit_eq_div)
 
 lemma drop_bit_Suc:
-  "drop_bit (Suc n) a = drop_bit n (a div 2)"
+  \<open>drop_bit (Suc n) a = drop_bit n (a div 2)\<close>
   using div_exp_eq [of a 1] by (simp add: drop_bit_eq_div)
 
 lemma drop_bit_rec:
-  "drop_bit n a = (if n = 0 then a else drop_bit (n - 1) (a div 2))"
+  \<open>drop_bit n a = (if n = 0 then a else drop_bit (n - 1) (a div 2))\<close>
   by (cases n) (simp_all add: drop_bit_Suc)
 
 lemma drop_bit_half:
-  "drop_bit n (a div 2) = drop_bit n a div 2"
+  \<open>drop_bit n (a div 2) = drop_bit n a div 2\<close>
   by (induction n arbitrary: a) (simp_all add: drop_bit_Suc)
 
 lemma drop_bit_of_bool [simp]:
-  "drop_bit n (of_bool b) = of_bool (n = 0 \<and> b)"
+  \<open>drop_bit n (of_bool b) = of_bool (n = 0 \<and> b)\<close>
   by (cases n) simp_all
 
 lemma even_take_bit_eq [simp]:
@@ -956,22 +954,22 @@ lemma even_take_bit_eq [simp]:
   by (simp add: take_bit_rec [of n a])
 
 lemma take_bit_take_bit [simp]:
-  "take_bit m (take_bit n a) = take_bit (min m n) a"
+  \<open>take_bit m (take_bit n a) = take_bit (min m n) a\<close>
   by (simp add: take_bit_eq_mod mod_exp_eq ac_simps)
 
 lemma drop_bit_drop_bit [simp]:
-  "drop_bit m (drop_bit n a) = drop_bit (m + n) a"
+  \<open>drop_bit m (drop_bit n a) = drop_bit (m + n) a\<close>
   by (simp add: drop_bit_eq_div power_add div_exp_eq ac_simps)
 
 lemma push_bit_take_bit:
-  "push_bit m (take_bit n a) = take_bit (m + n) (push_bit m a)"
+  \<open>push_bit m (take_bit n a) = take_bit (m + n) (push_bit m a)\<close>
   apply (simp add: push_bit_eq_mult take_bit_eq_mod power_add ac_simps)
   using mult_exp_mod_exp_eq [of m \<open>m + n\<close> a] apply (simp add: ac_simps power_add)
   done
 
 lemma take_bit_push_bit:
-  "take_bit m (push_bit n a) = push_bit n (take_bit (m - n) a)"
-proof (cases "m \<le> n")
+  \<open>take_bit m (push_bit n a) = push_bit n (take_bit (m - n) a)\<close>
+proof (cases \<open>m \<le> n\<close>)
   case True
   then show ?thesis
     apply (simp add:)
@@ -983,16 +981,16 @@ proof (cases "m \<le> n")
 next
   case False
   then show ?thesis
-    using push_bit_take_bit [of n "m - n" a]
+    using push_bit_take_bit [of n \<open>m - n\<close> a]
     by simp
 qed
 
 lemma take_bit_drop_bit:
-  "take_bit m (drop_bit n a) = drop_bit n (take_bit (m + n) a)"
+  \<open>take_bit m (drop_bit n a) = drop_bit n (take_bit (m + n) a)\<close>
   by (simp add: drop_bit_eq_div take_bit_eq_mod ac_simps div_exp_mod_exp_eq)
 
 lemma drop_bit_take_bit:
-  "drop_bit m (take_bit n a) = take_bit (n - m) (drop_bit m a)"
+  \<open>drop_bit m (take_bit n a) = take_bit (n - m) (drop_bit m a)\<close>
 proof (cases "m \<le> n")
   case True
   then show ?thesis
@@ -1197,11 +1195,9 @@ lemma bit_iff_and_push_bit_not_eq_0:
   apply (simp_all add: bit_exp_iff)
   done
 
-lemmas set_bit_def = set_bit_eq_or
-
 lemma bit_set_bit_iff [bit_simps]:
   \<open>bit (set_bit m a) n \<longleftrightarrow> bit a n \<or> (m = n \<and> possible_bit TYPE('a) n)\<close>
-  by (auto simp add: set_bit_def bit_or_iff bit_exp_iff)
+  by (auto simp add: set_bit_eq_or bit_or_iff bit_exp_iff)
 
 lemma even_set_bit_iff:
   \<open>even (set_bit m a) \<longleftrightarrow> even a \<and> m \<noteq> 0\<close>
@@ -1215,8 +1211,6 @@ lemma and_exp_eq_0_iff_not_bit:
   \<open>a AND 2 ^ n = 0 \<longleftrightarrow> \<not> bit a n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
   using bit_imp_possible_bit[of a n]
   by (auto simp add: bit_eq_iff bit_simps)
-
-lemmas flip_bit_def = flip_bit_eq_xor
 
 lemma bit_flip_bit_iff [bit_simps]:
   \<open>bit (flip_bit m a) n \<longleftrightarrow> (m = n \<longleftrightarrow> \<not> bit a n) \<and> possible_bit TYPE('a) n\<close>
@@ -1295,6 +1289,44 @@ lemma mask_eq_0_iff [simp]:
   \<open>mask n = 0 \<longleftrightarrow> n = 0\<close>
   by (cases n) (simp_all add: mask_Suc_double or_eq_0_iff)
 
+lemma bit_horner_sum_bit_iff [bit_simps]:
+  \<open>bit (horner_sum of_bool 2 bs) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n < length bs \<and> bs ! n\<close>
+proof (induction bs arbitrary: n)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by (simp add: bit_0)
+  next
+    case (Suc m)
+    with bit_rec [of _ n] Cons.prems Cons.IH [of m]
+    show ?thesis
+      by (simp add: bit_simps)
+        (auto simp add: possible_bit_less_imp bit_simps simp flip: bit_Suc)
+  qed
+qed
+
+lemma horner_sum_bit_eq_take_bit:
+  \<open>horner_sum of_bool 2 (map (bit a) [0..<n]) = take_bit n a\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps)
+
+lemma take_bit_horner_sum_bit_eq:
+  \<open>take_bit n (horner_sum of_bool 2 bs) = horner_sum of_bool 2 (take n bs)\<close>
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_horner_sum_bit_iff)
+
+lemma take_bit_sum:
+  \<open>take_bit n a = (\<Sum>k = 0..<n. push_bit k (of_bool (bit a k)))\<close>
+  by (simp flip: horner_sum_bit_eq_take_bit add: horner_sum_eq_sum push_bit_eq_mult)
+
+lemmas set_bit_def = set_bit_eq_or
+
+lemmas flip_bit_def = flip_bit_eq_xor
+
 end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
@@ -1303,14 +1335,16 @@ class ring_bit_operations = semiring_bit_operations + ring_parity +
   assumes minus_eq_not_minus_1: \<open>- a = NOT (a - 1)\<close>
 begin
 
-lemmas bit_not_iff[bit_simps] = bit_not_iff_eq[unfolded fold_possible_bit]
-
 text \<open>
   For the sake of code generation \<^const>\<open>not\<close> is specified as
   definitional class operation.  Note that \<^const>\<open>not\<close> has no
   sensible definition for unlimited but only positive bit strings
   (type \<^typ>\<open>nat\<close>).
 \<close>
+
+lemma bit_not_iff [bit_simps]:
+  \<open>bit (NOT a) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit a n\<close>
+  by (simp add: bit_not_iff_eq fold_possible_bit)
 
 lemma bits_minus_1_mod_2_eq [simp]:
   \<open>(- 1) mod 2 = 1\<close>
@@ -1448,8 +1482,6 @@ lemma unset_bit_eq_and_not:
   \<open>unset_bit n a = a AND NOT (push_bit n 1)\<close>
   by (rule bit_eqI) (auto simp add: bit_simps)
 
-lemmas unset_bit_def = unset_bit_eq_and_not
-
 lemma push_bit_Suc_minus_numeral [simp]:
   \<open>push_bit (Suc n) (- numeral k) = push_bit n (- numeral (Num.Bit0 k))\<close>
   apply (simp only: numeral_Bit0)
@@ -1486,6 +1518,8 @@ lemma push_bit_numeral_minus_1 [simp]:
   \<open>push_bit (numeral n) (- 1) = - (2 ^ numeral n)\<close>
   by (simp add: push_bit_eq_mult)
 
+lemmas unset_bit_def = unset_bit_eq_and_not
+
 end
 
 
@@ -1521,27 +1555,15 @@ function and_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
   by auto
 
 termination proof (relation \<open>measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>))\<close>)
+  have less_eq: \<open>\<bar>k div 2\<bar> \<le> \<bar>k\<bar>\<close> for k :: int
+    by (cases k) (simp_all add: divide_int_def nat_add_distrib)
+  then have less: \<open>\<bar>k div 2\<bar> < \<bar>k\<bar>\<close> if \<open>k \<notin> {0, - 1}\<close> for k :: int
+    using that by (auto simp add: less_le [of k])
   show \<open>wf (measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>)))\<close>
     by simp
   show \<open>((k div 2, l div 2), k, l) \<in> measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>))\<close>
     if \<open>\<not> (k \<in> {0, - 1} \<and> l \<in> {0, - 1})\<close> for k l
   proof -
-    have less_eq: \<open>\<bar>k div 2\<bar> \<le> \<bar>k\<bar>\<close> for k :: int
-      by (cases k) (simp_all add: divide_int_def nat_add_distrib)
-    have less: \<open>\<bar>k div 2\<bar> < \<bar>k\<bar>\<close> if \<open>k \<notin> {0, - 1}\<close> for k :: int
-    proof (cases k)
-      case (nonneg n)
-      with that show ?thesis
-        by (simp add: int_div_less_self)
-    next
-      case (neg n)
-      with that have \<open>n \<noteq> 0\<close>
-        by simp
-      then have \<open>n div 2 < n\<close>
-        by (simp add: div_less_iff_less_mult)
-      with neg that show ?thesis
-        by (simp add: divide_int_def nat_add_distrib)
-    qed
     from that have *: \<open>k \<notin> {0, - 1} \<or> l \<notin> {0, - 1}\<close>
       by simp
     then have \<open>0 < \<bar>k\<bar> + \<bar>l\<bar>\<close>
@@ -1813,10 +1835,8 @@ lemma xor_negative_int_iff [simp]:
   by (subst Not_eq_iff [symmetric]) (auto simp add: not_less)
 
 lemma OR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> x\<close> \<open>x < 2 ^ n\<close> \<open>y < 2 ^ n\<close>
-  shows \<open>x OR y < 2 ^ n\<close>
-using assms proof (induction x arbitrary: y n rule: int_bit_induct)
+  \<open>x OR y < 2 ^ n\<close> if \<open>0 \<le> x\<close> \<open>x < 2 ^ n\<close> \<open>y < 2 ^ n\<close> for x y :: int
+using that proof (induction x arbitrary: y n rule: int_bit_induct)
   case zero
   then show ?case
     by simp
@@ -1837,10 +1857,8 @@ next
 qed
 
 lemma XOR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> x\<close> \<open>x < 2 ^ n\<close> \<open>y < 2 ^ n\<close>
-  shows \<open>x XOR y < 2 ^ n\<close>
-using assms proof (induction x arbitrary: y n rule: int_bit_induct)
+  \<open>x XOR y < 2 ^ n\<close> if \<open>0 \<le> x\<close> \<open>x < 2 ^ n\<close> \<open>y < 2 ^ n\<close> for x y :: int
+using that proof (induction x arbitrary: y n rule: int_bit_induct)
   case zero
   then show ?case
     by simp
@@ -1861,28 +1879,20 @@ next
 qed
 
 lemma AND_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> x\<close>
-  shows \<open>0 \<le> x AND y\<close>
-  using assms by simp
+  \<open>0 \<le> x AND y\<close> if \<open>0 \<le> x\<close> for x y :: int
+  using that by simp
 
 lemma OR_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> x\<close> \<open>0 \<le> y\<close>
-  shows \<open>0 \<le> x OR y\<close>
-  using assms by simp
+  \<open>0 \<le> x OR y\<close> if \<open>0 \<le> x\<close> \<open>0 \<le> y\<close> for x y :: int
+  using that by simp
 
 lemma XOR_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> x\<close> \<open>0 \<le> y\<close>
-  shows \<open>0 \<le> x XOR y\<close>
-  using assms by simp
+  \<open>0 \<le> x XOR y\<close> if \<open>0 \<le> x\<close> \<open>0 \<le> y\<close> for x y :: int
+  using that by simp
 
 lemma AND_upper1 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> x\<close>
-  shows \<open>x AND y \<le> x\<close>
-using assms proof (induction x arbitrary: y rule: int_bit_induct)
+  \<open>x AND y \<le> x\<close> if \<open>0 \<le> x\<close> for x y :: int
+using that proof (induction x arbitrary: y rule: int_bit_induct)
   case (odd k)
   then have \<open>k AND y div 2 \<le> k\<close>
     by simp
@@ -1890,19 +1900,28 @@ using assms proof (induction x arbitrary: y rule: int_bit_induct)
     by (simp add: and_int_rec [of \<open>1 + _ * 2\<close>])
 qed (simp_all add: and_int_rec [of \<open>_ * 2\<close>])
 
-lemmas AND_upper1' [simp] = order_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-lemmas AND_upper1'' [simp] = order_le_less_trans [OF AND_upper1] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
+lemma AND_upper1' [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
+  \<open>y AND x \<le> z\<close> if \<open>0 \<le> y\<close> \<open>y \<le> z\<close> for x y z :: int
+  using _ \<open>y \<le> z\<close> by (rule order_trans) (use \<open>0 \<le> y\<close> in simp)
+
+lemma AND_upper1'' [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
+  \<open>y AND x < z\<close> if \<open>0 \<le> y\<close> \<open>y < z\<close> for x y z :: int
+  using _ \<open>y < z\<close> by (rule order_le_less_trans) (use \<open>0 \<le> y\<close> in simp)
 
 lemma AND_upper2 [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-  fixes x y :: int
-  assumes \<open>0 \<le> y\<close>
-  shows \<open>x AND y \<le> y\<close>
-  using assms AND_upper1 [of y x] by (simp add: ac_simps)
+  \<open>x AND y \<le> y\<close> if \<open>0 \<le> y\<close> for x y :: int
+  using that AND_upper1 [of y x] by (simp add: ac_simps)
 
-lemmas AND_upper2' [simp] = order_trans [OF AND_upper2] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
-lemmas AND_upper2'' [simp] = order_le_less_trans [OF AND_upper2] \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
+lemma AND_upper2' [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
+  \<open>x AND y \<le> z\<close> if \<open>0 \<le> y\<close> \<open>y \<le> z\<close> for x y :: int
+  using that AND_upper1' [of y z x] by (simp add: ac_simps)
 
-lemma plus_and_or: \<open>(x AND y) + (x OR y) = x + y\<close> for x y :: int
+lemma AND_upper2'' [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
+  \<open>x AND y < z\<close> if \<open>0 \<le> y\<close> \<open>y < z\<close> for x y :: int
+  using that AND_upper1'' [of y z x] by (simp add: ac_simps)
+
+lemma plus_and_or:
+  \<open>(x AND y) + (x OR y) = x + y\<close> for x y :: int
 proof (induction x arbitrary: y rule: int_bit_induct)
   case zero
   then show ?case
@@ -1924,7 +1943,7 @@ next
 qed
 
 lemma push_bit_minus_one:
-  "push_bit n (- 1 :: int) = - (2 ^ n)"
+  \<open>push_bit n (- 1 :: int) = - (2 ^ n)\<close>
   by (simp add: push_bit_eq_mult)
 
 lemma minus_1_div_exp_eq_int:
@@ -2103,13 +2122,11 @@ lemma xor_int_unfold:
   by (auto simp add: xor_int_rec [of k l] not_int_def elim!: oddE)
 
 lemma bit_minus_int_iff:
-  \<open>bit (- k) n \<longleftrightarrow> bit (NOT (k - 1)) n\<close>
-  for k :: int
+  \<open>bit (- k) n \<longleftrightarrow> bit (NOT (k - 1)) n\<close> for k :: int
   by (simp add: bit_simps)
 
 lemma take_bit_incr_eq:
-  \<open>take_bit n (k + 1) = 1 + take_bit n k\<close> if \<open>take_bit n k \<noteq> 2 ^ n - 1\<close>
-  for k :: int
+  \<open>take_bit n (k + 1) = 1 + take_bit n k\<close> if \<open>take_bit n k \<noteq> 2 ^ n - 1\<close> for k :: int
 proof -
   from that have \<open>2 ^ n \<noteq> k mod 2 ^ n + 1\<close>
     by (simp add: take_bit_eq_mod)
@@ -2127,8 +2144,7 @@ proof -
 qed
 
 lemma take_bit_decr_eq:
-  \<open>take_bit n (k - 1) = take_bit n k - 1\<close> if \<open>take_bit n k \<noteq> 0\<close>
-  for k :: int
+  \<open>take_bit n (k - 1) = take_bit n k - 1\<close> if \<open>take_bit n k \<noteq> 0\<close> for k :: int
 proof -
   from that have \<open>k mod 2 ^ n \<noteq> 0\<close>
     by (simp add: take_bit_eq_mod)
@@ -2173,8 +2189,7 @@ lemma take_bit_int_less_eq:
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_int_less_eq_self_iff:
-  \<open>take_bit n k \<le> k \<longleftrightarrow> 0 \<le> k\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
-  for k :: int
+  \<open>take_bit n k \<le> k \<longleftrightarrow> 0 \<le> k\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>) for k :: int
 proof
   assume ?P
   show ?Q
@@ -2195,19 +2210,16 @@ next
 qed
 
 lemma take_bit_int_less_self_iff:
-  \<open>take_bit n k < k \<longleftrightarrow> 2 ^ n \<le> k\<close>
-  for k :: int
+  \<open>take_bit n k < k \<longleftrightarrow> 2 ^ n \<le> k\<close> for k :: int
   by (auto simp add: less_le take_bit_int_less_eq_self_iff take_bit_int_eq_self_iff
     intro: order_trans [of 0 \<open>2 ^ n\<close> k])
 
 lemma take_bit_int_greater_self_iff:
-  \<open>k < take_bit n k \<longleftrightarrow> k < 0\<close>
-  for k :: int
+  \<open>k < take_bit n k \<longleftrightarrow> k < 0\<close> for k :: int
   using take_bit_int_less_eq_self_iff [of n k] by auto
 
 lemma take_bit_int_greater_eq_self_iff:
-  \<open>k \<le> take_bit n k \<longleftrightarrow> k < 2 ^ n\<close>
-  for k :: int
+  \<open>k \<le> take_bit n k \<longleftrightarrow> k < 2 ^ n\<close> for k :: int
   by (auto simp add: le_less take_bit_int_greater_self_iff take_bit_int_eq_self_iff
     dest: sym not_sym intro: less_trans [of k 0 \<open>2 ^ n\<close>])
 
@@ -2431,12 +2443,11 @@ qed (simp_all add: mask_nat_def set_bit_nat_def flip_bit_nat_def push_bit_nat_de
 end
 
 lemma take_bit_nat_less_exp [simp]:
-  \<open>take_bit n m < 2 ^ n\<close> for n m ::nat 
+  \<open>take_bit n m < 2 ^ n\<close> for n m :: nat 
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_nat_eq_self_iff:
-  \<open>take_bit n m = m \<longleftrightarrow> m < 2 ^ n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
-  for n m :: nat
+  \<open>take_bit n m = m \<longleftrightarrow> m < 2 ^ n\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>) for n m :: nat
 proof
   assume ?P
   moreover note take_bit_nat_less_exp [of n m]
@@ -2457,8 +2468,7 @@ lemma take_bit_nat_less_eq_self [simp]:
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_nat_less_self_iff:
-  \<open>take_bit n m < m \<longleftrightarrow> 2 ^ n \<le> m\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
-  for m n :: nat
+  \<open>take_bit n m < m \<longleftrightarrow> 2 ^ n \<le> m\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>) for m n :: nat
 proof
   assume ?P
   then have \<open>take_bit n m \<noteq> m\<close>
@@ -2637,11 +2647,6 @@ lemma of_nat_take_bit:
   \<open>of_nat (take_bit n m) = take_bit n (of_nat m)\<close>
   by (rule bit_eqI) (simp add: bit_take_bit_iff Bit_Operations.bit_take_bit_iff bit_of_nat_iff)
 
-end
-
-context semiring_bit_operations
-begin
-
 lemma of_nat_and_eq:
   \<open>of_nat (m AND n) = of_nat m AND of_nat n\<close>
   by (rule bit_eqI) (simp add: bit_of_nat_iff bit_and_iff Bit_Operations.bit_and_iff)
@@ -2684,15 +2689,15 @@ lemma take_bit_of_2 [simp]:
   using take_bit_of_exp [of n 1] by simp
 
 lemma push_bit_eq_0_iff [simp]:
-  "push_bit n a = 0 \<longleftrightarrow> a = 0"
+  \<open>push_bit n a = 0 \<longleftrightarrow> a = 0\<close>
   by (simp add: push_bit_eq_mult)
 
 lemma take_bit_add:
-  "take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)"
+  \<open>take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)\<close>
   by (simp add: take_bit_eq_mod mod_simps)
 
 lemma take_bit_of_1_eq_0_iff [simp]:
-  "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
+  \<open>take_bit n 1 = 0 \<longleftrightarrow> n = 0\<close>
   by (simp add: take_bit_eq_mod)
 
 lemma drop_bit_Suc_bit0 [simp]:
@@ -2758,62 +2763,11 @@ lemma of_nat_drop_bit:
   \<open>of_nat (drop_bit m n) = drop_bit m (of_nat n)\<close>
   by (simp add: drop_bit_eq_div Bit_Operations.drop_bit_eq_div of_nat_div)
 
-lemma take_bit_sum:
-  "take_bit n a = (\<Sum>k = 0..<n. push_bit k (of_bool (bit a k)))"
-  for n :: nat
-proof (induction n arbitrary: a)
-  case 0
-  then show ?case
-    by simp
-next
-  case (Suc n)
-  have "(\<Sum>k = 0..<Suc n. push_bit k (of_bool (bit a k))) = 
-    of_bool (odd a) + (\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (bit a k)))"
-    by (simp add: sum.atLeast_Suc_lessThan ac_simps bit_0)
-  also have "(\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (bit a k)))
-    = (\<Sum>k = 0..<n. push_bit k (of_bool (bit (a div 2) k))) * 2"
-    by (simp only: sum.atLeast_Suc_lessThan_Suc_shift) (simp add: sum_distrib_right push_bit_double drop_bit_Suc bit_Suc)
-  finally show ?case
-    using Suc [of "a div 2"] by (simp add: ac_simps take_bit_Suc mod_2_eq_odd)
-qed
-
 end
 
 instance nat :: linordered_euclidean_semiring_bit_operations ..
 
 instance int :: linordered_euclidean_semiring_bit_operations ..
-
-lemma drop_bit_Suc_minus_bit0 [simp]:
-  \<open>drop_bit (Suc n) (- numeral (Num.Bit0 k)) = drop_bit n (- numeral k :: int)\<close>
-  by (simp add: drop_bit_Suc numeral_Bit0_div_2)
-
-lemma drop_bit_Suc_minus_bit1 [simp]:
-  \<open>drop_bit (Suc n) (- numeral (Num.Bit1 k)) = drop_bit n (- numeral (Num.inc k) :: int)\<close>
-  by (simp add: drop_bit_Suc numeral_Bit1_div_2 add_One)
-
-lemma drop_bit_numeral_minus_bit0 [simp]:
-  \<open>drop_bit (numeral l) (- numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (- numeral k :: int)\<close>
-  by (simp add: numeral_eq_Suc numeral_Bit0_div_2)
-
-lemma drop_bit_numeral_minus_bit1 [simp]:
-  \<open>drop_bit (numeral l) (- numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (- numeral (Num.inc k) :: int)\<close>
-  by (simp add: numeral_eq_Suc numeral_Bit1_div_2)
-
-lemma take_bit_Suc_minus_bit0:
-  \<open>take_bit (Suc n) (- numeral (Num.Bit0 k)) = take_bit n (- numeral k) * (2 :: int)\<close>
-  by (simp add: take_bit_Suc numeral_Bit0_div_2)
-
-lemma take_bit_Suc_minus_bit1:
-  \<open>take_bit (Suc n) (- numeral (Num.Bit1 k)) = take_bit n (- numeral (Num.inc k)) * 2 + (1 :: int)\<close>
-  by (simp add: take_bit_Suc numeral_Bit1_div_2 add_One)
-
-lemma take_bit_numeral_minus_bit0:
-  \<open>take_bit (numeral l) (- numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (- numeral k) * (2 :: int)\<close>
-  by (simp add: numeral_eq_Suc numeral_Bit0_div_2 take_bit_Suc_minus_bit0)
-
-lemma take_bit_numeral_minus_bit1:
-  \<open>take_bit (numeral l) (- numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (- numeral (Num.inc k)) * 2 + (1 :: int)\<close>
-  by (simp add: numeral_eq_Suc numeral_Bit1_div_2 take_bit_Suc_minus_bit1)
 
 
 subsection \<open>Symbolic computations on numeral expressions\<close>
@@ -2972,6 +2926,38 @@ lemma xor_num_eq_Some_iff:
   by (simp add: numeral_xor_num split: option.split)
 
 end
+
+lemma drop_bit_Suc_minus_bit0 [simp]:
+  \<open>drop_bit (Suc n) (- numeral (Num.Bit0 k)) = drop_bit n (- numeral k :: int)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit0_div_2)
+
+lemma drop_bit_Suc_minus_bit1 [simp]:
+  \<open>drop_bit (Suc n) (- numeral (Num.Bit1 k)) = drop_bit n (- numeral (Num.inc k) :: int)\<close>
+  by (simp add: drop_bit_Suc numeral_Bit1_div_2 add_One)
+
+lemma drop_bit_numeral_minus_bit0 [simp]:
+  \<open>drop_bit (numeral l) (- numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (- numeral k :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit0_div_2)
+
+lemma drop_bit_numeral_minus_bit1 [simp]:
+  \<open>drop_bit (numeral l) (- numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (- numeral (Num.inc k) :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit1_div_2)
+
+lemma take_bit_Suc_minus_bit0:
+  \<open>take_bit (Suc n) (- numeral (Num.Bit0 k)) = take_bit n (- numeral k) * (2 :: int)\<close>
+  by (simp add: take_bit_Suc numeral_Bit0_div_2)
+
+lemma take_bit_Suc_minus_bit1:
+  \<open>take_bit (Suc n) (- numeral (Num.Bit1 k)) = take_bit n (- numeral (Num.inc k)) * 2 + (1 :: int)\<close>
+  by (simp add: take_bit_Suc numeral_Bit1_div_2 add_One)
+
+lemma take_bit_numeral_minus_bit0:
+  \<open>take_bit (numeral l) (- numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (- numeral k) * (2 :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit0_div_2 take_bit_Suc_minus_bit0)
+
+lemma take_bit_numeral_minus_bit1:
+  \<open>take_bit (numeral l) (- numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (- numeral (Num.inc k)) * 2 + (1 :: int)\<close>
+  by (simp add: numeral_eq_Suc numeral_Bit1_div_2 take_bit_Suc_minus_bit1)
 
 lemma bit_Suc_0_iff [bit_simps]:
   \<open>bit (Suc 0) n \<longleftrightarrow> n = 0\<close>
@@ -3658,83 +3644,6 @@ proof -
     by (rule bit_eqI)
       (auto simp add: Let_def * bit_signed_take_bit_iff bit_take_bit_iff min_def less_Suc_eq bit_not_iff
         bit_mask_iff bit_or_iff simp del: push_bit_minus_one_eq_not_mask)
-qed
-
-
-subsection \<open>Horner sums\<close>
-
-context semiring_bit_operations
-begin
-
-lemma horner_sum_bit_eq_take_bit:
-  \<open>horner_sum of_bool 2 (map (bit a) [0..<n]) = take_bit n a\<close>
-proof (induction a arbitrary: n rule: bits_induct)
-  case (stable a)
-  moreover have \<open>bit a = (\<lambda>_. odd a)\<close>
-    using stable by (simp add: stable_imp_bit_iff_odd fun_eq_iff)
-  moreover have \<open>{q. q < n} = {0..<n}\<close>
-    by auto
-  ultimately show ?case
-    by (simp add: stable_imp_take_bit_eq horner_sum_eq_sum mask_eq_sum_exp)
-next
-  case (rec a b)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis
-      by simp
-  next
-    case (Suc m)
-    have \<open>map (bit (of_bool b + 2 * a)) [0..<Suc m] = b # map (bit (of_bool b + 2 * a)) [Suc 0..<Suc m]\<close>
-      by (simp only: upt_conv_Cons) (simp add: bit_0)
-    also have \<open>\<dots> = b # map (bit a) [0..<m]\<close>
-      by (simp only: flip: map_Suc_upt) (simp add: bit_Suc rec.hyps)
-    finally show ?thesis
-      using Suc rec.IH [of m] by (simp add: take_bit_Suc rec.hyps)
-        (simp_all add: ac_simps mod_2_eq_odd)
-  qed
-qed
-
-end
-
-context linordered_euclidean_semiring_bit_operations
-begin
-
-lemma bit_horner_sum_bit_iff [bit_simps]:
-  \<open>bit (horner_sum of_bool 2 bs) n \<longleftrightarrow> n < length bs \<and> bs ! n\<close>
-proof (induction bs arbitrary: n)
-  case Nil
-  then show ?case
-    by simp
-next
-  case (Cons b bs)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis
-      by (simp add: bit_0)
-  next
-    case (Suc m)
-    with bit_rec [of _ n] Cons.prems Cons.IH [of m]
-    show ?thesis by simp
-  qed
-qed
-
-lemma take_bit_horner_sum_bit_eq:
-  \<open>take_bit n (horner_sum of_bool 2 bs) = horner_sum of_bool 2 (take n bs)\<close>
-  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_horner_sum_bit_iff)
-
-end
-
-lemma horner_sum_of_bool_2_less:
-  \<open>(horner_sum of_bool 2 bs :: int) < 2 ^ length bs\<close>
-proof -
-  have \<open>(\<Sum>n = 0..<length bs. of_bool (bs ! n) * (2::int) ^ n) \<le> (\<Sum>n = 0..<length bs. 2 ^ n)\<close>
-    by (rule sum_mono) simp
-  also have \<open>\<dots> = 2 ^ length bs - 1\<close>
-    by (induction bs) simp_all
-  finally show ?thesis
-    by (simp add: horner_sum_eq_sum)
 qed
 
 
