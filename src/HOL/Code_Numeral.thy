@@ -1123,7 +1123,7 @@ begin
 
 lemma [code]:
   \<open>bit m n \<longleftrightarrow> odd (drop_bit n m)\<close>
-  \<open>mask n = 2 ^ n - (1 :: integer)\<close>
+  \<open>mask n = 2 ^ n - (1 :: natural)\<close>
   \<open>set_bit n m = m OR push_bit n 1\<close>
   \<open>flip_bit n m = m XOR push_bit n 1\<close>
   \<open>push_bit n m = m * 2 ^ n\<close>
