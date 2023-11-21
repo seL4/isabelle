@@ -1,6 +1,6 @@
 title = graph browser
 module = $ISABELLE_HOME/lib/classes/isabelle_graphbrowser.jar
-javac_options = -source 7 -target 7
+javac_options = -source 8 -target 8
 sources = \
   awt/Border.java \
   awt/MessageDialog.java \
