@@ -997,6 +997,15 @@ begin
 
 instance proof
   fix v w :: \<open>'a word\<close> and n m :: nat
+  show \<open>NOT v = of_bool (even v) + 2 * NOT (v div 2)\<close>
+    apply transfer
+    apply (rule bit_eqI)
+    apply (auto simp add: even_bit_succ_iff bit_simps bit_0 simp flip: bit_Suc)
+     apply (metis Suc_pred bit_0 not_gr_zero)
+    using odd_bit_iff_bit_pred apply blast
+    done
+  show \<open>- v = NOT (v - 1)\<close>
+    by transfer (simp add: minus_eq_not_minus_1)
   show \<open>v AND w = of_bool (odd v \<and> odd w) + 2 * (v div 2 AND w div 2)\<close>
     apply transfer
     apply (rule bit_eqI)
@@ -1029,10 +1038,6 @@ instance proof
     by transfer (simp add: drop_bit_take_bit flip: drop_bit_eq_div)
   show \<open>take_bit n v = v mod 2 ^ n\<close>
     by transfer (simp flip: take_bit_eq_mod)
-  show \<open>bit (NOT v) n \<longleftrightarrow> 2 ^ n \<noteq> (0 :: 'a word) \<and> \<not> bit v n\<close>
-    by transfer (auto simp add: bit_simps)
-  show \<open>- v = NOT (v - 1)\<close>
-    by transfer (simp add: minus_eq_not_minus_1)
 qed
 
 end

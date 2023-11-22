@@ -156,6 +156,7 @@ lemma exp_eq_0_imp_not_bit:
 
 definition possible_bit :: \<open>'a itself \<Rightarrow> nat \<Rightarrow> bool\<close>
   where \<open>possible_bit TYPE('a) n \<longleftrightarrow> 2 ^ n \<noteq> 0\<close>
+  \<comment> \<open>This auxiliary avoids non-termination with extensionality.\<close>
 
 lemma possible_bit_0 [simp]:
   \<open>possible_bit TYPE('a) 0\<close>
@@ -1331,7 +1332,7 @@ end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
   fixes not :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>NOT\<close>)
-  assumes bit_not_iff_eq: \<open>\<And>n. bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
+  assumes not_rec: \<open>NOT a = of_bool (even a) + 2 * NOT (a div 2)\<close>
   assumes minus_eq_not_minus_1: \<open>- a = NOT (a - 1)\<close>
 begin
 
@@ -1341,10 +1342,6 @@ text \<open>
   sensible definition for unlimited but only positive bit strings
   (type \<^typ>\<open>nat\<close>).
 \<close>
-
-lemma bit_not_iff [bit_simps]:
-  \<open>bit (NOT a) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit a n\<close>
-  by (simp add: bit_not_iff_eq fold_possible_bit)
 
 lemma bits_minus_1_mod_2_eq [simp]:
   \<open>(- 1) mod 2 = 1\<close>
@@ -1358,17 +1355,40 @@ lemma minus_eq_not_plus_1:
   \<open>- a = NOT a + 1\<close>
   using not_eq_complement [of a] by simp
 
-lemma bit_minus_iff [bit_simps]:
-  \<open>bit (- a) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit (a - 1) n\<close>
-  by (simp add: minus_eq_not_minus_1 bit_not_iff)
-
 lemma even_not_iff [simp]:
-  \<open>even (NOT a) \<longleftrightarrow> odd a\<close> 
-  using bit_not_iff [of a 0] by (auto simp add: bit_0)
+  \<open>even (NOT a) \<longleftrightarrow> odd a\<close>
+  by (simp add: not_rec [of a])
+
+lemma bit_not_iff [bit_simps]:
+  \<open>bit (NOT a) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit a n\<close>
+proof (cases \<open>possible_bit TYPE('a) n\<close>)
+  case False
+  then show ?thesis
+    by (auto dest: bit_imp_possible_bit) 
+next
+  case True
+  moreover have \<open>bit (NOT a) n \<longleftrightarrow> \<not> bit a n\<close>
+  using \<open>possible_bit TYPE('a) n\<close> proof (induction n arbitrary: a)
+    case 0
+    then show ?case
+      by (simp add: bit_0)
+  next
+    case (Suc n)
+    from Suc.prems Suc.IH [of \<open>a div 2\<close>]
+    show ?case
+      by (simp add: impossible_bit possible_bit_less_imp not_rec [of a] even_bit_succ_iff bit_double_iff flip: bit_Suc)
+  qed
+  ultimately show ?thesis
+    by simp
+qed
 
 lemma bit_not_exp_iff [bit_simps]:
   \<open>bit (NOT (2 ^ m)) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n \<noteq> m\<close>
   by (auto simp add: bit_not_iff bit_exp_iff)
+
+lemma bit_minus_iff [bit_simps]:
+  \<open>bit (- a) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit (a - 1) n\<close>
+  by (simp add: minus_eq_not_minus_1 bit_not_iff)
 
 lemma bit_minus_1_iff [simp]:
   \<open>bit (- 1) n \<longleftrightarrow> possible_bit TYPE('a) n\<close>
@@ -1381,6 +1401,10 @@ lemma bit_minus_exp_iff [bit_simps]:
 lemma bit_minus_2_iff [simp]:
   \<open>bit (- 2) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n > 0\<close>
   by (simp add: bit_minus_iff bit_1_iff)
+
+lemma bit_not_iff_eq:
+  \<open>bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
+  by (simp add: bit_simps possible_bit_def)
 
 lemma not_one_eq [simp]:
   \<open>NOT 1 = - 2\<close>
@@ -1670,6 +1694,8 @@ instance proof
   fix k l :: int and m n :: nat
   show \<open>- k = NOT (k - 1)\<close>
     by (simp add: not_int_def)
+  show \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close>
+    by (auto simp add: not_int_def elim: oddE)
   show \<open>k AND l = of_bool (odd k \<and> odd l) + 2 * (k div 2 AND l div 2)\<close>
     by (fact and_int_rec)
   show \<open>k OR l = of_bool (odd k \<or> odd l) + 2 * (k div 2 OR l div 2)\<close>
@@ -1685,7 +1711,7 @@ instance proof
     finally show ?thesis by (simp only: bit_simps bit_and_int_iff)
       (auto simp add: bit_simps bit_not_int_iff' push_bit_int_def)
   qed
-qed (simp_all add: bit_not_int_iff mask_int_def set_bit_int_def flip_bit_int_def
+qed (simp_all add: mask_int_def set_bit_int_def flip_bit_int_def
   push_bit_int_def drop_bit_int_def take_bit_int_def)
 
 end
