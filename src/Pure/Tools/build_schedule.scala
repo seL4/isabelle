@@ -429,15 +429,16 @@ object Build_Schedule {
       val ordered_hosts =
         host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads)
 
-      val fully_parallelizable =
-        parallel_paths(state.next_ready.map(_.name).toSet) <= resources.unused_nodes(max_threads).length
+      val resources0 = host_infos.available(state.copy(running = Map.empty))
+      val max_parallel = parallel_paths(state.ready.map(_.name).toSet)
+      val fully_parallelizable = max_parallel <= resources0.unused_nodes(max_threads).length
 
       if (fully_parallelizable) {
         val all_tasks = state.next_ready.map(task => (task, best_threads(task), best_threads(task)))
         resources.try_allocate_tasks(ordered_hosts, all_tasks)._1
       }
       else {
-        val critical_nodes = state.next_ready.toSet.flatMap(task => critical_path_nodes(task.name))
+        val critical_nodes = state.ready.toSet.flatMap(task => critical_path_nodes(task.name))
 
         val (critical, other) =
           state.next_ready.sortBy(task => remaining_time_ms(task.name)).reverse.partition(task =>
@@ -446,8 +447,9 @@ object Build_Schedule {
         val critical_tasks = critical.map(task => (task, best_threads(task), best_threads(task)))
         val other_tasks = other.map(task => (task, 1, best_threads(task)))
 
-        val (critical_hosts, other_hosts) =
-          ordered_hosts.splitAt(parallel_paths(critical.map(_.name).toSet, critical_nodes.contains))
+        val critical_minimals = critical_nodes.intersect(state.ready.map(_.name).toSet)
+        val max_critical_parallel = parallel_paths(critical_minimals, critical_nodes.contains)
+        val (critical_hosts, other_hosts) = ordered_hosts.splitAt(max_critical_parallel)
 
         val (configs1, resources1) = resources.try_allocate_tasks(critical_hosts, critical_tasks)
         val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other_tasks)
