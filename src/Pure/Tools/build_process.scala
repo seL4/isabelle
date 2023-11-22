@@ -216,7 +216,8 @@ object Build_Process {
       copy(serial = serial + 1)
     }
 
-    def ready: State.Pending = pending.filter(entry => entry.is_ready && !is_running(entry.name))
+    def ready: State.Pending = pending.filter(_.is_ready)
+    def next_ready: State.Pending = ready.filter(entry => !is_running(entry.name))
 
     def remove_pending(name: String): State =
       copy(pending = pending.flatMap(
@@ -978,7 +979,7 @@ extends AutoCloseable {
       if (progress.stopped) { if (build_context.master) Int.MaxValue else 0 }
       else build_context.max_jobs - state.build_running.length
     }
-    if (limit > 0) state.ready.sortBy(_.name)(state.sessions.ordering).take(limit).map(_.name)
+    if (limit > 0) state.next_ready.sortBy(_.name)(state.sessions.ordering).take(limit).map(_.name)
     else Nil
   }
 

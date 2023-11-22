@@ -430,17 +430,17 @@ object Build_Schedule {
         host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads)
 
       val fully_parallelizable =
-        parallel_paths(state.ready.map(_.name).toSet) <= resources.unused_nodes(max_threads).length
+        parallel_paths(state.next_ready.map(_.name).toSet) <= resources.unused_nodes(max_threads).length
 
       if (fully_parallelizable) {
-        val all_tasks = state.ready.map(task => (task, best_threads(task), best_threads(task)))
+        val all_tasks = state.next_ready.map(task => (task, best_threads(task), best_threads(task)))
         resources.try_allocate_tasks(ordered_hosts, all_tasks)._1
       }
       else {
-        val critical_nodes = state.ready.toSet.flatMap(task => critical_path_nodes(task.name))
+        val critical_nodes = state.next_ready.toSet.flatMap(task => critical_path_nodes(task.name))
 
         val (critical, other) =
-          state.ready.sortBy(task => remaining_time_ms(task.name)).reverse.partition(task =>
+          state.next_ready.sortBy(task => remaining_time_ms(task.name)).reverse.partition(task =>
             critical_nodes.contains(task.name))
 
         val critical_tasks = critical.map(task => (task, best_threads(task), best_threads(task)))
@@ -617,10 +617,10 @@ object Build_Schedule {
     override def next_jobs(state: Build_Process.State): List[String] = {
       val finalize_limit = if (build_context.master) Int.MaxValue else 0
 
-      if (progress.stopped) state.ready.map(_.name).take(finalize_limit)
+      if (progress.stopped) state.next_ready.map(_.name).take(finalize_limit)
       else if (cache.is_current(state)) cache.configs.map(_.job_name).filterNot(state.is_running)
       else {
-        val current = state.ready.filter(task => is_current(state, task.name))
+        val current = state.next_ready.filter(task => is_current(state, task.name))
         if (current.nonEmpty) current.map(_.name).take(finalize_limit)
         else {
           val start = Time.now()
