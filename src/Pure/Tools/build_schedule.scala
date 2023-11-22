@@ -65,16 +65,20 @@ object Build_Schedule {
 
           val entries =
             data.by_threads.toList.map((threads, data) =>
-              threads -> Timing_Data.median_time(unify_hosts(data)))
+              threads -> Timing_Data.median_time(unify_hosts(data))).sortBy(_._1)
 
-          val y0 = data.by_hostname(ref_hostname).by_threads(x0).mean_time
-          val (x1, y1_data) =
-            data.by_hostname(ref_hostname).by_threads.toList.minBy((n, _) => Math.abs(n - threads))
-          val y1 = y1_data.mean_time
+          val ((threads0, time0), (threads1, time1)) =
+            if (entries.head._1 <= threads && threads <= entries.last._1) {
+              val split = entries.partition(_._1 <= threads)
+              (split._1.last, split._2.head)
+            } else {
+              val piece = if (threads < entries.head._1) entries.take(2) else entries.takeRight(2)
+              (piece.head, piece.last)
+            }
 
-          val a = (y1.ms - y0.ms).toDouble / (x1 - x0)
-          val b = y0.ms - a * x0
-          Time.ms((a * threads + b).toLong)
+          val a = (time1 - time0).scale(1.0 / (threads1 - threads0))
+          val b = time0 - a.scale(threads0)
+          Time.ms((a.scale(threads) + b).ms max 0)
         }
       if (approximations.isEmpty) None else Some(Timing_Data.mean_time(approximations))
     }
