@@ -324,6 +324,8 @@ object Build_Schedule {
   }
 
   abstract class Heuristic(timing_data: Timing_Data) extends Scheduler {
+    val host_infos = timing_data.host_infos
+
     def build_duration(build_state: Build_Process.State): Time = {
       @tailrec
       def simulate(state: State): State =
@@ -352,12 +354,8 @@ object Build_Schedule {
 
   /* heuristics */
 
-  class Timing_Heuristic(
-    threshold: Time,
-    timing_data: Timing_Data,
-    sessions_structure: Sessions.Structure,
-    max_threads: Int = 8
-  ) extends Heuristic(timing_data) {
+  abstract class Path_Heuristic(timing_data: Timing_Data, sessions_structure: Sessions.Structure)
+    extends Heuristic(timing_data) {
     /* pre-computed properties for efficient heuristic */
 
     type Node = String
@@ -382,10 +380,6 @@ object Build_Schedule {
         .flatMap(node => maximals_preds(node).map(_ -> elapsed_time(node)))
         .groupMapReduce(_._1)(_._2)(_ max _)
     }
-
-    val critical_path_nodes =
-      build_graph.keys.map(node =>
-        node -> path_times(node).filter((_, time) => time > threshold).keySet).toMap
 
     def parallel_paths(minimals: Set[Node], pred: Node => Boolean = _ => true): Int = {
       def start(node: Node): (Node, Time) = node -> best_times(node)
@@ -413,11 +407,17 @@ object Build_Schedule {
 
       parallel_paths(minimals.map(start).toMap)._1
     }
+  }
 
-
-    /* scheduling */
-
-    val host_infos = timing_data.host_infos
+  class Timing_Heuristic(
+    threshold: Time,
+    timing_data: Timing_Data,
+    sessions_structure: Sessions.Structure,
+    max_threads: Int = 8
+  ) extends Path_Heuristic(timing_data, sessions_structure) {
+    val critical_path_nodes =
+      build_graph.keys.map(node =>
+        node -> path_times(node).filter((_, time) => time > threshold).keySet).toMap
 
     def next(state: Build_Process.State): List[Config] = {
       val resources = host_infos.available(state)
