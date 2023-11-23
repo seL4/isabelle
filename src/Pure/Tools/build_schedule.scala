@@ -43,6 +43,9 @@ object Build_Schedule {
 
     private def best_entry: Timing_Entry = data.minBy(_.elapsed.ms)
 
+    private def inflection_point(last_mono: Int, next: Int): Int =
+      last_mono + ((next - last_mono) / 2)
+
     def best_threads(job_name: String): Option[Int] = by_job.get(job_name).map(_.best_entry.threads)
 
     def best_time(job_name: String): Time =
@@ -73,9 +76,19 @@ object Build_Schedule {
                 if (f(x1) <= f(x2)) x1 :: sorted_prefix(x2 :: xs, f) else x1 :: Nil
               case xs => xs
             }
+
+          def linear(p0: (Int, Time), p1: (Int, Time)): Time = {
+            val a = (p1._2 - p0._2).scale(1.0 / (p1._1 - p0._1))
+            val b = p0._2 - a.scale(p0._1)
+            Time.ms((a.scale(threads) + b).ms max 0)
+          }
+
           val monotone_prefix = sorted_prefix(entries, e => -e._2.ms)
 
-          if (monotone_prefix.length > 1 && threads <= monotone_prefix.last._1) {
+          val is_mono = entries == monotone_prefix
+          val in_prefix = monotone_prefix.length > 1 && threads <= monotone_prefix.last._1
+          val in_inflection = !is_mono && threads < entries.drop(monotone_prefix.length).head._1
+          if (is_mono || in_prefix || in_inflection) {
             // Model with Amdahl's law
             val t_p =
               Timing_Data.median_time(for {
@@ -86,10 +99,19 @@ object Build_Schedule {
             val t_c =
               Timing_Data.median_time(for ((n, t) <- monotone_prefix) yield t - t_p.scale(1.0 / n))
 
-            t_c + t_p.scale(1.0 / threads)
+            def model(threads: Int): Time = t_c + t_p.scale(1.0 / threads)
+
+            if (is_mono || in_prefix) model(threads)
+            else {
+              val post_inflection = entries.drop(monotone_prefix.length).head
+              val inflection_threads = inflection_point(monotone_prefix.last._1, post_inflection._1)
+
+              if (threads <= inflection_threads) model(threads)
+              else linear((inflection_threads, model(inflection_threads)), post_inflection)
+            }
           } else {
             // Piecewise linear
-            val ((threads0, time0), (threads1, time1)) =
+            val (p0, p1) =
               if (entries.head._1 <= threads && threads <= entries.last._1) {
                 val split = entries.partition(_._1 <= threads)
                 (split._1.last, split._2.head)
@@ -98,9 +120,7 @@ object Build_Schedule {
                 (piece.head, piece.last)
               }
 
-            val a = (time1 - time0).scale(1.0 / (threads1 - threads0))
-            val b = time0 - a.scale(threads0)
-            Time.ms((a.scale(threads) + b).ms max 0)
+            linear(p0, p1)
           }
         }
       if (approximations.isEmpty) None else Some(Timing_Data.mean_time(approximations))
