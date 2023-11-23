@@ -13,14 +13,6 @@ import scala.annotation.tailrec
 object Build_Schedule {
   val engine_name = "build_schedule"
 
-  object Config {
-    def from_job(job: Build_Process.Job): Config = Config(job.name, job.node_info)
-  }
-
-  case class Config(job_name: String, node_info: Node_Info) {
-    def job_of(start_time: Time): Build_Process.Job =
-      Build_Process.Job(job_name, "", "", node_info, Date(start_time), None)
-  }
 
   /* organized historic timing information (extracted from build logs) */
 
@@ -260,7 +252,16 @@ object Build_Schedule {
   }
 
 
-  /* offline tracking of resource allocations */
+  /* offline tracking of job configurations and resource allocations */
+
+  object Config {
+    def from_job(job: Build_Process.Job): Config = Config(job.name, job.node_info)
+  }
+
+  case class Config(job_name: String, node_info: Node_Info) {
+    def job_of(start_time: Time): Build_Process.Job =
+      Build_Process.Job(job_name, "", "", node_info, Date(start_time), None)
+  }
 
   case class Resources(
     host_infos: Host_Infos,
