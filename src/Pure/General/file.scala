@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermission}
-import java.net.{URI, URL, MalformedURLException}
+import java.net.{URI, URL, MalformedURLException, URISyntaxException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
@@ -35,12 +35,15 @@ object File {
 
   def standard_url(name: String): String =
     try {
-      val url = new URL(name)
-      if (url.getProtocol == "file" && Url.is_wellformed_file(name))
+      val url = new URI(name).toURL
+      if (url.getProtocol == "file" && Url.is_wellformed_file(name)) {
         standard_path(Url.parse_file(name))
+      }
       else name
     }
-    catch { case _: MalformedURLException => standard_path(name) }
+    catch {
+      case _: MalformedURLException | _: URISyntaxException => standard_path(name)
+    }
 
 
   /* platform path (Windows or Posix) */

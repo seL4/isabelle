@@ -356,7 +356,7 @@ object Mailman {
 
     def list_tag: String = proper_string(tag).getOrElse(list_name)
 
-    def read_text(href: String): String = Url.read(new URL(main_url, href))
+    def read_text(href: String): String = Url.read(Url.resolve(main_url, href))
 
     def hrefs_text: List[String] =
       """href="([^"]+\.txt(?:\.gz)?)"""".r.findAllMatchIn(main_html).map(_.group(1)).toList
@@ -371,7 +371,7 @@ object Mailman {
     def get(target_dir: Path, href: String, progress: Progress = new Progress): Option[Path] = {
       val dir = target_dir + Path.basic(list_name)
       val path = dir + Path.explode(href)
-      val url = new URL(main_url, href)
+      val url = Url.resolve(main_url, href)
       val connection = url.openConnection
       try {
         val length = connection.getContentLengthLong
