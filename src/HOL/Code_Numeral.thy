@@ -353,7 +353,7 @@ instance by (standard; transfer)
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff
     and_rec or_rec xor_rec mask_eq_exp_minus_1 not_rec
-    set_bit_def bit_unset_bit_iff flip_bit_def not_rec minus_eq_not_minus_1)+
+    set_bit_def unset_bit_0 unset_bit_Suc flip_bit_def not_rec minus_eq_not_minus_1)+
 
 end
 
@@ -1111,7 +1111,7 @@ instance by (standard; transfer)
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff and_rec or_rec xor_rec
-    mask_eq_exp_minus_1 set_bit_def bit_unset_bit_iff flip_bit_def)+
+    mask_eq_exp_minus_1 set_bit_def unset_bit_0 unset_bit_Suc flip_bit_def)+
 
 end
 

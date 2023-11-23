@@ -1028,8 +1028,16 @@ instance proof
     by transfer (simp flip: mask_eq_exp_minus_1)
   show \<open>set_bit n v = v OR push_bit n 1\<close>
     by transfer (simp add: take_bit_set_bit_eq set_bit_eq_or)
-  show \<open>bit (unset_bit m v) n \<longleftrightarrow> bit v n \<and> m \<noteq> n\<close>
-    by transfer (simp add: bit_simps)
+  show \<open>unset_bit 0 v = 2 * (v div 2)\<close>
+    apply transfer
+    apply (rule bit_eqI)
+    apply (auto simp add: bit_simps simp flip: bit_Suc)
+    done
+  show \<open>unset_bit (Suc n) v = v mod 2 + 2 * unset_bit n (v div 2)\<close>
+    apply transfer
+    apply (rule bit_eqI)
+    apply (auto simp add: bit_simps mod_2_eq_odd even_bit_succ_iff bit_0 simp flip: bit_Suc)
+    done
   show \<open>flip_bit n v = v XOR push_bit n 1\<close>
     by transfer (simp add: take_bit_flip_bit_eq flip_bit_eq_xor)
   show \<open>push_bit n v = v * 2 ^ n\<close>
