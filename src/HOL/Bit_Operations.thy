@@ -1549,36 +1549,20 @@ end
 
 subsection \<open>Instance \<^typ>\<open>int\<close>\<close>
 
-instantiation int :: ring_bit_operations
+locale fold2_bit_int =
+  fixes f :: \<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>
 begin
 
-definition not_int :: \<open>int \<Rightarrow> int\<close>
-  where \<open>not_int k = - k - 1\<close>
+context
+begin
 
-lemma not_int_rec:
-  \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
-  by (auto simp add: not_int_def elim: oddE)
-
-lemma even_not_iff_int:
-  \<open>even (NOT k) \<longleftrightarrow> odd k\<close> for k :: int
-  by (simp add: not_int_def)
-
-lemma not_int_div_2:
-  \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
-  by (simp add: not_int_def)
-
-lemma bit_not_int_iff:
-  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
-  for k :: int
-  by (simp add: bit_not_int_iff' not_int_def)
-
-function and_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
-  where \<open>(k::int) AND l = (if k \<in> {0, - 1} \<and> l \<in> {0, - 1}
-    then - of_bool (odd k \<and> odd l)
-    else of_bool (odd k \<and> odd l) + 2 * ((k div 2) AND (l div 2)))\<close>
+function F :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>F k l = (if k \<in> {0, - 1} \<and> l \<in> {0, - 1}
+    then - of_bool (f (odd k) (odd l))
+    else of_bool (f (odd k) (odd l)) + 2 * (F (k div 2) (l div 2)))\<close>
   by auto
 
-termination proof (relation \<open>measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>))\<close>)
+private termination proof (relation \<open>measure (\<lambda>(k, l). nat (\<bar>k\<bar> + \<bar>l\<bar>))\<close>)
   have less_eq: \<open>\<bar>k div 2\<bar> \<le> \<bar>k\<bar>\<close> for k :: int
     by (cases k) (simp_all add: divide_int_def nat_add_distrib)
   then have less: \<open>\<bar>k div 2\<bar> < \<bar>k\<bar>\<close> if \<open>k \<notin> {0, - 1}\<close> for k :: int
@@ -1607,67 +1591,72 @@ termination proof (relation \<open>measure (\<lambda>(k, l). nat (\<bar>k\<bar> 
         by auto
     qed
     ultimately show ?thesis
-      by simp
+      by (simp only: in_measure split_def fst_conv snd_conv nat_mono_iff)
   qed
 qed
 
-declare and_int.simps [simp del]
+declare F.simps [simp del]
 
-lemma and_int_rec:
-  \<open>k AND l = of_bool (odd k \<and> odd l) + 2 * ((k div 2) AND (l div 2))\<close>
+lemma rec:
+  \<open>F k l = of_bool (f (odd k) (odd l)) + 2 * (F (k div 2) (l div 2))\<close>
     for k l :: int
 proof (cases \<open>k \<in> {0, - 1} \<and> l \<in> {0, - 1}\<close>)
   case True
   then show ?thesis
-    by auto (simp_all add: and_int.simps)
+    by (auto simp add: F.simps [of 0] F.simps [of \<open>- 1\<close>])
 next
   case False
   then show ?thesis
-    by (auto simp add: ac_simps and_int.simps [of k l])
+    by (auto simp add: ac_simps F.simps [of k l])
 qed
 
-lemma bit_and_int_iff:
-  \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close> for k l :: int
+lemma bit_iff:
+  \<open>bit (F k l) n \<longleftrightarrow> f (bit k n) (bit l n)\<close> for k l :: int
 proof (induction n arbitrary: k l)
   case 0
   then show ?case
-    by (simp add: and_int_rec [of k l] bit_0)
+    by (simp add: rec [of k l] bit_0)
 next
   case (Suc n)
   then show ?case
-    by (simp add: and_int_rec [of k l] bit_Suc)
+    by (simp add: rec [of k l] bit_Suc)
 qed
 
-lemma even_and_iff_int:
-  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
-  using bit_and_int_iff [of k l 0] by (auto simp add: bit_0)
+end
 
-definition or_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
-  where \<open>k OR l = NOT (NOT k AND NOT l)\<close> for k l :: int
+end
 
-lemma or_int_rec:
-  \<open>k OR l = of_bool (odd k \<or> odd l) + 2 * ((k div 2) OR (l div 2))\<close>
-  for k l :: int
-  using and_int_rec [of \<open>NOT k\<close> \<open>NOT l\<close>]
-  by (simp add: or_int_def even_not_iff_int not_int_div_2)
-    (simp_all add: not_int_def)
+instantiation int :: ring_bit_operations
+begin
 
-lemma bit_or_int_iff:
-  \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close> for k l :: int
-  by (simp add: or_int_def bit_not_int_iff bit_and_int_iff)
+definition not_int :: \<open>int \<Rightarrow> int\<close>
+  where \<open>not_int k = - k - 1\<close>
 
-definition xor_int :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>
-  where \<open>k XOR l = k AND NOT l OR NOT k AND l\<close> for k l :: int
+lemma not_int_rec:
+  \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
+  by (auto simp add: not_int_def elim: oddE)
 
-lemma xor_int_rec:
-  \<open>k XOR l = of_bool (odd k \<noteq> odd l) + 2 * ((k div 2) XOR (l div 2))\<close>
-  for k l :: int
-  by (simp add: xor_int_def or_int_rec [of \<open>k AND NOT l\<close> \<open>NOT k AND l\<close>] even_and_iff_int even_not_iff_int)
-    (simp add: and_int_rec [of \<open>NOT k\<close> \<open>l\<close>] and_int_rec [of \<open>k\<close> \<open>NOT l\<close>] not_int_div_2)
+lemma even_not_iff_int:
+  \<open>even (NOT k) \<longleftrightarrow> odd k\<close> for k :: int
+  by (simp add: not_int_def)
 
-lemma bit_xor_int_iff:
-  \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close> for k l :: int
-  by (auto simp add: xor_int_def bit_or_int_iff bit_and_int_iff bit_not_int_iff)
+lemma not_int_div_2:
+  \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
+  by (simp add: not_int_def)
+
+lemma bit_not_int_iff:
+  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
+  for k :: int
+  by (simp add: bit_not_int_iff' not_int_def)
+
+global_interpretation and_int: fold2_bit_int \<open>(\<and>)\<close>
+  defines and_int = and_int.F .
+
+global_interpretation or_int: fold2_bit_int \<open>(\<or>)\<close>
+  defines or_int = or_int.F .
+
+global_interpretation xor_int: fold2_bit_int \<open>(\<noteq>)\<close>
+  defines xor_int = xor_int.F .
 
 definition mask_int :: \<open>nat \<Rightarrow> int\<close>
   where \<open>mask n = (2 :: int) ^ n - 1\<close>
@@ -1697,24 +1686,40 @@ instance proof
   show \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close>
     by (auto simp add: not_int_def elim: oddE)
   show \<open>k AND l = of_bool (odd k \<and> odd l) + 2 * (k div 2 AND l div 2)\<close>
-    by (fact and_int_rec)
+    by (fact and_int.rec)
   show \<open>k OR l = of_bool (odd k \<or> odd l) + 2 * (k div 2 OR l div 2)\<close>
-    by (fact or_int_rec)
+    by (fact or_int.rec)
   show \<open>k XOR l = of_bool (odd k \<noteq> odd l) + 2 * (k div 2 XOR l div 2)\<close>
-    by (fact xor_int_rec)
+    by (fact xor_int.rec)
   show \<open>bit (unset_bit m k) n \<longleftrightarrow> bit k n \<and> m \<noteq> n\<close>
   proof -
     have \<open>unset_bit m k = k AND NOT (push_bit m 1)\<close>
       by (simp add: unset_bit_int_def)
     also have \<open>NOT (push_bit m 1 :: int) = - (push_bit m 1 + 1)\<close>
       by (simp add: not_int_def)
-    finally show ?thesis by (simp only: bit_simps bit_and_int_iff)
+    finally show ?thesis by (simp only: bit_simps and_int.bit_iff)
       (auto simp add: bit_simps bit_not_int_iff' push_bit_int_def)
   qed
 qed (simp_all add: mask_int_def set_bit_int_def flip_bit_int_def
   push_bit_int_def drop_bit_int_def take_bit_int_def)
 
 end
+
+lemmas and_int_rec = and_int.rec
+
+lemmas bit_and_int_iff = and_int.bit_iff
+
+lemmas or_int_rec = or_int.rec
+
+lemmas bit_or_int_iff = or_int.bit_iff
+
+lemmas xor_int_rec = xor_int.rec
+
+lemmas bit_xor_int_iff = xor_int.bit_iff
+
+lemma even_and_iff_int:
+  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
+  by (fact even_and_iff)
 
 lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
@@ -3728,7 +3733,7 @@ lemma or_int_code [code]:
   \<open>Int.Neg (num.Bit1 n) OR Int.Pos m = (case and_not_num (num.Bit0 n) m of None \<Rightarrow> -1 | Some n' \<Rightarrow> Int.Neg (Num.inc n'))\<close>
   apply (auto simp add: numeral_or_num_eq split: option.splits)
          apply (simp_all only: and_not_num_eq_None_iff and_not_num_eq_Some_iff and_not_numerals
-           numeral_or_not_num_eq or_int_def bit.double_compl ac_simps flip: numeral_eq_iff [where ?'a = int])
+           numeral_or_not_num_eq or_eq_not_not_and bit.double_compl ac_simps flip: numeral_eq_iff [where ?'a = int])
          apply simp_all
   done
 
