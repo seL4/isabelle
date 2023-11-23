@@ -50,7 +50,7 @@ object Build_Schedule {
 
     def best_time(job_name: String): Time =
       by_job.get(job_name).map(_.best_entry.elapsed).getOrElse(
-        estimate_config(Config(job_name, Node_Info(best_entry.hostname, None, Nil))))
+        estimate(job_name, best_entry.hostname, best_entry.threads))
 
     private def hostname_factor(from: String, to: String): Double =
       host_infos.host_factor(host_infos.the_host(from), host_infos.the_host(to))
@@ -132,12 +132,10 @@ object Build_Schedule {
         case _ => divided.toDouble / divisor
       }
 
-    def estimate_config(config: Config): Time =
-      by_job.get(config.job_name) match {
+    def estimate(job_name: String, hostname: String, threads: Int): Time =
+      by_job.get(job_name) match {
         case None => mean_time
         case Some(data) =>
-          val hostname = config.node_info.hostname
-          val threads = host_infos.num_threads(config.node_info)
           data.by_threads.get(threads) match {
             case None => // interpolate threads
               data.by_hostname.get(hostname).flatMap(
@@ -350,7 +348,8 @@ object Build_Schedule {
       val remaining =
         build_state.running.values.toList.map { job =>
           val elapsed = current_time - job.start_date.time
-          val predicted = timing_data.estimate_config(Config.from_job(job))
+          val threads = timing_data.host_infos.num_threads(job.node_info)
+          val predicted = timing_data.estimate(job.name, job.node_info.hostname, threads)
           val remaining = if (elapsed > predicted) Time.zero else predicted - elapsed
           job -> remaining
         }
