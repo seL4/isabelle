@@ -67,18 +67,36 @@ object Build_Schedule {
             data.by_threads.toList.map((threads, data) =>
               threads -> Timing_Data.median_time(unify_hosts(data))).sortBy(_._1)
 
-          val ((threads0, time0), (threads1, time1)) =
-            if (entries.head._1 <= threads && threads <= entries.last._1) {
-              val split = entries.partition(_._1 <= threads)
-              (split._1.last, split._2.head)
-            } else {
-              val piece = if (threads < entries.head._1) entries.take(2) else entries.takeRight(2)
-              (piece.head, piece.last)
-            }
+          val monotone_prefix =
+            entries.zip(entries.sortBy(_._2.ms).reverse).takeWhile((e1, e2) => e1 == e2).map(_._1)
 
-          val a = (time1 - time0).scale(1.0 / (threads1 - threads0))
-          val b = time0 - a.scale(threads0)
-          Time.ms((a.scale(threads) + b).ms max 0)
+          if (monotone_prefix.length > 1 && threads <= monotone_prefix.last._1) {
+            // Model with Amdahl's law
+            val t_p =
+              Timing_Data.median_time(for {
+                (n, t0) <- monotone_prefix
+                (m, t1) <- monotone_prefix
+                if m != n
+              } yield (t0 - t1).scale(n.toDouble * m / (m - n)))
+            val t_c =
+              Timing_Data.median_time(for ((n, t) <- monotone_prefix) yield t - t_p.scale(1.0 / n))
+
+            t_c + t_p.scale(1.0 / threads)
+          } else {
+            // Piecewise linear
+            val ((threads0, time0), (threads1, time1)) =
+              if (entries.head._1 <= threads && threads <= entries.last._1) {
+                val split = entries.partition(_._1 <= threads)
+                (split._1.last, split._2.head)
+              } else {
+                val piece = if (threads < entries.head._1) entries.take(2) else entries.takeRight(2)
+                (piece.head, piece.last)
+              }
+
+            val a = (time1 - time0).scale(1.0 / (threads1 - threads0))
+            val b = time0 - a.scale(threads0)
+            Time.ms((a.scale(threads) + b).ms max 0)
+          }
         }
       if (approximations.isEmpty) None else Some(Timing_Data.mean_time(approximations))
     }
