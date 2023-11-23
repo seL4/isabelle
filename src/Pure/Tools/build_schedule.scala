@@ -369,8 +369,9 @@ object Build_Schedule {
     def build_duration(build_state: Build_Process.State): Time
   }
 
-  abstract class Heuristic(timing_data: Timing_Data) extends Scheduler {
+  abstract class Heuristic(timing_data: Timing_Data, max_threads_limit: Int) extends Scheduler {
     val host_infos = timing_data.host_infos
+    val max_threads = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
 
     def build_duration(build_state: Build_Process.State): Time = {
       @tailrec
@@ -400,8 +401,11 @@ object Build_Schedule {
 
   /* heuristics */
 
-  abstract class Path_Heuristic(timing_data: Timing_Data, sessions_structure: Sessions.Structure)
-    extends Heuristic(timing_data) {
+  abstract class Path_Heuristic(
+    timing_data: Timing_Data,
+    sessions_structure: Sessions.Structure,
+    max_threads_limit: Int
+  ) extends Heuristic(timing_data, max_threads_limit) {
     /* pre-computed properties for efficient heuristic */
 
     type Node = String
@@ -459,8 +463,8 @@ object Build_Schedule {
     threshold: Time,
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
-    max_threads: Int = 8
-  ) extends Path_Heuristic(timing_data, sessions_structure) {
+    max_threads_limit: Int = 8
+  ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit) {
     val critical_path_nodes =
       build_graph.keys.map(node =>
         node -> path_times(node).filter((_, time) => time > threshold).keySet).toMap
@@ -469,8 +473,7 @@ object Build_Schedule {
       val resources = host_infos.available(state)
 
       def best_threads(task: Build_Process.Task): Int =
-        timing_data.best_threads(task.name).getOrElse(
-          host_infos.hosts.map(_.info.num_cpus).max min max_threads)
+        timing_data.best_threads(task.name).getOrElse(max_threads)
 
       val ordered_hosts =
         host_infos.hosts.sorted(host_infos.host_speeds).reverse.map(_ -> max_threads)
