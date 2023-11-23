@@ -67,8 +67,13 @@ object Build_Schedule {
             data.by_threads.toList.map((threads, data) =>
               threads -> Timing_Data.median_time(unify_hosts(data))).sortBy(_._1)
 
-          val monotone_prefix =
-            entries.zip(entries.sortBy(_._2.ms).reverse).takeWhile((e1, e2) => e1 == e2).map(_._1)
+          def sorted_prefix[A](xs: List[A], f: A => Long): List[A] =
+            xs match {
+              case x1 :: x2 :: xs =>
+                if (f(x1) <= f(x2)) x1 :: sorted_prefix(x2 :: xs, f) else x1 :: Nil
+              case xs => xs
+            }
+          val monotone_prefix = sorted_prefix(entries, e => -e._2.ms)
 
           if (monotone_prefix.length > 1 && threads <= monotone_prefix.last._1) {
             // Model with Amdahl's law
