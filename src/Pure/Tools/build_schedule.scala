@@ -203,7 +203,7 @@ object Build_Schedule {
   }
 
   object Timing_Data {
-    def median_time(obs: List[Time]): Time = obs.sortBy(_.ms).drop(obs.length / 2).head
+    def median_time(obs: List[Time]): Time = obs.sortBy(_.ms).apply(obs.length / 2)
     def mean_time(obs: Iterable[Time]): Time = Time.ms(obs.map(_.ms).sum / obs.size)
 
     private def dummy_entries(host: Host, host_factor: Double) =
