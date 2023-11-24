@@ -84,7 +84,8 @@ object Build_Schedule {
 
           val is_mono = entries == mono_prefix
           val in_prefix = mono_prefix.length > 1 && threads <= mono_prefix.last._1
-          val in_inflection = !is_mono && threads < entries.drop(mono_prefix.length).head._1
+          val in_inflection =
+            !is_mono && mono_prefix.length > 1 && threads < entries.drop(mono_prefix.length).head._1
           if (is_mono || in_prefix || in_inflection) {
             // Model with Amdahl's law
             val t_p =
