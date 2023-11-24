@@ -17,30 +17,27 @@ object Build_Schedule {
   /* organized historic timing information (extracted from build logs) */
 
   case class Timing_Entry(job_name: String, hostname: String, threads: Int, elapsed: Time)
+  case class Timing_Entries(entries: List[Timing_Entry]) {
+    require(entries.nonEmpty)
 
-  class Timing_Data private(data: List[Timing_Entry], val host_infos: Host_Infos) {
-    require(data.nonEmpty)
+    def is_empty = entries.isEmpty
+    def size = entries.length
 
-    def is_empty = data.isEmpty
-    def size = data.length
+    lazy val by_job = entries.groupBy(_.job_name).view.mapValues(Timing_Entries(_)).toMap
+    lazy val by_threads = entries.groupBy(_.threads).view.mapValues(Timing_Entries(_)).toMap
+    lazy val by_hostname = entries.groupBy(_.hostname).view.mapValues(Timing_Entries(_)).toMap
 
-    private lazy val by_job =
-      data.groupBy(_.job_name).view.mapValues(new Timing_Data(_, host_infos)).toMap
-    private lazy val by_threads =
-      data.groupBy(_.threads).view.mapValues(new Timing_Data(_, host_infos)).toMap
-    private lazy val by_hostname =
-      data.groupBy(_.hostname).view.mapValues(new Timing_Data(_, host_infos)).toMap
+    def mean_time: Time = Timing_Data.mean_time(entries.map(_.elapsed))
+    def best_entry: Timing_Entry = entries.minBy(_.elapsed.ms)
+  }
 
-    def mean_time: Time = Timing_Data.mean_time(data.map(_.elapsed))
-
-    private def best_entry: Timing_Entry = data.minBy(_.elapsed.ms)
-
+  class Timing_Data private(data: Timing_Entries, val host_infos: Host_Infos) {
     private def inflection_point(last_mono: Int, next: Int): Int =
       last_mono + ((next - last_mono) / 2)
 
     def best_threads(job_name: String, max_threads: Int): Int = {
       val worse_threads =
-        by_job.get(job_name).toList.flatMap(_.by_hostname).flatMap {
+        data.by_job.get(job_name).toList.flatMap(_.by_hostname).flatMap {
           case (hostname, data) =>
             val best_threads = data.best_entry.threads
             data.by_threads.keys.toList.sorted.find(_ > best_threads).map(
@@ -52,14 +49,14 @@ object Build_Schedule {
     private def hostname_factor(from: String, to: String): Double =
       host_infos.host_factor(host_infos.the_host(from), host_infos.the_host(to))
 
-    def approximate_threads(threads: Int): Option[Time] = {
+    def approximate_threads(data: Timing_Entries, threads: Int): Option[Time] = {
       val approximations =
-        by_job.values.filter(_.by_threads.size > 1).map { data =>
+        data.by_job.values.filter(_.by_threads.size > 1).map { data =>
           val (ref_hostname, _) =
             data.by_hostname.toList.flatMap((hostname, data) =>
               data.by_threads.keys.map(hostname -> _)).minBy((_, n) => Math.abs(n - threads))
 
-          def unify_hosts(data: Timing_Data): List[Time] =
+          def unify_hosts(data: Timing_Entries): List[Time] =
             data.by_hostname.toList.map((hostname, data) =>
               data.mean_time.scale(hostname_factor(hostname, ref_hostname)))
 
@@ -124,32 +121,33 @@ object Build_Schedule {
       if (approximations.isEmpty) None else Some(Timing_Data.mean_time(approximations))
     }
 
-    def threads_factor(divided: Int, divisor: Int): Double =
-      (approximate_threads(divided), approximate_threads(divisor)) match {
+    def threads_factor(data: Timing_Entries, divided: Int, divisor: Int): Double =
+      (approximate_threads(data, divided), approximate_threads(data, divisor)) match {
         case (Some(dividend), Some(divisor)) => dividend.ms.toDouble / divisor.ms
         case _ => divided.toDouble / divisor
       }
 
     def estimate(job_name: String, hostname: String, threads: Int): Time =
-      by_job.get(job_name) match {
-        case None => mean_time
+      data.by_job.get(job_name) match {
+        case None => data.mean_time
         case Some(data) =>
           data.by_threads.get(threads) match {
             case None => // interpolate threads
               data.by_hostname.get(hostname).flatMap(
-                _.approximate_threads(threads)).getOrElse {
+                approximate_threads(_, threads)).getOrElse {
                   // per machine, try to approximate config for threads
                   val approximated =
                     data.by_hostname.toList.flatMap((hostname1, data) =>
-                      data.approximate_threads(threads).map(time =>
+                      approximate_threads(data, threads).map(time =>
                         time.scale(hostname_factor(hostname1, hostname))))
 
                   if (approximated.nonEmpty) Timing_Data.mean_time(approximated)
                   else {
                     // no machine where config can be approximated
-                    data.approximate_threads(threads).getOrElse {
+                    approximate_threads(data, threads).getOrElse {
                       // only single data point, use global curve to approximate
-                      val global_factor = threads_factor(data.by_threads.keys.head, threads)
+                      val global_factor =
+                        threads_factor(this.data, data.by_threads.keys.head, threads)
                       data.by_threads.values.head.mean_time.scale(global_factor)
                     }
                   }
@@ -202,7 +200,7 @@ object Build_Schedule {
               Timing_Entry(job_name, hostname, threads, median_time(timings))
           }
 
-      new Timing_Data(entries, host_infos)
+      new Timing_Data(Timing_Entries(entries), host_infos)
     }
   }
 
