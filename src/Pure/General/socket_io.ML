@@ -8,7 +8,6 @@ ML Basis Library" by Emden R. Gansner and John H. Reppy.
 
 signature SOCKET_IO =
 sig
-  val make_streams: Socket.active INetSock.stream_sock -> BinIO.instream * BinIO.outstream
   val open_streams: string -> BinIO.instream * BinIO.outstream
   val with_streams: (BinIO.instream * BinIO.outstream -> 'a) -> string -> 'a
   val with_streams': (BinIO.instream * BinIO.outstream -> 'a) -> string -> string -> 'a
@@ -20,11 +19,8 @@ struct
 fun close_permissive socket =
   Socket.close socket handle OS.SysErr _ => ();
 
-fun make_streams socket =
+fun make_streams socket_name socket =
   let
-    val (socket_host, socket_port) = INetSock.fromAddr (Socket.Ctl.getSockName socket);
-    val socket_name = NetHostDB.toString socket_host ^ ":" ^ string_of_int socket_port;
-
     val rd =
       BinPrimIO.RD {
         name = socket_name,
@@ -84,7 +80,10 @@ fun open_streams name =
       | _ => err ());
     val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
     val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
-  in make_streams socket end
+
+    val (socket_host, socket_port) = INetSock.fromAddr (Socket.Ctl.getSockName socket);
+    val socket_name = NetHostDB.toString socket_host ^ ":" ^ string_of_int socket_port;
+  in make_streams socket_name socket end
   handle OS.SysErr (msg, _) => error (msg ^ ": failed to open socket " ^ name);
 
 fun with_streams f =
