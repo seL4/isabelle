@@ -31,11 +31,15 @@ object Url {
 
   /* make and check URLs */
 
+  def is_malformed(exn: Throwable): Boolean =
+    exn.isInstanceOf[MalformedURLException] ||
+    exn.isInstanceOf[URISyntaxException] ||
+    exn.isInstanceOf[IllegalArgumentException]
+
   def apply(name: String): URL =
     try { new URI(name).toURL }
     catch {
-      case _: MalformedURLException | _: URISyntaxException =>
-        error("Malformed URL " + quote(name))
+      case exn: Throwable if is_malformed(exn) => error("Malformed URL " + quote(name))
     }
 
   def resolve(url: URL, route: String): URL =

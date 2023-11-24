@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermission}
-import java.net.{URI, URL, MalformedURLException, URISyntaxException}
+import java.net.{URI, URL}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
@@ -41,9 +41,7 @@ object File {
       }
       else name
     }
-    catch {
-      case _: MalformedURLException | _: URISyntaxException => standard_path(name)
-    }
+    catch { case exn: Throwable if Url.is_malformed(exn) => standard_path(name) }
 
 
   /* platform path (Windows or Posix) */
