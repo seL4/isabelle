@@ -22,12 +22,12 @@ fun close_permissive socket =
 
 fun make_streams socket =
   let
-    val (host, port) = INetSock.fromAddr (Socket.Ctl.getSockName socket);
-    val name = NetHostDB.toString host ^ ":" ^ string_of_int port;
+    val (socket_host, socket_port) = INetSock.fromAddr (Socket.Ctl.getSockName socket);
+    val socket_name = NetHostDB.toString socket_host ^ ":" ^ string_of_int socket_port;
 
     val rd =
       BinPrimIO.RD {
-        name = name,
+        name = socket_name,
         chunkSize = 4096,
         readVec = SOME (fn n => Socket.recvVec (socket, n)),
         readArr = SOME (fn buffer => Socket.recvArr (socket, buffer)),
@@ -46,7 +46,7 @@ fun make_streams socket =
 
     val wr =
       BinPrimIO.WR {
-        name = name,
+        name = socket_name,
         chunkSize = 4096,
         writeVec = SOME (fn buffer => Socket.sendVec (socket, buffer)),
         writeArr = SOME (fn buffer => Socket.sendArr (socket, buffer)),
@@ -73,11 +73,11 @@ fun make_streams socket =
   in (in_stream, out_stream) end;
 
 
-fun open_streams socket_name =
+fun open_streams name =
   let
-    fun err () = error ("Bad socket name: " ^ quote socket_name);
+    fun err () = error ("Bad socket name: " ^ quote name);
     val (host, port) =
-      (case space_explode ":" socket_name of
+      (case space_explode ":" name of
         [h, p] =>
          (case NetHostDB.getByName h of SOME host => host | NONE => err (),
           case Int.fromString p of SOME port => port | NONE => err ())
@@ -85,19 +85,19 @@ fun open_streams socket_name =
     val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
     val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
   in make_streams socket end
-  handle OS.SysErr (msg, _) => error (msg ^ ": failed to open socket " ^ socket_name);
+  handle OS.SysErr (msg, _) => error (msg ^ ": failed to open socket " ^ name);
 
 fun with_streams f =
-  Thread_Attributes.uninterruptible (fn run => fn socket_name =>
+  Thread_Attributes.uninterruptible (fn run => fn name =>
     let
-      val streams = open_streams socket_name;
+      val streams = open_streams name;
       val result = Exn.capture (run f) streams;
       val _ = BinIO.closeIn (#1 streams);
       val _ = BinIO.closeOut (#2 streams);
     in Exn.release result end);
 
-fun with_streams' f socket_name password =
+fun with_streams' f name password =
   with_streams (fn streams =>
-    (Byte_Message.write_line (#2 streams) (Bytes.string password); f streams)) socket_name;
+    (Byte_Message.write_line (#2 streams) (Bytes.string password); f streams)) name;
 
 end;
