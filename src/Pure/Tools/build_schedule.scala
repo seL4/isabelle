@@ -80,28 +80,28 @@ object Build_Schedule {
             Time.ms((a.scale(threads) + b).ms max 0)
           }
 
-          val monotone_prefix = sorted_prefix(entries, e => -e._2.ms)
+          val mono_prefix = sorted_prefix(entries, e => -e._2.ms)
 
-          val is_mono = entries == monotone_prefix
-          val in_prefix = monotone_prefix.length > 1 && threads <= monotone_prefix.last._1
-          val in_inflection = !is_mono && threads < entries.drop(monotone_prefix.length).head._1
+          val is_mono = entries == mono_prefix
+          val in_prefix = mono_prefix.length > 1 && threads <= mono_prefix.last._1
+          val in_inflection = !is_mono && threads < entries.drop(mono_prefix.length).head._1
           if (is_mono || in_prefix || in_inflection) {
             // Model with Amdahl's law
             val t_p =
               Timing_Data.median_time(for {
-                (n, t0) <- monotone_prefix
-                (m, t1) <- monotone_prefix
+                (n, t0) <- mono_prefix
+                (m, t1) <- mono_prefix
                 if m != n
               } yield (t0 - t1).scale(n.toDouble * m / (m - n)))
             val t_c =
-              Timing_Data.median_time(for ((n, t) <- monotone_prefix) yield t - t_p.scale(1.0 / n))
+              Timing_Data.median_time(for ((n, t) <- mono_prefix) yield t - t_p.scale(1.0 / n))
 
             def model(threads: Int): Time = t_c + t_p.scale(1.0 / threads)
 
             if (is_mono || in_prefix) model(threads)
             else {
-              val post_inflection = entries.drop(monotone_prefix.length).head
-              val inflection_threads = inflection_point(monotone_prefix.last._1, post_inflection._1)
+              val post_inflection = entries.drop(mono_prefix.length).head
+              val inflection_threads = inflection_point(mono_prefix.last._1, post_inflection._1)
 
               if (threads <= inflection_threads) model(threads)
               else linear((inflection_threads, model(inflection_threads)), post_inflection)
