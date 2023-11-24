@@ -40,11 +40,10 @@ object Session_Build {
 
     /* text */
 
-    private val text = new TextArea {
-      editable = false
-      columns = 60
-      rows = 24
-    }
+    private val text = new TextArea
+    text.editable = false
+    text.columns = 60
+    text.rows = 24
     text.font = GUI.copy_font((new Label).font)
 
     private val scroll_text = new ScrollPane(text)
