@@ -54,8 +54,8 @@ object Build_Schedule {
 
     def approximate_threads(threads: Int): Option[Time] = {
       val approximations =
-        by_job.values.filter(_.size > 1).map { data =>
-          val (ref_hostname, x0) =
+        by_job.values.filter(_.by_threads.size > 1).map { data =>
+          val (ref_hostname, _) =
             data.by_hostname.toList.flatMap((hostname, data) =>
               data.by_threads.keys.map(hostname -> _)).minBy((_, n) => Math.abs(n - threads))
 
