@@ -23,7 +23,7 @@ object Isabelle_Process {
     cwd: JFile = null,
     env: JMap[String, String] = Isabelle_System.settings()
   ): Isabelle_Process = {
-    val channel = System_Channel()
+    val channel = System_Channel(unix_domain = Platform.is_unix)
     val process =
       try {
         val ml_options =
