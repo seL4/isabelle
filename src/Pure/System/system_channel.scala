@@ -13,7 +13,7 @@ import java.nio.channels.{ServerSocketChannel, Channels}
 
 
 object System_Channel {
-  def apply(unix_domain: Boolean = Platform.is_unix): System_Channel =
+  def apply(unix_domain: Boolean = false): System_Channel =
     if (unix_domain) new Unix else new Inet
 
   class Inet extends System_Channel(StandardProtocolFamily.INET) {
