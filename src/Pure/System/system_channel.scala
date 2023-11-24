@@ -31,11 +31,12 @@ class System_Channel private {
       val out_stream = socket.getOutputStream
       val in_stream = socket.getInputStream
 
-      if (Byte_Message.read_line(in_stream).map(_.text) == Some(password)) (out_stream, in_stream)
-      else {
-        out_stream.close()
-        in_stream.close()
-        error("Failed to connect system channel: bad password")
+      Byte_Message.read_line(in_stream) match {
+        case Some(bs) if bs.text == password => (out_stream, in_stream)
+        case _ =>
+          out_stream.close()
+          in_stream.close()
+          error("Failed to connect system channel: bad password")
       }
     }
     finally { shutdown() }
