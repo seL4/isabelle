@@ -8,7 +8,8 @@ package isabelle
 
 
 import java.io.{InputStream, OutputStream}
-import java.net.{InetAddress, InetSocketAddress, ProtocolFamily, ServerSocket, SocketAddress, StandardProtocolFamily, UnixDomainSocketAddress}
+import java.net.{InetAddress, InetSocketAddress, ProtocolFamily, ServerSocket, SocketAddress,
+  StandardProtocolFamily, UnixDomainSocketAddress, StandardSocketOptions}
 import java.nio.channels.{ServerSocketChannel, Channels}
 
 
@@ -16,8 +17,11 @@ object System_Channel {
   def apply(unix_domain: Boolean = false): System_Channel =
     if (unix_domain) new Unix else new Inet
 
+  val buffer_size: Integer = Integer.valueOf(131072)
+
   class Inet extends System_Channel(StandardProtocolFamily.INET) {
     server.bind(new InetSocketAddress(Server.localhost, 0), 50)
+    server.setOption(StandardSocketOptions.SO_RCVBUF, buffer_size)
 
     override def address: String =
       Server.print_address(server.getLocalAddress.asInstanceOf[InetSocketAddress].getPort)
@@ -28,6 +32,7 @@ object System_Channel {
     private val socket_file_name = socket_file.getPath
 
     server.bind(UnixDomainSocketAddress.of(socket_file_name))
+    server.setOption(StandardSocketOptions.SO_RCVBUF, buffer_size)
 
     override def address: String = socket_file_name
     override def shutdown(): Unit = {
