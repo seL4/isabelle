@@ -49,7 +49,69 @@ object Build_Schedule {
     private def hostname_factor(from: String, to: String): Double =
       host_infos.host_factor(host_infos.the_host(from), host_infos.the_host(to))
 
-    def approximate_threads(data: Timing_Entries, threads: Int): Option[Time] = {
+    private def approximate_threads(entries: List[(Int, Time)], threads: Int): Time = {
+      def sorted_prefix[A](xs: List[A], f: A => Long): List[A] =
+        xs match {
+          case x1 :: x2 :: xs =>
+            if (f(x1) <= f(x2)) x1 :: sorted_prefix(x2 :: xs, f) else x1 :: Nil
+          case xs => xs
+        }
+
+      def linear(p0: (Int, Time), p1: (Int, Time)): Time = {
+        val a = (p1._2 - p0._2).scale(1.0 / (p1._1 - p0._1))
+        val b = p0._2 - a.scale(p0._1)
+        Time.ms((a.scale(threads) + b).ms max 0)
+      }
+
+      val mono_prefix = sorted_prefix(entries, e => -e._2.ms)
+
+      val is_mono = entries == mono_prefix
+      val in_prefix = mono_prefix.length > 1 && threads <= mono_prefix.last._1
+      val in_inflection =
+        !is_mono && mono_prefix.length > 1 && threads < entries.drop(mono_prefix.length).head._1
+      if (is_mono || in_prefix || in_inflection) {
+        // Model with Amdahl's law
+        val t_p =
+          Timing_Data.median_time(for {
+            (n, t0) <- mono_prefix
+            (m, t1) <- mono_prefix
+            if m != n
+          } yield (t0 - t1).scale(n.toDouble * m / (m - n)))
+        val t_c =
+          Timing_Data.median_time(for ((n, t) <- mono_prefix) yield t - t_p.scale(1.0 / n))
+
+        def model(threads: Int): Time = t_c + t_p.scale(1.0 / threads)
+
+        if (is_mono || in_prefix) model(threads)
+        else {
+          val post_inflection = entries.drop(mono_prefix.length).head
+          val inflection_threads = inflection_point(mono_prefix.last._1, post_inflection._1)
+
+          if (threads <= inflection_threads) model(threads)
+          else linear((inflection_threads, model(inflection_threads)), post_inflection)
+        }
+      } else {
+        // Piecewise linear
+        val (p0, p1) =
+          if (entries.head._1 <= threads && threads <= entries.last._1) {
+            val split = entries.partition(_._1 <= threads)
+            (split._1.last, split._2.head)
+          } else {
+            val piece = if (threads < entries.head._1) entries.take(2) else entries.takeRight(2)
+            (piece.head, piece.last)
+          }
+
+        linear(p0, p1)
+      }
+    }
+
+    def threads_factor(data: Timing_Entries, divided: Int, divisor: Int): Double =
+      (estimate_threads(data, divided), estimate_threads(data, divisor)) match {
+        case (Some(dividend), Some(divisor)) => dividend.ms.toDouble / divisor.ms
+        case _ => divided.toDouble / divisor
+      }
+
+    def estimate_threads(data: Timing_Entries, threads: Int): Option[Time] = {
       val approximations =
         data.by_job.values.filter(_.by_threads.size > 1).map { data =>
           val (ref_hostname, _) =
@@ -64,68 +126,10 @@ object Build_Schedule {
             data.by_threads.toList.map((threads, data) =>
               threads -> Timing_Data.median_time(unify_hosts(data))).sortBy(_._1)
 
-          def sorted_prefix[A](xs: List[A], f: A => Long): List[A] =
-            xs match {
-              case x1 :: x2 :: xs =>
-                if (f(x1) <= f(x2)) x1 :: sorted_prefix(x2 :: xs, f) else x1 :: Nil
-              case xs => xs
-            }
-
-          def linear(p0: (Int, Time), p1: (Int, Time)): Time = {
-            val a = (p1._2 - p0._2).scale(1.0 / (p1._1 - p0._1))
-            val b = p0._2 - a.scale(p0._1)
-            Time.ms((a.scale(threads) + b).ms max 0)
-          }
-
-          val mono_prefix = sorted_prefix(entries, e => -e._2.ms)
-
-          val is_mono = entries == mono_prefix
-          val in_prefix = mono_prefix.length > 1 && threads <= mono_prefix.last._1
-          val in_inflection =
-            !is_mono && mono_prefix.length > 1 && threads < entries.drop(mono_prefix.length).head._1
-          if (is_mono || in_prefix || in_inflection) {
-            // Model with Amdahl's law
-            val t_p =
-              Timing_Data.median_time(for {
-                (n, t0) <- mono_prefix
-                (m, t1) <- mono_prefix
-                if m != n
-              } yield (t0 - t1).scale(n.toDouble * m / (m - n)))
-            val t_c =
-              Timing_Data.median_time(for ((n, t) <- mono_prefix) yield t - t_p.scale(1.0 / n))
-
-            def model(threads: Int): Time = t_c + t_p.scale(1.0 / threads)
-
-            if (is_mono || in_prefix) model(threads)
-            else {
-              val post_inflection = entries.drop(mono_prefix.length).head
-              val inflection_threads = inflection_point(mono_prefix.last._1, post_inflection._1)
-
-              if (threads <= inflection_threads) model(threads)
-              else linear((inflection_threads, model(inflection_threads)), post_inflection)
-            }
-          } else {
-            // Piecewise linear
-            val (p0, p1) =
-              if (entries.head._1 <= threads && threads <= entries.last._1) {
-                val split = entries.partition(_._1 <= threads)
-                (split._1.last, split._2.head)
-              } else {
-                val piece = if (threads < entries.head._1) entries.take(2) else entries.takeRight(2)
-                (piece.head, piece.last)
-              }
-
-            linear(p0, p1)
-          }
+          approximate_threads(entries, threads)
         }
       if (approximations.isEmpty) None else Some(Timing_Data.mean_time(approximations))
     }
-
-    def threads_factor(data: Timing_Entries, divided: Int, divisor: Int): Double =
-      (approximate_threads(data, divided), approximate_threads(data, divisor)) match {
-        case (Some(dividend), Some(divisor)) => dividend.ms.toDouble / divisor.ms
-        case _ => divided.toDouble / divisor
-      }
 
     def estimate(job_name: String, hostname: String, threads: Int): Time =
       data.by_job.get(job_name) match {
@@ -134,17 +138,17 @@ object Build_Schedule {
           data.by_threads.get(threads) match {
             case None => // interpolate threads
               data.by_hostname.get(hostname).flatMap(
-                approximate_threads(_, threads)).getOrElse {
+                estimate_threads(_, threads)).getOrElse {
                   // per machine, try to approximate config for threads
                   val approximated =
                     data.by_hostname.toList.flatMap((hostname1, data) =>
-                      approximate_threads(data, threads).map(time =>
+                      estimate_threads(data, threads).map(time =>
                         time.scale(hostname_factor(hostname1, hostname))))
 
                   if (approximated.nonEmpty) Timing_Data.mean_time(approximated)
                   else {
                     // no machine where config can be approximated
-                    approximate_threads(data, threads).getOrElse {
+                    estimate_threads(data, threads).getOrElse {
                       // only single data point, use global curve to approximate
                       val global_factor =
                         threads_factor(this.data, data.by_threads.keys.head, threads)
