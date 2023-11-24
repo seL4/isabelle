@@ -49,7 +49,9 @@ object Build_Schedule {
     private def hostname_factor(from: String, to: String): Double =
       host_infos.host_factor(host_infos.the_host(from), host_infos.the_host(to))
 
-    private def approximate_threads(entries: List[(Int, Time)], threads: Int): Time = {
+    private def approximate_threads(entries_unsorted: List[(Int, Time)], threads: Int): Time = {
+      val entries = entries_unsorted.sortBy(_._1)
+
       def sorted_prefix[A](xs: List[A], f: A => Long): List[A] =
         xs match {
           case x1 :: x2 :: xs =>
