@@ -19,12 +19,14 @@ struct
 fun close_permissive socket =
   Socket.close socket handle OS.SysErr _ => ();
 
+val buffer_size = 65536;
+
 fun make_streams socket_name socket =
   let
     val rd =
       BinPrimIO.RD {
         name = socket_name,
-        chunkSize = 4096,
+        chunkSize = buffer_size,
         readVec = SOME (fn n => Socket.recvVec (socket, n)),
         readArr = SOME (fn buffer => Socket.recvArr (socket, buffer)),
         readVecNB = NONE,
@@ -43,7 +45,7 @@ fun make_streams socket_name socket =
     val wr =
       BinPrimIO.WR {
         name = socket_name,
-        chunkSize = 4096,
+        chunkSize = buffer_size,
         writeVec = SOME (fn buffer => Socket.sendVec (socket, buffer)),
         writeArr = SOME (fn buffer => Socket.sendArr (socket, buffer)),
         writeVecNB = NONE,

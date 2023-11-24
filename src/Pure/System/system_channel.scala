@@ -17,7 +17,7 @@ object System_Channel {
   def apply(unix_domain: Boolean = false): System_Channel =
     if (unix_domain) new Unix else new Inet
 
-  val buffer_size: Integer = Integer.valueOf(131072)
+  val buffer_size: Integer = Integer.valueOf(65536)
 
   class Inet extends System_Channel(StandardProtocolFamily.INET) {
     server.bind(new InetSocketAddress(Server.localhost, 0), 50)
