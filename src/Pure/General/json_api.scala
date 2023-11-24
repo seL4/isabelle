@@ -19,7 +19,7 @@ object JSON_API {
     override def toString: String = url.toString
 
     def get(route: String): HTTP.Content =
-      HTTP.Client.get(if (route.isEmpty) url else new URL(url, route))
+      HTTP.Client.get(Url.resolve(url, route))
 
     def get_root(route: String = ""): Root =
       Root(get(if_proper(route, "/" + route)).json)

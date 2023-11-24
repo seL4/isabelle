@@ -45,7 +45,7 @@ public class GraphBrowser extends Panel {
             String line, text = "";
 
             try {
-                rd = new BufferedReader(new InputStreamReader((new URL(fname)).openConnection().getInputStream()));
+                rd = new BufferedReader(new InputStreamReader((new URI(fname)).toURL().openConnection().getInputStream()));
             } catch (Exception exn) {
                 rd = new FileReader(path + fname);
             }

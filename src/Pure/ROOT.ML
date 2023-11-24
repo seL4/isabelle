@@ -100,7 +100,6 @@ ML_file "ML/ml_profiling.ML";
 ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";
-ML_file "General/socket_io.ML";
 
 ML_file "General/graph.ML";
 
@@ -301,6 +300,7 @@ ML_file "Proof/proof_checker.ML";
 ML_file "Proof/extraction.ML";
 
 (*Isabelle system*)
+ML_file "General/socket_io.ML";
 ML_file "PIDE/protocol_command.ML";
 ML_file "System/java.ML";
 ML_file "System/scala.ML";
