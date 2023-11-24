@@ -68,22 +68,39 @@ fun make_streams socket_name socket =
 
   in (in_stream, out_stream) end;
 
+fun socket_name_inet name =
+  (case space_explode ":" name of
+    [h, p] =>
+     (case (NetHostDB.getByName h, Int.fromString p) of
+       (SOME host, SOME port) => SOME (host, port)
+     | _ => NONE)
+  | _ => NONE);
 
-fun open_streams name =
+fun open_streams_inet (host, port) =
   let
-    fun err () = error ("Bad socket name: " ^ quote name);
-    val (host, port) =
-      (case space_explode ":" name of
-        [h, p] =>
-         (case NetHostDB.getByName h of SOME host => host | NONE => err (),
-          case Int.fromString p of SOME port => port | NONE => err ())
-      | _ => err ());
     val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
     val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
 
     val (socket_host, socket_port) = INetSock.fromAddr (Socket.Ctl.getSockName socket);
     val socket_name = NetHostDB.toString socket_host ^ ":" ^ string_of_int socket_port;
-  in make_streams socket_name socket end
+  in make_streams socket_name socket end;
+
+fun open_streams_unix path =
+  \<^if_windows>\<open>raise Fail "Cannot create Unix-domain socket on Windows"\<close>
+  \<^if_unix>\<open>
+    let
+      val socket_name = File.platform_path path;
+      val socket: Socket.active UnixSock.stream_sock = UnixSock.Strm.socket ();
+      val _ = Socket.connect (socket, UnixSock.toAddr socket_name);
+    in make_streams socket_name socket end\<close>
+
+fun open_streams name =
+  (case socket_name_inet name of
+    SOME inet => open_streams_inet inet
+  | NONE =>
+    (case try Path.explode name of
+      SOME path => open_streams_unix path
+    | NONE => error ("Bad socket name: " ^ quote name)))
   handle OS.SysErr (msg, _) => error (msg ^ ": failed to open socket " ^ name);
 
 fun with_streams f =
