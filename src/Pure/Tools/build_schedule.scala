@@ -266,6 +266,8 @@ object Build_Schedule {
   }
 
   class Host_Infos private(val hosts: List[Host]) {
+    require(hosts.nonEmpty)
+
     private val by_hostname = hosts.map(host => host.info.hostname -> host).toMap
 
     def host_factor(from: Host, to: Host): Double =
