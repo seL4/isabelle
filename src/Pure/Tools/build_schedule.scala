@@ -156,7 +156,16 @@ object Build_Schedule {
 
     def estimate(job_name: String, hostname: String, threads: Int): Time =
       data.by_job.get(job_name) match {
-        case None => data.mean_time
+        case None =>
+          // no data for job, take average of other jobs for given threads
+          val job_estimates = data.by_job.keys.flatMap(estimate_threads(_, hostname, threads))
+          if (job_estimates.nonEmpty) Timing_Data.mean_time(job_estimates)
+          else {
+            // no other job to estimate from, use global curve to approximate any other job
+            val (threads1, data1) = data.by_threads.head
+            data1.mean_time.scale(global_threads_factor(threads1, threads))
+          }
+
         case Some(data) =>
           data.by_threads.get(threads) match {
             case None => // interpolate threads
