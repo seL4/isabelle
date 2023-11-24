@@ -95,8 +95,8 @@ object Build_Schedule {
       } else {
         // Piecewise linear
         val (p0, p1) =
-          if (entries.head._1 <= threads && threads <= entries.last._1) {
-            val split = entries.partition(_._1 <= threads)
+          if (entries.head._1 < threads && threads < entries.last._1) {
+            val split = entries.partition(_._1 < threads)
             (split._1.last, split._2.head)
           } else {
             val piece = if (threads < entries.head._1) entries.take(2) else entries.takeRight(2)
