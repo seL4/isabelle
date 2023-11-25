@@ -844,7 +844,7 @@ object Build_Log {
       sqlite_database.file.delete
 
       using(SQLite.open_database(sqlite_database)) { db2 =>
-        db.transaction {
+        private_data.transaction_lock(db, label = "Build_Log.snapshot_database") {
           db2.transaction {
             // main content
             db2.create_table(private_data.meta_info_table)
@@ -1209,23 +1209,23 @@ object Build_Log {
       sql: PostgreSQL.Source,
       filter: Entry => Boolean = _ => true
     ): History = {
-      val afp = afp_rev.isDefined
-      val select_recent_versions = {
-        val table1 = private_data.recent_pull_date_table(days = days, rev = rev, afp_rev = afp_rev)
-        val table2 = private_data.meta_info_table
-        val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = SQL.where(sql)))
+      val entries = private_data.transaction_lock(db, label = "Build_Log.History.retrieve") {
+        val afp = afp_rev.isDefined
+        val select_recent_versions = {
+          val table1 = private_data.recent_pull_date_table(days = days, rev = rev, afp_rev = afp_rev)
+          val table2 = private_data.meta_info_table
+          val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = SQL.where(sql)))
 
-        val columns =
-          table1.columns.map(c => c(table1)) :::
-            List(private_data.known.copy(expr = private_data.log_name(aux_table).defined))
+          val columns =
+            table1.columns.map(c => c(table1)) :::
+              List(private_data.known.copy(expr = private_data.log_name(aux_table).defined))
 
-        SQL.select(columns, distinct = true) +
-          table1.query_named + SQL.join_outer + aux_table.query_named +
-          " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(aux_table) +
-          SQL.order_by(List(private_data.pull_date(afp)(table1)), descending = true)
-      }
+          SQL.select(columns, distinct = true) +
+            table1.query_named + SQL.join_outer + aux_table.query_named +
+            " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(aux_table) +
+            SQL.order_by(List(private_data.pull_date(afp)(table1)), descending = true)
+        }
 
-      val entries =
         db.execute_query_statement(select_recent_versions, List.from[Entry],
           { res =>
             val known = res.bool(private_data.known)
@@ -1234,6 +1234,7 @@ object Build_Log {
             val pull_date = res.date(private_data.pull_date(afp))
             Entry(known, isabelle_version, afp_version, pull_date)
           })
+      }
 
       new History(entries.filter(filter))
     }
