@@ -38,38 +38,38 @@ object Build_Status {
     ): PostgreSQL.Source = {
       val columns =
         List(
-          Build_Log.private_data.pull_date(afp = false),
-          Build_Log.private_data.pull_date(afp = true),
+          Build_Log.Column.pull_date(afp = false),
+          Build_Log.Column.pull_date(afp = true),
           Build_Log.Prop.build_start,
           Build_Log.Prop.build_host,
           Build_Log.Prop.isabelle_version,
           Build_Log.Prop.afp_version,
           Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
           Build_Log.Settings.ML_PLATFORM,
-          Build_Log.private_data.log_name,
-          Build_Log.private_data.session_name,
-          Build_Log.private_data.chapter,
-          Build_Log.private_data.groups,
-          Build_Log.private_data.threads,
-          Build_Log.private_data.timing_elapsed,
-          Build_Log.private_data.timing_cpu,
-          Build_Log.private_data.timing_gc,
-          Build_Log.private_data.ml_timing_elapsed,
-          Build_Log.private_data.ml_timing_cpu,
-          Build_Log.private_data.ml_timing_gc,
-          Build_Log.private_data.heap_size,
-          Build_Log.private_data.status,
-          Build_Log.private_data.errors) :::
-        (if (ml_statistics) List(Build_Log.private_data.ml_statistics) else Nil)
+          Build_Log.Column.log_name,
+          Build_Log.Column.session_name,
+          Build_Log.Column.chapter,
+          Build_Log.Column.groups,
+          Build_Log.Column.threads,
+          Build_Log.Column.timing_elapsed,
+          Build_Log.Column.timing_cpu,
+          Build_Log.Column.timing_gc,
+          Build_Log.Column.ml_timing_elapsed,
+          Build_Log.Column.ml_timing_cpu,
+          Build_Log.Column.ml_timing_gc,
+          Build_Log.Column.heap_size,
+          Build_Log.Column.status,
+          Build_Log.Column.errors) :::
+        (if (ml_statistics) List(Build_Log.Column.ml_statistics) else Nil)
 
       Build_Log.private_data.universal_table.select(columns, distinct = true, sql =
         SQL.where_and(
-          Build_Log.private_data.recent(Build_Log.private_data.pull_date(afp), days(options)),
-          Build_Log.private_data.status.member(
+          Build_Log.private_data.recent(Build_Log.Column.pull_date(afp), days(options)),
+          Build_Log.Column.status.member(
             List(
               Build_Log.Session_Status.finished.toString,
               Build_Log.Session_Status.failed.toString)),
-          if_proper(only_sessions, Build_Log.private_data.session_name.member(only_sessions)),
+          if_proper(only_sessions, Build_Log.Column.session_name.member(only_sessions)),
           if_proper(sql, SQL.enclose(sql))))
     }
   }
@@ -267,17 +267,17 @@ object Build_Status {
         db.using_statement(sql) { stmt =>
           using(stmt.execute_query()) { res =>
             while (res.next()) {
-              val log_name = res.string(Build_Log.private_data.log_name)
-              val session_name = res.string(Build_Log.private_data.session_name)
-              val chapter = res.string(Build_Log.private_data.chapter)
-              val groups = split_lines(res.string(Build_Log.private_data.groups))
+              val log_name = res.string(Build_Log.Column.log_name)
+              val session_name = res.string(Build_Log.Column.session_name)
+              val chapter = res.string(Build_Log.Column.chapter)
+              val groups = split_lines(res.string(Build_Log.Column.groups))
               val threads = {
                 val threads1 =
                   res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
                     case Threads_Option(Value.Int(i)) => i
                     case _ => 1
                   }
-                val threads2 = res.get_int(Build_Log.private_data.threads).getOrElse(1)
+                val threads2 = res.get_int(Build_Log.Column.threads).getOrElse(1)
                 threads1 max threads2
               }
               val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
@@ -300,7 +300,7 @@ object Build_Status {
                 ML_Statistics(
                   if (ml_statistics) {
                     Properties.uncompress(
-                      res.bytes(Build_Log.private_data.ml_statistics), cache = store.cache)
+                      res.bytes(Build_Log.Column.ml_statistics), cache = store.cache)
                   }
                   else Nil,
                   domain = ml_statistics_domain,
@@ -310,32 +310,32 @@ object Build_Status {
                 Entry(
                   chapter = chapter,
                   build_start = res.date(Build_Log.Prop.build_start),
-                  pull_date = res.date(Build_Log.private_data.pull_date(afp = false)),
+                  pull_date = res.date(Build_Log.Column.pull_date(afp = false)),
                   afp_pull_date =
-                    if (afp) res.get_date(Build_Log.private_data.pull_date(afp = true)) else None,
+                    if (afp) res.get_date(Build_Log.Column.pull_date(afp = true)) else None,
                   isabelle_version = isabelle_version,
                   afp_version = afp_version,
                   timing =
                     res.timing(
-                      Build_Log.private_data.timing_elapsed,
-                      Build_Log.private_data.timing_cpu,
-                      Build_Log.private_data.timing_gc),
+                      Build_Log.Column.timing_elapsed,
+                      Build_Log.Column.timing_cpu,
+                      Build_Log.Column.timing_gc),
                   ml_timing =
                     res.timing(
-                      Build_Log.private_data.ml_timing_elapsed,
-                      Build_Log.private_data.ml_timing_cpu,
-                      Build_Log.private_data.ml_timing_gc),
+                      Build_Log.Column.ml_timing_elapsed,
+                      Build_Log.Column.ml_timing_cpu,
+                      Build_Log.Column.ml_timing_gc),
                   maximum_code = Space.B(ml_stats.maximum(ML_Statistics.CODE_SIZE)),
                   average_code = Space.B(ml_stats.average(ML_Statistics.CODE_SIZE)),
                   maximum_stack = Space.B(ml_stats.maximum(ML_Statistics.STACK_SIZE)),
                   average_stack = Space.B(ml_stats.average(ML_Statistics.STACK_SIZE)),
                   maximum_heap = Space.B(ml_stats.maximum(ML_Statistics.HEAP_SIZE)),
                   average_heap = Space.B(ml_stats.average(ML_Statistics.HEAP_SIZE)),
-                  stored_heap = Space.bytes(res.long(Build_Log.private_data.heap_size)),
-                  status = Build_Log.Session_Status.valueOf(res.string(Build_Log.private_data.status)),
+                  stored_heap = Space.bytes(res.long(Build_Log.Column.heap_size)),
+                  status = Build_Log.Session_Status.valueOf(res.string(Build_Log.Column.status)),
                   errors =
                     Build_Log.uncompress_errors(
-                      res.bytes(Build_Log.private_data.errors), cache = store.cache))
+                      res.bytes(Build_Log.Column.errors), cache = store.cache))
 
               val sessions = data_entries.getOrElse(data_name, Map.empty)
               val session =

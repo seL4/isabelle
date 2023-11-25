@@ -619,8 +619,8 @@ object Build_Schedule {
       val build_history =
         for {
           log_name <- _log_database.execute_query_statement(
-            Build_Log.private_data.meta_info_table.select(List(Build_Log.private_data.log_name)),
-            List.from[String], res => res.string(Build_Log.private_data.log_name))
+            Build_Log.private_data.meta_info_table.select(List(Build_Log.Column.log_name)),
+            List.from[String], res => res.string(Build_Log.Column.log_name))
           meta_info <- Build_Log.private_data.read_meta_info(_log_database, log_name)
           build_info =
             Build_Log.private_data.read_build_info(_log_database, log_name, cache = _log_store.cache)
