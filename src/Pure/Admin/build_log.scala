@@ -807,10 +807,10 @@ object Build_Log {
     def read_domain(
       db: SQL.Database,
       table: SQL.Table,
-      column: SQL.Column,
       restriction: Option[Iterable[String]] = None,
       cache: XML.Cache = XML.Cache.make()
     ): Set[String] = {
+      val column = Column.log_name
       db.execute_query_statement(
         table.select(List(column),
           sql = restriction match {
@@ -1113,9 +1113,7 @@ object Build_Log {
 
       abstract class Table_Status(table: SQL.Table) {
         private val known =
-          Synchronized(
-            private_data.read_domain(db, table, Column.log_name,
-              restriction = files_domain, cache = cache))
+          Synchronized(private_data.read_domain(db, table, restriction = files_domain, cache = cache))
 
         def required(file: JFile): Boolean = !(known.value)(Log_File.plain_name(file))
         def required(log_file: Log_File): Boolean = !(known.value)(log_file.name)
