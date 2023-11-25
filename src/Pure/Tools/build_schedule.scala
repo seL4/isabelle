@@ -621,8 +621,9 @@ object Build_Schedule {
           log_name <- _log_database.execute_query_statement(
             Build_Log.private_data.meta_info_table.select(List(Build_Log.private_data.log_name)),
             List.from[String], res => res.string(Build_Log.private_data.log_name))
-          meta_info <- _log_store.read_meta_info(_log_database, log_name)
-          build_info = _log_store.read_build_info(_log_database, log_name)
+          meta_info <- Build_Log.private_data.read_meta_info(_log_database, log_name)
+          build_info =
+            Build_Log.private_data.read_build_info(_log_database, log_name, cache = _log_store.cache)
         } yield (meta_info, build_info)
 
       Timing_Data.make(host_infos, build_history)
@@ -673,8 +674,9 @@ object Build_Schedule {
       val build_info = Build_Log.Build_Info(sessions.toMap)
       val log_name = Build_Log.log_filename(engine = engine_name, date = start_date)
 
-      _log_store.update_sessions(_log_database, log_name.file_name, build_info)
-      _log_store.update_meta_info(_log_database, log_name.file_name, meta_info)
+      Build_Log.private_data.update_sessions(
+        _log_database, _log_store.cache.compress, log_name.file_name, build_info)
+      Build_Log.private_data.update_meta_info(_log_database, log_name.file_name, meta_info)
     }
 
 
