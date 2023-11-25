@@ -77,6 +77,10 @@ specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 command-line tool that is implemented in Isabelle/Scala. It serves as
 demonstration for user-defined tools.
 
+* Old $ISABELLE_HOME/bin/isabelle_scala_script has been removed.
+Command-line tools in Isabelle/Scala should be provided by a proper
+system component with etc/build.props, e.g. see src/Tools/Demo/.
+
 * The Isabelle/Scala module isabelle.Registry provides hierarchic system
 configuration, based on a collection of TOML files (see also
 https://toml.io/en/v1.0.0). The settings variable ISABELLE_REGISTRY

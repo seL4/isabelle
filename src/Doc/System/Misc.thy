@@ -399,7 +399,7 @@ text \<open>
   determined by @{setting ISABELLE_HOME}.
 
   The \<open>BINDIR\<close> argument tells where executable wrapper scripts for
-  @{executable "isabelle"} and @{executable isabelle_scala_script} should be
+  @{executable "isabelle"} and @{executable isabelle_java} should be
   placed, which is typically a directory in the shell's @{setting PATH}, such
   as \<^verbatim>\<open>$HOME/bin\<close>.
 
