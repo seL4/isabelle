@@ -797,6 +797,23 @@ object Build_Log {
 
     /* access data */
 
+    def read_domain(
+      db: SQL.Database,
+      table: SQL.Table,
+      column: SQL.Column,
+      restriction: Option[Iterable[String]] = None,
+      cache: XML.Cache = XML.Cache.make()
+    ): Set[String] = {
+      db.execute_query_statement(
+        table.select(List(column),
+          sql = restriction match {
+            case None => ""
+            case Some(names) => column.where_member(names)
+          },
+          distinct = true),
+        Set.from[String], res => cache.string(res.string(column)))
+    }
+
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] = {
       val table = meta_info_table
       val columns = table.columns.tail
@@ -999,7 +1016,7 @@ object Build_Log {
         ssh_user = options.string("build_log_ssh_user"))
 
     def init_database(db: SQL.Database, minimal: Boolean = false): Unit =
-      private_data.transaction_lock(db, create = true, label = "build_log_init") {
+      private_data.transaction_lock(db, create = true, label = "Build_Log.init_database") {
         if (!minimal) {
           db.create_view(private_data.pull_date_table())
           db.create_view(private_data.pull_date_table(afp = true))
@@ -1071,24 +1088,6 @@ object Build_Log {
       }
     }
 
-    def read_domain(
-      db: SQL.Database,
-      table: SQL.Table,
-      column: SQL.Column,
-      restriction: Option[Iterable[String]] = None
-    ): Set[String] = {
-      private_data.transaction_lock(db, label = "Build_Log.read_domain") {
-        db.execute_query_statement(
-          table.select(List(column),
-            sql = restriction match {
-              case None => ""
-              case Some(names) => column.where_member(names)
-            },
-            distinct = true),
-          Set.from[String], res => cache.string(res.string(column)))
-      }
-    }
-
     def write_info(db: SQL.Database, files: List[JFile],
       ml_statistics: Boolean = false,
       progress: Progress = new Progress,
@@ -1107,7 +1106,9 @@ object Build_Log {
 
       abstract class Table_Status(table: SQL.Table) {
         private val known =
-          Synchronized(read_domain(db, table, private_data.log_name, restriction = files_domain))
+          Synchronized(
+            private_data.read_domain(db, table, private_data.log_name,
+              restriction = files_domain, cache = cache))
 
         def required(file: JFile): Boolean = !(known.value)(Log_File.plain_name(file))
         def required(log_file: Log_File): Boolean = !(known.value)(log_file.name)
@@ -1121,32 +1122,35 @@ object Build_Log {
         }
       }
 
-      val ml_statistics_status =
-        if (ml_statistics) {
-          List(
-            new Table_Status(private_data.ml_statistics_table) {
-              override def update_db(db: SQL.Database, log_file: Log_File): Unit =
-                private_data.update_ml_statistics(db, cache.compress, log_file.name,
-                  log_file.parse_build_info(ml_statistics = true))
-            })
-        }
-        else Nil
       val status =
-        List(
-          new Table_Status(private_data.meta_info_table) {
-            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
-              private_data.update_meta_info(db, log_file.name, log_file.parse_meta_info())
-          },
-          new Table_Status(private_data.sessions_table) {
-            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
-              private_data.update_sessions(db, cache.compress, log_file.name,
-                log_file.parse_build_info())
-          },
-          new Table_Status(private_data.theories_table) {
-            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
-              private_data.update_theories(db, log_file.name, log_file.parse_build_info())
-          }
-        ) ::: ml_statistics_status
+        private_data.transaction_lock(db, label = "build_log_database.status") {
+          val status1 =
+            if (ml_statistics) {
+              List(
+                new Table_Status(private_data.ml_statistics_table) {
+                  override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+                    private_data.update_ml_statistics(db, cache.compress, log_file.name,
+                      log_file.parse_build_info(ml_statistics = true))
+                })
+            }
+            else Nil
+          val status2 =
+            List(
+              new Table_Status(private_data.meta_info_table) {
+                override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+                  private_data.update_meta_info(db, log_file.name, log_file.parse_meta_info())
+              },
+              new Table_Status(private_data.sessions_table) {
+                override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+                  private_data.update_sessions(db, cache.compress, log_file.name,
+                    log_file.parse_build_info())
+              },
+              new Table_Status(private_data.theories_table) {
+                override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+                  private_data.update_theories(db, log_file.name, log_file.parse_build_info())
+              })
+          status1 ::: status2
+        }
 
       val consumer =
         Consumer_Thread.fork[Log_File]("build_log_database")(
@@ -1155,7 +1159,7 @@ object Build_Log {
             val t0 = progress.start.time
             val t1 = progress.now().time
 
-            private_data.transaction_lock(db, label = "build_log_database") {
+            private_data.transaction_lock(db, label = "build_log_database.consumer") {
               try { status.foreach(_.update(log_file)) }
               catch { case exn: Throwable => add_error(log_file.name, exn) }
             }
