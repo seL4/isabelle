@@ -46,7 +46,8 @@ text \<open>
   \<^medskip>
   There is also an implicit build process for Isabelle/Scala/Java modules,
   based on \<^path>\<open>etc/build.props\<close> within the component directory (see also
-  \secref{sec:scala-build}).
+  \secref{sec:scala-build}). See \<^file>\<open>$ISABELLE_HOME/src/Tools/Demo/README.md\<close>
+  for an example components with command-line tools in Isabelle/Scala.
 \<close>
 
 

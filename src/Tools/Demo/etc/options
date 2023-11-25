@@ -1,0 +1,6 @@
+(* :mode=isabelle-options: *)
+
+section "Demo"
+
+option demo_prefix : string = ""
+  -- "line prefix for output of arguments"

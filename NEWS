@@ -73,6 +73,10 @@ specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 
 *** System ***
 
+* Directory src/Tools/Demo provides an Isabelle system component with
+command-line tool that is implemented in Isabelle/Scala. It serves as
+demonstration for user-defined tools.
+
 * The Isabelle/Scala module isabelle.Registry provides hierarchic system
 configuration, based on a collection of TOML files (see also
 https://toml.io/en/v1.0.0). The settings variable ISABELLE_REGISTRY

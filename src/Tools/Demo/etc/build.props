@@ -1,0 +1,8 @@
+title = Demo
+module = lib/demo.jar
+requirements = \
+  env:ISABELLE_SCALA_JAR
+sources = \
+  src/demo_tool.scala
+services = \
+  isabelle.demo.Tools
