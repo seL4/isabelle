@@ -737,7 +737,7 @@ text \<open>
   would fiddle with concrete expressions \<^term>\<open>2 ^ n\<close> in a way obfuscating the basic
   algebraic relationships between those operations.
 
-  For the sake of code generation operations 
+  For the sake of code generation operations
   are specified as definitional class operations,
   taking into account that specific instances of these can be implemented
   differently wrt. code generation.
@@ -1064,7 +1064,7 @@ next
 qed
 
 lemma take_bit_tightened:
-  \<open>take_bit m a = take_bit m b\<close> if \<open>take_bit n a = take_bit n b\<close> and \<open>m \<le> n\<close> 
+  \<open>take_bit m a = take_bit m b\<close> if \<open>take_bit n a = take_bit n b\<close> and \<open>m \<le> n\<close>
 proof -
   from that have \<open>take_bit m (take_bit n a) = take_bit m (take_bit n b)\<close>
     by simp
@@ -1084,7 +1084,7 @@ proof
     from \<open>?P\<close> have \<open>a = take_bit n a\<close> ..
     also have \<open>\<not> bit (take_bit n a) (n + m)\<close>
       unfolding bit_simps
-      by (simp add: bit_simps) 
+      by (simp add: bit_simps)
     finally show \<open>bit (drop_bit n a) m \<longleftrightarrow> bit 0 m\<close>
       by (simp add: bit_simps)
   qed
@@ -1336,10 +1336,6 @@ lemma take_bit_sum:
   \<open>take_bit n a = (\<Sum>k = 0..<n. push_bit k (of_bool (bit a k)))\<close>
   by (simp flip: horner_sum_bit_eq_take_bit add: horner_sum_eq_sum push_bit_eq_mult)
 
-lemmas set_bit_def = set_bit_eq_or
-
-lemmas flip_bit_def = flip_bit_eq_xor
-
 end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
@@ -1376,7 +1372,7 @@ lemma bit_not_iff [bit_simps]:
 proof (cases \<open>possible_bit TYPE('a) n\<close>)
   case False
   then show ?thesis
-    by (auto dest: bit_imp_possible_bit) 
+    by (auto dest: bit_imp_possible_bit)
 next
   case True
   moreover have \<open>bit (NOT a) n \<longleftrightarrow> \<not> bit a n\<close>
@@ -1554,8 +1550,6 @@ lemma push_bit_numeral_minus_1 [simp]:
   \<open>push_bit (numeral n) (- 1) = - (2 ^ numeral n)\<close>
   by (simp add: push_bit_eq_mult)
 
-lemmas unset_bit_def = unset_bit_eq_and_not
-
 end
 
 
@@ -1644,23 +1638,6 @@ begin
 definition not_int :: \<open>int \<Rightarrow> int\<close>
   where \<open>not_int k = - k - 1\<close>
 
-lemma not_int_rec:
-  \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
-  by (auto simp add: not_int_def elim: oddE)
-
-lemma even_not_iff_int:
-  \<open>even (NOT k) \<longleftrightarrow> odd k\<close> for k :: int
-  by (simp add: not_int_def)
-
-lemma not_int_div_2:
-  \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
-  by (simp add: not_int_def)
-
-lemma bit_not_int_iff:
-  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
-  for k :: int
-  by (simp add: bit_not_int_iff' not_int_def)
-
 global_interpretation and_int: fold2_bit_int \<open>(\<and>)\<close>
   defines and_int = and_int.F .
 
@@ -1691,6 +1668,11 @@ definition unset_bit_int :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<clos
 definition flip_bit_int :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
   where \<open>flip_bit n k = k XOR push_bit n 1\<close> for k :: int
 
+lemma bit_not_int_iff:
+  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
+  for k :: int
+  by (simp add: bit_not_int_iff' not_int_def)
+
 instance proof
   fix k l :: int and m n :: nat
   show \<open>- k = NOT (k - 1)\<close>
@@ -1708,21 +1690,9 @@ qed (fact and_int.rec or_int.rec xor_int.rec mask_int_def set_bit_int_def flip_b
 
 end
 
-lemmas and_int_rec = and_int.rec
-
-lemmas bit_and_int_iff = and_int.bit_iff
-
-lemmas or_int_rec = or_int.rec
-
-lemmas bit_or_int_iff = or_int.bit_iff
-
-lemmas xor_int_rec = xor_int.rec
-
-lemmas bit_xor_int_iff = xor_int.bit_iff
-
-lemma even_and_iff_int:
-  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
-  by (fact even_and_iff)
+lemma not_int_div_2:
+  \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
+  by (simp add: not_int_def)
 
 lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
@@ -1791,7 +1761,7 @@ next
 next
   case (even k)
   then show ?case
-    using and_int_rec [of \<open>k * 2\<close> l]
+    using and_int.rec [of \<open>k * 2\<close> l]
     by (simp add: pos_imp_zdiv_nonneg_iff zero_le_mult_iff)
 next
   case (odd k)
@@ -1799,7 +1769,7 @@ next
     by simp
   then have \<open>0 \<le> (1 + k * 2) div 2 AND l div 2 \<longleftrightarrow> 0 \<le> (1 + k * 2) div 2 \<or> 0 \<le> l div 2\<close>
     by simp
-  with and_int_rec [of \<open>1 + k * 2\<close> l]
+  with and_int.rec [of \<open>1 + k * 2\<close> l]
   show ?case
     by (auto simp add: zero_le_mult_iff not_le)
 qed
@@ -1822,12 +1792,12 @@ next
   case (even k)
   from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
   show ?case
-    by (simp add: and_int_rec [of _ l])
+    by (simp add: and_int.rec [of _ l])
 next
   case (odd k)
   from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
   show ?case
-    by (simp add: and_int_rec [of _ l])
+    by (simp add: and_int.rec [of _ l])
 qed
 
 lemma or_nonnegative_int_iff [simp]:
@@ -1852,12 +1822,12 @@ next
   case (even k)
   from even.IH [of \<open>l div 2\<close>] even.hyps even.prems
   show ?case
-    by (simp add: or_int_rec [of _ l])
+    by (simp add: or_int.rec [of _ l])
 next
   case (odd k)
   from odd.IH [of \<open>l div 2\<close>] odd.hyps odd.prems
   show ?case
-    by (simp add: or_int_rec [of _ l])
+    by (simp add: or_int.rec [of _ l])
 qed
 
 lemma xor_nonnegative_int_iff [simp]:
@@ -1881,13 +1851,13 @@ next
 next
   case (even x)
   from even.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] even.prems even.hyps
-  show ?case 
-    by (cases n) (auto simp add: or_int_rec [of \<open>_ * 2\<close>] elim: oddE)
+  show ?case
+    by (cases n) (auto simp add: or_int.rec [of \<open>_ * 2\<close>] elim: oddE)
 next
   case (odd x)
   from odd.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] odd.prems odd.hyps
   show ?case
-    by (cases n) (auto simp add: or_int_rec [of \<open>1 + _ * 2\<close>], linarith)
+    by (cases n) (auto simp add: or_int.rec [of \<open>1 + _ * 2\<close>], linarith)
 qed
 
 lemma XOR_upper: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
@@ -1903,13 +1873,13 @@ next
 next
   case (even x)
   from even.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] even.prems even.hyps
-  show ?case 
-    by (cases n) (auto simp add: xor_int_rec [of \<open>_ * 2\<close>] elim: oddE)
+  show ?case
+    by (cases n) (auto simp add: xor_int.rec [of \<open>_ * 2\<close>] elim: oddE)
 next
   case (odd x)
   from odd.IH [of \<open>n - 1\<close> \<open>y div 2\<close>] odd.prems odd.hyps
   show ?case
-    by (cases n) (auto simp add: xor_int_rec [of \<open>1 + _ * 2\<close>])
+    by (cases n) (auto simp add: xor_int.rec [of \<open>1 + _ * 2\<close>])
 qed
 
 lemma AND_lower [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
@@ -1930,9 +1900,9 @@ using that proof (induction x arbitrary: y rule: int_bit_induct)
   case (odd k)
   then have \<open>k AND y div 2 \<le> k\<close>
     by simp
-  then show ?case 
-    by (simp add: and_int_rec [of \<open>1 + _ * 2\<close>])
-qed (simp_all add: and_int_rec [of \<open>_ * 2\<close>])
+  then show ?case
+    by (simp add: and_int.rec [of \<open>1 + _ * 2\<close>])
+qed (simp_all add: and_int.rec [of \<open>_ * 2\<close>])
 
 lemma AND_upper1' [simp]: \<^marker>\<open>contributor \<open>Stefan Berghofer\<close>\<close>
   \<open>y AND x \<le> z\<close> if \<open>0 \<le> y\<close> \<open>y \<le> z\<close> for x y z :: int
@@ -1968,12 +1938,12 @@ next
   case (even x)
   from even.IH [of \<open>y div 2\<close>]
   show ?case
-    by (auto simp add: and_int_rec [of _ y] or_int_rec [of _ y] elim: oddE)
+    by (auto simp add: and_int.rec [of _ y] or_int.rec [of _ y] elim: oddE)
 next
   case (odd x)
   from odd.IH [of \<open>y div 2\<close>]
   show ?case
-    by (auto simp add: and_int_rec [of _ y] or_int_rec [of _ y] elim: oddE)
+    by (auto simp add: and_int.rec [of _ y] or_int.rec [of _ y] elim: oddE)
 qed
 
 lemma push_bit_minus_one:
@@ -2064,96 +2034,68 @@ lemma drop_bit_negative_int_iff [simp]:
 
 lemma set_bit_nonnegative_int_iff [simp]:
   \<open>set_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-  by (simp add: set_bit_def)
+  by (simp add: set_bit_eq_or)
 
 lemma set_bit_negative_int_iff [simp]:
   \<open>set_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by (simp add: set_bit_def)
+  by (simp add: set_bit_eq_or)
 
 lemma unset_bit_nonnegative_int_iff [simp]:
   \<open>unset_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-  by (simp add: unset_bit_def)
+  by (simp add: unset_bit_eq_and_not)
 
 lemma unset_bit_negative_int_iff [simp]:
   \<open>unset_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by (simp add: unset_bit_def)
+  by (simp add: unset_bit_eq_and_not)
 
 lemma flip_bit_nonnegative_int_iff [simp]:
   \<open>flip_bit n k \<ge> 0 \<longleftrightarrow> k \<ge> 0\<close> for k :: int
-  by (simp add: flip_bit_def)
+  by (simp add: flip_bit_eq_xor)
 
 lemma flip_bit_negative_int_iff [simp]:
   \<open>flip_bit n k < 0 \<longleftrightarrow> k < 0\<close> for k :: int
-  by (simp add: flip_bit_def)
+  by (simp add: flip_bit_eq_xor)
 
 lemma set_bit_greater_eq:
   \<open>set_bit n k \<ge> k\<close> for k :: int
-  by (simp add: set_bit_def or_greater_eq)
+  by (simp add: set_bit_eq_or or_greater_eq)
 
 lemma unset_bit_less_eq:
   \<open>unset_bit n k \<le> k\<close> for k :: int
-  by (simp add: unset_bit_def and_less_eq)
+  by (simp add: unset_bit_eq_and_not and_less_eq)
 
 lemma set_bit_eq:
   \<open>set_bit n k = k + of_bool (\<not> bit k n) * 2 ^ n\<close> for k :: int
-proof (rule bit_eqI)
-  fix m
-  show \<open>bit (set_bit n k) m \<longleftrightarrow> bit (k + of_bool (\<not> bit k n) * 2 ^ n) m\<close>
-  proof (cases \<open>m = n\<close>)
-    case True
-    then show ?thesis
-      apply (simp add: bit_set_bit_iff)
-      apply (simp add: bit_iff_odd div_plus_div_distrib_dvd_right)
-      done
-  next
-    case False
-    then show ?thesis
-      apply (clarsimp simp add: bit_set_bit_iff)
-      apply (subst disjunctive_add)
-      apply (clarsimp simp add: bit_exp_iff)
-      apply (clarsimp simp add: bit_or_iff bit_exp_iff)
-      done
-  qed
+proof -
+  have \<open>set_bit n k = k OR of_bool (\<not> bit k n) * 2 ^ n\<close>
+    by (rule bit_eqI) (auto simp add: bit_simps)
+  then show ?thesis
+    by (subst disjunctive_add) (auto simp add: bit_simps)
 qed
 
 lemma unset_bit_eq:
   \<open>unset_bit n k = k - of_bool (bit k n) * 2 ^ n\<close> for k :: int
-proof (rule bit_eqI)
-  fix m
-  show \<open>bit (unset_bit n k) m \<longleftrightarrow> bit (k - of_bool (bit k n) * 2 ^ n) m\<close>
-  proof (cases \<open>m = n\<close>)
-    case True
-    then show ?thesis
-      apply (simp add: bit_unset_bit_iff)
-      apply (simp add: bit_iff_odd)
-      using div_plus_div_distrib_dvd_right [of \<open>2 ^ n\<close> \<open>- (2 ^ n)\<close> k]
-      apply (simp add: dvd_neg_div)
-      done
-  next
-    case False
-    then show ?thesis
-      apply (clarsimp simp add: bit_unset_bit_iff)
-      apply (subst disjunctive_diff)
-      apply (clarsimp simp add: bit_exp_iff)
-      apply (clarsimp simp add: bit_and_iff bit_not_iff bit_exp_iff)
-      done
-  qed
+proof -
+  have \<open>unset_bit n k = k AND NOT (of_bool (bit k n) * 2 ^ n)\<close>
+    by (rule bit_eqI) (auto simp add: bit_simps)
+  then show ?thesis
+    by (subst disjunctive_diff) (auto simp add: bit_simps simp flip: push_bit_eq_mult)
 qed
 
 lemma and_int_unfold:
   \<open>k AND l = (if k = 0 \<or> l = 0 then 0 else if k = - 1 then l else if l = - 1 then k
     else (k mod 2) * (l mod 2) + 2 * ((k div 2) AND (l div 2)))\<close> for k l :: int
-  by (auto simp add: and_int_rec [of k l] zmult_eq_1_iff elim: oddE)
+  by (auto simp add: and_int.rec [of k l] zmult_eq_1_iff elim: oddE)
 
 lemma or_int_unfold:
   \<open>k OR l = (if k = - 1 \<or> l = - 1 then - 1 else if k = 0 then l else if l = 0 then k
     else max (k mod 2) (l mod 2) + 2 * ((k div 2) OR (l div 2)))\<close> for k l :: int
-  by (auto simp add: or_int_rec [of k l] elim: oddE)
+  by (auto simp add: or_int.rec [of k l] elim: oddE)
 
 lemma xor_int_unfold:
   \<open>k XOR l = (if k = - 1 then NOT l else if l = - 1 then NOT k else if k = 0 then l else if l = 0 then k
     else \<bar>k mod 2 - l mod 2\<bar> + 2 * ((k div 2) XOR (l div 2)))\<close> for k l :: int
-  by (auto simp add: xor_int_rec [of k l] not_int_def elim!: oddE)
+  by (auto simp add: xor_int.rec [of k l] not_int_def elim!: oddE)
 
 lemma bit_minus_int_iff:
   \<open>bit (- k) n \<longleftrightarrow> bit (NOT (k - 1)) n\<close> for k :: int
@@ -2479,7 +2421,7 @@ qed (simp_all add: mask_nat_def set_bit_nat_def flip_bit_nat_def push_bit_nat_de
 end
 
 lemma take_bit_nat_less_exp [simp]:
-  \<open>take_bit n m < 2 ^ n\<close> for n m :: nat 
+  \<open>take_bit n m < 2 ^ n\<close> for n m :: nat
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_nat_eq_self_iff:
@@ -2524,15 +2466,15 @@ lemma bit_push_bit_iff_nat:
 
 lemma and_nat_rec:
   \<open>m AND n = of_bool (odd m \<and> odd n) + 2 * ((m div 2) AND (n div 2))\<close> for m n :: nat
-  by (simp add: and_nat_def and_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
+  by (simp add: and_nat_def and_int.rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
 
 lemma or_nat_rec:
   \<open>m OR n = of_bool (odd m \<or> odd n) + 2 * ((m div 2) OR (n div 2))\<close> for m n :: nat
-  by (simp add: or_nat_def or_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
+  by (simp add: or_nat_def or_int.rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
 
 lemma xor_nat_rec:
   \<open>m XOR n = of_bool (odd m \<noteq> odd n) + 2 * ((m div 2) XOR (n div 2))\<close> for m n :: nat
-  by (simp add: xor_nat_def xor_int_rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
+  by (simp add: xor_nat_def xor_int.rec [of \<open>int m\<close> \<open>int n\<close>] zdiv_int nat_add_distrib nat_mult_distrib)
 
 lemma Suc_0_and_eq [simp]:
   \<open>Suc 0 AND n = n mod 2\<close>
@@ -3049,7 +2991,7 @@ lemma minus_not_numeral_eq [simp]:
 
 lemma not_numeral_BitM_eq:
   \<open>NOT (numeral (Num.BitM n)) =  - numeral (num.Bit0 n)\<close>
-  by (simp add: inc_BitM_eq) 
+  by (simp add: inc_BitM_eq)
 
 lemma not_numeral_Bit0_eq:
   \<open>NOT (numeral (Num.Bit0 n)) =  - numeral (num.Bit1 n)\<close>
@@ -3228,7 +3170,7 @@ proof -
   then show ?thesis
     by (simp add: of_nat_take_bit)
 qed
-    
+
 lemma take_bit_num_eq_Some_imp:
   \<open>take_bit m (numeral n) = numeral q\<close> if \<open>take_bit_num m n = Some q\<close>
 proof -
@@ -3386,7 +3328,7 @@ qed
 lemma take_bit_concat_bit_eq:
   \<open>take_bit m (concat_bit n k l) = concat_bit (min m n) k (take_bit (m - n) l)\<close>
   by (rule bit_eqI)
-    (auto simp add: bit_take_bit_iff bit_concat_bit_iff min_def)  
+    (auto simp add: bit_take_bit_iff bit_concat_bit_iff min_def)
 
 lemma concat_bit_take_bit_eq:
   \<open>concat_bit n (take_bit n b) = concat_bit n b\<close>
@@ -3828,11 +3770,11 @@ text \<open>
 
       \<^item> Xor: @{thm bit_xor_iff [where ?'a = int, no_vars]}
 
-      \<^item> Set a single bit: @{thm set_bit_def [where ?'a = int, no_vars]}
+      \<^item> Set a single bit: @{thm set_bit_eq_or [where ?'a = int, no_vars]}
 
-      \<^item> Unset a single bit: @{thm unset_bit_def [where ?'a = int, no_vars]}
+      \<^item> Unset a single bit: @{thm unset_bit_eq_and_not [where ?'a = int, no_vars]}
 
-      \<^item> Flip a single bit: @{thm flip_bit_def [where ?'a = int, no_vars]}
+      \<^item> Flip a single bit: @{thm flip_bit_eq_xor [where ?'a = int, no_vars]}
 
       \<^item> Signed truncation, or modulus centered around \<^term>\<open>0::int\<close>: @{thm signed_take_bit_def [no_vars]}
 
@@ -3840,6 +3782,39 @@ text \<open>
 
       \<^item> (Bounded) conversion from and to a list of bits: @{thm horner_sum_bit_eq_take_bit [where ?'a = int, no_vars]}
 \<close>
+
+
+subsection \<open>Lemma duplicates and other\<close>
+
+lemmas set_bit_def = set_bit_eq_or
+
+lemmas unset_bit_def = unset_bit_eq_and_not
+
+lemmas flip_bit_def = flip_bit_eq_xor
+
+lemmas and_int_rec = and_int.rec
+
+lemmas bit_and_int_iff = and_int.bit_iff
+
+lemmas or_int_rec = or_int.rec
+
+lemmas bit_or_int_iff = or_int.bit_iff
+
+lemmas xor_int_rec = xor_int.rec
+
+lemmas bit_xor_int_iff = xor_int.bit_iff
+
+lemma not_int_rec:
+  \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
+  by (fact not_rec)
+
+lemma even_not_iff_int:
+  \<open>even (NOT k) \<longleftrightarrow> odd k\<close> for k :: int
+  by (fact even_not_iff)
+
+lemma even_and_iff_int:
+  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
+  by (fact even_and_iff)
 
 no_notation
   not  (\<open>NOT\<close>)
