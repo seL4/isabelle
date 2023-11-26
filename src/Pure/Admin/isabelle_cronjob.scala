@@ -162,14 +162,12 @@ object Isabelle_Cronjob {
     }
 
     def pick(options: Options): Option[(String, Option[String])] = {
-
       val store = Build_Log.store(options)
       using(store.open_database()) { db =>
         def get(days: Int, gap: Int): Option[(String, Option[String])] = {
           val runs = history(db, days = days).unknown_runs(filter = run => run.length >= gap)
           Build_Log.History.Run.longest(runs).median.map(_.versions)
         }
-
         get(options.int("build_log_history") max history, 2) orElse
         get(300, 8) orElse
         get(3000, 32) orElse
