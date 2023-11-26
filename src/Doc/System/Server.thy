@@ -838,6 +838,10 @@ text \<open>
 
   Start a session from the Archive of Formal Proofs:
   @{verbatim [display] \<open>session_start {"session": "Coinductive", "dirs": ["$AFP_BASE/thys"]}\<close>}
+
+  Start a session with fine-tuning of options:
+  @{verbatim [display] \<open>session_start {"session": "HOL",
+  "options": ["headless_consolidate_delay=0.5", "headless_prune_delay=5"]}\<close>}
 \<close>
 
 

@@ -273,10 +273,10 @@ option editor_syslog_limit : int = 100
 
 section "Headless Session"
 
-option headless_consolidate_delay : real = 15
+option headless_consolidate_delay : real = 2.0
   -- "delay to consolidate status of command evaluation (execution forks)"
 
-option headless_prune_delay : real = 60
+option headless_prune_delay : real = 30
   -- "delay to prune history (delete old versions)"
 
 option headless_check_delay : real = 0.5
