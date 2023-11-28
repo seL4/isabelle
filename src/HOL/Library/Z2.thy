@@ -155,9 +155,8 @@ definition inverse_bit :: \<open>bit \<Rightarrow> bit\<close>
 
 instance
   apply standard
-  apply simp_all
-  apply (simp only: Z2.bit_eq_iff even_add)
-  apply simp
+      apply simp_all
+  apply (simp only: Z2.bit_eq_iff even_add even_zero refl)
   done
 
 end
@@ -169,10 +168,8 @@ definition bit_bit :: \<open>bit \<Rightarrow> nat \<Rightarrow> bool\<close>
   where [simp]: \<open>bit_bit b n \<longleftrightarrow> odd b \<and> n = 0\<close>
 
 instance
-  apply standard
-              apply auto
-  apply (metis bit.exhaust of_bool_eq(2))
-  done
+  by standard
+    (auto intro: Abs_bit_induct simp add: Abs_bit_eq_of_bool)
 
 end
 
@@ -219,10 +216,7 @@ definition take_bit_bit :: \<open>nat \<Rightarrow> bit \<Rightarrow> bit\<close
 end
 
 instance
-  apply standard
-             apply auto
-  apply (simp only: Z2.bit_eq_iff even_add even_zero)
-  done
+  by standard auto
 
 end
 

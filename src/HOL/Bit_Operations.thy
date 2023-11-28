@@ -652,43 +652,6 @@ lemma possible_bit_int [simp]:
   \<open>possible_bit TYPE(int) n\<close>
   by (simp add: possible_bit_def)
 
-lemma bit_not_int_iff':
-  \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close> for k :: int
-proof (induction n arbitrary: k)
-  case 0
-  show ?case
-    by (simp add: bit_0)
-next
-  case (Suc n)
-  have \<open>- k - 1 = - (k + 2) + 1\<close>
-    by simp
-  also have \<open>(- (k + 2) + 1) div 2 = - (k div 2) - 1\<close>
-  proof (cases \<open>even k\<close>)
-    case True
-    then have \<open>- k div 2 = - (k div 2)\<close>
-      by rule (simp flip: mult_minus_right)
-    with True show ?thesis
-      by simp
-  next
-    case False
-    have \<open>4 = 2 * (2::int)\<close>
-      by simp
-    also have \<open>2 * 2 div 2 = (2::int)\<close>
-      by (simp only: nonzero_mult_div_cancel_left)
-    finally have *: \<open>4 div 2 = (2::int)\<close> .
-    from False obtain l where k: \<open>k = 2 * l + 1\<close> ..
-    then have \<open>- k - 2 = 2 * - (l + 2) + 1\<close>
-      by simp
-    then have \<open>(- k - 2) div 2 + 1 = - (k div 2) - 1\<close>
-      by (simp flip: mult_minus_right add: *) (simp add: k)
-    with False show ?thesis
-      by simp
-  qed
-  finally have \<open>(- k - 1) div 2 = - (k div 2) - 1\<close> .
-  with Suc show ?case
-    by (simp add: bit_Suc)
-qed
-
 lemma bit_nat_iff [bit_simps]:
   \<open>bit (nat k) n \<longleftrightarrow> k \<ge> 0 \<and> bit k n\<close>
 proof (cases \<open>k \<ge> 0\<close>)
@@ -1353,8 +1316,7 @@ end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
   fixes not :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>NOT\<close>)
-  assumes not_rec: \<open>NOT a = of_bool (even a) + 2 * NOT (a div 2)\<close>
-  assumes minus_eq_not_minus_1: \<open>- a = NOT (a - 1)\<close>
+  assumes not_eq_complement: \<open>NOT a = - a - 1\<close>
 begin
 
 text \<open>
@@ -1368,17 +1330,21 @@ lemma bits_minus_1_mod_2_eq [simp]:
   \<open>(- 1) mod 2 = 1\<close>
   by (simp add: mod_2_eq_odd)
 
-lemma not_eq_complement:
-  \<open>NOT a = - a - 1\<close>
-  using minus_eq_not_minus_1 [of \<open>a + 1\<close>] by simp
-
 lemma minus_eq_not_plus_1:
   \<open>- a = NOT a + 1\<close>
   using not_eq_complement [of a] by simp
 
+lemma minus_eq_not_minus_1:
+  \<open>- a = NOT (a - 1)\<close>
+  using not_eq_complement [of \<open>a - 1\<close>] by simp (simp add: algebra_simps)
+
+lemma not_rec:
+  \<open>NOT a = of_bool (even a) + 2 * NOT (a div 2)\<close>
+  by (simp add: not_eq_complement algebra_simps mod_2_eq_odd flip: minus_mod_eq_mult_div)
+
 lemma even_not_iff [simp]:
   \<open>even (NOT a) \<longleftrightarrow> odd a\<close>
-  by (simp add: not_rec [of a])
+  by (simp add: not_eq_complement)
 
 lemma bit_not_iff [bit_simps]:
   \<open>bit (NOT a) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit a n\<close>
@@ -1822,17 +1788,24 @@ definition unset_bit_int :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<clos
 definition flip_bit_int :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
   where \<open>flip_bit n k = k XOR push_bit n 1\<close> for k :: int
 
+lemma not_int_div_2:
+  \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
+  by (simp add: not_int_def)
+
 lemma bit_not_int_iff:
-  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
-  for k :: int
-  by (simp add: bit_not_int_iff' not_int_def)
+  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close> for k :: int
+proof (rule sym, induction n arbitrary: k)
+  case 0
+  then show ?case
+    by (simp add: bit_0 not_int_def)
+next
+  case (Suc n)
+  then show ?case
+    by (simp add: bit_Suc not_int_div_2)
+qed
 
 instance proof
   fix k l :: int and m n :: nat
-  show \<open>- k = NOT (k - 1)\<close>
-    by (simp add: not_int_def)
-  show \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close>
-    by (auto simp add: not_int_def elim: oddE)
   show \<open>unset_bit 0 k = 2 * (k div 2)\<close>
     by (rule bit_eqI)
       (auto simp add: unset_bit_int_def push_bit_int_def and_int.bit_iff bit_not_int_iff bit_simps simp flip: bit_Suc)
@@ -1840,7 +1813,7 @@ instance proof
     by (rule bit_eqI)
       (auto simp add: unset_bit_int_def push_bit_int_def and_int.bit_iff bit_not_int_iff bit_simps mod_2_eq_odd even_bit_succ_iff bit_0 simp flip: bit_Suc)
 qed (fact and_int.rec or_int.rec xor_int.rec mask_int_def set_bit_int_def flip_bit_int_def
-  push_bit_int_def drop_bit_int_def take_bit_int_def)+
+  push_bit_int_def drop_bit_int_def take_bit_int_def not_int_def)+
 
 end
 
@@ -1928,10 +1901,6 @@ lemma of_int_mask_eq:
   by (induction n) (simp_all add: mask_Suc_double Bit_Operations.mask_Suc_double of_int_or_eq)
 
 end
-
-lemma not_int_div_2:
-  \<open>NOT k div 2 = NOT (k div 2)\<close> for k :: int
-  by (simp add: not_int_def)
 
 lemma take_bit_int_less_exp [simp]:
   \<open>take_bit n k < 2 ^ n\<close> for k :: int
@@ -3849,6 +3818,10 @@ lemma even_and_iff_int:
 lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
   by (fact bit_push_bit_iff')
+
+lemma bit_not_int_iff':
+  \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close> for k :: int
+  by (simp flip: not_eq_complement add: bit_simps)
 
 no_notation
   not  (\<open>NOT\<close>)
