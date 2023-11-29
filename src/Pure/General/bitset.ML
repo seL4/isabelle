@@ -1,14 +1,12 @@
 (*  Title:      Pure/General/bitset.ML
     Author:     Makarius
 
-Compact representation of sets of integers (see also Pure/General/table.ML and
-Pure/General/set.ML).
+Compact representation of sets of integers.
 *)
 
 signature BITSET =
 sig
-  structure Key: KEY
-  type elem
+  type elem = int
   val make_elem: int * int -> elem  (*exception*)
   val dest_elem: elem -> int * int
   type T
@@ -61,27 +59,24 @@ fun incl_bits v w = add_bits v w = w;
 
 fun fold_bits f w =
   let
+    fun app n b a = if incl_bits b w then f n a else a;
     fun bits n b a =
-      let val a' = if incl_bits b w then f n a else a in
-        if n = max_bit then a'
-        else bits (n + 1) (Word.<< (b, 0w1)) a'
-      end;
+      if n = max_bit then app n b a
+      else bits (n + 1) (Word.<< (b, 0w1)) (app n b a);
   in bits min_bit mimimum_bit end;
 
 fun fold_rev_bits f w =
   let
+    fun app n b a = if incl_bits b w then f n a else a;
     fun bits n b a =
-      let val a' = if incl_bits b w then f n a else a in
-        if n = min_bit then a'
-        else bits (n - 1) (Word.>> (b, 0w1)) a'
-      end;
+      if n = min_bit then app n b a
+      else bits (n - 1) (Word.>> (b, 0w1)) (app n b a);
   in bits max_bit maximum_bit end;
 
 
 (* datatype *)
 
-structure Key = Inttab.Key;
-type elem = Key.key;
+type elem = int;
 
 fun make_elem (m, n) : elem = if check_bit n then m * word_size + n else raise BAD n;
 fun dest_elem (x: elem) = Integer.div_mod x word_size;
