@@ -386,7 +386,23 @@ object Build_Schedule {
 
   /* schedule generation */
 
-  case class State(build_state: Build_Process.State, current_time: Time) {
+  object Schedule {
+    case class Node(job_name: String, node_info: Node_Info, start: Date, duration: Time) {
+      def end: Date = Date(start.time + duration)
+    }
+
+    type Graph = isabelle.Graph[String, Node]
+  }
+
+  case class Schedule(start: Date, graph: Schedule.Graph) {
+    def end: Date =
+      if (graph.is_empty) start
+      else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
+
+    def duration: Time = end.time - start.time
+  }
+
+  case class State(build_state: Build_Process.State, current_time: Time, finished: Schedule) {
     def start(config: Config): State =
       copy(build_state =
         build_state.copy(running = build_state.running +
@@ -405,16 +421,25 @@ object Build_Schedule {
       if (remaining.isEmpty) error("Schedule step without running sessions")
       else {
         val (job, elapsed) = remaining.minBy(_._2.ms)
-        State(build_state.remove_running(job.name).remove_pending(job.name), current_time + elapsed)
+        val now = current_time + elapsed
+        val node = Schedule.Node(job.name, job.node_info, job.start_date, now - job.start_date.time)
+
+        val preds =
+          build_state.sessions.graph.imm_preds(job.name).filter(finished.graph.defined)
+        val graph =
+          preds.foldLeft(finished.graph.new_node(job.name, node))(_.add_edge(_, job.name))
+
+        val build_state1 = build_state.remove_running(job.name).remove_pending(job.name)
+        State(build_state1, now, finished.copy(graph = graph))
       }
     }
 
-    def finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
+    def is_finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
   }
 
   trait Scheduler {
     def next(state: Build_Process.State): List[Config]
-    def build_duration(build_state: Build_Process.State): Time
+    def build_schedule(build_state: Build_Process.State): Schedule
   }
 
   abstract class Heuristic(timing_data: Timing_Data, max_threads_limit: Int) extends Scheduler {
@@ -428,29 +453,32 @@ object Build_Schedule {
       timing_data.estimate(job_name, host.info.hostname, threads)
     }
 
-    def build_duration(build_state: Build_Process.State): Time = {
+    def build_schedule(build_state: Build_Process.State): Schedule = {
       @tailrec
       def simulate(state: State): State =
-        if (state.finished) state
+        if (state.is_finished) state
         else {
           val state1 = next(state.build_state).foldLeft(state)(_.start(_)).step(timing_data)
           simulate(state1)
         }
 
-      val start = Time.now()
-      simulate(State(build_state, start)).current_time - start
+      val start = Date.now()
+      val end_state = simulate(State(build_state, start.time, Schedule(start, Graph.empty)))
+
+      end_state.finished
     }
   }
 
   class Meta_Heuristic(heuristics: List[Heuristic]) extends Scheduler {
     require(heuristics.nonEmpty)
 
-    def best_result(state: Build_Process.State): (Heuristic, Time) =
-      heuristics.map(heuristic => heuristic -> heuristic.build_duration(state)).minBy(_._2.ms)
+    def best_result(state: Build_Process.State): (Heuristic, Schedule) =
+      heuristics.map(heuristic =>
+        heuristic -> heuristic.build_schedule(state)).minBy(_._2.duration.ms)
 
     def next(state: Build_Process.State): List[Config] = best_result(state)._1.next(state)
 
-    def build_duration(state: Build_Process.State): Time = best_result(state)._2
+    def build_schedule(state: Build_Process.State): Schedule = best_result(state)._2
   }
 
 
@@ -732,7 +760,7 @@ object Build_Schedule {
         else {
           val start = Time.now()
           val next = scheduler.next(state)
-          val estimate = Date(Time.now() + scheduler.build_duration(state))
+          val estimate = Date(Time.now() + scheduler.build_schedule(state).duration)
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
