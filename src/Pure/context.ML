@@ -138,7 +138,26 @@ val data_kind = Counter.make ();
 (* theory identity *)
 
 type id = int;
-val new_id = Counter.make ();
+
+local
+  val new_block = Counter.make ();
+  fun new_elem () = Bitset.make_elem (new_block (), 0);
+  val var = Thread_Data.var () : id Thread_Data.var;
+in
+
+fun new_id () =
+  let
+    val id =
+      (case Option.map Bitset.dest_elem (Thread_Data.get var) of
+        NONE => new_elem ()
+      | SOME (m, n) =>
+          (case try Bitset.make_elem (m, n + 1) of
+            NONE => new_elem ()
+          | SOME elem => elem));
+    val _ = Thread_Data.put var (SOME id);
+  in id end;
+
+end;
 
 abstype theory_id =
   Thy_Id of
