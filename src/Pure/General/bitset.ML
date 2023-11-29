@@ -18,6 +18,7 @@ sig
   val fold: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_rev: (elem -> 'a -> 'a) -> T -> 'a -> 'a
   val dest: T -> elem list
+  val is_unique: T -> bool
   val min: T -> elem option
   val max: T -> elem option
   val get_first: (elem -> 'a option) -> T -> 'a option
@@ -108,6 +109,10 @@ fun fold_rev_set f (Bitset t) =
     (if m < 0 then fold_bits else fold_rev_bits) (fn n => f (make_elem (m, n))) w) t;
 
 val dest = Library.build o fold_rev_set cons;
+
+fun is_unique (set as Bitset t) =
+  is_empty set orelse
+  Inttab.size t = 1 andalso fold_set (fn _ => Integer.add 1) set 0 = 1;
 
 
 (* min/max entries *)

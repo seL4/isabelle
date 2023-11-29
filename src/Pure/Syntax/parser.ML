@@ -38,15 +38,15 @@ fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
 fun tags_name (tags: tags) =
   the o Inttab.lookup (Inttab.build (Symtab.fold (Inttab.update_new o swap) tags));
 
-type nts = Intset.T;
-val nts_empty: nts = Intset.empty;
-val nts_merge: nts * nts -> nts = Intset.merge;
-fun nts_insert nt : nts -> nts = Intset.insert nt;
-fun nts_member (nts: nts) = Intset.member nts;
-fun nts_fold f (nts: nts) = Intset.fold f nts;
-fun nts_subset (nts1: nts, nts2: nts) = Intset.forall (nts_member nts2) nts1;
-fun nts_is_empty (nts: nts) = Intset.is_empty nts;
-fun nts_is_unique (nts: nts) = Intset.size nts <= 1;
+type nts = Bitset.T;
+val nts_empty: nts = Bitset.empty;
+val nts_merge: nts * nts -> nts = Bitset.merge;
+fun nts_insert nt : nts -> nts = Bitset.insert nt;
+fun nts_member (nts: nts) = Bitset.member nts;
+fun nts_fold f (nts: nts) = Bitset.fold f nts;
+fun nts_subset (nts1: nts, nts2: nts) = Bitset.forall (nts_member nts2) nts1;
+fun nts_is_empty (nts: nts) = Bitset.is_empty nts;
+fun nts_is_unique (nts: nts) = Bitset.is_unique nts;
 
 
 (* tokens *)
