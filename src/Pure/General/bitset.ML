@@ -9,6 +9,8 @@ signature BITSET =
 sig
   structure Key: KEY
   type elem
+  val make_elem: int * int -> elem  (*exception*)
+  val dest_elem: elem -> int * int
   type T
   val empty: T
   val build: (T -> T) -> T
@@ -80,7 +82,7 @@ fun fold_rev_bits f w =
 structure Key = Inttab.Key;
 type elem = Key.key;
 
-fun make_elem m n : elem = if check_bit n then m * word_size + n else raise BAD n;
+fun make_elem (m, n) : elem = if check_bit n then m * word_size + n else raise BAD n;
 fun dest_elem (x: elem) = Integer.div_mod x word_size;
 
 datatype T = Bitset of word Inttab.table;
@@ -99,11 +101,11 @@ fun is_empty (Bitset t) = Inttab.is_empty t;
 
 fun fold_set f (Bitset t) =
   Inttab.fold (fn (m, w) =>
-    (if m < 0 then fold_rev_bits else fold_bits) (f o make_elem m) w) t;
+    (if m < 0 then fold_rev_bits else fold_bits) (fn n => f (make_elem (m, n))) w) t;
 
 fun fold_rev_set f (Bitset t) =
   Inttab.fold_rev (fn (m, w) =>
-    (if m < 0 then fold_bits else fold_rev_bits) (f o make_elem m) w) t;
+    (if m < 0 then fold_bits else fold_rev_bits) (fn n => f (make_elem (m, n))) w) t;
 
 val dest = Library.build o fold_rev_set cons;
 
@@ -112,11 +114,11 @@ val dest = Library.build o fold_rev_set cons;
 
 fun min (Bitset t) =
   Inttab.min t |> Option.map (fn (m, w) =>
-    make_elem m (fold_bits Integer.min w max_bit));
+    make_elem (m, fold_bits Integer.min w max_bit));
 
 fun max (Bitset t) =
   Inttab.max t |> Option.map (fn (m, w) =>
-    make_elem m (fold_bits Integer.max w min_bit));
+    make_elem (m, fold_bits Integer.max w min_bit));
 
 
 (* linear search *)
