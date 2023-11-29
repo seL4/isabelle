@@ -46,6 +46,7 @@ ML_file "General/print_mode.ML";
 ML_file "General/integer.ML";
 ML_file "General/alist.ML";
 ML_file "General/table.ML";
+ML_file "General/bitset.ML";
 ML_file "General/set.ML";
 
 ML_file "General/random.ML";

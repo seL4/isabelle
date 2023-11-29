@@ -54,7 +54,7 @@ type node_header =
 
 type perspective =
  {required: bool,  (*required node*)
-  visible: Intset.T,  (*visible commands*)
+  visible: Bitset.T,  (*visible commands*)
   visible_last: Document_ID.command option,  (*last visible command*)
   overlays: (string * string list) list Inttab.table};  (*command id -> print functions with args*)
 
@@ -79,7 +79,7 @@ fun map_node f (Node {header, keywords, perspective, entries, result, consolidat
 
 fun make_perspective (required, command_ids, overlays) : perspective =
  {required = required,
-  visible = Intset.make command_ids,
+  visible = Bitset.make command_ids,
   visible_last = try List.last command_ids,
   overlays = Inttab.make_list overlays};
 
@@ -93,7 +93,7 @@ val empty_node =
 
 fun is_empty_perspective ({required, visible, visible_last, overlays}: perspective) =
   not required andalso
-  Intset.is_empty visible andalso
+  Bitset.is_empty visible andalso
   is_none visible_last andalso
   Inttab.is_empty overlays;
 
@@ -147,7 +147,7 @@ fun set_perspective args =
 
 val required_node = #required o get_perspective;
 val command_overlays = Inttab.lookup_list o #overlays o get_perspective;
-val command_visible = Intset.member o #visible o get_perspective;
+val command_visible = Bitset.member o #visible o get_perspective;
 val visible_last = #visible_last o get_perspective;
 val visible_node = is_some o visible_last
 

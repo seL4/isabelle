@@ -138,12 +138,31 @@ val data_kind = Counter.make ();
 (* theory identity *)
 
 type id = int;
-val new_id = Counter.make ();
+
+local
+  val new_block = Counter.make ();
+  fun new_elem () = Bitset.make_elem (new_block (), 0);
+  val var = Thread_Data.var () : id Thread_Data.var;
+in
+
+fun new_id () =
+  let
+    val id =
+      (case Option.map Bitset.dest_elem (Thread_Data.get var) of
+        NONE => new_elem ()
+      | SOME (m, n) =>
+          (case try Bitset.make_elem (m, n + 1) of
+            NONE => new_elem ()
+          | SOME elem => elem));
+    val _ = Thread_Data.put var (SOME id);
+  in id end;
+
+end;
 
 abstype theory_id =
   Thy_Id of
    {id: id,         (*identifier*)
-    ids: Intset.T,  (*cumulative identifiers -- symbolic body content*)
+    ids: Bitset.T,  (*cumulative identifiers -- symbolic body content*)
     name: string,   (*official theory name*)
     stage: int}     (*index for anonymous updates*)
 with
@@ -338,13 +357,13 @@ fun get_theory long thy name =
 (* identity *)
 
 fun merge_ids thys =
-  fold (identity_of #> (fn {id, ids, ...} => fn acc => Intset.merge (acc, ids) |> Intset.insert id))
-    thys Intset.empty;
+  fold (identity_of #> (fn {id, ids, ...} => fn acc => Bitset.merge (acc, ids) |> Bitset.insert id))
+    thys Bitset.empty;
 
 val eq_thy_id = op = o apply2 (#id o rep_theory_id);
 val eq_thy = op = o apply2 (#id o identity_of);
 
-val proper_subthy_id = apply2 rep_theory_id #> (fn ({id, ...}, {ids, ...}) => Intset.member ids id);
+val proper_subthy_id = apply2 rep_theory_id #> (fn ({id, ...}, {ids, ...}) => Bitset.member ids id);
 val proper_subthy = proper_subthy_id o apply2 theory_id;
 
 fun subthy_id p = eq_thy_id p orelse proper_subthy_id p;
@@ -453,7 +472,7 @@ val pre_pure_thy =
   let
     val state = make_state ();
     val stage = next_stage state;
-  in create_thy state Intset.empty PureN stage (make_ancestry [] []) Datatab.empty end;
+  in create_thy state Bitset.empty PureN stage (make_ancestry [] []) Datatab.empty end;
 
 local
 
