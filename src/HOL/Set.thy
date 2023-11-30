@@ -1268,11 +1268,11 @@ lemma Int_Un_distrib: "A \<inter> (B \<union> C) = (A \<inter> B) \<union> (A \<
 lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \<inter> A)"
   by (fact inf_sup_distrib2)
 
-lemma Int_UNIV [simp]: "A \<inter> B = UNIV \<longleftrightarrow> A = UNIV \<and> B = UNIV"
+lemma Int_UNIV: "A \<inter> B = UNIV \<longleftrightarrow> A = UNIV \<and> B = UNIV"
   by (fact inf_eq_top_iff) (* already simp *)
 
-lemma Int_subset_iff [simp]: "C \<subseteq> A \<inter> B \<longleftrightarrow> C \<subseteq> A \<and> C \<subseteq> B"
-  by (fact le_inf_iff)
+lemma Int_subset_iff: "C \<subseteq> A \<inter> B \<longleftrightarrow> C \<subseteq> A \<and> C \<subseteq> B"
+  by (fact le_inf_iff) (* already simp *)
 
 lemma Int_Collect: "x \<in> A \<inter> {x. P x} \<longleftrightarrow> x \<in> A \<and> P x"
   by blast
@@ -1355,8 +1355,8 @@ lemma subset_Un_eq: "A \<subseteq> B \<longleftrightarrow> A \<union> B = B"
 lemma Un_empty [iff]: "A \<union> B = {} \<longleftrightarrow> A = {} \<and> B = {}"
   by (fact sup_eq_bot_iff) (* FIXME: already simp *)
 
-lemma Un_subset_iff [simp]: "A \<union> B \<subseteq> C \<longleftrightarrow> A \<subseteq> C \<and> B \<subseteq> C"
-  by (fact le_sup_iff)
+lemma Un_subset_iff: "A \<union> B \<subseteq> C \<longleftrightarrow> A \<subseteq> C \<and> B \<subseteq> C"
+  by (fact le_sup_iff) (* already simp *)
 
 lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
   by blast
@@ -1440,10 +1440,10 @@ lemma bex_Un: "(\<exists>x \<in> A \<union> B. P x) \<longleftrightarrow> (\<exi
 text \<open>\<^medskip> Set difference.\<close>
 
 lemma Diff_eq: "A - B = A \<inter> (- B)"
-  by blast
+  by(rule boolean_algebra_class.diff_eq)
 
-lemma Diff_eq_empty_iff [simp]: "A - B = {} \<longleftrightarrow> A \<subseteq> B"
-  by blast
+lemma Diff_eq_empty_iff: "A - B = {} \<longleftrightarrow> A \<subseteq> B"
+  by(rule boolean_algebra_class.diff_shunt_var) (* already simp *)
 
 lemma Diff_cancel [simp]: "A - A = {}"
   by blast

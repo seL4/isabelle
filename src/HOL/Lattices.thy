@@ -212,7 +212,7 @@ lemma le_infE: "x \<le> a \<sqinter> b \<Longrightarrow> (x \<le> a \<Longrighta
   by (blast intro: order_trans inf_le1 inf_le2)
 
 lemma le_inf_iff: "x \<le> y \<sqinter> z \<longleftrightarrow> x \<le> y \<and> x \<le> z"
-  by (blast intro: le_infI elim: le_infE)
+  by (blast intro: le_infI elim: le_infE) (* [simp] via bounded_iff *)
 
 lemma le_iff_inf: "x \<le> y \<longleftrightarrow> x \<sqinter> y = x"
   by (auto intro: le_infI1 order.antisym dest: order.eq_iff [THEN iffD1] simp add: le_inf_iff)
@@ -238,7 +238,7 @@ lemma le_supE: "a \<squnion> b \<le> x \<Longrightarrow> (a \<le> x \<Longrighta
   by (blast intro: order_trans sup_ge1 sup_ge2)
 
 lemma le_sup_iff: "x \<squnion> y \<le> z \<longleftrightarrow> x \<le> z \<and> y \<le> z"
-  by (blast intro: le_supI elim: le_supE)
+  by (blast intro: le_supI elim: le_supE) (* [simp] via bounded_iff *)
 
 lemma le_iff_sup: "x \<le> y \<longleftrightarrow> x \<squnion> y = y"
   by (auto intro: le_supI2 order.antisym dest: order.eq_iff [THEN iffD1] simp add: le_sup_iff)
