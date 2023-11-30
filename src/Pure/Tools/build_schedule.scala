@@ -579,16 +579,16 @@ object Build_Schedule {
       val max_parallel = parallel_paths(state.ready.map(_.name).toSet)
       val fully_parallelizable = max_parallel <= resources0.unused_nodes(max_threads).length
 
+      val ready_sorted = state.next_ready.sortBy(task => remaining_time_ms(task.name)).reverse
+
       if (fully_parallelizable) {
-        val all_tasks = state.next_ready.map(task => (task, best_threads(task), best_threads(task)))
+        val all_tasks = ready_sorted.map(task => (task, best_threads(task), best_threads(task)))
         resources.try_allocate_tasks(rev_ordered_hosts, all_tasks)._1
       }
       else {
         val critical_nodes = state.ready.toSet.flatMap(task => critical_path_nodes(task.name))
 
-        val (critical, other) =
-          state.next_ready.sortBy(task => remaining_time_ms(task.name)).reverse.partition(task =>
-            critical_nodes.contains(task.name))
+        val (critical, other) = ready_sorted.partition(task => critical_nodes.contains(task.name))
 
         val critical_tasks = critical.map(task => (task, best_threads(task), best_threads(task)))
         val other_tasks = other.map(task => (task, 1, best_threads(task)))
