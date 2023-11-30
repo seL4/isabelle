@@ -84,7 +84,7 @@ object Build_Schedule {
         val t_c =
           Timing_Data.median_time(for ((n, t) <- mono_prefix) yield t - t_p.scale(1.0 / n))
 
-        def model(threads: Int): Time = t_c + t_p.scale(1.0 / threads)
+        def model(threads: Int): Time = Time.ms((t_c + t_p.scale(1.0 / threads)).ms max 0)
 
         if (is_mono || in_prefix) model(threads)
         else {
