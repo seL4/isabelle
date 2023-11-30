@@ -238,6 +238,7 @@ fun term_cache f = Cache.create empty lookup update f;
 
 end;
 
+structure Typset = Set(Typtab.Key);
 structure Termset = Set(Termtab.Key);
 
 structure Var_Graph = Graph(Vartab.Key);

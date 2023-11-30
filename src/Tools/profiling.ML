@@ -64,8 +64,9 @@ fun session_content thys =
     val thms = maps all_thms thys;
     val thys_id = map Context.theory_id thys;
     val thms_id = map Thm.theory_id thms;
-    val terms = (fold o Thm.fold_terms {hyps = true}) cons thms [];
-    val types = (fold o fold_types) cons terms [];
+    val terms =
+      Termset.dest ((fold o Thm.fold_terms {hyps = true}) Termset.insert thms Termset.empty);
+    val types = Typset.dest ((fold o fold_types) Typset.insert terms Typset.empty);
     val spaces =
       maps (fn f => map f thys)
        [Sign.class_space,
@@ -77,7 +78,7 @@ fun session_content thys =
         Locale.locale_space,
         Attrib.attribute_space o Context.Theory,
         Method.method_space o Context.Theory];
-     val names = maps Name_Space.get_names spaces;
+     val names = Symset.dest (Symset.merges (map (Symset.make o Name_Space.get_names) spaces));
   in
     {thys_id = thys_id, thms_id = thms_id, terms = terms,
       types = types, names = names, spaces = spaces}
