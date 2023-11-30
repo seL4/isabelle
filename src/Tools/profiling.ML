@@ -21,6 +21,7 @@ sig
     sizeof_thms_id: int,
     sizeof_terms: int,
     sizeof_types: int,
+    sizeof_names: int,
     sizeof_spaces: int}
   val session_statistics: string list -> session_statistics
   val main: unit -> unit
@@ -63,8 +64,9 @@ fun session_content thys =
     val thms = maps all_thms thys;
     val thys_id = map Context.theory_id thys;
     val thms_id = map Thm.theory_id thms;
-    val terms = (fold o Thm.fold_terms {hyps = true}) cons thms [];
-    val types = (fold o fold_types) cons terms [];
+    val terms =
+      Termset.dest ((fold o Thm.fold_terms {hyps = true}) Termset.insert thms Termset.empty);
+    val types = Typset.dest ((fold o fold_types) Typset.insert terms Typset.empty);
     val spaces =
       maps (fn f => map f thys)
        [Sign.class_space,
@@ -76,8 +78,14 @@ fun session_content thys =
         Locale.locale_space,
         Attrib.attribute_space o Context.Theory,
         Method.method_space o Context.Theory];
-  in {thys_id = thys_id, thms_id = thms_id, terms = terms, types = types, spaces = spaces} end;
+     val names = Symset.dest (Symset.merges (map (Symset.make o Name_Space.get_names) spaces));
+  in
+    {thys_id = thys_id, thms_id = thms_id, terms = terms,
+      types = types, names = names, spaces = spaces}
+  end;
 
+fun sizeof1_diff (a, b) = ML_Heap.sizeof1 a - ML_Heap.sizeof1 b;
+fun sizeof_list_diff (a, b) = ML_Heap.sizeof_list a - ML_Heap.sizeof_list b;
 fun sizeof_diff (a, b) = ML_Heap.sizeof a - ML_Heap.sizeof b;
 
 
@@ -93,6 +101,7 @@ type session_statistics =
   sizeof_thms_id: int,
   sizeof_terms: int,
   sizeof_types: int,
+  sizeof_names: int,
   sizeof_spaces: int};
 
 fun session_statistics theories : session_statistics =
@@ -111,9 +120,9 @@ fun session_statistics theories : session_statistics =
     val base_thys = filter_out theories_member all_thys;
 
     val {thys_id = all_thys_id, thms_id = all_thms_id, terms = all_terms,
-          types = all_types, spaces = all_spaces} = session_content all_thys;
+          types = all_types, names = all_names, spaces = all_spaces} = session_content all_thys;
     val {thys_id = base_thys_id, thms_id = base_thms_id, terms = base_terms,
-          types = base_types, spaces = base_spaces} = session_content base_thys;
+          types = base_types, names = base_names, spaces = base_spaces} = session_content base_thys;
 
     val n = length loaded_thys;
     val m = (case length loaded_context_thys of 0 => 0 | l => l - n);
@@ -123,11 +132,22 @@ fun session_statistics theories : session_statistics =
      locales = Integer.sum (map (length o locales) loaded_thys),
      locale_thms = Integer.sum (map (length o locales_thms) loaded_thys),
      global_thms = Integer.sum (map (length o global_thms) loaded_thys),
-     sizeof_thys_id = sizeof_diff (all_thys_id, base_thys_id),
-     sizeof_thms_id = sizeof_diff (all_thms_id, base_thms_id),
-     sizeof_terms = sizeof_diff (all_terms, base_terms),
-     sizeof_types = sizeof_diff (all_types, base_types),
-     sizeof_spaces = sizeof_diff (all_spaces, base_spaces)}
+     sizeof_thys_id =
+      sizeof1_diff ((all_thys_id, all_thms_id), (base_thys_id, all_thms_id)) -
+        sizeof_list_diff (all_thys_id, base_thys_id),
+     sizeof_thms_id =
+      sizeof1_diff ((all_thms_id, all_thys_id), (base_thms_id, all_thys_id)) -
+        sizeof_list_diff (all_thms_id, base_thms_id),
+     sizeof_terms =
+      sizeof1_diff ((all_terms, all_types, all_names), (base_terms, all_types, all_names)) -
+        sizeof_list_diff (all_terms, base_terms),
+     sizeof_types =
+      sizeof1_diff ((all_types, all_names), (base_types, all_names)) -
+        sizeof_list_diff (all_types, base_types),
+     sizeof_spaces =
+      sizeof1_diff ((all_spaces, all_names), (base_spaces, all_names)) -
+        sizeof_list_diff (all_spaces, base_spaces),
+     sizeof_names = sizeof_diff (all_names, base_names)}
   end;
 
 
@@ -148,9 +168,12 @@ val encode_result : session_statistics XML.Encode.T =
        sizeof_thms_id = g,
        sizeof_terms = h,
        sizeof_types = i,
-       sizeof_spaces = j} => ((a, (b, (c, (d, (e, (f, (g, (h, (i, j))))))))))) #>
-  let open XML.Encode
-  in pair int (pair int (pair int (pair int (pair int (pair int (pair int (pair int (pair int int)))))))) end;
+       sizeof_names = j,
+       sizeof_spaces = k} => ((a, (b, (c, (d, (e, (f, (g, (h, (i, (j, k)))))))))))) #>
+  let open XML.Encode in
+    pair int (pair int (pair int (pair int (pair int (pair int (pair int
+      (pair int (pair int (pair int int)))))))))
+  end;
 
 in
 

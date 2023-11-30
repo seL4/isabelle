@@ -83,8 +83,8 @@ exception DUP of key;
 datatype 'a table =
   Empty |
   Leaf1 of key * 'a |
-  Leaf2 of key * 'a * key * 'a |
-  Leaf3 of key * 'a * key * 'a * key * 'a |
+  Leaf2 of (key * 'a) * (key * 'a) |
+  Leaf3 of (key * 'a) * (key * 'a) * (key * 'a) |
   Branch2 of 'a table * (key * 'a) * 'a table |
   Branch3 of 'a table * (key * 'a) * 'a table * (key * 'a) * 'a table |
   Size of int * 'a table;
@@ -92,30 +92,27 @@ datatype 'a table =
 fun make2 (Empty, e, Empty) = Leaf1 e
   | make2 (Branch2 (Empty, e1, Empty), e2, right) = make2 (Leaf1 e1, e2, right)
   | make2 (left, e1, Branch2 (Empty, e2, Empty)) = make2 (left, e1, Leaf1 e2)
-  | make2 (Branch3 (Empty, (k1, x1), Empty, (k2, x2), Empty), e3, right) =
-      make2 (Leaf2 (k1, x1, k2, x2), e3, right)
-  | make2 (left, e1, Branch3 (Empty, (k2, x2), Empty, (k3, x3), Empty)) =
-      make2 (left, e1, Leaf2 (k2, x2, k3, x3))
-  | make2 (Leaf1 (k1, x1), (k2, x2), Empty) = Leaf2 (k1, x1, k2, x2)
-  | make2 (Empty, (k1, x1), Leaf1 (k2, x2)) = Leaf2 (k1, x1, k2, x2)
-  | make2 (Leaf1 (k1, x1), (k2, x2), Leaf1 (k3, x3)) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make2 (Leaf2 (k1, x1, k2, x2), (k3, x3), Empty) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make2 (Empty, (k1, x1), Leaf2 (k2, x2, k3, x3)) = Leaf3 (k1, x1, k2, x2, k3, x3)
+  | make2 (Branch3 (Empty, e1, Empty, e2, Empty), e3, right) = make2 (Leaf2 (e1, e2), e3, right)
+  | make2 (left, e1, Branch3 (Empty, e2, Empty, e3, Empty)) = make2 (left, e1, Leaf2 (e2, e3))
+  | make2 (Leaf1 e1, e2, Empty) = Leaf2 (e1, e2)
+  | make2 (Empty, e1, Leaf1 e2) = Leaf2 (e1, e2)
+  | make2 (Leaf1 e1, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
+  | make2 (Leaf2 (e1, e2), e3, Empty) = Leaf3 (e1, e2, e3)
+  | make2 (Empty, e1, Leaf2 (e2, e3)) = Leaf3 (e1, e2, e3)
   | make2 arg = Branch2 arg;
 
-fun make3 (Empty, (k1, x1), Empty, (k2, x2), Empty) = Leaf2 (k1, x1, k2, x2)
+fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
   | make3 (Branch2 (Empty, e1, Empty), e2, mid, e3, right) = make3 (Leaf1 e1, e2, mid, e3, right)
   | make3 (left, e1, Branch2 (Empty, e2, Empty), e3, right) = make3 (left, e1, Leaf1 e2, e3, right)
   | make3 (left, e1, mid, e2, Branch2 (Empty, e3, Empty)) = make3 (left, e1, mid, e2, Leaf1 e3)
-  | make3 (Leaf1 (k1, x1), (k2, x2), Empty, (k3, x3), Empty) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make3 (Empty, (k1, x1), Leaf1 (k2, x2), (k3, x3), Empty) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make3 (Empty, (k1, x1), Empty, (k2, x2), Leaf1 (k3, x3)) = Leaf3 (k1, x1, k2, x2, k3, x3)
+  | make3 (Leaf1 e1, e2, Empty, e3, Empty) = Leaf3 (e1, e2, e3)
+  | make3 (Empty, e1, Leaf1 e2, e3, Empty) = Leaf3 (e1, e2, e3)
+  | make3 (Empty, e1, Empty, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
   | make3 arg = Branch3 arg;
 
 fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
-  | unmake (Leaf2 (k1, x1, k2, x2)) = Branch3 (Empty, (k1, x1), Empty, (k2, x2), Empty)
-  | unmake (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-      Branch2 (Branch2 (Empty, (k1, x1), Empty), (k2, x2), Branch2 (Empty, (k3, x3), Empty))
+  | unmake (Leaf2 (e1, e2)) = Branch3 (Empty, e1, Empty, e2, Empty)
+  | unmake (Leaf3 (e1, e2, e3)) = Branch2 (Branch2 (Empty, e1, Empty), e2, Branch2 (Empty, e3, Empty))
   | unmake (Size (_, arg)) = arg
   | unmake arg = arg;
 
@@ -167,14 +164,16 @@ fun is_empty Empty = true
 
 fun map_table f =
   let
+    fun apply (k, x) = (k, f k x);
+
     fun map Empty = Empty
-      | map (Leaf1 (k, x)) = Leaf1 (k, f k x)
-      | map (Leaf2 (k1, x1, k2, x2)) = Leaf2 (k1, f k1 x1, k2, f k2 x2)
-      | map (Leaf3 (k1, x1, k2, x2, k3, x3)) = Leaf3 (k1, f k1 x1, k2, f k2 x2, k3, f k3 x3)
-      | map (Branch2 (left, (k, x), right)) =
-          Branch2 (map left, (k, f k x), map right)
-      | map (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          Branch3 (map left, (k1, f k1 x1), map mid, (k2, f k2 x2), map right)
+      | map (Leaf1 e) = Leaf1 (apply e)
+      | map (Leaf2 (e1, e2)) = Leaf2 (apply e1, apply e2)
+      | map (Leaf3 (e1, e2, e3)) = Leaf3 (apply e1, apply e2, apply e3)
+      | map (Branch2 (left, e, right)) =
+          Branch2 (map left, apply e, map right)
+      | map (Branch3 (left, e1, mid, e2, right)) =
+          Branch3 (map left, apply e1, map mid, apply e2, map right)
       | map (Size (m, arg)) = Size (m, map arg);
   in map end;
 
@@ -182,8 +181,8 @@ fun fold_table f =
   let
     fun fold Empty a = a
       | fold (Leaf1 e) a = f e a
-      | fold (Leaf2 (k1, x1, k2, x2)) a = f (k2, x2) (f (k1, x1) a)
-      | fold (Leaf3 (k1, x1, k2, x2, k3, x3)) a = f (k3, x3) (f (k2, x2) (f (k1, x1) a))
+      | fold (Leaf2 (e1, e2)) a = f e2 (f e1 a)
+      | fold (Leaf3 (e1, e2, e3)) a = f e3 (f e2 (f e1 a))
       | fold (Branch2 (left, e, right)) a =
           fold right (f e (fold left a))
       | fold (Branch3 (left, e1, mid, e2, right)) a =
@@ -195,8 +194,8 @@ fun fold_rev_table f =
   let
     fun fold_rev Empty a = a
       | fold_rev (Leaf1 e) a = f e a
-      | fold_rev (Leaf2 (k1, x1, k2, x2)) a = f (k1, x1) (f (k2, x2) a)
-      | fold_rev (Leaf3 (k1, x1, k2, x2, k3, x3)) a = f (k1, x1) (f (k2, x2) (f (k3, x3) a))
+      | fold_rev (Leaf2 (e1, e2)) a = f e1 (f e2 a)
+      | fold_rev (Leaf3 (e1, e2, e3)) a = f e1 (f e2 (f e3 a))
       | fold_rev (Branch2 (left, e, right)) a =
           fold_rev left (f e (fold_rev right a))
       | fold_rev (Branch3 (left, e1, mid, e2, right)) a =
@@ -212,8 +211,8 @@ fun keys tab = Library.build (fold_rev_table (cons o #1) tab);
 
 fun min Empty = NONE
   | min (Leaf1 e) = SOME e
-  | min (Leaf2 (k, x, _, _)) = SOME (k, x)
-  | min (Leaf3 (k, x, _, _, _, _)) = SOME (k, x)
+  | min (Leaf2 (e, _)) = SOME e
+  | min (Leaf3 (e, _, _)) = SOME e
   | min (Branch2 (Empty, e, _)) = SOME e
   | min (Branch3 (Empty, e, _, _, _)) = SOME e
   | min (Branch2 (left, _, _)) = min left
@@ -222,8 +221,8 @@ fun min Empty = NONE
 
 fun max Empty = NONE
   | max (Leaf1 e) = SOME e
-  | max (Leaf2 (_, _, k, x)) = SOME (k, x)
-  | max (Leaf3 (_, _, _, _, k, x)) = SOME (k, x)
+  | max (Leaf2 (_, e)) = SOME e
+  | max (Leaf3 (_, _, e)) = SOME e
   | max (Branch2 (_, e, Empty)) = SOME e
   | max (Branch3 (_, _, _, e, Empty)) = SOME e
   | max (Branch2 (_, _, right)) = max right
@@ -237,9 +236,8 @@ fun exists pred =
   let
     fun ex Empty = false
       | ex (Leaf1 e) = pred e
-      | ex (Leaf2 (k1, x1, k2, x2)) = pred (k1, x1) orelse pred (k2, x2)
-      | ex (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-          pred (k1, x1) orelse pred (k2, x2) orelse pred (k3, x3)
+      | ex (Leaf2 (e1, e2)) = pred e1 orelse pred e2
+      | ex (Leaf3 (e1, e2, e3)) = pred e1 orelse pred e2 orelse pred e3
       | ex (Branch2 (left, e, right)) =
           ex left orelse pred e orelse ex right
       | ex (Branch3 (left, e1, mid, e2, right)) =
@@ -256,15 +254,15 @@ fun get_first f =
   let
     fun get Empty = NONE
       | get (Leaf1 e) = f e
-      | get (Leaf2 (k1, x1, k2, x2)) =
-          (case f (k1, x1) of
-            NONE => f (k2, x2)
+      | get (Leaf2 (e1, e2)) =
+          (case f e1 of
+            NONE => f e2
           | some => some)
-      | get (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-          (case f (k1, x1) of
+      | get (Leaf3 (e1, e2, e3)) =
+          (case f e1 of
             NONE =>
-              (case f (k2, x2) of
-                NONE => f (k3, x3)
+              (case f e2 of
+                NONE => f e3
               | some => some)
           | some => some)
       | get (Branch2 (left, e, right)) =
@@ -291,111 +289,45 @@ fun get_first f =
   in get end;
 
 
-(* lookup *)
+(* retrieve *)
 
-fun lookup tab key =
+fun retrieve {result, no_result} tab (key: key) =
   let
-    fun key_ord k = Key.ord (key, k);
-    val key_eq = is_equal o key_ord;
+    fun compare (k, _) = Key.ord (key, k)
+    fun result_equal e = if is_equal (compare e) then result e else no_result;
 
-    fun look Empty = NONE
-      | look (Leaf1 (k, x)) =
-          if key_eq k then SOME x else NONE
-      | look (Leaf2 (k1, x1, k2, x2)) =
-          (case key_ord k1 of
-            LESS => NONE
-          | EQUAL => SOME x1
-          | GREATER => if key_eq k2 then SOME x2 else NONE)
-      | look (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-          (case key_ord k2 of
-            LESS => if key_eq k1 then SOME x1 else NONE
-          | EQUAL => SOME x2
-          | GREATER => if key_eq k3 then SOME x3 else NONE)
-      | look (Branch2 (left, (k, x), right)) =
-          (case key_ord k of
-            LESS => look left
-          | EQUAL => SOME x
-          | GREATER => look right)
-      | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          (case key_ord k1 of
-            LESS => look left
-          | EQUAL => SOME x1
+    fun find Empty = no_result
+      | find (Leaf1 e) = result_equal e
+      | find (Leaf2 (e1, e2)) =
+          (case compare e1 of
+            LESS => no_result
+          | EQUAL => result e1
+          | GREATER => result_equal e2)
+      | find (Leaf3 (e1, e2, e3)) =
+          (case compare e2 of
+            LESS => result_equal e1
+          | EQUAL => result e2
+          | GREATER => result_equal e3)
+      | find (Branch2 (left, e, right)) =
+          (case compare e of
+            LESS => find left
+          | EQUAL => result e
+          | GREATER => find right)
+      | find (Branch3 (left, e1, mid, e2, right)) =
+          (case compare e1 of
+            LESS => find left
+          | EQUAL => result e1
           | GREATER =>
-              (case key_ord k2 of
-                LESS => look mid
-              | EQUAL => SOME x2
-              | GREATER => look right))
-      | look (Size (_, arg)) = look arg;
-  in look tab end;
+              (case compare e2 of
+                LESS => find mid
+              | EQUAL => result e2
+              | GREATER => find right))
+      | find (Size (_, arg)) = find arg;
+  in find tab end;
 
-fun lookup_key tab key =
-  let
-    fun key_ord k = Key.ord (key, k);
-    val key_eq = is_equal o key_ord;
-
-    fun look Empty = NONE
-      | look (Leaf1 (k, x)) =
-          if key_eq k then SOME (k, x) else NONE
-      | look (Leaf2 (k1, x1, k2, x2)) =
-          (case key_ord k1 of
-            LESS => NONE
-          | EQUAL => SOME (k1, x1)
-          | GREATER => if key_eq k2 then SOME (k2, x2) else NONE)
-      | look (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-          (case key_ord k2 of
-            LESS => if key_eq k1 then SOME (k1, x1) else NONE
-          | EQUAL => SOME (k2, x2)
-          | GREATER => if key_eq k3 then SOME (k3, x3) else NONE)
-      | look (Branch2 (left, (k, x), right)) =
-          (case key_ord k of
-            LESS => look left
-          | EQUAL => SOME (k, x)
-          | GREATER => look right)
-      | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          (case key_ord k1 of
-            LESS => look left
-          | EQUAL => SOME (k1, x1)
-          | GREATER =>
-              (case key_ord k2 of
-                LESS => look mid
-              | EQUAL => SOME (k2, x2)
-              | GREATER => look right))
-      | look (Size (_, arg)) = look arg;
-  in look tab end;
-
-fun defined tab key =
-  let
-    fun key_ord k = Key.ord (key, k);
-    val key_eq = is_equal o key_ord;
-
-    fun def Empty = false
-      | def (Leaf1 (k, _)) = key_eq k
-      | def (Leaf2 (k1, _, k2, _)) =
-          (case key_ord k1 of
-            LESS => false
-          | EQUAL => true
-          | GREATER => key_eq k2)
-      | def (Leaf3 (k1, _, k2, _, k3, _)) =
-          (case key_ord k2 of
-            LESS => key_eq k1
-          | EQUAL => true
-          | GREATER => key_eq k3)
-      | def (Branch2 (left, (k, _), right)) =
-          (case key_ord k of
-            LESS => def left
-          | EQUAL => true
-          | GREATER => def right)
-      | def (Branch3 (left, (k1, _), mid, (k2, _), right)) =
-          (case key_ord k1 of
-            LESS => def left
-          | EQUAL => true
-          | GREATER =>
-              (case key_ord k2 of
-                LESS => def mid
-              | EQUAL => true
-              | GREATER => def right))
-      | def (Size (_, arg)) = def arg;
-  in def tab end;
+fun lookup tab key = retrieve {result = SOME o #2, no_result = NONE} tab key;
+fun lookup_key tab key = retrieve {result = SOME, no_result = NONE} tab key;
+fun defined tab key = retrieve {result = K true, no_result = false} tab key;
 
 
 (* modify *)
@@ -408,68 +340,68 @@ exception SAME;
 
 fun modify key f tab =
   let
-    fun key_ord k = Key.ord (key, k);
+    fun compare (k, _) = Key.ord (key, k)
 
     val inc = Unsynchronized.ref 0;
-    fun insert () = f NONE before ignore (Unsynchronized.inc inc);
-    fun update x = f (SOME x);
+    fun insert (k: key) = (k, f NONE) before ignore (Unsynchronized.inc inc);
+    fun update (k: key, x) = (k, f (SOME x));
 
-    fun modfy Empty = Sprout (Empty, (key, insert ()), Empty)
+    fun modfy Empty = Sprout (Empty, (insert key), Empty)
       | modfy (t as Leaf1 _) = modfy (unmake t)
       | modfy (t as Leaf2 _) = modfy (unmake t)
       | modfy (t as Leaf3 _) = modfy (unmake t)
-      | modfy (Branch2 (left, p as (k, x), right)) =
-          (case key_ord k of
+      | modfy (Branch2 (left, e, right)) =
+          (case compare e of
             LESS =>
               (case modfy left of
-                Stay left' => Stay (make2 (left', p, right))
-              | Sprout (left1, q, left2) => Stay (make3 (left1, q, left2, p, right)))
-          | EQUAL => Stay (make2 (left, (k, update x), right))
+                Stay left' => Stay (make2 (left', e, right))
+              | Sprout (left1, e', left2) => Stay (make3 (left1, e', left2, e, right)))
+          | EQUAL => Stay (make2 (left, update e, right))
           | GREATER =>
               (case modfy right of
-                Stay right' => Stay (make2 (left, p, right'))
-              | Sprout (right1, q, right2) =>
-                  Stay (make3 (left, p, right1, q, right2))))
-      | modfy (Branch3 (left, p1 as (k1, x1), mid, p2 as (k2, x2), right)) =
-          (case key_ord k1 of
+                Stay right' => Stay (make2 (left, e, right'))
+              | Sprout (right1, e', right2) =>
+                  Stay (make3 (left, e, right1, e', right2))))
+      | modfy (Branch3 (left, e1, mid, e2, right)) =
+          (case compare e1 of
             LESS =>
               (case modfy left of
-                Stay left' => Stay (make3 (left', p1, mid, p2, right))
-              | Sprout (left1, q, left2) =>
-                  Sprout (make2 (left1, q, left2), p1, make2 (mid, p2, right)))
-          | EQUAL => Stay (make3 (left, (k1, update x1), mid, p2, right))
+                Stay left' => Stay (make3 (left', e1, mid, e2, right))
+              | Sprout (left1, e', left2) =>
+                  Sprout (make2 (left1, e', left2), e1, make2 (mid, e2, right)))
+          | EQUAL => Stay (make3 (left, update e1, mid, e2, right))
           | GREATER =>
-              (case key_ord k2 of
+              (case compare e2 of
                 LESS =>
                   (case modfy mid of
-                    Stay mid' => Stay (make3 (left, p1, mid', p2, right))
-                  | Sprout (mid1, q, mid2) =>
-                      Sprout (make2 (left, p1, mid1), q, make2 (mid2, p2, right)))
-              | EQUAL => Stay (make3 (left, p1, mid, (k2, update x2), right))
+                    Stay mid' => Stay (make3 (left, e1, mid', e2, right))
+                  | Sprout (mid1, e', mid2) =>
+                      Sprout (make2 (left, e1, mid1), e', make2 (mid2, e2, right)))
+              | EQUAL => Stay (make3 (left, e1, mid, update e2, right))
               | GREATER =>
                   (case modfy right of
-                    Stay right' => Stay (make3 (left, p1, mid, p2, right'))
+                    Stay right' => Stay (make3 (left, e1, mid, e2, right'))
                   | Sprout (right1, q, right2) =>
-                      Sprout (make2 (left, p1, mid), p2, make2 (right1, q, right2)))))
+                      Sprout (make2 (left, e1, mid), e2, make2 (right1, q, right2)))))
       | modfy (Size (_, arg)) = modfy arg;
 
     val tab' =
       (case tab of
-        Empty => Leaf1 (key, insert ())
-      | Leaf1 (k, x) =>
-          (case key_ord k of
-            LESS => Leaf2 (key, insert (), k, x)
-          | EQUAL => Leaf1 (k, update x)
-          | GREATER => Leaf2 (k, x, key, insert ()))
-      | Leaf2 (k1, x1, k2, x2) =>
-          (case key_ord k1 of
-            LESS => Leaf3 (key, insert (), k1, x1, k2, x2)
-          | EQUAL => Leaf2 (k1, update x1, k2, x2)
+        Empty => Leaf1 (insert key)
+      | Leaf1 e =>
+          (case compare e of
+            LESS => Leaf2 (insert key, e)
+          | EQUAL => Leaf1 (update e)
+          | GREATER => Leaf2 (e, insert key))
+      | Leaf2 (e1, e2) =>
+          (case compare e1 of
+            LESS => Leaf3 (insert key, e1, e2)
+          | EQUAL => Leaf2 (update e1, e2)
           | GREATER =>
-              (case key_ord k2 of
-                LESS => Leaf3 (k1, x1, key, insert (), k2, x2)
-              | EQUAL => Leaf2 (k1, x1, k2, update x2)
-              | GREATER => Leaf3 (k1, x1, k2, x2, key, insert ())))
+              (case compare e2 of
+                LESS => Leaf3 (e1, insert key, e2)
+              | EQUAL => Leaf2 (e1, update e2)
+              | GREATER => Leaf3 (e1, e2, insert key)))
       | _ =>
           (case modfy tab of
             Stay tab' => tab'
@@ -498,20 +430,20 @@ fun if_equal ord x y = if is_equal ord then x else y;
 
 fun del (SOME k) Empty = raise UNDEF k
   | del NONE Empty = raise Match
-  | del NONE (Leaf1 p) = (p, (true, Empty))
-  | del NONE (Leaf2 (k1, x1, k2, x2)) = ((k1, x1), (false, Leaf1 (k2, x2)))
-  | del k (Leaf1 p) =
-      (case compare k p of
-        EQUAL => (p, (true, Empty))
+  | del NONE (Leaf1 e) = (e, (true, Empty))
+  | del NONE (Leaf2 (e1, e2)) = (e1, (false, Leaf1 e2))
+  | del k (Leaf1 e) =
+      (case compare k e of
+        EQUAL => (e, (true, Empty))
       | _ => raise UNDEF (the k))
-  | del k (Leaf2 (k1, x1, k2, x2)) =
-      (case compare k (k1, x1) of
-        EQUAL => ((k1, x1), (false, Leaf1 (k2, x2)))
+  | del k (Leaf2 (e1, e2)) =
+      (case compare k e1 of
+        EQUAL => (e1, (false, Leaf1 e2))
       | _ =>
-        (case compare k (k2, x2) of
-          EQUAL => ((k2, x2), (false, Leaf1 (k1, x1)))
+        (case compare k e2 of
+          EQUAL => (e2, (false, Leaf1 e1))
         | _ => raise UNDEF (the k)))
-  | del k (Leaf3 (k1, x1, k2, x2, k3, x3)) = del k (Branch2 (Leaf1 (k1, x1), (k2, x2), Leaf1 (k3, x3)))
+  | del k (Leaf3 (e1, e2, e3)) = del k (Branch2 (Leaf1 e1, e2, Leaf1 e3))
   | del k (Branch2 (l, p, r)) =
       (case compare k p of
         LESS =>
