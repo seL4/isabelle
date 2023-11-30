@@ -18,6 +18,7 @@ object Build_Schedule {
 
   case class Timing_Entry(job_name: String, hostname: String, threads: Int, timing: Timing) {
     def elapsed: Time = timing.elapsed
+    def proper_cpu: Option[Time] = timing.cpu.proper_ms.map(Time.ms)
   }
   case class Timing_Entries(entries: List[Timing_Entry]) {
     require(entries.nonEmpty)
@@ -121,12 +122,20 @@ object Build_Schedule {
     }
 
     def estimate_threads(job_name: String, hostname: String, threads: Int): Option[Time] = {
+      def try_approximate(data: Timing_Entries): Option[Time] = {
+        val entries =
+          data.by_threads.toList match {
+            case List((i, Timing_Entries(List(entry)))) if i != 1 =>
+              (i, data.mean_time) :: entry.proper_cpu.map(1 -> _).toList
+            case entries => entries.map((threads, data) => threads -> data.mean_time)
+          }
+        if (entries.size < 2) None else Some(approximate_threads(entries, threads))
+      }
+
       for {
         data <- data.by_job.get(job_name)
         data <- data.by_hostname.get(hostname)
-        entries = data.by_threads.toList.map((threads, data) => threads -> data.mean_time)
-        time <- data.by_threads.get(threads).map(_.mean_time).orElse(
-          if (data.by_threads.size < 2) None else Some(approximate_threads(entries, threads)))
+        time <- data.by_threads.get(threads).map(_.mean_time).orElse(try_approximate(data))
       } yield time
     }
 
