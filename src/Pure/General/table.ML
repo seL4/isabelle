@@ -83,8 +83,8 @@ exception DUP of key;
 datatype 'a table =
   Empty |
   Leaf1 of key * 'a |
-  Leaf2 of key * 'a * key * 'a |
-  Leaf3 of key * 'a * key * 'a * key * 'a |
+  Leaf2 of (key * 'a) * (key * 'a) |
+  Leaf3 of (key * 'a) * (key * 'a) * (key * 'a) |
   Branch2 of 'a table * (key * 'a) * 'a table |
   Branch3 of 'a table * (key * 'a) * 'a table * (key * 'a) * 'a table |
   Size of int * 'a table;
@@ -92,30 +92,27 @@ datatype 'a table =
 fun make2 (Empty, e, Empty) = Leaf1 e
   | make2 (Branch2 (Empty, e1, Empty), e2, right) = make2 (Leaf1 e1, e2, right)
   | make2 (left, e1, Branch2 (Empty, e2, Empty)) = make2 (left, e1, Leaf1 e2)
-  | make2 (Branch3 (Empty, (k1, x1), Empty, (k2, x2), Empty), e3, right) =
-      make2 (Leaf2 (k1, x1, k2, x2), e3, right)
-  | make2 (left, e1, Branch3 (Empty, (k2, x2), Empty, (k3, x3), Empty)) =
-      make2 (left, e1, Leaf2 (k2, x2, k3, x3))
-  | make2 (Leaf1 (k1, x1), (k2, x2), Empty) = Leaf2 (k1, x1, k2, x2)
-  | make2 (Empty, (k1, x1), Leaf1 (k2, x2)) = Leaf2 (k1, x1, k2, x2)
-  | make2 (Leaf1 (k1, x1), (k2, x2), Leaf1 (k3, x3)) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make2 (Leaf2 (k1, x1, k2, x2), (k3, x3), Empty) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make2 (Empty, (k1, x1), Leaf2 (k2, x2, k3, x3)) = Leaf3 (k1, x1, k2, x2, k3, x3)
+  | make2 (Branch3 (Empty, e1, Empty, e2, Empty), e3, right) = make2 (Leaf2 (e1, e2), e3, right)
+  | make2 (left, e1, Branch3 (Empty, e2, Empty, e3, Empty)) = make2 (left, e1, Leaf2 (e2, e3))
+  | make2 (Leaf1 e1, e2, Empty) = Leaf2 (e1, e2)
+  | make2 (Empty, e1, Leaf1 e2) = Leaf2 (e1, e2)
+  | make2 (Leaf1 e1, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
+  | make2 (Leaf2 (e1, e2), e3, Empty) = Leaf3 (e1, e2, e3)
+  | make2 (Empty, e1, Leaf2 (e2, e3)) = Leaf3 (e1, e2, e3)
   | make2 arg = Branch2 arg;
 
-fun make3 (Empty, (k1, x1), Empty, (k2, x2), Empty) = Leaf2 (k1, x1, k2, x2)
+fun make3 (Empty, e1, Empty, e2, Empty) = Leaf2 (e1, e2)
   | make3 (Branch2 (Empty, e1, Empty), e2, mid, e3, right) = make3 (Leaf1 e1, e2, mid, e3, right)
   | make3 (left, e1, Branch2 (Empty, e2, Empty), e3, right) = make3 (left, e1, Leaf1 e2, e3, right)
   | make3 (left, e1, mid, e2, Branch2 (Empty, e3, Empty)) = make3 (left, e1, mid, e2, Leaf1 e3)
-  | make3 (Leaf1 (k1, x1), (k2, x2), Empty, (k3, x3), Empty) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make3 (Empty, (k1, x1), Leaf1 (k2, x2), (k3, x3), Empty) = Leaf3 (k1, x1, k2, x2, k3, x3)
-  | make3 (Empty, (k1, x1), Empty, (k2, x2), Leaf1 (k3, x3)) = Leaf3 (k1, x1, k2, x2, k3, x3)
+  | make3 (Leaf1 e1, e2, Empty, e3, Empty) = Leaf3 (e1, e2, e3)
+  | make3 (Empty, e1, Leaf1 e2, e3, Empty) = Leaf3 (e1, e2, e3)
+  | make3 (Empty, e1, Empty, e2, Leaf1 e3) = Leaf3 (e1, e2, e3)
   | make3 arg = Branch3 arg;
 
 fun unmake (Leaf1 e) = Branch2 (Empty, e, Empty)
-  | unmake (Leaf2 (k1, x1, k2, x2)) = Branch3 (Empty, (k1, x1), Empty, (k2, x2), Empty)
-  | unmake (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-      Branch2 (Branch2 (Empty, (k1, x1), Empty), (k2, x2), Branch2 (Empty, (k3, x3), Empty))
+  | unmake (Leaf2 (e1, e2)) = Branch3 (Empty, e1, Empty, e2, Empty)
+  | unmake (Leaf3 (e1, e2, e3)) = Branch2 (Branch2 (Empty, e1, Empty), e2, Branch2 (Empty, e3, Empty))
   | unmake (Size (_, arg)) = arg
   | unmake arg = arg;
 
@@ -169,8 +166,10 @@ fun map_table f =
   let
     fun map Empty = Empty
       | map (Leaf1 (k, x)) = Leaf1 (k, f k x)
-      | map (Leaf2 (k1, x1, k2, x2)) = Leaf2 (k1, f k1 x1, k2, f k2 x2)
-      | map (Leaf3 (k1, x1, k2, x2, k3, x3)) = Leaf3 (k1, f k1 x1, k2, f k2 x2, k3, f k3 x3)
+      | map (Leaf2 ((k1, x1), (k2, x2))) =
+          Leaf2 ((k1, f k1 x1), (k2, f k2 x2))
+      | map (Leaf3 ((k1, x1), (k2, x2), (k3, x3))) =
+          Leaf3 ((k1, f k1 x1), (k2, f k2 x2), (k3, f k3 x3))
       | map (Branch2 (left, (k, x), right)) =
           Branch2 (map left, (k, f k x), map right)
       | map (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
@@ -182,8 +181,8 @@ fun fold_table f =
   let
     fun fold Empty a = a
       | fold (Leaf1 e) a = f e a
-      | fold (Leaf2 (k1, x1, k2, x2)) a = f (k2, x2) (f (k1, x1) a)
-      | fold (Leaf3 (k1, x1, k2, x2, k3, x3)) a = f (k3, x3) (f (k2, x2) (f (k1, x1) a))
+      | fold (Leaf2 (e1, e2)) a = f e2 (f e1 a)
+      | fold (Leaf3 (e1, e2, e3)) a = f e3 (f e2 (f e1 a))
       | fold (Branch2 (left, e, right)) a =
           fold right (f e (fold left a))
       | fold (Branch3 (left, e1, mid, e2, right)) a =
@@ -195,8 +194,8 @@ fun fold_rev_table f =
   let
     fun fold_rev Empty a = a
       | fold_rev (Leaf1 e) a = f e a
-      | fold_rev (Leaf2 (k1, x1, k2, x2)) a = f (k1, x1) (f (k2, x2) a)
-      | fold_rev (Leaf3 (k1, x1, k2, x2, k3, x3)) a = f (k1, x1) (f (k2, x2) (f (k3, x3) a))
+      | fold_rev (Leaf2 (e1, e2)) a = f e1 (f e2 a)
+      | fold_rev (Leaf3 (e1, e2, e3)) a = f e1 (f e2 (f e3 a))
       | fold_rev (Branch2 (left, e, right)) a =
           fold_rev left (f e (fold_rev right a))
       | fold_rev (Branch3 (left, e1, mid, e2, right)) a =
@@ -212,8 +211,8 @@ fun keys tab = Library.build (fold_rev_table (cons o #1) tab);
 
 fun min Empty = NONE
   | min (Leaf1 e) = SOME e
-  | min (Leaf2 (k, x, _, _)) = SOME (k, x)
-  | min (Leaf3 (k, x, _, _, _, _)) = SOME (k, x)
+  | min (Leaf2 (e, _)) = SOME e
+  | min (Leaf3 (e, _, _)) = SOME e
   | min (Branch2 (Empty, e, _)) = SOME e
   | min (Branch3 (Empty, e, _, _, _)) = SOME e
   | min (Branch2 (left, _, _)) = min left
@@ -222,8 +221,8 @@ fun min Empty = NONE
 
 fun max Empty = NONE
   | max (Leaf1 e) = SOME e
-  | max (Leaf2 (_, _, k, x)) = SOME (k, x)
-  | max (Leaf3 (_, _, _, _, k, x)) = SOME (k, x)
+  | max (Leaf2 (_, e)) = SOME e
+  | max (Leaf3 (_, _, e)) = SOME e
   | max (Branch2 (_, e, Empty)) = SOME e
   | max (Branch3 (_, _, _, e, Empty)) = SOME e
   | max (Branch2 (_, _, right)) = max right
@@ -237,9 +236,8 @@ fun exists pred =
   let
     fun ex Empty = false
       | ex (Leaf1 e) = pred e
-      | ex (Leaf2 (k1, x1, k2, x2)) = pred (k1, x1) orelse pred (k2, x2)
-      | ex (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-          pred (k1, x1) orelse pred (k2, x2) orelse pred (k3, x3)
+      | ex (Leaf2 (e1, e2)) = pred e1 orelse pred e2
+      | ex (Leaf3 (e1, e2, e3)) = pred e1 orelse pred e2 orelse pred e3
       | ex (Branch2 (left, e, right)) =
           ex left orelse pred e orelse ex right
       | ex (Branch3 (left, e1, mid, e2, right)) =
@@ -256,15 +254,15 @@ fun get_first f =
   let
     fun get Empty = NONE
       | get (Leaf1 e) = f e
-      | get (Leaf2 (k1, x1, k2, x2)) =
-          (case f (k1, x1) of
-            NONE => f (k2, x2)
+      | get (Leaf2 (e1, e2)) =
+          (case f e1 of
+            NONE => f e2
           | some => some)
-      | get (Leaf3 (k1, x1, k2, x2, k3, x3)) =
-          (case f (k1, x1) of
+      | get (Leaf3 (e1, e2, e3)) =
+          (case f e1 of
             NONE =>
-              (case f (k2, x2) of
-                NONE => f (k3, x3)
+              (case f e2 of
+                NONE => f e3
               | some => some)
           | some => some)
       | get (Branch2 (left, e, right)) =
@@ -301,12 +299,12 @@ fun lookup tab key =
     fun look Empty = NONE
       | look (Leaf1 (k, x)) =
           if key_eq k then SOME x else NONE
-      | look (Leaf2 (k1, x1, k2, x2)) =
+      | look (Leaf2 ((k1, x1), (k2, x2))) =
           (case key_ord k1 of
             LESS => NONE
           | EQUAL => SOME x1
           | GREATER => if key_eq k2 then SOME x2 else NONE)
-      | look (Leaf3 (k1, x1, k2, x2, k3, x3)) =
+      | look (Leaf3 ((k1, x1), (k2, x2), (k3, x3))) =
           (case key_ord k2 of
             LESS => if key_eq k1 then SOME x1 else NONE
           | EQUAL => SOME x2
@@ -336,12 +334,12 @@ fun lookup_key tab key =
     fun look Empty = NONE
       | look (Leaf1 (k, x)) =
           if key_eq k then SOME (k, x) else NONE
-      | look (Leaf2 (k1, x1, k2, x2)) =
+      | look (Leaf2 ((k1, x1), (k2, x2))) =
           (case key_ord k1 of
             LESS => NONE
           | EQUAL => SOME (k1, x1)
           | GREATER => if key_eq k2 then SOME (k2, x2) else NONE)
-      | look (Leaf3 (k1, x1, k2, x2, k3, x3)) =
+      | look (Leaf3 ((k1, x1), (k2, x2), (k3, x3))) =
           (case key_ord k2 of
             LESS => if key_eq k1 then SOME (k1, x1) else NONE
           | EQUAL => SOME (k2, x2)
@@ -370,12 +368,12 @@ fun defined tab key =
 
     fun def Empty = false
       | def (Leaf1 (k, _)) = key_eq k
-      | def (Leaf2 (k1, _, k2, _)) =
+      | def (Leaf2 ((k1, _), (k2, _))) =
           (case key_ord k1 of
             LESS => false
           | EQUAL => true
           | GREATER => key_eq k2)
-      | def (Leaf3 (k1, _, k2, _, k3, _)) =
+      | def (Leaf3 ((k1, _), (k2, _), (k3, _))) =
           (case key_ord k2 of
             LESS => key_eq k1
           | EQUAL => true
@@ -458,18 +456,18 @@ fun modify key f tab =
         Empty => Leaf1 (key, insert ())
       | Leaf1 (k, x) =>
           (case key_ord k of
-            LESS => Leaf2 (key, insert (), k, x)
-          | EQUAL => Leaf1 (k, update x)
-          | GREATER => Leaf2 (k, x, key, insert ()))
-      | Leaf2 (k1, x1, k2, x2) =>
+            LESS => Leaf2 ((key, insert ()), (k, x))
+          | EQUAL => Leaf1 ((k, update x))
+          | GREATER => Leaf2 ((k, x), (key, insert ())))
+      | Leaf2 ((k1, x1), (k2, x2)) =>
           (case key_ord k1 of
-            LESS => Leaf3 (key, insert (), k1, x1, k2, x2)
-          | EQUAL => Leaf2 (k1, update x1, k2, x2)
+            LESS => Leaf3 ((key, insert ()), (k1, x1), (k2, x2))
+          | EQUAL => Leaf2 ((k1, update x1), (k2, x2))
           | GREATER =>
               (case key_ord k2 of
-                LESS => Leaf3 (k1, x1, key, insert (), k2, x2)
-              | EQUAL => Leaf2 (k1, x1, k2, update x2)
-              | GREATER => Leaf3 (k1, x1, k2, x2, key, insert ())))
+                LESS => Leaf3 ((k1, x1), (key, insert ()), (k2, x2))
+              | EQUAL => Leaf2 ((k1, x1), (k2, update x2))
+              | GREATER => Leaf3 ((k1, x1), (k2, x2), (key, insert ()))))
       | _ =>
           (case modfy tab of
             Stay tab' => tab'
@@ -499,19 +497,19 @@ fun if_equal ord x y = if is_equal ord then x else y;
 fun del (SOME k) Empty = raise UNDEF k
   | del NONE Empty = raise Match
   | del NONE (Leaf1 p) = (p, (true, Empty))
-  | del NONE (Leaf2 (k1, x1, k2, x2)) = ((k1, x1), (false, Leaf1 (k2, x2)))
+  | del NONE (Leaf2 (e1, e2)) = (e1, (false, Leaf1 e2))
   | del k (Leaf1 p) =
       (case compare k p of
         EQUAL => (p, (true, Empty))
       | _ => raise UNDEF (the k))
-  | del k (Leaf2 (k1, x1, k2, x2)) =
-      (case compare k (k1, x1) of
-        EQUAL => ((k1, x1), (false, Leaf1 (k2, x2)))
+  | del k (Leaf2 (e1, e2)) =
+      (case compare k e1 of
+        EQUAL => (e1, (false, Leaf1 e2))
       | _ =>
-        (case compare k (k2, x2) of
-          EQUAL => ((k2, x2), (false, Leaf1 (k1, x1)))
+        (case compare k e2 of
+          EQUAL => (e2, (false, Leaf1 e1))
         | _ => raise UNDEF (the k)))
-  | del k (Leaf3 (k1, x1, k2, x2, k3, x3)) = del k (Branch2 (Leaf1 (k1, x1), (k2, x2), Leaf1 (k3, x3)))
+  | del k (Leaf3 (e1, e2, e3)) = del k (Branch2 (Leaf1 e1, e2, Leaf1 e3))
   | del k (Branch2 (l, p, r)) =
       (case compare k p of
         LESS =>
