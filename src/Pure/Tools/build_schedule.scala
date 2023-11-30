@@ -231,7 +231,7 @@ object Build_Schedule {
 
       val entries =
         if (measurements.isEmpty) {
-          val default_host = host_infos.hosts.sorted(host_infos.host_speeds).head
+          val default_host = host_infos.hosts.sorted(host_infos.host_speeds).last
           host_infos.hosts.flatMap(host =>
             dummy_entries(host, host_infos.host_factor(default_host, host)))
         }
@@ -276,7 +276,7 @@ object Build_Schedule {
       from.info.benchmark_score.get / to.info.benchmark_score.get
 
     val host_speeds: Ordering[Host] =
-      Ordering.fromLessThan((host1, host2) => host_factor(host1, host2) > 1)
+      Ordering.fromLessThan((host1, host2) => host_factor(host1, host2) < 1)
 
     def the_host(hostname: String): Host =
       by_hostname.getOrElse(hostname, error("Unknown host " + quote(hostname)))
