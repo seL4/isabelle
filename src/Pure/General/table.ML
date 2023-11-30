@@ -164,16 +164,16 @@ fun is_empty Empty = true
 
 fun map_table f =
   let
+    fun apply (k, x) = (k, f k x);
+
     fun map Empty = Empty
-      | map (Leaf1 (k, x)) = Leaf1 (k, f k x)
-      | map (Leaf2 ((k1, x1), (k2, x2))) =
-          Leaf2 ((k1, f k1 x1), (k2, f k2 x2))
-      | map (Leaf3 ((k1, x1), (k2, x2), (k3, x3))) =
-          Leaf3 ((k1, f k1 x1), (k2, f k2 x2), (k3, f k3 x3))
-      | map (Branch2 (left, (k, x), right)) =
-          Branch2 (map left, (k, f k x), map right)
-      | map (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-          Branch3 (map left, (k1, f k1 x1), map mid, (k2, f k2 x2), map right)
+      | map (Leaf1 e) = Leaf1 (apply e)
+      | map (Leaf2 (e1, e2)) = Leaf2 (apply e1, apply e2)
+      | map (Leaf3 (e1, e2, e3)) = Leaf3 (apply e1, apply e2, apply e3)
+      | map (Branch2 (left, e, right)) =
+          Branch2 (map left, apply e, map right)
+      | map (Branch3 (left, e1, mid, e2, right)) =
+          Branch3 (map left, apply e1, map mid, apply e2, map right)
       | map (Size (m, arg)) = Size (m, map arg);
   in map end;
 
@@ -430,11 +430,11 @@ fun if_equal ord x y = if is_equal ord then x else y;
 
 fun del (SOME k) Empty = raise UNDEF k
   | del NONE Empty = raise Match
-  | del NONE (Leaf1 p) = (p, (true, Empty))
+  | del NONE (Leaf1 e) = (e, (true, Empty))
   | del NONE (Leaf2 (e1, e2)) = (e1, (false, Leaf1 e2))
-  | del k (Leaf1 p) =
-      (case compare k p of
-        EQUAL => (p, (true, Empty))
+  | del k (Leaf1 e) =
+      (case compare k e of
+        EQUAL => (e, (true, Empty))
       | _ => raise UNDEF (the k))
   | del k (Leaf2 (e1, e2)) =
       (case compare k e1 of
