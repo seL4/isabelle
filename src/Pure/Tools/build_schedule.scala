@@ -814,4 +814,86 @@ object Build_Schedule {
           scheduler(timing_data, context.sessions_structure)
       }
   }
+
+
+  /* build schedule */
+
+  def build_schedule(
+    options: Options,
+    build_hosts: List[Build_Cluster.Host] = Nil,
+    selection: Sessions.Selection = Sessions.Selection.empty,
+    progress: Progress = new Progress,
+    afp_root: Option[Path] = None,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
+    infos: List[Sessions.Info] = Nil,
+    numa_shuffling: Boolean = false,
+    augment_options: String => List[Options.Spec] = _ => Nil,
+    session_setup: (String, Session) => Unit = (_, _) => (),
+    cache: Term.Cache = Term.Cache.make()
+  ): Schedule = {
+    val build_engine = new Engine
+
+    val store = build_engine.build_store(options, build_hosts = build_hosts, cache = cache)
+    val log_store = Build_Log.store(options, cache = cache)
+    val build_options = store.options
+
+    def build_schedule(
+      server: SSH.Server,
+      database_server: Option[SQL.Database],
+      log_database: PostgreSQL.Database,
+      host_database: SQL.Database
+    ): Schedule = {
+      val full_sessions =
+        Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
+          select_dirs = select_dirs, infos = infos, augment_options = augment_options)
+      val full_sessions_selection = full_sessions.imports_selection(selection)
+
+      val build_deps =
+        Sessions.deps(full_sessions.selection(selection), progress = progress,
+          inlined_files = true).check_errors
+
+      val build_context =
+        Build.Context(store, build_engine, build_deps, afp_root = afp_root,
+          build_hosts = build_hosts, hostname = Build.hostname(build_options),
+          numa_shuffling = numa_shuffling, max_jobs = 0, session_setup = session_setup,
+          master = true)
+
+      val cluster_hosts = build_context.build_hosts
+
+      val hosts_current =
+        cluster_hosts.forall(host => isabelle.Host.read_info(host_database, host.name).isDefined)
+      if (!hosts_current) {
+        val build_cluster = Build_Cluster.make(build_context, progress = progress)
+        build_cluster.open()
+        build_cluster.init()
+        build_cluster.benchmark()
+        build_cluster.close()
+      }
+
+      val host_infos = Host_Infos.load(cluster_hosts, host_database)
+      val timing_data = Timing_Data.load(host_infos, log_database)
+
+      val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
+      def task(session: Build_Job.Session_Context): Build_Process.Task =
+        Build_Process.Task(session.name, session.deps, JSON.Object.empty, build_context.build_uuid)
+
+      val build_state =
+        Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)
+
+      val scheduler = build_engine.scheduler(timing_data, build_context.sessions_structure)
+      scheduler.build_schedule(build_state)
+    }
+
+    using(store.open_server()) { server =>
+      using_optional(store.maybe_open_database_server(server = server)) { database_server =>
+        using(log_store.open_database(server = server)) { log_database =>
+          using(store.open_build_database(
+            path = isabelle.Host.private_data.database, server = server)) { host_database =>
+              build_schedule(server, database_server, log_database, host_database)
+          }
+        }
+      }
+    }
+  }
 }
