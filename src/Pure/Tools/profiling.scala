@@ -39,6 +39,7 @@ object Profiling {
     sizeof_thms_id: Space = Space.zero,
     sizeof_terms: Space = Space.zero,
     sizeof_types: Space = Space.zero,
+    sizeof_names: Space = Space.zero,
     sizeof_spaces: Space = Space.zero)
 
   object Statistics {
@@ -49,10 +50,10 @@ object Profiling {
     private val decode_result: XML.Decode.T[Session_Statistics] =
       (body: XML.Body) =>
         {
-          val (a, (b, (c, (d, (e, (f, (g, (h, (i, j))))))))) = {
+          val (a, (b, (c, (d, (e, (f, (g, (h, (i, (j, k)))))))))) = {
             import XML.Decode._
             pair(int, pair(int, pair(int, pair(int, pair(int,
-              pair(long, pair(long, pair(long, pair(long, long)))))))))(body)
+              pair(long, pair(long, pair(long, pair(long, pair(long, long))))))))))(body)
           }
           Session_Statistics(
             theories = a,
@@ -64,7 +65,8 @@ object Profiling {
             sizeof_thms_id = Space.bytes(g),
             sizeof_terms = Space.bytes(h),
             sizeof_types = Space.bytes(i),
-            sizeof_spaces = Space.bytes(j))
+            sizeof_names = Space.bytes(j),
+            sizeof_spaces = Space.bytes(k))
         }
 
     def make(
@@ -102,6 +104,7 @@ object Profiling {
         thms_id_size = session.sizeof_thms_id,
         terms_size = session.sizeof_terms,
         types_size = session.sizeof_types,
+        names_size = session.sizeof_names,
         spaces_size = session.sizeof_spaces)
     }
 
@@ -121,6 +124,7 @@ object Profiling {
         "thms_id_size%",
         "terms_size%",
         "types_size%",
+        "names_size%",
         "spaces_size%")
 
     def header: List[String] =
@@ -140,6 +144,7 @@ object Profiling {
     val thms_id_size: Space = Space.zero,
     val terms_size: Space = Space.zero,
     val types_size: Space = Space.zero,
+    val names_size: Space = Space.zero,
     val spaces_size: Space = Space.zero
   ) {
     private def print_total_theories: String =
@@ -169,6 +174,7 @@ object Profiling {
         size_percentage(thms_id_size).toString,
         size_percentage(terms_size).toString,
         size_percentage(types_size).toString,
+        size_percentage(names_size).toString,
         size_percentage(spaces_size).toString)
 
     def fields: List[Any] =
@@ -190,6 +196,7 @@ object Profiling {
             thms_id_size = other.cumulative.thms_id_size + thms_id_size,
             terms_size = other.cumulative.terms_size + terms_size,
             types_size = other.cumulative.types_size + types_size,
+            names_size = other.cumulative.names_size + names_size,
             spaces_size = other.cumulative.spaces_size + spaces_size)
       }
 
