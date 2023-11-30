@@ -221,11 +221,11 @@ object Build_Schedule {
       val measurements =
         for {
           (meta_info, build_info) <- build_history
-          build_host <- meta_info.get(Build_Log.Prop.build_host).toList
+          build_host = meta_info.get(Build_Log.Prop.build_host)
           (job_name, session_info) <- build_info.sessions.toList
           if build_info.finished_sessions.contains(job_name)
-          hostname = session_info.hostname.getOrElse(build_host)
-          host <- hosts.find(_.info.hostname == build_host).toList
+          hostname <- session_info.hostname.orElse(build_host).toList
+          host <- hosts.find(_.info.hostname == hostname).toList
           threads = session_info.threads.getOrElse(host.info.num_cpus)
         } yield (job_name, hostname, threads) -> session_info.timing.elapsed
 
