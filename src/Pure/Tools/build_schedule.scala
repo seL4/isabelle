@@ -11,9 +11,6 @@ import scala.annotation.tailrec
 
 
 object Build_Schedule {
-  val engine_name = "build_schedule"
-
-
   /* organized historic timing information (extracted from build logs) */
 
   case class Timing_Entry(job_name: String, hostname: String, threads: Int, timing: Timing) {
@@ -715,7 +712,7 @@ object Build_Schedule {
 
       val meta_info = Build_Log.Meta_Info(props, settings)
       val build_info = Build_Log.Build_Info(sessions.toMap)
-      val log_name = Build_Log.log_filename(engine = engine_name, date = start_date)
+      val log_name = Build_Log.log_filename(engine = build_context.engine.name, date = start_date)
 
       Build_Log.private_data.update_sessions(
         _log_database, _log_store.cache.compress, log_name.file_name, build_info)
@@ -796,22 +793,23 @@ object Build_Schedule {
     }
   }
 
-  class Engine extends Build.Engine(engine_name) {
+  class Engine extends Build.Engine("build_schedule") {
+
+    def scheduler(timing_data: Timing_Data, sessions_structure: Sessions.Structure): Scheduler = {
+      val heuristics =
+        List(5, 10, 20).map(minutes =>
+          Timing_Heuristic(Time.minutes(minutes), timing_data, sessions_structure))
+      new Meta_Heuristic(heuristics)
+    }
+
     override def open_build_process(
       context: Build.Context,
       progress: Progress,
       server: SSH.Server
     ): Build_Process =
       new Scheduled_Build_Process(context, progress, server) {
-        def init_scheduler(timing_data: Timing_Data): Scheduler = {
-          val heuristics =
-            List(5, 10, 20).map(minutes =>
-              Timing_Heuristic(
-                Time.minutes(minutes),
-                timing_data,
-                context.build_deps.sessions_structure))
-          new Meta_Heuristic(heuristics)
-        }
+        def init_scheduler(timing_data: Timing_Data): Scheduler =
+          scheduler(timing_data, context.sessions_structure)
       }
   }
 }
