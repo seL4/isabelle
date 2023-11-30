@@ -168,6 +168,7 @@ ML_file "net.ML";
 ML_file "item_net.ML";
 ML_file "envir.ML";
 ML_file "consts.ML";
+ML_file "zterm.ML";
 ML_file "term_xml.ML";
 ML_file "primitive_defs.ML";
 ML_file "sign.ML";
