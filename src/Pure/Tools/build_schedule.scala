@@ -255,6 +255,19 @@ object Build_Schedule {
 
       new Timing_Data(Timing_Entries(entries), host_infos)
     }
+
+    def load(host_infos: Host_Infos, log_database: SQL.Database): Timing_Data = {
+      val build_history =
+        for {
+          log_name <- log_database.execute_query_statement(
+            Build_Log.private_data.meta_info_table.select(List(Build_Log.Column.log_name)),
+            List.from[String], res => res.string(Build_Log.Column.log_name))
+          meta_info <- Build_Log.private_data.read_meta_info(log_database, log_name)
+          build_info = Build_Log.private_data.read_build_info(log_database, log_name)
+        } yield (meta_info, build_info)
+
+      make(host_infos, build_history)
+    }
   }
 
 
@@ -267,7 +280,7 @@ object Build_Schedule {
       new Host_Infos(
         List(Host(isabelle.Host.Info("dummy", Nil, 8, Some(1.0)), Build_Cluster.Host("dummy"))))
 
-    def apply(build_hosts: List[Build_Cluster.Host], db: SQL.Database): Host_Infos = {
+    def load(build_hosts: List[Build_Cluster.Host], db: SQL.Database): Host_Infos = {
       def get_host(build_host: Build_Cluster.Host): Host = {
         val info =
           isabelle.Host.read_info(db, build_host.name).getOrElse(
@@ -654,19 +667,8 @@ object Build_Schedule {
           local_build_host :: build_context.build_hosts
         }
 
-      val host_infos = Host_Infos(cluster_hosts, _host_database)
-
-      val build_history =
-        for {
-          log_name <- _log_database.execute_query_statement(
-            Build_Log.private_data.meta_info_table.select(List(Build_Log.Column.log_name)),
-            List.from[String], res => res.string(Build_Log.Column.log_name))
-          meta_info <- Build_Log.private_data.read_meta_info(_log_database, log_name)
-          build_info =
-            Build_Log.private_data.read_build_info(_log_database, log_name, cache = _log_store.cache)
-        } yield (meta_info, build_info)
-
-      Timing_Data.make(host_infos, build_history)
+      val host_infos = Host_Infos.load(cluster_hosts, _host_database)
+      Timing_Data.load(host_infos, _log_database)
     }
     private val scheduler = init_scheduler(timing_data)
 
