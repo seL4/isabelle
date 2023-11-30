@@ -16,7 +16,9 @@ object Build_Schedule {
 
   /* organized historic timing information (extracted from build logs) */
 
-  case class Timing_Entry(job_name: String, hostname: String, threads: Int, elapsed: Time)
+  case class Timing_Entry(job_name: String, hostname: String, threads: Int, timing: Timing) {
+    def elapsed: Time = timing.elapsed
+  }
   case class Timing_Entries(entries: List[Timing_Entry]) {
     require(entries.nonEmpty)
 
@@ -205,13 +207,17 @@ object Build_Schedule {
   }
 
   object Timing_Data {
+    def median_timing(obs: List[Timing]): Timing = obs.sortBy(_.elapsed.ms).apply(obs.length / 2)
     def median_time(obs: List[Time]): Time = obs.sortBy(_.ms).apply(obs.length / 2)
     def mean_time(obs: Iterable[Time]): Time = Time.ms(obs.map(_.ms).sum / obs.size)
 
-    private def dummy_entries(host: Host, host_factor: Double) =
+    private def dummy_entries(host: Host, host_factor: Double) = {
+      val baseline = Time.minutes(5).scale(host_factor)
+      val gc = Time.seconds(10).scale(host_factor)
       List(
-        Timing_Entry("dummy", host.info.hostname, 1, Time.minutes(5).scale(host_factor)),
-        Timing_Entry("dummy", host.info.hostname, 8, Time.minutes(1).scale(host_factor)))
+        Timing_Entry("dummy", host.info.hostname, 1, Timing(baseline, baseline, gc)),
+        Timing_Entry("dummy", host.info.hostname, 8, Timing(baseline.scale(0.2), baseline, gc)))
+    }
 
     def make(
       host_infos: Host_Infos,
@@ -227,7 +233,7 @@ object Build_Schedule {
           hostname <- session_info.hostname.orElse(build_host).toList
           host <- hosts.find(_.info.hostname == hostname).toList
           threads = session_info.threads.getOrElse(host.info.num_cpus)
-        } yield (job_name, hostname, threads) -> session_info.timing.elapsed
+        } yield (job_name, hostname, threads) -> session_info.timing
 
       val entries =
         if (measurements.isEmpty) {
@@ -238,7 +244,7 @@ object Build_Schedule {
         else
           measurements.groupMap(_._1)(_._2).toList.map {
             case ((job_name, hostname, threads), timings) =>
-              Timing_Entry(job_name, hostname, threads, median_time(timings))
+              Timing_Entry(job_name, hostname, threads, median_timing(timings))
           }
 
       new Timing_Data(Timing_Entries(entries), host_infos)
