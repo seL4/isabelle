@@ -554,7 +554,7 @@ object Build_Schedule {
         else {
           def get_next(node: Node): List[Node] =
             build_graph.imm_succs(node).filter(pred).filter(
-              build_graph.imm_preds(_).intersect(running.keySet).isEmpty).toList
+              build_graph.imm_preds(_).intersect(running.keySet) == Set(node)).toList
 
           val (next, elapsed) = running.minBy(_._2.ms)
           val (remaining, finished) =
@@ -564,7 +564,7 @@ object Build_Schedule {
             remaining.map(pass_time(elapsed)).toMap ++
               finished.map(_._1).flatMap(get_next).map(start)
           val (res, running2) = parallel_paths(running1)
-          (res max running1.size, running2)
+          (res max running.size, running2)
         }
 
       parallel_paths(minimals.map(start).toMap)._1
