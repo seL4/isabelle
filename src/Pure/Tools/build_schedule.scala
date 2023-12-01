@@ -221,8 +221,8 @@ object Build_Schedule {
       val baseline = Time.minutes(5).scale(host_factor)
       val gc = Time.seconds(10).scale(host_factor)
       List(
-        Timing_Entry("dummy", host.info.hostname, 1, Timing(baseline, baseline, gc)),
-        Timing_Entry("dummy", host.info.hostname, 8, Timing(baseline.scale(0.2), baseline, gc)))
+        Timing_Entry("dummy", host.name, 1, Timing(baseline, baseline, gc)),
+        Timing_Entry("dummy", host.name, 8, Timing(baseline.scale(0.2), baseline, gc)))
     }
 
     def make(
@@ -273,7 +273,10 @@ object Build_Schedule {
 
   /* host information */
 
-  case class Host(info: isabelle.Host.Info, build: Build_Cluster.Host)
+  case class Host(info: isabelle.Host.Info, build: Build_Cluster.Host) {
+    def name: String = info.hostname
+    def num_cpus: Int = info.num_cpus
+  }
 
   object Host_Infos {
     def dummy: Host_Infos =
@@ -295,7 +298,7 @@ object Build_Schedule {
   class Host_Infos private(val hosts: List[Host]) {
     require(hosts.nonEmpty)
 
-    private val by_hostname = hosts.map(host => host.info.hostname -> host).toMap
+    private val by_hostname = hosts.map(host => host.name -> host).toMap
 
     def host_factor(from: Host, to: Host): Double =
       from.info.benchmark_score.get / to.info.benchmark_score.get
@@ -387,7 +390,7 @@ object Build_Schedule {
 
       val rel_cpus = if (available_cpus.length >= threads) available_cpus.take(threads) else Nil
 
-      Node_Info(host.info.hostname, numa_node, rel_cpus)
+      Node_Info(host.name, numa_node, rel_cpus)
     }
 
     def available(host: Host, threads: Int): Boolean = {
@@ -523,7 +526,7 @@ object Build_Schedule {
     def best_time(node: Node): Time = {
       val host = ordered_hosts.last
       val threads = timing_data.best_threads(node, max_threads) min host.info.num_cpus
-      timing_data.estimate(node, host.info.hostname, threads)
+      timing_data.estimate(node, host.name, threads)
     }
     val best_times = build_graph.keys.map(node => node -> best_time(node)).toMap
 
