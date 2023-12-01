@@ -491,6 +491,30 @@ object Build_Schedule {
     }
   }
 
+  class Default_Heuristic(timing_data: Timing_Data, options: Options)
+    extends Heuristic(timing_data) {
+
+    def host_threads(host: Host): Int = {
+      val m = (options ++ host.build.options).int("threads")
+      if (m > 0) m else (host.num_cpus max 1) min 8
+    }
+    
+    def next_jobs(resources: Resources, sorted_jobs: List[String], host: Host): List[Config] =
+      sorted_jobs.zip(resources.unused_nodes(host, host_threads(host))).map(Config(_, _))
+
+    def next(state: Build_Process.State): List[Config] = {
+      val sorted_jobs = state.next_ready.sortBy(_.name)(state.sessions.ordering).map(_.name)
+      val resources = host_infos.available(state)
+
+      host_infos.hosts.foldLeft((sorted_jobs, List.empty[Config])) {
+        case ((jobs, res), host) =>
+          val configs = next_jobs(resources, jobs, host)
+          val config_jobs = configs.map(_.job_name).toSet
+          (jobs.filterNot(config_jobs.contains), configs ::: res)
+      }._2
+    }
+  }
+
   class Meta_Heuristic(heuristics: List[Heuristic]) extends Scheduler {
     require(heuristics.nonEmpty)
 
