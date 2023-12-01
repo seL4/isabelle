@@ -428,6 +428,7 @@ object Build_Schedule {
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
 
     def duration: Time = end.time - start.time
+    def message: String = "Estimated " + duration.message_hms + " build time"
   }
 
   case class State(build_state: Build_Process.State, current_time: Time, finished: Schedule) {
@@ -775,15 +776,15 @@ object Build_Schedule {
         else {
           val start = Time.now()
           val next = scheduler.next(state)
-          val estimate = Date(Time.now() + scheduler.build_schedule(state).duration)
+          val schedule = scheduler.build_schedule(state)
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
-          progress.echo_if(build_context.master && !cache.is_current_estimate(estimate),
-            "Estimated completion: " + estimate + timing_msg)
+          progress.echo_if(build_context.master && !cache.is_current_estimate(schedule.end),
+            schedule.message + timing_msg)
 
           val configs = next.filter(_.node_info.hostname == hostname)
-          cache = Cache(state, configs, estimate)
+          cache = Cache(state, configs, schedule.end)
           configs.map(_.job_name)
         }
       }
@@ -883,7 +884,10 @@ object Build_Schedule {
         Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)
 
       val scheduler = build_engine.scheduler(timing_data, build_context.sessions_structure)
-      scheduler.build_schedule(build_state)
+      def schedule_msg(res: Exn.Result[Schedule]): String =
+        res match { case Exn.Res(schedule) => schedule.message case _ => "" }
+
+      Timing.timeit(scheduler.build_schedule(build_state), schedule_msg, output = progress.echo(_))
     }
 
     using(store.open_server()) { server =>
