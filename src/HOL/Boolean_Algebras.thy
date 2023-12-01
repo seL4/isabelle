@@ -549,8 +549,11 @@ lemma sup_shunt: "(x \<squnion> y = \<top>) \<longleftrightarrow> (- x \<le> y)"
   using inf_shunt [of \<open>- x\<close> \<open>- y\<close>, symmetric] 
   by (simp flip: compl_sup compl_top_eq)
 
-lemma diff_shunt_var: "(x - y = \<bottom>) \<longleftrightarrow> (x \<le> y)"
+lemma diff_shunt_var[simp]: "(x - y = \<bottom>) \<longleftrightarrow> (x \<le> y)"
   by (simp add: diff_eq inf_shunt)
+
+lemma diff_shunt[simp]: "(\<bottom> = x - y) \<longleftrightarrow> (x \<le> y)"
+  by (auto simp flip: diff_shunt_var)
 
 lemma sup_neg_inf:
   \<open>p \<le> q \<squnion> r \<longleftrightarrow> p \<sqinter> -q \<le> r\<close>  (is \<open>?P \<longleftrightarrow> ?Q\<close>)
