@@ -422,13 +422,13 @@ object Build_Schedule {
     type Graph = isabelle.Graph[String, Node]
   }
 
-  case class Schedule(start: Date, graph: Schedule.Graph) {
+  case class Schedule(generator: String, start: Date, graph: Schedule.Graph) {
     def end: Date =
       if (graph.is_empty) start
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
 
     def duration: Time = end.time - start.time
-    def message: String = "Estimated " + duration.message_hms + " build time"
+    def message: String = "Estimated " + duration.message_hms + " build time with " + generator
   }
 
   case class State(build_state: Build_Process.State, current_time: Time, finished: Schedule) {
@@ -485,7 +485,8 @@ object Build_Schedule {
         }
 
       val start = Date.now()
-      val end_state = simulate(State(build_state, start.time, Schedule(start, Graph.empty)))
+      val end_state =
+        simulate(State(build_state, start.time, Schedule(toString, start, Graph.empty)))
 
       end_state.finished
     }
@@ -493,6 +494,7 @@ object Build_Schedule {
 
   class Default_Heuristic(timing_data: Timing_Data, options: Options)
     extends Heuristic(timing_data) {
+    override def toString: String = "default build heuristic"
 
     def host_threads(host: Host): Int = {
       val m = (options ++ host.build.options).int("threads")
@@ -602,6 +604,7 @@ object Build_Schedule {
     sessions_structure: Sessions.Structure,
     max_threads_limit: Int = 8
   ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit) {
+    override def toString: String = "path time heuristic (threshold: " + threshold.message_hms + ")"
 
     def next(state: Build_Process.State): List[Config] = {
       val resources = host_infos.available(state)
