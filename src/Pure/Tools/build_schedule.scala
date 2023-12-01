@@ -467,16 +467,9 @@ object Build_Schedule {
     def build_schedule(build_state: Build_Process.State): Schedule
   }
 
-  abstract class Heuristic(timing_data: Timing_Data, max_threads_limit: Int) extends Scheduler {
+  abstract class Heuristic(timing_data: Timing_Data) extends Scheduler {
     val host_infos = timing_data.host_infos
     val ordered_hosts = host_infos.hosts.sorted(host_infos.host_speeds)
-    val max_threads = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
-
-    def best_time(job_name: String): Time = {
-      val host = ordered_hosts.last
-      val threads = timing_data.best_threads(job_name, max_threads) min host.info.num_cpus
-      timing_data.estimate(job_name, host.info.hostname, threads)
-    }
 
     def build_schedule(build_state: Build_Process.State): Schedule = {
       @tailrec
@@ -513,11 +506,12 @@ object Build_Schedule {
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
     max_threads_limit: Int
-  ) extends Heuristic(timing_data, max_threads_limit) {
+  ) extends Heuristic(timing_data) {
     /* pre-computed properties for efficient heuristic */
 
-    type Node = String
+    val max_threads = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
 
+    type Node = String
     val build_graph = sessions_structure.build_graph
 
     val minimals = build_graph.minimals
@@ -526,6 +520,11 @@ object Build_Schedule {
     def all_preds(node: Node): Set[Node] = build_graph.all_preds(List(node)).toSet
     val maximals_all_preds = maximals.map(node => node -> all_preds(node)).toMap
 
+    def best_time(node: Node): Time = {
+      val host = ordered_hosts.last
+      val threads = timing_data.best_threads(node, max_threads) min host.info.num_cpus
+      timing_data.estimate(node, host.info.hostname, threads)
+    }
     val best_times = build_graph.keys.map(node => node -> best_time(node)).toMap
 
     val succs_max_time_ms = build_graph.node_height(best_times(_).ms)
