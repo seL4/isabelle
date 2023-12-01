@@ -598,13 +598,36 @@ object Build_Schedule {
     }
   }
 
-  class Timing_Heuristic(
-    threshold: Time,
+
+  object Path_Time_Heuristic {
+    sealed trait Criterion
+    case class Absolute_Time(time: Time) extends Criterion {
+      override def toString: String = "absolute time (" + time.message_hms + ")"
+    }
+    case class Relative_Time(factor: Double) extends Criterion {
+      override def toString: String = "relative time (" + factor + ")"
+    }
+
+    sealed trait Strategy
+    case class Fixed_Thread(threads: Int) extends Strategy {
+      override def toString: String = "fixed threads (" + threads + ")"
+    }
+    case class Time_Based_Threads(f: Time => Int) extends Strategy {
+      override def toString: String = "time based threads"
+    }
+  }
+
+  class Path_Time_Heuristic(
+    is_critical: Path_Time_Heuristic.Criterion,
+    parallel_threads: Path_Time_Heuristic.Strategy,
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
     max_threads_limit: Int = 8
   ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit) {
-    override def toString: String = "path time heuristic (threshold: " + threshold.message_hms + ")"
+    import Path_Time_Heuristic.*
+
+    override def toString: Node =
+      "path time heuristic (critical: " + is_critical + ", parallel: " + parallel_threads + ")"
 
     def next(state: Build_Process.State): List[Config] = {
       val resources = host_infos.available(state)
@@ -625,13 +648,27 @@ object Build_Schedule {
         resources.try_allocate_tasks(rev_ordered_hosts, all_tasks)._1
       }
       else {
-        val critical_minimals = state.ready.filter(max_time(_) > threshold).map(_.name)
-        val critical_nodes = path_max_times(critical_minimals).filter(_._2 > threshold).keySet
+        def is_critical(time: Time): Boolean =
+          this.is_critical match {
+            case Absolute_Time(threshold) => time > threshold
+            case Relative_Time(factor) => time > minimals.map(max_time).maxBy(_.ms).scale(factor)
+          }
+
+        val critical_minimals = state.ready.filter(task => is_critical(max_time(task))).map(_.name)
+        val critical_nodes =
+          path_max_times(critical_minimals).filter((_, time) => is_critical(time)).keySet
 
         val (critical, other) = next_sorted.partition(task => critical_nodes.contains(task.name))
 
         val critical_tasks = critical.map(task => (task, best_threads(task), best_threads(task)))
-        val other_tasks = other.map(task => (task, 1, best_threads(task)))
+
+        def parallel_threads(task: Build_Process.Task): Int =
+          this.parallel_threads match {
+            case Fixed_Thread(threads) => threads
+            case Time_Based_Threads(f) => f(best_time(task.name))
+          }
+
+        val other_tasks = other.map(task => (task, parallel_threads(task), best_threads(task)))
 
         val max_critical_parallel = parallel_paths(critical_minimals, critical_nodes.contains)
         val (critical_hosts, other_hosts) = rev_ordered_hosts.splitAt(max_critical_parallel)
@@ -828,9 +865,29 @@ object Build_Schedule {
 
     def scheduler(timing_data: Timing_Data, context: Build.Context): Scheduler = {
       val sessions_structure = context.sessions_structure
-      val heuristics =
-        List(5, 10, 20).map(Time.minutes(_)).map(
-          Timing_Heuristic(_, timing_data, sessions_structure))
+
+      val is_criticals =
+        List(
+          Path_Time_Heuristic.Absolute_Time(Time.minutes(5)),
+          Path_Time_Heuristic.Absolute_Time(Time.minutes(10)),
+          Path_Time_Heuristic.Absolute_Time(Time.minutes(20)),
+          Path_Time_Heuristic.Relative_Time(0.5))
+      val parallel_threads =
+        List(
+          Path_Time_Heuristic.Fixed_Thread(1),
+          Path_Time_Heuristic.Time_Based_Threads({
+            case time if time < Time.minutes(1) => 1
+            case time if time < Time.minutes(5) => 4
+            case _ => 8
+          }))
+
+      val path_time_heuristics =
+        for {
+          is_critical <- is_criticals
+          parallel <- parallel_threads
+        } yield Path_Time_Heuristic(is_critical, parallel, timing_data, sessions_structure)
+      val heuristics = Default_Heuristic(timing_data, context.build_options) :: path_time_heuristics
+
       new Meta_Heuristic(heuristics)
     }
 
