@@ -823,10 +823,11 @@ object Build_Schedule {
 
   class Engine extends Build.Engine("build_schedule") {
 
-    def scheduler(timing_data: Timing_Data, sessions_structure: Sessions.Structure): Scheduler = {
+    def scheduler(timing_data: Timing_Data, context: Build.Context): Scheduler = {
+      val sessions_structure = context.sessions_structure
       val heuristics =
-        List(5, 10, 20).map(minutes =>
-          Timing_Heuristic(Time.minutes(minutes), timing_data, sessions_structure))
+        List(5, 10, 20).map(Time.minutes(_)).map(
+          Timing_Heuristic(_, timing_data, sessions_structure))
       new Meta_Heuristic(heuristics)
     }
 
@@ -836,8 +837,7 @@ object Build_Schedule {
       server: SSH.Server
     ): Build_Process =
       new Scheduled_Build_Process(context, progress, server) {
-        def init_scheduler(timing_data: Timing_Data): Scheduler =
-          scheduler(timing_data, context.sessions_structure)
+        def init_scheduler(timing_data: Timing_Data): Scheduler = scheduler(timing_data, context)
       }
   }
 
@@ -907,7 +907,7 @@ object Build_Schedule {
       val build_state =
         Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)
 
-      val scheduler = build_engine.scheduler(timing_data, build_context.sessions_structure)
+      val scheduler = build_engine.scheduler(timing_data, build_context)
       def schedule_msg(res: Exn.Result[Schedule]): String =
         res match { case Exn.Res(schedule) => schedule.message case _ => "" }
 
