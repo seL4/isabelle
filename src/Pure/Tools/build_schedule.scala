@@ -337,15 +337,15 @@ object Build_Schedule {
     host_infos: Host_Infos,
     allocated_nodes: Map[Host, List[Node_Info]]
   ) {
-    def unused_nodes(threads: Int): List[Node_Info] = {
-      val fully_allocated =
-        host_infos.hosts.foldLeft(this) { case (resources, host) =>
-          if (!resources.available(host, threads)) resources
-          else resources.allocate(resources.next_node(host, threads))
-        }
-      val used_nodes = allocated_nodes.values.flatten.toSet
-      fully_allocated.allocated_nodes.values.flatten.toList.filterNot(used_nodes.contains)
-    }
+    def unused_nodes(host: Host, threads: Int): List[Node_Info] =
+      if (!available(host, threads)) Nil
+      else {
+        val node = next_node(host, threads)
+        node :: allocate(node).unused_nodes(host, threads)
+      }
+
+    def unused_nodes(threads: Int): List[Node_Info] =
+      host_infos.hosts.flatMap(unused_nodes(_, threads))
 
     def allocated(host: Host): List[Node_Info] = allocated_nodes.getOrElse(host, Nil)
 
