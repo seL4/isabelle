@@ -137,6 +137,7 @@ sig
   val equal_elim_proof: term -> term -> proof -> proof -> proof
   val abstract_rule_proof: string * term -> proof -> proof
   val combination_proof: term -> term -> term -> term -> proof -> proof -> proof
+  val could_unify: proof * proof -> bool
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
@@ -1463,10 +1464,10 @@ fun prf_subst (pinst, (tyinsts, insts)) =
 
 (*A fast unification filter: true unless the two terms cannot be unified.
   Terms must be NORMAL.  Treats all Vars as distinct. *)
-fun could_unify prf1 prf2 =
+fun could_unify (prf1, prf2) =
   let
     fun matchrands (prf1 %% prf2) (prf1' %% prf2') =
-          could_unify prf2 prf2' andalso matchrands prf1 prf1'
+          could_unify (prf2, prf2') andalso matchrands prf1 prf1'
       | matchrands (prf % SOME t) (prf' % SOME t') =
           Term.could_unify (t, t') andalso matchrands prf prf'
       | matchrands (prf % _) (prf' % _) = matchrands prf prf'
@@ -1505,7 +1506,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
           (case get_first (fn r => r Ts hs prf) procs of
             NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
               (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
-                 handle PMatch => NONE) (filter (could_unify prf o fst) rules)
+                 handle PMatch => NONE) (filter (fn (prf', _) => could_unify (prf, prf')) rules)
           | some => some);
 
     fun rew0 Ts hs (prf as AbsP (_, _, prf' %% PBound 0)) =
