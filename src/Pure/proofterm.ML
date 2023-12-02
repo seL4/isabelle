@@ -28,13 +28,16 @@ sig
   and proof_body = PBody of
     {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
-     proof: proof}
+     proof: proof * zproof}
+  type proofs = proof * zproof
   type oracle = (string * Position.T) * term option
   type thm = serial * thm_node
   exception MIN_PROOF of unit
+  val proofs_of: proof_body -> proofs
   val proof_of: proof_body -> proof
+  val zproof_of: proof_body -> zproof
   val join_proof: proof_body future -> proof
-  val map_proof_of: (proof -> proof) -> proof_body -> proof_body
+  val map_proofs_of: (proofs -> proofs) -> proof_body -> proof_body
   val thm_header: serial -> Position.T list -> string -> string -> term -> typ list option ->
     thm_header
   val thm_body: proof_body -> thm_body
@@ -57,7 +60,8 @@ sig
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val union_thms: thm Ord_List.T -> thm Ord_List.T -> thm Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
-  val no_proof_body: proof -> proof_body
+  val no_proof: proofs
+  val no_proof_body: proofs -> proof_body
   val no_thm_names: proof -> proof
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
@@ -72,8 +76,10 @@ sig
   val %> : proof * term -> proof
 
   (*primitive operations*)
+  val proof_enabled: int -> bool
+  val zproof_enabled: int -> bool
   val proofs: int Unsynchronized.ref
-  val proofs_enabled: unit -> bool
+  val any_proofs_enabled: unit -> bool
   val atomic_proof: proof -> bool
   val compact_proof: proof -> bool
   val proof_combt: proof * term list -> proof
@@ -222,12 +228,14 @@ datatype proof =
 and proof_body = PBody of
   {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
-   proof: proof}
+   proof: proof * zproof}
 and thm_body =
   Thm_Body of {open_proof: proof -> proof, body: proof_body future}
 and thm_node =
   Thm_Node of {theory_name: string, name: string, prop: term,
     body: proof_body future, export: unit lazy, consolidate: unit lazy};
+
+type proofs = proof * zproof;
 
 type oracle = (string * Position.T) * term option;
 val oracle_ord: oracle ord =
@@ -239,10 +247,12 @@ val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 exception MIN_PROOF of unit;
 
-fun proof_of (PBody {proof, ...}) = proof;
+fun proofs_of (PBody {proof, ...}) = proof;
+val proof_of = fst o proofs_of;
+val zproof_of = snd o proofs_of;
 val join_proof = Future.join #> proof_of;
 
-fun map_proof_of f (PBody {oracles, thms, proof}) =
+fun map_proofs_of f (PBody {oracles, thms, proof}) =
   PBody {oracles = oracles, thms = thms, proof = f proof};
 
 fun thm_header serial pos theory_name name prop types : thm_header =
@@ -325,8 +335,9 @@ val unions_oracles = Ord_List.unions oracle_ord;
 val union_thms = Ord_List.union thm_ord;
 val unions_thms = Ord_List.unions thm_ord;
 
+val no_proof = (MinProof, ZDummy);
 fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};
-val no_thm_body = thm_body (no_proof_body MinProof);
+val no_thm_body = thm_body (no_proof_body no_proof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
   | no_thm_names (AbsP (x, t, prf)) = AbsP (x, t, no_thm_names prf)
@@ -349,7 +360,7 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
   | no_body_proofs (prf1 %% prf2) = no_body_proofs prf1 %% no_body_proofs prf2
   | no_body_proofs (PThm (header, Thm_Body {open_proof, body})) =
       let
-        val body' = Future.value (no_proof_body (join_proof body));
+        val body' = Future.value (no_proof_body (proofs_of (Future.join body)));
         val thm_body' = Thm_Body {open_proof = open_proof, body = body'};
       in PThm (header, thm_body') end
   | no_body_proofs a = a;
@@ -378,8 +389,9 @@ fun proof consts prf = prf |> variant
   fn PThm ({serial, pos, theory_name, name, prop, types}, Thm_Body {open_proof, body, ...}) =>
     ([int_atom serial, theory_name, name],
       pair (list properties) (pair (term consts) (pair (option (list typ)) (proof_body consts)))
-        (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
-and proof_body consts (PBody {oracles, thms, proof = prf}) =
+        (map Position.properties_of pos,
+          (prop, (types, map_proofs_of (apfst open_proof) (Future.join body)))))]
+and proof_body consts (PBody {oracles, thms, proof = (prf, _)}) =
   triple (list (pair (pair string (properties o Position.properties_of))
       (option (term consts)))) (list (thm consts)) (proof consts) (oracles, thms, prf)
 and thm consts (a, thm_node) =
@@ -447,7 +459,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, proof = c} end
+  in PBody {oracles = a, thms = b, proof = (c, ZDummy)} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -464,8 +476,14 @@ end;
 
 (** proof objects with different levels of detail **)
 
-val proofs = Unsynchronized.ref 2;
-fun proofs_enabled () = ! proofs >= 2;
+fun proof_enabled proofs = Word.andb (Word.fromInt proofs, 0w2) <> 0w0;
+fun zproof_enabled proofs = Word.andb (Word.fromInt proofs, 0w4) <> 0w0;
+
+val proofs = Unsynchronized.ref 6;
+
+fun any_proofs_enabled () =
+  let val proofs = ! proofs
+  in proof_enabled proofs orelse zproof_enabled proofs end;
 
 fun atomic_proof prf =
   (case prf of
@@ -496,7 +514,7 @@ fun strip_combP prf =
           | stripc  x =  x
     in  stripc (prf, [])  end;
 
-fun strip_thm_body (body as PBody {proof, ...}) =
+fun strip_thm_body (body as PBody {proof = (proof, _), ...}) =
   (case fst (strip_combt (fst (strip_combP proof))) of
     PThm (_, Thm_Body {body = body', ...}) => Future.join body'
   | _ => body);
@@ -1605,7 +1623,7 @@ fun get_rew_data thy =
   let val (rules, procs) = #1 (Data.get thy)
   in (map #2 rules, map #2 procs) end;
 
-fun rew_proof thy = rewrite_prf fst (get_rew_data thy);
+fun rew_proof thy prf = rewrite_prf fst (get_rew_data thy) prf;
 
 fun add_prf_rrule r = (Data.map o apfst o apfst) (cons (stamp (), r));
 fun add_prf_rproc p = (Data.map o apfst o apsnd) (cons (stamp (), p));
@@ -1994,14 +2012,14 @@ end;
 fun fulfill_norm_proof thy ps body0 =
   let
     val _ = consolidate_bodies (map #2 ps @ [body0]);
-    val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
+    val PBody {oracles = oracles0, thms = thms0, proof = (proof0, zproof)} = body0;
     val oracles =
       unions_oracles
         (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
     val proof = rew_proof thy proof0;
-  in PBody {oracles = oracles, thms = thms, proof = proof} end;
+  in PBody {oracles = oracles, thms = thms, proof = (proof, zproof)} end;
 
 fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body =
   let
@@ -2131,7 +2149,7 @@ end;
 
 fun prune_body body =
   if Options.default_bool "prune_proofs"
-  then (Future.map o map_proof_of) (K MinProof) body
+  then (Future.map o map_proofs_of) (K no_proof) body
   else body;
 
 fun export_enabled () = Options.default_bool "export_proofs";
@@ -2209,18 +2227,19 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val (ucontext, prop1) = Logic.unconstrainT shyps prop;
 
-    val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
-    val body0 =
-      Future.value
-        (PBody {oracles = oracles0, thms = thms0,
-          proof = if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof});
+    val PBody {oracles = oracles0, thms = thms0, proof = (prf, zprf)} = body;
+    val proofs = ! proofs;
+    val prf' = if proof_enabled proofs then fold_rev implies_intr_proof hyps prf else MinProof;
+    val zprf' = if zproof_enabled proofs then ZTerm.todo_proof zprf else ZDummy;
+
+    val body0 = Future.value (PBody {oracles = oracles0, thms = thms0, proof = (prf', zprf')});
 
     fun new_prf () =
       let
         val i = serial ();
         val unconstrainT =
           unconstrainT_proof (Sign.classes_of thy) classrel_proof arity_proof ucontext;
-        val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
+        val postproc = map_proofs_of (apfst (unconstrainT #> named ? rew_proof thy));
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
@@ -2233,7 +2252,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
               let
                 val Thm_Body {body = body', ...} = thm_body';
                 val i = if a = "" andalso named then serial () else ser;
-              in (i, body' |> ser <> i ? Future.map (map_proof_of (rew_proof thy))) end
+              in (i, body' |> ser <> i ? Future.map (map_proofs_of (apfst (rew_proof thy)))) end
             else new_prf ()
         | _ => new_prf ());
 

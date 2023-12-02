@@ -56,6 +56,8 @@ sig
   val typ_of: ztyp -> typ
   val zterm_of: Consts.T -> term -> zterm
   val term_of: Consts.T -> zterm -> term
+  val dummy_proof: 'a -> zproof
+  val todo_proof: 'a -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -167,5 +169,11 @@ fun term_of consts =
       | term (ZApp (t, u)) = term t $ term u
       | term (ZClass (T, c)) = Logic.mk_of_class (typ_of T, c);
   in term end;
+
+
+(* proofs *)
+
+fun dummy_proof _ = ZDummy;
+val todo_proof = dummy_proof;
 
 end;
