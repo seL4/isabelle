@@ -3761,67 +3761,72 @@ text \<open>
 
 subsection \<open>Lemma duplicates and other\<close>
 
-lemmas set_bit_def = set_bit_eq_or
+context semiring_bit_operations
+begin
 
-lemmas unset_bit_def = unset_bit_eq_and_not
+lemmas set_bit_def [no_atp] = set_bit_eq_or
 
-lemmas flip_bit_def = flip_bit_eq_xor
+lemmas unset_bit_def [no_atp] = unset_bit_eq_and_not
 
-lemma and_nat_rec:
+lemmas flip_bit_def [no_atp] = flip_bit_eq_xor
+
+end
+
+lemma and_nat_rec [no_atp]:
   \<open>m AND n = of_bool (odd m \<and> odd n) + 2 * ((m div 2) AND (n div 2))\<close> for m n :: nat
   by (fact and_rec)
 
-lemma or_nat_rec:
+lemma or_nat_rec [no_atp]:
   \<open>m OR n = of_bool (odd m \<or> odd n) + 2 * ((m div 2) OR (n div 2))\<close> for m n :: nat
   by (fact or_rec)
 
-lemma xor_nat_rec:
+lemma xor_nat_rec [no_atp]:
   \<open>m XOR n = of_bool (odd m \<noteq> odd n) + 2 * ((m div 2) XOR (n div 2))\<close> for m n :: nat
   by (fact xor_rec)
 
-lemma bit_push_bit_iff_nat:
+lemma bit_push_bit_iff_nat [no_atp]:
   \<open>bit (push_bit m q) n \<longleftrightarrow> m \<le> n \<and> bit q (n - m)\<close> for q :: nat
   by (fact bit_push_bit_iff')
 
-lemmas and_int_rec = and_int.rec
-
-lemmas bit_and_int_iff = and_int.bit_iff
-
-lemmas or_int_rec = or_int.rec
-
-lemmas bit_or_int_iff = or_int.bit_iff
-
-lemmas xor_int_rec = xor_int.rec
-
-lemmas bit_xor_int_iff = xor_int.bit_iff
-
-lemma not_int_rec:
-  \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
-  by (fact not_rec)
-
-lemma mask_half_int:
+lemma mask_half_int [no_atp]:
   \<open>mask n div 2 = (mask (n - 1) :: int)\<close>
   by (fact mask_half)
 
-lemma drop_bit_push_bit_int:
-  \<open>drop_bit m (push_bit n k) = drop_bit (m - n) (push_bit (n - m) k)\<close> for k :: int
-  by (fact drop_bit_push_bit)
+lemma not_int_rec [no_atp]:
+  \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
+  by (fact not_rec)
 
-lemma even_not_iff_int:
+lemma even_not_iff_int [no_atp]:
   \<open>even (NOT k) \<longleftrightarrow> odd k\<close> for k :: int
   by (fact even_not_iff)
-
-lemma even_and_iff_int:
-  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
-  by (fact even_and_iff)
-
-lemma bit_push_bit_iff_int:
-  \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
-  by (fact bit_push_bit_iff')
 
 lemma bit_not_int_iff':
   \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close> for k :: int
   by (simp flip: not_eq_complement add: bit_simps)
+
+lemmas and_int_rec [no_atp] = and_int.rec
+
+lemma even_and_iff_int [no_atp]:
+  \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
+  by (fact even_and_iff)
+
+lemmas bit_and_int_iff [no_atp] = and_int.bit_iff
+
+lemmas or_int_rec [no_atp] = or_int.rec
+
+lemmas bit_or_int_iff [no_atp] = or_int.bit_iff
+
+lemmas xor_int_rec [no_atp] = xor_int.rec
+
+lemmas bit_xor_int_iff [no_atp] = xor_int.bit_iff
+
+lemma drop_bit_push_bit_int [no_atp]:
+  \<open>drop_bit m (push_bit n k) = drop_bit (m - n) (push_bit (n - m) k)\<close> for k :: int
+  by (fact drop_bit_push_bit)
+
+lemma bit_push_bit_iff_int [no_atp] :
+  \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
+  by (fact bit_push_bit_iff')
 
 no_notation
   not  (\<open>NOT\<close>)
