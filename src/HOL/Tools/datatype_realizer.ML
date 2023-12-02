@@ -227,7 +227,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
   end;
 
 fun add_dt_realizers config names thy =
-  if not (Proofterm.proofs_enabled ()) then thy
+  if not (Proofterm.proof_enabled (! Proofterm.proofs)) then thy
   else
     let
       val _ = Old_Datatype_Aux.message config "Adding realizers for induction and case analysis ...";

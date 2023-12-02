@@ -101,7 +101,7 @@ fun norm_result ctxt =
 
 fun skip_proofs_enabled () =
   let val skip = Options.default_bool "skip_proofs" in
-    if Proofterm.proofs_enabled () andalso skip then
+    if Proofterm.any_proofs_enabled () andalso skip then
       (warning "Proof terms enabled -- cannot skip proofs"; false)
     else skip
   end;
@@ -166,7 +166,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
 
     val schematic = exists Term.is_schematic props;
     val immediate = is_none fork_pri;
-    val future = Future.proofs_enabled 1 andalso not (Proofterm.proofs_enabled ());
+    val future = Future.proofs_enabled 1 andalso not (Proofterm.any_proofs_enabled ());
     val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();
 
     val pos = Position.thread_data ();

@@ -1339,7 +1339,7 @@ local
 
 fun future_terminal_proof proof1 proof2 done state =
   if Future.proofs_enabled 3 andalso
-    not (Proofterm.proofs_enabled ()) andalso
+    not (Proofterm.any_proofs_enabled ()) andalso
     not (is_relevant state)
   then
     state |> future_proof (fn state' =>

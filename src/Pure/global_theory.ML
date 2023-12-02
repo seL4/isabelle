@@ -277,7 +277,7 @@ fun add_facts (b, fact) thy =
   end;
 
 fun check_thms_lazy (thms: thm list lazy) =
-  if Proofterm.proofs_enabled () orelse Options.default_bool "strict_facts"
+  if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
   then Lazy.force_value thms else thms;
 
 fun add_thms_lazy kind (b, thms) thy =
