@@ -38,11 +38,6 @@ datatype zproof =
   | ZAppP of zproof * zproof
   | ZClassP of ztyp * class        (*OFCLASS proof from sorts algebra*)
   | ZOracle of serial * zterm * ztyp list
-and zproof_body = ZPBody of
-  {boxes: (zterm * zproof future) Inttab.table,
-   consts: serial Ord_List.T,
-   oracles: ((string * Position.T) * zterm option) Ord_List.T,
-   proof: zproof}
 
 
 signature ZTERM =
