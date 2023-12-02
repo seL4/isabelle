@@ -668,16 +668,7 @@ qed
 end
 
 instance word :: (len) semiring_parity
-proof
-  show "\<not> 2 dvd (1::'a word)"
-    by transfer simp
-  show even_iff_mod_2_eq_0: "2 dvd a \<longleftrightarrow> a mod 2 = 0"
-    for a :: "'a word"
-    by transfer (simp_all add: mod_2_eq_odd take_bit_Suc)
-  show "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1"
-    for a :: "'a word"
-    by transfer (simp_all add: mod_2_eq_odd take_bit_Suc)
-qed
+  by (standard; transfer) (simp_all add: mod_2_eq_odd)
 
 lemma word_bit_induct [case_names zero even odd]:
   \<open>P a\<close> if word_zero: \<open>P 0\<close>

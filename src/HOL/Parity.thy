@@ -12,16 +12,15 @@ begin
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
 
 class semiring_parity = comm_semiring_1 + semiring_modulo +
-  assumes even_iff_mod_2_eq_zero: "2 dvd a \<longleftrightarrow> a mod 2 = 0"
-    and odd_iff_mod_2_eq_one: "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1"
-    and odd_one [simp]: "\<not> 2 dvd 1"
+  assumes mod_2_eq_odd: \<open>a mod 2 = of_bool (\<not> 2 dvd a)\<close>
+    and odd_one [simp]: \<open>\<not> 2 dvd 1\<close>
 begin
 
 abbreviation even :: "'a \<Rightarrow> bool"
-  where "even a \<equiv> 2 dvd a"
+  where \<open>even a \<equiv> 2 dvd a\<close>
 
 abbreviation odd :: "'a \<Rightarrow> bool"
-  where "odd a \<equiv> \<not> 2 dvd a"
+  where \<open>odd a \<equiv> \<not> 2 dvd a\<close>
 
 end
 
@@ -42,24 +41,20 @@ context semiring_parity
 begin
 
 lemma evenE [elim?]:
-  assumes "even a"
-  obtains b where "a = 2 * b"
+  assumes \<open>even a\<close>
+  obtains b where \<open>a = 2 * b\<close>
   using assms by (rule dvdE)
 
 lemma oddE [elim?]:
-  assumes "odd a"
-  obtains b where "a = 2 * b + 1"
+  assumes \<open>odd a\<close>
+  obtains b where \<open>a = 2 * b + 1\<close>
 proof -
-  have "a = 2 * (a div 2) + a mod 2"
+  have \<open>a = 2 * (a div 2) + a mod 2\<close>
     by (simp add: mult_div_mod_eq)
-  with assms have "a = 2 * (a div 2) + 1"
-    by (simp add: odd_iff_mod_2_eq_one)
-  then show ?thesis ..
+  with assms have \<open>a = 2 * (a div 2) + 1\<close>
+    by (simp add: mod_2_eq_odd)
+  then show thesis ..
 qed
-
-lemma mod_2_eq_odd:
-  \<open>a mod 2 = of_bool (odd a)\<close>
-  by (simp_all flip: odd_iff_mod_2_eq_one even_iff_mod_2_eq_zero)
 
 lemma of_bool_odd_eq_mod_2:
   \<open>of_bool (odd a) = a mod 2\<close>
@@ -75,6 +70,14 @@ lemma not_mod_2_eq_0_eq_1 [simp]:
 
 lemma not_mod_2_eq_1_eq_0 [simp]:
   \<open>a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma even_iff_mod_2_eq_zero:
+  \<open>2 dvd a \<longleftrightarrow> a mod 2 = 0\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma odd_iff_mod_2_eq_one:
+  \<open>\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1\<close>
   by (simp add: mod_2_eq_odd)
 
 lemma even_mod_2_iff [simp]:
@@ -810,15 +813,13 @@ begin
 
 subclass semiring_parity
 proof
-  show "2 dvd a \<longleftrightarrow> a mod 2 = 0" for a
-    by (fact dvd_eq_mod_eq_0)
-  show "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1" for a
-  proof
-    assume "a mod 2 = 1"
-    then show "\<not> 2 dvd a"
-      by auto
+  show \<open>a mod 2 = of_bool (\<not> 2 dvd a)\<close> for a
+  proof (cases \<open>2 dvd a\<close>)
+    case True
+    then show ?thesis
+      by (simp add: dvd_eq_mod_eq_0)
   next
-    assume "\<not> 2 dvd a"
+    case False
     have eucl: "euclidean_size (a mod 2) = 1"
     proof (rule Orderings.order_antisym)
       show "euclidean_size (a mod 2) \<le> 1"
@@ -839,15 +840,17 @@ proof
     then have "of_nat (euclidean_size a) mod 2 = 1"
       by (simp add: of_nat_mod)
     from \<open>\<not> 2 dvd a\<close> eucl
-    show "a mod 2 = 1"
+    have "a mod 2 = 1"
       by (auto intro: division_segment_eq_iff simp add: division_segment_mod)
-  qed
-  show "\<not> is_unit 2"
-  proof (rule notI)
-    assume "is_unit 2"
-    then have "of_nat 2 dvd of_nat 1"
+    with \<open>\<not> 2 dvd a\<close> show ?thesis
       by simp
-    then have "is_unit (2::nat)"
+  qed
+  show \<open>\<not> is_unit 2\<close>
+  proof
+    assume \<open>is_unit 2\<close>
+    then have \<open>of_nat 2 dvd of_nat 1\<close>
+      by simp
+    then have \<open>is_unit (2::nat)\<close>
       by (simp only: of_nat_dvd_iff)
     then show False
       by simp

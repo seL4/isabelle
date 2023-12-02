@@ -29,6 +29,9 @@ New in this Isabelle version
   unique_euclidean_semiring_with_bit_operations is renamed
   to linordered_euclidean_semiring_bit_operations.  Minor INCOMPATIBILITY.
 
+* Streamlined specification of type class (semi)ring_parity.  Minor
+  INCOMPATIBILITY.
+
 
 *** ML ***
 
