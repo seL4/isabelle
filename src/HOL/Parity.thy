@@ -41,25 +41,6 @@ instance int :: ring_parity
 context semiring_parity
 begin
 
-lemma parity_cases [case_names even odd]:
-  assumes "even a \<Longrightarrow> a mod 2 = 0 \<Longrightarrow> P"
-  assumes "odd a \<Longrightarrow> a mod 2 = 1 \<Longrightarrow> P"
-  shows P
-  using assms by (cases "even a")
-    (simp_all add: even_iff_mod_2_eq_zero [symmetric] odd_iff_mod_2_eq_one [symmetric])
-
-lemma odd_of_bool_self [simp]:
-  \<open>odd (of_bool p) \<longleftrightarrow> p\<close>
-  by (cases p) simp_all
-
-lemma not_mod_2_eq_0_eq_1 [simp]:
-  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
-  by (cases a rule: parity_cases) simp_all
-
-lemma not_mod_2_eq_1_eq_0 [simp]:
-  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
-  by (cases a rule: parity_cases) simp_all
-
 lemma evenE [elim?]:
   assumes "even a"
   obtains b where "a = 2 * b"
@@ -77,11 +58,23 @@ proof -
 qed
 
 lemma mod_2_eq_odd:
-  "a mod 2 = of_bool (odd a)"
-  by (auto elim: oddE simp add: even_iff_mod_2_eq_zero)
+  \<open>a mod 2 = of_bool (odd a)\<close>
+  by (simp_all flip: odd_iff_mod_2_eq_one even_iff_mod_2_eq_zero)
 
 lemma of_bool_odd_eq_mod_2:
-  "of_bool (odd a) = a mod 2"
+  \<open>of_bool (odd a) = a mod 2\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma odd_of_bool_self [simp]:
+  \<open>odd (of_bool p) \<longleftrightarrow> p\<close>
+  by (cases p) simp_all
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  \<open>a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma not_mod_2_eq_1_eq_0 [simp]:
+  \<open>a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0\<close>
   by (simp add: mod_2_eq_odd)
 
 lemma even_mod_2_iff [simp]:
@@ -92,8 +85,22 @@ lemma mod2_eq_if:
   "a mod 2 = (if even a then 0 else 1)"
   by (simp add: mod_2_eq_odd)
 
+lemma zero_mod_two_eq_zero [simp]:
+  \<open>0 mod 2 = 0\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma one_mod_two_eq_one [simp]:
+  \<open>1 mod 2 = 1\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma parity_cases [case_names even odd]:
+  assumes \<open>even a \<Longrightarrow> a mod 2 = 0 \<Longrightarrow> P\<close>
+  assumes \<open>odd a \<Longrightarrow> a mod 2 = 1 \<Longrightarrow> P\<close>
+  shows P
+  using assms by (auto simp add: mod_2_eq_odd)
+
 lemma even_zero [simp]:
-  "even 0"
+  \<open>even 0\<close>
   by (fact dvd_0_right)
 
 lemma odd_even_add:
@@ -617,15 +624,6 @@ lemma one_div_two_eq_zero [simp]:
   "1 div 2 = 0"
 proof -
   from of_nat_div [symmetric] have "of_nat 1 div of_nat 2 = of_nat 0"
-    by (simp only:) simp
-  then show ?thesis
-    by simp
-qed
-
-lemma one_mod_two_eq_one [simp]:
-  "1 mod 2 = 1"
-proof -
-  from of_nat_mod [symmetric] have "of_nat 1 mod of_nat 2 = of_nat 1"
     by (simp only:) simp
   then show ?thesis
     by simp

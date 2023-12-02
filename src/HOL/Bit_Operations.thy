@@ -5,7 +5,7 @@ section \<open>Bit operations in suitable algebraic structures\<close>
 
 theory Bit_Operations
   imports Presburger Groups_List
-begin
+begin                 
 
 subsection \<open>Abstract bit structures\<close>
 
@@ -82,10 +82,6 @@ lemma bits_mod_by_1 [simp]:
 lemma bits_mod_0 [simp]:
   \<open>0 mod a = 0\<close>
   using div_mult_mod_eq [of 0 a] by simp
-
-lemma bits_one_mod_two_eq_one [simp]:
-  \<open>1 mod 2 = 1\<close>
-  by (simp add: mod2_eq_if)
 
 lemma bit_0:
   \<open>bit a 0 \<longleftrightarrow> odd a\<close>
@@ -3763,6 +3759,8 @@ subsection \<open>Lemma duplicates and other\<close>
 
 context semiring_bit_operations
 begin
+
+lemmas bits_one_mod_two_eq_one [no_atp] = one_mod_two_eq_one
 
 lemmas set_bit_def [no_atp] = set_bit_eq_or
 
