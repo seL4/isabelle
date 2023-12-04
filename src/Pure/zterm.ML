@@ -4,7 +4,9 @@
 Tight representation of types / terms / proof terms, notably for proof recording.
 *)
 
-(* global datatypes *)
+(*** global ***)
+
+(* types and terms *)
 
 datatype ztyp =
     ZTVar of indexname * sort      (*free: index ~1*)
@@ -25,58 +27,8 @@ datatype zterm =
   | ZApp of zterm * zterm
   | ZClass of ztyp * class         (*OFCLASS proposition*)
 
-datatype zproof =
-    ZDummy                         (*dummy proof*)
-  | ZBoundP of int
-  | ZHyp of zterm
-  | ZAbst of string * ztyp * zproof
-  | ZAbsP of string * zterm * zproof
-  | ZAppt of zproof * zterm
-  | ZAppP of zproof * zproof
-  | ZClassP of ztyp * class        (*OFCLASS proof from sorts algebra*)
-  | ZAxiom of {name: string, oracle: bool} * zterm * ztyp list;
-
-signature ZTVARS =
-sig
-  include TERM_ITEMS
-  val add_tvarsT: ztyp -> set -> set
-  val add_tvars: zterm -> set -> set
-end
-
-signature ZTERM =
-sig
-  datatype ztyp = datatype ztyp
-  datatype zterm = datatype zterm
-  datatype zproof = datatype zproof
-  val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
-  val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
-  val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
-  structure ZTVars: ZTVARS
-  val ztyp_ord: ztyp * ztyp -> order
-  val aconv_zterm: zterm * zterm -> bool
-  val ztyp_of: typ -> ztyp
-  val typ_of: ztyp -> typ
-  val zterm_of: Consts.T -> term -> zterm
-  val term_of: Consts.T -> zterm -> term
-  val global_zterm_of: theory -> term -> zterm
-  val global_term_of: theory -> zterm -> term
-  val dummy_proof: 'a -> zproof
-  val todo_proof: 'a -> zproof
-  val axiom_proof:  theory -> {name: string, oracle: bool} -> term -> zproof
-  val assume_proof: theory -> term -> zproof
-  val trivial_proof: theory -> term -> zproof
-  val implies_intr_proof: theory -> term -> zproof -> zproof
-  val forall_intr_proof: theory -> string * term -> typ -> zproof -> zproof
-  val forall_elim_proof: theory -> term -> zproof -> zproof
-end;
-
-structure ZTerm: ZTERM =
+structure ZTerm =
 struct
-
-datatype ztyp = datatype ztyp;
-datatype zterm = datatype zterm;
-datatype zproof = datatype zproof;
-
 
 (* fold *)
 
@@ -100,19 +52,7 @@ fun fold_types f (ZVar (_, T)) = f T
   | fold_types _ _ = I;
 
 
-(* term items *)
-
-structure ZTVars: ZTVARS =
-struct
-  open TVars;
-  val add_tvarsT = fold_tvars add_set;
-  val add_tvars = fold_types add_tvarsT;
-end;
-
-val make_tvars = ZTVars.list_set o ZTVars.build o ZTVars.add_tvars;
-
-
-(* orderings *)
+(* ordering *)
 
 local
 
@@ -148,8 +88,101 @@ fun ztyp_ord TU =
 
 end;
 
+end;
 
-(* alpha conversion *)
+
+(* term items *)
+
+structure ZTVars:
+sig
+  include TERM_ITEMS
+  val add_tvarsT: ztyp -> set -> set
+  val add_tvars: zterm -> set -> set
+end =
+struct
+  open TVars;
+  val add_tvarsT = ZTerm.fold_tvars add_set;
+  val add_tvars = ZTerm.fold_types add_tvarsT;
+end;
+
+structure ZVars:
+sig
+  include TERM_ITEMS
+  val add_vars: zterm -> set -> set
+end =
+struct
+
+structure Term_Items = Term_Items
+(
+  type key = indexname * ztyp;
+  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord ZTerm.ztyp_ord);
+);
+open Term_Items;
+
+val add_vars = ZTerm.fold_aterms (fn ZVar v => add_set v | _ => I);
+
+end;
+
+
+(* proofs *)
+
+datatype zproof =
+    ZDummy                         (*dummy proof*)
+  | ZBoundP of int
+  | ZHyp of zterm
+  | ZAbst of string * ztyp * zproof
+  | ZAbsP of string * zterm * zproof
+  | ZAppt of zproof * zterm
+  | ZAppP of zproof * zproof
+  | ZClassP of ztyp * class        (*OFCLASS proof from sorts algebra*)
+  | ZAxiom of {name: string, oracle: bool} * zterm * (ztyp ZTVars.table * zterm ZVars.table);
+
+
+
+(*** local ***)
+
+signature ZTERM =
+sig
+  datatype ztyp = datatype ztyp
+  datatype zterm = datatype zterm
+  datatype zproof = datatype zproof
+  val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
+  val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val ztyp_ord: ztyp * ztyp -> order
+  val aconv_zterm: zterm * zterm -> bool
+  val ztyp_of: typ -> ztyp
+  val typ_of: ztyp -> typ
+  val zterm_of: Consts.T -> term -> zterm
+  val term_of: Consts.T -> zterm -> term
+  val global_zterm_of: theory -> term -> zterm
+  val global_term_of: theory -> zterm -> term
+  val dummy_proof: 'a -> zproof
+  val todo_proof: 'a -> zproof
+  val axiom_proof:  theory -> {name: string, oracle: bool} -> term -> zproof
+  val assume_proof: theory -> term -> zproof
+  val trivial_proof: theory -> term -> zproof
+  val implies_intr_proof: theory -> term -> zproof -> zproof
+  val forall_intr_proof: theory -> typ -> string * term -> zproof -> zproof
+  val forall_elim_proof: theory -> term -> zproof -> zproof
+  val reflexive_proof: theory -> typ -> term -> zproof
+  val symmetric_proof: theory -> typ -> term -> term -> zproof -> zproof
+  val transitive_proof: theory -> typ -> term -> term -> term -> zproof -> zproof -> zproof
+  val equal_intr_proof: theory -> term -> term -> zproof -> zproof -> zproof
+  val equal_elim_proof: theory -> term -> term -> zproof -> zproof -> zproof
+  val abstract_rule_proof: theory -> typ -> typ -> string * term -> term -> term -> zproof -> zproof
+  val combination_proof: theory -> typ -> typ -> term -> term -> term -> term ->
+    zproof -> zproof -> zproof
+end;
+
+structure ZTerm: ZTERM =
+struct
+
+datatype ztyp = datatype ztyp;
+datatype zterm = datatype zterm;
+datatype zproof = datatype zproof;
+
+open ZTerm;
 
 fun aconv_zterm (tm1, tm2) =
   pointer_eq (tm1, tm2) orelse
@@ -157,6 +190,13 @@ fun aconv_zterm (tm1, tm2) =
       (ZApp (t1, u1), ZApp (t2, u2)) => aconv_zterm (t1, t2) andalso aconv_zterm (u1, u2)
     | (ZAbs (_, T1, t1), ZAbs (_, T2, t2)) => aconv_zterm (t1, t2) andalso T1 = T2
     | (a1, a2) => a1 = a2);
+
+
+(* instantiation *)
+
+fun init_instT t = ZTVars.build (ZTVars.add_tvars t) |> ZTVars.map (fn v => fn _ => ZTVar v);
+fun init_inst t = ZVars.build (ZVars.add_vars t) |> ZVars.map (fn v => fn _ => ZVar v);
+fun init_insts t = (init_instT t, init_inst t);
 
 
 (* convert ztyp / zterm vs. regular typ / term *)
@@ -221,11 +261,14 @@ val global_term_of = term_of o Sign.consts_of;
 fun dummy_proof _ = ZDummy;
 val todo_proof = dummy_proof;
 
+
+(* basic logic *)
+
 fun axiom_proof thy a A =
   let
     val t = global_zterm_of thy A;
-    val Ts = make_tvars t;
-  in ZAxiom (a, t, map ZTVar Ts) end;
+    val insts = init_insts t;
+  in ZAxiom (a, t, insts) end;
 
 fun assume_proof thy A =
   ZHyp (global_zterm_of thy A);
@@ -244,10 +287,10 @@ fun implies_intr_proof thy A prf =
       | abs_hyp _ p = p;
   in ZAbsP ("H", h, abs_hyp 0 prf) end;
 
-fun forall_intr_proof thy (a, x) T prf =
+fun forall_intr_proof thy T (a, x) prf =
   let
-    val z = global_zterm_of thy x;
     val Z = ztyp_of T;
+    val z = global_zterm_of thy x;
 
     fun abs_term i b =
       if aconv_zterm (b, z) then ZBound i
@@ -257,14 +300,110 @@ fun forall_intr_proof thy (a, x) T prf =
         | ZApp (t, u) => ZApp (abs_term i t, abs_term i u)
         | _ => b);
 
-    fun abd_proof i (ZAbst (x, T, prf)) = ZAbst (x, T, abd_proof (i + 1) prf)
-      | abd_proof i (ZAbsP (x, t, prf)) = ZAbsP (x, abs_term i t, abd_proof i prf)
-      | abd_proof i (ZAppt (p, t)) = ZAppt (abd_proof i p, abs_term i t)
-      | abd_proof i (ZAppP (p, q)) = ZAppP (abd_proof i p, abd_proof i q)
-      | abd_proof _ p = p;
+    fun abs_proof i (ZAbst (x, T, prf)) = ZAbst (x, T, abs_proof (i + 1) prf)
+      | abs_proof i (ZAbsP (x, t, prf)) = ZAbsP (x, abs_term i t, abs_proof i prf)
+      | abs_proof i (ZAppt (p, t)) = ZAppt (abs_proof i p, abs_term i t)
+      | abs_proof i (ZAppP (p, q)) = ZAppP (abs_proof i p, abs_proof i q)
+      | abs_proof _ p = p;
 
-  in ZAbst (a, Z, abd_proof 0 prf) end;
+  in ZAbst (a, Z, abs_proof 0 prf) end;
 
 fun forall_elim_proof thy t p = ZAppt (p, global_zterm_of thy t);
+
+
+(* equality *)
+
+local
+
+val thy0 =
+  Context.the_global_context ()
+  |> Sign.add_types_global [(Binding.name "fun", 2, NoSyn), (Binding.name "prop", 0, NoSyn)]
+  |> Sign.local_path
+  |> Sign.add_consts
+   [(Binding.name "all", (Term.aT [] --> propT) --> propT, NoSyn),
+    (Binding.name "imp", propT --> propT --> propT, NoSyn),
+    (Binding.name "eq", Term.aT [] --> Term.aT [] --> propT, NoSyn)];
+
+val [reflexive_axiom, symmetric_axiom, transitive_axiom, equal_intr_axiom, equal_elim_axiom,
+  abstract_rule_axiom, combination_axiom] =
+    Theory.equality_axioms |> map (fn (b, t) =>
+      axiom_proof thy0 {name = Sign.full_name thy0 b, oracle = false} t);
+
+fun inst_axiom (f, g) (ZAxiom (a, A, (instT, inst))) =
+  let
+    val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
+    val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
+  in ZAxiom (a, A, (instT', inst')) end;
+
+in
+
+val is_reflexive_proof =
+  fn ZAxiom ({name = "Pure.reflexive", oracle = false}, _, _) => true | _ => false;
+
+fun reflexive_proof thy T t =
+  let
+    val A = ztyp_of T;
+    val x = global_zterm_of thy t;
+  in inst_axiom (fn "'a" => A, fn "x" => x) reflexive_axiom end;
+
+fun symmetric_proof thy T t u prf =
+  if is_reflexive_proof prf then prf
+  else
+    let
+      val A = ztyp_of T;
+      val x = global_zterm_of thy t;
+      val y = global_zterm_of thy u;
+      val ax = inst_axiom (fn "'a" => A, fn "x" => x | "y" => y) symmetric_axiom;
+    in ZAppP (ax, prf) end;
+
+fun transitive_proof thy T t u v prf1 prf2 =
+  if is_reflexive_proof prf1 then prf2
+  else if is_reflexive_proof prf2 then prf1
+  else
+    let
+      val A = ztyp_of T;
+      val x = global_zterm_of thy t;
+      val y = global_zterm_of thy u;
+      val z = global_zterm_of thy v;
+      val ax = inst_axiom (fn "'a" => A, fn "x" => x | "y" => y | "z" => z) transitive_axiom;
+    in ZAppP (ZAppP (ax, prf1), prf2) end;
+
+fun equal_intr_proof thy t u prf1 prf2 =
+  let
+    val A = global_zterm_of thy t;
+    val B = global_zterm_of thy u;
+    val ax = inst_axiom (undefined, fn "A" => A | "B" => B) equal_intr_axiom;
+  in ZAppP (ZAppP (ax, prf1), prf2) end;
+
+fun equal_elim_proof thy t u prf1 prf2 =
+  let
+    val A = global_zterm_of thy t;
+    val B = global_zterm_of thy u;
+    val ax = inst_axiom (undefined, fn "A" => A | "B" => B) equal_elim_axiom;
+  in ZAppP (ZAppP (ax, prf1), prf2) end;
+
+fun abstract_rule_proof thy T U x t u prf =
+  let
+    val A = ztyp_of T;
+    val B = ztyp_of U;
+    val f = global_zterm_of thy t;
+    val g = global_zterm_of thy u;
+    val ax = inst_axiom (fn "'a" => A | "'b" => B, fn "f" => f | "g" => g) abstract_rule_axiom;
+  in ZAppP (ax, forall_intr_proof thy T x prf) end;
+
+fun combination_proof thy T U f g t u prf1 prf2 =
+  let
+    val A = ztyp_of T;
+    val B = ztyp_of U;
+    val f' = global_zterm_of thy f;
+    val g' = global_zterm_of thy g;
+    val x = global_zterm_of thy t;
+    val y = global_zterm_of thy u;
+    val ax =
+      inst_axiom (fn "'a" => A | "'b" => B, fn "f" => f' | "g" => g' | "x" => x | "y" => y)
+        combination_axiom;
+  in ZAppP (ZAppP (ax, prf1), prf2) end;
+
+end;
 
 end;
