@@ -1326,27 +1326,23 @@ fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
 
 fun combination_proof f g t u prf1 prf2 =
   let
-    val f = Envir.beta_norm f;
-    val g = Envir.beta_norm g;
-    val prf =
-      if check_comb prf1 then
-        combination_axm % NONE % NONE
-      else
-        (case prf1 of
-          PAxm ("Pure.reflexive", _, _) % _ =>
-            combination_axm %> remove_types f % NONE
-        | _ => combination_axm %> remove_types f %> remove_types g)
-  in
-    prf %
-      (case head_of f of
+    val f' = Envir.beta_norm f;
+    val g' = Envir.beta_norm g;
+    val ax =
+      if check_comb prf1 then combination_axm % NONE % NONE
+      else if is_reflexive_proof prf1 then combination_axm %> remove_types f' % NONE
+      else combination_axm %> remove_types f' %> remove_types g'
+    val t' =
+      (case head_of f' of
         Abs _ => SOME (remove_types t)
       | Var _ => SOME (remove_types t)
-      | _ => NONE) %
-      (case head_of g of
+      | _ => NONE);
+    val u' =
+      (case head_of g' of
         Abs _ => SOME (remove_types u)
       | Var _ => SOME (remove_types u)
-      | _ => NONE) %% prf1 %% prf2
-  end;
+      | _ => NONE);
+  in ax % t' % u' %% prf1 %% prf2 end;
 
 
 
