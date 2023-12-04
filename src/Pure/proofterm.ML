@@ -1285,13 +1285,14 @@ val shrink_proof =
 
 (** axioms for equality **)
 
+local val thy = Sign.local_path (Context.the_global_context ()) in
+
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
-    Theory.equality_axioms |> map (fn (b, t) =>
-      let
-        val a = Sign.full_name (Sign.local_path (Context.the_global_context ())) b;
-        val A = Logic.varify_global t;
-      in PAxm (a, A, NONE) end);
+    map (fn (b, t) => PAxm (Sign.full_name thy b, Logic.varify_global t, NONE))
+      Theory.equality_axioms;
+
+end;
 
 val reflexive_proof = reflexive_axm % NONE;
 
