@@ -235,7 +235,6 @@ val _ = Theory.setup
       \ (CONST Pure.term :: 'a itself \<Rightarrow> prop) (CONST Pure.type :: 'a itself)"),
     (Binding.make ("conjunction_def", \<^here>),
       prop "(A &&& B) \<equiv> (\<And>C::prop. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)")] #> snd
-  #> fold (fn (a, prop) =>
-      snd o Thm.add_axiom_global (Binding.make (a, \<^here>), prop)) Proofterm.equality_axms);
+  #> fold (#2 oo Thm.add_axiom_global) Theory.equality_axioms);
 
 end;

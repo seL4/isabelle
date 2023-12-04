@@ -132,7 +132,6 @@ sig
   val assumption_proof: term list -> term -> int -> proof -> proof
   val bicompose_proof: bool -> term list -> term list -> term option -> term list ->
     int -> int -> proof -> proof -> proof
-  val equality_axms: (string * term) list
   val reflexive_axm: proof
   val symmetric_axm: proof
   val transitive_axm: proof
@@ -1286,34 +1285,14 @@ val shrink_proof =
 
 (** axioms for equality **)
 
-val aT = TFree ("'a", []);
-val bT = TFree ("'b", []);
-val x = Free ("x", aT);
-val y = Free ("y", aT);
-val z = Free ("z", aT);
-val A = Free ("A", propT);
-val B = Free ("B", propT);
-val f = Free ("f", aT --> bT);
-val g = Free ("g", aT --> bT);
-
-val equality_axms =
- [("reflexive", Logic.mk_equals (x, x)),
-  ("symmetric", Logic.mk_implies (Logic.mk_equals (x, y), Logic.mk_equals (y, x))),
-  ("transitive",
-    Logic.list_implies ([Logic.mk_equals (x, y), Logic.mk_equals (y, z)], Logic.mk_equals (x, z))),
-  ("equal_intr",
-    Logic.list_implies ([Logic.mk_implies (A, B), Logic.mk_implies (B, A)], Logic.mk_equals (A, B))),
-  ("equal_elim", Logic.list_implies ([Logic.mk_equals (A, B), A], B)),
-  ("abstract_rule",
-    Logic.mk_implies
-      (Logic.all x (Logic.mk_equals (f $ x, g $ x)),
-        Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
-  ("combination", Logic.list_implies
-    ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)], Logic.mk_equals (f $ x, g $ y)))];
+local val thy = Sign.local_path (Context.the_global_context ()) in
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
-    map (fn (s, t) => PAxm ("Pure." ^ s, Logic.varify_global t, NONE)) equality_axms;
+    map (fn (b, t) => PAxm (Sign.full_name thy b, Logic.varify_global t, NONE))
+      Theory.equality_axioms;
+
+end;
 
 val reflexive_proof = reflexive_axm % NONE;
 
@@ -1347,27 +1326,23 @@ fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
 
 fun combination_proof f g t u prf1 prf2 =
   let
-    val f = Envir.beta_norm f;
-    val g = Envir.beta_norm g;
-    val prf =
-      if check_comb prf1 then
-        combination_axm % NONE % NONE
-      else
-        (case prf1 of
-          PAxm ("Pure.reflexive", _, _) % _ =>
-            combination_axm %> remove_types f % NONE
-        | _ => combination_axm %> remove_types f %> remove_types g)
-  in
-    prf %
-      (case head_of f of
+    val f' = Envir.beta_norm f;
+    val g' = Envir.beta_norm g;
+    val ax =
+      if check_comb prf1 then combination_axm % NONE % NONE
+      else if is_reflexive_proof prf1 then combination_axm %> remove_types f' % NONE
+      else combination_axm %> remove_types f' %> remove_types g'
+    val t' =
+      (case head_of f' of
         Abs _ => SOME (remove_types t)
       | Var _ => SOME (remove_types t)
-      | _ => NONE) %
-      (case head_of g of
+      | _ => NONE);
+    val u' =
+      (case head_of g' of
         Abs _ => SOME (remove_types u)
       | Var _ => SOME (remove_types u)
-      | _ => NONE) %% prf1 %% prf2
-  end;
+      | _ => NONE);
+  in ax % t' % u' %% prf1 %% prf2 end;
 
 
 

@@ -872,7 +872,10 @@ fun axiom thy name =
   (case Name_Space.lookup (Theory.axiom_table thy) name of
     SOME prop =>
       let
-        val der = deriv_rule0 (fn () => Proofterm.axm_proof name prop, ZTerm.todo_proof);
+        val der =
+          deriv_rule0
+           (fn () => Proofterm.axm_proof name prop,
+            fn () => ZTerm.axiom_proof thy {name = name, oracle = false} prop);
         val cert = Context.Certificate thy;
         val maxidx = maxidx_of_term prop;
         val shyps = Sorts.insert_term prop [];
@@ -1163,20 +1166,23 @@ fun add_oracle (b, oracle_fn) thy =
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else
           let
+            val cert = Context.join_certificate (Context.Certificate thy', cert2);
             fun no_oracle () = ((name, Position.none), NONE);
             fun make_oracle () = ((name, Position.thread_data ()), SOME prop);
+            fun zproof () =
+              ZTerm.axiom_proof (Context.certificate_theory cert) {name = name, oracle = true} prop;
             val (oracle, proof) =
               (case ! Proofterm.proofs of
                 0 => (no_oracle (), Proofterm.no_proof)
               | 1 => (make_oracle (), Proofterm.no_proof)
-              | 2 => (make_oracle (), (Proofterm.oracle_proof name prop, ZDummy))
-              | 4 => (no_oracle (), (MinProof, ZTerm.todo_proof ()))
-              | 5 => (make_oracle (), (MinProof, ZTerm.todo_proof ()))
-              | 6 => (make_oracle (), (Proofterm.oracle_proof name prop, ZTerm.todo_proof ()))
+              | 2 => (make_oracle (), (Proofterm.oracle_proof name prop, zproof ()))
+              | 4 => (no_oracle (), (MinProof, zproof ()))
+              | 5 => (make_oracle (), (MinProof, zproof ()))
+              | 6 => (make_oracle (), (Proofterm.oracle_proof name prop, zproof ()))
               | i => bad_proofs i);
           in
             Thm (make_deriv [] [oracle] [] Proofterm.empty_zboxes proof,
-             {cert = Context.join_certificate (Context.Certificate thy', cert2),
+             {cert = cert,
               tags = [],
               maxidx = maxidx,
               constraints = [],
@@ -1212,15 +1218,21 @@ fun assume raw_ct =
       raise THM ("assume: prop", 0, [])
     else if maxidx <> ~1 then
       raise THM ("assume: variables", maxidx, [])
-    else Thm (deriv_rule0 (fn () => Proofterm.Hyp prop, ZTerm.todo_proof),
-     {cert = cert,
-      tags = [],
-      maxidx = ~1,
-      constraints = [],
-      shyps = sorts,
-      hyps = [prop],
-      tpairs = [],
-      prop = prop})
+    else
+      let
+        fun prf () = Proofterm.Hyp prop;
+        fun zprf () = ZTerm.assume_proof (Context.certificate_theory cert) prop;
+      in
+        Thm (deriv_rule0 (prf, zprf),
+         {cert = cert,
+          tags = [],
+          maxidx = ~1,
+          constraints = [],
+          shyps = sorts,
+          hyps = [prop],
+          tpairs = [],
+          prop = prop})
+      end
   end;
 
 (*Implication introduction
@@ -1236,15 +1248,21 @@ fun implies_intr
   if T <> propT then
     raise THM ("implies_intr: assumptions must have type prop", 0, [th])
   else
-    Thm (deriv_rule1 (Proofterm.implies_intr_proof A, ZTerm.todo_proof) der,
-     {cert = join_certificate1 (ct, th),
-      tags = [],
-      maxidx = Int.max (maxidx1, maxidx2),
-      constraints = constraints,
-      shyps = Sorts.union sorts shyps,
-      hyps = remove_hyps A hyps,
-      tpairs = tpairs,
-      prop = Logic.mk_implies (A, prop)});
+    let
+      val cert = join_certificate1 (ct, th);
+      val prf = Proofterm.implies_intr_proof A;
+      fun zprf b = ZTerm.implies_intr_proof (Context.certificate_theory cert) A b;
+    in
+      Thm (deriv_rule1 (prf, zprf) der,
+       {cert = cert,
+        tags = [],
+        maxidx = Int.max (maxidx1, maxidx2),
+        constraints = constraints,
+        shyps = Sorts.union sorts shyps,
+        hyps = remove_hyps A hyps,
+        tpairs = tpairs,
+        prop = Logic.mk_implies (A, prop)})
+    end;
 
 
 (*Implication elimination
@@ -1263,7 +1281,7 @@ fun implies_elim thAB thA =
     (case prop of
       Const ("Pure.imp", _) $ A $ B =>
         if A aconv propA then
-          Thm (deriv_rule2 (curry Proofterm.%%, K ZTerm.todo_proof) der derA,
+          Thm (deriv_rule2 (curry Proofterm.%%, curry ZAppP) der derA,
            {cert = join_certificate2 (thAB, thA),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
@@ -1295,15 +1313,21 @@ fun forall_intr
       if occs x ts tpairs then
         raise THM ("forall_intr: variable " ^ quote a ^ " free in assumptions", 0, [th])
       else
-        Thm (deriv_rule1 (Proofterm.forall_intr_proof (a, x) NONE, ZTerm.todo_proof) der,
-         {cert = join_certificate1 (ct, th),
-          tags = [],
-          maxidx = Int.max (maxidx1, maxidx2),
-          constraints = constraints,
-          shyps = Sorts.union sorts shyps,
-          hyps = hyps,
-          tpairs = tpairs,
-          prop = Logic.all_const T $ Abs (a, T, abstract_over (x, prop))});
+        let
+          val cert = join_certificate1 (ct, th);
+          val prf = Proofterm.forall_intr_proof (a, x) NONE;
+          fun zprf p = ZTerm.forall_intr_proof (Context.certificate_theory cert) T (a, x) p;
+        in
+          Thm (deriv_rule1 (prf, zprf) der,
+           {cert = cert,
+            tags = [],
+            maxidx = Int.max (maxidx1, maxidx2),
+            constraints = constraints,
+            shyps = Sorts.union sorts shyps,
+            hyps = hyps,
+            tpairs = tpairs,
+            prop = Logic.all_const T $ Abs (a, T, abstract_over (x, prop))})
+        end;
   in
     (case x of
       Free (a, _) => check_result a hyps
@@ -1324,15 +1348,20 @@ fun forall_elim
       if T <> qary then
         raise THM ("forall_elim: type mismatch", 0, [th])
       else
-        Thm (deriv_rule1 (Proofterm.% o rpair (SOME t), ZTerm.todo_proof) der,
-         {cert = join_certificate1 (ct, th),
-          tags = [],
-          maxidx = Int.max (maxidx1, maxidx2),
-          constraints = constraints,
-          shyps = Sorts.union sorts shyps,
-          hyps = hyps,
-          tpairs = tpairs,
-          prop = Term.betapply (A, t)})
+        let
+          val cert = join_certificate1 (ct, th);
+          fun zprf p = ZTerm.forall_elim_proof (Context.certificate_theory cert) t p;
+        in
+          Thm (deriv_rule1 (Proofterm.% o rpair (SOME t), zprf) der,
+           {cert = cert,
+            tags = [],
+            maxidx = Int.max (maxidx1, maxidx2),
+            constraints = constraints,
+            shyps = Sorts.union sorts shyps,
+            hyps = hyps,
+            tpairs = tpairs,
+            prop = Term.betapply (A, t)})
+        end
   | _ => raise THM ("forall_elim: not quantified", 0, [th]));
 
 
@@ -1341,16 +1370,18 @@ fun forall_elim
 (*Reflexivity
   t \<equiv> t
 *)
-fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, ZTerm.todo_proof),
-   {cert = cert,
-    tags = [],
-    maxidx = maxidx,
-    constraints = [],
-    shyps = sorts,
-    hyps = [],
-    tpairs = [],
-    prop = Logic.mk_equals (t, t)});
+fun reflexive (Cterm {cert, t, T, maxidx, sorts}) =
+  let fun zprf () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t in
+    Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, zprf),
+     {cert = cert,
+      tags = [],
+      maxidx = maxidx,
+      constraints = [],
+      shyps = sorts,
+      hyps = [],
+      tpairs = [],
+      prop = Logic.mk_equals (t, t)})
+  end;
 
 (*Symmetry
   t \<equiv> u
@@ -1359,16 +1390,18 @@ fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
 *)
 fun symmetric (th as Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
-    (eq as Const ("Pure.eq", _)) $ t $ u =>
-      Thm (deriv_rule1 (Proofterm.symmetric_proof, ZTerm.todo_proof) der,
-       {cert = cert,
-        tags = [],
-        maxidx = maxidx,
-        constraints = constraints,
-        shyps = shyps,
-        hyps = hyps,
-        tpairs = tpairs,
-        prop = eq $ u $ t})
+    (eq as Const ("Pure.eq", Type ("fun", [T, _]))) $ t $ u =>
+      let fun zprf prf = ZTerm.symmetric_proof (Context.certificate_theory cert) T t u prf in
+        Thm (deriv_rule1 (Proofterm.symmetric_proof, zprf) der,
+         {cert = cert,
+          tags = [],
+          maxidx = maxidx,
+          constraints = constraints,
+          shyps = shyps,
+          hyps = hyps,
+          tpairs = tpairs,
+          prop = eq $ u $ t})
+      end
     | _ => raise THM ("symmetric", 0, [th]));
 
 (*Transitivity
@@ -1385,33 +1418,41 @@ fun transitive th1 th2 =
     fun err msg = raise THM ("transitive: " ^ msg, 0, [th1, th2]);
   in
     case (prop1, prop2) of
-      ((eq as Const ("Pure.eq", Type (_, [U, _]))) $ t1 $ u, Const ("Pure.eq", _) $ u' $ t2) =>
+      ((eq as Const ("Pure.eq", Type (_, [T, _]))) $ t1 $ u, Const ("Pure.eq", _) $ u' $ t2) =>
         if not (u aconv u') then err "middle term"
         else
-          Thm (deriv_rule2 (Proofterm.transitive_proof U u, K ZTerm.todo_proof) der1 der2,
-           {cert = join_certificate2 (th1, th2),
-            tags = [],
-            maxidx = Int.max (maxidx1, maxidx2),
-            constraints = union_constraints constraints1 constraints2,
-            shyps = Sorts.union shyps1 shyps2,
-            hyps = union_hyps hyps1 hyps2,
-            tpairs = union_tpairs tpairs1 tpairs2,
-            prop = eq $ t1 $ t2})
-     | _ =>  err "premises"
+          let
+            val cert = join_certificate2 (th1, th2);
+            fun zprf prf1 prf2 =
+              ZTerm.transitive_proof (Context.certificate_theory cert) T t1 u t2 prf1 prf2;
+          in
+            Thm (deriv_rule2 (Proofterm.transitive_proof T u, zprf) der1 der2,
+             {cert = cert,
+              tags = [],
+              maxidx = Int.max (maxidx1, maxidx2),
+              constraints = union_constraints constraints1 constraints2,
+              shyps = Sorts.union shyps1 shyps2,
+              hyps = union_hyps hyps1 hyps2,
+              tpairs = union_tpairs tpairs1 tpairs2,
+              prop = eq $ t1 $ t2})
+          end
+     | _ => err "premises"
   end;
 
 (*Beta-conversion
   (\<lambda>x. t) u \<equiv> t[u/x]
   fully beta-reduces the term if full = true
 *)
-fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
-  let val t' =
-    if full then Envir.beta_norm t
-    else
-      (case t of Abs (_, _, bodt) $ u => subst_bound (u, bodt)
-      | _ => raise THM ("beta_conversion: not a redex", 0, []));
+fun beta_conversion full (Cterm {cert, t, T, maxidx, sorts}) =
+  let
+    val t' =
+      if full then Envir.beta_norm t
+      else
+        (case t of Abs (_, _, bodt) $ u => subst_bound (u, bodt)
+        | _ => raise THM ("beta_conversion: not a redex", 0, []));
+    fun zprf () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t;
   in
-    Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, ZTerm.todo_proof),
+    Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, zprf),
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1422,27 +1463,31 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
       prop = Logic.mk_equals (t, t')})
   end;
 
-fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, ZTerm.todo_proof),
-   {cert = cert,
-    tags = [],
-    maxidx = maxidx,
-    constraints = [],
-    shyps = sorts,
-    hyps = [],
-    tpairs = [],
-    prop = Logic.mk_equals (t, Envir.eta_contract t)});
+fun eta_conversion (Cterm {cert, t, T, maxidx, sorts}) =
+  let fun zprf () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t in
+    Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, zprf),
+     {cert = cert,
+      tags = [],
+      maxidx = maxidx,
+      constraints = [],
+      shyps = sorts,
+      hyps = [],
+      tpairs = [],
+      prop = Logic.mk_equals (t, Envir.eta_contract t)})
+  end;
 
-fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, ZTerm.todo_proof),
-   {cert = cert,
-    tags = [],
-    maxidx = maxidx,
-    constraints = [],
-    shyps = sorts,
-    hyps = [],
-    tpairs = [],
-    prop = Logic.mk_equals (t, Envir.eta_long [] t)});
+fun eta_long_conversion (Cterm {cert, t, T, maxidx, sorts}) =
+  let fun zprf () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t in
+    Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof, zprf),
+     {cert = cert,
+      tags = [],
+      maxidx = maxidx,
+      constraints = [],
+      shyps = sorts,
+      hyps = [],
+      tpairs = [],
+      prop = Logic.mk_equals (t, Envir.eta_long [] t)})
+  end;
 
 (*The abstraction rule.  The Free or Var x must not be free in the hypotheses.
   The bound variable will be named "a" (since x will be something like x320)
@@ -1454,22 +1499,30 @@ fun abstract_rule b
     (Cterm {t = x, T, sorts, ...})
     (th as Thm (der, {cert, maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
   let
-    val (t, u) = Logic.dest_equals prop
-      handle TERM _ => raise THM ("abstract_rule: premise not an equality", 0, [th]);
+    val (U, t, u) =
+      (case prop of
+        Const ("Pure.eq", Type ("fun", [U, _])) $ t $ u => (U, t, u)
+      | _ => raise THM ("abstract_rule: premise not an equality", 0, [th]));
     fun check_result a ts =
       if occs x ts tpairs then
         raise THM ("abstract_rule: variable " ^ quote a ^ " free in assumptions", 0, [th])
       else
-        Thm (deriv_rule1 (Proofterm.abstract_rule_proof (b, x), ZTerm.todo_proof) der,
-         {cert = cert,
-          tags = [],
-          maxidx = maxidx,
-          constraints = constraints,
-          shyps = Sorts.union sorts shyps,
-          hyps = hyps,
-          tpairs = tpairs,
-          prop = Logic.mk_equals
-            (Abs (b, T, abstract_over (x, t)), Abs (b, T, abstract_over (x, u)))});
+        let
+          val f = Abs (b, T, abstract_over (x, t));
+          val g = Abs (b, T, abstract_over (x, u));
+          fun zprf prf =
+            ZTerm.abstract_rule_proof (Context.certificate_theory cert) T U (b, x) f g prf;
+        in
+          Thm (deriv_rule1 (Proofterm.abstract_rule_proof (b, x), zprf) der,
+           {cert = cert,
+            tags = [],
+            maxidx = maxidx,
+            constraints = constraints,
+            shyps = Sorts.union sorts shyps,
+            hyps = hyps,
+            tpairs = tpairs,
+            prop = Logic.mk_equals (f, g)})
+        end;
   in
     (case x of
       Free (a, _) => check_result a hyps
@@ -1488,27 +1541,31 @@ fun combination th1 th2 =
         hyps = hyps1, tpairs = tpairs1, prop = prop1, ...}) = th1
     and Thm (der2, {maxidx = maxidx2, constraints = constraints2, shyps = shyps2,
         hyps = hyps2, tpairs = tpairs2, prop = prop2, ...}) = th2;
-    fun chktypes fT tT =
-      (case fT of
-        Type ("fun", [T1, _]) =>
-          if T1 <> tT then
-            raise THM ("combination: types", 0, [th1, th2])
-          else ()
-      | _ => raise THM ("combination: not function type", 0, [th1, th2]));
   in
     (case (prop1, prop2) of
       (Const ("Pure.eq", Type ("fun", [fT, _])) $ f $ g,
        Const ("Pure.eq", Type ("fun", [tT, _])) $ t $ u) =>
-        (chktypes fT tT;
-          Thm (deriv_rule2 (Proofterm.combination_proof f g t u, K ZTerm.todo_proof) der1 der2,
-           {cert = join_certificate2 (th1, th2),
+        let
+          val U =
+            (case fT of
+              Type ("fun", [T1, U]) =>
+                if T1 = tT then U
+                else raise THM ("combination: types", 0, [th1, th2])
+            | _ => raise THM ("combination: not function type", 0, [th1, th2]));
+          val cert = join_certificate2 (th1, th2);
+          fun zprf prf1 prf2 =
+            ZTerm.combination_proof (Context.certificate_theory cert) fT U f g t u prf1 prf2;
+        in
+          Thm (deriv_rule2 (Proofterm.combination_proof f g t u, zprf) der1 der2,
+           {cert = cert,
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
             constraints = union_constraints constraints1 constraints2,
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
-            prop = Logic.mk_equals (f $ t, g $ u)}))
+            prop = Logic.mk_equals (f $ t, g $ u)})
+        end
      | _ => raise THM ("combination: premises", 0, [th1, th2]))
   end;
 
@@ -1528,15 +1585,21 @@ fun equal_intr th1 th2 =
     (case (prop1, prop2) of
       (Const("Pure.imp", _) $ A $ B, Const("Pure.imp", _) $ B' $ A') =>
         if A aconv A' andalso B aconv B' then
-          Thm (deriv_rule2 (Proofterm.equal_intr_proof A B, K ZTerm.todo_proof) der1 der2,
-           {cert = join_certificate2 (th1, th2),
-            tags = [],
-            maxidx = Int.max (maxidx1, maxidx2),
-            constraints = union_constraints constraints1 constraints2,
-            shyps = Sorts.union shyps1 shyps2,
-            hyps = union_hyps hyps1 hyps2,
-            tpairs = union_tpairs tpairs1 tpairs2,
-            prop = Logic.mk_equals (A, B)})
+          let
+            val cert = join_certificate2 (th1, th2);
+            fun zprf prf1 prf2 =
+              ZTerm.equal_intr_proof (Context.certificate_theory cert) A B prf1 prf2;
+          in
+            Thm (deriv_rule2 (Proofterm.equal_intr_proof A B, zprf) der1 der2,
+             {cert = cert,
+              tags = [],
+              maxidx = Int.max (maxidx1, maxidx2),
+              constraints = union_constraints constraints1 constraints2,
+              shyps = Sorts.union shyps1 shyps2,
+              hyps = union_hyps hyps1 hyps2,
+              tpairs = union_tpairs tpairs1 tpairs2,
+              prop = Logic.mk_equals (A, B)})
+          end
         else err "not equal"
     | _ =>  err "premises")
   end;
@@ -1557,15 +1620,21 @@ fun equal_elim th1 th2 =
     (case prop1 of
       Const ("Pure.eq", _) $ A $ B =>
         if prop2 aconv A then
-          Thm (deriv_rule2 (Proofterm.equal_elim_proof A B, K ZTerm.todo_proof) der1 der2,
-           {cert = join_certificate2 (th1, th2),
-            tags = [],
-            maxidx = Int.max (maxidx1, maxidx2),
-            constraints = union_constraints constraints1 constraints2,
-            shyps = Sorts.union shyps1 shyps2,
-            hyps = union_hyps hyps1 hyps2,
-            tpairs = union_tpairs tpairs1 tpairs2,
-            prop = B})
+          let
+            val cert = join_certificate2 (th1, th2);
+            fun zprf prf1 prf2 =
+              ZTerm.equal_elim_proof (Context.certificate_theory cert) A B prf1 prf2;
+          in
+            Thm (deriv_rule2 (Proofterm.equal_elim_proof A B, zprf) der1 der2,
+             {cert = cert,
+              tags = [],
+              maxidx = Int.max (maxidx1, maxidx2),
+              constraints = union_constraints constraints1 constraints2,
+              shyps = Sorts.union shyps1 shyps2,
+              hyps = union_hyps hyps1 hyps2,
+              tpairs = union_tpairs tpairs1 tpairs2,
+              prop = B})
+          end
         else err "not equal"
      | _ =>  err "major premise")
   end;
@@ -1784,15 +1853,17 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
   if T <> propT then
     raise THM ("trivial: the term must have type prop", 0, [])
   else
-    Thm (deriv_rule0 (fn () => Proofterm.trivial_proof, ZTerm.todo_proof),
-     {cert = cert,
-      tags = [],
-      maxidx = maxidx,
-      constraints = [],
-      shyps = sorts,
-      hyps = [],
-      tpairs = [],
-      prop = Logic.mk_implies (A, A)});
+    let fun zprf () = ZTerm.trivial_proof (Context.certificate_theory cert) A in
+      Thm (deriv_rule0 (fn () => Proofterm.trivial_proof, zprf),
+       {cert = cert,
+        tags = [],
+        maxidx = maxidx,
+        constraints = [],
+        shyps = sorts,
+        hyps = [],
+        tpairs = [],
+        prop = Logic.mk_implies (A, A)})
+    end;
 
 (*Axiom-scheme reflecting signature contents
         T :: c
