@@ -25,6 +25,8 @@ sig
   val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
   val lookup: 'a table -> key -> 'a option
   val defined: 'a table -> key -> bool
+  val update: key * 'a -> 'a table -> 'a table
+  val remove: key -> 'a table -> 'a table
   val add: key * 'a -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table
   val make1: key * 'a -> 'a table
@@ -69,6 +71,9 @@ fun forall pred (Table tab) = Table.forall pred tab;
 fun get_first get (Table tab) = Table.get_first get tab;
 fun lookup (Table tab) = Table.lookup tab;
 fun defined (Table tab) = Table.defined tab;
+
+fun update e (Table tab) = Table (Table.update e tab);
+fun remove x (Table tab) = Table (Table.delete_safe x tab);
 
 fun add entry (Table tab) = Table (Table.default entry tab);
 fun make es = build (fold add es);
@@ -178,7 +183,7 @@ struct
 structure Term_Items = Term_Items
 (
   type key = indexname * typ;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord)
+  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord);
 );
 open Term_Items;
 
@@ -199,7 +204,7 @@ struct
 structure Term_Items = Term_Items
 (
   type key = string;
-  val ord = fast_string_ord
+  val ord = fast_string_ord;
 );
 open Term_Items;
 

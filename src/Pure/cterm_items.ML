@@ -33,7 +33,7 @@ struct
 structure Term_Items = Term_Items
 (
   type key = cterm;
-  val ord = Thm.fast_term_ord
+  val ord = Thm.fast_term_ord;
 );
 open Term_Items;
 
