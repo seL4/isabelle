@@ -171,6 +171,7 @@ sig
   val implies_intr_proof: theory -> term -> zproof -> zproof
   val forall_intr_proof: theory -> typ -> string * term -> zproof -> zproof
   val forall_elim_proof: theory -> term -> zproof -> zproof
+  val of_class_proof: typ * class -> zproof
   val reflexive_proof: theory -> typ -> term -> zproof
   val symmetric_proof: theory -> typ -> term -> term -> zproof -> zproof
   val transitive_proof: theory -> typ -> term -> term -> term -> zproof -> zproof -> zproof
@@ -327,6 +328,8 @@ fun forall_intr_proof thy T (a, x) prf =
   in ZAbst (a, Z, abs_proof 0 prf) end;
 
 fun forall_elim_proof thy t p = ZAppt (p, global_zterm_of thy t);
+
+fun of_class_proof (T, c) = ZClassP (ztyp_of T, c);
 
 
 (* equality *)

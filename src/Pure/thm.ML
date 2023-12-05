@@ -1878,7 +1878,7 @@ fun of_class (cT, raw_c) =
     val Cterm {t = prop, maxidx, sorts, ...} = global_cterm_of thy (Logic.mk_of_class (T, c));
   in
     if Sign.of_sort thy (T, [c]) then
-      Thm (deriv_rule0 (fn () => Proofterm.PClass (T, c), ZTerm.todo_proof),
+      Thm (deriv_rule0 (fn () => Proofterm.PClass (T, c), fn () => ZTerm.of_class_proof (T, c)),
        {cert = cert,
         tags = [],
         maxidx = maxidx,
