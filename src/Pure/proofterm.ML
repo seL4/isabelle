@@ -933,13 +933,18 @@ fun forall_intr_proof' v prf =
 (* varify *)
 
 fun varifyT_proof names prf =
-  let
-    val tab = TFrees.make names;
-    fun varify v =
-      (case TFrees.lookup tab v of
-        NONE => TFree v
-      | SOME w => TVar w);
-  in map_proof_terms (map_types (map_type_tfree varify)) (map_type_tfree varify) prf end;
+  if null names then prf
+  else
+    let
+      val tab = TFrees.make names;
+      val typ =
+        Term_Subst.map_atypsT_same
+          (fn TFree v =>
+              (case TFrees.lookup tab v of
+                NONE => raise Same.SAME
+              | SOME w => TVar w)
+            | _ => raise Same.SAME);
+    in Same.commit (map_proof_types_same typ) prf end;
 
 
 local
