@@ -932,20 +932,26 @@ fun forall_intr_proof' v prf =
 
 (* varify *)
 
-fun varify_proof t fixed prf =
+fun varify_names t fixed =
   let
-    val fs =
+    val xs =
       build (t |> (Term.fold_types o Term.fold_atyps)
         (fn TFree v => if TFrees.defined fixed v then I else insert (op =) v | _ => I));
     val used =
       Name.build_context (t |>
         (fold_types o fold_atyps) (fn TVar ((a, _), _) => Name.declare a | _ => I));
-    val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);
-    fun thaw (a, S) =
-      (case AList.lookup (op =) fmap (a, S) of
+    val (ys, _) = fold_map Name.variant (map #1 xs) used;
+    val zs = map2 (fn (_, S) => fn y => ((y, 0), S)) xs ys;
+  in xs ~~ zs end;
+
+fun varify_proof t fixed prf =
+  let
+    val table = TFrees.make (varify_names t fixed);
+    fun varify (a, S) =
+      (case TFrees.lookup table (a, S) of
         NONE => TFree (a, S)
-      | SOME b => TVar ((b, 0), S));
-  in map_proof_terms (map_types (map_type_tfree thaw)) (map_type_tfree thaw) prf end;
+      | SOME b => TVar b);
+  in map_proof_terms (map_types (map_type_tfree varify)) (map_type_tfree varify) prf end;
 
 
 local
