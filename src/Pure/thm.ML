@@ -1934,7 +1934,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
-    (al, Thm (deriv_rule1 (Proofterm.varify_proof al, ZTerm.todo_proof) der,
+    (al, Thm (deriv_rule1 (Proofterm.varifyT_proof al, ZTerm.varifyT_proof al) der,
      {cert = cert,
       tags = [],
       maxidx = Int.max (0, maxidx),

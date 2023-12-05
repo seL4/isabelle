@@ -121,7 +121,7 @@ sig
   val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: string * term -> typ option -> proof -> proof
   val forall_intr_proof': term -> proof -> proof
-  val varify_proof: ((string * sort) * (indexname * sort)) list -> proof -> proof
+  val varifyT_proof: ((string * sort) * (indexname * sort)) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
@@ -932,7 +932,7 @@ fun forall_intr_proof' v prf =
 
 (* varify *)
 
-fun varify_proof names prf =
+fun varifyT_proof names prf =
   let
     val tab = TFrees.make names;
     fun varify v =
