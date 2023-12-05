@@ -875,7 +875,7 @@ fun axiom thy name =
         val der =
           deriv_rule0
            (fn () => Proofterm.axm_proof name prop,
-            fn () => ZTerm.axiom_proof thy {name = name, oracle = false} prop);
+            fn () => ZTerm.axiom_proof thy name prop);
         val cert = Context.Certificate thy;
         val maxidx = maxidx_of_term prop;
         val shyps = Sorts.insert_term prop [];
@@ -1169,8 +1169,7 @@ fun add_oracle (b, oracle_fn) thy =
             val cert = Context.join_certificate (Context.Certificate thy', cert2);
             fun no_oracle () = ((name, Position.none), NONE);
             fun make_oracle () = ((name, Position.thread_data ()), SOME prop);
-            fun zproof () =
-              ZTerm.axiom_proof (Context.certificate_theory cert) {name = name, oracle = true} prop;
+            fun zproof () = ZTerm.oracle_proof (Context.certificate_theory cert) name prop;
             val (oracle, proof) =
               (case ! Proofterm.proofs of
                 0 => (no_oracle (), Proofterm.no_proof)

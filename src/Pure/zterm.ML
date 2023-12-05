@@ -126,16 +126,21 @@ end;
 
 (* proofs *)
 
+datatype zproof_name =
+    ZAxiom of string
+  | ZOracle of string
+  | ZBox of serial;
+
 datatype zproof =
     ZDummy                         (*dummy proof*)
+  | ZConstP of zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table
   | ZBoundP of int
   | ZHyp of zterm
   | ZAbst of string * ztyp * zproof
   | ZAbsP of string * zterm * zproof
   | ZAppt of zproof * zterm
   | ZAppP of zproof * zproof
-  | ZClassP of ztyp * class        (*OFCLASS proof from sorts algebra*)
-  | ZAxiom of {name: string, oracle: bool} * zterm * (ztyp ZTVars.table * zterm ZVars.table);
+  | ZClassP of ztyp * class;       (*OFCLASS proof from sorts algebra*)
 
 
 
@@ -159,7 +164,8 @@ sig
   val global_term_of: theory -> zterm -> term
   val dummy_proof: 'a -> zproof
   val todo_proof: 'a -> zproof
-  val axiom_proof:  theory -> {name: string, oracle: bool} -> term -> zproof
+  val axiom_proof:  theory -> string -> term -> zproof
+  val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
   val trivial_proof: theory -> term -> zproof
   val implies_intr_proof: theory -> term -> zproof -> zproof
@@ -196,7 +202,15 @@ fun aconv_zterm (tm1, tm2) =
 
 fun init_instT t = ZTVars.build (ZTVars.add_tvars t) |> ZTVars.map (fn v => fn _ => ZTVar v);
 fun init_inst t = ZVars.build (ZVars.add_vars t) |> ZVars.map (fn v => fn _ => ZVar v);
-fun init_insts t = (init_instT t, init_inst t);
+
+fun map_const_proof (f, g) prf =
+  (case prf of
+    ZConstP (a, A, instT, inst) =>
+      let
+        val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
+        val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
+      in ZConstP (a, A, instT', inst') end
+  | _ => prf);
 
 
 (* convert ztyp / zterm vs. regular typ / term *)
@@ -264,11 +278,15 @@ val todo_proof = dummy_proof;
 
 (* basic logic *)
 
-fun axiom_proof thy a A =
+fun const_proof thy a A =
   let
     val t = global_zterm_of thy A;
-    val insts = init_insts t;
-  in ZAxiom (a, t, insts) end;
+    val instT = init_instT t;
+    val inst = init_inst t;
+  in ZConstP (a, t, instT, inst) end;
+
+fun axiom_proof thy name = const_proof thy (ZAxiom name);
+fun oracle_proof thy name = const_proof thy (ZOracle name);
 
 fun assume_proof thy A =
   ZHyp (global_zterm_of thy A);
@@ -326,25 +344,18 @@ val thy0 =
 
 val [reflexive_axiom, symmetric_axiom, transitive_axiom, equal_intr_axiom, equal_elim_axiom,
   abstract_rule_axiom, combination_axiom] =
-    Theory.equality_axioms |> map (fn (b, t) =>
-      axiom_proof thy0 {name = Sign.full_name thy0 b, oracle = false} t);
-
-fun inst_axiom (f, g) (ZAxiom (a, A, (instT, inst))) =
-  let
-    val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
-    val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
-  in ZAxiom (a, A, (instT', inst')) end;
+    Theory.equality_axioms |> map (fn (b, t) => axiom_proof thy0 (Sign.full_name thy0 b) t);
 
 in
 
 val is_reflexive_proof =
-  fn ZAxiom ({name = "Pure.reflexive", oracle = false}, _, _) => true | _ => false;
+  fn ZConstP (ZAxiom "Pure.reflexive", _, _, _) => true | _ => false;
 
 fun reflexive_proof thy T t =
   let
     val A = ztyp_of T;
     val x = global_zterm_of thy t;
-  in inst_axiom (fn "'a" => A, fn "x" => x) reflexive_axiom end;
+  in map_const_proof (fn "'a" => A, fn "x" => x) reflexive_axiom end;
 
 fun symmetric_proof thy T t u prf =
   if is_reflexive_proof prf then prf
@@ -353,7 +364,7 @@ fun symmetric_proof thy T t u prf =
       val A = ztyp_of T;
       val x = global_zterm_of thy t;
       val y = global_zterm_of thy u;
-      val ax = inst_axiom (fn "'a" => A, fn "x" => x | "y" => y) symmetric_axiom;
+      val ax = map_const_proof (fn "'a" => A, fn "x" => x | "y" => y) symmetric_axiom;
     in ZAppP (ax, prf) end;
 
 fun transitive_proof thy T t u v prf1 prf2 =
@@ -365,21 +376,21 @@ fun transitive_proof thy T t u v prf1 prf2 =
       val x = global_zterm_of thy t;
       val y = global_zterm_of thy u;
       val z = global_zterm_of thy v;
-      val ax = inst_axiom (fn "'a" => A, fn "x" => x | "y" => y | "z" => z) transitive_axiom;
+      val ax = map_const_proof (fn "'a" => A, fn "x" => x | "y" => y | "z" => z) transitive_axiom;
     in ZAppP (ZAppP (ax, prf1), prf2) end;
 
 fun equal_intr_proof thy t u prf1 prf2 =
   let
     val A = global_zterm_of thy t;
     val B = global_zterm_of thy u;
-    val ax = inst_axiom (undefined, fn "A" => A | "B" => B) equal_intr_axiom;
+    val ax = map_const_proof (undefined, fn "A" => A | "B" => B) equal_intr_axiom;
   in ZAppP (ZAppP (ax, prf1), prf2) end;
 
 fun equal_elim_proof thy t u prf1 prf2 =
   let
     val A = global_zterm_of thy t;
     val B = global_zterm_of thy u;
-    val ax = inst_axiom (undefined, fn "A" => A | "B" => B) equal_elim_axiom;
+    val ax = map_const_proof (undefined, fn "A" => A | "B" => B) equal_elim_axiom;
   in ZAppP (ZAppP (ax, prf1), prf2) end;
 
 fun abstract_rule_proof thy T U x t u prf =
@@ -388,7 +399,9 @@ fun abstract_rule_proof thy T U x t u prf =
     val B = ztyp_of U;
     val f = global_zterm_of thy t;
     val g = global_zterm_of thy u;
-    val ax = inst_axiom (fn "'a" => A | "'b" => B, fn "f" => f | "g" => g) abstract_rule_axiom;
+    val ax =
+      map_const_proof (fn "'a" => A | "'b" => B, fn "f" => f | "g" => g)
+        abstract_rule_axiom;
   in ZAppP (ax, forall_intr_proof thy T x prf) end;
 
 fun combination_proof thy T U f g t u prf1 prf2 =
@@ -400,7 +413,7 @@ fun combination_proof thy T U f g t u prf1 prf2 =
     val x = global_zterm_of thy t;
     val y = global_zterm_of thy u;
     val ax =
-      inst_axiom (fn "'a" => A | "'b" => B, fn "f" => f' | "g" => g' | "x" => x | "y" => y)
+      map_const_proof (fn "'a" => A | "'b" => B, fn "f" => f' | "g" => g' | "x" => x | "y" => y)
         combination_axiom;
   in ZAppP (ZAppP (ax, prf1), prf2) end;
 
