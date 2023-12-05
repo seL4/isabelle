@@ -120,7 +120,7 @@ fun instantiate_frees_same (instT, inst) tm =
       val substT = instantiateT_frees_same instT;
       fun subst (Const (c, T)) = Const (c, substT T)
         | subst (Free (x, T)) =
-            let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
+            let val (T', same) = Same.commit_id substT T in
               (case Frees.lookup inst (x, T') of
                  SOME t' => t'
                | NONE => if same then raise Same.SAME else Free (x, T'))
@@ -168,7 +168,7 @@ fun inst_same maxidx (instT, inst) tm =
     fun subst (Const (c, T)) = Const (c, substT T)
       | subst (Free (x, T)) = Free (x, substT T)
       | subst (Var ((x, i), T)) =
-          let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
+          let val (T', same) = Same.commit_id substT T in
             (case Vars.lookup inst ((x, i), T') of
                SOME (t', j) => (maxify j; t')
              | NONE => (maxify i; if same then raise Same.SAME else Var ((x, i), T')))
@@ -191,7 +191,7 @@ fun inst_beta_same maxidx (instT, inst) tm =
     fun expand_head t =
       (case Term.head_of t of
         Var ((x, i), T) =>
-          let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
+          let val (T', same) = Same.commit_id substT T in
             (case Vars.lookup inst ((x, i), T') of
               SOME (t', j) => (maxify j; SOME t')
             | NONE => (maxify i; if same then NONE else SOME (Var ((x, i), T'))))
