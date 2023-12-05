@@ -180,6 +180,7 @@ sig
   val abstract_rule_proof: theory -> typ -> typ -> string * term -> term -> term -> zproof -> zproof
   val combination_proof: theory -> typ -> typ -> term -> term -> term -> term ->
     zproof -> zproof -> zproof
+  val generalize_proof: Names.set * Names.set -> int -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -494,5 +495,22 @@ fun combination_proof thy T U f g t u prf1 prf2 =
   in ZAppP (ZAppP (ax, prf1), prf2) end;
 
 end;
+
+
+(* substitution *)
+
+fun generalize_proof (tfrees, frees) idx prf =
+  let
+    val typ =
+      if Names.is_empty tfrees then Same.same else
+        subst_type_same (fn ((a, i), S) =>
+          if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
+          else raise Same.SAME);
+    val var =
+      if Names.is_empty frees then Same.same else
+        fn ((x, i), T) =>
+          if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
+          else raise Same.SAME;
+  in Same.commit (map_proof_same typ (subst_term_same typ var)) prf end;
 
 end;

@@ -1703,8 +1703,11 @@ fun generalize (tfrees, frees) idx th =
       val prop' = generalize prop;
       val tpairs' = map (apply2 generalize) tpairs;
       val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
+
+      val prf = Proofterm.generalize_proof (tfrees, frees) idx prop;
+      val zprf = ZTerm.generalize_proof (tfrees, frees) idx;
     in
-      Thm (deriv_rule1 (Proofterm.generalize_proof (tfrees, frees) idx prop, ZTerm.todo_proof) der,
+      Thm (deriv_rule1 (prf, zprf) der,
        {cert = cert,
         tags = [],
         maxidx = maxidx',
