@@ -199,6 +199,79 @@ fun aconv_zterm (tm1, tm2) =
     | (a1, a2) => a1 = a2);
 
 
+(* map structure *)
+
+fun subst_type_same tvar =
+  let
+    fun typ (ZTVar x) = tvar x
+      | typ (ZFun (T, U)) = (ZFun (typ T, Same.commit typ U) handle Same.SAME => ZFun (T, typ U))
+      | typ ZProp = raise Same.SAME
+      | typ (ZItself T) = ZItself (typ T)
+      | typ (ZType0 _) = raise Same.SAME
+      | typ (ZType1 (a, T)) = ZType1 (a, typ T)
+      | typ (ZType (a, Ts)) = ZType (a, Same.map typ Ts);
+  in typ end;
+
+fun subst_term_same typ var =
+  let
+    fun term (ZVar (x, T)) =
+          let val (T', same) = Same.commit_id typ T in
+            (case Same.catch var (x, T') of
+              NONE => if same then raise Same.SAME else ZVar (x, T')
+            | SOME t' => t')
+          end
+      | term (ZBound _) = raise Same.SAME
+      | term (ZConst0 _) = raise Same.SAME
+      | term (ZConst1 (a, T)) = ZConst1 (a, typ T)
+      | term (ZConst (a, Ts)) = ZConst (a, Same.map typ Ts)
+      | term (ZAbs (a, T, t)) =
+          (ZAbs (a, typ T, Same.commit term t) handle Same.SAME => ZAbs (a, T, term t))
+      | term (ZApp (t, u)) =
+          (ZApp (term t, Same.commit term u) handle Same.SAME => ZApp (t, term u))
+      | term (ZClass (T, c)) = ZClass (typ T, c);
+  in term end;
+
+fun map_proof_same typ term =
+  let
+    fun change_insts (instT, inst) =
+      let
+        val changed = Unsynchronized.ref false;
+        val instT' =
+          (instT, instT) |-> ZTVars.fold (fn (v, T) =>
+            (case Same.catch typ T of
+              SOME U => (changed := true; ZTVars.update (v, U))
+            | NONE => I));
+        val inst' =
+          if ! changed then
+            ZVars.dest inst
+            |> map (fn ((x, T), t) => ((x, Same.commit typ T), Same.commit term t))
+            |> ZVars.make
+          else
+            (inst, inst) |-> ZVars.fold (fn (v, t) =>
+              (case Same.catch term t of
+                SOME u => (changed := true; ZVars.update (v, u))
+              | NONE => I));
+      in if ! changed then SOME (instT', inst') else NONE end;
+
+    fun proof ZDummy = raise Same.SAME
+      | proof (ZConstP (a, A, instT, inst)) =
+          (case change_insts (instT, inst) of
+            NONE => ZConstP (a, term A, instT, inst)
+          | SOME (instT', inst') => ZConstP (a, Same.commit term A, instT', inst'))
+      | proof (ZBoundP _) = raise Same.SAME
+      | proof (ZHyp h) = ZHyp (term h)
+      | proof (ZAbst (a, T, p)) =
+          (ZAbst (a, typ T, Same.commit proof p) handle Same.SAME => ZAbst (a, T, proof p))
+      | proof (ZAbsP (a, t, p)) =
+          (ZAbsP (a, term t, Same.commit proof p) handle Same.SAME => ZAbsP (a, t, proof p))
+      | proof (ZAppt (p, t)) =
+          (ZAppt (proof p, Same.commit term t) handle Same.SAME => ZAppt (p, term t))
+      | proof (ZAppP (p, q)) =
+          (ZAppP (proof p, Same.commit proof q) handle Same.SAME => ZAppP (p, proof q))
+      | proof (ZClassP (T, c)) = ZClassP (typ T, c);
+  in proof end;
+
+
 (* instantiation *)
 
 fun init_instT t = ZTVars.build (ZTVars.add_tvars t) |> ZTVars.map (fn v => fn _ => ZTVar v);
