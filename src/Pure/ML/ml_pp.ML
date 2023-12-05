@@ -31,6 +31,10 @@ val _ =
   ML_system_pp (fn depth => fn _ =>
     ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ Theory.get_pure);
 
+val _ =
+  ML_system_pp (fn depth => fn _ =>
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ztyp Theory.get_pure);
+
 
 local
 

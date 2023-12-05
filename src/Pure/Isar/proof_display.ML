@@ -12,6 +12,7 @@ sig
   val pp_term: (unit -> theory) -> term -> Pretty.T
   val pp_ctyp: (unit -> theory) -> ctyp -> Pretty.T
   val pp_cterm: (unit -> theory) -> cterm -> Pretty.T
+  val pp_ztyp: (unit -> theory) -> ztyp -> Pretty.T
   val pretty_theory: bool -> Proof.context -> Pretty.T
   val pretty_definitions: bool -> Proof.context -> Pretty.T
   val pretty_theorems_diff: bool -> theory list -> Proof.context -> Pretty.T list
@@ -60,6 +61,8 @@ fun pp_term mk_thy t = Pretty.quote (Syntax.pretty_term (default_context mk_thy)
 
 fun pp_ctyp mk_thy cT = pp_typ mk_thy (Thm.typ_of cT);
 fun pp_cterm mk_thy ct = pp_term mk_thy (Thm.term_of ct);
+
+fun pp_ztyp mk_thy T = Pretty.quote (Syntax.pretty_typ (default_context mk_thy) (ZTerm.typ_of T));
 
 
 
