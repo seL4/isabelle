@@ -169,7 +169,7 @@ sig
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val unconstrainT: thm -> thm
-  val varifyT_global': TFrees.set -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global': TFrees.set -> thm -> ((string * sort) * (indexname * sort)) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
@@ -1934,7 +1934,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
-    (al, Thm (deriv_rule1 (Proofterm.varify_proof prop tfrees, ZTerm.todo_proof) der,
+    (al, Thm (deriv_rule1 (Proofterm.varify_proof al, ZTerm.todo_proof) der,
      {cert = cert,
       tags = [],
       maxidx = Int.max (0, maxidx),

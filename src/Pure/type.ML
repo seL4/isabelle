@@ -61,7 +61,8 @@ sig
   val strip_sorts: typ -> typ
   val strip_sorts_dummy: typ -> typ
   val no_tvars: typ -> typ
-  val varify_global: TFrees.set -> term -> ((string * sort) * indexname) list * term
+  val varify_global_names: TFrees.set -> term -> ((string * sort) * (indexname * sort)) list
+  val varify_global: TFrees.set -> term -> ((string * sort) * (indexname * sort)) list * term
   val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
   val legacy_freeze_type: typ -> typ
   val legacy_freeze_thaw: term -> term * (term -> term)
@@ -353,20 +354,26 @@ fun no_tvars T =
 
 (* varify_global *)
 
-fun varify_global fixed t =
+fun varify_global_names fixed t =
   let
-    val fs =
+    val xs =
       build (t |> (Term.fold_types o Term.fold_atyps)
         (fn TFree v => if TFrees.defined fixed v then I else insert (op =) v | _ => I));
     val used =
       Name.build_context (t |>
         (fold_types o fold_atyps) (fn TVar ((a, _), _) => Name.declare a | _ => I));
-    val fmap = fs ~~ map (rpair 0) (#1 (fold_map Name.variant (map fst fs) used));
-    fun thaw (f as (_, S)) =
-      (case AList.lookup (op =) fmap f of
-        NONE => TFree f
-      | SOME xi => TVar (xi, S));
-  in (fmap, map_types (map_type_tfree thaw) t) end;
+    val ys = #1 (fold_map Name.variant (map #1 xs) used);
+  in map2 (fn (a, S) => fn b => ((a, S), ((b, 0), S))) xs ys end;
+
+fun varify_global fixed t =
+  let
+    val names = varify_global_names fixed t;
+    val tab = TFrees.make names;
+    fun get v =
+      (case TFrees.lookup tab v of
+        NONE => TFree v
+      | SOME w => TVar w);
+  in (names, (map_types o map_type_tfree) get t) end;
 
 
 (* freeze_thaw: freeze TVars in a term; return the "thaw" inverse *)

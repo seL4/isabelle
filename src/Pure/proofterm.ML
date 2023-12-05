@@ -121,7 +121,7 @@ sig
   val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: string * term -> typ option -> proof -> proof
   val forall_intr_proof': term -> proof -> proof
-  val varify_proof: term -> TFrees.set -> proof -> proof
+  val varify_proof: ((string * sort) * (indexname * sort)) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
@@ -932,25 +932,13 @@ fun forall_intr_proof' v prf =
 
 (* varify *)
 
-fun varify_names t fixed =
+fun varify_proof names prf =
   let
-    val xs =
-      build (t |> (Term.fold_types o Term.fold_atyps)
-        (fn TFree v => if TFrees.defined fixed v then I else insert (op =) v | _ => I));
-    val used =
-      Name.build_context (t |>
-        (fold_types o fold_atyps) (fn TVar ((a, _), _) => Name.declare a | _ => I));
-    val (ys, _) = fold_map Name.variant (map #1 xs) used;
-    val zs = map2 (fn (_, S) => fn y => ((y, 0), S)) xs ys;
-  in xs ~~ zs end;
-
-fun varify_proof t fixed prf =
-  let
-    val table = TFrees.make (varify_names t fixed);
-    fun varify (a, S) =
-      (case TFrees.lookup table (a, S) of
-        NONE => TFree (a, S)
-      | SOME b => TVar b);
+    val tab = TFrees.make names;
+    fun varify v =
+      (case TFrees.lookup tab v of
+        NONE => TFree v
+      | SOME w => TVar w);
   in map_proof_terms (map_types (map_type_tfree varify)) (map_type_tfree varify) prf end;
 
 

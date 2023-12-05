@@ -57,10 +57,10 @@ fun collect_consts (t $ u, tms) = collect_consts (u, collect_consts (t, tms))
 fun unvarify_global t fmap =
   let
     val fmap' = map Library.swap fmap
-    fun unthaw (f as (a, S)) =
-      (case AList.lookup (op =) fmap' a of
-        NONE => TVar f
-      | SOME (b, _) => TFree (b, S))
+    fun unthaw v =
+      (case AList.lookup (op =) fmap' v of
+        NONE => TVar v
+      | SOME w => TFree w)
   in map_types (map_type_tvar unthaw) t end
 
 
