@@ -2115,8 +2115,11 @@ fun rotate_rule k i state =
         let val (ps, qs) = chop m asms
         in Logic.list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
+
+    fun prf p = Proofterm.rotate_proof Bs Bi' params asms m p;
+    fun zprf p = ZTerm.rotate_proof (Context.certificate_theory cert) Bs Bi' params asms m p;
   in
-    Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi' params asms m, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (prf, zprf) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -2149,8 +2152,11 @@ fun permute_prems j k rl =
           val prems' = fixed_prems @ qs @ ps;
         in (prems', Logic.list_implies (prems', concl)) end
       else raise THM ("permute_prems: k", k, [rl]);
+
+    fun prf p = Proofterm.permute_prems_proof prems' j m p;
+    fun zprf p = ZTerm.permute_prems_proof (Context.certificate_theory cert) prems' j m p;
   in
-    Thm (deriv_rule1 (Proofterm.permute_prems_proof prems' j m, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (prf, zprf) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,

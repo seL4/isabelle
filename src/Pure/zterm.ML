@@ -186,6 +186,9 @@ sig
   val varifyT_proof: ((string * sort) * (indexname * sort)) list -> zproof -> zproof
   val legacy_freezeT_proof: term -> zproof -> zproof
   val incr_indexes_proof: int -> zproof -> zproof
+  val rotate_proof: theory -> term list -> term -> (string * typ) list ->
+    term list -> int -> zproof -> zproof
+  val permute_prems_proof: theory -> term list -> int -> int -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -203,6 +206,15 @@ fun aconv_zterm (tm1, tm2) =
       (ZApp (t1, u1), ZApp (t2, u2)) => aconv_zterm (t1, t2) andalso aconv_zterm (u1, u2)
     | (ZAbs (_, T1, t1), ZAbs (_, T2, t2)) => aconv_zterm (t1, t2) andalso T1 = T2
     | (a1, a2) => a1 = a2);
+
+
+(* derived operations *)
+
+val mk_ZAbst = fold_rev (fn (x, T) => fn prf => ZAbst (x, T, prf));
+val mk_ZAbsP = fold_rev (fn t => fn prf => ZAbsP ("H", t, prf));
+
+val mk_ZAppt = Library.foldl ZAppt;
+val mk_ZAppP = Library.foldl ZAppP;
 
 
 (* map structure *)
@@ -570,5 +582,31 @@ fun incr_indexes_proof inc prf =
     val typ = subst_type_same tvar;
     val term = subst_term_same typ var;
   in Same.commit (map_proof_same typ term) prf end;
+
+
+(* permutations *)
+
+fun rotate_proof thy Bs Bi' params asms m prf =
+  let
+    val ztyp = ztyp_of;
+    val zterm = global_zterm_of thy;
+
+    val i = length asms;
+    val j = length Bs;
+  in
+    mk_ZAbsP (map zterm Bs @ [zterm Bi']) (mk_ZAppP (prf, map ZBoundP
+      (j downto 1) @ [mk_ZAbst (map (apsnd ztyp) params) (mk_ZAbsP (map zterm asms)
+        (mk_ZAppP (mk_ZAppt (ZBoundP i, map ZBound ((length params - 1) downto 0)),
+          map ZBoundP (((i-m-1) downto 0) @ ((i-1) downto (i-m))))))]))
+  end;
+
+fun permute_prems_proof thy prems' j k prf =
+  let
+    val zterm = global_zterm_of thy;
+    val n = length prems';
+  in
+    mk_ZAbsP (map zterm prems')
+      (mk_ZAppP (prf, map ZBoundP ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
+  end;
 
 end;
