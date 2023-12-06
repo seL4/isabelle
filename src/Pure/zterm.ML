@@ -236,21 +236,33 @@ fun subst_term_same typ var =
 fun map_insts_same typ term (instT, inst) =
   let
     val changed = Unsynchronized.ref false;
+    fun apply f x =
+      (case Same.catch f x of
+        NONE => NONE
+      | some => (changed := true; some));
+
     val instT' =
       (instT, instT) |-> ZTVars.fold (fn (v, T) =>
-        (case Same.catch typ T of
-          SOME U => (changed := true; ZTVars.update (v, U))
-        | NONE => I));
+        (case apply typ T of
+          NONE => I
+        | SOME T' => ZTVars.update (v, T')));
+
+    val vars' =
+      (inst, ZVars.empty) |-> ZVars.fold (fn ((v, T), _) =>
+        (case apply typ T of
+          NONE => I
+        | SOME T' => ZVars.add ((v, T), (v, T'))));
+
     val inst' =
-      if ! changed then
-        ZVars.dest inst
-        |> map (fn ((x, T), t) => ((x, Same.commit typ T), Same.commit term t))
-        |> ZVars.make
-      else
+      if ZVars.is_empty vars' then
         (inst, inst) |-> ZVars.fold (fn (v, t) =>
-          (case Same.catch term t of
-            SOME u => (changed := true; ZVars.update (v, u))
-          | NONE => I));
+          (case apply term t of
+            NONE => I
+          | SOME t' => ZVars.update (v, t')))
+      else
+        ZVars.dest inst
+        |> map (fn (v, t) => (the_default v (ZVars.lookup vars' v), the_default t (apply term t)))
+        |> ZVars.make_strict;
   in if ! changed then (instT', inst') else raise Same.SAME end;
 
 fun map_proof_same typ term =
