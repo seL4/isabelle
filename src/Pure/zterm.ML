@@ -515,7 +515,7 @@ fun transitive_proof thy T t u v prf1 prf2 =
 
 fun equal_intr_proof thy t u prf1 prf2 =
   let
-    val {ztyp, zterm} = zterm_cache thy;
+    val {zterm, ...} = zterm_cache thy;
     val A = zterm t;
     val B = zterm u;
     val ax = map_const_proof (undefined, fn "A" => A | "B" => B) equal_intr_axiom;
@@ -523,7 +523,7 @@ fun equal_intr_proof thy t u prf1 prf2 =
 
 fun equal_elim_proof thy t u prf1 prf2 =
   let
-    val {ztyp, zterm} = zterm_cache thy;
+    val {zterm, ...} = zterm_cache thy;
     val A = zterm t;
     val B = zterm u;
     val ax = map_const_proof (undefined, fn "A" => A | "B" => B) equal_elim_axiom;
@@ -630,7 +630,7 @@ fun rotate_proof thy Bs Bi' params asms m prf =
 
 fun permute_prems_proof thy prems' j k prf =
   let
-    val {ztyp, zterm} = zterm_cache thy;
+    val {zterm, ...} = zterm_cache thy;
     val n = length prems';
   in
     mk_ZAbsP (map zterm prems')
