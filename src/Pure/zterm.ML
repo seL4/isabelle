@@ -369,8 +369,14 @@ val todo_proof = dummy_proof;
 fun const_proof thy a A =
   let
     val t = global_zterm_of thy A;
-    val instT = ZTVars.build (ZTVars.add_tvars t) |> ZTVars.map (fn v => fn _ => ZTVar v);
-    val inst = ZVars.build (ZVars.add_vars t) |> ZVars.map (fn v => fn _ => ZVar v);
+    val instT =
+      ZTVars.build (t |> (fold_types o fold_tvars) (fn v => fn tab =>
+        if ZTVars.defined tab v then tab else ZTVars.update (v, ZTVar v) tab));
+    val inst =
+      ZVars.build (t |> fold_aterms (fn a => fn tab =>
+        (case a of
+          ZVar v => if ZVars.defined tab v then tab else ZVars.update (v, a) tab
+        | _ => tab)));
   in ZConstP (a, t, instT, inst) end;
 
 fun axiom_proof thy name = const_proof thy (ZAxiom name);
