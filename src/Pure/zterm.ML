@@ -269,9 +269,8 @@ fun map_proof_same typ term =
   let
     fun proof ZDummy = raise Same.SAME
       | proof (ZConstP (a, A, instT, inst)) =
-          (case Same.catch (map_insts_same typ term) (instT, inst) of
-            NONE => ZConstP (a, term A, instT, inst)
-          | SOME (instT', inst') => ZConstP (a, Same.commit term A, instT', inst'))
+          let val (instT', inst') = map_insts_same typ term (instT, inst)
+          in ZConstP (a, A, instT', inst') end
       | proof (ZBoundP _) = raise Same.SAME
       | proof (ZHyp h) = ZHyp (term h)
       | proof (ZAbst (a, T, p)) =
