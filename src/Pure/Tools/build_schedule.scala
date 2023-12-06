@@ -611,34 +611,52 @@ object Build_Schedule {
 
 
   object Path_Time_Heuristic {
-    sealed trait Criterion
-    case class Absolute_Time(time: Time) extends Criterion {
+    sealed trait Critical_Criterion
+    case class Absolute_Time(time: Time) extends Critical_Criterion {
       override def toString: String = "absolute time (" + time.message_hms + ")"
     }
-    case class Relative_Time(factor: Double) extends Criterion {
+    case class Relative_Time(factor: Double) extends Critical_Criterion {
       override def toString: String = "relative time (" + factor + ")"
     }
 
-    sealed trait Strategy
-    case class Fixed_Thread(threads: Int) extends Strategy {
+    sealed trait Parallel_Strategy
+    case class Fixed_Thread(threads: Int) extends Parallel_Strategy {
       override def toString: String = "fixed threads (" + threads + ")"
     }
-    case class Time_Based_Threads(f: Time => Int) extends Strategy {
+    case class Time_Based_Threads(f: Time => Int) extends Parallel_Strategy {
       override def toString: String = "time based threads"
+    }
+
+    sealed trait Host_Criterion
+    case object Critical_Nodes extends Host_Criterion {
+      override def toString: String = "per critical node"
+    }
+    case class Fixed_Fraction(fraction: Double) extends Host_Criterion {
+      override def toString: String = "fixed fraction (" + fraction + ")"
+    }
+    case class Host_Speed(min_factor: Double) extends Host_Criterion {
+      override def toString: String = "host speed (" + min_factor + ")"
     }
   }
 
   class Path_Time_Heuristic(
-    is_critical: Path_Time_Heuristic.Criterion,
-    parallel_threads: Path_Time_Heuristic.Strategy,
+    is_critical: Path_Time_Heuristic.Critical_Criterion,
+    parallel_threads: Path_Time_Heuristic.Parallel_Strategy,
+    host_criterion: Path_Time_Heuristic.Host_Criterion,
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
     max_threads_limit: Int = 8
   ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit) {
     import Path_Time_Heuristic.*
 
-    override def toString: Node =
-      "path time heuristic (critical: " + is_critical + ", parallel: " + parallel_threads + ")"
+    override def toString: Node = {
+      val params =
+        List(
+          "critical: " + is_critical,
+          "parallel: " + parallel_threads,
+          "fast hosts: " + host_criterion)
+      "path time heuristic (" + params.mkString(", ") + ")"
+    }
 
     def next(state: Build_Process.State): List[Config] = {
       val resources = host_infos.available(state)
@@ -648,7 +666,10 @@ object Build_Schedule {
 
       val rev_ordered_hosts = ordered_hosts.reverse.map(_ -> max_threads)
 
-      val resources0 = host_infos.available(state.copy(running = Map.empty))
+      val available_nodes =
+        host_infos.available(state.copy(running = Map.empty))
+          .unused_nodes(max_threads)
+          .sortBy(node => host_infos.the_host(node))(host_infos.host_speeds).reverse
 
       def remaining_time(node: Node): (Node, Time) =
         state.running.get(node) match {
@@ -661,11 +682,9 @@ object Build_Schedule {
         }
 
       val max_parallel = parallel_paths(state.ready.map(_.name).map(remaining_time))
-      val fully_parallelizable = max_parallel <= resources0.unused_nodes(max_threads).length
-
       val next_sorted = state.next_ready.sortBy(max_time(_).ms).reverse
 
-      if (fully_parallelizable) {
+      if (max_parallel <= available_nodes.length) {
         val all_tasks = next_sorted.map(task => (task, best_threads(task), best_threads(task)))
         resources.try_allocate_tasks(rev_ordered_hosts, all_tasks)._1
       }
@@ -694,7 +713,22 @@ object Build_Schedule {
 
         val max_critical_parallel =
           parallel_paths(critical_minimals.map(remaining_time), critical_nodes.contains)
-        val (critical_hosts, other_hosts) = rev_ordered_hosts.splitAt(max_critical_parallel)
+        val max_critical_hosts =
+          available_nodes.take(max_critical_parallel).map(_.hostname).distinct.length
+
+        val split =
+          this.host_criterion match {
+            case Critical_Nodes => max_critical_hosts
+            case Fixed_Fraction(fraction) =>
+              ((rev_ordered_hosts.length * fraction).ceil.toInt max 1) min max_critical_hosts
+            case Host_Speed(min_factor) =>
+              val best = rev_ordered_hosts.head._1.info.benchmark_score.get
+              val num_fast =
+                rev_ordered_hosts.count(_._1.info.benchmark_score.exists(_ >= best * min_factor))
+              num_fast min max_critical_hosts
+          }
+
+        val (critical_hosts, other_hosts) = rev_ordered_hosts.splitAt(split)
 
         val (configs1, resources1) = resources.try_allocate_tasks(critical_hosts, critical_tasks)
         val (configs2, _) = resources1.try_allocate_tasks(other_hosts, other_tasks)
@@ -903,12 +937,19 @@ object Build_Schedule {
             case time if time < Time.minutes(5) => 4
             case _ => 8
           }))
+      val machine_splits =
+        List(
+          Path_Time_Heuristic.Critical_Nodes,
+          Path_Time_Heuristic.Fixed_Fraction(0.3),
+          Path_Time_Heuristic.Host_Speed(0.9))
 
       val path_time_heuristics =
         for {
           is_critical <- is_criticals
           parallel <- parallel_threads
-        } yield Path_Time_Heuristic(is_critical, parallel, timing_data, sessions_structure)
+          machine_split <- machine_splits
+        } yield
+          Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure)
       val heuristics = Default_Heuristic(timing_data, context.build_options) :: path_time_heuristics
 
       new Meta_Heuristic(heuristics)
