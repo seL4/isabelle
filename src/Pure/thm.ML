@@ -2023,7 +2023,7 @@ fun incr_indexes i (thm as Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
   if i < 0 then raise THM ("negative increment", 0, [thm])
   else if i = 0 then thm
   else
-    Thm (deriv_rule1 (Proofterm.incr_indexes i, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (Proofterm.incr_indexes i, ZTerm.incr_indexes_proof i) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx + i,

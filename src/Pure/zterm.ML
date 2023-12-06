@@ -184,6 +184,7 @@ sig
   val instantiate_proof: theory ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> zproof -> zproof
   val varifyT_proof: ((string * sort) * (indexname * sort)) list -> zproof -> zproof
+  val incr_indexes_proof: int -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -551,5 +552,13 @@ fun varifyT_proof names prf =
             NONE => raise Same.SAME
           | SOME w => ZTVar w));
     in Same.commit (map_proof_types_same typ) prf end;
+
+fun incr_indexes_proof inc prf =
+  let
+    fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME;
+    fun var ((x, i), T) = if i >= 0 then ZVar ((x, i + inc), T) else raise Same.SAME;
+    val typ = subst_type_same tvar;
+    val term = subst_term_same typ var;
+  in Same.commit (map_proof_same typ term) prf end;
 
 end;
