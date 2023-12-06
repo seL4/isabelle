@@ -164,52 +164,63 @@ object Build_Schedule {
       }
     }
 
-    def estimate(job_name: String, hostname: String, threads: Int): Time =
-      data.by_job.get(job_name) match {
-        case None =>
-          // no data for job, take average of other jobs for given threads
-          val job_estimates = data.by_job.keys.flatMap(estimate_threads(_, hostname, threads))
-          if (job_estimates.nonEmpty) Timing_Data.mean_time(job_estimates)
-          else {
-            // no other job to estimate from, use global curve to approximate any other job
-            val (threads1, data1) = data.by_threads.head
-            data1.mean_time.scale(global_threads_factor(threads1, threads))
-          }
+    private var cache: Map[(String, String, Int), Time] = Map.empty
+    def estimate(job_name: String, hostname: String, threads: Int): Time = {
+      def estimate: Time =
+        data.by_job.get(job_name) match {
+          case None =>
+            // no data for job, take average of other jobs for given threads
+            val job_estimates = data.by_job.keys.flatMap(estimate_threads(_, hostname, threads))
+            if (job_estimates.nonEmpty) Timing_Data.mean_time(job_estimates)
+            else {
+              // no other job to estimate from, use global curve to approximate any other job
+              val (threads1, data1) = data.by_threads.head
+              data1.mean_time.scale(global_threads_factor(threads1, threads))
+            }
 
-        case Some(data) =>
-          data.by_threads.get(threads) match {
-            case None => // interpolate threads
-              estimate_threads(job_name, hostname, threads).getOrElse {
-                // per machine, try to approximate config for threads
-                val approximated =
-                  for {
-                    hostname1 <- data.by_hostname.keys
-                    estimate <- estimate_threads(job_name, hostname1, threads)
-                    factor = hostname_factor(hostname1, hostname)
-                  } yield estimate.scale(factor)
+          case Some(data) =>
+            data.by_threads.get(threads) match {
+              case None => // interpolate threads
+                estimate_threads(job_name, hostname, threads).getOrElse {
+                  // per machine, try to approximate config for threads
+                  val approximated =
+                    for {
+                      hostname1 <- data.by_hostname.keys
+                      estimate <- estimate_threads(job_name, hostname1, threads)
+                      factor = hostname_factor(hostname1, hostname)
+                    } yield estimate.scale(factor)
 
-                if (approximated.nonEmpty) Timing_Data.mean_time(approximated)
-                else {
-                  // no single machine where config can be approximated, unify data points
-                  val unified_entries = unify_hosts(job_name, hostname)
-
-                  if (unified_entries.length > 1) approximate_threads(unified_entries, threads)
+                  if (approximated.nonEmpty) Timing_Data.mean_time(approximated)
                   else {
-                    // only single data point, use global curve to approximate
-                    val (job_threads, job_time) = unified_entries.head
-                    job_time.scale(global_threads_factor(job_threads, threads))
+                    // no single machine where config can be approximated, unify data points
+                    val unified_entries = unify_hosts(job_name, hostname)
+
+                    if (unified_entries.length > 1) approximate_threads(unified_entries, threads)
+                    else {
+                      // only single data point, use global curve to approximate
+                      val (job_threads, job_time) = unified_entries.head
+                      job_time.scale(global_threads_factor(job_threads, threads))
+                    }
                   }
                 }
-              }
 
-            case Some(data) => // time for job/thread exists, interpolate machine
-              data.by_hostname.get(hostname).map(_.mean_time).getOrElse {
-                Timing_Data.median_time(
-                  data.by_hostname.toList.map((hostname1, data) =>
-                    data.mean_time.scale(hostname_factor(hostname1, hostname))))
-              }
-          }
+              case Some(data) => // time for job/thread exists, interpolate machine
+                data.by_hostname.get(hostname).map(_.mean_time).getOrElse {
+                  Timing_Data.median_time(
+                    data.by_hostname.toList.map((hostname1, data) =>
+                      data.mean_time.scale(hostname_factor(hostname1, hostname))))
+                }
+            }
+        }
+
+      cache.get(job_name, hostname, threads) match {
+        case Some(time) => time
+        case None =>
+          val time = estimate
+          cache = cache + ((job_name, hostname, threads) -> time)
+          time
       }
+    }
   }
 
   object Timing_Data {
