@@ -1958,8 +1958,10 @@ fun legacy_freezeT (Thm (der, {cert, constraints, shyps, hyps, tpairs, prop, ...
     val prop1 = attach_tpairs tpairs prop;
     val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
+    fun prf p = Proofterm.legacy_freezeT prop1 p;
+    fun zprf p = ZTerm.legacy_freezeT_proof prop1 p;
   in
-    Thm (deriv_rule1 (Proofterm.legacy_freezeT prop1, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (prf, zprf) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx_of_term prop2,

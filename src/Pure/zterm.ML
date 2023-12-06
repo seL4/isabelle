@@ -184,6 +184,7 @@ sig
   val instantiate_proof: theory ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> zproof -> zproof
   val varifyT_proof: ((string * sort) * (indexname * sort)) list -> zproof -> zproof
+  val legacy_freezeT_proof: term -> zproof -> zproof
   val incr_indexes_proof: int -> zproof -> zproof
 end;
 
@@ -552,6 +553,15 @@ fun varifyT_proof names prf =
             NONE => raise Same.SAME
           | SOME w => ZTVar w));
     in Same.commit (map_proof_types_same typ) prf end;
+
+fun legacy_freezeT_proof t prf =
+  (case Type.legacy_freezeT t of
+    NONE => prf
+  | SOME f =>
+      let
+        val tvar = ztyp_of o Same.function f;
+        val typ = subst_type_same tvar;
+      in Same.commit (map_proof_types_same typ) prf end);
 
 fun incr_indexes_proof inc prf =
   let
