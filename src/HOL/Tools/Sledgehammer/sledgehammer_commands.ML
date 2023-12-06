@@ -293,23 +293,7 @@ val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params writeln_result subcommand opt_i fact_override state0 =
   let
-    (* We generally want chained facts to be picked up by the relevance filter, because it can then
-       give it a proper name, which is useful for a variety of reasons (minimization, Isar proofs,
-       verbose output, machine learning). However, if the fact is available by no other means (not
-       even backticks), as "f" would be in "using f unfolding f'" after unfolding, we have no choice
-       but to insert it into the state as an additional hypothesis. *)
-    val {facts = chained0, ...} = Proof.goal state0
-    val (inserts, keep_chained) =
-      if null chained0 orelse #only fact_override then
-        (chained0, [])
-      else
-        let val ctxt0 = Proof.context_of state0 in
-          List.partition (is_useful_unnamed_local_fact ctxt0) chained0
-        end
-    val state = state0
-      |> (if null inserts then I else Proof.refine_insert inserts #> Proof.set_facts keep_chained)
-      |> silence_state
-
+    val state = silence_state state0
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
 
@@ -329,7 +313,7 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
       (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then mash_unlearn ctxt
        else ();
        mash_learn ctxt
-           (* TODO: Use MaSh mode instead and have the special defaults hardcoded in "get_params" *)
+           (* TODO: Use MaSh mode instead and have the special defaults hardcoded in "get_params". *)
            (get_params Normal thy
                 ([("timeout", [string_of_real default_learn_prover_timeout]),
                   ("slice", ["false"])] @

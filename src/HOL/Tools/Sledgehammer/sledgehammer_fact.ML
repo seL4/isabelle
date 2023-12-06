@@ -32,7 +32,6 @@ sig
   val instantiate_inducts : Proof.context -> term list -> term ->
     (((unit -> string) * 'a) * thm) list -> (((unit -> string) * 'a) * thm) list
   val fact_of_lazy_fact : lazy_fact -> fact
-  val is_useful_unnamed_local_fact : Proof.context -> thm -> bool
 
   val all_facts : Proof.context -> bool -> Keyword.keywords -> thm list -> thm list ->
     status Termtab.table -> lazy_fact list
