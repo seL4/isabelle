@@ -32,6 +32,7 @@ sig
   val make1: key * 'a -> 'a table
   val make2: key * 'a -> key * 'a -> 'a table
   val make3: key * 'a -> key * 'a -> key * 'a -> 'a table
+  val make_strict: (key * 'a) list -> 'a table
   type set = int table
   val add_set: key -> set -> set
   val make_set: key list -> set
@@ -80,6 +81,8 @@ fun make es = build (fold add es);
 fun make1 e = build (add e);
 fun make2 e1 e2 = build (add e1 #> add e2);
 fun make3 e1 e2 e3 = build (add e1 #> add e2 #> add e3);
+
+fun make_strict es = Table (Table.make es);
 
 
 (* set with order of addition *)

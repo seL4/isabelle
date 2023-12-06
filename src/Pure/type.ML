@@ -63,6 +63,7 @@ sig
   val no_tvars: typ -> typ
   val varify_global_names: TFrees.set -> term -> ((string * sort) * (indexname * sort)) list
   val varify_global: TFrees.set -> term -> ((string * sort) * (indexname * sort)) list * term
+  val legacy_freezeT: term -> ((string * int) * sort -> typ option) option
   val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
   val legacy_freeze_type: typ -> typ
   val legacy_freeze_thaw: term -> term * (term -> term)
@@ -374,6 +375,28 @@ fun varify_global fixed t =
         NONE => TFree v
       | SOME w => TVar w);
   in (names, (map_types o map_type_tfree) get t) end;
+
+
+(* legacy_freezeT *)
+
+local
+
+fun new_name ix (pairs, used) =
+  let val v = singleton (Name.variant_list used) (string_of_indexname ix)
+  in ((ix, v) :: pairs, v :: used) end;
+
+fun freeze_one alist (ix, S) =
+  AList.lookup (op =) alist ix |> Option.map (fn a => TFree (a, S));
+
+in
+
+fun legacy_freezeT t =
+  let
+    val used = Term.add_tfree_names t [];
+    val (alist, _) = fold_rev new_name (map #1 (Term.add_tvars t [])) ([], used);
+  in if null alist then NONE else SOME (freeze_one alist) end;
+
+end;
 
 
 (* freeze_thaw: freeze TVars in a term; return the "thaw" inverse *)

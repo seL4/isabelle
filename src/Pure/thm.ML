@@ -1811,10 +1811,15 @@ fun gen_instantiate inst_fn (instT, inst) th =
       val constraints' =
         TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
           instT' constraints;
+
+      fun prf p =
+        Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') p;
+      fun zprf p =
+        ZTerm.instantiate_proof thy'
+          (TVars.fold (fn (v, (T, _)) => cons (v, T)) instT' [],
+           Vars.fold (fn (v, (t, _)) => cons (v, t)) inst' []) p;
     in
-      Thm (deriv_rule1
-        (fn d => Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') d,
-          ZTerm.todo_proof) der,
+      Thm (deriv_rule1 (prf, zprf) der,
        {cert = cert',
         tags = [],
         maxidx = maxidx',
@@ -1953,8 +1958,10 @@ fun legacy_freezeT (Thm (der, {cert, constraints, shyps, hyps, tpairs, prop, ...
     val prop1 = attach_tpairs tpairs prop;
     val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
+    fun prf p = Proofterm.legacy_freezeT prop1 p;
+    fun zprf p = ZTerm.legacy_freezeT_proof prop1 p;
   in
-    Thm (deriv_rule1 (Proofterm.legacy_freezeT prop1, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (prf, zprf) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx_of_term prop2,
@@ -2018,7 +2025,7 @@ fun incr_indexes i (thm as Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
   if i < 0 then raise THM ("negative increment", 0, [thm])
   else if i = 0 then thm
   else
-    Thm (deriv_rule1 (Proofterm.incr_indexes i, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (Proofterm.incr_indexes i, ZTerm.incr_indexes_proof i) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx + i,
@@ -2108,8 +2115,11 @@ fun rotate_rule k i state =
         let val (ps, qs) = chop m asms
         in Logic.list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
+
+    fun prf p = Proofterm.rotate_proof Bs Bi' params asms m p;
+    fun zprf p = ZTerm.rotate_proof (Context.certificate_theory cert) Bs Bi' params asms m p;
   in
-    Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi' params asms m, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (prf, zprf) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -2142,8 +2152,11 @@ fun permute_prems j k rl =
           val prems' = fixed_prems @ qs @ ps;
         in (prems', Logic.list_implies (prems', concl)) end
       else raise THM ("permute_prems: k", k, [rl]);
+
+    fun prf p = Proofterm.permute_prems_proof prems' j m p;
+    fun zprf p = ZTerm.permute_prems_proof (Context.certificate_theory cert) prems' j m p;
   in
-    Thm (deriv_rule1 (Proofterm.permute_prems_proof prems' j m, ZTerm.todo_proof) der,
+    Thm (deriv_rule1 (prf, zprf) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
