@@ -476,20 +476,16 @@ text \<open>
   estimations of their complexity.
 \<close>
 definition T_link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> nat" where
-[simp]: "T_link _ _ = 1"
+[simp]: "T_link _ _ = 0"
 
-text \<open>This function is non-canonical: we omitted a \<open>+1\<close> in the \<open>else\<close>-part,
-  to keep the following analysis simpler and more to the point.
-\<close>
 fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a trees \<Rightarrow> nat" where
   "T_ins_tree t [] = 1"
-| "T_ins_tree t\<^sub>1 (t\<^sub>2 # ts) = (
-    (if rank t\<^sub>1 < rank t\<^sub>2 then 1
-     else T_link t\<^sub>1 t\<^sub>2 + T_ins_tree (link t\<^sub>1 t\<^sub>2) ts)
-  )"
+| "T_ins_tree t\<^sub>1 (t\<^sub>2 # ts) = 1 +
+    (if rank t\<^sub>1 < rank t\<^sub>2 then 0
+     else T_link t\<^sub>1 t\<^sub>2 + T_ins_tree (link t\<^sub>1 t\<^sub>2) ts)"
 
 definition T_insert :: "'a::linorder \<Rightarrow> 'a trees \<Rightarrow> nat" where
-"T_insert x ts = T_ins_tree (Node 0 x []) ts + 1"
+"T_insert x ts = T_ins_tree (Node 0 x []) ts"
 
 lemma T_ins_tree_simple_bound: "T_ins_tree t ts \<le> length ts + 1"
 by (induction t ts rule: T_ins_tree.induct) auto
@@ -498,11 +494,11 @@ subsubsection \<open>\<open>T_insert\<close>\<close>
 
 lemma T_insert_bound:
   assumes "invar ts"
-  shows "T_insert x ts \<le> log 2 (size (mset_trees ts) + 1) + 2"
+  shows "T_insert x ts \<le> log 2 (size (mset_trees ts) + 1) + 1"
 proof -
-  have "real (T_insert x ts) \<le> real (length ts) + 2"
-    unfolding T_insert_def using T_ins_tree_simple_bound 
-    using of_nat_mono by fastforce
+  have "real (T_insert x ts) \<le> real (length ts) + 1"
+    unfolding T_insert_def using T_ins_tree_simple_bound
+    by (metis of_nat_1 of_nat_add of_nat_mono) 
   also note size_mset_trees[OF \<open>invar ts\<close>]
   finally show ?thesis by simp
 qed
@@ -605,14 +601,13 @@ definition "T_rev xs = length xs + 1"
 
 definition T_del_min :: "'a::linorder trees \<Rightarrow> nat" where
   "T_del_min ts = T_get_min_rest ts + (case get_min_rest ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
-                    \<Rightarrow> T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2
-  ) + 1"
+                    \<Rightarrow> T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2)"
 
 lemma T_del_min_bound:
   fixes ts
   defines "n \<equiv> size (mset_trees ts)"
   assumes "invar ts" and "ts\<noteq>[]"
-  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 3"
+  shows "T_del_min ts \<le> 6 * log 2 (n+1) + 2"
 proof -
   obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min_rest ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
     by (metis surj_pair tree.exhaust_sel)
@@ -628,7 +623,7 @@ proof -
     using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
     by (auto simp: mset_trees_def)
 
-  have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2) + 1"
+  have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2)"
     unfolding T_del_min_def GM
     by simp
   also have "T_get_min_rest ts \<le> log 2 (n+1)" 
@@ -637,7 +632,7 @@ proof -
     unfolding T_rev_def n\<^sub>1_def using size_mset_trees[OF I1] by simp
   also have "T_merge (rev ts\<^sub>1) ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 1"
     unfolding n\<^sub>1_def n\<^sub>2_def using T_merge_bound[OF I1 I2] by (simp add: algebra_simps)
-  finally have "T_del_min ts \<le> log 2 (n+1) + log 2 (n\<^sub>1 + 1) + 4*log 2 (real (n\<^sub>1 + n\<^sub>2) + 1) + 3"
+  finally have "T_del_min ts \<le> log 2 (n+1) + log 2 (n\<^sub>1 + 1) + 4*log 2 (real (n\<^sub>1 + n\<^sub>2) + 1) + 2"
     by (simp add: algebra_simps)
   also note \<open>n\<^sub>1 + n\<^sub>2 \<le> n\<close>
   also note \<open>n\<^sub>1 \<le> n\<close>
