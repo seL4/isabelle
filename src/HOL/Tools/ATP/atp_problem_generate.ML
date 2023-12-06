@@ -1428,23 +1428,6 @@ fun preprocess_abstractions_in_terms trans_lams facts =
          ((lam_fact_prefix ^ Int.toString (j + 1), (Global, Non_Rec_Def)), (Axiom, t)))
   in (facts, lam_facts) end
 
-(* Metis's use of "resolve_tac" freezes the schematic variables. We simulate this in Sledgehammer to
-   prevent the discovery of unreplayable proofs. *)
-fun freeze_term t =
-  let
-    (* Freshness is desirable for completeness, but not for soundness. *)
-    fun indexed_name (s, i) = s ^ "_" ^ string_of_int i ^ atp_weak_suffix
-    fun freeze (t $ u) = freeze t $ freeze u
-      | freeze (Abs (s, T, t)) = Abs (s, T, freeze t)
-      | freeze (Var (x, T)) = Free (indexed_name x, T)
-      | freeze t = t
-    fun freeze_tvar (x, S) = TFree (indexed_name x, S)
-  in
-    t |> exists_subterm is_Var t ? freeze
-      |> exists_type (exists_subtype is_TVar) t
-         ? map_types (map_type_tvar freeze_tvar)
-  end
-
 fun presimp_prop simp_options ctxt type_enc t =
   let
     val t =
@@ -2080,8 +2063,6 @@ fun translate_formulas simp_options ctxt prem_role format type_enc lam_trans pre
        performance (for some reason). *)
     val hyp_ts = hyp_ts |> map (fn t => if member (op aconv) fact_ts t then \<^prop>\<open>True\<close> else t)
 
-    val hyp_ts = map freeze_term hyp_ts;
-    val concl_t = freeze_term concl_t;
     val maybe_presimp_prop = presimp ? presimp_prop simp_options ctxt type_enc
 
     val facts = facts |> map (apsnd (pair Axiom o maybe_presimp_prop))
