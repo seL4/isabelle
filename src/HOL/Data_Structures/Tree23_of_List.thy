@@ -130,7 +130,7 @@ fun T_leaves :: "'a list \<Rightarrow> nat" where
 "T_leaves (a # as) = T_leaves as + 1"
 
 definition T_tree23_of_list :: "'a list \<Rightarrow> nat" where
-"T_tree23_of_list as = T_leaves as + T_join_all(leaves as) + 1"
+"T_tree23_of_list as = T_leaves as + T_join_all(leaves as)"
 
 lemma T_join_adj: "not_T ts \<Longrightarrow> T_join_adj ts \<le> len ts div 2"
 by(induction ts rule: T_join_adj.induct) auto
@@ -162,7 +162,7 @@ by(induction as) auto
 lemma len_leaves: "len(leaves as) = length as + 1"
 by(induction as) auto
 
-lemma T_tree23_of_list: "T_tree23_of_list as \<le> 3*(length as) + 4"
+lemma T_tree23_of_list: "T_tree23_of_list as \<le> 3*(length as) + 3"
 using T_join_all[of "leaves as"] by(simp add: T_tree23_of_list_def T_leaves len_leaves)
 
 end

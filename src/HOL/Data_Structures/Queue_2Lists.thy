@@ -60,29 +60,23 @@ qed
 text \<open>Running times:\<close>
 
 fun T_norm :: "'a queue \<Rightarrow> nat" where
-"T_norm (fs,rs) = (if fs = [] then T_itrev rs [] else 0) + 1"
+"T_norm (fs,rs) = (if fs = [] then T_itrev rs [] else 0)"
 
 fun T_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
-"T_enq a (fs,rs) = T_norm(fs, a # rs) + 1"
+"T_enq a (fs,rs) = T_norm(fs, a # rs)"
 
 fun T_deq :: "'a queue \<Rightarrow> nat" where
-"T_deq (fs,rs) = (if fs = [] then 0 else T_norm(tl fs,rs)) + 1"
-
-fun T_first :: "'a queue \<Rightarrow> nat" where
-"T_first (a # fs,rs) = 1"
-
-fun T_is_empty :: "'a queue \<Rightarrow> nat" where
-"T_is_empty (fs,rs) = 1"
+"T_deq (fs,rs) = (if fs = [] then 0 else T_norm(tl fs,rs))"
 
 text \<open>Amortized running times:\<close>
 
 fun \<Phi> :: "'a queue \<Rightarrow> nat" where
 "\<Phi>(fs,rs) = length rs"
 
-lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 4"
+lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
 by(auto simp: T_itrev)
 
-lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 3"
+lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 1"
 by(auto simp: T_itrev)
 
 end
