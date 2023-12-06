@@ -291,12 +291,6 @@ fun map_proof_same typ term =
 fun map_proof_types_same typ =
   map_proof_same typ (subst_term_same typ Same.same);
 
-
-(* instantiation *)
-
-fun init_instT t = ZTVars.build (ZTVars.add_tvars t) |> ZTVars.map (fn v => fn _ => ZTVar v);
-fun init_inst t = ZVars.build (ZVars.add_vars t) |> ZVars.map (fn v => fn _ => ZVar v);
-
 fun map_const_proof (f, g) prf =
   (case prf of
     ZConstP (a, A, instT, inst) =>
@@ -375,8 +369,8 @@ val todo_proof = dummy_proof;
 fun const_proof thy a A =
   let
     val t = global_zterm_of thy A;
-    val instT = init_instT t;
-    val inst = init_inst t;
+    val instT = ZTVars.build (ZTVars.add_tvars t) |> ZTVars.map (fn v => fn _ => ZTVar v);
+    val inst = ZVars.build (ZVars.add_vars t) |> ZVars.map (fn v => fn _ => ZVar v);
   in ZConstP (a, t, instT, inst) end;
 
 fun axiom_proof thy name = const_proof thy (ZAxiom name);
