@@ -403,44 +403,44 @@ fun trivial_proof thy A =
 fun implies_intr_proof thy A prf =
   let
     val h = global_zterm_of thy A;
-    fun abs_hyp i (ZHyp t) = if aconv_zterm (h, t) then ZBoundP i else raise Same.SAME
-      | abs_hyp i (ZAbst (x, T, p)) = ZAbst (x, T, abs_hyp i p)
-      | abs_hyp i (ZAbsP (x, t, p)) = ZAbsP (x, t, abs_hyp (i + 1) p)
-      | abs_hyp i (ZAppt (p, t)) = ZAppt (abs_hyp i p, t)
-      | abs_hyp i (ZAppP (p, q)) =
-          (ZAppP (abs_hyp i p, Same.commit (abs_hyp i) q) handle Same.SAME =>
-            ZAppP (p, abs_hyp i q))
-      | abs_hyp _ _ = raise Same.SAME;
-  in ZAbsP ("H", h, Same.commit (abs_hyp 0) prf) end;
+    fun proof i (ZHyp t) = if aconv_zterm (h, t) then ZBoundP i else raise Same.SAME
+      | proof i (ZAbst (x, T, p)) = ZAbst (x, T, proof i p)
+      | proof i (ZAbsP (x, t, p)) = ZAbsP (x, t, proof (i + 1) p)
+      | proof i (ZAppt (p, t)) = ZAppt (proof i p, t)
+      | proof i (ZAppP (p, q)) =
+          (ZAppP (proof i p, Same.commit (proof i) q) handle Same.SAME =>
+            ZAppP (p, proof i q))
+      | proof _ _ = raise Same.SAME;
+  in ZAbsP ("H", h, Same.commit (proof 0) prf) end;
 
 fun forall_intr_proof thy T (a, x) prf =
   let
     val Z = ztyp_of T;
     val z = global_zterm_of thy x;
 
-    fun abs_term i b =
+    fun term i b =
       if aconv_zterm (b, z) then ZBound i
       else
         (case b of
-          ZAbs (x, T, t) => ZAbs (x, T, abs_term (i + 1) t)
+          ZAbs (x, T, t) => ZAbs (x, T, term (i + 1) t)
         | ZApp (t, u) =>
-            (ZApp (abs_term i t, Same.commit (abs_term i) u) handle Same.SAME =>
-              ZApp (t, abs_term i u))
+            (ZApp (term i t, Same.commit (term i) u) handle Same.SAME =>
+              ZApp (t, term i u))
         | _ => raise Same.SAME);
 
-    fun abs_proof i (ZAbst (x, T, prf)) = ZAbst (x, T, abs_proof (i + 1) prf)
-      | abs_proof i (ZAbsP (x, t, prf)) =
-          (ZAbsP (x, abs_term i t, Same.commit (abs_proof i) prf) handle Same.SAME =>
-            ZAbsP (x, t, abs_proof i prf))
-      | abs_proof i (ZAppt (p, t)) =
-          (ZAppt (abs_proof i p, Same.commit (abs_term i) t) handle Same.SAME =>
-            ZAppt (p, abs_term i t))
-      | abs_proof i (ZAppP (p, q)) =
-          (ZAppP (abs_proof i p, Same.commit (abs_proof i) q) handle Same.SAME =>
-            ZAppP (p, abs_proof i q))
-      | abs_proof _ _ = raise Same.SAME;
+    fun proof i (ZAbst (x, T, prf)) = ZAbst (x, T, proof (i + 1) prf)
+      | proof i (ZAbsP (x, t, prf)) =
+          (ZAbsP (x, term i t, Same.commit (proof i) prf) handle Same.SAME =>
+            ZAbsP (x, t, proof i prf))
+      | proof i (ZAppt (p, t)) =
+          (ZAppt (proof i p, Same.commit (term i) t) handle Same.SAME =>
+            ZAppt (p, term i t))
+      | proof i (ZAppP (p, q)) =
+          (ZAppP (proof i p, Same.commit (proof i) q) handle Same.SAME =>
+            ZAppP (p, proof i q))
+      | proof _ _ = raise Same.SAME;
 
-  in ZAbst (a, Z, Same.commit (abs_proof 0) prf) end;
+  in ZAbst (a, Z, Same.commit (proof 0) prf) end;
 
 fun forall_elim_proof thy t p = ZAppt (p, global_zterm_of thy t);
 
