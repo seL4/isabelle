@@ -181,6 +181,8 @@ sig
   val combination_proof: theory -> typ -> typ -> term -> term -> term -> term ->
     zproof -> zproof -> zproof
   val generalize_proof: Names.set * Names.set -> int -> zproof -> zproof
+  val instantiate_proof: theory ->
+    ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> zproof -> zproof
   val varifyT_proof: ((string * sort) * (indexname * sort)) list -> zproof -> zproof
 end;
 
@@ -525,6 +527,17 @@ fun generalize_proof (tfrees, frees) idx prf =
       subst_term_same typ (fn ((x, i), T) =>
         if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
         else raise Same.SAME);
+  in Same.commit (map_proof_same typ term) prf end;
+
+fun instantiate_proof thy (Ts, ts) prf =
+  let
+    val instT = ZTVars.build (Ts |> fold (fn (v, T) => ZTVars.add (v, ztyp_of T)));
+    val inst =
+      ZVars.build (ts |> fold (fn ((v, T), t) => ZVars.add ((v, ztyp_of T), global_zterm_of thy t)));
+    val typ =
+      if ZTVars.is_empty instT then Same.same
+      else subst_type_same (Same.function (ZTVars.lookup instT));
+    val term = subst_term_same typ (Same.function (ZVars.lookup inst));
   in Same.commit (map_proof_same typ term) prf end;
 
 fun varifyT_proof names prf =

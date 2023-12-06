@@ -1811,10 +1811,15 @@ fun gen_instantiate inst_fn (instT, inst) th =
       val constraints' =
         TVars.fold (fn ((_, S), (T, _)) => insert_constraints thy' (T, S))
           instT' constraints;
+
+      fun prf p =
+        Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') p;
+      fun zprf p =
+        ZTerm.instantiate_proof thy'
+          (TVars.fold (fn (v, (T, _)) => cons (v, T)) instT' [],
+           Vars.fold (fn (v, (t, _)) => cons (v, t)) inst' []) p;
     in
-      Thm (deriv_rule1
-        (fn d => Proofterm.instantiate (TVars.map (K #1) instT', Vars.map (K #1) inst') d,
-          ZTerm.todo_proof) der,
+      Thm (deriv_rule1 (prf, zprf) der,
        {cert = cert',
         tags = [],
         maxidx = maxidx',
