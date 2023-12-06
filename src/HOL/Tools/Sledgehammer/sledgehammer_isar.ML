@@ -477,8 +477,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
               one_line_proof_text ctxt 0
                 (if is_less (play_outcome_ord (play_outcome, one_line_play)) then
                    (case isar_proof of
-                     Proof {steps = [Prove {facts = (_, gfs), proof_methods = meth :: _, ...}],
-                       ...} =>
+                     Proof {steps = [Prove {qualifiers = [Show], facts = (_, gfs),
+                       proof_methods = meth :: _, ...}], ...} =>
                      let
                        val used_facts' =
                          map_filter (fn s =>
@@ -489,7 +489,8 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                               SOME (s, (Global, General))) gfs
                      in
                        ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
-                     end)
+                     end
+                   | _ => one_line_params)
                  else
                    one_line_params) ^
               (if isar_proofs = SOME true then "\n(No Isar proof available)" else "")
