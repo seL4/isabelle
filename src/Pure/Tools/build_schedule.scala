@@ -432,6 +432,8 @@ object Build_Schedule {
     }
 
     type Graph = isabelle.Graph[String, Node]
+
+    def empty: Schedule = Schedule("none", Date.now(), Graph.empty)
   }
 
   case class Schedule(generator: String, start: Date, graph: Schedule.Graph) {
@@ -441,6 +443,19 @@ object Build_Schedule {
 
     def duration: Time = end.time - start.time
     def message: String = "Estimated " + duration.message_hms + " build time with " + generator
+
+    def is_current(state: Build_Process.State): Boolean =
+      !graph.is_empty && graph.minimals.toSet.intersect(state.results.keySet).isEmpty
+    def is_current_estimate(other: Schedule): Boolean =
+      (end.time - other.end.time).minutes.abs < 1
+
+    def next(hostname: String, state: Build_Process.State): List[String] =
+      for {
+        task <- state.next_ready
+        node = graph.get_node(task.name)
+        if node.start.time == start.time
+        if hostname == node.node_info.hostname
+      } yield task.name
   }
 
   case class State(build_state: Build_Process.State, current_time: Time, finished: Schedule) {
@@ -848,21 +863,10 @@ object Build_Schedule {
 
     /* build process */
 
-    case class Cache(state: Build_Process.State, configs: List[Config], estimate: Date) {
-      def is_current(state: Build_Process.State): Boolean =
-        this.state.pending.nonEmpty && this.state.results == state.results
-      def is_current_estimate(estimate: Date): Boolean =
-        Math.abs((this.estimate.time - estimate.time).ms) < Time.minutes(1).ms
-    }
+    private var _schedule = Schedule.empty
 
-    private var cache = Cache(Build_Process.State(), Nil, Date.now())
-
-    override def next_node_info(state: Build_Process.State, session_name: String): Node_Info = {
-      val configs =
-        if (cache.is_current(state)) cache.configs
-        else scheduler.next(state)
-      configs.find(_.job_name == session_name).get.node_info
-    }
+    override def next_node_info(state: Build_Process.State, session_name: String): Node_Info =
+      _schedule.graph.get_node(session_name).node_info
 
     def is_current(state: Build_Process.State, session_name: String): Boolean =
       state.ancestor_results(session_name) match {
@@ -891,23 +895,21 @@ object Build_Schedule {
       val finalize_limit = if (build_context.master) Int.MaxValue else 0
 
       if (progress.stopped) state.next_ready.map(_.name).take(finalize_limit)
-      else if (cache.is_current(state)) cache.configs.map(_.job_name).filterNot(state.is_running)
+      else if (_schedule.is_current(state)) _schedule.next(hostname, state)
       else {
         val current = state.next_ready.filter(task => is_current(state, task.name))
         if (current.nonEmpty) current.map(_.name).take(finalize_limit)
         else {
           val start = Time.now()
-          val next = scheduler.next(state)
           val schedule = scheduler.build_schedule(state)
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
-          progress.echo_if(build_context.master && !cache.is_current_estimate(schedule.end),
+          progress.echo_if(build_context.master && !schedule.is_current_estimate(_schedule),
             schedule.message + timing_msg)
 
-          val configs = next.filter(_.node_info.hostname == hostname)
-          cache = Cache(state, configs, schedule.end)
-          configs.map(_.job_name)
+          _schedule = schedule
+          _schedule.next(hostname, state)
         }
       }
     }
