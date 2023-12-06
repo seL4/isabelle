@@ -233,31 +233,31 @@ fun subst_term_same typ var =
       | term (ZClass (T, c)) = ZClass (typ T, c);
   in term end;
 
+fun map_insts_same typ term (instT, inst) =
+  let
+    val changed = Unsynchronized.ref false;
+    val instT' =
+      (instT, instT) |-> ZTVars.fold (fn (v, T) =>
+        (case Same.catch typ T of
+          SOME U => (changed := true; ZTVars.update (v, U))
+        | NONE => I));
+    val inst' =
+      if ! changed then
+        ZVars.dest inst
+        |> map (fn ((x, T), t) => ((x, Same.commit typ T), Same.commit term t))
+        |> ZVars.make
+      else
+        (inst, inst) |-> ZVars.fold (fn (v, t) =>
+          (case Same.catch term t of
+            SOME u => (changed := true; ZVars.update (v, u))
+          | NONE => I));
+  in if ! changed then (instT', inst') else raise Same.SAME end;
+
 fun map_proof_same typ term =
   let
-    fun change_insts (instT, inst) =
-      let
-        val changed = Unsynchronized.ref false;
-        val instT' =
-          (instT, instT) |-> ZTVars.fold (fn (v, T) =>
-            (case Same.catch typ T of
-              SOME U => (changed := true; ZTVars.update (v, U))
-            | NONE => I));
-        val inst' =
-          if ! changed then
-            ZVars.dest inst
-            |> map (fn ((x, T), t) => ((x, Same.commit typ T), Same.commit term t))
-            |> ZVars.make
-          else
-            (inst, inst) |-> ZVars.fold (fn (v, t) =>
-              (case Same.catch term t of
-                SOME u => (changed := true; ZVars.update (v, u))
-              | NONE => I));
-      in if ! changed then SOME (instT', inst') else NONE end;
-
     fun proof ZDummy = raise Same.SAME
       | proof (ZConstP (a, A, instT, inst)) =
-          (case change_insts (instT, inst) of
+          (case Same.catch (map_insts_same typ term) (instT, inst) of
             NONE => ZConstP (a, term A, instT, inst)
           | SOME (instT', inst') => ZConstP (a, Same.commit term A, instT', inst'))
       | proof (ZBoundP _) = raise Same.SAME
