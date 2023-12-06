@@ -304,15 +304,6 @@ fun map_proof_same typ term =
 fun map_proof_types_same typ =
   map_proof_same typ (subst_term_same typ Same.same);
 
-fun map_const_proof (f, g) prf =
-  (case prf of
-    ZConstP (a, A, instT, inst) =>
-      let
-        val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
-        val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
-      in ZConstP (a, A, instT', inst') end
-  | _ => prf);
-
 
 (* convert ztyp / zterm vs. regular typ / term *)
 
@@ -388,7 +379,7 @@ fun dummy_proof _ = ZDummy;
 val todo_proof = dummy_proof;
 
 
-(* basic logic *)
+(* constants *)
 
 fun const_proof thy a A =
   let
@@ -403,8 +394,23 @@ fun const_proof thy a A =
         | _ => tab)));
   in ZConstP (a, t, instT, inst) end;
 
-fun axiom_proof thy name = const_proof thy (ZAxiom name);
-fun oracle_proof thy name = const_proof thy (ZOracle name);
+fun map_const_proof (f, g) prf =
+  (case prf of
+    ZConstP (a, A, instT, inst) =>
+      let
+        val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
+        val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
+      in ZConstP (a, A, instT', inst') end
+  | _ => prf);
+
+
+(* basic logic *)
+
+fun axiom_proof thy name =
+  const_proof thy (ZAxiom name);
+
+fun oracle_proof thy name =
+  const_proof thy (ZOracle name);
 
 fun assume_proof thy A =
   ZHyp (zterm_of thy A);
