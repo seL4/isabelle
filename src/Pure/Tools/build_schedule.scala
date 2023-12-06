@@ -1049,4 +1049,157 @@ object Build_Schedule {
       }
     }
   }
+
+  def write_schedule_graphic(schedule: Schedule, output: Path): Unit = {
+    import java.awt.geom.{GeneralPath, Rectangle2D}
+    import java.awt.{BasicStroke, Color, Graphics2D}
+
+    val line_height = isabelle.graphview.Metrics.default.height
+    val char_width = isabelle.graphview.Metrics.default.char_width
+    val padding = isabelle.graphview.Metrics.default.space_width
+    val gap = isabelle.graphview.Metrics.default.gap
+
+    val graph = schedule.graph
+
+    def text_width(text: String): Double = text.length * char_width
+
+    val generator_height = line_height + padding
+    val hostname_height = generator_height + line_height + padding
+    def time_height(time: Time): Double = time.seconds
+    def date_height(date: Date): Double = time_height(date.time - schedule.start.time)
+
+    val hosts = graph.iterator.map(_._2._1).toList.groupBy(_.node_info.hostname)
+
+    def node_width(node: Schedule.Node): Double = 2 * padding + text_width(node.job_name)
+
+    case class Range(start: Double, stop: Double) {
+      def proper: List[Range] = if (start < stop) List(this) else Nil
+      def width: Double = stop - start
+    }
+
+    val rel_node_ranges =
+      hosts.toList.flatMap { (hostname, nodes) =>
+        val sorted = nodes.sortBy(node => (node.start.time.ms, node.end.time.ms, node.job_name))
+        sorted.foldLeft((List.empty[Schedule.Node], Map.empty[Schedule.Node, Range])) {
+          case ((nodes, allocated), node) =>
+            val width = node_width(node) + padding
+            val parallel = nodes.filter(_.end.time > node.start.time)
+            val (last, slots) =
+              parallel.sortBy(allocated(_).start).foldLeft((0D, List.empty[Range])) {
+                case ((start, ranges), node1) =>
+                  val node_range = allocated(node1)
+                  (node_range.stop, ranges ::: Range(start, node_range.start).proper)
+              }
+            val start =
+              (Range(last, Double.MaxValue) :: slots.filter(_.width >= width)).minBy(_.width).start
+            (node :: parallel, allocated + (node -> Range(start, start + width)))
+        }._2
+      }.toMap
+
+    def host_width(hostname: String) =
+      2 * padding + (hosts(hostname).map(rel_node_ranges(_).stop).max max text_width(hostname))
+
+    def graph_height(graph: Graph[String, Schedule.Node]): Double =
+      date_height(graph.maximals.map(graph.get_node(_).end).maxBy(_.unix_epoch))
+
+    val height = (hostname_height + 2 * padding + graph_height(graph)).ceil.toInt
+    val (last, host_starts) =
+      hosts.keys.foldLeft((0D, Map.empty[String, Double])) {
+        case ((previous, starts), hostname) =>
+          (previous + gap + host_width(hostname), starts + (hostname -> previous))
+      }
+    val width = (last - gap).ceil.toInt
+
+    def node_start(node: Schedule.Node): Double =
+      host_starts(node.node_info.hostname) + padding + rel_node_ranges(node).start
+
+    def paint(gfx: Graphics2D): Unit = {
+      gfx.setColor(Color.LIGHT_GRAY)
+      gfx.fillRect(0, 0, width, height)
+      gfx.setRenderingHints(isabelle.graphview.Metrics.rendering_hints)
+      gfx.setFont(isabelle.graphview.Metrics.default.font)
+      gfx.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND))
+
+      draw_string(schedule.generator + ", build time: " + schedule.duration.message_hms, padding, 0)
+
+      def draw_host(x: Double, hostname: String): Double = {
+        val nodes = hosts(hostname).map(_.job_name).toSet
+        val width = host_width(hostname)
+        val height = 2 * padding + graph_height(graph.restrict(nodes.contains))
+        val padding1 = ((width - text_width(hostname)) / 2) max 0
+        val rect = new Rectangle2D.Double(x, hostname_height, width, height)
+        gfx.setColor(Color.BLACK)
+        gfx.draw(rect)
+        gfx.setColor(Color.GRAY)
+        gfx.fill(rect)
+        draw_string(hostname, x + padding1, generator_height)
+        x + gap + width
+      }
+
+      def draw_string(str: String, x: Double, y: Double): Unit = {
+        gfx.setColor(Color.BLACK)
+        gfx.drawString(str, x.toInt, (y + line_height).toInt)
+      }
+
+      def node_rect(node: Schedule.Node): Rectangle2D.Double = {
+        val x = node_start(node)
+        val y = hostname_height + padding + date_height(node.start)
+        val width = node_width(node)
+        val height = time_height(node.duration)
+        new Rectangle2D.Double(x, y, width, height)
+      }
+
+      def draw_node(node: Schedule.Node): Rectangle2D.Double = {
+        val rect = node_rect(node)
+        gfx.setColor(Color.BLACK)
+        gfx.draw(rect)
+        gfx.setColor(Color.WHITE)
+        gfx.fill(rect)
+
+        def add_text(y: Double, text: String): Double =
+          if (line_height > rect.height - y || text_width(text) + 2 * padding > rect.width) y
+          else {
+            val padding1 = padding min ((rect.height - (y + line_height)) / 2)
+            draw_string(text, rect.x + padding, rect.y + y + padding1)
+            y + padding1 + line_height
+          }
+
+        val node_info = node.node_info
+
+        val duration_str = "(" + node.duration.message_hms + ")"
+        val node_str =
+          "on " + proper_string(node_info.toString.stripPrefix(node_info.hostname)).getOrElse("all")
+        val start_str = "Start: " + (node.start.time - schedule.start.time).message_hms
+
+        List(node.job_name, duration_str, node_str, start_str).foldLeft(0D)(add_text)
+
+        rect
+      }
+
+      def draw_arrow(from: Schedule.Node, to: Rectangle2D.Double, curve: Double = 10): Unit = {
+        val from_rect = node_rect(from)
+
+        val path = new GeneralPath()
+        path.moveTo(from_rect.getCenterX, from_rect.getMaxY)
+        path.lineTo(to.getCenterX, to.getMinY)
+
+        gfx.setColor(Color.BLUE)
+        gfx.draw(path)
+      }
+
+      hosts.keys.foldLeft(0D)(draw_host)
+
+      graph.topological_order.foreach { job_name =>
+        val node = graph.get_node(job_name)
+        val rect = draw_node(node)
+
+        graph.imm_preds(job_name).foreach(pred => draw_arrow(graph.get_node(pred), rect))
+      }
+    }
+
+    val name = output.file_name
+    if (File.is_png(name)) Graphics_File.write_png(output.file, paint, width, height)
+    else if (File.is_pdf(name)) Graphics_File.write_pdf(output.file, paint, width, height)
+    else error("Bad type of file: " + quote(name) + " (.png or .pdf expected)")
+  }
 }
