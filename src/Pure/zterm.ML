@@ -523,10 +523,9 @@ fun generalize_proof (tfrees, frees) idx prf =
           if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
           else raise Same.SAME);
     val term =
-      if Names.is_empty frees then Same.same else
-        subst_term_same typ (fn ((x, i), T) =>
-          if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
-          else raise Same.SAME);
+      subst_term_same typ (fn ((x, i), T) =>
+        if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
+        else raise Same.SAME);
   in Same.commit (map_proof_same typ term) prf end;
 
 fun varifyT_proof names prf =
