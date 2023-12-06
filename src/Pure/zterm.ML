@@ -273,6 +273,9 @@ fun map_proof_same typ term =
       | proof (ZClassP (T, c)) = ZClassP (typ T, c);
   in proof end;
 
+fun map_proof_types_same typ =
+  map_proof_same typ (subst_term_same typ Same.same);
+
 
 (* instantiation *)
 
@@ -524,7 +527,6 @@ fun varifyT_proof names prf =
           (case ZTVars.lookup tab v of
             NONE => raise Same.SAME
           | SOME w => ZTVar w));
-      val term = subst_term_same typ Same.same;
-    in Same.commit (map_proof_same typ term) prf end;
+    in Same.commit (map_proof_types_same typ) prf end;
 
 end;
