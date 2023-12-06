@@ -63,7 +63,7 @@ object Build_Schedule {
       def linear(p0: (Int, Time), p1: (Int, Time)): Time = {
         val a = (p1._2 - p0._2).scale(1.0 / (p1._1 - p0._1))
         val b = p0._2 - a.scale(p0._1)
-        Time.ms((a.scale(threads) + b).ms max 0)
+        (a.scale(threads) + b) max Time.zero
       }
 
       val mono_prefix = sorted_prefix(entries, e => -e._2.ms)
@@ -83,7 +83,7 @@ object Build_Schedule {
         val t_c =
           Timing_Data.median_time(for ((n, t) <- mono_prefix) yield t - t_p.scale(1.0 / n))
 
-        def model(threads: Int): Time = Time.ms((t_c + t_p.scale(1.0 / threads)).ms max 0)
+        def model(threads: Int): Time = (t_c + t_p.scale(1.0 / threads)) max Time.zero
 
         if (is_mono || in_prefix) model(threads)
         else {
@@ -694,7 +694,7 @@ object Build_Schedule {
             val estimate =
               timing_data.estimate(job.name, job.node_info.hostname,
                 host_infos.num_threads(job.node_info))
-            node -> Time.ms((Time.now() - job.start_date.time + estimate).ms max 0)
+            node -> ((Time.now() - job.start_date.time + estimate) max Time.zero)
         }
 
       val max_parallel = parallel_paths(state.ready.map(_.name).map(remaining_time))
