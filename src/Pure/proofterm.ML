@@ -111,8 +111,8 @@ sig
   val prf_add_loose_bnos: int -> int -> proof -> int list * int list -> int list * int list
   val norm_proof: Envir.env -> proof -> proof
   val norm_proof_remove_types: Envir.env -> proof -> proof
-  val prf_subst_bounds: term list -> proof -> proof
-  val prf_subst_pbounds: proof list -> proof -> proof
+  val subst_bounds: term list -> proof -> proof
+  val subst_pbounds: proof list -> proof -> proof
   val freeze_thaw_prf: proof -> proof * (proof -> proof)
 
   (*proof terms for specific inference rules*)
@@ -789,7 +789,7 @@ fun norm_proof_remove_types env prf = norm_proof (remove_types_env env) prf;
 
 (* substitution of bound variables *)
 
-fun prf_subst_bounds args prf =
+fun subst_bounds args prf =
   let
     val n = length args;
     fun subst' lev (Bound i) =
@@ -812,7 +812,7 @@ fun prf_subst_bounds args prf =
       | subst _ _ = raise Same.SAME;
   in if null args then prf else Same.commit (subst 0) prf end;
 
-fun prf_subst_pbounds args prf =
+fun subst_pbounds args prf =
   let
     val n = length args;
     fun subst Plev tlev (PBound i) =
@@ -1481,8 +1481,8 @@ val normal_skel = Hyp (Var ((Name.uu, 0), propT));
 
 fun rewrite_prf tymatch (rules, procs) prf =
   let
-    fun rew _ _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, no_skel)
-      | rew _ _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, no_skel)
+    fun rew _ _ (Abst (_, _, body) % SOME t) = SOME (subst_bounds [t] body, no_skel)
+      | rew _ _ (AbsP (_, _, body) %% prf) = SOME (subst_pbounds [prf] body, no_skel)
       | rew Ts hs prf =
           (case get_first (fn r => r Ts hs prf) procs of
             NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
@@ -1517,7 +1517,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
     and rew2 Ts hs skel (prf % SOME t) =
           (case prf of
             Abst (_, _, body) =>
-              let val prf' = prf_subst_bounds [t] body
+              let val prf' = subst_bounds [t] body
               in SOME (the_default prf' (rew2 Ts hs no_skel prf')) end
           | _ =>
               (case rew1 Ts hs (case skel of skel' % _ => skel' | _ => no_skel) prf of
@@ -1528,7 +1528,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
       | rew2 Ts hs skel (prf1 %% prf2) =
           (case prf1 of
             AbsP (_, _, body) =>
-              let val prf' = prf_subst_pbounds [prf2] body
+              let val prf' = subst_pbounds [prf2] body
               in SOME (the_default prf' (rew2 Ts hs no_skel prf')) end
           | _ =>
             let

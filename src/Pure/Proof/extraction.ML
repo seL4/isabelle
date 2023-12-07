@@ -567,7 +567,7 @@ fun extract thm_vss thy =
           in (
             if T = nullT then AbsP ("R",
               SOME (app_rlz_rews Ts vs (rlz $ nullt $ prop)),
-                Proofterm.prf_subst_bounds [nullt] corr_prf)
+                Proofterm.subst_bounds [nullt] corr_prf)
             else Abst (s, SOME T, AbsP ("R",
               SOME (app_rlz_rews (T :: Ts) vs
                 (rlz $ Bound 0 $ incr_boundvars 1 prop)), corr_prf)), defs')
