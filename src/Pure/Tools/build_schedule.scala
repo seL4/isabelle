@@ -336,10 +336,6 @@ object Build_Schedule {
 
   /* offline tracking of job configurations and resource allocations */
 
-  object Config {
-    def from_job(job: Build_Process.Job): Config = Config(job.name, job.node_info)
-  }
-
   case class Config(job_name: String, node_info: Node_Info) {
     def job_of(start_time: Time): Build_Process.Job =
       Build_Process.Job(job_name, "", "", node_info, Date(start_time), None)
@@ -493,15 +489,14 @@ object Build_Schedule {
     def is_finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
   }
 
-  trait Scheduler {
-    def next(state: Build_Process.State): List[Config]
-    def build_schedule(build_state: Build_Process.State): Schedule
-  }
+  trait Scheduler { def build_schedule(build_state: Build_Process.State): Schedule }
 
   abstract class Heuristic(timing_data: Timing_Data, build_uuid: String)
     extends Scheduler {
     val host_infos = timing_data.host_infos
     val ordered_hosts = host_infos.hosts.sorted(host_infos.host_speeds)
+
+    def next(state: Build_Process.State): List[Config]
 
     def build_schedule(build_state: Build_Process.State): Schedule = {
       @tailrec
