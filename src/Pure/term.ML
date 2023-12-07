@@ -706,10 +706,10 @@ fun subst_bounds (args: term list, t) : term =
             handle General.Subscript => Bound (i - n))  (*loose: change it*)
       | subst lev (Abs (a, T, body)) = Abs (a, T, subst (lev + 1) body)
       | subst lev (f $ t) =
-          (subst lev f $ (subst lev t handle Same.SAME => t)
+          (subst lev f $ Same.commit (subst lev) t
             handle Same.SAME => f $ subst lev t)
       | subst _ _ = raise Same.SAME;
-  in if null args then t else (subst 0 t handle Same.SAME => t) end;
+  in if null args then t else Same.commit (subst 0) t end;
 
 (*Special case: one argument*)
 fun subst_bound (arg, t) : term =
@@ -720,7 +720,7 @@ fun subst_bound (arg, t) : term =
           else Bound (i - 1)   (*loose: change it*)
       | subst lev (Abs (a, T, body)) = Abs (a, T, subst (lev + 1) body)
       | subst lev (f $ t) =
-          (subst lev f $ (subst lev t handle Same.SAME => t)
+          (subst lev f $ Same.commit (subst lev) t
             handle Same.SAME => f $ subst lev t)
       | subst _ _ = raise Same.SAME;
   in subst 0 t handle Same.SAME => t end;

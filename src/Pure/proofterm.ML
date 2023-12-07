@@ -796,23 +796,21 @@ fun prf_subst_bounds args prf =
          (if i<lev then raise Same.SAME    (*var is locally bound*)
           else  incr_boundvars lev (nth args (i-lev))
                   handle General.Subscript => Bound (i-n))  (*loose: change it*)
-      | subst' lev (Abs (a, T, body)) = Abs (a, T,  subst' (lev+1) body)
-      | subst' lev (f $ t) = (subst' lev f $ substh' lev t
+      | subst' lev (Abs (a, T, body)) = Abs (a, T, subst' (lev+1) body)
+      | subst' lev (f $ t) = (subst' lev f $ Same.commit (subst' lev) t
           handle Same.SAME => f $ subst' lev t)
-      | subst' _ _ = raise Same.SAME
-    and substh' lev t = (subst' lev t handle Same.SAME => t);
+      | subst' _ _ = raise Same.SAME;
 
     fun subst lev (AbsP (a, t, body)) =
-        (AbsP (a, Same.map_option (subst' lev) t, substh lev body)
+        (AbsP (a, Same.map_option (subst' lev) t, Same.commit (subst lev) body)
           handle Same.SAME => AbsP (a, t, subst lev body))
       | subst lev (Abst (a, T, body)) = Abst (a, T, subst (lev+1) body)
-      | subst lev (prf %% prf') = (subst lev prf %% substh lev prf'
+      | subst lev (prf %% prf') = (subst lev prf %% Same.commit (subst lev) prf'
           handle Same.SAME => prf %% subst lev prf')
-      | subst lev (prf % t) = (subst lev prf % Option.map (substh' lev) t
+      | subst lev (prf % t) = (subst lev prf % Option.map (Same.commit (subst' lev)) t
           handle Same.SAME => prf % Same.map_option (subst' lev) t)
-      | subst _ _ = raise Same.SAME
-    and substh lev prf = (subst lev prf handle Same.SAME => prf);
-  in if null args then prf else substh 0 prf end;
+      | subst _ _ = raise Same.SAME;
+  in if null args then prf else Same.commit (subst 0) prf end;
 
 fun prf_subst_pbounds args prf =
   let
@@ -823,12 +821,11 @@ fun prf_subst_pbounds args prf =
                  handle General.Subscript => PBound (i-n)  (*loose: change it*))
       | subst Plev tlev (AbsP (a, t, body)) = AbsP (a, t, subst (Plev+1) tlev body)
       | subst Plev tlev (Abst (a, T, body)) = Abst (a, T, subst Plev (tlev+1) body)
-      | subst Plev tlev (prf %% prf') = (subst Plev tlev prf %% substh Plev tlev prf'
+      | subst Plev tlev (prf %% prf') = (subst Plev tlev prf %% Same.commit (subst Plev tlev) prf'
           handle Same.SAME => prf %% subst Plev tlev prf')
       | subst Plev tlev (prf % t) = subst Plev tlev prf % t
-      | subst  _ _ _ = raise Same.SAME
-    and substh Plev tlev prf = (subst Plev tlev prf handle Same.SAME => prf)
-  in if null args then prf else substh 0 0 prf end;
+      | subst  _ _ _ = raise Same.SAME;
+  in if null args then prf else Same.commit (subst 0 0) prf end;
 
 
 (* freezing and thawing of variables in proof terms *)
