@@ -697,33 +697,33 @@ fun is_dependent t = loose_bvar1 (t, 0);
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.
 *)
-fun subst_bounds (args: term list, t) : term =
+fun subst_bounds (args: term list, tm) : term =
   let
     val n = length args;
-    fun subst lev (Bound i) =
+    fun term lev (Bound i) =
          (if i < lev then raise Same.SAME   (*var is locally bound*)
           else incr_boundvars lev (nth args (i - lev))
             handle General.Subscript => Bound (i - n))  (*loose: change it*)
-      | subst lev (Abs (a, T, body)) = Abs (a, T, subst (lev + 1) body)
-      | subst lev (f $ t) =
-          (subst lev f $ Same.commit (subst lev) t
-            handle Same.SAME => f $ subst lev t)
-      | subst _ _ = raise Same.SAME;
-  in if null args then t else Same.commit (subst 0) t end;
+      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
+      | term lev (t $ u) =
+          (term lev t $ Same.commit (term lev) u
+            handle Same.SAME => t $ term lev u)
+      | term _ _ = raise Same.SAME;
+  in if null args then tm else Same.commit (term 0) tm end;
 
 (*Special case: one argument*)
-fun subst_bound (arg, t) : term =
+fun subst_bound (arg, tm) : term =
   let
-    fun subst lev (Bound i) =
+    fun term lev (Bound i) =
           if i < lev then raise Same.SAME   (*var is locally bound*)
           else if i = lev then incr_boundvars lev arg
           else Bound (i - 1)   (*loose: change it*)
-      | subst lev (Abs (a, T, body)) = Abs (a, T, subst (lev + 1) body)
-      | subst lev (f $ t) =
-          (subst lev f $ Same.commit (subst lev) t
-            handle Same.SAME => f $ subst lev t)
-      | subst _ _ = raise Same.SAME;
-  in subst 0 t handle Same.SAME => t end;
+      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
+      | term lev (t $ u) =
+          (term lev t $ Same.commit (term lev) u
+            handle Same.SAME => t $ term lev u)
+      | term _ _ = raise Same.SAME;
+  in term 0 tm handle Same.SAME => tm end;
 
 (*beta-reduce if possible, else form application*)
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)

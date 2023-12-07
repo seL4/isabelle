@@ -792,40 +792,40 @@ fun norm_proof_remove_types env prf = norm_proof (remove_types_env env) prf;
 fun subst_bounds args prf =
   let
     val n = length args;
-    fun subst' lev (Bound i) =
+    fun term lev (Bound i) =
          (if i<lev then raise Same.SAME    (*var is locally bound*)
           else  incr_boundvars lev (nth args (i-lev))
                   handle General.Subscript => Bound (i-n))  (*loose: change it*)
-      | subst' lev (Abs (a, T, body)) = Abs (a, T, subst' (lev+1) body)
-      | subst' lev (f $ t) = (subst' lev f $ Same.commit (subst' lev) t
-          handle Same.SAME => f $ subst' lev t)
-      | subst' _ _ = raise Same.SAME;
+      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev+1) t)
+      | term lev (t $ u) = (term lev t $ Same.commit (term lev) u
+          handle Same.SAME => t $ term lev u)
+      | term _ _ = raise Same.SAME;
 
-    fun subst lev (AbsP (a, t, body)) =
-        (AbsP (a, Same.map_option (subst' lev) t, Same.commit (subst lev) body)
-          handle Same.SAME => AbsP (a, t, subst lev body))
-      | subst lev (Abst (a, T, body)) = Abst (a, T, subst (lev+1) body)
-      | subst lev (prf %% prf') = (subst lev prf %% Same.commit (subst lev) prf'
-          handle Same.SAME => prf %% subst lev prf')
-      | subst lev (prf % t) = (subst lev prf % Option.map (Same.commit (subst' lev)) t
-          handle Same.SAME => prf % Same.map_option (subst' lev) t)
-      | subst _ _ = raise Same.SAME;
-  in if null args then prf else Same.commit (subst 0) prf end;
+    fun proof lev (AbsP (a, t, p)) =
+        (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
+          handle Same.SAME => AbsP (a, t, proof lev p))
+      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev+1) p)
+      | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
+          handle Same.SAME => p %% proof lev q)
+      | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
+          handle Same.SAME => p % Same.map_option (term lev) t)
+      | proof _ _ = raise Same.SAME;
+  in if null args then prf else Same.commit (proof 0) prf end;
 
 fun subst_pbounds args prf =
   let
     val n = length args;
-    fun subst Plev tlev (PBound i) =
+    fun proof Plev tlev (PBound i) =
          (if i < Plev then raise Same.SAME    (*var is locally bound*)
           else incr_pboundvars Plev tlev (nth args (i-Plev))
                  handle General.Subscript => PBound (i-n)  (*loose: change it*))
-      | subst Plev tlev (AbsP (a, t, body)) = AbsP (a, t, subst (Plev+1) tlev body)
-      | subst Plev tlev (Abst (a, T, body)) = Abst (a, T, subst Plev (tlev+1) body)
-      | subst Plev tlev (prf %% prf') = (subst Plev tlev prf %% Same.commit (subst Plev tlev) prf'
-          handle Same.SAME => prf %% subst Plev tlev prf')
-      | subst Plev tlev (prf % t) = subst Plev tlev prf % t
-      | subst  _ _ _ = raise Same.SAME;
-  in if null args then prf else Same.commit (subst 0 0) prf end;
+      | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev+1) tlev p)
+      | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev+1) p)
+      | proof Plev tlev (p %% q) = (proof Plev tlev p %% Same.commit (proof Plev tlev) q
+          handle Same.SAME => p %% proof Plev tlev q)
+      | proof Plev tlev (p % t) = proof Plev tlev p % t
+      | proof  _ _ _ = raise Same.SAME;
+  in if null args then prf else Same.commit (proof 0 0) prf end;
 
 
 (* freezing and thawing of variables in proof terms *)
