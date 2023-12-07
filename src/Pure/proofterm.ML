@@ -752,7 +752,7 @@ fun norm_proof env =
           (AbsP (s, Same.map_option (htype Envir.norm_term_same) t, Same.commit norm prf)
             handle Same.SAME => AbsP (s, t, norm prf))
       | norm (prf % t) =
-          (norm prf % Option.map (htype Envir.norm_term) t
+          (norm prf % Option.map (Same.commit (htype Envir.norm_term_same)) t
             handle Same.SAME => prf % Same.map_option (htype Envir.norm_term_same) t)
       | norm (prf1 %% prf2) =
           (norm prf1 %% Same.commit norm prf2
