@@ -73,9 +73,9 @@ fun rew b _ _ =
           val _ $ A $ C = Envir.beta_norm X;
           val _ $ B $ D = Envir.beta_norm Y
         in SOME (AbsP ("H1", ?? X, AbsP ("H2", ?? B,
-          Proofterm.equal_elim_axm %> C %> D %% Proofterm.incr_pboundvars 2 0 prf2 %%
+          Proofterm.equal_elim_axm %> C %> D %% Proofterm.incr_boundvars 2 0 prf2 %%
             (PBound 1 %% (equal_elim_axm %> B %> A %%
-              (Proofterm.symmetric_axm % ?? A % ?? B %% Proofterm.incr_pboundvars 2 0 prf1) %%
+              (Proofterm.symmetric_axm % ?? A % ?? B %% Proofterm.incr_boundvars 2 0 prf1) %%
                 PBound 0)))))
         end
 
@@ -89,9 +89,9 @@ fun rew b _ _ =
           val _ $ B $ D = Envir.beta_norm X
         in SOME (AbsP ("H1", ?? X, AbsP ("H2", ?? A,
           equal_elim_axm %> D %> C %%
-            (symmetric_axm % ?? C % ?? D %% Proofterm.incr_pboundvars 2 0 prf2) %%
+            (symmetric_axm % ?? C % ?? D %% Proofterm.incr_boundvars 2 0 prf2) %%
               (PBound 1 %%
-                (equal_elim_axm %> A %> B %% Proofterm.incr_pboundvars 2 0 prf1 %% PBound 0)))))
+                (equal_elim_axm %> A %> B %% Proofterm.incr_boundvars 2 0 prf1 %% PBound 0)))))
         end
 
       | rew' (PAxm ("Pure.combination", _, _) %
@@ -111,7 +111,7 @@ fun rew b _ _ =
           val _ $ Q = Envir.beta_norm Y;
         in SOME (AbsP ("H", ?? X, Abst ("x", ty T,
             equal_elim_axm %> incr_boundvars 1 P $ Bound 0 %> incr_boundvars 1 Q $ Bound 0 %%
-              (Proofterm.incr_pboundvars 1 1 prf %> Bound 0) %% (PBound 0 %> Bound 0))))
+              (Proofterm.incr_boundvars 1 1 prf %> Bound 0) %% (PBound 0 %> Bound 0))))
         end
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
@@ -126,7 +126,7 @@ fun rew b _ _ =
           val u = incr_boundvars 1 Q $ Bound 0
         in SOME (AbsP ("H", ?? X, Abst ("x", ty T,
           equal_elim_axm %> t %> u %%
-            (symmetric_axm % ?? u % ?? t %% (Proofterm.incr_pboundvars 1 1 prf %> Bound 0))
+            (symmetric_axm % ?? u % ?? t %% (Proofterm.incr_boundvars 1 1 prf %> Bound 0))
               %% (PBound 0 %> Bound 0))))
         end
 
@@ -327,7 +327,7 @@ fun hhf_proof P Q prf =
           mk_prf (i - 1) j Hs Hs' P (prf %% un_hhf_proof H' H (PBound i))
       | mk_prf _ _ _ _ _ prf = prf
   in
-    prf |> Proofterm.incr_pboundvars k l |> mk_prf (k - 1) (l - 1) Hs Hs' P |>
+    prf |> Proofterm.incr_boundvars k l |> mk_prf (k - 1) (l - 1) Hs Hs' P |>
     fold_rev (fn P => fn prf => AbsP ("H", SOME P, prf)) Hs' |>
     fold_rev (fn (s, T) => fn prf => Abst (s, SOME T, prf)) params
   end
@@ -344,7 +344,7 @@ and un_hhf_proof P Q prf =
           AbsP ("H", SOME P, mk_prf Q prf)
       | mk_prf _ prf = prf
   in
-    prf |> Proofterm.incr_pboundvars k l |>
+    prf |> Proofterm.incr_boundvars k l |>
     fold (fn i => fn prf => prf %> Bound i) (l - 1 downto 0) |>
     fold (fn ((H, H'), i) => fn prf => prf %% hhf_proof H' H (PBound i))
       (Hs ~~ Hs' ~~ (k - 1 downto 0)) |>

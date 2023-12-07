@@ -104,8 +104,9 @@ sig
   val size_of_proof: proof -> int
   val change_types: typ list option -> proof -> proof
   val prf_abstract_over: term -> proof -> proof
-  val prf_incr_bv: int -> int -> int -> int -> proof -> proof
-  val incr_pboundvars: int -> int -> proof -> proof
+  val incr_bv_same: int -> int -> int -> int -> proof Same.operation
+  val incr_bv: int -> int -> int -> int -> proof -> proof
+  val incr_boundvars: int -> int -> proof -> proof
   val prf_loose_bvar1: proof -> int -> bool
   val prf_loose_Pbvar1: proof -> int -> bool
   val prf_add_loose_bnos: int -> int -> proof -> int list * int list -> int list * int list
@@ -643,26 +644,30 @@ fun prf_abstract_over v =
      inc is  increment for bound variables
      lev is  level at which a bound variable is considered 'loose'*)
 
-fun prf_incr_bv' incP _ Plev _ (PBound i) =
-      if i >= Plev then PBound (i+incP) else raise Same.SAME
-  | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
-      (AbsP (a, Same.map_option (incr_bv_same inct tlev) t,
-         prf_incr_bv incP inct (Plev+1) tlev body) handle Same.SAME =>
-           AbsP (a, t, prf_incr_bv' incP inct (Plev+1) tlev body))
-  | prf_incr_bv' incP inct Plev tlev (Abst (a, T, body)) =
-      Abst (a, T, prf_incr_bv' incP inct Plev (tlev+1) body)
-  | prf_incr_bv' incP inct Plev tlev (prf %% prf') =
-      (prf_incr_bv' incP inct Plev tlev prf %% prf_incr_bv incP inct Plev tlev prf'
-       handle Same.SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
-  | prf_incr_bv' incP inct Plev tlev (prf % t) =
-      (prf_incr_bv' incP inct Plev tlev prf % Option.map (incr_bv inct tlev) t
-       handle Same.SAME => prf % Same.map_option (incr_bv_same inct tlev) t)
-  | prf_incr_bv' _ _ _ _ _ = raise Same.SAME
-and prf_incr_bv incP inct Plev tlev prf =
-      (prf_incr_bv' incP inct Plev tlev prf handle Same.SAME => prf);
+fun incr_bv_same incP inct =
+  if incP = 0 andalso inct = 0 then fn _ => fn _ => Same.same
+  else
+    let
+      fun proof Plev _ (PBound i) =
+            if i >= Plev then PBound (i + incP) else raise Same.SAME
+        | proof Plev tlev (AbsP (a, t, p)) =
+            (AbsP (a, Same.map_option (Term.incr_bv_same inct tlev) t,
+               Same.commit (proof (Plev + 1) tlev) p) handle Same.SAME =>
+                 AbsP (a, t, proof (Plev + 1) tlev p))
+        | proof Plev tlev (Abst (a, T, body)) =
+            Abst (a, T, proof Plev (tlev + 1) body)
+        | proof Plev tlev (p %% q) =
+            (proof Plev tlev p %% Same.commit (proof Plev tlev) q
+             handle Same.SAME => p %% proof Plev tlev q)
+        | proof Plev tlev (p % t) =
+            (proof Plev tlev p % Option.map (Term.incr_bv inct tlev) t
+             handle Same.SAME => p % Same.map_option (Term.incr_bv_same inct tlev) t)
+        | proof _ _ _ = raise Same.SAME;
+    in proof end;
 
-fun incr_pboundvars  0 0 prf = prf
-  | incr_pboundvars incP inct prf = prf_incr_bv incP inct 0 0 prf;
+fun incr_bv incP inct Plev tlev = Same.commit (incr_bv_same incP inct Plev tlev);
+
+fun incr_boundvars incP inct = incr_bv incP inct 0 0;
 
 
 fun prf_loose_bvar1 (prf1 %% prf2) k = prf_loose_bvar1 prf1 k orelse prf_loose_bvar1 prf2 k
@@ -792,7 +797,7 @@ fun subst_bounds args prf =
     val n = length args;
     fun term lev (Bound i) =
          (if i<lev then raise Same.SAME    (*var is locally bound*)
-          else incr_boundvars lev (nth args (i - lev))
+          else Term.incr_boundvars lev (nth args (i - lev))
                   handle General.Subscript => Bound (i - n))  (*loose: change it*)
       | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
       | term lev (t $ u) = (term lev t $ Same.commit (term lev) u
@@ -815,7 +820,7 @@ fun subst_pbounds args prf =
     val n = length args;
     fun proof Plev tlev (PBound i) =
          (if i < Plev then raise Same.SAME    (*var is locally bound*)
-          else incr_pboundvars Plev tlev (nth args (i - Plev))
+          else incr_boundvars Plev tlev (nth args (i - Plev))
                  handle General.Subscript => PBound (i - n)  (*loose: change it*))
       | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev + 1) tlev p)
       | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev + 1) p)
@@ -1363,9 +1368,9 @@ fun match_proof Ts tymatch =
           if i = 0 andalso j = 0 then ((ixn, prf) :: pinst, tinst)
           else
             (case apfst (flt i) (apsnd (flt j) (prf_add_loose_bnos 0 0 prf ([], []))) of
-              ([], []) => ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
+              ([], []) => ((ixn, incr_boundvars (~i) (~j) prf) :: pinst, tinst)
             | ([], _) =>
-                if j = 0 then ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
+                if j = 0 then ((ixn, incr_boundvars (~i) (~j) prf) :: pinst, tinst)
                 else raise PMatch
             | _ => raise PMatch)
       | mtch Ts i j inst (prf1 % opt1, prf2 % opt2) =
@@ -1377,11 +1382,11 @@ fun match_proof Ts tymatch =
             (optmatch matchT inst (opT, opU)) (prf1, prf2)
       | mtch Ts i j inst (prf1, Abst (_, opU, prf2)) =
           mtch (the_default dummyT opU :: Ts) i (j+1) inst
-            (incr_pboundvars 0 1 prf1 %> Bound 0, prf2)
+            (incr_boundvars 0 1 prf1 %> Bound 0, prf2)
       | mtch Ts i j inst (AbsP (_, opt, prf1), AbsP (_, opu, prf2)) =
           mtch Ts (i+1) j (optmatch (matcht Ts j) inst (opt, opu)) (prf1, prf2)
       | mtch Ts i j inst (prf1, AbsP (_, _, prf2)) =
-          mtch Ts (i+1) j inst (incr_pboundvars 1 0 prf1 %% PBound 0, prf2)
+          mtch Ts (i+1) j inst (incr_boundvars 1 0 prf1 %% PBound 0, prf2)
       | mtch Ts i j inst (PAxm (s1, _, opTs), PAxm (s2, _, opUs)) =
           if s1 = s2 then optmatch matchTs inst (opTs, opUs)
           else raise PMatch
@@ -1406,7 +1411,7 @@ fun prf_subst (pinst, (tyinsts, insts)) =
     fun subst' lev (Var (xi, _)) =
         (case AList.lookup (op =) insts xi of
           NONE => raise Same.SAME
-        | SOME u => incr_boundvars lev u)
+        | SOME u => Term.incr_boundvars lev u)
       | subst' _ (Const (s, T)) = Const (s, substT T)
       | subst' _ (Free (s, T)) = Free (s, substT T)
       | subst' lev (Abs (a, T, body)) =
@@ -1432,7 +1437,7 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst plev tlev (Hyp (Var (xi, _))) =
           (case AList.lookup (op =) pinst xi of
             NONE => raise Same.SAME
-          | SOME prf' => incr_pboundvars plev tlev prf')
+          | SOME prf' => incr_boundvars plev tlev prf')
       | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Same.map_option substTs Ts)
       | subst _ _ (PClass (T, c)) = PClass (substT T, c)
       | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Same.map_option substTs Ts)
@@ -1491,12 +1496,12 @@ fun rewrite_prf tymatch (rules, procs) prf =
     fun rew0 Ts hs (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts hs prf
           else
-            let val prf'' = incr_pboundvars (~1) 0 prf'
+            let val prf'' = incr_boundvars (~1) 0 prf'
             in SOME (the_default (prf'', no_skel) (rew Ts hs prf'')) end
       | rew0 Ts hs (prf as Abst (_, _, prf' % SOME (Bound 0))) =
           if prf_loose_bvar1 prf' 0 then rew Ts hs prf
           else
-            let val prf'' = incr_pboundvars 0 (~1) prf'
+            let val prf'' = incr_boundvars 0 (~1) prf'
             in SOME (the_default (prf'', no_skel) (rew Ts hs prf'')) end
       | rew0 Ts hs prf = rew Ts hs prf;
 
@@ -1699,9 +1704,9 @@ fun decompose thy Ts (p as (t, u)) env =
     | ((Abs (_, T, t), []), (Abs (_, U, u), [])) =>
         decompose thy (T::Ts) (t, u) (unifyT thy env T U)
     | ((Abs (_, T, t), []), _) =>
-        decompose thy (T::Ts) (t, incr_boundvars 1 u $ Bound 0) env
+        decompose thy (T::Ts) (t, Term.incr_boundvars 1 u $ Bound 0) env
     | (_, (Abs (_, T, u), [])) =>
-        decompose thy (T::Ts) (incr_boundvars 1 t $ Bound 0, u) env
+        decompose thy (T::Ts) (Term.incr_boundvars 1 t $ Bound 0, u) env
     | _ => ([(mk_abs Ts t, mk_abs Ts u)], env)
   end;
 
@@ -1743,7 +1748,7 @@ fun make_constraints_cprf thy env cprf =
                 NONE => mk_tvar [] env
               | SOME T => (T, env));
             val (t, prf, cnstrts, env'', vTs') =
-              mk_cnstrts env' (T::Ts) (map (incr_boundvars 1) Hs) vTs cprf;
+              mk_cnstrts env' (T::Ts) (map (Term.incr_boundvars 1) Hs) vTs cprf;
           in
             (Const ("Pure.all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, SOME T, prf),
               cnstrts, env'', vTs')

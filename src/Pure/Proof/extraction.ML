@@ -550,7 +550,7 @@ fun extract thm_vss thy =
       | corr d vs ts Ts hs cs t (Abst (s, SOME T, prf)) (Abst (_, _, prf')) defs =
           let val (corr_prf, defs') = corr d vs [] (T :: Ts)
             (dummyt :: hs) cs (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE)
-            prf (Proofterm.incr_pboundvars 1 0 prf') defs
+            prf (Proofterm.incr_boundvars 1 0 prf') defs
           in (Abst (s, SOME T, corr_prf), defs') end
 
       | corr d vs ts Ts hs cs t (AbsP (s, SOME prop, prf)) (AbsP (_, _, prf')) defs =
@@ -561,8 +561,8 @@ fun extract thm_vss thy =
               else (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE);
             val (corr_prf, defs') =
               corr d vs [] (T :: Ts) (prop :: hs)
-                (prop :: cs) u (Proofterm.incr_pboundvars 0 1 prf)
-                (Proofterm.incr_pboundvars 0 1 prf') defs;
+                (prop :: cs) u (Proofterm.incr_boundvars 0 1 prf)
+                (Proofterm.incr_boundvars 0 1 prf') defs;
             val rlz = Const ("realizes", T --> propT --> propT)
           in (
             if T = nullT then AbsP ("R",
@@ -684,14 +684,14 @@ fun extract thm_vss thy =
 
       | extr d vs ts Ts hs (Abst (s, SOME T, prf)) defs =
           let val (t, defs') = extr d vs []
-            (T :: Ts) (dummyt :: hs) (Proofterm.incr_pboundvars 1 0 prf) defs
+            (T :: Ts) (dummyt :: hs) (Proofterm.incr_boundvars 1 0 prf) defs
           in (Abs (s, T, t), defs') end
 
       | extr d vs ts Ts hs (AbsP (s, SOME t, prf)) defs =
           let
             val T = etype_of thy' vs Ts t;
             val (t, defs') =
-              extr d vs [] (T :: Ts) (t :: hs) (Proofterm.incr_pboundvars 0 1 prf) defs
+              extr d vs [] (T :: Ts) (t :: hs) (Proofterm.incr_boundvars 0 1 prf) defs
           in
             (if T = nullT then subst_bound (nullt, t) else Abs (s, T, t), defs')
           end
