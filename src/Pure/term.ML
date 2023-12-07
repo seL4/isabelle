@@ -700,30 +700,30 @@ fun is_dependent t = loose_bvar1 (t, 0);
 fun subst_bounds (args: term list, t) : term =
   let
     val n = length args;
-    fun subst (t as Bound i, lev) =
+    fun subst lev (Bound i) =
          (if i < lev then raise Same.SAME   (*var is locally bound*)
           else incr_boundvars lev (nth args (i - lev))
             handle General.Subscript => Bound (i - n))  (*loose: change it*)
-      | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
-      | subst (f $ t, lev) =
-          (subst (f, lev) $ (subst (t, lev) handle Same.SAME => t)
-            handle Same.SAME => f $ subst (t, lev))
-      | subst _ = raise Same.SAME;
-  in case args of [] => t | _ => (subst (t, 0) handle Same.SAME => t) end;
+      | subst lev (Abs (a, T, body)) = Abs (a, T, subst (lev + 1) body)
+      | subst lev (f $ t) =
+          (subst lev f $ (subst lev t handle Same.SAME => t)
+            handle Same.SAME => f $ subst lev t)
+      | subst _ _ = raise Same.SAME;
+  in if null args then t else (subst 0 t handle Same.SAME => t) end;
 
 (*Special case: one argument*)
 fun subst_bound (arg, t) : term =
   let
-    fun subst (Bound i, lev) =
+    fun subst lev (Bound i) =
           if i < lev then raise Same.SAME   (*var is locally bound*)
           else if i = lev then incr_boundvars lev arg
           else Bound (i - 1)   (*loose: change it*)
-      | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
-      | subst (f $ t, lev) =
-          (subst (f, lev) $ (subst (t, lev) handle Same.SAME => t)
-            handle Same.SAME => f $ subst (t, lev))
-      | subst _ = raise Same.SAME;
-  in subst (t, 0) handle Same.SAME => t end;
+      | subst lev (Abs (a, T, body)) = Abs (a, T, subst (lev + 1) body)
+      | subst lev (f $ t) =
+          (subst lev f $ (subst lev t handle Same.SAME => t)
+            handle Same.SAME => f $ subst lev t)
+      | subst _ _ = raise Same.SAME;
+  in subst 0 t handle Same.SAME => t end;
 
 (*beta-reduce if possible, else form application*)
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)

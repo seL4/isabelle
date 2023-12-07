@@ -812,23 +812,23 @@ fun prf_subst_bounds args prf =
           handle Same.SAME => prf % Same.map_option (subst' lev) t)
       | subst _ _ = raise Same.SAME
     and substh lev prf = (subst lev prf handle Same.SAME => prf);
-  in (case args of [] => prf | _ => substh 0 prf) end;
+  in if null args then prf else substh 0 prf end;
 
 fun prf_subst_pbounds args prf =
   let
     val n = length args;
-    fun subst (PBound i) Plev tlev =
+    fun subst Plev tlev (PBound i) =
          (if i < Plev then raise Same.SAME    (*var is locally bound*)
           else incr_pboundvars Plev tlev (nth args (i-Plev))
                  handle General.Subscript => PBound (i-n)  (*loose: change it*))
-      | subst (AbsP (a, t, body)) Plev tlev = AbsP (a, t, subst body (Plev+1) tlev)
-      | subst (Abst (a, T, body)) Plev tlev = Abst (a, T, subst body Plev (tlev+1))
-      | subst (prf %% prf') Plev tlev = (subst prf Plev tlev %% substh prf' Plev tlev
-          handle Same.SAME => prf %% subst prf' Plev tlev)
-      | subst (prf % t) Plev tlev = subst prf Plev tlev % t
+      | subst Plev tlev (AbsP (a, t, body)) = AbsP (a, t, subst (Plev+1) tlev body)
+      | subst Plev tlev (Abst (a, T, body)) = Abst (a, T, subst Plev (tlev+1) body)
+      | subst Plev tlev (prf %% prf') = (subst Plev tlev prf %% substh Plev tlev prf'
+          handle Same.SAME => prf %% subst Plev tlev prf')
+      | subst Plev tlev (prf % t) = subst Plev tlev prf % t
       | subst  _ _ _ = raise Same.SAME
-    and substh prf Plev tlev = (subst prf Plev tlev handle Same.SAME => prf)
-  in (case args of [] => prf | _ => substh prf 0 0) end;
+    and substh Plev tlev prf = (subst Plev tlev prf handle Same.SAME => prf)
+  in if null args then prf else substh 0 0 prf end;
 
 
 (* freezing and thawing of variables in proof terms *)
