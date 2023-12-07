@@ -796,9 +796,9 @@ fun subst_bounds args prf =
   let
     val n = length args;
     fun term lev (Bound i) =
-         (if i<lev then raise Same.SAME    (*var is locally bound*)
-          else Term.incr_boundvars lev (nth args (i - lev))
-                  handle General.Subscript => Bound (i - n))  (*loose: change it*)
+         (if i < lev then raise Same.SAME    (*var is locally bound*)
+          else if i - lev < n then Term.incr_boundvars lev (nth args (i - lev))
+          else Bound (i - n))  (*loose: change it*)
       | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
       | term lev (t $ u) = (term lev t $ Same.commit (term lev) u
           handle Same.SAME => t $ term lev u)
@@ -820,8 +820,8 @@ fun subst_pbounds args prf =
     val n = length args;
     fun proof Plev tlev (PBound i) =
          (if i < Plev then raise Same.SAME    (*var is locally bound*)
-          else incr_boundvars Plev tlev (nth args (i - Plev))
-                 handle General.Subscript => PBound (i - n)  (*loose: change it*))
+          else if i - Plev < n then incr_boundvars Plev tlev (nth args (i - Plev))
+          else PBound (i - n)  (*loose: change it*))
       | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev + 1) tlev p)
       | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev + 1) p)
       | proof Plev tlev (p %% q) = (proof Plev tlev p %% Same.commit (proof Plev tlev) q
