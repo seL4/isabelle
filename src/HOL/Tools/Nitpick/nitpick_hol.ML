@@ -2228,7 +2228,7 @@ val linear_pred_base_and_step_rhss =
           val step_body = recs |> map (repair_rec j)
                                |> List.foldl s_disj \<^Const>\<open>False\<close>
         in
-          (fold_rev Term.abs (tl xs) (incr_bv (~1, j, base_body))
+          (fold_rev Term.abs (tl xs) (incr_bv ~1 j base_body)
            |> ap_n_split (length arg_Ts) tuple_T bool_T,
            Abs ("y", tuple_T, fold_rev Term.abs (tl xs) step_body
                               |> ap_n_split (length arg_Ts) tuple_T bool_T))

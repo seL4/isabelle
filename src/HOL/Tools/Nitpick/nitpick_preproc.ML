@@ -522,7 +522,7 @@ fun destroy_existential_equalities ({ctxt, ...} : hol_context) =
            SOME (_, []) => \<^Const>\<open>True\<close>
          | SOME (arg_t, ts) =>
            kill ss Ts (map (subst_one_bound (length ss)
-                                (incr_bv (~1, length ss + 1, arg_t))) ts)
+                                (incr_bv ~1 (length ss + 1) arg_t)) ts)
          | NONE =>
            Const (\<^const_name>\<open>Ex\<close>, (T --> bool_T) --> bool_T)
            $ Abs (s, T, kill ss Ts ts))

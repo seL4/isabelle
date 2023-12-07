@@ -83,7 +83,7 @@ sig
   val propT: typ
   val strip_all_body: term -> term
   val strip_all_vars: term -> (string * typ) list
-  val incr_bv: int * int * term -> term
+  val incr_bv: int -> int -> term -> term
   val incr_boundvars: int -> term -> term
   val add_loose_bnos: term * int * int list -> int list
   val loose_bnos: term -> int list
@@ -630,15 +630,16 @@ fun strip_all_vars (Const ("Pure.all", _) $ Abs (a, T, t)) = (a, T) :: strip_all
   required when moving a term within abstractions
      inc is  increment for bound variables
      lev is  level at which a bound variable is considered 'loose'*)
-fun incr_bv (inc, lev, u as Bound i) = if i>=lev then Bound(i+inc) else u
-  | incr_bv (inc, lev, Abs(a,T,body)) =
-        Abs(a, T, incr_bv(inc,lev+1,body))
-  | incr_bv (inc, lev, f$t) =
-      incr_bv(inc,lev,f) $ incr_bv(inc,lev,t)
-  | incr_bv (inc, lev, u) = u;
+fun incr_bv inc =
+  let
+    fun term lev (t as Bound i) = if i >= lev then Bound (i + inc) else t
+      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
+      | term lev (t $ u) = term lev t $ term lev u
+      | term _ t = t;
+  in term end;
 
 fun incr_boundvars  0  t = t
-  | incr_boundvars inc t = incr_bv(inc,0,t);
+  | incr_boundvars inc t = incr_bv inc 0 t;
 
 (*Scan a pair of terms; while they are similar,
   accumulate corresponding bound vars in "al"*)
