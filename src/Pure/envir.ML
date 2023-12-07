@@ -214,13 +214,13 @@ fun norm_types_same tyenv Ts =
   if Vartab.is_empty tyenv then raise Same.SAME
   else Same.map (norm_type0 tyenv) Ts;
 
-fun norm_type tyenv T = norm_type_same tyenv T handle Same.SAME => T;
+fun norm_type tyenv = Same.commit (norm_type_same tyenv);
 
 fun norm_term_same (envir as Envir {tenv, tyenv, ...}) =
   if Vartab.is_empty tyenv then norm_term1 tenv
   else norm_term2 envir;
 
-fun norm_term envir t = norm_term_same envir t handle Same.SAME => t;
+fun norm_term envir = Same.commit (norm_term_same envir);
 
 fun beta_norm t =
   if Term.could_beta_contract t then norm_term init t else t;
@@ -268,30 +268,33 @@ fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
 
 local
 
-fun decr lev (Bound i) = if i >= lev then Bound (i - 1) else raise Same.SAME
-  | decr lev (Abs (a, T, body)) = Abs (a, T, decr (lev + 1) body)
-  | decr lev (t $ u) = (decr lev t $ decrh lev u handle Same.SAME => t $ decr lev u)
-  | decr _ _ = raise Same.SAME
-and decrh lev t = (decr lev t handle Same.SAME => t);
+fun decr_same lev (Bound i) = if i >= lev then Bound (i - 1) else raise Same.SAME
+  | decr_same lev (Abs (a, T, body)) = Abs (a, T, decr_same (lev + 1) body)
+  | decr_same lev (t $ u) =
+      (decr_same lev t $ Same.commit (decr_same lev) u
+        handle Same.SAME => t $ decr_same lev u)
+  | decr_same _ _ = raise Same.SAME;
 
-fun eta (Abs (a, T, body)) =
-    ((case eta body of
+fun eta_same (Abs (a, T, body)) =
+    ((case eta_same body of
         body' as (f $ Bound 0) =>
           if Term.is_dependent f then Abs (a, T, body')
-          else decrh 0 f
+          else Same.commit (decr_same 0) f
      | body' => Abs (a, T, body')) handle Same.SAME =>
         (case body of
           f $ Bound 0 =>
             if Term.is_dependent f then raise Same.SAME
-            else decrh 0 f
+            else Same.commit (decr_same 0) f
         | _ => raise Same.SAME))
-  | eta (t $ u) = (eta t $ Same.commit eta u handle Same.SAME => t $ eta u)
-  | eta _ = raise Same.SAME;
+  | eta_same (t $ u) =
+      (eta_same t $ Same.commit eta_same u
+        handle Same.SAME => t $ eta_same u)
+  | eta_same _ = raise Same.SAME;
 
 in
 
 fun eta_contract t =
-  if Term.could_eta_contract t then Same.commit eta t else t;
+  if Term.could_eta_contract t then Same.commit eta_same t else t;
 
 end;
 
@@ -366,7 +369,9 @@ fun subst_term2 tenv tyenv : term Same.operation =
       | subst (Abs (a, T, t)) =
           (Abs (a, substT T, Same.commit subst t)
             handle Same.SAME => Abs (a, T, subst t))
-      | subst (t $ u) = (subst t $ Same.commit subst u handle Same.SAME => t $ subst u);
+      | subst (t $ u) =
+          (subst t $ Same.commit subst u
+            handle Same.SAME => t $ subst u);
   in subst end;
 
 in
@@ -384,9 +389,9 @@ fun subst_term_same (tyenv, tenv) =
   else if Vartab.is_empty tyenv then subst_term1 tenv
   else subst_term2 tenv tyenv;
 
-fun subst_type tyenv T = subst_type_same tyenv T handle Same.SAME => T;
-fun subst_term_types tyenv t = subst_term_types_same tyenv t handle Same.SAME => t;
-fun subst_term envs t = subst_term_same envs t handle Same.SAME => t;
+fun subst_type tyenv = Same.commit (subst_type_same tyenv);
+fun subst_term_types tyenv = Same.commit (subst_term_types_same tyenv);
+fun subst_term envs = Same.commit (subst_term_same envs);
 
 end;
 
