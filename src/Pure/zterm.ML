@@ -93,6 +93,8 @@ end;
 
 (* term items *)
 
+structure ZTypes = Table(type key = ztyp val ord = ZTerm.ztyp_ord);
+
 structure ZTVars:
 sig
   include TERM_ITEMS
@@ -314,17 +316,13 @@ fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (Type (c, [T])) = if c = "itself" then ZItself (ztyp_of T) else ZType1 (c, ztyp_of T)
   | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
 
+fun ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
+
 fun zterm_cache_consts consts =
   let
     val typargs = Consts.typargs consts;
 
-    val ztyp_cache = Unsynchronized.ref Typtab.empty;
-    fun ztyp T =
-      (case Typtab.lookup (! ztyp_cache) T of
-        SOME Z => Z
-      | NONE =>
-          let val Z = ztyp_of T
-          in Unsynchronized.change ztyp_cache (Typtab.update (T, Z)); Z end);
+    val ztyp = ztyp_cache ();
 
     fun zterm (Free (x, T)) = ZVar ((x, ~1), ztyp T)
       | zterm (Var (xi, T)) = ZVar (xi, ztyp T)
@@ -570,9 +568,10 @@ fun generalize_proof (tfrees, frees) idx prf =
   let
     val typ =
       if Names.is_empty tfrees then Same.same else
-        subst_type_same (fn ((a, i), S) =>
-          if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
-          else raise Same.SAME);
+        ZTypes.unsynchronized_cache
+          (subst_type_same (fn ((a, i), S) =>
+            if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
+            else raise Same.SAME));
     val term =
       subst_term_same typ (fn ((x, i), T) =>
         if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
@@ -586,7 +585,7 @@ fun instantiate_proof thy (Ts, ts) prf =
     val inst = ZVars.build (ts |> fold (fn ((v, T), t) => ZVars.add ((v, ztyp T), zterm t)));
     val typ =
       if ZTVars.is_empty instT then Same.same
-      else subst_type_same (Same.function (ZTVars.lookup instT));
+      else ZTypes.unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT)));
     val term = subst_term_same typ (Same.function (ZVars.lookup inst));
   in Same.commit (map_proof_same typ term) prf end;
 
@@ -596,10 +595,10 @@ fun varifyT_proof names prf =
     let
       val tab = ZTVars.build (names |> fold (fn ((a, S), b) => ZTVars.add (((a, ~1), S), b)));
       val typ =
-        subst_type_same (fn v =>
+        ZTypes.unsynchronized_cache (subst_type_same (fn v =>
           (case ZTVars.lookup tab v of
             NONE => raise Same.SAME
-          | SOME w => ZTVar w));
+          | SOME w => ZTVar w)));
     in Same.commit (map_proof_types_same typ) prf end;
 
 fun legacy_freezeT_proof t prf =
@@ -608,14 +607,14 @@ fun legacy_freezeT_proof t prf =
   | SOME f =>
       let
         val tvar = ztyp_of o Same.function f;
-        val typ = subst_type_same tvar;
+        val typ = ZTypes.unsynchronized_cache (subst_type_same tvar);
       in Same.commit (map_proof_types_same typ) prf end);
 
 fun incr_indexes_proof inc prf =
   let
     fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME;
     fun var ((x, i), T) = if i >= 0 then ZVar ((x, i + inc), T) else raise Same.SAME;
-    val typ = subst_type_same tvar;
+    val typ = ZTypes.unsynchronized_cache (subst_type_same tvar);
     val term = subst_term_same typ var;
   in Same.commit (map_proof_same typ term) prf end;
 
