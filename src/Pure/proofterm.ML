@@ -110,7 +110,7 @@ sig
   val prf_loose_Pbvar1: proof -> int -> bool
   val prf_add_loose_bnos: int -> int -> proof -> int list * int list -> int list * int list
   val norm_proof: Envir.env -> proof -> proof
-  val norm_proof': Envir.env -> proof -> proof
+  val norm_proof_remove_types: Envir.env -> proof -> proof
   val prf_subst_bounds: term list -> proof -> proof
   val prf_subst_pbounds: proof list -> proof -> proof
   val freeze_thaw_prf: proof -> proof * (proof -> proof)
@@ -784,7 +784,7 @@ fun remove_types (Abs (s, _, t)) = Abs (s, dummyT, remove_types t)
 fun remove_types_env (Envir.Envir {maxidx, tenv, tyenv}) =
   Envir.Envir {maxidx = maxidx, tenv = Vartab.map (K (apsnd remove_types)) tenv, tyenv = tyenv};
 
-fun norm_proof' env prf = norm_proof (remove_types_env env) prf;
+fun norm_proof_remove_types env prf = norm_proof (remove_types_env env) prf;
 
 
 (* substitution of bound variables *)

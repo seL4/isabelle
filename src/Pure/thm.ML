@@ -1660,7 +1660,7 @@ fun flexflex_rule opt_ctxt =
               val tpairs' = tpairs |> map (apply2 (Envir.norm_term env))
                 (*remove trivial tpairs, of the form t \<equiv> t*)
                 |> filter_out (op aconv);
-              val der' = deriv_rule1 (Proofterm.norm_proof' env, ZTerm.todo_proof) der;
+              val der' = deriv_rule1 (Proofterm.norm_proof_remove_types env, ZTerm.todo_proof) der;
               val thy' = Context.certificate_theory cert' handle ERROR msg =>
                 raise CONTEXT (msg, [], [], [th], Option.map Context.Proof opt_ctxt);
               val constraints' = insert_constraints_env thy' env constraints;
@@ -2050,7 +2050,7 @@ fun assumption opt_ctxt i state =
           raise CONTEXT (msg, [], [], [state], Option.map Context.Proof opt_ctxt);
       in
         Thm (deriv_rule1
-          (assumption_proof #> not (Envir.is_empty env) ? Proofterm.norm_proof' env,
+          (assumption_proof #> not (Envir.is_empty env) ? Proofterm.norm_proof_remove_types env,
             ZTerm.todo_proof) der,
          {tags = [],
           maxidx = Envir.maxidx_of env,
@@ -2313,8 +2313,9 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
            val th =
              Thm (deriv_rule2
                    (if Envir.is_empty env then bicompose_proof
-                    else if Envir.above env smax then bicompose_proof o Proofterm.norm_proof' env
-                    else Proofterm.norm_proof' env oo bicompose_proof,
+                    else if Envir.above env smax
+                    then bicompose_proof o Proofterm.norm_proof_remove_types env
+                    else Proofterm.norm_proof_remove_types env oo bicompose_proof,
                     K ZTerm.todo_proof) rder' sder,
                 {tags = [],
                  maxidx = Envir.maxidx_of env,
