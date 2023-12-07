@@ -251,13 +251,16 @@ fun vars_in_vars vars = add_vars_vars(vars,[]);
 (*increment a term's non-local bound variables
      inc is  increment for bound variables
      lev is  level at which a bound variable is considered 'loose'*)
-fun incr_bv (inc, lev, u as Bound i) = if i>=lev then Bound(i+inc) else u
-  | incr_bv (inc, lev, Abs(a,body)) = Abs(a, incr_bv(inc,lev+1,body))
-  | incr_bv (inc, lev, f$t) = incr_bv(inc,lev,f) $ incr_bv(inc,lev,t)
-  | incr_bv (inc, lev, u) = u;
+fun incr_bv inc =
+  let
+    fun term lev (t as Bound i) = if i >= lev then Bound (i + inc) else t
+      | term lev (Abs (a, t)) = Abs (a, term (lev + 1) t)
+      | term lev (t $ u) = term lev t $ term lev u
+      | term _ t = t;
+  in term end;
 
 fun incr_boundvars  0  t = t
-  | incr_boundvars inc t = incr_bv(inc,0,t);
+  | incr_boundvars inc t = incr_bv inc 0 t;
 
 
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
