@@ -738,34 +738,34 @@ fun norm_proof env =
   let
     val envT = Envir.type_env env;
     fun msg s = warning ("type conflict in norm_proof:\n" ^ s);
-    fun htype f t = f env t handle TYPE (s, _, _) =>
-      (msg s; f env (del_conflicting_vars env t));
-    fun htypeT f T = f envT T handle TYPE (s, _, _) =>
-      (msg s; f envT (del_conflicting_tvars envT T));
-    fun htypeTs f Ts = f envT Ts handle TYPE (s, _, _) =>
-      (msg s; f envT (map (del_conflicting_tvars envT) Ts));
+    fun norm_term_same t = Envir.norm_term_same env t handle TYPE (s, _, _) =>
+      (msg s; Envir.norm_term_same env (del_conflicting_vars env t));
+    fun norm_type_same T = Envir.norm_type_same envT T handle TYPE (s, _, _) =>
+      (msg s; Envir.norm_type_same envT (del_conflicting_tvars envT T));
+    fun norm_types_same Ts = Envir.norm_types_same envT Ts handle TYPE (s, _, _) =>
+      (msg s;  Envir.norm_types_same envT (map (del_conflicting_tvars envT) Ts));
 
     fun norm (Abst (s, T, prf)) =
-          (Abst (s, Same.map_option (htypeT Envir.norm_type_same) T, Same.commit norm prf)
+          (Abst (s, Same.map_option norm_type_same T, Same.commit norm prf)
             handle Same.SAME => Abst (s, T, norm prf))
       | norm (AbsP (s, t, prf)) =
-          (AbsP (s, Same.map_option (htype Envir.norm_term_same) t, Same.commit norm prf)
+          (AbsP (s, Same.map_option norm_term_same t, Same.commit norm prf)
             handle Same.SAME => AbsP (s, t, norm prf))
       | norm (prf % t) =
-          (norm prf % Option.map (Same.commit (htype Envir.norm_term_same)) t
-            handle Same.SAME => prf % Same.map_option (htype Envir.norm_term_same) t)
+          (norm prf % Option.map (Same.commit norm_term_same) t
+            handle Same.SAME => prf % Same.map_option norm_term_same t)
       | norm (prf1 %% prf2) =
           (norm prf1 %% Same.commit norm prf2
             handle Same.SAME => prf1 %% norm prf2)
       | norm (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
+          PAxm (s, prop, Same.map_option norm_types_same Ts)
       | norm (PClass (T, c)) =
-          PClass (htypeT Envir.norm_type_same T, c)
+          PClass (norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
+          Oracle (s, prop, Same.map_option norm_types_same Ts)
       | norm (PThm ({serial = i, pos = p, theory_name, name = a, prop = t, types = Ts}, thm_body)) =
           PThm (thm_header i p theory_name a t
-            (Same.map_option (htypeTs Envir.norm_types_same) Ts), thm_body)
+            (Same.map_option norm_types_same Ts), thm_body)
       | norm _ = raise Same.SAME;
   in Same.commit norm end;
 
