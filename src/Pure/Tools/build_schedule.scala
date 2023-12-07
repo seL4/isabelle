@@ -433,10 +433,10 @@ object Build_Schedule {
 
     type Graph = isabelle.Graph[String, Node]
 
-    def empty: Schedule = Schedule("none", Date.now(), Graph.empty)
+    def init(build_uuid: String): Schedule = Schedule(build_uuid, "none", Date.now(), Graph.empty)
   }
 
-  case class Schedule(generator: String, start: Date, graph: Schedule.Graph) {
+  case class Schedule(build_uuid: String, generator: String, start: Date, graph: Schedule.Graph) {
     def end: Date =
       if (graph.is_empty) start
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
@@ -498,7 +498,8 @@ object Build_Schedule {
     def build_schedule(build_state: Build_Process.State): Schedule
   }
 
-  abstract class Heuristic(timing_data: Timing_Data) extends Scheduler {
+  abstract class Heuristic(timing_data: Timing_Data, build_uuid: String)
+    extends Scheduler {
     val host_infos = timing_data.host_infos
     val ordered_hosts = host_infos.hosts.sorted(host_infos.host_speeds)
 
@@ -513,21 +514,21 @@ object Build_Schedule {
 
       val start = Date.now()
       val end_state =
-        simulate(State(build_state, start.time, Schedule(toString, start, Graph.empty)))
+        simulate(State(build_state, start.time, Schedule(build_uuid, toString, start, Graph.empty)))
 
       end_state.finished
     }
   }
 
-  class Default_Heuristic(timing_data: Timing_Data, options: Options)
-    extends Heuristic(timing_data) {
+  class Default_Heuristic(timing_data: Timing_Data, options: Options, build_uuid: String)
+    extends Heuristic(timing_data, build_uuid) {
     override def toString: String = "default build heuristic"
 
     def host_threads(host: Host): Int = {
       val m = (options ++ host.build.options).int("threads")
       if (m > 0) m else (host.num_cpus max 1) min 8
     }
-    
+
     def next_jobs(resources: Resources, sorted_jobs: List[String], host: Host): List[Config] =
       sorted_jobs.zip(resources.unused_nodes(host, host_threads(host))).map(Config(_, _))
 
@@ -562,8 +563,9 @@ object Build_Schedule {
   abstract class Path_Heuristic(
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
-    max_threads_limit: Int
-  ) extends Heuristic(timing_data) {
+    max_threads_limit: Int,
+    build_uuid: String
+  ) extends Heuristic(timing_data, build_uuid) {
     /* pre-computed properties for efficient heuristic */
 
     val max_threads = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
@@ -661,8 +663,9 @@ object Build_Schedule {
     host_criterion: Path_Time_Heuristic.Host_Criterion,
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
+    build_uuid: String,
     max_threads_limit: Int = 8
-  ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit) {
+  ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit, build_uuid) {
     import Path_Time_Heuristic.*
 
     override def toString: Node = {
@@ -863,7 +866,7 @@ object Build_Schedule {
 
     /* build process */
 
-    private var _schedule = Schedule.empty
+    private var _schedule = Schedule.init(build_uuid)
 
     override def next_node_info(state: Build_Process.State, session_name: String): Node_Info =
       _schedule.graph.get_node(session_name).node_info
@@ -952,10 +955,11 @@ object Build_Schedule {
           parallel <- parallel_threads
           machine_split <- machine_splits
         } yield
-          Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure)
-      val heuristics = Default_Heuristic(timing_data, context.build_options) :: path_time_heuristics
-
-      new Meta_Heuristic(heuristics)
+          Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure,
+            context.build_uuid)
+      val default_heuristic =
+        Default_Heuristic(timing_data, context.build_options, context.build_uuid)
+      new Meta_Heuristic(default_heuristic :: path_time_heuristics)
     }
 
     override def open_build_process(
