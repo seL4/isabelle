@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Scalable collections of term items: for type thm and cterm.
-See als Pure/term_items.ML.
+See also Pure/term_items.ML.
 *)
 
 structure Ctermtab:

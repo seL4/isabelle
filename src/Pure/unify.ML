@@ -68,7 +68,7 @@ fun eta_norm env =
 (*OCCURS CHECK
   Does the uvar occur in the term t?
   two forms of search, for whether there is a rigid path to the current term.
-  "seen" is list of variables passed thru, is a memo variable for sharing.
+  "seen" is list of variables passed through, is a memo variable for sharing.
   This version searches for nonrigid occurrence, returns true if found.
   Since terms may contain variables with same name and different types,
   the occurs check must ignore the types of variables. This avoids
