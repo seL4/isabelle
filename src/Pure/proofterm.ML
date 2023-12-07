@@ -646,7 +646,7 @@ fun prf_abstract_over v =
 fun prf_incr_bv' incP _ Plev _ (PBound i) =
       if i >= Plev then PBound (i+incP) else raise Same.SAME
   | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
-      (AbsP (a, Same.map_option (same (op =) (incr_bv inct tlev)) t,
+      (AbsP (a, Same.map_option (incr_bv_same inct tlev) t,
          prf_incr_bv incP inct (Plev+1) tlev body) handle Same.SAME =>
            AbsP (a, t, prf_incr_bv' incP inct (Plev+1) tlev body))
   | prf_incr_bv' incP inct Plev tlev (Abst (a, T, body)) =
@@ -656,7 +656,7 @@ fun prf_incr_bv' incP _ Plev _ (PBound i) =
        handle Same.SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
   | prf_incr_bv' incP inct Plev tlev (prf % t) =
       (prf_incr_bv' incP inct Plev tlev prf % Option.map (incr_bv inct tlev) t
-       handle Same.SAME => prf % Same.map_option (same (op =) (incr_bv inct tlev)) t)
+       handle Same.SAME => prf % Same.map_option (incr_bv_same inct tlev) t)
   | prf_incr_bv' _ _ _ _ _ = raise Same.SAME
 and prf_incr_bv incP inct Plev tlev prf =
       (prf_incr_bv' incP inct Plev tlev prf handle Same.SAME => prf);
