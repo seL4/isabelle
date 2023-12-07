@@ -794,9 +794,9 @@ fun subst_bounds args prf =
     val n = length args;
     fun term lev (Bound i) =
          (if i<lev then raise Same.SAME    (*var is locally bound*)
-          else  incr_boundvars lev (nth args (i-lev))
-                  handle General.Subscript => Bound (i-n))  (*loose: change it*)
-      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev+1) t)
+          else incr_boundvars lev (nth args (i - lev))
+                  handle General.Subscript => Bound (i - n))  (*loose: change it*)
+      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
       | term lev (t $ u) = (term lev t $ Same.commit (term lev) u
           handle Same.SAME => t $ term lev u)
       | term _ _ = raise Same.SAME;
@@ -804,7 +804,7 @@ fun subst_bounds args prf =
     fun proof lev (AbsP (a, t, p)) =
         (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
           handle Same.SAME => AbsP (a, t, proof lev p))
-      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev+1) p)
+      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
       | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
           handle Same.SAME => p %% proof lev q)
       | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
@@ -817,14 +817,14 @@ fun subst_pbounds args prf =
     val n = length args;
     fun proof Plev tlev (PBound i) =
          (if i < Plev then raise Same.SAME    (*var is locally bound*)
-          else incr_pboundvars Plev tlev (nth args (i-Plev))
-                 handle General.Subscript => PBound (i-n)  (*loose: change it*))
-      | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev+1) tlev p)
-      | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev+1) p)
+          else incr_pboundvars Plev tlev (nth args (i - Plev))
+                 handle General.Subscript => PBound (i - n)  (*loose: change it*))
+      | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev + 1) tlev p)
+      | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev + 1) p)
       | proof Plev tlev (p %% q) = (proof Plev tlev p %% Same.commit (proof Plev tlev) q
           handle Same.SAME => p %% proof Plev tlev q)
       | proof Plev tlev (p % t) = proof Plev tlev p % t
-      | proof  _ _ _ = raise Same.SAME;
+      | proof _ _ _ = raise Same.SAME;
   in if null args then prf else Same.commit (proof 0 0) prf end;
 
 
