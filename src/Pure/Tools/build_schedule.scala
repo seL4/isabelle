@@ -18,6 +18,7 @@ object Build_Schedule {
     def elapsed: Time = timing.elapsed
     def proper_cpu: Option[Time] = timing.cpu.proper_ms.map(Time.ms)
   }
+
   case class Timing_Entries(entries: List[Timing_Entry]) {
     require(entries.nonEmpty)
 
@@ -30,6 +31,66 @@ object Build_Schedule {
 
     def mean_time: Time = Timing_Data.mean_time(entries.map(_.elapsed))
     def best_entry: Timing_Entry = entries.minBy(_.elapsed.ms)
+  }
+
+  object Timing_Data {
+    def median_timing(obs: List[Timing]): Timing = obs.sortBy(_.elapsed.ms).apply(obs.length / 2)
+
+    def median_time(obs: List[Time]): Time = obs.sortBy(_.ms).apply(obs.length / 2)
+
+    def mean_time(obs: Iterable[Time]): Time = Time.ms(obs.map(_.ms).sum / obs.size)
+
+    private def dummy_entries(host: Host, host_factor: Double) = {
+      val baseline = Time.minutes(5).scale(host_factor)
+      val gc = Time.seconds(10).scale(host_factor)
+      List(
+        Timing_Entry("dummy", host.name, 1, Timing(baseline, baseline, gc)),
+        Timing_Entry("dummy", host.name, 8, Timing(baseline.scale(0.2), baseline, gc)))
+    }
+
+    def make(
+      host_infos: Host_Infos,
+      build_history: List[(Build_Log.Meta_Info, Build_Log.Build_Info)],
+    ): Timing_Data = {
+      val hosts = host_infos.hosts
+      val measurements =
+        for {
+          (meta_info, build_info) <- build_history
+          build_host = meta_info.get(Build_Log.Prop.build_host)
+          (job_name, session_info) <- build_info.sessions.toList
+          if build_info.finished_sessions.contains(job_name)
+          hostname <- session_info.hostname.orElse(build_host).toList
+          host <- hosts.find(_.info.hostname == hostname).toList
+          threads = session_info.threads.getOrElse(host.info.num_cpus)
+        } yield (job_name, hostname, threads) -> session_info.timing
+
+      val entries =
+        if (measurements.isEmpty) {
+          val default_host = host_infos.hosts.sorted(host_infos.host_speeds).last
+          host_infos.hosts.flatMap(host =>
+            dummy_entries(host, host_infos.host_factor(default_host, host)))
+        }
+        else
+          measurements.groupMap(_._1)(_._2).toList.map {
+            case ((job_name, hostname, threads), timings) =>
+              Timing_Entry(job_name, hostname, threads, median_timing(timings))
+          }
+
+      new Timing_Data(Timing_Entries(entries), host_infos)
+    }
+
+    def load(host_infos: Host_Infos, log_database: SQL.Database): Timing_Data = {
+      val build_history =
+        for {
+          log_name <- log_database.execute_query_statement(
+            Build_Log.private_data.meta_info_table.select(List(Build_Log.Column.log_name)),
+            List.from[String], res => res.string(Build_Log.Column.log_name))
+          meta_info <- Build_Log.private_data.read_meta_info(log_database, log_name)
+          build_info = Build_Log.private_data.read_build_info(log_database, log_name)
+        } yield (meta_info, build_info)
+
+      make(host_infos, build_history)
+    }
   }
 
   class Timing_Data private(data: Timing_Entries, val host_infos: Host_Infos) {
@@ -221,64 +282,6 @@ object Build_Schedule {
           cache = cache + ((job_name, hostname, threads) -> time)
           time
       }
-    }
-  }
-
-  object Timing_Data {
-    def median_timing(obs: List[Timing]): Timing = obs.sortBy(_.elapsed.ms).apply(obs.length / 2)
-    def median_time(obs: List[Time]): Time = obs.sortBy(_.ms).apply(obs.length / 2)
-    def mean_time(obs: Iterable[Time]): Time = Time.ms(obs.map(_.ms).sum / obs.size)
-
-    private def dummy_entries(host: Host, host_factor: Double) = {
-      val baseline = Time.minutes(5).scale(host_factor)
-      val gc = Time.seconds(10).scale(host_factor)
-      List(
-        Timing_Entry("dummy", host.name, 1, Timing(baseline, baseline, gc)),
-        Timing_Entry("dummy", host.name, 8, Timing(baseline.scale(0.2), baseline, gc)))
-    }
-
-    def make(
-      host_infos: Host_Infos,
-      build_history: List[(Build_Log.Meta_Info, Build_Log.Build_Info)],
-    ): Timing_Data = {
-      val hosts = host_infos.hosts
-      val measurements =
-        for {
-          (meta_info, build_info) <- build_history
-          build_host = meta_info.get(Build_Log.Prop.build_host)
-          (job_name, session_info) <- build_info.sessions.toList
-          if build_info.finished_sessions.contains(job_name)
-          hostname <- session_info.hostname.orElse(build_host).toList
-          host <- hosts.find(_.info.hostname == hostname).toList
-          threads = session_info.threads.getOrElse(host.info.num_cpus)
-        } yield (job_name, hostname, threads) -> session_info.timing
-
-      val entries =
-        if (measurements.isEmpty) {
-          val default_host = host_infos.hosts.sorted(host_infos.host_speeds).last
-          host_infos.hosts.flatMap(host =>
-            dummy_entries(host, host_infos.host_factor(default_host, host)))
-        }
-        else
-          measurements.groupMap(_._1)(_._2).toList.map {
-            case ((job_name, hostname, threads), timings) =>
-              Timing_Entry(job_name, hostname, threads, median_timing(timings))
-          }
-
-      new Timing_Data(Timing_Entries(entries), host_infos)
-    }
-
-    def load(host_infos: Host_Infos, log_database: SQL.Database): Timing_Data = {
-      val build_history =
-        for {
-          log_name <- log_database.execute_query_statement(
-            Build_Log.private_data.meta_info_table.select(List(Build_Log.Column.log_name)),
-            List.from[String], res => res.string(Build_Log.Column.log_name))
-          meta_info <- Build_Log.private_data.read_meta_info(log_database, log_name)
-          build_info = Build_Log.private_data.read_build_info(log_database, log_name)
-        } yield (meta_info, build_info)
-
-      make(host_infos, build_history)
     }
   }
 
