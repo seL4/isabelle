@@ -206,13 +206,13 @@ fun norm_term2 (envir as Envir {tyenv, ...}) : term Same.operation =
 
 in
 
-fun norm_type_same tyenv T =
-  if Vartab.is_empty tyenv then raise Same.SAME
-  else norm_type0 tyenv T;
+fun norm_type_same tyenv =
+  if Vartab.is_empty tyenv then Same.same
+  else norm_type0 tyenv;
 
-fun norm_types_same tyenv Ts =
-  if Vartab.is_empty tyenv then raise Same.SAME
-  else Same.map (norm_type0 tyenv) Ts;
+fun norm_types_same tyenv =
+  if Vartab.is_empty tyenv then Same.same
+  else Same.map (norm_type0 tyenv);
 
 fun norm_type tyenv = Same.commit (norm_type_same tyenv);
 
@@ -376,13 +376,13 @@ fun subst_term2 tenv tyenv : term Same.operation =
 
 in
 
-fun subst_type_same tyenv T =
-  if Vartab.is_empty tyenv then raise Same.SAME
-  else subst_type0 tyenv T;
+fun subst_type_same tyenv =
+  if Vartab.is_empty tyenv then Same.same
+  else subst_type0 tyenv;
 
-fun subst_term_types_same tyenv t =
-  if Vartab.is_empty tyenv then raise Same.SAME
-  else Term_Subst.map_types_same (subst_type0 tyenv) t;
+fun subst_term_types_same tyenv =
+  if Vartab.is_empty tyenv then Same.same
+  else Term_Subst.map_types_same (subst_type0 tyenv);
 
 fun subst_term_same (tyenv, tenv) =
   if Vartab.is_empty tenv then subst_term_types_same tyenv
