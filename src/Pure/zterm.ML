@@ -198,6 +198,7 @@ sig
   val rotate_proof: theory -> term list -> term -> (string * typ) list ->
     term list -> int -> zproof -> zproof
   val permute_prems_proof: theory -> term list -> int -> int -> zproof -> zproof
+  val assumption_proof: theory -> Envir.env -> term list -> term -> int -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -753,6 +754,28 @@ fun permute_prems_proof thy prems' j k prf =
   in
     mk_ZAbsP (map zterm prems')
       (mk_ZAppP (prf, map ZBoundP ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
+  end;
+
+
+(* higher-order resolution *)
+
+fun mk_asm_prf C i m =
+  let
+    fun imp _ i 0 = ZBoundP i
+      | imp (ZApp (ZApp (ZConst0 "Pure.imp", A), B)) i m = ZAbsP ("H", A, imp B (i + 1) (m - 1))
+      | imp _ i _ = ZBoundP i;
+    fun all (ZApp (ZConst1 ("Pure.all", _), ZAbs (a, T, t))) = ZAbst (a, T, all t)
+      | all t = imp t (~ i) m
+  in all C end;
+
+fun assumption_proof thy envir Bs Bi n prf =
+  let
+    val cache as {zterm, ...} = norm_cache thy;
+    val normt = zterm #> Same.commit (norm_term_same cache envir);
+  in
+    mk_ZAbsP (map normt Bs)
+      (mk_ZAppP (prf, map ZBoundP (length Bs - 1 downto 0) @ [mk_asm_prf (normt Bi) n ~1]))
+    |> Same.commit (norm_proof_same cache envir)
   end;
 
 end;

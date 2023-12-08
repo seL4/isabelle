@@ -2055,8 +2055,9 @@ fun assumption opt_ctxt i state =
         fun prf p =
           Proofterm.assumption_proof (map normt Bs) (normt Bi) n p
           |> not (Envir.is_empty env) ? Proofterm.norm_proof_remove_types env;
+        fun zprf p = ZTerm.assumption_proof thy' env Bs Bi n p;
       in
-        Thm (deriv_rule1 (prf, ZTerm.todo_proof) der,
+        Thm (deriv_rule1 (prf, zprf) der,
          {tags = [],
           maxidx = Envir.maxidx_of env,
           constraints = insert_constraints_env thy' env constraints,
@@ -2092,15 +2093,21 @@ fun eq_assumption i state =
     (case find_index (fn asm => Envir.aeconv (asm, concl)) asms of
       ~1 => raise THM ("eq_assumption", 0, [state])
     | n =>
-        Thm (deriv_rule1 (Proofterm.assumption_proof Bs Bi (n + 1), ZTerm.todo_proof) der,
-         {cert = cert,
-          tags = [],
-          maxidx = maxidx,
-          constraints = constraints,
-          shyps = shyps,
-          hyps = hyps,
-          tpairs = tpairs,
-          prop = Logic.list_implies (Bs, C)}))
+        let
+          fun prf p = Proofterm.assumption_proof Bs Bi (n + 1) p;
+          fun zprf p =
+            ZTerm.assumption_proof (Context.certificate_theory cert) Envir.init Bs Bi (n + 1) p;
+        in
+          Thm (deriv_rule1 (prf, zprf) der,
+           {cert = cert,
+            tags = [],
+            maxidx = maxidx,
+            constraints = constraints,
+            shyps = shyps,
+            hyps = hyps,
+            tpairs = tpairs,
+            prop = Logic.list_implies (Bs, C)})
+        end)
   end;
 
 
