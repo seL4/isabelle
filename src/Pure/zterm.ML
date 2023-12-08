@@ -412,8 +412,6 @@ val term_of = term_of_consts o Sign.consts_of;
 
 (* beta normalization wrt. environment *)
 
-local
-
 fun norm_type_same ztyp tyenv =
   if Vartab.is_empty tyenv then Same.same
   else
@@ -462,13 +460,15 @@ fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) 
         | norm _ = raise Same.SAME;
     in norm end;
 
-fun make_cache thy =
+fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
+  if Envir.is_empty envir then Same.same
+  else map_proof_same (norm_type_same ztyp tyenv) (norm_term_same cache envir);
+
+fun norm_cache thy =
   let
     val {ztyp, zterm} = zterm_cache_consts (Sign.consts_of thy);
     val typ = typ_cache ();
   in {ztyp = ztyp, zterm = zterm, typ = typ} end;
-
-in
 
 fun norm_type tyenv =
   if Vartab.is_empty tyenv then I
@@ -476,15 +476,11 @@ fun norm_type tyenv =
 
 fun norm_term thy envir =
   if Envir.is_empty envir then I
-  else Same.commit (norm_term_same (make_cache thy) envir);
+  else Same.commit (norm_term_same (norm_cache thy) envir);
 
 fun norm_proof thy (envir as Envir.Envir {tyenv, ...}) =
   if Envir.is_empty envir then I
-  else
-    let val cache as {ztyp, ...} = make_cache thy;
-    in Same.commit (map_proof_same (norm_type_same ztyp tyenv) (norm_term_same cache envir)) end;
-
-end;
+  else Same.commit (norm_proof_same (norm_cache thy) envir);
 
 
 
