@@ -158,6 +158,9 @@ sig
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val ztyp_ord: ztyp * ztyp -> order
   val aconv_zterm: zterm * zterm -> bool
+  val incr_bv_same: int -> int -> zterm Same.operation
+  val incr_bv: int -> int -> zterm -> zterm
+  val incr_boundvars: int -> zterm -> zterm
   val ztyp_of: typ -> ztyp
   val zterm_cache_consts: Consts.T -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
@@ -165,6 +168,9 @@ sig
   val typ_of: ztyp -> typ
   val term_of_consts: Consts.T -> zterm -> term
   val term_of: theory -> zterm -> term
+  val norm_type: Type.tyenv -> ztyp -> ztyp
+  val norm_term_consts: Consts.T -> Envir.env -> zterm -> zterm
+  val norm_term: theory -> Envir.env -> zterm -> zterm
   val dummy_proof: 'a -> zproof
   val todo_proof: 'a -> zproof
   val axiom_proof:  theory -> string -> term -> zproof
@@ -220,7 +226,39 @@ val mk_ZAppt = Library.foldl ZAppt;
 val mk_ZAppP = Library.foldl ZAppP;
 
 
-(* map structure *)
+(* substitution of bound variables *)
+
+fun incr_bv_same inc =
+  if inc = 0 then fn _ => Same.same
+  else
+    let
+      fun term lev (ZBound i) = if i >= lev then ZBound (i + inc) else raise Same.SAME
+        | term lev (ZAbs (a, T, t)) = ZAbs (a, T, term (lev + 1) t)
+        | term lev (ZApp (t, u)) =
+            (ZApp (term lev t, Same.commit (term lev) u) handle Same.SAME =>
+              ZApp (t, term lev u))
+        | term _ _ = raise Same.SAME;
+    in term end;
+
+fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
+
+fun incr_boundvars inc = incr_bv inc 0;
+
+fun subst_bound arg body =
+  let
+    fun term lev (ZBound i) =
+          if i < lev then raise Same.SAME   (*var is locally bound*)
+          else if i = lev then incr_boundvars lev arg
+          else ZBound (i - 1)   (*loose: change it*)
+      | term lev (ZAbs (a, T, t)) = ZAbs (a, T, term (lev + 1) t)
+      | term lev (ZApp (t, u)) =
+          (ZApp (term lev t, Same.commit (term lev) u)
+            handle Same.SAME => ZApp (t, term lev u))
+      | term _ _ = raise Same.SAME;
+  in Same.commit (term 0) body end;
+
+
+(* direct substitution *)
 
 fun subst_type_same tvar =
   let
@@ -368,6 +406,74 @@ fun term_of_consts consts =
   in term end;
 
 val term_of = term_of_consts o Sign.consts_of;
+
+
+(* beta normalization wrt. environment *)
+
+local
+
+fun norm_type_same ztyp tyenv =
+  if Vartab.is_empty tyenv then Same.same
+  else
+    let
+      fun norm (ZTVar v) =
+            (case Type.lookup tyenv v of
+              SOME U => Same.commit norm (ztyp U)
+            | NONE => raise Same.SAME)
+        | norm (ZFun (T, U)) =
+            (ZFun (norm T, Same.commit norm U)
+              handle Same.SAME => ZFun (T, norm U))
+        | norm ZProp = raise Same.SAME
+        | norm (ZItself T) = ZItself (norm T)
+        | norm (ZType0 _) = raise Same.SAME
+        | norm (ZType1 (a, T)) = ZType1 (a, norm T)
+        | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
+    in norm end;
+
+fun norm_term_same consts (envir as Envir.Envir {tyenv, tenv, ...}) =
+  if Envir.is_empty envir then Same.same
+  else
+    let
+      val {ztyp, zterm} = zterm_cache_consts consts;
+      val typ = ZTypes.unsynchronized_cache typ_of;
+
+      val lookup =
+        if Vartab.is_empty tenv then K NONE
+        else ZVars.unsynchronized_cache (apsnd typ #> Envir.lookup envir #> Option.map zterm);
+
+      val normT = norm_type_same ztyp tyenv;
+
+      fun norm (ZVar (xi, T)) =
+            (case lookup (xi, T) of
+              SOME u => Same.commit norm u
+            | NONE => ZVar (xi, normT T))
+        | norm (ZBound _) = raise Same.SAME
+        | norm (ZConst0 _) = raise Same.SAME
+        | norm (ZConst1 (a, T)) = ZConst1 (a, normT T)
+        | norm (ZConst (a, Ts)) = ZConst (a, Same.map normT Ts)
+        | norm (ZAbs (a, T, t)) =
+            (ZAbs (a, normT T, Same.commit norm t)
+              handle Same.SAME => ZAbs (a, T, norm t))
+        | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_bound t body)
+        | norm (ZApp (f, t)) =
+            ((case norm f of
+               ZAbs (_, _, body) => Same.commit norm (subst_bound t body)
+             | nf => ZApp (nf, Same.commit norm t))
+            handle Same.SAME => ZApp (f, norm t))
+        | norm _ = raise Same.SAME;
+    in norm end;
+
+in
+
+fun norm_type tyenv =
+  Same.commit (norm_type_same (Typtab.unsynchronized_cache ztyp_of) tyenv);
+
+fun norm_term_consts consts envir =
+  Same.commit (norm_term_same consts envir);
+
+val norm_term = norm_term_consts o Sign.consts_of;
+
+end;
 
 
 
