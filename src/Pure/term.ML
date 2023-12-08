@@ -780,16 +780,16 @@ fun subst_free [] = I
   The resulting term is ready to become the body of an Abs.*)
 fun abstract_over (v, body) =
   let
-    fun abs lev tm =
+    fun term lev tm =
       if v aconv tm then Bound lev
       else
         (case tm of
-          Abs (a, T, t) => Abs (a, T, abs (lev + 1) t)
+          Abs (a, T, t) => Abs (a, T, term (lev + 1) t)
         | t $ u =>
-            (abs lev t $ (abs lev u handle Same.SAME => u)
-              handle Same.SAME => t $ abs lev u)
+            (term lev t $ Same.commit (term lev) u
+              handle Same.SAME => t $ term lev u)
         | _ => raise Same.SAME);
-  in abs 0 body handle Same.SAME => body end;
+  in Same.commit (term 0) body end;
 
 fun term_name (Const (x, _)) = Long_Name.base_name x
   | term_name (Free (x, _)) = x

@@ -618,25 +618,28 @@ fun mk_abs Ts t = Library.foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
 
 fun prf_abstract_over v =
   let
-    fun abst' lev u = if v aconv u then Bound lev else
-      (case u of
-         Abs (a, T, t) => Abs (a, T, abst' (lev + 1) t)
-       | f $ t => (abst' lev f $ absth' lev t handle Same.SAME => f $ abst' lev t)
-       | _ => raise Same.SAME)
-    and absth' lev t = (abst' lev t handle Same.SAME => t);
+    fun term lev u =
+      if v aconv u then Bound lev
+      else
+        (case u of
+           Abs (a, T, t) => Abs (a, T, term (lev + 1) t)
+         | t $ u =>
+            (term lev t $ Same.commit (term lev) u
+              handle Same.SAME => t $ term lev u)
+         | _ => raise Same.SAME);
 
-    fun abst lev (AbsP (a, t, prf)) =
-          (AbsP (a, Same.map_option (abst' lev) t, absth lev prf)
-           handle Same.SAME => AbsP (a, t, abst lev prf))
-      | abst lev (Abst (a, T, prf)) = Abst (a, T, abst (lev + 1) prf)
-      | abst lev (prf1 %% prf2) = (abst lev prf1 %% absth lev prf2
-          handle Same.SAME => prf1 %% abst lev prf2)
-      | abst lev (prf % t) = (abst lev prf % Option.map (absth' lev) t
-          handle Same.SAME => prf % Same.map_option (abst' lev) t)
-      | abst _ _ = raise Same.SAME
-    and absth lev prf = (abst lev prf handle Same.SAME => prf);
+    fun proof lev (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
+           handle Same.SAME => AbsP (a, t, proof lev p))
+      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
+      | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
+          handle Same.SAME => p %% proof lev q)
+      | proof lev (p % t) =
+          (proof lev p % Option.map (Same.commit (term lev)) t
+            handle Same.SAME => p % Same.map_option (term lev) t)
+      | proof _ _ = raise Same.SAME;
 
-  in absth 0 end;
+  in Same.commit (proof 0) end;
 
 
 (*increments a proof term's non-local bound variables
