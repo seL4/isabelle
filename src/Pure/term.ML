@@ -704,7 +704,7 @@ fun is_dependent t = loose_bvar1 (t, 0);
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.
 *)
-fun subst_bounds (args: term list, tm) : term =
+fun subst_bounds (args: term list, body) : term =
   let
     val n = length args;
     fun term lev (Bound i) =
@@ -716,10 +716,10 @@ fun subst_bounds (args: term list, tm) : term =
           (term lev t $ Same.commit (term lev) u
             handle Same.SAME => t $ term lev u)
       | term _ _ = raise Same.SAME;
-  in if null args then tm else Same.commit (term 0) tm end;
+  in if null args then body else Same.commit (term 0) body end;
 
 (*Special case: one argument*)
-fun subst_bound (arg, tm) : term =
+fun subst_bound (arg, body) : term =
   let
     fun term lev (Bound i) =
           if i < lev then raise Same.SAME   (*var is locally bound*)
@@ -730,7 +730,7 @@ fun subst_bound (arg, tm) : term =
           (term lev t $ Same.commit (term lev) u
             handle Same.SAME => t $ term lev u)
       | term _ _ = raise Same.SAME;
-  in term 0 tm handle Same.SAME => tm end;
+  in Same.commit (term 0) body end;
 
 (*beta-reduce if possible, else form application*)
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
