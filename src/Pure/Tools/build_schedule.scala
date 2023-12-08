@@ -469,6 +469,28 @@ object Build_Schedule {
         if hostname == node.node_info.hostname
         if graph.imm_preds(node.job_name).subsetOf(state.results.keySet)
       } yield task.name
+
+    def update(state: Build_Process.State): Schedule = {
+      val start1 = Date.now()
+      val pending = state.pending.map(_.name).toSet
+
+      def shift_elapsed(graph: Schedule.Graph, name: String): Schedule.Graph =
+        graph.map_node(name, { node =>
+          val elapsed = start1.time - state.running(name).start_date.time
+          node.copy(duration = node.duration - elapsed)
+        })
+
+      def shift_starts(graph: Schedule.Graph, name: String): Schedule.Graph =
+        graph.map_node(name, { node =>
+          val starts = start1 :: graph.imm_preds(node.job_name).toList.map(graph.get_node(_).end)
+          node.copy(start = starts.max(Date.Ordering))
+        })
+
+      val graph0 = state.running.keys.foldLeft(graph.restrict(pending.contains))(shift_elapsed)
+      val graph1 = graph0.topological_order.foldLeft(graph0)(shift_starts)
+
+      copy(start = start1, graph = graph1)
+    }
   }
 
   case class State(build_state: Build_Process.State, current_time: Time, finished: Schedule) {
@@ -957,7 +979,12 @@ object Build_Schedule {
         if (current.nonEmpty) current.map(_.name)
         else {
           val start = Time.now()
-          val schedule = scheduler.build_schedule(state)
+
+          val new_schedule = scheduler.build_schedule(state)
+          val schedule =
+            if (_schedule.graph.is_empty) new_schedule
+            else List(_schedule.update(state), new_schedule).minBy(_.end)(Date.Ordering)
+
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
