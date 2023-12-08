@@ -2049,15 +2049,14 @@ fun assumption opt_ctxt i state =
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
       let
-        val normt = Envir.norm_term env;
-        fun assumption_proof prf =
-          Proofterm.assumption_proof (map normt Bs) (normt Bi) n prf;
         val thy' = Context.certificate_theory cert' handle ERROR msg =>
           raise CONTEXT (msg, [], [], [state], Option.map Context.Proof opt_ctxt);
+        val normt = Envir.norm_term env;
+        fun prf p =
+          Proofterm.assumption_proof (map normt Bs) (normt Bi) n p
+          |> not (Envir.is_empty env) ? Proofterm.norm_proof_remove_types env;
       in
-        Thm (deriv_rule1
-          (assumption_proof #> not (Envir.is_empty env) ? Proofterm.norm_proof_remove_types env,
-            ZTerm.todo_proof) der,
+        Thm (deriv_rule1 (prf, ZTerm.todo_proof) der,
          {tags = [],
           maxidx = Envir.maxidx_of env,
           constraints = insert_constraints_env thy' env constraints,
@@ -2065,7 +2064,8 @@ fun assumption opt_ctxt i state =
           hyps = hyps,
           tpairs = if Envir.is_empty env then tpairs else map (apply2 normt) tpairs,
           prop =
-            if Envir.is_empty env then Logic.list_implies (Bs, C) (*avoid wasted normalizations*)
+            if Envir.is_empty env
+            then Logic.list_implies (Bs, C) (*avoid wasted normalizations*)
             else normt (Logic.list_implies (Bs, C)) (*normalize the new rule fully*),
           cert = cert'})
       end;
