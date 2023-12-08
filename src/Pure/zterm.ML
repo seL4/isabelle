@@ -170,6 +170,7 @@ sig
   val term_of: theory -> zterm -> term
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
+  val norm_proof: theory -> Envir.env -> zproof -> zproof
   val dummy_proof: 'a -> zproof
   val todo_proof: 'a -> zproof
   val axiom_proof:  theory -> string -> term -> zproof
@@ -431,13 +432,10 @@ fun norm_type_same ztyp tyenv =
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
     in norm end;
 
-fun norm_term_same thy (envir as Envir.Envir {tyenv, tenv, ...}) =
+fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) =
   if Envir.is_empty envir then Same.same
   else
     let
-      val {ztyp, zterm} = zterm_cache_consts (Sign.consts_of thy);
-      val typ = typ_cache ();
-
       val lookup =
         if Vartab.is_empty tenv then K NONE
         else ZVars.unsynchronized_cache (apsnd typ #> Envir.lookup envir #> Option.map zterm);
@@ -464,13 +462,27 @@ fun norm_term_same thy (envir as Envir.Envir {tyenv, tenv, ...}) =
         | norm _ = raise Same.SAME;
     in norm end;
 
+fun make_cache thy =
+  let
+    val {ztyp, zterm} = zterm_cache_consts (Sign.consts_of thy);
+    val typ = typ_cache ();
+  in {ztyp = ztyp, zterm = zterm, typ = typ} end;
+
 in
 
 fun norm_type tyenv =
-  Same.commit (norm_type_same (ztyp_cache ()) tyenv);
+  if Vartab.is_empty tyenv then I
+  else Same.commit (norm_type_same (ztyp_cache ()) tyenv);
 
 fun norm_term thy envir =
-  Same.commit (norm_term_same thy envir);
+  if Envir.is_empty envir then I
+  else Same.commit (norm_term_same (make_cache thy) envir);
+
+fun norm_proof thy (envir as Envir.Envir {tyenv, ...}) =
+  if Envir.is_empty envir then I
+  else
+    let val cache as {ztyp, ...} = make_cache thy;
+    in Same.commit (map_proof_same (norm_type_same ztyp tyenv) (norm_term_same cache envir)) end;
 
 end;
 
