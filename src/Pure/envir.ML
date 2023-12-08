@@ -216,14 +216,13 @@ fun norm_types_same tyenv =
 
 fun norm_type tyenv = Same.commit (norm_type_same tyenv);
 
-fun norm_term_same (envir as Envir {tenv, tyenv, ...}) =
-  if Vartab.is_empty tyenv then norm_term1 tenv
-  else norm_term2 envir;
+fun norm_term_same (envir as Envir {tenv, tyenv, ...}) t =
+  if is_empty envir andalso not (Term.could_beta_contract t) then raise Same.SAME
+  else if Vartab.is_empty tyenv then norm_term1 tenv t else norm_term2 envir t;
 
 fun norm_term envir = Same.commit (norm_term_same envir);
 
-fun beta_norm t =
-  if Term.could_beta_contract t then norm_term init t else t;
+val beta_norm = norm_term init;
 
 end;
 
