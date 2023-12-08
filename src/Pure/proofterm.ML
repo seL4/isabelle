@@ -1008,47 +1008,47 @@ fun instantiate (instT, inst) =
 
 fun lift_proof Bi inc prop prf =
   let
-    fun lift'' Us Ts t =
+    fun term Us Ts t =
       strip_abs Ts (Logic.incr_indexes ([], Us, inc) (mk_abs Ts t));
 
-    fun lift' Us Ts (Abst (s, T, prf)) =
-          (Abst (s, Same.map_option (Logic.incr_tvar_same inc) T, lifth' Us (dummyT::Ts) prf)
-           handle Same.SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
-      | lift' Us Ts (AbsP (s, t, prf)) =
-          (AbsP (s, Same.map_option (same (op =) (lift'' Us Ts)) t, lifth' Us Ts prf)
-           handle Same.SAME => AbsP (s, t, lift' Us Ts prf))
-      | lift' Us Ts (prf % t) = (lift' Us Ts prf % Option.map (lift'' Us Ts) t
-          handle Same.SAME => prf % Same.map_option (same (op =) (lift'' Us Ts)) t)
-      | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
-          handle Same.SAME => prf1 %% lift' Us Ts prf2)
-      | lift' _ _ (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (PClass (T, c)) =
+    fun proof Us Ts (Abst (a, T, p)) =
+          (Abst (a, Same.map_option (Logic.incr_tvar_same inc) T, commit_proof Us (dummyT :: Ts) p)
+            handle Same.SAME => Abst (a, T, proof Us (dummyT :: Ts) p))
+      | proof Us Ts (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (same (op =) (term Us Ts)) t, commit_proof Us Ts p)
+            handle Same.SAME => AbsP (a, t, proof Us Ts p))
+      | proof Us Ts (p % t) =
+          (proof Us Ts p % Option.map (term Us Ts) t
+            handle Same.SAME => p % Same.map_option (same (op =) (term Us Ts)) t)
+      | proof Us Ts (p %% q) =
+          (proof Us Ts p %% commit_proof Us Ts q
+            handle Same.SAME => p %% proof Us Ts q)
+      | proof _ _ (PAxm (a, prop, Ts)) =
+          PAxm (a, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
+      | proof _ _ (PClass (T, c)) =
           PClass (Logic.incr_tvar_same inc T, c)
-      | lift' _ _ (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (PThm ({serial = i, pos = p, theory_name, name = s, prop, types = Ts}, thm_body)) =
+      | proof _ _ (Oracle (a, prop, Ts)) =
+          Oracle (a, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
+      | proof _ _ (PThm ({serial = i, pos = p, theory_name, name = s, prop, types = Ts}, thm_body)) =
           PThm (thm_header i p theory_name s prop
             ((Same.map_option o Same.map) (Logic.incr_tvar inc) Ts), thm_body)
-      | lift' _ _ _ = raise Same.SAME
-    and lifth' Us Ts prf = (lift' Us Ts prf handle Same.SAME => prf);
+      | proof _ _ _ = raise Same.SAME
+    and commit_proof Us Ts prf = Same.commit (proof Us Ts) prf;
 
     val ps = map (Logic.lift_all inc Bi) (Logic.strip_imp_prems prop);
     val k = length ps;
 
     fun mk_app b (i, j, prf) =
-          if b then (i-1, j, prf %% PBound i) else (i, j-1, prf %> Bound j);
+      if b then (i - 1, j, prf %% PBound i) else (i, j - 1, prf %> Bound j);
 
     fun lift Us bs i j (Const ("Pure.imp", _) $ A $ B) =
-            AbsP ("H", NONE (*A*), lift Us (true::bs) (i+1) j B)
+          AbsP ("H", NONE (*A*), lift Us (true::bs) (i + 1) j B)
       | lift Us bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
-            Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
-      | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
-            map (fn k => (#3 (fold_rev mk_app bs (i-1, j-1, PBound k))))
-              (i + k - 1 downto i));
-  in
-    mk_AbsP ps (lift [] [] 0 0 Bi)
-  end;
+          Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j + 1) t)
+      | lift Us bs i j _ =
+          proof_combP (commit_proof (rev Us) [] prf,
+            map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, PBound k)))) (i + k - 1 downto i));
+  in mk_AbsP ps (lift [] [] 0 0 Bi) end;
 
 fun incr_indexes i =
   Same.commit (map_proof_terms_same
