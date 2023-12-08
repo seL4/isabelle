@@ -930,22 +930,19 @@ object Build_Schedule {
     }
 
     override def next_jobs(state: Build_Process.State): List[String] = {
-      val finalize_limit = if (build_context.master) Int.MaxValue else 0
-
-      if (progress.stopped) state.next_ready.map(_.name).take(finalize_limit)
-      else if (_schedule.is_current(state)) _schedule.next(hostname, state)
+      if (!progress.stopped && _schedule.is_current(state)) _schedule.next(hostname, state)
+      else if (!build_context.master) Nil
+      else if (progress.stopped) state.next_ready.map(_.name)
       else {
         val current = state.next_ready.filter(task => is_current(state, task.name))
-        if (current.nonEmpty) current.map(_.name).take(finalize_limit)
-        else if (!build_context.master) Nil
+        if (current.nonEmpty) current.map(_.name)
         else {
           val start = Time.now()
           val schedule = scheduler.build_schedule(state)
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
-          progress.echo_if(build_context.master && !schedule.is_current_estimate(_schedule),
-            schedule.message + timing_msg)
+          progress.echo_if(!_schedule.is_current_estimate(schedule), schedule.message + timing_msg)
 
           _schedule = schedule
           _schedule.next(hostname, state)
