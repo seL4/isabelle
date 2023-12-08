@@ -162,6 +162,8 @@ sig
   val ZAbsps: zterm list -> zproof -> zproof
   val ZAppts: zproof * zterm list -> zproof
   val ZAppps: zproof * zproof list -> zproof
+  val fold_proof_terms: (zterm -> 'a -> 'a) -> zproof -> 'a -> 'a
+  val exists_proof_terms: (zterm -> bool) -> zproof -> bool
   val incr_bv_same: int -> int -> zterm Same.operation
   val incr_bv: int -> int -> zterm -> zterm
   val incr_boundvars: int -> zterm -> zterm
@@ -172,6 +174,7 @@ sig
   val typ_of: ztyp -> typ
   val term_of_consts: Consts.T -> zterm -> term
   val term_of: theory -> zterm -> term
+  val could_beta_contract: zterm -> bool
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> zproof -> zproof
@@ -229,6 +232,28 @@ val ZAbsps = fold_rev (fn t => fn prf => ZAbsp ("H", t, prf));
 
 val ZAppts = Library.foldl ZAppt;
 val ZAppps = Library.foldl ZAppp;
+
+
+(* fold *)
+
+fun fold_proof_terms f =
+  let
+    fun proof (ZConstp (_, _, _, inst)) = ZVars.fold (f o #2) inst
+      | proof (ZHyp t) = f t
+      | proof (ZAbst (_, _, p)) = proof p
+      | proof (ZAbsp (_, t, p)) = f t #> proof p
+      | proof (ZAppt (p, t)) = proof p #> f t
+      | proof (ZAppp (p, q)) = proof p #> proof q
+      | proof _ = I;
+  in proof end;
+
+local exception Found in
+
+fun exists_proof_terms P prf =
+  (fold_proof_terms (fn t => fn () => if P t then raise Found else ()) prf (); true)
+    handle Found => true;
+
+end;
 
 
 (* substitution of bound variables *)
@@ -417,6 +442,11 @@ val term_of = term_of_consts o Sign.consts_of;
 
 (* beta normalization wrt. environment *)
 
+fun could_beta_contract (ZApp (ZAbs _, _)) = true
+  | could_beta_contract (ZApp (t, u)) = could_beta_contract t orelse could_beta_contract u
+  | could_beta_contract (ZAbs (_, _, b)) = could_beta_contract b
+  | could_beta_contract _ = false;
+
 fun norm_type_same ztyp tyenv =
   if Vartab.is_empty tyenv then Same.same
   else
@@ -435,8 +465,8 @@ fun norm_type_same ztyp tyenv =
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
     in norm end;
 
-fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) =
-  if Envir.is_empty envir then Same.same
+fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) tm =
+  if Envir.is_empty envir andalso not (could_beta_contract tm) then raise Same.SAME
   else
     let
       val lookup =
@@ -463,11 +493,12 @@ fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) 
              | nf => ZApp (nf, Same.commit norm t))
             handle Same.SAME => ZApp (f, norm t))
         | norm _ = raise Same.SAME;
-    in norm end;
+    in norm tm end;
 
-fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
-  if Envir.is_empty envir then Same.same
-  else map_proof_same (norm_type_same ztyp tyenv) (norm_term_same cache envir);
+fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) prf =
+  if Envir.is_empty envir andalso not (exists_proof_terms could_beta_contract prf) then
+    raise Same.SAME
+  else map_proof_same (norm_type_same ztyp tyenv) (norm_term_same cache envir) prf;
 
 fun norm_cache thy =
   let
@@ -475,17 +506,9 @@ fun norm_cache thy =
     val typ = typ_cache ();
   in {ztyp = ztyp, zterm = zterm, typ = typ} end;
 
-fun norm_type tyenv =
-  if Vartab.is_empty tyenv then I
-  else Same.commit (norm_type_same (ztyp_cache ()) tyenv);
-
-fun norm_term thy envir =
-  if Envir.is_empty envir then I
-  else Same.commit (norm_term_same (norm_cache thy) envir);
-
-fun norm_proof thy (envir as Envir.Envir {tyenv, ...}) =
-  if Envir.is_empty envir then I
-  else Same.commit (norm_proof_same (norm_cache thy) envir);
+fun norm_type tyenv = Same.commit (norm_type_same (ztyp_cache ()) tyenv);
+fun norm_term thy envir = Same.commit (norm_term_same (norm_cache thy) envir);
+fun norm_proof thy envir = Same.commit (norm_proof_same (norm_cache thy) envir);
 
 
 
