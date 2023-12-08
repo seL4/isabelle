@@ -1663,9 +1663,11 @@ fun flexflex_rule opt_ctxt =
               val prop' = Envir.norm_term env prop;
               val thy' = Context.certificate_theory cert' handle ERROR msg =>
                 raise CONTEXT (msg, [], [], [th], Option.map Context.Proof opt_ctxt);
-              val der' = deriv_rule1 (Proofterm.norm_proof_remove_types env, ZTerm.todo_proof) der;
+
+              fun prf p = Proofterm.norm_proof_remove_types env p;
+              fun zprf p = ZTerm.norm_proof thy' env p;
             in
-              Thm (der',
+              Thm (deriv_rule1 (prf, zprf) der,
                {cert = cert',
                 tags = [],
                 maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop'),
