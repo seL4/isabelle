@@ -390,6 +390,8 @@ fun typ_of (ZTVar ((a, ~1), S)) = TFree (a, S)
   | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
   | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
 
+fun typ_cache () = ZTypes.unsynchronized_cache typ_of;
+
 fun term_of_consts consts =
   let
     val instance = Consts.instance consts;
@@ -435,7 +437,7 @@ fun norm_term_same consts (envir as Envir.Envir {tyenv, tenv, ...}) =
   else
     let
       val {ztyp, zterm} = zterm_cache_consts consts;
-      val typ = ZTypes.unsynchronized_cache typ_of;
+      val typ = typ_cache ();
 
       val lookup =
         if Vartab.is_empty tenv then K NONE
@@ -466,7 +468,7 @@ fun norm_term_same consts (envir as Envir.Envir {tyenv, tenv, ...}) =
 in
 
 fun norm_type tyenv =
-  Same.commit (norm_type_same (Typtab.unsynchronized_cache ztyp_of) tyenv);
+  Same.commit (norm_type_same (ztyp_cache ()) tyenv);
 
 fun norm_term_consts consts envir =
   Same.commit (norm_term_same consts envir);
