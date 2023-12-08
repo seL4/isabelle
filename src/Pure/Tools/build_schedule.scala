@@ -980,7 +980,7 @@ object Build_Schedule {
         else {
           val start = Time.now()
 
-          val new_schedule = scheduler.build_schedule(state)
+          val new_schedule = scheduler.build_schedule(state).update(state)
           val schedule =
             if (_schedule.graph.is_empty) new_schedule
             else List(_schedule.update(state), new_schedule).minBy(_.end)(Date.Ordering)
