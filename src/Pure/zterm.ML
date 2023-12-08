@@ -169,7 +169,6 @@ sig
   val term_of_consts: Consts.T -> zterm -> term
   val term_of: theory -> zterm -> term
   val norm_type: Type.tyenv -> ztyp -> ztyp
-  val norm_term_consts: Consts.T -> Envir.env -> zterm -> zterm
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val dummy_proof: 'a -> zproof
   val todo_proof: 'a -> zproof
@@ -432,11 +431,11 @@ fun norm_type_same ztyp tyenv =
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
     in norm end;
 
-fun norm_term_same consts (envir as Envir.Envir {tyenv, tenv, ...}) =
+fun norm_term_same thy (envir as Envir.Envir {tyenv, tenv, ...}) =
   if Envir.is_empty envir then Same.same
   else
     let
-      val {ztyp, zterm} = zterm_cache_consts consts;
+      val {ztyp, zterm} = zterm_cache_consts (Sign.consts_of thy);
       val typ = typ_cache ();
 
       val lookup =
@@ -470,10 +469,8 @@ in
 fun norm_type tyenv =
   Same.commit (norm_type_same (ztyp_cache ()) tyenv);
 
-fun norm_term_consts consts envir =
-  Same.commit (norm_term_same consts envir);
-
-val norm_term = norm_term_consts o Sign.consts_of;
+fun norm_term thy envir =
+  Same.commit (norm_term_same thy envir);
 
 end;
 
