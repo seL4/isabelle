@@ -1280,7 +1280,7 @@ fun implies_elim thAB thA =
     (case prop of
       Const ("Pure.imp", _) $ A $ B =>
         if A aconv propA then
-          Thm (deriv_rule2 (curry Proofterm.%%, curry ZAppP) der derA,
+          Thm (deriv_rule2 (curry Proofterm.%%, curry ZAppp) der derA,
            {cert = join_certificate2 (thAB, thA),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
