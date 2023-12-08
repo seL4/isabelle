@@ -464,8 +464,8 @@ object Build_Schedule {
       for {
         task <- state.next_ready
         node = graph.get_node(task.name)
-        if node.start.time == start.time
         if hostname == node.node_info.hostname
+        if graph.imm_preds(node.job_name).subsetOf(state.results.keySet)
       } yield task.name
   }
 
@@ -491,10 +491,16 @@ object Build_Schedule {
         val now = current_time + elapsed
         val node = Schedule.Node(job.name, job.node_info, job.start_date, now - job.start_date.time)
 
-        val preds =
+        val host_preds =
+          for {
+            (name, (node, _)) <- finished.graph.iterator.toSet
+            if node.node_info.hostname == job.node_info.hostname
+          } yield name
+        val build_preds =
           build_state.sessions.graph.imm_preds(job.name).filter(finished.graph.defined)
-        val graph =
-          preds.foldLeft(finished.graph.new_node(job.name, node))(_.add_edge(_, job.name))
+        val preds = build_preds ++ host_preds
+
+        val graph = preds.foldLeft(finished.graph.new_node(job.name, node))(_.add_edge(_, job.name))
 
         val build_state1 = build_state.remove_running(job.name).remove_pending(job.name)
         State(build_state1, now, finished.copy(graph = graph))
