@@ -435,7 +435,19 @@ object Build_Schedule {
     def init(build_uuid: String): Schedule = Schedule(build_uuid, "none", Date.now(), Graph.empty)
   }
 
-  case class Schedule(build_uuid: String, generator: String, start: Date, graph: Schedule.Graph) {
+  case class Schedule(
+    build_uuid: String,
+    generator: String,
+    start: Date,
+    graph: Schedule.Graph,
+    serial: Long = 0,
+  ) {
+    require(serial >= 0, "serial underflow")
+    def inc_serial: Schedule = {
+      require(serial < Long.MaxValue, "serial overflow")
+      copy(serial = serial + 1)
+    }
+    
     def end: Date =
       if (graph.is_empty) start
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
@@ -814,7 +826,7 @@ object Build_Schedule {
               val old_schedule = Build_Schedule.private_data.pull_schedule(db, _schedule)
               _schedule = old_schedule
               val res = body
-              Build_Schedule.private_data.update_schedule(db, _schedule)
+              _schedule = Build_Schedule.private_data.update_schedule(db, _schedule, old_schedule)
               res
             }
         }
@@ -968,9 +980,16 @@ object Build_Schedule {
       val build_uuid = Generic.build_uuid.make_primary_key
       val generator = SQL.Column.string("generator")
       val start = SQL.Column.date("start")
+      val serial = SQL.Column.long("serial")
 
-      val table = make_table(List(build_uuid, generator, start), name = "schedules")
+      val table = make_table(List(build_uuid, generator, start, serial), name = "schedules")
     }
+
+    def read_serial(db: SQL.Database, build_uuid: String = ""): Long =
+      db.execute_query_statementO[Long](
+        Schedules.table.select(List(Schedules.serial.max), sql = 
+          SQL.where(if_proper(build_uuid, Schedules.build_uuid.equal(build_uuid)))),
+          _.long(Schedules.serial)).getOrElse(0L)
 
     def read_scheduled_builds_domain(db: SQL.Database): List[String] =
       db.execute_query_statement(
@@ -995,13 +1014,14 @@ object Build_Schedule {
       }
     }
 
-    def update_schedule(db: SQL.Database, schedule: Schedule): Unit = {
+    def write_schedule(db: SQL.Database, schedule: Schedule): Unit = {
       db.execute_statement(
         Schedules.table.delete(Schedules.build_uuid.where_equal(schedule.build_uuid)))
       db.execute_statement(Schedules.table.insert(), { stmt =>
         stmt.string(1) = schedule.build_uuid
         stmt.string(2) = schedule.generator
         stmt.date(3) = schedule.start
+        stmt.long(4) = schedule.serial
       })
       update_nodes(db, schedule.build_uuid, schedule.graph.dest)
     }
@@ -1062,14 +1082,29 @@ object Build_Schedule {
         })
     }
 
-    def pull_schedule(
-      db: SQL.Database,
-      schedule: Schedule,
-    ): Build_Schedule.Schedule =
-      read_schedules(db, schedule.build_uuid) match {
-        case Nil => schedule
-        case schedules => Library.the_single(schedules)
+    def pull_schedule(db: SQL.Database, old_schedule: Schedule): Build_Schedule.Schedule = {
+      val serial_db = read_serial(db)
+      if (serial_db == old_schedule.serial) old_schedule
+      else {
+        read_schedules(db, old_schedule.build_uuid) match {
+          case Nil => old_schedule
+          case schedules => Library.the_single(schedules)
+        }
       }
+    }
+
+    def update_schedule(db: SQL.Database, schedule: Schedule, old_schedule: Schedule): Schedule = {
+      val changed =
+        schedule.generator != old_schedule.generator ||
+        schedule.start != old_schedule.start ||
+        schedule.graph != old_schedule.graph
+      
+      val schedule1 =
+        if (changed) schedule.copy(serial = old_schedule.serial).inc_serial else schedule
+      if (schedule1.serial != schedule.serial) write_schedule(db, schedule1)
+      
+      schedule1
+    }
 
     def remove_schedules(db: SQL.Database, remove: List[String]): Unit =
       if (remove.nonEmpty) {
