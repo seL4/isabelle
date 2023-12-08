@@ -90,6 +90,7 @@ sig
   val loose_bnos: term -> int list
   val loose_bvar: term * int -> bool
   val loose_bvar1: term * int -> bool
+  val subst_bounds_same: term list -> int -> term Same.operation
   val subst_bounds: term list * term -> term
   val subst_bound: term * term -> term
   val betapply: term * term -> term
@@ -704,22 +705,27 @@ fun is_dependent t = loose_bvar1 (t, 0);
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.
 *)
-fun subst_bounds (args: term list, tm) : term =
-  let
-    val n = length args;
-    fun term lev (Bound i) =
-         (if i < lev then raise Same.SAME   (*var is locally bound*)
-          else if i - lev < n then incr_boundvars lev (nth args (i - lev))
-          else Bound (i - n))  (*loose: change it*)
-      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
-      | term lev (t $ u) =
-          (term lev t $ Same.commit (term lev) u
-            handle Same.SAME => t $ term lev u)
-      | term _ _ = raise Same.SAME;
-  in if null args then tm else Same.commit (term 0) tm end;
+fun subst_bounds_same args =
+  if null args then fn _ => Same.same
+  else
+    let
+      val n = length args;
+      fun term lev (Bound i) =
+           (if i < lev then raise Same.SAME   (*var is locally bound*)
+            else if i - lev < n then incr_boundvars lev (nth args (i - lev))
+            else Bound (i - n))  (*loose: change it*)
+        | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
+        | term lev (t $ u) =
+            (term lev t $ Same.commit (term lev) u
+              handle Same.SAME => t $ term lev u)
+        | term _ _ = raise Same.SAME;
+    in term end;
+
+fun subst_bounds (args: term list, body) : term =
+  if null args then body else Same.commit (subst_bounds_same args 0) body;
 
 (*Special case: one argument*)
-fun subst_bound (arg, tm) : term =
+fun subst_bound (arg, body) : term =
   let
     fun term lev (Bound i) =
           if i < lev then raise Same.SAME   (*var is locally bound*)
@@ -730,7 +736,7 @@ fun subst_bound (arg, tm) : term =
           (term lev t $ Same.commit (term lev) u
             handle Same.SAME => t $ term lev u)
       | term _ _ = raise Same.SAME;
-  in term 0 tm handle Same.SAME => tm end;
+  in Same.commit (term 0) body end;
 
 (*beta-reduce if possible, else form application*)
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
@@ -780,16 +786,16 @@ fun subst_free [] = I
   The resulting term is ready to become the body of an Abs.*)
 fun abstract_over (v, body) =
   let
-    fun abs lev tm =
+    fun term lev tm =
       if v aconv tm then Bound lev
       else
         (case tm of
-          Abs (a, T, t) => Abs (a, T, abs (lev + 1) t)
+          Abs (a, T, t) => Abs (a, T, term (lev + 1) t)
         | t $ u =>
-            (abs lev t $ (abs lev u handle Same.SAME => u)
-              handle Same.SAME => t $ abs lev u)
+            (term lev t $ Same.commit (term lev) u
+              handle Same.SAME => t $ term lev u)
         | _ => raise Same.SAME);
-  in abs 0 body handle Same.SAME => body end;
+  in Same.commit (term 0) body end;
 
 fun term_name (Const (x, _)) = Long_Name.base_name x
   | term_name (Free (x, _)) = x

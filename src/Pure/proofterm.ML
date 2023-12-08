@@ -103,7 +103,7 @@ sig
   val maxidx_proof: proof -> int -> int
   val size_of_proof: proof -> int
   val change_types: typ list option -> proof -> proof
-  val prf_abstract_over: term -> proof -> proof
+  val abstract_over: term -> proof -> proof
   val incr_bv_same: int -> int -> int -> int -> proof Same.operation
   val incr_bv: int -> int -> int -> int -> proof -> proof
   val incr_boundvars: int -> int -> proof -> proof
@@ -616,27 +616,30 @@ fun mk_abs Ts t = Library.foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
     which must contain no loose bound variables.
   The resulting proof term is ready to become the body of an Abst.*)
 
-fun prf_abstract_over v =
+fun abstract_over v =
   let
-    fun abst' lev u = if v aconv u then Bound lev else
-      (case u of
-         Abs (a, T, t) => Abs (a, T, abst' (lev + 1) t)
-       | f $ t => (abst' lev f $ absth' lev t handle Same.SAME => f $ abst' lev t)
-       | _ => raise Same.SAME)
-    and absth' lev t = (abst' lev t handle Same.SAME => t);
+    fun term lev u =
+      if v aconv u then Bound lev
+      else
+        (case u of
+           Abs (a, T, t) => Abs (a, T, term (lev + 1) t)
+         | t $ u =>
+            (term lev t $ Same.commit (term lev) u
+              handle Same.SAME => t $ term lev u)
+         | _ => raise Same.SAME);
 
-    fun abst lev (AbsP (a, t, prf)) =
-          (AbsP (a, Same.map_option (abst' lev) t, absth lev prf)
-           handle Same.SAME => AbsP (a, t, abst lev prf))
-      | abst lev (Abst (a, T, prf)) = Abst (a, T, abst (lev + 1) prf)
-      | abst lev (prf1 %% prf2) = (abst lev prf1 %% absth lev prf2
-          handle Same.SAME => prf1 %% abst lev prf2)
-      | abst lev (prf % t) = (abst lev prf % Option.map (absth' lev) t
-          handle Same.SAME => prf % Same.map_option (abst' lev) t)
-      | abst _ _ = raise Same.SAME
-    and absth lev prf = (abst lev prf handle Same.SAME => prf);
+    fun proof lev (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
+           handle Same.SAME => AbsP (a, t, proof lev p))
+      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
+      | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
+          handle Same.SAME => p %% proof lev q)
+      | proof lev (p % t) =
+          (proof lev p % Option.map (Same.commit (term lev)) t
+            handle Same.SAME => p % Same.map_option (term lev) t)
+      | proof _ _ = raise Same.SAME;
 
-  in absth 0 end;
+  in Same.commit (proof 0) end;
 
 
 (*increments a proof term's non-local bound variables
@@ -739,35 +742,35 @@ fun del_conflicting_vars env tm =
 
 in
 
-fun norm_proof env =
+fun norm_proof envir =
   let
-    val envT = Envir.type_env env;
+    val tyenv = Envir.type_env envir;
     fun msg s = warning ("type conflict in norm_proof:\n" ^ s);
-    fun norm_term_same t = Envir.norm_term_same env t handle TYPE (s, _, _) =>
-      (msg s; Envir.norm_term_same env (del_conflicting_vars env t));
-    fun norm_type_same T = Envir.norm_type_same envT T handle TYPE (s, _, _) =>
-      (msg s; Envir.norm_type_same envT (del_conflicting_tvars envT T));
-    fun norm_types_same Ts = Envir.norm_types_same envT Ts handle TYPE (s, _, _) =>
-      (msg s;  Envir.norm_types_same envT (map (del_conflicting_tvars envT) Ts));
+    fun norm_term_same t = Envir.norm_term_same envir t handle TYPE (s, _, _) =>
+      (msg s; Envir.norm_term_same envir (del_conflicting_vars envir t));
+    fun norm_type_same T = Envir.norm_type_same tyenv T handle TYPE (s, _, _) =>
+      (msg s; Envir.norm_type_same tyenv (del_conflicting_tvars tyenv T));
+    fun norm_types_same Ts = Envir.norm_types_same tyenv Ts handle TYPE (s, _, _) =>
+      (msg s;  Envir.norm_types_same tyenv (map (del_conflicting_tvars tyenv) Ts));
 
-    fun norm (Abst (s, T, prf)) =
-          (Abst (s, Same.map_option norm_type_same T, Same.commit norm prf)
-            handle Same.SAME => Abst (s, T, norm prf))
-      | norm (AbsP (s, t, prf)) =
-          (AbsP (s, Same.map_option norm_term_same t, Same.commit norm prf)
-            handle Same.SAME => AbsP (s, t, norm prf))
-      | norm (prf % t) =
-          (norm prf % Option.map (Same.commit norm_term_same) t
-            handle Same.SAME => prf % Same.map_option norm_term_same t)
-      | norm (prf1 %% prf2) =
-          (norm prf1 %% Same.commit norm prf2
-            handle Same.SAME => prf1 %% norm prf2)
-      | norm (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, Same.map_option norm_types_same Ts)
+    fun norm (Abst (a, T, p)) =
+          (Abst (a, Same.map_option norm_type_same T, Same.commit norm p)
+            handle Same.SAME => Abst (a, T, norm p))
+      | norm (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option norm_term_same t, Same.commit norm p)
+            handle Same.SAME => AbsP (a, t, norm p))
+      | norm (p % t) =
+          (norm p % Option.map (Same.commit norm_term_same) t
+            handle Same.SAME => p % Same.map_option norm_term_same t)
+      | norm (p %% q) =
+          (norm p %% Same.commit norm q
+            handle Same.SAME => p %% norm q)
+      | norm (PAxm (a, prop, Ts)) =
+          PAxm (a, prop, Same.map_option norm_types_same Ts)
       | norm (PClass (T, c)) =
           PClass (norm_type_same T, c)
-      | norm (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, Same.map_option norm_types_same Ts)
+      | norm (Oracle (a, prop, Ts)) =
+          Oracle (a, prop, Same.map_option norm_types_same Ts)
       | norm (PThm ({serial = i, pos = p, theory_name, name = a, prop = t, types = Ts}, thm_body)) =
           PThm (thm_header i p theory_name a t
             (Same.map_option norm_types_same Ts), thm_body)
@@ -793,27 +796,21 @@ fun norm_proof_remove_types env prf = norm_proof (remove_types_env env) prf;
 (* substitution of bound variables *)
 
 fun subst_bounds args prf =
-  let
-    val n = length args;
-    fun term lev (Bound i) =
-         (if i < lev then raise Same.SAME    (*var is locally bound*)
-          else if i - lev < n then Term.incr_boundvars lev (nth args (i - lev))
-          else Bound (i - n))  (*loose: change it*)
-      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
-      | term lev (t $ u) = (term lev t $ Same.commit (term lev) u
-          handle Same.SAME => t $ term lev u)
-      | term _ _ = raise Same.SAME;
+  if null args then prf
+  else
+    let
+      val term = Term.subst_bounds_same args;
 
-    fun proof lev (AbsP (a, t, p)) =
-        (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
-          handle Same.SAME => AbsP (a, t, proof lev p))
-      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
-      | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
-          handle Same.SAME => p %% proof lev q)
-      | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
-          handle Same.SAME => p % Same.map_option (term lev) t)
-      | proof _ _ = raise Same.SAME;
-  in if null args then prf else Same.commit (proof 0) prf end;
+      fun proof lev (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
+            handle Same.SAME => AbsP (a, t, proof lev p))
+        | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
+        | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
+            handle Same.SAME => p %% proof lev q)
+        | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
+            handle Same.SAME => p % Same.map_option (term lev) t)
+        | proof _ _ = raise Same.SAME;
+    in Same.commit (proof 0) prf end;
 
 fun subst_pbounds args prf =
   let
@@ -923,7 +920,7 @@ val implies_intr_proof' = gen_implies_intr_proof SOME;
 
 (* forall introduction *)
 
-fun forall_intr_proof (a, v) opt_T prf = Abst (a, opt_T, prf_abstract_over v prf);
+fun forall_intr_proof (a, v) opt_T prf = Abst (a, opt_T, abstract_over v prf);
 
 fun forall_intr_proof' v prf =
   let val (a, T) = (case v of Var ((a, _), T) => (a, T) | Free (a, T) => (a, T))
@@ -1011,47 +1008,45 @@ fun instantiate (instT, inst) =
 
 fun lift_proof Bi inc prop prf =
   let
-    fun lift'' Us Ts t =
-      strip_abs Ts (Logic.incr_indexes ([], Us, inc) (mk_abs Ts t));
+    val typ = Logic.incr_tvar_same inc;
+    val typs = Same.map_option (Same.map typ);
 
-    fun lift' Us Ts (Abst (s, T, prf)) =
-          (Abst (s, Same.map_option (Logic.incr_tvar_same inc) T, lifth' Us (dummyT::Ts) prf)
-           handle Same.SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
-      | lift' Us Ts (AbsP (s, t, prf)) =
-          (AbsP (s, Same.map_option (same (op =) (lift'' Us Ts)) t, lifth' Us Ts prf)
-           handle Same.SAME => AbsP (s, t, lift' Us Ts prf))
-      | lift' Us Ts (prf % t) = (lift' Us Ts prf % Option.map (lift'' Us Ts) t
-          handle Same.SAME => prf % Same.map_option (same (op =) (lift'' Us Ts)) t)
-      | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
-          handle Same.SAME => prf1 %% lift' Us Ts prf2)
-      | lift' _ _ (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (PClass (T, c)) =
-          PClass (Logic.incr_tvar_same inc T, c)
-      | lift' _ _ (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (PThm ({serial = i, pos = p, theory_name, name = s, prop, types = Ts}, thm_body)) =
-          PThm (thm_header i p theory_name s prop
-            ((Same.map_option o Same.map) (Logic.incr_tvar inc) Ts), thm_body)
-      | lift' _ _ _ = raise Same.SAME
-    and lifth' Us Ts prf = (lift' Us Ts prf handle Same.SAME => prf);
+    fun term Us Ts t =
+      strip_abs Ts (Logic.incr_indexes_same ([], Us, inc) (mk_abs Ts t));
+
+    fun proof Us Ts (Abst (a, T, p)) =
+          (Abst (a, Same.map_option typ T, Same.commit (proof Us (dummyT :: Ts)) p)
+            handle Same.SAME => Abst (a, T, proof Us (dummyT :: Ts) p))
+      | proof Us Ts (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (term Us Ts) t, Same.commit (proof Us Ts) p)
+            handle Same.SAME => AbsP (a, t, proof Us Ts p))
+      | proof Us Ts (p % t) =
+          (proof Us Ts p % Option.map (Same.commit (term Us Ts)) t
+            handle Same.SAME => p % Same.map_option (term Us Ts) t)
+      | proof Us Ts (p %% q) =
+          (proof Us Ts p %% Same.commit (proof Us Ts) q
+            handle Same.SAME => p %% proof Us Ts q)
+      | proof _ _ (PAxm (a, prop, Ts)) = PAxm (a, prop, typs Ts)
+      | proof _ _ (PClass (T, c)) = PClass (typ T, c)
+      | proof _ _ (Oracle (a, prop, Ts)) = Oracle (a, prop, typs Ts)
+      | proof _ _ (PThm ({serial, pos, theory_name, name, prop, types}, thm_body)) =
+          PThm (thm_header serial pos theory_name name prop (typs types), thm_body)
+      | proof _ _ _ = raise Same.SAME;
 
     val ps = map (Logic.lift_all inc Bi) (Logic.strip_imp_prems prop);
     val k = length ps;
 
     fun mk_app b (i, j, prf) =
-          if b then (i-1, j, prf %% PBound i) else (i, j-1, prf %> Bound j);
+      if b then (i - 1, j, prf %% PBound i) else (i, j - 1, prf %> Bound j);
 
     fun lift Us bs i j (Const ("Pure.imp", _) $ A $ B) =
-            AbsP ("H", NONE (*A*), lift Us (true::bs) (i+1) j B)
+          AbsP ("H", NONE (*A*), lift Us (true::bs) (i + 1) j B)
       | lift Us bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
-            Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
-      | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
-            map (fn k => (#3 (fold_rev mk_app bs (i-1, j-1, PBound k))))
-              (i + k - 1 downto i));
-  in
-    mk_AbsP ps (lift [] [] 0 0 Bi)
-  end;
+          Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j + 1) t)
+      | lift Us bs i j _ =
+          proof_combP (Same.commit (proof (rev Us) []) prf,
+            map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, PBound k)))) (i + k - 1 downto i));
+  in mk_AbsP ps (lift [] [] 0 0 Bi) end;
 
 fun incr_indexes i =
   Same.commit (map_proof_terms_same
@@ -1060,14 +1055,14 @@ fun incr_indexes i =
 
 (* proof by assumption *)
 
-fun mk_asm_prf t i m =
+fun mk_asm_prf C i m =
   let
     fun imp_prf _ i 0 = PBound i
       | imp_prf (Const ("Pure.imp", _) $ A $ B) i m = AbsP ("H", NONE (*A*), imp_prf B (i+1) (m-1))
       | imp_prf _ i _ = PBound i;
     fun all_prf (Const ("Pure.all", _) $ Abs (a, T, t)) = Abst (a, NONE (*T*), all_prf t)
       | all_prf t = imp_prf t (~i) m
-  in all_prf t end;
+  in all_prf C end;
 
 fun assumption_proof Bs Bi n prf =
   mk_AbsP Bs (proof_combP (prf, map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi n ~1]));

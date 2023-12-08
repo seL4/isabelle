@@ -141,7 +141,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
             (case head_of (strip_abs_body f) of
               Free (s, T) =>
                 let val T' = Logic.varifyT_global T in
-                  Abst (s, SOME T', Proofterm.prf_abstract_over
+                  Abst (s, SOME T', Proofterm.abstract_over
                     (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
                 end
             | _ => AbsP ("H", SOME p, prf)))
