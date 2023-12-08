@@ -796,27 +796,21 @@ fun norm_proof_remove_types env prf = norm_proof (remove_types_env env) prf;
 (* substitution of bound variables *)
 
 fun subst_bounds args prf =
-  let
-    val n = length args;
-    fun term lev (Bound i) =
-         (if i < lev then raise Same.SAME    (*var is locally bound*)
-          else if i - lev < n then Term.incr_boundvars lev (nth args (i - lev))
-          else Bound (i - n))  (*loose: change it*)
-      | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
-      | term lev (t $ u) = (term lev t $ Same.commit (term lev) u
-          handle Same.SAME => t $ term lev u)
-      | term _ _ = raise Same.SAME;
+  if null args then prf
+  else
+    let
+      val term = Term.subst_bounds_same args;
 
-    fun proof lev (AbsP (a, t, p)) =
-        (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
-          handle Same.SAME => AbsP (a, t, proof lev p))
-      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
-      | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
-          handle Same.SAME => p %% proof lev q)
-      | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
-          handle Same.SAME => p % Same.map_option (term lev) t)
-      | proof _ _ = raise Same.SAME;
-  in if null args then prf else Same.commit (proof 0) prf end;
+      fun proof lev (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
+            handle Same.SAME => AbsP (a, t, proof lev p))
+        | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
+        | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
+            handle Same.SAME => p %% proof lev q)
+        | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
+            handle Same.SAME => p % Same.map_option (term lev) t)
+        | proof _ _ = raise Same.SAME;
+    in Same.commit (proof 0) prf end;
 
 fun subst_pbounds args prf =
   let
