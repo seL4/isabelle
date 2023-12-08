@@ -1008,32 +1008,30 @@ fun instantiate (instT, inst) =
 
 fun lift_proof Bi inc prop prf =
   let
+    val typ = Logic.incr_tvar_same inc;
+    val typs = Same.map_option (Same.map typ);
+
     fun term Us Ts t =
-      strip_abs Ts (Logic.incr_indexes ([], Us, inc) (mk_abs Ts t));
+      strip_abs Ts (Logic.incr_indexes_same ([], Us, inc) (mk_abs Ts t));
 
     fun proof Us Ts (Abst (a, T, p)) =
-          (Abst (a, Same.map_option (Logic.incr_tvar_same inc) T, commit_proof Us (dummyT :: Ts) p)
+          (Abst (a, Same.map_option typ T, Same.commit (proof Us (dummyT :: Ts)) p)
             handle Same.SAME => Abst (a, T, proof Us (dummyT :: Ts) p))
       | proof Us Ts (AbsP (a, t, p)) =
-          (AbsP (a, Same.map_option (same (op =) (term Us Ts)) t, commit_proof Us Ts p)
+          (AbsP (a, Same.map_option (term Us Ts) t, Same.commit (proof Us Ts) p)
             handle Same.SAME => AbsP (a, t, proof Us Ts p))
       | proof Us Ts (p % t) =
-          (proof Us Ts p % Option.map (term Us Ts) t
-            handle Same.SAME => p % Same.map_option (same (op =) (term Us Ts)) t)
+          (proof Us Ts p % Option.map (Same.commit (term Us Ts)) t
+            handle Same.SAME => p % Same.map_option (term Us Ts) t)
       | proof Us Ts (p %% q) =
-          (proof Us Ts p %% commit_proof Us Ts q
+          (proof Us Ts p %% Same.commit (proof Us Ts) q
             handle Same.SAME => p %% proof Us Ts q)
-      | proof _ _ (PAxm (a, prop, Ts)) =
-          PAxm (a, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | proof _ _ (PClass (T, c)) =
-          PClass (Logic.incr_tvar_same inc T, c)
-      | proof _ _ (Oracle (a, prop, Ts)) =
-          Oracle (a, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | proof _ _ (PThm ({serial = i, pos = p, theory_name, name = s, prop, types = Ts}, thm_body)) =
-          PThm (thm_header i p theory_name s prop
-            ((Same.map_option o Same.map) (Logic.incr_tvar inc) Ts), thm_body)
-      | proof _ _ _ = raise Same.SAME
-    and commit_proof Us Ts prf = Same.commit (proof Us Ts) prf;
+      | proof _ _ (PAxm (a, prop, Ts)) = PAxm (a, prop, typs Ts)
+      | proof _ _ (PClass (T, c)) = PClass (typ T, c)
+      | proof _ _ (Oracle (a, prop, Ts)) = Oracle (a, prop, typs Ts)
+      | proof _ _ (PThm ({serial, pos, theory_name, name, prop, types}, thm_body)) =
+          PThm (thm_header serial pos theory_name name prop (typs types), thm_body)
+      | proof _ _ _ = raise Same.SAME;
 
     val ps = map (Logic.lift_all inc Bi) (Logic.strip_imp_prems prop);
     val k = length ps;
@@ -1046,7 +1044,7 @@ fun lift_proof Bi inc prop prf =
       | lift Us bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
           Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j + 1) t)
       | lift Us bs i j _ =
-          proof_combP (commit_proof (rev Us) [] prf,
+          proof_combP (Same.commit (proof (rev Us) []) prf,
             map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, PBound k)))) (i + k - 1 downto i));
   in mk_AbsP ps (lift [] [] 0 0 Bi) end;
 
