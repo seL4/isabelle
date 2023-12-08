@@ -1660,16 +1660,20 @@ fun flexflex_rule opt_ctxt =
               val tpairs' = tpairs |> map (apply2 (Envir.norm_term env))
                 (*remove trivial tpairs, of the form t \<equiv> t*)
                 |> filter_out (op aconv);
-              val der' = deriv_rule1 (Proofterm.norm_proof_remove_types env, ZTerm.todo_proof) der;
+              val prop' = Envir.norm_term env prop;
               val thy' = Context.certificate_theory cert' handle ERROR msg =>
                 raise CONTEXT (msg, [], [], [th], Option.map Context.Proof opt_ctxt);
-              val constraints' = insert_constraints_env thy' env constraints;
-              val prop' = Envir.norm_term env prop;
-              val maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop');
-              val shyps = Envir.insert_sorts env shyps;
+              val der' = deriv_rule1 (Proofterm.norm_proof_remove_types env, ZTerm.todo_proof) der;
             in
-              Thm (der', {cert = cert', tags = [], maxidx = maxidx, constraints = constraints',
-                shyps = shyps, hyps = hyps, tpairs = tpairs', prop = prop'})
+              Thm (der',
+               {cert = cert',
+                tags = [],
+                maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop'),
+                constraints = insert_constraints_env thy' env constraints,
+                shyps = Envir.insert_sorts env shyps,
+                hyps = hyps,
+                tpairs = tpairs',
+                prop = prop'})
             end)
     end);
 
