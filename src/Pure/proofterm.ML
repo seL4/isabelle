@@ -742,35 +742,35 @@ fun del_conflicting_vars env tm =
 
 in
 
-fun norm_proof env =
+fun norm_proof envir =
   let
-    val envT = Envir.type_env env;
+    val tyenv = Envir.type_env envir;
     fun msg s = warning ("type conflict in norm_proof:\n" ^ s);
-    fun norm_term_same t = Envir.norm_term_same env t handle TYPE (s, _, _) =>
-      (msg s; Envir.norm_term_same env (del_conflicting_vars env t));
-    fun norm_type_same T = Envir.norm_type_same envT T handle TYPE (s, _, _) =>
-      (msg s; Envir.norm_type_same envT (del_conflicting_tvars envT T));
-    fun norm_types_same Ts = Envir.norm_types_same envT Ts handle TYPE (s, _, _) =>
-      (msg s;  Envir.norm_types_same envT (map (del_conflicting_tvars envT) Ts));
+    fun norm_term_same t = Envir.norm_term_same envir t handle TYPE (s, _, _) =>
+      (msg s; Envir.norm_term_same envir (del_conflicting_vars envir t));
+    fun norm_type_same T = Envir.norm_type_same tyenv T handle TYPE (s, _, _) =>
+      (msg s; Envir.norm_type_same tyenv (del_conflicting_tvars tyenv T));
+    fun norm_types_same Ts = Envir.norm_types_same tyenv Ts handle TYPE (s, _, _) =>
+      (msg s;  Envir.norm_types_same tyenv (map (del_conflicting_tvars tyenv) Ts));
 
-    fun norm (Abst (s, T, prf)) =
-          (Abst (s, Same.map_option norm_type_same T, Same.commit norm prf)
-            handle Same.SAME => Abst (s, T, norm prf))
-      | norm (AbsP (s, t, prf)) =
-          (AbsP (s, Same.map_option norm_term_same t, Same.commit norm prf)
-            handle Same.SAME => AbsP (s, t, norm prf))
-      | norm (prf % t) =
-          (norm prf % Option.map (Same.commit norm_term_same) t
-            handle Same.SAME => prf % Same.map_option norm_term_same t)
-      | norm (prf1 %% prf2) =
-          (norm prf1 %% Same.commit norm prf2
-            handle Same.SAME => prf1 %% norm prf2)
-      | norm (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, Same.map_option norm_types_same Ts)
+    fun norm (Abst (a, T, p)) =
+          (Abst (a, Same.map_option norm_type_same T, Same.commit norm p)
+            handle Same.SAME => Abst (a, T, norm p))
+      | norm (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option norm_term_same t, Same.commit norm p)
+            handle Same.SAME => AbsP (a, t, norm p))
+      | norm (p % t) =
+          (norm p % Option.map (Same.commit norm_term_same) t
+            handle Same.SAME => p % Same.map_option norm_term_same t)
+      | norm (p %% q) =
+          (norm p %% Same.commit norm q
+            handle Same.SAME => p %% norm q)
+      | norm (PAxm (a, prop, Ts)) =
+          PAxm (a, prop, Same.map_option norm_types_same Ts)
       | norm (PClass (T, c)) =
           PClass (norm_type_same T, c)
-      | norm (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, Same.map_option norm_types_same Ts)
+      | norm (Oracle (a, prop, Ts)) =
+          Oracle (a, prop, Same.map_option norm_types_same Ts)
       | norm (PThm ({serial = i, pos = p, theory_name, name = a, prop = t, types = Ts}, thm_body)) =
           PThm (thm_header i p theory_name a t
             (Same.map_option norm_types_same Ts), thm_body)
