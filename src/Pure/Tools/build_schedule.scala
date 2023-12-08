@@ -455,10 +455,12 @@ object Build_Schedule {
     def duration: Time = end.time - start.time
     def message: String = "Estimated " + duration.message_hms + " build time with " + generator
 
-    def is_current(state: Build_Process.State): Boolean =
-      !graph.is_empty && graph.minimals.toSet.intersect(state.results.keySet).isEmpty
-    def is_current_estimate(other: Schedule): Boolean =
-      (end.time - other.end.time).minutes.abs < 1
+    def deviation(other: Schedule): Time = Time.ms((end.time - other.end.time).ms.abs)
+
+    def num_built(state: Build_Process.State): Int = graph.keys.count(state.results.contains)
+    def elapsed(): Time = Time.now() - start.time
+    def is_outdated(state: Build_Process.State, time_limit: Time, built_limit: Int): Boolean =
+      graph.is_empty || (elapsed() > time_limit && num_built(state) > built_limit)
 
     def next(hostname: String, state: Build_Process.State): List[String] =
       for {
@@ -945,8 +947,9 @@ object Build_Schedule {
         case _ => false
     }
 
-    override def next_jobs(state: Build_Process.State): List[String] = {
-      if (!progress.stopped && _schedule.is_current(state)) _schedule.next(hostname, state)
+    override def next_jobs(state: Build_Process.State): List[String] =
+      if (!progress.stopped && !_schedule.is_outdated(state, Time.minutes(3), 10))
+        _schedule.next(hostname, state)
       else if (!build_context.master) Nil
       else if (progress.stopped) state.next_ready.map(_.name)
       else {
@@ -958,13 +961,12 @@ object Build_Schedule {
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
-          progress.echo_if(!_schedule.is_current_estimate(schedule), schedule.message + timing_msg)
+          progress.echo_if(_schedule.deviation(schedule).minutes > 1, schedule.message + timing_msg)
 
           _schedule = schedule
           _schedule.next(hostname, state)
         }
       }
-    }
 
     override def run(): Build.Results = {
       val results = super.run()
