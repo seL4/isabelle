@@ -1057,14 +1057,14 @@ fun incr_indexes i =
 
 (* proof by assumption *)
 
-fun mk_asm_prf t i m =
+fun mk_asm_prf C i m =
   let
     fun imp_prf _ i 0 = PBound i
       | imp_prf (Const ("Pure.imp", _) $ A $ B) i m = AbsP ("H", NONE (*A*), imp_prf B (i+1) (m-1))
       | imp_prf _ i _ = PBound i;
     fun all_prf (Const ("Pure.all", _) $ Abs (a, T, t)) = Abst (a, NONE (*T*), all_prf t)
       | all_prf t = imp_prf t (~i) m
-  in all_prf t end;
+  in all_prf C end;
 
 fun assumption_proof Bs Bi n prf =
   mk_AbsP Bs (proof_combP (prf, map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi n ~1]));
