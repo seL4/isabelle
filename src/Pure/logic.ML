@@ -450,7 +450,7 @@ fun incr_tvar_same 0 = Same.same
       (fn TVar ((a, i), S) => TVar ((a, i + k), S)
         | _ => raise Same.SAME);
 
-fun incr_tvar k T = incr_tvar_same k T handle Same.SAME => T;
+fun incr_tvar k = Same.commit (incr_tvar_same k);
 
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
@@ -476,7 +476,7 @@ fun incr_indexes_same ([], [], 0) = Same.same
           | incr _ (Bound _) = raise Same.SAME;
       in incr 0 end;
 
-fun incr_indexes arg t = incr_indexes_same arg t handle Same.SAME => t;
+fun incr_indexes arg = Same.commit (incr_indexes_same arg);
 
 
 (* Lifting functions from subgoal and increment:
