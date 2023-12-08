@@ -103,7 +103,7 @@ sig
   val maxidx_proof: proof -> int -> int
   val size_of_proof: proof -> int
   val change_types: typ list option -> proof -> proof
-  val prf_abstract_over: term -> proof -> proof
+  val abstract_over: term -> proof -> proof
   val incr_bv_same: int -> int -> int -> int -> proof Same.operation
   val incr_bv: int -> int -> int -> int -> proof -> proof
   val incr_boundvars: int -> int -> proof -> proof
@@ -616,7 +616,7 @@ fun mk_abs Ts t = Library.foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
     which must contain no loose bound variables.
   The resulting proof term is ready to become the body of an Abst.*)
 
-fun prf_abstract_over v =
+fun abstract_over v =
   let
     fun term lev u =
       if v aconv u then Bound lev
@@ -926,7 +926,7 @@ val implies_intr_proof' = gen_implies_intr_proof SOME;
 
 (* forall introduction *)
 
-fun forall_intr_proof (a, v) opt_T prf = Abst (a, opt_T, prf_abstract_over v prf);
+fun forall_intr_proof (a, v) opt_T prf = Abst (a, opt_T, abstract_over v prf);
 
 fun forall_intr_proof' v prf =
   let val (a, T) = (case v of Var ((a, _), T) => (a, T) | Free (a, T) => (a, T))
