@@ -1593,7 +1593,7 @@ fun get_rew_data thy =
   let val (rules, procs) = #1 (Data.get thy)
   in (map #2 rules, map #2 procs) end;
 
-fun rew_proof thy prf = rewrite_prf fst (get_rew_data thy) prf;
+fun rew_proof thy = rewrite_prf fst (get_rew_data thy);
 
 fun add_prf_rrule r = (Data.map o apfst o apfst) (cons (stamp (), r));
 fun add_prf_rproc p = (Data.map o apfst o apsnd) (cons (stamp (), p));
