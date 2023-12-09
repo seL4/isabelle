@@ -501,7 +501,7 @@ fun get_proofs_level () =
   end;
 
 fun any_proofs_enabled () =
-  let val proofs = ! proofs
+  let val proofs = get_proofs_level ()
   in zproof_enabled proofs orelse proof_enabled proofs end;
 
 fun atomic_proof prf =
