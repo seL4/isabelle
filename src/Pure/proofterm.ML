@@ -82,6 +82,8 @@ sig
   (*primitive operations*)
   val proof_enabled: int -> bool
   val zproof_enabled: int -> bool
+  val oracle_enabled: int -> bool
+  val get_proofs_level: unit -> int
   val proofs: int Unsynchronized.ref
   val any_proofs_enabled: unit -> bool
   val atomic_proof: proof -> bool
@@ -486,10 +488,17 @@ end;
 
 (** proof objects with different levels of detail **)
 
-fun proof_enabled proofs = Word.andb (Word.fromInt proofs, 0w2) <> 0w0;
-fun zproof_enabled proofs = Word.andb (Word.fromInt proofs, 0w4) <> 0w0;
+fun proof_enabled proofs = proofs = 2 orelse proofs = 6;
+fun zproof_enabled proofs = proofs = 4 orelse proofs = 5 orelse proofs = 6;
+fun oracle_enabled proofs = not (proofs = 0 orelse proofs = 4);
 
 val proofs = Unsynchronized.ref 6;
+
+fun get_proofs_level () =
+  let val proofs = ! proofs in
+    if 0 <= proofs andalso proofs <= 6 andalso proofs <> 3 then proofs
+    else error ("Illegal level of detail for proof objects: " ^ string_of_int proofs)
+  end;
 
 fun any_proofs_enabled () =
   let val proofs = ! proofs
@@ -2192,7 +2201,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val (ucontext, prop1) = Logic.unconstrainT shyps prop;
 
     val PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, proof = (prf, zprf)} = body;
-    val proofs = ! proofs;
+    val proofs = get_proofs_level ();
     val prf' = if proof_enabled proofs then fold_rev implies_intr_proof hyps prf else MinProof;
     val zprf' = if zproof_enabled proofs then ZTerm.todo_proof zprf else ZDummy;
     val body0 = PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, proof = (prf', zprf')};

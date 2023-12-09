@@ -755,9 +755,6 @@ val empty_deriv = make_deriv [] [] [] Proofterm.empty_zboxes Proofterm.no_proof;
 
 val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
-fun bad_proofs i =
-  error ("Illegal level of detail for proof objects: " ^ string_of_int i);
-
 fun deriv_rule2 (f, g)
     (Deriv {promises = ps1, body = body1}) (Deriv {promises = ps2, body = body2}) =
   let
@@ -769,21 +766,16 @@ fun deriv_rule2 (f, g)
     val oracles = Proofterm.union_oracles oracles1 oracles2;
     val thms = Proofterm.union_thms thms1 thms2;
     val zboxes = Proofterm.union_zboxes zboxes1 zboxes2;
-    val proof =
-      (case ! Proofterm.proofs of
-        0 => Proofterm.no_proof
-      | 1 => Proofterm.no_proof
-      | 2 => (f prf1 prf2, ZDummy)
-      | 4 => (MinProof, g zprf1 zprf2)
-      | 5 => (MinProof, g zprf1 zprf2)
-      | 6 => (f prf1 prf2, g zprf1 zprf2)
-      | i => bad_proofs i);
-  in make_deriv ps oracles thms zboxes proof end;
+
+    val proofs = Proofterm.get_proofs_level ();
+    val prf = if Proofterm.proof_enabled proofs then f prf1 prf2 else MinProof;
+    val zprf = if Proofterm.zproof_enabled proofs then g zprf1 zprf2 else ZDummy;
+  in make_deriv ps oracles thms zboxes (prf, zprf) end;
 
 fun deriv_rule1 (f, g) = deriv_rule2 (K f, K g) empty_deriv;
 
 fun deriv_rule0 (f, g) =
-  let val proofs = ! Proofterm.proofs in
+  let val proofs = Proofterm.get_proofs_level () in
     if Proofterm.proof_enabled proofs orelse Proofterm.zproof_enabled proofs then
       deriv_rule1 (I, I) (make_deriv [] [] [] Proofterm.empty_zboxes
        (if Proofterm.proof_enabled proofs then f () else MinProof,
@@ -1167,20 +1159,21 @@ fun add_oracle (b, oracle_fn) thy =
         else
           let
             val cert = Context.join_certificate (Context.Certificate thy', cert2);
-            fun no_oracle () = ((name, Position.none), NONE);
-            fun make_oracle () = ((name, Position.thread_data ()), SOME prop);
-            fun zproof () = ZTerm.oracle_proof (Context.certificate_theory cert) name prop;
-            val (oracle, proof) =
-              (case ! Proofterm.proofs of
-                0 => (no_oracle (), Proofterm.no_proof)
-              | 1 => (make_oracle (), Proofterm.no_proof)
-              | 2 => (make_oracle (), (Proofterm.oracle_proof name prop, zproof ()))
-              | 4 => (no_oracle (), (MinProof, zproof ()))
-              | 5 => (make_oracle (), (MinProof, zproof ()))
-              | 6 => (make_oracle (), (Proofterm.oracle_proof name prop, zproof ()))
-              | i => bad_proofs i);
+            val proofs = Proofterm.get_proofs_level ();
+            val oracle =
+              if Proofterm.oracle_enabled proofs
+              then ((name, Position.thread_data ()), SOME prop)
+              else ((name, Position.none), NONE);
+            val proof =
+              if Proofterm.proof_enabled proofs
+              then Proofterm.oracle_proof name prop
+              else MinProof;
+            val zproof =
+              if Proofterm.zproof_enabled proofs
+              then ZTerm.oracle_proof (Context.certificate_theory cert) name prop
+              else ZDummy;
           in
-            Thm (make_deriv [] [oracle] [] Proofterm.empty_zboxes proof,
+            Thm (make_deriv [] [oracle] [] Proofterm.empty_zboxes (proof, zproof),
              {cert = cert,
               tags = [],
               maxidx = maxidx,
