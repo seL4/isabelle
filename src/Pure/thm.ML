@@ -784,10 +784,6 @@ fun deriv_rule0 zproof proof =
     else empty_deriv
   end;
 
-fun deriv_rule_unconditional (f, g)
-    (Deriv {promises, body = PBody {oracles, thms, zboxes, zproof = zprf, proof = prf}}) =
-  make_deriv promises oracles thms zboxes (g zprf) (f prf);
-
 
 (* fulfilled proofs *)
 
@@ -1074,9 +1070,11 @@ fun strip_shyps thm =
 
         val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
         val shyps' = fold (Sorts.insert_sort o #2) present extra';
+
+        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
+        val proof' = Proofterm.strip_shyps_proof algebra present witnessed extra' proof;
       in
-        Thm (deriv_rule_unconditional
-          (Proofterm.strip_shyps_proof algebra present witnessed extra', I) der,
+        Thm (make_deriv promises oracles thms zboxes zproof proof',
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end)
