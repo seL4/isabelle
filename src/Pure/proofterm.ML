@@ -78,8 +78,8 @@ sig
   val %> : proof * term -> proof
 
   (*primitive operations*)
-  val proof_enabled: int -> bool
   val zproof_enabled: int -> bool
+  val proof_enabled: int -> bool
   val oracle_enabled: int -> bool
   val get_proofs_level: unit -> int
   val proofs: int Unsynchronized.ref
@@ -488,8 +488,8 @@ end;
 
 (** proof objects with different levels of detail **)
 
-fun proof_enabled proofs = proofs = 2 orelse proofs = 6;
 fun zproof_enabled proofs = proofs = 4 orelse proofs = 5 orelse proofs = 6;
+fun proof_enabled proofs = proofs = 2 orelse proofs = 6;
 fun oracle_enabled proofs = not (proofs = 0 orelse proofs = 4);
 
 val proofs = Unsynchronized.ref 6;
@@ -502,7 +502,7 @@ fun get_proofs_level () =
 
 fun any_proofs_enabled () =
   let val proofs = ! proofs
-  in proof_enabled proofs orelse zproof_enabled proofs end;
+  in zproof_enabled proofs orelse proof_enabled proofs end;
 
 fun atomic_proof prf =
   (case prf of
@@ -2191,7 +2191,7 @@ fun export_proof thy i prop prf0 =
   end;
 
 fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
-    (name, pos) shyps hyps concl promises body =
+    (name, pos) shyps hyps concl promises (PBody body) =
   let
     val named = name <> "";
 
@@ -2200,12 +2200,12 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val (ucontext, prop1) = Logic.unconstrainT shyps prop;
 
-    val PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zprf, proof = prf} = body;
+    val {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof0, proof = proof0} = body;
     val proofs = get_proofs_level ();
-    val prf' = if proof_enabled proofs then fold_rev implies_intr_proof hyps prf else MinProof;
-    val zprf' = if zproof_enabled proofs then ZTerm.todo_proof zprf else ZDummy;
+    val zproof' = if zproof_enabled proofs then ZTerm.todo_proof zproof0 else ZDummy;
+    val proof' = if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0 else MinProof;
     val body0 =
-      PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zprf', proof = prf'};
+      PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof', proof = proof'};
 
     fun new_prf () =
       let
@@ -2219,7 +2219,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       (*somewhat non-deterministic proof boxes!*)
       if export_enabled () then new_prf ()
       else
-        (case strip_combt (fst (strip_combP prf)) of
+        (case strip_combt (fst (strip_combP proof0)) of
           (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
             if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
               let
