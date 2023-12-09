@@ -744,11 +744,11 @@ fun weaken_sorts raw_sorts ct =
 
 (** derivations and promised proofs **)
 
-fun make_deriv promises oracles thms zboxes proof =
+fun make_deriv promises oracles thms zboxes zproof proof =
   Deriv {promises = promises,
-    body = PBody {oracles = oracles, thms = thms, zboxes = zboxes, proof = proof}};
+    body = PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof}};
 
-val empty_deriv = make_deriv [] [] [] Proofterm.empty_zboxes Proofterm.no_proof;
+val empty_deriv = make_deriv [] [] [] Proofterm.empty_zboxes ZDummy MinProof;
 
 
 (* inference rules *)
@@ -756,12 +756,12 @@ val empty_deriv = make_deriv [] [] [] Proofterm.empty_zboxes Proofterm.no_proof;
 val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 fun deriv_rule2 (f, g)
-    (Deriv {promises = ps1, body = body1}) (Deriv {promises = ps2, body = body2}) =
+    (Deriv {promises = ps1, body = PBody body1}) (Deriv {promises = ps2, body = PBody body2}) =
   let
     val ps = Ord_List.union promise_ord ps1 ps2;
 
-    val PBody {oracles = oracles1, thms = thms1, zboxes = zboxes1, proof = (prf1, zprf1)} = body1;
-    val PBody {oracles = oracles2, thms = thms2, zboxes = zboxes2, proof = (prf2, zprf2)} = body2;
+    val {oracles = oracles1, thms = thms1, zboxes = zboxes1, zproof = zprf1, proof = prf1} = body1;
+    val {oracles = oracles2, thms = thms2, zboxes = zboxes2, zproof = zprf2, proof = prf2} = body2;
 
     val oracles = Proofterm.union_oracles oracles1 oracles2;
     val thms = Proofterm.union_thms thms1 thms2;
@@ -770,7 +770,7 @@ fun deriv_rule2 (f, g)
     val proofs = Proofterm.get_proofs_level ();
     val prf = if Proofterm.proof_enabled proofs then f prf1 prf2 else MinProof;
     val zprf = if Proofterm.zproof_enabled proofs then g zprf1 zprf2 else ZDummy;
-  in make_deriv ps oracles thms zboxes (prf, zprf) end;
+  in make_deriv ps oracles thms zboxes zprf prf end;
 
 fun deriv_rule1 (f, g) = deriv_rule2 (K f, K g) empty_deriv;
 
@@ -778,14 +778,14 @@ fun deriv_rule0 (f, g) =
   let val proofs = Proofterm.get_proofs_level () in
     if Proofterm.proof_enabled proofs orelse Proofterm.zproof_enabled proofs then
       deriv_rule1 (I, I) (make_deriv [] [] [] Proofterm.empty_zboxes
-       (if Proofterm.proof_enabled proofs then f () else MinProof,
-        if Proofterm.zproof_enabled proofs then g () else ZDummy))
+       (if Proofterm.zproof_enabled proofs then g () else ZDummy)
+       (if Proofterm.proof_enabled proofs then f () else MinProof))
     else empty_deriv
   end;
 
 fun deriv_rule_unconditional (f, g)
-    (Deriv {promises, body = PBody {oracles, thms, zboxes, proof = (prf, zprf)}}) =
-  make_deriv promises oracles thms zboxes (f prf, g zprf);
+    (Deriv {promises, body = PBody {oracles, thms, zboxes, zproof = zprf, proof = prf}}) =
+  make_deriv promises oracles thms zboxes (g zprf) (f prf);
 
 
 (* fulfilled proofs *)
@@ -845,7 +845,7 @@ fun future future_thm ct =
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv [(i, future)] [] [] Proofterm.empty_zboxes Proofterm.no_proof,
+    Thm (make_deriv [(i, future)] [] [] Proofterm.empty_zboxes ZDummy MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1026,10 +1026,11 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
             raise THEORY ("solve_constraints: bad theories for theorem\n" ^
               Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
 
-        val Deriv {promises, body = PBody {oracles, thms, zboxes, proof}} = der;
+        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
         val (oracles', thms', zboxes') = (oracles, thms, zboxes)
           |> fold (fold union_digest o constraint_digest) constraints;
-        val body' = PBody {oracles = oracles', thms = thms', zboxes = zboxes', proof = proof};
+        val body' =
+          PBody {oracles = oracles', thms = thms', zboxes = zboxes', zproof = zproof, proof = proof};
       in
         Thm (Deriv {promises = promises, body = body'},
           {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
@@ -1134,7 +1135,7 @@ fun name_derivation name_pos =
         Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
           name_pos shyps hyps prop ps body;
       val zprf = ZTerm.todo_proof (Proofterm.zproof_of body);
-      val der' = make_deriv [] [] [pthm] Proofterm.empty_zboxes (prf, zprf);
+      val der' = make_deriv [] [] [pthm] Proofterm.empty_zboxes zprf prf;
     in Thm (der', args) end);
 
 fun close_derivation pos =
@@ -1173,7 +1174,7 @@ fun add_oracle (b, oracle_fn) thy =
               then ZTerm.oracle_proof (Context.certificate_theory cert) name prop
               else ZDummy;
           in
-            Thm (make_deriv [] [oracle] [] Proofterm.empty_zboxes (proof, zproof),
+            Thm (make_deriv [] [oracle] [] Proofterm.empty_zboxes zproof proof,
              {cert = cert,
               tags = [],
               maxidx = maxidx,
@@ -1916,7 +1917,7 @@ val unconstrainT =
         Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
           shyps prop ps body;
       val zprf = ZTerm.todo_proof body;
-      val der' = make_deriv [] [] [pthm] Proofterm.empty_zboxes (prf, zprf);
+      val der' = make_deriv [] [] [pthm] Proofterm.empty_zboxes zprf prf;
       val prop' = Proofterm.thm_node_prop (#2 pthm);
     in
       Thm (der',
