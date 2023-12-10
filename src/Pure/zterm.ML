@@ -199,10 +199,11 @@ sig
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> zproof -> zproof
   val varifyT_proof: ((string * sort) * (indexname * sort)) list -> zproof -> zproof
   val legacy_freezeT_proof: term -> zproof -> zproof
-  val incr_indexes_proof: int -> zproof -> zproof
   val rotate_proof: theory -> term list -> term -> (string * typ) list ->
     term list -> int -> zproof -> zproof
   val permute_prems_proof: theory -> term list -> int -> int -> zproof -> zproof
+  val incr_indexes_proof: int -> zproof -> zproof
+  val lift_proof: theory -> term -> int -> zterm list -> zproof -> zproof
   val assumption_proof: theory -> Envir.env -> term list -> term -> int -> zproof -> zproof
 end;
 
@@ -225,11 +226,16 @@ fun aconv_zterm (tm1, tm2) =
 
 (* derived operations *)
 
+val ZFuns = Library.foldr ZFun;
+
 val ZAbsts = fold_rev (fn (x, T) => fn prf => ZAbst (x, T, prf));
 val ZAbsps = fold_rev (fn t => fn prf => ZAbsp ("H", t, prf));
 
 val ZAppts = Library.foldl ZAppt;
 val ZAppps = Library.foldl ZAppp;
+
+fun combound (t, n, k) =
+  if k > 0 then ZApp (combound (t, n + 1, k - 1), ZBound n) else t;
 
 
 (* fold *)
@@ -748,14 +754,6 @@ fun legacy_freezeT_proof t prf =
         val typ = ZTypes.unsynchronized_cache (subst_type_same tvar);
       in Same.commit (map_proof_types_same typ) prf end);
 
-fun incr_indexes_proof inc prf =
-  let
-    fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME;
-    fun var ((x, i), T) = if i >= 0 then ZVar ((x, i + inc), T) else raise Same.SAME;
-    val typ = ZTypes.unsynchronized_cache (subst_type_same tvar);
-    val term = subst_term_same typ var;
-  in Same.commit (map_proof_same typ term) prf end;
-
 
 (* permutations *)
 
@@ -779,6 +777,82 @@ fun permute_prems_proof thy prems' j k prf =
     ZAbsps (map zterm prems')
       (ZAppps (prf, map ZBoundp ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
   end;
+
+
+(* lifting *)
+
+fun incr_tvar_same inc =
+  if inc = 0 then Same.same
+  else
+    let fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME
+    in ZTypes.unsynchronized_cache (subst_type_same tvar) end;
+
+fun incr_indexes_proof inc prf =
+  let
+    val typ = incr_tvar_same inc;
+    fun var ((x, i), T) = if i >= 0 then ZVar ((x, i + inc), T) else raise Same.SAME;
+    val term = subst_term_same typ var;
+  in Same.commit (map_proof_same typ term) prf end;
+
+fun lift_proof thy gprop inc prems prf =
+  let
+    val {ztyp, zterm} = zterm_cache thy;
+
+    val typ = incr_tvar_same inc;
+
+    fun term Ts lev =
+      if null Ts andalso inc = 0 then Same.same
+      else
+        let
+          val n = length Ts;
+          fun incr lev (ZVar ((x, i), T)) =
+                if i >= 0 then combound (ZVar ((x, i + inc), ZFuns (Ts, Same.commit typ T)), lev, n)
+                else raise Same.SAME
+            | incr _ (ZBound _) = raise Same.SAME
+            | incr _ (ZConst0 _) = raise Same.SAME
+            | incr _ (ZConst1 (c, T)) = ZConst1 (c, typ T)
+            | incr _ (ZConst (c, Ts)) = ZConst (c, Same.map typ Ts)
+            | incr lev (ZAbs (x, T, t)) =
+                (ZAbs (x, typ T, Same.commit (incr (lev + 1)) t)
+                  handle Same.SAME => ZAbs (x, T, incr (lev + 1) t))
+            | incr lev (ZApp (t, u)) =
+                (ZApp (incr lev t, Same.commit (incr lev) u)
+                  handle Same.SAME => ZApp (t, incr lev u))
+            | incr _ (ZClass (T, c)) = ZClass (typ T, c);
+        in incr lev end;
+
+    fun proof Ts lev (ZAbst (a, T, p)) =
+          (ZAbst (a, typ T, Same.commit (proof Ts (lev + 1)) p)
+            handle Same.SAME => ZAbst (a, T, proof Ts (lev + 1) p))
+      | proof Ts lev (ZAbsp (a, t, p)) =
+          (ZAbsp (a, term Ts lev t, Same.commit (proof Ts lev) p)
+            handle Same.SAME => ZAbsp (a, t, proof Ts lev p))
+      | proof Ts lev (ZAppt (p, t)) =
+          (ZAppt (proof Ts lev p, Same.commit (term Ts lev) t)
+            handle Same.SAME => ZAppt (p, term Ts lev t))
+      | proof Ts lev (ZAppp (p, q)) =
+          (ZAppp (proof Ts lev p, Same.commit (proof Ts lev) q)
+            handle Same.SAME => ZAppp (p, proof Ts lev q))
+      | proof Ts lev (ZConstp (a, A, instT, inst)) =
+          let val (instT', insts') = map_insts_same typ (term Ts lev) (instT, inst)
+          in ZConstp (a, A, instT', insts') end
+      | proof _ _ (ZClassp (T, c)) = ZClassp (typ T, c)
+      | proof _ _ _ = raise Same.SAME;
+
+    val k = length prems;
+
+    fun mk_app b (i, j, p) =
+      if b then (i - 1, j, ZAppp (p, ZBoundp i)) else (i, j - 1, ZAppt (p, ZBound j));
+
+    fun lift Ts bs i j (Const ("Pure.imp", _) $ A $ B) =
+          ZAbsp ("H", Same.commit (term Ts 0) (zterm A), lift Ts (true :: bs) (i + 1) j B)
+      | lift Ts bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
+          let val T' = ztyp T
+          in ZAbst (a, T', lift (T' :: Ts) (false :: bs) i (j + 1) t) end
+      | lift Ts bs i j _ =
+          ZAppps (Same.commit (proof (rev Ts) 0) prf,
+            map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, ZBoundp k)))) (i + k - 1 downto i));
+  in ZAbsps prems (lift [] [] 0 0 gprop) end;
 
 
 (* higher-order resolution *)
