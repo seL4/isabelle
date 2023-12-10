@@ -613,14 +613,6 @@ fun change_types types (PAxm (name, prop, _)) = PAxm (name, prop, types)
   | change_types _ prf = prf;
 
 
-(* utilities *)
-
-fun strip_abs (_::Ts) (Abs (_, _, t)) = strip_abs Ts t
-  | strip_abs _ t = t;
-
-fun mk_abs Ts t = Library.foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
-
-
 (*Abstraction of a proof term over its occurrences of v,
     which must contain no loose bound variables.
   The resulting proof term is ready to become the body of an Abst.*)
@@ -1021,7 +1013,9 @@ fun lift_proof gprop inc prems prf =
     val typs = Same.map_option (Same.map typ);
 
     fun term Us Ts t =
-      strip_abs Ts (Logic.incr_indexes_same ([], Us, inc) (mk_abs Ts t));
+      fold (fn T => fn u => Abs ("", T, u)) Ts t
+      |> Logic.incr_indexes_same ([], Us, inc)
+      |> Term.strip_abs_body' (length Ts);
 
     fun proof Us Ts (Abst (a, T, p)) =
           (Abst (a, Same.map_option typ T, Same.commit (proof Us (dummyT :: Ts)) p)
