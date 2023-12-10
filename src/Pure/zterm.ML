@@ -168,11 +168,9 @@ sig
   val incr_bv: int -> int -> zterm -> zterm
   val incr_boundvars: int -> zterm -> zterm
   val ztyp_of: typ -> ztyp
-  val zterm_cache_consts: Consts.T -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_of: theory -> term -> zterm
   val typ_of: ztyp -> typ
-  val term_of_consts: Consts.T -> zterm -> term
   val term_of: theory -> zterm -> term
   val could_beta_contract: zterm -> bool
   val norm_type: Type.tyenv -> ztyp -> ztyp
@@ -386,9 +384,9 @@ fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
 
 fun ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
 
-fun zterm_cache_consts consts =
+fun zterm_cache thy =
   let
-    val typargs = Consts.typargs consts;
+    val typargs = Consts.typargs (Sign.consts_of thy);
 
     val ztyp = ztyp_cache ();
 
@@ -408,7 +406,6 @@ fun zterm_cache_consts consts =
       | zterm (t $ u) = ZApp (zterm t, zterm u);
   in {ztyp = ztyp, zterm = zterm} end;
 
-val zterm_cache = zterm_cache_consts o Sign.consts_of;
 val zterm_of = #zterm o zterm_cache;
 
 fun typ_of (ZTVar ((a, ~1), S)) = TFree (a, S)
@@ -422,10 +419,12 @@ fun typ_of (ZTVar ((a, ~1), S)) = TFree (a, S)
 
 fun typ_cache () = ZTypes.unsynchronized_cache typ_of;
 
-fun term_of_consts consts =
+fun term_of thy =
   let
-    val instance = Consts.instance consts;
+    val instance = Consts.instance (Sign.consts_of thy);
+
     fun const (c, Ts) = Const (c, instance (c, Ts));
+
     fun term (ZVar ((x, ~1), T)) = Free (x, typ_of T)
       | term (ZVar (xi, T)) = Var (xi, typ_of T)
       | term (ZBound i) = Bound i
@@ -436,8 +435,6 @@ fun term_of_consts consts =
       | term (ZApp (t, u)) = term t $ term u
       | term (ZClass (T, c)) = Logic.mk_of_class (typ_of T, c);
   in term end;
-
-val term_of = term_of_consts o Sign.consts_of;
 
 
 (* beta normalization wrt. environment *)
@@ -502,7 +499,7 @@ fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) p
 
 fun norm_cache thy =
   let
-    val {ztyp, zterm} = zterm_cache_consts (Sign.consts_of thy);
+    val {ztyp, zterm} = zterm_cache thy;
     val typ = typ_cache ();
   in {ztyp = ztyp, zterm = zterm, typ = typ} end;
 
