@@ -78,8 +78,9 @@ sig
   val rlist_abs: (string * typ) list * term -> term
   val incr_tvar_same: int -> typ Same.operation
   val incr_tvar: int -> typ -> typ
-  val incr_indexes_same: string list * typ list * int -> term Same.operation
-  val incr_indexes: string list * typ list * int -> term -> term
+  val incr_indexes_operation: {fixed: string list, Ts: typ list, inc: int, level: int} ->
+    term Same.operation
+  val incr_indexes: typ list * int -> term -> term
   val lift_abs: int -> term -> term -> term
   val lift_all: int -> term -> term -> term
   val strip_assums_hyp: term -> term list
@@ -446,37 +447,40 @@ fun rlist_abs ([], body) = body
   | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
 
 fun incr_tvar_same 0 = Same.same
-  | incr_tvar_same k = Term_Subst.map_atypsT_same
-      (fn TVar ((a, i), S) => TVar ((a, i + k), S)
+  | incr_tvar_same inc = Term_Subst.map_atypsT_same
+      (fn TVar ((a, i), S) => TVar ((a, i + inc), S)
         | _ => raise Same.SAME);
 
-fun incr_tvar k = Same.commit (incr_tvar_same k);
+fun incr_tvar inc = Same.commit (incr_tvar_same inc);
 
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
-fun incr_indexes_same ([], [], 0) = Same.same
-  | incr_indexes_same (fixed, Ts, k) =
-      let
-        val n = length Ts;
-        val incrT = incr_tvar_same k;
+fun incr_indexes_operation {fixed, Ts, inc, level} =
+  if null fixed andalso null Ts andalso inc = 0 then Same.same
+  else
+    let
+      val n = length Ts;
+      val incrT = incr_tvar_same inc;
 
-        fun incr lev (Var ((x, i), T)) =
-              combound (Var ((x, i + k), Ts ---> Same.commit incrT T), lev, n)
-          | incr lev (Free (x, T)) =
-              if member (op =) fixed x then
-                combound (Free (x, Ts ---> Same.commit incrT T), lev, n)
-              else Free (x, incrT T)
-          | incr lev (Abs (x, T, t)) =
-              (Abs (x, incrT T, Same.commit (incr (lev + 1)) t)
-                handle Same.SAME => Abs (x, T, incr (lev + 1) t))
-          | incr lev (t $ u) =
-              (incr lev t $ Same.commit (incr lev) u
-                handle Same.SAME => t $ incr lev u)
-          | incr _ (Const (c, T)) = Const (c, incrT T)
-          | incr _ (Bound _) = raise Same.SAME;
-      in incr 0 end;
+      fun incr lev (Var ((x, i), T)) =
+            combound (Var ((x, i + inc), Ts ---> Same.commit incrT T), lev, n)
+        | incr lev (Free (x, T)) =
+            if member (op =) fixed x then
+              combound (Free (x, Ts ---> Same.commit incrT T), lev, n)
+            else Free (x, incrT T)
+        | incr lev (Abs (x, T, t)) =
+            (Abs (x, incrT T, Same.commit (incr (lev + 1)) t)
+              handle Same.SAME => Abs (x, T, incr (lev + 1) t))
+        | incr lev (t $ u) =
+            (incr lev t $ Same.commit (incr lev) u
+              handle Same.SAME => t $ incr lev u)
+        | incr _ (Const (c, T)) = Const (c, incrT T)
+        | incr _ (Bound _) = raise Same.SAME;
+    in incr level end;
 
-fun incr_indexes arg = Same.commit (incr_indexes_same arg);
+fun incr_indexes (Ts, inc) =
+  if null Ts andalso inc = 0 then I
+  else Same.commit (incr_indexes_operation {fixed = [], Ts = Ts, inc = inc, level = 0});
 
 
 (* Lifting functions from subgoal and increment:
@@ -487,14 +491,14 @@ fun lift_abs inc =
   let
     fun lift Ts (Const ("Pure.imp", _) $ _ $ B) t = lift Ts B t
       | lift Ts (Const ("Pure.all", _) $ Abs (a, T, B)) t = Abs (a, T, lift (T :: Ts) B t)
-      | lift Ts _ t = incr_indexes ([], rev Ts, inc) t;
+      | lift Ts _ t = incr_indexes (rev Ts, inc) t;
   in lift [] end;
 
 fun lift_all inc =
   let
     fun lift Ts ((c as Const ("Pure.imp", _)) $ A $ B) t = c $ A $ lift Ts B t
       | lift Ts ((c as Const ("Pure.all", _)) $ Abs (a, T, B)) t = c $ Abs (a, T, lift (T :: Ts) B t)
-      | lift Ts _ t = incr_indexes ([], rev Ts, inc) t;
+      | lift Ts _ t = incr_indexes (rev Ts, inc) t;
   in lift [] end;
 
 (*Strips assumptions in goal, yielding list of hypotheses.   *)

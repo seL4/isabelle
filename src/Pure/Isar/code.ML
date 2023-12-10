@@ -1386,7 +1386,7 @@ fun subsumptive_add thy verbose (thm, proper) eqns =
       o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of
       o Thm.transfer thy;
     val args = args_of thm;
-    val incr_idx = Logic.incr_indexes ([], [], Thm.maxidx_of thm + 1);
+    val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
     fun matches_args args' =
       let
         val k = length args' - length args

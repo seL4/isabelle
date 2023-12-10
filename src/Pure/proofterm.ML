@@ -1012,10 +1012,8 @@ fun lift_proof gprop inc prems prf =
     val typ = Logic.incr_tvar_same inc;
     val typs = Same.map_option (Same.map typ);
 
-    fun term Us Ts t =
-      fold (fn T => fn u => Abs ("", T, u)) Ts t
-      |> Logic.incr_indexes_same ([], Us, inc)
-      |> Term.strip_abs_body' (length Ts);
+    fun term Us Ts =
+      Logic.incr_indexes_operation {fixed = [], Ts = Us, inc = inc, level = length Ts};
 
     fun proof Us Ts (Abst (a, T, p)) =
           (Abst (a, Same.map_option typ T, Same.commit (proof Us (dummyT :: Ts)) p)
@@ -1051,8 +1049,10 @@ fun lift_proof gprop inc prems prf =
   in mk_AbsP prems (lift [] [] 0 0 gprop) end;
 
 fun incr_indexes i =
-  Same.commit (map_proof_terms_same
-    (Logic.incr_indexes_same ([], [], i)) (Logic.incr_tvar_same i));
+  Same.commit
+    (map_proof_terms_same
+      (Logic.incr_indexes_operation {fixed = [], Ts = [], inc = i, level = 0})
+      (Logic.incr_tvar_same i));
 
 
 (* proof by assumption *)

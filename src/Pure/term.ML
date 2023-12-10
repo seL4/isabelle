@@ -127,7 +127,6 @@ sig
   val a_itselfT: typ
   val argument_type_of: term -> int -> typ
   val abs: string * typ -> term -> term
-  val strip_abs_body': int -> term -> term
   val args_of: term -> term list
   val add_tvar_namesT: typ -> indexname list -> indexname list
   val add_tvar_names: term -> indexname list -> indexname list
@@ -401,10 +400,6 @@ fun strip_abs_body (Abs (_, _, t)) = strip_abs_body t
 
 fun strip_abs_vars (Abs (a, T, t)) = strip_abs_vars t |> cons (a, T)
   | strip_abs_vars _ = [];
-
-fun strip_abs_body' 0 t = t
-  | strip_abs_body' n (Abs (_, _, t)) = strip_abs_body' (n - 1) t
-  | strip_abs_body' _ t = t;
 
 
 fun strip_qnt_body qnt =

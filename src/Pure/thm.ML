@@ -380,7 +380,7 @@ fun adjust_maxidx_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
 fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   if i < 0 then raise CTERM ("negative increment", [ct])
   else if i = 0 then ct
-  else Cterm {cert = cert, t = Logic.incr_indexes ([], [], i) t,
+  else Cterm {cert = cert, t = Logic.incr_indexes ([], i) t,
     T = Logic.incr_tvar i T, maxidx = maxidx + i, sorts = sorts};
 
 
@@ -2060,8 +2060,8 @@ fun incr_indexes i (thm as Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
         constraints = constraints,
         shyps = shyps,
         hyps = hyps,
-        tpairs = map (apply2 (Logic.incr_indexes ([], [], i))) tpairs,
-        prop = Logic.incr_indexes ([], [], i) prop})
+        tpairs = map (apply2 (Logic.incr_indexes ([], i))) tpairs,
+        prop = Logic.incr_indexes ([], i) prop})
     end;
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption. *)

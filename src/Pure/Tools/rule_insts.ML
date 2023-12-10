@@ -253,7 +253,9 @@ fun bires_inst_tac bires_flag ctxt raw_insts raw_fixes thm i st = CSUBGOAL (fn (
     val inc = Thm.maxidx_of st + 1;
     val lift_type = Logic.incr_tvar inc;
     fun lift_var ((a, j), T) = ((a, j + inc), paramTs ---> lift_type T);
-    fun lift_term t = fold_rev Term.absfree params (Logic.incr_indexes (fixed, paramTs, inc) t);
+    val incr_indexes =
+      Same.commit (Logic.incr_indexes_operation {fixed = fixed, Ts = paramTs, inc = inc, level = 0});
+    fun lift_term t = fold_rev Term.absfree params (incr_indexes t);
 
     val inst_tvars' =
       TVars.build (inst_tvars |> fold (fn (((a, i), S), T) =>
