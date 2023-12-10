@@ -466,9 +466,9 @@ fun incr_indexes_same ([], [], 0) = Same.same
               if member (op =) fixed x then
                 combound (Free (x, Ts ---> Same.commit incrT T), lev, n)
               else Free (x, incrT T)
-          | incr lev (Abs (x, T, body)) =
-              (Abs (x, incrT T, Same.commit (incr (lev + 1)) body)
-                handle Same.SAME => Abs (x, T, incr (lev + 1) body))
+          | incr lev (Abs (x, T, t)) =
+              (Abs (x, incrT T, Same.commit (incr (lev + 1)) t)
+                handle Same.SAME => Abs (x, T, incr (lev + 1) t))
           | incr lev (t $ u) =
               (incr lev t $ Same.commit (incr lev) u
                 handle Same.SAME => t $ incr lev u)
