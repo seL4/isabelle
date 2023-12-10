@@ -128,7 +128,7 @@ sig
   val permute_prems_proof: term list -> int -> int -> proof -> proof
   val generalize_proof: Names.set * Names.set -> int -> term -> proof -> proof
   val instantiate: typ TVars.table * term Vars.table -> proof -> proof
-  val lift_proof: term -> int -> term -> proof -> proof
+  val lift_proof: term -> int -> term list -> proof -> proof
   val incr_indexes: int -> proof -> proof
   val assumption_proof: term list -> term -> int -> proof -> proof
   val bicompose_proof: bool -> term list -> term list -> term option -> term list ->
@@ -1015,7 +1015,7 @@ fun instantiate (instT, inst) =
 
 (* lifting *)
 
-fun lift_proof Bi inc prop prf =
+fun lift_proof gprop inc prems prf =
   let
     val typ = Logic.incr_tvar_same inc;
     val typs = Same.map_option (Same.map typ);
@@ -1042,11 +1042,10 @@ fun lift_proof Bi inc prop prf =
           PThm (thm_header serial pos theory_name name prop (typs types), thm_body)
       | proof _ _ _ = raise Same.SAME;
 
-    val ps = map (Logic.lift_all inc Bi) (Logic.strip_imp_prems prop);
-    val k = length ps;
+    val k = length prems;
 
-    fun mk_app b (i, j, prf) =
-      if b then (i - 1, j, prf %% PBound i) else (i, j - 1, prf %> Bound j);
+    fun mk_app b (i, j, p) =
+      if b then (i - 1, j, p %% PBound i) else (i, j - 1, p %> Bound j);
 
     fun lift Us bs i j (Const ("Pure.imp", _) $ A $ B) =
           AbsP ("H", NONE (*A*), lift Us (true::bs) (i + 1) j B)
@@ -1055,7 +1054,7 @@ fun lift_proof Bi inc prop prf =
       | lift Us bs i j _ =
           proof_combP (Same.commit (proof (rev Us) []) prf,
             map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, PBound k)))) (i + k - 1 downto i));
-  in mk_AbsP ps (lift [] [] 0 0 Bi) end;
+  in mk_AbsP prems (lift [] [] 0 0 gprop) end;
 
 fun incr_indexes i =
   Same.commit (map_proof_terms_same

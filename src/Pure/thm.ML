@@ -2029,8 +2029,9 @@ fun lift_rule goal orule =
     if T <> propT then raise THM ("lift_rule: the term must have type prop", 0, [])
     else
       let
+        val prems = map lift_all As;
         fun zproof p = ZTerm.todo_proof p;
-        fun proof p = Proofterm.lift_proof gprop inc prop p;
+        fun proof p = Proofterm.lift_proof gprop inc prems p;
       in
         Thm (deriv_rule1 zproof proof der,
          {cert = join_certificate1 (goal, orule),
@@ -2040,7 +2041,7 @@ fun lift_rule goal orule =
           shyps = Sorts.union shyps sorts,  (*sic!*)
           hyps = hyps,
           tpairs = map (apply2 lift_abs) tpairs,
-          prop = Logic.list_implies (map lift_all As, lift_all B)})
+          prop = Logic.list_implies (prems, lift_all B)})
       end
   end;
 
