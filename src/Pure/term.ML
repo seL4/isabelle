@@ -392,29 +392,27 @@ fun argument_type_of tm k =
 
 fun abs (x, T) t = Abs (x, T, t);
 
-fun strip_abs (Abs (a, T, t)) =
-      let val (a', t') = strip_abs t
-      in ((a, T) :: a', t') end
+fun strip_abs (Abs (a, T, t)) = strip_abs t |>> cons (a, T)
   | strip_abs t = ([], t);
 
-(*maps  (x1,...,xn)t   to   t*)
-fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t
-  | strip_abs_body u  =  u;
+fun strip_abs_body (Abs (_, _, t)) = strip_abs_body t
+  | strip_abs_body t = t;
 
-(*maps  (x1,...,xn)t   to   [x1, ..., xn]*)
-fun strip_abs_vars (Abs(a,T,t))  =  (a,T) :: strip_abs_vars t
-  | strip_abs_vars u  =  [] : (string*typ) list;
+fun strip_abs_vars (Abs (a, T, t)) = strip_abs_vars t |> cons (a, T)
+  | strip_abs_vars _ = [];
 
 
 fun strip_qnt_body qnt =
-let fun strip(tm as Const(c,_)$Abs(_,_,t)) = if c=qnt then strip t else tm
-      | strip t = t
-in strip end;
+  let
+    fun strip (tm as Const (c, _) $ Abs (_, _, t)) = if c = qnt then strip t else tm
+      | strip t = t;
+  in strip end;
 
 fun strip_qnt_vars qnt =
-let fun strip(Const(c,_)$Abs(a,T,t)) = if c=qnt then (a,T)::strip t else []
-      | strip t  =  [] : (string*typ) list
-in strip end;
+  let
+    fun strip (Const (c, _) $ Abs (a, T, t)) = if c = qnt then (a, T) :: strip t else []
+      | strip _ = [];
+  in strip end;
 
 
 (*maps   (f, [t1,...,tn])  to  f(t1,...,tn)*)
