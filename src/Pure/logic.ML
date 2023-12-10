@@ -467,10 +467,10 @@ fun incr_indexes_same ([], [], 0) = Same.same
                 combound (Free (x, Ts ---> Same.commit incrT T), lev, n)
               else Free (x, incrT T)
           | incr lev (Abs (x, T, body)) =
-              (Abs (x, incrT T, incr (lev + 1) body handle Same.SAME => body)
+              (Abs (x, incrT T, Same.commit (incr (lev + 1)) body)
                 handle Same.SAME => Abs (x, T, incr (lev + 1) body))
           | incr lev (t $ u) =
-              (incr lev t $ (incr lev u handle Same.SAME => u)
+              (incr lev t $ Same.commit (incr lev) u
                 handle Same.SAME => t $ incr lev u)
           | incr _ (Const (c, T)) = Const (c, incrT T)
           | incr _ (Bound _) = raise Same.SAME;
