@@ -1012,21 +1012,21 @@ fun lift_proof gprop inc prems prf =
     val typ = Logic.incr_tvar_same inc;
     val typs = Same.map_option (Same.map typ);
 
-    fun term Us Ts =
-      Logic.incr_indexes_operation {fixed = [], Ts = Us, inc = inc, level = length Ts};
+    fun term Ts lev =
+      Logic.incr_indexes_operation {fixed = [], Ts = Ts, inc = inc, level = lev};
 
-    fun proof Us Ts (Abst (a, T, p)) =
-          (Abst (a, Same.map_option typ T, Same.commit (proof Us (dummyT :: Ts)) p)
-            handle Same.SAME => Abst (a, T, proof Us (dummyT :: Ts) p))
-      | proof Us Ts (AbsP (a, t, p)) =
-          (AbsP (a, Same.map_option (term Us Ts) t, Same.commit (proof Us Ts) p)
-            handle Same.SAME => AbsP (a, t, proof Us Ts p))
-      | proof Us Ts (p % t) =
-          (proof Us Ts p % Option.map (Same.commit (term Us Ts)) t
-            handle Same.SAME => p % Same.map_option (term Us Ts) t)
-      | proof Us Ts (p %% q) =
-          (proof Us Ts p %% Same.commit (proof Us Ts) q
-            handle Same.SAME => p %% proof Us Ts q)
+    fun proof Ts lev (Abst (a, T, p)) =
+          (Abst (a, Same.map_option typ T, Same.commit (proof Ts (lev + 1)) p)
+            handle Same.SAME => Abst (a, T, proof Ts (lev + 1) p))
+      | proof Ts lev (AbsP (a, t, p)) =
+          (AbsP (a, Same.map_option (term Ts lev) t, Same.commit (proof Ts lev) p)
+            handle Same.SAME => AbsP (a, t, proof Ts lev p))
+      | proof Ts lev (p % t) =
+          (proof Ts lev p % Option.map (Same.commit (term Ts lev)) t
+            handle Same.SAME => p % Same.map_option (term Ts lev) t)
+      | proof Ts lev (p %% q) =
+          (proof Ts lev p %% Same.commit (proof Ts lev) q
+            handle Same.SAME => p %% proof Ts lev q)
       | proof _ _ (PAxm (a, prop, Ts)) = PAxm (a, prop, typs Ts)
       | proof _ _ (PClass (T, c)) = PClass (typ T, c)
       | proof _ _ (Oracle (a, prop, Ts)) = Oracle (a, prop, typs Ts)
@@ -1039,12 +1039,12 @@ fun lift_proof gprop inc prems prf =
     fun mk_app b (i, j, p) =
       if b then (i - 1, j, p %% PBound i) else (i, j - 1, p %> Bound j);
 
-    fun lift Us bs i j (Const ("Pure.imp", _) $ A $ B) =
-          AbsP ("H", NONE (*A*), lift Us (true::bs) (i + 1) j B)
-      | lift Us bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
-          Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j + 1) t)
-      | lift Us bs i j _ =
-          proof_combP (Same.commit (proof (rev Us) []) prf,
+    fun lift Ts bs i j (Const ("Pure.imp", _) $ A $ B) =
+          AbsP ("H", NONE (*A*), lift Ts (true::bs) (i + 1) j B)
+      | lift Ts bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
+          Abst (a, NONE (*T*), lift (T::Ts) (false::bs) i (j + 1) t)
+      | lift Ts bs i j _ =
+          proof_combP (Same.commit (proof (rev Ts) 0) prf,
             map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, PBound k)))) (i + k - 1 downto i));
   in mk_AbsP prems (lift [] [] 0 0 gprop) end;
 
