@@ -2029,12 +2029,13 @@ fun lift_rule goal orule =
     if T <> propT then raise THM ("lift_rule: the term must have type prop", 0, [])
     else
       let
+        val cert = join_certificate1 (goal, orule);
         val prems = map lift_all As;
-        fun zproof p = ZTerm.todo_proof p;
+        fun zproof p = ZTerm.lift_proof (Context.certificate_theory cert) gprop inc prems p;
         fun proof p = Proofterm.lift_proof gprop inc prems p;
       in
         Thm (deriv_rule1 zproof proof der,
-         {cert = join_certificate1 (goal, orule),
+         {cert = cert,
           tags = [],
           maxidx = maxidx + inc,
           constraints = constraints,
