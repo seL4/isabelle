@@ -2227,31 +2227,34 @@ fun strip_lifted (Const ("Pure.imp", _) $ _ $ B1)
 fun rename_bvs [] _ _ _ _ = K I
   | rename_bvs al dpairs tpairs B As =
       let
-        val add_var = fold_aterms (fn Var ((x, _), _) => insert (op =) x | _ => I);
-        val vids = []
-          |> fold (add_var o fst) dpairs
-          |> fold (add_var o fst) tpairs
-          |> fold (add_var o snd) tpairs;
-        val vids' = fold (add_var o strip_lifted B) As [];
+        val add_var = fold_aterms (fn Var ((x, _), _) => Symset.insert x | _ => I);
+        val unknowns =
+          Symset.build
+           (fold (add_var o fst) dpairs #>
+            fold (fn (t, u) => add_var t #> add_var u) tpairs);
+
         (*unknowns appearing elsewhere be preserved!*)
-        val al' = distinct ((op =) o apply2 fst)
-          (filter_out (fn (x, y) =>
-             not (member (op =) vids' x) orelse
-             member (op =) vids x orelse member (op =) vids y) al);
-        val unchanged = filter_out (AList.defined (op =) al') vids';
+        val unknowns' = Symset.build (fold (add_var o strip_lifted B) As);
+        val al' = al
+          |> filter_out (fn (x, y) =>
+             not (Symset.member unknowns' x) orelse
+             Symset.member unknowns x orelse Symset.member unknowns y)
+          |> distinct (eq_fst (op =));
+        val unchanged = Symset.restrict (not o AList.defined (op =) al') unknowns';
         fun del_clashing clash xs _ [] qs =
               if clash then del_clashing false xs xs qs [] else qs
           | del_clashing clash xs ys ((p as (x, y)) :: ps) qs =
-              if member (op =) ys y
-              then del_clashing true (x :: xs) (x :: ys) ps qs
-              else del_clashing clash xs (y :: ys) ps (p :: qs);
+              if Symset.member ys y
+              then del_clashing true (Symset.insert x xs) (Symset.insert x ys) ps qs
+              else del_clashing clash xs (Symset.insert y ys) ps (p :: qs);
         val al'' = del_clashing false unchanged unchanged al' [];
+
         fun rename (t as Var ((x, i), T)) =
               (case AList.lookup (op =) al'' x of
                  SOME y => Var ((y, i), T)
                | NONE => t)
           | rename (Abs (x, T, t)) =
-              Abs (the_default x (AList.lookup (op =) al x), T, rename t)
+              Abs (perhaps (AList.lookup (op =) al) x, T, rename t)
           | rename (f $ t) = rename f $ rename t
           | rename t = t;
         fun strip_ren f Ai = f rename B Ai
