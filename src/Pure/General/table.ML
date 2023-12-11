@@ -41,6 +41,7 @@ sig
   val default: key * 'a -> 'a table -> 'a table
   val map_entry: key -> ('a -> 'a) (*exception SAME*) -> 'a table -> 'a table
   val map_default: key * 'a -> ('a -> 'a) -> 'a table -> 'a table
+  val make_distinct: (key * 'a) list -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception SAME*) ->
     'a table * 'a table -> 'a table                                    (*exception DUP*)
@@ -530,6 +531,8 @@ fun remove eq (key, x) tab =
 
 
 (* simultaneous modifications *)
+
+fun make_distinct entries = build (fold default entries);
 
 fun make entries = build (fold update_new entries);
 
