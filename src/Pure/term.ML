@@ -668,7 +668,7 @@ fun map_abs_vars rename = Same.commit (map_abs_vars_same rename);
 
 fun rename_abs pat obj t =
   let
-    val renaming = match_bvs (pat, obj) [] |> filter_out (op =);
+    val renaming = match_bvs (pat, obj) [];
     fun rename x = perhaps (AList.lookup (op =) renaming) x;
   in if null renaming then NONE else Same.catch (map_abs_vars_same rename) t end;
 
