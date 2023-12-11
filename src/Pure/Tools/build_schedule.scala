@@ -1439,7 +1439,11 @@ object Build_Schedule {
         val node = graph.get_node(job_name)
         val rect = draw_node(node)
 
-        graph.imm_preds(job_name).foreach(pred => draw_arrow(graph.get_node(pred), rect))
+        for {
+          pred <- graph.imm_preds(job_name).iterator
+          pred_node = graph.get_node(pred)
+          if node.node_info.hostname != pred_node.node_info.hostname
+        } draw_arrow(pred_node, rect)
       }
     }
 
