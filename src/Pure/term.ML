@@ -646,16 +646,14 @@ fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
 
 fun incr_boundvars inc = incr_bv inc 0;
 
-(*Scan a pair of terms; while they are similar,
-  accumulate corresponding bound vars in "al"*)
-fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) =
-      match_bvs(s, t, if x="" orelse y="" then al
-                                          else (x,y)::al)
-  | match_bvs(f$s, g$t, al) = match_bvs(f,g,match_bvs(s,t,al))
-  | match_bvs(_,_,al) = al;
+(*Scan a pair of terms; while they are similar, accumulate corresponding bound vars*)
+fun match_bvs (Abs (x, _, s), Abs (y, _, t)) =
+      (x <> "" andalso y <> "") ? cons (x, y) #> match_bvs (s, t)
+  | match_bvs (f $ s, g $ t) = match_bvs (s, t) #> match_bvs (f, g)
+  | match_bvs _ = I;
 
 (* strip abstractions created by parameters *)
-fun match_bvars (s,t) al = match_bvs(strip_abs_body s, strip_abs_body t, al);
+val match_bvars = apply2 strip_abs_body #> match_bvs;
 
 fun map_abs_vars f (t $ u) = map_abs_vars f t $ map_abs_vars f u
   | map_abs_vars f (Abs (a, T, t)) = Abs (f a, T, map_abs_vars f t)
@@ -663,7 +661,7 @@ fun map_abs_vars f (t $ u) = map_abs_vars f t $ map_abs_vars f u
 
 fun rename_abs pat obj t =
   let
-    val ren = match_bvs (pat, obj, []);
+    val ren = match_bvs (pat, obj) [];
     fun ren_abs (Abs (x, T, b)) =
           Abs (the_default x (AList.lookup (op =) ren x), T, ren_abs b)
       | ren_abs (f $ t) = ren_abs f $ ren_abs t
