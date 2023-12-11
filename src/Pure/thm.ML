@@ -2226,7 +2226,7 @@ fun strip_lifted (Const ("Pure.imp", _) $ _ $ B1)
   Preserves unknowns in tpairs and on lhs of dpairs. *)
 fun rename_bvs dpairs tpairs B As =
   let val al = fold_rev Term.match_bvars dpairs [] in
-    if null al then {vars = [], bounds = []}
+    if null al then {vars = Symtab.empty, bounds = Symtab.empty}
     else
       let
         val add_var = fold_aterms (fn Var ((x, _), _) => Symset.insert x | _ => I);
@@ -2252,20 +2252,20 @@ fun rename_bvs dpairs tpairs B As =
               else del_clashing clash xs (Symset.insert y ys) ps (p :: qs);
         val al'' = del_clashing false unchanged unchanged al' [];
 
-      in {vars = al'', bounds = al} end
+      in {vars = Symtab.make_distinct al'', bounds = Symtab.make_distinct al} end
   end;
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars dpairs tpairs B As =
   let val {vars, bounds} = rename_bvs dpairs tpairs B As in
-    if null vars andalso null bounds then NONE
+    if Symtab.forall (op =) vars andalso Symtab.forall (op =) bounds then NONE
     else
       let
         fun term (Var ((x, i), T)) =
-              let val y = perhaps (AList.lookup (op =) vars) x
+              let val y = perhaps (Symtab.lookup vars) x
               in if x = y then raise Same.SAME else Var ((y, i), T) end
           | term (Abs (x, T, t)) =
-              let val y = perhaps (AList.lookup (op =) bounds) x
+              let val y = perhaps (Symtab.lookup bounds) x
               in if x = y then Abs (x, T, term t) else Abs (y, T, Same.commit term t) end
           | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
           | term _ = raise Same.SAME;
