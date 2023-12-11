@@ -2261,15 +2261,15 @@ fun rename_bvars dpairs tpairs B As =
     if null vars andalso null bounds then NONE
     else
       let
-        fun rename (t as Var ((x, i), T)) =
-              (case AList.lookup (op =) vars x of
-                 SOME y => Var ((y, i), T)
-               | NONE => t)
-          | rename (Abs (x, T, t)) =
-              Abs (perhaps (AList.lookup (op =) bounds) x, T, rename t)
-          | rename (f $ t) = rename f $ rename t
-          | rename t = t;
-      in SOME rename end
+        fun term (Var ((x, i), T)) =
+              let val y = perhaps (AList.lookup (op =) vars) x
+              in if x = y then raise Same.SAME else Var ((y, i), T) end
+          | term (Abs (x, T, t)) =
+              let val y = perhaps (AList.lookup (op =) bounds) x
+              in if x = y then Abs (x, T, term t) else Abs (y, T, Same.commit term t) end
+          | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
+          | term _ = raise Same.SAME;
+      in SOME term end
   end;
 
 
@@ -2381,9 +2381,9 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
             NONE => (As0, rder)
           | SOME f =>
               let
-                fun proof p = Proofterm.map_proof_terms f I p;
+                fun proof p = Same.commit (Proofterm.map_proof_terms_same f I) p;
                 fun zproof p = ZTerm.todo_proof p;
-              in (map (strip_apply f B) As0, deriv_rule1 zproof proof rder) end);
+              in (map (strip_apply (Same.commit f) B) As0, deriv_rule1 zproof proof rder) end);
       in
         (if flatten then map (Logic.flatten_params n) As1 else As1, As1, rder', n)
           handle TERM _ => raise THM("bicompose: 1st premise", 0, [orule])
