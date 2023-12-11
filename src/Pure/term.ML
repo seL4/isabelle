@@ -646,29 +646,31 @@ fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
 
 fun incr_boundvars inc = incr_bv inc 0;
 
-(*Scan a pair of terms; while they are similar,
-  accumulate corresponding bound vars in "al"*)
-fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) =
-      match_bvs(s, t, if x="" orelse y="" then al
-                                          else (x,y)::al)
-  | match_bvs(f$s, g$t, al) = match_bvs(f,g,match_bvs(s,t,al))
-  | match_bvs(_,_,al) = al;
+(*Scan a pair of terms; while they are similar, accumulate corresponding bound vars*)
+fun match_bvs (Abs (x, _, s), Abs (y, _, t)) =
+      (x <> "" andalso y <> "") ? cons (x, y) #> match_bvs (s, t)
+  | match_bvs (f $ s, g $ t) = match_bvs (s, t) #> match_bvs (f, g)
+  | match_bvs _ = I;
 
 (* strip abstractions created by parameters *)
-fun match_bvars (s,t) al = match_bvs(strip_abs_body s, strip_abs_body t, al);
+val match_bvars = apply2 strip_abs_body #> match_bvs;
 
-fun map_abs_vars f (t $ u) = map_abs_vars f t $ map_abs_vars f u
-  | map_abs_vars f (Abs (a, T, t)) = Abs (f a, T, map_abs_vars f t)
-  | map_abs_vars f t = t;
+fun map_abs_vars_same rename =
+  let
+    fun term (Abs (x, T, t)) =
+          let val y = rename x
+          in if x = y then Abs (x, T, term t) else Abs (y, T, Same.commit term t) end
+      | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
+      | term _ = raise Same.SAME;
+  in term end;
+
+fun map_abs_vars rename = Same.commit (map_abs_vars_same rename);
 
 fun rename_abs pat obj t =
   let
-    val ren = match_bvs (pat, obj, []);
-    fun ren_abs (Abs (x, T, b)) =
-          Abs (the_default x (AList.lookup (op =) ren x), T, ren_abs b)
-      | ren_abs (f $ t) = ren_abs f $ ren_abs t
-      | ren_abs t = t
-  in if null ren then NONE else SOME (ren_abs t) end;
+    val renaming = Symtab.make_distinct (match_bvs (pat, obj) []);
+    fun rename x = perhaps (Symtab.lookup renaming) x;
+  in if Symtab.forall (op =) renaming then NONE else Same.catch (map_abs_vars_same rename) t end;
 
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)

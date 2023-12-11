@@ -39,7 +39,7 @@ fun first_order (Abs (_, _, t)) = first_order t
 (* rewriting -- simple but fast *)
 
 fun match_rew thy tm (tm1, tm2) =
-  let val rtm = the_default tm2 (Term.rename_abs tm1 tm tm2) in
+  let val rtm = perhaps (Term.rename_abs tm1 tm) tm2 in
     SOME (Envir.subst_term (Pattern.match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
       handle Pattern.MATCH => NONE
   end;

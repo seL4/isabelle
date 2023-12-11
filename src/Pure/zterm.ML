@@ -203,7 +203,7 @@ sig
     term list -> int -> zproof -> zproof
   val permute_prems_proof: theory -> term list -> int -> int -> zproof -> zproof
   val incr_indexes_proof: int -> zproof -> zproof
-  val lift_proof: theory -> term -> int -> zterm list -> zproof -> zproof
+  val lift_proof: theory -> term -> int -> term list -> zproof -> zproof
   val assumption_proof: theory -> Envir.env -> term list -> term -> int -> zproof -> zproof
 end;
 
@@ -852,7 +852,7 @@ fun lift_proof thy gprop inc prems prf =
       | lift Ts bs i j _ =
           ZAppps (Same.commit (proof (rev Ts) 0) prf,
             map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, ZBoundp k)))) (i + k - 1 downto i));
-  in ZAbsps prems (lift [] [] 0 0 gprop) end;
+  in ZAbsps (map zterm prems) (lift [] [] 0 0 gprop) end;
 
 
 (* higher-order resolution *)
