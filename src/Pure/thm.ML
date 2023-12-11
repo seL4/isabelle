@@ -2224,8 +2224,10 @@ fun strip_lifted (Const ("Pure.imp", _) $ _ $ B1)
 (*Use the alist to rename all bound variables and some unknowns in a term
   dpairs = current disagreement pairs;  tpairs = permanent ones (flexflex);
   Preserves unknowns in tpairs and on lhs of dpairs. *)
-fun rename_bvs [] _ _ _ _ = K I
-  | rename_bvs al dpairs tpairs B As =
+fun rename_bvs dpairs tpairs B As =
+  let val al = fold_rev Term.match_bvars dpairs [] in
+    if null al then {vars = [], bounds = []}
+    else
       let
         val add_var = fold_aterms (fn Var ((x, _), _) => Symset.insert x | _ => I);
         val unknowns =
@@ -2241,6 +2243,7 @@ fun rename_bvs [] _ _ _ _ = K I
              Symset.member unknowns x orelse Symset.member unknowns y)
           |> distinct (eq_fst (op =));
         val unchanged = Symset.restrict (not o AList.defined (op =) al') unknowns';
+
         fun del_clashing clash xs _ [] qs =
               if clash then del_clashing false xs xs qs [] else qs
           | del_clashing clash xs ys ((p as (x, y)) :: ps) qs =
@@ -2249,21 +2252,25 @@ fun rename_bvs [] _ _ _ _ = K I
               else del_clashing clash xs (Symset.insert y ys) ps (p :: qs);
         val al'' = del_clashing false unchanged unchanged al' [];
 
+      in {vars = al'', bounds = al} end
+  end;
+
+(*Function to rename bounds/unknowns in the argument, lifted over B*)
+fun rename_bvars dpairs tpairs B As =
+  let val {vars, bounds} = rename_bvs dpairs tpairs B As in
+    if null vars andalso null bounds then K I
+    else
+      let
         fun rename (t as Var ((x, i), T)) =
-              (case AList.lookup (op =) al'' x of
+              (case AList.lookup (op =) vars x of
                  SOME y => Var ((y, i), T)
                | NONE => t)
           | rename (Abs (x, T, t)) =
-              Abs (perhaps (AList.lookup (op =) al) x, T, rename t)
+              Abs (perhaps (AList.lookup (op =) bounds) x, T, rename t)
           | rename (f $ t) = rename f $ rename t
           | rename t = t;
-        fun strip_ren f Ai = f rename B Ai
-      in strip_ren end;
-
-(*Function to rename bounds/unknowns in the argument, lifted over B*)
-fun rename_bvars dpairs =
-  rename_bvs (fold_rev Term.match_bvars dpairs []) dpairs;
-
+      in fn apply => fn t => apply rename B t end
+  end;
 
 
 (*** RESOLUTION ***)
