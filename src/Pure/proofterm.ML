@@ -131,7 +131,7 @@ sig
   val lift_proof: term -> int -> term list -> proof -> proof
   val incr_indexes: int -> proof -> proof
   val assumption_proof: term list -> term -> int -> proof -> proof
-  val bicompose_proof: Envir.env -> bool -> term list -> term list -> term option ->
+  val bicompose_proof: Envir.env -> int -> bool -> term list -> term list -> term option ->
     term list -> int -> int -> proof -> proof -> proof
   val reflexive_axm: proof
   val symmetric_axm: proof
@@ -1079,18 +1079,25 @@ fun flatten_params_proof i j n (Const ("Pure.imp", _) $ A $ B, k) =
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
       map Bound (j-1 downto 0)), map PBound (remove (op =) (i-n) (i-1 downto 0)));
 
-fun bicompose_proof env flatten Bs As A oldAs n m rprf sprf =
+fun bicompose_proof env smax flatten Bs As A oldAs n m rprf sprf =
   let
     val normt = Envir.norm_term env;
+    val normp = norm_proof_remove_types env;
 
     val lb = length Bs;
     val la = length As;
+
+    fun proof p =
+      mk_AbsP (map normt (Bs @ As)) (proof_combP (sprf,
+        map PBound (lb + la - 1 downto la)) %%
+          proof_combP (p, (if n>0 then [mk_asm_prf (the A) n m] else []) @
+            map (if flatten then flatten_params_proof 0 0 n else PBound o snd)
+              (oldAs ~~ (la - 1 downto 0))));
   in
-    mk_AbsP (map normt (Bs @ As)) (proof_combP (sprf,
-      map PBound (lb + la - 1 downto la)) %%
-        proof_combP (rprf, (if n>0 then [mk_asm_prf (the A) n m] else []) @
-          map (if flatten then flatten_params_proof 0 0 n else PBound o snd)
-            (oldAs ~~ (la - 1 downto 0))))
+    if Envir.is_empty env then proof rprf
+    else if Envir.above env smax
+    then proof (normp rprf)
+    else normp (proof rprf)
   end;
 
 
