@@ -2375,15 +2375,15 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
     (*Modify assumptions, deleting n-th if n>0 for e-resolution*)
     fun newAs (As0, n, dpairs, tpairs) =
       let val (As1, rder') =
-        if not lifted then (As0, rder)
-        else
+        if lifted then
           (case rename_bvars dpairs tpairs B As0 of
-            NONE => (As0, rder)
-          | SOME f =>
+            SOME f =>
               let
                 fun proof p = Same.commit (Proofterm.map_proof_terms_same f I) p;
                 fun zproof p = ZTerm.todo_proof p;
-              in (map (strip_apply (Same.commit f) B) As0, deriv_rule1 zproof proof rder) end);
+              in (map (strip_apply (Same.commit f) B) As0, deriv_rule1 zproof proof rder) end
+          | NONE => (As0, rder))
+        else (As0, rder);
       in
         (if flatten then map (Logic.flatten_params n) As1 else As1, As1, rder', n)
           handle TERM _ => raise THM("bicompose: 1st premise", 0, [orule])
