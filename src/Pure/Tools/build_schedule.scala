@@ -517,8 +517,9 @@ object Build_Schedule {
 
         val host_preds =
           for {
-            (name, (node, _)) <- finished.graph.iterator.toSet
-            if node.node_info.hostname == job.node_info.hostname
+            (name, (pred_node, _)) <- finished.graph.iterator.toSet
+            if pred_node.node_info.hostname == job.node_info.hostname
+            if pred_node.end.time <= node.start.time
           } yield name
         val build_preds =
           build_state.sessions.graph.imm_preds(job.name).filter(finished.graph.defined)
