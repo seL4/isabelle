@@ -2348,7 +2348,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
           |> insert_constraints_env thy' env;
         fun zproof p q = ZTerm.todo_proof p;
         fun bicompose_proof p q =
-          Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1) p q;
+          Proofterm.bicompose_proof env flatten Bs As A oldAs n (nlift+1) p q;
         val proof =
           if Envir.is_empty env then bicompose_proof
           else if Envir.above env smax
