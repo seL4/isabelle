@@ -2244,6 +2244,7 @@ fun rename_bvs dpairs tpairs B As =
           |> distinct (eq_fst (op =));
         val unchanged = Symset.restrict (not o AList.defined (op =) al') unknowns';
 
+        (*avoid introducing name clashes between schematic variables*)
         fun del_clashing clash xs _ [] qs =
               if clash then del_clashing false xs xs qs [] else qs
           | del_clashing clash xs ys ((p as (x, y)) :: ps) qs =
