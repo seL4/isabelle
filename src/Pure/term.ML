@@ -655,18 +655,22 @@ fun match_bvs (Abs (x, _, s), Abs (y, _, t)) =
 (* strip abstractions created by parameters *)
 val match_bvars = apply2 strip_abs_body #> match_bvs;
 
-fun map_abs_vars f (t $ u) = map_abs_vars f t $ map_abs_vars f u
-  | map_abs_vars f (Abs (a, T, t)) = Abs (f a, T, map_abs_vars f t)
-  | map_abs_vars f t = t;
+fun map_abs_vars_same rename =
+  let
+    fun term (Abs (x, T, t)) =
+          let val y = rename x
+          in if x = y then Abs (x, T, term t) else Abs (y, T, Same.commit term t) end
+      | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
+      | term _ = raise Same.SAME;
+  in term end;
+
+fun map_abs_vars rename = Same.commit (map_abs_vars_same rename);
 
 fun rename_abs pat obj t =
   let
-    val ren = match_bvs (pat, obj) [];
-    fun ren_abs (Abs (x, T, b)) =
-          Abs (the_default x (AList.lookup (op =) ren x), T, ren_abs b)
-      | ren_abs (f $ t) = ren_abs f $ ren_abs t
-      | ren_abs t = t
-  in if null ren then NONE else SOME (ren_abs t) end;
+    val renaming = match_bvs (pat, obj) [];
+    fun rename x = perhaps (AList.lookup (op =) renaming) x;
+  in if null renaming then NONE else Same.catch (map_abs_vars_same rename) t end;
 
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
