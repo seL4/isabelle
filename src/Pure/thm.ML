@@ -2311,112 +2311,115 @@ fun unify_var_types context (th1, th2) env =
   nsubgoal is the number of new subgoals (written m above).
   Curried so that resolution calls dest_state only once.
 *)
-local exception COMPOSE
-in
-fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), lifted)
-                        (eres_flg, orule, nsubgoal) =
- let val Thm (sder, {maxidx=smax, constraints = constraints2, shyps = shyps2, hyps = hyps2, ...}) = state
-     and Thm (rder, {maxidx=rmax, constraints = constraints1, shyps = shyps1, hyps = hyps1,
-             tpairs=rtpairs, prop=rprop,...}) = orule
-         (*How many hyps to skip over during normalization*)
-     and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
-     val (context, cert) =
-       make_context_certificate [state, orule] opt_ctxt (join_certificate2 (state, orule));
-     (*Add new theorem with prop = "\<lbrakk>Bs; As\<rbrakk> \<Longrightarrow> C" to thq*)
-     fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
-       let val normt = Envir.norm_term env;
-           (*perform minimal copying here by examining env*)
-           val (ntpairs, normp) =
-             if Envir.is_empty env then (tpairs, (Bs @ As, C))
-             else
-             let val ntps = map (apply2 normt) tpairs
-             in if Envir.above env smax then
-                  (*no assignments in state; normalize the rule only*)
-                  if lifted
-                  then (ntps, (Bs @ map (norm_term_skip env nlift) As, C))
-                  else (ntps, (Bs @ map normt As, C))
-                else if match then raise COMPOSE
-                else (*normalize the new rule fully*)
-                  (ntps, (map normt (Bs @ As), normt C))
-             end
-           val thy' = Context.certificate_theory cert handle ERROR msg =>
-            raise CONTEXT (msg, [], [], [state, orule], Option.map Context.Proof opt_ctxt);
-           val constraints' =
-             union_constraints constraints1 constraints2
-             |> insert_constraints_env thy' env;
-           fun zproof p q = ZTerm.todo_proof p;
-           fun bicompose_proof p q =
-             Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1) p q;
-           val proof =
-             if Envir.is_empty env then bicompose_proof
-             else if Envir.above env smax
-             then bicompose_proof o Proofterm.norm_proof_remove_types env
-             else Proofterm.norm_proof_remove_types env oo bicompose_proof;
-           val th =
-             Thm (deriv_rule2 zproof proof rder' sder,
-                {tags = [],
-                 maxidx = Envir.maxidx_of env,
-                 constraints = constraints',
-                 shyps = Envir.insert_sorts env (Sorts.union shyps1 shyps2),
-                 hyps = union_hyps hyps1 hyps2,
-                 tpairs = ntpairs,
-                 prop = Logic.list_implies normp,
-                 cert = cert})
-        in  Seq.cons th thq  end  handle COMPOSE => thq;
-     val (rAs,B) = Logic.strip_prems(nsubgoal, [], rprop)
-       handle TERM _ => raise THM("bicompose: rule", 0, [orule,state]);
-     (*Modify assumptions, deleting n-th if n>0 for e-resolution*)
-     fun newAs(As0, n, dpairs, tpairs) =
-       let val (As1, rder') =
-         if not lifted then (As0, rder)
-         else
-           let
-             val rename = rename_bvars dpairs tpairs B As0;
-             fun proof p = Proofterm.map_proof_terms (rename K) I p;
-             fun zproof p = ZTerm.todo_proof p;
-           in (map (rename strip_apply) As0, deriv_rule1 zproof proof rder) end;
-       in (if flatten then map (Logic.flatten_params n) As1 else As1, As1, rder', n)
-          handle TERM _ =>
-          raise THM("bicompose: 1st premise", 0, [orule])
-       end;
-     val BBi = if lifted then strip_assums2(B,Bi) else (B,Bi);
-     val dpairs = BBi :: (rtpairs@stpairs);
+local exception COMPOSE in
 
-     (*elim-resolution: try each assumption in turn*)
-     fun eres _ [] = raise THM ("bicompose: no premises", 0, [orule, state])
-       | eres env (A1 :: As) =
-           let
-             val A = SOME A1;
-             val (close, asms, concl) = Logic.assum_problems (nlift + 1, A1);
-             val concl' = close concl;
-             fun tryasms [] _ = Seq.empty
-               | tryasms (asm :: rest) n =
-                   if Term.could_unify (asm, concl) then
-                     let val asm' = close asm in
-                       (case Seq.pull (Unify.unifiers (context, env, (asm', concl') :: dpairs)) of
-                         NONE => tryasms rest (n + 1)
-                       | cell as SOME ((_, tpairs), _) =>
-                           Seq.it_right (addth A (newAs (As, n, [BBi, (concl', asm')], tpairs)))
-                             (Seq.make (fn () => cell),
-                              Seq.make (fn () => Seq.pull (tryasms rest (n + 1)))))
-                     end
-                   else tryasms rest (n + 1);
-           in tryasms asms 1 end;
+fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), lifted)
+    (eres_flg, orule, nsubgoal) =
+  let
+    val Thm (sder, {maxidx=smax, constraints = constraints2, shyps = shyps2, hyps = hyps2, ...}) = state
+    and Thm (rder, {maxidx=rmax, constraints = constraints1, shyps = shyps1, hyps = hyps1,
+              tpairs = rtpairs, prop = rprop, ...}) = orule
+    (*How many hyps to skip over during normalization*)
+    and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0);
+    val (context, cert) =
+      make_context_certificate [state, orule] opt_ctxt (join_certificate2 (state, orule));
+    (*Add new theorem with prop = "\<lbrakk>Bs; As\<rbrakk> \<Longrightarrow> C" to thq*)
+    fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
+      let
+        val normt = Envir.norm_term env;
+        (*perform minimal copying here by examining env*)
+        val (ntpairs, normp) =
+          if Envir.is_empty env then (tpairs, (Bs @ As, C))
+          else
+            let val ntps = map (apply2 normt) tpairs in
+              if Envir.above env smax then
+                (*no assignments in state; normalize the rule only*)
+                if lifted
+                then (ntps, (Bs @ map (norm_term_skip env nlift) As, C))
+                else (ntps, (Bs @ map normt As, C))
+              else if match then raise COMPOSE
+              else (*normalize the new rule fully*)
+                (ntps, (map normt (Bs @ As), normt C))
+            end;
+        val thy' = Context.certificate_theory cert handle ERROR msg =>
+          raise CONTEXT (msg, [], [], [state, orule], Option.map Context.Proof opt_ctxt);
+        val constraints' =
+          union_constraints constraints1 constraints2
+          |> insert_constraints_env thy' env;
+        fun zproof p q = ZTerm.todo_proof p;
+        fun bicompose_proof p q =
+          Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1) p q;
+        val proof =
+          if Envir.is_empty env then bicompose_proof
+          else if Envir.above env smax
+          then bicompose_proof o Proofterm.norm_proof_remove_types env
+          else Proofterm.norm_proof_remove_types env oo bicompose_proof;
+        val th =
+          Thm (deriv_rule2 zproof proof rder' sder,
+           {tags = [],
+            maxidx = Envir.maxidx_of env,
+            constraints = constraints',
+            shyps = Envir.insert_sorts env (Sorts.union shyps1 shyps2),
+            hyps = union_hyps hyps1 hyps2,
+            tpairs = ntpairs,
+            prop = Logic.list_implies normp,
+            cert = cert})
+      in Seq.cons th thq end handle COMPOSE => thq;
+    val (rAs, B) = Logic.strip_prems (nsubgoal, [], rprop)
+       handle TERM _ => raise THM("bicompose: rule", 0, [orule, state]);
+    (*Modify assumptions, deleting n-th if n>0 for e-resolution*)
+    fun newAs (As0, n, dpairs, tpairs) =
+      let val (As1, rder') =
+        if not lifted then (As0, rder)
+        else
+          let
+            val rename = rename_bvars dpairs tpairs B As0;
+            fun proof p = Proofterm.map_proof_terms (rename K) I p;
+            fun zproof p = ZTerm.todo_proof p;
+          in (map (rename strip_apply) As0, deriv_rule1 zproof proof rder) end;
+      in
+        (if flatten then map (Logic.flatten_params n) As1 else As1, As1, rder', n)
+          handle TERM _ => raise THM("bicompose: 1st premise", 0, [orule])
+      end;
+    val BBi = if lifted then strip_assums2 (B, Bi) else (B, Bi);
+    val dpairs = BBi :: (rtpairs @ stpairs);
+
+    (*elim-resolution: try each assumption in turn*)
+    fun eres _ [] = raise THM ("bicompose: no premises", 0, [orule, state])
+      | eres env (A1 :: As) =
+          let
+            val A = SOME A1;
+            val (close, asms, concl) = Logic.assum_problems (nlift + 1, A1);
+            val concl' = close concl;
+            fun tryasms [] _ = Seq.empty
+              | tryasms (asm :: rest) n =
+                  if Term.could_unify (asm, concl) then
+                    let val asm' = close asm in
+                      (case Seq.pull (Unify.unifiers (context, env, (asm', concl') :: dpairs)) of
+                        NONE => tryasms rest (n + 1)
+                      | cell as SOME ((_, tpairs), _) =>
+                          Seq.it_right (addth A (newAs (As, n, [BBi, (concl', asm')], tpairs)))
+                            (Seq.make (fn () => cell),
+                             Seq.make (fn () => Seq.pull (tryasms rest (n + 1)))))
+                    end
+                  else tryasms rest (n + 1);
+          in tryasms asms 1 end;
 
      (*ordinary resolution*)
-     fun res env =
-       (case Seq.pull (Unify.unifiers (context, env, dpairs)) of
-         NONE => Seq.empty
-       | cell as SOME ((_, tpairs), _) =>
-           Seq.it_right (addth NONE (newAs (rev rAs, 0, [BBi], tpairs)))
-             (Seq.make (fn () => cell), Seq.empty));
+    fun res env =
+      (case Seq.pull (Unify.unifiers (context, env, dpairs)) of
+        NONE => Seq.empty
+      | cell as SOME ((_, tpairs), _) =>
+          Seq.it_right (addth NONE (newAs (rev rAs, 0, [BBi], tpairs)))
+            (Seq.make (fn () => cell), Seq.empty));
 
-     val env0 = Envir.empty (Int.max (rmax, smax));
- in
-   (case if incremented then SOME env0 else unify_var_types context (state, orule) env0 of
-     NONE => Seq.empty
-   | SOME env => if eres_flg then eres env (rev rAs) else res env)
- end;
+    val env0 = Envir.empty (Int.max (rmax, smax));
+  in
+    (case if incremented then SOME env0 else unify_var_types context (state, orule) env0 of
+      NONE => Seq.empty
+    | SOME env => if eres_flg then eres env (rev rAs) else res env)
+  end;
+
 end;
 
 fun bicompose opt_ctxt flags arg i state =
