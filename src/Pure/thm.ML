@@ -2375,7 +2375,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
              fun proof p = Proofterm.map_proof_terms (rename K) I p;
              fun zproof p = ZTerm.todo_proof p;
            in (map (rename strip_apply) As0, deriv_rule1 zproof proof rder) end;
-       in (map (if flatten then (Logic.flatten_params n) else I) As1, As1, rder', n)
+       in (if flatten then map (Logic.flatten_params n) As1 else As1, As1, rder', n)
           handle TERM _ =>
           raise THM("bicompose: 1st premise", 0, [orule])
        end;
