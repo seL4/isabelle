@@ -2208,8 +2208,8 @@ fun permute_prems j k rl =
 (* strip_apply f B A strips off all assumptions/parameters from A
    introduced by lifting over B, and applies f to remaining part of A*)
 fun strip_apply f =
-  let fun strip (Const ("Pure.imp", _) $ _  $ B1)
-                (Const ("Pure.imp", _) $ A2 $ B2) = Logic.mk_implies (A2, strip B1 B2)
+  let fun strip ((c as Const ("Pure.imp", _)) $ _  $ B1)
+                (Const ("Pure.imp", _) $ A2 $ B2) = c $ A2 $ strip B1 B2
         | strip ((c as Const ("Pure.all", _)) $ Abs (_, _, t1))
                 (      Const ("Pure.all", _)  $ Abs (a, T, t2)) = c $ Abs (a, T, strip t1 t2)
         | strip _ A = f A
