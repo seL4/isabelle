@@ -2372,7 +2372,8 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
         val constraints' =
           union_constraints constraints1 constraints2
           |> insert_constraints_env thy' env;
-        fun zproof p q = ZTerm.todo_proof p;
+        fun zproof p q =
+          ZTerm.bicompose_proof thy' env smax flatten Bs As A oldAs n (nlift + 1) p q;
         fun proof p q =
           Proofterm.bicompose_proof env smax flatten Bs As A oldAs n (nlift + 1) p q;
         val th =

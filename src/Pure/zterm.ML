@@ -207,6 +207,8 @@ sig
   val incr_indexes_proof: int -> zproof -> zproof
   val lift_proof: theory -> term -> int -> term list -> zproof -> zproof
   val assumption_proof: theory -> Envir.env -> term list -> term -> int -> zproof -> zproof
+  val bicompose_proof: theory -> Envir.env -> int -> bool -> term list -> term list ->
+    term option -> term list -> int -> int -> zproof -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -876,6 +878,34 @@ fun assumption_proof thy envir Bs Bi n prf =
     ZAbsps (map normt Bs)
       (ZAppps (prf, map ZBoundp (length Bs - 1 downto 0) @ [mk_asm_prf (normt Bi) n ~1]))
     |> Same.commit (norm_proof_same cache envir)
+  end;
+
+fun flatten_params_proof i j n (ZApp (ZApp (ZConst0 "Pure.imp", A), B), k) =
+      ZAbsp ("H", A, flatten_params_proof (i + 1) j n (B, k))
+  | flatten_params_proof i j n (ZApp (ZConst1 ("Pure.all", _), ZAbs (a, T, t)), k) =
+      ZAbst (a, T, flatten_params_proof i (j + 1) n (t, k))
+  | flatten_params_proof i j n (_, k) =
+      ZAppps (ZAppts (ZBoundp (k + i),
+        map ZBound (j - 1 downto 0)), map ZBoundp (remove (op =) (i - n) (i - 1 downto 0)));
+
+fun bicompose_proof thy env smax flatten Bs As A oldAs n m rprf sprf =
+  let
+    val cache as {zterm, ...} = norm_cache thy;
+    val normt = zterm #> Same.commit (norm_term_same cache env);
+    val normp = Same.commit (norm_proof_same cache env);
+
+    val lb = length Bs;
+    val la = length As;
+
+    fun proof p q =
+      ZAbsps (map normt (Bs @ As))
+        (ZAppp (ZAppps (q, map ZBoundp (lb + la - 1 downto la)),
+          ZAppps (p, (if n > 0 then [mk_asm_prf (normt (the A)) n m] else []) @
+            map (if flatten then flatten_params_proof 0 0 n else ZBoundp o snd)
+              (map normt oldAs ~~ (la - 1 downto 0)))));
+  in
+    if Envir.is_empty env then proof rprf sprf
+    else proof (normp rprf) (if Envir.above env smax then sprf else normp sprf)
   end;
 
 end;
