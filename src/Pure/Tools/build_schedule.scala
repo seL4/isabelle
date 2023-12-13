@@ -1041,7 +1041,8 @@ object Build_Schedule {
             val build_uuid = res.string(Schedules.build_uuid)
             val generator = res.string(Schedules.generator)
             val start = res.date(Schedules.start)
-            Schedule(build_uuid, generator, start, Graph.empty)
+            val serial = res.long(Schedules.serial)
+            Schedule(build_uuid, generator, start, Graph.empty, serial)
           })
 
       for (schedule <- schedules.sortBy(_.start)(Date.Ordering)) yield {
