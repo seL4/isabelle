@@ -167,6 +167,8 @@ sig
   val incr_bv_same: int -> int -> zterm Same.operation
   val incr_bv: int -> int -> zterm -> zterm
   val incr_boundvars: int -> zterm -> zterm
+  val map_proof_same: ztyp Same.operation -> zterm Same.operation -> zproof Same.operation
+  val map_proof_types_same: ztyp Same.operation -> zproof Same.operation
   val ztyp_of: typ -> ztyp
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_of: theory -> term -> zterm
