@@ -838,9 +838,9 @@ object Build_Schedule {
       catch { case exn: Throwable => close(); throw exn }
 
     override def close(): Unit = {
-      super.close()
       Option(_log_database).foreach(_.close())
       Option(_build_database).flatten.foreach(_.close())
+      super.close()
     }
 
 
