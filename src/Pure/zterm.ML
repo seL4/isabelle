@@ -52,7 +52,7 @@ fun fold_types f (ZVar (_, T)) = f T
   | fold_types _ _ = I;
 
 
-(* ordering *)
+(* type ordering *)
 
 local
 
@@ -88,12 +88,78 @@ fun ztyp_ord TU =
 
 end;
 
+
+(* term ordering and alpha-conversion *)
+
+local
+
+fun cons_nr (ZVar _) = 0
+  | cons_nr (ZBound _) = 1
+  | cons_nr (ZConst0 _) = 2
+  | cons_nr (ZConst1 _) = 3
+  | cons_nr (ZConst _) = 4
+  | cons_nr (ZAbs _) = 5
+  | cons_nr (ZApp _) = 6
+  | cons_nr (ZClass _) = 7;
+
+fun struct_ord tu =
+  if pointer_eq tu then EQUAL
+  else
+    (case tu of
+      (ZAbs (_, _, t), ZAbs (_, _, u)) => struct_ord (t, u)
+    | (ZApp (t1, t2), ZApp (u1, u2)) =>
+        (case struct_ord (t1, u1) of EQUAL => struct_ord (t2, u2) | ord => ord)
+    | (t, u) => int_ord (cons_nr t, cons_nr u));
+
+fun atoms_ord tu =
+  if pointer_eq tu then EQUAL
+  else
+    (case tu of
+      (ZAbs (_, _, t), ZAbs (_, _, u)) => atoms_ord (t, u)
+    | (ZApp (t1, t2), ZApp (u1, u2)) =>
+        (case atoms_ord (t1, u1) of EQUAL => atoms_ord (t2, u2) | ord => ord)
+    | (ZConst0 a, ZConst0 b) => fast_string_ord (a, b)
+    | (ZConst1 (a, _), ZConst1 (b, _)) => fast_string_ord (a, b)
+    | (ZConst (a, _), ZConst (b, _)) => fast_string_ord (a, b)
+    | (ZVar (xi, _), ZVar (yj, _)) => Term_Ord.fast_indexname_ord (xi, yj)
+    | (ZBound i, ZBound j) => int_ord (i, j)
+    | (ZClass (_, a), ZClass (_, b)) => fast_string_ord (a, b)
+    | _ => EQUAL);
+
+fun types_ord tu =
+  if pointer_eq tu then EQUAL
+  else
+    (case tu of
+      (ZAbs (_, T, t), ZAbs (_, U, u)) =>
+        (case ztyp_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
+    | (ZApp (t1, t2), ZApp (u1, u2)) =>
+        (case types_ord (t1, u1) of EQUAL => types_ord (t2, u2) | ord => ord)
+    | (ZConst1 (_, T), ZConst1 (_, U)) => ztyp_ord (T, U)
+    | (ZConst (_, Ts), ZConst (_, Us)) => dict_ord ztyp_ord (Ts, Us)
+    | (ZVar (_, T), ZVar (_, U)) => ztyp_ord (T, U)
+    | (ZClass (T, _), ZClass (U, _)) => ztyp_ord (T, U)
+    | _ => EQUAL);
+
+in
+
+val fast_zterm_ord = struct_ord ||| atoms_ord ||| types_ord;
+
+end;
+
+fun aconv_zterm (tm1, tm2) =
+  pointer_eq (tm1, tm2) orelse
+    (case (tm1, tm2) of
+      (ZApp (t1, u1), ZApp (t2, u2)) => aconv_zterm (t1, t2) andalso aconv_zterm (u1, u2)
+    | (ZAbs (_, T1, t1), ZAbs (_, T2, t2)) => aconv_zterm (t1, t2) andalso T1 = T2
+    | (a1, a2) => a1 = a2);
+
 end;
 
 
-(* term items *)
+(* tables and term items *)
 
 structure ZTypes = Table(type key = ztyp val ord = ZTerm.ztyp_ord);
+structure ZTerms = Table(type key = zterm val ord = ZTerm.fast_zterm_ord);
 
 structure ZTVars:
 sig
@@ -160,7 +226,8 @@ sig
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
-  val ztyp_ord: ztyp * ztyp -> order
+  val ztyp_ord: ztyp ord
+  val fast_zterm_ord: zterm ord
   val aconv_zterm: zterm * zterm -> bool
   val ZAbsts: (string * ztyp) list -> zproof -> zproof
   val ZAbsps: zterm list -> zproof -> zproof
@@ -223,13 +290,6 @@ datatype zterm = datatype zterm;
 datatype zproof = datatype zproof;
 
 open ZTerm;
-
-fun aconv_zterm (tm1, tm2) =
-  pointer_eq (tm1, tm2) orelse
-    (case (tm1, tm2) of
-      (ZApp (t1, u1), ZApp (t2, u2)) => aconv_zterm (t1, t2) andalso aconv_zterm (u1, u2)
-    | (ZAbs (_, T1, t1), ZAbs (_, T2, t2)) => aconv_zterm (t1, t2) andalso T1 = T2
-    | (a1, a2) => a1 = a2);
 
 
 (* derived operations *)
