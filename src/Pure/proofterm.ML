@@ -13,7 +13,6 @@ sig
       prop: term, types: typ list option}
   type thm_body
   type thm_node
-  type zboxes = (zterm * zproof future) Inttab.table
   datatype proof =
      MinProof
    | PBound of int
@@ -29,7 +28,7 @@ sig
   and proof_body = PBody of
     {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
-     zboxes: zboxes,
+     zboxes: ZTerm.zboxes,
      zproof: zproof,
      proof: proof}
   type oracle = (string * Position.T) * term option
@@ -61,8 +60,6 @@ sig
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val union_thms: thm Ord_List.T -> thm Ord_List.T -> thm Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
-  val empty_zboxes: zboxes
-  val union_zboxes: zboxes -> zboxes -> zboxes
   val no_proof_body: zproof -> proof -> proof_body
   val no_thm_names: proof -> proof
   val no_thm_proofs: proof -> proof
@@ -217,8 +214,6 @@ type thm_header =
   {serial: serial, pos: Position.T list, theory_name: string, name: string,
     prop: term, types: typ list option};
 
-type zboxes = (zterm * zproof future) Inttab.table;
-
 datatype proof =
    MinProof
  | PBound of int
@@ -234,7 +229,7 @@ datatype proof =
 and proof_body = PBody of
   {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
-   zboxes: zboxes,
+   zboxes: ZTerm.zboxes,
    zproof: zproof,
    proof: proof}
 and thm_body =
@@ -343,11 +338,8 @@ val unions_oracles = Ord_List.unions oracle_ord;
 val union_thms = Ord_List.union thm_ord;
 val unions_thms = Ord_List.unions thm_ord;
 
-val empty_zboxes: zboxes = Inttab.empty;
-val union_zboxes = curry (Inttab.merge (fn (_: (zterm * zproof future), _) => true));
-
 fun no_proof_body zproof proof =
-  PBody {oracles = [], thms = [], zboxes = empty_zboxes, zproof = zproof, proof = proof};
+  PBody {oracles = [], thms = [], zboxes = ZTerm.empty_zboxes, zproof = zproof, proof = proof};
 val no_thm_body = thm_body (no_proof_body ZDummy MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
@@ -471,7 +463,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, zboxes = empty_zboxes, zproof = ZDummy, proof = c} end
+  in PBody {oracles = a, thms = b, zboxes = ZTerm.empty_zboxes, zproof = ZDummy, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -1990,7 +1982,7 @@ fun fulfill_norm_proof thy ps body0 =
         (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
-    val zboxes = fold (fn (_, PBody {zboxes, ...}) => union_zboxes zboxes) ps zboxes0;
+    val zboxes = fold (fn (_, PBody {zboxes, ...}) => ZTerm.union_zboxes zboxes) ps zboxes0;
     val proof = rew_proof thy proof0;
   in
     PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof}
@@ -2260,7 +2252,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val zproof = ZTerm.todo_proof ();
 
     val proof_body =
-      PBody {oracles = [], thms = [thm], zboxes = empty_zboxes, zproof = zproof, proof = proof};
+      PBody {oracles = [], thms = [thm], zboxes = ZTerm.empty_zboxes, zproof = zproof, proof = proof};
   in (thm, proof_body) end;
 
 in
