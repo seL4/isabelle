@@ -744,9 +744,11 @@ fun weaken_sorts raw_sorts ct =
 
 (** derivations and promised proofs **)
 
+fun make_deriv0 promises body = Deriv {promises = promises, body = body};
+
 fun make_deriv promises oracles thms zboxes zproof proof =
-  Deriv {promises = promises,
-    body = PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof}};
+  make_deriv0 promises
+    (PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof});
 
 val empty_deriv = make_deriv [] [] [] Proofterm.empty_zboxes ZDummy MinProof;
 
@@ -1027,7 +1029,7 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
         val body' =
           PBody {oracles = oracles', thms = thms', zboxes = zboxes', zproof = zproof, proof = proof};
       in
-        Thm (Deriv {promises = promises, body = body'},
+        Thm (make_deriv0 promises body',
           {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
             shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
       end;
@@ -1128,12 +1130,10 @@ fun name_derivation name_pos =
       val _ = null tpairs orelse raise THM ("name_derivation: bad flex-flex constraints", 0, [thm]);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
-      val (pthm, prf) =
+      val (_, body') =
         Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
           name_pos shyps hyps prop ps body;
-      val zprf = ZTerm.todo_proof (Proofterm.zproof_of body);
-      val der' = make_deriv [] [] [pthm] Proofterm.empty_zboxes zprf prf;
-    in Thm (der', args) end);
+    in Thm (make_deriv0 [] body', args) end);
 
 fun close_derivation pos =
   solve_constraints #> (fn thm =>
@@ -1929,14 +1929,12 @@ val unconstrainT =
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
-      val (pthm, prf) =
+      val ((_, thm_node), body') =
         Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
           shyps prop ps body;
-      val zprf = ZTerm.todo_proof body;
-      val der' = make_deriv [] [] [pthm] Proofterm.empty_zboxes zprf prf;
-      val prop' = Proofterm.thm_node_prop (#2 pthm);
+      val prop' = Proofterm.thm_node_prop thm_node;
     in
-      Thm (der',
+      Thm (make_deriv0 [] body',
        {cert = cert,
         tags = [],
         maxidx = maxidx_of_term prop',
