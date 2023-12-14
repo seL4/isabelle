@@ -459,8 +459,12 @@ object Build_Schedule {
 
     def num_built(state: Build_Process.State): Int = graph.keys.count(state.results.contains)
     def elapsed(): Time = Time.now() - start.time
-    def is_outdated(state: Build_Process.State, time_limit: Time, built_limit: Int): Boolean =
-      graph.is_empty || (elapsed() > time_limit && num_built(state) > built_limit)
+    def is_outdated(options: Options, state: Build_Process.State): Boolean =
+      if (graph.is_empty) true
+      else {
+        num_built(state) > options.int("build_schedule_outdated_limit") &&
+          elapsed() > options.seconds("build_schedule_outdated_delay")
+      }
 
     def next(hostname: String, state: Build_Process.State): List[String] =
       for {
@@ -971,7 +975,7 @@ object Build_Schedule {
     }
 
     override def next_jobs(state: Build_Process.State): List[String] =
-      if (!progress.stopped && !_schedule.is_outdated(state, Time.minutes(3), 10))
+      if (!progress.stopped && !_schedule.is_outdated(build_options, state))
         _schedule.next(hostname, state)
       else if (!build_context.master) Nil
       else if (progress.stopped) state.next_ready.map(_.name)
