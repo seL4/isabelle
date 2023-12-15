@@ -2253,7 +2253,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
         proof_combP (proof_combt' (head, args),
           map PClass (#outer_constraints ucontext) @ map Hyp hyps);
     val (zboxes2, zproof2) =
-      if unconstrain then (ZTerm.empty_zboxes, ZTerm.todo_proof ())
+      if unconstrain then (#zboxes body1, #zproof body1)  (* FIXME proper zproof *)
       else (#zboxes body1, #zproof body1);
 
     val proof_body =

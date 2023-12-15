@@ -247,8 +247,6 @@ sig
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> zproof -> zproof
-  val dummy_proof: 'a -> zproof
-  val todo_proof: 'a -> zproof
   type zboxes = (zterm * zproof future) Inttab.table
   val empty_zboxes: zboxes
   val union_zboxes: zboxes -> zboxes -> zboxes
@@ -588,10 +586,6 @@ fun norm_proof thy envir = Same.commit (norm_proof_same (norm_cache thy) envir);
 
 
 (** proof construction **)
-
-fun dummy_proof _ = ZDummy;
-val todo_proof = dummy_proof;
-
 
 (* constants *)
 
