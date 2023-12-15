@@ -2196,10 +2196,13 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof0, proof = proof0} = body;
     val proofs = get_proofs_level ();
-    val zproof' = if zproof_enabled proofs then ZTerm.todo_proof zproof0 else ZDummy;
-    val proof' = if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0 else MinProof;
-    val body0 =
-      PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof', proof = proof'};
+    val (zboxes', zproof') =
+      if zproof_enabled proofs then ZTerm.box_proof thy hyps concl (zboxes0, zproof0)
+      else (ZTerm.empty_zboxes, ZDummy);
+    val proof' =
+      if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
+      else MinProof;
+    val body1 = {oracles = oracles0, thms = thms0, zboxes = zboxes', zproof = zproof', proof = proof'};
 
     fun new_prf () =
       let
@@ -2207,7 +2210,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
         val unconstrainT =
           unconstrainT_proof (Sign.classes_of thy) classrel_proof arity_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
-      in (i, fulfill_proof_future thy promises postproc (Future.value body0)) end;
+      in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =
       (*somewhat non-deterministic proof boxes!*)
@@ -2249,10 +2252,12 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       else
         proof_combP (proof_combt' (head, args),
           map PClass (#outer_constraints ucontext) @ map Hyp hyps);
-    val zproof = ZTerm.todo_proof ();
+    val (zboxes2, zproof2) =
+      if unconstrain then (ZTerm.empty_zboxes, ZTerm.todo_proof ())
+      else (#zboxes body1, #zproof body1);
 
     val proof_body =
-      PBody {oracles = [], thms = [thm], zboxes = ZTerm.empty_zboxes, zproof = zproof, proof = proof};
+      PBody {oracles = [], thms = [thm], zboxes = zboxes2, zproof = zproof2, proof = proof};
   in (thm, proof_body) end;
 
 in

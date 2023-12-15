@@ -219,10 +219,8 @@ sig
   datatype ztyp = datatype ztyp
   datatype zterm = datatype zterm
   datatype zproof = datatype zproof
+  exception ZTERM of string * ztyp list * zterm list * zproof list
   type zproof_const = zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table
-  type zboxes = (zterm * zproof future) Inttab.table
-  val empty_zboxes: zboxes
-  val union_zboxes: zboxes -> zboxes -> zboxes
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
@@ -251,6 +249,10 @@ sig
   val norm_proof: theory -> Envir.env -> zproof -> zproof
   val dummy_proof: 'a -> zproof
   val todo_proof: 'a -> zproof
+  type zboxes = (zterm * zproof future) Inttab.table
+  val empty_zboxes: zboxes
+  val union_zboxes: zboxes -> zboxes -> zboxes
+  val box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
@@ -288,6 +290,8 @@ struct
 datatype ztyp = datatype ztyp;
 datatype zterm = datatype zterm;
 datatype zproof = datatype zproof;
+
+exception ZTERM of string * ztyp list * zterm list * zproof list;
 
 open ZTerm;
 
@@ -589,14 +593,6 @@ fun dummy_proof _ = ZDummy;
 val todo_proof = dummy_proof;
 
 
-(* boxes *)
-
-type zboxes = (zterm * zproof future) Inttab.table;
-
-val empty_zboxes: zboxes = Inttab.empty;
-val union_zboxes: zboxes -> zboxes -> zboxes = curry (Inttab.merge (K true));
-
-
 (* constants *)
 
 type zproof_const = zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table;
@@ -618,6 +614,56 @@ fun make_const_proof (f, g) ((a, A, instT, inst): zproof_const) =
     val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
     val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
   in ZConstp (a, A, instT', inst') end;
+
+
+(* closed proof boxes *)
+
+type zboxes = (zterm * zproof future) Inttab.table;
+
+val empty_zboxes: zboxes = Inttab.empty;
+val union_zboxes: zboxes -> zboxes -> zboxes = curry (Inttab.merge (K true));
+fun add_zboxes entry : zboxes -> zboxes = Inttab.update_new entry;
+
+local
+
+fun close_prop hyps concl =
+  fold_rev (fn A => fn B => ZApp (ZApp (ZConst0 "Pure.imp", A), B)) hyps concl;
+
+fun close_proof hyps prf =
+  let
+    val m = length hyps - 1;
+    val bounds = ZTerms.build (hyps |> fold_index (fn (i, h) => ZTerms.update (h, m - i)));
+
+    fun proof lev (ZHyp t) =
+          (case ZTerms.lookup bounds t of
+            SOME i => ZBoundp (lev + i)
+          | NONE => raise ZTERM ("Unbound proof hypothesis", [], [t], []))
+      | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
+      | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
+      | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
+      | proof lev (ZAppp (p, q)) =
+          (ZAppp (proof lev p, Same.commit (proof lev) q) handle Same.SAME =>
+            ZAppp (p, proof lev q))
+      | proof _ _ = raise Same.SAME;
+  in ZAbsps hyps (Same.commit (proof 0) prf) end;
+
+in
+
+fun box_proof thy hyps concl (zboxes: zboxes, prf) =
+  let
+    val {zterm, ...} = zterm_cache thy;
+    val hyps' = map zterm hyps;
+    val concl' = zterm concl;
+
+    val prop' = close_prop hyps' concl';
+    val prf' = close_proof hyps' prf;
+
+    val i = serial ();
+    val zboxes' = add_zboxes (i, (prop', Future.value prf')) zboxes;
+    val prf'' = ZAppts (ZConstp (zproof_const (ZBox i) prop'), hyps');
+  in (zboxes', prf'') end;
+
+end;
 
 
 (* basic logic *)
