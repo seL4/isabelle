@@ -2185,7 +2185,7 @@ fun export_proof thy i prop prf0 =
   end;
 
 fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
-    (name, pos) shyps hyps concl promises (PBody body) =
+    (name, pos) shyps hyps concl promises (PBody body0) =
   let
     val named = name <> "";
 
@@ -2194,15 +2194,13 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val (ucontext, prop1) = Logic.unconstrainT shyps prop;
 
-    val {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof0, proof = proof0} = body;
     val proofs = get_proofs_level ();
-    val (zboxes', zproof') =
-      if zproof_enabled proofs then ZTerm.box_proof thy hyps concl (zboxes0, zproof0)
+    val (zboxes1, zproof1) =
+      if zproof_enabled proofs then ZTerm.box_proof thy hyps concl (#zboxes body0, #zproof body0)
       else (ZTerm.empty_zboxes, ZDummy);
-    val proof' =
-      if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
+    val proof1 =
+      if proof_enabled proofs then fold_rev implies_intr_proof hyps (#proof body0)
       else MinProof;
-    val body1 = {oracles = oracles0, thms = thms0, zboxes = zboxes', zproof = zproof', proof = proof'};
 
     fun new_prf () =
       let
@@ -2210,13 +2208,16 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
         val unconstrainT =
           unconstrainT_proof (Sign.classes_of thy) classrel_proof arity_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
+        val body1 =
+          {oracles = #oracles body0, thms = #thms body0,
+            zboxes = zboxes1, zproof = zproof1, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =
       (*somewhat non-deterministic proof boxes!*)
       if export_enabled () then new_prf ()
       else
-        (case strip_combt (fst (strip_combP proof0)) of
+        (case strip_combt (fst (strip_combP (#proof body0))) of
           (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
             if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
               let
@@ -2246,19 +2247,18 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val header = thm_header i ([pos, Position.thread_data ()]) theory_name name prop1 NONE;
     val head = PThm (header, Thm_Body {open_proof = open_proof, body = thm_body});
-    val proof =
+    val proof2 =
       if unconstrain then
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
       else
         proof_combP (proof_combt' (head, args),
           map PClass (#outer_constraints ucontext) @ map Hyp hyps);
     val (zboxes2, zproof2) =
-      if unconstrain then (#zboxes body1, #zproof body1)  (* FIXME proper zproof *)
-      else (#zboxes body1, #zproof body1);
+      if unconstrain then (zboxes1, zproof1)  (* FIXME proper zproof *)
+      else (zboxes1, zproof1);
 
-    val proof_body =
-      PBody {oracles = [], thms = [thm], zboxes = zboxes2, zproof = zproof2, proof = proof};
-  in (thm, proof_body) end;
+    val body2 = {oracles = [], thms = [thm], zboxes = zboxes2, zproof = zproof2, proof = proof2};
+  in (thm, PBody body2) end;
 
 in
 
