@@ -385,7 +385,7 @@ fun detect_transfer_rules thm =
 (** Adding transfer domain rules **)
 
 fun prep_transfer_domain_thm ctxt =
-  abstract_equalities_domain ctxt o detect_transfer_rules
+  abstract_equalities_domain ctxt o detect_transfer_rules o Thm.transfer' ctxt
 
 fun add_transfer_domain_thm thm ctxt =
   (add_transfer_thm o prep_transfer_domain_thm (Context.proof_of ctxt)) thm ctxt
