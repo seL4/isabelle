@@ -541,40 +541,47 @@ fun norm_type_same ztyp tyenv =
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
     in norm end;
 
-fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) tm =
-  if Envir.is_empty envir andalso not (could_beta_contract tm) then raise Same.SAME
-  else
-    let
-      val lookup =
-        if Vartab.is_empty tenv then K NONE
-        else ZVars.unsynchronized_cache (apsnd typ #> Envir.lookup envir #> Option.map zterm);
+fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) =
+  let
+    val lookup =
+      if Vartab.is_empty tenv then K NONE
+      else ZVars.unsynchronized_cache (apsnd typ #> Envir.lookup envir #> Option.map zterm);
 
-      val normT = norm_type_same ztyp tyenv;
+    val normT = norm_type_same ztyp tyenv;
 
-      fun norm (ZVar (xi, T)) =
-            (case lookup (xi, T) of
-              SOME u => Same.commit norm u
-            | NONE => ZVar (xi, normT T))
-        | norm (ZBound _) = raise Same.SAME
-        | norm (ZConst0 _) = raise Same.SAME
-        | norm (ZConst1 (a, T)) = ZConst1 (a, normT T)
-        | norm (ZConst (a, Ts)) = ZConst (a, Same.map normT Ts)
-        | norm (ZAbs (a, T, t)) =
-            (ZAbs (a, normT T, Same.commit norm t)
-              handle Same.SAME => ZAbs (a, T, norm t))
-        | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_bound t body)
-        | norm (ZApp (f, t)) =
-            ((case norm f of
-               ZAbs (_, _, body) => Same.commit norm (subst_bound t body)
-             | nf => ZApp (nf, Same.commit norm t))
-            handle Same.SAME => ZApp (f, norm t))
-        | norm _ = raise Same.SAME;
-    in norm tm end;
+    fun norm (ZVar (xi, T)) =
+          (case lookup (xi, T) of
+            SOME u => Same.commit norm u
+          | NONE => ZVar (xi, normT T))
+      | norm (ZBound _) = raise Same.SAME
+      | norm (ZConst0 _) = raise Same.SAME
+      | norm (ZConst1 (a, T)) = ZConst1 (a, normT T)
+      | norm (ZConst (a, Ts)) = ZConst (a, Same.map normT Ts)
+      | norm (ZAbs (a, T, t)) =
+          (ZAbs (a, normT T, Same.commit norm t)
+            handle Same.SAME => ZAbs (a, T, norm t))
+      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_bound t body)
+      | norm (ZApp (f, t)) =
+          ((case norm f of
+             ZAbs (_, _, body) => Same.commit norm (subst_bound t body)
+           | nf => ZApp (nf, Same.commit norm t))
+          handle Same.SAME => ZApp (f, norm t))
+      | norm _ = raise Same.SAME;
+  in
+    fn t =>
+      if Envir.is_empty envir andalso not (could_beta_contract t)
+      then raise Same.SAME else norm t
+  end;
 
-fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) prf =
-  if Envir.is_empty envir andalso not (exists_proof_terms could_beta_contract prf) then
-    raise Same.SAME
-  else map_proof_same (norm_type_same ztyp tyenv) (norm_term_same cache envir) prf;
+fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
+  let
+    val typ = norm_type_same ztyp tyenv;
+    val term = norm_term_same cache envir;
+  in
+    fn prf =>
+      if Envir.is_empty envir andalso not (exists_proof_terms could_beta_contract prf)
+      then raise Same.SAME else map_proof_same typ term prf
+  end;
 
 fun norm_cache thy =
   let
