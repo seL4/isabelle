@@ -617,7 +617,9 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
           val inst_term =
             ZVars.build (visible |> (fold o Term.fold_aterms) (fn Var v => add_var v | _ => I))
             |> instantiate_term_same inst_typ;
-        in Same.commit (map_proof_same inst_typ inst_term) prf end
+
+          val norm_term = Same.compose beta_norm_same inst_term;
+        in Same.commit (map_proof_same inst_typ norm_term) prf end
   end;
 
 fun norm_cache thy =
