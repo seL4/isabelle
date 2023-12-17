@@ -362,7 +362,7 @@ fun subst_bound arg body =
   in Same.commit (term 0) body end;
 
 
-(* direct substitution *)
+(* substitution of free or schematic variables *)
 
 fun subst_type_same tvar =
   let
@@ -393,6 +393,9 @@ fun subst_term_same typ var =
           (ZApp (term t, Same.commit term u) handle Same.SAME => ZApp (t, term u))
       | term (ZClass (T, c)) = ZClass (typ T, c);
   in term end;
+
+
+(* map types/terms within proof *)
 
 fun map_insts_same typ term (instT, inst) =
   let
