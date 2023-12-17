@@ -531,6 +531,18 @@ fun could_beta_contract (ZApp (ZAbs _, _)) = true
   | could_beta_contract (ZAbs (_, _, b)) = could_beta_contract b
   | could_beta_contract _ = false;
 
+val beta_norm_same =
+  let
+    fun norm (ZApp (ZAbs (_, _, body), t)) = subst_bound t body
+      | norm (ZApp (f, t)) =
+          ((case norm f of
+             ZAbs (_, _, body) => subst_bound t body
+           | nf => ZApp (nf, Same.commit norm t))
+          handle Same.SAME => ZApp (f, norm t))
+      | norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
+      | norm _ = raise Same.SAME;
+  in norm end;
+
 fun norm_type_same ztyp tyenv =
   if Vartab.is_empty tyenv then Same.same
   else
@@ -575,11 +587,7 @@ fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) 
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
       | norm _ = raise Same.SAME;
-  in
-    fn t =>
-      if Envir.is_empty envir andalso not (could_beta_contract t)
-      then raise Same.SAME else norm t
-  end;
+  in fn t => if Envir.is_empty envir then beta_norm_same t else norm t end;
 
 fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
   let
