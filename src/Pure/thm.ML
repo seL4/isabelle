@@ -2395,7 +2395,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
           (case rename_bvars dpairs tpairs B As0 of
             SOME {zterm, term} =>
               let
-                fun zproof p = Same.commit (ZTerm.map_proof_same Same.same zterm) p;
+                fun zproof p = ZTerm.map_proof Same.same zterm p;
                 fun proof p = Same.commit (Proofterm.map_proof_terms_same term I) p;
               in (map (strip_apply (Same.commit term) B) As0, deriv_rule1 zproof proof rder) end
           | NONE => (As0, rder))
