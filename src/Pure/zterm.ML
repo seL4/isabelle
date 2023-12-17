@@ -246,7 +246,7 @@ sig
   val could_beta_contract: zterm -> bool
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
-  val norm_proof: theory -> Envir.env -> zproof -> zproof
+  val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
   type zboxes = (zterm * zproof future) Inttab.table
   val empty_zboxes: zboxes
   val union_zboxes: zboxes -> zboxes -> zboxes
@@ -277,9 +277,10 @@ sig
   val permute_prems_proof: theory -> term list -> int -> int -> zproof -> zproof
   val incr_indexes_proof: int -> zproof -> zproof
   val lift_proof: theory -> term -> int -> term list -> zproof -> zproof
-  val assumption_proof: theory -> Envir.env -> term list -> term -> int -> zproof -> zproof
+  val assumption_proof: theory -> Envir.env -> term list -> term -> int -> term list ->
+    zproof -> zproof
   val bicompose_proof: theory -> Envir.env -> int -> bool -> term list -> term list ->
-    term option -> term list -> int -> int -> zproof -> zproof -> zproof
+    term option -> term list -> int -> int -> term list -> zproof -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -393,6 +394,13 @@ fun subst_term_same typ var =
           (ZApp (term t, Same.commit term u) handle Same.SAME => ZApp (t, term u))
       | term (ZClass (T, c)) = ZClass (typ T, c);
   in term end;
+
+fun instantiate_type_same instT =
+  if ZTVars.is_empty instT then Same.same
+  else ZTypes.unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT)));
+
+fun instantiate_term_same typ inst =
+  subst_term_same typ (Same.function (ZVars.lookup inst));
 
 
 (* map types/terms within proof *)
@@ -573,14 +581,35 @@ fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) 
       then raise Same.SAME else norm t
   end;
 
-fun norm_proof_same (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
+fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
   let
-    val typ = norm_type_same ztyp tyenv;
-    val term = norm_term_same cache envir;
+    val norm_tvar = ZTVar #> Same.commit (norm_type_same ztyp tyenv);
+    val norm_var = ZVar #> Same.commit (norm_term_same cache envir);
   in
-    fn prf =>
-      if Envir.is_empty envir andalso not (exists_proof_terms could_beta_contract prf)
-      then raise Same.SAME else map_proof_same typ term prf
+    fn visible => fn prf =>
+      if (Envir.is_empty envir orelse null visible)
+        andalso not (exists_proof_terms could_beta_contract prf)
+      then prf
+      else
+        let
+          fun add_tvar v tab =
+            if ZTVars.defined tab v then tab else ZTVars.update (v, norm_tvar v) tab;
+
+          val inst_typ =
+            if Vartab.is_empty tyenv then Same.same
+            else
+              ZTVars.build (visible |> (fold o Term.fold_types o Term.fold_atyps)
+                (fn TVar v => add_tvar v | _ => I))
+              |> instantiate_type_same;
+
+          fun add_var (a, T) tab =
+            let val v = (a, Same.commit inst_typ (ztyp T))
+            in if ZVars.defined tab v then tab else ZVars.update (v, norm_var v) tab end;
+
+          val inst_term =
+            ZVars.build (visible |> (fold o Term.fold_aterms) (fn Var v => add_var v | _ => I))
+            |> instantiate_term_same inst_typ;
+        in Same.commit (map_proof_same inst_typ inst_term) prf end
   end;
 
 fun norm_cache thy =
@@ -591,7 +620,7 @@ fun norm_cache thy =
 
 fun norm_type tyenv = Same.commit (norm_type_same (ztyp_cache ()) tyenv);
 fun norm_term thy envir = Same.commit (norm_term_same (norm_cache thy) envir);
-fun norm_proof thy envir = Same.commit (norm_proof_same (norm_cache thy) envir);
+fun norm_proof thy envir = norm_proof_cache (norm_cache thy) envir;
 
 
 
@@ -852,10 +881,8 @@ fun instantiate_proof thy (Ts, ts) prf =
     val {ztyp, zterm} = zterm_cache thy;
     val instT = ZTVars.build (Ts |> fold (fn (v, T) => ZTVars.add (v, ztyp T)));
     val inst = ZVars.build (ts |> fold (fn ((v, T), t) => ZVars.add ((v, ztyp T), zterm t)));
-    val typ =
-      if ZTVars.is_empty instT then Same.same
-      else ZTypes.unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT)));
-    val term = subst_term_same typ (Same.function (ZVars.lookup inst));
+    val typ = instantiate_type_same instT;
+    val term = instantiate_term_same typ inst;
   in Same.commit (map_proof_same typ term) prf end;
 
 fun varifyT_proof names prf =
@@ -991,14 +1018,14 @@ fun mk_asm_prf C i m =
       | all t = imp t (~ i) m
   in all C end;
 
-fun assumption_proof thy envir Bs Bi n prf =
+fun assumption_proof thy envir Bs Bi n visible prf =
   let
     val cache as {zterm, ...} = norm_cache thy;
     val normt = zterm #> Same.commit (norm_term_same cache envir);
   in
     ZAbsps (map normt Bs)
       (ZAppps (prf, map ZBoundp (length Bs - 1 downto 0) @ [mk_asm_prf (normt Bi) n ~1]))
-    |> Same.commit (norm_proof_same cache envir)
+    |> norm_proof_cache cache envir visible
   end;
 
 fun flatten_params_proof i j n (ZApp (ZApp (ZConst0 "Pure.imp", A), B), k) =
@@ -1009,11 +1036,11 @@ fun flatten_params_proof i j n (ZApp (ZApp (ZConst0 "Pure.imp", A), B), k) =
       ZAppps (ZAppts (ZBoundp (k + i),
         map ZBound (j - 1 downto 0)), map ZBoundp (remove (op =) (i - n) (i - 1 downto 0)));
 
-fun bicompose_proof thy env smax flatten Bs As A oldAs n m rprf sprf =
+fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
   let
     val cache as {zterm, ...} = norm_cache thy;
     val normt = zterm #> Same.commit (norm_term_same cache env);
-    val normp = Same.commit (norm_proof_same cache env);
+    val normp = norm_proof_cache cache env visible;
 
     val lb = length Bs;
     val la = length As;

@@ -1668,7 +1668,7 @@ fun flexflex_rule opt_ctxt =
               val thy' = Context.certificate_theory cert' handle ERROR msg =>
                 raise CONTEXT (msg, [], [], [th], Option.map Context.Proof opt_ctxt);
 
-              fun zproof p = ZTerm.norm_proof thy' env p;
+              fun zproof p = ZTerm.norm_proof thy' env [full_prop_of th] p;
               fun proof p = Proofterm.norm_proof_remove_types env p;
             in
               Thm (deriv_rule1 zproof proof der,
@@ -2074,7 +2074,7 @@ fun assumption opt_ctxt i state =
         val thy' = Context.certificate_theory cert' handle ERROR msg =>
           raise CONTEXT (msg, [], [], [state], Option.map Context.Proof opt_ctxt);
         val normt = Envir.norm_term env;
-        fun zproof p = ZTerm.assumption_proof thy' env Bs Bi n p;
+        fun zproof p = ZTerm.assumption_proof thy' env Bs Bi n [full_prop_of state] p;
         fun proof p =
           Proofterm.assumption_proof (map normt Bs) (normt Bi) n p
           |> not (Envir.is_empty env) ? Proofterm.norm_proof_remove_types env;
@@ -2117,7 +2117,7 @@ fun eq_assumption i state =
     | n =>
         let
           fun zproof p =
-            ZTerm.assumption_proof (Context.certificate_theory cert) Envir.init Bs Bi (n + 1) p;
+            ZTerm.assumption_proof (Context.certificate_theory cert) Envir.init Bs Bi (n + 1) [] p;
           fun proof p = Proofterm.assumption_proof Bs Bi (n + 1) p;
         in
           Thm (deriv_rule1 zproof proof der,
@@ -2371,7 +2371,8 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
           union_constraints constraints1 constraints2
           |> insert_constraints_env thy' env;
         fun zproof p q =
-          ZTerm.bicompose_proof thy' env smax flatten Bs As A oldAs n (nlift + 1) p q;
+          ZTerm.bicompose_proof thy' env smax flatten Bs As A oldAs n (nlift + 1)
+            [full_prop_of state, full_prop_of orule] p q;
         fun proof p q =
           Proofterm.bicompose_proof env smax flatten Bs As A oldAs n (nlift + 1) p q;
         val th =
