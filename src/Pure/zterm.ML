@@ -444,7 +444,7 @@ fun map_proof_same typ term =
           let val (instT', inst') = map_insts_same typ term (instT, inst)
           in ZConstp (a, A, instT', inst') end
       | proof (ZBoundp _) = raise Same.SAME
-      | proof (ZHyp h) = ZHyp (term h)
+      | proof (ZHyp _) = raise Same.SAME
       | proof (ZAbst (a, T, p)) =
           (ZAbst (a, typ T, Same.commit proof p) handle Same.SAME => ZAbst (a, T, proof p))
       | proof (ZAbsp (a, t, p)) =
