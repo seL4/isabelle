@@ -725,13 +725,13 @@ fun trivial_proof thy A =
 fun implies_intr_proof thy A prf =
   let
     val h = zterm_of thy A;
-    fun proof i (ZHyp t) = if aconv_zterm (h, t) then ZBoundp i else raise Same.SAME
-      | proof i (ZAbst (x, T, p)) = ZAbst (x, T, proof i p)
-      | proof i (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (i + 1) p)
-      | proof i (ZAppt (p, t)) = ZAppt (proof i p, t)
-      | proof i (ZAppp (p, q)) =
-          (ZAppp (proof i p, Same.commit (proof i) q) handle Same.SAME =>
-            ZAppp (p, proof i q))
+    fun proof lev (ZHyp t) = if aconv_zterm (h, t) then ZBoundp lev else raise Same.SAME
+      | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
+      | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
+      | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
+      | proof lev (ZAppp (p, q)) =
+          (ZAppp (proof lev p, Same.commit (proof lev) q) handle Same.SAME =>
+            ZAppp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
   in ZAbsp ("H", h, Same.commit (proof 0) prf) end;
 
