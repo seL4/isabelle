@@ -339,7 +339,7 @@ val union_thms = Ord_List.union thm_ord;
 val unions_thms = Ord_List.unions thm_ord;
 
 fun no_proof_body zproof proof =
-  PBody {oracles = [], thms = [], zboxes = ZTerm.empty_zboxes, zproof = zproof, proof = proof};
+  PBody {oracles = [], thms = [], zboxes = [], zproof = zproof, proof = proof};
 val no_thm_body = thm_body (no_proof_body ZDummy MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
@@ -463,7 +463,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, zboxes = ZTerm.empty_zboxes, zproof = ZDummy, proof = c} end
+  in PBody {oracles = a, thms = b, zboxes = [], zproof = ZDummy, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -1982,7 +1982,9 @@ fun fulfill_norm_proof thy ps body0 =
         (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
-    val zboxes = fold (fn (_, PBody {zboxes, ...}) => ZTerm.union_zboxes zboxes) ps zboxes0;
+    val zboxes =
+      ZTerm.unions_zboxes
+        (fold (fn (_, PBody {zboxes, ...}) => not (null zboxes) ? cons zboxes) ps [zboxes0]);
     val proof = rew_proof thy proof0;
   in
     PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof}
@@ -2197,7 +2199,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val proofs = get_proofs_level ();
     val (zboxes1, zproof1) =
       if zproof_enabled proofs then ZTerm.box_proof thy hyps concl (#zboxes body0, #zproof body0)
-      else (ZTerm.empty_zboxes, ZDummy);
+      else ([], ZDummy);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps (#proof body0)
       else MinProof;

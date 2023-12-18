@@ -750,7 +750,7 @@ fun make_deriv promises oracles thms zboxes zproof proof =
   make_deriv0 promises
     (PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof});
 
-val empty_deriv = make_deriv [] [] [] ZTerm.empty_zboxes ZDummy MinProof;
+val empty_deriv = make_deriv [] [] [] [] ZDummy MinProof;
 
 
 (* inference rules *)
@@ -780,7 +780,7 @@ fun deriv_rule1 zproof proof = deriv_rule2 (K zproof) (K proof) empty_deriv;
 fun deriv_rule0 zproof proof =
   let val proofs = Proofterm.get_proofs_level () in
     if Proofterm.proof_enabled proofs orelse Proofterm.zproof_enabled proofs then
-      deriv_rule1 I I (make_deriv [] [] [] ZTerm.empty_zboxes
+      deriv_rule1 I I (make_deriv [] [] [] []
        (if Proofterm.zproof_enabled proofs then zproof () else ZDummy)
        (if Proofterm.proof_enabled proofs then proof () else MinProof))
     else empty_deriv
@@ -844,7 +844,7 @@ fun future future_thm ct =
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv [(i, future)] [] [] ZTerm.empty_zboxes ZDummy MinProof,
+    Thm (make_deriv [(i, future)] [] [] [] ZDummy MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -985,7 +985,7 @@ val arity_proof = proof_of oo the_arity;
 
 local
 
-val empty_digest = ([], [], ZTerm.empty_zboxes);
+val empty_digest = ([], [], []);
 
 fun union_digest (oracles1, thms1, zboxes1) (oracles2, thms2, zboxes2) =
  (Proofterm.union_oracles oracles1 oracles2,
@@ -1171,7 +1171,7 @@ fun add_oracle (b, oracle_fn) thy =
               then ZTerm.oracle_proof (Context.certificate_theory cert) name prop
               else ZDummy;
           in
-            Thm (make_deriv [] [oracle] [] ZTerm.empty_zboxes zproof proof,
+            Thm (make_deriv [] [oracle] [] [] zproof proof,
              {cert = cert,
               tags = [],
               maxidx = maxidx,

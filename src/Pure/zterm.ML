@@ -247,9 +247,11 @@ sig
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
-  type zboxes = (zterm * zproof future) Inttab.table
-  val empty_zboxes: zboxes
+  type zbox = serial * (zterm * zproof future)
+  val zbox_ord: zbox ord
+  type zboxes = zbox Ord_List.T
   val union_zboxes: zboxes -> zboxes -> zboxes
+  val unions_zboxes: zboxes list -> zboxes
   val box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
@@ -660,11 +662,13 @@ fun make_const_proof (f, g) ((a, A, instT, inst): zproof_const) =
 
 (* closed proof boxes *)
 
-type zboxes = (zterm * zproof future) Inttab.table;
+type zbox = serial * (zterm * zproof future);
+val zbox_ord: zbox ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
-val empty_zboxes: zboxes = Inttab.empty;
-val union_zboxes: zboxes -> zboxes -> zboxes = curry (Inttab.merge (K true));
-fun add_zboxes entry : zboxes -> zboxes = Inttab.update_new entry;
+type zboxes = zbox Ord_List.T;
+val union_zboxes = Ord_List.union zbox_ord;
+val unions_zboxes = Ord_List.unions zbox_ord;
+val add_zboxes = Ord_List.insert zbox_ord;
 
 local
 
