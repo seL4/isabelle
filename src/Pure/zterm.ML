@@ -350,7 +350,7 @@ fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
 
 fun incr_boundvars inc = incr_bv inc 0;
 
-fun subst_bound arg body =
+fun subst_term_bound_same arg =
   let
     fun term lev (ZBound i) =
           if i < lev then raise Same.SAME   (*var is locally bound*)
@@ -361,7 +361,10 @@ fun subst_bound arg body =
           (ZApp (term lev t, Same.commit (term lev) u)
             handle Same.SAME => ZApp (t, term lev u))
       | term _ _ = raise Same.SAME;
-  in Same.commit (term 0) body end;
+  in term end;
+
+fun subst_term_bound arg body =
+  Same.commit (subst_term_bound_same arg 0) body;
 
 
 (* substitution of free or schematic variables *)
@@ -534,10 +537,10 @@ fun could_beta_contract (ZApp (ZAbs _, _)) = true
 
 val beta_norm_same =
   let
-    fun norm (ZApp (ZAbs (_, _, body), t)) = subst_bound t body
+    fun norm (ZApp (ZAbs (_, _, body), t)) = subst_term_bound t body
       | norm (ZApp (f, t)) =
           ((case norm f of
-             ZAbs (_, _, body) => subst_bound t body
+             ZAbs (_, _, body) => subst_term_bound t body
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
       | norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
@@ -581,10 +584,10 @@ fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) 
       | norm (ZAbs (a, T, t)) =
           (ZAbs (a, normT T, Same.commit norm t)
             handle Same.SAME => ZAbs (a, T, norm t))
-      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_bound t body)
+      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
       | norm (ZApp (f, t)) =
           ((case norm f of
-             ZAbs (_, _, body) => Same.commit norm (subst_bound t body)
+             ZAbs (_, _, body) => Same.commit norm (subst_term_bound t body)
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
       | norm _ = raise Same.SAME;
