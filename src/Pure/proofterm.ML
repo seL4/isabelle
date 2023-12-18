@@ -644,20 +644,21 @@ fun incr_bv_same incP inct =
   if incP = 0 andalso inct = 0 then fn _ => fn _ => Same.same
   else
     let
+      val term = Term.incr_bv_same inct;
+
       fun proof Plev _ (PBound i) =
             if i >= Plev then PBound (i + incP) else raise Same.SAME
         | proof Plev tlev (AbsP (a, t, p)) =
-            (AbsP (a, Same.map_option (Term.incr_bv_same inct tlev) t,
-               Same.commit (proof (Plev + 1) tlev) p) handle Same.SAME =>
-                 AbsP (a, t, proof (Plev + 1) tlev p))
+            (AbsP (a, Same.map_option (term tlev) t, Same.commit (proof (Plev + 1) tlev) p)
+              handle Same.SAME => AbsP (a, t, proof (Plev + 1) tlev p))
         | proof Plev tlev (Abst (a, T, body)) =
             Abst (a, T, proof Plev (tlev + 1) body)
         | proof Plev tlev (p %% q) =
             (proof Plev tlev p %% Same.commit (proof Plev tlev) q
-             handle Same.SAME => p %% proof Plev tlev q)
+              handle Same.SAME => p %% proof Plev tlev q)
         | proof Plev tlev (p % t) =
-            (proof Plev tlev p % Option.map (Term.incr_bv inct tlev) t
-             handle Same.SAME => p % Same.map_option (Term.incr_bv_same inct tlev) t)
+            (proof Plev tlev p % Option.map (Same.commit (term tlev)) t
+              handle Same.SAME => p % Same.map_option (term tlev) t)
         | proof _ _ _ = raise Same.SAME;
     in proof end;
 
