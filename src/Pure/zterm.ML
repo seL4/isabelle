@@ -234,8 +234,17 @@ sig
   val fold_proof_terms: (zterm -> 'a -> 'a) -> zproof -> 'a -> 'a
   val exists_proof_terms: (zterm -> bool) -> zproof -> bool
   val incr_bv_same: int -> int -> zterm Same.operation
+  val incr_proof_bv_same: int -> int -> int -> int -> zproof Same.operation
   val incr_bv: int -> int -> zterm -> zterm
   val incr_boundvars: int -> zterm -> zterm
+  val incr_proof_bv: int -> int -> int -> int -> zproof -> zproof
+  val incr_proof_boundvars: int -> int -> zproof -> zproof
+  val subst_term_bound_same: zterm -> int -> zterm Same.operation
+  val subst_proof_bound_same: zterm -> int -> zproof Same.operation
+  val subst_proof_boundp_same: zproof -> int -> int -> zproof Same.operation
+  val subst_term_bound: zterm -> zterm -> zterm
+  val subst_proof_bound: zterm -> zproof -> zproof
+  val subst_proof_boundp: zproof -> zproof -> zproof
   val map_proof: ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
   val map_proof_types: ztyp Same.operation -> zproof -> zproof
   val ztyp_of: typ -> ztyp
@@ -332,7 +341,7 @@ fun exists_proof_terms P prf =
 end;
 
 
-(* substitution of bound variables *)
+(* increment bound variables *)
 
 fun incr_bv_same inc =
   if inc = 0 then fn _ => Same.same
@@ -346,9 +355,35 @@ fun incr_bv_same inc =
         | term _ _ = raise Same.SAME;
     in term end;
 
-fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
+fun incr_proof_bv_same incp inct =
+  if incp = 0 andalso inct = 0 then fn _ => fn _ => Same.same
+  else
+    let
+      val term = incr_bv_same inct;
 
+      fun proof plev _ (ZBoundp i) =
+            if i >= plev then ZBoundp (i + incp) else raise Same.SAME
+        | proof plev tlev (ZAbsp (a, t, p)) =
+            (ZAbsp (a, term tlev t, Same.commit (proof (plev + 1) tlev) p)
+              handle Same.SAME => ZAbsp (a, t, proof (plev + 1) tlev p))
+        | proof plev tlev (ZAbst (a, T, p)) = ZAbst (a, T, proof plev (tlev + 1) p)
+        | proof plev tlev (ZAppp (p, q)) =
+            (ZAppp (proof plev tlev p, Same.commit (proof plev tlev) q)
+              handle Same.SAME => ZAppp (p, proof plev tlev q))
+        | proof plev tlev (ZAppt (p, t)) =
+            (ZAppt (proof plev tlev p, Same.commit (term tlev) t)
+              handle Same.SAME => ZAppt (p, term tlev t))
+        | proof _ _ _ = raise Same.SAME;
+    in proof end;
+
+fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
 fun incr_boundvars inc = incr_bv inc 0;
+
+fun incr_proof_bv incp inct plev tlev = Same.commit (incr_proof_bv_same incp inct plev tlev);
+fun incr_proof_boundvars incp inct = incr_proof_bv incp inct 0 0;
+
+
+(* substitution of bound variables *)
 
 fun subst_term_bound_same arg =
   let
@@ -363,8 +398,41 @@ fun subst_term_bound_same arg =
       | term _ _ = raise Same.SAME;
   in term end;
 
-fun subst_term_bound arg body =
-  Same.commit (subst_term_bound_same arg 0) body;
+fun subst_proof_bound_same arg =
+  let
+    val term = subst_term_bound_same arg;
+
+    fun proof lev (ZAbsp (a, t, p)) =
+          (ZAbsp (a, term lev t, Same.commit (proof lev) p)
+            handle Same.SAME => ZAbsp (a, t, proof lev p))
+      | proof lev (ZAbst (a, T, p)) = ZAbst (a, T, proof (lev + 1) p)
+      | proof lev (ZAppp (p, q)) =
+          (ZAppp (proof lev p, Same.commit (proof lev) q)
+            handle Same.SAME => ZAppp (p, proof lev q))
+      | proof lev (ZAppt (p, t)) =
+          (ZAppt (proof lev p, Same.commit (term lev) t)
+            handle Same.SAME => ZAppt (p, term lev t))
+      | proof _ _ = raise Same.SAME;
+  in proof end;
+
+fun subst_proof_boundp_same arg =
+  let
+    fun proof plev tlev (ZBoundp i) =
+          if i < plev then raise Same.SAME   (*var is locally bound*)
+          else if i = plev then incr_proof_boundvars plev tlev arg
+          else ZBoundp (i - 1)   (*loose: change it*)
+      | proof plev tlev (ZAbsp (a, t, p)) = ZAbsp (a, t, proof (plev + 1) tlev p)
+      | proof plev tlev (ZAbst (a, T, p)) = ZAbst (a, T, proof plev (tlev + 1) p)
+      | proof plev tlev (ZAppp (p, q)) =
+          (ZAppp (proof plev tlev p, Same.commit (proof plev tlev) q)
+            handle Same.SAME => ZAppp (p, proof plev tlev q))
+      | proof plev tlev (ZAppt (p, t)) = ZAppt (proof plev tlev p, t)
+      | proof _ _ _ = raise Same.SAME;
+  in proof end;
+
+fun subst_term_bound arg body = Same.commit (subst_term_bound_same arg 0) body;
+fun subst_proof_bound arg body = Same.commit (subst_proof_bound_same arg 0) body;
+fun subst_proof_boundp arg body = Same.commit (subst_proof_boundp_same arg 0 0) body;
 
 
 (* substitution of free or schematic variables *)
