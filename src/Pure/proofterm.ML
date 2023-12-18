@@ -795,13 +795,15 @@ fun subst_bounds args prf =
       val term = Term.subst_bounds_same args;
 
       fun proof lev (AbsP (a, t, p)) =
-          (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
-            handle Same.SAME => AbsP (a, t, proof lev p))
+            (AbsP (a, Same.map_option (term lev) t, Same.commit (proof lev) p)
+              handle Same.SAME => AbsP (a, t, proof lev p))
         | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
-        | proof lev (p %% q) = (proof lev p %% Same.commit (proof lev) q
-            handle Same.SAME => p %% proof lev q)
-        | proof lev (p % t) = (proof lev p % Option.map (Same.commit (term lev)) t
-            handle Same.SAME => p % Same.map_option (term lev) t)
+        | proof lev (p %% q) =
+            (proof lev p %% Same.commit (proof lev) q
+              handle Same.SAME => p %% proof lev q)
+        | proof lev (p % t) =
+            (proof lev p % Option.map (Same.commit (term lev)) t
+              handle Same.SAME => p % Same.map_option (term lev) t)
         | proof _ _ = raise Same.SAME;
     in Same.commit (proof 0) prf end;
 
@@ -814,8 +816,9 @@ fun subst_pbounds args prf =
           else PBound (i - n)  (*loose: change it*))
       | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev + 1) tlev p)
       | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev + 1) p)
-      | proof Plev tlev (p %% q) = (proof Plev tlev p %% Same.commit (proof Plev tlev) q
-          handle Same.SAME => p %% proof Plev tlev q)
+      | proof Plev tlev (p %% q) =
+          (proof Plev tlev p %% Same.commit (proof Plev tlev) q
+            handle Same.SAME => p %% proof Plev tlev q)
       | proof Plev tlev (p % t) = proof Plev tlev p % t
       | proof _ _ _ = raise Same.SAME;
   in if null args then prf else Same.commit (proof 0 0) prf end;
