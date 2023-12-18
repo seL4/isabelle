@@ -314,7 +314,6 @@ fun combound (t, n, k) =
 fun fold_proof_terms f =
   let
     fun proof (ZConstp (_, _, _, inst)) = ZVars.fold (f o #2) inst
-      | proof (ZHyp t) = f t
       | proof (ZAbst (_, _, p)) = proof p
       | proof (ZAbsp (_, t, p)) = f t #> proof p
       | proof (ZAppt (p, t)) = proof p #> f t
