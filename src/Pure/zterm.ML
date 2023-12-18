@@ -347,11 +347,12 @@ fun incr_bv_same inc =
   if inc = 0 then fn _ => Same.same
   else
     let
-      fun term lev (ZBound i) = if i >= lev then ZBound (i + inc) else raise Same.SAME
+      fun term lev (ZBound i) =
+            if i >= lev then ZBound (i + inc) else raise Same.SAME
         | term lev (ZAbs (a, T, t)) = ZAbs (a, T, term (lev + 1) t)
         | term lev (ZApp (t, u)) =
-            (ZApp (term lev t, Same.commit (term lev) u) handle Same.SAME =>
-              ZApp (t, term lev u))
+            (ZApp (term lev t, Same.commit (term lev) u)
+              handle Same.SAME => ZApp (t, term lev u))
         | term _ _ = raise Same.SAME;
     in term end;
 

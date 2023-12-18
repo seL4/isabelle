@@ -634,11 +634,12 @@ fun incr_bv_same inc =
   if inc = 0 then fn _ => Same.same
   else
     let
-      fun term lev (Bound i) = if i >= lev then Bound (i + inc) else raise Same.SAME
+      fun term lev (Bound i) =
+            if i >= lev then Bound (i + inc) else raise Same.SAME
         | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
         | term lev (t $ u) =
-            (term lev t $ Same.commit (term lev) u handle Same.SAME =>
-              t $ term lev u)
+            (term lev t $ Same.commit (term lev) u
+              handle Same.SAME => t $ term lev u)
         | term _ _ = raise Same.SAME;
     in term end;
 
