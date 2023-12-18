@@ -231,8 +231,6 @@ sig
   val ZAbsps: zterm list -> zproof -> zproof
   val ZAppts: zproof * zterm list -> zproof
   val ZAppps: zproof * zproof list -> zproof
-  val fold_proof_terms: (zterm -> 'a -> 'a) -> zproof -> 'a -> 'a
-  val exists_proof_terms: (zterm -> bool) -> zproof -> bool
   val incr_bv_same: int -> int -> zterm Same.operation
   val incr_proof_bv_same: int -> int -> int -> int -> zproof Same.operation
   val incr_bv: int -> int -> zterm -> zterm
@@ -252,7 +250,6 @@ sig
   val zterm_of: theory -> term -> zterm
   val typ_of: ztyp -> typ
   val term_of: theory -> zterm -> term
-  val could_beta_contract: zterm -> bool
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
@@ -318,27 +315,6 @@ val ZAppps = Library.foldl ZAppp;
 
 fun combound (t, n, k) =
   if k > 0 then ZApp (combound (t, n + 1, k - 1), ZBound n) else t;
-
-
-(* fold *)
-
-fun fold_proof_terms f =
-  let
-    fun proof (ZConstp (_, _, _, inst)) = ZVars.fold (f o #2) inst
-      | proof (ZAbst (_, _, p)) = proof p
-      | proof (ZAbsp (_, t, p)) = f t #> proof p
-      | proof (ZAppt (p, t)) = proof p #> f t
-      | proof (ZAppp (p, q)) = proof p #> proof q
-      | proof _ = I;
-  in proof end;
-
-local exception Found in
-
-fun exists_proof_terms P prf =
-  (fold_proof_terms (fn t => fn () => if P t then raise Found else ()) prf (); true)
-    handle Found => true;
-
-end;
 
 
 (* increment bound variables *)
@@ -599,20 +575,34 @@ fun term_of thy =
 
 (* beta normalization wrt. environment *)
 
-fun could_beta_contract (ZApp (ZAbs _, _)) = true
-  | could_beta_contract (ZApp (t, u)) = could_beta_contract t orelse could_beta_contract u
-  | could_beta_contract (ZAbs (_, _, b)) = could_beta_contract b
-  | could_beta_contract _ = false;
-
-val beta_norm_same =
+val beta_norm_term_same =
   let
-    fun norm (ZApp (ZAbs (_, _, body), t)) = subst_term_bound t body
+    fun norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
       | norm (ZApp (f, t)) =
           ((case norm f of
-             ZAbs (_, _, body) => subst_term_bound t body
+             ZAbs (_, _, body) => Same.commit norm (subst_term_bound t body)
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
       | norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
+      | norm _ = raise Same.SAME;
+  in norm end;
+
+val beta_norm_proof_same =
+  let
+    val term = beta_norm_term_same;
+
+    fun norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+      | norm (ZAppt (f, t)) =
+          ((case norm f of
+             ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
+           | nf => ZAppt (nf, Same.commit term t))
+          handle Same.SAME => ZAppt (f, term t))
+      | norm (ZAppp (ZAbsp (_, _, body), p)) = Same.commit norm (subst_proof_boundp p body)
+      | norm (ZAppp (f, p)) =
+          ((case norm f of
+             ZAbsp (_, _, body) => Same.commit norm (subst_proof_boundp p body)
+           | nf => ZAppp (nf, Same.commit norm p))
+          handle Same.SAME => ZAppp (f, norm p))
       | norm _ = raise Same.SAME;
   in norm end;
 
@@ -660,7 +650,7 @@ fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) 
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
       | norm _ = raise Same.SAME;
-  in fn t => if Envir.is_empty envir then beta_norm_same t else norm t end;
+  in fn t => if Envir.is_empty envir then beta_norm_term_same t else norm t end;
 
 fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
   let
@@ -668,9 +658,8 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
     val norm_var = ZVar #> Same.commit (norm_term_same cache envir);
   in
     fn visible => fn prf =>
-      if (Envir.is_empty envir orelse null visible)
-        andalso not (exists_proof_terms could_beta_contract prf)
-      then prf
+      if Envir.is_empty envir orelse null visible
+      then Same.commit beta_norm_proof_same prf
       else
         let
           fun add_tvar v tab =
@@ -691,8 +680,8 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
             ZVars.build (visible |> (fold o Term.fold_aterms) (fn Var v => add_var v | _ => I))
             |> instantiate_term_same inst_typ;
 
-          val norm_term = Same.compose beta_norm_same inst_term;
-        in map_proof inst_typ norm_term prf end
+          val norm_term = Same.compose beta_norm_term_same inst_term;
+        in Same.commit beta_norm_proof_same (map_proof inst_typ norm_term prf) end
   end;
 
 fun norm_cache thy =
