@@ -243,7 +243,7 @@ fun name_thms name_flags name_pos =
   name_multi name_pos #> map (uncurry (name_thm name_flags));
 
 
-(* apply theorems and attributes *)
+(* store theorems and proofs *)
 
 fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
@@ -290,9 +290,16 @@ fun add_thms_lazy kind (b, thms) thy =
         |> Lazy.map_finished (name_thms official1 name_pos #> map (Thm.kind_rule kind));
     in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
 
+
+(* apply theorems and attributes *)
+
+local
+
 val app_facts =
   apfst flat oo fold_map (fn (thms, atts) => fn thy =>
     fold_map (Thm.theory_attributes atts) (map (Thm.transfer thy) thms) thy);
+
+in
 
 fun apply_facts name_flags1 name_flags2 (b, facts) thy =
   if Binding.is_empty b then app_facts facts thy |-> register_proofs
@@ -304,6 +311,8 @@ fun apply_facts name_flags1 name_flags2 (b, facts) thy =
         |>> name_thms name_flags2 name_pos |-> register_proofs;
       val thy'' = thy' |> add_facts (b, Lazy.value thms');
     in (map (Thm.transfer thy'') thms', thy'') end;
+
+end;
 
 
 (* store_thm *)
