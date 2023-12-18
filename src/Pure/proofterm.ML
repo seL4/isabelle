@@ -811,9 +811,9 @@ fun subst_pbounds args prf =
   let
     val n = length args;
     fun proof Plev tlev (PBound i) =
-         (if i < Plev then raise Same.SAME    (*var is locally bound*)
+          if i < Plev then raise Same.SAME    (*var is locally bound*)
           else if i - Plev < n then incr_boundvars Plev tlev (nth args (i - Plev))
-          else PBound (i - n)  (*loose: change it*))
+          else PBound (i - n)  (*loose: change it*)
       | proof Plev tlev (AbsP (a, t, p)) = AbsP (a, t, proof (Plev + 1) tlev p)
       | proof Plev tlev (Abst (a, T, p)) = Abst (a, T, proof Plev (tlev + 1) p)
       | proof Plev tlev (p %% q) =

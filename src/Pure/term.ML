@@ -711,9 +711,9 @@ fun subst_bounds_same args =
     let
       val n = length args;
       fun term lev (Bound i) =
-           (if i < lev then raise Same.SAME   (*var is locally bound*)
+            if i < lev then raise Same.SAME   (*var is locally bound*)
             else if i - lev < n then incr_boundvars lev (nth args (i - lev))
-            else Bound (i - n))  (*loose: change it*)
+            else Bound (i - n)  (*loose: change it*)
         | term lev (Abs (a, T, t)) = Abs (a, T, term (lev + 1) t)
         | term lev (t $ u) =
             (term lev t $ Same.commit (term lev) u
