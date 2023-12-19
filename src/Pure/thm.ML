@@ -421,8 +421,9 @@ fun insert_constraints _ (_, []) = I
 fun insert_constraints_env thy env =
   let
     val tyenv = Envir.type_env env;
+    val normT = Envir.norm_type tyenv;
     fun insert ([], _) = I
-      | insert (S, T) = insert_constraints thy (Envir.norm_type tyenv T, S);
+      | insert (S, T) = insert_constraints thy (normT T, S);
   in tyenv |> Vartab.fold (insert o #2) end;
 
 end;
