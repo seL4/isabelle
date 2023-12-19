@@ -259,7 +259,7 @@ sig
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
-  type zbox = serial * (zterm * zproof future)
+  type zbox = serial * (zterm * zproof)
   val zbox_ord: zbox ord
   type zboxes = zbox Ord_List.T
   val union_zboxes: zboxes -> zboxes -> zboxes
@@ -753,7 +753,7 @@ fun make_const_proof (f, g) ((a, A, instT, inst): zproof_const) =
 
 (* closed proof boxes *)
 
-type zbox = serial * (zterm * zproof future);
+type zbox = serial * (zterm * zproof);
 val zbox_ord: zbox ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 type zboxes = zbox Ord_List.T;
@@ -796,7 +796,7 @@ fun box_proof thy hyps concl (zboxes: zboxes, prf) =
     val prf' = beta_norm_prooft (close_proof hyps' prf);
 
     val i = serial ();
-    val zboxes' = add_zboxes (i, (prop', Future.value prf')) zboxes;
+    val zboxes' = add_zboxes (i, (prop', prf')) zboxes;
     val prf'' = ZAppts (ZConstp (zproof_const (ZBox i) prop'), hyps');
   in (zboxes', prf'') end;
 
