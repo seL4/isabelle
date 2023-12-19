@@ -581,13 +581,13 @@ fun term_of thy =
 
 val beta_norm_term_same =
   let
-    fun norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
+    fun norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
+      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
       | norm (ZApp (f, t)) =
           ((case norm f of
              ZAbs (_, _, body) => Same.commit norm (subst_term_bound t body)
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
-      | norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
       | norm _ = raise Same.SAME;
   in norm end;
 
