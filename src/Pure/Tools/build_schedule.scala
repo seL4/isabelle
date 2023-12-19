@@ -459,8 +459,9 @@ object Build_Schedule {
 
     def num_built(state: Build_Process.State): Int = graph.keys.count(state.results.contains)
     def elapsed(): Time = Time.now() - start.time
+    def is_empty: Boolean = graph.is_empty
     def is_outdated(options: Options, state: Build_Process.State): Boolean =
-      if (graph.is_empty) true
+      if (is_empty) true
       else {
         num_built(state) > options.int("build_schedule_outdated_limit") &&
           elapsed() > options.seconds("build_schedule_outdated_delay")
@@ -1016,7 +1017,7 @@ object Build_Schedule {
 
           val new_schedule = scheduler.build_schedule(state).update(state)
           val schedule =
-            if (_schedule.graph.is_empty) new_schedule
+            if (_schedule.is_empty) new_schedule
             else List(_schedule.update(state), new_schedule).minBy(_.end)(Date.Ordering)
 
           val elapsed = Time.now() - start
@@ -1567,7 +1568,7 @@ Usage: isabelle build_schedule [OPTIONS] [SESSIONS ...]
           numa_shuffling = isabelle.Host.numa_check(progress, numa_shuffling),
           build_hosts = build_hosts.toList)
 
-      if (!schedule.graph.is_empty && output_file.nonEmpty)
+      if (!schedule.is_empty && output_file.nonEmpty)
         write_schedule_graphic(schedule, output_file.get)
     })
 }
