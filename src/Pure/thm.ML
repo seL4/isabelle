@@ -2255,19 +2255,6 @@ fun rename_bvars dpairs tpairs B As =
     if Symtab.forall (op =) vars andalso Symtab.forall (op =) bounds then NONE
     else
       let
-        fun zterm (ZVar ((x, i), T)) =
-              if i >= 0 then
-                let val y = perhaps (Symtab.lookup vars) x
-                in if x = y then raise Same.SAME else ZVar ((y, i), T) end
-              else raise Same.SAME
-          | zterm (ZAbs (x, T, t)) =
-              let val y = perhaps (Symtab.lookup bounds) x
-              in if x = y then ZAbs (x, T, zterm t) else ZAbs (y, T, Same.commit zterm t) end
-          | zterm (ZApp (t, u)) =
-              (ZApp (zterm t, Same.commit zterm u)
-                handle Same.SAME => ZApp (t, zterm u))
-          | zterm _ = raise Same.SAME;
-
         fun term (Var ((x, i), T)) =
               let val y = perhaps (Symtab.lookup vars) x
               in if x = y then raise Same.SAME else Var ((y, i), T) end
@@ -2276,8 +2263,7 @@ fun rename_bvars dpairs tpairs B As =
               in if x = y then Abs (x, T, term t) else Abs (y, T, Same.commit term t) end
           | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
           | term _ = raise Same.SAME;
-
-      in SOME {zterm = zterm, term = term} end
+      in SOME term end
   end;
 
 
@@ -2387,11 +2373,9 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
       let val (As1, rder') =
         if lifted then
           (case rename_bvars dpairs tpairs B As0 of
-            SOME {zterm, term} =>
-              let
-                fun zproof p = ZTerm.map_proof Same.same zterm p;
-                fun proof p = Same.commit (Proofterm.map_proof_terms_same term I) p;
-              in (map (strip_apply (Same.commit term) B) As0, deriv_rule1 zproof proof rder) end
+            SOME term =>
+              let fun proof p = Same.commit (Proofterm.map_proof_terms_same term I) p;
+              in (map (strip_apply (Same.commit term) B) As0, deriv_rule1 I proof rder) end
           | NONE => (As0, rder))
         else (As0, rder);
       in
