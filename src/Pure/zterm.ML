@@ -264,7 +264,8 @@ sig
   type zboxes = zbox Ord_List.T
   val union_zboxes: zboxes -> zboxes -> zboxes
   val unions_zboxes: zboxes list -> zboxes
-  val box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
+  val box_proof: theory -> term list -> term -> zproof -> zbox * zproof
+  val add_box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
@@ -786,7 +787,7 @@ fun close_proof hyps prf =
 
 in
 
-fun box_proof thy hyps concl (zboxes: zboxes, prf) =
+fun box_proof thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
     val hyps' = map zterm hyps;
@@ -796,9 +797,13 @@ fun box_proof thy hyps concl (zboxes: zboxes, prf) =
     val prf' = beta_norm_prooft (close_proof hyps' prf);
 
     val i = serial ();
-    val zboxes' = add_zboxes (i, (prop', prf')) zboxes;
-    val prf'' = ZAppts (ZConstp (zproof_const (ZBox i) prop'), hyps');
-  in (zboxes', prf'') end;
+    val zbox: zbox = (i, (prop', prf'));
+    val zbox_prf = ZAppts (ZConstp (zproof_const (ZBox i) prop'), hyps');
+  in (zbox, zbox_prf) end;
+
+fun add_box_proof thy hyps concl (zboxes, prf) =
+  let val (zbox, zbox_prf) = box_proof thy hyps concl prf
+  in (add_zboxes zbox zboxes, zbox_prf) end;
 
 end;
 
