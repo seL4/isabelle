@@ -986,24 +986,19 @@ val arity_proof = proof_of oo the_arity;
 
 local
 
-val empty_digest = ([], [], []);
+fun union_digest (oracles1, thms1) (oracles2, thms2) =
+  (Proofterm.union_oracles oracles1 oracles2, Proofterm.union_thms thms1 thms2);
 
-fun union_digest (oracles1, thms1, zboxes1) (oracles2, thms2, zboxes2) =
- (Proofterm.union_oracles oracles1 oracles2,
-  Proofterm.union_thms thms1 thms2,
-  ZTerm.union_zboxes zboxes1 zboxes2);
-
-fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, zboxes, ...}, ...}, _)) =
-  (oracles, thms, zboxes);
+fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) = (oracles, thms);
 
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
   Sorts.of_sort_derivation (Sign.classes_of thy)
    {class_relation = fn _ => fn _ => fn (digest, c1) => fn c2 =>
-      if c1 = c2 then empty_digest else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
+      if c1 = c2 then ([], []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val arity_digest = thm_digest (the_arity thy (a, (map o map) #2 dom, c))
       in (fold o fold) (union_digest o #1) dom arity_digest end,
-    type_variable = fn T => map (pair empty_digest) (Type.sort_of_atyp T)}
+    type_variable = fn T => map (pair ([], [])) (Type.sort_of_atyp T)}
    (typ, sort);
 
 in
@@ -1025,10 +1020,10 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
               Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
 
         val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
-        val (oracles', thms', zboxes') = (oracles, thms, zboxes)
+        val (oracles', thms') = (oracles, thms)
           |> fold (fold union_digest o constraint_digest) constraints;
         val body' =
-          PBody {oracles = oracles', thms = thms', zboxes = zboxes', zproof = zproof, proof = proof};
+          PBody {oracles = oracles', thms = thms', zboxes = zboxes, zproof = zproof, proof = proof};
       in
         Thm (make_deriv0 promises body',
           {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
