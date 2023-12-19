@@ -173,6 +173,8 @@ sig
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
+  val get_zproof: theory -> serial -> {prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof} option
+  val store_zproof: thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -943,23 +945,30 @@ fun merge_classes
 structure Data = Theory_Data
 (
   type T =
+    {prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof} Inttab.table *  (*stored thms: zproof*)
     unit Name_Space.table *  (*oracles: authentic derivation names*)
     classes;  (*type classes within the logic*)
 
-  val empty : T = (Name_Space.empty_table Markup.oracleN, empty_classes);
-  fun merge ((oracles1, sorts1), (oracles2, sorts2)) : T =
-    (Name_Space.merge_tables (oracles1, oracles2), merge_classes (sorts1, sorts2));
+  val empty : T = (Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
+  fun merge ((zproofs1, oracles1, sorts1), (zproofs2, oracles2, sorts2)) : T =
+   (Inttab.merge (K true) (zproofs1, zproofs2),
+    Name_Space.merge_tables (oracles1, oracles2),
+    merge_classes (sorts1, sorts2));
 );
 
-val get_oracles = #1 o Data.get;
-val map_oracles = Data.map o apfst;
+val get_zproofs = #1 o Data.get;
+fun map_zproofs f = Data.map (fn (a, b, c) => (f a, b, c));
 
-val get_classes = (fn (_, Classes args) => args) o Data.get;
+val get_oracles = #2 o Data.get;
+fun map_oracles f = Data.map (fn (a, b, c) => (a, f b, c));
+
+val get_classes = (fn (_, _, Classes args) => args) o Data.get;
 val get_classrels = #classrels o get_classes;
 val get_arities = #arities o get_classes;
 
 fun map_classes f =
-  (Data.map o apsnd) (fn Classes {classrels, arities} => make_classes (f (classrels, arities)));
+  Data.map (fn (a, b, Classes {classrels, arities}) =>
+    (a, b, make_classes (f (classrels, arities))));
 fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
 fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
 
@@ -1995,6 +2004,24 @@ fun plain_prop_of raw_thm =
       err "theorem may not contain flex-flex pairs"
     else prop_of thm
   end;
+
+
+(* stored thms: zproof *)
+
+val get_zproof = Inttab.lookup o get_zproofs;
+
+fun store_zproof thm thy =
+  let
+    val Thm (Deriv {promises, body = PBody body}, args as {hyps, prop, ...}) = thm;
+    val {oracles, thms, zboxes, zproof, proof} = body;
+    val _ = null promises orelse
+      raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
+
+    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy hyps prop zproof;
+    val thy' = thy
+      |> map_zproofs (Inttab.update (i, {prop = zprop, zboxes = zboxes, zproof = zprf}));
+    val der' = make_deriv promises oracles thms [] zproof' proof;
+  in (Thm (der', args), thy') end;
 
 
 

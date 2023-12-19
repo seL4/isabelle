@@ -245,7 +245,13 @@ fun name_thms name_flags name_pos =
 
 (* store theorems and proofs *)
 
-fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
+fun register_proofs thms thy =
+  let
+    val (thms', thy') =
+      if Proofterm.zproof_enabled (Proofterm.get_proofs_level ())
+      then fold_map Thm.store_zproof thms thy
+      else (thms, thy);
+  in (thms', Thm.register_proofs (Lazy.value thms') thy') end;
 
 fun bind_name thy b = (Sign.full_name thy b, Binding.default_pos_of b);
 

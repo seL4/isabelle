@@ -197,7 +197,8 @@ end;
 datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
-  | ZBox of serial;
+  | ZBox of serial
+  | ZThm of serial;
 
 datatype zproof =
     ZDummy                         (*dummy proof*)
@@ -264,8 +265,8 @@ sig
   type zboxes = zbox Ord_List.T
   val union_zboxes: zboxes -> zboxes -> zboxes
   val unions_zboxes: zboxes list -> zboxes
-  val box_proof: theory -> term list -> term -> zproof -> zbox * zproof
   val add_box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
+  val thm_proof: theory -> term list -> term -> zproof -> zbox * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
@@ -785,9 +786,7 @@ fun close_proof hyps prf =
       | proof _ _ = raise Same.SAME;
   in ZAbsps hyps (Same.commit (proof 0) prf) end;
 
-in
-
-fun box_proof thy hyps concl prf =
+fun box_proof zproof_name thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
     val hyps' = map zterm hyps;
@@ -798,11 +797,15 @@ fun box_proof thy hyps concl prf =
 
     val i = serial ();
     val zbox: zbox = (i, (prop', prf'));
-    val zbox_prf = ZAppts (ZConstp (zproof_const (ZBox i) prop'), hyps');
+    val zbox_prf = ZAppts (ZConstp (zproof_const (zproof_name i) prop'), hyps');
   in (zbox, zbox_prf) end;
 
+in
+
+val thm_proof = box_proof ZThm;
+
 fun add_box_proof thy hyps concl (zboxes, prf) =
-  let val (zbox, zbox_prf) = box_proof thy hyps concl prf
+  let val (zbox, zbox_prf) = box_proof ZBox thy hyps concl prf
   in (add_zboxes zbox zboxes, zbox_prf) end;
 
 end;
