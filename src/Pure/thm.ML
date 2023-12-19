@@ -1008,24 +1008,25 @@ fun bad_constraint_theory cert ({theory = thy, ...}: constraint) =
 in
 
 fun solve_constraints (thm as Thm (der, args)) =
-      let
-        val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
+  let
+    val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
 
-        val bad_thys = map_filter (bad_constraint_theory cert) constraints;
-        val _ =
-          if null bad_thys then ()
-          else
-            raise THEORY ("solve_constraints: bad theories for theorem\n" ^
-              Syntax.string_of_term_global (hd bad_thys) (prop_of thm), bad_thys);
+    val bad_thys = map_filter (bad_constraint_theory cert) constraints;
+    val _ =
+      if null bad_thys then ()
+      else
+        raise THEORY ("solve_constraints: bad theories for theorem\n" ^
+          Syntax.string_of_term_global (hd bad_thys) (prop_of thm), bad_thys);
 
-        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
-        val (oracles', thms') = (oracles, thms)
-          |> fold (fold union_digest o constraint_digest) constraints;
-      in
-        Thm (make_deriv promises oracles' thms' zboxes zproof proof,
-          {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
-            shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
-      end;
+    val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
+    val (oracles', thms') = (oracles, thms)
+      |> fold (fold union_digest o constraint_digest) constraints;
+    val zproof' = ZTerm.beta_norm_prooft zproof;
+  in
+    Thm (make_deriv promises oracles' thms' zboxes zproof' proof,
+      {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
+        shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
+  end;
 
 end;
 
