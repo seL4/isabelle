@@ -1001,23 +1001,22 @@ fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
     type_variable = fn T => map (pair ([], [])) (Type.sort_of_atyp T)}
    (typ, sort);
 
+fun bad_constraint_theory cert ({theory = thy, ...}: constraint) =
+  if Context.eq_thy_id (Context.certificate_theory_id cert, Context.theory_id thy)
+  then NONE else SOME thy;
+
 in
 
-fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
-  | solve_constraints (thm as Thm (der, args)) =
+fun solve_constraints (thm as Thm (der, args)) =
       let
         val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
 
-        val thy = Context.certificate_theory cert
-          handle ERROR msg => raise CONTEXT (msg, [], [], [thm], NONE);
-        val bad_thys =
-          constraints |> map_filter (fn {theory = thy', ...} =>
-            if Context.eq_thy (thy, thy') then NONE else SOME thy');
-        val () =
+        val bad_thys = map_filter (bad_constraint_theory cert) constraints;
+        val _ =
           if null bad_thys then ()
           else
             raise THEORY ("solve_constraints: bad theories for theorem\n" ^
-              Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
+              Syntax.string_of_term_global (hd bad_thys) (prop_of thm), bad_thys);
 
         val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
         val (oracles', thms') = (oracles, thms)
