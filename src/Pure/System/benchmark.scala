@@ -39,8 +39,6 @@ object Benchmark {
       using_optional(store.maybe_open_database_server(server = server)) { database_server =>
         val db = store.open_build_database(path = Host.private_data.database, server = server)
 
-        benchmark_requirements(options, progress)
-
         progress.echo("Starting benchmark...")
         val selection = Sessions.Selection(sessions = List(benchmark_session))
         val full_sessions = Sessions.load_structure(options.int("threads") = 1)
@@ -53,6 +51,14 @@ object Benchmark {
         val session = sessions(benchmark_session)
 
         val heaps = session.ancestors.map(store.output_heap)
+        ML_Heap.restore(database_server, heaps, cache = store.cache.compress)
+
+        val local_options =
+          options
+            .bool.update("build_database_server", false)
+            .bool.update("build_database", false)
+
+        benchmark_requirements(local_options, progress)
         ML_Heap.restore(database_server, heaps, cache = store.cache.compress)
 
         def get_shasum(session_name: String): SHA1.Shasum = {
@@ -76,8 +82,7 @@ object Benchmark {
         val input_shasum = get_shasum(benchmark_session)
         val node_info = Host.Node_Info(hostname, None, Nil)
 
-        val local_build_context =
-          build_context.copy(store = Store(options.bool("build_database_server") = false))
+        val local_build_context = build_context.copy(store = Store(local_options))
 
         val build =
           Build_Job.start_session(local_build_context, session, progress, No_Logger, server,
