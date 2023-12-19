@@ -25,10 +25,6 @@ proof (rule equivpI)
   show "transp intrel" by (auto simp: transp_def)
 qed
 
-lemma eq_Abs_Integ [case_names Abs_Integ, cases type: int]:
-  "(\<And>x y. z = Abs_Integ (x, y) \<Longrightarrow> P) \<Longrightarrow> P"
-  by (induct z) auto
-
 
 subsection \<open>Integers form a commutative ring\<close>
 
