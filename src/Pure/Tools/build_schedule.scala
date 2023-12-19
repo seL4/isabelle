@@ -861,8 +861,7 @@ object Build_Schedule {
       _schedule.graph.get_node(session_name).node_info
 
     override def next_jobs(state: Build_Process.State): List[String] =
-      if (progress.stopped || _schedule.is_outdated(build_options, state)) Nil
-      else _schedule.next(hostname, state)
+      if (progress.stopped || _schedule.is_empty) Nil else _schedule.next(hostname, state)
   }
 
   abstract class Scheduler_Build_Process(
