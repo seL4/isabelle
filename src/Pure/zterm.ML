@@ -197,7 +197,8 @@ end;
 datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
-  | ZBox of serial;
+  | ZBox of serial
+  | ZThm of serial;
 
 datatype zproof =
     ZDummy                         (*dummy proof*)
@@ -250,15 +251,22 @@ sig
   val zterm_of: theory -> term -> zterm
   val typ_of: ztyp -> typ
   val term_of: theory -> zterm -> term
+  val beta_norm_term_same: zterm Same.operation
+  val beta_norm_proof_same: zproof Same.operation
+  val beta_norm_prooft_same: zproof -> zproof
+  val beta_norm_term: zterm -> zterm
+  val beta_norm_proof: zproof -> zproof
+  val beta_norm_prooft: zproof -> zproof
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
-  type zbox = serial * (zterm * zproof future)
+  type zbox = serial * (zterm * zproof)
   val zbox_ord: zbox ord
   type zboxes = zbox Ord_List.T
   val union_zboxes: zboxes -> zboxes -> zboxes
   val unions_zboxes: zboxes list -> zboxes
-  val box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
+  val add_box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
+  val thm_proof: theory -> term list -> term -> zproof -> zbox * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
@@ -573,17 +581,31 @@ fun term_of thy =
   in term end;
 
 
-(* beta normalization wrt. environment *)
+(* beta contraction *)
 
 val beta_norm_term_same =
   let
-    fun norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
+    fun norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
+      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
       | norm (ZApp (f, t)) =
           ((case norm f of
              ZAbs (_, _, body) => Same.commit norm (subst_term_bound t body)
            | nf => ZApp (nf, Same.commit norm t))
           handle Same.SAME => ZApp (f, norm t))
-      | norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
+      | norm _ = raise Same.SAME;
+  in norm end;
+
+val beta_norm_prooft_same =
+  let
+    val term = beta_norm_term_same;
+
+    fun norm (ZAbst (a, T, p)) = ZAbst (a, T, norm p)
+      | norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+      | norm (ZAppt (f, t)) =
+          ((case norm f of
+             ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
+           | nf => ZAppt (nf, Same.commit term t))
+          handle Same.SAME => ZAppt (f, term t))
       | norm _ = raise Same.SAME;
   in norm end;
 
@@ -591,13 +613,17 @@ val beta_norm_proof_same =
   let
     val term = beta_norm_term_same;
 
-    fun norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+    fun norm (ZAbst (a, T, p)) = ZAbst (a, T, norm p)
+      | norm (ZAbsp (a, t, p)) =
+          (ZAbsp (a, term t, Same.commit norm p)
+            handle Same.SAME => ZAbsp (a, t, norm p))
+      | norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+      | norm (ZAppp (ZAbsp (_, _, body), p)) = Same.commit norm (subst_proof_boundp p body)
       | norm (ZAppt (f, t)) =
           ((case norm f of
              ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
            | nf => ZAppt (nf, Same.commit term t))
           handle Same.SAME => ZAppt (f, term t))
-      | norm (ZAppp (ZAbsp (_, _, body), p)) = Same.commit norm (subst_proof_boundp p body)
       | norm (ZAppp (f, p)) =
           ((case norm f of
              ZAbsp (_, _, body) => Same.commit norm (subst_proof_boundp p body)
@@ -605,6 +631,13 @@ val beta_norm_proof_same =
           handle Same.SAME => ZAppp (f, norm p))
       | norm _ = raise Same.SAME;
   in norm end;
+
+val beta_norm_term = Same.commit beta_norm_term_same;
+val beta_norm_proof = Same.commit beta_norm_proof_same;
+val beta_norm_prooft = Same.commit beta_norm_prooft_same;
+
+
+(* normalization wrt. environment and beta contraction *)
 
 fun norm_type_same ztyp tyenv =
   if Vartab.is_empty tyenv then Same.same
@@ -658,8 +691,7 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
     val norm_var = ZVar #> Same.commit (norm_term_same cache envir);
   in
     fn visible => fn prf =>
-      if Envir.is_empty envir orelse null visible
-      then Same.commit beta_norm_proof_same prf
+      if Envir.is_empty envir orelse null visible then beta_norm_prooft prf
       else
         let
           fun add_tvar v tab =
@@ -681,7 +713,7 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
             |> instantiate_term_same inst_typ;
 
           val norm_term = Same.compose beta_norm_term_same inst_term;
-        in Same.commit beta_norm_proof_same (map_proof inst_typ norm_term prf) end
+        in beta_norm_prooft (map_proof inst_typ norm_term prf) end
   end;
 
 fun norm_cache thy =
@@ -723,7 +755,7 @@ fun make_const_proof (f, g) ((a, A, instT, inst): zproof_const) =
 
 (* closed proof boxes *)
 
-type zbox = serial * (zterm * zproof future);
+type zbox = serial * (zterm * zproof);
 val zbox_ord: zbox ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 type zboxes = zbox Ord_List.T;
@@ -754,21 +786,27 @@ fun close_proof hyps prf =
       | proof _ _ = raise Same.SAME;
   in ZAbsps hyps (Same.commit (proof 0) prf) end;
 
-in
-
-fun box_proof thy hyps concl (zboxes: zboxes, prf) =
+fun box_proof zproof_name thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
     val hyps' = map zterm hyps;
     val concl' = zterm concl;
 
-    val prop' = close_prop hyps' concl';
-    val prf' = close_proof hyps' prf;
+    val prop' = beta_norm_term (close_prop hyps' concl');
+    val prf' = beta_norm_prooft (close_proof hyps' prf);
 
     val i = serial ();
-    val zboxes' = add_zboxes (i, (prop', Future.value prf')) zboxes;
-    val prf'' = ZAppts (ZConstp (zproof_const (ZBox i) prop'), hyps');
-  in (zboxes', prf'') end;
+    val zbox: zbox = (i, (prop', prf'));
+    val zbox_prf = ZAppts (ZConstp (zproof_const (zproof_name i) prop'), hyps');
+  in (zbox, zbox_prf) end;
+
+in
+
+val thm_proof = box_proof ZThm;
+
+fun add_box_proof thy hyps concl (zboxes, prf) =
+  let val (zbox, zbox_prf) = box_proof ZBox thy hyps concl prf
+  in (add_zboxes zbox zboxes, zbox_prf) end;
 
 end;
 

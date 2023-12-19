@@ -2202,7 +2202,8 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val proofs = get_proofs_level ();
     val (zboxes1, zproof1) =
-      if zproof_enabled proofs then ZTerm.box_proof thy hyps concl (#zboxes body0, #zproof body0)
+      if zproof_enabled proofs
+      then ZTerm.add_box_proof thy hyps concl (#zboxes body0, #zproof body0)
       else ([], ZDummy);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps (#proof body0)

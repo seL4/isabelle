@@ -173,6 +173,8 @@ sig
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
+  val get_zproof: theory -> serial -> {prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof} option
+  val store_zproof: thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -405,24 +407,25 @@ in
 
 val union_constraints = Ord_List.union constraint_ord;
 
-fun insert_constraints thy (T, S) =
-  let
-    val ignored =
-      S = [] orelse
-        (case T of
-          TFree (_, S') => S = S'
-        | TVar (_, S') => S = S'
-        | _ => false);
-  in
-    if ignored then I
-    else Ord_List.insert constraint_ord {theory = thy, typ = smash_atyps T, sort = S}
-  end;
+fun insert_constraints _ (_, []) = I
+  | insert_constraints thy (T, S) =
+      let
+        val ignored =
+          (case T of
+            TFree (_, S') => S = S'
+          | TVar (_, S') => S = S'
+          | _ => false);
+      in
+        if ignored then I
+        else Ord_List.insert constraint_ord {theory = thy, typ = smash_atyps T, sort = S}
+      end;
 
 fun insert_constraints_env thy env =
   let
     val tyenv = Envir.type_env env;
+    val normT = Envir.norm_type tyenv;
     fun insert ([], _) = I
-      | insert (S, T) = insert_constraints thy (Envir.norm_type tyenv T, S);
+      | insert (S, T) = insert_constraints thy (normT T, S);
   in tyenv |> Vartab.fold (insert o #2) end;
 
 end;
@@ -942,23 +945,30 @@ fun merge_classes
 structure Data = Theory_Data
 (
   type T =
+    {prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof} Inttab.table *  (*stored thms: zproof*)
     unit Name_Space.table *  (*oracles: authentic derivation names*)
     classes;  (*type classes within the logic*)
 
-  val empty : T = (Name_Space.empty_table Markup.oracleN, empty_classes);
-  fun merge ((oracles1, sorts1), (oracles2, sorts2)) : T =
-    (Name_Space.merge_tables (oracles1, oracles2), merge_classes (sorts1, sorts2));
+  val empty : T = (Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
+  fun merge ((zproofs1, oracles1, sorts1), (zproofs2, oracles2, sorts2)) : T =
+   (Inttab.merge (K true) (zproofs1, zproofs2),
+    Name_Space.merge_tables (oracles1, oracles2),
+    merge_classes (sorts1, sorts2));
 );
 
-val get_oracles = #1 o Data.get;
-val map_oracles = Data.map o apfst;
+val get_zproofs = #1 o Data.get;
+fun map_zproofs f = Data.map (fn (a, b, c) => (f a, b, c));
 
-val get_classes = (fn (_, Classes args) => args) o Data.get;
+val get_oracles = #2 o Data.get;
+fun map_oracles f = Data.map (fn (a, b, c) => (a, f b, c));
+
+val get_classes = (fn (_, _, Classes args) => args) o Data.get;
 val get_classrels = #classrels o get_classes;
 val get_arities = #arities o get_classes;
 
 fun map_classes f =
-  (Data.map o apsnd) (fn Classes {classrels, arities} => make_classes (f (classrels, arities)));
+  Data.map (fn (a, b, Classes {classrels, arities}) =>
+    (a, b, make_classes (f (classrels, arities))));
 fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
 fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
 
@@ -985,54 +995,47 @@ val arity_proof = proof_of oo the_arity;
 
 local
 
-val empty_digest = ([], [], []);
+fun union_digest (oracles1, thms1) (oracles2, thms2) =
+  (Proofterm.union_oracles oracles1 oracles2, Proofterm.union_thms thms1 thms2);
 
-fun union_digest (oracles1, thms1, zboxes1) (oracles2, thms2, zboxes2) =
- (Proofterm.union_oracles oracles1 oracles2,
-  Proofterm.union_thms thms1 thms2,
-  ZTerm.union_zboxes zboxes1 zboxes2);
-
-fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, zboxes, ...}, ...}, _)) =
-  (oracles, thms, zboxes);
+fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) = (oracles, thms);
 
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
   Sorts.of_sort_derivation (Sign.classes_of thy)
    {class_relation = fn _ => fn _ => fn (digest, c1) => fn c2 =>
-      if c1 = c2 then empty_digest else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
+      if c1 = c2 then ([], []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val arity_digest = thm_digest (the_arity thy (a, (map o map) #2 dom, c))
       in (fold o fold) (union_digest o #1) dom arity_digest end,
-    type_variable = fn T => map (pair empty_digest) (Type.sort_of_atyp T)}
+    type_variable = fn T => map (pair ([], [])) (Type.sort_of_atyp T)}
    (typ, sort);
+
+fun bad_constraint_theory cert ({theory = thy, ...}: constraint) =
+  if Context.eq_thy_id (Context.certificate_theory_id cert, Context.theory_id thy)
+  then NONE else SOME thy;
 
 in
 
-fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
-  | solve_constraints (thm as Thm (der, args)) =
-      let
-        val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
+fun solve_constraints (thm as Thm (der, args)) =
+  let
+    val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
 
-        val thy = Context.certificate_theory cert
-          handle ERROR msg => raise CONTEXT (msg, [], [], [thm], NONE);
-        val bad_thys =
-          constraints |> map_filter (fn {theory = thy', ...} =>
-            if Context.eq_thy (thy, thy') then NONE else SOME thy');
-        val () =
-          if null bad_thys then ()
-          else
-            raise THEORY ("solve_constraints: bad theories for theorem\n" ^
-              Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
+    val bad_thys = map_filter (bad_constraint_theory cert) constraints;
+    val _ =
+      if null bad_thys then ()
+      else
+        raise THEORY ("solve_constraints: bad theories for theorem\n" ^
+          Syntax.string_of_term_global (hd bad_thys) (prop_of thm), bad_thys);
 
-        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
-        val (oracles', thms', zboxes') = (oracles, thms, zboxes)
-          |> fold (fold union_digest o constraint_digest) constraints;
-        val body' =
-          PBody {oracles = oracles', thms = thms', zboxes = zboxes', zproof = zproof, proof = proof};
-      in
-        Thm (make_deriv0 promises body',
-          {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
-            shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
-      end;
+    val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
+    val (oracles', thms') = (oracles, thms)
+      |> fold (fold union_digest o constraint_digest) constraints;
+    val zproof' = ZTerm.beta_norm_prooft zproof;
+  in
+    Thm (make_deriv promises oracles' thms' zboxes zproof' proof,
+      {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
+        shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
+  end;
 
 end;
 
@@ -2003,6 +2006,24 @@ fun plain_prop_of raw_thm =
   end;
 
 
+(* stored thms: zproof *)
+
+val get_zproof = Inttab.lookup o get_zproofs;
+
+fun store_zproof thm thy =
+  let
+    val Thm (Deriv {promises, body = PBody body}, args as {hyps, prop, ...}) = thm;
+    val {oracles, thms, zboxes, zproof, proof} = body;
+    val _ = null promises orelse
+      raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
+
+    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy hyps prop zproof;
+    val thy' = thy
+      |> map_zproofs (Inttab.update (i, {prop = zprop, zboxes = zboxes, zproof = zprf}));
+    val der' = make_deriv promises oracles thms [] zproof' proof;
+  in (Thm (der', args), thy') end;
+
+
 
 (*** Inference rules for tactics ***)
 
@@ -2261,19 +2282,6 @@ fun rename_bvars dpairs tpairs B As =
     if Symtab.forall (op =) vars andalso Symtab.forall (op =) bounds then NONE
     else
       let
-        fun zterm (ZVar ((x, i), T)) =
-              if i >= 0 then
-                let val y = perhaps (Symtab.lookup vars) x
-                in if x = y then raise Same.SAME else ZVar ((y, i), T) end
-              else raise Same.SAME
-          | zterm (ZAbs (x, T, t)) =
-              let val y = perhaps (Symtab.lookup bounds) x
-              in if x = y then ZAbs (x, T, zterm t) else ZAbs (y, T, Same.commit zterm t) end
-          | zterm (ZApp (t, u)) =
-              (ZApp (zterm t, Same.commit zterm u)
-                handle Same.SAME => ZApp (t, zterm u))
-          | zterm _ = raise Same.SAME;
-
         fun term (Var ((x, i), T)) =
               let val y = perhaps (Symtab.lookup vars) x
               in if x = y then raise Same.SAME else Var ((y, i), T) end
@@ -2282,8 +2290,7 @@ fun rename_bvars dpairs tpairs B As =
               in if x = y then Abs (x, T, term t) else Abs (y, T, Same.commit term t) end
           | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
           | term _ = raise Same.SAME;
-
-      in SOME {zterm = zterm, term = term} end
+      in SOME term end
   end;
 
 
@@ -2393,11 +2400,9 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
       let val (As1, rder') =
         if lifted then
           (case rename_bvars dpairs tpairs B As0 of
-            SOME {zterm, term} =>
-              let
-                fun zproof p = ZTerm.map_proof Same.same zterm p;
-                fun proof p = Same.commit (Proofterm.map_proof_terms_same term I) p;
-              in (map (strip_apply (Same.commit term) B) As0, deriv_rule1 zproof proof rder) end
+            SOME term =>
+              let fun proof p = Same.commit (Proofterm.map_proof_terms_same term I) p;
+              in (map (strip_apply (Same.commit term) B) As0, deriv_rule1 I proof rder) end
           | NONE => (As0, rder))
         else (As0, rder);
       in
