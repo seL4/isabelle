@@ -812,7 +812,7 @@ object Build_Schedule {
   ) extends Build_Process(build_context, build_progress, server) {
     /* global resources with common close() operation */
 
-    private val _build_database: Option[SQL.Database] =
+    protected final lazy val _build_database: Option[SQL.Database] =
       try {
         for (db <- store.maybe_open_build_database(server = server)) yield {
           if (build_context.master) {
@@ -898,11 +898,20 @@ object Build_Schedule {
     override def open_build_cluster(): Build_Cluster = {
       val build_cluster = super.open_build_cluster()
       build_cluster.init()
+
+      Benchmark.benchmark_requirements(build_options)
+
       if (build_context.max_jobs > 0) {
         val benchmark_options = build_options.string("build_hostname") = hostname
         Benchmark.benchmark(benchmark_options, progress)
       }
       build_cluster.benchmark()
+
+      for (db <- _build_database)
+        Build_Process.private_data.transaction_lock(db, label = "Scheduler_Build_Process.init") {
+          Build_Process.private_data.clean_build(db)
+        }
+
       build_cluster
     }
 
