@@ -405,18 +405,18 @@ in
 
 val union_constraints = Ord_List.union constraint_ord;
 
-fun insert_constraints thy (T, S) =
-  let
-    val ignored =
-      S = [] orelse
-        (case T of
-          TFree (_, S') => S = S'
-        | TVar (_, S') => S = S'
-        | _ => false);
-  in
-    if ignored then I
-    else Ord_List.insert constraint_ord {theory = thy, typ = smash_atyps T, sort = S}
-  end;
+fun insert_constraints _ (_, []) = I
+  | insert_constraints thy (T, S) =
+      let
+        val ignored =
+          (case T of
+            TFree (_, S') => S = S'
+          | TVar (_, S') => S = S'
+          | _ => false);
+      in
+        if ignored then I
+        else Ord_List.insert constraint_ord {theory = thy, typ = smash_atyps T, sort = S}
+      end;
 
 fun insert_constraints_env thy env =
   let
