@@ -252,8 +252,10 @@ sig
   val term_of: theory -> zterm -> term
   val beta_norm_term_same: zterm Same.operation
   val beta_norm_proof_same: zproof Same.operation
+  val beta_norm_prooft_same: zproof -> zproof
   val beta_norm_term: zterm -> zterm
   val beta_norm_proof: zproof -> zproof
+  val beta_norm_prooft: zproof -> zproof
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
@@ -591,6 +593,20 @@ val beta_norm_term_same =
       | norm _ = raise Same.SAME;
   in norm end;
 
+val beta_norm_prooft_same =
+  let
+    val term = beta_norm_term_same;
+
+    fun norm (ZAbst (a, T, p)) = ZAbst (a, T, norm p)
+      | norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+      | norm (ZAppt (f, t)) =
+          ((case norm f of
+             ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
+           | nf => ZAppt (nf, Same.commit term t))
+          handle Same.SAME => ZAppt (f, term t))
+      | norm _ = raise Same.SAME;
+  in norm end;
+
 val beta_norm_proof_same =
   let
     val term = beta_norm_term_same;
@@ -616,6 +632,7 @@ val beta_norm_proof_same =
 
 val beta_norm_term = Same.commit beta_norm_term_same;
 val beta_norm_proof = Same.commit beta_norm_proof_same;
+val beta_norm_prooft = Same.commit beta_norm_prooft_same;
 
 
 (* normalization wrt. environment and beta contraction *)
@@ -672,8 +689,7 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
     val norm_var = ZVar #> Same.commit (norm_term_same cache envir);
   in
     fn visible => fn prf =>
-      if Envir.is_empty envir orelse null visible
-      then Same.commit beta_norm_proof_same prf
+      if Envir.is_empty envir orelse null visible then beta_norm_prooft prf
       else
         let
           fun add_tvar v tab =
@@ -695,7 +711,7 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
             |> instantiate_term_same inst_typ;
 
           val norm_term = Same.compose beta_norm_term_same inst_term;
-        in Same.commit beta_norm_proof_same (map_proof inst_typ norm_term prf) end
+        in beta_norm_prooft (map_proof inst_typ norm_term prf) end
   end;
 
 fun norm_cache thy =
