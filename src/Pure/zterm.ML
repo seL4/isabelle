@@ -792,8 +792,8 @@ fun box_proof thy hyps concl (zboxes: zboxes, prf) =
     val hyps' = map zterm hyps;
     val concl' = zterm concl;
 
-    val prop' = close_prop hyps' concl';
-    val prf' = close_proof hyps' prf;
+    val prop' = beta_norm_term (close_prop hyps' concl');
+    val prf' = beta_norm_prooft (close_proof hyps' prf);
 
     val i = serial ();
     val zboxes' = add_zboxes (i, (prop', Future.value prf')) zboxes;
