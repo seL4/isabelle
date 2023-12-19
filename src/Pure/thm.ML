@@ -1022,10 +1022,8 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
         val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
         val (oracles', thms') = (oracles, thms)
           |> fold (fold union_digest o constraint_digest) constraints;
-        val body' =
-          PBody {oracles = oracles', thms = thms', zboxes = zboxes, zproof = zproof, proof = proof};
       in
-        Thm (make_deriv0 promises body',
+        Thm (make_deriv promises oracles' thms' zboxes zproof proof,
           {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
             shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
       end;
