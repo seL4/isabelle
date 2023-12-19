@@ -595,7 +595,11 @@ val beta_norm_proof_same =
   let
     val term = beta_norm_term_same;
 
-    fun norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+    fun norm (ZAbst (a, T, p)) = ZAbst (a, T, norm p)
+      | norm (ZAbsp (a, t, p)) =
+          (ZAbsp (a, term t, Same.commit norm p)
+            handle Same.SAME => ZAbsp (a, t, norm p))
+      | norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
       | norm (ZAppt (f, t)) =
           ((case norm f of
              ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
