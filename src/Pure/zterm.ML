@@ -250,6 +250,10 @@ sig
   val zterm_of: theory -> term -> zterm
   val typ_of: ztyp -> typ
   val term_of: theory -> zterm -> term
+  val beta_norm_term_same: zterm Same.operation
+  val beta_norm_proof_same: zproof Same.operation
+  val beta_norm_term: zterm -> zterm
+  val beta_norm_proof: zproof -> zproof
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
@@ -573,7 +577,7 @@ fun term_of thy =
   in term end;
 
 
-(* beta normalization wrt. environment *)
+(* beta contraction *)
 
 val beta_norm_term_same =
   let
@@ -605,6 +609,12 @@ val beta_norm_proof_same =
           handle Same.SAME => ZAppp (f, norm p))
       | norm _ = raise Same.SAME;
   in norm end;
+
+val beta_norm_term = Same.commit beta_norm_term_same;
+val beta_norm_proof = Same.commit beta_norm_proof_same;
+
+
+(* normalization wrt. environment and beta contraction *)
 
 fun norm_type_same ztyp tyenv =
   if Vartab.is_empty tyenv then Same.same
