@@ -1154,7 +1154,7 @@ fun add_oracle (b, oracle_fn) thy =
     val (name, oracles') = Name_Space.define (Context.Theory thy) true (b, ()) (get_oracles thy);
     val thy' = map_oracles (K oracles') thy;
     fun invoke_oracle arg =
-      let val Cterm {cert = cert2, t = prop, T, maxidx, sorts} = oracle_fn arg in
+      let val ct as Cterm {cert = cert2, t = prop, T, maxidx, sorts} = oracle_fn arg in
         if T <> propT then
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else
@@ -1170,8 +1170,11 @@ fun add_oracle (b, oracle_fn) thy =
               then Proofterm.oracle_proof name prop
               else MinProof;
             val zproof =
-              if Proofterm.zproof_enabled proofs
-              then ZTerm.oracle_proof (Context.certificate_theory cert) name prop
+              if Proofterm.zproof_enabled proofs then
+                let
+                  val thy'' = Context.certificate_theory cert handle ERROR msg =>
+                    raise CONTEXT (msg, [], [ct], [], SOME (Context.Theory thy'));
+                in ZTerm.oracle_proof thy'' name prop end
               else ZDummy;
           in
             Thm (make_deriv [] [oracle] [] [] zproof proof,
@@ -1206,14 +1209,18 @@ fun check_oracle ctxt =
 
 (*The assumption rule A |- A*)
 fun assume raw_ct =
-  let val Cterm {cert, t = prop, T, maxidx, sorts} = adjust_maxidx_cterm ~1 raw_ct in
+  let val ct as Cterm {cert, t = prop, T, maxidx, sorts} = adjust_maxidx_cterm ~1 raw_ct in
     if T <> propT then
       raise THM ("assume: prop", 0, [])
     else if maxidx <> ~1 then
       raise THM ("assume: variables", maxidx, [])
     else
       let
-        fun zproof () = ZTerm.assume_proof (Context.certificate_theory cert) prop;
+        fun zproof () =
+          let
+            val thy = Context.certificate_theory cert handle ERROR msg =>
+              raise CONTEXT (msg, [], [ct], [], NONE);
+          in ZTerm.assume_proof thy prop end;
         fun proof () = Proofterm.Hyp prop;
       in
         Thm (deriv_rule0 zproof proof,
@@ -1243,7 +1250,11 @@ fun implies_intr
   else
     let
       val cert = join_certificate1 (ct, th);
-      fun zproof p = ZTerm.implies_intr_proof (Context.certificate_theory cert) A p;
+      fun zproof p =
+        let
+          val thy = Context.certificate_theory cert handle ERROR msg =>
+            raise CONTEXT (msg, [], [ct], [th], NONE);
+        in ZTerm.implies_intr_proof thy A p end
       fun proof p = Proofterm.implies_intr_proof A p;
     in
       Thm (deriv_rule1 zproof proof der,
@@ -1308,7 +1319,11 @@ fun forall_intr
       else
         let
           val cert = join_certificate1 (ct, th);
-          fun zproof p = ZTerm.forall_intr_proof (Context.certificate_theory cert) T (a, x) p;
+          fun zproof p =
+            let
+              val thy = Context.certificate_theory cert handle ERROR msg =>
+                raise CONTEXT (msg, [], [ct], [th], NONE);
+            in ZTerm.forall_intr_proof thy T (a, x) p end;
           fun proof p = Proofterm.forall_intr_proof (a, x) NONE p;
         in
           Thm (deriv_rule1 zproof proof der,
@@ -1343,7 +1358,11 @@ fun forall_elim
       else
         let
           val cert = join_certificate1 (ct, th);
-          fun zproof p = ZTerm.forall_elim_proof (Context.certificate_theory cert) t p;
+          fun zproof p =
+            let
+              val thy = Context.certificate_theory cert handle ERROR msg =>
+                raise CONTEXT (msg, [], [ct], [th], NONE);
+            in ZTerm.forall_elim_proof thy t p end;
           fun proof p = p % SOME t;
         in
           Thm (deriv_rule1 zproof proof der,
@@ -1364,9 +1383,13 @@ fun forall_elim
 (*Reflexivity
   t \<equiv> t
 *)
-fun reflexive (Cterm {cert, t, T, maxidx, sorts}) =
+fun reflexive (ct as Cterm {cert, t, T, maxidx, sorts}) =
   let
-    fun zproof () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t;
+    fun zproof () =
+      let
+        val thy = Context.certificate_theory cert handle ERROR msg =>
+          raise CONTEXT (msg, [], [ct], [], NONE);
+      in ZTerm.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 zproof proof,
@@ -1388,7 +1411,13 @@ fun reflexive (Cterm {cert, t, T, maxidx, sorts}) =
 fun symmetric (th as Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
     (eq as Const ("Pure.eq", Type ("fun", [T, _]))) $ t $ u =>
-      let fun zproof p = ZTerm.symmetric_proof (Context.certificate_theory cert) T t u p in
+      let
+        fun zproof p =
+          let
+            val thy = Context.certificate_theory cert handle ERROR msg =>
+              raise CONTEXT (msg, [], [], [th], NONE);
+          in ZTerm.symmetric_proof thy T t u p end;
+      in
         Thm (deriv_rule1 zproof Proofterm.symmetric_proof der,
          {cert = cert,
           tags = [],
@@ -1420,7 +1449,11 @@ fun transitive th1 th2 =
         else
           let
             val cert = join_certificate2 (th1, th2);
-            fun zproof p q = ZTerm.transitive_proof (Context.certificate_theory cert) T t1 u t2 p q;
+            fun zproof p q =
+              let
+                val thy = Context.certificate_theory cert handle ERROR msg =>
+                  raise CONTEXT (msg, [], [], [th1, th2], NONE);
+              in ZTerm.transitive_proof thy T t1 u t2 p q end;
             fun proof p = Proofterm.transitive_proof T u p;
           in
             Thm (deriv_rule2 zproof proof der1 der2,
@@ -1440,14 +1473,18 @@ fun transitive th1 th2 =
   (\<lambda>x. t) u \<equiv> t[u/x]
   fully beta-reduces the term if full = true
 *)
-fun beta_conversion full (Cterm {cert, t, T, maxidx, sorts}) =
+fun beta_conversion full (ct as Cterm {cert, t, T, maxidx, sorts}) =
   let
     val t' =
       if full then Envir.beta_norm t
       else
         (case t of Abs (_, _, bodt) $ u => subst_bound (u, bodt)
         | _ => raise THM ("beta_conversion: not a redex", 0, []));
-    fun zproof () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t;
+    fun zproof () =
+      let
+        val thy = Context.certificate_theory cert handle ERROR msg =>
+          raise CONTEXT (msg, [], [ct], [], NONE);
+      in ZTerm.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 zproof proof,
@@ -1461,9 +1498,13 @@ fun beta_conversion full (Cterm {cert, t, T, maxidx, sorts}) =
       prop = Logic.mk_equals (t, t')})
   end;
 
-fun eta_conversion (Cterm {cert, t, T, maxidx, sorts}) =
+fun eta_conversion (ct as Cterm {cert, t, T, maxidx, sorts}) =
   let
-    fun zproof () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t;
+    fun zproof () =
+      let
+        val thy = Context.certificate_theory cert handle ERROR msg =>
+          raise CONTEXT (msg, [], [ct], [], NONE);
+      in ZTerm.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 zproof proof,
@@ -1477,9 +1518,13 @@ fun eta_conversion (Cterm {cert, t, T, maxidx, sorts}) =
       prop = Logic.mk_equals (t, Envir.eta_contract t)})
   end;
 
-fun eta_long_conversion (Cterm {cert, t, T, maxidx, sorts}) =
+fun eta_long_conversion (ct as Cterm {cert, t, T, maxidx, sorts}) =
   let
-    fun zproof () = ZTerm.reflexive_proof (Context.certificate_theory cert) T t;
+    fun zproof () =
+      let
+        val thy = Context.certificate_theory cert handle ERROR msg =>
+          raise CONTEXT (msg, [], [ct], [], NONE);
+      in ZTerm.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 zproof proof,
@@ -1500,7 +1545,7 @@ fun eta_long_conversion (Cterm {cert, t, T, maxidx, sorts}) =
   \<lambda>x. t \<equiv> \<lambda>x. u
 *)
 fun abstract_rule b
-    (Cterm {t = x, T, sorts, ...})
+    (ct as Cterm {t = x, T, sorts, ...})
     (th as Thm (der, {cert, maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
   let
     val (U, t, u) =
@@ -1515,7 +1560,10 @@ fun abstract_rule b
           val f = Abs (b, T, abstract_over (x, t));
           val g = Abs (b, T, abstract_over (x, u));
           fun zproof p =
-            ZTerm.abstract_rule_proof (Context.certificate_theory cert) T U (b, x) f g p;
+            let
+              val thy = Context.certificate_theory cert handle ERROR msg =>
+                raise CONTEXT (msg, [], [ct], [th], NONE);
+            in ZTerm.abstract_rule_proof thy T U (b, x) f g p end;
           fun proof p = Proofterm.abstract_rule_proof (b, x) p
         in
           Thm (deriv_rule1 zproof proof der,
@@ -1559,7 +1607,10 @@ fun combination th1 th2 =
             | _ => raise THM ("combination: not function type", 0, [th1, th2]));
           val cert = join_certificate2 (th1, th2);
           fun zproof p q =
-            ZTerm.combination_proof (Context.certificate_theory cert) fT U f g t u p q;
+            let
+              val thy = Context.certificate_theory cert handle ERROR msg =>
+                raise CONTEXT (msg, [], [], [th1, th2], NONE);
+            in ZTerm.combination_proof thy fT U f g t u p q end;
           fun proof p q = Proofterm.combination_proof f g t u p q;
         in
           Thm (deriv_rule2 zproof proof der1 der2,
@@ -1594,7 +1645,11 @@ fun equal_intr th1 th2 =
           let
             val cert = join_certificate2 (th1, th2);
             fun proof p q = Proofterm.equal_intr_proof A B p q;
-            fun zproof p q = ZTerm.equal_intr_proof (Context.certificate_theory cert) A B p q;
+            fun zproof p q =
+              let
+                val thy = Context.certificate_theory cert handle ERROR msg =>
+                  raise CONTEXT (msg, [], [], [th1, th2], NONE);
+              in ZTerm.equal_intr_proof thy A B p q end;
           in
             Thm (deriv_rule2 zproof proof der1 der2,
              {cert = cert,
@@ -1629,7 +1684,11 @@ fun equal_elim th1 th2 =
           let
             val cert = join_certificate2 (th1, th2);
             fun proof p q = Proofterm.equal_elim_proof A B p q;
-            fun zproof p q = ZTerm.equal_elim_proof (Context.certificate_theory cert) A B p q;
+            fun zproof p q =
+              let
+                val thy = Context.certificate_theory cert handle ERROR msg =>
+                  raise CONTEXT (msg, [], [], [th1, th2], NONE);
+              in ZTerm.equal_elim_proof thy A B p q end;
           in
             Thm (deriv_rule2 zproof proof der1 der2,
              {cert = cert,
@@ -1869,12 +1928,16 @@ end;
 
 (*The trivial implication A \<Longrightarrow> A, justified by assume and forall rules.
   A can contain Vars, not so for assume!*)
-fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
+fun trivial (ct as Cterm {cert, t = A, T, maxidx, sorts}) =
   if T <> propT then
     raise THM ("trivial: the term must have type prop", 0, [])
   else
     let
-      fun zproof () = ZTerm.trivial_proof (Context.certificate_theory cert) A;
+      fun zproof () =
+        let
+          val thy = Context.certificate_theory cert handle ERROR msg =>
+            raise CONTEXT (msg, [], [ct], [], NONE);
+        in ZTerm.trivial_proof thy A end;
       fun proof () = Proofterm.trivial_proof;
     in
       Thm (deriv_rule0 zproof proof,
@@ -2050,7 +2113,11 @@ fun lift_rule goal orule =
       let
         val cert = join_certificate1 (goal, orule);
         val prems = map lift_all As;
-        fun zproof p = ZTerm.lift_proof (Context.certificate_theory cert) gprop inc prems p;
+        fun zproof p =
+          let
+            val thy = Context.certificate_theory cert
+              handle ERROR msg => raise CONTEXT (msg, [], [goal], [orule], NONE);
+          in ZTerm.lift_proof thy gprop inc prems p end;
         fun proof p = Proofterm.lift_proof gprop inc prems p;
       in
         Thm (deriv_rule1 zproof proof der,
@@ -2138,7 +2205,10 @@ fun eq_assumption i state =
     | n =>
         let
           fun zproof p =
-            ZTerm.assumption_proof (Context.certificate_theory cert) Envir.init Bs Bi (n + 1) [] p;
+            let
+              val thy = Context.certificate_theory cert
+                handle ERROR msg => raise CONTEXT (msg, [], [], [state], NONE);
+            in ZTerm.assumption_proof thy Envir.init Bs Bi (n + 1) [] p end;
           fun proof p = Proofterm.assumption_proof Bs Bi (n + 1) p;
         in
           Thm (deriv_rule1 zproof proof der,
@@ -2172,7 +2242,11 @@ fun rotate_rule k i state =
         in Logic.list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
 
-    fun zproof p = ZTerm.rotate_proof (Context.certificate_theory cert) Bs Bi' params asms m p;
+    fun zproof p =
+      let
+        val thy = Context.certificate_theory cert
+          handle ERROR msg => raise CONTEXT (msg, [], [], [state], NONE);
+      in ZTerm.rotate_proof thy Bs Bi' params asms m p end;
     fun proof p = Proofterm.rotate_proof Bs Bi' params asms m p;
   in
     Thm (deriv_rule1 zproof proof der,
@@ -2209,7 +2283,11 @@ fun permute_prems j k rl =
         in (prems', Logic.list_implies (prems', concl)) end
       else raise THM ("permute_prems: k", k, [rl]);
 
-    fun zproof p = ZTerm.permute_prems_proof (Context.certificate_theory cert) prems' j m p;
+    fun zproof p =
+      let
+        val thy = Context.certificate_theory cert
+          handle ERROR msg => raise CONTEXT (msg, [], [], [rl], NONE);
+      in ZTerm.permute_prems_proof thy prems' j m p end;
     fun proof p = Proofterm.permute_prems_proof prems' j m p;
   in
     Thm (deriv_rule1 zproof proof der,
