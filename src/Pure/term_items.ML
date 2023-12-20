@@ -28,12 +28,12 @@ sig
   val defined: 'a table -> key -> bool
   val update: key * 'a -> 'a table -> 'a table
   val remove: key -> 'a table -> 'a table
+  val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
   val add: key * 'a -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table
   val make1: key * 'a -> 'a table
   val make2: key * 'a -> key * 'a -> 'a table
   val make3: key * 'a -> key * 'a -> key * 'a -> 'a table
-  val make_strict: (key * 'a) list -> 'a table  (*exception DUP*)
   val unsynchronized_cache: (key -> 'a) -> key -> 'a
   type set = int table
   val add_set: key -> set -> set
@@ -78,14 +78,13 @@ fun defined (Table tab) = Table.defined tab;
 
 fun update e (Table tab) = Table (Table.update e tab);
 fun remove x (Table tab) = Table (Table.delete_safe x tab);
+fun insert eq e (Table tab) = Table (Table.insert eq e tab);
 
 fun add entry (Table tab) = Table (Table.default entry tab);
 fun make es = build (fold add es);
 fun make1 e = build (add e);
 fun make2 e1 e2 = build (add e1 #> add e2);
 fun make3 e1 e2 e3 = build (add e1 #> add e2 #> add e3);
-
-fun make_strict es = Table (Table.make es);
 
 val unsynchronized_cache = Table.unsynchronized_cache;
 

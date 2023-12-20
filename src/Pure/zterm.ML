@@ -466,7 +466,8 @@ fun instantiate_term_same typ inst =
 exception BAD_INST of ((indexname * ztyp) * zterm) list
 
 fun make_inst inst =
-  ZVars.make_strict inst handle ZVars.DUP _ => raise BAD_INST inst;
+  ZVars.build (inst |> fold (ZVars.insert (op aconv_zterm)))
+    handle ZVars.DUP _ => raise BAD_INST inst;
 
 fun map_insts_same typ term (instT, inst) =
   let
