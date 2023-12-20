@@ -746,7 +746,7 @@ fun zproof_const a A : zproof_const =
         | _ => tab)));
   in (a, A, instT, inst) end;
 
-fun make_const_proof (f, g) ((a, A, instT, inst): zproof_const) =
+fun make_const_proof (f, g) (a, A, instT, inst) =
   let
     val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
     val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
