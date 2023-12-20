@@ -10,6 +10,7 @@ signature TERM_ITEMS =
 sig
   structure Key: KEY
   type key
+  exception DUP of key
   type 'a table
   val empty: 'a table
   val build: ('a table -> 'a table) -> 'a table
@@ -32,7 +33,7 @@ sig
   val make1: key * 'a -> 'a table
   val make2: key * 'a -> key * 'a -> 'a table
   val make3: key * 'a -> key * 'a -> key * 'a -> 'a table
-  val make_strict: (key * 'a) list -> 'a table
+  val make_strict: (key * 'a) list -> 'a table  (*exception DUP*)
   val unsynchronized_cache: (key -> 'a) -> key -> 'a
   type set = int table
   val add_set: key -> set -> set
@@ -58,6 +59,7 @@ type key = Key.key;
 (* table with length *)
 
 structure Table = Table(Key);
+exception DUP = Table.DUP;
 
 datatype 'a table = Table of 'a Table.table;
 
