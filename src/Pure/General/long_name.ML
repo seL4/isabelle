@@ -75,7 +75,7 @@ fun map_base_name f name =
 fun count "" = 0
   | count name = String.fold (fn c => c = separator_char ? Integer.add 1) name 1;
 
-val hidden_prefix = "??."
+val hidden_prefix = "??.";
 val hidden = prefix hidden_prefix;
 val is_hidden = String.isPrefix hidden_prefix;
 val dest_hidden = try (unprefix hidden_prefix);
