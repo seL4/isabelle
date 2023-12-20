@@ -1149,17 +1149,17 @@ val trim_context = solve_constraints #> trim_context_thm;
 
 (*** Oracles ***)
 
-fun add_oracle (b, oracle_fn) thy =
+fun add_oracle (b, oracle_fn) thy1 =
   let
-    val (name, oracles') = Name_Space.define (Context.Theory thy) true (b, ()) (get_oracles thy);
-    val thy' = map_oracles (K oracles') thy;
+    val (name, oracles') = Name_Space.define (Context.Theory thy1) true (b, ()) (get_oracles thy1);
+    val thy2 = map_oracles (K oracles') thy1;
     fun invoke_oracle arg =
       let val ct as Cterm {cert = cert2, t = prop, T, maxidx, sorts} = oracle_fn arg in
         if T <> propT then
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else
           let
-            val cert = Context.join_certificate (Context.Certificate thy', cert2);
+            val cert = Context.join_certificate (Context.Certificate thy2, cert2);
             val proofs = Proofterm.get_proofs_level ();
             val oracle =
               if Proofterm.oracle_enabled proofs
@@ -1172,9 +1172,9 @@ fun add_oracle (b, oracle_fn) thy =
             val zproof =
               if Proofterm.zproof_enabled proofs then
                 let
-                  val thy'' = Context.certificate_theory cert handle ERROR msg =>
-                    raise CONTEXT (msg, [], [ct], [], SOME (Context.Theory thy'));
-                in ZTerm.oracle_proof thy'' name prop end
+                  val thy = Context.certificate_theory cert handle ERROR msg =>
+                    raise CONTEXT (msg, [], [ct], [], SOME (Context.Theory thy2));
+                in ZTerm.oracle_proof thy name prop end
               else ZDummy;
           in
             Thm (make_deriv [] [oracle] [] [] zproof proof,
@@ -1188,7 +1188,7 @@ fun add_oracle (b, oracle_fn) thy =
               prop = prop})
           end
       end;
-  in ((name, invoke_oracle), thy') end;
+  in ((name, invoke_oracle), thy2) end;
 
 val oracle_space = Name_Space.space_of_table o get_oracles;
 
