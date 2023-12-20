@@ -46,12 +46,17 @@ fun pp_context ctxt =
   else Pretty.str "<context>");
 
 fun default_context mk_thy =
-  (case Context.get_generic_context () of
-    SOME (Context.Proof ctxt) => ctxt
-  | SOME (Context.Theory thy) =>
-      try Syntax.init_pretty_global thy
-      |> \<^if_none>\<open>Syntax.init_pretty_global (mk_thy ())\<close>
-  | NONE => Syntax.init_pretty_global (mk_thy ()));
+  let
+    fun global_context () =
+      Config.put_global Name_Space.names_long true (mk_thy ());
+  in
+    (case Context.get_generic_context () of
+      SOME (Context.Proof ctxt) => ctxt
+    | SOME (Context.Theory thy) =>
+        try Syntax.init_pretty_global thy
+        |> \<^if_none>\<open>Syntax.init_pretty_global (global_context ())\<close>
+    | NONE => Syntax.init_pretty_global (global_context ()))
+  end;
 
 fun pp_thm mk_thy th =
   Thm.pretty_thm_raw (default_context mk_thy) {quote = true, show_hyps = false} th;
