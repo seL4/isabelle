@@ -244,6 +244,7 @@ sig
   val subst_term_bound: zterm -> zterm -> zterm
   val subst_proof_bound: zterm -> zproof -> zproof
   val subst_proof_boundp: zproof -> zproof -> zproof
+  exception BAD_INST of ((indexname * ztyp) * zterm) list
   val map_proof: ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
   val map_proof_types: ztyp Same.operation -> zproof -> zproof
   val ztyp_of: typ -> ztyp
@@ -462,6 +463,11 @@ fun instantiate_term_same typ inst =
 
 (* map types/terms within proof *)
 
+exception BAD_INST of ((indexname * ztyp) * zterm) list
+
+fun make_inst inst =
+  ZVars.make_strict inst handle ZVars.DUP _ => raise BAD_INST inst;
+
 fun map_insts_same typ term (instT, inst) =
   let
     val changed = Unsynchronized.ref false;
@@ -491,7 +497,7 @@ fun map_insts_same typ term (instT, inst) =
       else
         ZVars.dest inst
         |> map (fn (v, t) => (the_default v (ZVars.lookup vars' v), the_default t (apply term t)))
-        |> ZVars.make_strict;
+        |> make_inst;
   in if ! changed then (instT', inst') else raise Same.SAME end;
 
 fun map_proof_same typ term =
