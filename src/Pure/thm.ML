@@ -174,7 +174,7 @@ sig
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
   val get_zproof: theory -> serial -> {prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof} option
-  val store_zproof: thm -> theory -> thm * theory
+  val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -2074,14 +2074,14 @@ fun plain_prop_of raw_thm =
 
 val get_zproof = Inttab.lookup o get_zproofs;
 
-fun store_zproof thm thy =
+fun store_zproof name thm thy =
   let
     val Thm (Deriv {promises, body = PBody body}, args as {hyps, prop, ...}) = thm;
     val {oracles, thms, zboxes, zproof, proof} = body;
     val _ = null promises orelse
       raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
 
-    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy hyps prop zproof;
+    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy name hyps prop zproof;
     val thy' = thy
       |> map_zproofs (Inttab.update (i, {prop = zprop, zboxes = zboxes, zproof = zprf}));
     val der' = make_deriv promises oracles thms [] zproof' proof;

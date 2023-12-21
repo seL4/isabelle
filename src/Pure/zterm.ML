@@ -198,7 +198,7 @@ datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
   | ZBox of serial
-  | ZThm of serial;
+  | ZThm of {theory_long_name: string, thm_name: Thm_Name.T, pos: Position.T, serial: int};
 
 datatype zproof =
     ZDummy                         (*dummy proof*)
@@ -267,7 +267,7 @@ sig
   val union_zboxes: zboxes -> zboxes -> zboxes
   val unions_zboxes: zboxes list -> zboxes
   val add_box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
-  val thm_proof: theory -> term list -> term -> zproof -> zbox * zproof
+  val thm_proof: theory -> Thm_Name.T * Position.T -> term list -> term -> zproof -> zbox * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
@@ -817,7 +817,12 @@ fun box_proof zproof_name thy hyps concl prf =
 
 in
 
-val thm_proof = box_proof ZThm;
+fun thm_proof thy (name, pos) =
+  let
+    val thy_name = Context.theory_long_name thy;
+    fun zproof_name i =
+      ZThm {theory_long_name = thy_name, thm_name = name, pos = pos, serial = i};
+  in box_proof zproof_name thy end;
 
 fun add_box_proof thy hyps concl (zboxes, prf) =
   let val (zbox, zbox_prf) = box_proof ZBox thy hyps concl prf

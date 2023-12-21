@@ -249,15 +249,18 @@ fun check_thms_lazy (thms: thm list lazy) =
   if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
   then Lazy.force_value thms else thms;
 
-fun register_proofs_lazy thms thy =
+fun register_proofs_lazy (name, pos) (thms: thm list Lazy.lazy) thy =
   let
     val (thms', thy') =
-      if Proofterm.zproof_enabled (Proofterm.get_proofs_level ())
-      then fold_map Thm.store_zproof (Lazy.force thms) thy |>> Lazy.value
+      if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
+        fold_map (fn (a, th) => Thm.store_zproof (a, pos) th)
+          (Thm_Name.make_list name (Lazy.force thms)) thy
+        |>> Lazy.value
       else (check_thms_lazy thms, thy);
   in (thms', Thm.register_proofs thms' thy') end;
 
-fun register_proofs thms = register_proofs_lazy (Lazy.value thms) #>> Lazy.force;
+fun register_proofs name thms =
+  register_proofs_lazy name (Lazy.value thms) #>> Lazy.force;
 
 
 fun bind_name thy b = (Sign.full_name thy b, Binding.default_pos_of b);
@@ -290,13 +293,13 @@ fun add_facts (b, fact) thy =
   end;
 
 fun add_thms_lazy kind (b, thms) thy =
-  if Binding.is_empty b then register_proofs_lazy thms thy |> #2
-  else
-    let
-      val name_pos = bind_name thy b;
-      val thms' = thms
-        |> Lazy.map_finished (name_thms official1 name_pos #> map (Thm.kind_rule kind));
-    in thy |> register_proofs_lazy thms' |-> curry add_facts b end;
+  let val (name, pos) = bind_name thy b in
+    if name = "" then register_proofs_lazy (name, pos) thms thy |> #2
+    else
+      register_proofs_lazy (name, pos)
+        (Lazy.map_finished (name_thms official1 (name, pos) #> map (Thm.kind_rule kind)) thms) thy
+      |-> curry add_facts b
+  end;
 
 
 (* apply theorems and attributes *)
@@ -310,15 +313,17 @@ val app_facts =
 in
 
 fun apply_facts name_flags1 name_flags2 (b, facts) thy =
-  if Binding.is_empty b then app_facts facts thy |-> register_proofs
-  else
-    let
-      val name_pos = bind_name thy b;
-      val (thms', thy') = thy
-        |> app_facts (map (apfst (name_thms name_flags1 name_pos)) facts)
-        |>> name_thms name_flags2 name_pos |-> register_proofs;
-      val thy'' = thy' |> add_facts (b, Lazy.value thms');
-    in (map (Thm.transfer thy'') thms', thy'') end;
+  let val (name, pos) = bind_name thy b in
+    if name = "" then app_facts facts thy |-> register_proofs (name, pos)
+    else
+      let
+        val name_pos = bind_name thy b;
+        val (thms', thy') = thy
+          |> app_facts (map (apfst (name_thms name_flags1 name_pos)) facts)
+          |>> name_thms name_flags2 name_pos |-> register_proofs (name, pos);
+        val thy'' = thy' |> add_facts (b, Lazy.value thms');
+      in (map (Thm.transfer thy'') thms', thy'') end
+  end;
 
 end;
 
