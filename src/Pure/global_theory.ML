@@ -249,13 +249,16 @@ fun check_thms_lazy (thms: thm list lazy) =
   if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
   then Lazy.force_value thms else thms;
 
-fun register_proofs thms thy =
+fun register_proofs_lazy thms thy =
   let
     val (thms', thy') =
       if Proofterm.zproof_enabled (Proofterm.get_proofs_level ())
-      then fold_map Thm.store_zproof thms thy
-      else (thms, thy);
-  in (thms', Thm.register_proofs (Lazy.value thms') thy') end;
+      then fold_map Thm.store_zproof (Lazy.force thms) thy |>> Lazy.value
+      else (check_thms_lazy thms, thy);
+  in (thms', Thm.register_proofs thms' thy') end;
+
+fun register_proofs thms = register_proofs_lazy (Lazy.value thms) #>> Lazy.force;
+
 
 fun bind_name thy b = (Sign.full_name thy b, Binding.default_pos_of b);
 
@@ -287,14 +290,13 @@ fun add_facts (b, fact) thy =
   end;
 
 fun add_thms_lazy kind (b, thms) thy =
-  if Binding.is_empty b then Thm.register_proofs (check_thms_lazy thms) thy
+  if Binding.is_empty b then register_proofs_lazy thms thy |> #2
   else
     let
       val name_pos = bind_name thy b;
-      val thms' =
-        check_thms_lazy thms
+      val thms' = thms
         |> Lazy.map_finished (name_thms official1 name_pos #> map (Thm.kind_rule kind));
-    in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
+    in thy |> register_proofs_lazy thms' |-> curry add_facts b end;
 
 
 (* apply theorems and attributes *)
