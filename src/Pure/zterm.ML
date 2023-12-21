@@ -496,8 +496,8 @@ fun map_insts_same typ term (instT, inst) =
             NONE => I
           | SOME t' => ZVars.update (v, t')))
       else
-        ZVars.dest inst
-        |> map (fn (v, t) => (the_default v (ZVars.lookup vars' v), the_default t (apply term t)))
+        build (inst |> ZVars.fold_rev (fn (v, t) =>
+          cons (the_default v (ZVars.lookup vars' v), the_default t (apply term t))))
         |> make_inst;
   in if ! changed then (instT', inst') else raise Same.SAME end;
 
