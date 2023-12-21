@@ -245,6 +245,10 @@ fun name_thms name_flags name_pos =
 
 (* store theorems and proofs *)
 
+fun check_thms_lazy (thms: thm list lazy) =
+  if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
+  then Lazy.force_value thms else thms;
+
 fun register_proofs thms thy =
   let
     val (thms', thy') =
@@ -281,10 +285,6 @@ fun add_facts (b, fact) thy =
   in
     thy |> map_facts (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
   end;
-
-fun check_thms_lazy (thms: thm list lazy) =
-  if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
-  then Lazy.force_value thms else thms;
 
 fun add_thms_lazy kind (b, thms) thy =
   if Binding.is_empty b then Thm.register_proofs (check_thms_lazy thms) thy
