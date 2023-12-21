@@ -426,7 +426,9 @@ fun subst_proof_boundp arg body = Same.commit (subst_proof_boundp_same arg 0 0) 
 fun subst_type_same tvar =
   let
     fun typ (ZTVar x) = tvar x
-      | typ (ZFun (T, U)) = (ZFun (typ T, Same.commit typ U) handle Same.SAME => ZFun (T, typ U))
+      | typ (ZFun (T, U)) =
+          (ZFun (typ T, Same.commit typ U)
+            handle Same.SAME => ZFun (T, typ U))
       | typ ZProp = raise Same.SAME
       | typ (ZItself T) = ZItself (typ T)
       | typ (ZType0 _) = raise Same.SAME
@@ -447,9 +449,11 @@ fun subst_term_same typ var =
       | term (ZConst1 (a, T)) = ZConst1 (a, typ T)
       | term (ZConst (a, Ts)) = ZConst (a, Same.map typ Ts)
       | term (ZAbs (a, T, t)) =
-          (ZAbs (a, typ T, Same.commit term t) handle Same.SAME => ZAbs (a, T, term t))
+          (ZAbs (a, typ T, Same.commit term t)
+            handle Same.SAME => ZAbs (a, T, term t))
       | term (ZApp (t, u)) =
-          (ZApp (term t, Same.commit term u) handle Same.SAME => ZApp (t, term u))
+          (ZApp (term t, Same.commit term u)
+            handle Same.SAME => ZApp (t, term u))
       | term (ZClass (T, c)) = ZClass (typ T, c);
   in term end;
 
@@ -510,13 +514,17 @@ fun map_proof_same typ term =
       | proof (ZBoundp _) = raise Same.SAME
       | proof (ZHyp _) = raise Same.SAME
       | proof (ZAbst (a, T, p)) =
-          (ZAbst (a, typ T, Same.commit proof p) handle Same.SAME => ZAbst (a, T, proof p))
+          (ZAbst (a, typ T, Same.commit proof p)
+            handle Same.SAME => ZAbst (a, T, proof p))
       | proof (ZAbsp (a, t, p)) =
-          (ZAbsp (a, term t, Same.commit proof p) handle Same.SAME => ZAbsp (a, t, proof p))
+          (ZAbsp (a, term t, Same.commit proof p)
+            handle Same.SAME => ZAbsp (a, t, proof p))
       | proof (ZAppt (p, t)) =
-          (ZAppt (proof p, Same.commit term t) handle Same.SAME => ZAppt (p, term t))
+          (ZAppt (proof p, Same.commit term t)
+            handle Same.SAME => ZAppt (p, term t))
       | proof (ZAppp (p, q)) =
-          (ZAppp (proof p, Same.commit proof q) handle Same.SAME => ZAppp (p, proof q))
+          (ZAppp (proof p, Same.commit proof q)
+            handle Same.SAME => ZAppp (p, proof q))
       | proof (ZClassp (T, c)) = ZClassp (typ T, c);
   in proof end;
 
@@ -788,8 +796,8 @@ fun close_proof hyps prf =
       | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
       | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
       | proof lev (ZAppp (p, q)) =
-          (ZAppp (proof lev p, Same.commit (proof lev) q) handle Same.SAME =>
-            ZAppp (p, proof lev q))
+          (ZAppp (proof lev p, Same.commit (proof lev) q)
+            handle Same.SAME => ZAppp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
   in ZAbsps hyps (Same.commit (proof 0) prf) end;
 
@@ -840,8 +848,8 @@ fun implies_intr_proof thy A prf =
       | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
       | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
       | proof lev (ZAppp (p, q)) =
-          (ZAppp (proof lev p, Same.commit (proof lev) q) handle Same.SAME =>
-            ZAppp (p, proof lev q))
+          (ZAppp (proof lev p, Same.commit (proof lev) q)
+            handle Same.SAME => ZAppp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
   in ZAbsp ("H", h, Same.commit (proof 0) prf) end;
 
@@ -857,20 +865,20 @@ fun forall_intr_proof thy T (a, x) prf =
         (case b of
           ZAbs (x, T, t) => ZAbs (x, T, term (i + 1) t)
         | ZApp (t, u) =>
-            (ZApp (term i t, Same.commit (term i) u) handle Same.SAME =>
-              ZApp (t, term i u))
+            (ZApp (term i t, Same.commit (term i) u)
+              handle Same.SAME => ZApp (t, term i u))
         | _ => raise Same.SAME);
 
     fun proof i (ZAbst (x, T, prf)) = ZAbst (x, T, proof (i + 1) prf)
       | proof i (ZAbsp (x, t, prf)) =
-          (ZAbsp (x, term i t, Same.commit (proof i) prf) handle Same.SAME =>
-            ZAbsp (x, t, proof i prf))
+          (ZAbsp (x, term i t, Same.commit (proof i) prf)
+            handle Same.SAME => ZAbsp (x, t, proof i prf))
       | proof i (ZAppt (p, t)) =
-          (ZAppt (proof i p, Same.commit (term i) t) handle Same.SAME =>
-            ZAppt (p, term i t))
+          (ZAppt (proof i p, Same.commit (term i) t)
+            handle Same.SAME => ZAppt (p, term i t))
       | proof i (ZAppp (p, q)) =
-          (ZAppp (proof i p, Same.commit (proof i) q) handle Same.SAME =>
-            ZAppp (p, proof i q))
+          (ZAppp (proof i p, Same.commit (proof i) q)
+            handle Same.SAME => ZAppp (p, proof i q))
       | proof _ _ = raise Same.SAME;
 
   in ZAbst (a, Z, Same.commit (proof 0) prf) end;
@@ -984,7 +992,8 @@ end;
 fun generalize_proof (tfrees, frees) idx prf =
   let
     val typ =
-      if Names.is_empty tfrees then Same.same else
+      if Names.is_empty tfrees then Same.same
+      else
         ZTypes.unsynchronized_cache
           (subst_type_same (fn ((a, i), S) =>
             if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
@@ -1037,7 +1046,7 @@ fun rotate_proof thy Bs Bi' params asms m prf =
     ZAbsps (map zterm Bs @ [zterm Bi']) (ZAppps (prf, map ZBoundp
       (j downto 1) @ [ZAbsts (map (apsnd ztyp) params) (ZAbsps (map zterm asms)
         (ZAppps (ZAppts (ZBoundp i, map ZBound ((length params - 1) downto 0)),
-          map ZBoundp (((i-m-1) downto 0) @ ((i-1) downto (i-m))))))]))
+          map ZBoundp (((i - m - 1) downto 0) @ ((i - 1) downto (i - m))))))]))
   end;
 
 fun permute_prems_proof thy prems' j k prf =
@@ -1046,7 +1055,7 @@ fun permute_prems_proof thy prems' j k prf =
     val n = length prems';
   in
     ZAbsps (map zterm prems')
-      (ZAppps (prf, map ZBoundp ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
+      (ZAppps (prf, map ZBoundp ((n - 1 downto n - j) @ (k - 1 downto 0) @ (n - j - 1 downto k))))
   end;
 
 
