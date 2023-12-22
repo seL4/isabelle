@@ -188,10 +188,10 @@ sig
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
-    term list -> term -> (serial * proof_body future) list -> proof_body -> thm * proof_body
+    term list -> term -> (serial * proof_body future) list -> proof_body -> proof_body
   val unconstrain_thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> sort list -> term ->
-    (serial * proof_body future) list -> proof_body -> thm * proof_body
+    (serial * proof_body future) list -> proof_body -> term * proof_body
   val get_identity: sort list -> term list -> term -> proof ->
     {serial: serial, theory_name: string, name: string} option
   val get_approximative_name: sort list -> term list -> term -> proof -> string
@@ -2265,11 +2265,12 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       else (zboxes1, zproof1);
 
     val body2 = {oracles = [], thms = [thm], zboxes = zboxes2, zproof = zproof2, proof = proof2};
-  in (thm, PBody body2) end;
+  in (prop1, PBody body2) end;
 
 in
 
-fun thm_proof thy = prepare_thm_proof false thy;
+fun thm_proof thy classrel_proof arity_proof name shyps hyps concl promises =
+  prepare_thm_proof false thy classrel_proof arity_proof name shyps hyps concl promises #> #2;
 
 fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises body =
   prepare_thm_proof true thy classrel_proof arity_proof ("", Position.none)

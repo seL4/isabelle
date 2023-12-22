@@ -1142,7 +1142,7 @@ fun name_derivation name_pos =
       val _ = null tpairs orelse raise THM ("name_derivation: bad flex-flex constraints", 0, [thm]);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
-      val (_, body') =
+      val body' =
         Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
           name_pos shyps hyps prop ps body;
     in Thm (make_deriv0 [] body', args) end);
@@ -2005,10 +2005,9 @@ val unconstrainT =
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
-      val ((_, thm_node), body') =
+      val (prop', body') =
         Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
           shyps prop ps body;
-      val prop' = Proofterm.thm_node_prop thm_node;
     in
       Thm (make_deriv0 [] body',
        {cert = cert,
