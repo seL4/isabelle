@@ -243,7 +243,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
       |> Sign.add_consts (map (fn ((name, T), T') =>
             (Binding.name (Long_Name.base_name name), reccomb_fn_Ts @ [T] ---> T', NoSyn))
             (reccomb_names ~~ recTs ~~ rec_result_Ts))
-      |> (Global_Theory.add_defs false o map Thm.no_attributes)
+      |> fold_map Global_Theory.add_def
           (map
             (fn ((((name, comb), set), T), T') =>
               (Binding.name (Thm.def_name (Long_Name.base_name name)),
@@ -335,10 +335,10 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
                 fold_rev lambda fns1
                   (list_comb (reccomb,
                     flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns)))));
-          val ([def_thm], thy') =
+          val (def_thm, thy') =
             thy
             |> Sign.declare_const_global decl |> snd
-            |> (Global_Theory.add_defs false o map Thm.no_attributes) [def];
+            |> Global_Theory.add_def def;
         in (defs @ [def_thm], thy') end;
 
     val (case_defs, thy2) =

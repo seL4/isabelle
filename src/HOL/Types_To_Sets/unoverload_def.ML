@@ -37,9 +37,8 @@ fun unoverload_def name_opt thm thy =
     val (with_const, thy') = Sign.declare_const_global
       ((binding_with, Term.fastype_of rhs_abs'), NoSyn)
       thy
-    val ([with_def], thy'') = Global_Theory.add_defs false
-      [((Binding.suffix_name "_def" binding_with,
-      Logic.mk_equals (with_const, rhs_abs')), [])] thy'
+    val (with_def, thy'') = Global_Theory.add_def
+      (Binding.suffix_name "_def" binding_with, Logic.mk_equals (with_const, rhs_abs')) thy'
 
     val with_var_def =
       fold_rev

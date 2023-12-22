@@ -193,8 +193,7 @@ fun create_nom_typedecls ak_names thy =
           [(Binding.name swap_name, SOME swapT, NoSyn)]
           [((Binding.empty_atts, def1), [], [])] ||>
         Sign.parent_path ||>>
-        Global_Theory.add_defs_unchecked true
-          [((Binding.name name, def2), [])] |>> (snd o fst)
+        fold_map Global_Theory.add_def_unchecked_overloaded [(Binding.name name, def2)] |>> (snd o fst)
       end) ak_names_types thy1;
     
     (* declares a permutation function for every atom-kind acting  *)
@@ -253,7 +252,7 @@ fun create_nom_typedecls ak_names thy =
           val def = Logic.mk_equals
                     (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
         in
-          Global_Theory.add_defs_unchecked true [((Binding.name name, def), [])] thy'''
+          Global_Theory.add_def_unchecked_overloaded (Binding.name name, def) thy'''
         end) ak_names_types thy) ak_names_types thy4;
     
     (* proves that every atom-kind is an instance of at *)

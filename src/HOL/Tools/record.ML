@@ -138,11 +138,11 @@ fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
     val isom_name = Sign.full_name typ_thy isom_binding;
     val isom = Const (isom_name, isomT);
 
-    val ([isom_def], cdef_thy) =
+    val (isom_def, cdef_thy) =
       typ_thy
       |> Sign.declare_const_global ((isom_binding, isomT), NoSyn) |> snd
-      |> Global_Theory.add_defs false
-        [((Binding.concealed (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
+      |> Global_Theory.add_def
+          (Binding.concealed (Thm.def_binding isom_binding), Logic.mk_equals (isom, body))
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
     val cons = \<^Const>\<open>iso_tuple_cons absT leftT rightT\<close>;
@@ -1594,10 +1594,10 @@ fun extension_definition overloaded name fields alphas zeta moreT more vars thy 
     fun mk_ext args = list_comb (Const (ext_name, ext_type), args);
     val ext_spec = Logic.mk_equals (mk_ext (vars @ [more]), ext_body);
 
-    val ([ext_def], defs_thy) = timeit_msg ctxt "record extension constructor def:" (fn () =>
+    val (ext_def, defs_thy) = timeit_msg ctxt "record extension constructor def:" (fn () =>
       typ_thy
       |> Sign.declare_const_global ((ext_binding, ext_type), NoSyn) |> snd
-      |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]);
+      |> Global_Theory.add_def (Thm.def_binding ext_binding, ext_spec));
     val defs_ctxt = Proof_Context.init_global defs_thy;
 
 
@@ -2060,12 +2060,9 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
             (sel_decls ~~ (field_syntax @ [NoSyn]))
           |> fold (fn (x, T) => snd o Sign.declare_const_global ((Binding.name x, T), NoSyn))
             (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-          |> (Global_Theory.add_defs false o
-                map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) sel_specs
-          ||>> (Global_Theory.add_defs false o
-                map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) upd_specs
-          ||>> (Global_Theory.add_defs false o
-                map (Thm.no_attributes o apfst (Binding.concealed o Binding.name)))
+          |> fold_map (Global_Theory.add_def o apfst (Binding.concealed o Binding.name)) sel_specs
+          ||>> fold_map (Global_Theory.add_def o apfst (Binding.concealed o Binding.name)) upd_specs
+          ||>> fold_map (Global_Theory.add_def o apfst (Binding.concealed o Binding.name))
             [make_spec, fields_spec, extend_spec, truncate_spec]);
     val defs_ctxt = Proof_Context.init_global defs_thy;
 

@@ -87,8 +87,7 @@ fun define_consts
     fun mk_def c (b, t, _) =
       (Thm.def_binding b, Logic.mk_equals (c, t))
     val defs = map2 mk_def consts specs
-    val (def_thms, thy) =
-      Global_Theory.add_defs false (map Thm.no_attributes defs) thy
+    val (def_thms, thy) = fold_map Global_Theory.add_def defs thy
   in
     ((consts, def_thms), thy)
   end

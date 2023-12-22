@@ -28,9 +28,10 @@ fun mk_definitional [] arg = arg
               else thname
             val def_eq =
               Logic.mk_equals (Const (cname_full, ctype), HOLogic.choice_const ctype $ P)
-            val (thms, thy') =
-              Global_Theory.add_defs covld [((Binding.name cdefname, def_eq), [])] thy
-            val thm' = [thm,hd thms] MRS @{thm exE_some}
+            val (def_thm, thy') =
+              (if covld then Global_Theory.add_def_overloaded else  Global_Theory.add_def)
+                (Binding.name cdefname, def_eq) thy
+            val thm' = [thm, def_thm] MRS @{thm exE_some}
           in
             mk_definitional cos (thy',thm')
           end

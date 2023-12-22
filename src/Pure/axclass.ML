@@ -394,10 +394,10 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val class_eq =
       Logic.mk_equals (Logic.mk_of_class (Term.aT [], class), Logic.mk_conjunction_balanced conjs);
 
-    val ([def], def_thy) =
+    val (def, def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> Global_Theory.add_defs false [((Thm.def_binding bconst, class_eq), [])];
+      |> Global_Theory.add_def (Thm.def_binding bconst, class_eq);
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 

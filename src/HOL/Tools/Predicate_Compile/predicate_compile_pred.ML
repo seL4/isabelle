@@ -86,9 +86,9 @@ fun flatten constname atom (defs, thy) =
       val constT = map fastype_of (params @ args) ---> HOLogic.boolT
       val lhs = list_comb (Const (full_constname, constT), params @ args)
       val def = Logic.mk_equals (lhs, atom)
-      val ([definition], thy') = thy
+      val (definition, thy') = thy
         |> Sign.add_consts [(Binding.name constname, constT, NoSyn)]
-        |> Global_Theory.add_defs false [((Binding.name (Thm.def_name constname), def), [])]
+        |> Global_Theory.add_def (Binding.name (Thm.def_name constname), def)
     in
       (lhs, ((full_constname, [definition]) :: defs, thy'))
     end
@@ -240,9 +240,9 @@ fun flat_higher_order_arguments (intross, thy) =
             val const = Const (full_constname, constT)
             val lhs = list_comb (const, frees)
             val def = Logic.mk_equals (lhs, abs_arg')
-            val ([definition], thy') = thy
+            val (definition, thy') = thy
               |> Sign.add_consts [(Binding.name constname, constT, NoSyn)]
-              |> Global_Theory.add_defs false [((Binding.name (Thm.def_name constname), def), [])]
+              |> Global_Theory.add_def (Binding.name (Thm.def_name constname), def)
           in
             (list_comb (Logic.varify_global const, vars),
               ((full_constname, [definition])::new_defs, thy'))

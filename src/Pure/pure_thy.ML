@@ -225,7 +225,7 @@ val _ = Theory.setup
     (qualify (Binding.make ("sort_constraint", \<^here>)), typ "'a itself \<Rightarrow> prop", NoSyn),
     (qualify (Binding.make ("conjunction", \<^here>)), typ "prop \<Rightarrow> prop \<Rightarrow> prop", NoSyn)]
   #> Sign.local_path
-  #> (Global_Theory.add_defs false o map Thm.no_attributes)
+  #> fold (snd oo Global_Theory.add_def)
    [(Binding.make ("prop_def", \<^here>),
       prop "(CONST Pure.prop :: prop \<Rightarrow> prop) (A::prop) \<equiv> A::prop"),
     (Binding.make ("term_def", \<^here>),
@@ -234,7 +234,7 @@ val _ = Theory.setup
       prop "(CONST Pure.sort_constraint :: 'a itself \<Rightarrow> prop) (CONST Pure.type :: 'a itself) \<equiv>\
       \ (CONST Pure.term :: 'a itself \<Rightarrow> prop) (CONST Pure.type :: 'a itself)"),
     (Binding.make ("conjunction_def", \<^here>),
-      prop "(A &&& B) \<equiv> (\<And>C::prop. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)")] #> snd
+      prop "(A &&& B) \<equiv> (\<And>C::prop. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)")]
   #> fold (#2 oo Thm.add_axiom_global) Theory.equality_axioms);
 
 end;

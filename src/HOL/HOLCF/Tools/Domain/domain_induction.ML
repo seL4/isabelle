@@ -300,8 +300,7 @@ let
     val bisim_eqn = Logic.mk_equals (bisim_const, bisim_rhs)
   in
     val (bisim_def_thm, thy) = thy |>
-        yield_singleton (Global_Theory.add_defs false)
-         ((Binding.qualify_name true comp_dbind "bisim_def", bisim_eqn), [])
+      Global_Theory.add_def (Binding.qualify_name true comp_dbind "bisim_def", bisim_eqn)
   end (* local *)
 
   (* prove coinduction lemma *)

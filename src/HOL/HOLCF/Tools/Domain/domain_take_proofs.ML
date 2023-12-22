@@ -186,8 +186,7 @@ fun map_of_typ (thy : theory) (sub : (typ * term) list) (T : typ) : term =
 (******************************************************************************)
 
 fun add_qualified_def name (dbind, eqn) =
-    yield_singleton (Global_Theory.add_defs false)
-     ((Binding.qualify_name true dbind name, eqn), [])
+    Global_Theory.add_def (Binding.qualify_name true dbind name, eqn)
 
 fun add_qualified_thm name (dbind, thm) =
     yield_singleton Global_Theory.add_thms

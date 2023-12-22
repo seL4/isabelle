@@ -707,11 +707,11 @@ fun def_pred binding parms defs ts norm_ts thy =
     val head = Term.list_comb (Const (name, predT), args);
     val statement = Object_Logic.ensure_propT thy_ctxt head;
 
-    val ([pred_def], defs_thy) =
+    val (pred_def, defs_thy) =
       thy
       |> bodyT = propT ? Sign.typed_print_translation [aprop_tr' (length args) name]
       |> Sign.declare_const_global ((binding, predT), NoSyn) |> snd
-      |> Global_Theory.add_defs false [((Thm.def_binding binding, Logic.mk_equals (head, body)), [])];
+      |> Global_Theory.add_def (Thm.def_binding binding, Logic.mk_equals (head, body));
     val defs_ctxt = Proof_Context.init_global defs_thy |> Variable.declare_term head;
 
     val intro = Goal.prove_global defs_thy [] norm_ts statement

@@ -49,10 +49,10 @@ sig
     (string * thm list) * theory
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list -> theory ->
     (string * thm list) list * theory
-  val add_defs: bool -> ((binding * term) * attribute list) list ->
-    theory -> thm list * theory
-  val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
-    theory -> thm list * theory
+  val add_def: binding * term -> theory -> thm * theory
+  val add_def_overloaded: binding * term -> theory -> thm * theory
+  val add_def_unchecked: binding * term -> theory -> thm * theory
+  val add_def_unchecked_overloaded: binding * term -> theory -> thm * theory
 end;
 
 structure Global_Theory: GLOBAL_THEORY =
@@ -374,7 +374,7 @@ val note_thmss = fold_map o note_thms;
 
 local
 
-fun add unchecked overloaded = fold_map (fn ((b, prop), atts) => fn thy =>
+fun add unchecked overloaded (b, prop) thy =
   let
     val context = Defs.global_context thy;
     val ((_, def), thy') = Thm.add_def context unchecked overloaded (b, prop) thy;
@@ -382,12 +382,14 @@ fun add unchecked overloaded = fold_map (fn ((b, prop), atts) => fn thy =>
       |> Thm.forall_intr_frees
       |> Thm.forall_elim_vars 0
       |> Thm.varifyT_global;
-  in thy' |> apply_facts unnamed official2 (b, [([thm], atts)]) |>> the_single end);
+  in thy' |> apply_facts unnamed official2 (b, [([thm], [])]) |>> the_single end;
 
 in
 
-val add_defs = add false;
-val add_defs_unchecked = add true;
+val add_def = add false false;
+val add_def_overloaded = add false true;
+val add_def_unchecked = add true false;
+val add_def_unchecked_overloaded = add true true;
 
 end;
 

@@ -242,17 +242,16 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     if need_recursor then
       thy
       |> Sign.add_consts [(Binding.name recursor_base_name, recursor_typ, NoSyn)]
-      |> (snd o Global_Theory.add_defs false [(Thm.no_attributes o apfst Binding.name) recursor_def])
+      |> Global_Theory.add_def (apfst Binding.name recursor_def) |> #2
     else thy;
 
   val (con_defs, thy0) = thy_path
     |> Sign.add_consts
         (map (fn (c, T, mx) => (Binding.name c, T, mx))
          ((case_base_name, case_typ, NoSyn) :: map #1 (flat con_ty_lists)))
-    |> Global_Theory.add_defs false
-        (map (Thm.no_attributes o apfst Binding.name)
+    |> fold_map (Global_Theory.add_def o apfst Binding.name)
          (case_def ::
-          flat (ListPair.map mk_con_defs (1 upto npart, con_ty_lists))))
+          flat (ListPair.map mk_con_defs (1 upto npart, con_ty_lists)))
     ||> add_recursor
     ||> Sign.parent_path;
 

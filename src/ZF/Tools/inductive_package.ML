@@ -168,10 +168,10 @@ let
           else ()
 
   (*add definitions of the inductive sets*)
-  val (_, thy1) =
+  val thy1 =
     thy0
     |> Sign.add_path big_rec_base_name
-    |> Global_Theory.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
+    |> fold (snd oo Global_Theory.add_def o apfst Binding.name) axpairs;
 
 
   (*fetch fp definitions from the theory*)

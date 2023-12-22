@@ -167,9 +167,9 @@ fun primrec_i args thy =
       List.foldr (process_eqn thy) NONE eqn_terms;
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns);
 
-    val ([def_thm], thy1) = thy
+    val (def_thm, thy1) = thy
       |> Sign.add_path (Long_Name.base_name fname)
-      |> Global_Theory.add_defs false [Thm.no_attributes (apfst Binding.name def)];
+      |> Global_Theory.add_def (apfst Binding.name def);
 
     val rewrites = def_thm :: map (mk_meta_eq o Thm.transfer thy1) (#rec_rewrites con_info)
     val eqn_thms0 =

@@ -820,10 +820,9 @@ fun extract thm_vss thy =
       in
         thy
         |> Sign.add_consts [(b, fastype_of ft, NoSyn)]
-        |> Global_Theory.add_defs false
-           [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
-             Logic.mk_equals (head, ft)), [])]
-        |-> (fn [def_thm] =>
+        |> Global_Theory.add_def
+           (Binding.qualified_name (Thm.def_name (extr_name s vs)), Logic.mk_equals (head, ft))
+        |-> (fn def_thm =>
            Spec_Rules.add_global b Spec_Rules.equational
              [Thm.term_of (Thm.lhs_of def_thm)] [def_thm]
            #> Code.declare_default_eqns_global [(def_thm, true)])
