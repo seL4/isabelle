@@ -2091,9 +2091,11 @@ fun store_zproof (name, pos) thm thy =
       raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
 
     val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy (name, pos) hyps prop zproof;
+    val (zboxes', zprf') =
+      if Options.default_bool "prune_proofs" then ([], ZDummy) else (zboxes, zprf);
     val thy' = thy
       |> (map_zproofs o Inttab.update)
-          (i, {thm_name = name, pos = pos, prop = zprop, zboxes = zboxes, zproof = zprf});
+          (i, {thm_name = name, pos = pos, prop = zprop, zboxes = zboxes', zproof = zprf'});
     val der' = make_deriv promises oracles thms [] zproof' proof;
   in (Thm (der', args), thy') end;
 
