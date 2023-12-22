@@ -173,8 +173,9 @@ sig
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
-  val get_zproof: theory -> serial ->
-    {thm_name: Thm_Name.T, pos: Position.T, prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof} option
+  type stored_zproof =
+    {name: Thm_Name.T * Position.T, prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof}
+  val get_zproof: theory -> serial -> stored_zproof option
   val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -944,7 +945,7 @@ fun merge_classes
 (* data *)
 
 type stored_zproof =
-  {thm_name: Thm_Name.T, pos: Position.T, prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof};
+  {name: Thm_Name.T * Position.T, prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof};
 
 structure Data = Theory_Data
 (
@@ -2082,19 +2083,19 @@ fun plain_prop_of raw_thm =
 
 val get_zproof = Inttab.lookup o get_zproofs;
 
-fun store_zproof (name, pos) thm thy =
+fun store_zproof name thm thy =
   let
     val Thm (Deriv {promises, body = PBody body}, args as {hyps, prop, ...}) = thm;
     val {oracles, thms, zboxes, zproof, proof} = body;
     val _ = null promises orelse
       raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
 
-    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy (name, pos) hyps prop zproof;
+    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy name hyps prop zproof;
     val (zboxes', zprf') =
       if Options.default_bool "prune_proofs" then ([], ZDummy) else (zboxes, zprf);
     val thy' = thy
       |> (map_zproofs o Inttab.update)
-          (i, {thm_name = name, pos = pos, prop = zprop, zboxes = zboxes', zproof = zprf'});
+          (i, {name = name, prop = zprop, zboxes = zboxes', zproof = zprf'});
     val der' = make_deriv promises oracles thms [] zproof' proof;
   in (Thm (der', args), thy') end;
 
