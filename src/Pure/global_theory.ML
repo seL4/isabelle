@@ -214,33 +214,33 @@ fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
 
 (* name theorems *)
 
-abstype name_flags = No_Name_Flags | Name_Flags of {pre: bool, official: bool}
+fun name_multi (name, pos) =
+  Thm_Name.make_list name #> (map o apfst) (fn thm_name => (Thm_Name.flatten thm_name, pos));
+
+abstype name_flags = No_Name_Flags | Name_Flags of {post: bool, official: bool}
 with
 
 val unnamed = No_Name_Flags;
-val official1 = Name_Flags {pre = true, official = true};
-val official2 = Name_Flags {pre = false, official = true};
-val unofficial1 = Name_Flags {pre = true, official = false};
-val unofficial2 = Name_Flags {pre = false, official = false};
+val official1 = Name_Flags {post = false, official = true};
+val official2 = Name_Flags {post = true, official = true};
+val unofficial1 = Name_Flags {post = false, official = false};
+val unofficial2 = Name_Flags {post = true, official = false};
 
 fun name_thm name_flags (name, pos) =
   Thm.solve_constraints #> (fn thm =>
     (case name_flags of
       No_Name_Flags => thm
-    | Name_Flags {pre, official} =>
+    | Name_Flags {post, official} =>
         thm
-        |> (official andalso (not pre orelse Thm.raw_derivation_name thm = "")) ?
+        |> (official andalso (post orelse Thm.raw_derivation_name thm = "")) ?
             Thm.name_derivation (name, pos)
-        |> (name <> "" andalso (not pre orelse not (Thm.has_name_hint thm))) ?
+        |> (name <> "" andalso (post orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));
-
-end;
-
-fun name_multi (name, pos) =
-  Thm_Name.make_list name #> (map o apfst) (fn thm_name => (Thm_Name.flatten thm_name, pos));
 
 fun name_thms name_flags name_pos =
   name_multi name_pos #> map (uncurry (name_thm name_flags));
+
+end;
 
 
 (* store theorems and proofs *)
