@@ -255,8 +255,8 @@ val join_proof = Future.join #> proof_of;
 fun map_proof_of f (PBody {oracles, thms, zboxes, zproof, proof}) =
   PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = f proof};
 
-fun no_proofs (PBody {oracles, thms, zboxes, ...}) =
-  PBody {oracles = oracles, thms = thms, zboxes = zboxes, proof = MinProof, zproof = ZDummy};
+fun no_proof (PBody {oracles, thms, zboxes, zproof, ...}) =
+  PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = MinProof};
 
 fun thm_header serial pos theory_name name prop types : thm_header =
   {serial = serial, pos = pos, theory_name = theory_name, name = name, prop = prop, types = types};
@@ -2122,7 +2122,7 @@ end;
 
 fun prune_body body =
   if Options.default_bool "prune_proofs"
-  then Future.map no_proofs body
+  then Future.map no_proof body
   else body;
 
 fun export_enabled () = Options.default_bool "export_proofs";
@@ -2217,7 +2217,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
           {oracles = #oracles body0, thms = #thms body0,
-            zboxes = zboxes1, zproof = zproof1, proof = proof1};
+            zboxes = [], zproof = ZDummy, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =
@@ -2234,9 +2234,10 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
             else new_prf ()
         | _ => new_prf ());
 
+    val exp_proof = Future.map proof_of body';
     val open_proof = not named ? rew_proof thy;
+    fun export_body () = Future.join exp_proof |> open_proof |> export_proof thy i prop1;
 
-    fun export_body () = join_proof body' |> open_proof |> export_proof thy i prop1;
     val export =
       if export_enabled () then
         Lazy.lazy (fn () =>
