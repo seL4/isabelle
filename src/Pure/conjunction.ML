@@ -149,47 +149,60 @@ fun conjs n =
 
 val B = read_prop "B";
 
-fun comp_rule th rule =
+fun gen_rule idx rule =
+  let val frees = Names.build (rule |> Thm.fold_terms {hyps = true} Names.add_free_names)
+  in rule |> Thm.generalize (Names.empty, frees) idx end;
+
+(*
+  A1 &&& ... &&& An \<Longrightarrow> B
+  -----------------------
+  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B
+*)
+fun curry_balanced_rule idx n =
   let
-    val frees = Names.build (rule |> Thm.fold_terms {hyps = true} Names.add_free_names);
-    val idx = Thm.maxidx_of th + 1;
-  in Thm.adjust_maxidx_thm ~1 (th COMP (rule |> Thm.generalize (Names.empty, frees) idx)) end;
+    val (As, C) = conjs n;
+    val D = Drule.mk_implies (C, B);
+  in
+    Thm.implies_elim (Thm.assume D) (intr_balanced (map Thm.assume As))
+    |> Drule.implies_intr_list (D :: As)
+    |> gen_rule idx
+  end;
+
+(*
+  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B
+  -----------------------
+  A1 &&& ... &&& An \<Longrightarrow> B
+*)
+fun uncurry_balanced_rule idx n =
+  let
+    val (As, C) = conjs n;
+    val D = Drule.list_implies (As, B);
+  in
+    Drule.implies_elim_list (Thm.assume D) (elim_balanced n (Thm.assume C))
+    |> Drule.implies_intr_list [D, C]
+    |> gen_rule idx
+  end;
+
+
+(* static vs. dynamic rules *)
+
+fun make_rules make = (make, Vector.tabulate (10, fn i => make 0 (i + 2)));
+
+fun apply_rule (make, rules) n thm =
+  if n < 2 then thm
+  else
+    let
+      val idx = Thm.maxidx_of thm + 1;
+      val rule =
+        (case try Vector.sub (rules, n - 2) of
+          SOME rule => Thm.incr_indexes idx rule
+        | NONE => make idx n);
+    in Thm.adjust_maxidx_thm ~1 (thm COMP rule) end;
 
 in
 
-(*
-  A1 &&& ... &&& An \<Longrightarrow> B
-  -----------------------
-  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B
-*)
-fun curry_balanced n th =
-  if n < 2 then th
-  else
-    let
-      val (As, C) = conjs n;
-      val D = Drule.mk_implies (C, B);
-    in
-      comp_rule th
-        (Thm.implies_elim (Thm.assume D) (intr_balanced (map Thm.assume As))
-          |> Drule.implies_intr_list (D :: As))
-    end;
-
-(*
-  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B
-  -----------------------
-  A1 &&& ... &&& An \<Longrightarrow> B
-*)
-fun uncurry_balanced n th =
-  if n < 2 then th
-  else
-    let
-      val (As, C) = conjs n;
-      val D = Drule.list_implies (As, B);
-    in
-      comp_rule th
-        (Drule.implies_elim_list (Thm.assume D) (elim_balanced n (Thm.assume C))
-          |> Drule.implies_intr_list [D, C])
-    end;
+val curry_balanced = apply_rule (make_rules curry_balanced_rule);
+val uncurry_balanced = apply_rule (make_rules uncurry_balanced_rule);
 
 end;
 
