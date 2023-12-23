@@ -18,10 +18,6 @@ begin
 
 ML_file \<open>Tools/typechk.ML\<close>
 
-lemma atomize_ball [symmetric, rulify]:
-     "(\<And>x. x \<in> A \<Longrightarrow> P(x)) \<equiv> Trueprop (\<forall>x\<in>A. P(x))"
-by (simp add: Ball_def atomize_all atomize_imp)
-
 
 subsection\<open>Unordered Pairs: constant \<^term>\<open>Upair\<close>\<close>
 
