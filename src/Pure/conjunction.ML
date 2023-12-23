@@ -150,8 +150,10 @@ fun conjs n =
 val B = read_prop "B";
 
 fun comp_rule th rule =
-  Thm.adjust_maxidx_thm ~1 (th COMP
-    (rule |> Thm.forall_intr_frees |> Thm.forall_elim_vars (Thm.maxidx_of th + 1)));
+  let
+    val frees = Names.build (rule |> Thm.fold_terms {hyps = true} Names.add_free_names);
+    val idx = Thm.maxidx_of th + 1;
+  in Thm.adjust_maxidx_thm ~1 (th COMP (rule |> Thm.generalize (Names.empty, frees) idx)) end;
 
 in
 
