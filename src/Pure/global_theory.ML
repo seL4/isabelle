@@ -23,7 +23,6 @@ sig
   val transfer_theories: theory -> thm -> thm
   val all_thms_of: theory -> bool -> (string * thm) list
   val get_thm_name: theory -> Thm_Name.T * Position.T -> thm
-  val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val register_proofs_lazy: string * Position.T -> thm list lazy -> theory -> thm list lazy * theory
   val register_proofs: string * Position.T -> thm list -> theory -> thm list * theory
   val name_multi: string * Position.T -> thm list -> ((string * Position.T) * thm) list
@@ -205,11 +204,6 @@ fun get_thm_name thy ((name, i), pos) =
 
 
 (** store theorems **)
-
-(* fact specifications *)
-
-fun burrow_fact f = split_list #>> burrow f #> op ~~;
-
 
 (* register proofs *)
 

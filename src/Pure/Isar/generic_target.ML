@@ -349,6 +349,8 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
+fun burrow_fact f = split_list #>> burrow f #> op ~~;
+
 in
 
 fun notes target_notes kind facts lthy =
@@ -356,7 +358,7 @@ fun notes target_notes kind facts lthy =
     val facts' = facts |> map (fn (a, thms) =>
       let
         val name_pos = Local_Theory.bind_name lthy (fst a);
-        val thms' = Global_Theory.burrow_fact (Global_Theory.name_multi name_pos) thms;
+        val thms' = burrow_fact (Global_Theory.name_multi name_pos) thms;
       in (a, (map o apfst o map) (import_export_proof lthy) thms') end);
     val local_facts = Attrib.map_thms #1 facts';
     val global_facts = Attrib.map_thms #2 facts';
