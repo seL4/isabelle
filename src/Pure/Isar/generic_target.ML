@@ -296,14 +296,14 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-fun import_export_proof ctxt (name, raw_th) =
+fun thm_definition (name, raw_th) lthy =
   let
-    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of ctxt);
+    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
     (*export assumes/defines*)
-    val th = Goal.norm_result ctxt raw_th;
-    val ((defs, asms), th') = Local_Defs.export ctxt thy_ctxt th;
-    val asms' = map (rewrite_rule ctxt (Drule.norm_hhf_eqs @ defs)) asms;
+    val th = Goal.norm_result lthy raw_th;
+    val ((defs, asms), th') = Local_Defs.export lthy thy_ctxt th;
+    val asms' = map (rewrite_rule lthy (Drule.norm_hhf_eqs @ defs)) asms;
 
     (*export fixes*)
     val tfrees =
@@ -313,8 +313,8 @@ fun import_export_proof ctxt (name, raw_th) =
       Frees.build (Thm.fold_terms {hyps = true} Frees.add_frees th')
       |> Frees.list_set_rev |> map Free;
     val (th'' :: vs) =
-      (th' :: map (Drule.mk_term o Thm.cterm_of ctxt) (map Logic.mk_type tfrees @ frees))
-      |> Variable.export ctxt thy_ctxt
+      (th' :: map (Drule.mk_term o Thm.cterm_of lthy) (map Logic.mk_type tfrees @ frees))
+      |> Variable.export lthy thy_ctxt
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
@@ -328,14 +328,14 @@ fun import_export_proof ctxt (name, raw_th) =
     val instT =
       TVars.build (fold2 (fn a => fn b =>
         (case a of TVar v => TVars.add (v, b) | _ => I)) tvars tfrees);
-    val cinstT = TVars.map (K (Thm.ctyp_of ctxt)) instT;
+    val cinstT = TVars.map (K (Thm.ctyp_of lthy)) instT;
     val cinst =
       Vars.build
         (fold2 (fn v => fn t =>
           (case v of
             Var (xi, T) =>
               Vars.add ((xi, Term_Subst.instantiateT instT T),
-                Thm.cterm_of ctxt (Term.map_types (Term_Subst.instantiateT instT) t))
+                Thm.cterm_of lthy (Term.map_types (Term_Subst.instantiateT instT) t))
           | _ => I)) vars frees);
     val result' = Thm.instantiate (cinstT, cinst) result;
 
@@ -343,11 +343,11 @@ fun import_export_proof ctxt (name, raw_th) =
     val result'' =
       (fold (curry op COMP) asms' result'
         handle THM _ => raise THM ("Failed to re-import result", 0, result' :: asms'))
-      |> Local_Defs.contract ctxt defs (Thm.cprop_of th)
-      |> Goal.norm_result ctxt
+      |> Local_Defs.contract lthy defs (Thm.cprop_of th)
+      |> Goal.norm_result lthy
       |> Global_Theory.name_thm Global_Theory.unofficial2 name;
 
-  in (result'', result) end;
+  in ((result'', result), lthy) end;
 
 fun name_thms name = split_list #>> burrow (Global_Theory.name_multi name) #> op ~~;
 
@@ -355,13 +355,18 @@ in
 
 fun notes target_notes kind facts lthy =
   let
-    val facts' = facts |> map (fn (a, thms) =>
-      let val thms' = name_thms (Local_Theory.bind_name lthy (fst a)) thms;
-      in (a, (map o apfst o map) (import_export_proof lthy) thms') end);
+    val (facts', lthy') =
+      (facts, lthy) |-> fold_map (fn (a, thms) => fn lthy1 =>
+        let
+          val thms1 = name_thms (Local_Theory.bind_name lthy1 (fst a)) thms;
+          val (thms2, lthy2) =
+            (thms1, lthy1) |-> fold_map (fn (args, atts) =>
+              fold_map thm_definition args #>> rpair atts);
+        in ((a, thms2), lthy2) end);
     val local_facts = Attrib.map_thms #1 facts';
     val global_facts = Attrib.map_thms #2 facts';
   in
-    lthy
+    lthy'
     |> target_notes kind global_facts (Attrib.partial_evaluation lthy local_facts)
     |> Attrib.local_notes kind local_facts
   end;
