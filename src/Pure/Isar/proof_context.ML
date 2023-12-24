@@ -1051,15 +1051,14 @@ fun add_thms_lazy kind (b, ths) ctxt =
 
 fun note_thms kind ((b, more_atts), facts) ctxt =
   let
-    val (name, pos) = bind_name ctxt b;
-    val facts' = facts
-      |> Global_Theory.burrow_fact (Global_Theory.name_thms Global_Theory.unofficial1 (name, pos));
-    fun app_fact (ths, atts) =
-      fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
-    val (res, ctxt') = fold_maps app_fact facts' ctxt;
-    val thms = Global_Theory.name_thms Global_Theory.unofficial2 (name, pos) res;
-    val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms);
-  in ((name, thms), ctxt'') end;
+    val name_pos = bind_name ctxt b;
+    fun app_fact (thms, atts) =
+      fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts)))
+        (Global_Theory.name_thms Global_Theory.unofficial1 name_pos thms);
+    val (thms', ctxt') = fold_maps app_fact facts ctxt;
+    val thms'' = Global_Theory.name_thms Global_Theory.unofficial2 name_pos thms';
+    val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms'');
+  in ((#1 name_pos, thms''), ctxt'') end;
 
 val note_thmss = fold_map o note_thms;
 
