@@ -181,10 +181,10 @@ fun attribute_cmd_global thy = attribute_global thy o check_src (Proof_Context.i
 
 (* attributed declarations *)
 
-fun map_specs f = map (apfst (apsnd f));
+fun map_specs f = (map o apfst o apsnd) f;
 
-fun map_facts f = map (apfst (apsnd f) o apsnd (map (apsnd f)));
-fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
+fun map_facts f = map (fn (a, b) => (apsnd f a, (map o apsnd) f b));
+fun map_facts_refs f g = map_facts f #> (map o apsnd o map o apfst) g;
 
 
 (* implicit context *)
