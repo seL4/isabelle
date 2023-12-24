@@ -318,7 +318,9 @@ fun thm_definition (name, thm0) lthy =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val global_thm = Global_Theory.name_thm Global_Theory.official1 name schematic_thm;
+    val (global_thm, lthy') =
+      (Local_Theory.background_theory_result o yield_singleton (Global_Theory.register_proofs name))
+        (Global_Theory.name_thm Global_Theory.official1 name schematic_thm) lthy;
 
     (*import fixes*)
     val (tvars, vars) =
@@ -328,14 +330,14 @@ fun thm_definition (name, thm0) lthy =
     val instT =
       TVars.build (fold2 (fn a => fn b =>
         (case a of TVar v => TVars.add (v, b) | _ => I)) tvars tfrees);
-    val cinstT = TVars.map (K (Thm.ctyp_of lthy)) instT;
+    val cinstT = TVars.map (K (Thm.ctyp_of lthy')) instT;
     val cinst =
       Vars.build
         (fold2 (fn v => fn t =>
           (case v of
             Var (xi, T) =>
               Vars.add ((xi, Term_Subst.instantiateT instT T),
-                Thm.cterm_of lthy (Term.map_types (Term_Subst.instantiateT instT) t))
+                Thm.cterm_of lthy' (Term.map_types (Term_Subst.instantiateT instT) t))
           | _ => I)) vars frees);
     val fixed_thm = Thm.instantiate (cinstT, cinst) global_thm;
 
@@ -347,7 +349,7 @@ fun thm_definition (name, thm0) lthy =
       |> Goal.norm_result lthy
       |> Global_Theory.name_thm Global_Theory.unofficial2 name;
 
-  in ((local_thm, global_thm), lthy) end;
+  in ((local_thm, global_thm), lthy') end;
 
 fun name_thms name = split_list #>> burrow (Global_Theory.name_multi name) #> op ~~;
 
@@ -367,7 +369,7 @@ fun notes target_notes kind facts lthy =
     val global_facts = Attrib.map_thms #2 facts';
   in
     lthy'
-    |> target_notes kind global_facts (Attrib.partial_evaluation lthy local_facts)
+    |> target_notes kind global_facts (Attrib.partial_evaluation lthy' local_facts)
     |> Attrib.local_notes kind local_facts
   end;
 
