@@ -26,6 +26,8 @@ sig
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
+  val register_proofs_lazy: string * Position.T -> thm list lazy -> theory -> thm list lazy * theory
+  val register_proofs: string * Position.T -> thm list -> theory -> thm list * theory
   val name_multi: string * Position.T -> thm list -> ((string * Position.T) * thm) list
   type name_flags
   val unnamed: name_flags
@@ -212,6 +214,26 @@ fun burrow_fact f = split_list #>> burrow f #> op ~~;
 fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
 
 
+(* register proofs *)
+
+fun check_thms_lazy (thms: thm list lazy) =
+  if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
+  then Lazy.force_value thms else thms;
+
+fun register_proofs_lazy (name, pos) (thms: thm list Lazy.lazy) thy =
+  let
+    val (thms', thy') =
+      if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
+        fold_map (fn (a, th) => Thm.store_zproof (a, pos) th)
+          (Thm_Name.make_list name (Lazy.force thms)) thy
+        |>> Lazy.value
+      else (check_thms_lazy thms, thy);
+  in (thms', Thm.register_proofs thms' thy') end;
+
+fun register_proofs name thms =
+  register_proofs_lazy name (Lazy.value thms) #>> Lazy.force;
+
+
 (* name theorems *)
 
 fun name_multi (name, pos) =
@@ -244,24 +266,6 @@ end;
 
 
 (* store theorems and proofs *)
-
-fun check_thms_lazy (thms: thm list lazy) =
-  if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
-  then Lazy.force_value thms else thms;
-
-fun register_proofs_lazy (name, pos) (thms: thm list Lazy.lazy) thy =
-  let
-    val (thms', thy') =
-      if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
-        fold_map (fn (a, th) => Thm.store_zproof (a, pos) th)
-          (Thm_Name.make_list name (Lazy.force thms)) thy
-        |>> Lazy.value
-      else (check_thms_lazy thms, thy);
-  in (thms', Thm.register_proofs thms' thy') end;
-
-fun register_proofs name thms =
-  register_proofs_lazy name (Lazy.value thms) #>> Lazy.force;
-
 
 fun bind_name thy b = (Sign.full_name thy b, Binding.default_pos_of b);
 
