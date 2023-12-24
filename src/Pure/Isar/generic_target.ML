@@ -296,6 +296,11 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
+fun thm_def (name, pos) thm thy =
+  if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
+    Thm.store_zproof ((name, 0), pos) thm thy  (* FIXME proper Thm_Name.T *)
+  else (thm, thy);
+
 fun thm_definition (name, thm0) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
@@ -319,7 +324,7 @@ fun thm_definition (name, thm0) lthy =
 
     (*thm definition*)
     val (global_thm, lthy') =
-      (Local_Theory.background_theory_result o yield_singleton (Global_Theory.register_proofs name))
+      (Local_Theory.background_theory_result o thm_def name)
         (Global_Theory.name_thm Global_Theory.official1 name schematic_thm) lthy;
 
     (*import fixes*)
