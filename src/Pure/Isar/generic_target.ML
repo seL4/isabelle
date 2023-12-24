@@ -296,10 +296,10 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-fun thm_def (name, pos) thm thy =
+fun thm_def (name, pos) thm lthy =
   if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
-    Thm.store_zproof ((name, 0), pos) thm thy  (* FIXME proper Thm_Name.T *)
-  else (thm, thy);
+    Local_Theory.background_theory_result (Thm.store_zproof ((name, 0), pos) thm) lthy  (* FIXME proper Thm_Name.T *)
+  else (thm, lthy);
 
 fun thm_definition (name, thm0) lthy =
   let
@@ -324,8 +324,7 @@ fun thm_definition (name, thm0) lthy =
 
     (*thm definition*)
     val (global_thm, lthy') =
-      (Local_Theory.background_theory_result o thm_def name)
-        (Global_Theory.name_thm Global_Theory.official1 name schematic_thm) lthy;
+      thm_def name (Global_Theory.name_thm Global_Theory.official1 name schematic_thm) lthy;
 
     (*import fixes*)
     val (tvars, vars) =
