@@ -30,6 +30,7 @@ sig
     local_theory -> local_theory
   val restore_background_naming: local_theory -> local_theory -> local_theory
   val full_name: local_theory -> binding -> string
+  val bind_name: local_theory -> binding -> string * Position.T
   val new_group: local_theory -> local_theory
   val reset_group: local_theory -> local_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
@@ -186,6 +187,7 @@ fun map_background_naming f =
 val restore_background_naming = map_background_naming o K o background_naming_of;
 
 val full_name = Name_Space.full_name o background_naming_of;
+fun bind_name lthy b = (full_name lthy b, Binding.default_pos_of b);
 
 val new_group = map_background_naming Name_Space.new_group;
 val reset_group = map_background_naming Name_Space.reset_group;

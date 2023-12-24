@@ -267,11 +267,9 @@ end;
 
 (* store theorems and proofs *)
 
-fun bind_name thy b = (Sign.full_name thy b, Binding.default_pos_of b);
-
 fun add_facts (b, fact) thy =
   let
-    val (full_name, pos) = bind_name thy b;
+    val (full_name, pos) = Sign.bind_name thy b;
     fun check fact =
       fact |> map_index (fn (i, thm) =>
         let
@@ -297,7 +295,7 @@ fun add_facts (b, fact) thy =
   end;
 
 fun add_thms_lazy kind (b, thms) thy =
-  let val (name, pos) = bind_name thy b in
+  let val (name, pos) = Sign.bind_name thy b in
     if name = "" then register_proofs_lazy (name, pos) thms thy |> #2
     else
       register_proofs_lazy (name, pos)
@@ -317,11 +315,11 @@ val app_facts =
 in
 
 fun apply_facts name_flags1 name_flags2 (b, facts) thy =
-  let val (name, pos) = bind_name thy b in
+  let val (name, pos) = Sign.bind_name thy b in
     if name = "" then app_facts facts thy |-> register_proofs (name, pos)
     else
       let
-        val name_pos = bind_name thy b;
+        val name_pos = Sign.bind_name thy b;
         val (thms', thy') = thy
           |> app_facts (map (apfst (name_thms name_flags1 name_pos)) facts)
           |>> name_thms name_flags2 name_pos |-> register_proofs (name, pos);
