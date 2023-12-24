@@ -349,8 +349,6 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
-fun map_facts f = (map o apsnd o map o apfst o map) f;
-
 in
 
 fun notes target_notes kind facts lthy =
@@ -360,8 +358,8 @@ fun notes target_notes kind facts lthy =
         val name_pos = Local_Theory.bind_name lthy (fst a);
         val thms' = Global_Theory.burrow_fact (Global_Theory.name_multi name_pos) thms;
       in (a, (map o apfst o map) (import_export_proof lthy) thms') end);
-    val local_facts = map_facts #1 facts';
-    val global_facts = map_facts #2 facts';
+    val local_facts = Attrib.map_thms #1 facts';
+    val global_facts = Attrib.map_thms #2 facts';
   in
     lthy
     |> target_notes kind global_facts (Attrib.partial_evaluation lthy local_facts)

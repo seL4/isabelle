@@ -31,6 +31,9 @@ sig
   val map_facts_refs: ('a list -> 'att list) -> ('b -> 'fact) ->
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
+  val map_thms: ('a -> 'b) ->
+    ('c * ('a list * 'd) list) list ->
+    ('c * ('b list * 'd) list) list
   val trim_context_binding: Attrib.binding -> Attrib.binding
   val trim_context_thms: thms -> thms
   val trim_context_fact: fact -> fact
@@ -185,6 +188,8 @@ fun map_specs f = (map o apfst o apsnd) f;
 
 fun map_facts f = map (fn (a, b) => (apsnd f a, (map o apsnd) f b));
 fun map_facts_refs f g = map_facts f #> (map o apsnd o map o apfst) g;
+
+fun map_thms f = (map o apsnd o map o apfst o map) f;
 
 
 (* implicit context *)
