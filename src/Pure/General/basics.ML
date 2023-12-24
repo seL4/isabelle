@@ -45,6 +45,7 @@ sig
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
+  val fold_maps: ('a -> 'b -> 'c list * 'b) -> 'a list -> 'b -> 'c list * 'b
 end;
 
 structure Basics: BASICS =
@@ -129,6 +130,13 @@ fun fold_map _ [] y = ([], y)
         val (x', y') = f x y;
         val (xs', y'') = fold_map f xs y';
       in (x' :: xs', y'') end;
+
+fun fold_maps _ [] y = ([], y)
+  | fold_maps f (x :: xs) y =
+      let
+        val (x', y') = f x y;
+        val (xs', y'') = fold_maps f xs y';
+      in (x' @ xs', y'') end;
 
 end;
 
