@@ -296,33 +296,33 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-fun thm_definition (name, raw_th) lthy =
+fun thm_definition (name, thm0) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
     (*export assumes/defines*)
-    val th = Goal.norm_result lthy raw_th;
-    val ((defs, asms), th') = Local_Defs.export lthy thy_ctxt th;
+    val thm = Goal.norm_result lthy thm0;
+    val ((defs, asms), thm') = Local_Defs.export lthy thy_ctxt thm;
     val asms' = map (rewrite_rule lthy (Drule.norm_hhf_eqs @ defs)) asms;
 
     (*export fixes*)
     val tfrees =
-      TFrees.build (Thm.fold_terms {hyps = true} TFrees.add_tfrees th')
+      TFrees.build (Thm.fold_terms {hyps = true} TFrees.add_tfrees thm')
       |> TFrees.keys |> map TFree;
     val frees =
-      Frees.build (Thm.fold_terms {hyps = true} Frees.add_frees th')
+      Frees.build (Thm.fold_terms {hyps = true} Frees.add_frees thm')
       |> Frees.list_set_rev |> map Free;
-    val (th'' :: vs) =
-      (th' :: map (Drule.mk_term o Thm.cterm_of lthy) (map Logic.mk_type tfrees @ frees))
+    val (schematic_thm :: variables) =
+      (thm' :: map (Drule.mk_term o Thm.cterm_of lthy) (map Logic.mk_type tfrees @ frees))
       |> Variable.export lthy thy_ctxt
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = Global_Theory.name_thm Global_Theory.official1 name th'';
+    val global_thm = Global_Theory.name_thm Global_Theory.official1 name schematic_thm;
 
     (*import fixes*)
     val (tvars, vars) =
-      chop (length tfrees) (map (Thm.term_of o Drule.dest_term) vs)
+      chop (length tfrees) (map (Thm.term_of o Drule.dest_term) variables)
       |>> map Logic.dest_type;
 
     val instT =
@@ -337,17 +337,17 @@ fun thm_definition (name, raw_th) lthy =
               Vars.add ((xi, Term_Subst.instantiateT instT T),
                 Thm.cterm_of lthy (Term.map_types (Term_Subst.instantiateT instT) t))
           | _ => I)) vars frees);
-    val result' = Thm.instantiate (cinstT, cinst) result;
+    val fixed_thm = Thm.instantiate (cinstT, cinst) global_thm;
 
     (*import assumes/defines*)
-    val result'' =
-      (fold (curry op COMP) asms' result'
-        handle THM _ => raise THM ("Failed to re-import result", 0, result' :: asms'))
-      |> Local_Defs.contract lthy defs (Thm.cprop_of th)
+    val local_thm =
+      (fold (curry op COMP) asms' fixed_thm
+        handle THM _ => raise THM ("Failed to re-import result", 0, fixed_thm :: asms'))
+      |> Local_Defs.contract lthy defs (Thm.cprop_of thm)
       |> Goal.norm_result lthy
       |> Global_Theory.name_thm Global_Theory.unofficial2 name;
 
-  in ((result'', result), lthy) end;
+  in ((local_thm, global_thm), lthy) end;
 
 fun name_thms name = split_list #>> burrow (Global_Theory.name_multi name) #> op ~~;
 
