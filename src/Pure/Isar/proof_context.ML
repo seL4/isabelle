@@ -1054,10 +1054,10 @@ fun note_thms kind ((b, more_atts), facts) ctxt =
     val (name, pos) = bind_name ctxt b;
     val facts' = facts
       |> Global_Theory.burrow_fact (Global_Theory.name_thms Global_Theory.unofficial1 (name, pos));
-    fun app (ths, atts) =
+    fun app_fact (ths, atts) =
       fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
-    val (res, ctxt') = fold_map app facts' ctxt;
-    val thms = Global_Theory.name_thms Global_Theory.unofficial2 (name, pos) (flat res);
+    val (res, ctxt') = fold_maps app_fact facts' ctxt;
+    val thms = Global_Theory.name_thms Global_Theory.unofficial2 (name, pos) res;
     val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms);
   in ((name, thms), ctxt'') end;
 

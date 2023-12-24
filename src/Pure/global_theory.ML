@@ -307,7 +307,7 @@ fun add_thms_lazy kind (b, thms) thy =
 local
 
 val app_facts =
-  apfst flat oo fold_map (fn (thms, atts) => fn thy =>
+  fold_maps (fn (thms, atts) => fn thy =>
     fold_map (Thm.theory_attributes atts) (map (Thm.transfer thy) thms) thy);
 
 in
