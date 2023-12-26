@@ -173,9 +173,7 @@ sig
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
-  type stored_zproof =
-    {name: Thm_Name.T * Position.T, prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof}
-  val get_zproof: theory -> serial -> stored_zproof option
+  val get_zproof: theory -> serial -> {name: Thm_Name.T * Position.T, thm: thm} option
   val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -944,13 +942,10 @@ fun merge_classes
 
 (* data *)
 
-type stored_zproof =
-  {name: Thm_Name.T * Position.T, prop: zterm, zboxes: ZTerm.zboxes, zproof: zproof};
-
 structure Data = Theory_Data
 (
   type T =
-    stored_zproof Inttab.table *  (*stored thms: zproof*)
+    {name: Thm_Name.T * Position.T, thm: thm} Inttab.table *  (*stored zproof thms*)
     unit Name_Space.table *  (*oracles: authentic derivation names*)
     classes;  (*type classes within the logic*)
 
@@ -2087,17 +2082,16 @@ fun store_zproof name thm thy =
   let
     val Thm (Deriv {promises, body = PBody body}, args as {hyps, prop, ...}) = thm;
     val {oracles, thms, zboxes, zproof, proof} = body;
+    fun deriv a b = make_deriv promises oracles thms a b proof;
+
     val _ = null promises orelse
       raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
 
-    val ((i, (zprop, zprf)), zproof') = ZTerm.thm_proof thy name hyps prop zproof;
-    val (zboxes', zprf') =
-      if Options.default_bool "prune_proofs" then ([], ZDummy) else (zboxes, zprf);
-    val thy' = thy
-      |> (map_zproofs o Inttab.update)
-          (i, {name = name, prop = zprop, zboxes = zboxes', zproof = zprf'});
-    val der' = make_deriv promises oracles thms [] zproof' proof;
-  in (Thm (der', args), thy') end;
+    val ((i, (_, zproof1)), zproof2) = ZTerm.thm_proof thy name hyps prop zproof;
+    val der1 = if Options.default_bool "prune_proofs" then deriv [] ZDummy else deriv zboxes zproof1;
+    val der2 = deriv [] zproof2;
+    val thy' = thy |> (map_zproofs o Inttab.update) (i, {name = name, thm = Thm (der1, args)});
+  in (Thm (der2, args), thy') end;
 
 
 
