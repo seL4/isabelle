@@ -296,12 +296,18 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
+fun name_thm1 (name, pos) =
+  Global_Theory.name_thm Global_Theory.official1 (Thm_Name.flatten name, pos);
+
+fun name_thm2 (name, pos) =
+  Global_Theory.name_thm Global_Theory.unofficial2 (Thm_Name.flatten name, pos);
+
 fun thm_def (name, pos) thm lthy =
-  if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
-    Local_Theory.background_theory_result (Thm.store_zproof ((name, 0), pos) thm) lthy  (* FIXME proper Thm_Name.T *)
+  if #1 name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
+    Local_Theory.background_theory_result (Thm.store_zproof (name, pos) thm) lthy
   else (thm, lthy);
 
-fun thm_definition (name, thm0) lthy =
+fun thm_definition (name_pos, thm0) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
@@ -323,8 +329,7 @@ fun thm_definition (name, thm0) lthy =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val (global_thm, lthy') =
-      thm_def name (Global_Theory.name_thm Global_Theory.official1 name schematic_thm) lthy;
+    val (global_thm, lthy') = thm_def name_pos (name_thm1 name_pos schematic_thm) lthy;
 
     (*import fixes*)
     val (tvars, vars) =
@@ -351,11 +356,13 @@ fun thm_definition (name, thm0) lthy =
         handle THM _ => raise THM ("Failed to re-import result", 0, fixed_thm :: asms'))
       |> Local_Defs.contract lthy defs (Thm.cprop_of thm)
       |> Goal.norm_result lthy
-      |> Global_Theory.name_thm Global_Theory.unofficial2 name;
+      |> name_thm2 name_pos;
 
   in ((local_thm, global_thm), lthy') end;
 
-fun name_thms name = split_list #>> burrow (Global_Theory.name_multi name) #> op ~~;
+fun name_thms (name, pos) =
+  let val thm_names = Thm_Name.make_list name #> map (apfst (rpair pos))
+  in split_list #>> burrow thm_names #> op ~~ end;
 
 in
 

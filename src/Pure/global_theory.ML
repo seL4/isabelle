@@ -25,7 +25,6 @@ sig
   val get_thm_name: theory -> Thm_Name.T * Position.T -> thm
   val register_proofs_lazy: string * Position.T -> thm list lazy -> theory -> thm list lazy * theory
   val register_proofs: string * Position.T -> thm list -> theory -> thm list * theory
-  val name_multi: string * Position.T -> thm list -> ((string * Position.T) * thm) list
   type name_flags
   val unnamed: name_flags
   val official1: name_flags
@@ -227,9 +226,6 @@ fun register_proofs name thms =
 
 (* name theorems *)
 
-fun name_multi (name, pos) =
-  Thm_Name.make_list name #> (map o apfst) (fn thm_name => (Thm_Name.flatten thm_name, pos));
-
 abstype name_flags = No_Name_Flags | Name_Flags of {post: bool, official: bool}
 with
 
@@ -250,8 +246,9 @@ fun name_thm name_flags (name, pos) =
         |> (name <> "" andalso (post orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));
 
-fun name_thms name_flags name_pos =
-  name_multi name_pos #> map (uncurry (name_thm name_flags));
+fun name_thms name_flags (name, pos) thms =
+  Thm_Name.make_list name thms
+  |> map (fn (thm_name, thm) => name_thm name_flags (Thm_Name.flatten thm_name, pos) thm);
 
 end;
 
