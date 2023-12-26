@@ -306,12 +306,11 @@ fun thm_def (name, pos) thm lthy =
     Local_Theory.background_theory_result (Thm.store_zproof (name, pos) thm) lthy
   else (thm, lthy);
 
-fun thm_definition (name_pos, thm0) lthy =
+fun thm_definition (name_pos, thm) lthy =
   let
     val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
 
     (*export assumes/defines*)
-    val thm = Goal.norm_result lthy thm0;
     val ((defs, asms), thm') = Local_Defs.export lthy thy_ctxt thm;
     val asms' = map (rewrite_rule lthy (Drule.norm_hhf_eqs @ defs)) asms;
 
@@ -361,8 +360,9 @@ fun thm_definition (name_pos, thm0) lthy =
 
 in
 
-fun notes target_notes kind facts lthy =
+fun notes target_notes kind facts0 lthy =
   let
+    val facts = Attrib.map_thms (Goal.norm_result lthy) facts0;
     val (facts', lthy') =
       (facts, lthy) |-> fold_map (fn (a, thms) => fn lthy1 =>
         let
