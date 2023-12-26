@@ -2090,7 +2090,9 @@ fun store_zproof name thm thy =
     val ((i, (_, zproof1)), zproof2) = ZTerm.thm_proof thy name hyps prop zproof;
     val der1 = if Options.default_bool "prune_proofs" then deriv [] ZDummy else deriv zboxes zproof1;
     val der2 = deriv [] zproof2;
-    val thy' = thy |> (map_zproofs o Inttab.update) (i, {name = name, thm = Thm (der1, args)});
+
+    val thm' = trim_context (Thm (der1, args));
+    val thy' = thy |> (map_zproofs o Inttab.update) (i, {name = name, thm = thm'});
   in (Thm (der2, args), thy') end;
 
 
