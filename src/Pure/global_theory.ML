@@ -83,7 +83,7 @@ fun hide_fact fully name = map_facts (Facts.hide fully name);
 
 fun dest_thms verbose prev_thys thy =
   Facts.dest_static verbose (map facts_of prev_thys) (facts_of thy)
-  |> maps (uncurry Thm_Name.make_list);
+  |> maps (fn (name, thms) => Thm_Name.make_list (name, Position.none) thms |> map (apfst fst));
 
 
 (* thm_name vs. derivation_id *)
@@ -214,8 +214,7 @@ fun register_proofs_lazy (name, pos) (thms: thm list Lazy.lazy) thy =
   let
     val (thms', thy') =
       if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
-        fold_map (fn (a, th) => Thm.store_zproof (a, pos) th)
-          (Thm_Name.make_list name (Lazy.force thms)) thy
+        fold_map (uncurry Thm.store_zproof) (Thm_Name.make_list (name, pos) (Lazy.force thms)) thy
         |>> Lazy.value
       else (check_thms_lazy thms, thy);
   in (thms', Thm.register_proofs thms' thy') end;
@@ -246,9 +245,9 @@ fun name_thm name_flags (name, pos) =
         |> (name <> "" andalso (post orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));
 
-fun name_thms name_flags (name, pos) thms =
-  Thm_Name.make_list name thms
-  |> map (fn (thm_name, thm) => name_thm name_flags (Thm_Name.flatten thm_name, pos) thm);
+fun name_thms name_flags name_pos thms =
+  Thm_Name.make_list name_pos thms
+  |> map (fn (a, thm) => name_thm name_flags (Thm_Name.flatten a) thm);
 
 end;
 

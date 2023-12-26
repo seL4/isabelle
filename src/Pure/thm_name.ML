@@ -12,8 +12,8 @@ sig
   type T = string * int
   val ord: T ord
   val print: T -> string
-  val flatten: T -> string
-  val make_list: string -> 'a list -> (T * 'a) list
+  val flatten: T * Position.T -> string * Position.T
+  val make_list: string * Position.T -> 'a list -> ((T * Position.T) * 'a) list
 end;
 
 structure Thm_Name: THM_NAME =
@@ -26,11 +26,11 @@ fun print (name, index) =
   if name = "" orelse index = 0 then name
   else name ^ enclose "(" ")" (string_of_int index);
 
-fun flatten (name, index) =
-  if name = "" orelse index = 0 then name
-  else name ^ "_" ^ string_of_int index;
+fun flatten ((name, index), pos) =
+  if name = "" orelse index = 0 then (name, pos)
+  else (name ^ "_" ^ string_of_int index, pos);
 
-fun make_list name [thm] = [((name, 0), thm)]
-  | make_list name thms = map_index (fn (i, thm) => ((name, i + 1), thm)) thms;
+fun make_list (name, pos) [thm] = [(((name, 0), pos), thm)]
+  | make_list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
 
 end;

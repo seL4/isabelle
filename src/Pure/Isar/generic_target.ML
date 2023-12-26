@@ -296,11 +296,10 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-fun name_thm1 (name, pos) =
-  Global_Theory.name_thm Global_Theory.official1 (Thm_Name.flatten name, pos);
+fun name_thms name = split_list #>> burrow (Thm_Name.make_list name) #> op ~~;
 
-fun name_thm2 (name, pos) =
-  Global_Theory.name_thm Global_Theory.unofficial2 (Thm_Name.flatten name, pos);
+val name_thm1 = Global_Theory.name_thm Global_Theory.official1 o Thm_Name.flatten;
+val name_thm2 = Global_Theory.name_thm Global_Theory.unofficial2 o Thm_Name.flatten;
 
 fun thm_def (name, pos) thm lthy =
   if #1 name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
@@ -359,10 +358,6 @@ fun thm_definition (name_pos, thm0) lthy =
       |> name_thm2 name_pos;
 
   in ((local_thm, global_thm), lthy') end;
-
-fun name_thms (name, pos) =
-  let val thm_names = Thm_Name.make_list name #> map (apfst (rpair pos))
-  in split_list #>> burrow thm_names #> op ~~ end;
 
 in
 
