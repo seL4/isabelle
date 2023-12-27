@@ -31,6 +31,7 @@ sig
   val unofficial2: name_flags
   val name_thm: name_flags -> string * Position.T -> thm -> thm
   val name_thms: name_flags -> string * Position.T -> thm list -> thm list
+  val name_facts: name_flags -> string * Position.T -> (thm list * 'a) list -> (thm list * 'a) list
   val check_thms_lazy: thm list lazy -> thm list lazy
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
@@ -253,6 +254,10 @@ fun name_thms name_flags name_pos thms =
   Thm_Name.list name_pos thms
   |> map (fn (a, thm) => name_thm name_flags (Thm_Name.flatten a) thm);
 
+fun name_facts name_flags name_pos facts =
+  Thm_Name.expr name_pos facts
+  |> (map o apfst o map) (fn (a, thm) => name_thm name_flags (Thm_Name.flatten a) thm);
+
 end;
 
 
@@ -314,7 +319,7 @@ fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
     else
       let
         val (thms', thy') = thy
-          |> app_facts (map (apfst (name_thms name_flags1 name)) facts)
+          |> app_facts (name_facts name_flags1 name facts)
           |>> name_thms name_flags2 name |-> register;
         val thy'' = thy' |> add_facts (b, Lazy.value thms');
       in (map (Thm.transfer thy'') thms', thy'') end

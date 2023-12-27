@@ -1053,9 +1053,9 @@ fun note_thms kind ((b, more_atts), facts) ctxt =
   let
     val name_pos = full_name_pos ctxt b;
     fun app_fact (thms, atts) =
-      fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts)))
-        (Global_Theory.name_thms Global_Theory.unofficial1 name_pos thms);
-    val (thms', ctxt') = fold_maps app_fact facts ctxt;
+      fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) thms;
+    val (thms', ctxt') =
+      fold_maps app_fact (Global_Theory.name_facts Global_Theory.unofficial1 name_pos facts) ctxt;
     val thms'' = Global_Theory.name_thms Global_Theory.unofficial2 name_pos thms';
     val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms'');
   in ((#1 name_pos, thms''), ctxt'') end;
