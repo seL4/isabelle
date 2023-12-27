@@ -206,7 +206,7 @@ fun trim_context_fact (binding, thms) = (trim_context_binding binding, trim_cont
 (* fact expressions *)
 
 fun global_notes kind facts thy = thy |>
-  Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);
+  Global_Theory.note_thmss_foundation kind (map_facts (map (attribute_global thy)) facts);
 
 fun local_notes kind facts ctxt = ctxt |>
   Proof_Context.note_thmss kind (map_facts (map (attribute ctxt)) facts);

@@ -23,8 +23,6 @@ sig
   val transfer_theories: theory -> thm -> thm
   val all_thms_of: theory -> bool -> (string * thm) list
   val get_thm_name: theory -> Thm_Name.T * Position.T -> thm
-  val register_proofs_lazy: string * Position.T -> thm list lazy -> theory -> thm list lazy * theory
-  val register_proofs: string * Position.T -> thm list -> theory -> thm list * theory
   type name_flags
   val unnamed: name_flags
   val official1: name_flags
@@ -43,10 +41,12 @@ sig
   val add_thms_dynamic': Context.generic -> binding * (Context.generic -> thm list) ->
     theory -> string * theory
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
-  val note_thms: string -> Thm.binding * (thm list * attribute list) list -> theory ->
-    (string * thm list) * theory
-  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list -> theory ->
-    (string * thm list) list * theory
+  val note_thms: string -> Thm.binding * (thm list * attribute list) list ->
+    theory -> (string * thm list) * theory
+  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
+    theory -> (string * thm list) list * theory
+  val note_thmss_foundation: string -> (Thm.binding * (thm list * attribute list) list) list ->
+    theory -> (string * thm list) list * theory
   val add_def: binding * term -> theory -> thm * theory
   val add_def_overloaded: binding * term -> theory -> thm * theory
   val add_def_unchecked: binding * term -> theory -> thm * theory
@@ -210,17 +210,19 @@ fun check_thms_lazy (thms: thm list lazy) =
   if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
   then Lazy.force_value thms else thms;
 
-fun register_proofs_lazy (name, pos) (thms: thm list Lazy.lazy) thy =
-  let
-    val (thms', thy') =
-      if name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
-        fold_map (uncurry Thm.store_zproof) (Thm_Name.make_list (name, pos) (Lazy.force thms)) thy
-        |>> Lazy.value
-      else (check_thms_lazy thms, thy);
+fun store_proofs {zproof} name lazy_thms thy =
+  if #1 name <> "" andalso zproof andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ())
+  then
+    fold_map (uncurry Thm.store_zproof) (Thm_Name.make_list name (Lazy.force lazy_thms)) thy
+    |>> Lazy.value
+  else (check_thms_lazy lazy_thms, thy);
+
+fun register_proofs_lazy zproof name thms thy =
+  let val (thms', thy') = store_proofs zproof name thms thy;
   in (thms', Thm.register_proofs thms' thy') end;
 
-fun register_proofs name thms =
-  register_proofs_lazy name (Lazy.value thms) #>> Lazy.force;
+fun register_proofs zproof name thms =
+  register_proofs_lazy zproof name (Lazy.value thms) #>> Lazy.force;
 
 
 (* name theorems *)
@@ -279,11 +281,14 @@ fun add_facts (b, fact) thy =
   end;
 
 fun add_thms_lazy kind (b, thms) thy =
-  let val (name, pos) = Sign.full_name_pos thy b in
-    if name = "" then register_proofs_lazy (name, pos) thms thy |> #2
+  let
+    val name = Sign.full_name_pos thy b;
+    val register = register_proofs_lazy {zproof = true} name;
+  in
+    if #1 name = "" then register thms thy |> #2
     else
-      register_proofs_lazy (name, pos)
-        (Lazy.map_finished (name_thms official1 (name, pos) #> map (Thm.kind_rule kind)) thms) thy
+      thy
+      |> register (Lazy.map_finished (name_thms official1 name #> map (Thm.kind_rule kind)) thms)
       |-> curry add_facts b
   end;
 
@@ -298,14 +303,17 @@ val app_facts =
 
 in
 
-fun apply_facts name_flags1 name_flags2 (b, facts) thy =
-  let val (name, pos) = Sign.full_name_pos thy b in
-    if name = "" then app_facts facts thy |-> register_proofs (name, pos)
+fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
+  let
+    val name = Sign.full_name_pos thy b;
+    val register = register_proofs zproof name;
+  in
+    if #1 name = "" then app_facts facts thy |-> register
     else
       let
         val (thms', thy') = thy
-          |> app_facts (map (apfst (name_thms name_flags1 (name, pos))) facts)
-          |>> name_thms name_flags2 (name, pos) |-> register_proofs (name, pos);
+          |> app_facts (map (apfst (name_thms name_flags1 name)) facts)
+          |>> name_thms name_flags2 name |-> register;
         val thy'' = thy' |> add_facts (b, Lazy.value thms');
       in (map (Thm.transfer thy'') thms', thy'') end
   end;
@@ -316,16 +324,17 @@ end;
 (* store_thm *)
 
 fun store_thm (b, th) =
-  apply_facts official1 official2 (b, [([th], [])]) #>> the_single;
+  apply_facts {zproof = true} official1 official2 (b, [([th], [])]) #>> the_single;
 
 fun store_thm_open (b, th) =
-  apply_facts unofficial1 unofficial2 (b, [([th], [])]) #>> the_single;
+  apply_facts {zproof = true} unofficial1 unofficial2 (b, [([th], [])]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 val add_thmss =
-  fold_map (fn ((b, thms), atts) => apply_facts official1 official2 (b, [(thms, atts)]));
+  fold_map (fn ((b, thms), atts) =>
+    apply_facts  {zproof = true} official1 official2 (b, [(thms, atts)]));
 
 fun add_thms args =
   add_thmss (map (apfst (apsnd single)) args) #>> map the_single;
@@ -345,14 +354,22 @@ fun add_thms_dynamic arg thy =
 
 (* note_thmss *)
 
-fun note_thms kind ((b, more_atts), facts) thy =
+local
+
+fun note_thms' zproof kind ((b, more_atts), facts) thy =
   let
     val name = Sign.full_name thy b;
     val facts' = facts |> map (apsnd (fn atts => surround (Thm.kind kind) (atts @ more_atts)));
-    val (thms', thy') = thy |> apply_facts official1 official2 (b, facts');
+    val (thms', thy') = thy |> apply_facts zproof official1 official2 (b, facts');
   in ((name, thms'), thy') end;
 
+in
+
+val note_thms = note_thms' {zproof = true};
 val note_thmss = fold_map o note_thms;
+val note_thmss_foundation = fold_map o note_thms' {zproof = false};
+
+end;
 
 
 (* old-style defs *)
@@ -367,7 +384,7 @@ fun add unchecked overloaded (b, prop) thy =
       |> Thm.forall_intr_frees
       |> Thm.forall_elim_vars 0
       |> Thm.varifyT_global;
-  in thy' |> apply_facts unnamed official2 (b, [([thm], [])]) |>> the_single end;
+  in thy' |> apply_facts {zproof = true} unnamed official2 (b, [([thm], [])]) |>> the_single end;
 
 in
 
