@@ -34,6 +34,6 @@ fun short ((name, index), pos: Position.T) =
 fun list (name, pos: Position.T) [thm] = [(((name, 0): T, pos), thm)]
   | list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
 
-fun expr name = split_list #>> burrow (list name) #> op ~~;
+fun expr name = burrow_fst (burrow (list name));
 
 end;
