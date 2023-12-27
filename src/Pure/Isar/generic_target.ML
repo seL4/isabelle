@@ -296,8 +296,6 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-fun name_thms name = split_list #>> burrow (Thm_Name.list name) #> op ~~;
-
 val name_thm1 = Global_Theory.name_thm Global_Theory.official1 o Thm_Name.flatten;
 val name_thm2 = Global_Theory.name_thm Global_Theory.unofficial2 o Thm_Name.flatten;
 
@@ -366,7 +364,7 @@ fun notes target_notes kind facts0 lthy =
     val (facts', lthy') =
       (facts, lthy) |-> fold_map (fn (a, thms) => fn lthy1 =>
         let
-          val thms1 = name_thms (Local_Theory.full_name_pos lthy1 (fst a)) thms;
+          val thms1 = Thm_Name.expr (Local_Theory.full_name_pos lthy1 (fst a)) thms;
           val (thms2, lthy2) =
             (thms1, lthy1) |-> fold_map (fn (args, atts) =>
               fold_map thm_definition args #>> rpair atts);

@@ -14,6 +14,7 @@ sig
   val print: T -> string
   val flatten: T * Position.T -> string * Position.T
   val list: string * Position.T -> 'a list -> ((T * Position.T) * 'a) list
+  val expr: string * Position.T -> ('a list * 'b) list -> (((T * Position.T) * 'a) list * 'b) list
 end;
 
 structure Thm_Name: THM_NAME =
@@ -32,5 +33,7 @@ fun flatten ((name, index), pos) =
 
 fun list (name, pos: Position.T) [thm] = [(((name, 0): T, pos), thm)]
   | list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
+
+fun expr name = split_list #>> burrow (list name) #> op ~~;
 
 end;
