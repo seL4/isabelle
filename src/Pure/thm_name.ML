@@ -12,7 +12,7 @@ sig
   type T = string * int
   val ord: T ord
   val print: T -> string
-  val flatten: T * Position.T -> string * Position.T
+  val short: T * Position.T -> string * Position.T
   val list: string * Position.T -> 'a list -> ((T * Position.T) * 'a) list
   val expr: string * Position.T -> ('a list * 'b) list -> (((T * Position.T) * 'a) list * 'b) list
 end;
@@ -27,7 +27,7 @@ fun print (name, index) =
   if name = "" orelse index = 0 then name
   else name ^ enclose "(" ")" (string_of_int index);
 
-fun flatten ((name, index), pos) =
+fun short ((name, index), pos: Position.T) =
   if name = "" orelse index = 0 then (name, pos)
   else (name ^ "_" ^ string_of_int index, pos);
 

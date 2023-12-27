@@ -35,7 +35,7 @@ sealed case class Thm_Name(name: String, index: Int) {
     if (name == "" || index == 0) name
     else name + "(" + index + ")"
 
-  def flatten: String =
+  def short: String =
     if (name == "" || index == 0) name
     else name + "_" + index
 }

@@ -252,14 +252,14 @@ fun name_thm name_flags (name, pos) =
 
 end;
 
-fun name_thm_flatten name_flags name =
-  name_thm name_flags (Thm_Name.flatten name);
+fun name_thm_short name_flags name =
+  name_thm name_flags (Thm_Name.short name);
 
 fun name_thms name_flags name_pos thms =
-  Thm_Name.list name_pos thms |> map (uncurry (name_thm_flatten name_flags));
+  Thm_Name.list name_pos thms |> map (uncurry (name_thm_short name_flags));
 
 fun name_facts name_flags name_pos facts =
-  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm_flatten name_flags));
+  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm_short name_flags));
 
 
 (* store theorems and proofs *)
@@ -309,7 +309,7 @@ fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
     val named_facts = Thm_Name.expr name facts;
 
     val unnamed = #1 name = "";
-    val name_thm1 = if unnamed then #2 else uncurry (name_thm_flatten name_flags1);
+    val name_thm1 = if unnamed then #2 else uncurry (name_thm_short name_flags1);
 
     val app_facts =
       fold_maps (fn (named_thms, atts) => fn thy =>
