@@ -306,10 +306,9 @@ fun apply_facts name_flags1 name_flags2 (b, facts) thy =
     if name = "" then app_facts facts thy |-> register_proofs (name, pos)
     else
       let
-        val name_pos = Sign.bind_name thy b;
         val (thms', thy') = thy
-          |> app_facts (map (apfst (name_thms name_flags1 name_pos)) facts)
-          |>> name_thms name_flags2 name_pos |-> register_proofs (name, pos);
+          |> app_facts (map (apfst (name_thms name_flags1 (name, pos))) facts)
+          |>> name_thms name_flags2 (name, pos) |-> register_proofs (name, pos);
         val thy'' = thy' |> add_facts (b, Lazy.value thms');
       in (map (Thm.transfer thy'') thms', thy'') end
   end;
