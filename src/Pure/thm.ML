@@ -2076,7 +2076,9 @@ fun plain_prop_of raw_thm =
 
 (* stored thms: zproof *)
 
-val get_zproof = Inttab.lookup o get_zproofs;
+fun get_zproof thy =
+  Inttab.lookup (get_zproofs thy)
+  #> Option.map (fn {name, thm} => {name = name, thm = transfer thy thm});
 
 fun store_zproof name thm thy =
   let
