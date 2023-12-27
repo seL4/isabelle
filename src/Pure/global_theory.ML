@@ -214,6 +214,12 @@ fun check_thms_lazy (thms: thm list lazy) =
 fun zproof_enabled {zproof} name =
   name <> "" andalso zproof andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ());
 
+fun store_proof zproof (name, thm) thy =
+  if zproof_enabled zproof (#1 (#1 name)) then
+    let val (thm', thy') = Thm.store_zproof name thm thy
+    in ((name, thm'), thy') end
+  else ((name, thm), thy);
+
 fun store_proofs_lazy zproof name thms thy =
   if zproof_enabled zproof (#1 name) then
     fold_map (uncurry Thm.store_zproof) (Thm_Name.list name (Lazy.force thms)) thy
@@ -307,6 +313,10 @@ fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
   let
     val name = Sign.full_name_pos thy b;
     val named_facts = Thm_Name.expr name facts;
+    val (named_facts', thy') =
+      (named_facts, thy) |-> fold_map (fn (thms, atts) => fn thy1 =>
+        let val (thms', thy2) = fold_map (store_proof zproof) thms thy1
+        in ((thms', atts), thy2) end);
 
     val unnamed = #1 name = "";
     val name_thm1 = if unnamed then #2 else uncurry (name_thm_short name_flags1);
@@ -315,12 +325,12 @@ fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
       fold_maps (fn (named_thms, atts) => fn thy =>
         let val thms = map name_thm1 named_thms
         in fold_map (Thm.theory_attributes atts o Thm.transfer thy) thms thy end);
-    val register = register_proofs zproof name;
+    val register = register_proofs {zproof = false} name;
   in
-    if unnamed then app_facts named_facts thy |-> register
+    if unnamed then app_facts named_facts' thy' |-> register
     else
       let
-        val (thms', thy') = app_facts named_facts thy |>> name_thms name_flags2 name |-> register;
+        val (thms', thy') = app_facts named_facts' thy' |>> name_thms name_flags2 name |-> register;
         val thy'' = thy' |> add_facts (b, Lazy.value thms');
       in (map (Thm.transfer thy'') thms', thy'') end
   end;
