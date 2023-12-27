@@ -250,15 +250,16 @@ fun name_thm name_flags (name, pos) =
         |> (name <> "" andalso (post orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));
 
+end;
+
+fun name_thm_flatten name_flags name =
+  name_thm name_flags (Thm_Name.flatten name);
+
 fun name_thms name_flags name_pos thms =
-  Thm_Name.list name_pos thms
-  |> map (fn (a, thm) => name_thm name_flags (Thm_Name.flatten a) thm);
+  Thm_Name.list name_pos thms |> map (uncurry (name_thm_flatten name_flags));
 
 fun name_facts name_flags name_pos facts =
-  Thm_Name.expr name_pos facts
-  |> (map o apfst o map) (fn (a, thm) => name_thm name_flags (Thm_Name.flatten a) thm);
-
-end;
+  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm_flatten name_flags));
 
 
 (* store theorems and proofs *)
