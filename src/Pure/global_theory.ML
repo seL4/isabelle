@@ -210,19 +210,21 @@ fun check_thms_lazy (thms: thm list lazy) =
   if Proofterm.any_proofs_enabled () orelse Options.default_bool "strict_facts"
   then Lazy.force_value thms else thms;
 
-fun store_proofs {zproof} name lazy_thms thy =
-  if #1 name <> "" andalso zproof andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ())
-  then
-    fold_map (uncurry Thm.store_zproof) (Thm_Name.make_list name (Lazy.force lazy_thms)) thy
+fun zproof_enabled {zproof} name =
+  name <> "" andalso zproof andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ());
+
+fun store_proofs_lazy zproof name thms thy =
+  if zproof_enabled zproof (#1 name) then
+    fold_map (uncurry Thm.store_zproof) (Thm_Name.make_list name (Lazy.force thms)) thy
     |>> Lazy.value
-  else (check_thms_lazy lazy_thms, thy);
+  else (check_thms_lazy thms, thy);
 
 fun register_proofs_lazy zproof name thms thy =
-  let val (thms', thy') = store_proofs zproof name thms thy;
+  let val (thms', thy') = store_proofs_lazy zproof name thms thy;
   in (thms', Thm.register_proofs thms' thy') end;
 
 fun register_proofs zproof name thms =
-  register_proofs_lazy zproof name (Lazy.value thms) #>> Lazy.force;
+  Lazy.value thms |> register_proofs_lazy zproof name #>> Lazy.force;
 
 
 (* name theorems *)
