@@ -303,30 +303,27 @@ fun add_thms_lazy kind (b, thms) thy =
 
 (* apply theorems and attributes *)
 
-local
-
-val app_facts =
-  fold_maps (fn (thms, atts) => fn thy =>
-    fold_map (Thm.theory_attributes atts) (map (Thm.transfer thy) thms) thy);
-
-in
-
 fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
   let
     val name = Sign.full_name_pos thy b;
+    val named_facts = Thm_Name.expr name facts;
+
+    val unnamed = #1 name = "";
+    val name_thm1 = if unnamed then #2 else uncurry (name_thm_flatten name_flags1);
+
+    val app_facts =
+      fold_maps (fn (named_thms, atts) => fn thy =>
+        let val thms = map name_thm1 named_thms
+        in fold_map (Thm.theory_attributes atts o Thm.transfer thy) thms thy end);
     val register = register_proofs zproof name;
   in
-    if #1 name = "" then app_facts facts thy |-> register
+    if unnamed then app_facts named_facts thy |-> register
     else
       let
-        val (thms', thy') = thy
-          |> app_facts (name_facts name_flags1 name facts)
-          |>> name_thms name_flags2 name |-> register;
+        val (thms', thy') = app_facts named_facts thy |>> name_thms name_flags2 name |-> register;
         val thy'' = thy' |> add_facts (b, Lazy.value thms');
       in (map (Thm.transfer thy'') thms', thy'') end
   end;
-
-end;
 
 
 (* store_thm *)
