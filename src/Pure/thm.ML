@@ -173,6 +173,7 @@ sig
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
+  val get_zproof_serials: theory -> serial list
   val get_zproof: theory -> serial -> {name: Thm_Name.T * Position.T, thm: thm} option
   val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
@@ -2075,6 +2076,8 @@ fun plain_prop_of raw_thm =
 
 
 (* stored thms: zproof *)
+
+val get_zproof_serials = Inttab.keys o get_zproofs;
 
 fun get_zproof thy =
   Inttab.lookup (get_zproofs thy)
