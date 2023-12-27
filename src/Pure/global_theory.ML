@@ -256,27 +256,24 @@ end;
 
 fun add_facts (b, fact) thy =
   let
-    val (full_name, pos) = Sign.bind_name thy b;
-    fun check fact =
-      fact |> map_index (fn (i, thm) =>
+    val check =
+      Thm_Name.make_list (Sign.bind_name thy b) #> map (fn ((name, pos), thm) =>
         let
           fun err msg =
             error ("Malformed global fact " ^
-              quote (full_name ^
-                (if length fact = 1 then "" else "(" ^ string_of_int (i + 1) ^ ")")) ^
-              Position.here pos ^ "\n" ^ msg);
+              Thm_Name.print name ^ Position.here pos ^ "\n" ^ msg);
           val prop = Thm.plain_prop_of thm
             handle THM _ =>
               thm
               |> Thm.check_hyps (Context.Theory thy)
               |> Thm.full_prop_of;
-        in
-          ignore (Logic.unvarify_global (Term_Subst.zero_var_indexes prop))
-            handle TYPE (msg, _, _) => err msg
-              | TERM (msg, _) => err msg
-              | ERROR msg => err msg
-        end);
-    val arg = (b, Lazy.map_finished (tap check) fact);
+          val _ =
+            ignore (Logic.unvarify_global (Term_Subst.zero_var_indexes prop))
+              handle TYPE (msg, _, _) => err msg
+                | TERM (msg, _) => err msg
+                | ERROR msg => err msg;
+        in thm end);
+    val arg = (b, Lazy.map_finished check fact);
   in
     thy |> map_facts (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
   end;
