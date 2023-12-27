@@ -83,7 +83,7 @@ fun hide_fact fully name = map_facts (Facts.hide fully name);
 
 fun dest_thms verbose prev_thys thy =
   Facts.dest_static verbose (map facts_of prev_thys) (facts_of thy)
-  |> maps (fn (name, thms) => Thm_Name.make_list (name, Position.none) thms |> map (apfst fst));
+  |> maps (fn (name, thms) => Thm_Name.list (name, Position.none) thms |> map (apfst fst));
 
 
 (* thm_name vs. derivation_id *)
@@ -215,7 +215,7 @@ fun zproof_enabled {zproof} name =
 
 fun store_proofs_lazy zproof name thms thy =
   if zproof_enabled zproof (#1 name) then
-    fold_map (uncurry Thm.store_zproof) (Thm_Name.make_list name (Lazy.force thms)) thy
+    fold_map (uncurry Thm.store_zproof) (Thm_Name.list name (Lazy.force thms)) thy
     |>> Lazy.value
   else (check_thms_lazy thms, thy);
 
@@ -250,7 +250,7 @@ fun name_thm name_flags (name, pos) =
             Thm.put_name_hint name));
 
 fun name_thms name_flags name_pos thms =
-  Thm_Name.make_list name_pos thms
+  Thm_Name.list name_pos thms
   |> map (fn (a, thm) => name_thm name_flags (Thm_Name.flatten a) thm);
 
 end;
@@ -261,7 +261,7 @@ end;
 fun add_facts (b, fact) thy =
   let
     val check =
-      Thm_Name.make_list (Sign.full_name_pos thy b) #> map (fn ((name, pos), thm) =>
+      Thm_Name.list (Sign.full_name_pos thy b) #> map (fn ((name, pos), thm) =>
         let
           fun err msg =
             error ("Malformed global fact " ^

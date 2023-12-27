@@ -296,7 +296,7 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-fun name_thms name = split_list #>> burrow (Thm_Name.make_list name) #> op ~~;
+fun name_thms name = split_list #>> burrow (Thm_Name.list name) #> op ~~;
 
 val name_thm1 = Global_Theory.name_thm Global_Theory.official1 o Thm_Name.flatten;
 val name_thm2 = Global_Theory.name_thm Global_Theory.unofficial2 o Thm_Name.flatten;

@@ -13,7 +13,7 @@ sig
   val ord: T ord
   val print: T -> string
   val flatten: T * Position.T -> string * Position.T
-  val make_list: string * Position.T -> 'a list -> ((T * Position.T) * 'a) list
+  val list: string * Position.T -> 'a list -> ((T * Position.T) * 'a) list
 end;
 
 structure Thm_Name: THM_NAME =
@@ -30,7 +30,7 @@ fun flatten ((name, index), pos) =
   if name = "" orelse index = 0 then (name, pos)
   else (name ^ "_" ^ string_of_int index, pos);
 
-fun make_list (name, pos) [thm] = [(((name, 0), pos), thm)]
-  | make_list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
+fun list (name, pos: Position.T) [thm] = [(((name, 0): T, pos), thm)]
+  | list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
 
 end;
