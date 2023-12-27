@@ -1035,13 +1035,13 @@ fun add_facts {index} arg ctxt = ctxt
 fun update_facts flags (b, SOME ths) ctxt = ctxt |> add_facts flags (b, Lazy.value ths) |> #2
   | update_facts _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b));
 
-fun bind_name ctxt b = (full_name ctxt b, Binding.default_pos_of b);
+fun full_name_pos ctxt b = (full_name ctxt b, Binding.default_pos_of b);
 
 in
 
 fun add_thms_lazy kind (b, ths) ctxt =
   let
-    val name_pos = bind_name ctxt b;
+    val name_pos = full_name_pos ctxt b;
     val ths' =
       Global_Theory.check_thms_lazy ths
       |> Lazy.map_finished
@@ -1051,7 +1051,7 @@ fun add_thms_lazy kind (b, ths) ctxt =
 
 fun note_thms kind ((b, more_atts), facts) ctxt =
   let
-    val name_pos = bind_name ctxt b;
+    val name_pos = full_name_pos ctxt b;
     fun app_fact (thms, atts) =
       fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts)))
         (Global_Theory.name_thms Global_Theory.unofficial1 name_pos thms);

@@ -43,7 +43,7 @@ sig
   val full_name_path: theory -> string -> binding -> string
   val full_bname: theory -> bstring -> string
   val full_bname_path: theory -> string -> bstring -> string
-  val bind_name: theory -> binding -> string * Position.T
+  val full_name_pos: theory -> binding -> string * Position.T
   val const_monomorphic: theory -> string -> bool
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
@@ -229,7 +229,7 @@ fun full_name_path thy path = Name_Space.full_name (Name_Space.add_path path (na
 fun full_bname thy = Name_Space.full_name (naming_of thy) o Binding.name;
 fun full_bname_path thy path = full_name_path thy path o Binding.name;
 
-fun bind_name thy b = (full_name thy b, Binding.default_pos_of b);
+fun full_name_pos thy b = (full_name thy b, Binding.default_pos_of b);
 
 
 

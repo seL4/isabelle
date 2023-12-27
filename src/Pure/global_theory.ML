@@ -257,7 +257,7 @@ end;
 fun add_facts (b, fact) thy =
   let
     val check =
-      Thm_Name.make_list (Sign.bind_name thy b) #> map (fn ((name, pos), thm) =>
+      Thm_Name.make_list (Sign.full_name_pos thy b) #> map (fn ((name, pos), thm) =>
         let
           fun err msg =
             error ("Malformed global fact " ^
@@ -279,7 +279,7 @@ fun add_facts (b, fact) thy =
   end;
 
 fun add_thms_lazy kind (b, thms) thy =
-  let val (name, pos) = Sign.bind_name thy b in
+  let val (name, pos) = Sign.full_name_pos thy b in
     if name = "" then register_proofs_lazy (name, pos) thms thy |> #2
     else
       register_proofs_lazy (name, pos)
@@ -299,7 +299,7 @@ val app_facts =
 in
 
 fun apply_facts name_flags1 name_flags2 (b, facts) thy =
-  let val (name, pos) = Sign.bind_name thy b in
+  let val (name, pos) = Sign.full_name_pos thy b in
     if name = "" then app_facts facts thy |-> register_proofs (name, pos)
     else
       let

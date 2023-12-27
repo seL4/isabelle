@@ -366,7 +366,7 @@ fun notes target_notes kind facts0 lthy =
     val (facts', lthy') =
       (facts, lthy) |-> fold_map (fn (a, thms) => fn lthy1 =>
         let
-          val thms1 = name_thms (Local_Theory.bind_name lthy1 (fst a)) thms;
+          val thms1 = name_thms (Local_Theory.full_name_pos lthy1 (fst a)) thms;
           val (thms2, lthy2) =
             (thms1, lthy1) |-> fold_map (fn (args, atts) =>
               fold_map thm_definition args #>> rpair atts);
