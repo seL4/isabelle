@@ -220,3 +220,6 @@ val add_tfree_names = fold_types add_tfree_namesT;
 val add_free_names = fold_aterms (fn Free (x, _) => add_set x | _ => I);
 
 end;
+
+
+structure Types = Term_Items(type key = typ val ord = Term_Ord.typ_ord);
