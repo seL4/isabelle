@@ -366,7 +366,7 @@ type unconstrain_context =
 fun unconstrainT shyps prop =
   let
     val present = Types.build (prop |> (fold_types o fold_atyps) Types.add_set);
-    val present_sorts = map (fn T => (T, Term.dest_atyp_sort T)) (Types.list_set present);
+    val present_sorts = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present);
 
     val extra = fold (Sorts.remove_sort o #2) present_sorts shyps;
 
