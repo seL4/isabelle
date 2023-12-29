@@ -122,6 +122,7 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val dest_atyp_sort: typ -> sort
   val aT: sort -> typ
   val itselfT: typ -> typ
   val a_itselfT: typ
@@ -278,6 +279,10 @@ fun dest_TFree (TFree x) = x
 
 fun dest_TVar (TVar x) = x
   | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
+
+fun dest_atyp_sort (TFree (_, S)) = S
+  | dest_atyp_sort (TVar (_, S)) = S
+  | dest_atyp_sort T = raise TYPE ("dest_atyp_sort", [T], []);
 
 
 (** Discriminators **)
