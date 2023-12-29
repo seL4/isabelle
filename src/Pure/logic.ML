@@ -60,9 +60,7 @@ sig
   val dest_arity: term -> string * sort list * class
   val dummy_tfree: sort -> typ
   type unconstrain_context =
-   {present_map: (typ * typ) list,
-    constraints_map: (sort * typ) list,
-    atyp_map: typ -> typ,
+   {atyp_map: typ -> typ,
     map_atyps: typ -> typ,
     constraints: ((typ * class) * term) list,
     outer_constraints: (typ * class) list};
@@ -356,9 +354,7 @@ fun dest_arity tm =
 fun dummy_tfree S = TFree ("'dummy", S);
 
 type unconstrain_context =
- {present_map: (typ * typ) list,
-  constraints_map: (sort * typ) list,
-  atyp_map: typ -> typ,
+ {atyp_map: typ -> typ,
   map_atyps: typ -> typ,
   constraints: ((typ * class) * term) list,
   outer_constraints: (typ * class) list};
@@ -397,9 +393,7 @@ fun unconstrainT shyps prop =
       maps (fn (T, S) => map (pair T) S) (present_sorts @ map (`dummy_tfree) extra);
 
     val ucontext =
-     {present_map = present_map,
-      constraints_map = constraints_map,
-      atyp_map = atyp_map,
+     {atyp_map = atyp_map,
       map_atyps = map_atyps,
       constraints = constraints,
       outer_constraints = outer_constraints};
