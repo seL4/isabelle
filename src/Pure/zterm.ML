@@ -244,6 +244,9 @@ sig
   val subst_term_bound: zterm -> zterm -> zterm
   val subst_proof_bound: zterm -> zproof -> zproof
   val subst_proof_boundp: zproof -> zproof -> zproof
+  val subst_type_same: (indexname * sort, ztyp) Same.function -> ztyp Same.operation
+  val subst_term_same:
+    ztyp Same.operation -> (indexname * ztyp, zterm) Same.function -> zterm Same.operation
   exception BAD_INST of ((indexname * ztyp) * zterm) list
   val map_proof: ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
   val map_proof_types: ztyp Same.operation -> zproof -> zproof
