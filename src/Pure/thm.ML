@@ -1086,21 +1086,20 @@ fun strip_shyps thm =
 
         val shyps' = fold (Sorts.insert_sort o #2) present extra';
 
-        val replacements = present @ witnessed @ map (`Logic.dummy_tfree) extra';
-        fun get_replacement S =
-          replacements |> get_first (fn (T', S') => if le (S', S) then SOME T' else NONE);
-        fun replace_atyp T =
+        val types = present @ witnessed @ map (`Logic.dummy_tfree) extra';
+        fun get_type S = types |> get_first (fn (U, S') => if le (S', S) then SOME U else NONE);
+        fun map_atyp T =
           if Types.defined present_set T then raise Same.SAME
           else
-            (case get_replacement (Type.sort_of_atyp T) of
-              SOME T' => T'
+            (case get_type (Type.sort_of_atyp T) of
+              SOME U => U
             | NONE => raise Fail "strip_shyps: bad type variable in proof term");
-        val replace_ztyp =
+        val map_ztyp =
           ZTypes.unsynchronized_cache
-            (ZTerm.subst_type_same (ZTerm.ztyp_of o replace_atyp o ZTerm.typ_of o ZTVar));
+            (ZTerm.subst_type_same (ZTerm.ztyp_of o map_atyp o ZTerm.typ_of o ZTVar));
 
-        val zproof' = ZTerm.map_proof_types replace_ztyp zproof;
-        val proof' = Proofterm.map_proof_types (Term_Subst.map_atypsT_same replace_atyp) proof;
+        val zproof' = ZTerm.map_proof_types map_ztyp zproof;
+        val proof' = Proofterm.map_proof_types (Term_Subst.map_atypsT_same map_atyp) proof;
       in
         Thm (make_deriv promises oracles thms zboxes zproof' proof',
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
