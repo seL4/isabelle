@@ -64,7 +64,8 @@ sig
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
   val classrel_derivation: algebra ->
     ('a * class -> class -> 'a) -> 'a * class -> class -> 'a  (*exception CLASS_ERROR*)
-  val witness_sorts: algebra -> string list -> (typ * sort) list -> sort Ord_List.T ->
+  val witness_sorts: algebra -> string list ->
+    (typ * sort) list -> sort Ord_List.T ->
     (typ * sort) list * sort Ord_List.T
 end;
 

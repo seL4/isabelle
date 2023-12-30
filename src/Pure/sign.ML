@@ -23,7 +23,8 @@ sig
   val subsort: theory -> sort * sort -> bool
   val of_sort: theory -> typ * sort -> bool
   val inter_sort: theory -> sort * sort -> sort
-  val witness_sorts: theory -> (typ * sort) list -> sort Ord_List.T ->
+  val witness_sorts: theory ->
+    (typ * sort) list -> sort Ord_List.T ->
     (typ * sort) list * sort Ord_List.T
   val logical_types: theory -> string list
   val typ_instance: theory -> typ * typ -> bool
