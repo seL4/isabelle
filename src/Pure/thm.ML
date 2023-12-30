@@ -1095,11 +1095,14 @@ fun strip_shyps thm =
             (case get_replacement (Type.sort_of_atyp T) of
               SOME T' => T'
             | NONE => raise Fail "strip_shyps: bad type variable in proof term");
+        val replace_ztyp =
+          ZTypes.unsynchronized_cache
+            (ZTerm.subst_type_same (ZTerm.ztyp_of o replace_atyp o ZTerm.typ_of o ZTVar));
 
-        val proof' = proof
-          |> Same.commit (Proofterm.map_proof_types_same (Term_Subst.map_atypsT_same replace_atyp));
+        val zproof' = ZTerm.map_proof_types replace_ztyp zproof;
+        val proof' = Proofterm.map_proof_types (Term_Subst.map_atypsT_same replace_atyp) proof;
       in
-        Thm (make_deriv promises oracles thms zboxes zproof proof',
+        Thm (make_deriv promises oracles thms zboxes zproof' proof',
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end)
