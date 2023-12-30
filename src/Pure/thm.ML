@@ -1063,8 +1063,10 @@ fun strip_shyps thm =
         fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
         fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
 
-        val present =
-          (fold_terms {hyps = true} o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
+        val present_set =
+          Types.build (thm |> (fold_terms {hyps = true} o fold_types o fold_atyps) Types.add_set);
+        val present = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present_set);
+
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
         val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
