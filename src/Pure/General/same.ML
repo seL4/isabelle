@@ -16,6 +16,7 @@ sig
   val catch: ('a, 'b) function -> 'a -> 'b option
   val compose: 'a operation -> 'a operation -> 'a operation
   val function: ('a -> 'b option) -> ('a, 'b) function
+  val function_eq: ('a * 'b -> bool) -> ('a -> 'b) -> ('a, 'b) function
   val map: 'a operation -> 'a list operation
   val map_option: ('a, 'b) function -> ('a option, 'b option) function
 end;
@@ -43,6 +44,10 @@ fun function f x =
   (case f x of
     NONE => raise SAME
   | SOME y => y);
+
+fun function_eq eq f x =
+  let val y = f x
+  in if eq (x, y) then raise SAME else y end;
 
 fun map f [] = raise SAME
   | map f (x :: xs) = (f x :: commit (map f) xs handle SAME => x :: map f xs);

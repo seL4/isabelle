@@ -558,12 +558,11 @@ fun map_proof_same term typ ofclass =
 fun map_proof_terms_same term typ = map_proof_same term typ (fn (T, c) => PClass (typ T, c));
 fun map_proof_types_same typ = map_proof_terms_same (Term_Subst.map_types_same typ) typ;
 
-fun same eq f x =
-  let val x' = f x
-  in if eq (x, x') then raise Same.SAME else x' end;
+fun map_proof_terms f g =
+  Same.commit (map_proof_terms_same (Same.function_eq (op =) f) (Same.function_eq (op =) g));
 
-fun map_proof_terms f g = Same.commit (map_proof_terms_same (same (op =) f) (same (op =) g));
-fun map_proof_types f = Same.commit (map_proof_types_same (same (op =) f));
+fun map_proof_types f =
+  Same.commit (map_proof_types_same (Same.function_eq (op =) f));
 
 fun fold_proof_terms f (Abst (_, _, prf)) = fold_proof_terms f prf
   | fold_proof_terms f (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms f prf
