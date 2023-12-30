@@ -73,11 +73,11 @@ fun alternative f (SOME x) (SOME y) = SOME (f (x, y))
   | alternative _ NONE (y as SOME _) = y
   | alternative _ NONE NONE = NONE
 
-fun varify_nonfixed_terms_global nonfixeds tm = tm
-  |> Same.commit (Term_Subst.map_aterms_same
+fun varify_nonfixed_terms_global nonfixeds tm =
+  tm |> Term_Subst.map_aterms
     (fn Free (x, T) => if member (op =) nonfixeds x then Var ((x, 0), T) else raise Same.SAME
       | Var (xi, _) => raise TERM (Logic.bad_schematic xi, [tm])
-      | _ => raise Same.SAME))
+      | _ => raise Same.SAME)
 
 fun max_outcome outcomes =
   let

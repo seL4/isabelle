@@ -48,9 +48,7 @@ fun mk_param i S = TVar (("?'a", i), S);
 fun anyT S = TFree ("'_dummy_", S);
 
 val paramify_vars =
-  Same.commit
-    (Term_Subst.map_atypsT_same
-      (fn TVar ((x, i), S) => (param i (x, S)) | _ => raise Same.SAME));
+  Term_Subst.map_atypsT (fn TVar ((x, i), S) => (param i (x, S)) | _ => raise Same.SAME);
 
 
 

@@ -9,6 +9,9 @@ sig
   val map_atypsT_same: typ Same.operation -> typ Same.operation
   val map_types_same: typ Same.operation -> term Same.operation
   val map_aterms_same: term Same.operation -> term Same.operation
+  val map_atypsT: typ Same.operation -> typ -> typ
+  val map_types: typ Same.operation -> term -> term
+  val map_aterms: term Same.operation -> term -> term
   val generalizeT_same: Names.set -> int -> typ Same.operation
   val generalize_same: Names.set * Names.set -> int -> term Same.operation
   val generalizeT: Names.set -> int -> typ -> typ
@@ -62,6 +65,10 @@ fun map_aterms_same f =
       | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
       | term a = f a;
   in term end;
+
+val map_atypsT = Same.commit o map_atypsT_same;
+val map_types = Same.commit o map_types_same;
+val map_aterms = Same.commit o map_aterms_same;
 
 
 (* generalization of fixed variables *)

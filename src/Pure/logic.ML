@@ -404,7 +404,7 @@ fun unconstrainT shyps prop =
       constraints = constraints,
       outer_constraints = outer_constraints};
     val prop' = prop
-      |> Same.commit (Term_Subst.map_types_same (unconstrain_typ {strip_sorts = true}))
+      |> Term_Subst.map_types (unconstrain_typ {strip_sorts = true})
       |> curry list_implies (map #2 constraints);
   in (ucontext, prop') end;
 
@@ -627,27 +627,27 @@ fun unvarifyT_global_same ty = ty
 val varifyT_global = Same.commit varifyT_global_same;
 val unvarifyT_global = Same.commit unvarifyT_global_same;
 
-fun varify_types_global tm = tm
-  |> Same.commit (Term_Subst.map_types_same varifyT_global_same)
-  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
+fun varify_types_global tm =
+  Term_Subst.map_types varifyT_global_same tm
+    handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
-fun unvarify_types_global tm = tm
-  |> Same.commit (Term_Subst.map_types_same unvarifyT_global_same)
-  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
+fun unvarify_types_global tm =
+  Term_Subst.map_types unvarifyT_global_same tm
+    handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 fun varify_global tm = tm
-  |> Same.commit (Term_Subst.map_aterms_same
+  |> Term_Subst.map_aterms
     (fn Free (x, T) => Var ((x, 0), T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
-      | _ => raise Same.SAME))
+      | _ => raise Same.SAME)
   |> varify_types_global;
 
 fun unvarify_global tm = tm
-  |> Same.commit (Term_Subst.map_aterms_same
+  |> Term_Subst.map_aterms
     (fn Var ((x, 0), T) => Free (x, T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])
-      | _ => raise Same.SAME))
+      | _ => raise Same.SAME)
   |> unvarify_types_global;
 
 

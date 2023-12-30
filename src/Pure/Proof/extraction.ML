@@ -390,10 +390,10 @@ fun abs_corr_shyps thy thm vs xs prf =
     val cs = maps (fn T => map (pair T) S) Ts;
     val constraints' = map Logic.mk_of_class cs;
     val typ_map = Type.strip_sorts o
-      Same.commit (Term_Subst.map_atypsT_same (fn U =>
+      Term_Subst.map_atypsT (fn U =>
         if member (op =) atyps U
         then #unconstrain_typ ucontext {strip_sorts = false} U
-        else raise Same.SAME));
+        else raise Same.SAME);
     fun mk_hyp (T, c) = Hyp (Logic.mk_of_class (typ_map T, c));
     val xs' = map (map_types typ_map) xs
   in
