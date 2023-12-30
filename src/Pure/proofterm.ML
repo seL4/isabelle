@@ -2142,9 +2142,11 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
     val typ = #unconstrain_typ ucontext {strip_sorts = true};
     val typ_sort = #unconstrain_typ ucontext {strip_sorts = false};
 
-    fun ofclass (ty, c) =
-      let val ty' = Same.commit typ_sort ty;
-      in the_single (of_sort_proof algebra classrel_proof arity_proof hyp_map (ty', [c])) end;
+    fun ofclass (T, c) =
+      let
+        val T' = Same.commit typ_sort T;
+        val [p] = of_sort_proof algebra classrel_proof arity_proof hyp_map (T', [c])
+      in p end;
   in
     Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
     #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
