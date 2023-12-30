@@ -361,18 +361,17 @@ type unconstrain_context =
 
 fun unconstrainT shyps prop =
   let
-    val present = Types.build (prop |> (fold_types o fold_atyps) Types.add_set);
-    val present_sorts = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present);
+    val present_set = Types.build (prop |> (fold_types o fold_atyps) Types.add_set);
+    val present = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present_set);
+    val extra = fold (Sorts.remove_sort o #2) present shyps;
 
-    val extra = fold (Sorts.remove_sort o #2) present_sorts shyps;
-
-    val n = Types.size present;
+    val n = Types.size present_set;
     val (names1, names2) = Name.invent Name.context Name.aT (n + length extra) |> chop n;
 
     val present_map =
-      map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present_sorts names1;
+      map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present names1;
     val constraints_map =
-      map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present_sorts names1 @
+      map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present names1 @
       map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
 
     fun atyp_map T =
@@ -390,7 +389,7 @@ fun unconstrainT shyps prop =
         map (fn c => ((T, c), mk_of_class (TVar (ai, []), c))) S);
 
     val outer_constraints =
-      maps (fn (T, S) => map (pair T) S) (present_sorts @ map (`dummy_tfree) extra);
+      maps (fn (T, S) => map (pair T) S) (present @ map (`dummy_tfree) extra);
 
     val ucontext =
      {atyp_map = atyp_map,
