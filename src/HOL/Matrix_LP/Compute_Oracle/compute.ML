@@ -297,7 +297,7 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
               | HASKELL => ProgHaskell (AM_GHC.compile rules)
               | SML => ProgSML (AM_SML.compile rules)
 
-        fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
+        fun has_witness s = not (null (#1 (Sign.witness_sorts thy [] [s])))
 
         val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
 
@@ -345,7 +345,7 @@ val (_, export_oracle) =
         val shyptab = add_shyps shyps Sorttab.empty
         fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
         fun delete_term t shyptab = fold delete (Sorts.insert_term t []) shyptab
-        fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
+        fun has_witness s = not (null (#1 (Sign.witness_sorts thy [] [s])))
         val shyptab = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptab))) shyptab
         val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
         val _ =

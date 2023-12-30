@@ -64,7 +64,8 @@ sig
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
   val classrel_derivation: algebra ->
     ('a * class -> class -> 'a) -> 'a * class -> class -> 'a  (*exception CLASS_ERROR*)
-  val witness_sorts: algebra -> string list -> (typ * sort) list -> sort list -> (typ * sort) list
+  val witness_sorts: algebra -> string list -> (typ * sort) list -> sort Ord_List.T ->
+    (typ * sort) list * sort Ord_List.T
 end;
 
 structure Sorts: SORTS =
@@ -489,6 +490,8 @@ fun witness_sorts algebra ground_types hyps sorts =
                 end
           | NONE => witn_types path ts S solved_failed);
 
-  in map_filter I (#1 (witn_sorts [] sorts ([], []))) end;
+    val witnessed = map_filter I (#1 (witn_sorts [] sorts ([], [])));
+    val non_witnessed = fold (remove_sort o #2) witnessed sorts;
+  in (witnessed, non_witnessed) end;
 
 end;

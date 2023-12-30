@@ -1058,9 +1058,7 @@ fun strip_shyps thm =
         val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
 
         val thy = theory_of_thm thm;
-
         val algebra = Sign.classes_of thy;
-        val minimize = Sorts.minimize_sort algebra;
         val le = Sorts.sort_le algebra;
         fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
         fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
@@ -1070,8 +1068,8 @@ fun strip_shyps thm =
         val present = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present_set);
 
         val extra = fold (Sorts.remove_sort o #2) present shyps;
-        val witnessed = Sign.witness_sorts thy present extra;
-        val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
+        val (witnessed, non_witnessed) =
+          Sign.witness_sorts thy present extra ||> map (`(Sorts.minimize_sort algebra));
 
         val extra' =
           non_witnessed |> map_filter (fn (S, _) =>
