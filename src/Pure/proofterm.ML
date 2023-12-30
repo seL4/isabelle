@@ -2139,9 +2139,11 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
         SOME t => Hyp t
       | NONE => raise Fail "unconstrainT_proof: missing constraint");
 
-    val typ = Term_Subst.map_atypsT_same (Type.strip_sorts o #atyp_map ucontext);
+    val typ = #unconstrain_typ ucontext {strip_sorts = true};
+    val typ_sort = #unconstrain_typ ucontext {strip_sorts = false};
+
     fun ofclass (ty, c) =
-      let val ty' = Term.map_atyps (#atyp_map ucontext) ty;
+      let val ty' = Same.commit typ_sort ty;
       in the_single (of_sort_proof algebra classrel_proof arity_proof hyp_map (ty', [c])) end;
   in
     Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
@@ -2182,7 +2184,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val prop = Logic.list_implies (hyps, concl);
     val args = prop_args prop;
 
-    val (ucontext, prop1) = Logic.unconstrainT shyps prop;
+    val (ucontext as {unconstrain_typ, ...}, prop1) = Logic.unconstrainT shyps prop;
 
     val proofs = get_proofs_level ();
     val (zboxes1, zproof1) =
@@ -2241,7 +2243,9 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val head = PThm (header, Thm_Body {open_proof = open_proof, body = thm_body});
     val proof2 =
       if unconstrain then
-        proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
+        proof_combt' (head,
+          (Same.commit o Same.map o Same.map_option o Term_Subst.map_types_same)
+            (unconstrain_typ {strip_sorts = true}) args)
       else
         proof_combP (proof_combt' (head, args),
           map PClass (#outer_constraints ucontext) @ map Hyp hyps);

@@ -60,10 +60,9 @@ sig
   val dest_arity: term -> string * sort list * class
   val dummy_tfree: sort -> typ
   type unconstrain_context =
-   {atyp_map: typ -> typ,
-    map_atyps: typ -> typ,
+   {unconstrain_typ: {strip_sorts: bool} -> typ Same.operation,
     constraints: ((typ * class) * term) list,
-    outer_constraints: (typ * class) list};
+    outer_constraints: (typ * class) list}
   val unconstrainT: sort list -> term -> unconstrain_context * term
   val protectC: term
   val protect: term -> term
@@ -354,8 +353,7 @@ fun dest_arity tm =
 fun dummy_tfree S = TFree ("'dummy", S);
 
 type unconstrain_context =
- {atyp_map: typ -> typ,
-  map_atyps: typ -> typ,
+ {unconstrain_typ: {strip_sorts: bool} -> typ Same.operation,
   constraints: ((typ * class) * term) list,
   outer_constraints: (typ * class) list};
 
@@ -374,15 +372,18 @@ fun unconstrainT shyps prop =
       map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present names1 @
       map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
 
-    fun atyp_map T =
+    fun unconstrain_atyp {strip_sorts} T =
       (case AList.lookup (op =) present_map T of
-        SOME U => U
+        SOME U => U |> strip_sorts ? Type.strip_sorts
       | NONE =>
           (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
-            SOME U => U
+            SOME U => U |> strip_sorts ? Type.strip_sorts
           | NONE => raise TYPE ("Dangling type variable ", [T], [prop])));
 
-    val map_atyps = Term.map_atyps (Type.strip_sorts o atyp_map);
+    fun unconstrain_typ strip_sorts =
+      Term_Subst.map_atypsT_same (fn T =>
+        let val T' = unconstrain_atyp strip_sorts T
+        in if T = T' then raise Same.SAME else T' end);
 
     val constraints =
       constraints_map |> maps (fn (_, T as TVar (ai, S)) =>
@@ -392,12 +393,11 @@ fun unconstrainT shyps prop =
       maps (fn (T, S) => map (pair T) S) (present @ map (`dummy_tfree) extra);
 
     val ucontext =
-     {atyp_map = atyp_map,
-      map_atyps = map_atyps,
+     {unconstrain_typ = unconstrain_typ,
       constraints = constraints,
       outer_constraints = outer_constraints};
     val prop' = prop
-      |> Term.map_types map_atyps
+      |> Same.commit (Term_Subst.map_types_same (unconstrain_typ {strip_sorts = true}))
       |> curry list_implies (map #2 constraints);
   in (ucontext, prop') end;
 
