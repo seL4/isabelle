@@ -369,7 +369,7 @@ fun unconstrainT shyps prop =
     val present_map =
       map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present names1;
     val constraints_map =
-      map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present names1 @
+      map (fn (_, V) => (Type.sort_of_atyp V, V)) present_map @
       map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
 
     fun unconstrain_atyp {strip_sorts} T =
