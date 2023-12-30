@@ -1076,12 +1076,15 @@ fun strip_shyps thm =
             if non_witnessed |> exists (fn (S', _) => lt (S', S)) then NONE else SOME S)
           |> Sorts.make;
 
-        val constrs' =
+        val non_witnessed_constraints =
           non_witnessed |> maps (fn (S1, S2) =>
             let val S0 = the (find_first (fn S => le (S, S1)) extra')
             in rel (S0, S1) @ rel (S1, S2) end);
 
-        val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
+        val constraints' = constraints
+          |> fold (insert_constraints thy) witnessed
+          |> fold (insert_constraints thy) non_witnessed_constraints;
+
         val shyps' = fold (Sorts.insert_sort o #2) present extra';
 
         val replacements = present @ witnessed @ map (`Logic.dummy_tfree) extra';
