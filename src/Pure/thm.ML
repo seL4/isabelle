@@ -1055,6 +1055,8 @@ fun strip_shyps thm =
     Thm (_, {shyps = [], ...}) => thm
   | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
       let
+        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
+
         val thy = theory_of_thm thm;
 
         val algebra = Sign.classes_of thy;
@@ -1084,8 +1086,18 @@ fun strip_shyps thm =
         val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
         val shyps' = fold (Sorts.insert_sort o #2) present extra';
 
-        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
-        val proof' = Proofterm.strip_shyps_proof algebra present witnessed extra' proof;
+        val replacements = present @ witnessed @ map (`Logic.dummy_tfree) extra';
+        fun get_replacement S =
+          replacements |> get_first (fn (T', S') => if le (S', S) then SOME T' else NONE);
+        fun replace_atyp T =
+          if Types.defined present_set T then raise Same.SAME
+          else
+            (case get_replacement (Type.sort_of_atyp T) of
+              SOME T' => T'
+            | NONE => raise Fail "strip_shyps: bad type variable in proof term");
+
+        val proof' = proof
+          |> Same.commit (Proofterm.map_proof_types_same (Term_Subst.map_atypsT_same replace_atyp));
       in
         Thm (make_deriv promises oracles thms zboxes zproof proof',
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',

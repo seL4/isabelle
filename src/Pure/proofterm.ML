@@ -145,8 +145,6 @@ sig
   val abstract_rule_proof: string * term -> proof -> proof
   val combination_proof: term -> term -> term -> term -> proof -> proof -> proof
   val could_unify: proof * proof -> bool
-  val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
-    sort list -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
     (class * class -> proof) ->
     (string * class list list * class -> proof) ->
@@ -1099,20 +1097,6 @@ fun bicompose_proof env smax flatten Bs As A oldAs n m rprf sprf =
 
 
 (** type classes **)
-
-fun strip_shyps_proof algebra present witnessed extra prf =
-  let
-    val replacements = present @ witnessed @ map (`Logic.dummy_tfree) extra;
-    fun get_replacement S =
-      replacements |> get_first (fn (T', S') =>
-        if Sorts.sort_le algebra (S', S) then SOME T' else NONE);
-    fun replace T =
-      if exists (fn (T', _) => T' = T) present then raise Same.SAME
-      else
-        (case get_replacement (Type.sort_of_atyp T) of
-          SOME T' => T'
-        | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
-  in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
 
 fun of_sort_proof algebra classrel_proof arity_proof hyps =
   Sorts.of_sort_derivation algebra
