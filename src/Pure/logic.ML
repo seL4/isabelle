@@ -58,6 +58,8 @@ sig
   val mk_arities: arity -> term list
   val mk_arity: string * sort list * class -> term
   val dest_arity: term -> string * sort list * class
+  val present_sorts: sort Ord_List.T -> Types.set ->
+    {present: (typ * sort) list, extra: sort Ord_List.T}
   val dummy_tfree: sort -> typ
   type unconstrain_context =
    {unconstrain_typ: {strip_sorts: bool} -> typ Same.operation,
@@ -352,6 +354,12 @@ fun dest_arity tm =
 
 fun dummy_tfree S = TFree ("'dummy", S);
 
+fun present_sorts shyps present_set =
+  let
+    val present = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present_set);
+    val extra = fold (Sorts.remove_sort o #2) present shyps;
+  in {present = present, extra = extra} end;
+
 type unconstrain_context =
  {unconstrain_typ: {strip_sorts: bool} -> typ Same.operation,
   constraints: ((typ * class) * term) list,
@@ -360,8 +368,7 @@ type unconstrain_context =
 fun unconstrainT shyps prop =
   let
     val present_set = Types.build (prop |> (fold_types o fold_atyps) Types.add_set);
-    val present = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present_set);
-    val extra = fold (Sorts.remove_sort o #2) present shyps;
+    val {present, extra} = present_sorts shyps present_set;
 
     val n = Types.size present_set;
     val (names1, names2) = Name.invent Name.context Name.aT (n + length extra) |> chop n;

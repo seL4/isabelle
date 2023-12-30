@@ -1065,9 +1065,8 @@ fun strip_shyps thm =
 
         val present_set =
           Types.build (thm |> (fold_terms {hyps = true} o fold_types o fold_atyps) Types.add_set);
-        val present = map (fn T => (T, Type.sort_of_atyp T)) (Types.list_set present_set);
+        val {present, extra} = Logic.present_sorts shyps present_set;
 
-        val extra = fold (Sorts.remove_sort o #2) present shyps;
         val (witnessed, non_witnessed) =
           Sign.witness_sorts thy present extra ||> map (`(Sorts.minimize_sort algebra));
 
