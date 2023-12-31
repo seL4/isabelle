@@ -147,7 +147,7 @@ sig
   val could_unify: proof * proof -> bool
   type sorts_proof = (class * class -> proof) * (string * class list list * class -> proof)
   val of_sort_proof: Sorts.algebra -> sorts_proof -> (typ * class -> proof) -> typ * sort -> proof list
-  val axm_proof: string -> term -> proof
+  val axiom_proof: string -> term -> proof
   val oracle_proof: string -> term -> proof
   val shrink_proof: proof -> proof
 
@@ -1201,7 +1201,7 @@ fun const_proof mk name prop =
     val head = mk (name, prop1, NONE);
   in proof_combP (proof_combt' (head, args), map PClass outer_constraints) end;
 
-val axm_proof = const_proof PAxm;
+val axiom_proof = const_proof PAxm;
 val oracle_proof = const_proof Oracle;
 
 val shrink_proof =

@@ -870,7 +870,7 @@ fun axiom thy name =
     SOME prop =>
       let
         fun zproof () = ZTerm.axiom_proof thy name prop;
-        fun proof () = Proofterm.axm_proof name prop;
+        fun proof () = Proofterm.axiom_proof name prop;
         val cert = Context.Certificate thy;
         val maxidx = maxidx_of_term prop;
         val shyps = Sorts.insert_term prop [];
