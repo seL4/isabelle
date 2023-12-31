@@ -1088,12 +1088,13 @@ fun strip_shyps thm =
 
         val types = present @ witnessed @ map (`Logic.dummy_tfree) extra';
         fun get_type S = types |> get_first (fn (T', S') => if le (S', S) then SOME T' else NONE);
-        fun map_atyp T =
-          if Types.defined present_set T then raise Same.SAME
-          else
-            (case get_type (Type.sort_of_atyp T) of
-              SOME T' => T'
-            | NONE => raise Fail "strip_shyps: bad type variable in proof term");
+        val map_atyp =
+          Same.function_eq (op =) (fn T =>
+            if Types.defined present_set T then raise Same.SAME
+            else
+              (case get_type (Type.sort_of_atyp T) of
+                SOME T' => T'
+              | NONE => raise Fail "strip_shyps: bad type variable in proof term"));
         val map_ztyp =
           ZTypes.unsynchronized_cache
             (ZTerm.subst_type_same (ZTerm.ztyp_of o map_atyp o ZTerm.typ_of o ZTVar));
