@@ -1106,8 +1106,8 @@ fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
 
 fun unconstrainT_proof algebra sorts_proof (ucontext: Logic.unconstrain_context) =
   let
-    val typ = #unconstrain_typ ucontext {strip_sorts = true};
-    val typ_sort = #unconstrain_typ ucontext {strip_sorts = false};
+    val typ = #typ_operation ucontext {strip_sorts = true};
+    val typ_sort = #typ_operation ucontext {strip_sorts = false};
 
     fun hyps T =
       (case AList.lookup (op =) (#constraints ucontext) T of
@@ -2181,7 +2181,7 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
     val prop = Logic.list_implies (hyps, concl);
     val args = prop_args prop;
 
-    val (ucontext as {unconstrain_typ, ...}, prop1) = Logic.unconstrainT shyps prop;
+    val (ucontext as {typ_operation, ...}, prop1) = Logic.unconstrainT shyps prop;
 
     val proofs = get_proofs_level ();
     val (zboxes1, zproof1) =
@@ -2241,7 +2241,7 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
       if unconstrain then
         proof_combt' (head,
           (Same.commit o Same.map o Same.map_option o Term_Subst.map_types_same)
-            (unconstrain_typ {strip_sorts = true}) args)
+            (typ_operation {strip_sorts = true}) args)
       else
         proof_combP (proof_combt' (head, args),
           map PClass (#outer_constraints ucontext) @ map Hyp hyps);

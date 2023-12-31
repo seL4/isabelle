@@ -62,7 +62,7 @@ sig
     {present: (typ * sort) list, extra: sort Ord_List.T}
   val dummy_tfree: sort -> typ
   type unconstrain_context =
-   {unconstrain_typ: {strip_sorts: bool} -> typ Same.operation,
+   {typ_operation: {strip_sorts: bool} -> typ Same.operation,
     constraints: ((typ * class) * term) list,
     outer_constraints: (typ * class) list}
   val unconstrainT: sort list -> term -> unconstrain_context * term
@@ -361,7 +361,7 @@ fun present_sorts shyps present_set =
   in {present = present, extra = extra} end;
 
 type unconstrain_context =
- {unconstrain_typ: {strip_sorts: bool} -> typ Same.operation,
+ {typ_operation: {strip_sorts: bool} -> typ Same.operation,
   constraints: ((typ * class) * term) list,
   outer_constraints: (typ * class) list};
 
@@ -379,7 +379,7 @@ fun unconstrainT shyps prop =
       map (fn (_, V) => (Type.sort_of_atyp V, V)) present_map @
       map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
 
-    fun unconstrain_atyp {strip_sorts} T =
+    fun atyp_operation {strip_sorts} T =
       (case AList.lookup (op =) present_map T of
         SOME U => U |> strip_sorts ? Type.strip_sorts
       | NONE =>
@@ -387,9 +387,9 @@ fun unconstrainT shyps prop =
             SOME U => U |> strip_sorts ? Type.strip_sorts
           | NONE => raise TYPE ("Dangling type variable ", [T], [prop])));
 
-    fun unconstrain_typ strip_sorts =
+    fun typ_operation strip_sorts =
       Term_Subst.map_atypsT_same (fn T =>
-        let val T' = unconstrain_atyp strip_sorts T
+        let val T' = atyp_operation strip_sorts T
         in if T = T' then raise Same.SAME else T' end);
 
     val constraints =
@@ -400,11 +400,11 @@ fun unconstrainT shyps prop =
       maps (fn (T, S) => map (pair T) S) (present @ map (`dummy_tfree) extra);
 
     val ucontext =
-     {unconstrain_typ = unconstrain_typ,
+     {typ_operation = typ_operation,
       constraints = constraints,
       outer_constraints = outer_constraints};
     val prop' = prop
-      |> Term_Subst.map_types (unconstrain_typ {strip_sorts = true})
+      |> Term_Subst.map_types (typ_operation {strip_sorts = true})
       |> curry list_implies (map #2 constraints);
   in (ucontext, prop') end;
 
