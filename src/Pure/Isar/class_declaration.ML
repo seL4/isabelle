@@ -280,7 +280,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
         val b = Binding.name raw_c;
         val c = Sign.full_name thy b;
         val ty = map_atyps (K (Term.aT base_sort)) raw_ty;
-        val ty0 = Type.strip_sorts ty;
+        val ty0 = Term.strip_sortsT ty;
         val ty' = map_atyps (K (Term.aT [class])) ty0;
         val syn = (the_default NoSyn o AList.lookup Binding.eq_name global_syntax) b;
       in

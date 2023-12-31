@@ -107,7 +107,7 @@ fun string_of_const thy c =
 
 (* constants *)
 
-fun const_typ thy = Type.strip_sorts o Sign.the_const_type thy;
+fun const_typ thy = Term.strip_sortsT o Sign.the_const_type thy;
 
 fun args_number thy = length o binder_types o const_typ thy;
 
@@ -119,7 +119,7 @@ fun devarify ty =
   in Term.typ_subst_TVars mapping ty end;
 
 fun typscheme thy (c, ty) =
-  (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
+  (map dest_TFree (Sign.const_typargs thy (c, ty)), Term.strip_sortsT ty);
 
 fun typscheme_equiv (ty1, ty2) =
   Type.raw_instance (devarify ty1, ty2) andalso Type.raw_instance (devarify ty2, ty1);
@@ -1383,7 +1383,7 @@ local
 fun subsumptive_add thy verbose (thm, proper) eqns =
   let
     val args_of = drop_prefix is_Var o rev o snd o strip_comb
-      o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of
+      o Term.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of
       o Thm.transfer thy;
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);

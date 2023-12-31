@@ -60,8 +60,6 @@ sig
 
   (*special treatment of type vars*)
   val sort_of_atyp: typ -> sort
-  val strip_sorts: typ -> typ
-  val strip_sorts_dummy: typ -> typ
   val no_tvars: typ -> typ
   val varify_global_names: TFrees.set -> term -> ((string * sort) * (indexname * sort)) list
   val varify_global: TFrees.set -> term -> ((string * sort) * (indexname * sort)) list * term
@@ -334,17 +332,6 @@ fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
 fun sort_of_atyp (TFree (_, S)) = S
   | sort_of_atyp (TVar (_, S)) = S
   | sort_of_atyp T = raise TYPE ("sort_of_atyp", [T], []);
-
-
-(* strip_sorts *)
-
-val strip_sorts = map_atyps
-  (fn TFree (x, _) => TFree (x, [])
-    | TVar (xi, _) => TVar (xi, []));
-
-val strip_sorts_dummy = map_atyps
-  (fn TFree (x, _) => TFree (x, dummyS)
-    | TVar (xi, _) => TVar (xi, dummyS));
 
 
 (* no_tvars *)
@@ -709,7 +696,7 @@ fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
-    val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
+    val rhs' = Term.strip_sortsT (no_tvars (cert_typ_mode mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
     val _ =
       (case duplicates (op =) vs of

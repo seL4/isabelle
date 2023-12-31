@@ -150,6 +150,10 @@ sig
   val declare_term_names: term -> Name.context -> Name.context
   val declare_term_frees: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
+  val smash_sortsT_same: sort -> typ Same.operation
+  val strip_sortsT_same: typ Same.operation
+  val strip_sortsT: typ -> typ
+  val strip_sorts: term -> term
   val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val eq_ix: indexname * indexname -> bool
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
@@ -577,6 +581,18 @@ fun variant_frees t frees =
     map snd frees;
 
 fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
+
+
+(* sorts *)
+
+fun smash_sortsT_same S' =
+  map_atyps_same
+    (fn TFree (x, S) => if S = S' then raise Same.SAME else TFree (x, S')
+      | TVar (xi, S) => if S = S' then raise Same.SAME else TVar (xi, S'));
+
+val strip_sortsT_same = smash_sortsT_same [];
+val strip_sortsT = Same.commit strip_sortsT_same;
+val strip_sorts = map_types strip_sortsT_same;
 
 
 

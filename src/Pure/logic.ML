@@ -382,10 +382,10 @@ fun unconstrainT shyps prop =
     fun atyp_operation {strip_sorts} =
       Same.function_eq (op =) (fn T =>
         (case AList.lookup (op =) present_map T of
-          SOME T' => T' |> strip_sorts ? Type.strip_sorts
+          SOME T' => T' |> strip_sorts ? Term.strip_sortsT
         | NONE =>
             (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
-              SOME T' => T' |> strip_sorts ? Type.strip_sorts
+              SOME T' => T' |> strip_sorts ? Term.strip_sortsT
             | NONE => raise TYPE ("Dangling type variable ", [T], [prop]))));
 
     val typ_operation = Term.map_atyps_same o atyp_operation;

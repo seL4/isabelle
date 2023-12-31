@@ -227,7 +227,7 @@ fun declare_overloaded (c, T) thy =
     val tyco = inst_tyco_of thy (c, T);
     val name_inst = instance_name (tyco, class) ^ "_inst";
     val c' = instance_name (tyco, c);
-    val T' = Type.strip_sorts T;
+    val T' = Term.strip_sortsT T;
   in
     thy
     |> Sign.qualified_path true (Binding.name name_inst)

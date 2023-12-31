@@ -190,7 +190,7 @@ fun print_classes ctxt =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
 
-    fun prt_param (c, ty) = pretty_param ctxt (c, Type.strip_sorts_dummy ty);
+    fun prt_param (c, ty) = pretty_param ctxt (c, Same.commit (Term.smash_sortsT_same dummyS) ty);
 
     fun prt_entry class =
       Pretty.block
@@ -394,11 +394,10 @@ fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
     val b_def = Binding.suffix_name "_dict" b;
     val c = Sign.full_name thy b;
     val ty = map Term.fastype_of dangling_params ---> Term.fastype_of rhs;
-    val def_eq = Logic.mk_equals (list_comb (Const (c, ty), dangling_params), rhs)
-      |> map_types Type.strip_sorts;
+    val def_eq = Term.strip_sorts (Logic.mk_equals (list_comb (Const (c, ty), dangling_params), rhs));
   in
     thy
-    |> Sign.declare_const_global ((b, Type.strip_sorts ty), mx)
+    |> Sign.declare_const_global ((b, Term.strip_sortsT ty), mx)
     |> snd
     |> global_def (b_def, def_eq)
     |-> (fn def_thm => register_def class def_thm)

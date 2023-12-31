@@ -1654,7 +1654,7 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs (t as Const 
         (case Sign.const_type thy s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
         | SOME T =>
-            let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T) in
+            let val T' = Term.strip_sortsT (Logic.incr_tvar (maxidx + 1) T) in
               (Const (s, T'), T', vTs,
                 Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv})
             end)

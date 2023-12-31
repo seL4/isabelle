@@ -389,7 +389,7 @@ fun abs_corr_shyps thy thm vs xs prf =
       (build_rev (Term.add_vars prop'));
     val cs = maps (fn T => map (pair T) S) Ts;
     val constraints' = map Logic.mk_of_class cs;
-    val typ_map = Type.strip_sorts o
+    val typ_map = Term.strip_sortsT o
       Term.map_atyps (fn U =>
         if member (op =) atyps U
         then #typ_operation ucontext {strip_sorts = false} U
@@ -417,8 +417,8 @@ fun add_expand_thm is_def thm thy =
     thy |> ExtractionData.put
       (if is_def then
         {realizes_eqns = realizes_eqns,
-         typeof_eqns = add_rule ([], Logic.dest_equals (map_types
-           Type.strip_sorts (Thm.prop_of (Drule.abs_def thm)))) typeof_eqns,
+         typeof_eqns = typeof_eqns
+          |> add_rule ([], Logic.dest_equals (Term.strip_sorts (Thm.prop_of (Drule.abs_def thm)))),
          types = types,
          realizers = realizers, defs = insert Thm.eq_thm_prop (Thm.trim_context thm) defs,
          expand = expand, prep = prep}

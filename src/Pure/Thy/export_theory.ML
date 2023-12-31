@@ -243,9 +243,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
             let
               val syntax = get_syntax_const thy_ctxt c;
               val U = Logic.unvarifyT_global T;
-              val U0 = Type.strip_sorts U;
-              val trim_abbrev =
-                Proofterm.standard_vars_term Name.context #> map_types Type.strip_sorts;
+              val U0 = Term.strip_sortsT U;
+              val trim_abbrev = Proofterm.standard_vars_term Name.context #> Term.strip_sorts;
               val abbrev' = Option.map trim_abbrev abbrev;
               val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
               val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);

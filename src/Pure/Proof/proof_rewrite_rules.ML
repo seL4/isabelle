@@ -264,8 +264,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
 
 fun elim_defs thy r defs prf =
   let
-    val defs' = map (Logic.dest_equals o
-      map_types Type.strip_sorts o Thm.prop_of o Drule.abs_def) defs;
+    val defs' = map (Logic.dest_equals o Term.strip_sorts o Thm.prop_of o Drule.abs_def) defs;
     val defnames = map Thm.derivation_name defs;
     val prf' =
       if r then
@@ -375,7 +374,7 @@ fun expand_of_sort_proof thy hyps (T, S) =
   in
     map2 reconstruct (Logic.mk_of_sort (T, S))
       (Proofterm.of_sort_proof (Sign.classes_of thy) (Thm.sorts_proof thy)
-        (PClass o apfst Type.strip_sorts) (subst T, S))
+        (PClass o apfst Term.strip_sortsT) (subst T, S))
   end;
 
 fun expand_of_class_proof thy hyps (T, c) =

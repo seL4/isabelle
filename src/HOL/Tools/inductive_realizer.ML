@@ -96,7 +96,7 @@ fun gen_rvar vs (t as Var ((a, 0), T)) =
 
 fun mk_realizes_eqn n vs nparms intrs =
   let
-    val intr = map_types Type.strip_sorts (Thm.prop_of (hd intrs));
+    val intr = Term.strip_sorts (Thm.prop_of (hd intrs));
     val concl = HOLogic.dest_Trueprop (Logic.strip_imp_concl intr);
     val iTs = rev (Term.add_tvars intr []);
     val Tvs = map TVar iTs;
