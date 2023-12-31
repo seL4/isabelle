@@ -341,14 +341,14 @@ fun fastype (Envir {tyenv, ...}) =
 
 local
 
-fun subst_type0 tyenv = Term_Subst.map_atypsT_same
+fun subst_type0 tyenv = Term.map_atyps_same
   (fn TVar v =>
         (case Type.lookup tyenv v of
           SOME U => U
         | NONE => raise Same.SAME)
     | _ => raise Same.SAME);
 
-fun subst_term1 tenv = Term_Subst.map_aterms_same
+fun subst_term1 tenv = Term.map_aterms_same
   (fn Var v =>
         (case lookup1 tenv v of
           SOME u => u
@@ -381,7 +381,7 @@ fun subst_type_same tyenv =
 
 fun subst_term_types_same tyenv =
   if Vartab.is_empty tyenv then Same.same
-  else Term_Subst.map_types_same (subst_type0 tyenv);
+  else Term.map_types_same (subst_type0 tyenv);
 
 fun subst_term_same (tyenv, tenv) =
   if Vartab.is_empty tenv then subst_term_types_same tyenv

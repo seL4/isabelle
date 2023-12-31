@@ -552,7 +552,7 @@ fun map_proof_same term typ ofclass =
   in proof end;
 
 fun map_proof_terms_same term typ = map_proof_same term typ (fn (T, c) => PClass (typ T, c));
-fun map_proof_types_same typ = map_proof_terms_same (Term_Subst.map_types_same typ) typ;
+fun map_proof_types_same typ = map_proof_terms_same (Term.map_types_same typ) typ;
 
 fun map_proof_terms f g =
   Same.commit (map_proof_terms_same (Same.function_eq (op =) f) (Same.function_eq (op =) g));
@@ -925,7 +925,7 @@ fun varifyT_proof names prf =
     let
       val tab = TFrees.make names;
       val typ =
-        Term_Subst.map_atypsT_same
+        Term.map_atyps_same
           (fn TFree v =>
               (case TFrees.lookup tab v of
                 NONE => raise Same.SAME
@@ -1118,7 +1118,7 @@ fun unconstrainT_proof algebra sorts_proof (ucontext: Logic.unconstrain_context)
       let val T' = Same.commit typ_sort T
       in the_single (of_sort_proof algebra sorts_proof hyps (T', [c])) end;
   in
-    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ class)
+    Same.commit (map_proof_same (Term.map_types_same typ) typ class)
     #> fold_rev (implies_intr_proof o #2) (#constraints ucontext)
   end;
 
@@ -1613,7 +1613,7 @@ fun app_types shift prop Ts prf =
     fun subst_same A =
       (case AList.lookup (op =) inst A of SOME T => T | NONE => raise Same.SAME);
     val subst_type_same =
-      Term_Subst.map_atypsT_same
+      Term.map_atyps_same
         (fn TVar ((a, i), S) => subst_same (TVar ((a, i - shift), S)) | A => subst_same A);
   in Same.commit (map_proof_types_same subst_type_same) prf end;
 
@@ -2240,7 +2240,7 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
     val proof2 =
       if unconstrain then
         proof_combt' (head,
-          (Same.commit o Same.map o Same.map_option o Term_Subst.map_types_same)
+          (Same.commit o Same.map o Same.map_option o Term.map_types_same)
             (typ_operation {strip_sorts = true}) args)
       else
         proof_combP (proof_combt' (head, args),

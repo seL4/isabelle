@@ -68,11 +68,11 @@ sig
   val head_of: term -> term
   val size_of_term: term -> int
   val size_of_typ: typ -> int
-  val map_atyps: (typ -> typ) -> typ -> typ
-  val map_aterms: (term -> term) -> term -> term
-  val map_type_tvar: (indexname * sort -> typ) -> typ -> typ
-  val map_type_tfree: (string * sort -> typ) -> typ -> typ
-  val map_types: (typ -> typ) -> term -> term
+  val map_atyps: typ Same.operation -> typ -> typ
+  val map_aterms: term Same.operation -> term -> term
+  val map_types: typ Same.operation -> term -> term
+  val map_type_tvar: (indexname * sort, typ) Same.function -> typ -> typ
+  val map_type_tfree: (string * sort, typ) Same.function -> typ -> typ
   val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
   val fold_atyps_sorts: (typ * sort -> 'a -> 'a) -> typ -> 'a -> 'a
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
@@ -122,6 +122,9 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val map_atyps_same: typ Same.operation -> typ Same.operation
+  val map_aterms_same: term Same.operation -> term Same.operation
+  val map_types_same: typ Same.operation -> term Same.operation
   val aT: sort -> typ
   val itselfT: typ -> typ
   val a_itselfT: typ
@@ -449,25 +452,44 @@ fun size_of_typ ty =
       | add_size _ n = n + 1;
   in add_size ty 0 end;
 
-fun map_atyps f (Type (a, Ts)) = Type (a, map (map_atyps f) Ts)
-  | map_atyps f T = f T;
 
-fun map_aterms f (t $ u) = map_aterms f t $ map_aterms f u
-  | map_aterms f (Abs (a, T, t)) = Abs (a, T, map_aterms f t)
-  | map_aterms f t = f t;
+(* map types and terms *)
 
-fun map_type_tvar f = map_atyps (fn TVar x => f x | T => T);
-fun map_type_tfree f = map_atyps (fn TFree x => f x | T => T);
-
-fun map_types f =
+fun map_atyps_same f =
   let
-    fun map_aux (Const (a, T)) = Const (a, f T)
-      | map_aux (Free (a, T)) = Free (a, f T)
-      | map_aux (Var (v, T)) = Var (v, f T)
-      | map_aux (Bound i) = Bound i
-      | map_aux (Abs (a, T, t)) = Abs (a, f T, map_aux t)
-      | map_aux (t $ u) = map_aux t $ map_aux u;
-  in map_aux end;
+    fun typ (Type (a, Ts)) = Type (a, Same.map typ Ts)
+      | typ T = f T;
+  in typ end;
+
+fun map_aterms_same f =
+  let
+    fun term (Abs (x, T, t)) = Abs (x, T, term t)
+      | term (t $ u) =
+          (term t $ Same.commit term u
+            handle Same.SAME => t $ term u)
+      | term a = f a;
+  in term end;
+
+fun map_types_same f =
+  let
+    fun term (Const (a, T)) = Const (a, f T)
+      | term (Free (a, T)) = Free (a, f T)
+      | term (Var (xi, T)) = Var (xi, f T)
+      | term (Bound _) = raise Same.SAME
+      | term (Abs (x, T, t)) =
+          (Abs (x, f T, Same.commit term t)
+            handle Same.SAME => Abs (x, T, term t))
+      | term (t $ u) =
+          (term t $ Same.commit term u
+            handle Same.SAME => t $ term u);
+  in term end;
+
+val map_atyps = Same.commit o map_atyps_same;
+val map_aterms = Same.commit o map_aterms_same;
+val map_types = Same.commit o map_types_same;
+
+fun map_type_tvar f = map_atyps (fn TVar x => f x | _ => raise Same.SAME);
+fun map_type_tfree f = map_atyps (fn TFree x => f x | _ => raise Same.SAME);
 
 
 (* fold types and terms *)

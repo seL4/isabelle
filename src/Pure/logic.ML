@@ -388,7 +388,7 @@ fun unconstrainT shyps prop =
               SOME T' => T' |> strip_sorts ? Type.strip_sorts
             | NONE => raise TYPE ("Dangling type variable ", [T], [prop]))));
 
-    val typ_operation = Term_Subst.map_atypsT_same o atyp_operation;
+    val typ_operation = Term.map_atyps_same o atyp_operation;
 
     val constraints =
       constraints_map |> maps (fn (_, T as TVar (ai, S)) =>
@@ -402,7 +402,7 @@ fun unconstrainT shyps prop =
       constraints = constraints,
       outer_constraints = outer_constraints};
     val prop' = prop
-      |> Term_Subst.map_types (typ_operation {strip_sorts = true})
+      |> Term.map_types (typ_operation {strip_sorts = true})
       |> curry list_implies (map #2 constraints);
   in (ucontext, prop') end;
 
@@ -447,7 +447,7 @@ fun rlist_abs ([], body) = body
   | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
 
 fun incr_tvar_same 0 = Same.same
-  | incr_tvar_same inc = Term_Subst.map_atypsT_same
+  | incr_tvar_same inc = Term.map_atyps_same
       (fn TVar ((a, i), S) => TVar ((a, i + inc), S)
         | _ => raise Same.SAME);
 
@@ -612,12 +612,12 @@ fun bad_schematic xi = "Illegal schematic variable: " ^ quote (Term.string_of_vn
 fun bad_fixed x = "Illegal fixed variable: " ^ quote x;
 
 fun varifyT_global_same ty = ty
-  |> Term_Subst.map_atypsT_same
+  |> Term.map_atyps_same
     (fn TFree (a, S) => TVar ((a, 0), S)
       | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], []));
 
 fun unvarifyT_global_same ty = ty
-  |> Term_Subst.map_atypsT_same
+  |> Term.map_atyps_same
     (fn TVar ((a, 0), S) => TFree (a, S)
       | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], [])
       | TFree (a, _) => raise TYPE (bad_fixed a, [ty], []));
@@ -626,22 +626,22 @@ val varifyT_global = Same.commit varifyT_global_same;
 val unvarifyT_global = Same.commit unvarifyT_global_same;
 
 fun varify_types_global tm =
-  Term_Subst.map_types varifyT_global_same tm
+  Term.map_types varifyT_global_same tm
     handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 fun unvarify_types_global tm =
-  Term_Subst.map_types unvarifyT_global_same tm
+  Term.map_types unvarifyT_global_same tm
     handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 fun varify_global tm = tm
-  |> Term_Subst.map_aterms
+  |> Term.map_aterms
     (fn Free (x, T) => Var ((x, 0), T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | _ => raise Same.SAME)
   |> varify_types_global;
 
 fun unvarify_global tm = tm
-  |> Term_Subst.map_aterms
+  |> Term.map_aterms
     (fn Var ((x, 0), T) => Free (x, T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])

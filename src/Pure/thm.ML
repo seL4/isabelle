@@ -1102,7 +1102,7 @@ fun strip_shyps thm =
             (ZTerm.subst_type_same (ZTerm.ztyp_of o map_atyp o ZTerm.typ_of o ZTVar));
 
         val zproof' = ZTerm.map_proof_types map_ztyp zproof;
-        val proof' = Proofterm.map_proof_types (Term_Subst.map_atypsT_same map_atyp) proof;
+        val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;
       in
         Thm (make_deriv promises oracles thms zboxes zproof' proof',
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',

@@ -210,7 +210,7 @@ fun subst_of tyenv =
 
 fun substTs_same subst =
   let val applyT = Same.function (AList.lookup (op =) subst)
-  in Term_Subst.map_atypsT_same applyT end
+  in Term.map_atyps_same applyT end
 
 fun subst_types ctxt env bounds t =
   let
@@ -226,7 +226,7 @@ fun subst_types ctxt env bounds t =
     val patTs = map snd (Term.strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t')
     val objTs = map objT_of bounds
     val subst = subst_of (fold match (patTs ~~ objTs) Vartab.empty)
-  in Term_Subst.map_types (substTs_same subst) t' end
+  in Term.map_types (substTs_same subst) t' end
 
 fun eq_quant (\<^const_name>\<open>HOL.All\<close>, _) (\<^const_name>\<open>HOL.All\<close>, _) = true
   | eq_quant (\<^const_name>\<open>HOL.Ex\<close>, _) (\<^const_name>\<open>HOL.Ex\<close>, _) = true

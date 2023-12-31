@@ -6,12 +6,6 @@ Efficient type/term substitution.
 
 signature TERM_SUBST =
 sig
-  val map_atypsT_same: typ Same.operation -> typ Same.operation
-  val map_types_same: typ Same.operation -> term Same.operation
-  val map_aterms_same: term Same.operation -> term Same.operation
-  val map_atypsT: typ Same.operation -> typ -> typ
-  val map_types: typ Same.operation -> term -> term
-  val map_aterms: term Same.operation -> term -> term
   val generalizeT_same: Names.set -> int -> typ Same.operation
   val generalize_same: Names.set * Names.set -> int -> term Same.operation
   val generalizeT: Names.set -> int -> typ -> typ
@@ -38,38 +32,6 @@ end;
 
 structure Term_Subst: TERM_SUBST =
 struct
-
-(* generic mapping *)
-
-fun map_atypsT_same f =
-  let
-    fun typ (Type (a, Ts)) = Type (a, Same.map typ Ts)
-      | typ T = f T;
-  in typ end;
-
-fun map_types_same f =
-  let
-    fun term (Const (a, T)) = Const (a, f T)
-      | term (Free (a, T)) = Free (a, f T)
-      | term (Var (v, T)) = Var (v, f T)
-      | term (Bound _) = raise Same.SAME
-      | term (Abs (x, T, t)) =
-          (Abs (x, f T, Same.commit term t)
-            handle Same.SAME => Abs (x, T, term t))
-      | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u);
-  in term end;
-
-fun map_aterms_same f =
-  let
-    fun term (Abs (x, T, t)) = Abs (x, T, term t)
-      | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
-      | term a = f a;
-  in term end;
-
-val map_atypsT = Same.commit o map_atypsT_same;
-val map_types = Same.commit o map_types_same;
-val map_aterms = Same.commit o map_aterms_same;
-
 
 (* generalization of fixed variables *)
 
