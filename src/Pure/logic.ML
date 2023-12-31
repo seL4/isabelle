@@ -350,7 +350,7 @@ fun dest_arity tm =
   in (t, Ss, c) end;
 
 
-(* internalized sort constraints *)
+(* sort constraints within the logic *)
 
 fun dummy_tfree S = TFree ("'dummy", S);
 

@@ -2004,7 +2004,7 @@ fun of_class (cT, raw_c) =
     else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
   end |> solve_constraints;
 
-(*Internalize sort constraints of type variables*)
+(*Sort constraints within the logic*)
 val unconstrainT =
   strip_shyps #> (fn thm as Thm (der, args) =>
     let

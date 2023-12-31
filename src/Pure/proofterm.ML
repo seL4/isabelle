@@ -1095,7 +1095,7 @@ fun bicompose_proof env smax flatten Bs As A oldAs n m rprf sprf =
 
 
 
-(** type classes **)
+(** sort constraints within the logic **)
 
 fun of_sort_proof algebra classrel_proof arity_proof hyps =
   Sorts.of_sort_derivation algebra
