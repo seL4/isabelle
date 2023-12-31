@@ -1106,6 +1106,26 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
       in proof_combP (arity_proof (a, Ss, c), prfs) end,
     type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
 
+fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
+  let
+    fun hyp_map hyp =
+      (case AList.lookup (op =) (#constraints ucontext) hyp of
+        SOME t => Hyp t
+      | NONE => raise Fail "unconstrainT_proof: missing constraint");
+
+    val typ = #unconstrain_typ ucontext {strip_sorts = true};
+    val typ_sort = #unconstrain_typ ucontext {strip_sorts = false};
+
+    fun ofclass (T, c) =
+      let
+        val T' = Same.commit typ_sort T;
+        val [p] = of_sort_proof algebra classrel_proof arity_proof hyp_map (T', [c])
+      in p end;
+  in
+    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
+    #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
+  end;
+
 
 
 (** axioms and theorems **)
@@ -2130,26 +2150,6 @@ fun export_proof_boxes bodies =
   in List.app (Lazy.force o #2) exports end;
 
 local
-
-fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
-  let
-    fun hyp_map hyp =
-      (case AList.lookup (op =) (#constraints ucontext) hyp of
-        SOME t => Hyp t
-      | NONE => raise Fail "unconstrainT_proof: missing constraint");
-
-    val typ = #unconstrain_typ ucontext {strip_sorts = true};
-    val typ_sort = #unconstrain_typ ucontext {strip_sorts = false};
-
-    fun ofclass (T, c) =
-      let
-        val T' = Same.commit typ_sort T;
-        val [p] = of_sort_proof algebra classrel_proof arity_proof hyp_map (T', [c])
-      in p end;
-  in
-    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
-    #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
-  end;
 
 fun export_proof thy i prop prf0 =
   let
