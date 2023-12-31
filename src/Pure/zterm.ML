@@ -301,6 +301,9 @@ sig
     zproof -> zproof
   val bicompose_proof: theory -> Envir.env -> int -> bool -> term list -> term list ->
     term option -> term list -> int -> int -> term list -> zproof -> zproof -> zproof
+  type sorts_zproof = (class * class -> zproof) * (string * class list list * class -> zproof)
+  val of_sort_proof: Sorts.algebra -> sorts_zproof -> (typ * class -> zproof) ->
+    typ * sort -> zproof list
 end;
 
 structure ZTerm: ZTERM =
@@ -1190,5 +1193,19 @@ fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
     if Envir.is_empty env then proof rprf sprf
     else proof (normp rprf) (if Envir.above env smax then sprf else normp sprf)
   end;
+
+
+(* sort constraints within the logic *)
+
+type sorts_zproof = (class * class -> zproof) * (string * class list list * class -> zproof);
+
+fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
+  Sorts.of_sort_derivation algebra
+   {class_relation = fn _ => fn _ => fn (prf, c1) => fn c2 =>
+      if c1 = c2 then prf else ZAppp (classrel_proof (c1, c2), prf),
+    type_constructor = fn (a, _) => fn dom => fn c =>
+      let val Ss = map (map snd) dom and prfs = maps (map fst) dom
+      in ZAppps (arity_proof (a, Ss, c), prfs) end,
+    type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
 
 end;

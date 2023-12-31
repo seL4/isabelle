@@ -133,8 +133,8 @@ sig
   (*type classes*)
   val the_classrel: theory -> class * class -> thm
   val the_arity: theory -> string * sort list * class -> thm
-  val classrel_proof: theory -> class * class -> proof
-  val arity_proof: theory -> string * sort list * class -> proof
+  val sorts_zproof: theory -> ZTerm.sorts_zproof
+  val sorts_proof: theory -> Proofterm.sorts_proof
   (*oracles*)
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
   val oracle_space: theory -> Name_Space.T
@@ -805,6 +805,8 @@ fun fulfill_body (th as Thm (Deriv {promises, body}, _)) =
 
 fun proof_bodies_of thms = (join_promises_of thms; map fulfill_body thms);
 val proof_body_of = singleton proof_bodies_of;
+
+val zproof_of = Proofterm.zproof_of o proof_body_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
 fun reconstruct_proof_of thm =
@@ -993,8 +995,8 @@ fun the_arity thy (a, Ss, c) =
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
 
-val classrel_proof = proof_of oo the_classrel;
-val arity_proof = proof_of oo the_arity;
+fun sorts_zproof thy = (zproof_of o the_classrel thy, zproof_of o the_arity thy);
+fun sorts_proof thy = (proof_of o the_classrel thy, proof_of o the_arity thy);
 
 
 (* solve sort constraints by pro-forma proof *)
@@ -1157,7 +1159,7 @@ fun name_derivation name_pos =
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
       val body' =
-        Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
+        Proofterm.thm_proof thy (sorts_zproof thy) (sorts_proof thy)
           name_pos shyps hyps prop ps body;
     in Thm (make_deriv0 [] body', args) end);
 
@@ -2020,7 +2022,7 @@ val unconstrainT =
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
       val (prop', body') =
-        Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
+        Proofterm.unconstrain_thm_proof thy (sorts_zproof thy) (sorts_proof thy)
           shyps prop ps body;
     in
       Thm (make_deriv0 [] body',

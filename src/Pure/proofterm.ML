@@ -145,10 +145,8 @@ sig
   val abstract_rule_proof: string * term -> proof -> proof
   val combination_proof: term -> term -> term -> term -> proof -> proof -> proof
   val could_unify: proof * proof -> bool
-  val of_sort_proof: Sorts.algebra ->
-    (class * class -> proof) ->
-    (string * class list list * class -> proof) ->
-    (typ * class -> proof) -> typ * sort -> proof list
+  type sorts_proof = (class * class -> proof) * (string * class list list * class -> proof)
+  val of_sort_proof: Sorts.algebra -> sorts_proof -> (typ * class -> proof) -> typ * sort -> proof list
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> proof
   val shrink_proof: proof -> proof
@@ -184,12 +182,10 @@ sig
   val export_proof_boxes_required: theory -> bool
   val export_proof_boxes: proof_body list -> unit
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val thm_proof: theory -> (class * class -> proof) ->
-    (string * class list list * class -> proof) -> string * Position.T -> sort list ->
+  val thm_proof: theory -> ZTerm.sorts_zproof -> sorts_proof -> string * Position.T -> sort list ->
     term list -> term -> (serial * proof_body future) list -> proof_body -> proof_body
-  val unconstrain_thm_proof: theory -> (class * class -> proof) ->
-    (string * class list list * class -> proof) -> sort list -> term ->
-    (serial * proof_body future) list -> proof_body -> term * proof_body
+  val unconstrain_thm_proof: theory -> ZTerm.sorts_zproof -> sorts_proof ->
+    sort list -> term -> (serial * proof_body future) list -> proof_body -> term * proof_body
   val get_identity: sort list -> term list -> term -> proof ->
     {serial: serial, theory_name: string, name: string} option
   val get_approximative_name: sort list -> term list -> term -> proof -> string
@@ -1097,7 +1093,9 @@ fun bicompose_proof env smax flatten Bs As A oldAs n m rprf sprf =
 
 (** sort constraints within the logic **)
 
-fun of_sort_proof algebra classrel_proof arity_proof hyps =
+type sorts_proof = (class * class -> proof) * (string * class list list * class -> proof);
+
+fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
   Sorts.of_sort_derivation algebra
    {class_relation = fn _ => fn _ => fn (prf, c1) => fn c2 =>
       if c1 = c2 then prf else classrel_proof (c1, c2) %% prf,
@@ -1106,7 +1104,7 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
       in proof_combP (arity_proof (a, Ss, c), prfs) end,
     type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
 
-fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
+fun unconstrainT_proof algebra sorts_proof (ucontext: Logic.unconstrain_context) =
   let
     fun hyp_map hyp =
       (case AList.lookup (op =) (#constraints ucontext) hyp of
@@ -1119,7 +1117,7 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
     fun ofclass (T, c) =
       let
         val T' = Same.commit typ_sort T;
-        val [p] = of_sort_proof algebra classrel_proof arity_proof hyp_map (T', [c])
+        val [p] = of_sort_proof algebra sorts_proof hyp_map (T', [c])
       in p end;
   in
     Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
@@ -2177,7 +2175,7 @@ fun export_proof thy i prop prf0 =
       strict = false} xml
   end;
 
-fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
+fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
     (name, pos) shyps hyps concl promises (PBody body0) =
   let
     val named = name <> "";
@@ -2199,8 +2197,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     fun new_prf () =
       let
         val i = serial ();
-        val unconstrainT =
-          unconstrainT_proof (Sign.classes_of thy) classrel_proof arity_proof ucontext;
+        val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
           {oracles = #oracles body0, thms = #thms body0,
@@ -2259,11 +2256,11 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
 in
 
-fun thm_proof thy classrel_proof arity_proof name shyps hyps concl promises =
-  prepare_thm_proof false thy classrel_proof arity_proof name shyps hyps concl promises #> #2;
+fun thm_proof thy sorts_zproof sorts_proof name shyps hyps concl promises =
+  prepare_thm_proof false thy sorts_zproof sorts_proof name shyps hyps concl promises #> #2;
 
-fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises body =
-  prepare_thm_proof true thy classrel_proof arity_proof ("", Position.none)
+fun unconstrain_thm_proof thy sorts_zproof sorts_proof shyps concl promises body =
+  prepare_thm_proof true thy sorts_zproof sorts_proof ("", Position.none)
     shyps [] concl promises body;
 
 end;

@@ -374,7 +374,7 @@ fun expand_of_sort_proof thy hyps (T, S) =
       Same.commit (Proofterm.map_proof_same Same.same Same.same of_class_index);
   in
     map2 reconstruct (Logic.mk_of_sort (T, S))
-      (Proofterm.of_sort_proof (Sign.classes_of thy) (Thm.classrel_proof thy) (Thm.arity_proof thy)
+      (Proofterm.of_sort_proof (Sign.classes_of thy) (Thm.sorts_proof thy)
         (PClass o apfst Type.strip_sorts) (subst T, S))
   end;
 
