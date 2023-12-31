@@ -1106,22 +1106,20 @@ fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
 
 fun unconstrainT_proof algebra sorts_proof (ucontext: Logic.unconstrain_context) =
   let
-    fun hyp_map hyp =
-      (case AList.lookup (op =) (#constraints ucontext) hyp of
-        SOME t => Hyp t
-      | NONE => raise Fail "unconstrainT_proof: missing constraint");
-
     val typ = #unconstrain_typ ucontext {strip_sorts = true};
     val typ_sort = #unconstrain_typ ucontext {strip_sorts = false};
 
-    fun ofclass (T, c) =
-      let
-        val T' = Same.commit typ_sort T;
-        val [p] = of_sort_proof algebra sorts_proof hyp_map (T', [c])
-      in p end;
+    fun hyps T =
+      (case AList.lookup (op =) (#constraints ucontext) T of
+        SOME t => Hyp t
+      | NONE => raise Fail "unconstrainT_proof: missing constraint");
+
+    fun class (T, c) =
+      let val T' = Same.commit typ_sort T
+      in the_single (of_sort_proof algebra sorts_proof hyps (T', [c])) end;
   in
-    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
-    #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
+    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ class)
+    #> fold_rev (implies_intr_proof o #2) (#constraints ucontext)
   end;
 
 
