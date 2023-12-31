@@ -379,18 +379,16 @@ fun unconstrainT shyps prop =
       map (fn (_, V) => (Type.sort_of_atyp V, V)) present_map @
       map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
 
-    fun atyp_operation {strip_sorts} T =
-      (case AList.lookup (op =) present_map T of
-        SOME U => U |> strip_sorts ? Type.strip_sorts
-      | NONE =>
-          (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
-            SOME U => U |> strip_sorts ? Type.strip_sorts
-          | NONE => raise TYPE ("Dangling type variable ", [T], [prop])));
+    fun atyp_operation {strip_sorts} =
+      Same.function_eq (op =) (fn T =>
+        (case AList.lookup (op =) present_map T of
+          SOME T' => T' |> strip_sorts ? Type.strip_sorts
+        | NONE =>
+            (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
+              SOME T' => T' |> strip_sorts ? Type.strip_sorts
+            | NONE => raise TYPE ("Dangling type variable ", [T], [prop]))));
 
-    fun typ_operation strip_sorts =
-      Term_Subst.map_atypsT_same (fn T =>
-        let val T' = atyp_operation strip_sorts T
-        in if T = T' then raise Same.SAME else T' end);
+    val typ_operation = Term_Subst.map_atypsT_same o atyp_operation;
 
     val constraints =
       constraints_map |> maps (fn (_, T as TVar (ai, S)) =>
