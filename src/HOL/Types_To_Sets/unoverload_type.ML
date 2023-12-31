@@ -20,7 +20,7 @@ fun params_of_super_classes thy class =
 
 fun params_of_sort thy sort = maps (params_of_super_classes thy) sort
 
-fun subst_TFree n' ty' ty = map_type_tfree (fn x as (n, _) => if n = n' then ty' else TFree x) ty
+fun subst_TFree n' ty' ty = map_type_tfree (fn (n, _) => if n = n' then ty' else raise Same.SAME) ty
 
 fun unoverload_single_type context tvar thm =
   let

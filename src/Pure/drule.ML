@@ -759,10 +759,10 @@ fun infer_instantiate_types _ [] th = th
                 in
                   raise THM ("infer_instantiate_types: type " ^
                     Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
-                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
+                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type_same tyenv) t) ^
                     "\ncannot be unified with type " ^
                     Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ " of term " ^
-                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
+                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type_same tyenv) u),
                     0, [th])
                 end;
           in (tyenv', maxidx'') end;

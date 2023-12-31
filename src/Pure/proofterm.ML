@@ -828,7 +828,7 @@ fun frzT names =
 fun thawT names =
   map_type_tfree (fn (a, S) =>
     (case AList.lookup (op =) names a of
-      NONE => TFree (a, S)
+      NONE => raise Same.SAME
     | SOME ixn => TVar (ixn, S)));
 
 fun freeze names names' (t $ u) =
@@ -940,7 +940,7 @@ fun legacy_freezeT t prf =
   (case Type.legacy_freezeT t of
     NONE => prf
   | SOME f =>
-      let val frzT = map_type_tvar (fn v => (case f v of NONE => TVar v | SOME T => T))
+      let val frzT = map_type_tvar (Same.function f)
       in map_proof_terms (map_types frzT) frzT prf end);
 
 

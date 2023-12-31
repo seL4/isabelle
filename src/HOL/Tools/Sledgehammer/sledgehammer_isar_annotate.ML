@@ -99,7 +99,7 @@ fun handle_trivial_tfrees ctxt t' subst =
       t' |> map_types
               (map_type_tvar
                 (fn (idxn, sort) =>
-                  if tvar_name_trivial idxn then dummyT else TVar (idxn, sort)))
+                  if tvar_name_trivial idxn then dummyT else raise Same.SAME))
 
     val subst =
       subst |> fold Vartab.delete trivial_tvar_names
@@ -107,7 +107,7 @@ fun handle_trivial_tfrees ctxt t' subst =
                (K (apsnd (map_type_tfree
                            (fn (name, sort) =>
                               if tfree_name_trivial name then dummyT
-                              else TFree (name, sort)))))
+                              else raise Same.SAME))))
   in
     (t', subst)
   end

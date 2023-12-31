@@ -361,7 +361,7 @@ fun varify_global fixed t =
     val tab = TFrees.make names;
     fun get v =
       (case TFrees.lookup tab v of
-        NONE => TFree v
+        NONE => raise Same.SAME
       | SOME w => TVar w);
   in (names, (map_types o map_type_tfree) get t) end;
 
@@ -402,7 +402,7 @@ fun freeze_one alist (ix, sort) =
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
 fun thaw_one alist (a, sort) = TVar (the (AList.lookup (op =) alist a), sort)
-  handle Option.Option => TFree (a, sort);
+  handle Option.Option => raise Same.SAME;
 
 in
 

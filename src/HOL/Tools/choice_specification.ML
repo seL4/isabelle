@@ -60,7 +60,7 @@ fun unvarify_global t fmap =
     val fmap' = map Library.swap fmap
     fun unthaw v =
       (case AList.lookup (op =) fmap' v of
-        NONE => TVar v
+        NONE => raise Same.SAME
       | SOME w => TFree w)
   in map_types (map_type_tvar unthaw) t end
 
