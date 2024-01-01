@@ -65,7 +65,8 @@ sig
    {typ_operation: {strip_sorts: bool} -> typ Same.operation,
     constraints: ((typ * class) * term) list,
     outer_constraints: (typ * class) list}
-  val unconstrainT: sort list -> term -> unconstrain_context * term
+  val unconstrain_context: sort Ord_List.T -> Types.set -> unconstrain_context
+  val unconstrainT: sort Ord_List.T -> term -> unconstrain_context * term
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -365,9 +366,8 @@ type unconstrain_context =
   constraints: ((typ * class) * term) list,
   outer_constraints: (typ * class) list};
 
-fun unconstrainT shyps prop =
+fun unconstrain_context shyps present_set =
   let
-    val present_set = Types.build (prop |> (fold_types o fold_atyps) Types.add_set);
     val {present, extra} = present_sorts shyps present_set;
 
     val n = Types.size present_set;
@@ -386,7 +386,7 @@ fun unconstrainT shyps prop =
         | NONE =>
             (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
               SOME T' => T' |> strip_sorts ? Term.strip_sortsT
-            | NONE => raise TYPE ("Dangling type variable ", [T], [prop]))));
+            | NONE => raise TYPE ("Dangling type variable ", [T], []))));
 
     val typ_operation = Term.map_atyps_same o atyp_operation;
 
@@ -396,14 +396,18 @@ fun unconstrainT shyps prop =
 
     val outer_constraints =
       maps (fn (T, S) => map (pair T) S) (present @ map (`dummy_tfree) extra);
+  in
+   {typ_operation = typ_operation,
+    constraints = constraints,
+    outer_constraints = outer_constraints}
+  end;
 
-    val ucontext =
-     {typ_operation = typ_operation,
-      constraints = constraints,
-      outer_constraints = outer_constraints};
+fun unconstrainT shyps prop =
+  let
+    val ucontext = unconstrain_context shyps (Types.build (prop |> Types.add_atyps));
     val prop' = prop
-      |> Term.map_types (typ_operation {strip_sorts = true})
-      |> curry list_implies (map #2 constraints);
+      |> Term.map_types (#typ_operation ucontext {strip_sorts = true})
+      |> curry list_implies (map #2 (#constraints ucontext));
   in (ucontext, prop') end;
 
 

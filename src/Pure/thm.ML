@@ -1065,8 +1065,7 @@ fun strip_shyps thm =
         fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
         fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
 
-        val present_set =
-          Types.build (thm |> (fold_terms {hyps = true} o fold_types o fold_atyps) Types.add_set);
+        val present_set = Types.build (thm |> fold_terms {hyps = true} Types.add_atyps);
         val {present, extra} = Logic.present_sorts shyps present_set;
 
         val (witnessed, non_witnessed) =

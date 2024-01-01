@@ -222,4 +222,16 @@ val add_free_names = fold_aterms (fn Free (x, _) => add_set x | _ => I);
 end;
 
 
-structure Types = Term_Items(type key = typ val ord = Term_Ord.typ_ord);
+structure Types:
+sig
+  include TERM_ITEMS
+  val add_atyps: term -> set -> set
+end =
+struct
+
+structure Term_Items = Term_Items(type key = typ val ord = Term_Ord.typ_ord);
+open Term_Items;
+
+val add_atyps = (fold_types o fold_atyps) add_set;
+
+end;
