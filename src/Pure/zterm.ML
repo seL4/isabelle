@@ -787,8 +787,9 @@ fun zproof_const a A : zproof_const =
 
 fun make_const_proof (f, g) (a, A, instT, inst) =
   let
-    val instT' = ZTVars.map (fn ((x, _), _) => fn y => the_default y (try f x)) instT;
-    val inst' = ZVars.map (fn ((x, _), _) => fn y => the_default y (try g x)) inst;
+    val typ = Same.function (fn ZTVar ((x, _), _) => try f x | _ => NONE);
+    val term = Same.function (fn ZVar ((x, _), _) => try g x | _ => NONE);
+    val (instT', inst') = Same.commit (map_insts_same typ term) (instT, inst);
   in ZConstp (a, A, instT', inst') end;
 
 
