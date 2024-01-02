@@ -545,7 +545,7 @@ fun map_proof_types typ = map_proof typ (subst_term_same typ Same.same);
 
 fun map_class_proof class =
   let
-    fun proof (ZClassp T_c) = class T_c
+    fun proof (ZClassp C) = class C
       | proof (ZAbst (a, T, p)) = ZAbst (a, T, proof p)
       | proof (ZAbsp (a, t, p)) = ZAbsp (a, t, proof p)
       | proof (ZAppt (p, t)) = ZAppt (proof p, t)

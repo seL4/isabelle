@@ -544,7 +544,7 @@ fun map_proof_same term typ ofclass =
           (proof prf1 %% Same.commit proof prf2
             handle Same.SAME => prf1 %% proof prf2)
       | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
-      | proof (PClass T_c) = ofclass T_c
+      | proof (PClass C) = ofclass C
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
       | proof (PThm ({serial, pos, theory_name, name, prop, types = SOME Ts}, thm_body)) =
           PThm (thm_header serial pos theory_name name prop (SOME (typs Ts)), thm_body)
@@ -1813,8 +1813,8 @@ fun make_constraints_cprf thy env cprf =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (prf as PAxm (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
-      | mk_cnstrts env _ _ vTs (prf as PClass (T, c)) =
-          mk_cnstrts_atom env vTs (Logic.mk_of_class (T, c)) NONE prf
+      | mk_cnstrts env _ _ vTs (prf as PClass C) =
+          mk_cnstrts_atom env vTs (Logic.mk_of_class C) NONE prf
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
@@ -1911,7 +1911,7 @@ fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 _ (Hyp t) = t
   | prop_of0 _ (PThm ({prop, types = SOME Ts, ...}, _)) = prop_of_atom prop Ts
   | prop_of0 _ (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
-  | prop_of0 _ (PClass (T, c)) = Logic.mk_of_class (T, c)
+  | prop_of0 _ (PClass C) = Logic.mk_of_class C
   | prop_of0 _ (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 
