@@ -250,6 +250,7 @@ sig
   exception BAD_INST of ((indexname * ztyp) * zterm) list
   val map_proof: ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
   val map_proof_types: ztyp Same.operation -> zproof -> zproof
+  val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
   val ztyp_of: typ -> ztyp
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_of: theory -> term -> zterm
@@ -275,6 +276,7 @@ sig
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
   val trivial_proof: theory -> term -> zproof
+  val implies_intr_proof': zterm -> zproof -> zproof
   val implies_intr_proof: theory -> term -> zproof -> zproof
   val forall_intr_proof: theory -> typ -> string * term -> zproof -> zproof
   val forall_elim_proof: theory -> term -> zproof -> zproof
@@ -304,6 +306,7 @@ sig
   type sorts_zproof = (class * class -> zproof) * (string * class list list * class -> zproof)
   val of_sort_proof: Sorts.algebra -> sorts_zproof -> (typ * class -> zproof) ->
     typ * sort -> zproof list
+  val unconstrainT_proof: theory -> sorts_zproof -> Logic.unconstrain_context -> zproof -> zproof
 end;
 
 structure ZTerm: ZTERM =
@@ -536,6 +539,21 @@ fun map_proof_same typ term =
 
 fun map_proof typ term = Same.commit (map_proof_same typ term);
 fun map_proof_types typ = map_proof typ (subst_term_same typ Same.same);
+
+
+(* map class proofs *)
+
+fun map_class_proof class =
+  let
+    fun proof (ZClassp T_c) = class T_c
+      | proof (ZAbst (a, T, p)) = ZAbst (a, T, proof p)
+      | proof (ZAbsp (a, t, p)) = ZAbsp (a, t, proof p)
+      | proof (ZAppt (p, t)) = ZAppt (proof p, t)
+      | proof (ZAppp (p, q)) =
+          (ZAppp (proof p, Same.commit proof q)
+            handle Same.SAME => ZAppp (p, proof q))
+      | proof _ = raise Same.SAME;
+  in Same.commit proof end;
 
 
 (* convert ztyp / zterm vs. regular typ / term *)
@@ -850,9 +868,8 @@ fun assume_proof thy A =
 fun trivial_proof thy A =
   ZAbsp ("H", zterm_of thy A, ZBoundp 0);
 
-fun implies_intr_proof thy A prf =
+fun implies_intr_proof' h prf =
   let
-    val h = zterm_of thy A;
     fun proof lev (ZHyp t) = if aconv_zterm (h, t) then ZBoundp lev else raise Same.SAME
       | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
       | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
@@ -862,6 +879,8 @@ fun implies_intr_proof thy A prf =
             handle Same.SAME => ZAppp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
   in ZAbsp ("H", h, Same.commit (proof 0) prf) end;
+
+fun implies_intr_proof thy = implies_intr_proof' o zterm_of thy;
 
 fun forall_intr_proof thy T (a, x) prf =
   let
@@ -1207,5 +1226,29 @@ fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
       let val Ss = map (map snd) dom and prfs = maps (map fst) dom
       in ZAppps (arity_proof (a, Ss, c), prfs) end,
     type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
+
+fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
+  let
+    val cache = norm_cache thy;
+    val algebra = Sign.classes_of thy;
+
+    val typ =
+      ZTypes.unsynchronized_cache
+        (typ_of #> #typ_operation ucontext {strip_sorts = true} #> ztyp_of);
+
+    val typ_sort = #typ_operation ucontext {strip_sorts = false};
+
+    fun hyps T =
+      (case AList.lookup (op =) (#constraints ucontext) T of
+        SOME t => ZHyp (#zterm cache t)
+      | NONE => raise Fail "unconstrainT_proof: missing constraint");
+
+    fun class (T, c) =
+      let val T' = Same.commit typ_sort (#typ cache T)
+      in the_single (of_sort_proof algebra sorts_proof hyps (T', [c])) end;
+  in
+    map_proof_types typ #> map_class_proof class #> beta_norm_prooft
+    #> fold_rev (implies_intr_proof' o #zterm cache o #2) (#constraints ucontext)
+  end;
 
 end;
