@@ -248,8 +248,8 @@ sig
   val subst_term_same:
     ztyp Same.operation -> (indexname * ztyp, zterm) Same.function -> zterm Same.operation
   exception BAD_INST of ((indexname * ztyp) * zterm) list
-  val map_proof: ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
-  val map_proof_types: ztyp Same.operation -> zproof -> zproof
+  val map_proof: {hyps: bool} -> ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
+  val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
   val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
   val ztyp_of: typ -> ztyp
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
@@ -514,14 +514,14 @@ fun map_insts_same typ term (instT, inst) =
         |> make_inst;
   in if ! changed then (instT', inst') else raise Same.SAME end;
 
-fun map_proof_same typ term =
+fun map_proof_same {hyps} typ term =
   let
     fun proof ZDummy = raise Same.SAME
       | proof (ZConstp (a, A, instT, inst)) =
           let val (instT', inst') = map_insts_same typ term (instT, inst)
           in ZConstp (a, A, instT', inst') end
       | proof (ZBoundp _) = raise Same.SAME
-      | proof (ZHyp _) = raise Same.SAME
+      | proof (ZHyp h) = if hyps then ZHyp (term h) else raise Same.SAME
       | proof (ZAbst (a, T, p)) =
           (ZAbst (a, typ T, Same.commit proof p)
             handle Same.SAME => ZAbst (a, T, proof p))
@@ -537,8 +537,8 @@ fun map_proof_same typ term =
       | proof (ZClassp (T, c)) = ZClassp (typ T, c);
   in proof end;
 
-fun map_proof typ term = Same.commit (map_proof_same typ term);
-fun map_proof_types typ = map_proof typ (subst_term_same typ Same.same);
+fun map_proof hyps typ term = Same.commit (map_proof_same hyps typ term);
+fun map_proof_types hyps typ = map_proof hyps typ (subst_term_same typ Same.same);
 
 
 (* map class proofs *)
@@ -752,7 +752,7 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
             |> instantiate_term_same inst_typ;
 
           val norm_term = Same.compose beta_norm_term_same inst_term;
-        in beta_norm_prooft (map_proof inst_typ norm_term prf) end
+        in beta_norm_prooft (map_proof {hyps = false} inst_typ norm_term prf) end
   end;
 
 fun norm_cache thy =
@@ -1032,7 +1032,7 @@ fun generalize_proof (tfrees, frees) idx prf =
       subst_term_same typ (fn ((x, i), T) =>
         if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
         else raise Same.SAME);
-  in map_proof typ term prf end;
+  in map_proof {hyps = false} typ term prf end;
 
 fun instantiate_proof thy (Ts, ts) prf =
   let
@@ -1041,7 +1041,7 @@ fun instantiate_proof thy (Ts, ts) prf =
     val inst = ZVars.build (ts |> fold (fn ((v, T), t) => ZVars.add ((v, ztyp T), zterm t)));
     val typ = instantiate_type_same instT;
     val term = instantiate_term_same typ inst;
-  in map_proof typ term prf end;
+  in map_proof {hyps = false} typ term prf end;
 
 fun varifyT_proof names prf =
   if null names then prf
@@ -1053,7 +1053,7 @@ fun varifyT_proof names prf =
           (case ZTVars.lookup tab v of
             NONE => raise Same.SAME
           | SOME w => ZTVar w)));
-    in map_proof_types typ prf end;
+    in map_proof_types {hyps = false} typ prf end;
 
 fun legacy_freezeT_proof t prf =
   (case Type.legacy_freezeT t of
@@ -1062,7 +1062,7 @@ fun legacy_freezeT_proof t prf =
       let
         val tvar = ztyp_of o Same.function f;
         val typ = ZTypes.unsynchronized_cache (subst_type_same tvar);
-      in map_proof_types typ prf end);
+      in map_proof_types {hyps = false} typ prf end);
 
 
 (* permutations *)
@@ -1102,7 +1102,7 @@ fun incr_indexes_proof inc prf =
     val typ = incr_tvar_same inc;
     fun var ((x, i), T) = if i >= 0 then ZVar ((x, i + inc), T) else raise Same.SAME;
     val term = subst_term_same typ var;
-  in map_proof typ term prf end;
+  in map_proof {hyps = false} typ term prf end;
 
 fun lift_proof thy gprop inc prems prf =
   let
@@ -1248,7 +1248,7 @@ fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
       let val T' = Same.commit typ_sort (#typ cache T)
       in the_single (of_sort_proof algebra sorts_proof hyps (T', [c])) end;
   in
-    map_proof_types typ #> map_class_proof class #> beta_norm_prooft
+    map_proof_types {hyps = false} typ #> map_class_proof class #> beta_norm_prooft
     #> fold_rev (implies_intr_proof' o #zterm cache o #2) (#constraints ucontext)
   end;
 
