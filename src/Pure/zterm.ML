@@ -556,7 +556,8 @@ fun map_class_proof class =
 fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (TVar v) = ZTVar v
   | ztyp_of (Type ("fun", [T, U])) = ZFun (ztyp_of T, ztyp_of U)
-  | ztyp_of (Type (c, [])) = if c = "prop" then ZProp else ZType0 c
+  | ztyp_of (Type ("prop", [])) = ZProp
+  | ztyp_of (Type (c, [])) = ZType0 c
   | ztyp_of (Type (c, [T])) = ZType1 (c, ztyp_of T)
   | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
 
