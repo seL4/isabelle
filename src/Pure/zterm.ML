@@ -12,7 +12,6 @@ datatype ztyp =
     ZTVar of indexname * sort      (*free: index ~1*)
   | ZFun of ztyp * ztyp
   | ZProp
-  | ZItself of ztyp
   | ZType0 of string               (*type constant*)
   | ZType1 of string * ztyp        (*type constructor: 1 argument*)
   | ZType of string * ztyp list    (*type constructor: >= 2 arguments*)
@@ -34,7 +33,6 @@ struct
 
 fun fold_tvars f (ZTVar v) = f v
   | fold_tvars f (ZFun (T, U)) = fold_tvars f T #> fold_tvars f U
-  | fold_tvars f (ZItself T) = fold_tvars f T
   | fold_tvars f (ZType1 (_, T)) = fold_tvars f T
   | fold_tvars f (ZType (_, Ts)) = fold (fold_tvars f) Ts
   | fold_tvars _ _ = I;
@@ -59,10 +57,9 @@ local
 fun cons_nr (ZTVar _) = 0
   | cons_nr (ZFun _) = 1
   | cons_nr ZProp = 2
-  | cons_nr (ZItself _) = 3
-  | cons_nr (ZType0 _) = 4
-  | cons_nr (ZType1 _) = 5
-  | cons_nr (ZType _) = 6;
+  | cons_nr (ZType0 _) = 3
+  | cons_nr (ZType1 _) = 4
+  | cons_nr (ZType _) = 5;
 
 val fast_indexname_ord = Term_Ord.fast_indexname_ord;
 val sort_ord = Term_Ord.sort_ord;
@@ -78,7 +75,6 @@ fun ztyp_ord TU =
     | (ZFun (T, T'), ZFun (U, U')) =>
         (case ztyp_ord (T, U) of EQUAL => ztyp_ord (T', U') | ord => ord)
     | (ZProp, ZProp) => EQUAL
-    | (ZItself T, ZItself U) => ztyp_ord (T, U)
     | (ZType0 a, ZType0 b) => fast_string_ord (a, b)
     | (ZType1 (a, T), ZType1 (b, U)) =>
         (case fast_string_ord (a, b) of EQUAL => ztyp_ord (T, U) | ord => ord)
@@ -439,7 +435,6 @@ fun subst_type_same tvar =
           (ZFun (typ T, Same.commit typ U)
             handle Same.SAME => ZFun (T, typ U))
       | typ ZProp = raise Same.SAME
-      | typ (ZItself T) = ZItself (typ T)
       | typ (ZType0 _) = raise Same.SAME
       | typ (ZType1 (a, T)) = ZType1 (a, typ T)
       | typ (ZType (a, Ts)) = ZType (a, Same.map typ Ts);
@@ -562,7 +557,7 @@ fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (TVar v) = ZTVar v
   | ztyp_of (Type ("fun", [T, U])) = ZFun (ztyp_of T, ztyp_of U)
   | ztyp_of (Type (c, [])) = if c = "prop" then ZProp else ZType0 c
-  | ztyp_of (Type (c, [T])) = if c = "itself" then ZItself (ztyp_of T) else ZType1 (c, ztyp_of T)
+  | ztyp_of (Type (c, [T])) = ZType1 (c, ztyp_of T)
   | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
 
 fun ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
@@ -595,7 +590,6 @@ fun typ_of (ZTVar ((a, ~1), S)) = TFree (a, S)
   | typ_of (ZTVar v) = TVar v
   | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
   | typ_of ZProp = propT
-  | typ_of (ZItself T) = Term.itselfT (typ_of T)
   | typ_of (ZType0 c) = Type (c, [])
   | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
   | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
@@ -690,7 +684,6 @@ fun norm_type_same ztyp tyenv =
             (ZFun (norm T, Same.commit norm U)
               handle Same.SAME => ZFun (T, norm U))
         | norm ZProp = raise Same.SAME
-        | norm (ZItself T) = ZItself (norm T)
         | norm (ZType0 _) = raise Same.SAME
         | norm (ZType1 (a, T)) = ZType1 (a, norm T)
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
