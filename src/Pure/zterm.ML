@@ -853,8 +853,7 @@ fun box_proof zproof_name thy hyps concl prf =
     val constrain_instT =
       ZTVars.build (present_set |> Types.fold (fn (T, _) =>
         let
-          val ZTVar v = ztyp_of (unconstrain_typ T);
-          val U = ztyp_of T;
+          val ZTVar v = ztyp_of (unconstrain_typ T) and U = ztyp_of T;
           val equal = (case U of ZTVar u => u = v | _ => false);
         in not equal ? ZTVars.add (v, U) end));
     val constrain_proof =
