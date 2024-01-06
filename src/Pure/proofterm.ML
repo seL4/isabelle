@@ -182,10 +182,10 @@ sig
   val export_proof_boxes_required: theory -> bool
   val export_proof_boxes: proof_body list -> unit
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val thm_proof: theory -> ZTerm.sorts_zproof -> sorts_proof -> string * Position.T -> sort list ->
-    term list -> term -> (serial * proof_body future) list -> proof_body -> proof_body
-  val unconstrain_thm_proof: theory -> ZTerm.sorts_zproof -> sorts_proof ->
-    sort list -> term -> (serial * proof_body future) list -> proof_body -> term * proof_body
+  val thm_proof: theory -> sorts_proof -> string * Position.T -> sort list -> term list ->
+    term -> (serial * proof_body future) list -> proof_body -> proof_body
+  val unconstrain_thm_proof: theory -> sorts_proof -> sort list ->
+    term -> (serial * proof_body future) list -> proof_body -> term * proof_body
   val get_identity: sort list -> term list -> term -> proof ->
     {serial: serial, theory_name: string, name: string} option
   val get_approximative_name: sort list -> term list -> term -> proof -> string
@@ -2173,7 +2173,7 @@ fun export_proof thy i prop prf0 =
       strict = false} xml
   end;
 
-fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
+fun prepare_thm_proof unconstrain thy sorts_proof
     (name, pos) shyps hyps concl promises
     (PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof0, proof = proof0}) =
   let
@@ -2186,7 +2186,8 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
 
     val proofs = get_proofs_level ();
     val (zproof1, zboxes1) =
-      if zproof_enabled proofs then ZTerm.add_box_proof thy hyps concl zproof0 zboxes0
+      if zproof_enabled proofs then
+        ZTerm.add_box_proof {unconstrain = unconstrain} thy hyps concl zproof0 zboxes0
       else (ZDummy, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
@@ -2246,20 +2247,16 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
       else map PClass (#outer_constraints ucontext) @ map Hyp hyps;
     val proof2 = proof_combP (proof_combt' (head, argst), argsP);
 
-    val (zboxes2, zproof2) =
-      if unconstrain then (zboxes1, zproof1)  (* FIXME proper zproof *)
-      else (zboxes1, zproof1);
-
-    val body2 = {oracles = [], thms = [thm], zboxes = zboxes2, zproof = zproof2, proof = proof2};
+    val body2 = {oracles = [], thms = [thm], zboxes = zboxes1, zproof = zproof1, proof = proof2};
   in (prop1, PBody body2) end;
 
 in
 
-fun thm_proof thy sorts_zproof sorts_proof name shyps hyps concl promises =
-  prepare_thm_proof false thy sorts_zproof sorts_proof name shyps hyps concl promises #> #2;
+fun thm_proof thy sorts_proof name shyps hyps concl promises =
+  prepare_thm_proof false thy sorts_proof name shyps hyps concl promises #> #2;
 
-fun unconstrain_thm_proof thy sorts_zproof sorts_proof shyps concl promises body =
-  prepare_thm_proof true thy sorts_zproof sorts_proof ("", Position.none)
+fun unconstrain_thm_proof thy sorts_proof shyps concl promises body =
+  prepare_thm_proof true thy sorts_proof ("", Position.none)
     shyps [] concl promises body;
 
 end;

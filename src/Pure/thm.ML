@@ -133,7 +133,7 @@ sig
   (*type classes*)
   val the_classrel: theory -> class * class -> thm
   val the_arity: theory -> string * sort list * class -> thm
-  val sorts_zproof: theory -> ZTerm.sorts_zproof
+  val sorts_zproof: theory -> ZTerm.sorts_proof
   val sorts_proof: theory -> Proofterm.sorts_proof
   (*oracles*)
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
@@ -1157,9 +1157,7 @@ fun name_derivation name_pos =
       val _ = null tpairs orelse raise THM ("name_derivation: bad flex-flex constraints", 0, [thm]);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
-      val body' =
-        Proofterm.thm_proof thy (sorts_zproof thy) (sorts_proof thy)
-          name_pos shyps hyps prop ps body;
+      val body' = Proofterm.thm_proof thy (sorts_proof thy) name_pos shyps hyps prop ps body;
     in Thm (make_deriv0 [] body', args) end);
 
 fun close_derivation pos =
@@ -2020,9 +2018,7 @@ val unconstrainT =
       val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
-      val (prop', body') =
-        Proofterm.unconstrain_thm_proof thy (sorts_zproof thy) (sorts_proof thy)
-          shyps prop ps body;
+      val (prop', body') = Proofterm.unconstrain_thm_proof thy (sorts_proof thy) shyps prop ps body;
     in
       Thm (make_deriv0 [] body',
        {cert = cert,
