@@ -2236,14 +2236,16 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
 
     val header = thm_header i ([pos, Position.thread_data ()]) theory_name name prop1 NONE;
     val head = PThm (header, Thm_Body {open_proof = open_proof, body = thm_body});
-    val proof2 =
+    val argst =
       if unconstrain then
-        proof_combt' (head,
-          (Same.commit o Same.map o Same.map_option o Term.map_types_same)
-            (typ_operation {strip_sorts = true}) args)
-      else
-        proof_combP (proof_combt' (head, args),
-          map PClass (#outer_constraints ucontext) @ map Hyp hyps);
+        (Same.commit o Same.map o Same.map_option o Term.map_types_same)
+          (typ_operation {strip_sorts = true}) args
+      else args;
+    val argsP =
+      if unconstrain then []
+      else map PClass (#outer_constraints ucontext) @ map Hyp hyps;
+    val proof2 = proof_combP (proof_combt' (head, argst), argsP);
+
     val (zboxes2, zproof2) =
       if unconstrain then (zboxes1, zproof1)  (* FIXME proper zproof *)
       else (zboxes1, zproof1);
