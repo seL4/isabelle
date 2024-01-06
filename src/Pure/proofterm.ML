@@ -2174,7 +2174,8 @@ fun export_proof thy i prop prf0 =
   end;
 
 fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
-    (name, pos) shyps hyps concl promises (PBody body0) =
+    (name, pos) shyps hyps concl promises
+    (PBody {oracles = oracles0, thms = thms0, zboxes = zboxes0, zproof = zproof0, proof = proof0}) =
   let
     val named = name <> "";
 
@@ -2185,11 +2186,10 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
 
     val proofs = get_proofs_level ();
     val (zproof1, zboxes1) =
-      if zproof_enabled proofs
-      then ZTerm.add_box_proof thy hyps concl (#zproof body0) (#zboxes body0)
+      if zproof_enabled proofs then ZTerm.add_box_proof thy hyps concl zproof0 zboxes0
       else (ZDummy, []);
     val proof1 =
-      if proof_enabled proofs then fold_rev implies_intr_proof hyps (#proof body0)
+      if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
       else MinProof;
 
     fun new_prf () =
@@ -2198,15 +2198,14 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
         val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
-          {oracles = #oracles body0, thms = #thms body0,
-            zboxes = [], zproof = ZDummy, proof = proof1};
+          {oracles = oracles0, thms = thms0, zboxes = [], zproof = ZDummy, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =
       (*somewhat non-deterministic proof boxes!*)
       if export_enabled () then new_prf ()
       else
-        (case strip_combt (fst (strip_combP (#proof body0))) of
+        (case strip_combt (fst (strip_combP proof0)) of
           (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
             if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
               let
