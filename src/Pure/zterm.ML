@@ -266,7 +266,7 @@ sig
   type zboxes = zbox Ord_List.T
   val union_zboxes: zboxes -> zboxes -> zboxes
   val unions_zboxes: zboxes list -> zboxes
-  val add_box_proof: theory -> term list -> term -> zboxes * zproof -> zboxes * zproof
+  val add_box_proof: theory -> term list -> term -> zproof -> zboxes -> zproof * zboxes
   val thm_proof: theory -> Thm_Name.T * Position.T -> term list -> term -> zproof -> zbox * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
@@ -880,9 +880,11 @@ fun thm_proof thy thm_name =
     fun zproof_name i = ZThm {theory_name = thy_name, thm_name = thm_name, serial = i};
   in box_proof zproof_name thy end;
 
-fun add_box_proof thy hyps concl (zboxes, prf) =
-  let val (zbox, zbox_prf) = box_proof ZBox thy hyps concl prf
-  in (add_zboxes zbox zboxes, zbox_prf) end;
+fun add_box_proof thy hyps concl prf zboxes =
+  let
+    val (zbox, prf') = box_proof ZBox thy hyps concl prf;
+    val zboxes' = add_zboxes zbox zboxes;
+  in (prf', zboxes') end;
 
 end;
 

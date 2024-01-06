@@ -2184,10 +2184,10 @@ fun prepare_thm_proof unconstrain thy sorts_zproof sorts_proof
     val (ucontext as {typ_operation, ...}, prop1) = Logic.unconstrainT shyps prop;
 
     val proofs = get_proofs_level ();
-    val (zboxes1, zproof1) =
+    val (zproof1, zboxes1) =
       if zproof_enabled proofs
-      then ZTerm.add_box_proof thy hyps concl (#zboxes body0, #zproof body0)
-      else ([], ZDummy);
+      then ZTerm.add_box_proof thy hyps concl (#zproof body0) (#zboxes body0)
+      else (ZDummy, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps (#proof body0)
       else MinProof;
