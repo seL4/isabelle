@@ -826,15 +826,13 @@ fun close_proof prems prf =
       | proof _ _ = raise Same.SAME;
   in ZAbsps prems (Same.commit (proof 0) prf) end;
 
-fun box_proof zproof_name thy hyps concl prf =
+fun box_proof {unconstrain} zproof_name thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
 
     val present_set = Types.build (fold Types.add_atyps hyps #> Types.add_atyps concl);
-    val ucontext = Logic.unconstrain_context [] present_set;
-
-    val outer_constraints = map (apfst ztyp_of) (#outer_constraints ucontext);
-    val constraints = map (zterm o #2) (#constraints ucontext);
+    val ucontext as {constraints, outer_constraints, ...} =
+      Logic.unconstrain_context [] present_set;
 
     val typ_operation = #typ_operation ucontext {strip_sorts = true};
     val unconstrain_typ = Same.commit typ_operation;
@@ -844,26 +842,33 @@ fun box_proof zproof_name thy hyps concl prf =
     val unconstrain_proof = Same.commit (map_proof_types {hyps = true} unconstrain_ztyp);
 
     val constrain_instT =
-      ZTVars.build (present_set |> Types.fold (fn (T, _) =>
-        let
-          val ZTVar v = ztyp_of (unconstrain_typ T) and U = ztyp_of T;
-          val equal = (case U of ZTVar u => u = v | _ => false);
-        in not equal ? ZTVars.add (v, U) end));
+      if unconstrain then ZTVars.empty
+      else
+        ZTVars.build (present_set |> Types.fold (fn (T, _) =>
+          let
+            val ZTVar v = ztyp_of (unconstrain_typ T) and U = ztyp_of T;
+            val equal = (case U of ZTVar u => u = v | _ => false);
+          in not equal ? ZTVars.add (v, U) end));
     val constrain_proof =
       if ZTVars.is_empty constrain_instT then I
       else
         map_proof_types {hyps = true}
           (subst_type_same (Same.function (ZTVars.lookup constrain_instT)));
 
-    val args = map ZClassp outer_constraints @ map (ZHyp o zterm) hyps;
-    val prems = constraints @ map unconstrain_zterm hyps;
+    val hyps' = map unconstrain_zterm hyps;
+    val prems = map (zterm o #2) constraints @ hyps';
     val prop' = beta_norm_term (close_prop prems (unconstrain_zterm concl));
     val prf' = beta_norm_prooft (close_proof prems (unconstrain_proof prf));
 
     val i = serial ();
     val zbox: zbox = (i, (prop', prf'));
+
     val const = constrain_proof (ZConstp (zproof_const (zproof_name i) prop'));
-  in (zbox, ZAppps (const, args)) end;
+    val args1 =
+      outer_constraints |> map (fn (T, c) =>
+        ZClassp (ztyp_of (if unconstrain then unconstrain_typ T else T), c));
+    val args2 = if unconstrain then map ZHyp hyps' else map (ZHyp o zterm) hyps;
+  in (zbox, ZAppps (ZAppps (const, args1), args2)) end;
 
 in
 
@@ -871,12 +876,11 @@ fun thm_proof thy thm_name =
   let
     val thy_name = Context.theory_long_name thy;
     fun zproof_name i = ZThm {theory_name = thy_name, thm_name = thm_name, serial = i};
-  in box_proof zproof_name thy end;
+  in box_proof {unconstrain = false} zproof_name thy end;
 
-fun add_box_proof {unconstrain} thy hyps concl prf zboxes =
+fun add_box_proof unconstrain thy hyps concl prf zboxes =
   let
-    (* FIXME unconstrain *)
-    val (zbox, prf') = box_proof ZBox thy hyps concl prf;
+    val (zbox, prf') = box_proof unconstrain ZBox thy hyps concl prf;
     val zboxes' = add_zboxes zbox zboxes;
   in (prf', zboxes') end;
 
