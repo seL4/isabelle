@@ -855,13 +855,13 @@ fun box_proof zproof_name thy hyps concl prf =
         let
           val ZTVar v = ztyp_of (unconstrain_typ T);
           val U = ztyp_of T;
-        in ZTVars.add (v, U) end));
+          val equal = (case U of ZTVar u => u = v | _ => false);
+        in not equal ? ZTVars.add (v, U) end));
     val constrain_proof =
-      map_proof_types {hyps = true} (subst_type_same (fn v =>
-        let
-          val T = ZTVar v;
-          val T' = the_default T (ZTVars.lookup constrain_instT v);
-        in if T = T' then raise Same.SAME else T' end));
+      if ZTVars.is_empty constrain_instT then I
+      else
+        map_proof_types {hyps = true}
+          (subst_type_same (Same.function (ZTVars.lookup constrain_instT)));
 
     val args = map ZClassp outer_constraints @ map (ZHyp o zterm) hyps;
     val prems = constraints @ map unconstrain_zterm hyps;
