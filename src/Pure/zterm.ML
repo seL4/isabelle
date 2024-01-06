@@ -803,10 +803,8 @@ local
 fun close_prop prems prop =
   fold_rev (fn A => fn B => ZApp (ZApp (ZConst0 "Pure.imp", A), B)) prems prop;
 
-fun close_proof of_class prems prf =
+fun close_proof prems prf =
   let
-    fun err msg t = raise ZTERM (msg, [], [t], [prf]);
-
     val m = length prems - 1;
     val bounds = ZTerms.build (prems |> fold_index (fn (i, h) => ZTerms.update (h, m - i)));
     fun get_bound lev t = ZTerms.lookup bounds t |> Option.map (fn i => ZBoundp (lev + i));
@@ -814,13 +812,11 @@ fun close_proof of_class prems prf =
     fun proof lev (ZHyp t) =
           (case get_bound lev t of
             SOME p => p
-          | NONE => err "Loose bound in proof term" t)
+          | NONE => raise ZTERM ("Loose bound in proof term", [], [t], [prf]))
       | proof lev (ZClassp C) =
           (case get_bound lev (ZClass C) of
             SOME p => p
-          | NONE =>
-              if of_class C then raise Same.SAME
-              else err "Invalid class constraint " (ZClass C))
+          | NONE => raise Same.SAME)
       | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
       | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
       | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
@@ -832,10 +828,7 @@ fun close_proof of_class prems prf =
 
 fun box_proof zproof_name thy hyps concl prf =
   let
-    val {zterm, typ, ...} = norm_cache thy;
-
-    val algebra = Sign.classes_of thy;
-    fun of_class (T, c) = Sorts.of_sort algebra (typ T, [c]);
+    val {zterm, ...} = zterm_cache thy;
 
     val present_set = Types.build (fold Types.add_atyps hyps #> Types.add_atyps concl);
     val ucontext = Logic.unconstrain_context [] present_set;
@@ -865,7 +858,7 @@ fun box_proof zproof_name thy hyps concl prf =
     val args = map ZClassp outer_constraints @ map (ZHyp o zterm) hyps;
     val prems = constraints @ map unconstrain_zterm hyps;
     val prop' = beta_norm_term (close_prop prems (unconstrain_zterm concl));
-    val prf' = beta_norm_prooft (close_proof of_class prems (unconstrain_proof prf));
+    val prf' = beta_norm_prooft (close_proof prems (unconstrain_proof prf));
 
     val i = serial ();
     val zbox: zbox = (i, (prop', prf'));
