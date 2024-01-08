@@ -381,7 +381,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       | [] => ()
       | _ => error ("Multiple type variables in class axiom:\n" ^ Syntax.string_of_term ctxt t);
       t
-      |> Term.map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
+      |> (Term.map_types o Term.map_atyps_same) (fn TFree _ => Term.aT [] | _ => raise Same.SAME)
       |> Logic.close_form);
 
     val axiomss = map (map (prep_axiom o Sign.cert_prop thy) o snd) raw_specs;

@@ -79,7 +79,7 @@ fun improve_term_check ts ctxt =
     val improvements = Vartab.build ((fold o fold_aterms) accumulate_improvements ts);
     val ts' =
       ts
-      |> (map o map_types) (Envir.subst_type improvements)
+      |> (Same.commit o Same.map o Term.map_types_same) (Envir.subst_type_same improvements)
       |> not no_subst ? map apply_subst;
   in
     if secondary_pass orelse no_subst then

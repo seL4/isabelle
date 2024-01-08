@@ -99,7 +99,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (case some_prop of
         NONE => of_class_prop_concl
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
-          ((map_types o map_atyps) (K a_type) prop), of_class_prop_concl));
+          ((map_types o Term.map_atyps_same) (K a_type) prop), of_class_prop_concl));
     val sup_of_classes = map (snd o Class.rules thy) sups;
     val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
     val axclass_intro = #intro (Axclass.get_info thy class);
@@ -147,8 +147,9 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
           | _ => error "Multiple type variables in class specification");
         val fixateT = Term.aT fixate_sort;
       in
-        (map o map_atyps)
-          (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) Ts
+        (Same.commit o Same.map o Term.map_atyps_same)
+          (fn TVar (xi, _) => if Type_Infer.is_param xi then fixateT else raise Same.SAME
+            | _ => raise Same.SAME) Ts
       end);
     fun unify_params ts =
       let
@@ -302,7 +303,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
     (*FIXME simplify*)
     fun globalize param_map = map_aterms
       (fn Free (v, ty) => Const ((fst o the o AList.lookup (op =) param_map) v, ty)
-        | t => t);
+        | _ => raise Same.SAME);
     val raw_pred = Locale.intros_of thy class
       |> fst
       |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
