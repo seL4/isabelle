@@ -81,7 +81,6 @@ sig
   val get_proofs_level: unit -> int
   val proofs: int Unsynchronized.ref
   val any_proofs_enabled: unit -> bool
-  val atomic_proof: proof -> bool
   val compact_proof: proof -> bool
   val proof_combt: proof * term list -> proof
   val proof_combt': proof * term option list -> proof
@@ -490,18 +489,15 @@ fun any_proofs_enabled () =
   let val proofs = get_proofs_level ()
   in zproof_enabled proofs orelse proof_enabled proofs end;
 
-fun atomic_proof prf =
-  (case prf of
-    Abst _ => false
-  | AbsP _ => false
-  | op % _ => false
-  | op %% _ => false
-  | MinProof => false
-  | _ => true);
+val atomic_proof =
+  (fn Abst _ => false | AbsP _ => false
+    | op % _ => false | op %% _ => false
+    | MinProof => false
+    | _ => true);
 
-fun compact_proof (prf % _) = compact_proof prf
-  | compact_proof (prf1 %% prf2) = atomic_proof prf2 andalso compact_proof prf1
-  | compact_proof prf = atomic_proof prf;
+fun compact_proof (p % _) = compact_proof p
+  | compact_proof (p %% q) = atomic_proof q andalso compact_proof p
+  | compact_proof p = atomic_proof p;
 
 fun (prf %> t) = prf % SOME t;
 
