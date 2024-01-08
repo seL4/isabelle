@@ -190,7 +190,7 @@ fun print_classes ctxt =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
 
-    fun prt_param (c, ty) = pretty_param ctxt (c, Same.commit (Term.smash_sortsT_same dummyS) ty);
+    fun prt_param (c, ty) = pretty_param ctxt (c, Term.smash_sortsT dummyS ty);
 
     fun prt_entry class =
       Pretty.block
@@ -245,10 +245,11 @@ fun activate_defs context class thms thy =
 fun register_operation class (c, t) input_only thy =
   let
     val base_sort = base_sort thy class;
-    val prep_typ = map_type_tfree
-      (fn (v, sort) => if Name.aT = v
-        then TFree (v, base_sort) else TVar ((v, 0), sort));
-    val t' = map_types prep_typ t;
+    val prep_types =
+      (Same.commit o Term.map_types_same o Term.map_atyps_same)
+        (fn TFree (v, S) => if Name.aT = v then TFree (v, base_sort) else TVar ((v, 0), S)
+          | _ => raise Same.SAME);
+    val t' = prep_types t;
     val ty' = Term.fastype_of t';
   in
     thy

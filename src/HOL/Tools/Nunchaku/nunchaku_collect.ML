@@ -190,7 +190,7 @@ fun preprocess_term_basic falsify ctxt whacks t =
       raise UNEXPECTED_POLYMORPHISM t
     else
       t
-      |> attach_typeS
+      |> Term.smash_sorts \<^sort>\<open>type\<close>
       |> whack_term thy whacks
       |> Object_Logic.atomize_term ctxt
       |> tap (fn t' => fastype_of t' <> \<^typ>\<open>prop\<close> orelse raise TOO_META t)

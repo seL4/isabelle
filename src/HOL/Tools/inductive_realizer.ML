@@ -52,10 +52,7 @@ fun relevant_vars prop = fold (fn ((a, i), T) => fn vs =>
         (_, Type (s, _)) => if s = \<^type_name>\<open>bool\<close> then (a, T) :: vs else vs
       | _ => vs)) (Term.add_vars prop []) [];
 
-val attach_typeS = map_types (map_atyps
-  (fn TFree (s, []) => TFree (s, \<^sort>\<open>type\<close>)
-    | TVar (ixn, []) => TVar (ixn, \<^sort>\<open>type\<close>)
-    | T => T));
+val attach_typeS = Term.smash_sorts \<^sort>\<open>type\<close>;
 
 fun dt_of_intrs thy vs nparms intrs =
   let

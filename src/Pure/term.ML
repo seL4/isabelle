@@ -151,6 +151,8 @@ sig
   val declare_term_frees: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val smash_sortsT_same: sort -> typ Same.operation
+  val smash_sortsT: sort -> typ -> typ
+  val smash_sorts: sort -> term -> term
   val strip_sortsT_same: typ Same.operation
   val strip_sortsT: typ -> typ
   val strip_sorts: term -> term
@@ -589,6 +591,9 @@ fun smash_sortsT_same S' =
   map_atyps_same
     (fn TFree (x, S) => if S = S' then raise Same.SAME else TFree (x, S')
       | TVar (xi, S) => if S = S' then raise Same.SAME else TVar (xi, S'));
+
+val smash_sortsT = Same.commit o smash_sortsT_same;
+val smash_sorts = map_types o smash_sortsT_same;
 
 val strip_sortsT_same = smash_sortsT_same [];
 val strip_sortsT = Same.commit strip_sortsT_same;
