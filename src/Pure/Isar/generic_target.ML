@@ -342,7 +342,7 @@ fun thm_definition (name_pos, thm) lthy =
           (case v of
             Var (xi, T) =>
               Vars.add ((xi, Term_Subst.instantiateT instT T),
-                Thm.cterm_of lthy' (Term.map_types (Term_Subst.instantiateT instT) t))
+                Thm.cterm_of lthy' (Term.map_types (Term_Subst.instantiateT_same instT) t))
           | _ => I)) vars frees);
     val fixed_thm = Thm.instantiate (cinstT, cinst) global_thm;
 
