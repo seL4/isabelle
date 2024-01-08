@@ -429,19 +429,21 @@ val list_comb : term * term list -> term = Library.foldl (op $);
 
 
 (*maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
-fun strip_comb u : term * term list =
-    let fun stripc (f$t, ts) = stripc (f, t::ts)
-        |   stripc  x =  x
-    in  stripc(u,[])  end;
+fun strip_comb tm =
+  let
+    fun strip (f $ t, ts) = strip (f, t :: ts)
+      | strip res = res;
+  in strip (tm, []) end;
 
-fun args_of u =
-    let fun args (f $ x) xs = args f (x :: xs)
-        |   args _ xs = xs
-    in args u [] end;
+val args_of =
+  let
+    fun args (f $ t) ts = args f (t :: ts)
+      | args _ ts = ts;
+  in build o args end;
 
 (*maps   f(t1,...,tn)  to  f , which is never a combination*)
-fun head_of (f$t) = head_of f
-  | head_of u = u;
+fun head_of (f $ _) = head_of f
+  | head_of t = t;
 
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =

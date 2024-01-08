@@ -499,21 +499,23 @@ fun compact_proof (p % _) = compact_proof p
   | compact_proof (p %% q) = atomic_proof q andalso compact_proof p
   | compact_proof p = atomic_proof p;
 
-fun (prf %> t) = prf % SOME t;
+fun (p %> t) = p % SOME t;
 
 val proof_combt = Library.foldl (op %>);
 val proof_combt' = Library.foldl (op %);
 val proof_combP = Library.foldl (op %%);
 
 fun strip_combt prf =
-    let fun stripc (prf % t, ts) = stripc (prf, t::ts)
-          | stripc  x =  x
-    in  stripc (prf, [])  end;
+  let
+    fun strip (p % t, ts) = strip (p, t :: ts)
+      | strip res = res;
+  in strip (prf, []) end;
 
 fun strip_combP prf =
-    let fun stripc (prf %% prf', prfs) = stripc (prf, prf'::prfs)
-          | stripc  x =  x
-    in  stripc (prf, [])  end;
+  let
+    fun strip (p %% q, qs) = strip (p, q :: qs)
+      | strip res = res;
+  in strip (prf, []) end;
 
 fun strip_thm_body (body as PBody {proof, ...}) =
   (case fst (strip_combt (fst (strip_combP proof))) of
