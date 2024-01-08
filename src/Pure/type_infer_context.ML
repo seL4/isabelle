@@ -288,7 +288,7 @@ fun prepare ctxt raw_ts =
     val constrain_vars = Term.map_aterms
       (fn Free (x, T) => Type.constraint T (Free (x, var_type ctxt (x, ~1)))
         | Var (xi, T) => Type.constraint T (Var (xi, var_type ctxt xi))
-        | t => t);
+        | _ => raise Same.SAME);
 
     val ts = burrow_types (Syntax.check_typs ctxt) raw_ts;
     val idx = Type_Infer.param_maxidx_of ts + 1;
