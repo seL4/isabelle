@@ -175,7 +175,8 @@ sig
   val legacy_freezeT: thm -> thm
   val plain_prop_of: thm -> term
   val get_zproof_serials: theory -> serial list
-  val get_zproof: theory -> serial -> {name: Thm_Name.T * Position.T, thm: thm} option
+  val get_zproof: theory -> serial ->
+    {name: Thm_Name.T * Position.T, thm: thm, zboxes: ZTerm.zboxes, zproof: zproof} option
   val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -2095,8 +2096,11 @@ fun plain_prop_of raw_thm =
 val get_zproof_serials = Inttab.keys o get_zproofs;
 
 fun get_zproof thy =
-  Inttab.lookup (get_zproofs thy)
-  #> Option.map (fn {name, thm} => {name = name, thm = transfer thy thm});
+  Inttab.lookup (get_zproofs thy) #> Option.map (fn {name, thm} =>
+    let
+      val thm' = transfer thy thm;
+      val PBody {zboxes, zproof, ...} = proof_body_of thm';
+    in {name = name, thm = thm', zboxes = zboxes, zproof = zproof} end);
 
 fun store_zproof name thm thy =
   let
