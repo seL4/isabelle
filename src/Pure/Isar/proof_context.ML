@@ -700,7 +700,8 @@ fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
     Type_Infer.fixate ctxt pattern #>
     pattern ? Variable.polymorphic ctxt #>
-    (map o Term.map_types) (prepare_patternT ctxt) #>
+    (Same.commit o Same.map o Term.map_types_same)
+      (Same.function_eq (op =) (prepare_patternT ctxt)) #>
     (if pattern then prepare_dummies else map (check_dummies ctxt))
   end;
 
@@ -772,27 +773,28 @@ fun prepare_sorts_env ctxt tys =
 
   in (map #2 reports, get_sort) end;
 
-fun replace_sortsT get_sort =
-  map_atyps
+fun replace_sortsT_same get_sort =
+  Term.map_atyps_same
     (fn T =>
-      if Term_Position.is_positionT T then T
+      if Term_Position.is_positionT T then raise Same.SAME
       else
         (case T of
-          TFree (x, raw_S) => TFree (x, get_sort (x, ~1) raw_S)
-        | TVar (xi, raw_S) => TVar (xi, get_sort xi raw_S)
-        | _ => T));
+          TFree (x, raw_S) => TFree (x, Same.function_eq (op =) (get_sort (x, ~1)) raw_S)
+        | TVar (xi, raw_S) => TVar (xi, Same.function_eq (op =) (get_sort xi) raw_S)
+        | _ => raise Same.SAME));
 
 in
 
 fun prepare_sortsT ctxt tys =
   let val (sorting_report, get_sort) = prepare_sorts_env ctxt tys
-  in (sorting_report, map (replace_sortsT get_sort) tys) end;
+  in (sorting_report, (Same.commit o Same.map) (replace_sortsT_same get_sort) tys) end;
 
 fun prepare_sorts ctxt tms =
   let
     val tys = rev ((fold o fold_types) cons tms []);
     val (sorting_report, get_sort) = prepare_sorts_env ctxt tys;
-  in (sorting_report, (map o map_types) (replace_sortsT get_sort) tms) end;
+    val tms' = (Same.commit o Same.map o Term.map_types_same) (replace_sortsT_same get_sort) tms;
+  in (sorting_report, tms') end;
 
 fun check_tfree ctxt v =
   let
