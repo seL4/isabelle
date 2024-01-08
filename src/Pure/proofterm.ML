@@ -81,7 +81,6 @@ sig
   val get_proofs_level: unit -> int
   val proofs: int Unsynchronized.ref
   val any_proofs_enabled: unit -> bool
-  val compact_proof: proof -> bool
   val proof_combt: proof * term list -> proof
   val proof_combt': proof * term option list -> proof
   val proof_combP: proof * proof list -> proof
@@ -90,6 +89,7 @@ sig
   val any_head_of: proof -> proof
   val term_head_of: proof -> proof
   val proof_head_of: proof -> proof
+  val compact_proof: proof -> bool
   val strip_thm_body: proof_body -> proof_body
   val map_proof_same: term Same.operation -> typ Same.operation
     -> (typ * class -> proof) -> proof Same.operation
@@ -492,16 +492,6 @@ fun any_proofs_enabled () =
   let val proofs = get_proofs_level ()
   in zproof_enabled proofs orelse proof_enabled proofs end;
 
-val atomic_proof =
-  (fn Abst _ => false | AbsP _ => false
-    | op % _ => false | op %% _ => false
-    | MinProof => false
-    | _ => true);
-
-fun compact_proof (p % _) = compact_proof p
-  | compact_proof (p %% q) = atomic_proof q andalso compact_proof p
-  | compact_proof p = atomic_proof p;
-
 fun (p %> t) = p % SOME t;
 
 val proof_combt = Library.foldl (op %>);
@@ -529,6 +519,16 @@ fun term_head_of (p % _) = term_head_of p
 
 fun proof_head_of (p %% _) = proof_head_of p
   | proof_head_of p = p;
+
+val atomic_proof =
+  (fn Abst _ => false | AbsP _ => false
+    | op % _ => false | op %% _ => false
+    | MinProof => false
+    | _ => true);
+
+fun compact_proof (p % _) = compact_proof p
+  | compact_proof (p %% q) = atomic_proof q andalso compact_proof p
+  | compact_proof p = atomic_proof p;
 
 fun strip_thm_body (body as PBody {proof, ...}) =
   (case term_head_of (proof_head_of proof) of
