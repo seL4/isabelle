@@ -107,6 +107,7 @@ sig
   val weaken_sorts: sort list -> cterm -> cterm
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
+  val zproof_of: thm -> zproof
   val proof_of: thm -> proof
   val reconstruct_proof_of: thm -> Proofterm.proof
   val consolidate: thm list -> unit
