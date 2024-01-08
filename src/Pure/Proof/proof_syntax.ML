@@ -161,8 +161,7 @@ fun proof_of_term thy ty =
              | "thm" :: xs =>
                  let val name = Long_Name.implode xs;
                  in (case AList.lookup (op =) thms name of
-                     SOME thm =>
-                      fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of thm))))
+                     SOME thm => Proofterm.term_head_of (Proofterm.proof_head_of (Thm.proof_of thm))
                    | NONE => error ("Unknown theorem " ^ quote name))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
@@ -241,7 +240,7 @@ fun proof_of full thm =
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
   in
-    (case fst (Proofterm.strip_combt (fst (Proofterm.strip_combP prf))) of
+    (case Proofterm.term_head_of (Proofterm.proof_head_of prf) of
       PThm ({prop = prop', ...}, thm_body) =>
         if prop = prop' then Proofterm.thm_body_proof_raw thm_body else prf
     | _ => prf)

@@ -87,6 +87,9 @@ sig
   val proof_combP: proof * proof list -> proof
   val strip_combt: proof -> proof * term option list
   val strip_combP: proof -> proof * proof list
+  val any_head_of: proof -> proof
+  val term_head_of: proof -> proof
+  val proof_head_of: proof -> proof
   val strip_thm_body: proof_body -> proof_body
   val map_proof_same: term Same.operation -> typ Same.operation
     -> (typ * class -> proof) -> proof Same.operation
@@ -517,8 +520,18 @@ fun strip_combP prf =
       | strip res = res;
   in strip (prf, []) end;
 
+fun any_head_of (p %% _) = any_head_of p
+  | any_head_of (p % _) = any_head_of p
+  | any_head_of p = p;
+
+fun term_head_of (p % _) = term_head_of p
+  | term_head_of p = p;
+
+fun proof_head_of (p %% _) = proof_head_of p
+  | proof_head_of p = p;
+
 fun strip_thm_body (body as PBody {proof, ...}) =
-  (case fst (strip_combt (fst (strip_combP proof))) of
+  (case term_head_of (proof_head_of proof) of
     PThm (_, Thm_Body {body = body', ...}) => Future.join body'
   | _ => body);
 
@@ -1313,12 +1326,12 @@ fun combination_proof f g t u prf1 prf2 =
       else if is_reflexive_proof prf1 then combination_axm %> remove_types f' % NONE
       else combination_axm %> remove_types f' %> remove_types g'
     val t' =
-      (case head_of f' of
+      (case Term.head_of f' of
         Abs _ => SOME (remove_types t)
       | Var _ => SOME (remove_types t)
       | _ => NONE);
     val u' =
-      (case head_of g' of
+      (case Term.head_of g' of
         Abs _ => SOME (remove_types u)
       | Var _ => SOME (remove_types u)
       | _ => NONE);
@@ -1455,12 +1468,7 @@ fun could_unify (prf1, prf2) =
           Term.could_unify (t, t') andalso matchrands prf prf'
       | matchrands (prf % _) (prf' % _) = matchrands prf prf'
       | matchrands _ _ = true
-
-    fun head_of (prf %% _) = head_of prf
-      | head_of (prf % _) = head_of prf
-      | head_of prf = prf
-
-  in case (head_of prf1, head_of prf2) of
+  in case (any_head_of prf1, any_head_of prf2) of
         (_, Hyp (Var _)) => true
       | (Hyp (Var _), _) => true
       | (PAxm (a, _, _), PAxm (b, _, _)) => a = b andalso matchrands prf1 prf2
@@ -2204,7 +2212,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
       (*somewhat non-deterministic proof boxes!*)
       if export_enabled () then new_prf ()
       else
-        (case strip_combt (fst (strip_combP proof0)) of
+        (case strip_combt (proof_head_of proof0) of
           (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
             if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
               let
@@ -2264,7 +2272,7 @@ end;
 
 fun get_identity shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
-    (case fst (strip_combt (fst (strip_combP prf))) of
+    (case term_head_of (proof_head_of prf) of
       PThm ({serial, theory_name, name, prop = prop', ...}, _) =>
         if prop = prop'
         then SOME {serial = serial, theory_name = theory_name, name = name} else NONE
