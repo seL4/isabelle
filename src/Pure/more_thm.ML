@@ -533,7 +533,9 @@ fun stripped_sorts thy t =
       map2 (fn (a', S') => fn (a, S) => (((a', 0), S'), Thm.global_ctyp_of thy (TVar ((a, 0), S))))
         tfrees' tfrees;
     val strip = map (apply2 TFree) (tfrees ~~ tfrees');
-    val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;
+    val t' =
+      (Term.map_types o Term.map_atyps_same)
+        (Same.function_eq (op =) (perhaps (AList.lookup (op =) strip))) t;
   in (strip, recover, t') end;
 
 fun add_axiom ctxt (b, prop) thy =
