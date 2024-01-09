@@ -198,6 +198,8 @@ fun certify {do_expand} context tsig consts =
                     else comb head
                 | _ => comb head)
             end
+        | Free (x, T) => comb (Free (x, expand_typ T))
+        | Var (xi, T) => comb (Var (xi, expand_typ T))
         | _ => comb head)
       end;
   in expand_term end;
@@ -303,7 +305,6 @@ fun abbreviate context tsig mode (b, raw_rhs) consts =
       error ("Illegal schematic variables on rhs of abbreviation " ^ Binding.print b);
 
     val rhs = raw_rhs
-      |> Type.certify_types Type.mode_default tsig
       |> cert_term
       |> Term.close_schematic_term;
     val normal_rhs = expand_term rhs;
