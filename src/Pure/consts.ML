@@ -28,7 +28,7 @@ sig
   val intern: T -> xstring -> string
   val intern_syntax: T -> xstring -> string
   val check_const: Context.generic -> T -> xstring * Position.T list -> term * Position.report list
-  val certify: Context.generic -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
+  val certify: {do_expand: bool} -> Context.generic -> Type.tsig -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val dummy_types: T -> term -> term
@@ -164,7 +164,7 @@ fun check_const context consts (xname, ps) =
 
 (* certify *)
 
-fun certify context tsig do_expand consts =
+fun certify {do_expand} context tsig consts =
   let
     fun err msg (c, T) =
       raise TYPE (msg ^ " " ^ quote c ^ " :: " ^
@@ -293,8 +293,8 @@ in
 
 fun abbreviate context tsig mode (b, raw_rhs) consts =
   let
-    val cert_term = certify context tsig false consts;
-    val expand_term = certify context tsig true consts;
+    val cert_term = certify {do_expand = false} context tsig consts;
+    val expand_term = certify {do_expand = true} context tsig consts;
     val force_expand = mode = Print_Mode.internal;
 
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso

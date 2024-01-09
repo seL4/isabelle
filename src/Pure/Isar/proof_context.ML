@@ -629,8 +629,8 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 local
 
 fun certify_consts ctxt =
-  Consts.certify (Context.Proof ctxt) (tsig_of ctxt)
-    (not (abbrev_mode ctxt)) (consts_of ctxt);
+  Consts.certify {do_expand = not (abbrev_mode ctxt)}
+    (Context.Proof ctxt) (tsig_of ctxt) (consts_of ctxt);
 
 fun expand_binds ctxt =
   let
@@ -809,17 +809,16 @@ end;
 
 local
 
-fun gen_cert prop ctxt t =
-  t
-  |> expand_abbrevs ctxt
-  |> (fn t' =>
-      #1 (Sign.certify' prop (Context.Proof ctxt) false (consts_of ctxt) (theory_of ctxt) t')
-        handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg);
+fun cert_flags flags ctxt t =
+  let val t' = expand_abbrevs ctxt t in
+    #1 (Sign.certify_flags flags (Context.Proof ctxt) (consts_of ctxt) (theory_of ctxt) t')
+      handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg
+  end;
 
 in
 
-val cert_term = gen_cert false;
-val cert_prop = gen_cert true;
+val cert_term = cert_flags {prop = false, do_expand = false};
+val cert_prop = cert_flags {prop = true, do_expand = false};
 
 end;
 

@@ -64,7 +64,8 @@ sig
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
-  val certify': bool -> Context.generic -> bool -> Consts.T -> theory -> term -> term * typ * int
+  val certify_flags: {prop: bool, do_expand: bool} -> Context.generic -> Consts.T -> theory ->
+    term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
@@ -304,21 +305,27 @@ fun check_vars (t $ u) = (check_vars t; check_vars u)
 
 in
 
-fun certify' prop context do_expand consts thy tm =
+fun certify_flags {prop, do_expand} context consts thy tm =
   let
     val _ = check_vars tm;
     val tm' = Term.map_types (certify_typ thy) tm;
     val T = type_check context tm';
     val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
     val tm'' = tm'
-      |> Consts.certify context (tsig_of thy) do_expand consts
+      |> Consts.certify {do_expand = do_expand} context (tsig_of thy) consts
       |> Soft_Type_System.global_purge thy;
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-fun certify_term thy = certify' false (Context.Theory thy) true (consts_of thy) thy;
-fun cert_term_abbrev thy = #1 o certify' false (Context.Theory thy) false (consts_of thy) thy;
+fun certify_term thy =
+  certify_flags {prop = false, do_expand = true} (Context.Theory thy) (consts_of thy) thy;
+
+fun cert_term_abbrev thy =
+  #1 o certify_flags {prop = false, do_expand = false} (Context.Theory thy) (consts_of thy) thy;
+
 val cert_term = #1 oo certify_term;
-fun cert_prop thy = #1 o certify' true (Context.Theory thy) true (consts_of thy) thy;
+
+fun cert_prop thy =
+  #1 o certify_flags {prop = true, do_expand = true} (Context.Theory thy) (consts_of thy) thy;
 
 end;
 
