@@ -8,8 +8,8 @@ package isabelle
 
 
 import java.util.{Properties => JProperties}
-import javax.mail.internet.{InternetAddress, MimeMessage}
-import javax.mail.{AuthenticationFailedException, Authenticator, Message, MessagingException,
+import jakarta.mail.internet.{InternetAddress, MimeMessage}
+import jakarta.mail.{AuthenticationFailedException, Authenticator, Message, MessagingException,
   PasswordAuthentication, Transport as JTransport, Session => JSession}
 
 
