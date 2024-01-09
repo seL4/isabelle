@@ -172,6 +172,12 @@ fun certify {do_expand} context tsig consts =
 
     fun err_const const = err "Illegal type for constant" const;
 
+    val need_expand =
+      Term.exists_Const (fn (c, _) =>
+        (case the_entry consts c of
+          (_, (_, SOME {force_expand, ...})) => do_expand orelse force_expand
+        | _ => false));
+
     val expand_typ = Type.certify_typ Type.mode_default tsig;
     fun expand_term tm =
       let
@@ -202,7 +208,27 @@ fun certify {do_expand} context tsig consts =
         | Var (xi, T) => comb (Var (xi, expand_typ T))
         | _ => comb head)
       end;
-  in expand_term end;
+
+    val typ = Type.cert_typ_same Type.mode_default tsig;
+    fun term (Const (c, T)) =
+          let
+            val (T', same) = Same.commit_id typ T;
+            val decl = #1 (#2 (the_entry consts c));
+          in
+            if not (Type.raw_instance (T', #T decl)) then err_const (c, T)
+            else if same then raise Same.SAME else Const (c, T')
+          end
+      | term (Free (x, T)) = Free (x, typ T)
+      | term (Var (xi, T)) = Var (xi, typ T)
+      | term (Bound _) = raise Same.SAME
+      | term (Abs (x, T, t)) =
+          (Abs (x, typ T, Same.commit term t)
+            handle Same.SAME => Abs (x, T, term t))
+      | term (t $ u) =
+          (term t $ Same.commit term u
+            handle Same.SAME => t $ term u);
+
+  in fn tm => if need_expand tm then expand_term tm else Same.commit term tm end;
 
 
 (* typargs -- view actual const type as instance of declaration *)
