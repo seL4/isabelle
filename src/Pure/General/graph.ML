@@ -25,6 +25,7 @@ sig
   val keys: 'a T -> key list
   val get_first: (key * ('a * (Keys.T * Keys.T)) -> 'b option) -> 'a T -> 'b option
   val fold: (key * ('a * (Keys.T * Keys.T)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
+  val defined: 'a T -> key -> bool
   val get_entry: 'a T -> key -> key * ('a * (Keys.T * Keys.T))        (*exception UNDEF*)
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
@@ -119,6 +120,8 @@ fun keys (Graph tab) = Table.keys tab;
 
 fun get_first f (Graph tab) = Table.get_first f tab;
 fun fold_graph f (Graph tab) = Table.fold f tab;
+
+fun defined (Graph tab) = Table.defined tab;
 
 fun get_entry (Graph tab) x =
   (case Table.lookup_key tab x of
