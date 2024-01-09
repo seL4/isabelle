@@ -53,8 +53,7 @@ sig
   val check_decl: Context.generic -> tsig ->
     xstring * Position.T -> (string * Position.report list) * decl
   val the_decl: tsig -> string * Position.T -> decl
-  val cert_typ_mode: mode -> tsig -> typ -> typ
-  val cert_typ: tsig -> typ -> typ
+  val cert_typ: mode -> tsig -> typ -> typ
   val arity_number: tsig -> string -> int
   val arity_sorts: Context.generic -> tsig -> string -> sort -> sort list
 
@@ -272,7 +271,7 @@ fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
 
 in
 
-fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
+fun cert_typ (Mode {normalize, logical}) tsig ty =
   let
     fun err msg = raise TYPE (msg, [ty], []);
 
@@ -302,8 +301,6 @@ fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
 
     val ty' = cert ty;
   in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
-
-val cert_typ = cert_typ_mode mode_default;
 
 end;
 
@@ -694,7 +691,7 @@ fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
-    val rhs' = Term.strip_sortsT (no_tvars (cert_typ_mode mode_syntax tsig rhs))
+    val rhs' = Term.strip_sortsT (no_tvars (cert_typ mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
     val _ =
       (case duplicates (op =) vs of
