@@ -480,8 +480,8 @@ fun map_aterms_same f =
 
 fun map_types_same f =
   let
-    fun term (Const (a, T)) = Const (a, f T)
-      | term (Free (a, T)) = Free (a, f T)
+    fun term (Const (c, T)) = Const (c, f T)
+      | term (Free (x, T)) = Free (x, f T)
       | term (Var (xi, T)) = Var (xi, f T)
       | term (Bound _) = raise Same.SAME
       | term (Abs (x, T, t)) =
