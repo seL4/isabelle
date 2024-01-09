@@ -334,9 +334,11 @@ fun sort_of_atyp (TFree (_, S)) = S
 (* no_tvars *)
 
 fun no_tvars T =
-  (case Term.add_tvarsT T [] of [] => T
-  | vs => raise TYPE ("Illegal schematic type variable(s): " ^
-      commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
+  (case Term.add_tvarsT T [] of
+    [] => T
+  | vs =>
+      raise TYPE ("Illegal schematic type variable(s): " ^
+        commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
 
 
 (* varify_global *)
