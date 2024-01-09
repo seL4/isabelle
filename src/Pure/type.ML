@@ -54,6 +54,8 @@ sig
     xstring * Position.T -> (string * Position.report list) * decl
   val the_decl: tsig -> string * Position.T -> decl
   val cert_typ_same: mode -> tsig -> typ Same.operation
+  val certify_typ: mode -> tsig -> typ -> typ
+  val certify_types: mode -> tsig -> term -> term
   val arity_number: tsig -> string -> int
   val arity_sorts: Context.generic -> tsig -> string -> sort -> sort list
 
@@ -263,7 +265,7 @@ fun the_decl tsig (c, pos) =
   | SOME decl => decl);
 
 
-(* certified types *)
+(* certify types *)
 
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
 
@@ -300,6 +302,9 @@ fun cert_typ_same (Mode {normalize, logical}) tsig =
   in typ end;
 
 end;
+
+val certify_typ = Same.commit oo cert_typ_same;
+val certify_types = Term.map_types oo cert_typ_same;
 
 
 (* type arities *)
@@ -688,7 +693,7 @@ fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
-    val rhs' = Term.strip_sortsT (no_tvars (Same.commit (cert_typ_same mode_syntax tsig) rhs))
+    val rhs' = Term.strip_sortsT (no_tvars (certify_typ mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
     val _ =
       (case duplicates (op =) vs of

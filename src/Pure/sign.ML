@@ -260,7 +260,7 @@ fun arity_sorts thy = Type.arity_sorts (Context.Theory thy) (tsig_of thy);
 
 val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
-fun certify_typ_mode mode thy = Same.commit (Type.cert_typ_same mode (tsig_of thy));
+fun certify_typ_mode mode = Type.certify_typ mode o tsig_of;
 val certify_typ = certify_typ_mode Type.mode_default;
 
 
@@ -311,7 +311,7 @@ fun certify_flags {prop, do_expand} context consts thy tm =
     fun check_term t =
       let
         val _ = check_vars t;
-        val t' = Term.map_types (Type.cert_typ_same Type.mode_default tsig) t;
+        val t' = Type.certify_types Type.mode_default tsig t;
         val T = type_check context t';
         val t'' = Consts.certify {do_expand = do_expand} context tsig consts t';
       in if prop andalso T <> propT then err "Term not of type prop" else (t'', T) end;
