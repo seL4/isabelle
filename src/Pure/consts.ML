@@ -169,25 +169,27 @@ fun certify {do_expand} context tsig consts =
     fun err msg (c, T) =
       raise TYPE (msg ^ " " ^ quote c ^ " :: " ^
         Syntax.string_of_typ (Syntax.init_pretty context) T, [], []);
-    val certT = Type.certify_typ Type.mode_default tsig;
-    fun cert tm =
+
+    fun err_const const = err "Illegal type for constant" const;
+
+    val expand_typ = Type.certify_typ Type.mode_default tsig;
+    fun expand_term tm =
       let
         val (head, args) = Term.strip_comb tm;
-        val args' = map cert args;
+        val args' = map expand_term args;
         fun comb head' = Term.list_comb (head', args');
       in
         (case head of
-          Abs (x, T, t) => comb (Abs (x, certT T, cert t))
+          Abs (x, T, t) => comb (Abs (x, expand_typ T, expand_term t))
         | Const (c, T) =>
             let
-              val T' = certT T;
+              val T' = expand_typ T;
               val (_, ({T = U, ...}, abbr)) = the_entry consts c;
               fun expand u =
                 Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
                   err "Illegal type for abbreviation" (c, T), args');
             in
-              if not (Type.raw_instance (T', U)) then
-                err "Illegal type for constant" (c, T)
+              if not (Type.raw_instance (T', U)) then err_const (c, T)
               else
                 (case abbr of
                   SOME {rhs, normal_rhs, force_expand} =>
@@ -198,7 +200,7 @@ fun certify {do_expand} context tsig consts =
             end
         | _ => comb head)
       end;
-  in cert end;
+  in expand_term end;
 
 
 (* typargs -- view actual const type as instance of declaration *)
