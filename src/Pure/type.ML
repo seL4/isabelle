@@ -211,11 +211,8 @@ fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
 fun of_sort (TSig {classes, ...}) = Sorts.of_sort (#2 classes);
 fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
-fun cert_class (TSig {classes = (_, algebra), ...}) c =
-  if can (Graph.get_entry (Sorts.classes_of algebra)) c then c
-  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
-
-val cert_sort = map o cert_class;
+fun cert_class (TSig {classes, ...}) = Sorts.cert_class (#2 classes);
+fun cert_sort (TSig {classes, ...}) = Sorts.cert_sort (#2 classes);
 
 fun minimize_sort (TSig {classes, ...}) = Sorts.minimize_sort (#2 classes);
 
@@ -622,8 +619,7 @@ fun unified tye =
 fun add_class context (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
-      val cs' = map (cert_class tsig) cs
-        handle TYPE (msg, _, _) => error msg;
+      val cs' = cert_sort tsig cs handle TYPE (msg, _, _) => error msg;
       val _ = Binding.check c;
       val (c', space') = space |> Name_Space.declare context true c;
       val classes' = classes |> Sorts.add_class context (c', cs');

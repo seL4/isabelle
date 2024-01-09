@@ -30,6 +30,8 @@ sig
   val arities_of: algebra -> (class * sort list) list Symtab.table
   val all_classes: algebra -> class list
   val super_classes: algebra -> class -> class list
+  val cert_class: algebra -> class -> class
+  val cert_sort: algebra -> sort -> sort
   val class_less: algebra -> class * class -> bool
   val class_le: algebra -> class * class -> bool
   val sort_eq: algebra -> sort * sort -> bool
@@ -134,6 +136,12 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 fun all_classes (Algebra {classes, ...}) = Graph.all_preds classes (Graph.maximals classes);
 
 val super_classes = Graph.immediate_succs o classes_of;
+
+fun cert_class (Algebra {classes, ...}) c =
+  if Graph.defined classes c then c
+  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+
+fun cert_sort algebra S = (List.app (ignore o cert_class algebra) S; S);
 
 
 (* class relations *)
