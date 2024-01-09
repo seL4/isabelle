@@ -65,8 +65,8 @@ sig
   val certify_typ: theory -> typ -> typ
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
   val certify_flags: {prop: bool, do_expand: bool} -> Context.generic -> Consts.T -> theory ->
-    term -> term * typ * int
-  val certify_term: theory -> term -> term * typ * int
+    term -> term * typ
+  val certify_term: theory -> term -> term * typ
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
   val no_frees: Proof.context -> term -> term
@@ -319,7 +319,7 @@ fun certify_flags {prop, do_expand} context consts thy tm =
     val (tm1, ty1) = check_term tm;
     val tm' = Soft_Type_System.global_purge thy tm1;
     val (tm2, ty2) = if tm1 = tm' then (tm1, ty1) else check_term tm';
-  in (if tm = tm2 then tm else tm2, ty2, Term.maxidx_of_term tm2) end;
+  in if tm = tm2 then (tm, ty2) else (tm2, ty2) end;
 
 fun certify_term thy =
   certify_flags {prop = false, do_expand = true} (Context.Theory thy) (consts_of thy) thy;
