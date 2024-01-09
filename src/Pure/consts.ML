@@ -169,7 +169,7 @@ fun certify {do_expand} context tsig consts =
     fun err msg (c, T) =
       raise TYPE (msg ^ " " ^ quote c ^ " :: " ^
         Syntax.string_of_typ (Syntax.init_pretty context) T, [], []);
-    val certT = Type.cert_typ Type.mode_default tsig;
+    val certT = Same.commit (Type.cert_typ_same Type.mode_default tsig);
     fun cert tm =
       let
         val (head, args) = Term.strip_comb tm;
@@ -301,7 +301,7 @@ fun abbreviate context tsig mode (b, raw_rhs) consts =
       error ("Illegal schematic variables on rhs of abbreviation " ^ Binding.print b);
 
     val rhs = raw_rhs
-      |> Term.map_types (Type.cert_typ Type.mode_default tsig)
+      |> Term.map_types (Type.cert_typ_same Type.mode_default tsig)
       |> cert_term
       |> Term.close_schematic_term;
     val normal_rhs = expand_term rhs;

@@ -53,7 +53,7 @@ sig
   val check_decl: Context.generic -> tsig ->
     xstring * Position.T -> (string * Position.report list) * decl
   val the_decl: tsig -> string * Position.T -> decl
-  val cert_typ: mode -> tsig -> typ -> typ
+  val cert_typ_same: mode -> tsig -> typ Same.operation
   val arity_number: tsig -> string -> int
   val arity_sorts: Context.generic -> tsig -> string -> sort -> sort list
 
@@ -154,6 +154,10 @@ datatype decl =
   LogicalType of int |
   Abbreviation of string list * typ * bool |
   Nonterminal;
+
+fun decl_args (LogicalType n) = n
+  | decl_args (Abbreviation (vs, _, _)) = length vs
+  | decl_args Nonterminal = 0;
 
 
 (* type tsig *)
@@ -265,42 +269,35 @@ fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
 
 local
 
-fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-  | inst_typ env (T as TFree (x, _)) = the_default T (AList.lookup (op =) env x)
-  | inst_typ _ T = T;
+fun inst_typ vs Ts =
+  Term_Subst.instantiateT_frees
+    (TFrees.build (fold2 (fn v => fn T => TFrees.add ((v, []), T)) vs Ts));
 
 in
 
-fun cert_typ (Mode {normalize, logical}) tsig ty =
+fun cert_typ_same (Mode {normalize, logical}) tsig =
   let
-    fun err msg = raise TYPE (msg, [ty], []);
+    fun err T msg = raise TYPE (msg, [T], []);
+    fun err_syntactic T c = err T ("Illegal occurrence of syntactic type: " ^ quote c);
 
-    val check_logical =
-      if logical then fn c => err ("Illegal occurrence of syntactic type: " ^ quote c)
-      else fn _ => ();
-
-    fun cert (T as Type (c, Ts)) =
-          let
-            val Ts' = map cert Ts;
-            fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
-          in
-            (case the_decl tsig (c, Position.none) of
-              LogicalType n => (nargs n; Type (c, Ts'))
-            | Abbreviation (vs, U, syn) =>
-               (nargs (length vs);
-                if syn then check_logical c else ();
-                if normalize then inst_typ (vs ~~ Ts') U
-                else Type (c, Ts'))
-            | Nonterminal => (nargs 0; check_logical c; T))
+    fun sort S = (cert_sort tsig S; raise Same.SAME);
+    fun typ (T as Type (c, args)) =
+          let val decl = the_decl tsig (c, Position.none) in
+            if length args <> decl_args decl then err T (bad_nargs c)
+            else
+              (case decl of
+                LogicalType _ => Type (c, Same.map typ args)
+              | Abbreviation (vs, U, syntactic) =>
+                  if syntactic andalso logical then err_syntactic T c
+                  else if normalize then inst_typ vs (Same.commit (Same.map typ) args) U
+                  else Type (c, Same.map typ args)
+              | Nonterminal => if logical then err_syntactic T c else raise Same.SAME)
           end
-      | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
-      | cert (TVar (xi as (_, i), S)) =
-          if i < 0 then
-            err ("Malformed type variable: " ^ quote (Term.string_of_vname xi))
-          else TVar (xi, cert_sort tsig S);
-
-    val ty' = cert ty;
-  in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
+      | typ (TFree (_, S)) = sort S
+      | typ (T as TVar ((x, i), S)) =
+          if i < 0 then err T ("Malformed type variable: " ^ quote (Term.string_of_vname (x, i)))
+          else sort S;
+  in typ end;
 
 end;
 
@@ -691,7 +688,7 @@ fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
-    val rhs' = Term.strip_sortsT (no_tvars (cert_typ mode_syntax tsig rhs))
+    val rhs' = Term.strip_sortsT (no_tvars (Same.commit (cert_typ_same mode_syntax tsig) rhs))
       handle TYPE (msg, _, _) => err msg;
     val _ =
       (case duplicates (op =) vs of

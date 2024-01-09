@@ -495,7 +495,7 @@ val read_typ_abbrev = read_typ_mode Type.mode_abbrev;
 
 
 fun cert_typ_mode mode ctxt T =
-  Type.cert_typ mode (tsig_of ctxt) T
+  Same.commit (Type.cert_typ_same mode (tsig_of ctxt)) T
     handle TYPE (msg, _, _) => error msg;
 
 val cert_typ = cert_typ_mode Type.mode_default;

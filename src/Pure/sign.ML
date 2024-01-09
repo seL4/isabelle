@@ -260,8 +260,8 @@ fun arity_sorts thy = Type.arity_sorts (Context.Theory thy) (tsig_of thy);
 
 val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
-val certify_typ = Type.cert_typ Type.mode_default o tsig_of;
-fun certify_typ_mode mode = Type.cert_typ mode o tsig_of;
+fun certify_typ_mode mode thy = Same.commit (Type.cert_typ_same mode (tsig_of thy));
+val certify_typ = certify_typ_mode Type.mode_default;
 
 
 (* certify term/prop *)
