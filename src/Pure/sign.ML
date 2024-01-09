@@ -307,14 +307,19 @@ in
 
 fun certify_flags {prop, do_expand} context consts thy tm =
   let
-    val _ = check_vars tm;
-    val tm' = Term.map_types (certify_typ thy) tm;
-    val T = type_check context tm';
-    val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
-    val tm'' = tm'
-      |> Consts.certify {do_expand = do_expand} context (tsig_of thy) consts
-      |> Soft_Type_System.global_purge thy;
-  in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
+    val tsig = tsig_of thy;
+    fun check_term t =
+      let
+        val _ = check_vars t;
+        val t' = Term.map_types (Type.cert_typ_same Type.mode_default tsig) t;
+        val T = type_check context t';
+        val t'' = Consts.certify {do_expand = do_expand} context tsig consts t';
+      in if prop andalso T <> propT then err "Term not of type prop" else (t'', T) end;
+
+    val (tm1, ty1) = check_term tm;
+    val tm' = Soft_Type_System.global_purge thy tm1;
+    val (tm2, ty2) = if tm1 = tm' then (tm1, ty1) else check_term tm';
+  in (if tm = tm2 then tm else tm2, ty2, Term.maxidx_of_term tm2) end;
 
 fun certify_term thy =
   certify_flags {prop = false, do_expand = true} (Context.Theory thy) (consts_of thy) thy;
