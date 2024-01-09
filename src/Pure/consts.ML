@@ -304,9 +304,7 @@ fun abbreviate context tsig mode (b, raw_rhs) consts =
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
       error ("Illegal schematic variables on rhs of abbreviation " ^ Binding.print b);
 
-    val rhs = raw_rhs
-      |> cert_term
-      |> Term.close_schematic_term;
+    val rhs = raw_rhs |> cert_term |> Term.close_schematic_term;
     val normal_rhs = expand_term rhs;
     val T = Term.fastype_of rhs;
     val lhs = Const (Name_Space.full_name (Name_Space.naming_of context) b, T);
