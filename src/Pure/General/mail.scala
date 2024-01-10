@@ -48,6 +48,7 @@ object Mail {
 
     private def mail_session: JSession = {
       val props = new JProperties()
+      props.setProperty("mail.smtp.from", sender.toString)
       props.setProperty("mail.smtp.host", smtp_host)
       props.setProperty("mail.smtp.port", smtp_port.toString)
       props.setProperty("mail.smtp.auth", use_auth.toString)
@@ -64,7 +65,7 @@ object Mail {
       val authenticator = new Authenticator() {
         override def getPasswordAuthentication = new PasswordAuthentication(user, password)
       }
-      JSession.getDefaultInstance(props, authenticator)
+      JSession.getInstance(props, authenticator)
     }
 
     def defined: Boolean = smtp_host.nonEmpty
