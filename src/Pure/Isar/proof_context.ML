@@ -584,7 +584,7 @@ fun check_const {proper, strict} ctxt (c, ps) =
     val _ =
       (case (strict, t) of
         (true, Const (d, _)) =>
-          (ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg)
+          (ignore (Consts.the_const_type consts d) handle TYPE (msg, _, _) => err msg)
       | _ => ());
   in (t, reports) end;
 

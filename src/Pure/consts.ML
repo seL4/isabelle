@@ -17,7 +17,7 @@ sig
     constants: (string * (typ * term option)) list,
     constraints: (string * typ) list}
   val get_const_name: T -> string -> string option
-  val the_const: T -> string -> string * typ                   (*exception TYPE*)
+  val the_const_type: T -> string -> typ                       (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
   val type_arguments: T -> string -> int list list             (*exception TYPE*)
@@ -117,9 +117,9 @@ fun the_entry (Consts {decls, ...}) c =
     SOME entry => entry
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
-fun the_const consts c =
+fun the_const_type consts c =
   (case the_entry consts c of
-    (c', ({T, ...}, NONE)) => (c', T)
+    (_, ({T, ...}, NONE)) => T
   | _ => raise TYPE ("Not a logical constant: " ^ quote c, [], []));
 
 fun the_abbreviation consts c =

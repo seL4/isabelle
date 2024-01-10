@@ -150,7 +150,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.token Parse.embedded)
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>const_name\<close>
-    (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
+    (const_name (fn (consts, c) => (Consts.the_const_type consts c; c))) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>const_abbrev\<close>
     (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c))) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>const_syntax\<close>
