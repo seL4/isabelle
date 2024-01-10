@@ -53,7 +53,7 @@ sig
   val check_decl: Context.generic -> tsig ->
     xstring * Position.T -> (string * Position.report list) * decl
   val the_decl: tsig -> string * Position.T -> decl
-  val cert_typ_same: mode -> tsig -> typ Same.operation
+  val certify_typ_same: mode -> tsig -> typ Same.operation
   val certify_typ: mode -> tsig -> typ -> typ
   val certify_types: mode -> tsig -> term -> term
   val arity_number: tsig -> string -> int
@@ -277,7 +277,7 @@ fun inst_typ vs Ts =
 
 in
 
-fun cert_typ_same (Mode {normalize, logical}) tsig =
+fun certify_typ_same (Mode {normalize, logical}) tsig =
   let
     fun err T msg = raise TYPE (msg, [T], []);
     fun err_syntactic T c = err T ("Illegal occurrence of syntactic type: " ^ quote c);
@@ -303,8 +303,8 @@ fun cert_typ_same (Mode {normalize, logical}) tsig =
 
 end;
 
-val certify_typ = Same.commit oo cert_typ_same;
-val certify_types = Term.map_types oo cert_typ_same;
+val certify_typ = Same.commit oo certify_typ_same;
+val certify_types = Term.map_types oo certify_typ_same;
 
 
 (* type arities *)

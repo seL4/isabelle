@@ -209,7 +209,7 @@ fun certify {do_expand} context tsig consts =
         | _ => comb head)
       end;
 
-    val typ = Type.cert_typ_same Type.mode_default tsig;
+    val typ = Type.certify_typ_same Type.mode_default tsig;
     fun term (Const (c, T)) =
           let
             val (T', same) = Same.commit_id typ T;
