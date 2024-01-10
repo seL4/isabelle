@@ -16,6 +16,7 @@ sig
    {const_space: Name_Space.T,
     constants: (string * (typ * term option)) list,
     constraints: (string * typ) list}
+  val get_const_name: T -> string -> string option
   val the_const: T -> string -> string * typ                   (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
@@ -107,6 +108,9 @@ fun dest (Consts {decls, constraints, ...}) =
 
 
 (* lookup consts *)
+
+fun get_const_name (Consts {decls, ...}) c =
+  Name_Space.lookup_key decls c |> Option.map #1;
 
 fun the_entry (Consts {decls, ...}) c =
   (case Name_Space.lookup_key decls c of
