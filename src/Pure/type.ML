@@ -269,14 +269,6 @@ fun the_decl tsig (c, pos) =
 
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
 
-local
-
-fun inst_typ vs Ts =
-  Term_Subst.instantiateT_frees
-    (TFrees.build (fold2 (fn v => fn T => TFrees.add ((v, []), T)) vs Ts));
-
-in
-
 fun certify_typ_same (Mode {normalize, logical}) tsig =
   let
     fun err T msg = raise TYPE (msg, [T], []);
@@ -291,17 +283,18 @@ fun certify_typ_same (Mode {normalize, logical}) tsig =
                 LogicalType _ => Type (c, Same.map typ args)
               | Abbreviation (vs, U, syntactic) =>
                   if syntactic andalso logical then err_syntactic T c
-                  else if normalize then inst_typ vs (Same.commit (Same.map typ) args) U
+                  else if normalize then inst_typ vs args U
                   else Type (c, Same.map typ args)
               | Nonterminal => if logical then err_syntactic T c else raise Same.SAME)
           end
       | typ (TFree (_, S)) = sort S
       | typ (T as TVar ((x, i), S)) =
           if i < 0 then err T ("Malformed type variable: " ^ quote (Term.string_of_vname (x, i)))
-          else sort S;
+          else sort S
+    and inst_typ vs args =
+      Term_Subst.instantiateT_frees
+        (TFrees.build (fold2 (fn v => fn T => TFrees.add ((v, []), Same.commit typ T)) vs args));
   in typ end;
-
-end;
 
 val certify_typ = Same.commit oo certify_typ_same;
 val certify_types = Term.map_types oo certify_typ_same;
