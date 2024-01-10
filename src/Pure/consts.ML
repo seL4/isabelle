@@ -112,22 +112,24 @@ fun dest (Consts {decls, constraints, ...}) =
 fun get_const_name (Consts {decls, ...}) c =
   Name_Space.lookup_key decls c |> Option.map #1;
 
-fun the_entry (Consts {decls, ...}) c =
-  (case Name_Space.lookup_key decls c of
+fun get_entry (Consts {decls, ...}) = Name_Space.lookup decls;
+
+fun the_entry consts c =
+  (case get_entry consts c of
     SOME entry => entry
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
 fun the_const_type consts c =
   (case the_entry consts c of
-    (_, ({T, ...}, NONE)) => T
+    ({T, ...}, NONE) => T
   | _ => raise TYPE ("Not a logical constant: " ^ quote c, [], []));
 
 fun the_abbreviation consts c =
   (case the_entry consts c of
-    (_, ({T, ...}, SOME {rhs, ...})) => (T, rhs)
+    ({T, ...}, SOME {rhs, ...}) => (T, rhs)
   | _ => raise TYPE ("Not an abbreviated constant: " ^ quote c, [], []));
 
-fun the_decl consts = #1 o #2 o the_entry consts;
+fun the_decl consts = #1 o the_entry consts;
 val type_scheme = #T oo the_decl;
 val type_arguments = #typargs oo the_decl;
 
@@ -179,7 +181,7 @@ fun certify {do_expand} context tsig consts =
     val need_expand =
       Term.exists_Const (fn (c, _) =>
         (case the_entry consts c of
-          (_, (_, SOME {force_expand, ...})) => do_expand orelse force_expand
+          (_, SOME {force_expand, ...}) => do_expand orelse force_expand
         | _ => false));
 
     val expand_typ = Type.certify_typ Type.mode_default tsig;
@@ -193,7 +195,7 @@ fun certify {do_expand} context tsig consts =
           Const (c, T) =>
             let
               val T' = expand_typ T;
-              val (_, ({T = U, ...}, abbr)) = the_entry consts c;
+              val ({T = U, ...}, abbr) = the_entry consts c;
               fun expand u =
                 Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
                   err "Illegal type for abbreviation" (c, T), args');
@@ -217,7 +219,7 @@ fun certify {do_expand} context tsig consts =
     fun term (Const (c, T)) =
           let
             val (T', same) = Same.commit_id typ T;
-            val decl = #1 (#2 (the_entry consts c));
+            val decl = the_decl consts c;
           in
             if not (Type.raw_instance (T', #T decl)) then err_const (c, T)
             else if same then raise Same.SAME else Const (c, T')
