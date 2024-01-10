@@ -179,8 +179,8 @@ fun certify {do_expand} context tsig consts =
 
     val need_expand =
       Term.exists_Const (fn (c, _) =>
-        (case the_entry consts c of
-          (_, SOME {force_expand, ...}) => do_expand orelse force_expand
+        (case get_entry consts c of
+          SOME (_, SOME {force_expand, ...}) => do_expand orelse force_expand
         | _ => false));
 
     val expand_typ = Type.certify_typ Type.mode_default tsig;
