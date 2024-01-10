@@ -5377,14 +5377,13 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma finite_lists_distinct_length_eq [intro]:
+lemma finite_subset_distinct:
   assumes "finite A"
-  shows "finite {xs. length xs = n \<and> distinct xs \<and> set xs \<subseteq> A}" (is "finite ?S")
-proof -
-  have "finite {xs. set xs \<subseteq> A \<and> length xs = n}"
-    using \<open>finite A\<close> by (rule finite_lists_length_eq)
-  moreover have "?S \<subseteq> {xs. set xs \<subseteq> A \<and> length xs = n}" by auto
-  ultimately show ?thesis using finite_subset by auto
+  shows "finite {xs. set xs \<subseteq> A \<and> distinct xs}" (is "finite ?S")
+proof (rule finite_subset)
+  from assms show "?S \<subseteq> {xs. set xs \<subseteq> A \<and> length xs \<le> card A}"
+    by clarsimp (metis distinct_card card_mono)
+  from assms show "finite ..." by (rule finite_lists_length_le)
 qed
 
 lemma card_lists_distinct_length_eq:
