@@ -109,8 +109,7 @@ fun dest (Consts {decls, constraints, ...}) =
 
 (* lookup consts *)
 
-fun get_const_name (Consts {decls, ...}) c =
-  Name_Space.lookup_key decls c |> Option.map #1;
+fun get_const_name (Consts {decls, ...}) = Name_Space.lookup_key decls #> Option.map #1;
 
 fun get_entry (Consts {decls, ...}) = Name_Space.lookup decls;
 
