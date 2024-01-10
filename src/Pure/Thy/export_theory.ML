@@ -219,7 +219,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     val _ =
       export_entities "types" Sign.type_space (Name_Space.dest_table (#types rep_tsig))
         (fn c =>
-          (fn Type.LogicalType n =>
+          (fn Type.Logical_Type n =>
                 SOME (fn () =>
                   encode_type (get_syntax_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
             | Type.Abbreviation (args, U, false) =>

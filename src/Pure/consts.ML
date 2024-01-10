@@ -16,7 +16,8 @@ sig
    {const_space: Name_Space.T,
     constants: (string * (typ * term option)) list,
     constraints: (string * typ) list}
-  val the_const: T -> string -> string * typ                   (*exception TYPE*)
+  val get_const_name: T -> string -> string option
+  val the_const_type: T -> string -> typ                       (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
   val type_arguments: T -> string -> int list list             (*exception TYPE*)
@@ -28,7 +29,7 @@ sig
   val intern: T -> xstring -> string
   val intern_syntax: T -> xstring -> string
   val check_const: Context.generic -> T -> xstring * Position.T list -> term * Position.report list
-  val certify: Context.generic -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
+  val certify: {normalize: bool} -> Context.generic -> Type.tsig -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val dummy_types: T -> term -> term
@@ -49,7 +50,7 @@ struct
 (* datatype T *)
 
 type decl = {T: typ, typargs: int list list};
-type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
+type abbrev = {rhs: term, normal_rhs: term, internal: bool};
 
 datatype T = Consts of
  {decls: (decl * abbrev option) Name_Space.table,
@@ -108,22 +109,26 @@ fun dest (Consts {decls, constraints, ...}) =
 
 (* lookup consts *)
 
-fun the_entry (Consts {decls, ...}) c =
-  (case Name_Space.lookup_key decls c of
+fun get_const_name (Consts {decls, ...}) = Name_Space.lookup_key decls #> Option.map #1;
+
+fun get_entry (Consts {decls, ...}) = Name_Space.lookup decls;
+
+fun the_entry consts c =
+  (case get_entry consts c of
     SOME entry => entry
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
-fun the_const consts c =
+fun the_const_type consts c =
   (case the_entry consts c of
-    (c', ({T, ...}, NONE)) => (c', T)
+    ({T, ...}, NONE) => T
   | _ => raise TYPE ("Not a logical constant: " ^ quote c, [], []));
 
 fun the_abbreviation consts c =
   (case the_entry consts c of
-    (_, ({T, ...}, SOME {rhs, ...})) => (T, rhs)
+    ({T, ...}, SOME {rhs, ...}) => (T, rhs)
   | _ => raise TYPE ("Not an abbreviated constant: " ^ quote c, [], []));
 
-fun the_decl consts = #1 o #2 o the_entry consts;
+fun the_decl consts = #1 o the_entry consts;
 val type_scheme = #T oo the_decl;
 val type_arguments = #typargs oo the_decl;
 
@@ -164,41 +169,71 @@ fun check_const context consts (xname, ps) =
 
 (* certify *)
 
-fun certify context tsig do_expand consts =
+fun certify {normalize} context tsig consts =
   let
     fun err msg (c, T) =
       raise TYPE (msg ^ " " ^ quote c ^ " :: " ^
         Syntax.string_of_typ (Syntax.init_pretty context) T, [], []);
-    val certT = Type.cert_typ tsig;
-    fun cert tm =
+
+    fun err_const const = err "Illegal type for constant" const;
+
+    val need_expand =
+      Term.exists_Const (fn (c, _) =>
+        (case get_entry consts c of
+          SOME (_, SOME {internal, ...}) => normalize orelse internal
+        | _ => false));
+
+    val expand_typ = Type.certify_typ Type.mode_default tsig;
+    fun expand_term tm =
       let
         val (head, args) = Term.strip_comb tm;
-        val args' = map cert args;
+        val args' = map expand_term args;
         fun comb head' = Term.list_comb (head', args');
       in
         (case head of
-          Abs (x, T, t) => comb (Abs (x, certT T, cert t))
-        | Const (c, T) =>
+          Const (c, T) =>
             let
-              val T' = certT T;
-              val (_, ({T = U, ...}, abbr)) = the_entry consts c;
+              val T' = expand_typ T;
+              val ({T = U, ...}, abbr) = the_entry consts c;
               fun expand u =
                 Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
                   err "Illegal type for abbreviation" (c, T), args');
             in
-              if not (Type.raw_instance (T', U)) then
-                err "Illegal type for constant" (c, T)
+              if not (Type.raw_instance (T', U)) then err_const (c, T)
               else
                 (case abbr of
-                  SOME {rhs, normal_rhs, force_expand} =>
-                    if do_expand then expand normal_rhs
-                    else if force_expand then expand rhs
+                  SOME {rhs, normal_rhs, internal} =>
+                    if normalize then expand normal_rhs
+                    else if internal then expand rhs
                     else comb head
                 | _ => comb head)
             end
+        | Abs (x, T, t) => comb (Abs (x, expand_typ T, expand_term t))
+        | Free (x, T) => comb (Free (x, expand_typ T))
+        | Var (xi, T) => comb (Var (xi, expand_typ T))
         | _ => comb head)
       end;
-  in cert end;
+
+    val typ = Type.certify_typ_same Type.mode_default tsig;
+    fun term (Const (c, T)) =
+          let
+            val (T', same) = Same.commit_id typ T;
+            val U = type_scheme consts c;
+          in
+            if not (Type.raw_instance (T', U)) then err_const (c, T)
+            else if same then raise Same.SAME else Const (c, T')
+          end
+      | term (Free (x, T)) = Free (x, typ T)
+      | term (Var (xi, T)) = Var (xi, typ T)
+      | term (Bound _) = raise Same.SAME
+      | term (Abs (x, T, t)) =
+          (Abs (x, typ T, Same.commit term t)
+            handle Same.SAME => Abs (x, T, term t))
+      | term (t $ u) =
+          (term t $ Same.commit term u
+            handle Same.SAME => t $ term u);
+
+  in fn tm => if need_expand tm then expand_term tm else Same.commit term tm end;
 
 
 (* typargs -- view actual const type as instance of declaration *)
@@ -293,17 +328,14 @@ in
 
 fun abbreviate context tsig mode (b, raw_rhs) consts =
   let
-    val cert_term = certify context tsig false consts;
-    val expand_term = certify context tsig true consts;
-    val force_expand = mode = Print_Mode.internal;
+    val cert_term = certify {normalize = false} context tsig consts;
+    val expand_term = certify {normalize = true} context tsig consts;
+    val internal = mode = Print_Mode.internal;
 
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
       error ("Illegal schematic variables on rhs of abbreviation " ^ Binding.print b);
 
-    val rhs = raw_rhs
-      |> Term.map_types (Type.cert_typ tsig)
-      |> cert_term
-      |> Term.close_schematic_term;
+    val rhs = raw_rhs |> cert_term |> Term.close_schematic_term;
     val normal_rhs = expand_term rhs;
     val T = Term.fastype_of rhs;
     val lhs = Const (Name_Space.full_name (Name_Space.naming_of context) b, T);
@@ -311,7 +343,7 @@ fun abbreviate context tsig mode (b, raw_rhs) consts =
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
         val decl = {T = T, typargs = typargs_of T};
-        val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
+        val abbr = {rhs = rhs, normal_rhs = normal_rhs, internal = internal};
         val _ = Binding.check b;
         val (_, decls') = decls
           |> Name_Space.define context true (b, (decl, SOME abbr));

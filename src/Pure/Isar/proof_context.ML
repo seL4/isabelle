@@ -495,7 +495,7 @@ val read_typ_abbrev = read_typ_mode Type.mode_abbrev;
 
 
 fun cert_typ_mode mode ctxt T =
-  Type.cert_typ_mode mode (tsig_of ctxt) T
+  Type.certify_typ mode (tsig_of ctxt) T
     handle TYPE (msg, _, _) => error msg;
 
 val cert_typ = cert_typ_mode Type.mode_default;
@@ -533,13 +533,10 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
   else
     let
       val ((d, reports), decl) = Type.check_decl (Context.Proof ctxt) (tsig_of ctxt) (c, pos);
-      fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
-      val args =
-        (case decl of
-          Type.LogicalType n => n
-        | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
-        | Type.Nonterminal => if strict then err () else 0);
-    in (Type (d, replicate args dummyT), reports) end;
+      val _ =
+        if strict andalso not (Type.decl_logical decl)
+        then error ("Bad type name: " ^ quote d ^ Position.here pos) else ();
+    in (Type (d, replicate (Type.decl_args decl) dummyT), reports) end;
 
 fun read_type_name flags ctxt text =
   let
@@ -584,7 +581,7 @@ fun check_const {proper, strict} ctxt (c, ps) =
     val _ =
       (case (strict, t) of
         (true, Const (d, _)) =>
-          (ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg)
+          (ignore (Consts.the_const_type consts d) handle TYPE (msg, _, _) => err msg)
       | _ => ());
   in (t, reports) end;
 
@@ -629,8 +626,8 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 local
 
 fun certify_consts ctxt =
-  Consts.certify (Context.Proof ctxt) (tsig_of ctxt)
-    (not (abbrev_mode ctxt)) (consts_of ctxt);
+  Consts.certify {normalize = not (abbrev_mode ctxt)}
+    (Context.Proof ctxt) (tsig_of ctxt) (consts_of ctxt);
 
 fun expand_binds ctxt =
   let
@@ -809,17 +806,16 @@ end;
 
 local
 
-fun gen_cert prop ctxt t =
-  t
-  |> expand_abbrevs ctxt
-  |> (fn t' =>
-      #1 (Sign.certify' prop (Context.Proof ctxt) false (consts_of ctxt) (theory_of ctxt) t')
-        handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg);
+fun cert_flags flags ctxt t =
+  let val t' = expand_abbrevs ctxt t in
+    #1 (Sign.certify_flags flags (Context.Proof ctxt) (consts_of ctxt) (theory_of ctxt) t')
+      handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg
+  end;
 
 in
 
-val cert_term = gen_cert false;
-val cert_prop = gen_cert true;
+val cert_term = cert_flags {prop = false, normalize = false};
+val cert_prop = cert_flags {prop = true, normalize = false};
 
 end;
 

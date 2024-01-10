@@ -269,7 +269,8 @@ fun maxidx_of_cterm (Cterm {maxidx, ...}) = maxidx;
 
 fun global_cterm_of thy tm =
   let
-    val (t, T, maxidx) = Sign.certify_term thy tm;
+    val (t, T) = Sign.certify_term thy tm;
+    val maxidx = Term.maxidx_of_term t;
     val sorts = Sorts.insert_term t [];
   in Cterm {cert = Context.Certificate thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 

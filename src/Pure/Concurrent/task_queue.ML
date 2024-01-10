@@ -250,7 +250,7 @@ fun group_tasks (Queue {groups, ...}) gs =
     gs Tasks.empty
   |> Tasks.dest;
 
-fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
+fun known_task (Queue {jobs, ...}) task = Task_Graph.defined jobs task;
 
 
 (* job status *)

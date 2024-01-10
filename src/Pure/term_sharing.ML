@@ -23,7 +23,7 @@ fun init thy =
 
     val class = perhaps (try (#1 o Graph.get_entry (Sorts.classes_of algebra)));
     val tycon = perhaps (Option.map #1 o Name_Space.lookup_key types);
-    val const = perhaps (try (#1 o Consts.the_const (Sign.consts_of thy)));
+    val const = perhaps (Consts.get_const_name (Sign.consts_of thy));
 
     val typs = Unsynchronized.ref (Typtab.empty: Typtab.set);
     val terms = Unsynchronized.ref (Syntax_Termtab.empty: Syntax_Termtab.set);

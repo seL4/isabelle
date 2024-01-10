@@ -127,7 +127,7 @@ fun type_name kind check = Args.context -- Scan.lift (Parse.token Parse.embedded
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>type_name\<close>
-    (type_name "logical type" (fn (c, Type.LogicalType _) => c)) #>
+    (type_name "logical type" (fn (c, Type.Logical_Type _) => c)) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>type_abbrev\<close>
     (type_name "type abbreviation" (fn (c, Type.Abbreviation _) => c)) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>nonterminal\<close>
@@ -150,7 +150,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.token Parse.embedded)
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>const_name\<close>
-    (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
+    (const_name (fn (consts, c) => (Consts.the_const_type consts c; c))) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>const_abbrev\<close>
     (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c))) #>
   ML_Antiquotation.inline_embedded \<^binding>\<open>const_syntax\<close>

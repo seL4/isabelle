@@ -15,9 +15,11 @@ sig
   val appl_error: Proof.context -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
   datatype decl =
-    LogicalType of int |
+    Logical_Type of int |
     Abbreviation of string list * typ * bool |
     Nonterminal
+  val decl_args: decl -> int
+  val decl_logical: decl -> bool
   type tsig
   val eq_tsig: tsig * tsig -> bool
   val rep_tsig: tsig ->
@@ -53,8 +55,9 @@ sig
   val check_decl: Context.generic -> tsig ->
     xstring * Position.T -> (string * Position.report list) * decl
   val the_decl: tsig -> string * Position.T -> decl
-  val cert_typ_mode: mode -> tsig -> typ -> typ
-  val cert_typ: tsig -> typ -> typ
+  val certify_typ_same: mode -> tsig -> typ Same.operation
+  val certify_typ: mode -> tsig -> typ -> typ
+  val certify_types: mode -> tsig -> term -> term
   val arity_number: tsig -> string -> int
   val arity_sorts: Context.generic -> tsig -> string -> sort -> sort list
 
@@ -152,9 +155,16 @@ fun appl_error ctxt (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
 (* type declarations *)
 
 datatype decl =
-  LogicalType of int |
+  Logical_Type of int |
   Abbreviation of string list * typ * bool |
   Nonterminal;
+
+fun decl_args (Logical_Type n) = n
+  | decl_args (Abbreviation (vs, _, _)) = length vs
+  | decl_args Nonterminal = 0;
+
+fun decl_logical (Logical_Type _) = true
+  | decl_logical _ = false;
 
 
 (* type tsig *)
@@ -187,7 +197,7 @@ fun change_ignore (TSig {classes, default, types, log_types}) =
 fun build_tsig (classes, default, types) =
   let
     val log_types =
-      Name_Space.fold_table (fn (c, LogicalType n) => cons (c, n) | _ => I) types []
+      Name_Space.fold_table (fn (c, Logical_Type n) => cons (c, n) | _ => I) types []
       |> Library.sort (int_ord o apply2 snd) |> map fst;
   in make_tsig (classes, default, types, log_types) end;
 
@@ -211,11 +221,8 @@ fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
 fun of_sort (TSig {classes, ...}) = Sorts.of_sort (#2 classes);
 fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
-fun cert_class (TSig {classes = (_, algebra), ...}) c =
-  if can (Graph.get_entry (Sorts.classes_of algebra)) c then c
-  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
-
-val cert_sort = map o cert_class;
+fun cert_class (TSig {classes, ...}) = Sorts.cert_class (#2 classes);
+fun cert_sort (TSig {classes, ...}) = Sorts.cert_sort (#2 classes);
 
 fun minimize_sort (TSig {classes, ...}) = Sorts.minimize_sort (#2 classes);
 
@@ -263,59 +270,46 @@ fun the_decl tsig (c, pos) =
   | SOME decl => decl);
 
 
-(* certified types *)
+(* certify types *)
 
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
 
-local
-
-fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-  | inst_typ env (T as TFree (x, _)) = the_default T (AList.lookup (op =) env x)
-  | inst_typ _ T = T;
-
-in
-
-fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
+fun certify_typ_same (Mode {normalize, logical}) tsig =
   let
-    fun err msg = raise TYPE (msg, [ty], []);
+    fun err T msg = raise TYPE (msg, [T], []);
+    fun err_syntactic T c = err T ("Illegal occurrence of syntactic type: " ^ quote c);
 
-    val check_logical =
-      if logical then fn c => err ("Illegal occurrence of syntactic type: " ^ quote c)
-      else fn _ => ();
-
-    fun cert (T as Type (c, Ts)) =
-          let
-            val Ts' = map cert Ts;
-            fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
-          in
-            (case the_decl tsig (c, Position.none) of
-              LogicalType n => (nargs n; Type (c, Ts'))
-            | Abbreviation (vs, U, syn) =>
-               (nargs (length vs);
-                if syn then check_logical c else ();
-                if normalize then inst_typ (vs ~~ Ts') U
-                else Type (c, Ts'))
-            | Nonterminal => (nargs 0; check_logical c; T))
+    fun sort S = (cert_sort tsig S; raise Same.SAME);
+    fun typ (T as Type (c, args)) =
+          let val decl = the_decl tsig (c, Position.none) in
+            if length args <> decl_args decl then err T (bad_nargs c)
+            else
+              (case decl of
+                Logical_Type _ => Type (c, Same.map typ args)
+              | Abbreviation (vs, U, syntactic) =>
+                  if syntactic andalso logical then err_syntactic T c
+                  else if normalize then inst_typ vs args U
+                  else Type (c, Same.map typ args)
+              | Nonterminal => if logical then err_syntactic T c else raise Same.SAME)
           end
-      | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
-      | cert (TVar (xi as (_, i), S)) =
-          if i < 0 then
-            err ("Malformed type variable: " ^ quote (Term.string_of_vname xi))
-          else TVar (xi, cert_sort tsig S);
+      | typ (TFree (_, S)) = sort S
+      | typ (T as TVar ((x, i), S)) =
+          if i < 0 then err T ("Malformed type variable: " ^ quote (Term.string_of_vname (x, i)))
+          else sort S
+    and inst_typ vs args =
+      Term_Subst.instantiateT_frees
+        (TFrees.build (fold2 (fn v => fn T => TFrees.add ((v, []), Same.commit typ T)) vs args));
+  in typ end;
 
-    val ty' = cert ty;
-  in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
-
-val cert_typ = cert_typ_mode mode_default;
-
-end;
+val certify_typ = Same.commit oo certify_typ_same;
+val certify_types = Term.map_types oo certify_typ_same;
 
 
 (* type arities *)
 
 fun arity_number tsig a =
   (case lookup_type tsig a of
-    SOME (LogicalType n) => n
+    SOME (Logical_Type n) => n
   | _ => error (undecl_type a));
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
@@ -337,9 +331,11 @@ fun sort_of_atyp (TFree (_, S)) = S
 (* no_tvars *)
 
 fun no_tvars T =
-  (case Term.add_tvarsT T [] of [] => T
-  | vs => raise TYPE ("Illegal schematic type variable(s): " ^
-      commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
+  (case Term.add_tvarsT T [] of
+    [] => T
+  | vs =>
+      raise TYPE ("Illegal schematic type variable(s): " ^
+        commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
 
 
 (* varify_global *)
@@ -622,8 +618,7 @@ fun unified tye =
 fun add_class context (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
-      val cs' = map (cert_class tsig) cs
-        handle TYPE (msg, _, _) => error msg;
+      val cs' = cert_sort tsig cs handle TYPE (msg, _, _) => error msg;
       val _ = Binding.check c;
       val (c', space') = space |> Name_Space.declare context true c;
       val classes' = classes |> Sorts.add_class context (c', cs');
@@ -639,7 +634,7 @@ fun add_arity context (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), 
   let
     val _ =
       (case lookup_type tsig t of
-        SOME (LogicalType n) => if length Ss <> n then error (bad_nargs t) else ()
+        SOME (Logical_Type n) => if length Ss <> n then error (bad_nargs t) else ()
       | SOME _ => error ("Logical type constructor expected: " ^ quote t)
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
@@ -690,13 +685,13 @@ in
 
 fun add_type context (c, n) =
   if n < 0 then error ("Bad type constructor declaration " ^ Binding.print c)
-  else map_types (new_decl context (c, LogicalType n));
+  else map_types (new_decl context (c, Logical_Type n));
 
 fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
-    val rhs' = Term.strip_sortsT (no_tvars (cert_typ_mode mode_syntax tsig rhs))
+    val rhs' = Term.strip_sortsT (no_tvars (certify_typ mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
     val _ =
       (case duplicates (op =) vs of
