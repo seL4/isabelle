@@ -64,7 +64,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
-  val certify_flags: {prop: bool, do_expand: bool} -> Context.generic -> Consts.T -> theory ->
+  val certify_flags: {prop: bool, normalize: bool} -> Context.generic -> Consts.T -> theory ->
     term -> term * typ
   val certify_term: theory -> term -> term * typ
   val cert_term: theory -> term -> term
@@ -305,7 +305,7 @@ fun check_vars (t $ u) = (check_vars t; check_vars u)
 
 in
 
-fun certify_flags {prop, do_expand} context consts thy tm =
+fun certify_flags {prop, normalize} context consts thy tm =
   let
     val tsig = tsig_of thy;
     fun check_term t =
@@ -313,7 +313,7 @@ fun certify_flags {prop, do_expand} context consts thy tm =
         val _ = check_vars t;
         val t' = Type.certify_types Type.mode_default tsig t;
         val T = type_check context t';
-        val t'' = Consts.certify {do_expand = do_expand} context tsig consts t';
+        val t'' = Consts.certify {normalize = normalize} context tsig consts t';
       in if prop andalso T <> propT then err "Term not of type prop" else (t'', T) end;
 
     val (tm1, ty1) = check_term tm;
@@ -322,15 +322,15 @@ fun certify_flags {prop, do_expand} context consts thy tm =
   in if tm = tm2 then (tm, ty2) else (tm2, ty2) end;
 
 fun certify_term thy =
-  certify_flags {prop = false, do_expand = true} (Context.Theory thy) (consts_of thy) thy;
+  certify_flags {prop = false, normalize = true} (Context.Theory thy) (consts_of thy) thy;
 
 fun cert_term_abbrev thy =
-  #1 o certify_flags {prop = false, do_expand = false} (Context.Theory thy) (consts_of thy) thy;
+  #1 o certify_flags {prop = false, normalize = false} (Context.Theory thy) (consts_of thy) thy;
 
 val cert_term = #1 oo certify_term;
 
 fun cert_prop thy =
-  #1 o certify_flags {prop = true, do_expand = true} (Context.Theory thy) (consts_of thy) thy;
+  #1 o certify_flags {prop = true, normalize = true} (Context.Theory thy) (consts_of thy) thy;
 
 end;
 

@@ -626,7 +626,7 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 local
 
 fun certify_consts ctxt =
-  Consts.certify {do_expand = not (abbrev_mode ctxt)}
+  Consts.certify {normalize = not (abbrev_mode ctxt)}
     (Context.Proof ctxt) (tsig_of ctxt) (consts_of ctxt);
 
 fun expand_binds ctxt =
@@ -814,8 +814,8 @@ fun cert_flags flags ctxt t =
 
 in
 
-val cert_term = cert_flags {prop = false, do_expand = false};
-val cert_prop = cert_flags {prop = true, do_expand = false};
+val cert_term = cert_flags {prop = false, normalize = false};
+val cert_prop = cert_flags {prop = true, normalize = false};
 
 end;
 

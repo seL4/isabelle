@@ -29,7 +29,7 @@ sig
   val intern: T -> xstring -> string
   val intern_syntax: T -> xstring -> string
   val check_const: Context.generic -> T -> xstring * Position.T list -> term * Position.report list
-  val certify: {do_expand: bool} -> Context.generic -> Type.tsig -> T -> term -> term  (*exception TYPE*)
+  val certify: {normalize: bool} -> Context.generic -> Type.tsig -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val dummy_types: T -> term -> term
@@ -50,7 +50,7 @@ struct
 (* datatype T *)
 
 type decl = {T: typ, typargs: int list list};
-type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
+type abbrev = {rhs: term, normal_rhs: term, internal: bool};
 
 datatype T = Consts of
  {decls: (decl * abbrev option) Name_Space.table,
@@ -169,7 +169,7 @@ fun check_const context consts (xname, ps) =
 
 (* certify *)
 
-fun certify {do_expand} context tsig consts =
+fun certify {normalize} context tsig consts =
   let
     fun err msg (c, T) =
       raise TYPE (msg ^ " " ^ quote c ^ " :: " ^
@@ -180,7 +180,7 @@ fun certify {do_expand} context tsig consts =
     val need_expand =
       Term.exists_Const (fn (c, _) =>
         (case get_entry consts c of
-          SOME (_, SOME {force_expand, ...}) => do_expand orelse force_expand
+          SOME (_, SOME {internal, ...}) => normalize orelse internal
         | _ => false));
 
     val expand_typ = Type.certify_typ Type.mode_default tsig;
@@ -202,9 +202,9 @@ fun certify {do_expand} context tsig consts =
               if not (Type.raw_instance (T', U)) then err_const (c, T)
               else
                 (case abbr of
-                  SOME {rhs, normal_rhs, force_expand} =>
-                    if do_expand then expand normal_rhs
-                    else if force_expand then expand rhs
+                  SOME {rhs, normal_rhs, internal} =>
+                    if normalize then expand normal_rhs
+                    else if internal then expand rhs
                     else comb head
                 | _ => comb head)
             end
@@ -328,9 +328,9 @@ in
 
 fun abbreviate context tsig mode (b, raw_rhs) consts =
   let
-    val cert_term = certify {do_expand = false} context tsig consts;
-    val expand_term = certify {do_expand = true} context tsig consts;
-    val force_expand = mode = Print_Mode.internal;
+    val cert_term = certify {normalize = false} context tsig consts;
+    val expand_term = certify {normalize = true} context tsig consts;
+    val internal = mode = Print_Mode.internal;
 
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
       error ("Illegal schematic variables on rhs of abbreviation " ^ Binding.print b);
@@ -343,7 +343,7 @@ fun abbreviate context tsig mode (b, raw_rhs) consts =
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
         val decl = {T = T, typargs = typargs_of T};
-        val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
+        val abbr = {rhs = rhs, normal_rhs = normal_rhs, internal = internal};
         val _ = Binding.check b;
         val (_, decls') = decls
           |> Name_Space.define context true (b, (decl, SOME abbr));
