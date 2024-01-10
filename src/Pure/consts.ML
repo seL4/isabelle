@@ -218,9 +218,9 @@ fun certify {do_expand} context tsig consts =
     fun term (Const (c, T)) =
           let
             val (T', same) = Same.commit_id typ T;
-            val decl = the_decl consts c;
+            val U = type_scheme consts c;
           in
-            if not (Type.raw_instance (T', #T decl)) then err_const (c, T)
+            if not (Type.raw_instance (T', U)) then err_const (c, T)
             else if same then raise Same.SAME else Const (c, T')
           end
       | term (Free (x, T)) = Free (x, typ T)
