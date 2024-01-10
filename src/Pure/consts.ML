@@ -186,8 +186,7 @@ fun certify {do_expand} context tsig consts =
         fun comb head' = Term.list_comb (head', args');
       in
         (case head of
-          Abs (x, T, t) => comb (Abs (x, expand_typ T, expand_term t))
-        | Const (c, T) =>
+          Const (c, T) =>
             let
               val T' = expand_typ T;
               val (_, ({T = U, ...}, abbr)) = the_entry consts c;
@@ -204,6 +203,7 @@ fun certify {do_expand} context tsig consts =
                     else comb head
                 | _ => comb head)
             end
+        | Abs (x, T, t) => comb (Abs (x, expand_typ T, expand_term t))
         | Free (x, T) => comb (Free (x, expand_typ T))
         | Var (xi, T) => comb (Var (xi, expand_typ T))
         | _ => comb head)
