@@ -15,7 +15,7 @@ sig
   val appl_error: Proof.context -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
   datatype decl =
-    LogicalType of int |
+    Logical_Type of int |
     Abbreviation of string list * typ * bool |
     Nonterminal
   type tsig
@@ -153,11 +153,11 @@ fun appl_error ctxt (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
 (* type declarations *)
 
 datatype decl =
-  LogicalType of int |
+  Logical_Type of int |
   Abbreviation of string list * typ * bool |
   Nonterminal;
 
-fun decl_args (LogicalType n) = n
+fun decl_args (Logical_Type n) = n
   | decl_args (Abbreviation (vs, _, _)) = length vs
   | decl_args Nonterminal = 0;
 
@@ -192,7 +192,7 @@ fun change_ignore (TSig {classes, default, types, log_types}) =
 fun build_tsig (classes, default, types) =
   let
     val log_types =
-      Name_Space.fold_table (fn (c, LogicalType n) => cons (c, n) | _ => I) types []
+      Name_Space.fold_table (fn (c, Logical_Type n) => cons (c, n) | _ => I) types []
       |> Library.sort (int_ord o apply2 snd) |> map fst;
   in make_tsig (classes, default, types, log_types) end;
 
@@ -280,7 +280,7 @@ fun certify_typ_same (Mode {normalize, logical}) tsig =
             if length args <> decl_args decl then err T (bad_nargs c)
             else
               (case decl of
-                LogicalType _ => Type (c, Same.map typ args)
+                Logical_Type _ => Type (c, Same.map typ args)
               | Abbreviation (vs, U, syntactic) =>
                   if syntactic andalso logical then err_syntactic T c
                   else if normalize then inst_typ vs args U
@@ -304,7 +304,7 @@ val certify_types = Term.map_types oo certify_typ_same;
 
 fun arity_number tsig a =
   (case lookup_type tsig a of
-    SOME (LogicalType n) => n
+    SOME (Logical_Type n) => n
   | _ => error (undecl_type a));
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
@@ -629,7 +629,7 @@ fun add_arity context (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), 
   let
     val _ =
       (case lookup_type tsig t of
-        SOME (LogicalType n) => if length Ss <> n then error (bad_nargs t) else ()
+        SOME (Logical_Type n) => if length Ss <> n then error (bad_nargs t) else ()
       | SOME _ => error ("Logical type constructor expected: " ^ quote t)
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
@@ -680,7 +680,7 @@ in
 
 fun add_type context (c, n) =
   if n < 0 then error ("Bad type constructor declaration " ^ Binding.print c)
-  else map_types (new_decl context (c, LogicalType n));
+  else map_types (new_decl context (c, Logical_Type n));
 
 fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
