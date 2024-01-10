@@ -18,6 +18,8 @@ sig
     Logical_Type of int |
     Abbreviation of string list * typ * bool |
     Nonterminal
+  val decl_args: decl -> int
+  val decl_logical: decl -> bool
   type tsig
   val eq_tsig: tsig * tsig -> bool
   val rep_tsig: tsig ->
@@ -160,6 +162,9 @@ datatype decl =
 fun decl_args (Logical_Type n) = n
   | decl_args (Abbreviation (vs, _, _)) = length vs
   | decl_args Nonterminal = 0;
+
+fun decl_logical (Logical_Type _) = true
+  | decl_logical _ = false;
 
 
 (* type tsig *)

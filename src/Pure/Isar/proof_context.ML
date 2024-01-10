@@ -533,13 +533,10 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
   else
     let
       val ((d, reports), decl) = Type.check_decl (Context.Proof ctxt) (tsig_of ctxt) (c, pos);
-      fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
-      val args =
-        (case decl of
-          Type.Logical_Type n => n
-        | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
-        | Type.Nonterminal => if strict then err () else 0);
-    in (Type (d, replicate args dummyT), reports) end;
+      val _ =
+        if strict andalso not (Type.decl_logical decl)
+        then error ("Bad type name: " ^ quote d ^ Position.here pos) else ();
+    in (Type (d, replicate (Type.decl_args decl) dummyT), reports) end;
 
 fun read_type_name flags ctxt text =
   let
