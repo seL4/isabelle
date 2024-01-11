@@ -250,6 +250,7 @@ sig
   val ztyp_of: typ -> ztyp
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_of: theory -> term -> zterm
+  val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
   val term_of: theory -> zterm -> term
   val beta_norm_term_same: zterm Same.operation
@@ -608,8 +609,10 @@ fun zterm_cache thy =
 
 val zterm_of = #zterm o zterm_cache;
 
-fun typ_of (ZTVar ((a, ~1), S)) = TFree (a, S)
-  | typ_of (ZTVar v) = TVar v
+fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
+  | typ_of_tvar v = TVar v;
+
+fun typ_of (ZTVar v) = typ_of_tvar v
   | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
   | typ_of ZProp = propT
   | typ_of (ZType0 c) = Type (c, [])
@@ -850,9 +853,11 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
 
+    val present_set_prf =
+      ZTVars.build ((fold_proof_types {hyps = true} o fold_tvars) ZTVars.add_set prf);
     val present_set =
       Types.build (Types.add_atyps concl #> fold Types.add_atyps hyps #>
-        (fold_proof_types {hyps = true} o fold_tvars) (Types.add_set o typ_of o ZTVar) prf);
+        fold (Types.add_set o typ_of_tvar) (ZTVars.list_set present_set_prf));
     val ucontext as {constraints, outer_constraints, ...} =
       Logic.unconstrain_context [] present_set;
 
