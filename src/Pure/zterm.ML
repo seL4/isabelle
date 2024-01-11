@@ -200,11 +200,11 @@ datatype zproof =
     ZDummy                         (*dummy proof*)
   | ZConstp of zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table
   | ZBoundp of int
-  | ZHyp of zterm
   | ZAbst of string * ztyp * zproof
   | ZAbsp of string * zterm * zproof
   | ZAppt of zproof * zterm
   | ZAppp of zproof * zproof
+  | ZHyp of zterm
   | ZClassp of ztyp * class;       (*OFCLASS proof from sorts algebra*)
 
 
@@ -478,11 +478,11 @@ fun fold_proof {hyps} typ term =
       | proof (ZConstp (_, _, instT, inst)) =
           ZTVars.fold (typ o #2) instT #> ZVars.fold (term o #2) inst
       | proof (ZBoundp _) = I
-      | proof (ZHyp h) = hyps ? term h
       | proof (ZAbst (_, T, p)) = typ T #> proof p
       | proof (ZAbsp (_, t, p)) = term t #> proof p
       | proof (ZAppt (p, t)) = proof p #> term t
       | proof (ZAppp (p, q)) = proof p #> proof q
+      | proof (ZHyp h) = hyps ? term h
       | proof (ZClassp (T, _)) = hyps ? typ T;
   in proof end;
 
@@ -537,7 +537,6 @@ fun map_proof_same {hyps} typ term =
           let val (instT', inst') = map_insts_same typ term (instT, inst)
           in ZConstp (a, A, instT', inst') end
       | proof (ZBoundp _) = raise Same.SAME
-      | proof (ZHyp h) = if hyps then ZHyp (term h) else raise Same.SAME
       | proof (ZAbst (a, T, p)) =
           (ZAbst (a, typ T, Same.commit proof p)
             handle Same.SAME => ZAbst (a, T, proof p))
@@ -550,6 +549,7 @@ fun map_proof_same {hyps} typ term =
       | proof (ZAppp (p, q)) =
           (ZAppp (proof p, Same.commit proof q)
             handle Same.SAME => ZAppp (p, proof q))
+      | proof (ZHyp h) = if hyps then ZHyp (term h) else raise Same.SAME
       | proof (ZClassp (T, c)) = if hyps then ZClassp (typ T, c) else raise Same.SAME;
   in proof end;
 
