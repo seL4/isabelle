@@ -830,7 +830,7 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
 
-    val present_set = Types.build (fold Types.add_atyps hyps #> Types.add_atyps concl);
+    val present_set = Types.build (Types.add_atyps concl #> fold Types.add_atyps hyps);
     val ucontext as {constraints, outer_constraints, ...} =
       Logic.unconstrain_context [] present_set;
 
