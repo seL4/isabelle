@@ -857,7 +857,7 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
       ZTVars.build ((fold_proof_types {hyps = true} o fold_tvars) ZTVars.add_set prf);
     val present_set =
       Types.build (Types.add_atyps concl #> fold Types.add_atyps hyps #>
-        fold (Types.add_set o typ_of_tvar) (ZTVars.list_set present_set_prf));
+        ZTVars.fold (Types.add_set o typ_of_tvar o #1) present_set_prf);
     val ucontext as {constraints, outer_constraints, ...} =
       Logic.unconstrain_context [] present_set;
 
