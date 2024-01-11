@@ -1103,7 +1103,7 @@ fun strip_shyps thm =
           ZTypes.unsynchronized_cache
             (ZTerm.subst_type_same (ZTerm.ztyp_of o map_atyp o ZTerm.typ_of o ZTVar));
 
-        val zproof' = ZTerm.map_proof_types {hyps = false} map_ztyp zproof;
+        val zproof' = ZTerm.map_proof_types {hyps = true} map_ztyp zproof;
         val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;
       in
         Thm (make_deriv promises oracles thms zboxes zproof' proof',

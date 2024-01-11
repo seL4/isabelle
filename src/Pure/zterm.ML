@@ -530,7 +530,7 @@ fun map_proof_same {hyps} typ term =
       | proof (ZAppp (p, q)) =
           (ZAppp (proof p, Same.commit proof q)
             handle Same.SAME => ZAppp (p, proof q))
-      | proof (ZClassp (T, c)) = ZClassp (typ T, c);
+      | proof (ZClassp (T, c)) = if hyps then ZClassp (typ T, c) else raise Same.SAME;
   in proof end;
 
 fun map_proof hyps typ term = Same.commit (map_proof_same hyps typ term);
