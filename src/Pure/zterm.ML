@@ -470,6 +470,26 @@ fun instantiate_term_same typ inst =
   subst_term_same typ (Same.function (ZVars.lookup inst));
 
 
+(* fold types/terms within proof *)
+
+fun fold_proof {hyps} typ term =
+  let
+    fun proof ZDummy = I
+      | proof (ZConstp (_, _, instT, inst)) =
+          ZTVars.fold (typ o #2) instT #> ZVars.fold (term o #2) inst
+      | proof (ZBoundp _) = I
+      | proof (ZHyp h) = hyps ? term h
+      | proof (ZAbst (_, T, p)) = typ T #> proof p
+      | proof (ZAbsp (_, t, p)) = term t #> proof p
+      | proof (ZAppt (p, t)) = proof p #> term t
+      | proof (ZAppp (p, q)) = proof p #> proof q
+      | proof (ZClassp (T, _)) = hyps ? typ T;
+  in proof end;
+
+fun fold_proof_types hyps typ =
+  fold_proof hyps typ (fold_types typ);
+
+
 (* map types/terms within proof *)
 
 exception BAD_INST of ((indexname * ztyp) * zterm) list
@@ -830,7 +850,9 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
 
-    val present_set = Types.build (Types.add_atyps concl #> fold Types.add_atyps hyps);
+    val present_set =
+      Types.build (Types.add_atyps concl #> fold Types.add_atyps hyps #>
+        (fold_proof_types {hyps = true} o fold_tvars) (Types.add_set o typ_of o ZTVar) prf);
     val ucontext as {constraints, outer_constraints, ...} =
       Logic.unconstrain_context [] present_set;
 
