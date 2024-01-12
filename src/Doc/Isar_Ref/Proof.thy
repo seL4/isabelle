@@ -419,7 +419,7 @@ text \<open>
     ;
     @{syntax_def obtain_clauses}: (@{syntax par_name}? obtain_case + '|')
     ;
-    @{syntax_def obtain_case}: @{syntax vars} @'where'
+    @{syntax_def obtain_case}: (@{syntax vars} @'where')?
       (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>
 
@@ -1344,8 +1344,8 @@ text \<open>
   \<^rail>\<open>
     @@{command consider} @{syntax obtain_clauses}
     ;
-    @@{command obtain} @{syntax par_name}? @{syntax vars} \<newline>
-      @'where' concl prems @{syntax for_fixes}
+    @@{command obtain} @{syntax par_name}? \<newline>
+      (@{syntax vars} @'where')? concl prems @{syntax for_fixes}
     ;
     concl: (@{syntax props} + @'and')
     ;
