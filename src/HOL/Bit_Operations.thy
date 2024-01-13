@@ -10,7 +10,7 @@ begin
 subsection \<open>Abstract bit structures\<close>
 
 class semiring_bits = semiring_parity +
-  assumes bits_induct [case_names stable rec]:
+  assumes bit_induct [case_names stable rec]:
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
@@ -123,7 +123,7 @@ end
 
 lemma bit_iff_idd_imp_stable:
   \<open>a div 2 = a\<close> if \<open>\<And>n. bit a n \<longleftrightarrow> odd a\<close>
-using that proof (induction a rule: bits_induct)
+using that proof (induction a rule: bit_induct)
   case (stable a)
   then show ?case
     by simp
@@ -192,7 +192,7 @@ proof -
     then show ?thesis
       by (rule that[unfolded possible_bit_def])
   qed
-  then show ?thesis proof (induction a arbitrary: b rule: bits_induct)
+  then show ?thesis proof (induction a arbitrary: b rule: bit_induct)
     case (stable a)
     from stable(2) [of 0] have **: \<open>even b \<longleftrightarrow> even a\<close>
       by (simp add: bit_0)
@@ -3719,7 +3719,7 @@ text \<open>
 
       \<^item> Equality rule: @{thm bit_eqI [where ?'a = int, no_vars]}
 
-      \<^item> Induction rule: @{thm bits_induct [where ?'a = int, no_vars]}
+      \<^item> Induction rule: @{thm bit_induct [where ?'a = int, no_vars]}
 
   \<^item> Typical operations are characterized as follows:
 
