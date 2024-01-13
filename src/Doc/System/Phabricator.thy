@@ -74,8 +74,10 @@ text \<open>
   (\secref{sec:phabricator-domain}).
 
   Initial experimentation also works on a local host, e.g.\ via
-  VirtualBox\<^footnote>\<open>\<^url>\<open>https://www.virtualbox.org\<close>\<close>. The Internet domain \<^verbatim>\<open>lvh.me\<close>
-  is used by default: it maps arbitrary subdomains to \<^verbatim>\<open>localhost\<close>.
+  VirtualBox\<^footnote>\<open>\<^url>\<open>https://www.virtualbox.org\<close>\<close>. The proforma domain
+  \<^verbatim>\<open>localhost\<close> is used by default: it maps arbitrary subdomains to the usual
+  \<^verbatim>\<open>localhost\<close> address. This allows to use e.g.
+  \<^verbatim>\<open>http://phabricator-vcs.localhost\<close> for initial setup as described below.
 
   All administrative commands need to be run as \<^verbatim>\<open>root\<close> user (e.g.\ via
   \<^verbatim>\<open>sudo\<close>). Note that Isabelle refers to user-specific configuration in the
@@ -216,9 +218,9 @@ text \<open>
 subsection \<open>Internet domain name and HTTPS configuration \label{sec:phabricator-domain}\<close>
 
 text \<open>
-  So far the Phabricator server has been accessible only on \<^verbatim>\<open>localhost\<close> (via
-  the alias \<^verbatim>\<open>lvh.me\<close>). Proper configuration of a public Internet domain name
-  (with HTTPS certificate from \<^emph>\<open>Let's Encrypt\<close>) works as follows.
+  So far the Phabricator server has been accessible only on \<^verbatim>\<open>localhost\<close>.
+  Proper configuration of a public Internet domain name (with HTTPS
+  certificate from \<^emph>\<open>Let's Encrypt\<close>) works as follows.
 
     \<^item> Register a subdomain (e.g.\ \<^verbatim>\<open>vcs.example.org\<close>) as an alias for the IP
     address of the underlying Linux host. This usually works by some web

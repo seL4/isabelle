@@ -439,7 +439,7 @@ systemctl start isabelle-phabricator-phd""")
 
     if (!apache_sites.is_dir) error("Bad Apache sites directory " + apache_sites)
 
-    val server_name = phabricator_name(name = name, ext = "lvh.me")  // alias for "localhost" for testing
+    val server_name = phabricator_name(name = name, ext = "localhost")  // alias for "localhost" for testing
     val server_url = "http://" + server_name
 
     File.write(apache_sites + Path.basic(isabelle_phabricator_name(name = name, ext = "conf")),
