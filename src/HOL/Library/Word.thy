@@ -831,16 +831,12 @@ instance proof
   show \<open>0 div a = 0\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
+  show \<open>a div 0 = 0\<close>
+    for a :: \<open>'a word\<close>
+    by transfer simp
   show \<open>a div 1 = a\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
-  show \<open>a mod b div b = 0\<close>
-    for a b :: \<open>'a word\<close>
-    apply transfer
-    apply (simp add: take_bit_eq_mod)
-    apply (smt (verit, best) Euclidean_Rings.pos_mod_bound Euclidean_Rings.pos_mod_sign div_int_pos_iff
-        nonneg1_imp_zdiv_pos_iff zero_less_power zmod_le_nonneg_dividend)
-    done
   show \<open>(1 + a) div 2 = a div 2\<close>
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>

@@ -15,8 +15,8 @@ class semiring_bits = semiring_parity +
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
   assumes bits_div_0 [simp]: \<open>0 div a = 0\<close>
+    and bits_div_by_0 [simp]: \<open>a div 0 = 0\<close>
     and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
-    and bits_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
     and even_succ_div_2 [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
     and even_mask_div_iff: \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
     and exp_div_exp_eq: \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
@@ -34,10 +34,6 @@ text \<open>
   takes into account that specific instances can be implemented
   differently wrt. code generation.
 \<close>
-
-lemma bits_div_by_0 [simp]:
-  \<open>a div 0 = 0\<close>
-  by (metis add_cancel_right_right bits_mod_div_trivial mod_mult_div_eq mult_not_zero)
 
 lemma bits_1_div_2 [simp]:
   \<open>1 div 2 = 0\<close>
@@ -82,6 +78,20 @@ lemma bits_mod_by_1 [simp]:
 lemma bits_mod_0 [simp]:
   \<open>0 mod a = 0\<close>
   using div_mult_mod_eq [of 0 a] by simp
+
+lemma mod_exp_div_exp_eq_0 [simp]:
+  \<open>a mod 2 ^ n div 2 ^ n = 0\<close>
+proof (induction n arbitrary: a)
+  case 0
+  then show ?case
+    by simp
+next
+  case (Suc n)
+  then have \<open>a div 2 ^ 1 mod 2 ^ n div 2 ^ n = 0\<close> .
+  then show ?case
+    using div_exp_eq [of _ 1 n] div_exp_mod_exp_eq [of a 1 n]
+    by simp
+qed
 
 lemma bit_0:
   \<open>bit a 0 \<longleftrightarrow> odd a\<close>

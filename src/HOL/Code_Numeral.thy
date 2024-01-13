@@ -349,7 +349,7 @@ lift_definition take_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarro
 
 instance by (standard; transfer)
   (fact bit_eq_rec bit_induct bit_iff_odd push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod
-    bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
+    bits_div_0 bits_div_by_0 bits_div_by_1 even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff
     and_rec or_rec xor_rec mask_eq_exp_minus_1
@@ -1108,7 +1108,7 @@ lift_definition take_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarro
 
 instance by (standard; transfer)
   (fact bit_eq_rec bit_induct bit_iff_odd push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod
-    bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
+    bits_div_0 bits_div_by_0 bits_div_by_1 even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
     even_mask_div_iff even_mult_exp_div_exp_iff and_rec or_rec xor_rec
     mask_eq_exp_minus_1 set_bit_def unset_bit_0 unset_bit_Suc flip_bit_def)+
