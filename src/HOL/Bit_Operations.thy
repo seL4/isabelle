@@ -17,7 +17,7 @@ class semiring_bits = semiring_parity +
   assumes bits_div_0 [simp]: \<open>0 div a = 0\<close>
     and bits_div_by_0 [simp]: \<open>a div 0 = 0\<close>
     and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
-    and even_succ_div_2 [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
+    and even_half_succ_eq [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
     and even_mask_div_iff: \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
     and exp_div_exp_eq: \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
     and div_exp_eq: \<open>a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)\<close>
@@ -37,7 +37,7 @@ text \<open>
 
 lemma bits_1_div_2 [simp]:
   \<open>1 div 2 = 0\<close>
-  using even_succ_div_2 [of 0] by simp
+  using even_half_succ_eq [of 0] by simp
 
 lemma bits_1_div_exp [simp]:
   \<open>1 div 2 ^ n = of_bool (n = 0)\<close>

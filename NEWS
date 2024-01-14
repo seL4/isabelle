@@ -32,6 +32,8 @@ New in this Isabelle version
 * Streamlined specification of type class (semi)ring_parity.  Minor
   INCOMPATIBILITY.
 
+* Lemma even_succ_div_2 renamed to even_half_succ_eq.  Minor INCOMPATIBILITY.
+
 
 *** ML ***
 
