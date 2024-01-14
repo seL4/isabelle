@@ -36,12 +36,10 @@ text \<open>
   The following Phabricator instances may serve as examples:
 
     \<^item> Wikimedia development \<^url>\<open>https://phabricator.wikimedia.org\<close>
-    \<^item> Blender development \<^url>\<open>https://developer.blender.org\<close>
-    \<^item> LLVM development \<^url>\<open>https://reviews.llvm.org\<close>
     \<^item> Mozilla development \<^url>\<open>https://phabricator.services.mozilla.com\<close>
     \<^item> Isabelle development \<^url>\<open>https://isabelle-dev.sketis.net\<close>
-    \<^item> Phabricator development (inactive) \<^url>\<open>https://secure.phabricator.com\<close>
-    \<^item> Phorge development (planned successor of Phabricator)
+    \<^item> Phabricator development (mostly inactive after Jun-2021) \<^url>\<open>https://secure.phabricator.com\<close>
+    \<^item> Phorge development (community fork and successor of Phabricator)
       \<^url>\<open>https://we.phorge.it\<close>
 
   \<^medskip>
