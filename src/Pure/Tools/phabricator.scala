@@ -31,10 +31,20 @@ object Phabricator {
       // mercurial build packages
       "make", "gcc", "python", "python2-dev", "python-docutils", "python-openssl")
 
+  val packages_ubuntu_22_04: List[String] =
+    Docker_Build.packages :::
+    List(
+      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
+      "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
+      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
+      // more packages
+      "php-xml", "php-zip", "python3-pygments", "ssh", "subversion")
+
   def packages: List[String] = {
     val release = Linux.Release()
     if (release.is_ubuntu_20_04) packages_ubuntu_20_04
-    else error("Bad Linux version: expected Ubuntu 20.04 LTS")
+    else if (release.is_ubuntu_22_04) packages_ubuntu_22_04
+    else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 LTS")
   }
 
 
@@ -280,11 +290,11 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         set -e
         echo "Cloning distribution repositories:"
 
-        git clone --branch stable https://github.com/phacility/arcanist.git
+        git clone --branch stable https://we.phorge.it/source/arcanist.git
         git -C arcanist reset --hard """ +
           Bash.string(options.string("phabricator_version_arcanist")) + """
 
-        git clone --branch stable https://github.com/phacility/phabricator.git
+        git clone --branch stable https://we.phorge.it/source/phorge.git phabricator
         git -C phabricator reset --hard """ +
           Bash.string(options.string("phabricator_version_phabricator")) + """
       """).check
