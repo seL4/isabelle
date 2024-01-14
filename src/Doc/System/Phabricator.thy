@@ -296,7 +296,7 @@ text \<open>
   phabricator/bin/storage renamespace --from phabricator_vcs \
     --to phabricator_xyz --input dump1.sql --output dump2.sql\<close>}
 
-  Them run on the second installation root directory:
+  Then run on the second installation root directory:
   @{verbatim [display] \<open>  phabricator/bin/storage destroy
   phabricator/bin/storage shell < .../dump2.sql\<close>}
 
