@@ -1007,19 +1007,11 @@ instance proof
   show \<open>mask n = 2 ^ n - (1 :: 'a word)\<close>
     by transfer (simp flip: mask_eq_exp_minus_1)
   show \<open>set_bit n v = v OR push_bit n 1\<close>
-    by transfer (simp add: take_bit_set_bit_eq set_bit_eq_or)
-  show \<open>unset_bit 0 v = 2 * (v div 2)\<close>
-    apply transfer
-    apply (rule bit_eqI)
-    apply (auto simp add: bit_simps simp flip: bit_Suc)
-    done
-  show \<open>unset_bit (Suc n) v = v mod 2 + 2 * unset_bit n (v div 2)\<close>
-    apply transfer
-    apply (rule bit_eqI)
-    apply (auto simp add: bit_simps mod_2_eq_odd even_bit_succ_iff bit_0 simp flip: bit_Suc)
-    done
+    by transfer (simp add: set_bit_eq_or)
+  show \<open>unset_bit n v = (v OR push_bit n 1) XOR push_bit n 1\<close>
+    by transfer (simp add: unset_bit_eq_or_xor)
   show \<open>flip_bit n v = v XOR push_bit n 1\<close>
-    by transfer (simp add: take_bit_flip_bit_eq flip_bit_eq_xor)
+    by transfer (simp add: flip_bit_eq_xor)
   show \<open>push_bit n v = v * 2 ^ n\<close>
     by transfer (simp add: push_bit_eq_mult)
   show \<open>drop_bit n v = v div 2 ^ n\<close>
