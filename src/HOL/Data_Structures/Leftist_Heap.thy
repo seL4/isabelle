@@ -8,6 +8,7 @@ imports
   Tree2
   Priority_Queue_Specs
   Complex_Main
+  Define_Time_Function
 begin
 
 fun mset_tree :: "('a*'b) tree \<Rightarrow> 'a multiset" where
@@ -158,23 +159,17 @@ qed
 
 subsection "Complexity"
 
-text \<open>We count only the calls of the only recursive function: @{const merge}\<close>
+text \<open>Auxiliary time functions (which are both 0):\<close>
+define_time_fun mht
+define_time_fun node
 
-text\<open>Explicit termination argument: sum of sizes\<close>
+lemma T_mht_0[simp]: "T_mht t = 0"
+by(cases t)auto
 
-fun T_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"T_merge Leaf t = 1" |
-"T_merge t Leaf = 1" |
-"T_merge (Node l1 (a1, n1) r1 =: t1) (Node l2 (a2, n2) r2 =: t2) =
-  (if a1 \<le> a2 then T_merge r1 t2
-   else T_merge t1 r2) + 1"
-
-definition T_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"T_insert x t = T_merge (Node Leaf (x, 1) Leaf) t"
-
-fun T_del_min :: "'a::ord lheap \<Rightarrow> nat" where
-"T_del_min Leaf = 0" |
-"T_del_min (Node l _ r) = T_merge l r"
+text \<open>Define timing function\<close>
+define_time_fun merge
+define_time_fun insert
+define_time_fun del_min
 
 lemma T_merge_min_height: "ltree l \<Longrightarrow> ltree r \<Longrightarrow> T_merge l r \<le> min_height l + min_height r + 1"
 proof(induction l r rule: merge.induct)
@@ -189,9 +184,8 @@ by linarith
 
 corollary T_insert_log: "ltree t \<Longrightarrow> T_insert x t \<le> log 2 (size1 t) + 2"
 using T_merge_log[of "Node Leaf (x, 1) Leaf" t]
-by(simp add: T_insert_def split: tree.split)
+by(simp split: tree.split)
 
-(* FIXME mv ? *)
 lemma ld_ld_1_less:
   assumes "x > 0" "y > 0" shows "log 2 x + log 2 y + 1 < 2 * log 2 (x+y)"
 proof -

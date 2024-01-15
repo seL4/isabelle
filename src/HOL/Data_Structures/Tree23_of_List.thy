@@ -3,7 +3,9 @@
 section \<open>2-3 Tree from List\<close>
 
 theory Tree23_of_List
-imports Tree23
+imports
+  Tree23
+  Define_Time_Function
 begin
 
 text \<open>Linear-time bottom up conversion of a list of items into a complete 2-3 tree
@@ -116,21 +118,10 @@ by(simp add: tree23_of_list_def complete_leaves complete_join_all[of _ 0])
 
 subsection "Linear running time"
 
-fun T_join_adj :: "'a tree23s \<Rightarrow> nat" where
-"T_join_adj (TTs t1 a (T t2)) = 1" |
-"T_join_adj (TTs t1 a (TTs t2 b (T t3))) = 1" |
-"T_join_adj (TTs t1 a (TTs t2 b ts)) = T_join_adj ts + 1"
-
-fun T_join_all :: "'a tree23s \<Rightarrow> nat" where
-"T_join_all (T t) = 1" |
-"T_join_all ts = T_join_adj ts + T_join_all (join_adj ts) + 1"
-
-fun T_leaves :: "'a list \<Rightarrow> nat" where
-"T_leaves [] = 1" |
-"T_leaves (a # as) = T_leaves as + 1"
-
-definition T_tree23_of_list :: "'a list \<Rightarrow> nat" where
-"T_tree23_of_list as = T_leaves as + T_join_all(leaves as)"
+define_time_fun join_adj
+define_time_fun join_all
+define_time_fun leaves
+define_time_fun tree23_of_list
 
 lemma T_join_adj: "not_T ts \<Longrightarrow> T_join_adj ts \<le> len ts div 2"
 by(induction ts rule: T_join_adj.induct) auto
@@ -163,6 +154,6 @@ lemma len_leaves: "len(leaves as) = length as + 1"
 by(induction as) auto
 
 lemma T_tree23_of_list: "T_tree23_of_list as \<le> 3*(length as) + 3"
-using T_join_all[of "leaves as"] by(simp add: T_tree23_of_list_def T_leaves len_leaves)
+using T_join_all[of "leaves as"] by(simp add: T_leaves len_leaves)
 
 end
