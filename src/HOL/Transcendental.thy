@@ -2640,7 +2640,13 @@ proof (rule inj_onI, simp)
 qed
 
 lemma log_le_cancel_iff [simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a x \<le> log a y \<longleftrightarrow> x \<le> y"
-  by (simp add: linorder_not_less [symmetric])
+  by (simp flip: linorder_not_less)
+
+lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"
+  by simp
+
+lemma log_less: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x < y \<Longrightarrow> log a x < log a y"
+  by simp
 
 lemma zero_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < log a x \<longleftrightarrow> 1 < x"
   using log_less_cancel_iff[of a 1 x] by simp

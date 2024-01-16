@@ -10,20 +10,6 @@ imports
   Independent_Family
 begin
 
-lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"
-  by simp
-
-lemma log_less: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x < y \<Longrightarrow> log a x < log a y"
-  by simp
-
-lemma sum_cartesian_product':
-  "(\<Sum>x\<in>A \<times> B. f x) = (\<Sum>x\<in>A. sum (\<lambda>y. f (x, y)) B)"
-  unfolding sum.cartesian_product by simp
-
-lemma split_pairs:
-  "((A, B) = X) \<longleftrightarrow> (fst X = A \<and> snd X = B)" and
-  "(X = (A, B)) \<longleftrightarrow> (fst X = A \<and> snd X = B)" by auto
-
 subsection "Information theory"
 
 locale information_space = prob_space +

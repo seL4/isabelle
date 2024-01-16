@@ -96,7 +96,7 @@ next
     by force+
   show ?case unfolding *
     using Suc[of "\<lambda>i. P (Suc i)"]
-    by (simp add: sum.reindex sum_cartesian_product'
+    by (simp add: sum.reindex sum.cartesian_product'
       lessThan_Suc_eq_insert_0 prod.reindex sum_distrib_right[symmetric] sum_distrib_left[symmetric])
 qed
 
@@ -157,7 +157,7 @@ proof
 
   note sum_distrib_left[symmetric, simp]
   note sum_distrib_right[symmetric, simp]
-  note sum_cartesian_product'[simp]
+  note sum.cartesian_product'[simp]
 
   have "(\<Sum>ms | set ms \<subseteq> messages \<and> length ms = n. \<Prod>x<length ms. M (ms ! x)) = 1"
   proof (induct n)
@@ -255,7 +255,7 @@ proof -
   show "(\<P>(fst) {k}) = K k"
     apply (simp add: \<mu>'_eq)
     apply (simp add: * P_def)
-    apply (simp add: sum_cartesian_product')
+    apply (simp add: sum.cartesian_product')
     using prod_sum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
     by (auto simp add: sum_distrib_left[symmetric] subset_eq prod.neutral_const)
 qed
@@ -352,7 +352,7 @@ proof -
       also have "\<dots> =
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using \<open>K k \<noteq> 0\<close> \<open>k \<in> keys\<close>
-        apply (simp add: sum_cartesian_product' sum_divide_distrib msgs_def ** cong: conj_cong)
+        apply (simp add: sum.cartesian_product' sum_divide_distrib msgs_def ** cong: conj_cong)
         apply (subst prod_sum_distrib_lists[OF M.finite_space]) ..
       finally have "(\<P>(OB ; fst) {(obs, k)}) / K k =
             (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)" . }

@@ -1033,11 +1033,8 @@ lemma t0_space_retraction_map_image:
    "\<lbrakk>retraction_map X Y r; t0_space X\<rbrakk> \<Longrightarrow> t0_space Y"
   using hereditary_imp_retractive_property homeomorphic_t0_space t0_space_subtopology by blast
 
-lemma XY: "{x}\<times>{y} = {(x,y)}"
-  by simp
-
 lemma t0_space_prod_topologyI: "\<lbrakk>t0_space X; t0_space Y\<rbrakk> \<Longrightarrow> t0_space (prod_topology X Y)"
-  by (simp add: t0_space_closure_of_sing closure_of_Times closure_of_eq_empty_gen times_eq_iff flip: XY insert_Times_insert)
+  by (simp add: t0_space_closure_of_sing closure_of_Times closure_of_eq_empty_gen times_eq_iff flip: sing_Times_sing insert_Times_insert)
 
 
 lemma t0_space_prod_topology_iff:
