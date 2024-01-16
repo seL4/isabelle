@@ -409,6 +409,11 @@ next
   qed
 qed
 
+lemma cartesian_product':
+  "F g (A \<times> B) = F (\<lambda>x. F (\<lambda>y. g (x,y)) B) A"
+  unfolding cartesian_product by simp
+
+
 lemma inter_restrict:
   assumes "finite A"
   shows "F g (A \<inter> B) = F (\<lambda>x. if x \<in> B then g x else \<^bold>1) A"

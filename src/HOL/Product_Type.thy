@@ -987,6 +987,10 @@ lemma fst_swap [simp]: "fst (prod.swap x) = snd x"
 lemma snd_swap [simp]: "snd (prod.swap x) = fst x"
   by (cases x) simp
 
+lemma split_pairs:
+  "(A,B) = X \<longleftrightarrow> fst X = A \<and> snd X = B" and "X = (A,B) \<longleftrightarrow> fst X = A \<and> snd X = B" 
+  by auto
+
 text \<open>Disjoint union of a family of sets -- Sigma.\<close>
 
 definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set"
@@ -1161,6 +1165,9 @@ lemma vimage_snd: "snd -` A = UNIV \<times> A"
 lemma insert_Times_insert [simp]:
   "insert a A \<times> insert b B = insert (a,b) (A \<times> insert b B \<union> {a} \<times> B)"
   by blast
+
+lemma sing_Times_sing: "{x}\<times>{y} = {(x,y)}"
+  by simp
 
 lemma vimage_Times: "f -` (A \<times> B) = (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
 proof (rule set_eqI)
