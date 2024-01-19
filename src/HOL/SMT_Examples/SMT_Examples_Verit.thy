@@ -15,7 +15,7 @@ begin
 external_file \<open>SMT_Examples_Verit.certs\<close>
 
 declare [[smt_certificates = "SMT_Examples_Verit.certs"]]
-declare [[smt_read_only_certificates = false]]
+declare [[smt_read_only_certificates = true]]
 
 
 section \<open>Propositional and first-order logic\<close>
@@ -815,4 +815,44 @@ lemma
   done
 
 end
+
+context
+  fixes
+    L2_final :: "'afset \<Rightarrow> 'afset \<times> 'afset \<Rightarrow> bool" and
+    L3_final :: "'afset \<Rightarrow> 'afset \<times> 'afset \<Rightarrow> bool" and
+    ground_resolution :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" and
+    is_least_false_clause :: "'afset \<Rightarrow> 'a \<Rightarrow> bool" and
+    fset :: "'afset \<Rightarrow> 'a set" and
+    union_fset :: "'afset \<Rightarrow> 'afset \<Rightarrow> 'afset" (infixr "|\<union>|" 50)
+begin
+term "a |\<union>| b"
+
+fun L2_matches_L3 where
+  "L2_matches_L3 N2 (Ur2, Uff2) N3 (Urr3, Uff3) \<longleftrightarrow>
+    N2 = N3 \<and> Uff2 = Uff3 \<and>
+    (\<forall>Cr \<in> fset Ur2. \<exists>C \<in> fset (N3 |\<union>| Urr3 |\<union>| Uff3). \<exists>D \<in> fset (N3 |\<union>| Urr3 |\<union>| Uff3).
+      (ground_resolution D)\<^sup>+\<^sup>+ C Cr \<and>
+      (\<exists>Crr \<in> fset Urr3. (ground_resolution D)\<^sup>*\<^sup>* Cr Crr) \<or> (is_least_false_clause (N2 |\<union>| Ur2 |\<union>| Uff2) Cr))"
+
+lemma
+  assumes match: "L2_matches_L3 Const2 S2 Const3 S3"
+  shows "L2_final Const2 S2 \<longleftrightarrow> L2_final Const3 S3"
+proof -
+  from match obtain N Ur Uff Urr where
+    state_simps:
+      "Const2 = N"
+      "Const3 = N"
+      "S2 = (Ur, Uff)"
+      "S3 = (Urr, Uff)" and
+    Ur_spec: "
+      \<forall>Cr \<in> fset Ur.
+      \<exists>C \<in> fset (N |\<union>| Urr |\<union>| Uff).
+      \<exists>D \<in> fset (N |\<union>| Urr |\<union>| Uff).
+      (ground_resolution D)\<^sup>+\<^sup>+ C Cr \<and>
+      (\<exists>Crr \<in> fset Urr. (ground_resolution D)\<^sup>*\<^sup>* Cr Crr) \<or>
+        (is_least_false_clause (N |\<union>| Ur |\<union>| Uff) Cr)"
+    by (smt (verit) L2_matches_L3.elims(2))
+  oops
+end
+
 end

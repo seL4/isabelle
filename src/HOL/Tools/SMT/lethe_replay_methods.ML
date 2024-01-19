@@ -793,7 +793,7 @@ local
 
   fun or_pos_prove ctxt _ =
      K (unfold_tac ctxt @{thms de_Morgan_disj not_not})
-     THEN' match_tac ctxt @{thms verit_and_pos}
+     THEN' match_tac ctxt @{thms verit_and_pos verit_farkas}
      THEN' K (unfold_tac ctxt @{thms de_Morgan_conj de_Morgan_disj not_not})
      THEN' TRY' (assume_tac ctxt)
 

@@ -252,6 +252,9 @@ lemma verit_subst_bool: \<open>P \<Longrightarrow> f True \<Longrightarrow> f P\
 lemma verit_and_pos:
   \<open>(a \<Longrightarrow> \<not>(b \<and> c) \<or> A) \<Longrightarrow> \<not>(a \<and> b \<and> c) \<or> A\<close>
   \<open>(a \<Longrightarrow> b \<Longrightarrow> A) \<Longrightarrow> \<not>(a \<and> b) \<or> A\<close>
+  by blast+
+
+lemma verit_farkas:
   \<open>(a \<Longrightarrow> A) \<Longrightarrow> \<not>a \<or> A\<close>
   \<open>(\<not>a \<Longrightarrow> A) \<Longrightarrow> a \<or> A\<close>
   by blast+
