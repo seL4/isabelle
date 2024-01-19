@@ -59,14 +59,13 @@ qed
 
 text \<open>Running times:\<close>
 
-fun T_norm :: "'a queue \<Rightarrow> nat" where
-"T_norm (fs,rs) = (if fs = [] then T_itrev rs [] else 0)"
+define_time_fun norm
+define_time_fun enq
+define_time_fun tl
+define_time_fun deq
 
-fun T_enq :: "'a \<Rightarrow> 'a queue \<Rightarrow> nat" where
-"T_enq a (fs,rs) = T_norm(fs, a # rs)"
-
-fun T_deq :: "'a queue \<Rightarrow> nat" where
-"T_deq (fs,rs) = (if fs = [] then 0 else T_norm(tl fs,rs))"
+lemma T_tl_0: "T_tl xs = 0"
+by(cases xs)auto
 
 text \<open>Amortized running times:\<close>
 
@@ -77,6 +76,6 @@ lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
 by(auto simp: T_itrev)
 
 lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 1"
-by(auto simp: T_itrev)
+by(auto simp: T_itrev T_tl_0)
 
 end

@@ -1,14 +1,9 @@
 theory Reverse
-imports Main
+imports Define_Time_Function
 begin
 
-fun T_append :: "'a list \<Rightarrow> 'a list \<Rightarrow> nat" where
-"T_append [] ys = 1" |
-"T_append (x#xs) ys = T_append xs ys + 1"
-
-fun T_rev :: "'a list \<Rightarrow> nat" where
-"T_rev [] = 1" |
-"T_rev (x#xs) = T_rev xs + T_append (rev xs) [x] + 1"
+define_time_fun append
+define_time_fun rev
 
 lemma T_append: "T_append xs ys = length xs + 1"
 by(induction xs) auto
@@ -26,9 +21,7 @@ by(induction xs arbitrary: ys) auto
 lemma itrev_Nil: "itrev xs [] = rev xs"
 by(simp add: itrev)
 
-fun T_itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> nat" where
-"T_itrev [] ys = 1" |
-"T_itrev (x#xs) ys = T_itrev xs (x # ys) + 1"
+define_time_fun itrev
 
 lemma T_itrev: "T_itrev xs ys = length xs + 1"
 by(induction xs arbitrary: ys) auto

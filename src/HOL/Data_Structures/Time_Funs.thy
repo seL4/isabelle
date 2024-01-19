@@ -4,8 +4,10 @@
 *)
 section \<open>Time functions for various standard library operations\<close>
 theory Time_Funs
-  imports Main
+  imports Define_Time_Function
 begin
+
+text \<open>Automatic definition of \<open>T_length\<close> is cumbersome because of the type class for \<open>size\<close>.\<close>
 
 fun T_length :: "'a list \<Rightarrow> nat" where
   "T_length [] = 1"
@@ -46,20 +48,13 @@ lemma T_nth_eq: "T_nth xs n = min n (length xs) + 1"
 
 lemmas [simp del] = T_nth.simps
 
-
-fun T_take :: "nat \<Rightarrow> 'a list \<Rightarrow> nat" where
-  "T_take n [] = 1"
-| "T_take n (x # xs) = (case n of 0 \<Rightarrow> 1 | Suc n' \<Rightarrow> T_take n' xs + 1)"
+define_time_fun take
+define_time_fun drop
 
 lemma T_take_eq: "T_take n xs = min n (length xs) + 1"
   by (induction xs arbitrary: n) (auto split: nat.splits)
 
-fun T_drop :: "nat \<Rightarrow> 'a list \<Rightarrow> nat" where
-  "T_drop n [] = 1"
-| "T_drop n (x # xs) = (case n of 0 \<Rightarrow> 1 | Suc n' \<Rightarrow> T_drop n' xs + 1)"
-
 lemma T_drop_eq: "T_drop n xs = min n (length xs) + 1"
   by (induction xs arbitrary: n) (auto split: nat.splits)
-  
   
 end
