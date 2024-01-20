@@ -10,8 +10,7 @@ package isabelle
 object Executable {
   def libraries_closure(path: Path,
     mingw: MinGW = MinGW.none,
-    filter: String => Boolean = _ => true,
-    patchelf: Boolean = false
+    filter: String => Boolean = _ => true
   ): List[String] = {
     val exe_path = path.expand
     val exe_dir = exe_path.dir
@@ -50,16 +49,8 @@ object Executable {
       libs.foreach(lib => Isabelle_System.copy_file(Path.explode(lib), exe_dir))
 
       if (Platform.is_linux) {
-        if (patchelf) {
-          // requires e.g. Ubuntu 18.04 LTS
-          Isabelle_System.require_command("patchelf")
-          Isabelle_System.bash("patchelf --force-rpath --set-rpath '$ORIGIN' " + File.bash_path(exe_path)).check
-        }
-        else {
-          // requires e.g. LDFLAGS=-Wl,-rpath,_DUMMY_
-          Isabelle_System.require_command("chrpath")
-          Isabelle_System.bash("chrpath -r '$ORIGIN' " + File.bash_path(exe_path)).check
-        }
+        Isabelle_System.require_command("patchelf")
+        Isabelle_System.bash("patchelf --force-rpath --set-rpath '$ORIGIN' " + File.bash_path(exe_path)).check
       }
       else if (Platform.is_macos) {
         val script =

@@ -62,7 +62,7 @@ object Component_PolyML {
       platform_info.getOrElse(platform.os_name,
         error("Bad OS platform: " + quote(platform.os_name)))
 
-    if (platform.is_linux) Isabelle_System.require_command("chrpath")
+    if (platform.is_linux) Isabelle_System.require_command("patchelf")
 
 
     /* bash */
