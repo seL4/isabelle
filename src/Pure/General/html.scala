@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/html.scala
+/*  Title:      Pure/General/html.scala
     Author:     Makarius
 
 HTML presentation elements.

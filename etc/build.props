@@ -79,6 +79,7 @@ sources = \
   src/Pure/General/graph.scala \
   src/Pure/General/graph_display.scala \
   src/Pure/General/graphics_file.scala \
+  src/Pure/General/html.scala \
   src/Pure/General/http.scala \
   src/Pure/General/js.scala \
   src/Pure/General/json.scala \
@@ -185,7 +186,6 @@ sources = \
   src/Pure/Thy/export.scala \
   src/Pure/Thy/export_theory.scala \
   src/Pure/Thy/file_format.scala \
-  src/Pure/Thy/html.scala \
   src/Pure/Thy/latex.scala \
   src/Pure/Thy/sessions.scala \
   src/Pure/Thy/store.scala \
