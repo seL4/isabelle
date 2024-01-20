@@ -234,7 +234,7 @@ text \<open>
     @{verbatim [display] \<open>  systemctl reload apache2\<close>}
 
     \<^item> Install \<^verbatim>\<open>certbot\<close> from \<^url>\<open>https://certbot.eff.org\<close> following the
-    description for Apache and Ubuntu 20.04 on
+    description for Apache and Ubuntu 20 on
     \<^url>\<open>https://certbot.eff.org/instructions?ws=apache&os=ubuntufocal\<close>. Run
     \<^verbatim>\<open>certbot\<close> interactively and let it operate on the domain
     \<^verbatim>\<open>vcs.example.org\<close>.
@@ -391,7 +391,7 @@ subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup\<close>\<close>
 
 text \<open>
   The @{tool_def phabricator_setup} tool installs a fresh Phabricator instance
-  on Ubuntu 20.04 LTS:
+  on Ubuntu 20.04 or 22.04 LTS:
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:

@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/phabricator.scala
     Author:     Makarius
 
-Support for Phabricator server, notably for Ubuntu 20.04 LTS.
+Support for Phabricator server, notably for Ubuntu 20.04 or 22.04 LTS.
 
 See also:
   - https://www.phacility.com/phabricator
