@@ -1,7 +1,7 @@
-(*  Title:      Pure/Thy/latex.ML
+(*  Title:      Pure/General/latex.ML
     Author:     Makarius
 
-LaTeX output of theory sources.
+Support for LaTeX.
 *)
 
 signature LATEX =

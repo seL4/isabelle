@@ -1,7 +1,7 @@
-(*  Title:      Pure/Thy/bibtex.ML
+(*  Title:      Pure/General/bibtex.ML
     Author:     Makarius
 
-BibTeX support.
+Support for BibTeX.
 *)
 
 signature BIBTEX =

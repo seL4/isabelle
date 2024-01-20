@@ -1,7 +1,7 @@
-/*  Title:      Pure/Thy/bibtex.scala
+/*  Title:      Pure/General/bibtex.scala
     Author:     Makarius
 
-BibTeX support.
+Support for BibTeX.
 */
 
 package isabelle

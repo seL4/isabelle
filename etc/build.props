@@ -77,6 +77,7 @@ sources = \
   src/Pure/GUI/wrap_panel.scala \
   src/Pure/General/antiquote.scala \
   src/Pure/General/base64.scala \
+  src/Pure/General/bibtex.scala \
   src/Pure/General/bytes.scala \
   src/Pure/General/cache.scala \
   src/Pure/General/codepoint.scala \
@@ -96,6 +97,7 @@ sources = \
   src/Pure/General/js.scala \
   src/Pure/General/json.scala \
   src/Pure/General/json_api.scala \
+  src/Pure/General/latex.scala \
   src/Pure/General/linear_set.scala \
   src/Pure/General/logger.scala \
   src/Pure/General/long_name.scala \
@@ -191,9 +193,7 @@ sources = \
   src/Pure/System/scala.scala \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \
-  src/Pure/Thy/bibtex.scala \
   src/Pure/Thy/document_build.scala \
-  src/Pure/Thy/latex.scala \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
   src/Pure/Thy/thy_syntax.scala \

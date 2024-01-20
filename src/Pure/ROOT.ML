@@ -241,7 +241,7 @@ ML_file "Isar/entity.ML";
 ML_file "PIDE/command_span.ML";
 ML_file "Thy/thy_element.ML";
 ML_file "Thy/markdown.ML";
-ML_file "Thy/latex.ML";
+ML_file "General/latex.ML";
 
 (*ML with context and antiquotations*)
 ML_file "ML/ml_context.ML";
@@ -345,7 +345,7 @@ ML_file "System/message_channel.ML";
 ML_file "System/isabelle_process.ML";
 ML_file "System/scala_compiler.ML";
 ML_file "System/isabelle_tool.ML";
-ML_file "Thy/bibtex.ML";
+ML_file "General/bibtex.ML";
 ML_file "PIDE/protocol.ML";
 ML_file "General/output_primitives_virtual.ML";
 

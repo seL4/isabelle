@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/latex.scala
+/*  Title:      Pure/General/latex.scala
     Author:     Makarius
 
 Support for LaTeX.
