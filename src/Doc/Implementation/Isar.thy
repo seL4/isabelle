@@ -265,9 +265,7 @@ text \<open>
   implementations carefully and imitate the typical ``boiler plate'' for
   context-sensitive parsing and further combinators to wrap-up tactic
   expressions as methods.\<^footnote>\<open>Aliases or abbreviations of the standard method
-  combinators should be avoided. Note that from Isabelle99 until Isabelle2009
-  the system did provide various odd combinations of method syntax wrappers
-  that made applications more complicated than necessary.\<close>
+  combinators should be avoided.\<close>
 \<close>
 
 text %mlref \<open>
