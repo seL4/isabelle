@@ -453,8 +453,8 @@ text \<open>
   Display Isabelle version information.\<close>}
 
   \<^medskip>
-  The default is to output the full version string of the Isabelle
-  distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2023: September 2023\<close>.
+  The default is to output the Isabelle distribution name, e.g.\
+  ``\<^verbatim>\<open>Isabelle2023\<close>''.
 
   \<^medskip>
   Option \<^verbatim>\<open>-i\<close> produces a short identification derived from the Mercurial id
