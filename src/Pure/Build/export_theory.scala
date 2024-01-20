@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/export_theory.scala
+/*  Title:      Pure/Build/export_theory.scala
     Author:     Makarius
 
 Export foundational theory content.

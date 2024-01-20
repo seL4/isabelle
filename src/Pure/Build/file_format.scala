@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/file_format.scala
+/*  Title:      Pure/Build/file_format.scala
     Author:     Makarius
 
 Support for user-defined file formats, associated with active session.

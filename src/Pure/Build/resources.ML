@@ -1,4 +1,4 @@
-(*  Title:      Pure/PIDE/resources.ML
+(*  Title:      Pure/Build/resources.ML
     Author:     Makarius
 
 Resources for theories and auxiliary files.

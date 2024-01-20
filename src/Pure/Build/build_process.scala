@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_process.scala
+/*  Title:      Pure/Build/build_process.scala
     Author:     Makarius
 
 Build process for sessions, with build database, optional heap, and

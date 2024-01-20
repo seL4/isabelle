@@ -1,4 +1,4 @@
-/*  Title:      Pure/PIDE/resources.scala
+/*  Title:      Pure/Build/resources.scala
     Author:     Makarius
 
 Resources for theories and auxiliary files.

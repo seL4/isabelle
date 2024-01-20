@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/export_theory.ML
+(*  Title:      Pure/Build/export_theory.ML
     Author:     Makarius
 
 Export foundational theory content and locale/class structure.

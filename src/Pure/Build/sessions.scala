@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/sessions.scala
+/*  Title:      Pure/Build/sessions.scala
     Author:     Makarius
 
 Cumulative session information.

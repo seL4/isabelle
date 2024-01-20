@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/sessions.ML
+(*  Title:      Pure/Build/sessions.ML
     Author:     Makarius
 
 Support for session ROOT syntax.

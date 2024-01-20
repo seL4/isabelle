@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/browser_info.scala
+/*  Title:      Pure/Build/browser_info.scala
     Author:     Makarius
 
 HTML/PDF presentation of PIDE document information.

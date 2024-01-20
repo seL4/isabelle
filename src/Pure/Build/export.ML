@@ -1,7 +1,7 @@
-(*  Title:      Pure/Thy/export.ML
+(*  Title:      Pure/Build/export.ML
     Author:     Makarius
 
-Manage theory exports: compressed blobs.
+Manage per-session theory exports: compressed blobs.
 *)
 
 signature EXPORT =

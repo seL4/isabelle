@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/store.scala
+/*  Title:      Pure/Build/store.scala
     Author:     Makarius
 
 Persistent store for session content: within file-system and/or SQL database.

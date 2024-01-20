@@ -136,7 +136,7 @@ ML_file "Concurrent/mailbox.ML";
 ML_file "Concurrent/cache.ML";
 
 ML_file "PIDE/active.ML";
-ML_file "Thy/export.ML";
+ML_file "Build/export.ML";
 
 
 subsection "Inner syntax";
@@ -318,13 +318,13 @@ ML_file "Thy/document_output.ML";
 ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";
 ML_file "pure_syn.ML";
-ML_file "PIDE/resources.ML";
+ML_file "Build/resources.ML";
 ML_file "PIDE/command.ML";
 ML_file "PIDE/query_operation.ML";
 ML_file "Thy/thy_info.ML";
 ML_file "thm_deps.ML";
-ML_file "Thy/export_theory.ML";
-ML_file "Thy/sessions.ML";
+ML_file "Build/export_theory.ML";
+ML_file "Build/sessions.ML";
 ML_file "PIDE/session.ML";
 ML_file "PIDE/document.ML";
 
@@ -356,7 +356,7 @@ ML_file "General/base64.ML";
 ML_file "General/xz.ML";
 ML_file "General/zstd.ML";
 ML_file "Tools/prismjs.ML";
-ML_file "Tools/build.ML";
+ML_file "Build/build.ML";
 ML_file "Tools/named_thms.ML";
 ML_file "Tools/print_operation.ML";
 ML_file "Tools/rail.ML";

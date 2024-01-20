@@ -48,6 +48,18 @@ sources = \
   src/Pure/Admin/component_zipperposition.scala \
   src/Pure/Admin/component_zstd.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
+  src/Pure/Build/browser_info.scala \
+  src/Pure/Build/build.scala \
+  src/Pure/Build/build_cluster.scala \
+  src/Pure/Build/build_job.scala \
+  src/Pure/Build/build_process.scala \
+  src/Pure/Build/build_schedule.scala \
+  src/Pure/Build/export.scala \
+  src/Pure/Build/export_theory.scala \
+  src/Pure/Build/file_format.scala \
+  src/Pure/Build/resources.scala \
+  src/Pure/Build/sessions.scala \
+  src/Pure/Build/store.scala \
   src/Pure/Concurrent/consumer_thread.scala \
   src/Pure/Concurrent/counter.scala \
   src/Pure/Concurrent/delay.scala \
@@ -146,7 +158,6 @@ sources = \
   src/Pure/PIDE/prover.scala \
   src/Pure/PIDE/query_operation.scala \
   src/Pure/PIDE/rendering.scala \
-  src/Pure/PIDE/resources.scala \
   src/Pure/PIDE/session.scala \
   src/Pure/PIDE/text.scala \
   src/Pure/PIDE/xml.scala \
@@ -181,22 +192,11 @@ sources = \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \
   src/Pure/Thy/bibtex.scala \
-  src/Pure/Thy/browser_info.scala \
   src/Pure/Thy/document_build.scala \
-  src/Pure/Thy/export.scala \
-  src/Pure/Thy/export_theory.scala \
-  src/Pure/Thy/file_format.scala \
   src/Pure/Thy/latex.scala \
-  src/Pure/Thy/sessions.scala \
-  src/Pure/Thy/store.scala \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
   src/Pure/Thy/thy_syntax.scala \
-  src/Pure/Tools/build.scala \
-  src/Pure/Tools/build_cluster.scala \
-  src/Pure/Tools/build_job.scala \
-  src/Pure/Tools/build_process.scala \
-  src/Pure/Tools/build_schedule.scala \
   src/Pure/Tools/check_keywords.scala \
   src/Pure/Tools/debugger.scala \
   src/Pure/Tools/doc.scala \

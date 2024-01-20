@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/build_job.scala
+/*  Title:      Pure/Build/build_job.scala
     Author:     Makarius
 
 Build job running prover process, with rudimentary PIDE session.
