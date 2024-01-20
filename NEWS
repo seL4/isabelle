@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Document preparation ***
+
+* The bundled LaTeX LNCS style has been updated to version 2.23
+(02-Nov-2023). See also src/Doc/Demo_LLNCS/.
+
+
 *** HOL ***
 
 * Sledgehammer

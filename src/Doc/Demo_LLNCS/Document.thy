@@ -61,4 +61,21 @@ text \<open>
   efficitur ornare. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 \<close>
 
+
+text_raw \<open>\begin{credits}\<close>
+
+subsubsection \<open>\ackname\<close>
+text \<open>
+  Isabelle/Scala was of great help to assemble the \<^verbatim>\<open>llncs\<close> system component;
+  see also \<^file>\<open>~~/src/Pure/Admin/component_llncs.scala\<close> and
+  \<^path>\<open>$ISABELLE_LLNCS_HOME\<close>.
+\<close>
+
+subsubsection \<open>\discintname\<close>
+text \<open>
+  I have a long-standing interest in the wealth and prosperity of the Isabelle
+  open-source project. \<close>
+
+text_raw \<open>\end{credits}\<close>
+
 end
