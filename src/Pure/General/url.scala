@@ -60,8 +60,7 @@ object Url {
   /* file name */
 
   def file_name(url: Url): String =
-    Library.take_suffix[Char](c => c != '/' && c != '\\',
-      url.java_url.getFile.toString.toList)._2.mkString
+    Library.take_suffix[Char](c => c != '/' && c != '\\', url.java_url.getFile.toList)._2.mkString
 
   def trim_index(url: Url): Url = {
     Library.try_unprefix("/index.html", url.toString) match {
