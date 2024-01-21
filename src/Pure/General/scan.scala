@@ -14,7 +14,6 @@ import scala.util.parsing.input.{OffsetPosition, Position => InputPosition,
   Reader, CharSequenceReader, PagedSeq}
 import scala.util.parsing.combinator.RegexParsers
 import java.io.{File => JFile, BufferedInputStream, FileInputStream, InputStream}
-import java.net.URL
 
 
 object Scan {
@@ -427,8 +426,8 @@ object Scan {
   def byte_reader(file: JFile): Byte_Reader =
     make_byte_reader(new FileInputStream(file), file.length.toInt)
 
-  def byte_reader(url: URL): Byte_Reader = {
-    val connection = url.openConnection
+  def byte_reader(url: Url): Byte_Reader = {
+    val connection = url.open_connection()
     val stream = connection.getInputStream
     val stream_length = connection.getContentLength
     make_byte_reader(stream, stream_length)

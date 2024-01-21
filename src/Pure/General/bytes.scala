@@ -69,7 +69,7 @@ object Bytes {
       new Bytes(out.toByteArray, 0, out.size)
     }
 
-  def read_url(name: String): Bytes = using(Url(name).openStream)(read_stream(_))
+  def read_url(name: String): Bytes = using(Url(name).open_stream())(read_stream(_))
 
   def read_file(path: Path, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
     val length = File.size(path)

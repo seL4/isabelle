@@ -8,16 +8,14 @@ package isabelle.atp
 
 import isabelle._
 
-import java.net.URL
-
 
 object SystemOnTPTP {
   /* requests */
 
-  def get_url(options: Options): URL = Url(options.string("SystemOnTPTP"))
+  def get_url(options: Options): Url = Url(options.string("SystemOnTPTP"))
 
   def post_request(
-    url: URL,
+    url: Url,
     parameters: List[(String, Any)],
     timeout: Time = HTTP.Client.default_timeout
   ): HTTP.Content = {
@@ -33,7 +31,7 @@ object SystemOnTPTP {
 
   /* list systems */
 
-  def list_systems(url: URL): HTTP.Content =
+  def list_systems(url: Url): HTTP.Content =
     post_request(url,
       List("SubmitButton" -> "ListSystems",
         "ListStatus" -> "READY",
@@ -47,7 +45,7 @@ object SystemOnTPTP {
 
   /* run system */
 
-  def run_system(url: URL,
+  def run_system(url: Url,
     system: String,
     problem: String,
     extra: String = "",

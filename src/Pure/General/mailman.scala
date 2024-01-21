@@ -7,8 +7,6 @@ Support for Mailman list servers, notably isabelle-users and isabelle-dev.
 package isabelle
 
 
-import java.net.URL
-
 import scala.annotation.tailrec
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
@@ -319,7 +317,7 @@ object Mailman {
   /* mailing list archives */
 
   abstract class Archive(
-    url: URL,
+    url: Url,
     name: String = "",
     tag: String = ""
   ) {
@@ -340,7 +338,7 @@ object Mailman {
     def make_body(lines: List[String]): String =
       cat_lines(Library.take_suffix[String](_.isEmpty, lines)._1)
 
-    private val main_url: URL =
+    private val main_url: Url =
       Url(Library.take_suffix[Char](_ == '/', Url.trim_index(url).toString.toList)._1.mkString + "/")
 
     private val main_html = Url.read(main_url)
@@ -356,7 +354,7 @@ object Mailman {
 
     def list_tag: String = proper_string(tag).getOrElse(list_name)
 
-    def read_text(href: String): String = Url.read(Url.resolve(main_url, href))
+    def read_text(href: String): String = Url.read(main_url.resolve(href))
 
     def hrefs_text: List[String] =
       """href="([^"]+\.txt(?:\.gz)?)"""".r.findAllMatchIn(main_html).map(_.group(1)).toList
@@ -371,8 +369,8 @@ object Mailman {
     def get(target_dir: Path, href: String, progress: Progress = new Progress): Option[Path] = {
       val dir = target_dir + Path.basic(list_name)
       val path = dir + Path.explode(href)
-      val url = Url.resolve(main_url, href)
-      val connection = url.openConnection
+      val url = main_url.resolve(href)
+      val connection = url.open_connection()
       try {
         val length = connection.getContentLengthLong
         val timestamp = connection.getLastModified

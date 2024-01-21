@@ -6,8 +6,6 @@ Support for JSON:API: https://jsonapi.org/format
 
 package isabelle
 
-import java.net.URL
-
 
 object JSON_API {
   val mime_type = "application/vnd.api+json"
@@ -15,11 +13,11 @@ object JSON_API {
   def api_error(msg: String): Nothing = error("JSON API error: " + msg)
   def api_errors(msgs: List[String]): Nothing = error(("JSON API errors:" :: msgs).mkString("\n  "))
 
-  class Service(val url: URL) {
+  class Service(val url: Url) {
     override def toString: String = url.toString
 
     def get(route: String): HTTP.Content =
-      HTTP.Client.get(Url.resolve(url, route))
+      HTTP.Client.get(url.resolve(route))
 
     def get_root(route: String = ""): Root =
       Root(get(if_proper(route, "/" + route)).json)

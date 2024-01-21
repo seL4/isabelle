@@ -1,15 +1,16 @@
 /*  Title:      Pure/General/url.scala
     Author:     Makarius
 
-Basic URL operations.
+Basic URL/URI operations.
 */
 
 package isabelle
 
 
-import java.io.{File => JFile}
+import java.io.{File => JFile, InputStream}
 import java.nio.file.{Paths, FileSystemNotFoundException}
-import java.net.{URI, URISyntaxException, URL, MalformedURLException, URLDecoder, URLEncoder}
+import java.net.{URI, URISyntaxException, MalformedURLException, URLDecoder, URLEncoder,
+  URLConnection}
 import java.util.Locale
 import java.util.zip.GZIPInputStream
 
@@ -36,30 +37,33 @@ object Url {
     exn.isInstanceOf[URISyntaxException] ||
     exn.isInstanceOf[IllegalArgumentException]
 
-  def apply(name: String): URL =
-    try { new URI(name).toURL }
-    catch {
-      case exn: Throwable if is_malformed(exn) => error("Malformed URL " + quote(name))
-    }
+  def apply(uri: URI): Url = new Url(uri)
 
-  def resolve(url: URL, route: String): URL =
-    if (route.isEmpty) url else url.toURI.resolve(route).toURL
+  def apply(name: String): Url = {
+    val uri =
+      try { new URI(name) }
+      catch {
+        case exn: Throwable if is_malformed(exn) => error("Malformed URL " + quote(name))
+      }
+    Url(uri)
+  }
 
   def is_wellformed(name: String): Boolean =
     try { Url(name); true }
     catch { case ERROR(_) => false }
 
   def is_readable(name: String): Boolean =
-    try { Url(name).openStream.close(); true }
+    try { Url(name).open_stream().close(); true }
     catch { case ERROR(_) => false }
 
 
   /* file name */
 
-  def file_name(url: URL): String =
-    Library.take_suffix[Char](c => c != '/' && c != '\\', url.getFile.toString.toList)._2.mkString
+  def file_name(url: Url): String =
+    Library.take_suffix[Char](c => c != '/' && c != '\\',
+      url.java_url.getFile.toString.toList)._2.mkString
 
-  def trim_index(url: URL): URL = {
+  def trim_index(url: Url): Url = {
     Library.try_unprefix("/index.html", url.toString) match {
       case Some(u) => Url(u)
       case None =>
@@ -79,12 +83,12 @@ object Url {
 
   /* read */
 
-  private def read(url: URL, gzip: Boolean): String =
-    using(url.openStream)(stream =>
+  private def read(url: Url, gzip: Boolean): String =
+    using(url.open_stream())(stream =>
       File.read_stream(if (gzip) new GZIPInputStream(stream) else stream))
 
-  def read(url: URL): String = read(url, false)
-  def read_gzip(url: URL): String = read(url, true)
+  def read(url: Url): String = read(url, false)
+  def read_gzip(url: Url): String = read(url, true)
 
   def read(name: String): String = read(Url(name), false)
   def read_gzip(name: String): String = read(Url(name), true)
@@ -145,4 +149,22 @@ object Url {
     else prefix + "/" + suffix
 
   def direct_path(prefix: String): String = append_path(prefix, ".")
+}
+
+final class Url private(val uri: URI) {
+  override def toString: String = uri.toString
+
+  override def hashCode: Int = uri.hashCode
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case other: Url => uri == other.uri
+      case _ => false
+    }
+
+  def resolve(route: String): Url =
+    if (route.isEmpty) this else new Url(uri.resolve(route))
+
+  def java_url: java.net.URL = uri.toURL
+  def open_stream(): InputStream = java_url.openStream()
+  def open_connection(): URLConnection = java_url.openConnection()
 }
