@@ -39,14 +39,11 @@ object Url {
 
   def apply(uri: URI): Url = new Url(uri)
 
-  def apply(name: String): Url = {
-    val uri =
-      try { new URI(name) }
-      catch {
-        case exn: Throwable if is_malformed(exn) => error("Malformed URL " + quote(name))
-      }
-    Url(uri)
-  }
+  def apply(name: String): Url =
+    try { new Url(new URI(name)) }
+    catch {
+      case exn: Throwable if is_malformed(exn) => error("Malformed URL " + quote(name))
+    }
 
   def is_wellformed(name: String): Boolean =
     try { Url(name); true }
@@ -163,7 +160,7 @@ final class Url private(val uri: URI) {
   def resolve(route: String): Url =
     if (route.isEmpty) this else new Url(uri.resolve(route))
 
-  def java_url: java.net.URL = uri.toURL
+  val java_url: java.net.URL = uri.toURL
   def open_stream(): InputStream = java_url.openStream()
   def open_connection(): URLConnection = java_url.openConnection()
 }
