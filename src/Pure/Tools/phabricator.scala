@@ -18,6 +18,17 @@ import scala.util.matching.Regex
 object Phabricator {
   /** defaults **/
 
+  /* PHP */
+
+  def php_version(): String =
+    Isabelle_System.bash("""php --run 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'""")
+      .check.out
+
+  def php_conf_dir(name: String): Path =
+    Path.explode("/etc/php") + Path.basic(php_version()) +  // educated guess
+    Path.basic(name) + Path.explode("conf.d")
+
+
   /* webservers */
 
   sealed abstract class Webserver {
@@ -25,6 +36,7 @@ object Phabricator {
     def title: String
     def short_name: String
     def system_name: String = short_name
+    def php_name: String = short_name
 
     def packages(): List[String]
 
@@ -36,17 +48,12 @@ object Phabricator {
 
     def systemctl(cmd: String): String = "systemctl " + cmd + " " + system_name
 
-    def php_version(): String =
-      Isabelle_System.bash("""php --run 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'""")
-        .check.out
-
-    def php_config: String =
-      "post_max_size = 32M\n" +
-      "opcache.validate_timestamps = 0\n" +
-      "memory_limit = 512M\n" +
-      "max_execution_time = 120\n"
-
-    def php_init(): Unit = ()
+    def php_init(): Unit =
+      File.write(php_conf_dir(php_name) + Path.basic(isabelle_phabricator_name(ext = "ini")),
+        "post_max_size = 32M\n" +
+        "opcache.validate_timestamps = 0\n" +
+        "memory_limit = 512M\n" +
+        "max_execution_time = 120\n")
 
     def site_name(name: String): String = isabelle_phabricator_name(name = name)
 
@@ -61,14 +68,6 @@ object Phabricator {
     override val short_name = "apache"
     override def system_name = "apache2"
     override def packages(): List[String] = List("apache2", "libapache2-mod-php")
-
-    override def php_init(): Unit = {
-      val php_conf =
-        Path.explode("/etc/php") + Path.basic(php_version()) +  // educated guess
-        Path.basic(system_name) + Path.explode("conf.d") +
-        Path.basic(isabelle_phabricator_name(ext = "ini"))
-      File.write(php_conf, php_config)
-    }
 
     override def site_init(name: String, server_name: String, webroot: String): Unit = {
       File.write(site_conf(name),
@@ -96,6 +95,7 @@ object Phabricator {
   object Nginx extends Webserver {
     override val title = "Nginx"
     override val short_name = "nginx"
+    override val php_name = "fpm"
     override def packages(): List[String] = List("nginx", "php-fpm")
 
     override def site_init(name: String, server_name: String, webroot: String): Unit = {
