@@ -18,14 +18,148 @@ import scala.util.matching.Regex
 object Phabricator {
   /** defaults **/
 
-  /* required packages */
+  /* webservers */
+
+  sealed abstract class Webserver {
+    override def toString: String = title
+    def title: String
+    def short_name: String
+    def system_name: String = short_name
+
+    def packages(): List[String]
+
+    def system_path: Path = Path.basic(system_name)
+    def root_dir: Path = Path.explode("/etc") + system_path
+    def sites_dir: Path = root_dir + Path.explode("sites-available")
+
+    def restart(): Unit = Linux.service_restart(system_name)
+
+    def systemctl(cmd: String): String = "systemctl " + cmd + " " + system_name
+
+    def php_version(): String =
+      Isabelle_System.bash("""php --run 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'""")
+        .check.out
+
+    def php_config: String =
+      "post_max_size = 32M\n" +
+      "opcache.validate_timestamps = 0\n" +
+      "memory_limit = 512M\n" +
+      "max_execution_time = 120\n"
+
+    def php_init(): Unit = ()
+
+    def site_name(name: String): String = isabelle_phabricator_name(name = name)
+
+    def site_conf(name: String): Path =
+      sites_dir + Path.basic(isabelle_phabricator_name(name = name, ext = "conf"))
+
+    def site_init(name: String, server_name: String, webroot: String): Unit
+  }
+
+  object Apache extends Webserver {
+    override val title = "Apache"
+    override val short_name = "apache"
+    override def system_name = "apache2"
+    override def packages(): List[String] = List("apache2", "libapache2-mod-php")
+
+    override def php_init(): Unit = {
+      val php_conf =
+        Path.explode("/etc/php") + Path.basic(php_version()) +  // educated guess
+        Path.basic(system_name) + Path.explode("conf.d") +
+        Path.basic(isabelle_phabricator_name(ext = "ini"))
+      File.write(php_conf, php_config)
+    }
+
+    override def site_init(name: String, server_name: String, webroot: String): Unit = {
+      File.write(site_conf(name),
+"""<VirtualHost *:80>
+    ServerName """ + server_name + """
+    ServerAdmin webmaster@localhost
+    DocumentRoot """ + webroot + """
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    RewriteEngine on
+    RewriteRule ^(.*)$  /index.php?__path__=$1  [B,L,QSA]
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+""")
+      Isabelle_System.bash("""
+        set -e
+        a2enmod rewrite
+        a2ensite """ + Bash.string(site_name(name))).check
+    }
+  }
+
+  object Nginx extends Webserver {
+    override val title = "Nginx"
+    override val short_name = "nginx"
+    override def packages(): List[String] = List("nginx", "php-fpm")
+
+    override def site_init(name: String, server_name: String, webroot: String): Unit = {
+      File.write(site_conf(name),
+"""
+server {
+  server_name """ + server_name + """;
+  root """ + webroot + """;
+
+  location / {
+    index index.php;
+    rewrite ^/(.*)$ /index.php?__path__=/$1 last;
+  }
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/var/run/php/php""" + php_version() + """-fpm.sock;
+  }
+
+  location /index.php {
+    fastcgi_index  index.php;
+
+    #required if PHP was built with --enable-force-cgi-redirect
+    fastcgi_param  REDIRECT_STATUS    200;
+
+    #variables to make the $_SERVER populate in PHP
+    fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
+    fastcgi_param  QUERY_STRING       $query_string;
+    fastcgi_param  REQUEST_METHOD     $request_method;
+    fastcgi_param  CONTENT_TYPE       $content_type;
+    fastcgi_param  CONTENT_LENGTH     $content_length;
+
+    fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
+
+    fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
+    fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
+
+    fastcgi_param  REMOTE_ADDR        $remote_addr;
+  }
+}
+""")
+      Isabelle_System.bash(
+        "ln -sf " + File.bash_path(site_conf(name)) + " /etc/nginx/sites-enabled/.").check
+    }
+  }
+
+  val all_webservers: List[Webserver] = List(Apache, Nginx)
+
+  def get_webserver(name: String): Webserver =
+    all_webservers.find(w => w.short_name == name) getOrElse
+      error("Bad webserver " + quote(name))
+
+  val default_webserver: Webserver = Apache
+
+
+
+  /* system packages */
 
   val packages_ubuntu_20_04: List[String] =
     Docker_Build.packages :::
     List(
       // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
-      "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
-      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
+      "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
+      "php-json", "php-mbstring",
       // more packages
       "php-xml", "php-zip", "python3-pygments", "ssh", "subversion", "python-pygments",
       // mercurial build packages
@@ -35,16 +169,18 @@ object Phabricator {
     Docker_Build.packages :::
     List(
       // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
-      "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
-      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
+      "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
+      "php-json", "php-mbstring",
       // more packages
       "php-xml", "php-zip", "python3-pygments", "ssh", "subversion")
 
-  def packages: List[String] = {
+  def packages(webserver: Webserver): List[String] = {
     val release = Linux.Release()
-    if (release.is_ubuntu_20_04) packages_ubuntu_20_04
-    else if (release.is_ubuntu_22_04) packages_ubuntu_22_04
-    else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 LTS")
+    val pkgs =
+      if (release.is_ubuntu_20_04) packages_ubuntu_20_04
+      else if (release.is_ubuntu_22_04) packages_ubuntu_22_04
+      else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 LTS")
+    pkgs ::: webserver.packages()
   }
 
 
@@ -110,6 +246,8 @@ object Phabricator {
 
     def execute(command: String): Process_Result =
       Isabelle_System.bash("bin/" + command, cwd = home.file, redirect = true).check
+
+    def webroot: String = home.implode + "/webroot"
   }
 
   def read_config(): List[Config] = {
@@ -226,6 +364,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     name: String = default_name,
     root: String = "",
     repo: String = "",
+    webserver: Webserver = default_webserver,
     package_update: Boolean = false,
     mercurial_source: String = "",
     progress: Progress = new Progress
@@ -241,7 +380,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       Linux.check_reboot_required()
     }
 
-    Linux.package_install(packages, progress = progress)
+    Linux.package_install(packages(webserver), progress = progress)
     Linux.check_reboot_required()
 
 
@@ -403,8 +542,7 @@ then
 fi
 
 systemctl stop isabelle-phabricator-phd
-systemctl stop apache2
-""",
+""" + webserver.systemctl("stop"),
       body =
 """echo -e "\nUpgrading phabricator \"$NAME\" root \"$ROOT\" ..."
 for REPO in arcanist phabricator
@@ -418,64 +556,27 @@ echo -e "\nUpgrading storage ..."
 "$ROOT/phabricator/bin/storage" upgrade --force
 """,
       exit =
-"""systemctl start apache2
+        webserver.systemctl("start") + """
 systemctl start isabelle-phabricator-phd""")
 
 
-    /* PHP setup */
+    /* webserver setup */
 
-    val php_version =
-      Isabelle_System.bash("""php --run 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'""")
-        .check.out
+    progress.echo(webserver.title + " setup ...")
 
-    val php_conf =
-      Path.explode("/etc/php") + Path.basic(php_version) +  // educated guess
-        Path.explode("apache2/conf.d") +
-        Path.basic(isabelle_phabricator_name(ext = "ini"))
-
-    File.write(php_conf,
-      "post_max_size = 32M\n" +
-      "opcache.validate_timestamps = 0\n" +
-      "memory_limit = 512M\n" +
-      "max_execution_time = 120\n")
-
-
-    /* Apache setup */
-
-    progress.echo("Apache setup ...")
-
-    val apache_root = Path.explode("/etc/apache2")
-    val apache_sites = apache_root + Path.explode("sites-available")
-
-    if (!apache_sites.is_dir) error("Bad Apache sites directory " + apache_sites)
+    val sites_dir = webserver.sites_dir
+    if (!sites_dir.is_dir) error("Bad " + webserver + " sites directory " + sites_dir)
 
     val server_name = phabricator_name(name = name, ext = "localhost")  // alias for "localhost" for testing
     val server_url = "http://" + server_name
 
-    File.write(apache_sites + Path.basic(isabelle_phabricator_name(name = name, ext = "conf")),
-"""<VirtualHost *:80>
-    ServerName """ + server_name + """
-    ServerAdmin webmaster@localhost
-    DocumentRoot """ + config.home.implode + """/webroot
+    webserver.php_init()
 
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
-
-    RewriteEngine on
-    RewriteRule ^(.*)$  /index.php?__path__=$1  [B,L,QSA]
-</VirtualHost>
-
-# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
-""")
-
-    Isabelle_System.bash( """
-      set -e
-      a2enmod rewrite
-      a2ensite """ + Bash.string(isabelle_phabricator_name(name = name))).check
+    webserver.site_init(name, server_name, config.webroot)
 
     config.execute("config set phabricator.base-uri " + Bash.string(server_url))
 
-    Linux.service_restart("apache2")
+    webserver.restart()
 
     progress.echo("\nFurther manual configuration via " + server_url)
 
@@ -500,7 +601,7 @@ systemctl start isabelle-phabricator-phd""")
       Linux.service_install(phd_name,
 """[Unit]
 Description=PHP daemon manager for Isabelle/Phabricator
-After=syslog.target network.target apache2.service mysql.service
+After=syslog.target network.target """ + webserver.system_name + """.service mysql.service
 
 [Service]
 Type=oneshot
@@ -535,6 +636,7 @@ WantedBy=multi-user.target
         var name = default_name
         var options = Options.init()
         var root = ""
+        var webserver = default_webserver
 
         val getopts = Getopts("""
 Usage: isabelle phabricator_setup [OPTIONS]
@@ -547,8 +649,11 @@ Usage: isabelle phabricator_setup [OPTIONS]
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r DIR       installation root directory (default: """ + default_root("NAME") + """)
+    -w NAME      webserver name (""" +
+          all_webservers.map(w => quote(w.short_name)).mkString (" or ") +
+          ", default: " + quote(default_webserver.short_name) + """)
 
-  Install Phabricator as LAMP application (Linux, Apache, MySQL, PHP).
+  Install Phabricator as Linux service, based on webserver + PHP + MySQL.
 
   The installation name (default: """ + quote(default_name) + """) is mapped to a regular
   Unix user; this is relevant for public SSH access.
@@ -558,14 +663,15 @@ Usage: isabelle phabricator_setup [OPTIONS]
           "U" -> (_ => package_update = true),
           "n:" -> (arg => name = arg),
           "o:" -> (arg => options = options + arg),
-          "r:" -> (arg => root = arg))
+          "r:" -> (arg => root = arg),
+          "w:" -> (arg => webserver = get_webserver(arg)))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress
 
-        phabricator_setup(options, name = name, root = root, repo = repo,
+        phabricator_setup(options, name = name, root = root, repo = repo, webserver = webserver,
           package_update = package_update, mercurial_source = mercurial_source, progress = progress)
       })
 
