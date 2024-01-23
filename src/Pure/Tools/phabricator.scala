@@ -205,7 +205,7 @@ object Phabricator {
   def standard_mercurial_source: String = {
     val release = Linux.Release()
     if (release.is_ubuntu_20_04) "https://www.mercurial-scm.org/release/mercurial-3.9.2.tar.gz"
-    else "https://www.mercurial-scm.org/release/mercurial-6.1.1.tar.gz"
+    else "https://www.mercurial-scm.org/release/mercurial-6.1.4.tar.gz"
   }
 
 
