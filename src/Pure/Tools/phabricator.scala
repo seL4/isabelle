@@ -38,7 +38,9 @@ object Phabricator {
       "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
       "php-json", "php-mbstring",
       // more packages
-      "php-xml", "php-zip", "python3-pygments", "ssh", "subversion")
+      "php-xml", "php-zip", "python3-pygments", "ssh", "subversion",
+      // mercurial build packages
+      "make", "gcc", "python3", "python3-dev", "python3-docutils")
 
   def packages(webserver: Webserver): List[String] = {
     val release = Linux.Release()
@@ -202,7 +204,11 @@ object Phabricator {
   val alternative_system_port = 222
   val default_server_port = 2222
 
-  val standard_mercurial_source = "https://www.mercurial-scm.org/release/mercurial-3.9.2.tar.gz"
+  val standard_mercurial_source = {
+    val release = Linux.Release()
+    if (release.is_ubuntu_20_04) "https://www.mercurial-scm.org/release/mercurial-3.9.2.tar.gz"
+    else "https://www.mercurial-scm.org/release/mercurial-6.1.1.tar.gz"
+  }
 
 
 
