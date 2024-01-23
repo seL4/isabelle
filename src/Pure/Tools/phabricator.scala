@@ -18,17 +18,6 @@ import scala.util.matching.Regex
 object Phabricator {
   /** defaults **/
 
-  /* PHP */
-
-  def php_version(): String =
-    Isabelle_System.bash("""php --run 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'""")
-      .check.out
-
-  def php_conf_dir(name: String): Path =
-    Path.explode("/etc/php") + Path.basic(php_version()) +  // educated guess
-    Path.basic(name) + Path.explode("conf.d")
-
-
   /* webservers */
 
   sealed abstract class Webserver {
@@ -49,7 +38,7 @@ object Phabricator {
     def systemctl(cmd: String): String = "systemctl " + cmd + " " + system_name
 
     def php_init(): Unit =
-      File.write(php_conf_dir(php_name) + Path.basic(isabelle_phabricator_name(ext = "ini")),
+      File.write(Linux.php_conf_dir(php_name) + Path.basic(isabelle_phabricator_name(ext = "ini")),
         "post_max_size = 32M\n" +
         "opcache.validate_timestamps = 0\n" +
         "memory_limit = 512M\n" +
@@ -112,7 +101,7 @@ server {
 
   location ~ \.php$ {
     include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/var/run/php/php""" + php_version() + """-fpm.sock;
+    fastcgi_pass unix:/var/run/php/php""" + Linux.php_version() + """-fpm.sock;
   }
 
   location /index.php {
