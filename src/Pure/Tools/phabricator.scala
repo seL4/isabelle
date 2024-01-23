@@ -35,8 +35,6 @@ object Phabricator {
 
     def restart(): Unit = Linux.service_restart(system_name)
 
-    def systemctl(cmd: String): String = "systemctl " + cmd + " " + system_name
-
     def php_init(): Unit =
       File.write(Linux.php_conf_dir(php_name) + Path.basic(isabelle_phabricator_name(ext = "ini")),
         "post_max_size = 32M\n" +
@@ -531,7 +529,7 @@ then
 fi
 
 systemctl stop isabelle-phabricator-phd
-""" + webserver.systemctl("stop"),
+systemctl stop """ + webserver.system_name,
       body =
 """echo -e "\nUpgrading phabricator \"$NAME\" root \"$ROOT\" ..."
 for REPO in arcanist phabricator
@@ -545,7 +543,7 @@ echo -e "\nUpgrading storage ..."
 "$ROOT/phabricator/bin/storage" upgrade --force
 """,
       exit =
-        webserver.systemctl("start") + """
+"""systemctl start """ + webserver.system_name + """
 systemctl start isabelle-phabricator-phd""")
 
 
