@@ -55,10 +55,9 @@ object Phabricator {
   /* webservers */
 
   sealed abstract class Webserver {
-    override def toString: String = title
-    def title: String
-    def short_name: String
-    def system_name: String = short_name
+    override def toString: String = user_name
+    def user_name: String
+    def system_name: String
     def php_name: String = system_name
 
     def packages(): List[String]
@@ -85,8 +84,7 @@ object Phabricator {
   }
 
   object Apache extends Webserver {
-    override val title = "Apache"
-    override val short_name = "apache"
+    override val user_name = "Apache"
     override def system_name = "apache2"
     override def packages(): List[String] = List("apache2", "libapache2-mod-php")
 
@@ -114,8 +112,8 @@ object Phabricator {
   }
 
   object Nginx extends Webserver {
-    override val title = "Nginx"
-    override val short_name = "nginx"
+    override val user_name = "Nginx"
+    override val system_name = "nginx"
     override val php_name = "fpm"
     override def packages(): List[String] = List("nginx", "php-fpm")
 
@@ -168,7 +166,7 @@ object Phabricator {
   val all_webservers: List[Webserver] = List(Apache, Nginx)
 
   def get_webserver(name: String): Webserver =
-    all_webservers.find(w => w.short_name == name) getOrElse
+    all_webservers.find(w => w.user_name == name) getOrElse
       error("Bad webserver " + quote(name))
 
   val default_webserver: Webserver = Apache
@@ -556,7 +554,7 @@ systemctl start isabelle-phabricator-phd""")
 
     /* webserver setup */
 
-    progress.echo(webserver.title + " setup ...")
+    progress.echo(webserver.user_name + " setup ...")
 
     val sites_dir = webserver.sites_dir
     if (!sites_dir.is_dir) error("Bad " + webserver + " sites directory " + sites_dir)
@@ -644,8 +642,8 @@ Usage: isabelle phabricator_setup [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r DIR       installation root directory (default: """ + default_root("NAME") + """)
     -w NAME      webserver name (""" +
-          all_webservers.map(w => quote(w.short_name)).mkString (" or ") +
-          ", default: " + quote(default_webserver.short_name) + """)
+          all_webservers.map(w => quote(w.user_name)).mkString (" or ") +
+          ", default: " + quote(default_webserver.user_name) + """)
 
   Install Phabricator as Linux service, based on webserver + PHP + MySQL.
 
