@@ -87,8 +87,7 @@ object Phabricator {
 
     override def site_init(name: String, server_name: String, webroot: String): Unit = {
       File.write(site_conf(name),
-"""
-server {
+"""server {
   server_name """ + server_name + """;
   root """ + webroot + """;
 
