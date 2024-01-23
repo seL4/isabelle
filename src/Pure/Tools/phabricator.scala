@@ -59,7 +59,7 @@ object Phabricator {
     def title: String
     def short_name: String
     def system_name: String = short_name
-    def php_name: String = short_name
+    def php_name: String = system_name
 
     def packages(): List[String]
 
