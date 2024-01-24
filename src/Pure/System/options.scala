@@ -104,7 +104,8 @@ object Options {
 
   val TAG_CONTENT = "content"    // formal theory content
   val TAG_DOCUMENT = "document"  // document preparation
-  val TAG_BUILD = "build"        // relavant for "isabelle build"
+  val TAG_BUILD = "build"        // relevant for "isabelle build"
+  val TAG_BUILD_SYNC = "build_sync" // relevant for distributed "isabelle build"
   val TAG_UPDATE = "update"      // relevant for "isabelle update"
   val TAG_CONNECTION = "connection"  // private information about connections (password etc.)
   val TAG_COLOR_DIALOG = "color_dialog"  // special color selection dialog
@@ -154,6 +155,7 @@ object Options {
     def for_content: Boolean = for_tag(TAG_CONTENT)
     def for_document: Boolean = for_tag(TAG_DOCUMENT)
     def for_color_dialog: Boolean = for_tag(TAG_COLOR_DIALOG)
+    def for_build_sync: Boolean = for_tag(TAG_BUILD_SYNC)
 
     def session_content: Boolean = for_content || for_document
   }

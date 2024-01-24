@@ -194,10 +194,12 @@ object Build_Cluster {
         error("Bad ML_PLATFORM: found " + remote_ml_platform +
           ", but expected " + build_context.ml_platform)
       }
+      val build_options = 
+        for { option <- options.iterator if option.for_build_sync } yield options.spec(option.name)
       val script =
         Build.build_worker_command(host,
           ssh = ssh,
-          build_options = List(options.spec("build_database_server")),
+          build_options = build_options.toList,
           build_id = build_context.build_uuid,
           isabelle_home = remote_isabelle_home,
           afp_root = remote_afp_root,
