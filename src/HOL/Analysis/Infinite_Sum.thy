@@ -2387,9 +2387,10 @@ qed
 lemma (in uniform_space) cauchy_filter_iff:
   "cauchy_filter F \<longleftrightarrow> (\<forall>P. eventually P uniformity \<longrightarrow> (\<exists>X. eventually (\<lambda>x. x \<in> X) F \<and> (\<forall>z\<in>X\<times>X. P z)))" 
   unfolding cauchy_filter_def le_filter_def
-  apply auto
-   apply (smt (z3) eventually_mono eventually_prod_same mem_Collect_eq)
-  using eventually_prod_same by blast                            
+  apply (auto simp: eventually_prod_same)
+   apply (metis (full_types) eventually_mono mem_Collect_eq)
+  apply blast
+  done
 
 lemma (in uniform_space) controlled_sequences_convergent_imp_complete_aux_sequence:
   fixes U :: "nat \<Rightarrow> ('a \<times> 'a) set"
