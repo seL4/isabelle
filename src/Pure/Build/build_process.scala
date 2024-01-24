@@ -857,7 +857,7 @@ extends AutoCloseable {
     try { store.maybe_open_database_server(server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
-  private val _build_database: Option[SQL.Database] =
+  protected val _build_database: Option[SQL.Database] =
     try {
       for (db <- store.maybe_open_build_database(server = server)) yield {
         if (!db.is_postgresql) {
@@ -920,7 +920,7 @@ extends AutoCloseable {
     build_cluster
   }
 
-  private val _build_cluster =
+  protected val _build_cluster =
     try {
       if (build_context.master && _build_database.isDefined) open_build_cluster()
       else Build_Cluster.none
@@ -941,7 +941,7 @@ extends AutoCloseable {
 
   /* global state: internal var vs. external database */
 
-  private var _state: Build_Process.State = Build_Process.State()
+  protected var _state: Build_Process.State = Build_Process.State()
 
   protected def synchronized_database[A](label: String)(body: => A): A =
     synchronized {

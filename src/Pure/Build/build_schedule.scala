@@ -811,43 +811,25 @@ object Build_Schedule {
     build_progress: Progress,
     server: SSH.Server,
   ) extends Build_Process(build_context, build_progress, server) {
-    /* global resources with common close() operation */
-
-    protected final lazy val _build_database: Option[SQL.Database] =
-      try {
-        for (db <- store.maybe_open_build_database(server = server)) yield {
-          if (build_context.master) {
-            Build_Schedule.private_data.transaction_lock(
-              db,
-              create = true,
-              label = "Build_Schedule.build_database"
-            ) { Build_Schedule.private_data.clean_build_schedules(db) }
-            db.vacuum(Build_Schedule.private_data.tables.list)
-          }
-          db
-        }
-      }
-      catch { case exn: Throwable => close(); throw exn }
-
-    override def close(): Unit = {
-      Option(_build_database).flatten.foreach(_.close())
-      super.close()
-    }
-
-
     /* global state: internal var vs. external database */
 
     protected var _schedule = Schedule.init(build_uuid)
 
     override protected def synchronized_database[A](label: String)(body: => A): A =
-      super.synchronized_database(label) {
+      synchronized {
         _build_database match {
           case None => body
           case Some(db) =>
-            Build_Schedule.private_data.transaction_lock(db, label = label) {
+            val tables =
+              Build_Process.private_data.tables.list ::: Build_Schedule.private_data.tables.list
+            db.transaction_lock(SQL.Tables.list(tables), label = label) {
+              val old_state = Build_Process.private_data.pull_database(db, worker_uuid, _state)
               val old_schedule = Build_Schedule.private_data.pull_schedule(db, _schedule)
+              _state = old_state
               _schedule = old_schedule
               val res = body
+              _state =
+                Build_Process.private_data.update_database(db, worker_uuid, _state, old_state)
               _schedule = Build_Schedule.private_data.update_schedule(db, _schedule, old_schedule)
               res
             }
@@ -873,6 +855,16 @@ object Build_Schedule {
 
     protected val start_date = Date.now()
 
+    for (db <- _build_database) {
+      Build_Schedule.private_data.transaction_lock(
+        db,
+        create = true,
+        label = "Scheduler_Build_Process.create"
+      ) { Build_Schedule.private_data.clean_build_schedules(db) }
+      db.vacuum(Build_Schedule.private_data.tables.list)
+    }
+
+
     def init_scheduler(timing_data: Timing_Data): Scheduler
 
 
@@ -894,26 +886,6 @@ object Build_Schedule {
 
 
     /* previous results via build log */
-
-    override def open_build_cluster(): Build_Cluster = {
-      val build_cluster = super.open_build_cluster()
-      build_cluster.init()
-
-      Benchmark.benchmark_requirements(build_options)
-
-      if (build_context.max_jobs > 0) {
-        val benchmark_options = build_options.string("build_hostname") = hostname
-        Benchmark.benchmark(benchmark_options, progress)
-      }
-      build_cluster.benchmark()
-
-      for (db <- _build_database)
-        Build_Process.private_data.transaction_lock(db, label = "Scheduler_Build_Process.init") {
-          Build_Process.private_data.clean_build(db)
-        }
-
-      build_cluster
-    }
 
     private val timing_data: Timing_Data = {
       val cluster_hosts: List[Build_Cluster.Host] =
@@ -1030,6 +1002,19 @@ object Build_Schedule {
       }
 
     override def run(): Build.Results = {
+      Benchmark.benchmark_requirements(build_options)
+
+      if (build_context.max_jobs > 0) {
+        val benchmark_options = build_options.string("build_hostname") = hostname
+        Benchmark.benchmark(benchmark_options, progress)
+      }
+      _build_cluster.benchmark()
+
+      for (db <- _build_database)
+        Build_Process.private_data.transaction_lock(db, label = "Scheduler_Build_Process.init") {
+          Build_Process.private_data.clean_build(db)
+        }
+
       val results = super.run()
       write_build_log(results, snapshot().results)
       results
