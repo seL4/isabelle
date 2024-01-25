@@ -828,13 +828,13 @@ instance proof
   qed
   show \<open>bit a n \<longleftrightarrow> odd (a div 2 ^ n)\<close> for a :: \<open>'a word\<close> and n
     by transfer (simp flip: drop_bit_eq_div add: drop_bit_take_bit bit_iff_odd_drop_bit)
-  show \<open>0 div a = 0\<close>
-    for a :: \<open>'a word\<close>
-    by transfer simp
   show \<open>a div 0 = 0\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
   show \<open>a div 1 = a\<close>
+    for a :: \<open>'a word\<close>
+    by transfer simp
+  show \<open>0 div a = 0\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
   show \<open>(1 + a) div 2 = a div 2\<close>
@@ -842,42 +842,25 @@ instance proof
     for a :: \<open>'a word\<close>
     using that by transfer
       (auto dest: le_Suc_ex simp add: take_bit_Suc elim!: evenE)
-  show \<open>(2 :: 'a word) ^ m div 2 ^ n = of_bool ((2 :: 'a word) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
-    for m n :: nat
-    by transfer (simp, simp add: exp_div_exp_eq)
-  show "a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)"
-    for a :: "'a word" and m n :: nat
+  show \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
+    for a :: \<open>'a word\<close> and m n :: nat
     apply transfer
-    apply (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: drop_bit_eq_div)
+    using drop_bit_eq_div [symmetric, where ?'a = int,of _ 1]
+    apply (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: drop_bit_eq_div simp del: power.simps)
     apply (simp add: drop_bit_take_bit)
     done
-  show "a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n"
-    for a :: "'a word" and m n :: nat
-    by transfer (auto simp flip: take_bit_eq_mod simp add: ac_simps)
-  show \<open>a * 2 ^ m mod 2 ^ n = a mod 2 ^ (n - m) * 2 ^ m\<close>
-    if \<open>m \<le> n\<close> for a :: "'a word" and m n :: nat
-    using that apply transfer
-    apply (auto simp flip: take_bit_eq_mod)
-           apply (auto simp flip: push_bit_eq_mult simp add: push_bit_take_bit split: split_min_lin)
-    done
-  show \<open>a div 2 ^ n mod 2 ^ m = a mod (2 ^ (n + m)) div 2 ^ n\<close>
-    for a :: "'a word" and m n :: nat
-    by transfer (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: take_bit_eq_mod drop_bit_eq_div split: split_min_lin)
-  show \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a word) \<or> m \<le> n\<close>
+  show \<open>even (2 * a div 2 ^ Suc n) \<longleftrightarrow> even (a div 2 ^ n)\<close> if \<open>2 ^ Suc n \<noteq> (0::'a word)\<close>
+    for a :: \<open>'a word\<close> and n :: nat
+    using that by transfer
+      (simp add: even_drop_bit_iff_not_bit bit_simps flip: drop_bit_eq_div del: power.simps)
+  show \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> m \<le> n\<close> if \<open>2 ^ n \<noteq> (0::'a word)\<close>
     for m n :: nat
-    by transfer
+    using that by transfer
       (simp flip: drop_bit_eq_div mask_eq_exp_minus_1 add: bit_simps even_drop_bit_iff_not_bit not_less)
-  show \<open>even (a * 2 ^ m div 2 ^ n) \<longleftrightarrow> n < m \<or> (2::'a word) ^ n = 0 \<or> m \<le> n \<and> even (a div 2 ^ (n - m))\<close>
+  show \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
     for a :: \<open>'a word\<close> and m n :: nat
-  proof transfer
-    show \<open>even (take_bit LENGTH('a) (k * 2 ^ m) div take_bit LENGTH('a) (2 ^ n)) \<longleftrightarrow>
-      n < m
-      \<or> take_bit LENGTH('a) ((2::int) ^ n) = take_bit LENGTH('a) 0
-      \<or> (m \<le> n \<and> even (take_bit LENGTH('a) k div take_bit LENGTH('a) (2 ^ (n - m))))\<close>
-    for m n :: nat and k l :: int
-      by (auto simp flip: take_bit_eq_mod drop_bit_eq_div push_bit_eq_mult
-        simp add: div_push_bit_of_1_eq_drop_bit drop_bit_take_bit drop_bit_push_bit_int [of n m])
-  qed
+    by transfer
+      (auto simp flip: take_bit_eq_mod drop_bit_eq_div simp add: even_drop_bit_iff_not_bit bit_simps)
 qed
 
 end

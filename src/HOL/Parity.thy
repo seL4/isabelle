@@ -925,7 +925,7 @@ qed
 context linordered_euclidean_semiring
 begin
 
-lemma even_mask_div_iff':
+lemma even_decr_exp_div_exp_iff':
   \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close>
 proof -
   have \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> even (of_nat ((2 ^ m - Suc 0) div 2 ^ n))\<close>
