@@ -575,6 +575,13 @@ proof (induction arbitrary: P rule: finite_induct)
   finally show ?case .
 qed auto
 
+lemma eventually_le_le:
+  fixes P :: "'a \<Rightarrow> ('b :: preorder)"
+  assumes "eventually (\<lambda>x. P x \<le> Q x) F"
+  assumes "eventually (\<lambda>x. Q x \<le> R  x) F"
+  shows "eventually (\<lambda>x. P x \<le> R x) F"
+using assms by eventually_elim (rule order_trans)
+
 subsubsection \<open>Map function for filters\<close>
 
 definition filtermap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> 'b filter"

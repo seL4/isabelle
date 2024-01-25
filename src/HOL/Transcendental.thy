@@ -2915,6 +2915,15 @@ lemma log_base_root: "n > 0 \<Longrightarrow> b > 0 \<Longrightarrow> log (root 
 lemma ln_bound: "0 < x \<Longrightarrow> ln x \<le> x" for x :: real
   using ln_le_minus_one by force
 
+lemma powr_less_one:
+  fixes x::real
+  assumes "1 < x" "y < 0"
+  shows "x powr y < 1"
+using assms less_log_iff by force
+
+lemma powr_le_one_le: "\<And>x y::real. 0 < x \<Longrightarrow> x \<le> 1 \<Longrightarrow> 1 \<le> y \<Longrightarrow> x powr y \<le> x"
+  by (smt (verit) ln_gt_zero_imp_gt_one ln_le_cancel_iff ln_powr mult_le_cancel_right2)
+
 lemma powr_mono:
   fixes x :: real
   assumes "a \<le> b" and "1 \<le> x" shows "x powr a \<le> x powr b"
