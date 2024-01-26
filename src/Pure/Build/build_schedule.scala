@@ -227,6 +227,16 @@ object Build_Schedule {
     }
 
     private var cache: Map[(String, String, Int), Time] = Map.empty
+    
+    
+    /* approximation factors -- penalize estimations with less information */
+    
+    val FACTOR_NO_THREADS_GLOBAL_CURVE = 2.5
+    val FACTOR_NO_THREADS_UNIFY_MACHINES = 1.7
+    val FACTOR_NO_THREADS_OTHER_MACHINE = 1.5
+    val FACTOR_NO_THREADS_SAME_MACHINE = 1.4
+    val FACTOR_THREADS_OTHER_MACHINE = 1.2
+
     def estimate(job_name: String, hostname: String, threads: Int): Time = {
       def estimate: Time =
         data.by_job.get(job_name) match {
@@ -243,7 +253,8 @@ object Build_Schedule {
           case Some(data) =>
             data.by_threads.get(threads) match {
               case None => // interpolate threads
-                estimate_threads(job_name, hostname, threads).getOrElse {
+                estimate_threads(job_name, hostname, threads).map(_.scale(
+                  FACTOR_NO_THREADS_SAME_MACHINE)).getOrElse {
                   // per machine, try to approximate config for threads
                   val approximated =
                     for {
@@ -252,25 +263,30 @@ object Build_Schedule {
                       factor = hostname_factor(hostname1, hostname)
                     } yield estimate.scale(factor)
 
-                  if (approximated.nonEmpty) Timing_Data.mean_time(approximated)
+                  if (approximated.nonEmpty) 
+                    Timing_Data.mean_time(approximated).scale(FACTOR_NO_THREADS_OTHER_MACHINE)
                   else {
                     // no single machine where config can be approximated, unify data points
                     val unified_entries = unify_hosts(job_name, hostname)
 
-                    if (unified_entries.length > 1) approximate_threads(unified_entries, threads)
+                    if (unified_entries.length > 1)
+                      approximate_threads(unified_entries, threads).scale(
+                        FACTOR_NO_THREADS_UNIFY_MACHINES)
                     else {
                       // only single data point, use global curve to approximate
                       val (job_threads, job_time) = unified_entries.head
-                      job_time.scale(global_threads_factor(job_threads, threads))
+                      job_time.scale(global_threads_factor(job_threads, threads)).scale(
+                        FACTOR_NO_THREADS_GLOBAL_CURVE)
                     }
                   }
                 }
 
-              case Some(data) => // time for job/thread exists, interpolate machine
+              case Some(data) => // time for job/thread exists, interpolate machine if necessary
                 data.by_hostname.get(hostname).map(_.mean_time).getOrElse {
                   Timing_Data.median_time(
                     data.by_hostname.toList.map((hostname1, data) =>
-                      data.mean_time.scale(hostname_factor(hostname1, hostname))))
+                      data.mean_time.scale(hostname_factor(hostname1, hostname)))).scale(
+                    FACTOR_THREADS_OTHER_MACHINE)
                 }
             }
         }
