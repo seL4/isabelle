@@ -911,14 +911,10 @@ proof (cases "(\<Sum>i\<in>I. (b i)\<^sup>2) > 0")
 next
   case True
   define r where "r \<equiv> (\<Sum>i\<in>I. a i * b i) / (\<Sum>i\<in>I. (b i)\<^sup>2)"
-  with True have *: "(\<Sum>i\<in>I. a i * b i) = r * (\<Sum>i\<in>I. (b i)\<^sup>2)"
-    by simp
   have "0 \<le> (\<Sum>i\<in>I. (a i - r * b i)\<^sup>2)"
-    by (meson sum_nonneg zero_le_power2)
+    by (simp add: sum_nonneg)
   also have "... = (\<Sum>i\<in>I. (a i)\<^sup>2) - 2 * r * (\<Sum>i\<in>I. a i * b i) + r\<^sup>2 * (\<Sum>i\<in>I. (b i)\<^sup>2)"
     by (simp add: algebra_simps power2_eq_square sum_distrib_left flip: sum.distrib)
-  also have "\<dots> = (\<Sum>i\<in>I. (a i)\<^sup>2) - (\<Sum>i\<in>I. a i * b i) * r"
-    by (simp add: * power2_eq_square)
   also have "\<dots> = (\<Sum>i\<in>I. (a i)\<^sup>2) - ((\<Sum>i\<in>I. a i * b i))\<^sup>2 / (\<Sum>i\<in>I. (b i)\<^sup>2)"
     by (simp add: r_def power2_eq_square)
   finally have "0 \<le> (\<Sum>i\<in>I. (a i)\<^sup>2) - ((\<Sum>i\<in>I. a i * b i))\<^sup>2 / (\<Sum>i\<in>I. (b i)\<^sup>2)" .
