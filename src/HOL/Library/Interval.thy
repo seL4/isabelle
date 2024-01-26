@@ -178,7 +178,7 @@ lemma upper_minus[simp]: "upper (minus A B) = minus (upper A) (lower B)"
 instance ..
 end
 
-instantiation "interval" :: (linordered_semiring) times
+instantiation "interval" :: ("{times, linorder}") times
 begin
 
 lift_definition times_interval :: "'a interval \<Rightarrow> 'a interval \<Rightarrow> 'a interval"
@@ -429,7 +429,7 @@ proof -
 qed
 
 lemma times_in_intervalE:
-  fixes xy :: "'a :: {linordered_semiring, real_normed_algebra, linear_continuum_topology}"
+  fixes xy :: "'a :: {linorder, real_normed_algebra, linear_continuum_topology}"
     \<comment> \<open>TODO: linear continuum topology is pretty strong\<close>
   assumes "xy \<in>\<^sub>i X * Y"
   obtains x y where "xy = x * y" "x \<in>\<^sub>i X" "y \<in>\<^sub>i Y"
@@ -446,7 +446,7 @@ proof -
   obtain x y where "xy = x * y" "x \<in>\<^sub>i X" "y \<in>\<^sub>i Y" by (auto simp: set_of_eq)
   then show ?thesis ..
 qed
-
+thm times_in_intervalE[of "1::real"]
 lemma set_of_times: "set_of (X * Y) = {x * y | x y. x \<in> set_of X \<and> y \<in> set_of Y}"
   for X Y::"'a :: {linordered_ring, real_normed_algebra, linear_continuum_topology} interval"
   by (auto intro!: times_in_intervalI elim!: times_in_intervalE)
@@ -475,14 +475,14 @@ lemma upper_one[simp]: "upper 1 = 1"
 instance proof qed
 end
 
-instance interval :: ("{one, preorder, linordered_semiring}") power
+instance interval :: ("{one, preorder, linorder, times}") power
 proof qed
 
 lemma set_of_one[simp]: "set_of (1::'a::{one, order} interval) = {1}"
   by (auto simp: set_of_eq)
 
 instance "interval" ::
-  ("{linordered_idom,linordered_ring, real_normed_algebra, linear_continuum_topology}") monoid_mult
+  ("{linordered_idom, real_normed_algebra, linear_continuum_topology}") monoid_mult
   apply standard
   unfolding interval_eq_set_of_iff set_of_times
   subgoal
@@ -670,7 +670,7 @@ lemma set_of_mul_contains_zero:
   by (auto simp: set_of_eq lower_times upper_times algebra_simps mult_le_0_iff
       mult_bounds_enclose_zero1 mult_bounds_enclose_zero2)
 
-instance "interval" :: (linordered_semiring) mult_zero
+instance "interval" :: ("{linordered_semiring, zero, times}") mult_zero
   apply standard
   subgoal by transfer auto
   subgoal by transfer auto
