@@ -25,7 +25,6 @@ object Platform {
     else error("Failed to determine current platform family")
 
   object Family {
-    val list0: List[Family] = List(Family.linux, Family.windows, Family.macos)
     val list: List[Family] = List(Family.linux, Family.linux_arm, Family.windows, Family.macos)
 
     def unapply(name: String): Option[Family] =

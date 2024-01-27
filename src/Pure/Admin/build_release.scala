@@ -490,7 +490,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     }
   }
 
-  def default_platform_families: List[Platform.Family] = Platform.Family.list0
+  def default_platform_families: List[Platform.Family] = Platform.Family.list
 
   def build_release(
     options: Options,
