@@ -296,6 +296,7 @@ object Isabelle_Cronjob {
   val remote_builds1: List[List[Remote_Build]] = {
     List(
       List(Remote_Build("Linux (ARM)", "server-arm",
+        history_base = "build_history_base_arm",
         options = "-m32 -B -M1x2" +
           " -e ISABELLE_SWIPL=swipl")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
