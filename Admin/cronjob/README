@@ -49,7 +49,7 @@ Build Log Database Server
   $ createdb -E UTF8 -T template0 --locale=en_US.utf8 -U postgres -O isatest isatest
 
 - Database backup or migration:
-  https://www.postgresql.org/docs/9.5/static/backup-dump.html
+  https://www.postgresql.org/docs/12/backup-dump.html
 
-     pg_dump -U postgres -Fc -v -d isatest > db.dump
+     pg_dump -U postgres -Fc -v isatest > db.dump
   pg_restore -U postgres -Fc -v -d isatest < db.dump
