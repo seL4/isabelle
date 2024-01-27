@@ -184,6 +184,14 @@ object Isabelle_Cronjob {
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("Linux A", "augsburg1",
+        options = "-m32 -B -M4" +
+          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
+          " -e ISABELLE_GHC_SETUP=true" +
+          " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
+          " -e ISABELLE_SMLNJ=sml" +
+          " -e ISABELLE_SWIPL=swipl",
+        args = "-a -d '~~/src/Benchmarks'"),
       Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
         options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true -p pide_session=false",
         args = "-a -d '~~/src/Benchmarks'"),
@@ -287,14 +295,6 @@ object Isabelle_Cronjob {
 
   val remote_builds1: List[List[Remote_Build]] = {
     List(
-      List(Remote_Build("Linux A", "augsburg1",
-          options = "-m32 -B -M4" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
-            " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
-            " -e ISABELLE_SMLNJ=sml" +
-            " -e ISABELLE_SWIPL=swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
