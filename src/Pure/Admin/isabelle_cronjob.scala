@@ -297,8 +297,9 @@ object Isabelle_Cronjob {
     List(
       List(Remote_Build("Linux (ARM)", "server-arm",
         history_base = "build_history_base_arm",
-        options = "-m32 -B -M1x2" +
-          " -e ISABELLE_SWIPL=swipl")),
+        options = "-m32 -B -M1x2 -p timeout_scale=2" +
+          " -e ISABELLE_SWIPL=swipl",
+        args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
