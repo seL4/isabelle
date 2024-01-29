@@ -668,7 +668,8 @@ qed
 end
 
 instance word :: (len) semiring_parity
-  by (standard; transfer) (simp_all add: mod_2_eq_odd)
+  by (standard; transfer)
+    (auto simp add: mod_2_eq_odd take_bit_Suc elim: evenE dest: le_Suc_ex)
 
 lemma word_bit_induct [case_names zero even odd]:
   \<open>P a\<close> if word_zero: \<open>P 0\<close>
@@ -837,11 +838,6 @@ instance proof
   show \<open>0 div a = 0\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
-  show \<open>(1 + a) div 2 = a div 2\<close>
-    if \<open>even a\<close>
-    for a :: \<open>'a word\<close>
-    using that by transfer
-      (auto dest: le_Suc_ex simp add: take_bit_Suc elim!: evenE)
   show \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     for a :: \<open>'a word\<close> and m n :: nat
     apply transfer

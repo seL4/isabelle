@@ -14,8 +14,7 @@ class semiring_bits = semiring_parity + semiring_modulo_trivial +
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
-  assumes even_half_succ_eq [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
-    and half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
+  assumes half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     and even_double_div_exp_iff: \<open>2 ^ Suc n \<noteq> 0 \<Longrightarrow> even (2 * a div 2 ^ Suc n) \<longleftrightarrow> even (a div 2 ^ n)\<close>
     and even_decr_exp_div_exp_iff: \<open>2 ^ n \<noteq> 0 \<Longrightarrow> even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close>
     and even_mod_exp_diff_exp_iff: \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>

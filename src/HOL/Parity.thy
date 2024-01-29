@@ -14,6 +14,7 @@ subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd
 class semiring_parity = comm_semiring_1 + semiring_modulo +
   assumes mod_2_eq_odd: \<open>a mod 2 = of_bool (\<not> 2 dvd a)\<close>
     and odd_one [simp]: \<open>\<not> 2 dvd 1\<close>
+    and even_half_succ_eq [simp]: \<open>2 dvd a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
 begin
 
 abbreviation even :: "'a \<Rightarrow> bool"
@@ -32,7 +33,7 @@ subclass comm_ring_1 ..
 end
 
 instance nat :: semiring_parity
-  by standard (simp_all add: dvd_eq_mod_eq_0)
+  by standard (auto simp add: dvd_eq_mod_eq_0)
 
 instance int :: ring_parity
   by standard (auto simp add: dvd_eq_mod_eq_0)
@@ -855,6 +856,8 @@ proof
     then show False
       by simp
   qed
+  show \<open>(1 + a) div 2 = a div 2\<close> if \<open>2 dvd a\<close> for a
+    using that by auto
 qed
 
 lemma even_succ_div_two [simp]:
