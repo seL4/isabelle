@@ -768,6 +768,9 @@ instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 instance star :: (idom) idom ..
 instance star :: (idom_divide) idom_divide ..
 
+instance star :: (divide_trivial) divide_trivial
+  by (intro_classes; transfer) simp_all
+
 instance star :: (division_ring) division_ring
   by (intro_classes; transfer) (simp_all add: divide_inverse)
 

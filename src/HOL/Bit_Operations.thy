@@ -9,15 +9,12 @@ begin
 
 subsection \<open>Abstract bit structures\<close>
 
-class semiring_bits = semiring_parity +
+class semiring_bits = semiring_parity + semiring_modulo_trivial +
   assumes bit_induct [case_names stable rec]:
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
-  assumes bits_div_by_0 [simp]: \<open>a div 0 = 0\<close>
-    and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
-    and bits_0_div [simp]: \<open>0 div a = 0\<close>
-    and even_half_succ_eq [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
+  assumes even_half_succ_eq [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
     and half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     and even_double_div_exp_iff: \<open>2 ^ Suc n \<noteq> 0 \<Longrightarrow> even (2 * a div 2 ^ Suc n) \<longleftrightarrow> even (a div 2 ^ n)\<close>
     and even_decr_exp_div_exp_iff: \<open>2 ^ n \<noteq> 0 \<Longrightarrow> even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close>
@@ -35,18 +32,6 @@ text \<open>
 lemma half_1 [simp]:
   \<open>1 div 2 = 0\<close>
   using even_half_succ_eq [of 0] by simp
-
-lemma bits_mod_by_0 [simp]:
-  \<open>a mod 0 = a\<close>
-  using div_mult_mod_eq [of a 0] by simp
-
-lemma bits_mod_by_1 [simp]:
-  \<open>a mod 1 = 0\<close>
-  using div_mult_mod_eq [of a 1] by simp
-
-lemma bits_0_mod [simp]:
-  \<open>0 mod a = 0\<close>
-  using div_mult_mod_eq [of 0 a] by simp
 
 lemma div_exp_eq_funpow_half:
   \<open>a div 2 ^ n = ((\<lambda>a. a div 2) ^^ n) a\<close>
@@ -3715,10 +3700,6 @@ lemma bits_1_div_2 [no_atp]:
 lemma bits_1_div_exp [no_atp]:
   \<open>1 div 2 ^ n = of_bool (n = 0)\<close>
   using div_exp_eq [of 1 1] by (cases n) simp_all
-
-lemmas bits_div_0 = bits_0_div
-
-lemmas bits_mod_0 = bits_0_mod
 
 lemma exp_add_not_zero_imp [no_atp]:
   \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close> if \<open>2 ^ (m + n) \<noteq> 0\<close>

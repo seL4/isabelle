@@ -706,15 +706,31 @@ end
 
 setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOME \<^typ>\<open>'a::divide \<Rightarrow> 'a \<Rightarrow> 'a\<close>)\<close>
 
+class divide_trivial = zero + one + divide +
+  assumes div_by_0 [simp]: \<open>a div 0 = 0\<close>
+    and div_by_1 [simp]: \<open>a div 1 = a\<close>
+    and div_0 [simp]: \<open>0 div a = 0\<close>
+  
+
 text \<open>Algebraic classes with division\<close>
   
 class semidom_divide = semidom + divide +
-  assumes nonzero_mult_div_cancel_right [simp]: "b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
-  assumes div_by_0 [simp]: "a div 0 = 0"
+  assumes nonzero_mult_div_cancel_right [simp]: \<open>b \<noteq> 0 \<Longrightarrow> (a * b) div b = a\<close>
+  assumes semidom_div_by_0: \<open>a div 0 = 0\<close>
 begin
 
-lemma nonzero_mult_div_cancel_left [simp]: "a \<noteq> 0 \<Longrightarrow> (a * b) div a = b"
+lemma nonzero_mult_div_cancel_left [simp]: \<open>a \<noteq> 0 \<Longrightarrow> (a * b) div a = b\<close>
   using nonzero_mult_div_cancel_right [of a b] by (simp add: ac_simps)
+
+subclass divide_trivial
+proof
+  show [simp]: \<open>a div 0 = 0\<close> for a
+    by (fact semidom_div_by_0)
+  show \<open>a div 1 = a\<close> for a
+    using nonzero_mult_div_cancel_right [of 1 a] by simp
+  show \<open>0 div a = 0\<close> for a
+    using nonzero_mult_div_cancel_right [of a 0] by (cases \<open>a = 0\<close>) simp_all
+qed
 
 subclass semiring_no_zero_divisors_cancel
 proof
@@ -739,20 +755,6 @@ qed
 
 lemma div_self [simp]: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
   using nonzero_mult_div_cancel_left [of a 1] by simp
-
-lemma div_0 [simp]: "0 div a = 0"
-proof (cases "a = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have "a * 0 div a = 0"
-    by (rule nonzero_mult_div_cancel_left)
-  then show ?thesis by simp
-qed
-
-lemma div_by_1 [simp]: "a div 1 = a"
-  using nonzero_mult_div_cancel_left [of 1 a] by simp
 
 lemma dvd_div_eq_0_iff:
   assumes "b dvd a"
@@ -1725,7 +1727,7 @@ class modulo = dvd + divide +
 text \<open>Arbitrary quotient and remainder partitions\<close>
 
 class semiring_modulo = comm_semiring_1_cancel + divide + modulo +
-  assumes div_mult_mod_eq: "a div b * b + a mod b = a"
+  assumes div_mult_mod_eq: \<open>a div b * b + a mod b = a\<close>
 begin
 
 lemma mod_div_decomp:
@@ -1775,25 +1777,37 @@ lemma [nitpick_unfold]:
 
 end
 
+class semiring_modulo_trivial = semiring_modulo + divide_trivial
+begin
+
+lemma mod_0 [simp]:
+  \<open>0 mod a = 0\<close>
+  using div_mult_mod_eq [of 0 a] by simp
+
+lemma mod_by_0 [simp]:
+  \<open>a mod 0 = a\<close>
+  using div_mult_mod_eq [of a 0] by simp
+
+lemma mod_by_1 [simp]:
+  \<open>a mod 1 = 0\<close>
+proof -
+  have \<open>a + a mod 1 = a\<close>
+    using div_mult_mod_eq [of a 1] by simp
+  then have \<open>a + a mod 1 = a + 0\<close>
+    by simp
+  then show ?thesis
+    by (rule add_left_imp_eq)
+qed
+
+end
+
 
 subsection \<open>Quotient and remainder in integral domains\<close>
 
 class semidom_modulo = algebraic_semidom + semiring_modulo
 begin
 
-lemma mod_0 [simp]: "0 mod a = 0"
-  using div_mult_mod_eq [of 0 a] by simp
-
-lemma mod_by_0 [simp]: "a mod 0 = a"
-  using div_mult_mod_eq [of a 0] by simp
-
-lemma mod_by_1 [simp]:
-  "a mod 1 = 0"
-proof -
-  from div_mult_mod_eq [of a one] div_by_1 have "a + a mod 1 = a" by simp
-  then have "a + a mod 1 = a + 0" by simp
-  then show ?thesis by (rule add_left_imp_eq)
-qed
+subclass semiring_modulo_trivial ..
 
 lemma mod_self [simp]:
   "a mod a = 0"

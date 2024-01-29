@@ -136,7 +136,10 @@ proof -
 qed
 
 lemma inverse_1 [simp]: "inverse 1 = 1"
-by (rule inverse_unique) simp
+  by (rule inverse_unique) simp
+
+subclass divide_trivial
+  by standard (simp_all add: divide_inverse)
 
 lemma nonzero_inverse_mult_distrib:
   assumes "a \<noteq> 0" and "b \<noteq> 0"
@@ -250,9 +253,9 @@ lemma minus_divide_diff_eq_iff [field_simps]:
   "z \<noteq> 0 \<Longrightarrow> - (x / z) - y = (- x - y * z) / z"
   by (simp add: divide_diff_eq_iff[symmetric])
 
-lemma division_ring_divide_zero [simp]:
+lemma division_ring_divide_zero:
   "a / 0 = 0"
-  by (simp add: divide_inverse)
+  by (fact div_by_0)
 
 lemma divide_self_if [simp]:
   "a / a = (if a = 0 then 0 else 1)"
