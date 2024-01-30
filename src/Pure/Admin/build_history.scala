@@ -537,6 +537,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     components_base: String = Components.dynamic_components_base,
     clean_platform: Boolean = false,
     clean_archives: Boolean = false,
+    shared_isabelle_self: Boolean = false,
     progress: Progress = new Progress,
     rev: String = "",
     afp_repos: Option[Path] = None,
@@ -556,7 +557,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
     }
 
-    sync(isabelle_self)
+    if (!shared_isabelle_self) sync(isabelle_self)
 
     val self_isabelle =
       Other_Isabelle(isabelle_self, isabelle_identifier = isabelle_identifier,

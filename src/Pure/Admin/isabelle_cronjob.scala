@@ -129,6 +129,7 @@ object Isabelle_Cronjob {
     history_base: String = "build_history_base",
     components_base: String = Components.dynamic_components_base,
     clean_components: Boolean = true,
+    shared_isabelle_self: Boolean = false,
     java_heap: String = "",
     options: String = "",
     args: String = "",
@@ -297,6 +298,7 @@ object Isabelle_Cronjob {
     List(
       List(Remote_Build("Linux (ARM)", "server-arm",
         history_base = "build_history_base_arm",
+        shared_isabelle_self = true,
         options = "-m32 -B -M1x2 -p timeout_scale=2" +
           " -e ISABELLE_SWIPL=swipl",
         args = "-a -d '~~/src/Benchmarks'")),
@@ -406,6 +408,7 @@ object Isabelle_Cronjob {
               components_base = r.components_base,
               clean_platform = r.clean_components,
               clean_archives = r.clean_components,
+              shared_isabelle_self = r.shared_isabelle_self,
               rev = rev,
               afp_repos = if (afp_rev.isDefined) Some(afp_repos) else None,
               afp_rev = afp_rev.getOrElse(""),
