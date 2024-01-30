@@ -299,7 +299,7 @@ object Isabelle_Cronjob {
       List(Remote_Build("Linux (ARM)", "linux-arm",
         history_base = "build_history_base_arm",
         shared_isabelle_self = true,
-        options = "-m32 -B -M1x2 -p timeout_scale=2" +
+        options = "-m32 -B -M1x2 -U 4000 -p timeout_scale=2" +
           " -e ISABELLE_SWIPL=swipl",
         args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
