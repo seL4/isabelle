@@ -39,7 +39,6 @@ class Isabelle_Platform private(val settings: List[(String, String)]) {
     settings.collectFirst({ case (a, b) if a == name => b }).
       getOrElse(error("Bad platform settings variable: " + quote(name)))
 
-  val ISABELLE_PLATFORM_FAMILY: String = get("ISABELLE_PLATFORM_FAMILY")
   val ISABELLE_PLATFORM64: String = get("ISABELLE_PLATFORM64")
   val ISABELLE_WINDOWS_PLATFORM64: String = get("ISABELLE_WINDOWS_PLATFORM64")
   val ISABELLE_APPLE_PLATFORM64: String = get("ISABELLE_APPLE_PLATFORM64")
@@ -47,6 +46,11 @@ class Isabelle_Platform private(val settings: List[(String, String)]) {
   def is_arm: Boolean =
     ISABELLE_PLATFORM64.startsWith("arm64-") ||
     ISABELLE_APPLE_PLATFORM64.startsWith("arm64-")
+
+  val ISABELLE_PLATFORM_FAMILY: String = {
+    val family0 = get("ISABELLE_PLATFORM_FAMILY")
+    if (family0 == "linux" && is_arm) "linux_arm" else family0
+  }
 
   def is_linux: Boolean =
     ISABELLE_PLATFORM_FAMILY == "linux" ||
