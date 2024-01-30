@@ -172,16 +172,14 @@ lemma times_binomial_minus1_eq: "0 < k \<Longrightarrow> k * (n choose k) = n * 
 subsection \<open>The binomial theorem (courtesy of Tobias Nipkow):\<close>
 
 text \<open>Avigad's version, generalized to any commutative ring\<close>
-theorem binomial_ring: "(a + b :: 'a::comm_semiring_1)^n =
-  (\<Sum>k\<le>n. (of_nat (n choose k)) * a^k * b^(n-k))"
+theorem (in comm_semiring_1) binomial_ring:
+  "(a + b :: 'a)^n = (\<Sum>k\<le>n. (of_nat (n choose k)) * a^k * b^(n-k))"
 proof (induct n)
   case 0
   then show ?case by simp
 next
   case (Suc n)
-  have decomp: "{0..n+1} = {0} \<union> {n + 1} \<union> {1..n}"
-    by auto
-  have decomp2: "{0..n} = {0} \<union> {1..n}"
+  have decomp: "{0..n+1} = {0} \<union> {n + 1} \<union> {1..n}" and decomp2: "{0..n} = {0} \<union> {1..n}"
     by auto
   have "(a + b)^(n+1) = (a + b) * (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n - k))"
     using Suc.hyps by simp
@@ -207,6 +205,7 @@ next
   finally show ?case
     by simp
 qed
+
 
 text \<open>Original version for the naturals.\<close>
 corollary binomial: "(a + b :: nat)^n = (\<Sum>k\<le>n. (of_nat (n choose k)) * a^k * b^(n - k))"

@@ -2942,4 +2942,11 @@ print_translation \<open>
   in [(\<^const_syntax>\<open>semiring_char\<close>, char_type_tr')] end
 \<close>
 
+
+lemma CHAR_not_1 [simp]: "CHAR('a :: {semiring_1, zero_neq_one}) \<noteq> Suc 0"
+  by (metis One_nat_def of_nat_1 of_nat_CHAR zero_neq_one)
+
+lemma (in idom) CHAR_not_1' [simp]: "CHAR('a) \<noteq> Suc 0"
+  using local.of_nat_CHAR by fastforce
+
 end

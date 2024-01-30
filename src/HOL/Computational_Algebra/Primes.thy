@@ -784,6 +784,20 @@ lemma prime_dvd_fact_iff:
   by (auto simp add: prime_factorization_subset_iff_dvd [symmetric]
     prime_factorization_prime prime_factors_fact prime_ge_2_nat)
 
+lemma dvd_choose_prime:
+  assumes kn: "k < n" and k: "k \<noteq> 0" and n: "n \<noteq> 0" and prime_n: "prime n"
+  shows "n dvd (n choose k)"
+proof -
+  have "n dvd (fact n)" by (simp add: fact_num_eq_if n)
+  moreover have "\<not> n dvd (fact k * fact (n-k))"
+    by (metis prime_dvd_fact_iff prime_dvd_mult_iff assms neq0_conv diff_less linorder_not_less)
+  moreover have "(fact n::nat) = fact k * fact (n-k) * (n choose k)"
+    using binomial_fact_lemma kn by auto
+  ultimately show ?thesis using prime_n
+    by (auto simp add: prime_dvd_mult_iff)
+qed
+
+
 (* TODO Legacy names *)
 lemmas prime_imp_coprime_nat = prime_imp_coprime[where ?'a = nat]
 lemmas prime_imp_coprime_int = prime_imp_coprime[where ?'a = int]
