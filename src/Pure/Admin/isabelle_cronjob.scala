@@ -34,7 +34,8 @@ object Isabelle_Cronjob {
   val build_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
 
-  val isabelle_devel: Path = Path.explode("~/html-data/devel")
+  val isabelle_devel: Path = Path.explode("/data/isatest/html-data/devel")
+  val public_log: Path = Path.explode("/data/isatest/cronjob/run/main.log")  // owned by log service
 
 
 
@@ -71,7 +72,7 @@ object Isabelle_Cronjob {
 
         val cronjob_log = isabelle_devel + Path.basic("cronjob-main.log")
         if (!cronjob_log.is_file) {
-          Files.createSymbolicLink(cronjob_log.java_path, current_log.java_path)
+          Files.createSymbolicLink(cronjob_log.java_path, public_log.java_path)
         }
       })
 
