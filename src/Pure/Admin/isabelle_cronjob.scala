@@ -129,6 +129,7 @@ object Isabelle_Cronjob {
     history_base: String = "build_history_base",
     components_base: String = Components.dynamic_components_base,
     clean_components: Boolean = true,
+    shared_isabelle_self: Boolean = false,
     java_heap: String = "",
     options: String = "",
     args: String = "",
@@ -295,9 +296,11 @@ object Isabelle_Cronjob {
 
   val remote_builds1: List[List[Remote_Build]] = {
     List(
-      List(Remote_Build("Linux (ARM)", "server-arm",
+      List(Remote_Build("Linux (ARM)", "linux-arm",
         history_base = "build_history_base_arm",
-        options = "-m32 -B -M1x2 -p timeout_scale=2" +
+        clean_components = false,
+        shared_isabelle_self = true,
+        options = "-m32 -B -M1x2 -U 4000 -p timeout_scale=2" +
           " -e ISABELLE_SWIPL=swipl",
         args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
@@ -406,6 +409,7 @@ object Isabelle_Cronjob {
               components_base = r.components_base,
               clean_platform = r.clean_components,
               clean_archives = r.clean_components,
+              shared_isabelle_self = r.shared_isabelle_self,
               rev = rev,
               afp_repos = if (afp_rev.isDefined) Some(afp_repos) else None,
               afp_rev = afp_rev.getOrElse(""),
@@ -476,8 +480,7 @@ object Isabelle_Cronjob {
         res match {
           case Exn.Res(_) => None
           case Exn.Exn(exn) =>
-            Output.writeln("Exception trace for " + quote(task.name) + ":")
-            exn.printStackTrace()
+            Output.writeln("Exception trace for " + quote(task.name) + ":\n" + Exn.trace(exn))
             val first_line = split_lines(Exn.message(exn)).headOption getOrElse "exception"
             Some(first_line)
         }
