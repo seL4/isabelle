@@ -480,7 +480,8 @@ object Isabelle_Cronjob {
         res match {
           case Exn.Res(_) => None
           case Exn.Exn(exn) =>
-            Output.writeln("Exception trace for " + quote(task.name) + ":\n" + Exn.trace(exn))
+            Output.writeln("Exception trace for " + quote(task.name) + ":\n" +
+              Exn.message(exn) + "\n" + Exn.trace(exn))
             val first_line = split_lines(Exn.message(exn)).headOption getOrElse "exception"
             Some(first_line)
         }
