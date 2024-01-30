@@ -565,7 +565,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
 
     val clean_platforms = if (clean_platform) Some(List(ssh.isabelle_platform_family)) else None
 
-    self_isabelle.init(fresh = true, echo = true,
+    self_isabelle.init(fresh = !shared_isabelle_self, echo = true,
       component_repository = component_repository,
       other_settings = self_isabelle.init_components(components_base = components_base),
       clean_platforms = clean_platforms,
