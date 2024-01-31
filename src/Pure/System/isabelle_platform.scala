@@ -59,7 +59,7 @@ class Isabelle_Platform private(val settings: List[(String, String)]) {
   def arch_64: String = if (is_arm) "arm64" else "x86_64"
   def arch_64_32: String = if (is_arm) "arm64_32" else "x86_64_32"
 
-  def os_name: String = if (is_macos) "darwin" else ISABELLE_PLATFORM_FAMILY
+  def os_name: String = if (is_macos) "darwin" else if (is_windows) "windows" else "linux"
 
   override def toString: String = ISABELLE_PLATFORM_FAMILY
 }
