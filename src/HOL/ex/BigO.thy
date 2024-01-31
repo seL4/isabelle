@@ -271,7 +271,7 @@ lemma bigo_const [simp]: "c \<noteq> 0 \<Longrightarrow> O(\<lambda>x. c) = O(\<
   by (metis equalityI bigo_const2 bigo_const4)
 
 lemma bigo_const_mult1: "(\<lambda>x. c * f x) \<in> O(f)"
-  by (smt (z3) abs_mult bigo_def bigo_refl mem_Collect_eq mult.left_commute mult_commute_abs)
+  by (simp add: bigo_def) (metis abs_mult dual_order.refl)
 
 lemma bigo_const_mult2: "O(\<lambda>x. c * f x) \<subseteq> O(f)"
   by (metis bigo_elt_subset bigo_const_mult1)
