@@ -2310,7 +2310,8 @@ qualified lemma compute_floor_fl[code]:
   "floor_fl (Float m e) = (if 0 \<le> e then Float m e else Float (m div (2 ^ (nat (-e)))) 0)"
   apply transfer
   apply (simp add: powr_int floor_divide_of_int_eq)
-  by (smt (z3) floor_divide_of_int_eq of_int_1 of_int_add of_int_power)
+  apply (metis floor_divide_of_int_eq of_int_eq_numeral_power_cancel_iff)
+  done
 
 end
 
