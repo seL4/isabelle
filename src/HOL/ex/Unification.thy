@@ -594,7 +594,7 @@ proof (rule subsetI)
     next
       case False
       with x_in obtain y where "y \<in> vars_of (Var x' \<lhd> \<sigma>\<^sub>1)" and "x \<in> vars_of (Var y \<lhd> \<sigma>\<^sub>2)"
-        by (smt (verit, best) UN_iff image_iff vars_of_subst_conv_Union)
+        by (metis (no_types, lifting) UN_E UN_simps(10) vars_of_subst_conv_Union)
       with x'_\<sigma>\<^sub>1_neq show ?thesis
         unfolding range_vars_def by force
     qed
@@ -731,7 +731,7 @@ definition IMGU :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightar
 
 lemma IMGU_iff_Idem_and_MGU: "IMGU \<mu> t u \<longleftrightarrow> Idem \<mu> \<and> MGU \<mu> t u"
   unfolding IMGU_def Idem_def MGU_def
-  by (smt (verit, best) subst_comp subst_eq_def)
+  by (meson Unification.comp_assoc subst_cong subst_refl subst_sym subst_trans)
 
 lemma unify_computes_IMGU:
   "unify M N = Some \<sigma> \<Longrightarrow> IMGU \<sigma> M N"
@@ -774,12 +774,12 @@ next
   case (7 M N M' N')
   from "7.prems" have "Unifier \<sigma> M M'"
     by (simp add: Unifier_def)
-  with "7.IH"(1) obtain \<tau> where "unify M M' = Some \<tau>"
+  with "7.IH"(1) obtain \<tau> where \<tau>: "unify M M' = Some \<tau>"
     by auto
-  moreover have "Unifier \<sigma> (N \<lhd> \<tau>) (N' \<lhd> \<tau>)"
-    by (smt (verit, ccfv_threshold) "7.prems" IMGU_def Unifier_def calculation subst.simps(3)
-        subst_comp subst_eq_def trm.inject(3) unify_computes_IMGU)
-  ultimately show ?case
+  then have "Unifier \<sigma> (N \<lhd> \<tau>) (N' \<lhd> \<tau>)"
+    unfolding Unifier_def
+    by (metis "7.prems" IMGU_def Unifier_def subst.simps(3) subst_comp subst_eq_def trm.distinct(3) trm.distinct(5) trm.exhaust trm.inject(3) unify_computes_IMGU)
+  with \<tau> show ?case
     using "7.IH"(2) by auto
 qed
 
