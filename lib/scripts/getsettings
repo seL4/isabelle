@@ -94,11 +94,14 @@ else
 fi
 
 #POLYML_EXE
-if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
-  POLYML_EXE="$ML_HOME/poly.exe"
-else
-  POLYML_EXE="$ML_HOME/poly"
-fi
+case "$ISABELLE_PLATFORM_FAMILY" in
+  windows*)
+    POLYML_EXE="$ML_HOME/poly.exe"
+    ;;
+  *)
+    POLYML_EXE="$ML_HOME/poly"
+    ;;
+esac
 
 #ML system identifier
 if [ -z "$ML_PLATFORM" ]; then

@@ -137,21 +137,21 @@ function java_library ()
   for X in "$@"
   do
     case "$ISABELLE_PLATFORM_FAMILY" in
-      linux)
+      linux*)
         if [ -z "$LD_LIBRARY_PATH" ]; then
           export LD_LIBRARY_PATH="$X"
         else
           export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$X"
         fi
         ;;
-      macos)
+      macos*)
         if [ -z "$JAVA_LIBRARY_PATH" ]; then
           export JAVA_LIBRARY_PATH="$X"
         else
           export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:$X"
         fi
         ;;
-      windows)
+      windows*)
         if [ -z "$PATH" ]; then
           export PATH="$X"
         else

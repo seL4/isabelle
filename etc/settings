@@ -47,11 +47,14 @@ ISABELLE_BUILD_OPTIONS=""
 ### Document preparation (cf. isabelle latex)
 ###
 
-if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
-  ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -c-style-errors"
-else
-  ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -file-line-error"
-fi
+case "$ISABELLE_PLATFORM_FAMILY" in
+  windows*)
+    ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -c-style-errors"
+    ;;
+  *)
+    ISABELLE_PDFLATEX="pdflatex -interaction=nonstopmode -file-line-error"
+    ;;
+esac
 
 ISABELLE_LUALATEX="lualatex --interaction=nonstopmode --file-line-error"
 ISABELLE_BIBTEX="bibtex"
@@ -82,11 +85,14 @@ fi
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 
 # Location for temporary files (should be on a local file system).
-if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
-  ISABELLE_TMP_PREFIX="$TMPDIR/isabelle"
-else
-  ISABELLE_TMP_PREFIX="/tmp/isabelle-${USER:-$LOGNAME}"
-fi
+case "$ISABELLE_PLATFORM_FAMILY" in
+  windows*)
+    ISABELLE_TMP_PREFIX="$TMPDIR/isabelle"
+    ;;
+  *)
+    ISABELLE_TMP_PREFIX="/tmp/isabelle-${USER:-$LOGNAME}"
+    ;;
+esac
 
 # Heap locations.
 ISABELLE_HEAPS="$ISABELLE_HOME_USER/heaps"
@@ -121,13 +127,13 @@ ISABELLE_DOCS_EXAMPLES="~~/src/HOL/Examples/Seq.thy:~~/src/HOL/Examples/Drinker.
 
 # "open" within desktop environment (potentially asynchronous)
 case "$ISABELLE_PLATFORM_FAMILY" in
-  linux)
+  linux*)
     ISABELLE_OPEN="xdg-open"
     ;;
-  macos)
+  macos*)
     ISABELLE_OPEN="open"
     ;;
-  windows)
+  windows*)
     ISABELLE_OPEN="cygstart"
     ;;
 esac

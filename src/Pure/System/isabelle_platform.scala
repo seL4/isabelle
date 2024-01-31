@@ -52,11 +52,9 @@ class Isabelle_Platform private(val settings: List[(String, String)]) {
     if (family0 == "linux" && is_arm) "linux_arm" else family0
   }
 
-  def is_linux: Boolean =
-    ISABELLE_PLATFORM_FAMILY == "linux" ||
-    ISABELLE_PLATFORM_FAMILY == "linux_arm"
-  def is_macos: Boolean = ISABELLE_PLATFORM_FAMILY == "macos"
-  def is_windows: Boolean = ISABELLE_PLATFORM_FAMILY == "windows"
+  def is_linux: Boolean = ISABELLE_PLATFORM_FAMILY.startsWith("linux")
+  def is_macos: Boolean = ISABELLE_PLATFORM_FAMILY.startsWith("macos")
+  def is_windows: Boolean = ISABELLE_PLATFORM_FAMILY.startsWith("windows")
 
   def arch_64: String = if (is_arm) "arm64" else "x86_64"
   def arch_64_32: String = if (is_arm) "arm64_32" else "x86_64_32"
