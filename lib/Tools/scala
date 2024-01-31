@@ -16,6 +16,6 @@ case "$ISABELLE_PLATFORM_FAMILY" in
   windows*)
     export TERM=dumb
     ;;
-fi
+esac
 
 isabelle_scala scala $ISABELLE_SCALAC_OPTIONS "$@"
