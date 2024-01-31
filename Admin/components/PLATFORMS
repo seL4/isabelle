@@ -50,7 +50,7 @@ Official platforms:
 
 Experimental platforms:
 
-  arm64-linux       Raspberry Pi OS 64bit beta (Debian 10 / Buster)
+  arm64-linux       Ubuntu 18.04 LTS (e.g. via "docker run -it ubuntu:20.04 bash")
 
 
 64 bit vs. 32 bit platform personality
