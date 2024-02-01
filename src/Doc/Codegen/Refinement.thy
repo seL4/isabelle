@@ -265,6 +265,9 @@ text %quote \<open>
 \<close>
 
 text \<open>
+  To reduce manual work for datatype refinement, @{command_def lift_definition}
+  is a valuable tool.  See the corresponding section in \<^cite>\<open>"isabelle-isar-ref"\<close>.
+
   See further \<^cite>\<open>"Haftmann-Kraus-Kuncar-Nipkow:2013:data_refinement"\<close>
   for the meta theory of datatype refinement involving invariants.
 
