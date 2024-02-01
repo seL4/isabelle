@@ -104,6 +104,13 @@ setup_lifting type_definition_fmap
 lift_bnf (dead 'k, 'v) fmap [wits: "Map.empty :: 'k \<Rightarrow> 'v option"]
   by auto
 
+class len = fixes len :: "'a \<Rightarrow> nat"
+typedef (overloaded) ('a, 'b :: len) vec = "{xs :: 'a list. length xs = len (undefined :: 'b)}"
+  by (auto intro!: exI[of _ "replicate _ _"])
+setup_lifting type_definition_vec
+lift_bnf (no_warn_wits) ('a, dead 'b :: len) vec
+  by auto
+
 typedef ('a, 'b) tuple_dead = "UNIV :: ('a \<times> 'b) set" ..
 typedef ('a, 'b) tuple_dead1 = "UNIV :: ('a \<times> 'b) set" ..
 typedef ('a, 'b) tuple_dead2 = "UNIV :: ('a \<times> 'b) set" ..

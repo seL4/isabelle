@@ -203,7 +203,8 @@ fun mk_transfer_thms' bnf_F bnf_G name consts Tss crel_def pcrel_def defs lthy =
     val (pcrel_tm, crel_tm) = apply2 (Thm.prop_of #> Logic.dest_equals #> fst #> head_of)
       (pcrel_def, crel_def);
 
-    val (var_Qs, var_Rs) = fold Variable.declare_typ (#alphas Tss @ #deads Tss) lthy
+    val (var_Qs, var_Rs) = lthy
+      |> fold Variable.declare_typ (#alphas Tss @ Library.union (op =) (#deads Tss) (#Ds0 Tss))
       |> mk_Frees "Q" (map2 mk_relT (#alphas Tss) (#betas Tss))
       ||>> mk_Frees "R" (map2 mk_relT (#gammas Tss) (#deltas Tss))
       |> fst;
@@ -221,11 +222,11 @@ fun mk_transfer_thms' bnf_F bnf_G name consts Tss crel_def pcrel_def defs lthy =
     val (pcrel_a, pcrel_b) = Envir.subst_term (tyenv_match, Vartab.empty) pcrel_tm
       |> `(subst_atomic_types (#alphas Tss @ #betas Tss ~~ #gammas Tss @ #deltas Tss));
 
-    (* match "crel :: {?a F} \<Rightarrow> a G" with "rep_G :: {a F}" *)
+    (* match "crel :: ?a F \<Rightarrow> {a G} \<Rightarrow> bool" with "a G" *)
     val tyenv_match = Vartab.empty |> Sign.typ_match thy
-      (crel_tm |> fastype_of |> binder_types |> hd, #rep Tss);
+      (crel_tm |> fastype_of |> binder_types |> tl |> hd, #abs Tss);
     val crel_b = Envir.subst_term (tyenv_match, Vartab.empty) crel_tm
-      |> subst_atomic_types (#alphas Tss ~~ #betas Tss)
+      |> subst_atomic_types (#alphas Tss ~~ #betas Tss);
     val crel_d = subst_atomic_types (#betas Tss ~~ #deltas Tss) crel_b;
 
     (* instantiate pcrel with Qs and Rs*)
@@ -237,12 +238,11 @@ fun mk_transfer_thms' bnf_F bnf_G name consts Tss crel_def pcrel_def defs lthy =
           | go (_ :: dTs) tms = go dTs tms
           | go _ _ = [];
       in go dead_args end;
-
     val pcrel_Qs = list_comb (pcrel_b, parametrize var_Qs);
     val pcrel_Rs = list_comb (pcrel_a, parametrize var_Rs);
 
     (* get the order of the dead variables right *)
-    val Ds0 = maps the_list dead_args;
+    val Ds0 = Library.union (op =) (maps the_list dead_args) (#Ds0 Tss);
     val permute_Ds = (mk_T_of_bnf Ds0 (#betas Tss) bnf_G, nth (binder_types (type_of pcrel_Qs)) 1)
       |> apply2 (fn Type (_, Ts) => Ts | _ => []) |> op~~ |> typ_subst_atomic;
     val Ds0 = map permute_Ds Ds0;
@@ -287,26 +287,21 @@ fun mk_transfer_thms' bnf_F bnf_G name consts Tss crel_def pcrel_def defs lthy =
           #tac const {Rs=var_Rs,Qs=var_Qs} ctxt);
       in prove lthy vars tm tac end;
     val prove_transfer_thm = prove_transfer_thm' 0;
-
     (* map transfer: "((Q ===> R) ===> pcr_G Q ===> pcr_G R) map_F' map_G" *)
     val map_G = mk_map_of_bnf Ds0 (#betas Tss) (#deltas Tss) bnf_G;
     val map_transfer = prove_transfer_thm (var_Qs @ var_Rs) map_G (#map consts);
-
     (* pred_transfer: "((Q ===> (=)) ===> pcr_G Q ===> (=)) pred_F' pred_G" *)
     val pred_G = mk_pred_of_bnf Ds0 (#betas Tss) bnf_G;
     val pred_transfer = #pred consts |> Option.map (fn p =>
       ("pred", [prove_transfer_thm (var_Qs @ var_Rs) pred_G p]));
-
     (* rel_transfer: "((Q ===> R ===> (=)) ===> pcr_G Q ===> pcr_G R ===> (=)) rel_F' rel_G" *)
     val rel_G = mk_rel_of_bnf Ds0 (#betas Tss) (#deltas Tss) bnf_G;
     val rel_transfer = prove_transfer_thm (var_Qs @ var_Rs) rel_G (#rel consts);
-
     (* set_transfer: "(pcr_G Q ===> rel_set Q) set_F' set_G" *)
     val sets_G = mk_sets_of_bnf (replicate live Ds0) (replicate live (#betas Tss)) bnf_G;
     fun mk_set_transfer i set_G raw tac = prove_transfer_thm' i var_Qs set_G {raw=raw, tac=tac};
     val sets_transfer = @{map 4} mk_set_transfer
       (0 upto (live-1)) sets_G (#raws (#sets consts)) (#tacs (#sets consts));
-
     (* export transfer theorems *)
     val transform = Morphism.thm (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) |> map;
     val b = Binding.qualified_name name;
@@ -457,7 +452,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
     (* state the three required properties *)
     val sorts = map Type.sort_of_atyp alphas;
-    val names_lthy = fold Variable.declare_typ (alphas @ deads) lthy;
+    val names_lthy = fold Variable.declare_typ (alphas @ Library.union (op =) deads (map TFree Ds0)) lthy;
     val (((alphas', betas), betas'), names_lthy) = names_lthy
       |> mk_TFrees' sorts
       ||>> mk_TFrees' sorts
