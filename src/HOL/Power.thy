@@ -836,8 +836,22 @@ end
 
 subsection \<open>Miscellaneous rules\<close>
 
-lemma (in linordered_semidom) self_le_power: "1 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a ^ n"
+context linordered_semidom
+begin
+
+lemma self_le_power: "1 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a ^ n"
   using power_increasing [of 1 n a] power_one_right [of a] by auto
+
+lemma power_le_one_iff: "0 \<le> a \<Longrightarrow> a ^ n \<le> 1 \<longleftrightarrow> (n = 0 \<or> a \<le> 1)"
+  by (metis (mono_tags) gr0I nle_le one_le_power power_le_one self_le_power power_0)
+
+lemma power_less1_D: "a^n < 1 \<Longrightarrow> a < 1"
+  using not_le one_le_power by blast
+
+lemma power_less_one_iff: "0 \<le> a \<Longrightarrow> a ^ n < 1 \<longleftrightarrow> (n > 0 \<and> a < 1)"
+  by (metis (mono_tags) power_one power_strict_mono power_less1_D less_le_not_le neq0_conv power_0)
+
+end
 
 lemma power2_ge_1_iff: "x ^ 2 \<ge> 1 \<longleftrightarrow> x \<ge> 1 \<or> x \<le> (-1 :: 'a :: linordered_idom)"
   using abs_le_square_iff[of 1 x] by (auto simp: abs_if split: if_splits)

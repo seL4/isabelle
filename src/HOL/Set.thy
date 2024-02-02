@@ -1920,6 +1920,9 @@ definition disjnt :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
 lemma disjnt_self_iff_empty [simp]: "disjnt S S \<longleftrightarrow> S = {}"
   by (auto simp: disjnt_def)
 
+lemma disjnt_commute: "disjnt A B = disjnt B A"
+  by (auto simp: disjnt_def)
+
 lemma disjnt_iff: "disjnt A B \<longleftrightarrow> (\<forall>x. \<not> (x \<in> A \<and> x \<in> B))"
   by (force simp: disjnt_def)
 

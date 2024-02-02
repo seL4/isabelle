@@ -269,6 +269,13 @@ lemma fact_binomial:
   shows "fact k * of_nat (n choose k) = (fact n / fact (n - k) :: 'a::field_char_0)"
   unfolding binomial_fact [OF assms] by (simp add: field_simps)
 
+lemma binomial_fact_pow: "(n choose s) * fact s \<le> n^s"
+proof (cases "s \<le> n")
+  case True
+  then show ?thesis
+    by (smt (verit) binomial_fact_lemma mult.assoc mult.commute fact_div_fact_le_pow fact_nonzero nonzero_mult_div_cancel_right) 
+qed (simp add: binomial_eq_0)
+
 lemma choose_two: "n choose 2 = n * (n - 1) div 2"
 proof (cases "n \<ge> 2")
   case False

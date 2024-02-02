@@ -2231,27 +2231,24 @@ using assms by (induct n) (auto simp: le_Suc_eq)
 lemma sum_diff_split:
   fixes f:: "nat \<Rightarrow> 'a::ab_group_add"
   assumes "m \<le> n"
-  shows "(\<Sum>i\<le>n - m. f(n - i)) = (\<Sum>i\<le>n. f i) - (\<Sum>i<m. f i)"
+  shows "(\<Sum>i\<le>n. f i) - (\<Sum>i<m. f i) = (\<Sum>i\<le>n - m. f(n - i))"
 proof -
-  have inj: "inj_on ((-) n) {m..n}"
+  have "\<And>i. i \<le> n-m \<Longrightarrow> \<exists>k\<ge>m. k \<le> n \<and> i = n-k"
+    by (metis Nat.le_diff_conv2 add.commute \<open>m\<le>n\<close> diff_diff_cancel diff_le_self order.trans)
+  then have eq: "{..n-m} = (-)n ` {m..n}"
+    by force
+  have inj: "inj_on ((-)n) {m..n}"
     by (auto simp: inj_on_def)
-  have "(\<Sum>i\<le>n - m. f(n - i)) = (\<Sum>i\<in>(-) n ` {m..n}. f(n - i))"
-  proof (rule sum.cong)
-    have "\<And>x. x \<le> n - m \<Longrightarrow> \<exists>k\<ge>m. k \<le> n \<and> x = n - k"
-      by (metis assms diff_diff_cancel diff_le_mono2 diff_le_self le_trans)
-    then show "{..n - m} = (-) n ` {m..n}"
-      by (auto simp: image_iff Bex_def)
-  qed auto
-  also have "\<dots> = (\<Sum>i=m..n. f i)"
-    by (simp add: sum.reindex_cong [OF inj])
+  have "(\<Sum>i\<le>n - m. f(n - i)) = (\<Sum>i=m..n. f i)"
+    by (simp add: eq sum.reindex_cong [OF inj])
   also have "\<dots> = (\<Sum>i\<le>n. f i) - (\<Sum>i<m. f i)"
-    using sum_diff_nat_ivl[of 0 "m" "Suc n" f] assms 
+    using sum_diff_nat_ivl[of 0 "m" "Suc n" f] assms
     by (simp only: atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost)
-  finally show ?thesis .
+  finally show ?thesis by metis
 qed
 
 
-subsubsection \<open>Telescoping\<close>
+subsubsection \<open>Telescoping sums\<close>
 
 lemma sum_telescope:
   fixes f::"nat \<Rightarrow> 'a::ab_group_add"
@@ -2600,6 +2597,34 @@ next
   then show ?thesis
     by auto
 qed
+
+subsubsection \<open>Telescoping products\<close>
+
+lemma prod_telescope:
+  fixes f::"nat \<Rightarrow> 'a::field"
+  assumes "\<And>i. i\<le>n \<Longrightarrow> f (Suc i) \<noteq> 0"
+  shows "(\<Prod>i\<le>n. f i / f (Suc i)) = f 0 / f (Suc n)"
+  using assms by (induction n) auto
+
+lemma prod_telescope'':
+  fixes f::"nat \<Rightarrow> 'a::field"
+  assumes "m \<le> n"
+  assumes "\<And>i. i \<in> {m..n} \<Longrightarrow> f i \<noteq> 0"
+  shows   "(\<Prod>i = Suc m..n. f i / f (i - 1)) = f n / f m"
+  by (rule dec_induct[OF \<open>m \<le> n\<close>]) (auto simp add: assms)
+
+lemma prod_lessThan_telescope:
+  fixes f::"nat \<Rightarrow> 'a::field"
+  assumes "\<And>i. i\<le>n \<Longrightarrow> f i \<noteq> 0"
+  shows "(\<Prod>i<n. f (Suc i) / f i) = f n / f 0"
+  using assms by (induction n) auto
+
+lemma prod_lessThan_telescope':
+  fixes f::"nat \<Rightarrow> 'a::field"
+  assumes "\<And>i. i\<le>n \<Longrightarrow> f i \<noteq> 0"
+  shows "(\<Prod>i<n. f i / f (Suc i)) = f 0 / f n"
+  using assms by (induction n) auto
+
 
 subsection \<open>Efficient folding over intervals\<close>
 

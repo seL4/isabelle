@@ -49,7 +49,7 @@ lemma bigo_alt_def: "O(f) = {h. \<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\
 
 lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
   apply (auto simp add: bigo_alt_def)
-  by (metis (no_types, opaque_lifting) mult.assoc mult_le_cancel_iff2 order.trans
+  by (metis (no_types, opaque_lifting) mult.assoc mult_le_cancel_left_pos order.trans
       zero_less_mult_iff)
 
 lemma bigo_refl [intro]: "f \<in> O(f)"
@@ -77,7 +77,7 @@ lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
   apply (rule conjI)
    apply (rule_tac x = "c + c" in exI)
    apply (clarsimp)
-  apply (smt (verit, ccfv_threshold) mult.commute abs_triangle_ineq add_le_cancel_left dual_order.trans mult.left_commute mult_2 mult_le_cancel_iff2)
+  apply (smt (verit, ccfv_threshold) mult.commute abs_triangle_ineq add_le_cancel_left dual_order.trans mult.left_commute mult_2 mult_le_cancel_left_pos)
   apply (simp add: order_less_le)
   apply (rule_tac x = "\<lambda>n. if \<bar>f n\<bar> < \<bar>g n\<bar> then x n else 0" in exI)
   apply (rule conjI)
