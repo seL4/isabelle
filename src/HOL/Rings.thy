@@ -2378,6 +2378,18 @@ lemma mult_less_cancel_left_pos: "0 < c \<Longrightarrow> c * a < c * b \<longle
 lemma mult_less_cancel_left_neg: "c < 0 \<Longrightarrow> c * a < c * b \<longleftrightarrow> b < a"
   by (auto simp: mult_less_cancel_left)
 
+lemma mult_le_cancel_right_pos: "0 < c \<Longrightarrow> a * c \<le> b * c \<longleftrightarrow> a \<le> b"
+  by (auto simp: mult_le_cancel_right)
+
+lemma mult_le_cancel_right_neg: "c < 0 \<Longrightarrow> a * c \<le> b * c \<longleftrightarrow> b \<le> a"
+  by (auto simp: mult_le_cancel_right)
+
+lemma mult_less_cancel_right_pos: "0 < c \<Longrightarrow> a * c < b * c \<longleftrightarrow> a < b"
+  by (auto simp: mult_less_cancel_right)
+
+lemma mult_less_cancel_right_neg: "c < 0 \<Longrightarrow> a * c < b * c \<longleftrightarrow> b < a"
+  by (auto simp: mult_less_cancel_right)
+
 end
 
 lemmas mult_sign_intros =
@@ -2783,7 +2795,6 @@ lemma abs_add_one_gt_zero: "0 < 1 + \<bar>x\<bar>"
   by (auto simp: abs_if not_less intro: zero_less_one add_strict_increasing less_trans)
 
 end
-
 
 subsection \<open>Dioids\<close>
 

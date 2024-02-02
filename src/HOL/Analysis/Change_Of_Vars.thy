@@ -749,7 +749,7 @@ proof -
             fix x
             assume "e > 0"  "m < n"  "n * e \<le> \<bar>det (matrix (f' x))\<bar>"  "\<bar>det (matrix (f' x))\<bar> < (1 + real m) * e"
             then have "n < 1 + real m"
-              by (metis (no_types, opaque_lifting) less_le_trans mult.commute not_le mult_le_cancel_iff2)
+              by (metis (no_types, opaque_lifting) less_le_trans mult.commute not_le mult_le_cancel_left_pos)
             then show "False"
               using less.hyps by linarith
           qed
