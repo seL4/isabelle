@@ -73,7 +73,7 @@ object Component_Windows_App {
 
         progress.echo("Building GNU binutils for " + platform_name + " ...")
         val build_script =
-          List("""./configure --prefix="$PWD/target" --with-windres --with-ld""",
+          List("""./configure --prefix="$PWD/target" --with-windres --with-ld --target=x86_64-w64-mingw32""",
             "make", "make install")
         Isabelle_System.bash(build_script.mkString(" && "), cwd = tmp_dir.file,
           progress_stdout = progress.echo(_, verbose = true),
@@ -81,7 +81,8 @@ object Component_Windows_App {
 
         for (name <- List("ld", "windres")) {
           Isabelle_System.copy_file(
-            tmp_dir + Path.explode("target/bin") + Path.basic(name), platform_bin_dir)
+            tmp_dir + Path.explode("target/bin") + Path.basic("x86_64-w64-mingw32-" + name),
+              platform_bin_dir + Path.basic(name))
         }
       }
 
