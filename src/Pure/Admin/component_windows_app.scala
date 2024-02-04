@@ -88,10 +88,11 @@ object Component_Windows_App {
 
       /* 7zip sfx module */
 
-      val sfx_name = Url.get_base_name(sfx_url).get
+      val sfx_archive_name = Url.get_base_name(sfx_url).get
 
-      Isabelle_System.download_file(sfx_url, tmp_dir + Path.basic(sfx_name), progress = progress)
-      Isabelle_System.bash("7z x " + Bash.string(sfx_name), cwd = tmp_dir.file).check
+      Isabelle_System.download_file(sfx_url,
+        tmp_dir + Path.basic(sfx_archive_name), progress = progress)
+      Isabelle_System.bash("7z x " + Bash.string(sfx_archive_name), cwd = tmp_dir.file).check
       Isabelle_System.copy_file(tmp_dir + Path.basic(sfx_name), component_dir.path)
 
 
