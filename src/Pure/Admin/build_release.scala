@@ -718,8 +718,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
                 "java.base/java.text",
                 "java.base/java.util",
                 "java.desktop/java.awt.font")
-            val launch4j_jar =
-              Path.explode("windows_app/launch4j-" + Platform.family + "/launch4j.jar")
+            val launch4j_jar = Component_Windows_App.launch4j_jar()
 
             execute(tmp_dir,
               cat_lines(List(
@@ -776,7 +775,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               "7z -y -bd a " + File.bash_path(exe_archive) + " " + Bash.string(isabelle_name))
             if (!exe_archive.is_file) error("Failed to create archive: " + exe_archive)
 
-            val sfx_exe = tmp_dir + Path.explode("windows_app/7zsd_All_x64.sfx")
+            val sfx_exe = tmp_dir + Component_Windows_App.sfx_path
             val sfx_txt =
               File.read(Path.explode("~~/Admin/Windows/Installer/sfx.txt"))
                 .replace("{ISABELLE_NAME}", isabelle_name)
@@ -837,9 +836,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       }
       else {
         Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
-          val bundle =
-            context.dist_dir + Path.explode(context.dist_name + "_" + Platform.family + ".tar.gz")
-          execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
+          val windows_app_platform = Isabelle_Platform.self.ISABELLE_PLATFORM64
+          val bundle = context.dist_name + "_" + Component_Windows_App.tool_platform() + ".tar.gz"
+          val bundle_path = context.dist_dir + Path.basic(bundle)
+          execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle_path))
 
           val other_isabelle = context.other_isabelle(tmp_dir, suffix = "")
 
