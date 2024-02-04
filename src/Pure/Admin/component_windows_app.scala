@@ -40,6 +40,8 @@ object Component_Windows_App {
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
+    Isabelle_System.require_command("7z", test = "")
+
     val platform_name = tool_platform()
 
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
