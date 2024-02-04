@@ -192,6 +192,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_Stack.isabelle_tool,
   Component_Vampire.isabelle_tool,
   Component_VeriT.isabelle_tool,
+  Component_Windows_App.isabelle_tool,
   Component_Zipperposition.isabelle_tool,
   Component_Zstd.isabelle_tool,
   Components.isabelle_tool,
