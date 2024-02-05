@@ -11,7 +11,7 @@ object Component_Windows_App {
   /* resources */
 
   def tool_platform(): String = {
-    require(Platform.is_linux, "Linux platform required")
+    require(Platform.is_unix, "Linux or macOS platform required")
     Isabelle_Platform.self.ISABELLE_PLATFORM64
   }
 
@@ -34,7 +34,6 @@ object Component_Windows_App {
     "https://github.com/chrislake/7zsfxmm/releases/download/1.7.1.3901/7zsd_extra_171_3901.7z"
 
   def build_windows_app(
-    build_binutils: Boolean = false,
     launch4j_url: String = default_launch4j_url,
     binutils_url: String = default_binutils_url,
     sfx_url: String = default_sfx_url,
@@ -67,23 +66,21 @@ object Component_Windows_App {
 
       /* GNU binutils */
 
-      if (build_binutils) {
-        Isabelle_System.download_file(binutils_url, download_tar, progress = progress)
-        Isabelle_System.extract(download_tar, tmp_dir, strip = true)
+      Isabelle_System.download_file(binutils_url, download_tar, progress = progress)
+      Isabelle_System.extract(download_tar, tmp_dir, strip = true)
 
-        progress.echo("Building GNU binutils for " + platform_name + " ...")
-        val build_script =
-          List("""./configure --prefix="$PWD/target" --with-windres --with-ld --target=x86_64-w64-mingw32""",
-            "make", "make install")
-        Isabelle_System.bash(build_script.mkString(" && "), cwd = tmp_dir.file,
-          progress_stdout = progress.echo(_, verbose = true),
-          progress_stderr = progress.echo(_, verbose = true)).check
+      progress.echo("Building GNU binutils for " + platform_name + " ...")
+      val build_script =
+        List("""./configure --prefix="$PWD/target" --target=x86_64-w64-mingw32""",
+          "make", "make install")
+      Isabelle_System.bash(build_script.mkString(" && "), cwd = tmp_dir.file,
+        progress_stdout = progress.echo(_, verbose = true),
+        progress_stderr = progress.echo(_, verbose = true)).check
 
-        for (name <- List("ld", "windres")) {
-          Isabelle_System.copy_file(
-            tmp_dir + Path.explode("target/bin") + Path.basic("x86_64-w64-mingw32-" + name),
-              platform_bin_dir + Path.basic(name))
-        }
+      for (name <- List("ld", "windres")) {
+        Isabelle_System.copy_file(
+          tmp_dir + Path.explode("target/bin") + Path.basic("x86_64-w64-mingw32-" + name),
+            platform_bin_dir + Path.basic(name))
       }
 
 
@@ -106,7 +103,7 @@ object Component_Windows_App {
 * Application launcher: http://launch4j.sourceforge.net
 
 * Platform binaries "ld" and "windres" from GNU binutils:
-  """ + binutils_url + """
+  """ + binutils_url + build_script.mkString("\n\n    ", "\n    ", "") + """
 
 * Self-extracting installer:
   """ + sfx_url + """
@@ -139,7 +136,6 @@ See also Isabelle/Admin/Windows/.
         "build windows_app component from GNU binutils and launch4j",
       Scala_Project.here,
       { args =>
-        var build_binutils = false
         var target_dir = Path.current
         var launch4j_url = default_launch4j_url
         var binutils_url = default_binutils_url
@@ -162,7 +158,6 @@ Usage: isabelle component_windows_app [OPTIONS]
 
   Build Isabelle windows_app component from GNU binutils and launch4j.
 """,
-          "B" -> (_ => build_binutils = true),
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => launch4j_url = arg),
           "V:" -> (arg => binutils_url = arg),
@@ -174,8 +169,7 @@ Usage: isabelle component_windows_app [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        build_windows_app(build_binutils = build_binutils,
-          launch4j_url = launch4j_url, binutils_url = binutils_url,
+        build_windows_app(launch4j_url = launch4j_url, binutils_url = binutils_url,
           sfx_url = sfx_url, progress = progress, target_dir = target_dir)
       })
 }
