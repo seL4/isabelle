@@ -71,7 +71,7 @@ object Component_Windows_App {
 
       progress.echo("Building GNU binutils for " + platform_name + " ...")
       val build_script =
-        List("""./configure --prefix="$PWD/target" --with-windres --with-ld --target=x86_64-w64-mingw32""",
+        List("""./configure --prefix="$PWD/target" --target=x86_64-w64-mingw32""",
           "make", "make install")
       Isabelle_System.bash(build_script.mkString(" && "), cwd = tmp_dir.file,
         progress_stdout = progress.echo(_, verbose = true),
