@@ -103,7 +103,7 @@ object Component_Windows_App {
 * Application launcher: http://launch4j.sourceforge.net
 
 * Platform binaries "ld" and "windres" from GNU binutils:
-  """ + binutils_url + """
+  """ + binutils_url + build_script.mkString("\n\n    ", "\n    ", "") + """
 
 * Self-extracting installer:
   """ + sfx_url + """
