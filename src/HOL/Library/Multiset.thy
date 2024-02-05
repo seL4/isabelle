@@ -3425,12 +3425,21 @@ proof -
   ultimately show thesis by (auto intro: that)
 qed
 
+lemma trans_on_mult:
+  assumes "trans_on A r" and "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  shows "trans_on B (mult r)"
+  using assms by (metis mult_def subset_UNIV trans_on_subset trans_trancl)
+
 lemma trans_mult: "trans r \<Longrightarrow> trans (mult r)"
-  by (simp add: mult_def)
+  using trans_on_mult[of UNIV r UNIV, simplified] .
+
+lemma transp_on_multp:
+  assumes "transp_on A r" and "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  shows "transp_on B (multp r)"
+  by (metis mult_def multp_def transD trans_trancl transp_onI)
 
 lemma transp_multp: "transp r \<Longrightarrow> transp (multp r)"
-  unfolding multp_def transp_trans_eq
-  by (fact trans_mult[of "{(x, y). r x y}" for r, folded transp_trans])
+  using transp_on_multp[of UNIV r UNIV, simplified] .
 
 lemma irrefl_mult:
   assumes "trans r" "irrefl r"

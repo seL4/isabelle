@@ -40,6 +40,11 @@ New in this Isabelle version
 
 * Lemma even_succ_div_2 renamed to even_half_succ_eq.  Minor INCOMPATIBILITY.
 
+* Theory "HOL-Library.Multiset":
+  - Added lemmas.
+      trans_on_mult
+      transp_on_multp
+
 
 *** ML ***
 
