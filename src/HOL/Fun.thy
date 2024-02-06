@@ -1024,7 +1024,6 @@ proof (rule monotone_onI)
     using mono_f[THEN monotone_onD] by simp
 qed
 
-
 subsubsection \<open>Specializations For @{class ord} Type Class And More\<close>
 
 context ord begin
@@ -1157,6 +1156,20 @@ proof (rule monoI)
 
   qed
 qed
+
+lemma mono_on_ident: "mono_on S (\<lambda>x. x)"
+  by (simp add: monotone_on_def)
+
+lemma strict_mono_on_ident: "strict_mono_on S (\<lambda>x. x)"
+  by (simp add: monotone_on_def)
+
+lemma mono_on_const:
+  fixes a :: "'b::order" shows "mono_on S (\<lambda>x. a)"
+  by (simp add: mono_on_def)
+
+lemma antimono_on_const:
+  fixes a :: "'b::order" shows "antimono_on S (\<lambda>x. a)"
+  by (simp add: monotone_on_def)
 
 end
 

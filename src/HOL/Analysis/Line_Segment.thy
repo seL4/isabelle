@@ -109,10 +109,7 @@ proof (auto simp: convex_def)
   fix u v :: real
   assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
   have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z"
-    using uv yz
-    using convex_on_dist [of "ball x e" x, unfolded convex_on_def,
-      THEN bspec[where x=y], THEN bspec[where x=z]]
-    by auto
+    using uv yz by (meson UNIV_I convex_def convex_on_def convex_on_dist)
   then show "dist x (u *\<^sub>R y + v *\<^sub>R z) < e"
     using convex_bound_lt[OF yz uv] by auto
 qed
@@ -127,10 +124,7 @@ proof -
     fix u v :: real
     assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
     have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z"
-      using uv yz
-      using convex_on_dist [of "cball x e" x, unfolded convex_on_def,
-        THEN bspec[where x=y], THEN bspec[where x=z]]
-      by auto
+      using uv yz by (meson UNIV_I convex_def convex_on_def convex_on_dist)
     then have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e"
       using convex_bound_le[OF yz uv] by auto
   }

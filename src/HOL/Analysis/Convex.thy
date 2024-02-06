@@ -302,20 +302,21 @@ qed (auto simp: convex_explicit assms)
 subsection \<open>Convex Functions on a Set\<close>
 
 definition\<^marker>\<open>tag important\<close> convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
-  where "convex_on S f \<longleftrightarrow>
+  where "convex_on S f \<longleftrightarrow> convex S \<and>
     (\<forall>x\<in>S. \<forall>y\<in>S. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
 
 definition\<^marker>\<open>tag important\<close> concave_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
   where "concave_on S f \<equiv> convex_on S (\<lambda>x. - f x)"
 
 lemma concave_on_iff:
-  "concave_on S f \<longleftrightarrow>
+  "concave_on S f \<longleftrightarrow> convex S \<and>
     (\<forall>x\<in>S. \<forall>y\<in>S. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<ge> u * f x + v * f y)"
   by (auto simp: concave_on_def convex_on_def algebra_simps)
 
 lemma convex_onI [intro?]:
   assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
     f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+    and "convex A"
   shows "convex_on A f"
   unfolding convex_on_def
   by (smt (verit, del_insts) assms mult_cancel_right1 mult_eq_0_iff scaleR_collapse scaleR_eq_0_iff)
@@ -324,6 +325,7 @@ lemma convex_on_linorderI [intro?]:
   fixes A :: "('a::{linorder,real_vector}) set"
   assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x < y \<Longrightarrow>
     f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+    and "convex A"
   shows "convex_on A f"
   by (smt (verit, best) add.commute assms convex_onI distrib_left linorder_cases mult.commute mult_cancel_left2 scaleR_collapse)
 
@@ -333,14 +335,20 @@ lemma convex_onD:
     f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
   using assms by (auto simp: convex_on_def)
 
+lemma convex_on_imp_convex: "convex_on A f \<Longrightarrow> convex A"
+  by (auto simp: convex_on_def)
+
+lemma concave_on_imp_convex: "concave_on A f \<Longrightarrow> convex A"
+  by (simp add: concave_on_def convex_on_imp_convex)
+
 lemma convex_onD_Icc:
   assumes "convex_on {x..y} f" "x \<le> (y :: _ :: {real_vector,preorder})"
   shows "\<And>t. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow>
     f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
   using assms(2) by (intro convex_onD [OF assms(1)]) simp_all
 
-lemma convex_on_subset: "convex_on t f \<Longrightarrow> S \<subseteq> t \<Longrightarrow> convex_on S f"
-  unfolding convex_on_def by auto
+lemma convex_on_subset: "\<lbrakk>convex_on T f; S \<subseteq> T; convex S\<rbrakk> \<Longrightarrow> convex_on S f"
+  by (simp add: convex_on_def subset_iff)
 
 lemma convex_on_add [intro]:
   assumes "convex_on S f"
@@ -359,7 +367,7 @@ proof -
     then have "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> u * (f x + g x) + v * (f y + g y)"
       by (simp add: field_simps)
   }
-  then show ?thesis
+  with assms show ?thesis
     unfolding convex_on_def by auto
 qed
 
@@ -396,8 +404,10 @@ qed
 
 lemma convex_on_dist [intro]:
   fixes S :: "'a::real_normed_vector set"
+  assumes "convex S"
   shows "convex_on S (\<lambda>x. dist a x)"
-proof (clarsimp simp: convex_on_def dist_norm)
+unfolding convex_on_def dist_norm
+proof (intro conjI strip)
   fix x y
   assume "x \<in> S" "y \<in> S"
   fix u v :: real
@@ -410,7 +420,7 @@ proof (clarsimp simp: convex_on_def dist_norm)
     by (auto simp: algebra_simps)
   then show "norm (a - (u *\<^sub>R x + v *\<^sub>R y)) \<le> u * norm (a - x) + v * norm (a - y)"
     by (smt (verit, best) \<open>0 \<le> u\<close> \<open>0 \<le> v\<close> norm_scaleR norm_triangle_ineq)
-qed
+qed (use assms in auto)
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetic operations on sets preserve convexity\<close>
@@ -568,7 +578,7 @@ qed
 
 lemma convex_on_alt:
   fixes C :: "'a::real_vector set"
-  shows "convex_on C f \<longleftrightarrow>
+  shows "convex_on C f \<longleftrightarrow> convex C \<and>
          (\<forall>x \<in> C. \<forall>y \<in> C. \<forall> \<mu> :: real. \<mu> \<ge> 0 \<and> \<mu> \<le> 1 \<longrightarrow>
           f (\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y) \<le> \<mu> * f x + (1 - \<mu>) * f y)"
   by (smt (verit) convex_on_def)
@@ -765,6 +775,11 @@ lemma convex_on_realI:
     and "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f' x \<le> f' y"
   shows "convex_on A f"
 proof (rule convex_on_linorderI)
+  show "convex A"
+    using \<open>connected A\<close> convex_real_interval interval_cases
+    by (smt (verit, ccfv_SIG) connectedD_interval convex_UNIV convex_empty)
+      \<comment> \<open>the equivalence of "connected" and "convex" for real intervals is proved later\<close>
+next
   fix t x y :: real
   assume t: "t > 0" "t < 1"
   assume xy: "x \<in> A" "y \<in> A" "x < y"
@@ -810,7 +825,7 @@ qed
 
 lemma convex_on_inverse:
   fixes A :: "real set"
-  assumes "A \<subseteq> {0<..}"
+  assumes "A \<subseteq> {0<..}" "convex A"
   shows "convex_on A inverse"
 proof -
   have "convex_on {0::real<..} inverse"
@@ -2307,15 +2322,13 @@ definition\<^marker>\<open>tag important\<close> "epigraph S (f :: _ \<Rightarro
 lemma mem_epigraph: "(x, y) \<in> epigraph S f \<longleftrightarrow> x \<in> S \<and> f x \<le> y"
   unfolding epigraph_def by auto
 
-lemma convex_epigraph: "convex (epigraph S f) \<longleftrightarrow> convex_on S f \<and> convex S"
+lemma convex_epigraph: "convex (epigraph S f) \<longleftrightarrow> convex_on S f"
 proof safe
   assume L: "convex (epigraph S f)"
   then show "convex_on S f"
-    by (auto simp: convex_def convex_on_def epigraph_def)
-  show "convex S"
-    using L by (fastforce simp: convex_def convex_on_def epigraph_def)
+    by (fastforce simp: convex_def convex_on_def epigraph_def)
 next
-  assume "convex_on S f" "convex S"
+  assume "convex_on S f"
   then show "convex (epigraph S f)"
     unfolding convex_def convex_on_def epigraph_def
     apply safe
@@ -2324,15 +2337,14 @@ next
     done
 qed
 
-lemma convex_epigraphI: "convex_on S f \<Longrightarrow> convex S \<Longrightarrow> convex (epigraph S f)"
+lemma convex_epigraphI: "convex_on S f \<Longrightarrow> convex (epigraph S f)"
   unfolding convex_epigraph by auto
 
-lemma convex_epigraph_convex: "convex S \<Longrightarrow> convex_on S f \<longleftrightarrow> convex(epigraph S f)"
+lemma convex_epigraph_convex: "convex_on S f \<longleftrightarrow> convex(epigraph S f)"
   by (simp add: convex_epigraph)
 
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Use this to derive general bound property of convex function\<close>
-
 
 lemma convex_on:
   assumes "convex S"
@@ -2360,7 +2372,7 @@ proof
 next
   assume "\<forall>k u x. ?rhs k u x"
   then show ?lhs
-  unfolding convex_epigraph_convex[OF assms] convex epigraph_def Ball_def mem_Collect_eq fst_sum snd_sum
+  unfolding convex_epigraph_convex convex epigraph_def Ball_def mem_Collect_eq fst_sum snd_sum
   using assms[unfolded convex] apply clarsimp
   apply (rule_tac y="\<Sum>i = 1..k. u i * f (fst (x i))" in order_trans)
   by (auto simp add: mult_left_mono intro: sum_mono)

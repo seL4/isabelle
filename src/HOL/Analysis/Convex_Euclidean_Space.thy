@@ -10,8 +10,7 @@ section \<open>Convex Sets and Functions on (Normed) Euclidean Spaces\<close>
 
 theory Convex_Euclidean_Space
 imports
-  Convex
-  Topology_Euclidean_Space
+  Convex Topology_Euclidean_Space Line_Segment
 begin
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological Properties of Convex Sets and Functions\<close>
@@ -1959,7 +1958,7 @@ subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounded convex functio
 lemma convex_on_bounded_continuous:
   fixes S :: "('a::real_normed_vector) set"
   assumes "open S"
-    and "convex_on S f"
+    and f: "convex_on S f"
     and "\<forall>x\<in>S. \<bar>f x\<bar> \<le> b"
   shows "continuous_on S f"
 proof -
@@ -2002,9 +2001,8 @@ proof -
             unfolding t_def using \<open>0 < e\<close> \<open>0 < k\<close> \<open>B > 0\<close> and as and False
             by (auto simp:field_simps)
           have "f y - f x \<le> (f w - f x) / t"
-            using assms(2)[unfolded convex_on_def,rule_format,of w x "1/t" "(t - 1)/t", unfolded w]
-            using \<open>0 < t\<close> \<open>2 < t\<close> and \<open>x \<in> S\<close> \<open>w \<in> S\<close>
-            by (auto simp:field_simps)
+            using convex_onD [OF f, of "(t - 1)/t" w x] \<open>0 < t\<close> \<open>2 < t\<close> \<open>x \<in> S\<close> \<open>w \<in> S\<close>
+            by (simp add: w field_simps)
           also have "... < e"
             using B(2)[OF \<open>w\<in>S\<close>] and B(2)[OF \<open>x\<in>S\<close>] 2 \<open>t > 0\<close> by (auto simp: field_simps)
           finally have th1: "f y - f x < e" .
@@ -2030,9 +2028,8 @@ proof -
             using \<open>t > 0\<close>
             by (auto simp:field_simps)
           have "f x \<le> 1 / (1 + t) * f w + (t / (1 + t)) * f y"
-            using assms(2)[unfolded convex_on_def,rule_format,of w y "1/(1+t)" "t / (1+t)",unfolded w]
-            using \<open>0 < t\<close> \<open>2 < t\<close> and \<open>y \<in> S\<close> \<open>w \<in> S\<close>
-            by (auto simp:field_simps)
+            using convex_onD [OF f, of "t / (1+t)" w y] \<open>0 < t\<close> \<open>2 < t\<close> \<open>y \<in> S\<close> \<open>w \<in> S\<close>
+            by (simp add: w field_simps)
           also have "\<dots> = (f w + t * f y) / (1 + t)"
             using \<open>t > 0\<close> by (simp add: add_divide_distrib) 
           also have "\<dots> < e + f y"
@@ -2051,8 +2048,8 @@ subsection\<^marker>\<open>tag unimportant\<close> \<open>Upper bound on a ball 
 
 lemma convex_bounds_lemma:
   fixes x :: "'a::real_normed_vector"
-  assumes "convex_on (cball x e) f"
-    and "\<forall>y \<in> cball x e. f y \<le> b" and y: "y \<in> cball x e"
+  assumes f: "convex_on (cball x e) f"
+    and b: "\<And>y. y \<in> cball x e \<Longrightarrow> f y \<le> b" and y: "y \<in> cball x e"
   shows "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>"
 proof (cases "0 \<le> e")
   case True
@@ -2064,9 +2061,8 @@ proof (cases "0 \<le> e")
   have "(1 / 2) *\<^sub>R y + (1 / 2) *\<^sub>R z = x"
     unfolding z_def by (auto simp: algebra_simps)
   then show "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>"
-    using assms(1)[unfolded convex_on_def,rule_format, OF y z, of "1/2" "1/2"]
-    using assms(2)[rule_format,OF y] assms(2)[rule_format,OF z]
-    by (auto simp:field_simps)
+    using convex_onD [OF f, of "1/2" y z] b[OF y] b y z
+    by (fastforce simp add: field_simps)
 next
   case False
   have "dist x y < 0"
@@ -2082,23 +2078,22 @@ lemma real_of_nat_ge_one_iff: "1 \<le> real (n::nat) \<longleftrightarrow> 1 \<l
   by auto
 
 lemma convex_on_continuous:
-  assumes "open (s::('a::euclidean_space) set)" "convex_on s f"
-  shows "continuous_on s f"
-  unfolding continuous_on_eq_continuous_at[OF assms(1)]
+  fixes S :: "'a::euclidean_space set"
+  assumes "open S" "convex_on S f"
+  shows "continuous_on S f"
+  unfolding continuous_on_eq_continuous_at[OF \<open>open S\<close>]
 proof
   note dimge1 = DIM_positive[where 'a='a]
   fix x
-  assume "x \<in> s"
-  then obtain e where e: "cball x e \<subseteq> s" "e > 0"
+  assume "x \<in> S"
+  then obtain e where e: "cball x e \<subseteq> S" "e > 0"
     using assms(1) unfolding open_contains_cball by auto
   define d where "d = e / real DIM('a)"
   have "0 < d"
     unfolding d_def using \<open>e > 0\<close> dimge1 by auto
   let ?d = "(\<Sum>i\<in>Basis. d *\<^sub>R i)::'a"
   obtain c
-    where c: "finite c"
-    and c1: "convex hull c \<subseteq> cball x e"
-    and c2: "cball x d \<subseteq> convex hull c"
+    where c: "finite c" and c1: "convex hull c \<subseteq> cball x e" and c2: "cball x d \<subseteq> convex hull c"
   proof
     define c where "c = (\<Sum>i\<in>Basis. (\<lambda>a. a *\<^sub>R i) ` {x\<bullet>i - d, x\<bullet>i + d})"
     show "finite c"
@@ -2145,9 +2140,11 @@ proof
     using \<open>convex_on (convex hull c) f\<close> c2 convex_on_subset by blast
   then have "\<And>y. y\<in>cball x d \<Longrightarrow> \<bar>f y\<bar> \<le> k + 2 * \<bar>f x\<bar>"
     by (rule convex_bounds_lemma) (use c2 k in blast)
-  then have "continuous_on (ball x d) f"
-    by (meson Elementary_Metric_Spaces.open_ball ball_subset_cball conv convex_on_bounded_continuous 
-              convex_on_subset mem_ball_imp_mem_cball)
+  moreover have "convex_on (ball x d) f"
+    using conv convex_on_subset by fastforce
+  ultimately
+  have "continuous_on (ball x d) f"
+    by (metis convex_on_bounded_continuous Elementary_Metric_Spaces.open_ball mem_ball_imp_mem_cball)
   then show "continuous (at x) f"
     unfolding continuous_on_eq_continuous_at[OF open_ball]
     using \<open>d > 0\<close> by auto
