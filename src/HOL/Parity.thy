@@ -192,6 +192,14 @@ lemma even_prod_iff:
   \<open>even (prod f A) \<longleftrightarrow> (\<exists>a\<in>A. even (f a))\<close> if \<open>finite A\<close>
   using that by (induction A) simp_all
 
+lemma even_half_maybe_succ_eq [simp]:
+  \<open>even a \<Longrightarrow> (of_bool b + a) div 2 = a div 2\<close>
+  by simp
+
+lemma even_half_maybe_succ'_eq [simp]:
+  \<open>even a \<Longrightarrow> (b mod 2 + a) div 2 = a div 2\<close>
+  by (simp add: mod2_eq_if)
+
 lemma mask_eq_sum_exp:
   \<open>2 ^ n - 1 = (\<Sum>m\<in>{q. q < n}. 2 ^ m)\<close>
 proof -

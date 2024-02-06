@@ -17,7 +17,7 @@ class semiring_bits = semiring_parity + semiring_modulo_trivial +
   assumes half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     and even_double_div_exp_iff: \<open>2 ^ Suc n \<noteq> 0 \<Longrightarrow> even (2 * a div 2 ^ Suc n) \<longleftrightarrow> even (a div 2 ^ n)\<close>
     and even_decr_exp_div_exp_iff: \<open>2 ^ n \<noteq> 0 \<Longrightarrow> even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close>
-    and even_mod_exp_diff_exp_iff: \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
+    and even_mod_exp_div_exp_iff: \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
   fixes bit :: \<open>'a \<Rightarrow> nat \<Rightarrow> bool\<close>
   assumes bit_iff_odd: \<open>bit a n \<longleftrightarrow> odd (a div 2 ^ n)\<close>
 begin
@@ -80,7 +80,7 @@ lemma stable_imp_bit_iff_odd:
 
 end
 
-lemma bit_iff_idd_imp_stable:
+lemma bit_iff_odd_imp_stable:
   \<open>a div 2 = a\<close> if \<open>\<And>n. bit a n \<longleftrightarrow> odd a\<close>
 using that proof (induction a rule: bit_induct)
   case (stable a)
@@ -182,7 +182,7 @@ proof -
     from stable(2) [of 0] have **: \<open>even b \<longleftrightarrow> even a\<close>
       by (simp add: bit_0)
     have \<open>b div 2 = b\<close>
-    proof (rule bit_iff_idd_imp_stable)
+    proof (rule bit_iff_odd_imp_stable)
       fix n
       from stable have *: \<open>bit b n \<longleftrightarrow> bit a n\<close>
         by simp
@@ -870,7 +870,7 @@ lemma take_bit_0 [simp]:
 
 lemma bit_take_bit_iff [bit_simps]:
   \<open>bit (take_bit m a) n \<longleftrightarrow> n < m \<and> bit a n\<close>
-  by (simp add: take_bit_eq_mod bit_iff_odd even_mod_exp_diff_exp_iff not_le)
+  by (simp add: take_bit_eq_mod bit_iff_odd even_mod_exp_div_exp_iff not_le)
 
 lemma take_bit_Suc:
   \<open>take_bit (Suc n) a = take_bit n (a div 2) * 2 + a mod 2\<close> (is \<open>?lhs = ?rhs\<close>)
