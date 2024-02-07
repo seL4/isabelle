@@ -2782,11 +2782,11 @@ proof (cases rule: linorder_cases)
       using \<open>t \<in> I\<close> \<open>x < t\<close> by auto
     show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
       using \<open>convex_on I f\<close> \<open>x \<in> I\<close> \<open>y \<in> I\<close> \<open>x < t\<close> \<open>t < y\<close>
-      by (rule convex_on_diff)
+      by (rule convex_on_slope_le)
   next
     fix y
     assume "y \<in> ?F x"
-    with order_trans[OF convex_on_diff[OF \<open>convex_on I f\<close> \<open>K \<in> I\<close> _ \<open>K < x\<close> _]]
+    with order_trans[OF convex_on_slope_le[OF \<open>convex_on I f\<close> \<open>K \<in> I\<close> _ \<open>K < x\<close> _]]
     show "(f K - f x) / (K - x) \<le> y" by auto
   qed
   then show ?thesis
@@ -2809,7 +2809,7 @@ next
     also
     fix z
     assume "z \<in> ?F x"
-    with order_trans[OF convex_on_diff[OF \<open>convex_on I f\<close> \<open>y \<in> I\<close> _ \<open>y < x\<close>]]
+    with order_trans[OF convex_on_slope_le[OF \<open>convex_on I f\<close> \<open>y \<in> I\<close> _ \<open>y < x\<close>]]
     have "(f y - f x) / (y - x) \<le> z"
       by auto
     finally show "(f x - f y) / (x - y) \<le> z" .

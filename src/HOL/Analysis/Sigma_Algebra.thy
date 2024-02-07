@@ -497,6 +497,9 @@ qed
 lemma sigma_sets_into_sp: "A \<subseteq> Pow sp \<Longrightarrow> x \<in> sigma_sets sp A \<Longrightarrow> x \<subseteq> sp"
   by (erule sigma_sets.induct, auto)
 
+lemma sigma_sets_finite: "\<lbrakk>x \<in> sigma_sets \<Omega> (Pow \<Omega>); finite \<Omega>\<rbrakk> \<Longrightarrow> finite x"
+  by (meson finite_subset order.refl sigma_sets_into_sp)
+
 lemma sigma_algebra_sigma_sets:
      "a \<subseteq> Pow \<Omega> \<Longrightarrow> sigma_algebra \<Omega> (sigma_sets \<Omega> a)"
   by (auto simp add: sigma_algebra_iff2 dest: sigma_sets_into_sp
@@ -1585,6 +1588,11 @@ proof -
     by (auto simp add: measure_of_def intro!: arg_cong[where f=Abs_measure])
 qed
 
+lemma measure_space_Pow_eq:
+  assumes "\<And>X. X \<in> Pow \<Omega> \<Longrightarrow> \<mu> X = \<mu>' X"
+  shows "measure_space \<Omega> (Pow \<Omega>) \<mu> = measure_space \<Omega> (Pow \<Omega>) \<mu>'"
+  by (smt (verit, best) assms measure_space_eq sigma_algebra.sigma_sets_eq sigma_algebra_Pow subset_eq)
+
 lemma
   shows space_measure_of_conv: "space (measure_of \<Omega> A \<mu>) = \<Omega>" (is ?space)
   and sets_measure_of_conv:
@@ -1925,6 +1933,10 @@ lemma
 lemma measurable_count_space_eq1[simp]:
   "f \<in> measurable (count_space A) M \<longleftrightarrow> f \<in> A \<rightarrow> space M"
  unfolding measurable_def by simp
+
+lemma finite_count_space: "finite \<Omega> \<Longrightarrow> count_space \<Omega> = measure_of \<Omega> (Pow \<Omega>) card"
+  unfolding count_space_def
+  by (smt (verit, best) PowD Pow_top count_space_def finite_subset measure_of_eq sets_count_space sets_measure_of)
 
 lemma measurable_compose_countable':
   assumes f: "\<And>i. i \<in> I \<Longrightarrow> (\<lambda>x. f i x) \<in> measurable M N"

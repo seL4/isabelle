@@ -1145,9 +1145,9 @@ proof -
     unfolding phi_def proof (rule cInf_greatest, auto)
       fix t assume "t \<in> I" "y < t"
       have "(q x - q y) / (x - y) \<le> (q x - q t) / (x - t)"
-        apply (rule convex_on_diff[OF q(2)]) using \<open>y < t\<close> \<open>x < y\<close> \<open>t \<in> I\<close> \<open>x \<in> I\<close> by auto
+        apply (rule convex_on_slope_le[OF q(2)]) using \<open>y < t\<close> \<open>x < y\<close> \<open>t \<in> I\<close> \<open>x \<in> I\<close> by auto
       also have "... \<le> (q y - q t) / (y - t)"
-        apply (rule convex_on_diff[OF q(2)]) using \<open>y < t\<close> \<open>x < y\<close> \<open>t \<in> I\<close> \<open>x \<in> I\<close> by auto
+        apply (rule convex_on_slope_le[OF q(2)]) using \<open>y < t\<close> \<open>x < y\<close> \<open>t \<in> I\<close> \<open>x \<in> I\<close> by auto
       finally show "(q x - q y) / (x - y) \<le> (q y - q t) / (y - t)" by simp
     next
       obtain e where "0 < e" "ball y e \<subseteq> I" using \<open>open I\<close> \<open>y \<in> I\<close> openE by blast

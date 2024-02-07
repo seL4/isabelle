@@ -2472,6 +2472,15 @@ lemma emeasure_point_measure_finite:
   "finite A \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"
   by (subst emeasure_point_measure) (auto dest: finite_subset intro!: sum.mono_neutral_left simp: less_le)
 
+lemma emeasure_point_measure_finite_if:
+  "finite A \<Longrightarrow> emeasure (point_measure A f) X = (if X \<subseteq> A then \<Sum>a\<in>X. f a else 0)"
+  by (simp add: emeasure_point_measure_finite emeasure_notin_sets sets_point_measure)
+
+lemma measure_point_measure_finite_if:
+  assumes "finite A" and "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> 0"
+  shows "measure (point_measure A f) X = (if X \<subseteq> A then \<Sum>a\<in>X. f a else 0)"
+  by (simp add: Sigma_Algebra.measure_def assms emeasure_point_measure_finite_if subset_eq sum_nonneg)
+
 lemma emeasure_point_measure_finite2:
   "X \<subseteq> A \<Longrightarrow> finite X \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"
   by (subst emeasure_point_measure)
@@ -2607,9 +2616,17 @@ lemma emeasure_uniform_count_measure:
   by (simp add: emeasure_point_measure_finite uniform_count_measure_def divide_inverse ennreal_mult
                 ennreal_of_nat_eq_real_of_nat)
 
+lemma emeasure_uniform_count_measure_if:
+  "finite A \<Longrightarrow> emeasure (uniform_count_measure A) X = (if X \<subseteq> A then card X / card A else 0)"
+  by (simp add: emeasure_notin_sets emeasure_uniform_count_measure sets_uniform_count_measure)
+
 lemma measure_uniform_count_measure:
   "finite A \<Longrightarrow> X \<subseteq> A \<Longrightarrow> measure (uniform_count_measure A) X = card X / card A"
   by (simp add: emeasure_point_measure_finite uniform_count_measure_def measure_def enn2real_mult)
+
+lemma measure_uniform_count_measure_if:
+  "finite A \<Longrightarrow> measure (uniform_count_measure A) X = (if X \<subseteq> A then card X / card A else 0)"
+  by (simp add: measure_uniform_count_measure measure_notin_sets sets_uniform_count_measure)
 
 lemma space_uniform_count_measure_empty_iff [simp]:
   "space (uniform_count_measure X) = {} \<longleftrightarrow> X = {}"
@@ -2618,7 +2635,7 @@ by(simp add: space_uniform_count_measure)
 lemma sets_uniform_count_measure_eq_UNIV [simp]:
   "sets (uniform_count_measure UNIV) = UNIV \<longleftrightarrow> True"
   "UNIV = sets (uniform_count_measure UNIV) \<longleftrightarrow> True"
-by(simp_all add: sets_uniform_count_measure)
+  by(simp_all add: sets_uniform_count_measure)
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Scaled measure\<close>
 
