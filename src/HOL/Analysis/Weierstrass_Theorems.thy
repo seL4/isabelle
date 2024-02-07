@@ -524,7 +524,8 @@ proof -
       have "\<And>i. i \<in> subA \<Longrightarrow> e / real (card subA) \<le> 1 \<and> 1 - e / real (card subA) < ff i x"
         using e \<open>B \<subseteq> S\<close> ff subA(1) x by (force simp: field_split_simps)
       then show ?thesis
-        using prod_mono_strict [where f = "\<lambda>x. 1 - e / card subA"] subA(2) by (force simp add: pff_def)
+        using prod_mono_strict[of _ subA "\<lambda>x. 1 - e / card subA" ] subA
+        unfolding pff_def by (smt (verit, best) UN_E assms(3) subsetD)
     qed
     finally have "1 - e < pff x" .
   }

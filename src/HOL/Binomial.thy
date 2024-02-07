@@ -21,6 +21,15 @@ text \<open>Combinatorial definition\<close>
 definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"  (infixl "choose" 65)
   where "n choose k = card {K\<in>Pow {0..<n}. card K = k}"
 
+lemma binomial_mono:
+  assumes "m \<le> n" shows "m choose k \<le> n choose k"
+proof -
+  have "{K. K \<subseteq> {0..<m} \<and> card K = k} \<subseteq> {K. K \<subseteq> {0..<n} \<and> card K = k}"
+    using assms by auto
+  then show ?thesis
+    by (simp add: binomial_def card_mono)
+qed
+
 theorem n_subsets:
   assumes "finite A"
   shows "card {B. B \<subseteq> A \<and> card B = k} = card A choose k"

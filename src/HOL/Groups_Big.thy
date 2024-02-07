@@ -1606,16 +1606,23 @@ lemma prod_mono:
   "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> g i) \<Longrightarrow> prod f A \<le> prod g A"
   by (induct A rule: infinite_finite_induct) (force intro!: prod_nonneg mult_mono)+
 
+text \<open>Only one needs to be strict\<close>
 lemma prod_mono_strict:
-  assumes "finite A" "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
-  shows "prod f A < prod g A"
-  using assms
-proof (induct A rule: finite_induct)
-  case empty
-  then show ?case by simp
-next
-  case insert
-  then show ?case by (force intro: mult_strict_mono' prod_nonneg)
+  assumes "i \<in> A" "f i < g i"
+  assumes "finite A"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> g i"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 < g i"
+  shows   "prod f A < prod g A"
+proof -
+  have "prod f A = f i * prod f (A - {i})"
+    using assms by (intro prod.remove)
+  also have "\<dots> \<le> f i * prod g (A - {i})"
+    using assms by (intro mult_left_mono prod_mono) auto
+  also have "\<dots> < g i * prod g (A - {i})"
+    using assms by (intro mult_strict_right_mono prod_pos) auto
+  also have "\<dots> = prod g A"
+    using assms by (intro prod.remove [symmetric])
+  finally show ?thesis .
 qed
 
 lemma prod_le_power:
@@ -1741,5 +1748,25 @@ next
   also from insert(1, 2) have "\<dots> = sum (g \<circ> f) (insert x F)" by (simp add: sum.insert_if)
   finally show ?case .
 qed
+
+lemma (in linordered_semidom) prod_mono_strict':
+  assumes "i \<in> A"
+  assumes "finite A"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> g i"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 < g i"
+  assumes "f i < g i"
+  shows   "prod f A < prod g A"
+proof -
+  have "prod f A = f i * prod f (A - {i})"
+    using assms by (intro prod.remove)
+  also have "\<dots> \<le> f i * prod g (A - {i})"
+    using assms by (intro mult_left_mono prod_mono) auto
+  also have "\<dots> < g i * prod g (A - {i})"
+    using assms by (intro mult_strict_right_mono prod_pos) auto
+  also have "\<dots> = prod g A"
+    using assms by (intro prod.remove [symmetric])
+  finally show ?thesis .
+qed
+
 
 end
