@@ -1749,24 +1749,4 @@ next
   finally show ?case .
 qed
 
-lemma (in linordered_semidom) prod_mono_strict':
-  assumes "i \<in> A"
-  assumes "finite A"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> g i"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> 0 < g i"
-  assumes "f i < g i"
-  shows   "prod f A < prod g A"
-proof -
-  have "prod f A = f i * prod f (A - {i})"
-    using assms by (intro prod.remove)
-  also have "\<dots> \<le> f i * prod g (A - {i})"
-    using assms by (intro mult_left_mono prod_mono) auto
-  also have "\<dots> < g i * prod g (A - {i})"
-    using assms by (intro mult_strict_right_mono prod_pos) auto
-  also have "\<dots> = prod g A"
-    using assms by (intro prod.remove [symmetric])
-  finally show ?thesis .
-qed
-
-
 end
