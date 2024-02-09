@@ -16,7 +16,6 @@ class semiring_bits = semiring_parity + semiring_modulo_trivial +
         \<Longrightarrow> P a\<close>
   assumes half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     and even_double_div_exp_iff: \<open>2 ^ Suc n \<noteq> 0 \<Longrightarrow> even (2 * a div 2 ^ Suc n) \<longleftrightarrow> even (a div 2 ^ n)\<close>
-    and even_decr_exp_div_exp_iff: \<open>2 ^ n \<noteq> 0 \<Longrightarrow> even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close>
     and even_mod_exp_div_exp_iff: \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
   fixes bit :: \<open>'a \<Rightarrow> nat \<Rightarrow> bool\<close>
   assumes bit_iff_odd: \<open>bit a n \<longleftrightarrow> odd (a div 2 ^ n)\<close>
@@ -417,8 +416,6 @@ proof
     with rec [of n True] show ?case
       by simp
   qed
-  show \<open>even (((2 :: nat) ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close> for m n :: nat
-    using even_decr_exp_div_exp_iff' [of m n] .
   show \<open>even (q mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (q div 2 ^ n)\<close> for q m n :: nat
   proof (cases \<open>m \<le> n\<close>)
     case True
@@ -576,8 +573,6 @@ proof
     with rec [of k True] show ?case
       by (simp add: ac_simps)
   qed
-  show \<open>even (((2 :: int) ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close> for m n :: nat
-    using even_decr_exp_div_exp_iff' [of m n] .
   show \<open>even (k mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (k div 2 ^ n)\<close> for k :: int and m n :: nat
   proof (cases \<open>m \<le> n\<close>)
     case True
@@ -728,6 +723,10 @@ lemma even_or_iff:
   \<open>even (a OR b) \<longleftrightarrow> even a \<and> even b\<close>
   using bit_or_iff [of a b 0] by (auto simp add: bit_0)
 
+lemma disjunctive_add:
+  \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
+  by (rule bit_eqI) (use that in \<open>simp add: bit_disjunctive_add_iff bit_or_iff\<close>)
+
 lemma even_xor_iff:
   \<open>even (a XOR b) \<longleftrightarrow> (even a \<longleftrightarrow> even b)\<close>
   using bit_xor_iff [of a b 0] by (auto simp add: bit_0)
@@ -770,32 +769,82 @@ lemma xor_self_eq [simp]:
   \<open>a XOR a = 0\<close>
   by (rule bit_eqI) (simp add: bit_simps)
 
+lemma mask_0 [simp]:
+  \<open>mask 0 = 0\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
+lemma inc_mask_eq_exp:
+  \<open>mask n + 1 = 2 ^ n\<close>
+proof (induction n)
+  case 0
+  then show ?case
+    by simp
+next
+  case (Suc n)
+  from Suc.IH [symmetric] have \<open>2 ^ Suc n = 2 * mask n + 2\<close>
+    by (simp add: algebra_simps)
+  also have \<open>\<dots> = 2 * mask n + 1 + 1\<close>
+    by (simp add: add.assoc)
+  finally have *: \<open>2 ^ Suc n = 2 * mask n + 1 + 1\<close> .
+  then show ?case
+    by (simp add: mask_eq_exp_minus_1)
+qed
+
+lemma mask_Suc_double:
+  \<open>mask (Suc n) = 1 OR 2 * mask n\<close>
+proof -
+  have \<open>mask (Suc n) + 1 = (mask n + 1) + (mask n + 1)\<close>
+    by (simp add: inc_mask_eq_exp mult_2)
+  also have \<open>\<dots> = (1 OR 2 * mask n) + 1\<close>
+    by (simp add: one_or_eq mult_2_right algebra_simps)
+  finally show ?thesis
+    by simp
+qed
+
 lemma bit_mask_iff [bit_simps]:
   \<open>bit (mask m) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n < m\<close>
-  apply (cases \<open>possible_bit TYPE('a) n\<close>)
-   apply (simp add: bit_iff_odd mask_eq_exp_minus_1 possible_bit_def even_decr_exp_div_exp_iff not_le)
-  apply (simp add: impossible_bit)
-  done
+proof (cases \<open>possible_bit TYPE('a) n\<close>)
+  case False
+  then show ?thesis
+    by (simp add: impossible_bit)
+next
+  case True
+  then have \<open>bit (mask m) n \<longleftrightarrow> n < m\<close>
+  proof (induction m arbitrary: n)
+    case 0
+    then show ?case
+      by (simp add: bit_iff_odd)
+  next
+    case (Suc m)
+    show ?case
+    proof (cases n)
+      case 0
+      then show ?thesis
+        by (simp add: bit_0 mask_Suc_double even_or_iff)
+    next
+      case (Suc n)
+      with Suc.prems have \<open>possible_bit TYPE('a) n\<close>
+        using possible_bit_less_imp by auto
+      with Suc.IH [of n] have \<open>bit (mask m) n \<longleftrightarrow> n < m\<close> .
+      with Suc.prems show ?thesis
+        by (simp add: Suc mask_Suc_double bit_simps)
+    qed
+  qed
+  with True show ?thesis
+    by simp
+qed
 
 lemma even_mask_iff:
   \<open>even (mask n) \<longleftrightarrow> n = 0\<close>
   using bit_mask_iff [of n 0] by (auto simp add: bit_0)
 
-lemma mask_0 [simp]:
-  \<open>mask 0 = 0\<close>
-  by (simp add: mask_eq_exp_minus_1)
-
 lemma mask_Suc_0 [simp]:
   \<open>mask (Suc 0) = 1\<close>
-  by (simp add: mask_eq_exp_minus_1 add_implies_diff sym)
+  by (simp add: mask_Suc_double)
 
 lemma mask_Suc_exp:
   \<open>mask (Suc n) = 2 ^ n OR mask n\<close>
   by (auto simp add: bit_eq_iff bit_simps)
-
-lemma mask_Suc_double:
-  \<open>mask (Suc n) = 1 OR 2 * mask n\<close>
-  by (auto simp add: bit_eq_iff bit_simps elim: possible_bit_less_imp)
 
 lemma mask_numeral:
   \<open>mask (numeral n) = 1 + 2 * mask (pred_numeral n)\<close>
@@ -1088,10 +1137,6 @@ lemma take_bit_eq_mask:
 lemma or_eq_0_iff:
   \<open>a OR b = 0 \<longleftrightarrow> a = 0 \<and> b = 0\<close>
   by (auto simp add: bit_eq_iff bit_or_iff)
-
-lemma disjunctive_add:
-  \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
-  by (rule bit_eqI) (use that in \<open>simp add: bit_disjunctive_add_iff bit_or_iff\<close>)
 
 lemma bit_iff_and_drop_bit_eq_1:
   \<open>bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close>
@@ -3682,10 +3727,6 @@ subsection \<open>Lemma duplicates and other\<close>
 context semiring_bits
 begin
 
-lemma even_mask_div_iff [no_atp]:
-  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
-  by (cases \<open>2 ^ n = 0\<close>) (simp_all add: even_decr_exp_div_exp_iff)
-
 lemma exp_div_exp_eq [no_atp]:
   \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
   apply (rule bit_eqI)
@@ -3753,6 +3794,10 @@ end
 
 context semiring_bit_operations
 begin
+
+lemma even_mask_div_iff [no_atp]:
+  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
+  using bit_mask_iff [of m n] by (auto simp add: mask_eq_exp_minus_1 bit_iff_odd possible_bit_def)
 
 lemma mod_exp_eq [no_atp]:
   \<open>a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n\<close>

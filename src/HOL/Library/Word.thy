@@ -849,10 +849,6 @@ instance proof
     for a :: \<open>'a word\<close> and n :: nat
     using that by transfer
       (simp add: even_drop_bit_iff_not_bit bit_simps flip: drop_bit_eq_div del: power.simps)
-  show \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> m \<le> n\<close> if \<open>2 ^ n \<noteq> (0::'a word)\<close>
-    for m n :: nat
-    using that by transfer
-      (simp flip: drop_bit_eq_div mask_eq_exp_minus_1 add: bit_simps even_drop_bit_iff_not_bit not_less)
   show \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
     for a :: \<open>'a word\<close> and m n :: nat
     by transfer
