@@ -747,6 +747,8 @@ corollary finite_funcset_iff:
   "finite(I \<rightarrow>\<^sub>E S) \<longleftrightarrow> (\<exists>a. S \<subseteq> {a}) \<or> I = {} \<or> finite I \<and> finite S"
   by (fastforce simp: finite_PiE_iff PiE_eq_empty_iff dest: subset_singletonD)
 
+subsection \<open>Misc other resultd\<close>
+
 lemma lists_lepoll_mono:
   assumes "A \<lesssim> B" shows "lists A \<lesssim> lists B"
 proof -
@@ -761,5 +763,38 @@ qed
 
 lemma lepoll_lists: "A \<lesssim> lists A"
   unfolding lepoll_def inj_on_def by(rule_tac x="\<lambda>x. [x]" in exI) auto
+
+text \<open>Dedekind's definition of infinite set\<close>
+
+lemma infinite_iff_psubset: "infinite A \<longleftrightarrow> (\<exists>B. B \<subset> A \<and> A\<approx>B)"
+proof
+  assume "infinite A"
+  then obtain f :: "nat \<Rightarrow> 'a" where "inj f" and f: "range f \<subseteq> A"
+    by (meson infinite_countable_subset)
+  define C where "C \<equiv> A - range f"
+  have C: "A = range f \<union> C" "range f \<inter> C = {}"
+    using f by (auto simp: C_def)
+  have *: "range (f \<circ> Suc) \<subset> range f"
+    using inj_eq [OF \<open>inj f\<close>] by (fastforce simp: set_eq_iff)
+  have "range f \<union> C \<approx> range (f \<circ> Suc) \<union> C"
+  proof (intro Un_eqpoll_cong)
+    show "range f \<approx> range (f \<circ> Suc)"
+      by (meson \<open>inj f\<close> eqpoll_refl inj_Suc inj_compose inj_on_image_eqpoll_2)
+    show "disjnt (range f) C"
+      by (simp add: C disjnt_def)
+    then show "disjnt (range (f \<circ> Suc)) C"
+      using "*" disjnt_subset1 by blast
+  qed auto
+  moreover have "range (f \<circ> Suc) \<union> C \<subset> A"
+    using "*" f C_def by blast
+  ultimately show "\<exists>B\<subset>A. A \<approx> B"
+    by (metis C(1))
+next
+  assume "\<exists>B\<subset>A. A \<approx> B" then show "infinite A"
+    by (metis card_subset_eq eqpoll_finite_iff eqpoll_iff_card psubsetE)
+qed
+
+lemma infinite_iff_psubset_le: "infinite A \<longleftrightarrow> (\<exists>B. B \<subset> A \<and> A \<lesssim> B)"
+  by (meson eqpoll_imp_lepoll infinite_iff_psubset lepoll_antisym psubsetE subset_imp_lepoll)
 
 end

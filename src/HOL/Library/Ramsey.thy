@@ -18,6 +18,9 @@ subsubsection \<open>The $n$-element subsets of a set $A$\<close>
 definition nsets :: "['a set, nat] \<Rightarrow> 'a set set" ("([_]\<^bsup>_\<^esup>)" [0,999] 999)
   where "nsets A n \<equiv> {N. N \<subseteq> A \<and> finite N \<and> card N = n}"
 
+lemma finite_imp_finite_nsets: "finite A \<Longrightarrow> finite ([A]\<^bsup>k\<^esup>)"
+  by (simp add: nsets_def)
+
 lemma nsets_mono: "A \<subseteq> B \<Longrightarrow> nsets A n \<subseteq> nsets B n"
   by (auto simp: nsets_def)
 
@@ -26,6 +29,11 @@ lemma nsets_Pi_contra: "A' \<subseteq> A \<Longrightarrow> Pi ([A]\<^bsup>n\<^es
 
 lemma nsets_2_eq: "nsets A 2 = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. {{x, y}})"
   by (auto simp: nsets_def card_2_iff)
+
+lemma nsets2_E:
+  assumes "e \<in> [A]\<^bsup>2\<^esup>"
+  obtains x y where "e = {x,y}" "x \<in> A" "y \<in> A" "x\<noteq>y"
+  using assms by (auto simp: nsets_def card_2_iff)
 
 lemma nsets_doubleton_2_eq [simp]: "[{x, y}]\<^bsup>2\<^esup> = (if x=y then {} else {{x, y}})"
   by (auto simp: nsets_2_eq)
@@ -253,6 +261,45 @@ qed
 lemma partn_lst_eq_partn: "partn_lst {..<n} [m,m] 2 = partn {..<n} m 2 {..<2::nat}"
   apply (simp add: partn_lst_def partn_def numeral_2_eq_2)
   by (metis less_2_cases numeral_2_eq_2 lessThan_iff nth_Cons_0 nth_Cons_Suc)
+
+lemma partn_lstE:
+  assumes "partn_lst \<beta> \<alpha> \<gamma>" "f \<in> nsets \<beta> \<gamma>  \<rightarrow>  {..<l}" "length \<alpha> = l"
+  obtains i H where "i < length \<alpha>" "H \<in> nsets \<beta> (\<alpha>!i)" "f ` (nsets H \<gamma>) \<subseteq> {i}"
+  using partn_lst_def assms by blast
+
+lemma partn_lst_less:
+  assumes M: "partn_lst \<beta> \<alpha> n" and eq: "length \<alpha>' = length \<alpha>" 
+    and le: "\<And>i. i < length \<alpha> \<Longrightarrow> \<alpha>'!i \<le> \<alpha>!i "
+  shows "partn_lst \<beta> \<alpha>' n"
+proof (clarsimp simp: partn_lst_def)
+  fix f
+  assume "f \<in> [\<beta>]\<^bsup>n\<^esup> \<rightarrow> {..<length \<alpha>'}"
+  then obtain i H where i: "i < length \<alpha>"
+                   and "H \<subseteq> \<beta>"  and H: "card H = (\<alpha>!i)" and "finite H"
+                   and fi: "f ` nsets H n \<subseteq> {i}"
+    using assms by (auto simp: partn_lst_def nsets_def)
+  then obtain bij where bij: "bij_betw bij H {0..<\<alpha>!i}"
+    by (metis ex_bij_betw_finite_nat)
+  then have inj: "inj_on (inv_into H bij) {0..<\<alpha>' ! i}"
+    by (metis bij_betw_def dual_order.refl i inj_on_inv_into ivl_subset le)
+  define H' where "H' = inv_into H bij ` {0..<\<alpha>'!i}"
+  show "\<exists>i<length \<alpha>'. \<exists>H\<in>[\<beta>]\<^bsup>(\<alpha>' ! i)\<^esup>. f ` [H]\<^bsup>n\<^esup> \<subseteq> {i}"
+  proof (intro exI bexI conjI)
+    show "i < length \<alpha>'"
+      by (simp add: assms(2) i)
+    have "H' \<subseteq> H"
+      using bij \<open>i < length \<alpha>\<close> bij_betw_imp_surj_on le
+      by (force simp: H'_def image_subset_iff intro: inv_into_into)
+    then have "finite H'"
+      by (simp add: \<open>finite H\<close> finite_subset)
+    with \<open>H' \<subseteq> H\<close> have cardH': "card H' = (\<alpha>'!i)"
+      unfolding H'_def by (simp add: inj card_image)
+    show "f ` [H']\<^bsup>n\<^esup> \<subseteq> {i}"
+      by (meson \<open>H' \<subseteq> H\<close> dual_order.trans fi image_mono nsets_mono)
+    show "H' \<in> [\<beta>]\<^bsup>(\<alpha>'! i)\<^esup>"
+      using \<open>H \<subseteq> \<beta>\<close> \<open>H' \<subseteq> H\<close> \<open>finite H'\<close> cardH' nsets_def by fastforce
+  qed
+qed
 
 
 subsection \<open>Finite versions of Ramsey's theorem\<close>
