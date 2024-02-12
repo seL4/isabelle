@@ -885,6 +885,10 @@ next
   qed
 qed
 
+lemma funpow_double_eq_push_bit:
+  \<open>times 2 ^^ n = push_bit n\<close>
+  by (induction n) (simp_all add: fun_eq_iff push_bit_double ac_simps)
+
 lemma div_push_bit_of_1_eq_drop_bit:
   \<open>a div push_bit n 1 = drop_bit n a\<close>
   by (simp add: push_bit_eq_mult drop_bit_eq_div)
@@ -1318,6 +1322,10 @@ lemma not_rec:
   \<open>NOT a = of_bool (even a) + 2 * NOT (a div 2)\<close>
   by (simp add: not_eq_complement algebra_simps mod_2_eq_odd flip: minus_mod_eq_mult_div)
 
+lemma decr_eq_not_minus:
+  \<open>a - 1 = NOT (- a)\<close>
+  using not_eq_complement [of \<open>- a\<close>] by simp
+
 lemma even_not_iff [simp]:
   \<open>even (NOT a) \<longleftrightarrow> odd a\<close>
   by (simp add: not_eq_complement)
@@ -1364,6 +1372,10 @@ lemma bit_minus_exp_iff [bit_simps]:
 lemma bit_minus_2_iff [simp]:
   \<open>bit (- 2) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> n > 0\<close>
   by (simp add: bit_minus_iff bit_1_iff)
+
+lemma bit_decr_iff:
+  \<open>bit (a - 1) n \<longleftrightarrow> possible_bit TYPE('a) n \<and> \<not> bit (- a) n\<close>
+  by (simp add: decr_eq_not_minus bit_not_iff)
 
 lemma bit_not_iff_eq:
   \<open>bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
@@ -2688,6 +2700,17 @@ lemma bit_numeral_Bit1_0 [simp]:
   \<open>bit (numeral (Num.Bit1 m)) 0\<close>
   by (simp add: bit_0)
 
+lemma bit_numeral_Bit0_iff:
+  \<open>bit (numeral (num.Bit0 m)) n
+    \<longleftrightarrow> possible_bit TYPE('a) n \<and> n > 0 \<and> bit (numeral m) (n - 1)\<close>
+  by (simp only: numeral_Bit0_eq_double [of m] bit_simps) simp
+
+lemma bit_numeral_Bit1_Suc_iff:
+  \<open>bit (numeral (num.Bit1 m)) (Suc n)
+    \<longleftrightarrow> possible_bit TYPE('a) (Suc n) \<and> bit (numeral m) n\<close>
+  using even_bit_succ_iff [of \<open>2 * numeral m\<close> \<open>Suc n\<close>]
+  by (simp only: numeral_Bit1_eq_inc_double [of m] bit_simps) simp
+
 end
 
 context ring_bit_operations
@@ -2700,6 +2723,26 @@ lemma not_bit_minus_numeral_Bit0_0 [simp]:
 lemma bit_minus_numeral_Bit1_0 [simp]:
   \<open>bit (- numeral (Num.Bit1 m)) 0\<close>
   by (simp add: bit_0)
+
+lemma bit_minus_numeral_Bit0_Suc_iff:
+  \<open>bit (- numeral (num.Bit0 m)) (Suc n)
+    \<longleftrightarrow> possible_bit TYPE('a) (Suc n) \<and> bit (- numeral m) n\<close>
+  by (simp only: numeral_Bit0_eq_double [of m] minus_mult_right bit_simps) auto
+
+lemma bit_minus_numeral_Bit1_Suc_iff:
+  \<open>bit (- numeral (num.Bit1 m)) (Suc n)
+    \<longleftrightarrow> possible_bit TYPE('a) (Suc n) \<and> \<not> bit (numeral m) n\<close>
+  by (simp only: numeral_Bit1_eq_inc_double [of m] minus_add_distrib minus_mult_right add_uminus_conv_diff
+    bit_decr_iff bit_double_iff)
+    auto
+
+lemma bit_numeral_BitM_0 [simp]:
+  \<open>bit (numeral (Num.BitM m)) 0\<close>
+  by (simp only: numeral_BitM bit_decr_iff not_bit_minus_numeral_Bit0_0) simp
+
+lemma bit_numeral_BitM_Suc_iff:
+  \<open>bit (numeral (Num.BitM m)) (Suc n) \<longleftrightarrow> possible_bit TYPE('a) (Suc n) \<and> \<not> bit (- numeral m) n\<close>
+  by (simp_all only: numeral_BitM bit_decr_iff bit_minus_numeral_Bit0_Suc_iff) auto
 
 end
 

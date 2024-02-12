@@ -564,6 +564,14 @@ lemma left_add_twice:
   "a + (a + b) = 2 * a + b"
   by (simp add: mult_2 ac_simps)
 
+lemma numeral_Bit0_eq_double:
+  \<open>numeral (num.Bit0 n) = 2 * numeral n\<close>
+  by (simp add: mult_2) (simp add: numeral_Bit0)
+
+lemma numeral_Bit1_eq_inc_double:
+  \<open>numeral (num.Bit1 n) = 2 * numeral n + 1\<close>
+  by (simp add: mult_2) (simp add: numeral_Bit1)
+
 end
 
 

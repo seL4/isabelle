@@ -3297,6 +3297,14 @@ text \<open>Use \<open>iszero\<close> to simplify equalities between word numera
 lemmas word_eq_numeral_iff_iszero [simp] =
   eq_numeral_iff_iszero [where 'a="'a::len word"]
 
+lemma word_less_eq_imp_half_less_eq:
+  \<open>v div 2 \<le> w div 2\<close> if \<open>v \<le> w\<close> for v w :: \<open>'a::len word\<close>
+  using that by (simp add: word_le_nat_alt unat_div div_le_mono)
+
+lemma word_half_less_imp_less_eq:
+  \<open>v \<le> w\<close> if \<open>v div 2 < w div 2\<close> for v w :: \<open>'a::len word\<close>
+  using that linorder_linear word_less_eq_imp_half_less_eq by fastforce
+
 
 subsection \<open>Word and nat\<close>
 
