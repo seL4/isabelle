@@ -556,35 +556,49 @@ object Build_Schedule {
     def is_finished: Boolean = build_state.pending.isEmpty && build_state.running.isEmpty
   }
 
-  trait Scheduler { def build_schedule(build_state: Build_Process.State): Schedule }
+  trait Scheduler { def schedule(build_state: Build_Process.State): Schedule }
 
-  abstract class Heuristic(timing_data: Timing_Data, build_uuid: String)
-    extends Scheduler {
-    val host_infos = timing_data.host_infos
-    val ordered_hosts = host_infos.hosts.sorted(host_infos.host_speeds)
+  trait Priority_Rule { def select_next(state: Build_Process.State): List[Config] }
 
-    def next(state: Build_Process.State): List[Config]
-
-    def build_schedule(build_state: Build_Process.State): Schedule = {
+  case class Generation_Scheme(
+    priority_rule: Priority_Rule,
+    timing_data: Timing_Data,
+    build_uuid: String
+  ) extends Scheduler {
+    def schedule(build_state: Build_Process.State): Schedule = {
       @tailrec
       def simulate(state: State): State =
         if (state.is_finished) state
         else {
-          val state1 = next(state.build_state).foldLeft(state)(_.start(_)).step(timing_data)
+          val state1 =
+            priority_rule
+              .select_next(state.build_state)
+              .foldLeft(state)(_.start(_))
+              .step(timing_data)
           simulate(state1)
         }
 
       val start = Date.now()
+      val name = "generation scheme (" + priority_rule + ")"
       val end_state =
-        simulate(State(build_state, start.time, Schedule(build_uuid, toString, start, Graph.empty)))
+        simulate(State(build_state, start.time, Schedule(build_uuid, name, start, Graph.empty)))
 
       end_state.finished
     }
   }
 
-  class Default_Heuristic(timing_data: Timing_Data, options: Options, build_uuid: String)
-    extends Heuristic(timing_data, build_uuid) {
-    override def toString: String = "default build heuristic"
+  case class Optimizer(schedulers: List[Scheduler]) extends Scheduler {
+    require(schedulers.nonEmpty)
+
+    def schedule(state: Build_Process.State): Schedule =
+      schedulers.map(_.schedule(state)).minBy(_.duration.ms)
+  }
+
+
+  /* priority rules */
+
+  class Default_Heuristic(host_infos: Host_Infos, options: Options) extends Priority_Rule {
+    override def toString: String = "default heuristic"
 
     def host_threads(host: Host): Int = {
       val m = (options ++ host.build.options).int("threads")
@@ -594,7 +608,7 @@ object Build_Schedule {
     def next_jobs(resources: Resources, sorted_jobs: List[String], host: Host): List[Config] =
       sorted_jobs.zip(resources.unused_nodes(host, host_threads(host))).map(Config(_, _))
 
-    def next(state: Build_Process.State): List[Config] = {
+    def select_next(state: Build_Process.State): List[Config] = {
       val sorted_jobs = state.next_ready.sortBy(_.name)(state.sessions.ordering).map(_.name)
       val resources = host_infos.available(state)
 
@@ -607,28 +621,57 @@ object Build_Schedule {
     }
   }
 
-  class Meta_Heuristic(heuristics: List[Heuristic]) extends Scheduler {
-    require(heuristics.nonEmpty)
+  object Path_Time_Heuristic {
+    sealed trait Critical_Criterion
+    case class Absolute_Time(time: Time) extends Critical_Criterion {
+      override def toString: String = "absolute time (" + time.message_hms + ")"
+    }
+    case class Relative_Time(factor: Double) extends Critical_Criterion {
+      override def toString: String = "relative time (" + factor + ")"
+    }
 
-    def best_result(state: Build_Process.State): (Heuristic, Schedule) =
-      heuristics.map(heuristic =>
-        heuristic -> heuristic.build_schedule(state)).minBy(_._2.duration.ms)
+    sealed trait Parallel_Strategy
+    case class Fixed_Thread(threads: Int) extends Parallel_Strategy {
+      override def toString: String = "fixed threads (" + threads + ")"
+    }
+    case class Time_Based_Threads(f: Time => Int) extends Parallel_Strategy {
+      override def toString: String = "time based threads"
+    }
 
-    def next(state: Build_Process.State): List[Config] = best_result(state)._1.next(state)
-
-    def build_schedule(state: Build_Process.State): Schedule = best_result(state)._2
+    sealed trait Host_Criterion
+    case object Critical_Nodes extends Host_Criterion {
+      override def toString: String = "per critical node"
+    }
+    case class Fixed_Fraction(fraction: Double) extends Host_Criterion {
+      override def toString: String = "fixed fraction (" + fraction + ")"
+    }
+    case class Host_Speed(min_factor: Double) extends Host_Criterion {
+      override def toString: String = "host speed (" + min_factor + ")"
+    }
   }
 
-
-  /* heuristics */
-
-  abstract class Path_Heuristic(
+  class Path_Time_Heuristic(
+    is_critical: Path_Time_Heuristic.Critical_Criterion,
+    parallel_threads: Path_Time_Heuristic.Parallel_Strategy,
+    host_criterion: Path_Time_Heuristic.Host_Criterion,
     timing_data: Timing_Data,
     sessions_structure: Sessions.Structure,
-    max_threads_limit: Int,
-    build_uuid: String
-  ) extends Heuristic(timing_data, build_uuid) {
+    max_threads_limit: Int = 8
+  ) extends Priority_Rule {
+    import Path_Time_Heuristic.*
+
+    override def toString: Node = {
+      val params =
+        List(
+          "critical: " + is_critical,
+          "parallel: " + parallel_threads,
+          "fast hosts: " + host_criterion)
+      "path time heuristic (" + params.mkString(", ") + ")"
+    }
+
     /* pre-computed properties for efficient heuristic */
+    val host_infos = timing_data.host_infos
+    val ordered_hosts = host_infos.hosts.sorted(host_infos.host_speeds)
 
     val max_threads = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
 
@@ -687,59 +730,8 @@ object Build_Schedule {
 
       parallel_paths(running.toMap)._1
     }
-  }
 
-
-  object Path_Time_Heuristic {
-    sealed trait Critical_Criterion
-    case class Absolute_Time(time: Time) extends Critical_Criterion {
-      override def toString: String = "absolute time (" + time.message_hms + ")"
-    }
-    case class Relative_Time(factor: Double) extends Critical_Criterion {
-      override def toString: String = "relative time (" + factor + ")"
-    }
-
-    sealed trait Parallel_Strategy
-    case class Fixed_Thread(threads: Int) extends Parallel_Strategy {
-      override def toString: String = "fixed threads (" + threads + ")"
-    }
-    case class Time_Based_Threads(f: Time => Int) extends Parallel_Strategy {
-      override def toString: String = "time based threads"
-    }
-
-    sealed trait Host_Criterion
-    case object Critical_Nodes extends Host_Criterion {
-      override def toString: String = "per critical node"
-    }
-    case class Fixed_Fraction(fraction: Double) extends Host_Criterion {
-      override def toString: String = "fixed fraction (" + fraction + ")"
-    }
-    case class Host_Speed(min_factor: Double) extends Host_Criterion {
-      override def toString: String = "host speed (" + min_factor + ")"
-    }
-  }
-
-  class Path_Time_Heuristic(
-    is_critical: Path_Time_Heuristic.Critical_Criterion,
-    parallel_threads: Path_Time_Heuristic.Parallel_Strategy,
-    host_criterion: Path_Time_Heuristic.Host_Criterion,
-    timing_data: Timing_Data,
-    sessions_structure: Sessions.Structure,
-    build_uuid: String,
-    max_threads_limit: Int = 8
-  ) extends Path_Heuristic(timing_data, sessions_structure, max_threads_limit, build_uuid) {
-    import Path_Time_Heuristic.*
-
-    override def toString: Node = {
-      val params =
-        List(
-          "critical: " + is_critical,
-          "parallel: " + parallel_threads,
-          "fast hosts: " + host_criterion)
-      "path time heuristic (" + params.mkString(", ") + ")"
-    }
-
-    def next(state: Build_Process.State): List[Config] = {
+    def select_next(state: Build_Process.State): List[Config] = {
       val resources = host_infos.available(state)
 
       def best_threads(task: Build_Process.Task): Int =
@@ -1002,7 +994,7 @@ object Build_Schedule {
         else {
           val start = Time.now()
 
-          val new_schedule = scheduler.build_schedule(state).update(state)
+          val new_schedule = scheduler.schedule(state).update(state)
           val schedule =
             if (_schedule.is_empty) new_schedule
             else List(_schedule.update(state), new_schedule).minBy(_.end)(Date.Ordering)
@@ -1230,11 +1222,10 @@ object Build_Schedule {
           parallel <- parallel_threads
           machine_split <- machine_splits
         } yield
-          Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure,
-            context.build_uuid)
-      val default_heuristic =
-        Default_Heuristic(timing_data, context.build_options, context.build_uuid)
-      new Meta_Heuristic(default_heuristic :: path_time_heuristics)
+          Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure)
+      val default_heuristic = Default_Heuristic(timing_data.host_infos, context.build_options)
+      val heuristics = default_heuristic :: path_time_heuristics
+      Optimizer(heuristics.map(Generation_Scheme(_, timing_data, context.build_uuid)))
     }
 
     override def open_build_process(
@@ -1318,7 +1309,7 @@ object Build_Schedule {
       def schedule_msg(res: Exn.Result[Schedule]): String =
         res match { case Exn.Res(schedule) => schedule.message case _ => "" }
 
-      Timing.timeit(scheduler.build_schedule(build_state), schedule_msg, output = progress.echo(_))
+      Timing.timeit(scheduler.schedule(build_state), schedule_msg, output = progress.echo(_))
     }
 
     using(store.open_server()) { server =>
