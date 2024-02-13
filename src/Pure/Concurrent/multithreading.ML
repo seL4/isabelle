@@ -1,7 +1,9 @@
 (*  Title:      Pure/Concurrent/multithreading.ML
     Author:     Makarius
 
-Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
+Multithreading in Poly/ML, see also
+  - $ML_SOURCES/basis/Thread.sml: numPhysicalProcessors
+  - $ML_SOURCES/libpolyml/processes.cpp: PolyThreadNumPhysicalProcessors
 *)
 
 signature MULTITHREADING =
