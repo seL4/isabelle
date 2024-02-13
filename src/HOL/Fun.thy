@@ -395,6 +395,11 @@ lemma bij_comp: "bij f \<Longrightarrow> bij g \<Longrightarrow> bij (g \<circ> 
 lemma bij_betw_comp_iff: "bij_betw f A A' \<Longrightarrow> bij_betw f' A' A'' \<longleftrightarrow> bij_betw (f' \<circ> f) A A''"
   by (auto simp add: bij_betw_def inj_on_def)
 
+lemma bij_betw_Collect:
+  assumes "bij_betw f A B" "\<And>x. x \<in> A \<Longrightarrow> Q (f x) \<longleftrightarrow> P x"
+  shows   "bij_betw f {x\<in>A. P x} {y\<in>B. Q y}"
+  using assms by (auto simp add: bij_betw_def inj_on_def)
+
 lemma bij_betw_comp_iff2:
   assumes bij: "bij_betw f' A' A''"
     and img: "f ` A \<le> A'"
