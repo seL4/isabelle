@@ -26,8 +26,8 @@ object Multithreading {
       var physical: Option[Int] = None
       var physical_cores = Map.empty[Int, Int]
 
-      val cpuinfo = ssh.read(Path.explode("/proc/cpuinfo"))
-      for (line <- Library.trim_split_lines(cpuinfo)) {
+      val result = ssh.execute("cat /proc/cpuinfo").check
+      for (line <- Library.trim_split_lines(result.out)) {
         line match {
           case Physical(Value.Int(i)) => physical = Some(i)
           case Cores(Value.Int(i))
