@@ -42,7 +42,7 @@ object Kodkod {
   ): Result = {
     /* executor */
 
-    val pool_size = if (max_threads == 0) Isabelle_Thread.max_threads() else max_threads
+    val pool_size = if (max_threads == 0) Multithreading.max_threads() else max_threads
     val executor: ThreadPoolExecutor =
       new ThreadPoolExecutor(pool_size, pool_size, 0L, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue[Runnable], new ThreadPoolExecutor.CallerRunsPolicy)

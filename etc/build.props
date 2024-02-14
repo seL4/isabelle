@@ -68,6 +68,7 @@ sources = \
   src/Pure/Concurrent/future.scala \
   src/Pure/Concurrent/isabelle_thread.scala \
   src/Pure/Concurrent/mailbox.scala \
+  src/Pure/Concurrent/multithreading.scala \
   src/Pure/Concurrent/par_list.scala \
   src/Pure/Concurrent/synchronized.scala \
   src/Pure/GUI/color_value.scala \

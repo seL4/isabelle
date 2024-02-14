@@ -72,13 +72,8 @@ object Isabelle_Thread {
 
   /* thread pool */
 
-  def max_threads(): Int = {
-    val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
-    if (m > 0) m else (Host.num_cpus() max 1) min 8
-  }
-
   lazy val pool: ThreadPoolExecutor = {
-    val n = max_threads()
+    val n = Multithreading.max_threads()
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
     executor.setThreadFactory(

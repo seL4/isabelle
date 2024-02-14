@@ -122,28 +122,22 @@ object Host {
     }
     catch { case ERROR(_) => None }
 
-  def num_cpus(ssh: SSH.System = SSH.Local): Int =
-    if (ssh.is_local) Runtime.getRuntime.availableProcessors
-    else {
-      val command =
-        if (ssh.isabelle_platform.is_macos) "sysctl -n hw.ncpu" else "nproc"
-      val result = ssh.execute(command).check
-      Library.trim_line(result.out) match {
-        case Value.Int(n) => n
-        case _ => 1
-      }
-    }
-
   object Info {
-    def gather(hostname: String, ssh: SSH.System = SSH.Local, score: Option[Double] = None): Info =
-      Info(hostname, numa_nodes(ssh = ssh), num_cpus(ssh = ssh), score)
+    def init(
+      hostname: String = SSH.LOCAL,
+      ssh: SSH.System = SSH.Local,
+      score: Option[Double] = None
+    ): Info = Info(hostname, numa_nodes(ssh = ssh), Multithreading.num_processors(ssh = ssh), score)
   }
 
   sealed case class Info(
     hostname: String,
     numa_nodes: List[Int],
     num_cpus: Int,
-    benchmark_score: Option[Double])
+    benchmark_score: Option[Double]
+  ) {
+    override def toString: String = hostname
+  }
 
 
   /* shuffling of NUMA nodes */
