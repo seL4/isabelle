@@ -36,7 +36,7 @@ object Multithreading {
           case _ =>
         }
       }
-      physical_cores.valuesIterator.sum
+      physical_cores.valuesIterator.sum.max(1)
     }
 
 
