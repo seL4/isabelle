@@ -10,6 +10,7 @@ package isabelle
 object Multithreading {
   /* physical processors */
 
+  // slightly different from Poly/ML (more accurate)
   def num_processors(ssh: SSH.System = SSH.Local): Int =
     if (ssh.isabelle_platform.is_macos) {
       val result = ssh.execute("sysctl -n hw.physicalcpu").check
@@ -19,9 +20,23 @@ object Multithreading {
       }
     }
     else {
-      val Core_Id = """^\s*core id\s*:\s*(\d+)\s*$""".r
+      val Physical = """^\s*physical id\s*:\s*(\d+)\s*$""".r
+      val Cores = """^\s*cpu cores\s*:\s*(\d+)\s*$""".r
+
+      var physical: Option[Int] = None
+      var physical_cores = Map.empty[Int, Int]
+
       val cpuinfo = ssh.read(Path.explode("/proc/cpuinfo"))
-      (for (case Core_Id(Value.Int(i)) <- Library.trim_split_lines(cpuinfo)) yield i).toSet.size
+      for (line <- Library.trim_split_lines(cpuinfo)) {
+        line match {
+          case Physical(Value.Int(i)) => physical = Some(i)
+          case Cores(Value.Int(i))
+            if physical.isDefined && !physical_cores.isDefinedAt(physical.get) =>
+            physical_cores = physical_cores + (physical.get -> i)
+          case _ =>
+        }
+      }
+      physical_cores.valuesIterator.sum
     }
 
 
