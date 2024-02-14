@@ -43,6 +43,11 @@ New in this Isabelle version
 
 * Lemma even_succ_div_2 renamed to even_half_succ_eq.  Minor INCOMPATIBILITY.
 
+* Theory "HOL.Transitive_Closure":
+  - Added lemmas.
+      relpow_trans[trans]
+      relpowp_trans[trans]
+
 * Theory "HOL-Library.Multiset":
   - Added lemmas.
       trans_on_mult

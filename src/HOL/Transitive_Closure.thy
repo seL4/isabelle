@@ -913,6 +913,29 @@ lemma relpowp_E2:
     (\<And>y m. n = Suc m \<Longrightarrow> P x y \<Longrightarrow> (P ^^ m) y z \<Longrightarrow> Q) \<Longrightarrow> Q"
   by (fact relpow_E2 [to_pred])
 
+lemma relpowp_trans[trans]: "(R ^^ i) x y \<Longrightarrow> (R ^^ j) y z \<Longrightarrow> (R ^^ (i + j)) x z"
+proof (induction i arbitrary: x)
+  case 0
+  thus ?case by simp
+next
+  case (Suc i)
+  obtain x' where "R x x'" and "(R ^^ i) x' y"
+    using \<open>(R ^^ Suc i) x y\<close>[THEN relpowp_Suc_D2] by auto
+
+  show "(R ^^ (Suc i + j)) x z"
+    unfolding add_Suc
+  proof (rule relpowp_Suc_I2)
+    show "R x x'"
+      using \<open>R x x'\<close> .
+  next
+    show "(R ^^ (i + j)) x' z"
+      using Suc.IH[OF \<open>(R ^^ i) x' y\<close> \<open>(R ^^ j) y z\<close>] .
+  qed
+qed
+
+lemma relpow_trans[trans]: "(x, y) \<in> R ^^ i \<Longrightarrow> (y, z) \<in> R ^^ j \<Longrightarrow> (x, z) \<in> R ^^ (i + j)"
+  using relpowp_trans[to_set] .
+
 lemma relpow_add: "R ^^ (m + n) = R^^m O R^^n"
   by (induct n) auto
 
