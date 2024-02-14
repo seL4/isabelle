@@ -23,7 +23,7 @@ definition\<^marker>\<open>tag important\<close>  "set_lebesgue_integral M A f \
 
 syntax
   "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  ("(4LINT (_):(_)/|(_)./ _)" [0,60,110,61] 60)
+  ("(4LINT (_):(_)/|(_)./ _)" [0,60,110,61] 10)
 
 translations
   "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
@@ -39,11 +39,11 @@ translations
 
 syntax
   "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
-  ("(2LBINT _./ _)" [0,60] 60)
+  ("(2LBINT _./ _)" [0,60] 10)
 
 syntax
   "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
-  ("(3LBINT _:_./ _)" [0,60,61] 60)
+  ("(3LBINT _:_./ _)" [0,60,61] 10)
 
 (*
     Basic properties
@@ -105,7 +105,7 @@ lemma set_lebesgue_integral_cong:
 lemma set_lebesgue_integral_cong_AE:
   assumes [measurable]: "A \<in> sets M" "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   assumes "AE x \<in> A in M. f x = g x"
-  shows "LINT x:A|M. f x = LINT x:A|M. g x"
+  shows "(LINT x:A|M. f x) = (LINT x:A|M. g x)"
 proof-
   have "AE x in M. indicator A x *\<^sub>R f x = indicator A x *\<^sub>R g x"
     using assms by auto
@@ -149,25 +149,25 @@ qed
 (* TODO: integral_cmul_indicator should be named set_integral_const *)
 (* TODO: borel_integrable_atLeastAtMost should be named something like set_integrable_Icc_isCont *)
 
-lemma set_integral_scaleR_right [simp]: "LINT t:A|M. a *\<^sub>R f t = a *\<^sub>R (LINT t:A|M. f t)"
+lemma set_integral_scaleR_right [simp]: "(LINT t:A|M. a *\<^sub>R f t) = a *\<^sub>R (LINT t:A|M. f t)"
   unfolding set_lebesgue_integral_def
   by (subst integral_scaleR_right[symmetric]) (auto intro!: Bochner_Integration.integral_cong)
 
 lemma set_integral_mult_right [simp]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
-  shows "LINT t:A|M. a * f t = a * (LINT t:A|M. f t)"
+  shows "(LINT t:A|M. a * f t) = a * (LINT t:A|M. f t)"
   unfolding set_lebesgue_integral_def
   by (subst integral_mult_right_zero[symmetric]) auto
 
 lemma set_integral_mult_left [simp]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
-  shows "LINT t:A|M. f t * a = (LINT t:A|M. f t) * a"
+  shows "(LINT t:A|M. f t * a) = (LINT t:A|M. f t) * a"
   unfolding set_lebesgue_integral_def
   by (subst integral_mult_left_zero[symmetric]) auto
 
 lemma set_integral_divide_zero [simp]:
   fixes a :: "'a::{real_normed_field, field, second_countable_topology}"
-  shows "LINT t:A|M. f t / a = (LINT t:A|M. f t) / a"
+  shows "(LINT t:A|M. f t / a) = (LINT t:A|M. f t) / a"
   unfolding set_lebesgue_integral_def
   by (subst integral_divide_zero[symmetric], intro Bochner_Integration.integral_cong)
      (auto split: split_indicator)
@@ -236,21 +236,20 @@ lemma set_integral_add [simp, intro]:
   fixes f g :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
   assumes "set_integrable M A f" "set_integrable M A g"
   shows "set_integrable M A (\<lambda>x. f x + g x)"
-    and "LINT x:A|M. f x + g x = (LINT x:A|M. f x) + (LINT x:A|M. g x)"
+    and "(LINT x:A|M. f x + g x) = (LINT x:A|M. f x) + (LINT x:A|M. g x)"
   using assms unfolding set_integrable_def set_lebesgue_integral_def by (simp_all add: scaleR_add_right)
 
 lemma set_integral_diff [simp, intro]:
   assumes "set_integrable M A f" "set_integrable M A g"
-  shows "set_integrable M A (\<lambda>x. f x - g x)" and "LINT x:A|M. f x - g x =
-    (LINT x:A|M. f x) - (LINT x:A|M. g x)"
+  shows "set_integrable M A (\<lambda>x. f x - g x)" and "(LINT x:A|M. f x - g x) = (LINT x:A|M. f x) - (LINT x:A|M. g x)"
   using assms unfolding set_integrable_def set_lebesgue_integral_def by (simp_all add: scaleR_diff_right)
 
-lemma set_integral_uminus: "set_integrable M A f \<Longrightarrow> LINT x:A|M. - f x = - (LINT x:A|M. f x)"
+lemma set_integral_uminus: "set_integrable M A f \<Longrightarrow> (LINT x:A|M. - f x) = - (LINT x:A|M. f x)"
   unfolding set_integrable_def set_lebesgue_integral_def
   by (subst integral_minus[symmetric]) simp_all
 
 lemma set_integral_complex_of_real:
-  "LINT x:A|M. complex_of_real (f x) = of_real (LINT x:A|M. f x)"
+  "(LINT x:A|M. complex_of_real (f x)) = of_real (LINT x:A|M. f x)"
   unfolding set_lebesgue_integral_def
   by (subst integral_complex_of_real[symmetric])
      (auto intro!: Bochner_Integration.integral_cong split: split_indicator)
@@ -341,7 +340,7 @@ lemma set_integral_Un:
   assumes "A \<inter> B = {}"
   and "set_integrable M A f"
   and "set_integrable M B f"
-shows "LINT x:A\<union>B|M. f x = (LINT x:A|M. f x) + (LINT x:B|M. f x)"
+shows "(LINT x:A\<union>B|M. f x) = (LINT x:A|M. f x) + (LINT x:B|M. f x)"
   using assms
   unfolding set_integrable_def set_lebesgue_integral_def
   by (auto simp add: indicator_union_arith indicator_inter_arith[symmetric] scaleR_add_left)
@@ -350,7 +349,7 @@ lemma set_integral_cong_set:
   fixes f :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
   assumes "set_borel_measurable M A f" "set_borel_measurable M B f"
     and ae: "AE x in M. x \<in> A \<longleftrightarrow> x \<in> B"
-  shows "LINT x:B|M. f x = LINT x:A|M. f x"
+  shows "(LINT x:B|M. f x) = (LINT x:A|M. f x)"
   unfolding set_lebesgue_integral_def
 proof (rule integral_cong_AE)
   show "AE x in M. indicator B x *\<^sub>R f x = indicator A x *\<^sub>R f x"
@@ -376,13 +375,13 @@ lemma set_integral_Un_AE:
   assumes ae: "AE x in M. \<not> (x \<in> A \<and> x \<in> B)" and [measurable]: "A \<in> sets M" "B \<in> sets M"
   and "set_integrable M A f"
   and "set_integrable M B f"
-  shows "LINT x:A\<union>B|M. f x = (LINT x:A|M. f x) + (LINT x:B|M. f x)"
+  shows "(LINT x:A\<union>B|M. f x) = (LINT x:A|M. f x) + (LINT x:B|M. f x)"
 proof -
   have f: "set_integrable M (A \<union> B) f"
     by (intro set_integrable_Un assms)
   then have f': "set_borel_measurable M (A \<union> B) f"
     using integrable_iff_bounded set_borel_measurable_def set_integrable_def by blast
-  have "LINT x:A\<union>B|M. f x = LINT x:(A - A \<inter> B) \<union> (B - A \<inter> B)|M. f x"
+  have "(LINT x:A\<union>B|M. f x) = (LINT x:(A - A \<inter> B) \<union> (B - A \<inter> B)|M. f x)"
   proof (rule set_integral_cong_set)
     show "AE x in M. (x \<in> A - A \<inter> B \<union> (B - A \<inter> B)) = (x \<in> A \<union> B)"
       using ae by auto
@@ -420,11 +419,11 @@ lemma pos_integrable_to_top:
   and intgbl: "\<And>i::nat. set_integrable M (A i) f"
   and lim: "(\<lambda>i::nat. LINT x:A i|M. f x) \<longlonglongrightarrow> l"
 shows "set_integrable M (\<Union>i. A i) f"
-    unfolding set_integrable_def
+  unfolding set_integrable_def
   apply (rule integrable_monotone_convergence[where f = "\<lambda>i::nat. \<lambda>x. indicator (A i) x *\<^sub>R f x" and x = l])
-  apply (rule intgbl [unfolded set_integrable_def])
-  prefer 3 apply (rule lim [unfolded set_lebesgue_integral_def])
-  apply (rule AE_I2)
+      apply (rule intgbl [unfolded set_integrable_def])
+     prefer 3 apply (rule lim [unfolded set_lebesgue_integral_def])
+    apply (rule AE_I2)
   using \<open>mono A\<close> apply (auto simp: mono_def nneg split: split_indicator) []
 proof (rule AE_I2)
   { fix x assume "x \<in> space M"
@@ -432,18 +431,16 @@ proof (rule AE_I2)
     proof cases
       assume "\<exists>i. x \<in> A i"
       then obtain i where "x \<in> A i" ..
-      then have *: "eventually (\<lambda>i. x \<in> A i) sequentially"
+      then have "\<forall>\<^sub>F i in sequentially. x \<in> A i"
         using \<open>x \<in> A i\<close> \<open>mono A\<close> by (auto simp: eventually_sequentially mono_def)
-      show ?thesis
-        apply (intro tendsto_eventually)
-        using *
-        apply eventually_elim
-        apply (auto split: split_indicator)
-        done
+      with eventually_mono have "\<forall>\<^sub>F i in sequentially. indicat_real (A i) x *\<^sub>R f x = indicat_real (\<Union> (range A)) x *\<^sub>R f x"
+        by fastforce
+      then show ?thesis
+        by (intro tendsto_eventually)
     qed auto }
   then show "(\<lambda>x. indicator (\<Union>i. A i) x *\<^sub>R f x) \<in> borel_measurable M"
     apply (rule borel_measurable_LIMSEQ_real)
-    apply assumption
+     apply assumption
     using intgbl set_integrable_def by blast
 qed
 
@@ -453,7 +450,7 @@ lemma lebesgue_integral_countable_add:
   assumes meas[intro]: "\<And>i::nat. A i \<in> sets M"
     and disj: "\<And>i j. i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
     and intgbl: "set_integrable M (\<Union>i. A i) f"
-  shows "LINT x:(\<Union>i. A i)|M. f x = (\<Sum>i. (LINT x:(A i)|M. f x))"
+  shows "(LINT x:(\<Union>i. A i)|M. f x) = (\<Sum>i. (LINT x:(A i)|M. f x))"
     unfolding set_lebesgue_integral_def
 proof (subst integral_suminf[symmetric])
   show int_A: "integrable M (\<lambda>x. indicat_real (A i) x *\<^sub>R f x)" for i
@@ -503,7 +500,7 @@ lemma set_integral_cont_up:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes [measurable]: "\<And>i. A i \<in> sets M" and A: "incseq A"
   and intgbl: "set_integrable M (\<Union>i. A i) f"
-shows "(\<lambda>i. LINT x:(A i)|M. f x) \<longlonglongrightarrow> LINT x:(\<Union>i. A i)|M. f x"
+shows "(\<lambda>i. LINT x:(A i)|M. f x) \<longlonglongrightarrow> (LINT x:(\<Union>i. A i)|M. f x)"
   unfolding set_lebesgue_integral_def
 proof (intro integral_dominated_convergence[where w="\<lambda>x. indicator (\<Union>i. A i) x *\<^sub>R norm (f x)"])
   have int_A: "\<And>i. set_integrable M (A i) f"
@@ -528,7 +525,7 @@ lemma set_integral_cont_down:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes [measurable]: "\<And>i. A i \<in> sets M" and A: "decseq A"
   and int0: "set_integrable M (A 0) f"
-  shows "(\<lambda>i::nat. LINT x:(A i)|M. f x) \<longlonglongrightarrow> LINT x:(\<Inter>i. A i)|M. f x"
+  shows "(\<lambda>i::nat. LINT x:(A i)|M. f x) \<longlonglongrightarrow> (LINT x:(\<Inter>i. A i)|M. f x)"
   unfolding set_lebesgue_integral_def
 proof (rule integral_dominated_convergence)
   have int_A: "\<And>i. set_integrable M (A i) f"
@@ -580,7 +577,7 @@ translations
 
 syntax
   "_ascii_complex_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  ("(3CLINT _|_. _)" [0,110,60] 60)
+  ("(3CLINT _|_. _)" [0,110,60] 10)
 
 translations
   "CLINT x|M. f" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
@@ -614,7 +611,7 @@ abbreviation complex_set_lebesgue_integral :: "'a measure \<Rightarrow> 'a set \
 
 syntax
 "_ascii_complex_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-("(4CLINT _:_|_. _)" [0,60,110,61] 60)
+("(4CLINT _:_|_. _)" [0,60,110,61] 10)
 
 translations
 "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
@@ -633,10 +630,10 @@ abbreviation "set_nn_integral M A f \<equiv> nn_integral M (\<lambda>x. f x * in
 
 syntax
 "_set_nn_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-("(\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 60)
+("(\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 10)
 
 "_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-("(\<integral>((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 60)
+("(\<integral>((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 10)
 
 translations
 "\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"

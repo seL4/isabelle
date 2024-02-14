@@ -78,12 +78,12 @@ proof-
             using set_integrable_subset borel_integrable_atLeastAtMost'[OF contg']
             by (metis \<open>{u'..v'} \<subseteq> {a..b}\<close> eucl_ivals(5) set_integrable_def sets_lborel u'v'(1))
         hence "(\<integral>\<^sup>+x. ennreal (g' x) * indicator ({a..b} \<inter> g-` {u..v}) x \<partial>lborel) =
-                   LBINT x:{a..b} \<inter> g-`{u..v}. g' x"
+                   (LBINT x:{a..b} \<inter> g-`{u..v}. g' x)"
           unfolding set_lebesgue_integral_def
           by (subst nn_integral_eq_integral[symmetric])
              (auto intro!: derivg_nonneg nn_integral_cong split: split_indicator)
         also from interval_integral_FTC_finite[OF A B]
-            have "LBINT x:{a..b} \<inter> g-`{u..v}. g' x = v - u"
+            have "(LBINT x:{a..b} \<inter> g-`{u..v}. g' x) = v - u"
                 by (simp add: u'v' interval_integral_Icc \<open>u \<le> v\<close>)
         finally have "(\<integral>\<^sup>+ x. ennreal (g' x) * indicator ({a..b} \<inter> g -` {u..v}) x \<partial>lborel) =
                            ennreal (v - u)" .
@@ -130,12 +130,12 @@ proof-
           (simp split: split_indicator)
       also have "... = \<integral>\<^sup>+ x. indicator (g-`A \<inter> {a..b}) x * ennreal (g' x * indicator {a..b} x) \<partial>lborel" (is "_ = ?I")
         by (subst compl.IH, intro nn_integral_cong) (simp split: split_indicator)
-      also have "g b - g a = LBINT x:{a..b}. g' x" using derivg'
+      also have "g b - g a = (LBINT x:{a..b}. g' x)" using derivg'
         unfolding set_lebesgue_integral_def
         by (intro integral_FTC_atLeastAtMost[symmetric])
            (auto intro: continuous_on_subset[OF contg'] has_field_derivative_subset[OF derivg]
                  has_vector_derivative_at_within)
-      also have "ennreal ... = \<integral>\<^sup>+ x. g' x * indicator {a..b} x \<partial>lborel"
+      also have "ennreal ... = (\<integral>\<^sup>+ x. g' x * indicator {a..b} x \<partial>lborel)"
         using borel_integrable_atLeastAtMost'[OF contg'] unfolding set_lebesgue_integral_def
         by (subst nn_integral_eq_integral)
            (simp_all add: mult.commute derivg_nonneg set_integrable_def split: split_indicator)
@@ -341,7 +341,7 @@ proof-
   from integrable have M2: "(\<lambda>x. -f x * indicator {g a..g b} x) \<in> borel_measurable borel"
     by (force simp: mult.commute set_integrable_def)
 
-  have "LBINT x. (f x :: real) * indicator {g a..g b} x =
+  have "(LBINT x. (f x :: real) * indicator {g a..g b} x) =
           enn2real (\<integral>\<^sup>+ x. ennreal (f x) * indicator {g a..g b} x \<partial>lborel) -
           enn2real (\<integral>\<^sup>+ x. ennreal (- (f x)) * indicator {g a..g b} x \<partial>lborel)" using integrable
     unfolding set_integrable_def

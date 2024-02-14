@@ -56,8 +56,7 @@ subsection \<open>The Characteristic Function of a Real Measure.\<close>
 
 definition
   char :: "real measure \<Rightarrow> real \<Rightarrow> complex"
-where
-  "char M t = CLINT x|M. iexp (t * x)"
+  where "char M t \<equiv> CLINT x|M. iexp (t * x)"
 
 lemma (in real_distribution) char_zero: "char M 0 = 1"
   unfolding char_def by (simp del: space_eq_univ add: prob_space)

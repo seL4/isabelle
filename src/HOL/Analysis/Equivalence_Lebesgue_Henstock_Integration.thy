@@ -927,10 +927,10 @@ qed
 lemma set_borel_integral_eq_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "set_integrable lborel S f"
-  shows "f integrable_on S" "LINT x : S | lborel. f x = integral S f"
+  shows "f integrable_on S" "(LINT x : S | lborel. f x) = integral S f"
 proof -
   let ?f = "\<lambda>x. indicator S x *\<^sub>R f x"
-  have "(?f has_integral LINT x : S | lborel. f x) UNIV"
+  have "(?f has_integral (LINT x : S | lborel. f x)) UNIV"
     using assms has_integral_integral_lborel
     unfolding set_integrable_def set_lebesgue_integral_def by blast
   hence 1: "(f has_integral (set_lebesgue_integral lborel S f)) S"
@@ -939,7 +939,7 @@ proof -
     by (auto simp add: integrable_on_def)
   with 1 have "(f has_integral (integral S f)) S"
     by (intro integrable_integral, auto simp add: integrable_on_def)
-  thus "LINT x : S | lborel. f x = integral S f"
+  thus "(LINT x : S | lborel. f x) = integral S f"
     by (intro has_integral_unique [OF 1])
 qed
 
@@ -954,7 +954,7 @@ lemma has_integral_set_lebesgue:
 lemma set_lebesgue_integral_eq_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "set_integrable lebesgue S f"
-  shows "f integrable_on S" "LINT x:S | lebesgue. f x = integral S f"
+  shows "f integrable_on S" "(LINT x:S | lebesgue. f x) = integral S f"
   using has_integral_set_lebesgue[OF f] by (auto simp: integral_unique integrable_on_def)
 
 lemma lmeasurable_iff_has_integral:
@@ -2184,7 +2184,7 @@ subsection\<open>Integral bounds\<close>
 
 lemma set_integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
-  shows "set_integrable M k f \<Longrightarrow> norm (LINT x:k|M. f x) \<le> LINT x:k|M. norm (f x)"
+  shows "set_integrable M k f \<Longrightarrow> norm (LINT x:k|M. f x) \<le> (LINT x:k|M. norm (f x))"
   using integral_norm_bound[of M "\<lambda>x. indicator k x *\<^sub>R f x"] by (simp add: set_lebesgue_integral_def)
 
 lemma set_integral_finite_UN_AE:
@@ -2193,7 +2193,7 @@ lemma set_integral_finite_UN_AE:
     and ae: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> AE x in M. (x \<in> A i \<and> x \<in> A j) \<longrightarrow> i = j"
     and [measurable]: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
     and f: "\<And>i. i \<in> I \<Longrightarrow> set_integrable M (A i) f"
-  shows "LINT x:(\<Union>i\<in>I. A i)|M. f x = (\<Sum>i\<in>I. LINT x:A i|M. f x)"
+  shows "(LINT x:(\<Union>i\<in>I. A i)|M. f x) = (\<Sum>i\<in>I. LINT x:A i|M. f x)"
   using \<open>finite I\<close> order_refl[of I]
 proof (induction I rule: finite_subset_induct')
   case (insert i I')
@@ -4000,7 +4000,7 @@ lemma integral_by_parts:
             =  F b * G b - F a * G a - \<integral>x. (f x * G x) * indicator {a .. b} x \<partial>lborel"
 proof-
   have "(\<integral>x. (F x * g x + f x * G x) * indicator {a .. b} x \<partial>lborel) 
-      = LBINT x. F x * g x * indicat_real {a..b} x + f x * G x * indicat_real {a..b} x"
+      = (LBINT x. F x * g x * indicat_real {a..b} x + f x * G x * indicat_real {a..b} x)"
     by (meson vector_space_over_itself.scale_left_distrib)
   also have "... = (\<integral>x. (F x * g x) * indicator {a .. b} x \<partial>lborel) + \<integral>x. (f x * G x) * indicator {a .. b} x \<partial>lborel"
   proof (intro Bochner_Integration.integral_add borel_integrable_atLeastAtMost cont_f cont_g continuous_intros)
