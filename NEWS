@@ -25,6 +25,9 @@ New in this Isabelle version
   by Sledgehammer and should be used instead. For more information, see
   Sledgehammer's documentation relating to "preplay_timeout". INCOMPATIBILITY.
 
+* HOL-Analysis: the syntax of Lebesgue integrals (LINT, LBINT, \<integral>, etc.) now
+  requires parentheses in most cases. INCOMPATIBILITY.
+
 * HOL-Analysis: corrected the definition of convex function (convex_on)
   to require the underlying set to be convex. INCOMPATIBILITY.
 
