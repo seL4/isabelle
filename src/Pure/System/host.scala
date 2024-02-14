@@ -135,15 +135,21 @@ object Host {
     }
 
   object Info {
-    def gather(hostname: String, ssh: SSH.System = SSH.Local, score: Option[Double] = None): Info =
-      Info(hostname, numa_nodes(ssh = ssh), num_cpus(ssh = ssh), score)
+    def init(
+      hostname: String = SSH.LOCAL,
+      ssh: SSH.System = SSH.Local,
+      score: Option[Double] = None
+    ): Info = Info(hostname, numa_nodes(ssh = ssh), num_cpus(ssh = ssh), score)
   }
 
   sealed case class Info(
     hostname: String,
     numa_nodes: List[Int],
     num_cpus: Int,
-    benchmark_score: Option[Double])
+    benchmark_score: Option[Double]
+  ) {
+    override def toString: String = hostname
+  }
 
 
   /* shuffling of NUMA nodes */
