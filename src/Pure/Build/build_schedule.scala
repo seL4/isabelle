@@ -922,11 +922,11 @@ object Build_Schedule {
 
     private val timing_data: Timing_Data = {
       val cluster_hosts: List[Build_Cluster.Host] =
-        if (build_context.max_jobs == 0) build_context.build_hosts
+        if (build_context.jobs == 0) build_context.build_hosts
         else {
           val local_build_host =
             Build_Cluster.Host(
-              hostname, jobs = build_context.max_jobs, numa = build_context.numa_shuffling)
+              hostname, jobs = build_context.jobs, numa = build_context.numa_shuffling)
           local_build_host :: build_context.build_hosts
         }
 
@@ -1037,7 +1037,7 @@ object Build_Schedule {
     override def run(): Build.Results = {
       Benchmark.benchmark_requirements(build_options)
 
-      if (build_context.max_jobs > 0) {
+      if (build_context.jobs > 0) {
         val benchmark_options = build_options.string("build_hostname") = hostname
         Benchmark.benchmark(benchmark_options, progress)
       }
@@ -1306,7 +1306,7 @@ object Build_Schedule {
       val build_context =
         Build.Context(store, build_engine, build_deps, afp_root = afp_root,
           build_hosts = build_hosts, hostname = Build.hostname(build_options),
-          numa_shuffling = numa_shuffling, max_jobs = 0, session_setup = session_setup,
+          numa_shuffling = numa_shuffling, max_jobs = Some(0), session_setup = session_setup,
           master = true)
 
       val cluster_hosts = build_context.build_hosts

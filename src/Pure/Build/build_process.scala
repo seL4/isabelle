@@ -977,7 +977,7 @@ extends AutoCloseable {
   protected def next_jobs(state: Build_Process.State): List[String] = {
     val limit = {
       if (progress.stopped) { if (build_context.master) Int.MaxValue else 0 }
-      else build_context.max_jobs - state.build_running.length
+      else build_context.jobs - state.build_running.length
     }
     if (limit > 0) state.next_ready.sortBy(_.name)(state.sessions.ordering).take(limit).map(_.name)
     else Nil

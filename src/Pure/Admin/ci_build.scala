@@ -179,7 +179,7 @@ object CI_Build {
           progress = progress,
           clean_build = config.clean,
           numa_shuffling = profile.numa,
-          max_jobs = profile.jobs,
+          max_jobs = Some(profile.jobs),
           dirs = config.include,
           select_dirs = config.select)
       }

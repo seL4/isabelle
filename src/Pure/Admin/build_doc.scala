@@ -14,7 +14,7 @@ object Build_Doc {
     options: Options,
     progress: Progress = new Progress,
     all_docs: Boolean = false,
-    max_jobs: Int = 1,
+    max_jobs: Option[Int] = None,
     sequential: Boolean = false,
     docs: List[String] = Nil,
     view: Boolean = false
@@ -85,7 +85,7 @@ object Build_Doc {
       { args =>
         var view = false
         var all_docs = false
-        var max_jobs = 1
+        var max_jobs: Option[Int] = None
         var sequential = false
         var options = Options.init()
 
@@ -105,7 +105,7 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 """,
             "V" -> (_ => view = true),
             "a" -> (_ => all_docs = true),
-            "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+            "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
             "o:" -> (arg => options = options + arg),
             "s" -> (_ => sequential = true))
 

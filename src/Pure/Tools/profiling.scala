@@ -225,7 +225,7 @@ object Profiling {
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
-    max_jobs: Int = 1
+    max_jobs: Option[Int] = None
   ): Results = {
     /* sessions structure */
 
@@ -313,7 +313,7 @@ object Profiling {
         var all_sessions = false
         var dirs: List[Path] = Nil
         var session_groups: List[String] = Nil
-        var max_jobs = 1
+        var max_jobs: Option[Int] = None
         var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
         var verbose = false
         var exclude_sessions: List[String] = Nil
@@ -345,7 +345,7 @@ Usage: isabelle profiling [OPTIONS] [SESSIONS ...]
           "a" -> (_ => all_sessions = true),
           "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
           "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-          "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+          "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
           "o:" -> (arg => options = options + arg),
           "v" -> (_ => verbose = true),
           "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))

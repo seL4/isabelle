@@ -35,7 +35,7 @@ object Build {
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
     build_heap: Boolean = false,
-    max_jobs: Int = 1,
+    max_jobs: Option[Int] = None,
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
@@ -49,7 +49,8 @@ object Build {
 
     def sessions_structure: isabelle.Sessions.Structure = build_deps.sessions_structure
 
-    def worker_active: Boolean = max_jobs > 0
+    def jobs: Int = max_jobs.getOrElse(1)
+    def worker_active: Boolean = jobs > 0
   }
 
 
@@ -160,7 +161,7 @@ object Build {
     select_dirs: List[Path] = Nil,
     infos: List[Sessions.Info] = Nil,
     numa_shuffling: Boolean = false,
-    max_jobs: Int = 1,
+    max_jobs: Option[Int] = None,
     list_files: Boolean = false,
     check_keywords: Set[String] = Set.empty,
     fresh_build: Boolean = false,
@@ -328,7 +329,7 @@ object Build {
       var export_files = false
       var fresh_build = false
       val session_groups = new mutable.ListBuffer[String]
-      var max_jobs = 1
+      var max_jobs: Option[Int] = None
       var check_keywords: Set[String] = Set.empty
       var list_files = false
       var no_build = false
@@ -391,7 +392,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "e" -> (_ => export_files = true),
         "f" -> (_ => fresh_build = true),
         "g:" -> (arg => session_groups += arg),
-        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
         "k:" -> (arg => check_keywords = check_keywords + arg),
         "l" -> (_ => list_files = true),
         "n" -> (_ => no_build = true),
@@ -601,7 +602,7 @@ Usage: isabelle build_process [OPTIONS]
     afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
-    max_jobs: Int = 1
+    max_jobs: Option[Int] = None
   ): Results = {
     val build_engine = Engine(engine_name(options))
     val store = build_engine.build_store(options)
@@ -637,7 +638,7 @@ Usage: isabelle build_process [OPTIONS]
       var build_id = ""
       var numa_shuffling = false
       val dirs = new mutable.ListBuffer[Path]
-      var max_jobs = 1
+      var max_jobs: Option[Int] = None
       var options =
         Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
           List(
@@ -663,7 +664,7 @@ Usage: isabelle build_worker [OPTIONS]
         "B:" -> (arg => build_id = arg),
         "N" -> (_ => numa_shuffling = true),
         "d:" -> (arg => dirs += Path.explode(arg)),
-        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
         "o:" -> (arg => options = options + arg),
         "q" -> (_ => quiet = true),
         "v" -> (_ => verbose = true))

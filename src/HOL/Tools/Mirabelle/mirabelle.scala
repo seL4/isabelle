@@ -42,7 +42,7 @@ object Mirabelle {
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
-    max_jobs: Int = 1,
+    max_jobs: Option[Int] = None,
   ): Build.Results = {
     require(!selection.requirements)
     Isabelle_System.make_directory(output_dir)
@@ -123,7 +123,7 @@ object Mirabelle {
       var all_sessions = false
       var dirs: List[Path] = Nil
       var session_groups: List[String] = Nil
-      var max_jobs = 1
+      var max_jobs: Option[Int] = None
       var verbose = false
       var exclude_sessions: List[String] = Nil
 
@@ -174,7 +174,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         "a" -> (_ => all_sessions = true),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-        "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
+        "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
         "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
         "o:" -> (arg => options = options + arg),
         "r:" -> (arg => options = options + ("mirabelle_randomize=" + arg)),
