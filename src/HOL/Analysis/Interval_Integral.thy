@@ -290,7 +290,7 @@ proof (induct a b rule: linorder_wlog)
              split: if_split_asm)
 next
   case (le a b) 
-  have "LBINT x:{x. - x \<in> einterval a b}. f (- x) = LBINT x:einterval (- b) (- a). f (- x)"
+  have "(LBINT x:{x. - x \<in> einterval a b}. f (- x)) = (LBINT x:einterval (- b) (- a). f (- x))"
     unfolding interval_lebesgue_integrable_def set_lebesgue_integral_def einterval_def
     by (metis (lifting) ereal_less_uminus_reorder ereal_uminus_less_reorder indicator_simps mem_Collect_eq uminus_ereal.simps(1))
   then show ?case
@@ -315,13 +315,13 @@ subsection\<open>Basic properties of integration over an interval wrt lebesgue m
 
 lemma interval_integral_zero [simp]:
   fixes a b :: ereal
-  shows "LBINT x=a..b. 0 = 0"
+  shows "(LBINT x=a..b. 0) = 0"
 unfolding interval_lebesgue_integral_def set_lebesgue_integral_def einterval_eq
 by simp
 
 lemma interval_integral_const [intro, simp]:
   fixes a b c :: real
-  shows "interval_lebesgue_integrable lborel a b (\<lambda>x. c)" and "LBINT x=a..b. c = c * (b - a)"
+  shows "interval_lebesgue_integrable lborel a b (\<lambda>x. c)" and "(LBINT x=a..b. c) = c * (b - a)"
   unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def einterval_eq
   by (auto simp: less_imp_le field_simps measure_def set_integrable_def set_lebesgue_integral_def)
 
@@ -780,7 +780,7 @@ theorem interval_integral_substitution_finite:
   and derivg: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (g has_real_derivative (g' x)) (at x within {a..b})"
   and contf : "continuous_on (g ` {a..b}) f"
   and contg': "continuous_on {a..b} g'"
-  shows "LBINT x=a..b. g' x *\<^sub>R f (g x) = LBINT y=g a..g b. f y"
+  shows "(LBINT x=a..b. g' x *\<^sub>R f (g x)) = (LBINT y=g a..g b. f y)"
 proof-
   have v_derivg: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> (g has_vector_derivative (g' x)) (at x within {a..b})"
     using derivg unfolding has_real_derivative_iff_has_vector_derivative .
@@ -798,7 +798,7 @@ proof-
     by (blast intro: continuous_on_compose2 contf contg)
   have "continuous_on {a..b} (\<lambda>x. g' x *\<^sub>R f (g x))"
     by (auto intro!: continuous_on_scaleR contg' contfg)
-  then have "LBINT x. indicat_real {a..b} x *\<^sub>R g' x *\<^sub>R f (g x) = F (g b) - F (g a)"
+  then have "(LBINT x. indicat_real {a..b} x *\<^sub>R g' x *\<^sub>R f (g x)) = F (g b) - F (g a)"
     using integral_FTC_atLeastAtMost [OF \<open>a \<le> b\<close> vector_diff_chain_within[OF v_derivg derivF]]
     by force
   then have "LBINT x=a..b. g' x *\<^sub>R f (g x) = F (g b) - F (g a)"

@@ -4118,6 +4118,21 @@ lemma successively_remdups_adj_iff:
   successively P (remdups_adj xs) \<longleftrightarrow> successively P xs"
 by (induction xs rule: remdups_adj.induct)(auto simp: successively_Cons)
 
+lemma successively_conv_nth:
+  "successively P xs \<longleftrightarrow> (\<forall>i. Suc i < length xs \<longrightarrow> P (xs ! i) (xs ! Suc i))"
+  by (induction P xs rule: successively.induct)
+     (force simp: nth_Cons split: nat.splits)+
+
+lemma successively_nth: "successively P xs \<Longrightarrow> Suc i < length xs \<Longrightarrow> P (xs ! i) (xs ! Suc i)"
+  unfolding successively_conv_nth by blast
+
+lemma distinct_adj_conv_nth:
+  "distinct_adj xs \<longleftrightarrow> (\<forall>i. Suc i < length xs \<longrightarrow> xs ! i \<noteq> xs ! Suc i)"
+  by (simp add: distinct_adj_def successively_conv_nth)
+
+lemma distinct_adj_nth: "distinct_adj xs \<Longrightarrow> Suc i < length xs \<Longrightarrow> xs ! i \<noteq> xs ! Suc i"
+  unfolding distinct_adj_conv_nth by blast
+
 lemma remdups_adj_Cons':
   "remdups_adj (x # xs) = x # remdups_adj (dropWhile (\<lambda>y. y = x) xs)"
 by (induction xs) auto
@@ -4163,6 +4178,34 @@ lemma remdups_adj_append'': "xs \<noteq> []
   \<Longrightarrow> remdups_adj (xs @ ys) = remdups_adj xs @ remdups_adj (dropWhile (\<lambda>y. y = last xs) ys)"
 by (induction xs rule: remdups_adj.induct) (auto simp: remdups_adj_Cons')
 
+lemma remdups_filter_last:
+ "last [x\<leftarrow>remdups xs. P x] = last [x\<leftarrow>xs. P x]"
+by (induction xs, auto simp: filter_empty_conv)
+
+lemma remdups_append:
+ "set xs \<subseteq> set ys \<Longrightarrow> remdups (xs @ ys) = remdups ys"
+  by (induction xs, simp_all)
+
+lemma remdups_concat:
+ "remdups (concat (remdups xs)) = remdups (concat xs)"
+proof (induction xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  show ?case
+  proof (cases "a \<in> set xs")
+    case True
+    then have "remdups (concat xs) = remdups (a @ concat xs)"
+      by (metis remdups_append concat.simps(2) insert_absorb set_simps(2) set_append set_concat sup_ge1)
+    then show ?thesis
+      by (simp add: Cons True)
+  next
+    case False
+    then show ?thesis
+      by (metis Cons remdups_append2 concat.simps(2) remdups.simps(2))
+  qed
+qed
 
 subsection \<open>@{const distinct_adj}\<close>
 
@@ -4212,6 +4255,14 @@ unfolding distinct_adj_def successively_map by (erule successively_mono) auto
 
 lemma distinct_adj_map_iff: "inj_on f (set xs) \<Longrightarrow> distinct_adj (map f xs) \<longleftrightarrow> distinct_adj xs"
 using distinct_adj_mapD distinct_adj_mapI by blast
+
+lemma distinct_adj_conv_length_remdups_adj:
+  "distinct_adj xs \<longleftrightarrow> length (remdups_adj xs) = length xs"
+proof (induction xs rule: remdups_adj.induct)
+  case (3 x y xs)
+  thus ?case
+    using remdups_adj_length[of "y # xs"] by auto
+qed auto
 
 
 subsubsection \<open>\<^const>\<open>insert\<close>\<close>
@@ -4379,33 +4430,32 @@ lemma set_remove1_eq [simp]: "distinct xs \<Longrightarrow> set(remove1 x xs) = 
 
 lemma length_remove1:
   "length(remove1 x xs) = (if x \<in> set xs then length xs - 1 else length xs)"
-by (induct xs) (auto dest!:length_pos_if_in_set)
+  by (induct xs) (auto dest!:length_pos_if_in_set)
 
 lemma remove1_filter_not[simp]:
   "\<not> P x \<Longrightarrow> remove1 x (filter P xs) = filter P xs"
-by(induct xs) auto
+  by(induct xs) auto
 
 lemma filter_remove1:
   "filter Q (remove1 x xs) = remove1 x (filter Q xs)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma notin_set_remove1[simp]: "x \<notin> set xs \<Longrightarrow> x \<notin> set(remove1 y xs)"
-by(insert set_remove1_subset) fast
+  by(insert set_remove1_subset) fast
 
 lemma distinct_remove1[simp]: "distinct xs \<Longrightarrow> distinct(remove1 x xs)"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma remove1_remdups:
   "distinct xs \<Longrightarrow> remove1 x (remdups xs) = remdups (remove1 x xs)"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma remove1_idem: "x \<notin> set xs \<Longrightarrow> remove1 x xs = xs"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma remove1_split:
   "a \<in> set xs \<Longrightarrow> remove1 a xs = ys \<longleftrightarrow> (\<exists>ls rs. xs = ls @ a # rs \<and> a \<notin> set ls \<and> ys = ls @ rs)"
-by (metis remove1.simps(2) remove1_append split_list_first)
-
+  by (metis remove1.simps(2) remove1_append split_list_first)
 
 subsubsection \<open>\<^const>\<open>removeAll\<close>\<close>
 

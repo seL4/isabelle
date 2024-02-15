@@ -98,7 +98,7 @@ object Benchmark {
         progress.echo(
           "Finished benchmark in " + timing.message + ". Score: " + String.format("%.2f", score))
 
-        Host.write_info(db, Host.Info.gather(hostname, score = Some(score)))
+        Host.write_info(db, Host.Info.init(hostname = hostname, score = Some(score)))
       }
     }
   }

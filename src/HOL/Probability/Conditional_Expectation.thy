@@ -355,13 +355,13 @@ proof (rule nn_cond_exp_charact)
 
   fix A assume "A \<in> sets F"
   then have [measurable]: "(\<lambda>x. f x * indicator A x) \<in> borel_measurable F" by measurable
-  have "\<integral>\<^sup>+x\<in>A. (f x * g x) \<partial>M = \<integral>\<^sup>+x. (f x * indicator A x) * g x \<partial>M"
+  have "(\<integral>\<^sup>+x\<in>A. (f x * g x) \<partial>M) = \<integral>\<^sup>+x. (f x * indicator A x) * g x \<partial>M"
     by (simp add: mult.commute mult.left_commute)
   also have "... = \<integral>\<^sup>+x. (f x * indicator A x) * nn_cond_exp M F g x \<partial>M"
     by (rule nn_cond_exp_intg[symmetric]) (auto simp add: assms)
-  also have "... = \<integral>\<^sup>+x\<in>A. (f x * nn_cond_exp M F g x)\<partial>M"
+  also have "... = (\<integral>\<^sup>+x\<in>A. (f x * nn_cond_exp M F g x)\<partial>M)"
     by (simp add: mult.commute mult.left_commute)
-  finally show "\<integral>\<^sup>+x\<in>A. (f x * g x) \<partial>M = \<integral>\<^sup>+x\<in>A. (f x * nn_cond_exp M F g x)\<partial>M" by simp
+  finally show "(\<integral>\<^sup>+x\<in>A. (f x * g x) \<partial>M) = (\<integral>\<^sup>+x\<in>A. (f x * nn_cond_exp M F g x)\<partial>M)" by simp
 qed (auto simp add: assms)
 
 lemma nn_cond_exp_sum:
@@ -370,7 +370,7 @@ lemma nn_cond_exp_sum:
 proof (rule nn_cond_exp_charact)
   fix A assume [measurable]: "A \<in> sets F"
   then have "A \<in> sets M" by (meson subalg subalgebra_def subsetD)
-  have "\<integral>\<^sup>+x\<in>A. (nn_cond_exp M F f x + nn_cond_exp M F g x)\<partial>M = (\<integral>\<^sup>+x\<in>A. nn_cond_exp M F f x \<partial>M) + (\<integral>\<^sup>+x\<in>A. nn_cond_exp M F g x \<partial>M)"
+  have "(\<integral>\<^sup>+x\<in>A. (nn_cond_exp M F f x + nn_cond_exp M F g x)\<partial>M) = (\<integral>\<^sup>+x\<in>A. nn_cond_exp M F f x \<partial>M) + (\<integral>\<^sup>+x\<in>A. nn_cond_exp M F g x \<partial>M)"
     by (rule nn_set_integral_add) (auto simp add: assms \<open>A \<in> sets M\<close>)
   also have "... = (\<integral>\<^sup>+x. indicator A x * nn_cond_exp M F f x \<partial>M) + (\<integral>\<^sup>+x. indicator A x * nn_cond_exp M F g x \<partial>M)"
     by (metis (no_types, lifting) mult.commute nn_integral_cong)
@@ -378,9 +378,9 @@ proof (rule nn_cond_exp_charact)
     by (simp add: nn_cond_exp_intg)
   also have "... = (\<integral>\<^sup>+x\<in>A. f x \<partial>M) + (\<integral>\<^sup>+x\<in>A. g x \<partial>M)"
     by (metis (no_types, lifting) mult.commute nn_integral_cong)
-  also have "... = \<integral>\<^sup>+x\<in>A. (f x + g x)\<partial>M"
+  also have "... = (\<integral>\<^sup>+x\<in>A. (f x + g x)\<partial>M)"
     by (rule nn_set_integral_add[symmetric]) (auto simp add: assms \<open>A \<in> sets M\<close>)
-  finally show "\<integral>\<^sup>+x\<in>A. (f x + g x)\<partial>M = \<integral>\<^sup>+x\<in>A. (nn_cond_exp M F f x + nn_cond_exp M F g x)\<partial>M"
+  finally show "(\<integral>\<^sup>+x\<in>A. (f x + g x)\<partial>M) = (\<integral>\<^sup>+x\<in>A. (nn_cond_exp M F f x + nn_cond_exp M F g x)\<partial>M)"
     by simp
 qed (auto simp add: assms)
 
@@ -390,12 +390,12 @@ lemma nn_cond_exp_cong:
   shows "AE x in M. nn_cond_exp M F f x = nn_cond_exp M F g x"
 proof (rule nn_cond_exp_charact)
   fix A assume [measurable]: "A \<in> sets F"
-  have "\<integral>\<^sup>+x\<in>A. nn_cond_exp M F f x \<partial>M = \<integral>\<^sup>+x. indicator A x * nn_cond_exp M F f x \<partial>M"
+  have "(\<integral>\<^sup>+x\<in>A. nn_cond_exp M F f x \<partial>M) = \<integral>\<^sup>+x. indicator A x * nn_cond_exp M F f x \<partial>M"
     by (simp add: mult.commute)
   also have "... = \<integral>\<^sup>+x. indicator A x * f x \<partial>M" by (simp add: nn_cond_exp_intg assms)
-  also have "... = \<integral>\<^sup>+x\<in>A. f x \<partial>M" by (simp add: mult.commute)
-  also have "... = \<integral>\<^sup>+x\<in>A. g x \<partial>M" by (rule nn_set_integral_cong[OF assms(1)])
-  finally show "\<integral>\<^sup>+x\<in>A. g x \<partial>M = \<integral>\<^sup>+x\<in>A. nn_cond_exp M F f x \<partial>M" by simp
+  also have "... = (\<integral>\<^sup>+x\<in>A. f x \<partial>M)" by (simp add: mult.commute)
+  also have "... = (\<integral>\<^sup>+x\<in>A. g x \<partial>M)" by (rule nn_set_integral_cong[OF assms(1)])
+  finally show "(\<integral>\<^sup>+x\<in>A. g x \<partial>M) = (\<integral>\<^sup>+x\<in>A. nn_cond_exp M F f x \<partial>M)" by simp
 qed (auto simp add: assms)
 
 lemma nn_cond_exp_mono:
@@ -791,14 +791,14 @@ proof (rule real_cond_exp_charact)
   fix A assume "A \<in> sets F"
   then have [measurable]: "(\<lambda>x. f x * indicator A x) \<in> borel_measurable F" by measurable
   have [measurable]: "A \<in> sets M" using subalg by (meson \<open>A \<in> sets F\<close> subalgebra_def subsetD)
-  have "\<integral>x\<in>A. (f x * g x) \<partial>M = \<integral>x. (f x * indicator A x) * g x \<partial>M"
+  have "(\<integral>x\<in>A. (f x * g x) \<partial>M) = \<integral>x. (f x * indicator A x) * g x \<partial>M"
     by (simp add: mult.commute mult.left_commute set_lebesgue_integral_def)
   also have "... = \<integral>x. (f x * indicator A x) * real_cond_exp M F g x \<partial>M"
     apply (rule real_cond_exp_intg(2)[symmetric], auto simp add: assms)
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(3)] by (simp add: mult.commute mult.left_commute)
-  also have "... = \<integral>x\<in>A. (f x * real_cond_exp M F g x)\<partial>M"
+  also have "... = (\<integral>x\<in>A. (f x * real_cond_exp M F g x)\<partial>M)"
     by (simp add: mult.commute mult.left_commute set_lebesgue_integral_def)
-  finally show "\<integral>x\<in>A. (f x * g x) \<partial>M = \<integral>x\<in>A. (f x * real_cond_exp M F g x)\<partial>M" by simp
+  finally show "(\<integral>x\<in>A. (f x * g x) \<partial>M) = (\<integral>x\<in>A. (f x * real_cond_exp M F g x)\<partial>M)" by simp
 qed (auto simp add: real_cond_exp_intg(1) assms)
 
 lemma real_cond_exp_add [intro]:
@@ -817,7 +817,7 @@ proof (rule real_cond_exp_charact)
   have intAg: "integrable M (\<lambda>x. indicator A x * g x)"
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(2)] by auto
 
-  have "\<integral>x\<in>A. (real_cond_exp M F f x + real_cond_exp M F g x)\<partial>M = (\<integral>x\<in>A. real_cond_exp M F f x \<partial>M) + (\<integral>x\<in>A. real_cond_exp M F g x \<partial>M)"
+  have "(\<integral>x\<in>A. (real_cond_exp M F f x + real_cond_exp M F g x)\<partial>M) = (\<integral>x\<in>A. real_cond_exp M F f x \<partial>M) + (\<integral>x\<in>A. real_cond_exp M F g x \<partial>M)"
     apply (rule set_integral_add, auto simp add: assms set_integrable_def)
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> real_cond_exp_int(1)[OF assms(1)]]
           integrable_mult_indicator[OF \<open>A \<in> sets M\<close> real_cond_exp_int(1)[OF assms(2)]] by simp_all
@@ -827,9 +827,9 @@ proof (rule real_cond_exp_charact)
     using real_cond_exp_intg(2) assms \<open>A \<in> sets F\<close> intAf intAg by auto
   also have "... = (\<integral>x\<in>A. f x \<partial>M) + (\<integral>x\<in>A. g x \<partial>M)"
     unfolding set_lebesgue_integral_def by auto
-  also have "... = \<integral>x\<in>A. (f x + g x)\<partial>M"
+  also have "... = (\<integral>x\<in>A. (f x + g x)\<partial>M)"
     by (rule set_integral_add(2)[symmetric]) (auto simp add: assms set_integrable_def \<open>A \<in> sets M\<close> intAf intAg)
-  finally show "\<integral>x\<in>A. (f x + g x)\<partial>M = \<integral>x\<in>A. (real_cond_exp M F f x + real_cond_exp M F g x)\<partial>M"
+  finally show "(\<integral>x\<in>A. (f x + g x)\<partial>M) = (\<integral>x\<in>A. (real_cond_exp M F f x + real_cond_exp M F g x)\<partial>M)"
     by simp
 qed (auto simp add: assms)
 

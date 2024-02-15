@@ -41,6 +41,7 @@ imports
   Groups_Big_Fun
   Indicator_Function
   Infinite_Set
+  Infinite_Typeclass
   Interval
   Interval_Float
   IArray

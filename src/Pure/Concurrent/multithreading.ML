@@ -1,11 +1,14 @@
 (*  Title:      Pure/Concurrent/multithreading.ML
     Author:     Makarius
 
-Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
+Multithreading in Poly/ML, see also
+  - $ML_SOURCES/basis/Thread.sml: numPhysicalProcessors
+  - $ML_SOURCES/libpolyml/processes.cpp: PolyThreadNumPhysicalProcessors
 *)
 
 signature MULTITHREADING =
 sig
+  val num_processors: unit -> int
   val max_threads: unit -> int
   val max_threads_update: int -> unit
   val parallel_proofs: int ref
@@ -20,14 +23,17 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-(* max_threads *)
-
-local
+(* physical processors *)
 
 fun num_processors () =
   (case Thread.Thread.numPhysicalProcessors () of
     SOME n => n
   | NONE => Thread.Thread.numProcessors ());
+
+
+(* max_threads *)
+
+local
 
 fun max_threads_result m =
   if Thread_Data.is_virtual then 1

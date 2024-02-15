@@ -1503,7 +1503,7 @@ proof -
     proof (intro nn_integral_mono_AE, eventually_elim)
       fix x assume "\<forall>i. norm (s i x) \<le> w x" "(\<lambda>i. s i x) \<longlonglongrightarrow> f x" "0 \<le> w x"
       then show "ennreal (norm (f x)) \<le> ennreal (w x)"
-        by (intro LIMSEQ_le_const2[where X="\<lambda>i. ennreal (norm (s i x))"]) (auto intro: tendsto_intros)
+        by (metis LIMSEQ_le_const2 ennreal_leI tendsto_norm)
     qed
     with w show "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>" by auto
   qed fact

@@ -304,7 +304,7 @@ lemma min_rpair_set: "reduction_pair (min_strict, min_weak)"
   done
 
 
-subsection \<open>Yet another induction principle on the natural numbers\<close>
+subsection \<open>Yet more induction principles on the natural numbers\<close>
 
 lemma nat_descend_induct [case_names base descend]:
   fixes P :: "nat \<Rightarrow> bool"
@@ -312,6 +312,13 @@ lemma nat_descend_induct [case_names base descend]:
   assumes H2: "\<And>k. k \<le> n \<Longrightarrow> (\<And>i. i > k \<Longrightarrow> P i) \<Longrightarrow> P k"
   shows "P m"
   using assms by induction_schema (force intro!: wf_measure [of "\<lambda>k. Suc n - k"])+
+
+lemma induct_nat_012[case_names 0 1 ge2]:
+  "P 0 \<Longrightarrow> P (Suc 0) \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (Suc n) \<Longrightarrow> P (Suc (Suc n))) \<Longrightarrow> P n"
+proof (induction_schema, pat_completeness)
+  show "wf (Wellfounded.measure id)"
+    by simp
+qed auto
 
 
 subsection \<open>Tool setup\<close>

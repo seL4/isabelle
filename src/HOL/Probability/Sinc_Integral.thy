@@ -216,7 +216,7 @@ proof -
     using has_bochner_integral_I0i_power_exp_m[of 0] has_bochner_integral_I0i_power_exp_m[of 1]
     by (intro set_integral_add) (auto dest!: integrable.intros simp: ac_simps set_integrable_def)
 
-  have "((\<lambda>t::real. LBINT x:{0<..}. ?F x t) \<longlongrightarrow> LBINT x::real:{0<..}. 0) at_top"
+  have "((\<lambda>t::real. LBINT x:{0<..}. ?F x t) \<longlongrightarrow> (LBINT x::real:{0<..}. 0)) at_top"
     unfolding set_lebesgue_integral_def
   proof (rule integral_dominated_convergence_at_top[OF _ _ int [unfolded set_integrable_def]], 
          simp_all del: abs_divide split: split_indicator)
@@ -278,23 +278,23 @@ proof -
     have "Si t = LBINT x=0..t. sin x * (LBINT u=0..\<infinity>. exp (-(u * x)))"
       unfolding Si_def using \<open>0 \<le> t\<close>
       by (intro interval_integral_discrete_difference[where X="{0}"]) (auto simp: LBINT_I0i_exp_mscale)
-    also have "\<dots> = LBINT x. (LBINT u=ereal 0..\<infinity>. indicator {0 <..< t} x *\<^sub>R sin x * exp (-(u * x)))"
+    also have "\<dots> = (LBINT x. (LBINT u=ereal 0..\<infinity>. indicator {0 <..< t} x *\<^sub>R sin x * exp (-(u * x))))"
       using \<open>0\<le>t\<close> by (simp add: zero_ereal_def interval_lebesgue_integral_le_eq mult_ac set_lebesgue_integral_def)
-    also have "\<dots> = LBINT x. (LBINT u. indicator ({0<..} \<times> {0 <..< t}) (u, x) *\<^sub>R (sin x * exp (-(u * x))))"
+    also have "\<dots> = (LBINT x. (LBINT u. indicator ({0<..} \<times> {0 <..< t}) (u, x) *\<^sub>R (sin x * exp (-(u * x)))))"
       apply (subst interval_integral_Ioi)
       unfolding set_lebesgue_integral_def  by(simp_all add: indicator_times ac_simps )
-    also have "\<dots> = LBINT u. (LBINT x. indicator ({0<..} \<times> {0 <..< t}) (u, x) *\<^sub>R (sin x * exp (-(u * x))))"
+    also have "\<dots> = (LBINT u. (LBINT x. indicator ({0<..} \<times> {0 <..< t}) (u, x) *\<^sub>R (sin x * exp (-(u * x)))))"
     proof (intro lborel_pair.Fubini_integral[symmetric] lborel_pair.Fubini_integrable)
       show "(\<lambda>(x, y). indicator ({0<..} \<times> {0<..<t}) (y, x) *\<^sub>R (sin x * exp (- (y * x))))
           \<in> borel_measurable (lborel \<Otimes>\<^sub>M lborel)" (is "?f \<in> borel_measurable _")
         by measurable
 
-      have "AE x in lborel. indicator {0..t} x *\<^sub>R abs (sinc x) = LBINT y. norm (?f (x, y))"
+      have "AE x in lborel. indicator {0..t} x *\<^sub>R abs (sinc x) = (LBINT y. norm (?f (x, y)))"
         using AE_lborel_singleton[of 0] AE_lborel_singleton[of t]
       proof eventually_elim
         fix x :: real assume x: "x \<noteq> 0" "x \<noteq> t"
-        have "LBINT y. \<bar>indicator ({0<..} \<times> {0<..<t}) (y, x) *\<^sub>R (sin x * exp (- (y * x)))\<bar> =
-            LBINT y. \<bar>sin x\<bar> * exp (- (y * x)) * indicator {0<..} y * indicator {0<..<t} x"
+        have "(LBINT y. \<bar>indicator ({0<..} \<times> {0<..<t}) (y, x) *\<^sub>R (sin x * exp (- (y * x)))\<bar>) =
+              (LBINT y. \<bar>sin x\<bar> * exp (- (y * x)) * indicator {0<..} y * indicator {0<..<t} x)"
           by (intro Bochner_Integration.integral_cong) (auto split: split_indicator simp: abs_mult)
         also have "\<dots> = \<bar>sin x\<bar> * indicator {0<..<t} x * (LBINT y=0..\<infinity>.  exp (- (y * x)))"
           by (cases "x > 0")
@@ -303,7 +303,7 @@ proof -
           by (cases "x > 0") (auto simp add: LBINT_I0i_exp_mscale)
         also have "\<dots> = indicator {0..t} x *\<^sub>R \<bar>sinc x\<bar>"
           using x by (simp add: field_simps split: split_indicator)
-        finally show "indicator {0..t} x *\<^sub>R abs (sinc x) = LBINT y. norm (?f (x, y))"
+        finally show "indicator {0..t} x *\<^sub>R abs (sinc x) = (LBINT y. norm (?f (x, y)))"
           by simp
       qed
       moreover have "integrable lborel (\<lambda>x. indicat_real {0..t} x *\<^sub>R \<bar>sinc x\<bar>)"
@@ -316,11 +316,11 @@ proof -
       then show "AE x in lborel. integrable lborel (\<lambda>y. ?f (x, y))"
         by (intro AE_I2) (auto simp: indicator_times set_integrable_def split: split_indicator)
     qed
-    also have "... = LBINT u=0..\<infinity>. (LBINT x=0..t. exp (-(u * x)) * sin x)"
+    also have "... = (LBINT u=0..\<infinity>. (LBINT x=0..t. exp (-(u * x)) * sin x))"
       using \<open>0\<le>t\<close>
       by (auto simp: interval_lebesgue_integral_def set_lebesgue_integral_def zero_ereal_def ac_simps
                split: split_indicator intro!: Bochner_Integration.integral_cong)
-    also have "\<dots> = LBINT u=0..\<infinity>. 1 / (1 + u\<^sup>2) - 1 / (1 + u\<^sup>2) * (exp (- (u * t)) * (u * sin t + cos t))"
+    also have "\<dots> = (LBINT u=0..\<infinity>. 1 / (1 + u\<^sup>2) - 1 / (1 + u\<^sup>2) * (exp (- (u * t)) * (u * sin t + cos t)))"
       by (auto simp: divide_simps LBINT_I0c_exp_mscale_sin intro!: interval_integral_cong)
     also have "... = pi / 2 - (LBINT u=0..\<infinity>. exp (- (u * t)) * (u * sin t + cos t) / (1 + u^2))"
       using Si_at_top_integrable[OF \<open>0\<le>t\<close>] by (simp add: integrable_I0i_1_div_plus_square LBINT_I0i_1_div_plus_square)
@@ -371,8 +371,7 @@ proof -
       by (rule interval_integral_discrete_difference[of "{0}"]) auto
     finally have "(LBINT t=ereal 0..T. sin (t * \<theta>) / t) = (LBINT t=ereal 0..T * \<theta>. sin t / t)"
       by simp
-    hence "LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x =
-        LBINT x. indicator {0<..<T * \<theta>} x * sin x / x"
+    hence "(LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x) = (LBINT x. indicator {0<..<T * \<theta>} x * sin x / x)"
       using assms \<open>0 < \<theta>\<close> unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
         by (auto simp: ac_simps set_lebesgue_integral_def)
   } note aux1 = this
@@ -390,7 +389,7 @@ proof -
       by (rule interval_integral_discrete_difference[of "{0}"]) auto
     finally have "(LBINT t=ereal 0..T. sin (t * -\<theta>) / t) = (LBINT t=ereal 0..T * -\<theta>. sin t / t)"
       by simp
-    hence "LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x =
+    hence "(LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x) =
        - (LBINT x. indicator {0<..<- (T * \<theta>)} x * sin x / x)"
       using assms \<open>0 > \<theta>\<close> unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
         by (auto simp add: field_simps mult_le_0_iff set_lebesgue_integral_def split: if_split_asm)
