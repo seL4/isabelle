@@ -119,6 +119,7 @@ object Build_Cluster {
 
     def ssh_host: String = proper_string(hostname) getOrElse name
     def is_local: Boolean = SSH.is_local(ssh_host)
+    def is_remote: Boolean = !is_local
 
     override def toString: String = print
 
@@ -224,7 +225,7 @@ object Build_Cluster {
   }
 
   def make(build_context: Build.Context, progress: Progress = new Progress): Build_Cluster = {
-    val remote_hosts = build_context.build_hosts.filterNot(_.is_local)
+    val remote_hosts = build_context.build_hosts.filter(_.is_remote)
     if (remote_hosts.isEmpty) none
     else new Remote_Build_Cluster(build_context, remote_hosts, progress = progress)
   }
@@ -252,7 +253,7 @@ class Remote_Build_Cluster(
   val remote_hosts: List[Build_Cluster.Host],
   val progress: Progress = new Progress
 ) extends Build_Cluster {
-  require(remote_hosts.nonEmpty && !remote_hosts.exists(_.is_local), "remote hosts required")
+  require(remote_hosts.nonEmpty && remote_hosts.forall(_.is_remote), "remote hosts required")
 
   override def toString: String =
     remote_hosts.iterator.map(_.name).mkString("Build_Cluster(", ", ", ")")
