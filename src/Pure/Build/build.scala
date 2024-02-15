@@ -108,17 +108,17 @@ object Build {
   class Engine(val name: String) extends Isabelle_System.Service {
     override def toString: String = name
 
-    def build_options(options: Options, build_hosts: List[Build_Cluster.Host] = Nil): Options = {
+    def build_options(options: Options, build_cluster: Boolean = false): Options = {
       val options1 = options + "completion_limit=0" + "editor_tracing_messages=0"
-      if (build_hosts.isEmpty) options1
-      else options1 + "build_database_server" + "build_database"
+      if (build_cluster) options1 + "build_database_server" + "build_database"
+      else options1
     }
 
     final def build_store(options: Options,
-      build_hosts: List[Build_Cluster.Host] = Nil,
+      build_cluster: Boolean = false,
       cache: Term.Cache = Term.Cache.make()
     ): Store = {
-      val store = Store(build_options(options, build_hosts = build_hosts), cache = cache)
+      val store = Store(build_options(options, build_cluster = build_cluster), cache = cache)
       Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
       Isabelle_Fonts.init()
       store
@@ -173,7 +173,8 @@ object Build {
   ): Results = {
     val build_engine = Engine(engine_name(options))
 
-    val store = build_engine.build_store(options, build_hosts = build_hosts, cache = cache)
+    val store =
+      build_engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
     val build_options = store.options
 
     using(store.open_server()) { server =>

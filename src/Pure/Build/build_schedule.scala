@@ -1283,7 +1283,8 @@ object Build_Schedule {
   ): Schedule = {
     val build_engine = new Engine
 
-    val store = build_engine.build_store(options, build_hosts = build_hosts, cache = cache)
+    val store =
+      build_engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
     val log_store = Build_Log.store(options, cache = cache)
     val build_options = store.options
 
