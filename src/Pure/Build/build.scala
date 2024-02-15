@@ -111,8 +111,7 @@ object Build {
 
     def build_options(options: Options, build_cluster: Boolean = false): Options = {
       val options1 = options + "completion_limit=0" + "editor_tracing_messages=0"
-      if (build_cluster) options1 + "build_database_server" + "build_database"
-      else options1
+      if (build_cluster) options1 + "build_database_server" + "build_database" else options1
     }
 
     final def build_store(options: Options,
