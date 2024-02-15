@@ -288,7 +288,7 @@ class Language_Server(
               }
           }
 
-        val session_options = options.bool("editor_output_state") = true
+        val session_options = options.bool.update("editor_output_state", true)
         val session = new Session(session_options, resources)
 
         Some((session_background, session))

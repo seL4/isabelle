@@ -1038,7 +1038,7 @@ object Build_Schedule {
       Benchmark.benchmark_requirements(build_options)
 
       if (build_context.jobs > 0) {
-        val benchmark_options = build_options.string("build_hostname") = hostname
+        val benchmark_options = build_options.string.update("build_hostname", hostname)
         Benchmark.benchmark(benchmark_options, progress)
       }
       _build_cluster.benchmark()

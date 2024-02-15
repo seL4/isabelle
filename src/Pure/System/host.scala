@@ -62,22 +62,22 @@ object Host {
     numa_node match {
       case None => options
       case Some(node) =>
-        options.string("process_policy") = if (numactl_ok(node)) numactl(node) else ""
+        options.string.update("process_policy", if (numactl_ok(node)) numactl(node) else "")
     }
 
   def node_options(options: Options, node: Node_Info): Options = {
     val threads_options =
-      if (node.rel_cpus.isEmpty) options else options.int("threads") = node.rel_cpus.length
+      if (node.rel_cpus.isEmpty) options else options.int.update("threads", node.rel_cpus.length)
 
     node.numa_node match {
       case None if node.rel_cpus.isEmpty =>
         threads_options
       case Some(numa_node) =>
-        threads_options.string("process_policy") =
-          if (numactl_ok(numa_node, node.rel_cpus)) numactl(numa_node, node.rel_cpus) else ""
+        threads_options.string.update("process_policy",
+          if (numactl_ok(numa_node, node.rel_cpus)) numactl(numa_node, node.rel_cpus) else "")
       case _ =>
-        threads_options.string("process_policy") =
-          if (taskset_ok(node.rel_cpus)) taskset(node.rel_cpus) else ""
+        threads_options.string.update("process_policy",
+          if (taskset_ok(node.rel_cpus)) taskset(node.rel_cpus) else "")
     }
   }
 
