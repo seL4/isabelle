@@ -15,7 +15,7 @@ object Multithreading {
     if (ssh.isabelle_platform.is_macos) {
       val result = ssh.execute("sysctl -n hw.physicalcpu").check
       Library.trim_line(result.out) match {
-        case Value.Int(n) => n
+        case Value.Int(n) => n max 1
         case _ => 1
       }
     }
@@ -36,7 +36,7 @@ object Multithreading {
           case _ =>
         }
       }
-      physical_cores.valuesIterator.sum.max(1)
+      physical_cores.valuesIterator.sum max 1
     }
 
 
@@ -44,6 +44,6 @@ object Multithreading {
 
   def max_threads(): Int = {
     val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
-    if (m > 0) m else (num_processors() max 1) min 8
+    if (m > 0) m else num_processors() min 8
   }
 }

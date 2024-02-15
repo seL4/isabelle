@@ -26,9 +26,10 @@ struct
 (* physical processors *)
 
 fun num_processors () =
-  (case Thread.Thread.numPhysicalProcessors () of
-    SOME n => n
-  | NONE => Thread.Thread.numProcessors ());
+  Int.max
+    (case Thread.Thread.numPhysicalProcessors () of
+      SOME n => n
+    | NONE => Thread.Thread.numProcessors (), 1);
 
 
 (* max_threads *)
@@ -38,7 +39,7 @@ local
 fun max_threads_result m =
   if Thread_Data.is_virtual then 1
   else if m > 0 then m
-  else Int.min (Int.max (num_processors (), 1), 8);
+  else Int.min (num_processors (), 8);
 
 val max_threads_state = ref 1;
 
