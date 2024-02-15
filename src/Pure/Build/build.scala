@@ -143,6 +143,7 @@ object Build {
   }
 
   class Default_Engine extends Engine("") { override def toString: String = "<default>" }
+  object Default_Engine extends Default_Engine
 
 
   /* build */
