@@ -120,11 +120,11 @@ sealed case class Isabelle_Tool(
 class Isabelle_Scala_Tools(val tools: Isabelle_Tool*) extends Isabelle_System.Service
 
 class Tools extends Isabelle_Scala_Tools(
-  Benchmark.isabelle_tool,
   Build.isabelle_tool1,
   Build.isabelle_tool2,
   Build.isabelle_tool3,
   Build.isabelle_tool4,
+  Build_Benchmark.isabelle_tool,
   Build_Schedule.isabelle_tool,
   CI_Build.isabelle_tool,
   Doc.isabelle_tool,

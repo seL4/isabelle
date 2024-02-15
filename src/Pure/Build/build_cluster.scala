@@ -185,7 +185,7 @@ object Build_Cluster {
 
     def benchmark(): Unit = {
       val script =
-        Benchmark.benchmark_command(host, ssh = ssh, isabelle_home = remote_isabelle_home)
+        Build_Benchmark.benchmark_command(host, ssh = ssh, isabelle_home = remote_isabelle_home)
       remote_isabelle.bash(script).check
     }
 

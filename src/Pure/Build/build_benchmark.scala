@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/benchmark.scala
+/*  Title:      Pure/System/build_benchmark.scala
     Author:     Fabian Huch, TU Muenchen
 
 Host platform benchmarks for performance estimation.
@@ -7,7 +7,7 @@ Host platform benchmarks for performance estimation.
 package isabelle
 
 
-object Benchmark {
+object Build_Benchmark {
   /* ZF-Constructible as representative benchmark session with short build time and requirements */
 
   val benchmark_session = "ZF-Constructible"
@@ -18,7 +18,7 @@ object Benchmark {
     isabelle_home: Path = Path.current,
   ): String = {
     val options = Options.Spec.eq("build_hostname", host.name) :: host.options
-    ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " benchmark" +
+    ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " build_benchmark" +
       Options.Spec.bash_strings(options, bg = true)
   }
 
@@ -103,18 +103,18 @@ object Benchmark {
     }
   }
 
-  val isabelle_tool = Isabelle_Tool("benchmark", "run system benchmark",
+  val isabelle_tool = Isabelle_Tool("build_benchmark", "run benchmark for build process",
     Scala_Project.here,
     { args =>
       var options = Options.init()
 
       val getopts = Getopts("""
-Usage: isabelle benchmark [OPTIONS]
+Usage: isabelle build_benchmark [OPTIONS]
 
   Options are:
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  Run a system benchmark.
+  Run benchmark for build process.
 """,
         "o:" -> (arg => options = options + arg))
 

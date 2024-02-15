@@ -51,6 +51,7 @@ sources = \
   src/Pure/Admin/isabelle_cronjob.scala \
   src/Pure/Build/browser_info.scala \
   src/Pure/Build/build.scala \
+  src/Pure/Build/build_benchmark.scala \
   src/Pure/Build/build_cluster.scala \
   src/Pure/Build/build_job.scala \
   src/Pure/Build/build_process.scala \
@@ -168,7 +169,6 @@ sources = \
   src/Pure/PIDE/yxml.scala \
   src/Pure/ROOT.scala \
   src/Pure/System/bash.scala \
-  src/Pure/System/benchmark.scala \
   src/Pure/System/classpath.scala \
   src/Pure/System/command_line.scala \
   src/Pure/System/components.scala \
