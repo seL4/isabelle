@@ -363,8 +363,8 @@ text \<open>
     -A ROOT      include AFP with given root directory (":" for $AFP_BASE)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -H HOSTS     additional build cluster host specifications, of the form
-                 "NAMES:PARAMETERS" (separated by commas)
+    -H HOSTS     additional cluster host specifications of the form
+                 NAMES:PARAMETERS (separated by commas)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P DIR       enable HTML/PDF presentation in directory (":" for default)
     -R           refer to requirements of selected sessions
@@ -387,7 +387,7 @@ text \<open>
 
   Build and manage Isabelle sessions: ML heaps, session databases, documents.
 
-  Parameters for host specifications (option -H), apart from system options:
+  Parameters for cluster host specifications (-H), apart from system options:
      ...
 
   Notable system options: see "isabelle options -l -t build"

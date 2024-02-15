@@ -1535,8 +1535,8 @@ Usage: isabelle build_schedule [OPTIONS] [SESSIONS ...]
     -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -H HOSTS     additional build cluster host specifications, of the form
-                 "NAMES:PARAMETERS" (separated by commas)
+    -H HOSTS     additional cluster host specifications of the form
+                 NAMES:PARAMETERS (separated by commas)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -O FILE      output file
     -R           refer to requirements of selected sessions
@@ -1548,7 +1548,7 @@ Usage: isabelle build_schedule [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Generate build graph.
+  Generate build graph for scheduling.
 """,
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
