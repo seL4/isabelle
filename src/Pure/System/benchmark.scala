@@ -39,7 +39,7 @@ object Benchmark {
       using_optional(store.maybe_open_database_server(server = server)) { database_server =>
         val db = store.open_build_database(path = Host.private_data.database, server = server)
 
-        progress.echo("Starting benchmark...")
+        progress.echo("Starting benchmark ...")
         val selection = Sessions.Selection(sessions = List(benchmark_session))
         val full_sessions = Sessions.load_structure(options.int("threads") = 1)
 
