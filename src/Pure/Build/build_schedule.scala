@@ -1314,8 +1314,7 @@ object Build_Schedule {
       val hosts_current =
         cluster_hosts.forall(host => isabelle.Host.read_info(host_database, host.name).isDefined)
       if (!hosts_current) {
-        Build_Cluster.make(build_context, progress = progress)
-          .open().init().benchmark().close()
+        using(Build_Cluster.make(build_context, progress = progress).open())(_.init().benchmark())
       }
 
       val host_infos = Host_Infos.load(cluster_hosts, host_database)
