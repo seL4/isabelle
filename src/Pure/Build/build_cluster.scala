@@ -123,7 +123,7 @@ object Build_Cluster {
 
     Path.split(host.dirs)  // check
 
-    def ssh_host: String = proper_string(hostname) getOrElse name
+    def ssh_host: String = proper_string(host.hostname) getOrElse host.name
     def is_local: Boolean = SSH.is_local(ssh_host)
     def is_remote: Boolean = !is_local
 
@@ -150,7 +150,7 @@ object Build_Cluster {
 
     def open_ssh(options: Options): SSH.System =
       SSH.open_system(options ++ host.options, ssh_host, port = host.port,
-        user = host.user, user_home = home)
+        user = host.user, user_home = host.home)
 
     def open_session(build_context: Build.Context, progress: Progress = new Progress): Session = {
       val ssh_options = build_context.build_options ++ host.options
