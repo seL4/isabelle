@@ -131,7 +131,7 @@ object Build_Cluster {
           if (host.port == 0) "" else Options.Spec.print(Host.PORT, host.port.toString),
           if (host.jobs == 1) "" else Options.Spec.print(Host.JOBS, host.jobs.toString),
           if_proper(host.numa, Host.NUMA),
-          if_proper(dirs, Options.Spec.print(Host.DIRS, host.dirs)),
+          if_proper(host.dirs, Options.Spec.print(Host.DIRS, host.dirs)),
           if_proper(host.shared, Host.SHARED)
         ).filter(_.nonEmpty)
       val rest = (params ::: host.options.map(_.print)).mkString(",")
