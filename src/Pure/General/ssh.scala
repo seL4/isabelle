@@ -450,7 +450,10 @@ object SSH {
     user: String = "",
     user_home: String = ""
   ): System = {
-    if (is_local(host)) Local
+    if (is_local(host)) {
+      if (user_home.isEmpty) Local
+      else error("Illegal user home for local host")
+    }
     else open_session(options, host = host, port = port, user = user, user_home = user_home)
   }
 
