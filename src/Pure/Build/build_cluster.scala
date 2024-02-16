@@ -238,10 +238,10 @@ trait Build_Cluster extends AutoCloseable {
   def return_code(rc: Int): Unit = ()
   def return_code(res: Process_Result): Unit = return_code(res.rc)
   def return_code(exn: Throwable): Unit = return_code(Process_Result.RC(exn))
-  def open(): Unit = ()
-  def init(): Unit = ()
-  def benchmark(): Unit = ()
-  def start(): Unit = ()
+  def open(): Build_Cluster = this
+  def init(): Build_Cluster = this
+  def benchmark(): Build_Cluster = this
+  def start(): Build_Cluster = this
   def active(): Boolean = false
   def join: List[Build_Cluster.Result] = Nil
   def stop(): Unit = { join; close() }
@@ -284,7 +284,7 @@ class Remote_Build_Cluster(
 
   private var _sessions = List.empty[Build_Cluster.Session]
 
-  override def open(): Unit = synchronized {
+  override def open(): Build_Cluster = synchronized {
     require(_sessions.isEmpty, "build cluster already open")
 
     val attempts =
@@ -300,6 +300,8 @@ class Remote_Build_Cluster(
       for (case Exn.Res(session) <- attempts) session.close()
       error("Failed to connect build cluster")
     }
+
+    this
   }
 
 
@@ -307,7 +309,7 @@ class Remote_Build_Cluster(
 
   private var _init = List.empty[Future[Unit]]
 
-  override def init(): Unit = synchronized {
+  override def init(): Build_Cluster = synchronized {
     require(_sessions.nonEmpty, "build cluster not yet open")
 
     if (_init.isEmpty) {
@@ -319,9 +321,11 @@ class Remote_Build_Cluster(
           }
         }
     }
+
+    this
   }
   
-  override def benchmark(): Unit = synchronized {
+  override def benchmark(): Build_Cluster = synchronized {
     _init.foreach(_.join)
     _init =
       for (session <- _sessions if !session.host.shared) yield {
@@ -330,6 +334,8 @@ class Remote_Build_Cluster(
         }
       }
     _init.foreach(_.join)
+
+    this
   }
 
 
@@ -339,7 +345,7 @@ class Remote_Build_Cluster(
 
   override def active(): Boolean = synchronized { _workers.nonEmpty }
 
-  override def start(): Unit = synchronized {
+  override def start(): Build_Cluster = synchronized {
     require(_sessions.nonEmpty, "build cluster not yet open")
     require(_workers.isEmpty, "build cluster already active")
 
@@ -352,6 +358,8 @@ class Remote_Build_Cluster(
           Exn.release(capture(session.host, "work") { session.start() })
         }
       }
+
+    this
   }
 
   override def join: List[Build_Cluster.Result] = synchronized {

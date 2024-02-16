@@ -914,11 +914,8 @@ extends AutoCloseable {
 
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
-  protected def open_build_cluster(): Build_Cluster = {
-    val build_cluster = Build_Cluster.make(build_context, progress = build_progress)
-    build_cluster.open()
-    build_cluster
-  }
+  protected def open_build_cluster(): Build_Cluster =
+    Build_Cluster.make(build_context, progress = build_progress).open()
 
   protected val _build_cluster =
     try {
