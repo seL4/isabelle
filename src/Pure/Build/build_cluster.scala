@@ -24,6 +24,7 @@ object Build_Cluster {
     private val JOBS = "jobs"
     private val NUMA = "numa"
     private val DIRS = "dirs"
+    private val HOME = "home"
     private val SHARED = "shared"
 
     val parameters: Options =
@@ -34,7 +35,8 @@ object Build_Cluster {
         option jobs : int = 1         -- "maximum number of parallel jobs"
         option numa : bool = false    -- "cyclic shuffling of NUMA CPU nodes"
         option dirs : string = ""     -- "additional session directories (separated by colon)"
-        option shared : bool = false  -- "shared directory: omit sync + init"
+        option home : string = ""     -- "alternative user home (via $USER_HOME)"
+        option shared : bool = false  -- "shared home directory: omit sync + init"
       """)
 
     def is_parameter(spec: Options.Spec): Boolean = parameters.defined(spec.name)
@@ -49,11 +51,12 @@ object Build_Cluster {
       jobs: Int = parameters.int(JOBS),
       numa: Boolean = parameters.bool(NUMA),
       dirs: String = parameters.string(DIRS),
+      home: String = parameters.string(HOME),
       shared: Boolean = parameters.bool(SHARED),
       options: List[Options.Spec] = Nil
     ): Host = {
       Path.split(dirs)  // check
-      new Host(name, hostname, user, port, jobs, numa, dirs, shared, options)
+      new Host(name, hostname, user, port, jobs, numa, dirs, home, shared, options)
     }
 
     def parse(registry: Registry, str: String): List[Host] = {
@@ -95,6 +98,7 @@ object Build_Cluster {
           jobs = params.int(JOBS),
           numa = params.bool(NUMA),
           dirs = params.string(DIRS),
+          home = params.string(HOME),
           shared = params.bool(SHARED),
           options = options)
       }
@@ -112,6 +116,7 @@ object Build_Cluster {
     val jobs: Int,
     val numa: Boolean,
     val dirs: String,
+    val home: String,
     val shared: Boolean,
     val options: List[Options.Spec]
   ) {
@@ -132,6 +137,7 @@ object Build_Cluster {
           if (host.jobs == 1) "" else Options.Spec.print(Host.JOBS, host.jobs.toString),
           if_proper(host.numa, Host.NUMA),
           if_proper(host.dirs, Options.Spec.print(Host.DIRS, host.dirs)),
+          if_proper(host.home, Options.Spec.print(Host.HOME, host.home)),
           if_proper(host.shared, Host.SHARED)
         ).filter(_.nonEmpty)
       val rest = (params ::: host.options.map(_.print)).mkString(",")
@@ -142,7 +148,8 @@ object Build_Cluster {
     def message(msg: String): String = "Host " + quote(host.name) + if_proper(msg, ": " + msg)
 
     def open_ssh(options: Options): SSH.System =
-      SSH.open_system(options ++ host.options, ssh_host, port = host.port, user = host.user)
+      SSH.open_system(options ++ host.options, ssh_host, port = host.port,
+        user = host.user, user_home = home)
 
     def open_session(build_context: Build.Context, progress: Progress = new Progress): Session = {
       val ssh_options = build_context.build_options ++ host.options
