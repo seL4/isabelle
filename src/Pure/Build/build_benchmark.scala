@@ -8,8 +8,10 @@ package isabelle
 
 
 object Build_Benchmark {
-  /* ZF-Constructible as representative benchmark session with short build time and requirements */
+  /* benchmark */
 
+  // ZF-Constructible as representative benchmark session with
+  // short build time and requirements
   val benchmark_session = "ZF-Constructible"
 
   def benchmark_command(
@@ -102,6 +104,9 @@ object Build_Benchmark {
       }
     }
   }
+
+
+  /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("build_benchmark", "run benchmark for build process",
     Scala_Project.here,
