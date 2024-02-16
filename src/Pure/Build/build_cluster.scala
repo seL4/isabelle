@@ -101,7 +101,7 @@ object Build_Cluster {
     }
 
     def parse_single(registry: Registry, str: String): Host =
-      Library.the_single(parse(registry, str), "Single host expected: " + quote(str))
+      Library.the_single(parse(registry, str), message = "Single host expected: " + quote(str))
   }
 
   class Host(
