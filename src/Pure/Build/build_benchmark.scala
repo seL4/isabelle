@@ -18,7 +18,7 @@ object Build_Benchmark {
     isabelle_home: Path = Path.current,
   ): String = {
     val options = Options.Spec.eq("build_hostname", host.name) :: host.options
-    ssh.bash_path(isabelle_home + Path.explode("bin/isabelle")) + " build_benchmark" +
+    ssh.bash_path(Isabelle_Tool.exe(isabelle_home)) + " build_benchmark" +
       Options.Spec.bash_strings(options, bg = true)
   }
 

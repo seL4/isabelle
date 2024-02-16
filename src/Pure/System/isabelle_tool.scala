@@ -87,6 +87,8 @@ object Isabelle_Tool {
 
   /* command line entry point */
 
+  def exe(isabelle_home: Path): Path = isabelle_home + Path.explode("bin/isabelle")
+
   def main(args: Array[String]): Unit = {
     Command_Line.tool {
       args.toList match {
