@@ -720,7 +720,8 @@ options.
 \<close>
 
 declare [[cvc4_options = ""]]
-declare [[cvc5_options = "--proof-format-mode=alethe --proof-granularity=dsl-rewrite"]]
+declare [[cvc5_options = ""]]
+declare [[cvc5_proof_options = "--proof-format-mode=alethe --proof-granularity=dsl-rewrite"]]
 declare [[verit_options = ""]]
 declare [[z3_options = ""]]
 

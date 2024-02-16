@@ -121,6 +121,30 @@ val cvc5: SMT_Solver.solver_config = {
   avail = make_avail "CVC5",
   command = make_command "CVC5",
   options = cvc5_options,
+  smt_options = [(":produce-unsat-cores", "true")],
+  good_slices =
+    (* FUDGE *)
+    [((2, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((2, false, false, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((2, false, true, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((2, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((2, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((2, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((2, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
+  parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
+  replay = NONE }
+
+(*
+We need different options for alethe proof production by cvc5 and the smt_options
+cannot be changed, so different configuration.
+*)
+val cvc5_proof: SMT_Solver.solver_config = {
+  name = "cvc5_proof",
+  class = select_class,
+  avail = make_avail "CVC5",
+  command = make_command "CVC5",
+  options = cvc5_options,
   smt_options = [(":produce-proofs", "true")],
   good_slices =
     (* FUDGE *)
@@ -231,7 +255,11 @@ val parse_smt_options =
 fun smt_method ((solver, stgy), thms) ctxt facts =
   let
     val default_solver = SMT_Config.solver_of ctxt
-    val solver = the_default default_solver solver
+    val solver =
+      (case solver of
+        NONE => default_solver
+      | SOME "cvc5" => "cvc5_proof"
+      | SOME a => a)
     val _ = 
       if solver = "z3" andalso stgy <> NONE
       then warning ("No strategy is available for z3. Ignoring " ^ quote (the stgy)) 
@@ -257,6 +285,7 @@ val _ =
 val _ = Theory.setup (
   SMT_Solver.add_solver cvc4 #>
   SMT_Solver.add_solver cvc5 #>
+  SMT_Solver.add_solver cvc5_proof #>
   SMT_Solver.add_solver veriT #>
   SMT_Solver.add_solver z3)
 
