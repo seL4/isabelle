@@ -55,7 +55,6 @@ object Build_Cluster {
       shared: Boolean = parameters.bool(SHARED),
       options: List[Options.Spec] = Nil
     ): Host = {
-      Path.split(dirs)  // check
       new Host(name, hostname, user, port, jobs, numa, dirs, home, shared, options)
     }
 
@@ -121,6 +120,8 @@ object Build_Cluster {
     val options: List[Options.Spec]
   ) {
     host =>
+
+    Path.split(host.dirs)  // check
 
     def ssh_host: String = proper_string(hostname) getOrElse name
     def is_local: Boolean = SSH.is_local(ssh_host)
