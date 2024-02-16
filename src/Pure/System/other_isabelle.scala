@@ -47,9 +47,11 @@ final class Other_Isabelle private(
     echo: Boolean = false,
     strict: Boolean = true
   ): Process_Result = {
-    ssh.execute(
-      Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-        "cd " + ssh.bash_path(isabelle_home) + "\n" + script,
+    val env =
+      Isabelle_System.export_env(
+        user_home = ssh.user_home,
+        isabelle_identifier = isabelle_identifier)
+    ssh.execute(env + "cd " + ssh.bash_path(isabelle_home) + "\n" + script,
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _),
       redirect = redirect,

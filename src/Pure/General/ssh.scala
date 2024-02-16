@@ -95,7 +95,8 @@ object SSH {
     options: Options,
     host: String,
     port: Int = 0,
-    user: String = ""
+    user: String = "",
+    user_home: String = ""
   ): Session = {
     if (is_local(host)) error("Illegal SSH host name " + quote(host))
 
@@ -103,7 +104,7 @@ object SSH {
     val (control_master, control_path) =
       if (multiplex) (true, Isabelle_System.tmp_file("ssh", initialized = false).getPath)
       else (false, "")
-    new Session(options, host, port, user, control_master, control_path)
+    new Session(options, host, port, user, user_home, control_master, control_path)
   }
 
   class Session private[SSH](
@@ -111,6 +112,7 @@ object SSH {
     val host: String,
     val port: Int,
     val user: String,
+    user_home0: String,
     control_master: Boolean,
     val control_path: String
   ) extends System {
@@ -178,11 +180,11 @@ object SSH {
 
     /* init and exit */
 
-    val user_home: String = {
+    override val home: String = {
       run_ssh(master = control_master, args = "printenv HOME \";\" printenv SHELL").check.out_lines
       match {
-        case List(user_home, shell) =>
-          if (shell.endsWith("/bash")) user_home
+        case List(home, shell) =>
+          if (shell.endsWith("/bash")) home
           else {
             error("Bad SHELL for " + quote(toString) + " -- expected GNU bash, but found " + shell)
           }
@@ -190,8 +192,21 @@ object SSH {
       }
     }
 
-    val settings: Isabelle_System.Settings =
-      (name: String) => if (name == "HOME" || name == "USER_HOME") user_home else ""
+    override val user_home: String = {
+      val path1 =
+        try { Path.explode(home).expand_env(Isabelle_System.No_Env) }
+        catch { case ERROR(msg) => error(msg + " -- in SSH HOME") }
+      val path2 =
+        try { Path.explode(user_home0).expand_env(Isabelle_System.No_Env) }
+        catch { case ERROR(msg) => error(msg + "-- in SSH USER_HOME") }
+      (path1 + path2).implode
+    }
+
+    val settings: Isabelle_System.Settings = {
+      case "HOME" => home
+      case "USER_HOME" => user_home
+      case _ => ""
+    }
 
     override def close(): Unit = {
       if (control_path.nonEmpty) run_ssh(opts = "-O exit").check
@@ -207,8 +222,9 @@ object SSH {
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
+      val script = Isabelle_System.export_env(user_home = user_home) + cmd_line
       run_command("ssh",
-        args = Bash.string(host) + " " + Bash.string(cmd_line),
+        args = Bash.string(host) + " " + Bash.string(script),
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
         redirect = redirect,
@@ -236,7 +252,7 @@ object SSH {
     override def expand_path(path: Path): Path = path.expand_env(settings)
     override def absolute_path(path: Path): Path = {
       val path1 = expand_path(path)
-      if (path1.is_absolute) path1 else Path.explode(user_home) + path1
+      if (path1.is_absolute) path1 else Path.explode(home) + path1
     }
 
     def remote_path(path: Path): String = expand_path(path).implode
@@ -387,12 +403,13 @@ object SSH {
     host: String,
     port: Int = 0,
     user: String = "",
+    user_home: String = "",
     remote_port: Int = 0,
     remote_host: String = "localhost",
     local_port: Int = 0,
     local_host: String = "localhost"
   ): Server = {
-    val ssh = open_session(options, host, port = port, user = user)
+    val ssh = open_session(options, host, port = port, user = user, user_home = user_home)
     try {
       ssh.open_server(remote_port = remote_port, remote_host = remote_host,
         local_port = local_port, local_host = local_host, ssh_close = true)
@@ -430,15 +447,22 @@ object SSH {
     options: Options,
     host: String,
     port: Int = 0,
-    user: String = ""
+    user: String = "",
+    user_home: String = ""
   ): System = {
-    if (is_local(host)) Local
-    else open_session(options, host = host, port = port, user = user)
+    if (is_local(host)) {
+      if (user_home.isEmpty) Local
+      else error("Illegal user home for local host")
+    }
+    else open_session(options, host = host, port = port, user = user, user_home = user_home)
   }
 
   trait System extends AutoCloseable {
     def ssh_session: Option[Session]
     def is_local: Boolean = ssh_session.isEmpty
+
+    def home: String = ""
+    def user_home: String = ""
 
     def close(): Unit = ()
 
