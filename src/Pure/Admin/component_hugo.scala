@@ -91,6 +91,9 @@ See also https://gohugo.io and executables from """ + base_url + """
         """ + Date.Format.date(Date.now()) + "\n")
   }
 
+
+  /* Isabelle tool wrapper */
+
   val isabelle_tool =
     Isabelle_Tool("component_hugo", "build hugo component", Scala_Project.here,
       { args =>

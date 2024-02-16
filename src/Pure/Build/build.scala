@@ -308,7 +308,7 @@ object Build {
   }
 
 
-  /* command-line wrapper */
+  /* Isabelle tool wrappers */
 
   val isabelle_tool1 = Isabelle_Tool("build", "build and manage Isabelle sessions",
     Scala_Project.here,
@@ -861,7 +861,7 @@ Usage: isabelle build_worker [OPTIONS]
   }
 
 
-  /* command-line wrapper */
+  /* Isabelle tool wrapper */
 
   val isabelle_tool4 = Isabelle_Tool("build_log", "print messages from session build database",
     Scala_Project.here,

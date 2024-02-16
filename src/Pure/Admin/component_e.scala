@@ -100,6 +100,7 @@ Isabelle component directory: x86_64-linux etc.
     }
 }
 
+
   /* Isabelle tool wrapper */
 
   val isabelle_tool =

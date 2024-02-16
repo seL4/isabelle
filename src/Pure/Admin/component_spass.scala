@@ -138,6 +138,7 @@ Viel SPASS!
     }
 }
 
+
   /* Isabelle tool wrapper */
 
   val isabelle_tool =

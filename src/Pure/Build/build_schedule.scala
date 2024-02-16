@@ -1505,7 +1505,7 @@ object Build_Schedule {
   }
 
 
-  /* command-line wrapper */
+  /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("build_schedule", "generate build schedule", Scala_Project.here,
     { args =>
