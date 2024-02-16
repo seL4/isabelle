@@ -23,7 +23,7 @@ definition\<^marker>\<open>tag important\<close>  "set_lebesgue_integral M A f \
 
 syntax
   "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  ("(4LINT (_):(_)/|(_)./ _)" [0,60,110,61] 10)
+  ("(4LINT (_):(_)/|(_)./ _)" [0,0,0,10] 10)
 
 translations
   "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
@@ -39,11 +39,11 @@ translations
 
 syntax
   "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
-  ("(2LBINT _./ _)" [0,60] 10)
+  ("(2LBINT _./ _)" [0,10] 10)
 
 syntax
   "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
-  ("(3LBINT _:_./ _)" [0,60,61] 10)
+  ("(3LBINT _:_./ _)" [0,0,10] 10)
 
 (*
     Basic properties
@@ -570,14 +570,14 @@ abbreviation complex_lebesgue_integral :: "'a measure \<Rightarrow> ('a \<Righta
 
 syntax
   "_complex_lebesgue_integral" :: "pttrn \<Rightarrow> complex \<Rightarrow> 'a measure \<Rightarrow> complex"
- ("\<integral>\<^sup>C _. _ \<partial>_" [60,61] 110)
+ ("\<integral>\<^sup>C _. _ \<partial>_" [0,0] 110)
 
 translations
   "\<integral>\<^sup>Cx. f \<partial>M" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
 
 syntax
   "_ascii_complex_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  ("(3CLINT _|_. _)" [0,110,60] 10)
+  ("(3CLINT _|_. _)" [0,0,10] 10)
 
 translations
   "CLINT x|M. f" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
@@ -611,7 +611,7 @@ abbreviation complex_set_lebesgue_integral :: "'a measure \<Rightarrow> 'a set \
 
 syntax
 "_ascii_complex_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-("(4CLINT _:_|_. _)" [0,60,110,61] 10)
+("(4CLINT _:_|_. _)" [0,0,0,10] 10)
 
 translations
 "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
@@ -630,10 +630,10 @@ abbreviation "set_nn_integral M A f \<equiv> nn_integral M (\<lambda>x. f x * in
 
 syntax
 "_set_nn_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-("(\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 10)
+("(\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)" [0,0,0,110] 10)
 
 "_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-("(\<integral>((_)\<in>(_)./ _)/\<partial>_)" [0,60,110,61] 10)
+("(\<integral>((_)\<in>(_)./ _)/\<partial>_)" [0,0,0,110] 10)
 
 translations
 "\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"
