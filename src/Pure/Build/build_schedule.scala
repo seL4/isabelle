@@ -1286,7 +1286,7 @@ object Build_Schedule {
     val log_store = Build_Log.store(options, cache = cache)
     val build_options = store.options
 
-    def build_schedule(
+    def main(
       server: SSH.Server,
       database_server: Option[SQL.Database],
       log_database: PostgreSQL.Database,
@@ -1337,7 +1337,7 @@ object Build_Schedule {
         using(log_store.open_database(server = server)) { log_database =>
           using(store.open_build_database(
             path = isabelle.Host.private_data.database, server = server)) { host_database =>
-              build_schedule(server, database_server, log_database, host_database)
+              main(server, database_server, log_database, host_database)
           }
         }
       }
