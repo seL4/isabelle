@@ -1216,8 +1216,7 @@ object Build_Schedule {
   }
 
 
-  class Engine extends Build.Engine("build_schedule") {
-
+  class Build_Engine extends Build.Engine("build_schedule") {
     def scheduler(timing_data: Timing_Data, context: Build.Context): Scheduler = {
       val sessions_structure = context.sessions_structure
 
@@ -1263,6 +1262,7 @@ object Build_Schedule {
         def init_scheduler(timing_data: Timing_Data): Scheduler = scheduler(timing_data, context)
       }
   }
+  object Build_Engine extends Build_Engine
 
 
   /* build schedule */
@@ -1281,10 +1281,8 @@ object Build_Schedule {
     session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Term.Cache = Term.Cache.make()
   ): Schedule = {
-    val build_engine = new Engine
-
     val store =
-      build_engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
+      Build_Engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
     val log_store = Build_Log.store(options, cache = cache)
     val build_options = store.options
 
@@ -1304,7 +1302,7 @@ object Build_Schedule {
           inlined_files = true).check_errors
 
       val build_context =
-        Build.Context(store, build_deps, engine = build_engine, afp_root = afp_root,
+        Build.Context(store, build_deps, engine = Build_Engine, afp_root = afp_root,
           build_hosts = build_hosts, hostname = Build.hostname(build_options),
           numa_shuffling = numa_shuffling, max_jobs = Some(0), session_setup = session_setup,
           master = true)
@@ -1327,7 +1325,7 @@ object Build_Schedule {
       val build_state =
         Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)
 
-      val scheduler = build_engine.scheduler(timing_data, build_context)
+      val scheduler = Build_Engine.scheduler(timing_data, build_context)
       def schedule_msg(res: Exn.Result[Schedule]): String =
         res match { case Exn.Res(schedule) => schedule.message case _ => "" }
 
