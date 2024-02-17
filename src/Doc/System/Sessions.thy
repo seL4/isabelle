@@ -377,7 +377,8 @@ text \<open>
     -e           export files from session specification into file-system
     -f           fresh build
     -g NAME      select session group NAME
-    -j INT       maximum number of parallel jobs (default 1)
+    -j INT       maximum number of parallel jobs
+                 (default: 1 for local build, 0 for build cluster)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
     -n           no build -- take existing session build databases
@@ -495,7 +496,8 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-j\<close> specifies the maximum number of parallel build jobs (prover
   processes). Each prover process is subject to a separate limit of parallel
-  worker threads, cf.\ system option @{system_option_ref threads}.
+  worker threads, cf.\ system option @{system_option_ref threads}. The default
+  is 1 for a local build, and 0 for a cluster build (see option \<^verbatim>\<open>-H\<close> below).
 
   \<^medskip>
   Option \<^verbatim>\<open>-N\<close> enables cyclic shuffling of NUMA CPU nodes. This may help
@@ -523,6 +525,11 @@ text \<open>
   The syntax for host parameters follows Isabelle outer syntax, notably with
   double-quoted string literals. On the command-line, this may require extra
   single quotes or escapes. For example: \<^verbatim>\<open>-H 'host4:dirs="..."'\<close>.
+
+  The local host only participates in cluster build, if an explicit option
+  \<^verbatim>\<open>-j\<close> > 0 is given. The default is 0, which means that \<^verbatim>\<open>isabelle build -H\<close>
+  will initialize the build queue and oversee remote workers, but not run any
+  Isabelle sessions on its own account.
 
   The presence of at least one \<^verbatim>\<open>-H\<close> option changes the mode of operation of
   \<^verbatim>\<open>isabelle build\<close> substantially. It uses a shared PostgreSQL database

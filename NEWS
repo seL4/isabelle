@@ -100,6 +100,12 @@ specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 
 *** System ***
 
+* The command-line tool "isabelle build" now uses default 0 (instead of
+1) for option -j. This means that "isabelle build -H" will initialize
+the build queue and oversee remote workers, but not run any Isabelle
+sessions on its own account. INCOMPATIBILITY, use "isabelle build -j1
+-H" for the old behaviour, to have the local host participate as worker.
+
 * Directory src/Tools/Demo provides an Isabelle system component with
 command-line tool that is implemented in Isabelle/Scala. It serves as
 demonstration for user-defined tools.

@@ -247,7 +247,7 @@ object Build {
             build_hosts = build_hosts, hostname = hostname(build_options), build_heap = build_heap,
             numa_shuffling = numa_shuffling, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup,
-            jobs = max_jobs.getOrElse(1), master = true)
+            jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
 
         if (clean_build) {
           for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
@@ -365,7 +365,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -e           export files from session specification into file-system
     -f           fresh build
     -g NAME      select session group NAME
-    -j INT       maximum number of parallel jobs (default 1)
+    -j INT       maximum number of parallel jobs
+                 (default: 1 for local build, 0 for build cluster)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
     -n           no build -- take existing session build databases
