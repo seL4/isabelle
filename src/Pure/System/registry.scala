@@ -84,8 +84,8 @@ object Registry {
     override def table_value(registry: Registry, t: TOML.Table, a: String): Value = {
       val hosts =
         t.array.get(prefix_hosts) match {
-          case Some(arr) => arr.string.values.map(_.rep)
-          case None => bad_value(Long_Name.qualify(a, prefix_hosts))
+          case Some(arr) if arr.length > 0 => arr.string.values.map(_.rep)
+          case _ => bad_value(Long_Name.qualify(a, prefix_hosts))
         }
       val cluster_specs = Host_Cluster.get(registry, a)
       hosts.map(h => (h, Host_Strict.get(registry, h) ::: cluster_specs))
