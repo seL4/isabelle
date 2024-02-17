@@ -40,6 +40,8 @@ object ML_Process {
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()
   ): Bash.Process = {
+    val ml_options = options.standard_ml()
+
     val eval_init =
       if (session_heaps.isEmpty) {
         List(
@@ -78,7 +80,7 @@ object ML_Process {
     val eval_options = if (session_heaps.isEmpty) Nil else List("Options.load_default ()")
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.restrict(File.path(isabelle_process_options))
-    File.write(isabelle_process_options, YXML.string_of_body(options.encode))
+    File.write(isabelle_process_options, YXML.string_of_body(ml_options.encode))
 
     // session resources
     val eval_init_session = if (session_heaps.isEmpty) Nil else List("Resources.init_session_env ()")
@@ -90,7 +92,7 @@ object ML_Process {
     val eval_process =
       proper_string(eval_main).getOrElse(
         if (session_heaps.isEmpty) {
-          "PolyML.print_depth " + ML_Syntax.print_int(options.int("ML_print_depth"))
+          "PolyML.print_depth " + ML_Syntax.print_int(ml_options.int("ML_print_depth"))
         }
         else "Isabelle_Process.init ()")
 
@@ -101,7 +103,7 @@ object ML_Process {
       val ml_options0 = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
       val ml_options1 =
         if (ml_options0.exists(_.containsSlice("gcthreads"))) ml_options0
-        else ml_options0 ::: List("--gcthreads", options.int("threads").toString)
+        else ml_options0 ::: List("--gcthreads", ml_options.threads().toString)
       val ml_options2 =
         if (!Platform.is_windows || ml_options0.exists(_.containsSlice("codepage"))) ml_options1
         else ml_options1 ::: List("--codepage", "utf8")
@@ -120,7 +122,7 @@ object ML_Process {
     bash_env.put("ISABELLE_TMP", File.standard_path(isabelle_tmp))
     bash_env.put("POLYSTATSDIR", isabelle_tmp.getAbsolutePath)
 
-    val process_policy = options.string("process_policy")
+    val process_policy = ml_options.string("process_policy")
     val process_prefix = if_proper(process_policy, process_policy + " ")
 
     Bash.process(process_prefix + "\"$POLYML_EXE\" -q " + Bash.strings(bash_args),
