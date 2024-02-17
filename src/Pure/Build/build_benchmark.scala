@@ -43,7 +43,7 @@ object Build_Benchmark {
 
         progress.echo("Starting benchmark ...")
         val selection = Sessions.Selection(sessions = List(benchmark_session))
-        val full_sessions = Sessions.load_structure(options.int.update("threads", 1))
+        val full_sessions = Sessions.load_structure(options + "threads=1")
 
         val build_deps = Sessions.deps(full_sessions.selection(selection)).check_errors
         val build_context = Build.Context(store, build_deps, jobs = 1)
