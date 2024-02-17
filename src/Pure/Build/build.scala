@@ -42,14 +42,16 @@ object Build {
     jobs: Int = 0,
     master: Boolean = false
   ) {
-    override def toString: String =
-      "Build.Context(build_uuid = " + quote(build_uuid) + if_proper(master, ", master = true") + ")"
-
     def build_options: Options = store.options
 
     def sessions_structure: isabelle.Sessions.Structure = deps.sessions_structure
 
-    def worker_active: Boolean = jobs > 0
+    def worker: Boolean = jobs > 0
+
+    override def toString: String =
+      "Build.Context(build_uuid = " + quote(build_uuid) +
+        if_proper(worker, ", worker = true") +
+        if_proper(master, ", master = true") + ")"
   }
 
 
