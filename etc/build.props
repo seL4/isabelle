@@ -320,7 +320,7 @@ sources = \
 services = \
   isabelle.Bash$Handler \
   isabelle.Bibtex$File_Format \
-  isabelle.Build$Default_Engine \
+  isabelle.Build$Engine$Default \
   isabelle.Build_Schedule$Build_Engine \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LIPIcs_LuaLaTeX_Engine \

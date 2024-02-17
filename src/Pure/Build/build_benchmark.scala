@@ -27,7 +27,7 @@ object Build_Benchmark {
   def benchmark_requirements(options: Options, progress: Progress = new Progress): Unit = {
     val res =
       Build.build(
-        options.string.update("build_engine", Build.Default_Engine.name),
+        options.string.update("build_engine", Build.Engine.Default.name),
         selection = Sessions.Selection(requirements = true, sessions = List(benchmark_session)),
         progress = progress, build_heap = true)
     if (!res.ok) error("Failed building requirements")

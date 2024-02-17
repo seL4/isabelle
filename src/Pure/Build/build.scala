@@ -28,7 +28,7 @@ object Build {
   sealed case class Context(
     store: Store,
     build_deps: isabelle.Sessions.Deps,
-    engine: Engine = Default_Engine,
+    engine: Engine = Engine.Default,
     afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
@@ -104,6 +104,9 @@ object Build {
 
     def apply(name: String): Engine =
       services.find(_.name == name).getOrElse(error("Bad build engine " + quote(name)))
+
+    class Default extends Engine("") { override def toString: String = "<default>" }
+    object Default extends Default
   }
 
   class Engine(val name: String) extends Isabelle_System.Service {
@@ -141,8 +144,6 @@ object Build {
     }
   }
 
-  class Default_Engine extends Engine("") { override def toString: String = "<default>" }
-  object Default_Engine extends Default_Engine
 
 
   /* build */
