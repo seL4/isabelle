@@ -98,12 +98,12 @@ object ML_Process {
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
 
     val ml_runtime_options = {
-      val ml_options = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
+      val ml_options0 = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
       val ml_options1 =
-        if (ml_options.exists(_.containsSlice("gcthreads"))) ml_options
-        else ml_options ::: List("--gcthreads", options.int("threads").toString)
+        if (ml_options0.exists(_.containsSlice("gcthreads"))) ml_options0
+        else ml_options0 ::: List("--gcthreads", options.int("threads").toString)
       val ml_options2 =
-        if (!Platform.is_windows || ml_options.exists(_.containsSlice("codepage"))) ml_options1
+        if (!Platform.is_windows || ml_options0.exists(_.containsSlice("codepage"))) ml_options1
         else ml_options1 ::: List("--codepage", "utf8")
       ml_options2 ::: List("--exportstats")
     }
