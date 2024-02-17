@@ -24,7 +24,7 @@ object Build_Benchmark {
       Options.Spec.bash_strings(options, bg = true)
   }
 
-  def benchmark_requirements(options: Options, progress: Progress = new Progress()): Unit = {
+  def benchmark_requirements(options: Options, progress: Progress = new Progress): Unit = {
     val res =
       Build.build(
         options.string.update("build_engine", Build.Default_Engine.name),
@@ -33,7 +33,7 @@ object Build_Benchmark {
     if (!res.ok) error("Failed building requirements")
   }
 
-  def benchmark(options: Options, progress: Progress = new Progress()): Unit = {
+  def benchmark(options: Options, progress: Progress = new Progress): Unit = {
     val hostname = options.string("build_hostname")
     val store = Store(options)
 
