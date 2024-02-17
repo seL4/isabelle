@@ -46,8 +46,7 @@ object Build_Benchmark {
         val full_sessions = Sessions.load_structure(options.int.update("threads", 1))
 
         val build_context =
-          Build.Context(store, Build.Default_Engine,
-            Sessions.deps(full_sessions.selection(selection)).check_errors)
+          Build.Context(store, Sessions.deps(full_sessions.selection(selection)).check_errors)
 
         val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
         val session = sessions(benchmark_session)

@@ -1304,7 +1304,7 @@ object Build_Schedule {
           inlined_files = true).check_errors
 
       val build_context =
-        Build.Context(store, build_engine, build_deps, afp_root = afp_root,
+        Build.Context(store, build_deps, engine = build_engine, afp_root = afp_root,
           build_hosts = build_hosts, hostname = Build.hostname(build_options),
           numa_shuffling = numa_shuffling, max_jobs = Some(0), session_setup = session_setup,
           master = true)

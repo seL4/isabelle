@@ -27,8 +27,8 @@ object Build {
 
   sealed case class Context(
     store: Store,
-    engine: Engine,
     build_deps: isabelle.Sessions.Deps,
+    engine: Engine = Default_Engine,
     afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
@@ -237,8 +237,8 @@ object Build {
         /* build process and results */
 
         val build_context =
-          Context(store, build_engine, build_deps, afp_root = afp_root, build_hosts = build_hosts,
-            hostname = hostname(build_options), build_heap = build_heap,
+          Context(store, build_deps, engine = build_engine, afp_root = afp_root,
+            build_hosts = build_hosts, hostname = hostname(build_options), build_heap = build_heap,
             numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup, master = true)
 
@@ -622,7 +622,7 @@ Usage: isabelle build_process [OPTIONS]
           Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
         val build_context =
-          Context(store, build_engine, build_deps, afp_root = afp_root,
+          Context(store, build_deps, engine = build_engine, afp_root = afp_root,
             hostname = hostname(build_options), numa_shuffling = numa_shuffling,
             max_jobs = max_jobs, build_uuid = build_master.build_uuid)
 
