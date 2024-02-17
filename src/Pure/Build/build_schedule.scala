@@ -316,6 +316,10 @@ object Build_Schedule {
   case class Host(info: isabelle.Host.Info, build: Build_Cluster.Host) {
     def name: String = info.hostname
     def num_cpus: Int = info.num_cpus
+    def max_threads(options: Options): Int =
+      Multithreading.max_threads(
+        value = (options ++ build.options).int("threads"),
+        default = num_cpus)
   }
 
   object Host_Infos {
@@ -610,13 +614,8 @@ object Build_Schedule {
   class Default_Heuristic(host_infos: Host_Infos, options: Options) extends Priority_Rule {
     override def toString: String = "default heuristic"
 
-    def host_threads(host: Host): Int = {
-      val m = (options ++ host.build.options).int("threads")
-      if (m > 0) m else (host.num_cpus max 1) min 8
-    }
-
     def next_jobs(resources: Resources, sorted_jobs: List[String], host: Host): List[Config] =
-      sorted_jobs.zip(resources.unused_nodes(host, host_threads(host))).map(Config(_, _))
+      sorted_jobs.zip(resources.unused_nodes(host, host.max_threads(options))).map(Config(_, _))
 
     def select_next(state: Build_Process.State): List[Config] = {
       val sorted_jobs = state.next_ready.sortBy(_.name)(state.sessions.ordering).map(_.name)

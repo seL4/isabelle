@@ -42,8 +42,10 @@ object Multithreading {
 
   /* max_threads */
 
-  def max_threads(): Int = {
-    val m = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
-    if (m > 0) m else num_processors() min 8
+  def max_threads(
+    value: Int = Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0,
+    default: => Int = num_processors()
+  ): Int = {
+    if (value > 0) value else (default max 1) min 8
   }
 }
