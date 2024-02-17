@@ -1304,8 +1304,7 @@ object Build_Schedule {
       val build_context =
         Build.Context(store, build_deps, engine = Build_Engine, afp_root = afp_root,
           build_hosts = build_hosts, hostname = Build.hostname(build_options),
-          numa_shuffling = numa_shuffling, max_jobs = Some(0), session_setup = session_setup,
-          master = true)
+          numa_shuffling = numa_shuffling, session_setup = session_setup, master = true)
 
       val cluster_hosts = build_context.build_hosts
 

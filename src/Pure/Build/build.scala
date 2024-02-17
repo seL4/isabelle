@@ -35,11 +35,11 @@ object Build {
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
     build_heap: Boolean = false,
-    max_jobs: Option[Int] = None,
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
     build_uuid: String = UUID.random().toString,
+    jobs: Int = 0,
     master: Boolean = false
   ) {
     override def toString: String =
@@ -49,7 +49,6 @@ object Build {
 
     def sessions_structure: isabelle.Sessions.Structure = deps.sessions_structure
 
-    def jobs: Int = max_jobs.getOrElse(1)
     def worker_active: Boolean = jobs > 0
   }
 
@@ -240,8 +239,9 @@ object Build {
         val build_context =
           Context(store, build_deps, engine = build_engine, afp_root = afp_root,
             build_hosts = build_hosts, hostname = hostname(build_options), build_heap = build_heap,
-            numa_shuffling = numa_shuffling, max_jobs = max_jobs, fresh_build = fresh_build,
-            no_build = no_build, session_setup = session_setup, master = true)
+            numa_shuffling = numa_shuffling, fresh_build = fresh_build,
+            no_build = no_build, session_setup = session_setup,
+            jobs = max_jobs.getOrElse(1), master = true)
 
         if (clean_build) {
           for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
@@ -625,7 +625,7 @@ Usage: isabelle build_process [OPTIONS]
         val build_context =
           Context(store, build_deps, engine = build_engine, afp_root = afp_root,
             hostname = hostname(build_options), numa_shuffling = numa_shuffling,
-            max_jobs = max_jobs, build_uuid = build_master.build_uuid)
+            build_uuid = build_master.build_uuid, jobs = max_jobs.getOrElse(1))
 
         build_engine.run_build_process(build_context, progress, server)
       }
