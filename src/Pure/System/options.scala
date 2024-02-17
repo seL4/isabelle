@@ -399,6 +399,9 @@ final class Options private(
 
   def seconds(name: String): Time = Time.seconds(real(name))
 
+  def threads(default: => Int = Multithreading.num_processors()): Int =
+    Multithreading.max_threads(value = int("threads"), default = default)
+
 
   /* external updates */
 

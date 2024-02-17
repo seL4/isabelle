@@ -316,10 +316,7 @@ object Build_Schedule {
   case class Host(info: isabelle.Host.Info, build: Build_Cluster.Host) {
     def name: String = info.hostname
     def num_cpus: Int = info.num_cpus
-    def max_threads(options: Options): Int =
-      Multithreading.max_threads(
-        value = (options ++ build.options).int("threads"),
-        default = num_cpus)
+    def max_threads(options: Options): Int = (options ++ build.options).threads(default = num_cpus)
   }
 
   object Host_Infos {
