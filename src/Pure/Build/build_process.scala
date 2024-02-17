@@ -117,7 +117,7 @@ object Build_Process {
             val deps = info.parent.toList
             val prefs = info.session_prefs
             val ancestors = sessions_structure.build_requirements(deps)
-            val sources_shasum = build_context.build_deps.sources_shasum(name)
+            val sources_shasum = build_context.deps.sources_shasum(name)
 
             if (graph0.defined(name)) {
               val session0 = graph0.get_node(name)
@@ -846,7 +846,7 @@ extends AutoCloseable {
 
   protected final val store: Store = build_context.store
   protected final val build_options: Options = store.options
-  protected final val build_deps: isabelle.Sessions.Deps = build_context.build_deps
+  protected final val build_deps: isabelle.Sessions.Deps = build_context.deps
   protected final val hostname: String = build_context.hostname
   protected final val build_uuid: String = build_context.build_uuid
 

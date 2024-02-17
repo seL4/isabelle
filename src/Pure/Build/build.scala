@@ -27,7 +27,7 @@ object Build {
 
   sealed case class Context(
     store: Store,
-    build_deps: isabelle.Sessions.Deps,
+    deps: isabelle.Sessions.Deps,
     engine: Engine = Engine.Default,
     afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
@@ -47,7 +47,7 @@ object Build {
 
     def build_options: Options = store.options
 
-    def sessions_structure: isabelle.Sessions.Structure = build_deps.sessions_structure
+    def sessions_structure: isabelle.Sessions.Structure = deps.sessions_structure
 
     def jobs: Int = max_jobs.getOrElse(1)
     def worker_active: Boolean = jobs > 0
@@ -62,7 +62,7 @@ object Build {
       results: Map[String, Process_Result] = Map.empty,
       other_rc: Int = Process_Result.RC.ok
     ): Results = {
-      new Results(context.store, context.build_deps, results, other_rc)
+      new Results(context.store, context.deps, results, other_rc)
     }
   }
 
