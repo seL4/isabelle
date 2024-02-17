@@ -90,7 +90,7 @@ option print_mode : string = "" for content
 section "Parallel Processing and Timing"
 
 public option threads : int = 0 for build
-  -- "maximum number of worker threads for prover process (0 = hardware max.)"
+  -- "maximum number of worker threads for prover process (0 = guess from hardware)"
 option threads_trace : int = 0
   -- "level of tracing information for multithreading"
 option threads_stack_limit : real = 0.25

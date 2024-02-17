@@ -279,10 +279,9 @@ text \<open>
 
     \<^item> @{system_option_def "threads"} determines the number of worker threads
     for parallel checking of theories and proofs. The default \<open>0\<close> means that a
-    sensible maximum value is determined by the underlying hardware. For
-    machines with many cores or with hyperthreading, this sometimes requires
-    manual adjustment (on the command-line or within personal settings or
-    preferences, not within a session \<^verbatim>\<open>ROOT\<close>).
+    sensible value is guessed from the underlying hardware. This sometimes
+    requires manual adjustment (on the command-line or within personal
+    settings or preferences, not within a session \<^verbatim>\<open>ROOT\<close>).
 
     \<^item> @{system_option_def "condition"} specifies a comma-separated list of
     process environment variables (or Isabelle settings) that are required for
