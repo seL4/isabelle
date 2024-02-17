@@ -88,13 +88,13 @@ object Build_Schedule {
     class Facet private[Timing_Data](val results: List[Result]) {
       require(results.nonEmpty)
 
-      def is_empty = results.isEmpty
+      def is_empty: Boolean = results.isEmpty
 
       def size = results.length
 
-      lazy val by_job = results.groupBy(_.job_name).view.mapValues(new Facet(_)).toMap
-      lazy val by_threads = results.groupBy(_.threads).view.mapValues(new Facet(_)).toMap
-      lazy val by_hostname = results.groupBy(_.hostname).view.mapValues(new Facet(_)).toMap
+      lazy val by_job: Map[String, Facet] = results.groupBy(_.job_name).view.mapValues(new Facet(_)).toMap
+      lazy val by_threads: Map[Int, Facet] = results.groupBy(_.threads).view.mapValues(new Facet(_)).toMap
+      lazy val by_hostname: Map[String, Facet] = results.groupBy(_.hostname).view.mapValues(new Facet(_)).toMap
 
       def mean_time: Time = Timing_Data.mean_time(results.map(_.elapsed))
 
@@ -846,7 +846,7 @@ object Build_Schedule {
   ) extends Build_Process(build_context, build_progress, server) {
     /* global state: internal var vs. external database */
 
-    protected var _schedule = Schedule.init(build_uuid)
+    protected var _schedule: Schedule = Schedule.init(build_uuid)
 
     override protected def synchronized_database[A](label: String)(body: => A): A =
       synchronized {
@@ -886,7 +886,7 @@ object Build_Schedule {
   ) extends Scheduled_Build_Process(build_context, build_progress, server) {
     require(build_context.master)
 
-    protected val start_date = Date.now()
+    protected val start_date: Date = Date.now()
 
     for (db <- _build_database) {
       Build_Schedule.private_data.transaction_lock(
