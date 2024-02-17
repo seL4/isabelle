@@ -193,8 +193,9 @@ object Build {
 
         val build_deps = {
           val deps0 =
-            Sessions.deps(full_sessions.selection(selection), progress = progress, inlined_files = true,
-              list_files = list_files, check_keywords = check_keywords).check_errors
+            Sessions.deps(full_sessions.selection(selection), progress = progress,
+              inlined_files = true, list_files = list_files, check_keywords = check_keywords
+            ).check_errors
 
           if (soft_build && !fresh_build) {
             val outdated =
@@ -205,7 +206,9 @@ object Build {
                       case Some(build) if build.ok =>
                         val session_options = deps0.sessions_structure(name).options
                         val session_sources = deps0.sources_shasum(name)
-                        if (Sessions.eq_sources(session_options, build.sources, session_sources)) None
+                        if (Sessions.eq_sources(session_options, build.sources, session_sources)) {
+                          None
+                        }
                         else Some(name)
                       case _ => Some(name)
                     }
@@ -230,7 +233,8 @@ object Build {
           Mercurial.check_files(source_files)._2 match {
             case Nil =>
             case unknown_files =>
-              progress.echo_warning("Unknown files (not part of the underlying Mercurial repository):" +
+              progress.echo_warning(
+                "Unknown files (not part of the underlying Mercurial repository):" +
                 unknown_files.map(File.standard_path).sorted.mkString("\n  ", "\n  ", ""))
           }
         }
