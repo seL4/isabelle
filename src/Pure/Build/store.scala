@@ -279,8 +279,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
   /* session */
 
   def get_session(name: String): Store.Session = {
-    val heap = input_dirs.map(_ + store.heap(name)).find(_.is_file)
-    val log_db = input_dirs.map(_ + store.log_db(name)).find(_.is_file)
+    val heap = input_dirs.view.map(_ + store.heap(name)).find(_.is_file)
+    val log_db = input_dirs.view.map(_ + store.log_db(name)).find(_.is_file)
     Store.Session(name, heap, log_db)
   }
 
