@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermission}
-import java.net.{URI, URL}
+import java.net.URI
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.EnumSet
 
@@ -85,8 +85,8 @@ object File {
   def uri(file: JFile): URI = file.toURI
   def uri(path: Path): URI = path.file.toURI
 
-  def url(file: JFile): URL = uri(file).toURL
-  def url(path: Path): URL = url(path.file)
+  def url(file: JFile): Url = Url(uri(file))
+  def url(path: Path): Url = url(path.file)
 
 
   /* adhoc file types */

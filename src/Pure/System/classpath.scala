@@ -55,7 +55,8 @@ class Classpath private(static_jars: List[JFile], dynamic_jars: List[JFile]) {
     val this_class_loader = this.getClass.getClassLoader
     if (dynamic_jars.isEmpty) this_class_loader
     else {
-      new URLClassLoader(dynamic_jars.map(File.url).toArray, this_class_loader) {
+      val dynamic_jars_url = dynamic_jars.map(file => File.url(file).java_url)
+      new URLClassLoader(dynamic_jars_url.toArray, this_class_loader) {
         override def finalize(): Unit = {
           for (jar <- dynamic_jars) {
             try { jar.delete() }
