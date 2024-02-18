@@ -360,7 +360,7 @@ val converter : term option converter = {
         casec = casec,
         letc = letc
     }
-fun top_converter is_rec _ _ = opt_term o (plus (if is_rec then SOME one else NONE))
+fun top_converter is_rec _ _ = opt_term o (fn exp => plus exp (if is_rec then SOME one else NONE))
 
 (* Use converter to convert right side of a term *)
 fun to_time ctxt origin converter top_converter term =
