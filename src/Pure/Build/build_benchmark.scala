@@ -54,10 +54,7 @@ object Build_Benchmark {
         val heaps = session.ancestors.map(store.output_heap)
         ML_Heap.restore(database_server, heaps, cache = store.cache.compress)
 
-        val local_options =
-          options
-            .bool.update("build_database_server", false)
-            .bool.update("build_database", false)
+        val local_options = options + "build_database_server=false" + "build_database=false"
 
         benchmark_requirements(local_options, progress)
         ML_Heap.restore(database_server, heaps, cache = store.cache.compress)

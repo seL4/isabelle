@@ -127,10 +127,7 @@ object CI_Build {
 
   private def with_documents(options: Options, config: Build_Config): Options = {
     if (config.documents) {
-      options
-        .bool.update("browser_info", true)
-        .string.update("document", "pdf")
-        .string.update("document_variants", "document:outline=/proof,/ML")
+      options + "browser_info" + "document=pdf" + "document_variants=document:outline=/proof,/ML"
     }
     else options
   }
@@ -156,10 +153,8 @@ object CI_Build {
     println(Build_Log.Settings.show())
 
     val build_options =
-      with_documents(options, config)
-        .int.update("parallel_proofs", 1)
-        .int.update("threads", profile.threads)
-        + "system_heaps"
+      with_documents(options, config).int.update("threads", profile.threads) +
+        "parallel_proofs=1" + "system_heaps"
 
     println(s"jobs = ${profile.jobs}, threads = ${profile.threads}, numa = ${profile.numa}")
 
