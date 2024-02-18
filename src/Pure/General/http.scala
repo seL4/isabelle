@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{File => JFile}
 import java.nio.file.Files
-import java.net.{InetSocketAddress, URI, URL, HttpURLConnection}
+import java.net.{InetSocketAddress, URI, HttpURLConnection}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 
