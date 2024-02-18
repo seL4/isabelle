@@ -20,6 +20,9 @@ object Store {
   sealed case class Session(name: String, heap: Option[Path], log_db: Option[Path]) {
     def defined: Boolean = heap.isDefined || log_db.isDefined
 
+    def heap_digest(): Option[SHA1.Digest] =
+      heap.flatMap(ML_Heap.read_file_digest)
+
     override def toString: String = name
   }
 
@@ -275,17 +278,17 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   /* session */
 
-  def get_session(name: String): Store.Session =
-    Store.Session(name, find_heap(name), find_log_db(name))
+  def get_session(name: String): Store.Session = {
+    val heap = input_dirs.map(_ + store.heap(name)).find(_.is_file)
+    val log_db = input_dirs.map(_ + store.log_db(name)).find(_.is_file)
+    Store.Session(name, heap, log_db)
+  }
 
 
   /* heap */
 
-  def find_heap(name: String): Option[Path] =
-    input_dirs.map(_ + heap(name)).find(_.is_file)
-
   def the_heap(name: String): Path =
-    find_heap(name) getOrElse
+    get_session(name).heap getOrElse
       error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
         cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
@@ -297,10 +300,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
       } yield digest
     }
 
-    def get_file: Option[SHA1.Digest] =
-      find_heap(name).flatMap(ML_Heap.read_file_digest)
-
-    get_database orElse get_file match {
+    get_database orElse get_session(name).heap_digest() match {
       case Some(digest) => SHA1.shasum(digest, name)
       case None => SHA1.no_shasum
     }
@@ -308,9 +308,6 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
 
   /* databases for build process and session content */
-
-  def find_log_db(name: String): Option[Path] =
-    input_dirs.map(_ + log_db(name)).find(_.is_file)
 
   def build_database_server: Boolean = options.bool("build_database_server")
   def build_database: Boolean = options.bool("build_database")
