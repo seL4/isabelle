@@ -24,7 +24,7 @@ object ML_Process {
 
     session_background.sessions_structure.selection(logic_name).
       build_requirements(List(logic_name)).
-      map(store.the_heap)
+      map(name => store.get_session(name).the_heap)
   }
 
   def apply(

@@ -17,8 +17,18 @@ object Store {
 
   /* session */
 
-  sealed case class Session(name: String, heap: Option[Path], log_db: Option[Path]) {
+  final class Session private[Store](
+    val name: String,
+    val heap: Option[Path],
+    val log_db: Option[Path],
+    dirs: List[Path]
+  ) {
     def defined: Boolean = heap.isDefined || log_db.isDefined
+
+    def the_heap: Path =
+      heap getOrElse
+        error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
+          cat_lines(dirs.map(dir => "  " + File.standard_path(dir))))
 
     def heap_digest(): Option[SHA1.Digest] =
       heap.flatMap(ML_Heap.read_file_digest)
@@ -281,16 +291,11 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def get_session(name: String): Store.Session = {
     val heap = input_dirs.view.map(_ + store.heap(name)).find(_.is_file)
     val log_db = input_dirs.view.map(_ + store.log_db(name)).find(_.is_file)
-    Store.Session(name, heap, log_db)
+    new Store.Session(name, heap, log_db, input_dirs)
   }
 
 
   /* heap */
-
-  def the_heap(name: String): Path =
-    get_session(name).heap getOrElse
-      error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
-        cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
     def get_database: Option[SHA1.Digest] = {
