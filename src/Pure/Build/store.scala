@@ -253,13 +253,13 @@ class Store private(val options: Options, val cache: Term.Cache) {
   /* file names */
 
   def heap(name: String): Path = Path.basic(name)
-  def database(name: String): Path = Path.basic("log") + Path.basic(name).db
   def log(name: String): Path = Path.basic("log") + Path.basic(name)
+  def log_db(name: String): Path = log(name).db
   def log_gz(name: String): Path = log(name).gz
 
   def output_heap(name: String): Path = output_dir + heap(name)
-  def output_database(name: String): Path = output_dir + database(name)
   def output_log(name: String): Path = output_dir + log(name)
+  def output_log_db(name: String): Path = output_dir + log_db(name)
   def output_log_gz(name: String): Path = output_dir + log_gz(name)
 
 
@@ -293,8 +293,8 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   /* databases for build process and session content */
 
-  def find_database(name: String): Option[Path] =
-    input_dirs.map(_ + database(name)).find(_.is_file)
+  def find_log_db(name: String): Option[Path] =
+    input_dirs.map(_ + log_db(name)).find(_.is_file)
 
   def build_database_server: Boolean = options.bool("build_database_server")
   def build_database: Boolean = options.bool("build_database")
@@ -342,11 +342,11 @@ class Store private(val options: Options, val cache: Term.Cache) {
       if (output || session_info_exists(db)) Some(db) else { db.close(); None }
 
     if (server_mode) check(open_database_server(server = server))
-    else if (output) Some(SQLite.open_database(output_database(name)))
+    else if (output) Some(SQLite.open_database(output_log_db(name)))
     else {
       (for {
         dir <- input_dirs.view
-        path = dir + database(name) if path.is_file
+        path = dir + log_db(name) if path.is_file
         db <- check(SQLite.open_database(path))
       } yield db).headOption
     }
@@ -380,7 +380,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
       for {
         dir <-
           (if (system_heaps) List(user_output_dir, system_output_dir) else List(user_output_dir))
-        file <- List(heap(name), database(name), log(name), log_gz(name))
+        file <- List(heap(name), log_db(name), log(name), log_gz(name))
         path = dir + file if path.is_file
       } yield path.file.delete
 

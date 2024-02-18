@@ -282,7 +282,7 @@ object Build_History {
       build_out_progress.echo("Reading session build info ...")
       val session_build_info =
         build_info.finished_sessions.flatMap { session_name =>
-          val database = isabelle_output + store.database(session_name)
+          val database = isabelle_output + store.log_db(session_name)
 
           if (database.is_file) {
             using(SQLite.open_database(database)) { db =>
@@ -309,7 +309,7 @@ object Build_History {
       build_out_progress.echo("Reading ML statistics ...")
       val ml_statistics =
         build_info.finished_sessions.flatMap { session_name =>
-          val database = isabelle_output + store.database(session_name)
+          val database = isabelle_output + store.log_db(session_name)
           val log_gz = isabelle_output + store.log_gz(session_name)
 
           val properties =
@@ -336,7 +336,7 @@ object Build_History {
       build_out_progress.echo("Reading error messages ...")
       val session_errors =
         build_info.failed_sessions.flatMap { session_name =>
-          val database = isabelle_output + store.database(session_name)
+          val database = isabelle_output + store.log_db(session_name)
           val errors =
             if (database.is_file) {
               try {

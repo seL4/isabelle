@@ -22,7 +22,7 @@ object Sync {
           store.find_heap(session).map(_.expand).map(path =>
             File.standard_path(path.dir.dir) + "/./" + path.dir.file_name + "/" + path.file_name)
         val db =
-          store.find_database(session).map(_.expand).map(path =>
+          store.find_log_db(session).map(_.expand).map(path =>
             File.standard_path(path.dir.dir.dir) + "/./" + path.dir.dir.file_name + "/" +
               path.dir.file_name + "/" + path.file_name)
         heap.toList ::: db.toList
