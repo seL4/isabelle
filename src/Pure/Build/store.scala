@@ -15,6 +15,16 @@ object Store {
     new Store(options, cache)
 
 
+  /* session */
+
+  sealed case class Session(name: String, heap: Option[Path], log_db: Option[Path]) {
+    def defined: Boolean = heap.isDefined || log_db.isDefined
+
+    override def toString: String = name
+  }
+
+
+
   /* session build info */
 
   sealed case class Build_Info(
@@ -261,6 +271,12 @@ class Store private(val options: Options, val cache: Term.Cache) {
   def output_log(name: String): Path = output_dir + log(name)
   def output_log_db(name: String): Path = output_dir + log_db(name)
   def output_log_gz(name: String): Path = output_dir + log_gz(name)
+
+
+  /* session */
+
+  def get_session(name: String): Store.Session =
+    Store.Session(name, find_heap(name), find_log_db(name))
 
 
   /* heap */

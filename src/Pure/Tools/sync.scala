@@ -17,15 +17,16 @@ object Sync {
     else {
       val store = Store(options)
       val sessions_structure = Sessions.load_structure(options, dirs = dirs)
-      sessions_structure.build_requirements(session_images).flatMap { session =>
+      sessions_structure.build_requirements(session_images).flatMap { name =>
+        val session = store.get_session(name)
         val heap =
-          store.find_heap(session).map(_.expand).map(path =>
+          session.heap.map(_.expand).map(path =>
             File.standard_path(path.dir.dir) + "/./" + path.dir.file_name + "/" + path.file_name)
-        val db =
-          store.find_log_db(session).map(_.expand).map(path =>
+        val log_db =
+          session.log_db.map(_.expand).map(path =>
             File.standard_path(path.dir.dir.dir) + "/./" + path.dir.dir.file_name + "/" +
               path.dir.file_name + "/" + path.file_name)
-        heap.toList ::: db.toList
+        heap.toList ::: log_db.toList
       }
     }
   }
