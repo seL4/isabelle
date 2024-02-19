@@ -2450,6 +2450,10 @@ lemma continuous_on_log[continuous_intros]:
   shows "continuous_on s (\<lambda>x. log (f x) (g x))"
   using assms unfolding continuous_on_def by (fast intro: tendsto_log)
 
+lemma exp_powr_real:
+  fixes x::real shows "exp x powr y = exp (x*y)"
+  by (simp add: powr_def)
+
 lemma powr_one_eq_one [simp]: "1 powr a = 1"
   by (simp add: powr_def)
 
@@ -2468,6 +2472,13 @@ lemma powr_diff:
 lemma powr_mult: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> (x * y) powr a = (x powr a) * (y powr a)"
   for a x y :: real
   by (simp add: powr_def exp_add [symmetric] ln_mult distrib_left)
+
+lemma prod_powr_distrib:
+  fixes  x :: "'a \<Rightarrow> real"
+  assumes "\<And>i. i\<in>I \<Longrightarrow> x i \<ge> 0"
+  shows "(prod x I) powr r = (\<Prod>i\<in>I. x i powr r)"
+  using assms
+  by (induction I rule: infinite_finite_induct) (auto simp add: powr_mult prod_nonneg)
 
 lemma powr_ge_pzero [simp]: "0 \<le> x powr y"
   for x y :: real
@@ -2545,6 +2556,14 @@ lemma powr_real_of_int':
   assumes "x \<ge> 0" "x \<noteq> 0 \<or> n > 0"
   shows   "x powr real_of_int n = power_int x n"
   by (metis assms exp_ln_iff exp_power_int nless_le power_int_eq_0_iff powr_def)
+
+lemma exp_minus_ge: 
+  fixes x::real shows "1 - x \<le> exp (-x)"
+  by (smt (verit) exp_ge_add_one_self)
+
+lemma exp_minus_greater: 
+  fixes x::real shows "1 - x < exp (-x) \<longleftrightarrow> x \<noteq> 0"
+  by (smt (verit) exp_minus_ge exp_eq_one_iff exp_gt_zero ln_eq_minus_one ln_exp)
 
 lemma log_ln: "ln x = log (exp(1)) x"
   by (simp add: log_def)
@@ -2945,6 +2964,17 @@ lemma powr_mono2: "x powr a \<le> y powr a" if "0 \<le> a" "0 \<le> x" "x \<le> 
   for x :: real
   using less_eq_real_def powr_less_mono2 that by auto
 
+lemma powr01_less_one: 
+  fixes a::real 
+  assumes "0 < a" "a < 1"  
+  shows "a powr e < 1 \<longleftrightarrow> e>0"
+proof
+  show "a powr e < 1 \<Longrightarrow> e>0"
+    using assms not_less_iff_gr_or_eq powr_less_mono2_neg by fastforce
+  show "e>0 \<Longrightarrow> a powr e < 1"
+    by (metis assms less_eq_real_def powr_less_mono2 powr_one_eq_one)
+qed
+
 lemma powr_le1: "0 \<le> a \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr a \<le> 1"
   for x :: real
   using powr_mono2 by fastforce
@@ -2972,6 +3002,9 @@ lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x
 
 lemma powr_half_sqrt: "0 \<le> x \<Longrightarrow> x powr (1/2) = sqrt x"
   by (simp add: powr_def root_powr_inverse sqrt_def)
+
+lemma powr_half_sqrt_powr: "0 \<le> x \<Longrightarrow> x powr (a/2) = sqrt(x powr a)"
+  by (metis divide_inverse mult.left_neutral powr_ge_pzero powr_half_sqrt powr_powr)
 
 lemma square_powr_half [simp]:
   fixes x::real shows "x\<^sup>2 powr (1/2) = \<bar>x\<bar>"
@@ -3107,6 +3140,23 @@ proof -
   then show ?thesis
     by (rule has_derivative_transform_within[OF _ \<open>d > 0\<close> \<open>x \<in> X\<close>]) (auto simp: powr_def dest: pos')
 qed
+
+lemma has_derivative_const_powr [derivative_intros]:
+  assumes "\<And>x. (f has_derivative f') (at x)" "a \<noteq> (0::real)"
+  shows "((\<lambda>x. a powr (f x)) has_derivative (\<lambda>y. f' y * ln a * a powr (f x))) (at x)"
+  using assms
+  apply (simp add: powr_def)
+  apply (rule assms derivative_eq_intros refl)+
+  done
+
+lemma has_real_derivative_const_powr [derivative_intros]:
+  assumes "\<And>x. (f has_real_derivative f' x) (at x)"
+    "a \<noteq> (0::real)"
+  shows "((\<lambda>x. a powr (f x)) has_real_derivative (f' x * ln a * a powr (f x))) (at x)"
+  using assms
+  apply (simp add: powr_def)
+  apply (rule assms derivative_eq_intros refl | simp)+
+  done
 
 lemma DERIV_powr:
   fixes r :: real

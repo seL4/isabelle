@@ -1596,10 +1596,10 @@ qed
 context linordered_semidom
 begin
 
-lemma prod_nonneg: "(\<forall>a\<in>A. 0 \<le> f a) \<Longrightarrow> 0 \<le> prod f A"
+lemma prod_nonneg: "(\<And>a. a\<in>A \<Longrightarrow> 0 \<le> f a) \<Longrightarrow> 0 \<le> prod f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma prod_pos: "(\<forall>a\<in>A. 0 < f a) \<Longrightarrow> 0 < prod f A"
+lemma prod_pos: "(\<And>a. a\<in>A \<Longrightarrow> 0 < f a) \<Longrightarrow> 0 < prod f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
 lemma prod_mono:
@@ -1738,14 +1738,13 @@ proof induction
   case empty
   then show ?case by auto
 next
-  case (insert x F)
-  from insertI1 have "0 \<le> g (f x)" by (rule insert)
-  hence 1: "sum g (f ` F) \<le> g (f x) + sum g (f ` F)" using add_increasing by blast
-  have 2: "sum g (f ` F) \<le> sum (g \<circ> f) F" using insert by blast
-  have "sum g (f ` insert x F) = sum g (insert (f x) (f ` F))" by simp
-  also have "\<dots> \<le> g (f x) + sum g (f ` F)" by (simp add: 1 insert sum.insert_if)
-  also from 2 have "\<dots> \<le> g (f x) + sum (g \<circ> f) F" by (rule add_left_mono)
-  also from insert(1, 2) have "\<dots> = sum (g \<circ> f) (insert x F)" by (simp add: sum.insert_if)
+  case (insert i I)
+  hence *: "sum g (f ` I) \<le> g (f i) + sum g (f ` I)" 
+           "sum g (f ` I) \<le> sum (g \<circ> f) I" using add_increasing by blast+
+  have "sum g (f ` insert i I) = sum g (insert (f i) (f ` I))" by simp
+  also have "\<dots> \<le> g (f i) + sum g (f ` I)" by (simp add: * insert sum.insert_if)
+  also from * have "\<dots> \<le> g (f i) + sum (g \<circ> f) I" by (intro add_left_mono)
+  also from insert have "\<dots> = sum (g \<circ> f) (insert i I)" by (simp add: sum.insert_if)
   finally show ?case .
 qed
 

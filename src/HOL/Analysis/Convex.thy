@@ -583,7 +583,6 @@ lemma convex_on_sum:
     and f :: "'b \<Rightarrow> real"
   assumes "finite S" "S \<noteq> {}"
     and "convex_on C f"
-    and "convex C"
     and "(\<Sum> i \<in> S. a i) = 1"
     and "\<And>i. i \<in> S \<Longrightarrow> a i \<ge> 0"
     and "\<And>i. i \<in> S \<Longrightarrow> y i \<in> C"
@@ -624,6 +623,8 @@ next
       using i0 by auto
     then have a1: "(\<Sum> j \<in> S. ?a j) = 1"
       unfolding sum_divide_distrib by simp
+    have "convex C"
+      using \<open>convex_on C f\<close> by (simp add: convex_on_def)
     have asum: "(\<Sum> j \<in> S. ?a j *\<^sub>R y j) \<in> C"
       using insert convex_sum [OF \<open>finite S\<close> \<open>convex C\<close> a1 a_nonneg] by auto
     have asum_le: "f (\<Sum> j \<in> S. ?a j *\<^sub>R y j) \<le> (\<Sum> j \<in> S. ?a j * f (y j))"
@@ -646,6 +647,26 @@ next
     finally show ?thesis
       using insert by auto
   qed
+qed
+
+lemma concave_on_sum:
+  fixes a :: "'a \<Rightarrow> real"
+    and y :: "'a \<Rightarrow> 'b::real_vector"
+    and f :: "'b \<Rightarrow> real"
+  assumes "finite S" "S \<noteq> {}"
+    and "concave_on C f" 
+    and "(\<Sum>i \<in> S. a i) = 1"
+    and "\<And>i. i \<in> S \<Longrightarrow> a i \<ge> 0"
+    and "\<And>i. i \<in> S \<Longrightarrow> y i \<in> C"
+  shows "f (\<Sum>i \<in> S. a i *\<^sub>R y i) \<ge> (\<Sum>i \<in> S. a i * f (y i))"
+proof -
+  have "(uminus \<circ> f) (\<Sum>i\<in>S. a i *\<^sub>R y i) \<le> (\<Sum>i\<in>S. a i * (uminus \<circ> f) (y i))"
+  proof (intro convex_on_sum)
+    show "convex_on C (uminus \<circ> f)"
+      by (simp add: assms convex_on_iff_concave)
+  qed (use assms in auto)
+  then show ?thesis
+    by (simp add: sum_negf o_def)
 qed
 
 lemma convex_on_alt:
@@ -865,6 +886,39 @@ lemma powr_convex:
 lemma exp_convex: "convex_on UNIV exp"
   by (intro f''_ge0_imp_convex derivative_eq_intros | simp)+
 
+text \<open>The AM-GM inequality: the arithmetic mean exceeds the geometric mean.\<close>
+lemma arith_geom_mean:
+  fixes x :: "'a \<Rightarrow> real"
+  assumes "finite S" "S \<noteq> {}"
+    and x: "\<And>i. i \<in> S \<Longrightarrow> x i \<ge> 0"
+  shows "(\<Sum>i \<in> S. x i / card S) \<ge> (\<Prod>i \<in> S. x i) powr (1 / card S)"
+proof (cases "\<exists>i\<in>S. x i = 0")
+  case True
+  then have "(\<Prod>i \<in> S. x i) = 0"
+    by (simp add: \<open>finite S\<close>)
+  moreover have "(\<Sum>i \<in> S. x i / card S) \<ge> 0"
+    by (simp add: sum_nonneg x)
+  ultimately show ?thesis
+    by simp
+next
+  case False
+  have "ln (\<Sum>i \<in> S. (1 / card S) *\<^sub>R x i) \<ge> (\<Sum>i \<in> S. (1 / card S) * ln (x i))"
+  proof (intro concave_on_sum)
+    show "concave_on {0<..} ln"
+      by (simp add: ln_concave)
+    show "\<And>i. i\<in>S \<Longrightarrow> x i \<in> {0<..}"
+      using False x by fastforce
+  qed (use assms False in auto)
+  moreover have "(\<Sum>i \<in> S. (1 / card S) *\<^sub>R x i) > 0"
+    using False assms by (simp add: card_gt_0_iff less_eq_real_def sum_pos)
+  ultimately have "(\<Sum>i \<in> S. (1 / card S) *\<^sub>R x i) \<ge> exp (\<Sum>i \<in> S. (1 / card S) * ln (x i))"
+    using ln_ge_iff by blast
+  then have "(\<Sum>i \<in> S. x i / card S) \<ge> exp (\<Sum>i \<in> S. ln (x i) / card S)"
+    by (simp add: divide_simps)
+  then show ?thesis
+    using assms False
+    by (smt (verit, ccfv_SIG) divide_inverse exp_ln exp_powr_real exp_sum inverse_eq_divide prod.cong prod_powr_distrib) 
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity of real functions\<close>
 
