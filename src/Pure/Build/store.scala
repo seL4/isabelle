@@ -11,8 +11,11 @@ import java.sql.SQLException
 
 
 object Store {
-  def apply(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
-    new Store(options, cache)
+  def apply(
+    options: Options,
+    build_cluster: Boolean = false,
+    cache: Term.Cache = Term.Cache.make()
+  ): Store = new Store(options, build_cluster, cache)
 
 
   /* session */
@@ -248,7 +251,11 @@ object Store {
   }
 }
 
-class Store private(val options: Options, val cache: Term.Cache) {
+class Store private(
+    val options: Options,
+    val build_cluster: Boolean,
+    val cache: Term.Cache
+  ) {
   store =>
 
   override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
@@ -340,7 +347,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     if (build_database_server) Some(open_database_server(server = server)) else None
 
   def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
-    if (build_database_server) open_database_server(server = server)
+    if (build_database_server || build_cluster) open_database_server(server = server)
     else SQLite.open_database(path, restrict = true)
 
   def maybe_open_build_database(
