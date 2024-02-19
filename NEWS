@@ -48,8 +48,10 @@ New in this Isabelle version
 
 * Theory "HOL.Transitive_Closure":
   - Added lemmas.
+      relpow_left_unique
       relpow_right_unique
       relpow_trans[trans]
+      relpowp_left_unique
       relpowp_right_unique
       relpowp_trans[trans]
 

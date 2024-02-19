@@ -936,6 +936,41 @@ qed
 lemma relpow_trans[trans]: "(x, y) \<in> R ^^ i \<Longrightarrow> (y, z) \<in> R ^^ j \<Longrightarrow> (x, z) \<in> R ^^ (i + j)"
   using relpowp_trans[to_set] .
 
+lemma relpowp_left_unique:
+  fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and n :: nat and x y z :: 'a
+  assumes lunique: "\<And>x y z. R x z \<Longrightarrow> R y z \<Longrightarrow> x = y"
+  shows "(R ^^ n) x z \<Longrightarrow> (R ^^ n) y z \<Longrightarrow> x = y"
+proof (induction n arbitrary: x y z)
+  case 0
+  thus ?case
+    by simp
+next
+  case (Suc n')
+  then obtain x' y' :: 'a where
+    "(R ^^ n') x x'" and "R x' z" and
+    "(R ^^ n') y y'" and "R y' z"
+    by auto
+
+  have "x' = y'"
+    using lunique[OF \<open>R x' z\<close> \<open>R y' z\<close>] .
+
+  show "x = y"
+  proof (rule Suc.IH)
+    show "(R ^^ n') x x'"
+      using \<open>(R ^^ n') x x'\<close> .
+  next
+    show "(R ^^ n') y x'"
+      using \<open>(R ^^ n') y y'\<close>
+      unfolding \<open>x' = y'\<close> .
+  qed
+qed
+
+lemma relpow_left_unique:
+  fixes R :: "('a \<times> 'a) set" and n :: nat and x y z :: 'a
+  shows "(\<And>x y z. (x, z) \<in> R \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> x = y) \<Longrightarrow>
+    (x, z) \<in> R ^^ n \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> x = y"
+  using relpowp_left_unique[to_set] .
+
 lemma relpowp_right_unique:
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and n :: nat and x y z :: 'a
   assumes runique: "\<And>x y z. R x y \<Longrightarrow> R x z \<Longrightarrow> y = z"
