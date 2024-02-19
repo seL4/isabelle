@@ -1178,7 +1178,7 @@ proof -
       if "openin (top_of_set U) V" "T retract_of V" "U \<noteq> {}" for V
     using \<open>S homeomorphic T\<close> homeomorphic_locally homeomorphic_path_connectedness by blast
   obtain Ta where "(openin (top_of_set U) Ta \<and> T retract_of Ta)"
-    using ANR_def UT \<open>S homeomorphic T\<close> assms by moura
+    using ANR_def UT \<open>S homeomorphic T\<close> assms by atomize_elim (auto simp: choice)
   then show ?thesis
     using S \<open>U \<noteq> {}\<close> by blast
 qed

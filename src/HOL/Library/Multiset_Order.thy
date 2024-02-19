@@ -652,7 +652,7 @@ proof -
       by (metis image_mset_Diff image_mset_union)
   next
     obtain y where y: "\<forall>x. x \<in># X \<longrightarrow> y x \<in># Y \<and> x < y x"
-      using ex_y by moura
+      using ex_y by metis
 
     show "\<forall>fx. fx \<in># ?fX \<longrightarrow> (\<exists>fy. fy \<in># ?fY \<and> fx < fy)"
     proof (intro allI impI)
