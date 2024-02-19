@@ -2379,8 +2379,7 @@ lemma norm_powr_real_mono:
   by (auto simp: powr_def algebra_simps Reals_def Ln_of_real)
 
 lemma powr_times_real:
-    "\<lbrakk>x \<in> \<real>; y \<in> \<real>; 0 \<le> Re x; 0 \<le> Re y\<rbrakk>
-           \<Longrightarrow> (x * y) powr z = x powr z * y powr z"
+    "\<lbrakk>x \<in> \<real>; y \<in> \<real>; 0 \<le> Re x; 0 \<le> Re y\<rbrakk> \<Longrightarrow> (x * y) powr z = x powr z * y powr z"
   by (auto simp: Reals_def powr_def Ln_times exp_add algebra_simps less_eq_real_def Ln_of_real)
 
 lemma Re_powr_le: "r \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> Re (r powr z) \<le> Re r powr Re z"
@@ -2391,6 +2390,12 @@ lemma
   assumes "w \<in> \<real>\<^sub>\<ge>\<^sub>0" "z \<in> \<real>"
   shows Reals_powr [simp]: "w powr z \<in> \<real>" and nonneg_Reals_powr [simp]: "w powr z \<in> \<real>\<^sub>\<ge>\<^sub>0"
   using assms by (auto simp: nonneg_Reals_def Reals_def powr_of_real)
+
+lemma exp_powr_complex:
+  fixes x::complex 
+  assumes "-pi < Im(x)" "Im(x) \<le> pi"
+  shows "exp x powr y = exp (x*y)"
+  using assms by (simp add: powr_def mult.commute)
 
 lemma powr_neg_real_complex:
   fixes w::complex
