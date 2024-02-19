@@ -77,7 +77,7 @@ object ML_Heap {
         name = "slices_size")
     }
 
-    def get_entries(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] = {
+    def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] = {
       require(names.nonEmpty)
 
       db.execute_query_statement(
@@ -91,7 +91,7 @@ object ML_Heap {
       }).toMap
     }
 
-    def read_entry(db: SQL.Database, name: String): List[Bytes] =
+    def read_slices(db: SQL.Database, name: String): List[Bytes] =
       db.execute_query_statement(
         Slices.table.select(List(Slices.content),
           sql = Generic.name.where_equal(name) + SQL.order_by(List(Slices.slice))),
@@ -112,7 +112,7 @@ object ML_Heap {
           stmt.string(3) = None
         })
 
-    def write_entry(db: SQL.Database, name: String, slice: Int, content: Bytes): Unit =
+    def write_slice(db: SQL.Database, name: String, slice: Int, content: Bytes): Unit =
       db.execute_statement(Slices.table.insert(), body =
       { stmt =>
         stmt.string(1) = name
@@ -135,9 +135,9 @@ object ML_Heap {
       private_data.clean_entry(db, session_name)
     }
 
-  def get_entries(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
-    private_data.transaction_lock(db, create = true, label = "ML_Heap.get_entries") {
-      private_data.get_entries(db, names)
+  def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
+    private_data.transaction_lock(db, create = true, label = "ML_Heap.read_digests") {
+      private_data.read_digests(db, names)
     }
 
   def store(
@@ -169,7 +169,7 @@ object ML_Heap {
               Bytes.read_file(heap, offset = offset, limit = limit)
                 .compress(cache = cache)
             private_data.transaction_lock(db, label = "ML_Heap.store2") {
-              private_data.write_entry(db, session_name, i, content)
+              private_data.write_slice(db, session_name, i, content)
             }
           }
 
@@ -195,7 +195,7 @@ object ML_Heap {
     database match {
       case Some(db) if heaps.nonEmpty =>
         private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
-          val db_digests = private_data.get_entries(db, heaps.map(_.file_name))
+          val db_digests = private_data.read_digests(db, heaps.map(_.file_name))
           for (heap <- heaps) {
             val session_name = heap.file_name
             val file_digest = read_file_digest(heap)
@@ -204,7 +204,7 @@ object ML_Heap {
               val base_dir = Isabelle_System.make_directory(heap.expand.dir)
               Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
                 Bytes.write(tmp, Bytes.empty)
-                for (slice <- private_data.read_entry(db, session_name)) {
+                for (slice <- private_data.read_slices(db, session_name)) {
                   Bytes.append(tmp, slice.uncompress(cache = cache))
                 }
                 val digest = write_file_digest(tmp)

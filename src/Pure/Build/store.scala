@@ -308,7 +308,7 @@ class Store private(
     def get_database: Option[SHA1.Digest] = {
       for {
         db <- database_server
-        digest <- ML_Heap.get_entries(db, List(name)).valuesIterator.nextOption()
+        digest <- ML_Heap.read_digests(db, List(name)).valuesIterator.nextOption()
       } yield digest
     }
 
