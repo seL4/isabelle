@@ -9,6 +9,7 @@ imports
   "HOL-Library.Pattern_Aliases"
   Complex_Main
   Priority_Queue_Specs
+  Define_Time_Function
 begin
 
 text \<open>
@@ -471,21 +472,19 @@ qed
 
 subsubsection \<open>Timing Functions\<close>
 
-text \<open>
-  We define timing functions for each operation, and provide
-  estimations of their complexity.
-\<close>
-definition T_link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> nat" where
-[simp]: "T_link _ _ = 0"
+define_time_fun link
 
-fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a trees \<Rightarrow> nat" where
-  "T_ins_tree t [] = 1"
-| "T_ins_tree t\<^sub>1 (t\<^sub>2 # ts) = 1 +
-    (if rank t\<^sub>1 < rank t\<^sub>2 then 0
-     else T_link t\<^sub>1 t\<^sub>2 + T_ins_tree (link t\<^sub>1 t\<^sub>2) ts)"
+lemma T_link[simp]: "T_link t\<^sub>1 t\<^sub>2 = 0"
+by(cases t\<^sub>1; cases t\<^sub>2, auto)
 
-definition T_insert :: "'a::linorder \<Rightarrow> 'a trees \<Rightarrow> nat" where
-"T_insert x ts = T_ins_tree (Node 0 x []) ts"
+define_time_fun rank
+
+lemma T_rank[simp]: "T_rank t = 0"
+by(cases t, auto)
+
+define_time_fun ins_tree
+
+define_time_fun insert
 
 lemma T_ins_tree_simple_bound: "T_ins_tree t ts \<le> length ts + 1"
 by (induction t ts rule: T_ins_tree.induct) auto
@@ -497,7 +496,7 @@ lemma T_insert_bound:
   shows "T_insert x ts \<le> log 2 (size (mset_trees ts) + 1) + 1"
 proof -
   have "real (T_insert x ts) \<le> real (length ts) + 1"
-    unfolding T_insert_def using T_ins_tree_simple_bound
+    unfolding T_insert.simps using T_ins_tree_simple_bound
     by (metis of_nat_1 of_nat_add of_nat_mono) 
   also note size_mset_trees[OF \<open>invar ts\<close>]
   finally show ?thesis by simp
@@ -505,20 +504,11 @@ qed
 
 subsubsection \<open>\<open>T_merge\<close>\<close>
 
-context
-includes pattern_aliases
-begin
+define_time_fun merge
 
-fun T_merge :: "'a::linorder trees \<Rightarrow> 'a trees \<Rightarrow> nat" where
-  "T_merge ts\<^sub>1 [] = 1"
-| "T_merge [] ts\<^sub>2 = 1"
-| "T_merge (t\<^sub>1#ts\<^sub>1 =: h\<^sub>1) (t\<^sub>2#ts\<^sub>2 =: h\<^sub>2) = 1 + (
-    if rank t\<^sub>1 < rank t\<^sub>2 then T_merge ts\<^sub>1 h\<^sub>2
-    else if rank t\<^sub>2 < rank t\<^sub>1 then T_merge h\<^sub>1 ts\<^sub>2
-    else T_ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2) + T_merge ts\<^sub>1 ts\<^sub>2
-  )"
-
-end
+(* Warning: \<open>T_merge.induct\<close> is less convenient than the equivalent \<open>merge.induct\<close>,
+apparently because of the \<open>let\<close> clauses introduced by pattern_aliases; should be investigated.
+*)
 
 text \<open>A crucial idea is to estimate the time in correlation with the
   result length, as each carry reduces the length of the result.\<close>
@@ -529,7 +519,7 @@ by (induction t ts rule: ins_tree.induct) auto
 
 lemma T_merge_length:
   "T_merge ts\<^sub>1 ts\<^sub>2 + length (merge ts\<^sub>1 ts\<^sub>2) \<le> 2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1"
-by (induction ts\<^sub>1 ts\<^sub>2 rule: T_merge.induct)
+by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
    (auto simp: T_ins_tree_length algebra_simps)
 
 text \<open>Finally, we get the desired logarithmic bound\<close>
@@ -557,9 +547,14 @@ qed
 
 subsubsection \<open>\<open>T_get_min\<close>\<close>
 
-fun T_get_min :: "'a::linorder trees \<Rightarrow> nat" where
-  "T_get_min [t] = 1"
-| "T_get_min (t#ts) = 1 + T_get_min ts"
+define_time_fun root
+
+lemma T_root[simp]: "T_root t = 0"
+by(cases t)(simp_all)
+
+define_time_fun min
+
+define_time_fun get_min
 
 lemma T_get_min_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min ts = length ts"
 by (induction ts rule: T_get_min.induct) auto
@@ -576,9 +571,10 @@ qed
 
 subsubsection \<open>\<open>T_del_min\<close>\<close>
 
-fun T_get_min_rest :: "'a::linorder trees \<Rightarrow> nat" where
+define_time_fun get_min_rest
+(*fun T_get_min_rest :: "'a::linorder trees \<Rightarrow> nat" where
   "T_get_min_rest [t] = 1"
-| "T_get_min_rest (t#ts) = 1 + T_get_min_rest ts"
+| "T_get_min_rest (t#ts) = 1 + T_get_min_rest ts"*)
 
 lemma T_get_min_rest_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min_rest ts = length ts"
   by (induction ts rule: T_get_min_rest.induct) auto
@@ -599,9 +595,7 @@ Thus the following definition is justified:\<close>
 
 definition "T_rev xs = length xs + 1"
 
-definition T_del_min :: "'a::linorder trees \<Rightarrow> nat" where
-  "T_del_min ts = T_get_min_rest ts + (case get_min_rest ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
-                    \<Rightarrow> T_rev ts\<^sub>1 + T_merge (rev ts\<^sub>1) ts\<^sub>2)"
+define_time_fun del_min
 
 lemma T_del_min_bound:
   fixes ts
@@ -624,7 +618,7 @@ proof -
     by (auto simp: mset_trees_def)
 
   have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2)"
-    unfolding T_del_min_def GM
+    unfolding T_del_min.simps GM
     by simp
   also have "T_get_min_rest ts \<le> log 2 (n+1)" 
     using T_get_min_rest_bound[OF \<open>invar ts\<close> \<open>ts\<noteq>[]\<close>] unfolding n_def by simp
