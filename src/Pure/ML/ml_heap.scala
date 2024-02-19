@@ -144,7 +144,7 @@ object ML_Heap {
     database: Option[SQL.Database],
     session_name: String,
     heap: Path,
-    slice: Long,
+    slice: Space,
     cache: Compress.Cache = Compress.Cache.none
   ): SHA1.Digest = {
     val digest = write_file_digest(heap)
@@ -153,8 +153,9 @@ object ML_Heap {
       case Some(db) =>
         val size = File.size(heap) - sha1_prefix.length - SHA1.digest_length
 
-        val slices = (size.toDouble / slice.toDouble).ceil.toInt
-        val step = (size.toDouble / slices.toDouble).ceil.toLong
+        val slice_size = slice.bytes max Space.MiB(1).bytes
+        val slices = (size.toDouble / slice_size.toDouble).ceil.toInt
+        val step = if (slices > 0) (size.toDouble / slices.toDouble).ceil.toLong else 0L
 
         try {
           private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {

@@ -470,7 +470,7 @@ object Build_Job {
           val output_shasum = {
             val heap = store.output_heap(session_name)
             if (process_result.ok && store_heap && heap.is_file) {
-              val slice = Space.MiB(options.real("build_database_slice")).bytes
+              val slice = Space.MiB(options.real("build_database_slice"))
               val digest = ML_Heap.store(database_server, session_name, heap, slice)
               SHA1.shasum(digest, session_name)
             }
