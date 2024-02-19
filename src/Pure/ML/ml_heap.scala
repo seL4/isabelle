@@ -97,21 +97,6 @@ object ML_Heap {
           sql = Generic.name.where_equal(name) + SQL.order_by(List(Slices.slice))),
         List.from[Bytes], _.bytes(Slices.content))
 
-    def clean_entry(db: SQL.Database, name: String): Unit = {
-      for (table <- List(Base.table, Slices.table)) {
-        db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
-      }
-      db.create_view(Slices_Size.table)
-    }
-
-    def prepare_entry(db: SQL.Database, name: String): Unit =
-      db.execute_statement(Base.table.insert(), body =
-        { stmt =>
-          stmt.string(1) = name
-          stmt.long(2) = None
-          stmt.string(3) = None
-        })
-
     def write_slice(db: SQL.Database, name: String, slice: Int, content: Bytes): Unit =
       db.execute_statement(Slices.table.insert(), body =
       { stmt =>
@@ -119,6 +104,21 @@ object ML_Heap {
         stmt.int(2) = slice
         stmt.bytes(3) = content
       })
+
+    def clean_entry(db: SQL.Database, name: String): Unit = {
+      for (table <- List(Base.table, Slices.table)) {
+        db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
+      }
+      db.create_view(Slices_Size.table)
+    }
+
+    def init_entry(db: SQL.Database, name: String): Unit =
+      db.execute_statement(Base.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = name
+          stmt.long(2) = None
+          stmt.string(3) = None
+        })
 
     def finish_entry(db: SQL.Database, name: String, size: Long, digest: SHA1.Digest): Unit =
       db.execute_statement(
@@ -159,7 +159,7 @@ object ML_Heap {
 
         try {
           private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
-            private_data.prepare_entry(db, session_name)
+            private_data.init_entry(db, session_name)
           }
 
           for (i <- 0 until slices) {
