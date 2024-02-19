@@ -936,6 +936,29 @@ qed
 lemma relpow_trans[trans]: "(x, y) \<in> R ^^ i \<Longrightarrow> (y, z) \<in> R ^^ j \<Longrightarrow> (x, z) \<in> R ^^ (i + j)"
   using relpowp_trans[to_set] .
 
+lemma relpowp_right_unique:
+  fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and n :: nat and x y z :: 'a
+  assumes runique: "\<And>x y z. R x y \<Longrightarrow> R x z \<Longrightarrow> y = z"
+  shows "(R ^^ n) x y \<Longrightarrow> (R ^^ n) x z \<Longrightarrow> y = z"
+proof (induction n arbitrary: x y z)
+  case 0
+  thus ?case
+    by simp
+next
+  case (Suc n')
+  then obtain x' :: 'a where
+    "(R ^^ n') x x'" and "R x' y" and "R x' z"
+    by auto
+  thus "y = z"
+    using runique by simp
+qed
+
+lemma relpow_right_unique:
+  fixes R :: "('a \<times> 'a) set" and n :: nat and x y z :: 'a
+  shows "(\<And>x y z. (x, y) \<in> R \<Longrightarrow> (x, z) \<in> R \<Longrightarrow> y = z) \<Longrightarrow>
+    (x, y) \<in> (R ^^ n) \<Longrightarrow> (x, z) \<in> (R ^^ n) \<Longrightarrow> y = z"
+  using relpowp_right_unique[to_set] .
+
 lemma relpow_add: "R ^^ (m + n) = R^^m O R^^n"
   by (induct n) auto
 
