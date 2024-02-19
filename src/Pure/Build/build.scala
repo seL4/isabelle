@@ -567,6 +567,7 @@ Usage: isabelle build_process [OPTIONS]
     -r           remove data from build processes: inactive processes (default)
                  or all processes (option -f)
 """,
+        "C" -> (_ => build_cluster = true),
         "f" -> (_ => force = true),
         "l" -> (_ => list_builds = true),
         "o:" -> (arg => options = options + arg),
