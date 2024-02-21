@@ -667,6 +667,32 @@ qed
 
 end
 
+lemma unat_div_distrib:
+  \<open>unat (v div w) = unat v div unat w\<close>
+proof transfer
+  fix k l
+  have \<open>nat (take_bit LENGTH('a) k) div nat (take_bit LENGTH('a) l) \<le> nat (take_bit LENGTH('a) k)\<close>
+    by (rule div_le_dividend)
+  also have \<open>nat (take_bit LENGTH('a) k) < 2 ^ LENGTH('a)\<close>
+    by (simp add: nat_less_iff)
+  finally show \<open>(nat \<circ> take_bit LENGTH('a)) (take_bit LENGTH('a) k div take_bit LENGTH('a) l) =
+    (nat \<circ> take_bit LENGTH('a)) k div (nat \<circ> take_bit LENGTH('a)) l\<close>
+    by (simp add: nat_take_bit_eq div_int_pos_iff nat_div_distrib take_bit_nat_eq_self_iff)
+qed
+
+lemma unat_mod_distrib:
+  \<open>unat (v mod w) = unat v mod unat w\<close>
+proof transfer
+  fix k l
+  have \<open>nat (take_bit LENGTH('a) k) mod nat (take_bit LENGTH('a) l) \<le> nat (take_bit LENGTH('a) k)\<close>
+    by (rule mod_less_eq_dividend)
+  also have \<open>nat (take_bit LENGTH('a) k) < 2 ^ LENGTH('a)\<close>
+    by (simp add: nat_less_iff)
+  finally show \<open>(nat \<circ> take_bit LENGTH('a)) (take_bit LENGTH('a) k mod take_bit LENGTH('a) l) =
+    (nat \<circ> take_bit LENGTH('a)) k mod (nat \<circ> take_bit LENGTH('a)) l\<close>
+    by (simp add: nat_take_bit_eq mod_int_pos_iff less_le nat_mod_distrib take_bit_nat_eq_self_iff)
+qed
+
 instance word :: (len) semiring_parity
   by (standard; transfer)
     (auto simp add: mod_2_eq_odd take_bit_Suc elim: evenE dest: le_Suc_ex)
@@ -838,6 +864,9 @@ instance proof
   show \<open>0 div a = 0\<close>
     for a :: \<open>'a word\<close>
     by transfer simp
+  show \<open>a mod b div b = 0\<close>
+    for a b :: \<open>'a word\<close>
+    by (simp add: word_eq_iff_unsigned [where ?'a = nat] unat_div_distrib unat_mod_distrib)
   show \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     for a :: \<open>'a word\<close> and m n :: nat
     apply transfer
@@ -849,10 +878,6 @@ instance proof
     for a :: \<open>'a word\<close> and n :: nat
     using that by transfer
       (simp add: even_drop_bit_iff_not_bit bit_simps flip: drop_bit_eq_div del: power.simps)
-  show \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
-    for a :: \<open>'a word\<close> and m n :: nat
-    by transfer
-      (auto simp flip: take_bit_eq_mod drop_bit_eq_div simp add: even_drop_bit_iff_not_bit bit_simps)
 qed
 
 end
@@ -1300,32 +1325,6 @@ lemma sint_less:
   \<open>sint w < 2 ^ (LENGTH('a) - Suc 0)\<close> for w :: \<open>'a::len word\<close>
   by (cases \<open>bit w (LENGTH('a) - Suc 0)\<close>; transfer)
     (simp_all add: signed_take_bit_eq signed_take_bit_def not_eq_complement mask_eq_exp_minus_1 OR_upper)
-
-lemma unat_div_distrib:
-  \<open>unat (v div w) = unat v div unat w\<close>
-proof transfer
-  fix k l
-  have \<open>nat (take_bit LENGTH('a) k) div nat (take_bit LENGTH('a) l) \<le> nat (take_bit LENGTH('a) k)\<close>
-    by (rule div_le_dividend)
-  also have \<open>nat (take_bit LENGTH('a) k) < 2 ^ LENGTH('a)\<close>
-    by (simp add: nat_less_iff)
-  finally show \<open>(nat \<circ> take_bit LENGTH('a)) (take_bit LENGTH('a) k div take_bit LENGTH('a) l) =
-    (nat \<circ> take_bit LENGTH('a)) k div (nat \<circ> take_bit LENGTH('a)) l\<close>
-    by (simp add: nat_take_bit_eq div_int_pos_iff nat_div_distrib take_bit_nat_eq_self_iff)
-qed
-
-lemma unat_mod_distrib:
-  \<open>unat (v mod w) = unat v mod unat w\<close>
-proof transfer
-  fix k l
-  have \<open>nat (take_bit LENGTH('a) k) mod nat (take_bit LENGTH('a) l) \<le> nat (take_bit LENGTH('a) k)\<close>
-    by (rule mod_less_eq_dividend)
-  also have \<open>nat (take_bit LENGTH('a) k) < 2 ^ LENGTH('a)\<close>
-    by (simp add: nat_less_iff)
-  finally show \<open>(nat \<circ> take_bit LENGTH('a)) (take_bit LENGTH('a) k mod take_bit LENGTH('a) l) =
-    (nat \<circ> take_bit LENGTH('a)) k mod (nat \<circ> take_bit LENGTH('a)) l\<close>
-    by (simp add: nat_take_bit_eq mod_int_pos_iff less_le nat_mod_distrib take_bit_nat_eq_self_iff)
-qed
 
 lemma uint_div_distrib:
   \<open>uint (v div w) = uint v div uint w\<close>

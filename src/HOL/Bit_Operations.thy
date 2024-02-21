@@ -14,9 +14,9 @@ class semiring_bits = semiring_parity + semiring_modulo_trivial +
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
-  assumes half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
+  assumes bits_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
+    and half_div_exp_eq: \<open>a div 2 div 2 ^ n = a div 2 ^ Suc n\<close>
     and even_double_div_exp_iff: \<open>2 ^ Suc n \<noteq> 0 \<Longrightarrow> even (2 * a div 2 ^ Suc n) \<longleftrightarrow> even (a div 2 ^ n)\<close>
-    and even_mod_exp_div_exp_iff: \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
   fixes bit :: \<open>'a \<Rightarrow> nat \<Rightarrow> bool\<close>
   assumes bit_iff_odd: \<open>bit a n \<longleftrightarrow> odd (a div 2 ^ n)\<close>
 begin
@@ -382,24 +382,6 @@ proof
     with rec [of n True] show ?case
       by simp
   qed
-  show \<open>even (q mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (q div 2 ^ n)\<close> for q m n :: nat
-  proof (cases \<open>m \<le> n\<close>)
-    case True
-    moreover define r where \<open>r = n - m\<close>
-    ultimately have \<open>n = m + r\<close>
-      by simp
-    with True show ?thesis
-      by (simp add: power_add div_mult2_eq)
-  next
-    case False
-    moreover define r where \<open>r = m - Suc n\<close>
-    ultimately have \<open>m = n + Suc r\<close>
-      by simp
-    moreover have \<open>even (q mod 2 ^ (n + Suc r) div 2 ^ n) \<longleftrightarrow> even (q div 2 ^ n)\<close>
-      by (simp only: power_add) (simp add: mod_mult2_eq dvd_mod_iff)
-    ultimately show ?thesis
-      by simp
-  qed
 qed (auto simp add: div_mult2_eq bit_nat_def)
 
 end
@@ -538,24 +520,6 @@ proof
     case (odd k)
     with rec [of k True] show ?case
       by (simp add: ac_simps)
-  qed
-  show \<open>even (k mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (k div 2 ^ n)\<close> for k :: int and m n :: nat
-  proof (cases \<open>m \<le> n\<close>)
-    case True
-    moreover define r where \<open>r = n - m\<close>
-    ultimately have \<open>n = m + r\<close>
-      by simp
-    with True show ?thesis
-      by (simp add: power_add zdiv_zmult2_eq)
-  next
-    case False
-    moreover define r where \<open>r = m - Suc n\<close>
-    ultimately have \<open>m = n + Suc r\<close>
-      by simp
-    moreover have \<open>even (k mod 2 ^ (n + Suc r) div 2 ^ n) \<longleftrightarrow> even (k div 2 ^ n)\<close>
-      by (simp only: power_add) (simp add: zmod_zmult2_eq dvd_mod_iff)
-    ultimately show ?thesis
-      by simp
   qed
 qed (auto simp add: zdiv_zmult2_eq bit_int_def)
 
@@ -879,13 +843,96 @@ lemma push_bit_numeral [simp]:
   \<open>push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))\<close>
   by (simp add: numeral_eq_Suc mult_2_right) (simp add: numeral_Bit0)
 
+lemma bit_drop_bit_eq [bit_simps]:
+  \<open>bit (drop_bit n a) = bit a \<circ> (+) n\<close>
+  by rule (simp add: drop_bit_eq_div bit_iff_odd div_exp_eq)
+
+lemma disjunctive_xor_eq_or:
+  \<open>a XOR b = a OR b\<close> if \<open>a AND b = 0\<close>
+  using that by (auto simp add: bit_eq_iff bit_simps)
+
+lemma disjunctive_add_eq_or:
+  \<open>a + b = a OR b\<close> if \<open>a AND b = 0\<close>
+proof (rule bit_eqI)
+  fix n
+  assume \<open>possible_bit TYPE('a) n\<close>
+  moreover from that have \<open>\<And>n. \<not> bit (a AND b) n\<close>
+    by simp
+  then have \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
+    by (simp add: bit_simps)
+  ultimately show \<open>bit (a + b) n \<longleftrightarrow> bit (a OR b) n\<close>
+  proof (induction n arbitrary: a b)
+    case 0
+    from "0"(2)[of 0] show ?case
+      by (auto simp add: even_or_iff bit_0)
+  next
+    case (Suc n)
+    from Suc.prems(2) [of 0] have even: \<open>even a \<or> even b\<close>
+      by (auto simp add: bit_0)
+    have bit: \<open>\<not> bit (a div 2) n \<or> \<not> bit (b div 2) n\<close> for n
+      using Suc.prems(2) [of \<open>Suc n\<close>] by (simp add: bit_Suc)
+    from Suc.prems have \<open>possible_bit TYPE('a) n\<close>
+      using possible_bit_less_imp by force
+    with \<open>\<And>n. \<not> bit (a div 2) n \<or> \<not> bit (b div 2) n\<close> Suc.IH [of \<open>a div 2\<close> \<open>b div 2\<close>]
+    have IH: \<open>bit (a div 2 + b div 2) n \<longleftrightarrow> bit (a div 2 OR b div 2) n\<close>
+      by (simp add: bit_Suc)
+    have \<open>a + b = (a div 2 * 2 + a mod 2) + (b div 2 * 2 + b mod 2)\<close>
+      using div_mult_mod_eq [of a 2] div_mult_mod_eq [of b 2] by simp
+    also have \<open>\<dots> = of_bool (odd a \<or> odd b) + 2 * (a div 2 + b div 2)\<close>
+      using even by (auto simp add: algebra_simps mod2_eq_if)
+    finally have \<open>bit ((a + b) div 2) n \<longleftrightarrow> bit (a div 2 + b div 2) n\<close>
+      using \<open>possible_bit TYPE('a) (Suc n)\<close> by simp (simp_all flip: bit_Suc add: bit_double_iff possible_bit_def)
+    also have \<open>\<dots> \<longleftrightarrow> bit (a div 2 OR b div 2) n\<close>
+      by (rule IH)
+    finally show ?case
+      by (simp add: bit_simps flip: bit_Suc)
+  qed
+qed
+
+lemma disjunctive_add_eq_xor:
+  \<open>a + b = a XOR b\<close> if \<open>a AND b = 0\<close>
+  using that by (simp add: disjunctive_add_eq_or disjunctive_xor_eq_or)
+
 lemma take_bit_0 [simp]:
   "take_bit 0 a = 0"
   by (simp add: take_bit_eq_mod)
 
 lemma bit_take_bit_iff [bit_simps]:
   \<open>bit (take_bit m a) n \<longleftrightarrow> n < m \<and> bit a n\<close>
-  by (simp add: take_bit_eq_mod bit_iff_odd even_mod_exp_div_exp_iff not_le)
+proof -
+  have \<open>push_bit m (drop_bit m a) AND take_bit m a = 0\<close> (is \<open>?lhs = _\<close>)
+  proof (rule bit_eqI)
+    fix n
+    show \<open>bit ?lhs n \<longleftrightarrow> bit 0 n\<close>
+    proof (cases \<open>m \<le> n\<close>)
+      case False
+      then show ?thesis
+        by (simp add: bit_simps)
+    next
+      case True
+      moreover define q where \<open>q = n - m\<close>
+      ultimately have \<open>n = m + q\<close> by simp
+      moreover have \<open>\<not> bit (take_bit m a) (m + q)\<close>
+        by (simp add: take_bit_eq_mod bit_iff_odd flip: div_exp_eq)
+      ultimately show ?thesis
+        by (simp add: bit_simps)
+    qed
+  qed
+  then have \<open>push_bit m (drop_bit m a) XOR take_bit m a = push_bit m (drop_bit m a) + take_bit m a\<close>
+    by (simp add: disjunctive_add_eq_xor)
+  also have \<open>\<dots> = a\<close>
+    by (simp add: bits_ident)
+  finally have \<open>bit (push_bit m (drop_bit m a) XOR take_bit m a) n \<longleftrightarrow> bit a n\<close>
+    by simp
+  also have \<open>\<dots> \<longleftrightarrow> (m \<le> n \<or> n < m) \<and> bit a n\<close>
+    by auto
+  also have \<open>\<dots> \<longleftrightarrow> m \<le> n \<and> bit a n \<or> n < m \<and> bit a n\<close>
+    by auto
+  also have \<open>m \<le> n \<and> bit a n \<longleftrightarrow> bit (push_bit m (drop_bit m a)) n\<close>
+    by (auto simp add: bit_simps bit_imp_possible_bit)
+  finally show ?thesis
+    by (auto simp add: bit_simps)
+qed
 
 lemma take_bit_Suc:
   \<open>take_bit (Suc n) a = take_bit n (a div 2) * 2 + a mod 2\<close> (is \<open>?lhs = ?rhs\<close>)
@@ -914,10 +961,6 @@ lemma take_bit_of_0 [simp]:
 lemma take_bit_of_1 [simp]:
   \<open>take_bit n 1 = of_bool (n > 0)\<close>
   by (cases n) (simp_all add: take_bit_Suc)
-
-lemma bit_drop_bit_eq [bit_simps]:
-  \<open>bit (drop_bit n a) = bit a \<circ> (+) n\<close>
-  by rule (simp add: drop_bit_eq_div bit_iff_odd div_exp_eq)
 
 lemma drop_bit_of_0 [simp]:
   \<open>drop_bit n 0 = 0\<close>
@@ -1244,52 +1287,6 @@ lemma take_bit_horner_sum_bit_eq:
 lemma take_bit_sum:
   \<open>take_bit n a = (\<Sum>k = 0..<n. push_bit k (of_bool (bit a k)))\<close>
   by (simp flip: horner_sum_bit_eq_take_bit add: horner_sum_eq_sum push_bit_eq_mult)
-
-lemma disjunctive_xor_eq_or:
-  \<open>a XOR b = a OR b\<close> if \<open>a AND b = 0\<close>
-  using that by (auto simp add: bit_eq_iff bit_simps)
-
-lemma disjunctive_add_eq_or:
-  \<open>a + b = a OR b\<close> if \<open>a AND b = 0\<close>
-proof (rule bit_eqI)
-  fix n
-  assume \<open>possible_bit TYPE('a) n\<close>
-  moreover from that have \<open>\<And>n. \<not> bit (a AND b) n\<close>
-    by simp
-  then have \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
-    by (simp add: bit_simps)
-  ultimately show \<open>bit (a + b) n \<longleftrightarrow> bit (a OR b) n\<close>
-  proof (induction n arbitrary: a b)
-    case 0
-    from "0"(2)[of 0] show ?case
-      by (auto simp add: even_or_iff bit_0)
-  next
-    case (Suc n)
-    from Suc.prems(2) [of 0] have even: \<open>even a \<or> even b\<close>
-      by (auto simp add: bit_0)
-    have bit: \<open>\<not> bit (a div 2) n \<or> \<not> bit (b div 2) n\<close> for n
-      using Suc.prems(2) [of \<open>Suc n\<close>] by (simp add: bit_Suc)
-    from Suc.prems have \<open>possible_bit TYPE('a) n\<close>
-      using possible_bit_less_imp by force
-    with \<open>\<And>n. \<not> bit (a div 2) n \<or> \<not> bit (b div 2) n\<close> Suc.IH [of \<open>a div 2\<close> \<open>b div 2\<close>]
-    have IH: \<open>bit (a div 2 + b div 2) n \<longleftrightarrow> bit (a div 2 OR b div 2) n\<close>
-      by (simp add: bit_Suc)
-    have \<open>a + b = (a div 2 * 2 + a mod 2) + (b div 2 * 2 + b mod 2)\<close>
-      using div_mult_mod_eq [of a 2] div_mult_mod_eq [of b 2] by simp
-    also have \<open>\<dots> = of_bool (odd a \<or> odd b) + 2 * (a div 2 + b div 2)\<close>
-      using even by (auto simp add: algebra_simps mod2_eq_if)
-    finally have \<open>bit ((a + b) div 2) n \<longleftrightarrow> bit (a div 2 + b div 2) n\<close>
-      using \<open>possible_bit TYPE('a) (Suc n)\<close> by simp (simp_all flip: bit_Suc add: bit_double_iff possible_bit_def)
-    also have \<open>\<dots> \<longleftrightarrow> bit (a div 2 OR b div 2) n\<close>
-      by (rule IH)
-    finally show ?case
-      by (simp add: bit_simps flip: bit_Suc)
-  qed
-qed
-
-lemma disjunctive_add_eq_xor:
-  \<open>a + b = a XOR b\<close> if \<open>a AND b = 0\<close>
-  using that by (simp add: disjunctive_add_eq_or disjunctive_xor_eq_or)
 
 lemma set_bit_eq:
   \<open>set_bit n a = a + of_bool (\<not> bit a n) * 2 ^ n\<close>
@@ -3920,6 +3917,10 @@ lemmas flip_bit_def [no_atp] = flip_bit_eq_xor
 lemma disjunctive_add [no_atp]:
   \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
   by (rule disjunctive_add_eq_or) (use that in \<open>simp add: bit_eq_iff bit_simps\<close>)
+
+lemma even_mod_exp_div_exp_iff [no_atp]:
+  \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
+  by (auto simp add: even_drop_bit_iff_not_bit bit_simps simp flip: drop_bit_eq_div take_bit_eq_mod)
 
 end
 
