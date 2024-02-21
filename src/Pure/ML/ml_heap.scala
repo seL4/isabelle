@@ -72,8 +72,8 @@ object ML_Heap {
 
     object Slices_Size {
       val name = Generic.name
-      val slice = SQL.Column.int("slice").make_primary_key
-      val size = SQL.Column.long("size")
+      val slice = Slices.slice
+      val size = SQL.Column.string("size")
 
       val table = make_table(List(name, slice, size),
         body = "SELECT name, slice, pg_size_pretty(length(content)::bigint) as size FROM " +
