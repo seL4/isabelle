@@ -18,6 +18,14 @@ object Store {
   ): Store = new Store(options, build_cluster, cache)
 
 
+  /* file names */
+
+  def heap(name: String): Path = Path.basic(name)
+  def log(name: String): Path = Path.basic("log") + Path.basic(name)
+  def log_db(name: String): Path = log(name).db
+  def log_gz(name: String): Path = log(name).gz
+
+
   /* session */
 
   final class Session private[Store](
@@ -295,22 +303,17 @@ class Store private(
 
   /* file names */
 
-  def heap(name: String): Path = Path.basic(name)
-  def log(name: String): Path = Path.basic("log") + Path.basic(name)
-  def log_db(name: String): Path = log(name).db
-  def log_gz(name: String): Path = log(name).gz
-
-  def output_heap(name: String): Path = output_dir + heap(name)
-  def output_log(name: String): Path = output_dir + log(name)
-  def output_log_db(name: String): Path = output_dir + log_db(name)
-  def output_log_gz(name: String): Path = output_dir + log_gz(name)
+  def output_heap(name: String): Path = output_dir + Store.heap(name)
+  def output_log(name: String): Path = output_dir + Store.log(name)
+  def output_log_db(name: String): Path = output_dir + Store.log_db(name)
+  def output_log_gz(name: String): Path = output_dir + Store.log_gz(name)
 
 
   /* session */
 
   def get_session(name: String): Store.Session = {
-    val heap = input_dirs.view.map(_ + store.heap(name)).find(_.is_file)
-    val log_db = input_dirs.view.map(_ + store.log_db(name)).find(_.is_file)
+    val heap = input_dirs.view.map(_ + Store.heap(name)).find(_.is_file)
+    val log_db = input_dirs.view.map(_ + Store.log_db(name)).find(_.is_file)
     new Store.Session(name, heap, log_db, input_dirs)
   }
 
@@ -402,7 +405,7 @@ class Store private(
     else {
       (for {
         dir <- input_dirs.view
-        path = dir + log_db(name) if path.is_file
+        path = dir + Store.log_db(name) if path.is_file
         db <- check(SQLite.open_database(path))
       } yield db).headOption
     }
@@ -434,7 +437,7 @@ class Store private(
       for {
         dir <-
           (if (system_heaps) List(user_output_dir, system_output_dir) else List(user_output_dir))
-        file <- List(heap(name), log_db(name), log(name), log_gz(name))
+        file <- List(Store.heap(name), Store.log_db(name), Store.log(name), Store.log_gz(name))
         path = dir + file if path.is_file
       } yield path.file.delete
 
