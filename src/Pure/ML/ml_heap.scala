@@ -62,6 +62,18 @@ object ML_Heap {
       val table = make_table(List(name, size, digest, uuid, log_db))
     }
 
+    object Base_Size {
+      val name = Generic.name
+      val heap_size = SQL.Column.string("heap_size")
+      val log_db_size = SQL.Column.string("log_db_size")
+
+      val table = make_table(List(name, heap_size, log_db_size),
+        body =
+          "SELECT name, pg_size_pretty(size::bigint) as heap_size, " +
+          "  pg_size_pretty(length(log_db)::bigint) as log_db_size FROM " + Base.table.ident,
+        name = "size")
+    }
+
     object Slices {
       val name = Generic.name
       val slice = SQL.Column.int("slice").make_primary_key
@@ -127,7 +139,9 @@ object ML_Heap {
       for (table <- List(Base.table, Slices.table)) {
         db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
       }
-      db.create_view(Slices_Size.table)
+      for (table <- List(Base_Size.table, Slices_Size.table)) {
+        db.create_view(table)
+      }
     }
 
     def init_entry(db: SQL.Database, name: String): Unit =
