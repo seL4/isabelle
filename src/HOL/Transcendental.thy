@@ -2996,6 +2996,14 @@ lemma powr_mono_both:
     shows "x powr a \<le> y powr b"
   by (meson assms order.trans powr_mono powr_mono2 zero_le_one)
 
+lemma powr_mono': "a \<le> (b::real) \<Longrightarrow> x \<ge> 0 \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr b \<le> x powr a"
+  using powr_mono[of "-b" "-a" "inverse x"] by (auto simp: powr_def ln_inverse ln_div field_split_simps)
+
+lemma powr_less_mono':
+  assumes "(x::real) > 0" "x < 1" "a < b"
+  shows   "x powr b < x powr a"
+  by (metis assms log_powr_cancel order.strict_iff_order powr_mono')
+
 lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
   for x :: real
   unfolding powr_def exp_inj_iff by simp
@@ -5512,6 +5520,35 @@ lemma tendsto_arctan_at_bot: "(arctan \<longlongrightarrow> - (pi/2)) at_bot"
   unfolding filterlim_at_bot_mirror arctan_minus
   by (intro tendsto_minus tendsto_arctan_at_top)
 
+lemma sin_multiple_reduce:
+  "sin (x * numeral n :: 'a :: {real_normed_field, banach}) = 
+     sin x * cos (x * of_nat (pred_numeral n)) + cos x * sin (x * of_nat (pred_numeral n))"
+proof -
+  have "numeral n = of_nat (pred_numeral n) + (1 :: 'a)"
+    by (metis add.commute numeral_eq_Suc of_nat_Suc of_nat_numeral)
+  also have "sin (x * \<dots>) = sin (x * of_nat (pred_numeral n) + x)"
+    unfolding of_nat_Suc by (simp add: ring_distribs)
+  finally show ?thesis
+    by (simp add: sin_add)
+qed
+
+lemma cos_multiple_reduce:
+  "cos (x * numeral n :: 'a :: {real_normed_field, banach}) =
+     cos (x * of_nat (pred_numeral n)) * cos x - sin (x * of_nat (pred_numeral n)) * sin x"
+proof -
+  have "numeral n = of_nat (pred_numeral n) + (1 :: 'a)"
+    by (metis add.commute numeral_eq_Suc of_nat_Suc of_nat_numeral)
+  also have "cos (x * \<dots>) = cos (x * of_nat (pred_numeral n) + x)"
+    unfolding of_nat_Suc by (simp add: ring_distribs)
+  finally show ?thesis
+    by (simp add: cos_add)
+qed
+
+lemma arccos_eq_pi_iff: "x \<in> {-1..1} \<Longrightarrow> arccos x = pi \<longleftrightarrow> x = -1"
+  by (metis arccos arccos_minus_1 atLeastAtMost_iff cos_pi)
+
+lemma arccos_eq_0_iff: "x \<in> {-1..1} \<Longrightarrow> arccos x = 0 \<longleftrightarrow> x = 1"
+  by (metis arccos arccos_1 atLeastAtMost_iff cos_zero)
 
 subsection \<open>Prove Totality of the Trigonometric Functions\<close>
 
@@ -7210,6 +7247,133 @@ proof -
     by (simp add: algebra_simps power2_eq_square)
   finally show ?thesis .
 qed
+
+lemma cosh_double_cosh: "cosh (2 * x :: 'a :: {banach, real_normed_field}) = 2 * (cosh x)\<^sup>2 - 1"
+  using cosh_double[of x] by (simp add: sinh_square_eq)
+
+lemma sinh_multiple_reduce:
+  "sinh (x * numeral n :: 'a :: {real_normed_field, banach}) = 
+     sinh x * cosh (x * of_nat (pred_numeral n)) + cosh x * sinh (x * of_nat (pred_numeral n))"
+proof -
+  have "numeral n = of_nat (pred_numeral n) + (1 :: 'a)"
+    by (metis add.commute numeral_eq_Suc of_nat_Suc of_nat_numeral)
+  also have "sinh (x * \<dots>) = sinh (x * of_nat (pred_numeral n) + x)"
+    unfolding of_nat_Suc by (simp add: ring_distribs)
+  finally show ?thesis
+    by (simp add: sinh_add)
+qed
+
+lemma cosh_multiple_reduce:
+  "cosh (x * numeral n :: 'a :: {real_normed_field, banach}) =
+     cosh (x * of_nat (pred_numeral n)) * cosh x + sinh (x * of_nat (pred_numeral n)) * sinh x"
+proof -
+  have "numeral n = of_nat (pred_numeral n) + (1 :: 'a)"
+    by (metis add.commute numeral_eq_Suc of_nat_Suc of_nat_numeral)
+  also have "cosh (x * \<dots>) = cosh (x * of_nat (pred_numeral n) + x)"
+    unfolding of_nat_Suc by (simp add: ring_distribs)
+  finally show ?thesis
+    by (simp add: cosh_add)
+qed
+
+lemma cosh_arcosh_real [simp]:
+  assumes "x \<ge> (1 :: real)"
+  shows   "cosh (arcosh x) = x"
+proof -
+  have "eventually (\<lambda>t::real. cosh t \<ge> x) at_top"
+    using cosh_real_at_top by (simp add: filterlim_at_top)
+  then obtain t where "t \<ge> 1" "cosh t \<ge> x"
+    by (metis eventually_at_top_linorder linorder_not_le order_le_less)
+  moreover have "isCont cosh (y :: real)" for y
+    by (intro continuous_intros)
+  ultimately obtain y where "y \<ge> 0" "x = cosh y"
+    using IVT[of cosh 0 x t] assms by auto
+  thus ?thesis
+    by (simp add: arcosh_cosh_real)
+qed
+
+lemma arcosh_eq_0_iff_real [simp]: "x \<ge> 1 \<Longrightarrow> arcosh x = 0 \<longleftrightarrow> x = (1 :: real)"
+  using cosh_arcosh_real by fastforce
+
+lemma arcosh_nonneg_real [simp]:
+  assumes "x \<ge> 1"
+  shows   "arcosh (x :: real) \<ge> 0"
+proof -
+  have "1 + 0 \<le> x + (x\<^sup>2 - 1) powr (1 / 2)"
+    using assms by (intro add_mono) auto
+  thus ?thesis unfolding arcosh_def by simp
+qed
+
+lemma arcosh_real_strict_mono:
+  fixes x y :: real
+  assumes "1 \<le> x" "x < y"
+  shows   "arcosh x < arcosh y"
+proof -
+  have "cosh (arcosh x) < cosh (arcosh y)"
+    by (subst (1 2) cosh_arcosh_real) (use assms in auto)
+  thus ?thesis
+    using assms by (subst (asm) cosh_real_nonneg_less_iff) auto
+qed
+
+lemma arcosh_less_iff_real [simp]:
+  fixes x y :: real
+  assumes "1 \<le> x" "1 \<le> y"
+  shows   "arcosh x < arcosh y \<longleftrightarrow> x < y"
+  using arcosh_real_strict_mono[of x y] arcosh_real_strict_mono[of y x] assms
+  by (cases x y rule: linorder_cases) auto
+
+lemma arcosh_real_gt_1_iff [simp]: "x \<ge> 1 \<Longrightarrow> arcosh x > 0 \<longleftrightarrow> x \<noteq> (1 :: real)"
+  using arcosh_less_iff_real[of 1 x] by (auto simp del: arcosh_less_iff_real)
+
+lemma sinh_arcosh_real: "x \<ge> 1 \<Longrightarrow> sinh (arcosh x) = sqrt (x\<^sup>2 - 1)"
+  by (rule sym, rule real_sqrt_unique) (auto simp: sinh_square_eq)
+
+
+lemma sinh_arsinh_real [simp]: "sinh (arsinh x :: real) = x"
+proof -
+  have "eventually (\<lambda>t::real. sinh t \<ge> x) at_top"
+    using sinh_real_at_top by (simp add: filterlim_at_top)
+  then obtain t where "sinh t \<ge> x"
+    by (metis eventually_at_top_linorder linorder_not_le order_le_less)
+  moreover have "eventually (\<lambda>t::real. sinh t \<le> x) at_bot"
+    using sinh_real_at_bot by (simp add: filterlim_at_bot)
+  then obtain t' where "t' \<le> t" "sinh t' \<le> x"
+    by (metis eventually_at_bot_linorder nle_le)
+  moreover have "isCont sinh (y :: real)" for y
+    by (intro continuous_intros)
+  ultimately obtain y where "x = sinh y"
+    using IVT[of sinh t' x t] by auto
+  thus ?thesis
+    by (simp add: arsinh_sinh_real)
+qed
+
+lemma arsinh_real_strict_mono:
+  fixes x y :: real
+  assumes "x < y"
+  shows   "arsinh x < arsinh y"
+proof -
+  have "sinh (arsinh x) < sinh (arsinh y)"
+    by (subst (1 2) sinh_arsinh_real) (use assms in auto)
+  thus ?thesis
+    using assms by (subst (asm) sinh_real_less_iff) auto
+qed
+
+lemma arsinh_less_iff_real [simp]:
+  fixes x y :: real
+  shows "arsinh x < arsinh y \<longleftrightarrow> x < y"
+  using arsinh_real_strict_mono[of x y] arsinh_real_strict_mono[of y x]
+  by (cases x y rule: linorder_cases) auto
+
+lemma arsinh_real_eq_0_iff [simp]: "arsinh x = 0 \<longleftrightarrow> x = (0 :: real)"
+  by (metis arsinh_0 sinh_arsinh_real)
+
+lemma arsinh_real_pos_iff [simp]: "arsinh x > 0 \<longleftrightarrow> x > (0 :: real)"
+  using arsinh_less_iff_real[of 0 x] by (simp del: arsinh_less_iff_real)
+
+lemma arsinh_real_neg_iff [simp]: "arsinh x < 0 \<longleftrightarrow> x < (0 :: real)"
+  using arsinh_less_iff_real[of x 0] by (simp del: arsinh_less_iff_real)
+
+lemma cosh_arsinh_real: "cosh (arsinh x) = sqrt (x\<^sup>2 + 1)"
+  by (rule sym, rule real_sqrt_unique) (auto simp: cosh_square_eq)
 
 lemma continuous_on_arsinh [continuous_intros]: "continuous_on A (arsinh :: real \<Rightarrow> real)"
   by (rule DERIV_continuous_on derivative_intros)+

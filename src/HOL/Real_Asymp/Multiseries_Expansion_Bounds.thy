@@ -409,10 +409,6 @@ qualified lemma powr_right_bounds:
     and "\<forall>x. l x > 0 \<longrightarrow> f x \<in> {l x..u x} \<longrightarrow> g x \<le> 0 \<longrightarrow> f x powr g x \<in> {u x powr g x..l x powr g x}"
   by (auto intro: powr_mono2 powr_mono2')
 
-(* TODO Move *)
-lemma powr_mono': "a \<le> (b::real) \<Longrightarrow> x \<ge> 0 \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr b \<le> x powr a"
-  using powr_mono[of "-b" "-a" "inverse x"] by (auto simp: powr_def ln_inverse ln_div field_split_simps)
-
 qualified lemma powr_left_bounds:
   fixes f g :: "real \<Rightarrow> real"
   shows "\<forall>x. f x > 0 \<longrightarrow> g x \<in> {l x..u x} \<longrightarrow> f x \<ge> 1 \<longrightarrow> f x powr g x \<in> {f x powr l x..f x powr u x}"

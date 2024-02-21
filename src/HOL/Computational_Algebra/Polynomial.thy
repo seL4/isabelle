@@ -464,7 +464,7 @@ lemma is_zero_null [code_abbrev]: "is_zero p \<longleftrightarrow> p = 0"
   by (simp add: is_zero_def null_def)
 
 
-subsubsection \<open>Reconstructing the polynomial from the list\<close>
+text \<open>Reconstructing the polynomial from the list\<close>
   \<comment> \<open>contributed by Sebastiaan J.C. Joosten and René Thiemann\<close>
 
 definition poly_of_list :: "'a::comm_monoid_add list \<Rightarrow> 'a poly"
@@ -1296,6 +1296,15 @@ lemma lead_coeff_of_int [simp]:
   "lead_coeff (of_int k) = of_int k"
   by (simp add: of_int_poly)
 
+lemma poly_of_nat [simp]: "poly (of_nat n) x = of_nat n"
+  by (simp add: of_nat_poly)
+
+lemma poly_of_int [simp]: "poly (of_int n) x = of_int n"
+  by (simp add: of_int_poly) 
+
+lemma poly_numeral [simp]: "poly (numeral n) x = numeral n"
+  by (metis of_nat_numeral poly_of_nat)
+
 lemma numeral_poly: "numeral n = [:numeral n:]"
 proof -
   have "numeral n = of_nat (numeral n)"
@@ -1841,6 +1850,12 @@ next
     by simp
 qed
 
+lemma order_gt_0_iff: "p \<noteq> 0 \<Longrightarrow> order x p > 0 \<longleftrightarrow> poly p x = 0"
+  by (subst order_root) auto
+
+lemma order_eq_0_iff: "p \<noteq> 0 \<Longrightarrow> order x p = 0 \<longleftrightarrow> poly p x \<noteq> 0"
+  by (subst order_root) auto
+
 text \<open>Next three lemmas contributed by Wenda Li\<close>
 lemma order_1_eq_0 [simp]:"order x 1 = 0"
   by (metis order_root poly_1 zero_neq_one)
@@ -2176,6 +2191,68 @@ next
   qed
 qed
 
+lemma coeff_pcompose_monom_linear [simp]:
+  fixes p :: "'a :: comm_ring_1 poly"
+  shows "coeff (pcompose p (monom c (Suc 0))) k = c ^ k * coeff p k"
+  by (induction p arbitrary: k)
+     (auto simp: coeff_pCons coeff_monom_mult pcompose_pCons split: nat.splits)
+
+lemma of_nat_mult_conv_smult: "of_nat n * P = smult (of_nat n) P"
+  by (simp add: monom_0 of_nat_monom)
+
+lemma numeral_mult_conv_smult: "numeral n * P = smult (numeral n) P"
+  by (simp add: numeral_poly)
+
+lemma sum_order_le_degree:
+  assumes "p \<noteq> 0"
+  shows   "(\<Sum>x | poly p x = 0. order x p) \<le> degree p"
+  using assms
+proof (induction "degree p" arbitrary: p rule: less_induct)
+  case (less p)
+  show ?case
+  proof (cases "\<exists>x. poly p x = 0")
+    case False
+    thus ?thesis
+      by auto
+  next
+    case True
+    then obtain x where x: "poly p x = 0"
+      by auto
+    have "[:-x, 1:] ^ order x p dvd p"
+      by (simp add: order_1)
+    then obtain q where q: "p = [:-x, 1:] ^ order x p * q"
+      by (elim dvdE)
+    have [simp]: "q \<noteq> 0"
+      using q less.prems by auto
+    have "order x p = order x p + order x q"
+      by (subst q, subst order_mult) (auto simp: order_power_n_n)
+    hence "order x q = 0"
+      by auto
+    hence [simp]: "poly q x \<noteq> 0"
+      by (simp add: order_root)
+    have deg_p: "degree p = degree q + order x p"
+      by (subst q, subst degree_mult_eq) (auto simp: degree_power_eq)
+    moreover have "order x p > 0"
+      using x less.prems by (simp add: order_root)
+    ultimately have "degree q < degree p"
+      by linarith
+    hence "(\<Sum>x | poly q x = 0. order x q) \<le> degree q"
+      by (intro less.hyps) auto
+    hence "order x p + (\<Sum>x | poly q x = 0. order x q) \<le> degree p"
+      by (simp add: deg_p)
+    also have "{y. poly q y = 0} = {y. poly p y = 0} - {x}"
+      by (subst q) auto
+    also have "(\<Sum>y \<in> {y. poly p y = 0} - {x}. order y q) =
+               (\<Sum>y \<in> {y. poly p y = 0} - {x}. order y p)"
+      by (intro sum.cong refl, subst q)
+         (auto simp: order_mult order_power_n_n intro!: order_0I)
+    also have "order x p + \<dots> = (\<Sum>y \<in> insert x ({y. poly p y = 0} - {x}). order y p)"
+      using \<open>p \<noteq> 0\<close> by (subst sum.insert) (auto simp: poly_roots_finite)
+    also have "insert x ({y. poly p y = 0} - {x}) = {y. poly p y = 0}"
+      using \<open>poly p x = 0\<close> by auto
+    finally show ?thesis .
+  qed
+qed
 
 subsection \<open>Closure properties of coefficients\<close>
 
@@ -2857,6 +2934,12 @@ proof -
   with \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close> show ?thesis
     by (simp add: rsquarefree_def order_root)
 qed
+
+lemma has_field_derivative_poly [derivative_intros]:
+  assumes "(f has_field_derivative f') (at x within A)"
+  shows   "((\<lambda>x. poly p (f x)) has_field_derivative
+             (f' * poly (pderiv p) (f x))) (at x within A)"
+  using DERIV_chain[OF poly_DERIV assms, of p] by (simp add: o_def mult_ac)
 
 
 subsection \<open>Algebraic numbers\<close>
@@ -5137,7 +5220,6 @@ proof safe
   from A B[of p q] B [of q p] show "content p = 1" "content q = 1"
     by (simp_all add: content_mult mult_ac)
 qed (auto simp: content_mult)
-
 
 no_notation cCons (infixr "##" 65)
 
