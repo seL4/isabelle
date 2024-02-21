@@ -120,6 +120,7 @@ object Build_Job {
         val options = Host.node_options(info.options, node_info)
 
         val store = build_context.store
+        val store_session = store.output_session(session_name, store_heap = store_heap)
 
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
 
@@ -467,15 +468,12 @@ object Build_Job {
 
           /* output heap */
 
-          val output_shasum = {
-            val heap = store.output_heap(session_name)
-            if (process_result.ok && store_heap && heap.is_file) {
-              val slice = Space.MiB(options.real("build_database_slice"))
-              val digest = ML_Heap.store(database_server, session_name, heap, slice)
-              SHA1.shasum(digest, session_name)
+          val output_shasum =
+            store_session.heap match {
+              case Some(path) if process_result.ok =>
+                SHA1.shasum(ML_Heap.write_file_digest(path), session_name)
+              case _ => SHA1.no_shasum
             }
-            else SHA1.no_shasum
-          }
 
           val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
 
@@ -515,6 +513,17 @@ object Build_Job {
               }
               true
             }
+
+          using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
+            heaps_database =>
+              for (db <- database_server orElse heaps_database) {
+                ML_Heap.clean_entry(db, session_name)
+                if (process_result.ok) {
+                  val slice = Space.MiB(options.real("build_database_slice"))
+                  ML_Heap.store(db, store_session, slice, progress = progress)
+                }
+              }
+          }
 
           // messages
           process_result.err_lines.foreach(progress.echo(_))

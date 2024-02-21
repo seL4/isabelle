@@ -190,6 +190,15 @@ object Store {
             uuid)
         })
 
+    def read_build_uuid(db: SQL.Database, name: String): String =
+      db.execute_query_statementO[String](
+        Session_Info.table.select(List(Session_Info.uuid),
+          sql = Session_Info.session_name.where_equal(name)),
+        { res =>
+            try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+            catch { case _: SQLException => "" }
+        }).getOrElse("")
+
     def write_session_info(
       db: SQL.Database,
       cache: Compress.Cache,
@@ -249,6 +258,10 @@ object Store {
       )
     }
   }
+
+  def read_build_uuid(path: Path, session: String): String =
+    try { using(SQLite.open_database(path))(private_data.read_build_uuid(_, session)) }
+    catch { case _: SQLException => "" }
 }
 
 class Store private(
@@ -301,6 +314,12 @@ class Store private(
     new Store.Session(name, heap, log_db, input_dirs)
   }
 
+  def output_session(name: String, store_heap: Boolean = false): Store.Session = {
+    val heap = if (store_heap) Some(output_heap(name)) else None
+    val log_db = if (!build_database_server) Some(output_log_db(name)) else None
+    new Store.Session(name, heap, log_db, List(output_dir))
+  }
+
 
   /* heap */
 
@@ -343,8 +362,20 @@ class Store private(
       ssh_port = options.int("build_database_ssh_port"),
       ssh_user = options.string("build_database_ssh_user"))
 
-  def maybe_open_database_server(server: SSH.Server = SSH.no_server): Option[SQL.Database] =
-    if (build_database_server) Some(open_database_server(server = server)) else None
+  def maybe_open_database_server(
+    server: SSH.Server = SSH.no_server,
+    guard: Boolean = build_database_server
+  ): Option[SQL.Database] = {
+    if (guard) Some(open_database_server(server = server)) else None
+  }
+
+  def maybe_open_heaps_database(
+    database_server: Option[SQL.Database],
+    server: SSH.Server = SSH.no_server
+  ): Option[SQL.Database] = {
+    if (database_server.isDefined) None
+    else store.maybe_open_database_server(server = server, guard = build_cluster)
+  }
 
   def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
     if (build_database_server || build_cluster) open_database_server(server = server)
@@ -395,9 +426,7 @@ class Store private(
   ): Option[Boolean] = {
     val relevant_db =
       database_server match {
-        case Some(db) =>
-          ML_Heap.clean_entry(db, name)
-          clean_session_info(db, name)
+        case Some(db) => clean_session_info(db, name)
         case None => false
       }
 

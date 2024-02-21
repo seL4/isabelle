@@ -857,6 +857,10 @@ extends AutoCloseable {
     try { store.maybe_open_database_server(server = server) }
     catch { case exn: Throwable => close(); throw exn }
 
+  protected val _heaps_database: Option[SQL.Database] =
+    try { store.maybe_open_heaps_database(_database_server, server = server) }
+    catch { case exn: Throwable => close(); throw exn }
+
   protected val _build_database: Option[SQL.Database] =
     try {
       for (db <- store.maybe_open_build_database(server = server)) yield {
@@ -926,6 +930,7 @@ extends AutoCloseable {
 
   def close(): Unit = synchronized {
     Option(_database_server).flatten.foreach(_.close())
+    Option(_heaps_database).flatten.foreach(_.close())
     Option(_build_database).flatten.foreach(_.close())
     Option(_host_database).foreach(_.close())
     Option(_build_cluster).foreach(_.close())
@@ -1015,8 +1020,11 @@ extends AutoCloseable {
     val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     if (!skipped && !cancelled) {
-      val heaps = (session_name :: ancestor_results.map(_.name)).map(store.output_heap)
-      ML_Heap.restore(_database_server, heaps, cache = store.cache.compress)
+      val hierarchy =
+        (session_name :: ancestor_results.map(_.name))
+          .map(store.output_session(_, store_heap = true))
+      ML_Heap.restore(_database_server orElse _heaps_database,
+        hierarchy, cache = store.cache.compress)
     }
 
     val result_name = (session_name, worker_uuid, build_uuid)

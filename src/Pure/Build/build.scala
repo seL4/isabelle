@@ -115,7 +115,7 @@ object Build {
 
     def build_options(options: Options, build_cluster: Boolean = false): Options = {
       val options1 = options + "completion_limit=0" + "editor_tracing_messages=0"
-      if (build_cluster) options1 + "build_database_server" + "build_database" else options1
+      if (build_cluster) options1 + "build_database" else options1
     }
 
     final def build_store(options: Options,
@@ -550,10 +550,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       var force = false
       var list_builds = false
       var options =
-        Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(
-            Options.Spec.make("build_database_server"),
-            Options.Spec.make("build_database")))
+        Options.init(specs =
+          Options.Spec.ISABELLE_BUILD_OPTIONS ::: List(Options.Spec.make("build_database")))
       var remove_builds = false
 
       val getopts = Getopts("""
@@ -653,10 +651,8 @@ Usage: isabelle build_process [OPTIONS]
       val dirs = new mutable.ListBuffer[Path]
       var max_jobs: Option[Int] = None
       var options =
-        Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(
-            Options.Spec.make("build_database_server"),
-            Options.Spec.make("build_database")))
+        Options.init(specs =
+          Options.Spec.ISABELLE_BUILD_OPTIONS ::: List(Options.Spec.make("build_database")))
       var quiet = false
       var verbose = false
 
