@@ -189,7 +189,9 @@ object Build_Cluster {
       remote_isabelle
     }
 
-    def init(): Unit = remote_isabelle.init()
+    def init(): Unit =
+      remote_isabelle.init(other_settings =
+        remote_isabelle.init_components() ::: remote_isabelle.debug_settings())
 
     def benchmark(): Unit = {
       val script =
