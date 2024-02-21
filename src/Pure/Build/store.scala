@@ -34,6 +34,8 @@ object Store {
     val log_db: Option[Path],
     dirs: List[Path]
   ) {
+    def log_db_name: String = Store.log_db(name).implode
+
     def defined: Boolean = heap.isDefined || log_db.isDefined
 
     def the_heap: Path =

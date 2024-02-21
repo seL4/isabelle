@@ -219,7 +219,7 @@ object ML_Heap {
           uuid <- proper_string(Store.read_build_uuid(path, session.name))
         } yield Log_DB(uuid, Bytes.read(path))
 
-      if (opt_log_db.isDefined) progress.echo("Storing " + session.name + ".db ...")
+      if (opt_log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
       private_data.transaction_lock(db, label = "ML_Heap.store3") {
         private_data.finish_entry(db, session.name, size, opt_digest, opt_log_db)
@@ -279,7 +279,7 @@ object ML_Heap {
             val file_uuid = Store.read_build_uuid(path, session.name)
             private_data.read_log_db(db, session.name, old_uuid = file_uuid) match {
               case Some(log_db) if file_uuid.isEmpty =>
-                progress.echo("Restoring " + session.name + ".db ...")
+                progress.echo("Restoring " + session.log_db_name + " ...")
                 Isabelle_System.make_directory(path.expand.dir)
                 Bytes.write(path, log_db.content)
               case Some(_) => error("Incoherent content for session database " + path)
