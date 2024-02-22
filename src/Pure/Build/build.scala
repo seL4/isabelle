@@ -177,10 +177,8 @@ object Build {
     session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Term.Cache = Term.Cache.make()
   ): Results = {
-    val build_engine = Engine(engine_name(options))
-
-    val store =
-      build_engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
+    val engine = Engine(engine_name(options))
+    val store = engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
     val build_options = store.options
 
     using(store.open_server()) { server =>
@@ -246,7 +244,7 @@ object Build {
         /* build process and results */
 
         val build_context =
-          Context(store, build_deps, engine = build_engine, afp_root = afp_root,
+          Context(store, build_deps, engine = engine, afp_root = afp_root,
             build_hosts = build_hosts, hostname = hostname(build_options), build_heap = build_heap,
             numa_shuffling = numa_shuffling, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup,
@@ -262,7 +260,7 @@ object Build {
           }
         }
 
-        val results = build_engine.run_build_process(build_context, progress, server)
+        val results = engine.run_build_process(build_context, progress, server)
 
         if (export_files) {
           for (name <- full_sessions_selection.iterator if results(name).ok) {
@@ -513,8 +511,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     force: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
-    val build_engine = Engine(engine_name(options))
-    val store = build_engine.build_store(options, build_cluster = build_cluster)
+    val engine = Engine(engine_name(options))
+    val store = engine.build_store(options, build_cluster = build_cluster)
 
     using(store.open_server()) { server =>
       using_optional(store.maybe_open_build_database(server = server)) { build_database =>
@@ -619,8 +617,8 @@ Usage: isabelle build_process [OPTIONS]
     numa_shuffling: Boolean = false,
     max_jobs: Option[Int] = None
   ): Results = {
-    val build_engine = Engine(engine_name(options))
-    val store = build_engine.build_store(options, build_cluster = true)
+    val engine = Engine(engine_name(options))
+    val store = engine.build_store(options, build_cluster = true)
     val build_options = store.options
 
     using(store.open_server()) { server =>
@@ -637,11 +635,11 @@ Usage: isabelle build_process [OPTIONS]
           Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
         val build_context =
-          Context(store, build_deps, engine = build_engine, afp_root = afp_root,
+          Context(store, build_deps, engine = engine, afp_root = afp_root,
             hostname = hostname(build_options), numa_shuffling = numa_shuffling,
             build_uuid = build_master.build_uuid, jobs = max_jobs.getOrElse(1))
 
-        build_engine.run_build_process(build_context, progress, server)
+        engine.run_build_process(build_context, progress, server)
       }
     }
   }
