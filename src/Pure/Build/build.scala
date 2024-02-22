@@ -34,6 +34,7 @@ object Build {
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
+    clean_sessions: List[String] = Nil,
     build_heap: Boolean = false,
     fresh_build: Boolean = false,
     no_build: Boolean = false,
@@ -143,7 +144,10 @@ object Build {
       server: SSH.Server
     ): Results = {
       Isabelle_Thread.uninterruptible {
-        using(open_build_process(context, progress, server))(_.run())
+        using(open_build_process(context, progress, server)) { build_process =>
+          build_process.prepare()
+          build_process.run()
+        }
       }
     }
   }
@@ -243,18 +247,16 @@ object Build {
 
         /* build process and results */
 
+        val clean_sessions =
+          if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
+
         val build_context =
           Context(store, build_deps, engine = engine, afp_root = afp_root,
-            build_hosts = build_hosts, hostname = hostname(build_options), build_heap = build_heap,
+            build_hosts = build_hosts, hostname = hostname(build_options),
+            clean_sessions = clean_sessions, build_heap = build_heap,
             numa_shuffling = numa_shuffling, fresh_build = fresh_build,
             no_build = no_build, session_setup = session_setup,
             jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
-
-        if (clean_build) {
-          for (name <- full_sessions.imports_descendants(full_sessions_selection)) {
-            store.clean_output(database_server, name, progress = progress)
-          }
-        }
 
         val results = engine.run_build_process(build_context, progress, server)
 
