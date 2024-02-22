@@ -131,12 +131,13 @@ object ML_Heap {
       for (table <- List(Base.table, Slices.table)) {
         db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
       }
+    }
+
+    def init_entry(db: SQL.Database, name: String): Unit = {
+      clean_entry(db, name)
       for (table <- List(Size.table, Slices_Size.table)) {
         db.create_view(table)
       }
-    }
-
-    def init_entry(db: SQL.Database, name: String): Unit =
       db.execute_statement(Base.table.insert(), body =
         { stmt =>
           stmt.string(1) = name
@@ -145,6 +146,7 @@ object ML_Heap {
           stmt.string(4) = None
           stmt.bytes(5) = None
         })
+    }
 
     def finish_entry(
       db: SQL.Database,
