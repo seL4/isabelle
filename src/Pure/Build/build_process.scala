@@ -1020,11 +1020,12 @@ extends AutoCloseable {
     val cancelled = progress.stopped || !ancestor_results.forall(_.ok)
 
     if (!skipped && !cancelled) {
-      val hierarchy =
-        (session_name :: ancestor_results.map(_.name))
-          .map(store.output_session(_, store_heap = true))
-      ML_Heap.restore(_database_server orElse _heaps_database,
-        hierarchy, cache = store.cache.compress)
+      for (db <- _database_server orElse _heaps_database) {
+        val hierarchy =
+          (session_name :: ancestor_results.map(_.name))
+            .map(store.output_session(_, store_heap = true))
+        ML_Heap.restore(db, hierarchy, cache = store.cache.compress)
+      }
     }
 
     val result_name = (session_name, worker_uuid, build_uuid)

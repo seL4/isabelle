@@ -241,60 +241,58 @@ object ML_Heap {
   }
 
   def restore(
-    database: Option[SQL.Database],
+    db: SQL.Database,
     sessions: List[Store.Session],
     cache: Compress.Cache = Compress.Cache.none,
     progress: Progress = new Progress
   ): Unit = {
-    database match {
-      case Some(db) if sessions.exists(_.defined) =>
-        private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
-          /* heap */
+    if (sessions.exists(_.defined)) {
+      private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
+        /* heap */
 
-          val defined_heaps =
-            for (session <- sessions; heap <- session.heap)
-              yield session.name -> heap
+        val defined_heaps =
+          for (session <- sessions; heap <- session.heap)
+            yield session.name -> heap
 
-          val db_digests = private_data.read_digests(db, defined_heaps.map(_._1))
+        val db_digests = private_data.read_digests(db, defined_heaps.map(_._1))
 
-          for ((session_name, heap) <- defined_heaps) {
-            val file_digest = read_file_digest(heap)
-            val db_digest = db_digests.get(session_name)
-            if (db_digest.isDefined && db_digest != file_digest) {
-              progress.echo("Restoring " + session_name + " ...")
+        for ((session_name, heap) <- defined_heaps) {
+          val file_digest = read_file_digest(heap)
+          val db_digest = db_digests.get(session_name)
+          if (db_digest.isDefined && db_digest != file_digest) {
+            progress.echo("Restoring " + session_name + " ...")
 
-              val base_dir = Isabelle_System.make_directory(heap.expand.dir)
-              Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
-                Bytes.write(tmp, Bytes.empty)
-                for (slice <- private_data.read_slices(db, session_name)) {
-                  Bytes.append(tmp, slice.uncompress(cache = cache))
-                }
-                val digest = write_file_digest(tmp)
-                if (db_digest.get == digest) {
-                  Isabelle_System.chmod("a+r", tmp)
-                  Isabelle_System.move_file(tmp, heap)
-                }
-                else error("Incoherent content for session heap " + heap)
+            val base_dir = Isabelle_System.make_directory(heap.expand.dir)
+            Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
+              Bytes.write(tmp, Bytes.empty)
+              for (slice <- private_data.read_slices(db, session_name)) {
+                Bytes.append(tmp, slice.uncompress(cache = cache))
               }
-            }
-          }
-
-
-          /* log_db */
-
-          for (session <- sessions; path <- session.log_db) {
-            val file_uuid = Store.read_build_uuid(path, session.name)
-            private_data.read_log_db(db, session.name, old_uuid = file_uuid) match {
-              case Some(log_db) if file_uuid.isEmpty =>
-                progress.echo("Restoring " + session.log_db_name + " ...")
-                Isabelle_System.make_directory(path.expand.dir)
-                Bytes.write(path, log_db.content)
-              case Some(_) => error("Incoherent content for session database " + path)
-              case None =>
+              val digest = write_file_digest(tmp)
+              if (db_digest.get == digest) {
+                Isabelle_System.chmod("a+r", tmp)
+                Isabelle_System.move_file(tmp, heap)
+              }
+              else error("Incoherent content for session heap " + heap)
             }
           }
         }
-      case _ =>
+
+
+        /* log_db */
+
+        for (session <- sessions; path <- session.log_db) {
+          val file_uuid = Store.read_build_uuid(path, session.name)
+          private_data.read_log_db(db, session.name, old_uuid = file_uuid) match {
+            case Some(log_db) if file_uuid.isEmpty =>
+              progress.echo("Restoring " + session.log_db_name + " ...")
+              Isabelle_System.make_directory(path.expand.dir)
+              Bytes.write(path, log_db.content)
+            case Some(_) => error("Incoherent content for session database " + path)
+            case None =>
+          }
+        }
+      }
     }
   }
 }

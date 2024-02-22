@@ -52,12 +52,12 @@ object Build_Benchmark {
         val session = sessions(benchmark_session)
 
         val hierachy = session.ancestors.map(store.output_session(_, store_heap = true))
-        ML_Heap.restore(database_server, hierachy, cache = store.cache.compress)
+        for (db <- database_server) ML_Heap.restore(db, hierachy, cache = store.cache.compress)
 
         val local_options = options + "build_database_server=false" + "build_database=false"
 
         benchmark_requirements(local_options, progress)
-        ML_Heap.restore(database_server, hierachy, cache = store.cache.compress)
+        for (db <- database_server) ML_Heap.restore(db, hierachy, cache = store.cache.compress)
 
         def get_shasum(session_name: String): SHA1.Shasum = {
           val ancestor_shasums = sessions(session_name).ancestors.map(get_shasum)
