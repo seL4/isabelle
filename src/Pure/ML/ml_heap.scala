@@ -193,12 +193,7 @@ object ML_Heap {
         uuid <- proper_string(Store.read_build_uuid(path, session.name))
       } yield Log_DB(uuid, Bytes.read(path))
 
-    val heap_digest =
-      for {
-        path <- session.heap
-        digest <- read_file_digest(path)
-      } yield digest
-
+    val heap_digest = session.heap.map(write_file_digest)
     val heap_size =
       session.heap match {
         case Some(heap) => File.size(heap) - sha1_prefix.length - SHA1.digest_length
