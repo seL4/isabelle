@@ -171,52 +171,53 @@ object Build_Cluster {
   ) extends AutoCloseable {
     override def toString: String = ssh.toString
 
-    val remote_identifier: String = options.string("build_cluster_identifier")
-    val remote_root: Path = Path.explode(options.string("build_cluster_root"))
-    val remote_isabelle_home: Path = remote_root + Path.explode("isabelle")
-    val remote_afp_root: Option[Path] =
+    val build_cluster_identifier: String = options.string("build_cluster_identifier")
+    val build_cluster_root: Path = Path.explode(options.string("build_cluster_root"))
+    val built_cluster_isabelle_home: Path = build_cluster_root + Path.explode("isabelle")
+    val build_cluster_afp_root: Option[Path] =
       if (build_context.afp_root.isEmpty) None
-      else Some(remote_isabelle_home + Path.explode("AFP"))
+      else Some(built_cluster_isabelle_home + Path.explode("AFP"))
 
-    lazy val remote_isabelle: Other_Isabelle =
-      Other_Isabelle(remote_isabelle_home, isabelle_identifier = remote_identifier, ssh = ssh)
+    lazy val build_cluster_isabelle: Other_Isabelle =
+      Other_Isabelle(built_cluster_isabelle_home,
+        isabelle_identifier = build_cluster_identifier, ssh = ssh)
 
     def sync(): Other_Isabelle = {
-      Sync.sync(options, Rsync.Context(ssh = ssh), remote_isabelle_home,
+      Sync.sync(options, Rsync.Context(ssh = ssh), built_cluster_isabelle_home,
         afp_root = build_context.afp_root,
         purge_heaps = true,
         preserve_jars = true)
-      remote_isabelle
+      build_cluster_isabelle
     }
 
     def init(): Unit =
-      remote_isabelle.init(other_settings =
-        remote_isabelle.init_components() ::: remote_isabelle.debug_settings())
+      build_cluster_isabelle.init(other_settings =
+        build_cluster_isabelle.init_components() ::: build_cluster_isabelle.debug_settings())
 
     def benchmark(): Unit = {
       val script =
-        Build_Benchmark.benchmark_command(host, ssh = ssh, isabelle_home = remote_isabelle_home)
-      remote_isabelle.bash(script).check
+        Build_Benchmark.benchmark_command(host, ssh = ssh, isabelle_home = built_cluster_isabelle_home)
+      build_cluster_isabelle.bash(script).check
     }
 
     def start(): Process_Result = {
-      val remote_ml_platform = remote_isabelle.getenv("ML_PLATFORM")
-      if (remote_ml_platform != build_context.ml_platform) {
-        error("Bad ML_PLATFORM: found " + remote_ml_platform +
+      val build_cluster_ml_platform = build_cluster_isabelle.getenv("ML_PLATFORM")
+      if (build_cluster_ml_platform != build_context.ml_platform) {
+        error("Bad ML_PLATFORM: found " + build_cluster_ml_platform +
           ", but expected " + build_context.ml_platform)
       }
-      val build_options = 
+      val build_options =
         for { option <- options.iterator if option.for_build_sync } yield options.spec(option.name)
       val script =
         Build.build_worker_command(host,
           ssh = ssh,
           build_options = build_options.toList,
           build_id = build_context.build_uuid,
-          isabelle_home = remote_isabelle_home,
-          afp_root = remote_afp_root,
-          dirs = Path.split(host.dirs).map(remote_isabelle.expand_path),
+          isabelle_home = built_cluster_isabelle_home,
+          afp_root = build_cluster_afp_root,
+          dirs = Path.split(host.dirs).map(build_cluster_isabelle.expand_path),
           quiet = true)
-      remote_isabelle.bash(script).check
+      build_cluster_isabelle.bash(script).check
     }
 
     override def close(): Unit = ssh.close()
@@ -334,7 +335,7 @@ class Remote_Build_Cluster(
 
     this
   }
-  
+
   override def benchmark(): Build_Cluster = synchronized {
     _init.foreach(_.join)
     _init =
