@@ -54,23 +54,23 @@ object ML_Heap {
 
     object Base {
       val name = Generic.name
-      val size = SQL.Column.long("size")
-      val digest = SQL.Column.string("digest")
+      val heap_size = SQL.Column.long("heap_size")
+      val heap_digest = SQL.Column.string("heap_digest")
       val uuid = SQL.Column.string("uuid")
       val log_db = SQL.Column.bytes("log_db")
 
-      val table = make_table(List(name, size, digest, uuid, log_db))
+      val table = make_table(List(name, heap_size, heap_digest, uuid, log_db))
     }
 
     object Size {
       val name = Generic.name
-      val heap_size = SQL.Column.string("heap_size")
-      val log_db_size = SQL.Column.string("log_db_size")
+      val heap = SQL.Column.string("heap")
+      val log_db = SQL.Column.string("log_db")
 
-      val table = make_table(List(name, heap_size, log_db_size),
+      val table = make_table(List(name, heap, log_db),
         body =
-          "SELECT name, pg_size_pretty(size::bigint) as heap_size, " +
-          "  pg_size_pretty(length(log_db)::bigint) as log_db_size FROM " + Base.table.ident,
+          "SELECT name, pg_size_pretty(heap_size::bigint) as heap, " +
+          "  pg_size_pretty(length(log_db)::bigint) as log_db FROM " + Base.table.ident,
         name = "size")
     }
 
@@ -97,10 +97,10 @@ object ML_Heap {
       require(names.nonEmpty)
 
       db.execute_query_statement(
-        Base.table.select(List(Base.name, Base.digest),
+        Base.table.select(List(Base.name, Base.heap_digest),
           sql = Generic.name.where_member(names)),
         List.from[(String, String)],
-        res => res.string(Base.name) -> res.string(Base.digest)
+        res => res.string(Base.name) -> res.string(Base.heap_digest)
       ).flatMap({
         case (_, "") => None
         case (name, digest) => Some(name -> SHA1.fake_digest(digest))
@@ -157,19 +157,19 @@ object ML_Heap {
     def finish_entry(
       db: SQL.Database,
       name: String,
-      size: Long,
-      opt_digest: Option[SHA1.Digest],
-      opt_log_db: Option[Log_DB]
+      heap_size: Long,
+      heap_digest: Option[SHA1.Digest],
+      log_db: Option[Log_DB]
     ): Unit =
       db.execute_statement(
-        Base.table.update(List(Base.size, Base.digest, Base.uuid, Base.log_db),
+        Base.table.update(List(Base.heap_size, Base.heap_digest, Base.uuid, Base.log_db),
           sql = Base.name.where_equal(name)),
         body =
           { stmt =>
-            stmt.long(1) = size
-            stmt.string(2) = opt_digest.map(_.toString)
-            stmt.string(3) = opt_log_db.map(_.uuid)
-            stmt.bytes(4) = opt_log_db.map(_.content)
+            stmt.long(1) = heap_size
+            stmt.string(2) = heap_digest.map(_.toString)
+            stmt.string(3) = log_db.map(_.uuid)
+            stmt.bytes(4) = log_db.map(_.content)
           })
   }
 
@@ -221,22 +221,22 @@ object ML_Heap {
         }
       }
 
-      val opt_digest =
+      val heap_digest =
         for {
           path <- session.heap
           digest <- read_file_digest(path)
         } yield digest
 
-      val opt_log_db =
+      val log_db =
         for {
           path <- session.log_db
           uuid <- proper_string(Store.read_build_uuid(path, session.name))
         } yield Log_DB(uuid, Bytes.read(path))
 
-      if (opt_log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
+      if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
       private_data.transaction_lock(db, label = "ML_Heap.store3") {
-        private_data.finish_entry(db, session.name, size, opt_digest, opt_log_db)
+        private_data.finish_entry(db, session.name, size, heap_digest, log_db)
       }
     }
     catch { case exn: Throwable =>
