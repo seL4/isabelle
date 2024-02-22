@@ -524,7 +524,8 @@ object Build_Job {
             heaps_database =>
               for (db <- database_server orElse heaps_database) {
                 val slice = Space.MiB(options.real("build_database_slice"))
-                ML_Heap.store(db, store_session, slice, progress = progress)
+                ML_Heap.store(db, store_session, slice,
+                  cache = store.cache.compress, progress = progress)
               }
           }
 
