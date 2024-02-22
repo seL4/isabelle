@@ -94,16 +94,13 @@ object ML_Heap {
     }
 
     def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] = {
-      require(names.nonEmpty)
-
       db.execute_query_statement(
         Base.table.select(List(Base.name, Base.heap_digest),
           sql = Generic.name.where_member(names)),
         List.from[(String, String)],
         res => res.string(Base.name) -> res.string(Base.heap_digest)
-      ).flatMap({
-        case (_, "") => None
-        case (name, digest) => Some(name -> SHA1.fake_digest(digest))
+      ).collect({
+        case (name, digest) if digest.nonEmpty => name -> SHA1.fake_digest(digest)
       }).toMap
     }
 
