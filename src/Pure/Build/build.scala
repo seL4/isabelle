@@ -111,6 +111,8 @@ object Build {
   }
 
   class Engine(val name: String) extends Isabelle_System.Service {
+    engine =>
+
     override def toString: String = name
 
     def build_options(options: Options, build_cluster: Boolean = false): Options = {
@@ -122,8 +124,8 @@ object Build {
       build_cluster: Boolean = false,
       cache: Term.Cache = Term.Cache.make()
     ): Store = {
-      val store_options = build_options(options, build_cluster = build_cluster)
-      val store = Store(store_options, build_cluster = build_cluster, cache = cache)
+      val build_options = engine.build_options(options, build_cluster = build_cluster)
+      val store = Store(build_options, build_cluster = build_cluster, cache = cache)
       Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
       Isabelle_Fonts.init()
       store
