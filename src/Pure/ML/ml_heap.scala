@@ -62,7 +62,7 @@ object ML_Heap {
       val table = make_table(List(name, size, digest, uuid, log_db))
     }
 
-    object Base_Size {
+    object Size {
       val name = Generic.name
       val heap_size = SQL.Column.string("heap_size")
       val log_db_size = SQL.Column.string("log_db_size")
@@ -139,7 +139,7 @@ object ML_Heap {
       for (table <- List(Base.table, Slices.table)) {
         db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
       }
-      for (table <- List(Base_Size.table, Slices_Size.table)) {
+      for (table <- List(Size.table, Slices_Size.table)) {
         db.create_view(table)
       }
     }
