@@ -1033,7 +1033,7 @@ object Build_Schedule {
     override def run(): Build.Results = {
       Build_Benchmark.benchmark_requirements(build_options)
 
-      if (build_context.jobs > 0) {
+      if (build_context.worker) {
         val benchmark_options = build_options.string.update("build_hostname", hostname)
         Build_Benchmark.benchmark(benchmark_options, progress)
       }
