@@ -7,11 +7,6 @@ ML heap operations.
 package isabelle
 
 
-import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
-
-
 object ML_Heap {
   /** heap file with SHA1 digest **/
 
