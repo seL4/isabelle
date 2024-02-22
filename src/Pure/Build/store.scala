@@ -431,8 +431,9 @@ class Store private(
   def clean_output(
     database_server: Option[SQL.Database],
     name: String,
-    session_init: Boolean = false
-  ): Option[Boolean] = {
+    session_init: Boolean = false,
+    progress: Progress = new Progress
+  ): Unit = {
     val relevant_db =
       database_server match {
         case Some(db) => clean_session_info(db, name)
@@ -450,7 +451,10 @@ class Store private(
       using(open_database(name, output = true))(clean_session_info(_, name))
     }
 
-    if (relevant_db || del.nonEmpty) Some(del.forall(identity)) else None
+    if (relevant_db || del.nonEmpty) {
+      if (del.forall(identity)) progress.echo("Cleaned " + name)
+      else progress.echo(name + " FAILED to clean")
+    }
   }
 
   def check_output(
