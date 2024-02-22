@@ -785,7 +785,7 @@ object Build_Process {
         Running.table,
         Results.table)
 
-    val build_uuid_tables =
+    private val build_uuid_tables =
       tables.filter(table =>
         table.columns.exists(column => column.name == Generic.build_uuid.name))
 
@@ -921,7 +921,7 @@ extends AutoCloseable {
   protected def open_build_cluster(): Build_Cluster =
     Build_Cluster.make(build_context, progress = build_progress).open()
 
-  protected val _build_cluster =
+  protected val _build_cluster: Build_Cluster =
     try {
       if (build_context.master && _build_database.isDefined) open_build_cluster()
       else Build_Cluster.none
