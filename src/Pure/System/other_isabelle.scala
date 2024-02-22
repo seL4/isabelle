@@ -147,6 +147,14 @@ final class Other_Isabelle private(
     else error("Cannot proceed with existing user settings file: " + etc_settings)
   }
 
+  def debug_settings(): List[String] = {
+    val debug = System.getProperty("isabelle.debug", "") == "true"
+    if (debug) {
+      List("ISABELLE_JAVA_SYSTEM_OPTIONS=\"$ISABELLE_JAVA_SYSTEM_OPTIONS -Disabelle.debug=true\"")
+    }
+    else Nil
+  }
+
 
   /* init */
 

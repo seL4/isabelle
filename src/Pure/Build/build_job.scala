@@ -277,7 +277,8 @@ object Build_Job {
               for {
                 elapsed <- Markup.Elapsed.unapply(props)
                 elapsed_time = Time.seconds(elapsed)
-                if elapsed_time.is_relevant && elapsed_time >= options.seconds("command_timing_threshold")
+                if elapsed_time.is_relevant &&
+                   elapsed_time >= options.seconds("command_timing_threshold")
               } command_timings += props.filter(Markup.command_timing_property)
           }
 
@@ -292,7 +293,8 @@ object Build_Job {
                   if (!progress.stopped) {
                     val theory_name = snapshot.node_name.theory
                     val args =
-                      Protocol.Export.Args(theory_name = theory_name, name = name, compress = compress)
+                      Protocol.Export.Args(
+                        theory_name = theory_name, name = name, compress = compress)
                     val body = Bytes(Symbol.encode(YXML.string_of_body(xml)))
                     export_consumer.make_entry(session_name, args, body)
                   }
@@ -401,8 +403,9 @@ object Build_Job {
                           output_sources = info.document_output,
                           output_pdf = info.document_output)
                     }
-                  using(database_context.open_database(session_name, output = true))(session_database =>
-                    documents.foreach(_.write(session_database.db, session_name)))
+                  using(database_context.open_database(session_name, output = true))(
+                    session_database =>
+                      documents.foreach(_.write(session_database.db, session_name)))
                   (documents.flatMap(_.log_lines), Nil)
                 }
               }
@@ -450,7 +453,9 @@ object Build_Job {
                     errs.flatMap(s => split_lines(Output.error_message_text(s))) :::
                       errs.map(Protocol.Error_Message_Marker.apply))
                 }
-                else if (progress.stopped && result1.ok) result1.copy(rc = Process_Result.RC.interrupt)
+                else if (progress.stopped && result1.ok) {
+                  result1.copy(rc = Process_Result.RC.interrupt)
+                }
                 else result1
               case Exn.Exn(Exn.Interrupt()) =>
                 if (result1.ok) result1.copy(rc = Process_Result.RC.interrupt)
@@ -464,18 +469,17 @@ object Build_Job {
             else if (result2.interrupted) result2.error(Output.error_message_text("Interrupt"))
             else result2
 
+          val store_session =
+            store.output_session(session_name, store_heap = process_result.ok && store_heap)
+
 
           /* output heap */
 
-          val output_shasum = {
-            val heap = store.output_heap(session_name)
-            if (process_result.ok && store_heap && heap.is_file) {
-              val slice = Space.MiB(options.real("build_database_slice")).bytes
-              val digest = ML_Heap.store(database_server, session_name, heap, slice)
-              SHA1.shasum(digest, session_name)
+          val output_shasum =
+            store_session.heap match {
+              case Some(path) => SHA1.shasum(ML_Heap.write_file_digest(path), session_name)
+              case None => SHA1.no_shasum
             }
-            else SHA1.no_shasum
-          }
 
           val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
 
@@ -516,6 +520,15 @@ object Build_Job {
               true
             }
 
+          using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
+            heaps_database =>
+              for (db <- database_server orElse heaps_database) {
+                val slice = Space.MiB(options.real("build_database_slice"))
+                ML_Heap.store(db, store_session, slice,
+                  cache = store.cache.compress, progress = progress)
+              }
+          }
+
           // messages
           process_result.err_lines.foreach(progress.echo(_))
 
@@ -531,11 +544,14 @@ object Build_Job {
           }
           else {
             progress.echo(
-              session_name + " FAILED (see also \"isabelle build_log -H Error " + session_name + "\")")
+              session_name + " FAILED (see also \"isabelle build_log -H Error " +
+              session_name + "\")")
             if (!process_result.interrupted) {
               val tail = info.options.int("process_output_tail")
-              val suffix = if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
-              val prefix = if (log_lines.length == suffix.length) Nil else List("...")
+              val suffix =
+                if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
+              val prefix =
+                if (log_lines.length == suffix.length) Nil else List("...")
               progress.echo(Library.trim_line(cat_lines(prefix ::: suffix)))
             }
           }

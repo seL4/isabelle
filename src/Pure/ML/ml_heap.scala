@@ -7,11 +7,6 @@ ML heap operations.
 package isabelle
 
 
-import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
-
-
 object ML_Heap {
   /** heap file with SHA1 digest **/
 
@@ -43,6 +38,8 @@ object ML_Heap {
 
   /* SQL data model */
 
+  sealed case class Log_DB(uuid: String, content: Bytes)
+
   object private_data extends SQL.Data("isabelle_heaps") {
     override lazy val tables = SQL.Tables(Base.table, Slices.table)
 
@@ -52,10 +49,24 @@ object ML_Heap {
 
     object Base {
       val name = Generic.name
-      val size = SQL.Column.long("size")
-      val digest = SQL.Column.string("digest")
+      val heap_size = SQL.Column.long("heap_size")
+      val heap_digest = SQL.Column.string("heap_digest")
+      val uuid = SQL.Column.string("uuid")
+      val log_db = SQL.Column.bytes("log_db")
 
-      val table = make_table(List(name, size, digest))
+      val table = make_table(List(name, heap_size, heap_digest, uuid, log_db))
+    }
+
+    object Size {
+      val name = Generic.name
+      val heap = SQL.Column.string("heap")
+      val log_db = SQL.Column.string("log_db")
+
+      val table = make_table(List(name, heap, log_db),
+        body =
+          "SELECT name, pg_size_pretty(heap_size::bigint) as heap, " +
+          "  pg_size_pretty(length(log_db)::bigint) as log_db FROM " + Base.table.ident,
+        name = "size")
     }
 
     object Slices {
@@ -68,8 +79,8 @@ object ML_Heap {
 
     object Slices_Size {
       val name = Generic.name
-      val slice = SQL.Column.int("slice").make_primary_key
-      val size = SQL.Column.long("size")
+      val slice = Slices.slice
+      val size = SQL.Column.string("size")
 
       val table = make_table(List(name, slice, size),
         body = "SELECT name, slice, pg_size_pretty(length(content)::bigint) as size FROM " +
@@ -77,42 +88,38 @@ object ML_Heap {
         name = "slices_size")
     }
 
-    def get_entries(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] = {
-      require(names.nonEmpty)
-
+    def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] = {
       db.execute_query_statement(
-        Base.table.select(List(Base.name, Base.digest),
+        Base.table.select(List(Base.name, Base.heap_digest),
           sql = Generic.name.where_member(names)),
         List.from[(String, String)],
-        res => res.string(Base.name) -> res.string(Base.digest)
-      ).flatMap({
-        case (_, "") => None
-        case (name, digest) => Some(name -> SHA1.fake_digest(digest))
+        res => res.string(Base.name) -> res.string(Base.heap_digest)
+      ).collect({
+        case (name, digest) if digest.nonEmpty => name -> SHA1.fake_digest(digest)
       }).toMap
     }
 
-    def read_entry(db: SQL.Database, name: String): List[Bytes] =
+    def read_slices(db: SQL.Database, name: String): List[Bytes] =
       db.execute_query_statement(
         Slices.table.select(List(Slices.content),
           sql = Generic.name.where_equal(name) + SQL.order_by(List(Slices.slice))),
         List.from[Bytes], _.bytes(Slices.content))
 
-    def clean_entry(db: SQL.Database, name: String): Unit = {
-      for (table <- List(Base.table, Slices.table)) {
-        db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
-      }
-      db.create_view(Slices_Size.table)
-    }
-
-    def prepare_entry(db: SQL.Database, name: String): Unit =
-      db.execute_statement(Base.table.insert(), body =
-        { stmt =>
-          stmt.string(1) = name
-          stmt.long(2) = None
-          stmt.string(3) = None
+    def read_log_db(db: SQL.Database, name: String, old_uuid: String = ""): Option[Log_DB] =
+      db.execute_query_statement(
+        Base.table.select(List(Base.uuid, Base.log_db), sql =
+          SQL.where_and(
+            Generic.name.equal(name),
+            if_proper(old_uuid, Base.uuid.ident + " <> " + SQL.string(old_uuid)))),
+        List.from[(String, Bytes)],
+        res => (res.string(Base.uuid), res.bytes(Base.log_db))
+      ).collectFirst(
+        {
+          case (uuid, content) if uuid.nonEmpty && !content.is_empty =>
+            Log_DB(uuid, content)
         })
 
-    def write_entry(db: SQL.Database, name: String, slice: Int, content: Bytes): Unit =
+    def write_slice(db: SQL.Database, name: String, slice: Int, content: Bytes): Unit =
       db.execute_statement(Slices.table.insert(), body =
       { stmt =>
         stmt.string(1) = name
@@ -120,13 +127,43 @@ object ML_Heap {
         stmt.bytes(3) = content
       })
 
-    def finish_entry(db: SQL.Database, name: String, size: Long, digest: SHA1.Digest): Unit =
+    def clean_entry(db: SQL.Database, name: String): Unit = {
+      for (table <- List(Base.table, Slices.table)) {
+        db.execute_statement(table.delete(sql = Base.name.where_equal(name)))
+      }
+    }
+
+    def init_entry(db: SQL.Database, name: String, log_db: Option[Log_DB] = None): Unit = {
+      clean_entry(db, name)
+      for (table <- List(Size.table, Slices_Size.table)) {
+        db.create_view(table)
+      }
+      db.execute_statement(Base.table.insert(), body =
+        { stmt =>
+          stmt.string(1) = name
+          stmt.long(2) = None
+          stmt.string(3) = None
+          stmt.string(4) = log_db.map(_.uuid)
+          stmt.bytes(5) = log_db.map(_.content)
+        })
+    }
+
+    def finish_entry(
+      db: SQL.Database,
+      name: String,
+      heap_size: Long,
+      heap_digest: Option[SHA1.Digest],
+      log_db: Option[Log_DB]
+    ): Unit =
       db.execute_statement(
-        Base.table.update(List(Base.size, Base.digest), sql = Base.name.where_equal(name)),
+        Base.table.update(List(Base.heap_size, Base.heap_digest, Base.uuid, Base.log_db),
+          sql = Base.name.where_equal(name)),
         body =
           { stmt =>
-            stmt.long(1) = size
-            stmt.string(2) = digest.toString
+            stmt.long(1) = heap_size
+            stmt.string(2) = heap_digest.map(_.toString)
+            stmt.string(3) = log_db.map(_.uuid)
+            stmt.bytes(4) = log_db.map(_.content)
           })
   }
 
@@ -135,89 +172,127 @@ object ML_Heap {
       private_data.clean_entry(db, session_name)
     }
 
-  def get_entries(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
-    private_data.transaction_lock(db, create = true, label = "ML_Heap.get_entries") {
-      private_data.get_entries(db, names)
+  def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
+    if (names.isEmpty) Map.empty
+    else {
+      private_data.transaction_lock(db, create = true, label = "ML_Heap.read_digests") {
+        private_data.read_digests(db, names)
+      }
     }
 
   def store(
-    database: Option[SQL.Database],
-    session_name: String,
-    heap: Path,
-    slice: Long,
-    cache: Compress.Cache = Compress.Cache.none
-  ): SHA1.Digest = {
-    val digest = write_file_digest(heap)
-    database match {
-      case None =>
-      case Some(db) =>
-        val size = File.size(heap) - sha1_prefix.length - SHA1.digest_length
+    db: SQL.Database,
+    session: Store.Session,
+    slice: Space,
+    cache: Compress.Cache = Compress.Cache.none,
+    progress: Progress = new Progress
+  ): Unit = {
+    val log_db =
+      for {
+        path <- session.log_db
+        uuid <- proper_string(Store.read_build_uuid(path, session.name))
+      } yield Log_DB(uuid, Bytes.read(path))
 
-        val slices = (size.toDouble / slice.toDouble).ceil.toInt
-        val step = (size.toDouble / slices.toDouble).ceil.toLong
+    val heap_digest = session.heap.map(write_file_digest)
+    val heap_size =
+      session.heap match {
+        case Some(heap) => File.size(heap) - sha1_prefix.length - SHA1.digest_length
+        case None => 0L
+      }
 
-        try {
-          private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
-            private_data.prepare_entry(db, session_name)
-          }
+    val slice_size = slice.bytes max Space.MiB(1).bytes
+    val slices = (heap_size.toDouble / slice_size.toDouble).ceil.toInt
 
-          for (i <- 0 until slices) {
-            val j = i + 1
-            val offset = step * i
-            val limit = if (j < slices) step * j else size
-            val content =
-              Bytes.read_file(heap, offset = offset, limit = limit)
-                .compress(cache = cache)
-            private_data.transaction_lock(db, label = "ML_Heap.store2") {
-              private_data.write_entry(db, session_name, i, content)
-            }
-          }
+    try {
+      if (slices == 0 && log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
-          private_data.transaction_lock(db, label = "ML_Heap.store3") {
-            private_data.finish_entry(db, session_name, size, digest)
+      private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
+        private_data.init_entry(db, session.name, log_db = if (slices == 0) log_db else None)
+      }
+
+      if (slices > 0) {
+        progress.echo("Storing " + session.name + " ...")
+        val step = (heap_size.toDouble / slices.toDouble).ceil.toLong
+        for (i <- 0 until slices) {
+          val j = i + 1
+          val offset = step * i
+          val limit = if (j < slices) step * j else heap_size
+          val content =
+            Bytes.read_file(session.the_heap, offset = offset, limit = limit)
+              .compress(cache = cache)
+          private_data.transaction_lock(db, label = "ML_Heap.store2") {
+            private_data.write_slice(db, session.name, i, content)
           }
         }
-        catch { case exn: Throwable =>
-          private_data.transaction_lock(db, create = true, label = "ML_Heap.store4") {
-            private_data.clean_entry(db, session_name)
-          }
-          throw exn
+
+        if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
+
+        private_data.transaction_lock(db, label = "ML_Heap.store3") {
+          private_data.finish_entry(db, session.name, heap_size, heap_digest, log_db)
         }
+      }
     }
-    digest
+    catch { case exn: Throwable =>
+      private_data.transaction_lock(db, create = true, label = "ML_Heap.store4") {
+        private_data.clean_entry(db, session.name)
+      }
+      throw exn
+    }
   }
 
   def restore(
-    database: Option[SQL.Database],
-    heaps: List[Path],
-    cache: Compress.Cache = Compress.Cache.none
+    db: SQL.Database,
+    sessions: List[Store.Session],
+    cache: Compress.Cache = Compress.Cache.none,
+    progress: Progress = new Progress
   ): Unit = {
-    database match {
-      case Some(db) if heaps.nonEmpty =>
-        private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
-          val db_digests = private_data.get_entries(db, heaps.map(_.file_name))
-          for (heap <- heaps) {
-            val session_name = heap.file_name
-            val file_digest = read_file_digest(heap)
-            val db_digest = db_digests.get(session_name)
-            if (db_digest.isDefined && db_digest != file_digest) {
-              val base_dir = Isabelle_System.make_directory(heap.expand.dir)
-              Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
-                Bytes.write(tmp, Bytes.empty)
-                for (slice <- private_data.read_entry(db, session_name)) {
-                  Bytes.append(tmp, slice.uncompress(cache = cache))
-                }
-                val digest = write_file_digest(tmp)
-                if (db_digest.get == digest) {
-                  Isabelle_System.chmod("a+r", tmp)
-                  Isabelle_System.move_file(tmp, heap)
-                }
-                else error("Incoherent content for session heap " + quote(session_name))
+    if (sessions.exists(_.defined)) {
+      private_data.transaction_lock(db, create = true, label = "ML_Heap.restore") {
+        /* heap */
+
+        val defined_heaps =
+          for (session <- sessions; heap <- session.heap)
+            yield session.name -> heap
+
+        val db_digests = private_data.read_digests(db, defined_heaps.map(_._1))
+
+        for ((session_name, heap) <- defined_heaps) {
+          val file_digest = read_file_digest(heap)
+          val db_digest = db_digests.get(session_name)
+          if (db_digest.isDefined && db_digest != file_digest) {
+            progress.echo("Restoring " + session_name + " ...")
+
+            val base_dir = Isabelle_System.make_directory(heap.expand.dir)
+            Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
+              Bytes.write(tmp, Bytes.empty)
+              for (slice <- private_data.read_slices(db, session_name)) {
+                Bytes.append(tmp, slice.uncompress(cache = cache))
               }
+              val digest = write_file_digest(tmp)
+              if (db_digest.get == digest) {
+                Isabelle_System.chmod("a+r", tmp)
+                Isabelle_System.move_file(tmp, heap)
+              }
+              else error("Incoherent content for session heap " + heap)
             }
           }
         }
-      case _ =>
+
+
+        /* log_db */
+
+        for (session <- sessions; path <- session.log_db) {
+          val file_uuid = Store.read_build_uuid(path, session.name)
+          private_data.read_log_db(db, session.name, old_uuid = file_uuid) match {
+            case Some(log_db) if file_uuid.isEmpty =>
+              progress.echo("Restoring " + session.log_db_name + " ...")
+              Isabelle_System.make_directory(path.expand.dir)
+              Bytes.write(path, log_db.content)
+            case Some(_) => error("Incoherent content for session database " + path)
+            case None =>
+          }
+        }
+      }
     }
   }
 }

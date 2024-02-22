@@ -115,14 +115,15 @@ object Build {
 
     def build_options(options: Options, build_cluster: Boolean = false): Options = {
       val options1 = options + "completion_limit=0" + "editor_tracing_messages=0"
-      if (build_cluster) options1 + "build_database_server" + "build_database" else options1
+      if (build_cluster) options1 + "build_database" else options1
     }
 
     final def build_store(options: Options,
       build_cluster: Boolean = false,
       cache: Term.Cache = Term.Cache.make()
     ): Store = {
-      val store = Store(build_options(options, build_cluster = build_cluster), cache = cache)
+      val store_options = build_options(options, build_cluster = build_cluster)
+      val store = Store(store_options, build_cluster = build_cluster, cache = cache)
       Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
       Isabelle_Fonts.init()
       store
@@ -504,13 +505,14 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   def build_process(
     options: Options,
+    build_cluster: Boolean = false,
     list_builds: Boolean = false,
     remove_builds: Boolean = false,
     force: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
     val build_engine = Engine(engine_name(options))
-    val store = build_engine.build_store(options)
+    val store = build_engine.build_store(options, build_cluster = build_cluster)
 
     using(store.open_server()) { server =>
       using_optional(store.maybe_open_build_database(server = server)) { build_database =>
@@ -544,25 +546,28 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   val isabelle_tool2 = Isabelle_Tool("build_process", "manage session build process",
     Scala_Project.here,
     { args =>
+      var build_cluster = false
       var force = false
       var list_builds = false
       var options =
-        Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(
-            Options.Spec.make("build_database_server"),
-            Options.Spec.make("build_database")))
+        Options.init(specs =
+          Options.Spec.ISABELLE_BUILD_OPTIONS ::: List(Options.Spec.make("build_database")))
       var remove_builds = false
 
       val getopts = Getopts("""
 Usage: isabelle build_process [OPTIONS]
 
   Options are:
+    -C           build cluster mode (database server)
     -f           extra force for option -r
     -l           list build processes
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           remove data from build processes: inactive processes (default)
                  or all processes (option -f)
+
+  Manage Isabelle build process, notably distributed build cluster (option -C).
 """,
+        "C" -> (_ => build_cluster = true),
         "f" -> (_ => force = true),
         "l" -> (_ => list_builds = true),
         "o:" -> (arg => options = options + arg),
@@ -573,8 +578,8 @@ Usage: isabelle build_process [OPTIONS]
 
       val progress = new Console_Progress()
 
-      build_process(options, list_builds = list_builds, remove_builds = remove_builds,
-        force = force, progress = progress)
+      build_process(options, build_cluster = build_cluster, list_builds = list_builds,
+        remove_builds = remove_builds, force = force, progress = progress)
     })
 
 
@@ -613,7 +618,7 @@ Usage: isabelle build_process [OPTIONS]
     max_jobs: Option[Int] = None
   ): Results = {
     val build_engine = Engine(engine_name(options))
-    val store = build_engine.build_store(options)
+    val store = build_engine.build_store(options, build_cluster = true)
     val build_options = store.options
 
     using(store.open_server()) { server =>
@@ -648,10 +653,8 @@ Usage: isabelle build_process [OPTIONS]
       val dirs = new mutable.ListBuffer[Path]
       var max_jobs: Option[Int] = None
       var options =
-        Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS :::
-          List(
-            Options.Spec.make("build_database_server"),
-            Options.Spec.make("build_database")))
+        Options.init(specs =
+          Options.Spec.ISABELLE_BUILD_OPTIONS ::: List(Options.Spec.make("build_database")))
       var quiet = false
       var verbose = false
 

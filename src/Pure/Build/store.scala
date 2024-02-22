@@ -11,14 +11,37 @@ import java.sql.SQLException
 
 
 object Store {
-  def apply(options: Options, cache: Term.Cache = Term.Cache.make()): Store =
-    new Store(options, cache)
+  def apply(
+    options: Options,
+    build_cluster: Boolean = false,
+    cache: Term.Cache = Term.Cache.make()
+  ): Store = new Store(options, build_cluster, cache)
+
+
+  /* file names */
+
+  def heap(name: String): Path = Path.basic(name)
+  def log(name: String): Path = Path.basic("log") + Path.basic(name)
+  def log_db(name: String): Path = log(name).db
+  def log_gz(name: String): Path = log(name).gz
 
 
   /* session */
 
-  sealed case class Session(name: String, heap: Option[Path], log_db: Option[Path]) {
+  final class Session private[Store](
+    val name: String,
+    val heap: Option[Path],
+    val log_db: Option[Path],
+    dirs: List[Path]
+  ) {
+    def log_db_name: String = Store.log_db(name).implode
+
     def defined: Boolean = heap.isDefined || log_db.isDefined
+
+    def the_heap: Path =
+      heap getOrElse
+        error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
+          cat_lines(dirs.map(dir => "  " + File.standard_path(dir))))
 
     def heap_digest(): Option[SHA1.Digest] =
       heap.flatMap(ML_Heap.read_file_digest)
@@ -177,6 +200,15 @@ object Store {
             uuid)
         })
 
+    def read_build_uuid(db: SQL.Database, name: String): String =
+      db.execute_query_statementO[String](
+        Session_Info.table.select(List(Session_Info.uuid),
+          sql = Session_Info.session_name.where_equal(name)),
+        { res =>
+            try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+            catch { case _: SQLException => "" }
+        }).getOrElse("")
+
     def write_session_info(
       db: SQL.Database,
       cache: Compress.Cache,
@@ -236,9 +268,17 @@ object Store {
       )
     }
   }
+
+  def read_build_uuid(path: Path, session: String): String =
+    try { using(SQLite.open_database(path))(private_data.read_build_uuid(_, session)) }
+    catch { case _: SQLException => "" }
 }
 
-class Store private(val options: Options, val cache: Term.Cache) {
+class Store private(
+    val options: Options,
+    val build_cluster: Boolean,
+    val cache: Term.Cache
+  ) {
   store =>
 
   override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
@@ -265,38 +305,34 @@ class Store private(val options: Options, val cache: Term.Cache) {
 
   /* file names */
 
-  def heap(name: String): Path = Path.basic(name)
-  def log(name: String): Path = Path.basic("log") + Path.basic(name)
-  def log_db(name: String): Path = log(name).db
-  def log_gz(name: String): Path = log(name).gz
-
-  def output_heap(name: String): Path = output_dir + heap(name)
-  def output_log(name: String): Path = output_dir + log(name)
-  def output_log_db(name: String): Path = output_dir + log_db(name)
-  def output_log_gz(name: String): Path = output_dir + log_gz(name)
+  def output_heap(name: String): Path = output_dir + Store.heap(name)
+  def output_log(name: String): Path = output_dir + Store.log(name)
+  def output_log_db(name: String): Path = output_dir + Store.log_db(name)
+  def output_log_gz(name: String): Path = output_dir + Store.log_gz(name)
 
 
   /* session */
 
   def get_session(name: String): Store.Session = {
-    val heap = input_dirs.view.map(_ + store.heap(name)).find(_.is_file)
-    val log_db = input_dirs.view.map(_ + store.log_db(name)).find(_.is_file)
-    Store.Session(name, heap, log_db)
+    val heap = input_dirs.view.map(_ + Store.heap(name)).find(_.is_file)
+    val log_db = input_dirs.view.map(_ + Store.log_db(name)).find(_.is_file)
+    new Store.Session(name, heap, log_db, input_dirs)
+  }
+
+  def output_session(name: String, store_heap: Boolean = false): Store.Session = {
+    val heap = if (store_heap) Some(output_heap(name)) else None
+    val log_db = if (!build_database_server) Some(output_log_db(name)) else None
+    new Store.Session(name, heap, log_db, List(output_dir))
   }
 
 
   /* heap */
 
-  def the_heap(name: String): Path =
-    get_session(name).heap getOrElse
-      error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
-        cat_lines(input_dirs.map(dir => "  " + File.standard_path(dir))))
-
   def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
     def get_database: Option[SHA1.Digest] = {
       for {
         db <- database_server
-        digest <- ML_Heap.get_entries(db, List(name)).valuesIterator.nextOption()
+        digest <- ML_Heap.read_digests(db, List(name)).valuesIterator.nextOption()
       } yield digest
     }
 
@@ -331,11 +367,23 @@ class Store private(val options: Options, val cache: Term.Cache) {
       ssh_port = options.int("build_database_ssh_port"),
       ssh_user = options.string("build_database_ssh_user"))
 
-  def maybe_open_database_server(server: SSH.Server = SSH.no_server): Option[SQL.Database] =
-    if (build_database_server) Some(open_database_server(server = server)) else None
+  def maybe_open_database_server(
+    server: SSH.Server = SSH.no_server,
+    guard: Boolean = build_database_server
+  ): Option[SQL.Database] = {
+    if (guard) Some(open_database_server(server = server)) else None
+  }
+
+  def maybe_open_heaps_database(
+    database_server: Option[SQL.Database],
+    server: SSH.Server = SSH.no_server
+  ): Option[SQL.Database] = {
+    if (database_server.isDefined) None
+    else store.maybe_open_database_server(server = server, guard = build_cluster)
+  }
 
   def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
-    if (build_database_server) open_database_server(server = server)
+    if (build_database_server || build_cluster) open_database_server(server = server)
     else SQLite.open_database(path, restrict = true)
 
   def maybe_open_build_database(
@@ -359,7 +407,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
     else {
       (for {
         dir <- input_dirs.view
-        path = dir + log_db(name) if path.is_file
+        path = dir + Store.log_db(name) if path.is_file
         db <- check(SQLite.open_database(path))
       } yield db).headOption
     }
@@ -383,9 +431,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
   ): Option[Boolean] = {
     val relevant_db =
       database_server match {
-        case Some(db) =>
-          ML_Heap.clean_entry(db, name)
-          clean_session_info(db, name)
+        case Some(db) => clean_session_info(db, name)
         case None => false
       }
 
@@ -393,7 +439,7 @@ class Store private(val options: Options, val cache: Term.Cache) {
       for {
         dir <-
           (if (system_heaps) List(user_output_dir, system_output_dir) else List(user_output_dir))
-        file <- List(heap(name), log_db(name), log(name), log_gz(name))
+        file <- List(Store.heap(name), Store.log_db(name), Store.log(name), Store.log_gz(name))
         path = dir + file if path.is_file
       } yield path.file.delete
 

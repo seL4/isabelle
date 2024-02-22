@@ -674,8 +674,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
         /* export files */
 
-        val store = Store(options)
-        export_files(store, session_name, export_dir, progress = progress, export_prune = export_prune,
-          export_list = export_list, export_patterns = export_patterns)
+        export_files(Store(options), session_name, export_dir, progress = progress,
+          export_prune = export_prune, export_list = export_list, export_patterns = export_patterns)
       })
 }
