@@ -298,6 +298,10 @@ class Store private(
     if (system_heaps) List(system_output_dir)
     else List(user_output_dir, system_output_dir)
 
+  val clean_dirs: List[Path] =
+    if (system_heaps) List(user_output_dir, system_output_dir)
+    else List(user_output_dir)
+
   def presentation_dir: Path =
     if (system_heaps) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
     else Path.explode("$ISABELLE_BROWSER_INFO")
@@ -437,8 +441,7 @@ class Store private(
 
     val del =
       for {
-        dir <-
-          (if (system_heaps) List(user_output_dir, system_output_dir) else List(user_output_dir))
+        dir <- clean_dirs
         file <- List(Store.heap(name), Store.log_db(name), Store.log(name), Store.log_gz(name))
         path = dir + file if path.is_file
       } yield path.file.delete
