@@ -133,7 +133,7 @@ object ML_Heap {
       }
     }
 
-    def init_entry(db: SQL.Database, name: String): Unit = {
+    def init_entry(db: SQL.Database, name: String, log_db: Option[Log_DB] = None): Unit = {
       clean_entry(db, name)
       for (table <- List(Size.table, Slices_Size.table)) {
         db.create_view(table)
@@ -143,8 +143,8 @@ object ML_Heap {
           stmt.string(1) = name
           stmt.long(2) = None
           stmt.string(3) = None
-          stmt.string(4) = None
-          stmt.bytes(5) = None
+          stmt.string(4) = log_db.map(_.uuid)
+          stmt.bytes(5) = log_db.map(_.content)
         })
     }
 
@@ -210,27 +210,31 @@ object ML_Heap {
       } yield Log_DB(uuid, Bytes.read(path))
 
     try {
+      if (slices == 0 && log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
+
       private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
-        private_data.init_entry(db, session.name)
+        private_data.init_entry(db, session.name, log_db = if (slices == 0) log_db else None)
       }
 
-      if (slices > 0) progress.echo("Storing " + session.name + " ...")
-      for (i <- 0 until slices) {
-        val j = i + 1
-        val offset = step * i
-        val limit = if (j < slices) step * j else size
-        val content =
-          Bytes.read_file(session.the_heap, offset = offset, limit = limit)
-            .compress(cache = cache)
-        private_data.transaction_lock(db, label = "ML_Heap.store2") {
-          private_data.write_slice(db, session.name, i, content)
+      if (slices > 0) {
+        progress.echo("Storing " + session.name + " ...")
+        for (i <- 0 until slices) {
+          val j = i + 1
+          val offset = step * i
+          val limit = if (j < slices) step * j else size
+          val content =
+            Bytes.read_file(session.the_heap, offset = offset, limit = limit)
+              .compress(cache = cache)
+          private_data.transaction_lock(db, label = "ML_Heap.store2") {
+            private_data.write_slice(db, session.name, i, content)
+          }
         }
-      }
 
-      if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
+        if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
-      private_data.transaction_lock(db, label = "ML_Heap.store3") {
-        private_data.finish_entry(db, session.name, size, heap_digest, log_db)
+        private_data.transaction_lock(db, label = "ML_Heap.store3") {
+          private_data.finish_entry(db, session.name, size, heap_digest, log_db)
+        }
       }
     }
     catch { case exn: Throwable =>
