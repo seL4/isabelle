@@ -1213,6 +1213,11 @@ object Build_Schedule {
 
 
   class Build_Engine extends Build.Engine("build_schedule") {
+    override def build_options(options: Options, build_cluster: Boolean = false): Options = {
+      val options1 = super.build_options(options, build_cluster = build_cluster)
+      if (build_cluster) options1 + "build_database_server" else options1
+    }
+
     def scheduler(timing_data: Timing_Data, context: Build.Context): Scheduler = {
       val sessions_structure = context.sessions_structure
 
