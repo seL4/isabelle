@@ -564,6 +564,8 @@ Usage: isabelle build_process [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           remove data from build processes: inactive processes (default)
                  or all processes (option -f)
+
+  Manage Isabelle build process, notably distributed build cluster (option -C).
 """,
         "C" -> (_ => build_cluster = true),
         "f" -> (_ => force = true),
