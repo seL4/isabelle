@@ -197,6 +197,18 @@ object ML_Heap {
     val slices = (size.toDouble / slice_size.toDouble).ceil.toInt
     val step = if (slices > 0) (size.toDouble / slices.toDouble).ceil.toLong else 0L
 
+    val heap_digest =
+      for {
+        path <- session.heap
+        digest <- read_file_digest(path)
+      } yield digest
+
+    val log_db =
+      for {
+        path <- session.log_db
+        uuid <- proper_string(Store.read_build_uuid(path, session.name))
+      } yield Log_DB(uuid, Bytes.read(path))
+
     try {
       private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
         private_data.init_entry(db, session.name)
@@ -214,18 +226,6 @@ object ML_Heap {
           private_data.write_slice(db, session.name, i, content)
         }
       }
-
-      val heap_digest =
-        for {
-          path <- session.heap
-          digest <- read_file_digest(path)
-        } yield digest
-
-      val log_db =
-        for {
-          path <- session.log_db
-          uuid <- proper_string(Store.read_build_uuid(path, session.name))
-        } yield Log_DB(uuid, Bytes.read(path))
 
       if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
