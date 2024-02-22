@@ -436,7 +436,9 @@ class Store private(
   ): Unit = {
     val relevant_db =
       database_server match {
-        case Some(db) => clean_session_info(db, name)
+        case Some(db) =>
+          ML_Heap.clean_entry(db, name)
+          clean_session_info(db, name)
         case None => false
       }
 

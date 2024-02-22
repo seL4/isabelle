@@ -1111,7 +1111,7 @@ extends AutoCloseable {
 
   def prepare(): Unit = {
     for (name <- build_context.clean_sessions) {
-      store.clean_output(_database_server, name, progress = progress)
+      store.clean_output(_database_server orElse _heaps_database, name, progress = progress)
     }
   }
 
