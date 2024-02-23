@@ -90,7 +90,7 @@ object Build_Schedule {
 
       def is_empty: Boolean = results.isEmpty
 
-      def size = results.length
+      def size: Int = results.length
 
       lazy val by_job: Map[String, Facet] = results.groupBy(_.job_name).view.mapValues(new Facet(_)).toMap
       lazy val by_threads: Map[Int, Facet] = results.groupBy(_.threads).view.mapValues(new Facet(_)).toMap
@@ -676,21 +676,22 @@ object Build_Schedule {
     }
 
     /* pre-computed properties for efficient heuristic */
-    val host_infos = timing_data.host_infos
-    val ordered_hosts = host_infos.hosts.sorted(host_infos.host_speeds)
+    val host_infos: Host_Infos = timing_data.host_infos
+    val ordered_hosts: List[Host] = host_infos.hosts.sorted(host_infos.host_speeds)
 
-    val max_threads = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
+    val max_threads: Int = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
 
     type Node = String
-    val build_graph = sessions_structure.build_graph
+    val build_graph: Graph[Node, Sessions.Info] = sessions_structure.build_graph
 
-    val minimals = build_graph.minimals
-    val maximals = build_graph.maximals
+    val minimals: List[Node] = build_graph.minimals
+    val maximals: List[Node] = build_graph.maximals
 
     def all_preds(node: Node): Set[Node] = build_graph.all_preds(List(node)).toSet
-    val maximals_all_preds = maximals.map(node => node -> all_preds(node)).toMap
+    val maximals_all_preds: Map[Node, Set[Node]] =
+      maximals.map(node => node -> all_preds(node)).toMap
 
-    val best_threads =
+    val best_threads: Map[Node, Int] =
       build_graph.keys.map(node => node -> timing_data.best_threads(node, max_threads)).toMap
 
     def best_time(node: Node): Time = {
@@ -698,9 +699,9 @@ object Build_Schedule {
       val threads = best_threads(node) min host.info.num_cpus
       timing_data.estimate(node, host.name, threads)
     }
-    val best_times = build_graph.keys.map(node => node -> best_time(node)).toMap
+    val best_times: Map[Node, Time] = build_graph.keys.map(node => node -> best_time(node)).toMap
 
-    val succs_max_time_ms = build_graph.node_height(best_times(_).ms)
+    val succs_max_time_ms: Map[Node, Long] = build_graph.node_height(best_times(_).ms)
     def max_time(node: Node): Time = Time.ms(succs_max_time_ms(node)) + best_times(node)
     def max_time(task: Build_Process.Task): Time = max_time(task.name)
 
@@ -713,7 +714,7 @@ object Build_Schedule {
     def path_max_times(minimals: List[Node]): Map[Node, Time] =
       path_times(minimals).toList.map((node, time) => node -> (time + max_time(node))).toMap
 
-    val node_degrees =
+    val node_degrees: Map[Node, Int] =
       build_graph.keys.map(node => node -> build_graph.imm_succs(node).size).toMap
 
     def parallel_paths(
