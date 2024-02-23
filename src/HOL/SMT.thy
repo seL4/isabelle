@@ -12,48 +12,25 @@ begin
 
 subsection \<open>A skolemization tactic and proof method\<close>
 
-lemma choices:
-  "\<And>Q. \<forall>x. \<exists>y ya. Q x y ya \<Longrightarrow> \<exists>f fa. \<forall>x. Q x (f x) (fa x)"
-  "\<And>Q. \<forall>x. \<exists>y ya yb. Q x y ya yb \<Longrightarrow> \<exists>f fa fb. \<forall>x. Q x (f x) (fa x) (fb x)"
-  "\<And>Q. \<forall>x. \<exists>y ya yb yc. Q x y ya yb yc \<Longrightarrow> \<exists>f fa fb fc. \<forall>x. Q x (f x) (fa x) (fb x) (fc x)"
-  "\<And>Q. \<forall>x. \<exists>y ya yb yc yd. Q x y ya yb yc yd \<Longrightarrow>
-     \<exists>f fa fb fc fd. \<forall>x. Q x (f x) (fa x) (fb x) (fc x) (fd x)"
-  "\<And>Q. \<forall>x. \<exists>y ya yb yc yd ye. Q x y ya yb yc yd ye \<Longrightarrow>
-     \<exists>f fa fb fc fd fe. \<forall>x. Q x (f x) (fa x) (fb x) (fc x) (fd x) (fe x)"
-  "\<And>Q. \<forall>x. \<exists>y ya yb yc yd ye yf. Q x y ya yb yc yd ye yf \<Longrightarrow>
-     \<exists>f fa fb fc fd fe ff. \<forall>x. Q x (f x) (fa x) (fb x) (fc x) (fd x) (fe x) (ff x)"
-  "\<And>Q. \<forall>x. \<exists>y ya yb yc yd ye yf yg. Q x y ya yb yc yd ye yf yg \<Longrightarrow>
-     \<exists>f fa fb fc fd fe ff fg. \<forall>x. Q x (f x) (fa x) (fb x) (fc x) (fd x) (fe x) (ff x) (fg x)"
-  by metis+
-
-lemma bchoices:
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya. Q x y ya \<Longrightarrow> \<exists>f fa. \<forall>x \<in> S. Q x (f x) (fa x)"
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb. Q x y ya yb \<Longrightarrow> \<exists>f fa fb. \<forall>x \<in> S. Q x (f x) (fa x) (fb x)"
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb yc. Q x y ya yb yc \<Longrightarrow> \<exists>f fa fb fc. \<forall>x \<in> S. Q x (f x) (fa x) (fb x) (fc x)"
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb yc yd. Q x y ya yb yc yd \<Longrightarrow>
-    \<exists>f fa fb fc fd. \<forall>x \<in> S. Q x (f x) (fa x) (fb x) (fc x) (fd x)"
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb yc yd ye. Q x y ya yb yc yd ye \<Longrightarrow>
-    \<exists>f fa fb fc fd fe. \<forall>x \<in> S. Q x (f x) (fa x) (fb x) (fc x) (fd x) (fe x)"
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb yc yd ye yf. Q x y ya yb yc yd ye yf \<Longrightarrow>
-    \<exists>f fa fb fc fd fe ff. \<forall>x \<in> S. Q x (f x) (fa x) (fb x) (fc x) (fd x) (fe x) (ff x)"
-  "\<And>Q. \<forall>x \<in> S. \<exists>y ya yb yc yd ye yf yg. Q x y ya yb yc yd ye yf yg \<Longrightarrow>
-    \<exists>f fa fb fc fd fe ff fg. \<forall>x \<in> S. Q x (f x) (fa x) (fb x) (fc x) (fd x) (fe x) (ff x) (fg x)"
-  by metis+
+lemma ex_iff_push: "(\<exists>y. P \<longleftrightarrow> Q y) \<longleftrightarrow> (P \<longrightarrow> (\<exists>y. Q y)) \<and> ((\<forall>y. Q y) \<longrightarrow> P)"
+  by metis
 
 ML \<open>
 fun moura_tac ctxt =
-  Atomize_Elim.atomize_elim_tac ctxt THEN'
-  SELECT_GOAL (Clasimp.auto_tac (ctxt addSIs @{thms choice choices bchoice bchoices}) THEN
-    ALLGOALS (Metis_Tactic.metis_tac (take 1 ATP_Proof_Reconstruct.partial_type_encs)
-        ATP_Proof_Reconstruct.default_metis_lam_trans ctxt [] ORELSE'
-      blast_tac ctxt))
+  TRY o Atomize_Elim.atomize_elim_tac ctxt THEN'
+  REPEAT o EqSubst.eqsubst_tac ctxt [0]
+    @{thms choice_iff[symmetric] bchoice_iff[symmetric]} THEN'
+  TRY o Simplifier.asm_full_simp_tac
+    (clear_simpset ctxt addsimps @{thms all_simps ex_simps ex_iff_push}) THEN_ALL_NEW
+  Metis_Tactic.metis_tac (take 1 ATP_Proof_Reconstruct.partial_type_encs)
+    ATP_Proof_Reconstruct.default_metis_lam_trans ctxt []
 \<close>
 
 method_setup moura = \<open>
   Scan.succeed (SIMPLE_METHOD' o moura_tac)
 \<close> "solve skolemization goals, especially those arising from Z3 proofs"
 
-hide_fact (open) choices bchoices
+hide_fact (open) ex_iff_push
 
 
 subsection \<open>Triggers for quantifier instantiation\<close>

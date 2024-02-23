@@ -18,6 +18,7 @@ New in this Isabelle version
 * Sledgehammer
   - Update of bundled prover:
     + Vampire 4.8 HO - Sledgehammer schedules (2023-10-19)
+  - New implementation of moura tactic. INCOMPATIBILITY.
 
 * Mirabelle:
   - Removed proof reconstruction from "sledgehammer" action; the related option

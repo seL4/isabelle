@@ -1299,7 +1299,7 @@ proof (cases "continuous_map(nsphere p) (nsphere p) f")
     if x: "x \<in> carrier ?G" for x
   proof -
     obtain n::int where xeq: "x = pow ?G a n"
-      using carra x aeq by moura
+      using carra x aeq by auto
     show ?thesis
       by (simp add: xeq a d hom_int_pow int_pow_pow mult.commute)
   qed
