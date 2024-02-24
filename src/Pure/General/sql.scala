@@ -677,7 +677,8 @@ object PostgreSQL {
     password: String,
     database: String = "",
     server: SSH.Server = default_server,
-    server_close: Boolean = false
+    server_close: Boolean = false,
+    receiver_delay: Time = Time.seconds(0.5)
   ): Database = {
     init_jdbc
 
@@ -693,7 +694,7 @@ object PostgreSQL {
         if_proper(ssh, " via ssh " + quote(ssh.get.toString))
 
     val connection = DriverManager.getConnection(url, user, password)
-    val db = new Database(connection, print, server, server_close)
+    val db = new Database(connection, print, server, server_close, receiver_delay)
 
     try { db.execute_statement("SET standard_conforming_strings = on") }
     catch { case exn: Throwable => db.close(); throw exn }
@@ -749,7 +750,8 @@ object PostgreSQL {
     val connection: Connection,
     print: String,
     server: SSH.Server,
-    server_close: Boolean
+    server_close: Boolean,
+    receiver_delay: Time
   ) extends SQL.Database {
     override def toString: String = print
 
@@ -799,7 +801,7 @@ object PostgreSQL {
 
         try {
           while (true) {
-            Isabelle_Thread.interruptible { Time.seconds(0.5).sleep() }
+            Isabelle_Thread.interruptible { receiver_delay.sleep() }
             Option(conn.getNotifications()) match {
               case Some(array) if array.nonEmpty =>
                 synchronized {
