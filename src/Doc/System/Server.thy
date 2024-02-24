@@ -491,7 +491,7 @@ text \<open>
 
   \<^item> \<^bold>\<open>type\<close>~\<open>uuid = string\<close> refers to a Universally Unique Identifier (UUID)
   as plain text.\<^footnote>\<open>See \<^url>\<open>https://www.ietf.org/rfc/rfc4122.txt\<close> and
-  \<^url>\<open>https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/UUID.html\<close>.\<close> Such
+  \<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/UUID.html\<close>.\<close> Such
   identifiers are created as private random numbers of the server and only
   revealed to the client that creates a certain resource (e.g.\ task or
   session). A client may disclose this information for use in a different

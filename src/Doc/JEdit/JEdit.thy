@@ -1153,7 +1153,7 @@ text \<open>
 
     \<^item> The \<^emph>\<open>Search\<close> field allows to highlight query output according to some
     regular expression, in the notation that is commonly used on the Java
-    platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
+    platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
     This may serve as an additional visual filter of the result.
 
     \<^item> The \<^emph>\<open>Zoom\<close> box controls the font size of the output area.

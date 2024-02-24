@@ -3,7 +3,7 @@
 
 Support for SQL databases: SQLite and PostgreSQL.
 
-See https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Connection.html
+See https://docs.oracle.com/en/java/javase/21/docs/api/java.sql/java/sql/Connection.html
 */
 
 package isabelle
@@ -662,7 +662,7 @@ object SQLite {
 
 /** PostgreSQL **/
 
-// see https://www.postgresql.org/docs/current/index.html
+// see https://www.postgresql.org/docs/14/index.html
 // see https://jdbc.postgresql.org/documentation
 
 object PostgreSQL {
@@ -778,8 +778,8 @@ object PostgreSQL {
 
 
     /* explicit locking: only applicable to PostgreSQL within transaction context */
-    // see https://www.postgresql.org/docs/current/sql-lock.html
-    // see https://www.postgresql.org/docs/current/explicit-locking.html
+    // see https://www.postgresql.org/docs/14/sql-lock.html
+    // see https://www.postgresql.org/docs/14/explicit-locking.html
 
     override def lock_tables(tables: List[SQL.Table]): PostgreSQL.Source =
       if_proper(tables, "LOCK TABLE " + tables.mkString(", ") + " IN ACCESS EXCLUSIVE MODE")
@@ -787,7 +787,7 @@ object PostgreSQL {
 
     /* notifications: IPC via database server */
     /*
-      - see https://www.postgresql.org/docs/current/sql-notify.html
+      - see https://www.postgresql.org/docs/14/sql-notify.html
       - self-notifications and repeated notifications are suppressed
       - notifications are sorted by local system time (nano seconds)
     */

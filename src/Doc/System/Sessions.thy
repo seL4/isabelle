@@ -662,7 +662,7 @@ text \<open>
   turned into plain spaces (according to their formal width).
 
   The syntax for patters follows regular expressions of the Java
-  platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
+  platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
 \<close>
 
 subsubsection \<open>Examples\<close>
