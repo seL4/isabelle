@@ -48,7 +48,7 @@ object Component_VSCode {
   "name": "Isabelle",
   "scopeName": "source.isabelle",
   "fileTypes": ["thy"],
-  "uuid": """ + JSON.Format(UUID.random().toString) + """,
+  "uuid": """ + JSON.Format(UUID.random_string()) + """,
   "repository": {
     "comment": {
       "patterns": [

@@ -274,7 +274,7 @@ class Database_Progress(
   output_stopped: Boolean = false,
   kind: String = "progress",
   hostname: String = Isabelle_System.hostname(),
-  context_uuid: String = UUID.random().toString,
+  context_uuid: String = UUID.random_string(),
   timeout: Option[Time] = None)
 extends Progress {
   database_progress =>
@@ -299,7 +299,7 @@ extends Progress {
       Progress.private_data.read_progress_context(db, context_uuid) match {
         case Some(context) =>
           _context = context
-          _agent_uuid = UUID.random().toString
+          _agent_uuid = UUID.random_string()
         case None =>
           _context = Progress.private_data.next_progress_context(db)
           _agent_uuid = context_uuid

@@ -898,7 +898,7 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   protected val (progress, worker_uuid) = synchronized {
-    if (_build_database.isEmpty) (build_progress, UUID.random().toString)
+    if (_build_database.isEmpty) (build_progress, UUID.random_string())
     else {
       try {
         val db = store.open_build_database(Progress.private_data.database, server = server)

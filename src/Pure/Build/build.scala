@@ -39,7 +39,7 @@ object Build {
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
-    build_uuid: String = UUID.random().toString,
+    build_uuid: String = UUID.random_string(),
     jobs: Int = 0,
     master: Boolean = false
   ) {
