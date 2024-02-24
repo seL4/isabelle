@@ -121,7 +121,7 @@ object Server {
     val socket: ServerSocket = new ServerSocket(port0, 50, Server.localhost)
     def port: Int = socket.getLocalPort
     def address: String = print_address(port)
-    val password: String = UUID.random().toString
+    val password: String = UUID.random_string()
 
     override def toString: String = print(port, password)
 

@@ -118,11 +118,9 @@ object Build_Job {
       Future.thread("build", uninterruptible = true) {
         val info = session_background.sessions_structure(session_name)
         val options = Host.node_options(info.options, node_info)
-
         val store = build_context.store
 
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
-
           store.clean_output(database_server, session_name, session_init = true)
 
           val session_sources =

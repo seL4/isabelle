@@ -39,7 +39,7 @@ object Build {
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
-    build_uuid: String = UUID.random().toString,
+    build_uuid: String = UUID.random_string(),
     jobs: Int = 0,
     master: Boolean = false
   ) {
@@ -186,108 +186,105 @@ object Build {
     val build_options = store.options
 
     using(store.open_server()) { server =>
-      using_optional(store.maybe_open_database_server(server = server)) { database_server =>
 
+      /* session selection and dependencies */
 
-        /* session selection and dependencies */
+      val full_sessions =
+        Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
+          select_dirs = select_dirs, infos = infos, augment_options = augment_options)
+      val full_sessions_selection = full_sessions.imports_selection(selection)
 
-        val full_sessions =
-          Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
-            select_dirs = select_dirs, infos = infos, augment_options = augment_options)
-        val full_sessions_selection = full_sessions.imports_selection(selection)
+      val build_deps = {
+        val deps0 =
+          Sessions.deps(full_sessions.selection(selection), progress = progress,
+            inlined_files = true, list_files = list_files, check_keywords = check_keywords
+          ).check_errors
 
-        val build_deps = {
-          val deps0 =
-            Sessions.deps(full_sessions.selection(selection), progress = progress,
-              inlined_files = true, list_files = list_files, check_keywords = check_keywords
-            ).check_errors
+        if (soft_build && !fresh_build) {
+          val outdated =
+            deps0.sessions_structure.build_topological_order.flatMap(name =>
+              store.try_open_database(name, server = server) match {
+                case Some(db) =>
+                  using(db)(store.read_build(_, name)) match {
+                    case Some(build) if build.ok =>
+                      val session_options = deps0.sessions_structure(name).options
+                      val session_sources = deps0.sources_shasum(name)
+                      if (Sessions.eq_sources(session_options, build.sources, session_sources)) {
+                        None
+                      }
+                      else Some(name)
+                    case _ => Some(name)
+                  }
+                case None => Some(name)
+              })
 
-          if (soft_build && !fresh_build) {
-            val outdated =
-              deps0.sessions_structure.build_topological_order.flatMap(name =>
-                store.try_open_database(name, server = server) match {
-                  case Some(db) =>
-                    using(db)(store.read_build(_, name)) match {
-                      case Some(build) if build.ok =>
-                        val session_options = deps0.sessions_structure(name).options
-                        val session_sources = deps0.sources_shasum(name)
-                        if (Sessions.eq_sources(session_options, build.sources, session_sources)) {
-                          None
-                        }
-                        else Some(name)
-                      case _ => Some(name)
-                    }
-                  case None => Some(name)
-                })
-
-            Sessions.deps(full_sessions.selection(Sessions.Selection(sessions = outdated)),
-              progress = progress, inlined_files = true).check_errors
-          }
-          else deps0
+          Sessions.deps(full_sessions.selection(Sessions.Selection(sessions = outdated)),
+            progress = progress, inlined_files = true).check_errors
         }
+        else deps0
+      }
 
 
-        /* check unknown files */
+      /* check unknown files */
 
-        if (check_unknown_files) {
-          val source_files =
-            (for {
-              (_, base) <- build_deps.session_bases.iterator
-              (path, _) <- base.session_sources.iterator
-            } yield path).toList
-          Mercurial.check_files(source_files)._2 match {
-            case Nil =>
-            case unknown_files =>
-              progress.echo_warning(
-                "Unknown files (not part of the underlying Mercurial repository):" +
-                unknown_files.map(File.standard_path).sorted.mkString("\n  ", "\n  ", ""))
-          }
+      if (check_unknown_files) {
+        val source_files =
+          (for {
+            (_, base) <- build_deps.session_bases.iterator
+            (path, _) <- base.session_sources.iterator
+          } yield path).toList
+        Mercurial.check_files(source_files)._2 match {
+          case Nil =>
+          case unknown_files =>
+            progress.echo_warning(
+              "Unknown files (not part of the underlying Mercurial repository):" +
+              unknown_files.map(File.standard_path).sorted.mkString("\n  ", "\n  ", ""))
         }
+      }
 
 
-        /* build process and results */
+      /* build process and results */
 
-        val clean_sessions =
-          if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
+      val clean_sessions =
+        if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
 
-        val build_context =
-          Context(store, build_deps, engine = engine, afp_root = afp_root,
-            build_hosts = build_hosts, hostname = hostname(build_options),
-            clean_sessions = clean_sessions, build_heap = build_heap,
-            numa_shuffling = numa_shuffling, fresh_build = fresh_build,
-            no_build = no_build, session_setup = session_setup,
-            jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
+      val build_context =
+        Context(store, build_deps, engine = engine, afp_root = afp_root,
+          build_hosts = build_hosts, hostname = hostname(build_options),
+          clean_sessions = clean_sessions, build_heap = build_heap,
+          numa_shuffling = numa_shuffling, fresh_build = fresh_build,
+          no_build = no_build, session_setup = session_setup,
+          jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
 
-        val results = engine.run_build_process(build_context, progress, server)
+      val results = engine.run_build_process(build_context, progress, server)
 
-        if (export_files) {
-          for (name <- full_sessions_selection.iterator if results(name).ok) {
-            val info = results.info(name)
-            if (info.export_files.nonEmpty) {
-              progress.echo("Exporting " + info.name + " ...")
-              for ((dir, prune, pats) <- info.export_files) {
-                Export.export_files(store, name, info.dir + dir,
-                  progress = if (progress.verbose) progress else new Progress,
-                  export_prune = prune,
-                  export_patterns = pats)
-              }
+      if (export_files) {
+        for (name <- full_sessions_selection.iterator if results(name).ok) {
+          val info = results.info(name)
+          if (info.export_files.nonEmpty) {
+            progress.echo("Exporting " + info.name + " ...")
+            for ((dir, prune, pats) <- info.export_files) {
+              Export.export_files(store, name, info.dir + dir,
+                progress = if (progress.verbose) progress else new Progress,
+                export_prune = prune,
+                export_patterns = pats)
             }
           }
         }
-
-        val presentation_sessions =
-          results.sessions_ok.filter(name => browser_info.enabled(results.info(name)))
-        if (presentation_sessions.nonEmpty && !progress.stopped) {
-          Browser_Info.build(browser_info, results.store, results.deps, presentation_sessions,
-            progress = progress, server = server)
-        }
-
-        if (results.unfinished.nonEmpty && (progress.verbose || !no_build)) {
-          progress.echo("Unfinished session(s): " + commas(results.unfinished))
-        }
-
-        results
       }
+
+      val presentation_sessions =
+        results.sessions_ok.filter(name => browser_info.enabled(results.info(name)))
+      if (presentation_sessions.nonEmpty && !progress.stopped) {
+        Browser_Info.build(browser_info, results.store, results.deps, presentation_sessions,
+          progress = progress, server = server)
+      }
+
+      if (results.unfinished.nonEmpty && (progress.verbose || !no_build)) {
+        progress.echo("Unfinished session(s): " + commas(results.unfinished))
+      }
+
+      results
     }
   }
 

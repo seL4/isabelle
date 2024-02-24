@@ -46,7 +46,7 @@ abstract class System_Channel private(protocol_family: ProtocolFamily) {
   protected val server: ServerSocketChannel = ServerSocketChannel.open(protocol_family)
 
   def address: String
-  lazy val password: String = UUID.random().toString
+  lazy val password: String = UUID.random_string()
 
   override def toString: String = address
 

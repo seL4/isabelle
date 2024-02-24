@@ -114,7 +114,7 @@ object HTTP {
       connection.setRequestMethod("POST")
       connection.setDoOutput(true)
 
-      val boundary = UUID.random().toString
+      val boundary = UUID.random_string()
       connection.setRequestProperty(
         "Content-Type", "multipart/form-data; boundary=" + quote(boundary))
 
@@ -277,7 +277,7 @@ object HTTP {
 
   def server(
     port: Int = 0,
-    name: String = UUID.random().toString,
+    name: String = UUID.random_string(),
     services: List[Service] = isabelle_services
   ): Server = {
     val http_server = HttpServer.create(new InetSocketAddress(isabelle.Server.localhost, port), 0)

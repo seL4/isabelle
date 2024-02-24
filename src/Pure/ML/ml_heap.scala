@@ -135,7 +135,13 @@ object ML_Heap {
       }
     }
 
-    def init_entry(db: SQL.Database, name: String, log_db: Option[Log_DB] = None): Unit = {
+    def init_entry(
+      db: SQL.Database,
+      name: String,
+      heap_size: Long,
+      heap_digest: Option[SHA1.Digest],
+      log_db: Option[Log_DB]
+    ): Unit = {
       clean_entry(db, name)
       for (table <- List(Size.table, Slices_Size.table)) {
         db.create_view(table)
@@ -143,14 +149,14 @@ object ML_Heap {
       db.execute_statement(Base.table.insert(), body =
         { stmt =>
           stmt.string(1) = name
-          stmt.long(2) = None
-          stmt.string(3) = None
+          stmt.long(2) = heap_size
+          stmt.string(3) = heap_digest.map(_.toString)
           stmt.string(4) = log_db.map(_.uuid)
           stmt.bytes(5) = log_db.map(_.content)
         })
     }
 
-    def finish_entry(
+    def update_entry(
       db: SQL.Database,
       name: String,
       heap_size: Long,
@@ -204,24 +210,37 @@ object ML_Heap {
 
     val slice_size = slice.bytes max Space.MiB(1).bytes
     val slices = (heap_size.toDouble / slice_size.toDouble).ceil.toInt
+    val step = if (slices == 0) 0L else (heap_size.toDouble / slices.toDouble).ceil.toLong
+
+    def slice_content(i: Int): Bytes = {
+      val j = i + 1
+      val offset = step * i
+      val limit = if (j < slices) step * j else heap_size
+      Bytes.read_file(session.the_heap, offset = offset, limit = limit)
+        .compress(cache = cache)
+    }
 
     try {
-      if (slices == 0 && log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
+      if (slices > 0) progress.echo("Storing " + session.name + " ...")
 
-      private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
-        private_data.init_entry(db, session.name, log_db = if (slices == 0) log_db else None)
+      // init entry: slice 0 + initial log_db
+      {
+        val (heap_size0, heap_digest0) = if (slices > 1) (0L, None) else (heap_size, heap_digest)
+        val log_db0 = if (slices <= 1) log_db else None
+        val content0 = if (slices > 0) Some(slice_content(0)) else None
+
+        if (log_db0.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
+
+        private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
+          private_data.init_entry(db, session.name, heap_size0, heap_digest0, log_db0)
+          for (content <- content0) private_data.write_slice(db, session.name, 0, content)
+        }
       }
 
-      if (slices > 0) {
-        progress.echo("Storing " + session.name + " ...")
-        val step = (heap_size.toDouble / slices.toDouble).ceil.toLong
-        for (i <- 0 until slices) {
-          val j = i + 1
-          val offset = step * i
-          val limit = if (j < slices) step * j else heap_size
-          val content =
-            Bytes.read_file(session.the_heap, offset = offset, limit = limit)
-              .compress(cache = cache)
+      // update entry: slice 1 ... + final log_db
+      if (slices > 1) {
+        for (i <- 1 until slices) {
+          val content = slice_content(i)
           private_data.transaction_lock(db, label = "ML_Heap.store2") {
             private_data.write_slice(db, session.name, i, content)
           }
@@ -230,7 +249,7 @@ object ML_Heap {
         if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
         private_data.transaction_lock(db, label = "ML_Heap.store3") {
-          private_data.finish_entry(db, session.name, heap_size, heap_digest, log_db)
+          private_data.update_entry(db, session.name, heap_size, heap_digest, log_db)
         }
       }
     }
