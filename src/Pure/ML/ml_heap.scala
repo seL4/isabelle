@@ -204,6 +204,15 @@ object ML_Heap {
 
     val slice_size = slice.bytes max Space.MiB(1).bytes
     val slices = (heap_size.toDouble / slice_size.toDouble).ceil.toInt
+    val step = if (slices == 0) 0L else (heap_size.toDouble / slices.toDouble).ceil.toLong
+
+    def slice_content(i: Int): Bytes = {
+      val j = i + 1
+      val offset = step * i
+      val limit = if (j < slices) step * j else heap_size
+      Bytes.read_file(session.the_heap, offset = offset, limit = limit)
+        .compress(cache = cache)
+    }
 
     try {
       if (slices == 0 && log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
@@ -214,14 +223,8 @@ object ML_Heap {
 
       if (slices > 0) {
         progress.echo("Storing " + session.name + " ...")
-        val step = (heap_size.toDouble / slices.toDouble).ceil.toLong
         for (i <- 0 until slices) {
-          val j = i + 1
-          val offset = step * i
-          val limit = if (j < slices) step * j else heap_size
-          val content =
-            Bytes.read_file(session.the_heap, offset = offset, limit = limit)
-              .compress(cache = cache)
+          val content = slice_content(i)
           private_data.transaction_lock(db, label = "ML_Heap.store2") {
             private_data.write_slice(db, session.name, i, content)
           }
