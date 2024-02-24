@@ -65,7 +65,7 @@ object Isabelle_Thread {
     val thread =
       create(main, name = name, group = group, pri = pri,
         daemon = daemon, inherit_locals = inherit_locals)
-    thread.start
+    thread.start()
     thread
   }
 
@@ -89,10 +89,10 @@ object Isabelle_Thread {
       new Interrupt_Handler(handle, name)
 
     val interruptible: Interrupt_Handler =
-      Interrupt_Handler(_.raise_interrupt, name = "interruptible")
+      Interrupt_Handler(_.raise_interrupt(), name = "interruptible")
 
     val uninterruptible: Interrupt_Handler =
-      Interrupt_Handler(_.postpone_interrupt, name = "uninterruptible")
+      Interrupt_Handler(_.postpone_interrupt(), name = "uninterruptible")
   }
 
   class Interrupt_Handler private(handle: Isabelle_Thread => Unit, name: String)
@@ -132,7 +132,7 @@ class Isabelle_Thread private(
   thread.setPriority(pri)
   thread.setDaemon(daemon)
 
-  override def run: Unit = main.run()
+  override def run(): Unit = main.run()
 
   def is_self: Boolean = Thread.currentThread == thread
 
@@ -142,19 +142,19 @@ class Isabelle_Thread private(
   // synchronized, with concurrent changes
   private var interrupt_postponed: Boolean = false
 
-  def clear_interrupt: Boolean = synchronized {
+  def clear_interrupt(): Boolean = synchronized {
     val was_interrupted = isInterrupted || interrupt_postponed
     Exn.Interrupt.dispose()
     interrupt_postponed = false
     was_interrupted
   }
 
-  def raise_interrupt: Unit = synchronized {
+  def raise_interrupt(): Unit = synchronized {
     interrupt_postponed = false
     super.interrupt()
   }
 
-  def postpone_interrupt: Unit = synchronized {
+  def postpone_interrupt(): Unit = synchronized {
     interrupt_postponed = true
     Exn.Interrupt.dispose()
   }
@@ -175,12 +175,12 @@ class Isabelle_Thread private(
       val old_handler = handler
       handler = new_handler
       try {
-        if (clear_interrupt) interrupt()
+        if (clear_interrupt()) interrupt()
         body
       }
       finally {
         handler = old_handler
-        if (clear_interrupt) interrupt()
+        if (clear_interrupt()) interrupt()
       }
     }
 }
