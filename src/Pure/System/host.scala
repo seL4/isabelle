@@ -67,7 +67,8 @@ object Host {
 
   def node_options(options: Options, node: Node_Info): Options = {
     val threads_options =
-      if (node.rel_cpus.isEmpty) options else options.int.update("threads", node.rel_cpus.length)
+      if (node.rel_cpus.isEmpty) options
+      else options.int.update("threads", node.rel_cpus.length)
 
     node.numa_node match {
       case None if node.rel_cpus.isEmpty =>
