@@ -592,8 +592,11 @@ object SQL {
 
     def listen(name: String): Unit = ()
     def unlisten(name: String = "*"): Unit = ()
-    def send(name: String, parameter: String = ""): Unit = ()
-    def receive(filter: Notification => Boolean): List[Notification] = Nil
+    def send(name: String, parameter: String): Unit = ()
+    final def send(name: String): Unit = send(name, "")
+    final def send(notification: Notification): Unit =
+      send(notification.name, notification.parameter)
+    def receive(filter: Notification => Boolean): Option[List[Notification]] = None
   }
 
 
@@ -790,6 +793,7 @@ object PostgreSQL {
       - see https://www.postgresql.org/docs/14/sql-notify.html
       - self-notifications and repeated notifications are suppressed
       - notifications are sorted by local system time (nano seconds)
+      - receive() == None means that IPC is inactive or unavailable (SQLite)
     */
 
     private var _receiver_buffer: Option[Map[SQL.Notification, Long]] = None
@@ -846,21 +850,23 @@ object PostgreSQL {
       execute_statement("UNLISTEN " + (if (name == "*") name else SQL.ident(name)))
     }
 
-    override def send(name: String, parameter: String = ""): Unit = synchronized_receiver {
+    override def send(name: String, parameter: String): Unit = synchronized_receiver {
       execute_statement(
         "NOTIFY " + SQL.ident(name) + if_proper(parameter, ", " + SQL.string(parameter)))
     }
 
-    override def receive(filter: SQL.Notification => Boolean = _ => true): List[SQL.Notification] =
-      synchronized {
-        val received = _receiver_buffer.getOrElse(Map.empty)
+    override def receive(
+      filter: SQL.Notification => Boolean = _ => true
+    ): Option[List[SQL.Notification]] = synchronized {
+      _receiver_buffer.map { received =>
         val filtered = received.keysIterator.filter(filter).toList
-        if (_receiver_buffer.isDefined && filtered.nonEmpty) {
+        if (filtered.nonEmpty) {
           _receiver_buffer = Some(received -- filtered)
           filtered.map(msg => msg -> received(msg)).sortBy(_._2).map(_._1)
         }
         else Nil
       }
+    }
 
     override def close(): Unit = {
       receiver_shutdown()
