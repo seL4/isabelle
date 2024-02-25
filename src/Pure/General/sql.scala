@@ -805,8 +805,8 @@ object PostgreSQL {
 
         try {
           while (true) {
-            Isabelle_Thread.interruptible { receiver_delay.sleep() }
-            Option(conn.getNotifications()) match {
+            Isabelle_Thread.interruptible { receiver_delay.sleep(); Option(conn.getNotifications())}
+            match {
               case Some(array) if array.nonEmpty =>
                 synchronized {
                   var received = _receiver_buffer.getOrElse(Map.empty)
