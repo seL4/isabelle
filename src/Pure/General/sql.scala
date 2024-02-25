@@ -385,7 +385,10 @@ object SQL {
 
   /* notifications: IPC via database server */
 
-  sealed case class Notification(channel: String, payload: String)
+  sealed case class Notification(channel: String, payload: String = "") {
+    override def toString =
+      "Notification(" + channel + if_proper(payload, "," + payload) + ")"
+  }
 
 
   /* database */
