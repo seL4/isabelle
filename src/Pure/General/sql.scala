@@ -385,7 +385,7 @@ object SQL {
 
   /* notifications: IPC via database server */
 
-  sealed case class Notification(name: String, parameter: String)
+  sealed case class Notification(channel: String, payload: String)
 
 
   /* database */
@@ -590,12 +590,12 @@ object SQL {
 
     /* notifications (PostgreSQL only) */
 
-    def listen(name: String): Unit = ()
-    def unlisten(name: String = "*"): Unit = ()
-    def send(name: String, parameter: String): Unit = ()
-    final def send(name: String): Unit = send(name, "")
+    def listen(channel: String): Unit = ()
+    def unlisten(channel: String = "*"): Unit = ()
+    def send(channel: String, payload: String): Unit = ()
+    final def send(channel: String): Unit = send(channel, "")
     final def send(notification: Notification): Unit =
-      send(notification.name, notification.parameter)
+      send(notification.channel, notification.payload)
     def receive(filter: Notification => Boolean): Option[List[Notification]] = None
   }
 
@@ -842,17 +842,17 @@ object PostgreSQL {
       body
     }
 
-    override def listen(name: String): Unit = synchronized_receiver {
-      execute_statement("LISTEN " + SQL.ident(name))
+    override def listen(channel: String): Unit = synchronized_receiver {
+      execute_statement("LISTEN " + SQL.ident(channel))
     }
 
-    override def unlisten(name: String = "*"): Unit = synchronized_receiver {
-      execute_statement("UNLISTEN " + (if (name == "*") name else SQL.ident(name)))
+    override def unlisten(channel: String = "*"): Unit = synchronized_receiver {
+      execute_statement("UNLISTEN " + (if (channel == "*") channel else SQL.ident(channel)))
     }
 
-    override def send(name: String, parameter: String): Unit = synchronized_receiver {
+    override def send(channel: String, payload: String): Unit = synchronized_receiver {
       execute_statement(
-        "NOTIFY " + SQL.ident(name) + if_proper(parameter, ", " + SQL.string(parameter)))
+        "NOTIFY " + SQL.ident(channel) + if_proper(payload, ", " + SQL.string(payload)))
     }
 
     override def receive(
