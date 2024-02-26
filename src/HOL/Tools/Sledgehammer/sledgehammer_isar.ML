@@ -52,6 +52,7 @@ val e_definition_rule = "definition"
 val e_skolemize_rule = "skolemize"
 val leo2_extcnf_forall_neg_rule = "extcnf_forall_neg"
 val satallax_skolemize_rule = "tab_ex"
+val vampire_choice_axiom_rule = "choice_axiom"
 val vampire_skolemisation_rule = "skolemisation"
 val veriT_la_generic_rule = "la_generic"
 val veriT_simp_arith_rule = "simp_arith"
@@ -62,7 +63,7 @@ val zipperposition_cnf_rule = "cnf"
 
 val symbol_introduction_rules =
   [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
-   spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule,
+   spass_skolemize_rule, vampire_choice_axiom_rule, vampire_skolemisation_rule, z3_skolemize_rule,
    zipperposition_cnf_rule, zipperposition_define_rule] @ veriT_skolemize_rules
 
 fun is_ext_rule rule = (rule = leo2_extcnf_equal_neg_rule)
