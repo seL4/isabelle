@@ -30,6 +30,7 @@ sig
 
   val leo2_extcnf_equal_neg_rule : string
   val satallax_tab_rule_prefix : string
+  val zipperposition_cnf_rule : string
 
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
@@ -57,6 +58,7 @@ sig
   val repair_waldmeister_endgame : (term, 'a) atp_step list -> (term, 'a) atp_step list
   val infer_formulas_types : Proof.context -> term list -> term list
   val introduce_spass_skolems : (term, string) atp_step list -> (term, string) atp_step list
+  val regroup_zipperposition_skolems : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list -> term list -> term -> (term, string) atp_step list ->
     (term, string) atp_step list
   val termify_atp_abduce_candidate : Proof.context -> string -> ATP_Problem.atp_format ->
@@ -101,6 +103,10 @@ val default_metis_lam_trans = combsN
 
 val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
 val satallax_tab_rule_prefix = "tab_"
+val zipperposition_cnf_rule = "cnf"
+val pseudo_zipperposition_conjunct = "conjunct"
+
+val pseudo_zipperposition_skolemization_suffix = ".skolem"
 
 fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
   | term_name' _ = ""
@@ -240,10 +246,12 @@ fun robust_const_num_type_args thy s =
 fun slack_fastype_of t = fastype_of t handle TERM _ => Type_Infer.anyT \<^sort>\<open>type\<close>
 
 val spass_skolem_prefixes = ["skc", "skf"]
-val zipperposition_skolem_prefix = "sk_"
+val zipperposition_skolem_prefix = "sk"
 
 fun is_spass_skolem s =
   exists (fn pre => String.isPrefix pre s) spass_skolem_prefixes
+
+val is_zipperposition_skolem = String.isPrefix zipperposition_skolem_prefix
 
 fun is_reverse_skolem s =
   exists (fn pre => String.isPrefix pre s) (zipperposition_skolem_prefix :: spass_skolem_prefixes)
@@ -791,6 +799,45 @@ fun introduce_spass_skolems proof =
     input_steps @ sko_steps @ map repair_deps other_steps
   end
 
+fun regroup_zipperposition_skolems steps =
+  let
+    val contains_skolem =
+      Term.exists_subterm (fn Free (sk, _) => is_zipperposition_skolem sk | _ => false)
+
+    fun is_skolem_step (_, _, t, rule, _) =
+      rule = zipperposition_cnf_rule andalso contains_skolem t
+
+    val dep_to_skolem_steps = steps
+      |> filter is_skolem_step
+      |> map_filter (fn step as (_, _, _, _, [dep]) => SOME (fst dep, step)
+        | _ => NONE)
+      |> AList.group (op =)
+
+    val prop_of_skolem_steps =
+      map (#3 #> perhaps (try HOLogic.dest_Trueprop))
+      #> Library.foldr1 HOLogic.mk_conj
+      #> HOLogic.mk_Trueprop
+
+    fun insert_back_regrouped_skolem_steps (step as (name, _, _, _, _)) =
+      (case AList.lookup (op =) dep_to_skolem_steps (fst name) of
+        SOME skolem_steps =>
+        [step, ((fst name ^ pseudo_zipperposition_skolemization_suffix, []), Plain,
+           prop_of_skolem_steps skolem_steps, zipperposition_cnf_rule, [name])]
+      | NONE => [step])
+
+    fun adjust_dependencies (step as (name, role, t, _, [dep])) =
+        if is_skolem_step step then
+          (name, role, t, pseudo_zipperposition_conjunct,
+           [(fst dep ^ pseudo_zipperposition_skolemization_suffix, [])])
+        else
+          step
+     | adjust_dependencies step = step
+  in
+    steps
+    |> map adjust_dependencies
+    |> maps insert_back_regrouped_skolem_steps
+  end
+
 val zf_stmt_prefix = "zf_stmt_"
 
 fun is_if_True_or_False_axiom true_or_false t =
@@ -827,7 +874,7 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
                  else Plain, t)
             | facts => (map fst facts, Axiom, t)))
       in
-        ((num, ss'), role', t', rule, deps)
+        ((num, ss' |> distinct (op =)), role', t', rule, deps)
       end
 
     val atp_proof = map factify_step atp_proof

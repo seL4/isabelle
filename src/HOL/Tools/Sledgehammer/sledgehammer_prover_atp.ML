@@ -276,7 +276,7 @@ fun run_atp mode name
       end
 
     val ((_, pool, lifted, sym_tab),
-         (output, run_time, used_from, atp_problem, tstplike_proof, atp_proof,
+         (_, run_time, used_from, atp_problem, tstplike_proof, atp_proof,
           atp_abduce_candidates, outcome),
          (format, type_enc)) =
       \<^try>\<open>run () finally clean_up ()\<close> |> tap export
@@ -325,6 +325,7 @@ fun run_atp mode name
                       full_atp_proof
                       |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
                       |> local_name = spassN ? introduce_spass_skolems
+                      |> local_name = zipperpositionN ? regroup_zipperposition_skolems
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,

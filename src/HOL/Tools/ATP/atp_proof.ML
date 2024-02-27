@@ -662,7 +662,6 @@ fun parse_spass_line x =
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
 fun parse_line full local_name problem =
-  (* Satallax is handled separately, in "atp_satallax.ML". *)
   if local_name = spassN then parse_spass_line
   else parse_tstp_line full problem
 
