@@ -111,27 +111,33 @@ fun to_simps ctxt thm =
 
 end
 
-fun case_of_simps_cmd (bind, thms_ref) lthy =
+fun case_of_simps_cmd (bind, thms_ref) int lthy =
   let
     val bind' = apsnd (map (Attrib.check_src lthy)) bind
     val thm = Attrib.eval_thms lthy thms_ref |> to_case lthy
-  in
-    Local_Theory.note (bind', [thm]) lthy |> snd
-  end
+    val (res, lthy') = Local_Theory.note (bind', [thm]) lthy 
+    val _ =
+      Proof_Display.print_results
+        {interactive = int, pos = Position.thread_data (), proof_state = false}
+        lthy' ((Thm.theoremK, ""), [res])
+  in lthy' end
 
-fun simps_of_case_cmd ((bind, thm_ref), splits_ref) lthy =
+fun simps_of_case_cmd ((bind, thm_ref), splits_ref) int lthy =
   let
     val bind' = apsnd (map (Attrib.check_src lthy)) bind
     val thm = singleton (Attrib.eval_thms lthy) thm_ref
     val simps = if null splits_ref
       then to_simps lthy thm
       else gen_to_simps lthy (Attrib.eval_thms lthy splits_ref) thm
-  in
-    Local_Theory.note (bind', simps) lthy |> snd
-  end
+    val (res, lthy') = Local_Theory.note (bind', simps) lthy
+    val _ =
+      Proof_Display.print_results
+        {interactive = int, pos = Position.thread_data (), proof_state = false}
+        lthy' ((Thm.theoremK, ""), [res])
+  in lthy' end
 
 val _ =
-  Outer_Syntax.local_theory \<^command_keyword>\<open>case_of_simps\<close>
+  Outer_Syntax.local_theory' \<^command_keyword>\<open>case_of_simps\<close>
     "turn a list of equations into a case expression"
     (Parse_Spec.opt_thm_name ":"  -- Parse.thms1 >> case_of_simps_cmd)
 
@@ -139,7 +145,7 @@ val parse_splits = \<^keyword>\<open>(\<close> |-- Parse.reserved "splits" |-- \
   Parse.thms1 --| \<^keyword>\<open>)\<close>
 
 val _ =
-  Outer_Syntax.local_theory \<^command_keyword>\<open>simps_of_case\<close>
+  Outer_Syntax.local_theory' \<^command_keyword>\<open>simps_of_case\<close>
     "perform case split on rule"
     (Parse_Spec.opt_thm_name ":"  -- Parse.thm --
       Scan.optional parse_splits [] >> simps_of_case_cmd)
