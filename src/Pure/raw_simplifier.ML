@@ -867,14 +867,17 @@ fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
 type trace_ops =
  {trace_invoke: {depth: int, term: term} -> Proof.context -> Proof.context,
   trace_apply: {unconditional: bool, term: term, thm: thm, rrule: rrule} ->
-    Proof.context -> (Proof.context -> (thm * term) option) -> (thm * term) option};
+    Proof.context -> (Proof.context -> (thm * term) option) -> (thm * term) option,
+  trace_simproc: {name: string, cterm: cterm} ->
+    Proof.context -> (Proof.context -> thm option) -> thm option};
 
 structure Trace_Ops = Theory_Data
 (
   type T = trace_ops;
   val empty: T =
    {trace_invoke = fn _ => fn ctxt => ctxt,
-    trace_apply = fn _ => fn ctxt => fn cont => cont ctxt};
+    trace_apply = fn _ => fn ctxt => fn cont => cont ctxt,
+    trace_simproc = fn _ => fn ctxt => fn cont => cont ctxt};
   fun merge (trace_ops, _) = trace_ops;
 );
 
@@ -883,6 +886,7 @@ val set_trace_ops = Trace_Ops.put;
 val trace_ops = Trace_Ops.get o Proof_Context.theory_of;
 fun trace_invoke args ctxt = #trace_invoke (trace_ops ctxt) args ctxt;
 fun trace_apply args ctxt = #trace_apply (trace_ops ctxt) args ctxt;
+fun trace_simproc args ctxt = #trace_simproc (trace_ops ctxt) args ctxt;
 
 
 
@@ -1057,8 +1061,11 @@ fun rewritec (prover, maxt) ctxt t =
           if Pattern.matches (Proof_Context.theory_of ctxt) (lhs, Thm.term_of t) then
             (cond_tracing' ctxt simp_debug (fn () =>
               print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
-             (let val ctxt' = Config.put simp_trace (Config.get ctxt simp_debug) ctxt
-              in case Morphism.form_context' ctxt' proc eta_t' of
+             (let
+                val ctxt' = Config.put simp_trace (Config.get ctxt simp_debug) ctxt
+                val res = trace_simproc {name = name, cterm = eta_t'} ctxt'
+                  (fn ctxt'' => Morphism.form_context' ctxt'' proc eta_t')
+              in case res of
                 NONE => (cond_tracing' ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
               | SOME raw_thm =>
                   (cond_tracing ctxt (fn () =>
