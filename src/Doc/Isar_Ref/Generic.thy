@@ -743,8 +743,8 @@ text \<open>
   Simplifier tracing and debugging.
 
   \<^descr> @{attribute simp_trace} makes the Simplifier output internal operations.
-  This includes rewrite steps, but also bookkeeping like modifications of the
-  simpset.
+  This includes rewrite steps (but not traces from simproc calls),
+  but also bookkeeping like modifications of the simpset.
 
   \<^descr> @{attribute simp_trace_depth_limit} limits the effect of @{attribute
   simp_trace} to the given depth of recursive Simplifier invocations (when
@@ -752,7 +752,7 @@ text \<open>
 
   \<^descr> @{attribute simp_debug} makes the Simplifier output some extra information
   about internal operations. This includes any attempted invocation of
-  simplification procedures.
+  simplification procedures and the corresponding traces.
 
   \<^descr> @{attribute simp_trace_new} controls Simplifier tracing within
   Isabelle/PIDE applications, notably Isabelle/jEdit \<^cite>\<open>"isabelle-jedit"\<close>.

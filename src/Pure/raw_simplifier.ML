@@ -1057,19 +1057,21 @@ fun rewritec (prover, maxt) ctxt t =
           if Pattern.matches (Proof_Context.theory_of ctxt) (lhs, Thm.term_of t) then
             (cond_tracing' ctxt simp_debug (fn () =>
               print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
-             (case Morphism.form_context' ctxt proc eta_t' of
-               NONE => (cond_tracing' ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
-             | SOME raw_thm =>
-                 (cond_tracing ctxt (fn () =>
-                    print_thm ctxt ("Procedure " ^ quote name ^ " produced rewrite rule:")
-                      ("", raw_thm));
-                  (case rews (mk_procrule ctxt raw_thm) of
-                    NONE =>
-                     (cond_tracing ctxt (fn () =>
-                        print_term ctxt ("IGNORED result of simproc " ^ quote name ^
-                            " -- does not match") (Thm.term_of t));
-                      proc_rews ps)
-                  | some => some))))
+             (let val ctxt' = Config.put simp_trace (Config.get ctxt simp_debug) ctxt
+              in case Morphism.form_context' ctxt' proc eta_t' of
+                NONE => (cond_tracing' ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
+              | SOME raw_thm =>
+                  (cond_tracing ctxt (fn () =>
+                     print_thm ctxt ("Procedure " ^ quote name ^ " produced rewrite rule:")
+                       ("", raw_thm));
+                   (case rews (mk_procrule ctxt raw_thm) of
+                     NONE =>
+                      (cond_tracing ctxt (fn () =>
+                         print_term ctxt ("IGNORED result of simproc " ^ quote name ^
+                             " -- does not match") (Thm.term_of t));
+                       proc_rews ps)
+                   | some => some))
+              end))
           else proc_rews ps;
   in
     (case eta_t of
