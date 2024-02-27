@@ -396,7 +396,8 @@ fun simp_apply args ctxt cont =
 val _ = Theory.setup
   (Simplifier.set_trace_ops
     {trace_invoke = fn {depth, term} => recurse "Simplifier invoked" depth term,
-     trace_apply = simp_apply})
+     trace_apply = simp_apply,
+     trace_simproc = fn _ => fn ctxt => fn cont => cont ctxt})
 
 val _ =
   Protocol_Command.define "Simplifier_Trace.reply"
