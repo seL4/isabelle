@@ -868,7 +868,7 @@ type trace_ops =
  {trace_invoke: {depth: int, term: term} -> Proof.context -> Proof.context,
   trace_apply: {unconditional: bool, term: term, thm: thm, rrule: rrule} ->
     Proof.context -> (Proof.context -> (thm * term) option) -> (thm * term) option,
-  trace_simproc: {name: string, goal: cterm} ->
+  trace_simproc: {name: string, cterm: cterm} ->
     Proof.context -> (Proof.context -> thm option) -> thm option};
 
 structure Trace_Ops = Theory_Data
@@ -1063,7 +1063,7 @@ fun rewritec (prover, maxt) ctxt t =
               print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
              (let
                 val ctxt' = Config.put simp_trace (Config.get ctxt simp_debug) ctxt
-                val res = trace_simproc {name = name, goal = eta_t'} ctxt'
+                val res = trace_simproc {name = name, cterm = eta_t'} ctxt'
                   (fn ctxt'' => Morphism.form_context' ctxt'' proc eta_t')
               in case res of
                 NONE => (cond_tracing' ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
