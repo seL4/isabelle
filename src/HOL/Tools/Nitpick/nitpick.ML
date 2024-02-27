@@ -202,7 +202,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val time_start = Time.now ()
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val keywords = Thy_Header.get_keywords thy
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
          boxes, finitizes, monos, wfs, sat_solver, falsify, debug, verbose,
          overlord, spy, user_axioms, assms, whacks, merge_type_vars,
@@ -342,7 +341,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     fun monotonicity_message Ts extra =
-      let val pretties = map (pretty_maybe_quote keywords o pretty_for_type ctxt) Ts in
+      let val pretties = map (pretty_maybe_quote ctxt o pretty_for_type ctxt) Ts in
         Pretty.blk (0,
           Pretty.text ("The type" ^ plural_s_for_list pretties) @ [Pretty.brk 1] @
           pretty_serial_commas "and" pretties @ [Pretty.brk 1] @

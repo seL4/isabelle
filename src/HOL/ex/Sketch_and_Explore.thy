@@ -18,7 +18,7 @@ fun split_clause t =
   in (fixes, assms, concl) end;
 
 fun maybe_quote ctxt =
-  ATP_Util.maybe_quote (Thy_Header.get_keywords' ctxt);
+  ATP_Util.maybe_quote ctxt;
 
 fun print_typ ctxt T =
   T

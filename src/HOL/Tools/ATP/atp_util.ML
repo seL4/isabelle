@@ -6,6 +6,7 @@ General-purpose functions used by the ATP module.
 
 signature ATP_UTIL =
 sig
+  val proof_cartouches: bool Config.T
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
@@ -18,7 +19,7 @@ sig
   val find_enclosed : string -> string -> string -> string list
   val nat_subscript : int -> string
   val unquote_tvar : string -> string
-  val maybe_quote : Keyword.keywords -> string -> string
+  val maybe_quote : Proof.context -> string -> string
   val string_of_ext_time : bool * Time.time -> string
   val string_of_time : Time.time -> string
   val type_instance : theory -> typ -> typ -> bool
@@ -55,6 +56,8 @@ end;
 
 structure ATP_Util : ATP_UTIL =
 struct
+
+val proof_cartouches = Attrib.setup_config_bool \<^binding>\<open>atp_proof_cartouches\<close> (K false)
 
 fun forall2 _ [] [] = true
   | forall2 P (x :: xs) (y :: ys) = P x y andalso forall2 P xs ys
@@ -138,11 +141,15 @@ val unquote_tvar = perhaps (try (unprefix "'"))
 val unquery_var = perhaps (try (unprefix "?"))
 
 val is_long_identifier = forall Symbol_Pos.is_identifier o Long_Name.explode
-fun maybe_quote keywords y =
-  let val s = YXML.content_of y in
+fun maybe_quote ctxt y =
+  let
+    val s = YXML.content_of y
+    val is_literal = (Keyword.is_literal o Thy_Header.get_keywords') ctxt
+    val gen_quote = if Config.get ctxt proof_cartouches then cartouche else quote
+  in
     y |> ((not (is_long_identifier (unquote_tvar s)) andalso
            not (is_long_identifier (unquery_var s))) orelse
-           Keyword.is_literal keywords s) ? quote
+           is_literal s) ? gen_quote
   end
 
 fun string_of_ext_time (plus, time) =

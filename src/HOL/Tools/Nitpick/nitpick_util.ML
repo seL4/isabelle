@@ -69,7 +69,7 @@ sig
   val eta_expand : typ list -> term -> int -> term
   val DETERM_TIMEOUT : Time.time -> tactic -> tactic
   val indent_size : int
-  val pretty_maybe_quote : Keyword.keywords -> Pretty.T -> Pretty.T
+  val pretty_maybe_quote : Proof.context -> Pretty.T -> Pretty.T
   val hash_term : term -> int
   val spying : bool -> (unit -> Proof.state * int * string) -> unit
 end;
@@ -279,9 +279,9 @@ val indent_size = 2
 
 val maybe_quote = ATP_Util.maybe_quote
 
-fun pretty_maybe_quote keywords pretty =
+fun pretty_maybe_quote ctxt pretty =
   let val s = Pretty.unformatted_string_of pretty
-  in if maybe_quote keywords s = s then pretty else Pretty.quote pretty end
+  in if maybe_quote ctxt s = s then pretty else Pretty.quote pretty end
 
 val hashw = ATP_Util.hashw
 val hashw_string = ATP_Util.hashw_string
