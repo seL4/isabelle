@@ -11,10 +11,10 @@ this is assured because both have type "prop".
 
 signature UNIFY =
 sig
-  val trace_bound: int Config.T
   val search_bound: int Config.T
-  val trace_simp: bool Config.T
-  val trace_types: bool Config.T
+  val unify_trace_bound: int Config.T
+  val unify_trace_simp: bool Config.T
+  val unify_trace_types: bool Config.T
   val hounifiers: (string * typ) list -> Context.generic * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
   val unifiers: Context.generic * Envir.env * ((term * term) list) ->
@@ -27,17 +27,20 @@ struct
 
 (*Unification options*)
 
-(*tracing starts above this depth, 0 for full*)
-val trace_bound = Config.declare_int ("unify_trace_bound", \<^here>) (K 50);
-
 (*unification quits above this depth*)
 val search_bound = Config.declare_int ("unify_search_bound", \<^here>) (K 60);
 
+
+(* diagnostics *)
+
+(*tracing starts above this depth, 0 for full*)
+val unify_trace_bound = Config.declare_int ("unify_trace_bound", \<^here>) (K 50);
+
 (*print dpairs before calling SIMPL*)
-val trace_simp = Config.declare_bool ("unify_trace_simp", \<^here>) (K false);
+val unify_trace_simp = Config.declare_bool ("unify_trace_simp", \<^here>) (K false);
 
 (*announce potential incompleteness of type unification*)
-val trace_types = Config.declare_bool ("unify_trace_types", \<^here>) (K false);
+val unify_trace_types = Config.declare_bool ("unify_trace_types", \<^here>) (K false);
 
 
 type binderlist = (string * typ) list;
@@ -325,7 +328,7 @@ fun matchcopy context vname =
   let
     fun mc (rbinder, targs, u, ed as (env, dpairs)) : (term * (Envir.env * dpair list)) Seq.seq =
       let
-        val trace_types = Config.get_generic context trace_types;
+        val unify_trace_types = Config.get_generic context unify_trace_types;
         (*Produce copies of uarg and cons them in front of uargs*)
         fun copycons uarg (uargs, (env, dpairs)) =
           Seq.map (fn (uarg', ed') => (uarg' :: uargs, ed'))
@@ -342,7 +345,7 @@ fun matchcopy context vname =
         fun projenv (head, (Us, bary), targ, tail) =
           let
             val env =
-              if trace_types then test_unify_types context (base, bary) env
+              if unify_trace_types then test_unify_types context (base, bary) env
               else unify_types context (base, bary) env
           in
             Seq.make (fn () =>
@@ -584,14 +587,14 @@ fun print_dpairs context msg (env, dpairs) =
 fun hounifiers binders (context, env, tus : (term * term) list)
   : (Envir.env * (term * term) list) Seq.seq =
   let
-    val trace_bound = Config.get_generic context trace_bound;
+    val unify_trace_bound = Config.get_generic context unify_trace_bound;
+    val unify_trace_simp = Config.get_generic context unify_trace_simp;
     val search_bound = Config.get_generic context search_bound;
-    val trace_simp = Config.get_generic context trace_simp;
     fun add_unify tdepth ((env, dpairs), reseq) =
       Seq.make (fn () =>
         let
           val (env', flexflex, flexrigid) =
-           (if tdepth > trace_bound andalso trace_simp
+           (if tdepth > unify_trace_bound andalso unify_trace_simp
             then print_dpairs context "Enter SIMPL" (env, dpairs) else ();
             SIMPL context (env, dpairs));
         in
@@ -602,14 +605,14 @@ fun hounifiers binders (context, env, tus : (term * term) list)
                 (if Context_Position.is_visible_generic context
                  then warning "Unification bound exceeded" else (); Seq.pull reseq)
               else
-               (if tdepth > trace_bound then
+               (if tdepth > unify_trace_bound then
                   print_dpairs context "Enter MATCH" (env',flexrigid@flexflex)
                 else ();
                 Seq.pull (Seq.it_right
                     (add_unify (tdepth + 1)) (MATCH context (env',dp, frigid'@flexflex), reseq))))
         end
         handle CANTUNIFY =>
-         (if tdepth > trace_bound andalso Context_Position.is_visible_generic context
+         (if tdepth > unify_trace_bound andalso Context_Position.is_visible_generic context
           then tracing "Failure node"
           else (); Seq.pull reseq));
     val dps = map (fn (t, u) => (binders, t, u)) tus;
