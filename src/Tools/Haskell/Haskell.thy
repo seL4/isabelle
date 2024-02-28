@@ -3905,9 +3905,8 @@ prune :: Ord k => T k v -> Int -> Time -> IO ()
 prune (Cache ref) max_size min_timing = do
   atomicModifyIORef' ref (\entries ->
     let
-      trim x e = if _timing e < min_timing then Map.delete x else id
       sort = List.sortBy (\(_, e1) (_, e2) -> compare (_access e2) (_access e1))
-      entries1 = Map.foldrWithKey trim entries entries
+      entries1 = Map.filter (\e -> _timing e >= min_timing) entries
       entries2 =
         if Map.size entries1 <= max_size then entries1
         else Map.fromList $ List.take max_size $ sort $ Map.toList entries1
