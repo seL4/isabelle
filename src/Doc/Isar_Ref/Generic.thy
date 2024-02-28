@@ -1826,6 +1826,7 @@ section \<open>Tracing higher-order unification\<close>
 
 text \<open>
   \begin{tabular}{rcll}
+    @{attribute_def unify_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def unify_trace_simp} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def unify_trace_types} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def unify_trace_bound} & : & \<open>attribute\<close> & default \<open>50\<close> \\
@@ -1837,10 +1838,13 @@ text \<open>
   but sometimes needs extra care to identify problems.  These tracing
   options may help.
 
+  \<^descr> @{attribute unify_trace} controls whether unify trace messages will be 
+  printed (controlled via more fine-grained tracing options below).
+
   \<^descr> @{attribute unify_trace_simp} controls tracing of the
   simplification phase of higher-order unification.
 
-  \<^descr> @{attribute unify_trace_types} controls warnings of
+  \<^descr> @{attribute unify_trace_types} controls tracing of potential
   incompleteness, when unification is not considering all possible
   instantiations of schematic type variables.
 

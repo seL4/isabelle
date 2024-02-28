@@ -176,9 +176,10 @@ type $nat$.
   Where function types are involved, Isabelle's unification code does not
   guarantee to find instantiations for type variables automatically.  Be
   prepared to use \ttindex{res_inst_tac} instead of \texttt{resolve_tac},
-  possibly instantiating type variables.  Setting
-  \ttindex{Unify.unify_trace_types} to \texttt{true} causes Isabelle to report
-  omitted search paths during unification.\index{tracing!of unification}
+  possibly instantiating type variables.  Setting \ttindex{Unify.unify_trace}
+  in combination with \ttindex{Unify.unify_trace_types} to \texttt{true} causes
+  Isabelle to report omitted search paths during unification.
+  \index{tracing!of unification}
 \end{warn}
 
 

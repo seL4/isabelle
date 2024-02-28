@@ -631,6 +631,7 @@ val _ = Theory.setup
   register_config_bool Thm.show_tags #>
   register_config_bool Pattern.unify_trace_failure #>
   register_config_int Unify.search_bound #>
+  register_config_bool Unify.unify_trace #>
   register_config_int Unify.unify_trace_bound #>
   register_config_bool Unify.unify_trace_simp #>
   register_config_bool Unify.unify_trace_types #>
