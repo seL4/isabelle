@@ -23,32 +23,33 @@ New in this Isabelle version
     + Vampire 4.8 HO - Sledgehammer schedules (2023-10-19)
   - New implementation of moura tactic. INCOMPATIBILITY.
 
-* Mirabelle:
-  - Removed proof reconstruction from "sledgehammer" action; the related option
-  "proof_method" was removed. Proof reconstruction is supported directly
-  by Sledgehammer and should be used instead. For more information, see
-  Sledgehammer's documentation relating to "preplay_timeout". INCOMPATIBILITY.
+* Mirabelle: Removed proof reconstruction from "sledgehammer" action;
+the related option "proof_method" was removed. Proof reconstruction is
+supported directly by Sledgehammer and should be used instead. For more
+information, see Sledgehammer's documentation relating to
+"preplay_timeout". INCOMPATIBILITY.
 
-* HOL-Analysis: the syntax of Lebesgue integrals (LINT, LBINT, \<integral>, etc.) now
-  requires parentheses in most cases. INCOMPATIBILITY.
+* HOL-Analysis: the syntax of Lebesgue integrals (LINT, LBINT, \<integral>, etc.)
+now requires parentheses in most cases. INCOMPATIBILITY.
 
 * HOL-Analysis: corrected the definition of convex function (convex_on)
-  to require the underlying set to be convex. INCOMPATIBILITY.
+to require the underlying set to be convex. INCOMPATIBILITY.
 
 * Explicit type class for discrete_linear_ordered_semidom for integral
-  semidomains with a discrete linear order.
+semidomains with a discrete linear order.
 
-* Type class linordered_euclidean_semiring replaces the (rather technical)
-  type class unique_euclidean_semiring_with_nat;  type class
-  unique_euclidean_ring_with_nat, which barely admits instances other than
-  isomorphic to int, is discontinued;  type class
-  unique_euclidean_semiring_with_bit_operations is renamed
-  to linordered_euclidean_semiring_bit_operations.  Minor INCOMPATIBILITY.
+* Type class linordered_euclidean_semiring replaces the (rather
+technical) type class unique_euclidean_semiring_with_nat; type class
+unique_euclidean_ring_with_nat, which barely admits instances other than
+isomorphic to int, is discontinued; type class
+unique_euclidean_semiring_with_bit_operations is renamed to
+linordered_euclidean_semiring_bit_operations. Minor INCOMPATIBILITY.
 
-* Streamlined specification of type class (semi)ring_parity.  Minor
-  INCOMPATIBILITY.
+* Streamlined specification of type class (semi)ring_parity. Minor
+INCOMPATIBILITY.
 
-* Lemma even_succ_div_2 renamed to even_half_succ_eq.  Minor INCOMPATIBILITY.
+* Lemma even_succ_div_2 renamed to even_half_succ_eq. Minor
+INCOMPATIBILITY.
 
 * Theory "HOL.Transitive_Closure":
   - Added lemmas.
