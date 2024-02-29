@@ -159,8 +159,8 @@ before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
 * Update to OpenJDK 21: the current long-term support version of Java.
 
-* Update to GHC stack 2.13.1 with support for all platforms, including
-Apple Silicon.
+* Update to GHC stack 2.15.1 with support for all platforms, including
+ARM Linux and Apple Silicon.
 
 * No longer support for very old versions of macOS and Linux: base-line
 is Ubuntu Linux 18.04 LTS and macOS 11 Big Sur.
