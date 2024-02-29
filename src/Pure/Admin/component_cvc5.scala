@@ -19,16 +19,16 @@ object Component_CVC5 {
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-darwin", "cvc5-macOS-arm64"),
-      Download_Platform("x86_64-darwin", "cvc5-macOS"),
-      Download_Platform("x86_64-linux", "cvc5-Linux"),
-      Download_Platform("x86_64-windows", "cvc5-Win64.exe"))
+      Download_Platform("arm64-darwin", "cvc5-macOS-arm64-static.zip"),
+      Download_Platform("x86_64-darwin", "cvc5-macOS-static.zip"),
+      Download_Platform("x86_64-linux", "cvc5-Linux-static.zip"),
+      Download_Platform("x86_64-windows", "cvc5-Win64-static.zip"))
 
 
   /* build cvc5 */
 
   val default_url = "https://github.com/cvc5/cvc5/releases/download"
-  val default_version = "1.0.2"
+  val default_version = "1.1.1"
 
   def build_cvc5(
     base_url: String = default_url,
@@ -46,18 +46,28 @@ object Component_CVC5 {
     /* download executables */
 
     for (platform <- platforms) {
-      val url = base_url + "/cvc5-" + version + "/" + platform.download_name
+      Isabelle_System.with_tmp_dir("download") { download_dir =>
+        val download = base_url + "/cvc5-" + version + "/" + platform.download_name
 
-      val platform_dir = component_dir.path + Path.explode(platform.platform_name)
-      val platform_exe = platform_dir + Path.explode("cvc5").exe_if(platform.is_windows)
+        val archive_name =
+          Url.get_base_name(platform.download_name) getOrElse
+            error("Malformed download name " + quote(platform.download_name))
+        val archive_path = download_dir + Path.basic(archive_name)
 
-      Isabelle_System.make_directory(platform_dir)
-      Isabelle_System.download_file(url, platform_exe, progress = progress)
-      File.set_executable(platform_exe)
+        val platform_dir = component_dir.path + Path.explode(platform.platform_name)
+        Isabelle_System.make_directory(platform_dir)
+
+        val exe_path = Path.explode("cvc5").exe_if(platform.is_windows)
+
+        Isabelle_System.download_file(download, archive_path, progress = progress)
+        Isabelle_System.extract(archive_path, download_dir, strip = true)
+        Isabelle_System.copy_file(download_dir + Path.basic("bin") + exe_path, platform_dir)
+        File.set_executable(platform_dir + exe_path)
+      }
     }
 
 
-    /* settings */
+  /* settings */
 
     component_dir.write_settings("""
 CVC5_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
@@ -79,8 +89,6 @@ fi
 from """ + base_url + """ for 64bit macOS,
 Linux, and Windows. There is native support for macOS ARM64, but
 Linux ARM64 is missing.
-
-The oldest supported version of macOS is 10.14 Mojave.
 
 The downloaded files were renamed and made executable.
 
