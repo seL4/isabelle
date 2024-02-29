@@ -94,6 +94,15 @@ lemma reflclp_idemp [simp]: "(P\<^sup>=\<^sup>=)\<^sup>=\<^sup>= = P\<^sup>=\<^s
 lemma reflclp_ident_if_reflp[simp]: "reflp R \<Longrightarrow> R\<^sup>=\<^sup>= = R"
   by (auto dest: reflpD)
 
+text \<open>The following are special cases of @{thm [source] reflclp_ident_if_reflp},
+but they appear duplicated in multiple, independent theories, which causes name clashes.\<close>
+
+lemma (in preorder) reflclp_less_eq[simp]: "(\<le>)\<^sup>=\<^sup>= = (\<le>)"
+  using reflp_on_le by (simp only: reflclp_ident_if_reflp)
+
+lemma (in preorder) reflclp_greater_eq[simp]: "(\<ge>)\<^sup>=\<^sup>= = (\<ge>)"
+  using reflp_on_ge by (simp only: reflclp_ident_if_reflp)
+
 
 subsection \<open>Reflexive-transitive closure\<close>
 
@@ -341,6 +350,15 @@ next
   show "R x y \<Longrightarrow> R\<^sup>*\<^sup>* x y"
     using r_into_rtranclp .
 qed
+
+text \<open>The following are special cases of @{thm [source] rtranclp_ident_if_reflp_and_transp},
+but they appear duplicated in multiple, independent theories, which causes name clashes.\<close>
+
+lemma (in preorder) rtranclp_less_eq[simp]: "(\<le>)\<^sup>*\<^sup>* = (\<le>)"
+  using reflp_on_le transp_on_le by (simp only: rtranclp_ident_if_reflp_and_transp)
+
+lemma (in preorder) rtranclp_greater_eq[simp]: "(\<ge>)\<^sup>*\<^sup>* = (\<ge>)"
+  using reflp_on_ge transp_on_ge by (simp only: rtranclp_ident_if_reflp_and_transp)
 
 
 subsection \<open>Transitive closure\<close>
@@ -777,6 +795,20 @@ next
     using tranclp.r_into_trancl .
 qed
 
+text \<open>The following are special cases of @{thm [source] tranclp_ident_if_transp},
+but they appear duplicated in multiple, independent theories, which causes name clashes.\<close>
+
+lemma (in preorder) tranclp_less[simp]: "(<)\<^sup>+\<^sup>+ = (<)"
+  using transp_on_less by (simp only: tranclp_ident_if_transp)
+
+lemma (in preorder) tranclp_less_eq[simp]: "(\<le>)\<^sup>+\<^sup>+ = (\<le>)"
+  using transp_on_le by (simp only: tranclp_ident_if_transp)
+
+lemma (in preorder) tranclp_greater[simp]: "(>)\<^sup>+\<^sup>+ = (>)"
+  using transp_on_greater by (simp only: tranclp_ident_if_transp)
+
+lemma (in preorder) tranclp_greater_eq[simp]: "(\<ge>)\<^sup>+\<^sup>+ = (\<ge>)"
+  using transp_on_ge by (simp only: tranclp_ident_if_transp)
 
 subsection \<open>Symmetric closure\<close>
 

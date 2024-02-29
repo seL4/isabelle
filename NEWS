@@ -64,14 +64,22 @@ INCOMPATIBILITY.
 
 * Theory "HOL.Transitive_Closure":
   - Added lemmas.
+      reflclp_greater_eq[simp]
+      reflclp_less_eq[simp]
       relpow_left_unique
       relpow_right_unique
       relpow_trans[trans]
       relpowp_left_unique
       relpowp_right_unique
       relpowp_trans[trans]
+      rtranclp_greater_eq[simp]
       rtranclp_ident_if_reflp_and_transp
+      rtranclp_less_eq[simp]
+      tranclp_greater[simp]
+      tranclp_greater_eq[simp]
       tranclp_ident_if_and_transp
+      tranclp_less[simp]
+      tranclp_less_eq[simp]
 
 * Theory "HOL-Library.Multiset":
   - Added lemmas.
