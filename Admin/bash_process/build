@@ -37,7 +37,7 @@ PLATFORM="$1"; shift
 PLATFORM_DIR="platform_${PLATFORM}"
 
 case "$PLATFORM" in
-  arm64-linux)
+  arm64-linux | arm64-darwin)
     mkdir -p "$PLATFORM_DIR"
     cc -Wall bash_process.c -o "$PLATFORM_DIR/bash_process"
     ;;
