@@ -67,7 +67,10 @@ New in this Isabelle version
 
 *** Pure ***
 
-* Added configuration option for unifier tracing, which is now disabled by default.
+* Added configuration option "unify_trace" (default: false) to guard
+tracing of higher-order unification, which is ubiquitous in assumption
+steps and rule applications via resolution. This is disabled by default
+to avoid breakdown due to massive amounts of spurious messages.
 
 
 *** ML ***
