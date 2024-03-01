@@ -10,7 +10,7 @@ package isabelle
 object Component_E {
   /* build E prover */
 
-  val default_version = "2.6"
+  val default_version = "3.0.03"
   val default_download_url = "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
 
   def build_e(
@@ -77,7 +77,7 @@ object Component_E {
       /* settings */
 
       component_dir.write_settings("""
-E_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
+E_HOME="$COMPONENT/${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}"
 E_VERSION=""" + quote(version) + """
 """)
 
