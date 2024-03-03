@@ -27,8 +27,8 @@ object Component_E {
         Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
       val platform_name =
-        proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))
-          .getOrElse(error("No 64bit platform"))
+        proper_string(Isabelle_System.getenv("ISABELLE_APPLE_PLATFORM64")) orElse
+        proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse error("Bad platform")
 
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
