@@ -23,20 +23,23 @@ object Multithreading {
       val Physical = """^\s*physical id\s*:\s*(\d+)\s*$""".r
       val Cores = """^\s*cpu cores\s*:\s*(\d+)\s*$""".r
 
-      var physical: Option[Int] = None
-      var physical_cores = Map.empty[Int, Int]
+      val physical_cores: Int = {
+        var physical: Option[Int] = None
+        var cores = Map.empty[Int, Int]
 
-      val result = ssh.execute("cat /proc/cpuinfo").check
-      for (line <- Library.trim_split_lines(result.out)) {
-        line match {
-          case Physical(Value.Int(i)) => physical = Some(i)
-          case Cores(Value.Int(i))
-            if physical.isDefined && !physical_cores.isDefinedAt(physical.get) =>
-            physical_cores = physical_cores + (physical.get -> i)
-          case _ =>
+        val result = ssh.execute("cat /proc/cpuinfo").check
+        for (line <- Library.trim_split_lines(result.out)) {
+          line match {
+            case Physical(Value.Int(i)) => physical = Some(i)
+            case Cores(Value.Int(i))
+              if physical.isDefined && !cores.isDefinedAt(physical.get) =>
+              cores = cores + (physical.get -> i)
+            case _ =>
+          }
         }
+        cores.valuesIterator.sum
       }
-      physical_cores.valuesIterator.sum max 1
+      if (physical_cores > 1) physical_cores else 1
     }
 
 
