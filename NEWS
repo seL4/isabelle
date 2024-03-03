@@ -7,6 +7,16 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* The arm64-linux platform is now officially supported, although a few
+(non-essential) tools are missing:
+
+  - Z3
+  - CVC4
+  - OCaml / OPAM
+  - Nunchaku + smbc (experimental)
+
 *** Document preparation ***
 
 * The bundled LaTeX LNCS style has been updated to version 2.23

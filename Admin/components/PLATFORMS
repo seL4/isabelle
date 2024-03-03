@@ -34,6 +34,7 @@ Windows. More exotic platforms are unsupported: NixOS, BSD, Solaris.
 Official platforms:
 
   x86_64-linux      Ubuntu 18.04 LTS
+  arm64-linux       Ubuntu 18.04 LTS (e.g. via "docker run -it ubuntu:18.04 bash")
 
   x86_64-darwin     macOS 11 Big Sur (mini1 Macmini8,1)
                     macOS 12 Monterey (???)
@@ -47,10 +48,6 @@ Official platforms:
 
   x86_64-windows    Windows 10
   x86_64-cygwin     Cygwin 3.4.x https://isabelle.sketis.net/cygwin_2023 (x86_64/release)
-
-Experimental platforms:
-
-  arm64-linux       Ubuntu 18.04 LTS (e.g. via "docker run -it ubuntu:18.04 bash")
 
 
 64 bit vs. 32 bit platform personality
