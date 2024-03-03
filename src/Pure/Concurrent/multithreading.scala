@@ -39,7 +39,17 @@ object Multithreading {
         }
         cores.valuesIterator.sum
       }
-      if (physical_cores > 1) physical_cores else 1
+
+      def logical_cores(): Int =
+        if (ssh.is_local) Runtime.getRuntime.availableProcessors()
+        else {
+          Library.trim_line(ssh.execute("nproc").check.out) match {
+            case Value.Nat(n) => n
+            case _ => 1
+          }
+        }
+
+      if (physical_cores > 0) physical_cores else logical_cores()
     }
 
 
