@@ -1118,12 +1118,15 @@ extends AutoCloseable {
 
   /* run */
 
+  protected def finished_unsynchronized(): Boolean =
+    if (!build_context.master && progress.stopped) _state.build_running.isEmpty
+    else _state.pending.isEmpty
+
+  protected def sleep(): Unit =
+    Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
+
   def run(): Build.Results = {
     var finished = false
-
-    def finished_unsynchronized(): Boolean =
-      if (!build_context.master && progress.stopped) _state.build_running.isEmpty
-      else _state.pending.isEmpty
 
     synchronized_database("Build_Process.init") {
       if (build_context.master) {
@@ -1133,9 +1136,6 @@ extends AutoCloseable {
       _state = _state.copy(numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling))
       finished = finished_unsynchronized()
     }
-
-    def sleep(): Unit =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
 
     val build_progress_warnings = Synchronized(Set.empty[String])
     def build_progress_warning(msg: String): Unit =
