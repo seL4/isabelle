@@ -1126,24 +1126,24 @@ extends AutoCloseable {
 
   /* run */
 
-  protected def finished_unsynchronized(): Boolean =
+  def finished(): Boolean = synchronized {
     if (!build_context.master && progress.stopped) _state.build_running.isEmpty
     else _state.pending.isEmpty
+  }
 
   protected def sleep(): Unit =
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
 
   def run(): Build.Results = {
-    var finished = false
-
-    synchronized_database("Build_Process.init") {
-      if (build_context.master) {
-        _build_cluster.init()
-        _state = init_state(_state)
+    val vacuous =
+      synchronized_database("Build_Process.init") {
+        if (build_context.master) {
+          _build_cluster.init()
+          _state = init_state(_state)
+        }
+        _state = _state.copy(numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling))
+        build_context.master && _state.pending.isEmpty
       }
-      _state = _state.copy(numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling))
-      finished = finished_unsynchronized()
-    }
 
     def check_jobs_unsynchronized(): Boolean = {
       val jobs = next_jobs(_state)
@@ -1162,7 +1162,7 @@ extends AutoCloseable {
       jobs.nonEmpty
     }
 
-    if (finished) {
+    if (vacuous) {
       progress.echo_warning("Nothing to build")
       Build.Results(build_context)
     }
@@ -1172,7 +1172,7 @@ extends AutoCloseable {
       _build_cluster.start()
 
       try {
-        while (!finished) {
+        while (!finished()) {
           val check_jobs =
             synchronized_database("Build_Process.main") {
               if (progress.stopped) _state.stop_running()
@@ -1193,7 +1193,6 @@ extends AutoCloseable {
                 }
               }
 
-              finished = finished_unsynchronized()
               check_jobs_unsynchronized()
             }
 
