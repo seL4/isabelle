@@ -1119,17 +1119,19 @@ extends AutoCloseable {
   /* run */
 
   def run(): Build.Results = {
+    var finished = false
+
+    def finished_unsynchronized(): Boolean =
+      if (!build_context.master && progress.stopped) _state.build_running.isEmpty
+      else _state.pending.isEmpty
+
     synchronized_database("Build_Process.init") {
       if (build_context.master) {
         _build_cluster.init()
         _state = init_state(_state)
       }
       _state = _state.copy(numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling))
-    }
-
-    def finished(): Boolean = synchronized_database("Build_Process.test") {
-      if (!build_context.master && progress.stopped) _state.build_running.isEmpty
-      else _state.pending.isEmpty
+      finished = finished_unsynchronized()
     }
 
     def sleep(): Unit =
@@ -1140,7 +1142,7 @@ extends AutoCloseable {
       build_progress_warnings.change(seen =>
         if (seen(msg)) seen else { build_progress.echo_warning(msg); seen + msg })
 
-    def check_jobs(): Boolean = synchronized_database("Build_Process.check_jobs") {
+    def check_jobs_unsynchronized(): Boolean = {
       val jobs = next_jobs(_state)
       for (name <- jobs) {
         if (is_session_name(name)) {
@@ -1158,7 +1160,7 @@ extends AutoCloseable {
       jobs.nonEmpty
     }
 
-    if (finished()) {
+    if (finished) {
       progress.echo_warning("Nothing to build")
       Build.Results(build_context)
     }
@@ -1172,28 +1174,32 @@ extends AutoCloseable {
       }
 
       try {
-        while (!finished()) {
-          synchronized_database("Build_Process.main") {
-            if (progress.stopped) _state.stop_running()
+        while (!finished) {
+          val check_jobs =
+            synchronized_database("Build_Process.main") {
+              if (progress.stopped) _state.stop_running()
 
-            for (job <- _state.finished_running()) {
-              job.join_build match {
-                case None =>
-                  _state = _state.remove_running(job.name)
-                case Some(result) =>
-                  val result_name = (job.name, worker_uuid, build_uuid)
-                  _state = _state.
-                    remove_pending(job.name).
-                    remove_running(job.name).
-                    make_result(result_name,
-                      result.process_result,
-                      result.output_shasum,
-                      node_info = job.node_info)
+              for (job <- _state.finished_running()) {
+                job.join_build match {
+                  case None =>
+                    _state = _state.remove_running(job.name)
+                  case Some(result) =>
+                    val result_name = (job.name, worker_uuid, build_uuid)
+                    _state = _state.
+                      remove_pending(job.name).
+                      remove_running(job.name).
+                      make_result(result_name,
+                        result.process_result,
+                        result.output_shasum,
+                        node_info = job.node_info)
+                }
               }
-            }
-          }
 
-          if (!check_jobs()) sleep()
+              finished = finished_unsynchronized()
+              check_jobs_unsynchronized()
+            }
+
+          if (!check_jobs) sleep()
         }
       }
       finally {
