@@ -538,14 +538,13 @@ Type \<^typ>\<open>int\<close>
 \<^const>\<open>List.listrel1\<close> & @{term_type_only List.listrel1 "('a*'a)set\<Rightarrow>('a list * 'a list)set"}\\
 \<^const>\<open>List.lists\<close> & @{term_type_only List.lists "'a set\<Rightarrow>'a list set"}\\
 \<^const>\<open>List.listset\<close> & @{term_type_only List.listset "'a set list \<Rightarrow> 'a list set"}\\
-\<^const>\<open>Groups_List.sum_list\<close> & \<^typeof>\<open>Groups_List.sum_list\<close>\\
-\<^const>\<open>Groups_List.prod_list\<close> & \<^typeof>\<open>Groups_List.prod_list\<close>\\
 \<^const>\<open>List.list_all2\<close> & \<^typeof>\<open>List.list_all2\<close>\\
 \<^const>\<open>List.list_update\<close> & \<^typeof>\<open>List.list_update\<close>\\
 \<^const>\<open>List.map\<close> & \<^typeof>\<open>List.map\<close>\\
 \<^const>\<open>List.measures\<close> & @{term_type_only List.measures "('a\<Rightarrow>nat)list\<Rightarrow>('a*'a)set"}\\
 \<^const>\<open>List.nth\<close> & \<^typeof>\<open>List.nth\<close>\\
 \<^const>\<open>List.nths\<close> & \<^typeof>\<open>List.nths\<close>\\
+\<^const>\<open>Groups_List.prod_list\<close> & \<^typeof>\<open>Groups_List.prod_list\<close>\\
 \<^const>\<open>List.remdups\<close> & \<^typeof>\<open>List.remdups\<close>\\
 \<^const>\<open>List.removeAll\<close> & \<^typeof>\<open>List.removeAll\<close>\\
 \<^const>\<open>List.remove1\<close> & \<^typeof>\<open>List.remove1\<close>\\
@@ -559,6 +558,7 @@ Type \<^typ>\<open>int\<close>
 \<^const>\<open>List.sorted\<close> & \<^typeof>\<open>List.sorted\<close>\\
 \<^const>\<open>List.sorted_wrt\<close> & \<^typeof>\<open>List.sorted_wrt\<close>\\
 \<^const>\<open>List.splice\<close> & \<^typeof>\<open>List.splice\<close>\\
+\<^const>\<open>Groups_List.sum_list\<close> & \<^typeof>\<open>Groups_List.sum_list\<close>\\
 \<^const>\<open>List.take\<close> & \<^typeof>\<open>List.take\<close>\\
 \<^const>\<open>List.takeWhile\<close> & \<^typeof>\<open>List.takeWhile\<close>\\
 \<^const>\<open>List.tl\<close> & \<^typeof>\<open>List.tl\<close>\\
