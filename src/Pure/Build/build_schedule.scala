@@ -915,6 +915,20 @@ object Build_Schedule {
 
     /* previous results via build log */
 
+    override def open_build_cluster(): Build_Cluster = {
+      val build_cluster = super.open_build_cluster()
+      build_cluster.init()
+
+      Build_Benchmark.benchmark_requirements(build_options)
+
+      if (build_context.worker) {
+        val benchmark_options = build_options.string("build_hostname") = hostname
+        Build_Benchmark.benchmark(benchmark_options, progress)
+      }
+
+      build_cluster.benchmark()
+    }
+
     private val timing_data: Timing_Data = {
       val cluster_hosts: List[Build_Cluster.Host] =
         if (build_context.jobs == 0) build_context.build_hosts
@@ -1030,14 +1044,6 @@ object Build_Schedule {
       }
 
     override def run(): Build.Results = {
-      Build_Benchmark.benchmark_requirements(build_options)
-
-      if (build_context.worker) {
-        val benchmark_options = build_options.string.update("build_hostname", hostname)
-        Build_Benchmark.benchmark(benchmark_options, progress)
-      }
-      _build_cluster.benchmark()
-
       for (db <- _build_database)
         Build_Process.private_data.transaction_lock(db, label = "Scheduler_Build_Process.init") {
           Build_Process.private_data.clean_build(db)
