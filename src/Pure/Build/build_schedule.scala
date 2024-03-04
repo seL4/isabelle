@@ -850,9 +850,7 @@ object Build_Schedule {
         _build_database match {
           case None => body
           case Some(db) =>
-            val tables =
-              Build_Process.private_data.tables.list ::: Build_Schedule.private_data.tables.list
-            db.transaction_lock(SQL.Tables.list(tables), label = label) {
+            db.transaction_lock(Build_Schedule.private_data.all_tables, label = label) {
               val old_state = Build_Process.private_data.pull_database(db, worker_uuid, _state)
               val old_schedule = Build_Schedule.private_data.pull_schedule(db, _schedule)
               _state = old_state
@@ -1210,6 +1208,9 @@ object Build_Schedule {
     }
 
     override val tables = SQL.Tables(Schedules.table, Nodes.table)
+
+    val all_tables: SQL.Tables =
+      SQL.Tables.list(Build_Process.private_data.tables.list ::: tables.list)
   }
 
 
