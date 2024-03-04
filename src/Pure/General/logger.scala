@@ -12,7 +12,7 @@ object Logger {
     log_file match { case Some(file) => new File_Logger(file) case None => No_Logger }
 
   def make(progress: Progress): Logger =
-    new Logger { def apply(msg: => String): Unit = progress.echo(msg) }
+    new Logger { def apply(msg: => String): Unit = if (progress != null) progress.echo(msg) }
 
   def make_system_log(progress: Progress, options: Options): Logger =
     options.string("system_log") match {
