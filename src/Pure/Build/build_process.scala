@@ -850,6 +850,14 @@ extends AutoCloseable {
   protected final val hostname: String = build_context.hostname
   protected final val build_uuid: String = build_context.build_uuid
 
+  private var warning_seen = Set.empty[String]
+  protected def warning(msg: String): Unit = synchronized {
+    if (!warning_seen(msg)) {
+      build_progress.echo_warning(msg)
+      warning_seen += msg
+    }
+  }
+
 
   /* global resources with common close() operation */
 
@@ -1137,11 +1145,6 @@ extends AutoCloseable {
       finished = finished_unsynchronized()
     }
 
-    val build_progress_warnings = Synchronized(Set.empty[String])
-    def build_progress_warning(msg: String): Unit =
-      build_progress_warnings.change(seen =>
-        if (seen(msg)) seen else { build_progress.echo_warning(msg); seen + msg })
-
     def check_jobs_unsynchronized(): Boolean = {
       val jobs = next_jobs(_state)
       for (name <- jobs) {
@@ -1149,13 +1152,12 @@ extends AutoCloseable {
           if (build_context.sessions_structure.defined(name)) {
             _state.ancestor_results(name) match {
               case Some(results) => _state = start_session(_state, name, results)
-              case None =>
-                build_progress_warning("Bad build job " + quote(name) + ": no ancestor results")
+              case None => warning("Bad build job " + quote(name) + ": no ancestor results")
             }
           }
-          else build_progress_warning("Bad build job " + quote(name) + ": no session info")
+          else warning("Bad build job " + quote(name) + ": no session info")
         }
-        else build_progress_warning("Bad build job " + quote(name))
+        else warning("Bad build job " + quote(name))
       }
       jobs.nonEmpty
     }
