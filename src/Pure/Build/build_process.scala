@@ -935,7 +935,7 @@ extends AutoCloseable {
     Option(_host_database).foreach(_.close())
     Option(_build_cluster).foreach(_.close())
     progress match {
-      case db_progress: Database_Progress => db_progress.exit(close = true)
+      case db_progress: Database_Progress => db_progress.close()
       case _ =>
     }
   }

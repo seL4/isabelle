@@ -378,7 +378,7 @@ extends Progress {
         (results, true) })
   }
 
-  def exit(close: Boolean = false): Unit = synchronized {
+  def close(): Unit = synchronized {
     if (_context > 0) {
       _consumer.shutdown()
       _consumer = null
@@ -388,7 +388,7 @@ extends Progress {
       }
       _context = 0
     }
-    if (close) db.close()
+    db.close()
   }
 
   private def sync_context[A](body: => A): A = synchronized {
