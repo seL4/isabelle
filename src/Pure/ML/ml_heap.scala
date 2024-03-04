@@ -231,7 +231,7 @@ object ML_Heap {
 
         if (log_db0.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
-        private_data.transaction_lock(db, create = true, label = "ML_Heap.store1") {
+        private_data.transaction_lock(db, create = true, label = "ML_Heap.store") {
           private_data.init_entry(db, session.name, heap_size0, heap_digest0, log_db0)
           for (content <- content0) private_data.write_slice(db, session.name, 0, content)
         }
@@ -241,20 +241,20 @@ object ML_Heap {
       if (slices > 1) {
         for (i <- 1 until slices) {
           val content = slice_content(i)
-          private_data.transaction_lock(db, label = "ML_Heap.store2") {
+          private_data.transaction_lock(db, label = "ML_Heap.store" + i) {
             private_data.write_slice(db, session.name, i, content)
           }
         }
 
         if (log_db.isDefined) progress.echo("Storing " + session.log_db_name + " ...")
 
-        private_data.transaction_lock(db, label = "ML_Heap.store3") {
+        private_data.transaction_lock(db, label = "ML_Heap.store_update") {
           private_data.update_entry(db, session.name, heap_size, heap_digest, log_db)
         }
       }
     }
     catch { case exn: Throwable =>
-      private_data.transaction_lock(db, create = true, label = "ML_Heap.store4") {
+      private_data.transaction_lock(db, create = true, label = "ML_Heap.store_clean") {
         private_data.clean_entry(db, session.name)
       }
       throw exn
