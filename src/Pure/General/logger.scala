@@ -20,7 +20,7 @@ object Logger {
         if (progress != null) progress.echo(msg)
     }
 
-  def make_system_log(progress: Progress, options: Options, guard_time: Time = Time.min): Logger =
+  def make_system_log(progress: => Progress, options: Options, guard_time: Time = Time.min): Logger =
     options.string("system_log") match {
       case "" => new Logger
       case "-" => make_progress(progress, guard_time = guard_time)
