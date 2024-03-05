@@ -24,6 +24,7 @@ base-lines are now as follows:
   - OCaml / OPAM
   - Nunchaku + smbc (experimental)
 
+
 *** Document preparation ***
 
 * The bundled LaTeX LNCS style has been updated to version 2.23
@@ -45,12 +46,6 @@ the related option "proof_method" was removed. Proof reconstruction is
 supported directly by Sledgehammer and should be used instead. For more
 information, see Sledgehammer's documentation relating to
 "preplay_timeout". INCOMPATIBILITY.
-
-* HOL-Analysis: the syntax of Lebesgue integrals (LINT, LBINT, \<integral>, etc.)
-now requires parentheses in most cases. INCOMPATIBILITY.
-
-* HOL-Analysis: corrected the definition of convex function (convex_on)
-to require the underlying set to be convex. INCOMPATIBILITY.
 
 * Explicit type class for discrete_linear_ordered_semidom for integral
 semidomains with a discrete linear order.
@@ -83,6 +78,12 @@ INCOMPATIBILITY.
   - Added lemmas.
       trans_on_mult
       transp_on_multp
+
+* HOL-Analysis: the syntax of Lebesgue integrals (LINT, LBINT, \<integral>, etc.)
+now requires parentheses in most cases. INCOMPATIBILITY.
+
+* HOL-Analysis: corrected the definition of convex function (convex_on)
+to require the underlying set to be convex. INCOMPATIBILITY.
 
 
 *** Pure ***
@@ -174,16 +175,16 @@ $ISABELLE_HOME_USER/etc/registry.toml like this:
 3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
 before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
-* Update to official Poly/ML 5.9.1.
-
-* Update to OpenJDK 21: the current long-term support version of Java.
+* Isabelle/Scala supports mailing via SMTP, based on new system
+component javamail (previously javax.mail) from jakarta 2.1.2
+using eclipse angus 2.0.2/2.0.1.
 
 * Update to GHC stack 2.15.1 with support for all platforms, including
 ARM Linux and Apple Silicon.
 
-* Isabelle/Scala supports mailing via SMTP, based on new system
-component javamail (previously javax.mail) from jakarta 2.1.2
-using eclipse angus 2.0.2/2.0.1.
+* Update to official Poly/ML 5.9.1.
+
+* Update to OpenJDK 21: the current long-term support version of Java.
 
 
 
