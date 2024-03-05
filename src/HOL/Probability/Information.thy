@@ -36,15 +36,15 @@ qed
 
 lemma log_mult_eq:
   "log b (A * B) = (if 0 < A * B then log b \<bar>A\<bar> + log b \<bar>B\<bar> else log b 0)"
-  using log_mult[of b "\<bar>A\<bar>" "\<bar>B\<bar>"] b_gt_1 log_neg_const[of "A * B"]
+  using log_mult[of "\<bar>A\<bar>" "\<bar>B\<bar>"] b_gt_1 log_neg_const[of "A * B"]
   by (auto simp: zero_less_mult_iff mult_le_0_iff)
 
 lemma log_inverse_eq:
   "log b (inverse B) = (if 0 < B then - log b B else log b 0)"
-  using log_inverse[of b B] log_neg_const[of "inverse B"] b_gt_1 by simp
+  using ln_inverse log_def log_neg_const by force
 
 lemma log_divide_eq:
-  "log b (A / B) = (if 0 < A * B then log b \<bar>A\<bar> - log b \<bar>B\<bar> else log b 0)"
+  "log b (A / B) = (if 0 < A * B then (log b \<bar>A\<bar>) - log b \<bar>B\<bar> else log b 0)"
   unfolding divide_inverse log_mult_eq log_inverse_eq abs_inverse
   by (auto simp: zero_less_mult_iff mult_le_0_iff)
 
@@ -1809,16 +1809,18 @@ lemma (in information_space)
   assumes Pxy: "finite_entropy (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) Pxy"
   shows "conditional_entropy b S T X Y \<le> entropy b S X"
 proof -
-
   have "0 \<le> mutual_information b S T X Y"
     by (rule mutual_information_nonneg') fact+
   also have "\<dots> = entropy b S X - conditional_entropy b S T X Y"
-    apply (intro mutual_information_eq_entropy_conditional_entropy')
-    using assms
-    by (auto intro!: finite_entropy_integrable finite_entropy_distributed
-      finite_entropy_integrable_transform[OF Px]
-      finite_entropy_integrable_transform[OF Py]
-      intro: finite_entropy_nn)
+  proof (intro mutual_information_eq_entropy_conditional_entropy')
+    show "integrable (S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Px (fst x)))" 
+         "integrable (S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Py (snd x)))" 
+         "integrable (S \<Otimes>\<^sub>M T) (\<lambda>x. Pxy x * log b (Pxy x))"
+      using assms
+      by (auto intro!: finite_entropy_integrable finite_entropy_distributed
+          finite_entropy_integrable_transform[OF Px] finite_entropy_integrable_transform[OF Py]
+          intro: finite_entropy_nn)
+  qed (use assms Px Py Pxy finite_entropy_nn finite_entropy_distributed in auto)
   finally show ?thesis by auto
 qed
 
@@ -1874,13 +1876,8 @@ proof -
 qed
 
 corollary (in information_space) entropy_data_processing:
-  assumes X: "simple_function M X" shows "\<H>(f \<circ> X) \<le> \<H>(X)"
-proof -
-  note fX = simple_function_compose[OF X, of f]
-  from X have "\<H>(X) = \<H>(f\<circ>X) + \<H>(X|f\<circ>X)" by (rule entropy_partition)
-  then show "\<H>(f \<circ> X) \<le> \<H>(X)"
-    by (simp only: conditional_entropy_nonneg [OF X fX] le_add_same_cancel1)
-qed
+  assumes "simple_function M X" shows "\<H>(f \<circ> X) \<le> \<H>(X)"
+  by (smt (verit) assms conditional_entropy_nonneg entropy_partition simple_function_compose)
 
 corollary (in information_space) entropy_of_inj:
   assumes X: "simple_function M X" and inj: "inj_on f (X`space M)"

@@ -1089,6 +1089,8 @@ declare All_def [no_atp]
 
 lemma ex_disj_distrib: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>x. P x) \<or> (\<exists>x. Q x)" by iprover
 lemma all_conj_distrib: "(\<forall>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>x. P x) \<and> (\<forall>x. Q x)" by iprover
+lemma all_imp_conj_distrib: "(\<forall>x. P x \<longrightarrow> Q x \<and> R x) \<longleftrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<and> (\<forall>x. P x \<longrightarrow> R x)"
+  by iprover
 
 text \<open>
   \<^medskip> The \<open>\<and>\<close> congruence rule: not included by default!
