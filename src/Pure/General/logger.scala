@@ -14,11 +14,14 @@ object Logger {
       case None => new Logger
     }
 
-  def make_progress(progress: => Progress, guard_time: Time = Time.min): Logger =
+  def make_progress(progress: => Progress, guard_time: Time = Time.min): Logger = {
+    val t = guard_time
     new Logger {
+      override val guard_time: Time = t
       override def output(msg: => String): Unit =
         if (progress != null) progress.echo(msg)
     }
+  }
 
   def make_system_log(progress: => Progress, options: Options, guard_time: Time = Time.min): Logger =
     options.string("system_log") match {
