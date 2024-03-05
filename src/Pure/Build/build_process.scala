@@ -58,6 +58,8 @@ object Build_Process {
     start_date: Date,
     build: Option[Build_Job]
   ) extends Library.Named {
+    def cancel(): Unit = build.foreach(_.cancel())
+    def is_finished: Boolean = build.isDefined && build.get.is_finished
     def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
   }
 
@@ -224,13 +226,8 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def build_running: List[Build_Job] =
-      List.from(for (job <- running.valuesIterator; build <- job.build) yield build)
-
-    def finished_running(): List[Job] =
-      List.from(
-        for (job <- running.valuesIterator; build <- job.build if build.is_finished)
-          yield job)
+    def build_running: List[Job] =
+      List.from(for (job <- running.valuesIterator if job.build.isDefined) yield job)
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -1128,7 +1125,7 @@ extends AutoCloseable {
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
 
   protected def main_unsynchronized(): Unit = {
-    for (job <- _state.finished_running()) {
+    for (job <- _state.build_running.filter(_.is_finished)) {
       job.join_build match {
         case None =>
           _state = _state.remove_running(job.name)
