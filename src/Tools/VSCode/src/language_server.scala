@@ -73,7 +73,7 @@ Usage: isabelle vscode_server [OPTIONS]
           val more_args = getopts(args)
           if (more_args.nonEmpty) getopts.usage()
 
-          val log = Logger.make(log_file)
+          val log = Logger.make_file(log_file)
           val channel = new Channel(System.in, System.out, log, verbose)
           val server =
             new Language_Server(channel, options, session_name = logic, session_dirs = dirs,

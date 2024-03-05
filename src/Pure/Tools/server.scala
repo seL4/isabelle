@@ -495,7 +495,7 @@ Usage: isabelle server [OPTIONS]
           sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
         }
         else {
-          val log = Logger.make(log_file)
+          val log = Logger.make_file(log_file)
           val (server_info, server) =
             init(name, port = port, existing_server = existing_server, log = log)
           Output.writeln(server_info.toString, stdout = true)
