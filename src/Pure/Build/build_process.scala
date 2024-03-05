@@ -772,7 +772,7 @@ object Build_Process {
 
     /* collective operations */
 
-    override val tables =
+    override val tables: SQL.Tables =
       SQL.Tables(
         Base.table,
         Workers.table,
