@@ -51,7 +51,13 @@ extends Logger {
 class System_Logger(override val guard_time: Time = Time.min)
 extends Logger {
   override def output(msg: => String): Unit = synchronized {
-    if (Platform.is_windows) System.out.println(msg)
-    else System.console.writer.println(msg)
+    if (System.console != null && System.console.writer != null) {
+      System.console.writer.println(msg)
+      System.console.writer.flush()
+    }
+    else if (System.out != null) {
+      System.out.println(msg)
+      System.out.flush()
+    }
   }
 }
