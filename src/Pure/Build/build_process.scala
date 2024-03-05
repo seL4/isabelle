@@ -1126,18 +1126,15 @@ extends AutoCloseable {
 
   protected def main_unsynchronized(): Unit = {
     for (job <- _state.build_running.filter(_.is_finished)) {
-      job.join_build match {
-        case None =>
-          _state = _state.remove_running(job.name)
-        case Some(result) =>
-          val result_name = (job.name, worker_uuid, build_uuid)
-          _state = _state.
-            remove_pending(job.name).
-            remove_running(job.name).
-            make_result(result_name,
-              result.process_result,
-              result.output_shasum,
-              node_info = job.node_info)
+      _state = _state.remove_running(job.name)
+      for (result <- job.join_build) {
+        val result_name = (job.name, worker_uuid, build_uuid)
+        _state = _state.
+          remove_pending(job.name).
+          make_result(result_name,
+            result.process_result,
+            result.output_shasum,
+            node_info = job.node_info)
       }
     }
 
