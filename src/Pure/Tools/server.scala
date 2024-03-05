@@ -397,7 +397,7 @@ object Server {
     name: String = default_name,
     port: Int = 0,
     existing_server: Boolean = false,
-    log: Logger = No_Logger
+    log: Logger = new Logger
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(private_data.database, restrict = true)) { db =>
       private_data.transaction_lock(db, create = true) {

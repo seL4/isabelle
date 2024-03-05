@@ -91,7 +91,7 @@ Usage: isabelle vscode_server [OPTIONS]
         }
         catch {
           case exn: Throwable =>
-            val channel = new Channel(System.in, System.out, No_Logger)
+            val channel = new Channel(System.in, System.out, new Logger)
             channel.error_message(Exn.message(exn))
             throw(exn)
         }
@@ -108,7 +108,7 @@ class Language_Server(
   session_requirements: Boolean = false,
   session_no_build: Boolean = false,
   modes: List[String] = Nil,
-  log: Logger = No_Logger
+  log: Logger = new Logger
 ) {
   server =>
 
