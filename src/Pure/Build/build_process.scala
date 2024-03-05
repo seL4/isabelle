@@ -224,9 +224,6 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def stop_running(): Unit =
-      for (job <- running.valuesIterator; build <- job.build) build.cancel()
-
     def build_running: List[Build_Job] =
       List.from(for (job <- running.valuesIterator; build <- job.build) yield build)
 
@@ -1183,7 +1180,7 @@ extends AutoCloseable {
       try {
         while (!finished()) {
           synchronized_database("Build_Process.main") {
-            if (progress.stopped) _state.stop_running()
+            if (progress.stopped) _state.build_running.foreach(_.cancel())
             main_unsynchronized()
           }
           sleep()
