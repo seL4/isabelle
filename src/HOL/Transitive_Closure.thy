@@ -321,6 +321,27 @@ proof -
   then show ?thesis by auto
 qed
 
+lemma rtranclp_ident_if_reflp_and_transp:
+  assumes "reflp R" and "transp R"
+  shows "R\<^sup>*\<^sup>* = R"
+proof (intro ext iffI)
+  fix x y
+  show "R\<^sup>*\<^sup>* x y \<Longrightarrow> R x y"
+  proof (induction y rule: rtranclp_induct)
+    case base
+    show ?case
+      using \<open>reflp R\<close>[THEN reflpD] .
+  next
+    case (step y z)
+    thus ?case
+      using \<open>transp R\<close>[THEN transpD, of x y  z] by simp
+  qed
+next
+  fix x y
+  show "R x y \<Longrightarrow> R\<^sup>*\<^sup>* x y"
+    using r_into_rtranclp .
+qed
+
 
 subsection \<open>Transitive closure\<close>
 
@@ -734,6 +755,28 @@ lemmas transitive_closurep_trans' [trans] =
   rtranclp_tranclp_tranclp tranclp_rtranclp_tranclp
 
 declare trancl_into_rtrancl [elim]
+
+lemma tranclp_ident_if_transp:
+  assumes "transp R"
+  shows "R\<^sup>+\<^sup>+ = R"
+proof (intro ext iffI)
+  fix x y
+  show "R\<^sup>+\<^sup>+ x y \<Longrightarrow> R x y"
+  proof (induction y rule: tranclp_induct)
+    case (base y)
+    thus ?case
+      by simp
+  next
+    case (step y z)
+    thus ?case
+      using \<open>transp R\<close>[THEN transpD, of x y  z] by simp
+  qed
+next
+  fix x y
+  show "R x y \<Longrightarrow> R\<^sup>+\<^sup>+ x y"
+    using tranclp.r_into_trancl .
+qed
+
 
 subsection \<open>Symmetric closure\<close>
 

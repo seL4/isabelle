@@ -69,6 +69,8 @@ INCOMPATIBILITY.
       relpowp_left_unique
       relpowp_right_unique
       relpowp_trans[trans]
+      rtranclp_ident_if_reflp_and_transp
+      tranclp_ident_if_and_transp
 
 * Theory "HOL-Library.Multiset":
   - Added lemmas.
