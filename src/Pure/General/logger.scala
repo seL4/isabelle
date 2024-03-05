@@ -14,7 +14,7 @@ object Logger {
       case None => No_Logger
     }
 
-  def make_progress(progress: Progress, guard_time: Time = Time.min): Logger =
+  def make_progress(progress: => Progress, guard_time: Time = Time.min): Logger =
     new Logger {
       override def output(msg: => String): Unit =
         if (progress != null) progress.echo(msg)
