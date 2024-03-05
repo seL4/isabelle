@@ -835,9 +835,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         progress.echo_warning("Library archive already exists: " + context.isabelle_library_archive)
       }
       else {
+        require(Platform.is_unix, "Linux or macOS platform required")
         Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
-          val windows_app_platform = Isabelle_Platform.self.ISABELLE_PLATFORM64
-          val bundle = context.dist_name + "_" + Component_Windows_App.tool_platform() + ".tar.gz"
+          val bundle = context.dist_name + "_" + Platform.family + ".tar.gz"
           val bundle_path = context.dist_dir + Path.basic(bundle)
           execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle_path))
 
