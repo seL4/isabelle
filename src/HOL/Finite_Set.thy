@@ -1873,6 +1873,11 @@ proof -
     by (simp add: card_Diff_subset)
 qed
 
+lemma card_Int_Diff:
+  assumes "finite A"
+  shows "card A = card (A \<inter> B) + card (A - B)"
+  by (simp add: assms card_Diff_subset_Int card_mono)
+
 lemma diff_card_le_card_Diff:
   assumes "finite B"
   shows "card A - card B \<le> card (A - B)"

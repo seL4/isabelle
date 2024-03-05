@@ -2585,17 +2585,18 @@ lemmas DERIV_log[THEN DERIV_chain2, derivative_intros]
 lemma powr_log_cancel [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> a powr (log a x) = x"
   by (simp add: powr_def log_def)
 
-lemma log_powr_cancel [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a (a powr y) = y"
+lemma log_powr_cancel [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a (a powr x) = x"
   by (simp add: log_def powr_def)
 
+lemma powr_eq_iff: "\<lbrakk>y>0; a>1\<rbrakk> \<Longrightarrow> a powr x = y \<longleftrightarrow> log a y = x"
+  by auto
+
 lemma log_mult:
-  "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow>
-    log a (x * y) = log a x + log a y"
+  "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x * y) = log a x + log a y"
   by (simp add: log_def ln_mult divide_inverse distrib_right)
 
 lemma log_eq_div_ln_mult_log:
-  "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow>
-    log a x = (ln b/ln a) * log b x"
+  "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log a x = (ln b/ln a) * log b x"
   by (simp add: log_def divide_inverse)
 
 text\<open>Base 10 logarithms\<close>
@@ -2611,10 +2612,10 @@ lemma log_one [simp]: "log a 1 = 0"
 lemma log_eq_one [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a a = 1"
   by (simp add: log_def)
 
-lemma log_inverse: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log a (inverse x) = - log a x"
+lemma log_inverse: "0 < x \<Longrightarrow> log a (inverse x) = - log a x"
   using ln_inverse log_def by auto
 
-lemma log_divide: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x/y) = log a x - log a y"
+lemma log_divide: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x/y) = log a x - log a y"
   by (simp add: log_mult divide_inverse log_inverse)
 
 lemma powr_gt_zero [simp]: "0 < x powr a \<longleftrightarrow> x \<noteq> 0"

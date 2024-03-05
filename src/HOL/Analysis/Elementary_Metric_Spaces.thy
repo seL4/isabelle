@@ -4,7 +4,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section \<open>Elementary Metric Spaces\<close>
+chapter \<open>Elementary Metric Spaces\<close>
 
 theory Elementary_Metric_Spaces
   imports
@@ -12,7 +12,7 @@ theory Elementary_Metric_Spaces
     Metric_Arith
 begin
 
-subsection \<open>Open and closed balls\<close>
+section \<open>Open and closed balls\<close>
 
 definition\<^marker>\<open>tag important\<close> ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "ball x e = {y. dist x y < e}"
@@ -316,7 +316,7 @@ proof -
     by blast
 qed
 
-subsection \<open>Limit Points\<close>
+section \<open>Limit Points\<close>
 
 lemma islimpt_approachable:
   fixes x :: "'a::metric_space"
@@ -349,7 +349,7 @@ lemma islimpt_eq_infinite_cball: "x islimpt S \<longleftrightarrow> (\<forall>e>
   by (metis open_ball ball_subset_cball centre_in_ball finite_Int inf.absorb_iff2 inf_assoc open_contains_cball_eq)
 
 
-subsection \<open>Perfect Metric Spaces\<close>
+section \<open>Perfect Metric Spaces\<close>
 
 lemma perfect_choose_dist: "0 < r \<Longrightarrow> \<exists>a. a \<noteq> x \<and> dist a x < r"
   for x :: "'a::{perfect_space,metric_space}"
@@ -362,7 +362,7 @@ lemma cball_eq_sing:
       not_open_singleton subset_singleton_iff)
 
 
-subsection \<open>Finite and discrete\<close>
+section \<open>Finite and discrete\<close>
 
 lemma finite_ball_include:
   fixes a :: "'a::metric_space"
@@ -427,7 +427,7 @@ proof
 qed
   
 
-subsection \<open>Interior\<close>
+section \<open>Interior\<close>
 
 lemma mem_interior: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   using open_contains_ball_eq [where S="interior S"]
@@ -441,7 +441,7 @@ lemma ball_iff_cball: "(\<exists>r>0. ball x r \<subseteq> U) \<longleftrightarr
   by (meson mem_interior mem_interior_cball)
 
 
-subsection \<open>Frontier\<close>
+section \<open>Frontier\<close>
 
 lemma frontier_straddle:
   fixes a :: "'a::metric_space"
@@ -450,7 +450,7 @@ lemma frontier_straddle:
   by (auto simp: mem_interior subset_eq ball_def)
 
 
-subsection \<open>Limits\<close>
+section \<open>Limits\<close>
 
 proposition Lim: "(f \<longlongrightarrow> l) net \<longleftrightarrow> trivial_limit net \<or> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
   by (auto simp: tendsto_iff trivial_limit_eq)
@@ -553,7 +553,7 @@ lemma Lim_dist_ubound:
   using assms by (fast intro: tendsto_le tendsto_intros)
 
 
-subsection \<open>Continuity\<close>
+section \<open>Continuity\<close>
 
 text\<open>Derive the epsilon-delta forms, which we often use as "definitions"\<close>
 
@@ -656,7 +656,7 @@ lemma continuous_transform_within:
   unfolding continuous_within by (force intro: Lim_transform_within)
 
 
-subsection \<open>Closure and Limit Characterization\<close>
+section \<open>Closure and Limit Characterization\<close>
 
 lemma closure_approachable:
   fixes S :: "'a::metric_space set"
@@ -751,7 +751,7 @@ proof
 qed
 
 
-subsection \<open>Boundedness\<close>
+section \<open>Boundedness\<close>
 
   (* FIXME: This has to be unified with BSEQ!! *)
 definition\<^marker>\<open>tag important\<close> (in metric_space) bounded :: "'a set \<Rightarrow> bool"
@@ -882,7 +882,7 @@ proof -
 qed
 
 
-subsection \<open>Compactness\<close>
+section \<open>Compactness\<close>
 
 lemma compact_imp_bounded:
   assumes "compact U"
@@ -1097,7 +1097,7 @@ proposition Bolzano_Weierstrass_imp_bounded:
   using compact_imp_bounded unfolding compact_eq_Bolzano_Weierstrass by metis
 
 
-subsection \<open>Banach fixed point theorem\<close>
+section \<open>Banach fixed point theorem\<close>
   
 theorem banach_fix:\<comment> \<open>TODO: rename to \<open>Banach_fix\<close>\<close>
   assumes s: "complete s" "s \<noteq> {}"
@@ -1245,7 +1245,7 @@ proof -
 qed
 
 
-subsection \<open>Edelstein fixed point theorem\<close>
+section \<open>Edelstein fixed point theorem\<close>
 
 theorem Edelstein_fix:
   fixes S :: "'a::metric_space set"
@@ -1286,7 +1286,7 @@ proof -
     using \<open>a \<in> S\<close> by blast
 qed
 
-subsection \<open>The diameter of a set\<close>
+section \<open>The diameter of a set\<close>
 
 definition\<^marker>\<open>tag important\<close> diameter :: "'a::metric_space set \<Rightarrow> real" where
   "diameter S = (if S = {} then 0 else SUP (x,y)\<in>S\<times>S. dist x y)"
@@ -1485,7 +1485,7 @@ next
 qed
 
 
-subsection \<open>Metric spaces with the Heine-Borel property\<close>
+section \<open>Metric spaces with the Heine-Borel property\<close>
 
 text \<open>
   A metric space (or topological vector space) is said to have the
@@ -1643,7 +1643,7 @@ proof
 qed
 
 
-subsection \<open>Completeness\<close>
+section \<open>Completeness\<close>
 
 proposition (in metric_space) completeI:
   assumes "\<And>f. \<forall>n. f n \<in> s \<Longrightarrow> Cauchy f \<Longrightarrow> \<exists>l\<in>s. f \<longlonglongrightarrow> l"
@@ -1869,7 +1869,7 @@ lemma banach_fix_type:
   using assms banach_fix[OF complete_UNIV UNIV_not_empty assms(1,2) subset_UNIV, of f]
   by auto
 
-subsection \<open>Cauchy continuity\<close>
+section \<open>Cauchy continuity\<close>
 
 definition Cauchy_continuous_on where
   "Cauchy_continuous_on \<equiv> \<lambda>S f. \<forall>\<sigma>. Cauchy \<sigma> \<longrightarrow> range \<sigma> \<subseteq> S \<longrightarrow> Cauchy (f \<circ> \<sigma>)"
@@ -1937,7 +1937,7 @@ proof -
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open> Finite intersection property\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open> Finite intersection property\<close>
 
 text\<open>Also developed in HOL's toplogical spaces theory, but the Heine-Borel type class isn't available there.\<close>
 
@@ -1985,7 +1985,7 @@ lemma compact_sequence_with_limit:
   by (simp add: closed_limpt compact_eq_bounded_closed convergent_imp_bounded islimpt_insert sequence_unique_limpt)
 
 
-subsection \<open>Properties of Balls and Spheres\<close>
+section \<open>Properties of Balls and Spheres\<close>
 
 lemma compact_cball[simp]:
   fixes x :: "'a::heine_borel"
@@ -2029,7 +2029,7 @@ proof -
 qed
 
 
-subsection \<open>Distance from a Set\<close>
+section \<open>Distance from a Set\<close>
 
 lemma distance_attains_sup:
   assumes "compact s" "s \<noteq> {}"
@@ -2066,7 +2066,7 @@ proof -
 qed
 
 
-subsection \<open>Infimum Distance\<close>
+section \<open>Infimum Distance\<close>
 
 definition\<^marker>\<open>tag important\<close> "infdist x A = (if A = {} then 0 else INF a\<in>A. dist x a)"
 
@@ -2299,7 +2299,7 @@ proof -
 qed
 
 
-subsection \<open>Separation between Points and Sets\<close>
+section \<open>Separation between Points and Sets\<close>
 
 proposition separate_point_closed:
   fixes S :: "'a::heine_borel set"
@@ -2362,7 +2362,7 @@ proof atomize_elim
 qed
 
 
-subsection \<open>Uniform Continuity\<close>
+section \<open>Uniform Continuity\<close>
 
 lemma uniformly_continuous_onE:
   assumes "uniformly_continuous_on s f" "0 < e"
@@ -2429,7 +2429,7 @@ next
 qed
 
 
-subsection \<open>Continuity on a Compact Domain Implies Uniform Continuity\<close>
+section \<open>Continuity on a Compact Domain Implies Uniform Continuity\<close>
 
 text\<open>From the proof of the Heine-Borel theorem: Lemma 2 in section 3.7, page 69 of
 J. C. Burkill and H. Burkill. A Second Course in Mathematical Analysis (CUP, 2002)\<close>
@@ -2521,7 +2521,7 @@ corollary compact_uniformly_continuous:
     by (force intro: compact_uniformly_equicontinuous [OF S, of "{f}"])
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open> Theorems relating continuity and uniform continuity to closures\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open> Theorems relating continuity and uniform continuity to closures\<close>
 
 lemma continuous_on_closure:
    "continuous_on (closure S) f \<longleftrightarrow>
@@ -2765,7 +2765,7 @@ lemma bounded_uniformly_continuous_image:
   by (metis (no_types, lifting) assms bounded_closure_image compact_closure compact_continuous_image compact_eq_bounded_closed image_cong uniformly_continuous_imp_continuous uniformly_continuous_on_extension_on_closure)
 
 
-subsection \<open>With Abstract Topology (TODO: move and remove dependency?)\<close>
+section \<open>With Abstract Topology (TODO: move and remove dependency?)\<close>
 
 lemma openin_contains_ball:
     "openin (top_of_set T) S \<longleftrightarrow>
@@ -2796,7 +2796,7 @@ next
 qed
 
 
-subsection \<open>Closed Nest\<close>
+section \<open>Closed Nest\<close>
 
 text \<open>Bounded closed nest property (proof does not use Heine-Borel)\<close>
 
@@ -2908,7 +2908,7 @@ proof -
   then show ?thesis ..
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Making a continuous function avoid some value in a neighbourhood\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Making a continuous function avoid some value in a neighbourhood\<close>
 
 lemma continuous_within_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
@@ -2958,7 +2958,7 @@ lemma continuous_on_open_avoid:
   using continuous_at_avoid[of x f a] assms(4)
   by auto
 
-subsection \<open>Consequences for Real Numbers\<close>
+section \<open>Consequences for Real Numbers\<close>
 
 lemma closed_contains_Inf:
   fixes S :: "real set"
@@ -3093,7 +3093,7 @@ lemma continuous_ge_on_closure:
   by auto
 
 
-subsection\<open>The infimum of the distance between two sets\<close>
+section\<open>The infimum of the distance between two sets\<close>
 
 definition\<^marker>\<open>tag important\<close> setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
   "setdist s t \<equiv>
@@ -3269,4 +3269,72 @@ next
   qed (fact \<open>y \<in> B\<close>)
 qed
 
+
+section \<open>Diameter Lemma\<close>
+
+text \<open>taken from the AFP entry Martingales, by Ata Keskin, TU München\<close>
+
+lemma diameter_comp_strict_mono:
+  fixes s :: "nat \<Rightarrow> 'a :: metric_space"
+  assumes "strict_mono r" "bounded {s i |i. r n \<le> i}"
+  shows "diameter {s (r i) | i. n \<le> i} \<le> diameter {s i | i. r n \<le> i}"
+proof (rule diameter_subset)
+  show "{s (r i) | i. n \<le> i} \<subseteq> {s i | i. r n \<le> i}" using assms(1) monotoneD strict_mono_mono by fastforce
+qed (intro assms(2))
+
+lemma diameter_bounded_bound':
+  fixes S :: "'a :: metric_space set"
+  assumes S: "bdd_above (case_prod dist ` (S\<times>S))" and "x \<in> S" "y \<in> S"
+  shows "dist x y \<le> diameter S"
+proof -
+  have "(x,y) \<in> S\<times>S" using assms by auto
+  then have "dist x y \<le> (SUP (x,y)\<in>S\<times>S. dist x y)"
+    by (metis S cSUP_upper case_prod_conv)
+  with \<open>x \<in> S\<close> show ?thesis by (auto simp: diameter_def)
+qed
+
+lemma bounded_imp_dist_bounded:
+  assumes "bounded (range s)"
+  shows "bounded ((\<lambda>(i, j). dist (s i) (s j)) ` ({n..} \<times> {n..}))"
+  using bounded_dist_comp[OF bounded_fst bounded_snd, OF bounded_Times(1,1)[OF assms(1,1)]] by (rule bounded_subset, force) 
+
+text \<open>A sequence is Cauchy, if and only if it is bounded and its diameter tends to zero. The diameter is well-defined only if the sequence is bounded.\<close>
+lemma cauchy_iff_diameter_tends_to_zero_and_bounded:
+  fixes s :: "nat \<Rightarrow> 'a :: metric_space"
+  shows "Cauchy s \<longleftrightarrow> ((\<lambda>n. diameter {s i | i. i \<ge> n}) \<longlonglongrightarrow> 0 \<and> bounded (range s))"
+proof -
+  have "{s i |i. N \<le> i} \<noteq> {}" for N by blast
+  hence diameter_SUP: "diameter {s i |i. N \<le> i} = (SUP (i, j) \<in> {N..} \<times> {N..}. dist (s i) (s j))" for N unfolding diameter_def by (auto intro!: arg_cong[of _ _ Sup])
+  show ?thesis 
+  proof (intro iffI)
+    assume asm: "Cauchy s"
+    have "\<exists>N. \<forall>n\<ge>N. norm (diameter {s i |i. n \<le> i}) < e" if e_pos: "e > 0" for e
+    proof -
+      obtain N where dist_less: "dist (s n) (s m) < (1/2) * e" if "n \<ge> N" "m \<ge> N" for n m using asm e_pos by (metis Cauchy_def mult_pos_pos zero_less_divide_iff zero_less_numeral zero_less_one)
+      {
+        fix r assume "r \<ge> N"
+        hence "dist (s n) (s m) < (1/2) * e" if "n \<ge> r" "m \<ge> r" for n m using dist_less that by simp
+        hence "(SUP (i, j) \<in> {r..} \<times> {r..}. dist (s i) (s j)) \<le> (1/2) * e" by (intro cSup_least) fastforce+
+        also have "... < e" using e_pos by simp
+        finally have "diameter {s i |i. r \<le> i} < e" using diameter_SUP by presburger
+      }
+      moreover have "diameter {s i |i. r \<le> i} \<ge> 0" for r unfolding diameter_SUP using bounded_imp_dist_bounded[OF cauchy_imp_bounded, THEN bounded_imp_bdd_above, OF asm] by (intro cSup_upper2, auto)
+      ultimately show ?thesis by auto
+    qed                 
+    thus "(\<lambda>n. diameter {s i |i. n \<le> i}) \<longlonglongrightarrow> 0 \<and> bounded (range s)" using cauchy_imp_bounded[OF asm] by (simp add: LIMSEQ_iff)
+  next
+    assume asm: "(\<lambda>n. diameter {s i |i. n \<le> i}) \<longlonglongrightarrow> 0 \<and> bounded (range s)"
+    have "\<exists>N. \<forall>n\<ge>N. \<forall>m\<ge>N. dist (s n) (s m) < e" if e_pos: "e > 0" for e
+    proof -
+      obtain N where diam_less: "diameter {s i |i. r \<le> i} < e" if "r \<ge> N" for r using LIMSEQ_D asm(1) e_pos by fastforce
+      {
+        fix n m assume "n \<ge> N" "m \<ge> N"
+        hence "dist (s n) (s m) < e" using cSUP_lessD[OF bounded_imp_dist_bounded[THEN bounded_imp_bdd_above], OF _ diam_less[unfolded diameter_SUP]] asm by auto
+      }
+      thus ?thesis by blast
+    qed
+    then show "Cauchy s" by (simp add: Cauchy_def)
+  qed            
+qed
+  
 end
