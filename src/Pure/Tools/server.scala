@@ -397,7 +397,7 @@ object Server {
     name: String = default_name,
     port: Int = 0,
     existing_server: Boolean = false,
-    log: Logger = No_Logger
+    log: Logger = new Logger
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(private_data.database, restrict = true)) { db =>
       private_data.transaction_lock(db, create = true) {
@@ -495,7 +495,7 @@ Usage: isabelle server [OPTIONS]
           sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
         }
         else {
-          val log = Logger.make(log_file)
+          val log = Logger.make_file(log_file)
           val (server_info, server) =
             init(name, port = port, existing_server = existing_server, log = log)
           Output.writeln(server_info.toString, stdout = true)

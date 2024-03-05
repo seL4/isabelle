@@ -9,6 +9,13 @@ New in this Isabelle version
 
 *** General ***
 
+* Dropped support for very old operating systems. The platform
+base-lines are now as follows:
+
+  - Ubuntu Linux 18.04 LTS
+  - macOS 11 Big Sur
+  - Windows 10 or Windows Server 2012 R2
+
 * The arm64-linux platform is now officially supported, although a few
 (non-essential) tools are missing:
 
@@ -173,9 +180,6 @@ before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 
 * Update to GHC stack 2.15.1 with support for all platforms, including
 ARM Linux and Apple Silicon.
-
-* No longer support for very old versions of macOS and Linux: base-line
-is Ubuntu Linux 18.04 LTS and macOS 11 Big Sur.
 
 * Isabelle/Scala supports mailing via SMTP, based on new system
 component javamail (previously javax.mail) from jakarta 2.1.2

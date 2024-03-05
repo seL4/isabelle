@@ -43,7 +43,6 @@ object Build_Process {
   sealed case class Task(
     name: String,
     deps: List[String],
-    info: JSON.Object.T,
     build_uuid: String
   ) {
     def is_ready: Boolean = deps.isEmpty
@@ -566,10 +565,9 @@ object Build_Process {
     object Pending {
       val name = Generic.name.make_primary_key
       val deps = SQL.Column.string("deps")
-      val info = SQL.Column.string("info")
       val build_uuid = Generic.build_uuid
 
-      val table = make_table(List(name, deps, info, build_uuid), name = "pending")
+      val table = make_table(List(name, deps, build_uuid), name = "pending")
     }
 
     def read_pending(db: SQL.Database): List[Task] =
@@ -579,9 +577,8 @@ object Build_Process {
         { res =>
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
-          val info = res.string(Pending.info)
           val build_uuid = res.string(Pending.build_uuid)
-          Task(name, split_lines(deps), JSON.Object.parse(info), build_uuid)
+          Task(name, split_lines(deps), build_uuid)
         })
 
     def update_pending(
@@ -601,8 +598,7 @@ object Build_Process {
           for (task <- insert) yield { (stmt: SQL.Statement) =>
             stmt.string(1) = task.name
             stmt.string(2) = cat_lines(task.deps)
-            stmt.string(3) = JSON.Format(task.info)
-            stmt.string(4) = task.build_uuid
+            stmt.string(3) = task.build_uuid
           })
       }
 
@@ -978,7 +974,7 @@ extends AutoCloseable {
     val new_pending =
       List.from(
         for (session <- sessions1.iterator if !old_pending(session.name))
-          yield Build_Process.Task(session.name, session.deps, JSON.Object.empty, build_uuid))
+          yield Build_Process.Task(session.name, session.deps, build_uuid))
     val pending1 = new_pending ::: state.pending
 
     state.copy(sessions = sessions1, pending = pending1)
