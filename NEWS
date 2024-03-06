@@ -182,6 +182,8 @@ using eclipse angus 2.0.2/2.0.1.
 * Update to GHC stack 2.15.1 with support for all platforms, including
 ARM Linux and Apple Silicon.
 
+* Update to .NET / Fsharp 8.0.x: the current long-term support version.
+
 * Update to official Poly/ML 5.9.1.
 
 * Update to OpenJDK 21: the current long-term support version of Java.
