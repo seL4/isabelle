@@ -243,6 +243,9 @@ proof -
   with that show ?thesis by blast
 qed
 
+lemma count_gt_imp_in_mset: "count M x > n \<Longrightarrow> x \<in># M"
+  using count_greater_zero_iff by fastforce
+
 
 subsubsection \<open>Union\<close>
 
@@ -392,6 +395,11 @@ abbreviation Min_mset :: "'a::linorder multiset \<Rightarrow> 'a" where
 
 abbreviation Max_mset :: "'a::linorder multiset \<Rightarrow> 'a" where
 "Max_mset m \<equiv> Max (set_mset m)"
+
+lemma
+  Min_in_mset: "M \<noteq> {#} \<Longrightarrow> Min_mset M \<in># M" and
+  Max_in_mset: "M \<noteq> {#} \<Longrightarrow> Max_mset M \<in># M"
+  by simp+
 
 
 subsubsection \<open>Equality of multisets\<close>
@@ -683,6 +691,12 @@ proof
   then show "M={#} \<and> a=b"
     using A by (simp add: mset_subset_eq_add_mset_cancel)
 qed simp
+
+lemma nonempty_subseteq_mset_eq_single: "M \<noteq> {#} \<Longrightarrow> M \<subseteq># {#x#} \<Longrightarrow> M = {#x#}"
+  by (cases M) (metis single_is_union subset_mset.less_eqE)
+
+lemma nonempty_subseteq_mset_iff_single: "(M \<noteq> {#} \<and> M \<subseteq># {#x#} \<and> P) \<longleftrightarrow> M = {#x#} \<and> P"
+  by (cases M) (metis empty_not_add_mset nonempty_subseteq_mset_eq_single subset_mset.order_refl)
 
 
 subsubsection \<open>Intersection and bounded union\<close>
@@ -1374,6 +1388,9 @@ lemma filter_mset_cong:
   unfolding \<open>M = M'\<close>
   using assms by (auto intro: filter_mset_cong0)
 
+lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
+  by (induct D) (simp add: multiset_eqI)
+
 
 subsubsection \<open>Size\<close>
 
@@ -1479,6 +1496,9 @@ by (rule size_mset_mono[OF multiset_filter_subset])
 lemma size_Diff_submset:
   "M \<subseteq># M' \<Longrightarrow> size (M' - M) = size M' - size(M::'a multiset)"
 by (metis add_diff_cancel_left' size_union mset_subset_eq_exists_conv)
+
+lemma size_lt_imp_ex_count_lt: "size M < size N \<Longrightarrow> \<exists>x \<in># N. count M x < count N x"
+  by (metis count_eq_zero_iff leD not_le_imp_less not_less_zero size_mset_mono subseteq_mset_def)
 
 
 subsection \<open>Induction and case splits\<close>
@@ -1644,6 +1664,9 @@ where
 lemma fold_mset_empty [simp]: "fold_mset f s {#} = s"
   by (simp add: fold_mset_def)
 
+lemma fold_mset_single [simp]: "fold_mset f s {#x#} = f x s"
+  by (simp add: fold_mset_def)
+
 context comp_fun_commute
 begin
 
@@ -1673,9 +1696,6 @@ proof -
     with * show ?thesis by (simp add: fold_mset_def del: count_add_mset) simp
   qed
 qed
-
-corollary fold_mset_single: "fold_mset f s {#x#} = f x s"
-  by simp
 
 lemma fold_mset_fun_left_comm: "f x (fold_mset f s M) = fold_mset f (f x s) M"
   by (induct M) (simp_all add: fun_left_comm)
@@ -1848,7 +1868,6 @@ lemma image_mset_const_eq:
 lemma image_mset_filter_mset_swap:
   "image_mset f (filter_mset (\<lambda>x. P (f x)) M) = filter_mset P (image_mset f M)"
   by (induction M rule: multiset_induct) simp_all
-
 
 lemma image_mset_eq_plusD:
   "image_mset f A = B + C \<Longrightarrow> \<exists>B' C'. A = B' + C' \<and> B = image_mset f B' \<and> C = image_mset f C'"
@@ -2278,7 +2297,7 @@ next
 qed
 
 
-subsection \<open>More properties of the replicate and repeat operations\<close>
+subsection \<open>More properties of the replicate, repeat, and image operations\<close>
 
 lemma in_replicate_mset[simp]: "x \<in># replicate_mset n y \<longleftrightarrow> n > 0 \<and> x = y"
   unfolding replicate_mset_def by (induct n) auto
@@ -2291,9 +2310,6 @@ lemma size_replicate_mset[simp]: "size (replicate_mset n M) = n"
 
 lemma count_le_replicate_mset_subset_eq: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<subseteq># M"
   by (auto simp add: mset_subset_eqI) (metis count_replicate_mset subseteq_mset_def)
-
-lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
-  by (induct D) simp_all
 
 lemma replicate_count_mset_eq_filter_eq: "replicate (count (mset xs) k) k = filter (HOL.eq k) xs"
   by (induct xs) auto
@@ -2352,6 +2368,195 @@ next
   with assms have "m \<le> n"
     by (auto simp add: replicate_mset_msubseteq_iff)
   then show thesis using A ..
+qed
+
+lemma count_image_mset_lt_imp_lt_raw:
+  assumes
+    "finite A" and
+    "A = set_mset M \<union> set_mset N" and
+    "count (image_mset f M) b < count (image_mset f N) b"
+  shows "\<exists>x. f x = b \<and> count M x < count N x"
+  using assms
+proof (induct A arbitrary: M N b rule: finite_induct)
+  case (insert x F)
+  note fin = this(1) and x_ni_f = this(2) and ih = this(3) and x_f_eq_m_n = this(4) and
+    cnt_b = this(5)
+
+  let ?Ma = "{#y \<in># M. y \<noteq> x#}"
+  let ?Mb = "{#y \<in># M. y = x#}"
+  let ?Na = "{#y \<in># N. y \<noteq> x#}"
+  let ?Nb = "{#y \<in># N. y = x#}"
+
+  have m_part: "M = ?Mb + ?Ma" and n_part: "N = ?Nb + ?Na"
+    using multiset_partition by blast+
+
+  have f_eq_ma_na: "F = set_mset ?Ma \<union> set_mset ?Na"
+    using x_f_eq_m_n x_ni_f by auto
+
+  show ?case
+  proof (cases "count (image_mset f ?Ma) b < count (image_mset f ?Na) b")
+    case cnt_ba: True
+    obtain xa where "f xa = b" and "count ?Ma xa < count ?Na xa"
+      using ih[OF f_eq_ma_na cnt_ba] by blast
+    thus ?thesis
+      by (metis count_filter_mset not_less0)
+  next
+    case cnt_ba: False
+    have fx_eq_b: "f x = b"
+      using cnt_b cnt_ba
+      by (subst (asm) m_part, subst (asm) n_part,
+          auto simp: filter_eq_replicate_mset split: if_splits)
+    moreover have "count M x < count N x"
+      using cnt_b cnt_ba
+      by (subst (asm) m_part, subst (asm) n_part,
+          auto simp: filter_eq_replicate_mset split: if_splits)
+    ultimately show ?thesis
+      by blast
+  qed
+qed auto
+
+lemma count_image_mset_lt_imp_lt:
+  assumes cnt_b: "count (image_mset f M) b < count (image_mset f N) b"
+  shows "\<exists>x. f x = b \<and> count M x < count N x"
+  by (rule count_image_mset_lt_imp_lt_raw[of "set_mset M \<union> set_mset N", OF _ refl cnt_b]) auto
+
+lemma count_image_mset_le_imp_lt_raw:
+  assumes
+    "finite A" and
+    "A = set_mset M \<union> set_mset N" and
+    "count (image_mset f M) (f a) + count N a < count (image_mset f N) (f a) + count M a"
+  shows "\<exists>b. f b = f a \<and> count M b < count N b"
+  using assms
+proof (induct A arbitrary: M N rule: finite_induct)
+  case (insert x F)
+  note fin = this(1) and x_ni_f = this(2) and ih = this(3) and x_f_eq_m_n = this(4) and
+    cnt_lt = this(5)
+
+  let ?Ma = "{#y \<in># M. y \<noteq> x#}"
+  let ?Mb = "{#y \<in># M. y = x#}"
+  let ?Na = "{#y \<in># N. y \<noteq> x#}"
+  let ?Nb = "{#y \<in># N. y = x#}"
+
+  have m_part: "M = ?Mb + ?Ma" and n_part: "N = ?Nb + ?Na"
+    using multiset_partition by blast+
+
+  have f_eq_ma_na: "F = set_mset ?Ma \<union> set_mset ?Na"
+    using x_f_eq_m_n x_ni_f by auto
+
+  show ?case
+  proof (cases "f x = f a")
+    case fx_ne_fa: False
+
+    have cnt_fma_fa: "count (image_mset f ?Ma) (f a) = count (image_mset f M) (f a)"
+      using fx_ne_fa by (subst (2) m_part) (auto simp: filter_eq_replicate_mset)
+    have cnt_fna_fa: "count (image_mset f ?Na) (f a) = count (image_mset f N) (f a)"
+      using fx_ne_fa by (subst (2) n_part) (auto simp: filter_eq_replicate_mset)
+    have cnt_ma_a: "count ?Ma a = count M a"
+      using fx_ne_fa by (subst (2) m_part) (auto simp: filter_eq_replicate_mset)
+    have cnt_na_a: "count ?Na a = count N a"
+      using fx_ne_fa by (subst (2) n_part) (auto simp: filter_eq_replicate_mset)
+
+    obtain b where fb_eq_fa: "f b = f a" and cnt_b: "count ?Ma b < count ?Na b"
+      using ih[OF f_eq_ma_na] cnt_lt unfolding cnt_fma_fa cnt_fna_fa cnt_ma_a cnt_na_a by blast
+    have fx_ne_fb: "f x \<noteq> f b"
+      using fb_eq_fa fx_ne_fa by simp
+
+    have cnt_ma_b: "count ?Ma b = count M b"
+      using fx_ne_fb by (subst (2) m_part) auto
+    have cnt_na_b: "count ?Na b = count N b"
+      using fx_ne_fb by (subst (2) n_part) auto
+
+    show ?thesis
+      using fb_eq_fa cnt_b unfolding cnt_ma_b cnt_na_b by blast
+  next
+    case fx_eq_fa: True
+    show ?thesis
+    proof (cases "x = a")
+      case x_eq_a: True
+      have "count (image_mset f ?Ma) (f a) + count ?Na a
+        < count (image_mset f ?Na) (f a) + count ?Ma a"
+        using cnt_lt x_eq_a by (subst (asm) (1 2) m_part, subst (asm) (1 2) n_part,
+            auto simp: filter_eq_replicate_mset)
+      thus ?thesis
+        using ih[OF f_eq_ma_na] by (metis count_filter_mset nat_neq_iff)
+    next
+      case x_ne_a: False
+      show ?thesis
+      proof (cases "count M x < count N x")
+        case True
+        thus ?thesis
+          using fx_eq_fa by blast
+     next
+        case False
+        hence cnt_x: "count M x \<ge> count N x"
+          by fastforce
+        have "count M x + count (image_mset f ?Ma) (f a) + count ?Na a
+          < count N x + count (image_mset f ?Na) (f a) + count ?Ma a"
+          using cnt_lt x_ne_a fx_eq_fa by (subst (asm) (1 2) m_part, subst (asm) (1 2) n_part,
+            auto simp: filter_eq_replicate_mset)
+        hence "count (image_mset f ?Ma) (f a) + count ?Na a
+          < count (image_mset f ?Na) (f a) + count ?Ma a"
+          using cnt_x by linarith
+        thus ?thesis
+          using ih[OF f_eq_ma_na] by (metis count_filter_mset nat_neq_iff)
+      qed
+    qed
+  qed
+qed auto
+
+lemma count_image_mset_le_imp_lt:
+  assumes
+    "count (image_mset f M) (f a) \<le> count (image_mset f N) (f a)" and
+    "count M a > count N a"
+  shows "\<exists>b. f b = f a \<and> count M b < count N b"
+  using assms by (auto intro: count_image_mset_le_imp_lt_raw[of "set_mset M \<union> set_mset N"])
+
+lemma size_filter_unsat_elem:
+  assumes "x \<in># M" and "\<not> P x"
+  shows "size {#x \<in># M. P x#} < size M"
+proof -
+  have "size (filter_mset P M) \<noteq> size M"
+    using assms by (metis add.right_neutral add_diff_cancel_left' count_filter_mset mem_Collect_eq
+      multiset_partition nonempty_has_size set_mset_def size_union)
+  then show ?thesis
+    by (meson leD nat_neq_iff size_filter_mset_lesseq)
+qed
+
+lemma size_filter_ne_elem: "x \<in># M \<Longrightarrow> size {#y \<in># M. y \<noteq> x#} < size M"
+  by (simp add: size_filter_unsat_elem[of x M "\<lambda>y. y \<noteq> x"])
+
+lemma size_eq_ex_count_lt:
+  assumes
+    sz_m_eq_n: "size M = size N" and
+    m_eq_n: "M \<noteq> N"
+  shows "\<exists>x. count M x < count N x"
+proof -
+  obtain x where "count M x \<noteq> count N x"
+    using m_eq_n by (meson multiset_eqI)
+  moreover
+  {
+    assume "count M x < count N x"
+    hence ?thesis
+      by blast
+  }
+  moreover
+  {
+    assume cnt_x: "count M x > count N x"
+
+    have "size {#y \<in># M. y = x#} + size {#y \<in># M. y \<noteq> x#} =
+      size {#y \<in># N. y = x#} + size {#y \<in># N. y \<noteq> x#}"
+      using sz_m_eq_n multiset_partition by (metis size_union)
+    hence sz_m_minus_x: "size {#y \<in># M. y \<noteq> x#} < size {#y \<in># N. y \<noteq> x#}"
+      using cnt_x by (simp add: filter_eq_replicate_mset)
+    then obtain y where "count {#y \<in># M. y \<noteq> x#} y < count {#y \<in># N. y \<noteq> x#} y"
+      using size_lt_imp_ex_count_lt[OF sz_m_minus_x] by blast
+    hence "count M y < count N y"
+      by (metis count_filter_mset less_asym)
+    hence ?thesis
+      by blast
+  }
+  ultimately show ?thesis
+    by fastforce
 qed
 
 
@@ -2570,7 +2775,6 @@ lemma Union_mset_empty_conv[simp]: "\<Sum>\<^sub># M = {#} \<longleftrightarrow>
 
 lemma Union_image_single_mset[simp]: "\<Sum>\<^sub># (image_mset (\<lambda>x. {#x#}) m) = m"
 by(induction m) auto
-
 
 context comm_monoid_mult
 begin

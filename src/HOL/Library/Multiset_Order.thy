@@ -853,4 +853,63 @@ instance
 
 end
 
+lemma add_mset_lt_left_lt: "a < b \<Longrightarrow> add_mset a A < add_mset b A"
+  by fastforce
+
+lemma add_mset_le_left_le: "a \<le> b \<Longrightarrow> add_mset a A \<le> add_mset b A" for a :: "'a :: linorder"
+  by fastforce
+
+lemma add_mset_lt_right_lt: "A < B \<Longrightarrow> add_mset a A < add_mset a B"
+  by fastforce
+
+lemma add_mset_le_right_le: "A \<le> B \<Longrightarrow> add_mset a A \<le> add_mset a B"
+  by fastforce
+
+lemma add_mset_lt_lt_lt:
+  assumes a_lt_b: "a < b" and A_le_B: "A < B"
+  shows "add_mset a A < add_mset b B"
+  by (rule less_trans[OF add_mset_lt_left_lt[OF a_lt_b] add_mset_lt_right_lt[OF A_le_B]])
+
+lemma add_mset_lt_lt_le: "a < b \<Longrightarrow> A \<le> B \<Longrightarrow> add_mset a A < add_mset b B"
+  using add_mset_lt_lt_lt le_neq_trans by fastforce
+
+lemma add_mset_lt_le_lt: "a \<le> b \<Longrightarrow> A < B \<Longrightarrow> add_mset a A < add_mset b B" for a :: "'a :: linorder"
+  using add_mset_lt_lt_lt by (metis add_mset_lt_right_lt le_less)
+
+lemma add_mset_le_le_le:
+  fixes a :: "'a :: linorder"
+  assumes a_le_b: "a \<le> b" and A_le_B: "A \<le> B"
+  shows "add_mset a A \<le> add_mset b B"
+  by (rule order.trans[OF add_mset_le_left_le[OF a_le_b] add_mset_le_right_le[OF A_le_B]])
+
+lemma Max_lt_imp_lt_mset:
+  assumes n_nemp: "N \<noteq> {#}" and max: "Max_mset M < Max_mset N" (is "?max_M < ?max_N")
+  shows "M < N"
+proof (cases "M = {#}")
+  case m_nemp: False
+
+  have max_n_in_n: "?max_N \<in># N"
+    using n_nemp by simp
+  have max_n_nin_m: "?max_N \<notin># M"
+    using max Max_ge leD by auto
+
+  have "M \<noteq> N"
+    using max by auto
+  moreover
+  {
+    fix y
+    assume "count N y < count M y"
+    hence "y \<in># M"
+      by (simp add: count_inI)
+    hence "?max_M \<ge> y"
+      by simp
+    hence "?max_N > y"
+      using max by auto
+    hence "\<exists>x > y. count M x < count N x"
+      using max_n_nin_m max_n_in_n count_inI by force
+  }
+  ultimately show ?thesis
+    unfolding less_multiset\<^sub>H\<^sub>O by blast
+qed (auto simp: n_nemp)
+
 end
