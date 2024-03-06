@@ -142,7 +142,7 @@ object Dump {
 
     def sessions(
       logic: String = default_logic,
-      log: Logger = No_Logger
+      log: Logger = new Logger
     ): List[Session] = {
       /* partitions */
 
@@ -359,7 +359,7 @@ object Dump {
     logic: String,
     aspects: List[Aspect] = Nil,
     progress: Progress = new Progress,
-    log: Logger = No_Logger,
+    log: Logger = new Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,

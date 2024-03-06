@@ -43,7 +43,6 @@ object Build_Process {
   sealed case class Task(
     name: String,
     deps: List[String],
-    info: JSON.Object.T,
     build_uuid: String
   ) {
     def is_ready: Boolean = deps.isEmpty
@@ -59,6 +58,8 @@ object Build_Process {
     start_date: Date,
     build: Option[Build_Job]
   ) extends Library.Named {
+    def cancel(): Unit = build.foreach(_.cancel())
+    def is_finished: Boolean = build.isDefined && build.get.is_finished
     def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
   }
 
@@ -225,16 +226,8 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def stop_running(): Unit =
-      for (job <- running.valuesIterator; build <- job.build) build.cancel()
-
-    def build_running: List[Build_Job] =
-      List.from(for (job <- running.valuesIterator; build <- job.build) yield build)
-
-    def finished_running(): List[Job] =
-      List.from(
-        for (job <- running.valuesIterator; build <- job.build if build.is_finished)
-          yield job)
+    def build_running: List[Job] =
+      List.from(for (job <- running.valuesIterator if job.build.isDefined) yield job)
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -566,10 +559,9 @@ object Build_Process {
     object Pending {
       val name = Generic.name.make_primary_key
       val deps = SQL.Column.string("deps")
-      val info = SQL.Column.string("info")
       val build_uuid = Generic.build_uuid
 
-      val table = make_table(List(name, deps, info, build_uuid), name = "pending")
+      val table = make_table(List(name, deps, build_uuid), name = "pending")
     }
 
     def read_pending(db: SQL.Database): List[Task] =
@@ -579,9 +571,8 @@ object Build_Process {
         { res =>
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
-          val info = res.string(Pending.info)
           val build_uuid = res.string(Pending.build_uuid)
-          Task(name, split_lines(deps), JSON.Object.parse(info), build_uuid)
+          Task(name, split_lines(deps), build_uuid)
         })
 
     def update_pending(
@@ -601,8 +592,7 @@ object Build_Process {
           for (task <- insert) yield { (stmt: SQL.Statement) =>
             stmt.string(1) = task.name
             stmt.string(2) = cat_lines(task.deps)
-            stmt.string(3) = JSON.Format(task.info)
-            stmt.string(4) = task.build_uuid
+            stmt.string(3) = task.build_uuid
           })
       }
 
@@ -776,7 +766,7 @@ object Build_Process {
 
     /* collective operations */
 
-    override val tables =
+    override val tables: SQL.Tables =
       SQL.Tables(
         Base.table,
         Workers.table,
@@ -978,7 +968,7 @@ extends AutoCloseable {
     val new_pending =
       List.from(
         for (session <- sessions1.iterator if !old_pending(session.name))
-          yield Build_Process.Task(session.name, session.deps, JSON.Object.empty, build_uuid))
+          yield Build_Process.Task(session.name, session.deps, build_uuid))
     val pending1 = new_pending ::: state.pending
 
     state.copy(sessions = sessions1, pending = pending1)
@@ -1135,19 +1125,16 @@ extends AutoCloseable {
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
 
   protected def main_unsynchronized(): Unit = {
-    for (job <- _state.finished_running()) {
-      job.join_build match {
-        case None =>
-          _state = _state.remove_running(job.name)
-        case Some(result) =>
-          val result_name = (job.name, worker_uuid, build_uuid)
-          _state = _state.
-            remove_pending(job.name).
-            remove_running(job.name).
-            make_result(result_name,
-              result.process_result,
-              result.output_shasum,
-              node_info = job.node_info)
+    for (job <- _state.build_running.filter(_.is_finished)) {
+      _state = _state.remove_running(job.name)
+      for (result <- job.join_build) {
+        val result_name = (job.name, worker_uuid, build_uuid)
+        _state = _state.
+          remove_pending(job.name).
+          make_result(result_name,
+            result.process_result,
+            result.output_shasum,
+            node_info = job.node_info)
       }
     }
 
@@ -1187,7 +1174,7 @@ extends AutoCloseable {
       try {
         while (!finished()) {
           synchronized_database("Build_Process.main") {
-            if (progress.stopped) _state.stop_running()
+            if (progress.stopped) _state.build_running.foreach(_.cancel())
             main_unsynchronized()
           }
           sleep()

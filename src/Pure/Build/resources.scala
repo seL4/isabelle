@@ -24,7 +24,7 @@ object Resources {
 
 class Resources(
   val session_background: Sessions.Background,
-  val log: Logger = No_Logger,
+  val log: Logger = new Logger,
   command_timings: List[Properties.T] = Nil
 ) {
   resources =>

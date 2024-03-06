@@ -8,7 +8,7 @@ package isabelle
 
 
 object Component_Cygwin {
-  val default_mirror: String = "https://isabelle.sketis.net/cygwin_2023"
+  val default_mirror: String = "https://isabelle.sketis.net/cygwin_2024"
 
   val packages: List[String] = List("curl", "libgmp-devel", "nano", "openssh", "perl")
 
@@ -21,42 +21,42 @@ object Component_Cygwin {
     require(Platform.is_windows, "Windows platform expected")
 
     Isabelle_System.with_tmp_dir("cygwin") { tmp_dir =>
-        val cygwin = tmp_dir + Path.explode("cygwin")
-        val cygwin_etc = cygwin + Path.explode("etc")
-        val cygwin_isabelle = Isabelle_System.make_directory(cygwin + Path.explode("isabelle"))
+      val cygwin = tmp_dir + Path.explode("cygwin")
+      val cygwin_etc = cygwin + Path.explode("etc")
+      val cygwin_isabelle = Isabelle_System.make_directory(cygwin + Path.explode("isabelle"))
 
-        val cygwin_exe_name = mirror + "/setup-x86_64.exe"
-        val cygwin_exe = cygwin_isabelle + Path.explode("cygwin.exe")
-        Bytes.write(cygwin_exe,
-          try { Bytes.read_url(cygwin_exe_name) }
-          catch { case ERROR(_) => error("Failed to download " + quote(cygwin_exe_name)) })
+      val cygwin_exe_name = mirror + "/setup-x86_64.exe"
+      val cygwin_exe = cygwin_isabelle + Path.explode("cygwin.exe")
+      Bytes.write(cygwin_exe,
+        try { Bytes.read_url(cygwin_exe_name) }
+        catch { case ERROR(_) => error("Failed to download " + quote(cygwin_exe_name)) })
 
-        File.write(cygwin_isabelle + Path.explode("cygwin_mirror"), mirror)
+      File.write(cygwin_isabelle + Path.explode("cygwin_mirror"), mirror)
 
-        File.set_executable(cygwin_exe)
-        Isabelle_System.bash(File.bash_path(cygwin_exe) + " -h </dev/null >/dev/null").check
+      File.set_executable(cygwin_exe)
+      Isabelle_System.bash(File.bash_path(cygwin_exe) + " -h </dev/null >/dev/null").check
 
-        val res =
-          progress.bash(
-            File.bash_path(cygwin_exe) + " --site " + Bash.string(mirror) + " --no-verify" +
-              " --local-package-dir 'C:\\temp'" +
-              " --root " + File.bash_platform_path(cygwin) +
-              " --packages " + quote((packages ::: more_packages).mkString(",")) +
-              " --no-shortcuts --no-startmenu --no-desktop --quiet-mode",
-            echo = true)
-        if (!res.ok || !cygwin_etc.is_dir) error("Failed")
+      val res =
+        progress.bash(
+          File.bash_path(cygwin_exe) + " --site " + Bash.string(mirror) + " --no-verify" +
+            " --local-package-dir 'C:\\temp'" +
+            " --root " + File.bash_platform_path(cygwin) +
+            " --packages " + quote((packages ::: more_packages).mkString(",")) +
+            " --no-shortcuts --no-startmenu --no-desktop --quiet-mode",
+          echo = true)
+      if (!res.ok || !cygwin_etc.is_dir) error("Failed")
 
-        for (name <- List("hosts", "protocols", "services", "networks", "passwd", "group"))
-          (cygwin_etc + Path.explode(name)).file.delete
+      for (name <- List("hosts", "protocols", "services", "networks", "passwd", "group"))
+        (cygwin_etc + Path.explode(name)).file.delete
 
-        (cygwin + Path.explode("Cygwin.bat")).file.delete
+      (cygwin + Path.explode("Cygwin.bat")).file.delete
 
-        Isabelle_System.bash("rm -f cygwin/usr/share/man/man1/:.1.gz", cwd = tmp_dir.file).check
+      Isabelle_System.bash("rm -f cygwin/usr/share/man/man1/:.1.gz", cwd = tmp_dir.file).check
 
-        val archive =
-          target_dir + Path.explode("cygwin-" + Date.Format.alt_date(Date.now()) + ".tar.gz")
-        Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " cygwin", dir = tmp_dir).check
-      }
+      val archive =
+        target_dir + Path.explode("cygwin-" + Date.Format.alt_date(Date.now()) + ".tar.gz")
+      Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " cygwin", dir = tmp_dir).check
+    }
   }
 
 

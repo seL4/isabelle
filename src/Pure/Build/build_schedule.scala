@@ -1213,7 +1213,7 @@ object Build_Schedule {
       remove_schedules(db, remove)
     }
 
-    override val tables = SQL.Tables(Schedules.table, Nodes.table)
+    override val tables: SQL.Tables = SQL.Tables(Schedules.table, Nodes.table)
 
     val all_tables: SQL.Tables =
       SQL.Tables.list(Build_Process.private_data.tables.list ::: tables.list)
@@ -1328,7 +1328,7 @@ object Build_Schedule {
 
       val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
       def task(session: Build_Job.Session_Context): Build_Process.Task =
-        Build_Process.Task(session.name, session.deps, JSON.Object.empty, build_context.build_uuid)
+        Build_Process.Task(session.name, session.deps, build_context.build_uuid)
 
       val build_state =
         Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)

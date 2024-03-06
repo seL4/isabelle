@@ -27,6 +27,16 @@ object Time {
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
 
   def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
+
+  def guard_property(prop: String): Time =
+    System.getProperty(prop, "") match {
+      case Value.Seconds(t) => t
+      case "true" => Time.min
+      case "false" | "" => Time.max
+      case s =>
+        error("Bad system property " + prop + ": " + quote(s) +
+        "\n expected true, false, or time in seconds")
+    }
 }
 
 final class Time private(val ms: Long) extends AnyVal {

@@ -243,6 +243,12 @@ object SQL {
     }
   }
 
+
+  /* access data */
+
+  def transaction_logger(): Logger =
+    new System_Logger(guard_time = Time.guard_property("isabelle.transaction_trace"))
+
   abstract class Data(table_prefix: String = "") {
     def tables: Tables
 
@@ -250,7 +256,7 @@ object SQL {
       db: Database,
       create: Boolean = false,
       label: String = "",
-      log: Logger = new System_Logger
+      log: Logger = transaction_logger()
     )(body: => A): A = {
       db.transaction_lock(tables, create = create, label = label, log = log)(body)
     }
@@ -468,24 +474,15 @@ object SQL {
       tables: Tables,
       create: Boolean = false,
       label: String = "",
-      log: Logger = new System_Logger
+      log: Logger = transaction_logger()
     )(body: => A): A = {
-      val prop = "isabelle.transaction_trace"
-      val trace_min =
-        System.getProperty(prop, "") match {
-          case Value.Seconds(t) => t
-          case "true" => Time.min
-          case "false" | "" => Time.max
-          case s => error("Bad system property " + prop + ": " + quote(s))
-        }
-
       val trace_count = - SQL.transaction_count()
       val trace_start = Time.now()
       var trace_nl = false
 
       def trace(msg: String): Unit = {
         val trace_time = Time.now() - trace_start
-        if (trace_time >= trace_min) {
+        if (log.guard(trace_time)) {
           time_start
           val nl =
             if (trace_nl) ""

@@ -47,7 +47,7 @@ Official platforms:
                     macOS 14 Sonoma (studio1 Mac13,2 M1 Ultra, 16+4 cores)
 
   x86_64-windows    Windows 10
-  x86_64-cygwin     Cygwin 3.4.x https://isabelle.sketis.net/cygwin_2023 (x86_64/release)
+  x86_64-cygwin     Cygwin 3.5.x https://isabelle.sketis.net/cygwin_2024 (x86_64/release)
 
 
 64 bit vs. 32 bit platform personality
