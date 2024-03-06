@@ -61,6 +61,7 @@ open ATP_Problem_Generate
 val TF0 = TFF (Monomorphic, Without_FOOL)
 val TF1 = TFF (Polymorphic, Without_FOOL)
 val TX0 = TFF (Monomorphic, With_FOOL {with_ite = true, with_let = true})
+val TX0_MINUS = TFF (Monomorphic, With_FOOL {with_ite = false, with_let = false})
 val TX1 = TFF (Polymorphic, With_FOOL {with_ite = true, with_let = true})
 val TH0 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 val TH0_MINUS = THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice)
@@ -177,7 +178,9 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-val e_config : atp_config =
+local
+
+fun make_e_config max_new_mono_insts good_slices : atp_config =
   {exec = (["E_HOME"], ["eprover-ho", "eprover"]),
    arguments = fn abduce => fn _ => fn extra_options => fn timeout => fn problem =>
      ["--tstp-in --tstp-out --silent " ^
@@ -195,8 +198,11 @@ val e_config : atp_config =
      known_szs_status_failures,
    prem_role = Conjecture,
    generate_isabelle_info = false,
-   good_slices =
-     let
+   good_slices = K good_slices,
+   good_max_mono_iters = default_max_mono_iters,
+   good_max_new_mono_instances = max_new_mono_insts}
+
+val old_e_config : atp_config = make_e_config default_max_new_mono_instances (let
        val (format, type_enc, lam_trans, extra_options) =
          if string_ord (getenv "E_VERSION", "3.0") <> LESS then
            (* '$ite' support appears to be unsound. *)
@@ -207,17 +213,47 @@ val e_config : atp_config =
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN, "--auto-schedule")
      in
        (* FUDGE *)
-       K [((1000 (* infinity *), false, false, 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
-         ((1, true, false, 128, mashN), (format, type_enc, combsN, false, extra_options)),
-         ((1000 (* infinity *), false, false, 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
-         ((1000 (* infinity *), false, false, 64, mepoN), (format, type_enc, lam_trans, false, extra_options)),
-         ((1000 (* infinity *), false, false, 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
-         ((1000 (* infinity *), false, true, 256, mepoN), (format, type_enc, liftingN, false, extra_options))]
-     end,
-   good_max_mono_iters = default_max_mono_iters,
-   good_max_new_mono_instances = default_max_new_mono_instances}
+       [((1000 (* infinity *), false, false, 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
+        ((1, true, false, 128, mashN), (format, type_enc, combsN, false, extra_options)),
+        ((1000 (* infinity *), false, false, 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
+        ((1000 (* infinity *), false, false, 64, mepoN), (format, type_enc, lam_trans, false, extra_options)),
+        ((1000 (* infinity *), false, false, 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
+        ((1000 (* infinity *), false, true, 256, mepoN), (format, type_enc, liftingN, false, extra_options))]
+     end)
 
-val e = (eN, fn () => e_config)
+val new_e_config : atp_config =
+  (* FUDGE: this solved 950/1500 (63.33 %) using MePo when testing *)
+  make_e_config 128
+    [(((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 1024, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  128, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF0, "mono_native", combsN, false, ""))),
+     (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false,   64, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,   32, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  256, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TF0, "mono_native", combsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   16, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false,   64, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,  128, meshN), (TF0, "mono_native", combsN, false, ""))),
+     (((2, false, false, 2048, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false, 2048, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, "")))]
+
+in
+
+val e = (eN, fn () =>
+  if string_ord (getenv "E_VERSION", "3.0") <> LESS then
+    new_e_config
+  else
+    old_e_config)
+
+end
 
 
 (* iProver *)
