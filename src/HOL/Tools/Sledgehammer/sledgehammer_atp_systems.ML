@@ -459,9 +459,8 @@ val old_vampire_config : atp_config =
    ((2, false, false, 128, meshN), (TX1, "mono_native", liftingN, false, no_sosN))]
 
 val new_vampire_config : atp_config =
-  let val infinity = 1000 in
-    (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing *)
-    make_vampire_config new_vampire_basic_options 256
+  (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing *)
+  make_vampire_config new_vampire_basic_options 256
     [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
      (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
@@ -481,7 +480,6 @@ val new_vampire_config : atp_config =
      (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
      (((2, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
-  end
 
 in
 
