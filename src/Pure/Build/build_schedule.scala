@@ -601,8 +601,10 @@ object Build_Schedule {
   case class Optimizer(schedulers: List[Scheduler]) extends Scheduler {
     require(schedulers.nonEmpty)
 
-    def schedule(state: Build_Process.State): Schedule =
-      schedulers.map(_.schedule(state)).minBy(_.duration.ms)
+    def schedule(state: Build_Process.State): Schedule = {
+      def main(scheduler: Scheduler): Schedule = scheduler.schedule(state)
+      Par_List.map(main, schedulers).minBy(_.duration.ms)
+    }
   }
 
 
