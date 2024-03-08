@@ -409,6 +409,7 @@ object Build_Log {
     groups: List[String] = Nil,
     hostname: Option[String] = None,
     threads: Option[Int] = None,
+    start: Option[Time] = None,
     timing: Timing = Timing.zero,
     ml_timing: Timing = Timing.zero,
     sources: Option[String] = None,
@@ -452,6 +453,8 @@ object Build_Log {
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started1 = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
     val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on ([^\s/]+)/?(\d+)\+?(\S+)\)? \.\.\.$""")
+    val Session_Started3 = new Regex("""^(?:Running|Building) (\S+) \(started (\d+):(\d+):(\d+)\) \.\.\.$""")
+    val Session_Started4 = new Regex("""^(?:Running|Building) (\S+) \(started (\d+):(\d+):(\d+) on ([^\s/]+)/?(\d+)\+?(\S+)\) \.\.\.$""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
@@ -472,7 +475,7 @@ object Build_Log {
     var threads = Map.empty[String, Int]
     var timing = Map.empty[String, Timing]
     var ml_timing = Map.empty[String, Timing]
-    var started = Set.empty[String]
+    var started = Map.empty[String, Option[Time]]
     var sources = Map.empty[String, String]
     var heap_sizes = Map.empty[String, Space]
     var theory_timings = Map.empty[String, Map[String, Timing]]
@@ -481,7 +484,7 @@ object Build_Log {
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
-      started ++ sources.keySet ++ heap_sizes.keySet ++
+      started.keySet ++ sources.keySet ++ heap_sizes.keySet ++
       theory_timings.keySet ++ ml_statistics.keySet
 
 
@@ -496,10 +499,17 @@ object Build_Log {
           groups += (name -> Word.explode(grps))
 
         case Session_Started1(name) =>
-          started += name
+          started += (name -> None)
 
-        case Session_Started2(name, hostname, numa_node, rel_cpus) =>
-          started += name
+        case Session_Started2(name, hostname, _, _) =>
+          started += (name -> None)
+          hostnames += (name -> hostname)
+
+        case Session_Started3(name, Value.Int(t1), Value.Int(t2), Value.Int(t3)) =>
+          started += (name -> Some(Time.hms(t1, t2, t3)))
+
+        case Session_Started4(name, Value.Int(t1), Value.Int(t2), Value.Int(t3), hostname, _, _) =>
+          started += (name -> Some(Time.hms(t1, t2, t3)))
           hostnames += (name -> hostname)
 
         case Session_Finished1(name,
@@ -559,7 +569,7 @@ object Build_Log {
           val status =
             if (timing.isDefinedAt(name) || ml_timing.isDefinedAt(name))
               Session_Status.finished
-            else if (started(name)) Session_Status.failed
+            else if (started.isDefinedAt(name)) Session_Status.failed
             else Session_Status.existing
           val entry =
             Session_Entry(
@@ -567,6 +577,7 @@ object Build_Log {
               groups = groups.getOrElse(name, Nil),
               hostname = hostnames.get(name),
               threads = threads.get(name),
+              start = started.get(name).flatten,
               timing = timing.getOrElse(name, Timing.zero),
               ml_timing = ml_timing.getOrElse(name, Timing.zero),
               sources = sources.get(name),
@@ -647,6 +658,7 @@ object Build_Log {
     val groups = SQL.Column.string("groups")
     val hostname = SQL.Column.string("hostname")
     val threads = SQL.Column.int("threads")
+    val session_start = SQL.Column.long("session_start")
     val timing_elapsed = SQL.Column.long("timing_elapsed")
     val timing_cpu = SQL.Column.long("timing_cpu")
     val timing_gc = SQL.Column.long("timing_gc")
@@ -689,7 +701,8 @@ object Build_Log {
         List(Column.log_name, Column.session_name, Column.chapter, Column.groups, Column.hostname,
           Column.threads, Column.timing_elapsed, Column.timing_cpu, Column.timing_gc,
           Column.timing_factor, Column.ml_timing_elapsed, Column.ml_timing_cpu, Column.ml_timing_gc,
-          Column.ml_timing_factor, Column.heap_size, Column.status, Column.errors, Column.sources),
+          Column.ml_timing_factor, Column.heap_size, Column.status, Column.errors, Column.sources,
+          Column.session_start),
         name = "sessions")
 
     val theories_table =
@@ -882,6 +895,7 @@ object Build_Log {
                 groups = split_lines(res.string(Column.groups)),
                 hostname = res.get_string(Column.hostname),
                 threads = res.get_int(Column.threads),
+                start = res.get_long(Column.session_start).map(Time.ms),
                 timing =
                   res.timing(
                     Column.timing_elapsed,
@@ -947,6 +961,7 @@ object Build_Log {
           stmt.string(16) = session.status.map(_.toString)
           stmt.bytes(17) = compress_errors(session.errors, cache = cache)
           stmt.string(18) = session.sources
+          stmt.long(19) = session.start.map(_.ms)
         }
       )
     }
@@ -1023,11 +1038,31 @@ object Build_Log {
         ssh_user = options.string("build_log_ssh_user"))
 
     def init_database(db: SQL.Database, minimal: Boolean = false): Unit =
-      private_data.transaction_lock(db, create = true, label = "Build_Log.init_database") {
+      db.transaction {
+        val upgrade_table = private_data.sessions_table
+        val upgrade_column = Column.session_start
+        val upgrade = {
+          db.exists_table(upgrade_table) &&
+          !db.execute_query_statementB(
+            "SELECT NULL as result FROM information_schema.columns " +
+            " WHERE table_name = " + SQL.string(upgrade_table.name) +
+            " AND column_name = " + SQL.string(upgrade_column.name))
+        }
+
+        private_data.tables.lock(db, create = true)
+
+        if (upgrade) {
+          db.execute_statement(
+            "ALTER TABLE " + upgrade_table +
+            " ADD COLUMN " + upgrade_column.decl(db.sql_type))
+          db.execute_statement("DROP VIEW IF EXISTS " + private_data.universal_table)
+        }
+
         if (!minimal) {
           db.create_view(private_data.pull_date_table())
           db.create_view(private_data.pull_date_table(afp = true))
         }
+
         db.create_view(private_data.universal_table)
       }
 

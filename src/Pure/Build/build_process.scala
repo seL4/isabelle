@@ -1052,15 +1052,23 @@ extends AutoCloseable {
       else state
     }
     else {
-      val node_info = next_node_info(state, session_name)
+      val start = progress.now()
+      val start_time = start.time - build_start.time
+      val start_time_msg = _build_database.isDefined
 
-      val print_node_info =
+      val node_info = next_node_info(state, session_name)
+      val node_info_msg =
         node_info.numa_node.isDefined || node_info.rel_cpus.nonEmpty  ||
         _build_database.isDefined && _build_database.get.is_postgresql
 
       progress.echo(
         (if (store_heap) "Building " else "Running ") + session_name +
-          (if (print_node_info) " (on " + node_info + ")" else "") + " ...")
+          if_proper(start_time_msg || node_info_msg,
+            " (" +
+              if_proper(start_time_msg, "started " + start_time.message_hms) +
+              if_proper(start_time_msg && node_info_msg, " ") +
+              if_proper(node_info_msg, "on " + node_info.toString) +
+            ")") + " ...")
 
       val session = state.sessions(session_name)
 
@@ -1069,8 +1077,7 @@ extends AutoCloseable {
           build_deps.background(session_name), sources_shasum, input_shasum, node_info, store_heap)
 
       val job =
-        Build_Process.Job(
-          session_name, worker_uuid, build_uuid, node_info, progress.now(), Some(build))
+        Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, start, Some(build))
 
       state.add_running(job)
     }
