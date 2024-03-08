@@ -452,9 +452,9 @@ object Build_Log {
     val Session_Timing =
       new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started1 = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
-    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on ([^\s/]+)/?(\d+)\+?(\S+)\)? \.\.\.$""")
+    val Session_Started2 = new Regex("""^(?:Running|Building) (\S+) \(?on ([^\s/]+)[^)]*\)? \.\.\.$""")
     val Session_Started3 = new Regex("""^(?:Running|Building) (\S+) \(started (\d+):(\d+):(\d+)\) \.\.\.$""")
-    val Session_Started4 = new Regex("""^(?:Running|Building) (\S+) \(started (\d+):(\d+):(\d+) on ([^\s/]+)/?(\d+)\+?(\S+)\) \.\.\.$""")
+    val Session_Started4 = new Regex("""^(?:Running|Building) (\S+) \(started (\d+):(\d+):(\d+) on ([^\s/]+)[^)]*\) \.\.\.$""")
     val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
@@ -501,14 +501,14 @@ object Build_Log {
         case Session_Started1(name) =>
           started += (name -> None)
 
-        case Session_Started2(name, hostname, _, _) =>
+        case Session_Started2(name, hostname) =>
           started += (name -> None)
           hostnames += (name -> hostname)
 
         case Session_Started3(name, Value.Int(t1), Value.Int(t2), Value.Int(t3)) =>
           started += (name -> Some(Time.hms(t1, t2, t3)))
 
-        case Session_Started4(name, Value.Int(t1), Value.Int(t2), Value.Int(t3), hostname, _, _) =>
+        case Session_Started4(name, Value.Int(t1), Value.Int(t2), Value.Int(t3), hostname) =>
           started += (name -> Some(Time.hms(t1, t2, t3)))
           hostnames += (name -> hostname)
 
