@@ -111,6 +111,10 @@ sealed case class Date(rep: ZonedDateTime) {
   def time: Time = Time.instant(instant)
   def timezone: ZoneId = rep.getZone
 
+  def + (t: Time): Date = Date(time + t, zone = timezone)
+  def - (t: Time): Date = Date(time - t, zone = timezone)
+  def - (d: Date): Time = time - d.time
+
   def format(fmt: Date.Format = Date.Format.default): String = fmt(this)
   override def toString: String = format()
 }
