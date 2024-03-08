@@ -443,7 +443,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             export_files = export_files,
             build_hosts = build_hosts.toList)
         }
-      val stop_date = Date.now()
+      val stop_date = progress.now()
       val elapsed_time = stop_date.time - progress.start.time
 
       progress.echo("\nFinished at " + Build_Log.print_date(stop_date), verbose = true)

@@ -184,7 +184,7 @@ object Build_History {
         clean_archives = clean_archives)
 
     val build_host = proper_string(hostname) getOrElse Isabelle_System.hostname()
-    val build_history_date = Date.now()
+    val build_history_date = progress.now()
     val build_group_id = build_host + ":" + build_history_date.time.ms
 
     var first_build = true
@@ -246,7 +246,7 @@ object Build_History {
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
       }
 
-      val build_start = Date.now()
+      val build_start = progress.now()
       val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
 
       val build_result =
@@ -255,7 +255,7 @@ object Build_History {
         .bash("bin/isabelle build " + Bash.strings(build_args1),
           redirect = true, echo = true, strict = false)
 
-      val build_end = Date.now()
+      val build_end = progress.now()
 
       val store = Store(options + "build_database_server=false")
 
