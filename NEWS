@@ -36,8 +36,11 @@ base-lines are now as follows:
 'simps_of_case' now print results like 'theorem'.
 
 * Sledgehammer
-  - Update of bundled prover:
-    + Vampire 4.8 HO - Sledgehammer schedules (2023-10-19)
+  - Update/rebuild of bundled provers:
+    . E prover 3.0, with native ARM64 executables
+    . Vampire 4.8 HO - Sledgehammer schedules (2023-10-19)
+    . veriT 2021.06.1-rmx - rebuild for arm64-linux
+    . Z3 4.4.1 for arm64-linux has been removed: unreliable, unstable.
   - New implementation of moura tactic. INCOMPATIBILITY.
 
 * Mirabelle: Removed proof reconstruction from "sledgehammer" action;
