@@ -40,6 +40,7 @@ object Build {
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
     build_uuid: String = UUID.random_string(),
+    build_start: Option[Date] = None,
     jobs: Int = 0,
     master: Boolean = false
   ) {
@@ -632,7 +633,8 @@ Usage: isabelle build_process [OPTIONS]
         val build_context =
           Context(store, build_deps, engine = engine, afp_root = afp_root,
             hostname = hostname(build_options), numa_shuffling = numa_shuffling,
-            build_uuid = build_master.build_uuid, jobs = max_jobs.getOrElse(1))
+            build_uuid = build_master.build_uuid, build_start = Some(build_master.start),
+            jobs = max_jobs.getOrElse(1))
 
         engine.run_build_process(build_context, progress, server)
       }

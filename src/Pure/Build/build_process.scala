@@ -354,14 +354,15 @@ object Build_Process {
       db: SQL.Database,
       build_uuid: String,
       ml_platform: String,
-      options: String
+      options: String,
+      start: Date
     ): Unit = {
       db.execute_statement(Base.table.insert(), body =
         { stmt =>
           stmt.string(1) = build_uuid
           stmt.string(2) = ml_platform
           stmt.string(3) = options
-          stmt.date(4) = db.now()
+          stmt.date(4) = start
           stmt.date(5) = None
         })
     }
@@ -914,6 +915,8 @@ extends AutoCloseable {
     }
   }
 
+  protected val build_start: Date = build_context.build_start getOrElse progress.now()
+
   protected val log: Logger = Logger.make_system_log(progress, build_options)
 
   protected def open_build_cluster(): Build_Cluster =
@@ -1082,7 +1085,7 @@ extends AutoCloseable {
   protected final def start_build(): Unit = synchronized_database("Build_Process.start_build") {
     for (db <- _build_database) {
       Build_Process.private_data.start_build(db, build_uuid, build_context.ml_platform,
-        build_context.sessions_structure.session_prefs)
+        build_context.sessions_structure.session_prefs, build_start)
     }
   }
 
