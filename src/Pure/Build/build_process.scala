@@ -1052,14 +1052,15 @@ extends AutoCloseable {
       else state
     }
     else {
+      val build_log_verbose = build_options.bool("build_log_verbose")
+
       val start = progress.now()
       val start_time = start.time - build_start.time
-      val start_time_msg = _build_database.isDefined
+      val start_time_msg = build_log_verbose
 
       val node_info = next_node_info(state, session_name)
       val node_info_msg =
-        node_info.numa_node.isDefined || node_info.rel_cpus.nonEmpty  ||
-        _build_database.isDefined && _build_database.get.is_postgresql
+        node_info.numa_node.isDefined || node_info.rel_cpus.nonEmpty  || build_log_verbose
 
       progress.echo(
         (if (store_heap) "Building " else "Running ") + session_name +

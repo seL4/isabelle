@@ -201,7 +201,8 @@ object Build_History {
         augment_settings(
           other_isabelle, threads, arch_64, arch_apple, heap, max_heap, more_settings)
 
-      File.write(other_isabelle.etc_preferences, cat_lines(more_preferences))
+      File.write(other_isabelle.etc_preferences,
+        cat_lines("build_log_verbose = true" :: more_preferences))
 
       val isabelle_output =
         other_isabelle.expand_path(

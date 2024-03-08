@@ -424,6 +424,9 @@ option build_log_ssh_port : int = 0 for connection
 option build_log_history : int = 30
   -- "length of relevant history (in days)"
 
+option build_log_verbose : bool = false for build_sync
+  -- "extra verbosity for build log database"
+
 
 section "Isabelle/Scala/ML system channel"
 
