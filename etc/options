@@ -420,7 +420,9 @@ option build_log_database_port : int = 0 for connection
 option build_log_ssh_host : string = "" for connection
 option build_log_ssh_user : string = "" for connection
 option build_log_ssh_port : int = 0 for connection
-option build_log_history : int = 30  -- "length of relevant history (in days)"
+
+option build_log_history : int = 30
+  -- "length of relevant history (in days)"
 
 
 section "Isabelle/Scala/ML system channel"
