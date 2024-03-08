@@ -280,6 +280,10 @@ object Build_Log {
 
     def get_date(c: SQL.Column): Option[Date] =
       get(c).map(Log_File.Date_Format.parse)
+
+    def get_build_host: Option[String] = get(Prop.build_host)
+    def get_build_start: Option[Date] = get_date(Prop.build_start)
+    def get_build_end: Option[Date] = get_date(Prop.build_end)
   }
 
   object Identify {

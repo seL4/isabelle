@@ -42,7 +42,7 @@ object Build_Schedule {
       val measurements =
         for {
           (meta_info, build_info) <- build_history
-          build_host = meta_info.get(Build_Log.Prop.build_host)
+          build_host = meta_info.get_build_host
           (job_name, session_info) <- build_info.sessions.toList
           if build_info.finished_sessions.contains(job_name)
           hostname <- session_info.hostname.orElse(build_host).toList
