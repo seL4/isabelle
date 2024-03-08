@@ -465,7 +465,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
         }
 
         val end_date = Date.now()
-        val timing = end_date.time - start_date.time
+        val timing = end_date - start_date
 
         progress.echo("\nFinished at " + Build_Log.print_date(end_date), verbose = true)
         progress.echo(timing.message_hms + " elapsed time")

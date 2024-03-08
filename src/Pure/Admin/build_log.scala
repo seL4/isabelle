@@ -75,7 +75,7 @@ object Build_Log {
   def log_date(date: Date): String =
     String.format(Locale.ROOT, "%s.%05d",
       DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
-      java.lang.Long.valueOf((date.time - date.midnight.time).ms / 1000))
+      java.lang.Long.valueOf((date - date.midnight).ms / 1000))
 
   def log_subdir(date: Date): Path =
     Path.explode("log") + Path.explode(date.rep.getYear.toString)

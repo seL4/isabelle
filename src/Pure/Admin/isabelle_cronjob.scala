@@ -503,7 +503,7 @@ object Isabelle_Cronjob {
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
     def log_end(end_date: Date, err: Option[String]): Unit = {
-      val elapsed_time = end_date.time - start_date.time
+      val elapsed_time = end_date - start_date
       val msg =
         (if (err.isEmpty) "finished" else "ERROR " + err.get) +
         (if (elapsed_time.seconds < 3.0) "" else " (" + elapsed_time.message_hms + " elapsed time)")

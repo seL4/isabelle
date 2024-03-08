@@ -478,10 +478,10 @@ object Build_Schedule {
       if (graph.is_empty) start
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
 
-    def duration: Time = end.time - start.time
+    def duration: Time = end - start
     def message: String = "Estimated " + duration.message_hms + " build time with " + generator
 
-    def deviation(other: Schedule): Time = Time.ms((end.time - other.end.time).ms.abs)
+    def deviation(other: Schedule): Time = Time.ms((end - other.end).ms.abs)
 
     def num_built(state: Build_Process.State): Int = graph.keys.count(state.results.contains)
     def elapsed(): Time = Time.now() - start.time
@@ -507,7 +507,7 @@ object Build_Schedule {
 
       def shift_elapsed(graph: Schedule.Graph, name: String): Schedule.Graph =
         graph.map_node(name, { node =>
-          val elapsed = start1.time - state.running(name).start_date.time
+          val elapsed = start1 - state.running(name).start_date
           node.copy(duration = node.duration - elapsed)
         })
 
@@ -1371,7 +1371,7 @@ object Build_Schedule {
     val generator_height = line_height + padding
     val hostname_height = generator_height + line_height + padding
     def time_height(time: Time): Double = time.seconds
-    def date_height(date: Date): Double = time_height(date.time - schedule.start.time)
+    def date_height(date: Date): Double = time_height(date - schedule.start)
 
     val hosts = graph.iterator.map(_._2._1).toList.groupBy(_.node_info.hostname)
 
@@ -1474,7 +1474,7 @@ object Build_Schedule {
         val duration_str = "(" + node.duration.message_hms + ")"
         val node_str =
           "on " + proper_string(node_info.toString.stripPrefix(node_info.hostname)).getOrElse("all")
-        val start_str = "Start: " + (node.start.time - schedule.start.time).message_hms
+        val start_str = "Start: " + (node.start - schedule.start).message_hms
 
         List(node.job_name, duration_str, node_str, start_str).foldLeft(0D)(add_text)
 

@@ -445,7 +445,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             build_hosts = build_hosts.toList)
         }
       val stop_date = progress.now()
-      val elapsed_time = stop_date.time - progress.start.time
+      val elapsed_time = stop_date - progress.start
 
       progress.echo("\nFinished at " + Build_Log.print_date(stop_date), verbose = true)
 

@@ -1055,7 +1055,7 @@ extends AutoCloseable {
       val build_log_verbose = build_options.bool("build_log_verbose")
 
       val start = progress.now()
-      val start_time = start.time - build_start.time
+      val start_time = start - build_start
       val start_time_msg = build_log_verbose
 
       val node_info = next_node_info(state, session_name)

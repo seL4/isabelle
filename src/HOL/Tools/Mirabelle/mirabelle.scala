@@ -212,7 +212,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         }
 
       val end_date = Date.now()
-      val elapsed_time = end_date.time - start_date.time
+      val elapsed_time = end_date - start_date
 
       progress.echo("\nFinished at " + Build_Log.print_date(end_date), verbose = true)
 
