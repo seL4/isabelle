@@ -1037,7 +1037,7 @@ object Build_Log {
         ssh_port = options.int("build_log_ssh_port"),
         ssh_user = options.string("build_log_ssh_user"))
 
-    def init_database(db: SQL.Database, minimal: Boolean = false): Unit =
+    def init_database(db: SQL.Database): Unit =
       db.transaction {
         val upgrade_table = private_data.sessions_table
         val upgrade_column = Column.session_start
@@ -1058,11 +1058,8 @@ object Build_Log {
           db.execute_statement("DROP VIEW IF EXISTS " + private_data.universal_table)
         }
 
-        if (!minimal) {
-          db.create_view(private_data.pull_date_table())
-          db.create_view(private_data.pull_date_table(afp = true))
-        }
-
+        db.create_view(private_data.pull_date_table())
+        db.create_view(private_data.pull_date_table(afp = true))
         db.create_view(private_data.universal_table)
       }
 
