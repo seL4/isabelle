@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/date.scala
     Author:     Makarius
 
-Date and time, with time zone.
+Date and time, with timezone.
 */
 
 package isabelle
@@ -91,19 +91,21 @@ object Date {
 
   def timezone(): ZoneId = ZoneId.systemDefault
 
-  def now(zone: ZoneId = timezone()): Date = new Date(ZonedDateTime.now(zone))
+  def now(timezone: ZoneId = Date.timezone()): Date =
+    new Date(ZonedDateTime.now(timezone))
 
-  def instant(t: Instant, zone: ZoneId = timezone()): Date =
-    new Date(ZonedDateTime.ofInstant(t, zone))
+  def instant(t: Instant, timezone: ZoneId = Date.timezone()): Date =
+    new Date(ZonedDateTime.ofInstant(t, timezone))
 
-  def apply(t: Time, zone: ZoneId = timezone()): Date = instant(t.instant, zone)
+  def apply(t: Time, timezone: ZoneId = Date.timezone()): Date =
+    instant(t.instant, timezone)
 }
 
 sealed case class Date(rep: ZonedDateTime) {
   def midnight: Date =
     new Date(ZonedDateTime.of(rep.toLocalDate, LocalTime.MIDNIGHT, rep.getZone))
 
-  def to(zone: ZoneId): Date = new Date(rep.withZoneSameInstant(zone))
+  def to(other: ZoneId): Date = new Date(rep.withZoneSameInstant(other))
 
   def unix_epoch: Long = rep.toEpochSecond
   def unix_epoch_day: Long = rep.toLocalDate.toEpochDay
@@ -111,8 +113,8 @@ sealed case class Date(rep: ZonedDateTime) {
   def time: Time = Time.instant(instant)
   def timezone: ZoneId = rep.getZone
 
-  def + (t: Time): Date = Date(time + t, zone = timezone)
-  def - (t: Time): Date = Date(time - t, zone = timezone)
+  def + (t: Time): Date = Date(time + t, timezone = timezone)
+  def - (t: Time): Date = Date(time - t, timezone = timezone)
   def - (d: Date): Time = time - d.time
 
   def format(fmt: Date.Format = Date.Format.default): String = fmt(this)
