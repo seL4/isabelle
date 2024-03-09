@@ -297,19 +297,18 @@ object Library {
       else {
         val delete = List.from(for ((x, y) <- data0.iterator if !data1.get(x).contains(y)) yield x)
         val insert = List.from(for ((x, y) <- data1.iterator if !data0.get(x).contains(y)) yield x)
-        val domain = delete.toSet ++ insert
-        Update(domain = domain, delete = delete, insert = insert)
+        Update(delete = delete, insert = insert)
       }
   }
 
   sealed case class Update(
-    domain: Set[String] = Set.empty,
     delete: List[String] = Nil,
     insert: List[String] = Nil
   ) {
     def deletes: Boolean = delete.nonEmpty
     def inserts: Boolean = insert.nonEmpty
     def defined: Boolean = deletes || inserts
+    lazy val domain: Set[String] = delete.toSet ++ insert
   }
 
 
