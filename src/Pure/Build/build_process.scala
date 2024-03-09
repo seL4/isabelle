@@ -16,6 +16,28 @@ import scala.annotation.tailrec
 object Build_Process {
   /** state vs. database **/
 
+  object Update {
+    val empty: Update = Update()
+  }
+  sealed case class Update(
+    domain: Set[String] = Set.empty,
+    delete: List[String] = Nil,
+    insert: List[String] = Nil
+  ) {
+    def deletes: Boolean = delete.nonEmpty
+    def inserts: Boolean = insert.nonEmpty
+    def defined: Boolean = deletes || inserts
+  }
+
+  def data_update[A](data0: Map[String, A], data1: Map[String, A]): Update =
+    if (data0.eq(data1)) Update.empty
+    else {
+      val delete = List.from(for ((x, y) <- data0.iterator if !data1.get(x).contains(y)) yield x)
+      val insert = List.from(for ((x, y) <- data1.iterator if !data0.get(x).contains(y)) yield x)
+      val domain = delete.toSet ++ insert
+      Update(domain = domain, delete = delete, insert = insert)
+    }
+
   sealed case class Build(
     build_uuid: String,   // Database_Progress.context_uuid
     ml_platform: String,
@@ -86,6 +108,10 @@ object Build_Process {
   object Sessions {
     type Graph = isabelle.Graph[String, Build_Job.Session_Context]
     val empty: Sessions = new Sessions(Graph.string)
+
+    def update(sessions0: Sessions, sessions1: Sessions): Update =
+      if (sessions0.eq(sessions1)) Update.empty
+      else data_update(sessions0.data, sessions1.data)
   }
 
   final class Sessions private(val graph: Sessions.Graph) {
@@ -96,6 +122,9 @@ object Build_Process {
 
     def iterator: Iterator[Build_Job.Session_Context] =
       for (name <- graph.topological_order.iterator) yield apply(name)
+
+    def data: Map[String, Build_Job.Session_Context] =
+      Map.from(for ((_, (session, _)) <- graph.iterator) yield session.name -> session)
 
     def make(new_graph: Sessions.Graph): Sessions =
       if (graph == new_graph) this
@@ -460,11 +489,17 @@ object Build_Process {
       sessions: Build_Process.Sessions,
       old_sessions: Build_Process.Sessions
     ): Boolean = {
-      val insert = sessions.iterator.filterNot(s => old_sessions.defined(s.name)).toList
+      val update = Build_Process.Sessions.update(old_sessions, sessions)
 
-      if (insert.nonEmpty) {
+      if (update.deletes) {
+        db.execute_statement(
+          Pending.table.delete(sql = Generic.sql_where(names = update.delete)))
+      }
+
+      if (update.inserts) {
         db.execute_batch_statement(Sessions.table.insert(), batch =
-          for (session <- insert) yield { (stmt: SQL.Statement) =>
+          for (name <- update.insert) yield { (stmt: SQL.Statement) =>
+            val session = sessions(name)
             stmt.string(1) = session.name
             stmt.string(2) = cat_lines(session.deps)
             stmt.string(3) = cat_lines(session.ancestors)
@@ -477,7 +512,7 @@ object Build_Process {
           })
       }
 
-      insert.nonEmpty
+      update.defined
     }
 
 
@@ -600,25 +635,24 @@ object Build_Process {
       pending: State.Pending,
       old_pending: State.Pending
     ): Boolean = {
-      val pending0 = old_pending.valuesIterator.toList
-      val pending1 = pending.valuesIterator.toList
-      val (delete, insert) = Library.symmetric_difference(pending0, pending1)
+      val update = data_update(old_pending, pending)
 
-      if (delete.nonEmpty) {
+      if (update.deletes) {
         db.execute_statement(
-          Pending.table.delete(sql = Generic.sql_where(names = delete.map(_.name))))
+          Pending.table.delete(sql = Generic.sql_where(names = update.delete)))
       }
 
-      if (insert.nonEmpty) {
+      if (update.inserts) {
         db.execute_batch_statement(Pending.table.insert(), batch =
-          for (task <- insert) yield { (stmt: SQL.Statement) =>
+          for (name <- update.insert) yield { (stmt: SQL.Statement) =>
+            val task = pending(name)
             stmt.string(1) = task.name
             stmt.string(2) = cat_lines(task.deps)
             stmt.string(3) = task.build_uuid
           })
       }
 
-      delete.nonEmpty || insert.nonEmpty
+      update.defined
     }
 
 
@@ -662,18 +696,17 @@ object Build_Process {
       running: State.Running,
       old_running: State.Running
     ): Boolean = {
-      val running0 = old_running.valuesIterator.toList
-      val running1 = running.valuesIterator.toList
-      val (delete, insert) = Library.symmetric_difference(running0, running1)
+      val update = data_update(old_running, running)
 
-      if (delete.nonEmpty) {
+      if (update.deletes) {
         db.execute_statement(
-          Running.table.delete(sql = Generic.sql_where(names = delete.map(_.name))))
+          Running.table.delete(sql = Generic.sql_where(names = update.delete)))
       }
 
-      if (insert.nonEmpty) {
+      if (update.inserts) {
         db.execute_batch_statement(Running.table.insert(), batch =
-          for (job <- insert) yield { (stmt: SQL.Statement) =>
+          for (name <- update.insert) yield { (stmt: SQL.Statement) =>
+            val job = running(name)
             stmt.string(1) = job.name
             stmt.string(2) = job.worker_uuid
             stmt.string(3) = job.build_uuid
@@ -684,7 +717,7 @@ object Build_Process {
           })
       }
 
-      delete.nonEmpty || insert.nonEmpty
+      update.defined
     }
 
 
@@ -758,12 +791,17 @@ object Build_Process {
       results: State.Results,
       old_results: State.Results
     ): Boolean = {
-      val insert =
-        results.valuesIterator.filterNot(res => old_results.isDefinedAt(res.name)).toList
+      val update = data_update(old_results, results)
 
-      if (insert.nonEmpty) {
+      if (update.deletes) {
+        db.execute_statement(
+          Pending.table.delete(sql = Generic.sql_where(names = update.delete)))
+      }
+
+      if (update.inserts) {
         db.execute_batch_statement(Results.table.insert(), batch =
-          for (result <- insert) yield { (stmt: SQL.Statement) =>
+          for (name <- update.insert) yield { (stmt: SQL.Statement) =>
+            val result = results(name)
             val process_result = result.process_result
             stmt.string(1) = result.name
             stmt.string(2) = result.worker_uuid
@@ -782,7 +820,7 @@ object Build_Process {
           })
       }
 
-      insert.nonEmpty
+      update.defined
     }
 
 
