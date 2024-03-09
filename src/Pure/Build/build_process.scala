@@ -1059,8 +1059,7 @@ extends AutoCloseable {
       val start_time_msg = build_log_verbose
 
       val node_info = next_node_info(state, session_name)
-      val node_info_msg =
-        node_info.numa_node.isDefined || node_info.rel_cpus.nonEmpty  || build_log_verbose
+      val node_info_msg = node_info.numa || build_log_verbose
 
       progress.echo(
         (if (store_heap) "Building " else "Running ") + session_name +

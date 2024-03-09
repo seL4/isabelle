@@ -88,6 +88,8 @@ object Host {
   object Node_Info { def none: Node_Info = Node_Info("", None, Nil) }
 
   sealed case class Node_Info(hostname: String, numa_node: Option[Int], rel_cpus: List[Int]) {
+    def numa: Boolean = numa_node.isDefined || rel_cpus.nonEmpty
+
     override def toString: String =
       hostname +
         if_proper(numa_node, "/" + numa_node.get.toString) +
