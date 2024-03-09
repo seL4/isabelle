@@ -620,7 +620,7 @@ object Build_Process {
 
     def read_running(db: SQL.Database): State.Running =
       db.execute_query_statement(
-        Running.table.select(sql = SQL.order_by(List(Running.name))),
+        Running.table.select(),
         Map.from[String, Job],
         { res =>
           val name = res.string(Running.name)
