@@ -220,10 +220,12 @@ object Build_Process {
     results: State.Results = Map.empty
   ) {
     require(serial >= 0, "serial underflow")
-    def inc_serial: State = {
+
+    def next_serial: Long = {
       require(serial < Long.MaxValue, "serial overflow")
-      copy(serial = serial + 1)
+      serial + 1
     }
+    def inc_serial: State = copy(serial = next_serial)
 
     def ready: List[Task] = pending.valuesIterator.filter(_.is_ready).toList.sortBy(_.name)
     def next_ready: List[Task] = ready.filter(entry => !is_running(entry.name))
@@ -822,17 +824,20 @@ object Build_Process {
       state: State,
       old_state: State
     ): State = {
+      val serial = state.next_serial
       val changed =
         List(
           update_sessions(db, state.sessions, old_state.sessions),
           update_pending(db, state.pending, old_state.pending),
           update_running(db, state.running, old_state.running),
-          update_results(db, state.results, old_state.results))
+          update_results(db, state.results, old_state.results)
+        ).exists(identity)
 
-      val state1 = if (changed.exists(identity)) state.inc_serial else state
-      if (state1.serial != state.serial) stamp_worker(db, worker_uuid, state1.serial)
-
-      state1
+      if (changed) {
+        stamp_worker(db, worker_uuid, serial)
+        state.copy(serial = serial)
+      }
+      else state
     }
   }
 
