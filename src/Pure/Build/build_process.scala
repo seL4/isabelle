@@ -886,7 +886,7 @@ object Build_Process {
 
       if (updates.exists(_.defined)) {
         val serial = state.next_serial
-        write_updates(db, serial, updates)
+        // FIXME write_updates(db, serial, updates)
         stamp_worker(db, worker_uuid, serial)
         state.copy(serial = serial)
       }
