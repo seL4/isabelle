@@ -144,12 +144,12 @@ val is_long_identifier = forall Symbol_Pos.is_identifier o Long_Name.explode
 fun maybe_quote ctxt y =
   let
     val s = YXML.content_of y
-    val is_literal = (Keyword.is_literal o Thy_Header.get_keywords') ctxt
-    val gen_quote = if Config.get ctxt proof_cartouches then cartouche else quote
+    val is_literal = Keyword.is_literal (Thy_Header.get_keywords' ctxt)
+    val q = if Config.get ctxt proof_cartouches then cartouche else quote
   in
     y |> ((not (is_long_identifier (unquote_tvar s)) andalso
            not (is_long_identifier (unquery_var s))) orelse
-           is_literal s) ? gen_quote
+           is_literal s) ? q
   end
 
 fun string_of_ext_time (plus, time) =
