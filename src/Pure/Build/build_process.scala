@@ -471,7 +471,7 @@ object Build_Process {
 
       if (update.deletes) {
         db.execute_statement(
-          Pending.table.delete(sql = Generic.sql_where(names = update.delete)))
+          Sessions.table.delete(sql = Generic.sql_where(names = update.delete)))
       }
 
       if (update.inserts) {
@@ -773,7 +773,7 @@ object Build_Process {
 
       if (update.deletes) {
         db.execute_statement(
-          Pending.table.delete(sql = Generic.sql_where(names = update.delete)))
+          Results.table.delete(sql = Generic.sql_where(names = update.delete)))
       }
 
       if (update.inserts) {
