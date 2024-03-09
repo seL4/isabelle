@@ -1081,10 +1081,10 @@ object Build_Schedule {
           SQL.where(if_proper(build_uuid, Schedules.build_uuid.equal(build_uuid)))),
           _.long(Schedules.serial)).getOrElse(0L)
 
-    def read_scheduled_builds_domain(db: SQL.Database): List[String] =
+    def read_scheduled_builds_domain(db: SQL.Database): Map[String, Unit] =
       db.execute_query_statement(
         Schedules.table.select(List(Schedules.build_uuid)),
-        List.from[String], res => res.string(Schedules.build_uuid))
+        Map.from[String, Unit], res => res.string(Schedules.build_uuid) -> ())
 
     def read_schedules(db: SQL.Database, build_uuid: String = ""): List[Schedule] = {
       val schedules =
@@ -1207,12 +1207,12 @@ object Build_Schedule {
       val running_builds_domain =
         db.execute_query_statement(
           Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.undefined)),
-          List.from[String], res => res.string(Base.build_uuid))
+          Map.from[String, Unit], res => res.string(Base.build_uuid) -> ())
 
-      val (remove, _) =
-        Library.symmetric_difference(read_scheduled_builds_domain(db), running_builds_domain)
+      val update =
+        Build_Process.data_update(read_scheduled_builds_domain(db), running_builds_domain)
 
-      remove_schedules(db, remove)
+      remove_schedules(db, update.delete)
     }
 
     override val tables: SQL.Tables = SQL.Tables(Schedules.table, Nodes.table)
