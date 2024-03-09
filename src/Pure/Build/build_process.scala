@@ -213,6 +213,11 @@ object Build_Process {
     results: State.Results)     // finished results
 
   object State {
+    def inc_serial(serial: Long) = {
+      require(serial < Long.MaxValue, "serial overflow")
+      serial + 1
+    }
+
     type Pending = Map[String, Task]
     type Running = Map[String, Job]
     type Results = Map[String, Result]
@@ -228,10 +233,7 @@ object Build_Process {
   ) {
     require(serial >= 0, "serial underflow")
 
-    def next_serial: Long = {
-      require(serial < Long.MaxValue, "serial overflow")
-      serial + 1
-    }
+    def next_serial: Long = State.inc_serial(serial)
     def inc_serial: State = copy(serial = next_serial)
 
     def ready: List[Task] = pending.valuesIterator.filter(_.is_ready).toList.sortBy(_.name)

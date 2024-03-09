@@ -469,11 +469,9 @@ object Build_Schedule {
     serial: Long = 0,
   ) {
     require(serial >= 0, "serial underflow")
-    def inc_serial: Schedule = {
-      require(serial < Long.MaxValue, "serial overflow")
-      copy(serial = serial + 1)
-    }
-    
+
+    def next_serial: Long = Build_Process.State.inc_serial(serial)
+
     def end: Date =
       if (graph.is_empty) start
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
@@ -1191,7 +1189,7 @@ object Build_Schedule {
         schedule.graph != old_schedule.graph
       
       val schedule1 =
-        if (changed) schedule.copy(serial = old_schedule.serial).inc_serial else schedule
+        if (changed) schedule.copy(serial = old_schedule.next_serial) else schedule
       if (schedule1.serial != schedule.serial) write_schedule(db, schedule1)
       
       schedule1
