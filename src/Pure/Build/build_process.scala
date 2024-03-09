@@ -862,7 +862,7 @@ object Build_Process {
         stamp_worker(db, worker_uuid, serial)
 
         val sessions = state.sessions.pull(read_sessions_domain(db), read_sessions(db, _))
-        val pending = pull0(read_pending(db), state.pending)
+        val pending = read_pending(db)
         val running = pull0(read_running(db), state.running)
         val results = pull1(read_results_domain(db), read_results(db, _), state.results)
 
