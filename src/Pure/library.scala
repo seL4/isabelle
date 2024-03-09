@@ -292,18 +292,19 @@ object Library {
 
     val empty: Update = Update()
 
-    def make[A](data0: Data[A], data1: Data[A]): Update =
+    def make[A](data0: Data[A], data1: Data[A], kind: Int = 0): Update =
       if (data0.eq(data1)) empty
       else {
         val delete = List.from(for ((x, y) <- data0.iterator if !data1.get(x).contains(y)) yield x)
         val insert = List.from(for ((x, y) <- data1.iterator if !data0.get(x).contains(y)) yield x)
-        Update(delete = delete, insert = insert)
+        Update(delete = delete, insert = insert, kind = kind)
       }
   }
 
   sealed case class Update(
     delete: List[String] = Nil,
-    insert: List[String] = Nil
+    insert: List[String] = Nil,
+    kind: Int = 0
   ) {
     def deletes: Boolean = delete.nonEmpty
     def inserts: Boolean = insert.nonEmpty

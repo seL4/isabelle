@@ -338,6 +338,26 @@ object Build_Process {
     }
 
 
+    /* recorded updates */
+
+    object Updates {
+      val serial = SQL.Column.long("serial").make_primary_key
+      val kind = SQL.Column.int("kind").make_primary_key
+      val name = Generic.name.make_primary_key
+
+      val table = make_table(List(serial, kind, name), name = "updates")
+    }
+
+    def write_updates(db: SQL.Database, serial: Long, updates: List[Library.Update]): Unit =
+      db.execute_batch_statement(db.insert_permissive(Updates.table), batch =
+        for (update <- updates.iterator; kind = update.kind; name <- update.domain.iterator)
+        yield { (stmt: SQL.Statement) =>
+          stmt.long(1) = serial
+          stmt.int(2) = kind
+          stmt.string(3) = name
+        })
+
+
     /* base table */
 
     object Base {
@@ -424,6 +444,8 @@ object Build_Process {
           List(name, deps, ancestors, options, sources, timeout,
             old_time, old_command_timings, build_uuid),
           name = "sessions")
+
+      lazy val table_index: Int = tables.index(table)
     }
 
     def read_sessions_domain(db: SQL.Database, build_uuid: String = ""): Set[String] =
@@ -464,10 +486,10 @@ object Build_Process {
       db: SQL.Database,
       sessions: Build_Process.Sessions,
       old_sessions: Build_Process.Sessions
-    ): Boolean = {
+    ): Library.Update = {
       val update =
         if (old_sessions.eq(sessions)) Library.Update.empty
-        else Library.Update.make(old_sessions.data, sessions.data)
+        else Library.Update.make(old_sessions.data, sessions.data, kind = Sessions.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -490,7 +512,7 @@ object Build_Process {
           })
       }
 
-      update.defined
+      update
     }
 
 
@@ -506,11 +528,19 @@ object Build_Process {
 
       val table =
         make_table(List(worker_uuid, build_uuid, start, stamp, stop, serial), name = "workers")
+
+      lazy val table_index: Int = tables.index(table)
     }
 
-    def read_serial(db: SQL.Database): Long =
-      db.execute_query_statementO[Long](
-        Workers.table.select(List(Workers.serial.max)), _.long(Workers.serial)).getOrElse(0L)
+    def read_serial(db: SQL.Database): Long = {
+      val a =
+        db.execute_query_statementO[Long](
+          Workers.table.select(List(Workers.serial.max)), _.long(Workers.serial))
+      val b =
+        db.execute_query_statementO[Long](
+          Updates.table.select(List(Updates.serial.max)), _.long(Updates.serial))
+      a.getOrElse(0L) max b.getOrElse(0L)
+    }
 
     def read_workers(
       db: SQL.Database,
@@ -595,6 +625,8 @@ object Build_Process {
       val build_uuid = Generic.build_uuid
 
       val table = make_table(List(name, deps, build_uuid), name = "pending")
+
+      lazy val table_index: Int = tables.index(table)
     }
 
     def read_pending(db: SQL.Database): State.Pending =
@@ -612,8 +644,8 @@ object Build_Process {
       db: SQL.Database,
       pending: State.Pending,
       old_pending: State.Pending
-    ): Boolean = {
-      val update = Library.Update.make(old_pending, pending)
+    ): Library.Update = {
+      val update = Library.Update.make(old_pending, pending, kind = Pending.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -630,7 +662,7 @@ object Build_Process {
           })
       }
 
-      update.defined
+      update
     }
 
 
@@ -649,6 +681,8 @@ object Build_Process {
         make_table(
           List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus, start_date),
           name = "running")
+
+      lazy val table_index: Int = tables.index(table)
     }
 
     def read_running(db: SQL.Database): State.Running =
@@ -673,8 +707,8 @@ object Build_Process {
       db: SQL.Database,
       running: State.Running,
       old_running: State.Running
-    ): Boolean = {
-      val update = Library.Update.make(old_running, running)
+    ): Library.Update = {
+      val update = Library.Update.make(old_running, running, kind = Running.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -695,7 +729,7 @@ object Build_Process {
           })
       }
 
-      update.defined
+      update
     }
 
 
@@ -722,6 +756,8 @@ object Build_Process {
           List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus,
             rc, out, err, timing_elapsed, timing_cpu, timing_gc, output_shasum, current),
           name = "results")
+
+      lazy val table_index: Int = tables.index(table)
     }
 
     def read_results_domain(db: SQL.Database): Set[String] =
@@ -768,8 +804,8 @@ object Build_Process {
       db: SQL.Database,
       results: State.Results,
       old_results: State.Results
-    ): Boolean = {
-      val update = Library.Update.make(old_results, results)
+    ): Library.Update = {
+      val update = Library.Update.make(old_results, results, kind = Results.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -798,7 +834,7 @@ object Build_Process {
           })
       }
 
-      update.defined
+      update
     }
 
 
@@ -806,12 +842,13 @@ object Build_Process {
 
     override val tables: SQL.Tables =
       SQL.Tables(
-        Base.table,
-        Workers.table,
+        Updates.table,
         Sessions.table,
         Pending.table,
         Running.table,
-        Results.table)
+        Results.table,
+        Base.table,
+        Workers.table)
 
     private val build_uuid_tables =
       tables.filter(table =>
@@ -840,16 +877,16 @@ object Build_Process {
       state: State,
       old_state: State
     ): State = {
-      val serial = state.next_serial
-      val changed =
+      val updates =
         List(
           update_sessions(db, state.sessions, old_state.sessions),
           update_pending(db, state.pending, old_state.pending),
           update_running(db, state.running, old_state.running),
-          update_results(db, state.results, old_state.results)
-        ).exists(identity)
+          update_results(db, state.results, old_state.results))
 
-      if (changed) {
+      if (updates.exists(_.defined)) {
+        val serial = state.next_serial
+        write_updates(db, serial, updates)
         stamp_worker(db, worker_uuid, serial)
         state.copy(serial = serial)
       }

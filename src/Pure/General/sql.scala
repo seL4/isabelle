@@ -234,6 +234,11 @@ object SQL {
 
     def iterator: Iterator[Table] = list.iterator
 
+    def index(table: Table): Int =
+      iterator.zipWithIndex
+        .collectFirst({ case (t, i) if t.name == table.name => i })
+        .getOrElse(error("No table " + quote(table.name)))
+
     // requires transaction
     def lock(db: Database, create: Boolean = false): Boolean = {
       if (create) foreach(db.create_table(_))
