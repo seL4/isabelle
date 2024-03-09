@@ -44,10 +44,10 @@ object Build_Process {
     name: String,
     deps: List[String],
     build_uuid: String
-  ) {
+  ) extends Library.Named {
     def is_ready: Boolean = deps.isEmpty
-    def resolve(dep: String): Task =
-      if (deps.contains(dep)) copy(deps = deps.filterNot(_ == dep)) else this
+    def resolve(dep: String): Option[Task] =
+      if (deps.contains(dep)) Some(copy(deps = deps.filterNot(_ == dep))) else None
   }
 
   sealed case class Job(
@@ -198,7 +198,7 @@ object Build_Process {
     results: State.Results)     // finished results
 
   object State {
-    type Pending = List[Task]
+    type Pending = Map[String, Task]
     type Running = Map[String, Job]
     type Results = Map[String, Result]
   }
@@ -207,7 +207,7 @@ object Build_Process {
     serial: Long = 0,
     numa_nodes: List[Int] = Nil,
     sessions: Sessions = Sessions.empty,
-    pending: State.Pending = Nil,
+    pending: State.Pending = Map.empty,
     running: State.Running = Map.empty,
     results: State.Results = Map.empty
   ) {
@@ -217,12 +217,21 @@ object Build_Process {
       copy(serial = serial + 1)
     }
 
-    def ready: State.Pending = pending.filter(_.is_ready)
-    def next_ready: State.Pending = ready.filter(entry => !is_running(entry.name))
+    def ready: List[Task] = pending.valuesIterator.filter(_.is_ready).toList.sortBy(_.name)
+    def next_ready: List[Task] = ready.filter(entry => !is_running(entry.name))
 
-    def remove_pending(name: String): State =
-      copy(pending = pending.flatMap(
-        entry => if (entry.name == name) None else Some(entry.resolve(name))))
+    def remove_pending(a: String): State =
+      copy(pending =
+        pending.foldLeft(pending) {
+          case (map, (b, task)) =>
+            if (a == b) map - a
+            else {
+              task.resolve(a) match {
+                case None => map
+                case Some(task1) => map + (b -> task1)
+              }
+            }
+        })
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
@@ -565,15 +574,15 @@ object Build_Process {
       val table = make_table(List(name, deps, build_uuid), name = "pending")
     }
 
-    def read_pending(db: SQL.Database): List[Task] =
+    def read_pending(db: SQL.Database): State.Pending =
       db.execute_query_statement(
-        Pending.table.select(sql = SQL.order_by(List(Pending.name))),
-        List.from[Task],
+        Pending.table.select(),
+        Map.from[String, Task],
         { res =>
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
           val build_uuid = res.string(Pending.build_uuid)
-          Task(name, split_lines(deps), build_uuid)
+          name -> Task(name, split_lines(deps), build_uuid)
         })
 
     def update_pending(
@@ -581,7 +590,9 @@ object Build_Process {
       pending: State.Pending,
       old_pending: State.Pending
     ): Boolean = {
-      val (delete, insert) = Library.symmetric_difference(old_pending, pending)
+      val pending0 = old_pending.valuesIterator.toList
+      val pending1 = pending.valuesIterator.toList
+      val (delete, insert) = Library.symmetric_difference(pending0, pending1)
 
       if (delete.nonEmpty) {
         db.execute_statement(
@@ -788,7 +799,7 @@ object Build_Process {
         stamp_worker(db, worker_uuid, serial)
 
         val sessions = state.sessions.pull(read_sessions_domain(db), read_sessions(db, _))
-        val pending = read_pending(db)
+        val pending = pull0(read_pending(db), state.pending)
         val running = pull0(read_running(db), state.running)
         val results = pull1(read_results_domain(db), read_results(db, _), state.results)
 
@@ -966,14 +977,12 @@ extends AutoCloseable {
 
   protected def init_state(state: Build_Process.State): Build_Process.State = {
     val sessions1 = state.sessions.init(build_context, _database_server, progress = build_progress)
-
-    val old_pending = state.pending.iterator.map(_.name).toSet
-    val new_pending =
-      List.from(
-        for (session <- sessions1.iterator if !old_pending(session.name))
-          yield Build_Process.Task(session.name, session.deps, build_uuid))
-    val pending1 = new_pending ::: state.pending
-
+    val pending1 =
+      sessions1.iterator.foldLeft(state.pending) {
+        case (map, session) =>
+          if (map.isDefinedAt(session.name)) map
+          else map + (session.name -> Build_Process.Task(session.name, session.deps, build_uuid))
+      }
     state.copy(sessions = sessions1, pending = pending1)
   }
 

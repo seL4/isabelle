@@ -503,7 +503,6 @@ object Build_Schedule {
 
     def update(state: Build_Process.State): Schedule = {
       val start1 = Date.now()
-      val pending = state.pending.map(_.name).toSet
 
       def shift_elapsed(graph: Schedule.Graph, name: String): Schedule.Graph =
         graph.map_node(name, { node =>
@@ -517,7 +516,8 @@ object Build_Schedule {
           node.copy(start = starts.max(Date.Ordering))
         })
 
-      val graph0 = state.running.keys.foldLeft(graph.restrict(pending.contains))(shift_elapsed)
+      val graph0 =
+        state.running.keys.foldLeft(graph.restrict(state.pending.isDefinedAt))(shift_elapsed)
       val graph1 = graph0.topological_order.foldLeft(graph0)(shift_starts)
 
       copy(start = start1, graph = graph1)
@@ -1333,7 +1333,8 @@ object Build_Schedule {
         Build_Process.Task(session.name, session.deps, build_context.build_uuid)
 
       val build_state =
-        Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)
+        Build_Process.State(sessions = sessions,
+          pending = sessions.iterator.map(session => (session.name -> task(session))).toMap)
 
       val scheduler = Build_Engine.scheduler(timing_data, build_context)
       def schedule_msg(res: Exn.Result[Schedule]): String =
