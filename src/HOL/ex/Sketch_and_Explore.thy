@@ -17,13 +17,10 @@ fun split_clause t =
     val concl = Logic.strip_imp_concl horn;
   in (fixes, assms, concl) end;
 
-fun maybe_quote ctxt =
-  ATP_Util.maybe_quote ctxt;
-
 fun print_typ ctxt T =
   T
   |> Syntax.string_of_typ ctxt
-  |> maybe_quote ctxt;
+  |> ATP_Util.maybe_quote ctxt;
 
 fun print_term ctxt t =
   t
@@ -32,7 +29,7 @@ fun print_term ctxt t =
       \<comment> \<open>TODO pointless to annotate explicit fixes in term\<close>
   |> Print_Mode.setmp [] (Syntax.unparse_term ctxt #> Pretty.string_of)
   |> Sledgehammer_Util.simplify_spaces
-  |> maybe_quote ctxt;
+  |> ATP_Util.maybe_quote ctxt;
 
 fun eigen_context_for_statement (fixes, assms, concl) ctxt =
   let

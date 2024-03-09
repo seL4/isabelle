@@ -277,11 +277,9 @@ fun DETERM_TIMEOUT delay tac st =
 
 val indent_size = 2
 
-val maybe_quote = ATP_Util.maybe_quote
-
 fun pretty_maybe_quote ctxt pretty =
   let val s = Pretty.unformatted_string_of pretty
-  in if maybe_quote ctxt s = s then pretty else Pretty.quote pretty end
+  in if ATP_Util.maybe_quote ctxt s = s then pretty else Pretty.quote pretty end
 
 val hashw = ATP_Util.hashw
 val hashw_string = ATP_Util.hashw_string
