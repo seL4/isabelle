@@ -16,28 +16,6 @@ import scala.annotation.tailrec
 object Build_Process {
   /** state vs. database **/
 
-  object Update {
-    val empty: Update = Update()
-  }
-  sealed case class Update(
-    domain: Set[String] = Set.empty,
-    delete: List[String] = Nil,
-    insert: List[String] = Nil
-  ) {
-    def deletes: Boolean = delete.nonEmpty
-    def inserts: Boolean = insert.nonEmpty
-    def defined: Boolean = deletes || inserts
-  }
-
-  def data_update[A](data0: Map[String, A], data1: Map[String, A]): Update =
-    if (data0.eq(data1)) Update.empty
-    else {
-      val delete = List.from(for ((x, y) <- data0.iterator if !data1.get(x).contains(y)) yield x)
-      val insert = List.from(for ((x, y) <- data1.iterator if !data0.get(x).contains(y)) yield x)
-      val domain = delete.toSet ++ insert
-      Update(domain = domain, delete = delete, insert = insert)
-    }
-
   sealed case class Build(
     build_uuid: String,   // Database_Progress.context_uuid
     ml_platform: String,
@@ -109,9 +87,9 @@ object Build_Process {
     type Graph = isabelle.Graph[String, Build_Job.Session_Context]
     val empty: Sessions = new Sessions(Graph.string)
 
-    def update(sessions0: Sessions, sessions1: Sessions): Update =
-      if (sessions0.eq(sessions1)) Update.empty
-      else data_update(sessions0.data, sessions1.data)
+    def update(sessions0: Sessions, sessions1: Sessions): Library.Update =
+      if (sessions0.eq(sessions1)) Library.Update.empty
+      else Library.Update.make(sessions0.data, sessions1.data)
   }
 
   final class Sessions private(val graph: Sessions.Graph) {
@@ -635,7 +613,7 @@ object Build_Process {
       pending: State.Pending,
       old_pending: State.Pending
     ): Boolean = {
-      val update = data_update(old_pending, pending)
+      val update = Library.Update.make(old_pending, pending)
 
       if (update.deletes) {
         db.execute_statement(
@@ -696,7 +674,7 @@ object Build_Process {
       running: State.Running,
       old_running: State.Running
     ): Boolean = {
-      val update = data_update(old_running, running)
+      val update = Library.Update.make(old_running, running)
 
       if (update.deletes) {
         db.execute_statement(
@@ -791,7 +769,7 @@ object Build_Process {
       results: State.Results,
       old_results: State.Results
     ): Boolean = {
-      val update = data_update(old_results, results)
+      val update = Library.Update.make(old_results, results)
 
       if (update.deletes) {
         db.execute_statement(

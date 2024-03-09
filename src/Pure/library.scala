@@ -285,6 +285,34 @@ object Library {
     }
 
 
+  /* data update */
+
+  object Update {
+    type Data[A] = Map[String, A]
+
+    val empty: Update = Update()
+
+    def make[A](data0: Data[A], data1: Data[A]): Update =
+      if (data0.eq(data1)) empty
+      else {
+        val delete = List.from(for ((x, y) <- data0.iterator if !data1.get(x).contains(y)) yield x)
+        val insert = List.from(for ((x, y) <- data1.iterator if !data0.get(x).contains(y)) yield x)
+        val domain = delete.toSet ++ insert
+        Update(domain = domain, delete = delete, insert = insert)
+      }
+  }
+
+  sealed case class Update(
+    domain: Set[String] = Set.empty,
+    delete: List[String] = Nil,
+    insert: List[String] = Nil
+  ) {
+    def deletes: Boolean = delete.nonEmpty
+    def inserts: Boolean = insert.nonEmpty
+    def defined: Boolean = deletes || inserts
+  }
+
+
   /* proper values */
 
   def proper_bool(b: Boolean): Option[Boolean] =
