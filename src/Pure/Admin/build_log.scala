@@ -687,15 +687,7 @@ object Build_Log {
   }
 
   object private_data extends SQL.Data("isabelle_build_log") {
-    override def tables: SQL.Tables =
-      SQL.Tables(
-        meta_info_table,
-        sessions_table,
-        theories_table,
-        ml_statistics_table)
-
-
-    /* main content */
+    /* tables */
 
     val meta_info_table =
       make_table(Column.log_name :: Prop.all_props ::: Settings.all_settings, name = "meta_info")
@@ -718,6 +710,13 @@ object Build_Log {
     val ml_statistics_table =
       make_table(List(Column.log_name, Column.session_name, Column.ml_statistics),
         name = "ml_statistics")
+
+    override val tables: SQL.Tables =
+      SQL.Tables(
+        meta_info_table,
+        sessions_table,
+        theories_table,
+        ml_statistics_table)
 
 
     /* earliest pull date for repository version (PostgreSQL queries) */
