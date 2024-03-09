@@ -86,10 +86,6 @@ object Build_Process {
   object Sessions {
     type Graph = isabelle.Graph[String, Build_Job.Session_Context]
     val empty: Sessions = new Sessions(Graph.string)
-
-    def update(sessions0: Sessions, sessions1: Sessions): Library.Update =
-      if (sessions0.eq(sessions1)) Library.Update.empty
-      else Library.Update.make(sessions0.data, sessions1.data)
   }
 
   final class Sessions private(val graph: Sessions.Graph) {
@@ -469,7 +465,9 @@ object Build_Process {
       sessions: Build_Process.Sessions,
       old_sessions: Build_Process.Sessions
     ): Boolean = {
-      val update = Build_Process.Sessions.update(old_sessions, sessions)
+      val update =
+        if (old_sessions.eq(sessions)) Library.Update.empty
+        else Library.Update.make(old_sessions.data, sessions.data)
 
       if (update.deletes) {
         db.execute_statement(
