@@ -1329,12 +1329,10 @@ object Build_Schedule {
       val timing_data = Timing_Data.load(host_infos, log_database)
 
       val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
-      def task(session: Build_Job.Session_Context): Build_Process.Task =
-        Build_Process.Task(session.name, session.deps, build_context.build_uuid)
 
       val build_state =
         Build_Process.State(sessions = sessions,
-          pending = sessions.iterator.map(session => (session.name -> task(session))).toMap)
+          pending = Map.from(sessions.iterator.map(Build_Process.Task.entry(_, build_context))))
 
       val scheduler = Build_Engine.scheduler(timing_data, build_context)
       def schedule_msg(res: Exn.Result[Schedule]): String =

@@ -40,6 +40,14 @@ object Build_Process {
     serial: Long
   )
 
+  object Task {
+    type Entry = (String, Task)
+    def entry(name: String, deps: List[String], build_uuid: String): Entry =
+      name -> Task(name, deps, build_uuid)
+    def entry(session: Build_Job.Session_Context, build_context: isabelle.Build.Context): Entry =
+      entry(session.name, session.deps, build_context.build_uuid)
+  }
+
   sealed case class Task(
     name: String,
     deps: List[String],
@@ -582,7 +590,7 @@ object Build_Process {
           val name = res.string(Pending.name)
           val deps = res.string(Pending.deps)
           val build_uuid = res.string(Pending.build_uuid)
-          name -> Task(name, split_lines(deps), build_uuid)
+          Task.entry(name, split_lines(deps), build_uuid)
         })
 
     def update_pending(
@@ -981,7 +989,7 @@ extends AutoCloseable {
       sessions1.iterator.foldLeft(state.pending) {
         case (map, session) =>
           if (map.isDefinedAt(session.name)) map
-          else map + (session.name -> Build_Process.Task(session.name, session.deps, build_uuid))
+          else map + Build_Process.Task.entry(session, build_context)
       }
     state.copy(sessions = sessions1, pending = pending1)
   }
