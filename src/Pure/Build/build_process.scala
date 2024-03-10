@@ -97,7 +97,7 @@ object Build_Process {
     def iterator: Iterator[Build_Job.Session_Context] =
       for (name <- graph.topological_order.iterator) yield apply(name)
 
-    def data: Map[String, Build_Job.Session_Context] =
+    def data: Library.Update.Data[Build_Job.Session_Context] =
       Map.from(for ((_, (session, _)) <- graph.iterator) yield session.name -> session)
 
     def make(new_graph: Sessions.Graph): Sessions =
@@ -214,9 +214,9 @@ object Build_Process {
       serial + 1
     }
 
-    type Pending = Map[String, Task]
-    type Running = Map[String, Job]
-    type Results = Map[String, Result]
+    type Pending = Library.Update.Data[Task]
+    type Running = Library.Update.Data[Job]
+    type Results = Library.Update.Data[Result]
   }
 
   sealed case class State(
