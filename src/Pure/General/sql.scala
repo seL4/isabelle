@@ -554,6 +554,8 @@ object SQL {
 
     def insert_permissive(table: Table, sql: Source = ""): Source
 
+    def destroy(table: Table): Source = "DROP TABLE IF EXISTS " + table
+
 
     /* tables and views */
 
@@ -783,6 +785,9 @@ object PostgreSQL {
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd(sql = if_proper(sql, sql + " ") + "ON CONFLICT DO NOTHING")
+
+    override def destroy(table: SQL.Table): SQL.Source =
+      super.destroy(table) + " CASCADE"
 
 
     /* explicit locking: only applicable to PostgreSQL within transaction context */
