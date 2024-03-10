@@ -928,9 +928,10 @@ object Build_Process {
           update_sessions(db, state.sessions, old_state.sessions),
           update_pending(db, state.pending, old_state.pending),
           update_running(db, state.running, old_state.running),
-          update_results(db, state.results, old_state.results))
+          update_results(db, state.results, old_state.results)
+        ).filter(_.defined)
 
-      if (updates.exists(_.defined)) {
+      if (updates.nonEmpty) {
         val serial = state.next_serial
         write_updates(db, build_id, serial, updates)
         stamp_worker(db, worker_uuid, serial)
