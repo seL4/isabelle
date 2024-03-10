@@ -1305,7 +1305,7 @@ extends AutoCloseable {
   def run(): Build.Results = {
     val vacuous =
       synchronized_database("Build_Process.init") {
-        if (build_context.master) _build_cluster.init()
+        _build_cluster.init()
         init_unsynchronized()
         build_context.master && _state.pending.isEmpty
       }
