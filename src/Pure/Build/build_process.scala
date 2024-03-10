@@ -25,6 +25,7 @@ object Build_Process {
     sessions: List[String]
   ) {
     def active: Boolean = stop.isEmpty
+    def active_build_uuid: Option[String] = if (active) Some(build_uuid) else None
 
     def print: String =
       build_uuid + " (platform: " + ml_platform + ", start: " + Build_Log.print_date(start) +

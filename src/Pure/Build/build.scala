@@ -523,7 +523,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
               val remove =
                 if (!remove_builds) Nil
                 else if (force) builds.map(_.build_uuid)
-                else builds.flatMap(build => if (build.active) None else Some(build.build_uuid))
+                else builds.flatMap(_.active_build_uuid)
 
               print(builds)
               if (remove.nonEmpty) {
