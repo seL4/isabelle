@@ -81,9 +81,12 @@ object SQL {
   def equal(sql: Source, x: Long): Source = sql + " = " + x
   def equal(sql: Source, x: String): Source = sql + " = " + string(x)
 
+  def member_int(sql: Source, set: Iterable[Int]): Source =
+    if (set.isEmpty) FALSE else OR(set.iterator.map(equal(sql, _)).toList)
+  def member_long(sql: Source, set: Iterable[Long]): Source =
+    if (set.isEmpty) FALSE else OR(set.iterator.map(equal(sql, _)).toList)
   def member(sql: Source, set: Iterable[String]): Source =
-    if (set.isEmpty) FALSE
-    else OR(set.iterator.map(equal(sql, _)).toList)
+    if (set.isEmpty) FALSE else OR(set.iterator.map(equal(sql, _)).toList)
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
   def where_and(args: Source*): Source = where(and(args:_*))
@@ -163,7 +166,12 @@ object SQL {
     def where_equal(x: Long): Source = SQL.where(equal(x))
     def where_equal(x: String): Source = SQL.where(equal(x))
 
+    def member_int(set: Iterable[Int]): Source = SQL.member_int(ident, set)
+    def member_long(set: Iterable[Long]): Source = SQL.member_long(ident, set)
     def member(set: Iterable[String]): Source = SQL.member(ident, set)
+
+    def where_member_int(set: Iterable[Int]): Source = SQL.where(member_int(set))
+    def where_member_long(set: Iterable[Long]): Source = SQL.where(member_long(set))
     def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
     def max: Column = copy(expr = "MAX(" + ident + ")")
