@@ -945,9 +945,19 @@ object Build_Process {
       private_data.read_builds(db)
     }
 
-  def get_build_id(db: SQL.Database, build_uuid: String): Long =
-    private_data.transaction_lock(db, create = true, label = "Build_Process.build_id") {
-      private_data.get_build_id(db, build_uuid)
+  def init_build(
+    db: SQL.Database,
+    build_context: isabelle.Build.Context,
+    build_start: Date
+  ): Long =
+    private_data.transaction_lock(db, create = true, label = "Build_Process.init_build") {
+      val build_uuid = build_context.build_uuid
+      val build_id = private_data.get_build_id(db, build_uuid)
+      if (build_context.master) {
+        private_data.start_build(db, build_id, build_uuid, build_context.ml_platform,
+          build_context.sessions_structure.session_prefs, build_start)
+      }
+      build_id
     }
 }
 
@@ -1043,15 +1053,15 @@ extends AutoCloseable {
     }
   }
 
-  protected val build_id: Long =
-    _build_database match {
-      case None => 0L
-      case Some(db) => Build_Process.get_build_id(db, build_uuid)
-    }
+  protected val log: Logger = Logger.make_system_log(progress, build_options)
 
   protected val build_start: Date = build_context.build_start getOrElse progress.now()
 
-  protected val log: Logger = Logger.make_system_log(progress, build_options)
+  protected val build_id: Long =
+    _build_database match {
+      case None => 0L
+      case Some(db) => Build_Process.init_build(db, build_context, build_start)
+    }
 
   protected def open_build_cluster(): Build_Cluster =
     Build_Cluster.make(build_context, progress = build_progress).open()
@@ -1211,13 +1221,6 @@ extends AutoCloseable {
   final def is_session_name(job_name: String): Boolean =
     !Long_Name.is_qualified(job_name)
 
-  protected final def start_build(): Unit = synchronized_database("Build_Process.start_build") {
-    for (db <- _build_database) {
-      Build_Process.private_data.start_build(db, build_id, build_uuid,
-        build_context.ml_platform, build_context.sessions_structure.session_prefs, build_start)
-    }
-  }
-
   protected final def stop_build(): Unit = synchronized_database("Build_Process.stop_build") {
     for (db <- _build_database) {
       Build_Process.private_data.stop_build(db, build_uuid)
@@ -1311,10 +1314,10 @@ extends AutoCloseable {
       }
     if (vacuous) {
       progress.echo_warning("Nothing to build")
+      if (build_context.master) stop_build()
       Build.Results(build_context)
     }
     else {
-      if (build_context.master) start_build()
       start_worker()
       _build_cluster.start()
 
