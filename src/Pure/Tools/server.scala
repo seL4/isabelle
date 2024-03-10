@@ -366,7 +366,7 @@ object Server {
   object private_data extends SQL.Data() {
     val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
 
-    override lazy val tables = SQL.Tables(Base.table)
+    override lazy val tables: SQL.Tables = SQL.Tables(Base.table)
 
     object Base {
       val name = SQL.Column.string("name").make_primary_key

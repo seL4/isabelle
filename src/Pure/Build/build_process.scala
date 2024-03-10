@@ -287,6 +287,16 @@ object Build_Process {
   object private_data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
+    override lazy val tables: SQL.Tables =
+      SQL.Tables(
+        Updates.table,
+        Sessions.table,
+        Pending.table,
+        Running.table,
+        Results.table,
+        Base.table,
+        Workers.table)
+
     def pull[A <: Library.Named](
       data_domain: Set[String],
       data_iterator: Set[String] => Iterator[A],
@@ -839,16 +849,6 @@ object Build_Process {
 
 
     /* collective operations */
-
-    override val tables: SQL.Tables =
-      SQL.Tables(
-        Updates.table,
-        Sessions.table,
-        Pending.table,
-        Running.table,
-        Results.table,
-        Base.table,
-        Workers.table)
 
     private val build_uuid_tables =
       tables.filter(table =>

@@ -1061,6 +1061,12 @@ object Build_Schedule {
   object private_data extends SQL.Data("isabelle_build") {
     import Build_Process.private_data.{Base, Generic}
 
+    override lazy val tables: SQL.Tables =
+      SQL.Tables(Schedules.table, Nodes.table)
+
+    lazy val all_tables: SQL.Tables =
+      SQL.Tables.list(Build_Process.private_data.tables.list ::: tables.list)
+
 
     /* schedule */
 
@@ -1211,11 +1217,6 @@ object Build_Schedule {
 
       remove_schedules(db, update.delete)
     }
-
-    override val tables: SQL.Tables = SQL.Tables(Schedules.table, Nodes.table)
-
-    val all_tables: SQL.Tables =
-      SQL.Tables.list(Build_Process.private_data.tables.list ::: tables.list)
   }
 
 

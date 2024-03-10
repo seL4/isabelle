@@ -168,7 +168,7 @@ object Host {
   object private_data extends SQL.Data("isabelle_host") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/host.db")
 
-    override lazy val tables = SQL.Tables(Node_Info.table, Info.table)
+    override lazy val tables: SQL.Tables = SQL.Tables(Node_Info.table, Info.table)
 
     object Node_Info {
       val hostname = SQL.Column.string("hostname").make_primary_key

@@ -56,7 +56,8 @@ object Progress {
   object private_data extends SQL.Data("isabelle_progress") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/progress.db")
 
-    override lazy val tables = SQL.Tables(Base.table, Agents.table, Messages.table)
+    override lazy val tables: SQL.Tables =
+      SQL.Tables(Base.table, Agents.table, Messages.table)
 
     object Base {
       val context_uuid = SQL.Column.string("context_uuid").make_primary_key

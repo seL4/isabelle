@@ -114,7 +114,7 @@ object Store {
   /* SQL data model */
 
   object private_data extends SQL.Data() {
-    override lazy val tables = SQL.Tables(Session_Info.table, Sources.table)
+    override lazy val tables: SQL.Tables = SQL.Tables(Session_Info.table, Sources.table)
 
     object Session_Info {
       val session_name = SQL.Column.string("session_name").make_primary_key

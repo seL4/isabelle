@@ -41,7 +41,7 @@ object ML_Heap {
   sealed case class Log_DB(uuid: String, content: Bytes)
 
   object private_data extends SQL.Data("isabelle_heaps") {
-    override lazy val tables = SQL.Tables(Base.table, Slices.table)
+    override lazy val tables: SQL.Tables = SQL.Tables(Base.table, Slices.table)
 
     object Generic {
       val name = SQL.Column.string("name").make_primary_key
