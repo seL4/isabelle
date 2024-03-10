@@ -1042,17 +1042,6 @@ extends AutoCloseable {
 
   /* policy operations */
 
-  protected def init_state(state: Build_Process.State): Build_Process.State = {
-    val sessions1 = state.sessions.init(build_context, _database_server, progress = build_progress)
-    val pending1 =
-      sessions1.iterator.foldLeft(state.pending) {
-        case (map, session) =>
-          if (map.isDefinedAt(session.name)) map
-          else map + Build_Process.Task.entry(session, build_context)
-      }
-    state.copy(sessions = sessions1, pending = pending1)
-  }
-
   protected def next_jobs(state: Build_Process.State): List[String] = {
     val limit = {
       if (progress.stopped) { if (build_context.master) Int.MaxValue else 0 }
@@ -1210,6 +1199,24 @@ extends AutoCloseable {
   protected def sleep(): Unit =
     Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
 
+  protected def init_unsynchronized(): Unit = {
+    if (build_context.master) {
+      val sessions1 =
+        _state.sessions.init(build_context, _database_server, progress = build_progress)
+      val pending1 =
+        sessions1.iterator.foldLeft(_state.pending) {
+          case (map, session) =>
+            if (map.isDefinedAt(session.name)) map
+            else map + Build_Process.Task.entry(session, build_context)
+        }
+      _state = _state.copy(sessions = sessions1, pending = pending1)
+    }
+
+    val numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling)
+    _state = _state.copy(numa_nodes = numa_nodes)
+  }
+
+
   protected def main_unsynchronized(): Unit = {
     for (job <- _state.build_running.filter(_.is_finished)) {
       _state = _state.remove_running(job.name)
@@ -1241,11 +1248,8 @@ extends AutoCloseable {
   def run(): Build.Results = {
     val vacuous =
       synchronized_database("Build_Process.init") {
-        if (build_context.master) {
-          _build_cluster.init()
-          _state = init_state(_state)
-        }
-        _state = _state.copy(numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling))
+        if (build_context.master) _build_cluster.init()
+        init_unsynchronized()
         build_context.master && _state.pending.isEmpty
       }
     if (vacuous) {
