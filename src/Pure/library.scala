@@ -292,11 +292,11 @@ object Library {
 
     val empty: Update = Update()
 
-    def make[A](data0: Data[A], data1: Data[A], kind: Int = 0): Update =
-      if (data0.eq(data1)) empty
+    def make[A](a: Data[A], b: Data[A], kind: Int = 0): Update =
+      if (a eq b) empty
       else {
-        val delete = List.from(for ((x, y) <- data0.iterator if !data1.get(x).contains(y)) yield x)
-        val insert = List.from(for ((x, y) <- data1.iterator if !data0.get(x).contains(y)) yield x)
+        val delete = List.from(for ((x, y) <- a.iterator if !b.get(x).contains(y)) yield x)
+        val insert = List.from(for ((x, y) <- b.iterator if !a.get(x).contains(y)) yield x)
         Update(delete = delete, insert = insert, kind = kind)
       }
   }
