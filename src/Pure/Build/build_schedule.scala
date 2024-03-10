@@ -857,7 +857,8 @@ object Build_Schedule {
               _schedule = old_schedule
               val res = body
               _state =
-                Build_Process.private_data.update_database(db, worker_uuid, _state, old_state)
+                Build_Process.private_data.update_database(
+                  db, build_id, worker_uuid, _state, old_state)
               _schedule = Build_Schedule.private_data.update_schedule(db, _schedule, old_schedule)
               res
             }
