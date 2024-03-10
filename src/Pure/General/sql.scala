@@ -57,7 +57,6 @@ object SQL {
 
   val join_outer: Source = " LEFT OUTER JOIN "
   val join_inner: Source = " INNER JOIN "
-  def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
   def MULTI(args: Iterable[Source]): Source =
     args.iterator.filter(_.nonEmpty).mkString(";\n")
