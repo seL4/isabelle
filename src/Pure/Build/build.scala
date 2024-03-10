@@ -517,17 +517,26 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
         build_database match {
           case None => print(Nil)
+          case Some(db) if remove_builds && force =>
+            db.transaction {
+              val tables0 =
+                ML_Heap.private_data.tables.list :::
+                Store.private_data.tables.list :::
+                Progress.private_data.tables.list :::
+                Build_Process.private_data.tables.list
+              val tables = tables0.filter(t => db.exists_table(t.name)).sortBy(_.name)
+              if (tables.nonEmpty) {
+                progress.echo("Removing tables " + commas_quote(tables.map(_.name)) + " ...")
+                db.execute_statement(SQL.MULTI(tables.map(db.destroy)))
+              }
+            }
           case Some(db) =>
             Build_Process.private_data.transaction_lock(db, create = true, label = "build_process") {
               val builds = Build_Process.private_data.read_builds(db)
-              val remove =
-                if (!remove_builds) Nil
-                else if (force) builds.map(_.build_uuid)
-                else builds.flatMap(_.active_build_uuid)
-
               print(builds)
-              if (remove.nonEmpty) {
-                if (remove_builds) {
+              if (remove_builds) {
+                val remove = builds.flatMap(_.active_build_uuid)
+                if (remove.nonEmpty) {
                   progress.echo("Removing " + commas(remove) + " ...")
                   Build_Process.private_data.remove_builds(db, remove)
                   print(Build_Process.private_data.read_builds(db))
