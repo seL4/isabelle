@@ -173,7 +173,8 @@ object SQL {
     def where_member_long(set: Iterable[Long]): Source = SQL.where(member_long(set))
     def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
-    def max: Column = copy(expr = "MAX(" + ident + ")")
+    def make_expr(e: SQL.Source): Column = copy(expr = e)
+    def max: Column = make_expr("MAX(" + ident + ")")
 
     override def toString: Source = ident
   }

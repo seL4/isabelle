@@ -1278,7 +1278,7 @@ object Build_Log {
 
           val columns =
             table1.columns.map(c => c(table1)) :::
-              List(Column.known.copy(expr = Column.log_name(aux_table).defined))
+              List(Column.known.make_expr(Column.log_name(aux_table).defined))
 
           SQL.select(columns, distinct = true) +
             table1.query_named + SQL.join_outer + aux_table.query_named +
