@@ -26,7 +26,6 @@ fun print_term ctxt t =
   t
   |> singleton (Syntax.uncheck_terms ctxt)
   |> Sledgehammer_Isar_Annotate.annotate_types_in_term ctxt
-      \<comment> \<open>TODO pointless to annotate explicit fixes in term\<close>
   |> Print_Mode.setmp [] (Syntax.unparse_term ctxt #> Pretty.string_of)
   |> Sledgehammer_Util.simplify_spaces
   |> ATP_Util.maybe_quote ctxt;
@@ -41,7 +40,6 @@ fun print_isar_skeleton ctxt indent keyword stmt =
   let
     val ((fixes, assms, concl), ctxt') = eigen_context_for_statement stmt ctxt;
     val prefix = replicate_string indent " ";
-      \<comment> \<open>TODO consider pre-existing indentation -- how?\<close>
     val prefix_sep = "\n" ^ prefix ^ "    and ";
     val show_s = prefix ^ keyword ^ " " ^ print_term ctxt' concl;
     val if_s = if null assms then NONE
