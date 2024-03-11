@@ -31,15 +31,11 @@ fun print_term ctxt t =
   |> Sledgehammer_Util.simplify_spaces
   |> ATP_Util.maybe_quote ctxt;
 
-fun eigen_context_for_statement (fixes, assms, concl) ctxt =
+fun eigen_context_for_statement (params, assms, concl) ctxt =
   let
-    val (fixes', ctxt') = Variable.add_fixes (map fst fixes) ctxt;
-    val subst_free = AList.lookup (op =) (map fst fixes ~~ fixes')
-    val subst = map_aterms (fn Free (v, T) => Free (the_default v (subst_free v), T)
-      | t => t)
-    val assms' = map subst assms;
-    val concl' = subst concl;
-  in ((fixes, assms', concl'), ctxt') end;
+    val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
+    val ctxt' = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
+  in ((params, assms, concl), ctxt') end;
 
 fun print_isar_skeleton ctxt indent keyword stmt =
   let
