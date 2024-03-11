@@ -377,6 +377,44 @@ object Build_Process {
       val name = Generic.name.make_primary_key
 
       val table = make_table(List(build_id, serial, kind, name), name = "updates")
+
+      // virtual columns for JOIN with data
+      val delete = SQL.Column.bool("delete").make_expr(name.undefined)
+      val dom = SQL.Column.string("dom")
+      val dom_name = dom.make_expr(name.ident)
+      val name_dom = name.make_expr(dom.ident)
+    }
+
+    def read_updates[A](
+      db: SQL.Database,
+      table: SQL.Table,
+      build_id: Long,
+      serial_seen: Long,
+      get: SQL.Result => A
+    ): List[(String, Option[A])] = {
+      val domain_columns = List(Updates.dom_name)
+      val domain_table =
+        SQL.Table("domain", domain_columns, body =
+          Updates.table.select(domain_columns, distinct = true, sql =
+            SQL.where_and(
+              Updates.build_id.equal(build_id),
+              Updates.serial.ident + " > " + serial_seen,
+              Updates.kind.equal(tables.index(table)))))
+
+      val select_columns =
+        Updates.delete :: Updates.name_dom :: table.columns.filterNot(_.equals_name(Generic.name))
+      val select_sql =
+        SQL.select(select_columns, sql =
+          domain_table.query_named + SQL.join_outer + table +
+            " ON " + Updates.dom + " = " + Generic.name +
+            SQL.order_by(List(Generic.name)))
+
+      db.execute_query_statement(select_sql, List.from[(String, Option[A])],
+        { res =>
+          val delete = res.bool(Updates.delete)
+          val name = res.string(Updates.name)
+          if (delete) name -> None else name -> Some(get(res))
+        })
     }
 
     def write_updates(
