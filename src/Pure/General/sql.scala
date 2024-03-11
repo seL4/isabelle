@@ -142,6 +142,8 @@ object SQL {
     primary_key: Boolean = false,
     expr: SQL.Source = ""
   ) {
+    def equals_name(other: Column): Boolean = name == other.name
+
     def make_primary_key: Column = copy(primary_key = true)
 
     def apply(table: Table): Column =

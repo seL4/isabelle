@@ -336,10 +336,10 @@ object Build_Process {
       val name = SQL.Column.string("name")
 
       def build_id_table(table: SQL.Table): Boolean =
-        table.columns.exists(column => column.name == build_id.name)
+        table.columns.exists(_.equals_name(build_id))
 
       def build_uuid_table(table: SQL.Table): Boolean =
-        table.columns.exists(column => column.name == build_uuid.name)
+        table.columns.exists(_.equals_name(build_uuid))
 
       def sql(
         build_id: Long = 0,
