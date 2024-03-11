@@ -148,8 +148,7 @@ object SQL {
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
     def ident: Source =
-      if (expr == "") SQL.ident(name)
-      else enclose(expr) + " AS " + SQL.ident(name)
+      if_proper(expr, enclose(expr) + " AS ") + SQL.ident(name)
 
     def decl(sql_type: Type => Source): Source =
       ident + " " + sql_type(T) + if_proper(strict || primary_key, " NOT NULL")
