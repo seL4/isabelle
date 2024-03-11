@@ -406,8 +406,7 @@ object Build_Process {
       val select_sql =
         SQL.select(select_columns, sql =
           domain_table.query_named + SQL.join_outer + table +
-            " ON " + Updates.dom + " = " + Generic.name +
-            SQL.order_by(List(Generic.name)))
+            " ON " + Updates.dom + " = " + Generic.name)
 
       db.execute_query_statement(select_sql, List.from[(String, Option[A])],
         { res =>
