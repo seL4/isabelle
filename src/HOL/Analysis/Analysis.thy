@@ -12,6 +12,7 @@ theory Analysis
   Connected
   Abstract_Limits
   Isolated
+  Sparse_In
   (* Functional Analysis *)
   Elementary_Normed_Spaces
   Norm_Arith

@@ -98,6 +98,12 @@ lemma (in bounded_linear) has_derivative:
   unfolding has_derivative_def
   by (auto simp add: bounded_linear_compose [OF bounded_linear] scaleR diff dest: tendsto)
 
+lemma has_derivative_bot [intro]: "bounded_linear f' \<Longrightarrow> (f has_derivative f') bot"
+  by (auto simp: has_derivative_def)
+
+lemma has_field_derivative_bot [simp, intro]: "(f has_field_derivative f') bot"
+  by (auto simp: has_field_derivative_def intro!: has_derivative_bot bounded_linear_mult_right)
+
 lemmas has_derivative_scaleR_right [derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_scaleR_right]
 
@@ -813,6 +819,13 @@ qed
 
 lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
+
+lemma has_field_derivative_unique:
+  assumes "(f has_field_derivative f'1) (at x within A)"
+  assumes "(f has_field_derivative f'2) (at x within A)"
+  assumes "at x within A \<noteq> bot"
+  shows   "f'1 = f'2"
+  using assms unfolding has_field_derivative_iff using tendsto_unique by blast
 
 text \<open>due to Christian Pardillo Laursen, replacing a proper epsilon-delta horror\<close>
 lemma field_derivative_lim_unique:

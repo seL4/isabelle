@@ -224,21 +224,20 @@ lemma holomorphic_on_cos' [holomorphic_intros]:
   shows   "(\<lambda>x. cos (f x)) holomorphic_on A"
   using holomorphic_on_compose[OF assms holomorphic_on_cos] by (simp add: o_def)
 
-lemma analytic_on_sin [analytic_intros]: "sin analytic_on A"
-  using analytic_on_holomorphic holomorphic_on_sin by blast
+lemma analytic_on_sin [analytic_intros]: "f analytic_on A \<Longrightarrow> (\<lambda>w. sin (f w)) analytic_on A"
+  and analytic_on_cos [analytic_intros]: "f analytic_on A \<Longrightarrow> (\<lambda>w. cos (f w)) analytic_on A"
+  and analytic_on_sinh [analytic_intros]: "f analytic_on A \<Longrightarrow> (\<lambda>w. sinh (f w)) analytic_on A"
+  and analytic_on_cosh [analytic_intros]: "f analytic_on A \<Longrightarrow> (\<lambda>w. cosh (f w)) analytic_on A"
+  unfolding sin_exp_eq cos_exp_eq sinh_def cosh_def
+  by (auto intro!: analytic_intros)
 
-lemma analytic_on_sin' [analytic_intros]:
-  "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> range (\<lambda>n. complex_of_real pi * of_int n)) \<Longrightarrow>
-   (\<lambda>z. sin (f z)) analytic_on A"
-  using analytic_on_compose_gen[OF _ analytic_on_sin[of UNIV], of f A] by (simp add: o_def)
-
-lemma analytic_on_cos [analytic_intros]: "cos analytic_on A"
-  using analytic_on_holomorphic holomorphic_on_cos by blast
-
-lemma analytic_on_cos' [analytic_intros]:
-  "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> range (\<lambda>n. complex_of_real pi * of_int n)) \<Longrightarrow>
-   (\<lambda>z. cos (f z)) analytic_on A"
-  using analytic_on_compose_gen[OF _ analytic_on_cos[of UNIV], of f A] by (simp add: o_def)
+lemma analytic_on_tan [analytic_intros]:
+        "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> cos (f z) \<noteq> 0) \<Longrightarrow> (\<lambda>w. tan (f w)) analytic_on A"
+  and analytic_on_cot [analytic_intros]:
+        "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> sin (f z) \<noteq> 0) \<Longrightarrow> (\<lambda>w. cot (f w)) analytic_on A"
+  and analytic_on_tanh [analytic_intros]:
+        "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> cosh (f z) \<noteq> 0) \<Longrightarrow> (\<lambda>w. tanh (f w)) analytic_on A"
+  unfolding tan_def cot_def tanh_def by (auto intro!: analytic_intros)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>More on the Polar Representation of Complex Numbers\<close>
 
@@ -1251,6 +1250,18 @@ lemma holomorphic_on_Ln' [holomorphic_intros]:
   "(\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> f holomorphic_on A \<Longrightarrow> (\<lambda>z. Ln (f z)) holomorphic_on A"
   using holomorphic_on_compose_gen[OF _ holomorphic_on_Ln, of f A "- \<real>\<^sub>\<le>\<^sub>0"]
   by (auto simp: o_def)
+
+lemma analytic_on_ln [analytic_intros]:
+  assumes "f analytic_on A" "f ` A \<inter> \<real>\<^sub>\<le>\<^sub>0 = {}"
+  shows   "(\<lambda>w. ln (f w)) analytic_on A"
+proof -
+  have *: "ln analytic_on (-\<real>\<^sub>\<le>\<^sub>0)"
+    by (subst analytic_on_open) (auto intro!: holomorphic_intros)
+  have "(ln \<circ> f) analytic_on A"
+    by (rule analytic_on_compose_gen[OF assms(1) *]) (use assms(2) in auto)
+  thus ?thesis
+    by (simp add: o_def)
+qed
 
 lemma tendsto_Ln [tendsto_intros]:
   assumes "(f \<longlongrightarrow> L) F" "L \<notin> \<real>\<^sub>\<le>\<^sub>0"

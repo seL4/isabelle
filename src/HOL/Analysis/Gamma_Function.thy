@@ -1547,6 +1547,54 @@ lemma analytic_on_Polygamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longr
      (auto intro!: holomorphic_on_Polygamma)
 
 
+lemma analytic_on_rGamma [analytic_intros]: "f analytic_on A \<Longrightarrow> (\<lambda>w. rGamma (f w)) analytic_on A"
+  using analytic_on_compose[OF _ analytic_rGamma, of f A] by (simp add: o_def)
+
+lemma analytic_on_ln_Gamma [analytic_intros]:
+  "f analytic_on A \<Longrightarrow> (\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> (\<lambda>w. ln_Gamma (f w)) analytic_on A"
+  by (rule analytic_on_compose[OF _ analytic_ln_Gamma, unfolded o_def]) (auto simp: o_def)
+
+lemma Polygamma_plus_of_nat:
+  assumes "\<forall>k<m. z \<noteq> -of_nat k"
+  shows   "Polygamma n (z + of_nat m) =
+             Polygamma n z + (-1) ^ n * fact n * (\<Sum>k<m. 1 / (z + of_nat k) ^ Suc n)"
+  using assms
+proof (induction m)
+  case (Suc m)
+  have "Polygamma n (z + of_nat (Suc m)) = Polygamma n (z + of_nat m + 1)"
+    by (simp add: add_ac)
+  also have "\<dots> = Polygamma n (z + of_nat m) + (-1) ^ n * fact n * (1 / ((z + of_nat m) ^ Suc n))"
+    using Suc.prems by (subst Polygamma_plus1) (auto simp: add_eq_0_iff2)
+  also have "Polygamma n (z + of_nat m) =
+               Polygamma n z + (-1) ^ n * (\<Sum>k<m. 1 / (z + of_nat k) ^ Suc n) * fact n"
+    using Suc.prems by (subst Suc.IH) auto
+  finally show ?case
+    by (simp add: algebra_simps)
+qed auto
+
+lemma tendsto_Gamma [tendsto_intros]:
+  assumes "(f \<longlongrightarrow> c) F" "c \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "((\<lambda>z. Gamma (f z)) \<longlongrightarrow> Gamma c) F"
+  by (intro isCont_tendsto_compose[OF _ assms(1)] continuous_intros assms)
+
+lemma tendsto_Polygamma [tendsto_intros]:
+  fixes f :: "_ \<Rightarrow> 'a :: {real_normed_field,euclidean_space}"
+  assumes "(f \<longlongrightarrow> c) F" "c \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "((\<lambda>z. Polygamma n (f z)) \<longlongrightarrow> Polygamma n c) F"
+  by (intro isCont_tendsto_compose[OF _ assms(1)] continuous_intros assms)
+
+lemma analytic_on_Gamma' [analytic_intros]:
+  assumes "f analytic_on A" "\<forall>x\<in>A. f x \<notin> \<int>\<^sub>\<le>\<^sub>0" 
+  shows   "(\<lambda>z. Gamma (f z)) analytic_on A"
+  using analytic_on_compose_gen[OF assms(1) analytic_Gamma[of "f ` A"]] assms(2)
+  by (auto simp: o_def)
+
+lemma analytic_on_Polygamma' [analytic_intros]:
+  assumes "f analytic_on A" "\<forall>x\<in>A. f x \<notin> \<int>\<^sub>\<le>\<^sub>0" 
+  shows   "(\<lambda>z. Polygamma n (f z)) analytic_on A"
+  using analytic_on_compose_gen[OF assms(1) analytic_on_Polygamma[of "f ` A" n]] assms(2)
+  by (auto simp: o_def)
+
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>The real Gamma function\<close>
 

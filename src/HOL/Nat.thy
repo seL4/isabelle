@@ -1926,6 +1926,9 @@ qed
 lemma Nats_induct [case_names of_nat, induct set: Nats]: "x \<in> \<nat> \<Longrightarrow> (\<And>n. P (of_nat n)) \<Longrightarrow> P x"
   by (rule Nats_cases) auto
 
+lemma Nats_nonempty [simp]: "\<nat> \<noteq> {}"
+  unfolding Nats_def by auto
+
 end
 
 lemma Nats_diff [simp]:

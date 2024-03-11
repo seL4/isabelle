@@ -451,6 +451,9 @@ lemma analytic_on_ident [analytic_intros,simp]: "(\<lambda>x. x) analytic_on S"
 lemma analytic_on_id [analytic_intros]: "id analytic_on S"
   unfolding id_def by (rule analytic_on_ident)
 
+lemma analytic_on_scaleR [analytic_intros]: "f analytic_on A \<Longrightarrow> (\<lambda>w. x *\<^sub>R f w) analytic_on A"
+  by (metis analytic_on_holomorphic holomorphic_on_scaleR)
+
 lemma analytic_on_compose:
   assumes f: "f analytic_on S"
       and g: "g analytic_on (f ` S)"
@@ -584,6 +587,10 @@ lemma analytic_on_sum [analytic_intros]:
 lemma analytic_on_prod [analytic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on S) \<Longrightarrow> (\<lambda>x. prod (\<lambda>i. f i x) I) analytic_on S"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_mult)
+
+lemma analytic_on_gbinomial [analytic_intros]:
+  "f analytic_on A \<Longrightarrow> (\<lambda>w. f w gchoose n) analytic_on A"
+  unfolding gbinomial_prod_rev by (intro analytic_intros) auto
 
 lemma deriv_left_inverse:
   assumes "f holomorphic_on S" and "g holomorphic_on T"
