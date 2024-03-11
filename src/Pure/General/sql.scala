@@ -49,10 +49,10 @@ object SQL {
   def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
 
   def separate(sql: Source): Source =
-    (if (sql.isEmpty || sql.startsWith(" ")) "" else " ") + sql
+    if_proper(sql.nonEmpty && sql(0) != ' ', " ") + sql
 
   def select(columns: List[Column] = Nil, distinct: Boolean = false, sql: Source = ""): Source =
-    "SELECT " + (if (distinct) "DISTINCT " else "") +
+    "SELECT " + if_proper(distinct, "DISTINCT ") +
     (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM " + sql
 
   val join_outer: Source = " LEFT OUTER JOIN "
@@ -152,7 +152,7 @@ object SQL {
       else enclose(expr) + " AS " + SQL.ident(name)
 
     def decl(sql_type: Type => Source): Source =
-      ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
+      ident + " " + sql_type(T) + if_proper(strict || primary_key, " NOT NULL")
 
     def defined: String = ident + " IS NOT NULL"
     def undefined: String = ident + " IS NULL"
@@ -179,7 +179,7 @@ object SQL {
   }
 
   def order_by(columns: List[Column], descending: Boolean = false): Source =
-    " ORDER BY " + columns.mkString(", ") + (if (descending) " DESC" else "")
+    " ORDER BY " + columns.mkString(", ") + if_proper(descending, " DESC")
 
 
   /* tables */
@@ -577,7 +577,7 @@ object SQL {
       val escape = connection.getMetaData.getSearchStringEscape
       val pattern =
         name.iterator.map(c =>
-          (if (c == '_' || c == '%' || c == escape(0)) escape else "") + c).mkString
+          if_proper(c == '_' || c == '%' || c == escape(0), escape) + c).mkString
       get_tables(pattern = pattern).nonEmpty
     }
 
