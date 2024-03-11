@@ -67,10 +67,10 @@ fun print_next_skeleton ctxt indent keyword stmt =
   let
     val ((fixes, assms, concl), ctxt') = eigen_context_for_statement stmt ctxt;
     val prefix = replicate_string indent " ";
-    val prefix_sep = "\n" ^ prefix ^ "    and ";
+    val prefix_sep = "\n" ^ prefix ^ "  and ";
     val show_s = prefix ^ keyword ^ " " ^ print_term ctxt' concl;
     val assumes_s = if null assms then NONE
-      else SOME (prefix ^ "  assume " ^ space_implode prefix_sep
+      else SOME (prefix ^ "assume " ^ space_implode prefix_sep
         (map (print_term ctxt') assms));
     val fixes_s = if null fixes then NONE
       else SOME (prefix ^ "fix " ^ space_implode prefix_sep
@@ -123,7 +123,7 @@ fun print_proof_text_from_state print (some_method_ref : ((Method.text * Positio
       if is_none some_method_ref then ["  .."]
       else ["  by" ^ method_text]
       else print ctxt_print method_text clauses;
-    val message = Active.sendback_markup_properties [] (cat_lines lines);
+    val message = Active.sendback_markup_command (cat_lines lines);
   in
     (state |> tap (fn _ => Output.information message))
   end
