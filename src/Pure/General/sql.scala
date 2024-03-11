@@ -57,7 +57,6 @@ object SQL {
 
   val join_outer: Source = " LEFT OUTER JOIN "
   val join_inner: Source = " INNER JOIN "
-  def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
   def MULTI(args: Iterable[Source]): Source =
     args.iterator.filter(_.nonEmpty).mkString(";\n")
@@ -81,9 +80,12 @@ object SQL {
   def equal(sql: Source, x: Long): Source = sql + " = " + x
   def equal(sql: Source, x: String): Source = sql + " = " + string(x)
 
+  def member_int(sql: Source, set: Iterable[Int]): Source =
+    if (set.isEmpty) FALSE else OR(set.iterator.map(equal(sql, _)).toList)
+  def member_long(sql: Source, set: Iterable[Long]): Source =
+    if (set.isEmpty) FALSE else OR(set.iterator.map(equal(sql, _)).toList)
   def member(sql: Source, set: Iterable[String]): Source =
-    if (set.isEmpty) FALSE
-    else OR(set.iterator.map(equal(sql, _)).toList)
+    if (set.isEmpty) FALSE else OR(set.iterator.map(equal(sql, _)).toList)
 
   def where(sql: Source): Source = if_proper(sql, " WHERE " + sql)
   def where_and(args: Source*): Source = where(and(args:_*))
@@ -163,7 +165,12 @@ object SQL {
     def where_equal(x: Long): Source = SQL.where(equal(x))
     def where_equal(x: String): Source = SQL.where(equal(x))
 
+    def member_int(set: Iterable[Int]): Source = SQL.member_int(ident, set)
+    def member_long(set: Iterable[Long]): Source = SQL.member_long(ident, set)
     def member(set: Iterable[String]): Source = SQL.member(ident, set)
+
+    def where_member_int(set: Iterable[Int]): Source = SQL.where(member_int(set))
+    def where_member_long(set: Iterable[Long]): Source = SQL.where(member_long(set))
     def where_member(set: Iterable[String]): Source = SQL.where(member(set))
 
     def max: Column = copy(expr = "MAX(" + ident + ")")
@@ -233,6 +240,11 @@ object SQL {
     override def toString: String = list.mkString("SQL.Tables(", ", ", ")")
 
     def iterator: Iterator[Table] = list.iterator
+
+    def index(table: Table): Int =
+      iterator.zipWithIndex
+        .collectFirst({ case (t, i) if t.name == table.name => i })
+        .getOrElse(error("No table " + quote(table.name)))
 
     // requires transaction
     def lock(db: Database, create: Boolean = false): Boolean = {
@@ -549,6 +561,8 @@ object SQL {
 
     def insert_permissive(table: Table, sql: Source = ""): Source
 
+    def destroy(table: Table): Source = "DROP TABLE IF EXISTS " + table
+
 
     /* tables and views */
 
@@ -778,6 +792,9 @@ object PostgreSQL {
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd(sql = if_proper(sql, sql + " ") + "ON CONFLICT DO NOTHING")
+
+    override def destroy(table: SQL.Table): SQL.Source =
+      super.destroy(table) + " CASCADE"
 
 
     /* explicit locking: only applicable to PostgreSQL within transaction context */

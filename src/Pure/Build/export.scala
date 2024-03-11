@@ -31,7 +31,7 @@ object Export {
   /* SQL data model */
 
   object private_data extends SQL.Data() {
-    override lazy val tables = SQL.Tables(Base.table)
+    override lazy val tables: SQL.Tables = SQL.Tables(Base.table)
 
     object Base {
       val session_name = SQL.Column.string("session_name").make_primary_key

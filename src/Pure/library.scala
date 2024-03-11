@@ -284,8 +284,33 @@ object Library {
       case _ => error(message)
     }
 
-  def symmetric_difference[A](xs: List[A], ys: List[A]): (List[A], List[A]) =
-    (xs.filterNot(ys.toSet), ys.filterNot(xs.toSet))
+
+  /* data update */
+
+  object Update {
+    type Data[A] = Map[String, A]
+
+    val empty: Update = Update()
+
+    def make[A](a: Data[A], b: Data[A], kind: Int = 0): Update =
+      if (a eq b) empty
+      else {
+        val delete = List.from(for ((x, y) <- a.iterator if !b.get(x).contains(y)) yield x)
+        val insert = List.from(for ((x, y) <- b.iterator if !a.get(x).contains(y)) yield x)
+        Update(delete = delete, insert = insert, kind = kind)
+      }
+  }
+
+  sealed case class Update(
+    delete: List[String] = Nil,
+    insert: List[String] = Nil,
+    kind: Int = 0
+  ) {
+    def deletes: Boolean = delete.nonEmpty
+    def inserts: Boolean = insert.nonEmpty
+    def defined: Boolean = deletes || inserts
+    lazy val domain: Set[String] = delete.toSet ++ insert
+  }
 
 
   /* proper values */

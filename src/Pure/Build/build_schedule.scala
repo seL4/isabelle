@@ -469,11 +469,9 @@ object Build_Schedule {
     serial: Long = 0,
   ) {
     require(serial >= 0, "serial underflow")
-    def inc_serial: Schedule = {
-      require(serial < Long.MaxValue, "serial overflow")
-      copy(serial = serial + 1)
-    }
-    
+
+    def next_serial: Long = Build_Process.State.inc_serial(serial)
+
     def end: Date =
       if (graph.is_empty) start
       else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
@@ -503,7 +501,6 @@ object Build_Schedule {
 
     def update(state: Build_Process.State): Schedule = {
       val start1 = Date.now()
-      val pending = state.pending.map(_.name).toSet
 
       def shift_elapsed(graph: Schedule.Graph, name: String): Schedule.Graph =
         graph.map_node(name, { node =>
@@ -517,7 +514,8 @@ object Build_Schedule {
           node.copy(start = starts.max(Date.Ordering))
         })
 
-      val graph0 = state.running.keys.foldLeft(graph.restrict(pending.contains))(shift_elapsed)
+      val graph0 =
+        state.running.keys.foldLeft(graph.restrict(state.pending.isDefinedAt))(shift_elapsed)
       val graph1 = graph0.topological_order.foldLeft(graph0)(shift_starts)
 
       copy(start = start1, graph = graph1)
@@ -859,7 +857,8 @@ object Build_Schedule {
               _schedule = old_schedule
               val res = body
               _state =
-                Build_Process.private_data.update_database(db, worker_uuid, _state, old_state)
+                Build_Process.private_data.update_database(
+                  db, build_id, worker_uuid, _state, old_state)
               _schedule = Build_Schedule.private_data.update_schedule(db, _schedule, old_schedule)
               res
             }
@@ -1063,6 +1062,12 @@ object Build_Schedule {
   object private_data extends SQL.Data("isabelle_build") {
     import Build_Process.private_data.{Base, Generic}
 
+    override lazy val tables: SQL.Tables =
+      SQL.Tables(Schedules.table, Nodes.table)
+
+    lazy val all_tables: SQL.Tables =
+      SQL.Tables.list(Build_Process.private_data.tables.list ::: tables.list)
+
 
     /* schedule */
 
@@ -1081,10 +1086,10 @@ object Build_Schedule {
           SQL.where(if_proper(build_uuid, Schedules.build_uuid.equal(build_uuid)))),
           _.long(Schedules.serial)).getOrElse(0L)
 
-    def read_scheduled_builds_domain(db: SQL.Database): List[String] =
+    def read_scheduled_builds_domain(db: SQL.Database): Map[String, Unit] =
       db.execute_query_statement(
         Schedules.table.select(List(Schedules.build_uuid)),
-        List.from[String], res => res.string(Schedules.build_uuid))
+        Map.from[String, Unit], res => res.string(Schedules.build_uuid) -> ())
 
     def read_schedules(db: SQL.Database, build_uuid: String = ""): List[Schedule] = {
       val schedules =
@@ -1191,7 +1196,7 @@ object Build_Schedule {
         schedule.graph != old_schedule.graph
       
       val schedule1 =
-        if (changed) schedule.copy(serial = old_schedule.serial).inc_serial else schedule
+        if (changed) schedule.copy(serial = old_schedule.next_serial) else schedule
       if (schedule1.serial != schedule.serial) write_schedule(db, schedule1)
       
       schedule1
@@ -1207,18 +1212,12 @@ object Build_Schedule {
       val running_builds_domain =
         db.execute_query_statement(
           Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.undefined)),
-          List.from[String], res => res.string(Base.build_uuid))
+          Map.from[String, Unit], res => res.string(Base.build_uuid) -> ())
 
-      val (remove, _) =
-        Library.symmetric_difference(read_scheduled_builds_domain(db), running_builds_domain)
+      val update = Library.Update.make(read_scheduled_builds_domain(db), running_builds_domain)
 
-      remove_schedules(db, remove)
+      remove_schedules(db, update.delete)
     }
-
-    override val tables: SQL.Tables = SQL.Tables(Schedules.table, Nodes.table)
-
-    val all_tables: SQL.Tables =
-      SQL.Tables.list(Build_Process.private_data.tables.list ::: tables.list)
   }
 
 
@@ -1329,11 +1328,10 @@ object Build_Schedule {
       val timing_data = Timing_Data.load(host_infos, log_database)
 
       val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
-      def task(session: Build_Job.Session_Context): Build_Process.Task =
-        Build_Process.Task(session.name, session.deps, build_context.build_uuid)
 
       val build_state =
-        Build_Process.State(sessions = sessions, pending = sessions.iterator.map(task).toList)
+        Build_Process.State(sessions = sessions,
+          pending = Map.from(sessions.iterator.map(Build_Process.Task.entry(_, build_context))))
 
       val scheduler = Build_Engine.scheduler(timing_data, build_context)
       def schedule_msg(res: Exn.Result[Schedule]): String =
