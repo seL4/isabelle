@@ -917,10 +917,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
       let
         val witNs = if length wits = 1 then [witN] else map mk_witN (1 upto length wits);
         val notes =
-          [(bd_card_orderN, [#bd_card_order axioms]),
-           (bd_cinfiniteN, [#bd_cinfinite axioms]),
-           (bd_regularCardN, [#bd_regularCard axioms]),
-           (bd_Card_orderN, [#bd_Card_order facts]),
+          [(bd_Card_orderN, [#bd_Card_order facts]),
            (bd_CinfiniteN, [#bd_Cinfinite facts]),
            (bd_CnotzeroN, [#bd_Cnotzero facts]),
            (collect_set_mapN, [Lazy.force (#collect_set_map facts)]),
@@ -929,8 +926,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (map_comp0N, [#map_comp0 axioms]),
            (rel_mono_strong0N, [Lazy.force (#rel_mono_strong0 facts)]),
            (pred_mono_strong0N, [Lazy.force (#pred_mono_strong0 facts)]),
-           (set_map0N, #set_map0 axioms),
-           (set_bdN, #set_bd axioms)] @
+           (set_map0N, #set_map0 axioms)] @
           (witNs ~~ wit_thmss_of_bnf bnf)
           |> map (fn (thmN, thms) =>
             ((qualify (Binding.qualify true (Binding.name_of bnf_b) (Binding.name thmN)), []),
@@ -983,7 +979,11 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (rel_transpN, [Lazy.force (#rel_transp facts)], []),
            (rel_transferN, [Lazy.force (#rel_transfer facts)], []),
            (set_mapN, map Lazy.force (#set_map facts), []),
-           (set_transferN, Lazy.force (#set_transfer facts), [])]
+           (set_transferN, Lazy.force (#set_transfer facts), []),
+           (set_bdN, #set_bd axioms, []),
+           (bd_card_orderN, [#bd_card_order axioms], []),
+           (bd_cinfiniteN, [#bd_cinfinite axioms], []),
+           (bd_regularCardN, [#bd_regularCard axioms], [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((qualify (Binding.qualify true (Binding.name_of bnf_b) (Binding.name thmN)), attrs),
