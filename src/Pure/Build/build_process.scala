@@ -229,8 +229,6 @@ object Build_Process {
     running: State.Running = Map.empty,
     results: State.Results = Map.empty
   ) {
-    require(serial >= 0, "serial underflow")
-
     def next_serial: Long = State.inc_serial(serial)
     def inc_serial: State = copy(serial = next_serial)
 

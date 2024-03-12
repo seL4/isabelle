@@ -468,8 +468,6 @@ object Build_Schedule {
     graph: Schedule.Graph,
     serial: Long = 0,
   ) {
-    require(serial >= 0, "serial underflow")
-
     def next_serial: Long = Build_Process.State.inc_serial(serial)
 
     def end: Date =
