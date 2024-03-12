@@ -37,6 +37,7 @@ object Build_Schedule {
     def make(
       host_infos: Host_Infos,
       build_history: List[(Build_Log.Meta_Info, Build_Log.Build_Info)],
+      session_structure: Sessions.Structure,
     ): Timing_Data = {
       val hosts = host_infos.hosts
       val measurements =
@@ -62,10 +63,14 @@ object Build_Schedule {
               Result(job_name, hostname, threads, median_timing(timings))
           }
 
-      new Timing_Data(new Facet(entries), host_infos)
+      new Timing_Data(new Facet(entries), host_infos, session_structure)
     }
 
-    def load(host_infos: Host_Infos, log_database: SQL.Database): Timing_Data = {
+    def load(
+      host_infos: Host_Infos,
+      log_database: SQL.Database,
+      sessions_structure: Sessions.Structure
+    ): Timing_Data = {
       val build_history =
         for {
           log_name <- log_database.execute_query_statement(
@@ -75,7 +80,7 @@ object Build_Schedule {
           build_info = Build_Log.private_data.read_build_info(log_database, log_name)
         } yield (meta_info, build_info)
 
-      make(host_infos, build_history)
+      make(host_infos, build_history, sessions_structure)
     }
 
 
@@ -102,7 +107,11 @@ object Build_Schedule {
     }
   }
 
-  class Timing_Data private(facet: Timing_Data.Facet, val host_infos: Host_Infos) {
+  class Timing_Data private(
+    facet: Timing_Data.Facet,
+    val host_infos: Host_Infos,
+    val sessions_structure: Sessions.Structure
+  ) {
     private def inflection_point(last_mono: Int, next: Int): Int =
       last_mono + ((next - last_mono) / 2)
 
@@ -250,13 +259,23 @@ object Build_Schedule {
       def estimate: Time =
         facet.by_job.get(job_name) match {
           case None =>
-            // no data for job, take average of other jobs for given threads
-            val job_estimates = facet.by_job.keys.flatMap(estimate_threads(_, hostname, threads))
-            if (job_estimates.nonEmpty) Timing_Data.mean_time(job_estimates)
+            // no data for job, use timeout as esimation for single-threaded job on worst host
+            val default_time = sessions_structure(job_name).timeout
+            if (default_time > Time.zero) {
+              val default_host = host_infos.hosts.sorted(host_infos.host_speeds).head
+              default_time
+                .scale(global_threads_factor(1, threads))
+                .scale(hostname_factor(default_host.name, hostname))
+            }
             else {
-              // no other job to estimate from, use global curve to approximate any other job
-              val (threads1, facet1) = facet.by_threads.head
-              facet1.mean_time.scale(global_threads_factor(threads1, threads))
+              // no timeout, take average of other jobs for given threads
+              val job_estimates = facet.by_job.keys.flatMap(estimate_threads(_, hostname, threads))
+              if (job_estimates.nonEmpty) Timing_Data.mean_time(job_estimates)
+              else {
+                // no other job to estimate from, use global curve to approximate any other job
+                val (threads1, facet1) = facet.by_threads.head
+                facet1.mean_time.scale(global_threads_factor(threads1, threads))
+              }
             }
 
           case Some(facet) =>
@@ -940,7 +959,7 @@ object Build_Schedule {
         }
 
       val host_infos = Host_Infos.load(cluster_hosts, _host_database)
-      Timing_Data.load(host_infos, _log_database)
+      Timing_Data.load(host_infos, _log_database, build_context.sessions_structure)
     }
     private val scheduler = init_scheduler(timing_data)
 
@@ -1324,7 +1343,7 @@ object Build_Schedule {
       }
 
       val host_infos = Host_Infos.load(cluster_hosts, host_database)
-      val timing_data = Timing_Data.load(host_infos, log_database)
+      val timing_data = Timing_Data.load(host_infos, log_database, full_sessions)
 
       val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
 
