@@ -468,8 +468,6 @@ object Build_Schedule {
     graph: Schedule.Graph,
     serial: Long = 0,
   ) {
-    require(serial >= 0, "serial underflow")
-
     def next_serial: Long = Build_Process.State.inc_serial(serial)
 
     def end: Date =
@@ -851,7 +849,8 @@ object Build_Schedule {
           case None => body
           case Some(db) =>
             db.transaction_lock(Build_Schedule.private_data.all_tables, label = label) {
-              val old_state = Build_Process.private_data.pull_database(db, worker_uuid, _state)
+              val old_state =
+                Build_Process.private_data.pull_database(db, build_id, worker_uuid, _state)
               val old_schedule = Build_Schedule.private_data.pull_schedule(db, _schedule)
               _state = old_state
               _schedule = old_schedule
