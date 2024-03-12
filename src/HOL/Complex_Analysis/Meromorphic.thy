@@ -59,7 +59,7 @@ lemma has_laurent_expansion_prod_mset [laurent_expansion_intros]:
   shows   "(\<lambda>y. \<Prod>x\<in>#I. f x y) has_laurent_expansion (\<Prod>x\<in>#I. F x)"
   using assms by (induction I) (auto intro!: laurent_expansion_intros)
 
-subsection \<open>Remove singular points: remove_sings\<close>
+subsection \<open>Remove singular points\<close>
 
 definition remove_sings :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
   "remove_sings f z = (if \<exists>c. f \<midarrow>z\<rightarrow> c then Lim (at z) f else 0)"
