@@ -1027,7 +1027,7 @@ extends AutoCloseable {
     if (_build_database.isEmpty) (build_progress, UUID.random_string())
     else {
       try {
-        val db = store.open_build_database(Progress.private_data.database, server = server)
+        val db = store.open_build_database(Database_Progress.private_data.database, server = server)
         val progress =
           new Database_Progress(db, build_progress,
             input_messages = build_context.master,

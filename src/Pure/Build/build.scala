@@ -522,7 +522,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
               val tables0 =
                 ML_Heap.private_data.tables.list :::
                 Store.private_data.tables.list :::
-                Progress.private_data.tables.list :::
+                Database_Progress.private_data.tables.list :::
                 Build_Process.private_data.tables.list
               val tables = tables0.filter(t => db.exists_table(t.name)).sortBy(_.name)
               if (tables.nonEmpty) {

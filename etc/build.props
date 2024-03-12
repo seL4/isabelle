@@ -56,6 +56,7 @@ sources = \
   src/Pure/Build/build_job.scala \
   src/Pure/Build/build_process.scala \
   src/Pure/Build/build_schedule.scala \
+  src/Pure/Build/database_progress.scala \
   src/Pure/Build/export.scala \
   src/Pure/Build/export_theory.scala \
   src/Pure/Build/file_format.scala \
@@ -190,6 +191,7 @@ sources = \
   src/Pure/System/platform.scala \
   src/Pure/System/posix_interrupt.scala \
   src/Pure/System/process_result.scala \
+  src/Pure/System/program_progress.scala \
   src/Pure/System/progress.scala \
   src/Pure/System/registry.scala \
   src/Pure/System/scala.scala \
