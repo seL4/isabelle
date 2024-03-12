@@ -285,6 +285,11 @@ object Library {
     }
 
 
+  /* named items */
+
+  trait Named { def name: String }
+
+
   /* data update */
 
   object Update {
@@ -293,6 +298,12 @@ object Library {
     sealed abstract class Op[A]
     case class Delete[A](name: String) extends Op[A]
     case class Insert[A](item: A) extends Op[A]
+
+    def data[A <: Named](old_data: Data[A], updates: List[Op[A]]): Data[A] =
+      updates.foldLeft(old_data) {
+        case (map, Delete(name)) => map - name
+        case (map, Insert(item)) => map + (item.name -> item)
+      }
 
     val empty: Update = Update()
 
@@ -347,9 +358,4 @@ object Library {
 
   def as_subclass[C](c: Class[C])(x: AnyRef): Option[C] =
     if (x == null || is_subclass(x.getClass, c)) Some(x.asInstanceOf[C]) else None
-
-
-  /* named items */
-
-  trait Named { def name: String }
 }
