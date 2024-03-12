@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/build_benchmark.scala
+/*  Title:      Pure/Build/build_benchmark.scala
     Author:     Fabian Huch, TU Muenchen
 
 Host platform benchmarks for performance estimation.

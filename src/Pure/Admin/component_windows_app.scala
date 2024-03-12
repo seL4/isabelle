@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/windows_app.scala
+/*  Title:      Pure/Admin/component_windows_app.scala
     Author:     Makarius
 
 Build Isabelle windows_app component from GNU binutils and launch4j.
