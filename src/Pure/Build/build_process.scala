@@ -211,7 +211,7 @@ object Build_Process {
     results: State.Results)     // finished results
 
   object State {
-    def inc_serial(serial: Long) = {
+    def inc_serial(serial: Long): Long = {
       require(serial < Long.MaxValue, "serial overflow")
       serial + 1
     }
