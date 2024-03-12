@@ -388,7 +388,7 @@ object Build_Process {
       build_id: Long,
       serial_seen: Long,
       get: SQL.Result => A
-    ): List[(String, Option[A])] = {
+    ): List[Library.Update.Op[A]] = {
       val domain_columns = List(Updates.dom_name)
       val domain_table =
         SQL.Table("domain", domain_columns, body =
@@ -405,12 +405,10 @@ object Build_Process {
           domain_table.query_named + SQL.join_outer + table +
             " ON " + Updates.dom + " = " + Generic.name)
 
-      db.execute_query_statement(select_sql, List.from[(String, Option[A])],
-        { res =>
-          val delete = res.bool(Updates.delete)
-          val name = res.string(Updates.name)
-          if (delete) name -> None else name -> Some(get(res))
-        })
+      db.execute_query_statement(select_sql, List.from[Library.Update.Op[A]],
+        res =>
+          if (res.bool(Updates.delete)) Library.Update.Delete(res.string(Updates.name))
+          else Library.Update.Insert(get(res)))
     }
 
     def write_updates(

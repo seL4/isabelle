@@ -290,6 +290,10 @@ object Library {
   object Update {
     type Data[A] = Map[String, A]
 
+    sealed abstract class Op[A]
+    case class Delete[A](name: String) extends Op[A]
+    case class Insert[A](item: A) extends Op[A]
+
     val empty: Update = Update()
 
     def make[A](a: Data[A], b: Data[A], kind: Int = 0): Update =
