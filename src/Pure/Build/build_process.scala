@@ -230,7 +230,6 @@ object Build_Process {
     results: State.Results = Map.empty
   ) {
     def next_serial: Long = State.inc_serial(serial)
-    def inc_serial: State = copy(serial = next_serial)
 
     def ready: List[Task] = pending.valuesIterator.filter(_.is_ready).toList.sortBy(_.name)
     def next_ready: List[Task] = ready.filter(entry => !is_running(entry.name))
@@ -1265,7 +1264,7 @@ extends AutoCloseable {
 
   protected final def start_worker(): Unit = synchronized_database("Build_Process.start_worker") {
     for (db <- _build_database) {
-      _state = _state.inc_serial
+      _state = _state.copy(serial = _state.next_serial)
       Build_Process.private_data.start_worker(db, worker_uuid, build_uuid, _state.serial)
     }
   }
