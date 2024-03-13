@@ -233,7 +233,7 @@ object Build_Process {
     def next_serial: Long = State.inc_serial(serial)
 
     def ready: List[Task] = pending.valuesIterator.filter(_.is_ready).toList.sortBy(_.name)
-    def next_ready: List[Task] = ready.filter(entry => !is_running(entry.name))
+    def next_ready: List[Task] = ready.filter(task => !is_running(task.name))
 
     def remove_pending(a: String): State =
       copy(pending =
