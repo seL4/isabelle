@@ -47,8 +47,8 @@ object Build_Schedule {
           (job_name, session_info) <- build_info.sessions.toList
           if build_info.finished_sessions.contains(job_name)
           hostname <- session_info.hostname.orElse(build_host).toList
-          host <- hosts.find(_.info.hostname == hostname).toList
-          threads = session_info.threads.getOrElse(host.info.num_cpus)
+          host <- hosts.find(_.name == hostname).toList
+          threads = session_info.threads.getOrElse(host.num_cpus)
         } yield (job_name, hostname, threads) -> session_info.timing
 
       val entries =
@@ -332,19 +332,34 @@ object Build_Schedule {
 
   /* host information */
 
-  case class Host(info: isabelle.Host.Info, build: Build_Cluster.Host) {
-    def name: String = info.hostname
-    def num_cpus: Int = info.num_cpus
-    def max_threads(options: Options): Int = (options ++ build.options).threads(default = num_cpus)
+  case class Host(
+    name: String,
+    num_cpus: Int,
+    max_jobs: Int,
+    benchmark_score: Double,
+    numa: Boolean = false,
+    numa_nodes: List[Int] = Nil,
+    options: List[Options.Spec] = Nil
+  ) {
+    def max_threads(options: Options): Int = (options ++ this.options).threads(default = num_cpus)
   }
 
   object Host_Infos {
     def load(build_hosts: List[Build_Cluster.Host], db: SQL.Database): Host_Infos = {
       def get_host(build_host: Build_Cluster.Host): Host = {
+        val name = build_host.name
         val info =
-          isabelle.Host.read_info(db, build_host.name).getOrElse(
-            error("No benchmark for " + quote(build_host.name)))
-        Host(info, build_host)
+          isabelle.Host.read_info(db, name).getOrElse(error("No info for host " + quote(name)))
+        val score = info.benchmark_score.getOrElse(error("No benchmark for " + quote(name)))
+
+        Host(
+          name = name,
+          num_cpus = info.num_cpus,
+          max_jobs = build_host.jobs,
+          numa = build_host.numa,
+          numa_nodes = info.numa_nodes,
+          benchmark_score = score,
+          options = build_host.options)
       }
 
       new Host_Infos(build_hosts.map(get_host))
@@ -357,7 +372,7 @@ object Build_Schedule {
     private val by_hostname = hosts.map(host => host.name -> host).toMap
 
     def host_factor(from: Host, to: Host): Double =
-      from.info.benchmark_score.get / to.info.benchmark_score.get
+      from.benchmark_score / to.benchmark_score
 
     val host_speeds: Ordering[Host] =
       Ordering.fromLessThan((host1, host2) => host_factor(host1, host2) < 1)
@@ -368,7 +383,7 @@ object Build_Schedule {
 
     def num_threads(node_info: Node_Info): Int =
       if (node_info.rel_cpus.nonEmpty) node_info.rel_cpus.length
-      else the_host(node_info).info.num_cpus
+      else the_host(node_info).num_cpus
 
     def available(state: Build_Process.State): Resources = {
       val allocated =
@@ -416,7 +431,7 @@ object Build_Schedule {
           val (config, resources) =
             hosts.find((host, _) => available(host, min_threads)) match {
               case Some((host, host_max_threads)) =>
-                val free_threads = host.info.num_cpus - ((host.build.jobs - 1) * host_max_threads)
+                val free_threads = host.num_cpus - ((host.max_jobs - 1) * host_max_threads)
                 val node_info = next_node(host, (min_threads max free_threads) min max_threads)
                 (Some(Config(task.name, node_info)), allocate(node_info))
               case None => (None, this)
@@ -426,15 +441,15 @@ object Build_Schedule {
       }
 
     def next_node(host: Host, threads: Int): Node_Info = {
-      val numa_node_num_cpus = host.info.num_cpus / (host.info.numa_nodes.length max 1)
+      val numa_node_num_cpus = host.num_cpus / (host.numa_nodes.length max 1)
       def explicit_cpus(node_info: Node_Info): List[Int] =
         if (node_info.rel_cpus.nonEmpty) node_info.rel_cpus else (0 until numa_node_num_cpus).toList
 
       val used_nodes = allocated(host).groupMapReduce(_.numa_node)(explicit_cpus)(_ ::: _)
 
-      val available_nodes = host.info.numa_nodes
+      val available_nodes = host.numa_nodes
       val numa_node =
-        if (!host.build.numa) None
+        if (!host.numa) None
         else available_nodes.sortBy(n => used_nodes.getOrElse(Some(n), Nil).length).headOption
 
       val used_cpus = used_nodes.getOrElse(numa_node, Nil).toSet
@@ -448,16 +463,16 @@ object Build_Schedule {
     def available(host: Host, threads: Int): Boolean = {
       val used = allocated(host)
 
-      if (used.length >= host.build.jobs) false
+      if (used.length >= host.max_jobs) false
       else {
-        if (host.info.numa_nodes.length <= 1)
-          used.map(host_infos.num_threads).sum + threads <= host.info.num_cpus
+        if (host.numa_nodes.length <= 1)
+          used.map(host_infos.num_threads).sum + threads <= host.num_cpus
         else {
           def node_threads(n: Int): Int =
             used.filter(_.numa_node.contains(n)).map(host_infos.num_threads).sum
 
-          host.info.numa_nodes.exists(
-            node_threads(_) + threads <= host.info.num_cpus / host.info.numa_nodes.length)
+          host.numa_nodes.exists(
+            node_threads(_) + threads <= host.num_cpus / host.numa_nodes.length)
         }
       }
     }
@@ -692,7 +707,7 @@ object Build_Schedule {
     val host_infos: Host_Infos = timing_data.host_infos
     val ordered_hosts: List[Host] = host_infos.hosts.sorted(host_infos.host_speeds)
 
-    val max_threads: Int = host_infos.hosts.map(_.info.num_cpus).max min max_threads_limit
+    val max_threads: Int = host_infos.hosts.map(_.num_cpus).max min max_threads_limit
 
     type Node = String
     val build_graph: Graph[Node, Sessions.Info] = sessions_structure.build_graph
@@ -709,7 +724,7 @@ object Build_Schedule {
 
     def best_time(node: Node): Time = {
       val host = ordered_hosts.last
-      val threads = best_threads(node) min host.info.num_cpus
+      val threads = best_threads(node) min host.num_cpus
       timing_data.estimate(node, host.name, threads)
     }
     val best_times: Map[Node, Time] = build_graph.keys.map(node => node -> best_time(node)).toMap
@@ -830,9 +845,9 @@ object Build_Schedule {
             case Fixed_Fraction(fraction) =>
               ((rev_ordered_hosts.length * fraction).ceil.toInt max 1) min max_critical_hosts
             case Host_Speed(min_factor) =>
-              val best = rev_ordered_hosts.head._1.info.benchmark_score.get
+              val best = rev_ordered_hosts.head._1.benchmark_score
               val num_fast =
-                rev_ordered_hosts.count(_._1.info.benchmark_score.exists(_ >= best * min_factor))
+                rev_ordered_hosts.count(_._1.benchmark_score >= best * min_factor)
               num_fast min max_critical_hosts
           }
 
