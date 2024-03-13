@@ -2082,7 +2082,7 @@ proof -
     using univ_poly_is_principal[OF assms(1)] .
 
   show ?thesis
-  proof (intro no_atp(10)[OF subsetI subsetI])
+  proof (rule order_antisym; rule subsetI)
     fix q assume "q \<in> { q \<in> carrier (K[X]). length q \<le> degree p }"
     then have "q \<in> carrier (K[X])" and "length q \<le> degree p"
       by simp+
@@ -2125,7 +2125,7 @@ proof -
     using univ_poly_is_domain[OF subring] .
 
   show ?thesis
-  proof (intro no_atp(10)[OF subsetI subsetI])
+  proof (rule order_antisym; rule subsetI)
     fix q assume "q \<in> { q \<in> carrier (K[X]). length q \<le> n }"
     then have q: "q \<in> carrier (K[X])" "length q \<le> n"
       by simp+
