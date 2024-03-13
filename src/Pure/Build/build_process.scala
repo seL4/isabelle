@@ -1025,6 +1025,8 @@ extends AutoCloseable {
     build_options.seconds(option)
   }
 
+  protected val build_expire: Int = build_options.int("build_cluster_expire")
+
   protected val _host_database: SQL.Database =
     try { store.open_build_database(path = Host.private_data.database, server = server) }
     catch { case exn: Throwable => close(); throw exn }
@@ -1041,7 +1043,8 @@ extends AutoCloseable {
             hostname = hostname,
             context_uuid = build_uuid,
             kind = "build_process",
-            timeout = Some(build_delay))
+            timeout = Some(build_delay),
+            tick_expire = build_expire)
         (progress, progress.agent_uuid)
       }
       catch { case exn: Throwable => close(); throw exn }
