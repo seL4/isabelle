@@ -339,10 +339,6 @@ object Build_Schedule {
   }
 
   object Host_Infos {
-    def dummy: Host_Infos =
-      new Host_Infos(
-        List(Host(isabelle.Host.Info("dummy", Nil, 8, Some(1.0)), Build_Cluster.Host("dummy"))))
-
     def load(build_hosts: List[Build_Cluster.Host], db: SQL.Database): Host_Infos = {
       def get_host(build_host: Build_Cluster.Host): Host = {
         val info =
