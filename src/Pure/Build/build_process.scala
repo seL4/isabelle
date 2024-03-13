@@ -65,11 +65,7 @@ object Build_Process {
     node_info: Host.Node_Info,
     start_date: Date,
     build: Option[Build_Job]
-  ) extends Library.Named {
-    def cancel(): Unit = build.foreach(_.cancel())
-    def is_finished: Boolean = build.isDefined && build.get.is_finished
-    def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
-  }
+  ) extends Library.Named
 
   sealed case class Result(
     name: String,
@@ -233,7 +229,9 @@ object Build_Process {
     def next_serial: Long = State.inc_serial(serial)
 
     def ready: List[Task] = pending.valuesIterator.filter(_.is_ready).toList.sortBy(_.name)
-    def next_ready: List[Task] = ready.filter(entry => !is_running(entry.name))
+    def next_ready: List[Task] = ready.filter(task => !is_running(task.name))
+    def exists_ready: Boolean =
+      pending.valuesIterator.exists(task => task.is_ready && !is_running(task.name))
 
     def remove_pending(a: String): State =
       copy(pending =
@@ -250,8 +248,14 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def build_running: List[Job] =
-      List.from(for (job <- running.valuesIterator if job.build.isDefined) yield job)
+    def build_running: List[Build_Job] =
+      running.valuesIterator.flatMap(_.build).toList
+
+    def finished_running(): Boolean =
+      build_running.exists(_.is_finished)
+
+    def busy_running(jobs: Int): Boolean =
+      jobs <= 0 || jobs <= build_running.length
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -287,6 +291,9 @@ object Build_Process {
   object private_data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
+
+    /* tables */
+
     override lazy val tables: SQL.Tables =
       SQL.Tables(
         Updates.table,
@@ -300,6 +307,15 @@ object Build_Process {
     private lazy val build_uuid_tables = tables.filter(Generic.build_uuid_table)
     private lazy val build_id_tables =
       tables.filter(t => Generic.build_id_table(t) && !Generic.build_uuid_table(t))
+
+
+    /* notifications */
+
+    lazy val channel: String = Base.table.name
+    lazy val channel_ready: SQL.Notification = SQL.Notification(channel, payload = "ready")
+
+
+    /* generic columns */
 
     object Generic {
       val build_id = SQL.Column.long("build_id")
@@ -940,6 +956,7 @@ object Build_Process {
     build_start: Date
   ): Long =
     private_data.transaction_lock(db, create = true, label = "Build_Process.init_build") {
+      db.listen(private_data.channel)
       val build_uuid = build_context.build_uuid
       val build_id = private_data.get_build_id(db, build_uuid)
       if (build_context.master) {
@@ -1010,14 +1027,27 @@ extends AutoCloseable {
     }
     catch { case exn: Throwable => close(); throw exn }
 
-  protected val build_delay: Time = {
-    val option =
-      _build_database match {
-        case Some(db) if db.is_postgresql => "build_cluster_delay"
-        case _ => "build_delay"
-      }
-    build_options.seconds(option)
-  }
+  protected def build_receive(filter: SQL.Notification => Boolean): List[SQL.Notification] =
+    _build_database.flatMap(_.receive(filter)).getOrElse(Nil)
+
+  protected def build_send(notification: SQL.Notification): Unit =
+    _build_database.foreach(_.send(notification))
+
+  protected def build_cluster: Boolean =
+    _build_database match {
+      case Some(db) => db.is_postgresql
+      case None => false
+    }
+
+  protected val build_delay: Time =
+    build_options.seconds(
+      if (!build_cluster) "build_delay"
+      else if (build_context.master) "build_delay_master"
+      else "build_delay_worker")
+
+  protected val build_expire: Int =
+    if (!build_cluster || build_context.master) 1
+    else build_options.int("build_cluster_expire").max(1)
 
   protected val _host_database: SQL.Database =
     try { store.open_build_database(path = Host.private_data.database, server = server) }
@@ -1031,11 +1061,11 @@ extends AutoCloseable {
         val progress =
           new Database_Progress(db, build_progress,
             input_messages = build_context.master,
-            output_stopped = build_context.master,
             hostname = hostname,
             context_uuid = build_uuid,
             kind = "build_process",
-            timeout = Some(build_delay))
+            timeout = Some(build_delay),
+            tick_expire = build_expire)
         (progress, progress.agent_uuid)
       }
       catch { case exn: Throwable => close(); throw exn }
@@ -1166,13 +1196,10 @@ extends AutoCloseable {
         make_result(result_name, Process_Result.error, output_shasum)
     }
     else if (cancelled) {
-      if (build_context.master) {
-        progress.echo(session_name + " CANCELLED")
-        state
-          .remove_pending(session_name)
-          .make_result(result_name, Process_Result.undefined, output_shasum)
-      }
-      else state
+      progress.echo(session_name + " CANCELLED")
+      state
+        .remove_pending(session_name)
+        .make_result(result_name, Process_Result.undefined, output_shasum)
     }
     else {
       val build_log_verbose = build_options.bool("build_log_verbose")
@@ -1247,8 +1274,24 @@ extends AutoCloseable {
     else _state.pending.isEmpty
   }
 
-  protected def sleep(): Unit =
-    Isabelle_Thread.interrupt_handler(_ => progress.stop()) { build_delay.sleep() }
+  private var _build_tick: Long = 0L
+
+  protected def build_action(): Boolean =
+    Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
+      val received = build_receive(n => n.channel == Build_Process.private_data.channel)
+      val ready = received.contains(Build_Process.private_data.channel_ready)
+      val reactive = ready && synchronized { !_state.busy_running(build_context.jobs) }
+
+      val finished = synchronized { _state.finished_running() }
+
+      def sleep: Boolean = {
+        build_delay.sleep()
+        val expired = synchronized { _build_tick += 1; _build_tick % build_expire == 0 }
+        expired || reactive || progress.stopped
+      }
+
+      finished || sleep
+    }
 
   protected def init_unsynchronized(): Unit = {
     if (build_context.master) {
@@ -1268,17 +1311,16 @@ extends AutoCloseable {
   }
 
   protected def main_unsynchronized(): Unit = {
-    for (job <- _state.build_running.filter(_.is_finished)) {
-      _state = _state.remove_running(job.name)
-      for (result <- job.join_build) {
-        val result_name = (job.name, worker_uuid, build_uuid)
-        _state = _state.
-          remove_pending(job.name).
-          make_result(result_name,
-            result.process_result,
-            result.output_shasum,
-            node_info = job.node_info)
-      }
+    for (job <- _state.running.valuesIterator; build <- job.build if build.is_finished) {
+      val result = build.join
+      val result_name = (job.name, worker_uuid, build_uuid)
+      _state = _state.
+        remove_pending(job.name).
+        remove_running(job.name).
+        make_result(result_name,
+          result.process_result,
+          result.output_shasum,
+          node_info = job.node_info)
     }
 
     for (name <- next_jobs(_state)) {
@@ -1316,8 +1358,11 @@ extends AutoCloseable {
           synchronized_database("Build_Process.main") {
             if (progress.stopped) _state.build_running.foreach(_.cancel())
             main_unsynchronized()
+            if (build_context.master && _state.exists_ready) {
+              build_send(Build_Process.private_data.channel_ready)
+            }
           }
-          sleep()
+          while(!build_action()) {}
         }
       }
       finally {

@@ -88,7 +88,6 @@ class Progress {
     if (Thread.interrupted()) is_stopped = true
     is_stopped
   }
-  def stopped_local: Boolean = false
 
   final def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { stop() } { e }
   final def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()

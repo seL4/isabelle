@@ -151,7 +151,6 @@ class Database_Progress(
   db: SQL.Database,
   base_progress: Progress,
   input_messages: Boolean = false,
-  output_stopped: Boolean = false,
   kind: String = "progress",
   hostname: String = Isabelle_System.hostname(),
   context_uuid: String = UUID.random_string(),
@@ -171,7 +170,6 @@ extends Progress {
   private var _agent_uuid: String = ""
   private var _context: Long = -1
   private var _serial: Long = 0
-  private var _stopped_db: Boolean = false
   private var _consumer: Consumer_Thread[Progress.Output] = null
 
   def agent_uuid: String = synchronized { _agent_uuid }
@@ -218,7 +216,7 @@ extends Progress {
       val expired = synchronized { _tick += 1; _tick % tick_expire == 0 }
       val received = db.receive(n => n.channel == Database_Progress.private_data.channel)
       val ok =
-        bulk_output.nonEmpty || expired || base_progress.stopped && output_stopped ||
+        bulk_output.nonEmpty || expired || base_progress.stopped ||
         received.isEmpty ||
         received.get.contains(Database_Progress.private_data.channel_ping) ||
         input_messages && received.get.contains(Database_Progress.private_data.channel_output)
@@ -249,7 +247,8 @@ extends Progress {
     }
 
     _consumer = Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
-      bulk = _ => true, timeout = timeout,
+      bulk = _ => true,
+      timeout = timeout,
       consume = { bulk_output =>
         val results =
           if (bulk_output.isEmpty) consume(Nil)
@@ -279,10 +278,10 @@ extends Progress {
 
   private def sync_database[A](body: => A): A = synchronized {
     Database_Progress.private_data.transaction_lock(db, label = "Database_Progress.sync_database") {
-      _stopped_db = Database_Progress.private_data.read_progress_stopped(db, _context)
+      val stopped_db = Database_Progress.private_data.read_progress_stopped(db, _context)
 
-      if (_stopped_db && !base_progress.stopped) base_progress.stop()
-      if (!_stopped_db && base_progress.stopped && output_stopped) {
+      if (stopped_db && !base_progress.stopped) base_progress.stop()
+      if (!stopped_db && base_progress.stopped) {
         Database_Progress.private_data.write_progress_stopped(db, _context, true)
         db.send(Database_Progress.private_data.channel_ping)
       }
@@ -319,7 +318,6 @@ extends Progress {
 
   override def stop(): Unit = sync_context { base_progress.stop(); sync() }
   override def stopped: Boolean = sync_context { base_progress.stopped }
-  override def stopped_local: Boolean = sync_context { base_progress.stopped && !_stopped_db }
 
   override def toString: String = super.toString + ": database " + db
 

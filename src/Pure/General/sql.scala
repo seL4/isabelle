@@ -406,7 +406,7 @@ object SQL {
   /* notifications: IPC via database server */
 
   sealed case class Notification(channel: String, payload: String = "") {
-    override def toString =
+    override def toString: String =
       "Notification(" + channel + if_proper(payload, "," + payload) + ")"
   }
 

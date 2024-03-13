@@ -204,8 +204,14 @@ option build_database_slice : real = 300
 option build_delay : real = 0.2
   -- "delay build process main loop (local)"
 
-option build_cluster_delay : real = 1.0
-  -- "delay build process main loop (cluster)"
+option build_delay_master : real = 1.0
+  -- "delay build process main loop (cluster master)"
+
+option build_delay_worker : real = 0.5
+  -- "delay build process main loop (cluster worker)"
+
+option build_cluster_expire : int = 50
+  -- "enforce database synchronization after given number of delay loops"
 
 option build_cluster_root : string = "$USER_HOME/.isabelle/build_cluster"
   -- "root directory for remote build cluster sessions"
