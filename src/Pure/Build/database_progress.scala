@@ -249,7 +249,8 @@ extends Progress {
     }
 
     _consumer = Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
-      bulk = _ => true, timeout = timeout,
+      bulk = _ => true,
+      timeout = timeout,
       consume = { bulk_output =>
         val results =
           if (bulk_output.isEmpty) consume(Nil)
