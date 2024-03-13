@@ -950,7 +950,7 @@ object Build_Schedule {
 
     private val timing_data: Timing_Data = {
       val cluster_hosts: List[Build_Cluster.Host] =
-        if (build_context.jobs == 0) build_context.build_hosts
+        if (!build_context.worker) build_context.build_hosts
         else {
           val local_build_host =
             Build_Cluster.Host(
