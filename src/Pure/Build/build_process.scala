@@ -287,6 +287,9 @@ object Build_Process {
   object private_data extends SQL.Data("isabelle_build") {
     val database: Path = Path.explode("$ISABELLE_HOME_USER/build.db")
 
+
+    /* tables */
+
     override lazy val tables: SQL.Tables =
       SQL.Tables(
         Updates.table,
@@ -300,6 +303,9 @@ object Build_Process {
     private lazy val build_uuid_tables = tables.filter(Generic.build_uuid_table)
     private lazy val build_id_tables =
       tables.filter(t => Generic.build_id_table(t) && !Generic.build_uuid_table(t))
+
+
+    /* generic columns */
 
     object Generic {
       val build_id = SQL.Column.long("build_id")
