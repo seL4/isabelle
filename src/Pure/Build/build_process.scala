@@ -65,11 +65,7 @@ object Build_Process {
     node_info: Host.Node_Info,
     start_date: Date,
     build: Option[Build_Job]
-  ) extends Library.Named {
-    def cancel(): Unit = build.foreach(_.cancel())
-    def is_finished: Boolean = build.isDefined && build.get.is_finished
-    def join_build: Option[Build_Job.Result] = build.flatMap(_.join)
-  }
+  ) extends Library.Named
 
   sealed case class Result(
     name: String,
@@ -252,13 +248,14 @@ object Build_Process {
 
     def is_running(name: String): Boolean = running.isDefinedAt(name)
 
-    def finished_running(): Boolean = running.valuesIterator.exists(_.is_finished)
+    def build_running: List[Build_Job] =
+      running.valuesIterator.flatMap(_.build).toList
+
+    def finished_running(): Boolean =
+      build_running.exists(_.is_finished)
 
     def busy_running(jobs: Int): Boolean =
-      jobs <= 0 || jobs <= running.valuesIterator.flatMap(_.build).length
-
-    def build_running: List[Job] =
-      List.from(for (job <- running.valuesIterator if job.build.isDefined) yield job)
+      jobs <= 0 || jobs <= build_running.length
 
     def add_running(job: Job): State =
       copy(running = running + (job.name -> job))
@@ -1064,7 +1061,6 @@ extends AutoCloseable {
         val progress =
           new Database_Progress(db, build_progress,
             input_messages = build_context.master,
-            output_stopped = build_context.master,
             hostname = hostname,
             context_uuid = build_uuid,
             kind = "build_process",
@@ -1200,13 +1196,10 @@ extends AutoCloseable {
         make_result(result_name, Process_Result.error, output_shasum)
     }
     else if (cancelled) {
-      if (build_context.master) {
-        progress.echo(session_name + " CANCELLED")
-        state
-          .remove_pending(session_name)
-          .make_result(result_name, Process_Result.undefined, output_shasum)
-      }
-      else state
+      progress.echo(session_name + " CANCELLED")
+      state
+        .remove_pending(session_name)
+        .make_result(result_name, Process_Result.undefined, output_shasum)
     }
     else {
       val build_log_verbose = build_options.bool("build_log_verbose")
@@ -1318,17 +1311,16 @@ extends AutoCloseable {
   }
 
   protected def main_unsynchronized(): Unit = {
-    for (job <- _state.build_running.filter(_.is_finished)) {
-      _state = _state.remove_running(job.name)
-      for (result <- job.join_build) {
-        val result_name = (job.name, worker_uuid, build_uuid)
-        _state = _state.
-          remove_pending(job.name).
-          make_result(result_name,
-            result.process_result,
-            result.output_shasum,
-            node_info = job.node_info)
-      }
+    for (job <- _state.running.valuesIterator; build <- job.build if build.is_finished) {
+      val result = build.join
+      val result_name = (job.name, worker_uuid, build_uuid)
+      _state = _state.
+        remove_pending(job.name).
+        remove_running(job.name).
+        make_result(result_name,
+          result.process_result,
+          result.output_shasum,
+          node_info = job.node_info)
     }
 
     for (name <- next_jobs(_state)) {

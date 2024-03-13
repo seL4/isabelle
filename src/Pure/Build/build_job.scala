@@ -13,11 +13,12 @@ import scala.collection.mutable
 trait Build_Job {
   def cancel(): Unit = ()
   def is_finished: Boolean = false
-  def join: Option[Build_Job.Result] = None
+  def join: Build_Job.Result = Build_Job.no_result
 }
 
 object Build_Job {
   sealed case class Result(process_result: Process_Result, output_shasum: SHA1.Shasum)
+  val no_result: Result = Result(Process_Result.undefined, SHA1.no_shasum)
 
 
   /* build session */
@@ -114,7 +115,7 @@ object Build_Job {
   ) extends Build_Job {
     def session_name: String = session_background.session_name
 
-    private val future_result: Future[Option[Result]] =
+    private val future_result: Future[Result] =
       Future.thread("build", uninterruptible = true) {
         val info = session_background.sessions_structure(session_name)
         val options = Host.node_options(info.options, node_info)
@@ -508,15 +509,10 @@ object Build_Job {
                   process_result.rc,
                   build_context.build_uuid))
 
-          val valid =
-            if (progress.stopped_local) false
-            else {
-              database_server match {
-                case Some(db) => write_info(db)
-                case None => using(store.open_database(session_name, output = true))(write_info)
-              }
-              true
-            }
+          database_server match {
+            case Some(db) => write_info(db)
+            case None => using(store.open_database(session_name, output = true))(write_info)
+          }
 
           using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
             heaps_database =>
@@ -554,13 +550,12 @@ object Build_Job {
             }
           }
 
-          if (valid) Some(Result(process_result.copy(out_lines = log_lines), output_shasum))
-          else None
+          Result(process_result.copy(out_lines = log_lines), output_shasum)
         }
       }
 
     override def cancel(): Unit = future_result.cancel()
     override def is_finished: Boolean = future_result.is_finished
-    override def join: Option[Result] = future_result.join
+    override def join: Result = future_result.join
   }
 }

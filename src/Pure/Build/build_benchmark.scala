@@ -82,15 +82,13 @@ object Build_Benchmark {
 
         val local_build_context = build_context.copy(store = Store(local_options))
 
-        val build =
+        val result =
           Build_Job.start_session(local_build_context, session, progress, new Logger, server,
-            background, session.sources_shasum, input_shasum, node_info, false)
+            background, session.sources_shasum, input_shasum, node_info, false).join
 
         val timing =
-          build.join match {
-            case Some(result) if result.process_result.ok => result.process_result.timing
-            case _ => error("Failed to build benchmark session")
-          }
+          if (result.process_result.ok) result.process_result.timing
+          else error("Failed to build benchmark session")
 
         val score = Time.seconds(1000).ms.toDouble / (1 + timing.elapsed.ms)
         progress.echo(
