@@ -3780,21 +3780,21 @@ subsection \<open>Lemma duplicates and other\<close>
 context semiring_bits
 begin
 
-lemma exp_div_exp_eq [no_atp]:
+lemma exp_div_exp_eq:
   \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
   apply (rule bit_eqI)
   using bit_exp_iff div_exp_eq apply (auto simp add: bit_iff_odd possible_bit_def)
   done
 
-lemma bits_1_div_2 [no_atp]:
+lemma bits_1_div_2:
   \<open>1 div 2 = 0\<close>
   by (fact half_1)
 
-lemma bits_1_div_exp [no_atp]:
+lemma bits_1_div_exp:
   \<open>1 div 2 ^ n = of_bool (n = 0)\<close>
   using div_exp_eq [of 1 1] by (cases n) simp_all
 
-lemma exp_add_not_zero_imp [no_atp]:
+lemma exp_add_not_zero_imp:
   \<open>2 ^ m \<noteq> 0\<close> and \<open>2 ^ n \<noteq> 0\<close> if \<open>2 ^ (m + n) \<noteq> 0\<close>
 proof -
   have \<open>\<not> (2 ^ m = 0 \<or> 2 ^ n = 0)\<close>
@@ -3809,8 +3809,8 @@ proof -
 qed
 
 lemma
-  exp_add_not_zero_imp_left [no_atp]: \<open>2 ^ m \<noteq> 0\<close>
-  and exp_add_not_zero_imp_right [no_atp]: \<open>2 ^ n \<noteq> 0\<close>
+  exp_add_not_zero_imp_left: \<open>2 ^ m \<noteq> 0\<close>
+  and exp_add_not_zero_imp_right: \<open>2 ^ n \<noteq> 0\<close>
   if \<open>2 ^ (m + n) \<noteq> 0\<close>
 proof -
   have \<open>\<not> (2 ^ m = 0 \<or> 2 ^ n = 0)\<close>
@@ -3824,7 +3824,7 @@ proof -
     by simp_all
 qed
 
-lemma exp_not_zero_imp_exp_diff_not_zero [no_atp]:
+lemma exp_not_zero_imp_exp_diff_not_zero:
   \<open>2 ^ (n - m) \<noteq> 0\<close> if \<open>2 ^ n \<noteq> 0\<close>
 proof (cases \<open>m \<le> n\<close>)
   case True
@@ -3839,11 +3839,11 @@ next
     by simp
 qed
 
-lemma exp_eq_0_imp_not_bit [no_atp]:
+lemma exp_eq_0_imp_not_bit:
   \<open>\<not> bit a n\<close> if \<open>2 ^ n = 0\<close>
   using that by (simp add: bit_iff_odd)
 
-lemma bit_disjunctive_add_iff [no_atp]:
+lemma bit_disjunctive_add_iff:
   \<open>bit (a + b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
   if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
 proof (cases \<open>possible_bit TYPE('a) n\<close>)
@@ -3882,43 +3882,43 @@ end
 context semiring_bit_operations
 begin
 
-lemma even_mask_div_iff [no_atp]:
+lemma even_mask_div_iff:
   \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
   using bit_mask_iff [of m n] by (auto simp add: mask_eq_exp_minus_1 bit_iff_odd possible_bit_def)
 
-lemma mod_exp_eq [no_atp]:
+lemma mod_exp_eq:
   \<open>a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n\<close>
   by (simp flip: take_bit_eq_mod add: ac_simps)
 
-lemma mult_exp_mod_exp_eq [no_atp]:
+lemma mult_exp_mod_exp_eq:
   \<open>m \<le> n \<Longrightarrow> (a * 2 ^ m) mod (2 ^ n) = (a mod 2 ^ (n - m)) * 2 ^ m\<close>
   by (simp flip: push_bit_eq_mult take_bit_eq_mod add: push_bit_take_bit)
 
-lemma div_exp_mod_exp_eq [no_atp]:
+lemma div_exp_mod_exp_eq:
   \<open>a div 2 ^ n mod 2 ^ m = a mod (2 ^ (n + m)) div 2 ^ n\<close>
   by (simp flip: drop_bit_eq_div take_bit_eq_mod add: drop_bit_take_bit)
 
-lemma even_mult_exp_div_exp_iff [no_atp]:
+lemma even_mult_exp_div_exp_iff:
   \<open>even (a * 2 ^ m div 2 ^ n) \<longleftrightarrow> m > n \<or> 2 ^ n = 0 \<or> (m \<le> n \<and> even (a div 2 ^ (n - m)))\<close>
   by (simp flip: push_bit_eq_mult drop_bit_eq_div add: even_drop_bit_iff_not_bit bit_simps possible_bit_def) auto
 
-lemma mod_exp_div_exp_eq_0 [no_atp]:
+lemma mod_exp_div_exp_eq_0:
   \<open>a mod 2 ^ n div 2 ^ n = 0\<close>
   by (simp flip: take_bit_eq_mod drop_bit_eq_div add: drop_bit_take_bit)
 
-lemmas bits_one_mod_two_eq_one [no_atp] = one_mod_two_eq_one
+lemmas bits_one_mod_two_eq_one = one_mod_two_eq_one
 
-lemmas set_bit_def [no_atp] = set_bit_eq_or
+lemmas set_bit_def = set_bit_eq_or
 
-lemmas unset_bit_def [no_atp] = unset_bit_eq_and_not
+lemmas unset_bit_def = unset_bit_eq_and_not
 
-lemmas flip_bit_def [no_atp] = flip_bit_eq_xor
+lemmas flip_bit_def = flip_bit_eq_xor
 
-lemma disjunctive_add [no_atp]:
+lemma disjunctive_add:
   \<open>a + b = a OR b\<close> if \<open>\<And>n. \<not> bit a n \<or> \<not> bit b n\<close>
   by (rule disjunctive_add_eq_or) (use that in \<open>simp add: bit_eq_iff bit_simps\<close>)
 
-lemma even_mod_exp_div_exp_iff [no_atp]:
+lemma even_mod_exp_div_exp_iff:
   \<open>even (a mod 2 ^ m div 2 ^ n) \<longleftrightarrow> m \<le> n \<or> even (a div 2 ^ n)\<close>
   by (auto simp add: even_drop_bit_iff_not_bit bit_simps simp flip: drop_bit_eq_div take_bit_eq_mod)
 
@@ -3927,7 +3927,7 @@ end
 context ring_bit_operations
 begin
 
-lemma disjunctive_diff [no_atp]:
+lemma disjunctive_diff:
   \<open>a - b = a AND NOT b\<close> if \<open>\<And>n. bit b n \<Longrightarrow> bit a n\<close>
 proof -
   have \<open>NOT a + b = NOT a OR b\<close>
@@ -3940,31 +3940,31 @@ qed
 
 end
 
-lemma and_nat_rec [no_atp]:
+lemma and_nat_rec:
   \<open>m AND n = of_bool (odd m \<and> odd n) + 2 * ((m div 2) AND (n div 2))\<close> for m n :: nat
   by (fact and_rec)
 
-lemma or_nat_rec [no_atp]:
+lemma or_nat_rec:
   \<open>m OR n = of_bool (odd m \<or> odd n) + 2 * ((m div 2) OR (n div 2))\<close> for m n :: nat
   by (fact or_rec)
 
-lemma xor_nat_rec [no_atp]:
+lemma xor_nat_rec:
   \<open>m XOR n = of_bool (odd m \<noteq> odd n) + 2 * ((m div 2) XOR (n div 2))\<close> for m n :: nat
   by (fact xor_rec)
 
-lemma bit_push_bit_iff_nat [no_atp]:
+lemma bit_push_bit_iff_nat:
   \<open>bit (push_bit m q) n \<longleftrightarrow> m \<le> n \<and> bit q (n - m)\<close> for q :: nat
   by (fact bit_push_bit_iff')
 
-lemma mask_half_int [no_atp]:
+lemma mask_half_int:
   \<open>mask n div 2 = (mask (n - 1) :: int)\<close>
   by (fact mask_half)
 
-lemma not_int_rec [no_atp]:
+lemma not_int_rec:
   \<open>NOT k = of_bool (even k) + 2 * NOT (k div 2)\<close> for k :: int
   by (fact not_rec)
 
-lemma even_not_iff_int [no_atp]:
+lemma even_not_iff_int:
   \<open>even (NOT k) \<longleftrightarrow> odd k\<close> for k :: int
   by (fact even_not_iff)
 
@@ -3972,27 +3972,27 @@ lemma bit_not_int_iff':
   \<open>bit (- k - 1) n \<longleftrightarrow> \<not> bit k n\<close> for k :: int
   by (simp flip: not_eq_complement add: bit_simps)
 
-lemmas and_int_rec [no_atp] = and_int.rec
+lemmas and_int_rec = and_int.rec
 
-lemma even_and_iff_int [no_atp]:
+lemma even_and_iff_int:
   \<open>even (k AND l) \<longleftrightarrow> even k \<or> even l\<close> for k l :: int
   by (fact even_and_iff)
 
-lemmas bit_and_int_iff [no_atp] = and_int.bit_iff
+lemmas bit_and_int_iff = and_int.bit_iff
 
-lemmas or_int_rec [no_atp] = or_int.rec
+lemmas or_int_rec = or_int.rec
 
-lemmas bit_or_int_iff [no_atp] = or_int.bit_iff
+lemmas bit_or_int_iff = or_int.bit_iff
 
-lemmas xor_int_rec [no_atp] = xor_int.rec
+lemmas xor_int_rec = xor_int.rec
 
-lemmas bit_xor_int_iff [no_atp] = xor_int.bit_iff
+lemmas bit_xor_int_iff = xor_int.bit_iff
 
-lemma drop_bit_push_bit_int [no_atp]:
+lemma drop_bit_push_bit_int:
   \<open>drop_bit m (push_bit n k) = drop_bit (m - n) (push_bit (n - m) k)\<close> for k :: int
   by (fact drop_bit_push_bit)
 
-lemma bit_push_bit_iff_int [no_atp] :
+lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
   by (fact bit_push_bit_iff')
 
