@@ -144,7 +144,7 @@ option condition : string = "" for content
 option timeout : real = 0 for build
   -- "timeout for session build job (seconds > 0)"
 
-option timeout_build : bool = true for build
+option timeout_build : bool = true for build build_sync
   -- "observe timeout for session build"
 
 option process_policy : string = ""
@@ -198,7 +198,7 @@ option build_engine : string = "" for build_sync
 option build_database : bool = false for build_sync
   -- "expose state of build process via central database"
 
-option build_database_slice : real = 300
+option build_database_slice : real = 300 for build_sync
   -- "slice size in MiB for ML heap stored within database"
 
 option build_delay : real = 0.2
