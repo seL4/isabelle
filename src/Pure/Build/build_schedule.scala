@@ -718,10 +718,6 @@ object Build_Schedule {
     val minimals: List[Node] = build_graph.minimals
     val maximals: List[Node] = build_graph.maximals
 
-    def all_preds(node: Node): Set[Node] = build_graph.all_preds(List(node)).toSet
-    val maximals_all_preds: Map[Node, Set[Node]] =
-      maximals.map(node => node -> all_preds(node)).toMap
-
     val best_threads: Map[Node, Int] =
       build_graph.keys.map(node => node -> timing_data.best_threads(node, max_threads)).toMap
 
