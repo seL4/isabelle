@@ -911,8 +911,6 @@ object Build_Schedule {
   ) extends Scheduled_Build_Process(build_context, build_progress, server) {
     require(build_context.master)
 
-    protected val start_date: Date = Date.now()
-
     for (db <- _build_database) {
       Build_Schedule.private_data.transaction_lock(
         db,
@@ -1012,11 +1010,11 @@ object Build_Schedule {
           Build_Log.Prop.build_id.name -> build_context.build_uuid,
           Build_Log.Prop.build_engine.name -> build_context.engine.name,
           Build_Log.Prop.build_host.name -> hostname,
-          Build_Log.Prop.build_start.name -> Build_Log.print_date(start_date))
+          Build_Log.Prop.build_start.name -> Build_Log.print_date(build_start))
 
       val meta_info = Build_Log.Meta_Info(props, settings)
       val build_info = Build_Log.Build_Info(sessions.toMap)
-      val log_name = Build_Log.log_filename(engine = build_context.engine.name, date = start_date)
+      val log_name = Build_Log.log_filename(engine = build_context.engine.name, date = build_start)
 
       Build_Log.private_data.update_sessions(
         _log_database, _log_store.cache.compress, log_name.file_name, build_info)
