@@ -990,6 +990,7 @@ object Build_Schedule {
                 groups = info.groups,
                 hostname = Some(result.node_info.hostname),
                 threads = Some(timing_data.host_infos.num_threads(result.node_info)),
+                start = Some(result.start_date - build_start),
                 timing = result.process_result.timing,
                 sources = Some(result.output_shasum.digest.toString),
                 status = Some(status))

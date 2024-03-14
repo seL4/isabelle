@@ -72,6 +72,7 @@ object Build_Process {
     worker_uuid: String,
     build_uuid: String,
     node_info: Host.Node_Info,
+    start_date: Date,
     process_result: Process_Result,
     output_shasum: SHA1.Shasum,
     current: Boolean
@@ -267,12 +268,14 @@ object Build_Process {
       result_name: (String, String, String),
       process_result: Process_Result,
       output_shasum: SHA1.Shasum,
+      start_date: Date,
       node_info: Host.Node_Info = Host.Node_Info.none,
       current: Boolean = false
     ): State = {
       val (name, worker_uuid, build_uuid) = result_name
       val result =
-        Result(name, worker_uuid, build_uuid, node_info, process_result, output_shasum, current)
+        Result(name, worker_uuid, build_uuid, node_info, start_date, process_result, output_shasum,
+          current)
       copy(results = results + (name -> result))
     }
 
@@ -812,6 +815,7 @@ object Build_Process {
       val hostname = SQL.Column.string("hostname")
       val numa_node = SQL.Column.int("numa_node")
       val rel_cpus = SQL.Column.string("rel_cpus")
+      val start_date = SQL.Column.date("start_date")
       val rc = SQL.Column.int("rc")
       val out = SQL.Column.string("out")
       val err = SQL.Column.string("err")
@@ -823,7 +827,7 @@ object Build_Process {
 
       val table =
         make_table(
-          List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus,
+          List(name, worker_uuid, build_uuid, hostname, numa_node, rel_cpus, start_date,
             rc, out, err, timing_elapsed, timing_cpu, timing_gc, output_shasum, current),
           name = "results")
 
@@ -842,6 +846,8 @@ object Build_Process {
             val rel_cpus = res.string(Results.rel_cpus)
             val node_info = Host.Node_Info(hostname, numa_node, Host.Range.from(rel_cpus))
 
+            val start_date = res.date(Results.start_date)
+
             val rc = res.int(Results.rc)
             val out = res.string(Results.out)
             val err = res.string(Results.err)
@@ -859,7 +865,8 @@ object Build_Process {
             val output_shasum = SHA1.fake_shasum(res.string(Results.output_shasum))
             val current = res.bool(Results.current)
 
-            Result(name, worker_uuid, build_uuid, node_info, process_result, output_shasum, current)
+            Result(name, worker_uuid, build_uuid, node_info, start_date, process_result,
+              output_shasum, current)
           })
       )
 
@@ -886,14 +893,15 @@ object Build_Process {
             stmt.string(4) = result.node_info.hostname
             stmt.int(5) = result.node_info.numa_node
             stmt.string(6) = Host.Range(result.node_info.rel_cpus)
-            stmt.int(7) = process_result.rc
-            stmt.string(8) = cat_lines(process_result.out_lines)
-            stmt.string(9) = cat_lines(process_result.err_lines)
-            stmt.long(10) = process_result.timing.elapsed.ms
-            stmt.long(11) = process_result.timing.cpu.ms
-            stmt.long(12) = process_result.timing.gc.ms
-            stmt.string(13) = result.output_shasum.toString
-            stmt.bool(14) = result.current
+            stmt.date(7) = result.start_date
+            stmt.int(8) = process_result.rc
+            stmt.string(9) = cat_lines(process_result.out_lines)
+            stmt.string(10) = cat_lines(process_result.err_lines)
+            stmt.long(11) = process_result.timing.elapsed.ms
+            stmt.long(12) = process_result.timing.cpu.ms
+            stmt.long(13) = process_result.timing.gc.ms
+            stmt.string(14) = result.output_shasum.toString
+            stmt.bool(15) = result.current
           })
       }
 
@@ -1184,27 +1192,28 @@ extends AutoCloseable {
 
     val result_name = (session_name, worker_uuid, build_uuid)
 
+    val start = progress.now()
+
     if (finished) {
       state
         .remove_pending(session_name)
-        .make_result(result_name, Process_Result.ok, output_shasum, current = true)
+        .make_result(result_name, Process_Result.ok, output_shasum, start, current = true)
     }
     else if (skipped) {
       progress.echo("Skipping " + session_name + " ...", verbose = true)
       state.
         remove_pending(session_name).
-        make_result(result_name, Process_Result.error, output_shasum)
+        make_result(result_name, Process_Result.error, output_shasum, start)
     }
     else if (cancelled) {
       progress.echo(session_name + " CANCELLED")
       state
         .remove_pending(session_name)
-        .make_result(result_name, Process_Result.undefined, output_shasum)
+        .make_result(result_name, Process_Result.undefined, output_shasum, start)
     }
     else {
       val build_log_verbose = build_options.bool("build_log_verbose")
 
-      val start = progress.now()
       val start_time = start - build_start
       val start_time_msg = build_log_verbose
 
@@ -1320,6 +1329,7 @@ extends AutoCloseable {
         make_result(result_name,
           result.process_result,
           result.output_shasum,
+          job.start_date,
           node_info = job.node_info)
     }
 
