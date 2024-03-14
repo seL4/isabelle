@@ -502,7 +502,7 @@ object Build_Schedule {
 
     def end: Date =
       if (graph.is_empty) start
-      else graph.maximals.map(graph.get_node).map(_.end).maxBy(_.unix_epoch)
+      else graph.maximals.map(graph.get_node).map(_.end).max(Date.Ordering)
 
     def duration: Time = end - start
     def message: String = "Estimated " + duration.message_hms + " build time with " + generator
@@ -536,7 +536,7 @@ object Build_Schedule {
       def shift_elapsed(graph: Schedule.Graph, name: String): Schedule.Graph =
         graph.map_node(name, { node =>
           val elapsed = start1 - state.running(name).start_date
-          node.copy(duration = node.duration - elapsed)
+          node.copy(duration = (node.duration - elapsed).max(Time.zero))
         })
 
       def shift_starts(graph: Schedule.Graph, name: String): Schedule.Graph =
