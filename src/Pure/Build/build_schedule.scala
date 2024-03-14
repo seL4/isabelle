@@ -260,7 +260,7 @@ object Build_Schedule {
         facet.by_job.get(job_name) match {
           case None =>
             // no data for job, use timeout as esimation for single-threaded job on worst host
-            val default_time = sessions_structure(job_name).timeout
+            val default_time = sessions_structure.get(job_name).map(_.timeout).getOrElse(Time.zero)
             if (default_time > Time.zero) {
               val default_host = host_infos.hosts.sorted(host_infos.host_speeds).head
               default_time
