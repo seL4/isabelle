@@ -147,6 +147,11 @@ specific. Subtle INCOMPATIBILITY in the semantics of ML evaluation.
 
 *** System ***
 
+* More robust and scalable support for distributed build clusters, based
+on SSH and PostgreSQL. This includes advanced scheduling as follows:
+
+  isabelle build -o build_engine=build_schedule -H host1 -H host2
+
 * The command-line tool "isabelle build" now uses default 0 (instead of
 1) for option -j. This means that "isabelle build -H" will initialize
 the build queue and oversee remote workers, but not run any Isabelle

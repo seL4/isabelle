@@ -7,7 +7,7 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * 2023/2024: Makarius Wenzel and Fabian Huch
-  More support for distributed build clusters.
+  More robust and scalable support for distributed build clusters.
 
 * October 2023: Fabian Huch
   Support for SMTP mailing.
