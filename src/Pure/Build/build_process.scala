@@ -911,7 +911,7 @@ object Build_Process {
 
     /* collective operations */
 
-    def pull_database(db: SQL.Database, build_id: Long, worker_uuid: String, state: State): State = {
+    def pull_state(db: SQL.Database, build_id: Long, worker_uuid: String, state: State): State = {
       val serial_db = read_serial(db)
       if (serial_db == state.serial) state
       else {
@@ -928,7 +928,7 @@ object Build_Process {
       }
     }
 
-    def update_database(
+    def push_state(
       db: SQL.Database,
       build_id: Long,
       worker_uuid: String,
@@ -1124,11 +1124,11 @@ extends AutoCloseable {
         case Some(db) =>
           Build_Process.private_data.transaction_lock(db, label = label) {
             val old_state =
-              Build_Process.private_data.pull_database(db, build_id, worker_uuid, _state)
+              Build_Process.private_data.pull_state(db, build_id, worker_uuid, _state)
             _state = old_state
             val res = body
             _state =
-              Build_Process.private_data.update_database(
+              Build_Process.private_data.push_state(
                 db, build_id, worker_uuid, _state, old_state)
             res
           }
