@@ -879,15 +879,15 @@ object Build_Schedule {
           case Some(db) =>
             db.transaction_lock(Build_Schedule.private_data.all_tables, label = label) {
               val old_state =
-                Build_Process.private_data.pull_database(db, build_id, worker_uuid, _state)
+                Build_Process.private_data.pull_state(db, build_id, worker_uuid, _state)
               val old_schedule = Build_Schedule.private_data.pull_schedule(db, _schedule)
               _state = old_state
               _schedule = old_schedule
               val res = body
               _state =
-                Build_Process.private_data.update_database(
+                Build_Process.private_data.push_state(
                   db, build_id, worker_uuid, _state, old_state)
-              _schedule = Build_Schedule.private_data.update_schedule(db, _schedule, old_schedule)
+              _schedule = Build_Schedule.private_data.pull_schedule(db, _schedule, old_schedule)
               res
             }
         }
@@ -1273,7 +1273,7 @@ object Build_Schedule {
       }
     }
 
-    def update_schedule(db: SQL.Database, schedule: Schedule, old_schedule: Schedule): Schedule = {
+    def pull_schedule(db: SQL.Database, schedule: Schedule, old_schedule: Schedule): Schedule = {
       val changed =
         schedule.generator != old_schedule.generator ||
         schedule.start != old_schedule.start ||
