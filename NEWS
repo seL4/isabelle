@@ -65,6 +65,16 @@ INCOMPATIBILITY.
 * Lemma even_succ_div_2 renamed to even_half_succ_eq. Minor
 INCOMPATIBILITY.
 
+* Theory "HOL.Relation":
+  - Added lemmas.
+      antisymp_on_image
+      asymp_on_image
+      irreflp_on_image
+      reflp_on_image
+      symp_on_image
+      totalp_on_image
+      transp_on_image
+
 * Theory "HOL.Transitive_Closure":
   - Added lemmas.
       reflclp_greater_eq[simp]

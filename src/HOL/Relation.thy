@@ -210,6 +210,9 @@ lemma reflpE:
 lemma reflp_on_subset: "reflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> reflp_on B R"
   by (auto intro: reflp_onI dest: reflp_onD)
 
+lemma reflp_on_image: "reflp_on (f ` A) R \<longleftrightarrow> reflp_on A (\<lambda>a b. R (f a) (f b))"
+  by (simp add: reflp_on_def)
+
 lemma refl_on_Int: "refl_on A r \<Longrightarrow> refl_on B s \<Longrightarrow> refl_on (A \<inter> B) (r \<inter> s)"
   unfolding refl_on_def by blast
 
@@ -332,6 +335,9 @@ lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longr
 lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
   by (auto simp: irreflp_on_def)
 
+lemma irreflp_on_image: "irreflp_on (f ` A) R \<longleftrightarrow> irreflp_on A (\<lambda>a b. R (f a) (f b))"
+  by (simp add: irreflp_on_def)
+
 lemma (in preorder) irreflp_on_less[simp]: "irreflp_on A (<)"
   by (simp add: irreflp_onI)
 
@@ -393,6 +399,9 @@ lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longright
 lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
   by (auto simp: asymp_on_def)
 
+lemma asymp_on_image: "asymp_on (f ` A) R \<longleftrightarrow> asymp_on A (\<lambda>a b. R (f a) (f b))"
+  by (simp add: asymp_on_def)
+
 lemma irrefl_on_if_asym_on[simp]: "asym_on A r \<Longrightarrow> irrefl_on A r"
   by (auto intro: irrefl_onI dest: asym_onD)
 
@@ -438,6 +447,9 @@ lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightar
 
 lemma symp_on_subset: "symp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> symp_on B R"
   by (auto simp: symp_on_def)
+
+lemma symp_on_image: "symp_on (f ` A) R \<longleftrightarrow> symp_on A (\<lambda>a b. R (f a) (f b))"
+  by (simp add: symp_on_def)
 
 lemma sym_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r) \<Longrightarrow> sym_on A r"
   by (simp add: sym_on_def)
@@ -531,6 +543,11 @@ lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Lon
 
 lemma antisymp_on_subset: "antisymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisymp_on B R"
   by (auto simp: antisymp_on_def)
+
+lemma antisymp_on_image:
+  assumes "inj_on f A"
+  shows "antisymp_on (f ` A) R \<longleftrightarrow> antisymp_on A (\<lambda>a b. R (f a) (f b))"
+  using assms by (auto simp: antisymp_on_def inj_on_def)
 
 lemma antisym_onI:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym_on A r"
@@ -680,6 +697,9 @@ lemma trans_on_subset: "trans_on A r \<Longrightarrow> B \<subseteq> A \<Longrig
 lemma transp_on_subset: "transp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> transp_on B R"
   by (auto simp: transp_on_def)
 
+lemma transp_on_image: "transp_on (f ` A) R \<longleftrightarrow> transp_on A (\<lambda>a b. R (f a) (f b))"
+  by (simp add: transp_on_def)
+
 lemma trans_Int: "trans r \<Longrightarrow> trans s \<Longrightarrow> trans (r \<inter> s)"
   by (fast intro: transI elim: transE)
 
@@ -779,6 +799,11 @@ lemma total_on_subset: "total_on A r \<Longrightarrow> B \<subseteq> A \<Longrig
 
 lemma totalp_on_subset: "totalp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> totalp_on B R"
   by (auto intro: totalp_onI dest: totalp_onD)
+
+lemma totalp_on_image:
+  assumes "inj_on f A"
+  shows "totalp_on (f ` A) R \<longleftrightarrow> totalp_on A (\<lambda>a b. R (f a) (f b))"
+  using assms by (auto simp: totalp_on_def inj_on_def)
 
 lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
