@@ -10,9 +10,8 @@ package isabelle
 object Build_Benchmark {
   /* benchmark */
 
-  // ZF-Constructible as representative benchmark session with
-  // short build time and requirements
-  val benchmark_session = "ZF-Constructible"
+  // representative benchmark session with short build time and requirements
+  val benchmark_session = "FOLP-ex"
 
   def benchmark_command(
     host: Build_Cluster.Host,
