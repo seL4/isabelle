@@ -499,7 +499,7 @@ object Build_Schedule {
       import XML.Encode._
 
       def time: T[Time] = (time => long(time.ms))
-      def date: T[Date] = (date => long(date.unix_epoch))
+      def date: T[Date] = (date => time(date.time))
       def node_info: T[Node_Info] =
         (node_info => triple(string, option(int), list(int))(
           (node_info.hostname, node_info.numa_node, node_info.rel_cpus)))
@@ -519,7 +519,7 @@ object Build_Schedule {
       import XML.Decode._
 
       def time: T[Time] = { body => Time.ms(long(body)) }
-      def date: T[Date] = { body => Date(Time.ms(long(body))) }
+      def date: T[Date] = { body => Date(time(body)) }
       def node_info: T[Node_Info] =
         { body =>
           val (hostname, numa_node, rel_cpus) = triple(string, option(int), list(int))(body)
