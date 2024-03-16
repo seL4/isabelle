@@ -1375,6 +1375,8 @@ object Build_Schedule {
     session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Term.Cache = Term.Cache.make()
   ): Schedule = {
+    Build.build_process(options, build_cluster = true, remove_builds = true)
+
     val store =
       Build_Engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
     val log_store = Build_Log.store(options, cache = cache)
