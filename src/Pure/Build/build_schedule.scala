@@ -1635,7 +1635,7 @@ Usage: isabelle build_schedule [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Generate build graph for scheduling.
+  Generate build schedule, but do not run actual build.
 """,
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
