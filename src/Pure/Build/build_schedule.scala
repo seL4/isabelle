@@ -9,6 +9,7 @@ package isabelle
 import Host.Node_Info
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.Ordering.Implicits.seqOrdering
 
 
 object Build_Schedule {
@@ -505,6 +506,7 @@ object Build_Schedule {
       else graph.maximals.map(graph.get_node).map(_.end).max(Date.Ordering)
 
     def duration: Time = end - start
+    def durations: List[Time] = graph.keys.map(graph.get_node(_).end - start)
     def message: String = "Estimated " + duration.message_hms + " build time with " + generator
 
     def deviation(other: Schedule): Time = Time.ms((end - other.end).ms.abs)
@@ -527,7 +529,7 @@ object Build_Schedule {
         if graph.imm_preds(node.job_name).subsetOf(state.results.keySet)
       } yield task.name
 
-    def exists_next(hostname: String, state: Build_Process.State): Boolean = 
+    def exists_next(hostname: String, state: Build_Process.State): Boolean =
       next(hostname, state).nonEmpty
     
     def update(state: Build_Process.State): Schedule = {
@@ -632,7 +634,7 @@ object Build_Schedule {
 
     def schedule(state: Build_Process.State): Schedule = {
       def main(scheduler: Scheduler): Schedule = scheduler.schedule(state)
-      Par_List.map(main, schedulers).minBy(_.duration.ms)
+      Par_List.map(main, schedulers).minBy(_.durations.map(_.ms).sorted.reverse)
     }
   }
 
