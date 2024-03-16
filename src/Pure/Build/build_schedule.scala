@@ -1389,7 +1389,6 @@ object Build_Schedule {
       val full_sessions =
         Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
           select_dirs = select_dirs, infos = infos, augment_options = augment_options)
-      val full_sessions_selection = full_sessions.imports_selection(selection)
 
       val build_deps =
         Sessions.deps(full_sessions.selection(selection), progress = progress,
