@@ -1401,8 +1401,22 @@ object Build_Schedule {
       server: SSH.Server
     ): Build_Process =
       if (!context.master) new Scheduled_Build_Process(context, progress, server)
-      else new Scheduler_Build_Process(context, progress, server) {
-        def init_scheduler(timing_data: Timing_Data): Scheduler = scheduler(timing_data, context)
+      else {
+        val schedule_file = context.build_options.string("build_schedule")
+        if (schedule_file.isEmpty) {
+          new Scheduler_Build_Process(context, progress, server) {
+            def init_scheduler(timing_data: Timing_Data): Scheduler =
+              scheduler(timing_data, context)
+          }
+        }
+        else {
+          val finished_schedule =
+            Schedule.read(Path.explode(schedule_file)).copy(build_uuid = context.build_uuid)
+          new Scheduler_Build_Process(context, progress, server) {
+            def init_scheduler(timing_data: Timing_Data): Scheduler =
+              (build_state: Build_Process.State) => finished_schedule
+          }
+        }
       }
   }
   object Build_Engine extends Build_Engine
@@ -1674,7 +1688,7 @@ Usage: isabelle build_schedule [OPTIONS] [SESSIONS ...]
     -H HOSTS     additional cluster host specifications of the form
                  NAMES:PARAMETERS (separated by commas)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -O FILE      output file
+    -O FILE      output file (pdf or png for image, else yxml)
     -R           refer to requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -1722,7 +1736,12 @@ Usage: isabelle build_schedule [OPTIONS] [SESSIONS ...]
           numa_shuffling = isabelle.Host.numa_check(progress, numa_shuffling),
           build_hosts = build_hosts.toList)
 
-      if (!schedule.is_empty && output_file.nonEmpty)
-        write_schedule_graphic(schedule, output_file.get)
+      output_file match {
+        case Some(output_file) if !schedule.is_empty =>
+          if (File.is_pdf(output_file.file_name) || File.is_png(output_file.file_name))
+            write_schedule_graphic(schedule, output_file)
+          else Schedule.write(schedule, output_file)
+        case _ =>
+      }
     })
 }
