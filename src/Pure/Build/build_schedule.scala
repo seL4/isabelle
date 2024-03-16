@@ -103,7 +103,7 @@ object Build_Schedule {
       lazy val by_threads: Map[Int, Facet] = results.groupBy(_.threads).view.mapValues(new Facet(_)).toMap
       lazy val by_hostname: Map[String, Facet] = results.groupBy(_.hostname).view.mapValues(new Facet(_)).toMap
 
-      def mean_time: Time = Timing_Data.mean_time(results.map(_.elapsed))
+      def median_time: Time = Timing_Data.median_time(results.map(_.elapsed))
 
       def best_result: Result = results.minBy(_.elapsed.ms)
     }
@@ -191,13 +191,13 @@ object Build_Schedule {
 
     private def unify_hosts(job_name: String, on_host: String): List[(Int, Time)] = {
       def unify(hostname: String, facet: Timing_Data.Facet) =
-        facet.mean_time.scale(hostname_factor(hostname, on_host))
+        facet.median_time.scale(hostname_factor(hostname, on_host))
 
       for {
         facet <- facet.by_job.get(job_name).toList
         (threads, facet) <- facet.by_threads
         entries = facet.by_hostname.toList.map(unify)
-      } yield threads -> Timing_Data.median_time(entries)
+      } yield threads -> Timing_Data.mean_time(entries)
     }
 
     def estimate_threads(job_name: String, hostname: String, threads: Int): Option[Time] = {
@@ -205,8 +205,8 @@ object Build_Schedule {
         val entries =
           facet.by_threads.toList match {
             case List((i, Timing_Data.Facet(List(result)))) if i != 1 =>
-              (i, facet.mean_time) :: result.proper_cpu.map(1 -> _).toList
-            case entries => entries.map((threads, facet) => threads -> facet.mean_time)
+              (i, facet.median_time) :: result.proper_cpu.map(1 -> _).toList
+            case entries => entries.map((threads, facet) => threads -> facet.median_time)
           }
         if (entries.size < 2) None else Some(approximate_threads(entries, threads))
       }
@@ -214,7 +214,7 @@ object Build_Schedule {
       for {
         facet <- facet.by_job.get(job_name)
         facet <- facet.by_hostname.get(hostname)
-        time <- facet.by_threads.get(threads).map(_.mean_time).orElse(try_approximate(facet))
+        time <- facet.by_threads.get(threads).map(_.median_time).orElse(try_approximate(facet))
       } yield time
     }
 
@@ -276,7 +276,7 @@ object Build_Schedule {
               else {
                 // no other job to estimate from, use global curve to approximate any other job
                 val (threads1, facet1) = facet.by_threads.head
-                facet1.mean_time.scale(global_threads_factor(threads1, threads))
+                facet1.median_time.scale(global_threads_factor(threads1, threads))
               }
             }
 
@@ -312,10 +312,10 @@ object Build_Schedule {
                 }
 
               case Some(facet) => // time for job/thread exists, interpolate machine if necessary
-                facet.by_hostname.get(hostname).map(_.mean_time).getOrElse {
-                  Timing_Data.median_time(
+                facet.by_hostname.get(hostname).map(_.median_time).getOrElse {
+                  Timing_Data.mean_time(
                     facet.by_hostname.toList.map((hostname1, facet) =>
-                      facet.mean_time.scale(hostname_factor(hostname1, hostname)))).scale(
+                      facet.median_time.scale(hostname_factor(hostname1, hostname)))).scale(
                     FACTOR_THREADS_OTHER_MACHINE)
                 }
             }
