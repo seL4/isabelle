@@ -517,10 +517,7 @@ object Build_Schedule {
     def is_empty: Boolean = graph.is_empty
     def is_outdated(options: Options, state: Build_Process.State): Boolean =
       if (is_empty) true
-      else {
-        num_built(state) > options.int("build_schedule_outdated_limit") &&
-          elapsed() > options.seconds("build_schedule_outdated_delay")
-      }
+      else elapsed() > options.seconds("build_schedule_outdated_delay")
 
     def next(hostname: String, state: Build_Process.State): List[String] =
       for {

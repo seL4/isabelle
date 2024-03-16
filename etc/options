@@ -222,9 +222,6 @@ option build_cluster_identifier : string = "build_cluster"
 option build_schedule_outdated_delay : real = 300.0
   -- "delay schedule generation loop"
 
-option build_schedule_outdated_limit : int = 20
-  -- "maximum number of sessions for which schedule stays valid"
-
 
 section "Editor Session"
 
