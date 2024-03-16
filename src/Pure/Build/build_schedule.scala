@@ -7,6 +7,7 @@ package isabelle
 
 
 import Host.Node_Info
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.Ordering.Implicits.seqOrdering
@@ -121,7 +122,7 @@ object Build_Schedule {
         facet.by_job.get(job_name).toList.flatMap(_.by_hostname).flatMap {
           case (hostname, facet) =>
             val best_threads = facet.best_result.threads
-           facet.by_threads.keys.toList.sorted.find(_ > best_threads).map(
+            facet.by_threads.keys.toList.sorted.find(_ > best_threads).map(
               inflection_point(best_threads, _))
         }
       (max_threads :: worse_threads).min
@@ -246,10 +247,10 @@ object Build_Schedule {
     }
 
     private var cache: Map[(String, String, Int), Time] = Map.empty
-    
-    
+
+
     /* approximation factors -- penalize estimations with less information */
-    
+
     val FACTOR_NO_THREADS_GLOBAL_CURVE = 2.5
     val FACTOR_NO_THREADS_UNIFY_MACHINES = 1.7
     val FACTOR_NO_THREADS_OTHER_MACHINE = 1.5
@@ -292,7 +293,7 @@ object Build_Schedule {
                       factor = hostname_factor(hostname1, hostname)
                     } yield estimate.scale(factor)
 
-                  if (approximated.nonEmpty) 
+                  if (approximated.nonEmpty)
                     Timing_Data.mean_time(approximated).scale(FACTOR_NO_THREADS_OTHER_MACHINE)
                   else {
                     // no single machine where config can be approximated, unify data points
@@ -531,7 +532,7 @@ object Build_Schedule {
 
     def exists_next(hostname: String, state: Build_Process.State): Boolean =
       next(hostname, state).nonEmpty
-    
+
     def update(state: Build_Process.State): Schedule = {
       val start1 = Date.now()
 
@@ -1065,7 +1066,7 @@ object Build_Schedule {
             fresh_build = build_context.fresh_build,
             store_heap = store_heap)._1
         case _ => false
-    }
+      }
 
     override def next_jobs(state: Build_Process.State): List[String] =
       if (progress.stopped) state.next_ready.map(_.name)
@@ -1117,7 +1118,7 @@ object Build_Schedule {
                 if _schedule.exists_next(host.name, _state)
               } build_send(Build_Schedule.private_data.channel_ready(host.name))
             }
-            while(!build_action()) {}
+            while (!build_action()) {}
           }
         }
         finally {
@@ -1284,7 +1285,7 @@ object Build_Schedule {
       val schedule1 =
         if (changed) schedule.copy(serial = old_schedule.next_serial) else schedule
       if (schedule1.serial != schedule.serial) write_schedule(db, schedule1)
-      
+
       schedule1
     }
 
