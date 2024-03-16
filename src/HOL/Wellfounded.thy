@@ -14,14 +14,60 @@ begin
 
 subsection \<open>Basic Definitions\<close>
 
+definition wf_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
+  where "wf_on A r \<longleftrightarrow> (\<forall>P. (\<forall>x \<in> A. (\<forall>y \<in> A. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x \<in> A. P x))"
+
 definition wf :: "('a \<times> 'a) set \<Rightarrow> bool"
   where "wf r \<longleftrightarrow> (\<forall>P. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x. P x))"
+
+definition wfp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "wfp_on A R \<longleftrightarrow> (\<forall>P. (\<forall>x \<in> A. (\<forall>y \<in> A. R y x \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x \<in> A. P x))"
 
 definition wfP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
   where "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
 
+
+subsection \<open>Equivalence of Definitions\<close>
+
+lemma wf_on_UNIV: "wf_on UNIV r \<longleftrightarrow> wf r"
+  by (simp add: wf_on_def wf_def)
+
+lemma wfp_on_UNIV: "wfp_on UNIV R \<longleftrightarrow> wfP R"
+  by (simp add: wfp_on_def wfP_def wf_def)
+
+lemma wfp_on_wf_on_eq[pred_set_conv]: "wfp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> wf_on A r"
+  by (simp add: wfp_on_def wf_on_def)
+
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
+
+
+subsection \<open>Induction Principles\<close>
+
+lemma wf_on_induct[consumes 2, case_names less, induct set: wf]:
+  assumes "wf_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> P y) \<Longrightarrow> P x"
+  shows "P x"
+  using assms(2,3) by (auto intro: \<open>wf_on A r\<close>[unfolded wf_on_def, rule_format])
+
+lemma wfp_on_induct[consumes 2, case_names less, induct pred: wfp_on]:
+  assumes "wfp_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> r y x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  shows "P x"
+  using assms by (fact wf_on_induct[to_pred])
+
+lemma wf_induct:
+  assumes "wf r"
+    and "\<And>x. \<forall>y. (y, x) \<in> r \<longrightarrow> P y \<Longrightarrow> P x"
+  shows "P a"
+  using assms by (auto simp: wf_on_UNIV intro: wf_on_induct[of UNIV])
+
+lemmas wfP_induct = wf_induct [to_pred]
+
+lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
+
+lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
+
+
+subsection \<open>Introduction Rules\<close>
 
 lemma wfUNIVI: "(\<And>P x. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<Longrightarrow> P x) \<Longrightarrow> wf r"
   unfolding wf_def by blast
@@ -36,17 +82,8 @@ lemma wfI:
   shows "wf r"
   using assms unfolding wf_def by blast
 
-lemma wf_induct:
-  assumes "wf r"
-    and "\<And>x. \<forall>y. (y, x) \<in> r \<longrightarrow> P y \<Longrightarrow> P x"
-  shows "P a"
-  using assms unfolding wf_def by blast
 
-lemmas wfP_induct = wf_induct [to_pred]
-
-lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
-
-lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
+subsection \<open>Ordering Properties\<close>
 
 lemma wf_not_sym: "wf r \<Longrightarrow> (a, x) \<in> r \<Longrightarrow> (x, a) \<notin> r"
   by (induct a arbitrary: x set: wf) blast
