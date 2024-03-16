@@ -491,6 +491,55 @@ object Build_Schedule {
     type Graph = isabelle.Graph[String, Node]
 
     def init(build_uuid: String): Schedule = Schedule(build_uuid, "none", Date.now(), Graph.empty)
+
+
+    /* file representation */
+
+    def write(value: Schedule, file: Path): Unit = {
+      import XML.Encode._
+
+      def time: T[Time] = (time => long(time.ms))
+      def date: T[Date] = (date => long(date.unix_epoch))
+      def node_info: T[Node_Info] =
+        (node_info => triple(string, option(int), list(int))(
+          (node_info.hostname, node_info.numa_node, node_info.rel_cpus)))
+      def node: T[Node] =
+        (node => pair(string, pair(node_info, pair(date, time)))(
+          (node.job_name, (node.node_info, (node.start, node.duration)))))
+      def schedule: T[Schedule] =
+        (schedule =>
+          pair(string, pair(string, pair(date, pair(Graph.encode(string, node), long))))((
+            schedule.build_uuid, (schedule.generator, (schedule.start, (schedule.graph,
+            schedule.serial))))))
+
+      File.write(file, YXML.string_of_body(schedule(value)))
+    }
+
+    def read(file: Path): Schedule = {
+      import XML.Decode._
+
+      def time: T[Time] = { body => Time.ms(long(body)) }
+      def date: T[Date] = { body => Date(Time.ms(long(body))) }
+      def node_info: T[Node_Info] =
+        { body =>
+          val (hostname, numa_node, rel_cpus) = triple(string, option(int), list(int))(body)
+          Node_Info(hostname, numa_node, rel_cpus)
+        }
+      val node: T[Schedule.Node] =
+        { body =>
+          val (job_name, (info, (start, duration))) =
+            pair(string, pair(node_info, pair(date, time)))(body)
+          Node(job_name, info, start, duration)
+        }
+      def schedule: T[Schedule] =
+        { body =>
+          val (build_uuid, (generator, (start, (graph, serial)))) =
+            pair(string, pair(string, (pair(date, pair(Graph.decode(string, node), long)))))(body)
+          Schedule(build_uuid, generator, start, graph, serial)
+        }
+
+      schedule(YXML.parse_body(File.read(file)))
+    }
   }
 
   case class Schedule(
