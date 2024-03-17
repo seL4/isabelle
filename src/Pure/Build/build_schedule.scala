@@ -334,6 +334,24 @@ object Build_Schedule {
 
   /* host information */
 
+  object Host {
+    def load(build_host: Build_Cluster.Host, host_db: SQL.Database): Host = {
+      val name = build_host.name
+      val info =
+        isabelle.Host.read_info(host_db, name).getOrElse(error("No info for host " + quote(name)))
+      val score = info.benchmark_score.getOrElse(error("No benchmark for " + quote(name)))
+
+      Host(
+        name = name,
+        num_cpus = info.num_cpus,
+        max_jobs = build_host.jobs,
+        numa = build_host.numa,
+        numa_nodes = info.numa_nodes,
+        benchmark_score = score,
+        options = build_host.options)
+    }
+  }
+
   case class Host(
     name: String,
     num_cpus: Int,
@@ -347,25 +365,8 @@ object Build_Schedule {
   }
 
   object Host_Infos {
-    def load(build_hosts: List[Build_Cluster.Host], db: SQL.Database): Host_Infos = {
-      def get_host(build_host: Build_Cluster.Host): Host = {
-        val name = build_host.name
-        val info =
-          isabelle.Host.read_info(db, name).getOrElse(error("No info for host " + quote(name)))
-        val score = info.benchmark_score.getOrElse(error("No benchmark for " + quote(name)))
-
-        Host(
-          name = name,
-          num_cpus = info.num_cpus,
-          max_jobs = build_host.jobs,
-          numa = build_host.numa,
-          numa_nodes = info.numa_nodes,
-          benchmark_score = score,
-          options = build_host.options)
-      }
-
-      new Host_Infos(build_hosts.map(get_host))
-    }
+    def load(build_hosts: List[Build_Cluster.Host], host_db: SQL.Database): Host_Infos =
+      new Host_Infos(build_hosts.map(Host.load(_, host_db)))
   }
 
   class Host_Infos private(val hosts: List[Host]) {
