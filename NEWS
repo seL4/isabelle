@@ -97,6 +97,8 @@ INCOMPATIBILITY.
 * Theory "HOL.Wellfounded":
   - Added definitions wf_on and wfp_on as restricted versions versions of
     wf and wfP respectively.
+  - Added wfp as alias for wfP for greater consistency with other predicates
+    such as asymp, transp, or totalp.
   - Added lemmas.
       wfP_iff_ex_minimal
       wf_iff_ex_minimal

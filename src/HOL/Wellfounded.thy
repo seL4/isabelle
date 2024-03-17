@@ -26,6 +26,11 @@ definition wfp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bo
 definition wfP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
   where "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
 
+alias wfp = wfP
+
+text \<open>We keep old name \<^const>\<open>wfP\<close> for backward compatibility, but offer new name \<^const>\<open>wfp\<close> to be
+consistent with similar predicates, e.g., \<^const>\<open>asymp\<close>, \<^const>\<open>transp\<close>, \<^const>\<open>totalp\<close>.\<close>
+
 
 subsection \<open>Equivalence of Definitions\<close>
 
