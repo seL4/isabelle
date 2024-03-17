@@ -568,13 +568,26 @@ object Build_Schedule {
       if (is_empty) true
       else elapsed() > options.seconds("build_schedule_outdated_delay")
 
-    def next(hostname: String, state: Build_Process.State): List[String] =
-      for {
-        task <- state.next_ready
-        node = graph.get_node(task.name)
-        if hostname == node.node_info.hostname
-        if graph.imm_preds(node.job_name).subsetOf(state.results.keySet)
-      } yield task.name
+    def next(hostname: String, state: Build_Process.State): List[String] = {
+      val next_nodes =
+        for {
+          task <- state.next_ready
+          node = graph.get_node(task.name)
+          if hostname == node.node_info.hostname
+        } yield node
+
+      val (ready, waiting) =
+        next_nodes.partition(node => graph.imm_preds(node.job_name).subsetOf(state.results.keySet))
+      val running = state.running.values.toList.map(_.node_info).filter(_.hostname == hostname)
+
+      def try_run(ready: List[Schedule.Node], next: Schedule.Node): List[Schedule.Node] = {
+        val existing = ready.map(_.node_info) ::: running
+        val is_distinct = existing.forall(_.rel_cpus.intersect(next.node_info.rel_cpus).isEmpty)
+        if (existing.forall(_.rel_cpus.nonEmpty) && is_distinct) next :: ready else ready
+      }
+
+      waiting.foldLeft(ready)(try_run).map(_.job_name)
+    }
 
     def exists_next(hostname: String, state: Build_Process.State): Boolean =
       next(hostname, state).nonEmpty
