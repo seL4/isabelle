@@ -103,11 +103,17 @@ INCOMPATIBILITY.
       wf_onE_pf
       wf_onI_pf
       wf_on_UNIV
+      wf_on_antimono
+      wf_on_antimono_strong
       wf_on_iff_ex_minimal
       wf_on_induct
+      wf_on_subset
       wfp_on_UNIV
+      wfp_on_antimono
+      wfp_on_antimono_strong
       wfp_on_iff_ex_minimal
       wfp_on_induct
+      wfp_on_subset
       wfp_on_wf_on_eq
 
 * Theory "HOL-Library.Multiset":

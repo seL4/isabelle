@@ -230,6 +230,38 @@ lemma wf_eq_minimal: "wf r \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<long
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
 
+subsubsection \<open>Antimonotonicity\<close>
+
+lemma wf_on_antimono_strong:
+  assumes "wf_on B r" and "A \<subseteq> B" and "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> q \<Longrightarrow> (x, y) \<in> r)"
+  shows "wf_on A q"
+  unfolding wf_on_iff_ex_minimal
+proof (intro allI impI)
+  fix AA assume "AA \<subseteq> A" and "AA \<noteq> {}"
+  hence "\<exists>z\<in>AA. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> AA"
+    using \<open>wf_on B r\<close> \<open>A \<subseteq> B\<close>
+    by (simp add: wf_on_iff_ex_minimal)
+  then show "\<exists>z\<in>AA. \<forall>y. (y, z) \<in> q \<longrightarrow> y \<notin> AA"
+    using \<open>AA \<subseteq> A\<close> assms(3) by blast
+qed
+
+lemma wfp_on_antimono_strong:
+  "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> Q x y \<Longrightarrow> R x y) \<Longrightarrow> wfp_on A Q"
+  using wf_on_antimono_strong[of B _ A, to_pred] .
+
+lemma wf_on_antimono: "A \<subseteq> B \<Longrightarrow> q \<subseteq> r \<Longrightarrow> wf_on B r \<le> wf_on A q"
+  using wf_on_antimono_strong[of B r A q] by auto
+
+lemma wfp_on_antimono: "A \<subseteq> B \<Longrightarrow> Q \<le> R \<Longrightarrow> wfp_on B R \<le> wfp_on A Q"
+  using wfp_on_antimono_strong[of B R A Q] by auto
+
+lemma wf_on_subset: "wf_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> wf_on A r"
+  using wf_on_antimono_strong .
+
+lemma wfp_on_subset: "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> wfp_on A R"
+  using wfp_on_antimono_strong .
+
+
 subsubsection \<open>Well-foundedness of transitive closure\<close>
 
 lemma wf_trancl:
