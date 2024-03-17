@@ -50,7 +50,7 @@ object Build_Schedule {
           if build_info.finished_sessions.contains(job_name)
           hostname <- session_info.hostname.orElse(build_host).toList
           host <- hosts.find(_.name == hostname).toList
-          threads = session_info.threads.getOrElse(host.num_cpus)
+          threads = session_info.threads.getOrElse(host.max_threads)
         } yield (job_name, hostname, threads) -> session_info.timing
 
       val entries =
@@ -389,7 +389,7 @@ object Build_Schedule {
 
     def num_threads(node_info: Node_Info): Int =
       if (node_info.rel_cpus.nonEmpty) node_info.rel_cpus.length
-      else the_host(node_info).num_cpus
+      else the_host(node_info).max_threads
 
     def available(state: Build_Process.State): Resources = {
       val allocated =
@@ -437,7 +437,7 @@ object Build_Schedule {
           val (config, resources) =
             hosts.find((host, _) => available(host, min_threads)) match {
               case Some((host, host_max_threads)) =>
-                val free_threads = host.num_cpus - ((host.max_jobs - 1) * host_max_threads)
+                val free_threads = host.max_threads - ((host.max_jobs - 1) * host_max_threads)
                 val node_info = next_node(host, (min_threads max free_threads) min max_threads)
                 (Some(Config(task.name, node_info)), allocate(node_info))
               case None => (None, this)
@@ -472,7 +472,7 @@ object Build_Schedule {
       if (used.length >= host.max_jobs) false
       else {
         if (host.numa_nodes.length <= 1)
-          used.map(host_infos.num_threads).sum + threads <= host.num_cpus
+          used.map(host_infos.num_threads).sum + threads <= host.max_threads
         else {
           def node_threads(n: Int): Int =
             used.filter(_.numa_node.contains(n)).map(host_infos.num_threads).sum
@@ -776,7 +776,7 @@ object Build_Schedule {
     val host_infos: Host_Infos = timing_data.host_infos
     val ordered_hosts: List[Host] = host_infos.hosts.sorted(host_infos.host_speeds)
 
-    val max_threads: Int = host_infos.hosts.map(_.num_cpus).max min max_threads_limit
+    val max_threads: Int = host_infos.hosts.map(_.max_threads).max min max_threads_limit
 
     type Node = String
     val build_graph: Graph[Node, Sessions.Info] = sessions_structure.build_graph
@@ -789,7 +789,7 @@ object Build_Schedule {
 
     def best_time(node: Node): Time = {
       val host = ordered_hosts.last
-      val threads = best_threads(node) min host.num_cpus
+      val threads = best_threads(node) min host.max_threads
       timing_data.estimate(node, host.name, threads)
     }
     val best_times: Map[Node, Time] = build_graph.keys.map(node => node -> best_time(node)).toMap
