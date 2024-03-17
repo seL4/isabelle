@@ -98,9 +98,15 @@ INCOMPATIBILITY.
   - Added definitions wf_on and wfp_on as restricted versions versions of
     wf and wfP respectively.
   - Added lemmas.
+      wfP_iff_ex_minimal
+      wf_iff_ex_minimal
+      wf_onE_pf
+      wf_onI_pf
       wf_on_UNIV
+      wf_on_iff_ex_minimal
       wf_on_induct
       wfp_on_UNIV
+      wfp_on_iff_ex_minimal
       wfp_on_induct
       wfp_on_wf_on_eq
 

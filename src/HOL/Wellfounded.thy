@@ -44,7 +44,7 @@ lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
 
 subsection \<open>Induction Principles\<close>
 
-lemma wf_on_induct[consumes 2, case_names less, induct set: wf]:
+lemma wf_on_induct[consumes 2, case_names less, induct set: wf_on]:
   assumes "wf_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> P y) \<Longrightarrow> P x"
   shows "P x"
   using assms(2,3) by (auto intro: \<open>wf_on A r\<close>[unfolded wf_on_def, rule_format])
@@ -133,6 +133,23 @@ subsection \<open>Basic Results\<close>
 
 text \<open>Point-free characterization of well-foundedness\<close>
 
+lemma wf_onE_pf:
+  assumes wf: "wf_on A r" and "B \<subseteq> A" and "B \<subseteq> r `` B"
+  shows "B = {}"
+proof -
+  have "x \<notin> B" if "x \<in> A" for x
+    using wf that
+  proof (induction x rule: wf_on_induct)
+    case (less x)
+    have "x \<notin> r `` B"
+      using less.IH \<open>B \<subseteq> A\<close> by blast
+    thus ?case
+      using \<open>B \<subseteq> r `` B\<close> by blast
+  qed
+  with \<open>B \<subseteq> A\<close> show ?thesis
+    by blast
+qed
+
 lemma wfE_pf:
   assumes wf: "wf R"
     and a: "A \<subseteq> R `` A"
@@ -145,6 +162,22 @@ proof -
     with a show "x \<notin> A" by blast
   qed
   then show ?thesis by auto
+qed
+
+lemma wf_onI_pf:
+  assumes "\<And>B. B \<subseteq> A \<Longrightarrow> B \<subseteq> R `` B \<Longrightarrow> B = {}"
+  shows "wf_on A R"
+  unfolding wf_on_def
+proof (intro allI impI ballI)
+  fix P :: "'a \<Rightarrow> bool" and x :: 'a
+  let ?B = "{x \<in> A. \<not> P x}"
+  assume "\<forall>x\<in>A. (\<forall>y\<in>A. (y, x) \<in> R \<longrightarrow> P y) \<longrightarrow> P x"
+  hence "?B \<subseteq> R `` ?B" by blast
+  hence "{x \<in> A. \<not> P x} = {}"
+    using assms(1)[of ?B] by simp
+  moreover assume "x \<in> A"
+  ultimately show "P x"
+    by simp
 qed
 
 lemma wfI_pf:
@@ -160,6 +193,35 @@ qed
 
 
 subsubsection \<open>Minimal-element characterization of well-foundedness\<close>
+
+lemma wf_on_iff_ex_minimal: "wf_on A R \<longleftrightarrow> (\<forall>B \<subseteq> A. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> B))"
+proof (intro iffI allI impI)
+  fix B
+  assume "wf_on A R" and "B \<subseteq> A" and "B \<noteq> {}"
+  show "\<exists>z \<in> B. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> B"
+  using wf_onE_pf[OF \<open>wf_on A R\<close> \<open>B \<subseteq> A\<close>] \<open>B \<noteq> {}\<close> by blast
+next
+  assume ex_min: "\<forall>B\<subseteq>A. B \<noteq> {} \<longrightarrow> (\<exists>z\<in>B. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> B)"
+  show "wf_on A R "
+  proof (rule wf_onI_pf)
+    fix B
+    assume "B \<subseteq> A" and "B \<subseteq> R `` B"
+    have False if "B \<noteq> {}"
+      using ex_min[rule_format, OF \<open>B \<subseteq> A\<close> \<open>B \<noteq> {}\<close>]
+      using \<open>B \<subseteq> R `` B\<close> by blast
+    thus "B = {}"
+      by blast
+  qed
+qed
+
+lemma wf_iff_ex_minimal: "wf R \<longleftrightarrow> (\<forall>B. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> B))"
+  using wf_on_iff_ex_minimal[of UNIV, unfolded wf_on_UNIV, simplified] .
+
+lemma wfp_on_iff_ex_minimal: "wfp_on A R \<longleftrightarrow> (\<forall>B \<subseteq> A. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
+  using wf_on_iff_ex_minimal[of A, to_pred] by simp
+
+lemma wfP_iff_ex_minimal: "wfP R \<longleftrightarrow> (\<forall>B. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
+  using wfp_on_iff_ex_minimal[of UNIV, unfolded wfp_on_UNIV, simplified] .
 
 lemma wfE_min:
   assumes wf: "wf R" and Q: "x \<in> Q"
