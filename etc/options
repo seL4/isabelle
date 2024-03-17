@@ -222,6 +222,9 @@ option build_cluster_identifier : string = "build_cluster"
 option build_schedule : string = ""
   -- "path to pre-computed schedule"
 
+option build_schedule_initial : string = ""
+  -- "path to initial pre-computed schedule (may be overwritten during build)"
+
 option build_schedule_outdated_delay : real = 300.0
   -- "delay schedule generation loop"
 

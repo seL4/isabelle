@@ -693,12 +693,13 @@ object Build_Schedule {
     }
   }
 
-  case class Optimizer(schedulers: List[Scheduler]) extends Scheduler {
+  case class Optimizer(schedulers: List[Scheduler], schedules: List[Schedule]) extends Scheduler {
     require(schedulers.nonEmpty)
 
     def schedule(state: Build_Process.State): Schedule = {
       def main(scheduler: Scheduler): Schedule = scheduler.schedule(state)
-      Par_List.map(main, schedulers).minBy(_.durations.map(_.ms).sorted.reverse)
+      (Par_List.map(main, schedulers) ::: schedules.map(_.update(state))).minBy(schedule =>
+        schedule.durations.map(_.ms).sorted.reverse)
     }
   }
 
@@ -1409,7 +1410,13 @@ object Build_Schedule {
           Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure)
       val default_heuristic = Default_Heuristic(timing_data.host_infos)
       val heuristics = default_heuristic :: path_time_heuristics
-      Optimizer(heuristics.map(Generation_Scheme(_, timing_data, context.build_uuid)))
+
+      val initial_schedule_file = context.build_options.string("build_schedule_initial")
+      val initial =
+        proper_string(initial_schedule_file).toList.map(initial_schedule_file =>
+          Schedule.read(Path.explode(initial_schedule_file)).copy(build_uuid = context.build_uuid))
+
+      Optimizer(heuristics.map(Generation_Scheme(_, timing_data, context.build_uuid)), initial)
     }
 
     override def open_build_process(
