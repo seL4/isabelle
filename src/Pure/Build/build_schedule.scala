@@ -335,16 +335,18 @@ object Build_Schedule {
   /* host information */
 
   object Host {
-    def load(build_host: Build_Cluster.Host, host_db: SQL.Database): Host = {
+    def load(options: Options, build_host: Build_Cluster.Host, host_db: SQL.Database): Host = {
       val name = build_host.name
       val info =
         isabelle.Host.read_info(host_db, name).getOrElse(error("No info for host " + quote(name)))
+      val max_threads = (options ++ build_host.options).threads(default = info.num_cpus)
       val score = info.benchmark_score.getOrElse(error("No benchmark for " + quote(name)))
 
       Host(
         name = name,
         num_cpus = info.num_cpus,
         max_jobs = build_host.jobs,
+        max_threads = max_threads,
         numa = build_host.numa,
         numa_nodes = info.numa_nodes,
         benchmark_score = score,
@@ -356,17 +358,18 @@ object Build_Schedule {
     name: String,
     num_cpus: Int,
     max_jobs: Int,
+    max_threads: Int,
     benchmark_score: Double,
     numa: Boolean = false,
     numa_nodes: List[Int] = Nil,
-    options: List[Options.Spec] = Nil
-  ) {
-    def max_threads(options: Options): Int = (options ++ this.options).threads(default = num_cpus)
-  }
+    options: List[Options.Spec] = Nil)
 
   object Host_Infos {
-    def load(build_hosts: List[Build_Cluster.Host], host_db: SQL.Database): Host_Infos =
-      new Host_Infos(build_hosts.map(Host.load(_, host_db)))
+    def load(
+      options: Options,
+      build_hosts: List[Build_Cluster.Host],
+      host_db: SQL.Database
+    ): Host_Infos = new Host_Infos(build_hosts.map(Host.load(options, _, host_db)))
   }
 
   class Host_Infos private(val hosts: List[Host]) {
@@ -702,11 +705,11 @@ object Build_Schedule {
 
   /* priority rules */
 
-  class Default_Heuristic(host_infos: Host_Infos, options: Options) extends Priority_Rule {
+  class Default_Heuristic(host_infos: Host_Infos) extends Priority_Rule {
     override def toString: String = "default heuristic"
 
     def next_jobs(resources: Resources, sorted_jobs: List[String], host: Host): List[Config] =
-      sorted_jobs.zip(resources.unused_nodes(host, host.max_threads(options))).map(Config(_, _))
+      sorted_jobs.zip(resources.unused_nodes(host, host.max_threads)).map(Config(_, _))
 
     def select_next(state: Build_Process.State): List[Config] = {
       val sorted_jobs = state.next_ready.sortBy(_.name)(state.sessions.ordering).map(_.name)
@@ -1047,7 +1050,7 @@ object Build_Schedule {
           local_build_host :: build_context.build_hosts
         }
 
-      val host_infos = Host_Infos.load(cluster_hosts, _host_database)
+      val host_infos = Host_Infos.load(build_options, cluster_hosts, _host_database)
       Timing_Data.load(host_infos, _log_database, build_context.sessions_structure)
     }
     private val scheduler = init_scheduler(timing_data)
@@ -1404,7 +1407,7 @@ object Build_Schedule {
           machine_split <- machine_splits
         } yield
           Path_Time_Heuristic(is_critical, parallel, machine_split, timing_data, sessions_structure)
-      val default_heuristic = Default_Heuristic(timing_data.host_infos, context.build_options)
+      val default_heuristic = Default_Heuristic(timing_data.host_infos)
       val heuristics = default_heuristic :: path_time_heuristics
       Optimizer(heuristics.map(Generation_Scheme(_, timing_data, context.build_uuid)))
     }
@@ -1486,7 +1489,7 @@ object Build_Schedule {
         using(Build_Cluster.make(build_context, progress = progress).open())(_.init().benchmark())
       }
 
-      val host_infos = Host_Infos.load(cluster_hosts, host_database)
+      val host_infos = Host_Infos.load(build_options, cluster_hosts, host_database)
       val timing_data = Timing_Data.load(host_infos, log_database, full_sessions)
 
       val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
