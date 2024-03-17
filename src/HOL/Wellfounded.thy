@@ -150,19 +150,8 @@ proof -
     by blast
 qed
 
-lemma wfE_pf:
-  assumes wf: "wf R"
-    and a: "A \<subseteq> R `` A"
-  shows "A = {}"
-proof -
-  from wf have "x \<notin> A" for x
-  proof induct
-    fix x assume "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<notin> A"
-    then have "x \<notin> R `` A" by blast
-    with a show "x \<notin> A" by blast
-  qed
-  then show ?thesis by auto
-qed
+lemma wfE_pf: "wf R \<Longrightarrow> A \<subseteq> R `` A \<Longrightarrow> A = {}"
+  using wf_onE_pf[of UNIV, unfolded wf_on_UNIV, simplified] .
 
 lemma wf_onI_pf:
   assumes "\<And>B. B \<subseteq> A \<Longrightarrow> B \<subseteq> R `` B \<Longrightarrow> B = {}"
@@ -180,16 +169,8 @@ proof (intro allI impI ballI)
     by simp
 qed
 
-lemma wfI_pf:
-  assumes a: "\<And>A. A \<subseteq> R `` A \<Longrightarrow> A = {}"
-  shows "wf R"
-proof (rule wfUNIVI)
-  fix P :: "'a \<Rightarrow> bool" and x
-  let ?A = "{x. \<not> P x}"
-  assume "\<forall>x. (\<forall>y. (y, x) \<in> R \<longrightarrow> P y) \<longrightarrow> P x"
-  then have "?A \<subseteq> R `` ?A" by blast
-  with a show "P x" by blast
-qed
+lemma wfI_pf: "(\<And>A. A \<subseteq> R `` A \<Longrightarrow> A = {}) \<Longrightarrow> wf R"
+  using wf_onI_pf[of UNIV, unfolded wf_on_UNIV, simplified] .
 
 
 subsubsection \<open>Minimal-element characterization of well-foundedness\<close>
@@ -244,9 +225,7 @@ proof (rule wfI_pf)
 qed
 
 lemma wf_eq_minimal: "wf r \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q))"
-  apply (rule iffI)
-   apply (blast intro:  elim!: wfE_min)
-  by (rule wfI_min) auto
+  unfolding wf_iff_ex_minimal by blast
 
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
