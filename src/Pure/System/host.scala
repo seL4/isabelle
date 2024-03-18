@@ -77,8 +77,9 @@ object Host {
         threads_options.string.update("process_policy",
           if (numactl_ok(numa_node, node.rel_cpus)) numactl(numa_node, node.rel_cpus) else "")
       case _ =>
-        threads_options.string.update("process_policy",
-          if (taskset_ok(node.rel_cpus)) taskset(node.rel_cpus) else "")
+        // FIXME threads_options.string.update("process_policy",
+        //  if (taskset_ok(node.rel_cpus)) taskset(node.rel_cpus) else "")
+        threads_options
     }
   }
 
