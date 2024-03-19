@@ -1627,7 +1627,7 @@ fun arctan_expansion _ SEmpty thm =
                         val _ = if get_verbose ectxt then 
                           writeln "Unsupported occurrence of arctan" else ()
                       in
-                        raise TERM ("Unsupported occurence of arctan", [])
+                        raise TERM ("Unsupported occurrence of arctan", [])
                       end)
               | _ => raise TERM ("Unexpected trim result during expansion of arctan", [])
           end
