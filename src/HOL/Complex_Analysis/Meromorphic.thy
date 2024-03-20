@@ -1,5 +1,6 @@
 theory Meromorphic imports
-  "Laurent_Convergence"
+  Laurent_Convergence
+  Cauchy_Integral_Formula
   "HOL-Analysis.Sparse_In"
 begin
 
@@ -615,6 +616,10 @@ definition nicely_meromorphic_on :: "(complex \<Rightarrow> complex) \<Rightarro
     (infixl "(nicely'_meromorphic'_on)" 50)
     where "f nicely_meromorphic_on A \<longleftrightarrow> f meromorphic_on A 
         \<and> (\<forall>z\<in>A. (is_pole f z \<and> f z=0) \<or> f \<midarrow>z\<rightarrow> f z)"
+
+lemma nicely_meromorphic_on_subset:
+  "f nicely_meromorphic_on A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> f nicely_meromorphic_on B"
+  using meromorphic_on_subset unfolding nicely_meromorphic_on_def by blast
 
 lemma constant_on_imp_nicely_meromorphic_on:
   assumes "f constant_on A" "open A"

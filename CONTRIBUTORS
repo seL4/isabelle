@@ -6,6 +6,12 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2024: Manuel Eberl
+  Weierstraß Factorization Theorem in HOL-Complex_Analysis
+
+* March 2024: Anthony Bordg, Manuel Eberl, Wenda Li, Larry Paulson
+  New and more general definition of meromorphicity in HOL-Complex_Analysis
+
 * 2023/2024: Makarius Wenzel and Fabian Huch
   More robust and scalable support for distributed build clusters.
 
