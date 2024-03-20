@@ -79,6 +79,7 @@ INCOMPATIBILITY.
   - Added lemmas.
       antisym_on_reflcl_if_asym_on
       antisymp_on_reflclp_if_asymp_on
+      order_reflclp_if_transp_and_asymp
       reflclp_greater_eq[simp]
       reflclp_less_eq[simp]
       relpow_left_unique

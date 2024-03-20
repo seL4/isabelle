@@ -130,6 +130,23 @@ lemma (in preorder) reflclp_less_eq[simp]: "(\<le>)\<^sup>=\<^sup>= = (\<le>)"
 lemma (in preorder) reflclp_greater_eq[simp]: "(\<ge>)\<^sup>=\<^sup>= = (\<ge>)"
   using reflp_on_ge by (simp only: reflclp_ident_if_reflp)
 
+lemma order_reflclp_if_transp_and_asymp:
+  assumes "transp R" and "asymp R"
+  shows "class.order R\<^sup>=\<^sup>= R"
+proof unfold_locales
+  show "\<And>x y. R x y = (R\<^sup>=\<^sup>= x y \<and> \<not> R\<^sup>=\<^sup>= y x)"
+    using \<open>asymp R\<close> asympD by fastforce
+next
+  show "\<And>x. R\<^sup>=\<^sup>= x x"
+    by simp
+next
+  show "\<And>x y z. R\<^sup>=\<^sup>= x y \<Longrightarrow> R\<^sup>=\<^sup>= y z \<Longrightarrow> R\<^sup>=\<^sup>= x z"
+    using transp_on_reflclp[OF \<open>transp R\<close>, THEN transpD] .
+next
+  show "\<And>x y. R\<^sup>=\<^sup>= x y \<Longrightarrow> R\<^sup>=\<^sup>= y x \<Longrightarrow> x = y"
+    using antisymp_on_reflclp_if_asymp_on[OF \<open>asymp R\<close>, THEN antisympD] .
+qed
+
 
 subsection \<open>Reflexive-transitive closure\<close>
 
