@@ -27,7 +27,8 @@ sig
     Moura_Method |
     Linarith_Method |
     Presburger_Method |
-    Algebra_Method
+    Algebra_Method |
+    Order_Method
 
   datatype play_outcome =
     Played of Time.time |
@@ -70,7 +71,8 @@ datatype proof_method =
   Moura_Method |
   Linarith_Method |
   Presburger_Method |
-  Algebra_Method
+  Algebra_Method |
+  Order_Method
 
 datatype play_outcome =
   Played of Time.time |
@@ -112,7 +114,8 @@ fun string_of_proof_method ss meth =
       | Moura_Method => "moura"
       | Linarith_Method => "linarith"
       | Presburger_Method => "presburger"
-      | Algebra_Method => "algebra")
+      | Algebra_Method => "algebra"
+      | Order_Method => "order")
   in
     maybe_paren (space_implode " " (meth_s :: ss))
   end
@@ -152,7 +155,8 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
         | Moura_Method => moura_tac ctxt
         | Linarith_Method => Lin_Arith.tac ctxt
         | Presburger_Method => Cooper.tac true [] [] ctxt
-        | Algebra_Method => Groebner.algebra_tac [] [] ctxt)))
+        | Algebra_Method => Groebner.algebra_tac [] [] ctxt
+        | Order_Method => HOL_Order_Tac.tac [] ctxt)))
   end
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)

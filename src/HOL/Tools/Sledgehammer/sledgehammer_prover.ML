@@ -218,7 +218,7 @@ fun bunches_of_proof_methods ctxt smt_proofs needs_full_types desperate_lam_tran
     val misc_methodss =
       [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method, Meson_Method,
         Metis_Method (NONE, NONE), Fastforce_Method, Force_Method, Presburger_Method,
-        Argo_Method]]
+        Argo_Method, Order_Method]]
 
     val metis_methodss =
       [Metis_Method (SOME full_typesN, NONE) ::

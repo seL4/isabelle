@@ -42,6 +42,7 @@ base-lines are now as follows:
     . veriT 2021.06.1-rmx - rebuild for arm64-linux
     . Z3 4.4.1 for arm64-linux has been removed: unreliable, unstable.
   - New implementation of moura tactic. INCOMPATIBILITY.
+  - Added support for "order" proof method to proof reconstruction.
 
 * Mirabelle:
   - Removed proof reconstruction from "sledgehammer" action;
