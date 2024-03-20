@@ -19,16 +19,17 @@ object Component_CVC5 {
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-darwin", "cvc5-macOS-arm64-static.zip"),
-      Download_Platform("x86_64-darwin", "cvc5-macOS-static.zip"),
-      Download_Platform("x86_64-linux", "cvc5-Linux-static.zip"),
-      Download_Platform("x86_64-windows", "cvc5-Win64-static.zip"))
+      Download_Platform("arm64-darwin", "cvc5-macOS-arm64-static-2024-03-20-ef2bc3f.zip"),
+      Download_Platform("arm64-linux", "cvc5-Linux-arm64-static-2024-03-20-ef2bc3f.zip"),
+      Download_Platform("x86_64-darwin", "cvc5-macOS-static-2024-03-20-ef2bc3f.zip"),
+      Download_Platform("x86_64-linux", "cvc5-Linux-static-2024-03-20-ef2bc3f.zip"),
+      Download_Platform("x86_64-windows", "cvc5-Win64-static-2024-03-20-ef2bc3f.zip"))
 
 
   /* build cvc5 */
 
   val default_url = "https://github.com/cvc5/cvc5/releases/download"
-  val default_version = "1.1.1"
+  val default_version = "latest"
 
   def build_cvc5(
     base_url: String = default_url,
@@ -47,7 +48,7 @@ object Component_CVC5 {
 
     for (platform <- platforms) {
       Isabelle_System.with_tmp_dir("download") { download_dir =>
-        val download = base_url + "/cvc5-" + version + "/" + platform.download_name
+        val download = base_url + "/" + version + "/" + platform.download_name
 
         val archive_name =
           Url.get_base_name(platform.download_name) getOrElse
@@ -85,10 +86,11 @@ fi
     /* README */
 
     File.write(component_dir.README,
-      """This distribution of cvc5 was assembled from the official downloads
-from """ + base_url + """ for 64bit macOS,
-Linux, and Windows. There is native support for macOS ARM64, but
-Linux ARM64 is missing.
+      """This distribution of cvc5 was assembled from official downloads
+from """ + base_url + """ for macOS, Linux,
+and Windows, with ARM64 support on macOS and Linux.
+
+The change id is ef2bc3f735df (3 weeks after cvc5-1.1.2).
 
 The downloaded files were renamed and made executable.
 
