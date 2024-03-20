@@ -108,6 +108,7 @@ INCOMPATIBILITY.
   - Added wfp as alias for wfP for greater consistency with other predicates
     such as asymp, transp, or totalp.
   - Added lemmas.
+      wellorder.wfp_on_less[simp]
       wfP_iff_ex_minimal
       wf_iff_ex_minimal
       wf_onE_pf

@@ -133,6 +133,25 @@ lemma (in wellorder) wf: "wf {(x, y). x < y}"
 lemma (in wellorder) wfP_less[simp]: "wfP (<)"
   by (simp add: wf wfP_def)
 
+lemma (in wellorder) wfp_on_less[simp]: "wfp_on A (<)"
+  unfolding wfp_on_def
+proof (intro allI impI ballI)
+  fix P x
+  assume hyps: "\<forall>x\<in>A. (\<forall>y\<in>A. y < x \<longrightarrow> P y) \<longrightarrow> P x"
+  show "x \<in> A \<Longrightarrow> P x"
+  proof (induction x rule: less_induct)
+    case (less x)
+    show ?case
+    proof (rule hyps[rule_format])
+      show "x \<in> A"
+        using \<open>x \<in> A\<close> .
+    next
+      show "\<And>y. y \<in> A \<Longrightarrow> y < x \<Longrightarrow> P y"
+        using less.IH .
+    qed
+  qed
+qed
+
 
 subsection \<open>Basic Results\<close>
 
