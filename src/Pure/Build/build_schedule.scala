@@ -573,6 +573,8 @@ object Build_Schedule {
       else elapsed() > options.seconds("build_schedule_outdated_delay")
 
     def next(hostname: String, state: Build_Process.State): List[String] = {
+      val now = Time.now()
+
       val next_nodes =
         for {
           task <- state.next_ready
@@ -581,8 +583,10 @@ object Build_Schedule {
           if hostname == node.node_info.hostname
         } yield node
 
-      val (ready, waiting) =
+      val (ready, other) =
         next_nodes.partition(node => graph.imm_preds(node.job_name).subsetOf(state.results.keySet))
+
+      val waiting = other.filter(_.start.time <= now)
       val running = state.running.values.toList.map(_.node_info).filter(_.hostname == hostname)
 
       def try_run(ready: List[Schedule.Node], next: Schedule.Node): List[Schedule.Node] = {
