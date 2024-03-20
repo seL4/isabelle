@@ -1011,8 +1011,8 @@ object Build_Schedule {
 
     /* global resources with common close() operation */
 
-    private final lazy val _log_store: Build_Log.Store = Build_Log.store(build_options)
-    private final lazy val _log_database: SQL.Database =
+    private final val _log_store: Build_Log.Store = Build_Log.store(build_options)
+    private final val _log_database: SQL.Database =
       try {
         val db = _log_store.open_database(server = this.server)
         _log_store.init_database(db)
