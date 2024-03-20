@@ -1150,7 +1150,9 @@ object Build_Schedule {
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
-          progress.echo_if(_schedule.deviation(schedule).minutes > 1, schedule.message + timing_msg)
+          progress.echo_if(
+            _schedule.deviation(schedule).minutes > 1 && schedule.duration >= Time.seconds(1),
+            schedule.message + timing_msg)
 
           _schedule = schedule
           _schedule.next(hostname, state)
