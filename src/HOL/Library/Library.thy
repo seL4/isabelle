@@ -78,6 +78,7 @@ imports
   Quotient_Syntax
   Quotient_Type
   Ramsey
+  Real_Mod
   Reflection
   Rewrite
   Saturated

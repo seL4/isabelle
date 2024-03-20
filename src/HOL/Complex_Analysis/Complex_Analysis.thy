@@ -2,7 +2,7 @@ theory Complex_Analysis
   imports
   Riemann_Mapping
   Residue_Theorem
-  Meromorphic
+  Weierstrass_Factorization
 begin
 
 end

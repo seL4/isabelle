@@ -18,9 +18,10 @@ object Build_Benchmark {
     ssh: SSH.System = SSH.Local,
     isabelle_home: Path = Path.current,
   ): String = {
-    val options = Options.Spec.eq("build_hostname", host.name) :: host.options
+    val benchmark_options =
+      List(Options.Spec.eq("build_hostname", host.name), Options.Spec("build_database_server"))
     ssh.bash_path(Isabelle_Tool.exe(isabelle_home)) + " build_benchmark" +
-      Options.Spec.bash_strings(options, bg = true)
+      Options.Spec.bash_strings(benchmark_options ::: host.options, bg = true)
   }
 
   def benchmark_requirements(options: Options, progress: Progress = new Progress): Unit = {

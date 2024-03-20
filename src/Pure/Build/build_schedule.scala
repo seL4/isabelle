@@ -576,6 +576,7 @@ object Build_Schedule {
       val next_nodes =
         for {
           task <- state.next_ready
+          if graph.defined(task.name)
           node = graph.get_node(task.name)
           if hostname == node.node_info.hostname
         } yield node
@@ -1010,8 +1011,8 @@ object Build_Schedule {
 
     /* global resources with common close() operation */
 
-    private final lazy val _log_store: Build_Log.Store = Build_Log.store(build_options)
-    private final lazy val _log_database: SQL.Database =
+    private final val _log_store: Build_Log.Store = Build_Log.store(build_options)
+    private final val _log_database: SQL.Database =
       try {
         val db = _log_store.open_database(server = this.server)
         _log_store.init_database(db)
@@ -1149,7 +1150,9 @@ object Build_Schedule {
           val elapsed = Time.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
-          progress.echo_if(_schedule.deviation(schedule).minutes > 1, schedule.message + timing_msg)
+          progress.echo_if(
+            _schedule.deviation(schedule).minutes > 1 && schedule.duration >= Time.seconds(1),
+            schedule.message + timing_msg)
 
           _schedule = schedule
           _schedule.next(hostname, state)
