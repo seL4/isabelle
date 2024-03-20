@@ -79,7 +79,7 @@ lemma reflp_on_reflclp[simp]: "reflp_on A R\<^sup>=\<^sup>="
 lemma antisym_on_reflcl[simp]: "antisym_on A (r\<^sup>=) \<longleftrightarrow> antisym_on A r"
   by (simp add: antisym_on_def)
 
-lemma antisymp_on_reflcp[simp]: "antisymp_on A R\<^sup>=\<^sup>= \<longleftrightarrow> antisymp_on A R"
+lemma antisymp_on_reflclp[simp]: "antisymp_on A R\<^sup>=\<^sup>= \<longleftrightarrow> antisymp_on A R"
   by (rule antisym_on_reflcl[to_pred])
 
 lemma trans_on_reflcl[simp]: "trans_on A r \<Longrightarrow> trans_on A (r\<^sup>=)"
@@ -91,7 +91,7 @@ lemma transp_on_reflclp[simp]: "transp_on A R \<Longrightarrow> transp_on A R\<^
 lemma antisymp_on_reflclp_if_asymp_on:
   assumes "asymp_on A R"
   shows "antisymp_on A R\<^sup>=\<^sup>="
-  unfolding antisymp_on_reflcp
+  unfolding antisymp_on_reflclp
   using antisymp_on_if_asymp_on[OF \<open>asymp_on A R\<close>] .
 
 lemma antisym_on_reflcl_if_asym_on: "asym_on A R \<Longrightarrow> antisym_on A (R\<^sup>=)"

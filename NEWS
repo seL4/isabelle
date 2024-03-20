@@ -76,6 +76,8 @@ INCOMPATIBILITY.
       transp_on_image
 
 * Theory "HOL.Transitive_Closure":
+  - Renamed lemma antisymp_on_reflcp to antisymp_on_reflclp.
+    Minor INCOMPATIBILITY.
   - Added lemmas.
       antisym_on_reflcl_if_asym_on
       antisymp_on_reflclp_if_asymp_on
