@@ -43,11 +43,13 @@ base-lines are now as follows:
     . Z3 4.4.1 for arm64-linux has been removed: unreliable, unstable.
   - New implementation of moura tactic. INCOMPATIBILITY.
 
-* Mirabelle: Removed proof reconstruction from "sledgehammer" action;
-the related option "proof_method" was removed. Proof reconstruction is
-supported directly by Sledgehammer and should be used instead. For more
-information, see Sledgehammer's documentation relating to
-"preplay_timeout". INCOMPATIBILITY.
+* Mirabelle:
+  - Removed proof reconstruction from "sledgehammer" action;
+    the related option "proof_method" was removed. Proof reconstruction is
+    supported directly by Sledgehammer and should be used instead. For
+    more information, see Sledgehammer's documentation relating to
+    "preplay_timeout". INCOMPATIBILITY.
+  - Added the action "order" testing the proof method of the same name.
 
 * Explicit type class for discrete_linear_ordered_semidom for integral
 semidomains with a discrete linear order.

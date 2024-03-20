@@ -19,6 +19,7 @@ end
 \<close>
 
 ML_file \<open>Tools/Mirabelle/mirabelle_arith.ML\<close>
+ML_file \<open>Tools/Mirabelle/mirabelle_order.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_metis.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_presburger.ML\<close>
 ML_file \<open>Tools/Mirabelle/mirabelle_quickcheck.ML\<close>
