@@ -88,6 +88,33 @@ lemma trans_on_reflcl[simp]: "trans_on A r \<Longrightarrow> trans_on A (r\<^sup
 lemma transp_on_reflclp[simp]: "transp_on A R \<Longrightarrow> transp_on A R\<^sup>=\<^sup>="
   by (rule trans_on_reflcl[to_pred])
 
+lemma antisymp_on_reflclp_if_asymp_on:
+  assumes "asymp_on A R"
+  shows "antisymp_on A R\<^sup>=\<^sup>="
+proof (rule antisymp_onI)
+  fix x y
+  assume "x \<in> A" and "y \<in> A" and "R\<^sup>=\<^sup>= x y" and "R\<^sup>=\<^sup>= y x"
+  show "x = y"
+  proof (cases "x = y")
+    case True
+    thus ?thesis .
+  next
+    case False
+    hence "R x y"
+      using \<open>R\<^sup>=\<^sup>= x y\<close> by simp
+    hence "\<not> R y x"
+      using \<open>asymp_on A R\<close>[THEN asymp_onD, OF \<open>x \<in> A\<close> \<open>y \<in> A\<close>] by iprover
+    moreover have "R y x"
+      using \<open>R\<^sup>=\<^sup>= y x\<close> False by simp
+    ultimately have False
+      by contradiction
+    thus ?thesis ..
+  qed
+qed
+
+lemma antisym_on_reflcl_if_asym_on: "asym_on A R \<Longrightarrow> antisym_on A (R\<^sup>=)"
+  using antisymp_on_reflclp_if_asymp_on[to_set] .
+
 lemma reflclp_idemp [simp]: "(P\<^sup>=\<^sup>=)\<^sup>=\<^sup>= = P\<^sup>=\<^sup>="
   by blast
 
