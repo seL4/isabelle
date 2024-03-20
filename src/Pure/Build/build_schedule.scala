@@ -576,6 +576,7 @@ object Build_Schedule {
       val next_nodes =
         for {
           task <- state.next_ready
+          if graph.defined(task.name)
           node = graph.get_node(task.name)
           if hostname == node.node_info.hostname
         } yield node
