@@ -120,7 +120,9 @@ object Build_Benchmark {
       val deps0 = Sessions.deps(Sessions.load_structure(options))
       val build_context = Build.Context(store, deps0, build_hosts = build_hosts)
 
-      Build_Cluster.make(build_context, progress).open().init().benchmark().stop()
+      val build_cluster = Build_Cluster.make(build_context, progress).open().init().benchmark()
+      if (!build_cluster.ok) error("Benchmarking failed")
+      build_cluster.stop()
 
       using(store.open_server()) { server =>
         val db = store.open_build_database(path = Host.private_data.database, server = server)
