@@ -20,7 +20,6 @@ object Component_MLton {
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-darwin", "arm64-darwin-21.6-gmp-static.tgz"),
       Download_Platform("x86_64-darwin", "amd64-darwin-16.7-gmp-static.tgz"),
       Download_Platform("x86_64-linux", "amd64-linux-glibc2.19-gmp-static.tgz"))
 
@@ -64,8 +63,8 @@ object Component_MLton {
   /* settings */
 
     component_dir.write_settings("""
-if [ -d "$COMPONENT/${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}" ]; then
-  ISABELLE_MLTON="$COMPONENT/${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}/bin/mlton"
+if [ -d "$COMPONENT/$ISABELLE_PLATFORM64" ]; then
+  ISABELLE_MLTON="$COMPONENT/$ISABELLE_PLATFORM64/bin/mlton"
   case "$ISABELLE_PLATFORM_FAMILY" in
     linux*)
       ISABELLE_MLTON_OPTIONS="-pi-style npi"
@@ -84,7 +83,7 @@ fi
       """This distribution of MLton has been taken from the TINA project
 https://projects.laas.fr/tina/software.php using following downloads:""" +
         platforms.map(_.download(base_url, version)).mkString("\n\n  ", "\n  ", "\n\n") +
-"""Some Isabelle platforms are unsupported, notably Windows and Linux ARM.
+"""Windows and Linux ARM are unsupported.
 
 
         Makarius
