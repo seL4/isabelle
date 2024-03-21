@@ -103,8 +103,10 @@ INCOMPATIBILITY.
       tranclp_less_eq[simp]
 
 * Theory "HOL.Wellfounded":
-  - Added definitions wf_on and wfp_on as restricted versions versions of
-    wf and wfP respectively.
+  - Added predicate wf_on as restricted versions versions of wf.
+  - Added predicate wfp_on and redefined wfP to be an abbreviation.
+    Lemma wfP_def is explicitly provided for backward compatibility but its
+    usage is discouraged. Minor INCOMPATIBILITY.
   - Added wfp as alias for wfP for greater consistency with other predicates
     such as asymp, transp, or totalp.
   - Added lemmas.

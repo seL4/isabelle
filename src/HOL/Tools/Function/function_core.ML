@@ -780,7 +780,7 @@ fun mk_nest_term_rule ctxt globals R R_cases clauses =
     val inrel_R = Const (\<^const_name>\<open>Fun_Def.in_rel\<close>,
       HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
 
-    val wfR' = HOLogic.mk_Trueprop (Const (\<^const_name>\<open>Wellfounded.wfP\<close>,
+    val wfR' = HOLogic.mk_Trueprop (Const (\<^const_abbrev>\<open>Wellfounded.wfP\<close>,
       (domT --> domT --> boolT) --> boolT) $ R')
       |> Thm.cterm_of ctxt' (* "wf R'" *)
 

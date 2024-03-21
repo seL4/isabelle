@@ -23,8 +23,8 @@ definition wf :: "('a \<times> 'a) set \<Rightarrow> bool"
 definition wfp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "wfp_on A R \<longleftrightarrow> (\<forall>P. (\<forall>x \<in> A. (\<forall>y \<in> A. R y x \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x \<in> A. P x))"
 
-definition wfP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
+abbreviation wfP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "wfP \<equiv> wfp_on UNIV"
 
 alias wfp = wfP
 
@@ -37,11 +37,11 @@ subsection \<open>Equivalence of Definitions\<close>
 lemma wf_on_UNIV: "wf_on UNIV r \<longleftrightarrow> wf r"
   by (simp add: wf_on_def wf_def)
 
-lemma wfp_on_UNIV: "wfp_on UNIV R \<longleftrightarrow> wfP R"
-  by (simp add: wfp_on_def wfP_def wf_def)
-
 lemma wfp_on_wf_on_eq[pred_set_conv]: "wfp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> wf_on A r"
   by (simp add: wfp_on_def wf_on_def)
+
+lemma wfP_def: "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
+  unfolding wf_def wfp_on_def by simp
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
@@ -226,7 +226,7 @@ lemma wfp_on_iff_ex_minimal: "wfp_on A R \<longleftrightarrow> (\<forall>B \<sub
   using wf_on_iff_ex_minimal[of A, to_pred] by simp
 
 lemma wfP_iff_ex_minimal: "wfP R \<longleftrightarrow> (\<forall>B. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
-  using wfp_on_iff_ex_minimal[of UNIV, unfolded wfp_on_UNIV, simplified] .
+  using wfp_on_iff_ex_minimal[of UNIV, simplified] .
 
 lemma wfE_min:
   assumes wf: "wf R" and Q: "x \<in> Q"
@@ -875,9 +875,9 @@ lemmas acc_downward = accp_downward [to_set]
 lemmas not_acc_down = not_accp_down [to_set]
 lemmas acc_downwards_aux = accp_downwards_aux [to_set]
 lemmas acc_downwards = accp_downwards [to_set]
-lemmas acc_wfI = accp_wfPI [to_set]
-lemmas acc_wfD = accp_wfPD [to_set]
-lemmas wf_acc_iff = wfP_accp_iff [to_set]
+lemmas acc_wfI = accp_wfPI [to_set, unfolded wf_on_UNIV]
+lemmas acc_wfD = accp_wfPD [to_set, unfolded wf_on_UNIV]
+lemmas wf_acc_iff = wfP_accp_iff [to_set, unfolded wf_on_UNIV]
 lemmas acc_subset = accp_subset [to_set]
 lemmas acc_subset_induct = accp_subset_induct [to_set]
 
