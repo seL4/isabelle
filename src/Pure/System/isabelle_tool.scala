@@ -182,6 +182,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_LIPIcs.isabelle_tool,
   Component_LLNCS.isabelle_tool,
   Component_Minisat.isabelle_tool,
+  Component_MLton.isabelle_tool,
   Component_PDFjs.isabelle_tool,
   Component_PolyML.isabelle_tool1,
   Component_PolyML.isabelle_tool2,
