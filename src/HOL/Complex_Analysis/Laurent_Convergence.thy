@@ -2541,4 +2541,44 @@ lemma has_laurent_expansion_tan [laurent_expansion_intros]:
   "(\<lambda>z. tan (c * z)) has_laurent_expansion fps_to_fls (fps_tan c)"
   by (intro has_laurent_expansion_fps has_fps_expansion_tan)
 
+subsection \<open>More Laurent expansions\<close>
+
+lemma has_laurent_expansion_frequently_zero_iff:
+  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F"
+  shows   "frequently (\<lambda>z. f z = 0) (at z) \<longleftrightarrow> F = 0"
+  using assms by (simp add: frequently_def has_laurent_expansion_eventually_nonzero_iff)
+
+lemma has_laurent_expansion_eventually_zero_iff:
+  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F"
+  shows   "eventually (\<lambda>z. f z = 0) (at z) \<longleftrightarrow> F = 0"
+  using assms
+  by (metis has_laurent_expansion_frequently_zero_iff has_laurent_expansion_isolated 
+            has_laurent_expansion_not_essential laurent_expansion_def 
+            not_essential_frequently_0_imp_eventually_0 not_essential_has_laurent_expansion)
+
+lemma has_laurent_expansion_frequently_nonzero_iff:
+  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F"
+  shows   "frequently (\<lambda>z. f z \<noteq> 0) (at z) \<longleftrightarrow> F \<noteq> 0"
+  using assms by (metis has_laurent_expansion_eventually_zero_iff not_eventually)
+
+lemma has_laurent_expansion_sum_list [laurent_expansion_intros]:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x has_laurent_expansion F x"
+  shows   "(\<lambda>y. \<Sum>x\<leftarrow>xs. f x y) has_laurent_expansion (\<Sum>x\<leftarrow>xs. F x)"
+  using assms by (induction xs) (auto intro!: laurent_expansion_intros)
+
+lemma has_laurent_expansion_prod_list [laurent_expansion_intros]:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x has_laurent_expansion F x"
+  shows   "(\<lambda>y. \<Prod>x\<leftarrow>xs. f x y) has_laurent_expansion (\<Prod>x\<leftarrow>xs. F x)"
+  using assms by (induction xs) (auto intro!: laurent_expansion_intros)
+
+lemma has_laurent_expansion_sum_mset [laurent_expansion_intros]:
+  assumes "\<And>x. x \<in># I \<Longrightarrow> f x has_laurent_expansion F x"
+  shows   "(\<lambda>y. \<Sum>x\<in>#I. f x y) has_laurent_expansion (\<Sum>x\<in>#I. F x)"
+  using assms by (induction I) (auto intro!: laurent_expansion_intros)
+
+lemma has_laurent_expansion_prod_mset [laurent_expansion_intros]:
+  assumes "\<And>x. x \<in># I \<Longrightarrow> f x has_laurent_expansion F x"
+  shows   "(\<lambda>y. \<Prod>x\<in>#I. f x y) has_laurent_expansion (\<Prod>x\<in>#I. F x)"
+  using assms by (induction I) (auto intro!: laurent_expansion_intros)
+
 end

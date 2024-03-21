@@ -4,62 +4,6 @@ theory Meromorphic imports
   "HOL-Analysis.Sparse_In"
 begin
 
-(*TODO: move to topological space? *)
-lemma eventually_nhds_conv_at:
-  "eventually P (nhds x) \<longleftrightarrow> eventually P (at x) \<and> P x"
-  unfolding eventually_at_topological eventually_nhds by fast
-
-(*TODO: to Complex_Singularities? *)
-lemma zorder_uminus [simp]: "zorder (\<lambda>z. -f z) z = zorder f z"
-  using zorder_cmult[of "-1" f] by (simp del: zorder_cmult)
-
-lemma constant_on_imp_analytic_on:
-  assumes "f constant_on A" "open A"
-  shows "f analytic_on A"
-  by (simp add: analytic_on_open assms
-      constant_on_imp_holomorphic_on)
-
-(*TODO: could be moved to Laurent_Convergence*)
-subsection \<open>More Laurent expansions\<close>
-
-lemma has_laurent_expansion_frequently_zero_iff:
-  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F"
-  shows   "frequently (\<lambda>z. f z = 0) (at z) \<longleftrightarrow> F = 0"
-  using assms by (simp add: frequently_def has_laurent_expansion_eventually_nonzero_iff)
-
-lemma has_laurent_expansion_eventually_zero_iff:
-  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F"
-  shows   "eventually (\<lambda>z. f z = 0) (at z) \<longleftrightarrow> F = 0"
-  using assms
-  by (metis has_laurent_expansion_frequently_zero_iff has_laurent_expansion_isolated 
-            has_laurent_expansion_not_essential laurent_expansion_def 
-            not_essential_frequently_0_imp_eventually_0 not_essential_has_laurent_expansion)
-
-lemma has_laurent_expansion_frequently_nonzero_iff:
-  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F"
-  shows   "frequently (\<lambda>z. f z \<noteq> 0) (at z) \<longleftrightarrow> F \<noteq> 0"
-  using assms by (metis has_laurent_expansion_eventually_zero_iff not_eventually)
-
-lemma has_laurent_expansion_sum_list [laurent_expansion_intros]:
-  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x has_laurent_expansion F x"
-  shows   "(\<lambda>y. \<Sum>x\<leftarrow>xs. f x y) has_laurent_expansion (\<Sum>x\<leftarrow>xs. F x)"
-  using assms by (induction xs) (auto intro!: laurent_expansion_intros)
-
-lemma has_laurent_expansion_prod_list [laurent_expansion_intros]:
-  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x has_laurent_expansion F x"
-  shows   "(\<lambda>y. \<Prod>x\<leftarrow>xs. f x y) has_laurent_expansion (\<Prod>x\<leftarrow>xs. F x)"
-  using assms by (induction xs) (auto intro!: laurent_expansion_intros)
-
-lemma has_laurent_expansion_sum_mset [laurent_expansion_intros]:
-  assumes "\<And>x. x \<in># I \<Longrightarrow> f x has_laurent_expansion F x"
-  shows   "(\<lambda>y. \<Sum>x\<in>#I. f x y) has_laurent_expansion (\<Sum>x\<in>#I. F x)"
-  using assms by (induction I) (auto intro!: laurent_expansion_intros)
-
-lemma has_laurent_expansion_prod_mset [laurent_expansion_intros]:
-  assumes "\<And>x. x \<in># I \<Longrightarrow> f x has_laurent_expansion F x"
-  shows   "(\<lambda>y. \<Prod>x\<in>#I. f x y) has_laurent_expansion (\<Prod>x\<in>#I. F x)"
-  using assms by (induction I) (auto intro!: laurent_expansion_intros)
-
 subsection \<open>Remove singular points\<close>
 
 definition remove_sings :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where

@@ -1822,6 +1822,9 @@ proof -
     by (simp add: zorder_def P_def)
 qed
 
+lemma zorder_uminus [simp]: "zorder (\<lambda>z. -f z) z = zorder f z"
+  using zorder_cmult[of "-1" f] by simp
+
 lemma zorder_nonzero_div_power:
   assumes sz: "open S" "z \<in> S" "f holomorphic_on S" "f z \<noteq> 0" and "n > 0"
   shows  "zorder (\<lambda>w. f w / (w - z) ^ n) z = - n"

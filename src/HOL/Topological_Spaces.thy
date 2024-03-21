@@ -535,6 +535,10 @@ lemma (in topological_space) eventually_at_topological:
   "eventually P (at a within s) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> x \<in> s \<longrightarrow> P x))"
   by (simp add: eventually_nhds eventually_at_filter)
 
+lemma eventually_nhds_conv_at:
+  "eventually P (nhds x) \<longleftrightarrow> eventually P (at x) \<and> P x"
+  unfolding eventually_at_topological eventually_nhds by fast
+
 lemma eventually_at_in_open:
   assumes "open A" "x \<in> A"
   shows   "eventually (\<lambda>y. y \<in> A - {x}) (at x)"

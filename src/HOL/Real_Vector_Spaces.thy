@@ -1482,6 +1482,9 @@ next
   then show "linear f" by (intro linearI) auto
 qed
 
+lemma linear_of_real [simp]: "linear of_real"
+  by (simp add: linear_iff scaleR_conv_of_real)
+
 lemmas linear_scaleR_left = linear_scale_left
 lemmas linear_imp_scaleR = linear_imp_scale
 

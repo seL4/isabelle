@@ -647,6 +647,11 @@ lemma of_nat_floor: "r\<ge>0 \<Longrightarrow> of_nat (nat \<lfloor>r\<rfloor>) 
 lemma of_nat_ceiling: "of_nat (nat \<lceil>r\<rceil>) \<ge> r"
   by (cases "r\<ge>0") auto
 
+lemma of_nat_int_floor [simp]: "x\<ge>0 \<Longrightarrow> of_nat (nat\<lfloor>x\<rfloor>) = of_int \<lfloor>x\<rfloor>"
+  by auto
+
+lemma of_nat_int_ceiling [simp]: "x\<ge>0 \<Longrightarrow> of_nat (nat \<lceil>x\<rceil>) = of_int \<lceil>x\<rceil>"
+  by auto
 
 subsection \<open>Frac Function\<close>
 

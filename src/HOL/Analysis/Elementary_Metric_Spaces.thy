@@ -2014,15 +2014,7 @@ proof -
       using assms by (intro finite_not_islimpt_in_compact) auto
   qed auto
   also have "(\<Union>n. cball 0 (real n)) = (UNIV :: 'a set)"
-  proof safe
-    fix z :: 'a
-    have "norm z \<ge> 0"
-      by simp
-    hence "real (nat \<lceil>norm z\<rceil>) \<ge> norm z"
-      by linarith
-    thus "z \<in> (\<Union>n. cball 0 (real n))"
-      by auto
-  qed auto
+    by (force simp: real_arch_simple)
   hence "(\<Union>n. cball 0 (real n) \<inter> X) = X"
     by blast
   finally show "countable X" .

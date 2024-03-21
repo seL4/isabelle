@@ -742,6 +742,22 @@ lemma (in ordered_comm_monoid_add) sum_mono:
   "(\<And>i. i\<in>K \<Longrightarrow> f i \<le> g i) \<Longrightarrow> (\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
   by (induct K rule: infinite_finite_induct) (use add_mono in auto)
 
+lemma (in ordered_cancel_comm_monoid_add) sum_strict_mono_strong:
+  assumes "finite A" "a \<in> A" "f a < g a"
+    and "\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x"
+  shows "sum f A < sum g A"
+proof -
+  have "sum f A = f a + sum f (A-{a})"
+    by (simp add: assms sum.remove)
+  also have "\<dots> \<le> f a + sum g (A-{a})"
+    using assms by (meson DiffD1 add_left_mono sum_mono)
+  also have "\<dots> < g a + sum g (A-{a})"
+    using assms add_less_le_mono by blast
+  also have "\<dots> = sum g A"
+    using assms by (intro sum.remove [symmetric])
+  finally show ?thesis .
+qed
+
 lemma (in strict_ordered_comm_monoid_add) sum_strict_mono:
   assumes "finite A" "A \<noteq> {}"
     and "\<And>x. x \<in> A \<Longrightarrow> f x < g x"

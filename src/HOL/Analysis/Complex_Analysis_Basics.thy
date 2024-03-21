@@ -387,6 +387,11 @@ lemma analytic_imp_holomorphic: "f analytic_on S \<Longrightarrow> f holomorphic
 lemma analytic_on_open: "open S \<Longrightarrow> f analytic_on S \<longleftrightarrow> f holomorphic_on S"
   by (meson analytic_imp_holomorphic analytic_on_def holomorphic_on_subset openE)
 
+lemma constant_on_imp_analytic_on:
+  assumes "f constant_on A" "open A"
+  shows "f analytic_on A"
+  by (simp add: analytic_on_open assms constant_on_imp_holomorphic_on)
+
 lemma analytic_on_imp_differentiable_at:
   "f analytic_on S \<Longrightarrow> x \<in> S \<Longrightarrow> f field_differentiable (at x)"
   using analytic_on_def holomorphic_on_imp_differentiable_at by auto

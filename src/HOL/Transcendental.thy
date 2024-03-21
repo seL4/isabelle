@@ -1760,6 +1760,9 @@ lemma ln_le_cancel_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> 
   for x :: real
   by (simp add: linorder_not_less [symmetric])
 
+lemma ln_mono: "\<And>x::real. \<lbrakk>x \<le> y; 0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x \<le> ln y"
+  using ln_le_cancel_iff by presburger
+
 lemma ln_inj_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x = ln y \<longleftrightarrow> x = y"
   for x :: real
   by (simp add: order_eq_iff)

@@ -15,13 +15,7 @@ locale prob_space = finite_measure +
 lemma prob_spaceI[Pure.intro!]:
   assumes *: "emeasure M (space M) = 1"
   shows "prob_space M"
-proof -
-  interpret finite_measure M
-  proof
-    show "emeasure M (space M) \<noteq> \<infinity>" using * by simp
-  qed
-  show "prob_space M" by standard fact
-qed
+  by (simp add: assms finite_measureI prob_space_axioms.intro prob_space_def)
 
 lemma prob_space_imp_sigma_finite: "prob_space M \<Longrightarrow> sigma_finite_measure M"
   unfolding prob_space_def finite_measure_def by simp
@@ -54,7 +48,7 @@ proof
 qed
 
 lemma (in prob_space) prob_space: "prob (space M) = 1"
-  using emeasure_space_1 unfolding measure_def by (simp add: one_ennreal.rep_eq)
+  by (simp add: emeasure_space_1 measure_eq_emeasure_eq_ennreal)
 
 lemma (in prob_space) prob_le_1[simp, intro]: "prob A \<le> 1"
   using bounded_measure[of A] by (simp add: prob_space)
@@ -235,6 +229,20 @@ proof -
     finally show "k \<le> expectation (\<lambda>w. q (X w))" using x by auto
   qed
   finally show "q (expectation X) \<le> expectation (\<lambda>x. q (X x))" .
+qed
+
+lemma (in prob_space) finite_borel_measurable_integrable:
+  assumes "f\<in> borel_measurable M"
+  and "finite (f`(space M))"
+  shows "integrable M f"
+proof -
+  have "simple_function M f" using assms by (simp add: simple_function_borel_measurable)
+  moreover have "emeasure M {y \<in> space M. f y \<noteq> 0} \<noteq> \<infinity>" by simp
+  ultimately have "Bochner_Integration.simple_bochner_integrable M f"
+    using Bochner_Integration.simple_bochner_integrable.simps by blast
+  hence "has_bochner_integral M f (Bochner_Integration.simple_bochner_integral M f)"
+    using has_bochner_integral_simple_bochner_integrable by auto
+  thus ?thesis using integrable.simps by auto
 qed
 
 subsection  \<open>Introduce binder for probability\<close>
