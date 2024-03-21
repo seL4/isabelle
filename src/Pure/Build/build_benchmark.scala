@@ -7,6 +7,9 @@ Host platform benchmarks for performance estimation.
 package isabelle
 
 
+import scala.collection.mutable
+
+
 object Build_Benchmark {
   /* benchmark */
 
@@ -33,7 +36,7 @@ object Build_Benchmark {
     if (!res.ok) error("Failed building requirements")
   }
 
-  def benchmark(options: Options, progress: Progress = new Progress): Unit = {
+  def run_benchmark(options: Options, progress: Progress = new Progress): Unit = {
     val hostname = options.string("build_hostname")
     val store = Store(options)
 
@@ -99,22 +102,56 @@ object Build_Benchmark {
     }
   }
 
+  def benchmark(
+    options: Options,
+    build_hosts: List[Build_Cluster.Host] = Nil,
+    progress: Progress = new Progress
+  ): Unit =
+    if (build_hosts.isEmpty) run_benchmark(options, progress)
+    else {
+      val engine = Build.Engine.Default
+      val store = engine.build_store(options, build_cluster = true)
+
+      benchmark_requirements(store.options, progress)
+
+      val deps0 = Sessions.deps(Sessions.load_structure(options))
+      val build_context = Build.Context(store, deps0, build_hosts = build_hosts)
+
+      Build_Cluster.make(build_context, progress).open().init().benchmark().stop()
+
+      using(store.open_server()) { server =>
+        val db = store.open_build_database(path = Host.private_data.database, server = server)
+        for (build_host <- build_hosts) {
+          val score =
+            (for {
+              info <- Host.read_info(db, build_host.name)
+              score <- info.benchmark_score
+            } yield score).getOrElse(error("No score for host " + quote(build_host.name)))
+
+          progress.echo(build_host.name + ": " + score)
+        }
+      }
+    }
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool = Isabelle_Tool("build_benchmark", "run benchmark for build process",
     Scala_Project.here,
     { args =>
+      val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
       var options = Options.init()
 
       val getopts = Getopts("""
 Usage: isabelle build_benchmark [OPTIONS]
 
   Options are:
+    -H HOSTS     additional cluster host specifications of the form
+                 NAMES:PARAMETERS (separated by commas)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
   Run benchmark for build process.
 """,
+        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(Registry.global, arg)),
         "o:" -> (arg => options = options + arg))
 
       val more_args = getopts(args)
@@ -122,6 +159,6 @@ Usage: isabelle build_benchmark [OPTIONS]
 
       val progress = new Console_Progress()
 
-      benchmark(options, progress = progress)
+      benchmark(options, build_hosts = build_hosts.toList, progress = progress)
     })
 }

@@ -1040,7 +1040,7 @@ object Build_Schedule {
 
       if (build_context.worker) {
         val benchmark_options = build_options.string("build_hostname") = hostname
-        Build_Benchmark.benchmark(benchmark_options, progress)
+        Build_Benchmark.run_benchmark(benchmark_options, progress)
       }
 
       build_cluster.benchmark()
