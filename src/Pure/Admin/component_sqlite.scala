@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/component_sqlite.scala
     Author:     Makarius
 
-Build Isabelle sqlite-jdbc component from official download.
+Build Isabelle sqlite component from official download.
 */
 
 package isabelle
@@ -11,7 +11,7 @@ object Component_SQLite {
   /* build sqlite */
 
   val default_main_url =
-    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.45.0.0/sqlite-jdbc-3.45.0.0.jar"
+    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.45.2.0/sqlite-jdbc-3.45.2.0.jar"
 
   val default_logger_url =
     "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
@@ -35,8 +35,9 @@ object Component_SQLite {
 
     /* component */
 
+    val component_name = main_name.replace("-jdbc", "")
     val component_dir =
-      Components.Directory(target_dir + Path.basic(main_name)).create(progress = progress)
+      Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
     def download(url: String): Path = {
       val path = component_dir.lib + Path.basic(Url.get_base_name(url).get)
@@ -101,7 +102,7 @@ classpath "$ISABELLE_SQLITE_HOME/lib/""" + nop_name(logger_name) + """.jar"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("component_sqlite", "build Isabelle sqlite-jdbc component from official download",
+    Isabelle_Tool("component_sqlite", "build Isabelle sqlite component from official download",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
@@ -118,7 +119,7 @@ Usage: isabelle component_sqlite [OPTIONS] DOWNLOAD
     -V URL       logger URL
                  (default: """" + default_logger_url + """")
 
-  Build sqlite-jdbc component from the specified download URL (JAR), see also
+  Build sqlite component from the specified download URL (JAR), see also
   https://github.com/xerial/sqlite-jdbc and
   https://oss.sonatype.org/content/repositories/releases/org/xerial/sqlite-jdbc
 """,

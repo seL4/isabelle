@@ -13,7 +13,7 @@ object Component_PostgreSQL {
   val notable_urls =
     List("https://jdbc.postgresql.org", "https://jdbc.postgresql.org/download")
 
-  val default_download_url = "https://jdbc.postgresql.org/download/postgresql-42.7.1.jar"
+  val default_download_url = "https://jdbc.postgresql.org/download/postgresql-42.7.3.jar"
 
 
   /* build postgresql */
@@ -82,13 +82,14 @@ POSSIBILITY OF SUCH DAMAGE.
     /* settings */
 
     component_dir.write_settings("""
-classpath "$COMPONENT/""" + download_name + """.jar"
+classpath "$COMPONENT/lib/""" + download_name + """.jar"
 """)
 
 
     /* jar */
 
-    val jar = component_dir.path + Path.basic(download_name).jar
+    val jar = component_dir.lib + Path.basic(download_name).jar
+    Isabelle_System.make_directory(jar.dir)
     Isabelle_System.download_file(download_url, jar, progress = progress)
   }
 

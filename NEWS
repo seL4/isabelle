@@ -238,6 +238,11 @@ before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 component javamail (previously javax.mail) from jakarta 2.1.2
 using eclipse angus 2.0.2/2.0.1.
 
+* The Isabelle component for the MLton compiler now covers macOS and
+Linux (Intel), while Windows and Linux (ARM) are unsupported. The
+default for ISABELLE_MLTON_OPTIONS should work most of the time, but may
+have to be overridden (e.g. in $ISABELLE_HOME_USER/etc/settings).
+
 * Update to GHC stack 2.15.1 with support for all platforms, including
 ARM Linux and Apple Silicon.
 

@@ -1745,11 +1745,11 @@ end
 subsection \<open>Averaging Theorem\<close>
 
 text \<open>We aim to lift results from the real case to arbitrary Banach spaces. 
-      Our fundamental tool in this regard will be the averaging theorem. The proof of this theorem is due to Serge Lang (Real and Functional Analysis) \cite{Lang_1993}. 
+      Our fundamental tool in this regard will be the averaging theorem. The proof of this theorem is due to Serge Lang (Real and Functional Analysis) \<^cite>\<open>"Lang_1993"\<close>. 
       The theorem allows us to make statements about a function's value almost everywhere, depending on the value its integral takes on various sets of the measure space.\<close>
 
 text \<open>Before we introduce and prove the averaging theorem, we will first show the following lemma which is crucial for our proof. 
-      While not stated exactly in this manner, our proof makes use of the characterization of second-countable topological spaces given in the book General Topology by Ryszard Engelking (Theorem 4.1.15) \cite{engelking_1989}.
+      While not stated exactly in this manner, our proof makes use of the characterization of second-countable topological spaces given in the book General Topology by Ryszard Engelking (Theorem 4.1.15) \<^cite>\<open>"engelking_1989"\<close>.
     (Engelking's book \emph{General Topology})\<close>
 
 lemma balls_countable_basis:

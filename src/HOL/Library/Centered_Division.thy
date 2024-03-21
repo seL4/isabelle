@@ -15,7 +15,7 @@ text \<open>
   \noindent The following specification of division on integers centers
   the modulus around zero.  This is useful e.g.~to define division
   on Gauss numbers.
-  N.b.: This is not mentioned \cite{leijen01}.
+  N.b.: This is not mentioned \<^cite>\<open>"leijen01"\<close>.
 \<close>
 
 definition centered_divide :: \<open>int \<Rightarrow> int \<Rightarrow> int\<close>  (infixl \<open>cdiv\<close> 70)
