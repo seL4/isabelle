@@ -19,7 +19,7 @@ object Dotnet_Setup {
     exec: String = "bash",
     check: () => Unit = () => ())
 
-  val all_platforms =
+  private val all_platforms =
     List(
       Platform_Info(Platform.Family.linux_arm, "arm64-linux", os = "linux", arch = "arm64"),
       Platform_Info(Platform.Family.linux, "x86_64-linux", os = "linux"),
