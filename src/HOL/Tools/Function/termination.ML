@@ -231,12 +231,8 @@ fun CALLS tac i st =
 type ttac = data -> int -> tactic
 
 fun TERMINATION ctxt atac tac =
-  SUBGOAL (fn (_ $ (Const (\<^const_name>\<open>wf\<close>, wfT) $ rel), i) =>
-  let
-    val (T, _) = HOLogic.dest_prodT (HOLogic.dest_setT (domain_type wfT))
-  in
-    tac (create ctxt atac atac T rel) i
-  end)
+  SUBGOAL (fn (_ $ \<^Const_>\<open>wf_on T for \<^Const_>\<open>top_class.top _\<close> rel\<close>, i) =>
+    tac (create ctxt atac atac T rel) i)
 
 
 (* A tactic to convert open to closed termination goals *)

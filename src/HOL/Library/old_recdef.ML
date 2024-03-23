@@ -755,7 +755,7 @@ fun dest_relation tm =
         end handle Bind => raise USYN_ERR "dest_relation" "unexpected term structure"
    else raise USYN_ERR "dest_relation" "not a boolean term";
 
-fun is_WFR (Const(\<^const_name>\<open>Wellfounded.wf\<close>,_)$_) = true
+fun is_WFR \<^Const_>\<open>Wellfounded.wf_on _ for \<^Const_>\<open>top_class.top _\<close> _\<close> = true
   | is_WFR _                 = false;
 
 fun ARB ty = mk_select{Bvar=Free("v",ty),

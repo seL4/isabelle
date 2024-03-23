@@ -754,7 +754,7 @@ fun is_wellfounded_inductive_predicate ctxt wfs debug wf_timeout const intros =
           val j = fold (Integer.max o maxidx_of_term) intros 0 + 1;
           val rel = (("R", j), rel_T);
           val prop =
-            Const (\<^const_name>\<open>wf\<close>, rel_T --> HOLogic.boolT) $ Var rel ::
+            Const (\<^const_abbrev>\<open>wf\<close>, rel_T --> HOLogic.boolT) $ Var rel ::
             map (wf_constraint_for_triple rel) triples
             |> foldr1 HOLogic.mk_conj
             |> HOLogic.mk_Trueprop;

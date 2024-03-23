@@ -2120,7 +2120,7 @@ fun uncached_is_well_founded_inductive_pred
          val rel_T = HOLogic.mk_setT (HOLogic.mk_prodT (binders_T, binders_T))
          val j = fold Integer.max (map maxidx_of_term intro_ts) 0 + 1
          val rel = (("R", j), rel_T)
-         val prop = Const (\<^const_name>\<open>wf\<close>, rel_T --> bool_T) $ Var rel ::
+         val prop = Const (\<^const_abbrev>\<open>wf\<close>, rel_T --> bool_T) $ Var rel ::
                     map (wf_constraint_for_triple rel) triples
                     |> foldr1 s_conj |> HOLogic.mk_Trueprop
          val _ = if debug then

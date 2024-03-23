@@ -222,7 +222,7 @@ setup \<open>
     [(\<^const_name>\<open>card\<close>, \<^const_name>\<open>card'\<close>),
      (\<^const_name>\<open>sum\<close>, \<^const_name>\<open>sum'\<close>),
      (\<^const_name>\<open>fold_graph\<close>, \<^const_name>\<open>fold_graph'\<close>),
-     (\<^const_name>\<open>wf\<close>, \<^const_name>\<open>wf'\<close>),
+     (\<^const_abbrev>\<open>wf\<close>, \<^const_name>\<open>wf'\<close>),
      (\<^const_name>\<open>wf_wfrec\<close>, \<^const_name>\<open>wf_wfrec'\<close>),
      (\<^const_name>\<open>wfrec\<close>, \<^const_name>\<open>wfrec'\<close>)]
 \<close>

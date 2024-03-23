@@ -8151,9 +8151,12 @@ lemma set_relcomp [code]:
   "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
   by auto (auto simp add: Bex_def image_def)
 
-lemma wf_set [code]:
+lemma wf_set:
   "wf (set xs) = acyclic (set xs)"
   by (simp add: wf_iff_acyclic_if_finite)
+
+lemma wf_code_set[code]: "wf_code (set xs) = acyclic (set xs)"
+  unfolding wf_code_def using wf_set .
 
 
 subsection \<open>Setup for Lifting/Transfer\<close>

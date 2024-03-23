@@ -31,7 +31,7 @@ declare [[code drop: Set.empty Set.is_empty uminus_set_inst.uminus_set
   Set.member Set.insert Set.remove UNIV Set.filter image
   Set.subset_eq Ball Bex can_select Set.union minus_set_inst.minus_set Set.inter
   card the_elem Pow sum prod Product_Type.product Id_on
-  Image trancl relcomp wf Min Inf_fin Max Sup_fin
+  Image trancl relcomp wf_on wf_code Min Inf_fin Max Sup_fin
   "(Inf :: 'a set set \<Rightarrow> 'a set)" "(Sup :: 'a set set \<Rightarrow> 'a set)"
   sorted_list_of_set List.map_project List.Bleast]]
 
@@ -644,9 +644,11 @@ proof -
     by (simp add: relcomp_fold finite_fold_fold_keys[OF *])
 qed
 
-lemma wf_set [code]:
-  "wf (Set t) = acyclic (Set t)"
-by (simp add: wf_iff_acyclic_if_finite)
+lemma wf_set: "wf (Set t) = acyclic (Set t)"
+  by (simp add: wf_iff_acyclic_if_finite)
+
+lemma wf_code_set[code]: "wf_code (Set t) = acyclic (Set t)"
+  unfolding wf_code_def using wf_set .
 
 lemma Min_fin_set_fold [code]:
   "Min (Set t) = 

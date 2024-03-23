@@ -14,11 +14,11 @@ begin
 
 subsection \<open>Basic Definitions\<close>
 
-definition wf_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
-  where "wf_on A r \<longleftrightarrow> (\<forall>P. (\<forall>x \<in> A. (\<forall>y \<in> A. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x \<in> A. P x))"
+definition wf_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool" where
+  "wf_on A r \<longleftrightarrow> (\<forall>P. (\<forall>x \<in> A. (\<forall>y \<in> A. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x \<in> A. P x))"
 
-definition wf :: "('a \<times> 'a) set \<Rightarrow> bool"
-  where "wf r \<longleftrightarrow> (\<forall>P. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x. P x))"
+abbreviation wf :: "('a \<times> 'a) set \<Rightarrow> bool" where
+  "wf \<equiv> wf_on UNIV"
 
 definition wfp_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "wfp_on A R \<longleftrightarrow> (\<forall>P. (\<forall>x \<in> A. (\<forall>y \<in> A. R y x \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x \<in> A. P x))"
@@ -34,17 +34,17 @@ consistent with similar predicates, e.g., \<^const>\<open>asymp\<close>, \<^cons
 
 subsection \<open>Equivalence of Definitions\<close>
 
-lemma wf_on_UNIV: "wf_on UNIV r \<longleftrightarrow> wf r"
-  by (simp add: wf_on_def wf_def)
-
 lemma wfp_on_wf_on_eq[pred_set_conv]: "wfp_on A (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> wf_on A r"
   by (simp add: wfp_on_def wf_on_def)
+
+lemma wf_def: "wf r \<longleftrightarrow> (\<forall>P. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x. P x))"
+  unfolding wf_on_def by simp
 
 lemma wfP_def: "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
   unfolding wf_def wfp_on_def by simp
 
-lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
-  by (simp add: wfP_def)
+lemma wfP_wf_eq: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
+  using wfp_on_wf_on_eq .
 
 
 subsection \<open>Induction Principles\<close>
@@ -63,7 +63,7 @@ lemma wf_induct:
   assumes "wf r"
     and "\<And>x. \<forall>y. (y, x) \<in> r \<longrightarrow> P y \<Longrightarrow> P x"
   shows "P a"
-  using assms by (auto simp: wf_on_UNIV intro: wf_on_induct[of UNIV])
+  using assms by (auto intro: wf_on_induct[of UNIV])
 
 lemmas wfP_induct = wf_induct [to_pred]
 
@@ -175,7 +175,7 @@ proof -
 qed
 
 lemma wfE_pf: "wf R \<Longrightarrow> A \<subseteq> R `` A \<Longrightarrow> A = {}"
-  using wf_onE_pf[of UNIV, unfolded wf_on_UNIV, simplified] .
+  using wf_onE_pf[of UNIV, simplified] .
 
 lemma wf_onI_pf:
   assumes "\<And>B. B \<subseteq> A \<Longrightarrow> B \<subseteq> R `` B \<Longrightarrow> B = {}"
@@ -194,7 +194,7 @@ proof (intro allI impI ballI)
 qed
 
 lemma wfI_pf: "(\<And>A. A \<subseteq> R `` A \<Longrightarrow> A = {}) \<Longrightarrow> wf R"
-  using wf_onI_pf[of UNIV, unfolded wf_on_UNIV, simplified] .
+  using wf_onI_pf[of UNIV, simplified] .
 
 
 subsubsection \<open>Minimal-element characterization of well-foundedness\<close>
@@ -220,7 +220,7 @@ next
 qed
 
 lemma wf_iff_ex_minimal: "wf R \<longleftrightarrow> (\<forall>B. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> B))"
-  using wf_on_iff_ex_minimal[of UNIV, unfolded wf_on_UNIV, simplified] .
+  using wf_on_iff_ex_minimal[of UNIV, simplified] .
 
 lemma wfp_on_iff_ex_minimal: "wfp_on A R \<longleftrightarrow> (\<forall>B \<subseteq> A. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
   using wf_on_iff_ex_minimal[of A, to_pred] by simp
@@ -875,9 +875,9 @@ lemmas acc_downward = accp_downward [to_set]
 lemmas not_acc_down = not_accp_down [to_set]
 lemmas acc_downwards_aux = accp_downwards_aux [to_set]
 lemmas acc_downwards = accp_downwards [to_set]
-lemmas acc_wfI = accp_wfPI [to_set, unfolded wf_on_UNIV]
-lemmas acc_wfD = accp_wfPD [to_set, unfolded wf_on_UNIV]
-lemmas wf_acc_iff = wfP_accp_iff [to_set, unfolded wf_on_UNIV]
+lemmas acc_wfI = accp_wfPI [to_set]
+lemmas acc_wfD = accp_wfPD [to_set]
+lemmas wf_acc_iff = wfP_accp_iff [to_set]
 lemmas acc_subset = accp_subset [to_set]
 lemmas acc_subset_induct = accp_subset_induct [to_set]
 
@@ -1185,5 +1185,19 @@ lemma finite_subset_wf:
     (auto intro: finite_subset[OF _ assms])
 
 hide_const (open) acc accp
+
+
+subsection \<open>Code Generation Setup\<close>
+
+text \<open>Code equations with \<^const>\<open>wf\<close> or \<^const>\<open>wfp\<close> on the left-hand side are not supported by the
+code generation module because of the \<^const>\<open>UNIV\<close> hidden behind the abbreviations. To sidestep this
+problem, we provide the following wrapper definitions and use @{attribute code_abbrev} to register
+the definitions with the pre- and post-processors of the code generator.\<close>
+
+definition wf_code :: "('a \<times> 'a) set \<Rightarrow> bool" where
+  [code_abbrev]: "wf_code r \<longleftrightarrow> wf r"
+
+definition wfp_code :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  [code_abbrev]: "wfp_code R \<longleftrightarrow> wfp R"
 
 end
