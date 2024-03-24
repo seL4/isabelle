@@ -59,10 +59,10 @@ qed
 
 text \<open>Running times:\<close>
 
-define_time_fun norm
-define_time_fun enq
-define_time_fun tl
-define_time_fun deq
+time_fun norm
+time_fun enq
+time_fun tl
+time_fun deq
 
 lemma T_tl_0: "T_tl xs = 0"
 by(cases xs)auto
