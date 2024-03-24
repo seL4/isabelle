@@ -206,6 +206,7 @@ object Components {
 
     def etc: Path = path + Path.basic("etc")
     def src: Path = path + Path.basic("src")
+    def bin: Path = path + Path.basic("bin")
     def lib: Path = path + Path.basic("lib")
     def settings: Path = etc + Path.basic("settings")
     def components: Path = etc + Path.basic("components")
