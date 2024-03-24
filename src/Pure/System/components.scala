@@ -35,26 +35,30 @@ object Components {
 
   /* platforms */
 
-  private val family_platforms: Map[Platform.Family, List[String]] =
-    Map(
-      Platform.Family.linux_arm -> List("arm64-linux", "arm64_32-linux"),
-      Platform.Family.linux -> List("x86_64-linux", "x86_64_32-linux"),
-      Platform.Family.macos ->
-        List("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
-      Platform.Family.windows ->
-        List("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"))
-
-  private val platform_names: Set[String] =
-    Set("x86-linux", "x86-cygwin") ++ family_platforms.iterator.flatMap(_._2)
-
-  def platform_purge(platforms: List[Platform.Family]): String => Boolean = {
-    val preserve =
-      (for {
-        family <- platforms.iterator
-        platform <- family_platforms(family)
-      } yield platform).toSet
-    (name: String) => platform_names(name) && !preserve(name)
+  sealed case class Platforms(family_platforms: Map[String, List[String]]) {
+    def purge(preserve: List[Platform.Family]): String => Boolean = {
+      val preserve_platform =
+        Set.from(
+          for {
+            family <- preserve.iterator
+            platform <- family_platforms(family.toString).iterator
+          } yield platform)
+      (name: String) => family_platforms.isDefinedAt(name) && !preserve_platform(name)
+    }
   }
+
+  val default_platforms: Platforms =
+    Platforms(
+      Map(
+        Platform.Family.linux_arm.toString ->
+          List("arm64-linux", "arm64_32-linux"),
+        Platform.Family.linux.toString ->
+          List("x86_64-linux", "x86_64_32-linux"),
+        Platform.Family.macos.toString ->
+          List("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
+        Platform.Family.windows.toString ->
+          List("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"),
+        "obsolete" -> List("x86-linux", "x86-cygwin")))
 
 
   /* component collections */
@@ -99,7 +103,7 @@ object Components {
       name <- ssh.read_dir(base_dir)
       dir = base_dir + Path.basic(name)
       if is_component_dir(dir)
-    } Directory(dir, ssh = ssh).clean(platforms = platforms, progress = progress)
+    } Directory(dir, ssh = ssh).clean(preserve = platforms, progress = progress)
   }
 
   def resolve(
@@ -132,7 +136,7 @@ object Components {
 
     if (clean_platforms.isDefined) {
       Directory(unpack_dir + Path.basic(name), ssh = ssh).
-        clean(platforms = clean_platforms.get, progress = progress)
+        clean(preserve = clean_platforms.get, progress = progress)
     }
 
     if (clean_archives) {
@@ -205,10 +209,11 @@ object Components {
     }
 
     def clean(
-      platforms: List[Platform.Family] = Platform.Family.list,
+      platforms: Platforms = default_platforms,
+      preserve: List[Platform.Family] = Platform.Family.list,
       progress: Progress = new Progress
     ): Unit = {
-      val purge = platform_purge(platforms)
+      val purge = platforms.purge(preserve)
       for {
         name <- ssh.read_dir(path)
         dir = Path.basic(name)
