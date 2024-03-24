@@ -7,6 +7,7 @@ File-system operations.
 package isabelle
 
 
+import java.util.{Properties => JProperties}
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
@@ -250,6 +251,15 @@ object File {
     }
     reader.close()
     result.toList
+  }
+
+
+  /* read properties */
+
+  def read_props(path: Path): JProperties = {
+    val props = new JProperties
+    props.load(Files.newBufferedReader(path.java_path))
+    props
   }
 
 

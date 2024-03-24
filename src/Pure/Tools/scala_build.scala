@@ -7,7 +7,6 @@ Manage and build Isabelle/Scala/Java modules.
 package isabelle
 
 
-import java.util.{Properties => JProperties}
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.{Path => JPath}
@@ -73,8 +72,7 @@ object Scala_Build {
       else isabelle.setup.Build.BUILD_PROPS
     val props_path = dir + Path.explode(props_name)
 
-    val props = new JProperties
-    props.load(Files.newBufferedReader(props_path.java_path))
+    val props = File.read_props(props_path)
     if (no_title) props.remove(isabelle.setup.Build.TITLE)
     if (do_build) props.remove(isabelle.setup.Build.NO_BUILD)
     if (module.isDefined) props.put(isabelle.setup.Build.MODULE, File.standard_path(module.get))
