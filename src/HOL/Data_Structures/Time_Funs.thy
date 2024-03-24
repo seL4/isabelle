@@ -48,8 +48,8 @@ lemma T_nth_eq: "T_nth xs n = min n (length xs) + 1"
 
 lemmas [simp del] = T_nth.simps
 
-define_time_fun take
-define_time_fun drop
+time_fun take
+time_fun drop
 
 lemma T_take_eq: "T_take n xs = min n (length xs) + 1"
   by (induction xs arbitrary: n) (auto split: nat.splits)
