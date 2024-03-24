@@ -89,23 +89,6 @@ object Components {
     name
   }
 
-  def clean(
-    component_dir: Path,
-    platforms: List[Platform.Family] = Platform.Family.list,
-    ssh: SSH.System = SSH.Local,
-    progress: Progress = new Progress
-  ): Unit = {
-    val purge = platform_purge(platforms)
-    for {
-      name <- ssh.read_dir(component_dir)
-      path = Path.basic(name)
-      if purge(name) && ssh.is_dir(component_dir + path)
-    } {
-      progress.echo("Removing " + (component_dir.base + path))
-      ssh.rm_tree(component_dir + path)
-    }
-  }
-
   def clean_base(
     base_dir: Path,
     platforms: List[Platform.Family] = Platform.Family.list,
@@ -116,7 +99,7 @@ object Components {
       name <- ssh.read_dir(base_dir)
       dir = base_dir + Path.basic(name)
       if is_component_dir(dir)
-    } clean(dir, platforms = platforms, ssh = ssh, progress = progress)
+    } Directory(dir, ssh = ssh).clean(platforms = platforms, progress = progress)
   }
 
   def resolve(
@@ -148,8 +131,8 @@ object Components {
     unpack(unpack_dir, archive, ssh = ssh, progress = progress)
 
     if (clean_platforms.isDefined) {
-      clean(unpack_dir + Path.basic(name),
-        platforms = clean_platforms.get, ssh = ssh, progress = progress)
+      Directory(unpack_dir + Path.basic(name), ssh = ssh).
+        clean(platforms = clean_platforms.get, progress = progress)
     }
 
     if (clean_archives) {
@@ -219,6 +202,21 @@ object Components {
       ssh.new_directory(path)
       ssh.make_directory(etc)
       this
+    }
+
+    def clean(
+      platforms: List[Platform.Family] = Platform.Family.list,
+      progress: Progress = new Progress
+    ): Unit = {
+      val purge = platform_purge(platforms)
+      for {
+        name <- ssh.read_dir(path)
+        dir = Path.basic(name)
+        if purge(name) && ssh.is_dir(path + dir)
+      } {
+        progress.echo("Removing " + (path.base + dir))
+        ssh.rm_tree(path + dir)
+      }
     }
 
     def ok: Boolean =
