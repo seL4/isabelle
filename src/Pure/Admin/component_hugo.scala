@@ -23,7 +23,6 @@ object Component_Hugo {
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-darwin", "hugo_extended_{V}_darwin-universal.tar.gz"),
       Download_Platform("arm64-linux", "hugo_extended_{V}_linux-arm64.tar.gz"),
       Download_Platform("x86_64-darwin", "hugo_extended_{V}_darwin-universal.tar.gz"),
       Download_Platform("x86_64-linux", "hugo_extended_{V}_linux-amd64.tar.gz"),
@@ -76,7 +75,7 @@ object Component_Hugo {
     /* settings */
 
     component_dir.write_settings("""
-ISABELLE_HUGO="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
+ISABELLE_HUGO="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
 """)
 
 
