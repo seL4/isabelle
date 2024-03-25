@@ -9,6 +9,8 @@ package isabelle
 
 import java.io.{File => JFile}
 
+import scala.jdk.CollectionConverters._
+
 
 object Components {
   /* archive name */
@@ -35,30 +37,27 @@ object Components {
 
   /* platforms */
 
-  sealed case class Platforms(family_platforms: Map[String, List[String]]) {
-    def purge(preserve: List[Platform.Family]): String => Boolean = {
-      val preserve_platform =
-        Set.from(
-          for {
-            family <- preserve.iterator
-            platform <- family_platforms(family.toString).iterator
-          } yield platform)
-      (name: String) => family_platforms.isDefinedAt(name) && !preserve_platform(name)
-    }
+  sealed case class Platforms(family_platforms: Map[String, List[Path]]) {
+    def defined(family: String): Boolean = family_platforms.isDefinedAt(family)
+    def apply(family: String): List[Path] = family_platforms.getOrElse(family, Nil)
+    def path_iterator: Iterator[Path] = family_platforms.valuesIterator.flatten
   }
 
-  val default_platforms: Platforms =
+  val default_platforms: Platforms = {
+    def paths(args: String*): List[Path] = args.toList.map(Path.explode)
     Platforms(
       Map(
         Platform.Family.linux_arm.toString ->
-          List("arm64-linux", "arm64_32-linux"),
+          paths("arm64-linux", "arm64_32-linux"),
         Platform.Family.linux.toString ->
-          List("x86_64-linux", "x86_64_32-linux"),
+          paths("x86_64-linux", "x86_64_32-linux"),
         Platform.Family.macos.toString ->
-          List("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
+          paths("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
         Platform.Family.windows.toString ->
-          List("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"),
-        "obsolete" -> List("x86-linux", "x86-cygwin")))
+          paths("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"),
+        "obsolete" -> paths("x86-linux", "x86-cygwin")
+      ))
+  }
 
 
   /* component collections */
@@ -198,6 +197,7 @@ object Components {
     def settings: Path = etc + Path.basic("settings")
     def components: Path = etc + Path.basic("components")
     def build_props: Path = etc + Path.basic("build.props")
+    def platform_props: Path = etc + Path.basic("platform.props")
     def README: Path = path + Path.basic("README")
     def LICENSE: Path = path + Path.basic("LICENSE")
 
@@ -208,17 +208,35 @@ object Components {
       this
     }
 
+    def get_platforms(): Platforms = {
+      val props_path = platform_props.expand
+      if (props_path.is_file) {
+        val family_platforms =
+          try {
+            Map.from(
+              for (case (a, b) <- File.read_props(props_path).asScala.iterator)
+                yield {
+                  if (!default_platforms.defined(a)) error("Bad platform family " + quote(a))
+                  val ps = List.from(b.split("\\s+").iterator.filter(_.nonEmpty)).map(Path.explode)
+                  for (p <- ps if !p.all_basic) error("Bad path outside component " + p)
+                  a -> ps
+                })
+          }
+          catch {
+            case ERROR(msg) => error(msg + Position.here(Position.File(props_path.implode)))
+          }
+        Platforms(family_platforms)
+      }
+      else default_platforms
+    }
+
     def clean(
-      platforms: Platforms = default_platforms,
       preserve: List[Platform.Family] = Platform.Family.list,
       progress: Progress = new Progress
     ): Unit = {
-      val purge = platforms.purge(preserve)
-      for {
-        name <- ssh.read_dir(path)
-        dir = Path.basic(name)
-        if purge(name) && ssh.is_dir(path + dir)
-      } {
+      val platforms = get_platforms()
+      val preserve_path = Set.from(for (a <- preserve; p <- platforms(a.toString)) yield p)
+      for (dir <- platforms.path_iterator if !preserve_path(dir) && ssh.is_dir(path + dir)) {
         progress.echo("Removing " + (path.base + dir))
         ssh.rm_tree(path + dir)
       }
