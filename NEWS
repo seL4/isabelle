@@ -52,6 +52,9 @@ base-lines are now as follows:
     "preplay_timeout". INCOMPATIBILITY.
   - Added the action "order" testing the proof method of the same name.
 
+* Session Data_Structures provides automatic translation from
+HOL functions into corresponding step-counting running-time functions.See theory Define_Time_Function.
+
 * Explicit type class for discrete_linear_ordered_semidom for integral
 semidomains with a discrete linear order.
 

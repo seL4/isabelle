@@ -12,6 +12,10 @@ Contributions to this Isabelle version
 * March 2024: Anthony Bordg, Manuel Eberl, Wenda Li, Larry Paulson
   New and more general definition of meromorphicity in HOL-Complex_Analysis
 
+* Feb/March 2024: Jonas Stahl
+  Automatic translation of HOL functions into corresponding
+  step-counting running-time functions
+
 * 2023/2024: Makarius Wenzel and Fabian Huch
   More robust and scalable support for distributed build clusters.
 
