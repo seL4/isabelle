@@ -71,6 +71,57 @@ lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, ind
 
 lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
 
+lemma wf_on_iff_wf: "wf_on A r \<longleftrightarrow> wf {(x, y) \<in> r. x \<in> A \<and> y \<in> A}"
+proof (rule iffI)
+  assume wf: "wf_on A r"
+  show "wf {(x, y) \<in> r. x \<in> A \<and> y \<in> A}"
+    unfolding wf_def
+  proof (intro allI impI ballI)
+    fix P x
+    assume IH: "\<forall>x. (\<forall>y. (y, x) \<in> {(x, y). (x, y) \<in> r \<and> x \<in> A \<and> y \<in> A} \<longrightarrow> P y) \<longrightarrow> P x"
+    show "P x"
+    proof (cases "x \<in> A")
+      case True
+      show ?thesis
+        using wf
+      proof (induction x rule: wf_on_induct)
+        case in_set
+        thus ?case
+          using True .
+      next
+        case (less x)
+        thus ?case
+          by (auto intro: IH[rule_format])
+      qed
+    next
+      case False
+      then show ?thesis
+        by (auto intro: IH[rule_format])
+    qed
+  qed
+next
+  assume wf: "wf {(x, y). (x, y) \<in> r \<and> x \<in> A \<and> y \<in> A}"
+  show "wf_on A r"
+    unfolding wf_on_def
+  proof (intro allI impI ballI)
+    fix P x
+    assume IH: "\<forall>x\<in>A. (\<forall>y\<in>A. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x" and "x \<in> A"
+    show "P x"
+      using wf \<open>x \<in> A\<close>
+    proof (induction x rule: wf_on_induct)
+      case in_set
+      show ?case
+        by simp
+    next
+      case (less y)
+      hence "\<And>z. (z, y) \<in> r \<Longrightarrow> z \<in> A \<Longrightarrow> P z"
+        by simp
+      thus ?case
+        using IH[rule_format, OF \<open>y \<in> A\<close>] by simp
+    qed
+  qed
+qed
+
 
 subsection \<open>Introduction Rules\<close>
 
