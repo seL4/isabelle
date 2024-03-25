@@ -8,10 +8,11 @@ Functional Data Structures and Algorithms. A Proof Assistant Approach.
 
 theory Define_Time_Function
   imports Main
-  keywords "define_time_fun" :: thy_decl
-    and    "define_time_function" :: thy_goal
+  keywords "time_fun" :: thy_decl
+    and    "time_function" :: thy_goal
+    and    "time_definition" :: thy_goal
     and    "equations"
-    and    "define_time_0" :: thy_decl
+    and    "time_fun_0" :: thy_decl
 begin
 
 ML_file Define_Time_0.ML
@@ -31,17 +32,17 @@ suitable support, e.g. numeric types. The argument size is implicitly bounded, t
 The constant-time assumption for \<open>(=)\<close> is justified for recursive data types such as lists and trees
 as long as the comparison is of the form \<open>t = c\<close> where \<open>c\<close> is a constant term, for example \<open>xs = []\<close>.\<close>
 
-define_time_0 "(+)"
-define_time_0 "(-)"
-define_time_0 "(*)"
-define_time_0 "(/)"
-define_time_0 "(div)"
-define_time_0 "(<)"
-define_time_0 "(\<le>)"
-define_time_0 "Not"
-define_time_0 "(\<and>)"
-define_time_0 "(\<or>)"
-define_time_0 "Num.numeral_class.numeral"
-define_time_0 "(=)"
+time_fun_0 "(+)"
+time_fun_0 "(-)"
+time_fun_0 "(*)"
+time_fun_0 "(/)"
+time_fun_0 "(div)"
+time_fun_0 "(<)"
+time_fun_0 "(\<le>)"
+time_fun_0 "Not"
+time_fun_0 "(\<and>)"
+time_fun_0 "(\<or>)"
+time_fun_0 "Num.numeral_class.numeral"
+time_fun_0 "(=)"
 
 end

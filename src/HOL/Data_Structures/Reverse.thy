@@ -2,8 +2,8 @@ theory Reverse
 imports Define_Time_Function
 begin
 
-define_time_fun append
-define_time_fun rev
+time_fun append
+time_fun rev
 
 lemma T_append: "T_append xs ys = length xs + 1"
 by(induction xs) auto
@@ -21,7 +21,7 @@ by(induction xs arbitrary: ys) auto
 lemma itrev_Nil: "itrev xs [] = rev xs"
 by(simp add: itrev)
 
-define_time_fun itrev
+time_fun itrev
 
 lemma T_itrev: "T_itrev xs ys = length xs + 1"
 by(induction xs arbitrary: ys) auto

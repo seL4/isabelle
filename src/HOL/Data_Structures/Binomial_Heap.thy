@@ -472,19 +472,19 @@ qed
 
 subsubsection \<open>Timing Functions\<close>
 
-define_time_fun link
+time_fun link
 
 lemma T_link[simp]: "T_link t\<^sub>1 t\<^sub>2 = 0"
 by(cases t\<^sub>1; cases t\<^sub>2, auto)
 
-define_time_fun rank
+time_fun rank
 
 lemma T_rank[simp]: "T_rank t = 0"
 by(cases t, auto)
 
-define_time_fun ins_tree
+time_fun ins_tree
 
-define_time_fun insert
+time_fun insert
 
 lemma T_ins_tree_simple_bound: "T_ins_tree t ts \<le> length ts + 1"
 by (induction t ts rule: T_ins_tree.induct) auto
@@ -504,7 +504,7 @@ qed
 
 subsubsection \<open>\<open>T_merge\<close>\<close>
 
-define_time_fun merge
+time_fun merge
 
 (* Warning: \<open>T_merge.induct\<close> is less convenient than the equivalent \<open>merge.induct\<close>,
 apparently because of the \<open>let\<close> clauses introduced by pattern_aliases; should be investigated.
@@ -547,14 +547,14 @@ qed
 
 subsubsection \<open>\<open>T_get_min\<close>\<close>
 
-define_time_fun root
+time_fun root
 
 lemma T_root[simp]: "T_root t = 0"
 by(cases t)(simp_all)
 
-define_time_fun min
+time_fun min
 
-define_time_fun get_min
+time_fun get_min
 
 lemma T_get_min_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min ts = length ts"
 by (induction ts rule: T_get_min.induct) auto
@@ -571,7 +571,7 @@ qed
 
 subsubsection \<open>\<open>T_del_min\<close>\<close>
 
-define_time_fun get_min_rest
+time_fun get_min_rest
 (*fun T_get_min_rest :: "'a::linorder trees \<Rightarrow> nat" where
   "T_get_min_rest [t] = 1"
 | "T_get_min_rest (t#ts) = 1 + T_get_min_rest ts"*)
@@ -595,7 +595,7 @@ Thus the following definition is justified:\<close>
 
 definition "T_rev xs = length xs + 1"
 
-define_time_fun del_min
+time_fun del_min
 
 lemma T_del_min_bound:
   fixes ts

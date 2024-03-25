@@ -228,6 +228,25 @@ object Isabelle_Cronjob {
           args = "-N -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
+      Remote_Build("AFP old2", "lrzcloud2", history = 120,
+        java_heap = "8g",
+        options = "-m32 -M1x5 -t AFP" +
+          " -e ISABELLE_GHC=ghc" +
+          " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
+          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
+          " -e ISABELLE_SMLNJ=sml",
+        args = "-a -X large -X slow",
+        afp = true,
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
+        count = () => if (Date.now().unix_epoch_day % 2 == 0) 1 else 0),
+      Remote_Build("AFP old2", "lrzcloud2",
+        java_heap = "8g",
+        options = "-m64 -M8 -U30000 -s10 -t AFP",
+        args = "-g large -g slow",
+        afp = true,
+        bulky = true,
+        detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
+        count = () => if (Date.now().unix_epoch_day % 2 == 1) 1 else 0),
       Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
         history_base = "37074e22e8be",
         options = "-m32 -B -M1x2,2 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
@@ -369,27 +388,7 @@ object Isabelle_Cronjob {
   }
 
   val remote_builds2: List[List[Remote_Build]] =
-    List(
-      List(
-        Remote_Build("AFP", "lrzcloud2", history = 120,
-          java_heap = "8g",
-          options = "-m32 -M1x5 -t AFP" +
-            " -e ISABELLE_GHC=ghc" +
-            " -e ISABELLE_MLTON=mlton -e ISABELLE_MLTON_OPTIONS=" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
-            " -e ISABELLE_SMLNJ=sml",
-          args = "-a -X large -X slow",
-          afp = true,
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
-          count = () => if (Date.now().unix_epoch_day % 2 == 0) 1 else 0),
-        Remote_Build("AFP", "lrzcloud2",
-          java_heap = "8g",
-          options = "-m64 -M8 -U30000 -s10 -t AFP",
-          args = "-g large -g slow",
-          afp = true,
-          bulky = true,
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
-          count = () => if (Date.now().unix_epoch_day % 2 == 1) 1 else 0)))
+    List()
 
   def remote_build_history(
     rev: String,

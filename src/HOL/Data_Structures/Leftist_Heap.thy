@@ -160,16 +160,16 @@ qed
 subsection "Complexity"
 
 text \<open>Auxiliary time functions (which are both 0):\<close>
-define_time_fun mht
-define_time_fun node
+time_fun mht
+time_fun node
 
 lemma T_mht_0[simp]: "T_mht t = 0"
 by(cases t)auto
 
 text \<open>Define timing function\<close>
-define_time_fun merge
-define_time_fun insert
-define_time_fun del_min
+time_fun merge
+time_fun insert
+time_fun del_min
 
 lemma T_merge_min_height: "ltree l \<Longrightarrow> ltree r \<Longrightarrow> T_merge l r \<le> min_height l + min_height r + 1"
 proof(induction l r rule: merge.induct)

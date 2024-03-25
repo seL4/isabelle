@@ -81,36 +81,36 @@ by(cases r)(simp_all add: inv_join split_min_set split_min_inv split: prod.split
 
 subsection "\<open>split\<close>"
 
-fun split :: "('a*'b)tree \<Rightarrow> 'a \<Rightarrow> ('a*'b)tree \<times> bool \<times> ('a*'b)tree" where
-"split Leaf k = (Leaf, False, Leaf)" |
-"split (Node l (a, _) r) x =
+fun split :: "'a \<Rightarrow> ('a*'b)tree \<Rightarrow> ('a*'b)tree \<times> bool \<times> ('a*'b)tree" where
+"split x Leaf = (Leaf, False, Leaf)" |
+"split x (Node l (a, _) r) =
   (case cmp x a of
-     LT \<Rightarrow> let (l1,b,l2) = split l x in (l1, b, join l2 a r) |
-     GT \<Rightarrow> let (r1,b,r2) = split r x in (join l a r1, b, r2) |
+     LT \<Rightarrow> let (l1,b,l2) = split x l in (l1, b, join l2 a r) |
+     GT \<Rightarrow> let (r1,b,r2) = split x r in (join l a r1, b, r2) |
      EQ \<Rightarrow> (l, True, r))"
 
-lemma split: "split t x = (l,b,r) \<Longrightarrow> bst t \<Longrightarrow>
+lemma split: "split x t = (l,b,r) \<Longrightarrow> bst t \<Longrightarrow>
   set_tree l = {a \<in> set_tree t. a < x} \<and> set_tree r = {a \<in> set_tree t. x < a}
   \<and> (b = (x \<in> set_tree t)) \<and> bst l \<and> bst r"
 proof(induction t arbitrary: l b r rule: tree2_induct)
   case Leaf thus ?case by simp
 next
   case (Node y a b z l c r)
-  consider (LT) l1 xin l2 where "(l1,xin,l2) = split y x" 
-    and "split \<langle>y, (a, b), z\<rangle> x = (l1, xin, join l2 a z)" and "cmp x a = LT"
-  | (GT) r1 xin r2 where "(r1,xin,r2) = split z x" 
-    and "split \<langle>y, (a, b), z\<rangle> x = (join y a r1, xin, r2)" and "cmp x a = GT"
-  | (EQ) "split \<langle>y, (a, b), z\<rangle> x = (y, True, z)" and "cmp x a = EQ"
+  consider (LT) l1 xin l2 where "(l1,xin,l2) = split x y" 
+    and "split x \<langle>y, (a, b), z\<rangle> = (l1, xin, join l2 a z)" and "cmp x a = LT"
+  | (GT) r1 xin r2 where "(r1,xin,r2) = split x z" 
+    and "split x \<langle>y, (a, b), z\<rangle> = (join y a r1, xin, r2)" and "cmp x a = GT"
+  | (EQ) "split x \<langle>y, (a, b), z\<rangle> = (y, True, z)" and "cmp x a = EQ"
     by (force split: cmp_val.splits prod.splits if_splits)
 
   thus ?case 
   proof cases
     case (LT l1 xin l2)
-    with Node.IH(1)[OF \<open>(l1,xin,l2) = split y x\<close>[symmetric]] Node.prems
+    with Node.IH(1)[OF \<open>(l1,xin,l2) = split x y\<close>[symmetric]] Node.prems
     show ?thesis by (force intro!: bst_join)
   next
     case (GT r1 xin r2)
-    with Node.IH(2)[OF \<open>(r1,xin,r2) = split z x\<close>[symmetric]] Node.prems
+    with Node.IH(2)[OF \<open>(r1,xin,r2) = split x z\<close>[symmetric]] Node.prems
     show ?thesis by (force intro!: bst_join)
   next
     case EQ
@@ -118,7 +118,7 @@ next
   qed
 qed
 
-lemma split_inv: "split t x = (l,b,r) \<Longrightarrow> inv t \<Longrightarrow> inv l \<and> inv r"
+lemma split_inv: "split x t = (l,b,r) \<Longrightarrow> inv t \<Longrightarrow> inv l \<and> inv r"
 proof(induction t arbitrary: l b r rule: tree2_induct)
   case Leaf thus ?case by simp
 next
@@ -132,7 +132,7 @@ declare split.simps[simp del]
 subsection "\<open>insert\<close>"
 
 definition insert :: "'a \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
-"insert x t = (let (l,_,r) = split t x in join l x r)"
+"insert x t = (let (l,_,r) = split x t in join l x r)"
 
 lemma set_tree_insert: "bst t \<Longrightarrow> set_tree (insert x t) = {x} \<union> set_tree t"
 by(auto simp add: insert_def split split: prod.split)
@@ -147,7 +147,7 @@ by(force simp: insert_def inv_join dest: split_inv split: prod.split)
 subsection "\<open>delete\<close>"
 
 definition delete :: "'a \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
-"delete x t = (let (l,_,r) = split t x in join2 l r)"
+"delete x t = (let (l,_,r) = split x t in join2 l r)"
 
 lemma set_tree_delete: "bst t \<Longrightarrow> set_tree (delete x t) = set_tree t - {x}"
 by(auto simp: delete_def split split: prod.split)
@@ -166,7 +166,7 @@ fun union :: "('a*'b)tree \<Rightarrow> ('a*'b)tree \<Rightarrow> ('a*'b)tree" w
   (if t1 = Leaf then t2 else
    if t2 = Leaf then t1 else
    case t1 of Node l1 (a, _) r1 \<Rightarrow>
-   let (l2,_ ,r2) = split t2 a;
+   let (l2,_ ,r2) = split a t2;
        l' = union l1 l2; r' = union r1 r2
    in join l' a r')"
 
@@ -202,7 +202,7 @@ fun inter :: "('a*'b)tree \<Rightarrow> ('a*'b)tree \<Rightarrow> ('a*'b)tree" w
   (if t1 = Leaf then Leaf else
    if t2 = Leaf then Leaf else
    case t1 of Node l1 (a, _) r1 \<Rightarrow>
-   let (l2,b,r2) = split t2 a;
+   let (l2,b,r2) = split a t2;
        l' = inter l1 l2; r' = inter r1 r2
    in if b then join l' a r' else join2 l' r')"
 
@@ -224,7 +224,7 @@ proof(induction t1 t2 rule: inter.induct)
       case False
       let ?L1 = "set_tree l1" let ?R1 = "set_tree r1"
       have *: "a \<notin> ?L1 \<union> ?R1" using \<open>bst t1\<close> by (fastforce)
-      obtain l2 b r2 where sp: "split t2 a = (l2,b,r2)" using prod_cases3 by blast
+      obtain l2 b r2 where sp: "split a t2 = (l2,b,r2)" using prod_cases3 by blast
       let ?L2 = "set_tree l2" let ?R2 = "set_tree r2" let ?A = "if b then {a} else {}"
       have t2: "set_tree t2 = ?L2 \<union> ?R2 \<union> ?A" and
            **: "?L2 \<inter> ?R2 = {}" "a \<notin> ?L2 \<union> ?R2" "?L1 \<inter> ?R2 = {}" "?L2 \<inter> ?R1 = {}"
@@ -267,7 +267,7 @@ fun diff :: "('a*'b)tree \<Rightarrow> ('a*'b)tree \<Rightarrow> ('a*'b)tree" wh
   (if t1 = Leaf then Leaf else
    if t2 = Leaf then t1 else
    case t2 of Node l2 (a, _) r2 \<Rightarrow>
-   let (l1,_,r1) = split t1 a;
+   let (l1,_,r1) = split a t1;
        l' = diff l1 l2; r' = diff r1 r2
    in join2 l' r')"
 
@@ -288,7 +288,7 @@ proof(induction t1 t2 rule: diff.induct)
     next
       case False
       let ?L2 = "set_tree l2" let ?R2 = "set_tree r2"
-      obtain l1 b r1 where sp: "split t1 a = (l1,b,r1)" using prod_cases3 by blast
+      obtain l1 b r1 where sp: "split a t1 = (l1,b,r1)" using prod_cases3 by blast
       let ?L1 = "set_tree l1" let ?R1 = "set_tree r1" let ?A = "if b then {a} else {}"
       have t1: "set_tree t1 = ?L1 \<union> ?R1 \<union> ?A" and
            **: "a \<notin> ?L1 \<union> ?R1" "?L1 \<inter> ?R2 = {}" "?L2 \<inter> ?R1 = {}"

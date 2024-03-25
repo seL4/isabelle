@@ -118,10 +118,10 @@ by(simp add: tree23_of_list_def complete_leaves complete_join_all[of _ 0])
 
 subsection "Linear running time"
 
-define_time_fun join_adj
-define_time_fun join_all
-define_time_fun leaves
-define_time_fun tree23_of_list
+time_fun join_adj
+time_fun join_all
+time_fun leaves
+time_fun tree23_of_list
 
 lemma T_join_adj: "not_T ts \<Longrightarrow> T_join_adj ts \<le> len ts div 2"
 by(induction ts rule: T_join_adj.induct) auto
