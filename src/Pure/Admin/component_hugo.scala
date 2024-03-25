@@ -17,13 +17,13 @@ object Component_Hugo {
     override def toString: String = platform_name
 
     def is_windows: Boolean = url_template.contains("windows")
-    def url(base_url: String, version: String): String =
+
+    def download(base_url: String, version: String): String =
       base_url + "/v" + version + "/" + url_template.replace("{V}", version)
   }
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-darwin", "hugo_extended_{V}_darwin-universal.tar.gz"),
       Download_Platform("arm64-linux", "hugo_extended_{V}_linux-arm64.tar.gz"),
       Download_Platform("x86_64-darwin", "hugo_extended_{V}_darwin-universal.tar.gz"),
       Download_Platform("x86_64-linux", "hugo_extended_{V}_linux-amd64.tar.gz"),
@@ -54,8 +54,10 @@ object Component_Hugo {
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform.platform_name))
 
-      val url = platform.url(base_url, version)
-      val name = Library.take_suffix(_ != '/', url.toList)._2.mkString
+      val download = platform.download(base_url, version)
+      val name =
+        Url.get_base_name(download) getOrElse
+          error("Malformed download name " + quote(download))
 
       val exe = Path.basic("hugo").exe_if(platform.is_windows)
 
@@ -63,7 +65,7 @@ object Component_Hugo {
         Isabelle_System.with_tmp_dir("tmp", component_dir.path.file) { tmp_dir =>
           val archive_file = download_dir + Path.basic(name)
 
-          Isabelle_System.download_file(url, archive_file, progress = progress)
+          Isabelle_System.download_file(download, archive_file, progress = progress)
           Isabelle_System.extract(archive_file, tmp_dir)
           Isabelle_System.move_file(tmp_dir + exe, platform_dir)
           Isabelle_System.move_file(tmp_dir + Path.basic("LICENSE"), component_dir.LICENSE)
@@ -76,18 +78,18 @@ object Component_Hugo {
     /* settings */
 
     component_dir.write_settings("""
-ISABELLE_HUGO="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
+ISABELLE_HUGO="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
 """)
 
 
     /* README */
 
     File.write(component_dir.README,
-      """This Isabelle components provides a hugo extended """ + version + """.
+      """This Isabelle components provides hugo extended """ + version + """.
 
 See also https://gohugo.io and executables from """ + base_url + """
 
-        Fabian
+        Fabian Huch
         """ + Date.Format.date(Date.now()) + "\n")
   }
 

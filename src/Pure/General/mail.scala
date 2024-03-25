@@ -47,7 +47,7 @@ object Mail {
     def use_auth: Boolean = user.nonEmpty && password.nonEmpty
 
     private def mail_session: JSession = {
-      val props = new JProperties()
+      val props = new JProperties
       props.setProperty("mail.smtp.from", sender.toString)
       props.setProperty("mail.smtp.host", smtp_host)
       props.setProperty("mail.smtp.port", smtp_port.toString)
@@ -56,7 +56,7 @@ object Mail {
       transport match {
         case Transport.SSL(protocol) =>
           props.setProperty("mail.smtp.ssl.enable", "true")
-         props.setProperty("mail.smtp.ssl.protocols", protocol)
+          props.setProperty("mail.smtp.ssl.protocols", protocol)
         case Transport.STARTTLS =>
           props.setProperty("mail.smtp.starttls.enable", "true")
         case Transport.Plaintext =>

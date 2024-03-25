@@ -48,6 +48,10 @@ object Platform {
         case Family.windows => "x86_64-windows"
         case platform => standard(platform)
       }
+
+    def from_platform(platform: String): Family =
+      list.find(family => platform == standard(family) || platform == native(family))
+        .getOrElse(error("Bad platform " + quote(platform)))
   }
 
   enum Family { case linux_arm, linux, macos, windows }

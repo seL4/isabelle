@@ -9,6 +9,8 @@ package isabelle
 
 import java.io.{File => JFile}
 
+import scala.jdk.CollectionConverters._
+
 
 object Components {
   /* archive name */
@@ -35,25 +37,26 @@ object Components {
 
   /* platforms */
 
-  private val family_platforms: Map[Platform.Family, List[String]] =
-    Map(
-      Platform.Family.linux_arm -> List("arm64-linux", "arm64_32-linux"),
-      Platform.Family.linux -> List("x86_64-linux", "x86_64_32-linux"),
-      Platform.Family.macos ->
-        List("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
-      Platform.Family.windows ->
-        List("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"))
+  sealed case class Platforms(family_platforms: Map[String, List[Path]]) {
+    def defined(family: String): Boolean = family_platforms.isDefinedAt(family)
+    def apply(family: String): List[Path] = family_platforms.getOrElse(family, Nil)
+    def path_iterator: Iterator[Path] = family_platforms.valuesIterator.flatten
+  }
 
-  private val platform_names: Set[String] =
-    Set("x86-linux", "x86-cygwin") ++ family_platforms.iterator.flatMap(_._2)
-
-  def platform_purge(platforms: List[Platform.Family]): String => Boolean = {
-    val preserve =
-      (for {
-        family <- platforms.iterator
-        platform <- family_platforms(family)
-      } yield platform).toSet
-    (name: String) => platform_names(name) && !preserve(name)
+  val default_platforms: Platforms = {
+    def paths(args: String*): List[Path] = args.toList.map(Path.explode)
+    Platforms(
+      Map(
+        Platform.Family.linux_arm.toString ->
+          paths("arm64-linux", "arm64_32-linux"),
+        Platform.Family.linux.toString ->
+          paths("x86_64-linux", "x86_64_32-linux"),
+        Platform.Family.macos.toString ->
+          paths("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
+        Platform.Family.windows.toString ->
+          paths("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"),
+        "obsolete" -> paths("x86-linux", "x86-cygwin")
+      ))
   }
 
 
@@ -89,23 +92,6 @@ object Components {
     name
   }
 
-  def clean(
-    component_dir: Path,
-    platforms: List[Platform.Family] = Platform.Family.list,
-    ssh: SSH.System = SSH.Local,
-    progress: Progress = new Progress
-  ): Unit = {
-    val purge = platform_purge(platforms)
-    for {
-      name <- ssh.read_dir(component_dir)
-      path = Path.basic(name)
-      if purge(name) && ssh.is_dir(component_dir + path)
-    } {
-      progress.echo("Removing " + (component_dir.base + path))
-      ssh.rm_tree(component_dir + path)
-    }
-  }
-
   def clean_base(
     base_dir: Path,
     platforms: List[Platform.Family] = Platform.Family.list,
@@ -116,7 +102,7 @@ object Components {
       name <- ssh.read_dir(base_dir)
       dir = base_dir + Path.basic(name)
       if is_component_dir(dir)
-    } clean(dir, platforms = platforms, ssh = ssh, progress = progress)
+    } Directory(dir, ssh = ssh).clean(preserve = platforms, progress = progress)
   }
 
   def resolve(
@@ -148,8 +134,8 @@ object Components {
     unpack(unpack_dir, archive, ssh = ssh, progress = progress)
 
     if (clean_platforms.isDefined) {
-      clean(unpack_dir + Path.basic(name),
-        platforms = clean_platforms.get, ssh = ssh, progress = progress)
+      Directory(unpack_dir + Path.basic(name), ssh = ssh).
+        clean(preserve = clean_platforms.get, progress = progress)
     }
 
     if (clean_archives) {
@@ -206,10 +192,12 @@ object Components {
 
     def etc: Path = path + Path.basic("etc")
     def src: Path = path + Path.basic("src")
+    def bin: Path = path + Path.basic("bin")
     def lib: Path = path + Path.basic("lib")
     def settings: Path = etc + Path.basic("settings")
     def components: Path = etc + Path.basic("components")
     def build_props: Path = etc + Path.basic("build.props")
+    def platform_props: Path = etc + Path.basic("platform.props")
     def README: Path = path + Path.basic("README")
     def LICENSE: Path = path + Path.basic("LICENSE")
 
@@ -218,6 +206,40 @@ object Components {
       ssh.new_directory(path)
       ssh.make_directory(etc)
       this
+    }
+
+    def get_platforms(): Platforms = {
+      val props_path = platform_props.expand
+      if (props_path.is_file) {
+        val family_platforms =
+          try {
+            Map.from(
+              for (case (a, b) <- File.read_props(props_path).asScala.iterator)
+                yield {
+                  if (!default_platforms.defined(a)) error("Bad platform family " + quote(a))
+                  val ps = List.from(b.split("\\s+").iterator.filter(_.nonEmpty)).map(Path.explode)
+                  for (p <- ps if !p.all_basic) error("Bad path outside component " + p)
+                  a -> ps
+                })
+          }
+          catch {
+            case ERROR(msg) => error(msg + Position.here(Position.File(props_path.implode)))
+          }
+        Platforms(family_platforms)
+      }
+      else default_platforms
+    }
+
+    def clean(
+      preserve: List[Platform.Family] = Platform.Family.list,
+      progress: Progress = new Progress
+    ): Unit = {
+      val platforms = get_platforms()
+      val preserve_path = Set.from(for (a <- preserve; p <- platforms(a.toString)) yield p)
+      for (dir <- platforms.path_iterator if !preserve_path(dir) && ssh.is_dir(path + dir)) {
+        progress.echo("Removing " + (path.base + dir))
+        ssh.rm_tree(path + dir)
+      }
     }
 
     def ok: Boolean =
