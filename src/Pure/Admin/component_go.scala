@@ -10,18 +10,26 @@ package isabelle
 object Component_Go {
   /* platform information */
 
-  sealed case class Download_Platform(platform_name: String, download_name: String) {
-    def download(base_url: String, version: String): String =
-      Url.append_path(base_url, "go" + version + "." + download_name)
+  sealed case class Download_Platform(platform_name: String, go_platform: String) {
+    val platform_family: Platform.Family =
+      Platform.Family.from_platform(platform_name)
+
+    def platform_paths: List[String] =
+      List(platform_name, "pkg/tool/" + go_platform)
+
+    def download(base_url: String, version: String): String = {
+      val ext = if (platform_family == Platform.Family.windows) ".zip" else ".tar.gz"
+      Url.append_path(base_url, "go" + version + "." + go_platform.replace("_", "-") + ext)
+    }
   }
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-darwin", "darwin-arm64.tar.gz"),
-      Download_Platform("arm64-linux", "linux-arm64.tar.gz"),
-      Download_Platform("x86_64-darwin", "darwin-amd64.tar.gz"),
-      Download_Platform("x86_64-linux", "linux-amd64.tar.gz"),
-      Download_Platform("x86_64-windows", "windows-amd64.zip"))
+      Download_Platform("arm64-darwin", "darwin_arm64"),
+      Download_Platform("arm64-linux", "linux_arm64"),
+      Download_Platform("x86_64-darwin", "darwin_amd64"),
+      Download_Platform("x86_64-linux", "linux_amd64"),
+      Download_Platform("x86_64-windows", "windows_amd64"))
 
 
   /* build go */
@@ -91,6 +99,14 @@ ISABELLE_GOEXE="$ISABELLE_GOROOT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$ISABELLE_GOROOT/isabelle_tool"
 """)
+
+
+    /* platform.props */
+
+    File.write(component_dir.platform_props,
+      (for ((a, b) <- platforms.groupBy(_.platform_family).iterator)
+        yield a.toString + " = " + b.flatMap(_.platform_paths).mkString(" ")
+      ).mkString("", "\n", "\n"))
 
 
     /* README */
