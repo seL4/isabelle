@@ -66,6 +66,8 @@ by(induction t1 t2 rule: merge.induct) (auto simp: node_def)
 
 subsubsection \<open>Running time\<close>
 
+text \<open>Not defined automatically because we only count the time for @{const merge}.\<close>
+
 fun T_merge_adj :: "('a::ord) lheap list \<Rightarrow> nat" where
 "T_merge_adj [] = 0" |
 "T_merge_adj [t] = 0" |
