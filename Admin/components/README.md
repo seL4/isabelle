@@ -23,11 +23,11 @@ infrastructure, and Isabelle/ML refers to that for anything non-trivial.
 ### Supported platforms ###
 
 A broad range of hardware and operating system platforms are supported by
-building executables on **base-line versions** that are neither too old nor
-too new. Common OS families should work: Linux, macOS, Windows. Exotic
-platforms are unsupported: NixOS, BSD, Solaris etc.
+building executables on base-line versions that are neither too old nor too
+new. Common OS families should work: Linux, macOS, Windows. Exotic platforms
+are unsupported: NixOS, BSD, Solaris etc.
 
-The official platforms, with base-line operating systems, and reference
+The official platforms, with **base-line operating systems**, and reference
 machines are as follows:
 
   * `x86_64-linux`
