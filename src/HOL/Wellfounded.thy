@@ -49,12 +49,12 @@ lemma wfP_wf_eq: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
 
 subsection \<open>Induction Principles\<close>
 
-lemma wf_on_induct[consumes 2, case_names less, induct set: wf_on]:
+lemma wf_on_induct[consumes 1, case_names in_set less, induct set: wf_on]:
   assumes "wf_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> P y) \<Longrightarrow> P x"
   shows "P x"
   using assms(2,3) by (auto intro: \<open>wf_on A r\<close>[unfolded wf_on_def, rule_format])
 
-lemma wfp_on_induct[consumes 2, case_names less, induct pred: wfp_on]:
+lemma wfp_on_induct[consumes 1, case_names in_set less, induct pred: wfp_on]:
   assumes "wfp_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> r y x \<Longrightarrow> P y) \<Longrightarrow> P x"
   shows "P x"
   using assms by (fact wf_on_induct[to_pred])
@@ -162,8 +162,12 @@ lemma wf_onE_pf:
   shows "B = {}"
 proof -
   have "x \<notin> B" if "x \<in> A" for x
-    using wf that
+    using wf
   proof (induction x rule: wf_on_induct)
+    case in_set
+    show ?case
+      using that .
+  next
     case (less x)
     have "x \<notin> r `` B"
       using less.IH \<open>B \<subseteq> A\<close> by blast
