@@ -338,7 +338,7 @@ object Isabelle_Cronjob {
         Remote_Build("AFP (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
           history_base = "build_history_base_arm",
           java_heap = "8g",
-          options = "-m32 -M1x6 -p pide_session=false -t AFP" +
+          options = "-m32 -M1x5 -p pide_session=false -t AFP" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
