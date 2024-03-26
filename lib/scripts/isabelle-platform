@@ -23,19 +23,12 @@ case $(uname -s) in
     ;;
   Darwin)
     ISABELLE_PLATFORM_FAMILY="macos"
-    case $(sw_vers -productVersion) in
-      10.10*|10.11*|10.12*|10.13*|10.14*)
-        ISABELLE_PLATFORM64=x86_64-darwin
+    ISABELLE_PLATFORM64=x86_64-darwin
+    case $(uname -a) in
+      *arm64*|*ARM64*)
+        ISABELLE_APPLE_PLATFORM64=arm64-darwin
         ;;
       *)
-        ISABELLE_PLATFORM64=x86_64-darwin
-        case $(uname -a) in
-          *arm64*|*ARM64*)
-            ISABELLE_APPLE_PLATFORM64=arm64-darwin
-            ;;
-          *)
-            ;;
-        esac
         ;;
     esac
     ;;
@@ -43,10 +36,6 @@ case $(uname -s) in
     ISABELLE_PLATFORM_FAMILY="windows"
     ISABELLE_WINDOWS_PLATFORM32="x86-windows"
     ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
-    case $(uname -m) in
-      x86_64)
-        ISABELLE_PLATFORM64=x86_64-cygwin
-        ;;
-    esac
+    ISABELLE_PLATFORM64=x86_64-cygwin
     ;;
 esac

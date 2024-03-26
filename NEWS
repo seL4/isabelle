@@ -21,6 +21,7 @@ base-lines are now as follows:
 
   - Z3
   - CVC4
+  - MLton
   - Nunchaku + smbc (experimental)
 
 

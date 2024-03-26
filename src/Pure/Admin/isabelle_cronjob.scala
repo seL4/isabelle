@@ -335,14 +335,16 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("macOS 14 Sonoma (ARM)", "studio1-sonoma",
+        Remote_Build("AFP (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
           history_base = "build_history_base_arm",
-          options = "-m32 -B -M1x4,2x4,4x2,8 -p pide_session=false" +
+          java_heap = "8g",
+          options = "-m32 -M1x6 -p pide_session=false -t AFP" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'",
-          count = () => 2)),
+          args = "-a -d '~~/src/Benchmarks' -X large -X slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"))),
       List(
         Remote_Build("macOS, quick_and_dirty", "mini2",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
