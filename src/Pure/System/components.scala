@@ -38,6 +38,7 @@ object Components {
   /* platforms */
 
   sealed case class Platforms(family_platforms: Map[String, List[Path]]) {
+    def + (entry: (String, List[Path])): Platforms = Platforms(family_platforms + entry)
     def defined(family: String): Boolean = family_platforms.isDefinedAt(family)
     def apply(family: String): List[Path] = family_platforms.getOrElse(family, Nil)
     def path_iterator: Iterator[Path] = family_platforms.valuesIterator.flatten
@@ -210,24 +211,21 @@ object Components {
 
     def get_platforms(): Platforms = {
       val props_path = platform_props.expand
-      if (props_path.is_file) {
-        val family_platforms =
+      val props =
+        if (props_path.is_file) {
           try {
-            Map.from(
-              for (case (a, b) <- File.read_props(props_path).asScala.iterator)
-                yield {
-                  if (!default_platforms.defined(a)) error("Bad platform family " + quote(a))
-                  val ps = List.from(b.split("\\s+").iterator.filter(_.nonEmpty)).map(Path.explode)
-                  for (p <- ps if !p.all_basic) error("Bad path outside component " + p)
-                  a -> ps
-                })
+            for (case (a, b) <- File.read_props(props_path).asScala.toList)
+              yield {
+                if (!default_platforms.defined(a)) error("Bad platform family " + quote(a))
+                val ps = List.from(b.split("\\s+").iterator.filter(_.nonEmpty)).map(Path.explode)
+                for (p <- ps if !p.all_basic) error("Bad path outside component " + p)
+                a -> ps
+              }
           }
-          catch {
-            case ERROR(msg) => error(msg + Position.here(Position.File(props_path.implode)))
-          }
-        Platforms(family_platforms)
-      }
-      else default_platforms
+          catch { case ERROR(msg) => error(msg + Position.here(Position.File(props_path.implode))) }
+        }
+        else Nil
+      props.foldLeft(default_platforms)(_ + _)
     }
 
     def clean(
