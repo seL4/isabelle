@@ -43,7 +43,7 @@ object Dotnet_Setup {
   def default_version: String = Isabelle_System.getenv_strict("ISABELLE_DOTNET_VERSION")
 
   def dotnet_setup(
-    platform_spec: String = default_platform,
+    platforms: List[String] = List(default_platform),
     target_dir: Path = default_target_dir,
     install_url: String = default_install_url,
     version: String = default_version,
@@ -51,23 +51,20 @@ object Dotnet_Setup {
     dry_run: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
-    check_platform_spec(platform_spec)
-
-    for (platform <- all_platforms if platform.is(platform_spec)) {
-      progress.expose_interrupt()
+    platforms.foreach(check_platform_spec)
 
 
-      /* component directory */
+    /* component directory */
 
-      val component_dir =
-        Components.Directory(
-          target_dir + Path.explode(if (version.isEmpty) "dotnet-latest" else "dotnet-" + version))
+    val component_dir =
+      Components.Directory(
+        target_dir + Path.explode(if (version.isEmpty) "dotnet-latest" else "dotnet-" + version))
 
-      if (!dry_run) {
-        progress.echo("Component " + component_dir)
-        Isabelle_System.make_directory(component_dir.etc)
+    if (!dry_run) {
+      progress.echo("Component directory " + component_dir)
+      component_dir.create(permissive = true)
 
-        component_dir.write_settings("""
+      component_dir.write_settings("""
 ISABELLE_DOTNET_ROOT="$COMPONENT"
 
 if [ -n "$ISABELLE_WINDOWS_PLATFORM64" -a -d "$ISABELLE_DOTNET_ROOT/$ISABELLE_WINDOWS_PLATFORM64" ]; then
@@ -82,22 +79,25 @@ DOTNET_CLI_TELEMETRY_OPTOUT="true"
 DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
 """)
 
-        File.write(component_dir.README,
-          """This installation of Dotnet has been produced via "isabelle dotnet_setup".
+      File.write(component_dir.README,
+        """This installation of Dotnet has been produced via "isabelle dotnet_setup".
 
 
-        Makarius
-        """ + Date.Format.date(Date.now()) + "\n")
+      Makarius
+      """ + Date.Format.date(Date.now()) + "\n")
 
-        for (old <- proper_string(Isabelle_System.getenv("ISABELLE_DOTNET_ROOT"))) {
-          Components.update_components(false, Path.explode(old))
-        }
-
-        Components.update_components(true, component_dir.path)
+      for (old <- proper_string(Isabelle_System.getenv("ISABELLE_DOTNET_ROOT"))) {
+        Components.update_components(false, Path.explode(old))
       }
 
+      Components.update_components(true, component_dir.path)
+    }
 
-      /* platform directory */
+
+    /* platform directories */
+
+    for (platform <- all_platforms if platforms.exists(platform.is)) {
+      progress.expose_interrupt()
 
       Isabelle_System.with_tmp_file("install", ext = platform.ext) { install =>
         Isabelle_System.download_file(install_url + "." + platform.ext, install)
@@ -179,9 +179,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        for (platform <- platforms) {
-          dotnet_setup(platform_spec = platform, target_dir = target_dir, install_url = install_url,
-            version = version, force = force, dry_run = dry_run, progress = progress)
-        }
+        dotnet_setup(platforms = platforms, target_dir = target_dir, install_url = install_url,
+          version = version, force = force, dry_run = dry_run, progress = progress)
       })
 }
