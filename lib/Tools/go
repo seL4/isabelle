@@ -8,6 +8,6 @@ if [ -z "$ISABELLE_GOEXE" ]; then
   echo "Missing Go installation: need to run \"isabelle go_setup\" first" >&2
   exit 2
 else
-  export GOROOT="$ISABELLE_GOROOT"
+  export GOROOT="$(platform_path "$ISABELLE_GOROOT")"
   exec "$ISABELLE_GOEXE/go" "$@"
 fi
