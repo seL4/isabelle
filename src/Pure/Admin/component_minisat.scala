@@ -48,7 +48,7 @@ object Component_Minisat {
 
       val platform_name =
         proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
-          error("No 64bit platform")
+          error("Missing ISABELLE_PLATFORM64")
 
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
