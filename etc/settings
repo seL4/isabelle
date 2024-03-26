@@ -186,6 +186,13 @@ ISABELLE_DOTNET_VERSION="8.0.203"
 
 
 ###
+### Go
+###
+
+ISABELLE_GO_VERSION="1.22.1"
+
+
+###
 ### Misc settings
 ###
 

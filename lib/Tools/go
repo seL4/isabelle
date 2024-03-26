@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke go within the Isabelle environment
+
+if [ -z "$ISABELLE_GOEXE" ]; then
+  echo "Missing Go installation: need to run \"isabelle go_setup\" first" >&2
+  exit 2
+else
+  export GOROOT="$ISABELLE_GOROOT"
+  exec "$ISABELLE_GOEXE/go" "$@"
+fi

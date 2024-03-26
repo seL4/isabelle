@@ -27,7 +27,6 @@ sources = \
   src/Pure/Admin/component_eptcs.scala \
   src/Pure/Admin/component_foiltex.scala \
   src/Pure/Admin/component_fonts.scala \
-  src/Pure/Admin/component_go.scala \
   src/Pure/Admin/component_hugo.scala \
   src/Pure/Admin/component_javamail.scala \
   src/Pure/Admin/component_jdk.scala \
@@ -212,6 +211,7 @@ sources = \
   src/Pure/Tools/dump.scala \
   src/Pure/Tools/flarum.scala \
   src/Pure/Tools/fontforge.scala \
+  src/Pure/Tools/go_setup.scala \
   src/Pure/Tools/java_monitor.scala \
   src/Pure/Tools/logo.scala \
   src/Pure/Tools/mkroot.scala \

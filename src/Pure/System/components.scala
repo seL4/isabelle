@@ -202,9 +202,11 @@ object Components {
     def README: Path = path + Path.basic("README")
     def LICENSE: Path = path + Path.basic("LICENSE")
 
-    def create(progress: Progress = new Progress): Directory = {
-      progress.echo("Creating component directory " + toString)
-      ssh.new_directory(path)
+    def create(progress: Progress = new Progress, permissive: Boolean = false): Directory = {
+      if (!permissive || !ssh.is_dir(path)) {
+        progress.echo("Creating component directory " + toString)
+        ssh.new_directory(path)
+      }
       ssh.make_directory(etc)
       this
     }
