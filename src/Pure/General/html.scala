@@ -239,8 +239,8 @@ object HTML {
       body foreach {
         case XML.Elem(markup, Nil) =>
           XML.output_elem(s, markup, end = true)
-        case XML.Elem(Markup(Markup.RAW_HTML, _), List(XML.Text(raw))) =>
-          s ++= raw
+        case XML.Elem(Markup(Markup.RAW_HTML, _), body) =>
+          XML.traverse_text(body)(()) { case (_, raw) => s.append(raw) }
         case XML.Elem(markup, ts) =>
           if (structural && structural_elements(markup.name)) s += '\n'
           XML.output_elem(s, markup)
@@ -263,8 +263,9 @@ object HTML {
 
   /* input */
 
+  def input_raw(text: String): XML.Elem = raw(HTML.text(input(text)))
   def input(text: String): String = Jsoup_Entities.unescape(text)
-  def input_raw(text: String): XML.Elem = XML.elem(Markup.RAW_HTML, List(XML.Text(input(text))))
+  def raw(body: XML.Body): XML.Elem = XML.elem(Markup.RAW_HTML, body)
 
   def parse_document(html: String): Jsoup_Document = Jsoup.parse(html)
   def get_document(url: String): Jsoup_Document = Jsoup.connect(url).get()
