@@ -11,21 +11,23 @@ object Dotnet_Setup {
   /* platforms */
 
   sealed case class Platform_Info(
-    family: Platform.Family,
     name: String,
     os: String = "",
     arch: String = "x64",
     ext: String = "sh",
     exec: String = "bash",
-    check: () => Unit = () => ())
+    check: () => Unit = () => ()
+  ) {
+    val family: Platform.Family = Platform.Family.from_platform(name)
+  }
 
   private val all_platforms =
     List(
-      Platform_Info(Platform.Family.linux_arm, "arm64-linux", os = "linux", arch = "arm64"),
-      Platform_Info(Platform.Family.linux, "x86_64-linux", os = "linux"),
-      Platform_Info(Platform.Family.macos, "arm64-darwin", os = "osx", arch = "arm64"),
-      Platform_Info(Platform.Family.macos, "x86_64-darwin", os = "osx"),
-      Platform_Info(Platform.Family.windows, "x86_64-windows",
+      Platform_Info("arm64-linux", os = "linux", arch = "arm64"),
+      Platform_Info("x86_64-linux", os = "linux"),
+      Platform_Info("arm64-darwin", os = "osx", arch = "arm64"),
+      Platform_Info("x86_64-darwin", os = "osx"),
+      Platform_Info("x86_64-windows",
         ext = "ps1",
         exec = "powershell -ExecutionPolicy ByPass",
         check = () => Isabelle_System.require_command("powershell", "-NoProfile -Command Out-Null")))
