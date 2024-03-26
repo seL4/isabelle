@@ -79,6 +79,34 @@ object Platform {
   lazy val jvm_platform: String = cpu_arch + "-" + os_name
 
 
+  /* platform info */
+
+  trait Info {
+    def platform: String
+    override def toString: String = platform
+    def path: Path = Path.explode(platform)
+
+    val family: Family = Family.from_platform(platform)
+    def family_name: String = family.toString
+
+    def is_linux_arm: Boolean = family == Family.linux_arm
+    def is_linux: Boolean = family == Family.linux
+    def is_macos: Boolean = family == Family.macos
+    def is_windows: Boolean = family == Family.windows
+
+    def is(spec: String): Boolean = platform == spec || family_name == spec
+  }
+
+  def check_spec(infos: List[Info], spec: String): String = {
+    val specs = Library.distinct(infos.map(_.family_name) ::: infos.map(_.platform))
+    if (specs.contains(spec)) spec
+    else {
+      error("Bad platform specification " + quote(spec) +
+        "\n  expected " + commas_quote(specs))
+    }
+  }
+
+
   /* JVM version */
 
   private val Version = """1\.(\d+)\.0_(\d+)""".r

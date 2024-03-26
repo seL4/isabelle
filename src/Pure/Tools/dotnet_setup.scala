@@ -11,17 +11,15 @@ object Dotnet_Setup {
   /* platforms */
 
   sealed case class Platform_Info(
-    name: String,
+    platform: String,
     os: String = "",
     arch: String = "x64",
     ext: String = "sh",
     exec: String = "bash",
     check: () => Unit = () => ()
-  ) {
-    val family: Platform.Family = Platform.Family.from_platform(name)
-  }
+  ) extends Platform.Info
 
-  private val all_platforms =
+  val all_platforms: List[Platform_Info] =
     List(
       Platform_Info("arm64-linux", os = "linux", arch = "arm64"),
       Platform_Info("x86_64-linux", os = "linux"),
@@ -32,15 +30,8 @@ object Dotnet_Setup {
         exec = "powershell -ExecutionPolicy ByPass",
         check = () => Isabelle_System.require_command("powershell", "-NoProfile -Command Out-Null")))
 
-  def check_platform_spec(spec: String): String = {
-    val all_specs =
-      Library.distinct(all_platforms.map(_.family.toString) ::: all_platforms.map(_.name))
-    if (all_specs.contains(spec)) spec
-    else {
-      error("Bad platform specification " + quote(spec) +
-        "\n  expected " + commas_quote(all_specs))
-    }
-  }
+  def check_platform_spec(spec: String): String =
+    Platform.check_spec(all_platforms, spec)
 
 
   /* dotnet download and setup */
@@ -67,10 +58,7 @@ object Dotnet_Setup {
   ): Unit = {
     check_platform_spec(platform_spec)
 
-    for {
-      platform <- all_platforms
-      if platform.family.toString == platform_spec || platform.name == platform_spec
-    } {
+    for (platform <- all_platforms if platform.is(platform_spec)) {
       progress.expose_interrupt()
 
 
@@ -119,12 +107,12 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
       Isabelle_System.with_tmp_file("install", ext = platform.ext) { install =>
         Isabelle_System.download_file(install_url + "." + platform.ext, install)
 
-        val platform_dir = component_dir.path + Path.explode(platform.name)
+        val platform_dir = component_dir.path + platform.path
         if (platform_dir.is_dir && !force) {
-          progress.echo_warning("Platform " + platform.name + " already installed")
+          progress.echo_warning("Platform " + platform + " already installed")
         }
         else {
-          progress.echo("Platform " + platform.name + " ...")
+          progress.echo("Platform " + platform + " ...")
           platform.check()
           if (platform_dir.is_dir && force) Isabelle_System.rm_tree(platform_dir)
           val script =
@@ -132,7 +120,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
               if_proper(version, " -Version " + Bash.string(version)) +
               " -Architecture " + Bash.string(platform.arch) +
               if_proper(platform.os, " -OS " + Bash.string(platform.os)) +
-              " -InstallDir " + Bash.string(platform.name) +
+              " -InstallDir " + File.bash_path(platform.path) +
               (if (dry_run) " -DryRun" else "") +
               " -NoPath"
           progress.bash(script, echo = progress.verbose,

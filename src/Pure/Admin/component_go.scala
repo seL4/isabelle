@@ -10,26 +10,23 @@ package isabelle
 object Component_Go {
   /* platform information */
 
-  sealed case class Download_Platform(platform_name: String, go_platform: String) {
-    val platform_family: Platform.Family =
-      Platform.Family.from_platform(platform_name)
-
-    def platform_paths: List[String] =
-      List(platform_name, "pkg/tool/" + go_platform)
+  sealed case class Platform_Info(platform: String, go_platform: String)
+  extends Platform.Info {
+    def paths: List[String] = List(platform, "pkg/tool/" + go_platform)
 
     def download(base_url: String, version: String): String = {
-      val ext = if (platform_family == Platform.Family.windows) ".zip" else ".tar.gz"
+      val ext = if (is_windows) ".zip" else ".tar.gz"
       Url.append_path(base_url, "go" + version + "." + go_platform.replace("_", "-") + ext)
     }
   }
 
-  val platforms: List[Download_Platform] =
+  val all_platforms: List[Platform_Info] =
     List(
-      Download_Platform("arm64-darwin", "darwin_arm64"),
-      Download_Platform("arm64-linux", "linux_arm64"),
-      Download_Platform("x86_64-darwin", "darwin_amd64"),
-      Download_Platform("x86_64-linux", "linux_amd64"),
-      Download_Platform("x86_64-windows", "windows_amd64"))
+      Platform_Info("arm64-darwin", "darwin_arm64"),
+      Platform_Info("arm64-linux", "linux_arm64"),
+      Platform_Info("x86_64-darwin", "darwin_amd64"),
+      Platform_Info("x86_64-linux", "linux_amd64"),
+      Platform_Info("x86_64-windows", "windows_amd64"))
 
 
   /* build go */
@@ -50,7 +47,7 @@ object Component_Go {
     /* download */
 
     Isabelle_System.with_tmp_dir("download") { download_dir =>
-      for (platform <- platforms.reverse) {
+      for (platform <- all_platforms.reverse) {
         val download = platform.download(base_url, version)
 
         val archive_name =
@@ -61,7 +58,7 @@ object Component_Go {
         Isabelle_System.download_file(download, archive_path, progress = progress)
         Isabelle_System.extract(archive_path, component_dir.path, strip = true)
 
-        val platform_dir = component_dir.path + Path.explode(platform.platform_name)
+        val platform_dir = component_dir.path + platform.path
         Isabelle_System.move_file(component_dir.bin, platform_dir)
       }
     }
@@ -104,8 +101,8 @@ ISABELLE_TOOLS="$ISABELLE_TOOLS:$ISABELLE_GOROOT/isabelle_tool"
     /* platform.props */
 
     File.write(component_dir.platform_props,
-      (for ((a, b) <- platforms.groupBy(_.platform_family).iterator)
-        yield a.toString + " = " + b.flatMap(_.platform_paths).mkString(" ")
+      (for ((a, b) <- all_platforms.groupBy(_.family_name).iterator)
+        yield a + " = " + b.flatMap(_.paths).mkString(" ")
       ).mkString("", "\n", "\n"))
 
 
