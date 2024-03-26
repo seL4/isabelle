@@ -4,8 +4,8 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2024 (May 2024)
+------------------------------
 
 *** General ***
 
@@ -31,6 +31,14 @@ base-lines are now as follows:
 (02-Nov-2023). See also src/Doc/Demo_LLNCS/.
 
 
+*** Pure ***
+
+* Added configuration option "unify_trace" (default: false) to guard
+tracing of higher-order unification, which is ubiquitous in assumption
+steps and rule applications via resolution. This is disabled by default
+to avoid breakdown due to massive amounts of spurious messages.
+
+
 *** HOL ***
 
 * Commands 'inductive_cases', 'inductive_simps', 'case_of_simps',
@@ -46,15 +54,12 @@ base-lines are now as follows:
   - Added support for "order" proof method to proof reconstruction.
 
 * Mirabelle:
-  - Removed proof reconstruction from "sledgehammer" action;
-    the related option "proof_method" was removed. Proof reconstruction is
-    supported directly by Sledgehammer and should be used instead. For
-    more information, see Sledgehammer's documentation relating to
+  - Removed proof reconstruction from "sledgehammer" action; the related
+    option "proof_method" was removed. Proof reconstruction is supported
+    directly by Sledgehammer and should be used instead. For more
+    information, see Sledgehammer's documentation relating to
     "preplay_timeout". INCOMPATIBILITY.
   - Added the action "order" testing the proof method of the same name.
-
-* Session Data_Structures provides automatic translation from
-HOL functions into corresponding step-counting running-time functions.See theory Define_Time_Function.
 
 * Explicit type class for discrete_linear_ordered_semidom for integral
 semidomains with a discrete linear order.
@@ -107,11 +112,12 @@ INCOMPATIBILITY.
       tranclp_less_eq[simp]
 
 * Theory "HOL.Wellfounded":
-  - Added predicates wf_on and wfp_on and redefined wfP to be abbreviations.
-    Lemmas wf_def and wfP_def are explicitly provided for backward
-    compatibility but their usage is discouraged. Minor INCOMPATIBILITY.
-  - Added wfp as alias for wfP for greater consistency with other predicates
-    such as asymp, transp, or totalp.
+  - Added predicates wf_on and wfp_on and redefined wfP to be
+    abbreviations. Lemmas wf_def and wfP_def are explicitly provided for
+    backward compatibility but their usage is discouraged. Minor
+    INCOMPATIBILITY.
+  - Added wfp as alias for wfP for greater consistency with other
+    predicates such as asymp, transp, or totalp.
   - Added lemmas.
       wellorder.wfp_on_less[simp]
       wfP_iff_ex_minimal
@@ -148,12 +154,9 @@ to require the underlying set to be convex. INCOMPATIBILITY.
 * HOL-Complex_Analysis: new, more general definition of meromorphicity.
 INCOMPATIBILITY.
 
-*** Pure ***
-
-* Added configuration option "unify_trace" (default: false) to guard
-tracing of higher-order unification, which is ubiquitous in assumption
-steps and rule applications via resolution. This is disabled by default
-to avoid breakdown due to massive amounts of spurious messages.
+* HOL-Data_Structures: automatic translation from HOL functions into
+corresponding step-counting running-time functions. See theory
+"HOL-Data_Structures.Define_Time_Function".
 
 
 *** ML ***

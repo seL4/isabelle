@@ -3,24 +3,24 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2024
+-----------------------------
 
 * March 2024: Manuel Eberl
-  Weierstraß Factorization Theorem in HOL-Complex_Analysis
+  Weierstraß Factorization Theorem in HOL-Complex_Analysis.
 
 * March 2024: Anthony Bordg, Manuel Eberl, Wenda Li, Larry Paulson
-  New and more general definition of meromorphicity in HOL-Complex_Analysis
+  New and more general definition of meromorphicity in HOL-Complex_Analysis.
 
 * Feb/March 2024: Jonas Stahl
-  Automatic translation of HOL functions into corresponding
-  step-counting running-time functions
+  Automatic translation of HOL functions into corresponding step-counting
+  running-time functions.
 
 * 2023/2024: Makarius Wenzel and Fabian Huch
   More robust and scalable support for distributed build clusters.
 
 * October 2023: Fabian Huch
-  Support for SMTP mailing.
+  Support for SMTP mailing in Isabelle/Scala.
 
 
 Contributions to Isabelle2023
