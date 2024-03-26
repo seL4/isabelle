@@ -43,6 +43,11 @@ class Isabelle_Platform private(val settings: List[(String, String)]) {
   val ISABELLE_WINDOWS_PLATFORM64: String = get("ISABELLE_WINDOWS_PLATFORM64")
   val ISABELLE_APPLE_PLATFORM64: String = get("ISABELLE_APPLE_PLATFORM64")
 
+  def ISABELLE_PLATFORM(windows: Boolean = false, apple: Boolean = false): String =
+    proper_string(if_proper(windows, ISABELLE_WINDOWS_PLATFORM64)) orElse
+    proper_string(if_proper(apple, ISABELLE_APPLE_PLATFORM64)) orElse
+    proper_string(ISABELLE_PLATFORM64) getOrElse error("Missing ISABELLE_PLATFORM64")
+
   def is_arm: Boolean =
     ISABELLE_PLATFORM64.startsWith("arm64-") ||
     ISABELLE_APPLE_PLATFORM64.startsWith("arm64-")
