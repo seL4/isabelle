@@ -280,7 +280,7 @@ lemma wf_iff_ex_minimal: "wf R \<longleftrightarrow> (\<forall>B. B \<noteq> {} 
 lemma wfp_on_iff_ex_minimal: "wfp_on A R \<longleftrightarrow> (\<forall>B \<subseteq> A. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
   using wf_on_iff_ex_minimal[of A, to_pred] by simp
 
-lemma wfP_iff_ex_minimal: "wfP R \<longleftrightarrow> (\<forall>B. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
+lemma wfp_iff_ex_minimal: "wfp R \<longleftrightarrow> (\<forall>B. B \<noteq> {} \<longrightarrow> (\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B))"
   using wfp_on_iff_ex_minimal[of UNIV, simplified] .
 
 lemma wfE_min:
