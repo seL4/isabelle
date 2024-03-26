@@ -18,6 +18,7 @@ sources = \
   src/Pure/Admin/build_status.scala \
   src/Pure/Admin/check_sources.scala \
   src/Pure/Admin/ci_build.scala \
+  src/Pure/Admin/component_bash_process.scala \
   src/Pure/Admin/component_csdp.scala \
   src/Pure/Admin/component_cvc5.scala \
   src/Pure/Admin/component_cygwin.scala \

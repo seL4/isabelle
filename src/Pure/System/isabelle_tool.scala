@@ -166,6 +166,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Build_Log.isabelle_tool,
   Build_Status.isabelle_tool,
   Check_Sources.isabelle_tool,
+  Component_Bash_Process.isabelle_tool,
   Component_CSDP.isabelle_tool,
   Component_CVC5.isabelle_tool,
   Component_Cygwin.isabelle_tool,
