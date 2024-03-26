@@ -961,20 +961,52 @@ proof -
     by (clarsimp simp: inv_image_def wf_eq_minimal)
 qed
 
+lemma wfp_on_inv_imagep:
+  assumes wf: "wfp_on (f ` A) R"
+  shows "wfp_on A (inv_imagep R f)"
+  unfolding wfp_on_iff_ex_minimal
+proof (intro allI impI)
+  fix B assume "B \<subseteq> A" and "B \<noteq> {}"
+  hence "\<exists>z\<in>f ` B. \<forall>y. R y z \<longrightarrow> y \<notin> f ` B"
+    using wf[unfolded wfp_on_iff_ex_minimal, rule_format, of "f ` B"] by blast
+  thus "\<exists>z\<in>B. \<forall>y. inv_imagep R f y z \<longrightarrow> y \<notin> B"
+    unfolding inv_imagep_def
+    by auto
+qed
+
 
 subsubsection \<open>Conversion to a known well-founded relation\<close>
+
+lemma wfp_on_if_convertible_to_wfp_on:
+  assumes
+    wf: "wfp_on (f ` A) Q" and
+    convertible: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q (f x) (f y))"
+  shows "wfp_on A R"
+  unfolding wfp_on_iff_ex_minimal
+proof (intro allI impI)
+  fix B assume "B \<subseteq> A" and "B \<noteq> {}"
+  moreover from wf have "wfp_on A (inv_imagep Q f)"
+    by (rule wfp_on_inv_imagep)
+  ultimately obtain y where "y \<in> B" and "\<And>z. Q (f z) (f y) \<Longrightarrow> z \<notin> B"
+    unfolding wfp_on_iff_ex_minimal in_inv_imagep
+    by blast
+  thus "\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B"
+    using \<open>B \<subseteq> A\<close> convertible by blast
+qed
+
+lemma wf_on_if_convertible_to_wf_on: "wf_on (f ` A) Q \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (f x, f y) \<in> Q) \<Longrightarrow> wf_on A R"
+  using wfp_on_if_convertible_to_wfp_on[to_set] .
 
 lemma wf_if_convertible_to_wf:
   fixes r :: "'a rel" and s :: "'b rel" and f :: "'a \<Rightarrow> 'b"
   assumes "wf s" and convertible: "\<And>x y. (x, y) \<in> r \<Longrightarrow> (f x, f y) \<in> s"
   shows "wf r"
-proof (rule wfI_min[of r])
-  fix x :: 'a and Q :: "'a set"
-  assume "x \<in> Q"
-  then obtain y where "y \<in> Q" and "\<And>z. (f z, f y) \<in> s \<Longrightarrow> z \<notin> Q"
-    by (auto elim: wfE_min[OF wf_inv_image[of s f, OF \<open>wf s\<close>], unfolded in_inv_image])
-  thus "\<exists>z \<in> Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
-    by (auto intro: convertible)
+proof (rule wf_on_if_convertible_to_wf_on)
+  show "wf_on (range f) s"
+    using wf_on_subset[OF \<open>wf s\<close> subset_UNIV] .
+next
+  show "\<And>x y. (x, y) \<in> r \<Longrightarrow> (f x, f y) \<in> s"
+    using convertible .
 qed
 
 lemma wfP_if_convertible_to_wfP: "wfP S \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> S (f x) (f y)) \<Longrightarrow> wfP R"
