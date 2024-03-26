@@ -54,7 +54,7 @@ object Dotnet_Setup {
 
   def default_target_dir: Path = Components.default_components_base
   def default_install_url: String = "https://dot.net/v1/dotnet-install"
-  def default_version: String = "8.0.203"
+  def default_version: String = Isabelle_System.getenv_strict("ISABELLE_DOTNET_VERSION")
 
   def dotnet_setup(
     platform_spec: String = default_platform,
@@ -168,7 +168,8 @@ Usage: isabelle dotnet_setup [OPTIONS]
     -D DIR       target directory (default: """ + default_target_dir.expand + """)
     -I URL       URL for install script without extension
                  (default: """ + quote(default_install_url) + """)
-    -V VERSION   version (empty means "latest", default: """ + quote(default_version) + """)
+    -V VERSION   version (empty means "latest",
+                 default: ISABELLE_DOTNET_VERSION=""" + quote(default_version) + """)
     -f           force fresh installation of specified platforms
     -n           dry run: try download without installation
     -p PLATFORMS comma-separated list of platform specifications,

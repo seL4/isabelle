@@ -179,6 +179,13 @@ ISABELLE_GHC_VERSION="ghc-9.6.4"
 
 
 ###
+### .Net / Fsharp
+###
+
+ISABELLE_DOTNET_VERSION="8.0.203"
+
+
+###
 ### Misc settings
 ###
 
