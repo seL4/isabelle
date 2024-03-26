@@ -5,7 +5,7 @@
 # DESCRIPTION: invoke the dotnet CLI driver within the Isabelle environment
 
 if [ -z "$ISABELLE_DOTNET" ]; then
-  echo "Missing dotnet installation: need to run \"isabelle dotnet_setup\" first" >&2
+  echo "Missing Dotnet installation: need to run \"isabelle dotnet_setup\" first" >&2
   exit 2
 else
   exec "$ISABELLE_DOTNET" "$@"

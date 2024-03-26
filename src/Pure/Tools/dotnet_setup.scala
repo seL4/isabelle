@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/dotnet_setup.scala
     Author:     Makarius
 
-Dynamic setup of dotnet component.
+Dynamic setup of Dotnet component.
 */
 
 package isabelle
@@ -132,7 +132,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("dotnet_setup", "dynamic setup of dotnet component (for Fsharp)",
+    Isabelle_Tool("dotnet_setup", "dynamic setup of Dotnet component (for Fsharp)",
       Scala_Project.here,
       { args =>
 
