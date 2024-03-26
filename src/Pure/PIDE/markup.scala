@@ -363,6 +363,11 @@ object Markup {
   }
 
 
+  /* HTML */
+
+  val RAW_HTML = "raw_html"
+
+
   /* LaTeX */
 
   val Document_Latex = new Markup_Elem("document_latex")

@@ -239,7 +239,7 @@ object HTML {
       body foreach {
         case XML.Elem(markup, Nil) =>
           XML.output_elem(s, markup, end = true)
-        case XML.Elem(Markup(RAW, _), List(XML.Text(raw))) =>
+        case XML.Elem(Markup(Markup.RAW_HTML, _), List(XML.Text(raw))) =>
           s ++= raw
         case XML.Elem(markup, ts) =>
           if (structural && structural_elements(markup.name)) s += '\n'
@@ -263,10 +263,8 @@ object HTML {
 
   /* input */
 
-  val RAW = "raw"
-
   def input(text: String): String = Jsoup_Entities.unescape(text)
-  def input_raw(text: String): XML.Elem = XML.elem(RAW, List(XML.Text(input(text))))
+  def input_raw(text: String): XML.Elem = XML.elem(Markup.RAW_HTML, List(XML.Text(input(text))))
 
   def parse_document(html: String): Jsoup_Document = Jsoup.parse(html)
   def get_document(url: String): Jsoup_Document = Jsoup.connect(url).get()
