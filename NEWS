@@ -111,7 +111,7 @@ INCOMPATIBILITY.
     Lemmas wf_def and wfP_def are explicitly provided for backward
     compatibility but their usage is discouraged. Minor INCOMPATIBILITY.
   - Added wfp as alias for wfP for greater consistency with other predicates
-    such as asymp, transp, or totalp. 
+    such as asymp, transp, or totalp.
   - Added lemmas.
       wellorder.wfp_on_less[simp]
       wfP_iff_ex_minimal
@@ -120,13 +120,17 @@ INCOMPATIBILITY.
       wf_onI_pf
       wf_on_antimono
       wf_on_antimono_strong
+      wf_on_if_convertible_to_wf_on
       wf_on_iff_ex_minimal
+      wf_on_iff_wf
       wf_on_induct
       wf_on_subset
       wfp_on_antimono
       wfp_on_antimono_strong
+      wfp_on_if_convertible_to_wfp_on
       wfp_on_iff_ex_minimal
       wfp_on_induct
+      wfp_on_inv_imagep
       wfp_on_subset
       wfp_on_wf_on_eq
 

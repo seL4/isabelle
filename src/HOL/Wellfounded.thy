@@ -49,12 +49,12 @@ lemma wfP_wf_eq: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
 
 subsection \<open>Induction Principles\<close>
 
-lemma wf_on_induct[consumes 2, case_names less, induct set: wf_on]:
+lemma wf_on_induct[consumes 1, case_names in_set less, induct set: wf_on]:
   assumes "wf_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> P y) \<Longrightarrow> P x"
   shows "P x"
   using assms(2,3) by (auto intro: \<open>wf_on A r\<close>[unfolded wf_on_def, rule_format])
 
-lemma wfp_on_induct[consumes 2, case_names less, induct pred: wfp_on]:
+lemma wfp_on_induct[consumes 1, case_names in_set less, induct pred: wfp_on]:
   assumes "wfp_on A r" and "x \<in> A" and "\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> r y x \<Longrightarrow> P y) \<Longrightarrow> P x"
   shows "P x"
   using assms by (fact wf_on_induct[to_pred])
@@ -70,6 +70,57 @@ lemmas wfP_induct = wf_induct [to_pred]
 lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
 
 lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
+
+lemma wf_on_iff_wf: "wf_on A r \<longleftrightarrow> wf {(x, y) \<in> r. x \<in> A \<and> y \<in> A}"
+proof (rule iffI)
+  assume wf: "wf_on A r"
+  show "wf {(x, y) \<in> r. x \<in> A \<and> y \<in> A}"
+    unfolding wf_def
+  proof (intro allI impI ballI)
+    fix P x
+    assume IH: "\<forall>x. (\<forall>y. (y, x) \<in> {(x, y). (x, y) \<in> r \<and> x \<in> A \<and> y \<in> A} \<longrightarrow> P y) \<longrightarrow> P x"
+    show "P x"
+    proof (cases "x \<in> A")
+      case True
+      show ?thesis
+        using wf
+      proof (induction x rule: wf_on_induct)
+        case in_set
+        thus ?case
+          using True .
+      next
+        case (less x)
+        thus ?case
+          by (auto intro: IH[rule_format])
+      qed
+    next
+      case False
+      then show ?thesis
+        by (auto intro: IH[rule_format])
+    qed
+  qed
+next
+  assume wf: "wf {(x, y). (x, y) \<in> r \<and> x \<in> A \<and> y \<in> A}"
+  show "wf_on A r"
+    unfolding wf_on_def
+  proof (intro allI impI ballI)
+    fix P x
+    assume IH: "\<forall>x\<in>A. (\<forall>y\<in>A. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x" and "x \<in> A"
+    show "P x"
+      using wf \<open>x \<in> A\<close>
+    proof (induction x rule: wf_on_induct)
+      case in_set
+      show ?case
+        by simp
+    next
+      case (less y)
+      hence "\<And>z. (z, y) \<in> r \<Longrightarrow> z \<in> A \<Longrightarrow> P z"
+        by simp
+      thus ?case
+        using IH[rule_format, OF \<open>y \<in> A\<close>] by simp
+    qed
+  qed
+qed
 
 
 subsection \<open>Introduction Rules\<close>
@@ -162,8 +213,12 @@ lemma wf_onE_pf:
   shows "B = {}"
 proof -
   have "x \<notin> B" if "x \<in> A" for x
-    using wf that
+    using wf
   proof (induction x rule: wf_on_induct)
+    case in_set
+    show ?case
+      using that .
+  next
     case (less x)
     have "x \<notin> r `` B"
       using less.IH \<open>B \<subseteq> A\<close> by blast
@@ -906,20 +961,52 @@ proof -
     by (clarsimp simp: inv_image_def wf_eq_minimal)
 qed
 
+lemma wfp_on_inv_imagep:
+  assumes wf: "wfp_on (f ` A) R"
+  shows "wfp_on A (inv_imagep R f)"
+  unfolding wfp_on_iff_ex_minimal
+proof (intro allI impI)
+  fix B assume "B \<subseteq> A" and "B \<noteq> {}"
+  hence "\<exists>z\<in>f ` B. \<forall>y. R y z \<longrightarrow> y \<notin> f ` B"
+    using wf[unfolded wfp_on_iff_ex_minimal, rule_format, of "f ` B"] by blast
+  thus "\<exists>z\<in>B. \<forall>y. inv_imagep R f y z \<longrightarrow> y \<notin> B"
+    unfolding inv_imagep_def
+    by auto
+qed
+
 
 subsubsection \<open>Conversion to a known well-founded relation\<close>
+
+lemma wfp_on_if_convertible_to_wfp_on:
+  assumes
+    wf: "wfp_on (f ` A) Q" and
+    convertible: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q (f x) (f y))"
+  shows "wfp_on A R"
+  unfolding wfp_on_iff_ex_minimal
+proof (intro allI impI)
+  fix B assume "B \<subseteq> A" and "B \<noteq> {}"
+  moreover from wf have "wfp_on A (inv_imagep Q f)"
+    by (rule wfp_on_inv_imagep)
+  ultimately obtain y where "y \<in> B" and "\<And>z. Q (f z) (f y) \<Longrightarrow> z \<notin> B"
+    unfolding wfp_on_iff_ex_minimal in_inv_imagep
+    by blast
+  thus "\<exists>z \<in> B. \<forall>y. R y z \<longrightarrow> y \<notin> B"
+    using \<open>B \<subseteq> A\<close> convertible by blast
+qed
+
+lemma wf_on_if_convertible_to_wf_on: "wf_on (f ` A) Q \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (f x, f y) \<in> Q) \<Longrightarrow> wf_on A R"
+  using wfp_on_if_convertible_to_wfp_on[to_set] .
 
 lemma wf_if_convertible_to_wf:
   fixes r :: "'a rel" and s :: "'b rel" and f :: "'a \<Rightarrow> 'b"
   assumes "wf s" and convertible: "\<And>x y. (x, y) \<in> r \<Longrightarrow> (f x, f y) \<in> s"
   shows "wf r"
-proof (rule wfI_min[of r])
-  fix x :: 'a and Q :: "'a set"
-  assume "x \<in> Q"
-  then obtain y where "y \<in> Q" and "\<And>z. (f z, f y) \<in> s \<Longrightarrow> z \<notin> Q"
-    by (auto elim: wfE_min[OF wf_inv_image[of s f, OF \<open>wf s\<close>], unfolded in_inv_image])
-  thus "\<exists>z \<in> Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
-    by (auto intro: convertible)
+proof (rule wf_on_if_convertible_to_wf_on)
+  show "wf_on (range f) s"
+    using wf_on_subset[OF \<open>wf s\<close> subset_UNIV] .
+next
+  show "\<And>x y. (x, y) \<in> r \<Longrightarrow> (f x, f y) \<in> s"
+    using convertible .
 qed
 
 lemma wfP_if_convertible_to_wfP: "wfP S \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> S (f x) (f y)) \<Longrightarrow> wfP R"
