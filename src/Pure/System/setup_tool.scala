@@ -15,11 +15,10 @@ object Setup_Tool {
     services.foreach(_.init(other_isabelle, verbose = verbose))
 }
 
-abstract class Setup_Tool(tool: String)
+abstract class Setup_Tool(tool: String, val variable: String)
 extends Isabelle_System.Service {
   override def toString: String = tool
 
-  val variable: String = "ISABELLE_" + Word.uppercase(tool)
   val files: List[Path] = List(Path.explode("lib/Tools") + Path.basic(tool))
 
   def test(other_isabelle: Other_Isabelle): Boolean =
@@ -33,5 +32,5 @@ extends Isabelle_System.Service {
     if (test(other_isabelle)) run(other_isabelle, verbose = verbose)
 }
 
-class GHC_Setup extends Setup_Tool("ghc_setup")
-class OCaml_Setup extends Setup_Tool("ocaml_setup")
+class GHC_Setup extends Setup_Tool("ghc_setup", "ISABELLE_GHC_SETUP")
+class OCaml_Setup extends Setup_Tool("ocaml_setup", "ISABELLE_OCAML_SETUP")
