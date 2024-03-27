@@ -390,26 +390,6 @@ fun DERIV_floatarith :: "nat \<Rightarrow> floatarith \<Rightarrow> floatarith" 
 "DERIV_floatarith x (Num f)           = Num 0" |
 "DERIV_floatarith x (Var n)          = (if x = n then Num 1 else Num 0)"
 
-lemma has_real_derivative_powr':
-  fixes f g :: "real \<Rightarrow> real"
-  assumes "(f has_real_derivative f') (at x)"
-  assumes "(g has_real_derivative g') (at x)"
-  assumes "f x > 0"
-  defines "h \<equiv> \<lambda>x. f x powr g x * (g' * ln (f x) + f' * g x / f x)"
-  shows   "((\<lambda>x. f x powr g x) has_real_derivative h x) (at x)"
-proof (subst DERIV_cong_ev[OF refl _ refl])
-  from assms have "isCont f x"
-    by (simp add: DERIV_continuous)
-  hence "f \<midarrow>x\<rightarrow> f x" by (simp add: continuous_at)
-  with \<open>f x > 0\<close> have "eventually (\<lambda>x. f x > 0) (nhds x)"
-    by (auto simp: tendsto_at_iff_tendsto_nhds dest: order_tendstoD)
-  thus "eventually (\<lambda>x. f x powr g x = exp (g x * ln (f x))) (nhds x)"
-    by eventually_elim (simp add: powr_def)
-next
-  from assms show "((\<lambda>x. exp (g x * ln (f x))) has_real_derivative h x) (at x)"
-    by (auto intro!: derivative_eq_intros simp: h_def powr_def)
-qed
-
 lemma DERIV_floatarith:
   assumes "n < length vs"
   assumes isDERIV: "isDERIV n f (vs[n := x])"
