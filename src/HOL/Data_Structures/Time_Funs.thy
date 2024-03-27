@@ -7,6 +7,11 @@ theory Time_Funs
   imports Define_Time_Function
 begin
 
+time_fun "(@)"
+
+lemma T_append: "T_append xs ys = length xs + 1"
+by(induction xs) auto
+
 text \<open>Automatic definition of \<open>T_length\<close> is cumbersome because of the type class for \<open>size\<close>.\<close>
 
 fun T_length :: "'a list \<Rightarrow> nat" where
