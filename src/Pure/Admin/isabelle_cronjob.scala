@@ -340,6 +340,7 @@ object Isabelle_Cronjob {
           java_heap = "8g",
           options = "-m32 -M1x5 -p pide_session=false -t AFP" +
             " -e ISABELLE_GHC_SETUP=true" +
+            " -e ISABELLE_GO_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
           args = "-a -d '~~/src/Benchmarks' -X large -X slow",
