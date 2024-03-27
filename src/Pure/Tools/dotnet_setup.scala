@@ -183,3 +183,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
           version = version, force = force, dry_run = dry_run, progress = progress)
       })
 }
+
+class Dotnet_Setup extends Setup_Tool("dotnet_setup", "ISABELLE_DOTNET_SETUP") {
+  override val test_file: Path = Path.explode("lib/Tools/dotnet")
+}

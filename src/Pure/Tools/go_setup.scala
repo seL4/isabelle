@@ -170,3 +170,7 @@ Usage: isabelle go_setup [OPTIONS]
           target_dir = target_dir, progress = progress, force = force)
       })
 }
+
+class Go_Setup extends Setup_Tool("go_setup", "ISABELLE_GO_SETUP") {
+  override val test_file: Path = Path.explode("lib/Tools/go")
+}

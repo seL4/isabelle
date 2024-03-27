@@ -333,7 +333,9 @@ services = \
   isabelle.Document_Build$LIPIcs_PDFLaTeX_Engine \
   isabelle.Document_Build$LuaLaTeX_Engine \
   isabelle.Document_Build$PDFLaTeX_Engine \
+  isabelle.Dotnet_Setup \
   isabelle.CI_Builds \
+  isabelle.Go_Setup \
   isabelle.GHC_Setup \
   isabelle.ML_Statistics$Handler \
   isabelle.OCaml_Setup \
