@@ -857,7 +857,7 @@ proof -
     using int X by (intro entropy_le) auto
   also have "\<dots> \<le> log b (measure MX (space MX))"
     using Px distributed_imp_emeasure_nonzero[OF X]
-    by (intro log_le)
+    by (intro Transcendental.log_mono)
        (auto intro!: finite_measure_mono b_gt_1 less_le[THEN iffD2]
              simp: emeasure_eq_measure cong: conj_cong)
   finally show ?thesis .
@@ -1087,7 +1087,7 @@ proof -
     done
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
-  proof (intro le_imp_neg_le log_le[OF b_gt_1])
+  proof (intro le_imp_neg_le Transcendental.log_mono[OF b_gt_1])
     have If: "integrable ?P ?f"
       unfolding real_integrable_def
     proof (intro conjI)
@@ -1332,7 +1332,7 @@ proof -
     by (auto simp: split_beta')
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
-  proof (intro le_imp_neg_le log_le[OF b_gt_1])
+  proof (intro le_imp_neg_le Transcendental.log_mono[OF b_gt_1])
     have If: "integrable ?P ?f"
       using neg fin by (force simp add: real_integrable_def)
     then have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) = (\<integral>x. ?f x \<partial>?P)"

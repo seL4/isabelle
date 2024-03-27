@@ -61,6 +61,9 @@ to avoid breakdown due to massive amounts of spurious messages.
     "preplay_timeout". INCOMPATIBILITY.
   - Added the action "order" testing the proof method of the same name.
 
+* HOL-ex.Sketch_and_Explore: improvements to generate more natural and
+readable proof sketches from proof states.
+
 * Explicit type class for discrete_linear_ordered_semidom for integral
 semidomains with a discrete linear order.
 

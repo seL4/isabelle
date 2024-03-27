@@ -2665,7 +2665,7 @@ qed
 lemma log_le_cancel_iff [simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a x \<le> log a y \<longleftrightarrow> x \<le> y"
   by (simp flip: linorder_not_less)
 
-lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"
+lemma log_mono: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"
   by simp
 
 lemma log_less: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x < y \<Longrightarrow> log a x < log a y"
@@ -3200,6 +3200,27 @@ proof (subst DERIV_cong_ev[OF refl _ refl])
 qed
 
 declare has_real_derivative_powr[THEN DERIV_chain2, derivative_intros]
+
+text \<open>A more general version, by Johannes Hölzl\<close>
+lemma has_real_derivative_powr':
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_real_derivative f') (at x)"
+  assumes "(g has_real_derivative g') (at x)"
+  assumes "f x > 0"
+  defines "h \<equiv> \<lambda>x. f x powr g x * (g' * ln (f x) + f' * g x / f x)"
+  shows   "((\<lambda>x. f x powr g x) has_real_derivative h x) (at x)"
+proof (subst DERIV_cong_ev[OF refl _ refl])
+  from assms have "isCont f x"
+    by (simp add: DERIV_continuous)
+  hence "f \<midarrow>x\<rightarrow> f x" by (simp add: continuous_at)
+  with \<open>f x > 0\<close> have "eventually (\<lambda>x. f x > 0) (nhds x)"
+    by (auto simp: tendsto_at_iff_tendsto_nhds dest: order_tendstoD)
+  thus "eventually (\<lambda>x. f x powr g x = exp (g x * ln (f x))) (nhds x)"
+    by eventually_elim (simp add: powr_def)
+next
+  from assms show "((\<lambda>x. exp (g x * ln (f x))) has_real_derivative h x) (at x)"
+    by (auto intro!: derivative_eq_intros simp: h_def powr_def)
+qed
 
 lemma tendsto_zero_powrI:
   assumes "(f \<longlongrightarrow> (0::real)) F" "(g \<longlongrightarrow> b) F" "\<forall>\<^sub>F x in F. 0 \<le> f x" "0 < b"
