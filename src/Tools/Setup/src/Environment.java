@@ -366,11 +366,7 @@ public class Environment
             BiFunction<String,String,Void> env_default =
                 (String a, String b) -> { if (!b.isEmpty()) env.putIfAbsent(a, b); return null; };
 
-            String temp_windows = is_windows() ? System.getenv("TEMP") : null;
-
             env_default.apply("CYGWIN_ROOT", cygwin_root);
-            env_default.apply("TEMP_WINDOWS",
-                (temp_windows != null && temp_windows.contains("\\")) ? temp_windows : "");
             env_default.apply("ISABELLE_JDK_HOME",
                 standard_path(cygwin_root, System.getProperty("java.home", "")));
             env_default.apply("HOME", System.getProperty("user.home", ""));
