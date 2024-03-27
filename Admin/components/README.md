@@ -30,9 +30,7 @@ are unsupported: NixOS, BSD, Solaris etc.
 The official platforms, with **base-line operating systems**, and reference
 machines are as follows:
 
-  * `x86_64-linux`
-      - **Ubuntu 18.04 LTS**
-  * `arm64-linux`
+  * `x86_64-linux` and `arm64-linux`
       - **Ubuntu 18.04 LTS** (e.g. via `docker run -it ubuntu:18.04 bash`)
 
   * `x86_64-darwin`
@@ -243,4 +241,3 @@ rarely used, is to provide an Isabelle setup tool that interested users may
 run for themselves. This works particularly well for software products that
 have their own "store" of downloadable artifacts. For example, see
 `isabelle dotnet_setup` as defined in `src/Pure/Tools/dotnet_setup.scala`.
-
