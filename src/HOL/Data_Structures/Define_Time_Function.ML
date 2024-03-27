@@ -353,7 +353,9 @@ fun letc _ _ f expT exp nms Ts t =
 
 (* The converter for timing functions given to the walker *)
 val converter : term option converter = {
-        constc = fn _ => fn _ => fn _ => fn _ => NONE,
+        constc = fn _ => fn _ => fn _ => fn t =>
+          (case t of Const ("HOL.undefined", _) => SOME (Const ("HOL.undefined", @{typ "nat"}))
+                   | _ => NONE),
         funcc = funcc,
         ifc = ifc,
         casec = casec,
