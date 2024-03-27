@@ -19,11 +19,11 @@ abstract class Setup_Tool(tool: String, val variable: String)
 extends Isabelle_System.Service {
   override def toString: String = tool
 
-  val files: List[Path] = List(Path.explode("lib/Tools") + Path.basic(tool))
+  val test_file: Path = Path.explode("lib/Tools") + Path.basic(tool)
 
   def test(other_isabelle: Other_Isabelle): Boolean =
     other_isabelle.getenv(variable) == "true" &&
-    files.exists(p => other_isabelle.ssh.is_file(other_isabelle.isabelle_home + p))
+    other_isabelle.ssh.is_file(other_isabelle.isabelle_home + test_file)
 
   def run(other_isabelle: Other_Isabelle, verbose: Boolean = false): Unit =
     other_isabelle.bash("bin/isabelle " + Bash.string(tool), echo = verbose)
