@@ -54,6 +54,10 @@ machines are as follows:
       - **Cygwin 3.5.x**
         https://isabelle.sketis.net/cygwin_2024 (`x86_64/release`)
 
+Multi-platform tools require thorough testing on all platforms: base-line and
+latest versions. It "works for me on my system" is not sufficient for the
+general public.
+
 
 ### Multiple platform personalities ###
 
@@ -231,6 +235,12 @@ manually in each operating-system context, using the base-line versions
 specified above (e.g. via Docker); all results are assembled into one big
 `.tar.gz` archive.
 
-Multi-platform tools also require thorough testing on all platforms: base-line
-and latest versions. It "works for me on my system" is not sufficient for the
-general public.
+
+### Dynamic setup of large components ###
+
+An alternative approach, especially for components that are very large and/or
+rarely used, is to provide an Isabelle setup tool that interested users may
+run for themselves. This works particularly well for software products that
+have their own "store" of downloadable artifacts. For example, see `isabelle
+dotnet_setup` as defined in `src/Pure/Tools/dotnet_setup.scala`.
+
