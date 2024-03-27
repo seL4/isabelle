@@ -12,4 +12,5 @@ bin/isabelle components -a
 bin/isabelle jedit -bf
 bin/isabelle ocaml_setup
 bin/isabelle ghc_setup
+bin/isabelle go_setup
 bin/isabelle ci_build "$PROFILE" "$@"
