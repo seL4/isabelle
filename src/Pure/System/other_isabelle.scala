@@ -33,8 +33,8 @@ final class Other_Isabelle private(
   val isabelle_home: Path,
   val isabelle_identifier: String,
   isabelle_home_url: String,
-  ssh: SSH.System,
-  progress: Progress
+  val ssh: SSH.System,
+  val progress: Progress
 ) {
   other_isabelle =>
 
