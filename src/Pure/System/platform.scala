@@ -81,6 +81,17 @@ object Platform {
 
   /* platform info */
 
+  object Info {
+    def check(infos: List[Info], spec: String): String = {
+      val specs = Library.distinct(infos.map(_.family_name) ::: infos.map(_.platform))
+      if (specs.contains(spec)) spec
+      else {
+        error("Bad platform specification " + quote(spec) +
+          "\n  expected " + commas_quote(specs))
+      }
+    }
+  }
+
   trait Info {
     def platform: String
     override def toString: String = platform
@@ -95,15 +106,6 @@ object Platform {
     def is_windows: Boolean = family == Family.windows
 
     def is(spec: String): Boolean = platform == spec || family_name == spec
-  }
-
-  def check_spec(infos: List[Info], spec: String): String = {
-    val specs = Library.distinct(infos.map(_.family_name) ::: infos.map(_.platform))
-    if (specs.contains(spec)) spec
-    else {
-      error("Bad platform specification " + quote(spec) +
-        "\n  expected " + commas_quote(specs))
-    }
   }
 
 

@@ -30,8 +30,7 @@ object Dotnet_Setup {
         exec = "powershell -ExecutionPolicy ByPass",
         check = () => Isabelle_System.require_command("powershell", "-NoProfile -Command Out-Null")))
 
-  def check_platform_spec(spec: String): String =
-    Platform.check_spec(all_platforms, spec)
+  def check_platform(spec: String): String = Platform.Info.check(all_platforms, spec)
 
 
   /* dotnet download and setup */
@@ -51,7 +50,7 @@ object Dotnet_Setup {
     dry_run: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
-    platforms.foreach(check_platform_spec)
+    platforms.foreach(check_platform)
 
 
     /* component directory */
@@ -171,7 +170,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
           "V:" -> (arg => version = arg),
           "f" -> (_ => force = true),
           "n" -> (_ => dry_run = true),
-          "p:" -> (arg => platforms = space_explode(',', arg).map(check_platform_spec)),
+          "p:" -> (arg => platforms = space_explode(',', arg).map(check_platform)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
