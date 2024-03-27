@@ -256,13 +256,15 @@ have to be overridden (e.g. in $ISABELLE_HOME_USER/etc/settings).
 
 * The command-line tools "isabelle go_setup" and "isabelle go" /
 "isabelle gofmt" support the Go development environment. This works
-uniformly on all Isabelle OS platforms.
+uniformly on all Isabelle OS platforms, separately or simultaneously.
 
-Example:
+For example:
 
   isabelle go_setup
   isabelle go env
   isabelle go
+
+  isabelle go_setup -p all
 
 * Update to GHC stack 2.15.1 with support for all platforms, including
 ARM Linux and Apple Silicon.
