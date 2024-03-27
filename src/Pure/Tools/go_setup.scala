@@ -148,7 +148,7 @@ Usage: isabelle go_setup [OPTIONS]
     -U URL       download URL (default: """" + default_url + """")
     -V VERSION   version (default: """" + default_version + """")
     -f           force fresh installation of specified platforms
-    -p PLATFORMS comma-separated list of platform specifications,
+    -p PLATFORMS comma-separated list of platform specifications: "all" or
                  as family or formal name (default: """ + quote(default_platform) + """)
 
   Download the Go development environment and configure it as Isabelle

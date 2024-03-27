@@ -82,8 +82,10 @@ object Platform {
   /* platform info */
 
   object Info {
+    val ALL = "all"
+
     def check(infos: List[Info], spec: String): String = {
-      val specs = Library.distinct(infos.map(_.family_name) ::: infos.map(_.platform))
+      val specs = Library.distinct(ALL :: infos.map(_.family_name) ::: infos.map(_.platform))
       if (specs.contains(spec)) spec
       else {
         error("Bad platform specification " + quote(spec) +
@@ -105,7 +107,8 @@ object Platform {
     def is_macos: Boolean = family == Family.macos
     def is_windows: Boolean = family == Family.windows
 
-    def is(spec: String): Boolean = platform == spec || family_name == spec
+    def is(spec: String): Boolean =
+      Info.ALL == spec || platform == spec || family_name == spec
   }
 
 

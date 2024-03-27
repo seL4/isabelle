@@ -154,7 +154,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
                  default: ISABELLE_DOTNET_VERSION=""" + quote(default_version) + """)
     -f           force fresh installation of specified platforms
     -n           dry run: try download without installation
-    -p PLATFORMS comma-separated list of platform specifications,
+    -p PLATFORMS comma-separated list of platform specifications: "all" or
                  as family or formal name (default: """ + quote(default_platform) + """)
     -v           verbose
 
