@@ -120,7 +120,7 @@ INCOMPATIBILITY.
     predicates such as asymp, transp, or totalp.
   - Added lemmas.
       wellorder.wfp_on_less[simp]
-      wfP_iff_ex_minimal
+      wfp_iff_ex_minimal
       wf_iff_ex_minimal
       wf_onE_pf
       wf_onI_pf
