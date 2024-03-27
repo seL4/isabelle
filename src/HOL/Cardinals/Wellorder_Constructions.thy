@@ -44,6 +44,9 @@ corollary ordLeq_trans: "trans ordLeq"
 corollary ordLeq_preorder_on: "preorder_on {r. Well_order r} ordLeq"
   by(auto simp add: preorder_on_def ordLeq_refl_on ordLeq_trans)
 
+corollary ordIso_subset: "ordIso \<subseteq> {r. Well_order r} \<times> {r. Well_order r}"
+  using ordIso_reflexive unfolding refl_on_def ordIso_def by blast
+
 corollary ordIso_refl_on: "refl_on {r. Well_order r} ordIso"
   using ordIso_reflexive unfolding refl_on_def ordIso_def
   by blast
@@ -55,7 +58,7 @@ corollary ordIso_sym: "sym ordIso"
   by (auto simp add: sym_def ordIso_symmetric)
 
 corollary ordIso_equiv: "equiv {r. Well_order r} ordIso"
-  by (auto simp add:  equiv_def ordIso_sym ordIso_refl_on ordIso_trans)
+  using ordIso_subset ordIso_refl_on ordIso_sym ordIso_trans by (intro equivI)
 
 lemma ordLess_Well_order_simp[simp]:
   assumes "r <o r'"
