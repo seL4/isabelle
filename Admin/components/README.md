@@ -241,6 +241,6 @@ specified above (e.g. via Docker); all results are assembled into one big
 An alternative approach, especially for components that are very large and/or
 rarely used, is to provide an Isabelle setup tool that interested users may
 run for themselves. This works particularly well for software products that
-have their own "store" of downloadable artifacts. For example, see `isabelle
-dotnet_setup` as defined in `src/Pure/Tools/dotnet_setup.scala`.
+have their own "store" of downloadable artifacts. For example, see
+`isabelle dotnet_setup` as defined in `src/Pure/Tools/dotnet_setup.scala`.
 
