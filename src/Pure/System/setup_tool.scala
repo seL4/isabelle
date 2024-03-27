@@ -23,7 +23,7 @@ extends Isabelle_System.Service {
 
   def test(other_isabelle: Other_Isabelle): Boolean =
     other_isabelle.getenv(variable) == "true" &&
-    files.exists(p => (other_isabelle.isabelle_home + p).is_file)
+    files.exists(p => other_isabelle.ssh.is_file(other_isabelle.isabelle_home + p))
 
   def run(other_isabelle: Other_Isabelle, verbose: Boolean = false): Unit =
     other_isabelle.bash("bin/isabelle " + Bash.string(tool), echo = verbose)
