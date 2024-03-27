@@ -4,6 +4,7 @@
     Author:     Konrad Slind
     Author:     Alexander Krauss
     Author:     Andrei Popescu, TU Muenchen
+    Author:     Martin Desharnais, MPI-INF Saarbruecken
 *)
 
 section \<open>Well-founded Recursion\<close>
@@ -490,6 +491,61 @@ qed
 lemma wf_map_prod_image: "wf r \<Longrightarrow> inj f \<Longrightarrow> wf (map_prod f f ` r)"
 by(rule wf_map_prod_image_Dom_Ran) (auto dest: inj_onD)
 
+lemma wfp_on_image: "wfp_on (f ` A) R \<longleftrightarrow> wfp_on A (\<lambda>a b. R (f a) (f b))"
+proof (rule iffI)
+  assume hyp: "wfp_on (f ` A) R"
+  show "wfp_on A (\<lambda>a b. R (f a) (f b))"
+    unfolding wfp_on_iff_ex_minimal
+  proof (intro allI impI)
+    fix B
+    assume "B \<subseteq> A" and "B \<noteq> {}"
+    hence "f ` B \<subseteq> f ` A" and "f ` B \<noteq> {}"
+      unfolding atomize_conj image_is_empty
+      using image_mono by iprover
+    hence "\<exists>z\<in>f ` B. \<forall>y. R y z \<longrightarrow> y \<notin> f ` B"
+      using hyp[unfolded wfp_on_iff_ex_minimal, rule_format] by iprover
+    then obtain fz where "fz \<in> f ` B" and fz_max: "\<forall>y. R y fz \<longrightarrow> y \<notin> f ` B" ..
+
+    obtain z where "z \<in> B" and "fz = f z"
+      using \<open>fz \<in> f ` B\<close> unfolding image_iff ..
+
+    show "\<exists>z\<in>B. \<forall>y. R (f y) (f z) \<longrightarrow> y \<notin> B"
+    proof (intro bexI allI impI)
+      show "z \<in> B"
+        using \<open>z \<in> B\<close> .
+    next
+      fix y assume "R (f y) (f z)"
+      hence "f y \<notin> f ` B"
+        using fz_max \<open>fz = f z\<close> by iprover
+      thus "y \<notin> B"
+        by (rule contrapos_nn) (rule imageI)
+    qed
+  qed
+next
+  assume hyp: "wfp_on A (\<lambda>a b. R (f a) (f b))"
+  show "wfp_on (f ` A) R"
+    unfolding wfp_on_iff_ex_minimal
+  proof (intro allI impI)
+    fix fA
+    assume "fA \<subseteq> f ` A" and "fA \<noteq> {}"
+    then obtain A' where "A' \<subseteq> A" and "A' \<noteq> {}" and "fA = f ` A'"
+      by (auto simp only: subset_image_iff)
+
+    obtain z where "z \<in> A'" and z_max: "\<forall>y. R (f y) (f z) \<longrightarrow> y \<notin> A'"
+      using hyp[unfolded wfp_on_iff_ex_minimal, rule_format, OF \<open>A' \<subseteq> A\<close> \<open>A' \<noteq> {}\<close>] by blast
+
+    show "\<exists>z\<in>fA. \<forall>y. R y z \<longrightarrow> y \<notin> fA"
+    proof (intro bexI allI impI)
+      show "f z \<in> fA"
+        unfolding \<open>fA = f ` A'\<close>
+        using imageI[OF \<open>z \<in> A'\<close>] .
+    next
+      show "\<And>y. R y (f z) \<Longrightarrow> y \<notin> fA"
+        unfolding \<open>fA = f ` A'\<close>
+        using z_max by auto
+    qed
+  qed
+qed
 
 subsection \<open>Well-Foundedness Results for Unions\<close>
 
