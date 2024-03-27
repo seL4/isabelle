@@ -150,8 +150,8 @@ Usage: isabelle dotnet_setup [OPTIONS]
     -D DIR       target directory (default: """ + default_target_dir.expand + """)
     -I URL       URL for install script without extension
                  (default: """ + quote(default_install_url) + """)
-    -V VERSION   version (empty means "latest",
-                 default: ISABELLE_DOTNET_VERSION=""" + quote(default_version) + """)
+    -V VERSION   version: empty means "latest"
+                 (default: ISABELLE_DOTNET_VERSION=""" + quote(default_version) + """)
     -f           force fresh installation of specified platforms
     -n           dry run: try download without installation
     -p PLATFORMS comma-separated list of platform specifications: "all" or
