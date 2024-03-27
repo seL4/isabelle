@@ -36,6 +36,8 @@ final class Other_Isabelle private(
   ssh: SSH.System,
   progress: Progress
 ) {
+  other_isabelle =>
+
   override def toString: String = isabelle_home_url
 
 
@@ -173,6 +175,7 @@ final class Other_Isabelle private(
       clean_archives = clean_archives,
       component_repository = component_repository)
     scala_build(fresh = fresh, echo = echo)
+    Setup_Tool.init(other_isabelle)
   }
 
 

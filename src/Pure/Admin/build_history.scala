@@ -213,13 +213,7 @@ object Build_History {
       if (first_build) {
         resolve_components()
         other_isabelle.scala_build(fresh = fresh, echo = verbose)
-
-        for {
-          tool <- List("ghc_setup", "ocaml_setup")
-          if other_isabelle.getenv("ISABELLE_" + Word.uppercase(tool)) == "true" &&
-            (other_isabelle.isabelle_home + Path.explode("lib/Tools/" + tool)).is_file
-        } other_isabelle.bash("bin/isabelle " + tool, echo = verbose)
-
+        Setup_Tool.init(other_isabelle, verbose = verbose)
         Isabelle_System.rm_tree(isabelle_base_log)
       }
 

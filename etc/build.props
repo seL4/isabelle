@@ -197,6 +197,7 @@ sources = \
   src/Pure/System/progress.scala \
   src/Pure/System/registry.scala \
   src/Pure/System/scala.scala \
+  src/Pure/System/setup_tool.scala \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \
   src/Pure/Thy/document_build.scala \
@@ -333,7 +334,9 @@ services = \
   isabelle.Document_Build$LuaLaTeX_Engine \
   isabelle.Document_Build$PDFLaTeX_Engine \
   isabelle.CI_Builds \
+  isabelle.GHC_Setup \
   isabelle.ML_Statistics$Handler \
+  isabelle.OCaml_Setup \
   isabelle.Print_Operation$Handler \
   isabelle.Scala$Handler \
   isabelle.Scala_Functions \
