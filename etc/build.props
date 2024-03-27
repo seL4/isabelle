@@ -45,9 +45,9 @@ sources = \
   src/Pure/Admin/component_spass.scala \
   src/Pure/Admin/component_sqlite.scala \
   src/Pure/Admin/component_stack.scala \
-  src/Pure/Admin/component_windows_app.scala \
   src/Pure/Admin/component_vampire.scala \
   src/Pure/Admin/component_verit.scala \
+  src/Pure/Admin/component_windows_app.scala \
   src/Pure/Admin/component_zipperposition.scala \
   src/Pure/Admin/component_zstd.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
@@ -328,15 +328,15 @@ services = \
   isabelle.Bibtex$File_Format \
   isabelle.Build$Engine$Default \
   isabelle.Build_Schedule$Build_Engine \
+  isabelle.CI_Builds \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LIPIcs_LuaLaTeX_Engine \
   isabelle.Document_Build$LIPIcs_PDFLaTeX_Engine \
   isabelle.Document_Build$LuaLaTeX_Engine \
   isabelle.Document_Build$PDFLaTeX_Engine \
   isabelle.Dotnet_Setup \
-  isabelle.CI_Builds \
-  isabelle.Go_Setup \
   isabelle.GHC_Setup \
+  isabelle.Go_Setup \
   isabelle.ML_Statistics$Handler \
   isabelle.OCaml_Setup \
   isabelle.Print_Operation$Handler \
