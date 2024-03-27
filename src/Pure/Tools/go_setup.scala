@@ -28,8 +28,7 @@ object Go_Setup {
       Platform_Info("x86_64-linux", "linux_amd64"),
       Platform_Info("x86_64-windows", "windows_amd64"))
 
-  def check_platform_spec(spec: String): String =
-    Platform.check_spec(all_platforms, spec)
+  def check_platform(spec: String): String = Platform.Info.check(all_platforms, spec)
 
 
   /* Go download and setup */
@@ -48,7 +47,7 @@ object Go_Setup {
     progress: Progress = new Progress,
     force: Boolean = false
   ): Unit = {
-    platforms.foreach(check_platform_spec)
+    platforms.foreach(check_platform)
 
 
     /* component directory */
@@ -149,7 +148,7 @@ Usage: isabelle go_setup [OPTIONS]
     -U URL       download URL (default: """" + default_url + """")
     -V VERSION   version (default: """" + default_version + """")
     -f           force fresh installation of specified platforms
-    -p PLATFORMS comma-separated list of platform specifications,
+    -p PLATFORMS comma-separated list of platform specifications: "all" or
                  as family or formal name (default: """ + quote(default_platform) + """)
 
   Download the Go development environment and configure it as Isabelle
@@ -159,7 +158,7 @@ Usage: isabelle go_setup [OPTIONS]
           "U:" -> (arg => base_url = arg),
           "V:" -> (arg => version = arg),
           "f" -> (_ => force = true),
-          "p:" -> (arg => platforms = space_explode(',', arg).map(check_platform_spec)))
+          "p:" -> (arg => platforms = space_explode(',', arg).map(check_platform)))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
