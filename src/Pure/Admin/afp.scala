@@ -18,7 +18,7 @@ object AFP {
 
   def main_dir(base_dir: Path = BASE): Path = base_dir + Path.explode("thys")
 
-  def make_dirs(afp_root: Option[Path]): List[Path] =
+  def main_dirs(afp_root: Option[Path]): List[Path] =
     afp_root match {
       case None => Nil
       case Some(base_dir) => List(main_dir(base_dir = base_dir))

@@ -191,7 +191,7 @@ object Build {
       /* session selection and dependencies */
 
       val full_sessions =
-        Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
+        Sessions.load_structure(build_options, dirs = AFP.main_dirs(afp_root) ::: dirs,
           select_dirs = select_dirs, infos = infos, augment_options = augment_options)
       val full_sessions_selection = full_sessions.imports_selection(selection)
 
@@ -633,7 +633,7 @@ Usage: isabelle build_process [OPTIONS]
         val build_master = find_builds(build_database, build_id, builds.filter(_.active))
 
         val sessions_structure =
-          Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs).
+          Sessions.load_structure(build_options, dirs = AFP.main_dirs(afp_root) ::: dirs).
             selection(Sessions.Selection(sessions = build_master.sessions))
 
         val build_deps =

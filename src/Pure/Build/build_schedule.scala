@@ -1483,7 +1483,7 @@ object Build_Schedule {
       host_database: SQL.Database
     ): Schedule = {
       val full_sessions =
-        Sessions.load_structure(build_options, dirs = AFP.make_dirs(afp_root) ::: dirs,
+        Sessions.load_structure(build_options, dirs = AFP.main_dirs(afp_root) ::: dirs,
           select_dirs = select_dirs, infos = infos, augment_options = augment_options)
 
       val build_deps =
