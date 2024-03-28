@@ -29,11 +29,7 @@ object Component_Bash_Process {
 
     /* platform */
 
-    val platform_name =
-      proper_string(Isabelle_System.getenv("ISABELLE_APPLE_PLATFORM64")) orElse
-      proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64")) getOrElse
-      error("Missing ISABELLE_PLATFORM64")
-
+    val platform_name = Isabelle_Platform.self.ISABELLE_PLATFORM(apple = true)
     val platform_dir =
       Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 

@@ -48,10 +48,7 @@ object Component_Rsync {
       val component_dir =
         Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
-      val platform_name =
-        proper_string(Isabelle_System.getenv("ISABELLE_PLATFORM64"))
-          .getOrElse(error("Missing ISABELLE_PLATFORM64"))
-
+      val platform_name = Isabelle_Platform.self.ISABELLE_PLATFORM()
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic("platform_" + platform_name))
 
