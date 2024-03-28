@@ -24,6 +24,8 @@ object Component_Bash_Process {
     val component_dir =
       Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
+    component_dir.write_platforms()
+
 
     /* platform */
 
@@ -177,12 +179,6 @@ int main(int argc, char *argv[])
 ISABELLE_BASH_PROCESS_HOME="$COMPONENT"
 ISABELLE_BASH_PROCESS="$ISABELLE_BASH_PROCESS_HOME/${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}/bash_process"
 """)
-
-
-    /* platform.props */
-
-    File.write(component_dir.platform_props,
-      Platform.Family.list.map(family => family.toString + " = ").mkString("", "\n", "\n"))
 
 
     /* README */
