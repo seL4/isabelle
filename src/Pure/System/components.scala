@@ -213,7 +213,10 @@ object Components {
 
     def write_platforms(
       lines: List[String] = Platform.Family.list.map(family => family.toString + " = ")
-    ): Unit = File.write(platform_props, terminate_lines(lines))
+    ): Directory = {
+      File.write(platform_props, terminate_lines(lines))
+      this
+    }
 
     def get_platforms(): Platforms = {
       val props_path = platform_props.expand

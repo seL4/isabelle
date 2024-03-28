@@ -22,9 +22,9 @@ object Component_Bash_Process {
     val component_date = Date.Format.alt_date(Date.now())
     val component_name = "bash_process-" + component_date
     val component_dir =
-      Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
-
-    component_dir.write_platforms()
+      Components.Directory(target_dir + Path.basic(component_name))
+        .create(progress = progress)
+        .write_platforms()
 
 
     /* platform */
