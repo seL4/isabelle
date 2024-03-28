@@ -3,8 +3,7 @@
 *)
 section\<^marker>\<open>tag unimportant\<close> \<open>Smooth paths\<close>
 theory Smooth_Paths
-  imports
-  Retracts
+  imports Retracts
 begin
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Homeomorphisms of arc images\<close>
@@ -438,5 +437,98 @@ qed
 
 lemma valid_path_rectpath [simp, intro]: "valid_path (rectpath a b)"
   by (simp add: Let_def rectpath_def)
+
+lemma linear_image_valid_path:
+  fixes p :: "real \<Rightarrow> 'a :: euclidean_space"
+  assumes  "valid_path p" "linear f"
+  shows    "valid_path (f \<circ> p)"
+  unfolding valid_path_def piecewise_C1_differentiable_on_def
+proof (intro conjI)
+  from assms have "path p"
+    by (simp add: valid_path_imp_path)
+  thus "continuous_on {0..1} (f \<circ> p)"
+    unfolding o_def path_def by (intro linear_continuous_on_compose[OF _ assms(2)])
+  from assms(1) obtain S where S: "finite S" "p C1_differentiable_on {0..1} - S"
+    by (auto simp: valid_path_def piecewise_C1_differentiable_on_def)
+  from S(2) obtain p' :: "real \<Rightarrow> 'a"
+    where p': "\<And>x. x \<in> {0..1} - S \<Longrightarrow> (p has_vector_derivative p' x) (at x)"
+              "continuous_on ({0..1} - S) p'"
+    by (fastforce simp: C1_differentiable_on_def)
+
+  have "(f \<circ> p has_vector_derivative f (p' x)) (at x)" if "x \<in> {0..1} - S" for x
+    by (rule vector_derivative_diff_chain_within [OF p'(1)[OF that]]
+             linear_imp_has_derivative assms)+
+  moreover have "continuous_on ({0..1} - S) (\<lambda>x. f (p' x))"
+    by (rule linear_continuous_on_compose [OF p'(2) assms(2)])
+  ultimately have "f \<circ> p C1_differentiable_on {0..1} - S"
+    unfolding C1_differentiable_on_def by (intro exI[of _ "\<lambda>x. f (p' x)"]) fast
+  thus "\<exists>S. finite S \<and> f \<circ> p C1_differentiable_on {0..1} - S"
+    using \<open>finite S\<close> by blast
+qed
+
+lemma valid_path_times:
+  fixes \<gamma>::"real \<Rightarrow> 'a ::real_normed_field"
+  assumes "c\<noteq>0"
+  shows "valid_path ((*) c \<circ> \<gamma>) = valid_path \<gamma>"
+proof 
+  assume "valid_path ((*) c \<circ> \<gamma>)"
+  then have "valid_path ((*) (1/c) \<circ> ((*) c \<circ> \<gamma>))"
+    by (simp add: valid_path_compose)
+  then show "valid_path \<gamma>" 
+    unfolding comp_def using \<open>c\<noteq>0\<close> by auto
+next
+  assume "valid_path \<gamma>"
+  then show "valid_path ((*) c \<circ> \<gamma>)"
+    by (simp add: valid_path_compose)
+qed
+
+lemma path_compose_cnj_iff [simp]: "path (cnj \<circ> p) \<longleftrightarrow> path p"
+proof -
+  have "path (cnj \<circ> p)" if "path p" for p
+    by (intro path_continuous_image continuous_intros that)
+  from this[of p] and this[of "cnj \<circ> p"] show ?thesis
+    by (auto simp: o_def)
+qed
+
+lemma valid_path_cnj:
+  fixes g::"real \<Rightarrow> complex"
+    shows "valid_path (cnj \<circ> g) = valid_path g"
+proof
+  show valid:"valid_path (cnj \<circ> g)" if "valid_path g" for g
+  proof -
+    obtain S where "finite S" and g_diff: "g C1_differentiable_on {0..1} - S"
+      using \<open>valid_path g\<close> unfolding valid_path_def piecewise_C1_differentiable_on_def by auto
+  
+    have g_diff':"g differentiable at t" when "t\<in>{0..1} - S" for t
+      by (meson C1_differentiable_on_eq \<open>g C1_differentiable_on {0..1} - S\<close> that)
+    then have "(cnj \<circ> g) differentiable at t" when "t\<in>{0..1} - S" for t
+      using bounded_linear_cnj bounded_linear_imp_differentiable differentiable_chain_at that by blast
+    moreover have "continuous_on ({0..1} - S)
+        (\<lambda>x. vector_derivative (cnj \<circ> g) (at x))"
+    proof -
+      have "continuous_on ({0..1} - S)
+          (\<lambda>x. vector_derivative (cnj \<circ> g) (at x))
+        = continuous_on ({0..1} - S)
+          (\<lambda>x. cnj (vector_derivative g (at x)))"
+        apply (rule continuous_on_cong[OF refl])
+        unfolding comp_def using g_diff'
+        using has_vector_derivative_cnj vector_derivative_at vector_derivative_works by blast
+      also have "\<dots>"
+        apply (intro continuous_intros)
+        using C1_differentiable_on_eq g_diff by blast
+      finally show ?thesis .
+    qed
+    ultimately have "cnj \<circ> g C1_differentiable_on {0..1} - S"
+      using C1_differentiable_on_eq by blast
+    moreover have "path (cnj \<circ> g)"
+      apply (rule path_continuous_image[OF valid_path_imp_path[OF \<open>valid_path g\<close>]])
+      by (intro continuous_intros)
+    ultimately show ?thesis unfolding valid_path_def piecewise_C1_differentiable_on_def path_def
+      using \<open>finite S\<close> by auto
+  qed
+  from this[of "cnj o g"]
+  show "valid_path (cnj \<circ> g) \<Longrightarrow> valid_path g"
+    unfolding comp_def by simp
+qed
 
 end

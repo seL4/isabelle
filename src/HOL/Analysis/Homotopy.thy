@@ -623,6 +623,15 @@ proposition homotopic_paths_lid:
   by (metis homotopic_paths_reversepath path_image_reversepath path_reversepath pathfinish_linepath
         pathfinish_reversepath reversepath_joinpaths reversepath_linepath)
 
+lemma homotopic_paths_rid':
+  assumes "path p" "path_image p \<subseteq> s" "x = pathfinish p"
+  shows "homotopic_paths s (p +++ linepath x x) p"
+  using homotopic_paths_rid[of p s] assms by simp
+
+lemma homotopic_paths_lid':
+   "\<lbrakk>path p; path_image p \<subseteq> s; x = pathstart p\<rbrakk> \<Longrightarrow> homotopic_paths s (linepath x x +++ p) p"
+  using homotopic_paths_lid[of p s] by simp
+
 proposition homotopic_paths_assoc:
    "\<lbrakk>path p; path_image p \<subseteq> S; path q; path_image q \<subseteq> S; path r; path_image r \<subseteq> S; pathfinish p = pathstart q;
      pathfinish q = pathstart r\<rbrakk>

@@ -1278,6 +1278,80 @@ lemma path_image_part_circlepath_subset':
 lemma part_circlepath_cnj: "cnj (part_circlepath c r a b x) = part_circlepath (cnj c) r (-a) (-b) x"
   by (simp add: part_circlepath_def exp_cnj linepath_def algebra_simps)
 
+lemma contour_integrable_on_compose_cnj_iff:
+  assumes "valid_path \<gamma>"
+  shows   "f contour_integrable_on (cnj \<circ> \<gamma>) \<longleftrightarrow> (cnj \<circ> f \<circ> cnj) contour_integrable_on \<gamma>"
+proof -
+  from assms obtain S where S: "finite S" "\<gamma> C1_differentiable_on {0..1} - S"
+    unfolding valid_path_def piecewise_C1_differentiable_on_def by blast
+  have "f contour_integrable_on (cnj \<circ> \<gamma>) \<longleftrightarrow>
+        ((\<lambda>t. cnj (cnj (f (cnj (\<gamma> t))) * vector_derivative \<gamma> (at t))) integrable_on {0..1})"
+    unfolding contour_integrable_on o_def
+  proof (intro integrable_spike_finite_eq [OF S(1)])
+    fix t :: real assume "t \<in> {0..1} - S"
+    hence "\<gamma> differentiable at t"
+      using S(2) by (meson C1_differentiable_on_eq)
+    hence "vector_derivative (\<lambda>x. cnj (\<gamma> x)) (at t) = cnj (vector_derivative \<gamma> (at t))"
+      by (rule vector_derivative_cnj)
+    thus "f (cnj (\<gamma> t)) * vector_derivative (\<lambda>x. cnj (\<gamma> x)) (at t) =
+          cnj (cnj (f (cnj (\<gamma> t))) * vector_derivative \<gamma> (at t))"
+      by simp
+  qed
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. cnj (f (cnj (\<gamma> t))) * vector_derivative \<gamma> (at t)) integrable_on {0..1})"
+    by (rule integrable_on_cnj_iff)
+  also have "\<dots> \<longleftrightarrow> (cnj \<circ> f \<circ> cnj) contour_integrable_on \<gamma>"
+    by (simp add: contour_integrable_on o_def)
+  finally show ?thesis .
+qed
+
+lemma contour_integral_cnj:
+  assumes "valid_path \<gamma>"
+  shows   "contour_integral (cnj \<circ> \<gamma>) f = cnj (contour_integral \<gamma> (cnj \<circ> f \<circ> cnj))"
+proof -
+  from assms obtain S where S: "finite S" "\<gamma> C1_differentiable_on {0..1} - S"
+    unfolding valid_path_def piecewise_C1_differentiable_on_def by blast
+  have "contour_integral (cnj \<circ> \<gamma>) f =
+          integral {0..1} (\<lambda>t. cnj (cnj (f (cnj (\<gamma> t))) * vector_derivative \<gamma> (at t)))"
+    unfolding contour_integral_integral
+  proof (intro integral_spike)
+    fix t assume "t \<in> {0..1} - S"
+    hence "\<gamma> differentiable at t"
+      using S(2) by (meson C1_differentiable_on_eq)
+    hence "vector_derivative (\<lambda>x. cnj (\<gamma> x)) (at t) = cnj (vector_derivative \<gamma> (at t))"
+      by (rule vector_derivative_cnj)
+    thus "cnj (cnj (f (cnj (\<gamma> t))) * vector_derivative \<gamma> (at t)) =
+            f ((cnj \<circ> \<gamma>) t) * vector_derivative (cnj \<circ> \<gamma>) (at t)"
+      by (simp add: o_def)
+  qed (use S(1) in auto)
+  also have "\<dots> = cnj (integral {0..1} (\<lambda>t. cnj (f (cnj (\<gamma> t))) * vector_derivative \<gamma> (at t)))"
+    by (subst integral_cnj [symmetric]) auto
+  also have "\<dots> = cnj (contour_integral \<gamma> (cnj \<circ> f \<circ> cnj))"
+    by (simp add: contour_integral_integral)
+  finally show ?thesis .
+qed
+
+lemma contour_integral_negatepath:
+  assumes "valid_path \<gamma>"
+  shows   "contour_integral (uminus \<circ> \<gamma>) f = -(contour_integral \<gamma> (\<lambda>x. f (-x)))" (is "?lhs = ?rhs")
+proof (cases "f contour_integrable_on (uminus \<circ> \<gamma>)")
+  case True
+  hence *: "(f has_contour_integral ?lhs) (uminus \<circ> \<gamma>)"
+    using has_contour_integral_integral by blast
+  have "((\<lambda>z. f (-z)) has_contour_integral - contour_integral (uminus \<circ> \<gamma>) f)
+            (uminus \<circ> (uminus \<circ> \<gamma>))"
+    by (rule has_contour_integral_negatepath) (use * assms in auto)
+  hence "((\<lambda>x. f (-x)) has_contour_integral -?lhs) \<gamma>"
+    by (simp add: o_def)
+  thus ?thesis
+    by (simp add: contour_integral_unique)
+next
+  case False
+  hence "\<not>(\<lambda>z. f (- z)) contour_integrable_on \<gamma>"
+    using contour_integrable_negatepath[of \<gamma> f] assms by auto
+  with False show ?thesis
+    by (simp add: not_integrable_contour_integral)
+qed
+
 lemma contour_integral_bound_part_circlepath:
   assumes "f contour_integrable_on part_circlepath c r a b"
   assumes "B \<ge> 0" "r \<ge> 0" "\<And>x. x \<in> path_image (part_circlepath c r a b) \<Longrightarrow> norm (f x) \<le> B"
@@ -1687,12 +1761,11 @@ proof -
   { fix e::real
     assume "0 < e"
     then have "0 < e / (\<bar>B\<bar> + 1)" by simp
-    then have "\<forall>\<^sub>F n in F. \<forall>x\<in>path_image \<gamma>. cmod (f n x - l x) < e / (\<bar>B\<bar> + 1)"
+    then have \<section>: "\<forall>\<^sub>F n in F. \<forall>x\<in>path_image \<gamma>. cmod (f n x - l x) < e / (\<bar>B\<bar> + 1)"
       using ul_f [unfolded uniform_limit_iff dist_norm] by auto
-    with ev_fint
     obtain a where fga: "\<And>x. x \<in> {0..1} \<Longrightarrow> cmod (f a (\<gamma> x) - l (\<gamma> x)) < e / (\<bar>B\<bar> + 1)"
                and inta: "(\<lambda>t. f a (\<gamma> t) * vector_derivative \<gamma> (at t)) integrable_on {0..1}"
-      using eventually_happens [OF eventually_conj]
+      using eventually_happens [OF eventually_conj [OF ev_fint \<section>]]
       by (fastforce simp: contour_integrable_on path_image_def)
     have "\<exists>h. (\<forall>x\<in>{0..1}. cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - h x) \<le> e) \<and> h integrable_on {0..1}"
     proof (intro exI conjI ballI)
