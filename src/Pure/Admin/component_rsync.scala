@@ -15,7 +15,7 @@ object Component_Rsync {
   def local_program: Path = Path.explode("$ISABELLE_RSYNC")
 
   def remote_program(directory: Components.Directory): Path = {
-    val platform = "platform_" + directory.ssh.isabelle_platform.ISABELLE_PLATFORM64
+    val platform = directory.ssh.isabelle_platform.ISABELLE_PLATFORM(apple = true)
     directory.path + Path.basic(platform) + Path.basic("rsync")
   }
 
@@ -46,11 +46,13 @@ object Component_Rsync {
 
       val component_name = "rsync-" + version
       val component_dir =
-        Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
+        Components.Directory(target_dir + Path.basic(component_name))
+          .create(progress = progress)
+          .write_platforms()
 
-      val platform_name = Isabelle_Platform.self.ISABELLE_PLATFORM()
+      val platform_name = Isabelle_Platform.self.ISABELLE_PLATFORM(apple = true)
       val platform_dir =
-        Isabelle_System.make_directory(component_dir.path + Path.basic("platform_" + platform_name))
+        Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
 
       /* download source */
@@ -86,7 +88,7 @@ object Component_Rsync {
 
       component_dir.write_settings("""
 ISABELLE_RSYNC_HOME="$COMPONENT"
-ISABELLE_RSYNC="$ISABELLE_RSYNC_HOME/platform_${ISABELLE_PLATFORM64}/rsync"
+ISABELLE_RSYNC="$ISABELLE_RSYNC_HOME/${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}/rsync"
 """)
 
 
