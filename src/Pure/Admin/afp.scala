@@ -12,13 +12,6 @@ import scala.collection.immutable.SortedMap
 
 
 object AFP {
-  val groups: Map[String, String] =
-    Map("large" -> "full 64-bit memory model or word arithmetic required",
-      "slow" -> "CPU time much higher than 60min (on mid-range hardware)",
-      "very_slow" -> "elapsed time of many hours (on high-end hardware)")
-
-  val groups_bulky: List[String] = List("large", "slow")
-
   val chapter: String = "AFP"
 
   val BASE: Path = Path.explode("$AFP_BASE")

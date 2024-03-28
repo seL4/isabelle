@@ -530,6 +530,37 @@ object Sessions {
   }
 
 
+  /* notable groups */
+
+  sealed case class Group_Info(
+    name: String,
+    description: String,
+    bulky: Boolean = false,
+    afp: Boolean = false
+  ) {
+    override def toString: String = name
+  }
+
+  lazy val notable_groups: List[Group_Info] =
+    List(
+      Group_Info("large", "full 64-bit memory model or word arithmetic required",
+        bulky = true, afp = true),
+      Group_Info("slow", "CPU time much higher than 60min (on mid-range hardware)",
+        bulky = true, afp = true),
+      Group_Info("very_slow", "elapsed time of many hours (on high-end hardware)",
+        afp = true),
+      Group_Info("AFP", "entry within AFP", afp = true),
+      Group_Info("doc", "Isabelle documentation"),
+      Group_Info("no_doc", "suppressed Isabelle documentation")
+    )
+
+  lazy val bulky_groups: Set[String] =
+    Set.from(notable_groups.flatMap(g => if (g.bulky) Some(g.name) else None))
+
+  lazy val afp_groups: Set[String] =
+    Set.from(notable_groups.flatMap(g => if (g.afp) Some(g.name) else None))
+
+
   /* cumulative session info */
 
   private val BUILD_PREFS_BG = "<build_prefs:"
@@ -740,7 +771,7 @@ object Sessions {
     def record_proofs: Boolean = options.int("record_proofs") >= 2
 
     def is_afp: Boolean = chapter == AFP.chapter
-    def is_afp_bulky: Boolean = is_afp && groups.exists(AFP.groups_bulky.contains)
+    def is_afp_bulky: Boolean = is_afp && groups.exists(bulky_groups)
   }
 
   object Selection {

@@ -354,7 +354,7 @@ object Build_Status {
 
               if (session.isDefined &&
                   (!afp || chapter == AFP.chapter) &&
-                  (!profile.bulky || groups.exists(AFP.groups_bulky.toSet))) {
+                  (!profile.bulky || groups.exists(Sessions.bulky_groups))) {
                 data_entries += (data_name -> (sessions + (session_name -> session.get)))
               }
             }
