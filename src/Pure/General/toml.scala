@@ -88,7 +88,7 @@ object TOML {
     val empty: Array = apply()
   }
 
-  class Table private(private val rep: Map[Key, T]) extends T {
+  class Table private(private val rep: ListMap[Key, T]) extends T {
     override def hashCode(): Int = rep.hashCode()
     override def equals(that: Any): Bool =
       that match {
