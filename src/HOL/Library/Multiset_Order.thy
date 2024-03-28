@@ -813,7 +813,16 @@ begin
 lemma wf_less_multiset: "wf {(M :: 'a multiset, N). M < N}"
   unfolding less_multiset_def multp_def by (auto intro: wf_mult wf)
 
-instance by standard (metis less_multiset_def multp_def wf wf_def wf_mult)
+instance
+proof intro_classes
+  fix P :: "'a multiset \<Rightarrow> bool" and a :: "'a multiset"
+  have "wfp ((<) :: 'a \<Rightarrow> 'a \<Rightarrow> bool)"
+    using wfp_on_less .
+  hence "wfp ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
+    unfolding less_multiset_def by (rule wfP_multp)
+  thus "(\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P a"
+    unfolding wfp_on_def[of UNIV, simplified] by metis
+qed
 
 end
 
