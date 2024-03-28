@@ -115,7 +115,7 @@ the diagonal set \<^term>\<open>{x. x \<notin> f x}\<close>, the key idea in the
 If you wonder why \<open>2\<close> directly implies \<open>False\<close>: from \<open>2\<close>
 it follows that \<^prop>\<open>a \<notin> f a \<longleftrightarrow> a \<in> f a\<close>.
 
-\subsection{\indexed{\<open>this\<close>}{this}, \indexed{\isacom{then}}{then}, \indexed{\isacom{hence}}{hence} and \indexed{\isacom{thus}}{thus}}
+\subsection{\indexed{\<open>this\<close>}{this}, \indexed{\isacom{then}}{then}, \indexed{\isacom{with}}{with}, \indexed{\isacom{hence}}{hence}, \indexed{\isacom{thus}}{thus}, \indexed{\isacom{using}}{using}}
 
 Labels should be avoided. They interrupt the flow of the reader who has to
 scan the context for the point where the label was introduced. Ideally, the
@@ -197,8 +197,7 @@ the proof is \noquotes{@{prop[source]"surj f \<Longrightarrow> False"}}, but dur
 \<close>
 
 proof -
-  have "\<exists> a. {x. x \<notin> f x} = f a" using s
-    by(auto simp: surj_def)
+  have "\<exists> a. {x. x \<notin> f x} = f a" using s by(auto simp: surj_def)
   thus "False" by blast
 qed
 
