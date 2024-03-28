@@ -121,6 +121,20 @@ lemma simple_path_linear_image_eq:
   using assms
   by (simp add: loop_free_linear_image_eq path_linear_image_eq simple_path_def)
 
+lemma simple_pathI [intro?]:
+  assumes "path p"
+  assumes "\<And>x y. 0 \<le> x \<Longrightarrow> x < y \<Longrightarrow> y \<le> 1 \<Longrightarrow> p x = p y \<Longrightarrow> x = 0 \<and> y = 1"
+  shows   "simple_path p"
+  unfolding simple_path_def loop_free_def
+proof (intro ballI conjI impI)
+  fix x y assume "x \<in> {0..1}" "y \<in> {0..1}" "p x = p y"
+  thus "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+    by (metis assms(2) atLeastAtMost_iff linorder_less_linear)
+qed fact+
+
+lemma arcD: "arc p \<Longrightarrow> p x = p y \<Longrightarrow> x \<in> {0..1} \<Longrightarrow> y \<in> {0..1} \<Longrightarrow> x = y"
+  by (auto simp: arc_def inj_on_def)
+
 lemma arc_translation_eq:
   fixes g :: "real \<Rightarrow> 'a::euclidean_space"
   shows "arc((\<lambda>x. a + x) \<circ> g) \<longleftrightarrow> arc g"
@@ -670,6 +684,38 @@ lemma arc_join_eq_alt:
   using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
 
 
+subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Symmetry and loops\<close>
+
+lemma path_sym:
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> path(p +++ q) \<longleftrightarrow> path(q +++ p)"
+  by auto
+
+lemma simple_path_sym:
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
+     \<Longrightarrow> simple_path(p +++ q) \<longleftrightarrow> simple_path(q +++ p)"
+  by (metis (full_types) inf_commute insert_commute simple_path_joinE simple_path_join_loop)
+
+lemma path_image_sym:
+  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
+     \<Longrightarrow> path_image(p +++ q) = path_image(q +++ p)"
+  by (simp add: path_image_join sup_commute)
+
+lemma simple_path_joinI:
+  assumes "arc p1" "arc p2" "pathfinish p1 = pathstart p2"
+  assumes "path_image p1 \<inter> path_image p2 
+        \<subseteq> insert (pathstart p2) (if pathstart p1 = pathfinish p2 then {pathstart p1} else {})"
+  shows   "simple_path (p1 +++ p2)"
+  by (smt (verit, best) Int_commute arc_imp_simple_path arc_join assms insert_commute simple_path_join_loop simple_path_sym)
+
+lemma simple_path_join3I:
+  assumes "arc p1" "arc p2" "arc p3"
+  assumes "path_image p1 \<inter> path_image p2 \<subseteq> {pathstart p2}"
+  assumes "path_image p2 \<inter> path_image p3 \<subseteq> {pathstart p3}"
+  assumes "path_image p1 \<inter> path_image p3 \<subseteq> {pathstart p1} \<inter> {pathfinish p3}"
+  assumes "pathfinish p1 = pathstart p2" "pathfinish p2 = pathstart p3"
+  shows   "simple_path (p1 +++ p2 +++ p3)"
+  using assms by (intro simple_path_joinI arc_join) (auto simp: path_image_join)
+
 subsection\<^marker>\<open>tag unimportant\<close>\<open>The joining of paths is associative\<close>
 
 lemma path_assoc:
@@ -719,22 +765,6 @@ lemma arc_assoc:
      "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
       \<Longrightarrow> arc(p +++ (q +++ r)) \<longleftrightarrow> arc((p +++ q) +++ r)"
 by (simp add: arc_simple_path simple_path_assoc)
-
-subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Symmetry and loops\<close>
-
-lemma path_sym:
-  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> path(p +++ q) \<longleftrightarrow> path(q +++ p)"
-  by auto
-
-lemma simple_path_sym:
-  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
-     \<Longrightarrow> simple_path(p +++ q) \<longleftrightarrow> simple_path(q +++ p)"
-  by (metis (full_types) inf_commute insert_commute simple_path_joinE simple_path_join_loop)
-
-lemma path_image_sym:
-  "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk>
-     \<Longrightarrow> path_image(p +++ q) = path_image(q +++ p)"
-  by (simp add: path_image_join sup_commute)
 
 
 subsection\<open>Subpath\<close>

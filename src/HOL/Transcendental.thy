@@ -2994,14 +2994,20 @@ proof -
     by (auto simp: powr_minus field_simps)
 qed
 
+lemma powr_mono': "a \<le> (b::real) \<Longrightarrow> x \<ge> 0 \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr b \<le> x powr a"
+  using powr_mono[of "-b" "-a" "inverse x"] by (auto simp: powr_def ln_inverse ln_div field_split_simps)
+
 lemma powr_mono_both:
   fixes x :: real
   assumes "0 \<le> a" "a \<le> b" "1 \<le> x" "x \<le> y"
     shows "x powr a \<le> y powr b"
   by (meson assms order.trans powr_mono powr_mono2 zero_le_one)
 
-lemma powr_mono': "a \<le> (b::real) \<Longrightarrow> x \<ge> 0 \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr b \<le> x powr a"
-  using powr_mono[of "-b" "-a" "inverse x"] by (auto simp: powr_def ln_inverse ln_div field_split_simps)
+lemma powr_mono_both':
+  fixes x :: real
+  assumes "a \<ge> b" "b\<ge>0" "0 < x" "x \<le> y" "y \<le> 1"
+    shows "x powr a \<le> y powr b"
+  by (meson assms nless_le order.trans powr_mono' powr_mono2)
 
 lemma powr_less_mono':
   assumes "(x::real) > 0" "x < 1" "a < b"

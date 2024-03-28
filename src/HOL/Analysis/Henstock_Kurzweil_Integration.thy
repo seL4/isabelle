@@ -763,6 +763,10 @@ lemma integral_cnj: "cnj (integral A f) = integral A (\<lambda>x. cnj (f x))"
      (simp_all add: integral_linear[OF _ bounded_linear_cnj, symmetric]
                     o_def integrable_on_cnj_iff not_integrable_integral)
 
+lemma has_integral_cnj: "(cnj \<circ> f has_integral (cnj I)) A  = (f has_integral I) A"
+  unfolding has_integral_iff comp_def
+  by (metis integral_cnj complex_cnj_cancel_iff integrable_on_cnj_iff)
+
 lemma integral_component_eq[simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "f integrable_on S"
@@ -2394,6 +2398,12 @@ lemma integrable_spike_finite:
     and "f integrable_on T"
   shows "g integrable_on T"
   using assms has_integral_spike_finite by blast
+
+lemma integrable_spike_finite_eq:
+  assumes "finite S"
+    and "\<And>x. x \<in> T - S \<Longrightarrow> f x = g x"
+  shows "f integrable_on T \<longleftrightarrow> g integrable_on T"
+  by (metis assms integrable_spike_finite)
 
 lemma has_integral_bound_spike_finite:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"

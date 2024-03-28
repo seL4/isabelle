@@ -87,6 +87,30 @@ proof -
     by simp
 qed
 
+lemma winding_number_prop_reversepath:
+  assumes "winding_number_prop \<gamma> z e p n"
+  shows   "winding_number_prop (reversepath \<gamma>) z e (reversepath p) (-n)"
+proof -
+  have p: "valid_path p" "z \<notin> path_image p" "pathstart p = pathstart \<gamma>"
+          "pathfinish p = pathfinish \<gamma>" "\<And>t. t \<in> {0..1} \<Longrightarrow> norm (\<gamma> t - p t) < e"
+          "contour_integral p (\<lambda>w. 1 / (w - z)) = 2 * complex_of_real pi * \<i> * n"
+    using assms by (auto simp: winding_number_prop_def)
+  show ?thesis
+    unfolding winding_number_prop_def
+  proof (intro conjI strip)
+    show "norm (reversepath \<gamma> t - reversepath p t) < e" if "t \<in> {0..1}" for t
+      unfolding reversepath_def using p(5)[of "1 - t"] that by auto
+    show "contour_integral (reversepath p) (\<lambda>w. 1 / (w - z)) =
+             complex_of_real (2 * pi) * \<i> * - n"
+      using p by (subst contour_integral_reversepath) auto
+  qed (use p in auto)
+qed
+
+lemma winding_number_prop_reversepath_iff:
+  "winding_number_prop (reversepath \<gamma>) z e p n \<longleftrightarrow> winding_number_prop \<gamma> z e (reversepath p) (-n)"
+  using winding_number_prop_reversepath[of "reversepath \<gamma>" z e p n]
+        winding_number_prop_reversepath[of \<gamma> z e "reversepath p" "-n"] by auto
+
 (*NB not winding_number_prop here due to the loop in p*)
 lemma winding_number_unique_loop:
   assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
@@ -272,6 +296,63 @@ proof -
     using \<gamma> by (simp add: contour_integral_unique has_contour_integral_negatepath)
   then show ?thesis
     using assms by (simp add: winding_number_valid_path valid_path_negatepath image_def path_defs)
+qed
+
+lemma winding_number_cnj:
+  assumes "path \<gamma>" "z \<notin> path_image \<gamma>"
+  shows   "winding_number (cnj \<circ> \<gamma>) (cnj z) = -cnj (winding_number \<gamma> z)"
+proof (rule winding_number_unique)
+  show "\<exists>p. winding_number_prop (cnj \<circ> \<gamma>) (cnj z) e p (-cnj (winding_number \<gamma> z))"
+    if "e > 0" for e
+  proof -
+    from winding_number[OF assms(1,2) \<open>e > 0\<close>]
+    obtain p where "winding_number_prop \<gamma> z e p (winding_number \<gamma> z)"
+      by blast
+    then have p: "valid_path p" "z \<notin> path_image p"
+        "pathstart p = pathstart \<gamma>"
+        "pathfinish p = pathfinish \<gamma>"
+        "\<And>t. t \<in> {0..1} \<Longrightarrow> cmod (\<gamma> t - p t) < e" and
+        p_cont:"contour_integral p (\<lambda>w. 1 / (w - z)) =
+          complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z" 
+      unfolding winding_number_prop_def by auto
+    
+    have "valid_path (cnj \<circ> p)"
+      using p(1) by (subst valid_path_cnj) auto
+    moreover have "cnj z \<notin> path_image (cnj \<circ> p)"
+      using p(2) by (auto simp: path_image_def)
+    moreover have "pathstart (cnj \<circ> p) = pathstart (cnj \<circ> \<gamma>)" 
+      using p(3) by (simp add: pathstart_compose)
+    moreover have "pathfinish (cnj \<circ> p) = pathfinish (cnj \<circ> \<gamma>)" 
+      using p(4) by (simp add: pathfinish_compose)
+    moreover have "cmod ((cnj \<circ> \<gamma>) t - (cnj \<circ> p) t) < e"
+      if t: "t \<in> {0..1}" for t
+    proof -
+      have "(cnj \<circ> \<gamma>) t - (cnj \<circ> p) t = cnj (\<gamma> t - p t)"
+        by simp
+      also have "norm \<dots> = norm (\<gamma> t - p t)"
+        by (subst complex_mod_cnj) auto
+      also have "\<dots> < e"
+        using p(5)[OF t] by simp
+      finally show ?thesis .
+    qed
+    moreover have "contour_integral (cnj \<circ> p) (\<lambda>w. 1 / (w - cnj z)) =
+          cnj (complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z)" (is "?L=?R")
+    proof -
+      have "?L = contour_integral (cnj \<circ> p) (cnj \<circ> (\<lambda>w. 1 / (cnj w - z)))"
+        by (simp add: o_def)
+      also have "\<dots> = cnj (contour_integral p (\<lambda>x. 1 / (x - z)))"
+        using p(1) by (subst contour_integral_cnj) (auto simp: o_def)
+      also have "\<dots> = ?R"
+        using p_cont by simp
+      finally show ?thesis .
+    qed
+    ultimately show ?thesis
+      by (intro exI[of _ "cnj \<circ> p"]) (auto simp: winding_number_prop_def)
+  qed
+  show "path (cnj \<circ> \<gamma>)"
+    by (intro path_continuous_image continuous_intros) (use assms in auto)
+  show "cnj z \<notin> path_image (cnj \<circ> \<gamma>)"
+    using \<open>z \<notin> path_image \<gamma>\<close> unfolding path_image_def by auto
 qed
 
 text \<open>A combined theorem deducing several things piecewise.\<close>
