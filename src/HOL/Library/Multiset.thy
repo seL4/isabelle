@@ -1594,6 +1594,11 @@ qed
 lemma size_1_singleton_mset: "size M = 1 \<Longrightarrow> \<exists>a. M = {#a#}"
   by (cases M) auto
 
+lemma set_mset_subset_singletonD:
+  assumes "set_mset A \<subseteq> {x}"
+  shows   "A = replicate_mset (size A) x"
+  using assms by (induction A) auto
+
 
 subsubsection \<open>Strong induction and subset induction for multisets\<close>
 
@@ -2308,6 +2313,15 @@ lemma set_mset_replicate_mset_subset[simp]: "set_mset (replicate_mset n x) = (if
 lemma size_replicate_mset[simp]: "size (replicate_mset n M) = n"
   by (induct n, simp_all)
 
+lemma size_repeat_mset [simp]: "size (repeat_mset n A) = n * size A"
+  by (induction n) auto
+
+lemma size_multiset_sum [simp]: "size (\<Sum>x\<in>A. f x :: 'a multiset) = (\<Sum>x\<in>A. size (f x))"
+  by (induction A rule: infinite_finite_induct) auto
+
+lemma size_multiset_sum_list [simp]: "size (\<Sum>X\<leftarrow>Xs. X :: 'a multiset) = (\<Sum>X\<leftarrow>Xs. size X)"
+  by (induction Xs) auto
+
 lemma count_le_replicate_mset_subset_eq: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<subseteq># M"
   by (auto simp add: mset_subset_eqI) (metis count_replicate_mset subseteq_mset_def)
 
@@ -2774,7 +2788,10 @@ lemma Union_mset_empty_conv[simp]: "\<Sum>\<^sub># M = {#} \<longleftrightarrow>
   by (induction M) auto
 
 lemma Union_image_single_mset[simp]: "\<Sum>\<^sub># (image_mset (\<lambda>x. {#x#}) m) = m"
-by(induction m) auto
+  by(induction m) auto
+
+lemma size_multiset_sum_mset [simp]: "size (\<Sum>X\<in>#A. X :: 'a multiset) = (\<Sum>X\<in>#A. size X)"
+  by (induction A) auto
 
 context comm_monoid_mult
 begin
@@ -2891,6 +2908,32 @@ proof -
   then show ?thesis by (simp add: normalize_prod_mset)
 qed
 
+lemma image_prod_mset_multiplicity:
+  "prod_mset (image_mset f M) = prod (\<lambda>x. f x ^ count M x) (set_mset M)"
+proof (induction M)
+  case (add x M)
+  show ?case
+  proof (cases "x \<in> set_mset M")
+    case True
+    have "(\<Prod>y\<in>set_mset (add_mset x M). f y ^ count (add_mset x M) y) = 
+            (\<Prod>y\<in>set_mset M. (if y = x then f x else 1) * f y ^ count M y)"
+      using True add by (intro prod.cong) auto
+    also have "\<dots> = f x * (\<Prod>y\<in>set_mset M. f y ^ count M y)"
+      using True by (subst prod.distrib) auto
+    also note add.IH [symmetric]
+    finally show ?thesis using True by simp
+  next
+    case False
+    hence "(\<Prod>y\<in>set_mset (add_mset x M). f y ^ count (add_mset x M) y) =
+              f x * (\<Prod>y\<in>set_mset M. f y ^ count (add_mset x M) y)"
+      by (auto simp: not_in_iff)
+    also have "(\<Prod>y\<in>set_mset M. f y ^ count (add_mset x M) y) = 
+                 (\<Prod>y\<in>set_mset M. f y ^ count M y)"
+      using False by (intro prod.cong) auto
+    also note add.IH [symmetric]
+    finally show ?thesis by simp
+  qed
+qed auto
 
 subsection \<open>Multiset as order-ignorant lists\<close>
 

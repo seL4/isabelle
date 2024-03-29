@@ -2,8 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section\<open>A formalization of the fraction field of any integral domain;
-         generalization of theory Rat from int to any integral domain\<close>
+section\<open>The fraction field of any integral domain\<close>
 
 theory Fraction_Field
 imports Main

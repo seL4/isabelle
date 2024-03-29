@@ -148,6 +148,9 @@ session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
     Field_as_Ring
+  document_files
+    "root.tex"
+    "root.bib"
 
 session "HOL-Real_Asymp" in Real_Asymp = HOL +
   sessions

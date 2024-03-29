@@ -47,6 +47,16 @@ lemma set_conv_list [code]:
   "set.F g (set xs) = list.F (map g (remdups xs))"
   by (simp add: distinct_set_conv_list [symmetric])
 
+lemma list_conv_set_nth:
+  "list.F xs = set.F (\<lambda>i. xs ! i) {0..<length xs}"
+proof -
+  have "xs = map (\<lambda>i. xs ! i) [0..<length xs]"
+    by (simp add: map_nth)
+  also have "list.F \<dots> = set.F (\<lambda>i. xs ! i) {0..<length xs}"
+    by (subst distinct_set_conv_list [symmetric]) auto
+  finally show ?thesis .
+qed
+
 end
 
 

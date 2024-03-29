@@ -877,6 +877,12 @@ lemma Rats_power [simp]: "a \<in> \<rat> \<Longrightarrow> a ^ n \<in> \<rat>"
   for a :: "'a::field_char_0"
   by (metis Rats_cases Rats_of_rat of_rat_power)
 
+lemma Rats_sum [intro]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<rat>) \<Longrightarrow> sum f A \<in> \<rat>"
+  by (induction A rule: infinite_finite_induct) auto
+
+lemma Rats_prod [intro]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<rat>) \<Longrightarrow> prod f A \<in> \<rat>"
+  by (induction A rule: infinite_finite_induct) auto
+
 lemma Rats_induct [case_names of_rat, induct set: Rats]: "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
   by (rule Rats_cases) auto
 

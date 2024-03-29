@@ -518,7 +518,7 @@ qed
 
 text \<open>Fundamental theorem of algebra\<close>
 
-lemma fundamental_theorem_of_algebra:
+theorem fundamental_theorem_of_algebra:
   assumes nc: "\<not> constant (poly p)"
   shows "\<exists>z::complex. poly p z = 0"
   using nc
@@ -778,6 +778,92 @@ proof
     unfolding constant_def
     by (metis degree_eq_zeroE pcompose_const poly_0 poly_pcompose that)
 qed
+
+lemma complex_poly_decompose:
+  "smult (lead_coeff p) (\<Prod>z|poly p z = 0. [:-z, 1:] ^ order z p) = (p :: complex poly)"
+proof (induction p rule: poly_root_order_induct)
+  case (no_roots p)
+  show ?case
+  proof (cases "degree p = 0")
+    case False
+    hence "\<not>constant (poly p)" by (subst constant_degree)
+    with fundamental_theorem_of_algebra and no_roots show ?thesis by blast
+  qed (auto elim!: degree_eq_zeroE)
+next
+  case (root p x n)
+  from root have *: "{z. poly ([:- x, 1:] ^ n * p) z = 0} = insert x {z. poly p z = 0}"
+    by auto
+  have "smult (lead_coeff ([:-x, 1:] ^ n * p)) 
+           (\<Prod>z|poly ([:-x,1:] ^ n * p) z = 0. [:-z, 1:] ^ order z ([:- x, 1:] ^ n * p)) = 
+        [:- x, 1:] ^ order x ([:- x, 1:] ^ n * p) * 
+          smult (lead_coeff p) (\<Prod>z\<in>{z. poly p z = 0}. [:- z, 1:] ^ order z ([:- x, 1:] ^ n * p))"
+    by (subst *, subst prod.insert) 
+       (insert root, auto intro: poly_roots_finite simp: mult_ac lead_coeff_mult lead_coeff_power)
+  also have "order x ([:- x, 1:] ^ n * p) = n"
+    using root by (subst order_mult) (auto simp: order_power_n_n order_0I)
+  also have "(\<Prod>z\<in>{z. poly p z = 0}. [:- z, 1:] ^ order z ([:- x, 1:] ^ n * p)) =
+               (\<Prod>z\<in>{z. poly p z = 0}. [:- z, 1:] ^ order z p)"
+  proof (intro prod.cong refl, goal_cases)
+    case (1 y)
+    with root have "order y ([:-x,1:] ^ n) = 0" by (intro order_0I) auto 
+    thus ?case using root by (subst order_mult) auto
+  qed
+  also note root.IH
+  finally show ?case .
+qed simp_all
+
+instance complex :: alg_closed_field
+  by standard (use fundamental_theorem_of_algebra constant_degree neq0_conv in blast)
+
+lemma size_proots_complex: "size (proots (p :: complex poly)) = degree p"
+proof (cases "p = 0")
+  case [simp]: False
+  show "size (proots p) = degree p"
+    by (subst (1 2) complex_poly_decompose [symmetric])
+       (simp add: proots_prod proots_power degree_prod_sum_eq degree_power_eq)
+qed auto
+
+lemma complex_poly_decompose_multiset:
+  "smult (lead_coeff p) (\<Prod>x\<in>#proots p. [:-x, 1:]) = (p :: complex poly)"
+proof (cases "p = 0")
+  case False
+  hence "(\<Prod>x\<in>#proots p. [:-x, 1:]) = (\<Prod>x | poly p x = 0. [:-x, 1:] ^ order x p)"
+    by (subst image_prod_mset_multiplicity) simp_all
+  also have "smult (lead_coeff p) \<dots> = p"
+    by (rule complex_poly_decompose)
+  finally show ?thesis .
+qed auto
+
+lemma complex_poly_decompose':
+  obtains root where "smult (lead_coeff p) (\<Prod>i<degree p. [:-root i, 1:]) = (p :: complex poly)"
+proof -
+  obtain roots where roots: "mset roots = proots p"
+    using ex_mset by blast
+
+  have "p = smult (lead_coeff p) (\<Prod>x\<in>#proots p. [:-x, 1:])"
+    by (rule complex_poly_decompose_multiset [symmetric])
+  also have "(\<Prod>x\<in>#proots p. [:-x, 1:]) = (\<Prod>x\<leftarrow>roots. [:-x, 1:])"
+    by (subst prod_mset_prod_list [symmetric]) (simp add: roots)
+  also have "\<dots> = (\<Prod>i<length roots. [:-roots ! i, 1:])"
+    by (subst prod.list_conv_set_nth) (auto simp: atLeast0LessThan)
+  finally have eq: "p = smult (lead_coeff p) (\<Prod>i<length roots. [:-roots ! i, 1:])" .
+  also have [simp]: "degree p = length roots"
+    using roots by (subst eq) (auto simp: degree_prod_sum_eq)
+  finally show ?thesis by (intro that[of "\<lambda>i. roots ! i"]) auto
+qed
+
+lemma complex_poly_decompose_rsquarefree:
+  assumes "rsquarefree p"
+  shows   "smult (lead_coeff p) (\<Prod>z|poly p z = 0. [:-z, 1:]) = (p :: complex poly)"
+proof (cases "p = 0")
+  case False
+  have "(\<Prod>z|poly p z = 0. [:-z, 1:]) = (\<Prod>z|poly p z = 0. [:-z, 1:] ^ order z p)"
+    using assms False by (intro prod.cong) (auto simp: rsquarefree_root_order)
+  also have "smult (lead_coeff p) \<dots> = p"
+    by (rule complex_poly_decompose)
+  finally show ?thesis .
+qed auto
+
 
 text \<open>Arithmetic operations on multivariate polynomials.\<close>
 

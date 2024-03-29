@@ -79,7 +79,7 @@ proof-
 qed
 
 
-subsubsection \<open>Definition of basic zero, one, constant, X, and inverse X elements\<close>
+subsubsection \<open>Definition of basic Laurent series\<close>
 
 instantiation fls :: (zero) zero
 begin
@@ -2008,14 +2008,13 @@ lemma fls_fps_normalized_product_of_inverses:
 
 subsubsection \<open>Inverses\<close>
 
-\<comment> \<open>See lemma fls_left_inverse\<close> 
+
 abbreviation fls_left_inverse ::
   "'a::{comm_monoid_add,uminus,times} fls \<Rightarrow> 'a \<Rightarrow> 'a fls"
   where
   "fls_left_inverse f x \<equiv>
     fls_shift (fls_subdegree f) (fps_to_fls (fps_left_inverse (fls_base_factor_to_fps f) x))"
 
-\<comment> \<open>See lemma fls_right_inverse\<close> 
 abbreviation fls_right_inverse ::
   "'a::{comm_monoid_add,uminus,times} fls \<Rightarrow> 'a \<Rightarrow> 'a fls"
   where
@@ -2605,7 +2604,7 @@ lemma fls_mult_inverse_base_factor:
 lemma fls_left_inverse_idempotent_ring1:
   fixes   f :: "'a::ring_1 fls"
   assumes "x * f $$ fls_subdegree f = 1" "y * x = 1"
-  \<comment> \<open>These assumptions imply y equals f $$ fls_subdegree f, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply y equals \<open>f $$ fls_subdegree f\<close>, but no need to assume that.\<close>
   shows   "fls_left_inverse (fls_left_inverse f x) y = f"
 proof-
   from assms(1) have
@@ -2630,7 +2629,7 @@ lemma fls_left_inverse_idempotent_comm_ring1:
 lemma fls_right_inverse_idempotent_ring1:
   fixes   f :: "'a::ring_1 fls"
   assumes "f $$ fls_subdegree f * x = 1" "x * y = 1"
-  \<comment> \<open>These assumptions imply y equals f $$ fls_subdegree f, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply y equals \<open>f $$ fls_subdegree f\<close>, but no need to assume that.\<close>
   shows   "fls_right_inverse (fls_right_inverse f x) y = f"
 proof-
   from assms(1) have
@@ -3645,7 +3644,7 @@ lemma fls_nth_compose_power' [simp]:
 
 subsection \<open>Formal differentiation and integration\<close>
 
-subsubsection \<open>Derivative definition and basic properties\<close>
+subsubsection \<open>Derivative\<close>
 
 definition "fls_deriv f = Abs_fls (\<lambda>n. of_int (n+1) * f$$(n+1))"
 
@@ -3802,7 +3801,7 @@ proof (intro fls_eqI)
 qed
 
 
-subsubsection \<open>Algebra rules of the derivative\<close>
+subsubsection \<open>Algebraic rules of the derivative\<close>
 
 lemma fls_deriv_add [simp]: "fls_deriv (f+g) = fls_deriv f + fls_deriv g"
   by (auto intro: fls_eqI simp: algebra_simps)
@@ -4155,7 +4154,6 @@ qed
 
 subsubsection \<open>Integral definition and basic properties\<close>
 
-\<comment> \<open>To incorporate a constant of integration, just add an fps_const.\<close>
 definition fls_integral :: "'a::{ring_1,inverse} fls \<Rightarrow> 'a fls"
   where "fls_integral a = Abs_fls (\<lambda>n. if n=0 then 0 else inverse (of_int n) * a$$(n - 1))"
 
@@ -4371,7 +4369,7 @@ proof (intro fls_eqI)
 qed
 
 
-subsubsection \<open>Algebra rules of the integral\<close>
+subsubsection \<open>Algebraic rules of the integral\<close>
 
 lemma fls_integral_add [simp]: "fls_integral (f+g) = fls_integral f + fls_integral g"
   by (intro fls_eqI) (simp add: algebra_simps)
@@ -4580,7 +4578,7 @@ lemma open_fls_def:
   unfolding open_dist subset_eq by simp
 
 
-subsection \<open>Notation bundle\<close>
+subsection \<open>Notation\<close>
 
 no_notation fls_nth (infixl "$$" 75)
 

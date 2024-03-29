@@ -44,7 +44,7 @@ end
 lemma fps_zero_nth [simp]: "0 $ n = 0"
   unfolding fps_zero_def by simp
 
-lemma fps_nonzero_nth: "f \<noteq> 0 \<longleftrightarrow> (\<exists> n. f $n \<noteq> 0)"
+lemma fps_nonzero_nth: "f \<noteq> 0 \<longleftrightarrow> (\<exists> n. f $ n \<noteq> 0)"
   by (simp add: expand_fps_eq)
 
 lemma fps_nonzero_nth_minimal: "f \<noteq> 0 \<longleftrightarrow> (\<exists>n. f $ n \<noteq> 0 \<and> (\<forall>m < n. f $ m = 0))"
@@ -412,8 +412,7 @@ lemma fps_mult_nth_outside_subdegrees:
   by    (auto simp: fps_mult_nth_conv_inside_subdegrees)
 
 
-subsection \<open>Formal power series form a commutative ring with unity, if the range of sequences
-  they represent is a commutative ring with unity\<close>
+subsection \<open>Ring structure\<close>
 
 instance fps :: (semigroup_add) semigroup_add
 proof
@@ -539,8 +538,6 @@ instance fps :: (comm_semiring_1) comm_semiring_1
 instance fps :: (semiring_1_cancel) semiring_1_cancel ..
 
 
-subsection \<open>Selection of the nth power of the implicit variable in the infinite sum\<close>
-
 lemma fps_square_nth: "(f^2) $ n = (\<Sum>k\<le>n. f $ k * f $ (n - k))"
   by (simp add: power2_eq_square fps_mult_nth atLeast0AtMost)
 
@@ -553,8 +550,6 @@ next
   then show ?thesis by simp
 qed
 
-
-subsection \<open>Injection of the basic ring elements and multiplication by scalars\<close>
 
 definition "fps_const c = Abs_fps (\<lambda>n. if n = 0 then c else 0)"
 
@@ -618,8 +613,6 @@ lemma fps_mult_right_const_nth [simp]:
 lemma fps_const_power [simp]: "fps_const c ^ n = fps_const (c^n)"
   by (induct n) auto
 
-
-subsection \<open>Formal power series form an integral domain\<close>
 
 instance fps :: (ring) ring ..
 
@@ -790,8 +783,6 @@ lemma subdegree_power [simp]:
   "subdegree ((f :: ('a :: semiring_1_no_zero_divisors) fps) ^ n) = n * subdegree f"
   by (cases "f = 0"; induction n) simp_all
 
-
-subsection \<open>The efps_Xtractor series fps_X\<close>
 
 lemma minus_one_power_iff: "(- (1::'a::ring_1)) ^ n = (if even n then 1 else - 1)"
   by (induct n) auto
@@ -1324,7 +1315,7 @@ proof-
   thus ?thesis by (simp add: fps_mult_nth)
 qed
 
-subsection \<open>Formal Power series form a metric space\<close>
+subsection \<open>Metrizability\<close>
 
 instantiation fps :: ("{minus,zero}") dist
 begin
@@ -1472,7 +1463,7 @@ proof -
 qed
 
 
-subsection \<open>Inverses and division of formal power series\<close>
+subsection \<open>Division\<close>
 
 declare sum.cong[fundef_cong]
 
@@ -1483,7 +1474,7 @@ where
 | "fps_left_inverse_constructor f a (Suc n) =
     - sum (\<lambda>i. fps_left_inverse_constructor f a i * f$(Suc n - i)) {0..n} * a"
 
-\<comment> \<open>This will construct a left inverse for f in case that x * f$0 = 1\<close>
+\<comment> \<open>This will construct a left inverse for f in case that \<^prop>\<open>x * f$0 = 1\<close>\<close>
 abbreviation "fps_left_inverse \<equiv> (\<lambda>f x. Abs_fps (fps_left_inverse_constructor f x))"
 
 fun fps_right_inverse_constructor ::
@@ -1493,7 +1484,7 @@ where
 | "fps_right_inverse_constructor f a n =
     - a * sum (\<lambda>i. f$i * fps_right_inverse_constructor f a (n - i)) {1..n}"
 
-\<comment> \<open>This will construct a right inverse for f in case that f$0 * y = 1\<close>
+\<comment> \<open>This will construct a right inverse for f in case that \<^prop>\<open>f$0 * y = 1\<close>\<close>
 abbreviation "fps_right_inverse \<equiv> (\<lambda>f y. Abs_fps (fps_right_inverse_constructor f y))"
 
 instantiation fps :: ("{comm_monoid_add,inverse,times,uminus}") inverse
@@ -1721,14 +1712,14 @@ proof (rule fps_ext)
   qed (simp add: f0 fps_inverse_def)
 qed
 
-\<comment> \<open>
+text \<open>
   It is possible in a ring for an element to have a left inverse but not a right inverse, or
   vice versa. But when an element has both, they must be the same.
 \<close>
 lemma fps_left_inverse_eq_fps_right_inverse:
   fixes   f :: "'a::ring_1 fps"
   assumes f0: "x * f$0 = 1" "f $ 0 * y = 1"
-  \<comment> \<open>These assumptions imply x equals y, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply that $x$ equals $y$, but no need to assume that.\<close>
   shows   "fps_left_inverse f x = fps_right_inverse f y"
 proof-
   from f0(2) have "f * fps_right_inverse f y = 1"
@@ -1751,7 +1742,7 @@ lemma fps_left_inverse_eq_fps_right_inverse_comm:
 lemma fps_left_inverse':
   fixes   f :: "'a::ring_1 fps"
   assumes "x * f$0 = 1" "f$0 * y = 1"
-  \<comment> \<open>These assumptions imply x equals y, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply $x$ equals $y$, but no need to assume that.\<close>
   shows   "fps_right_inverse f y * f = 1"
   using   assms fps_left_inverse_eq_fps_right_inverse[of x f y] fps_left_inverse[of x f]
   by      simp
@@ -1759,7 +1750,7 @@ lemma fps_left_inverse':
 lemma fps_right_inverse':
   fixes   f :: "'a::ring_1 fps"
   assumes "x * f$0 = 1" "f$0 * y = 1"
-  \<comment> \<open>These assumptions imply x equals y, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply $x$ equals $y$, but no need to assume that.\<close>
   shows   "f * fps_left_inverse f x = 1"
   using   assms fps_left_inverse_eq_fps_right_inverse[of x f y] fps_right_inverse[of f y]
   by      simp
@@ -1808,7 +1799,7 @@ lemma fps_mult_right_inverse_unit_factor_divring:
 lemma fps_left_inverse_idempotent_ring1:
   fixes   f :: "'a::ring_1 fps"
   assumes "x * f$0 = 1" "y * x = 1"
-  \<comment> \<open>These assumptions imply y equals f$0, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply $y$ equals \<open>f$0\<close>, but no need to assume that.\<close>
   shows   "fps_left_inverse (fps_left_inverse f x) y = f"
 proof-
   from assms(1) have
@@ -1831,7 +1822,7 @@ lemma fps_left_inverse_idempotent_comm_ring1:
 lemma fps_right_inverse_idempotent_ring1:
   fixes   f :: "'a::ring_1 fps"
   assumes "f$0 * x = 1" "x * y = 1"
-  \<comment> \<open>These assumptions imply y equals f$0, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply $y$ equals \<open>f$0\<close>, but no need to assume that.\<close>
   shows   "fps_right_inverse (fps_right_inverse f x) y = f"
 proof-
   from assms(1) have "f * (fps_right_inverse f x * fps_right_inverse (fps_right_inverse f x) y) =
@@ -2854,7 +2845,7 @@ qed (simp_all add: fps_divide_def Let_def)
 end
 
 
-subsection \<open>Formal power series form a Euclidean ring\<close>
+subsection \<open>Euclidean division\<close>
 
 instantiation fps :: (field) euclidean_ring_cancel
 begin
@@ -2994,7 +2985,7 @@ qed (simp_all add: fps_Lcm Lcm_eq_0_I)
 
 
 
-subsection \<open>Formal Derivatives, and the MacLaurin theorem around 0\<close>
+subsection \<open>Formal Derivatives\<close>
 
 definition "fps_deriv f = Abs_fps (\<lambda>n. of_nat (n + 1) * f $ (n + 1))"
 
@@ -3196,7 +3187,7 @@ lemma fps_deriv_maclauren_0:
 lemma fps_deriv_lr_inverse:
   fixes   x y :: "'a::ring_1"
   assumes "x * f$0 = 1" "f$0 * y = 1"
-  \<comment> \<open>These assumptions imply x equals y, but no need to assume that.\<close>
+  \<comment> \<open>These assumptions imply $x$ equals $y$, but no need to assume that.\<close>
   shows   "fps_deriv (fps_left_inverse f x) =
             - fps_left_inverse f x * fps_deriv f * fps_left_inverse f x"
   and     "fps_deriv (fps_right_inverse f y) =
@@ -3622,7 +3613,7 @@ proof (intro fps_ext)
 qed
 
 
-subsection \<open>Composition of FPSs\<close>
+subsection \<open>Composition\<close>
 
 definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps"  (infixl "oo" 55)
   where "a oo b = Abs_fps (\<lambda>n. sum (\<lambda>i. a$i * (b^i$n)) {0..n})"
@@ -3722,10 +3713,10 @@ lemma fps_mult_fps_XD_shift:
 
 subsubsection \<open>Rule 3\<close>
 
-text \<open>Rule 3 is trivial and is given by \<open>fps_times_def\<close>.\<close>
+text \<open>Rule 3 is trivial and is given by \texttt{fps\_times\_def}.\<close>
 
 
-subsubsection \<open>Rule 5 --- summation and "division" by (1 - fps_X)\<close>
+subsubsection \<open>Rule 5 --- summation and ``division'' by $1 - X$\<close>
 
 lemma fps_divide_fps_X_minus1_sum_lemma:
   "a = ((1::'a::ring_1 fps) - fps_X) * Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
@@ -3759,8 +3750,10 @@ lemma fps_divide_fps_X_minus1_sum:
   using fps_divide_fps_X_minus1_sum_ring1[of a] by simp
 
 
-subsubsection \<open>Rule 4 in its more general form: generalizes Rule 3 for an arbitrary
-  finite product of FPS, also the relvant instance of powers of a FPS\<close>
+subsubsection \<open>Rule 4 in its more general form\<close>
+
+text \<open>This generalizes Rule 3 for an arbitrary
+  finite product of FPS, also the relevant instance of powers of a FPS.\<close>
 
 definition "natpermute n k = {l :: nat list. length l = k \<and> sum_list l = n}"
 
@@ -4619,7 +4612,7 @@ lemma radical_inverse:
   by (simp add: divide_inverse fps_divide_def)
 
 
-subsection \<open>Derivative of composition\<close>
+subsection \<open>Chain rule\<close>
 
 lemma fps_compose_deriv:
   fixes a :: "'a::idom fps"
@@ -4657,9 +4650,6 @@ proof -
   qed
   then show ?thesis by (simp add: fps_eq_iff)
 qed
-
-
-subsection \<open>Finite FPS (i.e. polynomials) and fps_X\<close>
 
 lemma fps_poly_sum_fps_X:
   assumes "\<forall>i > n. a$i = 0"
@@ -5742,7 +5732,7 @@ proof -
 qed
 
 
-subsubsection \<open>Formal trigonometric functions\<close>
+subsubsection \<open>Trigonometric functions\<close>
 
 definition "fps_sin (c::'a::field_char_0) =
   Abs_fps (\<lambda>n. if even n then 0 else (- 1) ^((n - 1) div 2) * c^n /(of_nat (fact n)))"

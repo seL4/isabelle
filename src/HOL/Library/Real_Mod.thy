@@ -7,6 +7,8 @@ theory Real_Mod
   imports Complex_Main
 begin
 
+(* MOVED TO HOL-Library ON 20.03.2024 *)
+
 definition rmod :: "real \<Rightarrow> real \<Rightarrow> real" (infixl "rmod" 70) where
   "x rmod y = x - \<bar>y\<bar> * of_int \<lfloor>x / \<bar>y\<bar>\<rfloor>"
 
