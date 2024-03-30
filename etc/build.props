@@ -200,6 +200,7 @@ sources = \
   src/Pure/System/setup_tool.scala \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \
+  src/Pure/System/web_app.scala \
   src/Pure/Thy/document_build.scala \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
