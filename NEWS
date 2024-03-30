@@ -279,6 +279,8 @@ ARM Linux and Apple Silicon.
 
 * Update to OpenJDK 21: the current long-term support version of Java.
 
+* Isabelle/Scala now has some support for web-apps, using HTML 5 forms.
+
 
 
 New in Isabelle2023 (September 2023)
