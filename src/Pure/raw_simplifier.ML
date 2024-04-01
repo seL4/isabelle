@@ -865,8 +865,8 @@ fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
 (* trace operations *)
 
 type trace_ops =
- {trace_invoke: {depth: int, term: term} -> Proof.context -> Proof.context,
-  trace_rrule: {unconditional: bool, term: term, thm: thm, rrule: rrule} ->
+ {trace_invoke: {depth: int, cterm: cterm} -> Proof.context -> Proof.context,
+  trace_rrule: {unconditional: bool, cterm: cterm, thm: thm, rrule: rrule} ->
     Proof.context -> (Proof.context -> (thm * term) option) -> (thm * term) option,
   trace_simproc: {name: string, cterm: cterm} ->
     Proof.context -> (Proof.context -> thm option) -> thm option};
@@ -1001,7 +1001,7 @@ fun rewritec (prover, maxt) ctxt t =
         val prop' = Thm.prop_of thm';
         val unconditional = Logic.no_prems prop';
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop');
-        val trace_args = {unconditional = unconditional, term = eta_t, thm = thm', rrule = rrule};
+        val trace_args = {unconditional = unconditional, cterm = eta_t', thm = thm', rrule = rrule};
       in
         if perm andalso is_greater_equal (term_ord (rhs', lhs'))
         then
@@ -1370,7 +1370,7 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
       |> Variable.set_body true
       |> Context_Position.set_visible false
       |> inc_simp_depth
-      |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, term = Thm.term_of ct} ctxt);
+      |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, cterm = ct} ctxt);
 
     val _ =
       cond_tracing ctxt (fn () =>

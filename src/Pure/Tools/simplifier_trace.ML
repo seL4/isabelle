@@ -372,9 +372,9 @@ fun indicate_success thm ctxt =
 
 fun trace_rrule args ctxt cont =
   let
-    val {unconditional: bool, term: term, thm: thm, rrule: rrule} = args
+    val {unconditional: bool, cterm: cterm, thm: thm, rrule: rrule} = args
     val data =
-      {term = term,
+      {term = Thm.term_of cterm,
        unconditional = unconditional,
        ctxt = ctxt,
        thm = thm,
@@ -395,7 +395,7 @@ fun trace_rrule args ctxt cont =
 
 val _ = Theory.setup
   (Simplifier.set_trace_ops
-    {trace_invoke = fn {depth, term} => recurse "Simplifier invoked" depth term,
+    {trace_invoke = fn {depth, cterm} => recurse "Simplifier invoked" depth (Thm.term_of cterm),
      trace_rrule = trace_rrule,
      trace_simproc = fn _ => fn ctxt => fn cont => cont ctxt})
 
