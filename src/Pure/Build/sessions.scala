@@ -548,7 +548,7 @@ object Sessions {
       Group_Info("slow", "CPU time much higher than 60min (on mid-range hardware)",
         bulky = true, afp = true),
       Group_Info("very_slow", "elapsed time of many hours (on high-end hardware)",
-        afp = true),
+        bulky = true, afp = true),
       Group_Info("AFP", "entry within AFP", afp = true),
       Group_Info("doc", "Isabelle documentation"),
       Group_Info("no_doc", "suppressed Isabelle documentation")
