@@ -866,7 +866,7 @@ fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
 
 type trace_ops =
  {trace_invoke: {depth: int, term: term} -> Proof.context -> Proof.context,
-  trace_apply: {unconditional: bool, term: term, thm: thm, rrule: rrule} ->
+  trace_rrule: {unconditional: bool, term: term, thm: thm, rrule: rrule} ->
     Proof.context -> (Proof.context -> (thm * term) option) -> (thm * term) option,
   trace_simproc: {name: string, cterm: cterm} ->
     Proof.context -> (Proof.context -> thm option) -> thm option};
@@ -876,7 +876,7 @@ structure Trace_Ops = Theory_Data
   type T = trace_ops;
   val empty: T =
    {trace_invoke = fn _ => fn ctxt => ctxt,
-    trace_apply = fn _ => fn ctxt => fn cont => cont ctxt,
+    trace_rrule = fn _ => fn ctxt => fn cont => cont ctxt,
     trace_simproc = fn _ => fn ctxt => fn cont => cont ctxt};
   fun merge (trace_ops, _) = trace_ops;
 );
@@ -885,7 +885,7 @@ val set_trace_ops = Trace_Ops.put;
 
 val trace_ops = Trace_Ops.get o Proof_Context.theory_of;
 fun trace_invoke args ctxt = #trace_invoke (trace_ops ctxt) args ctxt;
-fun trace_apply args ctxt = #trace_apply (trace_ops ctxt) args ctxt;
+fun trace_rrule args ctxt = #trace_rrule (trace_ops ctxt) args ctxt;
 fun trace_simproc args ctxt = #trace_simproc (trace_ops ctxt) args ctxt;
 
 
@@ -1015,7 +1015,7 @@ fun rewritec (prover, maxt) ctxt t =
           if unconditional
           then
            (cond_tracing ctxt (fn () => print_thm ctxt "Rewriting:" ("", thm'));
-            trace_apply trace_args ctxt (fn ctxt' =>
+            trace_rrule trace_args ctxt (fn ctxt' =>
               let
                 val lr = Logic.dest_equals prop;
                 val SOME thm'' = check_conv ctxt' false eta_thm thm';
@@ -1025,7 +1025,7 @@ fun rewritec (prover, maxt) ctxt t =
             if simp_depth ctxt > Config.get ctxt simp_depth_limit
             then (cond_tracing ctxt (fn () => "simp_depth_limit exceeded - giving up"); NONE)
             else
-              trace_apply trace_args ctxt (fn ctxt' =>
+              trace_rrule trace_args ctxt (fn ctxt' =>
                 (case prover ctxt' thm' of
                   NONE => (cond_tracing ctxt' (fn () => print_thm ctxt' "FAILED" ("", thm')); NONE)
                 | SOME thm2 =>
