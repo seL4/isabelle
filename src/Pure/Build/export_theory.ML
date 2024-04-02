@@ -38,7 +38,7 @@ val _ = Theory.setup
 
 (* approximative syntax *)
 
-val get_syntax = Syntax.get_approx o Proof_Context.syn_of;
+val get_syntax = Syntax.get_approx o Proof_Context.syntax_of;
 fun get_syntax_type ctxt = get_syntax ctxt o Lexicon.mark_type;
 fun get_syntax_const ctxt = get_syntax ctxt o Lexicon.mark_const;
 fun get_syntax_fixed ctxt = get_syntax ctxt o Lexicon.mark_fixed;

@@ -64,7 +64,7 @@ fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity ctxt c =
-  (case Syntax.lookup_const (Proof_Context.syn_of ctxt) c of
+  (case Syntax.lookup_const (Proof_Context.syntax_of ctxt) c of
     SOME "" => []
   | SOME b => markup_entity ctxt b
   | NONE => c |> Lexicon.unmark
@@ -338,7 +338,7 @@ fun report_result ctxt pos ambig_msgs results =
 
 fun parse_asts ctxt raw root (syms, pos) =
   let
-    val syn = Proof_Context.syn_of ctxt;
+    val syn = Proof_Context.syntax_of ctxt;
     val ast_tr = Syntax.parse_ast_translation syn;
 
     val toks = Syntax.tokenize syn raw syms;
@@ -364,7 +364,7 @@ fun parse_asts ctxt raw root (syms, pos) =
 
 fun parse_tree ctxt root input =
   let
-    val syn = Proof_Context.syn_of ctxt;
+    val syn = Proof_Context.syntax_of ctxt;
     val tr = Syntax.parse_translation syn;
     val parse_rules = Syntax.parse_rules syn;
     val (ambig_msgs, asts) = parse_asts ctxt false root input;
@@ -458,7 +458,7 @@ fun parse_term is_prop ctxt =
 
 fun parse_ast_pattern ctxt (root, str) =
   let
-    val syn = Proof_Context.syn_of ctxt;
+    val syn = Proof_Context.syntax_of ctxt;
 
     val reports = Unsynchronized.ref ([]: Position.report_text list);
     fun report ps = Position.store_reports reports ps;
@@ -731,7 +731,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val show_sorts = Config.get ctxt show_sorts;
     val show_types = Config.get ctxt show_types orelse show_sorts;
 
-    val syn = Proof_Context.syn_of ctxt;
+    val syn = Proof_Context.syntax_of ctxt;
     val prtabs = Syntax.prtabs syn;
     val trf = Syntax.print_ast_translation syn;
 
@@ -801,7 +801,7 @@ val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast (Markup.language_t
 fun unparse_term ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val syn = Proof_Context.syn_of ctxt;
+    val syn = Proof_Context.syntax_of ctxt;
   in
     unparse_t (term_to_ast (is_some o Syntax.lookup_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
