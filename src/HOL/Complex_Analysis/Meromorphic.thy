@@ -1,3 +1,7 @@
+(*
+  Authors:    Manuel Eberl, University of Innsbruck
+              Wenda Li, University of Edinburgh
+*)
 theory Meromorphic imports
   Laurent_Convergence
   Cauchy_Integral_Formula
@@ -6,7 +10,18 @@ begin
 
 subsection \<open>Remove singular points\<close>
 
-definition remove_sings :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
+text \<open>
+  This function takes a complex function and returns a version of it where all removable
+  singularities have been removed and all other singularities (to be more precise,
+  unremovable discontinuities) are set to 0.
+
+  This is very useful since it is sometimes difficult to avoid introducing removable singularities.
+  For example, consider the meromorphic functions $f(z) = z$ and $g(z) = 1/z$.
+  Then a mathematician would write $f(z)g(z) = 1$, but in Isabelle of course this is not so.
+
+  Using the \<open>remove_sings\<close> function, we indeed have \<open>remove_sings (\<lambda>z. f z * g z) = (\<lambda>_. 1)\<close>.
+\<close>
+definition%important remove_sings :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
   "remove_sings f z = (if \<exists>c. f \<midarrow>z\<rightarrow> c then Lim (at z) f else 0)"
 
 lemma remove_sings_eqI [intro]:
@@ -227,9 +242,25 @@ proof (cases "is_pole f w")
     using False remove_sings_eqI by auto
 qed simp
 
+
 subsection \<open>Meromorphicity\<close>
 
-definition meromorphic_on :: "(complex \<Rightarrow> complex) \<Rightarrow> complex set \<Rightarrow> bool"
+text \<open>
+  We define meromorphicity in terms of Laurent series expansions. This has the advantage of
+  giving us a particularly simple definition that makes many of the lemmas below trivial because
+  they reduce to similar statements about Laurent series that are already in the library.
+
+  On open domains, this definition coincides with the usual one from the literature, namely that
+  the function be holomorphic on its domain except for a set of non-essential singularities that
+  is \<^emph>\<open>sparse\<close>, i.e.\ that has no limit point inside the domain.
+  
+  However, unlike the definitions found in the literature, our definition also makes sense for
+  non-open domains: similarly to \<^const>\<open>analytic_on\<close>, we consider a function meromorphic on a
+  non-open domain if it is meromorphic on some open superset of that domain.
+
+  We will prove all of this below.
+\<close>
+definition%important meromorphic_on :: "(complex \<Rightarrow> complex) \<Rightarrow> complex set \<Rightarrow> bool"
   (infixl "(meromorphic'_on)" 50) where
   "f meromorphic_on A \<longleftrightarrow> (\<forall>z\<in>A. \<exists>F. (\<lambda>w. f (z + w)) has_laurent_expansion F)"
 
@@ -554,7 +585,7 @@ subsection \<open>Nice meromorphicity\<close>
 text \<open>
   This is probably very non-standard, but we call a function ``nicely meromorphic'' if it is
   meromorphic and has no removable singularities. That means that the only singularities are
-  poles.
+  poles. We furthermore require that the function return 0 at any pole, for convenience.
 \<close>
 definition nicely_meromorphic_on :: "(complex \<Rightarrow> complex) \<Rightarrow> complex set \<Rightarrow> bool"
     (infixl "(nicely'_meromorphic'_on)" 50)
