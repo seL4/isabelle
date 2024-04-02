@@ -49,11 +49,10 @@ lemma exprel_refl: "X \<sim> X"
     (blast intro: exprel.intros listrel.intros)+
 
 theorem equiv_exprel: "equiv UNIV exprel"
-proof -
-  have "refl exprel" by (simp add: refl_on_def exprel_refl)
-  moreover have "sym exprel" by (simp add: sym_def, blast intro: exprel.SYM)
-  moreover have "trans exprel" by (simp add: trans_def, blast intro: exprel.TRANS)
-  ultimately show ?thesis by (simp add: equiv_def)
+proof (rule equivI)
+  show "refl exprel" by (simp add: refl_on_def exprel_refl)
+  show "sym exprel" by (simp add: sym_def, blast intro: exprel.SYM)
+  show "trans exprel" by (simp add: trans_def, blast intro: exprel.TRANS)
 qed
 
 theorem equiv_list_exprel: "equiv UNIV (listrel exprel)"

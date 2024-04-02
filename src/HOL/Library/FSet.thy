@@ -192,6 +192,23 @@ alias fBex = FSet.Bex
 
 end
 
+syntax (input)
+  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3! (_/|:|_)./ _)" [0, 0, 10] 10)
+  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3? (_/|:|_)./ _)" [0, 0, 10] 10)
+
+syntax
+  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>(_/|\<in>|_)./ _)" [0, 0, 10] 10)
+  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>(_/|\<in>|_)./ _)" [0, 0, 10] 10)
+
+translations
+  "\<forall>x|\<in>|A. P" \<rightleftharpoons> "CONST FSet.Ball A (\<lambda>x. P)"
+  "\<exists>x|\<in>|A. P" \<rightleftharpoons> "CONST FSet.Bex A (\<lambda>x. P)"
+
+print_translation \<open>
+ [Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>fBall\<close> \<^syntax_const>\<open>_fBall\<close>,
+  Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>fBex\<close> \<^syntax_const>\<open>_fBex\<close>]
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+
 context includes lifting_syntax
 begin
 

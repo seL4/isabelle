@@ -23,6 +23,9 @@ locale sylow = group +
     and "RelM \<equiv> {(N1, N2). N1 \<in> calM \<and> N2 \<in> calM \<and> (\<exists>g \<in> carrier G. N1 = N2 #> g)}"
 begin
 
+lemma RelM_subset: "RelM \<subseteq> calM \<times> calM"
+  by (auto simp only: RelM_def)
+
 lemma RelM_refl_on: "refl_on calM RelM"
   by (auto simp: refl_on_def RelM_def calM_def) (blast intro!: coset_mult_one [symmetric])
 
@@ -41,7 +44,7 @@ lemma RelM_trans: "trans RelM"
   by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc)
 
 lemma RelM_equiv: "equiv calM RelM"
-  unfolding equiv_def by (blast intro: RelM_refl_on RelM_sym RelM_trans)
+  using RelM_subset RelM_refl_on RelM_sym RelM_trans by (intro equivI)
 
 lemma M_subset_calM_prep: "M' \<in> calM // RelM  \<Longrightarrow> M' \<subseteq> calM"
   unfolding RelM_def by (blast elim!: quotientE)

@@ -405,13 +405,20 @@ lemma equiv_partition_on:
   assumes P: "partition_on A P"
   shows "equiv A {(x, y). \<exists>p \<in> P. x \<in> p \<and> y \<in> p}"
 proof (rule equivI)
-  have "A = \<Union>P" "disjoint P" "{} \<notin> P"
+  have "A = \<Union>P"
     using P by (auto simp: partition_on_def)
+
+  have "{(x, y). \<exists>p \<in> P. x \<in> p \<and> y \<in> p} \<subseteq> A \<times> A"
+    unfolding \<open>A = \<Union>P\<close> by blast
   then show "refl_on A {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
-    unfolding refl_on_def by auto
+    unfolding refl_on_def \<open>A = \<Union>P\<close> by auto
+next
   show "trans {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
-    using \<open>disjoint P\<close> by (auto simp: trans_def disjoint_def)
-qed (auto simp: sym_def)
+    using P by (auto simp only: trans_def disjoint_def partition_on_def)
+next
+  show "sym {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
+    by (auto simp only: sym_def)
+qed
 
 lemma partition_on_eq_quotient:
   assumes P: "partition_on A P"

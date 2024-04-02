@@ -49,11 +49,10 @@ lemma msgrel_refl: "X \<sim> X"
   by (induct X) (blast intro: msgrel.intros)+
 
 theorem equiv_msgrel: "equiv UNIV msgrel"
-proof -
-  have "refl msgrel" by (simp add: refl_on_def msgrel_refl)
-  moreover have "sym msgrel" by (simp add: sym_def, blast intro: msgrel.SYM)
-  moreover have "trans msgrel" by (simp add: trans_def, blast intro: msgrel.TRANS)
-  ultimately show ?thesis by (simp add: equiv_def)
+proof (rule equivI)
+  show "refl msgrel" by (simp add: refl_on_def msgrel_refl)
+  show "sym msgrel" by (simp add: sym_def, blast intro: msgrel.SYM)
+  show "trans msgrel" by (simp add: trans_def, blast intro: msgrel.TRANS)
 qed
 
 
