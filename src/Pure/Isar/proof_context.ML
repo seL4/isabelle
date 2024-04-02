@@ -20,7 +20,7 @@ sig
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
-  val syn_of: Proof.context -> Syntax.syntax
+  val syntax_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
   val set_defsort: sort -> Proof.context -> Proof.context
   val default_sort: Proof.context -> indexname -> sort
@@ -312,10 +312,9 @@ val get_mode = #mode o rep_data;
 val restore_mode = set_mode o get_mode;
 val abbrev_mode = get_mode #> (fn Mode {abbrev, ...} => abbrev);
 
-val syntax_of = #syntax o rep_data;
-val syn_of = Local_Syntax.syn_of o syntax_of;
+val syntax_of = Local_Syntax.syntax_of o #syntax o rep_data;
 val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
-val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
+val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o #syntax o rep_data;
 
 val tsig_of = #1 o #tsig o rep_data;
 val set_defsort = map_tsig o apfst o Type.set_defsort;
@@ -1124,7 +1123,7 @@ end;
 (* syntax *)
 
 fun check_syntax_const ctxt (c, pos) =
-  if is_some (Syntax.lookup_const (syn_of ctxt) c) then c
+  if is_some (Syntax.lookup_const (syntax_of ctxt) c) then c
   else error ("Unknown syntax const: " ^ quote c ^ Position.here pos);
 
 fun syntax add mode args ctxt =
@@ -1438,7 +1437,7 @@ end;
 
 (* local syntax *)
 
-val print_syntax = Syntax.print_syntax o syn_of;
+val print_syntax = Syntax.print_syntax o syntax_of;
 
 
 (* abbreviations *)

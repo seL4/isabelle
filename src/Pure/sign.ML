@@ -11,7 +11,7 @@ sig
   val change_end: theory -> theory
   val change_end_local: Proof.context -> Proof.context
   val change_check: theory -> theory
-  val syn_of: theory -> Syntax.syntax
+  val syntax_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
   val classes_of: theory -> Sorts.algebra
   val all_classes: theory -> class list
@@ -176,7 +176,7 @@ fun change_check thy =
 
 (* syntax *)
 
-val syn_of = #syn o rep_sg;
+val syntax_of = #syn o rep_sg;
 
 
 (* type signature *)

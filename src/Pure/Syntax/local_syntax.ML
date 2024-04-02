@@ -8,7 +8,7 @@ implicit structure references.
 signature LOCAL_SYNTAX =
 sig
   type T
-  val syn_of: T -> Syntax.syntax
+  val syntax_of: T -> Syntax.syntax
   val init: theory -> T
   val rebuild: theory -> T -> T
   datatype kind = Type | Const | Fixed
@@ -43,16 +43,16 @@ fun map_syntax f (Syntax {thy_syntax, local_syntax, mode, mixfixes}) =
   make_syntax (f (thy_syntax, local_syntax, mode, mixfixes));
 
 fun is_consistent thy (Syntax {thy_syntax, ...}) =
-  Syntax.eq_syntax (Sign.syn_of thy, thy_syntax);
+  Syntax.eq_syntax (Sign.syntax_of thy, thy_syntax);
 
-fun syn_of (Syntax {local_syntax, ...}) = local_syntax;
+fun syntax_of (Syntax {local_syntax, ...}) = local_syntax;
 
 
 (* build syntax *)
 
 fun build_syntax thy mode mixfixes =
   let
-    val thy_syntax = Sign.syn_of thy;
+    val thy_syntax = Sign.syntax_of thy;
     fun update_gram ((true, add, m), decls) = Syntax.update_type_gram add m decls
       | update_gram ((false, add, m), decls) =
           Syntax.update_const_gram add (Sign.logical_types thy) m decls;
@@ -62,7 +62,7 @@ fun build_syntax thy mode mixfixes =
   in make_syntax (thy_syntax, local_syntax, mode, mixfixes) end;
 
 fun init thy =
-  let val thy_syntax = Sign.syn_of thy
+  let val thy_syntax = Sign.syntax_of thy
   in make_syntax (thy_syntax, thy_syntax, Syntax.mode_default, []) end;
 
 fun rebuild thy (syntax as Syntax {mode, mixfixes, ...}) =
