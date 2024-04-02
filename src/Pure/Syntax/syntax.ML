@@ -72,6 +72,8 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T list
   type syntax
+  val cache_persistent: bool Unsynchronized.ref
+  val cache_syntax: syntax -> unit
   val eq_syntax: syntax * syntax -> bool
   datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int}
   val get_approx: syntax -> string -> approx option
@@ -419,6 +421,13 @@ datatype syntax =
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     prtabs: Printer.prtabs} * stamp;
 
+val cache_persistent = Unsynchronized.ref false;
+
+fun cache_eval (gram: Parser.gram Synchronized.cache) =
+  Synchronized.cache_eval {persistent = ! cache_persistent} gram;
+
+fun cache_syntax (Syntax ({gram, ...}, _)) = ignore (cache_eval gram);
+
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
 datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int};
@@ -434,7 +443,7 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
-fun parse (Syntax ({gram, ...}, _)) = Parser.parse (Synchronized.cache_eval gram);
+fun parse (Syntax ({gram, ...}, _)) = Parser.parse (cache_eval gram);
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
 fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
@@ -596,7 +605,7 @@ fun pretty_gram (Syntax (tabs, _)) =
   in
     [Pretty.block (Pretty.breaks
       (Pretty.str "lexicon:" :: map (Pretty.quote o Pretty.keyword1) (Scan.dest_lexicon lexicon))),
-      Pretty.big_list "productions:" (Parser.pretty_gram (Synchronized.cache_eval gram)),
+      Pretty.big_list "productions:" (Parser.pretty_gram (cache_eval gram)),
       pretty_strs_qs "print modes:" prmodes']
   end;
 

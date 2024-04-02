@@ -17,7 +17,7 @@ sig
   type 'a cache
   val cache: (unit -> 'a) -> 'a cache
   val cache_peek: 'a cache -> 'a option
-  val cache_eval: 'a cache -> 'a
+  val cache_eval: {persistent: bool} -> 'a cache -> 'a
 end;
 
 structure Synchronized: SYNCHRONIZED =
@@ -99,23 +99,45 @@ end;
 
 (* cached evaluation via weak_ref *)
 
+local
+
+datatype 'a cache_state =
+    Undef
+  | Value of 'a
+  | Weak_Ref of 'a Unsynchronized.weak_ref;
+
+fun peek Undef = NONE
+  | peek (Value x) = SOME x
+  | peek (Weak_Ref r) = Unsynchronized.weak_peek r;
+
+fun weak_active (Weak_Ref r) = Unsynchronized.weak_active r
+  | weak_active _ = false;
+
+in
+
 abstype 'a cache =
-  Cache of {expr: unit -> 'a, var: 'a Unsynchronized.weak_ref option var}
+  Cache of {expr: unit -> 'a, var: 'a cache_state var}
 with
 
 fun cache expr =
-  Cache {expr = expr, var = var "Synchronized.cache" NONE};
+  Cache {expr = expr, var = var "Synchronized.cache" Undef};
 
-fun cache_peek (Cache {var, ...}) =
-  Option.mapPartial Unsynchronized.weak_peek (value var);
+fun cache_peek (Cache {var, ...}) = peek (value var);
 
-fun cache_eval (Cache {expr, var}) =
+fun cache_eval {persistent} (Cache {expr, var}) =
   change_result var (fn state =>
-    (case Option.mapPartial Unsynchronized.weak_peek state of
-      SOME result => (result, state)
-    | NONE =>
-        let val result = expr ()
-        in (result, SOME (Unsynchronized.weak_ref result)) end));
+    let
+      val result =
+        (case peek state of
+          SOME result => result
+        | NONE => expr ());
+      val state' =
+        if persistent then Value result
+        else if weak_active state then state
+        else Weak_Ref (Unsynchronized.weak_ref result);
+    in (result, state') end);
+
+end;
 
 end;
 

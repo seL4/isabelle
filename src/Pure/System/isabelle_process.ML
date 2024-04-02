@@ -210,12 +210,14 @@ fun init_options () =
   Printer.show_markup_default := false;
   Context.theory_tracing := Options.default_bool "context_theory_tracing";
   Context.proof_tracing := Options.default_bool "context_proof_tracing";
-  Context.data_timing := Options.default_bool "context_data_timing");
+  Context.data_timing := Options.default_bool "context_data_timing";
+  Syntax.cache_persistent := false);
 
 fun init_options_interactive () =
  (init_options ();
   Multithreading.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0);
-  Printer.show_markup_default := true);
+  Printer.show_markup_default := true;
+  Syntax.cache_persistent := true);
 
 
 (* generic init *)
