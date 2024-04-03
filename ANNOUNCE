@@ -1,39 +1,33 @@
-Subject: Announcing Isabelle2023
+Subject: Announcing Isabelle2024
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2023 is now available.
+Isabelle2024 is now available.
 
-This version introduces notable changes over Isabelle2022: see the
+This version introduces various changes over Isabelle2023: see the
 NEWS file for further details. Here are various details:
 
-* Documents: interactive document preparation via Isabelle/jEdit panel.
+* More robust and scalable support for distributed build clusters.
 
-* Documents: demos for well-known LaTeX classes.
-
-* Documents: more formal LaTeX citations.
+* Official support for ARM64 on Linux (notably Docker on Apple Silicon).
 
 * HOL: various improvements of theory libraries, notably in HOL-Analysis.
 
 * HOL: updates and improvements of Sledgehammer.
 
-* ML: more robust support for ARM64 platform (native Apple Silicon).
+* ML: antiquotations for try-catch-finally.
 
-* ML: heap usage and stored heap size has been significantly reduced.
+* ML: physical interrupts are now distinguished from runtime system failures.
 
-* ML: improved implementations of functor Table() and corresponding Set().
+* System: support for global registry in TOML format.
 
-* Scala and ML: support for Zstd compression.
+* System: support the Go development environment (all platforms).
 
-* System: more robust "isabelle sync" tool via bundled "rsync" executables.
-
-* System: "isabelle profiling" tool produces ML heap statistics.
-
-* System: experimental support for distributed build clusters.
+* System: bundled MLton now includes both Linux and macOS (Intel).
 
 
-You may get Isabelle2023 from the following mirror sites:
+You may get Isabelle2024 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
-  Sydney (Australia)   https://mirror.cse.unsw.edu.au/pub/isabelle
+  Sydney (Australia)   https://proofcraft.systems/isabelle/index.html
   Potsdam, NY (USA)    https://mirror.clarkson.edu/isabelle
