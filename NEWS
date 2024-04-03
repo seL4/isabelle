@@ -138,6 +138,9 @@ INCOMPATIBILITY.
       wfp_on_subset
       wfp_on_wf_on_eq
 
+* Theory "HOL-Library.FSet":
+  - Added syntax for fBall and fBex.
+
 * Theory "HOL-Library.Multiset":
   - Added lemmas.
       trans_on_mult
