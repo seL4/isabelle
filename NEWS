@@ -24,19 +24,16 @@ base-lines are now as follows:
   - MLton
   - Nunchaku + smbc (experimental)
 
+* The configuration option "unify_trace" (default: false) guards tracing
+of higher-order unification, which is ubiquitous in assumption steps and
+rule applications via resolution. This is disabled by default to avoid
+breakdown due to massive amounts of spurious messages.
+
 
 *** Document preparation ***
 
 * The bundled LaTeX LNCS style has been updated to version 2.23
 (02-Nov-2023). See also src/Doc/Demo_LLNCS/.
-
-
-*** Pure ***
-
-* Added configuration option "unify_trace" (default: false) to guard
-tracing of higher-order unification, which is ubiquitous in assumption
-steps and rule applications via resolution. This is disabled by default
-to avoid breakdown due to massive amounts of spurious messages.
 
 
 *** HOL ***
@@ -60,9 +57,6 @@ to avoid breakdown due to massive amounts of spurious messages.
     information, see Sledgehammer's documentation relating to
     "preplay_timeout". INCOMPATIBILITY.
   - Added the action "order" testing the proof method of the same name.
-
-* HOL-ex.Sketch_and_Explore: improvements to generate more natural and
-readable proof sketches from proof states.
 
 * Explicit type class for discrete_linear_ordered_semidom for integral
 semidomains with a discrete linear order.
@@ -149,18 +143,21 @@ INCOMPATIBILITY.
       trans_on_mult
       transp_on_multp
 
-* HOL-Analysis: the syntax of Lebesgue integrals (LINT, LBINT, \<integral>, etc.)
-now requires parentheses in most cases. INCOMPATIBILITY.
+* Theory "HOL-ex.Sketch_and_Explore": improvements to generate more
+natural and readable proof sketches from proof states.
 
-* HOL-Analysis: corrected the definition of convex function (convex_on)
-to require the underlying set to be convex. INCOMPATIBILITY.
+* Session "HOL-Analysis": the syntax of Lebesgue integrals (LINT, LBINT,
+\<integral>, etc.) now requires parentheses in most cases. INCOMPATIBILITY.
 
-* HOL-Complex_Analysis: new, more general definition of meromorphicity.
-INCOMPATIBILITY.
+* Session "HOL-Analysis": corrected the definition of convex function
+(convex_on) to require the underlying set to be convex. INCOMPATIBILITY.
 
-* HOL-Data_Structures: automatic translation from HOL functions into
-corresponding step-counting running-time functions. See theory
-"HOL-Data_Structures.Define_Time_Function".
+* Session "HOL-Complex_Analysis": new, more general definition of
+meromorphicity. INCOMPATIBILITY.
+
+* Session "HOL-Data_Structures": automatic translation from HOL
+functions into corresponding step-counting running-time functions. See
+theory "HOL-Data_Structures.Define_Time_Function".
 
 
 *** ML ***
@@ -178,6 +175,10 @@ try. The HANDLER always runs as uninterruptible, but the EXPR uses the
 the current thread attributes (normally interruptible). Various examples
 occur in the Isabelle sources (.ML and .thy files).
 
+* Isabelle/ML explicitly rejects 'handle' with catch-all patterns.
+INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
+as last resort declare [[ML_catch_all]] within the theory context.
+
 * ML antiquotation "simproc_setup" inlines an invocation of
 Simplifier.simproc_setup, using the same concrete syntax as the
 corresponding Isar command. This allows to introduce a new simproc
@@ -192,10 +193,6 @@ theorems that are specified as 'identifier' in ML antiquotation
 "simproc_setup" (but not in the corresponding Isar command). This allows
 to work with several versions of the simproc, e.g. due to locale
 interpretations.
-
-* Isabelle/ML explicitly rejects 'handle' with catch-all patterns.
-INCOMPATIBILITY, better use \<^try>\<open>...\<close> with 'catch' or 'finally', or
-as last resort declare [[ML_catch_all]] within the theory context.
 
 * Proper interrupts (e.g. timeouts) are now distinguished from Poly/ML
 runtime system breakdown, using Exn.Interrupt_Breakdown as quasi-error.
@@ -216,14 +213,6 @@ on SSH and PostgreSQL. This includes advanced scheduling as follows:
 the build queue and oversee remote workers, but not run any Isabelle
 sessions on its own account. INCOMPATIBILITY, use "isabelle build -j1
 -H" for the old behaviour, to have the local host participate as worker.
-
-* Directory src/Tools/Demo provides an Isabelle system component with
-command-line tool that is implemented in Isabelle/Scala. It serves as
-demonstration for user-defined tools.
-
-* Old $ISABELLE_HOME/bin/isabelle_scala_script has been removed.
-Command-line tools in Isabelle/Scala should be provided by a proper
-system component with etc/build.props, e.g. see src/Tools/Demo/.
 
 * The Isabelle/Scala module isabelle.Registry provides hierarchic system
 configuration, based on a collection of TOML files (see also
@@ -253,6 +242,16 @@ before, not "-new-syntax" (Python-like). Minor INCOMPATIBILITY.
 component javamail (previously javax.mail) from jakarta 2.1.2
 using eclipse angus 2.0.2/2.0.1.
 
+* Isabelle/Scala now has some support for web-apps, using HTML 5 forms.
+
+* Directory src/Tools/Demo provides an Isabelle system component with
+command-line tool that is implemented in Isabelle/Scala. It serves as
+demonstration for user-defined tools.
+
+* Old $ISABELLE_HOME/bin/isabelle_scala_script has been removed.
+Command-line tools in Isabelle/Scala should be provided by a proper
+system component with etc/build.props, e.g. see src/Tools/Demo/.
+
 * The Isabelle component for the MLton compiler now covers macOS and
 Linux (Intel), while Windows and Linux (ARM) are unsupported. The
 default for ISABELLE_MLTON_OPTIONS should work most of the time, but may
@@ -270,16 +269,14 @@ For example:
 
   isabelle go_setup -p all
 
-* Update to GHC stack 2.15.1 with support for all platforms, including
-ARM Linux and Apple Silicon.
+* Update to GHC stack-2.15.5, stackage-lts-22.15, ghc-9.6.4 with support
+for all platforms, including ARM Linux and Apple Silicon.
 
 * Update to .NET / Fsharp 8.0.x: the current long-term support version.
 
 * Update to official Poly/ML 5.9.1.
 
 * Update to OpenJDK 21: the current long-term support version of Java.
-
-* Isabelle/Scala now has some support for web-apps, using HTML 5 forms.
 
 
 
