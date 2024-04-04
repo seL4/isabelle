@@ -568,6 +568,12 @@ object SQL {
 
     /* tables and views */
 
+    def name_pattern(name: String): String = {
+      val escape = connection.getMetaData.getSearchStringEscape
+      name.iterator.map(c =>
+        if_proper(c == '_' || c == '%' || c == escape(0), escape) + c).mkString
+    }
+
     def get_tables(pattern: String = "%"): List[String] = {
       val result = new mutable.ListBuffer[String]
       val rs = connection.getMetaData.getTables(null, null, pattern, null)
@@ -575,13 +581,8 @@ object SQL {
       result.toList
     }
 
-    def exists_table(name: String): Boolean = {
-      val escape = connection.getMetaData.getSearchStringEscape
-      val pattern =
-        name.iterator.map(c =>
-          if_proper(c == '_' || c == '%' || c == escape(0), escape) + c).mkString
-      get_tables(pattern = pattern).nonEmpty
-    }
+    def exists_table(name: String): Boolean =
+      get_tables(pattern = name_pattern(name)).nonEmpty
 
     def exists_table(table: Table): Boolean = exists_table(table.name)
 
