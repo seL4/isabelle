@@ -581,10 +581,27 @@ object SQL {
       result.toList
     }
 
+    def get_table_columns(
+      table_pattern: String = "%",
+      pattern: String = "%"
+    ): List[(String, String)] = {
+      val result = new mutable.ListBuffer[(String, String)]
+      val rs = connection.getMetaData.getColumns(null, null, table_pattern, pattern)
+      while (rs.next) { result += (rs.getString(3) -> rs.getString(4)) }
+      result.toList
+    }
+
     def exists_table(name: String): Boolean =
       get_tables(pattern = name_pattern(name)).nonEmpty
 
     def exists_table(table: Table): Boolean = exists_table(table.name)
+
+    def exists_table_column(table_name: String, name: String): Boolean =
+      get_table_columns(table_pattern = name_pattern(table_name), pattern = name_pattern(name))
+        .nonEmpty
+
+    def exists_table_column(table: Table, column: Column): Boolean =
+      exists_table_column(table.name, column.name)
 
     def create_table(table: Table, sql: Source = ""): Unit = {
       if (!exists_table(table)) {

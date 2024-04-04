@@ -1044,13 +1044,9 @@ object Build_Log {
       db.transaction {
         val upgrade_table = private_data.sessions_table
         val upgrade_column = Column.session_start
-        val upgrade = {
+        val upgrade =
           db.exists_table(upgrade_table) &&
-          !db.execute_query_statementB(
-            "SELECT NULL as result FROM information_schema.columns " +
-            " WHERE table_name = " + SQL.string(upgrade_table.name) +
-            " AND column_name = " + SQL.string(upgrade_column.name))
-        }
+          !db.exists_table_column(upgrade_table, upgrade_column)
 
         private_data.tables.lock(db, create = true)
 
