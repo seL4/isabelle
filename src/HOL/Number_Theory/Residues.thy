@@ -14,6 +14,66 @@ imports
   Totient
 begin
 
+lemma (in ring_1) CHAR_dvd_CARD: "CHAR('a) dvd card (UNIV :: 'a set)"
+proof (cases "card (UNIV :: 'a set) = 0")
+  case False
+  hence [intro]: "CHAR('a) > 0"
+    by (simp add: card_eq_0_iff finite_imp_CHAR_pos)    
+  define G where "G = \<lparr> carrier = (UNIV :: 'a set), monoid.mult = (+), one = (0 :: 'a) \<rparr>"
+  define H where "H = (of_nat ` {..<CHAR('a)} :: 'a set)"
+  interpret group G
+  proof (rule groupI)
+    fix x assume x: "x \<in> carrier G"
+    show "\<exists>y\<in>carrier G. y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>"
+      by (intro bexI[of _ "-x"]) (auto simp: G_def)
+  qed (auto simp: G_def add_ac)
+
+  interpret subgroup H G
+  proof
+    show "\<one>\<^bsub>G\<^esub> \<in> H"
+      using False unfolding G_def H_def by force
+  next
+    fix x y :: 'a
+    assume "x \<in> H" "y \<in> H"
+    then obtain x' y' where [simp]: "x = of_nat x'" "y = of_nat y'"
+      by (auto simp: H_def)
+    have "x + y = of_nat ((x' + y') mod CHAR('a))"
+      by (auto simp flip: of_nat_add simp: of_nat_eq_iff_cong_CHAR)
+    moreover have "(x' + y') mod CHAR('a) < CHAR('a)"
+      using H_def \<open>y \<in> H\<close> by fastforce
+    ultimately show "x \<otimes>\<^bsub>G\<^esub> y \<in> H"
+      by (auto simp: H_def G_def intro!: imageI)
+  next
+    fix x :: 'a
+    assume x: "x \<in> H"
+    then obtain x' where [simp]: "x = of_nat x'" and x': "x' < CHAR('a)"
+      by (auto simp: H_def)
+    have "CHAR('a) dvd x' + (CHAR('a) - x') mod CHAR('a)"
+      using mod_eq_0_iff_dvd mod_if x' by fastforce
+    hence "x + of_nat ((CHAR('a) - x') mod CHAR('a)) = 0"
+      by (auto simp flip: of_nat_add simp: of_nat_eq_0_iff_char_dvd)
+    moreover from this have "inv\<^bsub>G\<^esub> x = of_nat ((CHAR('a) - x') mod CHAR('a))"
+      by (intro inv_equality) (auto simp: G_def add_ac)
+    moreover have "of_nat ((CHAR('a) - x') mod CHAR('a)) \<in> H"
+      unfolding H_def using \<open>CHAR('a) > 0\<close> by (intro imageI) auto
+    ultimately show "inv\<^bsub>G\<^esub> x \<in> H" by force
+  qed (auto simp: G_def H_def)
+
+  have "card H dvd card (rcosets\<^bsub>G\<^esub> H) * card H"
+    by simp
+  also have "card (rcosets\<^bsub>G\<^esub> H) * card H = Coset.order G"
+  proof (rule lagrange_finite)
+    show "finite (carrier G)"
+      using False card_ge_0_finite by (auto simp: G_def)
+  qed (fact is_subgroup)
+  finally have "card H dvd card (UNIV :: 'a set)"
+    by (simp add: Coset.order_def G_def)
+  also have "card H = card {..<CHAR('a)}"
+    unfolding H_def by (intro card_image inj_onI) (auto simp: of_nat_eq_iff_cong_CHAR cong_def)
+  finally show "CHAR('a) dvd card (UNIV :: 'a set)"
+    by simp
+qed auto
+
 definition QuadRes :: "int \<Rightarrow> int \<Rightarrow> bool"
   where "QuadRes p a = (\<exists>y. ([y^2 = a] (mod p)))"
 

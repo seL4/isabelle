@@ -10,6 +10,7 @@ theory Formal_Power_Series
 imports
   Complex_Main
   Euclidean_Algorithm
+  Primes
 begin
 
 
@@ -537,7 +538,6 @@ instance fps :: (comm_semiring_1) comm_semiring_1
 
 instance fps :: (semiring_1_cancel) semiring_1_cancel ..
 
-
 lemma fps_square_nth: "(f^2) $ n = (\<Sum>k\<le>n. f $ k * f $ (n - k))"
   by (simp add: power2_eq_square fps_mult_nth atLeast0AtMost)
 
@@ -562,8 +562,14 @@ lemma fps_const_0_eq_0 [simp]: "fps_const 0 = 0"
 lemma fps_const_nonzero_eq_nonzero: "c \<noteq> 0 \<Longrightarrow> fps_const c \<noteq> 0"
   using fps_nonzeroI[of "fps_const c" 0] by simp
 
+lemma fps_const_eq_0_iff [simp]: "fps_const c = 0 \<longleftrightarrow> c = 0"
+  by (auto simp: fps_eq_iff)
+
 lemma fps_const_1_eq_1 [simp]: "fps_const 1 = 1"
   by (simp add: fps_ext)
+
+lemma fps_const_eq_1_iff [simp]: "fps_const c = 1 \<longleftrightarrow> c = 1"
+  by (auto simp: fps_eq_iff)
 
 lemma subdegree_fps_const [simp]: "subdegree (fps_const c) = 0"
   by (cases "c = 0") (auto intro!: subdegreeI)
@@ -681,6 +687,25 @@ instance fps :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 
 instance fps :: (idom) idom ..
 
+lemma fps_of_nat: "fps_const (of_nat c) = of_nat c"
+  by (induction c) (simp_all add: fps_const_add [symmetric] del: fps_const_add)
+
+lemma fps_of_int: "fps_const (of_int c) = of_int c"
+  by (induction c) (simp_all add: fps_const_minus [symmetric] fps_of_nat fps_const_neg [symmetric] 
+                             del: fps_const_minus fps_const_neg)
+
+lemma semiring_char_fps [simp]: "CHAR('a :: comm_semiring_1 fps) = CHAR('a)"
+  by (rule CHAR_eqI) (auto simp flip: fps_of_nat simp: of_nat_eq_0_iff_char_dvd)
+
+instance fps :: ("{semiring_prime_char,comm_semiring_1}") semiring_prime_char
+  by (rule semiring_prime_charI) auto
+instance fps :: ("{comm_semiring_prime_char,comm_semiring_1}") comm_semiring_prime_char
+  by standard
+instance fps :: ("{comm_ring_prime_char,comm_semiring_1}") comm_ring_prime_char
+  by standard
+instance fps :: ("{idom_prime_char,comm_semiring_1}") idom_prime_char
+  by standard
+
 lemma fps_numeral_fps_const: "numeral k = fps_const (numeral k)"
   by (induct k) (simp_all only: numeral.simps fps_const_1_eq_1 fps_const_add [symmetric])
 
@@ -698,13 +723,6 @@ lemma fps_numeral_nth_0 [simp]: "numeral n $ 0 = numeral n"
 
 lemma subdegree_numeral [simp]: "subdegree (numeral n) = 0"
   by (simp add: numeral_fps_const)
-
-lemma fps_of_nat: "fps_const (of_nat c) = of_nat c"
-  by (induction c) (simp_all add: fps_const_add [symmetric] del: fps_const_add)
-
-lemma fps_of_int: "fps_const (of_int c) = of_int c"
-  by (induction c) (simp_all add: fps_const_minus [symmetric] fps_of_nat fps_const_neg [symmetric] 
-                             del: fps_const_minus fps_const_neg)
 
 lemma fps_nth_of_nat [simp]:
   "(of_nat c) $ n = (if n=0 then of_nat c else 0)"

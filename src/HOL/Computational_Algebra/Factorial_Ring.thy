@@ -51,6 +51,59 @@ proof (rule irreducibleI)
     by auto
 qed (use assms in \<open>auto simp: irreducible_def\<close>)
 
+lemma irreducible_multD:
+  assumes l: "irreducible (a*b)"
+  shows "a dvd 1 \<and> irreducible b \<or> b dvd 1 \<and> irreducible a"
+proof-
+  have *: "irreducible b" if l: "irreducible (a*b)" and a: "a dvd 1" for a b :: 'a
+  proof (rule irreducibleI)
+    show "\<not>(b dvd 1)"
+    proof
+      assume "b dvd 1"
+      hence "a * b dvd 1 * 1"
+        using \<open>a dvd 1\<close> by (intro mult_dvd_mono) auto
+      with l show False
+        by (auto simp: irreducible_def)
+    qed
+  next
+    fix x y assume "b = x * y"
+    have "a * x dvd 1 \<or> y dvd 1"
+      using l by (rule irreducibleD) (use \<open>b = x * y\<close> in \<open>auto simp: mult_ac\<close>)
+    thus "x dvd 1 \<or> y dvd 1"
+      by auto
+  qed (use l a in auto)
+
+  from irreducibleD[OF assms refl] have "a dvd 1 \<or> b dvd 1"
+    by (auto simp: irreducible_def)
+  with *[of a b] *[of b a] l show ?thesis
+    by (auto simp: mult.commute)
+qed
+
+lemma irreducible_power_iff [simp]:
+  "irreducible (p ^ n) \<longleftrightarrow> irreducible p \<and> n = 1"
+proof
+  assume *: "irreducible (p ^ n)"
+  have "irreducible p"
+    using * by (induction n) (auto dest!: irreducible_multD)
+  hence [simp]: "\<not>p dvd 1"
+    using * by (auto simp: irreducible_def)
+
+  consider "n = 0" | "n = 1" | "n > 1"
+    by linarith
+  thus "irreducible p \<and> n = 1"
+  proof cases
+    assume "n > 1"
+    hence "p ^ n = p * p ^ (n - 1)"
+      by (cases n) auto
+    with * \<open>\<not> p dvd 1\<close> have "p ^ (n - 1) dvd 1"
+      using irreducible_multD[of p "p ^ (n - 1)"] by auto
+    with \<open>\<not>p dvd 1\<close> and \<open>n > 1\<close> have False
+      by (meson dvd_power dvd_trans zero_less_diff)
+    thus ?thesis ..
+  qed (use * in auto)
+qed auto
+
+
 definition prime_elem :: "'a \<Rightarrow> bool" where
   "prime_elem p \<longleftrightarrow> p \<noteq> 0 \<and> \<not>p dvd 1 \<and> (\<forall>a b. p dvd (a * b) \<longrightarrow> p dvd a \<or> p dvd b)"
 
@@ -2172,7 +2225,7 @@ proof (rule ccontr)
   with assms show False by auto
 qed
 
-text \<open>Now a string of results due to Jakub Kądziołka\<close>
+text \<open>Now a string of results due to Maya Kądziołka\<close>
 
 lemma multiplicity_dvd_iff_dvd:
  assumes "x \<noteq> 0"

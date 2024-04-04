@@ -2949,4 +2949,98 @@ lemma CHAR_not_1 [simp]: "CHAR('a :: {semiring_1, zero_neq_one}) \<noteq> Suc 0"
 lemma (in idom) CHAR_not_1' [simp]: "CHAR('a) \<noteq> Suc 0"
   using local.of_nat_CHAR by fastforce
 
+lemma (in ring_1) uminus_CHAR_2:
+  assumes "CHAR('a) = 2"
+  shows   "-(x :: 'a) = x"
+proof -
+  have "x + x = 2 * x"
+    by (simp add: mult_2)
+  also have "2 = (0 :: 'a)"
+    using assms local.of_nat_CHAR by auto
+  finally show ?thesis
+    by (simp add: add_eq_0_iff2)
+qed
+
+lemma (in ring_1) minus_CHAR_2:
+  assumes "CHAR('a) = 2"
+  shows   "(x - y :: 'a) = x + y"
+proof -
+  have "x - y = x + (-y)"
+    by simp
+  also have "-y = y"
+    by (rule uminus_CHAR_2) fact
+  finally show ?thesis .
+qed
+
+lemma (in semiring_1_cancel) of_nat_eq_iff_char_dvd:
+  assumes "m < n"
+  shows   "of_nat m = (of_nat n :: 'a) \<longleftrightarrow> CHAR('a) dvd (n - m)"
+proof
+  assume *: "of_nat m = (of_nat n :: 'a)"
+  have "of_nat n = (of_nat m + of_nat (n - m) :: 'a)"
+    using assms by (metis le_add_diff_inverse local.of_nat_add nless_le)
+  hence "of_nat (n - m) = (0 :: 'a)"
+    by (simp add: *)
+  thus "CHAR('a) dvd (n - m)"
+    by (simp add: of_nat_eq_0_iff_char_dvd)
+next
+  assume "CHAR('a) dvd (n - m)"
+  hence "of_nat (n - m) = (0 :: 'a)"
+    by (simp add: of_nat_eq_0_iff_char_dvd)
+  hence "of_nat m = (of_nat m + of_nat (n - m) :: 'a)"
+    by simp
+  also have "\<dots> = of_nat n"
+    using assms by (metis le_add_diff_inverse local.of_nat_add nless_le)
+  finally show "of_nat m = (of_nat n :: 'a)" .
+qed
+
+lemma (in ring_1) of_int_eq_0_iff_char_dvd:
+  "(of_int n = (0 :: 'a)) = (int CHAR('a) dvd n)"
+proof (cases "n \<ge> 0")
+  case True
+  hence "(of_int n = (0 :: 'a)) \<longleftrightarrow> (of_nat (nat n)) = (0 :: 'a)"
+    by auto
+  also have "\<dots> \<longleftrightarrow> CHAR('a) dvd nat n"
+    by (subst of_nat_eq_0_iff_char_dvd) auto
+  also have "\<dots> \<longleftrightarrow> int CHAR('a) dvd n"
+    using True by presburger
+  finally show ?thesis .
+next
+  case False
+  hence "(of_int n = (0 :: 'a)) \<longleftrightarrow> -(of_nat (nat (-n))) = (0 :: 'a)"
+    by auto
+  also have "\<dots> \<longleftrightarrow> CHAR('a) dvd nat (-n)"
+    by (auto simp: of_nat_eq_0_iff_char_dvd)
+  also have "\<dots> \<longleftrightarrow> int CHAR('a) dvd n"
+    using False dvd_nat_abs_iff[of "CHAR('a)" n] by simp
+  finally show ?thesis .
+qed
+
+lemma (in semiring_1_cancel) finite_imp_CHAR_pos:
+  assumes "finite (UNIV :: 'a set)"
+  shows   "CHAR('a) > 0"
+proof -
+  have "\<exists>n\<in>UNIV. infinite {m \<in> UNIV. of_nat m = (of_nat n :: 'a)}"
+  proof (rule pigeonhole_infinite)
+    show "infinite (UNIV :: nat set)"
+      by simp
+    show "finite (range (of_nat :: nat \<Rightarrow> 'a))"
+      by (rule finite_subset[OF _ assms]) auto
+  qed
+  then obtain n :: nat where "infinite {m \<in> UNIV. of_nat m = (of_nat n :: 'a)}"
+    by blast
+  hence "\<not>({m \<in> UNIV. of_nat m = (of_nat n :: 'a)} \<subseteq> {n})"
+    by (intro notI) (use finite_subset in blast)
+  then obtain m where "m \<noteq> n" "of_nat m = (of_nat n :: 'a)"
+    by blast
+  thus ?thesis
+  proof (induction m n rule: linorder_wlog)
+    case (le m n)
+    hence "CHAR('a) dvd (n - m)"
+      using of_nat_eq_iff_char_dvd[of m n] by auto
+    thus ?thesis
+      using le by (intro Nat.gr0I) auto
+  qed (simp_all add: eq_commute)
+qed
+
 end

@@ -797,6 +797,231 @@ proof -
     by (auto simp add: prime_dvd_mult_iff)
 qed
 
+lemma (in ring_1) minus_power_prime_CHAR:
+  assumes "p = CHAR('a)" "prime p"
+  shows "(-x :: 'a) ^ p = -(x ^ p)"
+proof (cases "p = 2")
+  case False
+  have "prime p"
+    using assms by blast
+  hence "odd p"
+    using prime_imp_coprime assms False coprime_right_2_iff_odd gcd_nat.strict_iff_not by blast
+  thus ?thesis
+    by simp
+qed (use assms in \<open>auto simp: uminus_CHAR_2\<close>)
+
+
+subsection \<open>Rings and fields with prime characteristic\<close>
+
+text \<open>
+  We introduce some type classes for rings and fields with prime characteristic.
+\<close>
+
+class semiring_prime_char = semiring_1 +
+  assumes prime_char_aux: "\<exists>n. prime n \<and> of_nat n = (0 :: 'a)"
+begin
+
+lemma CHAR_pos [intro, simp]: "CHAR('a) > 0"
+  using local.CHAR_pos_iff local.prime_char_aux prime_gt_0_nat by blast
+
+lemma CHAR_nonzero [simp]: "CHAR('a) \<noteq> 0"
+  using CHAR_pos by auto
+
+lemma CHAR_prime [intro, simp]: "prime CHAR('a)"
+  by (metis (mono_tags, lifting) gcd_nat.order_iff_strict local.of_nat_1 local.of_nat_eq_0_iff_char_dvd
+        local.one_neq_zero local.prime_char_aux prime_nat_iff)
+
+end
+
+lemma semiring_prime_charI [intro?]:
+  "prime CHAR('a :: semiring_1) \<Longrightarrow> OFCLASS('a, semiring_prime_char_class)"
+  by standard auto
+
+lemma idom_prime_charI [intro?]:
+  assumes "CHAR('a :: idom) > 0"
+  shows   "OFCLASS('a, semiring_prime_char_class)"
+proof
+  show "prime CHAR('a)"
+    using assms prime_CHAR_semidom by blast
+qed
+
+class comm_semiring_prime_char = comm_semiring_1 + semiring_prime_char
+class comm_ring_prime_char = comm_ring_1 + semiring_prime_char
+begin
+subclass comm_semiring_prime_char ..
+end
+class idom_prime_char = idom + semiring_prime_char
+begin
+subclass comm_ring_prime_char ..
+end
+
+class field_prime_char = field +
+  assumes pos_char_exists: "\<exists>n>0. of_nat n = (0 :: 'a)"
+begin
+subclass idom_prime_char
+  apply standard
+  using pos_char_exists local.CHAR_pos_iff local.of_nat_CHAR local.prime_CHAR_semidom by blast
+end
+
+lemma field_prime_charI [intro?]:
+  "n > 0 \<Longrightarrow> of_nat n = (0 :: 'a :: field) \<Longrightarrow> OFCLASS('a, field_prime_char_class)"
+  by standard auto
+
+lemma field_prime_charI' [intro?]:
+  "CHAR('a :: field) > 0 \<Longrightarrow> OFCLASS('a, field_prime_char_class)"
+  by standard auto
+
+
+subsection \<open>Finite fields\<close>
+
+class finite_field = field_prime_char + finite
+
+lemma finite_fieldI [intro?]:
+  assumes "finite (UNIV :: 'a :: field set)"
+  shows   "OFCLASS('a, finite_field_class)"
+proof standard
+  show "\<exists>n>0. of_nat n = (0 :: 'a)"
+    using assms prime_CHAR_semidom[where ?'a = 'a] finite_imp_CHAR_pos[OF assms]
+    by (intro exI[of _ "CHAR('a)"]) auto
+qed fact+
+
+text \<open>
+  On a finite field with \<open>n\<close> elements, taking the \<open>n\<close>-th power of an element
+  is the identity. This is an obvious consequence of the fact that the multiplicative group of
+  the field is a finite group of order \<open>n - 1\<close>, so \<open>x^n = 1\<close> for any non-zero \<open>x\<close>.
+
+  Note that this result is sharp in the sense that the multiplicative group of a
+  finite field is cyclic, i.e.\ it contains an element of order \<open>n - 1\<close>.
+  (We don't prove this here.)
+\<close>
+lemma finite_field_power_card_eq_same:
+  fixes x :: "'a :: finite_field"
+  shows   "x ^ card (UNIV :: 'a set) = x"
+proof (cases "x = 0")
+  case False
+  have "x * (\<Prod>y\<in>UNIV-{0}. x * y) = x * x ^ (card (UNIV :: 'a set) - 1) * \<Prod>(UNIV-{0})"
+    by (simp add: prod.distrib mult_ac)
+  also have "x * x ^ (card (UNIV :: 'a set) - 1) = x ^ Suc (card (UNIV :: 'a set) - 1)"
+    by (subst power_Suc) auto
+  also have "Suc (card (UNIV :: 'a set) - 1) = card (UNIV :: 'a set)"
+    using finite_UNIV_card_ge_0[where ?'a = 'a] by simp
+  also have "(\<Prod>y\<in>UNIV-{0}. x * y) = (\<Prod>y\<in>UNIV-{0}. y)"
+    by (rule prod.reindex_bij_witness[of _ "\<lambda>y. y / x" "\<lambda>y. x * y"]) (use False in auto)
+  finally show ?thesis
+    by simp
+qed (use finite_UNIV_card_ge_0[where ?'a = 'a] in auto)
+
+lemma finite_field_power_card_power_eq_same:
+  fixes x :: "'a :: finite_field"
+  assumes "m = card (UNIV :: 'a set) ^ n"
+  shows   "x ^ m = x"
+  unfolding assms
+  by (induction n) (simp_all add: finite_field_power_card_eq_same power_mult)
+
+class enum_finite_field = finite_field +
+  fixes enum_finite_field :: "nat \<Rightarrow> 'a"
+  assumes enum_finite_field: "enum_finite_field ` {..<card (UNIV :: 'a set)} = UNIV"
+begin
+
+lemma inj_on_enum_finite_field: "inj_on enum_finite_field {..<card (UNIV :: 'a set)}"
+  using enum_finite_field by (simp add: eq_card_imp_inj_on)
+
+end
+
+text \<open>
+  To get rid of the pending sort hypotheses, we prove that the field with 2 elements is indeed
+  a finite field.
+\<close>
+typedef gf2 = "{0, 1 :: nat}"
+  by auto
+
+setup_lifting type_definition_gf2
+
+instantiation gf2 :: field
+begin
+lift_definition zero_gf2 :: "gf2" is "0" by auto
+lift_definition one_gf2 :: "gf2" is "1" by auto
+lift_definition uminus_gf2 :: "gf2 \<Rightarrow> gf2" is "\<lambda>x. x" .
+lift_definition plus_gf2 :: "gf2 \<Rightarrow> gf2 \<Rightarrow> gf2" is "\<lambda>x y. if x = y then 0 else 1" by auto
+lift_definition minus_gf2 :: "gf2 \<Rightarrow> gf2 \<Rightarrow> gf2" is "\<lambda>x y. if x = y then 0 else 1" by auto
+lift_definition times_gf2 :: "gf2 \<Rightarrow> gf2 \<Rightarrow> gf2" is "\<lambda>x y. x * y" by auto
+lift_definition inverse_gf2 :: "gf2 \<Rightarrow> gf2" is "\<lambda>x. x" .
+lift_definition divide_gf2 :: "gf2 \<Rightarrow> gf2 \<Rightarrow> gf2" is "\<lambda>x y. x * y" by auto
+
+instance
+  by standard (transfer; fastforce)+
+
+end
+
+instance gf2 :: finite_field
+proof
+  interpret type_definition Rep_gf2 Abs_gf2 "{0, 1 :: nat}"
+    by (rule type_definition_gf2)
+  show "finite (UNIV :: gf2 set)"
+    by (metis Abs_image finite.emptyI finite.insertI finite_imageI)
+qed
+
+
+subsection \<open>The Freshman's Dream in rings of prime characteristic\<close>
+
+lemma (in comm_semiring_1) freshmans_dream:
+  fixes x y :: 'a and n :: nat
+  assumes "prime CHAR('a)"
+  assumes n_def: "n = CHAR('a)"
+  shows   "(x + y) ^ n = x ^ n + y ^ n"
+proof -
+  interpret comm_semiring_prime_char
+    by standard (auto intro!: exI[of _ "CHAR('a)"] assms)
+  have "n > 0"
+    unfolding n_def by simp
+  have "(x + y) ^ n = (\<Sum>k\<le>n. of_nat (n choose k) * x ^ k * y ^ (n - k))"
+    by (rule binomial_ring)
+  also have "\<dots> = (\<Sum>k\<in>{0,n}. of_nat (n choose k) * x ^ k * y ^ (n - k))"
+  proof (intro sum.mono_neutral_right ballI)
+    fix k assume "k \<in> {..n} - {0, n}"
+    hence k: "k > 0" "k < n"
+      by auto
+    have "CHAR('a) dvd (n choose k)"
+      unfolding n_def
+      by (rule dvd_choose_prime) (use k in \<open>auto simp: n_def\<close>)
+    hence "of_nat (n choose k) = (0 :: 'a)"
+      using of_nat_eq_0_iff_char_dvd by blast
+    thus "of_nat (n choose k) * x ^ k * y ^ (n - k) = 0"
+      by simp
+  qed auto
+  finally show ?thesis
+    using \<open>n > 0\<close> by (simp add: add_ac)
+qed
+
+lemma (in comm_semiring_1) freshmans_dream':
+  assumes [simp]: "prime CHAR('a)" and "m = CHAR('a) ^ n"
+  shows "(x + y :: 'a) ^ m = x ^ m + y ^ m"
+  unfolding assms(2)
+proof (induction n)
+  case (Suc n)
+  have "(x + y) ^ (CHAR('a) ^ n * CHAR('a)) = ((x + y) ^ (CHAR('a) ^ n)) ^ CHAR('a)"
+    by (rule power_mult)
+  thus ?case
+    by (simp add: Suc.IH freshmans_dream Groups.mult_ac flip: power_mult)
+qed auto
+
+lemma (in comm_semiring_1) freshmans_dream_sum:
+  fixes f :: "'b \<Rightarrow> 'a"
+  assumes "prime CHAR('a)" and "n = CHAR('a)"
+  shows "sum f A ^ n = sum (\<lambda>i. f i ^ n) A"
+  using assms
+  by (induct A rule: infinite_finite_induct)
+     (auto simp add: power_0_left freshmans_dream)
+
+lemma (in comm_semiring_1) freshmans_dream_sum':
+  fixes f :: "'b \<Rightarrow> 'a"
+  assumes "prime CHAR('a)" "m = CHAR('a) ^ n"
+  shows   "sum f A ^ m = sum (\<lambda>i. f i ^ m) A"
+  using assms
+  by (induction A rule: infinite_finite_induct)
+     (auto simp: freshmans_dream' power_0_left)
+
+
 
 (* TODO Legacy names *)
 lemmas prime_imp_coprime_nat = prime_imp_coprime[where ?'a = nat]

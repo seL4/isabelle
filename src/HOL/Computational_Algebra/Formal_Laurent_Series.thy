@@ -30,7 +30,7 @@ notation fls_nth (infixl "$$" 75)
 
 lemmas fls_eqI = iffD1[OF fls_nth_inject, OF iffD2, OF fun_eq_iff, OF allI]
 
-lemma expand_fls_eq: "f = g \<longleftrightarrow> (\<forall>n. f $$ n = g $$ n)"
+lemma fls_eq_iff: "f = g \<longleftrightarrow> (\<forall>n. f $$ n = g $$ n)"
   by (simp add: fls_nth_inject[symmetric] fun_eq_iff)
 
 lemma nth_Abs_fls [simp]: "\<forall>\<^sub>\<infinity>n. f (- int n) = 0 \<Longrightarrow> Abs_fls f $$ n = f n"
@@ -136,8 +136,14 @@ lemma fls_const_0 [simp]: "fls_const 0 = 0"
 lemma fls_const_nonzero: "c \<noteq> 0 \<Longrightarrow> fls_const c \<noteq> 0"
   using fls_nonzeroI[of "fls_const c" 0] by simp
 
+lemma fls_const_eq_0_iff [simp]: "fls_const c = 0 \<longleftrightarrow> c = 0"
+  by (auto simp: fls_eq_iff)
+
 lemma fls_const_1 [simp]: "fls_const 1 = 1"
   unfolding fls_const_def one_fls_def ..
+
+lemma fls_const_eq_1_iff [simp]: "fls_const c = 1 \<longleftrightarrow> c = 1"
+  by (auto simp: fls_eq_iff)
 
 lift_definition fls_X :: "'a::{zero,one} fls"
   is "\<lambda>n. if n = 1 then 1 else 0"
@@ -1683,6 +1689,18 @@ instance fls :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 
 instance fls :: (idom) idom ..
 
+lemma semiring_char_fls [simp]: "CHAR('a :: comm_semiring_1 fls) = CHAR('a)"
+  by (rule CHAR_eqI) (auto simp: fls_of_nat of_nat_eq_0_iff_char_dvd fls_const_nonzero)
+
+instance fls :: ("{semiring_prime_char,comm_semiring_1}") semiring_prime_char
+  by (rule semiring_prime_charI) auto
+instance fls :: ("{comm_semiring_prime_char,comm_semiring_1}") comm_semiring_prime_char
+  by standard
+instance fls :: ("{comm_ring_prime_char,comm_semiring_1}") comm_ring_prime_char
+  by standard
+instance fls :: ("{idom_prime_char,comm_semiring_1}") idom_prime_char
+  by standard
+
 
 subsubsection \<open>Powers\<close>
 
@@ -2907,6 +2925,9 @@ qed
 
 instance fls :: (field) field
   by (standard, simp_all add: field_simps)
+
+instance fls :: ("{field_prime_char,comm_semiring_1}") field_prime_char
+  by (rule field_prime_charI') auto
 
 
 subsubsection \<open>Division\<close>

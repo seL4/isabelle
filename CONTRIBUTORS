@@ -6,6 +6,11 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2024
 -----------------------------
 
+* Αpril 2024: Manuel Eberl, Katharina Kreuzer
+  Some material on finite fields and the characteristic of a ring in HOL,
+  HOL-Computational_Algebra, and HOL-Number_Theory.
+  Also a type constructor for the algebraic closure of a field.
+
 * March 2024: Manuel Eberl
   Weierstraß Factorization Theorem in HOL-Complex_Analysis.
 

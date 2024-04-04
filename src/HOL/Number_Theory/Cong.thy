@@ -747,4 +747,29 @@ proof -
     by blast
 qed
 
+lemma (in semiring_1_cancel) of_nat_eq_iff_cong_CHAR:
+  "of_nat x = (of_nat y :: 'a) \<longleftrightarrow> [x = y] (mod CHAR('a))"
+proof (induction x y rule: linorder_wlog)
+  case (le x y)
+  define z where "z = y - x"
+  have [simp]: "y = x + z"
+    using le by (auto simp: z_def)
+  have "(CHAR('a) dvd z) = [x = x + z] (mod CHAR('a))"
+    by (metis \<open>y = x + z\<close> cong_def le mod_eq_dvd_iff_nat z_def)
+  thus ?case
+    by (simp add: of_nat_eq_0_iff_char_dvd)
+qed (simp add: eq_commute cong_sym_eq)   
+
+lemma (in ring_1) of_int_eq_iff_cong_CHAR:
+  "of_int x = (of_int y :: 'a) \<longleftrightarrow> [x = y] (mod int CHAR('a))"
+proof -
+  have "of_int x = (of_int y :: 'a) \<longleftrightarrow> of_int (x - y) = (0 :: 'a)"
+    by auto
+  also have "\<dots> \<longleftrightarrow> (int CHAR('a) dvd x - y)"
+    by (rule of_int_eq_0_iff_char_dvd)
+  also have "\<dots> \<longleftrightarrow> [x = y] (mod int CHAR('a))"
+    by (simp add: cong_iff_dvd_diff)
+  finally show ?thesis .
+qed
+
 end

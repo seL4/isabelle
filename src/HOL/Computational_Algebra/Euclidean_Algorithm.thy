@@ -675,4 +675,31 @@ qed
 
 instance int :: normalization_euclidean_semiring_multiplicative ..
 
+lemma (in idom) prime_CHAR_semidom:
+  assumes "CHAR('a) > 0"
+  shows   "prime CHAR('a)"
+proof -
+  have False if ab: "a \<noteq> 1" "b \<noteq> 1" "CHAR('a) = a * b" for a b
+  proof -
+    from assms ab have "a > 0" "b > 0"
+      by (auto intro!: Nat.gr0I)    
+    have "of_nat (a * b) = (0 :: 'a)"
+      using ab by (metis of_nat_CHAR)
+    also have "of_nat (a * b) = (of_nat a :: 'a) * of_nat b"
+      by simp
+    finally have "of_nat a * of_nat b = (0 :: 'a)" .
+    moreover have "of_nat a * of_nat b \<noteq> (0 :: 'a)"
+      using ab \<open>a > 0\<close> \<open>b > 0\<close>
+      by (intro no_zero_divisors) (auto simp: of_nat_eq_0_iff_char_dvd)
+    ultimately show False
+      by contradiction
+  qed
+  moreover have "CHAR('a) > 1"
+    using assms CHAR_not_1' by linarith
+  ultimately have "prime_elem CHAR('a)"
+    by (intro irreducible_imp_prime_elem) (auto simp: Factorial_Ring.irreducible_def)
+  thus ?thesis
+    by (auto simp: prime_def)
+qed
+
 end

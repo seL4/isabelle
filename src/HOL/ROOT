@@ -436,6 +436,7 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     Divisibility         (* Rings *)
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
+    Algebraic_Closure_Type
     (* Main theory *)
     Algebra
   document_files "root.bib" "root.tex"

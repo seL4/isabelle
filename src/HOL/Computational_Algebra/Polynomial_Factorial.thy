@@ -632,6 +632,8 @@ instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd,
                     semiring_gcd_mult_normalize}") euclidean_ring_gcd
   by (rule euclidean_ring_gcd_class.intro, rule factorial_euclidean_semiring_gcdI) standard
 
+instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd,
+                    semiring_gcd_mult_normalize}") factorial_semiring_multiplicative ..
   
 subsection \<open>Polynomial GCD\<close>
 

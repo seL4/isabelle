@@ -12,7 +12,7 @@ imports
   Complex_Main
   "HOL-Library.More_List"
   "HOL-Library.Infinite_Set"
-  Factorial_Ring
+  Primes
 begin
 
 context semidom_modulo
@@ -1532,6 +1532,18 @@ instance poly :: (idom) idom ..
 
 instance poly :: ("{ring_char_0, comm_ring_1}") ring_char_0
   by standard (auto simp add: of_nat_poly intro: injI)
+
+lemma semiring_char_poly [simp]: "CHAR('a :: comm_semiring_1 poly) = CHAR('a)"
+  by (rule CHAR_eqI) (auto simp: of_nat_poly of_nat_eq_0_iff_char_dvd)
+
+instance poly :: ("{semiring_prime_char,comm_semiring_1}") semiring_prime_char
+  by (rule semiring_prime_charI) auto
+instance poly :: ("{comm_semiring_prime_char,comm_semiring_1}") comm_semiring_prime_char
+  by standard
+instance poly :: ("{comm_ring_prime_char,comm_semiring_1}") comm_ring_prime_char
+  by standard
+instance poly :: ("{idom_prime_char,comm_semiring_1}") idom_prime_char
+  by standard
 
 lemma degree_mult_eq: "p \<noteq> 0 \<Longrightarrow> q \<noteq> 0 \<Longrightarrow> degree (p * q) = degree p + degree q"
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
@@ -5940,6 +5952,18 @@ proof
   finally show "\<exists>x. (\<Sum>k\<le>n. f k * x ^ k) = 0" ..
 qed
 
+lemma (in alg_closed_field) nth_root_exists:
+  assumes "n > 0"
+  shows   "\<exists>y. y ^ n = (x :: 'a)"
+proof -
+  define f where "f = (\<lambda>i. if i = 0 then -x else if i = n then 1 else 0)"
+  have "\<exists>x. (\<Sum>k\<le>n. f k * x ^ k) = 0"
+    by (rule alg_closed) (use assms in \<open>auto simp: f_def\<close>)
+  also have "(\<lambda>x. \<Sum>k\<le>n. f k * x ^ k) = (\<lambda>x. \<Sum>k\<in>{0,n}. f k * x ^ k)"
+    by (intro ext sum.mono_neutral_right) (auto simp: f_def)
+  finally show "\<exists>y. y ^ n = x"
+    using assms by (simp add: f_def)
+qed
 
 text \<open>
   We can now prove by induction that every polynomial of degree \<open>n\<close> splits into a product of

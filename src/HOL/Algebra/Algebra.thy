@@ -5,4 +5,5 @@ theory Algebra
      Divisibility Embedded_Algebras IntRing Sym_Groups Exact_Sequence Polynomials Algebraic_Closure
      Left_Coset SimpleGroups SndIsomorphismGrp
 begin
+
 end
