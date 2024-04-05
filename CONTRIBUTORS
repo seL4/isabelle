@@ -17,6 +17,9 @@ Contributions to Isabelle2024
 * March 2024: Anthony Bordg, Manuel Eberl, Wenda Li, Larry Paulson
   New and more general definition of meromorphicity in HOL-Complex_Analysis.
 
+* Feb/March 2024: Simon Wimmer
+  Improvements to HOL-ex.Sketch_and_Explore.
+
 * Feb/March 2024: Jonas Stahl
   Automatic translation of HOL functions into corresponding step-counting
   running-time functions.
