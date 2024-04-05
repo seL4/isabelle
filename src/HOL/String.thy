@@ -803,7 +803,7 @@ end;;\<close> for constant String.literal_of_asciis String.asciis_of_literal
     (SML) "Str'_Literal.literal'_of'_asciis"
     and (OCaml) "Str'_Literal.literal'_of'_asciis"
     and (Haskell) "map/ (let chr k | (0 <= k && k < 128) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
-    and (Scala) "\"\"/ ++/ _.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\"))"
+    and (Scala) "_.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\")).mkString"
 | constant String.asciis_of_literal \<rightharpoonup>
     (SML) "Str'_Literal.asciis'_of'_literal"
     and (OCaml) "Str'_Literal.asciis'_of'_literal"
