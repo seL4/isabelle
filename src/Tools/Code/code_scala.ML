@@ -188,7 +188,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               in concat [str "case", p_pat, str "=>", p_body] end;
           in
             map print_select clauses
-            |> Pretty.block_enclose (concat [print_term tyvars false some_thm vars NOBR t, str "match", str "{"], str "}")
+            |> Pretty.block_enclose (concat [print_term tyvars false some_thm vars NOBR t, str "match {"], str "}")
             |> single
             |> enclose "(" ")"
           end;
@@ -249,7 +249,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           else
             Pretty.block_enclose
               (concat [head, tuplify (map (str o lookup_var vars2) params),
-                str "match", str "{"], str "}")
+                str "match {"], str "}")
               (map print_clause eqs)
           end;
     val print_method = str o Library.enclose "`" "`" o deresolve_full o Constant;
