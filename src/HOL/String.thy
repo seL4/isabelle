@@ -803,12 +803,12 @@ end;;\<close> for constant String.literal_of_asciis String.asciis_of_literal
     (SML) "Str'_Literal.literal'_of'_asciis"
     and (OCaml) "Str'_Literal.literal'_of'_asciis"
     and (Haskell) "map/ (let chr k | (0 <= k && k < 128) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
-    and (Scala) "_.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\")).mkString"
+    and (Scala) "_.map((k: BigInt) => BigInt(0) <= k && k < BigInt(128) match { case true => k.charValue case false => sys.error(\"Non-ASCII character in literal\") }).mkString"
 | constant String.asciis_of_literal \<rightharpoonup>
     (SML) "Str'_Literal.asciis'_of'_literal"
     and (OCaml) "Str'_Literal.asciis'_of'_literal"
     and (Haskell) "map/ (let ord k | (k < 128) = Prelude.toInteger k in ord . (Prelude.fromEnum :: Prelude.Char -> Prelude.Int))"
-    and (Scala) "!(_.toList.map(c => { val k: Int = c.toInt; if (k < 128) BigInt(k) else sys.error(\"Non-ASCII character in literal\") }))"
+    and (Scala) "!(_.toList.map(c => { val k: Int = c.toInt; k < 128 match { case true => BigInt(k) case false => sys.error(\"Non-ASCII character in literal\") } }))"
 | class_instance String.literal :: equal \<rightharpoonup>
     (Haskell) -
 | constant "HOL.equal :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>

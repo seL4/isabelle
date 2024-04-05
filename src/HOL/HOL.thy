@@ -2067,12 +2067,12 @@ code_printing
     (SML) "!(if (_)/ then (_)/ else true)"
     and (OCaml) "!(if (_)/ then (_)/ else true)"
     and (Haskell) "!(if (_)/ then (_)/ else True)"
-    and (Scala) "!(if ((_))/ (_)/ else true)"
+    and (Scala) "!((_) match {/ case true => (_)/ case false => true/ })"
 | constant If \<rightharpoonup>
     (SML) "!(if (_)/ then (_)/ else (_))"
     and (OCaml) "!(if (_)/ then (_)/ else (_))"
     and (Haskell) "!(if (_)/ then (_)/ else (_))"
-    and (Scala) "!(if ((_))/ (_)/ else (_))"
+    and (Scala) "!((_) match {/ case true => (_)/ case false => (_)/ })"
 
 code_reserved SML
   not

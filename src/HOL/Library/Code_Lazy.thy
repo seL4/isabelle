@@ -209,10 +209,10 @@ code_printing
     ty: Typerep,
     x: Lazy[A],
     dummy: Term) : Term = {
-    if (x.evaluated)
-      app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(abs("_")(unitT)(term_of(x.get())))
-    else
-      app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(const("Pure.dummy_pattern")(funT(unitT)(ty)))
+    x.evaluated match {
+      case true => app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(abs("_")(unitT)(term_of(x.get())))
+      case false => app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(const("Pure.dummy_pattern")(funT(unitT)(ty)))
+    }
   }
 }\<close> for type_constructor lazy constant delay force termify_lazy
 | type_constructor lazy \<rightharpoonup> (Scala) "Lazy.Lazy[_]"

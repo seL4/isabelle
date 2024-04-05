@@ -24,6 +24,9 @@ Checklist for official releases
 
 - test "isabelle java_monitor -P pid" with "isabelle jedit";
 
+- test "isabelle build HOL-Codegenerator_Test" with -new-syntax
+  (see also etc/settings:ISABELLE_SCALAC_OPTIONS);
+
 - test Windows 10 subsystem for Linux:
   https://docs.microsoft.com/en-us/windows/wsl/install-win10
 

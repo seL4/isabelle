@@ -38,6 +38,11 @@ breakdown due to massive amounts of spurious messages.
 
 *** HOL ***
 
+* Generated Scala code now works both with scalac -new-syntax or
+-old-syntax, but option -no-indent should always be used for robustness.
+Note that ISABELLE_SCALAC_OPTIONS provides options for Isabelle/Scala,
+which are also used for "export_code ... checking Scala".
+
 * Commands 'inductive_cases', 'inductive_simps', 'case_of_simps',
 'simps_of_case' now print results like 'theorem'.
 

@@ -834,7 +834,7 @@ code_printing
     (SML) "IntInf.divMod/ (IntInf.abs _,/ IntInf.abs _)"
     and (OCaml) "!(fun k l ->/ if Z.equal Z.zero l then/ (Z.zero, l) else/ Z.div'_rem/ (Z.abs k)/ (Z.abs l))"
     and (Haskell) "divMod/ (abs _)/ (abs _)"
-    and (Scala) "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))"
+    and (Scala) "!((k: BigInt) => (l: BigInt) =>/ l == 0 match { case true => (BigInt(0), k) case false => (k.abs '/% l.abs) })"
     and (Eval) "Integer.div'_mod/ (abs _)/ (abs _)"
 | constant "HOL.equal :: integer \<Rightarrow> _ \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : IntInf.int) = _)"
