@@ -109,11 +109,15 @@ proof -
     using open_contains_ball by blast
   have [simp]: "\<And>n. cmod (1 + of_nat n) = 1 + of_nat n"
     by (metis norm_of_nat of_nat_Suc)
-  have cint: "\<And>x. \<lbrakk>x \<noteq> w; cmod (x - w) < d\<rbrakk>
-         \<Longrightarrow> (\<lambda>z. (f' z / (z - x) ^ k - f' z / (z - w) ^ k) / (x * k - w * k)) contour_integrable_on \<gamma>"
-    using int w d
-    apply (intro contour_integrable_div contour_integrable_diff has_contour_integral_integrable)
-    by (force simp: dist_norm norm_minus_commute)
+  have cint: "(\<lambda>z. (f' z / (z - x) ^ k - f' z / (z - w) ^ k) / (x * k - w * k)) contour_integrable_on \<gamma>"
+    if "x \<noteq> w" "cmod (x - w) < d" for x
+  proof -
+    have "x \<in> S - path_image \<gamma>"
+      by (metis d dist_commute dist_norm mem_ball subsetD that(2))
+    then show ?thesis
+      using contour_integrable_diff contour_integrable_div contour_integrable_on_def int w
+      by meson
+  qed
   have 1: "\<forall>\<^sub>F n in at w. (\<lambda>x. f' x * (inverse (x - n) ^ k - inverse (x - w) ^ k) / (n - w) / of_nat k)
                          contour_integrable_on \<gamma>"
     unfolding eventually_at
@@ -1573,11 +1577,15 @@ proof (cases "a \<in> S")
   case True with assms interior_eq pole_lemma
     show ?thesis by fastforce
 next
-  case False with assms show ?thesis
-    apply (simp add: holomorphic_on_def field_differentiable_def [symmetric], clarify)
-    apply (rule field_differentiable_transform_within [where f = "\<lambda>z. (f z - f a)/(z - a)" and d = 1])
+  case False 
+  then have "(\<lambda>z. (f z - f a) / (z - a)) field_differentiable at x within S"
+    if "x \<in> S" for x
+    using assms that 
+    apply (simp add: holomorphic_on_def)
     apply (rule derivative_intros | force)+
     done
+  with False show ?thesis
+    using holomorphic_on_def holomorphic_transform by presburger
 qed
 
 lemma pole_theorem_open:
@@ -1792,10 +1800,7 @@ proof -
     then have "((\<lambda>x. f z / (x - z)) has_contour_integral 0) \<gamma>"
       by (simp add: field_split_simps)
     moreover have "((\<lambda>x. (f x - f z) / (x - z)) has_contour_integral contour_integral \<gamma> (d z)) \<gamma>"
-      using z
-      apply (simp add: v_def)
-      apply (metis (no_types, lifting) contour_integrable_eq d_def has_contour_integral_eq has_contour_integral_integral cint_fxy)
-      done
+      by (metis (no_types, lifting) z cint_fxy contour_integral_eq d_def has_contour_integral_integral mem_Collect_eq v_def)
     ultimately have *: "((\<lambda>x. f z / (x - z) + (f x - f z) / (x - z)) has_contour_integral (0 + contour_integral \<gamma> (d z))) \<gamma>"
       by (rule has_contour_integral_add)
     have "((\<lambda>w. f w / (w - z)) has_contour_integral contour_integral \<gamma> (d z)) \<gamma>"
@@ -1821,10 +1826,7 @@ proof -
   qed (use \<open>0 < d0\<close> d0 in \<open>force simp: dist_norm\<close>)
   define T where "T \<equiv> {y + k |y k. y \<in> path_image \<gamma> \<and> k \<in> cball 0 (dd / 2)}"
   have "\<And>x x'. \<lbrakk>x \<in> path_image \<gamma>; dist x x' * 2 < dd\<rbrakk> \<Longrightarrow> \<exists>y k. x' = y + k \<and> y \<in> path_image \<gamma> \<and> dist 0 k * 2 \<le> dd"
-    apply (rule_tac x=x in exI)
-    apply (rule_tac x="x'-x" in exI)
-    apply (force simp: dist_norm)
-    done
+    by (metis add.commute diff_add_cancel dist_0_norm dist_commute dist_norm less_eq_real_def)
   then have subt: "path_image \<gamma> \<subseteq> interior T"
     using \<open>0 < dd\<close> 
     apply (clarsimp simp add: mem_interior T_def)

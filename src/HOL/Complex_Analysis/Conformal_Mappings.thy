@@ -716,16 +716,15 @@ proof -
       qed
     qed
     define g where [abs_def]: "g z = (if z = \<xi> then deriv h \<xi> else (h z - h \<xi>) / (z - \<xi>))" for z
-    have holg: "g holomorphic_on S"
-      unfolding g_def by (rule pole_lemma [OF holh \<xi>])
     have \<section>: "\<forall>z\<in>S - {\<xi>}. (g z - g \<xi>) / (z - \<xi>) = f z"
       using h0 by (auto simp: g_def power2_eq_square divide_simps DERIV_imp_deriv h_def)
-    show ?thesis
-      apply (intro exI conjI)
-       apply (rule pole_lemma [OF holg \<xi>])
-      apply (simp add: \<section>)
-      done
-  qed
+    have "g holomorphic_on S"
+      unfolding g_def by (rule pole_lemma [OF holh \<xi>])
+    then have "(\<lambda>z. if z = \<xi> then deriv g \<xi> else (g z - g \<xi>) / (z - \<xi>)) holomorphic_on S"
+      using \<xi> pole_lemma by blast
+    then show ?thesis
+      using "\<section>" remove_def by fastforce
+    qed
   ultimately show "?P = ?Q" and "?P = ?R"
     by meson+
 qed
@@ -916,9 +915,8 @@ proof
     fix e::real assume "0 < e"
     with compf [of "cball 0 (inverse e)"]
     show "\<exists>B. \<forall>x. B \<le> cmod x \<longrightarrow> dist ((inverse \<circ> f) x) 0 \<le> e"
-      apply simp
-      apply (clarsimp simp add: compact_eq_bounded_closed bounded_pos norm_inverse)
-      by (metis (no_types, opaque_lifting) inverse_inverse_eq le_less_trans less_eq_real_def less_imp_inverse_less linordered_field_no_ub not_less)
+      apply (clarsimp simp: compact_eq_bounded_closed norm_divide divide_simps mult.commute elim!: bounded_normE_less)
+      by (meson linorder_not_le nle_le)
   qed
   then obtain a n where "\<And>z. f z = (\<Sum>i\<le>n. a i * z^i)"
     using assms pole_at_infinity by blast
@@ -1067,9 +1065,7 @@ proof -
       ultimately have False
         using inj_onD [OF injf, of y0 y1] \<open>y0 \<in> T\<close> \<open>y1 \<in> T\<close>
         using complex_root_unity [of n 1] 
-        apply (simp add: y0 y1 power_mult_distrib)
-        apply (force simp: algebra_simps)
-        done
+        by (auto simp: y0 y1 power_mult_distrib diff_eq_eq n_ne)
       then show ?thesis ..
     qed
   qed
@@ -1300,7 +1296,7 @@ proof -
       have conth': "continuous_on (cball 0 r) h"
         by (meson \<open>r < 1\<close> dual_order.trans holh holomorphic_on_imp_continuous_on holomorphic_on_subset mem_ball_0 mem_cball_0 not_less subsetI)
       obtain w where w: "norm w = r" and lenw: "\<And>z. norm z < r \<Longrightarrow> norm(h z) \<le> norm(h w)"
-        apply (rule Schwarz1 [OF holh']) using conth' \<open>0 < r\<close> by auto
+        using conth' \<open>0 < r\<close> by (auto simp add: intro: Schwarz1 [OF holh'])
       have "h w = f w / w" using fz_eq \<open>r < 1\<close> nzr w by auto
       then have "cmod (h z) < inverse r"
         by (metis \<open>0 < r\<close> \<open>r < 1\<close> divide_strict_right_mono inverse_eq_divide
@@ -1622,8 +1618,7 @@ proof -
     using holf cnjs
     by (force simp: holomorphic_on_def)
   have 2: "(\<lambda>z. if 0 \<le> Im z then f z else cnj (f (cnj z))) holomorphic_on (S \<inter> {z. Im z < 0})"
-    apply (rule iffD1 [OF holomorphic_cong [OF refl]])
-    using hol_cfc by auto
+    by (smt (verit) Int_Collect comp_def hol_cfc holomorphic_cong)
   have [simp]: "(S \<inter> {z. 0 \<le> Im z}) \<union> (S \<inter> {z. Im z \<le> 0}) = S"
     by force
   have eq: "\<And>z. \<lbrakk>z \<in> S; Im z \<le> 0; 0 \<le> Im z\<rbrakk> \<Longrightarrow> f z = cnj (f (cnj z))"
@@ -1636,7 +1631,7 @@ proof -
   then have 3: "continuous_on S (\<lambda>z. if 0 \<le> Im z then f z else cnj (f (cnj z)))"
     by force
   show ?thesis
-    apply (rule holomorphic_on_paste_across_line [OF \<open>open S\<close>, of "- \<i>" _ 0])
+    using holomorphic_on_paste_across_line [OF \<open>open S\<close>, of "- \<i>" _ 0]
     using 1 2 3 by auto
 qed
 
@@ -1825,13 +1820,12 @@ proof -
     by (metis add.comm_neutral \<open>0 < r\<close> norm_eq_zero)
   have hol1: "(\<lambda>z. f (a + z) - f a) holomorphic_on cball 0 r"
     by (intro holomorphic_intros hol0)
-  then have \<section>: "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv (\<lambda>z. f (a + z) - f a) 0))
+  moreover have "\<And>z. cmod z < r \<Longrightarrow>
+         cmod (deriv (\<lambda>z. f (a + z)) z) \<le> 2 * cmod (deriv (\<lambda>z. f (a + z)) 0)"
+    by (simp add: fz deriv_chain dist_norm le)
+  ultimately have \<section>: "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv (\<lambda>z. f (a + z) - f a) 0))
                 \<subseteq> (\<lambda>z. f (a + z) - f a) ` ball 0 r"
-    apply (rule Bloch_lemma_0)
-    using \<open>0 < r\<close>
-      apply (simp_all add: \<open>0 < r\<close> )
-    apply (simp add: fz deriv_chain dist_norm le)
-    done
+    using \<open>0 < r\<close> by (intro Bloch_lemma_0) auto
   show ?thesis
   proof clarify
     fix x
