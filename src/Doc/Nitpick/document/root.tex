@@ -28,7 +28,7 @@
 %\def\unk{{?}}
 \def\unk{{\_}}
 \def\unkef{(\lambda x.\; \unk)}
-\def\undef{(\lambda x.\; \_)}
+\def\undefined{(\lambda x.\; \_)}
 %\def\unr{\textit{others}}
 \def\unr{\ldots}
 \def\Abs#1{\hbox{\rm{\guillemetleft}}{\,#1\,}\hbox{\rm{\guillemetright}}}
@@ -368,9 +368,9 @@ Are all invertible functions onto? Let's find out:
 \slshape
 Nitpick found a counterexample for \textit{card} $'a$~= 2 and \textit{card} $'b$~=~1: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
-\hbox{}\qquad\qquad $f = \undef{}(b_1 := a_1)$ \\
+\hbox{}\qquad\qquad $f = \undefined{}(b_1 := a_1)$ \\
 \hbox{}\qquad Skolem constants: \nopagebreak \\
-\hbox{}\qquad\qquad $g = \undef{}(a_1 := b_1,\> a_2 := b_1)$ \\
+\hbox{}\qquad\qquad $g = \undefined{}(a_1 := b_1,\> a_2 := b_1)$ \\
 \hbox{}\qquad\qquad $y = a_2$
 \postw
 
@@ -390,9 +390,9 @@ This is not always the case, as illustrated below:
 Nitpick found a counterexample for \textit{card} $'a$~= 2: \\[2\smallskipamount]
 \hbox{}\qquad Skolem constant: \nopagebreak \\
 \hbox{}\qquad\qquad $\lambda x.\; f =
-    \undef{}(\!\begin{aligned}[t]
-    & a_1 := \undef{}(a_1 := a_2,\> a_2 := a_1), \\[-2pt]
-    & a_2 := \undef{}(a_1 := a_1,\> a_2 := a_1))\end{aligned}$
+    \undefined{}(\!\begin{aligned}[t]
+    & a_1 := \undefined{}(a_1 := a_2,\> a_2 := a_1), \\[-2pt]
+    & a_2 := \undefined{}(a_1 := a_1,\> a_2 := a_1))\end{aligned}$
 \postw
 
 The variable $f$ is bound within the scope of $x$; therefore, $f$ depends on
