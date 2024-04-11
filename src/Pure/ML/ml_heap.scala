@@ -294,7 +294,7 @@ object ML_Heap {
                 Isabelle_System.chmod("a+r", tmp)
                 Isabelle_System.move_file(tmp, heap)
               }
-              else error("Incoherent content for session heap " + heap)
+              else error("Incoherent content for session heap " + heap.expand)
             }
           }
         }
@@ -309,7 +309,7 @@ object ML_Heap {
               progress.echo("Restoring " + session.log_db_name + " ...")
               Isabelle_System.make_directory(path.expand.dir)
               Bytes.write(path, log_db.content)
-            case Some(_) => error("Incoherent content for session database " + path)
+            case Some(_) => error("Incoherent content for session database " + path.expand)
             case None =>
           }
         }
