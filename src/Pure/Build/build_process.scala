@@ -221,7 +221,6 @@ object Build_Process {
 
   sealed case class State(
     serial: Long = 0,
-    numa_nodes: List[Int] = Nil,
     sessions: Sessions = Sessions.empty,
     pending: State.Pending = Map.empty,
     running: State.Running = Map.empty,
@@ -1150,7 +1149,8 @@ extends AutoCloseable {
   protected def next_node_info(state: Build_Process.State, session_name: String): Host.Node_Info = {
     def used_nodes: Set[Int] =
       Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
-    val numa_node = Host.next_numa_node(_host_database, hostname, state.numa_nodes, used_nodes)
+    val numa_node =
+      Host.next_numa_node(_host_database, hostname, build_context.numa_nodes, used_nodes)
     Host.Node_Info(hostname, numa_node, Nil)
   }
 
@@ -1302,7 +1302,7 @@ extends AutoCloseable {
       finished || sleep
     }
 
-  protected def init_unsynchronized(): Unit = {
+  protected def init_unsynchronized(): Unit =
     if (build_context.master) {
       val sessions1 =
         _state.sessions.init(build_context, _database_server, progress = build_progress)
@@ -1314,10 +1314,6 @@ extends AutoCloseable {
         }
       _state = _state.copy(sessions = sessions1, pending = pending1)
     }
-
-    val numa_nodes = Host.numa_nodes(enabled = build_context.numa_shuffling)
-    _state = _state.copy(numa_nodes = numa_nodes)
-  }
 
   protected def main_unsynchronized(): Unit = {
     for (job <- _state.running.valuesIterator; build <- job.build if build.is_finished) {

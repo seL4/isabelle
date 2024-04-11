@@ -471,8 +471,9 @@ object Build_Schedule {
 
       if (used.length >= host.max_jobs) false
       else {
-        if (host.numa_nodes.length <= 1)
+        if (host.numa_nodes.length <= 1) {
           used.map(host_infos.num_threads).sum + threads <= host.max_threads
+        }
         else {
           def node_threads(n: Int): Int =
             used.filter(_.numa_node.contains(n)).map(host_infos.num_threads).sum

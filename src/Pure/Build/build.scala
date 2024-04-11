@@ -34,6 +34,7 @@ object Build {
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
+    numa_nodes: List[Int] = Nil,
     clean_sessions: List[String] = Nil,
     build_heap: Boolean = false,
     fresh_build: Boolean = false,
@@ -249,12 +250,13 @@ object Build {
       val clean_sessions =
         if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
 
+      val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       val build_context =
         Context(store, build_deps, engine = engine, afp_root = afp_root,
           build_hosts = build_hosts, hostname = hostname(build_options),
           clean_sessions = clean_sessions, build_heap = build_heap,
-          numa_shuffling = numa_shuffling, fresh_build = fresh_build,
-          no_build = no_build, session_setup = session_setup,
+          numa_shuffling = numa_shuffling, numa_nodes = numa_nodes,
+          fresh_build = fresh_build, no_build = no_build, session_setup = session_setup,
           jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
 
       val results = engine.run_build_process(build_context, progress, server)
