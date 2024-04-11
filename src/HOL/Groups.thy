@@ -207,26 +207,27 @@ class times =
 subsection \<open>Semigroups and Monoids\<close>
 
 class semigroup_add = plus +
-  assumes add_assoc [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
-    "(a + b) + c = a + (b + c)"
+  assumes add_assoc: "(a + b) + c = a + (b + c)"
 begin
 
 sublocale add: semigroup plus
   by standard (fact add_assoc)
+
+declare add.assoc [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
 
 end
 
 hide_fact add_assoc
 
 class ab_semigroup_add = semigroup_add +
-  assumes add_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
-    "a + b = b + a"
+  assumes add_commute: "a + b = b + a"
 begin
 
 sublocale add: abel_semigroup plus
   by standard (fact add_commute)
 
-declare add.left_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
+declare add.commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
+  add.left_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
 
 lemmas add_ac = add.assoc add.commute add.left_commute
 
@@ -237,26 +238,27 @@ hide_fact add_commute
 lemmas add_ac = add.assoc add.commute add.left_commute
 
 class semigroup_mult = times +
-  assumes mult_assoc [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
-    "(a * b) * c = a * (b * c)"
+  assumes mult_assoc: "(a * b) * c = a * (b * c)"
 begin
 
 sublocale mult: semigroup times
   by standard (fact mult_assoc)
+
+declare mult.assoc [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
 
 end
 
 hide_fact mult_assoc
 
 class ab_semigroup_mult = semigroup_mult +
-  assumes mult_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
-    "a * b = b * a"
+  assumes mult_commute: "a * b = b * a"
 begin
 
 sublocale mult: abel_semigroup times
   by standard (fact mult_commute)
 
-declare mult.left_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
+declare mult.commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
+  mult.left_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
 
 lemmas mult_ac = mult.assoc mult.commute mult.left_commute
 
