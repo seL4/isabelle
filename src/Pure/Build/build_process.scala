@@ -1147,10 +1147,10 @@ extends AutoCloseable {
   }
 
   protected def next_node_info(state: Build_Process.State, session_name: String): Host.Node_Info = {
-    def used_nodes: Set[Int] =
+    val available_nodes = build_context.numa_nodes
+    val used_nodes =
       Set.from(for (job <- state.running.valuesIterator; i <- job.node_info.numa_node) yield i)
-    val numa_node =
-      Host.next_numa_node(_host_database, hostname, build_context.numa_nodes, used_nodes)
+    val numa_node = Host.next_numa_node(_host_database, hostname, available_nodes, used_nodes)
     Host.Node_Info(hostname, numa_node, Nil)
   }
 
