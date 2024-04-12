@@ -5,7 +5,8 @@
 section \<open>Univariate Polynomials as lists\<close>
 
 theory Polynomial_List
-imports Complex_Main
+  imports Complex_Main 
+
 begin
 
 text \<open>Application of polynomial as a function.\<close>
@@ -264,13 +265,9 @@ next
       by blast
     have "r = 0"
       using p0 by (simp only: Cons qr poly_mult poly_add) simp
-    with Cons qr show ?thesis
-      apply -
-      apply (rule exI[where x = q])
-      apply auto
-      apply (cases q)
-      apply auto
-      done
+    with Cons qr have "p = [- a, 1] *** q"
+      by (simp add: local.padd_commut)
+    then show ?thesis ..
   qed
   ultimately show ?thesis using Cons by blast
 qed
@@ -344,11 +341,8 @@ next
       by blast
     from y have "y = a \<or> poly q y = 0"
       by (simp only: q poly_mult_eq_zero_disj poly_add) (simp add: algebra_simps)
-    with i[of y] y(1) y(2) show ?thesis
-      apply auto
-      apply (erule_tac x = "m" in allE)
-      apply auto
-      done
+    with i[of y] y show ?thesis
+      using le_Suc_eq by auto
   qed
   then show ?case by blast
 qed
@@ -360,12 +354,7 @@ lemma (in idom) poly_roots_index_length:
 
 lemma (in idom) poly_roots_finite_lemma1:
   "poly p x \<noteq> poly [] x \<Longrightarrow> \<exists>N i. \<forall>x. poly p x = 0 \<longrightarrow> (\<exists>n::nat. n < N \<and> x = i n)"
-  apply (drule poly_roots_index_length)
-  apply safe
-  apply (rule_tac x = "Suc (length p)" in exI)
-  apply (rule_tac x = i in exI)
-  apply (simp add: less_Suc_eq_le)
-  done
+  by (metis le_imp_less_Suc poly_roots_index_length)
 
 lemma (in idom) idom_finite_lemma:
   assumes "\<forall>x. P x \<longrightarrow> (\<exists>n. n < length j \<and> x = j!n)"
@@ -379,15 +368,8 @@ qed
 
 lemma (in idom) poly_roots_finite_lemma2:
   "poly p x \<noteq> poly [] x \<Longrightarrow> \<exists>i. \<forall>x. poly p x = 0 \<longrightarrow> x \<in> set i"
-  apply (drule poly_roots_index_length)
-  apply safe
-  apply (rule_tac x = "map (\<lambda>n. i n) [0 ..< Suc (length p)]" in exI)
-  apply (auto simp add: image_iff)
-  apply (erule_tac x="x" in allE)
-  apply clarsimp
-  apply (case_tac "n = length p")
-  apply (auto simp add: order_le_less)
-  done
+  using poly_roots_index_length atMost_iff atMost_upto imageI set_map
+  by metis
 
 lemma (in ring_char_0) UNIV_ring_char_0_infinte: "\<not> finite (UNIV :: 'a set)"
 proof
@@ -408,21 +390,12 @@ lemma (in idom_char_0) poly_roots_finite: "poly p \<noteq> poly [] \<longleftrig
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show ?rhs if ?lhs
-    using that
-    apply -
-    apply (erule contrapos_np)
-    apply (rule ext)
-    apply (rule ccontr)
-    apply (clarify dest!: poly_roots_finite_lemma2)
-    using finite_subset
   proof -
-    fix x i
-    assume F: "\<not> finite {x. poly p x = 0}"
-      and P: "\<forall>x. poly p x = 0 \<longrightarrow> x \<in> set i"
-    from P have "{x. poly p x = 0} \<subseteq> set i"
-      by auto
-    with finite_subset F show False
-      by auto
+    have False if  F: "\<not> finite {x. poly p x = 0}"
+      and P: "\<forall>x. poly p x = 0 \<longrightarrow> x \<in> set i" for  i
+      by (smt (verit, del_insts) in_set_conv_nth local.idom_finite_lemma that)
+    with that show ?thesis
+      using local.poly_roots_finite_lemma2 by blast
   qed
   show ?lhs if ?rhs
     using UNIV_ring_char_0_infinte that by auto
@@ -473,18 +446,15 @@ proof -
 qed
 
 lemma (in idom) poly_exp_eq_zero[simp]: "poly (p %^ n) = poly [] \<longleftrightarrow> poly p = poly [] \<and> n \<noteq> 0"
-  apply (simp only: fun_eq_iff add: HOL.all_simps [symmetric])
-  apply (rule arg_cong [where f = All])
-  apply (rule ext)
-  apply (induct n)
-  apply (auto simp add: poly_exp poly_mult)
-  done
+  by (simp add: local.poly_exp fun_eq_iff)
 
 lemma (in comm_ring_1) poly_prime_eq_zero[simp]: "poly [a, 1] \<noteq> poly []"
-  apply (simp add: fun_eq_iff)
-  apply (rule_tac x = "minus one a" in exI)
-  apply (simp add: add.commute [of a])
-  done
+proof -
+  have "\<exists>x. a + x \<noteq> 0"
+    by (metis add_cancel_left_right zero_neq_one)
+  then show ?thesis
+    by (simp add: fun_eq_iff)
+qed
 
 lemma (in idom) poly_exp_prime_eq_zero: "poly ([a, 1] %^ n) \<noteq> poly []"
   by auto
@@ -492,26 +462,18 @@ lemma (in idom) poly_exp_prime_eq_zero: "poly ([a, 1] %^ n) \<noteq> poly []"
 
 text \<open>A more constructive notion of polynomials being trivial.\<close>
 
-lemma (in idom_char_0) poly_zero_lemma': "poly (h # t) = poly [] \<Longrightarrow> h = 0 \<and> poly t = poly []"
-  apply (simp add: fun_eq_iff)
-  apply (case_tac "h = zero")
-  apply (drule_tac [2] x = zero in spec)
-  apply auto
-  apply (cases "poly t = poly []")
-  apply simp
+lemma (in idom_char_0) poly_zero_lemma': 
+  assumes "poly (h # t) = poly []" shows "h = 0 \<and> poly t = poly []"
 proof -
-  fix x
-  assume H: "\<forall>x. x = 0 \<or> poly t x = 0"
-  assume pnz: "poly t \<noteq> poly []"
-  let ?S = "{x. poly t x = 0}"
-  from H have "\<forall>x. x \<noteq> 0 \<longrightarrow> poly t x = 0"
-    by blast
-  then have th: "?S \<supseteq> UNIV - {0}"
-    by auto
-  from poly_roots_finite pnz have th': "finite ?S"
-    by blast
-  from finite_subset[OF th th'] UNIV_ring_char_0_infinte show "poly t x = 0"
-    by simp
+  have "poly t x = 0" if H: "\<forall>x. x = 0 \<or> poly t x = 0" and pnz: "poly t \<noteq> poly []" for x
+  proof -
+    from H have "{x. poly t x = 0} \<supseteq> UNIV - {0}"
+      by auto
+    then show ?thesis
+      using finite_subset local.poly_roots_finite pnz by fastforce
+  qed
+  with assms show ?thesis
+    by (simp add: fun_eq_iff) (metis add_cancel_right_left mult_eq_0_iff)
 qed
 
 lemma (in idom_char_0) poly_zero: "poly p = poly [] \<longleftrightarrow> (\<forall>c \<in> set p. c = 0)"
@@ -520,12 +482,8 @@ proof (induct p)
   then show ?case by simp
 next
   case Cons
-  show ?case
-    apply (rule iffI)
-    apply (drule poly_zero_lemma')
-    using Cons
-    apply auto
-    done
+  then show ?case
+    by (smt (verit) list.set_intros pmult_by_x poly_entire poly_zero_lemma' set_ConsD)
 qed
 
 lemma (in idom_char_0) poly_0: "\<forall>c \<in> set p. c = 0 \<Longrightarrow> poly p x = 0"
@@ -535,41 +493,33 @@ lemma (in idom_char_0) poly_0: "\<forall>c \<in> set p. c = 0 \<Longrightarrow> 
 text \<open>Basics of divisibility.\<close>
 
 lemma (in idom) poly_primes: "[a, 1] divides (p *** q) \<longleftrightarrow> [a, 1] divides p \<or> [a, 1] divides q"
-  apply (auto simp add: divides_def fun_eq_iff poly_mult poly_add poly_cmult distrib_right [symmetric])
-  apply (drule_tac x = "uminus a" in spec)
-  apply (simp add: poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
-  apply (cases "p = []")
-  apply (rule exI[where x="[]"])
-  apply simp
-  apply (cases "q = []")
-  apply (erule allE[where x="[]"])
-  apply simp
-
-  apply clarsimp
-  apply (cases "\<exists>q. p = a %* q +++ (0 # q)")
-  apply (clarsimp simp add: poly_add poly_cmult)
-  apply (rule_tac x = qa in exI)
-  apply (simp add: distrib_right [symmetric])
-  apply clarsimp
-
-  apply (auto simp add: poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
-  apply (rule_tac x = "pmult qa q" in exI)
-  apply (rule_tac [2] x = "pmult p qa" in exI)
-  apply (auto simp add: poly_add poly_mult poly_cmult ac_simps)
-  done
+proof -
+  have "\<exists>q. \<forall>x. poly p x = (a + x) * poly q x"
+    if "poly p (uminus a) * poly q (uminus a) = (a + (uminus a)) * poly qa (uminus a)"
+      and "\<forall>qa. \<exists>x. poly q x \<noteq> (a + x) * poly qa x"
+    for qa 
+    using that   
+    apply (simp add: poly_linear_divides poly_add)
+    by (metis add_cancel_left_right combine_common_factor mult_eq_0_iff poly.poly_Cons poly.poly_Nil poly_add poly_cmult)
+  moreover have "\<exists>qb. \<forall>x. (a + x) * poly qa x * poly q x = (a + x) * poly qb x" for qa
+    by (metis local.poly_mult mult_assoc)
+  moreover have "\<exists>q. \<forall>x. poly p x * ((a + x) * poly qa x) = (a + x) * poly q x" for qa 
+    by (metis mult.left_commute local.poly_mult)
+  ultimately show ?thesis
+    by (auto simp: divides_def divisors_zero fun_eq_iff poly_mult poly_add poly_cmult simp flip: distrib_right)
+qed
 
 lemma (in comm_semiring_1) poly_divides_refl[simp]: "p divides p"
-  apply (simp add: divides_def)
-  apply (rule_tac x = "[one]" in exI)
-  apply (auto simp add: poly_mult fun_eq_iff)
-  done
+proof -
+  have "poly p = poly (p *** [1])"
+    by (auto simp add: poly_mult fun_eq_iff)
+  then show ?thesis
+    using local.dividesI by blast
+qed
 
 lemma (in comm_semiring_1) poly_divides_trans: "p divides q \<Longrightarrow> q divides r \<Longrightarrow> p divides r"
-  apply (simp add: divides_def)
-  apply safe
-  apply (rule_tac x = "pmult qa qaa" in exI)
-  apply (auto simp add: poly_mult fun_eq_iff mult.assoc)
-  done
+  unfolding divides_def
+  by (metis ext local.poly_mult local.poly_mult_assoc)
 
 lemma (in comm_semiring_1) poly_divides_exp: "m \<le> n \<Longrightarrow> (p %^ m) divides (p %^ n)"
   by (auto simp: le_iff_add divides_def poly_exp_add fun_eq_iff)
@@ -577,34 +527,35 @@ lemma (in comm_semiring_1) poly_divides_exp: "m \<le> n \<Longrightarrow> (p %^ 
 lemma (in comm_semiring_1) poly_exp_divides: "(p %^ n) divides q \<Longrightarrow> m \<le> n \<Longrightarrow> (p %^ m) divides q"
   by (blast intro: poly_divides_exp poly_divides_trans)
 
-lemma (in comm_semiring_0) poly_divides_add: "p divides q \<Longrightarrow> p divides r \<Longrightarrow> p divides (q +++ r)"
-  apply (auto simp add: divides_def)
-  apply (rule_tac x = "padd qa qaa" in exI)
-  apply (auto simp add: poly_add fun_eq_iff poly_mult distrib_left)
-  done
+lemma (in comm_semiring_0) poly_divides_add:
+  assumes "p divides q" and "p divides r" shows "p divides (q +++ r)"
+proof -
+  have "\<And>qa qb. \<lbrakk>poly q = poly (p *** qa); poly r = poly (p *** qb)\<rbrakk>
+       \<Longrightarrow> poly (q +++ r) = poly (p *** (qa +++ qb))"
+    by (auto simp add: poly_add fun_eq_iff poly_mult distrib_left)
+  with assms show ?thesis
+    by (auto simp add: divides_def)
+qed
 
-lemma (in comm_ring_1) poly_divides_diff: "p divides q \<Longrightarrow> p divides (q +++ r) \<Longrightarrow> p divides r"
-  apply (auto simp add: divides_def)
-  apply (rule_tac x = "padd qaa (poly_minus qa)" in exI)
-  apply (auto simp add: poly_add fun_eq_iff poly_mult poly_minus algebra_simps)
-  done
+lemma (in comm_ring_1) poly_divides_diff:
+  assumes "p divides q" and "p divides (q +++ r)"
+  shows "p divides r"
+proof -
+  have "\<And>qa qb. \<lbrakk>poly q = poly (p *** qa); poly (q +++ r) = poly (p *** qb)\<rbrakk>
+         \<Longrightarrow> poly r = poly (p *** (qb +++ -- qa))"
+  by (auto simp add: poly_add fun_eq_iff poly_mult poly_minus algebra_simps)
+  with assms show ?thesis
+    by (auto simp add: divides_def)
+qed
 
 lemma (in comm_ring_1) poly_divides_diff2: "p divides r \<Longrightarrow> p divides (q +++ r) \<Longrightarrow> p divides q"
-  apply (erule poly_divides_diff)
-  apply (auto simp add: poly_add fun_eq_iff poly_mult divides_def ac_simps)
-  done
+  by (metis local.padd_commut local.poly_divides_diff)
 
 lemma (in semiring_0) poly_divides_zero: "poly p = poly [] \<Longrightarrow> q divides p"
-  apply (simp add: divides_def)
-  apply (rule exI[where x = "[]"])
-  apply (auto simp add: fun_eq_iff poly_mult)
-  done
+  by (metis ext dividesI poly.poly_Nil poly_mult_Nil2)
 
 lemma (in semiring_0) poly_divides_zero2 [simp]: "q divides []"
-  apply (simp add: divides_def)
-  apply (rule_tac x = "[]" in exI)
-  apply (auto simp add: fun_eq_iff)
-  done
+  using local.poly_divides_zero by force
 
 
 text \<open>At last, we can consider the order of a root.\<close>
@@ -629,11 +580,7 @@ next
     from True[unfolded poly_linear_divides] pN obtain q where q: "p = [-a, 1] *** q"
       by blast
     from q h True have qh: "length q = n" "poly q \<noteq> poly []"
-      apply simp_all
-      apply (simp only: fun_eq_iff)
-      apply (rule ccontr)
-      apply (simp add: fun_eq_iff poly_add poly_cmult)
-      done
+      using h(2) local.poly_entire q by fastforce+
     from Suc.hyps[OF qh] obtain m r where mr: "q = mulexp m [-a,1] r" "poly r a \<noteq> 0"
       by blast
     from mr q have "p = mulexp (Suc m) [-a,1] r \<and> poly r a \<noteq> 0"
@@ -641,12 +588,8 @@ next
     then show ?thesis by blast
   next
     case False
-    then show ?thesis
-      using Suc.prems
-      apply simp
-      apply (rule exI[where x="0::nat"])
-      apply simp
-      done
+    with Suc.prems show ?thesis
+      by (smt (verit, best) local.mulexp.mulexp_zero)
   qed
 qed
 
@@ -719,12 +662,7 @@ lemma (in semiring_1) poly_one_divides[simp]: "[1] divides p"
 
 lemma (in idom_char_0) poly_order:
   "poly p \<noteq> poly [] \<Longrightarrow> \<exists>!n. ([-a, 1] %^ n) divides p \<and> \<not> (([-a, 1] %^ Suc n) divides p)"
-  apply (auto intro: poly_order_exists simp add: less_linear simp del: pmult_Cons pexp_Suc)
-  apply (cut_tac x = y and y = n in less_linear)
-  apply (drule_tac m = n in poly_exp_divides)
-  apply (auto dest: Suc_le_eq [THEN iffD2, THEN [2] poly_exp_divides]
-    simp del: pmult_Cons pexp_Suc)
-  done
+  by (meson Suc_le_eq linorder_neqE_nat local.poly_exp_divides poly_order_exists)
 
 
 text \<open>Order\<close>
@@ -736,10 +674,7 @@ lemma (in idom_char_0) order:
   "([-a, 1] %^ n) divides p \<and> \<not> (([-a, 1] %^ Suc n) divides p) \<longleftrightarrow>
     n = order a p \<and> poly p \<noteq> poly []"
   unfolding order_def
-  apply (rule iffI)
-  apply (blast dest: poly_divides_zero intro!: some1_equality [symmetric] poly_order)
-  apply (blast intro!: poly_order [THEN [2] some1_equalityD])
-  done
+  by (metis (no_types, lifting) local.poly_divides_zero local.poly_order someI)
 
 lemma (in idom_char_0) order2:
   "poly p \<noteq> poly [] \<Longrightarrow>
@@ -767,97 +702,89 @@ lemma (in comm_ring_1) lemma_order_root:
   by (induct n arbitrary: a p) (auto simp add: divides_def poly_mult simp del: pmult_Cons)
 
 lemma (in idom_char_0) order_root: "poly p a = 0 \<longleftrightarrow> poly p = poly [] \<or> order a p \<noteq> 0"
-  apply (cases "poly p = poly []")
-  apply auto
-  apply (simp add: poly_linear_divides del: pmult_Cons)
-  apply safe
-  apply (drule_tac [!] a = a in order2)
-  apply (rule ccontr)
-  apply (simp add: divides_def poly_mult fun_eq_iff del: pmult_Cons)
-  apply blast
-  using neq0_conv apply (blast intro: lemma_order_root)
-  done
+proof (cases "poly p = poly []")
+  case False
+  then show ?thesis 
+    by (metis (mono_tags, lifting) dividesI lemma_order_root order2 pexp_one poly_linear_divides neq0_conv)
+qed auto
 
 lemma (in idom_char_0) order_divides:
   "([-a, 1] %^ n) divides p \<longleftrightarrow> poly p = poly [] \<or> n \<le> order a p"
-  apply (cases "poly p = poly []")
-  apply auto
-  apply (simp add: divides_def fun_eq_iff poly_mult)
-  apply (rule_tac x = "[]" in exI)
-  apply (auto dest!: order2 [where a=a] intro: poly_exp_divides simp del: pexp_Suc)
-  done
+proof (cases "poly p = poly []")
+  case True
+  then show ?thesis 
+    using local.poly_divides_zero by force
+next
+  case False
+  then show ?thesis 
+    by (meson local.order2 local.poly_exp_divides not_less_eq_eq)
+qed
 
 lemma (in idom_char_0) order_decomp:
-  "poly p \<noteq> poly [] \<Longrightarrow> \<exists>q. poly p = poly (([-a, 1] %^ order a p) *** q) \<and> \<not> [-a, 1] divides q"
-  unfolding divides_def
-  apply (drule order2 [where a = a])
-  apply (simp add: divides_def del: pexp_Suc pmult_Cons)
-  apply safe
-  apply (rule_tac x = q in exI)
-  apply safe
-  apply (drule_tac x = qa in spec)
-  apply (auto simp add: poly_mult fun_eq_iff poly_exp ac_simps simp del: pmult_Cons)
-  done
+  assumes "poly p \<noteq> poly []"
+  shows "\<exists>q. poly p = poly (([-a, 1] %^ order a p) *** q) \<and> \<not> [-a, 1] divides q"
+proof -
+  obtain q where q: "poly p = poly ([- a, 1] %^ order a p *** q)"
+    using assms local.order2 divides_def by blast
+  have False if "poly q = poly ([- a, 1] *** qa)" for qa
+  proof -
+    have "poly p \<noteq> poly ([- a, 1] %^ Suc (order a p) *** qa)"
+      using assms local.divides_def local.order2 by blast
+    with q that show False
+      by (auto simp add: poly_mult ac_simps simp del: pmult_Cons)
+  qed 
+  with q show ?thesis
+    unfolding divides_def by blast
+qed
 
 text \<open>Important composition properties of orders.\<close>
 lemma order_mult:
   fixes a :: "'a::idom_char_0"
-  shows "poly (p *** q) \<noteq> poly [] \<Longrightarrow> order a (p *** q) = order a p + order a q"
-  apply (cut_tac a = a and p = "p *** q" and n = "order a p + order a q" in order)
-  apply (auto simp add: poly_entire simp del: pmult_Cons)
-  apply (drule_tac a = a in order2)+
-  apply safe
-  apply (simp add: divides_def fun_eq_iff poly_exp_add poly_mult del: pmult_Cons, safe)
-  apply (rule_tac x = "qa *** qaa" in exI)
-  apply (simp add: poly_mult ac_simps del: pmult_Cons)
-  apply (drule_tac a = a in order_decomp)+
-  apply safe
-  apply (subgoal_tac "[-a, 1] divides (qa *** qaa) ")
-  apply (simp add: poly_primes del: pmult_Cons)
-  apply (auto simp add: divides_def simp del: pmult_Cons)
-  apply (rule_tac x = qb in exI)
-  apply (subgoal_tac "poly ([-a, 1] %^ (order a p) *** (qa *** qaa)) =
-    poly ([-a, 1] %^ (order a p) *** ([-a, 1] *** qb))")
-  apply (drule poly_mult_left_cancel [THEN iffD1])
-  apply force
-  apply (subgoal_tac "poly ([-a, 1] %^ (order a q) *** ([-a, 1] %^ (order a p) *** (qa *** qaa))) =
-    poly ([-a, 1] %^ (order a q) *** ([-a, 1] %^ (order a p) *** ([-a, 1] *** qb))) ")
-  apply (drule poly_mult_left_cancel [THEN iffD1])
-  apply force
-  apply (simp add: fun_eq_iff poly_exp_add poly_mult ac_simps del: pmult_Cons)
-  done
-
-lemma (in idom_char_0) order_mult:
   assumes "poly (p *** q) \<noteq> poly []"
   shows "order a (p *** q) = order a p + order a q"
-  using assms
-  apply (cut_tac a = a and p = "pmult p q" and n = "order a p + order a q" in order)
-  apply (auto simp add: poly_entire simp del: pmult_Cons)
-  apply (drule_tac a = a in order2)+
-  apply safe
-  apply (simp add: divides_def fun_eq_iff poly_exp_add poly_mult del: pmult_Cons)
-  apply safe
-  apply (rule_tac x = "pmult qa qaa" in exI)
-  apply (simp add: poly_mult ac_simps del: pmult_Cons)
-  apply (drule_tac a = a in order_decomp)+
-  apply safe
-  apply (subgoal_tac "[uminus a, one] divides pmult qa qaa")
-  apply (simp add: poly_primes del: pmult_Cons)
-  apply (auto simp add: divides_def simp del: pmult_Cons)
-  apply (rule_tac x = qb in exI)
-  apply (subgoal_tac "poly (pmult (pexp [uminus a, one] (order a p)) (pmult qa qaa)) =
-    poly (pmult (pexp [uminus a, one] (order a p)) (pmult [uminus a, one] qb))")
-  apply (drule poly_mult_left_cancel [THEN iffD1], force)
-  apply (subgoal_tac "poly (pmult (pexp [uminus a, one] (order a q))
-      (pmult (pexp [uminus a, one] (order a p)) (pmult qa qaa))) =
-    poly (pmult (pexp [uminus a, one] (order a q))
-      (pmult (pexp [uminus a, one] (order a p)) (pmult [uminus a, one] qb)))")
-  apply (drule poly_mult_left_cancel [THEN iffD1], force)
-  apply (simp add: fun_eq_iff poly_exp_add poly_mult ac_simps del: pmult_Cons)
-  done
+proof -
+  have p: "poly p \<noteq> poly []" and q: "poly q \<noteq> poly []"
+    using assms poly_entire by auto
+  obtain p' where p': 
+          "\<And>x. poly p x = poly ([- a, 1] %^ order a p) x * poly p' x"
+          "\<not> [- a, 1] divides p'"
+    by (metis order_decomp p poly_mult)
+  obtain q' where q': 
+          "\<And>x. poly q x = poly ([- a, 1] %^ order a q) x * poly q' x"
+          "\<not> [- a, 1] divides q'"
+    by (metis order_decomp q poly_mult)
+  have "[- a, 1] %^ (order a p + order a q) divides (p *** q)"
+  proof -
+    have *: "poly p x * poly q x =
+          poly ([- a, 1] %^ order a p) x * poly ([- a, 1] %^ order a q) x * poly (p' *** q') x" for x
+      using p' q' by (simp add: poly_mult)
+    then show ?thesis
+      unfolding divides_def  poly_exp_add poly_mult using * by blast
+  qed
+  moreover have False
+    if pq: "order a (p *** q) \<noteq> order a p + order a q"
+      and dv: "[- a, 1] *** [- a, 1] %^ (order a p + order a q) divides (p *** q)"
+  proof -
+    obtain pq' :: "'a list"
+      where pq': "poly (p *** q) = poly ([- a, 1] *** [- a, 1] %^ (order a p + order a q) *** pq')"
+      using dv unfolding divides_def by auto
+    have "poly ([-a, 1] %^ (order a q) *** ([-a, 1] %^ (order a p) *** (p' *** q'))) =
+          poly ([-a, 1] %^ (order a q) *** ([-a, 1] %^ (order a p) *** ([-a, 1] *** pq')))"
+      using p' q' pq pq'
+      by (simp add: fun_eq_iff poly_exp_add poly_mult ac_simps del: pmult_Cons)
+    then have "poly ([-a, 1] %^ (order a p) *** (p' *** q')) = poly ([-a, 1] %^ (order a p) *** ([-a, 1] *** pq'))"
+      by (simp add: poly_mult_left_cancel)
+    then have "[-a, 1] divides (p' *** q')"
+      unfolding divides_def by (meson poly_exp_prime_eq_zero poly_mult_left_cancel)
+    with p' q' show ?thesis
+      by (simp add: poly_primes)
+  qed
+  ultimately show ?thesis
+    by (metis order pexp_Suc)
+qed
 
 lemma (in idom_char_0) order_root2: "poly p \<noteq> poly [] \<Longrightarrow> poly p a = 0 \<longleftrightarrow> order a p \<noteq> 0"
-  by (rule order_root [THEN ssubst]) auto
+  using order_root by presburger
 
 lemma (in semiring_1) pmult_one[simp]: "[1] *** p = p"
   by auto
@@ -866,21 +793,18 @@ lemma (in semiring_0) poly_Nil_zero: "poly [] = poly [0]"
   by (simp add: fun_eq_iff)
 
 lemma (in idom_char_0) rsquarefree_decomp:
-  "rsquarefree p \<Longrightarrow> poly p a = 0 \<Longrightarrow> \<exists>q. poly p = poly ([-a, 1] *** q) \<and> poly q a \<noteq> 0"
-  apply (simp add: rsquarefree_def)
-  apply safe
-  apply (frule_tac a = a in order_decomp)
-  apply (drule_tac x = a in spec)
-  apply (drule_tac a = a in order_root2 [symmetric])
-  apply (auto simp del: pmult_Cons)
-  apply (rule_tac x = q in exI, safe)
-  apply (simp add: poly_mult fun_eq_iff)
-  apply (drule_tac p1 = q in poly_linear_divides [THEN iffD1])
-  apply (simp add: divides_def del: pmult_Cons, safe)
-  apply (drule_tac x = "[]" in spec)
-  apply (auto simp add: fun_eq_iff)
-  done
-
+  assumes "rsquarefree p" and "poly p a = 0"
+  shows "\<exists>q. poly p = poly ([-a, 1] *** q) \<and> poly q a \<noteq> 0"
+proof -
+  have "order a p = Suc 0"
+    using assms local.order_root2 rsquarefree_def by force
+  moreover
+  obtain q where "poly p = poly ([- a, 1] %^ order a p *** q)" 
+                 "\<not> [- a, 1] divides q"
+    using assms(1) order_decomp rsquarefree_def by blast
+  ultimately show ?thesis
+    using dividesI poly_linear_divides by auto
+qed
 
 text \<open>Normalization of a polynomial.\<close>
 
@@ -952,28 +876,12 @@ next
   then show ?case
   proof (induct p)
     case Nil
-    then have "poly [] = poly (c # cs)"
-      by blast
-    then have "poly (c#cs) = poly []"
-      by simp
     then show ?case
-      by (simp only: poly_zero lemma_degree_zero) simp
+      by (metis local.poly_zero_lemma')
   next
     case (Cons d ds)
-    then have eq: "poly (d # ds) = poly (c # cs)"
-      by blast
-    then have eq': "\<And>x. poly (d # ds) x = poly (c # cs) x"
-      by simp
-    then have "poly (d # ds) 0 = poly (c # cs) 0"
-      by blast
-    then have dc: "d = c"
-      by auto
-    with eq have "poly ds = poly cs"
-      unfolding  poly_Cons_eq by simp
-    with Cons.prems have "pnormalize ds = pnormalize cs"
-      by blast
-    with dc show ?case
-      by simp
+    then show ?case
+      by (metis pnormalize.pnormalize_Cons local.poly_Cons_eq)
   qed
 qed
 
@@ -987,15 +895,16 @@ lemma (in semiring_0) pnormalize_length: "length (pnormalize p) \<le> length p"
 
 lemma (in semiring_0) last_linear_mul_lemma:
   "last ((a %* p) +++ (x # (b %* p))) = (if p = [] then x else b * last p)"
-  apply (induct p arbitrary: a x b)
-  apply auto
-  subgoal for a p c x b
-    apply (subgoal_tac "padd (cmult c p) (times b a # cmult b p) \<noteq> []")
-    apply simp
-    apply (induct p)
-    apply auto
-    done
-  done
+proof (induct p arbitrary: a x b)
+  case Nil
+  then show ?case by auto
+next
+  case (Cons a p c x b)
+  then have "padd (cmult c p) (times b a # cmult b p) \<noteq> []"
+    by (metis local.padd.padd_Nil local.padd_Cons_Cons neq_Nil_conv)
+  then show ?case
+    by (simp add: local.Cons)
+qed
 
 lemma (in semiring_1) last_linear_mul:
   assumes p: "p \<noteq> []"
@@ -1051,18 +960,11 @@ proof (induct n arbitrary: a p)
     case True
     then show ?thesis
       using degree_unique[OF True] by (simp add: degree_def)
-  next
-    case False
-    then show ?thesis
-      by (auto simp add: poly_Nil_ext)
-  qed
+  qed (auto simp add: poly_Nil_ext)
 next
   case (Suc n a p)
   have eq: "poly ([a, 1] %^(Suc n) *** p) = poly ([a, 1] %^ n *** ([a, 1] *** p))"
-    apply (rule ext)
-    apply (simp add: poly_mult poly_add poly_cmult)
-    apply (simp add: ac_simps distrib_left)
-    done
+    by (force simp add: poly_mult poly_add poly_cmult ac_simps distrib_left)
   note deq = degree_unique[OF eq]
   show ?case
   proof (cases "poly p = poly []")
@@ -1080,9 +982,7 @@ next
     from ap have ap': "poly ([a, 1] *** p) = poly [] \<longleftrightarrow> False"
       by blast
     have th0: "degree ([a, 1]%^n *** ([a, 1] *** p)) = degree ([a, 1] *** p) + n"
-      apply (simp only: Suc.hyps[of a "pmult [a,one] p"] ap')
-      apply simp
-      done
+      unfolding Suc.hyps[of a "pmult [a,one] p"] ap' by simp
     from degree_unique[OF eq] ap False th0 linear_mul_degree[OF False, of a]
     show ?thesis
       by (auto simp del: poly.simps)
@@ -1118,12 +1018,12 @@ proof (induct p)
   then show ?case by simp
 next
   case (Cons a p)
-  then show ?case
-    apply auto
-    apply (rule_tac y = "\<bar>a\<bar> + \<bar>x * poly p x\<bar>" in order_trans)
-    apply (rule abs_triangle_ineq)
-    apply (auto intro!: mult_mono simp add: abs_mult)
-    done
+  have "\<bar>a + x * poly p x\<bar> \<le> \<bar>a\<bar> + \<bar>x * poly p x\<bar>"
+    using abs_triangle_ineq by blast
+  also have "\<dots> \<le> \<bar>a\<bar> + k * poly (map abs p) k"
+    by (simp add: Cons.hyps Cons.prems abs_mult mult_mono')
+  finally show ?case
+    using Cons by auto
 qed
 
 lemma (in semiring_0) poly_Sing: "poly [c] x = c"
