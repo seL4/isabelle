@@ -136,7 +136,7 @@ object CI_Build {
     Mercurial.repository(path).id()
 
   def print_section(title: String): Unit =
-    println(s"\n=== $title ===\n")
+    println("\n=== " + title + " ===\n")
 
   def ci_build(options: Options, job: Job): Unit = {
     val profile = job.profile
@@ -156,11 +156,12 @@ object CI_Build {
       with_documents(options, config).int.update("threads", profile.threads) +
         "parallel_proofs=1" + "system_heaps"
 
-    println(s"jobs = ${profile.jobs}, threads = ${profile.threads}, numa = ${profile.numa}")
+    println(
+      "jobs = " + profile.jobs + ", threads = " + profile.threads + ", numa = " + profile.numa)
 
     print_section("BUILD")
-    println(s"Build started at $formatted_time")
-    println(s"Isabelle id $isabelle_id")
+    println("Build started at " + formatted_time)
+    println("Isabelle id " + isabelle_id)
     val pre_result = config.pre_hook(options)
 
     print_section("LOG")
@@ -186,7 +187,7 @@ object CI_Build {
 
     val groups = results.sessions.map(results.info).flatMap(_.groups)
     for (group <- groups)
-      println(s"Group $group: " + compute_timing(results, Some(group)).message_resources)
+      println("Group " + group + ": " + compute_timing(results, Some(group)).message_resources)
 
     val total_timing = compute_timing(results, None).copy(elapsed = elapsed_time)
     println("Overall: " + total_timing.message_resources)
@@ -195,10 +196,10 @@ object CI_Build {
       print_section("FAILED SESSIONS")
 
       for (name <- results.sessions) {
-        if (results.cancelled(name)) println(s"Session $name: CANCELLED")
+        if (results.cancelled(name)) println("Session " + name + ": CANCELLED")
         else {
           val result = results(name)
-          if (!result.ok) println(s"Session $name: FAILED ${ result.rc }")
+          if (!result.ok) println("Session " + name + ": FAILED " + result.rc)
         }
       }
     }
