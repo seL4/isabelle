@@ -83,7 +83,7 @@ object Store {
       new Sources(
         session_base.session_sources.foldLeft(Map.empty) {
           case (sources, (path, digest)) =>
-            def err(): Nothing = error("Incoherent digest for source file: " + path)
+            def err(): Nothing = error("Incoherent digest for source file: " + path.expand)
             val name = File.symbolic_path(path)
             sources.get(name) match {
               case Some(source_file) =>
