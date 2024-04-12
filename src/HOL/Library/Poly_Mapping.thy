@@ -459,7 +459,7 @@ proof -
     {b. \<exists>a. (f a * g b when k = a + b) \<noteq> 0} \<subseteq> {a. f a \<noteq> 0} \<times> {b. g b \<noteq> 0}"
     by auto
   ultimately show ?thesis using fin_g
-    by (auto simp add: prod_fun_def
+    by (auto simp: prod_fun_def
       Sum_any.cartesian_product [of "{a. f a \<noteq> 0} \<times> {b. g b \<noteq> 0}"] Sum_any_right_distrib mult_when)
 qed
 
@@ -526,14 +526,13 @@ proof
       have "?lhs k = (\<Sum>(ab, c). (\<Sum>(a, b). f a * g b when ab = a + b) * h c when k = ab + c)"
         by (simp add: prod_fun_unfold_prod)
       also have "\<dots> = (\<Sum>(ab, c). (\<Sum>(a, b). f a * g b * h c when k = ab + c when ab = a + b))"
-        apply (subst Sum_any_left_distrib)
-        using fin_fg apply (simp add: split_def)
-        apply (subst Sum_any_when_independent [symmetric])
-        apply (simp add: when_when when_mult mult_when split_def conj_commute)
+        using fin_fg 
+        apply (simp add: Sum_any_left_distrib split_def flip: Sum_any_when_independent)
+        apply (simp add: when_when when_mult mult_when conj_commute)
         done
       also have "\<dots> = (\<Sum>(ab, c, a, b). f a * g b * h c when k = ab + c when ab = a + b)"
         apply (subst Sum_any.cartesian_product2 [of "(?FG' \<times> ?H) \<times> ?FG"])
-        apply (auto simp add: finite_cartesian_product_iff fin_fg fin_fg' fin_h dest: mult_not_zero)
+        apply (auto simp: finite_cartesian_product_iff fin_fg fin_fg' fin_h dest: mult_not_zero)
         done
       also have "\<dots> = (\<Sum>(ab, c, a, b). f a * g b * h c when k = a + b + c when ab = a + b)"
         by (rule Sum_any.cong) (simp add: split_def when_def)
@@ -558,7 +557,7 @@ proof
       qed
       also have "\<dots> = (\<Sum>(a, bc). (\<Sum>(b, c). f a * g b * h c when bc = b + c when k = a + bc))"
         apply (subst Sum_any.cartesian_product2 [of "(?F \<times> ?GH') \<times> ?GH"])
-        apply (auto simp add: finite_cartesian_product_iff fin_f fin_gh fin_gh' ac_simps dest: mult_not_zero)
+        apply (auto simp: finite_cartesian_product_iff fin_f fin_gh fin_gh' ac_simps dest: mult_not_zero)
         done
       also have "\<dots> = (\<Sum>(a, bc). f a * (\<Sum>(b, c). g b * h c when bc = b + c) when k = a + bc)"
         apply (subst Sum_any_right_distrib)
@@ -580,10 +579,8 @@ proof
     assume fin_h: "finite {k. h k \<noteq> 0}"
     show "prod_fun (\<lambda>k. f k + g k) h = (\<lambda>k. prod_fun f h k + prod_fun g h k)"
       apply (rule ext)
-      apply (auto simp add: prod_fun_def algebra_simps)
-      apply (subst Sum_any.distrib)
-      using fin_f fin_g apply (auto intro: finite_mult_not_eq_zero_rightI)
-      done
+      apply (simp add: prod_fun_def algebra_simps)
+      by (simp add: Sum_any.distrib fin_f fin_g finite_mult_not_eq_zero_rightI)
   qed
   show "a * (b + c) = a * b + a * c"
   proof transfer
@@ -593,15 +590,8 @@ proof
     assume fin_h: "finite {k. h k \<noteq> 0}"
     show "prod_fun f (\<lambda>k. g k + h k) = (\<lambda>k. prod_fun f g k + prod_fun f h k)"
       apply (rule ext)
-      apply (auto simp add: prod_fun_def Sum_any.distrib algebra_simps when_add_distrib)
-      apply (subst Sum_any.distrib)
-      apply (simp_all add: algebra_simps)
-      apply (auto intro: fin_g fin_h)
-      apply (subst Sum_any.distrib)
-      apply (simp_all add: algebra_simps)
-      using fin_f apply (rule finite_mult_not_eq_zero_rightI)
-      using fin_f apply (rule finite_mult_not_eq_zero_rightI)
-      done
+      apply (auto simp: prod_fun_def Sum_any.distrib algebra_simps when_add_distrib fin_g fin_h)
+      by (simp add: Sum_any.distrib fin_f finite_mult_not_eq_zero_rightI)
   qed
   show "0 * a = 0"
     by transfer (simp add: prod_fun_def [abs_def])
@@ -632,16 +622,10 @@ proof
         using fin_g by auto
       from fin_f fin_g have "finite {(a, b). f a \<noteq> 0 \<and> g b \<noteq> 0}" (is "finite ?AB")
         by simp
-      show "prod_fun f g k = prod_fun g f k"
-        apply (simp add: prod_fun_def)
-        apply (subst Sum_any_right_distrib)
-        apply (rule fin2)
-        apply (subst Sum_any_right_distrib)
-         apply (rule fin1)
-        apply (subst Sum_any.swap [of ?AB])
-        apply (fact \<open>finite ?AB\<close>)
-        apply (auto simp add: mult_when ac_simps)
-        done
+      have "(\<Sum>a. \<Sum>n. f a * (g n when k = a + n)) = (\<Sum>a. \<Sum>n. g a * (f n when k = a + n))"
+        by (subst Sum_any.swap [OF \<open>finite ?AB\<close>]) (auto simp: mult_when ac_simps)
+      then show "prod_fun f g k = prod_fun g f k"
+        by (simp add: prod_fun_def Sum_any_right_distrib [OF fin2] Sum_any_right_distrib [OF fin1])
     qed
   qed
   show "(a + b) * c = a * c + b * c"
@@ -651,12 +635,8 @@ proof
     assume fin_g: "finite {k. g k \<noteq> 0}"
     assume fin_h: "finite {k. h k \<noteq> 0}"
     show "prod_fun (\<lambda>k. f k + g k) h = (\<lambda>k. prod_fun f h k + prod_fun g h k)"
-      apply (auto simp add: prod_fun_def fun_eq_iff algebra_simps)
-      apply (subst Sum_any.distrib)
-      using fin_f apply (rule finite_mult_not_eq_zero_rightI)
-      using fin_g apply (rule finite_mult_not_eq_zero_rightI)
-      apply simp_all
-      done
+      by (auto simp: prod_fun_def fun_eq_iff algebra_simps 
+            Sum_any.distrib fin_f fin_g finite_mult_not_eq_zero_rightI)
   qed
 qed
 
@@ -720,7 +700,7 @@ qed
 
 lemma lookup_single:
   "lookup (single k v) k' = (v when k = k')"
-  by transfer rule
+  by (simp add: single.rep_eq)
 
 lemma lookup_single_eq [simp]:
   "lookup (single k v) k = v"
@@ -810,11 +790,7 @@ lemma single_of_int [simp]:
 
 lemma lookup_of_int:
   "lookup (of_int l) k = (of_int l when k = 0)"
-proof -
-  have "lookup (of_int l) k = lookup (single 0 (of_int l)) k"
-    by simp
-  then show ?thesis unfolding lookup_single by simp
-qed
+  by (metis lookup_single_not_eq single.rep_eq single_of_int)
 
 
 subsection \<open>Integral domains\<close>
@@ -841,10 +817,10 @@ proof
       by simp
     assume "f \<noteq> (\<lambda>a. 0)"
     then obtain a where "f a \<noteq> 0"
-      by (auto simp add: fun_eq_iff)
+      by (auto simp: fun_eq_iff)
     assume "g \<noteq> (\<lambda>b. 0)"
     then obtain b where "g b \<noteq> 0"
-      by (auto simp add: fun_eq_iff)
+      by (auto simp: fun_eq_iff)
     from \<open>f a \<noteq> 0\<close> and \<open>g b \<noteq> 0\<close> have "F \<noteq> {}" and "G \<noteq> {}"
       by auto
     note Max_F = \<open>finite F\<close> \<open>F \<noteq> {}\<close>
@@ -860,7 +836,7 @@ proof
     define q where "q = Max F + Max G"
     have "(\<Sum>(a, b). f a * g b when q = a + b) =
       (\<Sum>(a, b). f a * g b when q = a + b when a \<in> F \<and> b \<in> G)"
-      by (rule Sum_any.cong) (auto simp add: split_def when_def q_def intro: ccontr)
+      by (rule Sum_any.cong) (auto simp: split_def when_def q_def intro: ccontr)
     also have "\<dots> =
       (\<Sum>(a, b). f a * g b when (Max F, Max G) = (a, b))"
     proof (rule Sum_any.cong)
@@ -873,7 +849,7 @@ proof
         by auto
       show "(case ab of (a, b) \<Rightarrow> f a * g b when q = a + b when a \<in> F \<and> b \<in> G) =
          (case ab of (a, b) \<Rightarrow> f a * g b when (Max F, Max G) = (a, b))"
-        by (auto simp add: split_def when_def q_def dest: add_strict_mono [of a "Max F" b "Max G"])
+        by (auto simp: split_def when_def q_def dest: add_strict_mono [of a "Max F" b "Max G"])
     qed
     also have "\<dots> = (\<Sum>ab. (case ab of (a, b) \<Rightarrow> f a * g b) when
       (Max F, Max G) = ab)"
@@ -883,7 +859,7 @@ proof
     finally have "prod_fun f g q \<noteq> 0"
       by (simp add: prod_fun_unfold_prod)
     then show "prod_fun f g \<noteq> (\<lambda>k. 0)"
-      by (auto simp add: fun_eq_iff)
+      by (auto simp: fun_eq_iff)
   qed
 qed
 
@@ -954,7 +930,7 @@ proof (intro_classes, transfer)
       by (blast intro: less_funI)
   }
   with * show "less_fun (\<lambda>k. h k + f k) (\<lambda>k. h k + g k) \<or> (\<lambda>k. h k + f k) = (\<lambda>k. h k + g k)"
-    by (auto simp add: fun_eq_iff)
+    by (auto simp: fun_eq_iff)
 qed
 
 instance poly_mapping :: (linorder, "{ordered_comm_monoid_add, ordered_ab_semigroup_add_imp_le, cancel_comm_monoid_add, linorder}") linordered_cancel_ab_semigroup_add
@@ -1036,7 +1012,7 @@ lemma keys_one [simp]:
 
 lemma range_one [simp]:
   "range 1 = {1}"
-  by transfer (auto simp add: when_def)
+  by transfer (auto simp: when_def)
 
 lemma keys_single [simp]:
   "keys (single k v) = (if v = 0 then {} else {k})"
@@ -1044,13 +1020,12 @@ lemma keys_single [simp]:
 
 lemma range_single [simp]:
   "range (single k v) = (if v = 0 then {} else {v})"
-  by transfer (auto simp add: when_def)
+  by transfer (auto simp: when_def)
 
 lemma keys_mult:
   "keys (f * g) \<subseteq> {a + b | a b. a \<in> keys f \<and> b \<in> keys g}"
   apply transfer
-  apply (auto simp add: prod_fun_def dest!: mult_not_zero elim!: Sum_any.not_neutral_obtains_not_neutral)
-  apply blast
+  apply (force simp: prod_fun_def dest!: mult_not_zero elim!: Sum_any.not_neutral_obtains_not_neutral)
   done
 
 lemma setsum_keys_plus_distrib:
@@ -1064,13 +1039,7 @@ lemma setsum_keys_plus_distrib:
 proof -
   let ?A = "Poly_Mapping.keys p \<union> Poly_Mapping.keys q"
   have "?lhs = (\<Sum>k\<in>?A. f k (Poly_Mapping.lookup p k + Poly_Mapping.lookup q k))"
-    apply(rule sum.mono_neutral_cong_left)
-       apply(simp_all add: Poly_Mapping.keys_add)
-     apply(transfer fixing: f)
-     apply(auto simp add: hom_0)[1]
-    apply(transfer fixing: f)
-    apply(auto simp add: hom_0)[1]
-    done
+    by(intro sum.mono_neutral_cong_left) (auto simp: sum.mono_neutral_cong_left hom_0 in_keys_iff lookup_add)
   also have "\<dots> = (\<Sum>k\<in>?A. f k (Poly_Mapping.lookup p k) + f k (Poly_Mapping.lookup q k))"
     by(rule sum.cong)(simp_all add: hom_plus)
   also have "\<dots> = (\<Sum>k\<in>?A. f k (Poly_Mapping.lookup p k)) + (\<Sum>k\<in>?A. f k (Poly_Mapping.lookup q k))"
@@ -1138,14 +1107,14 @@ lemma degree_greater_zero_in_keys:
   shows "degree f - 1 \<in> keys f"
 proof -
   from assms have "keys f \<noteq> {}"
-    by (auto simp add: degree_def)
+    by (auto simp: degree_def)
   then show ?thesis unfolding degree_def
     by (simp add: mono_Max_commute [symmetric] mono_Suc)
 qed
 
 lemma in_keys_less_degree:
   "n \<in> keys f \<Longrightarrow> n < degree f"
-unfolding degree_def by transfer (auto simp add: Max_gr_iff)
+unfolding degree_def by transfer (auto simp: Max_gr_iff)
 
 lemma beyond_degree_lookup_zero:
   "degree f \<le> n \<Longrightarrow> lookup f n = 0"
@@ -1307,7 +1276,7 @@ proof(transfer fixing: s)
   { fix x
     have "prod_fun (\<lambda>k'. s when 0 = k') p x =
           (\<Sum>l :: 'a. if l = 0 then s * (\<Sum>q. p q when x = q) else 0)"
-      by(auto simp add: prod_fun_def when_def intro: Sum_any.cong simp del: Sum_any.delta)
+      by(auto simp: prod_fun_def when_def intro: Sum_any.cong simp del: Sum_any.delta)
     also have "\<dots> = (\<lambda>k. s * p k when p k \<noteq> 0) x" by(simp add: when_def)
     also note calculation }
   then show "(\<lambda>k. s * p k when p k \<noteq> 0) = prod_fun (\<lambda>k'. s when 0 = k') p"
@@ -1316,10 +1285,10 @@ qed
 
 lemma map_single [simp]:
   "(c = 0 \<Longrightarrow> f 0 = 0) \<Longrightarrow> map f (single x c) = single x (f c)"
-by transfer(auto simp add: fun_eq_iff when_def)
+  by transfer(auto simp: fun_eq_iff when_def)
 
 lemma map_eq_zero_iff: "map f p = 0 \<longleftrightarrow> (\<forall>k \<in> keys p. f (lookup p k) = 0)"
-by transfer(auto simp add: fun_eq_iff when_def)
+  by transfer(auto simp: fun_eq_iff when_def)
 
 subsection \<open>Canonical dense representation of @{typ "nat \<Rightarrow>\<^sub>0 'a"}\<close>
 
@@ -1345,7 +1314,7 @@ lemma nth_singleton [simp]:
 proof (transfer, rule ext)
   fix n :: nat and v :: 'a
   show "nth_default 0 [v] n = (v when 0 = n)"
-    by (auto simp add: nth_default_def nth_append)
+    by (auto simp: nth_default_def nth_append)
 qed
 
 lemma nth_replicate [simp]:
@@ -1353,7 +1322,7 @@ lemma nth_replicate [simp]:
 proof (transfer, rule ext)
   fix m n :: nat and v :: 'a
   show "nth_default 0 (replicate n 0 @ [v]) m = (v when n = m)"
-    by (auto simp add: nth_default_def nth_append)
+    by (auto simp: nth_default_def nth_append)
 qed
 
 lemma nth_strip_while [simp]:
@@ -1379,16 +1348,16 @@ proof transfer
   { fix n
     assume "nth_default 0 xs n \<noteq> 0"
     then have "n < length xs" and "xs ! n \<noteq> 0"
-      by (auto simp add: nth_default_def split: if_splits)
+      by (auto simp: nth_default_def split: if_splits)
     then have "(n, xs ! n) \<in> {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}" (is "?x \<in> ?A")
-      by (auto simp add: in_set_conv_nth enumerate_eq_zip)
+      by (auto simp: in_set_conv_nth enumerate_eq_zip)
     then have "fst ?x \<in> fst ` ?A"
       by blast
     then have "n \<in> fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
       by simp
   }
   then show "{k. nth_default 0 xs k \<noteq> 0} = fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
-    by (auto simp add: in_enumerate_iff_nth_default_eq)
+    by (auto simp: in_enumerate_iff_nth_default_eq)
 qed
 
 lemma range_nth [simp]:
@@ -1409,16 +1378,16 @@ unfolding degree_def proof transfer
     with * obtain n where n: "n < length xs" "xs ! n \<noteq> 0"
       by (fastforce simp add: no_trailing_unfold last_conv_nth neq_Nil_conv)
     then have "?bound = Max (Suc ` {k. (k < length xs \<longrightarrow> xs ! k \<noteq> (0::'a)) \<and> k < length xs})"
-      by (subst Max_insert) (auto simp add: nth_default_def)
+      by (subst Max_insert) (auto simp: nth_default_def)
     also let ?A = "{k. k < length xs \<and> xs ! k \<noteq> 0}"
     have "{k. (k < length xs \<longrightarrow> xs ! k \<noteq> (0::'a)) \<and> k < length xs} = ?A" by auto
     also have "Max (Suc ` ?A) = Suc (Max ?A)" using n
-      by (subst mono_Max_commute [where f = Suc, symmetric]) (auto simp add: mono_Suc)
+      by (subst mono_Max_commute [where f = Suc, symmetric]) (auto simp: mono_Suc)
     also {
       have "Max ?A \<in> ?A" using n Max_in [of ?A] by fastforce
       hence "Suc (Max ?A) \<le> length xs" by simp
       moreover from * False have "length xs - 1 \<in> ?A"
-        by(auto simp add: no_trailing_unfold last_conv_nth)
+        by(auto simp: no_trailing_unfold last_conv_nth)
       hence "length xs - 1 \<le> Max ?A" using Max_ge[of ?A "length xs - 1"] by auto
       hence "length xs \<le> Suc (Max ?A)" by simp
       ultimately have "Suc (Max ?A) = length xs" by simp }
@@ -1433,7 +1402,7 @@ lemma nth_trailing_zeros [simp]:
 lemma nth_idem:
   "nth (List.map (lookup f) [0..<degree f]) = f"
   unfolding degree_def by transfer
-    (auto simp add: nth_default_def fun_eq_iff not_less)
+    (auto simp: nth_default_def fun_eq_iff not_less)
 
 lemma nth_idem_bound:
   assumes "degree f \<le> n"
@@ -1444,7 +1413,7 @@ proof -
   then have "[0..<n] = [0..<degree f] @ [degree f..<degree f + m]"
     by (simp add: upt_add_eq_append [of 0])
   moreover have "List.map (lookup f) [degree f..<degree f + m] = replicate m 0"
-    by (rule replicate_eqI) (auto simp add: beyond_degree_lookup_zero)
+    by (rule replicate_eqI) (auto simp: beyond_degree_lookup_zero)
   ultimately show ?thesis by (simp add: nth_idem)
 qed
 
@@ -1489,10 +1458,10 @@ proof -
   from assms have "sorted_list_of_set (set (List.map fst xs)) = List.map fst xs"
     unfolding sorted_list_of_set_sort_remdups by (simp add: distinct_remdups_id sort_key_id_if_sorted)
   moreover from assms have "keys (the_value xs) = fst ` set xs"
-    by transfer (auto simp add: image_def split: option.split dest: set_map_of_compr)
+    by transfer (auto simp: image_def split: option.split dest: set_map_of_compr)
   ultimately show ?thesis
     unfolding items_def using assms
-    by (auto simp add: lookup_the_value intro: map_idI)
+    by (auto simp: lookup_the_value intro: map_idI)
 qed
 
 lemma the_value_Nil [simp]:
@@ -1549,7 +1518,7 @@ proof transfer
   then have "f k + g (m k) = (\<Sum>k' \<in> ?keys. f k' + g (m k') when k' = k)"
     by (simp add: sum.delta when_def)
   also have "\<dots> < (\<Sum>k' \<in> ?keys. Suc (f k' + g (m k')))" using *
-    by (intro sum_strict_mono) (auto simp add: when_def)
+    by (intro sum_strict_mono) (auto simp: when_def)
   also have "\<dots> \<le> g 0 + \<dots>" by simp
   finally have "f k + g (m k) < \<dots>" .
   then show "f k + g (m k) < g 0 + (\<Sum>k | m k \<noteq> 0. Suc (f k + g (m k)))"
@@ -1599,7 +1568,7 @@ lemma poly_mapping_size_cong [fundef_cong]:
   "m = m' \<Longrightarrow> g 0 = g' 0 \<Longrightarrow> (\<And>k. k \<in> keys m' \<Longrightarrow> f k = f' k)
     \<Longrightarrow> (\<And>v. v \<in> range m' \<Longrightarrow> g v = g' v)
     \<Longrightarrow> poly_mapping_size f g m = poly_mapping_size f' g' m'"
-  by (auto simp add: poly_mapping_size_def intro!: sum.cong)
+  by (auto simp: poly_mapping_size_def intro!: sum.cong)
 
 instantiation poly_mapping :: (type, zero) size
 begin
@@ -1623,7 +1592,7 @@ lift_definition mapp ::
 lemma mapp_cong [fundef_cong]:
   "\<lbrakk> m = m'; \<And>k. k \<in> keys m' \<Longrightarrow> f k (lookup m' k) = f' k (lookup m' k) \<rbrakk>
   \<Longrightarrow> mapp f m = mapp f' m'"
-  by transfer (auto simp add: fun_eq_iff)
+  by transfer (auto simp: fun_eq_iff)
 
 lemma lookup_mapp:
   "lookup (mapp f p) k = (f k (lookup p k) when k \<in> keys p)"
@@ -1688,8 +1657,6 @@ lemma keys_cmul: "Poly_Mapping.keys(frag_cmul c a) \<subseteq> Poly_Mapping.keys
   
 
 lemma keys_cmul_iff [iff]: "i \<in> Poly_Mapping.keys (frag_cmul c x) \<longleftrightarrow> i \<in> Poly_Mapping.keys x \<and> c \<noteq> 0"
-  apply auto
-  apply (meson subsetD keys_cmul)
   by (metis in_keys_iff lookup_frag_cmul mult_eq_0_iff)
 
 lemma keys_minus [simp]: "Poly_Mapping.keys(-a) = Poly_Mapping.keys a"
@@ -1697,7 +1664,7 @@ lemma keys_minus [simp]: "Poly_Mapping.keys(-a) = Poly_Mapping.keys a"
 
 lemma keys_diff: 
   "Poly_Mapping.keys(a - b) \<subseteq> Poly_Mapping.keys a \<union> Poly_Mapping.keys b"
-  by (auto simp add: in_keys_iff lookup_minus)
+  by (auto simp: in_keys_iff lookup_minus)
 
 lemma keys_eq_empty [simp]: "Poly_Mapping.keys c = {} \<longleftrightarrow> c = 0"
   by (metis in_keys_iff keys_zero lookup_zero poly_mapping_eqI)
@@ -1769,10 +1736,11 @@ proof -
     by (auto simp: frag_extend_def Poly_Mapping.lookup_add frag_cmul_distrib)
   also have "... = (\<Sum>i \<in> Poly_Mapping.keys a \<union> Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup a i) (f i) 
                          + frag_cmul (poly_mapping.lookup b i) (f i))"
-    apply (rule sum.mono_neutral_cong_left)
-    using keys_add [of a b]
-     apply (auto simp add: in_keys_iff plus_poly_mapping.rep_eq frag_cmul_distrib [symmetric])
-    done
+  proof (rule sum.mono_neutral_cong_left)
+    show "\<forall>i\<in>keys a \<union> keys b - keys (a + b).
+       frag_cmul (lookup a i) (f i) + frag_cmul (lookup b i) (f i) = 0"
+      by (metis DiffD2 frag_cmul_distrib frag_cmul_zero in_keys_iff lookup_add)
+  qed (auto simp: keys_add)
   also have "... = (frag_extend f a) + (frag_extend f b)"
     by (auto simp: * sum.distrib frag_extend_def)
   finally show ?thesis .
@@ -1814,9 +1782,15 @@ lemma frag_closure_minus_cmul:
   shows "P(frag_cmul k c)"
 proof -
   have "P (frag_cmul (int n) c)" for n
-    apply (induction n)
-     apply (simp_all add: assms frag_cmul_distrib)
-    by (metis add.left_neutral add_diff_cancel_right' add_uminus_conv_diff P)
+  proof (induction n)
+    case 0
+    then show ?case
+      by (simp add: assms)
+  next
+    case (Suc n)
+    then show ?case
+      by (metis assms diff_0 diff_minus_eq_add frag_cmul_distrib frag_cmul_one of_nat_Suc)
+  qed
   then show ?thesis
     by (metis (no_types, opaque_lifting) add_diff_eq assms(2) diff_add_cancel frag_cmul_distrib int_diff_cases)
 qed
@@ -1840,14 +1814,11 @@ proof -
       by simp
     have Pfrag: "P (frag_cmul (poly_mapping.lookup c i) (frag_of i))"
       by (metis "0" diff frag_closure_minus_cmul insert.prems insert_subset sing subset_iff)
-    show ?case
-      apply (simp add: insert.hyps)
-      apply (subst ab)
-      using insert apply (blast intro: assms Pfrag)
-      done
+    with insert show ?case
+      by (metis (mono_tags, lifting) "0" ab diff insert_subset sum.insert)
   qed
   then show ?thesis
-    by (subst frag_expansion) (auto simp add: frag_extend_def)
+    by (subst frag_expansion) (auto simp: frag_extend_def)
 qed
 
 lemma frag_extend_compose:
