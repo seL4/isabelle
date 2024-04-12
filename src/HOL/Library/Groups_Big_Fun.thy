@@ -22,19 +22,14 @@ interpretation F: comm_monoid_set f "\<^bold>1"
 lemma expand_superset:
   assumes "finite A" and "{a. g a \<noteq> \<^bold>1} \<subseteq> A"
   shows "G g = F.F g A"
-  apply (simp add: expand_set)
-  apply (rule F.same_carrierI [of A])
-  apply (simp_all add: assms)
-  done
+  using F.mono_neutral_right assms expand_set by fastforce
 
 lemma conditionalize:
   assumes "finite A"
   shows "F.F g A = G (\<lambda>a. if a \<in> A then g a else \<^bold>1)"
   using assms
-  apply (simp add: expand_set)
-  apply (rule F.same_carrierI [of A])
-  apply auto
-  done
+  by (smt (verit, ccfv_threshold) Diff_iff F.mono_neutral_cong_right expand_set mem_Collect_eq subsetI)
+
 
 lemma neutral [simp]:
   "G (\<lambda>a. \<^bold>1) = \<^bold>1"
@@ -140,30 +135,13 @@ proof -
     by (auto simp add: finite_cartesian_product_iff)
   have *: "G (\<lambda>a. G (g a)) =
     (F.F (\<lambda>a. F.F (g a) {b. \<exists>a. g a b \<noteq> \<^bold>1}) {a. \<exists>b. g a b \<noteq> \<^bold>1})"
-    apply (subst expand_superset [of "?B"])
-    apply (rule \<open>finite ?B\<close>)
-    apply auto
-    apply (subst expand_superset [of "?A"])
-    apply (rule \<open>finite ?A\<close>)
-    apply auto
-    apply (erule F.not_neutral_contains_not_neutral)
-    apply auto
-    done
-  have "{p. (case p of (a, b) \<Rightarrow> g a b) \<noteq> \<^bold>1} \<subseteq> ?A \<times> ?B"
+    using \<open>finite ?A\<close> \<open>finite ?B\<close> expand_superset
+    by (smt (verit, del_insts) Collect_mono local.cong not_neutral_obtains_not_neutral)
+  have **: "{p. (case p of (a, b) \<Rightarrow> g a b) \<noteq> \<^bold>1} \<subseteq> ?A \<times> ?B"
     by auto
-  with subset have **: "{p. (case p of (a, b) \<Rightarrow> g a b) \<noteq> \<^bold>1} \<subseteq> C"
-    by blast
   show ?thesis
-    apply (simp add: *)
-    apply (simp add: F.cartesian_product)
-    apply (subst expand_superset [of C])
-    apply (rule \<open>finite C\<close>)
-    apply (simp_all add: **)
-    apply (rule F.same_carrierI [of C])
-    apply (rule \<open>finite C\<close>)
-    apply (simp_all add: subset)
-    apply auto
-    done
+    using \<open>finite C\<close> expand_superset
+    using "*" ** F.cartesian_product fin_prod by force
 qed
 
 lemma cartesian_product2:
@@ -231,37 +209,23 @@ lemma Sum_any_left_distrib:
   fixes r :: "'a :: semiring_0"
   assumes "finite {a. g a \<noteq> 0}"
   shows "Sum_any g * r = (\<Sum>n. g n * r)"
-proof -
-  note assms
-  moreover have "{a. g a * r \<noteq> 0} \<subseteq> {a. g a \<noteq> 0}" by auto
-  ultimately show ?thesis
-    by (simp add: sum_distrib_right Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
-qed  
+  by (metis (mono_tags, lifting) Collect_mono Sum_any.expand_superset assms mult_zero_left sum_distrib_right)
 
 lemma Sum_any_right_distrib:
   fixes r :: "'a :: semiring_0"
   assumes "finite {a. g a \<noteq> 0}"
   shows "r * Sum_any g = (\<Sum>n. r * g n)"
-proof -
-  note assms
-  moreover have "{a. r * g a \<noteq> 0} \<subseteq> {a. g a \<noteq> 0}" by auto
-  ultimately show ?thesis
-    by (simp add: sum_distrib_left Sum_any.expand_superset [of "{a. g a \<noteq> 0}"])
-qed
+  by (metis (mono_tags, lifting) Collect_mono Sum_any.expand_superset assms mult_zero_right sum_distrib_left)
 
 lemma Sum_any_product:
   fixes f g :: "'b \<Rightarrow> 'a::semiring_0"
   assumes "finite {a. f a \<noteq> 0}" and "finite {b. g b \<noteq> 0}"
   shows "Sum_any f * Sum_any g = (\<Sum>a. \<Sum>b. f a * g b)"
 proof -
-  have subset_f: "{a. (\<Sum>b. f a * g b) \<noteq> 0} \<subseteq> {a. f a \<noteq> 0}"
-    by rule (simp, rule, auto)
-  moreover have subset_g: "\<And>a. {b. f a * g b \<noteq> 0} \<subseteq> {b. g b \<noteq> 0}"
-    by rule (simp, rule, auto)
-  ultimately show ?thesis using assms
-    by (auto simp add: Sum_any.expand_set [of f] Sum_any.expand_set [of g]
-      Sum_any.expand_superset [of "{a. f a \<noteq> 0}"] Sum_any.expand_superset [of "{b. g b \<noteq> 0}"]
-      sum_product)
+  have "\<forall>a. (\<Sum>b. a * g b) = a * Sum_any g"
+    by (simp add: Sum_any_right_distrib assms(2))
+  then show ?thesis
+    by (simp add: Sum_any_left_distrib assms(1))
 qed
 
 lemma Sum_any_eq_zero_iff [simp]: 

@@ -36,11 +36,19 @@ lemma retract_of_path_connected:
   by (metis path_connected_continuous_image retract_of_def retraction)
 
 lemma retract_of_simply_connected:
-  "\<lbrakk>simply_connected T; S retract_of T\<rbrakk> \<Longrightarrow> simply_connected S"
-  apply (simp add: retract_of_def retraction_def Pi_iff, clarify)
-  apply (rule simply_connected_retraction_gen)
-       apply (force elim!: continuous_on_subset)+
-  done
+  assumes T: "simply_connected T" and "S retract_of T"
+  shows "simply_connected S"
+proof -
+  obtain r where r: "retraction T S r"
+    using assms by (metis retract_of_def) 
+  have "S \<subseteq> T"
+    by (meson \<open>retraction T S r\<close> retraction)
+  then have "(\<lambda>a. a) \<in> S \<rightarrow> T"
+    by blast
+  then show ?thesis
+    using simply_connected_retraction_gen [OF T]
+    by (metis (no_types) r retraction retraction_refl)
+qed
 
 lemma retract_of_homotopically_trivial:
   assumes ts: "T retract_of S"
@@ -56,10 +64,7 @@ proof -
   then obtain k where "Retracts S r T k"
     unfolding Retracts_def using continuous_on_id by blast
   then show ?thesis
-    apply (rule Retracts.homotopically_trivial_retraction_gen)
-    using assms
-    apply (force simp: hom)+
-    done
+    by (rule Retracts.homotopically_trivial_retraction_gen) (use assms hom in force)+
 qed
 
 lemma retract_of_homotopically_trivial_null:
@@ -74,9 +79,11 @@ proof -
   then obtain k where "Retracts S r T k"
     unfolding Retracts_def by fastforce
   then show ?thesis
-    apply (rule Retracts.homotopically_trivial_retraction_null_gen)
-    apply (rule TrueI refl assms that | assumption)+
-    done
+  proof (rule Retracts.homotopically_trivial_retraction_null_gen)
+    show "\<And>f. \<lbrakk>continuous_on U f; f \<in> U \<rightarrow> S\<rbrakk>
+         \<Longrightarrow> \<exists>c. homotopic_with_canon (\<lambda>a. True) U S f (\<lambda>x. c)"
+      using hom by blast
+  qed (use assms that in auto)
 qed
 
 lemma retraction_openin_vimage_iff:
@@ -101,13 +108,13 @@ lemma retract_of_locally_connected:
   assumes "locally connected T" "S retract_of T"
   shows "locally connected S"
   using assms
-  by (metis Abstract_Topology_2.retraction_openin_vimage_iff idempotent_imp_retraction locally_connected_quotient_image retract_ofE)
+  by (metis retraction_openin_vimage_iff idempotent_imp_retraction locally_connected_quotient_image retract_ofE)
 
 lemma retract_of_locally_path_connected:
   assumes "locally path_connected T" "S retract_of T"
   shows "locally path_connected S"
   using assms
-  by (metis Abstract_Topology_2.retraction_openin_vimage_iff idempotent_imp_retraction locally_path_connected_quotient_image retract_ofE)
+  by (metis retraction_openin_vimage_iff idempotent_imp_retraction locally_path_connected_quotient_image retract_ofE)
 
 text \<open>A few simple lemmas about deformation retracts\<close>
 
@@ -137,15 +144,16 @@ proof
   then show ?rhs
     by (auto simp: retract_of_def retraction_def)
 next
-  assume ?rhs
-  then show ?lhs
-    apply (clarsimp simp add: retract_of_def retraction_def)
-    apply (rule_tac x=r in exI, simp)
-     apply (rule homotopic_with_trans, assumption)
-     apply (rule_tac f = "r \<circ> f" and g="r \<circ> id" in homotopic_with_eq)
-        apply (rule_tac Y=S in homotopic_with_compose_continuous_left)
+  assume R: ?rhs
+  have "\<And>r f. \<lbrakk>T \<subseteq> S; continuous_on S r; homotopic_with_canon (\<lambda>x. True) S S id f;
+            f \<in> S \<rightarrow> T; r \<in> S \<rightarrow> T; \<forall>x\<in>T. r x = x\<rbrakk>
+           \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) S S f r"
+    apply (rule_tac f = "r \<circ> f" and g="r \<circ> id" in homotopic_with_eq)
+       apply (rule_tac Y=S in homotopic_with_compose_continuous_left)
          apply (auto simp: homotopic_with_sym Pi_iff)
     done
+  with R homotopic_with_trans show ?lhs
+    unfolding retract_of_def retraction_def by blast
 qed
 
 lemma deformation_retract_of_contractible_sing:
@@ -959,7 +967,7 @@ proof cases
       qed }
     with ks_f' eq \<open>a \<noteq> f' n\<close> \<open>n \<noteq> 0\<close> show ?thesis
       apply (intro ex1I[of _ "f' ` {.. n}"])
-      apply auto []
+       apply auto []
       apply metis
       done
   next
@@ -1523,7 +1531,7 @@ lemma kuhn_labelling_lemma':
              (\<forall>x i. P x \<and> Q i \<and> l x i = 1 \<longrightarrow> f x i \<le> x i)"
   unfolding all_conj_distrib [symmetric] 
   apply (subst choice_iff[symmetric])+
-  by (metis assms bot_nat_0.extremum nle_le zero_neq_one)
+  by (metis assms choice_iff bot_nat_0.extremum nle_le zero_neq_one)
 
 subsection \<open>Brouwer's fixed point theorem\<close>
 
@@ -1543,10 +1551,8 @@ proof (rule ccontr)
     by auto
   obtain d where
       d: "d > 0" "\<And>x. x \<in> cbox 0 One \<Longrightarrow> d \<le> norm (f x - x)"
-    apply (rule brouwer_compactness_lemma[OF compact_cbox _ *])
-    apply (rule continuous_intros assms)+
-    apply blast
-    done
+    using brouwer_compactness_lemma[OF compact_cbox _ *] assms
+    by (metis (no_types, lifting) continuous_on_cong continuous_on_diff continuous_on_id)
   have *: "\<forall>x. x \<in> cbox 0 One \<longrightarrow> f x \<in> cbox 0 One"
     "\<forall>x. x \<in> (cbox 0 One::'a set) \<longrightarrow> (\<forall>i\<in>Basis. True \<longrightarrow> 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
     using assms(2)[unfolded image_subset_iff Ball_def]
@@ -1581,8 +1587,7 @@ proof (rule ccontr)
       case False
       then show ?thesis
         using label [OF \<open>i \<in> Basis\<close>] i(1) x y
-        apply (auto simp: inner_diff_left le_Suc_eq)
-        by (metis "*")
+        by (smt (verit, ccfv_threshold) inner_diff_left less_one order_le_less)
     qed
     also have "\<dots> \<le> norm (f y - f x) + norm (y - x)"
       by (simp add: add_mono i(2) norm_bound_Basis_le)
@@ -1980,9 +1985,8 @@ proof (rule ccontr)
   then obtain a where "a \<in> S" "a \<notin> T" by blast
   define g where "g \<equiv> \<lambda>z. if z \<in> closure S then f z else z"
   have "continuous_on (closure S \<union> closure(-S)) g"
-    unfolding g_def
-    apply (rule continuous_on_cases)
-    using fros fid frontier_closures by (auto simp: contf)
+    unfolding g_def using fros fid frontier_closures
+    by (intro continuous_on_cases) (auto simp: contf)
   moreover have "closure S \<union> closure(- S) = UNIV"
     using closure_Un by fastforce
   ultimately have contg: "continuous_on UNIV g" by metis
@@ -2027,10 +2031,8 @@ lemma rel_frontier_deformation_retract_of_punctured_convex:
 proof -
   have "\<exists>d. 0 < d \<and> (a + d *\<^sub>R l) \<in> rel_frontier S \<and>
             (\<forall>e. 0 \<le> e \<and> e < d \<longrightarrow> (a + e *\<^sub>R l) \<in> rel_interior S)"
-       if "(a + l) \<in> affine hull S" "l \<noteq> 0" for l
-    apply (rule ray_to_rel_frontier [OF \<open>bounded S\<close> arelS])
-    apply (rule that)+
-    by metis
+    if "(a + l) \<in> affine hull S" "l \<noteq> 0" for l
+    using ray_to_rel_frontier [OF \<open>bounded S\<close> arelS] that by metis
   then obtain dd
     where dd1: "\<And>l. \<lbrakk>(a + l) \<in> affine hull S; l \<noteq> 0\<rbrakk> \<Longrightarrow> 0 < dd l \<and> (a + dd l *\<^sub>R l) \<in> rel_frontier S"
       and dd2: "\<And>l e. \<lbrakk>(a + l) \<in> affine hull S; e < dd l; 0 \<le> e; l \<noteq> 0\<rbrakk>
@@ -2071,11 +2073,11 @@ proof -
         then have "0 < dd x" and inS: "a + dd x *\<^sub>R x \<in> rel_frontier S"
           using dd1 by auto
         moreover have "a + dd x *\<^sub>R x \<in> open_segment a (a + k *\<^sub>R x)"
-          using k \<open>x \<noteq> 0\<close> \<open>0 < dd x\<close>
-          apply (simp add: in_segment)
-          apply (rule_tac x = "dd x / k" in exI)
-          apply (simp add: that vector_add_divide_simps algebra_simps)
-          done
+          unfolding in_segment
+        proof (intro conjI exI)
+          show "a + dd x *\<^sub>R x = (1 - dd x / k) *\<^sub>R a + (dd x / k) *\<^sub>R (a + k *\<^sub>R x)"
+            using k by (simp add: that algebra_simps)
+        qed (use \<open>x \<noteq> 0\<close> \<open>0 < dd x\<close> that in auto)
         ultimately show ?thesis
           using segsub by (auto simp: rel_frontier_def)
       qed
@@ -2094,47 +2096,45 @@ proof -
     by (blast intro: continuous_on_subset)
   show ?thesis
   proof
-    show "homotopic_with_canon (\<lambda>x. True) (T - {a}) (T - {a}) id (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+    show "homotopic_with_canon (\<lambda>x. True) (T - {a}) (T - {a}) id (\<lambda>x. a + dd (x-a) *\<^sub>R (x-a))"
     proof (rule homotopic_with_linear)
       show "continuous_on (T - {a}) id"
         by (intro continuous_intros continuous_on_compose)
-      show "continuous_on (T - {a}) (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+      show "continuous_on (T - {a}) (\<lambda>x. a + dd (x-a) *\<^sub>R (x-a))"
         using contdd by (simp add: o_def)
-      show "closed_segment (id x) (a + dd (x - a) *\<^sub>R (x - a)) \<subseteq> T - {a}"
+      show "closed_segment (id x) (a + dd (x-a) *\<^sub>R (x-a)) \<subseteq> T - {a}"
            if "x \<in> T - {a}" for x
       proof (clarsimp simp: in_segment, intro conjI)
         fix u::real assume u: "0 \<le> u" "u \<le> 1"
-        have "a + dd (x - a) *\<^sub>R (x - a) \<in> T"
+        have "a + dd (x-a) *\<^sub>R (x-a) \<in> T"
           by (metis DiffD1 DiffD2 add.commute add.right_neutral affS dd1 diff_add_cancel relS singletonI subsetCE that)
-        then show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<in> T"
+        then show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x-a) *\<^sub>R (x-a)) \<in> T"
           using convexD [OF \<open>convex T\<close>] that u by simp
-        have iff: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + d *\<^sub>R (x - a)) = a \<longleftrightarrow>
-                  (1 - u + u * d) *\<^sub>R (x - a) = 0" for d
+        have iff: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + d *\<^sub>R (x-a)) = a \<longleftrightarrow>
+                  (1 - u + u * d) *\<^sub>R (x-a) = 0" for d
           by (auto simp: algebra_simps)
         have "x \<in> T" "x \<noteq> a" using that by auto
-        then have axa: "a + (x - a) \<in> affine hull S"
+        then have axa: "a + (x-a) \<in> affine hull S"
            by (metis (no_types) add.commute affS diff_add_cancel rev_subsetD)
-        then have "\<not> dd (x - a) \<le> 0 \<and> a + dd (x - a) *\<^sub>R (x - a) \<in> rel_frontier S"
+        then have "\<not> dd (x-a) \<le> 0 \<and> a + dd (x-a) *\<^sub>R (x-a) \<in> rel_frontier S"
           using \<open>x \<noteq> a\<close> dd1 by fastforce
-        with \<open>x \<noteq> a\<close> show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<noteq> a"
+        with \<open>x \<noteq> a\<close> show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x-a) *\<^sub>R (x-a)) \<noteq> a"
           using less_eq_real_def mult_le_0_iff not_less u by (fastforce simp: iff)
       qed
     qed
-    show "retraction (T - {a}) (rel_frontier S) (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+    show "retraction (T - {a}) (rel_frontier S) (\<lambda>x. a + dd (x-a) *\<^sub>R (x-a))"
     proof (simp add: retraction_def, intro conjI ballI)
       show "rel_frontier S \<subseteq> T - {a}"
         using arelS relS rel_frontier_def by fastforce
-      show "continuous_on (T - {a}) (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+      show "continuous_on (T - {a}) (\<lambda>x. a + dd (x-a) *\<^sub>R (x-a))"
         using contdd by (simp add: o_def)
-      show "(\<lambda>x. a + dd (x - a) *\<^sub>R (x - a)) \<in> (T - {a}) \<rightarrow> rel_frontier S"
-        apply (auto simp: rel_frontier_def)
-        apply (metis Diff_subset add.commute affS dd1 diff_add_cancel eq_iff_diff_eq_0 rel_frontier_def subset_iff)
-        by (metis DiffE add.commute affS dd1 diff_add_cancel eq_iff_diff_eq_0 rel_frontier_def rev_subsetD)
-      show "a + dd (x - a) *\<^sub>R (x - a) = x" if x: "x \<in> rel_frontier S" for x
+      show "(\<lambda>x. a + dd (x-a) *\<^sub>R (x-a)) \<in> (T - {a}) \<rightarrow> rel_frontier S"
+        unfolding Pi_iff using affS dd1 subset_eq by force
+      show "a + dd (x-a) *\<^sub>R (x-a) = x" if x: "x \<in> rel_frontier S" for x
       proof -
         have "x \<noteq> a"
           using that arelS by (auto simp: rel_frontier_def)
-        have False if "dd (x - a) < 1"
+        have False if "dd (x-a) < 1"
         proof -
           have "x \<in> closure S"
             using x by (auto simp: rel_frontier_def)
@@ -2142,21 +2142,21 @@ proof -
             by (metis rel_interior_closure_convex_segment [OF \<open>convex S\<close> arelS])
           have  xaffS: "x \<in> affine hull S"
             using affS relS x by auto
-          then have "0 < dd (x - a)" and inS: "a + dd (x - a) *\<^sub>R (x - a) \<in> rel_frontier S"
+          then have "0 < dd (x-a)" and inS: "a + dd (x-a) *\<^sub>R (x-a) \<in> rel_frontier S"
             using dd1 by (auto simp: \<open>x \<noteq> a\<close>)
-          moreover have "a + dd (x - a) *\<^sub>R (x - a) \<in> open_segment a x"
-            using  \<open>x \<noteq> a\<close> \<open>0 < dd (x - a)\<close>
-            apply (simp add: in_segment)
-            apply (rule_tac x = "dd (x - a)" in exI)
-            apply (simp add: algebra_simps that)
-            done
+          moreover have "a + dd (x-a) *\<^sub>R (x-a) \<in> open_segment a x"
+            unfolding in_segment
+          proof (intro exI conjI)
+            show "a + dd (x-a) *\<^sub>R (x-a) = (1 - dd (x-a)) *\<^sub>R a + (dd (x-a)) *\<^sub>R x"
+              by (simp add: algebra_simps)
+          qed (use  \<open>x \<noteq> a\<close> \<open>0 < dd (x-a)\<close> that in auto)
           ultimately show ?thesis
             using segsub by (auto simp: rel_frontier_def)
         qed
-        moreover have False if "1 < dd (x - a)"
+        moreover have False if "1 < dd (x-a)"
           using x that dd2 [of "x - a" 1] \<open>x \<noteq> a\<close> closure_affine_hull
           by (auto simp: rel_frontier_def)
-        ultimately have "dd (x - a) = 1" \<comment> \<open>similar to another proof above\<close>
+        ultimately have "dd (x-a) = 1" \<comment> \<open>similar to another proof above\<close>
           by fastforce
         with that show ?thesis
           by (simp add: rel_frontier_def)
@@ -2211,13 +2211,13 @@ lemma connected_sphere_gen:
 subsubsection\<open>Borsuk-style characterization of separation\<close>
 
 lemma continuous_on_Borsuk_map:
-   "a \<notin> S \<Longrightarrow>  continuous_on S (\<lambda>x. inverse(norm (x - a)) *\<^sub>R (x - a))"
+   "a \<notin> S \<Longrightarrow>  continuous_on S (\<lambda>x. inverse(norm (x-a)) *\<^sub>R (x-a))"
 by (rule continuous_intros | force)+
 
 lemma Borsuk_map_into_sphere:
-   "(\<lambda>x. inverse(norm (x - a)) *\<^sub>R (x - a)) \<in> S \<rightarrow> sphere 0 1 \<longleftrightarrow> (a \<notin> S)"
+   "(\<lambda>x. inverse(norm (x-a)) *\<^sub>R (x-a)) \<in> S \<rightarrow> sphere 0 1 \<longleftrightarrow> (a \<notin> S)"
 proof -
-  have "\<And>x. \<lbrakk>a \<notin> S; x \<in> S\<rbrakk> \<Longrightarrow> inverse (norm (x - a)) * norm (x - a) = 1"
+  have "\<And>x. \<lbrakk>a \<notin> S; x \<in> S\<rbrakk> \<Longrightarrow> inverse (norm (x-a)) * norm (x-a) = 1"
     by (metis left_inverse norm_eq_zero right_minus_eq)
   then show ?thesis
     by force
@@ -2226,16 +2226,19 @@ qed
 lemma Borsuk_maps_homotopic_in_path_component:
   assumes "path_component (- S) a b"
     shows "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1)
-                   (\<lambda>x. inverse(norm(x - a)) *\<^sub>R (x - a))
+                   (\<lambda>x. inverse(norm(x-a)) *\<^sub>R (x-a))
                    (\<lambda>x. inverse(norm(x - b)) *\<^sub>R (x - b))"
 proof -
-  obtain g where "path g" "path_image g \<subseteq> -S" "pathstart g = a" "pathfinish g = b"
+  obtain g where g: "path g" "path_image g \<subseteq> -S" "pathstart g = a" "pathfinish g = b"
     using assms by (auto simp: path_component_def)
-  then show ?thesis
-    apply (simp add: path_def path_image_def pathstart_def pathfinish_def homotopic_with_def)
-    apply (rule_tac x = "\<lambda>z. inverse(norm(snd z - (g \<circ> fst)z)) *\<^sub>R (snd z - (g \<circ> fst)z)" in exI)
-    apply (rule conjI continuous_intros | erule continuous_on_subset | fastforce simp: divide_simps sphere_def)+
-    done
+  define h where "h \<equiv> \<lambda>z. (snd z - (g \<circ> fst) z) /\<^sub>R norm (snd z - (g \<circ> fst) z)"
+  have "continuous_on ({0..1} \<times> S) h"
+    unfolding h_def using g by (intro continuous_intros) (auto simp: path_defs)
+  moreover
+  have "h ` ({0..1} \<times> S) \<subseteq> sphere 0 1"
+    unfolding h_def using g  by (auto simp: divide_simps path_defs)
+  ultimately show ?thesis
+    using g by (auto simp: h_def path_defs homotopic_with_def)
 qed
 
 lemma non_extensible_Borsuk_map:
@@ -2243,7 +2246,7 @@ lemma non_extensible_Borsuk_map:
   assumes "compact S" and cin: "C \<in> components(- S)" and boc: "bounded C" and "a \<in> C"
     shows "\<not> (\<exists>g. continuous_on (S \<union> C) g \<and>
                   g \<in> (S \<union> C) \<rightarrow> sphere 0 1 \<and>
-                  (\<forall>x \<in> S. g x = inverse(norm(x - a)) *\<^sub>R (x - a)))"
+                  (\<forall>x \<in> S. g x = inverse(norm(x-a)) *\<^sub>R (x-a)))"
 proof -
   have "closed S" using assms by (simp add: compact_imp_closed)
   have "C \<subseteq> -S"
@@ -2258,7 +2261,7 @@ proof -
   { fix g
     assume "continuous_on (S \<union> C) g"
             "g \<in> (S \<union> C) \<rightarrow> sphere 0 1"
-       and [simp]: "\<And>x. x \<in> S \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
+       and [simp]: "\<And>x. x \<in> S \<Longrightarrow> g x = (x-a) /\<^sub>R norm (x-a)"
     then have norm_g1[simp]: "\<And>x. x \<in> S \<union> C \<Longrightarrow> norm (g x) = 1"
       by force
     have cb_eq: "cball a r = (S \<union> connected_component_set (- S) a) \<union>
@@ -2269,12 +2272,12 @@ proof -
       using \<open>continuous_on (S \<union> C) g\<close> ceq
       by (intro continuous_intros) blast
     have cont2: "continuous_on (cball a r - connected_component_set (- S) a)
-            (\<lambda>x. a + r *\<^sub>R ((x - a) /\<^sub>R norm (x - a)))"
+            (\<lambda>x. a + r *\<^sub>R ((x-a) /\<^sub>R norm (x-a)))"
       by (rule continuous_intros | force simp: \<open>a \<notin> S\<close>)+
     have 1: "continuous_on (cball a r)
              (\<lambda>x. if connected_component (- S) a x
                   then a + r *\<^sub>R g x
-                  else a + r *\<^sub>R ((x - a) /\<^sub>R norm (x - a)))"
+                  else a + r *\<^sub>R ((x-a) /\<^sub>R norm (x-a)))"
       apply (subst cb_eq)
       apply (rule continuous_on_cases [OF _ _ cont1 cont2])
       using \<open>closed S\<close> ceq cin 
@@ -2285,7 +2288,7 @@ proof -
     have "retraction (cball a r) (sphere a r)
             (\<lambda>x. if x \<in> connected_component_set (- S) a
                  then a + r *\<^sub>R g x
-                 else a + r *\<^sub>R ((x - a) /\<^sub>R norm (x - a)))"
+                 else a + r *\<^sub>R ((x-a) /\<^sub>R norm (x-a)))"
       using  \<open>0 < r\<close> \<open>a \<notin> S\<close> \<open>a \<in> C\<close> r
       by (auto simp: norm_minus_commute retraction_def Pi_iff ceq dist_norm abs_if 
           mult_less_0_iff divide_simps 1 2)
@@ -2294,7 +2297,7 @@ proof -
              [OF \<open>0 < r\<close>, of a, unfolded retract_of_def, simplified, rule_format,
               of "\<lambda>x. if x \<in> connected_component_set (- S) a
                       then a + r *\<^sub>R g x
-                      else a + r *\<^sub>R inverse(norm(x - a)) *\<^sub>R (x - a)"]
+                      else a + r *\<^sub>R inverse(norm(x-a)) *\<^sub>R (x-a)"]
       by blast
   }
   then show ?thesis
@@ -2305,10 +2308,8 @@ subsubsection \<open>Proving surjectivity via Brouwer fixpoint theorem\<close>
 
 lemma brouwer_surjective:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
-  assumes "compact T"
-    and "convex T"
-    and "T \<noteq> {}"
-    and "continuous_on T f"
+  assumes T: "compact T" "convex T" "T \<noteq> {}"
+    and f: "continuous_on T f"
     and "\<And>x y. \<lbrakk>x\<in>S; y\<in>T\<rbrakk> \<Longrightarrow> x + (y - f y) \<in> T"
     and "x \<in> S"
   shows "\<exists>y\<in>T. f y = x"
@@ -2317,11 +2318,10 @@ proof -
     by (auto simp add: algebra_simps)
   show ?thesis
     unfolding *
-    apply (rule brouwer[OF assms(1-3), of "\<lambda>y. x + (y - f y)"])
-    apply (intro continuous_intros)
-    using assms
-    apply auto
-    done
+  proof (rule brouwer[OF T])
+    show "continuous_on T (\<lambda>y. x + (y - f y))"
+      by (intro continuous_intros f)
+  qed (use assms in auto)
 qed
 
 lemma brouwer_surjective_cball:
