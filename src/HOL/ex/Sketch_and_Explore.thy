@@ -6,7 +6,7 @@ chapter \<open>Experimental commands \<^text>\<open>sketch\<close> and \<^text>\
 
 theory Sketch_and_Explore
   imports Main \<comment> \<open>TODO: generalize existing sledgehammer functions to Pure\<close>
-  keywords "sketch" "explore" :: diag
+  keywords "sketch" "explore" "sketch_subgoals" :: diag
 begin
 
 ML \<open>
@@ -82,6 +82,27 @@ fun print_exploration ctxt method_text [clause] =
       :: map (print_isar_skeleton ctxt 2 "moreover have") clauses
       @ ["  ultimately show ?thesis", "    by" ^ method_text, "qed"];
 
+fun print_subgoal apply_line_opt (is_prems, is_for, is_sh) ctxt indent stmt =
+  let
+    val ((fixes, _, _), ctxt') = eigen_context_for_statement stmt ctxt;
+    val prefix = replicate_string indent " ";
+    val fixes_s =
+      if not is_for orelse null fixes then NONE
+      else SOME ("for " ^ space_implode " "
+        (map (fn (v, _) => Proof_Context.print_name ctxt' v) fixes));
+    val premises_s = if is_prems then SOME "premises prems" else NONE;
+    val sh_s = if is_sh then SOME "sledgehammer" else NONE;
+    val subgoal_s = map_filter I [SOME "subgoal", premises_s, fixes_s]
+      |> space_implode " ";
+    val using_s = if is_prems then SOME "using prems" else NONE;
+    val s = cat_lines (
+      [subgoal_s]
+      @ map_filter (Option.map (fn s => prefix ^ s)) [using_s, apply_line_opt, sh_s]
+      @ [prefix ^ "sorry"]);
+  in
+    s
+  end;
+
 fun coalesce_method_txt [] = ""
   | coalesce_method_txt [s] = s
   | coalesce_method_txt (s1 :: s2 :: ss) =
@@ -89,6 +110,9 @@ fun coalesce_method_txt [] = ""
         orelse s2 = ")" orelse s2 = "]" orelse s2= ":"
       then s1 ^ coalesce_method_txt (s2 :: ss)
       else s1 ^ " " ^ coalesce_method_txt (s2 :: ss);
+
+fun print_subgoals options apply_line_opt ctxt _ clauses =
+  separate "" (map (print_subgoal apply_line_opt options ctxt 2) clauses) @ ["done"];
 
 fun print_proof_text_from_state print (some_method_ref : ((Method.text * Position.range) * Token.T list) option) state =
   let
@@ -120,11 +144,30 @@ val sketch = print_proof_text_from_state print_sketch;
 
 fun explore method_ref = print_proof_text_from_state print_exploration (SOME method_ref);
 
+fun subgoals options method_ref =
+  let
+    val apply_line_opt = case method_ref of
+        NONE => NONE
+      | SOME (_, toks) => SOME ("apply " ^ coalesce_method_txt (map Token.unparse toks))
+    val succeed_method_ref = SOME ((Method.succeed_text, Position.no_range), [])
+  in
+    print_proof_text_from_state (print_subgoals options apply_line_opt) succeed_method_ref
+  end;
+
 fun sketch_cmd some_method_text =
   Toplevel.keep_proof (K () o sketch some_method_text o Toplevel.proof_of)
 
 fun explore_cmd method_text =
   Toplevel.keep_proof (K () o explore method_text o Toplevel.proof_of)
+
+fun subgoals_cmd (modes, method_ref) =
+  let
+    val is_prems = not (member (op =) modes "noprems")
+    val is_for = not (member (op =) modes "nofor")
+    val is_sh = member (op =) modes "sh"
+  in
+    Toplevel.keep_proof (K () o subgoals (is_prems, is_for, is_sh) method_ref o Toplevel.proof_of)
+  end
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sketch\<close>
@@ -135,6 +178,14 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>explore\<close>
     "explore proof obligations after method application as Isar proof text"
     (Scan.trace Method.parse >> explore_cmd);
+
+val opt_modes =
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) [];
+
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>sketch_subgoals\<close>
+    "sketch proof obligations as subgoals, applying a method and/or sledgehammer to each"
+    (opt_modes -- Scan.option (Scan.trace Method.parse) >> subgoals_cmd);
 \<close>
 
 end
