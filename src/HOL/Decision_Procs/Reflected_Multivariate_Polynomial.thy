@@ -893,12 +893,7 @@ lemma decrpoly_zero[simp]: "decrpoly p = 0\<^sub>p \<longleftrightarrow> p = 0\<
   by (induct p) auto
 
 lemma decrpoly_normh: "isnpolyh p n0 \<Longrightarrow> polybound0 p \<Longrightarrow> isnpolyh (decrpoly p) (n0 - 1)"
-  apply (induct p arbitrary: n0)
-         apply auto
-  apply atomize
-  apply (rename_tac nat a b, erule_tac x = "Suc nat" in allE)
-  apply auto
-  done
+  by (induct p arbitrary: n0) force+
 
 lemma head_polybound0: "isnpolyh p n0 \<Longrightarrow> polybound0 (head p)"
   by (induct p  arbitrary: n0 rule: head.induct) (auto intro: isnpolyh_polybound0)
@@ -1014,22 +1009,18 @@ lemma length_le_list_ex: "length xs \<le> n \<Longrightarrow> \<exists>ys. lengt
   by (rule exI[where x="replicate (n - length xs) z" for z]) simp
 
 lemma isnpolyh_Suc_const: "isnpolyh p (Suc n) \<Longrightarrow> isconstant p"
-  apply (cases p)
-         apply auto
-  apply (rename_tac nat a, case_tac "nat")
-   apply simp_all
-  done
+  by (simp add: isconstant_polybound0 isnpolyh_polybound0)
 
 lemma wf_bs_polyadd: "wf_bs bs p \<and> wf_bs bs q \<longrightarrow> wf_bs bs (p +\<^sub>p q)"
   by (induct p q rule: polyadd.induct) (auto simp add: Let_def wf_bs_def)
 
 lemma wf_bs_polyul: "wf_bs bs p \<Longrightarrow> wf_bs bs q \<Longrightarrow> wf_bs bs (p *\<^sub>p q)"
-  apply (induct p q arbitrary: bs rule: polymul.induct)
-                      apply (simp_all add: wf_bs_polyadd wf_bs_def)
-  apply clarsimp
-  apply (rule wf_bs_polyadd[unfolded wf_bs_def, rule_format])
-  apply auto
-  done
+proof (induct p q rule: polymul.induct)
+  case (4 c n p c' n' p')
+  then show ?case
+    apply (simp add: wf_bs_def)
+    by (metis Suc_eq_plus1 max.bounded_iff max_0L maxindex.simps(2) maxindex.simps(8) wf_bs_def wf_bs_polyadd)
+qed (simp_all add: wf_bs_def)
 
 lemma wf_bs_polyneg: "wf_bs bs p \<Longrightarrow> wf_bs bs (~\<^sub>p p)"
   by (induct p rule: polyneg.induct) (auto simp: wf_bs_def)
@@ -1100,11 +1091,7 @@ lemma polypoly_poly_polybound0:
   shows "polypoly bs p = [Ipoly bs p]"
   using assms
   unfolding polypoly_def
-  apply (cases p)
-         apply auto
-  apply (rename_tac nat a, case_tac nat)
-   apply auto
-  done
+  by (cases p; use gr0_conv_Suc in force)
 
 lemma head_isnpolyh: "isnpolyh p n0 \<Longrightarrow> isnpolyh (head p) n0"
   by (induct p rule: head.induct) auto
@@ -1291,12 +1278,11 @@ lemma degree_eq_degreen0: "degree p = degreen p 0"
 lemma degree_polyneg:
   assumes "isnpolyh p n"
   shows "degree (polyneg p) = degree p"
-  apply (induct p rule: polyneg.induct)
-  using assms
-         apply simp_all
-  apply (case_tac na)
-   apply auto
-  done
+proof (induct p rule: polyneg.induct)
+  case (2 c n p)
+  then show ?case
+  by simp (smt (verit) degree.elims degree.simps(1) poly.inject(8))
+qed auto
 
 lemma degree_polyadd:
   assumes np: "isnpolyh p n0"
@@ -1458,24 +1444,24 @@ lemma head_head[simp]: "isnpolyh p n0 \<Longrightarrow> head (head p) = head p"
 
 lemma polyadd_eq_const_degree:
   "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> polyadd p q = C c \<Longrightarrow> degree p = degree q"
-  using polyadd_eq_const_degreen degree_eq_degreen0 by simp
+  by (metis degree_eq_degreen0 polyadd_eq_const_degreen)
+
+lemma polyadd_head_aux:
+  assumes "isnpolyh p n0" "isnpolyh q n1"
+  shows "head (p +\<^sub>p q)
+           = (if degree p < degree q then head q 
+              else if degree p > degree q then head p else head (p +\<^sub>p q))"
+  using assms
+proof (induct p q rule: polyadd.induct)
+  case (4 c n p c' n' p')
+  then show ?case
+    by (auto simp add: degree_eq_degreen0 Let_def; metis head_nz)
+qed (auto simp: degree_eq_degreen0)
 
 lemma polyadd_head:
-  assumes np: "isnpolyh p n0"
-    and nq: "isnpolyh q n1"
-    and deg: "degree p \<noteq> degree q"
-  shows "head (p +\<^sub>p q) = (if degree p < degree q then head q else head p)"
-  using np nq deg
-  apply (induct p q arbitrary: n0 n1 rule: polyadd.induct)
-                      apply simp_all
-    apply (case_tac n', simp, simp)
-   apply (case_tac n, simp, simp)
-  apply (case_tac n, case_tac n', simp add: Let_def)
-    apply (auto simp add: polyadd_eq_const_degree)[2]
-    apply (metis head_nz)
-   apply (metis head_nz)
-  apply (metis degree.simps(9) gr0_conv_Suc head.simps(1) less_Suc0 not_less_eq)
-  done
+  assumes "isnpolyh p n0" and "isnpolyh q n1" and "degree p \<noteq> degree q"
+  shows "head (p +\<^sub>p q) = (if degree p < degree q then head q  else head p)"
+  by (meson assms nat_neq_iff polyadd_head_aux)
 
 lemma polymul_head_polyeq:
   assumes "SORT_CONSTRAINT('a::field_char_0)"
@@ -1503,22 +1489,12 @@ next
     case nn': 1
     then show ?thesis
       using norm "4.hyps"(2)[OF norm(1,6)] "4.hyps"(1)[OF norm(2,6)]
-      apply simp
-      apply (cases n)
-       apply simp
-      apply (cases n')
-       apply simp_all
-      done
+      by (simp add: head_eq_headn0)
   next
     case nn': 2
     then show ?thesis
       using norm "4.hyps"(6) [OF norm(5,3)] "4.hyps"(5)[OF norm(5,4)]
-      apply simp
-      apply (cases n')
-       apply simp
-      apply (cases n)
-       apply auto
-      done
+      by (simp add: head_eq_headn0)
   next
     case nn': 3
     from nn' polymul_normh[OF norm(5,4)]
@@ -1626,9 +1602,7 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
     case True
     with np show ?thesis
       apply (clarsimp simp: polydivide_aux.simps)
-      apply (rule exI[where x="0\<^sub>p"])
-      apply simp
-      done
+      by (metis polyadd_0(1) polymul_0(1) zero_normh)
   next
     case sz: False
     show ?thesis
@@ -1636,10 +1610,8 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
       case True
       then show ?thesis
         using ns ndp np polydivide_aux.simps
-        apply auto
-        apply (rule exI[where x="0\<^sub>p"])
-        apply simp
-        done
+        apply clarsimp
+        by (metis polyadd_0(2) polymul_0(1) polymul_1(2) zero_normh)
     next
       case dn': False
       then have dn: "degree s \<ge> n"
@@ -1896,11 +1868,7 @@ proof -
     (\<exists>nr. isnpolyh r nr) \<and> (\<exists>q n1. isnpolyh q n1 \<and> head p ^\<^sub>p k - 0 *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
     by blast
   with kr show ?thesis
-    apply -
-    apply (rule exI[where x="k"])
-    apply (rule exI[where x="r"])
-    apply simp
-    done
+    by auto
 qed
 
 
@@ -1936,11 +1904,7 @@ qed
 
 lemma isnonconstant_coefficients_length: "isnonconstant p \<Longrightarrow> length (coefficients p) > 1"
   unfolding isnonconstant_def
-  apply (cases p)
-  apply simp_all
-  apply (rename_tac nat a, case_tac nat)
-  apply auto
-  done
+  using isconstant.elims(3) by fastforce
 
 lemma isnonconstant_nonconstant:
   assumes "isnonconstant p"
@@ -1967,11 +1931,7 @@ next
 qed
 
 lemma pnormal_length: "p \<noteq> [] \<Longrightarrow> pnormal p \<longleftrightarrow> length (pnormalize p) = length p"
-  apply (induct p)
-   apply (simp_all add: pnormal_def)
-  apply (case_tac "p = []")
-   apply simp_all
-  done
+  by (induct p) (auto simp: pnormal_id)
 
 lemma degree_degree:
   assumes "isnonconstant p"
