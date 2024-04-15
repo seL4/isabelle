@@ -34,52 +34,40 @@ lemma norm_PX_0_False: "isnorm (PX (Pc 0) i Q) = False"
   by (cases i) auto
 
 lemma norm_Pinj: "isnorm (Pinj i Q) \<Longrightarrow> isnorm Q"
-  by (cases i) (simp add: norm_Pinj_0_False norm_PX_0_False, cases Q, auto)
+  using isnorm.elims(2) by fastforce
 
 lemma norm_PX2: "isnorm (PX P i Q) \<Longrightarrow> isnorm Q"
-  apply (cases i)
-   apply auto
-  apply (cases P)
-    apply auto
-  subgoal for \<dots> pol2 by (cases pol2) auto
-  done
+  using isnorm.elims(1) by auto
 
-lemma norm_PX1: "isnorm (PX P i Q) \<Longrightarrow> isnorm P"
-  apply (cases i)
-   apply auto
-  apply (cases P)
-    apply auto
-  subgoal for \<dots> pol2 by (cases pol2) auto
-  done
-
-lemma mkPinj_cn: "y \<noteq> 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mkPinj y Q)"
-  apply (auto simp add: mkPinj_def norm_Pinj_0_False split: pol.split)
-   apply (rename_tac nat a, case_tac nat, auto simp add: norm_Pinj_0_False)
-   apply (rename_tac pol a, case_tac pol, auto)
-  apply (case_tac y, auto)
-  done
-
-lemma norm_PXtrans:
-  assumes A: "isnorm (PX P x Q)"
-    and "isnorm Q2"
-  shows "isnorm (PX P x Q2)"
+lemma norm_PX1: assumes "isnorm (PX P i Q)" shows "isnorm P"
 proof (cases P)
-  case (PX p1 y p2)
-  with assms show ?thesis
-    apply (cases x)
-     apply auto
-    apply (cases p2)
-      apply auto
-    done
-next
+  case (Pc x1)
+  then show ?thesis
+    by auto 
+qed (use assms isnorm.elims(1) in auto)
+
+lemma mkPinj_cn:
+  assumes "y \<noteq> 0" and "isnorm Q" 
+  shows "isnorm (mkPinj y Q)"
+proof (cases Q)
   case Pc
   with assms show ?thesis
-    by (cases x) auto
+    by (simp add: mkPinj_def)
 next
   case Pinj
   with assms show ?thesis
-    by (cases x) auto
+    using isnorm.elims(2) isnorm.simps(5) mkPinj_def by fastforce
+next
+  case PX
+  with assms show ?thesis
+  using isnorm.elims(1) mkPinj_def by auto
 qed
+
+lemma norm_PXtrans:
+  assumes "isnorm (PX P x Q)" and "isnorm Q2"
+  shows "isnorm (PX P x Q2)"
+  using assms isnorm.elims(3) by fastforce
+
 
 lemma norm_PXtrans2:
   assumes "isnorm (PX P x Q)"
@@ -88,11 +76,7 @@ lemma norm_PXtrans2:
 proof (cases P)
   case (PX p1 y p2)
   with assms show ?thesis
-    apply (cases x)
-     apply auto
-    apply (cases p2)
-      apply auto
-    done
+  using isnorm.elims(2) by fastforce
 next
   case Pc
   with assms show ?thesis
@@ -103,7 +87,7 @@ next
     by (cases x) auto
 qed
 
-text \<open>\<open>mkPX\<close> conserves normalizedness (\<open>_cn\<close>)\<close>
+text \<open>\<open>mkPX\<close> preserves the normal property (\<open>_cn\<close>)\<close>
 lemma mkPX_cn:
   assumes "x \<noteq> 0"
     and "isnorm P"
@@ -124,14 +108,23 @@ next
   from assms PX have "isnorm P1" "isnorm P2"
     by (auto simp add: norm_PX1[of P1 y P2] norm_PX2[of P1 y P2])
   from assms PX Y0 show ?thesis
-    apply (cases x)
-     apply (auto simp add: mkPX_def norm_PXtrans2[of P1 y _ Q _])
-    apply (cases P2)
-      apply auto
-    done
+  proof (cases P2)
+    case (Pc x1)
+    then show ?thesis
+      using assms gr0_conv_Suc PX by (auto simp add: mkPX_def norm_PXtrans2)
+  next
+    case (Pinj x21 x22)
+    with assms gr0_conv_Suc PX show ?thesis
+      by (auto simp: mkPX_def)
+  next
+    case (PX x31 x32 x33)
+    with assms gr0_conv_Suc \<open>P = PX P1 y P2\<close>
+    show ?thesis
+      using assms PX by (auto simp add: mkPX_def norm_PXtrans2)
+  qed
 qed
 
-text \<open>\<open>add\<close> conserves normalizedness\<close>
+text \<open>\<open>add\<close> preserves the normal property\<close>
 lemma add_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<langle>+\<rangle> Q)"
 proof (induct P Q rule: add.induct)
   case 1
@@ -139,41 +132,23 @@ proof (induct P Q rule: add.induct)
 next
   case (2 c i P2)
   then show ?case
-    apply (cases P2)
-      apply simp_all
-    apply (cases i)
-     apply simp_all
-    done
+    using isnorm.elims(2) by fastforce
 next
   case (3 i P2 c)
   then show ?case
-    apply (cases P2)
-      apply simp_all
-    apply (cases i)
-     apply simp_all
-    done
+    using isnorm.elims(2) by fastforce
 next
   case (4 c P2 i Q2)
   then have "isnorm P2" "isnorm Q2"
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 4 show ?case
-    apply (cases i)
-     apply simp
-    apply (cases P2)
-      apply auto
-    subgoal for \<dots> pol2 by (cases pol2) auto
-    done
+    using isnorm.elims(2) by fastforce
 next
   case (5 P2 i Q2 c)
   then have "isnorm P2" "isnorm Q2"
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 5 show ?case
-    apply (cases i)
-     apply simp
-    apply (cases P2)
-      apply auto
-    subgoal for \<dots> pol2 by (cases pol2) auto
-    done
+    using isnorm.elims(2) by fastforce
 next
   case (6 x P2 y Q2)
   then have Y0: "y > 0"
@@ -336,39 +311,19 @@ proof (induct P Q rule: mul.induct)
 next
   case (2 c i P2)
   then show ?case
-    apply (cases P2)
-      apply simp_all
-    apply (cases i)
-     apply (simp_all add: mkPinj_cn)
-    done
+    by (metis mkPinj_cn mul.simps(2) norm_Pinj norm_Pinj_0_False)
 next
   case (3 i P2 c)
   then show ?case
-    apply (cases P2)
-      apply simp_all
-    apply (cases i)
-     apply (simp_all add: mkPinj_cn)
-    done
+    by (metis mkPinj_cn mul.simps(3) norm_Pinj norm_Pinj_0_False)
 next
   case (4 c P2 i Q2)
-  then have "isnorm P2" "isnorm Q2"
-    by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
-  with 4 show ?case
-    apply (cases "c = 0")
-     apply simp_all
-    apply (cases "i = 0")
-     apply (simp_all add: mkPX_cn)
-    done
+  then show ?case
+    by (metis isnorm.simps(6) mkPX_cn mul.simps(4) norm_PX1 norm_PX2)
 next
   case (5 P2 i Q2 c)
-  then have "isnorm P2" "isnorm Q2"
-    by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
-  with 5 show ?case
-    apply (cases "c = 0")
-     apply simp_all
-    apply (cases "i = 0")
-     apply (simp_all add: mkPX_cn)
-    done
+  then show ?case
+    by (metis isnorm.simps(6) mkPX_cn mul.simps(5) norm_PX1 norm_PX2)
 next
   case (6 x P2 y Q2)
   consider "x < y" | "x = y" | "x > y" by arith
@@ -382,11 +337,8 @@ next
     from 6 have **: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     from 6 xy y have "isnorm (Pinj d Q2)"
-      apply (cases d)
-       apply simp
-      apply (cases Q2)
-        apply auto
-      done
+      apply simp
+      by (smt (verit, ccfv_SIG) "**"(2) Suc_pred isnorm.elims(1) isnorm.simps(2) isnorm.simps(3) isnorm.simps(5))
     with 6 * ** y show ?thesis
       by (simp add: mkPinj_cn)
   next
@@ -405,12 +357,9 @@ next
       by (cases y) (auto simp add: norm_Pinj_0_False)
     from 6 have **: "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
-    from 6 xy x have "isnorm (Pinj d P2)"
-      apply (cases d)
+    with 6 xy x have "isnorm (Pinj d P2)"
       apply simp
-      apply (cases P2)
-      apply auto
-      done
+      by (smt (verit, ccfv_SIG) Suc_pred isnorm.elims(1) isnorm.simps(2) isnorm.simps(3) isnorm.simps(5))
     with 6 xy * ** x show ?thesis
       by (simp add: mkPinj_cn)
   qed
@@ -493,7 +442,7 @@ next
     by (simp add: add_cn)
 qed
 
-text \<open>neg conserves normalizedness\<close>
+text \<open>neg preserves the normal property\<close>
 lemma neg_cn: "isnorm P \<Longrightarrow> isnorm (neg P)"
 proof (induct P)
   case Pc
@@ -520,7 +469,7 @@ next
   qed (cases x, auto)
 qed
 
-text \<open>sub conserves normalizedness\<close>
+text \<open>sub preserves the normal property\<close>
 lemma sub_cn: "isnorm p \<Longrightarrow> isnorm q \<Longrightarrow> isnorm (p \<langle>-\<rangle> q)"
   by (simp add: sub_def add_cn neg_cn)
 
@@ -532,11 +481,7 @@ proof (induct P)
 next
   case (Pinj i Q)
   then show ?case
-    apply (cases Q)
-      apply (auto simp add: mkPX_cn mkPinj_cn)
-    apply (cases i)
-     apply (auto simp add: mkPX_cn mkPinj_cn)
-    done
+    by (metis Commutative_Ring.sqr.simps(2) mkPinj_cn norm_Pinj norm_Pinj_0_False)
 next
   case (PX P1 x P2)
   then have "x + x \<noteq> 0" "isnorm P2" "isnorm P1"
@@ -548,7 +493,7 @@ next
     by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
 qed
 
-text \<open>\<open>pow\<close> conserves normalizedness\<close>
+text \<open>\<open>pow\<close> preserves the normal property\<close>
 lemma pow_cn: "isnorm P \<Longrightarrow> isnorm (pow n P)"
 proof (induct n arbitrary: P rule: less_induct)
   case (less k)
