@@ -179,12 +179,7 @@ object Web_App {
   /* request parameters as structured data */
 
   object Params {
-    def key(elems: (String | Int)*): Key =
-      Key(
-        elems.toList.map {
-          case s: String => Key.elem(s)
-          case i: Int => Key.elem(i)
-        })
+    def key(s: String): Key = Key(List(Key.elem(s)))
 
     object Key {
       sealed trait Elem { def print: String }
@@ -213,21 +208,25 @@ object Web_App {
         override def toString: String = print
       }
 
-      def elem(s: String): Nested_Elem =
-        if (!s.forall(Symbol.is_ascii_letter)) error("Illegal element in: " + quote(s))
-        else new Nested_Elem(s)
+      def elem(s: String): Elem =
+        if (s.contains('/')) error("Illegal separator in " + quote(s))
+        else {
+          for {
+            c <- s
+            if Symbol.is_ascii_blank(c)
+          } error("Illegal blank character " + c.toInt + " in " + quote(s))
+          s match {
+            case Value.Int(i) => new List_Elem(i)
+            case s => new Nested_Elem(s)
+          }
+        }
 
-      def elem(i: Int): List_Elem =
-        if (i < 0) error("Illegal list element") else new List_Elem(i)
+      def elem(i: Int): List_Elem = if (i < 0) error("Illegal list element") else new List_Elem(i)
 
-      def empty: Key = Key(Nil)
-      def apply(s: String): Key = new Key(List(elem(s)))
-      def explode(s: String): Key =
-        new Key(
-          space_explode('_', s).map {
-            case Value.Int(i) => elem(i)
-            case s => elem(s)
-          })
+      def is_blank(es: List[Elem]): Boolean = es.length <= 1 && es.forall(_.print.isBlank)
+      def apply(es: List[Elem]): Key = if (is_blank(es)) error("Empty key") else new Key(es)
+
+      def explode(s: String): Key = Key(space_explode('/', s).map(elem))
 
 
       /* ordering */
@@ -237,7 +236,7 @@ object Web_App {
       }
     }
 
-    case class Key(rep: List[Key.Elem]) {
+    class Key(private val rep: List[Key.Elem]) {
       def +(elem: Key.Elem): Key = Key(rep :+ elem)
       def +(i: Int): Key = this + Key.elem(i)
       def +(s: String): Key = this + Key.elem(s)
@@ -250,10 +249,22 @@ object Web_App {
         }
 
       def get(key: Key): Option[Key] =
-        if (rep.startsWith(key.rep)) Some(Key(rep.drop(key.rep.length))) else None
+        if (!rep.startsWith(key.rep)) None
+        else {
+          val rest = rep.drop(key.rep.length)
+          if (Key.is_blank(rest)) None
+          else Some(Key(rest))
+        }
 
-      def print = rep.map(_.print).mkString("_")
+      def print = rep.map(_.print).mkString("/")
+
       override def toString: String = print
+      override def equals(that: Any): Boolean =
+        that match {
+          case other: Key => rep == other.rep
+          case _ => false
+        }
+      override def hashCode(): Int = rep.hashCode()
     }
 
     def indexed[A, B](key: Key, xs: List[A], f: (Key, A) => B): List[B] =
