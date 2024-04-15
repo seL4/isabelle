@@ -73,10 +73,7 @@ next
 qed
 
 lemma rdvd_minus: "(real_of_int (d::int) rdvd t) = (real_of_int d rdvd -t)"
-  apply (auto simp add: rdvd_def)
-  apply (rule_tac x="-k" in exI, simp)
-  apply (rule_tac x="-k" in exI, simp)
-  done
+  by (metis equation_minus_iff mult_minus_right of_int_minus rdvd_def)
 
 lemma rdvd_left_0_eq: "(0 rdvd t) = (t=0)"
   by (auto simp add: rdvd_def)
@@ -459,24 +456,18 @@ lemma evaldjf_ex: "Ifm bs (evaldjf f ps) = (\<exists> p \<in> set ps. Ifm bs (f 
   by (induct ps) (simp_all add: evaldjf_def djf_Or)
 
 lemma evaldjf_bound0:
-  assumes nb: "\<forall> x\<in> set xs. bound0 (f x)"
+  assumes "\<forall>x \<in> set xs. bound0 (f x)"
   shows "bound0 (evaldjf f xs)"
-  using nb
-  apply (induct xs)
-  apply (auto simp add: evaldjf_def djf_def Let_def)
-  apply (case_tac "f a")
-  apply auto
-  done
+  using assms
+  by (induct xs) (auto simp add: evaldjf_def djf_def Let_def split: fm.split)
+
 
 lemma evaldjf_qf:
-  assumes nb: "\<forall> x\<in> set xs. qfree (f x)"
+  assumes "\<forall>x \<in> set xs. qfree (f x)"
   shows "qfree (evaldjf f xs)"
-  using nb
-  apply (induct xs)
-  apply (auto simp add: evaldjf_def djf_def Let_def)
-  apply (case_tac "f a")
-  apply auto
-  done
+  using assms
+  by (induct xs) (auto simp add: evaldjf_def djf_def Let_def split: fm.split)
+
 
 fun disjuncts :: "fm \<Rightarrow> fm list"
 where
@@ -1750,7 +1741,9 @@ proof(induct p rule: zlfm.induct)
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Lt a))"
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Lt a) = (real_of_int (?c * i) + (?N ?r) < 0)" using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (?I (?l (Lt a)))" apply (simp only: split_int_less_real'[where a="?c*i" and b="?N ?r"]) by (simp add: Ia cp cnz Let_def split_def)
+    also have "\<dots> = (?I (?l (Lt a)))"
+      unfolding split_int_less_real'[where a="?c*i" and b="?N ?r"]
+      by (simp add: Ia cp cnz Let_def split_def)
     finally have ?case using l by simp}
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Lt a))"
@@ -2761,28 +2754,27 @@ lemma \<beta>_int: assumes lp: "iszlfm p bs"
   shows "\<forall> b\<in> set (\<beta> p). isint b bs"
 using lp by (induct p rule: iszlfm.induct) (auto simp add: isint_neg isint_sub)
 
-lemma cpmi_eq: "0 < D \<Longrightarrow> (\<exists>z::int. \<forall>x. x < z \<longrightarrow> (P x = P1 x))
-\<Longrightarrow> \<forall>x. \<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P(b+j)) \<longrightarrow> P (x) \<longrightarrow> P (x - D)
-\<Longrightarrow> (\<forall>(x::int). \<forall>(k::int). ((P1 x)= (P1 (x-k*D))))
-\<Longrightarrow> (\<exists>(x::int). P(x)) = ((\<exists>(j::int) \<in> {1..D} . (P1(j))) | (\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P (b+j)))"
-apply(rule iffI)
-prefer 2
-apply(drule minusinfinity)
-apply assumption+
-apply(fastforce)
-apply clarsimp
-apply(subgoal_tac "\<And>k. 0<=k \<Longrightarrow> \<forall>x. P x \<longrightarrow> P (x - k*D)")
-apply(frule_tac x = x and z=z in decr_lemma)
-apply(subgoal_tac "P1(x - (\<bar>x - z\<bar> + 1) * D)")
-prefer 2
-apply(subgoal_tac "0 <= (\<bar>x - z\<bar> + 1)")
-prefer 2 apply arith
- apply fastforce
-apply(drule (1)  periodic_finite_ex)
-apply blast
-apply(blast dest:decr_mult_lemma)
-done
-
+lemma cpmi_eq:
+  assumes "0 < D"
+      and "\<exists>z::int. \<forall>x<z. P x = P1 x"
+      and "\<forall>x. \<not> (\<exists>j\<in>{1..D}. \<exists>b\<in>B. P (b + j)) \<longrightarrow> P x \<longrightarrow> P (x - D)"
+      and "\<forall>x k. P1 x = P1 (x - k * D)"
+    shows "(\<exists>x. P x) \<longleftrightarrow> ((\<exists>j\<in>{1..D}. P1 j) \<or> (\<exists>j\<in>{1..D}. \<exists>b\<in>B. P (b + j)))" (is "_=?R")
+proof
+  assume L: "\<exists>x. P x"
+  show "(\<exists>j\<in>{1..D}. P1 j) \<or> (\<exists>j\<in>{1..D}. \<exists>b\<in>B. P (b + j))"
+  proof clarsimp
+    assume \<section>: "\<forall>j\<in>{1..D}. \<forall>b\<in>B. \<not> P (b + j)"
+    then have "\<And>k. 0\<le>k \<Longrightarrow> \<forall>x. P x \<longrightarrow> P (x - k*D)"
+      by (simp add: assms decr_mult_lemma)
+    with L \<section> assms show "\<exists>j\<in>{1..D}. P1 j"
+      using periodic_finite_ex [OF \<open>D>0\<close>, of P1]
+      by (metis abs_1 abs_add_abs abs_ge_zero decr_lemma)
+  qed
+next
+  assume ?R then show "\<exists>x. P x"
+    using decr_lemma assms by blast
+qed
 
 theorem cp_thm:
   assumes lp: "iszlfm p (a #bs)"
@@ -3126,9 +3118,8 @@ next
   from 6 mult_strict_left_mono[OF dp cp, simplified of_int_less_iff[symmetric]
     of_int_mult]
   show ?case using 6 dp
-    apply (simp add: numbound0_I[where bs="bs" and b="real_of_int i - real_of_int d" and b'="real_of_int i"]
-      algebra_simps del: mult_pos_pos)
-      using order_trans by fastforce
+    by (fastforce simp: numbound0_I[where bs="bs" and b="i - real_of_int d" and b'="i"]
+      algebra_simps intro: order_trans)
 next
   case (7 c e) hence cp: "c >0" and nb: "numbound0 e" and ei: "isint e (real_of_int i#bs)"
     and nob: "\<forall> j\<in> {1 .. c*d}. real_of_int (c*i) \<noteq> - ?N i e + real_of_int j"
@@ -3419,7 +3410,7 @@ proof(induct t rule: rsplit0.induct)
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))"
-    by blast
+    by force
   finally
   have FS: "?SS (Floor a) =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un
@@ -3576,7 +3567,7 @@ next
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))"
-    by blast
+    by force
   finally
   have FS: "?SS (Floor a) =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un
@@ -4880,7 +4871,8 @@ proof-
   have MF: "?M = False"
     apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
     by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))", simp_all)
-  have PF: "?P = False" apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
+  have PF: "?P = False" 
+    apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
     by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))", simp_all)
   have "(\<exists> x. ?I x ?q ) =
     ((?I x (minusinf ?rq)) \<or> (?I x (plusinf ?rq )) \<or> (\<exists> (t,n) \<in> set (\<Upsilon> ?rq). \<exists> (s,m) \<in> set (\<Upsilon> ?rq ). ?I x (\<upsilon> ?rq (Add (Mul m t) (Mul n s), 2*n*m))))"
@@ -4936,9 +4928,7 @@ proof(auto)
        \<in> (\<lambda>((t, n), s, m).
              (Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2) `
          (set U \<times> set U)"using mnz nnz th
-    apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
-    by (rule_tac x="(s,m)" in bexI,simp_all)
-  (rule_tac x="(t,n)" in bexI,simp_all add: mult.commute)
+    by (force simp add: th add_divide_distrib algebra_simps split_def image_def)
 next
   fix t n s m
   assume tnU: "(t,n) \<in> set U" and smU:"(s,m) \<in> set U"
@@ -5299,9 +5289,8 @@ proof
   from ee' have tt': "Inum (a#bs) (Add e (C j)) = Inum (a#bs) (Add e' (C j))" by simp
 
   from \<sigma>_cong[OF lp tt', where c="c"] px have px':"?sp c e' j" by simp
-  from ecRo jD px' show ?rhs apply (auto simp: cc')
-    by (rule_tac x="(e', c')" in bexI,simp_all)
-  (rule_tac x="j" in bexI, simp_all add: cc'[symmetric])
+  from ecRo jD px' show ?rhs
+    using cc' by blast
 next
   let ?d = "\<delta> p"
   assume ?rhs then obtain e c j where ecR: "(e,c) \<in> set (\<rho> p)" and jD:"j \<in> {1 .. c*?d}"
@@ -5313,9 +5302,8 @@ next
     and cc':"c = c'" by blast
   from ee' have tt': "Inum (a#bs) (Add e (C j)) = Inum (a#bs) (Add e' (C j))" by simp
   from \<sigma>_cong[OF lp tt', where c="c"] px have px':"?sp c e' j" by simp
-  from ecRo jD px' show ?lhs apply (auto simp: cc')
-    by (rule_tac x="(e', c')" in bexI,simp_all)
-  (rule_tac x="j" in bexI, simp_all add: cc'[symmetric])
+  from ecRo jD px' show ?lhs
+    using cc' by blast
 qed
 
 lemma rl_thm':

@@ -140,10 +140,7 @@ proof -
 qed
 
 lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
-  apply (simp add: Ninv_def isnormNum_def split_def)
-  apply (cases "fst x = 0")
-  apply (auto simp add: gcd.commute)
-  done
+  by (simp add: Ninv_def isnormNum_def split_def gcd.commute split: if_split_asm)
 
 lemma isnormNum_int[simp]: "isnormNum 0\<^sub>N" "isnormNum ((1::int)\<^sub>N)" "i \<noteq> 0 \<Longrightarrow> isnormNum (i)\<^sub>N"
   by (simp_all add: isnormNum_def)
@@ -201,12 +198,7 @@ proof
     then have "coprime a b" "coprime b a" "coprime a' b'" "coprime b' a'"
       by (simp_all add: coprime_iff_gcd_eq_1)
     from eq have raw_dvd: "a dvd a' * b" "b dvd b' * a" "a' dvd a * b'" "b' dvd b * a'"
-      apply -
-      apply algebra
-      apply algebra
-      apply simp
-      apply algebra
-      done
+      by (algebra|simp)+
     then have eq1: "b = b'"
       using pos \<open>coprime b a\<close> \<open>coprime b' a'\<close>
       by (auto simp add: coprime_dvd_mult_left_iff intro: associated_eqI)
@@ -282,15 +274,7 @@ proof -
   proof cases
     case 1
     then show ?thesis
-      apply (cases "a = 0")
-      apply (simp_all add: x y Nadd_def)
-      apply (cases "b = 0")
-      apply (simp_all add: INum_def)
-      apply (cases "a'= 0")
-      apply simp_all
-      apply (cases "b'= 0")
-      apply simp_all
-      done
+      by (auto simp: x y INum_def Nadd_def normNum_def Let_def of_int_div)
   next
     case neq: 2
     show ?thesis
@@ -480,13 +464,7 @@ lemma [simp]:
     and "(a, 0) +\<^sub>N y = normNum y"
     and "x +\<^sub>N (0, b) = normNum x"
     and "x +\<^sub>N (a, 0) = normNum x"
-  apply (simp add: Nadd_def split_def)
-  apply (simp add: Nadd_def split_def)
-  apply (subst Nadd_commute)
-  apply (simp add: Nadd_def split_def)
-  apply (subst Nadd_commute)
-  apply (simp add: Nadd_def split_def)
-  done
+  by (simp_all add: Nadd_def normNum_def split_def)
 
 lemma normNum_nilpotent_aux[simp]:
   assumes "SORT_CONSTRAINT('a::field_char_0)"
@@ -599,18 +577,13 @@ proof -
   obtain a' b' where y: "y = (a', b')" by (cases y)
   have n0: "isnormNum 0\<^sub>N" by simp
   show ?thesis using nx ny
-    apply (simp only: isnormNum_unique[where ?'a = 'a, OF  Nmul_normN[OF nx ny] n0, symmetric]
-      Nmul[where ?'a = 'a])
-    apply (simp add: x y INum_def split_def isnormNum_def split: if_split_asm)
-    done
+    by (metis (no_types, opaque_lifting) INum_int(2) Nmul Nmul0(1) Nmul0(2) isnormNum0 mult_eq_0_iff)
 qed
 
 lemma Nneg_Nneg[simp]: "~\<^sub>N (~\<^sub>N c) = c"
   by (simp add: Nneg_def split_def)
 
 lemma Nmul1[simp]: "isnormNum c \<Longrightarrow> (1)\<^sub>N *\<^sub>N c = c" "isnormNum c \<Longrightarrow> c *\<^sub>N (1)\<^sub>N = c"
-  apply (simp_all add: Nmul_def Let_def split_def isnormNum_def)
-  apply (cases "fst c = 0", simp_all, cases c, simp_all)+
-  done
+  by (simp add: Nmul_def Let_def split_def isnormNum_def, metis div_0 div_by_1 surjective_pairing)+
 
 end
