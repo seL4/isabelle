@@ -23,20 +23,6 @@ object Build_Job {
 
   /* build session */
 
-  def store_heaps(
-    store: Store,
-    options: Options,
-    session: Store.Session,
-    database_server: Option[SQL.Database] = None,
-    server: SSH.Server = SSH.no_server,
-    progress: Progress = new Progress
-  ): Unit = {
-    store.maybe_using_heaps_database(database_server, server = server) { db =>
-      val slice = Space.MiB(options.real("build_database_slice"))
-      ML_Heap.store(db, session, slice, cache = store.cache.compress, progress = progress)
-    }
-  }
-
   def start_session(
     build_context: Build.Context,
     session_context: Session_Context,
@@ -528,8 +514,8 @@ object Build_Job {
             case None => using(store.open_database(session_name, output = true))(write_info)
           }
 
-          store_heaps(store, options, store_session,
-            database_server = database_server, server = server, progress = progress)
+          store.in_heaps_database(
+            List(store_session), database_server, server = server, progress = progress)
 
           // messages
           process_result.err_lines.foreach(progress.echo(_))

@@ -395,6 +395,18 @@ class Store private(
     }
   }
 
+  def in_heaps_database(
+    sessions: List[Store.Session],
+    database_server: Option[SQL.Database],
+    server: SSH.Server = SSH.no_server,
+    progress: Progress = new Progress
+  ): Unit = {
+    maybe_using_heaps_database(database_server, server = server) { db =>
+      val slice = Space.MiB(options.real("build_database_slice"))
+      sessions.foreach(ML_Heap.store(db, _, slice, cache = cache.compress, progress = progress))
+    }
+  }
+
   def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
     if (build_database_server || build_cluster) open_database_server(server = server)
     else SQLite.open_database(path, restrict = true)
