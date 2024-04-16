@@ -1163,13 +1163,8 @@ extends AutoCloseable {
     ancestor_results: List[Build_Process.Result]
   ): Build_Process.State = {
     val sources_shasum = state.sessions(session_name).sources_shasum
-
-    val input_shasum =
-      if (ancestor_results.isEmpty) ML_Process.bootstrap_shasum()
-      else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
-
+    val input_shasum = ML_Process.make_shasum(ancestor_results.map(_.output_shasum))
     val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
-
     val (current, output_shasum) =
       store.check_output(_database_server, session_name,
         session_options = build_context.sessions_structure(session_name).options,

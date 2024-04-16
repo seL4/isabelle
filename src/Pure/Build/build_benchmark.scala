@@ -66,12 +66,7 @@ object Build_Benchmark {
         for (db <- database_server) ML_Heap.restore(db, hierachy, cache = store.cache.compress)
 
         def get_shasum(session_name: String): SHA1.Shasum = {
-          val ancestor_shasums = sessions(session_name).ancestors.map(get_shasum)
-
-          val input_shasum =
-            if (ancestor_shasums.isEmpty) ML_Process.bootstrap_shasum()
-            else SHA1.flat_shasum(ancestor_shasums)
-
+          val input_shasum = ML_Process.make_shasum(sessions(session_name).ancestors.map(get_shasum))
           store.check_output(
             database_server, session_name,
             session_options = build_context.sessions_structure(session_name).options,
