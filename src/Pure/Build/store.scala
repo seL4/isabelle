@@ -383,14 +383,14 @@ class Store private(
     server: SSH.Server = SSH.no_server
   ): Option[SQL.Database] = {
     if (database_server.isDefined) None
-    else store.maybe_open_database_server(server = server, guard = build_cluster)
+    else maybe_open_database_server(server = server, guard = build_cluster)
   }
 
   def maybe_using_heaps_database[A](
     database_server: Option[SQL.Database],
     server: SSH.Server = SSH.no_server
   )(f: SQL.Database => A): Option[A] = {
-    using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
+    using_optional(maybe_open_heaps_database(database_server, server = server)) {
       heaps_database => (database_server orElse heaps_database).map(f)
     }
   }
