@@ -79,10 +79,11 @@ object Build {
     def cache: Term.Cache = store.cache
 
     def sessions_ok: List[String] =
-      (for {
-        name <- deps.sessions_structure.build_topological_order.iterator
-        result <- results.get(name) if result.ok
-      } yield name).toList
+      List.from(
+        for {
+          name <- deps.sessions_structure.build_topological_order.iterator
+          result <- results.get(name) if result.ok
+        } yield name)
 
     def info(name: String): Sessions.Info = deps.sessions_structure(name)
     def sessions: Set[String] = results.keySet
@@ -231,10 +232,11 @@ object Build {
 
       if (check_unknown_files) {
         val source_files =
-          (for {
-            (_, base) <- build_deps.session_bases.iterator
-            (path, _) <- base.session_sources.iterator
-          } yield path).toList
+          List.from(
+            for {
+              (_, base) <- build_deps.session_bases.iterator
+              (path, _) <- base.session_sources.iterator
+            } yield path)
         Mercurial.check_files(source_files)._2 match {
           case Nil =>
           case unknown_files =>
