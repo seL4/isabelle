@@ -76,9 +76,7 @@ object Build_Benchmark {
             database_server, session_name,
             session_options = build_context.sessions_structure(session_name).options,
             sources_shasum = sessions(session_name).sources_shasum,
-            input_shasum = input_shasum,
-            fresh_build = false,
-            store_heap = false)._2
+            input_shasum = input_shasum)._2
         }
 
         val deps = Sessions.deps(full_sessions.selection(selection)).check_errors

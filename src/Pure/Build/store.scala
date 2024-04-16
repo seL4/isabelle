@@ -465,8 +465,8 @@ class Store private(
     session_options: Options,
     sources_shasum: SHA1.Shasum,
     input_shasum: SHA1.Shasum,
-    fresh_build: Boolean,
-    store_heap: Boolean
+    fresh_build: Boolean = false,
+    store_heap: Boolean = false
   ): (Boolean, SHA1.Shasum) = {
     def no_check: (Boolean, SHA1.Shasum) = (false, SHA1.no_shasum)
 
