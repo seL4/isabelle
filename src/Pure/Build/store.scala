@@ -401,9 +401,11 @@ class Store private(
     server: SSH.Server = SSH.no_server,
     progress: Progress = new Progress
   ): Unit = {
-    maybe_using_heaps_database(database_server, server = server) { db =>
-      val slice = Space.MiB(options.real("build_database_slice"))
-      sessions.foreach(ML_Heap.store(db, _, slice, cache = cache.compress, progress = progress))
+    if (sessions.nonEmpty) {
+      maybe_using_heaps_database(database_server, server = server) { db =>
+        val slice = Space.MiB(options.real("build_database_slice"))
+        sessions.foreach(ML_Heap.store(db, _, slice, cache = cache.compress, progress = progress))
+      }
     }
   }
 
