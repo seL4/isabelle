@@ -1118,19 +1118,13 @@ object Build_Schedule {
     def is_current(state: Build_Process.State, session_name: String): Boolean =
       state.ancestor_results(session_name) match {
         case Some(ancestor_results) if ancestor_results.forall(_.current) =>
-          val sources_shasum = state.sessions(session_name).sources_shasum
-
-          val input_shasum = ML_Process.make_shasum(ancestor_results.map(_.output_shasum))
-
-          val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
-
           store.check_output(
             _database_server, session_name,
             session_options = build_context.sessions_structure(session_name).options,
-            sources_shasum = sources_shasum,
-            input_shasum = input_shasum,
+            sources_shasum = state.sessions(session_name).sources_shasum,
+            input_shasum = ML_Process.make_shasum(ancestor_results.map(_.output_shasum)),
             fresh_build = build_context.fresh_build,
-            store_heap = store_heap)._1
+            store_heap = build_context.store_heap || state.sessions.store_heap(session_name))._1
         case _ => false
       }
 

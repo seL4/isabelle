@@ -65,14 +65,11 @@ object Build_Benchmark {
         benchmark_requirements(local_options, progress)
         for (db <- database_server) ML_Heap.restore(db, hierachy, cache = store.cache.compress)
 
-        def get_shasum(session_name: String): SHA1.Shasum = {
-          val input_shasum = ML_Process.make_shasum(sessions(session_name).ancestors.map(get_shasum))
-          store.check_output(
-            database_server, session_name,
-            session_options = build_context.sessions_structure(session_name).options,
-            sources_shasum = sessions(session_name).sources_shasum,
-            input_shasum = input_shasum)._2
-        }
+        def get_shasum(name: String): SHA1.Shasum =
+          store.check_output(database_server, name,
+            session_options = build_context.sessions_structure(name).options,
+            sources_shasum = sessions(name).sources_shasum,
+            input_shasum = ML_Process.make_shasum(sessions(name).ancestors.map(get_shasum)))._2
 
         val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
         val background = deps.background(benchmark_session_name)
