@@ -11,16 +11,14 @@ object ML_Heap {
   /** heap file with SHA1 digest **/
 
   private val sha1_prefix = "SHA1:"
+  private val sha1_length = sha1_prefix.length + SHA1.digest_length
 
   def read_file_digest(heap: Path): Option[SHA1.Digest] = {
     if (heap.is_file) {
-      val l = sha1_prefix.length
-      val m = l + SHA1.digest_length
-      val n = File.size(heap)
-      val bs = Bytes.read_file(heap, offset = n - m)
-      if (bs.length == m) {
+      val bs = Bytes.read_file(heap, offset = File.size(heap) - sha1_length)
+      if (bs.length == sha1_length) {
         val s = bs.text
-        if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(l)))
+        if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(sha1_prefix.length)))
         else None
       }
       else None
@@ -204,7 +202,7 @@ object ML_Heap {
     val heap_digest = session.heap.map(write_file_digest)
     val heap_size =
       session.heap match {
-        case Some(heap) => File.size(heap) - sha1_prefix.length - SHA1.digest_length
+        case Some(heap) => File.size(heap) - sha1_length
         case None => 0L
       }
 
@@ -285,16 +283,13 @@ object ML_Heap {
 
             val base_dir = Isabelle_System.make_directory(heap.expand.dir)
             Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
-              Bytes.write(tmp, Bytes.empty)
+              tmp.file.delete()
               for (slice <- private_data.read_slices(db, session_name)) {
                 Bytes.append(tmp, slice.uncompress(cache = cache))
               }
               val digest = write_file_digest(tmp)
-              if (db_digest.get == digest) {
-                Isabelle_System.chmod("a+r", tmp)
-                Isabelle_System.move_file(tmp, heap)
-              }
-              else error("Incoherent content for session heap " + heap)
+              if (db_digest.get == digest) Isabelle_System.move_file(tmp, heap)
+              else error("Incoherent content for session heap " + heap.expand)
             }
           }
         }
@@ -303,14 +298,14 @@ object ML_Heap {
         /* log_db */
 
         for (session <- sessions; path <- session.log_db) {
-          val file_uuid = Store.read_build_uuid(path, session.name)
-          private_data.read_log_db(db, session.name, old_uuid = file_uuid) match {
-            case Some(log_db) if file_uuid.isEmpty =>
+          val old_uuid = Store.read_build_uuid(path, session.name)
+          for (log_db <- private_data.read_log_db(db, session.name, old_uuid = old_uuid)) {
+            if (old_uuid.isEmpty) {
               progress.echo("Restoring " + session.log_db_name + " ...")
               Isabelle_System.make_directory(path.expand.dir)
               Bytes.write(path, log_db.content)
-            case Some(_) => error("Incoherent content for session database " + path)
-            case None =>
+            }
+            else error("Incoherent content for session database " + path.expand)
           }
         }
       }

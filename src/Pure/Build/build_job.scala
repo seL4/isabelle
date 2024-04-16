@@ -514,14 +514,8 @@ object Build_Job {
             case None => using(store.open_database(session_name, output = true))(write_info)
           }
 
-          using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
-            heaps_database =>
-              for (db <- database_server orElse heaps_database) {
-                val slice = Space.MiB(options.real("build_database_slice"))
-                ML_Heap.store(db, store_session, slice,
-                  cache = store.cache.compress, progress = progress)
-              }
-          }
+          store.in_heaps_database(
+            List(store_session), database_server, server = server, progress = progress)
 
           // messages
           process_result.err_lines.foreach(progress.echo(_))

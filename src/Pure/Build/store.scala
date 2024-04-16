@@ -83,7 +83,7 @@ object Store {
       new Sources(
         session_base.session_sources.foldLeft(Map.empty) {
           case (sources, (path, digest)) =>
-            def err(): Nothing = error("Incoherent digest for source file: " + path)
+            def err(): Nothing = error("Incoherent digest for source file: " + path.expand)
             val name = File.symbolic_path(path)
             sources.get(name) match {
               case Some(source_file) =>
@@ -383,7 +383,30 @@ class Store private(
     server: SSH.Server = SSH.no_server
   ): Option[SQL.Database] = {
     if (database_server.isDefined) None
-    else store.maybe_open_database_server(server = server, guard = build_cluster)
+    else maybe_open_database_server(server = server, guard = build_cluster)
+  }
+
+  def maybe_using_heaps_database[A](
+    database_server: Option[SQL.Database],
+    server: SSH.Server = SSH.no_server
+  )(f: SQL.Database => A): Option[A] = {
+    using_optional(maybe_open_heaps_database(database_server, server = server)) {
+      heaps_database => (database_server orElse heaps_database).map(f)
+    }
+  }
+
+  def in_heaps_database(
+    sessions: List[Store.Session],
+    database_server: Option[SQL.Database],
+    server: SSH.Server = SSH.no_server,
+    progress: Progress = new Progress
+  ): Unit = {
+    if (sessions.nonEmpty) {
+      maybe_using_heaps_database(database_server, server = server) { db =>
+        val slice = Space.MiB(options.real("build_database_slice"))
+        sessions.foreach(ML_Heap.store(db, _, slice, cache = cache.compress, progress = progress))
+      }
+    }
   }
 
   def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
@@ -465,8 +488,8 @@ class Store private(
     session_options: Options,
     sources_shasum: SHA1.Shasum,
     input_shasum: SHA1.Shasum,
-    fresh_build: Boolean,
-    store_heap: Boolean
+    fresh_build: Boolean = false,
+    store_heap: Boolean = false
   ): (Boolean, SHA1.Shasum) = {
     def no_check: (Boolean, SHA1.Shasum) = (false, SHA1.no_shasum)
 

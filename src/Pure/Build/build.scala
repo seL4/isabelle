@@ -34,8 +34,9 @@ object Build {
     ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
+    numa_nodes: List[Int] = Nil,
     clean_sessions: List[String] = Nil,
-    build_heap: Boolean = false,
+    store_heap: Boolean = false,
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
@@ -78,10 +79,11 @@ object Build {
     def cache: Term.Cache = store.cache
 
     def sessions_ok: List[String] =
-      (for {
-        name <- deps.sessions_structure.build_topological_order.iterator
-        result <- results.get(name) if result.ok
-      } yield name).toList
+      List.from(
+        for {
+          name <- deps.sessions_structure.build_topological_order.iterator
+          result <- results.get(name) if result.ok
+        } yield name)
 
     def info(name: String): Sessions.Info = deps.sessions_structure(name)
     def sessions: Set[String] = results.keySet
@@ -230,10 +232,11 @@ object Build {
 
       if (check_unknown_files) {
         val source_files =
-          (for {
-            (_, base) <- build_deps.session_bases.iterator
-            (path, _) <- base.session_sources.iterator
-          } yield path).toList
+          List.from(
+            for {
+              (_, base) <- build_deps.session_bases.iterator
+              (path, _) <- base.session_sources.iterator
+            } yield path)
         Mercurial.check_files(source_files)._2 match {
           case Nil =>
           case unknown_files =>
@@ -249,12 +252,13 @@ object Build {
       val clean_sessions =
         if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
 
+      val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       val build_context =
         Context(store, build_deps, engine = engine, afp_root = afp_root,
           build_hosts = build_hosts, hostname = hostname(build_options),
-          clean_sessions = clean_sessions, build_heap = build_heap,
-          numa_shuffling = numa_shuffling, fresh_build = fresh_build,
-          no_build = no_build, session_setup = session_setup,
+          clean_sessions = clean_sessions, store_heap = build_heap,
+          numa_shuffling = numa_shuffling, numa_nodes = numa_nodes,
+          fresh_build = fresh_build, no_build = no_build, session_setup = session_setup,
           jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
 
       val results = engine.run_build_process(build_context, progress, server)

@@ -12,8 +12,9 @@ import java.io.{File => JFile}
 
 
 object ML_Process {
-  def bootstrap_shasum(): SHA1.Shasum =
-    SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
+  def make_shasum(ancestors: List[SHA1.Shasum]): SHA1.Shasum =
+    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
+    else SHA1.flat_shasum(ancestors)
 
   def session_heaps(
     store: Store,
