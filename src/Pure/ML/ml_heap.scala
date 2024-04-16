@@ -285,15 +285,12 @@ object ML_Heap {
 
             val base_dir = Isabelle_System.make_directory(heap.expand.dir)
             Isabelle_System.with_tmp_file(session_name + "_", base_dir = base_dir.file) { tmp =>
-              Bytes.write(tmp, Bytes.empty)
+              tmp.file.delete()
               for (slice <- private_data.read_slices(db, session_name)) {
                 Bytes.append(tmp, slice.uncompress(cache = cache))
               }
               val digest = write_file_digest(tmp)
-              if (db_digest.get == digest) {
-                Isabelle_System.chmod("a+r", tmp)
-                Isabelle_System.move_file(tmp, heap)
-              }
+              if (db_digest.get == digest) Isabelle_System.move_file(tmp, heap)
               else error("Incoherent content for session heap " + heap.expand)
             }
           }
