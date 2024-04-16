@@ -386,6 +386,15 @@ class Store private(
     else store.maybe_open_database_server(server = server, guard = build_cluster)
   }
 
+  def maybe_using_heaps_database[A](
+    database_server: Option[SQL.Database],
+    server: SSH.Server = SSH.no_server
+  )(f: SQL.Database => A): Option[A] = {
+    using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
+      heaps_database => (database_server orElse heaps_database).map(f)
+    }
+  }
+
   def open_build_database(path: Path, server: SSH.Server = SSH.no_server): SQL.Database =
     if (build_database_server || build_cluster) open_database_server(server = server)
     else SQLite.open_database(path, restrict = true)

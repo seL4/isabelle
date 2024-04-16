@@ -31,12 +31,9 @@ object Build_Job {
     server: SSH.Server = SSH.no_server,
     progress: Progress = new Progress
   ): Unit = {
-    using_optional(store.maybe_open_heaps_database(database_server, server = server)) {
-      heaps_database =>
-        for (db <- database_server orElse heaps_database) {
-          val slice = Space.MiB(options.real("build_database_slice"))
-          ML_Heap.store(db, session, slice, cache = store.cache.compress, progress = progress)
-        }
+    store.maybe_using_heaps_database(database_server, server = server) { db =>
+      val slice = Space.MiB(options.real("build_database_slice"))
+      ML_Heap.store(db, session, slice, cache = store.cache.compress, progress = progress)
     }
   }
 
