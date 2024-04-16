@@ -1124,9 +1124,7 @@ object Build_Schedule {
             if (ancestor_results.isEmpty) ML_Process.bootstrap_shasum()
             else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
-          val store_heap =
-            build_context.build_heap || Sessions.is_pure(session_name) ||
-              state.sessions.iterator.exists(_.ancestors.contains(session_name))
+          val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
 
           store.check_output(
             _database_server, session_name,

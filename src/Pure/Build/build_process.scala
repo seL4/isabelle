@@ -94,6 +94,9 @@ object Build_Process {
     def iterator: Iterator[Build_Job.Session_Context] =
       for (name <- graph.topological_order.iterator) yield apply(name)
 
+    def store_heap(name: String): Boolean =
+      isabelle.Sessions.is_pure(name) || iterator.exists(_.ancestors.contains(name))
+
     def data: Library.Update.Data[Build_Job.Session_Context] =
       Map.from(for ((_, (session, _)) <- graph.iterator) yield session.name -> session)
 
@@ -1165,9 +1168,7 @@ extends AutoCloseable {
       if (ancestor_results.isEmpty) ML_Process.bootstrap_shasum()
       else SHA1.flat_shasum(ancestor_results.map(_.output_shasum))
 
-    val store_heap =
-      build_context.build_heap || Sessions.is_pure(session_name) ||
-      state.sessions.iterator.exists(_.ancestors.contains(session_name))
+    val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
 
     val (current, output_shasum) =
       store.check_output(_database_server, session_name,

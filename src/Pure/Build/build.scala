@@ -36,7 +36,7 @@ object Build {
     numa_shuffling: Boolean = false,
     numa_nodes: List[Int] = Nil,
     clean_sessions: List[String] = Nil,
-    build_heap: Boolean = false,
+    store_heap: Boolean = false,
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     session_setup: (String, Session) => Unit = (_, _) => (),
@@ -256,7 +256,7 @@ object Build {
       val build_context =
         Context(store, build_deps, engine = engine, afp_root = afp_root,
           build_hosts = build_hosts, hostname = hostname(build_options),
-          clean_sessions = clean_sessions, build_heap = build_heap,
+          clean_sessions = clean_sessions, store_heap = build_heap,
           numa_shuffling = numa_shuffling, numa_nodes = numa_nodes,
           fresh_build = fresh_build, no_build = no_build, session_setup = session_setup,
           jobs = max_jobs.getOrElse(if (build_hosts.nonEmpty) 0 else 1), master = true)
