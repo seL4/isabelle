@@ -298,14 +298,14 @@ object ML_Heap {
         /* log_db */
 
         for (session <- sessions; path <- session.log_db) {
-          val file_uuid = Store.read_build_uuid(path, session.name)
-          private_data.read_log_db(db, session.name, old_uuid = file_uuid) match {
-            case Some(log_db) if file_uuid.isEmpty =>
+          val old_uuid = Store.read_build_uuid(path, session.name)
+          for (log_db <- private_data.read_log_db(db, session.name, old_uuid = old_uuid)) {
+            if (old_uuid.isEmpty) {
               progress.echo("Restoring " + session.log_db_name + " ...")
               Isabelle_System.make_directory(path.expand.dir)
               Bytes.write(path, log_db.content)
-            case Some(_) => error("Incoherent content for session database " + path.expand)
-            case None =>
+            }
+            else error("Incoherent content for session database " + path.expand)
           }
         }
       }
