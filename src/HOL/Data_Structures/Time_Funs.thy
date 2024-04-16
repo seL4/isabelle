@@ -43,12 +43,9 @@ lemma T_filter_eq: "T_filter T_p xs = (\<Sum>x\<leftarrow>xs. T_p x) + length xs
 
 lemmas [simp del] = T_filter.simps
 
+time_fun nth
 
-fun T_nth :: "'a list \<Rightarrow> nat \<Rightarrow> nat" where
-  "T_nth [] n = 1"
-| "T_nth (x # xs) n = (case n of 0 \<Rightarrow> 1 | Suc n' \<Rightarrow> T_nth xs n' + 1)"
-
-lemma T_nth_eq: "T_nth xs n = min n (length xs) + 1"
+lemma T_nth_eq: "n < length xs \<Longrightarrow> T_nth xs n = n + 1"
   by (induction xs n rule: T_nth.induct) (auto split: nat.splits)
 
 lemmas [simp del] = T_nth.simps
