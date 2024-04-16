@@ -217,13 +217,13 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
                 sessions = sessions),
               base_logics = base_logics,
               progress = progress,
-              build_heap,
-              clean_build,
+              build_heap = build_heap,
+              clean_build = clean_build,
               dirs = dirs,
               select_dirs = select_dirs,
               numa_shuffling = Host.numa_check(progress, numa_shuffling),
               max_jobs = max_jobs,
-              fresh_build,
+              fresh_build = fresh_build,
               no_build = no_build)
           }
 
