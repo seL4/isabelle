@@ -1167,9 +1167,9 @@ extends AutoCloseable {
     val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
     val (current, output_shasum) =
       store.check_output(_database_server, session_name,
-        session_options = build_context.sessions_structure(session_name).options,
         sources_shasum = sources_shasum,
         input_shasum = input_shasum,
+        build_thorough = build_context.sessions_structure(session_name).build_thorough,
         fresh_build = build_context.fresh_build,
         store_heap = store_heap)
 

@@ -1120,9 +1120,9 @@ object Build_Schedule {
         case Some(ancestor_results) if ancestor_results.forall(_.current) =>
           store.check_output(
             _database_server, session_name,
-            session_options = build_context.sessions_structure(session_name).options,
             sources_shasum = state.sessions(session_name).sources_shasum,
             input_shasum = ML_Process.make_shasum(ancestor_results.map(_.output_shasum)),
+            build_thorough = build_context.sessions_structure(session_name).build_thorough,
             fresh_build = build_context.fresh_build,
             store_heap = build_context.store_heap || state.sessions.store_heap(session_name))._1
         case _ => false

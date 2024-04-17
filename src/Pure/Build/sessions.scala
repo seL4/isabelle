@@ -577,8 +577,8 @@ object Sessions {
     }
   }
 
-  def eq_sources(options: Options, shasum1: SHA1.Shasum, shasum2: SHA1.Shasum): Boolean =
-    if (options.bool("build_thorough")) shasum1 == shasum2
+  def eq_sources(thorough: Boolean, shasum1: SHA1.Shasum, shasum2: SHA1.Shasum): Boolean =
+    if (thorough) shasum1 == shasum2
     else {
       def trim(shasum: SHA1.Shasum): SHA1.Shasum =
         shasum.filter(s => !is_build_prefs(s))
@@ -720,6 +720,8 @@ object Sessions {
 
     def main_group: Boolean = groups.contains("main")
     def doc_group: Boolean = groups.contains("doc")
+
+    def build_thorough: Boolean = options.bool("build_thorough")
 
     def timeout_ignored: Boolean =
       !options.bool("timeout_build") || Time.seconds(options.real("timeout")) < Time.ms(1)

@@ -485,9 +485,9 @@ class Store private(
   def check_output(
     database_server: Option[SQL.Database],
     name: String,
-    session_options: Options,
     sources_shasum: SHA1.Shasum,
     input_shasum: SHA1.Shasum,
+    build_thorough: Boolean = false,
     fresh_build: Boolean = false,
     store_heap: Boolean = false
   ): (Boolean, SHA1.Shasum) = {
@@ -500,7 +500,7 @@ class Store private(
           val current =
             !fresh_build &&
               build.ok &&
-              Sessions.eq_sources(session_options, build.sources, sources_shasum) &&
+              Sessions.eq_sources(build_thorough, build.sources, sources_shasum) &&
               build.input_heaps == input_shasum &&
               build.output_heap == output_shasum &&
               !(store_heap && output_shasum.is_empty)
