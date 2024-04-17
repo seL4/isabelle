@@ -154,7 +154,9 @@ fun unifiable_with thy T1 T2 =
 fun get_candidates ctxt (c, T) =
   get_variants ctxt c
   |> Option.map (map_filter (fn (t, T') =>
-    if unifiable_with (Proof_Context.theory_of ctxt) T T' then SOME t
+    if unifiable_with (Proof_Context.theory_of ctxt) T T'
+    (*keep the type constraint for the type-inference check phase*)
+    then SOME (Type.constraint T t)
     else NONE));
 
 fun insert_variants ctxt t (oconst as Const (c, T)) =
