@@ -14,6 +14,9 @@ Contributions to Isabelle2024
 * March 2024: Manuel Eberl
   Weierstraß Factorization Theorem in HOL-Complex_Analysis.
 
+* March 2024: Ata Keskin
+  Analysis lemmas drawn from the Martingales AFP entry.
+
 * March 2024: Anthony Bordg, Manuel Eberl, Wenda Li, Larry Paulson
   New and more general definition of meromorphicity in HOL-Complex_Analysis.
 

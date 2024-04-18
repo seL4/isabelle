@@ -1,6 +1,7 @@
 (*  Title:      HOL/Analysis/Set_Integral.thy
     Author:     Jeremy Avigad (CMU), Johannes Hölzl (TUM), Luke Serafin (CMU)
     Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
+    Author:     Ata Keskin, TU Muenchen
 
 Notation and useful facts for working with integrals over a set.
 

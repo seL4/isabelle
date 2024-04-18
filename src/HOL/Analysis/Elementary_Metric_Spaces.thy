@@ -2,6 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
     Author:     Robert Himmelmann, TU Muenchen
     Author:     Brian Huffman, Portland State University
+    Author:     Ata Keskin, TU Muenchen
 *)
 
 chapter \<open>Elementary Metric Spaces\<close>
