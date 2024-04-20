@@ -34,6 +34,8 @@ fun eigen_context_for_statement (params, assms, concl) ctxt =
   let
     val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
     val ctxt' = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
+      handle ERROR _ =>
+      ctxt |> Variable.set_body true |> Proof_Context.add_fixes fixes |> snd
   in ((params, assms, concl), ctxt') end;
 
 fun print_isar_skeleton ctxt indent keyword stmt =
