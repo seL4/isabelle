@@ -139,7 +139,7 @@ lemma neg_eqvt:
   by (simp add: perm_bool)
 
 (* permutation on sets *)
-lemma empty_eqvt:
+lemma empty_eqvt[simp]:
   shows "pi\<bullet>{} = {}"
   by (simp add: perm_set_def)
 
@@ -210,11 +210,11 @@ lemma supp_fresh_iff:
   shows "(supp x) = {a::'x. \<not>a\<sharp>x}"
   by (simp add: fresh_def)
 
-lemma supp_unit:
+lemma supp_unit[simp]:
   shows "supp () = {}"
   by (simp add: supp_def)
 
-lemma supp_set_empty:
+lemma supp_set_empty[simp]:
   shows "supp {} = {}"
   by (force simp add: supp_def empty_eqvt)
 
@@ -230,7 +230,7 @@ lemma supp_nprod:
   shows "(supp (nPair x y)) = (supp x)\<union>(supp y)"
   by  (force simp add: supp_def Collect_imp_eq Collect_neg_eq)
 
-lemma supp_list_nil:
+lemma supp_list_nil[simp]:
   shows "supp [] = {}"
   by (simp add: supp_def)
 
@@ -251,47 +251,47 @@ lemma supp_list_rev:
   shows "supp (rev xs) = (supp xs)"
   by (induct xs, auto simp add: supp_list_append supp_list_cons supp_list_nil)
 
-lemma supp_bool:
+lemma supp_bool[simp]:
   fixes x  :: "bool"
   shows "supp x = {}"
   by (cases "x") (simp_all add: supp_def)
 
-lemma supp_some:
+lemma supp_some[simp]:
   fixes x :: "'a"
   shows "supp (Some x) = (supp x)"
   by (simp add: supp_def)
 
-lemma supp_none:
+lemma supp_none[simp]:
   fixes x :: "'a"
   shows "supp (None) = {}"
   by (simp add: supp_def)
 
-lemma supp_int:
+lemma supp_int[simp]:
   fixes i::"int"
   shows "supp (i) = {}"
   by (simp add: supp_def perm_int_def)
 
-lemma supp_nat:
+lemma supp_nat[simp]:
   fixes n::"nat"
   shows "(supp n) = {}"
   by (simp add: supp_def perm_nat_def)
 
-lemma supp_char:
+lemma supp_char[simp]:
   fixes c::"char"
   shows "(supp c) = {}"
   by (simp add: supp_def perm_char_def)
   
-lemma supp_string:
+lemma supp_string[simp]:
   fixes s::"string"
   shows "(supp s) = {}"
   by (simp add: supp_def perm_string)
 
 (* lemmas about freshness *)
-lemma fresh_set_empty:
+lemma fresh_set_empty[simp]:
   shows "a\<sharp>{}"
   by (simp add: fresh_def supp_set_empty)
 
-lemma fresh_unit:
+lemma fresh_unit[simp]:
   shows "a\<sharp>()"
   by (simp add: fresh_def supp_unit)
 
@@ -302,7 +302,7 @@ lemma fresh_prod:
   shows "a\<sharp>(x,y) = (a\<sharp>x \<and> a\<sharp>y)"
   by (simp add: fresh_def supp_prod)
 
-lemma fresh_list_nil:
+lemma fresh_list_nil[simp]:
   fixes a :: "'x"
   shows "a\<sharp>[]"
   by (simp add: fresh_def supp_list_nil) 
@@ -321,48 +321,48 @@ lemma fresh_list_append:
   shows "a\<sharp>(xs@ys) = (a\<sharp>xs \<and> a\<sharp>ys)"
   by (simp add: fresh_def supp_list_append)
 
-lemma fresh_list_rev:
+lemma fresh_list_rev[simp]:
   fixes a :: "'x"
   and   xs :: "'a list"
   shows "a\<sharp>(rev xs) = a\<sharp>xs"
   by (simp add: fresh_def supp_list_rev)
 
-lemma fresh_none:
+lemma fresh_none[simp]:
   fixes a :: "'x"
   shows "a\<sharp>None"
   by (simp add: fresh_def supp_none)
 
-lemma fresh_some:
+lemma fresh_some[simp]:
   fixes a :: "'x"
   and   x :: "'a"
   shows "a\<sharp>(Some x) = a\<sharp>x"
   by (simp add: fresh_def supp_some)
 
-lemma fresh_int:
+lemma fresh_int[simp]:
   fixes a :: "'x"
   and   i :: "int"
   shows "a\<sharp>i"
   by (simp add: fresh_def supp_int)
 
-lemma fresh_nat:
+lemma fresh_nat[simp]:
   fixes a :: "'x"
   and   n :: "nat"
   shows "a\<sharp>n"
   by (simp add: fresh_def supp_nat)
 
-lemma fresh_char:
+lemma fresh_char[simp]:
   fixes a :: "'x"
   and   c :: "char"
   shows "a\<sharp>c"
   by (simp add: fresh_def supp_char)
 
-lemma fresh_string:
+lemma fresh_string[simp]:
   fixes a :: "'x"
   and   s :: "string"
   shows "a\<sharp>s"
   by (simp add: fresh_def supp_string)
 
-lemma fresh_bool:
+lemma fresh_bool[simp]:
   fixes a :: "'x"
   and   b :: "bool"
   shows "a\<sharp>b"
@@ -953,7 +953,7 @@ lemma pt_fun_inst:
   unfolding pt_def using assms
   by (auto simp add: perm_fun_def pt1 pt2 ptb pt3 pt3_rev)
 
-lemma pt_bool_inst:
+lemma pt_bool_inst[simp]:
   shows  "pt TYPE(bool) TYPE('x)"
   by (simp add: pt_def perm_bool_def)
 
@@ -963,7 +963,7 @@ lemma pt_set_inst:
   unfolding pt_def
   by(auto simp add: perm_set_def  pt1[OF pt] pt2[OF pt] pt3[OF pt])
 
-lemma pt_unit_inst:
+lemma pt_unit_inst[simp]:
   shows "pt TYPE(unit) TYPE('x)"
   by (simp add: pt_def)
 
@@ -3213,11 +3213,11 @@ qed
 (************************)
 (* Various eqvt-lemmas  *)
 
-lemma Zero_nat_eqvt:
+lemma Zero_nat_eqvt[simp]:
   shows "pi\<bullet>(0::nat) = 0" 
 by (auto simp add: perm_nat_def)
 
-lemma One_nat_eqvt:
+lemma One_nat_eqvt[simp]:
   shows "pi\<bullet>(1::nat) = 1"
 by (simp add: perm_nat_def)
 
@@ -3259,19 +3259,19 @@ lemma div_nat_eqvt:
   shows "pi\<bullet>(x div y) = (pi\<bullet>x) div (pi\<bullet>y)" 
 by (simp add:perm_nat_def) 
 
-lemma Zero_int_eqvt:
+lemma Zero_int_eqvt[simp]:
   shows "pi\<bullet>(0::int) = 0" 
 by (auto simp add: perm_int_def)
 
-lemma One_int_eqvt:
+lemma One_int_eqvt[simp]:
   shows "pi\<bullet>(1::int) = 1"
 by (simp add: perm_int_def)
 
-lemma numeral_int_eqvt: 
+lemma numeral_int_eqvt[simp]: 
  shows "pi\<bullet>((numeral n)::int) = numeral n"
   using perm_int_def by blast 
 
-lemma neg_numeral_int_eqvt:
+lemma neg_numeral_int_eqvt[simp]:
   shows "pi\<bullet>((- numeral n)::int) = - numeral n"
   by (simp add: perm_int_def)
 

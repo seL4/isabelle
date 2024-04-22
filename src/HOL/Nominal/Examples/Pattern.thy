@@ -355,7 +355,7 @@ next
     by (metis abs_fresh(1) btrm.fresh(2) fresh_star_set supp_fst)
 qed (auto simp: fresh_star_set)
 
-lemma psubst_nil: "[]\<lparr>t\<rparr> = t" "[]\<lparr>t'\<rparr>\<^sub>b = t'"
+lemma psubst_nil[simp]: "[]\<lparr>t\<rparr> = t" "[]\<lparr>t'\<rparr>\<^sub>b = t'"
   by (induct t and t' rule: trm_btrm.inducts) (simp_all add: fresh_list_nil)
 
 lemma psubst_cons:
@@ -367,9 +367,20 @@ lemma psubst_cons:
 
 lemma psubst_append:
   "(supp (map fst (\<theta>\<^sub>1 @ \<theta>\<^sub>2))::name set) \<sharp>* map snd (\<theta>\<^sub>1 @ \<theta>\<^sub>2) \<Longrightarrow> (\<theta>\<^sub>1 @ \<theta>\<^sub>2)\<lparr>t\<rparr> = \<theta>\<^sub>2\<lparr>\<theta>\<^sub>1\<lparr>t\<rparr>\<rparr>"
-  by (induct \<theta>\<^sub>1 arbitrary: t)
-    (simp_all add: psubst_nil split_paired_all supp_list_cons psubst_cons fresh_star_def
-      fresh_list_cons fresh_list_append supp_list_append)
+proof (induct \<theta>\<^sub>1 arbitrary: t)
+  case Nil
+  then show ?case
+    by (auto simp: psubst_nil)
+next
+  case (Cons a \<theta>\<^sub>1)
+  then show ?case
+  proof (cases a)
+    case (Pair a b)
+    with Cons show ?thesis
+      apply (simp add: supp_list_cons fresh_star_set fresh_list_cons)
+      by (metis Un_iff fresh_star_set map_append psubst_cons(1) supp_list_append)
+  qed
+qed
 
 lemma abs_pat_psubst [simp]:
   "(supp p::name set) \<sharp>* \<theta> \<Longrightarrow> \<theta>\<lparr>\<lambda>[p]. t\<rparr>\<^sub>b = (\<lambda>[p]. \<theta>\<lparr>t\<rparr>\<^sub>b)"
