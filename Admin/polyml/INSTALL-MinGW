@@ -14,7 +14,7 @@ MinGW for native Windows support
 
   pacman -S --needed --noconfirm base-devel gmp-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-gmp mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas
 
-- build (as regular user) e.g. on vmnipkow9 with Cygwin-Terminal from Isabelle2018
+- build (as regular user) e.g. with Cygwin-Terminal from Isabelle2018
   (to avoid address relocation problems):
 
     isabelle component_polyml -M /cygdrive/c/msys64
