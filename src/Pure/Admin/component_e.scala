@@ -19,6 +19,8 @@ object Component_E {
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
+    Isabelle_System.require_command("patch")
+
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
 
