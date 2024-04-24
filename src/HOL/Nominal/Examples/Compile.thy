@@ -110,11 +110,7 @@ where
 | "\<lbrakk>z\<noteq>x; x\<sharp>y; x\<sharp>e; x\<sharp>e2; z\<sharp>y; z\<sharp>e; z\<sharp>e1; x\<sharp>t'; z\<sharp>t'\<rbrakk> \<Longrightarrow>
      (Case e of inl x \<rightarrow> e1 | inr z \<rightarrow> e2)[y::=t'] =
        (Case (e[y::=t']) of inl x \<rightarrow> (e1[y::=t']) | inr z \<rightarrow> (e2[y::=t']))"
-  apply(finite_guess)+
-  apply(rule TrueI)+
-  apply(simp add: abs_fresh)+
-  apply(fresh_guess)+
-  done
+  by(finite_guess | simp add: abs_fresh | fresh_guess)+
 
 instance ..
 
@@ -135,11 +131,7 @@ where
 | "(IRef e)[y::=t'] = IRef (e[y::=t'])"
 | "(ISeq e1 e2)[y::=t'] = ISeq (e1[y::=t']) (e2[y::=t'])"
 | "(Iif e e1 e2)[y::=t'] = Iif (e[y::=t']) (e1[y::=t']) (e2[y::=t'])"
-  apply(finite_guess)+
-  apply(rule TrueI)+
-  apply(simp add: abs_fresh)+
-  apply(fresh_guess)+
-  done
+  by(finite_guess | simp add: abs_fresh | fresh_guess)+
 
 instance ..
 
@@ -151,33 +143,28 @@ lemma Isubst_eqvt[eqvt]:
   and   t2::"trmI"
   and   x::"name"
   shows "pi\<bullet>(t1[x::=t2]) = ((pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)])"
-  apply (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
-  apply (simp_all add: subst_trmI.simps eqvts fresh_bij)
-  done
+  by (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
+     (simp_all add: subst_trmI.simps eqvts fresh_bij)
 
 lemma Isubst_supp:
   fixes t1::"trmI"
   and   t2::"trmI"
   and   x::"name"
   shows "((supp (t1[x::=t2]))::name set) \<subseteq> (supp t2)\<union>((supp t1)-{x})"
-  apply (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
-  apply (auto simp add: subst_trmI.simps trmI.supp supp_atm abs_supp supp_nat)
-  apply blast+
-  done
+proof (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
+  case (IVar name)
+  then show ?case
+    by (simp add: supp_atm trmI.supp(1))
+qed (fastforce simp add: subst_trmI.simps trmI.supp supp_atm abs_supp supp_nat)+
 
 lemma Isubst_fresh:
   fixes x::"name"
   and   y::"name"
   and   t1::"trmI"
   and   t2::"trmI"
-  assumes a: "x\<sharp>[y].t1" "x\<sharp>t2"
+  assumes "x\<sharp>[y].t1" "x\<sharp>t2"
   shows "x\<sharp>(t1[y::=t2])"
-using a
-apply(auto simp add: fresh_def Isubst_supp)
-apply(drule rev_subsetD)
-apply(rule Isubst_supp)
-apply(simp add: abs_supp)
-done
+  using assms Isubst_supp abs_supp(2)  unfolding fresh_def Isubst_supp by fastforce
 
 text \<open>big-step evaluation for trms\<close>
 
@@ -240,11 +227,8 @@ where
         let v1 = (trans e1) in
         let v2 = (trans e2) in 
         Iif (IRef (ISucc v)) (v2[x2::=IRef (ISucc (ISucc v))]) (v1[x1::=IRef (ISucc (ISucc v))]))"
-  apply(finite_guess add: Let_def)+
-  apply(rule TrueI)+
-  apply(simp add: abs_fresh Isubst_fresh)+
-  apply(fresh_guess add: Let_def)+
-  done
+  unfolding Let_def
+  by(finite_guess | simp add: abs_fresh Isubst_fresh | fresh_guess)+
 
 nominal_primrec
   trans_type :: "ty \<Rightarrow> tyI"
