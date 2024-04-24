@@ -426,7 +426,7 @@ proof (induct pi rule: rev_induct)
 next
   case (snoc x xs)
   then show ?case
-  apply (simp add: split_paired_all pt_tvar2)
+    unfolding split_paired_all pt_tvar2
     using perm_fresh_fresh(1) by fastforce
 qed
 
@@ -538,7 +538,7 @@ lemma gen_preserved2:
   using assms
 proof(nominal_induct T rule: ty.strong_induct)
   case (TVar tvar)
-  then show ?case
+  then show ?case 
     apply(auto simp add: fresh_star_def ftv_Ctxt_subst)
     by (metis filter.simps fresh_def fresh_psubst_Ctxt ftv_Ctxt ftv_ty.simps(1) lookup_fresh)
 next

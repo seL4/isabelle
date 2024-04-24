@@ -492,11 +492,7 @@ where
 | "(t \<cdot>\<^sub>\<tau> T)[y \<mapsto> t'] = t[y \<mapsto> t'] \<cdot>\<^sub>\<tau> T"
 | "X\<sharp>(T,t') \<Longrightarrow> (\<lambda>X<:T. t)[y \<mapsto> t'] = (\<lambda>X<:T. t[y \<mapsto> t'])" 
 | "x\<sharp>(y,t') \<Longrightarrow> (\<lambda>x:T. t)[y \<mapsto> t'] = (\<lambda>x:T. t[y \<mapsto> t'])"
-apply(finite_guess)+
-apply(rule TrueI)+
-apply(simp add: abs_fresh)+
-apply(fresh_guess add: ty_vrs_fresh abs_fresh)+
-done
+  by (finite_guess | simp add: abs_fresh | fresh_guess add: ty_vrs_fresh abs_fresh)+
 
 lemma subst_trm_fresh_tyvar:
   fixes X::"tyvrs"

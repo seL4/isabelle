@@ -22,11 +22,7 @@ where
   "depth (Var x) = 1"
 | "depth (App t1 t2) = (max (depth t1) (depth t2)) + 1"
 | "depth (Lam [a].t) = (depth t) + 1"
-  apply(finite_guess)+
-  apply(rule TrueI)+
-  apply(simp add: fresh_nat)
-  apply(fresh_guess)+
-  done
+  by(finite_guess | simp | fresh_guess)+
 
 text \<open>
   The free variables of a lambda-term. A complication in this
@@ -41,12 +37,8 @@ where
   "frees (Var a) = {a}"
 | "frees (App t1 t2) = (frees t1) \<union> (frees t2)"
 | "frees (Lam [a].t) = (frees t) - {a}"
-apply(finite_guess)+
-apply(simp)+ 
-apply(simp add: fresh_def)
-apply(simp add: supp_of_fin_sets[OF pt_name_inst, OF at_name_inst, OF fs_at_inst[OF at_name_inst]])
-apply(simp add: supp_atm)
-apply(blast)
+apply(finite_guess | simp add: fresh_def | fresh_guess)+
+  apply (simp add: at_fin_set_supp at_name_inst)
 apply(fresh_guess)+
 done
 
@@ -81,11 +73,7 @@ where
   "\<theta><(Var x)> = (lookup \<theta> x)"
 | "\<theta><(App e\<^sub>1 e\<^sub>2)> = App (\<theta><e\<^sub>1>) (\<theta><e\<^sub>2>)"
 | "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
-apply(finite_guess)+
-apply(rule TrueI)+
-apply(simp add: abs_fresh)+
-apply(fresh_guess)+
-done
+  by (finite_guess | simp add: abs_fresh | fresh_guess)+
 
 lemma psubst_eqvt[eqvt]:
   fixes pi::"name prm" 
@@ -107,10 +95,19 @@ by (simp_all add: fresh_list_cons fresh_list_nil)
 
 lemma subst_supp: 
   shows "supp(t1[a::=t2]) \<subseteq> (((supp(t1)-{a})\<union>supp(t2))::name set)"
-apply(nominal_induct t1 avoiding: a t2 rule: lam.strong_induct)
-apply(auto simp add: lam.supp supp_atm fresh_prod abs_supp)
-apply(blast)+
-done
+proof (nominal_induct t1 avoiding: a t2 rule: lam.strong_induct)
+  case (Var name)
+  then show ?case
+    by (simp add: lam.supp(1) supp_atm)
+next
+  case (App lam1 lam2)
+  then show ?case
+    using lam.supp(2) by fastforce
+next
+  case (Lam name lam)
+  then show ?case
+    using frees.simps(3) frees_equals_support by auto
+qed
 
 text \<open>
   Contexts - lambda-terms with a single hole.
