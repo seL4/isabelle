@@ -153,9 +153,7 @@ extends Rendering(snapshot, model.resources.options, model.session) {
   def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] = {
     snapshot.select(range, Rendering.text_color_elements, _ =>
       {
-        case Text.Info(_, XML.Elem(Markup(name, props), _)) =>
-          if (name != Markup.IMPROPER && props.contains((Markup.KIND, Markup.COMMAND))) None
-          else Rendering.text_color.get(name)
+        case Text.Info(_, elem) => Rendering.text_color.get(elem.name)
       })
   }
 
