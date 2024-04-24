@@ -523,6 +523,11 @@ object LSP {
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update))
   }
 
+  object State_Init_Response {
+    def apply(id: Counter.ID): JSON.T =
+      Notification("PIDE/state_init_response", JSON.Object("id" -> id))
+  }
+
   class State_Id_Notification(name: String) {
     def unapply(json: JSON.T): Option[Counter.ID] =
       json match {

@@ -18,6 +18,7 @@ object State_Panel {
     val instance = new State_Panel(server)
     instances.change(_ + (instance.id -> instance))
     instance.init()
+    instance.init_response()
   }
 
   def exit(id: Counter.ID): Unit = {
@@ -49,6 +50,9 @@ class State_Panel private(val server: Language_Server) {
 
   private def output(content: String): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value))
+
+  private def init_response(): Unit =
+    server.channel.write(LSP.State_Init_Response(id))
 
 
   /* query operation */
