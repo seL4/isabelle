@@ -56,7 +56,7 @@ text \<open>
     \<^enum> The file \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close> (if it
     exists) is run in the same way as the site default settings. Note that the
     variable @{setting ISABELLE_HOME_USER} has already been set before ---
-    usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/Isabelle2023\<close>.
+    usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/Isabelle2024\<close>.
 
     Thus individual users may override the site-wide defaults. Typically, a
     user settings file contains only a few lines, with some assignments that
@@ -135,7 +135,7 @@ text \<open>
   of the @{executable isabelle} executable.
 
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
-  Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2024Isabelle2023\<close>''.
+  Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2024\<close>''.
 
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME}, @{setting_def
   ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def ML_IDENTIFIER}\<open>\<^sup>*\<close>]

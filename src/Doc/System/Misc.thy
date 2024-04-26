@@ -71,7 +71,7 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-B\<close> specifies the Docker image taken as starting point for the
   Isabelle installation: it needs to be a suitable version of Ubuntu Linux,
-  see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2023
+  see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2024
   is \<^verbatim>\<open>ubuntu:22.04\<close>, but other versions often work as well, after some
   experimentation with packages.
 
@@ -106,22 +106,22 @@ text \<open>
   Produce a Dockerfile (without image) from a remote Isabelle distribution:
   @{verbatim [display]
 \<open>  isabelle docker_build -E -n -o Dockerfile
-    https://isabelle.in.tum.de/website-Isabelle2023/dist/Isabelle2023_linux.tar.gz\<close>}
+    https://isabelle.in.tum.de/website-Isabelle2024/dist/Isabelle2024_linux.tar.gz\<close>}
 
   Build a standard Isabelle Docker image from a local Isabelle distribution,
   with \<^verbatim>\<open>bin/isabelle\<close> as executable entry point:
 
   @{verbatim [display]
-\<open>  isabelle docker_build -E -t test/isabelle:Isabelle2023 Isabelle2023_linux.tar.gz\<close>}
+\<open>  isabelle docker_build -E -t test/isabelle:Isabelle2024 Isabelle2024_linux.tar.gz\<close>}
 
   Invoke the raw Isabelle/ML process within that image:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2023 process -e "Session.welcome ()"\<close>}
+\<open>  docker run test/isabelle:Isabelle2024 process -e "Session.welcome ()"\<close>}
 
   Invoke a Linux command-line tool within the contained Isabelle system
   environment:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2023 env uname -a\<close>}
+\<open>  docker run test/isabelle:Isabelle2024 env uname -a\<close>}
   The latter should always report a Linux operating system, even when running
   on Windows or macOS.
 \<close>
@@ -454,7 +454,7 @@ text \<open>
 
   \<^medskip>
   The default is to output the Isabelle distribution name, e.g.\
-  ``\<^verbatim>\<open>Isabelle2023\<close>''.
+  ``\<^verbatim>\<open>Isabelle2024\<close>''.
 
   \<^medskip>
   Option \<^verbatim>\<open>-i\<close> produces a short identification derived from the Mercurial id
