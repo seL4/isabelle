@@ -72,17 +72,18 @@ text \<open>
   Option \<^verbatim>\<open>-B\<close> specifies the Docker image taken as starting point for the
   Isabelle installation: it needs to be a suitable version of Ubuntu Linux,
   see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2024
-  is \<^verbatim>\<open>ubuntu:22.04\<close>, but other versions often work as well, after some
-  experimentation with packages.
+  is \<^verbatim>\<open>ubuntu:22.04\<close>, but \<^verbatim>\<open>ubuntu:20.04\<close> and \<^verbatim>\<open>ubuntu:24.04\<close> should work as
+  well. Other versions might require experimentation with the package
+  selection.
 
   Option \<^verbatim>\<open>-p\<close> includes additional Ubuntu packages, using the terminology
   of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
 
   Option \<^verbatim>\<open>-P\<close> refers to high-level package collections: \<^verbatim>\<open>X11\<close> or \<^verbatim>\<open>latex\<close> as
-  provided by \<^verbatim>\<open>isabelle docker_build\<close> (assuming Ubuntu 22.04 LTS). This
-  imposes extra weight on the resulting Docker images. Note that \<^verbatim>\<open>X11\<close> will
-  only provide remote X11 support according to the modest GUI quality
-  standards of the late 1990-ies.
+  provided by \<^verbatim>\<open>isabelle docker_build\<close> (assuming Ubuntu 20.04/22.04/24.04
+  LTS). This imposes extra weight on the resulting Docker images. Note that
+  \<^verbatim>\<open>X11\<close> will only provide remote X11 support according to the modest GUI
+  quality standards of the late 1990-ies.
 
   \<^medskip>
   Option \<^verbatim>\<open>-n\<close> suppresses the actual \<^verbatim>\<open>docker build\<close> process. Option \<^verbatim>\<open>-o\<close>
