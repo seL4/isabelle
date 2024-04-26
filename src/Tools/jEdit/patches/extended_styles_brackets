@@ -1,6 +1,6 @@
 diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java
 --- jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2021-05-10 11:02:05.816257745 +0200
++++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2024-04-25 12:56:22.208257322 +0200
 @@ -332,9 +332,9 @@
  	//{{{ Package private members
  
@@ -24,6 +24,18 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.6.0-patched/
  	private GlyphData glyphData;
  	//}}}
  
+@@ -926,6 +926,11 @@
+ 		}
+ 
+ 		@Override
++		public GlyphData computeIfAbsent(GlyphKey key, java.util.function.Function<? super GlyphKey, ? extends GlyphData> f) {
++			synchronized (this) { return super.computeIfAbsent(key, f); }
++		}
++
++		@Override
+ 		protected boolean removeEldestEntry(Map.Entry<GlyphKey, GlyphData> eldest)
+ 		{
+ 			return size() > capacity;
 diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
 --- jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2020-09-03 05:31:01.000000000 +0200
 +++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2023-11-20 15:31:55.825519645 +0100
