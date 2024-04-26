@@ -759,6 +759,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               """find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" """ +
               """> contrib/cygwin/isabelle/symlinks""")
 
+            execute(isabelle_target,
+              """find . -type d -not -perm """ +
+              (if (Platform.is_macos) "+" else "/") + """222 -exec chmod +w "{}" ";" """)
+
             execute(isabelle_target, """find . -type l -exec rm "{}" ";" """)
 
             File.write(isabelle_target + Path.explode("contrib/cygwin/isabelle/uninitialized"), "")
