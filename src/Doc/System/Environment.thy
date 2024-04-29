@@ -174,7 +174,7 @@ text \<open>
   is \<^path>\<open>$ISABELLE_HOME/heaps\<close>. See also \secref{sec:tool-build}.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
-  is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
+  is given explicitly by the user. The default value is \<^verbatim>\<open>HOL\<close>.
 
   \<^descr>[@{setting_def ISABELLE_LINE_EDITOR}] specifies the line editor for the
   @{tool_ref console} interface.
