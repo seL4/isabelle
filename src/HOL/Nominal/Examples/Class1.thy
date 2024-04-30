@@ -188,17 +188,15 @@ lemma nrename_rename:
   assumes a: "x'\<sharp>M"
   shows "([(x',x)]\<bullet>M)[x'\<turnstile>n>y]= M[x\<turnstile>n>y]"
 using a
-apply(nominal_induct M avoiding: x x' y rule: trm.strong_induct)
- apply(auto simp: abs_fresh abs_supp fin_supp fresh_left calc_atm fresh_atm)
-done
+proof (nominal_induct M avoiding: x x' y rule: trm.strong_induct)
+qed (auto simp: abs_fresh abs_supp fin_supp fresh_left calc_atm fresh_atm)
 
 lemma crename_rename:
   assumes a: "a'\<sharp>M"
   shows "([(a',a)]\<bullet>M)[a'\<turnstile>c>b]= M[a\<turnstile>c>b]"
 using a
-apply(nominal_induct M avoiding: a a' b rule: trm.strong_induct)
- apply(auto simp: abs_fresh abs_supp fin_supp fresh_left calc_atm fresh_atm)
-done
+proof (nominal_induct M avoiding: a a' b rule: trm.strong_induct)
+qed (auto simp: abs_fresh abs_supp fin_supp fresh_left calc_atm fresh_atm)
 
 lemmas rename_fresh = nrename_fresh crename_fresh 
                       nrename_nfresh crename_nfresh crename_cfresh nrename_cfresh
@@ -265,17 +263,15 @@ lemma crename_ax:
   assumes a: "M[a\<turnstile>c>b] = Ax x c" "c\<noteq>a" "c\<noteq>b"
   shows "M = Ax x c"
 using a
-apply(nominal_induct M avoiding: a b x c rule: trm.strong_induct)
-apply(simp_all add: trm.inject split: if_splits)
-done
+proof (nominal_induct M avoiding: a b x c rule: trm.strong_induct)
+qed (simp_all add: trm.inject split: if_splits)
 
 lemma nrename_ax:
   assumes a: "M[x\<turnstile>n>y] = Ax z a" "z\<noteq>x" "z\<noteq>y"
   shows "M = Ax z a"
 using a
-apply(nominal_induct M avoiding: x y z a rule: trm.strong_induct)
-apply(simp_all add: trm.inject split: if_splits)
-done
+proof (nominal_induct M avoiding: x y z a rule: trm.strong_induct)
+qed (simp_all add: trm.inject split: if_splits)
 
 text \<open>substitution functions\<close>
 
@@ -307,12 +303,10 @@ proof (rule fresh_fun_app)
     using a by(finite_guess)
   obtain n::name where n: "n\<sharp>(c,P,a,M)"
     by (metis assms fresh_atm(3) fresh_prod)
-  with assms
-  show "\<exists>b. b \<sharp> (\<lambda>x'. Cut <c>.P (x').NotL <a>.M x', Cut <c>.P (b).NotL <a>.M b)"
-    apply(intro exI [where x="n"])
-    apply(simp add: fresh_prod abs_fresh)
-    apply(fresh_guess)
-    done
+  with assms have "n \<sharp> (\<lambda>x'. Cut <c>.P (x').NotL <a>.M x')"
+    by (fresh_guess)
+  then show "\<exists>b. b \<sharp> (\<lambda>x'. Cut <c>.P (x').NotL <a>.M x', Cut <c>.P (b).NotL <a>.M b)"
+    by (metis abs_fresh(1) abs_fresh(5) fresh_prod n trm.fresh(3))
   show "x' \<sharp> (\<lambda>x'. Cut <c>.P (x').NotL <a>.M x')"
     using assms by(fresh_guess)
 qed
@@ -327,13 +321,7 @@ lemma fresh_fun_NotL[eqvt_force]:
    apply(perm_simp)
    apply(generate_fresh "name")
    apply(auto simp: fresh_prod fresh_fun_simp_NotL)
-   apply(rule sym)
-   apply(rule trans)
-    apply(rule fresh_fun_simp_NotL)
-     apply(blast intro: fresh_perm_name)
-    apply(metis fresh_perm_name)
-   apply(simp add: at_prm_fresh[OF at_name_inst] swap_simps)
-
+  apply (metis fresh_bij(1) fresh_fun_simp_NotL name_prm_coname_def)
   apply(perm_simp)
   apply(subgoal_tac "\<exists>n::name. n\<sharp>(P,M,pi2\<bullet>P,pi2\<bullet>M,pi2)")
    apply (metis fresh_fun_simp_NotL fresh_prodD swap_simps(8) trm.perm(14) trm.perm(16))
@@ -1189,79 +1177,44 @@ next
     by (auto simp: fresh_prod fresh_atm calc_atm trm.inject alpha perm_swap fresh_left)
 next
   case (NotL d M y)
-  then show ?case
-    apply(auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_NotL)
-    apply(simp add: trm.inject alpha perm_swap fresh_left calc_atm)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+  then obtain a'::name where "a'\<sharp>(N, M{x:=<c>.([(c,a)]\<bullet>N)}, [(c,a)]\<bullet>N)"
+    by (meson exists_fresh(1) fs_name1)
+  with NotL show ?case
+    apply(auto simp: calc_atm trm.inject fresh_atm fresh_prod fresh_left)
+    by (metis (no_types, opaque_lifting) alpha(2) trm.inject(2))
 next
   case (OrL x1 M x2 M' x3)
-  then show ?case
-    apply(auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac 
-       "\<exists>a'::name. a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},M'{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,x1,x2,x3)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_OrL)
-    apply (auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh subst_fresh perm_swap fresh_left)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
-next
-  case OrR1
-  then show ?case by (auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-next
-  case OrR2
-  then show ?case by (auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
+  then obtain a'::name where "a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},M'{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,x1,x2,x3)"
+    by (meson exists_fresh(1) fs_name1)  
+  with OrL show ?case
+    apply(auto simp: calc_atm trm.inject fresh_atm fresh_prod fresh_left)
+    by (metis (no_types) alpha'(2) trm.inject(2))
 next
   case (AndL1 u M v)
-  then show ?case 
-    apply(auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,u,v)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_AndL1)
-    apply(simp add: trm.inject alpha perm_swap fresh_left calc_atm)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+  then obtain a'::name where "a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,u,v)"
+    by (meson exists_fresh(1) fs_name1)  
+  with AndL1 show ?case 
+    apply(auto simp: calc_atm trm.inject fresh_atm fresh_prod fresh_left)
+    by (metis (mono_tags, opaque_lifting) alpha'(2) trm.inject(2))
 next
   case (AndL2 u M v)
-  then show ?case 
-    apply(auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,u,v)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_AndL2)
-    apply(simp add: trm.inject alpha perm_swap fresh_left calc_atm)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
-next
-  case (AndR c1 M c2 M' c3)
-  then show ?case
-    by (auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-next 
-  case ImpR
-  then show ?case
-    by (auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
+  then obtain a'::name where "a'\<sharp>(N,M{x:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,u,v)"
+    by (meson exists_fresh(1) fs_name1)  
+  with AndL2 show ?case 
+    apply(auto simp: calc_atm trm.inject fresh_atm fresh_prod fresh_left)
+    by (metis (mono_tags, opaque_lifting) alpha'(2) trm.inject(2))
 next
   case (ImpL d M y M' u)
-  then show ?case
-    apply(auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{u:=<c>.([(c,a)]\<bullet>N)},M'{u:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,y,u)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_ImpL)
-    apply(simp add: trm.inject alpha perm_swap fresh_left calc_atm)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+  then obtain a'::name where "a'\<sharp>(N,M{u:=<c>.([(c,a)]\<bullet>N)},M'{u:=<c>.([(c,a)]\<bullet>N)},[(c,a)]\<bullet>N,y,u)"
+    by (meson exists_fresh(1) fs_name1)  
+  with ImpL show ?case
+    apply(auto simp: calc_atm trm.inject fresh_atm fresh_prod fresh_left)
+    by (metis (no_types) alpha'(2) trm.inject(2))
 next
   case (Cut d M y M')
   then show ?case
     by (auto simp: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left perm_swap)
-qed
+qed (auto simp: calc_atm fresh_atm fresh_left)
 
 lemma subst_rename5:
   assumes a: "c'\<sharp>(c,N)" "x'\<sharp>(x,M)"
@@ -1293,10 +1246,7 @@ proof -
   have eq1: "(Cut <a>.M (x).N) = (Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N))"
     using fs1 fs2 by (rule_tac sym, auto simp: trm.inject alpha fresh_atm fresh_prod calc_atm)
   have eq2: "(M=Ax y a) = (([(a',a)]\<bullet>M)=Ax y a')"
-    apply(auto simp: calc_atm)
-    apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
-    apply(simp add: calc_atm)
-    done
+    by (metis perm_swap(4) swap_simps(4) swap_simps(8) trm.perm(13))
   have "(Cut <a>.M (x).N){y:=<c>.P} = (Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)){y:=<c>.P}" 
     using eq1 by simp
   also have "\<dots> = (if ([(a',a)]\<bullet>M)=Ax y a' then Cut <c>.P (x').(([(x',x)]\<bullet>N){y:=<c>.P}) 
@@ -1304,17 +1254,10 @@ proof -
     using fs1 fs2 by (auto simp: fresh_prod fresh_left calc_atm fresh_atm)
   also have "\<dots> =(if M=Ax y a then Cut <c>.P (x).(N{y:=<c>.P}) else Cut <a>.(M{y:=<c>.P}) (x).(N{y:=<c>.P}))"
     using fs1 fs2 a
-    apply -
-    apply(simp only: eq2[symmetric])
+    unfolding eq2[symmetric]
     apply(auto simp: trm.inject)
-    apply(simp_all add: alpha fresh_atm fresh_prod subst_fresh)
-    apply(simp_all add: eqvts perm_fresh_fresh calc_atm)
-    apply(auto)
-    apply(rule subst_rename)
-    apply(simp add: fresh_prod fresh_atm)
-    apply(simp add: abs_fresh)
-    apply(simp add: perm_fresh_fresh)
-    done
+    apply(simp_all add: alpha fresh_atm fresh_prod subst_fresh eqvts perm_fresh_fresh calc_atm)
+    by (metis abs_fresh(2) fresh_atm(2) fresh_prod perm_fresh_fresh(2) substn_rename4)
   finally show ?thesis by simp
 qed
     
@@ -1328,10 +1271,7 @@ proof -
   have eq1: "(Cut <a>.M (x).N) = (Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N))"
     using fs1 fs2 by (rule_tac sym, auto simp: trm.inject alpha fresh_atm fresh_prod calc_atm)
   have eq2: "(N=Ax x c) = (([(x',x)]\<bullet>N)=Ax x' c)"
-    apply(auto simp: calc_atm)
-    apply(drule pt_bij1[OF pt_name_inst, OF at_name_inst])
-    apply(simp add: calc_atm)
-    done
+    by (metis perm_dj(1) perm_swap(1) swap_simps(1) trm.perm(1))
   have "(Cut <a>.M (x).N){c:=(y).P} = (Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)){c:=(y).P}" 
     using eq1 by simp
   also have "\<dots> = (if ([(x',x)]\<bullet>N)=Ax x' c then  Cut <a'>.(([(a',a)]\<bullet>M){c:=(y).P}) (y).P
@@ -1339,52 +1279,42 @@ proof -
     using fs1 fs2  by (simp add: fresh_prod fresh_left calc_atm fresh_atm trm.inject)
   also have "\<dots> =(if N=Ax x c then Cut <a>.(M{c:=(y).P}) (y).P else Cut <a>.(M{c:=(y).P}) (x).(N{c:=(y).P}))"
     using fs1 fs2 a
-    apply -
-    apply(simp only: eq2[symmetric])
+    unfolding eq2[symmetric]
     apply(auto simp: trm.inject)
-    apply(simp_all add: alpha fresh_atm fresh_prod subst_fresh)
-    apply(simp_all add: eqvts perm_fresh_fresh calc_atm)
-    apply(auto)
-    apply(rule subst_rename)
-    apply(simp add: fresh_prod fresh_atm)
-    apply(simp add: abs_fresh)
-    apply(simp add: perm_fresh_fresh)
-    done
+    apply(simp_all add: alpha fresh_atm fresh_prod subst_fresh eqvts perm_fresh_fresh calc_atm)
+    by (metis abs_fresh(1) fresh_atm(1) fresh_prod perm_fresh_fresh(1) substc_rename2)
   finally show ?thesis by simp
 qed
 
 lemma better_Cut_substn':
-  assumes a: "a\<sharp>[c].P" "y\<sharp>(N,x)" "M\<noteq>Ax y a"
+  assumes "a\<sharp>[c].P" "y\<sharp>(N,x)" "M\<noteq>Ax y a"
   shows "(Cut <a>.M (x).N){y:=<c>.P} = Cut <a>.(M{y:=<c>.P}) (x).N"
-using a
-apply -
-apply(generate_fresh "name")
-apply(subgoal_tac "Cut <a>.M (x).N = Cut <a>.M (ca).([(ca,x)]\<bullet>N)")
-apply(simp)
-apply(subgoal_tac"y\<sharp>([(ca,x)]\<bullet>N)")
-apply(simp add: forget)
-apply(simp add: trm.inject)
-apply(auto simp: fresh_left calc_atm fresh_prod fresh_atm)[1]
-apply(simp add: trm.inject)
-apply(rule sym)
-apply(simp add: alpha fresh_prod fresh_atm)
-done
+proof -
+  obtain d::name where d: "d \<sharp> (M, N, P, a, c, x, y)"
+    by (meson exists_fresh(1) fs_name1)
+  then have *: "y\<sharp>([(d,x)]\<bullet>N)"
+    by (metis assms(2) fresh_atm(1) fresh_list_cons fresh_list_nil fresh_perm_name fresh_prod)
+  with d have "Cut <a>.M (x).N = Cut <a>.M (d).([(d,x)]\<bullet>N)"
+    by (metis (no_types, lifting) alpha(1) fresh_prodD perm_fresh_fresh(1) trm.inject(2))
+  with * d assms show ?thesis
+    apply(simp add: fresh_prod)
+    by (smt (verit, ccfv_SIG) forget(1) trm.inject(2))
+qed
 
 lemma better_NotR_substc:
   assumes a: "d\<sharp>M"
   shows "(NotR (x).M d){d:=(z).P} = fresh_fun (\<lambda>a'. Cut <a'>.NotR (x).M a' (z).P)"
-using a
-apply -
-apply(generate_fresh "name")
-apply(subgoal_tac "NotR (x).M d = NotR (c).([(c,x)]\<bullet>M) d")
-apply(auto simp: fresh_left calc_atm forget)
-apply(generate_fresh "coname")
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(perm_simp add: trm.inject alpha fresh_prod fresh_atm fresh_left, auto)
-done
+proof -
+  obtain c::name where c: "c \<sharp> (M, P, d, x, z)"
+    by (meson exists_fresh(1) fs_name1)
+  obtain e::coname where e: "e \<sharp> (M, P, d, x, z, c)"
+    by (meson exists_fresh'(2) fs_coname1)
+  with c have "NotR (x).M d = NotR (c).([(c,x)]\<bullet>M) d"
+    by (metis alpha'(1) fresh_prodD(1) nrename_id nrename_swap trm.inject(3))
+  with c e assms show ?thesis
+    apply(simp add: fresh_prod)
+    by (metis forget(2) fresh_perm_app(3) trm.inject(3))
+qed
 
 lemma better_NotL_substn:
   assumes a: "y\<sharp>M"
@@ -1603,40 +1533,27 @@ done
 
 lemma freshn_after_substc:
   fixes x::"name"
-  assumes a: "x\<sharp>M{c:=(y).P}"
+  assumes "x\<sharp>M{c:=(y).P}"
   shows "x\<sharp>M"
-using a supp_subst8
-apply(simp add: fresh_def)
-apply(blast)
-done
+  by (meson assms fresh_def subsetD supp_subst8)
 
 lemma freshn_after_substn:
   fixes x::"name"
-  assumes a: "x\<sharp>M{y:=<c>.P}" "x\<noteq>y"
+  assumes "x\<sharp>M{y:=<c>.P}" "x\<noteq>y"
   shows "x\<sharp>M"
-using a
-using a supp_subst5
-apply(simp add: fresh_def)
-apply(blast)
-done
+  by (meson DiffI assms fresh_def singleton_iff subset_eq supp_subst5)
 
 lemma freshc_after_substc:
   fixes a::"coname"
-  assumes a: "a\<sharp>M{c:=(y).P}" "a\<noteq>c"
+  assumes "a\<sharp>M{c:=(y).P}" "a\<noteq>c"
   shows "a\<sharp>M"
-using a supp_subst7
-apply(simp add: fresh_def)
-apply(blast)
-done
+  by (meson Diff_iff assms fresh_def in_mono singleton_iff supp_subst7)
 
 lemma freshc_after_substn:
   fixes a::"coname"
-  assumes a: "a\<sharp>M{y:=<c>.P}" 
+  assumes "a\<sharp>M{y:=<c>.P}" 
   shows "a\<sharp>M"
-using a supp_subst6
-apply(simp add: fresh_def)
-apply(blast)
-done
+  by (meson assms fresh_def subset_iff supp_subst6)
 
 lemma substn_crename_comm:
   assumes a: "c\<noteq>a" "c\<noteq>b"
@@ -1967,152 +1884,82 @@ apply(rule fin_supp)
 done
 
 lemma substn_crename_comm':
-  assumes a: "a\<noteq>c" "a\<sharp>P"
+  assumes "a\<noteq>c" "a\<sharp>P"
   shows "M{x:=<c>.P}[a\<turnstile>c>b] = M[a\<turnstile>c>b]{x:=<c>.P}"
-using a
 proof -
-  assume a1: "a\<noteq>c"
-  assume a2: "a\<sharp>P"
   obtain c'::"coname" where fs2: "c'\<sharp>(c,P,a,b)" by (rule exists_fresh(2), rule fin_supp, blast)
   have eq: "M{x:=<c>.P} = M{x:=<c'>.([(c',c)]\<bullet>P)}"
-    using fs2
-    apply -
-    apply(rule subst_rename)
-    apply(simp)
-    done
+    using fs2 substn_rename4 by force
    have eq': "M[a\<turnstile>c>b]{x:=<c>.P} = M[a\<turnstile>c>b]{x:=<c'>.([(c',c)]\<bullet>P)}"
-    using fs2
-    apply -
-    apply(rule subst_rename)
-    apply(simp)
-    done
-  have eq2: "([(c',c)]\<bullet>P)[a\<turnstile>c>b] = ([(c',c)]\<bullet>P)" using fs2 a2 a1
-    apply -
-    apply(rule rename_fresh)
-    apply(simp add: fresh_left calc_atm fresh_prod fresh_atm)
-    done
+    using fs2 by (simp add: substn_rename4)
+  have eq2: "([(c',c)]\<bullet>P)[a\<turnstile>c>b] = ([(c',c)]\<bullet>P)" using fs2 assms
+    by (metis crename_fresh fresh_atm(2) fresh_aux(2) fresh_prod)
   have "M{x:=<c>.P}[a\<turnstile>c>b] = M{x:=<c'>.([(c',c)]\<bullet>P)}[a\<turnstile>c>b]" using eq by simp
   also have "\<dots> = M[a\<turnstile>c>b]{x:=<c'>.(([(c',c)]\<bullet>P)[a\<turnstile>c>b])}"
     using fs2
-    apply -
-    apply(rule substn_crename_comm)
-    apply(simp_all add: fresh_prod fresh_atm)
-    done
+    by (simp add: fresh_atm(2) fresh_prod substn_crename_comm)
   also have "\<dots> = M[a\<turnstile>c>b]{x:=<c'>.(([(c',c)]\<bullet>P))}" using eq2 by simp
   also have "\<dots> = M[a\<turnstile>c>b]{x:=<c>.P}" using eq' by simp 
   finally show ?thesis by simp
 qed
 
 lemma substc_crename_comm':
-  assumes a: "c\<noteq>a" "c\<noteq>b" "a\<sharp>P"
+  assumes "c\<noteq>a" "c\<noteq>b" "a\<sharp>P"
   shows "M{c:=(x).P}[a\<turnstile>c>b] = M[a\<turnstile>c>b]{c:=(x).P}"
-using a
 proof -
-  assume a1: "c\<noteq>a"
-  assume a1': "c\<noteq>b"
-  assume a2: "a\<sharp>P"
   obtain c'::"coname" where fs2: "c'\<sharp>(c,M,a,b)" by (rule exists_fresh(2), rule fin_supp, blast)
   have eq: "M{c:=(x).P} = ([(c',c)]\<bullet>M){c':=(x).P}"
-    using fs2
-    apply -
-    apply(rule subst_rename)
-    apply(simp)
-    done
+    using fs2 by (simp add: substc_rename1)
    have eq': "([(c',c)]\<bullet>(M[a\<turnstile>c>b])){c':=(x).P} = M[a\<turnstile>c>b]{c:=(x).P}"
-    using fs2
-    apply -
-    apply(rule subst_rename[symmetric])
-    apply(simp add: rename_fresh)
-    done
-  have eq2: "([(c',c)]\<bullet>M)[a\<turnstile>c>b] = ([(c',c)]\<bullet>(M[a\<turnstile>c>b]))" using fs2 a2 a1 a1'
-    apply -
-    apply(simp add: rename_eqvts)
-    apply(simp add: fresh_left calc_atm fresh_prod fresh_atm)
-    done
+    using fs2 by (metis crename_cfresh' fresh_prod substc_rename1)
+  have eq2: "([(c',c)]\<bullet>M)[a\<turnstile>c>b] = ([(c',c)]\<bullet>(M[a\<turnstile>c>b]))" using fs2 assms
+    by (simp add: crename_coname_eqvt fresh_atm(2) fresh_prod swap_simps(6))
   have "M{c:=(x).P}[a\<turnstile>c>b] = ([(c',c)]\<bullet>M){c':=(x).P}[a\<turnstile>c>b]" using eq by simp
   also have "\<dots> = ([(c',c)]\<bullet>M)[a\<turnstile>c>b]{c':=(x).P[a\<turnstile>c>b]}"
-    using fs2
-    apply -
-    apply(rule substc_crename_comm)
-    apply(simp_all add: fresh_prod fresh_atm)
-    done
+    using fs2 assms
+    by (metis crename_fresh eq eq' eq2 substc_crename_comm)
   also have "\<dots> = ([(c',c)]\<bullet>(M[a\<turnstile>c>b])){c':=(x).P[a\<turnstile>c>b]}" using eq2 by simp
-  also have "\<dots> = ([(c',c)]\<bullet>(M[a\<turnstile>c>b])){c':=(x).P}" using a2 by (simp add: rename_fresh)
+  also have "\<dots> = ([(c',c)]\<bullet>(M[a\<turnstile>c>b])){c':=(x).P}" 
+    using assms by (simp add: rename_fresh)
   also have "\<dots> = M[a\<turnstile>c>b]{c:=(x).P}" using eq' by simp
   finally show ?thesis by simp
 qed
 
 lemma substn_nrename_comm':
-  assumes a: "x\<noteq>y" "x\<noteq>z" "y\<sharp>P"
+  assumes "x\<noteq>y" "x\<noteq>z" "y\<sharp>P"
   shows "M{x:=<c>.P}[y\<turnstile>n>z] = M[y\<turnstile>n>z]{x:=<c>.P}"
-using a
 proof -
-  assume a1: "x\<noteq>y"
-  assume a1': "x\<noteq>z"
-  assume a2: "y\<sharp>P"
   obtain x'::"name" where fs2: "x'\<sharp>(x,M,y,z)" by (rule exists_fresh(1), rule fin_supp, blast)
   have eq: "M{x:=<c>.P} = ([(x',x)]\<bullet>M){x':=<c>.P}"
-    using fs2
-    apply -
-    apply(rule subst_rename)
-    apply(simp)
-    done
+    using fs2 by (simp add: substn_rename3)
    have eq': "([(x',x)]\<bullet>(M[y\<turnstile>n>z])){x':=<c>.P} = M[y\<turnstile>n>z]{x:=<c>.P}"
-    using fs2
-    apply -
-    apply(rule subst_rename[symmetric])
-    apply(simp add: rename_fresh)
-    done
-  have eq2: "([(x',x)]\<bullet>M)[y\<turnstile>n>z] = ([(x',x)]\<bullet>(M[y\<turnstile>n>z]))" using fs2 a2 a1 a1'
-    apply -
-    apply(simp add: rename_eqvts)
-    apply(simp add: fresh_left calc_atm fresh_prod fresh_atm)
-    done
+    using fs2 by (metis fresh_prod nrename_nfresh' substn_rename3)
+  have eq2: "([(x',x)]\<bullet>M)[y\<turnstile>n>z] = ([(x',x)]\<bullet>(M[y\<turnstile>n>z]))" 
+    using fs2 by (simp add: assms fresh_atm(1) fresh_prod nrename_name_eqvt swap_simps(5)) 
   have "M{x:=<c>.P}[y\<turnstile>n>z] = ([(x',x)]\<bullet>M){x':=<c>.P}[y\<turnstile>n>z]" using eq by simp
   also have "\<dots> = ([(x',x)]\<bullet>M)[y\<turnstile>n>z]{x':=<c>.P[y\<turnstile>n>z]}"
-    using fs2
-    apply -
-    apply(rule substn_nrename_comm)
-    apply(simp_all add: fresh_prod fresh_atm)
-    done
+    using fs2 by (metis assms eq eq' eq2 nrename_fresh substn_nrename_comm)
   also have "\<dots> = ([(x',x)]\<bullet>(M[y\<turnstile>n>z])){x':=<c>.P[y\<turnstile>n>z]}" using eq2 by simp
-  also have "\<dots> = ([(x',x)]\<bullet>(M[y\<turnstile>n>z])){x':=<c>.P}" using a2 by (simp add: rename_fresh)
+  also have "\<dots> = ([(x',x)]\<bullet>(M[y\<turnstile>n>z])){x':=<c>.P}" using assms by (simp add: rename_fresh)
   also have "\<dots> = M[y\<turnstile>n>z]{x:=<c>.P}" using eq' by simp
   finally show ?thesis by simp
 qed
 
 lemma substc_nrename_comm':
-  assumes a: "x\<noteq>y" "y\<sharp>P"
+  assumes "x\<noteq>y" "y\<sharp>P"
   shows "M{c:=(x).P}[y\<turnstile>n>z] = M[y\<turnstile>n>z]{c:=(x).P}"
-using a
 proof -
-  assume a1: "x\<noteq>y"
-  assume a2: "y\<sharp>P"
   obtain x'::"name" where fs2: "x'\<sharp>(x,P,y,z)" by (rule exists_fresh(1), rule fin_supp, blast)
   have eq: "M{c:=(x).P} = M{c:=(x').([(x',x)]\<bullet>P)}"
     using fs2
-    apply -
-    apply(rule subst_rename)
-    apply(simp)
-    done
+    using substc_rename2 by auto
    have eq': "M[y\<turnstile>n>z]{c:=(x).P} = M[y\<turnstile>n>z]{c:=(x').([(x',x)]\<bullet>P)}"
-    using fs2
-    apply -
-    apply(rule subst_rename)
-    apply(simp)
-    done
-  have eq2: "([(x',x)]\<bullet>P)[y\<turnstile>n>z] = ([(x',x)]\<bullet>P)" using fs2 a2 a1
-    apply -
-    apply(rule rename_fresh)
-    apply(simp add: fresh_left calc_atm fresh_prod fresh_atm)
-    done
+    using fs2 by (simp add: substc_rename2)
+  have eq2: "([(x',x)]\<bullet>P)[y\<turnstile>n>z] = ([(x',x)]\<bullet>P)"
+    using fs2 by (metis assms(2) fresh_atm(1) fresh_aux(1) fresh_prod nrename_fresh)
   have "M{c:=(x).P}[y\<turnstile>n>z] = M{c:=(x').([(x',x)]\<bullet>P)}[y\<turnstile>n>z]" using eq by simp
   also have "\<dots> = M[y\<turnstile>n>z]{c:=(x').(([(x',x)]\<bullet>P)[y\<turnstile>n>z])}"
-    using fs2
-    apply -
-    apply(rule substc_nrename_comm)
-    apply(simp_all add: fresh_prod fresh_atm)
-    done
+    using fs2 by (simp add: fresh_atm(1) fresh_prod substc_nrename_comm)
   also have "\<dots> = M[y\<turnstile>n>z]{c:=(x').(([(x',x)]\<bullet>P))}" using eq2 by simp
   also have "\<dots> = M[y\<turnstile>n>z]{c:=(x).P}" using eq' by simp 
   finally show ?thesis by simp
@@ -2173,59 +2020,36 @@ where
 equivariance fin
 
 lemma fin_Ax_elim:
-  assumes a: "fin (Ax x a) y"
+  assumes "fin (Ax x a) y"
   shows "x=y"
-using a
-apply(erule_tac fin.cases)
-apply(auto simp: trm.inject)
-done
+  using assms fin.simps trm.inject(1) by auto
 
 lemma fin_NotL_elim:
   assumes a: "fin (NotL <a>.M x) y"
   shows "x=y \<and> x\<sharp>M"
-using a
-apply(erule_tac fin.cases)
-apply(auto simp: trm.inject)
-apply(subgoal_tac "y\<sharp>[aa].Ma")
-apply(drule sym)
-apply(simp_all add: abs_fresh)
-done
+  using assms 
+  by (cases rule: fin.cases; simp add: trm.inject; metis abs_fresh(5))
 
 lemma fin_AndL1_elim:
   assumes a: "fin (AndL1 (x).M y) z"
   shows "z=y \<and> z\<sharp>[x].M"
-using a
-apply(erule_tac fin.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (cases rule: fin.cases; simp add: trm.inject)
 
 lemma fin_AndL2_elim:
   assumes a: "fin (AndL2 (x).M y) z"
   shows "z=y \<and> z\<sharp>[x].M"
-using a
-apply(erule_tac fin.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (cases rule: fin.cases; simp add: trm.inject)
 
 lemma fin_OrL_elim:
   assumes a: "fin (OrL (x).M (y).N u) z"
   shows "z=u \<and> z\<sharp>[x].M \<and> z\<sharp>[y].N"
-using a
-apply(erule_tac fin.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (cases rule: fin.cases; simp add: trm.inject)
 
 lemma fin_ImpL_elim:
   assumes a: "fin (ImpL <a>.M (x).N z) y"
   shows "z=y \<and> z\<sharp>M \<and> z\<sharp>[x].N"
-using a
-apply(erule_tac fin.cases)
-apply(auto simp: trm.inject)
-apply(subgoal_tac "y\<sharp>[aa].Ma")
-apply(drule sym)
-apply(simp_all add: abs_fresh)
-apply (metis abs_fresh(5))
-done
+  using assms
+  by (cases rule: fin.cases; simp add: trm.inject; metis abs_fresh(5))
  
 
 lemma fin_rest_elims:
