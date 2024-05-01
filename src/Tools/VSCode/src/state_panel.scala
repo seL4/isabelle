@@ -47,6 +47,7 @@ class State_Panel private(val server: Language_Server) {
   /* output */
 
   val id: Counter.ID = State_Panel.make_id()
+  private val margin: Double = 80
 
   private def output(content: String): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value))
@@ -63,19 +64,25 @@ class State_Panel private(val server: Language_Server) {
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (_, _, body) =>
         if (output_active.value && body.nonEmpty) {
-          val node_context =
-            new Browser_Info.Node_Context {
-              override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
-                for {
-                  thy_file <- Position.Def_File.unapply(props)
-                  def_line <- Position.Def_Line.unapply(props)
-                  source <- server.resources.source_file(thy_file)
-                  uri = File.uri(Path.explode(source).absolute_file)
-                } yield HTML.link(uri.toString + "#" + def_line, body)
-            }
-          val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
-          val html = node_context.make_html(elements, Pretty.separate(body))
-          output(HTML.source(html).toString)
+          if (server.resources.html_output) {
+            val node_context =
+              new Browser_Info.Node_Context {
+                override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
+                  for {
+                    thy_file <- Position.Def_File.unapply(props)
+                    def_line <- Position.Def_Line.unapply(props)
+                    source <- server.resources.source_file(thy_file)
+                    uri = File.uri(Path.explode(source).absolute_file)
+                  } yield HTML.link(uri.toString + "#" + def_line, body)
+              }
+            val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
+            val separate = Pretty.separate(body)
+            val formatted = Pretty.formatted(separate, margin = margin)
+            val html = node_context.make_html(elements, formatted)
+            output(HTML.source(html).toString)
+          } else {
+            output(server.resources.output_pretty(body, margin))
+          }
         })
 
   def locate(): Unit = print_state.locate_query()

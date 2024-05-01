@@ -15,7 +15,9 @@ object Dynamic_Output {
     def handle_update(
       resources: VSCode_Resources,
       channel: Channel,
-      restriction: Option[Set[Command]]
+      restriction: Option[Set[Command]],
+      html_output: Boolean,
+      margin: Double,
     ): State = {
       val st1 =
         resources.get_caret() match {
@@ -36,19 +38,25 @@ object Dynamic_Output {
             else this
         }
       if (st1.output != output) {
-        val node_context =
-          new Browser_Info.Node_Context {
-            override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
-              for {
-                thy_file <- Position.Def_File.unapply(props)
-                def_line <- Position.Def_Line.unapply(props)
-                source <- resources.source_file(thy_file)
-                uri = File.uri(Path.explode(source).absolute_file)
-              } yield HTML.link(uri.toString + "#" + def_line, body)
-          }
-        val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
-        val html = node_context.make_html(elements, Pretty.separate(st1.output))
-        channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
+        if (html_output) {
+          val node_context =
+            new Browser_Info.Node_Context {
+              override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
+                for {
+                  thy_file <- Position.Def_File.unapply(props)
+                  def_line <- Position.Def_Line.unapply(props)
+                  source <- resources.source_file(thy_file)
+                  uri = File.uri(Path.explode(source).absolute_file)
+                } yield HTML.link(uri.toString + "#" + def_line, body)
+            }
+          val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
+          val separate = Pretty.separate(st1.output)
+          val formatted = Pretty.formatted(separate, margin = margin)
+          val html = node_context.make_html(elements, formatted)
+          channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
+        } else {
+          channel.write(LSP.Dynamic_Output(resources.output_pretty(st1.output, margin = margin)))
+        }
       }
       st1
     }
@@ -60,9 +68,12 @@ object Dynamic_Output {
 
 class Dynamic_Output private(server: Language_Server) {
   private val state = Synchronized(Dynamic_Output.State())
+  private val margin: Double = 80
 
-  private def handle_update(restriction: Option[Set[Command]]): Unit =
-    state.change(_.handle_update(server.resources, server.channel, restriction))
+  private def handle_update(restriction: Option[Set[Command]]): Unit = {
+    val html_output = server.resources.html_output
+    state.change(_.handle_update(server.resources, server.channel, restriction, html_output, margin))
+  }
 
 
   /* main */
