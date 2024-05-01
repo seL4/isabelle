@@ -62,7 +62,7 @@ class State_Panel private(val server: Language_Server) {
   private val print_state =
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (_, _, body) =>
-        if (output_active.value && body.nonEmpty){
+        if (output_active.value && body.nonEmpty) {
           val node_context =
             new Browser_Info.Node_Context {
               override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
