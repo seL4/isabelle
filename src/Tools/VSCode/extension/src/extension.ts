@@ -65,6 +65,7 @@ function isabelle_options(args: Args): string[]
 
   add("-o"); add("vscode_unicode_symbols")
   add("-o"); add("vscode_pide_extensions")
+  add("-o"); add("vscode_html_output")
   add_values("-o", "options")
 
   add_value("-A", "logic_ancestor")

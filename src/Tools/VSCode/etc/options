@@ -29,3 +29,6 @@ option vscode_caret_perspective : int = 50
 
 option vscode_caret_preview : bool = false
   -- "dynamic preview of caret document node"
+
+option vscode_html_output : bool = false
+  -- "output State and Output in HTML"

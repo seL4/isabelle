@@ -81,6 +81,7 @@ extends Resources(session_background, log = log) {
 
   def pide_extensions: Boolean = options.bool("vscode_pide_extensions")
   def unicode_symbols: Boolean = options.bool("vscode_unicode_symbols")
+  def html_output: Boolean = options.bool("vscode_html_output")
   def tooltip_margin: Int = options.int("vscode_tooltip_margin")
   def message_margin: Int = options.int("vscode_message_margin")
 
