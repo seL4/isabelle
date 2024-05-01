@@ -10,7 +10,7 @@ package isabelle
 object Component_E {
   /* build E prover */
 
-  val default_version = "3.0.03"
+  val default_version = "3.1"
   val default_download_url = "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
 
   def build_e(
@@ -43,48 +43,6 @@ object Component_E {
       val source_dir = File.get_dir(tmp_dir, title = archive_url)
 
       Isabelle_System.extract(archive_path, component_dir.src, strip = true)
-
-
-      /* patch */
-
-      // proper support for trivial statements, e.g.
-      // fof(m__,conjecture,(! [X] : (p(X) => p(X)))).
-      val patch = """diff -ru E/CLAUSES/ccl_tcnf.c E-patched/CLAUSES/ccl_tcnf.c
---- E/CLAUSES/ccl_tcnf.c	2023-11-25 08:34:08.000000000 +0100
-+++ E-patched/CLAUSES/ccl_tcnf.c	2024-04-24 16:42:13.948892558 +0200
-@@ -254,14 +254,14 @@
-          }
-          else if(TermIsTrueTerm(form->args[0]))
-          {
--            handle = TFormulaFCodeAlloc(terms, terms->sig->eqn_code,
-+            handle = TFormulaFCodeAlloc(terms, terms->sig->neqn_code,
-                                         form->args[0],
-                                         form->args[0]);
- 
-          }
-          else if(TermIsFalseTerm(form->args[0]))
-          {
--            handle = TFormulaFCodeAlloc(terms, terms->sig->neqn_code,
-+            handle = TFormulaFCodeAlloc(terms, terms->sig->eqn_code,
-                                         form->args[0],
-                                         form->args[0]);
- 
-diff -ru E/CLAUSES/ccl_tformulae.c E-patched/CLAUSES/ccl_tformulae.c
---- E/CLAUSES/ccl_tformulae.c	2023-11-25 08:34:08.000000000 +0100
-+++ E-patched/CLAUSES/ccl_tformulae.c	2024-04-24 16:26:31.351672232 +0200
-@@ -2444,6 +2444,7 @@
-          else if(TermIsTrueTerm(form))
-          {
-             lit = EqnAlloc(form, form, terms, true);
-+            PStackPushP(lit_stack, lit);
-          }
-          else if(TermIsFalseTerm(form))
-          {
-"""
-
-      for (dir <- List(source_dir, component_dir.src)) {
-        Isabelle_System.bash("patch -b -p1", input = patch, cwd = dir.file).check
-      }
 
 
       /* build */
@@ -127,10 +85,6 @@ E_VERSION=""" + quote(version) + """
 
       File.write(component_dir.README,
         "This is E prover " + version + " from\n" + archive_url + """
-
-* The sources have been patched as follows:
-
-""" + patch + """
 
 * The distribution has been built like this:
 
