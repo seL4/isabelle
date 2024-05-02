@@ -45,7 +45,7 @@ machines are as follows:
       - macOS 14 Sonoma (`studio1` Mac13,2 M1 Ultra, 16+4 cores)
 
   * `x86_64-windows`
-      - **Windows Server 2012 Rev 2** (`vmnipkow9`)
+      - **Windows Server 2022** (`se0.proof.cit.tum.de`)
       - **Windows 10**
       - Windows 11
   * `x86_64-cygwin`

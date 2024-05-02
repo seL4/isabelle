@@ -62,21 +62,23 @@ lemma supp_PTuple [simp]: "((supp \<langle>\<langle>p, q\<rangle>\<rangle>)::nam
   by (simp add: supp_def Collect_disj_eq del: disj_not1)
 
 instance pat :: pt_name
-proof (standard, goal_cases)
-  case (1 x)
-  show ?case by (induct x) simp_all
-next
-  case (2 _ _ x)
-  show ?case by (induct x) (simp_all add: pt_name2)
-next
-  case (3 _ _ x)
-  then show ?case by (induct x) (simp_all add: pt_name3)
+proof
+  fix x :: pat
+  show "([]::(name \<times> _) list) \<bullet> x = x"
+    by (induct x) simp_all
+  fix pi1 pi2 :: "(name \<times> name) list"
+  show "(pi1 @ pi2) \<bullet> x = pi1 \<bullet> pi2 \<bullet> x"
+    by (induct x) (simp_all add: pt_name2)
+  assume "pi1 \<triangleq> pi2"
+  then show "pi1 \<bullet> x = pi2 \<bullet> x"
+    by (induct x) (simp_all add: pt_name3)
 qed
 
 instance pat :: fs_name
-proof (standard, goal_cases)
-  case (1 x)
-  show ?case by (induct x) (simp_all add: fin_supp)
+proof
+  fix x :: pat
+  show "finite (supp x::name set)"
+    by (induct x) (simp_all add: fin_supp)
 qed
 
 (* the following function cannot be defined using nominal_primrec, *)
@@ -255,21 +257,15 @@ qed
 lemma weakening: 
   assumes "\<Gamma>\<^sub>1 \<turnstile> t : T" and "valid \<Gamma>\<^sub>2" and "\<Gamma>\<^sub>1 \<sqsubseteq> \<Gamma>\<^sub>2"
   shows "\<Gamma>\<^sub>2 \<turnstile> t : T" using assms
-  apply (nominal_induct \<Gamma>\<^sub>1 t T avoiding: \<Gamma>\<^sub>2 rule: typing.strong_induct)
-  apply auto
-  apply (drule_tac x="(x, T) # \<Gamma>\<^sub>2" in meta_spec)
-  apply (auto intro: valid_typing)
-  apply (drule_tac x="\<Gamma>\<^sub>2" in meta_spec)
-  apply (drule_tac x="\<Delta> @ \<Gamma>\<^sub>2" in meta_spec)
-  apply (auto intro: valid_typing)
-  apply (rule typing.Let)
-  apply assumption+
-  apply (drule meta_mp)
-  apply (rule valid_app_mono)
-  apply (rule valid_typing)
-  apply assumption
-  apply (auto simp add: pat_freshs)
-  done
+proof (nominal_induct \<Gamma>\<^sub>1 t T avoiding: \<Gamma>\<^sub>2 rule: typing.strong_induct)
+  case (Abs x T \<Gamma> t U)
+  then show ?case
+    by (simp add: typing.Abs valid.Cons)
+next
+  case (Let p t \<Gamma> T \<Delta> u U)
+  then show ?case
+    by (smt (verit, ccfv_threshold) Un_iff pat_freshs set_append typing.simps valid_app_mono valid_typing) 
+qed auto
 
 inductive
   match :: "pat \<Rightarrow> trm \<Rightarrow> (name \<times> trm) list \<Rightarrow> bool"  ("\<turnstile> _ \<rhd> _ \<Rightarrow> _" [50, 50, 50] 50)
@@ -301,27 +297,20 @@ where
 | "x \<sharp> \<theta> \<Longrightarrow> \<theta>\<lparr>\<lambda>x:T. t\<rparr> = (\<lambda>x:T. \<theta>\<lparr>t\<rparr>)"
 | "\<theta>\<lparr>Base t\<rparr>\<^sub>b = Base (\<theta>\<lparr>t\<rparr>)"
 | "x \<sharp> \<theta> \<Longrightarrow> \<theta>\<lparr>Bind T x t\<rparr>\<^sub>b = Bind T x (\<theta>\<lparr>t\<rparr>\<^sub>b)"
-  apply finite_guess+
-  apply (simp add: abs_fresh | fresh_guess)+
-  done
+  by (finite_guess | simp add: abs_fresh | fresh_guess)+
 
 lemma lookup_fresh:
   "x = y \<longrightarrow> x \<in> set (map fst \<theta>) \<Longrightarrow> \<forall>(y, t)\<in>set \<theta>. x \<sharp> t \<Longrightarrow> x \<sharp> lookup \<theta> y"
-  apply (induct \<theta>)
-  apply (simp_all add: split_paired_all fresh_atm)
-  apply (case_tac "x = y")
-  apply (auto simp add: fresh_atm)
-  done
+  by (induct \<theta>) (use fresh_atm in force)+
 
 lemma psubst_fresh:
   assumes "x \<in> set (map fst \<theta>)" and "\<forall>(y, t)\<in>set \<theta>. x \<sharp> t"
   shows "x \<sharp> \<theta>\<lparr>t\<rparr>" and "x \<sharp> \<theta>\<lparr>t'\<rparr>\<^sub>b" using assms
-  apply (nominal_induct t and t' avoiding: \<theta> rule: trm_btrm.strong_inducts)
-  apply simp
-  apply (rule lookup_fresh)
-  apply (rule impI)
-  apply (simp_all add: abs_fresh)
-  done
+proof (nominal_induct t and t' avoiding: \<theta> rule: trm_btrm.strong_inducts)
+  case (Var name)
+  then show ?case
+    by (metis lookup_fresh simps(1))
+qed (auto simp: abs_fresh)
 
 lemma psubst_eqvt[eqvt]:
   fixes pi :: "name prm" 
@@ -350,25 +339,23 @@ lemma supp_fst: "(x::name) \<in> supp (map fst (\<theta>::(name \<times> trm) li
 lemma psubst_forget:
   "(supp (map fst \<theta>)::name set) \<sharp>* t \<Longrightarrow> \<theta>\<lparr>t\<rparr> = t"
   "(supp (map fst \<theta>)::name set) \<sharp>* t' \<Longrightarrow> \<theta>\<lparr>t'\<rparr>\<^sub>b = t'"
-  apply (nominal_induct t and t' avoiding: \<theta> rule: trm_btrm.strong_inducts)
-  apply (auto simp add: fresh_star_def lookup_forget abs_fresh)
-  apply (drule_tac x=\<theta> in meta_spec)
-  apply (drule meta_mp)
-  apply (rule ballI)
-  apply (drule_tac x=x in bspec)
-  apply assumption
-  apply (drule supp_fst)
-  apply (auto simp add: fresh_def)
-  apply (drule_tac x=\<theta> in meta_spec)
-  apply (drule meta_mp)
-  apply (rule ballI)
-  apply (drule_tac x=x in bspec)
-  apply assumption
-  apply (drule supp_fst)
-  apply (auto simp add: fresh_def)
-  done
+proof (nominal_induct t and t' avoiding: \<theta> rule: trm_btrm.strong_inducts)
+  case (Var name)
+  then show ?case
+    by (simp add: fresh_star_set lookup_forget)
+next
+  case (Abs ty name trm)
+  then show ?case
+    apply (simp add: fresh_def)
+    by (metis abs_fresh(1) fresh_star_set supp_fst trm.fresh(3))
+next
+  case (Bind ty name btrm)
+  then show ?case
+    apply (simp add: fresh_def)
+    by (metis abs_fresh(1) btrm.fresh(2) fresh_star_set supp_fst)
+qed (auto simp: fresh_star_set)
 
-lemma psubst_nil: "[]\<lparr>t\<rparr> = t" "[]\<lparr>t'\<rparr>\<^sub>b = t'"
+lemma psubst_nil[simp]: "[]\<lparr>t\<rparr> = t" "[]\<lparr>t'\<rparr>\<^sub>b = t'"
   by (induct t and t' rule: trm_btrm.inducts) (simp_all add: fresh_list_nil)
 
 lemma psubst_cons:
@@ -380,9 +367,20 @@ lemma psubst_cons:
 
 lemma psubst_append:
   "(supp (map fst (\<theta>\<^sub>1 @ \<theta>\<^sub>2))::name set) \<sharp>* map snd (\<theta>\<^sub>1 @ \<theta>\<^sub>2) \<Longrightarrow> (\<theta>\<^sub>1 @ \<theta>\<^sub>2)\<lparr>t\<rparr> = \<theta>\<^sub>2\<lparr>\<theta>\<^sub>1\<lparr>t\<rparr>\<rparr>"
-  by (induct \<theta>\<^sub>1 arbitrary: t)
-    (simp_all add: psubst_nil split_paired_all supp_list_cons psubst_cons fresh_star_def
-      fresh_list_cons fresh_list_append supp_list_append)
+proof (induct \<theta>\<^sub>1 arbitrary: t)
+  case Nil
+  then show ?case
+    by (auto simp: psubst_nil)
+next
+  case (Cons a \<theta>\<^sub>1)
+  then show ?case
+  proof (cases a)
+    case (Pair a b)
+    with Cons show ?thesis
+      apply (simp add: supp_list_cons fresh_star_set fresh_list_cons)
+      by (metis Un_iff fresh_star_set map_append psubst_cons(1) supp_list_append)
+  qed
+qed
 
 lemma abs_pat_psubst [simp]:
   "(supp p::name set) \<sharp>* \<theta> \<Longrightarrow> \<theta>\<lparr>\<lambda>[p]. t\<rparr>\<^sub>b = (\<lambda>[p]. \<theta>\<lparr>t\<rparr>\<^sub>b)"
@@ -557,17 +555,15 @@ avoids
   Abs: "{x}"
 | Beta: "{x}"
 | Let: "(supp p)::name set"
-  apply (simp_all add: fresh_star_def abs_fresh fin_supp)
-  apply (rule psubst_fresh)
-  apply simp
-  apply simp
-  apply (rule ballI)
-  apply (rule psubst_fresh)
-  apply (rule match_vars)
-  apply assumption+
-  apply (rule match_fresh_mono)
-  apply auto
-  done
+proof (simp_all add: fresh_star_def abs_fresh fin_supp)
+  show "x \<sharp> t[x\<mapsto>u]" if "x \<sharp> u" for x t u
+    by (simp add: \<open>x \<sharp> u\<close> psubst_fresh(1))
+next
+  show "\<forall>x\<in>supp p. (x::name) \<sharp> \<theta>\<lparr>u\<rparr>" 
+    if "\<forall>x\<in>supp p. (x::name) \<sharp> t" and "\<turnstile> p \<rhd> t \<Rightarrow> \<theta>"
+    for p t \<theta> u
+    by (meson that match_fresh_mono match_vars psubst_fresh(1))
+qed
 
 lemma typing_case_Abs:
   assumes ty: "\<Gamma> \<turnstile> (\<lambda>x:T. t) : S"
@@ -636,13 +632,16 @@ lemma perm_cases:
 proof
   fix x assume "x \<in> pi \<bullet> B"
   then show "x \<in> A \<union> B" using pi
-    apply (induct pi arbitrary: x B rule: rev_induct)
-    apply simp
-    apply (simp add: split_paired_all supp_eqvt)
-    apply (drule perm_mem_left)
-    apply (simp add: calc_atm split: if_split_asm)
-    apply (auto dest: perm_mem_right)
-    done
+  proof (induct pi arbitrary: x B rule: rev_induct)
+    case Nil
+    then show ?case
+      by simp
+  next
+    case (snoc y xs)
+    then show ?case
+      apply simp
+      by (metis SigmaE perm_mem_left perm_pi_simp(2) pt_name2 swap_simps(3))
+  qed
 qed
 
 lemma abs_pat_alpha':
