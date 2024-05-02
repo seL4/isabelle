@@ -42,7 +42,7 @@ definition
 overloading
   perm_fun    \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<Rightarrow>'b) \<Rightarrow> ('a\<Rightarrow>'b)"   (unchecked)
   perm_bool   \<equiv> "perm :: 'x prm \<Rightarrow> bool \<Rightarrow> bool"           (unchecked)
-  perm_set    \<equiv> "perm :: 'x prm \<Rightarrow> 'a set \<Rightarrow> 'a set"           (unchecked)
+  perm_set    \<equiv> "perm :: 'x prm \<Rightarrow> 'a set \<Rightarrow> 'a set"       (unchecked)
   perm_unit   \<equiv> "perm :: 'x prm \<Rightarrow> unit \<Rightarrow> unit"           (unchecked)
   perm_prod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"    (unchecked)
   perm_list   \<equiv> "perm :: 'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list"     (unchecked)
@@ -727,7 +727,7 @@ lemma at_ds8:
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
   shows "(pi1@pi2) \<triangleq> ((pi1\<bullet>pi2)@pi1)"
-proof(induct_tac pi2)
+proof(induct pi2)
   show "(pi1 @ []) \<triangleq> (pi1 \<bullet> [] @ pi1)"
     by(simp add: prm_eq_def)
   show "\<And>a l. (pi1 @ l) \<triangleq> (pi1 \<bullet> l @ pi1)  \<Longrightarrow>
@@ -839,7 +839,7 @@ lemma fs_list_inst:
   assumes "fs TYPE('a) TYPE('x)"
   shows "fs TYPE('a list) TYPE('x)"
   unfolding fs_def
-  by (clarify, induct_tac x) (auto simp: fs1 assms supp_list_nil supp_list_cons)
+  by (clarify, induct_tac x) (auto simp: fs1 assms supp_list_cons)
 
 lemma fs_option_inst:
   assumes fs: "fs TYPE('a) TYPE('x)"
@@ -978,7 +978,7 @@ lemma pt_list_nil:
   fixes xs :: "'a list"
   assumes pt: "pt TYPE('a) TYPE ('x)"
   shows "([]::'x prm)\<bullet>xs = xs" 
-  by (induct_tac xs) (simp_all add: pt1[OF pt])
+  by (induct xs) (simp_all add: pt1[OF pt])
 
 lemma pt_list_append: 
   fixes pi1 :: "'x prm"
@@ -986,7 +986,7 @@ lemma pt_list_append:
   and   xs  :: "'a list"
   assumes pt: "pt TYPE('a) TYPE ('x)"
   shows "(pi1@pi2)\<bullet>xs = pi1\<bullet>(pi2\<bullet>xs)"
-  by (induct_tac xs) (simp_all add: pt2[OF pt])
+  by (induct xs) (simp_all add: pt2[OF pt])
 
 lemma pt_list_prm_eq: 
   fixes pi1 :: "'x prm"
@@ -994,7 +994,7 @@ lemma pt_list_prm_eq:
   and   xs  :: "'a list"
   assumes pt: "pt TYPE('a) TYPE ('x)"
   shows "pi1 \<triangleq> pi2  \<Longrightarrow> pi1\<bullet>xs = pi2\<bullet>xs"
-  by (induct_tac xs) (simp_all add: pt3[OF pt])
+  by (induct xs) (simp_all add: pt3[OF pt])
 
 lemma pt_list_inst:
   assumes pt: "pt TYPE('a) TYPE('x)"
