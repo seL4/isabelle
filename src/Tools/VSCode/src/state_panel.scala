@@ -87,7 +87,7 @@ class State_Panel private(val server: Language_Server) {
             val html = node_context.make_html(elements, formatted)
             output(HTML.source(html).toString)
           } else {
-            output(server.resources.output_pretty(body, margin))
+            output(server.resources.output_pretty(Pretty.separate(body), margin))
           }
         })
 

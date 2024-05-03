@@ -56,7 +56,8 @@ object Dynamic_Output {
           val html = node_context.make_html(elements, formatted)
           channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
         } else {
-          channel.write(LSP.Dynamic_Output(resources.output_pretty(st1.output, margin = margin)))
+          val output = resources.output_pretty(Pretty.separate(st1.output), margin = margin)
+          channel.write(LSP.Dynamic_Output(output))
         }
       }
       st1
