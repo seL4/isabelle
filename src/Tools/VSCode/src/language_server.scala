@@ -197,7 +197,7 @@ class Language_Server(
       if (preview_panel.flush(channel)) delay_preview.invoke()
     }
 
-  private def request_preview(file: JFile, column: Int): Unit = {
+  private def preview_request(file: JFile, column: Int): Unit = {
     preview_panel.request(file, column)
     delay_preview.invoke()
   }
@@ -457,7 +457,7 @@ class Language_Server(
           case LSP.State_Auto_Update(state_id, enabled) => State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
           case LSP.Symbols_Request(id) => symbols_request(id)
-          case LSP.Preview_Request(file, column) => request_preview(file, column)
+          case LSP.Preview_Request(file, column) => preview_request(file, column)
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
