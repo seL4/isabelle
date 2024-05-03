@@ -528,9 +528,7 @@ object LSP {
     def unapply(json: JSON.T): Option[Double] =
       json match {
         case Notification("PIDE/output_set_margin", Some(params)) =>
-          for {
-            margin <- JSON.double(params, "margin")
-          } yield (margin)
+          JSON.double(params, "margin")
         case _ => None
       }
   }

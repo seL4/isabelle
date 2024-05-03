@@ -25,7 +25,7 @@ object JSON {
     type T = Map[String, JSON.T]
     val empty: Object.T = Map.empty
 
-    def apply(entries: Entry*): Object.T = Map(entries:_*)
+    def apply(entries: Entry*): Object.T = entries.toMap
 
     def unapply(obj: Any): Option[Object.T] =
       obj match {
