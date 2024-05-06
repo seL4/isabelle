@@ -182,9 +182,10 @@ proof -
   have *: "interval_lebesgue_integrable lborel (ereal 0) (ereal T) (\<lambda>t. \<theta> * sinc (t * \<theta>))"
     by (intro interval_lebesgue_integrable_mult_right interval_integrable_isCont continuous_within_compose3 [OF isCont_sinc])
        auto
-  show ?thesis
-    by (rule interval_lebesgue_integrable_cong_AE[THEN iffD1, OF _ _ _ *])
-       (insert AE_lborel_singleton[of 0], auto)
+  have "0 \<notin> einterval (min (ereal 0) (ereal T)) (max (ereal 0) (ereal T))"
+    by (smt (verit, best) einterval_iff max_def min_def_raw order_less_le)
+  then show ?thesis
+    by (intro interval_lebesgue_integrable_cong_AE[THEN iffD1, OF _ _ _ *]) auto
 qed
 
 (* TODO: need a better version of FTC2 *)

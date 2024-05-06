@@ -2915,18 +2915,13 @@ proof goal_cases
   have g0: "Dg 0 = g"
     using \<open>p > 0\<close>
     by (auto simp add: Dg_def field_split_simps g_def split: if_split_asm)
-  {
-    fix m
-    assume "p > Suc m"
-    hence "p - Suc m = Suc (p - Suc (Suc m))"
-      by auto
-    hence "real (p - Suc m) * fact (p - Suc (Suc m)) = fact (p - Suc m)"
-      by auto
-  } note fact_eq = this
+  have fact_eq: "real (p - Suc m) * fact (p - Suc (Suc m)) = fact (p - Suc m)" 
+    if "p > Suc m" for m
+    by (metis Suc_diff_Suc fact_Suc that)
   have Dg: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
     (Dg m has_vector_derivative Dg (Suc m) t) (at t within {a..b})"
-    unfolding Dg_def
-    by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def fact_eq field_split_simps)
+    unfolding Dg_def  has_vector_derivative_def
+    by (auto intro!: derivative_eq_intros simp: fact_eq divide_simps simp del: of_nat_diff)
   let ?sum = "\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t"
   from sum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
       OF \<open>p > 0\<close> g0 Dg f0 Df]

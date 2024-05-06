@@ -713,7 +713,7 @@ proof -
       then have "0 < ?M"
         by (simp add: less_le)
       also have "\<dots> \<le> ?\<mu> (\<lambda>y. f x \<le> g x)"
-        using mono by (intro emeasure_mono_AE) auto
+        using mono by (force intro: emeasure_mono_AE) 
       finally have "\<not> \<not> f x \<le> g x"
         by (intro notI) auto
       then show ?thesis

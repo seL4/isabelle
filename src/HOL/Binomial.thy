@@ -18,10 +18,10 @@ text \<open>This development is based on the work of Andy Gordon and Florian Kam
 
 text \<open>Combinatorial definition\<close>
 
-definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"  (infixl "choose" 65)
+definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"  (infix "choose" 64)
   where "n choose k = card {K\<in>Pow {0..<n}. card K = k}"
 
-lemma binomial_mono:
+lemma binomial_right_mono:
   assumes "m \<le> n" shows "m choose k \<le> n choose k"
 proof -
   have "{K. K \<subseteq> {0..<m} \<and> card K = k} \<subseteq> {K. K \<subseteq> {0..<n} \<and> card K = k}"
@@ -1219,7 +1219,7 @@ proof (induction xs ys rule: shuffles.induct)
     by (rule card_image) auto
   also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
     using "3.prems" by (intro "3.IH") auto
-  also have "length xs + length (y # ys) choose length xs + \<dots> =
+  also have "(length xs + length (y # ys) choose length xs) + \<dots> =
                (length (x # xs) + length (y # ys)) choose length (x # xs)" by simp
   finally show ?case .
 qed auto
@@ -1243,6 +1243,7 @@ proof -
 qed
 
 subsection \<open>Inclusion-exclusion principle\<close>
+
 text \<open>Ported from HOL Light by lcp\<close>
 
 lemma Inter_over_Union:

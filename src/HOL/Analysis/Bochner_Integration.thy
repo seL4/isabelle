@@ -2795,7 +2795,7 @@ proof (rule tendsto_at_topI_sequentially)
       have "eventually (\<lambda>n. x \<le> X n) sequentially"
         unfolding filterlim_at_top_ge[where c=x] by auto
       then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) \<longlonglongrightarrow> f x"
-        by (intro tendsto_eventually) (auto split: split_indicator elim!: eventually_mono)
+        by (intro tendsto_eventually) (auto simp: frequently_def split: split_indicator)
     qed
     fix n show "AE x in M. norm (indicator {..X n} x *\<^sub>R f x) \<le> norm (f x)"
       by (auto split: split_indicator)

@@ -75,13 +75,16 @@ proof -
   let ?h = "\<lambda>i. \<lfloor>b * \<theta> i\<rfloor> - \<lfloor>a * \<theta> i\<rfloor>"
   show ?thesis
   proof
+    show "int (b - a) \<le> int (N ^ n)"
+      using \<open>b \<le> N ^ n\<close> by auto
+  next
     fix i
     assume "i<n"
     have "frac (b * \<theta> i) - frac (a * \<theta> i) = ?k * \<theta> i - ?h i"
       using \<open>a < b\<close> by (simp add: frac_def left_diff_distrib' of_nat_diff)
     then show "\<bar>of_int ?k * \<theta> i - ?h i\<bar> < 1/N"
       by (metis "*" \<open>i < n\<close> of_int_of_nat_eq)
-  qed (use \<open>a < b\<close> \<open>b \<le> N^n\<close> in auto)
+  qed (use \<open>a < b\<close> in auto)
 qed
 
 

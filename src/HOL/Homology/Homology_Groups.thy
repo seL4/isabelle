@@ -770,11 +770,11 @@ proof (cases "q \<le> 0")
         using a chain_boundary_chain_map singular_relcycle by blast
       have contf: "continuous_map (subtopology X S) (subtopology Y T) f"
         using assms
-        by (auto simp: continuous_map_in_subtopology topspace_subtopology
-            continuous_map_from_subtopology)
+        by (auto simp: continuous_map_in_subtopology continuous_map_from_subtopology)
       show ?thesis
         unfolding q using assms p1 a
-        by (simp add: cbm ceq contf hom_boundary_chain_boundary hom_induced_chain_map p1_eq sb sr)
+        by (simp add: cbm ceq contf hom_boundary_chain_boundary hom_induced_chain_map p1_eq sb sr
+                 del: of_nat_diff)
     next
       case False
       with assms show ?thesis

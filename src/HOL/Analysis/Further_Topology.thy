@@ -3310,16 +3310,19 @@ proof -
         proof (cases "j / n \<le> 1/2")
           case True
           show ?thesis
-            using \<open>j \<noteq> 0 \<close> \<open>j < n\<close> True
+            using \<open>j \<noteq> 0\<close> \<open>j < n\<close> True
             by (intro sin_monotone_2pi_le) (auto simp: field_simps intro: order_trans [of _ 0])
         next
           case False
           then have seq: "sin(pi * j / n) = sin(pi * (n - j) / n)"
             using \<open>j < n\<close> by (simp add: algebra_simps diff_divide_distrib of_nat_diff)
+
           show ?thesis
-            unfolding  seq
-            using \<open>j < n\<close> False
-            by (intro sin_monotone_2pi_le) (auto simp: field_simps intro: order_trans [of _ 0])
+            unfolding seq
+          proof (intro sin_monotone_2pi_le)
+            show "- (pi / 2) \<le> pi / real n"
+              by (smt (verit) divide_nonneg_nonneg of_nat_0_le_iff pi_ge_zero)
+          qed (use \<open>j < n\<close> False in \<open>auto simp: divide_simps\<close>)
         qed
         with sin_less show ?thesis by force
       qed

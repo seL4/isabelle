@@ -185,24 +185,14 @@ lemma P_1_lemma:
 proof -
   obtain y k1 k2 where yk: "y = nat (fst res) + k1 * p" "y = nat (snd res) + k2 * q"
     using chinese_remainder[of p q] pq_coprime p_ge_0 q_ge_0 by fastforce
-  have "fst res = int (y - k1 * p)"
-    using \<open>0 \<le> fst res\<close> yk(1) by simp
-  moreover have "snd res = int (y - k2 * q)"
-    using \<open>0 \<le> snd res\<close> yk(2) by simp
-  ultimately have res: "res = (int (y - k1 * p), int (y - k2 * q))"
-    by (simp add: prod_eq_iff)
-  have y: "k1 * p \<le> y" "k2 * q \<le> y"
-    using yk by simp_all
-  from y have *: "[y = nat (fst res)] (mod p)" "[y = nat (snd res)] (mod q)"
-    by (auto simp add: res cong_le_nat intro: exI [of _ k1] exI [of _ k2])
-  from * have "(y mod (int p * int q)) mod int p = fst res" "(y mod (int p * int q)) mod int q = snd res"
-    using y apply (auto simp add: res of_nat_mult [symmetric] of_nat_mod [symmetric] mod_mod_cancel simp del: of_nat_mult)
-     apply (metis \<open>fst res = int (y - k1 * p)\<close> assms(1) assms(2) cong_def mod_pos_pos_trivial nat_int of_nat_mod)
-    apply (metis \<open>snd res = int (y - k2 * q)\<close> assms(3) assms(4) cong_def mod_pos_pos_trivial nat_int of_nat_mod)
-    done
-  then obtain x where "P_1 res x"
+  have "(y mod (int p * int q)) mod int p = fst res"
+    using assms by (simp add: mod_mod_cancel yk(1))
+  moreover have "(y mod (int p * int q)) mod int q = snd res"
+    using assms by (simp add: mod_mod_cancel yk(2))
+  ultimately obtain x where "P_1 res x"
     unfolding P_1_def
-    using Divides.pos_mod_bound Divides.pos_mod_sign pq_ge_0 by fastforce
+    using Divides.pos_mod_bound Divides.pos_mod_sign pq_ge_0
+    by (metis atLeastAtMost_iff zle_diff1_eq)
   moreover have "a = b" if "P_1 res a" "P_1 res b" for a b
   proof -
     from that have "int p * int q dvd a - b"

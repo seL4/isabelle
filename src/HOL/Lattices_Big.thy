@@ -655,6 +655,29 @@ lemma Max_gr_iff:
 
 end
 
+text \<open>Handy results about @{term Max} and @{term Min} by Chelsea Edmonds\<close>
+lemma obtains_Max:
+  assumes "finite A" and "A \<noteq> {}"
+  obtains x where "x \<in> A" and "Max A = x"
+  using assms Max_in by blast
+
+lemma obtains_MAX:
+  assumes "finite A" and "A \<noteq> {}"
+  obtains x where "x \<in> A" and "Max (f ` A) = f x"
+  using obtains_Max
+  by (metis (mono_tags, opaque_lifting) assms(1) assms(2) empty_is_image finite_imageI image_iff) 
+
+lemma obtains_Min:
+  assumes "finite A" and "A \<noteq> {}"
+  obtains x where "x \<in> A" and "Min A = x"
+  using assms Min_in by blast
+
+lemma obtains_MIN:
+  assumes "finite A" and "A \<noteq> {}"
+  obtains x where "x \<in> A" and "Min (f ` A) = f x"
+  using obtains_Min assms empty_is_image finite_imageI image_iff
+  by (metis (mono_tags, opaque_lifting)) 
+
 lemma Max_eq_if:
   assumes "finite A"  "finite B"  "\<forall>a\<in>A. \<exists>b\<in>B. a \<le> b"  "\<forall>b\<in>B. \<exists>a\<in>A. b \<le> a"
   shows "Max A = Max B"

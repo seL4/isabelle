@@ -8,7 +8,7 @@ theory Universal
 imports Bifinite Completion "HOL-Library.Nat_Bijection"
 begin
 
-no_notation binomial  (infixl "choose" 65)
+no_notation binomial  (infix "choose" 64)
 
 subsection \<open>Basis for universal domain\<close>
 
@@ -54,7 +54,7 @@ done
 
 lemma eq_prod_encode_pairI:
   "\<lbrakk>fst (prod_decode x) = a; snd (prod_decode x) = b\<rbrakk> \<Longrightarrow> x = prod_encode (a, b)"
-by (erule subst, erule subst, simp)
+  by auto
 
 lemma node_cases:
   assumes 1: "x = 0 \<Longrightarrow> P"
@@ -144,24 +144,14 @@ by (induct x rule: node_induct) simp_all
 lemma ubasis_until_less: "ubasis_le (ubasis_until P x) x"
 apply (induct x rule: node_induct)
 apply (simp add: ubasis_le_refl)
-apply (simp add: ubasis_le_refl)
-apply (rule impI)
-apply (erule ubasis_le_trans)
-apply (erule ubasis_le_lower)
-done
+  by (metis ubasis_le.simps ubasis_until.simps(2))
 
 lemma ubasis_until_chain:
   assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
   shows "ubasis_le (ubasis_until P x) (ubasis_until Q x)"
 apply (induct x rule: node_induct)
 apply (simp add: ubasis_le_refl)
-apply (simp add: ubasis_le_refl)
-apply (simp add: PQ)
-apply clarify
-apply (rule ubasis_le_trans)
-apply (rule ubasis_until_less)
-apply (erule ubasis_le_lower)
-done
+  by (metis assms ubasis_until.simps(2) ubasis_until_less)
 
 lemma ubasis_until_mono:
   assumes "\<And>i a S b. \<lbrakk>finite S; P (node i a S); b \<in> S; ubasis_le a b\<rbrakk> \<Longrightarrow> P b"
@@ -172,17 +162,10 @@ next
   case (ubasis_le_trans a b c) thus ?case by - (rule ubasis_le.ubasis_le_trans)
 next
   case (ubasis_le_lower S a i) thus ?case
-    apply (clarsimp simp add: ubasis_le_refl)
-    apply (rule ubasis_le_trans [OF ubasis_until_less])
-    apply (erule ubasis_le.ubasis_le_lower)
-    done
+    by (metis ubasis_le.simps ubasis_until.simps(2) ubasis_until_less)
 next
   case (ubasis_le_upper S b a i) thus ?case
-    apply clarsimp
-    apply (subst ubasis_until_same)
-     apply (erule (3) assms)
-    apply (erule (2) ubasis_le.ubasis_le_upper)
-    done
+    by (metis assms ubasis_le.simps ubasis_until.simps(2) ubasis_until_same)
 qed
 
 lemma finite_range_ubasis_until:

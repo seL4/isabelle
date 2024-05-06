@@ -3945,7 +3945,7 @@ proof -
     obtain n where "x - a < real n"
       using reals_Archimedean2[of "x - a"] ..
     then have "eventually (\<lambda>n. ?f n x = ?fR x) sequentially"
-      by (auto intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
+      by (auto simp: frequently_def intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
     then show "(\<lambda>n. ?f n x) \<longlonglongrightarrow> ?fR x"
       by (rule tendsto_eventually)
   qed (auto simp: nonneg incseq_def le_fun_def split: split_indicator)

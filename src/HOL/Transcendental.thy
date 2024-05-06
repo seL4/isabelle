@@ -211,6 +211,22 @@ proof -
   with assms show ?thesis by (simp add: field_simps)
 qed
 
+lemma upper_le_binomial:
+  assumes "0 < k" and "k < n"
+  shows "n \<le> n choose k"
+proof -
+  from assms have "1 \<le> n" by simp
+  define k' where "k' = (if n div 2 \<le> k then k else n - k)"
+  from assms have 1: "k' \<le> n - 1" and 2: "n div 2 \<le> k'" by (auto simp: k'_def)
+  from assms(2) have "k \<le> n" by simp
+  have "n choose k = n choose k'" by (simp add: k'_def binomial_symmetric[OF \<open>k \<le> n\<close>])
+  have "n = n choose 1" by (simp only: choose_one)
+  also from \<open>1 \<le> n\<close> have "\<dots> = n choose (n - 1)" by (rule binomial_symmetric)
+  also from 1 2 have "\<dots> \<le> n choose k'" by (rule binomial_antimono) simp
+  also have "\<dots> = n choose k" by (simp add: k'_def binomial_symmetric[OF \<open>k \<le> n\<close>])
+  finally show ?thesis .
+qed
+
 
 subsection \<open>Properties of Power Series\<close>
 
@@ -3061,8 +3077,9 @@ lemma tendsto_powr:
   shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
   unfolding powr_def
 proof (rule filterlim_If)
-  from f show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
-    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
+  show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
+    using tendsto_imp_eventually_ne [OF f] a
+    by (simp add: filterlim_iff eventually_inf_principal frequently_def)
   from f g a show "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a)))
       (inf F (principal {x. f x \<noteq> 0}))"
     by (auto intro!: tendsto_intros intro: tendsto_mono inf_le1)

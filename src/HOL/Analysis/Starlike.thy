@@ -4863,10 +4863,12 @@ lemma bounded_hyperplane_eq_trivial_0:
   shows "bounded {x. a \<bullet> x = 0} \<longleftrightarrow> DIM('a) = 1"
 proof
   assume "bounded {x. a \<bullet> x = 0}"
-  then have "aff_dim {x. a \<bullet> x = 0} \<le> 0"
+  then have 0: "aff_dim {x. a \<bullet> x = 0} \<le> 0"
     by (simp add: affine_bounded_eq_lowdim affine_hyperplane)
-  with assms show "DIM('a) = 1"
-    by (simp add: le_Suc_eq)
+  with assms 0
+  have "int DIM('a) = 1"
+    using order_neq_le_trans by fastforce
+  then show "DIM('a) = 1" by auto
 next
   assume "DIM('a) = 1"
   then show "bounded {x. a \<bullet> x = 0}"

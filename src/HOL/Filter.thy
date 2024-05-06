@@ -233,7 +233,7 @@ lemma frequently_eventually_frequently:
   "frequently P F \<Longrightarrow> eventually Q F \<Longrightarrow> frequently (\<lambda>x. P x \<and> Q x) F"
   using frequently_cong [of Q F P "\<lambda>x. P x \<and> Q x"] by meson
   
-lemma eventually_frequently_const_simps:
+lemma eventually_frequently_const_simps [simp]:
   "(\<exists>\<^sub>Fx in F. P x \<and> C) \<longleftrightarrow> (\<exists>\<^sub>Fx in F. P x) \<and> C"
   "(\<exists>\<^sub>Fx in F. C \<and> P x) \<longleftrightarrow> C \<and> (\<exists>\<^sub>Fx in F. P x)"
   "(\<forall>\<^sub>Fx in F. P x \<or> C) \<longleftrightarrow> (\<forall>\<^sub>Fx in F. P x) \<or> C"

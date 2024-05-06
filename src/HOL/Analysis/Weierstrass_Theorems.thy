@@ -656,7 +656,12 @@ proof -
       then have "(j - 4/3)*e < (j-1)*e - e^2"
         using e by (auto simp: of_nat_diff algebra_simps power2_eq_square)
       also have "... < (j-1)*e - ((j - 1)/n) * e^2"
-        using e True jn by (simp add: power2_eq_square field_simps)
+      proof -
+        have "(j - 1) / n < 1"
+          using j1 jn by fastforce
+        with \<open>e>0\<close> show ?thesis
+          by (smt (verit, best) mult_less_cancel_right2 zero_less_power)
+      qed
       also have "... = e * (j-1) * (1 - e/n)"
         by (simp add: power2_eq_square field_simps)
       also have "... \<le> e * (\<Sum>i\<le>j-2. xf i t)"

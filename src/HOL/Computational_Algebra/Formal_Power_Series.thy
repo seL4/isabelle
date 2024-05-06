@@ -5625,10 +5625,9 @@ proof -
         unfolding pochhammer_eq_0_iff by blast
       from j have "b = of_nat n - of_nat j - of_nat 1"
         by (simp add: algebra_simps)
-      then have "b = of_nat (n - j - 1)"
-        using j kn by (simp add: of_nat_diff)
       then show False 
-        using \<open>j < n\<close> j b by auto
+        using \<open>j < n\<close> j b
+        by (metis bn0 c mult_cancel_right2 pochhammer_minus)
     qed
 
     from nz kn [simplified] have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0"
@@ -5732,7 +5731,7 @@ proof -
   have h: "?b \<noteq> of_nat j" if "j < n" for j
   proof -
     have "c \<noteq> - of_nat (n - j - 1)"
-      using c that by auto
+      using c that by (auto simp: dest!: bspec [where x = "n-j-1"])
     with that show ?thesis
       by (auto simp add: algebra_simps of_nat_diff)
   qed
