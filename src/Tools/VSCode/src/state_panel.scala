@@ -44,7 +44,7 @@ object State_Panel {
   def set_margin(id: Counter.ID, margin: Double): Unit =
     instances.value.get(id).foreach(state => {
       state.margin.change(_ => margin)
-      state.server.editor.send_dispatcher(state.update())
+      state.server.editor.send_dispatcher(state.update(force = true))
     })
 }
 
@@ -93,12 +93,16 @@ class State_Panel private(val server: Language_Server) {
 
   def locate(): Unit = print_state.locate_query()
 
-  def update(): Unit = {
+  def update(force: Boolean = false): Unit = {
     server.editor.current_node_snapshot(()) match {
       case Some(snapshot) =>
-        (server.editor.current_command((), snapshot), print_state.get_location) match {
-          case (Some(command1), Some(command2)) if command1.id == command2.id =>
-          case _ => print_state.apply_query(Nil)
+        if (force) {
+          print_state.apply_query(Nil)
+        } else {
+          (server.editor.current_command((), snapshot), print_state.get_location) match {
+            case (Some(command1), Some(command2)) if command1.id == command2.id =>
+            case _ => print_state.apply_query(Nil)
+          }
         }
       case None =>
     }
