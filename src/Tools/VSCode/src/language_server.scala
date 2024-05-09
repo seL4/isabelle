@@ -413,6 +413,14 @@ class Language_Server(
   }
 
 
+  /* symbols */
+
+  def symbols_request(id: LSP.Id): Unit = {
+    val symbols = Component_VSCodium.symbols
+    channel.write(LSP.Symbols_Request.reply(id, symbols))
+  }
+
+
   /* main loop */
 
   def start(): Unit = {
@@ -448,6 +456,7 @@ class Language_Server(
           case LSP.State_Update(state_id) => State_Panel.update(state_id)
           case LSP.State_Auto_Update(state_id, enabled) => State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
+          case LSP.Symbols_Request(id) => symbols_request(id)
           case LSP.Preview_Request(file, column) => request_preview(file, column)
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
