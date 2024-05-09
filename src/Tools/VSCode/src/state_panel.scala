@@ -40,6 +40,12 @@ object State_Panel {
   def auto_update(id: Counter.ID, enabled: Boolean): Unit =
     instances.value.get(id).foreach(state =>
       state.server.editor.send_dispatcher(state.auto_update(Some(enabled))))
+
+  def set_margin(id: Counter.ID, margin: Double): Unit =
+    instances.value.get(id).foreach(state => {
+      state.margin = margin
+      state.server.editor.send_dispatcher(state.update())
+    })
 }
 
 
@@ -47,7 +53,7 @@ class State_Panel private(val server: Language_Server) {
   /* output */
 
   val id: Counter.ID = State_Panel.make_id()
-  private val margin: Double = 80
+  var margin: Double = 80
 
   private def output(content: String): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value))

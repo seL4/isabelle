@@ -441,11 +441,13 @@ class Language_Server(
           case LSP.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case LSP.Caret_Update(caret) => update_caret(caret)
+          case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)
           case LSP.State_Init(id) => State_Panel.init(id, server)
           case LSP.State_Exit(state_id) => State_Panel.exit(state_id)
           case LSP.State_Locate(state_id) => State_Panel.locate(state_id)
           case LSP.State_Update(state_id) => State_Panel.update(state_id)
           case LSP.State_Auto_Update(state_id, enabled) => State_Panel.auto_update(state_id, enabled)
+          case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
           case LSP.Preview_Request(file, column) => request_preview(file, column)
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }

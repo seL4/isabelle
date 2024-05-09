@@ -524,6 +524,17 @@ object LSP {
       Notification("PIDE/dynamic_output", JSON.Object("content" -> content))
   }
 
+  object Output_Set_Margin {
+    def unapply(json: JSON.T): Option[Double] =
+      json match {
+        case Notification("PIDE/output_set_margin", Some(params)) =>
+          for {
+            margin <- JSON.double(params, "margin")
+          } yield (margin)
+        case _ => None
+      }
+  }
+
 
   /* state output */
 
@@ -558,6 +569,18 @@ object LSP {
             id <- JSON.long(params, "id")
             enabled <- JSON.bool(params, "enabled")
           } yield (id, enabled)
+        case _ => None
+      }
+  }
+
+  object State_Set_Margin {
+    def unapply(json: JSON.T): Option[(Counter.ID, Double)] =
+      json match {
+        case Notification("PIDE/state_set_margin", Some(params)) =>
+          for {
+            id <- JSON.long(params, "id")
+            margin <- JSON.double(params, "margin")
+          } yield (id, margin)
         case _ => None
       }
   }

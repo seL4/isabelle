@@ -18,6 +18,7 @@ object Dynamic_Output {
       restriction: Option[Set[Command]],
       html_output: Boolean,
       margin: Double,
+      force: Boolean,
     ): State = {
       val st1 =
         resources.get_caret() match {
@@ -37,7 +38,7 @@ object Dynamic_Output {
             }
             else this
         }
-      if (st1.output != output) {
+      if (st1.output != output || force) {
         if (html_output) {
           val node_context =
             new Browser_Info.Node_Context {
@@ -68,11 +69,11 @@ object Dynamic_Output {
 
 class Dynamic_Output private(server: Language_Server) {
   private val state = Synchronized(Dynamic_Output.State())
-  private val margin: Double = 80
+  private var margin: Double = 80
 
-  private def handle_update(restriction: Option[Set[Command]]): Unit = {
+  private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
     val html_output = server.resources.html_output
-    state.change(_.handle_update(server.resources, server.channel, restriction, html_output, margin))
+    state.change(_.handle_update(server.resources, server.channel, restriction, html_output, margin, force))
   }
 
 
@@ -96,5 +97,10 @@ class Dynamic_Output private(server: Language_Server) {
   def exit(): Unit = {
     server.session.commands_changed -= main
     server.session.caret_focus -= main
+  }
+
+  def set_margin(margin: Double): Unit = {
+    this.margin = margin
+    handle_update(None, force = true)
   }
 }
