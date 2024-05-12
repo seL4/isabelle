@@ -516,14 +516,23 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-H\<close> augments the cluster hosts to be used in this build process.
-  Each \<^verbatim>\<open>-H\<close> option accepts multiple host names (separated by commas), which
-  all share the same (optional) parameters. Multiple \<^verbatim>\<open>-H\<close> options may be
-  given to specify further hosts (with different parameters). For example:
-  \<^verbatim>\<open>-H host1,host2:jobs=2,threads=4 -H host3:jobs=4,threads=6\<close>.
+  Each \<^verbatim>\<open>-H\<close> option accepts multiple host or cluster names (separated by
+  commas), which all share the same (optional) parameters or system options.
+  Multiple \<^verbatim>\<open>-H\<close> options may be given to specify further hosts (with different
+  parameters). For example: \<^verbatim>\<open>-H host1,host2:jobs=2,threads=4 -H
+  host3:jobs=4,threads=6\<close>.
 
   The syntax for host parameters follows Isabelle outer syntax, notably with
   double-quoted string literals. On the command-line, this may require extra
   single quotes or escapes. For example: \<^verbatim>\<open>-H 'host4:dirs="..."'\<close>.
+
+  The system registry (\secref{sec:system-registry}) may define host and
+  cluster names in its tables \<^verbatim>\<open>host\<close> and \<^verbatim>\<open>cluster\<close>, respectively. A name in
+  option \<^verbatim>\<open>-H\<close> without prefix refers to the registry table \<^verbatim>\<open>host\<close>: each entry
+  consists of an optional \<^verbatim>\<open>hostname\<close> and further options. A name with the
+  prefix ``\<^verbatim>\<open>cluster.\<close>'' refers to the table \<^verbatim>\<open>cluster\<close>: each entry provides
+  \<^verbatim>\<open>hosts\<close>, an array of names for entries of the table \<^verbatim>\<open>host\<close> as above, and
+  additional options that apply to all hosts simultaneously.
 
   The local host only participates in cluster build, if an explicit option
   \<^verbatim>\<open>-j\<close> > 0 is given. The default is 0, which means that \<^verbatim>\<open>isabelle build -H\<close>
@@ -602,6 +611,21 @@ text \<open>
   @{verbatim [display] \<open>  isabelle build -a -j2 -o threads=8 \
     -H host1:jobs=2,threads=8
     -H host2:jobs=4:threads=4,numa,shared\<close>}
+
+  \<^smallskip>
+  Use build hosts and cluster specifications:
+  @{verbatim [display] \<open>  isabelle build -H a -H b -H cluster.xy\<close>}
+
+  The above requires a \<^path>\<open>$ISABELLE_HOME_USER/etc/registry.toml\<close> file like
+  this:
+
+@{verbatim [display] \<open>    host.a = { hostname = "host-a.acme.org", jobs = 2 }
+    host.b = { hostname = "host-b.acme.org", jobs = 2 }
+
+    host.x = { hostname = "server1.example.com" }
+    host.y = { hostname = "server2.example.com" }
+    cluster.xy = { hosts = ["x", "y"], jobs = 4 }
+\<close>}
 \<close>
 
 

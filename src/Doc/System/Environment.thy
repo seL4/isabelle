@@ -449,7 +449,7 @@ text \<open>
 \<close>
 
 
-section \<open>System registry via TOML\<close>
+section \<open>System registry via TOML \label{sec:system-registry}\<close>
 
 text \<open>
   Tools implemented in Isabelle/Scala may refer to a global registry of

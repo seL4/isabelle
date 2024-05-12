@@ -232,15 +232,31 @@ files: a trailing question mark means that the entry is optional. The
 default settings use "$ISABELLE_HOME/etc/registry.toml?" and
 "$ISABELLE_HOME_USER/etc/registry.toml?" (in that order).
 
-* Isabelle build cluster specifications now refer to the underlying
-registry for default parameters and system options, using the TOML table
-"host". For example, the command "isabelle build -H abc:user=test" can
-be implicitly augmented by host parameters and options in
-$ISABELLE_HOME_USER/etc/registry.toml like this:
+* Isabelle build cluster specifications, as seen in "isabelle build"
+option "-H", now use the underlying system registry to determine actual
+host names, parameters, and system options. A name without prefix refers
+to the registry table "host": each entry consists of an optional
+"hostname" and further options. A name with the prefix "cluster." refers
+to the table "cluster": each entry provides "hosts", an array of names
+for entries of the table "host" as above, and additional options that
+apply to all hosts simultaneously.
 
-  [host.abc]
-  hostname = "abc.acme.org"
-  ssh_compression = false
+For example, consider "isabelle build -H a -H b -H cluster.xy" in the
+context of a system registry $ISABELLE_HOME_USER/etc/registry.toml like
+this:
+
+  host.a = { hostname = "host-a.acme.org", jobs = 2 }
+  host.b = { hostname = "host-b.acme.org", jobs = 2 }
+
+  host.x = { hostname = "server1.example.com" }
+  host.y = { hostname = "server2.example.com" }
+  cluster.xy = { hosts = ["x", "y"], jobs = 4 }
+
+If "hostname" is omitted, its default is the table entry name itself. If
+that contains a dot, it needs to be quoted according to TOML syntax:
+
+  host."host-a.acme.org" = { jobs = 2 }
+  host."host-b.acme.org" = { jobs = 2 }
 
 * Isabelle/Scala and derived Scala tools now use the syntax of Scala
 3.3, instead of 3.1. This is the "-old-syntax" variant (Java-like) as
