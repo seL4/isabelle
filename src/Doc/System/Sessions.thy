@@ -451,12 +451,11 @@ text \<open>
   The build process depends on additional options
   (\secref{sec:system-options}) that are passed to the prover eventually. The
   settings variable @{setting_ref ISABELLE_BUILD_OPTIONS} allows to provide
-  additional defaults, e.g.\ \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf
-  threads=4"\<close>. Moreover, the environment of system build options may be
-  augmented on the command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>,
-  which abbreviates \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean or string options.
-  Multiple occurrences of \<^verbatim>\<open>-o\<close> on the command-line are applied in the given
-  order.
+  additional defaults, e.g.\ \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>.
+  Moreover, the environment of system build options may be augmented on the
+  command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>, which abbreviates
+  \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean or string options. Multiple occurrences of
+  \<^verbatim>\<open>-o\<close> on the command-line are applied in the given order.
 
   \<^medskip>
   Option \<^verbatim>\<open>-P\<close> enables PDF/HTML presentation in the given directory, where
@@ -519,8 +518,7 @@ text \<open>
   Each \<^verbatim>\<open>-H\<close> option accepts multiple host or cluster names (separated by
   commas), which all share the same (optional) parameters or system options.
   Multiple \<^verbatim>\<open>-H\<close> options may be given to specify further hosts (with different
-  parameters). For example: \<^verbatim>\<open>-H host1,host2:jobs=2,threads=4 -H
-  host3:jobs=4,threads=6\<close>.
+  parameters). For example: \<^verbatim>\<open>-H host1,host2:jobs=2,threads=4 -H host3:jobs=4,threads=6\<close>.
 
   The syntax for host parameters follows Isabelle outer syntax, notably with
   double-quoted string literals. On the command-line, this may require extra
