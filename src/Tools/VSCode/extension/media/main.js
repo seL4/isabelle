@@ -26,7 +26,7 @@
         });
 
     const get_window_margin = () => {
-        const test_string = "a";
+        const test_string = "mix";
         const test_span = document.createElement("span");
         test_span.textContent = test_string;
         document.body.appendChild(test_span);
