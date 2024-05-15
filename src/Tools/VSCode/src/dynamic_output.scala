@@ -58,8 +58,15 @@ object Dynamic_Output {
         } else {
           val separate = Pretty.separate(st1.output)
           val formatted = Pretty.formatted(separate, margin = margin)
-          val tree = Markup_Tree.from_XML(formatted)
 
+          def convert_symbols(body: XML.Body): XML.Body = {
+            body.map {
+              case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
+              case XML.Text(content) => XML.Text(Symbol.output(resources.unicode_symbols, content))
+            }
+          }
+
+          val tree = Markup_Tree.from_XML(convert_symbols(formatted))
           val output = resources.output_pretty(separate, margin = margin)
 
           val document = Line.Document(output)
