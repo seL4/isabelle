@@ -520,14 +520,14 @@ object LSP {
   /* dynamic output */
 
   object Dynamic_Output {
-    def apply(content: String, decorations: Option[List[(Line.Range, String)]] = None): JSON.T =
+    def apply(content: String, decorations: Option[List[(String, List[Decoration_Options])]] = None): JSON.T =
       Notification("PIDE/dynamic_output",
         JSON.Object("content" -> content) ++
         JSON.optional(
           "decorations" -> decorations.map(decorations =>
             decorations.map(decoration => JSON.Object(
-              "range" -> Range.compact(decoration._1),
-              "type" -> decoration._2)
+              "type" -> decoration._1,
+              "content" -> decoration._2.map(_.json))
             ))
         ))
   }

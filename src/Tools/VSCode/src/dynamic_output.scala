@@ -71,6 +71,7 @@ object Dynamic_Output {
               case None => None
               case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
             })
+            .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
 
           channel.write(LSP.Dynamic_Output(output, Some(decorations)))
         }
