@@ -96,6 +96,10 @@ class Dynamic_Output private(server: Language_Server) {
   private val margin_ = Synchronized(None: Option[Double])
   def margin: Double = margin_.value.getOrElse(server.resources.message_margin)
 
+  private val delay_margin = Delay.last(server.resources.output_delay, server.channel.Error_Logger) {
+    handle_update(None, force = true)
+  }
+
   private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
     val html_output = server.resources.html_output
     state.change(
@@ -127,6 +131,6 @@ class Dynamic_Output private(server: Language_Server) {
 
   def set_margin(margin: Double): Unit = {
     margin_.change(_ => Some(margin))
-    handle_update(None, force = true)
+    delay_margin.invoke()
   }
 }

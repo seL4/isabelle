@@ -84,6 +84,7 @@ extends Resources(session_background, log = log) {
   def html_output: Boolean = options.bool("vscode_html_output")
   def tooltip_margin: Int = options.int("vscode_tooltip_margin")
   def message_margin: Int = options.int("vscode_message_margin")
+  def output_delay: Time = options.seconds("vscode_output_delay")
 
 
   /* document node name */
