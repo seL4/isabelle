@@ -520,8 +520,16 @@ object LSP {
   /* dynamic output */
 
   object Dynamic_Output {
-    def apply(content: String): JSON.T =
-      Notification("PIDE/dynamic_output", JSON.Object("content" -> content))
+    def apply(content: String, decorations: Option[List[(Line.Range, String)]] = None): JSON.T =
+      Notification("PIDE/dynamic_output",
+        JSON.Object("content" -> content) ++
+        JSON.optional(
+          "decorations" -> decorations.map(decorations =>
+            decorations.map(decoration => JSON.Object(
+              "range" -> Range.compact(decoration._1),
+              "type" -> decoration._2)
+            ))
+        ))
   }
 
   object Output_Set_Margin {

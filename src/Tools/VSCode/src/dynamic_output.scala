@@ -56,8 +56,23 @@ object Dynamic_Output {
           val html = node_context.make_html(elements, formatted)
           channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
         } else {
-          val output = resources.output_pretty(Pretty.separate(st1.output), margin = margin)
-          channel.write(LSP.Dynamic_Output(output))
+          val separate = Pretty.separate(st1.output)
+          val formatted = Pretty.formatted(separate, margin = margin)
+          val tree = Markup_Tree.from_XML(formatted)
+
+          val output = resources.output_pretty(separate, margin = margin)
+
+          val document = Line.Document(output)
+          val decorations = tree
+            .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
+              Some(Some(m.info.name))
+            })
+            .flatMap(e => e._2 match {
+              case None => None
+              case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
+            })
+
+          channel.write(LSP.Dynamic_Output(output, Some(decorations)))
         }
       }
       st1
