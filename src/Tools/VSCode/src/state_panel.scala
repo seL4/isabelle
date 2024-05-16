@@ -44,7 +44,7 @@ object State_Panel {
   def set_margin(id: Counter.ID, margin: Double): Unit =
     instances.value.get(id).foreach(state => {
       state.margin.change(_ => margin)
-      state.server.editor.send_dispatcher(state.update(force = true))
+      state.delay_margin.invoke()
     })
 }
 
@@ -55,8 +55,14 @@ class State_Panel private(val server: Language_Server) {
   val id: Counter.ID = State_Panel.make_id()
   private val margin: Synchronized[Double] = Synchronized(server.resources.message_margin)
 
-  private def output(content: String): Unit =
-    server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value))
+  private val delay_margin = Delay.last(server.resources.output_delay, server.channel.Error_Logger) {
+    server.editor.send_dispatcher(update(force = true))
+  }
+
+  private def output(
+      content: String,
+      decorations: Option[List[(String, List[LSP.Decoration_Options])]] = None): Unit =
+    server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value, decorations))
 
   private def init_response(id: LSP.Id): Unit =
     server.channel.write(LSP.State_Init.reply(id, this.id))
@@ -87,7 +93,31 @@ class State_Panel private(val server: Language_Server) {
             val html = node_context.make_html(elements, formatted)
             output(HTML.source(html).toString)
           } else {
-            output(server.resources.output_pretty(Pretty.separate(body), margin.value))
+            val separate = Pretty.separate(body)
+            val formatted = Pretty.formatted(separate, margin = margin.value)
+
+            def convert_symbols(body: XML.Body): XML.Body = {
+              body.map {
+                case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
+                case XML.Text(content) => XML.Text(Symbol.output(server.resources.unicode_symbols, content))
+              }
+            }
+
+            val tree = Markup_Tree.from_XML(convert_symbols(formatted))
+            val result = server.resources.output_pretty(separate, margin = margin.value)
+
+            val document = Line.Document(result)
+            val decorations = tree
+              .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
+                Some(Some(m.info.name))
+              })
+              .flatMap(e => e._2 match {
+                case None => None
+                case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
+              })
+              .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
+
+            output(result, Some(decorations))
           }
         })
 

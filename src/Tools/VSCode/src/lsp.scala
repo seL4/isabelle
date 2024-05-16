@@ -545,9 +545,21 @@ object LSP {
   /* state output */
 
   object State_Output {
-    def apply(id: Counter.ID, content: String, auto_update: Boolean): JSON.T =
+    def apply(
+       id: Counter.ID,
+       content: String,
+       auto_update: Boolean,
+       decorations: Option[List[(String, List[Decoration_Options])]] = None
+    ): JSON.T =
       Notification("PIDE/state_output",
-        JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update))
+        JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
+        JSON.optional(
+          "decorations" -> decorations.map(decorations =>
+            decorations.map(decoration => JSON.Object(
+              "type" -> decoration._1,
+              "content" -> decoration._2.map(_.json))
+            ))
+        ))
   }
 
   class State_Id_Notification(name: String) {
