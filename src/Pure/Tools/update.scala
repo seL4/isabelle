@@ -61,7 +61,7 @@ object Update {
     val exclude: Set[String] =
       if (base_logics.isEmpty) Set.empty
       else {
-        Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
+        Sessions.load_structure(options, dirs = dirs ::: select_dirs)
           .selection(Sessions.Selection(sessions = base_logics))
           .build_graph.domain
       }
