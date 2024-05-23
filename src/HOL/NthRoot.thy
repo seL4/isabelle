@@ -745,7 +745,7 @@ proof -
       also have "\<dots> = n"
         using \<open>2 < n\<close> by (simp add: x_def)
       finally have "real (n - 1) * (real n / 2 * (x n)\<^sup>2) \<le> real (n - 1) * 1"
-        by simp
+        using that by auto
       then have "(x n)\<^sup>2 \<le> 2 / real n"
         using \<open>2 < n\<close> unfolding mult_le_cancel_left by (simp add: field_simps)
       from real_sqrt_le_mono[OF this] show ?thesis

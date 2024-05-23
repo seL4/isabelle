@@ -71,147 +71,6 @@ proof -
     using z \<open>0 \<le> x\<close> by (auto intro!: summable_comparison_test[OF _  summable_geometric])
 qed
 
-subsection \<open>More facts about binomial coefficients\<close>
-
-text \<open>
-  These facts could have been proven before, but having real numbers
-  makes the proofs a lot easier.
-\<close>
-
-lemma central_binomial_odd:
-  "odd n \<Longrightarrow> n choose (Suc (n div 2)) = n choose (n div 2)"
-proof -
-  assume "odd n"
-  hence "Suc (n div 2) \<le> n" by presburger
-  hence "n choose (Suc (n div 2)) = n choose (n - Suc (n div 2))"
-    by (rule binomial_symmetric)
-  also from \<open>odd n\<close> have "n - Suc (n div 2) = n div 2" by presburger
-  finally show ?thesis .
-qed
-
-lemma binomial_less_binomial_Suc:
-  assumes k: "k < n div 2"
-  shows   "n choose k < n choose (Suc k)"
-proof -
-  from k have k': "k \<le> n" "Suc k \<le> n" by simp_all
-  from k' have "real (n choose k) = fact n / (fact k * fact (n - k))"
-    by (simp add: binomial_fact)
-  also from k' have "n - k = Suc (n - Suc k)" by simp
-  also from k' have "fact \<dots> = (real n - real k) * fact (n - Suc k)"
-    by (subst fact_Suc) (simp_all add: of_nat_diff)
-  also from k have "fact k = fact (Suc k) / (real k + 1)" by (simp add: field_simps)
-  also have "fact n / (fact (Suc k) / (real k + 1) * ((real n - real k) * fact (n - Suc k))) =
-               (n choose (Suc k)) * ((real k + 1) / (real n - real k))"
-    using k by (simp add: field_split_simps binomial_fact)
-  also from assms have "(real k + 1) / (real n - real k) < 1" by simp
-  finally show ?thesis using k by (simp add: mult_less_cancel_left)
-qed
-
-lemma binomial_strict_mono:
-  assumes "k < k'" "2*k' \<le> n"
-  shows   "n choose k < n choose k'"
-proof -
-  from assms have "k \<le> k' - 1" by simp
-  thus ?thesis
-  proof (induction rule: inc_induct)
-    case base
-    with assms binomial_less_binomial_Suc[of "k' - 1" n]
-      show ?case by simp
-  next
-    case (step k)
-    from step.prems step.hyps assms have "n choose k < n choose (Suc k)"
-      by (intro binomial_less_binomial_Suc) simp_all
-    also have "\<dots> < n choose k'" by (rule step.IH)
-    finally show ?case .
-  qed
-qed
-
-lemma binomial_mono:
-  assumes "k \<le> k'" "2*k' \<le> n"
-  shows   "n choose k \<le> n choose k'"
-  using assms binomial_strict_mono[of k k' n] by (cases "k = k'") simp_all
-
-lemma binomial_strict_antimono:
-  assumes "k < k'" "2 * k \<ge> n" "k' \<le> n"
-  shows   "n choose k > n choose k'"
-proof -
-  from assms have "n choose (n - k) > n choose (n - k')"
-    by (intro binomial_strict_mono) (simp_all add: algebra_simps)
-  with assms show ?thesis by (simp add: binomial_symmetric [symmetric])
-qed
-
-lemma binomial_antimono:
-  assumes "k \<le> k'" "k \<ge> n div 2" "k' \<le> n"
-  shows   "n choose k \<ge> n choose k'"
-proof (cases "k = k'")
-  case False
-  note not_eq = False
-  show ?thesis
-  proof (cases "k = n div 2 \<and> odd n")
-    case False
-    with assms(2) have "2*k \<ge> n" by presburger
-    with not_eq assms binomial_strict_antimono[of k k' n]
-      show ?thesis by simp
-  next
-    case True
-    have "n choose k' \<le> n choose (Suc (n div 2))"
-    proof (cases "k' = Suc (n div 2)")
-      case False
-      with assms True not_eq have "Suc (n div 2) < k'" by simp
-      with assms binomial_strict_antimono[of "Suc (n div 2)" k' n] True
-        show ?thesis by auto
-    qed simp_all
-    also from True have "\<dots> = n choose k" by (simp add: central_binomial_odd)
-    finally show ?thesis .
-  qed
-qed simp_all
-
-lemma binomial_maximum: "n choose k \<le> n choose (n div 2)"
-proof -
-  have "k \<le> n div 2 \<longleftrightarrow> 2*k \<le> n" by linarith
-  consider "2*k \<le> n" | "2*k \<ge> n" "k \<le> n" | "k > n" by linarith
-  thus ?thesis
-  proof cases
-    case 1
-    thus ?thesis by (intro binomial_mono) linarith+
-  next
-    case 2
-    thus ?thesis by (intro binomial_antimono) simp_all
-  qed (simp_all add: binomial_eq_0)
-qed
-
-lemma binomial_maximum': "(2*n) choose k \<le> (2*n) choose n"
-  using binomial_maximum[of "2*n"] by simp
-
-lemma central_binomial_lower_bound:
-  assumes "n > 0"
-  shows   "4^n / (2*real n) \<le> real ((2*n) choose n)"
-proof -
-  from binomial[of 1 1 "2*n"]
-    have "4 ^ n = (\<Sum>k\<le>2*n. (2*n) choose k)"
-    by (simp add: power_mult power2_eq_square One_nat_def [symmetric] del: One_nat_def)
-  also have "{..2*n} = {0<..<2*n} \<union> {0,2*n}" by auto
-  also have "(\<Sum>k\<in>\<dots>. (2*n) choose k) =
-             (\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) + (\<Sum>k\<in>{0,2*n}. (2*n) choose k)"
-    by (subst sum.union_disjoint) auto
-  also have "(\<Sum>k\<in>{0,2*n}. (2*n) choose k) \<le> (\<Sum>k\<le>1. (n choose k)\<^sup>2)"
-    by (cases n) simp_all
-  also from assms have "\<dots> \<le> (\<Sum>k\<le>n. (n choose k)\<^sup>2)"
-    by (intro sum_mono2) auto
-  also have "\<dots> = (2*n) choose n" by (rule choose_square_sum)
-  also have "(\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) \<le> (\<Sum>k\<in>{0<..<2*n}. (2*n) choose n)"
-    by (intro sum_mono binomial_maximum')
-  also have "\<dots> = card {0<..<2*n} * ((2*n) choose n)" by simp
-  also have "card {0<..<2*n} \<le> 2*n - 1" by (cases n) simp_all
-  also have "(2 * n - 1) * (2 * n choose n) + (2 * n choose n) = ((2*n) choose n) * (2*n)"
-    using assms by (simp add: algebra_simps)
-  finally have "4 ^ n \<le> (2 * n choose n) * (2 * n)" by simp_all
-  hence "real (4 ^ n) \<le> real ((2 * n choose n) * (2 * n))"
-    by (subst of_nat_le_iff)
-  with assms show ?thesis by (simp add: field_simps)
-qed
-
-
 subsection \<open>Properties of Power Series\<close>
 
 lemma powser_zero [simp]: "(\<Sum>n. f n * 0 ^ n) = f 0"
@@ -3061,8 +2920,9 @@ lemma tendsto_powr:
   shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
   unfolding powr_def
 proof (rule filterlim_If)
-  from f show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
-    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
+  show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
+    using tendsto_imp_eventually_ne [OF f] a
+    by (simp add: filterlim_iff eventually_inf_principal frequently_def)
   from f g a show "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a)))
       (inf F (principal {x. f x \<noteq> 0}))"
     by (auto intro!: tendsto_intros intro: tendsto_mono inf_le1)

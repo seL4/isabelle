@@ -1103,13 +1103,15 @@ proof -
       with Suc.prems show ?thesis by auto
     next
       case True
-      show ?thesis proof (cases "even j")
+      show ?thesis 
+      proof (cases "even j")
         case True
         then obtain k where k: "j = 2*k" by (metis evenE)
         with \<open>0 < j\<close> have "k > 0" "2 * k < 2 ^ n"
           using Suc.prems(2) k by auto
         with k \<open>0 < n\<close> Suc.IH [of k] show ?thesis
-          by (simp add: m1_to_3 a41 b43 del: power_Suc) (auto simp: of_nat_diff)
+          apply (simp add: m1_to_3 a41 b43 del: power_Suc of_nat_diff)
+          by simp
       next
         case False
         then obtain k where k: "j = 2*k + 1" by (metis oddE)
@@ -1145,7 +1147,7 @@ proof -
         by auto
       then show ?thesis
         using Suc.IH [of k] k \<open>0 < k\<close>
-        by (simp add: less2n add.commute [of 1] m1_to_3 a41 b43 del: power_Suc) (auto simp: of_nat_diff)
+        by (simp add: less2n add.commute [of 1] m1_to_3 a41 b43 del: power_Suc of_nat_diff) auto
     next
       case False
       then obtain k where k: "j = 2*k + 1" by (metis oddE)

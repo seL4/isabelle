@@ -84,7 +84,9 @@ lemma pick_member:
 
 lemma pick_drop_zero:
   "pick (filter (\<lambda>(k, _). k > 0) xs) = pick xs"
-  by (induct xs) (auto simp add: fun_eq_iff less_natural_def minus_natural_def)
+  apply (induct xs) 
+  apply (auto  simp: fun_eq_iff less_natural.rep_eq split: prod.split)
+  by (metis diff_zero of_nat_0 of_nat_of_natural)
 
 lemma pick_same:
   "l < length xs \<Longrightarrow> Random.pick (map (Pair 1) xs) (natural_of_nat l) = nth xs l"

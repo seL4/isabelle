@@ -4219,14 +4219,17 @@ proof -
   hence "eventually (\<lambda>x. ?h x = g x - c * ln (b x) - 
            eval (C - const_expansion c * L) x * b x powr e) at_top" 
     (is "eventually (\<lambda>x. _ = ?h x) _") using assms(2)
-    by (auto simp: expands_to.simps scale_ms_def elim: eventually_elim2)
-  ultimately have **: "is_expansion_aux xs ?h (b # basis)" by (rule is_expansion_aux_cong)
+    apply (simp add: expands_to.simps scale_ms_def)
+    by (smt (verit) eventually_cong)
+  ultimately have **: "is_expansion_aux xs ?h (b # basis)" 
+    by (rule is_expansion_aux_cong)
   from assms(1,4) have "ms_exp_gt 0 (ms_aux_hd_exp xs)" "is_expansion C basis"
     by (auto simp: expands_to.simps elim!: is_expansion_aux_MSLCons)
   moreover from assms(1) have "length basis = expansion_level TYPE('a)"
     by (auto simp: expands_to.simps dest: is_expansion_aux_expansion_level)
   ultimately have "is_expansion_aux (MSLCons (C - scale_ms c L, e) xs) 
-                     (\<lambda>x. g x - c * ln (b x)) (b # basis)" using assms unfolding scale_ms_def
+                     (\<lambda>x. g x - c * ln (b x)) (b # basis)" 
+    using assms unfolding scale_ms_def
     by (intro is_expansion_aux.intros is_expansion_minus is_expansion_mult is_expansion_const * **)
        (simp_all add: basis_wf_Cons expands_to.simps)
   with assms(1) show ?thesis by (auto simp: expands_to.simps)

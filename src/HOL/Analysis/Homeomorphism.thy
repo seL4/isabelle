@@ -716,7 +716,7 @@ next
     show "affine {x. i \<bullet> x = 0}"
       by (auto simp: affine_hyperplane)
     show "aff_dim {x. i \<bullet> x = 0} + 1 = int DIM('n)"
-      using i by clarsimp (metis DIM_positive Suc_pred add.commute of_nat_Suc)
+      using i by force
   qed (use i in auto)
   then obtain f g where fg: "homeomorphism (sphere 0 1 - {i}) {x. i \<bullet> x = 0} f g"
     by (force simp: homeomorphic_def)

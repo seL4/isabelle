@@ -1057,7 +1057,7 @@ proof-
       by (auto simp: dfg_def)
     ultimately have
       "(f * g) $$ n = (\<Sum>i=0..nat (n - dfg). f $$ (df + int i) * g $$ (n - df - int i))"
-      by simp
+      by (simp del: of_nat_diff)
     moreover have
       "(\<Sum>i=0..nat (n - dfg). f $$ (df + int i) *  g $$ (n - df - int i)) =
         (\<Sum>i=0..n - dfg. f $$ (df + i) *  g $$ (n - df - i))"

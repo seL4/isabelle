@@ -71,11 +71,6 @@ Cygwin
   - run ssh-host-config
 ```
     StrictMode: yes
-    privilege separation: yes
-    new local account 'sshd': yes
-    sshd as a service: yes
-    different name (than cyg_server): no
-    new privileged account cyg_server: yes
 ```
 
   - user setup
@@ -84,4 +79,9 @@ Cygwin
     mkgroup -l > /etc/group
 
     passwd -R USER
+```
+
+  - firewall
+```
+    netsh advfirewall firewall add rule name="Open SSH Port 22" dir=in action=allow protocol=TCP localport=22 remoteip=any
 ```

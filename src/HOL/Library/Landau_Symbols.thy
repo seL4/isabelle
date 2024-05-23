@@ -1447,9 +1447,8 @@ lemmas landau_real_nat_transfer [intro] =
 lemma landau_symbol_if_at_top_eq [simp]:
   assumes "landau_symbol L L' Lr"
   shows   "L at_top (\<lambda>x::'a::linordered_semidom. if x = a then f x else g x) = L at_top (g)"
-apply (rule landau_symbol.cong[OF assms])
-using less_add_one[of a] apply (auto intro: eventually_mono  eventually_ge_at_top[of "a + 1"])
-done
+  apply (rule landau_symbol.cong[OF assms])
+  by (auto simp add: frequently_def eventually_at_top_linorder dest!: spec [where x= "a + 1"])
 
 lemmas landau_symbols_if_at_top_eq [simp] = landau_symbols[THEN landau_symbol_if_at_top_eq]
 

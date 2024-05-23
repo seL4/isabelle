@@ -67,11 +67,7 @@ where
   "\<theta><(Var x)> = (lookup \<theta> x)"
 | "\<theta><(App e\<^sub>1 e\<^sub>2)> = App (\<theta><e\<^sub>1>) (\<theta><e\<^sub>2>)"
 | "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
-apply(finite_guess)+
-apply(rule TrueI)+
-apply(simp add: abs_fresh)+
-apply(fresh_guess)+
-done
+  by (finite_guess | simp add: abs_fresh | fresh_guess)+
 
 lemma psubst_eqvt[eqvt]:
   fixes pi::"name prm" 
@@ -357,24 +353,30 @@ where
 
 lemma V_eqvt:
   fixes pi::"name prm"
-  assumes a: "x\<in>V T"
-  shows "(pi\<bullet>x)\<in>V T"
-using a
-apply(nominal_induct T arbitrary: pi x rule: ty.strong_induct)
-apply(auto simp add: trm.inject)
-apply(simp add: eqvts)
-apply(rule_tac x="pi\<bullet>xa" in exI)
-apply(rule_tac x="pi\<bullet>e" in exI)
-apply(simp)
-apply(auto)
-apply(drule_tac x="(rev pi)\<bullet>v" in bspec)
-apply(force)
-apply(auto)
-apply(rule_tac x="pi\<bullet>v'" in exI)
-apply(auto)
-apply(drule_tac pi="pi" in big.eqvt)
-apply(perm_simp add: eqvts)
-done
+  assumes "x \<in> V T"
+  shows "(pi\<bullet>x) \<in> V T"
+using assms
+proof (nominal_induct T arbitrary: pi x rule: ty.strong_induct)
+  case (TVar nat)
+  then show ?case
+    by (simp add: val.eqvt)
+next
+  case (Arrow T\<^sub>1 T\<^sub>2 pi x)
+  obtain a e where ae: "x = Lam [a]. e" "\<forall>v\<in>V T\<^sub>1. \<exists>v'. e[a::=v] \<Down> v' \<and> v' \<in> V T\<^sub>2"
+    using Arrow.prems by auto
+  have "\<exists>v'. (pi \<bullet> e)[(pi \<bullet> a)::=v] \<Down> v' \<and> v' \<in> V T\<^sub>2" if v: "v \<in> V T\<^sub>1" for v
+  proof -
+    have "rev pi \<bullet> v \<in> V T\<^sub>1"
+      by (simp add: Arrow.hyps(1) v)
+    then obtain v' where "e[a::=(rev pi \<bullet> v)] \<Down> v'" "v' \<in> V T\<^sub>2"
+      using ae(2) by blast
+    then have "(pi \<bullet> e)[(pi \<bullet> a)::=v] \<Down> pi \<bullet> v'"
+      by (metis (no_types, lifting) big.eqvt cons_eqvt nil_eqvt perm_pi_simp(1) perm_prod.simps psubst_eqvt)
+    then show ?thesis
+      using Arrow.hyps \<open>v' \<in> V T\<^sub>2\<close> by blast
+  qed
+  with ae show ?case by force
+qed
 
 lemma V_arrow_elim_weak:
   assumes h:"u \<in> V (T\<^sub>1 \<rightarrow> T\<^sub>2)"
@@ -385,33 +387,28 @@ lemma V_arrow_elim_strong:
   fixes c::"'a::fs_name"
   assumes h: "u \<in> V (T\<^sub>1 \<rightarrow> T\<^sub>2)"
   obtains a t where "a\<sharp>c" "u = Lam [a].t" "\<forall>v \<in> (V T\<^sub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^sub>2"
-using h
-apply -
-apply(erule V_arrow_elim_weak)
-apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(a,t,c)") (*A*)
-apply(erule exE)
-apply(drule_tac x="a'" in meta_spec)
-apply(drule_tac x="[(a,a')]\<bullet>t" in meta_spec)
-apply(drule meta_mp)
-apply(simp)
-apply(drule meta_mp)
-apply(simp add: trm.inject alpha fresh_left fresh_prod calc_atm fresh_atm)
-apply(perm_simp)
-apply(force)
-apply(drule meta_mp)
-apply(rule ballI)
-apply(drule_tac x="[(a,a')]\<bullet>v" in bspec)
-apply(simp add: V_eqvt)
-apply(auto)
-apply(rule_tac x="[(a,a')]\<bullet>v'" in exI)
-apply(auto)
-apply(drule_tac pi="[(a,a')]" in big.eqvt)
-apply(perm_simp add: eqvts calc_atm)
-apply(simp add: V_eqvt)
-(*A*)
-apply(rule exists_fresh')
-apply(simp add: fin_supp)
-done
+proof -
+  obtain a t where "u = Lam [a].t" 
+    and at: "\<And>v. v \<in> (V T\<^sub>1) \<Longrightarrow> \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^sub>2"
+    using V_arrow_elim_weak [OF assms] by metis
+  obtain a'::name where a': "a'\<sharp>(a,t,c)"
+    by (meson exists_fresh fs_name_class.axioms)
+  then have "u = Lam [a'].([(a, a')] \<bullet> t)"
+    unfolding \<open>u = Lam [a].t\<close>
+    by (smt (verit) alpha fresh_atm fresh_prod perm_swap trm.inject(2))
+  moreover
+  have "\<exists> v'. ([(a, a')] \<bullet> t)[a'::=v] \<Down> v' \<and> v' \<in> V T\<^sub>2" if "v \<in> (V T\<^sub>1)" for v
+  proof -
+    obtain v' where v': "t[a::=([(a, a')] \<bullet> v)] \<Down> v' \<and> v' \<in> V T\<^sub>2"
+      using V_eqvt \<open>v \<in> V T\<^sub>1\<close> at by blast
+    then have "([(a, a')] \<bullet> t[a::=([(a, a')] \<bullet> v)]) \<Down> [(a, a')] \<bullet> v'"
+      by (simp add: big.eqvt)
+    then show ?thesis
+      by (smt (verit) V_eqvt cons_eqvt nil_eqvt perm_prod.simps perm_swap(1) psubst_eqvt swap_simps(1) v')
+  qed
+  ultimately show thesis
+    by (metis fresh_prod that a')
+qed
 
 lemma Vs_are_values:
   assumes a: "e \<in> V T"

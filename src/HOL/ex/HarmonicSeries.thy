@@ -103,7 +103,7 @@ proof
         by (simp add: tmdef)
       also from mgt0 have
         "\<dots> = ((1/(real tm)) * real ((2::nat)^(m - 1)))"
-        by (auto simp: tmdef dest: two_pow_sub)
+        using tmdef two_pow_sub by presburger
       also have
         "\<dots> = (real (2::nat))^(m - 1) / (real (2::nat))^m"
         by (simp add: tmdef)
