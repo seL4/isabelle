@@ -168,7 +168,7 @@ object Mercurial {
     for (hg <- detect_repository(root, ssh = ssh)) yield hg.id(rev = rev)
 
   def repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
-    detect_repository(root, ssh = ssh) getOrElse error("Bad hg repository " + root.expand)
+    detect_repository(root, ssh = ssh) getOrElse error("Bad hg repository " + ssh.expand_path(root))
 
   def self_repository(): Repository = repository(Path.ISABELLE_HOME)
 
