@@ -11,6 +11,8 @@ package isabelle
 import java.util.{Map => JMap}
 import java.io.{File => JFile}
 
+import scala.annotation.tailrec
+
 
 object SSH {
   /* client command */
@@ -478,6 +480,16 @@ object SSH {
 
     def rsync_prefix: String = ""
     def rsync_path(path: Path): String = rsync_prefix + expand_path(path).implode
+
+    def find_path[A](start: Path, detect: Path => Option[A]): Option[A] = {
+      @tailrec def find(root: Path): Option[A] =
+        detect(root) match {
+          case None => if (root.is_root) None else find(root + Path.parent)
+          case some => some
+        }
+
+      find(expand_path(start))
+    }
 
     def expand_path(path: Path): Path = path.expand
     def absolute_path(path: Path): Path = path.absolute
