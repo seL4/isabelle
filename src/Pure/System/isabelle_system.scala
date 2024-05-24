@@ -181,10 +181,8 @@ object Isabelle_System {
     else make_directory(path)
 
   def copy_dir(dir1: Path, dir2: Path, direct: Boolean = false): Unit = {
-    def make_path(dir: Path): String = {
-      val s = File.standard_path(dir.absolute)
-      if (direct) Url.direct_path(s) else s
-    }
+    def make_path(dir: Path): String =
+      Url.dir_path(File.standard_path(dir.absolute), direct = direct)
     val p1 = make_path(dir1)
     val p2 = make_path(dir2)
     make_directory(if (direct) dir2.absolute else dir2.absolute.dir)

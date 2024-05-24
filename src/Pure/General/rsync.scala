@@ -40,10 +40,8 @@ object Rsync {
         (if (stats) " --stats" else "")
     }
 
-    def target(path: Path, direct: Boolean = false): String = {
-      val s = ssh.rsync_path(path)
-      if (direct) Url.direct_path(s) else s
-    }
+    def target(path: Path, direct: Boolean = false): String =
+      Url.dir_path(ssh.rsync_path(path), direct = direct)
   }
 
   def exec(

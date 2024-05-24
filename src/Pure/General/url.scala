@@ -145,6 +145,9 @@ object Url {
     else prefix + "/" + suffix
 
   def direct_path(prefix: String): String = append_path(prefix, ".")
+
+  def dir_path(prefix: String, direct: Boolean = false): String =
+    if (direct) direct_path(prefix) else prefix
 }
 
 final class Url private(val uri: URI) {
