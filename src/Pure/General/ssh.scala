@@ -263,6 +263,9 @@ object SSH {
     override def is_dir(path: Path): Boolean = run_ssh(args = "test -d " + bash_path(path)).ok
     override def is_file(path: Path): Boolean = run_ssh(args = "test -f " + bash_path(path)).ok
 
+    override def eq_file(path1: Path, path2: Path): Boolean =
+      path1 == path2 || execute("test " + bash_path(path1) + " -ef " + bash_path(path2)).ok
+
     override def delete(path: Path): Unit = {
       val cmd = if (is_dir(path)) "rmdir" else if (is_file(path)) "rm" else ""
       if (cmd.nonEmpty) run_sftp(cmd + " " + sftp_path(path))
@@ -286,10 +289,12 @@ object SSH {
     }
 
     override def copy_file(src: Path, dst: Path): Unit = {
-      val direct = if (is_dir(dst)) "/." else ""
-      if (!execute("cp -a " + bash_path(src) + " " + bash_path(dst) + direct).ok) {
-        error("Failed to copy file " + expand_path(src) + " to " +
-          expand_path(dst) + " (ssh " + toString + ")")
+      val target = if (is_dir(dst)) dst + expand_path(src).base else dst
+      if (!eq_file(src, target)) {
+        if (!execute("cp -a " + bash_path(src) + " " + bash_path(target)).ok) {
+          error("Failed to copy file " +
+            absolute_path(src) + " to " + absolute_path(target) + " (ssh " + toString + ")")
+        }
       }
     }
 
@@ -479,6 +484,7 @@ object SSH {
     def bash_path(path: Path): String = File.bash_path(path)
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
+    def eq_file(path1: Path, path2: Path): Boolean = File.eq(path1, path2)
     def delete(path: Path): Unit = path.file.delete
     def restrict(path: Path): Unit = File.restrict(path)
     def set_executable(path: Path, reset: Boolean = false): Unit =

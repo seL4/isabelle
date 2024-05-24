@@ -223,7 +223,7 @@ object Isabelle_System {
       catch {
         case ERROR(msg) =>
           cat_error("Failed to copy file " +
-            File.path(src).absolute + " to " + File.path(dst).absolute, msg)
+            File.path(src).absolute + " to " + File.path(target).absolute, msg)
       }
     }
   }
