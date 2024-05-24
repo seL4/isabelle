@@ -46,27 +46,27 @@ object Sync {
   ): Unit = {
     val progress = context.progress
 
-    val hg = Mercurial.self_repository()
-    val afp_hg = afp_root.map(Mercurial.repository(_))
+    val self = Mercurial.self_repository()
+    val afp = afp_root.map(Mercurial.repository(_))
 
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
 
-    def hg_sync(hg: Mercurial.Repository, dest: Path, r: String,
+    def synchronize(src: Mercurial.Repository, dest: Path, r: String,
       contents: List[File.Content] = Nil, filter: List[String] = Nil
     ): Unit = {
-      hg.sync(context, dest, rev = r, thorough = thorough, dry_run = dry_run,
+      src.sync(context, dest, rev = r, thorough = thorough, dry_run = dry_run,
         contents = contents, filter = filter ::: more_filter)
     }
 
-    progress.echo("\n* Isabelle repository:", verbose = true)
+    progress.echo("\n* Isabelle:", verbose = true)
     val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
-    hg_sync(hg, target, rev,
-      contents = List(File.content(Path.explode("etc/ISABELLE_ID"), hg.id(rev = rev))),
+    synchronize(self, target, rev,
+      contents = List(File.content(Path.explode("etc/ISABELLE_ID"), self.id(rev = rev))),
       filter = filter_heaps ::: List("protect /AFP"))
 
-    for (hg <- afp_hg) {
-      progress.echo("\n* AFP repository:", verbose = true)
-      hg_sync(hg, target + Path.explode("AFP"), afp_rev)
+    for (src <- afp) {
+      progress.echo("\n* AFP:", verbose = true)
+      synchronize(src, target + Path.explode("AFP"), afp_rev)
     }
 
     val images =
