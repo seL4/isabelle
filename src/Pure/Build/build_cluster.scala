@@ -180,10 +180,19 @@ object Build_Cluster {
         isabelle_identifier = build_cluster_identifier, ssh = ssh)
 
     def sync(): Other_Isabelle = {
-      Sync.sync(options, Rsync.Context(ssh = ssh), built_cluster_isabelle_home,
-        purge_heaps = true,
-        preserve_jars = true,
-        dirs = Sync.afp_dirs(build_context.afp_root))
+      val context = Rsync.Context(ssh = ssh)
+      val target = built_cluster_isabelle_home
+      if (Mercurial.Hg_Sync.ok(Path.ISABELLE_HOME)) {
+        val source = File.standard_path(Path.ISABELLE_HOME)
+        Rsync.exec(context, clean = true,
+          args = List("--", Url.direct_path(source), context.target(target))).check
+      }
+      else {
+        Sync.sync(options, context, target,
+          purge_heaps = true,
+          preserve_jars = true,
+          dirs = Sync.afp_dirs(build_context.afp_root))
+      }
       build_cluster_isabelle
     }
 
