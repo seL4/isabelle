@@ -172,8 +172,8 @@ object Build_Cluster {
     override def toString: String = ssh.toString
 
     val build_cluster_identifier: String = options.string("build_cluster_identifier")
-    val build_cluster_root: Path = Path.explode(options.string("build_cluster_root"))
-    val build_cluster_isabelle_home: Path = build_cluster_root + Path.explode("isabelle")
+    val build_cluster_isabelle_home: Path =
+      Path.explode(options.string("build_cluster_root")) + Path.explode("isabelle")
 
     lazy val build_cluster_isabelle: Other_Isabelle =
       Other_Isabelle(build_cluster_isabelle_home,
