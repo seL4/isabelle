@@ -173,15 +173,15 @@ object Build_Cluster {
 
     val build_cluster_identifier: String = options.string("build_cluster_identifier")
     val build_cluster_root: Path = Path.explode(options.string("build_cluster_root"))
-    val built_cluster_isabelle_home: Path = build_cluster_root + Path.explode("isabelle")
+    val build_cluster_isabelle_home: Path = build_cluster_root + Path.explode("isabelle")
 
     lazy val build_cluster_isabelle: Other_Isabelle =
-      Other_Isabelle(built_cluster_isabelle_home,
+      Other_Isabelle(build_cluster_isabelle_home,
         isabelle_identifier = build_cluster_identifier, ssh = ssh)
 
     def sync(): Other_Isabelle = {
       val context = Rsync.Context(ssh = ssh)
-      val target = built_cluster_isabelle_home
+      val target = build_cluster_isabelle_home
       if (Mercurial.Hg_Sync.ok(Path.ISABELLE_HOME)) {
         val source = File.standard_path(Path.ISABELLE_HOME)
         Rsync.exec(context, clean = true,
@@ -203,7 +203,7 @@ object Build_Cluster {
     def benchmark(): Unit = {
       val script =
         Build_Benchmark.benchmark_command(options, host, ssh = ssh,
-          isabelle_home = built_cluster_isabelle_home)
+          isabelle_home = build_cluster_isabelle_home)
       build_cluster_isabelle.bash(script).check
     }
 
@@ -220,7 +220,7 @@ object Build_Cluster {
           ssh = ssh,
           build_options = build_options.toList,
           build_id = build_context.build_uuid,
-          isabelle_home = built_cluster_isabelle_home,
+          isabelle_home = build_cluster_isabelle_home,
           dirs = Path.split(host.dirs).map(build_cluster_isabelle.expand_path),
           quiet = true)
       build_cluster_isabelle.bash(script).check
