@@ -174,9 +174,6 @@ object Build_Cluster {
     val build_cluster_identifier: String = options.string("build_cluster_identifier")
     val build_cluster_root: Path = Path.explode(options.string("build_cluster_root"))
     val built_cluster_isabelle_home: Path = build_cluster_root + Path.explode("isabelle")
-    val build_cluster_afp_root: Option[Path] =
-      if (build_context.afp_root.isEmpty) None
-      else Some(built_cluster_isabelle_home + Path.explode("AFP"))
 
     lazy val build_cluster_isabelle: Other_Isabelle =
       Other_Isabelle(built_cluster_isabelle_home,
@@ -184,9 +181,9 @@ object Build_Cluster {
 
     def sync(): Other_Isabelle = {
       Sync.sync(options, Rsync.Context(ssh = ssh), built_cluster_isabelle_home,
-        afp_root = build_context.afp_root,
         purge_heaps = true,
-        preserve_jars = true)
+        preserve_jars = true,
+        dirs = Sync.afp_dirs(build_context.afp_root))
       build_cluster_isabelle
     }
 
@@ -215,7 +212,6 @@ object Build_Cluster {
           build_options = build_options.toList,
           build_id = build_context.build_uuid,
           isabelle_home = built_cluster_isabelle_home,
-          afp_root = build_cluster_afp_root,
           dirs = Path.split(host.dirs).map(build_cluster_isabelle.expand_path),
           quiet = true)
       build_cluster_isabelle.bash(script).check

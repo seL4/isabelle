@@ -167,7 +167,7 @@ object Build_History {
 
     val isabelle_directory = directory(root)
     val (afp_directory, afp_build_args) =
-      if (afp) (Some(directory(root + Path.explode("AFP"))), List("-d", "~~/AFP/thys"))
+      if (afp) (Some(directory(root + Path.explode("AFP"))), List("-d", "~~/dirs/AFP/thys"))
       else (None, Nil)
 
 
@@ -548,7 +548,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
     ): Unit = {
       Sync.sync(ssh.options, Rsync.Context(progress = progress, ssh = ssh), target,
         thorough = accurate, preserve_jars = !accurate,
-        rev = rev, afp_rev = afp_rev, afp_root = if (afp) afp_repos else None)
+        rev = rev, dirs = Sync.afp_dirs(if (afp) afp_repos else None, rev = afp_rev))
     }
 
     if (!shared_isabelle_self) sync(isabelle_self)

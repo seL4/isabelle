@@ -599,7 +599,6 @@ Usage: isabelle build_process [OPTIONS]
     build_options: List[Options.Spec] = Nil,
     build_id: String = "",
     isabelle_home: Path = Path.current,
-    afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     quiet: Boolean = false,
     verbose: Boolean = false
@@ -607,7 +606,6 @@ Usage: isabelle build_process [OPTIONS]
     val options = build_options ::: Options.Spec.eq("build_hostname", host.name) :: host.options
     ssh.bash_path(Isabelle_Tool.exe(isabelle_home)) + " build_worker" +
       if_proper(build_id, " -B " + Bash.string(build_id)) +
-      if_proper(afp_root, " -A " + ssh.bash_path(afp_root.get)) +
       dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
       if_proper(host.numa, " -N") + " -j" + host.jobs +
       Options.Spec.bash_strings(options, bg = true) +
@@ -619,7 +617,6 @@ Usage: isabelle build_process [OPTIONS]
     options: Options,
     build_id: String = "",
     progress: Progress = new Progress,
-    afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Option[Int] = None
@@ -634,18 +631,19 @@ Usage: isabelle build_process [OPTIONS]
 
         val build_master = find_builds(build_database, build_id, builds.filter(_.active))
 
+        val more_dirs = List(Path.ISABELLE_HOME + Sync.DIRS).filter(Sessions.is_session_dir(_))
+
         val sessions_structure =
-          Sessions.load_structure(build_options, dirs = AFP.main_dirs(afp_root) ::: dirs).
+          Sessions.load_structure(build_options, dirs = more_dirs ::: dirs).
             selection(Sessions.Selection(sessions = build_master.sessions))
 
         val build_deps =
           Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
         val build_context =
-          Context(store, build_deps, engine = engine, afp_root = afp_root,
-            hostname = hostname(build_options), numa_shuffling = numa_shuffling,
-            build_uuid = build_master.build_uuid, build_start = Some(build_master.start),
-            jobs = max_jobs.getOrElse(1))
+          Context(store, build_deps, engine = engine, hostname = hostname(build_options),
+            numa_shuffling = numa_shuffling, build_uuid = build_master.build_uuid,
+            build_start = Some(build_master.start), jobs = max_jobs.getOrElse(1))
 
         engine.run_build_process(build_context, progress, server)
       }
@@ -655,7 +653,6 @@ Usage: isabelle build_process [OPTIONS]
   val isabelle_tool3 = Isabelle_Tool("build_worker", "start worker for session build process",
     Scala_Project.here,
     { args =>
-      var afp_root: Option[Path] = None
       var build_id = ""
       var numa_shuffling = false
       val dirs = new mutable.ListBuffer[Path]
@@ -670,7 +667,6 @@ Usage: isabelle build_process [OPTIONS]
 Usage: isabelle build_worker [OPTIONS]
 
   Options are:
-    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -B UUID      existing UUID for build process (default: from database)
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -d DIR       include session directory
@@ -679,7 +675,6 @@ Usage: isabelle build_worker [OPTIONS]
     -q           quiet mode: no progress
     -v           verbose
 """,
-        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => build_id = arg),
         "N" -> (_ => numa_shuffling = true),
         "d:" -> (arg => dirs += Path.explode(arg)),
@@ -701,7 +696,6 @@ Usage: isabelle build_worker [OPTIONS]
           build_worker(options,
             build_id = build_id,
             progress = progress,
-            afp_root = afp_root,
             dirs = dirs.toList,
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
             max_jobs = max_jobs)

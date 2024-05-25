@@ -34,6 +34,24 @@ object Sync {
 
   /* sync */
 
+  val DIRS: Path = Path.basic("dirs")
+  val DIRS_ROOTS: Path = DIRS + Sessions.ROOTS
+
+  sealed case class Dir(name: String, root: Path, path: Path = Path.current, rev: String = "") {
+    lazy val hg: Mercurial.Repository = Mercurial.repository(root)
+    def check(): Unit = hg
+
+    def source: Path = root + path
+    def target: Path = DIRS + Path.basic(name)
+    def roots_entry: String = ((if (name.isEmpty) Path.parent else Path.basic(name)) + path).implode
+  }
+
+  def afp_dir(base_dir: Path = AFP.BASE, rev: String = ""): Dir =
+    Dir("AFP", base_dir, path = AFP.main_dir(base_dir = Path.current), rev = rev)
+
+  def afp_dirs(root: Option[Path] = None, rev: String = ""): List[Dir] =
+    root.toList.map(base_dir => afp_dir(base_dir = base_dir, rev = rev))
+
   def sync(options: Options, context: Rsync.Context, target: Path,
     thorough: Boolean = false,
     purge_heaps: Boolean = false,
@@ -41,13 +59,23 @@ object Sync {
     preserve_jars: Boolean = false,
     dry_run: Boolean = false,
     rev: String = "",
-    afp_root: Option[Path] = None,
-    afp_rev: String = ""
+    dirs: List[Dir] = Nil
   ): Unit = {
     val progress = context.progress
 
     val self = Mercurial.self_repository()
-    val afp = afp_root.map(Mercurial.repository(_))
+    dirs.foreach(_.check())
+
+    val sync_dirs: List[Dir] = {
+      val m =
+        Multi_Map.from(
+          for (dir <- dirs.iterator if dir.name.nonEmpty) yield dir.name -> dir.root.canonical)
+      for ((name, roots) <- m.iterator_list if roots.length > 1) {
+        error("Incoherent sync directory " + quote(name) + ":\n" +
+          cat_lines(roots.reverse.map(p => "  " + p.toString)))
+      }
+      Library.distinct(dirs, (d1: Dir, d2: Dir) => d1.name == d2.name)
+    }
 
     val more_filter = if (preserve_jars) List("include *.jar", "protect *.jar") else Nil
 
@@ -60,18 +88,20 @@ object Sync {
 
     progress.echo("\n* Isabelle:", verbose = true)
     val filter_heaps = if (purge_heaps) Nil else List("protect /heaps", "protect /heaps/**")
+    val filter_dirs = sync_dirs.map(dir => "protect /" + dir.target.implode)
     synchronize(self, target, rev,
       contents = List(File.content(Path.explode("etc/ISABELLE_ID"), self.id(rev = rev))),
-      filter = filter_heaps ::: List("protect /AFP"))
+      filter = filter_heaps ::: filter_dirs)
 
-    for (src <- afp) {
-      progress.echo("\n* AFP:", verbose = true)
-      synchronize(src, target + Path.explode("AFP"), afp_rev)
+    context.ssh.make_directory(target + DIRS)
+    context.ssh.write(target + DIRS_ROOTS, Library.terminate_lines(dirs.map(_.roots_entry)))
+
+    for (dir <- sync_dirs) {
+      progress.echo("\n* " + dir.name + ":", verbose = true)
+      synchronize(dir.hg, target + dir.target, dir.rev)
     }
 
-    val images =
-      find_images(options, session_images,
-        dirs = afp_root.map(_ + Path.explode("thys")).toList)
+    val images = find_images(options, session_images, dirs = dirs.map(_.source))
     if (images.nonEmpty) {
       progress.echo("\n* Session images:", verbose = true)
       val heaps = context.target(target + Path.explode("heaps")) + "/"
@@ -143,7 +173,7 @@ Usage: isabelle sync [OPTIONS] TARGET
           val context = Rsync.Context(progress = progress, ssh = ssh, stats = verbose)
           sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
             session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
-            rev = rev, afp_root = afp_root, afp_rev = afp_rev)
+            rev = rev, dirs = afp_dirs(afp_root, afp_rev))
         }
       }
     )
