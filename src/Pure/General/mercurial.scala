@@ -126,13 +126,15 @@ object Mercurial {
     val PATH_DIFF: Path = PATH + Path.explode("diff")
     val PATH_STAT: Path = PATH + Path.explode("stat")
 
+    def ok(root: Path, ssh: SSH.System = SSH.Local): Boolean = ssh.is_dir(root + PATH)
+
     def check_directory(root: Path, ssh: SSH.System = SSH.Local): Unit =
-      if (ssh.is_dir(root) && !ssh.is_dir(root + PATH) && ssh.read_dir(root).nonEmpty) {
+      if (ssh.is_dir(root) && !ok(root, ssh = ssh) && ssh.read_dir(root).nonEmpty) {
         error("No .hg_sync meta data in " + ssh.rsync_path(root))
       }
 
     def directory(root: Path, ssh: SSH.System = SSH.Local): Directory = {
-      if (ssh.is_dir(root + PATH)) new Directory(root, ssh)
+      if (ok(root, ssh = ssh)) new Directory(root, ssh)
       else error("No .hg_sync directory found in " + ssh.rsync_path(root))
     }
 
