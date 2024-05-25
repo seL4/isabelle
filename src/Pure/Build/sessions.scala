@@ -1235,7 +1235,7 @@ object Sessions {
     ssh.is_file(dir + ROOT) || ssh.is_file(dir + ROOTS)
 
   def check_session_dir(dir: Path): Path =
-    if (is_session_dir(dir)) File.pwd() + dir.expand
+    if (is_session_dir(dir)) dir.absolute
     else {
       error("Bad session root directory: " + dir.expand.toString +
         "\n  (missing \"ROOT\" or \"ROOTS\")")
