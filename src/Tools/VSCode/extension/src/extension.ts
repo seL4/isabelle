@@ -140,6 +140,23 @@ export async function activate(context: ExtensionContext)
     register_script_decorations(context)
 
 
+    /* manual decorations */
+
+    function request_decs()
+    {
+      const document_uri = window.activeTextEditor.document.uri
+      const decoration_request: lsp.Decoration_Request = { uri: document_uri.toString() }
+      language_client.sendNotification(lsp.decoration_request_type, decoration_request)
+    }
+
+    language_client.onReady().then(() =>
+    {
+      context.subscriptions.push(
+        window.onDidChangeActiveTextEditor(request_decs)
+      )
+    })
+
+
     /* caret handling */
 
     function update_caret()

@@ -32,6 +32,15 @@ export const decoration_type =
   new NotificationType<Document_Decorations>("PIDE/decoration")
 
 
+export interface Decoration_Request
+{
+  uri: string
+}
+
+export const decoration_request_type =
+  new NotificationType<Decoration_Request>("PIDE/decoration_request")
+
+
 /* caret handling */
 
 export interface Caret_Update
