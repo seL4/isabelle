@@ -489,6 +489,18 @@ object LSP {
           ))
       )
   }
+  
+  object Decoration_Request {
+    def unapply(json: JSON.T): Option[JFile] =
+      json match {
+        case Notification("PIDE/decoration_request", Some(params)) =>
+          for {
+            uri <- JSON.string(params, "uri")
+            if Url.is_wellformed_file(uri)
+          } yield Url.absolute_file(uri)
+        case _ => None
+      }
+  }
 
 
   /* caret update: bidirectional */

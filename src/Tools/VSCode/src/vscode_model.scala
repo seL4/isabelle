@@ -205,11 +205,8 @@ sealed case class VSCode_Model(
   def publish(
     rendering: VSCode_Rendering
   ): (Option[List[Text.Info[Command.Results]]], Option[List[VSCode_Model.Decoration]], VSCode_Model) = {
-    val diagnostics = rendering.diagnostics
-    val decorations =
-      if (node_visible) rendering.decorations
-      else { for (deco <- published_decorations) yield VSCode_Model.Decoration.empty(deco.typ) }
-
+    val (diagnostics, decorations, model) = publish_full(rendering)
+    
     val changed_diagnostics =
       if (diagnostics == published_diagnostics) None else Some(diagnostics)
     val changed_decorations =
@@ -217,7 +214,18 @@ sealed case class VSCode_Model(
       else if (published_decorations.isEmpty) Some(decorations)
       else Some(for { (a, b) <- decorations zip published_decorations if a != b } yield a)
 
-    (changed_diagnostics, changed_decorations,
+    (changed_diagnostics, changed_decorations, model)
+  }
+
+  def publish_full(
+    rendering: VSCode_Rendering
+  ): (List[Text.Info[Command.Results]],List[VSCode_Model.Decoration], VSCode_Model) = {
+    val diagnostics = rendering.diagnostics
+    val decorations =
+      if (node_visible) rendering.decorations
+      else { for (deco <- published_decorations) yield VSCode_Model.Decoration.empty(deco.typ) }
+
+    (diagnostics, decorations,
       copy(published_diagnostics = diagnostics, published_decorations = decorations))
   }
 

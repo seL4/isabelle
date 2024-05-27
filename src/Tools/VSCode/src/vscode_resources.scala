@@ -360,6 +360,19 @@ extends Resources(session_background, log = log) {
   }
 
 
+  /* decoration requests */
+
+  def force_decorations(channel: Channel, file: JFile): Unit = {
+    val model = state.value.models(file)
+    val rendering1 = rendering(model)
+    val (_, decos, model1) = model.publish_full(rendering1)
+    if (pide_extensions) {
+      channel.write(rendering1.decoration_output(decos).json(file))
+    }
+  }
+
+
+
   /* spell checker */
 
   val spell_checker = new Spell_Checker_Variable

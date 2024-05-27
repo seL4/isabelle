@@ -232,6 +232,12 @@ class Language_Server(
     }
 
 
+  /* decoration request */
+
+  private def decoration_request(file: JFile): Unit =
+    resources.force_decorations(channel, file)
+
+
   /* init and exit */
 
   def init(id: LSP.Id): Unit = {
@@ -448,6 +454,7 @@ class Language_Server(
           case LSP.Hover(id, node_pos) => hover(id, node_pos)
           case LSP.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
+          case LSP.Decoration_Request(file) => decoration_request(file)
           case LSP.Caret_Update(caret) => update_caret(caret)
           case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)
           case LSP.State_Init(id) => State_Panel.init(id, server)
