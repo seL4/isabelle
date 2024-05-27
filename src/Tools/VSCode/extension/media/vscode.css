@@ -9,10 +9,14 @@
 body {
   padding: 0 var(--container-paddding);
   color: var(--vscode-foreground);
-  font-size: var(--vscode-font-size);
-  font-weight: var(--vscode-font-weight);
-  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-editor-font-size);
+  font-weight: var(--vscode-editor-font-weight);
+  font-family: var(--vscode-editor-font-family);
   background-color: var(--vscode-editor-background);
+}
+
+pre {
+  font-family: var(--vscode-editor-font-family);
 }
 
 ol,
@@ -79,7 +83,7 @@ textarea {
   display: block;
   width: 100%;
   border: none;
-  font-family: var(--vscode-font-family);
+  font-family: var(--vscode-editor-font-family);
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
   color: var(--vscode-input-foreground);
   outline-color: var(--vscode-input-border);

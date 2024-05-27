@@ -85,6 +85,7 @@ function get_webview_html(content: string, webview: Webview, extension_path: str
 {
   const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'main.js')))
   const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'vscode.css')))
+  const font_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'IsabelleDejaVuSansMono.ttf')))
 
   return `<!DOCTYPE html>
     <html lang='en'>
@@ -93,7 +94,11 @@ function get_webview_html(content: string, webview: Webview, extension_path: str
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
         <link href='${css_uri}' rel='stylesheet' type='text/css'>
         <style>
-        ${_get_decorations()}
+            @font-face {
+                font-family: "Isabelle DejaVu Sans Mono";
+                src: url(${font_uri});
+            }
+            ${_get_decorations()}
         </style>
         <title>Output</title>
       </head>

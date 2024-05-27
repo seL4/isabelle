@@ -154,6 +154,12 @@ object Component_VSCode {
       Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
 
+    /* font for output/state panel */
+
+    val font_path = Isabelle_Fonts.fonts().find(e => e.name == Isabelle_Fonts.mono).get.path
+    Isabelle_System.copy_file(font_path, VSCode_Main.extension_dir + Path.basic("media"))
+
+
     /* build */
 
     val vsix_name =
