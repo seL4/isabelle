@@ -25,14 +25,14 @@
             vscode.postMessage({'command': 'locate'});
         });
 
-    const get_window_margin = () => {
-        const test_string = "mix";
-        const test_span = document.createElement("span");
-        test_span.textContent = test_string;
-        document.body.appendChild(test_span);
-        const symbol_width = test_span.getBoundingClientRect().width / test_string.length;
-        document.body.removeChild(test_span);
+    const test_string = "mix";
+    const test_span = document.createElement("span");
+    test_span.textContent = test_string;
+    document.body.appendChild(test_span);
+    const symbol_width = test_span.getBoundingClientRect().width / test_string.length;
+    document.body.removeChild(test_span);
 
+    const get_window_margin = () => {
         const width = window.innerWidth / symbol_width;
         const result = Math.max(width - 16, 1); // extra headroom
         return result;
