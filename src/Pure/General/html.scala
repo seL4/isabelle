@@ -93,7 +93,7 @@ object HTML {
     XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
   def style_file(path: Path): XML.Elem = style_file(Url.print_file(path.file))
 
-  def script(s: String): XML.Elem = XML.elem("script", text(s))
+  def script(s: String): XML.Elem = XML.elem("script", List(raw(text(s))))
   def script_file(href: String): XML.Elem = XML.Elem(Markup("script", List("src" -> href)), Nil)
   def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
 
