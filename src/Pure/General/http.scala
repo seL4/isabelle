@@ -220,10 +220,10 @@ object HTTP {
   class Response private[HTTP](val output: Bytes, val content_type: String) {
     override def toString: String = output.toString
 
-    def write(http: HttpExchange, code: Int): Unit = {
+    def write(http: HttpExchange, code: Int, is_head: Boolean = false): Unit = {
       http.getResponseHeaders.set("Content-Type", content_type)
-      http.sendResponseHeaders(code, output.length.toLong)
-      using(http.getResponseBody)(output.write_stream)
+      http.sendResponseHeaders(code, if (is_head) -1 else output.length.toLong)
+      if (!is_head) using(http.getResponseBody)(output.write_stream)
     }
   }
 
@@ -241,15 +241,16 @@ object HTTP {
     def handler(server_name: String): HttpHandler = { (http: HttpExchange) =>
       val uri = http.getRequestURI
       val input = using(http.getRequestBody)(Bytes.read_stream(_))
-      if (http.getRequestMethod == method) {
+      val is_head = http.getRequestMethod == "HEAD" && method == "GET"
+      if (http.getRequestMethod == method || is_head) {
         val request = new Request(server_name, name, uri, input)
         Exn.result(apply(request)) match {
           case Exn.Res(Some(response)) =>
-            response.write(http, 200)
+            response.write(http, 200, is_head)
           case Exn.Res(None) =>
-            Response.empty.write(http, 404)
+            Response.empty.write(http, 404, is_head)
           case Exn.Exn(ERROR(msg)) =>
-            Response.text(Output.error_message_text(msg)).write(http, 500)
+            Response.text(Output.error_message_text(msg)).write(http, 500, is_head)
           case Exn.Exn(exn) => throw exn
         }
       }
