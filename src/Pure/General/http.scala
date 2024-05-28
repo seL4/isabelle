@@ -222,6 +222,7 @@ object HTTP {
 
     def write(http: HttpExchange, code: Int, is_head: Boolean = false): Unit = {
       http.getResponseHeaders.set("Content-Type", content_type)
+      http.getResponseHeaders.set("Content-Length", output.length.toString)
       http.sendResponseHeaders(code, if (is_head) -1 else output.length.toLong)
       if (!is_head) using(http.getResponseBody)(output.write_stream)
     }
