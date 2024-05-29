@@ -336,24 +336,38 @@ object Web_App {
   ) {
     def render(model: A): XML.Body
     val error_model: A
-    val endpoints: List[Endpoint]
+    val endpoints: List[API_Endpoint]
     val head: XML.Body
 
-    def output_document(content: XML.Body, post_height: Boolean = true): String = {
-      val attrs =
-        if (post_height) List("onLoad" -> "parent.postMessage(document.body.scrollHeight, '*')")
-        else Nil
 
-      cat_lines(
-        List(
-          HTML.header,
-          HTML.output(XML.elem("head", HTML.head_meta :: head), hidden = true, structural = true),
-          HTML.output(XML.Elem(Markup("body", attrs), content), hidden = true, structural = true),
-          HTML.footer))
+    /* public-facing endpoints */
+
+    sealed abstract class Endpoint(path: Path, method: String = "GET")
+      extends HTTP.Service(path.implode, method) {
+
+      def reply(request: HTTP.Request): HTTP.Response
+
+      def html(head: XML.Elem, body: XML.Elem): HTTP.Response =
+        HTTP.Response.html(
+          cat_lines(
+            List(
+              HTML.header,
+              HTML.output(head, hidden = true, structural = true),
+              HTML.output(body, hidden = true, structural = true),
+              HTML.footer)))
+
+      final def apply(request: HTTP.Request): Option[HTTP.Response] =
+        Exn.capture(reply(request)) match {
+          case Exn.Res(res) => Some(res)
+          case Exn.Exn(exn) =>
+            val id = UUID.random_string()
+            progress.echo_error_message("Internal error <" + id + ">: " + exn)
+            error("Internal server error. ID: " + id)
+        }
     }
 
-    class UI(path: Path) extends HTTP.Service(path.implode, "GET") {
-      def apply(request: HTTP.Request): Option[HTTP.Response] = {
+    class UI(path: Path) extends Endpoint(path, "GET") {
+      def reply(request: HTTP.Request): HTTP.Response = {
         progress.echo_if(verbose, "GET ui")
 
         val on_load = """
@@ -369,8 +383,9 @@ object Web_App {
 const base = '""" + paths.frontend.toString.replace("/", "\\/") + """'
 document.getElementById('iframe').src = base + '""" + paths.api_route(path).replace("/", "\\/") + """' + window.location.search"""
 
-        Some(HTTP.Response.html(output_document(
-          List(
+        html(
+          XML.elem("head", HTML.head_meta :: head),
+          XML.Elem(Markup("body", List("style" -> "height: fit-content")), List(
             XML.Elem(
               Markup(
                 "iframe",
@@ -380,24 +395,19 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
                   "style" -> "border-style: none; width: 100%",
                   "onload" -> on_load)),
               HTML.text("content")),
-            HTML.script(set_src)),
-            post_height = false)))
+            HTML.script(set_src))))
       }
     }
 
-    sealed abstract class Endpoint(path: Path, method: String = "GET")
-      extends HTTP.Service(paths.api_path(path, external = false).implode, method) {
+    sealed abstract class API_Endpoint(path: Path, method: String = "GET")
+      extends Endpoint(paths.api_path(path, external = false), method) {
 
-      def reply(request: HTTP.Request): HTTP.Response
-
-      final def apply(request: HTTP.Request): Option[HTTP.Response] =
-        Exn.capture(reply(request)) match {
-          case Exn.Res(res) => Some(res)
-          case Exn.Exn(exn) =>
-            val id = UUID.random_string()
-            progress.echo_error_message("Internal error <" + id + ">: " + exn)
-            error("Internal server error. ID: " + id)
-        }
+      def html_content(content: XML.Body): HTTP.Response =
+        html(
+          XML.elem("head", HTML.head_meta :: head),
+          XML.Elem(
+            Markup("body", List("onLoad" -> "parent.postMessage(document.body.scrollHeight, '*')")),
+            content))
     }
 
     private def query_params(request: HTTP.Request): Properties.T = {
@@ -415,7 +425,7 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
     /* endpoint types */
 
     class Get(val path: Path, description: String, get: Properties.T => Option[A])
-      extends Endpoint(path) {
+      extends API_Endpoint(path) {
 
       def reply(request: HTTP.Request): HTTP.Response = {
         progress.echo_if(verbose, "GET " + description)
@@ -430,12 +440,13 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
               progress.echo_if(verbose, "Parsing failed")
               error_model
           }
-        HTTP.Response.html(output_document(render(model)))
+
+        html_content(render(model))
       }
     }
 
     class Get_File(path: Path, description: String, download: Properties.T => Option[Path])
-      extends Endpoint(path) {
+      extends API_Endpoint(path) {
 
       def reply(request: HTTP.Request): HTTP.Response = {
         progress.echo_if(verbose, "DOWNLOAD " + description)
@@ -447,13 +458,13 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
           case Some(path) => HTTP.Response.content(HTTP.Content.read(path))
           case None =>
             progress.echo_if(verbose, "Fetching file path failed")
-            HTTP.Response.html(output_document(render(error_model)))
+            html_content(render(error_model))
         }
       }
     }
 
     class Post(path: Path, description: String, post: Params.Data => Option[A])
-      extends Endpoint(path, method = "POST") {
+      extends API_Endpoint(path, method = "POST") {
 
       def reply(request: HTTP.Request): HTTP.Response = {
         progress.echo_if(verbose, "POST " + description)
@@ -469,7 +480,8 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
               progress.echo_if(verbose, "Parsing failed")
               error_model
           }
-        HTTP.Response.html(output_document(render(model)))
+
+        html_content(render(model))
       }
     }
 
