@@ -402,12 +402,30 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
     sealed abstract class API_Endpoint(path: Path, method: String = "GET")
       extends Endpoint(paths.api_path(path, external = false), method) {
 
-      def html_content(content: XML.Body): HTTP.Response =
+      def html_content(content: XML.Body, auto_reload: Boolean = false): HTTP.Response = {
+        val head1 =
+          if (!auto_reload) head
+          else HTML.script("""
+var state = null;
+function heartbeat() {
+  fetch(window.location, { method: "HEAD" }).then((http_res) => {
+    const new_state = http_res.headers.get("Content-Length")
+    if (state === null) state = new_state
+    if (http_res.status === 200 && state !== new_state) {
+      state = new_state
+      window.location.reload()
+    }
+    setTimeout(heartbeat, 1000);
+  })
+}
+setTimeout(heartbeat, 1000);""") :: head
+
         html(
-          XML.elem("head", HTML.head_meta :: head),
+          XML.elem("head", HTML.head_meta :: head1),
           XML.Elem(
             Markup("body", List("onLoad" -> "parent.postMessage(document.body.scrollHeight, '*')")),
             content))
+      }
     }
 
     private def query_params(request: HTTP.Request): Properties.T = {
@@ -441,7 +459,7 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
               error_model
           }
 
-        html_content(render(model))
+        html_content(render(model), auto_reload = true)
       }
     }
 
