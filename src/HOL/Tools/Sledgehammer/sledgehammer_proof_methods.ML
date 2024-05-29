@@ -93,6 +93,32 @@ fun is_proof_method_multi_goal Auto_Method = true
 
 fun maybe_paren s = s |> not (Symbol_Pos.is_identifier s) ? enclose "(" ")"
 
+(*
+Combine indexed fact names for pretty-printing.
+Example: [... "assms(1)" "assms(3)" ...] becomes [... "assms(1,3)" ...]
+Combines only adjacent same names.
+Input should not have same name with and without index.
+*)
+fun merge_indexed_facts (ss: string list) :string list =
+  let
+
+    fun split (s: string) : string * string =
+      case first_field "(" s of
+        NONE => (s,"")
+      | SOME (name,isp) => (name, String.substring (isp, 0, size isp - 1))
+
+    fun merge ((name1,is1) :: (name2,is2) :: zs) =
+        if name1 = name2
+        then merge ((name1,is1 ^ "," ^ is2) :: zs)
+        else (name1,is1) :: merge ((name2,is2) :: zs)
+      | merge xs = xs;
+
+    fun parents is = if is = "" then "" else "(" ^ is ^ ")"
+
+  in
+    map (fn (name,is) => name ^ parents is) (merge (map split ss))
+  end
+
 fun string_of_proof_method ss meth =
   let
     val meth_s =
@@ -117,7 +143,7 @@ fun string_of_proof_method ss meth =
       | Algebra_Method => "algebra"
       | Order_Method => "order")
   in
-    maybe_paren (space_implode " " (meth_s :: ss))
+    maybe_paren (space_implode " " (meth_s :: merge_indexed_facts ss))
   end
 
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
@@ -182,7 +208,8 @@ fun proof_method_command meth i n used_chaineds _(*num_chained*) extras =
     val (indirect_ss, direct_ss) =
       if is_proof_method_direct meth then ([], extras) else (extras, [])
   in
-    (if null indirect_ss then "" else "using " ^ space_implode " " indirect_ss ^ " ") ^
+    (if null indirect_ss then ""
+     else "using " ^ space_implode " " (merge_indexed_facts indirect_ss) ^ " ") ^
     apply_on_subgoal i n ^ string_of_proof_method direct_ss meth ^
     (if is_proof_method_multi_goal meth andalso n <> 1 then "[1]" else "")
   end
