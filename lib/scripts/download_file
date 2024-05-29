@@ -16,20 +16,10 @@ function download_file ()
     return 2
   }
 
-  local CURL_OPTIONS="--fail --silent --location"
-  if [ "$(uname -s)" = "Darwin" ]
-  then
-    case $(sw_vers -productVersion) in
-      10.*)
-        CURL_OPTIONS="$CURL_OPTIONS --insecure"
-        ;;
-    esac
-  fi
-
   echo "Getting \"$REMOTE\""
   mkdir -p "$(dirname "$LOCAL")"
 
-  if curl $CURL_OPTIONS "$REMOTE" > "${LOCAL}.part"
+  if curl --fail --silent --location "$REMOTE" > "${LOCAL}.part"
   then
     mv -f "${LOCAL}.part" "$LOCAL"
   else
