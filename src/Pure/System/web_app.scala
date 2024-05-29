@@ -316,13 +316,11 @@ object Web_App {
 
     def route(path: Path, params: Properties.T = Nil): String = {
       def param(p: Properties.Entry): String = Url.encode(p._1) + "=" + Url.encode(p._2)
-      val route =
-        if (params.isEmpty) path.implode else path.implode + "?" + params.map(param).mkString("&")
-      "/" + route
+      if (params.isEmpty) path.implode else path.implode + "?" + params.map(param).mkString("&")
     }
 
     def api_route(path: Path, params: Properties.T = Nil, external: Boolean = true): String =
-      route(api_path(path, external = external), params)
+      "/" + route(api_path(path, external = external), params)
 
     def frontend_url(path: Path, params: Properties.T = Nil): Url =
       frontend.resolve(route(path, params))
