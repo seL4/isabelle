@@ -148,11 +148,12 @@ object SSH {
       val config =
         Config.make(options, port = port, user = user,
           control_master = master, control_path = control_path)
-      val cmd =
+      val script =
         Config.command(command, config) +
         if_proper(opts, " " + opts) +
         if_proper(args, " -- " + args)
-      Isabelle_System.bash(cmd, cwd = cwd,
+      Isabelle_System.bash(script,
+        cwd = cwd,
         redirect = redirect,
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
