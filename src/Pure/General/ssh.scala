@@ -165,7 +165,7 @@ object SSH {
       init: Path => Unit = _ => (),
       exit: Path => Unit = _ => ()
     ): Process_Result = {
-      Isabelle_System.with_tmp_dir("ssh") { dir =>
+      Isabelle_System.with_tmp_dir("sftp") { dir =>
         init(dir)
         File.write(dir + Path.explode("script"), script)
         val result =
