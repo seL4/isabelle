@@ -123,7 +123,7 @@ object SSH {
     override def ssh_session: Option[Session] = Some(ssh)
 
     def port_suffix: String = if (port > 0) ":" + port else ""
-    def user_prefix: String = if (user.nonEmpty) user + "@" else ""
+    def user_prefix: String = if_proper(user, user + "@")
 
     override def toString: String = user_prefix + host + port_suffix
     override def print: String = " (ssh " + toString + ")"
