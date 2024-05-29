@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/ssh.scala
     Author:     Makarius
 
-SSH client on OpenSSH command-line tools, preferably with connection
+SSH client on top of OpenSSH command-line tools, preferably with connection
 multiplexing, but this does not work on Windows.
 */
 
