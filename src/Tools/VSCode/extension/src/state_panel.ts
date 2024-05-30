@@ -61,6 +61,9 @@ class Panel
         case "open":
           open_webview_link(message.link)
           break
+        case "resize":
+          language_client.sendNotification(lsp.state_set_margin_type, { id: this.state_id, margin: message.margin })
+          break
         default:
           break
       }
@@ -97,7 +100,7 @@ export function init(uri: Uri)
 {
   if (language_client) {
     if (panel) panel.reveal()
-    else language_client.sendNotification(lsp.state_init_type)
+    else language_client.sendRequest(lsp.state_init_type, null)
   }
 }
 

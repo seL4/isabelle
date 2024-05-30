@@ -191,7 +191,7 @@ export async function activate(context: ExtensionContext)
 
     /* dynamic output */
 
-    const provider = new Output_View_Provider(context.extensionUri)
+    const provider = new Output_View_Provider(context.extensionUri, language_client)
     context.subscriptions.push(
       window.registerWebviewViewProvider(Output_View_Provider.view_type, provider))
 

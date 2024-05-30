@@ -7,7 +7,7 @@ Message formats for Language Server Protocol, with adhoc PIDE extensions
 'use strict';
 
 import { MarkdownString } from 'vscode'
-import { NotificationType } from 'vscode-languageclient'
+import { NotificationType, RequestType0 } from 'vscode-languageclient'
 
 
 /* decorations */
@@ -56,6 +56,13 @@ export interface Dynamic_Output
 export const dynamic_output_type =
   new NotificationType<Dynamic_Output>("PIDE/dynamic_output")
 
+export interface Output_Set_Margin
+{
+  margin: number
+}
+
+export const output_set_margin_type =
+  new NotificationType<Output_Set_Margin>("PIDE/output_set_margin")
 
 /* state */
 
@@ -69,6 +76,15 @@ export interface State_Output
 export const state_output_type =
   new NotificationType<State_Output>("PIDE/state_output")
 
+export interface State_Set_Margin
+{
+  id: number
+  margin: number
+}
+
+export const state_set_margin_type =
+  new NotificationType<State_Set_Margin>("PIDE/state_set_margin")
+
 export interface State_Id
 {
   id: number
@@ -80,7 +96,7 @@ export interface Auto_Update
   enabled: boolean
 }
 
-export const state_init_type = new NotificationType<void>("PIDE/state_init")
+export const state_init_type = new RequestType0("PIDE/state_init")
 export const state_exit_type = new NotificationType<State_Id>("PIDE/state_exit")
 export const state_locate_type = new NotificationType<State_Id>("PIDE/state_locate")
 export const state_update_type = new NotificationType<State_Id>("PIDE/state_update")

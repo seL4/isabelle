@@ -10,6 +10,8 @@ import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
 import { text_colors } from './decorations'
 import * as vscode_lib from './vscode_lib'
 import * as path from 'path'
+import * as lsp from './lsp'
+import { LanguageClient } from 'vscode-languageclient/node';
 
 
 class Output_View_Provider implements WebviewViewProvider
@@ -20,7 +22,7 @@ class Output_View_Provider implements WebviewViewProvider
   private _view?: WebviewView
   private content: string = ''
 
-  constructor(private readonly _extension_uri: Uri) { }
+  constructor(private readonly _extension_uri: Uri, private readonly _language_client: LanguageClient) { }
 
   public resolveWebviewView(
     view: WebviewView,
@@ -40,9 +42,14 @@ class Output_View_Provider implements WebviewViewProvider
 
     view.webview.html = this._get_html(this.content)
     view.webview.onDidReceiveMessage(async message =>
-  {
-      if (message.command === 'open') {
-        open_webview_link(message.link)
+    {
+      switch (message.command) {
+        case "open":
+          open_webview_link(message.link)
+          break
+        case "resize":
+          this._language_client.sendNotification(lsp.output_set_margin_type, { margin: message.margin })
+          break
       }
     })
   }
