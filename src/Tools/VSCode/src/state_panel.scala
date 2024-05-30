@@ -93,30 +93,7 @@ class State_Panel private(val server: Language_Server) {
             val html = node_context.make_html(elements, formatted)
             output(HTML.source(html).toString)
           } else {
-            val separate = Pretty.separate(body)
-            val formatted = Pretty.formatted(separate, margin = margin.value)
-
-            def convert_symbols(body: XML.Body): XML.Body = {
-              body.map {
-                case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
-                case XML.Text(content) => XML.Text(Symbol.output(server.resources.unicode_symbols, content))
-              }
-            }
-
-            val tree = Markup_Tree.from_XML(convert_symbols(formatted))
-            val result = server.resources.output_pretty(separate, margin = margin.value)
-
-            val document = Line.Document(result)
-            val decorations = tree
-              .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
-                Some(Some(m.info.name))
-              })
-              .flatMap(e => e._2 match {
-                case None => None
-                case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
-              })
-              .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
-
+            val (result, decorations) = server.resources.output_pretty_with_decorations(body, margin.value)
             output(result, Some(decorations))
           }
         })

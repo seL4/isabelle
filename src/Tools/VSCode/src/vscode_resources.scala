@@ -343,6 +343,37 @@ extends Resources(session_background, log = log) {
   def output_pretty_tooltip(body: XML.Body): String = output_pretty(body, tooltip_margin)
   def output_pretty_message(body: XML.Body): String = output_pretty(body, message_margin)
 
+  def output_pretty_with_decorations(
+      body: XML.Body,
+      margin: Double,
+  ): (String, List[(String, List[LSP.Decoration_Options])]) = {
+    val separate = Pretty.separate(body)
+    val formatted = Pretty.formatted(separate, margin = margin)
+
+    def convert_symbols(body: XML.Body): XML.Body = {
+      body.map {
+        case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
+        case XML.Text(content) => XML.Text(Symbol.output(unicode_symbols, content))
+      }
+    }
+
+    val tree = Markup_Tree.from_XML(convert_symbols(formatted))
+    val output = output_pretty(separate, margin = margin)
+
+    val document = Line.Document(output)
+    val decorations = tree
+      .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
+        Some(Some(m.info.name))
+      })
+      .flatMap(e => e._2 match {
+        case None => None
+        case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
+      })
+      .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
+
+    (output, decorations)
+  }
+
 
   /* caret handling */
 

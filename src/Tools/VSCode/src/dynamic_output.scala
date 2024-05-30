@@ -56,30 +56,7 @@ object Dynamic_Output {
           val html = node_context.make_html(elements, formatted)
           channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
         } else {
-          val separate = Pretty.separate(st1.output)
-          val formatted = Pretty.formatted(separate, margin = margin)
-
-          def convert_symbols(body: XML.Body): XML.Body = {
-            body.map {
-              case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
-              case XML.Text(content) => XML.Text(Symbol.output(resources.unicode_symbols, content))
-            }
-          }
-
-          val tree = Markup_Tree.from_XML(convert_symbols(formatted))
-          val output = resources.output_pretty(separate, margin = margin)
-
-          val document = Line.Document(output)
-          val decorations = tree
-            .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
-              Some(Some(m.info.name))
-            })
-            .flatMap(e => e._2 match {
-              case None => None
-              case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
-            })
-            .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
-
+          val (output, decorations) = resources.output_pretty_with_decorations(st1.output, margin)
           channel.write(LSP.Dynamic_Output(output, Some(decorations)))
         }
       }
