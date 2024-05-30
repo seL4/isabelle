@@ -198,8 +198,8 @@ export async function activate(context: ExtensionContext)
     language_client.onReady().then(() =>
     {
       context.subscriptions.push(
-        window.onDidChangeActiveTextEditor(_ => update_caret()),
-        window.onDidChangeTextEditorSelection(_ => update_caret()))
+        window.onDidChangeActiveTextEditor(update_caret),
+        window.onDidChangeTextEditorSelection(update_caret))
       update_caret()
 
       language_client.onNotification(lsp.caret_update_type, goto_file)
