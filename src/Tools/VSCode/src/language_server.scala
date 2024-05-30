@@ -166,18 +166,7 @@ class Language_Server(
     version: Long,
     changes: List[LSP.TextDocumentChange]
   ): Unit = {
-    val norm_changes = new mutable.ListBuffer[LSP.TextDocumentChange]
-    @tailrec def norm(chs: List[LSP.TextDocumentChange]): Unit = {
-      if (chs.nonEmpty) {
-        val (full_texts, rest1) = chs.span(_.range.isEmpty)
-        val (edits, rest2) = rest1.span(_.range.nonEmpty)
-        norm_changes ++= full_texts
-        norm_changes ++= edits.sortBy(_.range.get.start)(Line.Position.Ordering).reverse
-        norm(rest2)
-      }
-    }
-    norm(changes)
-    norm_changes.foreach(change =>
+    changes.foreach(change =>
       resources.change_model(session, editor, file, version, change.text, change.range))
 
     delay_input.invoke()
