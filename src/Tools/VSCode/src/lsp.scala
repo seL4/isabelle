@@ -109,7 +109,7 @@ object LSP {
 
     def strict(id: Id, result: Option[JSON.T] = None, error: String = ""): JSON.T =
       if (error == "") apply(id, result = result)
-      else apply(id, error = Some(ResponseError(code = ErrorCodes.serverErrorEnd, message = error)))
+      else apply(id, error = Some(ResponseError(code = ErrorCodes.jsonrpcReservedErrorRangeEnd, message = error)))
 
     def is_empty(json: JSON.T): Boolean =
       JSON.string(json, "id") == Some("") && JSON.value(json, "result").isDefined
@@ -126,10 +126,20 @@ object LSP {
     val MethodNotFound = -32601
     val InvalidParams = -32602
     val InternalError = -32603
-    val serverErrorStart = -32099
-    val serverErrorEnd = -32000
-  }
 
+    val jsonrpcReservedErrorRangeStart = -32099
+    val ServerNotInitialized = -32002
+    val UnknownErrorCode = -32001
+    val jsonrpcReservedErrorRangeEnd = -32000
+
+    val lspReservedErrorRangeStart = -32899
+    val RequestFailed = -32803
+    val ServerCancelled = -32802
+    val ContentModified = -32801
+    val RequestCancelled = -32800
+    val lspReservedErrorRangeEnd = -32800
+  }
+  
 
   /* init and exit */
 
