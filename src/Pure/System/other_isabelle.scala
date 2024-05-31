@@ -183,7 +183,6 @@ final class Other_Isabelle private(
 
   def cleanup(): Unit = {
     clean_settings()
-    ssh.delete(etc)
-    ssh.delete(isabelle_home_user)
+    ssh.delete(etc, isabelle_home_user)
   }
 }
