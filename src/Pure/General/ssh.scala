@@ -321,7 +321,7 @@ object SSH {
       put_file(path, File.write(_, text))
 
 
-    /* tmp dirs */
+    /* tmp dirs and files */
 
     override def rm_tree(dir: Path): Unit =
       execute("rm -r -f " + bash_path(dir)).check
@@ -329,9 +329,19 @@ object SSH {
     override def tmp_dir(): Path =
       Path.explode(execute("mktemp -d /tmp/ssh-XXXXXXXXXXXX").check.out)
 
+    override def tmp_file(name: String, ext: String = ""): Path = {
+      val file_name = name + "-XXXXXXXXXXXX" + if_proper(ext, "." + ext)
+      Path.explode(execute("mktemp /tmp/" + Bash.string(file_name)).check.out)
+    }
+
     override def with_tmp_dir[A](body: Path => A): A = {
       val path = tmp_dir()
       try { body(path) } finally { rm_tree(path) }
+    }
+
+    override def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A = {
+      val path = tmp_file(name, ext = ext)
+      try { body(path) } finally { delete(path) }
     }
 
 
@@ -492,6 +502,10 @@ object SSH {
     def rm_tree(dir: Path): Unit = Isabelle_System.rm_tree(dir)
     def tmp_dir(): Path = File.path(Isabelle_System.tmp_dir("tmp"))
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
+    def tmp_file(name: String, ext: String = ""): Path =
+      File.path(Isabelle_System.tmp_file(name, ext = ext))
+    def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A =
+      Isabelle_System.with_tmp_file(name, ext = ext)(body)
     def read_dir(path: Path): List[String] = File.read_dir(path)
     def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
