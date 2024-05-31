@@ -8,7 +8,7 @@ interrupts.
 package isabelle
 
 
-import java.util.{List => JList, Map => JMap}
+import java.util.{List => JList, Map => JMap, LinkedList}
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   File => JFile, IOException}
 import scala.annotation.tailrec
@@ -48,19 +48,34 @@ object Bash {
   private def make_description(description: String): String =
     proper_string(description) getOrElse "bash_process"
 
+  def local_bash_process(): String =
+    File.platform_path(Path.variable("ISABELLE_BASH_PROCESS"))
+
+  def local_bash(): String =
+    if (Platform.is_unix) "bash"
+    else isabelle.setup.Environment.cygwin_root() + "\\bin\\bash.exe"
+
+  def remote_bash_process(ssh: SSH.Session): String = {
+    val component = Components.provide(Component_Bash_Process.home, ssh = ssh)
+    val exe = Component_Bash_Process.remote_program(component)
+    ssh.make_command(args_host = true, args = ssh.bash_path(exe))
+  }
+
   type Watchdog = (Time, Process => Boolean)
 
   def process(script: String,
       description: String = "",
+      ssh: SSH.System = SSH.Local,
       cwd: JFile = null,
       env: JMap[String, String] = Isabelle_System.settings(),
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
-    new Process(script, description, cwd, env, redirect, cleanup)
+    new Process(script, description, ssh, cwd, env, redirect, cleanup)
 
   class Process private[Bash](
     script: String,
     description: String,
+    ssh: SSH.System,
     cwd: JFile,
     env: JMap[String, String],
     redirect: Boolean,
@@ -68,28 +83,49 @@ object Bash {
   ) {
     override def toString: String = make_description(description)
 
-    private val timing_file = Isabelle_System.tmp_file("bash_timing")
+    private val proc_command: JList[String] = new LinkedList[String]
+
+    private val winpid_file: Option[JFile] =
+      if (ssh.is_local && Platform.is_windows) Some(Isabelle_System.tmp_file("bash_winpid"))
+      else None
+    private val winpid_script =
+      winpid_file match {
+        case None => ""
+        case Some(file) =>
+          "read < /proc/self/winpid > /dev/null 2> /dev/null\n" +
+            """echo -n "$REPLY" > """ + File.bash_path(file) + "\n\n"
+      }
+
+    private val List(timing_file, script_file) =
+      ssh.tmp_files(List("bash_timing", "bash_script"))
+
     private val timing = Synchronized[Option[Timing]](None)
     def get_timing: Timing = timing.value getOrElse Timing.zero
 
-    private val winpid_file: Option[JFile] =
-      if (Platform.is_windows) Some(Isabelle_System.tmp_file("bash_winpid")) else None
-    private val winpid_script =
-      winpid_file match {
-        case None => script
-        case Some(file) =>
-          "read < /proc/self/winpid > /dev/null 2> /dev/null\n" +
-          """echo -n "$REPLY" > """ + File.bash_path(file) + "\n\n" + script
+    ssh.write(script_file, winpid_script + script)
+
+    private val ssh_file: Option[JFile] =
+      ssh.ssh_session match {
+        case None =>
+          proc_command.add(local_bash_process())
+          proc_command.add(File.platform_path(timing_file))
+          proc_command.add("bash")
+          proc_command.add(File.platform_path(script_file))
+          None
+        case Some(ssh_session) =>
+          val ssh_script =
+            "exec " + remote_bash_process(ssh_session) + " " +
+              ssh.bash_path(timing_file) + " bash " +
+              ssh.bash_path(script_file)
+          val file = Isabelle_System.tmp_file("bash_ssh")
+          File.write(file, ssh_script)
+          proc_command.add(local_bash())
+          proc_command.add(file.getPath)
+          Some(file)
       }
 
-    private val script_file: JFile = Isabelle_System.tmp_file("bash_script")
-    File.write(script_file, winpid_script)
-
     private val proc =
-      isabelle.setup.Environment.process_builder(
-        JList.of(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")),
-          File.standard_path(timing_file), "bash", File.standard_path(script_file)),
-        cwd, env, redirect).start()
+      isabelle.setup.Environment.process_builder(proc_command, cwd, env, redirect).start()
 
 
     // channels
@@ -108,27 +144,26 @@ object Bash {
 
     private val group_pid = stdout.readLine
 
-    private def process_alive(pid: String): Boolean =
-      (for {
-        p <- Value.Long.unapply(pid)
-        handle <- ProcessHandle.of(p).toScala
-      } yield handle.isAlive) getOrElse false
+    private def local_process_alive(pid: String): Boolean =
+      ssh.is_local &&
+        (for {
+          p <- Value.Long.unapply(pid)
+          handle <- ProcessHandle.of(p).toScala
+        } yield handle.isAlive).getOrElse(false)
 
     private def root_process_alive(): Boolean =
       winpid_file match {
-        case None => process_alive(group_pid)
+        case None => local_process_alive(group_pid)
         case Some(file) =>
-          file.exists() && process_alive(Library.trim_line(File.read(file)))
+          file.exists() && local_process_alive(Library.trim_line(File.read(file)))
       }
 
     @tailrec private def signal(s: String, count: Int = 1): Boolean = {
       count <= 0 || {
-        isabelle.setup.Environment.kill_process(group_pid, s)
-        val running =
-          root_process_alive() ||
-          isabelle.setup.Environment.kill_process(group_pid, "0")
+        ssh.kill_process(group_pid, s)
+        val running = root_process_alive() || ssh.kill_process(group_pid, "0")
         if (running) {
-          Time.seconds(0.1).sleep()
+          Time.seconds(if (ssh.is_local) 0.1 else 0.25).sleep()
           signal(s, count - 1)
         }
         else false
@@ -142,7 +177,7 @@ object Bash {
     }
 
     def interrupt(): Unit = Isabelle_Thread.try_uninterruptible {
-      isabelle.setup.Environment.kill_process(group_pid, "INT")
+      ssh.kill_process(group_pid, "INT")
     }
 
 
@@ -154,24 +189,25 @@ object Bash {
     private def do_cleanup(): Unit = {
       Isabelle_System.remove_shutdown_hook(shutdown_hook)
 
-      script_file.delete()
       winpid_file.foreach(_.delete())
+      ssh_file.foreach(_.delete())
 
       timing.change {
         case None =>
-          if (timing_file.isFile) {
-            val t =
-              Word.explode(File.read(timing_file)) match {
-                case List(Value.Long(elapsed), Value.Long(cpu)) =>
-                  Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
-                case _ => Timing.zero
-              }
-            timing_file.delete
-            Some(t)
-          }
-          else Some(Timing.zero)
+          val timing_text =
+            try { ssh.read(timing_file) }
+            catch { case ERROR(_) => "" }
+          val t =
+            Word.explode(timing_text) match {
+              case List(Value.Long(elapsed), Value.Long(cpu)) =>
+                Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
+              case _ => Timing.zero
+            }
+          Some(t)
         case some => some
       }
+
+      ssh.delete(timing_file, script_file)
 
       cleanup()
     }

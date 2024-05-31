@@ -153,7 +153,8 @@ object Components {
     val base_name = local_dir.expand.base
     val local_directory = Directory(local_dir).check
     val remote_directory = Directory(base_dir + base_name, ssh = ssh)
-    if (!remote_directory.ok) {
+    if (remote_directory.ok) remote_directory
+    else {
       progress.echo("Providing " + base_name + ssh.print)
       Isabelle_System.with_tmp_file("tmp", ext = "tar") { local_tmp_tar =>
         ssh.with_tmp_dir { remote_tmp_dir =>
@@ -166,8 +167,8 @@ object Components {
             "tar -C " + ssh.bash_path(remote_dir) + " -xf " + ssh.bash_path(remote_tmp_tar)).check
         }
       }
+      remote_directory.check
     }
-    remote_directory.check
   }
 
 
@@ -253,12 +254,12 @@ object Components {
       ssh.is_file(settings) || ssh.is_file(components) || Sessions.is_session_dir(path, ssh = ssh)
 
     def check: Directory =
-      if (!ssh.is_dir(path)) error("Bad component directory: " + toString)
-      else if (!ok) {
+      if (ok) this
+      else if (!ssh.is_dir(path)) error("Bad component directory: " + toString)
+      else {
         error("Malformed component directory: " + toString +
           "\n  (missing \"etc/settings\" or \"etc/components\" or \"ROOT\" or \"ROOTS\")")
       }
-      else this
 
     def read_components(): List[String] =
       split_lines(ssh.read(components)).filter(_.nonEmpty)

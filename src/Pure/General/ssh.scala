@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/ssh.scala
     Author:     Makarius
 
-SSH client on OpenSSH command-line tools, preferably with connection
+SSH client on top of OpenSSH command-line tools, preferably with connection
 multiplexing, but this does not work on Windows.
 */
 
@@ -123,7 +123,7 @@ object SSH {
     override def ssh_session: Option[Session] = Some(ssh)
 
     def port_suffix: String = if (port > 0) ":" + port else ""
-    def user_prefix: String = if (user.nonEmpty) user + "@" else ""
+    def user_prefix: String = if_proper(user, user + "@")
 
     override def toString: String = user_prefix + host + port_suffix
     override def print: String = " (ssh " + toString + ")"
@@ -135,28 +135,20 @@ object SSH {
 
     /* local ssh commands */
 
-    def run_command(command: String,
+    def make_command(
+      command: String = "ssh",
       master: Boolean = false,
       opts: String = "",
-      args: String = "",
-      cwd: JFile = null,
-      redirect: Boolean = false,
-      progress_stdout: String => Unit = (_: String) => (),
-      progress_stderr: String => Unit = (_: String) => (),
-      strict: Boolean = true
-    ): Process_Result = {
+      args_host: Boolean = false,
+      args: String = ""
+    ): String = {
       val config =
         Config.make(options, port = port, user = user,
           control_master = master, control_path = control_path)
-      val cmd =
-        Config.command(command, config) +
+      val args1 = if_proper(args_host, Bash.string(host) + if_proper(args, " ")) + args
+      Config.command(command, config) +
         if_proper(opts, " " + opts) +
-        if_proper(args, " -- " + args)
-      Isabelle_System.bash(cmd, cwd = cwd,
-        redirect = redirect,
-        progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr,
-        strict = strict)
+        if_proper(args1, " -- " + args1)
     }
 
     def run_sftp(
@@ -164,20 +156,19 @@ object SSH {
       init: Path => Unit = _ => (),
       exit: Path => Unit = _ => ()
     ): Process_Result = {
-      Isabelle_System.with_tmp_dir("ssh") { dir =>
+      Isabelle_System.with_tmp_dir("sftp") { dir =>
         init(dir)
         File.write(dir + Path.explode("script"), script)
         val result =
-          run_command("sftp", opts = "-b script", args = Bash.string(host), cwd = dir.file).check
+          Isabelle_System.bash(
+            make_command("sftp", opts = "-b script", args_host = true), cwd = dir.file).check
         exit(dir)
         result
       }
     }
 
-    def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result = {
-      val args1 = Bash.string(host) + if_proper(args, " " + args)
-      run_command("ssh", master = master, opts = opts, args = args1)
-    }
+    def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result =
+      Isabelle_System.bash(make_command(master = master, opts = opts, args_host = true, args = args))
 
 
     /* init and exit */
@@ -217,16 +208,22 @@ object SSH {
 
     /* remote commands */
 
-    override def execute(cmd_line: String,
+    override def kill_process(group_pid: String, signal: String): Boolean = {
+      val script =
+        make_command(args_host = true,
+          args = "kill -" + Bash.string(signal) + " -" + Bash.string(group_pid))
+      Isabelle_System.bash(script).ok
+    }
+
+    override def execute(remote_script: String,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       redirect: Boolean = false,
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val script = Isabelle_System.export_env(user_home = user_home) + cmd_line
-      run_command("ssh",
-        args = Bash.string(host) + " " + Bash.string(script),
+      val remote_script1 = Isabelle_System.export_env(user_home = user_home) + remote_script
+      Isabelle_System.bash(make_command(args_host = true, args = Bash.string(remote_script1)),
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
         redirect = redirect,
@@ -268,10 +265,14 @@ object SSH {
     override def eq_file(path1: Path, path2: Path): Boolean =
       path1 == path2 || execute("test " + bash_path(path1) + " -ef " + bash_path(path2)).ok
 
-    override def delete(path: Path): Unit = {
-      val cmd = if (is_dir(path)) "rmdir" else if (is_file(path)) "rm" else ""
-      if (cmd.nonEmpty) run_sftp(cmd + " " + sftp_path(path))
-    }
+    override def delete(paths: Path*): Unit =
+      if (paths.nonEmpty) {
+        val script =
+          "set -e\n" +
+          "for X in " + paths.iterator.map(bash_path).mkString(" ") + "\n" +
+          """do if test -d "$X"; then rmdir "$X"; else rm -f "$X"; fi; done"""
+        execute(script).check
+      }
 
     override def restrict(path: Path): Unit =
       if (!execute("chmod g-rwx,o-rwx " + bash_path(path)).ok) {
@@ -331,20 +332,32 @@ object SSH {
       put_file(path, File.write(_, text))
 
 
-    /* tmp dirs */
+    /* tmp dirs and files */
 
-    override def rm_tree(dir: Path): Unit = rm_tree(remote_path(dir))
+    override def rm_tree(dir: Path): Unit =
+      execute("rm -r -f " + bash_path(dir)).check
 
-    def rm_tree(remote_dir: String): Unit =
-      execute("rm -r -f " + Bash.string(remote_dir)).check
+    override def tmp_dir(): Path =
+      Path.explode(execute("mktemp -d /tmp/ssh-XXXXXXXXXXXX").check.out)
 
-    def tmp_dir(): String =
-      execute("mktemp -d /tmp/ssh-XXXXXXXXXXXX").check.out
+    override def tmp_file(name: String, ext: String = ""): Path = {
+      val file_name = name + "-XXXXXXXXXXXX" + if_proper(ext, "." + ext)
+      Path.explode(execute("mktemp /tmp/" + Bash.string(file_name)).check.out)
+    }
+
+    override def tmp_files(names: List[String]): List[Path] = {
+      val script = names.map(name => "mktemp /tmp/" + Bash.string(name) + "-XXXXXXXXXXXX")
+      Library.trim_split_lines(execute(script.mkString(" && ")).check.out).map(Path.explode)
+    }
 
     override def with_tmp_dir[A](body: Path => A): A = {
-      val remote_dir = tmp_dir()
-      try { body(Path.explode(remote_dir)) }
-      finally { rm_tree(remote_dir) }
+      val path = tmp_dir()
+      try { body(path) } finally { rm_tree(path) }
+    }
+
+    override def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A = {
+      val path = tmp_file(name, ext = ext)
+      try { body(path) } finally { delete(path) }
     }
 
 
@@ -376,7 +389,7 @@ object SSH {
                 " " + Config.option("PermitLocalCommand", true) +
                 " " + Config.option("LocalCommand", "pwd")
             try {
-              run_command("ssh", opts = opts, args = Bash.string(host),
+              Isabelle_System.bash(make_command(opts = opts, args_host = true),
                 progress_stdout = _ => result.change(_ => Exn.Res(true))).check
             }
             catch { case exn: Throwable => result.change(_ => Exn.Exn(exn)) }
@@ -497,13 +510,19 @@ object SSH {
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
     def eq_file(path1: Path, path2: Path): Boolean = File.eq(path1, path2)
-    def delete(path: Path): Unit = path.file.delete
+    def delete(paths: Path*): Unit = paths.foreach(path => path.file.delete)
     def restrict(path: Path): Unit = File.restrict(path)
     def set_executable(path: Path, reset: Boolean = false): Unit =
       File.set_executable(path, reset = reset)
     def make_directory(path: Path): Path = Isabelle_System.make_directory(path)
     def rm_tree(dir: Path): Unit = Isabelle_System.rm_tree(dir)
+    def tmp_dir(): Path = File.path(Isabelle_System.tmp_dir("tmp"))
     def with_tmp_dir[A](body: Path => A): A = Isabelle_System.with_tmp_dir("tmp")(body)
+    def tmp_file(name: String, ext: String = ""): Path =
+      File.path(Isabelle_System.tmp_file(name, ext = ext))
+    def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A =
+      Isabelle_System.with_tmp_file(name, ext = ext)(body)
+    def tmp_files(names: List[String]): List[Path] = names.map(tmp_file(_))
     def read_dir(path: Path): List[String] = File.read_dir(path)
     def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
@@ -512,6 +531,9 @@ object SSH {
     def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
     def write_bytes(path: Path, bytes: Bytes): Unit = Bytes.write(path, bytes)
     def write(path: Path, text: String): Unit = File.write(path, text)
+
+    def kill_process(group_pid: String, signal: String): Boolean =
+      isabelle.setup.Environment.kill_process(Bash.string(group_pid), Bash.string(signal))
 
     def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),
