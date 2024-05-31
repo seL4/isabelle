@@ -330,9 +330,8 @@ object SSH {
       Path.explode(execute("mktemp -d /tmp/ssh-XXXXXXXXXXXX").check.out)
 
     override def with_tmp_dir[A](body: Path => A): A = {
-      val dir = tmp_dir()
-      try { body(dir) }
-      finally { rm_tree(dir) }
+      val path = tmp_dir()
+      try { body(path) } finally { rm_tree(path) }
     }
 
 
