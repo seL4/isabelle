@@ -265,10 +265,14 @@ object SSH {
     override def eq_file(path1: Path, path2: Path): Boolean =
       path1 == path2 || execute("test " + bash_path(path1) + " -ef " + bash_path(path2)).ok
 
-    override def delete(path: Path): Unit = {
-      val cmd = if (is_dir(path)) "rmdir" else if (is_file(path)) "rm" else ""
-      if (cmd.nonEmpty) run_sftp(cmd + " " + sftp_path(path))
-    }
+    override def delete(paths: Path*): Unit =
+      if (paths.nonEmpty) {
+        val script =
+          "set -e\n" +
+          "for X in " + paths.iterator.map(bash_path).mkString(" ") + "\n" +
+          """do if test -d "$X"; then rmdir "$X"; else rm -f "$X"; fi; done"""
+        execute(script).check
+      }
 
     override def restrict(path: Path): Unit =
       if (!execute("chmod g-rwx,o-rwx " + bash_path(path)).ok) {
@@ -506,7 +510,7 @@ object SSH {
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
     def eq_file(path1: Path, path2: Path): Boolean = File.eq(path1, path2)
-    def delete(path: Path): Unit = path.file.delete
+    def delete(paths: Path*): Unit = paths.foreach(path => path.file.delete)
     def restrict(path: Path): Unit = File.restrict(path)
     def set_executable(path: Path, reset: Boolean = false): Unit =
       File.set_executable(path, reset = reset)

@@ -192,23 +192,22 @@ object Bash {
       winpid_file.foreach(_.delete())
       ssh_file.foreach(_.delete())
 
-      ssh.delete(script_file)
-
       timing.change {
         case None =>
-          if (ssh.is_file(timing_file)) {
-            val t =
-              Word.explode(ssh.read(timing_file)) match {
-                case List(Value.Long(elapsed), Value.Long(cpu)) =>
-                  Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
-                case _ => Timing.zero
-              }
-            ssh.delete(timing_file)
-            Some(t)
-          }
-          else Some(Timing.zero)
+          val timing_text =
+            try { ssh.read(timing_file) }
+            catch { case ERROR(_) => "" }
+          val t =
+            Word.explode(timing_text) match {
+              case List(Value.Long(elapsed), Value.Long(cpu)) =>
+                Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
+              case _ => Timing.zero
+            }
+          Some(t)
         case some => some
       }
+
+      ssh.delete(timing_file, script_file)
 
       cleanup()
     }
