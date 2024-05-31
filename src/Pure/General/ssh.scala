@@ -208,6 +208,13 @@ object SSH {
 
     /* remote commands */
 
+    override def kill_process(group_pid: String, signal: String): Boolean = {
+      val script =
+        make_command(args_host = true,
+          args = "kill -" + Bash.string(signal) + " -" + Bash.string(group_pid))
+      Isabelle_System.bash(script).ok
+    }
+
     override def execute(remote_script: String,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
@@ -514,6 +521,9 @@ object SSH {
     def write_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path2, path1)
     def write_bytes(path: Path, bytes: Bytes): Unit = Bytes.write(path, bytes)
     def write(path: Path, text: String): Unit = File.write(path, text)
+
+    def kill_process(group_pid: String, signal: String): Boolean =
+      isabelle.setup.Environment.kill_process(Bash.string(group_pid), Bash.string(signal))
 
     def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),

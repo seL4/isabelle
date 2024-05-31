@@ -8,6 +8,16 @@ package isabelle
 
 
 object Component_Bash_Process {
+  /* resources */
+
+  def home: Path = Path.explode("$ISABELLE_BASH_PROCESS_HOME")
+
+  def remote_program(directory: Components.Directory): Path = {
+    val platform = directory.ssh.isabelle_platform.ISABELLE_PLATFORM(apple = true)
+    directory.path + Path.basic(platform) + Path.basic("bash_process")
+  }
+
+
   /* build bash_process */
 
   def build_bash_process(

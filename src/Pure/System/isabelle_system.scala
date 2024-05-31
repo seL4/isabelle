@@ -414,6 +414,7 @@ object Isabelle_System {
 
   def bash(script: String,
     description: String = "",
+    ssh: SSH.System = SSH.Local,
     cwd: JFile = null,
     env: JMap[String, String] = settings(),
     redirect: Boolean = false,
@@ -424,8 +425,8 @@ object Isabelle_System {
     strict: Boolean = true,
     cleanup: () => Unit = () => ()
   ): Process_Result = {
-    Bash.process(script,
-      description = description, cwd = cwd, env = env, redirect = redirect, cleanup = cleanup).
+    Bash.process(script, description = description, ssh = ssh, cwd = cwd, env = env,
+        redirect = redirect, cleanup = cleanup).
       result(input = input, progress_stdout = progress_stdout, progress_stderr = progress_stderr,
         watchdog = watchdog, strict = strict)
   }
