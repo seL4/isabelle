@@ -135,29 +135,20 @@ object SSH {
 
     /* local ssh commands */
 
-    def run_command(command: String,
+    def make_command(
+      command: String = "ssh",
       master: Boolean = false,
       opts: String = "",
-      args: String = "",
-      cwd: JFile = null,
-      redirect: Boolean = false,
-      progress_stdout: String => Unit = (_: String) => (),
-      progress_stderr: String => Unit = (_: String) => (),
-      strict: Boolean = true
-    ): Process_Result = {
+      args_host: Boolean = false,
+      args: String = ""
+    ): String = {
       val config =
         Config.make(options, port = port, user = user,
           control_master = master, control_path = control_path)
-      val script =
-        Config.command(command, config) +
+      val args1 = if_proper(args_host, Bash.string(host) + if_proper(args, " ")) + args
+      Config.command(command, config) +
         if_proper(opts, " " + opts) +
-        if_proper(args, " -- " + args)
-      Isabelle_System.bash(script,
-        cwd = cwd,
-        redirect = redirect,
-        progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr,
-        strict = strict)
+        if_proper(args1, " -- " + args1)
     }
 
     def run_sftp(
@@ -169,16 +160,15 @@ object SSH {
         init(dir)
         File.write(dir + Path.explode("script"), script)
         val result =
-          run_command("sftp", opts = "-b script", args = Bash.string(host), cwd = dir.file).check
+          Isabelle_System.bash(
+            make_command("sftp", opts = "-b script", args_host = true), cwd = dir.file).check
         exit(dir)
         result
       }
     }
 
-    def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result = {
-      val args1 = Bash.string(host) + if_proper(args, " " + args)
-      run_command("ssh", master = master, opts = opts, args = args1)
-    }
+    def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result =
+      Isabelle_System.bash(make_command(master = master, opts = opts, args_host = true, args = args))
 
 
     /* init and exit */
@@ -218,16 +208,15 @@ object SSH {
 
     /* remote commands */
 
-    override def execute(cmd_line: String,
+    override def execute(remote_script: String,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       redirect: Boolean = false,
       settings: Boolean = true,
       strict: Boolean = true
     ): Process_Result = {
-      val script = Isabelle_System.export_env(user_home = user_home) + cmd_line
-      run_command("ssh",
-        args = Bash.string(host) + " " + Bash.string(script),
+      val remote_script1 = Isabelle_System.export_env(user_home = user_home) + remote_script
+      Isabelle_System.bash(make_command(args_host = true, args = Bash.string(remote_script1)),
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
         redirect = redirect,
@@ -377,7 +366,7 @@ object SSH {
                 " " + Config.option("PermitLocalCommand", true) +
                 " " + Config.option("LocalCommand", "pwd")
             try {
-              run_command("ssh", opts = opts, args = Bash.string(host),
+              Isabelle_System.bash(make_command(opts = opts, args_host = true),
                 progress_stdout = _ => result.change(_ => Exn.Res(true))).check
             }
             catch { case exn: Throwable => result.change(_ => Exn.Exn(exn)) }
