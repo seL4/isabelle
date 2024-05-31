@@ -96,11 +96,12 @@ object Bash {
             """echo -n "$REPLY" > """ + File.bash_path(file) + "\n\n"
       }
 
-    private val timing_file = ssh.tmp_file("bash_timing")
+    private val List(timing_file, script_file) =
+      ssh.tmp_files(List("bash_timing", "bash_script"))
+
     private val timing = Synchronized[Option[Timing]](None)
     def get_timing: Timing = timing.value getOrElse Timing.zero
 
-    private val script_file: Path = ssh.tmp_file("bash_script")
     ssh.write(script_file, winpid_script + script)
 
     private val ssh_file: Option[JFile] =

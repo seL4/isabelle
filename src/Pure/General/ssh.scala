@@ -341,6 +341,11 @@ object SSH {
       Path.explode(execute("mktemp /tmp/" + Bash.string(file_name)).check.out)
     }
 
+    override def tmp_files(names: List[String]): List[Path] = {
+      val script = names.map(name => "mktemp /tmp/" + Bash.string(name) + "-XXXXXXXXXXXX")
+      Library.trim_split_lines(execute(script.mkString(" && ")).check.out).map(Path.explode)
+    }
+
     override def with_tmp_dir[A](body: Path => A): A = {
       val path = tmp_dir()
       try { body(path) } finally { rm_tree(path) }
@@ -513,6 +518,7 @@ object SSH {
       File.path(Isabelle_System.tmp_file(name, ext = ext))
     def with_tmp_file[A](name: String, ext: String = "")(body: Path => A): A =
       Isabelle_System.with_tmp_file(name, ext = ext)(body)
+    def tmp_files(names: List[String]): List[Path] = names.map(tmp_file(_))
     def read_dir(path: Path): List[String] = File.read_dir(path)
     def copy_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
     def read_file(path1: Path, path2: Path): Unit = Isabelle_System.copy_file(path1, path2)
