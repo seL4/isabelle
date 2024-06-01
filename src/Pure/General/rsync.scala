@@ -12,17 +12,21 @@ object Rsync {
     def apply(
       progress: Progress = new Progress,
       ssh: SSH.System = SSH.Local,
+      chmod: String = "",
+      chown: String = "",
       archive: Boolean = true,
       stats: Boolean = true
     ): Context = {
       val directory = Components.provide(Component_Rsync.home, ssh = ssh, progress = progress)
-      new Context(directory, progress, archive, stats)
+      new Context(directory, progress, chmod, chown, archive, stats)
     }
   }
 
   final class Context private(
     directory: Components.Directory,
     val progress: Progress,
+    chmod: String,
+    chown: String,
     archive: Boolean,
     stats: Boolean
   ) {
@@ -36,6 +40,8 @@ object Rsync {
       File.bash_path(Component_Rsync.local_program) + " --secluded-args" +
         if_proper(ssh_command, " --rsh=" + Bash.string(ssh_command)) +
         " --rsync-path=" + Bash.string(quote(File.standard_path(program))) +
+        if_proper(chmod, " --chmod=" + Bash.string(chmod)) +
+        if_proper(chown, " --chown=" + Bash.string(chown)) +
         if_proper(archive, " --archive") +
         if_proper(stats, " --stats")
     }
