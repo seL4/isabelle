@@ -43,17 +43,19 @@ final class Other_Isabelle private(
 
   /* static system */
 
+  def bash_context(script: String): String =
+    Bash.context(script,
+      user_home = ssh.user_home,
+      isabelle_identifier = isabelle_identifier,
+      cwd = isabelle_home)
+
   def bash(
     script: String,
     redirect: Boolean = false,
     echo: Boolean = false,
     strict: Boolean = true
   ): Process_Result = {
-    val env =
-      Isabelle_System.export_env(
-        user_home = ssh.user_home,
-        isabelle_identifier = isabelle_identifier)
-    ssh.execute(env + "cd " + ssh.bash_path(isabelle_home) + "\n" + script,
+    ssh.execute(bash_context(script),
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _),
       redirect = redirect,

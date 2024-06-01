@@ -221,9 +221,9 @@ object SSH {
         settings: Boolean = true,  // ignored
         cleanup: () => Unit = () => ()
     ): Bash.Process = {
-      val remote_script1 = Isabelle_System.export_env(user_home = user_home) + remote_script
-      Bash.process(remote_script1, description = description, cwd = cwd, redirect = redirect,
-        cleanup = cleanup, ssh = ssh)
+      Bash.process(
+        Bash.context(remote_script, user_home = user_home),
+        description = description, cwd = cwd, redirect = redirect, cleanup = cleanup, ssh = ssh)
     }
 
     override def execute(remote_script: String,
@@ -233,8 +233,11 @@ object SSH {
       settings: Boolean = true,  // ignored
       strict: Boolean = true
     ): Process_Result = {
-      val remote_script1 = Isabelle_System.export_env(user_home = user_home) + remote_script
-      Isabelle_System.bash(make_command(args_host = true, args = Bash.string(remote_script1)),
+      val script =
+        make_command(
+          args_host = true,
+          args = Bash.string(Bash.context(remote_script, user_home = user_home)))
+      Isabelle_System.bash(script,
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
         redirect = redirect,

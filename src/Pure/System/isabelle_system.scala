@@ -117,10 +117,6 @@ object Isabelle_System {
       else ""
     }
 
-  def export_env(user_home: String = "", isabelle_identifier: String = ""): String =
-    "export USER_HOME=" + Bash.string(user_home) + "\n" +
-    "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
-
   def isabelle_identifier(): Option[String] = proper_string(getenv("ISABELLE_IDENTIFIER"))
 
   def isabelle_heading(): String =

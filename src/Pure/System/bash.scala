@@ -45,6 +45,19 @@ object Bash {
 
   /* process and result */
 
+  def context(script: String,
+    user_home: String = "",
+    isabelle_identifier: String = "",
+    cwd: Path = Path.current
+  ): String = {
+    if_proper(user_home,
+      "export USER_HOME=" + Bash.string(user_home) + "\n") +
+    if_proper(isabelle_identifier,
+      "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n") +
+    (if (cwd == null || cwd.is_current) "" else "cd " + quote(cwd.implode) + "\n") +
+    script
+  }
+
   private def make_description(description: String): String =
     proper_string(description) getOrElse "bash_process"
 
