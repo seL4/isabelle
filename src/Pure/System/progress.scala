@@ -93,15 +93,16 @@ class Progress {
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
   final def bash(script: String,
+    ssh: SSH.System = SSH.Local,
     cwd: Path = Path.current,
-    env: JMap[String, String] = Isabelle_System.settings(),
+    env: JMap[String, String] = Isabelle_System.settings(),  // ignored for remote ssh
     redirect: Boolean = false,
     echo: Boolean = false,
     watchdog: Time = Time.zero,
     strict: Boolean = true
   ): Process_Result = {
     val result =
-      Isabelle_System.bash(script, cwd = cwd, env = env, redirect = redirect,
+      Isabelle_System.bash(script, ssh = ssh, cwd = cwd, env = env, redirect = redirect,
         progress_stdout = echo_if(echo, _),
         progress_stderr = echo_if(echo, _),
         watchdog = if (watchdog.is_zero) None else Some((watchdog, _ => stopped)),
