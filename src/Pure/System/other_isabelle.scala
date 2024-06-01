@@ -43,19 +43,20 @@ final class Other_Isabelle private(
 
   /* static system */
 
-  def bash_context(script: String): String =
+  def bash_context(script: String, cwd: Path = isabelle_home): String =
     Bash.context(script,
       user_home = ssh.user_home,
       isabelle_identifier = isabelle_identifier,
-      cwd = isabelle_home)
+      cwd = cwd)
 
   def bash(
     script: String,
+    cwd: Path = isabelle_home,
     redirect: Boolean = false,
     echo: Boolean = false,
     strict: Boolean = true
   ): Process_Result = {
-    ssh.execute(bash_context(script),
+    ssh.execute(bash_context(script, cwd = cwd),
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _),
       redirect = redirect,
