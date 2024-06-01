@@ -456,7 +456,7 @@ object Document_Build {
           build_script(context, directory),
           cwd = directory.doc_dir,
           echo = verbose,
-          watchdog = Time.seconds(0.5))
+          watchdog_time = Time.seconds(0.5))
 
       val log = result.out_lines ::: result.err_lines
       val err = result.err

@@ -98,14 +98,14 @@ class Progress {
     env: JMap[String, String] = Isabelle_System.settings(),  // ignored for remote ssh
     redirect: Boolean = false,
     echo: Boolean = false,
-    watchdog: Time = Time.zero,
+    watchdog_time: Time = Time.zero,
     strict: Boolean = true
   ): Process_Result = {
     val result =
       Isabelle_System.bash(script, ssh = ssh, cwd = cwd, env = env, redirect = redirect,
         progress_stdout = echo_if(echo, _),
         progress_stderr = echo_if(echo, _),
-        watchdog = Bash.Watchdog(watchdog, _ => stopped),
+        watchdog = Bash.Watchdog(watchdog_time, _ => stopped),
         strict = strict)
     if (strict && stopped) throw Exn.Interrupt() else result
   }
