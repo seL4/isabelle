@@ -36,8 +36,8 @@ object Rsync {
       File.bash_path(Component_Rsync.local_program) + " --secluded-args" +
         if_proper(ssh_command, " --rsh=" + Bash.string(ssh_command)) +
         " --rsync-path=" + Bash.string(quote(File.standard_path(program))) +
-        (if (archive) " --archive" else "") +
-        (if (stats) " --stats" else "")
+        if_proper(archive, " --archive") +
+        if_proper(stats, " --stats")
     }
 
     def target(path: Path, direct: Boolean = false): String =
@@ -56,11 +56,11 @@ object Rsync {
     val progress = context.progress
     val script =
       context.command +
-        (if (progress.verbose) " --verbose" else "") +
+        if_proper(progress.verbose, " --verbose") +
         (if (thorough) " --ignore-times" else " --omit-dir-times") +
-        (if (prune_empty_dirs) " --prune-empty-dirs" else "") +
-        (if (dry_run) " --dry-run" else "") +
-        (if (clean) " --delete-excluded" else "") +
+        if_proper(prune_empty_dirs, " --prune-empty-dirs") +
+        if_proper(dry_run, " --dry-run") +
+        if_proper(clean, " --delete-excluded") +
         filter.map(s => " --filter=" + Bash.string(s)).mkString +
         if_proper(args, " " + Bash.strings(args))
     progress.bash(script, echo = true)
