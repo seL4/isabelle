@@ -10,8 +10,6 @@ package isabelle.jedit
 import isabelle._
 
 
-import java.io.{File => JFile}
-
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
 import org.gjt.sp.jedit.io.{VFSManager, VFSFile}

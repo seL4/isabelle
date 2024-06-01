@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.util.{Map => JMap, HashMap}
-import java.io.{File => JFile}
 
 
 object ML_Process {

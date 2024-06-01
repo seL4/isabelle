@@ -8,7 +8,6 @@ Support for fontforge and its scripting language: see
 package isabelle
 
 
-import java.io.{File => JFile}
 import java.util.Locale
 
 

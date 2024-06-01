@@ -9,7 +9,6 @@ package isabelle
 
 
 import java.util.{Map => JMap}
-import java.io.{File => JFile}
 
 import scala.annotation.tailrec
 

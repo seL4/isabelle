@@ -11,7 +11,6 @@ import isabelle._
 
 import java.awt.{Color, Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
-import java.io.{File => JFile}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
 import javax.swing.text.DefaultCaret

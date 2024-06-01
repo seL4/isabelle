@@ -7,8 +7,6 @@ Isabelle system components.
 package isabelle
 
 
-import java.io.{File => JFile}
-
 import scala.jdk.CollectionConverters._
 
 

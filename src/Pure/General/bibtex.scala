@@ -7,8 +7,6 @@ Support for BibTeX.
 package isabelle
 
 
-import java.io.{File => JFile}
-
 import scala.collection.mutable
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
