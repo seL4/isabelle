@@ -214,11 +214,23 @@ object SSH {
       Isabelle_System.bash(script).ok
     }
 
+    override def bash_process(remote_script: String,
+        description: String = "",
+        cwd: Path = Path.current,
+        redirect: Boolean = false,
+        settings: Boolean = true,  // ignored
+        cleanup: () => Unit = () => ()
+    ): Bash.Process = {
+      val remote_script1 = Isabelle_System.export_env(user_home = user_home) + remote_script
+      Bash.process(remote_script1, description = description, cwd = cwd, redirect = redirect,
+        cleanup = cleanup, ssh = ssh)
+    }
+
     override def execute(remote_script: String,
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       redirect: Boolean = false,
-      settings: Boolean = true,
+      settings: Boolean = true,  // ignored
       strict: Boolean = true
     ): Process_Result = {
       val remote_script1 = Isabelle_System.export_env(user_home = user_home) + remote_script
@@ -534,18 +546,46 @@ object SSH {
     def kill_process(group_pid: String, signal: String): Boolean =
       isabelle.setup.Environment.kill_process(Bash.string(group_pid), Bash.string(signal))
 
-    def execute(command: String,
+    def bash_process(script: String,
+        description: String = "",
+        cwd: Path = Path.current,
+        redirect: Boolean = false,
+        settings: Boolean = true,
+        cleanup: () => Unit = () => ()
+    ): Bash.Process = {
+      Bash.process(script, description = description, cwd = cwd, redirect = redirect,
+        env = if (settings) Isabelle_System.settings() else null,
+        cleanup = cleanup)
+    }
+
+    def bash(script: String,
+        description: String = "",
+        cwd: Path = Path.current,
+        input: String = "",
+        progress_stdout: String => Unit = (_: String) => (),
+        progress_stderr: String => Unit = (_: String) => (),
+        watchdog: Option[Bash.Watchdog] = None,
+        redirect: Boolean = false,
+        settings: Boolean = true,
+        strict: Boolean = true,
+        cleanup: () => Unit = () => ()
+    ): Process_Result = {
+      bash_process(script, description = description, cwd = cwd, redirect = redirect,
+        settings = settings, cleanup = cleanup).
+        result(input = input, progress_stdout = progress_stdout, progress_stderr = progress_stderr,
+          watchdog = watchdog, strict = strict)
+    }
+
+    def execute(script: String,
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
         redirect: Boolean = false,
         settings: Boolean = true,
-        strict: Boolean = true): Process_Result =
-      Isabelle_System.bash(command,
-        progress_stdout = progress_stdout,
-        progress_stderr = progress_stderr,
-        redirect = redirect,
-        env = if (settings) Isabelle_System.settings() else null,
-        strict = strict)
+        strict: Boolean = true
+    ): Process_Result = {
+      bash(script, progress_stdout = progress_stdout, progress_stderr = progress_stderr,
+        redirect = redirect, settings = settings, strict = strict)
+    }
 
     def new_directory(path: Path): Path =
       if (is_dir(path)) error("Directory already exists: " + absolute_path(path))
