@@ -105,7 +105,7 @@ class Progress {
       Isabelle_System.bash(script, ssh = ssh, cwd = cwd, env = env, redirect = redirect,
         progress_stdout = echo_if(echo, _),
         progress_stderr = echo_if(echo, _),
-        watchdog = if (watchdog.is_zero) None else Some((watchdog, _ => stopped)),
+        watchdog = Bash.Watchdog(watchdog, _ => stopped),
         strict = strict)
     if (strict && stopped) throw Exn.Interrupt() else result
   }

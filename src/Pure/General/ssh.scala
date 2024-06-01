@@ -567,7 +567,7 @@ object SSH {
         input: String = "",
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
-        watchdog: Option[Bash.Watchdog] = None,
+        watchdog: Bash.Watchdog = Bash.Watchdog.none,
         redirect: Boolean = false,
         settings: Boolean = true,
         strict: Boolean = true,

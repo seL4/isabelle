@@ -74,7 +74,17 @@ object Bash {
     ssh.make_command(args_host = true, args = ssh.bash_path(exe))
   }
 
-  type Watchdog = (Time, Process => Boolean)
+  object Watchdog {
+    val none: Watchdog = new Watchdog(Time.zero, _ => false) {
+      override def toString: String = "Bash.Watchdog.none"
+    }
+    def apply(time: Time, check: Process => Boolean = _ => true): Watchdog =
+      if (time.is_zero) none else new Watchdog(time, check)
+  }
+  class Watchdog private(val time: Time, val check: Process => Boolean) {
+    override def toString: String = "Bash.Watchdog(" + time + ")"
+    def defined: Boolean = !time.is_zero
+  }
 
   def process(script: String,
       description: String = "",
@@ -248,7 +258,7 @@ object Bash {
       input: String = "",
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
-      watchdog: Option[Watchdog] = None,
+      watchdog: Watchdog = Watchdog.none,
       strict: Boolean = true
     ): Process_Result = {
       val in =
@@ -260,15 +270,16 @@ object Bash {
         Future.thread("bash_stderr") { File.read_lines(stderr, progress_stderr) }
 
       val watchdog_thread =
-        for ((time, check) <- watchdog)
-        yield {
-          Future.thread("bash_watchdog") {
-            while (proc.isAlive) {
-              time.sleep()
-              if (check(this)) interrupt()
-            }
-          }
+        if (watchdog.defined) {
+          Some(
+            Future.thread("bash_watchdog") {
+              while (proc.isAlive) {
+                watchdog.time.sleep()
+                if (watchdog.check(this)) interrupt()
+              }
+            })
         }
+        else None
 
       val rc =
         try { join() }
@@ -377,8 +388,9 @@ object Bash {
 
               Isabelle_Thread.fork(name = "bash_process") {
                 @volatile var is_timeout = false
-                val watchdog: Option[Watchdog] =
-                  if (timeout.is_zero) None else Some((timeout, _ => { is_timeout = true; true }))
+                val watchdog =
+                  if (timeout.is_zero) Watchdog.none
+                  else Watchdog(timeout, _ => { is_timeout = true; true })
 
                 Exn.capture { process.result(input = input, watchdog = watchdog, strict = false) }
                 match {

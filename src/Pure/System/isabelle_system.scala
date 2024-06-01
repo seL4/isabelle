@@ -417,7 +417,7 @@ object Isabelle_System {
     input: String = "",
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
-    watchdog: Option[Bash.Watchdog] = None,
+    watchdog: Bash.Watchdog = Bash.Watchdog.none,
     strict: Boolean = true,
     cleanup: () => Unit = () => ()
   ): Process_Result = {
