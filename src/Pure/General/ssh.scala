@@ -218,7 +218,7 @@ object SSH {
         description: String = "",
         cwd: Path = Path.current,
         redirect: Boolean = false,
-        settings: Boolean = true,  // ignored
+        settings: Boolean = true,  // ignored for remote ssh
         cleanup: () => Unit = () => ()
     ): Bash.Process = {
       Bash.process(
@@ -230,7 +230,7 @@ object SSH {
       progress_stdout: String => Unit = (_: String) => (),
       progress_stderr: String => Unit = (_: String) => (),
       redirect: Boolean = false,
-      settings: Boolean = true,  // ignored
+      settings: Boolean = true,  // ignored for remote ssh
       strict: Boolean = true
     ): Process_Result = {
       val script =

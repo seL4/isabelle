@@ -412,7 +412,7 @@ object Isabelle_System {
     description: String = "",
     ssh: SSH.System = SSH.Local,
     cwd: Path = Path.current,
-    env: JMap[String, String] = settings(),
+    env: JMap[String, String] = settings(),  // ignored for remote ssh
     redirect: Boolean = false,
     input: String = "",
     progress_stdout: String => Unit = (_: String) => (),

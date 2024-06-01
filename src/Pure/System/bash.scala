@@ -80,7 +80,7 @@ object Bash {
       description: String = "",
       ssh: SSH.System = SSH.Local,
       cwd: Path = Path.current,
-      env: JMap[String, String] = Isabelle_System.settings(),
+      env: JMap[String, String] = Isabelle_System.settings(),  // ignored for remote ssh
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
     new Process(script, description, ssh, cwd, env, redirect, cleanup)
