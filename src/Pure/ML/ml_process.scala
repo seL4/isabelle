@@ -36,7 +36,7 @@ object ML_Process {
     eval_main: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
-    cwd: JFile = null,
+    cwd: Path = Path.current,
     env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()

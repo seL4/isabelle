@@ -73,7 +73,7 @@ object Component_Rsync {
       progress.echo("Building rsync for " + platform_name + " ...")
 
       val build_script = List("./configure " + Bash.strings(build_options.sorted), "make")
-      Isabelle_System.bash(build_script.mkString(" && "), cwd = source_dir.file,
+      Isabelle_System.bash(build_script.mkString(" && "), cwd = source_dir,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
 

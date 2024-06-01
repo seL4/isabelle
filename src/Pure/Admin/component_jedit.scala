@@ -161,7 +161,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         if !File.is_backup(name)
       } {
         progress.bash("patch -p2 < " + File.bash_path(File.path(file)),
-          cwd = source_dir.file, echo = true).check
+          cwd = source_dir, echo = true).check
       }
 
       for { theme <- List("classic", "tango") } {
@@ -173,7 +173,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       progress.echo("Building jEdit ...")
       Isabelle_System.copy_dir(source_dir, tmp_source_dir)
       progress.bash("env JAVA_HOME=" + File.bash_platform_path(java_home) + " ant",
-        cwd = tmp_source_dir.file, echo = true).check
+        cwd = tmp_source_dir, echo = true).check
       Isabelle_System.copy_file(tmp_source_dir + Path.explode("build/jedit.jar"), jedit_patched_dir)
 
       val java_sources =

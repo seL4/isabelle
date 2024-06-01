@@ -35,7 +35,7 @@ object Component_Prismjs {
 
     Isabelle_System.with_tmp_dir("tmp") { tmp_dir =>
       Isabelle_System.bash("npm init -y && npm install prismjs@" + Bash.string(version),
-        cwd = tmp_dir.file).check
+        cwd = tmp_dir).check
       Isabelle_System.copy_dir(tmp_dir + Path.explode("node_modules/prismjs"),
         component_dir.path, direct = true)
     }

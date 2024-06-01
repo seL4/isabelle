@@ -94,7 +94,7 @@ class Progress {
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
   final def bash(script: String,
-    cwd: JFile = null,
+    cwd: Path = Path.current,
     env: JMap[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     echo: Boolean = false,

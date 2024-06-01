@@ -73,7 +73,7 @@ object Component_Windows_App {
       val build_script =
         List("""./configure --prefix="$PWD/target" --target=x86_64-w64-mingw32""",
           "make", "make install")
-      Isabelle_System.bash(build_script.mkString(" && "), cwd = tmp_dir.file,
+      Isabelle_System.bash(build_script.mkString(" && "), cwd = tmp_dir,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
 
@@ -90,7 +90,7 @@ object Component_Windows_App {
 
       Isabelle_System.download_file(sfx_url,
         tmp_dir + Path.basic(sfx_archive_name), progress = progress)
-      Isabelle_System.bash("7z x " + Bash.string(sfx_archive_name), cwd = tmp_dir.file).check
+      Isabelle_System.bash("7z x " + Bash.string(sfx_archive_name), cwd = tmp_dir).check
       Isabelle_System.copy_file(tmp_dir + Path.basic(sfx_name), component_dir.path)
 
 

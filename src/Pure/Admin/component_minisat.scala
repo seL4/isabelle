@@ -73,7 +73,7 @@ object Component_Minisat {
           _.replaceAll("--static", "").replaceAll("-Wl,-soname\\S+", "")
         }
       }
-      progress.bash("make r", source_dir.file, echo = progress.verbose).check
+      progress.bash("make r", cwd = source_dir, echo = progress.verbose).check
 
       Isabelle_System.copy_file(
         source_dir + Path.explode("build/release/bin/minisat").platform_exe, platform_dir)

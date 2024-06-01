@@ -11,7 +11,7 @@ object Build_Release {
   /** release context **/
 
   private def execute(dir: Path, script: String): Unit =
-    Isabelle_System.bash(script, cwd = dir.file).check
+    Isabelle_System.bash(script, cwd = dir).check
 
   private def execute_tar(dir: Path, args: String, strip: Boolean = false): Process_Result =
     Isabelle_System.gnutar(args, dir = dir, strip = strip).check

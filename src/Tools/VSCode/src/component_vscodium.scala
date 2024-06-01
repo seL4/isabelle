@@ -86,10 +86,10 @@ object Component_VSCodium {
           "set -e",
           "git clone -n " + Bash.string(vscodium_repository) + " .",
           "git checkout -q " + Bash.string(version)
-        ).mkString("\n"), cwd = build_dir.file).check
+        ).mkString("\n"), cwd = build_dir).check
 
       progress.echo("Getting VSCode repository ...")
-      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir.file).check
+      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir).check
     }
 
     def platform_dir(dir: Path): Path = {
@@ -130,7 +130,7 @@ object Component_VSCodium {
           val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
           for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
             val path = patches_dir + Path.explode(name).patch
-            Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir.file).check
+            Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir).check
           }
         }
 
@@ -292,7 +292,7 @@ object Component_VSCodium {
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
-          ).mkString("\n"), cwd = build_dir.file, echo = progress.verbose).check
+          ).mkString("\n"), cwd = build_dir, echo = progress.verbose).check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
@@ -346,7 +346,7 @@ object Component_VSCodium {
 
         progress.echo("Build ...")
         progress.bash(platform_info.environment + "\n" + "./build.sh",
-          cwd = build_dir.file, echo = progress.verbose).check
+          cwd = build_dir, echo = progress.verbose).check
 
         if (platform_info.primary) {
           Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
@@ -368,7 +368,7 @@ object Component_VSCodium {
       }
     }
 
-    Isabelle_System.bash("gzip *.patch", cwd = patches_dir.file).check
+    Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
 
 
     /* settings */

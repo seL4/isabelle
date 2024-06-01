@@ -77,7 +77,7 @@ object Component_PolyML {
           "arch -arch arm64 bash -c " + Bash.string(script)
         }
         else mingw.bash_script(script)
-      progress.bash(script1, cwd = cwd.file, redirect = redirect, echo = echo)
+      progress.bash(script1, cwd = cwd, redirect = redirect, echo = echo)
     }
 
 

@@ -332,7 +332,7 @@ object Document_Build {
       session_graph.write(doc_dir)
 
       if (verbose) {
-        progress.bash("ls -alR", echo = true, cwd = doc_dir.file).check
+        progress.bash("ls -alR", echo = true, cwd = doc_dir).check
         progress match {
           case program_progress: Program_Progress => program_progress.stop_program()
           case _ =>
@@ -454,7 +454,7 @@ object Document_Build {
       val result =
         progress.bash(
           build_script(context, directory),
-          cwd = directory.doc_dir.file,
+          cwd = directory.doc_dir,
           echo = verbose,
           watchdog = Time.seconds(0.5))
 

@@ -237,7 +237,7 @@ object Phabricator {
     def home: Path = root + Path.explode(phabricator_name())
 
     def execute(command: String): Process_Result =
-      Isabelle_System.bash("bin/" + command, cwd = home.file, redirect = true).check
+      Isabelle_System.bash("bin/" + command, cwd = home, redirect = true).check
 
     def webroot: String = home.implode + "/webroot"
   }
@@ -302,7 +302,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         }
         else {
           val config = get_config(name)
-          val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
+          val result = progress.bash(Bash.strings(more_args), cwd = config.home, echo = true)
           if (!result.ok) error(result.print_return_code)
         }
       })
@@ -347,7 +347,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       Isabelle_System.extract(archive, tmp_dir)
       val build_dir = File.get_dir(tmp_dir, title = mercurial_source)
 
-      progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
+      progress.bash("make all && make install", cwd = build_dir, echo = true).check
     }
   }
 
@@ -416,7 +416,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     Isabelle_System.chown(Bash.string(www_user) + ":" + Bash.string(www_user), root_path)
     Isabelle_System.chmod("755", root_path)
 
-    progress.bash(cwd = root_path.file, echo = true,
+    progress.bash(cwd = root_path, echo = true,
       script = """
         set -e
         echo "Cloning distribution repositories:"
@@ -508,7 +508,7 @@ local_infile = 0
     config.execute("config set storage.default-namespace " + Bash.string(mysql_name))
     config.execute("config set storage.mysql-engine.max-size 8388608")
 
-    progress.bash("bin/storage upgrade --force", cwd = config.home.file, echo = true).check
+    progress.bash("bin/storage upgrade --force", cwd = config.home, echo = true).check
 
 
     /* database dump */
@@ -610,7 +610,7 @@ WantedBy=multi-user.target
     }
     catch {
       case ERROR(msg) =>
-        progress.bash("bin/phd status", cwd = config.home.file, echo = true).check
+        progress.bash("bin/phd status", cwd = config.home, echo = true).check
         error(msg)
     }
   }
@@ -706,7 +706,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
 
       if (test_user.nonEmpty) {
         progress.echo("Sending test mail to " + quote(test_user))
-        progress.bash(cwd = config.home.file, echo = true,
+        progress.bash(cwd = config.home, echo = true,
           script = """echo "Test from Phabricator ($(date))" | bin/mail send-test --subject "Test" --to """ +
             Bash.string(test_user)).check
       }

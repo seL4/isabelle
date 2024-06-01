@@ -66,7 +66,7 @@ object Bash {
   def process(script: String,
       description: String = "",
       ssh: SSH.System = SSH.Local,
-      cwd: JFile = null,
+      cwd: Path = Path.current,
       env: JMap[String, String] = Isabelle_System.settings(),
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
@@ -76,7 +76,7 @@ object Bash {
     script: String,
     description: String,
     ssh: SSH.System,
-    cwd: JFile,
+    cwd: Path,
     env: JMap[String, String],
     redirect: Boolean,
     cleanup: () => Unit
@@ -125,7 +125,12 @@ object Bash {
       }
 
     private val proc =
-      isabelle.setup.Environment.process_builder(proc_command, cwd, env, redirect).start()
+      isabelle.setup.Environment.process_builder(
+        proc_command,
+        if (cwd == null || cwd.is_current) null else cwd.file,
+        env,
+        redirect
+      ).start()
 
 
     // channels
@@ -340,8 +345,8 @@ object Bash {
               description = description,
               cwd =
                 XML.Decode.option(XML.Decode.string)(YXML.parse_body(cwd)) match {
-                  case None => null
-                  case Some(s) => Path.explode(s).file
+                  case None => Path.current
+                  case Some(s) => Path.explode(s)
                 },
               env =
                 Isabelle_System.settings(

@@ -70,7 +70,7 @@ object Component_VeriT {
         if (Platform.is_linux) "LDFLAGS=-Wl,-rpath,_DUMMY_" else ""
 
       progress.bash(mingw.bash_script("set -e\n./configure " + configure_options + "\nmake"),
-        cwd = source_dir.file, echo = progress.verbose).check
+        cwd = source_dir, echo = progress.verbose).check
 
 
       /* install */

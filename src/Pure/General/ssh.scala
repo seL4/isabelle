@@ -161,7 +161,7 @@ object SSH {
         File.write(dir + Path.explode("script"), script)
         val result =
           Isabelle_System.bash(
-            make_command("sftp", opts = "-b script", args_host = true), cwd = dir.file).check
+            make_command("sftp", opts = "-b script", args_host = true), cwd = dir).check
         exit(dir)
         result
       }

@@ -75,14 +75,14 @@ object Component_Vampire {
         (if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else "")
       val cmake_out =
         progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" .""",
-          cwd = source_dir.file, echo = progress.verbose).check.out
+          cwd = source_dir, echo = progress.verbose).check.out
 
       val Pattern = """-- Setting binary name to '?([^\s']*)'?""".r
       val binary =
         split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
           .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
 
-      progress.bash("make -j" + jobs, cwd = source_dir.file, echo = progress.verbose).check
+      progress.bash("make -j" + jobs, cwd = source_dir, echo = progress.verbose).check
 
       Isabelle_System.copy_file(source_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
         platform_dir + Path.basic("vampire").platform_exe)

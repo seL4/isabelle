@@ -350,7 +350,7 @@ object Build_Job {
 
           val process =
             Isabelle_Process.start(options, session, session_background, session_heaps,
-              use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir.file, env = env)
+              use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir, env = env)
 
           val timeout_request: Option[Event_Timer.Request] =
             if (info.timeout_ignored) None

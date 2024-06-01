@@ -177,7 +177,7 @@ object Component_VSCode {
         build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
         val result =
-          progress.bash("yarn && vsce package", cwd = build_dir.file, echo = true).check
+          progress.bash("yarn && vsce package", cwd = build_dir, echo = true).check
         val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
         val vsix_name =
           result.out_lines.collectFirst({ case Pattern(name) => name })

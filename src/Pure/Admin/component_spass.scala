@@ -81,7 +81,7 @@ object Component_SPASS {
         }
       }
 
-      Isabelle_System.bash("make", cwd = source_dir.file,
+      Isabelle_System.bash("make", cwd = source_dir,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
 

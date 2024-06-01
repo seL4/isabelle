@@ -415,7 +415,7 @@ object Isabelle_System {
   def bash(script: String,
     description: String = "",
     ssh: SSH.System = SSH.Local,
-    cwd: JFile = null,
+    cwd: Path = Path.current,
     env: JMap[String, String] = settings(),
     redirect: Boolean = false,
     input: String = "",
@@ -502,7 +502,7 @@ object Isabelle_System {
       Isabelle_System.bash(
         "diff -ru " + diff_options + " -- " + File.bash_path(src) + " " + File.bash_path(dst) +
           " > " + File.bash_path(patch),
-        cwd = base_dir.file).check_rc(_ <= 1)
+        cwd = base_dir).check_rc(_ <= 1)
       File.read(patch)
     }
   }

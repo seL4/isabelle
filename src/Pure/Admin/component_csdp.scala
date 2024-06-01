@@ -108,7 +108,7 @@ object Component_CSDP {
       }
 
       progress.bash(mingw.bash_script("make"),
-        cwd = source_dir.file,
+        cwd = source_dir,
         echo = progress.verbose).check
 
 

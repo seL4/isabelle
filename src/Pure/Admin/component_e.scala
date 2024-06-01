@@ -50,12 +50,12 @@ object Component_E {
       progress.echo("Building E prover for " + platform_name + " ...")
 
       val build_options = {
-        val result = Isabelle_System.bash("./configure --help", cwd = source_dir.file)
+        val result = Isabelle_System.bash("./configure --help", cwd = source_dir)
         if (result.check.out.containsSlice("--enable-ho")) " --enable-ho" else ""
       }
 
       val build_script = "./configure" + build_options + " && make"
-      Isabelle_System.bash(build_script, cwd = source_dir.file,
+      Isabelle_System.bash(build_script, cwd = source_dir,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
 
@@ -70,7 +70,7 @@ object Component_E {
         if (path.is_file) Isabelle_System.copy_file(path, platform_dir)
       }
       Isabelle_System.bash("if [ -f eprover-ho ]; then mv eprover-ho eprover; fi",
-        cwd = platform_dir.file).check
+        cwd = platform_dir).check
 
 
       /* settings */

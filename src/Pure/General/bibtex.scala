@@ -114,7 +114,7 @@ object Bibtex {
         tokens.iterator.map(p => p._1.source).mkString("", "\n", "\n"))
       File.write(tmp_dir + Path.explode("root.aux"),
         "\\bibstyle{plain}\n\\bibdata{root}\n\\citation{*}")
-      Isabelle_System.bash("\"$ISABELLE_BIBTEX\" root", cwd = tmp_dir.file)
+      Isabelle_System.bash("\"$ISABELLE_BIBTEX\" root", cwd = tmp_dir)
 
       val Error = """^(.*)---line (\d+) of file root.bib$""".r
       val Warning = """^Warning--(.+)$""".r
@@ -682,7 +682,7 @@ object Bibtex {
           (if (chronological) " -c" else "") +
           if_proper(title, " -h " + Bash.string(title) + " ") +
           " " + File.bash_path(in_file) + " " + File.bash_path(out_file),
-        cwd = tmp_dir.file).check
+        cwd = tmp_dir).check
 
       val html = File.read(tmp_dir + out_file)
 

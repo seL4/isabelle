@@ -20,7 +20,7 @@ object Isabelle_Process {
     use_prelude: List[String] = Nil,
     eval_main: String = "",
     modes: List[String] = Nil,
-    cwd: JFile = null,
+    cwd: Path = Path.current,
     env: JMap[String, String] = Isabelle_System.settings()
   ): Isabelle_Process = {
     val channel = System_Channel()

@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     /* build */
 
     progress.echo("Building bash_process for " + platform_name + " ...")
-    progress.bash("cc ../bash_process.c -o bash_process", cwd = platform_dir.file).check
+    progress.bash("cc ../bash_process.c -o bash_process", cwd = platform_dir).check
 
 
     /* settings */

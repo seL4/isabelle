@@ -19,7 +19,7 @@ object Executable {
     val ldd_lines = {
       val ldd = if (Platform.is_macos) "otool -L" else "ldd"
       val script = mingw.bash_script(ldd + " " + File.bash_path(exe))
-      split_lines(Isabelle_System.bash(script, cwd = exe_dir.file).check.out)
+      split_lines(Isabelle_System.bash(script, cwd = exe_dir).check.out)
     }
 
     def lib_name(lib: String): String =
@@ -58,7 +58,7 @@ object Executable {
             libs.map(file => "-change " + Bash.string(file) + " " +
               Bash.string("@executable_path/" + Path.explode(file).file_name) + " " +
               File.bash_path(exe))).mkString(" ")
-        Isabelle_System.bash(script, cwd = exe_dir.file).check
+        Isabelle_System.bash(script, cwd = exe_dir).check
       }
     }
 

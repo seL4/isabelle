@@ -42,7 +42,7 @@ object Component_Zipperposition {
       progress.bash("isabelle ocaml_setup", echo = progress.verbose).check
 
       progress.echo("Building Zipperposition for " + platform_name + " ...")
-      progress.bash(cwd = build_dir.file, echo = progress.verbose,
+      progress.bash(cwd = build_dir, echo = progress.verbose,
         script = "isabelle_opam install -y --destdir=" + File.bash_path(build_dir) +
           " zipperposition=" + Bash.string(version)).check
 

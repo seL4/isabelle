@@ -46,7 +46,7 @@ object Component_Foiltex {
 
         Isabelle_System.extract(download_file, component_dir.path, strip = true)
 
-        Isabelle_System.bash("pdflatex foiltex.ins", cwd = component_dir.path.file).check
+        Isabelle_System.bash("pdflatex foiltex.ins", cwd = component_dir.path).check
         (component_dir.path + Path.basic("foiltex.log")).file.delete()
 
 

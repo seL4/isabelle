@@ -66,7 +66,7 @@ object Fontforge {
 
   /** execute fontforge program **/
 
-  def execute(script: Script, args: String = "", cwd: JFile = null): Process_Result =
+  def execute(script: Script, args: String = "", cwd: Path = Path.current): Process_Result =
     Isabelle_System.with_tmp_file("fontforge") { script_file =>
       File.write(script_file, script)
       Isabelle_System.bash(File.bash_path(Path.explode("$ISABELLE_FONTFORGE")) +

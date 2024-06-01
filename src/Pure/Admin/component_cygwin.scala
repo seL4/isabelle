@@ -51,7 +51,7 @@ object Component_Cygwin {
 
       (cygwin + Path.explode("Cygwin.bat")).file.delete
 
-      Isabelle_System.bash("rm -f cygwin/usr/share/man/man1/:.1.gz", cwd = tmp_dir.file).check
+      Isabelle_System.bash("rm -f cygwin/usr/share/man/man1/:.1.gz", cwd = tmp_dir).check
 
       val archive =
         target_dir + Path.explode("cygwin-" + Date.Format.alt_date(Date.now()) + ".tar.gz")
