@@ -115,7 +115,9 @@ object Bash {
     private val timing = Synchronized[Option[Timing]](None)
     def get_timing: Timing = timing.value getOrElse Timing.zero
 
-    ssh.write(script_file, winpid_script + script)
+    ssh.write(script_file,
+      if (ssh.is_local) winpid_script + script
+      else Bash.context(script, cwd = cwd))
 
     private val ssh_file: Option[JFile] =
       ssh.ssh_session match {
@@ -140,7 +142,7 @@ object Bash {
     private val proc =
       isabelle.setup.Environment.process_builder(
         proc_command,
-        if (cwd == null || cwd.is_current) null else cwd.file,
+        if (!ssh.is_local || cwd == null || cwd.is_current) null else cwd.file,
         env,
         redirect
       ).start()
