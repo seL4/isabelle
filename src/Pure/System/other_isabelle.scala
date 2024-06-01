@@ -56,7 +56,7 @@ final class Other_Isabelle private(
     echo: Boolean = false,
     strict: Boolean = true
   ): Process_Result = {
-    ssh.execute(bash_context(script, cwd = cwd),
+    ssh.bash(bash_context(script, cwd = cwd),
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _),
       redirect = redirect,
@@ -65,7 +65,8 @@ final class Other_Isabelle private(
   }
 
   def getenv(name: String): String =
-    bash("bin/isabelle getenv -b " + Bash.string(name)).check.out
+    ssh.execute(bash_context("bin/isabelle getenv -b " + Bash.string(name)),
+      settings = false).check.out
 
   val settings: Isabelle_System.Settings = (name: String) => getenv(name)
 
