@@ -321,7 +321,8 @@ class Resources(
     def require_thy(adjunct: A,
       thy: (Document.Node.Name, Position.T),
       initiators: List[Document.Node.Name] = Nil,
-      progress: Progress = new Progress): Dependencies[A] = {
+      progress: Progress = new Progress
+    ): Dependencies[A] = {
       val (name, pos) = thy
 
       def message: String =
@@ -357,8 +358,10 @@ class Resources(
     def require_thys(adjunct: A,
         thys: List[(Document.Node.Name, Position.T)],
         progress: Progress = new Progress,
-        initiators: List[Document.Node.Name] = Nil): Dependencies[A] =
+        initiators: List[Document.Node.Name] = Nil
+    ): Dependencies[A] = {
       thys.foldLeft(this)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
+    }
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
 
