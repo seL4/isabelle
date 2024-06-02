@@ -83,7 +83,7 @@ object Bash {
   }
   class Watchdog private(val time: Time, val check: Process => Boolean) {
     override def toString: String = "Bash.Watchdog(" + time + ")"
-    def defined: Boolean = !time.is_zero
+    def defined: Boolean = time > Time.zero
   }
 
   def process(script: String,
