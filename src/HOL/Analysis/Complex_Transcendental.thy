@@ -63,6 +63,9 @@ qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>The Exponential Function\<close>
 
+lemma exp_npi_numeral: "exp (\<i> * pi * Num.numeral n)  = (-1) ^ Num.numeral n"
+  by (metis exp_of_nat2_mult exp_pi_i' of_nat_numeral)
+
 lemma norm_exp_i_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
   by simp
 
