@@ -3878,6 +3878,18 @@ lemma sin_npi2 [simp]: "sin (pi * real n) = 0"
   for n :: nat
   by (simp add: mult.commute [of pi])
 
+lemma sin_npi_numeral [simp]: "sin(Num.numeral n * pi) = 0"
+  by (metis of_nat_numeral sin_npi)
+
+lemma sin_npi2_numeral [simp]: "sin (pi * Num.numeral n) = 0"
+  by (metis of_nat_numeral sin_npi2)
+
+lemma cos_npi_numeral [simp]: "cos (Num.numeral n * pi) = (- 1) ^ Num.numeral n"
+  by (metis cos_npi of_nat_numeral)
+
+lemma cos_npi2_numeral [simp]: "cos (pi * Num.numeral n) = (- 1) ^ Num.numeral n"
+  by (metis cos_npi2 of_nat_numeral)
+
 lemma cos_two_pi [simp]: "cos (2 * pi) = 1"
   by (simp add: cos_double)
 
