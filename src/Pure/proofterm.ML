@@ -100,7 +100,6 @@ sig
   val fold_proof_terms: (term -> 'a -> 'a) -> proof -> 'a -> 'a
   val fold_proof_terms_types: (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
   val maxidx_proof: proof -> int -> int
-  val size_of_proof: proof -> int
   val change_types: typ list option -> proof -> proof
   val abstract_over: term -> proof -> proof
   val incr_bv_same: int -> int -> int -> int -> proof Same.operation
@@ -594,12 +593,6 @@ fun fold_proof_terms_types f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms
   | fold_proof_terms_types _ _ _ = I;
 
 fun maxidx_proof prf = fold_proof_terms_types Term.maxidx_term Term.maxidx_typ prf;
-
-fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
-  | size_of_proof (AbsP (_, _, prf)) = 1 + size_of_proof prf
-  | size_of_proof (prf % _) = 1 + size_of_proof prf
-  | size_of_proof (prf1 %% prf2) = size_of_proof prf1 + size_of_proof prf2
-  | size_of_proof _ = 1;
 
 fun change_types types (PAxm (name, prop, _)) = PAxm (name, prop, types)
   | change_types (SOME [T]) (PClass (_, c)) = PClass (T, c)
