@@ -404,19 +404,18 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
         val head1 =
           if (!auto_reload) head
           else HTML.script("""
-var state = null;
+var state = null
 function heartbeat() {
   fetch(window.location, { method: "HEAD" }).then((http_res) => {
-    const new_state = http_res.headers.get("Content-Digest")
-    if (state === null) state = new_state
-    if (http_res.status === 200 && state !== new_state) {
-      state = new_state
-      window.location.reload()
+    if (http_res.status === 200) {
+      const new_state = http_res.headers.get("Content-Digest")
+      if (state === null) state = new_state
+      else if (state !== new_state) window.location.reload()
     }
-    setTimeout(heartbeat, 1000);
+    setTimeout(heartbeat, 1000)
   })
 }
-setTimeout(heartbeat, 1000);""") :: head
+heartbeat()""") :: head
 
         html(
           XML.elem("head", HTML.head_meta :: head1),
