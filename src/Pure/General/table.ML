@@ -592,15 +592,20 @@ fun make_set xs = build (fold insert_set xs);
 (* cache *)
 
 fun unsynchronized_cache f =
-  let val cache = Unsynchronized.ref empty in
+  let
+    val cache1 = Unsynchronized.ref empty;
+    val cache2 = Unsynchronized.ref empty;
+  in
     fn x =>
-      (case lookup (! cache) x of
-        SOME result => Exn.release result
+      (case lookup (! cache1) x of
+        SOME y => y
       | NONE =>
-          let
-            val result = Exn.result f x;
-            val _ = Unsynchronized.change cache (update (x, result));
-          in Exn.release result end)
+          (case lookup (! cache2) x of
+            SOME exn => Exn.reraise exn
+          | NONE =>
+              (case Exn.result f x of
+                Exn.Res y => (Unsynchronized.change cache1 (update (x, y)); y)
+              | Exn.Exn exn => (Unsynchronized.change cache2 (update (x, exn)); Exn.reraise exn))))
   end;
 
 
