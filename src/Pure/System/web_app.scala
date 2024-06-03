@@ -407,7 +407,7 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
 var state = null;
 function heartbeat() {
   fetch(window.location, { method: "HEAD" }).then((http_res) => {
-    const new_state = http_res.headers.get("Content-Length")
+    const new_state = http_res.headers.get("Content-Digest")
     if (state === null) state = new_state
     if (http_res.status === 200 && state !== new_state) {
       state = new_state
