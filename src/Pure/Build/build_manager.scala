@@ -344,7 +344,7 @@ object Build_Manager {
                 case _ => None
               }
 
-            stmt.string(7) = get(user_build => Options.Spec.bash_strings(user_build.prefs))
+            stmt.string(7) = get(user_build => user_build.prefs.map(_.print).mkString(","))
             stmt.bool(8) = get(_.requirements)
             stmt.bool(9) = get(_.all_sessions)
             stmt.string(10) = get(_.base_sessions.mkString(","))
