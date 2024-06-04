@@ -57,6 +57,7 @@ sources = \
   src/Pure/Build/build_cluster.scala \
   src/Pure/Build/build_job.scala \
   src/Pure/Build/build_process.scala \
+  src/Pure/Build/build_manager.scala \
   src/Pure/Build/build_schedule.scala \
   src/Pure/Build/database_progress.scala \
   src/Pure/Build/export.scala \

@@ -232,6 +232,27 @@ option build_schedule_outdated_delay : real = 300.0
   -- "delay schedule generation loop"
 
 
+section "Build Manager"
+
+option build_manager_dir : string = "/srv/build"
+  -- "directory for submissions on build server"
+
+option build_manager_address : string = "https://build.proof.cit.tum.de"
+  -- "web address for build server"
+
+option build_manager_identifier : string = "build_manager"
+  -- "isabelle identifier for build manager processes"
+
+option build_manager_delay : real = 1.0
+  -- "delay build manager loop"
+
+option build_manager_poll_delay : real = 60.0
+  -- "delay build manager poll loop"
+
+option build_manager_ci_jobs : string = "benchmark"
+  -- "ci jobs that should be executed on repository changes"
+
+
 section "Editor Session"
 
 public option editor_load_delay : real = 0.5
@@ -438,6 +459,27 @@ option build_log_history : int = 30
 
 option build_log_verbose : bool = false for build_sync
   -- "extra verbosity for build log database"
+
+
+section "Build Manager SSH"
+
+option build_manager_ssh_host : string = "build.proof.cit.tum.de" for connection
+  -- "ssh server on which build manager runs"
+option build_manager_ssh_user : string = "" for connection
+  -- "ssh user to access build manager system"
+option build_manager_ssh_port : int = 0 for connection
+
+
+section "Build Manager Database"
+
+option build_manager_database_user : string = "isabelle" for connection
+option build_manager_database_password : string = "" for connection
+option build_manager_database_name : string = "isabelle_build_manager" for connection
+option build_manager_database_host : string = "localhost" for connection
+option build_manager_database_port : int = 5432 for connection
+option build_manager_database_ssh_host : string = "" for connection
+option build_manager_database_ssh_user : string = "" for connection
+option build_manager_database_ssh_port : int = 0 for connection
 
 
 section "Isabelle/Scala/ML system channel"
