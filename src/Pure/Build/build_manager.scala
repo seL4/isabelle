@@ -1162,6 +1162,7 @@ object Build_Manager {
     sessions: List[String] = Nil,
     prefs: List[Options.Spec] = Nil,
     exclude_sessions: List[String] = Nil,
+    rev: String = "",
     progress: Progress = new Progress
   ): UUID.T = {
     val id = UUID.random()
@@ -1179,7 +1180,7 @@ object Build_Manager {
         val rsync_context = Rsync.Context(ssh = ssh, chmod = "g+rwx")
         progress.echo("Transferring repositories...")
         Sync.sync(store.options, rsync_context, context.isabelle_dir, preserve_jars = true,
-          dirs = Sync.afp_dirs(afp_root))
+          dirs = Sync.afp_dirs(afp_root), rev = rev)
         ssh.execute("chmod g+rwx " + File.bash_path(context.dir))
 
         if (progress.stopped) {
@@ -1274,6 +1275,7 @@ Usage: isabelle build_manager [OPTIONS]
       val session_groups = new mutable.ListBuffer[String]
       var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var prefs: List[Options.Spec] = Nil
+      var rev = ""
       val exclude_sessions = new mutable.ListBuffer[String]
 
       val getopts = Getopts("""
@@ -1293,6 +1295,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
     -g NAME      select session group NAME
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p OPTIONS   comma-separated preferences for build process
+    -r REV       explicit revision (default: state of working directory)
     -x NAME      exclude session NAME and all descendants
 
   Submit build task on SSH server. Notable system options:
@@ -1311,6 +1314,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         "g:" -> (arg => session_groups += arg),
         "o:" -> (arg => options = options + arg),
         "p:" -> (arg => prefs = Options.Spec.parse(arg)),
+        "r:" -> (arg => rev = arg),
         "x:" -> (arg => exclude_sessions += arg))
 
       val sessions = getopts(args)
@@ -1322,7 +1326,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         exclude_session_groups = exclude_session_groups.toList, all_sessions = all_sessions,
         build_heap = build_heap, clean_build = clean_build, export_files = export_files,
         fresh_build = fresh_build, session_groups = session_groups.toList, sessions = sessions,
-        prefs = prefs, exclude_sessions = exclude_sessions.toList, progress = progress)
+        prefs = prefs, rev = rev, exclude_sessions = exclude_sessions.toList, progress = progress)
     })
 }
 
