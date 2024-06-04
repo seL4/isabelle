@@ -372,7 +372,7 @@ object Web_App {
 (function() {
   window.addEventListener('message', (event) => {
     if (Number.isInteger(event.data)) {
-      this.style.height=event.data + 32 + 'px'
+      this.style.height=event.data + 'px'
     }
   })
 }).call(this)"""
@@ -417,11 +417,11 @@ function heartbeat() {
 }
 heartbeat()""") :: head
 
+        val on_load = "parent.postMessage(document.documentElement.scrollHeight, '*')"
+
         html(
           XML.elem("head", HTML.head_meta :: head1),
-          XML.Elem(
-            Markup("body", List("onLoad" -> "parent.postMessage(document.body.scrollHeight, '*')")),
-            content))
+          XML.Elem(Markup("body", List("onLoad" -> on_load)), content))
       }
     }
 
