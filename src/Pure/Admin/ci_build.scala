@@ -133,7 +133,8 @@ object CI_Build {
   }
 
   def hg_id(path: Path): String =
-    Mercurial.repository(path).id()
+    if (Mercurial.Hg_Sync.ok(path)) File.read(path + Mercurial.Hg_Sync.PATH_ID)
+    else Mercurial.repository(path).id()
 
   def print_section(title: String): Unit =
     println("\n=== " + title + " ===\n")
