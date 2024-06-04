@@ -6,6 +6,7 @@ theory Sorting
   imports
     Complex_Main
     "HOL-Library.Multiset"
+    Define_Time_Function
 begin
 
 hide_const List.insort
@@ -45,26 +46,8 @@ lemma sorted_insort: "sorted (insort xs)"
 
 subsubsection "Time Complexity"
 
-text \<open>We count the number of function calls.\<close>
-
-text\<open>
-\<open>insort1 x [] = [x]\<close>
-\<open>insort1 x (y#ys) =
-  (if x \<le> y then x#y#ys else y#(insort1 x ys))\<close>
-\<close>
-fun T_insort1 :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> nat" where
-  "T_insort1 x [] = 1" |
-  "T_insort1 x (y#ys) =
-  (if x \<le> y then 0 else T_insort1 x ys) + 1"
-
-text\<open>
-\<open>insort [] = []\<close>
-\<open>insort (x#xs) = insort1 x (insort xs)\<close>
-\<close>
-fun T_insort :: "'a::linorder list \<Rightarrow> nat" where
-  "T_insort [] = 1" |
-  "T_insort (x#xs) = T_insort xs + T_insort1 x (insort xs) + 1"
-
+time_fun insort1
+time_fun insort
 
 lemma T_insort1_length: "T_insort1 x xs \<le> length xs + 1"
   by (induction xs) auto
