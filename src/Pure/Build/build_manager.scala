@@ -633,6 +633,8 @@ object Build_Manager {
           val number = _state.next_number(task.kind)
 
           Exn.capture {
+            store.sync_permissions(context.dir)
+
             val isabelle_rev =
               sync(isabelle_repository, task.isabelle_rev, context.isabelle_dir)
 
