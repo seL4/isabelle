@@ -21,6 +21,10 @@ object Web_App {
     def value(v: String): Attribute = new Attribute("value", v)
     def placeholder(p: String): Attribute = new Attribute("placeholder", p)
 
+    val nav = new Operator("nav")
+    val header = new Operator("header")
+    val footer = new Operator("footer")
+    val main = new Operator("main")
     val fieldset = new Operator("fieldset")
     val button = new Operator("button")
 
