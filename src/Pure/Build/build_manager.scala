@@ -1077,12 +1077,27 @@ object Build_Manager {
     val base_dir = Path.explode(options.string("build_manager_dir"))
     val identifier = options.string("build_manager_identifier")
 
-    def dir(elem: T): Path = base_dir + (
+    private val pending = base_dir + Path.basic("pending")
+    private val running = base_dir + Path.basic("running")
+    private val finished = base_dir + Path.basic("finished")
+
+    def dir(elem: T): Path =
       elem match {
-        case task: Task => Path.make(List("pending", task.id.toString))
-        case job: Job => Path.make(List("running", job.kind, job.number.toString))
-        case result: Result => Path.make(List("finished", result.kind, result.number.toString))
-      })
+        case task: Task => pending + Path.basic(task.id.toString)
+        case job: Job => running + Path.make(List(job.kind, job.number.toString))
+        case result: Result => finished + Path.make(List(result.kind, result.number.toString))
+      }
+
+    def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
+      ssh.execute("chmod -R g+rwx " + File.bash_path(dir))
+      ssh.execute("chown -R :" + ssh_group + " " + File.bash_path(dir))
+    }
+
+    def init_dirs(): Unit =
+      List(pending, running, finished).foreach(dir =>
+        sync_permissions(Isabelle_System.make_directory(dir)))
+
+    val ssh_group: String= options.string("build_manager_ssh_group")
 
     def open_ssh(): SSH.Session =
       SSH.open_session(options,
@@ -1128,7 +1143,7 @@ object Build_Manager {
 
     using(store.open_database())(db =>
       Build_Manager.private_data.transaction_lock(db,
-        create = true, label = "Build_Manager.build_manager") {})
+        create = true, label = "Build_Manager.build_manager") { store.init_dirs() })
 
     val processes = List(
       new Runner(store, build_hosts, isabelle_repository, sync_dirs, progress),
@@ -1177,11 +1192,11 @@ object Build_Manager {
 
     progress.interrupt_handler {
       using(store.open_ssh()) { ssh =>
-        val rsync_context = Rsync.Context(ssh = ssh, chmod = "g+rwx")
+        val rsync_context = Rsync.Context(ssh = ssh)
         progress.echo("Transferring repositories...")
         Sync.sync(store.options, rsync_context, context.isabelle_dir, preserve_jars = true,
           dirs = Sync.afp_dirs(afp_root), rev = rev)
-        ssh.execute("chmod g+rwx " + File.bash_path(context.dir))
+        store.sync_permissions(context.dir, ssh)
 
         if (progress.stopped) {
           progress.echo("Cancelling submission...")
@@ -1216,6 +1231,7 @@ object Build_Manager {
       "build_manager_dir",
       "build_manager_address",
       "build_manager_ssh_host",
+      "build_manager_ssh_group",
       "build_manager_ci_jobs")
 
   val isabelle_tool = Isabelle_Tool("build_manager", "run build manager", Scala_Project.here,
@@ -1259,6 +1275,8 @@ Usage: isabelle build_manager [OPTIONS]
         sync_dirs = sync_dirs, progress = progress)
     })
 
+  val notable_client_options = List("build_manager_ssh_user", "build_manager_ssh_group")
+
   val isabelle_tool1 = Isabelle_Tool("build_task", "submit build task for build manager",
     Scala_Project.here,
     { args =>
@@ -1300,7 +1318,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
 
   Submit build task on SSH server. Notable system options:
 
-""" + Library.indent_lines(2, show_options(List("build_manager_ssh_user"), options)) + "\n",
+""" + Library.indent_lines(2, show_options(notable_client_options, options)) + "\n",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "P" -> (_ => presentation = true),

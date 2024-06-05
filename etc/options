@@ -467,6 +467,10 @@ option build_manager_ssh_host : string = "build.proof.cit.tum.de" for connection
   -- "ssh server on which build manager runs"
 option build_manager_ssh_user : string = "" for connection
   -- "ssh user to access build manager system"
+
+option build_manager_ssh_group : string = "isabelle"
+  -- "common group for users on build manager system"
+
 option build_manager_ssh_port : int = 0 for connection
 
 
