@@ -58,7 +58,8 @@ object Build_Manager {
     clean_build: Boolean = false,
     export_files: Boolean = false,
     fresh_build: Boolean = false,
-    presentation: Boolean = false
+    presentation: Boolean = false,
+    verbose: Boolean = false
   ) extends Build_Config {
     def name: String = User_Build.name
     def components: List[Component] = afp_rev.map(Component.AFP).toList
@@ -75,7 +76,7 @@ object Build_Manager {
         if_proper(export_files, " -e") +
         if_proper(fresh_build, " -f") +
         Options.Spec.bash_strings(prefs, bg = true) +
-        " -v" +
+        if_proper(verbose, " -v") +
         sessions.map(session => " " + Bash.string(session)).mkString
     }
   }
@@ -268,12 +269,13 @@ object Build_Manager {
       val export_files = SQL.Column.bool("export_files")
       val fresh_build = SQL.Column.bool("fresh_build")
       val presentation = SQL.Column.bool("presentation")
+      val verbose = SQL.Column.bool("verbose")
 
       val table =
         make_table(List(kind, id, submit_date, priority, isabelle_rev, components, prefs,
           requirements, all_sessions, base_sessions, exclude_session_groups, exclude_sessions,
           session_groups, sessions, build_heap, clean_build, export_files, fresh_build,
-          presentation),
+          presentation, verbose),
         name = "pending")
     }
 
@@ -304,11 +306,12 @@ object Build_Manager {
               val export_files = res.bool(Pending.export_files)
               val fresh_build = res.bool(Pending.fresh_build)
               val presentation = res.bool(Pending.presentation)
+              val verbose = res.bool(Pending.verbose)
 
               val afp_rev = components.find(_.name == Component.AFP().name).map(_.rev)
               User_Build(afp_rev, prefs, requirements, all_sessions, base_sessions,
                 exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
-                clean_build, export_files, fresh_build, presentation)
+                clean_build, export_files, fresh_build, presentation, verbose)
             }
 
           val task = Task(build_config, UUID.make(id), submit_date, priority, isabelle_rev)
@@ -357,6 +360,7 @@ object Build_Manager {
             stmt.bool(17) = get(_.export_files)
             stmt.bool(18) = get(_.fresh_build)
             stmt.bool(19) = get(_.presentation)
+            stmt.bool(20) = get(_.verbose)
           })
       }
 
@@ -1177,6 +1181,7 @@ object Build_Manager {
     sessions: List[String] = Nil,
     prefs: List[Options.Spec] = Nil,
     exclude_sessions: List[String] = Nil,
+    verbose: Boolean = false,
     rev: String = "",
     progress: Progress = new Progress
   ): UUID.T = {
@@ -1185,7 +1190,7 @@ object Build_Manager {
 
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions, base_sessions,
       exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap, clean_build,
-      export_files, fresh_build, presentation)
+      export_files, fresh_build, presentation, verbose)
     val task = Task(build_config, id, Date.now(), Priority.high)
 
     val context = Context(store, task)
@@ -1293,6 +1298,7 @@ Usage: isabelle build_manager [OPTIONS]
       val session_groups = new mutable.ListBuffer[String]
       var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var prefs: List[Options.Spec] = Nil
+      var verbose = false
       var rev = ""
       val exclude_sessions = new mutable.ListBuffer[String]
 
@@ -1314,6 +1320,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p OPTIONS   comma-separated preferences for build process
     -r REV       explicit revision (default: state of working directory)
+    -v           verbose
     -x NAME      exclude session NAME and all descendants
 
   Submit build task on SSH server. Notable system options:
@@ -1333,6 +1340,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         "o:" -> (arg => options = options + arg),
         "p:" -> (arg => prefs = Options.Spec.parse(arg)),
         "r:" -> (arg => rev = arg),
+        "v" -> (_ => verbose = true),
         "x:" -> (arg => exclude_sessions += arg))
 
       val sessions = getopts(args)
@@ -1344,7 +1352,8 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         exclude_session_groups = exclude_session_groups.toList, all_sessions = all_sessions,
         build_heap = build_heap, clean_build = clean_build, export_files = export_files,
         fresh_build = fresh_build, session_groups = session_groups.toList, sessions = sessions,
-        prefs = prefs, rev = rev, exclude_sessions = exclude_sessions.toList, progress = progress)
+        prefs = prefs, verbose = verbose, rev = rev, exclude_sessions = exclude_sessions.toList,
+        progress = progress)
     })
 }
 
