@@ -465,6 +465,7 @@ section "Build Manager SSH"
 
 option build_manager_ssh_host : string = "build.proof.cit.tum.de" for connection
   -- "ssh server on which build manager runs"
+
 option build_manager_ssh_user : string = "" for connection
   -- "ssh user to access build manager system"
 
