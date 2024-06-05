@@ -16,8 +16,6 @@ struct
 
 (* other name spaces *)
 
-fun err_dup_kind kind = error ("Duplicate name space kind " ^ quote kind);
-
 structure Data = Theory_Data
 (
   type T = (theory -> Name_Space.T) Inttab.table;
