@@ -401,9 +401,7 @@ document.getElementById('iframe').src = base + '""" + paths.api_route(path).repl
       extends Endpoint(paths.api_path(path, external = false), method) {
 
       def html_content(content: XML.Body, auto_reload: Boolean = false): HTTP.Response = {
-        val head1 =
-          if (!auto_reload) head
-          else HTML.script("""
+        val auto_reload_script = HTML.script("""
 var state = null
 function heartbeat() {
   fetch(window.location, { method: "HEAD" }).then((http_res) => {
@@ -415,13 +413,21 @@ function heartbeat() {
     setTimeout(heartbeat, 1000)
   })
 }
-heartbeat()""") :: head
+heartbeat()""")
 
-        val on_load = "parent.postMessage(document.documentElement.scrollHeight, '*')"
+        val resize_script = HTML.script("""
+function post_height() {
+  const scroll_bar_height = window.innerHeight - document.documentElement.clientHeight
+  parent.postMessage(document.documentElement.scrollHeight + scroll_bar_height, '*')
+}
+window.addEventListener("resize", (event) => { post_height() })
+""")
+
+        val head1 = (if (auto_reload) List(auto_reload_script) else Nil) ::: resize_script :: head
 
         html(
           XML.elem("head", HTML.head_meta :: head1),
-          XML.Elem(Markup("body", List("onLoad" -> on_load)), content))
+          XML.Elem(Markup("body", List("onLoad" -> "post_height()")), content))
       }
     }
 
