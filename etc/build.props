@@ -238,6 +238,7 @@ sources = \
   src/Pure/Tools/update_then.scala \
   src/Pure/Tools/update_theorems.scala \
   src/Pure/library.scala \
+  src/Pure/name.scala \
   src/Pure/pure_thy.scala \
   src/Pure/term.scala \
   src/Pure/term_xml.scala \

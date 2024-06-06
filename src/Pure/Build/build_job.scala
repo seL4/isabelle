@@ -99,7 +99,7 @@ object Build_Job {
     old_time: Time,
     old_command_timings_blob: Bytes,
     build_uuid: String
-  ) extends Library.Named
+  ) extends Name.T
 
   class Session_Job private[Build_Job](
     build_context: Build.Context,

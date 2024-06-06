@@ -52,7 +52,7 @@ object Build_Process {
     name: String,
     deps: List[String],
     build_uuid: String
-  ) extends Library.Named {
+  ) extends Name.T {
     def is_ready: Boolean = deps.isEmpty
     def resolve(dep: String): Option[Task] =
       if (deps.contains(dep)) Some(copy(deps = deps.filterNot(_ == dep))) else None
@@ -65,7 +65,7 @@ object Build_Process {
     node_info: Host.Node_Info,
     start_date: Date,
     build: Option[Build_Job]
-  ) extends Library.Named
+  ) extends Name.T
 
   sealed case class Result(
     name: String,
@@ -76,7 +76,7 @@ object Build_Process {
     process_result: Process_Result,
     output_shasum: SHA1.Shasum,
     current: Boolean
-  ) extends Library.Named {
+  ) extends Name.T {
     def ok: Boolean = process_result.ok
   }
 

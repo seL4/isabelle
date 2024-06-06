@@ -285,11 +285,6 @@ object Library {
     }
 
 
-  /* named items */
-
-  trait Named { def name: String }
-
-
   /* data update */
 
   object Update {
@@ -299,7 +294,7 @@ object Library {
     case class Delete[A](name: String) extends Op[A]
     case class Insert[A](item: A) extends Op[A]
 
-    def data[A <: Named](old_data: Data[A], updates: List[Op[A]]): Data[A] =
+    def data[A <: Name.T](old_data: Data[A], updates: List[Op[A]]): Data[A] =
       updates.foldLeft(old_data) {
         case (map, Delete(name)) => map - name
         case (map, Insert(item)) => map + (item.name -> item)

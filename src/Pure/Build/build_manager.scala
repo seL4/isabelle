@@ -88,7 +88,7 @@ object Build_Manager {
 
   enum Priority { case low, normal, high }
 
-  sealed trait T extends Library.Named
+  sealed trait T extends Name.T
 
   sealed case class Task(
     build_config: Build_Config,
