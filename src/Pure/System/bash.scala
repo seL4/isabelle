@@ -378,7 +378,7 @@ object Bash {
                 Isabelle_System.settings(
                   XML.Decode.list(XML.Decode.pair(XML.Decode.string, XML.Decode.string))(
                     YXML.parse_body(putenv))),
-              redirect= redirect)
+              redirect = redirect)
           }
           match {
             case Exn.Exn(exn) => reply_failure(exn)

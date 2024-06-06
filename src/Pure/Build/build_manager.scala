@@ -1153,7 +1153,7 @@ object Build_Manager {
       List(pending, running, finished).foreach(dir =>
         sync_permissions(Isabelle_System.make_directory(dir)))
 
-    val ssh_group: String= options.string("build_manager_ssh_group")
+    val ssh_group: String = options.string("build_manager_ssh_group")
 
     def open_ssh(): SSH.Session =
       SSH.open_session(options,
