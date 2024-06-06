@@ -223,7 +223,7 @@ lemma fact_dvd_pochhammer: "fact k dvd pochhammer (a::int) k"
 proof -
   have dvd: "y \<noteq> 0 \<Longrightarrow> ((of_int (x div y))::'a::field_char_0) = of_int x / of_int y \<Longrightarrow> y dvd x"
     for x y :: int
-    by (smt dvd_triv_left mult.commute nonzero_eq_divide_eq of_int_eq_0_iff of_int_eq_iff of_int_mult)
+    by (metis dvd_triv_right nonzero_eq_divide_eq of_int_0_eq_iff of_int_eq_iff of_int_mult)
   show ?thesis
   proof (cases "0 < a")
     case True
