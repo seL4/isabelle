@@ -41,6 +41,8 @@ fun fold_aterms f (ZApp (t, u)) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (ZAbs (_, _, t)) = fold_aterms f t
   | fold_aterms f a = f a;
 
+fun fold_vars f = fold_aterms (fn ZVar v => f v | _ => I);
+
 fun fold_types f (ZVar (_, T)) = f T
   | fold_types f (ZConst1 (_, T)) = f T
   | fold_types f (ZConst (_, As)) = fold f As
@@ -183,7 +185,7 @@ structure Term_Items = Term_Items
 );
 open Term_Items;
 
-val add_vars = ZTerm.fold_aterms (fn ZVar v => add_set v | _ => I);
+val add_vars = ZTerm.fold_vars add_set;
 
 end;
 
@@ -221,6 +223,7 @@ sig
   exception ZTERM of string * ztyp list * zterm list * zproof list
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val fold_vars: (indexname * ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val ztyp_ord: ztyp ord
   val fast_zterm_ord: zterm ord
@@ -795,10 +798,8 @@ fun zproof_const (a, A) : zproof_const =
       ZTVars.build (A |> (fold_types o fold_tvars) (fn v => fn tab =>
         if ZTVars.defined tab v then tab else ZTVars.update (v, ZTVar v) tab));
     val inst =
-      ZVars.build (A |> fold_aterms (fn t => fn tab =>
-        (case t of
-          ZVar v => if ZVars.defined tab v then tab else ZVars.update (v, t) tab
-        | _ => tab)));
+      ZVars.build (A |> fold_vars (fn v => fn tab =>
+        if ZVars.defined tab v then tab else ZVars.update (v, ZVar v) tab));
   in ((a, A), (instT, inst)) end;
 
 fun make_const_proof (f, g) ((a, insts): zproof_const) =
