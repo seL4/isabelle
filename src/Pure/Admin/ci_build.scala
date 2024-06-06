@@ -64,12 +64,28 @@ object CI_Build {
 
   /* ci build jobs */
 
+  sealed trait Trigger
+  case object On_Commit extends Trigger
+
+  object Timed {
+    def nightly(start_time: Time = Time.zero): Timed =
+      Timed { (before, now) =>
+        val start0 = before.midnight + start_time
+        val start1 = now.midnight + start_time
+        (before.time < start0.time && start0.time <= now.time) ||
+          (before.time < start1.time && start1.time <= now.time)
+      }
+  }
+  
+  case class Timed(in_interval: (Date, Date) => Boolean) extends Trigger
+
   sealed case class Job(
     name: String,
     description: String,
     profile: Profile,
     config: Build_Config,
-    components: List[String] = Nil
+    components: List[String] = Nil,
+    trigger: Trigger = On_Commit
   ) {
     override def toString: String = name
   }

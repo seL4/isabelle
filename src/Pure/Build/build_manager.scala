@@ -35,6 +35,11 @@ object Build_Manager {
     def command(build_hosts: List[Build_Cluster.Host]): String
   }
 
+  object CI_Build {
+    def apply(job: isabelle.CI_Build.Job): CI_Build =
+      CI_Build(job.name, job.components.map(Component(_, "default")))
+  }
+
   case class CI_Build(name: String, components: List[Component]) extends Build_Config {
     def fresh_build: Boolean = true
     def command(build_hosts: List[Build_Cluster.Host]): String = " ci_build " + name
@@ -747,11 +752,6 @@ object Build_Manager {
 
     val init: Poller.State = Poller.State(current, poll)
 
-    def ci_task(ci_job: isabelle.CI_Build.Job): Task = {
-      val ci_build = CI_Build(ci_job.name, ci_job.components.map(Component(_, "default")))
-      Task(ci_build, priority = Priority.low, isabelle_rev = "default")
-    }
-
     private def add_tasks(current: Poller.Versions, next: Poller.Versions): Unit = {
       val isabelle_updated = current.isabelle != next.isabelle
       val updated_components =
@@ -760,9 +760,13 @@ object Build_Manager {
       synchronized_database("add_tasks") {
         for {
           ci_job <- ci_jobs
+          if ci_job.trigger == isabelle.CI_Build.On_Commit
           if isabelle_updated || ci_job.components.exists(updated_components.contains)
           if !_state.pending.values.exists(_.kind == ci_job.name)
-        } _state = _state.add_pending(ci_task(ci_job))
+        } {
+          val task = Task(CI_Build(ci_job), priority = Priority.low, isabelle_rev = "default")
+          _state = _state.add_pending(task)
+        }
       }
     }
 
@@ -781,6 +785,31 @@ object Build_Manager {
             Poller.State(next, poll)
         }
       }
+  }
+
+  class Timer(
+    ci_jobs: List[isabelle.CI_Build.Job],
+    store: Store,
+    isabelle_repository: Mercurial.Repository,
+    sync_dirs: List[Sync.Dir],
+    progress: Progress
+  ) extends Loop_Process[Date]("Timer", store, progress) {
+
+    private def add_tasks(previous: Date, next: Date): Unit =
+      for (ci_job <-ci_jobs)
+        ci_job.trigger match {
+          case isabelle.CI_Build.Timed(in_interval) if in_interval(previous, next) =>
+            val task = Task(CI_Build(ci_job), isabelle_rev = "default")
+            _state = _state.add_pending(task)
+          case _ =>
+        }
+
+    def init: Date = Date.now()
+    def loop_body(previous: Date): Date = {
+      val now = Date.now()
+      add_tasks(previous, now)
+      now
+    }
   }
 
 
@@ -1176,6 +1205,7 @@ object Build_Manager {
     val processes = List(
       new Runner(store, build_hosts, isabelle_repository, sync_dirs, progress),
       new Poller(ci_jobs, store, isabelle_repository, sync_dirs, progress),
+      new Timer(ci_jobs, store, isabelle_repository, sync_dirs, progress),
       new Web_Server(port, paths, store, progress))
 
     val threads = processes.map(Isabelle_Thread.create(_))
