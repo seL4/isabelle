@@ -41,6 +41,8 @@ fun fold_aterms f (ZApp (t, u)) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (ZAbs (_, _, t)) = fold_aterms f t
   | fold_aterms f a = f a;
 
+fun fold_vars f = fold_aterms (fn ZVar v => f v | _ => I);
+
 fun fold_types f (ZVar (_, T)) = f T
   | fold_types f (ZConst1 (_, T)) = f T
   | fold_types f (ZConst (_, As)) = fold f As
@@ -183,7 +185,7 @@ structure Term_Items = Term_Items
 );
 open Term_Items;
 
-val add_vars = ZTerm.fold_aterms (fn ZVar v => add_set v | _ => I);
+val add_vars = ZTerm.fold_vars add_set;
 
 end;
 
@@ -193,12 +195,14 @@ end;
 datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
-  | ZBox of serial
-  | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: int};
+  | ZBox of {theory_name: string, serial: serial}
+  | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: serial};
+
+type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
 
 datatype zproof =
     ZDummy                         (*dummy proof*)
-  | ZConstp of zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table
+  | ZConstp of zproof_const
   | ZBoundp of int
   | ZAbst of string * ztyp * zproof
   | ZAbsp of string * zterm * zproof
@@ -217,9 +221,9 @@ sig
   datatype zterm = datatype zterm
   datatype zproof = datatype zproof
   exception ZTERM of string * ztyp list * zterm list * zproof list
-  type zproof_const = zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val fold_vars: (indexname * ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val ztyp_ord: ztyp ord
   val fast_zterm_ord: zterm ord
@@ -262,6 +266,8 @@ sig
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
+  val zproof_const_typargs: zproof_const -> ((indexname * sort) * ztyp) list
+  val zproof_const_args: zproof_const -> ((indexname * ztyp) * zterm) list
   type zbox = serial * (zterm * zproof)
   val zbox_ord: zbox ord
   type zboxes = zbox Ord_List.T
@@ -476,7 +482,7 @@ fun instantiate_term_same typ inst =
 fun fold_proof {hyps} typ term =
   let
     fun proof ZDummy = I
-      | proof (ZConstp (_, _, instT, inst)) =
+      | proof (ZConstp (_, (instT, inst))) =
           ZTVars.fold (typ o #2) instT #> ZVars.fold (term o #2) inst
       | proof (ZBoundp _) = I
       | proof (ZAbst (_, T, p)) = typ T #> proof p
@@ -534,9 +540,8 @@ fun map_insts_same typ term (instT, inst) =
 fun map_proof_same {hyps} typ term =
   let
     fun proof ZDummy = raise Same.SAME
-      | proof (ZConstp (a, A, instT, inst)) =
-          let val (instT', inst') = map_insts_same typ term (instT, inst)
-          in ZConstp (a, A, instT', inst') end
+      | proof (ZConstp (a, (instT, inst))) =
+          ZConstp (a, map_insts_same typ term (instT, inst))
       | proof (ZBoundp _) = raise Same.SAME
       | proof (ZAbst (a, T, p)) =
           (ZAbst (a, typ T, Same.commit proof p)
@@ -789,26 +794,29 @@ fun norm_proof thy envir = norm_proof_cache (norm_cache thy) envir;
 
 (* constants *)
 
-type zproof_const = zproof_name * zterm * ztyp ZTVars.table * zterm ZVars.table;
-
-fun zproof_const a A : zproof_const =
+fun zproof_const (a, A) : zproof_const =
   let
     val instT =
       ZTVars.build (A |> (fold_types o fold_tvars) (fn v => fn tab =>
         if ZTVars.defined tab v then tab else ZTVars.update (v, ZTVar v) tab));
     val inst =
-      ZVars.build (A |> fold_aterms (fn t => fn tab =>
-        (case t of
-          ZVar v => if ZVars.defined tab v then tab else ZVars.update (v, t) tab
-        | _ => tab)));
-  in (a, A, instT, inst) end;
+      ZVars.build (A |> fold_vars (fn v => fn tab =>
+        if ZVars.defined tab v then tab else ZVars.update (v, ZVar v) tab));
+  in ((a, A), (instT, inst)) end;
 
-fun make_const_proof (f, g) (a, A, instT, inst) =
+fun zproof_const_typargs (((_, A), (instT, _)): zproof_const) =
+  ZTVars.build (A |> ZTVars.add_tvars) |> ZTVars.list_set
+  |> map (fn v => (v, the_default (ZTVar v) (ZTVars.lookup instT v)));
+
+fun zproof_const_args (((_, A), (_, inst)): zproof_const) =
+  ZVars.build (A |> ZVars.add_vars) |> ZVars.list_set
+  |> map (fn v => (v, the_default (ZVar v) (ZVars.lookup inst v)));
+
+fun make_const_proof (f, g) ((a, insts): zproof_const) =
   let
     val typ = subst_type_same (Same.function (fn ((x, _), _) => try f x));
     val term = Same.function (fn ZVar ((x, _), _) => try g x | _ => NONE);
-    val (instT', inst') = Same.commit (map_insts_same typ term) (instT, inst);
-  in ZConstp (a, A, instT', inst') end;
+  in ZConstp (a, Same.commit (map_insts_same typ term) insts) end;
 
 
 (* closed proof boxes *)
@@ -890,7 +898,7 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
     val i = serial ();
     val zbox: zbox = (i, (prop', prf'));
 
-    val const = constrain_proof (ZConstp (zproof_const (zproof_name i) prop'));
+    val const = constrain_proof (ZConstp (zproof_const (zproof_name i, prop')));
     val args1 =
       outer_constraints |> map (fn (T, c) =>
         ZClassp (ztyp_of (if unconstrain then unconstrain_typ T else T), c));
@@ -907,7 +915,9 @@ fun thm_proof thy thm_name =
 
 fun add_box_proof unconstrain thy hyps concl prf zboxes =
   let
-    val (zbox, prf') = box_proof unconstrain ZBox thy hyps concl prf;
+    val thy_name = Context.theory_long_name thy;
+    fun zproof_name i = ZBox {theory_name = thy_name, serial = i};
+    val (zbox, prf') = box_proof unconstrain zproof_name thy hyps concl prf;
     val zboxes' = add_zboxes zbox zboxes;
   in (prf', zboxes') end;
 
@@ -916,11 +926,11 @@ end;
 
 (* basic logic *)
 
-fun axiom_proof thy name A =
-  ZConstp (zproof_const (ZAxiom name) (zterm_of thy A));
+fun zproof_axiom thy name A = zproof_const (ZAxiom name, zterm_of thy A);
+val axiom_proof = ZConstp ooo zproof_axiom;
 
 fun oracle_proof thy name A =
-  ZConstp (zproof_const (ZOracle name) (zterm_of thy A));
+  ZConstp (zproof_const (ZOracle name, zterm_of thy A));
 
 fun assume_proof thy A =
   ZHyp (zterm_of thy A);
@@ -992,13 +1002,12 @@ val thy0 =
 
 val [reflexive_axiom, symmetric_axiom, transitive_axiom, equal_intr_axiom, equal_elim_axiom,
   abstract_rule_axiom, combination_axiom] =
-    Theory.equality_axioms |> map (fn (b, t) =>
-      let val ZConstp c = axiom_proof thy0 (Sign.full_name thy0 b) t in c end);
+    Theory.equality_axioms |> map (fn (b, t) => zproof_axiom thy0 (Sign.full_name thy0 b) t);
 
 in
 
 val is_reflexive_proof =
-  fn ZConstp (ZAxiom "Pure.reflexive", _, _, _) => true | _ => false;
+  fn ZConstp ((ZAxiom "Pure.reflexive", _), _) => true | _ => false;
 
 fun reflexive_proof thy T t =
   let
@@ -1202,9 +1211,8 @@ fun lift_proof thy gprop inc prems prf =
       | proof Ts lev (ZAppp (p, q)) =
           (ZAppp (proof Ts lev p, Same.commit (proof Ts lev) q)
             handle Same.SAME => ZAppp (p, proof Ts lev q))
-      | proof Ts lev (ZConstp (a, A, instT, inst)) =
-          let val (instT', insts') = map_insts_same typ (term Ts lev) (instT, inst)
-          in ZConstp (a, A, instT', insts') end
+      | proof Ts lev (ZConstp (a, insts)) =
+          ZConstp (a, map_insts_same typ (term Ts lev) insts)
       | proof _ _ (ZClassp (T, c)) = ZClassp (typ T, c)
       | proof _ _ _ = raise Same.SAME;
 
