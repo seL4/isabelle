@@ -196,9 +196,11 @@ datatype zproof_name =
   | ZBox of serial
   | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: int};
 
+type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
+
 datatype zproof =
     ZDummy                         (*dummy proof*)
-  | ZConstp of (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table)
+  | ZConstp of zproof_const
   | ZBoundp of int
   | ZAbst of string * ztyp * zproof
   | ZAbsp of string * zterm * zproof
@@ -217,7 +219,6 @@ sig
   datatype zterm = datatype zterm
   datatype zproof = datatype zproof
   exception ZTERM of string * ztyp list * zterm list * zproof list
-  type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table)
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
@@ -788,8 +789,6 @@ fun norm_proof thy envir = norm_proof_cache (norm_cache thy) envir;
 
 (* constants *)
 
-type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
-
 fun zproof_const (a, A) : zproof_const =
   let
     val instT =
@@ -802,7 +801,7 @@ fun zproof_const (a, A) : zproof_const =
         | _ => tab)));
   in ((a, A), (instT, inst)) end;
 
-fun make_const_proof (f, g) (a, insts) =
+fun make_const_proof (f, g) ((a, insts): zproof_const) =
   let
     val typ = subst_type_same (Same.function (fn ((x, _), _) => try f x));
     val term = Same.function (fn ZVar ((x, _), _) => try g x | _ => NONE);
