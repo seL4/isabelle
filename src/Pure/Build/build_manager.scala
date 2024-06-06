@@ -784,7 +784,6 @@ object Build_Manager {
 
     object API {
       val BUILD_CANCEL = Path.explode("api/build/cancel")
-      val CSS = Path.explode("api/isabelle.css")
     }
 
     object Cache {
@@ -1010,9 +1009,11 @@ object Build_Manager {
         Get(Page.HOME, "home", _ => overview),
         Get(Page.OVERVIEW, "overview", get_overview),
         Get(Page.BUILD, "build", get_build),
-        Post(API.BUILD_CANCEL, "cancel build", cancel_build),
-        Get_File(API.CSS, "css", _ => Some(HTML.isabelle_css)))
-      val head = List(HTML.style_file(paths.api_route(API.CSS)))
+        Post(API.BUILD_CANCEL, "cancel build", cancel_build))
+      val head =
+        List(
+          HTML.style_file("https://hawkz.github.io/gdcss/gd.css"),
+          HTML.style("html { background-color: white; }"))
     }
 
     def init: Unit = server.start()
