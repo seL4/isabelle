@@ -1363,7 +1363,7 @@ object Build_Schedule {
           Base.table.select(List(Base.build_uuid), sql = SQL.where(Base.stop.undefined)),
           Map.from[String, Unit], res => res.string(Base.build_uuid) -> ())
 
-      val update = Library.Update.make(read_scheduled_builds_domain(db), running_builds_domain)
+      val update = Update.make(read_scheduled_builds_domain(db), running_builds_domain)
 
       remove_schedules(db, update.delete)
     }

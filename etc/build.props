@@ -243,6 +243,7 @@ sources = \
   src/Pure/term.scala \
   src/Pure/term_xml.scala \
   src/Pure/thm_name.scala \
+  src/Pure/update.scala \
   src/Tools/Graphview/graph_file.scala \
   src/Tools/Graphview/graph_panel.scala \
   src/Tools/Graphview/graphview.scala \

@@ -109,11 +109,11 @@ object Build_Process {
           })
       }
 
-    def update(updates: List[Library.Update.Op[Build_Job.Session_Context]]): Sessions = {
+    def update(updates: List[Update.Op[Build_Job.Session_Context]]): Sessions = {
       val graph1 =
         updates.foldLeft(graph) {
-          case (g, Library.Update.Delete(name)) => g.del_node(name)
-          case (g, Library.Update.Insert(session)) =>
+          case (g, Update.Delete(name)) => g.del_node(name)
+          case (g, Update.Insert(session)) =>
             (if (g.defined(session.name)) g.del_node(session.name) else g)
               .new_node(session.name, session)
         }
@@ -384,7 +384,7 @@ object Build_Process {
       build_id: Long,
       serial_seen: Long,
       get: SQL.Result => A
-    ): List[Library.Update.Op[A]] = {
+    ): List[Update.Op[A]] = {
       val domain_columns = List(Updates.dom_name)
       val domain_table =
         SQL.Table("domain", domain_columns, body =
@@ -401,17 +401,17 @@ object Build_Process {
           domain_table.query_named + SQL.join_outer + table +
             " ON " + Updates.dom + " = " + Generic.name)
 
-      db.execute_query_statement(select_sql, List.from[Library.Update.Op[A]],
+      db.execute_query_statement(select_sql, List.from[Update.Op[A]],
         res =>
-          if (res.bool(Updates.delete)) Library.Update.Delete(res.string(Updates.name))
-          else Library.Update.Insert(get(res)))
+          if (res.bool(Updates.delete)) Update.Delete(res.string(Updates.name))
+          else Update.Insert(get(res)))
     }
 
     def write_updates(
       db: SQL.Database,
       build_id: Long,
       serial: Long,
-      updates: List[Library.Update]
+      updates: List[Update]
     ): Unit =
       db.execute_batch_statement(db.insert_permissive(Updates.table), batch =
         for (update <- updates.iterator; kind = update.kind; name <- update.domain.iterator)
@@ -568,10 +568,10 @@ object Build_Process {
       db: SQL.Database,
       sessions: Build_Process.Sessions,
       old_sessions: Build_Process.Sessions
-    ): Library.Update = {
+    ): Update = {
       val update =
-        if (old_sessions.eq(sessions)) Library.Update.empty
-        else Library.Update.make(old_sessions.data, sessions.data, kind = Sessions.table_index)
+        if (old_sessions.eq(sessions)) Update.empty
+        else Update.make(old_sessions.data, sessions.data, kind = Sessions.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -706,7 +706,7 @@ object Build_Process {
     }
 
     def pull_pending(db: SQL.Database, build_id: Long, state: State): State.Pending =
-      Library.Update.data(state.pending,
+      Update.data(state.pending,
         read_updates(db, Pending.table, build_id, state.serial,
           { res =>
             val name = res.string(Pending.name)
@@ -720,8 +720,8 @@ object Build_Process {
       db: SQL.Database,
       pending: State.Pending,
       old_pending: State.Pending
-    ): Library.Update = {
-      val update = Library.Update.make(old_pending, pending, kind = Pending.table_index)
+    ): Update = {
+      val update = Update.make(old_pending, pending, kind = Pending.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -762,7 +762,7 @@ object Build_Process {
     }
 
     def pull_running(db: SQL.Database, build_id: Long, state: State): State.Running =
-      Library.Update.data(state.running,
+      Update.data(state.running,
         read_updates(db, Running.table, build_id, state.serial,
           { res =>
             val name = res.string(Running.name)
@@ -782,8 +782,8 @@ object Build_Process {
       db: SQL.Database,
       running: State.Running,
       old_running: State.Running
-    ): Library.Update = {
-      val update = Library.Update.make(old_running, running, kind = Running.table_index)
+    ): Update = {
+      val update = Update.make(old_running, running, kind = Running.table_index)
 
       if (update.deletes) {
         db.execute_statement(
@@ -837,7 +837,7 @@ object Build_Process {
     }
 
     def pull_results(db: SQL.Database, build_id: Long, state: State): State.Results =
-      Library.Update.data(state.results,
+      Update.data(state.results,
         read_updates(db, Results.table, build_id, state.serial,
           { res =>
             val name = res.string(Results.name)
@@ -876,8 +876,8 @@ object Build_Process {
       db: SQL.Database,
       results: State.Results,
       old_results: State.Results
-    ): Library.Update = {
-      val update = Library.Update.make(old_results, results, kind = Results.table_index)
+    ): Update = {
+      val update = Update.make(old_results, results, kind = Results.table_index)
 
       if (update.deletes) {
         db.execute_statement(

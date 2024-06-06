@@ -328,8 +328,8 @@ object Build_Manager {
       db: SQL.Database,
       old_pending: Build_Manager.State.Pending,
       pending: Build_Manager.State.Pending
-    ): Library.Update = {
-      val update = Library.Update.make(old_pending, pending)
+    ): Update = {
+      val update = Update.make(old_pending, pending)
       val delete = update.delete.map(old_pending(_).id.toString)
 
       if (update.deletes)
@@ -410,8 +410,8 @@ object Build_Manager {
       db: SQL.Database,
       old_running: Build_Manager.State.Running,
       running: Build_Manager.State.Running
-    ): Library.Update = {
-      val update = Library.Update.make(old_running, running)
+    ): Update = {
+      val update = Update.make(old_running, running)
       val delete = update.delete.map(old_running(_).id.toString)
 
       if (update.deletes)
