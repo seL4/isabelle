@@ -266,6 +266,8 @@ sig
   val norm_type: Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
+  val zproof_const_typargs: zproof_const -> ((indexname * sort) * ztyp) list
+  val zproof_const_args: zproof_const -> ((indexname * ztyp) * zterm) list
   type zbox = serial * (zterm * zproof)
   val zbox_ord: zbox ord
   type zboxes = zbox Ord_List.T
@@ -801,6 +803,14 @@ fun zproof_const (a, A) : zproof_const =
       ZVars.build (A |> fold_vars (fn v => fn tab =>
         if ZVars.defined tab v then tab else ZVars.update (v, ZVar v) tab));
   in ((a, A), (instT, inst)) end;
+
+fun zproof_const_typargs (((_, A), (instT, _)): zproof_const) =
+  ZTVars.build (A |> ZTVars.add_tvars) |> ZTVars.list_set
+  |> map (fn v => (v, the_default (ZTVar v) (ZTVars.lookup instT v)));
+
+fun zproof_const_args (((_, A), (_, inst)): zproof_const) =
+  ZVars.build (A |> ZVars.add_vars) |> ZVars.list_set
+  |> map (fn v => (v, the_default (ZVar v) (ZVars.lookup inst v)));
 
 fun make_const_proof (f, g) ((a, insts): zproof_const) =
   let
