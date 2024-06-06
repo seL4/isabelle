@@ -167,7 +167,7 @@ object Build_History {
 
     val isabelle_directory = directory(root)
     val (afp_directory, afp_build_args) =
-      if (afp) (Some(directory(root + Path.explode("AFP"))), List("-d", "~~/dirs/AFP/thys"))
+      if (afp) (Some(directory(root + Path.explode("dirs/AFP"))), List("-d", "~~/dirs/AFP/thys"))
       else (None, Nil)
 
 
