@@ -138,8 +138,8 @@ object Build_Manager {
       serial + 1
     }
 
-    type Pending = Library.Update.Data[Task]
-    type Running = Library.Update.Data[Job]
+    type Pending = Name.Data[Task]
+    type Running = Name.Data[Job]
     type Finished = Map[String, Result]
   }
 

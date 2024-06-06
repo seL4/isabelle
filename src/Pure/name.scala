@@ -9,4 +9,6 @@ package isabelle
 
 object Name {
   trait T { def name: String }
+
+  type Data[A] = Map[String, A]
 }

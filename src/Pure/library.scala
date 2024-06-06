@@ -288,13 +288,11 @@ object Library {
   /* data update */
 
   object Update {
-    type Data[A] = Map[String, A]
-
     sealed abstract class Op[A]
     case class Delete[A](name: String) extends Op[A]
     case class Insert[A](item: A) extends Op[A]
 
-    def data[A <: Name.T](old_data: Data[A], updates: List[Op[A]]): Data[A] =
+    def data[A <: Name.T](old_data: Name.Data[A], updates: List[Op[A]]): Name.Data[A] =
       updates.foldLeft(old_data) {
         case (map, Delete(name)) => map - name
         case (map, Insert(item)) => map + (item.name -> item)
@@ -302,7 +300,7 @@ object Library {
 
     val empty: Update = Update()
 
-    def make[A](a: Data[A], b: Data[A], kind: Int = 0): Update =
+    def make[A](a: Name.Data[A], b: Name.Data[A], kind: Int = 0): Update =
       if (a eq b) empty
       else {
         val delete = List.from(for ((x, y) <- a.iterator if !b.get(x).contains(y)) yield x)

@@ -97,7 +97,7 @@ object Build_Process {
     def store_heap(name: String): Boolean =
       isabelle.Sessions.is_pure(name) || iterator.exists(_.ancestors.contains(name))
 
-    def data: Library.Update.Data[Build_Job.Session_Context] =
+    def data: Name.Data[Build_Job.Session_Context] =
       Map.from(for ((_, (session, _)) <- graph.iterator) yield session.name -> session)
 
     def make(new_graph: Sessions.Graph): Sessions =
@@ -217,9 +217,9 @@ object Build_Process {
       serial + 1
     }
 
-    type Pending = Library.Update.Data[Task]
-    type Running = Library.Update.Data[Job]
-    type Results = Library.Update.Data[Result]
+    type Pending = Name.Data[Task]
+    type Running = Name.Data[Job]
+    type Results = Name.Data[Result]
   }
 
   sealed case class State(
