@@ -913,8 +913,8 @@ end;
 
 (* basic logic *)
 
-fun axiom_proof thy name A =
-  ZConstp (zproof_const (ZAxiom name, zterm_of thy A));
+fun zproof_axiom thy name A = zproof_const (ZAxiom name, zterm_of thy A);
+val axiom_proof = ZConstp ooo zproof_axiom;
 
 fun oracle_proof thy name A =
   ZConstp (zproof_const (ZOracle name, zterm_of thy A));
@@ -989,8 +989,7 @@ val thy0 =
 
 val [reflexive_axiom, symmetric_axiom, transitive_axiom, equal_intr_axiom, equal_elim_axiom,
   abstract_rule_axiom, combination_axiom] =
-    Theory.equality_axioms |> map (fn (b, t) =>
-      let val ZConstp c = axiom_proof thy0 (Sign.full_name thy0 b) t in c end);
+    Theory.equality_axioms |> map (fn (b, t) => zproof_axiom thy0 (Sign.full_name thy0 b) t);
 
 in
 
