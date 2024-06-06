@@ -231,12 +231,12 @@ sources = \
   src/Pure/Tools/spell_checker.scala \
   src/Pure/Tools/sync.scala \
   src/Pure/Tools/task_statistics.scala \
-  src/Pure/Tools/update.scala \
   src/Pure/Tools/update_cartouches.scala \
   src/Pure/Tools/update_comments.scala \
   src/Pure/Tools/update_header.scala \
   src/Pure/Tools/update_then.scala \
   src/Pure/Tools/update_theorems.scala \
+  src/Pure/Tools/update_tool.scala \
   src/Pure/library.scala \
   src/Pure/name.scala \
   src/Pure/pure_thy.scala \

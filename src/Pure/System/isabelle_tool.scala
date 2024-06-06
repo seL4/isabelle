@@ -154,12 +154,12 @@ class Tools extends Isabelle_Scala_Tools(
   Server.isabelle_tool,
   Sessions.isabelle_tool,
   Sync.isabelle_tool,
-  Update.isabelle_tool,
   Update_Cartouches.isabelle_tool,
   Update_Comments.isabelle_tool,
   Update_Header.isabelle_tool,
   Update_Then.isabelle_tool,
   Update_Theorems.isabelle_tool,
+  Update_Tool.isabelle_tool,
   isabelle.mirabelle.Mirabelle.isabelle_tool,
   isabelle.vscode.Language_Server.isabelle_tool,
   isabelle.vscode.VSCode_Main.isabelle_tool)

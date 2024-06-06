@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/update.scala
+/*  Title:      Pure/Tools/update_tool.scala
     Author:     Makarius
 
 Update theory sources based on PIDE markup.
@@ -7,7 +7,7 @@ Update theory sources based on PIDE markup.
 package isabelle
 
 
-object Update {
+object Update_Tool {
   val update_elements: Markup.Elements =
     Markup.Elements(Markup.UPDATE, Markup.LANGUAGE)
 
