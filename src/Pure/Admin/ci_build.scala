@@ -64,7 +64,13 @@ object CI_Build {
 
   /* ci build jobs */
 
-  sealed case class Job(name: String, description: String, profile: Profile, config: Build_Config) {
+  sealed case class Job(
+    name: String,
+    description: String,
+    profile: Profile,
+    config: Build_Config,
+    components: List[String] = Nil
+  ) {
     override def toString: String = name
   }
 

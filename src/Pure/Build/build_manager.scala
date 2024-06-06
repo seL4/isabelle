@@ -720,11 +720,12 @@ object Build_Manager {
   /* repository poller */
 
   object Poller {
-    case class State(ids: List[String], next: Future[List[String]])
+    case class Versions(isabelle: String, components: List[Component])
+    case class State(current: Versions, next: Future[Versions])
   }
 
   class Poller(
-    ci_jobs: List[String],
+    ci_jobs: List[isabelle.CI_Build.Job],
     store: Store,
     isabelle_repository: Mercurial.Repository,
     sync_dirs: List[Sync.Dir],
@@ -733,25 +734,35 @@ object Build_Manager {
 
     override def delay = options.seconds("build_manager_poll_delay")
 
-    private def ids: List[String] =
-      isabelle_repository.id("default") :: sync_dirs.map(_.hg.id("default"))
+    private def current: Poller.Versions =
+      Poller.Versions(isabelle_repository.id("default"), sync_dirs.map(dir =>
+        Component(dir.name, dir.hg.id("default"))))
 
-    private def poll: Future[List[String]] = Future.fork {
+    private def poll: Future[Poller.Versions] = Future.fork {
       Par_List.map((repo: Mercurial.Repository) => repo.pull(),
         isabelle_repository :: sync_dirs.map(_.hg))
 
-      ids
+      current
     }
 
-    val init: Poller.State = Poller.State(ids, poll)
+    val init: Poller.State = Poller.State(current, poll)
 
-    def ci_task(name: String): Task =
-      Task(CI_Build(name, sync_dirs.map(dir => Component(dir.name, "default"))),
-        priority = Priority.low, isabelle_rev = "default")
+    def ci_task(ci_job: isabelle.CI_Build.Job): Task = {
+      val ci_build = CI_Build(ci_job.name, ci_job.components.map(Component(_, "default")))
+      Task(ci_build, priority = Priority.low, isabelle_rev = "default")
+    }
 
-    private def add_task(): Unit = synchronized_database("add_task") {
-      for (name <- ci_jobs if !_state.pending.values.exists(_.kind == name)) {
-        _state = _state.add_pending(ci_task(name))
+    private def add_tasks(current: Poller.Versions, next: Poller.Versions): Unit = {
+      val isabelle_updated = current.isabelle != next.isabelle
+      val updated_components =
+        next.components.zip(current.components).filter(_ != _).map(_._1.name).toSet
+
+      synchronized_database("add_tasks") {
+        for {
+          ci_job <- ci_jobs
+          if isabelle_updated || ci_job.components.exists(updated_components.contains)
+          if !_state.pending.values.exists(_.kind == ci_job.name)
+        } _state = _state.add_pending(ci_task(ci_job))
       }
     }
 
@@ -761,13 +772,13 @@ object Build_Manager {
         state.next.join_result match {
           case Exn.Exn(exn) =>
             echo_error_message("Could not reach repository: " + exn.getMessage)
-            Poller.State(state.ids, poll)
-          case Exn.Res(ids1) =>
-            if (state.ids != ids1) {
-              echo("Found new revisions: " + ids1)
-              add_task()
+            Poller.State(state.current, poll)
+          case Exn.Res(next) =>
+            if (state.current != next) {
+              echo("Found new revisions: " + next)
+              add_tasks(state.current, next)
             }
-            Poller.State(ids1, poll)
+            Poller.State(next, poll)
         }
       }
   }
@@ -1153,7 +1164,8 @@ object Build_Manager {
   ): Unit = {
     val store = Store(options)
     val isabelle_repository = Mercurial.self_repository()
-    val ci_jobs = space_explode(',', options.string("build_manager_ci_jobs"))
+    val ci_jobs =
+      space_explode(',', options.string("build_manager_ci_jobs")).map(isabelle.CI_Build.the_job)
     val url = Url(options.string("build_manager_address"))
     val paths = Web_App.Paths(url, Path.current, true, Web_Server.Page.HOME)
 
