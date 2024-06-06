@@ -844,7 +844,15 @@ object Build_Manager {
       def link_build(name: String, number: Long): XML.Elem =
         frontend_link(paths.frontend_url(Page.BUILD, Markup.Name(name)), text("#" + number))
 
-      def render_home(state: State): XML.Body = {
+      private def render_page(name: String)(body: => XML.Body): XML.Body = {
+        def nav_link(path: Path, s: String): XML.Elem =
+          frontend_link(paths.frontend_url(Page.HOME), text("Home"))
+
+        More_HTML.header(List(nav(List(nav_link(Page.HOME, "home"))))) ::
+        main(chapter(name) :: body ::: Nil) :: Nil
+      }
+
+      def render_home(state: State): XML.Body = render_page("Dashboard") {
         def render_kind(kind: String): XML.Elem = {
           val running = state.get_running(kind).sortBy(_.number).reverse
           val finished = state.get_finished(kind).sortBy(_.number).reverse
@@ -871,7 +879,8 @@ object Build_Manager {
             par(
               link_build(result.name, result.number) ::
               text(" (" + result.status.toString + ") on " + result.date)) ::
-            render_if(result.status != Status.ok, render_previous(finished.tail))
+            render_if(result.status != Status.ok && result.kind != User_Build.name,
+              render_previous(finished.tail))
 
           fieldset(
             XML.elem("legend", List(link_kind(kind))) ::
@@ -880,59 +889,59 @@ object Build_Manager {
             else Nil))
         }
 
-        chapter("Dashboard") ::
-          text("Queue: " + state.pending.size + " tasks waiting") :::
-          section("Builds") :: text("Total: " + state.num_builds + " builds") :::
-          state.kinds.map(render_kind)
+        text("Queue: " + state.pending.size + " tasks waiting") :::
+        section("Builds") :: par(text("Total: " + state.num_builds + " builds")) ::
+        state.kinds.map(render_kind)
       }
 
-      def render_overview(kind: String, state: State): XML.Body = {
-        def render_job(job: Job): XML.Body =
-          List(par(link_build(job.name, job.number) :: text(" running since " + job.start_date)))
+      def render_overview(kind: String, state: State): XML.Body =
+        render_page("Overview: " + kind + " job ") {
+          def render_job(job: Job): XML.Body =
+            List(par(link_build(job.name, job.number) :: text(" running since " + job.start_date)))
 
-        def render_result(result: Result): XML.Body =
-          List(par(
-            link_build(result.name, result.number) ::
-            text(" (" + result.status + ") on " + result.date)))
+          def render_result(result: Result): XML.Body =
+            List(par(
+              link_build(result.name, result.number) ::
+              text(" (" + result.status + ") on " + result.date)))
 
-        chapter(kind) ::
           itemize(
             state.get_running(kind).sortBy(_.number).reverse.map(render_job) :::
             state.get_finished(kind).sortBy(_.number).reverse.map(render_result)) :: Nil
-      }
+        }
 
       private val ID = Params.key(Markup.ID)
 
-      def render_build(elem: T, state: State, public: Boolean): XML.Body = {
-        def render_cancel(id: UUID.T): XML.Body =
-          render_if(!public, List(
-            submit_form("", List(hidden(ID, id.toString),
-              api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
+      def render_build(elem: T, state: State, public: Boolean): XML.Body =
+        render_page("Build: " + elem.name) {
+          def render_cancel(id: UUID.T): XML.Body =
+            render_if(!public, List(
+              submit_form("", List(hidden(ID, id.toString),
+                api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
-        def render_rev(isabelle_rev: String, components: List[Component]): XML.Body =
-          for {
-            component <- Component("Isabelle", isabelle_rev) :: components
-            if component.rev.nonEmpty
-          } yield par(text(component.toString))
+          def render_rev(isabelle_rev: String, components: List[Component]): XML.Body =
+            for {
+              component <- Component("Isabelle", isabelle_rev) :: components
+              if component.rev.nonEmpty
+            } yield par(text(component.toString))
 
-        chapter("Build " + elem.name) :: (elem match {
-          case task: Task =>
-            par(text("Task from " + task.submit_date + ". ")) ::
-            render_rev(task.isabelle_rev, task.components) :::
-            render_cancel(task.id)
-          case job: Job =>
-            par(text("Start: " + job.start_date)) ::
-            par(
-              if (job.cancelled) text("Cancelling...")
-              else text("Running...") ::: render_cancel(job.id)) ::
-            render_rev(job.isabelle_rev, job.components) :::
-            source(cache.lookup(store, job)) :: Nil
-          case result: Result =>
-            par(text("Date: " + result.date)) ::
-            par(text("Status: " + result.status)) ::
-            source(cache.lookup(store, result)) :: Nil
-        })
-      }
+          elem match {
+            case task: Task =>
+              par(text("Task from " + task.submit_date + ". ")) ::
+              render_rev(task.isabelle_rev, task.components) :::
+              render_cancel(task.id)
+            case job: Job =>
+              par(text("Start: " + job.start_date)) ::
+              par(
+                if (job.cancelled) text("Cancelling...")
+                else text("Running...") ::: render_cancel(job.id)) ::
+              render_rev(job.isabelle_rev, job.components) :::
+              source(cache.lookup(store, job)) :: Nil
+            case result: Result =>
+              par(text("Date: " + result.date)) ::
+              par(text("Status: " + result.status)) ::
+              source(cache.lookup(store, result)) :: Nil
+          }
+        }
 
       def render_cancelled: XML.Body =
         List(chapter("Build Cancelled"), frontend_link(paths.frontend_url(Page.HOME), text("Home")))
