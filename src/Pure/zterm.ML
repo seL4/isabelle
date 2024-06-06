@@ -195,8 +195,8 @@ end;
 datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
-  | ZBox of serial
-  | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: int};
+  | ZBox of {theory_name: string, serial: serial}
+  | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: serial};
 
 type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
 
@@ -915,7 +915,9 @@ fun thm_proof thy thm_name =
 
 fun add_box_proof unconstrain thy hyps concl prf zboxes =
   let
-    val (zbox, prf') = box_proof unconstrain ZBox thy hyps concl prf;
+    val thy_name = Context.theory_long_name thy;
+    fun zproof_name i = ZBox {theory_name = thy_name, serial = i};
+    val (zbox, prf') = box_proof unconstrain zproof_name thy hyps concl prf;
     val zboxes' = add_zboxes zbox zboxes;
   in (prf', zboxes') end;
 
