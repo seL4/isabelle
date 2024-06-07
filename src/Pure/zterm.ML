@@ -604,11 +604,10 @@ fun zterm_cache thy =
           | [T] => ZConst1 (c, ztyp T)
           | Ts => ZConst (c, map ztyp Ts))
       | zterm (Abs (a, T, b)) = ZAbs (a, ztyp T, zterm b)
-      | zterm ((t as Const (c, _)) $ (u as Const ("Pure.type", _))) =
-          if String.isSuffix Logic.class_suffix c then
-            OFCLASS (ztyp (Logic.dest_type u), Logic.class_of_const c)
-          else ZApp (zterm t, zterm u)
-      | zterm (t $ u) = ZApp (zterm t, zterm u);
+      | zterm (tm as t $ u) =
+          (case try Logic.match_of_class tm of
+            SOME (T, c) => OFCLASS (ztyp T, c)
+          | NONE => ZApp (zterm t, zterm u));
   in {ztyp = ztyp, zterm = zterm} end;
 
 val zterm_of = #zterm o zterm_cache;

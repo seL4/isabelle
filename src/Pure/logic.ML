@@ -48,6 +48,7 @@ sig
   val const_of_class: class -> string
   val class_of_const: string -> class
   val mk_of_class: typ * class -> term
+  val match_of_class: term -> typ * string  (*exception Match*)
   val dest_of_class: term -> typ * class
   val mk_of_sort: typ * sort -> term list
   val name_classrel: string * string -> string
@@ -302,6 +303,9 @@ fun class_of_const c = unsuffix class_suffix c
 
 fun mk_of_class (ty, c) =
   Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
+
+fun match_of_class (Const (c, _) $ Const ("Pure.type", Type ("itself", [ty]))) =
+  if String.isSuffix class_suffix c then (ty, class_of_const c) else raise Match;
 
 fun dest_of_class (Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
   | dest_of_class t = raise TERM ("dest_of_class", [t]);
