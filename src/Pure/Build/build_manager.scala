@@ -643,13 +643,13 @@ object Build_Manager {
             store.sync_permissions(context.dir)
 
             val isabelle_rev =
-              sync(isabelle_repository, task.isabelle_rev, context.isabelle_dir)
+              sync(isabelle_repository, task.isabelle_rev, context.dir)
 
             val components =
               for (component <- task.components)
               yield sync_dirs.find(_.name == component.name) match {
                 case Some(sync_dir) =>
-                  val target = context.isabelle_dir + sync_dir.target
+                  val target = context.dir + sync_dir.target
                   component.copy(rev = sync(sync_dir.hg, component.rev, target))
                 case None =>
                   if (component.rev.isEmpty) component
@@ -1074,8 +1074,6 @@ object Build_Manager {
   }
 
   class Context private(store: Store, val dir: Path, val build_hosts: List[Build_Cluster.Host]) {
-    def isabelle_dir: Path = dir + Path.basic("isabelle")
-
     private val log_file = dir + Path.basic("log")
     val progress = new File_Progress(log_file, verbose = true)
     def log: String =
@@ -1101,12 +1099,12 @@ object Build_Manager {
     lazy val ssh = store.open_ssh()
 
     def process(build_config: Build_Config): Bash.Process = {
-      val isabelle = Other_Isabelle(isabelle_dir, store.identifier, ssh, progress)
+      val isabelle = Other_Isabelle(dir, store.identifier, ssh, progress)
 
       val init_components =
         for {
-          dir <- build_config.components
-          target = isabelle_dir + Sync.DIRS + Path.basic(dir.name)
+          component <- build_config.components
+          target = dir + Sync.DIRS + Path.basic(component.name)
           if Components.is_component_dir(target)
         } yield "init_component " + quote(target.absolute.implode)
 
@@ -1255,7 +1253,7 @@ object Build_Manager {
       using(store.open_ssh()) { ssh =>
         val rsync_context = Rsync.Context(ssh = ssh)
         progress.echo("Transferring repositories...")
-        Sync.sync(store.options, rsync_context, context.isabelle_dir, preserve_jars = true,
+        Sync.sync(store.options, rsync_context, context.dir, preserve_jars = true,
           dirs = Sync.afp_dirs(afp_root), rev = rev)
         store.sync_permissions(context.dir, ssh)
 
