@@ -612,7 +612,7 @@ object Build_Manager {
           Future.fork(
             process_future.join_result match {
               case Exn.Res(process) => process.run()
-              case Exn.Exn(_) => Process_Result(Process_Result.RC.interrupt)
+              case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
             })
         new State(
           process_futures + (context.name -> process_future),
@@ -627,7 +627,7 @@ object Build_Manager {
           yield name ->
             (future.join_result match {
               case Exn.Res(result) => result
-              case Exn.Exn(_) => Process_Result(Process_Result.RC.interrupt)
+              case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
             })
 
         val process_futures1 = process_futures.filterNot((name, _) => finished.contains(name))
@@ -734,7 +734,9 @@ object Build_Manager {
         val job = _state.running(name)
         val result = Result(job.kind, job.number, Status.from_result(process_result), Some(job.id))
 
-        echo("Finished job " + job.id + " with status code " + process_result.rc)
+        val interrupted_error = process_result.interrupted && process_result.err.nonEmpty
+        val err_msg = if_proper(interrupted_error, ": " + process_result.err)
+        echo("Finished job " + job.id + " with status code " + process_result.rc + err_msg)
 
         _state = _state
           .remove_running(job.name)
