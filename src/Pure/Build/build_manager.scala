@@ -567,42 +567,44 @@ object Build_Manager {
     }
 
     class State private(
-      processes: Map[String, Future[Bash.Process]],
-      results: Map[String, Future[Process_Result]]
+      process_futures: Map[String, Future[Bash.Process]],
+      result_futures: Map[String, Future[Process_Result]]
     ) {
-      def is_empty = processes.isEmpty && results.isEmpty
+      def is_empty = process_futures.isEmpty && result_futures.isEmpty
 
       def init(build_config: Build_Config, job: Job, context: Context): State = {
-        val process = Future.fork(context.process(build_config))
-        val result =
+        val process_future = Future.fork(context.process(build_config))
+        val result_future =
           Future.fork(
-            process.join_result match {
-              case Exn.Res(res) => context.run(res)
+            process_future.join_result match {
+              case Exn.Res(process) => context.run(process)
               case Exn.Exn(_) => Process_Result(Process_Result.RC.interrupt)
             })
-        new State(processes + (job.name -> process), results + (job.name -> result))
+        new State(
+          process_futures + (job.name -> process_future),
+          result_futures + (job.name -> result_future))
       }
 
-      def running: List[String] = processes.keys.toList
+      def running: List[String] = process_futures.keys.toList
 
       def update: (State, Map[String, Process_Result]) = {
         val finished =
-          for ((name, future) <- results if future.is_finished) yield name -> future.join
+          for ((name, future) <- result_futures if future.is_finished) yield name -> future.join
 
-        val processes1 = processes.filterNot((name, _) => finished.contains(name))
-        val results1 = results.filterNot((name, _) => finished.contains(name))
+        val process_futures1 = process_futures.filterNot((name, _) => finished.contains(name))
+        val result_futures1 = result_futures.filterNot((name, _) => finished.contains(name))
 
-        (new State(processes1, results1), finished)
+        (new State(process_futures1, result_futures1), finished)
       }
 
       def cancel(cancelled: List[String]): State = {
         for (name <- cancelled) {
-          val process = processes(name)
-          if (process.is_finished) process.join.interrupt()
-          else process.cancel()
+          val process_future = process_futures(name)
+          if (process_future.is_finished) process_future.join.interrupt()
+          else process_future.cancel()
         }
 
-        new State(processes.filterNot((name, _) => cancelled.contains(name)), results)
+        new State(process_futures.filterNot((name, _) => cancelled.contains(name)), result_futures)
       }
     }
   }
