@@ -176,8 +176,8 @@ sig
   val plain_prop_of: thm -> term
   val get_zproof_serials: theory -> serial list
   val get_zproof: theory -> serial ->
-    {name: Thm_Name.T * Position.T, thm: thm, zboxes: ZTerm.zboxes, zproof: zproof} option
-  val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
+    {name: Thm_Name.P, thm: thm, zboxes: ZTerm.zboxes, zproof: zproof} option
+  val store_zproof: Thm_Name.P -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -951,7 +951,7 @@ fun merge_classes
 structure Data = Theory_Data
 (
   type T =
-    {name: Thm_Name.T * Position.T, thm: thm} Inttab.table *  (*stored zproof thms*)
+    {name: Thm_Name.P, thm: thm} Inttab.table *  (*stored zproof thms*)
     unit Name_Space.table *  (*oracles: authentic derivation names*)
     classes;  (*type classes within the logic*)
 

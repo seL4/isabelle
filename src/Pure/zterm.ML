@@ -195,7 +195,7 @@ end;
 datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
-  | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: serial};
+  | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial};
 
 type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
 
@@ -274,7 +274,7 @@ sig
   val unions_zboxes: zboxes list -> zboxes
   val add_box_proof: {unconstrain: bool} -> theory ->
     term list -> term -> zproof -> zboxes -> zproof * zboxes
-  val thm_proof: theory -> Thm_Name.T * Position.T -> term list -> term -> zproof -> zbox * zproof
+  val thm_proof: theory -> Thm_Name.P -> term list -> term -> zproof -> zbox * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
