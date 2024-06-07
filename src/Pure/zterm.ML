@@ -24,7 +24,7 @@ datatype zterm =
   | ZConst of string * ztyp list   (*polymorphic constant: >= 2 type arguments*)
   | ZAbs of string * ztyp * zterm
   | ZApp of zterm * zterm
-  | ZClass of ztyp * class         (*OFCLASS proposition*)
+  | OFCLASS of ztyp * class
 
 structure ZTerm =
 struct
@@ -48,7 +48,7 @@ fun fold_types f (ZVar (_, T)) = f T
   | fold_types f (ZConst (_, As)) = fold f As
   | fold_types f (ZAbs (_, T, b)) = f T #> fold_types f b
   | fold_types f (ZApp (t, u)) = fold_types f t #> fold_types f u
-  | fold_types f (ZClass (T, _)) = f T
+  | fold_types f (OFCLASS (T, _)) = f T
   | fold_types _ _ = I;
 
 
@@ -98,7 +98,7 @@ fun cons_nr (ZVar _) = 0
   | cons_nr (ZConst _) = 4
   | cons_nr (ZAbs _) = 5
   | cons_nr (ZApp _) = 6
-  | cons_nr (ZClass _) = 7;
+  | cons_nr (OFCLASS _) = 7;
 
 fun struct_ord tu =
   if pointer_eq tu then EQUAL
@@ -121,7 +121,7 @@ fun atoms_ord tu =
     | (ZConst (a, _), ZConst (b, _)) => fast_string_ord (a, b)
     | (ZVar (xi, _), ZVar (yj, _)) => Term_Ord.fast_indexname_ord (xi, yj)
     | (ZBound i, ZBound j) => int_ord (i, j)
-    | (ZClass (_, a), ZClass (_, b)) => fast_string_ord (a, b)
+    | (OFCLASS (_, a), OFCLASS (_, b)) => fast_string_ord (a, b)
     | _ => EQUAL);
 
 fun types_ord tu =
@@ -135,7 +135,7 @@ fun types_ord tu =
     | (ZConst1 (_, T), ZConst1 (_, U)) => ztyp_ord (T, U)
     | (ZConst (_, Ts), ZConst (_, Us)) => dict_ord ztyp_ord (Ts, Us)
     | (ZVar (_, T), ZVar (_, U)) => ztyp_ord (T, U)
-    | (ZClass (T, _), ZClass (U, _)) => ztyp_ord (T, U)
+    | (OFCLASS (T, _), OFCLASS (U, _)) => ztyp_ord (T, U)
     | _ => EQUAL);
 
 in
@@ -208,7 +208,7 @@ datatype zproof =
   | ZAppt of zproof * zterm
   | ZAppp of zproof * zproof
   | ZHyp of zterm
-  | ZClassp of ztyp * class;       (*OFCLASS proof from sorts algebra*)
+  | OFCLASSp of ztyp * class;      (*OFCLASS proof from sorts algebra*)
 
 
 
@@ -465,7 +465,7 @@ fun subst_term_same typ var =
       | term (ZApp (t, u)) =
           (ZApp (term t, Same.commit term u)
             handle Same.SAME => ZApp (t, term u))
-      | term (ZClass (T, c)) = ZClass (typ T, c);
+      | term (OFCLASS (T, c)) = OFCLASS (typ T, c);
   in term end;
 
 fun instantiate_type_same instT =
@@ -489,7 +489,7 @@ fun fold_proof {hyps} typ term =
       | proof (ZAppt (p, t)) = proof p #> term t
       | proof (ZAppp (p, q)) = proof p #> proof q
       | proof (ZHyp h) = hyps ? term h
-      | proof (ZClassp (T, _)) = hyps ? typ T;
+      | proof (OFCLASSp (T, _)) = hyps ? typ T;
   in proof end;
 
 fun fold_proof_types hyps typ =
@@ -555,7 +555,7 @@ fun map_proof_same {hyps} typ term =
           (ZAppp (proof p, Same.commit proof q)
             handle Same.SAME => ZAppp (p, proof q))
       | proof (ZHyp h) = if hyps then ZHyp (term h) else raise Same.SAME
-      | proof (ZClassp (T, c)) = if hyps then ZClassp (typ T, c) else raise Same.SAME;
+      | proof (OFCLASSp (T, c)) = if hyps then OFCLASSp (typ T, c) else raise Same.SAME;
   in proof end;
 
 fun map_proof hyps typ term = Same.commit (map_proof_same hyps typ term);
@@ -566,7 +566,7 @@ fun map_proof_types hyps typ = map_proof hyps typ (subst_term_same typ Same.same
 
 fun map_class_proof class =
   let
-    fun proof (ZClassp C) = class C
+    fun proof (OFCLASSp C) = class C
       | proof (ZAbst (a, T, p)) = ZAbst (a, T, proof p)
       | proof (ZAbsp (a, t, p)) = ZAbsp (a, t, proof p)
       | proof (ZAppt (p, t)) = ZAppt (proof p, t)
@@ -606,7 +606,7 @@ fun zterm_cache thy =
       | zterm (Abs (a, T, b)) = ZAbs (a, ztyp T, zterm b)
       | zterm ((t as Const (c, _)) $ (u as Const ("Pure.type", _))) =
           if String.isSuffix Logic.class_suffix c then
-            ZClass (ztyp (Logic.dest_type u), Logic.class_of_const c)
+            OFCLASS (ztyp (Logic.dest_type u), Logic.class_of_const c)
           else ZApp (zterm t, zterm u)
       | zterm (t $ u) = ZApp (zterm t, zterm u);
   in {ztyp = ztyp, zterm = zterm} end;
@@ -639,7 +639,7 @@ fun term_of thy =
       | term (ZConst (c, Ts)) = const (c, map typ_of Ts)
       | term (ZAbs (a, T, b)) = Abs (a, typ_of T, term b)
       | term (ZApp (t, u)) = term t $ term u
-      | term (ZClass (T, c)) = Logic.mk_of_class (typ_of T, c);
+      | term (OFCLASS (T, c)) = Logic.mk_of_class (typ_of T, c);
   in term end;
 
 
@@ -843,8 +843,8 @@ fun close_proof prems prf =
           (case get_bound lev t of
             SOME p => p
           | NONE => raise ZTERM ("Loose bound in proof term", [], [t], [prf]))
-      | proof lev (ZClassp C) =
-          (case get_bound lev (ZClass C) of
+      | proof lev (OFCLASSp C) =
+          (case get_bound lev (OFCLASS C) of
             SOME p => p
           | NONE => raise Same.SAME)
       | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
@@ -903,7 +903,7 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val const = constrain_proof (ZConstp (zproof_const (proof_name, prop')));
     val args1 =
       outer_constraints |> map (fn (T, c) =>
-        ZClassp (ztyp_of (if unconstrain then unconstrain_typ T else T), c));
+        OFCLASSp (ztyp_of (if unconstrain then unconstrain_typ T else T), c));
     val args2 = if unconstrain then map ZHyp hyps' else map (ZHyp o zterm) hyps;
   in (zbox, ZAppps (ZAppps (const, args1), args2)) end;
 
@@ -980,7 +980,7 @@ fun forall_intr_proof thy T (a, x) prf =
 
 fun forall_elim_proof thy t p = ZAppt (p, zterm_of thy t);
 
-fun of_class_proof (T, c) = ZClassp (ztyp_of T, c);
+fun of_class_proof (T, c) = OFCLASSp (ztyp_of T, c);
 
 
 (* equality *)
@@ -1192,7 +1192,7 @@ fun lift_proof thy gprop inc prems prf =
             | incr lev (ZApp (t, u)) =
                 (ZApp (incr lev t, Same.commit (incr lev) u)
                   handle Same.SAME => ZApp (t, incr lev u))
-            | incr _ (ZClass (T, c)) = ZClass (typ T, c);
+            | incr _ (OFCLASS (T, c)) = OFCLASS (typ T, c);
         in incr lev end;
 
     fun proof Ts lev (ZAbst (a, T, p)) =
@@ -1209,7 +1209,7 @@ fun lift_proof thy gprop inc prems prf =
             handle Same.SAME => ZAppp (p, proof Ts lev q))
       | proof Ts lev (ZConstp (a, insts)) =
           ZConstp (a, map_insts_same typ (term Ts lev) insts)
-      | proof _ _ (ZClassp (T, c)) = ZClassp (typ T, c)
+      | proof _ _ (OFCLASSp (T, c)) = OFCLASSp (typ T, c)
       | proof _ _ _ = raise Same.SAME;
 
     val k = length prems;
