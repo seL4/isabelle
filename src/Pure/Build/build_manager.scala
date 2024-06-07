@@ -953,7 +953,9 @@ object Build_Manager {
 
           def render_job(job: Job): XML.Body =
             par(link_build(job.name, job.number) :: text(": running since " + job.start_date)) ::
-            render_if(finished.headOption.exists(_.status != Status.ok), render_previous(finished))
+            render_if(
+              finished.headOption.exists(_.status != Status.ok) && job.kind != User_Build.name,
+              render_previous(finished))
 
           def render_result(result: Result): XML.Body =
             par(
