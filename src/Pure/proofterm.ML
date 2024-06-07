@@ -2164,8 +2164,8 @@ fun export_proof thy i prop prf0 =
         val encode_proof = encode_standard_proof consts;
       in pair (list (pair string sort)) (pair encode_vars (pair encode_term encode_proof)) end;
   in
-    Export.export_params
-     {theory = thy,
+    Export.export_params (Context.Theory thy)
+     {theory_name = Context.theory_long_name thy,
       binding = Path.binding0 (Path.make ["proofs", string_of_int i]),
       executable = false,
       compress = true,

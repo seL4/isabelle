@@ -349,7 +349,8 @@ fun compile_generated_files ctxt args external export export_prefix source =
                 (case try Bytes.read (dir + path) of
                   SOME bytes => Bytes.contents_blob bytes
                 | NONE => error ("Missing result file " ^ Path.print path ^ Position.here pos));
-              val _ = Export.report_export thy export_prefix;
+              val _ =
+                Export.report (Context.Theory thy) (Context.theory_long_name thy) export_prefix;
               val binding' =
                 Path.map_binding (Path.append (Path.path_of_binding export_prefix)) binding;
             in
