@@ -11,7 +11,7 @@ sig
   val add_realizes_eqns : string list -> theory -> theory
   val add_typeof_eqns_i : ((term * term) list * (term * term)) list -> theory -> theory
   val add_typeof_eqns : string list -> theory -> theory
-  val add_realizers_i : (string * (string list * term * Proofterm.proof)) list
+  val add_realizers_i : (Thm_Name.T * (string list * term * Proofterm.proof)) list
     -> theory -> theory
   val add_realizers : (thm * (string list * string * string)) list
     -> theory -> theory
@@ -118,8 +118,11 @@ fun condrew thy rules procs =
 
 val change_types = Proofterm.change_types o SOME;
 
-fun extr_name s vs = Long_Name.append "extr" (space_implode "_" (s :: vs));
-fun corr_name s vs = extr_name s vs ^ "_correctness";
+fun extr_name ((name, i): Thm_Name.T) vs =
+  (Long_Name.append "extr" (space_implode "_" (name :: vs)), i);
+
+fun corr_name thm_name vs =
+  extr_name thm_name vs |>> suffix "_correctness";
 
 fun msg d s = writeln (Symbol.spaces d ^ s);
 
@@ -202,16 +205,16 @@ structure ExtractionData = Theory_Data
      typeof_eqns : rules,
      types : (string * ((term -> term option) list *
        (term -> typ -> term -> typ -> term) option)) list,
-     realizers : (string list * (term * proof)) list Symtab.table,
+     realizers : (string list * (term * proof)) list Thm_Name.Table.table,
      defs : thm list,
-     expand : string list,
+     expand : Thm_Name.T list,
      prep : (theory -> proof -> proof) option}
 
   val empty =
     {realizes_eqns = empty_rules,
      typeof_eqns = empty_rules,
      types = [],
-     realizers = Symtab.empty,
+     realizers = Thm_Name.Table.empty,
      defs = [],
      expand = [],
      prep = NONE};
@@ -224,7 +227,7 @@ structure ExtractionData = Theory_Data
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = AList.merge (op =) (K true) (types1, types2),
-     realizers = Symtab.merge_list (eq_set (op =) o apply2 #1) (realizers1, realizers2),
+     realizers = Thm_Name.Table.merge_list (eq_set (op =) o apply2 #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
      prep = if is_some prep1 then prep1 else prep2};
@@ -319,7 +322,7 @@ fun gen_add_realizers prep_rlz rs thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
-       realizers = fold (Symtab.cons_list o prep_rlz thy) rs realizers,
+       realizers = fold (Thm_Name.Table.cons_list o prep_rlz thy) rs realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -335,8 +338,8 @@ fun prep_realizer thy =
     val rd = Proof_Syntax.read_proof thy' true false;
   in fn (thm, (vs, s1, s2)) =>
     let
-      val name = Thm.derivation_name thm;
-      val _ = name <> "" orelse error "add_realizers: unnamed theorem";
+      val thm_name = Thm.derivation_name thm;
+      val _ = if Thm_Name.is_empty thm_name then error "add_realizers: unnamed theorem" else ();
       val prop = Thm.unconstrainT thm |> Thm.prop_of |>
         Pattern.rewrite_term thy' (map (Logic.dest_equals o Thm.prop_of) defs) [];
       val vars = vars_of prop;
@@ -357,7 +360,7 @@ fun prep_realizer thy =
       val r = Logic.list_implies (shyps,
         fold_rev Logic.all (map (get_var_type r') vars) r');
       val prf = Proofterm.reconstruct_proof thy' r (rd s2);
-    in (name, (vs, (t, prf))) end
+    in (thm_name, (vs, (t, prf))) end
   end;
 
 val add_realizers_i = gen_add_realizers
@@ -411,8 +414,8 @@ fun add_expand_thm is_def thm thy =
     val {realizes_eqns, typeof_eqns, types, realizers,
       defs, expand, prep} = ExtractionData.get thy;
 
-    val name = Thm.derivation_name thm;
-    val _ = name <> "" orelse error "add_expand_thm: unnamed theorem";
+    val thm_name = Thm.derivation_name thm;
+    val _ = if Thm_Name.is_empty thm_name then error "add_expand_thm: unnamed theorem" else ();
   in
     thy |> ExtractionData.put
       (if is_def then
@@ -425,7 +428,7 @@ fun add_expand_thm is_def thm thy =
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
          realizers = realizers, defs = defs,
-         expand = insert (op =) name expand, prep = prep})
+         expand = insert (op =) thm_name expand, prep = prep})
   end;
 
 fun extraction_expand is_def =
@@ -508,8 +511,9 @@ fun extract thm_vss thy =
     val procs = maps (rev o fst o snd) types;
     val rtypes = map fst types;
     val typroc = typeof_proc [];
-    fun expand_name ({name, ...}: Proofterm.thm_header) =
-      if name = "" orelse member (op =) expand name then SOME "" else NONE;
+    fun expand_name ({thm_name, ...}: Proofterm.thm_header) =
+      if Thm_Name.is_empty thm_name orelse member (op =) expand thm_name
+      then SOME Thm_Name.empty else NONE;
     val prep = the_default (K I) prep thy' o
       Proof_Rewrite_Rules.elim_defs thy' false (map (Thm.transfer thy) defs) o
       Proofterm.expand_proof thy' expand_name;
@@ -539,7 +543,8 @@ fun extract thm_vss thy =
         (T, Sign.defaultS thy)) tye;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
-    fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
+    fun filter_thm_name (a: Thm_Name.T) =
+      map_filter (fn (b, x) => if a = b then SOME x else NONE);
 
     fun app_rlz_rews Ts vs t =
       strip_abs (length Ts)
@@ -618,7 +623,7 @@ fun extract thm_vss thy =
 
       | corr d vs ts Ts hs cs _ (prf0 as PThm (thm_header as {types = SOME Ts', ...}, thm_body)) _ defs =
           let
-            val {pos, theory_name, name, prop, ...} = thm_header;
+            val {pos, theory_name, thm_name, prop, ...} = thm_header;
             val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
@@ -629,14 +634,16 @@ fun extract thm_vss thy =
               else snd (extr d vs ts Ts hs prf0 defs)
           in
             if T = nullT andalso realizes_null vs' prop aconv prop then (prf0, defs)
-            else (case Symtab.lookup realizers name of
-              NONE => (case find vs' (find' name defs') of
+            else (case Thm_Name.Table.lookup realizers thm_name of
+              NONE => (case find vs' (filter_thm_name thm_name defs') of
                 NONE =>
                   let
                     val _ = T = nullT orelse error "corr: internal error";
-                    val _ = msg d ("Building correctness proof for " ^ quote name ^
-                      (if null vs' then ""
-                       else " (relevant variables: " ^ commas_quote vs' ^ ")"));
+                    val _ =
+                      msg d ("Building correctness proof for " ^
+                        quote (Thm_Name.short thm_name) ^
+                        (if null vs' then ""
+                         else " (relevant variables: " ^ commas_quote vs' ^ ")"));
                     val prf' = prep (Proofterm.reconstruct_proof thy' prop prf);
                     val (corr_prf0, defs'') = corr (d + 1) vs' [] [] []
                       (rev shyps) NONE prf' prf' defs';
@@ -644,7 +651,7 @@ fun extract thm_vss thy =
                     val corr_prop = Proofterm.prop_of corr_prf;
                     val corr_header =
                       Proofterm.thm_header (serial ()) pos theory_name
-                        (corr_name name vs') corr_prop
+                        (corr_name thm_name vs') corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_prf' =
                       Proofterm.proof_combP
@@ -656,15 +663,16 @@ fun extract thm_vss thy =
                       mkabsp shyps
                   in
                     (Proofterm.proof_combP (prf_subst_TVars tye' corr_prf', sprfs),
-                      (name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'')
+                      (thm_name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'')
                   end
               | SOME (_, (_, prf')) =>
                   (Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs), defs'))
             | SOME rs => (case find vs' rs of
                 SOME (_, prf') => (Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs), defs')
               | NONE => error ("corr: no realizer for instance of theorem " ^
-                  quote name ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
-                    (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))))
+                  quote (Thm_Name.short thm_name) ^ ":\n" ^
+                    Syntax.string_of_term_global thy'
+                      (Envir.beta_norm (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))))
           end
 
       | corr d vs ts Ts hs cs _ (prf0 as PAxm (s, prop, SOME Ts')) _ defs =
@@ -674,7 +682,7 @@ fun extract thm_vss thy =
           in
             if etype_of thy' vs' [] prop = nullT andalso
               realizes_null vs' prop aconv prop then (prf0, defs)
-            else case find vs' (Symtab.lookup_list realizers s) of
+            else case find vs' (Thm_Name.Table.lookup_list realizers (s, 0)) of
               SOME (_, prf) => (Proofterm.proof_combP (prf_subst_TVars tye' prf, mk_sprfs cs tye),
                 defs)
             | NONE => error ("corr: no realizer for instance of axiom " ^
@@ -719,19 +727,20 @@ fun extract thm_vss thy =
 
       | extr d vs ts Ts hs (prf0 as PThm (thm_header as {types = SOME Ts', ...}, thm_body)) defs =
           let
-            val {pos, theory_name, name = s, prop, ...} = thm_header;
+            val {pos, theory_name, thm_name, prop, ...} = thm_header;
             val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
           in
-            case Symtab.lookup realizers s of
-              NONE => (case find vs' (find' s defs) of
+            case Thm_Name.Table.lookup realizers thm_name of
+              NONE => (case find vs' (filter_thm_name thm_name defs) of
                 NONE =>
                   let
-                    val _ = msg d ("Extracting " ^ quote s ^
-                      (if null vs' then ""
-                       else " (relevant variables: " ^ commas_quote vs' ^ ")"));
+                    val _ =
+                      msg d ("Extracting " ^ quote (Thm_Name.short thm_name) ^
+                        (if null vs' then ""
+                         else " (relevant variables: " ^ commas_quote vs' ^ ")"));
                     val prf' = prep (Proofterm.reconstruct_proof thy' prop prf);
                     val (t, defs') = extr (d + 1) vs' [] [] [] prf' defs;
                     val (corr_prf, defs'') = corr (d + 1) vs' [] [] []
@@ -743,7 +752,7 @@ fun extract thm_vss thy =
                     val args' = filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs args' nt;
                     val T = fastype_of t';
-                    val cname = extr_name s vs';
+                    val cname = Thm_Name.short (extr_name thm_name vs');
                     val c = Const (cname, T);
                     val u = mkabs args (list_comb (c, args'));
                     val eqn = Logic.mk_equals (c, t');
@@ -764,7 +773,7 @@ fun extract thm_vss thy =
                     val corr_prop = Proofterm.prop_of corr_prf';
                     val corr_header =
                       Proofterm.thm_header (serial ()) pos theory_name
-                        (corr_name s vs') corr_prop
+                        (corr_name thm_name vs') corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
@@ -775,13 +784,14 @@ fun extract thm_vss thy =
                       mkabsp shyps
                   in
                     (subst_TVars tye' u,
-                      (s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'')
+                      (thm_name, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'')
                   end
               | SOME ((_, u), _) => (subst_TVars tye' u, defs))
             | SOME rs => (case find vs' rs of
                 SOME (t, _) => (subst_TVars tye' t, defs)
               | NONE => error ("extr: no realizer for instance of theorem " ^
-                  quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
+                  quote (Thm_Name.short thm_name) ^ ":\n" ^
+                    Syntax.string_of_term_global thy' (Envir.beta_norm
                     (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts))))))
           end
 
@@ -790,7 +800,7 @@ fun extract thm_vss thy =
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
           in
-            case find vs' (Symtab.lookup_list realizers s) of
+            case find vs' (Thm_Name.Table.lookup_list realizers (s, 0)) of
               SOME (t, _) => (subst_TVars tye' t, defs)
             | NONE => error ("extr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
@@ -805,26 +815,27 @@ fun extract thm_vss thy =
         val prop = Thm.prop_of thm;
         val prf = Thm.proof_of thm;
         val name = Thm.derivation_name thm;
-        val _ = name <> "" orelse error "extraction: unnamed theorem";
+        val _ = if Thm_Name.is_empty name then error "extraction: unnamed theorem" else ();
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
-          quote name ^ " has no computational content")
+          quote (Thm_Name.short name) ^ " has no computational content")
       in Proofterm.reconstruct_proof thy' prop prf end;
 
     val defs =
       fold (fn (thm, vs) => snd o (extr 0 vs [] [] [] o prep_thm vs) thm)
         thm_vss [];
 
-    fun add_def (s, (vs, ((t, u)))) thy =
+    fun add_def (name, (vs, ((t, u)))) thy =
       let
         val ft = Type.legacy_freeze t;
         val fu = Type.legacy_freeze u;
         val head = head_of (strip_abs_body fu);
-        val b = Binding.qualified_name (extr_name s vs);
+        val b = Binding.qualified_name (Thm_Name.short (extr_name name vs));
       in
         thy
         |> Sign.add_consts [(b, fastype_of ft, NoSyn)]
         |> Global_Theory.add_def
-           (Binding.qualified_name (Thm.def_name (extr_name s vs)), Logic.mk_equals (head, ft))
+           (Binding.qualified_name (Thm.def_name (Thm_Name.short (extr_name name vs))),
+             Logic.mk_equals (head, ft))
         |-> (fn def_thm =>
            Spec_Rules.add_global b Spec_Rules.equational
              [Thm.term_of (Thm.lhs_of def_thm)] [def_thm]
@@ -836,7 +847,7 @@ fun extract thm_vss thy =
         val corr_prop = Proofterm.prop_of prf;
       in
         thy
-        |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),
+        |> Global_Theory.store_thm (Binding.qualified_name (Thm_Name.short (corr_name s vs)),
             Thm.varifyT_global (funpow (length (vars_of corr_prop))
               (Thm.forall_elim_var 0) (Thm.forall_intr_frees
                 (Proof_Checker.thm_of_proof thy
@@ -845,7 +856,7 @@ fun extract thm_vss thy =
       end;
 
     fun add_def_and_corr (s, (vs, ((t, u), (prf, _)))) thy =
-      if is_none (Sign.const_type thy (extr_name s vs))
+      if is_none (Sign.const_type thy (Thm_Name.short (extr_name s vs)))
       then
         thy
         |> not (t = nullt) ? add_def (s, (vs, ((t, u))))

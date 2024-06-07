@@ -29,7 +29,7 @@ sig
   val official2: name_flags
   val unofficial1: name_flags
   val unofficial2: name_flags
-  val name_thm: name_flags -> string * Position.T -> thm -> thm
+  val name_thm: name_flags -> Thm_Name.P -> thm -> thm
   val name_thms: name_flags -> string * Position.T -> thm list -> thm list
   val name_facts: name_flags -> string * Position.T -> (thm list * 'a) list -> (thm list * 'a) list
   val check_thms_lazy: thm list lazy -> thm list lazy
@@ -251,21 +251,18 @@ fun name_thm name_flags (name, pos) =
       No_Name_Flags => thm
     | Name_Flags {post, official} =>
         thm
-        |> (official andalso (post orelse Thm.raw_derivation_name thm = "")) ?
+        |> (official andalso (post orelse Thm_Name.is_empty (Thm.raw_derivation_name thm))) ?
             Thm.name_derivation (name, pos)
-        |> (name <> "" andalso (post orelse not (Thm.has_name_hint thm))) ?
-            Thm.put_name_hint name));
+        |> (not (Thm_Name.is_empty name) andalso (post orelse not (Thm.has_name_hint thm))) ?
+            Thm.put_name_hint (Thm_Name.short name)));
 
 end;
 
-fun name_thm_short name_flags name =
-  name_thm name_flags (Thm_Name.short name);
-
 fun name_thms name_flags name_pos thms =
-  Thm_Name.list name_pos thms |> map (uncurry (name_thm_short name_flags));
+  Thm_Name.list name_pos thms |> map (uncurry (name_thm name_flags));
 
 fun name_facts name_flags name_pos facts =
-  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm_short name_flags));
+  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm name_flags));
 
 
 (* store theorems and proofs *)
@@ -319,7 +316,7 @@ fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
         in ((thms', atts), thy2) end);
 
     val unnamed = #1 name = "";
-    val name_thm1 = if unnamed then #2 else uncurry (name_thm_short name_flags1);
+    val name_thm1 = if unnamed then #2 else uncurry (name_thm name_flags1);
 
     val app_facts =
       fold_maps (fn (named_thms, atts) => fn thy =>

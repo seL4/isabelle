@@ -85,8 +85,9 @@ fun thm_of_proof thy =
               (Thm.forall_intr_vars (Thm.forall_intr_frees thm'))
           end;
 
-        fun thm_of _ _ (PThm ({name, prop = prop', types = SOME Ts, ...}, _)) =
+        fun thm_of _ _ (PThm ({thm_name, prop = prop', types = SOME Ts, ...}, _)) =
               let
+                val name = Thm_Name.short thm_name;
                 val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup name));
                 val prop = Thm.prop_of thm;
                 val _ =

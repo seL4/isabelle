@@ -23,6 +23,8 @@ object Thm_Name {
 
   private val Thm_Name_Regex = """^(.)+\((\d+)\)$""".r
 
+  val empty: Thm_Name = Thm_Name("", 0)
+
   def parse(s: String): Thm_Name =
     s match {
       case Thm_Name_Regex(name, Value.Nat(index)) => Thm_Name(name, index)
@@ -31,6 +33,8 @@ object Thm_Name {
 }
 
 sealed case class Thm_Name(name: String, index: Int) {
+  def is_empty: Boolean = name.isEmpty
+
   def print: String =
     if (name == "" || index == 0) name
     else name + "(" + index + ")"

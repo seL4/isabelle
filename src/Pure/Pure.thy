@@ -1386,7 +1386,7 @@ val _ =
                 NONE => (Theory.parents_of thy, [thy])
               | SOME (xs, NONE) => (map check xs, [thy])
               | SOME (xs, SOME ys) => (map check xs, map check ys))
-            |> map pretty_thm |> Pretty.writeln_chunks
+            |> map (apfst Thm_Name.short #> pretty_thm) |> Pretty.writeln_chunks
           end)));
 
 in end\<close>

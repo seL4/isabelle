@@ -283,11 +283,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
     fun expand_name thm_id (header: Proofterm.thm_header) =
-      if #serial header = #serial thm_id then ""
-      else
-        (case lookup_thm_id (Proofterm.thm_header_id header) of
-          NONE => ""
-        | SOME thm_name => Thm_Name.print thm_name);
+      if #serial header = #serial thm_id then Thm_Name.empty
+      else the_default Thm_Name.empty (lookup_thm_id (Proofterm.thm_header_id header));
 
     fun entity_markup_thm (serial, (name, i)) =
       let

@@ -13,11 +13,13 @@ end;
 structure InductiveRealizer : INDUCTIVE_REALIZER =
 struct
 
-fun name_of_thm thm =
-  (case Proofterm.fold_proof_atoms false (fn PThm ({name, ...}, _) => cons name | _ => I)
+fun thm_name_of thm =
+  (case Proofterm.fold_proof_atoms false (fn PThm ({thm_name, ...}, _) => cons thm_name | _ => I)
       [Thm.proof_of thm] [] of
-    [name] => name
-  | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
+    [thm_name] => thm_name
+  | _ => raise THM ("thm_name_of: bad proof of theorem", 0, [thm]));
+
+val short_name_of = Thm_Name.short o thm_name_of;
 
 fun prf_of thy =
   Thm.transfer thy #>
@@ -61,7 +63,7 @@ fun dt_of_intrs thy vs nparms intrs =
       (Logic.strip_imp_concl (Thm.prop_of (hd intrs))));
     val params = map dest_Var (take nparms ts);
     val tname = Binding.name (space_implode "_" (Long_Name.base_name s ^ "T" :: vs));
-    fun constr_of_intr intr = (Binding.name (Long_Name.base_name (name_of_thm intr)),
+    fun constr_of_intr intr = (Binding.name (Long_Name.base_name (short_name_of intr)),
       map (Logic.unvarifyT_global o snd)
         (subtract (op =) params (rev (Term.add_vars (Thm.prop_of intr) []))) @
       filter_out (equal Extraction.nullT)
@@ -193,7 +195,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
             then fold_rev (absfree o dest_Free) xs HOLogic.unit
             else fold_rev (absfree o dest_Free) xs
               (list_comb
-                (Free ("r" ^ Long_Name.base_name (name_of_thm intr),
+                (Free ("r" ^ Long_Name.base_name (short_name_of intr),
                   map fastype_of (rev args) ---> conclT), rev args))
           end
 
@@ -216,7 +218,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       end) (premss ~~ dummies);
     val frees = fold Term.add_frees fs [];
     val Ts = map fastype_of fs;
-    fun name_of_fn intr = "r" ^ Long_Name.base_name (name_of_thm intr)
+    fun name_of_fn intr = "r" ^ Long_Name.base_name (short_name_of intr)
   in
     fst (fold_map (fn concl => fn names =>
       let val T = Extraction.etype_of thy vs [] concl
@@ -273,7 +275,7 @@ fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));
 
 fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
   let
-    val qualifier = Long_Name.qualifier (name_of_thm induct);
+    val qualifier = Long_Name.qualifier (short_name_of induct);
     val inducts = Global_Theory.get_thms thy (Long_Name.qualify qualifier "inducts");
     val iTs = rev (Term.add_tvars (Thm.prop_of (hd intrs)) []);
     val ar = length vs + length iTs;
@@ -354,11 +356,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
           no_elim = false, no_ind = false, skip_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
-          ((Binding.name (Long_Name.base_name (name_of_thm intr)), []),
+          ((Binding.name (Long_Name.base_name (short_name_of intr)), []),
            subst_atomic rlzpreds' (Logic.unvarify_global rintr)))
              (rintrs ~~ maps snd rss)) []) ||>
       Sign.root_path;
-    val thy3 = fold (Global_Theory.hide_fact false o name_of_thm) (#intrs ind_info) thy3';
+    val thy3 = fold (Global_Theory.hide_fact false o short_name_of) (#intrs ind_info) thy3';
 
     (** realizer for induction rule **)
 
@@ -413,7 +415,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
               mk_realizer thy'' (vs' @ Ps) (Thm.derivation_name ind, ind, corr, rlz, r))
             realizers @ (case realizers of
              [(((ind, corr), rlz), r)] =>
-               [mk_realizer thy'' (vs' @ Ps) (Long_Name.qualify qualifier "induct",
+               [mk_realizer thy'' (vs' @ Ps) ((Long_Name.qualify qualifier "induct", 0),
                   ind, corr, rlz, r)]
            | _ => [])) thy''
       end;
@@ -463,10 +465,10 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
                DEPTH_SOLVE_1 o
                FIRST' [assume_tac ctxt, eresolve_tac ctxt [allE], eresolve_tac ctxt [impE]])) 1)]);
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
-          (name_of_thm elim :: vs @ Ps @ ["correctness"])), thm) thy
+          (short_name_of elim :: vs @ Ps @ ["correctness"])), thm) thy
       in
         Extraction.add_realizers_i
-          [mk_realizer thy' (vs @ Ps) (name_of_thm elim, elim, thm', rlz, r)] thy'
+          [mk_realizer thy' (vs @ Ps) (thm_name_of elim, elim, thm', rlz, r)] thy'
       end;
 
     (** add realizers to theory **)
@@ -474,7 +476,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     val thy4 = fold add_ind_realizer (subsets Ps) thy3;
     val thy5 = Extraction.add_realizers_i
       (map (mk_realizer thy4 vs) (map (fn (((rule, rrule), rlz), c) =>
-         (name_of_thm rule, rule, rrule, rlz,
+         (thm_name_of rule, rule, rrule, rlz,
             list_comb (c, map Var (subtract (op =) params' (rev (Term.add_vars (Thm.prop_of rule) []))))))
               (maps snd rss ~~ #intrs ind_info ~~ rintrs ~~ flat constrss))) thy4;
     val elimps = map_filter (fn ((s, intrs), p) =>

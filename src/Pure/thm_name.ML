@@ -11,10 +11,14 @@ signature THM_NAME =
 sig
   type T = string * int
   val ord: T ord
+  structure Set: SET
+  structure Table: TABLE
+  val empty: T
+  val is_empty: T -> bool
+  val print: T -> string
+  val short: T -> string
   type P = T * Position.T
   val none: P
-  val print: T -> string
-  val short: P -> string * Position.T
   val list: string * Position.T -> 'a list -> (P * 'a) list
   val expr: string * Position.T -> ('a list * 'b) list -> ((P * 'a) list * 'b) list
 end;
@@ -25,19 +29,27 @@ struct
 type T = string * int;
 val ord = prod_ord string_ord int_ord;
 
-type P = T * Position.T;
+structure Set = Set(type key = T val ord = ord);
+structure Table = Table(Set.Key);
 
-val none: P = (("", 0), Position.none);
+val empty: T = ("", 0);
+fun is_empty ((a, _): T) = a = "";
 
 fun print (name, index) =
   if name = "" orelse index = 0 then name
   else name ^ enclose "(" ")" (string_of_int index);
 
-fun short (((name, index), pos): P) =
-  if name = "" orelse index = 0 then (name, pos)
-  else (name ^ "_" ^ string_of_int index, pos);
+fun short (name, index) =
+  if name = "" orelse index = 0 then name
+  else name ^ "_" ^ string_of_int index;
+
+
+type P = T * Position.T;
+
+val none: P = (empty, Position.none);
 
 fun list (name, pos) [thm] = [(((name, 0), pos): P, thm)]
+  | list ("", pos) thms = map (fn thm => ((empty, pos), thm)) thms
   | list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
 
 fun expr name = burrow_fst (burrow (list name));

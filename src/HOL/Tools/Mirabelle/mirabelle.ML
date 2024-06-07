@@ -305,7 +305,7 @@ fun fold_body_thms f =
         if Inttab.defined seen i then (x, seen)
         else
           let
-            val name = Proofterm.thm_node_name thm_node;
+            val name = Thm_Name.short (Proofterm.thm_node_name thm_node);
             val prop = Proofterm.thm_node_prop thm_node;
             val body = Future.join (Proofterm.thm_node_body thm_node);
             val (x', seen') =

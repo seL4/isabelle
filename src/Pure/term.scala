@@ -142,8 +142,8 @@ object Term {
     private lazy val hash: Int = ("Oracle", name, prop, types).hashCode()
     override def hashCode(): Int = hash
   }
-  case class PThm(serial: Long, theory_name: String, name: String, types: List[Typ]) extends Proof {
-    private lazy val hash: Int = ("PThm", serial, theory_name, name, types).hashCode()
+  case class PThm(serial: Long, theory_name: String, thm_name: Thm_Name, types: List[Typ]) extends Proof {
+    private lazy val hash: Int = ("PThm", serial, theory_name, thm_name, types).hashCode()
     override def hashCode(): Int = hash
   }
 
@@ -234,6 +234,10 @@ object Term {
       }
     }
 
+    protected def cache_thm_name(x: Thm_Name): Thm_Name =
+      if (x == Thm_Name.empty) Thm_Name.empty
+      else lookup(x) getOrElse store(Thm_Name(cache_string(x.name), x.index))
+
     protected def cache_proof(x: Proof): Proof = {
       if (x == MinProof) MinProof
       else {
@@ -253,8 +257,9 @@ object Term {
               case PClass(typ, cls) => store(PClass(cache_typ(typ), cache_string(cls)))
               case Oracle(name, prop, types) =>
                 store(Oracle(cache_string(name), cache_term(prop), cache_typs(types)))
-              case PThm(serial, theory_name, name, types) =>
-                store(PThm(serial, cache_string(theory_name), cache_string(name), cache_typs(types)))
+              case PThm(serial, theory_name, thm_name, types) =>
+                store(PThm(serial, cache_string(theory_name), cache_thm_name(thm_name),
+                  cache_typs(types)))
             }
         }
       }

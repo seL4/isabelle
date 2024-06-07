@@ -76,7 +76,7 @@ fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
   let
     fun app_thm map_name (_, thm_node) (accum as (num_thms, names)) =
       let
-        val name = Proofterm.thm_node_name thm_node
+        val name = Thm_Name.short (Proofterm.thm_node_name thm_node)
         val body = Proofterm.thm_node_body thm_node
         val (anonymous, enter_class) =
           (* The "name = outer_name" case caters for the uncommon case where the proved theorem

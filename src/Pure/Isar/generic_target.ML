@@ -296,8 +296,8 @@ fun define foundation internal ((b, mx), ((b_def, atts), rhs)) lthy =
 
 local
 
-val name_thm1 = Global_Theory.name_thm Global_Theory.official1 o Thm_Name.short;
-val name_thm2 = Global_Theory.name_thm Global_Theory.unofficial2 o Thm_Name.short;
+val name_thm1 = Global_Theory.name_thm Global_Theory.official1;
+val name_thm2 = Global_Theory.name_thm Global_Theory.unofficial2;
 
 fun thm_def (name, pos) thm lthy =
   if #1 name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
