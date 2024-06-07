@@ -1095,8 +1095,10 @@ object Build_Manager {
         Get(Page.OVERVIEW, "overview", get_overview),
         Get(Page.BUILD, "build", get_build),
         Post(API.BUILD_CANCEL, "cancel build", cancel_build))
+      val logo = Bytes.read(Path.explode("$ISABELLE_HOME/lib/logo/isabelle_transparent-48.gif"))
       val head =
         List(
+          Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64),
           HTML.style_file("https://hawkz.github.io/gdcss/gd.css"),
           HTML.style("html { background-color: white; }"))
     }
