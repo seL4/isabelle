@@ -11,6 +11,7 @@ signature THM_NAME =
 sig
   type T = string * int
   val ord: T ord
+  val none: T * Position.T
   val print: T -> string
   val short: T * Position.T -> string * Position.T
   val list: string * Position.T -> 'a list -> ((T * Position.T) * 'a) list
@@ -22,6 +23,8 @@ struct
 
 type T = string * int;
 val ord = prod_ord string_ord int_ord;
+
+val none = (("", 0), Position.none);
 
 fun print (name, index) =
   if name = "" orelse index = 0 then name

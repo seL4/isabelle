@@ -195,7 +195,6 @@ end;
 datatype zproof_name =
     ZAxiom of string
   | ZOracle of string
-  | ZBox of {theory_name: string, serial: serial}
   | ZThm of {theory_name: string, thm_name: Thm_Name.T * Position.T, serial: serial};
 
 type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
@@ -857,7 +856,7 @@ fun close_proof prems prf =
       | proof _ _ = raise Same.SAME;
   in ZAbsps prems (Same.commit (proof 0) prf) end;
 
-fun box_proof {unconstrain} zproof_name thy hyps concl prf =
+fun box_proof {unconstrain} thy thm_name hyps concl prf =
   let
     val {zterm, ...} = zterm_cache thy;
 
@@ -898,7 +897,10 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
     val i = serial ();
     val zbox: zbox = (i, (prop', prf'));
 
-    val const = constrain_proof (ZConstp (zproof_const (zproof_name i, prop')));
+    val proof_name =
+      ZThm {theory_name = Context.theory_long_name thy, thm_name = thm_name, serial = i};
+
+    val const = constrain_proof (ZConstp (zproof_const (proof_name, prop')));
     val args1 =
       outer_constraints |> map (fn (T, c) =>
         ZClassp (ztyp_of (if unconstrain then unconstrain_typ T else T), c));
@@ -907,17 +909,11 @@ fun box_proof {unconstrain} zproof_name thy hyps concl prf =
 
 in
 
-fun thm_proof thy thm_name =
-  let
-    val thy_name = Context.theory_long_name thy;
-    fun zproof_name i = ZThm {theory_name = thy_name, thm_name = thm_name, serial = i};
-  in box_proof {unconstrain = false} zproof_name thy end;
+val thm_proof = box_proof {unconstrain = false};
 
 fun add_box_proof unconstrain thy hyps concl prf zboxes =
   let
-    val thy_name = Context.theory_long_name thy;
-    fun zproof_name i = ZBox {theory_name = thy_name, serial = i};
-    val (zbox, prf') = box_proof unconstrain zproof_name thy hyps concl prf;
+    val (zbox, prf') = box_proof unconstrain thy Thm_Name.none hyps concl prf;
     val zboxes' = add_zboxes zbox zboxes;
   in (prf', zboxes') end;
 
