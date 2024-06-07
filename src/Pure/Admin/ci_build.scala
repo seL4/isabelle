@@ -7,6 +7,8 @@ Build profile for continuous integration services.
 package isabelle
 
 
+import scala.collection.mutable
+
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.{Properties => JProperties, Map => JMap}
@@ -20,21 +22,6 @@ object CI_Build {
   case object Result {
     def ok: Result = Result(Process_Result.RC.ok)
     def error: Result = Result(Process_Result.RC.error)
-  }
-
-
-  /* executor profile */
-
-  case class Profile(threads: Int, jobs: Int, numa: Boolean)
-
-  object Profile {
-    def from_host: Profile = {
-      Isabelle_System.hostname() match {
-        case "hpcisabelle" => Profile(8, 8, numa = true)
-        case "lxcisa1" => Profile(4, 10, numa = false)
-        case _ => Profile(2, 2, numa = false)
-      }
-    }
   }
 
 
@@ -62,7 +49,30 @@ object CI_Build {
       password = options.string("ci_mail_password"))
   }
 
+
   /* ci build jobs */
+
+  sealed trait Hosts {
+    def hosts_spec: String
+    def max_jobs: Option[Int]
+    def prefs: List[Options.Spec]
+    def numa_shuffling: Boolean
+    def build_cluster: Boolean
+  }
+
+  case class Local(host_spec: String, jobs: Int, threads: Int, numa_shuffling: Boolean = true)
+    extends Hosts {
+    def hosts_spec: String = host_spec
+    def max_jobs: Option[Int] = Some(jobs)
+    def prefs: List[Options.Spec] = List(Options.Spec.eq("threads", threads.toString))
+    def build_cluster: Boolean = false
+  }
+
+  case class Cluster(hosts_spec: String, numa_shuffling: Boolean = true) extends Hosts {
+    def max_jobs: Option[Int] = None
+    def prefs: List[Options.Spec] = Nil
+    def build_cluster: Boolean = true
+  }
 
   sealed trait Trigger
   case object On_Commit extends Trigger
@@ -76,13 +86,13 @@ object CI_Build {
           (before.time < start1.time && start1.time <= now.time)
       }
   }
-  
+
   case class Timed(in_interval: (Date, Date) => Boolean) extends Trigger
 
   sealed case class Job(
     name: String,
     description: String,
-    profile: Profile,
+    hosts: Hosts,
     config: Build_Config,
     components: List[String] = Nil,
     trigger: Trigger = On_Commit
@@ -102,7 +112,7 @@ object CI_Build {
   val timing =
     Job(
       "benchmark", "runs benchmark and timing sessions",
-      Profile(threads = 6, jobs = 1, numa = false),
+      Local("benchmark", jobs = 1, threads = 6, numa_shuffling = false),
       Build_Config(
         documents = false,
         select = List(
@@ -161,8 +171,8 @@ object CI_Build {
   def print_section(title: String): Unit =
     println("\n=== " + title + " ===\n")
 
-  def ci_build(options: Options, job: Job): Unit = {
-    val profile = job.profile
+  def ci_build(options: Options, build_hosts: List[Build_Cluster.Host], job: Job): Unit = {
+    val hosts = job.hosts
     val config = job.config
 
     val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
@@ -175,12 +185,9 @@ object CI_Build {
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
 
-    val build_options =
-      with_documents(options, config).int.update("threads", profile.threads) +
-        "parallel_proofs=1" + "system_heaps"
+    val build_options = with_documents(options, config) + "parallel_proofs=1" + "system_heaps"
 
-    println(
-      "jobs = " + profile.jobs + ", threads = " + profile.threads + ", numa = " + profile.numa)
+    println(hosts)
 
     print_section("BUILD")
     println("Build started at " + formatted_time)
@@ -193,12 +200,13 @@ object CI_Build {
       val start_time = Time.now()
       val results = progress.interrupt_handler {
         Build.build(
-          build_options,
+          build_options ++ hosts.prefs,
+          build_hosts = build_hosts,
           selection = config.selection,
           progress = progress,
           clean_build = config.clean,
-          numa_shuffling = profile.numa,
-          max_jobs = Some(profile.jobs),
+          numa_shuffling = hosts.numa_shuffling,
+          max_jobs = hosts.max_jobs,
           dirs = config.include,
           select_dirs = config.select)
       }
@@ -241,17 +249,23 @@ object CI_Build {
       /* arguments */
 
       var options = Options.init()
+      val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
 
       val getopts = Getopts("""
 Usage: isabelle ci_build [OPTIONS] JOB
 
   Options are:
+    -H HOSTS     host specifications of the form NAMES:PARAMETERS (separated by commas)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  Runs Isabelle builds in ci environment, with the following build jobs:
+  Runs Isabelle builds in ci environment. For cluster builds, build hosts must
+  be passed explicitly (no registry).
+
+  The following build jobs are available:
 
 """ + Library.indent_lines(4, show_jobs) + "\n",
-        "o:" -> (arg => options = options + arg))
+        "o:" -> (arg => options = options + arg),
+        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(Registry.load(Nil), arg)))
 
       val more_args = getopts(args)
 
@@ -260,7 +274,7 @@ Usage: isabelle ci_build [OPTIONS] JOB
         case _ => getopts.usage()
       }
 
-      ci_build(options, job)
+      ci_build(options, build_hosts.toList, job)
     })
 }
 

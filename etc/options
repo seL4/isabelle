@@ -243,6 +243,8 @@ option build_manager_address : string = "https://build.proof.cit.tum.de"
 option build_manager_identifier : string = "build_manager"
   -- "isabelle identifier for build manager processes"
 
+option build_manager_cluster : string = "cluster.default"
+
 option build_manager_delay : real = 1.0
   -- "delay build manager loop"
 
