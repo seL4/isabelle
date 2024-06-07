@@ -222,10 +222,11 @@ fun name_noted_thms _ _ [] = []
   | name_noted_thms qualifier base ((local_name, thms) :: noted) =
     if Long_Name.base_name local_name = base then
       let
+        val pos = Position.thread_data ();
         val thms' = thms |> map_index (uncurry (fn j =>
           Thm.name_derivation
             (((Long_Name.append qualifier base ^
-              (if can the_single thms then "" else "_" ^ string_of_int (j + 1))), \<^here>))))
+              (if can the_single thms then "" else "_" ^ string_of_int (j + 1))), pos))))
       in (local_name, thms') :: noted end
     else ((local_name, thms) :: name_noted_thms qualifier base noted);
 
