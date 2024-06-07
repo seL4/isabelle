@@ -623,7 +623,12 @@ object Build_Manager {
 
       def update: (State, Map[String, Process_Result]) = {
         val finished =
-          for ((name, future) <- result_futures if future.is_finished) yield name -> future.join
+          for ((name, future) <- result_futures if future.is_finished)
+          yield name ->
+            (future.join_result match {
+              case Exn.Res(result) => result
+              case Exn.Exn(_) => Process_Result(Process_Result.RC.interrupt)
+            })
 
         val process_futures1 = process_futures.filterNot((name, _) => finished.contains(name))
         val result_futures1 = result_futures.filterNot((name, _) => finished.contains(name))
