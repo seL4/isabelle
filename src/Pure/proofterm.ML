@@ -2146,11 +2146,8 @@ fun export_proof_boxes bodies =
 
 local
 
-fun export_proof thy i prop prf0 =
+fun export_proof thy i prop prf =
   let
-    val prf = prf0
-      |> reconstruct_proof thy prop
-      |> apply_preproc thy;
     val (prop', SOME prf') = (prop, SOME prf) |> standard_vars Name.context;
     val args = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
     val typargs = [] |> Term.add_tfrees prop' |> fold_proof_terms Term.add_tfrees prf' |> rev;
@@ -2217,7 +2214,12 @@ fun prepare_thm_proof unconstrain thy sorts_proof
 
     val exp_proof = Future.map proof_of body';
     val open_proof = not named ? rew_proof thy;
-    fun export_body () = Future.join exp_proof |> open_proof |> export_proof thy i prop1;
+    fun export_body () =
+      Future.join exp_proof
+      |> open_proof
+      |> reconstruct_proof thy prop1
+      |> apply_preproc thy
+      |> export_proof thy i prop1;
 
     val export =
       if export_enabled () then
