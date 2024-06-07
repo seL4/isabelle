@@ -567,17 +567,17 @@ object Build_Manager {
     }
 
     class State private(
-      process_futures: Map[String, Future[Bash.Process]],
+      process_futures: Map[String, Future[Build_Process]],
       result_futures: Map[String, Future[Process_Result]]
     ) {
       def is_empty = process_futures.isEmpty && result_futures.isEmpty
 
       def init(build_config: Build_Config, job: Job, context: Context): State = {
-        val process_future = Future.fork(context.process(build_config))
+        val process_future = Future.fork(Build_Process.open(build_config, context))
         val result_future =
           Future.fork(
             process_future.join_result match {
-              case Exn.Res(process) => context.run(process)
+              case Exn.Res(process) => process.run()
               case Exn.Exn(_) => Process_Result(Process_Result.RC.interrupt)
             })
         new State(
@@ -600,7 +600,7 @@ object Build_Manager {
       def cancel(cancelled: List[String]): State = {
         for (name <- cancelled) {
           val process_future = process_futures(name)
-          if (process_future.is_finished) process_future.join.interrupt()
+          if (process_future.is_finished) process_future.join.cancel()
           else process_future.cancel()
         }
 
@@ -1074,6 +1074,8 @@ object Build_Manager {
   }
 
   class Context private(store: Store, val dir: Path, val build_hosts: List[Build_Cluster.Host]) {
+    def isabelle_identifier: String = store.identifier
+
     private val log_file = dir + Path.basic("log")
     val progress = new File_Progress(log_file, verbose = true)
     def log: String =
@@ -1096,33 +1098,65 @@ object Build_Manager {
 
     def remove(): Unit = Isabelle_System.rm_tree(dir)
 
-    lazy val ssh = store.open_ssh()
+    def ssh = store.open_ssh()
+  }
 
-    def process(build_config: Build_Config): Bash.Process = {
-      val isabelle = Other_Isabelle(dir, store.identifier, ssh, progress)
 
-      val init_components =
-        for {
-          component <- build_config.components
-          target = dir + Sync.DIRS + Path.basic(component.name)
-          if Components.is_component_dir(target)
-        } yield "init_component " + quote(target.absolute.implode)
+  /* build process */
 
-      isabelle.init(other_settings = isabelle.init_components() ::: init_components,
-        fresh = build_config.fresh_build, echo = true)
+  object Build_Process {
+    def open(build_config: Build_Config, context: Context): Build_Process =
+      new Build_Process(context.ssh, build_config, context)
+  }
 
-      val cmd = build_config.command(build_hosts)
-      progress.echo("isabelle" + cmd)
+  class Build_Process(ssh: SSH.Session, build_config: Build_Config, context: Context) {
+    private val _dir = ssh.tmp_dir()
+    private val _progress = context.progress
 
-      val script = File.bash_path(Isabelle_Tool.exe(isabelle.isabelle_home)) + cmd
-      ssh.bash_process(isabelle.bash_context(script), settings = false)
+    private val _isabelle =
+      try {
+        val rsync_context = Rsync.Context(ssh = ssh)
+        val source = File.standard_path(context.dir)
+        Rsync.exec(rsync_context, clean = true, args = List("--", Url.direct_path(source),
+          rsync_context.target(_dir))).check
+
+        Other_Isabelle(_dir, context.isabelle_identifier, ssh, _progress)
+      }
+      catch { case exn: Throwable => close(); throw exn }
+
+    private val _process =
+      try {
+        val init_components =
+          for {
+            component <- build_config.components
+            target = _dir + Sync.DIRS + Path.basic(component.name)
+            if Components.is_component_dir(target)
+          } yield "init_component " + quote(target.absolute.implode)
+
+        _isabelle.init(
+          other_settings = _isabelle.init_components() ::: init_components,
+          fresh = build_config.fresh_build, echo = true)
+
+        val cmd = build_config.command(context.build_hosts)
+        _progress.echo("isabelle" + cmd)
+
+        val script = File.bash_path(Isabelle_Tool.exe(_isabelle.isabelle_home)) + cmd
+        ssh.bash_process(_isabelle.bash_context(script), settings = false)
+      }
+      catch { case exn: Throwable => close(); throw exn }
+
+    def run(): Process_Result = {
+      val process_result =
+        _process.result(progress_stdout = _progress.echo(_), progress_stderr = _progress.echo(_))
+      close()
+      process_result
     }
 
-    def run(process: Bash.Process): Process_Result = {
-      val process_result =
-        process.result(progress_stdout = progress.echo(_), progress_stderr = progress.echo(_))
+    def cancel(): Unit = Option(_process).foreach(_.interrupt())
+
+    def close(): Unit = {
+      Option(_dir).foreach(ssh.rm_tree)
       ssh.close()
-      process_result
     }
   }
 
