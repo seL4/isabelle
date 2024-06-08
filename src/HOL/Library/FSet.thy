@@ -1335,7 +1335,7 @@ end
 subsubsection \<open>@{term fsubset}\<close>
 
 lemma wfP_pfsubset: "wfP (|\<subset>|)"
-proof (rule wfP_if_convertible_to_nat)
+proof (rule wfp_if_convertible_to_nat)
   show "\<And>x y. x |\<subset>| y \<Longrightarrow> fcard x < fcard y"
     by (rule pfsubset_fcard_mono)
 qed

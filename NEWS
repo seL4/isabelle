@@ -7,6 +7,10 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+* Theory "HOL.Wellfounded":
+  - Renamed lemmas. Minor INCOMPATIBILITY.
+      wfP_if_convertible_to_nat ~> wfp_if_convertible_to_nat
+      wfP_if_convertible_to_wfP ~> wfp_if_convertible_to_wfp
 
 
 New in Isabelle2024 (May 2024)

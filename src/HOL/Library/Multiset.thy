@@ -1548,7 +1548,7 @@ subsubsection \<open>Strong induction and subset induction for multisets\<close>
 text \<open>Well-foundedness of strict subset relation\<close>
 
 lemma wf_subset_mset_rel: "wf {(M, N :: 'a multiset). M \<subset># N}"
-  using mset_subset_size wfP_def wfP_if_convertible_to_nat by blast
+  using mset_subset_size wfP_def wfp_if_convertible_to_nat by blast
 
 lemma wfP_subset_mset[simp]: "wfP (\<subset>#)"
   by (rule wf_subset_mset_rel[to_pred])
