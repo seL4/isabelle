@@ -15,16 +15,20 @@ sig
   structure Table: TABLE
   val empty: T
   val is_empty: T -> bool
-  val print: T -> string
-  val short: T -> string
+
   type P = T * Position.T
   val none: P
   val list: string * Position.T -> 'a list -> (P * 'a) list
   val expr: string * Position.T -> ('a list * 'b) list -> ((P * 'a) list * 'b) list
+
+  val print: T -> string
+  val short: T -> string
 end;
 
 structure Thm_Name: THM_NAME =
 struct
+
+(* type T *)
 
 type T = string * int;
 val ord = prod_ord string_ord int_ord;
@@ -35,14 +39,8 @@ structure Table = Table(Set.Key);
 val empty: T = ("", 0);
 fun is_empty ((a, _): T) = a = "";
 
-fun print (name, index) =
-  if name = "" orelse index = 0 then name
-  else name ^ enclose "(" ")" (string_of_int index);
 
-fun short (name, index) =
-  if name = "" orelse index = 0 then name
-  else name ^ "_" ^ string_of_int index;
-
+(* type P *)
 
 type P = T * Position.T;
 
@@ -53,5 +51,16 @@ fun list (name, pos) [x] = [(((name, 0), pos): P, x)]
   | list (name, pos) xs = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) xs;
 
 fun expr name = burrow_fst (burrow (list name));
+
+
+(* output *)
+
+fun print (name, index) =
+  if name = "" orelse index = 0 then name
+  else name ^ enclose "(" ")" (string_of_int index);
+
+fun short (name, index) =
+  if name = "" orelse index = 0 then name
+  else name ^ "_" ^ string_of_int index;
 
 end;
