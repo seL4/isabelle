@@ -20,7 +20,11 @@ object Session {
     def apply[A](name: String)(consume: A => Unit): Consumer[A] =
       new Consumer[A](name, consume)
   }
-  final class Consumer[-A] private(val name: String, val consume: A => Unit)
+  final class Consumer[-A] private(val name: String, val consume: A => Unit) {
+    def failure(exn: Throwable): Unit =
+      Output.error_message(
+        "Session consumer failure: " + quote(name) + "\n" + Exn.print(exn))
+  }
 
   class Outlet[A](dispatcher: Consumer_Thread[() => Unit]) {
     private val consumers = Synchronized[List[Consumer[A]]](Nil)
@@ -32,10 +36,7 @@ object Session {
       for (c <- consumers.value.iterator) {
         dispatcher.send(() =>
           try { c.consume(a) }
-          catch {
-            case exn: Throwable =>
-              Output.error_message("Consumer failed: " + quote(c.name) + "\n" + Exn.print(exn))
-          })
+          catch { case exn: Throwable => c.failure(exn) })
       }
     }
   }
