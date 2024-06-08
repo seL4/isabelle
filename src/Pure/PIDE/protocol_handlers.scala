@@ -9,7 +9,7 @@ package isabelle
 
 object Protocol_Handlers {
   private def err_handler(exn: Throwable, name: String): Nothing =
-    error("Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn))
+    error("Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.print(exn))
 
   sealed case class State(
     session: Session,
@@ -49,7 +49,7 @@ object Protocol_Handlers {
           catch {
             case exn: Throwable =>
               Output.error_message(
-                "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.message(exn))
+                "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.print(exn))
             false
           }
         case _ => false

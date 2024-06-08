@@ -34,7 +34,7 @@ object Session {
           try { c.consume(a) }
           catch {
             case exn: Throwable =>
-              Output.error_message("Consumer failed: " + quote(c.name) + "\n" + Exn.message(exn))
+              Output.error_message("Consumer failed: " + quote(c.name) + "\n" + Exn.print(exn))
           })
       }
     }
