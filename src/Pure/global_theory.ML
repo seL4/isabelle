@@ -14,6 +14,8 @@ sig
   val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
   val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
+  val pretty_thm_name: theory -> Thm_Name.T -> Pretty.T
+  val print_thm_name: theory -> Thm_Name.T -> string
   val get_thm_names: theory -> Thm_Name.T Inttab.table
   val dest_thm_names: theory -> (Proofterm.thm_id * Thm_Name.T) list
   val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
@@ -67,7 +69,7 @@ structure Data = Theory_Data
 );
 
 
-(* facts *)
+(* global facts *)
 
 val facts_of = #1 o Data.get;
 val map_facts = Data.map o apfst;
@@ -85,6 +87,9 @@ fun hide_fact fully name = map_facts (Facts.hide fully name);
 fun dest_thms verbose prev_thys thy =
   Facts.dest_static verbose (map facts_of prev_thys) (facts_of thy)
   |> maps (fn (name, thms) => Thm_Name.list (name, Position.none) thms |> map (apfst fst));
+
+fun pretty_thm_name thy = Facts.pretty_thm_name (Context.Theory thy) (facts_of thy);
+val print_thm_name = Pretty.string_of oo pretty_thm_name;
 
 
 (* thm_name vs. derivation_id *)
@@ -104,8 +109,8 @@ fun make_thm_names thy =
           (case Inttab.lookup thm_names serial of
             SOME thm_name' =>
               raise THM ("Duplicate use of derivation identity for " ^
-                Thm_Name.print thm_name ^ " vs. " ^
-                Thm_Name.print thm_name', 0, [thm])
+                print_thm_name thy thm_name ^ " vs. " ^
+                print_thm_name thy thm_name', 0, [thm])
           | NONE => Inttab.update (serial, thm_name) thm_names)));
 
 fun lazy_thm_names thy =

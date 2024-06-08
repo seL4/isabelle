@@ -93,7 +93,8 @@ fun thm_of_proof thy =
                 val _ =
                   if is_equal prop prop' then ()
                   else
-                    error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
+                    error ("Duplicate use of theorem name " ^
+                      quote (Global_Theory.print_thm_name thy thm_name) ^ "\n" ^
                       Syntax.string_of_term_global thy prop ^ "\n\n" ^
                       Syntax.string_of_term_global thy prop');
               in thm_of_atom thm Ts end

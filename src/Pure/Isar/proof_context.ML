@@ -62,6 +62,8 @@ sig
   val facts_of: Proof.context -> Facts.T
   val facts_of_fact: Proof.context -> string -> Facts.T
   val markup_extern_fact: Proof.context -> string -> Markup.T list * xstring
+  val pretty_thm_name: Proof.context -> Thm_Name.T -> Pretty.T
+  val print_thm_name: Proof.context -> Thm_Name.T -> string
   val augment: term -> Proof.context -> Proof.context
   val print_name: Proof.context -> string -> string
   val pretty_name: Proof.context -> string -> Pretty.T
@@ -422,6 +424,11 @@ fun markup_extern_fact ctxt name =
       if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
       else [markup];
   in (markups, xname) end;
+
+fun pretty_thm_name ctxt (name, i) =
+  Facts.pretty_thm_name (Context.Proof ctxt) (facts_of_fact ctxt name) (name, i);
+
+val print_thm_name = Pretty.string_of oo pretty_thm_name;
 
 
 (* augment context by implicit term declarations *)

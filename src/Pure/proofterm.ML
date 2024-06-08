@@ -1734,7 +1734,7 @@ fun make_constraints_cprf thy env cprf =
               | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (prop_types ~~ Ts)
               (forall_intr_variables_term prop) handle ListPair.UnequalLengths =>
-                error ("Wrong number of type arguments for " ^ quote (Thm_Name.short (guess_name prf)))
+                error ("Wrong number of type arguments for " ^ quote (Thm_Name.print (guess_name prf)))
           in (prop', change_types (SOME Ts) prf, [], env', vTs) end;
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =

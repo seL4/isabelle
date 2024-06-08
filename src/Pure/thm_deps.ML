@@ -73,17 +73,17 @@ fun thm_deps thy =
 
 fun pretty_thm_deps thy thms =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val facts = Global_Theory.facts_of thy;
+    val extern_fact = Name_Space.extern_generic (Context.Theory thy) (Facts.space_of facts);
     val deps =
       (case try (thm_deps thy) thms of
         SOME deps => deps
       | NONE => error "Malformed proofs");
     val items =
-      map #2 deps
-      |> map (fn (name, i) => (Proof_Context.markup_extern_fact ctxt name, i))
-      |> sort_by (#2 o #1)
-      |> map (fn ((marks, xname), i) =>
-          Pretty.item [Pretty.marks_str (marks, Thm_Name.print (xname, i))]);
+      deps
+      |> map (fn (_, thm_name as (name, _)) => (extern_fact name, thm_name))
+      |> sort_by #1
+      |> map (fn (_, thm_name) => Pretty.item [Global_Theory.pretty_thm_name thy thm_name])
   in Pretty.big_list ("dependencies: " ^ string_of_int (length items)) items end;
 
 

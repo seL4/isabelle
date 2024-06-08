@@ -21,6 +21,8 @@ sig
   val list: string * Position.T -> 'a list -> (P * 'a) list
   val expr: string * Position.T -> ('a list * 'b) list -> ((P * 'a) list * 'b) list
 
+  val print_prefix: Context.generic -> Name_Space.T -> T -> Markup.T * string
+  val print_suffix: T -> string
   val print: T -> string
   val short: T -> string
 end;
@@ -55,9 +57,15 @@ fun expr name = burrow_fst (burrow (list name));
 
 (* output *)
 
-fun print (name, index) =
-  if name = "" orelse index = 0 then name
-  else name ^ enclose "(" ")" (string_of_int index);
+fun print_prefix context space ((name, _): T) =
+  if name = "" then (Markup.empty, "")
+  else (Name_Space.markup space name, Name_Space.extern_generic context space name);
+
+fun print_suffix (name, index) =
+  if name = "" orelse index = 0 then ""
+  else enclose "(" ")" (string_of_int index);
+
+fun print (name, index) = name ^ print_suffix (name, index);
 
 fun short (name, index) =
   if name = "" orelse index = 0 then name
