@@ -21,9 +21,13 @@ object Session {
       new Consumer[A](name, consume)
   }
   final class Consumer[-A] private(val name: String, val consume: A => Unit) {
-    def failure(exn: Throwable): Unit =
+    private def failure(exn: Throwable): Unit =
       Output.error_message(
         "Session consumer failure: " + quote(name) + "\n" + Exn.print(exn))
+
+    def consume_robust(a: A): Unit =
+      try { consume(a) }
+      catch { case exn: Throwable => failure(exn) }
   }
 
   class Outlet[A](dispatcher: Consumer_Thread[() => Unit]) {
@@ -34,9 +38,7 @@ object Session {
 
     def post(a: A): Unit = {
       for (c <- consumers.value.iterator) {
-        dispatcher.send(() =>
-          try { c.consume(a) }
-          catch { case exn: Throwable => c.failure(exn) })
+        dispatcher.send(() => c.consume_robust(a))
       }
     }
   }
