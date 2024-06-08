@@ -48,9 +48,9 @@ type P = T * Position.T;
 
 val none: P = (empty, Position.none);
 
-fun list (name, pos) [thm] = [(((name, 0), pos): P, thm)]
-  | list ("", pos) thms = map (fn thm => ((empty, pos), thm)) thms
-  | list (name, pos) thms = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) thms;
+fun list (name, pos) [x] = [(((name, 0), pos): P, x)]
+  | list ("", pos) xs = map (fn thm => ((empty, pos), thm)) xs
+  | list (name, pos) xs = map_index (fn (i, thm) => (((name, i + 1), pos), thm)) xs;
 
 fun expr name = burrow_fst (burrow (list name));
 
