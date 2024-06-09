@@ -26,6 +26,8 @@ sig
   val print_suffix: T -> string
   val print: T -> string
   val short: T -> string
+  val encode: T XML.Encode.T
+  val decode: T XML.Decode.T
 end;
 
 structure Thm_Name: THM_NAME =
@@ -103,5 +105,11 @@ fun print (name, index) = name ^ print_suffix (name, index);
 fun short (name, index) =
   if name = "" orelse index = 0 then name
   else name ^ "_" ^ string_of_int index;
+
+
+(* XML data representation *)
+
+val encode = let open XML.Encode in pair string int end;
+val decode = let open XML.Decode in pair string int end;
 
 end;

@@ -395,7 +395,7 @@ and proof_body consts (PBody {oracles, thms, zboxes = _, zproof = _, proof = prf
   triple (list (pair (pair string (properties o Position.properties_of))
       (option (term consts)))) (list (thm consts)) (proof consts) (oracles, thms, prf)
 and thm consts (a, thm_node) =
-  pair int (pair string (pair (pair string int) (pair (term consts) (proof_body consts))))
+  pair int (pair string (pair Thm_Name.encode (pair (term consts) (proof_body consts))))
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
       (Future.join (thm_node_body thm_node))))));
 
@@ -463,7 +463,7 @@ and proof_body consts x =
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
-      pair int (pair string (pair (pair string int) (pair (term consts) (proof_body consts)))) x
+      pair int (pair string (pair Thm_Name.decode (pair (term consts) (proof_body consts)))) x
   in (a, make_thm_node b c d (Future.value e) no_export) end;
 
 in
