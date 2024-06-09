@@ -27,7 +27,7 @@ sig
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   val dest_ss: simpset ->
-   {simps: (string * thm) list,
+   {simps: (Thm_Name.T * thm) list,
     procs: (string * term list) list,
     congs: (cong_name * thm) list,
     weak_congs: cong_name list,
@@ -133,7 +133,7 @@ structure Congtab = Table(type key = cong_name val ord = prod_ord bool_ord fast_
 
 type rrule =
  {thm: thm,         (*the rewrite rule*)
-  name: string,     (*name of theorem from which rewrite rule was extracted*)
+  name: Thm_Name.T, (*name of theorem from which rewrite rule was extracted*)
   lhs: term,        (*the left-hand side*)
   elhs: cterm,      (*the eta-contracted lhs*)
   extra: bool,      (*extra variables outside of elhs*)
@@ -443,10 +443,15 @@ fun cond_tracing ctxt = cond_tracing' ctxt simp_trace;
 fun print_term ctxt s t =
   s ^ "\n" ^ Syntax.string_of_term ctxt t;
 
-fun print_thm ctxt s (name, th) =
-  print_term ctxt (if name = "" then s else s ^ " " ^ quote name ^ ":") (Thm.full_prop_of th);
+fun print_thm ctxt msg (name, th) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val sffx =
+      if Thm_Name.is_empty name then ""
+      else " " ^ quote (Global_Theory.print_thm_name thy name) ^ ":";
+  in print_term ctxt (msg ^ sffx) (Thm.full_prop_of th) end;
 
-fun print_thm0 ctxt msg th = print_thm ctxt msg ("", th);
+fun print_thm0 ctxt msg th = print_thm ctxt msg (Thm_Name.empty, th);
 
 
 
@@ -931,7 +936,7 @@ fun mk_procrule ctxt thm =
   in
     if rewrite_rule_extra_vars prems lhs rhs
     then (cond_warning ctxt (fn () => print_thm0 ctxt "Extra vars on rhs:" thm); [])
-    else [mk_rrule2 {thm = thm', name = "", lhs = lhs, elhs = elhs, perm = false}]
+    else [mk_rrule2 {thm = thm', name = Thm_Name.empty, lhs = lhs, elhs = elhs, perm = false}]
   end;
 
 

@@ -235,7 +235,7 @@ val forbidden_thms =
 
 val forbidden_consts = [\<^const_name>\<open>Pure.type\<close>]
 
-fun is_forbidden_theorem (s, th) =
+fun is_forbidden_theorem ((s, _): Thm_Name.T, th) =
   let val consts = Term.add_const_names (Thm.prop_of th) [] in
     exists (member (op =) (Long_Name.explode s)) forbidden_thms orelse
     exists (member (op =) forbidden_consts) consts orelse
@@ -421,13 +421,13 @@ fun string_of_mutant_subentry' thy thm_name (t, results) =
       ^ "(" ^ space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing) ^ ")"
       (*^ "\n" ^ string_of_reports reports*)
   in
-    "mutant of " ^ thm_name ^ ":\n" ^
+    "mutant of " ^ Thm_Name.short thm_name ^ ":\n" ^
       YXML.content_of (Syntax.string_of_term_global thy t) ^ "\n" ^
       space_implode "; " (map string_of_mtd_result results)
   end
 
 fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) = 
-   thm_name ^ " " ^ (if exec then "[exe]" else "[noexe]") ^ ": " ^
+   Thm_Name.short thm_name ^ " " ^ (if exec then "[exe]" else "[noexe]") ^ ": " ^
    Syntax.string_of_term_global thy t ^ "\n" ^                                    
    cat_lines (map (string_of_mutant_subentry' thy thm_name) mutant_subentries) ^ "\n"
 

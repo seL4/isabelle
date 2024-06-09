@@ -223,7 +223,7 @@ val skolem_thesis = Name.skolem Auto_Bind.thesisN
 
 fun is_that_fact th =
   exists_subterm (fn Free (s, _) => s = skolem_thesis | _ => false) (Thm.prop_of th)
-  andalso String.isSuffix sep_that (Thm.get_name_hint th)
+  andalso String.isSuffix sep_that (Thm_Name.short (Thm.get_name_hint th))
 
 datatype interest = Deal_Breaker | Interesting | Boring
 
@@ -359,7 +359,7 @@ fun build_name_tables name_of facts =
   let
     fun cons_thm (_, th) = Termtab.cons_list (normalize_vars (normalize_eq (Thm.prop_of th)), th)
     fun add_plain canon alias =
-      Symtab.update (Thm.get_name_hint alias, name_of (if_thm_before canon alias))
+      Symtab.update (Thm_Name.short (Thm.get_name_hint alias), name_of (if_thm_before canon alias))
     fun add_plains (_, aliases as canon :: _) = fold (add_plain canon) aliases
     fun add_inclass (name, target) = fold (fn s => Symtab.update (s, target)) (un_class_ify name)
     val prop_tab = fold cons_thm facts Termtab.empty

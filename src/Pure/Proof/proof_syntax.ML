@@ -143,7 +143,7 @@ end;
 
 fun proof_of_term thy ty =
   let
-    val thms = Global_Theory.all_thms_of thy true;
+    val thms = Global_Theory.all_thms_of thy true |> map (apfst Thm_Name.short);
     val axms = Theory.all_axioms_of thy;
 
     fun mk_term t = (if ty then I else map_types (K dummyT))
@@ -200,7 +200,8 @@ fun proof_of_term thy ty =
 
 fun read_term thy topsort =
   let
-    val thm_names = filter_out (fn s => s = "") (map fst (Global_Theory.all_thms_of thy true));
+    val thm_names =
+      filter_out (fn s => s = "") (map (Thm_Name.short o fst) (Global_Theory.all_thms_of thy true));
     val axm_names = map fst (Theory.all_axioms_of thy);
     val ctxt = thy
       |> add_proof_syntax

@@ -23,7 +23,7 @@ sig
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
-  val all_thms_of: theory -> bool -> (string * thm) list
+  val all_thms_of: theory -> bool -> (Thm_Name.T * thm) list
   val get_thm_name: theory -> Thm_Name.T * Position.T -> thm
   type name_flags
   val unnamed: name_flags
@@ -259,7 +259,7 @@ fun name_thm name_flags (name, pos) =
         |> (official andalso (post orelse Thm_Name.is_empty (Thm.raw_derivation_name thm))) ?
             Thm.name_derivation (name, pos)
         |> (not (Thm_Name.is_empty name) andalso (post orelse not (Thm.has_name_hint thm))) ?
-            Thm.put_name_hint (Thm_Name.short name)));
+            Thm.put_name_hint name));
 
 end;
 

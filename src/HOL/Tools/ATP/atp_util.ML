@@ -417,7 +417,7 @@ fun extract_lambda_def dest_head (Const (\<^const_name>\<open>HOL.eq\<close>, _)
 
 fun short_thm_name ctxt th =
   let
-    val long = Thm.get_name_hint th
+    val long = Thm_Name.short (Thm.get_name_hint th)
     val short = Long_Name.base_name long
   in
     (case try (singleton (Attrib.eval_thms ctxt)) (Facts.named short, []) of

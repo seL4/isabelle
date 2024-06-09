@@ -16,10 +16,13 @@ struct
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = Symtab.build (Global_Theory.all_thms_of thy true |> fold_rev Symtab.update) in
-    fn s =>
-      (case Symtab.lookup tab s of
-        NONE => error ("Unknown theorem " ^ quote s)
+  let
+    val tab =
+      Thm_Name.Table.build (Global_Theory.all_thms_of thy true |> fold_rev Thm_Name.Table.update);
+  in
+    fn name =>
+      (case Thm_Name.Table.lookup tab name of
+        NONE => error ("Unknown theorem " ^ quote (Thm_Name.print name))
       | SOME thm => thm)
   end;
 
@@ -87,8 +90,7 @@ fun thm_of_proof thy =
 
         fun thm_of _ _ (PThm ({thm_name, prop = prop', types = SOME Ts, ...}, _)) =
               let
-                val name = Thm_Name.short thm_name;
-                val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup name));
+                val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup thm_name));
                 val prop = Thm.prop_of thm;
                 val _ =
                   if is_equal prop prop' then ()

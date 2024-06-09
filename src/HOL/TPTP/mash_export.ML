@@ -172,7 +172,7 @@ fun is_bad_query ctxt step j th isar_deps =
   j mod step <> 0 orelse
   Thm.legacy_get_kind th = "" orelse
   null (the_list isar_deps) orelse
-  is_blacklisted_or_something (Thm.get_name_hint th)
+  is_blacklisted_or_something (Thm_Name.short (Thm.get_name_hint th))
 
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys max_suggs file_name =
   let

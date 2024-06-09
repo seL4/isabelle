@@ -214,7 +214,8 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
             val _ = unused := maps (#2 o #2) unused_th_cls_pairs;
             val _ =
               if not (null unused_th_cls_pairs) then
-                verbose_warning ctxt ("Unused theorems: " ^ commas_quote (map #1 unused_th_cls_pairs))
+                verbose_warning ctxt ("Unused theorems: " ^
+                  commas_quote (map (Proof_Context.print_thm_name ctxt o #1) unused_th_cls_pairs))
               else ();
             val _ =
               if not (null cls) andalso not (have_common_thm ctxt used cls) then

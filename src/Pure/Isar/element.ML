@@ -228,7 +228,8 @@ fun thm_name ctxt kind th prts =
   let val head =
     if Thm.has_name_hint th then
       Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
-        Proof_Context.pretty_name ctxt (Long_Name.base_name (Thm.get_name_hint th)), Pretty.str ":"]
+        Proof_Context.pretty_name ctxt (Long_Name.base_name (#1 (Thm.get_name_hint th))),
+        Pretty.str ":"]
     else Pretty.keyword1 kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 

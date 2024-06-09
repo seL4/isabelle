@@ -151,7 +151,7 @@ fun is_forbidden_theorem name =
   String.isSuffix "_raw" name
 
 fun theorems_of thy =
-  filter (fn (name, th) =>
+  filter (fn ((name, _), th) =>
              not (is_forbidden_theorem name) andalso
              Thm.theory_long_name th = Context.theory_long_name thy)
          (Global_Theory.all_thms_of thy true)
@@ -186,7 +186,7 @@ fun check_theory thy =
         val (nondef_ts, def_ts, _, _, _, _) =
           Timeout.apply preproc_timeout (preprocess_formulas hol_ctxt [])
                               neg_t
-        val res = name ^ ": " ^ check_formulas (nondef_ts, def_ts)
+        val res = Thm_Name.print name ^ ": " ^ check_formulas (nondef_ts, def_ts)
       in File.append path (res ^ "\n"); writeln res end
       handle Timeout.TIMEOUT _ => ()
   in thy |> theorems_of |> List.app check_theorem end
