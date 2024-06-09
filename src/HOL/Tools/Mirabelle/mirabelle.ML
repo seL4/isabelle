@@ -309,7 +309,7 @@ fun fold_body_thms f =
             val prop = Proofterm.thm_node_prop thm_node;
             val body = Future.join (Proofterm.thm_node_body thm_node);
             val (x', seen') =
-              app (n + (if name = "" then 0 else 1)) body
+              app (n + (if Thm_Name.is_empty name then 0 else 1)) body
                 (x, Inttab.update (i, ()) seen);
         in (x' |> n = 0 ? f (name, prop, body), seen') end);
   in fn bodies => fn x => #1 (fold (app 0) bodies (x, Inttab.empty)) end;
@@ -319,7 +319,7 @@ in
 fun theorems_in_proof_term thy thm =
   let
     val all_thms = Global_Theory.all_thms_of thy true;
-    fun collect (s, _, _) = if s <> "" then insert (op =) s else I;
+    fun collect (name, _, _) = if Thm_Name.is_empty name then I else insert (op =) name;
     fun member_of xs (x, y) = if member (op =) xs x then SOME y else NONE;
     fun resolve_thms names = map_filter (member_of names) all_thms;
   in resolve_thms (fold_body_thms collect [Thm.proof_body_of thm] []) end;

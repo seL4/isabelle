@@ -424,7 +424,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       end
 
     fun of_free (s, T) =
-      Proof_Context.print_name ctxt s ^ " :: " ^
+      Thy_Header.print_name' ctxt s ^ " :: " ^
       maybe_quote ctxt (simplify_spaces (Print_Mode.setmp [] (Syntax.string_of_typ ctxt) T))
 
     fun add_frees xs (s, ctxt) =

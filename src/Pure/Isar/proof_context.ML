@@ -62,9 +62,9 @@ sig
   val facts_of: Proof.context -> Facts.T
   val facts_of_fact: Proof.context -> string -> Facts.T
   val markup_extern_fact: Proof.context -> string -> Markup.T list * xstring
+  val pretty_thm_name: Proof.context -> Thm_Name.T -> Pretty.T
+  val print_thm_name: Proof.context -> Thm_Name.T -> string
   val augment: term -> Proof.context -> Proof.context
-  val print_name: Proof.context -> string -> string
-  val pretty_name: Proof.context -> string -> Pretty.T
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
@@ -423,6 +423,11 @@ fun markup_extern_fact ctxt name =
       else [markup];
   in (markups, xname) end;
 
+fun pretty_thm_name ctxt (name, i) =
+  Facts.pretty_thm_name (Context.Proof ctxt) (facts_of_fact ctxt name) (name, i);
+
+val print_thm_name = Pretty.string_of oo pretty_thm_name;
+
 
 (* augment context by implicit term declarations *)
 
@@ -434,9 +439,6 @@ fun augment t ctxt = ctxt
 
 
 (** pretty printing **)
-
-val print_name = Token.print_name o Thy_Header.get_keywords';
-val pretty_name = Pretty.str oo print_name;
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
@@ -1499,7 +1501,7 @@ local
 
 fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
   let
-    val prt_name = pretty_name ctxt;
+    val prt_name = Thy_Header.pretty_name' ctxt;
     val prt_term = Syntax.pretty_term ctxt;
 
     fun prt_let (xi, t) = Pretty.block
@@ -1546,10 +1548,12 @@ fun print_cases_proof ctxt0 ctxt =
     fun trim_name x = if Name.is_internal x then Name.clean x else "_";
     val trim_names = map trim_name #> drop_suffix (equal "_");
 
+    val print_name = Thy_Header.print_name' ctxt;
+
     fun print_case name xs =
       (case trim_names xs of
-        [] => print_name ctxt name
-      | xs' => enclose "(" ")" (space_implode " " (map (print_name ctxt) (name :: xs'))));
+        [] => print_name name
+      | xs' => enclose "(" ")" (space_implode " " (map print_name (name :: xs'))));
 
     fun is_case x t =
       x = Rule_Cases.case_conclN andalso not (Term.exists_subterm Term.is_Var t);

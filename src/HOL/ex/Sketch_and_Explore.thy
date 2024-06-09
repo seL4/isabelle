@@ -91,7 +91,7 @@ fun print_subgoal apply_line_opt (is_prems, is_for, is_sh) ctxt indent stmt =
     val fixes_s =
       if not is_for orelse null fixes then NONE
       else SOME ("for " ^ space_implode " "
-        (map (fn (v, _) => Proof_Context.print_name ctxt' v) fixes));
+        (map (fn (v, _) => Thy_Header.print_name' ctxt' v) fixes));
     val premises_s = if is_prems then SOME "premises prems" else NONE;
     val sh_s = if is_sh then SOME "sledgehammer" else NONE;
     val subgoal_s = map_filter I [SOME "subgoal", premises_s, fixes_s]
@@ -137,10 +137,7 @@ fun print_proof_text_from_state print (some_method_ref : ((Method.text * Positio
       if is_none some_method_ref then ["  .."]
       else ["  by" ^ method_text]
       else print ctxt_print method_text clauses;
-    val message = Active.sendback_markup_command (cat_lines lines);
-  in
-    (state |> tap (fn _ => Output.information message))
-  end
+  in Output.information (Active.sendback_markup_command (cat_lines lines)) end;
 
 val sketch = print_proof_text_from_state print_sketch;
 
@@ -157,10 +154,10 @@ fun subgoals options method_ref =
   end;
 
 fun sketch_cmd some_method_text =
-  Toplevel.keep_proof (K () o sketch some_method_text o Toplevel.proof_of)
+  Toplevel.keep_proof (fn state => sketch some_method_text (Toplevel.proof_of state));
 
 fun explore_cmd method_text =
-  Toplevel.keep_proof (K () o explore method_text o Toplevel.proof_of)
+  Toplevel.keep_proof (fn state => explore method_text (Toplevel.proof_of state));
 
 fun subgoals_cmd (modes, method_ref) =
   let
@@ -168,8 +165,9 @@ fun subgoals_cmd (modes, method_ref) =
     val is_for = not (member (op =) modes "nofor")
     val is_sh = member (op =) modes "sh"
   in
-    Toplevel.keep_proof (K () o subgoals (is_prems, is_for, is_sh) method_ref o Toplevel.proof_of)
-  end
+    Toplevel.keep_proof (fn state =>
+      subgoals (is_prems, is_for, is_sh) method_ref (Toplevel.proof_of state))
+  end;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sketch\<close>

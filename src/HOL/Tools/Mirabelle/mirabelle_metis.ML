@@ -19,7 +19,7 @@ fun make_action ({timeout, ...} : Mirabelle.action_context) =
         fun metis ctxt = Metis_Tactic.metis_tac [] ATP_Problem_Generate.liftingN ctxt (thms @ facts);
       in
         (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
-        |> not (null names) ? suffix (":\n" ^ commas names)
+        |> not (null names) ? suffix (":\n" ^ commas (map Thm_Name.short names))
       end
   in ("", {run = run, finalize = K ""}) end
 

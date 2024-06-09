@@ -346,13 +346,13 @@ object Export_Theory {
 
   sealed case class Thm(
     prop: Prop,
-    deps: List[String],
+    deps: List[Thm_Name],
     proof: Term.Proof)
   extends Content[Thm] {
     override def cache(cache: Term.Cache): Thm =
       Thm(
         prop.cache(cache),
-        deps.map(cache.string),
+        deps.map(cache.thm_name),
         cache.proof(proof))
   }
 
@@ -361,7 +361,7 @@ object Export_Theory {
       { body =>
         import XML.Decode._
         import Term_XML.Decode._
-        val (prop, deps, prf) = triple(decode_prop, list(string), proof)(body)
+        val (prop, deps, prf) = triple(decode_prop, list(Thm_Name.decode), proof)(body)
         Thm(prop, deps, prf)
       })
 

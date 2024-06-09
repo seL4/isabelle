@@ -74,7 +74,7 @@ class Classpath private(static_jars: List[JFile], dynamic_jars: List[JFile]) {
       try { Class.forName(name, true, class_loader).asInstanceOf[Classpath.Service_Class] }
       catch {
         case _: ClassNotFoundException => err("Class not found")
-        case exn: Throwable => err(Exn.message(exn))
+        case exn: Throwable => err(Exn.print(exn))
       }
     }
   }

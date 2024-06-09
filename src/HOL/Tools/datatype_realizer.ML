@@ -127,7 +127,8 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
     val (thm', thy') = thy
       |> Sign.root_path
       |> Global_Theory.store_thm
-        (Binding.qualified_name (space_implode "_" (ind_name :: vs @ ["correctness"])), thm)
+        (Binding.qualified_name
+          (space_implode "_" (Thm_Name.short ind_name :: vs @ ["correctness"])), thm)
       ||> Sign.restore_naming thy;
 
     val ivs = rev (Term.add_vars (Logic.varify_global (Old_Datatype_Prop.make_ind [descr])) []);
@@ -201,7 +202,8 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
     val exh_name = Thm.derivation_name exhaust;
     val (thm', thy') = thy
       |> Sign.root_path
-      |> Global_Theory.store_thm (Binding.qualified_name (exh_name ^ "_P_correctness"), thm)
+      |> Global_Theory.store_thm
+          (Binding.qualified_name (Thm_Name.short exh_name ^ "_P_correctness"), thm)
       ||> Sign.restore_naming thy;
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);

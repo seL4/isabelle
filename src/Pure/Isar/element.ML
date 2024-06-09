@@ -141,7 +141,7 @@ fun pretty_stmt ctxt =
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_terms = separate (Pretty.keyword2 "and") o map prt_term;
     val prt_binding = Attrib.pretty_binding ctxt;
-    val prt_name = Proof_Context.pretty_name ctxt;
+    val prt_name = Thy_Header.pretty_name' ctxt;
 
     fun prt_show (a, ts) =
       Pretty.block (Pretty.breaks (prt_binding a ":" @ prt_terms (map fst ts)));
@@ -167,7 +167,7 @@ fun gen_pretty_ctxt show_attribs ctxt =
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_thm = Pretty.cartouche o Thm.pretty_thm ctxt;
-    val prt_name = Proof_Context.pretty_name ctxt;
+    val prt_name = Thy_Header.pretty_name' ctxt;
 
     fun prt_binding (b, atts) =
       Attrib.pretty_binding ctxt (b, if show_attribs then atts else []);
@@ -226,10 +226,12 @@ fun standard_elim ctxt th =
 
 fun thm_name ctxt kind th prts =
   let val head =
-    if Thm.has_name_hint th then
-      Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
-        Proof_Context.pretty_name ctxt (Long_Name.base_name (Thm.get_name_hint th)), Pretty.str ":"]
-    else Pretty.keyword1 kind
+    (case try Thm.the_name_hint th of
+      SOME (name, _) =>
+        Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
+          Thy_Header.pretty_name' ctxt (Long_Name.base_name name),
+          Pretty.str ":"]
+    | NONE => Pretty.keyword1 kind)
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
 fun obtain prop ctxt =

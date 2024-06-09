@@ -76,7 +76,7 @@ fun fold_body_thm max_thms outer_name (map_plain_name, map_inclass_name) body =
   let
     fun app_thm map_name (_, thm_node) (accum as (num_thms, names)) =
       let
-        val name = Proofterm.thm_node_name thm_node
+        val name = Thm_Name.short (Proofterm.thm_node_name thm_node)
         val body = Proofterm.thm_node_body thm_node
         val (anonymous, enter_class) =
           (* The "name = outer_name" case caters for the uncommon case where the proved theorem
@@ -108,7 +108,8 @@ fun thms_in_proof max_thms name_tabs th =
     NONE => NONE
   | SOME body =>
     let val map_names = (case name_tabs of SOME p => apply2 Symtab.lookup p | NONE => `I SOME) in
-      SOME (fold_body_thm max_thms (Thm.get_name_hint th) map_names (Proofterm.strip_thm_body body))
+      SOME (fold_body_thm max_thms (Thm_Name.short (Thm.get_name_hint th)) map_names
+        (Proofterm.strip_thm_body body))
       handle TOO_MANY () => NONE
     end)
 

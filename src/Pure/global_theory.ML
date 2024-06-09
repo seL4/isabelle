@@ -14,6 +14,8 @@ sig
   val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
   val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
+  val pretty_thm_name: theory -> Thm_Name.T -> Pretty.T
+  val print_thm_name: theory -> Thm_Name.T -> string
   val get_thm_names: theory -> Thm_Name.T Inttab.table
   val dest_thm_names: theory -> (Proofterm.thm_id * Thm_Name.T) list
   val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
@@ -21,7 +23,7 @@ sig
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
-  val all_thms_of: theory -> bool -> (string * thm) list
+  val all_thms_of: theory -> bool -> (Thm_Name.T * thm) list
   val get_thm_name: theory -> Thm_Name.T * Position.T -> thm
   type name_flags
   val unnamed: name_flags
@@ -29,7 +31,7 @@ sig
   val official2: name_flags
   val unofficial1: name_flags
   val unofficial2: name_flags
-  val name_thm: name_flags -> string * Position.T -> thm -> thm
+  val name_thm: name_flags -> Thm_Name.P -> thm -> thm
   val name_thms: name_flags -> string * Position.T -> thm list -> thm list
   val name_facts: name_flags -> string * Position.T -> (thm list * 'a) list -> (thm list * 'a) list
   val check_thms_lazy: thm list lazy -> thm list lazy
@@ -67,7 +69,7 @@ structure Data = Theory_Data
 );
 
 
-(* facts *)
+(* global facts *)
 
 val facts_of = #1 o Data.get;
 val map_facts = Data.map o apfst;
@@ -85,6 +87,9 @@ fun hide_fact fully name = map_facts (Facts.hide fully name);
 fun dest_thms verbose prev_thys thy =
   Facts.dest_static verbose (map facts_of prev_thys) (facts_of thy)
   |> maps (fn (name, thms) => Thm_Name.list (name, Position.none) thms |> map (apfst fst));
+
+fun pretty_thm_name thy = Facts.pretty_thm_name (Context.Theory thy) (facts_of thy);
+val print_thm_name = Pretty.string_of oo pretty_thm_name;
 
 
 (* thm_name vs. derivation_id *)
@@ -104,8 +109,8 @@ fun make_thm_names thy =
           (case Inttab.lookup thm_names serial of
             SOME thm_name' =>
               raise THM ("Duplicate use of derivation identity for " ^
-                Thm_Name.print thm_name ^ " vs. " ^
-                Thm_Name.print thm_name', 0, [thm])
+                print_thm_name thy thm_name ^ " vs. " ^
+                print_thm_name thy thm_name', 0, [thm])
           | NONE => Inttab.update (serial, thm_name) thm_names)));
 
 fun lazy_thm_names thy =
@@ -251,21 +256,18 @@ fun name_thm name_flags (name, pos) =
       No_Name_Flags => thm
     | Name_Flags {post, official} =>
         thm
-        |> (official andalso (post orelse Thm.raw_derivation_name thm = "")) ?
+        |> (official andalso (post orelse Thm_Name.is_empty (Thm.raw_derivation_name thm))) ?
             Thm.name_derivation (name, pos)
-        |> (name <> "" andalso (post orelse not (Thm.has_name_hint thm))) ?
+        |> (not (Thm_Name.is_empty name) andalso (post orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));
 
 end;
 
-fun name_thm_short name_flags name =
-  name_thm name_flags (Thm_Name.short name);
-
 fun name_thms name_flags name_pos thms =
-  Thm_Name.list name_pos thms |> map (uncurry (name_thm_short name_flags));
+  Thm_Name.list name_pos thms |> map (uncurry (name_thm name_flags));
 
 fun name_facts name_flags name_pos facts =
-  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm_short name_flags));
+  Thm_Name.expr name_pos facts |> (map o apfst o map) (uncurry (name_thm name_flags));
 
 
 (* store theorems and proofs *)
@@ -319,7 +321,7 @@ fun apply_facts zproof name_flags1 name_flags2 (b, facts) thy =
         in ((thms', atts), thy2) end);
 
     val unnamed = #1 name = "";
-    val name_thm1 = if unnamed then #2 else uncurry (name_thm_short name_flags1);
+    val name_thm1 = if unnamed then #2 else uncurry (name_thm name_flags1);
 
     val app_facts =
       fold_maps (fn (named_thms, atts) => fn thy =>

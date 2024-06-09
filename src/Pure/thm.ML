@@ -118,11 +118,11 @@ sig
   val extra_shyps: thm -> sort list
   val strip_shyps: thm -> thm
   val derivation_closed: thm -> bool
-  val derivation_name: thm -> string
+  val derivation_name: thm -> Thm_Name.T
   val derivation_id: thm -> Proofterm.thm_id option
-  val raw_derivation_name: thm -> string
-  val expand_name: thm -> Proofterm.thm_header -> string option
-  val name_derivation: string * Position.T -> thm -> thm
+  val raw_derivation_name: thm -> Thm_Name.T
+  val expand_name: thm -> Proofterm.thm_header -> Thm_Name.T option
+  val name_derivation: Thm_Name.P -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
   val axiom: theory -> string -> thm
@@ -176,8 +176,8 @@ sig
   val plain_prop_of: thm -> term
   val get_zproof_serials: theory -> serial list
   val get_zproof: theory -> serial ->
-    {name: Thm_Name.T * Position.T, thm: thm, zboxes: ZTerm.zboxes, zproof: zproof} option
-  val store_zproof: Thm_Name.T * Position.T -> thm -> theory -> thm * theory
+    {name: Thm_Name.P, thm: thm, zboxes: ZTerm.zboxes, zproof: zproof} option
+  val store_zproof: Thm_Name.P -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -951,7 +951,7 @@ fun merge_classes
 structure Data = Theory_Data
 (
   type T =
-    {name: Thm_Name.T * Position.T, thm: thm} Inttab.table *  (*stored zproof thms*)
+    {name: Thm_Name.P, thm: thm} Inttab.table *  (*stored zproof thms*)
     unit Name_Space.table *  (*oracles: authentic derivation names*)
     classes;  (*type classes within the logic*)
 
@@ -1130,7 +1130,9 @@ fun expand_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
       (case Proofterm.get_identity shyps hyps prop (Proofterm.proof_of body) of
         NONE => K false
       | SOME {serial, ...} => fn (header: Proofterm.thm_header) => serial = #serial header);
-    fun expand header = if self_id header orelse #name header = "" then SOME "" else NONE;
+    fun expand header =
+      if self_id header orelse Thm_Name.is_empty (#thm_name header)
+      then SOME Thm_Name.empty else NONE;
   in expand end;
 
 (*deterministic name of finished proof*)
@@ -1166,7 +1168,7 @@ fun name_derivation name_pos =
 fun close_derivation pos =
   solve_constraints #> (fn thm =>
     if not (null (tpairs_of thm)) orelse derivation_closed thm then thm
-    else name_derivation ("", pos) thm);
+    else name_derivation (Thm_Name.empty, pos) thm);
 
 val trim_context = solve_constraints #> trim_context_thm;
 

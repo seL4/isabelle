@@ -187,7 +187,7 @@ fun atp_tac lthy completeness override_params timeout assms prover =
       |> Config.put Sledgehammer_Prover_ATP.atp_completish (if completeness > 0 then 3 else 0)
       |> Local_Theory.note ((\<^binding>\<open>thms\<close>, []), assm_ths0)
 
-    fun ref_of th = (Facts.named (Thm.derivation_name th), [])
+    fun ref_of th = (Facts.named (Thm_Name.short (Thm.derivation_name th)), [])
     val ref_of_assms = (Facts.named assm_name, [])
   in
     Sledgehammer_Tactics.sledgehammer_as_oracle_tac lthy

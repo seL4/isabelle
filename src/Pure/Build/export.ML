@@ -6,10 +6,10 @@ Manage per-session theory exports: compressed blobs.
 
 signature EXPORT =
 sig
-  val report_export: theory -> Path.binding -> unit
+  val report: Context.generic -> string -> Path.binding -> unit
   type params =
-    {theory: theory, binding: Path.binding, executable: bool, compress: bool, strict: bool}
-  val export_params: params -> XML.body -> unit
+    {theory_name: string, binding: Path.binding, executable: bool, compress: bool, strict: bool}
+  val export_params: Context.generic -> params -> XML.body -> unit
   val export: theory -> Path.binding -> XML.body -> unit
   val export_executable: theory -> Path.binding -> XML.body -> unit
   val export_file: theory -> Path.binding -> Path.T -> unit
@@ -23,34 +23,35 @@ struct
 
 (* export *)
 
-fun report_export thy binding =
+fun report context theory_name binding =
   let
-    val theory_name = Context.theory_long_name thy;
     val (path, pos) = Path.dest_binding binding;
     val markup = Markup.export_path (Path.implode (Path.basic theory_name + path));
-  in Context_Position.report_generic (Context.Theory thy) pos markup end;
+  in Context_Position.report_generic context pos markup end;
 
 type params =
-  {theory: theory, binding: Path.binding, executable: bool, compress: bool, strict: bool};
+  {theory_name: string, binding: Path.binding, executable: bool, compress: bool, strict: bool};
 
-fun export_params ({theory = thy, binding, executable, compress, strict}: params) body =
- (report_export thy binding;
+fun export_params context ({theory_name, binding, executable, compress, strict}: params) body =
+ (report context theory_name binding;
   (Output.try_protocol_message o Markup.export)
    {id = Position.id_of (Position.thread_data ()),
     serial = serial (),
-    theory_name = Context.theory_long_name thy,
+    theory_name = theory_name,
     name = Path.implode_binding (tap Path.proper_binding binding),
     executable = executable,
     compress = compress,
     strict = strict} [body]);
 
 fun export thy binding body =
-  export_params
-    {theory = thy, binding = binding, executable = false, compress = true, strict = true} body;
+  export_params (Context.Theory thy)
+    {theory_name = Context.theory_long_name thy, binding = binding,
+      executable = false, compress = true, strict = true} body;
 
 fun export_executable thy binding body =
-  export_params
-    {theory = thy, binding = binding, executable = true, compress = true, strict = true} body;
+  export_params (Context.Theory thy)
+    {theory_name = Context.theory_long_name thy, binding = binding,
+      executable = true, compress = true, strict = true} body;
 
 fun export_file thy binding file =
   export thy binding (Bytes.contents_blob (Bytes.read file));

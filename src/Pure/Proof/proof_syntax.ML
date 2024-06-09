@@ -16,7 +16,7 @@ sig
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
   val pretty_proof_boxes_of: Proof.context ->
     {full: bool, preproc: theory -> proof -> proof} -> thm -> Pretty.T
-  val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> string option} ->
+  val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> Thm_Name.T option} ->
     thm -> Proofterm.proof
   val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
@@ -104,9 +104,11 @@ fun PClasst (T, c) =
   let val U = Term.itselfT T --> propT
   in Const ("Pure.PClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
-fun term_of _ (PThm ({serial = i, name, types = Ts, ...}, _)) =
+fun term_of _ (PThm ({serial = i, thm_name = a, types = Ts, ...}, _)) =
       fold AppT (these Ts)
-        (Const (Long_Name.append "thm" (if name = "" then string_of_int i else name), proofT))
+        (Const
+          (Long_Name.append "thm"
+            (if Thm_Name.is_empty a then string_of_int i else Thm_Name.short a), proofT))
   | term_of _ (PAxm (name, _, Ts)) =
       fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
   | term_of _ (PClass (T, c)) = AppT T (PClasst (T, c))
@@ -141,7 +143,7 @@ end;
 
 fun proof_of_term thy ty =
   let
-    val thms = Global_Theory.all_thms_of thy true;
+    val thms = Global_Theory.all_thms_of thy true |> map (apfst Thm_Name.short);
     val axms = Theory.all_axioms_of thy;
 
     fun mk_term t = (if ty then I else map_types (K dummyT))
@@ -198,7 +200,8 @@ fun proof_of_term thy ty =
 
 fun read_term thy topsort =
   let
-    val thm_names = filter_out (fn s => s = "") (map fst (Global_Theory.all_thms_of thy true));
+    val thm_names =
+      filter_out (fn s => s = "") (map (Thm_Name.short o fst) (Global_Theory.all_thms_of thy true));
     val axm_names = map fst (Theory.all_axioms_of thy);
     val ctxt = thy
       |> add_proof_syntax
@@ -224,7 +227,8 @@ fun read_proof thy topsort =
 fun proof_syntax prf =
   let
     val thm_names = Symset.dest (Proofterm.fold_proof_atoms true
-      (fn PThm ({name, ...}, _) => if name <> "" then Symset.insert name else I
+      (fn PThm ({thm_name, ...}, _) =>
+          if Thm_Name.is_empty thm_name then I else Symset.insert (Thm_Name.short thm_name)
         | _ => I) [prf] Symset.empty);
     val axm_names = Symset.dest (Proofterm.fold_proof_atoms true
       (fn PAxm (name, _, _) => Symset.insert name | _ => I) [prf] Symset.empty);

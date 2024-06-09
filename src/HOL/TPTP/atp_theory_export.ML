@@ -164,19 +164,19 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
     val problem =
       facts
       |> map (fn ((_, loc), th) =>
-        ((Thm.get_name_hint th, loc), th |> Thm.prop_of |> mono ? monomorphize_term ctxt))
+        ((Thm_Name.short (Thm.get_name_hint th), loc), th |> Thm.prop_of |> mono ? monomorphize_term ctxt))
       |> generate_atp_problem ctxt true format Axiom type_enc Exporter combsN false false true []
         \<^prop>\<open>False\<close>
       |> #1 |> sort_by (heading_sort_key o fst)
     val prelude = fst (split_last problem)
-    val name_tabs = Sledgehammer_Fact.build_name_tables Thm.get_name_hint facts
+    val name_tabs = Sledgehammer_Fact.build_name_tables (Thm_Name.short o Thm.get_name_hint) facts
     val infers =
       if infer_policy = No_Inferences then
         []
       else
         facts
         |> map (fn (_, th) =>
-                   (fact_name_of (Thm.get_name_hint th),
+                   (fact_name_of (Thm_Name.short (Thm.get_name_hint th)),
                     th |> Sledgehammer_Util.thms_in_proof max_dependencies (SOME name_tabs)
                        |> these |> map fact_name_of))
     val all_problem_names =
@@ -295,7 +295,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
            #> chop_maximal_groups (op = o apply2 theory_name_of_fact)
            #> map (`(include_base_name_of_fact o hd)))
 
-    val fact_tab = Symtab.make (map (fn fact as (_, th) => (Thm.get_name_hint th, fact)) facts)
+    val fact_tab = Symtab.make (map (fn fact as (_, th) => (Thm_Name.short (Thm.get_name_hint th), fact)) facts)
 
     fun write_prelude () =
       let val ss = lines_of_atp_problem format (K []) prelude in
@@ -318,7 +318,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
         val mepo = Sledgehammer_MePo.mepo_suggested_facts ctxt
           (Sledgehammer_Commands.default_params thy []) max_facts NONE hyp_ts conj_t facts
       in
-        map (suffix "\n" o fact_name_of o Thm.get_name_hint o snd) mepo
+        map (suffix "\n" o fact_name_of o Thm_Name.short o Thm.get_name_hint o snd) mepo
       end
 
     fun write_problem_files _ _ _ _ [] = ()

@@ -16,10 +16,13 @@ struct
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = Symtab.build (Global_Theory.all_thms_of thy true |> fold_rev Symtab.update) in
-    fn s =>
-      (case Symtab.lookup tab s of
-        NONE => error ("Unknown theorem " ^ quote s)
+  let
+    val tab =
+      Thm_Name.Table.build (Global_Theory.all_thms_of thy true |> fold_rev Thm_Name.Table.update);
+  in
+    fn name =>
+      (case Thm_Name.Table.lookup tab name of
+        NONE => error ("Unknown theorem " ^ quote (Thm_Name.print name))
       | SOME thm => thm)
   end;
 
@@ -85,14 +88,15 @@ fun thm_of_proof thy =
               (Thm.forall_intr_vars (Thm.forall_intr_frees thm'))
           end;
 
-        fun thm_of _ _ (PThm ({name, prop = prop', types = SOME Ts, ...}, _)) =
+        fun thm_of _ _ (PThm ({thm_name, prop = prop', types = SOME Ts, ...}, _)) =
               let
-                val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup name));
+                val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup thm_name));
                 val prop = Thm.prop_of thm;
                 val _ =
                   if is_equal prop prop' then ()
                   else
-                    error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
+                    error ("Duplicate use of theorem name " ^
+                      quote (Global_Theory.print_thm_name thy thm_name) ^ "\n" ^
                       Syntax.string_of_term_global thy prop ^ "\n\n" ^
                       Syntax.string_of_term_global thy prop');
               in thm_of_atom thm Ts end

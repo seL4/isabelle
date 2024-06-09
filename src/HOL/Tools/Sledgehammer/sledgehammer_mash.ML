@@ -789,7 +789,7 @@ fun crude_printed_term size t =
 
 fun nickname_of_thm th =
   if Thm.has_name_hint th then
-    let val hint = Thm.get_name_hint th in
+    let val hint = Thm_Name.short (Thm.get_name_hint th) in
       (* There must be a better way to detect local facts. *)
       (case Long_Name.dest_local hint of
         SOME suf =>

@@ -35,7 +35,7 @@ ML_val \<open>
   (*all theorems used in the graph of nested proofs*)
   val all_thms =
     Proofterm.fold_body_thms
-      (fn {name, ...} => insert (op =) name) [body] [];
+      (fn {thm_name, ...} => insert (op =) thm_name) [body] [];
 \<close>
 
 text \<open>

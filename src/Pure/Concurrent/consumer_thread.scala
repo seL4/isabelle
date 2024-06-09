@@ -57,7 +57,7 @@ final class Consumer_Thread[A] private(
 
   private def failure(exn: Throwable): Unit =
     Output.error_message(
-      "Consumer thread failure: " + quote(thread.getName) + "\n" + Exn.message(exn))
+      "Consumer thread failure: " + quote(thread.getName) + "\n" + Exn.print(exn))
 
   private def robust_finish(): Unit =
     try { finish() } catch { case exn: Throwable => failure(exn) }

@@ -12,7 +12,7 @@ sig
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
   val thm_deps: theory -> thm list -> (Proofterm.thm_id * Thm_Name.T) list
   val pretty_thm_deps: theory -> thm list -> Pretty.T
-  val unused_thms_cmd: theory list * theory list -> (string * thm) list
+  val unused_thms_cmd: theory list * theory list -> (Thm_Name.T * thm) list
 end;
 
 structure Thm_Deps: THM_DEPS =
@@ -73,17 +73,17 @@ fun thm_deps thy =
 
 fun pretty_thm_deps thy thms =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val facts = Global_Theory.facts_of thy;
+    val extern_fact = Name_Space.extern_generic (Context.Theory thy) (Facts.space_of facts);
     val deps =
       (case try (thm_deps thy) thms of
         SOME deps => deps
       | NONE => error "Malformed proofs");
     val items =
-      map #2 deps
-      |> map (fn (name, i) => (Proof_Context.markup_extern_fact ctxt name, i))
-      |> sort_by (#2 o #1)
-      |> map (fn ((marks, xname), i) =>
-          Pretty.item [Pretty.marks_str (marks, Thm_Name.print (xname, i))]);
+      deps
+      |> map (fn (_, thm_name as (name, _)) => (extern_fact name, thm_name))
+      |> sort_by #1
+      |> map (fn (_, thm_name) => Pretty.item [Global_Theory.pretty_thm_name thy thm_name])
   in Pretty.big_list ("dependencies: " ^ string_of_int (length items)) items end;
 
 
@@ -96,9 +96,8 @@ fun unused_thms_cmd (base_thys, thys) =
       else
         let val {concealed, group, ...} = Name_Space.the_entry space name in
           fold_rev (transfer #> (fn th =>
-            (case Thm.derivation_name th of
-              "" => I
-            | a => cons (a, (th, concealed, group))))) ths
+            let val a = Thm.derivation_name th
+            in if Thm_Name.is_empty a then I else cons (a, (th, concealed, group)) end)) ths
         end;
     fun add_facts thy =
       let
@@ -108,15 +107,15 @@ fun unused_thms_cmd (base_thys, thys) =
 
     val new_thms =
       fold add_facts thys []
-      |> sort_distinct (string_ord o apply2 #1);
+      |> sort_distinct (Thm_Name.ord o apply2 #1);
 
     val used =
       Proofterm.fold_body_thms
-        (fn {name = a, ...} => a <> "" ? Symset.insert a)
+        (fn {thm_name = a, ...} => not (Thm_Name.is_empty a) ? Thm_Name.Set.insert a)
         (map Proofterm.strip_thm_body (Thm.proof_bodies_of (map (#1 o #2) new_thms)))
-        Symset.empty;
+        Thm_Name.Set.empty;
 
-    fun is_unused a = not (Symset.member used a);
+    fun is_unused a = not (Thm_Name.Set.member used a);
 
     (*groups containing at least one used theorem*)
     val used_groups =

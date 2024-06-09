@@ -88,22 +88,20 @@ object Export {
         { res =>
           val executable = res.bool(Base.executable)
           val compressed = res.bool(Base.compressed)
-          val bytes = res.bytes(Base.body)
-          val body = Future.value(compressed, bytes)
-          Entry(entry_name, executable, body, cache)
+          val body = res.bytes(Base.body)
+          Entry(entry_name, executable, compressed, body, cache)
         }
       )
 
     def write_entries(db: SQL.Database, entries: List[Entry]): Unit =
       db.execute_batch_statement(Base.table.insert(), batch =
         for (entry <- entries) yield { (stmt: SQL.Statement) =>
-          val (compressed, bs) = entry.body.join
           stmt.string(1) = entry.session_name
           stmt.string(2) = entry.theory_name
           stmt.string(3) = entry.name
           stmt.bool(4) = entry.executable
-          stmt.bool(5) = compressed
-          stmt.bytes(6) = bs
+          stmt.bool(5) = entry.compressed
+          stmt.bytes(6) = entry.body
         })
 
     def read_theory_names(db: SQL.Database, session_name: String): List[String] =
@@ -147,13 +145,14 @@ object Export {
     def apply(
       entry_name: Entry_Name,
       executable: Boolean,
-      body: Future[(Boolean, Bytes)],
+      compressed: Boolean,
+      body: Bytes,
       cache: XML.Cache
-    ): Entry = new Entry(entry_name, executable, body, cache)
+    ): Entry = new Entry(entry_name, executable, compressed, body, cache)
 
     def empty(theory_name: String, name: String): Entry =
       Entry(Entry_Name(theory = theory_name, name = name),
-        false, Future.value(false, Bytes.empty), XML.Cache.none)
+        false, false, Bytes.empty, XML.Cache.none)
 
     def make(
       session_name: String,
@@ -161,28 +160,26 @@ object Export {
       bytes: Bytes,
       cache: XML.Cache
     ): Entry = {
-      val body =
-        if (args.compress) Future.fork(bytes.maybe_compress(cache = cache.compress))
-        else Future.value((false, bytes))
+      val (compressed, body) =
+        if (args.compress) bytes.maybe_compress(cache = cache.compress)
+        else (false, bytes)
       val entry_name =
         Entry_Name(session = session_name, theory = args.theory_name, name = args.name)
-      Entry(entry_name, args.executable, body, cache)
+      Entry(entry_name, args.executable, compressed, body, cache)
     }
   }
 
   final class Entry private(
     val entry_name: Entry_Name,
     val executable: Boolean,
-    val body: Future[(Boolean, Bytes)],
+    val compressed: Boolean,
+    val body: Bytes,
     val cache: XML.Cache
   ) {
     def session_name: String = entry_name.session
     def theory_name: String = entry_name.theory
     def name: String = entry_name.name
     override def toString: String = name
-
-    def is_finished: Boolean = body.is_finished
-    def cancel(): Unit = body.cancel()
 
     def compound_name: String = entry_name.compound_name
 
@@ -192,10 +189,8 @@ object Export {
     def name_extends(elems: List[String]): Boolean =
       name_elems.startsWith(elems) && name_elems != elems
 
-    def bytes: Bytes = {
-      val (compressed, bs) = body.join
-      if (compressed) bs.uncompress(cache = cache.compress) else bs
-    }
+    def bytes: Bytes =
+      if (compressed) body.uncompress(cache = cache.compress) else body
 
     def text: String = bytes.text
 
@@ -254,9 +249,6 @@ object Export {
     private val errors = Synchronized[List[String]](Nil)
 
     private def consume(args: List[(Entry, Boolean)]): List[Exn.Result[Unit]] = {
-      for ((entry, _) <- args) {
-        if (progress.stopped) entry.cancel() else entry.body.join
-      }
       private_data.transaction_lock(db, label = "Export.consumer(" + args.length + ")") {
         var known = private_data.known_entries(db, args.map(p => p._1.entry_name))
         val buffer = new mutable.ListBuffer[Option[Entry]]
@@ -291,7 +283,7 @@ object Export {
 
     private val consumer =
       Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
-        bulk = { case (entry, _) => entry.is_finished },
+        bulk = _ => true,
         consume = args => (args.grouped(20).toList.flatMap(consume), true))
 
     def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {

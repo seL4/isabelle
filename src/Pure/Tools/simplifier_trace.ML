@@ -230,7 +230,7 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
       let
         (* FIXME pretty printing via Proof_Context.pretty_fact *)
         val pretty_thm = Pretty.block
-          [Pretty.str ("Instance of " ^ name ^ ":"),
+          [Pretty.str ("Instance of " ^ Proof_Context.print_thm_name ctxt name ^ ":"),
            Pretty.brk 1,
            Syntax.pretty_term ctxt (Thm.prop_of thm)]
 
@@ -319,7 +319,7 @@ fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
         val pretty_thm =
           (* FIXME pretty printing via Proof_Context.pretty_fact *)
           Pretty.block
-            [Pretty.str ("In an instance of " ^ name ^ ":"),
+            [Pretty.str ("In an instance of " ^ Proof_Context.print_thm_name ctxt name ^ ":"),
              Pretty.brk 1,
              Syntax.pretty_term ctxt (Thm.prop_of thm)]
 

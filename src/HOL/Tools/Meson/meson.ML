@@ -459,7 +459,7 @@ fun add_contras crules th hcs =
 (*Use "theorem naming" to label the clauses*)
 fun name_thms label =
     let fun name1 th (k, ths) =
-          (k-1, Thm.put_name_hint (label ^ string_of_int k) th :: ths)
+          (k-1, Thm.put_name_hint (label ^ string_of_int k, 0) th :: ths)
     in  fn ths => #2 (fold_rev name1 ths (length ths, []))  end;
 
 (*Is the given disjunction an all-negative support clause?*)

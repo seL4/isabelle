@@ -7,7 +7,7 @@ Finding unused assumptions in lemmas (using Quickcheck).
 signature FIND_UNUSED_ASSMS =
 sig
   val check_unused_assms: Proof.context -> string * thm -> string * int list list option
-  val find_unused_assms: Proof.context -> string -> (string * int list list option) list
+  val find_unused_assms: Proof.context -> string -> (Thm_Name.T * int list list option) list
   val print_unused_assms: Proof.context -> string option -> unit
 end
 
@@ -71,8 +71,8 @@ fun find_unused_assms ctxt thy_name =
     val thy = Proof_Context.theory_of ctxt
     val all_thms =
       thms_of thy thy_name
-      |> filter (fn (name, _) => Long_Name.count name = 2)  (* FIXME !? *)
-      |> sort_by #1
+      |> filter (fn ((name, _), _) => Long_Name.count name = 2)  (* FIXME !? *)
+      |> sort (Thm_Name.ord o apply2 #1)
     val check = check_unused_assms ctxt
   in rev (Par_List.map check all_thms) end
 
@@ -86,8 +86,8 @@ fun pretty_indexes is =
     (flat (separate [Pretty.str " and", Pretty.brk 1]
       (map (fn i => [Pretty.str (string_of_int (i + 1))]) (sort int_ord is))))
 
-fun pretty_thm (name, set_of_indexes) =
-  Pretty.block (Pretty.str name :: Pretty.str ":" :: Pretty.brk 1 ::
+fun pretty_thm ctxt (name, set_of_indexes) =
+  Pretty.block (Proof_Context.pretty_thm_name ctxt name :: Pretty.str ":" :: Pretty.brk 1 ::
     Pretty.str "unnecessary assumption " ::
     separate (Pretty.str " or ") (map pretty_indexes set_of_indexes))
 
@@ -112,7 +112,7 @@ fun print_unused_assms ctxt opt_thy_name =
       string_of_int total ^ " total) in the theory " ^ quote thy_name
   in
     [Pretty.str (msg ^ ":"), Pretty.str ""] @
-    map pretty_thm with_superfluous_assumptions @
+    map (pretty_thm ctxt) with_superfluous_assumptions @
     [Pretty.str "", Pretty.str end_msg]
   end |> Pretty.writeln_chunks
 

@@ -199,7 +199,8 @@ val _ = Theory.setup
    (Args.theory -- Scan.lift Parse.embedded_position >>
       (ML_Syntax.print_string o uncurry check)));
 
-fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (locale_space thy);
+fun extern thy =
+  Name_Space.extern_generic (Context.Theory thy) (locale_space thy);
 
 fun markup_extern ctxt =
   Name_Space.markup_extern ctxt (locale_space (Proof_Context.theory_of ctxt));

@@ -283,11 +283,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
     fun expand_name thm_id (header: Proofterm.thm_header) =
-      if #serial header = #serial thm_id then ""
-      else
-        (case lookup_thm_id (Proofterm.thm_header_id header) of
-          NONE => ""
-        | SOME thm_name => Thm_Name.print thm_name);
+      if #serial header = #serial thm_id then Thm_Name.empty
+      else the_default Thm_Name.empty (lookup_thm_id (Proofterm.thm_header_id header));
 
     fun entity_markup_thm (serial, (name, i)) =
       let
@@ -298,7 +295,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
 
     fun encode_thm thm_id raw_thm =
       let
-        val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
+        val deps = map #2 (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = prep_thm raw_thm;
 
         val proof0 =
@@ -314,7 +311,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
           let
             open XML.Encode Term_XML.Encode;
             val encode_proof = Proofterm.encode_standard_proof consts;
-          in triple encode_prop (list string) encode_proof end
+          in triple encode_prop (list Thm_Name.encode) encode_proof end
       end;
 
     fun export_thm (thm_id, thm_name) =
