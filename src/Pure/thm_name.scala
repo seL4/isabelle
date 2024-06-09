@@ -30,6 +30,20 @@ object Thm_Name {
       case Thm_Name_Regex(name, Value.Nat(index)) => Thm_Name(name, index)
       case _ => Thm_Name(s, 0)
     }
+
+
+  /* XML data representation */
+
+  def encode: XML.Encode.T[Thm_Name] = { (thm_name: Thm_Name) =>
+    import XML.Encode._
+    pair(string, int)((thm_name.name, thm_name.index))
+  }
+
+  def decode: XML.Decode.T[Thm_Name] = { (body: XML.Body) =>
+    import XML.Decode._
+    val (name, index) = pair(string, int)(body)
+    Thm_Name(name, index)
+  }
 }
 
 sealed case class Thm_Name(name: String, index: Int) {
