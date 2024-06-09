@@ -274,6 +274,8 @@ object Term {
       if (no_cache) x else synchronized { cache_typ(x) }
     def term(x: Term): Term =
       if (no_cache) x else synchronized { cache_term(x) }
+    def thm_name(x: Thm_Name): Thm_Name =
+      if (no_cache) x else synchronized { cache_thm_name(x) }
     def proof(x: Proof): Proof =
       if (no_cache) x else synchronized { cache_proof(x) }
 

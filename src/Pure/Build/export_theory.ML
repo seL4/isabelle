@@ -295,7 +295,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
 
     fun encode_thm thm_id raw_thm =
       let
-        val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
+        val deps = map #2 (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = prep_thm raw_thm;
 
         val proof0 =
@@ -311,7 +311,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
           let
             open XML.Encode Term_XML.Encode;
             val encode_proof = Proofterm.encode_standard_proof consts;
-          in triple encode_prop (list string) encode_proof end
+          in triple encode_prop (list Thm_Name.encode) encode_proof end
       end;
 
     fun export_thm (thm_id, thm_name) =
