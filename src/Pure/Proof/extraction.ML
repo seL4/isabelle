@@ -118,11 +118,11 @@ fun condrew thy rules procs =
 
 val change_types = Proofterm.change_types o SOME;
 
-fun extr_name ((name, i): Thm_Name.T) vs =
-  (Long_Name.append "extr" (space_implode "_" (name :: vs)), i);
+fun extr_name thm_name vs =
+  Long_Name.append "extr" (space_implode "_" (Thm_Name.short thm_name :: vs));
 
 fun corr_name thm_name vs =
-  extr_name thm_name vs |>> suffix "_correctness";
+  extr_name thm_name vs ^ "_correctness";
 
 fun msg d s = writeln (Symbol.spaces d ^ s);
 
@@ -651,7 +651,7 @@ fun extract thm_vss thy =
                     val corr_prop = Proofterm.prop_of corr_prf;
                     val corr_header =
                       Proofterm.thm_header (serial ()) pos theory_name
-                        (corr_name thm_name vs') corr_prop
+                        (corr_name thm_name vs', 0) corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_prf' =
                       Proofterm.proof_combP
@@ -752,7 +752,7 @@ fun extract thm_vss thy =
                     val args' = filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs args' nt;
                     val T = fastype_of t';
-                    val cname = Thm_Name.short (extr_name thm_name vs');
+                    val cname = extr_name thm_name vs';
                     val c = Const (cname, T);
                     val u = mkabs args (list_comb (c, args'));
                     val eqn = Logic.mk_equals (c, t');
@@ -773,7 +773,7 @@ fun extract thm_vss thy =
                     val corr_prop = Proofterm.prop_of corr_prf';
                     val corr_header =
                       Proofterm.thm_header (serial ()) pos theory_name
-                        (corr_name thm_name vs') corr_prop
+                        (corr_name thm_name vs', 0) corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
@@ -829,12 +829,12 @@ fun extract thm_vss thy =
         val ft = Type.legacy_freeze t;
         val fu = Type.legacy_freeze u;
         val head = head_of (strip_abs_body fu);
-        val b = Binding.qualified_name (Thm_Name.short (extr_name name vs));
+        val b = Binding.qualified_name (extr_name name vs);
       in
         thy
         |> Sign.add_consts [(b, fastype_of ft, NoSyn)]
         |> Global_Theory.add_def
-           (Binding.qualified_name (Thm.def_name (Thm_Name.short (extr_name name vs))),
+           (Binding.qualified_name (Thm.def_name (extr_name name vs)),
              Logic.mk_equals (head, ft))
         |-> (fn def_thm =>
            Spec_Rules.add_global b Spec_Rules.equational
@@ -847,7 +847,7 @@ fun extract thm_vss thy =
         val corr_prop = Proofterm.prop_of prf;
       in
         thy
-        |> Global_Theory.store_thm (Binding.qualified_name (Thm_Name.short (corr_name s vs)),
+        |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),
             Thm.varifyT_global (funpow (length (vars_of corr_prop))
               (Thm.forall_elim_var 0) (Thm.forall_intr_frees
                 (Proof_Checker.thm_of_proof thy
@@ -856,7 +856,7 @@ fun extract thm_vss thy =
       end;
 
     fun add_def_and_corr (s, (vs, ((t, u), (prf, _)))) thy =
-      if is_none (Sign.const_type thy (Thm_Name.short (extr_name s vs)))
+      if is_none (Sign.const_type thy (extr_name s vs))
       then
         thy
         |> not (t = nullt) ? add_def (s, (vs, ((t, u))))
