@@ -17,6 +17,11 @@ sig
   val add_keywords: keywords -> theory -> theory
   val get_keywords: theory -> Keyword.keywords
   val get_keywords': Proof.context -> Keyword.keywords
+  val print_name: theory -> string -> string
+  val print_name': Proof.context -> string -> string
+  val pretty_name: theory -> string -> Pretty.T
+  val pretty_name': Proof.context -> string -> Pretty.T
+
   val ml_bootstrapN: string
   val ml_roots: string list
   val bootstrap_thys: string list
@@ -90,7 +95,7 @@ val bootstrap_keywords =
      (("ML", \<^here>), Keyword.command_spec (Keyword.thy_decl, ["ML"]))];
 
 
-(* theory data *)
+(* keywords *)
 
 structure Data = Theory_Data
 (
@@ -103,6 +108,12 @@ val add_keywords = Data.map o Keyword.add_keywords;
 
 val get_keywords = Data.get;
 val get_keywords' = get_keywords o Proof_Context.theory_of;
+
+val print_name = Token.print_name o get_keywords;
+val print_name' = Token.print_name o get_keywords';
+
+val pretty_name = Pretty.str oo print_name;
+val pretty_name' = Pretty.str oo print_name';
 
 
 
