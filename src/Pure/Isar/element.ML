@@ -226,11 +226,12 @@ fun standard_elim ctxt th =
 
 fun thm_name ctxt kind th prts =
   let val head =
-    if Thm.has_name_hint th then
-      Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
-        Thy_Header.pretty_name' ctxt (Long_Name.base_name (#1 (Thm.get_name_hint th))),
-        Pretty.str ":"]
-    else Pretty.keyword1 kind
+    (case try Thm.the_name_hint th of
+      SOME (name, _) =>
+        Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
+          Thy_Header.pretty_name' ctxt (Long_Name.base_name name),
+          Pretty.str ":"]
+    | NONE => Pretty.keyword1 kind)
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
 fun obtain prop ctxt =

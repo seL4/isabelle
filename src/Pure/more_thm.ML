@@ -87,6 +87,7 @@ sig
   val def_binding: Binding.binding -> Binding.binding
   val def_binding_optional: Binding.binding -> Binding.binding -> Binding.binding
   val make_def_binding: bool -> Binding.binding -> Binding.binding
+  val the_name_hint: thm -> Thm_Name.T  (*exception THM*)
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> Thm_Name.T
   val put_name_hint: Thm_Name.T -> thm -> thm
@@ -606,9 +607,16 @@ fun make_def_binding cond b = if cond then def_binding b else Binding.empty;
 
 (* unofficial theorem names *)
 
-fun has_name_hint thm = AList.defined (op =) (Thm.get_tags thm) Markup.nameN;
-fun the_name_hint thm = Thm_Name.parse (the (AList.lookup (op =) (Thm.get_tags thm) Markup.nameN));
-fun get_name_hint thm = if has_name_hint thm then the_name_hint thm else ("??.unknown", 0);
+fun the_name_hint thm =
+  let val thm_name = Thm_Name.parse (Properties.get_string (Thm.get_tags thm) Markup.nameN)
+  in
+    if Thm_Name.is_empty thm_name
+    then raise THM ("Thm.the_name_hint: missing name", 0, [thm])
+    else thm_name
+  end;
+
+fun has_name_hint thm = can the_name_hint thm;
+fun get_name_hint thm = try the_name_hint thm |> the_default ("??.unknown", 0);
 
 fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, Thm_Name.print name);
 
