@@ -21,6 +21,7 @@ sig
   val list: string * Position.T -> 'a list -> (P * 'a) list
   val expr: string * Position.T -> ('a list * 'b) list -> ((P * 'a) list * 'b) list
 
+  val parse: string -> T
   val print_prefix: Context.generic -> Name_Space.T -> T -> Markup.T * string
   val print_suffix: T -> string
   val print: T -> string
@@ -55,7 +56,39 @@ fun list (name, pos) [x] = [(((name, 0), pos): P, x)]
 fun expr name = burrow_fst (burrow (list name));
 
 
-(* output *)
+(* parse *)
+
+local
+
+fun is_bg c = c = #"(";
+fun is_en c = c = #")";
+fun is_digit c = #"0" <= c andalso c <= #"9";
+fun get_digit c = Char.ord c - Char.ord #"0";
+
+in
+
+fun parse string =
+  let
+    val n = size string;
+    fun char i = if 0 <= i andalso i < n then String.nth string i else #"\000";
+    fun test pred i = pred (char i);
+
+    fun scan i k m =
+      let val c = char i in
+        if is_digit c then scan (i - 1) (k * 10) (m + k * get_digit c)
+        else if is_bg c then (String.substring (string, 0, i), m)
+        else (string, 0)
+      end;
+  in
+    if test is_en (n - 1) andalso test is_digit (n - 2)
+    then scan (n - 2) 1 0
+    else (string, 0)
+  end;
+
+end;
+
+
+(* print *)
 
 fun print_prefix context space ((name, _): T) =
   if name = "" then (Markup.empty, "")
