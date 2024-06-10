@@ -1100,6 +1100,7 @@ object Build_Manager {
       val logo = Bytes.read(Path.explode("$ISABELLE_HOME/lib/logo/isabelle_transparent-48.gif"))
       val head =
         List(
+          HTML.title("Isabelle Build Manager"),
           Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64),
           HTML.style_file("https://hawkz.github.io/gdcss/gd.css"),
           HTML.style("html { background-color: white; }"))
