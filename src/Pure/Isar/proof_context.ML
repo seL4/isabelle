@@ -450,7 +450,7 @@ fun pretty_fact ctxt =
     val pretty_thms = map (Thm.pretty_thm_item ctxt);
   in
     fn ("", [th]) => pretty_thm th
-     | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))
+     | ("", ths) => Pretty.block0 (Pretty.fbreaks (pretty_thms ths))
      | (a, [th]) =>
         Pretty.block [pretty_fact_name ctxt a, Pretty.str ":", Pretty.brk 1, pretty_thm th]
      | (a, ths) =>

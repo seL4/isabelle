@@ -651,7 +651,7 @@ fun arrange_printings prep_syms ctxt =
       (arrange check_const_syntax) (arrange check_tyco_syntax)
         (arrange ((K o K o K) I)) (arrange ((K o K o K) I)) (arrange ((K o K o K) I))
         (arrange (fn ctxt => fn _ => fn _ => fn (raw_content, raw_syms) =>
-          (Pretty.blk (0, Pretty.fbreaks (map Code_Printer.str (split_lines raw_content))),
+          (Pretty.block0 (Pretty.fbreaks (map Code_Printer.str (split_lines raw_content))),
             map (prep_syms ctxt) raw_syms)))
   end;
 

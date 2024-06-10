@@ -33,6 +33,8 @@ sig
   val breaks: T list -> T list
   val fbreaks: T list -> T list
   val blk: int * T list -> T
+  val block0: T list -> T
+  val block1: T list -> T
   val block: T list -> T
   val strs: string list -> T
   val markup: Markup.T -> T list -> T
@@ -159,6 +161,8 @@ fun fbreaks prts = Library.separate fbrk prts;
 fun blk (indent, es) =
   markup_block {markup = Markup.empty, consistent = false, indent = indent} es;
 
+fun block0 prts = blk (0, prts);
+fun block1 prts = blk (1, prts);
 fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
@@ -177,8 +181,8 @@ val text = breaks o map str o Symbol.explode_words;
 val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
 
-fun quote prt = blk (1, [str "\"", prt, str "\""]);
-fun cartouche prt = blk (1, [str Symbol.open_, prt, str Symbol.close]);
+fun quote prt = block1 [str "\"", prt, str "\""];
+fun cartouche prt = block1 [str Symbol.open_, prt, str Symbol.close];
 
 fun separate sep prts =
   flat (Library.separate [str sep, brk 1] (map single prts));
@@ -208,7 +212,7 @@ fun str_list lpar rpar strs = list lpar rpar (map str strs);
 fun big_list name prts = block (fbreaks (str name :: prts));
 
 fun indent 0 prt = prt
-  | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
+  | indent n prt = block0 [str (Symbol.spaces n), prt];
 
 fun unbreakable (Block (m, consistent, indent, es, len)) =
       Block (m, consistent, indent, map unbreakable es, len)
@@ -373,9 +377,9 @@ val chunks = markup_chunks Markup.empty;
 
 fun chunks2 prts =
   (case try split_last prts of
-    NONE => blk (0, [])
+    NONE => block0 []
   | SOME (prefix, last) =>
-      blk (0, maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
+      block0 (maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
 

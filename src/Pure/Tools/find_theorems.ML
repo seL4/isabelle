@@ -505,7 +505,7 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
      else
        Pretty.str (tally_msg ^ ":") ::
        grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
-  end |> Pretty.fbreaks |> curry Pretty.blk 0;
+  end |> Pretty.fbreaks |> Pretty.block0;
 
 end;
 

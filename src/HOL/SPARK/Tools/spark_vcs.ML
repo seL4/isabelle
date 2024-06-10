@@ -737,7 +737,7 @@ fun partition_vcs vcs = VCtab.fold_rev
         apsnd (cons (name, (trace, ps, cs))))
   vcs ([], []);
 
-fun insert_break prt = Pretty.blk (0, [Pretty.fbrk, prt]);
+fun insert_break prt = Pretty.block0 [Pretty.fbrk, prt];
 
 fun print_open_vcs f vcs =
   (Pretty.writeln (f (pp_open_vcs (snd (partition_vcs vcs)))); vcs);
