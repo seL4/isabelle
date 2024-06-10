@@ -1207,8 +1207,8 @@ object Build_Manager {
     val base_dir = Path.explode(options.string("build_manager_dir"))
     val identifier = options.string("build_manager_identifier")
 
-    private val pending = base_dir + Path.basic("pending")
-    private val finished = base_dir + Path.basic("finished")
+    val pending = base_dir + Path.basic("pending")
+    val finished = base_dir + Path.basic("finished")
 
     def task_dir(task: Task) = pending + Path.basic(task.id.toString)
     def log_file(name: String): Path = finished + Path.explode(name)
