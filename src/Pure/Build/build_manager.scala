@@ -1286,6 +1286,64 @@ object Build_Manager {
     }
   }
 
+
+  /* Isabelle tool wrapper */
+
+  private def show_options(relevant_options: List[String], options: Options): String =
+    cat_lines(relevant_options.flatMap(options.get).map(_.print))
+
+  private val notable_server_options =
+    List(
+      "build_manager_dir",
+      "build_manager_address",
+      "build_manager_ssh_host",
+      "build_manager_ssh_group",
+      "build_manager_ci_jobs")
+
+  val isabelle_tool = Isabelle_Tool("build_manager", "run build manager", Scala_Project.here,
+    { args =>
+      var afp_root: Option[Path] = None
+      val dirs = new mutable.ListBuffer[Path]
+      val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
+      var options = Options.init()
+      var port = 8080
+
+      val getopts = Getopts("""
+Usage: isabelle build_manager [OPTIONS]
+
+  Options are:
+    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
+    -D DIR       include extra component in given directory
+    -H HOSTS     host specifications for all available hosts of the form
+                 NAMES:PARAMETERS (separated by commas)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p PORT      explicit web server port
+
+  Run Isabelle build manager. Notable system options:
+
+""" + Library.indent_lines(2, show_options(notable_server_options, options)) + "\n",
+        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
+        "D:" -> (arg => dirs += Path.explode(arg)),
+        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(Registry.global, arg)),
+        "o:" -> (arg => options = options + arg),
+        "p:" -> (arg => port = Value.Int.parse(arg)))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val progress = new Console_Progress()
+      val sync_dirs =
+        Sync.afp_dirs(afp_root) ::: dirs.toList.map(dir => Sync.Dir(dir.file_name, dir))
+
+      sync_dirs.foreach(_.check())
+
+      build_manager(build_hosts = build_hosts.toList, options = options, port = port,
+        sync_dirs = sync_dirs, progress = progress)
+    })
+
+
+  /* build task */
+
   def build_task(
     options: Options,
     store: Store,
@@ -1350,58 +1408,6 @@ object Build_Manager {
 
 
   /* Isabelle tool wrapper */
-
-  private def show_options(relevant_options: List[String], options: Options): String =
-    cat_lines(relevant_options.flatMap(options.get).map(_.print))
-
-  private val notable_server_options =
-    List(
-      "build_manager_dir",
-      "build_manager_address",
-      "build_manager_ssh_host",
-      "build_manager_ssh_group",
-      "build_manager_ci_jobs")
-
-  val isabelle_tool = Isabelle_Tool("build_manager", "run build manager", Scala_Project.here,
-    { args =>
-      var afp_root: Option[Path] = None
-      val dirs = new mutable.ListBuffer[Path]
-      val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
-      var options = Options.init()
-      var port = 8080
-
-      val getopts = Getopts("""
-Usage: isabelle build_manager [OPTIONS]
-
-  Options are:
-    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
-    -D DIR       include extra component in given directory
-    -H HOSTS     host specifications for all available hosts of the form
-                 NAMES:PARAMETERS (separated by commas)
-    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p PORT      explicit web server port
-
-  Run Isabelle build manager. Notable system options:
-
-""" + Library.indent_lines(2, show_options(notable_server_options, options)) + "\n",
-        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
-        "D:" -> (arg => dirs += Path.explode(arg)),
-        "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(Registry.global, arg)),
-        "o:" -> (arg => options = options + arg),
-        "p:" -> (arg => port = Value.Int.parse(arg)))
-
-      val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
-
-      val progress = new Console_Progress()
-      val sync_dirs =
-        Sync.afp_dirs(afp_root) ::: dirs.toList.map(dir => Sync.Dir(dir.file_name, dir))
-
-      sync_dirs.foreach(_.check())
-
-      build_manager(build_hosts = build_hosts.toList, options = options, port = port,
-        sync_dirs = sync_dirs, progress = progress)
-    })
 
   val notable_client_options = List("build_manager_ssh_user", "build_manager_ssh_group")
 
