@@ -861,6 +861,8 @@ object Build_Manager {
   /* web server */
 
   object Web_Server {
+    val Id = new Properties.String(Markup.ID)
+
     object Page {
       val HOME = Path.basic("home")
       val OVERVIEW = Path.basic("overview")
@@ -904,7 +906,6 @@ object Build_Manager {
     import Web_Server.*
 
     val cache = Cache.empty
-    val Id = new Properties.String(Markup.ID)
 
     enum Model {
       case Error extends Model
@@ -1055,7 +1056,7 @@ object Build_Manager {
           case Markup.Name(name) =>
             val state = _state
             state.get(name).map(Model.Build(_, state))
-          case Id(UUID(uuid)) =>
+          case Web_Server.Id(UUID(uuid)) =>
             val state = _state
             state.get(uuid).map(Model.Build(_, state, public = false))
           case _ => None
@@ -1369,6 +1370,8 @@ Usage: isabelle build_manager [OPTIONS]
     val afp_rev = if (afp_root.nonEmpty) Some("") else None
 
     val hosts_spec = options.string("build_manager_cluster")
+    val paths = Web_App.Paths(Url(options.string("build_manager_address")), Path.current)
+
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions,
       base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
       clean_build, export_files, fresh_build, presentation, verbose)
@@ -1397,7 +1400,8 @@ Usage: isabelle build_manager [OPTIONS]
               }
             }
           }
-          val address = options.string("build_manager_address") + "/build?id=" + task.uuid
+
+          val address = paths.frontend_url(Web_Server.Page.BUILD, Web_Server.Id(task.uuid.toString))
           progress.echo("Submitted task. Private url: " + address)
         }
       }
