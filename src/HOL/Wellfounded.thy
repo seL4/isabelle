@@ -921,7 +921,7 @@ lemma accp_downwards_aux: "r\<^sup>*\<^sup>* b a \<Longrightarrow> accp r a \<lo
 theorem accp_downwards: "accp r a \<Longrightarrow> r\<^sup>*\<^sup>* b a \<Longrightarrow> accp r b"
   by (blast dest: accp_downwards_aux)
 
-theorem accp_wfPI: "\<forall>x. accp r x \<Longrightarrow> wfP r"
+theorem accp_wfpI: "\<forall>x. accp r x \<Longrightarrow> wfp r"
 proof (rule wfPUNIVI)
   fix P x
   assume "\<forall>x. accp r x" "\<forall>x. (\<forall>y. r y x \<longrightarrow> P y) \<longrightarrow> P x"
@@ -929,14 +929,14 @@ proof (rule wfPUNIVI)
     using accp_induct[where P = P] by blast
 qed
 
-theorem accp_wfPD: "wfP r \<Longrightarrow> accp r x"
+theorem accp_wfpD: "wfp r \<Longrightarrow> accp r x"
   apply (erule wfP_induct_rule)
   apply (rule accp.accI)
   apply blast
   done
 
 theorem wfp_iff_accp: "wfp r = (\<forall>x. accp r x)"
-  by (blast intro: accp_wfPI dest: accp_wfPD)
+  by (blast intro: accp_wfpI dest: accp_wfpD)
 
 
 text \<open>Smaller relations have bigger accessible parts:\<close>
@@ -986,8 +986,8 @@ lemmas acc_downward = accp_downward [to_set]
 lemmas not_acc_down = not_accp_down [to_set]
 lemmas acc_downwards_aux = accp_downwards_aux [to_set]
 lemmas acc_downwards = accp_downwards [to_set]
-lemmas acc_wfI = accp_wfPI [to_set]
-lemmas acc_wfD = accp_wfPD [to_set]
+lemmas acc_wfI = accp_wfpI [to_set]
+lemmas acc_wfD = accp_wfpD [to_set]
 lemmas wf_iff_acc = wfp_iff_accp [to_set]
 lemmas acc_subset = accp_subset [to_set]
 lemmas acc_subset_induct = accp_subset_induct [to_set]
