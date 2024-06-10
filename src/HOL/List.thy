@@ -7383,7 +7383,7 @@ proof (induction set: Wellfounded.acc)
 qed
 
 lemma wf_listrel1_iff[simp]: "wf(listrel1 r) = wf r"
-by (auto simp: wf_acc_iff
+by (auto simp: wf_iff_acc
       intro: lists_accD lists_accI[THEN Cons_in_lists_iff[THEN iffD1, THEN conjunct1]])
 
 subsubsection \<open>Lifting Relations to Lists: all elements\<close>

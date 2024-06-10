@@ -9,8 +9,10 @@ New in this Isabelle version
 
 * Theory "HOL.Wellfounded":
   - Renamed lemmas. Minor INCOMPATIBILITY.
+      wfP_accp_iff ~> wfp_accp_iff
       wfP_if_convertible_to_nat ~> wfp_if_convertible_to_nat
       wfP_if_convertible_to_wfP ~> wfp_if_convertible_to_wfp
+      wf_acc_iff ~> wf_iff_acc
 
 
 New in Isabelle2024 (May 2024)

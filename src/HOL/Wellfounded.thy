@@ -935,7 +935,7 @@ theorem accp_wfPD: "wfP r \<Longrightarrow> accp r x"
   apply blast
   done
 
-theorem wfP_accp_iff: "wfP r = (\<forall>x. accp r x)"
+theorem wfp_iff_accp: "wfp r = (\<forall>x. accp r x)"
   by (blast intro: accp_wfPI dest: accp_wfPD)
 
 
@@ -988,7 +988,7 @@ lemmas acc_downwards_aux = accp_downwards_aux [to_set]
 lemmas acc_downwards = accp_downwards [to_set]
 lemmas acc_wfI = accp_wfPI [to_set]
 lemmas acc_wfD = accp_wfPD [to_set]
-lemmas wf_acc_iff = wfP_accp_iff [to_set]
+lemmas wf_iff_acc = wfp_iff_accp [to_set]
 lemmas acc_subset = accp_subset [to_set]
 lemmas acc_subset_induct = accp_subset_induct [to_set]
 
