@@ -11,9 +11,22 @@ New in this Isabelle version
   - Renamed lemmas. Minor INCOMPATIBILITY.
       accp_wfPD ~> accp_wfpD
       accp_wfPI ~> accp_wfpI
+      wfPUNIVI ~> wfpUNIVI
+      wfP_SUP ~> wfp_SUP
       wfP_accp_iff ~> wfp_accp_iff
+      wfP_acyclicP ~> wfp_acyclicP
+      wfP_def ~> wfp_def
+      wfP_empty ~> wfp_empty
+      wfP_eq_minimal ~> wfp_eq_minimal
       wfP_if_convertible_to_nat ~> wfp_if_convertible_to_nat
       wfP_if_convertible_to_wfP ~> wfp_if_convertible_to_wfp
+      wfP_imp_asymp ~> wfp_imp_asymp
+      wfP_imp_irreflp ~> wfp_imp_irreflp
+      wfP_induct ~> wfp_induct
+      wfP_induct_rule ~> wfp_induct_rule
+      wfP_subset ~> wfp_subset
+      wfP_trancl ~> wfp_tranclp
+      wfP_wf_eq ~> wfp_wf_eq
       wf_acc_iff ~> wf_iff_acc
 
 

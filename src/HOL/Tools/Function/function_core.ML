@@ -715,7 +715,7 @@ fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
 
 (** Termination rule **)
 
-val wf_induct_rule = @{thm Wellfounded.wfP_induct_rule}
+val wf_induct_rule = @{thm Wellfounded.wfp_induct_rule}
 val wf_in_rel = @{thm Fun_Def.wf_in_rel}
 val in_rel_def = @{thm Fun_Def.in_rel_def}
 

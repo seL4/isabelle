@@ -68,8 +68,8 @@ qed
 
 definition in_rel_def[simp]: "in_rel R x y \<equiv> (x, y) \<in> R"
 
-lemma wf_in_rel: "wf R \<Longrightarrow> wfP (in_rel R)"
-  by (simp add: wfP_def)
+lemma wf_in_rel: "wf R \<Longrightarrow> wfp (in_rel R)"
+  by (simp add: wfp_def)
 
 ML_file \<open>Tools/Function/function_core.ML\<close>
 ML_file \<open>Tools/Function/mutual.ML\<close>

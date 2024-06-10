@@ -41,10 +41,10 @@ lemma wfp_on_wf_on_eq[pred_set_conv]: "wfp_on A (\<lambda>x y. (x, y) \<in> r) \
 lemma wf_def: "wf r \<longleftrightarrow> (\<forall>P. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x. P x))"
   unfolding wf_on_def by simp
 
-lemma wfP_def: "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
+lemma wfp_def: "wfp r \<longleftrightarrow> wf {(x, y). r x y}"
   unfolding wf_def wfp_on_def by simp
 
-lemma wfP_wf_eq: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
+lemma wfp_wf_eq: "wfp (\<lambda>x y. (x, y) \<in> r) = wf r"
   using wfp_on_wf_on_eq .
 
 
@@ -66,11 +66,11 @@ lemma wf_induct:
   shows "P a"
   using assms by (auto intro: wf_on_induct[of UNIV])
 
-lemmas wfP_induct = wf_induct [to_pred]
+lemmas wfp_induct = wf_induct [to_pred]
 
 lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
 
-lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
+lemmas wfp_induct_rule = wf_induct_rule [to_pred, induct set: wfp]
 
 lemma wf_on_iff_wf: "wf_on A r \<longleftrightarrow> wf {(x, y) \<in> r. x \<in> A \<and> y \<in> A}"
 proof (rule iffI)
@@ -129,7 +129,7 @@ subsection \<open>Introduction Rules\<close>
 lemma wfUNIVI: "(\<And>P x. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<Longrightarrow> P x) \<Longrightarrow> wf r"
   unfolding wf_def by blast
 
-lemmas wfPUNIVI = wfUNIVI [to_pred]
+lemmas wfpUNIVI = wfUNIVI [to_pred]
 
 text \<open>Restriction to domain \<open>A\<close> and range \<open>B\<close>.
   If \<open>r\<close> is well-founded over their intersection, then \<open>wf r\<close>.\<close>
@@ -153,7 +153,7 @@ lemma wf_asym:
 lemma wf_imp_asym: "wf r \<Longrightarrow> asym r"
   by (auto intro: asymI elim: wf_asym)
 
-lemma wfP_imp_asymp: "wfP r \<Longrightarrow> asymp r"
+lemma wfp_imp_asymp: "wfp r \<Longrightarrow> asymp r"
   by (rule wf_imp_asym[to_pred])
 
 lemma wf_not_refl [simp]: "wf r \<Longrightarrow> (a, a) \<notin> r"
@@ -168,7 +168,7 @@ lemma wf_imp_irrefl:
   assumes "wf r" shows "irrefl r" 
   using wf_irrefl [OF assms] by (auto simp add: irrefl_def)
 
-lemma wfP_imp_irreflp: "wfP r \<Longrightarrow> irreflp r"
+lemma wfp_imp_irreflp: "wfp r \<Longrightarrow> irreflp r"
   by (rule wf_imp_irrefl[to_pred])
 
 lemma wf_wellorderI:
@@ -182,8 +182,8 @@ lemma wf_wellorderI:
 lemma (in wellorder) wf: "wf {(x, y). x < y}"
   unfolding wf_def by (blast intro: less_induct)
 
-lemma (in wellorder) wfP_less[simp]: "wfP (<)"
-  by (simp add: wf wfP_def)
+lemma (in wellorder) wfP_less[simp]: "wfp (<)"
+  by (simp add: wf wfp_def)
 
 lemma (in wellorder) wfp_on_less[simp]: "wfp_on A (<)"
   unfolding wfp_on_def
@@ -307,7 +307,7 @@ qed
 lemma wf_eq_minimal: "wf r \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q))"
   unfolding wf_iff_ex_minimal by blast
 
-lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
+lemmas wfp_eq_minimal = wf_eq_minimal [to_pred]
 
 
 subsubsection \<open>Antimonotonicity\<close>
@@ -376,7 +376,7 @@ proof -
   then show ?thesis unfolding wf_def by blast
 qed
 
-lemmas wfP_trancl = wf_trancl [to_pred]
+lemmas wfp_tranclp = wf_trancl [to_pred]
 
 lemma wf_converse_trancl: "wf (r\<inverse>) \<Longrightarrow> wf ((r\<^sup>+)\<inverse>)"
   apply (subst trancl_converse [symmetric])
@@ -388,16 +388,16 @@ text \<open>Well-foundedness of subsets\<close>
 lemma wf_subset: "wf r \<Longrightarrow> p \<subseteq> r \<Longrightarrow> wf p"
   by (simp add: wf_eq_minimal) fast
 
-lemmas wfP_subset = wf_subset [to_pred]
+lemmas wfp_subset = wf_subset [to_pred]
 
 text \<open>Well-foundedness of the empty relation\<close>
 
 lemma wf_empty [iff]: "wf {}"
   by (simp add: wf_def)
 
-lemma wfP_empty [iff]: "wfP (\<lambda>x y. False)"
+lemma wfp_empty [iff]: "wfp (\<lambda>x y. False)"
 proof -
-  have "wfP bot"
+  have "wfp bot"
     by (fact wf_empty[to_pred bot_empty_eq2])
   then show ?thesis
     by (simp add: bot_fun_def)
@@ -602,9 +602,9 @@ proof clarify
   qed
 qed
 
-lemma wfP_SUP:
-  "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (Domainp (r i)) (Rangep (r j)) = bot \<Longrightarrow>
-    wfP (\<Squnion>(range r))"
+lemma wfp_SUP:
+  "\<forall>i. wfp (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (Domainp (r i)) (Rangep (r j)) = bot \<Longrightarrow>
+    wfp (\<Squnion>(range r))"
   by (rule wf_UN[to_pred]) simp_all
 
 lemma wf_Union:
@@ -757,7 +757,7 @@ subsection \<open>Acyclic relations\<close>
 lemma wf_acyclic: "wf r \<Longrightarrow> acyclic r"
   by (simp add: acyclic_def) (blast elim: wf_trancl [THEN wf_irrefl])
 
-lemmas wfP_acyclicP = wf_acyclic [to_pred]
+lemmas wfp_acyclicP = wf_acyclic [to_pred]
 
 
 subsubsection \<open>Wellfoundedness of finite acyclic relations\<close>
@@ -922,7 +922,7 @@ theorem accp_downwards: "accp r a \<Longrightarrow> r\<^sup>*\<^sup>* b a \<Long
   by (blast dest: accp_downwards_aux)
 
 theorem accp_wfpI: "\<forall>x. accp r x \<Longrightarrow> wfp r"
-proof (rule wfPUNIVI)
+proof (rule wfpUNIVI)
   fix P x
   assume "\<forall>x. accp r x" "\<forall>x. (\<forall>y. r y x \<longrightarrow> P y) \<longrightarrow> P x"
   then show "P x"
@@ -930,7 +930,7 @@ proof (rule wfPUNIVI)
 qed
 
 theorem accp_wfpD: "wfp r \<Longrightarrow> accp r x"
-  apply (erule wfP_induct_rule)
+  apply (erule wfp_induct_rule)
   apply (rule accp.accI)
   apply blast
   done
