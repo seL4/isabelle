@@ -223,7 +223,7 @@ val skolem_thesis = Name.skolem Auto_Bind.thesisN
 
 fun is_that_fact th =
   exists_subterm (fn Free (s, _) => s = skolem_thesis | _ => false) (Thm.prop_of th)
-  andalso String.isSuffix sep_that (Thm_Name.short (Thm.get_name_hint th))
+  andalso String.isSuffix sep_that (#1 (Thm.get_name_hint th))
 
 datatype interest = Deal_Breaker | Interesting | Boring
 
