@@ -99,12 +99,12 @@ object Build_Manager {
   sealed case class Task(
     build_config: Build_Config,
     hosts_spec: String,
-    id: UUID.T = UUID.random(),
+    uuid: UUID.T = UUID.random(),
     submit_date: Date = Date.now(),
     priority: Priority = Priority.normal,
     isabelle_rev: String = ""
   ) extends T {
-    def name: String = id.toString
+    def name: String = uuid.toString
     def kind: String = build_config.name
     def components: List[Component] = build_config.components
 
@@ -114,16 +114,16 @@ object Build_Manager {
   }
 
   sealed case class Job(
-    id: UUID.T,
+    uuid: UUID.T,
     kind: String,
-    number: Long,
+    id: Long,
     isabelle_rev: String,
     build_cluster: Boolean,
     hostnames: List[String],
     components: List[Component],
     start_date: Date = Date.now(),
     cancelled: Boolean = false
-  ) extends T { def name: String = kind + "/" + number }
+  ) extends T { def name: String = kind + "/" + id }
 
   object Status {
     def from_result(result: Process_Result): Status = {
@@ -137,12 +137,12 @@ object Build_Manager {
 
   sealed case class Result(
     kind: String,
-    number: Long,
+    id: Long,
     status: Status,
-    id: Option[UUID.T] = None,
+    uuid: Option[UUID.T] = None,
     date: Date = Date.now(),
     serial: Long = 0,
-  ) extends T { def name: String = kind + "/" + number }
+  ) extends T { def name: String = kind + "/" + id }
 
   object State {
     def max_serial(serials: Iterable[Long]): Long = serials.maxOption.getOrElse(0L)
@@ -196,8 +196,8 @@ object Build_Manager {
       running.values.map(_.kind) ++
       finished.values.map(_.kind)).toList.distinct
 
-    def next_number(kind: String): Long = {
-      val serials = get_finished(kind).map(_.number) ::: get_running(kind).map(_.number)
+    def next_id(kind: String): Long = {
+      val serials = get_finished(kind).map(_.id) ::: get_running(kind).map(_.id)
       State.inc_serial(State.max_serial(serials))
     }
 
@@ -210,10 +210,10 @@ object Build_Manager {
     def get(name: String): Option[T] =
       pending.get(name).orElse(running.get(name)).orElse(finished.get(name))
 
-    def get(id: UUID.T): Option[T] =
-      pending.values.find(_.id == id).orElse(
-        running.values.find(_.id == id)).orElse(
-        finished.values.find(_.id.contains(id)))
+    def get(uuid: UUID.T): Option[T] =
+      pending.values.find(_.uuid == uuid).orElse(
+        running.values.find(_.uuid == uuid)).orElse(
+        finished.values.find(_.uuid.contains(uuid)))
   }
 
 
@@ -280,7 +280,7 @@ object Build_Manager {
       val kind = SQL.Column.string("kind")
       val build_cluster = SQL.Column.bool("build_cluster")
       val hosts_spec = SQL.Column.string("hosts_spec")
-      val id = SQL.Column.string("id").make_primary_key
+      val uuid = SQL.Column.string("uuid").make_primary_key
       val submit_date = SQL.Column.date("submit_date")
       val priority = SQL.Column.string("priority")
       val isabelle_rev = SQL.Column.string("isabelle_rev")
@@ -302,7 +302,7 @@ object Build_Manager {
       val verbose = SQL.Column.bool("verbose")
 
       val table =
-        make_table(List(kind, build_cluster, hosts_spec, id, submit_date, priority, isabelle_rev,
+        make_table(List(kind, build_cluster, hosts_spec, uuid, submit_date, priority, isabelle_rev,
           components, prefs, requirements, all_sessions, base_sessions, exclude_session_groups,
           exclude_sessions, session_groups, sessions, build_heap, clean_build, export_files,
           fresh_build, presentation, verbose),
@@ -315,7 +315,7 @@ object Build_Manager {
           val kind = res.string(Pending.kind)
           val build_cluster = res.bool(Pending.build_cluster)
           val hosts_spec = res.string(Pending.hosts_spec)
-          val id = res.string(Pending.id)
+          val uuid = res.string(Pending.uuid)
           val submit_date = res.date(Pending.submit_date)
           val priority = Priority.valueOf(res.string(Pending.priority))
           val isabelle_rev = res.string(Pending.isabelle_rev)
@@ -347,7 +347,7 @@ object Build_Manager {
             }
 
           val task =
-            Task(build_config, hosts_spec, UUID.make(id), submit_date, priority, isabelle_rev)
+            Task(build_config, hosts_spec, UUID.make(uuid), submit_date, priority, isabelle_rev)
 
           task.name -> task
         })
@@ -358,10 +358,10 @@ object Build_Manager {
       pending: Build_Manager.State.Pending
     ): Update = {
       val update = Update.make(old_pending, pending)
-      val delete = update.delete.map(old_pending(_).id.toString)
+      val delete = update.delete.map(old_pending(_).uuid.toString)
 
       if (update.deletes)
-        db.execute_statement(Pending.table.delete(Pending.id.where_member(delete)))
+        db.execute_statement(Pending.table.delete(Pending.uuid.where_member(delete)))
 
       if (update.inserts) {
         db.execute_batch_statement(Pending.table.insert(), batch =
@@ -370,7 +370,7 @@ object Build_Manager {
             stmt.string(1) = task.kind
             stmt.bool(2) = task.build_cluster
             stmt.string(3) = task.hosts_spec
-            stmt.string(4) = task.id.toString
+            stmt.string(4) = task.uuid.toString
             stmt.date(5) = task.submit_date
             stmt.string(6) = task.priority.toString
             stmt.string(7) = task.isabelle_rev
@@ -406,9 +406,9 @@ object Build_Manager {
     /* running */
 
     object Running {
-      val id = SQL.Column.string("id").make_primary_key
+      val uuid = SQL.Column.string("uuid").make_primary_key
       val kind = SQL.Column.string("kind")
-      val number = SQL.Column.long("number")
+      val id = SQL.Column.long("id")
       val isabelle_rev = SQL.Column.string("isabelle_rev")
       val build_cluster = SQL.Column.bool("build_cluster")
       val hostnames = SQL.Column.string("hostnames")
@@ -417,7 +417,7 @@ object Build_Manager {
       val cancelled = SQL.Column.bool("cancelled")
 
       val table =
-        make_table(List(id, kind, number, isabelle_rev, build_cluster, hostnames, components,
+        make_table(List(uuid, kind, id, isabelle_rev, build_cluster, hostnames, components,
           start_date, cancelled),
         name = "running")
     }
@@ -425,9 +425,9 @@ object Build_Manager {
     def pull_running(db: SQL.Database): Build_Manager.State.Running =
       db.execute_query_statement(Running.table.select(), Map.from[String, Job], get =
         { res =>
-          val id = res.string(Running.id)
+          val uuid = res.string(Running.uuid)
           val kind = res.string(Running.kind)
-          val number = res.long(Running.number)
+          val id = res.long(Running.id)
           val isabelle_rev = res.string(Running.isabelle_rev)
           val build_cluster = res.bool(Running.build_cluster)
           val hostnames = space_explode(',', res.string(Running.hostnames))
@@ -435,7 +435,7 @@ object Build_Manager {
           val start_date = res.date(Running.start_date)
           val cancelled = res.bool(Running.cancelled)
 
-          val job = Job(UUID.make(id), kind, number, isabelle_rev, build_cluster, hostnames,
+          val job = Job(UUID.make(uuid), kind, id, isabelle_rev, build_cluster, hostnames,
             components, start_date, cancelled)
 
           job.name -> job
@@ -447,18 +447,18 @@ object Build_Manager {
       running: Build_Manager.State.Running
     ): Update = {
       val update = Update.make(old_running, running)
-      val delete = update.delete.map(old_running(_).id.toString)
+      val delete = update.delete.map(old_running(_).uuid.toString)
 
       if (update.deletes)
-        db.execute_statement(Running.table.delete(Running.id.where_member(delete)))
+        db.execute_statement(Running.table.delete(Running.uuid.where_member(delete)))
 
       if (update.inserts) {
         db.execute_batch_statement(Running.table.insert(), batch =
           for (name <- update.insert) yield { (stmt: SQL.Statement) =>
             val job = running(name)
-            stmt.string(1) = job.id.toString
+            stmt.string(1) = job.uuid.toString
             stmt.string(2) = job.kind
-            stmt.long(3) = job.number
+            stmt.long(3) = job.id
             stmt.string(4) = job.isabelle_rev
             stmt.bool(5) = job.build_cluster
             stmt.string(6) = job.hostnames.mkString(",")
@@ -475,13 +475,13 @@ object Build_Manager {
 
     object Finished {
       val kind = SQL.Column.string("kind")
-      val number = SQL.Column.long("number")
+      val id = SQL.Column.long("id")
       val status = SQL.Column.string("status")
-      val id = SQL.Column.string("id")
+      val uuid = SQL.Column.string("uuid")
       val date = SQL.Column.date("date")
       val serial = SQL.Column.long("serial").make_primary_key
 
-      val table = make_table(List(kind, number, status, id, date, serial), name = "finished")
+      val table = make_table(List(kind, id, status, uuid, date, serial), name = "finished")
     }
 
     def read_finished_serial(db: SQL.Database): Long =
@@ -501,13 +501,13 @@ object Build_Manager {
         Map.from[String, Result], get =
         { res =>
           val kind = res.string(Finished.kind)
-          val number = res.long(Finished.number)
+          val id = res.long(Finished.id)
           val status = Status.valueOf(res.string(Finished.status))
-          val id = res.get_string(Finished.id).map(UUID.make)
+          val uuid = res.get_string(Finished.uuid).map(UUID.make)
           val date = res.date(Finished.date)
           val serial = res.long(Finished.serial)
 
-          val result = Result(kind, number, status, id, date, serial)
+          val result = Result(kind, id, status, uuid, date, serial)
           result.name -> result
         }
       )
@@ -527,9 +527,9 @@ object Build_Manager {
         db.execute_batch_statement(Finished.table.insert(), batch =
           for (result <- insert) yield { (stmt: SQL.Statement) =>
             stmt.string(1) = result.kind
-            stmt.long(2) = result.number
+            stmt.long(2) = result.id
             stmt.string(3) = result.status.toString
-            stmt.string(4) = result.id.map(_.toString)
+            stmt.string(4) = result.uuid.map(_.toString)
             stmt.date(5) = result.date
             stmt.long(6) = result.serial
           })
@@ -678,8 +678,8 @@ object Build_Manager {
 
           _state = _state.remove_pending(task.name)
 
-          val number = _state.next_number(task.kind)
-          val context = Context(store, task, number)
+          val id = _state.next_id(task.kind)
+          val context = Context(store, task, id)
 
           Exn.capture {
             context.init()
@@ -701,18 +701,18 @@ object Build_Manager {
                   else error("Unknown component " + component)
               }
 
-            Job(task.id, task.kind, number, isabelle_rev, task.build_cluster, hostnames, components)
+            Job(task.uuid, task.kind, id, isabelle_rev, task.build_cluster, hostnames, components)
           } match {
             case Exn.Res(job) =>
               _state = _state.add_running(job)
 
               val msg = "Starting " + job.name
-              echo(msg + " (id " + job.id + ")")
+              echo(msg + " (id " + job.uuid + ")")
               context.progress.echo(msg)
 
               Some(context)
             case Exn.Exn(exn) =>
-              val result = Result(task.kind, number, Status.aborted)
+              val result = Result(task.kind, id, Status.aborted)
               _state = _state.add_finished(result)
 
               val msg = "Failed to start job: " + exn.getMessage
@@ -735,11 +735,11 @@ object Build_Manager {
     private def finish_job(name: String, process_result: Process_Result): Unit =
       synchronized_database("finish_job") {
         val job = _state.running(name)
-        val result = Result(job.kind, job.number, Status.from_result(process_result), Some(job.id))
+        val result = Result(job.kind, job.id, Status.from_result(process_result), Some(job.uuid))
 
         val interrupted_error = process_result.interrupted && process_result.err.nonEmpty
         val err_msg = if_proper(interrupted_error, ": " + process_result.err)
-        echo("Finished job " + job.id + " with status code " + process_result.rc + err_msg)
+        echo("Finished job " + job.uuid + " with status code " + process_result.rc + err_msg)
 
         _state = _state
           .remove_running(job.name)
@@ -925,8 +925,8 @@ object Build_Manager {
 
       def link_kind(kind: String): XML.Elem =
         frontend_link(paths.frontend_url(Page.OVERVIEW, Markup.Kind(kind)), text(kind))
-      def link_build(name: String, number: Long): XML.Elem =
-        frontend_link(paths.frontend_url(Page.BUILD, Markup.Name(name)), text("#" + number))
+      def link_build(name: String, id: Long): XML.Elem =
+        frontend_link(paths.frontend_url(Page.BUILD, Markup.Name(name)), text("#" + id))
 
       private def render_page(name: String)(body: => XML.Body): XML.Body = {
         def nav_link(path: Path, s: String): XML.Elem =
@@ -938,32 +938,32 @@ object Build_Manager {
 
       def render_home(state: State): XML.Body = render_page("Dashboard") {
         def render_kind(kind: String): XML.Elem = {
-          val running = state.get_running(kind).sortBy(_.number).reverse
-          val finished = state.get_finished(kind).sortBy(_.number).reverse
+          val running = state.get_running(kind).sortBy(_.id).reverse
+          val finished = state.get_finished(kind).sortBy(_.id).reverse
 
           def render_previous(finished: List[Result]): XML.Body = {
             val (failed, rest) = finished.span(_.status != Status.ok)
             val first_failed = failed.lastOption.map(result =>
               par(
                 text("first failure: ") :::
-                link_build(result.name, result.number) ::
+                link_build(result.name, result.id) ::
                 text(" on " + result.date)))
             val last_success = rest.headOption.map(result =>
               par(
-                text("last success: ") ::: link_build(result.name, result.number) ::
+                text("last success: ") ::: link_build(result.name, result.id) ::
                 text(" on " + result.date)))
             first_failed.toList ::: last_success.toList
           }
 
           def render_job(job: Job): XML.Body =
-            par(link_build(job.name, job.number) :: text(": running since " + job.start_date)) ::
+            par(link_build(job.name, job.id) :: text(": running since " + job.start_date)) ::
             render_if(
               finished.headOption.exists(_.status != Status.ok) && job.kind != User_Build.name,
               render_previous(finished))
 
           def render_result(result: Result): XML.Body =
             par(
-              link_build(result.name, result.number) ::
+              link_build(result.name, result.id) ::
               text(" (" + result.status.toString + ") on " + result.date)) ::
             render_if(result.status != Status.ok && result.kind != User_Build.name,
               render_previous(finished.tail))
@@ -983,25 +983,25 @@ object Build_Manager {
       def render_overview(kind: String, state: State): XML.Body =
         render_page("Overview: " + kind + " job ") {
           def render_job(job: Job): XML.Body =
-            List(par(link_build(job.name, job.number) :: text(" running since " + job.start_date)))
+            List(par(link_build(job.name, job.id) :: text(" running since " + job.start_date)))
 
           def render_result(result: Result): XML.Body =
             List(par(
-              link_build(result.name, result.number) ::
+              link_build(result.name, result.id) ::
               text(" (" + result.status + ") on " + result.date)))
 
           itemize(
-            state.get_running(kind).sortBy(_.number).reverse.map(render_job) :::
-            state.get_finished(kind).sortBy(_.number).reverse.map(render_result)) :: Nil
+            state.get_running(kind).sortBy(_.id).reverse.map(render_job) :::
+            state.get_finished(kind).sortBy(_.id).reverse.map(render_result)) :: Nil
         }
 
       private val ID = Params.key(Markup.ID)
 
       def render_build(elem: T, state: State, public: Boolean): XML.Body =
         render_page("Build: " + elem.name) {
-          def render_cancel(id: UUID.T): XML.Body =
+          def render_cancel(uuid: UUID.T): XML.Body =
             render_if(!public, List(
-              submit_form("", List(hidden(ID, id.toString),
+              submit_form("", List(hidden(ID, uuid.toString),
                 api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
           def render_rev(isabelle_rev: String, components: List[Component]): XML.Body =
@@ -1014,12 +1014,12 @@ object Build_Manager {
             case task: Task =>
               par(text("Task from " + task.submit_date + ". ")) ::
               render_rev(task.isabelle_rev, task.components) :::
-              render_cancel(task.id)
+              render_cancel(task.uuid)
             case job: Job =>
               par(text("Start: " + job.start_date)) ::
               par(
                 if (job.cancelled) text("Cancelling...")
-                else text("Running...") ::: render_cancel(job.id)) ::
+                else text("Running...") ::: render_cancel(job.uuid)) ::
               render_rev(job.isabelle_rev, job.components) :::
               source(cache.lookup(store, job.name)) :: Nil
             case result: Result =>
@@ -1032,7 +1032,7 @@ object Build_Manager {
       def render_cancelled: XML.Body =
         List(chapter("Build Cancelled"), frontend_link(paths.frontend_url(Page.HOME), text("Home")))
 
-      def parse_id(params: Params.Data): Option[UUID.T] =
+      def parse_uuid(params: Params.Data): Option[UUID.T] =
         for {
           id <- params.get(ID)
           uuid <- UUID.unapply(id)
@@ -1055,18 +1055,18 @@ object Build_Manager {
           case Markup.Name(name) =>
             val state = _state
             state.get(name).map(Model.Build(_, state))
-          case Id(UUID(id)) =>
+          case Id(UUID(uuid)) =>
             val state = _state
-            state.get(id).map(Model.Build(_, state, public = false))
+            state.get(uuid).map(Model.Build(_, state, public = false))
           case _ => None
         }
 
       def cancel_build(params: Params.Data): Option[Model] =
         for {
-          id <- View.parse_id(params)
+          uuid <- View.parse_uuid(params)
           model <-
             synchronized_database("cancel_build") {
-              _state.get(id).map {
+              _state.get(uuid).map {
                 case task: Task =>
                   _state = _state.remove_pending(task.name)
                   Model.Cancelled
@@ -1116,8 +1116,8 @@ object Build_Manager {
 
   /* context */
 
-  case class Context(store: Store, task: Task, number: Long) {
-    def name = task.kind + "/" + number
+  case class Context(store: Store, task: Task, id: Long) {
+    def name = task.kind + "/" + id
     def progress: Progress = new File_Progress(store.log_file(name))
 
     def task_dir: Path = store.task_dir(task)
@@ -1210,7 +1210,7 @@ object Build_Manager {
     val pending = base_dir + Path.basic("pending")
     val finished = base_dir + Path.basic("finished")
 
-    def task_dir(task: Task) = pending + Path.basic(task.id.toString)
+    def task_dir(task: Task) = pending + Path.basic(task.uuid.toString)
     def log_file(name: String): Path = finished + Path.explode(name)
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
@@ -1365,14 +1365,14 @@ Usage: isabelle build_manager [OPTIONS]
     rev: String = "",
     progress: Progress = new Progress
   ): UUID.T = {
-    val id = UUID.random()
+    val uuid = UUID.random()
     val afp_rev = if (afp_root.nonEmpty) Some("") else None
 
     val hosts_spec = options.string("build_manager_cluster")
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions,
       base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
       clean_build, export_files, fresh_build, presentation, verbose)
-    val task = Task(build_config, hosts_spec, id, Date.now(), Priority.high)
+    val task = Task(build_config, hosts_spec, uuid, Date.now(), Priority.high)
 
     val dir = store.task_dir(task)
 
@@ -1397,13 +1397,13 @@ Usage: isabelle build_manager [OPTIONS]
               }
             }
           }
-          val address = options.string("build_manager_address") + "/build?id=" + task.id
+          val address = options.string("build_manager_address") + "/build?id=" + task.uuid
           progress.echo("Submitted task. Private url: " + address)
         }
       }
     }
 
-    id
+    uuid
   }
 
 
