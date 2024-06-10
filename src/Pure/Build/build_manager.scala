@@ -678,15 +678,28 @@ object Build_Manager {
     private def start_next(): Option[Context] =
       synchronized_database("start_next") {
         _state.next(build_hosts).flatMap { task =>
-          progress.echo("Initializing " + task.name)
+          echo("Initializing " + task.name)
 
           _state = _state.remove_pending(task.name)
 
           val id = _state.next_id(task.kind)
           val context = Context(store, task, id)
 
+          val start_date = Date.now()
+
+          val start_msg =
+            "Starting job " + Build.name(task.kind, id) +
+            " at " + Build_Log.print_date(start_date) + "," +
+            " on " + (
+              if (task.build_cluster) "cluster"
+              else Library.the_single(task.build_hosts).hostname)
+
+          echo(start_msg + " (id " + task.uuid + ")")
+
           Exn.capture {
             context.init()
+            context.progress.echo(start_msg)
+
             store.sync_permissions(context.task_dir)
 
             val isabelle_rev =
@@ -705,25 +718,25 @@ object Build_Manager {
                   else error("Unknown component " + component)
               }
 
-            Job(task.uuid, task.kind, id, isabelle_rev, task.build_cluster, hostnames, components)
+            Job(task.uuid, task.kind, id, isabelle_rev, task.build_cluster, hostnames, components,
+              start_date)
           } match {
             case Exn.Res(job) =>
               _state = _state.add_running(job)
 
-              val msg = "Starting " + job.name
-              echo(msg + " (id " + job.uuid + ")")
-              context.progress.echo(msg)
+              for {
+                component <- Component("Isabelle", job.isabelle_rev) :: job.components
+                if component.rev.nonEmpty
+              } context.progress.echo("Using " + component.toString)
 
               Some(context)
             case Exn.Exn(exn) =>
-              val result = Result(task.kind, id, Status.aborted)
-              _state = _state.add_finished(result)
-
-              val msg = "Failed to start job: " + exn.getMessage
-              echo_error_message(msg)
-              context.progress.echo_error_message(msg)
+              context.progress.echo_error_message("Failed to start job: " + exn.getMessage)
+              echo_error_message("Failed to start " + task.uuid + ": " + exn.getMessage)
 
               Isabelle_System.rm_tree(context.task_dir)
+
+              _state = _state.add_finished(Result(task.kind, id, Status.aborted))
 
               None
           }
@@ -739,11 +752,16 @@ object Build_Manager {
     private def finish_job(name: String, process_result: Process_Result): Unit =
       synchronized_database("finish_job") {
         val job = _state.running(name)
+        val end_date = Date.now()
         val result = Result(job.kind, job.id, Status.from_result(process_result), Some(job.uuid))
+
+        val end_msg =
+          "Job ended at " + Build_Log.print_date(end_date) + ", with status " + result.status
+        new File_Progress(store.log_file(job.name)).echo(end_msg)
 
         val interrupted_error = process_result.interrupted && process_result.err.nonEmpty
         val err_msg = if_proper(interrupted_error, ": " + process_result.err)
-        echo("Finished job " + job.uuid + " with status code " + process_result.rc + err_msg)
+        echo(end_msg + " (code " + process_result.rc + ")" + err_msg)
 
         _state = _state
           .remove_running(job.name)
@@ -1217,7 +1235,8 @@ object Build_Manager {
     val finished = base_dir + Path.basic("finished")
 
     def task_dir(task: Task) = pending + Path.basic(task.uuid.toString)
-    def log_file(kind: String, id: Long): Path = finished + Path.make(List(kind, id.toString))
+    def log_file(kind: String, id: Long): Path = 
+      finished + Path.make(List(kind, id.toString, "build-manager")).log
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
       ssh.execute("chmod -R g+rwx " + File.bash_path(dir))
