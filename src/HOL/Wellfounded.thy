@@ -1065,7 +1065,7 @@ next
     using convertible .
 qed
 
-lemma wfp_if_convertible_to_wfp: "wfP S \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> S (f x) (f y)) \<Longrightarrow> wfP R"
+lemma wfp_if_convertible_to_wfp: "wfp S \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> S (f x) (f y)) \<Longrightarrow> wfp R"
   using wf_if_convertible_to_wf[to_pred, of S R f] by simp
 
 text \<open>Converting to @{typ nat} is a very common special case that might be found more easily by
@@ -1073,7 +1073,7 @@ text \<open>Converting to @{typ nat} is a very common special case that might be
 
 lemma wfp_if_convertible_to_nat:
   fixes f :: "_ \<Rightarrow> nat"
-  shows "(\<And>x y. R x y \<Longrightarrow> f x < f y) \<Longrightarrow> wfP R"
+  shows "(\<And>x y. R x y \<Longrightarrow> f x < f y) \<Longrightarrow> wfp R"
   by (rule wfp_if_convertible_to_wfp[of "(<) :: nat \<Rightarrow> nat \<Rightarrow> bool", simplified])
 
 
