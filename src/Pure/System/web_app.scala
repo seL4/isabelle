@@ -28,6 +28,9 @@ object Web_App {
     val fieldset = new Operator("fieldset")
     val button = new Operator("button")
 
+    def icon(href: String): XML.Elem =
+      XML.Elem(Markup("link", List("rel" -> "icon", "type" -> "image/x-icon", "href" -> href)), Nil)
+
     def legend(txt: String): XML.Elem = XML.Elem(Markup("legend", Nil), text(txt))
     def input(typ: String): XML.Elem = XML.Elem(Markup("input", List("type" -> typ)), Nil)
     def hidden(k: Params.Key, v: String): XML.Elem =
