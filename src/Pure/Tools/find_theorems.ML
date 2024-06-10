@@ -18,10 +18,10 @@ sig
   val query_parser: (bool * string criterion) list parser
   val read_query: Position.T -> string -> (bool * string criterion) list
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
-    (bool * term criterion) list -> int option * (Facts.ref * thm) list
+    (bool * term criterion) list -> int option * (Thm_Name.T * thm) list
   val find_theorems_cmd: Proof.context -> thm option -> int option -> bool ->
-    (bool * string criterion) list -> int option * (Facts.ref * thm) list
-  val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
+    (bool * string criterion) list -> int option * (Thm_Name.T * thm) list
+  val pretty_thm: Proof.context -> Thm_Name.T * thm -> Pretty.T
   val pretty_theorems: Proof.state ->
     int option -> bool -> (bool * string criterion) list -> Pretty.T
   val proof_state: Toplevel.state -> Proof.state
@@ -77,7 +77,7 @@ fun map_criteria f {goal, limit, rem_dups, criteria} =
 (** search criterion filters **)
 
 (*generated filters are to be of the form
-  input: (Facts.ref * thm)
+  input: (Thm_Name.T * thm)
   output: (p:int, s:int, t:int) option, where
     NONE indicates no match
     p is the primary sorting criterion
@@ -124,8 +124,8 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
 (* filter_name *)
 
-fun filter_name str_pat (thmref, _) =
-  if match_string str_pat (Facts.ref_name thmref)
+fun filter_name str_pat (thm_name: Thm_Name.T, _) =
+  if match_string str_pat (#1 thm_name)
   then SOME (0, 0, 0) else NONE;
 
 
@@ -333,7 +333,6 @@ end;
 
 local
 
-val index_ord = option_ord (K EQUAL);
 val hidden_ord = bool_ord o apply2 Long_Name.is_hidden;
 val qual_ord = int_ord o apply2 Long_Name.count;
 val txt_ord = int_ord o apply2 size;
@@ -341,7 +340,7 @@ val txt_ord = int_ord o apply2 size;
 fun nicer_name ((a, x), i) ((b, y), j) =
   (case bool_ord (a, b) of EQUAL =>
     (case hidden_ord (x, y) of EQUAL =>
-      (case index_ord (i, j) of EQUAL =>
+      (case int_ord (i, j) of EQUAL =>
         (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
       | ord => ord)
     | ord => ord)
@@ -366,13 +365,7 @@ fun nicer_shortest ctxt =
         val facts = Proof_Context.facts_of_fact ctxt name;
         val space = Facts.space_of facts;
       in (Facts.is_dynamic facts name, Name_Space.extern_shortest ctxt space name) end;
-
-    fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
-          nicer_name (extern_shortest x, i) (extern_shortest y, j)
-      | nicer (Facts.Fact _) (Facts.Named _) = true
-      | nicer (Facts.Named _) (Facts.Fact _) = false
-      | nicer (Facts.Fact _) (Facts.Fact _) = true;
-  in nicer end;
+  in fn (x, i) => fn (y, j) => nicer_name (extern_shortest x, i) (extern_shortest y, j) end;
 
 fun rem_thm_dups nicer xs =
   (xs ~~ (1 upto length xs))
@@ -398,7 +391,7 @@ fun all_facts_of ctxt =
   in
    (Facts.dest_all (Context.Proof ctxt) false [global_facts] local_facts @
      Facts.dest_all (Context.Proof ctxt) false [] global_facts)
-   |> maps Facts.selections
+   |> maps Thm_Name.make_list
    |> map (apsnd transfer)
   end;
 
@@ -459,21 +452,14 @@ end;
 
 local
 
-fun pretty_ref ctxt thmref =
-  let
-    val (name, sel) =
-      (case thmref of
-        Facts.Named ((name, _), sel) => (name, sel)
-      | Facts.Fact _ => raise Fail "Illegal literal fact");
-  in
-    [Pretty.marks_str (#1 (Proof_Context.markup_extern_fact ctxt name), name),
-      Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1]
-  end;
+fun pretty_thm_head ctxt (name, i) =
+  [Pretty.marks_str (#1 (Proof_Context.markup_extern_fact ctxt name), name),
+    Pretty.str (Thm_Name.print_suffix (name, i)), Pretty.str ":", Pretty.brk 1];
 
 in
 
-fun pretty_thm ctxt (thmref, thm) =
-  Pretty.block (pretty_ref ctxt thmref @ [Thm.pretty_thm ctxt thm]);
+fun pretty_thm ctxt (thm_name, thm) =
+  Pretty.block (pretty_thm_head ctxt thm_name @ [Thm.pretty_thm ctxt thm]);
 
 fun pretty_theorems state opt_limit rem_dups raw_criteria =
   let
