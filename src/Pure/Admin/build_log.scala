@@ -342,6 +342,15 @@ object Build_Log {
     val BUILD = "=== BUILD ==="
   }
 
+  object Build_Manager {
+    val log_prefix = "build_manager"
+    val engine = "build_manager"
+    val Start = new Regex("""^Starting job \S+ at ([^,]+), on (\S+)$""")
+    val End = new Regex("""^Job ended at ([^,]+), with status \w+$""")
+    val Isabelle_Version = List(new Regex("""^Using Isabelle/(\w+)$"""))
+    val AFP_Version = List(new Regex("""^Using AFP/(\w+)$"""))
+  }
+
   private def parse_meta_info(log_file: Log_File): Meta_Info = {
     def parse(engine: String, host: String, start: Date,
       End: Regex, Isabelle_Version: List[Regex], AFP_Version: List[Regex]
@@ -390,6 +399,10 @@ object Build_Log {
       case AFP_Test.Start_Old(log_file.Strict_Date(start)) :: _ =>
         parse(AFP_Test.engine, "", start, AFP_Test.End,
           AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
+
+      case Build_Manager.Start(log_file.Strict_Date(start), host) :: _ =>
+        parse(Build_Manager.engine, host, start, Build_Manager.End,
+          Build_Manager.Isabelle_Version, Build_Manager.AFP_Version)
 
       case line :: _ if line.startsWith("\u0000") => Meta_Info.empty
       case List(Isatest.End(_)) => Meta_Info.empty
