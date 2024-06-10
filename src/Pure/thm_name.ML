@@ -15,6 +15,7 @@ sig
   structure Table: TABLE
   val empty: T
   val is_empty: T -> bool
+  val make_list: string * 'a list -> (T * 'a) list
 
   type P = T * Position.T
   val none: P
@@ -43,6 +44,9 @@ structure Table = Table(Set.Key);
 
 val empty: T = ("", 0);
 fun is_empty ((a, _): T) = a = "";
+
+fun make_list (a, [b]) = [((a, 0): T, b)]
+  | make_list (a, bs) = map_index (fn (i, b) => ((a, i + 1), b)) bs;
 
 
 (* type P *)

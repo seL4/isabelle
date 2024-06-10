@@ -131,7 +131,7 @@ fun pretty_failure ctxt target (((_, evals), query), eval_ts) =
     pretty_eval ctxt evals eval_ts)
 
 fun pretty_failures ctxt target failures =
-  Pretty.blk (0, Pretty.fbreaks (map (pretty_failure ctxt target) failures))
+  Pretty.block0 (Pretty.fbreaks (map (pretty_failure ctxt target) failures))
 
 
 (* driver invocation *)

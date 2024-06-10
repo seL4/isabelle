@@ -580,8 +580,7 @@ fun print_dpairs context msg (env, dpairs) =
         val ctxt = Context.proof_of context;
         fun termT t =
           Syntax.pretty_term ctxt (Envir.norm_term env (Logic.rlist_abs (rbinder, t)));
-        val prt = Pretty.blk (0, [termT u, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, termT t]);
-      in Pretty.string_of prt end;
+      in Pretty.string_of (Pretty.block0 [termT u, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, termT t]) end;
   in
     cond_tracing context (fn () => msg);
     List.app (fn dp => cond_tracing context (fn () => pdp dp)) dpairs

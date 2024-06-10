@@ -414,14 +414,15 @@ fun facts_of_fact ctxt name =
     then local_facts else global_facts
   end;
 
-fun markup_extern_fact ctxt name =
-  let
-    val facts = facts_of_fact ctxt name;
-    val (markup, xname) = Facts.markup_extern ctxt facts name;
-    val markups =
-      if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
-      else [markup];
-  in (markups, xname) end;
+fun markup_extern_fact _ "" = ([], "")
+  | markup_extern_fact ctxt name =
+      let
+        val facts = facts_of_fact ctxt name;
+        val (markup, xname) = Facts.markup_extern ctxt facts name;
+        val markups =
+          if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
+          else [markup];
+      in (markups, xname) end;
 
 fun pretty_thm_name ctxt (name, i) =
   Facts.pretty_thm_name (Context.Proof ctxt) (facts_of_fact ctxt name) (name, i);
@@ -442,8 +443,7 @@ fun augment t ctxt = ctxt
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
-fun pretty_fact_name ctxt a =
-  Pretty.block [Pretty.marks_str (markup_extern_fact ctxt a), Pretty.str ":"];
+fun pretty_fact_name ctxt a = Pretty.marks_str (markup_extern_fact ctxt a);
 
 fun pretty_fact ctxt =
   let
@@ -451,9 +451,11 @@ fun pretty_fact ctxt =
     val pretty_thms = map (Thm.pretty_thm_item ctxt);
   in
     fn ("", [th]) => pretty_thm th
-     | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))
-     | (a, [th]) => Pretty.block [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm th]
-     | (a, ths) => Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: pretty_thms ths))
+     | ("", ths) => Pretty.block0 (Pretty.fbreaks (pretty_thms ths))
+     | (a, [th]) =>
+        Pretty.block [pretty_fact_name ctxt a, Pretty.str ":", Pretty.brk 1, pretty_thm th]
+     | (a, ths) =>
+        Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: Pretty.str ":" :: pretty_thms ths))
   end;
 
 

@@ -369,10 +369,10 @@ fun print_results {interactive, pos, proof_state} ctxt ((kind, name), facts) =
     else
       print
         (case facts of
-          [fact] => Pretty.blk (1, [pretty_fact_name pos (kind, name), Pretty.fbrk,
-            Proof_Context.pretty_fact ctxt fact])
-        | _ => Pretty.blk (1, [pretty_fact_name pos (kind, name), Pretty.fbrk,
-            Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]))
+          [fact] => Pretty.block1 [pretty_fact_name pos (kind, name), Pretty.fbrk,
+            Proof_Context.pretty_fact ctxt fact]
+        | _ => Pretty.block1 [pretty_fact_name pos (kind, name), Pretty.fbrk,
+            Pretty.block1 (Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])])
   end;
 
 fun print_theorem pos ctxt fact =

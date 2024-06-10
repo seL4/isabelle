@@ -305,8 +305,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
     fun print_wf (x, (gfp, wf)) =
-      pprint_nt (fn () => Pretty.blk (0,
-          Pretty.text ("The " ^ (if gfp then "co" else "") ^ "inductive predicate") @
+      pprint_nt (fn () => Pretty.block0
+          (Pretty.text ("The " ^ (if gfp then "co" else "") ^ "inductive predicate") @
           [Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt (Const x)), Pretty.brk 1] @
           Pretty.text (if wf then
                    "was proved well-founded; Nitpick can compute it \
@@ -342,8 +342,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     fun monotonicity_message Ts extra =
       let val pretties = map (pretty_maybe_quote ctxt o pretty_for_type ctxt) Ts in
-        Pretty.blk (0,
-          Pretty.text ("The type" ^ plural_s_for_list pretties) @ [Pretty.brk 1] @
+        Pretty.block0
+         (Pretty.text ("The type" ^ plural_s_for_list pretties) @ [Pretty.brk 1] @
           pretty_serial_commas "and" pretties @ [Pretty.brk 1] @
           Pretty.text (
                  (if none_true monos then
@@ -631,8 +631,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           codatatypes_ok
       in
         (pprint_a (Pretty.chunks
-             [Pretty.blk (0,
-                  (Pretty.text ((if mode = Auto_Try then "Auto " else "") ^
+             [Pretty.block0
+                ((Pretty.text ((if mode = Auto_Try then "Auto " else "") ^
                           "Nitpick found a" ^
                           (if not genuine then " potentially spurious "
                            else if genuine_means_genuine then " "
@@ -791,8 +791,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             print_nt (K "The scope specification is inconsistent")
           else if verbose then
             pprint_nt (fn () => Pretty.chunks
-                [Pretty.blk (0,
-                     Pretty.text ((if n > 1 then
+                [Pretty.block0
+                  (Pretty.text ((if n > 1 then
                                "Batch " ^ string_of_int (j + 1) ^ " of " ^
                                signed_string_of_int n ^ ": "
                              else
