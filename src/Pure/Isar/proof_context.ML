@@ -414,14 +414,15 @@ fun facts_of_fact ctxt name =
     then local_facts else global_facts
   end;
 
-fun markup_extern_fact ctxt name =
-  let
-    val facts = facts_of_fact ctxt name;
-    val (markup, xname) = Facts.markup_extern ctxt facts name;
-    val markups =
-      if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
-      else [markup];
-  in (markups, xname) end;
+fun markup_extern_fact _ "" = ([], "")
+  | markup_extern_fact ctxt name =
+      let
+        val facts = facts_of_fact ctxt name;
+        val (markup, xname) = Facts.markup_extern ctxt facts name;
+        val markups =
+          if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
+          else [markup];
+      in (markups, xname) end;
 
 fun pretty_thm_name ctxt (name, i) =
   Facts.pretty_thm_name (Context.Proof ctxt) (facts_of_fact ctxt name) (name, i);
