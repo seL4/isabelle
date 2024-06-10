@@ -1485,6 +1485,3 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         progress = progress)
     })
 }
-
-class Build_Manager_Tools extends Isabelle_Scala_Tools(
-  Build_Manager.isabelle_tool, Build_Manager.isabelle_tool1)
