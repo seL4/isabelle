@@ -94,7 +94,7 @@ fun preplay_trace ctxt assmsp concl outcome =
     val assms = Pretty.enum " and " "using " " shows " (map (Thm.pretty_thm ctxt) assms)
     val concl = Syntax.pretty_term ctxt concl
   in
-    tracing (Pretty.string_of (Pretty.blk (2, Pretty.breaks [time, assms, concl])))
+    tracing (Pretty.string_of (Pretty.block (Pretty.breaks [time, assms, concl])))
   end
 
 fun take_time timeout tac arg =
