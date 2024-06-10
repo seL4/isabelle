@@ -139,12 +139,43 @@ object Build_Manager {
 
   enum Status { case ok, cancelled, aborted, failed  }
 
+  object Result {
+    def read_log(
+      store: Store,
+      kind: String,
+      id: Long,
+      uuid: Option[UUID.T] = None
+    ): Result = {
+      val build_log_file = Build_Log.Log_File.read(store.log_file(kind, id).file)
+      val End = """^Job ended at [^,]+, with status (\w+)$""".r
+
+      val meta_info = build_log_file.parse_meta_info()
+      val status =
+        build_log_file.lines.last match {
+          case End(status) => Status.valueOf(status)
+          case _ => Status.aborted
+        }
+      val build_host = meta_info.get_build_host.getOrElse(error("No build host"))
+      val start_date = meta_info.get_build_start.getOrElse(error("No start date"))
+      val end_date = meta_info.get_build_end
+      val isabelle_version = meta_info.get(Build_Log.Prop.isabelle_version)
+      val afp_version = meta_info.get(Build_Log.Prop.afp_version)
+
+      Result(kind, id, status, uuid, build_host, start_date, end_date, isabelle_version,
+        afp_version)
+    }
+  }
+
   sealed case class Result(
     kind: String,
     id: Long,
     status: Status,
-    uuid: Option[UUID.T] = None,
-    date: Date = Date.now(),
+    uuid: Option[UUID.T],
+    build_host: String,
+    start_date: Date,
+    end_date: Option[Date],
+    isabelle_version: Option[String],
+    afp_version: Option[String],
     serial: Long = 0,
   ) extends Build { def name: String = Build.name(kind, id) }
 
@@ -482,10 +513,18 @@ object Build_Manager {
       val id = SQL.Column.long("id")
       val status = SQL.Column.string("status")
       val uuid = SQL.Column.string("uuid")
-      val date = SQL.Column.date("date")
+      val build_host = SQL.Column.string("build_host")
+      val start_date = SQL.Column.date("start_date")
+      val end_date = SQL.Column.date("end_date")
+      val isabelle_version = SQL.Column.string("isabelle_version")
+      val afp_version = SQL.Column.string("afp_version")
       val serial = SQL.Column.long("serial").make_primary_key
 
-      val table = make_table(List(kind, id, status, uuid, date, serial), name = "finished")
+      val table =
+        make_table(
+          List(kind, id, status, uuid, build_host, start_date, end_date, isabelle_version,
+            afp_version, serial),
+          name = "finished")
     }
 
     def read_finished_serial(db: SQL.Database): Long =
@@ -508,10 +547,15 @@ object Build_Manager {
           val id = res.long(Finished.id)
           val status = Status.valueOf(res.string(Finished.status))
           val uuid = res.get_string(Finished.uuid).map(UUID.make)
-          val date = res.date(Finished.date)
+          val build_host = res.string(Finished.build_host)
+          val start_date = res.date(Finished.start_date)
+          val end_date = res.get_date(Finished.end_date)
+          val isabelle_version = res.get_string(Finished.isabelle_version)
+          val afp_version = res.get_string(Finished.afp_version)
           val serial = res.long(Finished.serial)
 
-          val result = Result(kind, id, status, uuid, date, serial)
+          val result = Result(kind, id, status, uuid, build_host, start_date, end_date,
+            isabelle_version, afp_version, serial)
           result.name -> result
         }
       )
@@ -534,8 +578,12 @@ object Build_Manager {
             stmt.long(2) = result.id
             stmt.string(3) = result.status.toString
             stmt.string(4) = result.uuid.map(_.toString)
-            stmt.date(5) = result.date
-            stmt.long(6) = result.serial
+            stmt.string(5) = result.build_host
+            stmt.date(6) = result.start_date
+            stmt.date(7) = result.end_date
+            stmt.string(8) = result.isabelle_version
+            stmt.string(9) = result.afp_version
+            stmt.long(10) = result.serial
           })
 
       old ++ insert.map(result => result.serial.toString -> result)
@@ -736,7 +784,7 @@ object Build_Manager {
 
               Isabelle_System.rm_tree(context.task_dir)
 
-              _state = _state.add_finished(Result(task.kind, id, Status.aborted))
+              _state = _state.add_finished(Result.read_log(store, task.kind, id, Some(task.uuid)))
 
               None
           }
@@ -752,12 +800,13 @@ object Build_Manager {
     private def finish_job(name: String, process_result: Process_Result): Unit =
       synchronized_database("finish_job") {
         val job = _state.running(name)
-        val end_date = Date.now()
-        val result = Result(job.kind, job.id, Status.from_result(process_result), Some(job.uuid))
 
-        val end_msg =
-          "Job ended at " + Build_Log.print_date(end_date) + ", with status " + result.status
-        new File_Progress(store.log_file(job.name)).echo(end_msg)
+        val end_date = Date.now()
+        val status = Status.from_result(process_result)
+        val end_msg = "Job ended at " + Build_Log.print_date(end_date) + ", with status " + status
+
+        new File_Progress(store.log_file(job.kind, job.id)).echo(end_msg)
+        val result = Result.read_log(store, job.kind, job.id, Some(job.uuid))
 
         val interrupted_error = process_result.interrupted && process_result.err.nonEmpty
         val err_msg = if_proper(interrupted_error, ": " + process_result.err)
@@ -971,11 +1020,11 @@ object Build_Manager {
               par(
                 text("first failure: ") :::
                 link_build(result.name, result.id) ::
-                text(" on " + result.date)))
+                text(" on " + result.start_date)))
             val last_success = rest.headOption.map(result =>
               par(
                 text("last success: ") ::: link_build(result.name, result.id) ::
-                text(" on " + result.date)))
+                text(" on " + result.start_date)))
             first_failed.toList ::: last_success.toList
           }
 
@@ -988,7 +1037,7 @@ object Build_Manager {
           def render_result(result: Result): XML.Body =
             par(
               link_build(result.name, result.id) ::
-              text(" (" + result.status.toString + ") on " + result.date)) ::
+              text(" (" + result.status.toString + ") on " + result.start_date)) ::
             render_if(result.status != Status.ok && result.kind != User_Build.name,
               render_previous(finished.tail))
 
@@ -1012,7 +1061,7 @@ object Build_Manager {
           def render_result(result: Result): XML.Body =
             List(par(
               link_build(result.name, result.id) ::
-              text(" (" + result.status + ") on " + result.date)))
+              text(" (" + result.status + ") on " + result.start_date)))
 
           itemize(
             state.get_running(kind).sortBy(_.id).reverse.map(render_job) :::
@@ -1047,7 +1096,7 @@ object Build_Manager {
               render_rev(job.isabelle_rev, job.components) :::
               source(cache.lookup(store, job.kind, job.id)) :: Nil
             case result: Result =>
-              par(text("Date: " + result.date)) ::
+              par(text("Date: " + result.start_date)) ::
               par(text("Status: " + result.status)) ::
               source(cache.lookup(store, result.kind, result.id)) :: Nil
           }
