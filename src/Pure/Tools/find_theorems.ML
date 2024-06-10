@@ -17,6 +17,7 @@ sig
   }
   val query_parser: (bool * string criterion) list parser
   val read_query: Position.T -> string -> (bool * string criterion) list
+  val all_facts_of: Proof.context -> (Thm_Name.T * thm) list
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * term criterion) list -> int option * (Thm_Name.T * thm) list
   val find_theorems_cmd: Proof.context -> thm option -> int option -> bool ->
