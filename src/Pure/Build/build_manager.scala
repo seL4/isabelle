@@ -32,19 +32,21 @@ object Build_Manager {
     def name: String
     def components: List[Component]
     def fresh_build: Boolean
+    def build_cluster: Boolean
     def command(build_hosts: List[Build_Cluster.Host]): String
   }
 
   object CI_Build {
     def apply(job: isabelle.CI_Build.Job): CI_Build =
-      CI_Build(job.name, job.components.map(Component(_, "default")))
+      CI_Build(job.name, job.hosts.build_cluster, job.components.map(Component(_, "default")))
   }
 
-  case class CI_Build(name: String, components: List[Component]) extends Build_Config {
+  case class CI_Build(name: String, build_cluster: Boolean, components: List[Component])
+    extends Build_Config {
     def fresh_build: Boolean = true
     def command(build_hosts: List[Build_Cluster.Host]): String =
       " ci_build" +
-      build_hosts.map(host => " -H " + Bash.string(host.print)).mkString +
+      if_proper(build_cluster, build_hosts.map(host => " -H " + Bash.string(host.print)).mkString) +
       " " + name
   }
 
@@ -71,6 +73,7 @@ object Build_Manager {
   ) extends Build_Config {
     def name: String = User_Build.name
     def components: List[Component] = afp_rev.map(Component.AFP).toList
+    def build_cluster: Boolean = true
     def command(build_hosts: List[Build_Cluster.Host]): String = {
       " build" +
         if_proper(afp_rev, " -A:") +
@@ -95,7 +98,6 @@ object Build_Manager {
 
   sealed case class Task(
     build_config: Build_Config,
-    build_cluster: Boolean,
     hosts_spec: String,
     id: UUID.T = UUID.random(),
     submit_date: Date = Date.now(),
@@ -106,6 +108,7 @@ object Build_Manager {
     def kind: String = build_config.name
     def components: List[Component] = build_config.components
 
+    def build_cluster = build_config.build_cluster
     def build_hosts: List[Build_Cluster.Host] =
       Build_Cluster.Host.parse(Registry.global, hosts_spec)
   }
@@ -319,7 +322,7 @@ object Build_Manager {
           val components = space_explode(',', res.string(Pending.components)).map(Component.parse)
 
           val build_config =
-            if (kind != User_Build.name) CI_Build(kind, components)
+            if (kind != User_Build.name) CI_Build(kind, build_cluster, components)
             else {
               val prefs = Options.Spec.parse(res.string(Pending.prefs))
               val requirements = res.bool(Pending.requirements)
@@ -343,8 +346,8 @@ object Build_Manager {
                 clean_build, export_files, fresh_build, presentation, verbose)
             }
 
-          val task = Task(build_config, build_cluster, hosts_spec, UUID.make(id), submit_date,
-            priority, isabelle_rev)
+          val task =
+            Task(build_config, hosts_spec, UUID.make(id), submit_date, priority, isabelle_rev)
 
           task.name -> task
         })
@@ -805,8 +808,8 @@ object Build_Manager {
           if isabelle_updated || ci_job.components.exists(updated_components.contains)
           if !_state.pending.values.exists(_.kind == ci_job.name)
         } {
-          val task = Task(CI_Build(ci_job), ci_job.hosts.build_cluster, ci_job.hosts.hosts_spec,
-            priority = Priority.low, isabelle_rev = "default")
+          val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, priority = Priority.low,
+            isabelle_rev = "default")
           _state = _state.add_pending(task)
         }
       }
@@ -841,8 +844,7 @@ object Build_Manager {
       for (ci_job <-ci_jobs)
         ci_job.trigger match {
           case isabelle.CI_Build.Timed(in_interval) if in_interval(previous, next) =>
-            val task = Task(CI_Build(ci_job), ci_job.hosts.build_cluster, ci_job.hosts.hosts_spec,
-              isabelle_rev = "default")
+            val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, isabelle_rev = "default")
             _state = _state.add_pending(task)
           case _ =>
         }
@@ -1311,7 +1313,7 @@ object Build_Manager {
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions,
       base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
       clean_build, export_files, fresh_build, presentation, verbose)
-    val task = Task(build_config, true, hosts_spec, id, Date.now(), Priority.high)
+    val task = Task(build_config, hosts_spec, id, Date.now(), Priority.high)
 
     val dir = store.task_dir(task)
 
