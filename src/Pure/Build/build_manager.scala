@@ -94,7 +94,11 @@ object Build_Manager {
 
   enum Priority { case low, normal, high }
 
-  sealed trait T extends Name.T
+  object Build {
+    def name(kind: String, id: Long): String = kind + "/" + id
+  }
+  
+  sealed trait Build extends Name.T
 
   sealed case class Task(
     build_config: Build_Config,
@@ -103,7 +107,7 @@ object Build_Manager {
     submit_date: Date = Date.now(),
     priority: Priority = Priority.normal,
     isabelle_rev: String = ""
-  ) extends T {
+  ) extends Build {
     def name: String = uuid.toString
     def kind: String = build_config.name
     def components: List[Component] = build_config.components
@@ -123,7 +127,7 @@ object Build_Manager {
     components: List[Component],
     start_date: Date = Date.now(),
     cancelled: Boolean = false
-  ) extends T { def name: String = kind + "/" + id }
+  ) extends Build { def name: String = Build.name(kind, id) }
 
   object Status {
     def from_result(result: Process_Result): Status = {
@@ -142,7 +146,7 @@ object Build_Manager {
     uuid: Option[UUID.T] = None,
     date: Date = Date.now(),
     serial: Long = 0,
-  ) extends T { def name: String = kind + "/" + id }
+  ) extends Build { def name: String = Build.name(kind, id) }
 
   object State {
     def max_serial(serials: Iterable[Long]): Long = serials.maxOption.getOrElse(0L)
@@ -207,10 +211,10 @@ object Build_Manager {
     def get_finished(kind: String): List[Result] =
       (for ((_, result) <- finished if result.kind == kind) yield result).toList
 
-    def get(name: String): Option[T] =
+    def get(name: String): Option[Build] =
       pending.get(name).orElse(running.get(name)).orElse(finished.get(name))
 
-    def get(uuid: UUID.T): Option[T] =
+    def get(uuid: UUID.T): Option[Build] =
       pending.values.find(_.uuid == uuid).orElse(
         running.values.find(_.uuid == uuid)).orElse(
         finished.values.find(_.uuid.contains(uuid)))
@@ -878,22 +882,23 @@ object Build_Manager {
     }
 
     class Cache private(keep: Time = Time.minutes(1)) {
-      var logs: Map[String, (Time, String)] = Map.empty
+      private var logs: Map[(String, Long), (Time, String)] = Map.empty
 
       def update(store: Store, state: State): Unit = synchronized {
         logs =
           for {
-            (name, (time, log)) <- logs
+            ((kind, id), (time, log)) <- logs
             if time + keep > Time.now()
-          } yield name -> (time, File.read(store.log_file(name)))
+          } yield (kind, id) -> (time, File.read(store.log_file(kind, id)))
       }
 
-      def lookup(store: Store, name: String): String = synchronized {
+      def lookup(store: Store, kind: String, id: Long): String = synchronized {
+        val name = (kind, id)
         logs.get(name) match {
           case Some((_, log)) =>
             logs += name -> (Time.now(), log)
           case None =>
-            logs += name -> (Time.now(), File.read(store.log_file(name)))
+            logs += name -> (Time.now(), File.read(store.log_file(kind, id)))
         }
         logs(name)._2
       }
@@ -912,7 +917,7 @@ object Build_Manager {
       case Cancelled extends Model
       case Home(state: State) extends Model
       case Overview(kind: String, state: State) extends Model
-      case Build(elem: T, state: State, public: Boolean = true) extends Model
+      case Details(build: Build, state: State, public: Boolean = true) extends Model
     }
 
     object View {
@@ -998,8 +1003,8 @@ object Build_Manager {
 
       private val ID = Params.key(Markup.ID)
 
-      def render_build(elem: T, state: State, public: Boolean): XML.Body =
-        render_page("Build: " + elem.name) {
+      def render_details(build: Build, state: State, public: Boolean): XML.Body =
+        render_page("Build: " + build.name) {
           def render_cancel(uuid: UUID.T): XML.Body =
             render_if(!public, List(
               submit_form("", List(hidden(ID, uuid.toString),
@@ -1011,7 +1016,7 @@ object Build_Manager {
               if component.rev.nonEmpty
             } yield par(text(component.toString))
 
-          elem match {
+          build match {
             case task: Task =>
               par(text("Task from " + task.submit_date + ". ")) ::
               render_rev(task.isabelle_rev, task.components) :::
@@ -1022,11 +1027,11 @@ object Build_Manager {
                 if (job.cancelled) text("Cancelling...")
                 else text("Running...") ::: render_cancel(job.uuid)) ::
               render_rev(job.isabelle_rev, job.components) :::
-              source(cache.lookup(store, job.name)) :: Nil
+              source(cache.lookup(store, job.kind, job.id)) :: Nil
             case result: Result =>
               par(text("Date: " + result.date)) ::
               par(text("Status: " + result.status)) ::
-              source(cache.lookup(store, result.name)) :: Nil
+              source(cache.lookup(store, result.kind, result.id)) :: Nil
           }
         }
 
@@ -1051,14 +1056,14 @@ object Build_Manager {
           case _ => None
         }
 
-      def get_build(props: Properties.T): Option[Model.Build] =
+      def get_build(props: Properties.T): Option[Model.Details] =
         props match {
           case Markup.Name(name) =>
             val state = _state
-            state.get(name).map(Model.Build(_, state))
+            state.get(name).map(Model.Details(_, state))
           case Web_Server.Id(UUID(uuid)) =>
             val state = _state
-            state.get(uuid).map(Model.Build(_, state, public = false))
+            state.get(uuid).map(Model.Details(_, state, public = false))
           case _ => None
         }
 
@@ -1076,8 +1081,8 @@ object Build_Manager {
                   _state = _state
                     .remove_running(job.name)
                     .add_running(job1)
-                  Model.Build(job1, _state, public = false)
-                case result: Result => Model.Build(result, _state, public = false)
+                  Model.Details(job1, _state, public = false)
+                case result: Result => Model.Details(result, _state, public = false)
               }
             }
         } yield model
@@ -1088,7 +1093,7 @@ object Build_Manager {
             case Model.Error => HTML.text("invalid request")
             case Model.Home(state) => View.render_home(state)
             case Model.Overview(kind, state) => View.render_overview(kind, state)
-            case Model.Build(elem, state, public) => View.render_build(elem, state, public)
+            case Model.Details(build, state, public) => View.render_details(build, state, public)
             case Model.Cancelled => View.render_cancelled
           })
 
@@ -1118,12 +1123,12 @@ object Build_Manager {
   /* context */
 
   case class Context(store: Store, task: Task, id: Long) {
-    def name = task.kind + "/" + id
-    def progress: Progress = new File_Progress(store.log_file(name))
+    def name = Build.name(task.kind, id)
+    def progress: Progress = new File_Progress(store.log_file(task.kind, id))
 
     def task_dir: Path = store.task_dir(task)
 
-    def init(): Unit = Isabelle_System.make_directory(store.log_file(name).dir)
+    def init(): Unit = Isabelle_System.make_directory(store.log_file(task.kind, id).dir)
 
     def isabelle_identifier: String =
       if (task.build_cluster) store.options.string("build_cluster_identifier") else store.identifier
@@ -1212,7 +1217,7 @@ object Build_Manager {
     val finished = base_dir + Path.basic("finished")
 
     def task_dir(task: Task) = pending + Path.basic(task.uuid.toString)
-    def log_file(name: String): Path = finished + Path.explode(name)
+    def log_file(kind: String, id: Long): Path = finished + Path.make(List(kind, id.toString))
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
       ssh.execute("chmod -R g+rwx " + File.bash_path(dir))
