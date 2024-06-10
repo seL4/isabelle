@@ -29,6 +29,12 @@ New in this Isabelle version
       wfP_wf_eq ~> wfp_wf_eq
       wf_acc_iff ~> wf_iff_acc
 
+* Theory "HOL-Library.Multiset":
+  - Renamed lemmas. Minor INCOMPATIBILITY.
+      wfP_less_multiset ~> wfp_less_multiset
+      wfP_multp ~> wfp_multp
+      wfP_subset_mset ~> wfp_subset_mset
+
 
 New in Isabelle2024 (May 2024)
 ------------------------------

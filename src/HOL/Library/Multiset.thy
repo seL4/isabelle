@@ -1550,7 +1550,7 @@ text \<open>Well-foundedness of strict subset relation\<close>
 lemma wf_subset_mset_rel: "wf {(M, N :: 'a multiset). M \<subset># N}"
   using mset_subset_size wfp_def wfp_if_convertible_to_nat by blast
 
-lemma wfP_subset_mset[simp]: "wfP (\<subset>#)"
+lemma wfp_subset_mset[simp]: "wfp (\<subset>#)"
   by (rule wf_subset_mset_rel[to_pred])
 
 lemma full_multiset_induct [case_names less]:
@@ -3245,7 +3245,7 @@ lemma wf_mult1: "wf r \<Longrightarrow> wf (mult1 r)"
 lemma wf_mult: "wf r \<Longrightarrow> wf (mult r)"
   unfolding mult_def by (rule wf_trancl) (rule wf_mult1)
 
-lemma wfP_multp: "wfP r \<Longrightarrow> wfP (multp r)"
+lemma wfp_multp: "wfp r \<Longrightarrow> wfp (multp r)"
   unfolding multp_def wfp_def
   by (simp add: wf_mult)
 
@@ -3694,11 +3694,11 @@ lemma mset_le_irrefl [elim!]:
   shows "M < M \<Longrightarrow> R"
   by simp
 
-lemma wfP_less_multiset[simp]:
-  assumes wfP_less: "wfP ((<) :: ('a :: preorder) \<Rightarrow> 'a \<Rightarrow> bool)"
-  shows "wfP ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
+lemma wfp_less_multiset[simp]:
+  assumes wfp_less: "wfp ((<) :: ('a :: preorder) \<Rightarrow> 'a \<Rightarrow> bool)"
+  shows "wfp ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
   unfolding less_multiset_def
-  using wfP_multp[OF wfP_less] .
+  using wfp_multp[OF wfp_less] .
 
 
 subsubsection \<open>Strict total-order properties\<close>
