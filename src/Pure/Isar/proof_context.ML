@@ -442,8 +442,7 @@ fun augment t ctxt = ctxt
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
-fun pretty_fact_name ctxt a =
-  Pretty.block [Pretty.marks_str (markup_extern_fact ctxt a), Pretty.str ":"];
+fun pretty_fact_name ctxt a = Pretty.marks_str (markup_extern_fact ctxt a);
 
 fun pretty_fact ctxt =
   let
@@ -452,8 +451,10 @@ fun pretty_fact ctxt =
   in
     fn ("", [th]) => pretty_thm th
      | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))
-     | (a, [th]) => Pretty.block [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm th]
-     | (a, ths) => Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: pretty_thms ths))
+     | (a, [th]) =>
+        Pretty.block [pretty_fact_name ctxt a, Pretty.str ":", Pretty.brk 1, pretty_thm th]
+     | (a, ths) =>
+        Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: Pretty.str ":" :: pretty_thms ths))
   end;
 
 
