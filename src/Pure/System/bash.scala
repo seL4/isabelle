@@ -36,7 +36,7 @@ object Bash {
   }
 
   def string(s: String): String =
-    if (s == "") "\"\""
+    if (s.isEmpty) "\"\""
     else UTF8.bytes(s).iterator.map(bash_chr).mkString
 
   def strings(ss: Iterable[String]): String =
