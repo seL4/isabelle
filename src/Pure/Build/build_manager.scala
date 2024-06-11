@@ -206,7 +206,7 @@ object Build_Manager {
 
     def next(build_hosts: List[Build_Cluster.Host]): Option[Task] = {
       val cluster_running = running.values.exists(_.build_cluster)
-      val available = build_hosts.map(_.hostname).toSet - running.values.flatMap(_.hostnames).toSet
+      val available = build_hosts.map(_.hostname).toSet -- running.values.flatMap(_.hostnames).toSet
       val ready =
         for {
           (_, task) <- pending
