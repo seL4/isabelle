@@ -51,17 +51,18 @@ object UTF8 {
       }
     }
     for (i <- 0L until size) {
-      val b = bytes(i)
-      if (b < 128) { flush(); buf.append(b.toChar) }
-      else if ((b & 0xC0) == 0x80) push(b & 0x3F)
-      else if ((b & 0xE0) == 0xC0) init(b & 0x1F, 1)
-      else if ((b & 0xF0) == 0xE0) init(b & 0x0F, 2)
-      else if ((b & 0xF8) == 0xF0) init(b & 0x07, 3)
+      val c = bytes(i)
+      if (c < 128) { flush(); buf.append(c.toChar) }
+      else if ((c & 0xC0) == 0x80) push(c & 0x3F)
+      else if ((c & 0xE0) == 0xC0) init(c & 0x1F, 1)
+      else if ((c & 0xF0) == 0xE0) init(c & 0x0F, 2)
+      else if ((c & 0xF8) == 0xF0) init(c & 0x07, 3)
     }
     flush()
     buf.toString
   }
 
   def decode_permissive(text: String): String =
-    decode_permissive_bytes(new Bytes.Vec_String(text))
+    if (text.forall((c: Char) => c < 128)) text
+    else decode_permissive_bytes(new Bytes.Vec_String(text))
 }

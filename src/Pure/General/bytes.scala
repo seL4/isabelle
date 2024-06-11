@@ -173,7 +173,12 @@ final class Bytes private(
     a
   }
 
-  def text: String = UTF8.decode_permissive_bytes(this)
+  def text: String =
+    if (is_empty) ""
+    else if (iterator.forall((b: Byte) => b >= 0)) {
+      new String(bytes, offset, length, UTF8.charset)
+    }
+    else UTF8.decode_permissive_bytes(this)
 
   def wellformed_text: Option[String] = {
     val s = text
