@@ -20,14 +20,12 @@ import com.github.luben.zstd
 object Bytes {
   val empty: Bytes = new Bytes(Array[Byte](), 0, 0)
 
-  def apply(s: CharSequence): Bytes = {
-    val str = s.toString
-    if (str.isEmpty) empty
+  def apply(s: CharSequence): Bytes =
+    if (s.isEmpty) empty
     else {
-      val b = UTF8.bytes(str)
+      val b = UTF8.bytes(s.toString)
       new Bytes(b, 0, b.length)
     }
-  }
 
   def apply(a: Array[Byte]): Bytes = apply(a, 0, a.length)
 
