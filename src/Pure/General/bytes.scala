@@ -112,12 +112,27 @@ object Bytes {
     using(new FileOutputStream(file, true))(bytes.write_stream(_))
 
   def append(path: Path, bytes: Bytes): Unit = append(path.file, bytes)
+
+
+  /* vector of unsigned integers */
+
+  trait Vec {
+    def size: Long
+    def apply(i: Long): Int
+  }
+
+  class Vec_String(string: String) extends Vec {
+    override def size: Long = string.length.toLong
+    override def apply(i: Long): Int =
+      if (0 <= i && i < size) string(i.toInt).toInt
+      else throw new IndexOutOfBoundsException
+  }
 }
 
 final class Bytes private(
   protected val bytes: Array[Byte],
   protected val offset: Int,
-  val length: Int) extends CharSequence {
+  val length: Int) extends Bytes.Vec with CharSequence {
   /* equality */
 
   override def equals(that: Any): Boolean = {
@@ -195,11 +210,18 @@ final class Bytes private(
     }
 
 
+  /* Vec operations */
+
+  def size: Long = length.toLong
+
+  def apply(i: Long): Int =
+    if (0 <= i && i < size) bytes((offset + i).toInt).asInstanceOf[Int] & 0xFF
+    else throw new IndexOutOfBoundsException
+
+
   /* CharSequence operations */
 
-  def charAt(i: Int): Char =
-    if (0 <= i && i < length) (bytes(offset + i).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
-    else throw new IndexOutOfBoundsException
+  def charAt(i: Int): Char = apply(i).asInstanceOf[Char]
 
   def subSequence(i: Int, j: Int): Bytes = {
     if (0 <= i && i <= j && j <= length) new Bytes(bytes, offset + i, j - i)
