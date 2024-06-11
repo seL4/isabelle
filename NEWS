@@ -13,7 +13,7 @@ New in this Isabelle version
       accp_wfPI ~> accp_wfpI
       wfPUNIVI ~> wfpUNIVI
       wfP_SUP ~> wfp_SUP
-      wfP_accp_iff ~> wfp_accp_iff
+      wfP_accp_iff ~> wfp_iff_accp
       wfP_acyclicP ~> wfp_acyclicP
       wfP_def ~> wfp_def
       wfP_empty ~> wfp_empty
