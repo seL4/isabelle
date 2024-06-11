@@ -158,7 +158,7 @@ final class Bytes private(
     a
   }
 
-  def text: String = UTF8.decode_permissive(this)
+  def text: String = UTF8.decode_permissive_bytes(this)
 
   def wellformed_text: Option[String] = {
     val s = text
