@@ -114,17 +114,17 @@ object Bytes {
   def append(path: Path, bytes: Bytes): Unit = append(path.file, bytes)
 
 
-  /* vector of unsigned integers */
+  /* vector of short unsigned integers */
 
   trait Vec {
     def size: Long
-    def apply(i: Long): Int
+    def apply(i: Long): Char
   }
 
   class Vec_String(string: String) extends Vec {
     override def size: Long = string.length.toLong
-    override def apply(i: Long): Int =
-      if (0 <= i && i < size) string(i.toInt).toInt
+    override def apply(i: Long): Char =
+      if (0 <= i && i < size) string(i.toInt)
       else throw new IndexOutOfBoundsException
   }
 }
@@ -219,8 +219,8 @@ final class Bytes private(
 
   def size: Long = length.toLong
 
-  def apply(i: Long): Int =
-    if (0 <= i && i < size) bytes((offset + i).toInt).asInstanceOf[Int] & 0xFF
+  def apply(i: Long): Char =
+    if (0 <= i && i < size) (bytes((offset + i).toInt).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
     else throw new IndexOutOfBoundsException
 
 
