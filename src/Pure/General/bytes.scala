@@ -130,7 +130,7 @@ object Bytes {
 final class Bytes private(
   protected val bytes: Array[Byte],
   protected val offset: Int,
-  val length: Int) extends Bytes.Vec {
+  protected val length: Int) extends Bytes.Vec {
   /* equality */
 
   override def equals(that: Any): Boolean = {
@@ -196,9 +196,6 @@ final class Bytes private(
       case None => (true, encode_base64)
     }
 
-  override def toString: String =
-    if (is_empty) "Bytes.empty" else "Bytes(" + Space.bytes(length).print + ")"
-
   def proper: Option[Bytes] = if (is_empty) None else Some(this)
   def proper_text: Option[String] = if (is_empty) None else Some(text)
 
@@ -214,6 +211,9 @@ final class Bytes private(
 
 
   /* Vec operations */
+
+  override def toString: String =
+    if (is_empty) "Bytes.empty" else "Bytes(" + Space.bytes(size).print + ")"
 
   def size: Long = length.toLong
 
@@ -248,7 +248,7 @@ final class Bytes private(
   /* XZ / Zstd data compression */
 
   def detect_xz: Boolean =
-    length >= 6 &&
+    size >= 6 &&
       bytes(offset)     == 0xFD.toByte &&
       bytes(offset + 1) == 0x37.toByte &&
       bytes(offset + 2) == 0x7A.toByte &&
@@ -257,7 +257,7 @@ final class Bytes private(
       bytes(offset + 5) == 0x00.toByte
 
   def detect_zstd: Boolean =
-    length >= 4 &&
+    size >= 4 &&
       bytes(offset)     == 0x28.toByte &&
       bytes(offset + 1) == 0xB5.toByte &&
       bytes(offset + 2) == 0x2F.toByte &&
@@ -302,6 +302,6 @@ final class Bytes private(
     cache: Compress.Cache = Compress.Cache.none
   ) : (Boolean, Bytes) = {
     val compressed = compress(options = options, cache = cache)
-    if (compressed.length < length) (true, compressed) else (false, this)
+    if (compressed.size < size) (true, compressed) else (false, this)
   }
 }

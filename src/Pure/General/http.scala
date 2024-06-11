@@ -227,7 +227,7 @@ object HTTP {
         val encoded_digest = Base64.encode(HexFormat.of().parseHex(SHA1.digest(output).toString))
         http.getResponseHeaders.set("Content-Digest", "sha=:" + encoded_digest + ":")
       }
-      http.sendResponseHeaders(code, if (is_head) -1 else output.length.toLong)
+      http.sendResponseHeaders(code, if (is_head) -1 else output.size)
       if (!is_head) using(http.getResponseBody)(output.write_stream)
     }
   }

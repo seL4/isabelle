@@ -32,8 +32,8 @@ object Byte_Message {
 
   def read_block(stream: InputStream, n: Int): (Option[Bytes], Int) = {
     val msg = read(stream, n)
-    val len = msg.length
-    (if (len == n) Some(msg) else None, len)
+    val len = msg.size
+    (if (len == n) Some(msg) else None, len.toInt)
   }
 
   def read_line(stream: InputStream): Option[Bytes] = {
@@ -53,11 +53,11 @@ object Byte_Message {
 
   /* messages with multiple chunks (arbitrary content) */
 
-  private def make_header(ns: List[Int]): List[Bytes] =
+  private def make_header(ns: List[Long]): List[Bytes] =
     List(Bytes(ns.mkString(",")), Bytes.newline)
 
   def write_message(stream: OutputStream, chunks: List[Bytes]): Unit = {
-    write(stream, make_header(chunks.map(_.length)) ::: chunks)
+    write(stream, make_header(chunks.map(_.size)) ::: chunks)
     flush(stream)
   }
 
@@ -93,7 +93,7 @@ object Byte_Message {
     if (is_length(msg) || is_terminated(msg))
       error ("Bad content for line message:\n" ++ msg.text.take(100))
 
-    val n = msg.length
+    val n = msg.size
     write(stream,
       (if (n > 100 || msg.iterator.contains(10)) make_header(List(n + 1)) else Nil) :::
         List(msg, Bytes.newline))

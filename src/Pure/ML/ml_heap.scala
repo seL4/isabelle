@@ -16,7 +16,7 @@ object ML_Heap {
   def read_file_digest(heap: Path): Option[SHA1.Digest] = {
     if (heap.is_file) {
       val bs = Bytes.read_file(heap, offset = File.size(heap) - sha1_length)
-      if (bs.length == sha1_length) {
+      if (bs.size == sha1_length) {
         val s = bs.text
         if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(sha1_prefix.length)))
         else None
