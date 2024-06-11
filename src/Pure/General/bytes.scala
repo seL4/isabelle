@@ -132,7 +132,7 @@ object Bytes {
 final class Bytes private(
   protected val bytes: Array[Byte],
   protected val offset: Int,
-  val length: Int) extends Bytes.Vec with CharSequence {
+  val length: Int) extends Bytes.Vec {
   /* equality */
 
   override def equals(that: Any): Boolean = {
@@ -224,21 +224,18 @@ final class Bytes private(
     else throw new IndexOutOfBoundsException
 
 
-  /* CharSequence operations */
+  /* slice */
 
-  def charAt(i: Int): Char = apply(i).asInstanceOf[Char]
-
-  def subSequence(i: Int, j: Int): Bytes = {
-    if (0 <= i && i <= j && j <= length) new Bytes(bytes, offset + i, j - i)
+  def slice(i: Long, j: Long): Bytes =
+    if (0 <= i && i <= j && j <= size) new Bytes(bytes, (offset + i).toInt, (j - i).toInt)
     else throw new IndexOutOfBoundsException
-  }
 
   def trim_line: Bytes =
-    if (length >= 2 && charAt(length - 2) == 13 && charAt(length - 1) == 10) {
-      subSequence(0, length - 2)
+    if (size >= 2 && apply(size - 2) == 13 && apply(size - 1) == 10) {
+      slice(0, size - 2)
     }
-    else if (length >= 1 && (charAt(length - 1) == 13 || charAt(length - 1) == 10)) {
-      subSequence(0, length - 1)
+    else if (size >= 1 && (apply(size - 1) == 13 || apply(size - 1) == 10)) {
+      slice(0, size - 1)
     }
     else this
 

@@ -81,10 +81,13 @@ object Byte_Message {
   private def is_length(msg: Bytes): Boolean =
     !msg.is_empty && msg.iterator.forall(b => Symbol.is_ascii_digit(b.toChar))
 
-  private def is_terminated(msg: Bytes): Boolean = {
-    val len = msg.length
-    len > 0 && Symbol.is_ascii_line_terminator(msg.charAt(len - 1))
-  }
+  private def is_terminated(msg: Bytes): Boolean =
+    msg.size match {
+      case size if size > 0 =>
+        val c = msg(size - 1)
+        c <= Char.MaxValue && Symbol.is_ascii_line_terminator(c.toChar)
+      case _ => false
+    }
 
   def write_line_message(stream: OutputStream, msg: Bytes): Unit = {
     if (is_length(msg) || is_terminated(msg))

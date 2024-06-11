@@ -120,12 +120,12 @@ object Web_App {
 
             // text might be shorter than bytes because of misinterpreted characters
             var found = false
-            var bytes_i = 0
-            while (!found && bytes_i < bytes.length) {
+            var bytes_i = 0L
+            while (!found && bytes_i < bytes.size) {
               var sep_ok = true
               var sep_i = 0
               while (sep_ok && sep_i < sep.length) {
-                if (bytes.charAt(bytes_i + sep_i) == sep.charAt(sep_i)) {
+                if (bytes(bytes_i + sep_i) == sep(sep_i)) {
                   sep_i += 1
                 } else {
                   bytes_i += 1
@@ -135,8 +135,8 @@ object Web_App {
               if (sep_ok) found = true
             }
 
-            val before_bytes = bytes.subSequence(0, bytes_i)
-            val after_bytes = bytes.subSequence(bytes_i + sep.length, bytes.length)
+            val before_bytes = bytes.slice(0, bytes_i)
+            val after_bytes = bytes.slice(bytes_i + sep.length, bytes.size)
 
             Some(Seq(before_text, before_bytes), Seq(after_text, after_bytes))
           } else None
@@ -147,7 +147,7 @@ object Web_App {
 
       def perhaps_unprefix(pfx: String, s: Seq): Seq =
         Library.try_unprefix(pfx, s.text) match {
-          case Some(text) => Seq(text, s.bytes.subSequence(pfx.length, s.bytes.length))
+          case Some(text) => Seq(text, s.bytes.slice(pfx.length, s.bytes.size))
           case None => s
         }
 
