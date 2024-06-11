@@ -297,12 +297,15 @@ object Web_App {
 
       def get(key: Key): Option[String] = params.get(key)
       def apply(key: Key): String = get(key).getOrElse("")
-      def list(key: Key): List[Key] =
-        (for {
-          key1 <- params.keys.toList
-          key2 <- key1.get(key)
-          i <- key2.num
-        } yield key + i).distinct
+      def list(key: Key): List[Key] = {
+        val indexes =
+          for {
+            key1 <- params.keys.toList
+            key2 <- key1.get(key)
+            i <- key2.num
+          } yield i
+        indexes.distinct.sorted.map(key + _)
+      }
 
       def file(key: Key): Option[Bytes] = files.get(key)
     }
