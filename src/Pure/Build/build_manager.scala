@@ -1416,6 +1416,68 @@ Usage: isabelle build_manager [OPTIONS]
     })
 
 
+  /* restore build manager database */
+
+  def build_manager_database(options: Options, progress: Progress = new Progress): Unit = {
+    val store = Store(options)
+    using(store.open_database()) { db =>
+      db.transaction {
+        val tables0 = Build_Manager.private_data.tables.list
+        val tables = tables0.filter(t => db.exists_table(t.name))
+        if (tables.nonEmpty) {
+          progress.echo("Removing tables " + commas_quote(tables.map(_.name)) + " ...")
+          db.execute_statement(SQL.MULTI(tables.map(db.destroy)))
+        }
+      }
+
+      val results =
+        for {
+          kind <- File.read_dir(store.finished)
+          entry <- File.read_dir(store.finished + Path.basic(kind))
+          id <- Value.Long.unapply(entry)
+          log_file = store.log_file(kind, id)
+          if log_file.is_file
+        } yield Result.read_log(store, kind, id)
+
+      val state = State(finished = results.map(result => result.name -> result).toMap)
+
+      Build_Manager.private_data.transaction_lock(db,
+        create = true, label = "Build_Manager.build_manager_database") {
+
+        progress.echo("Writing " + results.length + " results ...")
+        Build_Manager.private_data.push_state(db, State(), state)
+      }
+    }
+  }
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool1 = Isabelle_Tool("build_manager_database",
+    "restore build_manager database from log files",
+    Scala_Project.here,
+    { args =>
+      var options = Options.init()
+
+      val getopts = Getopts("""
+Usage: isabelle build_manager_database [OPTIONS]
+
+  Options are:
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+
+  Restore build_manager database from log files.
+""",
+        "o:" -> (arg => options = options + arg))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val progress = new Console_Progress()
+
+      build_manager_database(options, progress = progress)
+    })
+
+
   /* build task */
 
   def build_task(
@@ -1488,7 +1550,7 @@ Usage: isabelle build_manager [OPTIONS]
 
   val notable_client_options = List("build_manager_ssh_user", "build_manager_ssh_group")
 
-  val isabelle_tool1 = Isabelle_Tool("build_task", "submit build task for build manager",
+  val isabelle_tool2 = Isabelle_Tool("build_task", "submit build task for build manager",
     Scala_Project.here,
     { args =>
       var afp_root: Option[Path] = None
