@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 
 
 object Build_Manager {
-  /* task state synchronized via db */
+  /** task state synchronized via db **/
 
   object Component {
     def parse(s: String): Component =
@@ -252,7 +252,7 @@ object Build_Manager {
   }
 
 
-  /* SQL data model */
+  /** SQL data model **/
 
   object private_data extends SQL.Data("isabelle_build_manager") {
     /* tables */
@@ -591,7 +591,7 @@ object Build_Manager {
   }
 
 
-  /* running build manager processes */
+  /** running build manager processes **/
 
   abstract class Loop_Process[A](name: String, store: Store, progress: Progress)
     extends Runnable {
@@ -1187,7 +1187,7 @@ object Build_Manager {
   }
 
 
-  /* context */
+  /** context **/
 
   case class Context(store: Store, task: Task, id: Long) {
     def name = Build.name(task.kind, id)
@@ -1207,7 +1207,7 @@ object Build_Manager {
   }
 
 
-  /* build process */
+  /** build process **/
 
   object Build_Process {
     def open(context: Context): Build_Process = new Build_Process(context.open_ssh(), context)
@@ -1274,7 +1274,7 @@ object Build_Manager {
   }
 
 
-  /* build manager store */
+  /** build manager store **/
 
   case class Store(options: Options) {
     val base_dir = Path.explode(options.string("build_manager_dir"))
@@ -1323,6 +1323,8 @@ object Build_Manager {
         ssh_user = options.string("build_manager_ssh_user"))
   }
 
+
+  /** build manager server **/
 
   /* build manager */
 
@@ -1416,7 +1418,7 @@ Usage: isabelle build_manager [OPTIONS]
     })
 
 
-  /* restore build manager database */
+  /** restore build manager database **/
 
   def build_manager_database(options: Options, progress: Progress = new Progress): Unit = {
     val store = Store(options)
@@ -1477,6 +1479,8 @@ Usage: isabelle build_manager_database [OPTIONS]
       build_manager_database(options, progress = progress)
     })
 
+
+  /** build manager client */
 
   /* build task */
 
