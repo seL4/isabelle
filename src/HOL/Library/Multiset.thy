@@ -3695,10 +3695,10 @@ lemma mset_le_irrefl [elim!]:
   by simp
 
 lemma wfp_less_multiset[simp]:
-  assumes wfp_less: "wfp ((<) :: ('a :: preorder) \<Rightarrow> 'a \<Rightarrow> bool)"
+  assumes wf: "wfp ((<) :: ('a :: preorder) \<Rightarrow> 'a \<Rightarrow> bool)"
   shows "wfp ((<) :: 'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool)"
   unfolding less_multiset_def
-  using wfp_multp[OF wfp_less] .
+  using wfp_multp[OF wf] .
 
 
 subsubsection \<open>Strict total-order properties\<close>
