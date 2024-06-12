@@ -16,7 +16,6 @@ object Dynamic_Output {
       resources: VSCode_Resources,
       channel: Channel,
       restriction: Option[Set[Command]],
-      html_output: Boolean,
       margin: Double,
       force: Boolean,
     ): State = {
@@ -39,26 +38,8 @@ object Dynamic_Output {
             else this
         }
       if (st1.output != output || force) {
-        if (html_output) {
-          val node_context =
-            new Browser_Info.Node_Context {
-              override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
-                for {
-                  thy_file <- Position.Def_File.unapply(props)
-                  def_line <- Position.Def_Line.unapply(props)
-                  source <- resources.source_file(thy_file)
-                  uri = File.uri(Path.explode(source).absolute_file)
-                } yield HTML.link(uri.toString + "#" + def_line, body)
-            }
-          val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
-          val separate = Pretty.separate(st1.output)
-          val formatted = Pretty.formatted(separate, margin = margin)
-          val html = node_context.make_html(elements, formatted)
-          channel.write(LSP.Dynamic_Output(HTML.source(html).toString))
-        } else {
-          val (output, decorations) = resources.output_pretty_with_decorations(st1.output, margin)
-          channel.write(LSP.Dynamic_Output(output, Some(decorations)))
-        }
+        val (output, decorations) = resources.output_pretty_panel(st1.output, margin)
+        channel.write(LSP.Dynamic_Output(output, decorations))
       }
       st1
     }
@@ -78,9 +59,8 @@ class Dynamic_Output private(server: Language_Server) {
   }
 
   private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
-    val html_output = server.resources.html_output
     state.change(
-      _.handle_update(server.resources, server.channel, restriction, html_output, margin, force))
+      _.handle_update(server.resources, server.channel, restriction, margin, force))
   }
 
 

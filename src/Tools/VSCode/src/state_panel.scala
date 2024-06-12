@@ -59,9 +59,7 @@ class State_Panel private(val server: Language_Server) {
     server.editor.send_dispatcher(update(force = true))
   }
 
-  private def output(
-      content: String,
-      decorations: Option[List[(String, List[LSP.Decoration_Options])]] = None): Unit =
+  private def output(content: String, decorations: Option[LSP.Decoration_List] = None): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value, decorations))
 
   private def init_response(id: LSP.Id): Unit =
@@ -76,26 +74,8 @@ class State_Panel private(val server: Language_Server) {
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (_, _, body) =>
         if (output_active.value && body.nonEmpty) {
-          if (server.resources.html_output) {
-            val node_context =
-              new Browser_Info.Node_Context {
-                override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
-                  for {
-                    thy_file <- Position.Def_File.unapply(props)
-                    def_line <- Position.Def_Line.unapply(props)
-                    source <- server.resources.source_file(thy_file)
-                    uri = File.uri(Path.explode(source).absolute_file)
-                  } yield HTML.link(uri.toString + "#" + def_line, body)
-              }
-            val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
-            val separate = Pretty.separate(body)
-            val formatted = Pretty.formatted(separate, margin = margin.value)
-            val html = node_context.make_html(elements, formatted)
-            output(HTML.source(html).toString)
-          } else {
-            val (result, decorations) = server.resources.output_pretty_with_decorations(body, margin.value)
-            output(result, Some(decorations))
-          }
+          val (result, decorations) = server.resources.output_pretty_panel(body, margin.value)
+          output(result, decorations)
         })
 
   def locate(): Unit = print_state.locate_query()

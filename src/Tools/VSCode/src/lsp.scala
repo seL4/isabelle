@@ -478,7 +478,9 @@ object LSP {
       JSON.optional("hover_message" -> MarkedStrings.json(hover_message))
   }
 
-  sealed case class Decoration(decorations: List[(String, List[Decoration_Options])]) {
+  type Decoration_List = List[(String, List[Decoration_Options])]
+
+  sealed case class Decoration(decorations: Decoration_List) {
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
         JSON.Object(
@@ -532,7 +534,7 @@ object LSP {
   /* dynamic output */
 
   object Dynamic_Output {
-    def apply(content: String, decorations: Option[List[(String, List[Decoration_Options])]] = None): JSON.T =
+    def apply(content: String, decorations: Option[Decoration_List] = None): JSON.T =
       Notification("PIDE/dynamic_output",
         JSON.Object("content" -> content) ++
         JSON.optional(
@@ -561,7 +563,7 @@ object LSP {
        id: Counter.ID,
        content: String,
        auto_update: Boolean,
-       decorations: Option[List[(String, List[Decoration_Options])]] = None
+       decorations: Option[Decoration_List] = None
     ): JSON.T =
       Notification("PIDE/state_output",
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
