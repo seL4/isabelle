@@ -49,6 +49,8 @@ object SHA1 {
 
   def digest(path: Path): Digest = digest(path.file)
   def digest(bytes: Array[Byte]): Digest = make_digest(_.update(bytes))
+  def digest(bytes: Array[Byte], offset: Int, length: Int): Digest =
+    make_digest(_.update(bytes, offset, length))
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
   def digest(string: String): Digest = digest(Bytes(string))
 
