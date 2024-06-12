@@ -63,11 +63,6 @@ function isabelle_options(args: Args): string[]
     }
   }
 
-  add("-o"); add("vscode_unicode_symbols")
-  add("-o"); add("vscode_pide_extensions")
-  add("-o"); add("vscode_html_output")
-  add_values("-o", "options")
-
   add_value("-A", "logic_ancestor")
   if (args.logic) { add_value(args.logic_requirements ? "-R" : "-l", "logic") }
 
@@ -76,6 +71,17 @@ function isabelle_options(args: Args): string[]
   add_values("-m", "modes")
   add_value("-L", "log_file")
   if (args.verbose) { add("-v") }
+
+  const config = workspace.getConfiguration("isabelle.options")
+  Object.keys(config).forEach(key =>
+  {
+    const value = config[key]
+    if (typeof value == "string" && value !== "")
+    {
+      add("-o"); add(`${key}=${value}`)
+    }
+  })
+  add_values("-o", "options")
 
   return result
 }

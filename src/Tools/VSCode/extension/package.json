@@ -193,6 +193,7 @@
         "configuration": {
             "title": "Isabelle",
             "properties": {
+                /*options*/
                 "isabelle.replacement": {
                     "type": "string",
                     "default": "non-alphanumeric",

@@ -132,6 +132,38 @@ object Component_VSCode {
 }
 """)
   }
+  
+
+  private def options_json(options: Options): String = {
+    val relevant_options = Set("editor_output_state")
+    
+    options.iterator.filter(
+      opt => opt.for_tag(Options.TAG_VSCODE) || opt.for_content || relevant_options.contains(opt.name)
+    ).map(opt => {
+      val (enum_values, enum_descriptions) = opt.typ match {
+        case Options.Bool => (
+          Some(List("", "true", "false")),
+          Some(List("Don't overwrite System Preference.", "Enable.", "Disable."))
+        )
+        case _ => (None, None)
+      }
+
+      val default = opt.name match {
+        case "vscode_unicode_symbols" => "true"
+        case "vscode_pide_extensions" => "true"
+        case "vscode_html_output" => "true"
+        case _ => ""
+      }
+
+      quote("isabelle.options." + opt.name) + ": " + JSON.Format(
+        JSON.Object(
+          "type" -> "string",
+          "default" -> default,
+          "description" -> opt.description,
+        ) ++ JSON.optional("enum" -> enum_values) ++ JSON.optional("enumDescriptions" -> enum_descriptions)
+      ) + ","
+    }).mkString
+  }
 
 
   /* build extension */
@@ -181,6 +213,15 @@ object Component_VSCode {
           SHA1.flat_shasum(a :: bs)
         }
         File.write(build_dir + VSCode_Main.MANIFEST.shasum, manifest_shasum.toString)
+
+
+        /* options */
+
+        val opt_json = options_json(options)
+        val package_path = build_dir + Path.basic("package.json")
+        val package_body = File.read(package_path).replace("/*options*/", opt_json)
+        File.write(package_path, package_body)
+
 
         build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
