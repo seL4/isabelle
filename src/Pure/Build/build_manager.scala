@@ -916,6 +916,7 @@ object Build_Manager {
         ci_job.trigger match {
           case isabelle.CI_Build.Timed(in_interval) if in_interval(previous, next) =>
             val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, isabelle_rev = "default")
+            echo("Triggered task " + task.kind)
             _state = _state.add_pending(task)
           case _ =>
         }
@@ -1344,6 +1345,8 @@ object Build_Manager {
     val isabelle_repository = Mercurial.self_repository()
     val ci_jobs =
       space_explode(',', options.string("build_manager_ci_jobs")).map(isabelle.CI_Build.the_job)
+
+    progress.echo_if(ci_jobs.nonEmpty, "Managing ci jobs: " + commas_quote(ci_jobs.map(_.name)))
 
     using(store.open_database())(db =>
       Build_Manager.private_data.transaction_lock(db,
