@@ -130,7 +130,48 @@ object Bytes {
 final class Bytes private(
   protected val bytes: Array[Byte],
   protected val offset: Int,
-  protected val length: Int) extends Bytes.Vec {
+  protected val length: Int
+) extends Bytes.Vec {
+
+  def size: Long = length.toLong
+
+  def is_empty: Boolean = size == 0
+
+  def is_sliced: Boolean =
+    offset != 0L || length != bytes.length
+
+  override def toString: String =
+    if (is_empty) "Bytes.empty"
+    else "Bytes(" + Space.bytes(size).print + if_proper(is_sliced, ", sliced") + ")"
+
+
+  /* slice */
+
+  def slice(i: Long, j: Long): Bytes =
+    if (0 <= i && i <= j && j <= size) new Bytes(bytes, (offset + i).toInt, (j - i).toInt)
+    else throw new IndexOutOfBoundsException
+
+  def trim_line: Bytes =
+    if (size >= 2 && apply(size - 2) == 13 && apply(size - 1) == 10) {
+      slice(0, size - 2)
+    }
+    else if (size >= 1 && (apply(size - 1) == 13 || apply(size - 1) == 10)) {
+      slice(0, size - 1)
+    }
+    else this
+
+
+  /* elements: signed Byte or unsigned Char */
+
+  def iterator: Iterator[Byte] =
+    for (i <- (offset until (offset + length)).iterator)
+      yield bytes(i)
+
+  def apply(i: Long): Char =
+    if (0 <= i && i < size) (bytes((offset + i).toInt).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
+    else throw new IndexOutOfBoundsException
+
+
   /* equality */
 
   override def equals(that: Any): Boolean = {
@@ -159,12 +200,6 @@ final class Bytes private(
 
   lazy val sha1_digest: SHA1.Digest =
     if (is_empty) SHA1.digest_empty else SHA1.digest(bytes, offset, length)
-
-  def is_empty: Boolean = length == 0
-
-  def iterator: Iterator[Byte] =
-    for (i <- (offset until (offset + length)).iterator)
-      yield bytes(i)
 
   def array: Array[Byte] = {
     val a = new Array[Byte](length)
@@ -209,34 +244,6 @@ final class Bytes private(
       System.arraycopy(other.bytes, other.offset, new_bytes, length, other.length)
       new Bytes(new_bytes, 0, new_bytes.length)
     }
-
-
-  /* Vec operations */
-
-  override def toString: String =
-    if (is_empty) "Bytes.empty" else "Bytes(" + Space.bytes(size).print + ")"
-
-  def size: Long = length.toLong
-
-  def apply(i: Long): Char =
-    if (0 <= i && i < size) (bytes((offset + i).toInt).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
-    else throw new IndexOutOfBoundsException
-
-
-  /* slice */
-
-  def slice(i: Long, j: Long): Bytes =
-    if (0 <= i && i <= j && j <= size) new Bytes(bytes, (offset + i).toInt, (j - i).toInt)
-    else throw new IndexOutOfBoundsException
-
-  def trim_line: Bytes =
-    if (size >= 2 && apply(size - 2) == 13 && apply(size - 1) == 10) {
-      slice(0, size - 2)
-    }
-    else if (size >= 1 && (apply(size - 1) == 13 || apply(size - 1) == 10)) {
-      slice(0, size - 1)
-    }
-    else this
 
 
   /* streams */
