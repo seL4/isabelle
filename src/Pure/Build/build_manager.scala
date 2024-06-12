@@ -35,7 +35,7 @@ object Build_Manager {
     def components: List[Component]
     def fresh_build: Boolean
     def build_cluster: Boolean
-    def command(build_hosts: List[Build_Cluster.Host]): String
+    def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String
   }
 
   object CI_Build {
@@ -46,8 +46,9 @@ object Build_Manager {
   case class CI_Build(name: String, build_cluster: Boolean, components: List[Component])
     extends Build_Config {
     def fresh_build: Boolean = true
-    def command(build_hosts: List[Build_Cluster.Host]): String =
+    def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String =
       " ci_build" +
+      " -u " + Bash.string(job_url.toString) +
       if_proper(build_cluster, build_hosts.map(host => " -H " + Bash.string(host.print)).mkString) +
       " " + name
   }
@@ -76,7 +77,7 @@ object Build_Manager {
     def name: String = User_Build.name
     def components: List[Component] = afp_rev.map(Component.AFP).toList
     def build_cluster: Boolean = true
-    def command(build_hosts: List[Build_Cluster.Host]): String = {
+    def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String = {
       " build" +
         if_proper(afp_rev, " -A:") +
         base_sessions.map(session => " -B " + Bash.string(session)).mkString +
@@ -1259,7 +1260,9 @@ object Build_Manager {
           other_settings = _isabelle.init_components() ::: init_components,
           fresh = task.build_config.fresh_build, echo = true)
 
-        val cmd = task.build_config.command(task.build_hosts)
+        val paths = Web_Server.paths(context.store)
+        val job_url = paths.frontend_url(Web_Server.Page.BUILD, Markup.Name(context.name))
+        val cmd = task.build_config.command(job_url, task.build_hosts)
         progress.echo("isabelle" + cmd)
 
         val script = File.bash_path(Isabelle_Tool.exe(_isabelle.isabelle_home)) + cmd

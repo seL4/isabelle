@@ -332,7 +332,7 @@ services = \
   isabelle.Bibtex$File_Format \
   isabelle.Build$Engine$Default \
   isabelle.Build_Schedule$Build_Engine \
-  isabelle.CI_Builds \
+  isabelle.CI_Jobs \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LIPIcs_LuaLaTeX_Engine \
   isabelle.Document_Build$LIPIcs_PDFLaTeX_Engine \
