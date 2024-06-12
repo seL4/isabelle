@@ -172,34 +172,29 @@ final class Bytes private(
     else throw new IndexOutOfBoundsException
 
 
-  /* equality */
+  /* hash and equality */
+
+  lazy val sha1_digest: SHA1.Digest =
+    if (is_empty) SHA1.digest_empty else SHA1.digest(bytes, offset, length)
+
+  override def hashCode(): Int = sha1_digest.hashCode()
 
   override def equals(that: Any): Boolean = {
     that match {
       case other: Bytes =>
-        this.eq(other) ||
-        Arrays.equals(bytes, offset, offset + length,
-          other.bytes, other.offset, other.offset + other.length)
+        if (this.eq(other)) true
+        else if (size != other.size) false
+        else if (size <= 10 * SHA1.digest_length) {
+          Arrays.equals(bytes, offset, offset + length,
+            other.bytes, other.offset, other.offset + other.length)
+        }
+        else sha1_digest == other.sha1_digest
       case _ => false
     }
   }
 
-  private lazy val hash: Int = {
-    var h = 0
-    for (i <- offset until offset + length) {
-      val b = bytes(i).asInstanceOf[Int] & 0xFF
-      h = 31 * h + b
-    }
-    h
-  }
-
-  override def hashCode(): Int = hash
-
 
   /* content */
-
-  lazy val sha1_digest: SHA1.Digest =
-    if (is_empty) SHA1.digest_empty else SHA1.digest(bytes, offset, length)
 
   def array: Array[Byte] = {
     val a = new Array[Byte](length)
