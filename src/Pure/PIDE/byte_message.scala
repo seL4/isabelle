@@ -79,7 +79,7 @@ object Byte_Message {
   /* hybrid messages: line or length+block (restricted content) */
 
   private def is_length(msg: Bytes): Boolean =
-    !msg.is_empty && msg.iterator.forall(b => Symbol.is_ascii_digit(b.toChar))
+    !msg.is_empty && msg.byte_iterator.forall(b => Symbol.is_ascii_digit(b.toChar))
 
   private def is_terminated(msg: Bytes): Boolean =
     msg.size match {
@@ -95,7 +95,7 @@ object Byte_Message {
 
     val n = msg.size
     write(stream,
-      (if (n > 100 || msg.iterator.contains(10)) make_header(List(n + 1)) else Nil) :::
+      (if (n > 100 || msg.byte_iterator.contains(10)) make_header(List(n + 1)) else Nil) :::
         List(msg, Bytes.newline))
     flush(stream)
   }

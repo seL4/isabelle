@@ -163,7 +163,7 @@ final class Bytes private(
 
   /* elements: signed Byte or unsigned Char */
 
-  def iterator: Iterator[Byte] =
+  def byte_iterator: Iterator[Byte] =
     for (i <- (offset until (offset + length)).iterator)
       yield bytes(i)
 
@@ -209,7 +209,7 @@ final class Bytes private(
 
   def text: String =
     if (is_empty) ""
-    else if (iterator.forall((b: Byte) => b >= 0)) {
+    else if (byte_iterator.forall(_ >= 0)) {
       new String(bytes, offset, length, UTF8.charset)
     }
     else UTF8.decode_permissive_bytes(this)
