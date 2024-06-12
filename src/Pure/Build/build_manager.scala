@@ -39,7 +39,7 @@ object Build_Manager {
   }
 
   object CI_Build {
-    def apply(job: isabelle.CI_Build.Job): CI_Build =
+    def apply(job: Build_CI.Job): CI_Build =
       CI_Build(job.name, job.hosts.build_cluster, job.components.map(Component(_, "default")))
   }
 
@@ -47,7 +47,7 @@ object Build_Manager {
     extends Build_Config {
     def fresh_build: Boolean = true
     def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String =
-      " ci_build" +
+      " build_ci" +
       " -u " + Bash.string(job_url.toString) +
       if_proper(build_cluster, build_hosts.map(host => " -H " + Bash.string(host.print)).mkString) +
       " " + name
@@ -851,7 +851,7 @@ object Build_Manager {
   }
 
   class Poller(
-    ci_jobs: List[isabelle.CI_Build.Job],
+    ci_jobs: List[Build_CI.Job],
     store: Store,
     isabelle_repository: Mercurial.Repository,
     sync_dirs: List[Sync.Dir],
@@ -881,7 +881,7 @@ object Build_Manager {
       synchronized_database("add_tasks") {
         for {
           ci_job <- ci_jobs
-          if ci_job.trigger == isabelle.CI_Build.On_Commit
+          if ci_job.trigger == Build_CI.On_Commit
           if isabelle_updated || ci_job.components.exists(updated_components.contains)
           if !_state.pending.values.exists(_.kind == ci_job.name)
         } {
@@ -910,7 +910,7 @@ object Build_Manager {
   }
 
   class Timer(
-    ci_jobs: List[isabelle.CI_Build.Job],
+    ci_jobs: List[Build_CI.Job],
     store: Store,
     isabelle_repository: Mercurial.Repository,
     sync_dirs: List[Sync.Dir],
@@ -922,7 +922,7 @@ object Build_Manager {
     private def add_tasks(previous: Date, next: Date): Unit = synchronized_database("add_tasks") {
       for (ci_job <- ci_jobs)
         ci_job.trigger match {
-          case isabelle.CI_Build.Timed(in_interval) if in_interval(previous, next) =>
+          case Build_CI.Timed(in_interval) if in_interval(previous, next) =>
             val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, isabelle_rev = "default")
             echo("Triggered task " + task.kind)
             _state = _state.add_pending(task)
@@ -1354,8 +1354,7 @@ object Build_Manager {
   ): Unit = {
     val store = Store(options)
     val isabelle_repository = Mercurial.self_repository()
-    val ci_jobs =
-      space_explode(',', options.string("build_manager_ci_jobs")).map(isabelle.CI_Build.the_job)
+    val ci_jobs = space_explode(',', options.string("build_manager_ci_jobs")).map(Build_CI.the_job)
 
     progress.echo_if(ci_jobs.nonEmpty, "Managing ci jobs: " + commas_quote(ci_jobs.map(_.name)))
 

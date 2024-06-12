@@ -17,7 +17,6 @@ sources = \
   src/Pure/Admin/build_release.scala \
   src/Pure/Admin/build_status.scala \
   src/Pure/Admin/check_sources.scala \
-  src/Pure/Admin/ci_build.scala \
   src/Pure/Admin/component_bash_process.scala \
   src/Pure/Admin/component_csdp.scala \
   src/Pure/Admin/component_cvc5.scala \
@@ -54,6 +53,7 @@ sources = \
   src/Pure/Build/browser_info.scala \
   src/Pure/Build/build.scala \
   src/Pure/Build/build_benchmark.scala \
+  src/Pure/Build/build_ci.scala \
   src/Pure/Build/build_cluster.scala \
   src/Pure/Build/build_job.scala \
   src/Pure/Build/build_process.scala \

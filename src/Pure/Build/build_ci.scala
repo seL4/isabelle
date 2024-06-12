@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/ci_build.scala
+/*  Title:      Pure/Build/build_ci.scala
     Author:     Fabian Huch, TU Munich
 
 Module for automated (continuous integration) builds.
@@ -10,7 +10,7 @@ package isabelle
 import scala.collection.mutable
 
 
-object CI_Build {
+object Build_CI {
   def section(title: String): String = "\n=== " + title + " ===\n"
 
 
@@ -151,9 +151,9 @@ object CI_Build {
       trigger = Timed.nightly())
 
 
-  /* ci build */
+  /* build ci */
 
-  def ci_build(
+  def build_ci(
     options: Options,
     job: Job,
     build_hosts: List[Build_Cluster.Host] = Nil,
@@ -223,7 +223,7 @@ object CI_Build {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("ci_build", "builds Isabelle jobs in ci environments",
+  val isabelle_tool = Isabelle_Tool("build_ci", "builds Isabelle jobs in ci environments",
     Scala_Project.here,
     { args =>
       var options = Options.init()
@@ -231,7 +231,7 @@ object CI_Build {
       var url: Option[Url] = None
 
       val getopts = Getopts("""
-Usage: isabelle ci_build [OPTIONS] JOB
+Usage: isabelle build_ci [OPTIONS] JOB
 
   Options are:
     -H HOSTS     host specifications of the form NAMES:PARAMETERS (separated by commas)
@@ -258,10 +258,10 @@ Usage: isabelle ci_build [OPTIONS] JOB
 
       val progress = new Console_Progress(verbose = true)
 
-      ci_build(options, job, url = url, build_hosts = build_hosts.toList, progress = progress)
+      build_ci(options, job, url = url, build_hosts = build_hosts.toList, progress = progress)
     })
 }
 
-class Isabelle_CI_Jobs(val jobs: CI_Build.Job*) extends Isabelle_System.Service
+class Isabelle_CI_Jobs(val jobs: Build_CI.Job*) extends Isabelle_System.Service
 
-class CI_Jobs extends Isabelle_CI_Jobs(CI_Build.timing)
+class CI_Jobs extends Isabelle_CI_Jobs(Build_CI.timing)
