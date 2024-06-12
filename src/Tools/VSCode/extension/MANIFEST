@@ -11,7 +11,6 @@ media/Preview.svg
 media/ViewSource_inverse.svg
 media/ViewSource.svg
 media/vscode.css
-media/IsabelleDejaVuSansMono.ttf
 package.json
 README.md
 src/abbreviations.ts

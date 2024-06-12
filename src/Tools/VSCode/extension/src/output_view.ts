@@ -85,7 +85,7 @@ function get_webview_html(content: string, webview: Webview, extension_path: str
 {
   const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'main.js')))
   const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'vscode.css')))
-  const font_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'IsabelleDejaVuSansMono.ttf')))
+  const font_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'fonts', 'IsabelleDejaVuSansMono.ttf')))
 
   return `<!DOCTYPE html>
     <html lang='en'>

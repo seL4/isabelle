@@ -154,29 +154,31 @@ object Component_VSCode {
       Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
 
-    /* font for output/state panel */
-
-    val font_path = Isabelle_Fonts.fonts().find(e => e.name == Isabelle_Fonts.mono).get.path
-    Isabelle_System.copy_file(font_path, VSCode_Main.extension_dir + Path.basic("media"))
-
-
     /* build */
 
     val vsix_name =
       Isabelle_System.with_tmp_dir("build") { build_dir =>
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)
-        val manifest_shasum: SHA1.Shasum = {
-          val a = SHA1.shasum_meta_info(SHA1.digest(manifest_text))
-          val bs =
-            for (name <- manifest_entries)
-              yield SHA1.shasum(SHA1.digest(VSCode_Main.extension_dir + Path.explode(name)), name)
-          SHA1.flat_shasum(a :: bs)
-        }
         for (name <- manifest_entries) {
           val path = Path.explode(name)
           Isabelle_System.copy_file(VSCode_Main.extension_dir + path,
             Isabelle_System.make_directory(build_dir + path.dir))
+        }
+
+        for (entry <- Isabelle_Fonts.fonts()) {
+          Isabelle_System.copy_file(entry.path, Isabelle_System.make_directory(build_dir + Path.basic("fonts")))
+        }
+        val manifest_text2 =
+          manifest_text + cat_lines(Isabelle_Fonts.fonts().map(e => "fonts/" + e.path.file_name))
+        val manifest_entries2 = split_lines(manifest_text2).filter(_.nonEmpty)
+
+        val manifest_shasum: SHA1.Shasum = {
+          val a = SHA1.shasum_meta_info(SHA1.digest(manifest_text2))
+          val bs =
+            for (name <- manifest_entries2)
+              yield SHA1.shasum(SHA1.digest(build_dir + Path.explode(name)), name)
+          SHA1.flat_shasum(a :: bs)
         }
         File.write(build_dir + VSCode_Main.MANIFEST.shasum, manifest_shasum.toString)
 
