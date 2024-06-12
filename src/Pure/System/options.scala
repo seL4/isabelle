@@ -109,6 +109,7 @@ object Options {
   val TAG_UPDATE = "update"      // relevant for "isabelle update"
   val TAG_CONNECTION = "connection"  // private information about connections (password etc.)
   val TAG_COLOR_DIALOG = "color_dialog"  // special color selection dialog
+  val TAG_VSCODE = "vscode"      // relevant for "isabelle vscode" and "isabelle vscode_server"
 
   case class Entry(
     public: Boolean,

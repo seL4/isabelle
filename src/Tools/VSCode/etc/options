@@ -1,34 +1,34 @@
 (* :mode=isabelle-options: *)
 
-option vscode_input_delay : real = 0.1
+option vscode_input_delay : real = 0.1 for vscode
   -- "delay for client input (edits)"
 
-option vscode_output_delay : real = 0.5
+option vscode_output_delay : real = 0.5 for vscode
   -- "delay for client output (rendering)"
 
-option vscode_load_delay : real = 0.5
+option vscode_load_delay : real = 0.5 for vscode
   -- "delay for file load operations"
 
-option vscode_tooltip_margin : int = 60
+option vscode_tooltip_margin : int = 60 for vscode
   -- "margin for pretty-printing of tooltips"
 
-option vscode_message_margin : int = 80
+option vscode_message_margin : int = 80 for vscode
   -- "margin for pretty-printing of diagnostic messages"
 
-option vscode_timing_threshold : real = 0.1
+option vscode_timing_threshold : real = 0.1 for vscode
   -- "default threshold for timing display (seconds)"
 
-option vscode_pide_extensions : bool = false
+option vscode_pide_extensions : bool = false for vscode
   -- "use PIDE extensions for Language Server Protocol"
 
-option vscode_unicode_symbols : bool = false
+option vscode_unicode_symbols : bool = false for vscode
   -- "output Isabelle symbols via Unicode (according to etc/symbols)"
 
-option vscode_caret_perspective : int = 50
+option vscode_caret_perspective : int = 50 for vscode
   -- "number of visible lines above and below the caret (0: unrestricted)"
 
-option vscode_caret_preview : bool = false
+option vscode_caret_preview : bool = false for vscode
   -- "dynamic preview of caret document node"
 
-option vscode_html_output : bool = false
+option vscode_html_output : bool = false for vscode
   -- "output State and Output in HTML"
