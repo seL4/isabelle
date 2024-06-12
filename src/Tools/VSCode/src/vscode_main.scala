@@ -32,7 +32,7 @@ object VSCode_Main {
     verbose: Boolean = false,
     background: Boolean = false,
     progress: Progress = new Progress
-): Process_Result = {
+  ): Process_Result = {
     def platform_path(s: String): String = File.platform_path(Path.explode(s))
 
     val args_json =
