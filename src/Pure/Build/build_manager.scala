@@ -940,6 +940,9 @@ object Build_Manager {
       val BUILD = Path.basic("build")
     }
 
+    def paths(store: Store): Web_App.Paths =
+      Web_App.Paths(store.address, Path.current, serve_frontend = true, landing = Page.HOME)
+
     object API {
       val BUILD_CANCEL = Path.explode("api/build/cancel")
     }
@@ -972,11 +975,12 @@ object Build_Manager {
     }
   }
 
-  class Web_Server(port: Int, paths: Web_App.Paths, store: Store, progress: Progress)
+  class Web_Server(port: Int, store: Store, progress: Progress)
     extends Loop_Process[Unit]("Web_Server", store, progress) {
     import Web_App.*
     import Web_Server.*
 
+    val paths = Web_Server.paths(store)
     val cache = Cache.empty
 
     enum Model {
@@ -1279,6 +1283,7 @@ object Build_Manager {
   case class Store(options: Options) {
     val base_dir = Path.explode(options.string("build_manager_dir"))
     val identifier = options.string("build_manager_identifier")
+    val address = Url(options.string("build_manager_address"))
 
     val pending = base_dir + Path.basic("pending")
     val finished = base_dir + Path.basic("finished")
@@ -1339,8 +1344,6 @@ object Build_Manager {
     val isabelle_repository = Mercurial.self_repository()
     val ci_jobs =
       space_explode(',', options.string("build_manager_ci_jobs")).map(isabelle.CI_Build.the_job)
-    val url = Url(options.string("build_manager_address"))
-    val paths = Web_App.Paths(url, Path.current, true, Web_Server.Page.HOME)
 
     using(store.open_database())(db =>
       Build_Manager.private_data.transaction_lock(db,
@@ -1350,7 +1353,7 @@ object Build_Manager {
       new Runner(store, build_hosts, isabelle_repository, sync_dirs, progress),
       new Poller(ci_jobs, store, isabelle_repository, sync_dirs, progress),
       new Timer(ci_jobs, store, isabelle_repository, sync_dirs, progress),
-      new Web_Server(port, paths, store, progress))
+      new Web_Server(port, store, progress))
 
     val threads = processes.map(Isabelle_Thread.create(_))
     POSIX_Interrupt.handler {
@@ -1509,7 +1512,7 @@ Usage: isabelle build_manager_database [OPTIONS]
     val afp_rev = if (afp_root.nonEmpty) Some("") else None
 
     val hosts_spec = options.string("build_manager_cluster")
-    val paths = Web_App.Paths(Url(options.string("build_manager_address")), Path.current)
+    val paths = Web_Server.paths(store)
 
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions,
       base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
