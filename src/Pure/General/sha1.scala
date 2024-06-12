@@ -33,6 +33,9 @@ object SHA1 {
     new Digest(Setup_Build.make_digest(digest_body))
   }
 
+  val digest_empty: Digest = make_digest(_ => ())
+  def digest_length: Int = digest_empty.toString.length
+
   def digest(file: JFile): Digest =
     make_digest(sha => using(new FileInputStream(file)) { stream =>
       val buf = new Array[Byte](65536)
@@ -48,8 +51,6 @@ object SHA1 {
   def digest(bytes: Array[Byte]): Digest = make_digest(_.update(bytes))
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
   def digest(string: String): Digest = digest(Bytes(string))
-
-  val digest_length: Int = digest("").toString.length
 
 
   /* shasum */

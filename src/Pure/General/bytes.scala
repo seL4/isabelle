@@ -158,7 +158,8 @@ final class Bytes private(
   /* content */
 
   lazy val sha1_digest: SHA1.Digest =
-    SHA1.make_digest { sha => sha.update(bytes, offset, length) }
+    if (is_empty) SHA1.digest_empty
+    else SHA1.make_digest { sha => sha.update(bytes, offset, length) }
 
   def is_empty: Boolean = length == 0
 
