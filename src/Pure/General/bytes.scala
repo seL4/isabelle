@@ -76,14 +76,14 @@ object Bytes {
     if (len > Int.MaxValue) error("Cannot read large file slice: " + Space.bytes(len).print)
     else if (len == 0L) empty
     else {
-      using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { java_path =>
-        java_path.position(start)
+      using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { channel =>
+        channel.position(start)
         val n = len.toInt
         val buf = ByteBuffer.allocate(n)
         var i = 0
         var m = 0
         while ({
-          m = java_path.read(buf)
+          m = channel.read(buf)
           if (m != -1) i += m
           m != -1 && n > i
         }) ()
