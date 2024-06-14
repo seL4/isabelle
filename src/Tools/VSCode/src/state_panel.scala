@@ -43,8 +43,7 @@ object State_Panel {
 
   def set_margin(id: Counter.ID, margin: Double): Unit =
     instances.value.get(id).foreach(state => {
-      state.margin.change(_ => margin)
-      state.delay_margin.invoke()
+      state.pretty_panel.value.update_margin(margin)
     })
 }
 
@@ -53,11 +52,6 @@ class State_Panel private(val server: Language_Server) {
   /* output */
 
   val id: Counter.ID = State_Panel.make_id()
-  private val margin: Synchronized[Double] = Synchronized(server.resources.message_margin)
-
-  private val delay_margin = Delay.last(server.resources.output_delay, server.channel.Error_Logger) {
-    server.editor.send_dispatcher(update(force = true))
-  }
 
   private def output(content: String, decorations: Option[LSP.Decoration_List] = None): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value, decorations))
@@ -69,27 +63,27 @@ class State_Panel private(val server: Language_Server) {
   /* query operation */
 
   private val output_active = Synchronized(true)
+  private val pretty_panel = Synchronized(Pretty_Text_Panel(
+    server.resources,
+    server.channel,
+    output,
+  ))
 
   private val print_state =
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (_, _, body) =>
         if (output_active.value && body.nonEmpty) {
-          val (result, decorations) = server.resources.output_pretty_panel(body, margin.value)
-          output(result, decorations)
+          pretty_panel.value.refresh(body)
         })
 
   def locate(): Unit = print_state.locate_query()
 
-  def update(force: Boolean = false): Unit = {
+  def update(): Unit = {
     server.editor.current_node_snapshot(()) match {
       case Some(snapshot) =>
-        if (force) {
-          print_state.apply_query(Nil)
-        } else {
-          (server.editor.current_command((), snapshot), print_state.get_location) match {
-            case (Some(command1), Some(command2)) if command1.id == command2.id =>
-            case _ => print_state.apply_query(Nil)
-          }
+        (server.editor.current_command((), snapshot), print_state.get_location) match {
+          case (Some(command1), Some(command2)) if command1.id == command2.id =>
+          case _ => print_state.apply_query(Nil)
         }
       case None =>
     }
@@ -109,7 +103,6 @@ class State_Panel private(val server: Language_Server) {
         })
     if (enabled) update()
   }
-
 
 
   /* main */
