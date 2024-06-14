@@ -1,0 +1,231 @@
+/* Isabelle fonts */
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans';
+  src: url('fonts/IsabelleDejaVuSans.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans';
+  src: url('fonts/IsabelleDejaVuSans-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans';
+  src: url('fonts/IsabelleDejaVuSans-Oblique.ttf') format('truetype');
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans';
+  src: url('fonts/IsabelleDejaVuSans-BoldOblique.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans Mono';
+  src: url('fonts/IsabelleDejaVuSansMono.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans Mono';
+  src: url('fonts/IsabelleDejaVuSansMono-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans Mono';
+  src: url('fonts/IsabelleDejaVuSansMono-Oblique.ttf') format('truetype');
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Sans Mono';
+  src: url('fonts/IsabelleDejaVuSansMono-BoldOblique.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Serif';
+  src: url('fonts/IsabelleDejaVuSerif.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Serif';
+  src: url('fonts/IsabelleDejaVuSerif-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Serif';
+  src: url('fonts/IsabelleDejaVuSerif-Italic.ttf') format('truetype');
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Isabelle DejaVu Serif';
+  src: url('fonts/IsabelleDejaVuSerif-BoldItalic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Vacuous';
+  src: url('fonts/Vacuous.ttf') format('truetype');
+}
+
+
+/* standard document markup */
+
+dt {
+  float: left;
+  clear: left;
+  padding-right: 0.5em;
+  font-weight: bold;
+}
+
+body {
+  color: #000000;
+  background-color: #FFFFFF;
+}
+
+.head     { background-color: #FFFFFF; }
+.source   {
+  direction: ltr; unicode-bidi: bidi-override;
+  background-color: #FFFFFF;
+  padding: 10px;
+  font-family: "Isabelle DejaVu Sans Mono", monospace;
+}
+
+.contents { background-color: #FFFFFF; padding: 10px; }
+.sessions { background-color: #FFFFFF; padding: 10px; }
+.document { white-space: normal; font-family: "Isabelle DejaVu Serif", serif; }
+
+.name     { font-style: italic; }
+.filename { font-family: "Isabelle DejaVu Sans Mono", monospace; }
+
+
+/* basic syntax markup */
+
+.hidden         { font-family: Vacuous; font-size: 1%; color: rgba(255,255,255,0); }
+.control        { font-weight: bold; font-style: italic; }
+
+.binding        { color: #336655; }
+.tfree          { color: #A020F0; }
+.tvar           { color: #A020F0; }
+.free           { color: #0000FF; }
+.skolem         { color: #D2691E; }
+.bound          { color: #008000; }
+.var            { color: #00009B; }
+.numeral        { }
+.literal        { font-weight: bold; }
+.delimiter      { }
+.inner_numeral  { color: #FF0000; }
+.inner_quoted   { color: #FF00CC; }
+.inner_cartouche { color: #CC6600; }
+.comment1       { color: #CC0000; }
+.comment2       { color: #FF8400; }
+.comment3       { color: #6600CC; }
+.dynamic        { color: #7BA428; }
+.class_parameter_color { color: #D2691E; }
+
+.bold           { font-weight: bold; }
+
+.main           { color: #000000; }
+.command        { font-weight: bold; }
+.keyword        { font-weight: bold; }
+.keyword1       { color: #006699; }
+.keyword2       { color: #009966; }
+.keyword3       { color: #0099FF; }
+.quasi_keyword  { color: #9966FF; }
+.operator       { color: #323232; }
+.string         { color: #FF00CC; }
+.alt_string     { color: #CC00CC; }
+.verbatim       { color: #6600CC; }
+.cartouche      { color: #CC6600; }
+.comment        { color: #CC0000; }
+.improper       { color: #FF5050; }
+.antiquote      { color: #6600CC; }
+.raw_text       { color: #6600CC; }
+.plain_text     { color: #CC6600; }
+.bad            { background-color: #FF6A6A; }
+.quoted         { background-color: rgba(139,139,139,0.05); }
+.antiquoted     { background-color: rgba(255,200,50,0.1); }
+
+
+/* message background */
+
+.writeln_message      { background-color: #F0F0F0; }
+.information_message  { background-color: #DCEAF3; }
+.tracing_message      { background-color: #F0F8FF; }
+.warning_message      { background-color: #EEE8AA; }
+.legacy_message       { background-color: #EEE8AA; }
+.error_message        { background-color: #FFC1C1; }
+
+
+/* message underline */
+
+.writeln { border-bottom: 1px dotted #C0C0C0; }
+.information { border-bottom: 1px dotted #C1DFEE; }
+.warning { border-bottom: 1px dotted #FF8C00; }
+.legacy { border-bottom: 1px dotted #FF8C00; }
+.error { border-bottom: 1px dotted #B22222; }
+
+
+/* tooltips */
+
+.writeln { position: relative; display: inline-block; }
+.information { position: relative; display: inline-block; }
+.warning { position: relative; display: inline-block; }
+.legacy { position: relative; display: inline-block; }
+.error { position: relative; display: inline-block; }
+
+.writeln:hover .tooltip { visibility: visible; }
+.information:hover .tooltip { visibility: visible; }
+.warning:hover .tooltip { visibility: visible; }
+.legacy:hover .tooltip { visibility: visible; }
+.error:hover .tooltip { visibility: visible; }
+
+.tooltip {
+  top: -0.5ex;
+  left: 5em;
+  visibility: hidden;
+  width: 50em;
+  border: 1px solid #808080;
+  padding: 1px 1px;
+  background-color: #FFFFE9;
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip pre { margin: 1px; white-space: pre-wrap; }
+
+
+/* formal entities */
+
+.entity_def {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.entity_def:hover {
+  color: inherit;
+  text-decoration: inherit;
+  background-color: rgba(50,50,50,20%);
+}
+
+.entity_ref {
+  color: inherit;
+  text-decoration: inherit;
+  border: 0.5px solid rgba(0,0,0,0);
+}
+
+.entity_ref:hover {
+  color: inherit;
+  text-decoration: inherit;
+  background-color: rgba(50,50,50,20%);
+  border: 0.5px solid black;
+}
