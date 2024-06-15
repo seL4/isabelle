@@ -384,11 +384,17 @@ final class Bytes private(
       case other: Bytes =>
         if (this.eq(other)) true
         else if (size != other.size) false
-        else if (chunks.isEmpty && size <= 10 * SHA1.digest_length) {
-          Arrays.equals(chunk0, offset.toInt, (offset + size).toInt,
-            other.chunk0, other.offset.toInt, (other.offset + other.size).toInt)
+        else {
+          if (chunks.isEmpty && other.chunks.isEmpty) {
+            Arrays.equals(chunk0, offset.toInt, (offset + size).toInt,
+              other.chunk0, other.offset.toInt, (other.offset + other.size).toInt)
+          }
+          else if (!is_sliced && !other.is_sliced) {
+            (subarray_iterator zip other.subarray_iterator)
+              .forall((a, b) => Arrays.equals(a.array, b.array))
+          }
+          else sha1_digest == other.sha1_digest
         }
-        else sha1_digest == other.sha1_digest
       case _ => false
     }
   }

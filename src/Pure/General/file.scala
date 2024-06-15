@@ -355,7 +355,7 @@ object File {
   def eq_content(file1: JFile, file2: JFile): Boolean =
     if (eq(file1, file2)) true
     else if (file1.length != file2.length) false
-    else SHA1.digest(file1) == SHA1.digest(file2)
+    else Bytes.read(file1) == Bytes.read(file2)
 
   def eq_content(path1: Path, path2: Path): Boolean = eq_content(path1.file, path2.file)
 
