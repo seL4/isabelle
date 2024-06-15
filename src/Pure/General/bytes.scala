@@ -158,9 +158,9 @@ object Bytes {
   }
 
   final class Builder private[Bytes](chunks_size: Int, buffer_size: Int) {
-    var chunks = new ArrayBuffer[Array[Byte]](chunks_size)
-    var buffer = new ByteArrayOutputStream(buffer_size)
-    def buffer_free(): Int = chunk_size.toInt - buffer.size()
+    private var chunks = new ArrayBuffer[Array[Byte]](chunks_size)
+    private var buffer = new ByteArrayOutputStream(buffer_size)
+    private def buffer_free(): Int = chunk_size.toInt - buffer.size()
 
     def += (array: Array[Byte], offset: Int, length: Int): Unit = {
       if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
