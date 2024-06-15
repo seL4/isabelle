@@ -436,7 +436,7 @@ final class Bytes private(
 
   def proper: Option[Bytes] = if (is_empty) None else Some(this)
 
-  def +(other: Bytes): Bytes =
+  def + (other: Bytes): Bytes =
     if (other.is_empty) this
     else if (is_empty) other
     else {
