@@ -160,7 +160,13 @@ object Bytes {
   final class Builder private[Bytes](chunks_size: Int, buffer_size: Int) {
     private var chunks = new ArrayBuffer[Array[Byte]](chunks_size)
     private var buffer = new ByteArrayOutputStream(buffer_size)
+
     private def buffer_free(): Int = chunk_size.toInt - buffer.size()
+    private def buffer_check(): Unit =
+      if (buffer_free() == 0) {
+        chunks += buffer.toByteArray
+        buffer = new ByteArrayOutputStream
+      }
 
     def += (array: Array[Byte], offset: Int, length: Int): Unit = {
       if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
@@ -178,10 +184,7 @@ object Bytes {
               i += l
               n -= l
             }
-            if (buffer_free() == 0) {
-              chunks += buffer.toByteArray
-              buffer = new ByteArrayOutputStream
-            }
+            buffer_check()
           }
         }
       }
