@@ -156,6 +156,7 @@ object Bytes {
   }
 
   final class Builder private[Bytes](chunks_size: Int, buffer_size: Int) {
+    private var size = 0L
     private var chunks = new ArrayBuffer[Array[Byte]](chunks_size)
     private var buffer = new ByteArrayOutputStream(buffer_size)
 
@@ -173,6 +174,7 @@ object Bytes {
         else {
           synchronized {
             for (i <- 0 until n) {
+              size += 1
               buffer.write(s.charAt(i).toByte)
               buffer_check()
             }
@@ -194,6 +196,7 @@ object Bytes {
             if (m > 0) {
               val l = m min n
               buffer.write(array, i, l)
+              size += l
               i += l
               n -= l
             }
@@ -212,7 +215,7 @@ object Bytes {
       val b = buffer.toByteArray
       chunks = null
       buffer = null
-      new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, make_size(cs, b))
+      new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
     }
   }
 
