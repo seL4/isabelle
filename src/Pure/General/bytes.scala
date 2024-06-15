@@ -473,21 +473,7 @@ final class Bytes private(
 
   def uncompress_zstd(cache: Compress.Cache = Compress.Cache.none): Bytes = {
     Zstd.init()
-
-    def uncompress_stream(hint: Long): Bytes =
-      using(new zstd.ZstdInputStream(stream(), cache.for_zstd)) { inp =>
-        Bytes.read_stream(inp, hint = hint)
-      }
-
-    if (chunks.isEmpty) {
-      zstd.Zstd.decompressedSize(chunk0, offset.toInt, size.toInt) match {
-        case 0 => Bytes.empty
-        case n if n <= Bytes.array_size && !is_sliced =>
-          Bytes.reuse_array(zstd.Zstd.decompress(chunk0, n.toInt))
-        case n => uncompress_stream(n)
-      }
-    }
-    else uncompress_stream(size / 2)
+    using(new zstd.ZstdInputStream(stream(), cache.for_zstd))(Bytes.read_stream(_, hint = size))
   }
 
   def uncompress(cache: Compress.Cache = Compress.Cache.none): Bytes =
