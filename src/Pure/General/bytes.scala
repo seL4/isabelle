@@ -147,18 +147,18 @@ object Bytes {
 
   object Builder {
     def use(hint: Long = 0L)(body: Builder => Unit): Bytes = {
-      val chunks_size = if (hint <= 0) 16 else (hint / chunk_size).toInt
-      val buffer_size = if (hint <= 0) 1024 else (hint min chunk_size min array_size).toInt
-      val builder = new Builder(chunks_size, buffer_size)
+      val builder = new Builder(hint)
       body(builder)
       builder.done()
     }
   }
 
-  final class Builder private[Bytes](chunks_size: Int, buffer_size: Int) {
+  final class Builder private[Bytes](hint: Long) {
     private var size = 0L
-    private var chunks = new ArrayBuffer[Array[Byte]](chunks_size)
-    private var buffer = new ByteArrayOutputStream(buffer_size)
+    private var chunks =
+      new ArrayBuffer[Array[Byte]](if (hint <= 0) 16 else (hint / chunk_size).toInt)
+    private var buffer =
+      new ByteArrayOutputStream(if (hint <= 0) 1024 else (hint min chunk_size min array_size).toInt)
 
     private def buffer_free(): Int = chunk_size.toInt - buffer.size()
     private def buffer_check(): Unit =
