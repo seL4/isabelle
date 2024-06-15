@@ -17,6 +17,9 @@ object UTF8 {
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
+  def relevant(text: String): Boolean =
+    text.exists((c: Char) => c >= 128)
+
 
   /* permissive UTF-8 decoding */
 
@@ -63,6 +66,6 @@ object UTF8 {
   }
 
   def decode_permissive(text: String): String =
-    if (text.forall((c: Char) => c < 128)) text
-    else decode_permissive_bytes(new Bytes.Vec_String(text))
+    if (relevant(text)) decode_permissive_bytes(new Bytes.Vec_String(text))
+    else text
 }
