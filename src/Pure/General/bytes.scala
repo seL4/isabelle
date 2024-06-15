@@ -140,7 +140,7 @@ object Bytes {
   }
 
 
-  /* incremental builder: synchronized */
+  /* incremental builder: unsynchronized! */
 
   private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
     chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
@@ -177,7 +177,7 @@ object Bytes {
         buffer = new ByteArrayOutputStream
       }
 
-    def += (b: Byte): Unit = synchronized {
+    def += (b: Byte): Unit = {
       size += 1
       buffer.write(b)
       buffer_check()
@@ -188,12 +188,10 @@ object Bytes {
       if (n > 0) {
         if (UTF8.relevant(s)) { this += UTF8.bytes(s.toString) }
         else {
-          synchronized {
-            for (i <- 0 until n) {
-              size += 1
-              buffer.write(s.charAt(i).toByte)
-              buffer_check()
-            }
+          for (i <- 0 until n) {
+            size += 1
+            buffer.write(s.charAt(i).toByte)
+            buffer_check()
           }
         }
       }
@@ -204,20 +202,18 @@ object Bytes {
         throw new IndexOutOfBoundsException
       }
       else if (length > 0) {
-        synchronized {
-          var i = offset
-          var n = length
-          while (n > 0) {
-            val m = buffer_free()
-            if (m > 0) {
-              val l = m min n
-              buffer.write(array, i, l)
-              size += l
-              i += l
-              n -= l
-            }
-            buffer_check()
+        var i = offset
+        var n = length
+        while (n > 0) {
+          val m = buffer_free()
+          if (m > 0) {
+            val l = m min n
+            buffer.write(array, i, l)
+            size += l
+            i += l
+            n -= l
           }
+          buffer_check()
         }
       }
     }
@@ -226,7 +222,7 @@ object Bytes {
 
     def += (a: Subarray): Unit = { this += (a.array, a.offset, a.length) }
 
-    private[Bytes] def done(): Bytes = synchronized {
+    private[Bytes] def done(): Bytes = {
       val cs = chunks.toArray
       val b = buffer.toByteArray
       chunks = null
