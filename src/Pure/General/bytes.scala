@@ -435,7 +435,6 @@ final class Bytes private(
     }
 
   def proper: Option[Bytes] = if (is_empty) None else Some(this)
-  def proper_text: Option[String] = if (is_empty) None else Some(text)
 
   def +(other: Bytes): Bytes =
     if (other.is_empty) this
