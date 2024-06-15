@@ -168,6 +168,19 @@ object Bytes {
         buffer = new ByteArrayOutputStream
       }
 
+    def += (string: String): Unit =
+      if (string.nonEmpty) {
+        if (UTF8.relevant(string)) { this += UTF8.bytes(string) }
+        else {
+          synchronized {
+            for (c <- string) {
+              buffer.write(c.toByte)
+              buffer_check()
+            }
+          }
+        }
+      }
+
     def += (array: Array[Byte], offset: Int, length: Int): Unit = {
       if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
         throw new IndexOutOfBoundsException
@@ -193,8 +206,6 @@ object Bytes {
     def += (array: Array[Byte]): Unit = { this += (array, 0, array.length) }
 
     def += (a: Subarray): Unit = { this += (a.array, a.offset, a.length) }
-
-    def += (string: String): Unit = if (string.nonEmpty) { this += UTF8.bytes(string) }
 
     private def done(): Bytes = synchronized {
       val cs = chunks.toArray
