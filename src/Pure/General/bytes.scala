@@ -410,10 +410,18 @@ final class Bytes private(
 
   def text: String =
     if (is_empty) ""
-    else if (byte_iterator.forall(_ >= 0)) {
-      new String(make_array, UTF8.charset)
+    else {
+      var i = 0L
+      var utf8 = false
+      while (i < size && !utf8) {
+        if (byte_unchecked(i) < 0) { utf8 = true }
+        i += 1
+      }
+      utf8
+
+      if (utf8) UTF8.decode_permissive_bytes(this)
+      else new String(make_array, UTF8.charset)
     }
-    else UTF8.decode_permissive_bytes(this)
 
   def wellformed_text: Option[String] =
     try {

@@ -17,8 +17,16 @@ object UTF8 {
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
-  def relevant(c: Char): Boolean = c >= 128
-  def relevant(s: CharSequence): Boolean = (0 until s.length).exists(i => relevant(s.charAt(i)))
+  def relevant(s: CharSequence): Boolean = {
+    var i = 0
+    val n = s.length
+    var utf8 = false
+    while (i < n && !utf8) {
+      if (s.charAt(i) >= 128) { utf8 = true }
+      i += 1
+    }
+    utf8
+  }
 
 
   /* permissive UTF-8 decoding */
