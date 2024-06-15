@@ -363,7 +363,7 @@ final class Bytes private(
 
   /* content */
 
-  def array: Array[Byte] = {
+  def make_array: Array[Byte] = {
     val buf = new ByteArrayOutputStream(small_size)
     for (a <- subarray_iterator) { buf.write(a.array, a.offset, a.length) }
     buf.toByteArray
@@ -372,7 +372,7 @@ final class Bytes private(
   def text: String =
     if (is_empty) ""
     else if (byte_iterator.forall(_ >= 0)) {
-      new String(array, UTF8.charset)
+      new String(make_array, UTF8.charset)
     }
     else UTF8.decode_permissive_bytes(this)
 
@@ -383,7 +383,7 @@ final class Bytes private(
     }
     catch { case ERROR(_) => None }
 
-  def encode_base64: String = Base64.encode(array)
+  def encode_base64: String = Base64.encode(make_array)
 
   def maybe_encode_base64: (Boolean, String) =
     wellformed_text match {
@@ -423,7 +423,7 @@ final class Bytes private(
           else -1
         }
 
-        override def readAllBytes(): Array[Byte] = array
+        override def readAllBytes(): Array[Byte] = make_array
       }
     }
 
@@ -489,7 +489,7 @@ final class Bytes private(
         Bytes(out.toByteArray)
       case options_zstd: Compress.Options_Zstd =>
         Zstd.init()
-        val inp = if (chunks.isEmpty && !is_sliced) chunk0 else array
+        val inp = if (chunks.isEmpty && !is_sliced) chunk0 else make_array
         Bytes(zstd.Zstd.compress(inp, options_zstd.level))
     }
   }

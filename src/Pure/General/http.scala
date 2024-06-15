@@ -50,7 +50,7 @@ object HTTP {
     val encoding: String,
     val elapsed_time: Time
   ) {
-    def text: String = new String(bytes.array, encoding)
+    def text: String = new String(bytes.make_array, encoding)
     def json: JSON.T = JSON.parse(text)
   }
 
