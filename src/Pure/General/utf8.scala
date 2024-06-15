@@ -17,8 +17,8 @@ object UTF8 {
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
-  def relevant(text: String): Boolean =
-    text.exists((c: Char) => c >= 128)
+  def relevant(c: Char): Boolean = c >= 128
+  def relevant(s: CharSequence): Boolean = (0 until s.length).exists(i => relevant(s.charAt(i)))
 
 
   /* permissive UTF-8 decoding */

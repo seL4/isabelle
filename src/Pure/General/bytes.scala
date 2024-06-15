@@ -41,11 +41,9 @@ object Bytes {
 
   val empty: Bytes = reuse_array(new Array(0))
 
-  def apply(s: CharSequence): Bytes = {
-    val str = s.toString
-    if (str.isEmpty) empty
-    else Builder.use(hint = str.length) { builder => builder += str }
-  }
+  def apply(s: CharSequence): Bytes =
+    if (s.isEmpty) empty
+    else Builder.use(hint = s.length) { builder => builder += s }
 
   def apply(a: Array[Byte]): Bytes = apply(a, 0, a.length)
 
@@ -168,18 +166,20 @@ object Bytes {
         buffer = new ByteArrayOutputStream
       }
 
-    def += (string: String): Unit =
-      if (string.nonEmpty) {
-        if (UTF8.relevant(string)) { this += UTF8.bytes(string) }
+    def += (s: CharSequence): Unit = {
+      val n = s.length
+      if (n > 0) {
+        if (UTF8.relevant(s)) { this += UTF8.bytes(s.toString) }
         else {
           synchronized {
-            for (c <- string) {
-              buffer.write(c.toByte)
+            for (i <- 0 until n) {
+              buffer.write(s.charAt(i).toByte)
               buffer_check()
             }
           }
         }
       }
+    }
 
     def += (array: Array[Byte], offset: Int, length: Int): Unit = {
       if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
