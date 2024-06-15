@@ -412,8 +412,17 @@ final class Bytes private(
     if (chunks.isEmpty) new ByteArrayInputStream(chunk0, offset.toInt, size.toInt)
     else {
       new InputStream {
-        private val it = byte_iterator
-        def read(): Int = if (it.hasNext) it.next().toInt & 0xff else -1
+        private var index = 0L
+
+        def read(): Int = {
+          if (index < size) {
+            val res = byte_unchecked(index).toInt & 0xff
+            index += 1
+            res
+          }
+          else -1
+        }
+
         override def readAllBytes(): Array[Byte] = array
       }
     }
