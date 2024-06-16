@@ -22,9 +22,12 @@ import scala.collection.mutable.ArrayBuffer
 object Bytes {
   /* internal sizes */
 
-  val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
-  val chunk_size: Long = Space.MiB(100).bytes
-  val block_size: Int = 8192
+  private val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
+  private val chunk_size: Long = Space.MiB(100).bytes
+  private val block_size: Int = 8192
+
+  private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
+    chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
 
   class Too_Large(size: Long) extends IndexOutOfBoundsException {
     override def getMessage: String =
@@ -141,9 +144,6 @@ object Bytes {
 
 
   /* incremental builder: unsynchronized! */
-
-  private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
-    chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
 
   object Builder {
     def use(hint: Long = 0L)(body: Builder => Unit): Bytes = {
@@ -272,7 +272,13 @@ final class Bytes private(
       chunks.get.forall(chunk => chunk.length == Bytes.chunk_size)) &&
     chunk0.length < Bytes.chunk_size)
 
+  def small_size: Int =
+    if (size > Bytes.array_size) throw new Bytes.Too_Large(size)
+    else size.toInt
+
   def is_empty: Boolean = size == 0
+
+  def proper: Option[Bytes] = if (is_empty) None else Some(this)
 
   def is_sliced: Boolean =
     offset != 0L || {
@@ -285,37 +291,6 @@ final class Bytes private(
   override def toString: String =
     if (is_empty) "Bytes.empty"
     else "Bytes(" + Space.bytes(size).print + if_proper(is_sliced, ", sliced") + ")"
-
-  def small_size: Int =
-    if (size > Bytes.array_size) throw new Bytes.Too_Large(size)
-    else size.toInt
-
-
-  /* slice */
-
-  def slice(i: Long, j: Long): Bytes =
-    if (0 <= i && i <= j && j <= size) {
-      if (i == j) Bytes.empty
-      else new Bytes(chunks, chunk0, offset + i, j - i)
-    }
-    else throw new IndexOutOfBoundsException
-
-  def unslice: Bytes =
-    if (is_sliced) {
-      Bytes.Builder.use(hint = size) { builder =>
-        for (a <- subarray_iterator) { builder += a }
-      }
-    }
-    else this
-
-  def trim_line: Bytes =
-    if (size >= 2 && byte_unchecked(size - 2) == 13 && byte_unchecked(size - 1) == 10) {
-      slice(0, size - 2)
-    }
-    else if (size >= 1 && (byte_unchecked(size - 1) == 13 || byte_unchecked(size - 1) == 10)) {
-      slice(0, size - 1)
-    }
-    else this
 
 
   /* elements: signed Byte or unsigned Char */
@@ -361,6 +336,33 @@ final class Bytes private(
     } yield b
 
 
+  /* slice */
+
+  def slice(i: Long, j: Long): Bytes =
+    if (0 <= i && i <= j && j <= size) {
+      if (i == j) Bytes.empty
+      else new Bytes(chunks, chunk0, offset + i, j - i)
+    }
+    else throw new IndexOutOfBoundsException
+
+  def unslice: Bytes =
+    if (is_sliced) {
+      Bytes.Builder.use(hint = size) { builder =>
+        for (a <- subarray_iterator) { builder += a }
+      }
+    }
+    else this
+
+  def trim_line: Bytes =
+    if (size >= 2 && byte_unchecked(size - 2) == 13 && byte_unchecked(size - 1) == 10) {
+      slice(0, size - 2)
+    }
+    else if (size >= 1 && (byte_unchecked(size - 1) == 13 || byte_unchecked(size - 1) == 10)) {
+      slice(0, size - 1)
+    }
+    else this
+
+
   /* hash and equality */
 
   lazy val sha1_digest: SHA1.Digest =
@@ -398,6 +400,17 @@ final class Bytes private(
 
   /* content */
 
+  def + (other: Bytes): Bytes =
+    if (other.is_empty) this
+    else if (is_empty) other
+    else {
+      Bytes.Builder.use(hint = size + other.size) { builder =>
+        for (a <- subarray_iterator ++ other.subarray_iterator) {
+          builder += a
+        }
+      }
+    }
+
   def make_array: Array[Byte] = {
     val buf = new ByteArrayOutputStream(small_size)
     for (a <- subarray_iterator) { buf.write(a.array, a.offset, a.length) }
@@ -432,19 +445,6 @@ final class Bytes private(
     wellformed_text match {
       case Some(s) => (false, s)
       case None => (true, encode_base64)
-    }
-
-  def proper: Option[Bytes] = if (is_empty) None else Some(this)
-
-  def + (other: Bytes): Bytes =
-    if (other.is_empty) this
-    else if (is_empty) other
-    else {
-      Bytes.Builder.use(hint = size + other.size) { builder =>
-        for (a <- subarray_iterator ++ other.subarray_iterator) {
-          builder += a
-        }
-      }
     }
 
 
