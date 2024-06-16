@@ -174,7 +174,7 @@ object Bytes {
     private def buffer_check(): Unit =
       if (buffer_free() == 0) {
         chunks += buffer.toByteArray
-        buffer = new ByteArrayOutputStream
+        buffer = new ByteArrayOutputStream(chunk_size.toInt)
       }
 
     def += (b: Byte): Unit = {
