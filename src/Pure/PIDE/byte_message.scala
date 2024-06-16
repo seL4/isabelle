@@ -90,8 +90,9 @@ object Byte_Message {
     }
 
   def write_line_message(stream: OutputStream, msg: Bytes): Unit = {
-    if (is_length(msg) || is_terminated(msg))
+    if (is_length(msg) || is_terminated(msg)) {
       error ("Bad content for line message:\n" ++ msg.text.take(100))
+    }
 
     val n = msg.size
     write(stream,
