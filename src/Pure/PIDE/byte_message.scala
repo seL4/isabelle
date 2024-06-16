@@ -27,13 +27,13 @@ object Byte_Message {
 
   /* input operations */
 
-  def read(stream: InputStream, n: Int): Bytes =
+  def read(stream: InputStream, n: Long): Bytes =
     Bytes.read_stream(stream, limit = n)
 
-  def read_block(stream: InputStream, n: Int): (Option[Bytes], Int) = {
+  def read_block(stream: InputStream, n: Long): (Option[Bytes], Long) = {
     val msg = read(stream, n)
     val len = msg.size
-    (if (len == n) Some(msg) else None, len.toInt)
+    (if (len == n) Some(msg) else None, len)
   }
 
   def read_line(stream: InputStream): Option[Bytes] = {
@@ -61,11 +61,13 @@ object Byte_Message {
     flush(stream)
   }
 
-  private def parse_header(line: String): List[Int] =
-    try { space_explode(',', line).map(Value.Nat.parse) }
-    catch { case ERROR(_) => error("Malformed message header: " + quote(line)) }
+  private def parse_header(line: String): List[Long] = {
+    val args = space_explode(',', line)
+    if (args.forall(is_length)) args.map(Value.Long.parse)
+    else error("Malformed message header: " + quote(line))
+  }
 
-  private def read_chunk(stream: InputStream, n: Int): Bytes =
+  private def read_chunk(stream: InputStream, n: Long): Bytes =
     read_block(stream, n) match {
       case (Some(chunk), _) => chunk
       case (None, len) =>
@@ -78,8 +80,13 @@ object Byte_Message {
 
   /* hybrid messages: line or length+block (restricted content) */
 
+  private def is_length(str: String): Boolean =
+    !str.isEmpty && str.iterator.forall(Symbol.is_ascii_digit) &&
+      Value.Long.unapply(str).isDefined
+
   private def is_length(msg: Bytes): Boolean =
-    !msg.is_empty && msg.byte_iterator.forall(b => Symbol.is_ascii_digit(b.toChar))
+    !msg.is_empty && msg.byte_iterator.forall(b => Symbol.is_ascii_digit(b.toChar)) &&
+      Value.Long.unapply(msg.text).isDefined
 
   private def is_terminated(msg: Bytes): Boolean =
     msg.size match {
@@ -103,11 +110,9 @@ object Byte_Message {
 
   def read_line_message(stream: InputStream): Option[Bytes] =
     read_line(stream) match {
-      case None => None
-      case Some(line) =>
-        Value.Nat.unapply(line.text) match {
-          case None => Some(line)
-          case Some(n) => read_block(stream, n)._1.map(_.trim_line)
-        }
+      case Some(line) if is_length(line) =>
+        val n = Value.Long.parse(line.text)
+        read_block(stream, n)._1.map(_.trim_line)
+      case res => res
     }
 }
