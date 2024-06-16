@@ -467,7 +467,26 @@ final class Bytes private(
           else -1
         }
 
-        override def readAllBytes(): Array[Byte] = make_array
+        override def read(buffer: Array[Byte], start: Int, length: Int): Int = {
+          if (length < 16) super.read(buffer, start, length)
+          else {
+            val index0 = index
+            index = (index + length) min size
+            val n = (index - index0).toInt
+            if (n == 0) -1
+            else {
+              var i = start
+              for (a <- slice(index0, index).subarray_iterator) {
+                val l = a.length
+                if (l > 0) {
+                  System.arraycopy(a.array, a.offset, buffer, i, l)
+                  i += l
+                }
+              }
+              n
+            }
+          }
+        }
       }
     }
 
