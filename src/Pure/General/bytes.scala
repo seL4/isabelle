@@ -55,8 +55,6 @@ object Bytes {
 
   val newline: Bytes = apply("\n")
 
-  def decode_base64(s: String): Bytes = Bytes.reuse_array(Base64.decode(s))
-
 
   /* read */
 
@@ -441,12 +439,22 @@ final class Bytes private(
     }
     catch { case ERROR(_) => None }
 
-  def encode_base64: String = Base64.encode(make_array)
+
+  /* Base64 data representation */
+
+  def encode_base64: Bytes = {
+    val out = new Bytes.Builder.Stream(hint = (size * 1.5).round)
+    using(Base64.encode_stream(out))(write_stream(_))
+    out.builder.done()
+  }
+
+  def decode_base64: Bytes =
+    using(Base64.decode_stream(stream()))(Bytes.read_stream(_, hint = (size / 1.2).round))
 
   def maybe_encode_base64: (Boolean, String) =
     wellformed_text match {
       case Some(s) => (false, s)
-      case None => (true, encode_base64)
+      case None => (true, encode_base64.text)
     }
 
 
