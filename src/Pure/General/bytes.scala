@@ -150,7 +150,13 @@ object Bytes {
       builder.done()
     }
 
-    class Stream(hint: Long = 0L) extends OutputStream {
+    def use_stream(hint: Long = 0L)(body: OutputStream => Unit): Bytes = {
+      val stream = new Stream(hint = hint)
+      body(stream)
+      stream.builder.done()
+    }
+
+    private class Stream(hint: Long = 0L) extends OutputStream {
       val builder = new Builder(hint)
 
       override def write(b: Int): Unit =
@@ -222,7 +228,7 @@ object Bytes {
 
     def += (a: Subarray): Unit = { this += (a.array, a.offset, a.length) }
 
-    private[Bytes] def done(): Bytes = {
+    private def done(): Bytes = {
       val cs = chunks.toArray
       val b = buffer.toByteArray
       chunks = null
@@ -442,11 +448,10 @@ final class Bytes private(
 
   /* Base64 data representation */
 
-  def encode_base64: Bytes = {
-    val out = new Bytes.Builder.Stream(hint = (size * 1.5).round)
-    using(Base64.encode_stream(out))(write_stream(_))
-    out.builder.done()
-  }
+  def encode_base64: Bytes =
+    Bytes.Builder.use_stream(hint = (size * 1.5).round) { out =>
+      using(Base64.encode_stream(out))(write_stream(_))
+    }
 
   def decode_base64: Bytes =
     using(Base64.decode_stream(stream()))(Bytes.read_stream(_, hint = (size / 1.2).round))
@@ -539,16 +544,16 @@ final class Bytes private(
     options: Compress.Options = Compress.Options(),
     cache: Compress.Cache = Compress.Cache.none
   ): Bytes = {
-    val bytes = new Bytes.Builder.Stream(hint = size)
-    using(
-      options match {
-        case options_xz: Compress.Options_XZ =>
-          new xz.XZOutputStream(bytes, options_xz.make, cache.for_xz)
-        case options_zstd: Compress.Options_Zstd =>
-          new zstd.ZstdOutputStream(bytes, cache.for_zstd, options_zstd.level)
-      }
-    ) { s => for (a <- subarray_iterator) s.write(a.array, a.offset, a.length) }
-    bytes.builder.done()
+    Bytes.Builder.use_stream(hint = size) { out =>
+      using(
+        options match {
+          case options_xz: Compress.Options_XZ =>
+            new xz.XZOutputStream(out, options_xz.make, cache.for_xz)
+          case options_zstd: Compress.Options_Zstd =>
+            new zstd.ZstdOutputStream(out, cache.for_zstd, options_zstd.level)
+        }
+      ) { s => for (a <- subarray_iterator) s.write(a.array, a.offset, a.length) }
+    }
   }
 
   def maybe_compress(
