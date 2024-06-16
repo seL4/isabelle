@@ -23,8 +23,8 @@ object Bytes {
   /* internal sizes */
 
   private val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
+  private val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
   private val chunk_size: Long = Space.MiB(100).bytes
-  private val block_size: Int = 8192
 
   private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
     chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
