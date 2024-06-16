@@ -188,9 +188,11 @@ object Bytes {
       if (n > 0) {
         if (UTF8.relevant(s)) { this += UTF8.bytes(s.toString) }
         else {
-          for (i <- 0 until n) {
-            size += 1
+          var i = 0
+          while (i < n) {
             buffer.write(s.charAt(i).toByte)
+            size += 1
+            i += 1
             buffer_check()
           }
         }
