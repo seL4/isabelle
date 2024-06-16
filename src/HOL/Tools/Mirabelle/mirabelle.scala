@@ -72,7 +72,7 @@ object Mirabelle {
                   progress.echo(
                     "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")",
                     verbose = true)
-                  val yxml = YXML.parse_body(UTF8.decode_permissive(msg.chunk), cache = build_results0.cache)
+                  val yxml = YXML.parse_body(msg.chunk.text, cache = build_results0.cache)
                   val lines = Pretty.string_of(yxml).trim()
                   val prefix =
                     Export.explode_name(args.name) match {

@@ -194,7 +194,7 @@ class Prover(
             {
               case chunks =>
                 try {
-                  Bytes(chunks.map(_.length).mkString("", ",", "\n")).write_stream(stream)
+                  Bytes(chunks.map(_.size).mkString("", ",", "\n")).write_stream(stream)
                   chunks.foreach(_.write_stream(stream))
                   stream.flush
                   true
@@ -288,7 +288,7 @@ class Prover(
     command_input match {
       case Some(thread) if thread.is_active() =>
         if (trace) {
-          val payload = args.foldLeft(0) { case (n, b) => n + b.length }
+          val payload = args.foldLeft(0L) { case (n, b) => n + b.size }
           Output.writeln(
             "protocol_command " + name + ", args = " + args.length + ", payload = " + payload)
         }

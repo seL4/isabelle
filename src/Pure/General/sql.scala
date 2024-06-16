@@ -329,7 +329,8 @@ object SQL {
     object bytes {
       def update(i: Int, bytes: Bytes): Unit = {
         if (bytes == null) rep.setBytes(i, null)
-        else rep.setBinaryStream(i, bytes.stream(), bytes.length)
+        else if (bytes.size > Int.MaxValue) throw new IllegalArgumentException
+        else rep.setBinaryStream(i, bytes.stream(), bytes.size.toInt)
       }
       def update(i: Int, bytes: Option[Bytes]): Unit = update(i, bytes.orNull)
     }

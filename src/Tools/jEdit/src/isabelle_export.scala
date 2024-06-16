@@ -56,7 +56,7 @@ object Isabelle_Export {
                 } yield {
                   val is_dir = entry.name_elems.length > depth
                   val path = Export.implode_name(theory :: entry.name_elems.take(depth))
-                  val file_size = if (is_dir) None else Some(entry.bytes.length.toLong)
+                  val file_size = if (is_dir) None else Some(entry.bytes.size)
                   (path, file_size)
                 }).toSet.toList
               (for ((path, file_size) <- entries.iterator) yield {

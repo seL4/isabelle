@@ -474,7 +474,7 @@ object Isabelle_System {
               else {
                 val bytes = using(zip_file.getInputStream(entry))(Bytes.read_stream(_))
                 Files.createDirectories(res.getParent)
-                Files.write(res, bytes.array)
+                Files.write(res, bytes.make_array)
               }
             }
             (entry, result)

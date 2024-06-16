@@ -9,7 +9,7 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStream, File => JFile}
+import java.io.{InputStream, OutputStream, FileOutputStream, File => JFile}
 
 import scala.collection.mutable
 
@@ -39,8 +39,8 @@ class Channel(
 
   private def read_content(n: Int): String = {
     val bytes = Bytes.read_stream(in, limit = n)
-    if (bytes.length == n) bytes.text
-    else error("Bad message content (unexpected EOF after " + bytes.length + " of " + n + " bytes)")
+    if (bytes.size == n) bytes.text
+    else error("Bad message content (unexpected EOF after " + bytes.size + " of " + n + " bytes)")
   }
 
   def read(): Option[JSON.T] = {

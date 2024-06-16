@@ -715,7 +715,7 @@ Usage: isabelle build_worker [OPTIONS]
     unicode_symbols: Boolean = false
   ): Option[Document.Snapshot] = {
     def decode_bytes(bytes: Bytes): String =
-      Symbol.output(unicode_symbols, UTF8.decode_permissive(bytes))
+      Symbol.output(unicode_symbols, bytes.text)
 
     def read(name: String): Export.Entry = theory_context(name, permissive = true)
 

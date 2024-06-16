@@ -16,80 +16,92 @@ import java.util.Arrays
 import org.tukaani.xz
 import com.github.luben.zstd
 
+import scala.collection.mutable.ArrayBuffer
+
 
 object Bytes {
-  val empty: Bytes = new Bytes(Array[Byte](), 0, 0)
+  /* internal sizes */
 
-  def apply(s: CharSequence): Bytes = {
-    val str = s.toString
-    if (str.isEmpty) empty
-    else {
-      val b = UTF8.bytes(str)
-      new Bytes(b, 0, b.length)
-    }
+  private val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
+  private val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
+  private val chunk_size: Long = Space.MiB(100).bytes
+
+  private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
+    chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
+
+  class Too_Large(size: Long) extends IndexOutOfBoundsException {
+    override def getMessage: String =
+      "Bytes too large for particular operation: " +
+        Space.bytes(size).print + " > " + Space.bytes(array_size).print
   }
+
+
+  /* main constructors */
+
+  private def reuse_array(bytes: Array[Byte]): Bytes =
+    if (bytes.length <= chunk_size) new Bytes(None, bytes, 0L, bytes.length.toLong)
+    else apply(bytes)
+
+  val empty: Bytes = reuse_array(new Array(0))
+
+  def apply(s: CharSequence): Bytes =
+    if (s.isEmpty) empty
+    else Builder.use(hint = s.length) { builder => builder += s }
 
   def apply(a: Array[Byte]): Bytes = apply(a, 0, a.length)
 
   def apply(a: Array[Byte], offset: Int, length: Int): Bytes =
-    if (length == 0) empty
-    else {
-      val b = new Array[Byte](length)
-      System.arraycopy(a, offset, b, 0, length)
-      new Bytes(b, 0, b.length)
-    }
+    Builder.use(hint = length) { builder => builder += (a, offset, length) }
 
   val newline: Bytes = apply("\n")
 
 
-  /* base64 */
-
-  def decode_base64(s: String): Bytes = {
-    val a = Base64.decode(s)
-    new Bytes(a, 0, a.length)
-  }
-
-
   /* read */
 
-  def read_stream(stream: InputStream, limit: Int = Int.MaxValue, hint: Int = 1024): Bytes =
+  def read_stream(stream: InputStream, limit: Long = -1L, hint: Long = 0L): Bytes = {
     if (limit == 0) empty
     else {
-      val out_size = (if (limit == Int.MaxValue) hint else limit) max 1024
-      val out = new ByteArrayOutputStream(out_size)
-      val buf = new Array[Byte](8192)
-      var m = 0
-
-      while ({
-        m = stream.read(buf, 0, buf.length min (limit - out.size))
-        if (m != -1) out.write(buf, 0, m)
-        m != -1 && limit > out.size
-      }) ()
-
-      new Bytes(out.toByteArray, 0, out.size)
+      Builder.use(hint = if (limit > 0) limit else hint) { builder =>
+        val buf = new Array[Byte](block_size)
+        var m = 0
+        var n = 0L
+        while ({
+          val l = if (limit > 0) ((limit - n) min buf.length).toInt else buf.length
+          m = stream.read(buf, 0, l)
+          if (m != -1) {
+            builder += (buf, 0, m)
+            n += m
+          }
+          m != -1 && (limit < 0 || limit > n)
+        }) ()
+      }
     }
+  }
 
   def read_url(name: String): Bytes = using(Url(name).open_stream())(read_stream(_))
 
-  def read_file(path: Path, offset: Long = 0L, limit: Long = Long.MaxValue): Bytes = {
+  def read_file(path: Path, offset: Long = 0L, limit: Long = -1L): Bytes = {
     val length = File.size(path)
     val start = offset.max(0L)
-    val len = (length - start).max(0L).min(limit)
-    if (len > Int.MaxValue) error("Cannot read large file slice: " + Space.bytes(len).print)
-    else if (len == 0L) empty
+    val stop = (length - start).max(0L).min(if (limit < 0) Long.MaxValue else limit)
+    if (stop == 0L) empty
     else {
-      using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { java_path =>
-        java_path.position(start)
-        val n = len.toInt
-        val buf = ByteBuffer.allocate(n)
-        var i = 0
-        var m = 0
-        while ({
-          m = java_path.read(buf)
-          if (m != -1) i += m
-          m != -1 && n > i
-        }) ()
-        new Bytes(buf.array, 0, i)
+      Builder.use(hint = stop) { builder =>
+        using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { channel =>
+          channel.position(start)
+          val buf = ByteBuffer.allocate(block_size)
+          var m = 0
+          var n = 0L
+          while ({
+            m = channel.read(buf)
+            if (m != -1) {
+              builder += (buf.array(), 0, m)
+              buf.clear()
+              n += m
+            }
+            m != -1 && stop > n
+          }) ()
+        }
       }
     }
   }
@@ -112,147 +124,415 @@ object Bytes {
     using(new FileOutputStream(file, true))(bytes.write_stream(_))
 
   def append(path: Path, bytes: Bytes): Unit = append(path.file, bytes)
+
+
+  /* vector of short unsigned integers */
+
+  trait Vec {
+    def size: Long
+    def apply(i: Long): Char
+  }
+
+  class Vec_String(string: String) extends Vec {
+    override def size: Long = string.length.toLong
+    override def apply(i: Long): Char =
+      if (0 <= i && i < size) string(i.toInt)
+      else throw new IndexOutOfBoundsException
+  }
+
+
+  /* incremental builder: unsynchronized! */
+
+  object Builder {
+    def use(hint: Long = 0L)(body: Builder => Unit): Bytes = {
+      val builder = new Builder(hint)
+      body(builder)
+      builder.done()
+    }
+
+    def use_stream(hint: Long = 0L)(body: OutputStream => Unit): Bytes = {
+      val stream = new Stream(hint = hint)
+      body(stream)
+      stream.builder.done()
+    }
+
+    private class Stream(hint: Long = 0L) extends OutputStream {
+      val builder = new Builder(hint)
+
+      override def write(b: Int): Unit =
+        { builder += b.toByte }
+
+      override def write(array: Array[Byte], offset: Int, length: Int): Unit =
+        { builder += (array, offset, length) }
+    }
+  }
+
+  final class Builder private[Bytes](hint: Long) {
+    private var size = 0L
+    private var chunks =
+      new ArrayBuffer[Array[Byte]](if (hint <= 0) 16 else (hint / chunk_size).toInt)
+    private var buffer =
+      new ByteArrayOutputStream(if (hint <= 0) 1024 else (hint min chunk_size min array_size).toInt)
+
+    private def buffer_free(): Int = chunk_size.toInt - buffer.size()
+    private def buffer_check(): Unit =
+      if (buffer_free() == 0) {
+        chunks += buffer.toByteArray
+        buffer = new ByteArrayOutputStream(chunk_size.toInt)
+      }
+
+    def += (b: Byte): Unit = {
+      size += 1
+      buffer.write(b)
+      buffer_check()
+    }
+
+    def += (s: CharSequence): Unit = {
+      val n = s.length
+      if (n > 0) {
+        if (UTF8.relevant(s)) { this += UTF8.bytes(s.toString) }
+        else {
+          var i = 0
+          while (i < n) {
+            buffer.write(s.charAt(i).toByte)
+            size += 1
+            i += 1
+            buffer_check()
+          }
+        }
+      }
+    }
+
+    def += (array: Array[Byte], offset: Int, length: Int): Unit = {
+      if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
+        throw new IndexOutOfBoundsException
+      }
+      else if (length > 0) {
+        var i = offset
+        var n = length
+        while (n > 0) {
+          val m = buffer_free()
+          if (m > 0) {
+            val l = m min n
+            buffer.write(array, i, l)
+            size += l
+            i += l
+            n -= l
+          }
+          buffer_check()
+        }
+      }
+    }
+
+    def += (array: Array[Byte]): Unit = { this += (array, 0, array.length) }
+
+    def += (a: Subarray): Unit = { this += (a.array, a.offset, a.length) }
+
+    private def done(): Bytes = {
+      val cs = chunks.toArray
+      val b = buffer.toByteArray
+      chunks = null
+      buffer = null
+      new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
+    }
+  }
+
+
+  /* subarray */
+
+  object Subarray {
+    val empty: Subarray = new Subarray(new Array[Byte](0), 0, 0)
+
+    def apply(array: Array[Byte], offset: Int, length: Int): Subarray = {
+      val n = array.length
+      if (0 <= offset && offset < n && 0 <= length && offset + length <= n) {
+        if (length == 0) empty
+        else new Subarray(array, offset, length)
+      }
+      else throw new IndexOutOfBoundsException
+    }
+  }
+
+  final class Subarray private(
+    val array: Array[Byte],
+    val offset: Int,
+    val length: Int
+  ) {
+    override def toString: String = "Bytes.Subarray(" + Space.bytes(length).print + ")"
+
+    def byte_iterator: Iterator[Byte] =
+      if (length == 0) Iterator.empty
+      else { for (i <- (offset until (offset + length)).iterator) yield array(i) }
+  }
 }
 
 final class Bytes private(
-  protected val bytes: Array[Byte],
-  protected val offset: Int,
-  val length: Int) extends CharSequence {
-  /* equality */
+  protected val chunks: Option[Array[Array[Byte]]],
+  protected val chunk0: Array[Byte],
+  protected val offset: Long,
+  val size: Long
+) extends Bytes.Vec {
+  assert(
+    (chunks.isEmpty ||
+      chunks.get.nonEmpty &&
+      chunks.get.forall(chunk => chunk.length == Bytes.chunk_size)) &&
+    chunk0.length < Bytes.chunk_size)
 
-  override def equals(that: Any): Boolean = {
-    that match {
-      case other: Bytes =>
-        this.eq(other) ||
-        Arrays.equals(bytes, offset, offset + length,
-          other.bytes, other.offset, other.offset + other.length)
-      case _ => false
-    }
-  }
+  def small_size: Int =
+    if (size > Bytes.array_size) throw new Bytes.Too_Large(size)
+    else size.toInt
 
-  private lazy val hash: Int = {
-    var h = 0
-    for (i <- offset until offset + length) {
-      val b = bytes(i).asInstanceOf[Int] & 0xFF
-      h = 31 * h + b
-    }
-    h
-  }
+  def is_empty: Boolean = size == 0
 
-  override def hashCode(): Int = hash
+  def proper: Option[Bytes] = if (is_empty) None else Some(this)
 
-
-  /* content */
-
-  lazy val sha1_digest: SHA1.Digest = SHA1.digest(bytes)
-
-  def is_empty: Boolean = length == 0
-
-  def iterator: Iterator[Byte] =
-    for (i <- (offset until (offset + length)).iterator)
-      yield bytes(i)
-
-  def array: Array[Byte] = {
-    val a = new Array[Byte](length)
-    System.arraycopy(bytes, offset, a, 0, length)
-    a
-  }
-
-  def text: String = UTF8.decode_permissive(this)
-
-  def wellformed_text: Option[String] = {
-    val s = text
-    if (this == Bytes(s)) Some(s) else None
-  }
-
-  def encode_base64: String = {
-    val b =
-      if (offset == 0 && length == bytes.length) bytes
-      else Bytes(bytes, offset, length).bytes
-    Base64.encode(b)
-  }
-
-  def maybe_encode_base64: (Boolean, String) =
-    wellformed_text match {
-      case Some(s) => (false, s)
-      case None => (true, encode_base64)
+  def is_sliced: Boolean =
+    offset != 0L || {
+      chunks match {
+        case None => size != chunk0.length
+        case Some(cs) => size != Bytes.make_size(cs, chunk0)
+      }
     }
 
   override def toString: String =
-    if (is_empty) "Bytes.empty" else "Bytes(" + Space.bytes(length).print + ")"
+    if (is_empty) "Bytes.empty"
+    else "Bytes(" + Space.bytes(size).print + if_proper(is_sliced, ", sliced") + ")"
 
-  def proper: Option[Bytes] = if (is_empty) None else Some(this)
-  def proper_text: Option[String] = if (is_empty) None else Some(text)
 
-  def +(other: Bytes): Bytes =
-    if (other.is_empty) this
-    else if (is_empty) other
-    else {
-      val new_bytes = new Array[Byte](length + other.length)
-      System.arraycopy(bytes, offset, new_bytes, 0, length)
-      System.arraycopy(other.bytes, other.offset, new_bytes, length, other.length)
-      new Bytes(new_bytes, 0, new_bytes.length)
+  /* elements: signed Byte or unsigned Char */
+
+  protected def byte_unchecked(i: Long): Byte = {
+    val a = offset + i
+    chunks match {
+      case None => chunk0(a.toInt)
+      case Some(cs) =>
+        val b = a % Bytes.chunk_size
+        val c = a / Bytes.chunk_size
+        if (c < cs.length) cs(c.toInt)(b.toInt) else chunk0(b.toInt)
     }
-
-
-  /* CharSequence operations */
-
-  def charAt(i: Int): Char =
-    if (0 <= i && i < length) (bytes(offset + i).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
-    else throw new IndexOutOfBoundsException
-
-  def subSequence(i: Int, j: Int): Bytes = {
-    if (0 <= i && i <= j && j <= length) new Bytes(bytes, offset + i, j - i)
-    else throw new IndexOutOfBoundsException
   }
 
-  def trim_line: Bytes =
-    if (length >= 2 && charAt(length - 2) == 13 && charAt(length - 1) == 10) {
-      subSequence(0, length - 2)
+  def byte(i: Long): Byte =
+    if (0 <= i && i < size) byte_unchecked(i)
+    else throw new IndexOutOfBoundsException
+
+  def apply(i: Long): Char = (byte(i).toInt & 0xff).toChar
+
+  protected def subarray_iterator: Iterator[Bytes.Subarray] =
+    if (is_empty) Iterator.empty
+    else if (chunks.isEmpty) Iterator(Bytes.Subarray(chunk0, offset.toInt, size.toInt))
+    else {
+      val end_offset = offset + size
+      for ((array, index) <- (chunks.get.iterator ++ Iterator(chunk0)).zipWithIndex) yield {
+        val array_start = Bytes.chunk_size * index
+        val array_stop = array_start + array.length
+        if (offset < array_stop && array_start < end_offset) {
+          val i = (array_start max offset) - array_start
+          val j = (array_stop min end_offset) - array_start
+          Bytes.Subarray(array, i.toInt, (j - i).toInt)
+        }
+        else Bytes.Subarray.empty
+      }
     }
-    else if (length >= 1 && (charAt(length - 1) == 13 || charAt(length - 1) == 10)) {
-      subSequence(0, length - 1)
+
+  def byte_iterator: Iterator[Byte] =
+    for {
+      a <- subarray_iterator
+      b <- a.byte_iterator
+    } yield b
+
+
+  /* slice */
+
+  def slice(i: Long, j: Long): Bytes =
+    if (0 <= i && i <= j && j <= size) {
+      if (i == j) Bytes.empty
+      else new Bytes(chunks, chunk0, offset + i, j - i)
+    }
+    else throw new IndexOutOfBoundsException
+
+  def unslice: Bytes =
+    if (is_sliced) {
+      Bytes.Builder.use(hint = size) { builder =>
+        for (a <- subarray_iterator) { builder += a }
+      }
+    }
+    else this
+
+  def trim_line: Bytes =
+    if (size >= 2 && byte_unchecked(size - 2) == 13 && byte_unchecked(size - 1) == 10) {
+      slice(0, size - 2)
+    }
+    else if (size >= 1 && (byte_unchecked(size - 1) == 13 || byte_unchecked(size - 1) == 10)) {
+      slice(0, size - 1)
     }
     else this
 
 
+  /* hash and equality */
+
+  lazy val sha1_digest: SHA1.Digest =
+    if (is_empty) SHA1.digest_empty
+    else {
+      SHA1.make_digest { sha =>
+        for (a <- subarray_iterator if a.length > 0) {
+          sha.update(a.array, a.offset, a.length)
+        }
+      }
+    }
+
+  override def hashCode(): Int = sha1_digest.hashCode()
+
+  override def equals(that: Any): Boolean = {
+    that match {
+      case other: Bytes =>
+        if (this.eq(other)) true
+        else if (size != other.size) false
+        else {
+          if (chunks.isEmpty && other.chunks.isEmpty) {
+            Arrays.equals(chunk0, offset.toInt, (offset + size).toInt,
+              other.chunk0, other.offset.toInt, (other.offset + other.size).toInt)
+          }
+          else if (!is_sliced && !other.is_sliced) {
+            (subarray_iterator zip other.subarray_iterator)
+              .forall((a, b) => Arrays.equals(a.array, b.array))
+          }
+          else sha1_digest == other.sha1_digest
+        }
+      case _ => false
+    }
+  }
+
+
+  /* content */
+
+  def + (other: Bytes): Bytes =
+    if (other.is_empty) this
+    else if (is_empty) other
+    else {
+      Bytes.Builder.use(hint = size + other.size) { builder =>
+        for (a <- subarray_iterator ++ other.subarray_iterator) {
+          builder += a
+        }
+      }
+    }
+
+  def make_array: Array[Byte] = {
+    val buf = new ByteArrayOutputStream(small_size)
+    for (a <- subarray_iterator) { buf.write(a.array, a.offset, a.length) }
+    buf.toByteArray
+  }
+
+  def text: String =
+    if (is_empty) ""
+    else {
+      var i = 0L
+      var utf8 = false
+      while (i < size && !utf8) {
+        if (byte_unchecked(i) < 0) { utf8 = true }
+        i += 1
+      }
+      utf8
+
+      if (utf8) UTF8.decode_permissive_bytes(this)
+      else new String(make_array, UTF8.charset)
+    }
+
+  def wellformed_text: Option[String] =
+    try {
+      val s = text
+      if (this == Bytes(s)) Some(s) else None
+    }
+    catch { case ERROR(_) => None }
+
+
+  /* Base64 data representation */
+
+  def encode_base64: Bytes =
+    Bytes.Builder.use_stream(hint = (size * 1.5).round) { out =>
+      using(Base64.encode_stream(out))(write_stream(_))
+    }
+
+  def decode_base64: Bytes =
+    using(Base64.decode_stream(stream()))(Bytes.read_stream(_, hint = (size / 1.2).round))
+
+  def maybe_encode_base64: (Boolean, String) =
+    wellformed_text match {
+      case Some(s) => (false, s)
+      case None => (true, encode_base64.text)
+    }
+
+
   /* streams */
 
-  def stream(): ByteArrayInputStream = new ByteArrayInputStream(bytes, offset, length)
+  def stream(): InputStream =
+    if (chunks.isEmpty) new ByteArrayInputStream(chunk0, offset.toInt, size.toInt)
+    else {
+      new InputStream {
+        private var index = 0L
 
-  def write_stream(stream: OutputStream): Unit = stream.write(bytes, offset, length)
+        def read(): Int = {
+          if (index < size) {
+            val res = byte_unchecked(index).toInt & 0xff
+            index += 1
+            res
+          }
+          else -1
+        }
+
+        override def read(buffer: Array[Byte], start: Int, length: Int): Int = {
+          if (length < 16) super.read(buffer, start, length)
+          else {
+            val index0 = index
+            index = (index + length) min size
+            val n = (index - index0).toInt
+            if (n == 0) -1
+            else {
+              var i = start
+              for (a <- slice(index0, index).subarray_iterator) {
+                val l = a.length
+                if (l > 0) {
+                  System.arraycopy(a.array, a.offset, buffer, i, l)
+                  i += l
+                }
+              }
+              n
+            }
+          }
+        }
+      }
+    }
+
+  def write_stream(stream: OutputStream): Unit =
+    for (a <- subarray_iterator if a.length > 0) {
+      stream.write(a.array, a.offset, a.length)
+    }
 
 
   /* XZ / Zstd data compression */
 
   def detect_xz: Boolean =
-    length >= 6 &&
-      bytes(offset)     == 0xFD.toByte &&
-      bytes(offset + 1) == 0x37.toByte &&
-      bytes(offset + 2) == 0x7A.toByte &&
-      bytes(offset + 3) == 0x58.toByte &&
-      bytes(offset + 4) == 0x5A.toByte &&
-      bytes(offset + 5) == 0x00.toByte
+    size >= 6 &&
+      byte_unchecked(0) == 0xFD.toByte &&
+      byte_unchecked(1) == 0x37.toByte &&
+      byte_unchecked(2) == 0x7A.toByte &&
+      byte_unchecked(3) == 0x58.toByte &&
+      byte_unchecked(4) == 0x5A.toByte &&
+      byte_unchecked(5) == 0x00.toByte
 
   def detect_zstd: Boolean =
-    length >= 4 &&
-      bytes(offset)     == 0x28.toByte &&
-      bytes(offset + 1) == 0xB5.toByte &&
-      bytes(offset + 2) == 0x2F.toByte &&
-      bytes(offset + 3) == 0xFD.toByte
+    size >= 4 &&
+      byte_unchecked(0) == 0x28.toByte &&
+      byte_unchecked(1) == 0xB5.toByte &&
+      byte_unchecked(2) == 0x2F.toByte &&
+      byte_unchecked(3) == 0xFD.toByte
 
   def uncompress_xz(cache: Compress.Cache = Compress.Cache.none): Bytes =
-    using(new xz.XZInputStream(stream(), cache.for_xz))(Bytes.read_stream(_, hint = length))
+    using(new xz.XZInputStream(stream(), cache.for_xz))(Bytes.read_stream(_, hint = size))
 
   def uncompress_zstd(cache: Compress.Cache = Compress.Cache.none): Bytes = {
     Zstd.init()
-    val n = zstd.Zstd.decompressedSize(bytes, offset, length)
-    if (n > 0 && n < Int.MaxValue) {
-      Bytes(zstd.Zstd.decompress(array, n.toInt))
-    }
-    else {
-      using(new zstd.ZstdInputStream(stream(), cache.for_zstd))(Bytes.read_stream(_, hint = length))
-    }
+    using(new zstd.ZstdInputStream(stream(), cache.for_zstd))(Bytes.read_stream(_, hint = size))
   }
 
   def uncompress(cache: Compress.Cache = Compress.Cache.none): Bytes =
@@ -264,14 +544,15 @@ final class Bytes private(
     options: Compress.Options = Compress.Options(),
     cache: Compress.Cache = Compress.Cache.none
   ): Bytes = {
-    options match {
-      case options_xz: Compress.Options_XZ =>
-        val result = new ByteArrayOutputStream(length)
-        using(new xz.XZOutputStream(result, options_xz.make, cache.for_xz))(write_stream)
-        new Bytes(result.toByteArray, 0, result.size)
-      case options_zstd: Compress.Options_Zstd =>
-        Zstd.init()
-        Bytes(zstd.Zstd.compress(if (offset == 0) bytes else array, options_zstd.level))
+    Bytes.Builder.use_stream(hint = size) { out =>
+      using(
+        options match {
+          case options_xz: Compress.Options_XZ =>
+            new xz.XZOutputStream(out, options_xz.make, cache.for_xz)
+          case options_zstd: Compress.Options_Zstd =>
+            new zstd.ZstdOutputStream(out, cache.for_zstd, options_zstd.level)
+        }
+      ) { s => for (a <- subarray_iterator) s.write(a.array, a.offset, a.length) }
     }
   }
 
@@ -280,6 +561,6 @@ final class Bytes private(
     cache: Compress.Cache = Compress.Cache.none
   ) : (Boolean, Bytes) = {
     val compressed = compress(options = options, cache = cache)
-    if (compressed.length < length) (true, compressed) else (false, this)
+    if (compressed.size < size) (true, compressed) else (false, this)
   }
 }

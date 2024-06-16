@@ -229,7 +229,7 @@ object Component_VSCodium {
   // function computeChecksum(filename)
   private def file_checksum(path: Path): String = {
     val digest = MessageDigest.getInstance("MD5")
-    digest.update(Bytes.read(path).array)
+    digest.update(Bytes.read(path).make_array)
     Bytes(Base64.getEncoder.encode(digest.digest()))
       .text.replaceAll("=", "")
   }
