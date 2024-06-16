@@ -6,7 +6,7 @@ Byte-oriented messages.
 
 package isabelle
 
-import java.io.{ByteArrayOutputStream, OutputStream, InputStream, IOException}
+import java.io.{OutputStream, InputStream, IOException}
 
 
 object Byte_Message {
@@ -37,17 +37,14 @@ object Byte_Message {
   }
 
   def read_line(stream: InputStream): Option[Bytes] = {
-    val line = new ByteArrayOutputStream(100)
     var c = 0
-    while ({ c = stream.read; c != -1 && c != 10 }) line.write(c)
-
-    if (c == -1 && line.size == 0) None
-    else {
-      val a = line.toByteArray
-      val n = a.length
-      val len = if (n > 0 && a(n - 1) == 13) n - 1 else n
-      Some(Bytes(a, 0, len))
-    }
+    val line =
+      Bytes.Builder.use(hint = 100) { builder =>
+        while ({ c = stream.read; c != -1 && c != 10 }) {
+          builder += c.toByte
+        }
+      }
+    if (c == -1 && line.size == 0) None else Some(line.trim_line)
   }
 
 
