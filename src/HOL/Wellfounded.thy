@@ -182,9 +182,6 @@ lemma wf_wellorderI:
 lemma (in wellorder) wf: "wf {(x, y). x < y}"
   unfolding wf_def by (blast intro: less_induct)
 
-lemma (in wellorder) wfP_less[simp]: "wfp (<)"
-  by (simp add: wf wfp_def)
-
 lemma (in wellorder) wfp_on_less[simp]: "wfp_on A (<)"
   unfolding wfp_on_def
 proof (intro allI impI ballI)

@@ -8,6 +8,8 @@ New in this Isabelle version
 ----------------------------
 
 * Theory "HOL.Wellfounded":
+  - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
+    Minor INCOMPATIBILITIES.
   - Renamed lemmas. Minor INCOMPATIBILITY.
       accp_wfPD ~> accp_wfpD
       accp_wfPI ~> accp_wfpI
