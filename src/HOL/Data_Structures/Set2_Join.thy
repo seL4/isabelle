@@ -64,19 +64,18 @@ qed
 
 subsection "\<open>join2\<close>"
 
-fun join2 :: "('a*'b) tree \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
-"join2 l \<langle>\<rangle> = l" |
-"join2 l r = (let (m,r') = split_min r in join l m r')"
+definition join2 :: "('a*'b) tree \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
+"join2 l r = (if r = Leaf then l else let (m,r') = split_min r in join l m r')"
 
 lemma set_join2[simp]: "set_tree (join2 l r) = set_tree l \<union> set_tree r"
-by(cases r)(simp_all add: split_min_set split: prod.split)
+by(cases r)(simp_all add: split_min_set join2_def split: prod.split)
 
 lemma bst_join2: "\<lbrakk> bst l; bst r; \<forall>x \<in> set_tree l. \<forall>y \<in> set_tree r. x < y \<rbrakk>
   \<Longrightarrow> bst (join2 l r)"
-by(cases r)(simp_all add: bst_join split_min_set split_min_bst split: prod.split)
+by(cases r)(simp_all add: bst_join split_min_set split_min_bst join2_def split: prod.split)
 
 lemma inv_join2: "\<lbrakk> inv l; inv r \<rbrakk> \<Longrightarrow> inv (join2 l r)"
-by(cases r)(simp_all add: inv_join split_min_set split_min_inv split: prod.split)
+by(cases r)(simp_all add: inv_join split_min_set split_min_inv join2_def split: prod.split)
 
 
 subsection "\<open>split\<close>"
