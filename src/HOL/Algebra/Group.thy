@@ -724,8 +724,8 @@ text \<open>
 \<close>
 
 lemma (in group) one_in_subset:
-  "[| H \<subseteq> carrier G; H \<noteq> {}; \<forall>a \<in> H. inv a \<in> H; \<forall>a\<in>H. \<forall>b\<in>H. a \<otimes> b \<in> H |]
-   ==> \<one> \<in> H"
+  "\<lbrakk>H \<subseteq> carrier G; H \<noteq> {}; \<forall>a \<in> H. inv a \<in> H; \<forall>a\<in>H. \<forall>b\<in>H. a \<otimes> b \<in> H\<rbrakk>
+   \<Longrightarrow> \<one> \<in> H"
 by force
 
 text \<open>A characterization of subgroups: closed, non-empty subset.\<close>

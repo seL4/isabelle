@@ -10,9 +10,8 @@ text \<open>See also \<^cite>\<open>"Kammueller-Paulson:1999"\<close>.\<close>
 
 text \<open>The combinatorial argument is in theory \<open>Exponent\<close>.\<close>
 
-lemma le_extend_mult: "\<lbrakk>0 < c; a \<le> b\<rbrakk> \<Longrightarrow> a \<le> b * c"
-  for c :: nat
-  by (metis divisors_zero dvd_triv_left leI less_le_trans nat_dvd_not_less zero_less_iff_neq_zero)
+lemma le_extend_mult: "\<lbrakk>0 < c; a \<le> b\<rbrakk> \<Longrightarrow> a \<le> b * c" for c :: nat
+  using gr0_conv_Suc by fastforce
 
 locale sylow = group +
   fixes p and a and m and calM and RelM
@@ -30,15 +29,9 @@ lemma RelM_refl_on: "refl_on calM RelM"
   by (auto simp: refl_on_def RelM_def calM_def) (blast intro!: coset_mult_one [symmetric])
 
 lemma RelM_sym: "sym RelM"
-proof (unfold sym_def RelM_def, clarify)
-  fix y g
-  assume "y \<in> calM"
-    and g: "g \<in> carrier G"
-  then have "y = y #> g #> (inv g)"
-    by (simp add: coset_mult_assoc calM_def)
-  then show "\<exists>g'\<in>carrier G. y = y #> g #> g'"
-    by (blast intro: g)
-qed
+  unfolding sym_def RelM_def calM_def
+  using coset_mult_assoc coset_mult_one r_inv_ex
+  by (smt (verit, best) case_prod_conv mem_Collect_eq)
 
 lemma RelM_trans: "trans RelM"
   by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc)
@@ -62,14 +55,13 @@ locale sylow_central = sylow +
 begin
 
 lemma M_subset_calM: "M \<subseteq> calM"
-  by (rule M_in_quot [THEN M_subset_calM_prep])
+  by (simp add: M_in_quot M_subset_calM_prep)
 
 lemma card_M1: "card M1 = p^a"
   using M1_in_M M_subset_calM calM_def by blast
 
 lemma exists_x_in_M1: "\<exists>x. x \<in> M1"
-  using prime_p [THEN prime_gt_Suc_0_nat] card_M1
-  by (metis Suc_lessD card_eq_0_iff empty_subsetI equalityI gr_implies_not0 nat_zero_less_power_iff subsetI)
+  using prime_p [THEN prime_gt_Suc_0_nat] card_M1 one_in_subset by fastforce
 
 lemma M1_subset_G [simp]: "M1 \<subseteq> carrier G"
   using M1_in_M M_subset_calM calM_def mem_Collect_eq subsetCE by blast
@@ -77,25 +69,14 @@ lemma M1_subset_G [simp]: "M1 \<subseteq> carrier G"
 lemma M1_inj_H: "\<exists>f \<in> H\<rightarrow>M1. inj_on f H"
 proof -
   from exists_x_in_M1 obtain m1 where m1M: "m1 \<in> M1"..
-  have m1: "m1 \<in> carrier G"
-    by (simp add: m1M M1_subset_G [THEN subsetD])
   show ?thesis
   proof
-    show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
-      by (simp add: H_def inj_on_def m1)
+    have "m1 \<in> carrier G"
+      by (simp add: m1M M1_subset_G [THEN subsetD])
+    then show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
+      by (simp add: H_def inj_on_def)
     show "restrict ((\<otimes>) m1) H \<in> H \<rightarrow> M1"
-    proof (rule restrictI)
-      fix z
-      assume zH: "z \<in> H"
-      show "m1 \<otimes> z \<in> M1"
-      proof -
-        from zH
-        have zG: "z \<in> carrier G" and M1zeq: "M1 #> z = M1"
-          by (auto simp add: H_def)
-        show ?thesis
-          by (rule subst [OF M1zeq]) (simp add: m1M zG rcosI)
-      qed
-    qed
+      using H_def m1M rcosI by auto
   qed
 qed
 
@@ -108,7 +89,7 @@ context sylow
 begin
 
 lemma EmptyNotInEquivSet: "{} \<notin> calM // RelM"
-  by (blast elim!: quotientE dest: RelM_equiv [THEN equiv_class_self])
+  using RelM_equiv in_quotient_imp_non_empty by blast
 
 lemma existsM1inM: "M \<in> calM // RelM \<Longrightarrow> \<exists>M1. M1 \<in> M"
   using RelM_equiv equiv_Eps_in by blast
@@ -131,10 +112,8 @@ proof
   with zero_less_card_calM prime_p
   have "Suc (multiplicity p m) \<le> multiplicity p (card calM)"
     by (intro multiplicity_geI) auto
-  then have "multiplicity p m < multiplicity p (card calM)" by simp
-  also have "multiplicity p m = multiplicity p (card calM)"
-    by (simp add: const_p_fac prime_p zero_less_m card_calM)
-  finally show False by simp
+  then show False
+    by (simp add: card_calM const_p_fac prime_p zero_less_m)
 qed
 
 lemma finite_calM: "finite calM"
@@ -171,7 +150,7 @@ proof (rule subgroupI)
   show "H \<subseteq> carrier G"
     using H_into_carrier_G by blast
   show "\<And>a. a \<in> H \<Longrightarrow> inv a \<in> H"
-    by (metis H_I H_into_carrier_G H_m_closed M1_subset_G Units_eq Units_inv_closed Units_inv_inv coset_mult_inv1 in_H_imp_eq)
+    by (metis H_I H_into_carrier_G M1_subset_G coset_mult_assoc coset_mult_one in_H_imp_eq inv_closed r_inv)
   show "\<And>a b. \<lbrakk>a \<in> H; b \<in> H\<rbrakk> \<Longrightarrow> a \<otimes> b \<in> H"
     by (blast intro: H_m_closed)
 qed (use H_not_empty in auto)
@@ -237,12 +216,12 @@ proof
     assume eq: "H #> ?inv x = H #> ?inv y" and xy: "x \<in> M" "y \<in> M"
     have "x = M1 #> ?inv x"
       by (simp add: M_elem_map_eq \<open>x \<in> M\<close>)
-    also have "... = M1 #> ?inv y"
+    also have "\<dots> = M1 #> ?inv y"
     proof (rule coset_mult_inv1 [OF in_H_imp_eq [OF coset_join1]])
       show "H #> ?inv x \<otimes> inv (?inv y) = H"
         by (simp add: H_into_carrier_G M_elem_map_carrier xy coset_mult_inv2 eq subsetI)
     qed (simp_all add: H_is_subgroup M_elem_map_carrier xy)
-    also have "... = y"
+    also have "\<dots> = y"
       using M_elem_map_eq \<open>y \<in> M\<close> by simp
     finally show "x=y" .
   qed
@@ -279,7 +258,7 @@ proof
     assume eq: "M1 #> ?inv x = M1 #> ?inv y" and xy: "x \<in> rcosets H" "y \<in> rcosets H"
     have "x = H #> ?inv x"
       by (simp add: H_elem_map_eq \<open>x \<in> rcosets H\<close>)
-    also have "... = H #> ?inv y"
+    also have "\<dots> = H #> ?inv y"
     proof (rule coset_mult_inv1 [OF coset_join2])
       show "?inv x \<otimes> inv (?inv y) \<in> carrier G"
         by (simp add: H_elem_map_carrier \<open>x \<in> rcosets H\<close> \<open>y \<in> rcosets H\<close>)
@@ -288,7 +267,7 @@ proof
       show "H \<subseteq> carrier G"
         by (simp add: H_is_subgroup subgroup.subset)
     qed (simp_all add: H_is_subgroup H_elem_map_carrier xy)
-    also have "... = y"
+    also have "\<dots> = y"
       by (simp add: H_elem_map_eq \<open>y \<in> rcosets H\<close>)
     finally show "x=y" .
   qed
@@ -305,7 +284,7 @@ lemma finite_M: "finite M"
 
 lemma cardMeqIndexH: "card M = card (rcosets H)"
   using inj_M_GmodH inj_GmodH_M
-  by (blast intro: card_bij finite_M H_is_subgroup rcosets_subset_PowG [THEN finite_subset])
+  by (metis H_is_subgroup card_bij finite_G finite_M finite_UnionD rcosets_part_G)
 
 lemma index_lem: "card M * card H = order G"
   by (simp add: cardMeqIndexH lagrange H_is_subgroup)
@@ -314,9 +293,10 @@ lemma card_H_eq: "card H = p^a"
 proof (rule antisym)
   show "p^a \<le> card H"
   proof (rule dvd_imp_le)
-    show "p ^ a dvd card H"
-      apply (rule div_combine [OF prime_imp_prime_elem[OF prime_p] not_dvd_M])
+    have "p ^ (a + multiplicity p m) dvd card M * card H"
       by (simp add: index_lem multiplicity_dvd order_G power_add)
+    then show "p ^ a dvd card H"
+      using div_combine not_dvd_M prime_p by blast
     show "0 < card H"
       by (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
   qed
