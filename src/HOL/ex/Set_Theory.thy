@@ -76,41 +76,29 @@ schematic_goal "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 
 subsection \<open>The Schröder-Bernstein Theorem\<close>
 
-lemma disj_lemma: "- (f ` X) = g' ` (-X) \<Longrightarrow> f a = g' b \<Longrightarrow> a \<in> X \<Longrightarrow> b \<in> X"
+lemma decomposition: 
+  obtains X where "X = - (g ` (- (f ` X)))"
+  using lfp_unfold [OF monoI, of "\<lambda>X. - g ` (- f ` X)"]
   by blast
 
-lemma surj_if_then_else:
-  "-(f ` X) = g' ` (-X) \<Longrightarrow> surj (\<lambda>z. if z \<in> X then f z else g' z)"
-  by (simp add: surj_def) blast
-
-lemma bij_if_then_else:
-  "inj_on f X \<Longrightarrow> inj_on g' (-X) \<Longrightarrow> -(f ` X) = g' ` (-X) \<Longrightarrow>
-    h = (\<lambda>z. if z \<in> X then f z else g' z) \<Longrightarrow> inj h \<and> surj h"
-  apply (unfold inj_on_def)
-  apply (simp add: surj_if_then_else)
-  apply (blast dest: disj_lemma sym)
-  done
-
-lemma decomposition: "\<exists>X. X = - (g ` (- (f ` X)))"
-  apply (rule exI)
-  apply (rule lfp_unfold)
-  apply (rule monoI, blast)
-  done
-
 theorem Schroeder_Bernstein:
-  "inj (f :: 'a \<Rightarrow> 'b) \<Longrightarrow> inj (g :: 'b \<Rightarrow> 'a)
-    \<Longrightarrow> \<exists>h:: 'a \<Rightarrow> 'b. inj h \<and> surj h"
-  apply (rule decomposition [where f=f and g=g, THEN exE])
-  apply (rule_tac x = "(\<lambda>z. if z \<in> x then f z else inv g z)" in exI) 
-    \<comment> \<open>The term above can be synthesized by a sufficiently detailed proof.\<close>
-  apply (rule bij_if_then_else)
-     apply (rule_tac [4] refl)
-    apply (rule_tac [2] inj_on_inv_into)
-    apply (erule subset_inj_on [OF _ subset_UNIV])
-   apply blast
-  apply (erule ssubst, subst double_complement, erule image_inv_f_f [symmetric])
-  done
-
+  fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'a"
+  assumes "inj f" "inj g"
+  obtains h:: "'a \<Rightarrow> 'b" where "inj h" "surj h"
+proof (rule decomposition)
+  fix X
+  assume X: "X = - (g ` (- (f ` X)))"
+  let ?h = "\<lambda>z. if z \<in> X then f z else inv g z"
+  show thesis
+  proof
+    have "inj_on (inv g) (-X)"
+      by (metis X \<open>inj g\<close> bij_betw_def double_complement inj_imp_bij_betw_inv)
+    with \<open>inj f\<close> show "inj ?h"
+      unfolding inj_on_def by (metis Compl_iff X \<open>inj g\<close> imageI image_inv_f_f)
+    show "surj ?h"
+      using \<open>inj g\<close> X image_iff surj_def by fastforce
+  qed
+qed
 
 subsection \<open>A simple party theorem\<close>
 
@@ -218,10 +206,7 @@ lemma
   "(\<forall>x. (\<exists>u. x = 2 * u) = (\<not> (\<exists>v. Suc x = 2 * v))) \<longrightarrow>
     (\<exists>A. \<forall>x. (x \<in> A) = (Suc x \<notin> A))"
   \<comment> \<open>Example EO1: typo in article, and with the obvious fix it seems
-      to require arithmetic reasoning.\<close>
-  apply clarify
-  apply (rule_tac x = "{x. \<exists>u. x = 2 * u}" in exI, auto)
-   apply metis+
-  done
+      to require arithmetic reasoning. 2024-06-19: now trivial for sledgehammer (LCP)\<close>
+  by (metis even_Suc mem_Collect_eq)
 
 end
