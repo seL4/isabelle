@@ -1224,7 +1224,7 @@ end
 
 end
 
-context unique_euclidean_semiring_numeral
+context linordered_euclidean_semiring
 begin
 
 lemma unsigned_greater_eq [simp]:
@@ -2915,7 +2915,7 @@ lemma uint_mult_lem:
   by (metis mod_pos_pos_trivial uint_lt2p uint_mult_ge0 uint_word_ariths(3))
 
 lemma uint_sub_lem: "uint x \<ge> uint y \<longleftrightarrow> uint (x - y) = uint x - uint y"
-  by (metis diff_ge_0_iff_ge of_nat_0_le_iff uint_nat uint_sub_lt2p uint_word_of_int unique_euclidean_semiring_numeral_class.mod_less word_sub_wi)
+  by (simp add: uint_word_arith_bintrs take_bit_int_eq_self_iff)
 
 lemma uint_add_le: "uint (x + y) \<le> uint x + uint y"
   unfolding uint_word_ariths by (simp add: zmod_le_nonneg_dividend) 
@@ -3728,6 +3728,15 @@ lemma word_rev_gal: "word_reverse w = u \<Longrightarrow> word_reverse u = w"
 lemma word_rev_gal': "u = word_reverse w \<Longrightarrow> w = word_reverse u"
   by simp
 
+lemma word_eq_reverseI:
+  \<open>v = w\<close> if \<open>word_reverse v = word_reverse w\<close>
+proof -
+  from that have \<open>word_reverse (word_reverse v) = word_reverse (word_reverse w)\<close>
+    by simp
+  then show ?thesis
+    by simp
+qed
+
 lemma uint_2p: "(0::'a::len word) < 2 ^ n \<Longrightarrow> uint (2 ^ n::'a::len word) = 2 ^ n"
   by (cases \<open>n < LENGTH('a)\<close>; transfer; force)
 
@@ -4162,34 +4171,37 @@ lemma word_rot_gal':
   \<open>w = word_rotr n v \<longleftrightarrow> v = word_rotl n w\<close>
   by auto
 
-lemma word_rotr_rev:
-  \<open>word_rotr n w = word_reverse (word_rotl n (word_reverse w))\<close>
+lemma word_reverse_word_rotl:
+  \<open>word_reverse (word_rotl n w) = word_rotr n (word_reverse w)\<close> (is \<open>?lhs = ?rhs\<close>)
 proof (rule bit_word_eqI)
   fix m
   assume \<open>m < LENGTH('a)\<close>
-  moreover have \<open>1 +
-    ((int m + int n mod int LENGTH('a)) mod int LENGTH('a) +
-     ((int LENGTH('a) * 2) mod int LENGTH('a) - (1 + (int m + int n mod int LENGTH('a)))) mod int LENGTH('a)) =
-    int LENGTH('a)\<close>
-    apply (cases \<open>(1 + (int m + int n mod int LENGTH('a))) mod
-         int LENGTH('a) = 0\<close>)
-    using zmod_zminus1_eq_if [of \<open>1 + (int m + int n mod int LENGTH('a))\<close> \<open>int LENGTH('a)\<close>]
-    apply simp_all
-     apply (auto simp add: algebra_simps)
-    apply (metis (mono_tags, opaque_lifting) Abs_fnat_hom_add mod_Suc mod_mult_self2_is_0 of_nat_Suc of_nat_mod semiring_char_0_class.of_nat_neq_0)
-    apply (metis (no_types, opaque_lifting) Abs_fnat_hom_add less_not_refl mod_Suc of_nat_Suc of_nat_gt_0 of_nat_mod)
+  then have \<open>int (LENGTH('a) - Suc ((m + n) mod LENGTH('a))) =
+    int ((LENGTH('a) + LENGTH('a) - Suc (m + n mod LENGTH('a))) mod LENGTH('a))\<close>
+    apply (simp only: of_nat_diff of_nat_mod)
+    apply (simp add: Suc_le_eq add_less_le_mono of_nat_mod algebra_simps)
+    apply (simp only: mod_diff_left_eq [symmetric, of \<open>int LENGTH('a) * 2\<close>] mod_mult_self1_is_0 diff_0 minus_mod_int_eq)
+    apply (simp add: mod_simps)
     done
-  then have \<open>int ((m + n) mod LENGTH('a)) =
-    int (LENGTH('a) - Suc ((LENGTH('a) - Suc m + LENGTH('a) - n mod LENGTH('a)) mod LENGTH('a)))\<close>
-    using \<open>m < LENGTH('a)\<close>
-    by (simp only: of_nat_mod mod_simps)
-      (simp add: of_nat_diff of_nat_mod Suc_le_eq add_less_mono algebra_simps mod_simps)
-  then have \<open>(m + n) mod LENGTH('a) =
-    LENGTH('a) - Suc ((LENGTH('a) - Suc m + LENGTH('a) - n mod LENGTH('a)) mod LENGTH('a))\<close>
+  then have \<open>LENGTH('a) - Suc ((m + n) mod LENGTH('a)) =
+    (LENGTH('a) + LENGTH('a) - Suc (m + n mod LENGTH('a))) mod
+    LENGTH('a)\<close>
     by simp
-  ultimately show \<open>bit (word_rotr n w) m \<longleftrightarrow> bit (word_reverse (word_rotl n (word_reverse w))) m\<close>
-    by (simp add: word_rotl_eq_word_rotr bit_word_rotr_iff bit_word_reverse_iff)
+  with \<open>m < LENGTH('a)\<close> show \<open>bit ?lhs m \<longleftrightarrow> bit ?rhs m\<close>
+    by (simp add: bit_simps)
 qed
+
+lemma word_reverse_word_rotr:
+  \<open>word_reverse (word_rotr n w) = word_rotl n (word_reverse w)\<close>
+  by (rule word_eq_reverseI) (simp add: word_reverse_word_rotl)
+
+lemma word_rotl_rev:
+  \<open>word_rotl n w = word_reverse (word_rotr n (word_reverse w))\<close>
+  by (simp add: word_reverse_word_rotr)
+
+lemma word_rotr_rev:
+  \<open>word_rotr n w = word_reverse (word_rotl n (word_reverse w))\<close>
+  by (simp add: word_reverse_word_rotl)
 
 lemma word_roti_0 [simp]: "word_roti 0 w = w"
   by transfer simp

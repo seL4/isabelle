@@ -187,10 +187,6 @@ Another example of "insert"
 \rulename{div_mult_mod_eq}
 \<close>
 
-(*MOVED to Force.thy, which now depends only on Divides.thy
-lemma div_mult_self_is_m: "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
-*)
-
 lemma relprime_dvd_mult_iff: "gcd k n = 1 \<Longrightarrow> (k dvd m*n) = (k dvd m)"
 by (auto intro: relprime_dvd_mult elim: dvdE)
 

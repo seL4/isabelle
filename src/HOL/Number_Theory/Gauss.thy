@@ -196,10 +196,7 @@ lemma C_greater_zero: "y \<in> C \<Longrightarrow> 0 < y"
   by (auto simp add: C_def B_mod_greater_zero)
 
 lemma F_subset: "F \<subseteq> {x. 0 < x \<and> x \<le> ((int p - 1) div 2)}"
-  apply (auto simp add: F_def E_def C_def)
-   apply (metis p_ge_2 Divides.pos_mod_bound nat_int zless_nat_conj)
-  apply (auto intro: p_odd_int)
-  done
+  using p_ge_2 by (auto simp add: F_def E_def C_def intro: p_odd_int)
 
 lemma D_subset: "D \<subseteq> {x. 0 < x \<and> x \<le> ((p - 1) div 2)}"
   by (auto simp add: D_def C_greater_zero)

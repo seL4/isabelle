@@ -189,10 +189,8 @@ proof -
     using assms by (simp add: mod_mod_cancel yk(1))
   moreover have "(y mod (int p * int q)) mod int q = snd res"
     using assms by (simp add: mod_mod_cancel yk(2))
-  ultimately obtain x where "P_1 res x"
-    unfolding P_1_def
-    using Divides.pos_mod_bound Divides.pos_mod_sign pq_ge_0
-    by (metis atLeastAtMost_iff zle_diff1_eq)
+  ultimately have "P_1 res (int y mod (int p * int q))"
+    using pq_ge_0 by (simp add: P_1_def)
   moreover have "a = b" if "P_1 res a" "P_1 res b" for a b
   proof -
     from that have "int p * int q dvd a - b"
