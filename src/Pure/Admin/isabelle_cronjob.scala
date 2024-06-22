@@ -366,6 +366,12 @@ object Isabelle_Cronjob {
           args = "-a -d '~~/src/Benchmarks'",
           count = () => 3)),
       List(
+        Remote_Build("Windows/AFP", "windows2",
+          java_heap = "8g",
+          options = "-m32 -M6 -t AFP",
+          args = "-a -X large -X slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
         Remote_Build("Windows", "vmnipkow9", history = 90,
           components_base = "/cygdrive/d/isatest/contrib",
           options = "-m32 -M4" +
