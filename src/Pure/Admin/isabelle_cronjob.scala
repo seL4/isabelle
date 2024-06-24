@@ -368,7 +368,7 @@ object Isabelle_Cronjob {
       List(
         Remote_Build("Windows/AFP", "windows2",
           java_heap = "8g",
-          options = "-m32 -M6 -t AFP",
+          options = "-m32 -M1x6 -t AFP",
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
