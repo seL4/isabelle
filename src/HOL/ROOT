@@ -307,8 +307,8 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Set2_Join_RBT
     Array_Braun
     Trie_Fun
-    Trie_Map
     Tries_Binary
+    Trie_Ternary
     Queue_2Lists
     Heaps
     Leftist_Heap

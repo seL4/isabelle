@@ -1,15 +1,15 @@
-section "Tries via Search Trees"
+section "Ternary Tries"
 
-theory Trie_Map
+theory Trie_Ternary
 imports
   Tree_Map
   Trie_Fun
 begin
 
-text \<open>An implementation of tries for an arbitrary alphabet \<open>'a\<close> where
-the mapping from an element of type \<open>'a\<close> to the sub-trie is implemented by a binary search tree.
-Although this implementation uses maps implemented by red-black trees it works for any
-implementation of maps.
+text \<open>An implementation of tries for an arbitrary alphabet \<open>'a\<close> where the mapping
+from an element of type \<open>'a\<close> to the sub-trie is implemented by an (unbalanced) binary search tree.
+In principle, other search trees (e.g. red-black trees) work just as well,
+with some small adjustments (Exercise!).
 
 This is an implementation of the ``ternary search trees'' by Bentley and Sedgewick
 [SODA 1997, Dr. Dobbs 1998]. The name derives from the fact that a node in the BST can now
@@ -32,11 +32,7 @@ Thus the tree represents the set of strings "cute","cup","at","as","he","us" and
 
 datatype 'a trie3 = Nd3 bool "('a * 'a trie3) tree"
 
-text \<open>In principle one should be able to given an implementation of tries
-once and for all for any map implementation and not just for a specific one (unbalanced trees) as done here.
-But because the map (@{type tree}) is used in a datatype, the HOL type system does not support this.
-
-However, the development below works verbatim for any map implementation, eg \<open>RBT_Map\<close>,
+text \<open>The development below works almost verbatim for any search tree implementation, eg \<open>RBT_Map\<close>,
 and not just \<open>Tree_Map\<close>, except for the termination lemma \<open>lookup_size\<close>.\<close>
 
 term size_tree
