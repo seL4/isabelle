@@ -762,6 +762,10 @@ object Build_Manager {
               yield sync_dirs.find(_.name == component.name) match {
                 case Some(sync_dir) =>
                   val target = context.task_dir + sync_dir.target
+
+                  if (!component.is_local)
+                    File.append(context.task_dir + Sync.DIRS_ROOTS, sync_dir.roots_entry + "\n")
+
                   component.copy(rev = sync(sync_dir.hg, component.rev, target))
                 case None =>
                   if (component.is_local) component
