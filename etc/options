@@ -251,6 +251,9 @@ option build_manager_delay : real = 1.0
 option build_manager_poll_delay : real = 60.0
   -- "delay build manager poll loop"
 
+option build_manager_timer_delay : real = 10.0
+  -- "delay build manager timer loop"
+
 option build_manager_ci_jobs : string = "benchmark"
   -- "ci jobs that should be executed on repository changes"
 

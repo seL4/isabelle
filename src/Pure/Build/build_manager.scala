@@ -911,6 +911,8 @@ object Build_Manager {
     progress: Progress
   ) extends Loop_Process[Date]("Timer", store, progress) {
 
+    override def delay = options.seconds("build_manager_timer_delay")
+    
     private def add_tasks(previous: Date, next: Date): Unit = synchronized_database("add_tasks") {
       for (ci_job <- ci_jobs)
         ci_job.trigger match {
