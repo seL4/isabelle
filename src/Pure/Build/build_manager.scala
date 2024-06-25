@@ -752,8 +752,7 @@ object Build_Manager {
 
             store.sync_permissions(context.task_dir)
 
-            val isabelle_rev =
-              sync(isabelle_repository, task.isabelle_rev, context.task_dir)
+            val isabelle_rev = sync(isabelle_repository, task.isabelle_rev, context.task_dir)
 
             val hostnames = task.build_hosts.map(_.hostname).distinct
 
