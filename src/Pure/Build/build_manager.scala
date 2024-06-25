@@ -26,6 +26,8 @@ object Build_Manager {
 
   case class Component(name: String, rev: String = "") {
     override def toString: String = name + "/" + rev
+
+    def is_local: Boolean = rev.isEmpty
   }
 
   sealed trait Build_Config {
@@ -762,7 +764,7 @@ object Build_Manager {
                   val target = context.task_dir + sync_dir.target
                   component.copy(rev = sync(sync_dir.hg, component.rev, target))
                 case None =>
-                  if (component.rev.isEmpty) component
+                  if (component.is_local) component
                   else error("Unknown component " + component)
               }
 
@@ -774,7 +776,7 @@ object Build_Manager {
 
               for {
                 component <- Component("Isabelle", job.isabelle_rev) :: job.components
-                if component.rev.nonEmpty
+                if !component.is_local
               } context.progress.echo("Using " + component.toString)
 
               Some(context)
@@ -1088,7 +1090,7 @@ object Build_Manager {
           def render_rev(isabelle_rev: String, components: List[Component]): XML.Body =
             for {
               component <- Component("Isabelle", isabelle_rev) :: components
-              if component.rev.nonEmpty
+              if !component.is_local
             } yield par(text(component.toString))
 
           build match {
