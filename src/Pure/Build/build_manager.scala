@@ -99,7 +99,7 @@ object Build_Manager {
   object Build {
     def name(kind: String, id: Long): String = kind + "/" + id
   }
-  
+
   sealed trait Build extends Name.T
 
   sealed case class Task(
@@ -761,11 +761,11 @@ object Build_Manager {
               yield sync_dirs.find(_.name == component.name) match {
                 case Some(sync_dir) =>
                   val target = context.task_dir + sync_dir.target
+                  val rev = sync(sync_dir.hg, component.rev, target)
 
                   if (!component.is_local)
                     File.append(context.task_dir + Sync.DIRS_ROOTS, sync_dir.roots_entry + "\n")
-
-                  component.copy(rev = sync(sync_dir.hg, component.rev, target))
+                  component.copy(rev = rev)
                 case None =>
                   if (component.is_local) component
                   else error("Unknown component " + component)
@@ -917,7 +917,7 @@ object Build_Manager {
   ) extends Loop_Process[Date]("Timer", store, progress) {
 
     override def delay = options.seconds("build_manager_timer_delay")
-    
+
     private def add_tasks(previous: Date, next: Date): Unit = synchronized_database("add_tasks") {
       for (ci_job <- ci_jobs)
         ci_job.trigger match {
@@ -1298,7 +1298,7 @@ object Build_Manager {
     val finished = base_dir + Path.basic("finished")
 
     def task_dir(task: Task) = pending + Path.basic(task.uuid.toString)
-    def log_file(kind: String, id: Long): Path = 
+    def log_file(kind: String, id: Long): Path =
       finished + Path.make(List(kind, id.toString, "build-manager")).log
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
