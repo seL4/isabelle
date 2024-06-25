@@ -911,8 +911,8 @@ object Build_Manager {
     progress: Progress
   ) extends Loop_Process[Date]("Timer", store, progress) {
 
-    private def add_tasks(previous: Date, next: Date): Unit =
-      for (ci_job <-ci_jobs)
+    private def add_tasks(previous: Date, next: Date): Unit = synchronized_database("add_tasks") {
+      for (ci_job <- ci_jobs)
         ci_job.trigger match {
           case isabelle.CI_Build.Timed(in_interval) if in_interval(previous, next) =>
             val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, isabelle_rev = "default")
@@ -920,6 +920,7 @@ object Build_Manager {
             _state = _state.add_pending(task)
           case _ =>
         }
+    }
 
     def init: Date = Date.now()
     def loop_body(previous: Date): Date = {
