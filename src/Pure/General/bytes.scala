@@ -217,14 +217,6 @@ object Bytes {
       buffer_check()
     }
 
-    def += (s: CharSequence): Unit = {
-      val n = s.length
-      if (n > 0) {
-        if (UTF8.relevant(s)) { this += UTF8.bytes(s.toString) }
-        else { for (i <- 0 until n) { this += s.charAt(i).toByte } }
-      }
-    }
-
     def += (array: Array[Byte], offset: Int, length: Int): Unit = {
       if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
         throw new IndexOutOfBoundsException
@@ -243,6 +235,9 @@ object Bytes {
         }
       }
     }
+
+    def += (s: CharSequence): Unit =
+      if (s.length > 0) { this += UTF8.bytes(s.toString) }
 
     def += (array: Array[Byte]): Unit = { this += (array, 0, array.length) }
 
