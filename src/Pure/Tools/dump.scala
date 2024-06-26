@@ -33,8 +33,7 @@ object Dump {
       write(file_name, Bytes(text))
 
     def write(file_name: Path, body: XML.Body): Unit =
-      using(File.writer(write_path(file_name).file))(
-        writer => YXML.traversal(s => writer.write(Symbol.encode(s)), body))
+      write(file_name, Symbol.encode(YXML.string_of_body(body)))
   }
 
   sealed case class Aspect(

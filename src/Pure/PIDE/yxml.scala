@@ -14,8 +14,11 @@ import scala.collection.mutable
 object YXML {
   /* chunk markers */
 
-  val X = '\u0005'
-  val Y = '\u0006'
+  val X_byte: Byte = 5
+  val Y_byte: Byte = 6
+
+  val X = X_byte.toChar
+  val Y = Y_byte.toChar
 
   val is_X: Char => Boolean = _ == X
   val is_Y: Char => Boolean = _ == Y
@@ -31,31 +34,46 @@ object YXML {
 
   /* string representation */
 
-  def traversal(string: String => Unit, body: XML.Body): Unit = {
+  trait Output {
+    def byte(b: Byte): Unit
+    def string(s: String): Unit
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(markup @ Markup(name, atts), ts) =>
           if (markup.is_empty) ts.foreach(tree)
           else {
-            string(XY_string)
+            byte(X_byte)
+            byte(Y_byte)
             string(name)
-            for ((a, x) <- atts) { string(Y_string); string(a); string("="); string(x) }
-            string(X_string)
+            for ((a, b) <- atts) {
+              byte(Y_byte)
+              string(a)
+              byte('='.toByte)
+              string(b)
+            }
+            byte(X_byte)
             ts.foreach(tree)
-            string(XYX_string)
+            byte(X_byte)
+            byte(Y_byte)
+            byte(X_byte)
           }
         case XML.Text(text) => string(text)
       }
-    body.foreach(tree)
+    def trees(ts: Iterable[XML.Tree]): Unit = ts.foreach(tree)
   }
 
-  def string_of_body(body: XML.Body): String = {
-    val s = new StringBuilder
-    traversal(str => s ++= str, body)
-    s.toString
+  class Output_String(builder: StringBuilder) extends Output {
+    override def byte(b: Byte): Unit = { builder += b.toChar }
+    override def string(s: String): Unit = { builder ++= s }
+    def result(ts: Iterable[XML.Tree]): String = { trees(ts); builder.toString }
+    def result(t: XML.Tree): String = { tree(t); builder.toString }
   }
 
-  def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
+  def string_of_body(body: XML.Body): String =
+    new Output_String(new StringBuilder).result(body)
+
+  def string_of_tree(tree: XML.Tree): String =
+    new Output_String(new StringBuilder).result(tree)
 
 
   /* parsing */
