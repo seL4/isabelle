@@ -1,5 +1,3 @@
 # -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
-
-ISABELLE_JENKINS_ROOT="https://ci.isabelle.systems/jenkins"
