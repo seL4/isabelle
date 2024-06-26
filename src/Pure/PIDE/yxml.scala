@@ -69,11 +69,22 @@ object YXML {
     def result(t: XML.Tree): String = { tree(t); builder.toString }
   }
 
+  class Output_Bytes(builder: Bytes.Builder) extends Output {
+    override def byte(b: Byte): Unit = { builder += b }
+    override def string(s: String): Unit = { builder += s }
+  }
+
   def string_of_body(body: XML.Body): String =
     new Output_String(new StringBuilder).result(body)
 
   def string_of_tree(tree: XML.Tree): String =
     new Output_String(new StringBuilder).result(tree)
+
+  def bytes_of_body(body: XML.Body): Bytes =
+    Bytes.Builder.use()(builder => new Output_Bytes(builder).trees(body))
+
+  def bytes_of_tree(tree: XML.Tree): Bytes =
+    Bytes.Builder.use()(builder => new Output_Bytes(builder).tree(tree))
 
 
   /* parsing */
