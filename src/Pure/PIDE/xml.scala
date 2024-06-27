@@ -41,18 +41,6 @@ object XML {
     override def hashCode(): Int = hash
   }
 
-  def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
-  def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
-  def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
-
-  val no_text: Text = Text("")
-  val newline: Text = Text("\n")
-
-  def string(s: String): Body = if (s.isEmpty) Nil else List(Text(s))
-
-  def enclose(bg: String, en:String, body: Body): Body =
-    string(bg) ::: body ::: string(en)
-
   trait Traversal {
     def text(s: String): Unit
     def elem(markup: Markup, end: Boolean = false): Unit
@@ -73,6 +61,18 @@ object XML {
       trav(trees)
     }
   }
+
+  def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
+  def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
+  def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
+
+  val no_text: Text = Text("")
+  val newline: Text = Text("\n")
+
+  def string(s: String): Body = if (s.isEmpty) Nil else List(Text(s))
+
+  def enclose(bg: String, en:String, body: Body): Body =
+    string(bg) ::: body ::: string(en)
 
 
   /* name space */
