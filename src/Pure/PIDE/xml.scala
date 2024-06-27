@@ -157,15 +157,13 @@ object XML {
     def string(str: String, permissive: Boolean = false): Unit = {
       if (str == null) { builder ++= str }
       else {
-        for (c <- str) {
-          c match {
-            case '<' => builder ++= "&lt;"
-            case '>' => builder ++= "&gt;"
-            case '&' => builder ++= "&amp;"
-            case '"' if !permissive => builder ++= "&quot;"
-            case '\'' if !permissive => builder ++= "&apos;"
-            case _ => builder += c
-          }
+        str foreach {
+          case '<' => builder ++= "&lt;"
+          case '>' => builder ++= "&gt;"
+          case '&' => builder ++= "&amp;"
+          case '"' if !permissive => builder ++= "&quot;"
+          case '\'' if !permissive => builder ++= "&apos;"
+          case c => builder += c
         }
       }
     }
