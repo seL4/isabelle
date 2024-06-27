@@ -112,6 +112,7 @@ object Build_CI {
     build_prefs: List[Options.Spec] = Nil,
     hook: Hook = none,
     extra_components: List[String] = Nil,
+    other_settings: List[String] = Nil,
     trigger: Trigger = On_Commit
   ) {
     override def toString: String = name

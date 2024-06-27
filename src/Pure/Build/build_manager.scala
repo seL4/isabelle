@@ -106,6 +106,7 @@ object Build_Manager {
   sealed case class Task(
     build_config: Build_Config,
     hosts_spec: String,
+    other_settings: List[String] = Nil,
     uuid: UUID.T = UUID.random(),
     submit_date: Date = Date.now(),
     priority: Priority = Priority.normal,
@@ -318,6 +319,7 @@ object Build_Manager {
       val kind = SQL.Column.string("kind")
       val build_cluster = SQL.Column.bool("build_cluster")
       val hosts_spec = SQL.Column.string("hosts_spec")
+      val other_settings = SQL.Column.string("other_settings")
       val uuid = SQL.Column.string("uuid").make_primary_key
       val submit_date = SQL.Column.date("submit_date")
       val priority = SQL.Column.string("priority")
@@ -340,10 +342,10 @@ object Build_Manager {
       val verbose = SQL.Column.bool("verbose")
 
       val table =
-        make_table(List(kind, build_cluster, hosts_spec, uuid, submit_date, priority, isabelle_rev,
-          components, prefs, requirements, all_sessions, base_sessions, exclude_session_groups,
-          exclude_sessions, session_groups, sessions, build_heap, clean_build, export_files,
-          fresh_build, presentation, verbose),
+        make_table(List(kind, build_cluster, hosts_spec, other_settings, uuid, submit_date,
+          priority, isabelle_rev, components, prefs, requirements, all_sessions, base_sessions,
+          exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
+          clean_build, export_files, fresh_build, presentation, verbose),
         name = "pending")
     }
 
@@ -353,6 +355,7 @@ object Build_Manager {
           val kind = res.string(Pending.kind)
           val build_cluster = res.bool(Pending.build_cluster)
           val hosts_spec = res.string(Pending.hosts_spec)
+          val other_settings = split_lines(res.string(Pending.other_settings))
           val uuid = res.string(Pending.uuid)
           val submit_date = res.date(Pending.submit_date)
           val priority = Priority.valueOf(res.string(Pending.priority))
@@ -384,8 +387,8 @@ object Build_Manager {
                 clean_build, export_files, fresh_build, presentation, verbose)
             }
 
-          val task =
-            Task(build_config, hosts_spec, UUID.make(uuid), submit_date, priority, isabelle_rev)
+          val task = Task(build_config, hosts_spec, other_settings, UUID.make(uuid), submit_date,
+            priority, isabelle_rev)
 
           task.name -> task
         })
@@ -408,11 +411,12 @@ object Build_Manager {
             stmt.string(1) = task.kind
             stmt.bool(2) = task.build_cluster
             stmt.string(3) = task.hosts_spec
-            stmt.string(4) = task.uuid.toString
-            stmt.date(5) = task.submit_date
-            stmt.string(6) = task.priority.toString
-            stmt.string(7) = task.isabelle_rev
-            stmt.string(8) = task.components.mkString(",")
+            stmt.string(4) = cat_lines(task.other_settings)
+            stmt.string(5) = task.uuid.toString
+            stmt.date(6) = task.submit_date
+            stmt.string(7) = task.priority.toString
+            stmt.string(8) = task.isabelle_rev
+            stmt.string(9) = task.components.mkString(",")
 
             def get[A](f: User_Build => A): Option[A] =
               task.build_config match {
@@ -420,20 +424,20 @@ object Build_Manager {
                 case _ => None
               }
 
-            stmt.string(9) = get(user_build => user_build.prefs.map(_.print).mkString(","))
-            stmt.bool(10) = get(_.requirements)
-            stmt.bool(11) = get(_.all_sessions)
-            stmt.string(12) = get(_.base_sessions.mkString(","))
-            stmt.string(13) = get(_.exclude_session_groups.mkString(","))
-            stmt.string(14) = get(_.exclude_sessions.mkString(","))
-            stmt.string(15) = get(_.session_groups.mkString(","))
-            stmt.string(16) = get(_.sessions.mkString(","))
-            stmt.bool(17) = get(_.build_heap)
-            stmt.bool(18) = get(_.clean_build)
-            stmt.bool(19) = get(_.export_files)
-            stmt.bool(20) = get(_.fresh_build)
-            stmt.bool(21) = get(_.presentation)
-            stmt.bool(22) = get(_.verbose)
+            stmt.string(10) = get(user_build => user_build.prefs.map(_.print).mkString(","))
+            stmt.bool(11) = get(_.requirements)
+            stmt.bool(12) = get(_.all_sessions)
+            stmt.string(13) = get(_.base_sessions.mkString(","))
+            stmt.string(14) = get(_.exclude_session_groups.mkString(","))
+            stmt.string(15) = get(_.exclude_sessions.mkString(","))
+            stmt.string(16) = get(_.session_groups.mkString(","))
+            stmt.string(17) = get(_.sessions.mkString(","))
+            stmt.bool(18) = get(_.build_heap)
+            stmt.bool(19) = get(_.clean_build)
+            stmt.bool(20) = get(_.export_files)
+            stmt.bool(21) = get(_.fresh_build)
+            stmt.bool(22) = get(_.presentation)
+            stmt.bool(23) = get(_.verbose)
           })
       }
 
@@ -885,8 +889,8 @@ object Build_Manager {
           if isabelle_updated || ci_job.components.exists(updated_components.contains)
           if !_state.pending.values.exists(_.kind == ci_job.name)
         } {
-          val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, priority = Priority.low,
-            isabelle_rev = "default")
+          val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, ci_job.other_settings,
+            priority = Priority.low, isabelle_rev = "default")
           _state = _state.add_pending(task)
         }
       }
@@ -1257,7 +1261,7 @@ object Build_Manager {
           } yield "init_component " + quote(target.absolute.implode)
 
         _isabelle.init(
-          other_settings = _isabelle.init_components() ::: init_components,
+          other_settings = _isabelle.init_components() ::: init_components ::: task.other_settings,
           fresh = task.build_config.fresh_build, echo = true)
 
         val paths = Web_Server.paths(context.store)
@@ -1530,7 +1534,7 @@ Usage: isabelle build_manager_database [OPTIONS]
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions,
       base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
       clean_build, export_files, fresh_build, presentation, verbose)
-    val task = Task(build_config, hosts_spec, uuid, Date.now(), Priority.high)
+    val task = Task(build_config, hosts_spec, uuid = uuid, priority = Priority.high)
 
     val dir = store.task_dir(task)
 
