@@ -34,39 +34,36 @@ object YXML {
 
   /* string representation */
 
-  trait Output {
+  trait Output extends XML.Traversal {
     def byte(b: Byte): Unit
     def string(s: String): Unit
-    def tree(t: XML.Tree): Unit =
-      t match {
-        case XML.Elem(markup @ Markup(name, atts), ts) =>
-          if (markup.is_empty) ts.foreach(tree)
-          else {
-            byte(X_byte)
-            byte(Y_byte)
-            string(name)
-            for ((a, b) <- atts) {
-              byte(Y_byte)
-              string(a)
-              byte('='.toByte)
-              string(b)
-            }
-            byte(X_byte)
-            ts.foreach(tree)
-            byte(X_byte)
-            byte(Y_byte)
-            byte(X_byte)
-          }
-        case XML.Text(text) => string(text)
+
+    // XML.Traversal
+    override def text(s: String): Unit = string(s)
+    override def elem(markup: Markup, end: Boolean = false): Unit = {
+      byte(X_byte)
+      byte(Y_byte)
+      string(markup.name)
+      for ((a, b) <- markup.properties) {
+        byte(Y_byte)
+        string(a)
+        byte('='.toByte)
+        string(b)
       }
-    def trees(ts: Iterable[XML.Tree]): Unit = ts.foreach(tree)
+      byte(X_byte)
+      if (end) end_elem(markup.name)
+    }
+    override def end_elem(name: String): Unit = {
+      byte(X_byte)
+      byte(Y_byte)
+      byte(X_byte)
+    }
   }
 
   class Output_String(builder: StringBuilder) extends Output {
     override def byte(b: Byte): Unit = { builder += b.toChar }
     override def string(s: String): Unit = { builder ++= s }
-    def result(ts: Iterable[XML.Tree]): String = { trees(ts); builder.toString }
-    def result(t: XML.Tree): String = { tree(t); builder.toString }
+    def result(ts: List[XML.Tree]): String = { traverse(ts); builder.toString }
   }
 
   class Output_Bytes(builder: Bytes.Builder) extends Output {
@@ -77,14 +74,12 @@ object YXML {
   def string_of_body(body: XML.Body): String =
     new Output_String(new StringBuilder).result(body)
 
-  def string_of_tree(tree: XML.Tree): String =
-    new Output_String(new StringBuilder).result(tree)
+  def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
   def bytes_of_body(body: XML.Body): Bytes =
-    Bytes.Builder.use()(builder => new Output_Bytes(builder).trees(body))
+    Bytes.Builder.use()(builder => new Output_Bytes(builder).traverse(body))
 
-  def bytes_of_tree(tree: XML.Tree): Bytes =
-    Bytes.Builder.use()(builder => new Output_Bytes(builder).tree(tree))
+  def bytes_of_tree(tree: XML.Tree): Bytes = bytes_of_body(List(tree))
 
 
   /* parsing */
