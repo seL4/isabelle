@@ -244,7 +244,7 @@ object HTML {
         case XML.Elem(markup, Nil) =>
           xml_output.elem(markup, end = true)
         case XML.Elem(Markup(Markup.RAW_HTML, _), body) =>
-          XML.traverse_text(body)(()) { case (_, raw) => s.append(raw) }
+          XML.traverse_text(body, (), (_, raw) => s.append(raw))
         case XML.Elem(markup, ts) =>
           if (structural && structural_elements(markup.name)) s += '\n'
           xml_output.elem(markup)
