@@ -63,8 +63,10 @@ object XML {
         list match {
           case Nil =>
           case Text(s) :: rest => text(s); trav(rest)
-          case Elem(markup, Nil) :: rest => elem(markup, end = true); trav(rest)
-          case Elem(markup, body) :: rest => elem(markup); trav(body ::: End(markup.name) :: rest)
+          case Elem(markup, body) :: rest =>
+            if (markup.is_empty) trav(body ::: rest)
+            else if (body.isEmpty) { elem(markup, end = true); trav(rest) }
+            else { elem(markup); trav(body ::: End(markup.name) :: rest) }
           case End(name) :: rest => end_elem(name); trav(rest)
           case _ :: _ => ???
         }
