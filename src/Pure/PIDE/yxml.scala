@@ -60,26 +60,28 @@ object YXML {
     }
   }
 
-  class Output_String(builder: StringBuilder) extends Output {
+  class Output_String(builder: StringBuilder, recode: String => String = identity) extends Output {
     override def byte(b: Byte): Unit = { builder += b.toChar }
-    override def string(s: String): Unit = { builder ++= s }
+    override def string(s: String): Unit = { builder ++= recode(s) }
     def result(ts: List[XML.Tree]): String = { traverse(ts); builder.toString }
   }
 
-  class Output_Bytes(builder: Bytes.Builder) extends Output {
+  class Output_Bytes(builder: Bytes.Builder, recode: String => String = identity) extends Output {
     override def byte(b: Byte): Unit = { builder += b }
-    override def string(s: String): Unit = { builder += s }
+    override def string(s: String): Unit = { builder += recode(s) }
   }
 
-  def string_of_body(body: XML.Body): String =
-    new Output_String(new StringBuilder).result(body)
+  def string_of_body(body: XML.Body, recode: String => String = identity): String =
+    new Output_String(new StringBuilder, recode = recode).result(body)
 
-  def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
+  def string_of_tree(tree: XML.Tree, recode: String => String = identity): String =
+    string_of_body(List(tree), recode = recode)
 
-  def bytes_of_body(body: XML.Body): Bytes =
-    Bytes.Builder.use()(builder => new Output_Bytes(builder).traverse(body))
+  def bytes_of_body(body: XML.Body, recode: String => String = identity): Bytes =
+    Bytes.Builder.use()(builder => new Output_Bytes(builder, recode = recode).traverse(body))
 
-  def bytes_of_tree(tree: XML.Tree): Bytes = bytes_of_body(List(tree))
+  def bytes_of_tree(tree: XML.Tree, recode: String => String = identity): Bytes =
+    bytes_of_body(List(tree), recode = recode)
 
 
   /* parsing */

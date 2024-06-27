@@ -533,7 +533,8 @@ object Symbol {
   def decode_yxml_failsafe(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
     YXML.parse_body_failsafe(decode(text), cache = cache)
 
-  def encode_yxml(body: XML.Body): String = encode(YXML.string_of_body(body))
+  def encode_yxml(body: XML.Body): String =
+    YXML.string_of_body(body, recode = encode)
 
   def decode_strict(text: String): String = {
     val decoded = decode(text)
