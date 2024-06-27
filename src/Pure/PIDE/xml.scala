@@ -46,6 +46,20 @@ object XML {
   def enclose(bg: String, en:String, body: Body): Body =
     string(bg) ::: body ::: string(en)
 
+  trait Traversal {
+    def text(s: String): Unit
+    def elem(markup: Markup, end: Boolean = false): Unit
+    def end_elem(name: String): Unit
+
+    def tree(t: Tree): Unit =
+      t match {
+        case Text(s) => text(s)
+        case Elem(markup, Nil) => elem(markup, end = true)
+        case Elem(markup, ts) => elem(markup); trees(ts); end_elem(markup.name)
+      }
+    def trees(ts: Iterable[Tree]): Unit = ts.foreach(tree)
+  }
+
 
   /* name space */
 
@@ -125,64 +139,59 @@ object XML {
 
   val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 
-  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false): Unit = {
-    c match {
-      case '<' => s ++= "&lt;"
-      case '>' => s ++= "&gt;"
-      case '&' => s ++= "&amp;"
-      case '"' if !permissive => s ++= "&quot;"
-      case '\'' if !permissive => s ++= "&apos;"
-      case _ => s += c
-    }
-  }
-
-  def output_string(s: StringBuilder, str: String, permissive: Boolean = false): Unit = {
-    if (str == null) s ++= str
-    else str.iterator.foreach(output_char(s, _, permissive = permissive))
-  }
-
-  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false): Unit = {
-    s += '<'
-    s ++= markup.name
-    for ((a, b) <- markup.properties) {
-      s += ' '
-      s ++= a
-      s += '='
-      s += '"'
-      output_string(s, b)
-      s += '"'
-    }
-    if (end) s += '/'
-    s += '>'
-  }
-
-  def output_elem_end(s: StringBuilder, name: String): Unit = {
-    s += '<'
-    s += '/'
-    s ++= name
-    s += '>'
-  }
-
-  def string_of_body(body: Body): String = {
-    val s = new StringBuilder
-
-    def tree(t: Tree): Unit =
-      t match {
-        case XML.Elem(markup, Nil) =>
-          output_elem(s, markup, end = true)
-        case XML.Elem(markup, ts) =>
-          output_elem(s, markup)
-          ts.foreach(tree)
-          output_elem_end(s, markup.name)
-        case XML.Text(txt) => output_string(s, txt)
+  class Output(builder: StringBuilder) extends Traversal {
+    def string(str: String, permissive: Boolean = false): Unit = {
+      if (str == null) { builder ++= str }
+      else {
+        for (c <- str) {
+          c match {
+            case '<' => builder ++= "&lt;"
+            case '>' => builder ++= "&gt;"
+            case '&' => builder ++= "&amp;"
+            case '"' if !permissive => builder ++= "&quot;"
+            case '\'' if !permissive => builder ++= "&apos;"
+            case _ => builder += c
+          }
+        }
       }
-    body.foreach(tree)
-    s.toString
+    }
+
+    override def text(str: String): Unit = string(str)
+
+    override def elem(markup: Markup, end: Boolean = false): Unit = {
+      builder += '<'
+      builder ++= markup.name
+      for ((a, b) <- markup.properties) {
+        builder += ' '
+        builder ++= a
+        builder += '='
+        builder += '"'
+        string(b)
+        builder += '"'
+      }
+      if (end) builder += '/'
+      builder += '>'
+    }
+
+    def end_elem(name: String): Unit = {
+      builder += '<'
+      builder += '/'
+      builder ++= name
+      builder += '>'
+    }
+
+    def result(ts: Iterable[Tree]): String = { trees(ts); builder.toString }
+    def result(t: Tree): String = { tree(t); builder.toString }
   }
+
+  def string_of_body(body: Body): String =
+    if (body.isEmpty) ""
+    else new Output(new StringBuilder).result(body)
 
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
   def text(s: String): String = string_of_tree(XML.Text(s))
+
 
 
   /** cache **/
