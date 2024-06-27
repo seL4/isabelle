@@ -124,13 +124,14 @@ object XML {
   /* traverse text */
 
   def traverse_text[A](body: Body)(a: A)(op: (A, String) => A): A = {
-    def traverse(x: A, t: Tree): A =
-      t match {
-        case XML.Wrapped_Elem(_, _, ts) => ts.foldLeft(x)(traverse)
-        case XML.Elem(_, ts) => ts.foldLeft(x)(traverse)
-        case XML.Text(s) => op(x, s)
+    @tailrec def trav(x: A, list: List[Tree]): A =
+      list match {
+        case Nil => x
+        case XML.Wrapped_Elem(_, _, body) :: rest => trav(x, body ::: rest)
+        case XML.Elem(_, body) :: rest => trav(x, body ::: rest)
+        case XML.Text(s) :: rest => trav(op(x, s), rest)
       }
-    body.foldLeft(a)(traverse)
+    trav(a, body)
   }
 
   def text_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + s.length }
