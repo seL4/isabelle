@@ -108,8 +108,7 @@ instance int :: unique_euclidean_semiring_numeral
 context
 begin
 
-(* REVISIT: should this be generalized to all semiring_div types? *)
-qualified lemma zmod_eq_0D [dest!]: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: int
+qualified lemma zmod_eq_0D: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: int
   using that by auto
 
 qualified lemma div_geq [no_atp]: "m div n = Suc ((m - n) div n)" if "0 < n" and " \<not> m < n" for m n :: nat

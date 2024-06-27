@@ -1348,7 +1348,6 @@ next
         l_def[symmetric, THEN meta_eq_to_obj_eq]
       apply transfer
       apply (auto simp add: round_up_def truncate_up_rat_precision)
-      apply (metis dvd_triv_left of_nat_dvd_iff)
       apply (metis floor_divide_of_int_eq of_int_of_nat_eq)
       done
    next
@@ -1364,7 +1363,6 @@ next
         l_def[symmetric, THEN meta_eq_to_obj_eq]
       apply transfer
       apply (auto simp add: round_up_def ceil_divide_floor_conv truncate_up_rat_precision)
-      apply (metis dvd_triv_left of_nat_dvd_iff)
       apply (metis floor_divide_of_int_eq of_int_of_nat_eq)
       done
   qed
