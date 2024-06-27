@@ -6,6 +6,8 @@ Untyped XML trees and basic data representation.
 
 package isabelle
 
+import scala.annotation.tailrec
+
 
 object XML {
   /** XML trees **/
@@ -15,9 +17,14 @@ object XML {
   type Attribute = Properties.Entry
   type Attributes = Properties.T
 
-  sealed abstract class Tree { override def toString: String = string_of_tree(this) }
+  trait Trav
+  case class End(name: String) extends Trav
+
+  sealed abstract class Tree extends Trav {
+    override def toString: String = string_of_tree(this)
+  }
   type Body = List[Tree]
-  case class Elem(markup: Markup, body: Body) extends Tree {
+  case class Elem(markup: Markup, body: Body) extends Tree with Trav {
     private lazy val hash: Int = (markup, body).hashCode()
     override def hashCode(): Int = hash
 
@@ -29,7 +36,7 @@ object XML {
 
     def + (att: Attribute): Elem = Elem(markup + att, body)
   }
-  case class Text(content: String) extends Tree {
+  case class Text(content: String) extends Tree with Trav {
     private lazy val hash: Int = content.hashCode()
     override def hashCode(): Int = hash
   }
@@ -51,13 +58,18 @@ object XML {
     def elem(markup: Markup, end: Boolean = false): Unit
     def end_elem(name: String): Unit
 
-    def tree(t: Tree): Unit =
-      t match {
-        case Text(s) => text(s)
-        case Elem(markup, Nil) => elem(markup, end = true)
-        case Elem(markup, ts) => elem(markup); trees(ts); end_elem(markup.name)
-      }
-    def trees(ts: Iterable[Tree]): Unit = ts.foreach(tree)
+    def traverse(trees: List[Tree]): Unit = {
+      @tailrec def trav(list: List[Trav]): Unit =
+        list match {
+          case Nil =>
+          case Text(s) :: rest => text(s); trav(rest)
+          case Elem(markup, Nil) :: rest => elem(markup, end = true); trav(rest)
+          case Elem(markup, body) :: rest => elem(markup); trav(body ::: End(markup.name) :: rest)
+          case End(name) :: rest => end_elem(name); trav(rest)
+          case _ :: _ => ???
+        }
+      trav(trees)
+    }
   }
 
 
@@ -180,8 +192,7 @@ object XML {
       builder += '>'
     }
 
-    def result(ts: Iterable[Tree]): String = { trees(ts); builder.toString }
-    def result(t: Tree): String = { tree(t); builder.toString }
+    def result(ts: List[Tree]): String = { traverse(ts); builder.toString }
   }
 
   def string_of_body(body: Body): String =
