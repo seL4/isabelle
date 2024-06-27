@@ -182,7 +182,7 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 "find P (x#xs) = (if P x then Some x else find P xs)"
 
 text \<open>In the context of multisets, \<open>count_list\<close> is equivalent to
-  \<^term>\<open>count \<circ> mset\<close> and it it advisable to use the latter.\<close>
+  \<^term>\<open>count \<circ> mset\<close> and it is advisable to use the latter.\<close>
 primrec count_list :: "'a list \<Rightarrow> 'a \<Rightarrow> nat" where
 "count_list [] y = 0" |
 "count_list (x#xs) y = (if x=y then count_list xs y + 1 else count_list xs y)"
