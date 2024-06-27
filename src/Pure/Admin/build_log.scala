@@ -650,7 +650,7 @@ object Build_Log {
   ): Option[Bytes] =
     if (errors.isEmpty) None
     else {
-      Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).
+      Some(YXML.bytes_of_body(XML.Encode.list(XML.Encode.string)(errors)).
         compress(cache = cache))
     }
 
