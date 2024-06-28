@@ -20,12 +20,12 @@ object UTF8 {
   def relevant(s: CharSequence): Boolean = {
     var i = 0
     val n = s.length
-    var utf8 = false
-    while (i < n && !utf8) {
-      if (s.charAt(i) >= 128) { utf8 = true }
+    var found = false
+    while (i < n && !found) {
+      if (s.charAt(i) >= 128) { found = true }
       i += 1
     }
-    utf8
+    found
   }
 
 
