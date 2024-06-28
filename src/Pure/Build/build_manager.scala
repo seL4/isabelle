@@ -1600,7 +1600,7 @@ Usage: isabelle build_manager_database [OPTIONS]
       var fresh_build = false
       val session_groups = new mutable.ListBuffer[String]
       var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
-      var prefs: List[Options.Spec] = Nil
+      val prefs = new mutable.ListBuffer[Options.Spec]
       var verbose = false
       var rev = ""
       val exclude_sessions = new mutable.ListBuffer[String]
@@ -1621,7 +1621,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
     -f           fresh build
     -g NAME      select session group NAME
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p OPTIONS   comma-separated preferences for build process
+    -p OPTION    override Isabelle system OPTION for build process (via NAME=VAL or NAME)
     -r REV       explicit revision (default: state of working directory)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -1641,7 +1641,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         "f" -> (_ => fresh_build = true),
         "g:" -> (arg => session_groups += arg),
         "o:" -> (arg => options = options + arg),
-        "p:" -> (arg => prefs = Options.Spec.parse(arg)),
+        "p:" -> (arg => prefs += Options.Spec.make(arg)),
         "r:" -> (arg => rev = arg),
         "v" -> (_ => verbose = true),
         "x:" -> (arg => exclude_sessions += arg))
@@ -1655,7 +1655,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
         exclude_session_groups = exclude_session_groups.toList, all_sessions = all_sessions,
         build_heap = build_heap, clean_build = clean_build, export_files = export_files,
         fresh_build = fresh_build, session_groups = session_groups.toList, sessions = sessions,
-        prefs = prefs, verbose = verbose, rev = rev, exclude_sessions = exclude_sessions.toList,
-        progress = progress)
+        prefs = prefs.toList, verbose = verbose, rev = rev, exclude_sessions =
+        exclude_sessions.toList, progress = progress)
     })
 }
