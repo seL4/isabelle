@@ -541,8 +541,7 @@ object Symbol {
     if (encode(decoded) == text) decoded
     else {
       val bad = new mutable.ListBuffer[Symbol]
-      for (s <- iterator(text) if encode(decode(s)) != s && !bad.contains(s))
-        bad += s
+      for (s <- iterator(text) if encode(decode(s)) != s && !bad.contains(s)) bad += s
       error("Bad Unicode symbols in text: " + commas_quote(bad))
     }
   }
