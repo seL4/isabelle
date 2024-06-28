@@ -1027,6 +1027,13 @@ object Build_Manager {
         main(chapter(name) :: body ::: Nil) :: Nil
       }
 
+      private def summary(start: Date): XML.Body =
+        text(" running since " + Build_Log.print_date(start))
+
+      private def summary(status: Status, start: Date, end: Option[Date]): XML.Body =
+        text(" (" + status.toString + if_proper(end, " in " + (end.get - start).message_hms) +
+          ") on " + Build_Log.print_date(start))
+
       def render_home(state: State): XML.Body = render_page("Dashboard") {
         def render_kind(kind: String): XML.Elem = {
           val running = state.get_running(kind).sortBy(_.id).reverse
@@ -1036,18 +1043,17 @@ object Build_Manager {
             val (failed, rest) = finished.span(_.status != Status.ok)
             val first_failed = failed.lastOption.map(result =>
               par(
-                text("first failure: ") :::
-                link_build(result.name, result.id) ::
-                text(" on " + result.start_date)))
+                text("first failure: ") ::: link_build(result.name, result.id) ::
+                summary(result.status, result.start_date, result.end_date)))
             val last_success = rest.headOption.map(result =>
               par(
                 text("last success: ") ::: link_build(result.name, result.id) ::
-                text(" on " + result.start_date)))
+                summary(result.status, result.start_date, result.end_date)))
             first_failed.toList ::: last_success.toList
           }
 
           def render_job(job: Job): XML.Body =
-            par(link_build(job.name, job.id) :: text(": running since " + job.start_date)) ::
+            par(link_build(job.name, job.id) :: summary(job.start_date)) ::
             render_if(
               finished.headOption.exists(_.status != Status.ok) && job.kind != User_Build.name,
               render_previous(finished))
@@ -1055,7 +1061,7 @@ object Build_Manager {
           def render_result(result: Result): XML.Body =
             par(
               link_build(result.name, result.id) ::
-              text(" (" + result.status.toString + ") on " + result.start_date)) ::
+              summary(result.status, result.start_date, result.end_date)) ::
             render_if(result.status != Status.ok && result.kind != User_Build.name,
               render_previous(finished.tail))
 
@@ -1074,12 +1080,12 @@ object Build_Manager {
       def render_overview(kind: String, state: State): XML.Body =
         render_page("Overview: " + kind + " job ") {
           def render_job(job: Job): XML.Body =
-            List(par(link_build(job.name, job.id) :: text(" running since " + job.start_date)))
+            List(par(link_build(job.name, job.id) :: summary(job.start_date)))
 
           def render_result(result: Result): XML.Body =
             List(par(
               link_build(result.name, result.id) ::
-              text(" (" + result.status + ") on " + result.start_date)))
+              summary(result.status, result.start_date, result.end_date)))
 
           itemize(
             state.get_running(kind).sortBy(_.id).reverse.map(render_job) :::
