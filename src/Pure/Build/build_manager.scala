@@ -88,13 +88,16 @@ object Build_Manager {
         build_hosts.map(host => " -H " + Bash.string(host.print)).mkString +
         if_proper(presentation, " -P:") +
         if_proper(requirements, " -R") +
+        exclude_session_groups.map(session => " -X " + Bash.string(session)).mkString +
         if_proper(all_sessions, " -a") +
         if_proper(build_heap, " -b") +
         if_proper(clean_build, " -c") +
         if_proper(export_files, " -e") +
         if_proper(fresh_build, " -f") +
+        session_groups.map(session => " -g " + Bash.string(session)).mkString +
         Options.Spec.bash_strings(prefs, bg = true) +
         if_proper(verbose, " -v") +
+        exclude_sessions.map(session => " -x " + Bash.string(session)).mkString +
         sessions.map(session => " " + Bash.string(session)).mkString
     }
   }
