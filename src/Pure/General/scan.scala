@@ -386,11 +386,10 @@ object Scan {
       if (0 <= i && i <= j && j <= length) new Restricted_Seq(seq, start + i, start + j)
       else throw new IndexOutOfBoundsException
 
-    override def toString: String = {
-      val buf = new StringBuilder(length)
-      for (offset <- start until end) buf.append(seq(offset))
-      buf.toString
-    }
+    override def toString: String =
+      Library.string_builder(hint = length) { buf =>
+        for (offset <- start until end) buf.append(seq(offset))
+      }
   }
 
   abstract class Byte_Reader extends Reader[Char] with AutoCloseable

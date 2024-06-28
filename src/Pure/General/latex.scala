@@ -34,14 +34,14 @@ object Latex {
 
   def output_name(name: String): String =
     if (name.exists(output_name_map.keySet)) {
-      val res = new StringBuilder
-      for (c <- name) {
-        output_name_map.get(c) match {
-          case None => res += c
-          case Some(s) => res ++= s
+      Library.string_builder() { res =>
+        for (c <- name) {
+          output_name_map.get(c) match {
+            case None => res += c
+            case Some(s) => res ++= s
+          }
         }
       }
-      res.toString
     }
     else name
 
@@ -52,18 +52,18 @@ object Latex {
     val special1 = "!\"@|"
     val special2 = "\\{}#"
     if (str.exists(c => special1.contains(c) || special2.contains(c))) {
-      val res = new StringBuilder
-      for (c <- str) {
-        if (special1.contains(c)) {
-          res ++= "\\char"
-          res ++= Value.Int(c)
-        }
-        else {
-          if (special2.contains(c)) { res += '"'}
-          res += c
+      Library.string_builder() { res =>
+        for (c <- str) {
+          if (special1.contains(c)) {
+            res ++= "\\char"
+            res ++= Value.Int(c)
+          }
+          else {
+            if (special2.contains(c)) { res += '"'}
+            res += c
+          }
         }
       }
-      res.toString
     }
     else str
   }

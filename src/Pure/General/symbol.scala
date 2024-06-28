@@ -267,18 +267,18 @@ object Symbol {
     def recode(text: String): String = {
       val len = text.length
       val matcher = new Symbol.Matcher(text)
-      val result = new StringBuilder(len)
-      var i = 0
-      while (i < len) {
-        val c = text(i)
-        if (min <= c && c <= max) {
-          val s = matcher.match_symbol(i)
-          result.append(table.getOrElse(s, s))
-          i += s.length
+      Library.string_builder(hint = len) { result =>
+        var i = 0
+        while (i < len) {
+          val c = text(i)
+          if (min <= c && c <= max) {
+            val s = matcher.match_symbol(i)
+            result.append(table.getOrElse(s, s))
+            i += s.length
+          }
+          else { result.append(c); i += 1 }
         }
-        else { result.append(c); i += 1 }
       }
-      result.toString
     }
   }
 

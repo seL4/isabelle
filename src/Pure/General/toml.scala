@@ -614,94 +614,90 @@ object TOML {
 
     private def keys(ks: List[Key]): Str = ks.map(key).mkString(".")
 
-    private def inline(t: T, indent: Int = 0): Str = {
-      val result = new StringBuilder
-
-      result ++= Symbol.spaces(indent * 2)
-      (t: @unchecked) match {
-        case s: String =>
-          if (s.rep.contains("\n") && s.rep.length > 20) result ++= multiline_basic_string(s.rep)
-          else result ++= basic_string(s.rep)
-        case a: Array =>
-          if (a.is_empty) result ++= "[]"
-          else {
-            result ++= "[\n"
-            a.any.values.foreach { elem =>
-              result ++= inline(elem, indent + 1)
-              result ++= ",\n"
+    private def inline(t: T, indent: Int = 0): Str =
+      Library.string_builder() { result =>
+        result ++= Symbol.spaces(indent * 2)
+        (t: @unchecked) match {
+          case s: String =>
+            if (s.rep.contains("\n") && s.rep.length > 20) result ++= multiline_basic_string(s.rep)
+            else result ++= basic_string(s.rep)
+          case a: Array =>
+            if (a.is_empty) result ++= "[]"
+            else {
+              result ++= "[\n"
+              a.any.values.foreach { elem =>
+                result ++= inline(elem, indent + 1)
+                result ++= ",\n"
+              }
+              result ++= Symbol.spaces(indent * 2)
+              result += ']'
             }
-            result ++= Symbol.spaces(indent * 2)
-            result += ']'
-          }
-        case table: Table =>
-          if (table.is_empty) result ++= "{}"
-          else {
-            result ++= "{ "
-            Library.separate(None, table.any.values.map(Some(_))).foreach {
-              case None => result ++= ", "
-              case Some((k, v)) =>
-                result ++= key(k)
-                result ++= " = "
-                result ++= inline(v)
+          case table: Table =>
+            if (table.is_empty) result ++= "{}"
+            else {
+              result ++= "{ "
+              Library.separate(None, table.any.values.map(Some(_))).foreach {
+                case None => result ++= ", "
+                case Some((k, v)) =>
+                  result ++= key(k)
+                  result ++= " = "
+                  result ++= inline(v)
+              }
+              result ++= " }"
             }
-            result ++= " }"
-          }
-        case Scalar(s) => result ++= s
+          case Scalar(s) => result ++= s
+        }
       }
-      result.toString()
-    }
 
-    def apply(toml: Table): Str = {
-      val result = new StringBuilder
+    def apply(toml: Table): Str =
+      Library.string_builder() { result =>
+        def inline_values(path: List[Key], t: T): Unit =
+          t match {
+            case t: Table => t.any.values.foreach { case (k, v1) => inline_values(k :: path, v1) }
+            case _ =>
+              result ++= keys(path.reverse)
+              result ++= " = "
+              result ++= inline(t)
+              result += '\n'
+          }
 
-      def inline_values(path: List[Key], t: T): Unit =
-        t match {
-          case t: Table => t.any.values.foreach { case (k, v1) => inline_values(k :: path, v1) }
-          case _ =>
+        def is_inline(elem: T): Bool =
+          elem match {
+            case _: String | _: Integer | _: Float | _: Boolean | _: Offset_Date_Time |
+                 _: Local_Date_Time | _: Local_Date | _: Local_Time => true
+            case a: Array => a.any.values.forall(is_inline)
+            case _ => false
+          }
+        def is_table(elem: T): Bool = elem match { case _: Table => true case _ => false }
+
+        def array(path: List[Key], a: Array): Unit =
+          if (a.any.values.forall(is_inline) || !a.any.values.forall(is_table))
+            inline_values(path.take(1), a)
+          else a.table.values.foreach { t =>
+            result ++= "\n[["
             result ++= keys(path.reverse)
-            result ++= " = "
-            result ++= inline(t)
-            result += '\n'
+            result ++= "]]\n"
+            table(path, t, is_table_entry = true)
+          }
+
+        def table(path: List[Key], t: Table, is_table_entry: Bool = false): Unit = {
+          val (values, nodes) = t.any.values.partition(kv => is_inline(kv._2))
+
+          if (!is_table_entry && path.nonEmpty) {
+            result ++= "\n["
+            result ++= keys(path.reverse)
+            result ++= "]\n"
+          }
+
+          values.foreach { case (k, v) => inline_values(List(k), v) }
+          nodes.foreach {
+            case (k, t: Table) => table(k :: path, t)
+            case (k, arr: Array) => array(k :: path, arr)
+            case _ =>
+          }
         }
 
-      def is_inline(elem: T): Bool =
-        elem match {
-          case _: String | _: Integer | _: Float | _: Boolean | _: Offset_Date_Time |
-               _: Local_Date_Time | _: Local_Date | _: Local_Time => true
-          case a: Array => a.any.values.forall(is_inline)
-          case _ => false
-        }
-      def is_table(elem: T): Bool = elem match { case _: Table => true case _ => false }
-
-      def array(path: List[Key], a: Array): Unit =
-        if (a.any.values.forall(is_inline) || !a.any.values.forall(is_table))
-          inline_values(path.take(1), a)
-        else a.table.values.foreach { t =>
-          result ++= "\n[["
-          result ++= keys(path.reverse)
-          result ++= "]]\n"
-          table(path, t, is_table_entry = true)
-        }
-
-      def table(path: List[Key], t: Table, is_table_entry: Bool = false): Unit = {
-        val (values, nodes) = t.any.values.partition(kv => is_inline(kv._2))
-
-        if (!is_table_entry && path.nonEmpty) {
-          result ++= "\n["
-          result ++= keys(path.reverse)
-          result ++= "]\n"
-        }
-
-        values.foreach { case (k, v) => inline_values(List(k), v) }
-        nodes.foreach {
-          case (k, t: Table) => table(k :: path, t)
-          case (k, arr: Array) => array(k :: path, arr)
-          case _ =>
-        }
+        table(Nil, toml)
       }
-
-      table(Nil, toml)
-      result.toString
-    }
   }
 }

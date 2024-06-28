@@ -29,18 +29,17 @@ object SQL {
 
   /* concrete syntax */
 
-  def string(s: String): Source = {
-    val q = '\''
-    val result = new StringBuilder(s.length + 10)
-    result += q
-    for (c <- s.iterator) {
-      if (c == '\u0000') error("Illegal NUL character in SQL string literal")
-      if (c == q) result += q
-      result += c
+  def string(s: String): Source =
+    Library.string_builder(hint = s.length + 10) { result =>
+      val q = '\''
+      result += q
+      for (c <- s.iterator) {
+        if (c == '\u0000') error("Illegal NUL character in SQL string literal")
+        if (c == q) result += q
+        result += c
+      }
+      result += q
     }
-    result += q
-    result.toString
-  }
 
   def ident(s: String): Source =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))

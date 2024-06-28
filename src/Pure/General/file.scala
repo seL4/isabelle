@@ -205,13 +205,12 @@ object File {
   def read(path: Path): String = read(path.file)
 
 
-  def read_stream(reader: BufferedReader): String = {
-    val output = new StringBuilder(100)
-    var c = -1
-    while ({ c = reader.read; c != -1 }) output += c.toChar
-    reader.close()
-    output.toString
-  }
+  def read_stream(reader: BufferedReader): String =
+    Library.string_builder(hint = 100) { output =>
+      var c = -1
+      while ({ c = reader.read; c != -1 }) output += c.toChar
+      reader.close()
+    }
 
   def read_stream(stream: InputStream): String =
     read_stream(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))

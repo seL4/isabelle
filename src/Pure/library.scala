@@ -194,12 +194,8 @@ object Library {
       if (0 <= i && i <= j && j <= length) new Reverse(text, end - j, end - i)
       else throw new IndexOutOfBoundsException
 
-    override def toString: String = {
-      val buf = new StringBuilder(length)
-      for (i <- 0 until length)
-        buf.append(charAt(i))
-      buf.toString
-    }
+    override def toString: String =
+      string_builder(hint = length) { buf => for (i <- 0 until length) buf.append(charAt(i)) }
   }
 
   class Line_Termination(text: CharSequence) extends CharSequence {

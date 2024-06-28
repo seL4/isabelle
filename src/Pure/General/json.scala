@@ -196,37 +196,35 @@ object JSON {
         case _ => false
       }
 
-    def apply(json: T): S = {
-      val result = new StringBuilder
-
-      def output(x: T): Unit = {
-        if (!output_atom(x, result)) {
-          x match {
-            case Object(obj) =>
-              result += '{'
-              Library.separate(None, obj.toList.map(Some(_))).foreach({
-                case None => result += ','
-                case Some((x, y)) =>
-                  output_string(x, result)
-                  result += ':'
-                  output(y)
-              })
-              result += '}'
-            case list: List[T] =>
-              result += '['
-              Library.separate(None, list.map(Some(_))).foreach({
-                case None => result += ','
-                case Some(x) => output(x)
-              })
-              result += ']'
-            case _ => error("Bad JSON value: " + x.toString)
+    def apply(json: T): S =
+      Library.string_builder() { result =>
+        def output(x: T): Unit = {
+          if (!output_atom(x, result)) {
+            x match {
+              case Object(obj) =>
+                result += '{'
+                Library.separate(None, obj.toList.map(Some(_))).foreach({
+                  case None => result += ','
+                  case Some((x, y)) =>
+                    output_string(x, result)
+                    result += ':'
+                    output(y)
+                })
+                result += '}'
+              case list: List[T] =>
+                result += '['
+                Library.separate(None, list.map(Some(_))).foreach({
+                  case None => result += ','
+                  case Some(x) => output(x)
+                })
+                result += ']'
+              case _ => error("Bad JSON value: " + x.toString)
+            }
           }
         }
-      }
 
-      output(json)
-      result.toString
-    }
+        output(json)
+      }
 
     private def pretty_atom(x: T): Option[XML.Tree] = {
       val result = new StringBuilder
@@ -234,11 +232,8 @@ object JSON {
       if (ok) Some(XML.Text(result.toString)) else None
     }
 
-    private def pretty_string(s: String): XML.Tree = {
-      val result = new StringBuilder
-      output_string(s, result)
-      XML.Text(result.toString)
-    }
+    private def pretty_string(s: String): XML.Tree =
+      XML.Text(Library.string_builder()(output_string(s, _)))
 
     private def pretty_tree(x: T): XML.Tree =
       x match {
