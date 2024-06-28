@@ -541,10 +541,10 @@ object Symbol {
   def encode(text: String): String = symbols.encode(text)
 
   def decode_yxml(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
-    YXML.parse_body(decode(text), cache = cache)
+    YXML.parse_body(text, recode = decode, cache = cache)
 
   def decode_yxml_failsafe(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
-    YXML.parse_body_failsafe(decode(text), cache = cache)
+    YXML.parse_body_failsafe(text, recode = decode, cache = cache)
 
   def encode_yxml(body: XML.Body): String =
     YXML.string_of_body(body, recode = encode)

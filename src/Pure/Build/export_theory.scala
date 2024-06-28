@@ -391,7 +391,7 @@ object Export_Theory {
 
     for { entry <- theory_context.get(Export.PROOFS_PREFIX + id.serial) }
     yield {
-      val body = entry.yxml
+      val body = entry.yxml()
       val (typargs, (args, (prop_body, proof_body))) = {
         import XML.Decode._
         import Term_XML.Decode._

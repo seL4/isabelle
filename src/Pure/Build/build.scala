@@ -714,13 +714,12 @@ Usage: isabelle build_worker [OPTIONS]
     theory_context: Export.Theory_Context,
     unicode_symbols: Boolean = false
   ): Option[Document.Snapshot] = {
-    def decode_bytes(bytes: Bytes): String =
-      Symbol.output(unicode_symbols, bytes.text)
+    def decode(str: String): String = Symbol.output(unicode_symbols, str)
 
     def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
-      YXML.parse_body(decode_bytes(read(name).bytes), cache = theory_context.cache)
+      YXML.parse_body(read(name).bytes.text, recode = decode, cache = theory_context.cache)
 
     def read_source_file(name: String): Store.Source_File =
       theory_context.session_context.source_file(name)
@@ -741,14 +740,14 @@ Usage: isabelle build_worker [OPTIONS]
 
           val file = read_source_file(name)
           val bytes = file.bytes
-          val text = decode_bytes(bytes)
+          val text = decode(bytes.text)
           val chunk = Symbol.Text_Chunk(text)
 
           Command.Blob(Document.Node.Name(name), src_path, Some((file.digest, chunk))) ->
             Document.Blobs.Item(bytes, text, chunk, changed = false)
         }
 
-      val thy_source = decode_bytes(read_source_file(thy_file).bytes)
+      val thy_source = decode(read_source_file(thy_file).bytes.text)
       val thy_xml = read_xml(Export.MARKUP)
       val blobs_xml =
         for (i <- (1 to blobs.length).toList)
