@@ -189,6 +189,16 @@ object Build_CI {
         max_jobs = job.hosts.max_jobs)
     }
 
+    val stop_date = progress.now()
+    val elapsed_time = stop_date - progress.start
+    progress.echo("\nFinished at " + Build_Log.print_date(stop_date))
+
+    progress.echo(section("TIMING"))
+    val total_timing =
+      results.sessions.iterator.map(a => results(a).timing).foldLeft(Timing.zero)(_ + _).
+        copy(elapsed = elapsed_time)
+    progress.echo(total_timing.message_resources)
+
     val post_result = return_code { job.hook.post(options, url, results, progress) }
 
     val rc = List(mail_result, pre_result, results.rc, post_result).max
