@@ -561,10 +561,10 @@ object Isabelle_System {
   /* repositories */
 
   val isabelle_repository: Mercurial.Server =
-    Mercurial.Server("https://isabelle.sketis.net/repos/isabelle")
+    Mercurial.Server("https://isabelle.in.tum.de/repos/isabelle")
 
   val afp_repository: Mercurial.Server =
-    Mercurial.Server("https://isabelle.sketis.net/repos/afp-devel")
+    Mercurial.Server("https://foss.heptapod.net/isa-afp/afp-devel")
 
   def official_releases(): List[String] =
     Library.trim_split_lines(
