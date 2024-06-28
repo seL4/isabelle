@@ -41,6 +41,10 @@ object Build_Manager {
   object CI_Build {
     def apply(job: Build_CI.Job): CI_Build =
       CI_Build(job.name, job.hosts.build_cluster, job.components.map(Component(_, "default")))
+
+    def task(job: Build_CI.Job): Task =
+      Task(CI_Build(job), job.hosts.hosts_spec, other_settings = job.other_settings,
+        isabelle_rev = "default")
   }
 
   case class CI_Build(name: String, build_cluster: Boolean, components: List[Component])
@@ -888,11 +892,7 @@ object Build_Manager {
           if ci_job.trigger == Build_CI.On_Commit
           if isabelle_updated || ci_job.components.exists(updated_components.contains)
           if !_state.pending.values.exists(_.kind == ci_job.name)
-        } {
-          val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, ci_job.other_settings,
-            priority = Priority.low, isabelle_rev = "default")
-          _state = _state.add_pending(task)
-        }
+        } _state = _state.add_pending(CI_Build.task(ci_job))
       }
     }
 
@@ -927,7 +927,7 @@ object Build_Manager {
       for (ci_job <- ci_jobs)
         ci_job.trigger match {
           case Build_CI.Timed(in_interval) if in_interval(previous, next) =>
-            val task = Task(CI_Build(ci_job), ci_job.hosts.hosts_spec, isabelle_rev = "default")
+            val task = CI_Build.task(ci_job)
             echo("Triggered task " + task.kind)
             _state = _state.add_pending(task)
           case _ =>
