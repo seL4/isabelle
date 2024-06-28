@@ -48,7 +48,7 @@ object XML {
 
     def traverse(trees: List[Tree]): Unit = {
       @tailrec def trav(list: List[Trav]): Unit =
-        list match {
+        (list : @unchecked) match {
           case Nil =>
           case Text(s) :: rest => text(s); trav(rest)
           case Elem(markup, body) :: rest =>
@@ -56,7 +56,6 @@ object XML {
             else if (body.isEmpty) { elem(markup, end = true); trav(rest) }
             else { elem(markup); trav(body ::: End(markup.name) :: rest) }
           case End(name) :: rest => end_elem(name); trav(rest)
-          case _ :: _ => ???
         }
       trav(trees)
     }
