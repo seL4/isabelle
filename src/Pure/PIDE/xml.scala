@@ -6,6 +6,8 @@ Untyped XML trees and basic data representation.
 
 package isabelle
 
+import scala.annotation.tailrec
+
 
 object XML {
   /** XML trees **/
@@ -15,9 +17,14 @@ object XML {
   type Attribute = Properties.Entry
   type Attributes = Properties.T
 
-  sealed abstract class Tree { override def toString: String = string_of_tree(this) }
+  trait Trav
+  case class End(name: String) extends Trav
+
+  sealed abstract class Tree extends Trav {
+    override def toString: String = string_of_tree(this)
+  }
   type Body = List[Tree]
-  case class Elem(markup: Markup, body: Body) extends Tree {
+  case class Elem(markup: Markup, body: Body) extends Tree with Trav {
     private lazy val hash: Int = (markup, body).hashCode()
     override def hashCode(): Int = hash
 
@@ -29,9 +36,29 @@ object XML {
 
     def + (att: Attribute): Elem = Elem(markup + att, body)
   }
-  case class Text(content: String) extends Tree {
+  case class Text(content: String) extends Tree with Trav {
     private lazy val hash: Int = content.hashCode()
     override def hashCode(): Int = hash
+  }
+
+  trait Traversal {
+    def text(s: String): Unit
+    def elem(markup: Markup, end: Boolean = false): Unit
+    def end_elem(name: String): Unit
+
+    def traverse(trees: List[Tree]): Unit = {
+      @tailrec def trav(list: List[Trav]): Unit =
+        (list : @unchecked) match {
+          case Nil =>
+          case Text(s) :: rest => text(s); trav(rest)
+          case Elem(markup, body) :: rest =>
+            if (markup.is_empty) trav(body ::: rest)
+            else if (body.isEmpty) { elem(markup, end = true); trav(rest) }
+            else { elem(markup); trav(body ::: End(markup.name) :: rest) }
+          case End(name) :: rest => end_elem(name); trav(rest)
+        }
+      trav(trees)
+    }
   }
 
   def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
@@ -95,27 +122,24 @@ object XML {
 
   /* traverse text */
 
-  def traverse_text[A](body: Body)(a: A)(op: (A, String) => A): A = {
-    def traverse(x: A, t: Tree): A =
-      t match {
-        case XML.Wrapped_Elem(_, _, ts) => ts.foldLeft(x)(traverse)
-        case XML.Elem(_, ts) => ts.foldLeft(x)(traverse)
-        case XML.Text(s) => op(x, s)
+  def traverse_text[A](body: Body, a: A, op: (A, String) => A): A = {
+    @tailrec def trav(x: A, list: List[Tree]): A =
+      list match {
+        case Nil => x
+        case XML.Wrapped_Elem(_, _, body) :: rest => trav(x, body ::: rest)
+        case XML.Elem(_, body) :: rest => trav(x, body ::: rest)
+        case XML.Text(s) :: rest => trav(op(x, s), rest)
       }
-    body.foldLeft(a)(traverse)
+    trav(a, body)
   }
 
-  def text_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + s.length }
-  def symbol_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + Symbol.length(s) }
+  def text_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + s.length)
+  def symbol_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + Symbol.length(s))
 
-
-  /* text content */
-
-  def content(body: Body): String = {
-    val text = new StringBuilder(text_length(body))
-    traverse_text(body)(()) { case (_, s) => text.append(s) }
-    text.toString
-  }
+  def content(body: Body): String =
+    Library.string_builder(hint = text_length(body)) { text =>
+      traverse_text(body, (), (_, s) => text.append(s))
+    }
 
   def content(tree: Tree): String = content(List(tree))
 
@@ -125,64 +149,56 @@ object XML {
 
   val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 
-  def output_char(s: StringBuilder, c: Char, permissive: Boolean = false): Unit = {
-    c match {
-      case '<' => s ++= "&lt;"
-      case '>' => s ++= "&gt;"
-      case '&' => s ++= "&amp;"
-      case '"' if !permissive => s ++= "&quot;"
-      case '\'' if !permissive => s ++= "&apos;"
-      case _ => s += c
-    }
-  }
-
-  def output_string(s: StringBuilder, str: String, permissive: Boolean = false): Unit = {
-    if (str == null) s ++= str
-    else str.iterator.foreach(output_char(s, _, permissive = permissive))
-  }
-
-  def output_elem(s: StringBuilder, markup: Markup, end: Boolean = false): Unit = {
-    s += '<'
-    s ++= markup.name
-    for ((a, b) <- markup.properties) {
-      s += ' '
-      s ++= a
-      s += '='
-      s += '"'
-      output_string(s, b)
-      s += '"'
-    }
-    if (end) s += '/'
-    s += '>'
-  }
-
-  def output_elem_end(s: StringBuilder, name: String): Unit = {
-    s += '<'
-    s += '/'
-    s ++= name
-    s += '>'
-  }
-
-  def string_of_body(body: Body): String = {
-    val s = new StringBuilder
-
-    def tree(t: Tree): Unit =
-      t match {
-        case XML.Elem(markup, Nil) =>
-          output_elem(s, markup, end = true)
-        case XML.Elem(markup, ts) =>
-          output_elem(s, markup)
-          ts.foreach(tree)
-          output_elem_end(s, markup.name)
-        case XML.Text(txt) => output_string(s, txt)
+  class Output(builder: StringBuilder) extends Traversal {
+    def string(str: String, permissive: Boolean = false): Unit = {
+      if (str == null) { builder ++= str }
+      else {
+        str foreach {
+          case '<' => builder ++= "&lt;"
+          case '>' => builder ++= "&gt;"
+          case '&' => builder ++= "&amp;"
+          case '"' if !permissive => builder ++= "&quot;"
+          case '\'' if !permissive => builder ++= "&apos;"
+          case c => builder += c
+        }
       }
-    body.foreach(tree)
-    s.toString
+    }
+
+    override def text(str: String): Unit = string(str)
+
+    override def elem(markup: Markup, end: Boolean = false): Unit = {
+      builder += '<'
+      builder ++= markup.name
+      for ((a, b) <- markup.properties) {
+        builder += ' '
+        builder ++= a
+        builder += '='
+        builder += '"'
+        string(b)
+        builder += '"'
+      }
+      if (end) builder += '/'
+      builder += '>'
+    }
+
+    def end_elem(name: String): Unit = {
+      builder += '<'
+      builder += '/'
+      builder ++= name
+      builder += '>'
+    }
+
+    def result(ts: List[Tree]): String = { traverse(ts); builder.toString }
   }
+
+  def string_of_body(body: Body): String =
+    if (body.isEmpty) ""
+    else new Output(new StringBuilder).result(body)
 
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
   def text(s: String): String = string_of_tree(XML.Text(s))
+
 
 
   /** cache **/

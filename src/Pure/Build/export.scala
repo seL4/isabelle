@@ -194,7 +194,8 @@ object Export {
 
     def text: String = bytes.text
 
-    def yxml: XML.Body = YXML.parse_body(bytes.text, cache = cache)
+    def yxml(recode: String => String = identity): XML.Body =
+      YXML.parse_body(bytes.text, recode = recode, cache = cache)
   }
 
   def make_regex(pattern: String): Regex = {
@@ -536,9 +537,9 @@ object Export {
     def apply(name: String, permissive: Boolean = false): Entry =
       session_context.apply(theory, name, permissive = permissive)
 
-    def yxml(name: String): XML.Body =
+    def yxml(name: String, recode: String => String = identity): XML.Body =
       get(name) match {
-        case Some(entry) => entry.yxml
+        case Some(entry) => entry.yxml(recode = recode)
         case None => Nil
       }
 

@@ -265,20 +265,33 @@ object Symbol {
       tab
     }
     def recode(text: String): String = {
-      val len = text.length
-      val matcher = new Symbol.Matcher(text)
-      val result = new StringBuilder(len)
-      var i = 0
-      while (i < len) {
-        val c = text(i)
-        if (min <= c && c <= max) {
-          val s = matcher.match_symbol(i)
-          result.append(table.getOrElse(s, s))
-          i += s.length
+      val n = text.length
+      val relevant = {
+        var i = 0
+        var found = false
+        while (i < n && !found) {
+          val c = text(i)
+          if (min <= c && c <= max) { found = true }
+          i += 1
         }
-        else { result.append(c); i += 1 }
+        found
       }
-      result.toString
+      if (relevant) {
+        val matcher = new Symbol.Matcher(text)
+        Library.string_builder(hint = n) { result =>
+          var i = 0
+          while (i < n) {
+            val c = text(i)
+            if (min <= c && c <= max) {
+              val s = matcher.match_symbol(i)
+              result.append(table.getOrElse(s, s))
+              i += s.length
+            }
+            else { result.append(c); i += 1 }
+          }
+        }
+      }
+      else text
     }
   }
 
@@ -528,20 +541,20 @@ object Symbol {
   def encode(text: String): String = symbols.encode(text)
 
   def decode_yxml(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
-    YXML.parse_body(decode(text), cache = cache)
+    YXML.parse_body(text, recode = decode, cache = cache)
 
   def decode_yxml_failsafe(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
-    YXML.parse_body_failsafe(decode(text), cache = cache)
+    YXML.parse_body_failsafe(text, recode = decode, cache = cache)
 
-  def encode_yxml(body: XML.Body): String = encode(YXML.string_of_body(body))
+  def encode_yxml(body: XML.Body): String =
+    YXML.string_of_body(body, recode = encode)
 
   def decode_strict(text: String): String = {
     val decoded = decode(text)
     if (encode(decoded) == text) decoded
     else {
       val bad = new mutable.ListBuffer[Symbol]
-      for (s <- iterator(text) if encode(decode(s)) != s && !bad.contains(s))
-        bad += s
+      for (s <- iterator(text) if encode(decode(s)) != s && !bad.contains(s)) bad += s
       error("Bad Unicode symbols in text: " + commas_quote(bad))
     }
   }

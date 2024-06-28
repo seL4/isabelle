@@ -20,25 +20,24 @@ object Outer_Syntax {
 
   /* string literals */
 
-  def quote_string(str: String): String = {
-    val result = new StringBuilder(str.length + 10)
-    result += '"'
-    for (s <- Symbol.iterator(str)) {
-      if (s.length == 1) {
-        val c = s(0)
-        if (c < 32 && c != YXML.X && c != YXML.Y || c == '\\' || c == '"') {
-          result += '\\'
-          if (c < 10) result += '0'
-          if (c < 100) result += '0'
-          result ++= c.asInstanceOf[Int].toString
+  def quote_string(str: String): String =
+    Library.string_builder(hint = str.length + 10) { result =>
+      result += '"'
+      for (s <- Symbol.iterator(str)) {
+        if (s.length == 1) {
+          val c = s(0)
+          if (c < 32 && c != YXML.X && c != YXML.Y || c == '\\' || c == '"') {
+            result += '\\'
+            if (c < 10) result += '0'
+            if (c < 100) result += '0'
+            result ++= c.asInstanceOf[Int].toString
+          }
+          else result += c
         }
-        else result += c
+        else result ++= s
       }
-      else result ++= s
+      result += '"'
     }
-    result += '"'
-    result.toString
-  }
 }
 
 final class Outer_Syntax private(

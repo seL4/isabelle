@@ -294,7 +294,7 @@ object Build_Job {
                     val args =
                       Protocol.Export.Args(
                         theory_name = theory_name, name = name, compress = compress)
-                    val body = Bytes(Symbol.encode(YXML.string_of_body(xml)))
+                    val body = YXML.bytes_of_body(xml, recode = Symbol.encode)
                     export_consumer.make_entry(session_name, args, body)
                   }
                 }

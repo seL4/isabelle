@@ -20,12 +20,12 @@ object UTF8 {
   def relevant(s: CharSequence): Boolean = {
     var i = 0
     val n = s.length
-    var utf8 = false
-    while (i < n && !utf8) {
-      if (s.charAt(i) >= 128) { utf8 = true }
+    var found = false
+    while (i < n && !found) {
+      if (s.charAt(i) >= 128) { found = true }
       i += 1
     }
-    utf8
+    found
   }
 
 
@@ -41,8 +41,7 @@ object UTF8 {
     var rest = 0
     def flush(): Unit = {
       if (code != -1) {
-        if (rest == 0 && Character.isValidCodePoint(code))
-          buf.appendCodePoint(code)
+        if (rest == 0 && Character.isValidCodePoint(code)) buf.appendCodePoint(code)
         else buf.append('\uFFFD')
         code = -1
         rest = 0

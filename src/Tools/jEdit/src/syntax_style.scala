@@ -168,14 +168,13 @@ object Syntax_Style {
 
     val control_decoded = Isabelle_Encoding.perhaps_decode(buffer, control_sym)
 
-    def update_style(text: String): String = {
-      val result = new StringBuilder
-      for (sym <- Symbol.iterator(text) if !HTML.is_control(sym)) {
-        if (Symbol.is_controllable(sym)) result ++= control_decoded
-        result ++= sym
+    def update_style(text: String): String =
+      Library.string_builder() { result =>
+        for (sym <- Symbol.iterator(text) if !HTML.is_control(sym)) {
+          if (Symbol.is_controllable(sym)) result ++= control_decoded
+          result ++= sym
+        }
       }
-      result.toString
-    }
 
     text_area.getSelection.foreach { sel =>
       val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)

@@ -143,10 +143,10 @@ object Library {
 
   /* strings */
 
-  def make_string(f: StringBuilder => Unit, capacity: Int = 16): String = {
-    val s = new StringBuilder(capacity)
-    f(s)
-    s.toString
+  def string_builder(hint: Int = 0)(body: StringBuilder => Unit): String = {
+    val builder = new StringBuilder(if (hint <= 0) 16 else hint)
+    body(builder)
+    builder.toString
   }
 
   def try_unprefix(prfx: String, s: String): Option[String] =
@@ -194,12 +194,8 @@ object Library {
       if (0 <= i && i <= j && j <= length) new Reverse(text, end - j, end - i)
       else throw new IndexOutOfBoundsException
 
-    override def toString: String = {
-      val buf = new StringBuilder(length)
-      for (i <- 0 until length)
-        buf.append(charAt(i))
-      buf.toString
-    }
+    override def toString: String =
+      string_builder(hint = length) { buf => for (i <- 0 until length) buf.append(charAt(i)) }
   }
 
   class Line_Termination(text: CharSequence) extends CharSequence {

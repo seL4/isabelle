@@ -17,6 +17,7 @@ import org.tukaani.xz
 import com.github.luben.zstd
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 
 
 object Bytes {
@@ -168,61 +169,75 @@ object Bytes {
   }
 
   final class Builder private[Bytes](hint: Long) {
-    private var size = 0L
     private var chunks =
       new ArrayBuffer[Array[Byte]](if (hint <= 0) 16 else (hint / chunk_size).toInt)
-    private var buffer =
-      new ByteArrayOutputStream(if (hint <= 0) 1024 else (hint min chunk_size min array_size).toInt)
 
-    private def buffer_free(): Int = chunk_size.toInt - buffer.size()
-    private def buffer_check(): Unit =
-      if (buffer_free() == 0) {
-        chunks += buffer.toByteArray
-        buffer = new ByteArrayOutputStream(chunk_size.toInt)
+    private var buffer_list: mutable.ListBuffer[Array[Byte]] = null
+    private var buffer =
+      new Array[Byte](if (hint <= 0) 1024 else (hint min chunk_size min array_size).toInt)
+    private var buffer_index = 0
+    private var buffer_total = 0
+
+    private def buffer_content(): Array[Byte] =
+      if (buffer_list != null) {
+        val array = new Array[Byte](buffer_total)
+        var i = 0
+        for (b <- buffer_list) {
+          val n = b.length
+          System.arraycopy(b, 0, array, i, n)
+          i += n
+        }
+        System.arraycopy(buffer, 0, array, i, buffer_index)
+        array
+      }
+      else if (buffer_index == buffer.length) buffer else Arrays.copyOf(buffer, buffer_index)
+
+    private def buffer_check(request: Int = 0): Unit =
+      if (buffer_index == buffer.length) {
+        if (buffer_total == chunk_size) {
+          chunks += buffer_content()
+          buffer_list = null
+          buffer = new Array[Byte](chunk_size.toInt)
+          buffer_total = 0
+          buffer_index = 0
+        }
+        else {
+          if (buffer_list == null) { buffer_list = new mutable.ListBuffer }
+          buffer_list += buffer
+          buffer_index = 0
+          val limit = (chunk_size - buffer_total).toInt
+          buffer = new Array[Byte]((buffer_total max request) min limit)
+        }
       }
 
     def += (b: Byte): Unit = {
-      size += 1
-      buffer.write(b)
+      buffer(buffer_index) = b
+      buffer_total += 1
+      buffer_index += 1
       buffer_check()
-    }
-
-    def += (s: CharSequence): Unit = {
-      val n = s.length
-      if (n > 0) {
-        if (UTF8.relevant(s)) { this += UTF8.bytes(s.toString) }
-        else {
-          var i = 0
-          while (i < n) {
-            buffer.write(s.charAt(i).toByte)
-            size += 1
-            i += 1
-            buffer_check()
-          }
-        }
-      }
     }
 
     def += (array: Array[Byte], offset: Int, length: Int): Unit = {
       if (offset < 0 || length < 0 || offset.toLong + length.toLong > array.length) {
         throw new IndexOutOfBoundsException
       }
-      else if (length > 0) {
+      else {
         var i = offset
         var n = length
         while (n > 0) {
-          val m = buffer_free()
-          if (m > 0) {
-            val l = m min n
-            buffer.write(array, i, l)
-            size += l
-            i += l
-            n -= l
-          }
-          buffer_check()
+          val l = n min (buffer.length - buffer_index)
+          System.arraycopy(array, i, buffer, buffer_index, l)
+          buffer_total += l
+          buffer_index += l
+          i += l
+          n -= l
+          buffer_check(request = n)
         }
       }
     }
+
+    def += (s: CharSequence): Unit =
+      if (s.length > 0) { this += UTF8.bytes(s.toString) }
 
     def += (array: Array[Byte]): Unit = { this += (array, 0, array.length) }
 
@@ -230,8 +245,10 @@ object Bytes {
 
     private def done(): Bytes = {
       val cs = chunks.toArray
-      val b = buffer.toByteArray
+      val b = buffer_content()
+      val size = cs.foldLeft(b.length.toLong)({ case (n, a) => n + a.length })
       chunks = null
+      buffer_list = null
       buffer = null
       new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
     }

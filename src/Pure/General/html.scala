@@ -170,8 +170,10 @@ object HTML {
     hidden: Boolean,
     permissive: Boolean
   ): Unit = {
+    val xml_output = new XML.Output(s)
+
     def output_string(str: String): Unit =
-      XML.output_string(s, str, permissive = permissive)
+      xml_output.string(str, permissive = permissive)
 
     def output_hidden(body: => Unit): Unit =
       if (hidden) { s ++= "<span class=\"hidden\">"; body; s ++= "</span>" }
@@ -181,11 +183,11 @@ object HTML {
         control_block_begin.get(sym) match {
           case Some(op) if control_blocks =>
             output_hidden(output_string(sym))
-            XML.output_elem(s, Markup(op.name, Nil))
+            xml_output.elem(Markup(op.name, Nil))
           case _ =>
             control_block_end.get(sym) match {
               case Some(op) if control_blocks =>
-                XML.output_elem_end(s, op.name)
+                xml_output.end_elem(op.name)
                 output_hidden(output_string(sym))
               case _ =>
                 if (hidden && Symbol.is_control_encoded(sym)) {
@@ -207,9 +209,9 @@ object HTML {
         control.get(ctrl) match {
           case Some(op) if Symbol.is_controllable(sym) =>
             output_hidden(output_symbol(ctrl))
-            XML.output_elem(s, Markup(op.name, Nil))
+            xml_output.elem(Markup(op.name, Nil))
             output_symbol(sym)
-            XML.output_elem_end(s, op.name)
+            xml_output.end_elem(op.name)
           case _ =>
             output_symbol(ctrl)
             output_symbol(sym)
@@ -222,8 +224,9 @@ object HTML {
 
   def output(text: String): String = {
     val control_blocks = check_control_blocks(List(XML.Text(text)))
-    Library.make_string(output(_, text,
-      control_blocks = control_blocks, hidden = false, permissive = true))
+    Library.string_builder() { builder =>
+      output(builder, text, control_blocks = control_blocks, hidden = false, permissive = true)
+    }
   }
 
 
@@ -234,18 +237,20 @@ object HTML {
       "ul", "ol", "dl", "li", "dt", "dd")
 
   def output(s: StringBuilder, xml: XML.Body, hidden: Boolean, structural: Boolean): Unit = {
+    val xml_output = new XML.Output(s)
+
     def output_body(body: XML.Body): Unit = {
       val control_blocks = check_control_blocks(body)
       body foreach {
         case XML.Elem(markup, Nil) =>
-          XML.output_elem(s, markup, end = true)
+          xml_output.elem(markup, end = true)
         case XML.Elem(Markup(Markup.RAW_HTML, _), body) =>
-          XML.traverse_text(body)(()) { case (_, raw) => s.append(raw) }
+          XML.traverse_text(body, (), (_, raw) => s.append(raw))
         case XML.Elem(markup, ts) =>
           if (structural && structural_elements(markup.name)) s += '\n'
-          XML.output_elem(s, markup)
+          xml_output.elem(markup)
           output_body(ts)
-          XML.output_elem_end(s, markup.name)
+          xml_output.end_elem(markup.name)
           if (structural && structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
           output(s, txt, control_blocks = control_blocks, hidden = hidden, permissive = true)
@@ -255,7 +260,9 @@ object HTML {
   }
 
   def output(body: XML.Body, hidden: Boolean, structural: Boolean): String =
-    Library.make_string(output(_, body, hidden, structural), capacity = XML.text_length(body) * 2)
+    Library.string_builder(hint = XML.text_length(body) * 2) { builder =>
+      output(builder, body, hidden, structural)
+    }
 
   def output(tree: XML.Tree, hidden: Boolean, structural: Boolean): String =
     output(List(tree), hidden, structural)

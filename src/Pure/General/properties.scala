@@ -45,7 +45,7 @@ object Properties {
 
   def encode(ps: T): Bytes = {
     if (ps.isEmpty) Bytes.empty
-    else Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+    else YXML.bytes_of_body(XML.Encode.properties(ps))
   }
 
   def decode(bs: Bytes, cache: XML.Cache = XML.Cache.none): T = {
@@ -59,7 +59,7 @@ object Properties {
   ): Bytes = {
     if (ps.isEmpty) Bytes.empty
     else {
-      Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).
+      YXML.bytes_of_body(XML.Encode.list(XML.Encode.properties)(ps)).
         compress(options = options, cache = cache)
     }
   }

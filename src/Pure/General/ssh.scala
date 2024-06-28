@@ -70,12 +70,12 @@ object SSH {
     val special = "[]?*\\{} \"'"
     if (str.isEmpty) "\"\""
     else if (str.exists(special.contains)) {
-      val res = new StringBuilder
-      for (c <- str) {
-        if (special.contains(c)) res += '\\'
-        res += c
+      Library.string_builder() { res =>
+        for (c <- str) {
+          if (special.contains(c)) res += '\\'
+          res += c
+        }
       }
-      res.toString()
     }
     else str
   }

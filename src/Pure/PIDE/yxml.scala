@@ -14,8 +14,11 @@ import scala.collection.mutable
 object YXML {
   /* chunk markers */
 
-  val X = '\u0005'
-  val Y = '\u0006'
+  val X_byte: Byte = 5
+  val Y_byte: Byte = 6
+
+  val X = X_byte.toChar
+  val Y = Y_byte.toChar
 
   val is_X: Char => Boolean = _ == X
   val is_Y: Char => Boolean = _ == Y
@@ -31,31 +34,54 @@ object YXML {
 
   /* string representation */
 
-  def traversal(string: String => Unit, body: XML.Body): Unit = {
-    def tree(t: XML.Tree): Unit =
-      t match {
-        case XML.Elem(markup @ Markup(name, atts), ts) =>
-          if (markup.is_empty) ts.foreach(tree)
-          else {
-            string(XY_string)
-            string(name)
-            for ((a, x) <- atts) { string(Y_string); string(a); string("="); string(x) }
-            string(X_string)
-            ts.foreach(tree)
-            string(XYX_string)
-          }
-        case XML.Text(text) => string(text)
+  trait Output extends XML.Traversal {
+    def byte(b: Byte): Unit
+    def string(s: String): Unit
+
+    // XML.Traversal
+    override def text(s: String): Unit = string(s)
+    override def elem(markup: Markup, end: Boolean = false): Unit = {
+      byte(X_byte)
+      byte(Y_byte)
+      string(markup.name)
+      for ((a, b) <- markup.properties) {
+        byte(Y_byte)
+        string(a)
+        byte('='.toByte)
+        string(b)
       }
-    body.foreach(tree)
+      byte(X_byte)
+      if (end) end_elem(markup.name)
+    }
+    override def end_elem(name: String): Unit = {
+      byte(X_byte)
+      byte(Y_byte)
+      byte(X_byte)
+    }
   }
 
-  def string_of_body(body: XML.Body): String = {
-    val s = new StringBuilder
-    traversal(str => s ++= str, body)
-    s.toString
+  class Output_String(builder: StringBuilder, recode: String => String = identity) extends Output {
+    override def byte(b: Byte): Unit = { builder += b.toChar }
+    override def string(s: String): Unit = { builder ++= recode(s) }
+    def result(ts: List[XML.Tree]): String = { traverse(ts); builder.toString }
   }
 
-  def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
+  class Output_Bytes(builder: Bytes.Builder, recode: String => String = identity) extends Output {
+    override def byte(b: Byte): Unit = { builder += b }
+    override def string(s: String): Unit = { builder += recode(s) }
+  }
+
+  def string_of_body(body: XML.Body, recode: String => String = identity): String =
+    new Output_String(new StringBuilder, recode = recode).result(body)
+
+  def string_of_tree(tree: XML.Tree, recode: String => String = identity): String =
+    string_of_body(List(tree), recode = recode)
+
+  def bytes_of_body(body: XML.Body, recode: String => String = identity): Bytes =
+    Bytes.Builder.use()(builder => new Output_Bytes(builder, recode = recode).traverse(body))
+
+  def bytes_of_tree(tree: XML.Tree, recode: String => String = identity): Bytes =
+    bytes_of_body(List(tree), recode = recode)
 
 
   /* parsing */
@@ -67,11 +93,19 @@ object YXML {
     if (name == "") err("unbalanced element")
     else err("unbalanced element " + quote(name))
 
-  private def parse_attrib(source: CharSequence): (String, String) =
-    Properties.Eq.unapply(source.toString) getOrElse err_attribute()
+  def parse_body(
+    source: CharSequence,
+    recode: String => String = identity,
+    cache: XML.Cache = XML.Cache.none
+  ): XML.Body = {
+    /* parse + recode */
+
+    def parse_string(s: CharSequence): String = recode(s.toString)
+
+    def parse_attrib(s: CharSequence): (String, String) =
+      Properties.Eq.unapply(parse_string(s)) getOrElse err_attribute()
 
 
-  def parse_body(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body = {
     /* stack operations */
 
     def buffer(): mutable.ListBuffer[XML.Tree] = new mutable.ListBuffer[XML.Tree]
@@ -100,8 +134,9 @@ object YXML {
       else {
         Library.separated_chunks(is_Y, chunk).toList match {
           case ch :: name :: atts if ch.length == 0 =>
-            push(name.toString, atts.map(parse_attrib))
-          case txts => for (txt <- txts) add(cache.tree0(XML.Text(cache.string(txt.toString))))
+            push(parse_string(name), atts.map(parse_attrib))
+          case txts =>
+            for (txt <- txts) add(cache.tree0(XML.Text(cache.string(parse_string(txt)))))
         }
       }
     }
@@ -111,15 +146,23 @@ object YXML {
     }
   }
 
-  def parse(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree =
-    parse_body(source, cache = cache) match {
+  def parse(
+    source: CharSequence,
+    recode: String => String = identity,
+    cache: XML.Cache = XML.Cache.none
+  ): XML.Tree =
+    parse_body(source, recode = recode, cache = cache) match {
       case List(result) => result
       case Nil => XML.no_text
       case _ => err("multiple XML trees")
     }
 
-  def parse_elem(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree =
-    parse_body(source, cache = cache) match {
+  def parse_elem(
+    source: CharSequence,
+    recode: String => String = identity,
+    cache: XML.Cache = XML.Cache.none
+  ): XML.Tree =
+    parse_body(source, recode = recode, cache = cache) match {
       case List(elem: XML.Elem) => elem
       case _ => err("single XML element expected")
     }
@@ -130,13 +173,21 @@ object YXML {
   private def markup_broken(source: CharSequence) =
     XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
 
-  def parse_body_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Body = {
-    try { parse_body(source, cache = cache) }
+  def parse_body_failsafe(
+    source: CharSequence,
+    recode: String => String = identity,
+    cache: XML.Cache = XML.Cache.none
+  ): XML.Body = {
+    try { parse_body(source, recode = recode, cache = cache) }
     catch { case ERROR(_) => List(markup_broken(source)) }
   }
 
-  def parse_failsafe(source: CharSequence, cache: XML.Cache = XML.Cache.none): XML.Tree = {
-    try { parse(source, cache = cache) }
+  def parse_failsafe(
+    source: CharSequence,
+    recode: String => String = identity,
+    cache: XML.Cache = XML.Cache.none
+  ): XML.Tree = {
+    try { parse(source, recode = recode, cache = cache) }
     catch { case ERROR(_) => markup_broken(source) }
   }
 }
