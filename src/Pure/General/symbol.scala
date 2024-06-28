@@ -266,19 +266,32 @@ object Symbol {
     }
     def recode(text: String): String = {
       val n = text.length
-      val matcher = new Symbol.Matcher(text)
-      Library.string_builder(hint = n) { result =>
+      val relevant = {
         var i = 0
-        while (i < n) {
+        var found = false
+        while (i < n && !found) {
           val c = text(i)
-          if (min <= c && c <= max) {
-            val s = matcher.match_symbol(i)
-            result.append(table.getOrElse(s, s))
-            i += s.length
+          if (min <= c && c <= max) { found = true }
+          i += 1
+        }
+        found
+      }
+      if (relevant) {
+        val matcher = new Symbol.Matcher(text)
+        Library.string_builder(hint = n) { result =>
+          var i = 0
+          while (i < n) {
+            val c = text(i)
+            if (min <= c && c <= max) {
+              val s = matcher.match_symbol(i)
+              result.append(table.getOrElse(s, s))
+              i += s.length
+            }
+            else { result.append(c); i += 1 }
           }
-          else { result.append(c); i += 1 }
         }
       }
+      else text
     }
   }
 
