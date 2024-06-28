@@ -1109,18 +1109,20 @@ object Build_Manager {
 
           build match {
             case task: Task =>
-              par(text("Task from " + task.submit_date + ". ")) ::
+              par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
               render_rev(task.isabelle_rev, task.components) :::
               render_cancel(task.uuid)
             case job: Job =>
-              par(text("Start: " + job.start_date)) ::
+              par(text("Start: " + Build_Log.print_date(job.start_date))) ::
               par(
                 if (job.cancelled) text("Cancelling...")
                 else text("Running...") ::: render_cancel(job.uuid)) ::
               render_rev(job.isabelle_rev, job.components) :::
               source(cache.lookup(store, job.kind, job.id)) :: Nil
             case result: Result =>
-              par(text("Date: " + result.start_date)) ::
+              par(text("Start: " + Build_Log.print_date(result.start_date) +
+                if_proper(result.end_date,
+                  ", took " + (result.end_date.get - result.start_date).message_hms))) ::
               par(text("Status: " + result.status)) ::
               source(cache.lookup(store, result.kind, result.id)) :: Nil
           }
