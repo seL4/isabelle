@@ -88,7 +88,6 @@ object Build_CI {
     def pre(options: Options, progress: Progress): Unit = ()
     def post(
       options: Options,
-      start_date: Date,
       url: Option[Url],
       results: Build.Results,
       progress: Progress
@@ -161,8 +160,6 @@ object Build_CI {
     url: Option[Url] = None,
     progress: Progress = new Progress
   ): Unit = {
-    val start_date = Date.now()
-
     def return_code(f: => Unit): Int =
       Exn.capture(f) match {
         case Exn.Res(_) => Process_Result.RC.ok
@@ -192,7 +189,7 @@ object Build_CI {
         max_jobs = job.hosts.max_jobs)
     }
 
-    val post_result = return_code { job.hook.post(options, start_date, url, results, progress) }
+    val post_result = return_code { job.hook.post(options, url, results, progress) }
 
     val rc = List(mail_result, pre_result, results.rc, post_result).max
     if (rc != Process_Result.RC.ok) {
