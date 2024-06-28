@@ -739,6 +739,11 @@ object Build_Manager {
 
     private def start_next(): Option[Context] =
       synchronized_database("start_next") {
+        for ((name, task) <- _state.pending if Exn.is_exn(Exn.capture(task.build_hosts))) {
+          progress.echo("Invalid host spec for task " + name + ": " + quote(task.hosts_spec))
+          _state = _state.remove_pending(name)
+        }
+
         _state.next(build_hosts).flatMap { task =>
           echo("Initializing " + task.name)
 
