@@ -1074,7 +1074,7 @@ object Build_Manager {
 
         text("Queue: " + state.pending.size + " tasks waiting") :::
         section("Builds") :: par(text("Total: " + state.num_builds + " builds")) ::
-        state.kinds.map(render_kind)
+        state.kinds.sorted.map(render_kind)
       }
 
       def render_overview(kind: String, state: State): XML.Body =
