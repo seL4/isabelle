@@ -143,10 +143,10 @@ object Library {
 
   /* strings */
 
-  def make_string(f: StringBuilder => Unit, capacity: Int = 16): String = {
-    val s = new StringBuilder(capacity)
-    f(s)
-    s.toString
+  def string_builder(hint: Int = 0)(body: StringBuilder => Unit): String = {
+    val builder = new StringBuilder(if (hint <= 0) 16 else hint)
+    body(builder)
+    builder.toString
   }
 
   def try_unprefix(prfx: String, s: String): Option[String] =

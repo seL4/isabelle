@@ -224,8 +224,9 @@ object HTML {
 
   def output(text: String): String = {
     val control_blocks = check_control_blocks(List(XML.Text(text)))
-    Library.make_string(output(_, text,
-      control_blocks = control_blocks, hidden = false, permissive = true))
+    Library.string_builder() { builder =>
+      output(builder, text, control_blocks = control_blocks, hidden = false, permissive = true)
+    }
   }
 
 
@@ -259,7 +260,9 @@ object HTML {
   }
 
   def output(body: XML.Body, hidden: Boolean, structural: Boolean): String =
-    Library.make_string(output(_, body, hidden, structural), capacity = XML.text_length(body) * 2)
+    Library.string_builder(hint = XML.text_length(body) * 2) { builder =>
+      output(builder, body, hidden, structural)
+    }
 
   def output(tree: XML.Tree, hidden: Boolean, structural: Boolean): String =
     output(List(tree), hidden, structural)
