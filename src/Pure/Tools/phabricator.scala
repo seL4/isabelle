@@ -498,7 +498,7 @@ local_infile = 0
         """CREATE USER """ + mysql_user_string +
         """ IDENTIFIED BY """ + SQL.string(mysql_password) + """ PASSWORD EXPIRE NEVER; """ +
         """GRANT ALL ON `""" + (mysql_name + "_%").replace("_", "\\_") +
-        """`.* TO """ + mysql_user_string + ";" +
+        """`.* TO """ + mysql_user_string + "; " +
         """GRANT PROCESS ON *.* TO """ + mysql_user_string + ";")).check
 
     config.execute("config set mysql.user " + Bash.string(mysql_name))
