@@ -265,11 +265,11 @@ object Symbol {
       tab
     }
     def recode(text: String): String = {
-      val len = text.length
+      val n = text.length
       val matcher = new Symbol.Matcher(text)
-      Library.string_builder(hint = len) { result =>
+      Library.string_builder(hint = n) { result =>
         var i = 0
-        while (i < len) {
+        while (i < n) {
           val c = text(i)
           if (min <= c && c <= max) {
             val s = matcher.match_symbol(i)
