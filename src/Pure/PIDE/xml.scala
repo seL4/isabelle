@@ -47,16 +47,24 @@ object XML {
     def end_elem(name: String): Unit
 
     def traverse(trees: List[Tree]): Unit = {
-      @tailrec def trav(list: List[Trav]): Unit =
-        (list : @unchecked) match {
-          case Nil =>
-          case Text(s) :: rest => text(s); trav(rest)
-          case Elem(markup, body) :: rest =>
-            if (markup.is_empty) trav(body ::: rest)
-            else if (body.isEmpty) { elem(markup, end = true); trav(rest) }
-            else { elem(markup); trav(body ::: End(markup.name) :: rest) }
-          case End(name) :: rest => end_elem(name); trav(rest)
+      @tailrec def trav_atomic(list: List[Trav]): List[Trav] =
+        list match {
+          case Text(s) :: rest => text(s); trav_atomic(rest)
+          case Elem(markup, Nil) :: rest =>
+            if (!markup.is_empty) elem(markup, end = true)
+            trav_atomic(rest)
+          case End(name) :: rest => end_elem(name); trav_atomic(rest)
+          case _ => list
         }
+
+      @tailrec def trav(list: List[Trav]): Unit =
+        (trav_atomic(list) : @unchecked) match {
+          case Nil =>
+          case Elem(markup, body) :: rest if body.nonEmpty =>
+            if (markup.is_empty) trav(trav_atomic(body) ::: rest)
+            else { elem(markup); trav(trav_atomic(body) ::: End(markup.name) :: rest) }
+        }
+
       trav(trees)
     }
   }
