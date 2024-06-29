@@ -118,6 +118,17 @@ object XML {
       }
   }
 
+  object Wrapped_Elem_Body {
+    def unapply(tree: Tree): Option[Body] =
+      tree match {
+        case
+          XML.Elem(Markup(XML_ELEM, (XML_NAME, _) :: _),
+            XML.Elem(Markup(XML_BODY, Nil), _) :: body) =>
+          Some(body)
+        case _ => None
+      }
+  }
+
   object Root_Elem {
     def apply(body: Body): XML.Elem = XML.Elem(Markup(XML_ELEM, Nil), body)
     def unapply(tree: Tree): Option[Body] =
@@ -134,7 +145,7 @@ object XML {
     @tailrec def trav(x: A, list: List[Tree]): A =
       list match {
         case Nil => x
-        case XML.Wrapped_Elem(_, _, body) :: rest => trav(x, body ::: rest)
+        case XML.Wrapped_Elem_Body(body) :: rest => trav(x, body ::: rest)
         case XML.Elem(_, body) :: rest => trav(x, body ::: rest)
         case XML.Text(s) :: rest => trav(op(x, s), rest)
       }
