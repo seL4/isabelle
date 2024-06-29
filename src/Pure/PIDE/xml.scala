@@ -155,6 +155,10 @@ object XML {
   def text_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + s.length)
   def symbol_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + Symbol.length(s))
 
+  def content_lines(body: Body): Int =
+    traverse_text(body, if (text_length(body) == 0) 0 else 1,
+      (n: Int, s: String) => n + Library.count_newlines(s))
+
   def content(body: Body): String =
     Library.string_builder(hint = text_length(body)) { text =>
       traverse_text(body, (), (_, s) => text.append(s))

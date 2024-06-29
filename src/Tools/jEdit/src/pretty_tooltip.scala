@@ -250,9 +250,7 @@ class Pretty_Tooltip private(
           ((w_max - geometry.deco_width) / metric.unit).toInt) max 20
 
       val formatted = Pretty.formatted(info.info, margin = margin, metric = metric)
-      val lines =
-        XML.traverse_text(formatted, if (XML.text_length(formatted) == 0) 0 else 1,
-          (n: Int, s: String) => n + Library.count_newlines(s))
+      val lines = XML.content_lines(formatted)
 
       val h = painter.getLineHeight * lines + geometry.deco_height
       val margin1 =
