@@ -43,7 +43,7 @@ object State_Panel {
 
   def set_margin(id: Counter.ID, margin: Double): Unit =
     instances.value.get(id).foreach(state => {
-      state.margin = margin
+      state.margin.change(_ => margin)
       state.server.editor.send_dispatcher(state.update())
     })
 }
@@ -53,7 +53,7 @@ class State_Panel private(val server: Language_Server) {
   /* output */
 
   val id: Counter.ID = State_Panel.make_id()
-  var margin: Double = 80
+  private val margin: Synchronized[Double] = Synchronized(server.resources.message_margin)
 
   private def output(content: String): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value))
@@ -83,11 +83,11 @@ class State_Panel private(val server: Language_Server) {
               }
             val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
             val separate = Pretty.separate(body)
-            val formatted = Pretty.formatted(separate, margin = margin)
+            val formatted = Pretty.formatted(separate, margin = margin.value)
             val html = node_context.make_html(elements, formatted)
             output(HTML.source(html).toString)
           } else {
-            output(server.resources.output_pretty(Pretty.separate(body), margin))
+            output(server.resources.output_pretty(Pretty.separate(body), margin.value))
           }
         })
 

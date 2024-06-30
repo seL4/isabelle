@@ -70,11 +70,13 @@ object Dynamic_Output {
 
 class Dynamic_Output private(server: Language_Server) {
   private val state = Synchronized(Dynamic_Output.State())
-  private var margin: Double = 80
+  private val margin_ = Synchronized(None: Option[Double])
+  def margin: Double = margin_.value.getOrElse(server.resources.message_margin)
 
   private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
     val html_output = server.resources.html_output
-    state.change(_.handle_update(server.resources, server.channel, restriction, html_output, margin, force))
+    state.change(
+      _.handle_update(server.resources, server.channel, restriction, html_output, margin, force))
   }
 
 
@@ -101,7 +103,7 @@ class Dynamic_Output private(server: Language_Server) {
   }
 
   def set_margin(margin: Double): Unit = {
-    this.margin = margin
+    margin_.change(_ => Some(margin))
     handle_update(None, force = true)
   }
 }
