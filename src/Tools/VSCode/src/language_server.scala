@@ -419,6 +419,63 @@ class Language_Server(
   }
 
 
+  /* code actions */
+
+  def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit = {
+    def extract_sendbacks(body: XML.Body): List[(String, Properties.T)] = {
+      body match {
+        case (XML.Elem(Markup(Markup.SENDBACK, p), b) :: rest) => (XML.content(b), p) :: extract_sendbacks(rest)
+        case (XML.Elem(m, b) :: rest) => extract_sendbacks(b ++ rest)
+        case (e :: rest) => extract_sendbacks(rest)
+        case Nil => Nil
+      }
+    }
+
+    for {
+      model <- resources.get_model(file)
+      version <- model.version
+      snapshot = resources.snapshot(model)
+      doc = model.content.doc
+      text_range <- doc.text_range(range)
+      text_range2 = Text.Range(text_range.start - 1, text_range.stop + 1)
+    } {
+      val edits = snapshot
+        .select(
+          text_range2,
+          Markup.Elements.full,
+          command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList))
+        )
+        .flatMap(info => extract_sendbacks(info.info).flatMap {
+          (s, p) =>
+            for {
+              id <- Position.Id.unapply(p)
+              (node, command) <- snapshot.find_command(id)
+              start <- node.command_start(command)
+              range = command.core_range + start
+              current_text <- doc.get_text(range)
+              line_range = doc.range(range)
+              padding = p.contains(Markup.PADDING_COMMAND)
+            } yield {
+              val edit_text =
+                resources.output_edit(if (padding) current_text + "\n" + s else current_text + s)
+              val edit = LSP.TextEdit(line_range, edit_text)
+              (s, edit)
+            }
+        })
+        .distinct
+
+      val actions = edits.map((name, edit) => {
+        val text_edits = List(LSP.TextDocumentEdit(file, Some(version), List(edit)))
+
+        LSP.CodeAction(name, text_edits)
+      })
+      val reply = LSP.CodeActionRequest.reply(id, actions)
+
+      channel.write(reply)
+    }
+  }
+
+
   /* symbols */
 
   def symbols_request(id: LSP.Id): Unit = {
@@ -454,6 +511,7 @@ class Language_Server(
           case LSP.Hover(id, node_pos) => hover(id, node_pos)
           case LSP.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
+          case LSP.CodeActionRequest(id, file, range) => code_action_request(id, file, range)
           case LSP.Decoration_Request(file) => decoration_request(file)
           case LSP.Caret_Update(caret) => update_caret(caret)
           case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)

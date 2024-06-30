@@ -160,7 +160,8 @@ object LSP {
         ),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
-        "documentHighlightProvider" -> true)
+        "documentHighlightProvider" -> true,
+        "codeActionProvider" -> true)
   }
 
   object Initialized extends Notification0("initialized")
@@ -477,6 +478,32 @@ object LSP {
     def apply(file: JFile, diagnostics: List[Diagnostic]): JSON.T =
       Notification("textDocument/publishDiagnostics",
         JSON.Object("uri" -> Url.print_file(file), "diagnostics" -> diagnostics.map(_.json)))
+  }
+
+
+  /* code actions */
+
+  sealed case class CodeAction(title: String, edits: List[TextDocumentEdit]) {
+    def json: JSON.T =
+      JSON.Object("title" -> title, "edit" -> WorkspaceEdit(edits))
+  }
+
+  object CodeActionRequest {
+    def unapply(json: JSON.T): Option[(Id, JFile, Line.Range)] =
+      json match {
+        case RequestMessage(id, "textDocument/codeAction", Some(params)) =>
+          for {
+            doc <- JSON.value(params, "textDocument")
+            uri <- JSON.string(doc, "uri")
+            if Url.is_wellformed_file(uri)
+            range_json <- JSON.value(params, "range")
+            range <- Range.unapply(range_json)
+          } yield (id, Url.absolute_file(uri), range)
+        case _ => None
+      }
+
+    def reply(id: Id, actions: List[CodeAction]): JSON.T =
+      ResponseMessage(id, Some(actions.map(_.json)))
   }
 
 
