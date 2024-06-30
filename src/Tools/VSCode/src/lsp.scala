@@ -481,14 +481,18 @@ object LSP {
   type Decoration_List = List[(String, List[Decoration_Options])]
 
   sealed case class Decoration(decorations: Decoration_List) {
+    def json_entries: JSON.T =
+      decorations.map(decoration => JSON.Object(
+        "type" -> decoration._1,
+        "content" -> decoration._2.map(_.json))
+      )
+
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
         JSON.Object(
           "uri" -> Url.print_file(file),
-          "entries" -> decorations.map(decoration => JSON.Object(
-            "type" -> decoration._1,
-            "content" -> decoration._2.map(_.json))
-          ))
+          "entries" -> json_entries
+        )
       )
   }
   
@@ -534,16 +538,11 @@ object LSP {
   /* dynamic output */
 
   object Dynamic_Output {
-    def apply(content: String, decorations: Option[Decoration_List] = None): JSON.T =
+    def apply(content: String, decoration: Option[Decoration] = None): JSON.T =
       Notification("PIDE/dynamic_output",
         JSON.Object("content" -> content) ++
-        JSON.optional(
-          "decorations" -> decorations.map(decorations =>
-            decorations.map(decoration => JSON.Object(
-              "type" -> decoration._1,
-              "content" -> decoration._2.map(_.json))
-            ))
-        ))
+        JSON.optional("decorations" -> decoration.map(_.json_entries))
+      )
   }
 
   object Output_Set_Margin {
@@ -563,17 +562,12 @@ object LSP {
        id: Counter.ID,
        content: String,
        auto_update: Boolean,
-       decorations: Option[Decoration_List] = None
+       decorations: Option[Decoration] = None
     ): JSON.T =
       Notification("PIDE/state_output",
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
-        JSON.optional(
-          "decorations" -> decorations.map(decorations =>
-            decorations.map(decoration => JSON.Object(
-              "type" -> decoration._1,
-              "content" -> decoration._2.map(_.json))
-            ))
-        ))
+        JSON.optional("decorations" -> decorations.map(_.json_entries))
+      )
   }
 
   class State_Id_Notification(name: String) {
