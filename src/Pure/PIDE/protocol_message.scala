@@ -64,7 +64,7 @@ object Protocol_Message {
         List(XML.Wrapped_Elem(Markup(Markup.REPORT, props ::: ps), body, ts))
       case XML.Elem(Markup(Markup.REPORT, ps), ts) =>
         List(XML.Elem(Markup(Markup.REPORT, props ::: ps), ts))
-      case XML.Wrapped_Elem(_, _, ts) => reports(props, ts)
+      case XML.Wrapped_Elem_Body(ts) => reports(props, ts)
       case XML.Elem(_, ts) => reports(props, ts)
       case XML.Text(_) => Nil
     }

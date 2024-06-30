@@ -47,16 +47,24 @@ object XML {
     def end_elem(name: String): Unit
 
     def traverse(trees: List[Tree]): Unit = {
-      @tailrec def trav(list: List[Trav]): Unit =
-        (list : @unchecked) match {
-          case Nil =>
-          case Text(s) :: rest => text(s); trav(rest)
-          case Elem(markup, body) :: rest =>
-            if (markup.is_empty) trav(body ::: rest)
-            else if (body.isEmpty) { elem(markup, end = true); trav(rest) }
-            else { elem(markup); trav(body ::: End(markup.name) :: rest) }
-          case End(name) :: rest => end_elem(name); trav(rest)
+      @tailrec def trav_atomic(list: List[Trav]): List[Trav] =
+        list match {
+          case Text(s) :: rest => text(s); trav_atomic(rest)
+          case Elem(markup, Nil) :: rest =>
+            if (!markup.is_empty) elem(markup, end = true)
+            trav_atomic(rest)
+          case End(name) :: rest => end_elem(name); trav_atomic(rest)
+          case _ => list
         }
+
+      @tailrec def trav(list: List[Trav]): Unit =
+        (trav_atomic(list) : @unchecked) match {
+          case Nil =>
+          case Elem(markup, body) :: rest if body.nonEmpty =>
+            if (markup.is_empty) trav(trav_atomic(body) ::: rest)
+            else { elem(markup); trav(trav_atomic(body) ::: End(markup.name) :: rest) }
+        }
+
       trav(trees)
     }
   }
@@ -110,6 +118,17 @@ object XML {
       }
   }
 
+  object Wrapped_Elem_Body {
+    def unapply(tree: Tree): Option[Body] =
+      tree match {
+        case
+          XML.Elem(Markup(XML_ELEM, (XML_NAME, _) :: _),
+            XML.Elem(Markup(XML_BODY, Nil), _) :: body) =>
+          Some(body)
+        case _ => None
+      }
+  }
+
   object Root_Elem {
     def apply(body: Body): XML.Elem = XML.Elem(Markup(XML_ELEM, Nil), body)
     def unapply(tree: Tree): Option[Body] =
@@ -126,7 +145,7 @@ object XML {
     @tailrec def trav(x: A, list: List[Tree]): A =
       list match {
         case Nil => x
-        case XML.Wrapped_Elem(_, _, body) :: rest => trav(x, body ::: rest)
+        case XML.Wrapped_Elem_Body(body) :: rest => trav(x, body ::: rest)
         case XML.Elem(_, body) :: rest => trav(x, body ::: rest)
         case XML.Text(s) :: rest => trav(op(x, s), rest)
       }
@@ -135,6 +154,14 @@ object XML {
 
   def text_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + s.length)
   def symbol_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + Symbol.length(s))
+
+  def content_is_empty(body: Body): Boolean =
+    traverse_text(body, true, (b, s) => b && s.isEmpty)
+
+  def content_lines(body: Body): Int = {
+    val n = traverse_text(body, 0, (n, s) => n + Library.count_newlines(s))
+    if (n == 0 && content_is_empty(body)) 0 else n + 1
+  }
 
   def content(body: Body): String =
     Library.string_builder(hint = text_length(body)) { text =>
@@ -316,7 +343,7 @@ object XML {
     val properties: T[Properties.T] =
       (props => List(XML.Elem(Markup(":", props), Nil)))
 
-    val string: T[String] = (s => if (s.isEmpty) Nil else List(XML.Text(s)))
+    val string: T[String] = XML.string
 
     val long: T[Long] = (x => string(long_atom(x)))
 
