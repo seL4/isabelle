@@ -118,12 +118,15 @@ object Line {
 
   sealed case class Document(lines: List[Line]) {
     lazy val text_length: Text.Offset = Document.length(lines)
-    def text_range: Text.Range = Text.Range(0, text_length)
+    def full_range: Text.Range = Text.Range(0, text_length)
 
     lazy val text: String = Document.text(lines)
 
     def get_text(range: Text.Range): Option[String] =
-      if (text_range.contains(range)) Some(range.substring(text)) else None
+      if (full_range.contains(range)) Some(range.substring(text)) else None
+
+    def get_text(range: Line.Range): Option[String] =
+      text_range(range).flatMap(get_text)
 
     override def toString: String = text
 
@@ -169,6 +172,12 @@ object Line {
       else if (l == n && c == 0) Some(text_length)
       else None
     }
+
+    def text_range(line_range: Range): Option[Text.Range] =
+      for {
+        start <- offset(line_range.start)
+        stop <- offset(line_range.stop)
+      } yield Text.Range(start, stop)
 
     def change(remove: Range, insert: String): Option[(List[Text.Edit], Document)] = {
       for {

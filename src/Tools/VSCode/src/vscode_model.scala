@@ -29,7 +29,7 @@ object VSCode_Model {
   sealed case class Content(node_name: Document.Node.Name, doc: Line.Document) {
     override def toString: String = doc.toString
     def text_length: Text.Offset = doc.text_length
-    def text_range: Text.Range = doc.text_range
+    def text_range: Text.Range = doc.full_range
     def text: String = doc.text
 
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
