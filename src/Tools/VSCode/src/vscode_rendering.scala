@@ -79,7 +79,7 @@ extends Rendering(snapshot, model.resources.options, model.session) {
 
   def completion(node_pos: Line.Node_Position, caret: Text.Offset): List[LSP.CompletionItem] = {
     val doc = model.content.doc
-    val line = node_pos.pos.line
+    val line = node_pos.line
     val unicode = resources.unicode_symbols_edits
     doc.offset(Line.Position(line)) match {
       case None => Nil

@@ -75,7 +75,7 @@ class Pretty_Text_Panel private(
         .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
           Some(Some(m.info.name))
         })
-        .flatMap(e => e._2 match {
+        .flatMap(e => e.info match {
           case None => None
           case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
         })
