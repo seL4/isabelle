@@ -393,12 +393,12 @@ public option ssh_alive_count_max : int = 3
   -- "maximum number of messages to keep SSH server connection alive (ignore value < 0)"
 
 
-section "Phabricator"
+section "Phabricator / Phorge"
 
-option phabricator_version_arcanist : string = "e46025f7a9146f9918bab9d6fbdf6ed1816db5b5"
+option phabricator_version_arcanist : string = "7f28d7266f81985096219a11b949561d70f052e4"
   -- "repository version for arcanist"
 
-option phabricator_version_phabricator : string = "2ba2cbaf9bbf8f88e910d3da0a3cd643e4879e8a"
+option phabricator_version_phabricator : string = "f2a01dca39280d78cc799cd602dc1fc7bc26f165"
   -- "repository version for phabricator"
 
 
