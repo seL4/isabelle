@@ -61,12 +61,14 @@ class Pretty_Text_Panel private(
       def convert_symbols(body: XML.Body): XML.Body = {
         body.map {
           case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
-          case XML.Text(content) => XML.Text(Symbol.output(resources.unicode_symbols, content))
+          case XML.Text(content) => XML.Text(resources.output_text(content))
         }
       }
 
-      val tree = Markup_Tree.from_XML(convert_symbols(formatted))
-      val text = resources.output_text(XML.content(formatted))
+      val converted = convert_symbols(formatted)
+
+      val tree = Markup_Tree.from_XML(converted)
+      val text = XML.content(converted)
 
       val document = Line.Document(text)
       val decorations = tree

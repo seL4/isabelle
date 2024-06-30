@@ -80,11 +80,13 @@ extends Resources(session_background, log = log) {
   /* options */
 
   def pide_extensions: Boolean = options.bool("vscode_pide_extensions")
-  def unicode_symbols: Boolean = options.bool("vscode_unicode_symbols")
   def html_output: Boolean = options.bool("vscode_html_output")
   def tooltip_margin: Int = options.int("vscode_tooltip_margin")
   def message_margin: Int = options.int("vscode_message_margin")
   def output_delay: Time = options.seconds("vscode_output_delay")
+
+  def unicode_symbols_output: Boolean = options.bool("vscode_unicode_symbols_output")
+  def unicode_symbols_edits: Boolean = options.bool("vscode_unicode_symbols_edits")
 
 
   /* document node name */
@@ -332,11 +334,13 @@ extends Resources(session_background, log = log) {
 
   /* output text */
 
-  def output_text(text: String): String =
-    Symbol.output(unicode_symbols, text)
+  def output_text(content: String): String =
+    Symbol.output(unicode_symbols_output, content)
+  def output_edit(content: String): String =
+    Symbol.output(unicode_symbols_edits, content)
 
-  def output_xml(xml: XML.Tree): String =
-    output_text(XML.content(xml))
+  def output_xml_text(body: XML.Tree): String =
+    output_text(XML.content(body))
 
   def output_pretty(body: XML.Body, margin: Double): String =
     output_text(Pretty.string_of(body, margin = margin, metric = Symbol.Metric))
