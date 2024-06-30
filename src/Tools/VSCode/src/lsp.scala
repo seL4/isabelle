@@ -328,11 +328,15 @@ object LSP {
     def json: JSON.T = JSON.Object("range" -> Range(range), "newText" -> new_text)
   }
 
-  sealed case class TextDocumentEdit(file: JFile, version: Long, edits: List[TextEdit]) {
+  sealed case class TextDocumentEdit(file: JFile, version: Option[Long], edits: List[TextEdit]) {
     def json: JSON.T =
       JSON.Object(
-        "textDocument" -> JSON.Object("uri" -> Url.print_file(file), "version" -> version),
-        "edits" -> edits.map(_.json))
+        "textDocument" -> (
+          JSON.Object("uri" -> Url.print_file(file)) ++
+          JSON.optional("version" -> version)
+        ),
+        "edits" -> edits.map(_.json)
+      )
   }
 
   object WorkspaceEdit {
