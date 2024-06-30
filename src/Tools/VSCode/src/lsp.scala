@@ -341,8 +341,14 @@ object LSP {
 
   object WorkspaceEdit {
     def apply(edits: List[TextDocumentEdit]): JSON.T =
+      JSON.Object("documentChanges" -> edits.map(_.json))
+  }
+
+  object ApplyWorkspaceEdit {
+    def apply(edits: List[TextDocumentEdit]): JSON.T =
       RequestMessage(Id.empty, "workspace/applyEdit",
-        JSON.Object("edit" -> JSON.Object("documentChanges" -> edits.map(_.json))))
+        JSON.Object("edit" -> WorkspaceEdit(edits))
+      )
   }
 
 
