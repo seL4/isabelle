@@ -276,13 +276,10 @@ extends Resources(session_background, log = log) {
           file <- st.pending_input.iterator
           model <- st.models.get(file)
           (edits, model1) <-
-            model.flush_edits(false, st.document_blobs, file, st.get_caret(file))
+            model.flush_edits(st.document_blobs, file, st.get_caret(file))
         } yield (edits, (file, model1))).toList
 
-      for { ((workspace_edits, _), _) <- changed_models if workspace_edits.nonEmpty }
-        channel.write(LSP.WorkspaceEdit(workspace_edits))
-
-      session.update(st.document_blobs, changed_models.flatMap(res => res._1._2))
+      session.update(st.document_blobs, changed_models.flatMap(res => res._1))
 
       st.copy(
         models = st.models ++ changed_models.iterator.map(_._2),

@@ -176,25 +176,15 @@ sealed case class VSCode_Model(
   }
 
   def flush_edits(
-      unicode_symbols: Boolean,
       doc_blobs: Document.Blobs,
       file: JFile,
       caret: Option[Line.Position]
-  ): Option[((List[LSP.TextDocumentEdit], List[Document.Edit_Text]), VSCode_Model)] = {
-    val workspace_edits =
-      if (unicode_symbols && version.isDefined) {
-        val edits = content.recode_symbols
-        if (edits.nonEmpty) List(LSP.TextDocumentEdit(file, version.get, edits))
-        else Nil
-      }
-      else Nil
-
+  ): Option[(List[Document.Edit_Text], VSCode_Model)] = {
     val (reparse, perspective) = node_perspective(doc_blobs, caret)
-    if (reparse || pending_edits.nonEmpty || last_perspective != perspective ||
-        workspace_edits.nonEmpty) {
+    if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
       val prover_edits = node_edits(node_header, pending_edits, perspective)
-      val edits = (workspace_edits, prover_edits)
-      Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
+      val edits = (prover_edits)
+      Some(edits, copy(pending_edits = Nil, last_perspective = perspective))
     }
     else None
   }
