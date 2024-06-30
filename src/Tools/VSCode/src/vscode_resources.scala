@@ -343,49 +343,6 @@ extends Resources(session_background, log = log) {
   def output_pretty_tooltip(body: XML.Body): String = output_pretty(body, tooltip_margin)
   def output_pretty_message(body: XML.Body): String = output_pretty(body, message_margin)
 
-  def output_pretty_panel(body: XML.Body, margin: Double): (String, Option[LSP.Decoration_List]) = {
-    val formatted = Pretty.formatted(Pretty.separate(body), margin = margin, metric = Symbol.Metric)
-
-    if (html_output) {
-      val node_context =
-        new Browser_Info.Node_Context {
-          override def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] =
-            for {
-              thy_file <- Position.Def_File.unapply(props)
-              def_line <- Position.Def_Line.unapply(props)
-              source <- resources.source_file(thy_file)
-              uri = File.uri(Path.explode(source).absolute_file)
-            } yield HTML.link(uri.toString + "#" + def_line, body)
-        }
-      val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
-      val html = node_context.make_html(elements, formatted)
-      (HTML.source(html).toString, None)
-    } else {
-      def convert_symbols(body: XML.Body): XML.Body = {
-        body.map {
-          case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
-          case XML.Text(content) => XML.Text(Symbol.output(unicode_symbols, content))
-        }
-      }
-
-      val tree = Markup_Tree.from_XML(convert_symbols(formatted))
-      val output = output_text(XML.content(formatted))
-
-      val document = Line.Document(output)
-      val decorations = tree
-        .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
-          Some(Some(m.info.name))
-        })
-        .flatMap(e => e._2 match {
-          case None => None
-          case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
-        })
-        .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
-
-      (output, Some(decorations))
-    }
-  }
-
 
   /* caret handling */
 
