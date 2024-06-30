@@ -135,7 +135,18 @@ object Component_VSCode {
   
 
   private def options_json(options: Options): String = {
-    val relevant_options = Set("editor_output_state")
+    val relevant_options = Set(
+      "editor_output_state",
+      "auto_time_start",
+      "auto_time_limit",
+      "auto_nitpick",
+      "auto_sledgehammer",
+      "auto_methods",
+      "auto_quickcheck",
+      "auto_solve_direct",
+      "sledgehammer_provers",
+      "sledgehammer_timeout",
+    )
     
     options.iterator.filter(
       opt => opt.for_tag(Options.TAG_VSCODE) || opt.for_content || relevant_options.contains(opt.name)
