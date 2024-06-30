@@ -53,9 +53,6 @@ class State_Panel private(val server: Language_Server) {
 
   val id: Counter.ID = State_Panel.make_id()
 
-  private def output(content: String, decorations: Option[LSP.Decoration_List] = None): Unit =
-    server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value, decorations))
-
   private def init_response(id: LSP.Id): Unit =
     server.channel.write(LSP.State_Init.reply(id, this.id))
 
@@ -66,7 +63,7 @@ class State_Panel private(val server: Language_Server) {
   private val pretty_panel = Synchronized(Pretty_Text_Panel(
     server.resources,
     server.channel,
-    output,
+    (content, decorations) => LSP.State_Output(id, content, auto_update_enabled.value, decorations)
   ))
 
   private val print_state =

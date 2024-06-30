@@ -12,14 +12,14 @@ object Pretty_Text_Panel {
   def apply(
     resources: VSCode_Resources,
     channel: Channel,
-    output: (String, Option[LSP.Decoration_List]) => Unit
+    output: (String, Option[LSP.Decoration_List]) => JSON.T
   ): Pretty_Text_Panel = new Pretty_Text_Panel(resources, channel, output)
 }
 
 class Pretty_Text_Panel private(
   resources: VSCode_Resources,
   channel: Channel,
-  output: (String, Option[LSP.Decoration_List]) => Unit
+  output: (String, Option[LSP.Decoration_List]) => JSON.T
 ) {
   private var current_body: XML.Body = Nil
   private var current_formatted: XML.Body = Nil
@@ -55,7 +55,8 @@ class Pretty_Text_Panel private(
         }
       val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
       val html = node_context.make_html(elements, formatted)
-      output(HTML.source(html).toString, None)
+      val message = output(HTML.source(html).toString, None)
+      channel.write(message)
     } else {
       def convert_symbols(body: XML.Body): XML.Body = {
         body.map {
@@ -78,7 +79,8 @@ class Pretty_Text_Panel private(
         })
         .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
 
-      output(text, Some(decorations))
+      val message = output(text, Some(decorations))
+      channel.write(message)
     }
   }
 }

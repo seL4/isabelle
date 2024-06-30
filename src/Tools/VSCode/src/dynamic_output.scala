@@ -58,7 +58,7 @@ class Dynamic_Output private(server: Language_Server) {
     pretty_panel_.change(p => Some(Pretty_Text_Panel(
       server.resources,
       server.channel,
-      (output_text, decorations) => { server.channel.write(LSP.Dynamic_Output(output_text, decorations)) }
+      LSP.Dynamic_Output.apply,
     )))
     handle_update(None)
   }
