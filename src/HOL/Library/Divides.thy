@@ -1,10 +1,10 @@
-(*  Title:      HOL/Divides.thy
+(*  Title:      HOL/Library/Divides.thy
 *)
 
 section \<open>Misc lemmas on division, to be sorted out finally\<close>
 
 theory Divides
-imports Parity
+imports Main
 begin
 
 class unique_euclidean_semiring_numeral = linordered_euclidean_semiring + discrete_linordered_semidom +

@@ -306,7 +306,9 @@ Type synonym \ \<^typ>\<open>'a rel\<close> \<open>=\<close> @{expanded_typ "'a 
 
 \section*{Algebra}
 
-Theories \<^theory>\<open>HOL.Groups\<close>, \<^theory>\<open>HOL.Rings\<close>, \<^theory>\<open>HOL.Fields\<close> and \<^theory>\<open>HOL.Divides\<close> define a large collection of classes describing common algebraic
+Theories \<^theory>\<open>HOL.Groups\<close>, \<^theory>\<open>HOL.Rings\<close>,
+\<^theory>\<open>HOL.Euclidean_Rings\<close> and \<^theory>\<open>HOL.Fields\<close>
+define a large collection of classes describing common algebraic
 structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
 

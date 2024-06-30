@@ -37,6 +37,11 @@ New in this Isabelle version
       wfP_multp ~> wfp_multp
       wfP_subset_mset ~> wfp_subset_mset
 
+* Transitioinal theory "Divides" moved to "HOL-Library.Divides" and supposed to
+be removed in a furure release.  Minor INCOMPATIBILITY.  Import
+"HOL-Library.Divides" and keep an eye on theorems prefixed with "Divides." to
+ease transition.
+
 
 New in Isabelle2024 (May 2024)
 ------------------------------

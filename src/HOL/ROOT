@@ -95,6 +95,8 @@ session "HOL-Library" (main timing) in Library = HOL +
     Old_Recdef
     Realizers
     Refute
+    (*transitional theories*)
+    Divides
   document_files "root.bib" "root.tex"
 
 session "HOL-Analysis" (main timing) in Analysis = HOL +
