@@ -343,7 +343,7 @@ object XML {
     val properties: T[Properties.T] =
       (props => List(XML.Elem(Markup(":", props), Nil)))
 
-    val string: T[String] = (s => if (s.isEmpty) Nil else List(XML.Text(s)))
+    val string: T[String] = XML.string
 
     val long: T[Long] = (x => string(long_atom(x)))
 
