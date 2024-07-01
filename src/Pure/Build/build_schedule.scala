@@ -85,6 +85,12 @@ object Build_Schedule {
       make(host_infos, build_history, sessions_structure)
     }
 
+    def restrict(full_data: Timing_Data, host_infos: Host_Infos): Timing_Data = {
+      val hostnames = host_infos.hosts.map(_.name).toSet
+      val results = full_data.facet.results.filter(result => hostnames.contains(result.hostname))
+      new Timing_Data(new Facet(results), host_infos, full_data.sessions_structure)
+    }
+
 
     /* data facets */
 
@@ -110,7 +116,7 @@ object Build_Schedule {
   }
 
   class Timing_Data private(
-    facet: Timing_Data.Facet,
+    private val facet: Timing_Data.Facet,
     val host_infos: Host_Infos,
     val sessions_structure: Sessions.Structure
   ) {
@@ -372,7 +378,7 @@ object Build_Schedule {
     ): Host_Infos = new Host_Infos(build_hosts.map(Host.load(options, _, host_db)))
   }
 
-  class Host_Infos private(val hosts: List[Host]) {
+  case class Host_Infos(hosts: List[Host]) {
     require(hosts.nonEmpty)
 
     private val by_hostname = hosts.map(host => host.name -> host).toMap
@@ -1047,8 +1053,8 @@ object Build_Schedule {
       build_cluster.benchmark()
     }
 
-    private val timing_data: Timing_Data = {
-      val cluster_hosts: List[Build_Cluster.Host] =
+    private var _host_infos = {
+      val build_hosts =
         if (!build_context.worker) build_context.build_hosts
         else {
           val local_build_host =
@@ -1056,11 +1062,14 @@ object Build_Schedule {
               hostname, jobs = build_context.jobs, numa = build_context.numa_shuffling)
           local_build_host :: build_context.build_hosts
         }
-
-      val host_infos = Host_Infos.load(build_options, cluster_hosts, _host_database)
-      Timing_Data.load(host_infos, _log_database, build_context.sessions_structure)
+      Host_Infos.load(build_options, build_hosts, _host_database)
     }
-    private val scheduler = init_scheduler(timing_data)
+
+    private val timing_data: Timing_Data = {
+      Timing_Data.load(_host_infos, _log_database, build_context.sessions_structure)
+    }
+
+    private var _scheduler = init_scheduler(timing_data)
 
     def write_build_log(results: Build.Results, state: Build_Process.State.Results): Unit = {
       val sessions =
@@ -1135,14 +1144,36 @@ object Build_Schedule {
         val current = state.next_ready.filter(task => is_current(state, task.name))
         if (current.nonEmpty) current.map(_.name)
         else {
-          val start = Time.now()
+          val start = Date.now()
 
-          val new_schedule = scheduler.schedule(state).update(state)
+          def completed_since(name: String): Time = {
+            val result = state.results(name)
+            start - (result.start_date + result.process_result.timing.elapsed)
+          }
+
+          val active_hosts0 = (for ((_, job) <- state.running) yield job.node_info.hostname).toSet
+          val inactive_hosts =
+            (for {
+              host <- _host_infos.hosts
+              if !active_hosts0.contains(host.name)
+              jobs = _schedule.next(host.name, state)
+              ancestors = build_context.sessions_structure.build_requirements(jobs)
+              if ancestors.forall(ancestor =>
+                completed_since(ancestor) > build_options.seconds("build_schedule_inactive_delay"))
+            } yield host).toSet
+
+          val host_infos = Host_Infos(_host_infos.hosts.filterNot(inactive_hosts.contains))
+          if (host_infos != _host_infos) {
+            _host_infos = host_infos
+            _scheduler = init_scheduler(Timing_Data.restrict(timing_data, host_infos))
+          }
+
+          val new_schedule = _scheduler.schedule(state).update(state)
           val schedule =
             if (_schedule.is_empty) new_schedule
             else List(_schedule.update(state), new_schedule).minBy(_.end)(Date.Ordering)
 
-          val elapsed = Time.now() - start
+          val elapsed = Date.now() - start
 
           val timing_msg = if (elapsed.is_relevant) " (took " + elapsed.message + ")" else ""
           progress.echo_if(

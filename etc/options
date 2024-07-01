@@ -231,6 +231,9 @@ option build_schedule_initial : string = ""
 option build_schedule_outdated_delay : real = 300.0
   -- "delay schedule generation loop"
 
+option build_schedule_inactive_delay : real = 300.0
+  -- "delay removing inactive hosts"
+
 
 section "Build Manager"
 
