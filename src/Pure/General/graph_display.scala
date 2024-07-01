@@ -54,7 +54,7 @@ object Graph_Display {
     build_graph(
       {
         import XML.Decode._
-        list(pair(pair(string, pair(string, x => x)), list(string)))(body)
+        list(pair(pair(string, pair(string, self)), list(string)))(body)
       })
 
   def make_graph[A](

@@ -395,7 +395,7 @@ object Export_Theory {
       val (typargs, (args, (prop_body, proof_body))) = {
         import XML.Decode._
         import Term_XML.Decode._
-        pair(list(pair(string, sort)), pair(list(pair(string, typ)), pair(x => x, x => x)))(body)
+        pair(list(pair(string, sort)), pair(list(pair(string, typ)), pair(self, self)))(body)
       }
       val env = args.toMap
       val prop = Term_XML.Decode.term_env(env)(prop_body)
