@@ -454,13 +454,17 @@ class Language_Server(
               range = command.core_range + start
               current_text <- doc.get_text(range)
               line_range = doc.range(range)
+
+              whole_line = doc.lines(line_range.start.line)
+              indent = whole_line.text.takeWhile(_.isWhitespace)
               padding = p.contains(Markup.PADDING_COMMAND)
-            } yield {
-              val edit_text =
-                resources.output_edit(if (padding) current_text + "\n" + s else current_text + s)
-              val edit = LSP.TextEdit(line_range, edit_text)
-              (s, edit)
-            }
+
+              indented_text = Library.prefix_lines(indent, s)
+              edit_text =
+                resources.output_edit(
+                  if (padding) current_text + "\n" + indented_text else current_text + s)
+              edit = LSP.TextEdit(line_range, edit_text)
+            } yield (s, edit) 
         })
         .distinct
 
