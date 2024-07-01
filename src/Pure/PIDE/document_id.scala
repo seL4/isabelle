@@ -20,4 +20,6 @@ object Document_ID {
 
   def apply(id: Generic): String = Value.Long.apply(id)
   def unapply(s: String): Option[Generic] = Value.Long.unapply(s)
+
+  def encode(id: Generic): XML.Body = XML.Encode.long(id)
 }

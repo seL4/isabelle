@@ -158,7 +158,7 @@ object Simplifier_Trace {
 
     def do_reply(session: Session, serial: Long, answer: Answer): Unit = {
       session.protocol_command(
-        "Simplifier_Trace.reply", Value.Long(serial), answer.name)
+        "Simplifier_Trace.reply", XML.Encode.long(serial), XML.string(answer.name))
     }
 
     Consumer_Thread.fork[Any]("Simplifier_Trace.manager", daemon = true)(

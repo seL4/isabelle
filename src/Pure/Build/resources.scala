@@ -37,23 +37,22 @@ class Resources(
 
   /* init session */
 
-  def init_session_yxml: String = {
+  def init_session_xml: XML.Body = {
     import XML.Encode._
 
-    YXML.string_of_body(
-      pair(list(pair(string, properties)),
-      pair(list(pair(string, string)),
-      pair(list(properties),
-      pair(list(pair(string, properties)),
-      pair(list(Scala.encode_fun),
-      pair(list(pair(string, string)), list(string)))))))(
-       (sessions_structure.session_positions,
-       (sessions_structure.dest_session_directories,
-       (command_timings,
-       (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
-       (Scala.functions,
-       (sessions_structure.global_theories.toList,
-        session_base.loaded_theories.keys))))))))
+    pair(list(pair(string, properties)),
+    pair(list(pair(string, string)),
+    pair(list(properties),
+    pair(list(pair(string, properties)),
+    pair(list(Scala.encode_fun),
+    pair(list(pair(string, string)), list(string)))))))(
+     (sessions_structure.session_positions,
+     (sessions_structure.dest_session_directories,
+     (command_timings,
+     (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
+     (Scala.functions,
+     (sessions_structure.global_theories.toList,
+      session_base.loaded_theories.keys)))))))
   }
 
 

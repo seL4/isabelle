@@ -307,20 +307,20 @@ trait Protocol {
   /* protocol commands */
 
   def protocol_command_raw(name: String, args: List[Bytes]): Unit
-  def protocol_command_args(name: String, args: List[String]): Unit
-  def protocol_command(name: String, args: String*): Unit
+  def protocol_command_args(name: String, args: List[XML.Body]): Unit
+  def protocol_command(name: String, args: XML.Body*): Unit
 
 
   /* options */
 
   def options(opts: Options): Unit =
-    protocol_command("Prover.options", Symbol.encode_yxml(opts.encode))
+    protocol_command("Prover.options", opts.encode)
 
 
   /* resources */
 
   def init_session(resources: Resources): Unit =
-    protocol_command("Prover.init_session", resources.init_session_yxml)
+    protocol_command("Prover.init_session", resources.init_session_xml)
 
 
   /* interned items */
@@ -331,13 +331,13 @@ trait Protocol {
   private def encode_command(
     resources: Resources,
     command: Command
-  ) : (String, String, String, String, String, List[String]) = {
+  ) : (XML.Body, XML.Body, XML.Body, XML.Body, XML.Body, List[XML.Body]) = {
     import XML.Encode._
 
     val parents = command.theory_parents(resources).map(name => File.standard_url(name.node))
-    val parents_yxml = Symbol.encode_yxml(list(string)(parents))
+    val parents_xml: XML.Body = list(string)(parents)
 
-    val blobs_yxml = {
+    val blobs_xml: XML.Body = {
       val encode_blob: T[Exn.Result[Command.Blob]] =
         variant(List(
           { case Exn.Res(Command.Blob(a, b, c)) =>
@@ -345,37 +345,31 @@ trait Protocol {
                 (a.node, b.implode, c.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
 
-      Symbol.encode_yxml(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
+      pair(list(encode_blob), int)(command.blobs, command.blobs_index)
     }
 
-    val toks_yxml = {
+    val toks_xml: XML.Body = {
       val encode_tok: T[Token] = (tok => pair(int, int)((tok.kind.id, Symbol.length(tok.source))))
-      Symbol.encode_yxml(list(encode_tok)(command.span.content))
+      list(encode_tok)(command.span.content)
     }
-    val toks_sources = command.span.content.map(tok => Symbol.encode(tok.source))
+    val toks_sources_xml: List[XML.Body] = command.span.content.map(tok => XML.string(tok.source))
 
-    (Document_ID(command.id), Symbol.encode(command.span.name), parents_yxml,
-      blobs_yxml, toks_yxml, toks_sources)
+    (Document_ID.encode(command.id), XML.string(command.span.name),
+      parents_xml, blobs_xml, toks_xml, toks_sources_xml)
   }
 
   def define_command(resources: Resources, command: Command): Unit = {
-    val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
-      encode_command(resources, command)
-    protocol_command_args(
-      "Document.define_command", command_id :: name :: parents_yxml :: blobs_yxml ::
-        toks_yxml :: toks_sources)
+    val (a, b, c, d, e, rest) = encode_command(resources, command)
+    protocol_command_args("Document.define_command", a :: b :: c :: d :: e :: rest)
   }
 
   def define_commands(resources: Resources, commands: List[Command]): Unit =
     protocol_command_args("Document.define_commands",
       commands.map { command =>
         import XML.Encode._
-        val (command_id, name, parents_yxml, blobs_yxml, toks_yxml, toks_sources) =
-          encode_command(resources, command)
-        val body =
-          pair(string, pair(string, pair(string, pair(string, pair(string, list(string))))))(
-            command_id, (name, (parents_yxml, (blobs_yxml, (toks_yxml, toks_sources)))))
-        YXML.string_of_body(body)
+        val (a, b, c, d, e, rest) = encode_command(resources, command)
+        pair(self, pair(self, pair(self, pair(self, pair(self, list(self))))))(
+          a, (b, (c, (d, (e, rest)))))
       })
 
   def define_commands_bulk(resources: Resources, commands: List[Command]): Unit = {
@@ -395,7 +389,7 @@ trait Protocol {
     protocol_command("Document.discontinue_execution")
 
   def cancel_exec(id: Document_ID.Exec): Unit =
-    protocol_command("Document.cancel_exec", Document_ID(id))
+    protocol_command("Document.cancel_exec", Document_ID.encode(id))
 
 
   /* document versions */
@@ -406,12 +400,10 @@ trait Protocol {
     edits: List[Document.Edit_Command],
     consolidate: List[Document.Node.Name]
   ): Unit = {
-    val consolidate_yxml = {
+    val consolidate_xml = { import XML.Encode._; list(string)(consolidate.map(_.node)) }
+    val edits_xml = {
       import XML.Encode._
-      Symbol.encode_yxml(list(string)(consolidate.map(_.node)))
-    }
-    val edits_yxml = {
-      import XML.Encode._
+
       def id: T[Command] = (cmd => long(cmd.id))
       def encode_edit(name: Document.Node.Name)
           : T[Document.Node.Edit[Command.Edit, Command.Perspective]] =
@@ -428,23 +420,19 @@ trait Protocol {
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(string, list(string))))(c.dest)) }))
-      edits.map({ case (name, edit) =>
-        Symbol.encode_yxml(pair(string, encode_edit(name))(name.node, edit)) })
+      edits.map({ case (name, edit) => pair(string, encode_edit(name))(name.node, edit) })
     }
     protocol_command_args("Document.update",
-      Document_ID(old_id) :: Document_ID(new_id) :: consolidate_yxml :: edits_yxml)
+      Document_ID.encode(old_id) :: Document_ID.encode(new_id) :: consolidate_xml :: edits_xml)
   }
 
-  def remove_versions(versions: List[Document.Version]): Unit = {
-    val versions_yxml =
-    { import XML.Encode._
-      Symbol.encode_yxml(list(long)(versions.map(_.id))) }
-    protocol_command("Document.remove_versions", versions_yxml)
-  }
+  def remove_versions(versions: List[Document.Version]): Unit =
+    protocol_command("Document.remove_versions",
+      XML.Encode.list(Document_ID.encode)(versions.map(_.id)))
 
 
   /* dialog via document content */
 
   def dialog_result(serial: Long, result: String): Unit =
-    protocol_command("Document.dialog_result", Value.Long(serial), result)
+    protocol_command("Document.dialog_result", XML.Encode.long(serial), XML.string(result))
 }

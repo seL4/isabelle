@@ -86,7 +86,7 @@ object ML_Process {
     val eval_init_session = if (session_heaps.isEmpty) Nil else List("Resources.init_session_env ()")
     val init_session = Isabelle_System.tmp_file("init_session")
     File.restrict(File.path(init_session))
-    File.write(init_session, new Resources(session_background).init_session_yxml)
+    File.write(init_session, YXML.string_of_body(new Resources(session_background).init_session_xml))
 
     // process
     val eval_process =

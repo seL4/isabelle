@@ -240,7 +240,7 @@ object Build_Job {
                   }
                   catch { case ERROR(err) => (Process_Result.RC.failure, List(err)) }
 
-                session.protocol_command("Prover.stop", rc.toString)
+                session.protocol_command("Prover.stop", XML.Encode.int(rc))
                 Build_Session_Errors(errors)
                 true
               }
@@ -360,17 +360,16 @@ object Build_Job {
             Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
-                  val resources_yxml = resources.init_session_yxml
+                  val resources_xml = resources.init_session_xml
                   val encode_options: XML.Encode.T[Options] =
                     options => session.prover_options(options).encode
-                  val args_yxml =
-                    YXML.string_of_body(
-                      {
-                        import XML.Encode._
-                        pair(string, list(pair(encode_options, list(pair(string, properties)))))(
-                          (session_name, info.theories))
-                      })
-                  session.protocol_command("build_session", resources_yxml, args_yxml)
+                  val args_xml =
+                    {
+                      import XML.Encode._
+                      pair(string, list(pair(encode_options, list(pair(string, properties)))))(
+                        (session_name, info.theories))
+                    }
+                  session.protocol_command("build_session", resources_xml, args_xml)
                   Build_Session_Errors.result
                 case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
               }

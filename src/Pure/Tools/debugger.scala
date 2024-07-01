@@ -189,7 +189,7 @@ class Debugger private(session: Session) {
   def set_break(b: Boolean): Unit = {
     state.change { st =>
       val st1 = st.set_break(b)
-      session.protocol_command("Debugger.break", b.toString)
+      session.protocol_command("Debugger.break", XML.Encode.bool(b))
       st1
     }
     delay_update.invoke()
@@ -208,10 +208,10 @@ class Debugger private(session: Session) {
       val (breakpoint_state, st1) = st.toggle_breakpoint(breakpoint)
       session.protocol_command(
         "Debugger.breakpoint",
-        Symbol.encode(command.node_name.node),
-        Document_ID(command.id),
-        Value.Long(breakpoint),
-        Value.Boolean(breakpoint_state))
+        XML.string(command.node_name.node),
+        Document_ID.encode(command.id),
+        XML.Encode.long(breakpoint),
+        XML.Encode.bool(breakpoint_state))
       st1
     }
   }
@@ -238,7 +238,7 @@ class Debugger private(session: Session) {
   }
 
   def input(thread_name: String, msg: String*): Unit =
-    session.protocol_command_args("Debugger.input", thread_name :: msg.toList)
+    session.protocol_command_args("Debugger.input", (thread_name :: msg.toList).map(XML.string))
 
   def continue(thread_name: String): Unit = input(thread_name, "continue")
   def step(thread_name: String): Unit = input(thread_name, "step")

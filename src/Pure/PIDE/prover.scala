@@ -17,11 +17,10 @@ object Prover {
   sealed abstract class Message
   type Receiver = Message => Unit
 
-  class Input(val name: String, val args: List[String]) extends Message {
+  class Input(val name: String, val args: List[XML.Body]) extends Message {
     override def toString: String =
       XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
-        args.flatMap(s =>
-          List(XML.newline, XML.elem(Markup.PROVER_ARG, YXML.parse_body(s))))).toString
+        args.flatMap(arg => List(XML.newline, XML.elem(Markup.PROVER_ARG, arg)))).toString
   }
 
   class Output(val message: XML.Elem) extends Message {
@@ -296,11 +295,11 @@ class Prover(
       case _ => error("Inactive prover input thread for command " + quote(name))
     }
 
-  def protocol_command_args(name: String, args: List[String]): Unit = {
+  def protocol_command_args(name: String, args: List[XML.Body]): Unit = {
     receiver(new Prover.Input(name, args))
-    protocol_command_raw(name, args.map(Bytes(_)))
+    protocol_command_raw(name, args.map(arg => Bytes(Symbol.encode_yxml(arg))))
   }
 
-  def protocol_command(name: String, args: String*): Unit =
+  def protocol_command(name: String, args: XML.Body*): Unit =
     protocol_command_args(name, args.toList)
 }
