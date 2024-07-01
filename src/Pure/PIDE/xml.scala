@@ -338,6 +338,8 @@ object XML {
 
     /* representation of standard types */
 
+    val self: T[XML.Body] = identity
+
     val tree: T[XML.Tree] = (t => List(t))
 
     val properties: T[Properties.T] =
@@ -419,6 +421,8 @@ object XML {
 
 
     /* representation of standard types */
+
+    val self: T[XML.Body] = identity
 
     val tree: T[XML.Tree] = {
       case List(t) => t

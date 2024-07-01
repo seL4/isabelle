@@ -15,6 +15,8 @@ sig
   val int_atom: int A
   val bool_atom: bool A
   val unit_atom: unit A
+  val self: Output_Primitives.XML.body T
+  val tree: Output_Primitives.XML.tree T
   val properties: Properties.T T
   val string: string T
   val int: int T
@@ -60,16 +62,8 @@ sig
   val parse: string -> tree
   exception XML_ATOM of string
   exception XML_BODY of body
-  structure Encode:
-  sig
-    include XML_DATA_OPS
-    val tree: tree T
-  end
-  structure Decode:
-  sig
-    include XML_DATA_OPS
-    val tree: tree T
-  end
+  structure Encode: XML_DATA_OPS
+  structure Decode: XML_DATA_OPS
 end;
 
 structure XML: XML =
@@ -321,6 +315,8 @@ fun tagged (tag, (xs, ts)) = Elem ((int_atom tag, vector xs), ts);
 
 (* representation of standard types *)
 
+fun self (x: body) = x;
+
 fun tree (t: tree) = [t];
 
 fun properties props = [Elem ((":", props), [])];
@@ -385,6 +381,8 @@ fun tagged (Elem ((name, atts), ts)) = (int_atom name, (vector atts, ts))
 
 
 (* representation of standard types *)
+
+fun self (x: body) = x;
 
 fun tree [t] = t
   | tree ts = raise XML_BODY ts;
