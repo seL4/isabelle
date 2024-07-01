@@ -1679,12 +1679,11 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
       val store = Store(options)
       val progress = new Console_Progress()
 
-      build_task(options, store = store, afp_root = afp_root, base_sessions =
-        base_sessions.toList, presentation = presentation, requirements = requirements,
-        exclude_session_groups = exclude_session_groups.toList, all_sessions = all_sessions,
-        build_heap = build_heap, clean_build = clean_build, export_files = export_files,
-        fresh_build = fresh_build, session_groups = session_groups.toList, sessions = sessions,
-        prefs = prefs.toList, verbose = verbose, rev = rev, exclude_sessions =
-        exclude_sessions.toList, progress = progress)
+      build_task(options, store, afp_root = afp_root, base_sessions = base_sessions.toList,
+        presentation = presentation, requirements = requirements, exclude_session_groups =
+        exclude_session_groups.toList, all_sessions = all_sessions, build_heap = build_heap,
+        clean_build = clean_build, export_files = export_files, fresh_build = fresh_build,
+        session_groups = session_groups.toList, sessions = sessions, prefs = prefs.toList, verbose =
+        verbose, rev = rev, exclude_sessions = exclude_sessions.toList, progress = progress)
     })
 }
