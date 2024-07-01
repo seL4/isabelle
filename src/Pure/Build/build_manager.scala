@@ -234,6 +234,11 @@ object Build_Manager {
 
     def add_running(job: Job): State = copy(running = running + (job.name -> job))
     def remove_running(name: String): State = copy(running = running - name)
+    def cancel_running(name: String): State =
+      running.get(name) match {
+        case Some(job) => copy(running = (running - name) + (name -> job.copy(cancelled = true)))
+        case None => this
+      }
 
     def add_finished(result: Result): State = copy(finished = finished + (result.name -> result))
 
@@ -1178,10 +1183,7 @@ object Build_Manager {
                   _state = _state.remove_pending(task.name)
                   Model.Cancelled
                 case job: Job =>
-                  val job1 = job.copy(cancelled = true)
-                  _state = _state
-                    .remove_running(job.name)
-                    .add_running(job1)
+                  _state = _state.cancel_running(job.name)
                   Model.Cancelled
                 case result: Result => Model.Details(result, _state, public = false)
               }
