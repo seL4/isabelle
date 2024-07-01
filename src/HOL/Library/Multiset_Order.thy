@@ -59,51 +59,49 @@ next
     by (metis asympD add_cancel_right_right add_diff_cancel_left' add_mset_add_single count_inI
         count_union diff_diff_add_mset diff_single_trivial in_diff_count multi_member_last)
   moreover
-  { assume "count P a \<le> count M a"
-    with \<open>a \<notin># K\<close> have "count N a < count M a" unfolding *(1,2)
-      by (auto simp add: not_in_iff)
-      with ** obtain z where z: "r a z" "count M z < count N z"
-        by blast
-      with * have "count N z \<le> count P z"
-        using \<open>asymp r\<close>
-        by (metis add_diff_cancel_left' add_mset_add_single asympD diff_diff_add_mset
-            diff_single_trivial in_diff_count not_le_imp_less)
-      with z have "\<exists>z. r a z \<and> count M z < count P z" by auto
-  } note count_a = this
-  { fix y
-    assume count_y: "count P y < count M y"
-    have "\<exists>x. r y x \<and> count M x < count P x"
-    proof (cases "y = a")
+  have count_a: "\<exists>z. r a z \<and> count M z < count P z" if "count P a \<le> count M a"
+  proof -
+    from \<open>a \<notin># K\<close> and that have "count N a < count M a"
+      unfolding *(1,2) by (auto simp add: not_in_iff)
+    with ** obtain z where z: "r a z" "count M z < count N z"
+      by blast
+    with * have "count N z \<le> count P z"
+      using \<open>asymp r\<close>
+      by (metis add_diff_cancel_left' add_mset_add_single asympD diff_diff_add_mset
+          diff_single_trivial in_diff_count not_le_imp_less)
+    with z show ?thesis by auto
+  qed
+  have "\<exists>x. r y x \<and> count M x < count P x" if count_y: "count P y < count M y" for y
+  proof (cases "y = a")
+    case True
+    with count_y count_a show ?thesis by auto
+  next
+    case False
+    show ?thesis
+    proof (cases "y \<in># K")
       case True
-      with count_y count_a show ?thesis by auto
+      with *(4) have "r y a" by simp
+      then show ?thesis
+        by (cases "count P a \<le> count M a") (auto dest: count_a intro: \<open>transp r\<close>[THEN transpD])
     next
       case False
+      with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2)
+        by (simp add: not_in_iff)
+      with count_y ** obtain z where z: "r y z" "count M z < count N z" by auto
       show ?thesis
-      proof (cases "y \<in># K")
+      proof (cases "z \<in># K")
         case True
-        with *(4) have "r y a" by simp
-        then show ?thesis
-          by (cases "count P a \<le> count M a") (auto dest: count_a intro: \<open>transp r\<close>[THEN transpD])
+        with *(4) have "r z a" by simp
+        with z(1) show ?thesis
+          by (cases "count P a \<le> count M a") (auto dest!: count_a intro: \<open>transp r\<close>[THEN transpD])
       next
         case False
-        with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2)
-          by (simp add: not_in_iff)
-        with count_y ** obtain z where z: "r y z" "count M z < count N z" by auto
-        show ?thesis
-        proof (cases "z \<in># K")
-          case True
-          with *(4) have "r z a" by simp
-          with z(1) show ?thesis
-            by (cases "count P a \<le> count M a") (auto dest!: count_a intro: \<open>transp r\<close>[THEN transpD])
-        next
-          case False
-          with \<open>a \<notin># K\<close> have "count N z \<le> count P z" unfolding *
-            by (auto simp add: not_in_iff)
-          with z show ?thesis by auto
-        qed
+        with \<open>a \<notin># K\<close> have "count N z \<le> count P z" unfolding *
+          by (auto simp add: not_in_iff)
+        with z show ?thesis by auto
       qed
     qed
-  }
+  qed
   ultimately show ?case unfolding multp\<^sub>H\<^sub>O_def by blast
 qed
 
@@ -312,8 +310,7 @@ lemma irreflp_on_multp\<^sub>H\<^sub>O[simp]: "irreflp_on B (multp\<^sub>H\<^sub
 paragraph \<open>Transitivity\<close>
 
 lemma transp_on_multp\<^sub>H\<^sub>O:
-  assumes "asymp_on A R" and "transp_on A R" and
-    B_sub_A: "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
+  assumes "asymp_on A R" and "transp_on A R" and B_sub_A: "\<And>M. M \<in> B \<Longrightarrow> set_mset M \<subseteq> A"
   shows "transp_on B (multp\<^sub>H\<^sub>O R)"
 proof (rule transp_onI)
   from assms have "asymp_on B (multp\<^sub>H\<^sub>O R)"
@@ -570,8 +567,7 @@ lemma subset_eq_imp_le_multiset:
 lemma le_multiset_right_total: "M < add_mset x M"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
-lemma less_eq_multiset_empty_left[simp]:
-  shows "{#} \<le> M"
+lemma less_eq_multiset_empty_left[simp]: "{#} \<le> M"
   by (simp add: subset_eq_imp_le_multiset)
 
 lemma ex_gt_imp_less_multiset: "(\<exists>y. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M < N"
@@ -604,16 +600,14 @@ instance by standard (auto simp: less_eq_multiset\<^sub>H\<^sub>O)
 
 lemma
   fixes M N :: "'a multiset"
-  shows
-    less_eq_multiset_plus_left: "N \<le> (M + N)" and
-    less_eq_multiset_plus_right: "M \<le> (M + N)"
+  shows less_eq_multiset_plus_left: "N \<le> (M + N)"
+    and less_eq_multiset_plus_right: "M \<le> (M + N)"
   by simp_all
 
 lemma
   fixes M N :: "'a multiset"
-  shows
-    le_multiset_plus_left_nonempty: "M \<noteq> {#} \<Longrightarrow> N < M + N" and
-    le_multiset_plus_right_nonempty: "N \<noteq> {#} \<Longrightarrow> M < M + N"
+  shows le_multiset_plus_left_nonempty: "M \<noteq> {#} \<Longrightarrow> N < M + N"
+    and le_multiset_plus_right_nonempty: "N \<noteq> {#} \<Longrightarrow> M < M + N"
     by simp_all
 
 end
@@ -628,9 +622,8 @@ lemma subset_imp_less_mset: "A \<subset># B \<Longrightarrow> A < B"
   by (simp add: order.not_eq_order_implies_strict subset_eq_imp_le_multiset)
 
 lemma image_mset_strict_mono:
-  assumes
-    mono_f: "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset N. x < y \<longrightarrow> f x < f y" and
-    less: "M < N"
+  assumes mono_f: "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset N. x < y \<longrightarrow> f x < f y"
+    and less: "M < N"
   shows "image_mset f M < image_mset f N"
 proof -
   obtain Y X where
@@ -672,9 +665,8 @@ proof -
 qed
 
 lemma image_mset_mono:
-  assumes
-    mono_f: "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset N. x < y \<longrightarrow> f x < f y" and
-    less: "M \<le> N"
+  assumes mono_f: "\<forall>x \<in> set_mset M. \<forall>y \<in> set_mset N. x < y \<longrightarrow> f x < f y"
+    and less: "M \<le> N"
   shows "image_mset f M \<le> image_mset f N"
   by (metis eq_iff image_mset_strict_mono less less_imp_le mono_f order.not_eq_order_implies_strict)
 
@@ -802,9 +794,7 @@ lemma mset_le_single_iff[iff]: "{#x#} \<le> {#y#} \<longleftrightarrow> x \<le> 
 instance multiset :: (linorder) linordered_cancel_ab_semigroup_add
   by standard (metis less_eq_multiset\<^sub>H\<^sub>O not_less_iff_gr_or_eq)
 
-lemma less_eq_multiset_total:
-  fixes M N :: "'a :: linorder multiset"
-  shows "\<not> M \<le> N \<Longrightarrow> N \<le> M"
+lemma less_eq_multiset_total: "\<not> M \<le> N \<Longrightarrow> N \<le> M" for M N :: "'a :: linorder multiset"
   by simp
 
 instantiation multiset :: (wellorder) wellorder
@@ -905,18 +895,17 @@ proof (cases "M = {#}")
   have "M \<noteq> N"
     using max by auto
   moreover
-  {
-    fix y
-    assume "count N y < count M y"
-    hence "y \<in># M"
+  have "\<exists>x > y. count M x < count N x" if "count N y < count M y" for y
+  proof -
+    from that have "y \<in># M"
       by (simp add: count_inI)
-    hence "?max_M \<ge> y"
+    then have "?max_M \<ge> y"
       by simp
-    hence "?max_N > y"
+    then have "?max_N > y"
       using max by auto
-    hence "\<exists>x > y. count M x < count N x"
+    then show ?thesis
       using max_n_nin_m max_n_in_n count_inI by force
-  }
+  qed
   ultimately show ?thesis
     unfolding less_multiset\<^sub>H\<^sub>O by blast
 qed (auto simp: n_nemp)
