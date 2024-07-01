@@ -123,7 +123,7 @@ ISABELLE_LOGIC=HOL
 ISABELLE_DOCS="$ISABELLE_HOME/doc"
 
 ISABELLE_DOCS_RELEASE_NOTES="~~/ANNOUNCE:~~/README:~~/NEWS:~~/COPYRIGHT:~~/CONTRIBUTORS:~~/contrib/README:~~/src/Tools/jEdit/README:~~/README_REPOSITORY"
-ISABELLE_DOCS_EXAMPLES="~~/src/HOL/Examples/Seq.thy:~~/src/HOL/Examples/Drinker.thy:~~/src/HOL/Examples/ML.thy:~~/src/HOL/Unix/Unix.thy:~~/src/Tools/SML/Examples.thy:~~/src/Pure/ROOT.ML"
+ISABELLE_DOCS_EXAMPLES="~~/src/HOL/Examples/Seq.thy:~~/src/HOL/Examples/Drinker.thy:~~/src/HOL/Examples/Ackermann.thy:~~/src/HOL/Examples/ML.thy:~~/src/Tools/SML/Examples.thy:~~/src/Pure/ROOT.ML"
 
 # "open" within desktop environment (potentially asynchronous)
 case "$ISABELLE_PLATFORM_FAMILY" in
