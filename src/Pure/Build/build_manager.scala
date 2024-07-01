@@ -43,7 +43,7 @@ object Build_Manager {
       CI_Build(job.name, job.hosts.build_cluster, job.components.map(Component(_, "default")))
 
     def task(job: Build_CI.Job): Task =
-      Task(CI_Build(job), job.hosts.hosts_spec, other_settings = job.other_settings,
+      Task(CI_Build(job), job.hosts.hosts_spec, job.timeout, other_settings = job.other_settings,
         isabelle_rev = "default")
   }
 
@@ -113,6 +113,7 @@ object Build_Manager {
   sealed case class Task(
     build_config: Build_Config,
     hosts_spec: String,
+    timeout: Time,
     other_settings: List[String] = Nil,
     uuid: UUID.T = UUID.random(),
     submit_date: Date = Date.now(),
@@ -136,6 +137,7 @@ object Build_Manager {
     build_cluster: Boolean,
     hostnames: List[String],
     components: List[Component],
+    timeout: Time,
     start_date: Date = Date.now(),
     cancelled: Boolean = false
   ) extends Build { def name: String = Build.name(kind, id) }
@@ -331,6 +333,7 @@ object Build_Manager {
       val kind = SQL.Column.string("kind")
       val build_cluster = SQL.Column.bool("build_cluster")
       val hosts_spec = SQL.Column.string("hosts_spec")
+      val timeout = SQL.Column.long("timeout")
       val other_settings = SQL.Column.string("other_settings")
       val uuid = SQL.Column.string("uuid").make_primary_key
       val submit_date = SQL.Column.date("submit_date")
@@ -354,7 +357,7 @@ object Build_Manager {
       val verbose = SQL.Column.bool("verbose")
 
       val table =
-        make_table(List(kind, build_cluster, hosts_spec, other_settings, uuid, submit_date,
+        make_table(List(kind, build_cluster, hosts_spec, timeout, other_settings, uuid, submit_date,
           priority, isabelle_rev, components, prefs, requirements, all_sessions, base_sessions,
           exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
           clean_build, export_files, fresh_build, presentation, verbose),
@@ -367,6 +370,7 @@ object Build_Manager {
           val kind = res.string(Pending.kind)
           val build_cluster = res.bool(Pending.build_cluster)
           val hosts_spec = res.string(Pending.hosts_spec)
+          val timeout = Time.ms(res.long(Pending.timeout))
           val other_settings = split_lines(res.string(Pending.other_settings))
           val uuid = res.string(Pending.uuid)
           val submit_date = res.date(Pending.submit_date)
@@ -399,8 +403,8 @@ object Build_Manager {
                 clean_build, export_files, fresh_build, presentation, verbose)
             }
 
-          val task = Task(build_config, hosts_spec, other_settings, UUID.make(uuid), submit_date,
-            priority, isabelle_rev)
+          val task = Task(build_config, hosts_spec, timeout, other_settings, UUID.make(uuid),
+            submit_date, priority, isabelle_rev)
 
           task.name -> task
         })
@@ -423,12 +427,13 @@ object Build_Manager {
             stmt.string(1) = task.kind
             stmt.bool(2) = task.build_cluster
             stmt.string(3) = task.hosts_spec
-            stmt.string(4) = cat_lines(task.other_settings)
-            stmt.string(5) = task.uuid.toString
-            stmt.date(6) = task.submit_date
-            stmt.string(7) = task.priority.toString
-            stmt.string(8) = task.isabelle_rev
-            stmt.string(9) = task.components.mkString(",")
+            stmt.long(4) = task.timeout.ms
+            stmt.string(5) = cat_lines(task.other_settings)
+            stmt.string(6) = task.uuid.toString
+            stmt.date(7) = task.submit_date
+            stmt.string(8) = task.priority.toString
+            stmt.string(9) = task.isabelle_rev
+            stmt.string(10) = task.components.mkString(",")
 
             def get[A](f: User_Build => A): Option[A] =
               task.build_config match {
@@ -436,20 +441,20 @@ object Build_Manager {
                 case _ => None
               }
 
-            stmt.string(10) = get(user_build => user_build.prefs.map(_.print).mkString(","))
-            stmt.bool(11) = get(_.requirements)
-            stmt.bool(12) = get(_.all_sessions)
-            stmt.string(13) = get(_.base_sessions.mkString(","))
-            stmt.string(14) = get(_.exclude_session_groups.mkString(","))
-            stmt.string(15) = get(_.exclude_sessions.mkString(","))
-            stmt.string(16) = get(_.session_groups.mkString(","))
-            stmt.string(17) = get(_.sessions.mkString(","))
-            stmt.bool(18) = get(_.build_heap)
-            stmt.bool(19) = get(_.clean_build)
-            stmt.bool(20) = get(_.export_files)
-            stmt.bool(21) = get(_.fresh_build)
-            stmt.bool(22) = get(_.presentation)
-            stmt.bool(23) = get(_.verbose)
+            stmt.string(11) = get(user_build => user_build.prefs.map(_.print).mkString(","))
+            stmt.bool(12) = get(_.requirements)
+            stmt.bool(13) = get(_.all_sessions)
+            stmt.string(14) = get(_.base_sessions.mkString(","))
+            stmt.string(15) = get(_.exclude_session_groups.mkString(","))
+            stmt.string(16) = get(_.exclude_sessions.mkString(","))
+            stmt.string(17) = get(_.session_groups.mkString(","))
+            stmt.string(18) = get(_.sessions.mkString(","))
+            stmt.bool(19) = get(_.build_heap)
+            stmt.bool(20) = get(_.clean_build)
+            stmt.bool(21) = get(_.export_files)
+            stmt.bool(22) = get(_.fresh_build)
+            stmt.bool(23) = get(_.presentation)
+            stmt.bool(24) = get(_.verbose)
           })
       }
 
@@ -467,11 +472,12 @@ object Build_Manager {
       val build_cluster = SQL.Column.bool("build_cluster")
       val hostnames = SQL.Column.string("hostnames")
       val components = SQL.Column.string("components")
+      val timeout = SQL.Column.long("timeout")
       val start_date = SQL.Column.date("start_date")
       val cancelled = SQL.Column.bool("cancelled")
 
       val table =
-        make_table(List(uuid, kind, id, isabelle_rev, build_cluster, hostnames, components,
+        make_table(List(uuid, kind, id, isabelle_rev, build_cluster, hostnames, components, timeout,
           start_date, cancelled),
         name = "running")
     }
@@ -486,11 +492,12 @@ object Build_Manager {
           val build_cluster = res.bool(Running.build_cluster)
           val hostnames = space_explode(',', res.string(Running.hostnames))
           val components = space_explode(',', res.string(Running.components)).map(Component.parse)
+          val timeout = Time.ms(res.long(Running.timeout))
           val start_date = res.date(Running.start_date)
           val cancelled = res.bool(Running.cancelled)
 
           val job = Job(UUID.make(uuid), kind, id, isabelle_rev, build_cluster, hostnames,
-            components, start_date, cancelled)
+            components, timeout, start_date, cancelled)
 
           job.name -> job
         })
@@ -517,8 +524,9 @@ object Build_Manager {
             stmt.bool(5) = job.build_cluster
             stmt.string(6) = job.hostnames.mkString(",")
             stmt.string(7) = job.components.mkString(",")
-            stmt.date(8) = job.start_date
-            stmt.bool(9) = job.cancelled
+            stmt.long(8) = job.timeout.ms
+            stmt.date(9) = job.start_date
+            stmt.bool(10) = job.cancelled
           })
       }
       update
@@ -794,7 +802,7 @@ object Build_Manager {
               }
 
             Job(task.uuid, task.kind, id, isabelle_rev, task.build_cluster, hostnames, components,
-              start_date)
+              task.timeout, start_date)
           } match {
             case Exn.Res(job) =>
               _state = _state.add_running(job)
@@ -820,6 +828,19 @@ object Build_Manager {
 
     private def stop_cancelled(state: Runner.State): Runner.State =
       synchronized_database("stop_cancelled") {
+        val now = Date.now()
+        for {
+          name <- state.running
+          job = _state.running(name)
+          if now - job.start_date > job.timeout
+        } {
+          _state = _state.cancel_running(name)
+
+          val timeout_msg = "Timeout after " + job.timeout.message_hms
+          new File_Progress(store.log_file(job.kind, job.id)).echo_error_message(timeout_msg)
+          echo(job.name + ": " + timeout_msg)
+        }
+
         val cancelled = for (name <- state.running if _state.running(name).cancelled) yield name
         state.cancel(cancelled)
       }
@@ -1547,12 +1568,13 @@ Usage: isabelle build_manager_database [OPTIONS]
     val afp_rev = if (afp_root.nonEmpty) Some("") else None
 
     val hosts_spec = options.string("build_manager_cluster")
+    val timeout = options.seconds("build_manager_timeout")
     val paths = Web_Server.paths(store)
 
     val build_config = User_Build(afp_rev, prefs, requirements, all_sessions,
       base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
       clean_build, export_files, fresh_build, presentation, verbose)
-    val task = Task(build_config, hosts_spec, uuid = uuid, priority = Priority.high)
+    val task = Task(build_config, hosts_spec, timeout, uuid = uuid, priority = Priority.high)
 
     val dir = store.task_dir(task)
 
