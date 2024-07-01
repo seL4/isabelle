@@ -1136,8 +1136,8 @@ object Build_Manager {
           }
         }
 
-      def render_cancelled: XML.Body =
-        List(chapter("Build Cancelled"), frontend_link(paths.frontend_url(Page.HOME), text("Home")))
+      def render_cancelled: XML.Body = render_page("Build cancelled")(
+        List(frontend_link(paths.frontend_url(Page.HOME), text("Home"))))
 
       def parse_uuid(params: Params.Data): Option[UUID.T] =
         for {
@@ -1182,7 +1182,7 @@ object Build_Manager {
                   _state = _state
                     .remove_running(job.name)
                     .add_running(job1)
-                  Model.Details(job1, _state, public = false)
+                  Model.Cancelled
                 case result: Result => Model.Details(result, _state, public = false)
               }
             }
