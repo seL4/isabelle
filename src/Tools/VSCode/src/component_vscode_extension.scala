@@ -154,7 +154,7 @@ object Component_VSCode {
       val (enum_values, enum_descriptions) = opt.typ match {
         case Options.Bool => (
           Some(List("", "true", "false")),
-          Some(List("Don't overwrite System Preference.", "Enable.", "Disable."))
+          Some(List("Use System Preference.", "Enable.", "Disable."))
         )
         case _ => (None, None)
       }
