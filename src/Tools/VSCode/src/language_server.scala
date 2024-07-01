@@ -441,7 +441,7 @@ class Language_Server(
           case LSP.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case LSP.Caret_Update(caret) => update_caret(caret)
-          case LSP.State_Init(()) => State_Panel.init(server)
+          case LSP.State_Init(id) => State_Panel.init(id, server)
           case LSP.State_Exit(state_id) => State_Panel.exit(state_id)
           case LSP.State_Locate(state_id) => State_Panel.locate(state_id)
           case LSP.State_Update(state_id) => State_Panel.update(state_id)

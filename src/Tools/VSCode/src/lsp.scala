@@ -533,11 +533,6 @@ object LSP {
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update))
   }
 
-  object State_Init_Response {
-    def apply(id: Counter.ID): JSON.T =
-      Notification("PIDE/state_init_response", JSON.Object("id" -> id))
-  }
-
   class State_Id_Notification(name: String) {
     def unapply(json: JSON.T): Option[Counter.ID] =
       json match {
@@ -546,7 +541,11 @@ object LSP {
       }
   }
 
-  object State_Init extends Notification0("PIDE/state_init")
+  object State_Init extends Request0("PIDE/state_init") {
+    def reply(id: Id, state_id: Counter.ID): JSON.T =
+      ResponseMessage(id, Some(JSON.Object("state_id" -> state_id)))
+  }
+
   object State_Exit extends State_Id_Notification("PIDE/state_exit")
   object State_Locate extends State_Id_Notification("PIDE/state_locate")
   object State_Update extends State_Id_Notification("PIDE/state_update")

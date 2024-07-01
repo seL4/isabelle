@@ -14,11 +14,11 @@ object State_Panel {
   private val make_id = Counter.make()
   private val instances = Synchronized(Map.empty[Counter.ID, State_Panel])
 
-  def init(server: Language_Server): Unit = {
+  def init(id: LSP.Id, server: Language_Server): Unit = {
     val instance = new State_Panel(server)
     instances.change(_ + (instance.id -> instance))
     instance.init()
-    instance.init_response()
+    instance.init_response(id)
   }
 
   def exit(id: Counter.ID): Unit = {
@@ -52,8 +52,8 @@ class State_Panel private(val server: Language_Server) {
   private def output(content: String): Unit =
     server.channel.write(LSP.State_Output(id, content, auto_update_enabled.value))
 
-  private def init_response(): Unit =
-    server.channel.write(LSP.State_Init_Response(id))
+  private def init_response(id: LSP.Id): Unit =
+    server.channel.write(LSP.State_Init.reply(id, this.id))
 
 
   /* query operation */
