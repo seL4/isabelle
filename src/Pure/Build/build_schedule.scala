@@ -1156,9 +1156,8 @@ object Build_Schedule {
             (for {
               host <- _host_infos.hosts
               if !active_hosts0.contains(host.name)
-              jobs = _schedule.next(host.name, state)
-              ancestors = build_context.sessions_structure.build_requirements(jobs)
-              if ancestors.forall(ancestor =>
+              ancestors = _schedule.next(host.name, state).flatMap(_schedule.graph.imm_preds)
+              if ancestors.nonEmpty && ancestors.forall(ancestor =>
                 completed_since(ancestor) > build_options.seconds("build_schedule_inactive_delay"))
             } yield host).toSet
 
