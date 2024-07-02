@@ -63,13 +63,14 @@ object Bytes {
     if (limit == 0) empty
     else {
       Builder.use(hint = if (limit > 0) limit else hint) { builder =>
+        val buf_size = block_size
         val buf = new Array[Byte](block_size)
         var m = 0
         var n = 0L
         while ({
-          val l = if (limit > 0) ((limit - n) min buf.length).toInt else buf.length
+          val l = if (limit > 0) (limit - n).min(buf_size).toInt else buf_size
           m = stream.read(buf, 0, l)
-          if (m != -1) {
+          if (m > 0) {
             builder += (buf, 0, m)
             n += m
           }
@@ -84,26 +85,26 @@ object Bytes {
   def read_file(path: Path, offset: Long = 0L, limit: Long = -1L): Bytes = {
     val length = File.size(path)
     val start = offset.max(0L)
-    val stop = (length - start).max(0L).min(if (limit < 0) Long.MaxValue else limit)
-    if (stop == 0L) empty
+    val len = (length - start).max(0L).min(if (limit < 0) Long.MaxValue else limit)
+    if (len == 0L) empty
     else {
-      Builder.use(hint = stop) { builder =>
+      Builder.use(hint = len) { builder =>
         using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { channel =>
           channel.position(start)
           val buf_size = block_size
-          val buf = ByteBuffer.allocate(block_size)
+          val buf = ByteBuffer.allocate(buf_size)
           var m = 0
           var n = 0L
           while ({
-            val l = stop - n
-            if (l < buf_size) buf.limit(l.toInt)
+            val l = (len - n).min(buf_size).toInt
+            buf.limit(l)
             m = channel.read(buf)
-            if (m != -1) {
+            if (m > 0) {
               builder += (buf.array(), 0, m)
               buf.clear()
               n += m
             }
-            m != -1 && stop > n
+            m != -1 && len > n
           }) ()
         }
       }
