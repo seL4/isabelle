@@ -79,30 +79,60 @@ object Library {
 
   def separated_chunks(sep: Char => Boolean, source: CharSequence): Iterator[CharSequence] =
     new Iterator[CharSequence] {
-      private val end = source.length
-      private def next_chunk(i: Int): Option[(CharSequence, Int)] = {
-        if (i < end) {
-          var j = i
-          while ({
-            j += 1
-            j < end && !sep(source.charAt(j))
-          }) ()
-          Some((source.subSequence(i + 1, j), j))
-        }
-        else None
-      }
-      private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
+      private val length = source.length
+      private var start = -1
+      private var stop = -1
 
-      def hasNext: Boolean = state.isDefined
+      private def end(i: Int): Int = {
+        var j = i
+        while (j < length && !sep(source.charAt(j))) { j += 1 }
+        j
+      }
+
+      // init
+      if (!source.isEmpty) { start = 0; stop = end(0) }
+
+      def hasNext: Boolean = 0 <= start && stop <= length
+
       def next(): CharSequence =
-        state match {
-          case Some((s, i)) => state = next_chunk(i); s
-          case None => Iterator.empty.next()
+        if (hasNext) {
+          val chunk = source.subSequence(start, stop)
+          if (stop < length) { start = stop + 1; stop = end(start) }
+          else { start = -1; stop = -1 }
+          chunk
         }
+        else throw new NoSuchElementException
+    }
+
+  def separated_chunks(sep: Char, source: String): Iterator[String] =
+    new Iterator[String] {
+      private var start = -1
+      private var stop = -1
+
+      private def end(i: Int): Int =
+        source.indexOf(sep, start) match {
+          case -1 => source.length
+          case j => j
+        }
+
+      // init
+      if (source.nonEmpty) { start = 0; stop = end(0) }
+
+      def hasNext: Boolean =
+        0 <= start && start <= stop && stop <= source.length
+
+      def next(): String =
+        if (hasNext) {
+          val chunk = source.substring(start, stop)
+          if (stop < source.length) { start = stop + 1; stop = end(start) }
+          else { start = -1; stop = -1 }
+          chunk
+        }
+        else throw new NoSuchElementException
     }
 
   def space_explode(sep: Char, str: String): List[String] =
-    separated_chunks(_ == sep, str).map(_.toString).toList
+    separated_chunks(sep, str).toList
 
 
   /* lines */
