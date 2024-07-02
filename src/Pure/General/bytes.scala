@@ -90,10 +90,13 @@ object Bytes {
       Builder.use(hint = stop) { builder =>
         using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { channel =>
           channel.position(start)
+          val buf_size = block_size
           val buf = ByteBuffer.allocate(block_size)
           var m = 0
           var n = 0L
           while ({
+            val l = stop - n
+            if (l < buf_size) buf.limit(l.toInt)
             m = channel.read(buf)
             if (m != -1) {
               builder += (buf.array(), 0, m)
