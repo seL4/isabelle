@@ -154,7 +154,8 @@ object Kodkod {
     def apply(args: String): String = {
       val (timeout, (solve_all, (max_solutions, (max_threads, kki)))) = {
         import XML.Decode._
-        pair(int, pair(bool, pair(int, pair(int, string))))(YXML.parse_body(args))
+        pair(int, pair(bool, pair(int, pair(int, string))))(
+          YXML.parse_body(YXML.Source(args)))
       }
       val result =
         execute(kki,

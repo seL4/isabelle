@@ -46,7 +46,7 @@ object Server {
 
     def parse(argument: String): Any =
       if (argument == "") ()
-      else if (YXML.detect_elem(argument)) YXML.parse_elem(argument)
+      else if (YXML.detect_elem(argument)) YXML.parse_elem(YXML.Source(argument))
       else JSON.parse(argument, strict = false)
 
     def unapply(argument: String): Option[Any] =

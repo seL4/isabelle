@@ -89,7 +89,7 @@ object Profiling {
             ML_Process.session_heaps(store, session_background, logic = session_name)
           ML_Process(store.options, session_background, session_heaps, args = eval_args,
             env = Isabelle_System.settings(put_env)).result().check
-          decode_result(YXML.parse_body(File.read(dir + Path.explode("result.yxml"))))
+          decode_result(YXML.parse_body(Bytes.read(dir + Path.explode("result.yxml"))))
         }
       }
 

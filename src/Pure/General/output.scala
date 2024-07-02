@@ -9,7 +9,7 @@ package isabelle
 
 object Output {
   def clean_yxml(msg: String): String =
-    try { XML.content(Protocol_Message.clean_reports(YXML.parse_body(msg))) }
+    try { XML.content(Protocol_Message.clean_reports(YXML.parse_body(YXML.Source(msg)))) }
     catch { case ERROR(_) => msg }
 
   def writeln_text(msg: String): String = clean_yxml(msg)

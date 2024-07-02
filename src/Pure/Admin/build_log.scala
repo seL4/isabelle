@@ -237,7 +237,9 @@ object Build_Log {
     /* properties (YXML) */
 
     def parse_props(text: String): Properties.T =
-      try { cache.props(XML.Decode.properties(YXML.parse_body(text, cache = cache))) }
+      try {
+        cache.props(XML.Decode.properties(YXML.parse_body(YXML.Source(text), cache = cache)))
+      }
       catch { case _: XML.Error => log_file.err("malformed properties") }
 
     def filter_props(marker: Protocol_Message.Marker): List[Properties.T] =
@@ -658,7 +660,7 @@ object Build_Log {
     if (bytes.is_empty) Nil
     else {
       XML.Decode.list(YXML.string_of_body(_))(
-        YXML.parse_body(bytes.uncompress(cache = cache.compress).text, cache = cache))
+        YXML.parse_body(bytes.uncompress(cache = cache.compress), cache = cache))
     }
 
 

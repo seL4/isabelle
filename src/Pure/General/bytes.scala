@@ -292,7 +292,7 @@ final class Bytes private(
   protected val chunk0: Array[Byte],
   protected val offset: Long,
   val size: Long
-) extends Bytes.Vec {
+) extends Bytes.Vec with YXML.Source {
   assert(
     (chunks.isEmpty ||
       chunks.get.nonEmpty &&
@@ -303,7 +303,7 @@ final class Bytes private(
     if (size > Bytes.array_size) throw new Bytes.Too_Large(size)
     else size.toInt
 
-  def is_empty: Boolean = size == 0
+  override def is_empty: Boolean = size == 0
 
   def proper: Option[Bytes] = if (is_empty) None else Some(this)
 
@@ -423,6 +423,12 @@ final class Bytes private(
 
   def split_lines: List[Bytes] = space_explode(10)
 
+  // YXML.Source operations
+  override def is_X: Boolean = size == 1 && byte_unchecked(0) == YXML.X_byte
+  override def is_Y: Boolean = size == 1 && byte_unchecked(0) == YXML.Y_byte
+  override def iterator_X: Iterator[Bytes] = separated_chunks(YXML.X_byte)
+  override def iterator_Y: Iterator[Bytes] = separated_chunks(YXML.Y_byte)
+
 
   /* hash and equality */
 
@@ -478,7 +484,7 @@ final class Bytes private(
     buf.toByteArray
   }
 
-  def text: String =
+  override def text: String =
     if (is_empty) ""
     else {
       var i = 0L

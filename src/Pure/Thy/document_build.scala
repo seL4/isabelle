@@ -248,7 +248,7 @@ object Document_Build {
         val body =
           if (selected) {
             val entry = session_context(name.theory, Export.DOCUMENT_LATEX, permissive = true)
-            YXML.parse_body(entry.text)
+            YXML.parse_body(entry.bytes)
           }
           else {
             val text =

@@ -719,7 +719,7 @@ Usage: isabelle build_worker [OPTIONS]
     def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
-      YXML.parse_body(read(name).bytes.text, recode = decode, cache = theory_context.cache)
+      YXML.parse_body(read(name).bytes, recode = decode, cache = theory_context.cache)
 
     def read_source_file(name: String): Store.Source_File =
       theory_context.session_context.source_file(name)

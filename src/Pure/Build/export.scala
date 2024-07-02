@@ -195,7 +195,7 @@ object Export {
     def text: String = bytes.text
 
     def yxml(recode: String => String = identity): XML.Body =
-      YXML.parse_body(bytes.text, recode = recode, cache = cache)
+      YXML.parse_body(bytes, recode = recode, cache = cache)
   }
 
   def make_regex(pattern: String): Regex = {

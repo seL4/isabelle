@@ -223,9 +223,9 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
             case Exn.Res(_) =>
               List(Protocol.writeln_message("DONE"))
             case Exn.Exn(exn: Document_Build.Build_Error) =>
-              exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(s)))
+              exn.log_errors.map(s => Protocol.error_message(YXML.parse_body(YXML.Source(s))))
             case Exn.Exn(exn) =>
-              List(Protocol.error_message(YXML.parse_body(Exn.print(exn))))
+              List(Protocol.error_message(YXML.parse_body(YXML.Source(Exn.print(exn)))))
           }
 
         progress.stop_program()

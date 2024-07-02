@@ -50,7 +50,7 @@ object Properties {
 
   def decode(bs: Bytes, cache: XML.Cache = XML.Cache.none): T = {
     if (bs.is_empty) Nil
-    else cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
+    else cache.props(XML.Decode.properties(YXML.parse_body(bs)))
   }
 
   def compress(ps: List[T],
@@ -69,7 +69,7 @@ object Properties {
     else {
       val ps =
         XML.Decode.list(XML.Decode.properties)(
-          YXML.parse_body(bs.uncompress(cache = cache.compress).text))
+          YXML.parse_body(bs.uncompress(cache = cache.compress)))
       if (cache.no_cache) ps else ps.map(cache.props)
     }
   }

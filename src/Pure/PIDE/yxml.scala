@@ -93,16 +93,40 @@ object YXML {
     if (name == "") err("unbalanced element")
     else err("unbalanced element " + quote(name))
 
+  object Source {
+    def apply(s: String): Source = new Source_String(s)
+  }
+
+  trait Source {
+    def is_empty: Boolean
+    def is_X: Boolean
+    def is_Y: Boolean
+    def iterator_X: Iterator[Source]
+    def iterator_Y: Iterator[Source]
+    def text: String
+  }
+
+  class Source_String(source: String) extends Source {
+    override def is_empty: Boolean = source.isEmpty
+    override def is_X: Boolean = source.length == 1 && source(0) == X
+    override def is_Y: Boolean = source.length == 1 && source(0) == Y
+    override def iterator_X: Iterator[Source] =
+      Library.separated_chunks(X, source).map(Source.apply)
+    override def iterator_Y: Iterator[Source] =
+      Library.separated_chunks(Y, source).map(Source.apply)
+    override def text: String = source
+  }
+
   def parse_body(
-    source: CharSequence,
+    source: Source,
     recode: String => String = identity,
     cache: XML.Cache = XML.Cache.none
   ): XML.Body = {
     /* parse + recode */
 
-    def parse_string(s: CharSequence): String = recode(s.toString)
+    def parse_string(s: Source): String = recode(s.text)
 
-    def parse_attrib(s: CharSequence): (String, String) =
+    def parse_attrib(s: Source): (String, String) =
       Properties.Eq.unapply(parse_string(s)) getOrElse err_attribute()
 
 
@@ -129,11 +153,11 @@ object YXML {
 
     /* parse chunks */
 
-    for (chunk <- Library.separated_chunks(is_X, source) if chunk.length != 0) {
-      if (chunk.length == 1 && chunk.charAt(0) == Y) pop()
+    for (chunk <- source.iterator_X if !chunk.is_empty) {
+      if (chunk.is_Y) pop()
       else {
-        Library.separated_chunks(is_Y, chunk).toList match {
-          case ch :: name :: atts if ch.length == 0 =>
+        chunk.iterator_Y.toList match {
+          case ch :: name :: atts if ch.is_empty =>
             push(parse_string(name), atts.map(parse_attrib))
           case txts =>
             for (txt <- txts) add(cache.tree0(XML.Text(cache.string(parse_string(txt)))))
@@ -147,7 +171,7 @@ object YXML {
   }
 
   def parse(
-    source: CharSequence,
+    source: Source,
     recode: String => String = identity,
     cache: XML.Cache = XML.Cache.none
   ): XML.Tree =
@@ -158,7 +182,7 @@ object YXML {
     }
 
   def parse_elem(
-    source: CharSequence,
+    source: Source,
     recode: String => String = identity,
     cache: XML.Cache = XML.Cache.none
   ): XML.Tree =
@@ -170,11 +194,11 @@ object YXML {
 
   /* failsafe parsing */
 
-  private def markup_broken(source: CharSequence) =
+  private def markup_broken(source: Source) =
     XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
 
   def parse_body_failsafe(
-    source: CharSequence,
+    source: Source,
     recode: String => String = identity,
     cache: XML.Cache = XML.Cache.none
   ): XML.Body = {
@@ -183,7 +207,7 @@ object YXML {
   }
 
   def parse_failsafe(
-    source: CharSequence,
+    source: Source,
     recode: String => String = identity,
     cache: XML.Cache = XML.Cache.none
   ): XML.Tree = {

@@ -549,7 +549,7 @@ object Build_Schedule {
           Schedule(build_uuid, generator, start, graph, serial)
         }
 
-      schedule(YXML.parse_body(File.read(file)))
+      schedule(YXML.parse_body(Bytes.read(file)))
     }
   }
 

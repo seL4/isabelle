@@ -370,14 +370,14 @@ object Bash {
             Bash.process(script,
               description = description,
               cwd =
-                XML.Decode.option(XML.Decode.string)(YXML.parse_body(cwd)) match {
+                XML.Decode.option(XML.Decode.string)(YXML.parse_body(YXML.Source(cwd))) match {
                   case None => Path.current
                   case Some(s) => Path.explode(s)
                 },
               env =
                 Isabelle_System.settings(
                   XML.Decode.list(XML.Decode.pair(XML.Decode.string, XML.Decode.string))(
-                    YXML.parse_body(putenv))),
+                    YXML.parse_body(YXML.Source(putenv)))),
               redirect = redirect)
           }
           match {
