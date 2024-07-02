@@ -204,16 +204,7 @@ object File {
   def read(file: JFile): String = Bytes.read(file).text
   def read(path: Path): String = read(path.file)
 
-
-  def read_stream(reader: BufferedReader): String =
-    Library.string_builder(hint = 100) { output =>
-      var c = -1
-      while ({ c = reader.read; c != -1 }) output += c.toChar
-      reader.close()
-    }
-
-  def read_stream(stream: InputStream): String =
-    read_stream(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))
+  def read_stream(stream: InputStream): String = Bytes.read_stream(stream).text
 
   def read_gzip(file: JFile): String =
     read_stream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))
