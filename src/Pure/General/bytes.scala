@@ -390,6 +390,40 @@ final class Bytes private(
     else this
 
 
+  /* separated chunks */
+
+  def separated_chunks(sep: Byte): Iterator[Bytes] =
+    new Iterator[Bytes] {
+      private var start: Long = -1
+      private var stop: Long = -1
+
+      private def end(i: Long): Long = {
+        var j = i
+        while (j < Bytes.this.size && byte_unchecked(j) != sep) { j += 1 }
+        j
+      }
+
+      // init
+      if (!Bytes.this.is_empty) { start = 0; stop = end(0) }
+
+      def hasNext: Boolean =
+        0 <= start && start <= stop && stop <= Bytes.this.size
+
+      def next(): Bytes =
+        if (hasNext) {
+          val chunk = Bytes.this.slice(start, stop)
+          if (stop < Bytes.this.size) { start = stop + 1; stop = end(start) }
+          else { start = -1; stop = -1 }
+          chunk
+        }
+        else throw new NoSuchElementException
+    }
+
+  def space_explode(sep: Byte): List[Bytes] = separated_chunks(sep).toList
+
+  def split_lines: List[Bytes] = space_explode(10)
+
+
   /* hash and equality */
 
   lazy val sha1_digest: SHA1.Digest =
