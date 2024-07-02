@@ -66,7 +66,9 @@ object Word {
   def implode(words: Iterable[String]): String = words.iterator.mkString(" ")
 
   def explode(sep: Char => Boolean, text: String): List[String] =
-    Library.separated_chunks(sep, text).map(_.toString).filter(_ != "").toList
+    List.from(
+      for (s <- Library.separated_chunks(sep, text) if !s.isEmpty)
+        yield s.toString)
 
   def explode(sep: Char, text: String): List[String] =
     explode(_ == sep, text)
