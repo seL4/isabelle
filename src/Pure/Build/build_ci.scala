@@ -113,7 +113,8 @@ object Build_CI {
     hook: Hook = none,
     extra_components: List[String] = Nil,
     other_settings: List[String] = Nil,
-    trigger: Trigger = On_Commit
+    trigger: Trigger = On_Commit,
+    verbose: Boolean = false
   ) {
     override def toString: String = name
 
@@ -266,7 +267,7 @@ Usage: isabelle build_ci [OPTIONS] JOB
           case _ => getopts.usage()
         }
 
-      val progress = new Console_Progress(verbose = true)
+      val progress = new Console_Progress(verbose = job.verbose)
 
       build_ci(options, job, url = url, build_hosts = build_hosts.toList, progress = progress)
     })
