@@ -327,11 +327,13 @@ final class Bytes private(
     }
   }
 
+  // signed byte
   def byte(i: Long): Byte =
     if (0 <= i && i < size) byte_unchecked(i)
     else throw new IndexOutOfBoundsException
 
-  def apply(i: Long): Char = (byte(i).toInt & 0xff).toChar
+  // unsigned char
+  def char(i: Long): Char = (byte(i).toInt & 0xff).toChar
 
   protected def subarray_iterator: Iterator[Bytes.Subarray] =
     if (is_empty) Iterator.empty
