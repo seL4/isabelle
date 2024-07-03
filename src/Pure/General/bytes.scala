@@ -173,6 +173,8 @@ object Bytes {
   }
 
   final class Builder private[Bytes](hint: Long) {
+    builder =>
+
     private var chunks =
       new ArrayBuffer[Array[Byte]](if (hint <= 0) 16 else (hint / chunk_size).toInt)
 
@@ -241,11 +243,11 @@ object Bytes {
     }
 
     def += (s: CharSequence): Unit =
-      if (s.length > 0) { this += UTF8.bytes(s.toString) }
+      if (s.length > 0) { builder += UTF8.bytes(s.toString) }
 
-    def += (array: Array[Byte]): Unit = { this += (array, 0, array.length) }
+    def += (array: Array[Byte]): Unit = { builder += (array, 0, array.length) }
 
-    def += (a: Subarray): Unit = { this += (a.array, a.offset, a.length) }
+    def += (a: Subarray): Unit = { builder += (a.array, a.offset, a.length) }
 
     private def done(): Bytes = {
       val cs = chunks.toArray
@@ -293,6 +295,8 @@ final class Bytes private(
   protected val offset: Long,
   val size: Long
 ) extends Bytes.Vec with YXML.Source {
+  bytes =>
+
   assert(
     (chunks.isEmpty ||
       chunks.get.nonEmpty &&
@@ -305,7 +309,7 @@ final class Bytes private(
 
   override def is_empty: Boolean = size == 0
 
-  def proper: Option[Bytes] = if (is_empty) None else Some(this)
+  def proper: Option[Bytes] = if (is_empty) None else Some(bytes)
 
   def is_sliced: Boolean =
     offset != 0L || {
@@ -378,7 +382,7 @@ final class Bytes private(
         for (a <- subarray_iterator) { builder += a }
       }
     }
-    else this
+    else bytes
 
   def trim_line: Bytes =
     if (size >= 2 && byte_unchecked(size - 2) == 13 && byte_unchecked(size - 1) == 10) {
@@ -387,7 +391,7 @@ final class Bytes private(
     else if (size >= 1 && (byte_unchecked(size - 1) == 13 || byte_unchecked(size - 1) == 10)) {
       slice(0, size - 1)
     }
-    else this
+    else bytes
 
 
   /* separated chunks */
@@ -399,20 +403,20 @@ final class Bytes private(
 
       private def end(i: Long): Long = {
         var j = i
-        while (j < Bytes.this.size && byte_unchecked(j) != sep) { j += 1 }
+        while (j < bytes.size && byte_unchecked(j) != sep) { j += 1 }
         j
       }
 
       // init
-      if (!Bytes.this.is_empty) { start = 0; stop = end(0) }
+      if (!bytes.is_empty) { start = 0; stop = end(0) }
 
       def hasNext: Boolean =
-        0 <= start && start <= stop && stop <= Bytes.this.size
+        0 <= start && start <= stop && stop <= bytes.size
 
       def next(): Bytes =
         if (hasNext) {
-          val chunk = Bytes.this.slice(start, stop)
-          if (stop < Bytes.this.size) { start = stop + 1; stop = end(start) }
+          val chunk = bytes.slice(start, stop)
+          if (stop < bytes.size) { start = stop + 1; stop = end(start) }
           else { start = -1; stop = -1 }
           chunk
         }
@@ -447,7 +451,7 @@ final class Bytes private(
   override def equals(that: Any): Boolean = {
     that match {
       case other: Bytes =>
-        if (this.eq(other)) true
+        if (bytes.eq(other)) true
         else if (size != other.size) false
         else {
           if (chunks.isEmpty && other.chunks.isEmpty) {
@@ -468,7 +472,7 @@ final class Bytes private(
   /* content */
 
   def + (other: Bytes): Bytes =
-    if (other.is_empty) this
+    if (other.is_empty) bytes
     else if (is_empty) other
     else {
       Bytes.Builder.use(hint = size + other.size) { builder =>
@@ -495,14 +499,14 @@ final class Bytes private(
       }
       utf8
 
-      if (utf8) UTF8.decode_permissive_bytes(this)
+      if (utf8) UTF8.decode_permissive_bytes(bytes)
       else new String(make_array, UTF8.charset)
     }
 
   def wellformed_text: Option[String] =
     try {
       val s = text
-      if (this == Bytes(s)) Some(s) else None
+      if (bytes == Bytes(s)) Some(s) else None
     }
     catch { case ERROR(_) => None }
 
@@ -622,6 +626,6 @@ final class Bytes private(
     cache: Compress.Cache = Compress.Cache.none
   ) : (Boolean, Bytes) = {
     val compressed = compress(options = options, cache = cache)
-    if (compressed.size < size) (true, compressed) else (false, this)
+    if (compressed.size < size) (true, compressed) else (false, bytes)
   }
 }
