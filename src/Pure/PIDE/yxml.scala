@@ -22,11 +22,9 @@ object YXML {
 
   val X_string: String = X_char.toString
   val Y_string: String = Y_char.toString
-  val XY_string: String = X_string + Y_string
-  val XYX_string: String = XY_string + X_string
 
   def detect(s: String): Boolean = s.exists(c => c == X_char || c == Y_char)
-  def detect_elem(s: String): Boolean = s.startsWith(XY_string)
+  def detect_elem(s: String): Boolean = s.length >= 2 && s(0) == X_char && s(1) == Y_char
 
 
   /* string representation */
