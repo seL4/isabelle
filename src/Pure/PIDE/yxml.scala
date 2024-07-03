@@ -17,15 +17,15 @@ object YXML {
   val X_byte: Byte = 5
   val Y_byte: Byte = 6
 
-  val X = X_byte.toChar
-  val Y = Y_byte.toChar
+  val X_char: Char = X_byte.toChar
+  val Y_char: Char = Y_byte.toChar
 
-  val X_string: String = X.toString
-  val Y_string: String = Y.toString
+  val X_string: String = X_char.toString
+  val Y_string: String = Y_char.toString
   val XY_string: String = X_string + Y_string
   val XYX_string: String = XY_string + X_string
 
-  def detect(s: String): Boolean = s.exists(c => c == X || c == Y)
+  def detect(s: String): Boolean = s.exists(c => c == X_char || c == Y_char)
   def detect_elem(s: String): Boolean = s.startsWith(XY_string)
 
 
@@ -105,12 +105,12 @@ object YXML {
 
   class Source_String(source: String) extends Source {
     override def is_empty: Boolean = source.isEmpty
-    override def is_X: Boolean = source.length == 1 && source(0) == X
-    override def is_Y: Boolean = source.length == 1 && source(0) == Y
+    override def is_X: Boolean = source.length == 1 && source(0) == X_char
+    override def is_Y: Boolean = source.length == 1 && source(0) == Y_char
     override def iterator_X: Iterator[Source] =
-      Library.separated_chunks(X, source).map(Source.apply)
+      Library.separated_chunks(X_char, source).map(Source.apply)
     override def iterator_Y: Iterator[Source] =
-      Library.separated_chunks(Y, source).map(Source.apply)
+      Library.separated_chunks(Y_char, source).map(Source.apply)
     override def text: String = source
   }
 

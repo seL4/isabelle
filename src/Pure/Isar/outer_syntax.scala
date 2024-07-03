@@ -26,7 +26,7 @@ object Outer_Syntax {
       for (s <- Symbol.iterator(str)) {
         if (s.length == 1) {
           val c = s(0)
-          if (c < 32 && c != YXML.X && c != YXML.Y || c == '\\' || c == '"') {
+          if (c < 32 && c != YXML.X_char && c != YXML.Y_char || c == '\\' || c == '"') {
             result += '\\'
             if (c < 10) result += '0'
             if (c < 100) result += '0'
