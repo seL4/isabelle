@@ -125,7 +125,7 @@ object Web_App {
               var sep_ok = true
               var sep_i = 0
               while (sep_ok && sep_i < sep.length) {
-                if (bytes(bytes_i + sep_i) == sep(sep_i)) {
+                if (bytes.char(bytes_i + sep_i) == sep(sep_i)) {
                   sep_i += 1
                 } else {
                   bytes_i += 1
