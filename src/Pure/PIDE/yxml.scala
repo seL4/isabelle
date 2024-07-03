@@ -20,9 +20,6 @@ object YXML {
   val X = X_byte.toChar
   val Y = Y_byte.toChar
 
-  val is_X: Char => Boolean = _ == X
-  val is_Y: Char => Boolean = _ == Y
-
   val X_string: String = X.toString
   val Y_string: String = Y.toString
   val XY_string: String = X_string + Y_string
