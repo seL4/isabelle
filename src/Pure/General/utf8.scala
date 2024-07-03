@@ -17,17 +17,6 @@ object UTF8 {
 
   def bytes(s: String): Array[Byte] = s.getBytes(charset)
 
-  def relevant(s: CharSequence): Boolean = {
-    var i = 0
-    val n = s.length
-    var found = false
-    while (i < n && !found) {
-      if (s.charAt(i) >= 128) { found = true }
-      i += 1
-    }
-    found
-  }
-
 
   /* permissive UTF-8 decoding */
 
@@ -72,7 +61,18 @@ object UTF8 {
     buf.toString
   }
 
-  def decode_permissive(text: String): String =
-    if (relevant(text)) decode_permissive_bytes(new Bytes.Vec_String(text))
+  def decode_permissive(text: String): String = {
+    val relevant = {
+      var i = 0
+      val n = text.length
+      var found = false
+      while (i < n && !found) {
+        if (text(i) >= 128) { found = true }
+        i += 1
+      }
+      found
+    }
+    if (relevant) decode_permissive_bytes(new Bytes.Vec_String(text))
     else text
+  }
 }
