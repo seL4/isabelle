@@ -186,30 +186,16 @@ corollary T_insert_log: "ltree t \<Longrightarrow> T_insert x t \<le> log 2 (siz
 using T_merge_log[of "Node Leaf (x, 1) Leaf" t]
 by(simp split: tree.split)
 
-lemma ld_ld_1_less:
-  assumes "x > 0" "y > 0" shows "log 2 x + log 2 y + 1 < 2 * log 2 (x+y)"
-proof -
-  have "2 powr (log 2 x + log 2 y + 1) = 2*x*y"
-    using assms by(simp add: powr_add)
-  also have "\<dots> < (x+y)^2" using assms
-    by(simp add: numeral_eq_Suc algebra_simps add_pos_pos)
-  also have "\<dots> = 2 powr (2 * log 2 (x+y))"
-    using assms by(simp add: powr_add log_powr[symmetric])
-  finally show ?thesis by simp
-qed
-
 corollary T_del_min_log: assumes "ltree t"
-  shows "T_del_min t \<le> 2 * log 2 (size1 t)"
+  shows "T_del_min t \<le> 2 * log 2 (size1 t) + 1"
 proof(cases t rule: tree2_cases)
   case Leaf thus ?thesis using assms by simp
 next
   case [simp]: (Node l _ _ r)
-  have "T_del_min t = T_merge l r" by simp
-  also have "\<dots> \<le> log 2 (size1 l) + log 2 (size1 r) + 1"
-    using \<open>ltree t\<close> T_merge_log[of l r] by (auto simp del: T_merge.simps)
-  also have "\<dots> \<le> 2 * log 2 (size1 t)"
-    using ld_ld_1_less[of "size1 l" "size1 r"] by (simp)
-  finally show ?thesis .
+  show ?thesis
+    using \<open>ltree t\<close> T_merge_log[of l r]
+      log_mono[of 2 "size1 l" "size1 t"] log_mono[of 2 "size1 r" "size1 t"]
+    by (simp del: T_merge.simps)
 qed
 
 end
