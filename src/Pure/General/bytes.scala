@@ -10,6 +10,7 @@ package isabelle
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream,
   InputStream, OutputStream, File => JFile}
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 import java.util.Arrays
@@ -44,6 +45,10 @@ object Bytes {
     else apply(bytes)
 
   val empty: Bytes = reuse_array(new Array(0))
+
+  def raw(s: String): Bytes =
+    if (s.isEmpty) empty
+    else Builder.use(hint = s.length) { builder => builder += s.getBytes(ISO_8859_1) }
 
   def apply(s: String): Bytes =
     if (s.isEmpty) empty
@@ -129,21 +134,6 @@ object Bytes {
     using(new FileOutputStream(file, true))(bytes.write_stream(_))
 
   def append(path: Path, bytes: Bytes): Unit = append(path.file, bytes)
-
-
-  /* vector of short unsigned integers */
-
-  trait Vec {
-    def size: Long
-    def apply(i: Long): Char
-  }
-
-  class Vec_String(string: String) extends Vec {
-    override def size: Long = string.length.toLong
-    override def apply(i: Long): Char =
-      if (0 <= i && i < size) string(i.toInt)
-      else throw new IndexOutOfBoundsException
-  }
 
 
   /* incremental builder: unsynchronized! */
@@ -294,7 +284,7 @@ final class Bytes private(
   protected val chunk0: Array[Byte],
   protected val offset: Long,
   val size: Long
-) extends Bytes.Vec with YXML.Source {
+) extends YXML.Source {
   bytes =>
 
   assert(
@@ -499,7 +489,7 @@ final class Bytes private(
       }
       utf8
 
-      if (utf8) UTF8.decode_permissive_bytes(bytes)
+      if (utf8) UTF8.decode_permissive(bytes)
       else new String(make_array, UTF8.charset)
     }
 

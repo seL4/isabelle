@@ -23,7 +23,7 @@ object UTF8 {
   // see also https://en.wikipedia.org/wiki/UTF-8#Description
   // overlong encodings enable byte-stuffing of low-ASCII
 
-  def decode_permissive_bytes(bytes: Bytes.Vec): String = {
+  def decode_permissive(bytes: Bytes): String = {
     val size = bytes.size
     val buf = new java.lang.StringBuilder((size min Space.GiB(1).bytes).toInt)
     var code = -1
@@ -59,20 +59,5 @@ object UTF8 {
     }
     flush()
     buf.toString
-  }
-
-  def decode_permissive(text: String): String = {
-    val relevant = {
-      var i = 0
-      val n = text.length
-      var found = false
-      while (i < n && !found) {
-        if (text(i) >= 128) { found = true }
-        i += 1
-      }
-      found
-    }
-    if (relevant) decode_permissive_bytes(new Bytes.Vec_String(text))
-    else text
   }
 }

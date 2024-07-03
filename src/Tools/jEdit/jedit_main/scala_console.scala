@@ -50,7 +50,7 @@ class Scala_Console extends Shell("Scala") {
 
     override def flush(): Unit = {
       val s = buf.synchronized { val s = buf.toString; buf.clear(); s }
-      val str = UTF8.decode_permissive(s)
+      val str = UTF8.decode_permissive(Bytes.raw(s))
       GUI_Thread.later {
         if (global_out == null) java.lang.System.out.print(str)
         else global_out.writeAttrs(null, str)
