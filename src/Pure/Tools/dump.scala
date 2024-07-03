@@ -29,9 +29,6 @@ object Dump {
     def write(file_name: Path, bytes: Bytes): Unit =
       Bytes.write(write_path(file_name), bytes)
 
-    def write(file_name: Path, text: String): Unit =
-      write(file_name, Bytes(text))
-
     def write(file_name: Path, body: XML.Body): Unit =
       write(file_name, YXML.bytes_of_body(body, recode = Symbol.encode))
   }
