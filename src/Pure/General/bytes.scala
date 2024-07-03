@@ -374,6 +374,9 @@ final class Bytes private(
     }
     else bytes
 
+  def terminated_line: Boolean =
+    size >= 1 && (byte_unchecked(size - 1) == 13 || byte_unchecked(size - 1) == 10)
+
   def trim_line: Bytes =
     if (size >= 2 && byte_unchecked(size - 2) == 13 && byte_unchecked(size - 1) == 10) {
       slice(0, size - 2)
