@@ -45,7 +45,7 @@ object Bytes {
 
   val empty: Bytes = reuse_array(new Array(0))
 
-  def apply(s: CharSequence): Bytes =
+  def apply(s: String): Bytes =
     if (s.isEmpty) empty
     else Builder.use(hint = s.length) { builder => builder += s }
 
@@ -242,8 +242,8 @@ object Bytes {
       }
     }
 
-    def += (s: CharSequence): Unit =
-      if (s.length > 0) { builder += UTF8.bytes(s.toString) }
+    def += (s: String): Unit =
+      if (s.length > 0) { builder += UTF8.bytes(s) }
 
     def += (array: Array[Byte]): Unit = { builder += (array, 0, array.length) }
 
