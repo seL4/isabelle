@@ -152,33 +152,6 @@ object Build_Manager {
 
   enum Status { case ok, cancelled, aborted, failed  }
 
-  object Result {
-    def read_log(
-      store: Store,
-      kind: String,
-      id: Long,
-      uuid: Option[UUID.T] = None
-    ): Result = {
-      val build_log_file = Build_Log.Log_File.read(store.log_file(kind, id).file)
-      val End = """^Job ended at [^,]+, with status (\w+)$""".r
-
-      val meta_info = build_log_file.parse_meta_info()
-      val status =
-        build_log_file.lines.last match {
-          case End(status) => Status.valueOf(status)
-          case _ => Status.aborted
-        }
-      val build_host = meta_info.get_build_host.getOrElse(error("No build host"))
-      val start_date = meta_info.get_build_start.getOrElse(error("No start date"))
-      val end_date = meta_info.get_build_end
-      val isabelle_version = meta_info.get(Build_Log.Prop.isabelle_version)
-      val afp_version = meta_info.get(Build_Log.Prop.afp_version)
-
-      Result(kind, id, status, uuid, build_host, start_date, end_date, isabelle_version,
-        afp_version)
-    }
-  }
-
   sealed case class Result(
     kind: String,
     id: Long,
@@ -618,6 +591,48 @@ object Build_Manager {
   }
 
 
+  /** build reports **/
+
+  object Report {
+    case class Data(log: String)
+  }
+
+  case class Report(kind: String, id: Long, dir: Path) {
+    private val log_name = "build-manager"
+
+    private def log_file = dir + Path.basic(log_name).log
+
+    def init(): Unit = Isabelle_System.make_directory(dir)
+
+    def ok: Boolean = log_file.is_file
+
+    def progress: Progress = new File_Progress(log_file)
+
+    def read: Report.Data = Report.Data(if_proper(ok, File.read(log_file)))
+
+    def result(uuid: Option[UUID.T]): Result = {
+      val End = """^Job ended at [^,]+, with status (\w+)$""".r
+
+      val build_log_file = Build_Log.Log_File(log_name, Library.trim_split_lines(read.log))
+
+      val meta_info = build_log_file.parse_meta_info()
+      val status =
+        build_log_file.lines.last match {
+          case End(status) => Status.valueOf(status)
+          case _ => Status.aborted
+        }
+      val build_host = meta_info.get_build_host.getOrElse(error("No build host"))
+      val start_date = meta_info.get_build_start.getOrElse(error("No start date"))
+      val end_date = meta_info.get_build_end
+      val isabelle_version = meta_info.get(Build_Log.Prop.isabelle_version)
+      val afp_version = meta_info.get(Build_Log.Prop.afp_version)
+
+      Result(kind, id, status, uuid, build_host, start_date, end_date, isabelle_version,
+        afp_version)
+    }
+  }
+
+
   /** running build manager processes **/
 
   abstract class Loop_Process[A](name: String, store: Store, progress: Progress)
@@ -777,8 +792,8 @@ object Build_Manager {
           echo(start_msg + " (id " + task.uuid + ")")
 
           Exn.capture {
-            context.init()
-            context.progress.echo(start_msg)
+            context.report.init()
+            context.report.progress.echo(start_msg)
 
             store.sync_permissions(context.task_dir)
 
@@ -810,16 +825,16 @@ object Build_Manager {
               for {
                 component <- Component("Isabelle", job.isabelle_rev) :: job.components
                 if !component.is_local
-              } context.progress.echo("Using " + component.toString)
+              } context.report.progress.echo("Using " + component.toString)
 
               Some(context)
             case Exn.Exn(exn) =>
-              context.progress.echo_error_message("Failed to start job: " + exn.getMessage)
+              context.report.progress.echo_error_message("Failed to start job: " + exn.getMessage)
               echo_error_message("Failed to start " + task.uuid + ": " + exn.getMessage)
 
               Isabelle_System.rm_tree(context.task_dir)
 
-              _state = _state.add_finished(Result.read_log(store, task.kind, id, Some(task.uuid)))
+              _state = _state.add_finished(context.report.result(Some(task.uuid)))
 
               None
           }
@@ -837,7 +852,7 @@ object Build_Manager {
           _state = _state.cancel_running(name)
 
           val timeout_msg = "Timeout after " + job.timeout.message_hms
-          new File_Progress(store.log_file(job.kind, job.id)).echo_error_message(timeout_msg)
+          store.report(job.kind, job.id).progress.echo_error_message(timeout_msg)
           echo(job.name + ": " + timeout_msg)
         }
 
@@ -853,8 +868,8 @@ object Build_Manager {
         val status = Status.from_result(process_result)
         val end_msg = "Job ended at " + Build_Log.print_date(end_date) + ", with status " + status
 
-        new File_Progress(store.log_file(job.kind, job.id)).echo(end_msg)
-        val result = Result.read_log(store, job.kind, job.id, Some(job.uuid))
+        val report = store.report(job.kind, job.id)
+        report.progress.echo(end_msg)
 
         val interrupted_error = process_result.interrupted && process_result.err.nonEmpty
         val err_msg = if_proper(interrupted_error, ": " + process_result.err)
@@ -862,7 +877,7 @@ object Build_Manager {
 
         _state = _state
           .remove_running(job.name)
-          .add_finished(result)
+          .add_finished(report.result(Some(job.uuid)))
       }
 
     override def stopped(state: Runner.State): Boolean = progress.stopped && state.is_empty
@@ -1000,25 +1015,24 @@ object Build_Manager {
     }
 
     class Cache private(keep: Time = Time.minutes(1)) {
-      private var logs: Map[(String, Long), (Time, String)] = Map.empty
+      private var cached: Map[Report, (Time, Report.Data)] = Map.empty
 
-      def update(store: Store, state: State): Unit = synchronized {
-        logs =
+      def update(): Unit = synchronized {
+        cached =
           for {
-            ((kind, id), (time, log)) <- logs
+            (report, (time, _)) <- cached
             if time + keep > Time.now()
-          } yield (kind, id) -> (time, File.read(store.log_file(kind, id)))
+          } yield report -> (time, report.read)
       }
 
-      def lookup(store: Store, kind: String, id: Long): String = synchronized {
-        val name = (kind, id)
-        logs.get(name) match {
-          case Some((_, log)) =>
-            logs += name -> (Time.now(), log)
+      def lookup(report: Report): Report.Data = synchronized {
+        cached.get(report) match {
+          case Some((_, data)) =>
+            cached += report -> (Time.now(), data)
           case None =>
-            logs += name -> (Time.now(), File.read(store.log_file(kind, id)))
+            cached += report -> (Time.now(), report.read)
         }
-        logs(name)._2
+        cached(report)._2
       }
     }
   }
@@ -1147,18 +1161,22 @@ object Build_Manager {
               render_rev(task.isabelle_rev, task.components) :::
               render_cancel(task.uuid)
             case job: Job =>
+              val report_data = cache.lookup(store.report(job.kind, job.id))
+
               par(text("Start: " + Build_Log.print_date(job.start_date))) ::
               par(
                 if (job.cancelled) text("Cancelling...")
                 else text("Running...") ::: render_cancel(job.uuid)) ::
               render_rev(job.isabelle_rev, job.components) :::
-              source(cache.lookup(store, job.kind, job.id)) :: Nil
+              source(report_data.log) :: Nil
             case result: Result =>
+              val report_data = cache.lookup(store.report(result.kind, result.id))
+
               par(text("Start: " + Build_Log.print_date(result.start_date) +
                 if_proper(result.end_date,
                   ", took " + (result.end_date.get - result.start_date).message_hms))) ::
               par(text("Status: " + result.status)) ::
-              source(cache.lookup(store, result.kind, result.id)) :: Nil
+              source(report_data.log) :: Nil
           }
         }
 
@@ -1239,7 +1257,7 @@ object Build_Manager {
     def init: Unit = server.start()
     def loop_body(u: Unit): Unit = {
       if (progress.stopped) server.stop()
-      else synchronized_database("iterate") { cache.update(store, _state) }
+      else synchronized_database("iterate") { cache.update() }
     }
   }
 
@@ -1248,11 +1266,8 @@ object Build_Manager {
 
   case class Context(store: Store, task: Task, id: Long) {
     def name = Build.name(task.kind, id)
-    def progress: Progress = new File_Progress(store.log_file(task.kind, id))
-
+    def report: Report = store.report(task.kind, id)
     def task_dir: Path = store.task_dir(task)
-
-    def init(): Unit = Isabelle_System.make_directory(store.log_file(task.kind, id).dir)
 
     def isabelle_identifier: String =
       if (task.build_cluster) store.options.string("build_cluster_identifier") else store.identifier
@@ -1272,7 +1287,7 @@ object Build_Manager {
 
   class Build_Process(ssh: SSH.System, context: Context) {
     private val task = context.task
-    private val progress = context.progress
+    private val progress = context.report.progress
 
 
     /* resources with cleanup operations */
@@ -1344,8 +1359,8 @@ object Build_Manager {
     val finished = base_dir + Path.basic("finished")
 
     def task_dir(task: Task) = pending + Path.basic(task.uuid.toString)
-    def log_file(kind: String, id: Long): Path =
-      finished + Path.make(List(kind, id.toString, "build-manager")).log
+    def report(kind: String, id: Long): Report =
+      Report(kind, id, finished + Path.make(List(kind, id.toString)))
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
       ssh.execute("chmod -R g+rwx " + File.bash_path(dir))
@@ -1496,9 +1511,9 @@ Usage: isabelle build_manager [OPTIONS]
           kind <- File.read_dir(store.finished)
           entry <- File.read_dir(store.finished + Path.basic(kind))
           id <- Value.Long.unapply(entry)
-          log_file = store.log_file(kind, id)
-          if log_file.is_file
-        } yield Result.read_log(store, kind, id)
+          report = store.report(kind, id)
+          if report.ok
+        } yield report.result(None)
 
       val state = State(finished = results.map(result => result.name -> result).toMap)
 
