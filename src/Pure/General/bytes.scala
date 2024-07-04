@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/bytes.scala
     Author:     Makarius
 
-Immutable byte vectors versus UTF8 strings.
+Scalable byte strings, with incremental construction (via Builder).
 */
 
 package isabelle
