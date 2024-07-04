@@ -21,7 +21,10 @@ object Build_Manager {
         case _ => error("Malformed component: " + quote(s))
       }
 
-    def AFP(rev: String = "") = Component("AFP", rev)
+    val AFP = "AFP"
+
+    def isabelle(rev: String = "") = Component("Isabelle", rev)
+    def afp(rev: String = "") = Component(AFP, rev)
   }
 
   case class Component(name: String, rev: String = "") {
@@ -32,7 +35,7 @@ object Build_Manager {
 
   sealed trait Build_Config {
     def name: String
-    def components: List[Component]
+    def extra_components: List[Component]
     def fresh_build: Boolean
     def build_cluster: Boolean
     def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String
@@ -47,7 +50,7 @@ object Build_Manager {
         isabelle_rev = "default")
   }
 
-  case class CI_Build(name: String, build_cluster: Boolean, components: List[Component])
+  case class CI_Build(name: String, build_cluster: Boolean, extra_components: List[Component])
     extends Build_Config {
     def fresh_build: Boolean = true
     def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String =
@@ -79,7 +82,7 @@ object Build_Manager {
     verbose: Boolean = false
   ) extends Build_Config {
     def name: String = User_Build.name
-    def components: List[Component] = afp_rev.map(Component.AFP).toList
+    def extra_components: List[Component] = afp_rev.map(Component.afp).toList
     def build_cluster: Boolean = true
     def command(job_url: Url, build_hosts: List[Build_Cluster.Host]): String = {
       " build" +
@@ -122,7 +125,8 @@ object Build_Manager {
   ) extends Build {
     def name: String = uuid.toString
     def kind: String = build_config.name
-    def components: List[Component] = build_config.components
+    def components: List[Component] = Component.isabelle(isabelle_rev) :: extra_components
+    def extra_components: List[Component] = build_config.extra_components
 
     def build_cluster = build_config.build_cluster
     def build_hosts: List[Build_Cluster.Host] =
@@ -133,7 +137,6 @@ object Build_Manager {
     uuid: UUID.T,
     kind: String,
     id: Long,
-    isabelle_rev: String,
     build_cluster: Boolean,
     hostnames: List[String],
     components: List[Component],
@@ -163,7 +166,11 @@ object Build_Manager {
     isabelle_version: Option[String],
     afp_version: Option[String],
     serial: Long = 0,
-  ) extends Build { def name: String = Build.name(kind, id) }
+  ) extends Build {
+    def name: String = Build.name(kind, id)
+    def components: List[Component] =
+      isabelle_version.map(Component.isabelle).toList ::: afp_version.map(Component.afp).toList
+  }
 
   object State {
     def max_serial(serials: Iterable[Long]): Long = serials.maxOption.getOrElse(0L)
@@ -312,7 +319,7 @@ object Build_Manager {
       val submit_date = SQL.Column.date("submit_date")
       val priority = SQL.Column.string("priority")
       val isabelle_rev = SQL.Column.string("isabelle_rev")
-      val components = SQL.Column.string("components")
+      val extra_components = SQL.Column.string("extra_components")
 
       val prefs = SQL.Column.string("prefs")
       val requirements = SQL.Column.bool("requirements")
@@ -331,9 +338,9 @@ object Build_Manager {
 
       val table =
         make_table(List(kind, build_cluster, hosts_spec, timeout, other_settings, uuid, submit_date,
-          priority, isabelle_rev, components, prefs, requirements, all_sessions, base_sessions,
-          exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
-          clean_build, export_files, fresh_build, presentation, verbose),
+          priority, isabelle_rev, extra_components, prefs, requirements, all_sessions,
+          base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions,
+          build_heap, clean_build, export_files, fresh_build, presentation, verbose),
         name = "pending")
     }
 
@@ -349,10 +356,11 @@ object Build_Manager {
           val submit_date = res.date(Pending.submit_date)
           val priority = Priority.valueOf(res.string(Pending.priority))
           val isabelle_rev = res.string(Pending.isabelle_rev)
-          val components = space_explode(',', res.string(Pending.components)).map(Component.parse)
+          val extra_components =
+            space_explode(',', res.string(Pending.extra_components)).map(Component.parse)
 
           val build_config =
-            if (kind != User_Build.name) CI_Build(kind, build_cluster, components)
+            if (kind != User_Build.name) CI_Build(kind, build_cluster, extra_components)
             else {
               val prefs = Options.Spec.parse(res.string(Pending.prefs))
               val requirements = res.bool(Pending.requirements)
@@ -370,7 +378,7 @@ object Build_Manager {
               val presentation = res.bool(Pending.presentation)
               val verbose = res.bool(Pending.verbose)
 
-              val afp_rev = components.find(_.name == Component.AFP().name).map(_.rev)
+              val afp_rev = extra_components.find(_.name == Component.AFP).map(_.rev)
               User_Build(afp_rev, prefs, requirements, all_sessions, base_sessions,
                 exclude_session_groups, exclude_sessions, session_groups, sessions, build_heap,
                 clean_build, export_files, fresh_build, presentation, verbose)
@@ -406,7 +414,7 @@ object Build_Manager {
             stmt.date(7) = task.submit_date
             stmt.string(8) = task.priority.toString
             stmt.string(9) = task.isabelle_rev
-            stmt.string(10) = task.components.mkString(",")
+            stmt.string(10) = task.extra_components.mkString(",")
 
             def get[A](f: User_Build => A): Option[A] =
               task.build_config match {
@@ -441,7 +449,6 @@ object Build_Manager {
       val uuid = SQL.Column.string("uuid").make_primary_key
       val kind = SQL.Column.string("kind")
       val id = SQL.Column.long("id")
-      val isabelle_rev = SQL.Column.string("isabelle_rev")
       val build_cluster = SQL.Column.bool("build_cluster")
       val hostnames = SQL.Column.string("hostnames")
       val components = SQL.Column.string("components")
@@ -450,8 +457,8 @@ object Build_Manager {
       val cancelled = SQL.Column.bool("cancelled")
 
       val table =
-        make_table(List(uuid, kind, id, isabelle_rev, build_cluster, hostnames, components, timeout,
-          start_date, cancelled),
+        make_table(List(uuid, kind, id, build_cluster, hostnames, components, timeout, start_date,
+          cancelled),
         name = "running")
     }
 
@@ -461,7 +468,6 @@ object Build_Manager {
           val uuid = res.string(Running.uuid)
           val kind = res.string(Running.kind)
           val id = res.long(Running.id)
-          val isabelle_rev = res.string(Running.isabelle_rev)
           val build_cluster = res.bool(Running.build_cluster)
           val hostnames = space_explode(',', res.string(Running.hostnames))
           val components = space_explode(',', res.string(Running.components)).map(Component.parse)
@@ -469,8 +475,8 @@ object Build_Manager {
           val start_date = res.date(Running.start_date)
           val cancelled = res.bool(Running.cancelled)
 
-          val job = Job(UUID.make(uuid), kind, id, isabelle_rev, build_cluster, hostnames,
-            components, timeout, start_date, cancelled)
+          val job = Job(UUID.make(uuid), kind, id, build_cluster, hostnames, components, timeout,
+            start_date, cancelled)
 
           job.name -> job
         })
@@ -493,13 +499,12 @@ object Build_Manager {
             stmt.string(1) = job.uuid.toString
             stmt.string(2) = job.kind
             stmt.long(3) = job.id
-            stmt.string(4) = job.isabelle_rev
-            stmt.bool(5) = job.build_cluster
-            stmt.string(6) = job.hostnames.mkString(",")
-            stmt.string(7) = job.components.mkString(",")
-            stmt.long(8) = job.timeout.ms
-            stmt.date(9) = job.start_date
-            stmt.bool(10) = job.cancelled
+            stmt.bool(4) = job.build_cluster
+            stmt.string(5) = job.hostnames.mkString(",")
+            stmt.string(6) = job.components.mkString(",")
+            stmt.long(7) = job.timeout.ms
+            stmt.date(8) = job.start_date
+            stmt.bool(9) = job.cancelled
           })
       }
       update
@@ -811,31 +816,29 @@ object Build_Manager {
 
             val hostnames = task.build_hosts.map(_.hostname).distinct
 
-            val components =
-              for (component <- task.components)
-              yield sync_dirs.find(_.name == component.name) match {
+            val extra_components =
+              for (extra_component <- task.extra_components)
+              yield sync_dirs.find(_.name == extra_component.name) match {
                 case Some(sync_dir) =>
                   val target = context.task_dir + sync_dir.target
-                  val rev = sync(sync_dir.hg, component.rev, target)
+                  val rev = sync(sync_dir.hg, extra_component.rev, target)
 
-                  if (!component.is_local)
+                  if (!extra_component.is_local)
                     File.append(context.task_dir + Sync.DIRS_ROOTS, sync_dir.roots_entry + "\n")
-                  component.copy(rev = rev)
+                  extra_component.copy(rev = rev)
                 case None =>
-                  if (component.is_local) component
-                  else error("Unknown component " + component)
+                  if (extra_component.is_local) extra_component
+                  else error("Unknown component " + extra_component)
               }
 
-            Job(task.uuid, task.kind, id, isabelle_rev, task.build_cluster, hostnames, components,
-              task.timeout, start_date)
+            Job(task.uuid, task.kind, id, task.build_cluster, hostnames,
+              Component.isabelle(isabelle_rev) :: extra_components, task.timeout, start_date)
           } match {
             case Exn.Res(job) =>
               _state = _state.add_running(job)
 
-              for {
-                component <- Component("Isabelle", job.isabelle_rev) :: job.components
-                if !component.is_local
-              } context.report.progress.echo("Using " + component.toString)
+              for (component <- job.components if !component.is_local)
+                context.report.progress.echo("Using " + component.toString)
 
               Some(context)
             case Exn.Exn(exn) =>
@@ -1159,16 +1162,13 @@ object Build_Manager {
               submit_form("", List(hidden(ID, uuid.toString),
                 api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
-          def render_rev(isabelle_rev: String, components: List[Component]): XML.Body =
-            for {
-              component <- Component("Isabelle", isabelle_rev) :: components
-              if !component.is_local
-            } yield par(text(component.toString))
+          def render_rev(components: List[Component]): XML.Body =
+            for (component <- components if !component.is_local) yield par(text(component.toString))
 
           build match {
             case task: Task =>
               par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
-              render_rev(task.isabelle_rev, task.components) :::
+              render_rev(task.components) :::
               render_cancel(task.uuid)
             case job: Job =>
               val report_data = cache.lookup(store.report(job.kind, job.id))
@@ -1177,7 +1177,7 @@ object Build_Manager {
               par(
                 if (job.cancelled) text("Cancelling...")
                 else text("Running...") ::: render_cancel(job.uuid)) ::
-              render_rev(job.isabelle_rev, job.components) :::
+              render_rev(job.components) :::
               source(report_data.log) :: Nil
             case result: Result =>
               val report_data = cache.lookup(store.report(result.kind, result.id))
@@ -1319,8 +1319,8 @@ object Build_Manager {
       try {
         val init_components =
           for {
-            component <- task.build_config.components
-            target = _dir + Sync.DIRS + Path.basic(component.name)
+            extra_component <- task.build_config.extra_components
+            target = _dir + Sync.DIRS + Path.basic(extra_component.name)
             if Components.is_component_dir(target)
           } yield "init_component " + quote(target.absolute.implode)
 
