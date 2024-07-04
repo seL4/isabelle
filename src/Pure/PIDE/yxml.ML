@@ -18,7 +18,6 @@ signature YXML =
 sig
   val X: Symbol.symbol
   val Y: Symbol.symbol
-  val embed_controls: string -> string
   val detect: string -> bool
   val traverse: (string -> 'a -> 'a) -> XML.tree -> 'a -> 'a
   val tree_size: XML.tree -> int
@@ -40,19 +39,6 @@ structure YXML: YXML =
 struct
 
 (** string representation **)
-
-(* idempotent recoding of certain low ASCII control characters *)
-
-fun pseudo_utf8 c =
-  if Symbol.is_ascii_control c
-  then chr 192 ^ chr (128 + ord c)
-  else c;
-
-fun embed_controls str =
-  if exists_string Symbol.is_ascii_control str
-  then translate_string pseudo_utf8 str
-  else str;
-
 
 (* markers *)
 
