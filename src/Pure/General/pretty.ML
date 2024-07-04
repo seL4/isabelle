@@ -195,7 +195,7 @@ fun enclose lpar rpar prts =
 fun enum sep lpar rpar prts = enclose lpar rpar (separate sep prts);
 
 val position =
-  enum "," "{" "}" o map (fn (x, y) => str (x ^ "=" ^ y)) o Position.properties_of;
+  enum "," "{" "}" o map (str o Properties.print_eq) o Position.properties_of;
 
 fun here pos =
   let

@@ -102,7 +102,7 @@ val Z_text = [XML.Text Z];
 
 fun output_markup (markup as (name, atts)) =
   if Markup.is_empty markup then Markup.no_output
-  else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
+  else (XY ^ name ^ implode (map (fn p => Y ^ Properties.print_eq p) atts) ^ X, XYX);
 
 fun output_markup_elem markup =
   let val [bg1, bg2, en] = space_explode Z (string_of (XML.wrap_elem ((markup, Z_text), Z_text)))
