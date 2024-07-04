@@ -21,6 +21,9 @@ object Value {
   }
 
   object Nat {
+    def unapply(bs: Bytes): Option[scala.Int] =
+      if (bs.byte_iterator.forall(b => '0' <= b && b <= '9')) unapply(bs.text)
+      else None
     def unapply(s: java.lang.String): Option[scala.Int] =
       s match {
         case Int(n) if n >= 0 => Some(n)

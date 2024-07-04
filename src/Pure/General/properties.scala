@@ -21,6 +21,9 @@ object Properties {
       val i = str.indexOf('=')
       if (i <= 0) None else Some((str.substring(0, i), str.substring(i + 1)))
     }
+
+    def parse(s: java.lang.String): Entry =
+      unapply(s) getOrElse error("Bad property entry: " + quote(s))
   }
 
   def defined(props: T, name: java.lang.String): java.lang.Boolean =

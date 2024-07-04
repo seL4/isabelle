@@ -24,11 +24,12 @@ fun shutdown (Message_Channel {mbox, thread}) =
   Mailbox.await_empty mbox;
   Isabelle_Thread.join thread);
 
-fun message (Message_Channel {mbox, ...}) name raw_props chunks =
+fun message (Message_Channel {mbox, ...}) name props chunks =
   let
-    val robust_props = map (apply2 YXML.embed_controls) raw_props;
-    val header = [XML.Elem ((name, robust_props), [])];
-  in Mailbox.send mbox (Message (header :: chunks)) end;
+    val kind = XML.Encode.string name;
+    val props_length = XML.Encode.int (length props);
+    val props_chunks = map (XML.Encode.string o Properties.print_eq) props;
+  in Mailbox.send mbox (Message (kind :: props_length :: props_chunks @ chunks)) end;
 
 fun make stream =
   let
