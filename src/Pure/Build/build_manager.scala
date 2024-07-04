@@ -601,14 +601,19 @@ object Build_Manager {
     private val log_name = "build-manager"
 
     private def log_file = dir + Path.basic(log_name).log
+    private def log_file_gz = dir + Path.basic(log_name).log.gz
 
     def init(): Unit = Isabelle_System.make_directory(dir)
 
-    def ok: Boolean = log_file.is_file
+    def ok: Boolean = log_file.is_file != log_file_gz.is_file
 
     def progress: Progress = new File_Progress(log_file)
 
-    def read: Report.Data = Report.Data(if_proper(ok, File.read(log_file)))
+    def read: Report.Data = {
+      val log =
+        if_proper(ok, if (log_file.is_file) File.read(log_file) else File.read_gzip(log_file_gz))
+      Report.Data(log)
+    }
 
     def result(uuid: Option[UUID.T]): Result = {
       val End = """^Job ended at [^,]+, with status (\w+)$""".r
@@ -626,6 +631,11 @@ object Build_Manager {
       val end_date = meta_info.get_build_end
       val isabelle_version = meta_info.get(Build_Log.Prop.isabelle_version)
       val afp_version = meta_info.get(Build_Log.Prop.afp_version)
+
+      if (log_file.is_file) {
+        File.write_gzip(log_file_gz, build_log_file.text)
+        Isabelle_System.rm_tree(log_file)
+      }
 
       Result(kind, id, status, uuid, build_host, start_date, end_date, isabelle_version,
         afp_version)
