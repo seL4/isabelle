@@ -153,7 +153,7 @@ object Build_Manager {
     }
   }
 
-  enum Status { case ok, cancelled, aborted, failed  }
+  enum Status { case ok, cancelled, aborted, failed }
 
   sealed case class Result(
     kind: String,
@@ -1220,6 +1220,7 @@ object Build_Manager {
               par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
               render_rev(task.components, Map.empty) :::
               render_cancel(task.uuid)
+
             case job: Job =>
               val report_data = cache.lookup(store.report(job.kind, job.id))
 
@@ -1229,6 +1230,7 @@ object Build_Manager {
                 else text("Running...") ::: render_cancel(job.uuid)) ::
               render_rev(job.components, report_data.diffs.toMap) :::
               par(text("Log") :+ source(report_data.log)) :: Nil
+
             case result: Result =>
               val report_data = cache.lookup(store.report(result.kind, result.id))
 
