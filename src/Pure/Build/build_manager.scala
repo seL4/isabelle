@@ -599,7 +599,7 @@ object Build_Manager {
   /** build reports **/
 
   object Report {
-    case class Data(log: String)
+    case class Data(log: String, diffs: List[(String, String)])
   }
 
   case class Report(kind: String, id: Long, dir: Path) {
@@ -617,8 +617,17 @@ object Build_Manager {
     def read: Report.Data = {
       val log =
         if_proper(ok, if (log_file.is_file) File.read(log_file) else File.read_gzip(log_file_gz))
-      Report.Data(log)
+      val diffs =
+        for {
+          name <- File.read_dir(dir)
+          file = dir + Path.basic(name)
+          if file.get_ext == "gz" && file.drop_ext.get_ext == "diff"
+        } yield file.drop_ext.drop_ext.file_name -> File.read_gzip(file)
+      Report.Data(log, diffs)
     }
+
+    def write_diff(name: String, diff: String): Unit =
+      if (diff.nonEmpty) File.write_gzip(dir + Path.basic(name + ".diff").gz, diff)
 
     def result(uuid: Option[UUID.T]): Result = {
       val End = """^Job ended at [^,]+, with status (\w+)$""".r
@@ -780,6 +789,13 @@ object Build_Manager {
       }
     }
 
+    private def diff(repository: Mercurial.Repository, rev0: String, rev: String): String =
+      if (rev0.isEmpty || rev.isEmpty) ""
+      else {
+        val diff_opts = "--noprefix --nodates --ignore-all-space"
+        repository.diff(rev0 + ":" + rev, diff_opts)
+      }
+
     private def start_next(): Option[Context] =
       synchronized_database("start_next") {
         for ((name, task) <- _state.pending if Exn.is_exn(Exn.capture(task.build_hosts))) {
@@ -830,6 +846,21 @@ object Build_Manager {
                   if (extra_component.is_local) extra_component
                   else error("Unknown component " + extra_component)
               }
+
+            if (task.kind != User_Build.name && _state.get_finished(task.kind).nonEmpty) {
+              val previous = _state.get_finished(task.kind).maxBy(_.id)
+
+              for (isabelle_rev0 <- previous.isabelle_version) {
+                context.report.write_diff("Isabelle",
+                  diff(isabelle_repository, isabelle_rev0, isabelle_rev))
+              }
+
+              for {
+                afp_rev0 <- previous.afp_version
+                afp <- extra_components.find(_.name == Component.AFP)
+                sync_dir <- sync_dirs.find(_.name == afp.name)
+              } context.report.write_diff(afp.name, diff(sync_dir.hg, afp_rev0, afp.rev))
+            }
 
             Job(task.uuid, task.kind, id, task.build_cluster, hostnames,
               Component.isabelle(isabelle_rev) :: extra_components, task.timeout, start_date)
@@ -1162,13 +1193,16 @@ object Build_Manager {
               submit_form("", List(hidden(ID, uuid.toString),
                 api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
-          def render_rev(components: List[Component]): XML.Body =
-            for (component <- components if !component.is_local) yield par(text(component.toString))
+          def render_diff(diff: String): XML.Body = List(source(text(diff)))
+
+          def render_rev(components: List[Component], diffs: Map[String, String]): XML.Body =
+            for (component <- components if !component.is_local)
+            yield par(text(component.toString) ++ diffs.get(component.name).flatMap(render_diff))
 
           build match {
             case task: Task =>
               par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
-              render_rev(task.components) :::
+              render_rev(task.components, Map.empty) :::
               render_cancel(task.uuid)
             case job: Job =>
               val report_data = cache.lookup(store.report(job.kind, job.id))
@@ -1177,8 +1211,8 @@ object Build_Manager {
               par(
                 if (job.cancelled) text("Cancelling...")
                 else text("Running...") ::: render_cancel(job.uuid)) ::
-              render_rev(job.components) :::
-              source(report_data.log) :: Nil
+              render_rev(job.components, report_data.diffs.toMap) :::
+              par(text("Log") :+ source(report_data.log)) :: Nil
             case result: Result =>
               val report_data = cache.lookup(store.report(result.kind, result.id))
 
@@ -1186,7 +1220,8 @@ object Build_Manager {
                 if_proper(result.end_date,
                   ", took " + (result.end_date.get - result.start_date).message_hms))) ::
               par(text("Status: " + result.status)) ::
-              source(report_data.log) :: Nil
+              render_rev(result.components, report_data.diffs.toMap) :::
+              par(text("Log") :+ source(report_data.log)) :: Nil
           }
         }
 
