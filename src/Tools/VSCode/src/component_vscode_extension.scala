@@ -161,7 +161,7 @@ object Component_VSCode {
 
       val default = opt.name match {
         case "vscode_unicode_symbols_output" => "true"
-        case "vscode_unicode_symbols_edits" => "false"
+        case "vscode_unicode_symbols_edits" => "true"
         case "vscode_pide_extensions" => "true"
         case "vscode_html_output" => "true"
         case _ => ""
