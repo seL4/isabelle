@@ -7,6 +7,8 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+** HOL **
+
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITIES.
@@ -41,6 +43,19 @@ New in this Isabelle version
 be removed in a furure release.  Minor INCOMPATIBILITY.  Import
 "HOL-Library.Divides" and keep an eye on theorems prefixed with "Divides." to
 ease transition.
+
+
+*** System ***
+
+* The Isabelle/Scala type Bytes has become more scalable, with support
+for incremental construction via Bytes.Builder. There is no longer an
+artificial size limit, in contrast to Java byte arrays (max. 2 GiB).
+Bytes operations on files, streams, encode/decode, compress/uncompress,
+etc. have become more efficient, and bypass Java strings (max. 1 GiB).
+In particular, YXML parsing and printing now works on very large byte
+vectors as well: only the individual content nodes are limited by the
+built-in string size.
+
 
 
 New in Isabelle2024 (May 2024)
