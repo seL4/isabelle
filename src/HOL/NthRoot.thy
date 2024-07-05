@@ -166,10 +166,10 @@ lemma odd_real_root_power_cancel: "odd n \<Longrightarrow> root n (x ^ n) = x"
   by (simp add: odd_pos sgn_real_def power_0_left split: if_split_asm)
 
 lemma real_root_pos_unique: "0 < n \<Longrightarrow> 0 \<le> y \<Longrightarrow> y ^ n = x \<Longrightarrow> root n x = y"
-  using root_sgn_power[of n y] by (auto simp add: le_less power_0_left)
+  using real_root_power_cancel by blast
 
 lemma odd_real_root_unique: "odd n \<Longrightarrow> y ^ n = x \<Longrightarrow> root n x = y"
-  by (erule subst, rule odd_real_root_power_cancel)
+  using odd_real_root_power_cancel by blast
 
 lemma real_root_one [simp]: "0 < n \<Longrightarrow> root n 1 = 1"
   by (simp add: real_root_pos_unique)
