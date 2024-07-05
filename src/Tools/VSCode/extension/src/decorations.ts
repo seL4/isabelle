@@ -192,7 +192,7 @@ export function apply_decoration(decorations: Document_Decorations)
       document_decorations.set(uri.toString(), document)
 
       for (const editor of window.visibleTextEditors) {
-        if (uri.toString === editor.document.uri.toString) {
+        if (uri.toString() === editor.document.uri.toString()) {
           editor.setDecorations(typ, content)
         }
       }
