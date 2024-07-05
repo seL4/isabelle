@@ -8,7 +8,7 @@ package isabelle
 
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream,
-  InputStream, OutputStream, File => JFile}
+  InputStreamReader, InputStream, OutputStream, File => JFile}
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.channels.FileChannel
@@ -25,6 +25,7 @@ object Bytes {
   /* internal sizes */
 
   private val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
+  private val string_size: Long = Int.MaxValue / 2
   private val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
   private val chunk_size: Long = Space.MiB(100).bytes
 
@@ -483,19 +484,19 @@ final class Bytes private(
     buf.toByteArray
   }
 
-  override def text: String =
+  def text: String =
     if (is_empty) ""
     else {
-      var i = 0L
-      var utf8 = false
-      while (i < size && !utf8) {
-        if (byte_unchecked(i) < 0) { utf8 = true }
-        i += 1
+      val reader = new InputStreamReader(stream(), UTF8.charset)
+      val buf = new Array[Char]((size min Bytes.string_size).toInt + 1)
+      var m = 0
+      var n = 0
+      while (m >= 0 && n < buf.length) {
+        m = reader.read(buf, n, (buf.length - n) min Bytes.block_size)
+        if (m > 0) { n += m }
       }
-      utf8
-
-      if (utf8) UTF8.decode_permissive(bytes)
-      else new String(make_array, UTF8.charset)
+      require(m == -1, "Malformed UTF-8 string: overlong result")
+      new String(buf, 0, n)
     }
 
   def wellformed_text: Option[String] =
