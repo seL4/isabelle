@@ -32,10 +32,10 @@ object Bytes {
   private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
     chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
 
-  class Too_Large(size: Long) extends IndexOutOfBoundsException {
+  class Too_Large(size: Long, limit: Long) extends IndexOutOfBoundsException {
     override def getMessage: String =
       "Bytes too large for particular operation: " +
-        Space.bytes(size).print + " > " + Space.bytes(array_size).print
+        Space.bytes(size).print + " > " + Space.bytes(limit).print
   }
 
 
@@ -294,10 +294,6 @@ final class Bytes private(
       chunks.get.forall(chunk => chunk.length == Bytes.chunk_size)) &&
     chunk0.length < Bytes.chunk_size)
 
-  def small_size: Int =
-    if (size > Bytes.array_size) throw new Bytes.Too_Large(size)
-    else size.toInt
-
   override def is_empty: Boolean = size == 0
 
   def proper: Option[Bytes] = if (is_empty) None else Some(bytes)
@@ -479,7 +475,10 @@ final class Bytes private(
     }
 
   def make_array: Array[Byte] = {
-    val buf = new ByteArrayOutputStream(small_size)
+    val n =
+      if (size <= Bytes.array_size) size.toInt
+      else throw new Bytes.Too_Large(size, Bytes.array_size)
+    val buf = new ByteArrayOutputStream(n)
     for (a <- subarray_iterator) { buf.write(a.array, a.offset, a.length) }
     buf.toByteArray
   }
