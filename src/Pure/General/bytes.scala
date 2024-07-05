@@ -22,12 +22,12 @@ import scala.collection.mutable
 
 
 object Bytes {
-  /* internal sizes */
+  /* internal limits */
 
-  private val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
-  private val string_size: Long = Int.MaxValue / 2
-  private val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
-  private val chunk_size: Long = Space.MiB(100).bytes
+  val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
+  val string_size: Long = Int.MaxValue / 2
+  val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
+  val chunk_size: Long = Space.MiB(100).bytes
 
   class Too_Large(size: Long, limit: Long) extends IndexOutOfBoundsException {
     override def getMessage: String =
