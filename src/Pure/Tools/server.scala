@@ -189,7 +189,7 @@ object Server {
       catch { case _: IOException => }
 
     def write_line_message(msg: String): Unit =
-      out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
+      out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(msg)) }
 
     def write_byte_message(chunks: List[Bytes]): Unit =
       out_lock.synchronized { Byte_Message.write_message(out, chunks) }
