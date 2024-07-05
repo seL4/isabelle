@@ -10,7 +10,6 @@ Isabelle/VSCode extension.
 import * as platform from './platform'
 import * as library from './library'
 import * as file from './file'
-import * as symbol from './symbol'
 import * as vscode_lib from './vscode_lib'
 import * as decorations from './decorations'
 import * as preview_panel from './preview_panel'
