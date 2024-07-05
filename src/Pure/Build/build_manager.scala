@@ -792,8 +792,9 @@ object Build_Manager {
     private def diff(repository: Mercurial.Repository, rev0: String, rev: String): String =
       if (rev0.isEmpty || rev.isEmpty) ""
       else {
-        val diff_opts = "--noprefix --nodates --ignore-all-space"
-        repository.diff(rev0 + ":" + rev, diff_opts)
+        val diff_opts = "--noprefix --nodates --ignore-all-space --color always"
+        val cmd = repository.command_line("diff", Mercurial.opt_rev(rev0 + ":" + rev), diff_opts)
+        Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
       }
 
     private def start_next(): Option[Context] =
@@ -1193,7 +1194,22 @@ object Build_Manager {
               submit_form("", List(hidden(ID, uuid.toString),
                 api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
-          def render_diff(diff: String): XML.Body = List(source(text(diff)))
+          def render_diff(diff: String): XML.Body = {
+            val Colored = "\u001b\\[([0-9;]+)m(.*)\u001b\\[0m".r
+            val colors = List("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")
+
+            val lines = split_lines(diff).map {
+              case Colored(code, s) =>
+                val codes = space_explode(';', code.stripSuffix(";1")).map(Value.Int.parse)
+                val fg = codes match { case 0 :: i :: Nil => colors.unapply(i - 30) case _ => None }
+
+                val sp = span(if (code.endsWith(";1")) List(bold(text(s))) else text(s))
+                List(fg.map(color => sp + ("style" -> ("color:" + color))).getOrElse(sp))
+              case line => text(Library.strip_ansi_color(line))
+            }
+
+            List(source(Library.separate(nl, lines).flatten))
+          }
 
           def render_rev(components: List[Component], diffs: Map[String, String]): XML.Body =
             for (component <- components if !component.is_local)
