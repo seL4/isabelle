@@ -29,9 +29,6 @@ object Bytes {
   private val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
   private val chunk_size: Long = Space.MiB(100).bytes
 
-  private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
-    chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
-
   class Too_Large(size: Long, limit: Long) extends IndexOutOfBoundsException {
     override def getMessage: String =
       "Bytes too large for particular operation: " +
@@ -302,7 +299,9 @@ final class Bytes private(
     offset != 0L || {
       chunks match {
         case None => size != chunk0.length
-        case Some(cs) => size != Bytes.make_size(cs, chunk0)
+        case Some(cs) =>
+          val physical_size = cs.foldLeft(chunk0.length.toLong)((n, c) => n + c.length)
+          size != physical_size
       }
     }
 
