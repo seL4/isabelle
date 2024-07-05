@@ -240,7 +240,8 @@ object Bytes {
       chunks = null
       buffer_list = null
       buffer = null
-      new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
+      if (size == 0) empty
+      else new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
     }
   }
 
