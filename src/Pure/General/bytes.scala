@@ -38,11 +38,7 @@ object Bytes {
 
   /* main constructors */
 
-  private def reuse_array(bytes: Array[Byte]): Bytes =
-    if (bytes.length <= chunk_size) new Bytes(None, bytes, 0L, bytes.length.toLong)
-    else apply(bytes)
-
-  val empty: Bytes = reuse_array(new Array(0))
+  val empty: Bytes = new Bytes(None, new Array(0), 0L, 0L)
 
   def raw(s: String): Bytes =
     if (s.isEmpty) empty
