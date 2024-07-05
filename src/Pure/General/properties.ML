@@ -8,6 +8,7 @@ signature PROPERTIES =
 sig
   type entry = string * string
   type T = entry list
+  val print_eq: entry -> string
   val entry_ord: entry ord
   val ord: T ord
   val defined: T -> string -> bool
@@ -25,7 +26,10 @@ structure Properties: PROPERTIES =
 struct
 
 type entry = string * string;
+
 type T = entry list;
+
+fun print_eq (a, b) = a ^ "=" ^ b;
 
 val entry_ord = prod_ord string_ord string_ord;
 val ord = list_ord entry_ord;

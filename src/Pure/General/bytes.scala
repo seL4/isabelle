@@ -1,14 +1,14 @@
 /*  Title:      Pure/General/bytes.scala
     Author:     Makarius
 
-Immutable byte vectors versus UTF8 strings.
+Scalable byte strings, with incremental construction (via Builder).
 */
 
 package isabelle
 
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream,
-  InputStream, OutputStream, File => JFile}
+  InputStreamReader, InputStream, OutputStream, File => JFile}
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.channels.FileChannel
@@ -22,29 +22,23 @@ import scala.collection.mutable
 
 
 object Bytes {
-  /* internal sizes */
+  /* internal limits */
 
-  private val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
-  private val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
-  private val chunk_size: Long = Space.MiB(100).bytes
+  val array_size: Long = Int.MaxValue - 8  // see java.io.InputStream.MAX_BUFFER_SIZE
+  val string_size: Long = Int.MaxValue / 2
+  val block_size: Int = 16384  // see java.io.InputStream.DEFAULT_BUFFER_SIZE
+  val chunk_size: Long = Space.MiB(100).bytes
 
-  private def make_size(chunks: Array[Array[Byte]], buffer: Array[Byte]): Long =
-    chunks.foldLeft(buffer.length.toLong)((n, chunk) => n + chunk.length)
-
-  class Too_Large(size: Long) extends IndexOutOfBoundsException {
+  class Too_Large(size: Long, limit: Long) extends IndexOutOfBoundsException {
     override def getMessage: String =
       "Bytes too large for particular operation: " +
-        Space.bytes(size).print + " > " + Space.bytes(array_size).print
+        Space.bytes(size).print + " > " + Space.bytes(limit).print
   }
 
 
   /* main constructors */
 
-  private def reuse_array(bytes: Array[Byte]): Bytes =
-    if (bytes.length <= chunk_size) new Bytes(None, bytes, 0L, bytes.length.toLong)
-    else apply(bytes)
-
-  val empty: Bytes = reuse_array(new Array(0))
+  val empty: Bytes = new Bytes(None, new Array(0), 0L, 0L)
 
   def raw(s: String): Bytes =
     if (s.isEmpty) empty
@@ -246,7 +240,8 @@ object Bytes {
       chunks = null
       buffer_list = null
       buffer = null
-      new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
+      if (size == 0) empty
+      else new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
     }
   }
 
@@ -293,10 +288,6 @@ final class Bytes private(
       chunks.get.forall(chunk => chunk.length == Bytes.chunk_size)) &&
     chunk0.length < Bytes.chunk_size)
 
-  def small_size: Int =
-    if (size > Bytes.array_size) throw new Bytes.Too_Large(size)
-    else size.toInt
-
   override def is_empty: Boolean = size == 0
 
   def proper: Option[Bytes] = if (is_empty) None else Some(bytes)
@@ -305,7 +296,9 @@ final class Bytes private(
     offset != 0L || {
       chunks match {
         case None => size != chunk0.length
-        case Some(cs) => size != Bytes.make_size(cs, chunk0)
+        case Some(cs) =>
+          val physical_size = cs.foldLeft(chunk0.length.toLong)((n, c) => n + c.length)
+          size != physical_size
       }
     }
 
@@ -478,24 +471,27 @@ final class Bytes private(
     }
 
   def make_array: Array[Byte] = {
-    val buf = new ByteArrayOutputStream(small_size)
+    val n =
+      if (size <= Bytes.array_size) size.toInt
+      else throw new Bytes.Too_Large(size, Bytes.array_size)
+    val buf = new ByteArrayOutputStream(n)
     for (a <- subarray_iterator) { buf.write(a.array, a.offset, a.length) }
     buf.toByteArray
   }
 
-  override def text: String =
+  def text: String =
     if (is_empty) ""
     else {
-      var i = 0L
-      var utf8 = false
-      while (i < size && !utf8) {
-        if (byte_unchecked(i) < 0) { utf8 = true }
-        i += 1
+      val reader = new InputStreamReader(stream(), UTF8.charset)
+      val buf = new Array[Char]((size min Bytes.string_size).toInt + 1)
+      var m = 0
+      var n = 0
+      while (m >= 0 && n < buf.length) {
+        m = reader.read(buf, n, (buf.length - n) min Bytes.block_size)
+        if (m > 0) { n += m }
       }
-      utf8
-
-      if (utf8) UTF8.decode_permissive(bytes)
-      else new String(make_array, UTF8.charset)
+      require(m == -1, "Malformed UTF-8 string: overlong result")
+      new String(buf, 0, n)
     }
 
   def wellformed_text: Option[String] =

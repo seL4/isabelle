@@ -246,8 +246,13 @@ class Prover(
   /* message output */
 
   private def message_output(stream: InputStream): Thread = {
-    def decode_chunk(chunk: Bytes): XML.Body =
-      Symbol.decode_yxml_failsafe(chunk.text, cache = cache)
+    def decode_prop(bytes: Bytes): Properties.Entry = {
+      val (a, b) = Properties.Eq.parse(bytes.text)
+      (Symbol.decode(a), Symbol.decode(b))
+    }
+
+    def decode_xml(bytes: Bytes): XML.Body =
+      Symbol.decode_yxml_failsafe(bytes.text, cache = cache)
 
     val thread_name = "message_output"
     Isabelle_Thread.fork(name = thread_name) {
@@ -256,13 +261,12 @@ class Prover(
         while (!finished) {
           Byte_Message.read_message(stream) match {
             case None => finished = true
-            case Some(header :: chunks) =>
-              decode_chunk(header) match {
-                case List(XML.Elem(Markup(kind, props), Nil)) =>
-                  if (kind == Markup.PROTOCOL) protocol_output(props, chunks)
-                  else output(kind, props, decode_chunk(Prover.the_chunk(chunks, kind)))
-                case _ => Prover.bad_header(header.toString)
-              }
+            case Some(k :: Value.Nat(props_length) :: rest) =>
+              val kind = k.text
+              val props = rest.take(props_length).map(decode_prop)
+              val chunks = rest.drop(props_length)
+              if (kind == Markup.PROTOCOL) protocol_output(props, chunks)
+              else output(kind, props, chunks.flatMap(decode_xml))
             case Some(_) => Prover.bad_chunks()
           }
         }
