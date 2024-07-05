@@ -164,11 +164,11 @@ export function setup(context: ExtensionContext)
 /* decoration for document node */
 
 type Content = Range[] | DecorationOptions[]
-const document_decorations = new Map<Uri, Map<string, Content>>()
+const document_decorations = new Map<string, Map<string, Content>>()
 
 export function close_document(document: TextDocument)
 {
-  document_decorations.delete(document.uri)
+  document_decorations.delete(document.uri.toString())
 }
 
 export function apply_decoration(decorations: Document_Decorations)
@@ -187,9 +187,9 @@ export function apply_decoration(decorations: Document_Decorations)
           }
         })
 
-      const document = document_decorations.get(uri) || new Map<string, Content>()
+      const document = document_decorations.get(uri.toString()) || new Map<string, Content>()
       document.set(decoration.type, content)
-      document_decorations.set(uri, document)
+      document_decorations.set(uri.toString(), document)
 
       for (const editor of window.visibleTextEditors) {
         if (uri.toString === editor.document.uri.toString) {
@@ -203,7 +203,7 @@ export function apply_decoration(decorations: Document_Decorations)
 export function update_editor(editor: TextEditor)
 {
   if (editor) {
-    const decorations = document_decorations.get(editor.document.uri)
+    const decorations = document_decorations.get(editor.document.uri.toString())
     if (decorations) {
       for (const [typ, content] of decorations) {
         editor.setDecorations(types.get(typ), content)
