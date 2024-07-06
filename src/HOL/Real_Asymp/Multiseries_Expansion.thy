@@ -3323,7 +3323,7 @@ proof -
   from assms have "eventually (\<lambda>x. b x > 0) at_top" 
     by (simp add: basis_wf_Cons filterlim_at_top_dense)
   moreover have "(\<lambda>a. inverse (a powr 1)) \<in> o(\<lambda>a. a powr e')" if "e' > -1" for e' :: real
-    using that by (simp add: landau_o.small.inverse_eq2 powr_add [symmetric] one_smallo_powr)
+    using that by (simp add: landau_o.small.inverse_eq2 one_smallo_powr flip: powr_one' powr_add)
   ultimately show ?thesis using assms
     by (auto simp: expands_to.simps basis_wf_Cons powr_minus
              elim: eventually_mono

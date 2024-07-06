@@ -94,7 +94,7 @@ proof -
   proof -
     have "ln (1 + real n + sqrt ((1 + real n)\<^sup>2 - 1)) - ln (real n + sqrt ((real n)\<^sup>2 - 1)) =
          ln ((1 + real n + sqrt ((1 + real n)\<^sup>2 - 1)) / (real n + sqrt ((real n)\<^sup>2 - 1)))"
-      by (simp add: \<open>0 < n\<close> Schottky_lemma1 add_pos_nonneg ln_div [symmetric])
+      by (simp add: \<open>0 < n\<close> Schottky_lemma1 add_pos_nonneg ln_divide_pos [symmetric])
     also have "... \<le> 3"
     proof (cases "n = 1")
       case True

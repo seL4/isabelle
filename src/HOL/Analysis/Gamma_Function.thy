@@ -2756,7 +2756,7 @@ proof -
           exp (z * of_real (\<Sum>k = 1..n. ln (1 + 1 / real_of_nat k)))"
     by (subst exp_sum [symmetric]) (simp_all add: sum_distrib_left)
   also have "(\<Sum>k=1..n. ln (1 + 1 / of_nat k) :: real) = ln (\<Prod>k=1..n. 1 + 1 / real_of_nat k)"
-    by (subst ln_prod [symmetric]) (auto intro!: add_pos_nonneg)
+    by (subst ln_prod [symmetric]) (auto simp: divide_simps)
   also have "(\<Prod>k=1..n. 1 + 1 / of_nat k :: real) = (\<Prod>k=1..n. (of_nat k + 1) / of_nat k)"
     by (intro prod.cong) (simp_all add: field_split_simps)
   also have "(\<Prod>k=1..n. (of_nat k + 1) / of_nat k :: real) = of_nat n + 1"

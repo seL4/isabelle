@@ -73,7 +73,7 @@ lemma hlog_powhr_cancel [simp]: "\<And>a y. 0 < a \<Longrightarrow> a \<noteq> 1
   by transfer simp
 
 lemma hlog_mult:
-  "\<And>a x y. 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> hlog a (x * y) = hlog a x + hlog a y"
+  "\<And>a x y. 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> (x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> hlog a (x * y) = hlog a x + hlog a y"
   by transfer (rule log_mult)
 
 lemma hlog_as_starfun: "\<And>a x. 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> hlog a x = ( *f* ln) x / ( *f* ln) a"

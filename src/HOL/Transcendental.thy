@@ -1561,28 +1561,55 @@ definition powr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a::ln"  (infixr "powr" 80
 lemma powr_0 [simp]: "0 powr z = 0"
   by (simp add: powr_def)
 
-
+text \<open>We totalise @{term ln} over all reals exactly as done in Mathlib\<close>
 instantiation real :: ln
 begin
 
+definition raw_ln_real :: "real \<Rightarrow> real"
+  where "raw_ln_real x \<equiv> (THE u. exp u = x)"
+
 definition ln_real :: "real \<Rightarrow> real"
-  where "ln_real x = (THE u. exp u = x)"
+  where "ln_real \<equiv> \<lambda>x. if x=0 then 0 else raw_ln_real \<bar>x\<bar>"
 
 instance
-  by intro_classes (simp add: ln_real_def)
+  by intro_classes (simp add: ln_real_def raw_ln_real_def)
 
 end
 
 lemma powr_eq_0_iff [simp]: "w powr z = 0 \<longleftrightarrow> w = 0"
   by (simp add: powr_def)
 
+lemma raw_ln_exp [simp]: "raw_ln_real (exp x) = x"
+  by (simp add: raw_ln_real_def)
+
+lemma exp_raw_ln [simp]: "0 < x \<Longrightarrow> exp (raw_ln_real x) = x"
+  by (auto dest: exp_total)
+
+lemma raw_ln_unique: "exp y = x \<Longrightarrow> raw_ln_real x = y"
+  by auto
+
+lemma abs_raw_ln: "x \<noteq> 0 \<Longrightarrow> raw_ln_real\<bar>x\<bar> = ln x"
+  by (simp add: ln_real_def)
+
+lemma ln_0 [simp]: "ln (0::real) = 0"
+  by (simp add: ln_real_def)
+
+lemma ln_minus [simp]: "ln (-x) = ln x"
+  for x :: real
+  by (simp add: ln_real_def)
+
 lemma ln_exp [simp]: "ln (exp x) = x"
   for x :: real
   by (simp add: ln_real_def)
 
+lemma exp_ln_abs:
+  fixes x::real 
+  shows "x \<noteq> 0 \<Longrightarrow> exp (ln x) = \<bar>x\<bar>"
+  by (simp add: ln_real_def)
+
 lemma exp_ln [simp]: "0 < x \<Longrightarrow> exp (ln x) = x"
   for x :: real
-  by (auto dest: exp_total)
+  using exp_ln_abs by fastforce
 
 lemma exp_ln_iff [simp]: "exp (ln x) = x \<longleftrightarrow> 0 < x"
   for x :: real
@@ -1590,26 +1617,48 @@ lemma exp_ln_iff [simp]: "exp (ln x) = x \<longleftrightarrow> 0 < x"
 
 lemma ln_unique: "exp y = x \<Longrightarrow> ln x = y"
   for x :: real
-  by (erule subst) (rule ln_exp)
+  by auto
 
-lemma ln_mult: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
+lemma ln_unique': "exp y = \<bar>x\<bar> \<Longrightarrow> ln x = y"
   for x :: real
-  by (rule ln_unique) (simp add: exp_add)
+  by (metis abs_raw_ln abs_zero exp_not_eq_zero raw_ln_exp)
 
-lemma ln_prod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i > 0) \<Longrightarrow> ln (prod f I) = sum (\<lambda>x. ln(f x)) I"
+lemma raw_ln_mult: "x>0 \<Longrightarrow> y>0 \<Longrightarrow> raw_ln_real (x * y) = raw_ln_real x + raw_ln_real y"
+  by (metis exp_add exp_ln raw_ln_exp)
+
+lemma ln_mult: "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> ln (x * y) = ln x + ln y"
+  for x :: real
+  by (simp add: ln_real_def abs_mult raw_ln_mult)
+
+lemma ln_mult_pos: "x>0 \<Longrightarrow> y>0 \<Longrightarrow> ln (x * y) = ln x + ln y"
+  for x :: real
+  by (simp add: ln_mult)
+
+lemma ln_prod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<noteq> 0) \<Longrightarrow> ln (prod f I) = sum (\<lambda>x. ln(f x)) I"
   for f :: "'a \<Rightarrow> real"
   by (induct I rule: finite_induct) (auto simp: ln_mult prod_pos)
 
-lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
+lemma ln_inverse: "ln (inverse x) = - ln x"
   for x :: real
-  by (rule ln_unique) (simp add: exp_minus)
+  by (smt (verit) inverse_nonzero_iff_nonzero ln_mult ln_one ln_real_def right_inverse)
 
-lemma ln_div: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x / y) = ln x - ln y"
+lemma ln_div: "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> ln (x/y) = ln x - ln y"
   for x :: real
-  by (rule ln_unique) (simp add: exp_diff)
+  by (simp add: divide_inverse ln_inverse ln_mult)
 
-lemma ln_realpow: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
-  by (rule ln_unique) (simp add: exp_of_nat_mult)
+lemma ln_divide_pos: "x>0 \<Longrightarrow> y>0 \<Longrightarrow> ln (x/y) = ln x - ln y"
+  for x :: real
+  by (simp add: divide_inverse ln_inverse ln_mult)
+
+lemma ln_realpow: "ln (x^n) = real n * ln x"
+proof (cases "x=0")
+  case True
+  then show ?thesis by (auto simp: power_0_left)
+next
+  case False
+  then show ?thesis
+    by (induction n) (auto simp: ln_mult distrib_right)
+qed
 
 lemma ln_less_cancel_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
   for x :: real
@@ -1677,32 +1726,36 @@ lemma ln_less_zero: "0 < x \<Longrightarrow> x < 1 \<Longrightarrow> ln x < 0"
   for x :: real
   by simp
 
-lemma ln_neg_is_const: "x \<le> 0 \<Longrightarrow> ln x = (THE x. False)"
+lemma ln_neg: "ln (-x) = ln x"
   for x :: real
-  by (auto simp: ln_real_def intro!: arg_cong[where f = The])
+  by simp
 
 lemma powr_eq_one_iff [simp]:
   "a powr x = 1 \<longleftrightarrow> x = 0" if "a > 1" for a x :: real
   using that by (auto simp: powr_def split: if_splits)
+
+text \<open>A consequence of our "totalising" of ln\<close>
+lemma uminus_powr_eq: "(-a) powr x = a powr x" for x::real
+  by (simp add: powr_def)
+
+lemma isCont_ln_pos:
+  fixes x :: real
+  assumes "x > 0"
+  shows "isCont ln x"
+  by (metis assms exp_ln isCont_exp isCont_inverse_function ln_exp)
 
 lemma isCont_ln:
   fixes x :: real
   assumes "x \<noteq> 0"
   shows "isCont ln x"
 proof (cases "0 < x")
-  case True
-  then have "isCont ln (exp (ln x))"
-    by (intro isCont_inverse_function[where d = "\<bar>x\<bar>" and f = exp]) auto
-  with True show ?thesis
-    by simp
-next
   case False
-  with \<open>x \<noteq> 0\<close> show "isCont ln x"
-    unfolding isCont_def
-    by (subst filterlim_cong[OF _ refl, of _ "nhds (ln 0)" _ "\<lambda>_. ln 0"])
-       (auto simp: ln_neg_is_const not_less eventually_at dist_real_def
-         intro!: exI[of _ "\<bar>x\<bar>"])
-qed
+  then have "isCont (ln o uminus) x"
+    using isCont_minus [OF continuous_ident] assms continuous_at_compose isCont_ln_pos 
+    by force
+  then show ?thesis
+    using isCont_cong by force
+qed (simp add: isCont_ln_pos)
 
 lemma tendsto_ln [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. ln (f x)) \<longlongrightarrow> ln a) F"
   for a :: real
@@ -2042,7 +2095,7 @@ proof -
   have "x * ln y - x * ln x = x * (ln y - ln x)"
     by (simp add: algebra_simps)
   also have "\<dots> = x * ln (y / x)"
-    by (simp only: ln_div a b)
+    using a b ln_div by force
   also have "y / x = (x + (y - x)) / x"
     by simp
   also have "\<dots> = 1 + (y - x) / x"
@@ -2279,37 +2332,32 @@ definition log :: "real \<Rightarrow> real \<Rightarrow> real"
   where "log a x = ln x / ln a"
 
 lemma tendsto_log [tendsto_intros]:
-  "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < b \<Longrightarrow>
+  "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> b\<noteq>0 \<Longrightarrow>
     ((\<lambda>x. log (f x) (g x)) \<longlongrightarrow> log a b) F"
   unfolding log_def by (intro tendsto_intros) auto
 
 lemma continuous_log:
   assumes "continuous F f"
     and "continuous F g"
-    and "0 < f (Lim F (\<lambda>x. x))"
+    and "f (Lim F (\<lambda>x. x)) > 0"
     and "f (Lim F (\<lambda>x. x)) \<noteq> 1"
-    and "0 < g (Lim F (\<lambda>x. x))"
+    and "g (Lim F (\<lambda>x. x)) \<noteq> 0"
   shows "continuous F (\<lambda>x. log (f x) (g x))"
-  using assms unfolding continuous_def by (rule tendsto_log)
+  using assms by (simp add: continuous_def tendsto_log)
 
 lemma continuous_at_within_log[continuous_intros]:
   assumes "continuous (at a within s) f"
     and "continuous (at a within s) g"
     and "0 < f a"
     and "f a \<noteq> 1"
-    and "0 < g a"
+    and "g a \<noteq> 0"
   shows "continuous (at a within s) (\<lambda>x. log (f x) (g x))"
   using assms unfolding continuous_within by (rule tendsto_log)
 
-lemma isCont_log[continuous_intros, simp]:
-  assumes "isCont f a" "isCont g a" "0 < f a" "f a \<noteq> 1" "0 < g a"
-  shows "isCont (\<lambda>x. log (f x) (g x)) a"
-  using assms unfolding continuous_at by (rule tendsto_log)
-
 lemma continuous_on_log[continuous_intros]:
-  assumes "continuous_on s f" "continuous_on s g"
-    and "\<forall>x\<in>s. 0 < f x" "\<forall>x\<in>s. f x \<noteq> 1" "\<forall>x\<in>s. 0 < g x"
-  shows "continuous_on s (\<lambda>x. log (f x) (g x))"
+  assumes "continuous_on S f" "continuous_on S g"
+    and "\<forall>x\<in>S. 0 < f x" "\<forall>x\<in>S. f x \<noteq> 1" "\<forall>x\<in>S. g x \<noteq> 0"
+  shows "continuous_on S (\<lambda>x. log (f x) (g x))"
   using assms unfolding continuous_on_def by (fast intro: tendsto_log)
 
 lemma exp_powr_real:
@@ -2328,31 +2376,30 @@ lemma powr_one_gt_zero_iff [simp]: "x powr 1 = x \<longleftrightarrow> 0 \<le> x
 declare powr_one_gt_zero_iff [THEN iffD2, simp]
 
 lemma powr_diff:
-  fixes w:: "'a::{ln,real_normed_field}" shows  "w powr (z1 - z2) = w powr z1 / w powr z2"
+  fixes w:: "'a::{ln,real_normed_field}" 
+  shows "w powr (z1 - z2) = w powr z1 / w powr z2"
   by (simp add: powr_def algebra_simps exp_diff)
 
-lemma powr_mult: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> (x * y) powr a = (x powr a) * (y powr a)"
+lemma powr_mult: "(x * y) powr a = (x powr a) * (y powr a)"
   for a x y :: real
   by (simp add: powr_def exp_add [symmetric] ln_mult distrib_left)
 
 lemma prod_powr_distrib:
   fixes  x :: "'a \<Rightarrow> real"
-  assumes "\<And>i. i\<in>I \<Longrightarrow> x i \<ge> 0"
   shows "(prod x I) powr r = (\<Prod>i\<in>I. x i powr r)"
-  using assms
   by (induction I rule: infinite_finite_induct) (auto simp add: powr_mult prod_nonneg)
 
 lemma powr_ge_pzero [simp]: "0 \<le> x powr y"
   for x y :: real
   by (simp add: powr_def)
 
-lemma powr_non_neg[simp]: "\<not>a powr x < 0" for a x::real
+lemma powr_non_neg[simp]: "\<not> a powr x < 0" for a x::real
   using powr_ge_pzero[of a x] by arith
 
-lemma inverse_powr: "\<And>y::real. 0 \<le> y \<Longrightarrow> inverse y powr a = inverse (y powr a)"
+lemma inverse_powr: "\<And>y::real. inverse y powr a = inverse (y powr a)"
     by (simp add: exp_minus ln_inverse powr_def)
 
-lemma powr_divide: "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> (x / y) powr a = (x powr a) / (y powr a)"
+lemma powr_divide: "(x / y) powr a = (x powr a) / (y powr a)"
   for a b x :: real
     by (simp add: divide_inverse powr_mult inverse_powr)
 
@@ -2364,13 +2411,17 @@ lemma powr_mult_base: "0 \<le> x \<Longrightarrow>x * x powr y = x powr (1 + y)"
   for x :: real
   by (auto simp: powr_add)
 
+lemma powr_mult_base': "abs x * x powr y = x powr (1 + y)"
+  for x :: real
+  by (smt (verit) powr_mult_base uminus_powr_eq)
+
 lemma powr_powr: "(x powr a) powr b = x powr (a * b)"
   for a b x :: real
   by (simp add: powr_def)
 
 lemma powr_power: 
   fixes z:: "'a::{real_normed_field,ln}"
-  shows "z \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> (z powr u) ^ n = z powr (of_nat n * u)"
+  shows "z \<noteq> 0 \<Longrightarrow> (z powr u) ^ n = z powr (of_nat n * u)"
   by (induction n) (auto simp: algebra_simps powr_add)
 
 lemma powr_powr_swap: "(x powr a) powr b = (x powr b) powr a"
@@ -2385,8 +2436,17 @@ lemma powr_minus_divide: "x powr (- a) = 1/(x powr a)"
       for a x :: "'a::{ln,real_normed_field}"
   by (simp add: divide_inverse powr_minus)
 
-lemma powr_sum: "x \<noteq> 0 \<Longrightarrow> finite A \<Longrightarrow> x powr sum f A = (\<Prod>y\<in>A. x powr f y)"
-  by (simp add: powr_def exp_sum sum_distrib_right)
+lemma powr_sum: 
+  assumes "x \<noteq> 0"
+  shows "x powr sum f A = (\<Prod>y\<in>A. x powr f y)"
+proof (cases "finite A")
+  case True
+  with assms show ?thesis 
+    by (simp add: powr_def exp_sum sum_distrib_right)
+next
+  case False
+  with assms show ?thesis by auto
+qed
 
 lemma divide_powr_uminus: "a / b powr c = a * b powr (- c)"
   for a b c :: real
@@ -2427,7 +2487,7 @@ lemma exp_minus_greater:
   fixes x::real shows "1 - x < exp (-x) \<longleftrightarrow> x \<noteq> 0"
   by (smt (verit) exp_minus_ge exp_eq_one_iff exp_gt_zero ln_eq_minus_one ln_exp)
 
-lemma log_ln: "ln x = log (exp(1)) x"
+lemma log_ln: "ln x = log (exp 1) x"
   by (simp add: log_def)
 
 lemma DERIV_log:
@@ -2454,7 +2514,11 @@ lemma powr_eq_iff: "\<lbrakk>y>0; a>1\<rbrakk> \<Longrightarrow> a powr x = y \<
   by auto
 
 lemma log_mult:
-  "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x * y) = log a x + log a y"
+  "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> log a (x * y) = log a x + log a y"
+  by (simp add: log_def ln_mult divide_inverse distrib_right)
+
+lemma log_mult_pos:
+  "x>0 \<Longrightarrow> y>0 \<Longrightarrow> log a (x * y) = log a x + log a y"
   by (simp add: log_def ln_mult divide_inverse distrib_right)
 
 lemma log_eq_div_ln_mult_log:
@@ -2474,11 +2538,19 @@ lemma log_one [simp]: "log a 1 = 0"
 lemma log_eq_one [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a a = 1"
   by (simp add: log_def)
 
-lemma log_inverse: "0 < x \<Longrightarrow> log a (inverse x) = - log a x"
-  using ln_inverse log_def by auto
+lemma log_inverse: "log a (inverse x) = - log a x"
+  by (simp add: ln_inverse log_def)
 
-lemma log_divide: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x/y) = log a x - log a y"
-  by (simp add: log_mult divide_inverse log_inverse)
+lemma log_recip: "log a (1/x) = - log a x"
+  by (simp add: divide_inverse log_inverse)
+
+lemma log_divide:
+  "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> log a (x / y) = log a x - log a y"
+  by (simp add: diff_divide_distrib ln_div log_def)
+
+lemma log_divide_pos:
+  "x>0 \<Longrightarrow> y>0 \<Longrightarrow> log a (x / y) = log a x - log a y"
+  using log_divide by auto
 
 lemma powr_gt_zero [simp]: "0 < x powr a \<longleftrightarrow> x \<noteq> 0"
   for a x :: real
@@ -2488,11 +2560,13 @@ lemma powr_nonneg_iff[simp]: "a powr x \<le> 0 \<longleftrightarrow> a = 0"
   for a x::real
   by (meson not_less powr_gt_zero)
 
-lemma log_add_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log b x + y = log b (x * b powr y)"
-  and add_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> y + log b x = log b (b powr y * x)"
-  and log_minus_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log b x - y = log b (x * b powr -y)"
-  and minus_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> y - log b x = log b (b powr y / x)"
+lemma log_add_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> log b x + y = log b (x * b powr y)"
+  and add_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> y + log b x = log b (b powr y * x)"
+  and log_minus_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> log b x - y = log b (x * b powr -y)"
   by (simp_all add: log_mult log_divide)
+
+lemma minus_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> y - log b x = log b (b powr y / x)"
+  by (simp add: diff_divide_eq_iff ln_div log_def powr_def)
 
 lemma log_less_cancel_iff [simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a x < log a y \<longleftrightarrow> x < y"
   using powr_less_cancel_iff [of a] powr_log_cancel [of a x] powr_log_cancel [of a y]
@@ -2611,11 +2685,11 @@ proof -
 qed
 
 lemma less_log2_of_power: "2 ^ n < m \<Longrightarrow> n < log 2 m" for m n :: nat
-using less_log_of_power[of 2] by simp
+  using less_log_of_power[of 2] by simp
 
 lemma gr_one_powr[simp]:
   fixes x y :: real shows "\<lbrakk> x > 1; y > 0 \<rbrakk> \<Longrightarrow> 1 < x powr y"
-by(simp add: less_powr_iff)
+  by(simp add: less_powr_iff)
 
 lemma log_pow_cancel [simp]:
   "a > 0 \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a (a ^ b) = b"
@@ -2648,7 +2722,7 @@ lemma ceiling_log_eq_powr_iff:
 
 lemma ceiling_log_nat_eq_powr_iff: 
   fixes b n k :: nat
-  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow> ceiling (log b (real k)) = int n + 1 \<longleftrightarrow> (b^n < k \<and> k \<le> b^(n+1))"
+  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow> \<lceil>log b (real k)\<rceil> = int n + 1 \<longleftrightarrow> (b^n < k \<and> k \<le> b^(n+1))"
   using ceiling_log_eq_powr_iff
   by (auto simp: powr_add powr_realpow of_nat_power[symmetric] of_nat_mult[symmetric] ac_simps
       simp del: of_nat_power of_nat_mult)
@@ -2681,7 +2755,7 @@ qed
 
 lemma ceiling_log2_div2: 
   assumes "n \<ge> 2"
-  shows "ceiling(log 2 (real n)) = ceiling(log 2 ((n-1) div 2 + 1)) + 1"
+  shows "\<lceil>log 2 (real n)\<rceil> = \<lceil>log 2 ((n-1) div 2 + 1)\<rceil> + 1"
 proof cases
   assume "n=2" thus ?thesis by simp
 next
@@ -2739,36 +2813,47 @@ lemma powr_one: "0 \<le> x \<Longrightarrow> x powr 1 = x"
   for x :: real
   using powr_realpow [of x 1] by simp
 
-lemma powr_neg_one: "0 < x \<Longrightarrow> x powr - 1 = 1/x"
+lemma powr_one' [simp]: "x powr 1 = \<bar>x\<bar>"
+  for x :: real
+  by (simp add: ln_real_def powr_def)
+
+lemma powr_neg_one: "0 < x \<Longrightarrow> x powr -1 = 1/x"
   for x :: real
   using powr_int [of x "- 1"] by simp
+
+lemma powr_neg_one' [simp]: "x powr -1 = 1/\<bar>x\<bar>"
+  for x :: real
+  by (simp add: powr_minus_divide)
 
 lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr - numeral n = 1/x ^ numeral n"
   for x :: real
   using powr_int [of x "- numeral n"] by simp
 
-lemma root_powr_inverse: "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
-  by (rule real_root_pos_unique) (auto simp: powr_realpow[symmetric] powr_powr)
+lemma root_powr_inverse: "0 < n \<Longrightarrow> 0 \<le> x \<Longrightarrow> root n x = x powr (1/n)"
+  by (simp add: exp_divide_power_eq powr_def real_root_pos_unique)
 
-lemma ln_powr: "x \<noteq> 0 \<Longrightarrow> ln (x powr y) = y * ln x"
+lemma powr_inverse_root: "0 < n \<Longrightarrow> x powr (1/n) = \<bar>root n x\<bar>"
+  by (metis abs_ge_zero mult_1 powr_one' powr_powr real_root_abs root_powr_inverse)
+
+lemma ln_powr [simp]: "ln (x powr y) = y * ln x"
   for x :: real
   by (simp add: powr_def)
 
-lemma ln_root: "n > 0 \<Longrightarrow> b > 0 \<Longrightarrow> ln (root n b) =  ln b / n"
-  by (simp add: root_powr_inverse ln_powr)
+lemma ln_root: "n > 0 \<Longrightarrow> ln (root n b) =  ln b / n"
+  by (metis ln_powr mult_1 powr_inverse_root powr_one' times_divide_eq_left)
 
-lemma ln_sqrt: "0 < x \<Longrightarrow> ln (sqrt x) = ln x / 2"
-  by (simp add: ln_powr ln_powr[symmetric] mult.commute)
+lemma ln_sqrt: "0 \<le> x \<Longrightarrow> ln (sqrt x) = ln x / 2"
+  by (smt (verit) field_sum_of_halves ln_mult real_sqrt_mult_self)
 
-lemma log_root: "n > 0 \<Longrightarrow> a > 0 \<Longrightarrow> log b (root n a) =  log b a / n"
+lemma log_root: "n > 0 \<Longrightarrow> a \<ge> 0 \<Longrightarrow> log b (root n a) =  log b a / n"
   by (simp add: log_def ln_root)
 
-lemma log_powr: "x \<noteq> 0 \<Longrightarrow> log b (x powr y) = y * log b x"
-  by (simp add: log_def ln_powr)
+lemma log_powr: "log b (x powr y) = y * log b x"
+  by (simp add: log_def)
 
 (* [simp] is not worth it, interferes with some proofs *)
-lemma log_nat_power: "0 < x \<Longrightarrow> log b (x^n) = real n * log b x"
-  by (simp add: log_powr powr_realpow [symmetric])
+lemma log_nat_power: "0 \<le> x \<Longrightarrow> log b (x^n) = real n * log b x"
+  by (simp add: ln_realpow log_def)
 
 lemma log_of_power_eq:
   assumes "m = b ^ n" "b > 1"
@@ -2780,7 +2865,7 @@ proof -
 qed
 
 lemma log2_of_power_eq: "m = 2 ^ n \<Longrightarrow> n = log 2 m" for m n :: nat
-using log_of_power_eq[of _ 2] by simp
+  using log_of_power_eq[of _ 2] by simp
 
 lemma log_base_change: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log b x = log a x / log a b"
   by (simp add: log_def)
@@ -2791,7 +2876,7 @@ lemma log_base_pow: "0 < a \<Longrightarrow> log (a ^ n) x = log a x / n"
 lemma log_base_powr: "a \<noteq> 0 \<Longrightarrow> log (a powr b) x = log a x / b"
   by (simp add: log_def ln_powr)
 
-lemma log_base_root: "n > 0 \<Longrightarrow> b > 0 \<Longrightarrow> log (root n b) x = n * (log b x)"
+lemma log_base_root: "n > 0 \<Longrightarrow> log (root n b) x = n * (log b x)"
   by (simp add: log_def ln_root)
 
 lemma ln_bound: "0 < x \<Longrightarrow> ln x \<le> x" for x :: real
@@ -2828,19 +2913,19 @@ lemma powr_mono2: "x powr a \<le> y powr a" if "0 \<le> a" "0 \<le> x" "x \<le> 
   using less_eq_real_def powr_less_mono2 that by auto
 
 lemma powr01_less_one: 
-  fixes a::real 
-  assumes "0 < a" "a < 1"  
-  shows "a powr e < 1 \<longleftrightarrow> e>0"
+  fixes x::real 
+  assumes "0 < x" "x < 1"  
+  shows "x powr a < 1 \<longleftrightarrow> a>0"
 proof
-  show "a powr e < 1 \<Longrightarrow> e>0"
+  show "x powr a < 1 \<Longrightarrow> a>0"
     using assms not_less_iff_gr_or_eq powr_less_mono2_neg by fastforce
-  show "e>0 \<Longrightarrow> a powr e < 1"
+  show "a>0 \<Longrightarrow> x powr a < 1"
     by (metis assms less_eq_real_def powr_less_mono2 powr_one_eq_one)
 qed
 
-lemma powr_le1: "0 \<le> a \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr a \<le> 1"
+lemma powr_le1: "0 \<le> a \<Longrightarrow> \<bar>x\<bar> \<le> 1 \<Longrightarrow> x powr a \<le> 1"
   for x :: real
-  using powr_mono2 by fastforce
+  by (smt (verit, best) powr_mono2 powr_one_eq_one uminus_powr_eq)
 
 lemma powr_mono2':
   fixes a x y :: real
@@ -2875,7 +2960,7 @@ lemma powr_less_mono':
 
 lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
   for x :: real
-  unfolding powr_def exp_inj_iff by simp
+  by (metis log_powr_cancel)
 
 lemma powr_half_sqrt: "0 \<le> x \<Longrightarrow> x powr (1/2) = sqrt x"
   by (simp add: powr_def root_powr_inverse sqrt_def)
@@ -2979,12 +3064,6 @@ lemma continuous_at_within_powr[continuous_intros]:
   shows "continuous (at a within s) (\<lambda>x. (f x) powr (g x))"
   using assms unfolding continuous_within by (rule tendsto_powr)
 
-lemma isCont_powr[continuous_intros, simp]:
-  fixes f g :: "_ \<Rightarrow> real"
-  assumes "isCont f a" "isCont g a" "f a \<noteq> 0"
-  shows "isCont (\<lambda>x. (f x) powr g x) a"
-  using assms unfolding continuous_at by (rule tendsto_powr)
-
 lemma continuous_on_powr[continuous_intros]:
   fixes f g :: "_ \<Rightarrow> real"
   assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. f x \<noteq> 0"
@@ -3020,20 +3099,20 @@ proof -
 qed
 
 lemma has_derivative_const_powr [derivative_intros]:
-  assumes "\<And>x. (f has_derivative f') (at x)" "a \<noteq> (0::real)"
+  fixes a::real
+  assumes "\<And>x. (f has_derivative f') (at x)" 
   shows "((\<lambda>x. a powr (f x)) has_derivative (\<lambda>y. f' y * ln a * a powr (f x))) (at x)"
   using assms
   apply (simp add: powr_def)
-  apply (rule assms derivative_eq_intros refl)+
-  done
+  using DERIV_compose_FDERIV DERIV_exp has_derivative_mult_left by blast
 
 lemma has_real_derivative_const_powr [derivative_intros]:
+  fixes a::real
   assumes "\<And>x. (f has_real_derivative f' x) (at x)"
-    "a \<noteq> (0::real)"
   shows "((\<lambda>x. a powr (f x)) has_real_derivative (f' x * ln a * a powr (f x))) (at x)"
   using assms
   apply (simp add: powr_def)
-  apply (rule assms derivative_eq_intros refl | simp)+
+  apply (rule assms impI derivative_eq_intros refl | simp)+
   done
 
 lemma DERIV_powr:
@@ -6847,7 +6926,7 @@ qed
 lemma artanh_minus_real [simp]:
   assumes "abs x < 1"
   shows   "artanh (-x::real) = -artanh x"
-  using assms by (simp add: artanh_def ln_div field_simps)
+  by (smt (verit) artanh_def assms field_sum_of_halves ln_div)
 
 lemma sinh_less_cosh_real: "sinh (x :: real) < cosh x"
   by (simp add: sinh_def cosh_def)

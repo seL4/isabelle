@@ -2861,7 +2861,8 @@ next
     hence B: "0 < real_of_float ?divl" by auto
 
     have "ln ?divl \<le> ln (1 / x)" unfolding ln_le_cancel_iff[OF B A] using float_divl[of _ 1 x] by auto
-    hence "ln x \<le> - ln ?divl" unfolding nonzero_inverse_eq_divide[OF \<open>real_of_float x \<noteq> 0\<close>, symmetric] ln_inverse[OF \<open>0 < real_of_float x\<close>] by auto
+    hence "ln x \<le> - ln ?divl"
+      by (simp add: \<open>real_of_float x \<noteq> 0\<close> ln_div)
     from this ub_ln_lb_ln_bounds'[OF A', THEN conjunct1, THEN le_imp_neg_le]
     have "?ln \<le> - the (lb_ln prec ?divl)" unfolding uminus_float.rep_eq by (rule order_trans)
   } moreover
@@ -2871,7 +2872,8 @@ next
     hence B: "0 < real_of_float ?divr" by auto
 
     have "ln (1 / x) \<le> ln ?divr" unfolding ln_le_cancel_iff[OF A B] using float_divr[of 1 x] by auto
-    hence "- ln ?divr \<le> ln x" unfolding nonzero_inverse_eq_divide[OF \<open>real_of_float x \<noteq> 0\<close>, symmetric] ln_inverse[OF \<open>0 < real_of_float x\<close>] by auto
+    hence "- ln ?divr \<le> ln x"
+      by (simp add: \<open>real_of_float x \<noteq> 0\<close> ln_div)
     from ub_ln_lb_ln_bounds'[OF A', THEN conjunct2, THEN le_imp_neg_le] this
     have "- the (ub_ln prec ?divr) \<le> ?ln" unfolding uminus_float.rep_eq by (rule order_trans)
   }
