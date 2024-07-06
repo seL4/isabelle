@@ -405,7 +405,7 @@ proof -
     have "0 < ln (real k) + ln \<delta>"
       using \<delta>01(1) \<open>0 < k\<close> k\<delta>(1) ln_gt_zero ln_mult by fastforce 
     then have "real (NN e) * ln (1 / (real k * \<delta>)) < ln e"
-      using k\<delta>(1) NN(2) [of e] that by (simp add: ln_div divide_simps)
+      using k\<delta>(1) NN(2) [of e] \<open>0 < \<delta>\<close> \<open>0 < k\<close> that by (simp add: ln_div divide_simps)
     then have "exp (real (NN e) * ln (1 / (real k * \<delta>))) < e"
       by (metis exp_less_mono exp_ln that)
     then show ?thesis

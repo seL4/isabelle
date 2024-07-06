@@ -1144,7 +1144,7 @@ next
       finally have "(n + 1) / L \<le> (p+1) powr (n/p)"
         by (simp add: divide_simps)
       then have "ln ((n + 1) / L) \<le> ln (real (p + 1) powr (real n / real p))"
-        by simp
+        by (simp add: flip: ln_powr)
       also have "\<dots> \<le> (n/p) * ln(p+1)"
         by (simp add: powr_def)
       finally have "ln ((n + 1) / L) \<le> (n/p) * ln(p+1) \<and> L > 0"

@@ -1630,10 +1630,12 @@ lemma has_prod_imp_sums_ln_real:
 proof -
   have "p > 0"
     using assms unfolding prod_defs by (metis LIMSEQ_prod_nonneg less_eq_real_def)
-  then show ?thesis
-  using assms continuous_on_ln [of "{0<..}" "\<lambda>x. x"]
-  using continuous_on_tendsto_compose [of "{0<..}" ln "(\<lambda>n. prod f {..n})" p]
-  by (auto simp: prod_defs sums_def_le ln_prod order_tendstoD)
+  moreover have "\<And>x. f x \<noteq> 0"
+    by (smt (verit, best) "0")
+  ultimately show ?thesis
+    using assms continuous_on_ln [of "{0<..}" "\<lambda>x. x"]
+    using continuous_on_tendsto_compose [of "{0<..}" ln "(\<lambda>n. prod f {..n})" p]
+    by (auto simp: prod_defs sums_def_le ln_prod order_tendstoD)
 qed
 
 lemma summable_ln_real: 

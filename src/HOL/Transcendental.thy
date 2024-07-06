@@ -1630,6 +1630,10 @@ lemma ln_mult: "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> 
   for x :: real
   by (simp add: ln_real_def abs_mult raw_ln_mult)
 
+lemma ln_mult_pos: "x>0 \<Longrightarrow> y>0 \<Longrightarrow> ln (x * y) = ln x + ln y"
+  for x :: real
+  by (simp add: ln_mult)
+
 lemma ln_prod: "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<noteq> 0) \<Longrightarrow> ln (prod f I) = sum (\<lambda>x. ln(f x)) I"
   for f :: "'a \<Rightarrow> real"
   by (induct I rule: finite_induct) (auto simp: ln_mult prod_pos)
@@ -1639,6 +1643,10 @@ lemma ln_inverse: "ln (inverse x) = - ln x"
   by (smt (verit) inverse_nonzero_iff_nonzero ln_mult ln_one ln_real_def right_inverse)
 
 lemma ln_div: "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> ln (x/y) = ln x - ln y"
+  for x :: real
+  by (simp add: divide_inverse ln_inverse ln_mult)
+
+lemma ln_divide_pos: "x>0 \<Longrightarrow> y>0 \<Longrightarrow> ln (x/y) = ln x - ln y"
   for x :: real
   by (simp add: divide_inverse ln_inverse ln_mult)
 
@@ -2509,6 +2517,10 @@ lemma log_mult:
   "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> log a (x * y) = log a x + log a y"
   by (simp add: log_def ln_mult divide_inverse distrib_right)
 
+lemma log_mult_pos:
+  "x>0 \<Longrightarrow> y>0 \<Longrightarrow> log a (x * y) = log a x + log a y"
+  by (simp add: log_def ln_mult divide_inverse distrib_right)
+
 lemma log_eq_div_ln_mult_log:
   "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log a x = (ln b/ln a) * log b x"
   by (simp add: log_def divide_inverse)
@@ -2526,11 +2538,19 @@ lemma log_one [simp]: "log a 1 = 0"
 lemma log_eq_one [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a a = 1"
   by (simp add: log_def)
 
-lemma log_inverse: "0 < x \<Longrightarrow> log a (inverse x) = - log a x"
-  using ln_inverse log_def by auto
+lemma log_inverse: "log a (inverse x) = - log a x"
+  by (simp add: ln_inverse log_def)
 
-lemma log_divide: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x/y) = log a x - log a y"
-  by (simp add: log_mult divide_inverse log_inverse)
+lemma log_recip: "log a (1/x) = - log a x"
+  by (simp add: divide_inverse log_inverse)
+
+lemma log_divide:
+  "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> log a (x / y) = log a x - log a y"
+  by (simp add: diff_divide_distrib ln_div log_def)
+
+lemma log_divide_pos:
+  "x>0 \<Longrightarrow> y>0 \<Longrightarrow> log a (x / y) = log a x - log a y"
+  using log_divide by auto
 
 lemma powr_gt_zero [simp]: "0 < x powr a \<longleftrightarrow> x \<noteq> 0"
   for a x :: real
