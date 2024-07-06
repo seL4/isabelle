@@ -1226,8 +1226,8 @@ object Build_Manager {
 
               par(text("Start: " + Build_Log.print_date(job.start_date))) ::
               par(
-                if (job.cancelled) text("Cancelling...")
-                else text("Running...") ::: render_cancel(job.uuid)) ::
+                if (job.cancelled) text("Cancelling ...")
+                else text("Running ...") ::: render_cancel(job.uuid)) ::
               render_rev(job.components, report_data.diffs.toMap) :::
               par(text("Log") :+ source(report_data.log)) :: Nil
 
@@ -1659,13 +1659,13 @@ Usage: isabelle build_manager_database [OPTIONS]
     progress.interrupt_handler {
       using(store.open_ssh()) { ssh =>
         val rsync_context = Rsync.Context(ssh = ssh)
-        progress.echo("Transferring repositories...")
+        progress.echo("Transferring repositories ...")
         Sync.sync(store.options, rsync_context, dir, preserve_jars = true,
           dirs = Sync.afp_dirs(afp_root), rev = rev)
         store.sync_permissions(dir, ssh)
 
         if (progress.stopped) {
-          progress.echo("Cancelling submission...")
+          progress.echo("Cancelling submission ...")
           ssh.rm_tree(dir)
         } else {
           using(store.open_postgresql_server()) { server =>
