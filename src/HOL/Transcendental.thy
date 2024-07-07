@@ -1594,7 +1594,7 @@ lemma abs_raw_ln: "x \<noteq> 0 \<Longrightarrow> raw_ln_real\<bar>x\<bar> = ln 
 lemma ln_0 [simp]: "ln (0::real) = 0"
   by (simp add: ln_real_def)
 
-lemma ln_minus [simp]: "ln (-x) = ln x"
+lemma ln_minus: "ln (-x) = ln x"
   for x :: real
   by (simp add: ln_real_def)
 
@@ -1726,17 +1726,13 @@ lemma ln_less_zero: "0 < x \<Longrightarrow> x < 1 \<Longrightarrow> ln x < 0"
   for x :: real
   by simp
 
-lemma ln_neg: "ln (-x) = ln x"
-  for x :: real
-  by simp
-
 lemma powr_eq_one_iff [simp]:
   "a powr x = 1 \<longleftrightarrow> x = 0" if "a > 1" for a x :: real
   using that by (auto simp: powr_def split: if_splits)
 
 text \<open>A consequence of our "totalising" of ln\<close>
 lemma uminus_powr_eq: "(-a) powr x = a powr x" for x::real
-  by (simp add: powr_def)
+  by (simp add: powr_def ln_minus)
 
 lemma isCont_ln_pos:
   fixes x :: real
@@ -1754,7 +1750,7 @@ proof (cases "0 < x")
     using isCont_minus [OF continuous_ident] assms continuous_at_compose isCont_ln_pos 
     by force
   then show ?thesis
-    using isCont_cong by force
+    by (simp add: comp_def ln_minus)
 qed (simp add: isCont_ln_pos)
 
 lemma tendsto_ln [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. ln (f x)) \<longlongrightarrow> ln a) F"
