@@ -691,17 +691,14 @@ Usage: isabelle build_worker [OPTIONS]
         else if (quiet) new Progress
         else new Console_Progress(verbose = verbose)
 
-      val results =
-        progress.interrupt_handler {
-          build_worker(options,
-            build_id = build_id,
-            progress = progress,
-            dirs = dirs.toList,
-            numa_shuffling = Host.numa_check(progress, numa_shuffling),
-            max_jobs = max_jobs)
-        }
-
-      if (!results.ok) sys.exit(results.rc)
+      progress.interrupt_handler {
+        build_worker(options,
+          build_id = build_id,
+          progress = progress,
+          dirs = dirs.toList,
+          numa_shuffling = Host.numa_check(progress, numa_shuffling),
+          max_jobs = max_jobs)
+      }
     })
 
 
