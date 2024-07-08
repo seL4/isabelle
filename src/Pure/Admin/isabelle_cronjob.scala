@@ -186,6 +186,27 @@ object Isabelle_Cronjob {
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("Windows", "vmnipkow9", history = 90,
+        components_base = "/cygdrive/d/isatest/contrib",
+        options = "-m32 -M4" +
+          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+          " -e ISABELLE_GHC_SETUP=true" +
+          " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
+        args = "-a",
+        detect =
+          Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
+          Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows"),
+        count = () => 2),
+      Remote_Build("Windows", "vmnipkow9", history = 90,
+        components_base = "/cygdrive/d/isatest/contrib",
+        options = "-m64 -M4" +
+          " -S /cygdrive/d/isatest/contrib" +
+          " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+          " -e ISABELLE_GHC_SETUP=true" +
+          " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
+        args = "-a",
+        detect = Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86_64-windows"),
+        count = () => 2),
       Remote_Build("Linux A", "augsburg1",
         options = "-m32 -B -M4" +
           " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
@@ -371,28 +392,7 @@ object Isabelle_Cronjob {
           options = "-m32 -M1x6 -t AFP",
           args = "-a -X large -X slow",
           afp = true,
-          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")),
-        Remote_Build("Windows", "vmnipkow9", history = 90,
-          components_base = "/cygdrive/d/isatest/contrib",
-          options = "-m32 -M4" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-            " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
-          args = "-a",
-          detect =
-            Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86-windows") + " OR " +
-            Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64_32-windows"),
-          count = () => 2),
-        Remote_Build("Windows", "vmnipkow9", history = 90,
-          components_base = "/cygdrive/d/isatest/contrib",
-          options = "-m64 -M4" +
-            " -S /cygdrive/d/isatest/contrib" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-            " -e ISABELLE_GHC_SETUP=true" +
-            " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
-          args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM.toString + " = " + SQL.string("x86_64-windows"),
-          count = () => 2))
+          detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP")))
     )
   }
 
