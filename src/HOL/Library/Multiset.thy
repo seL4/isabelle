@@ -1729,6 +1729,9 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma minus_add_mset_if_not_in_lhs[simp]: "x \<notin># A \<Longrightarrow> A - add_mset x B = A - B"
+  by (metis diff_intersect_left_idem inter_add_right1)
+
 lemma count_image_mset:
   \<open>count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)\<close>
 proof (induction A)

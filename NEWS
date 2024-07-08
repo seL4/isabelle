@@ -38,6 +38,8 @@ New in this Isabelle version
       wfP_less_multiset ~> wfp_less_multiset
       wfP_multp ~> wfp_multp
       wfP_subset_mset ~> wfp_subset_mset
+  - Added lemmas.
+      minus_add_mset_if_not_in_lhs[simp]
 
 * Transitioinal theory "Divides" moved to "HOL-Library.Divides" and supposed to
 be removed in a furure release.  Minor INCOMPATIBILITY.  Import
