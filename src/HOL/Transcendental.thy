@@ -1626,7 +1626,7 @@ lemma ln_unique': "exp y = \<bar>x\<bar> \<Longrightarrow> ln x = y"
 lemma raw_ln_mult: "x>0 \<Longrightarrow> y>0 \<Longrightarrow> raw_ln_real (x * y) = raw_ln_real x + raw_ln_real y"
   by (metis exp_add exp_ln raw_ln_exp)
 
-lemma ln_mult: "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> ln (x * y) = ln x + ln y"
+lemma ln_mult: "ln (x * y) = (if x\<noteq>0 \<and> y\<noteq>0 then ln x + ln y else 0)"
   for x :: real
   by (simp add: ln_real_def abs_mult raw_ln_mult)
 
@@ -1642,7 +1642,7 @@ lemma ln_inverse: "ln (inverse x) = - ln x"
   for x :: real
   by (smt (verit) inverse_nonzero_iff_nonzero ln_mult ln_one ln_real_def right_inverse)
 
-lemma ln_div: "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> ln (x/y) = ln x - ln y"
+lemma ln_div: "ln (x/y) = (if x\<noteq>0 \<and> y\<noteq>0 then ln x - ln y else 0)"
   for x :: real
   by (simp add: divide_inverse ln_inverse ln_mult)
 
@@ -2121,7 +2121,7 @@ lemma ln_le_minus_one: "0 < x \<Longrightarrow> ln x \<le> x - 1"
 
 corollary ln_diff_le: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x - ln y \<le> (x - y) / y"
   for x :: real
-  by (simp add: ln_div [symmetric] diff_divide_distrib ln_le_minus_one)
+by (metis diff_divide_distrib divide_pos_pos divide_self ln_divide_pos ln_le_minus_one order_less_irrefl)
 
 lemma ln_eq_minus_one:
   fixes x :: real
@@ -2510,7 +2510,7 @@ lemma powr_eq_iff: "\<lbrakk>y>0; a>1\<rbrakk> \<Longrightarrow> a powr x = y \<
   by auto
 
 lemma log_mult:
-  "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> log a (x * y) = log a x + log a y"
+  "log a (x * y) = (if x\<noteq>0 \<and> y\<noteq>0 then log a x + log a y else 0)"
   by (simp add: log_def ln_mult divide_inverse distrib_right)
 
 lemma log_mult_pos:
@@ -2541,7 +2541,7 @@ lemma log_recip: "log a (1/x) = - log a x"
   by (simp add: divide_inverse log_inverse)
 
 lemma log_divide:
-  "(x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> log a (x / y) = log a x - log a y"
+  "log a (x / y) = (if x\<noteq>0 \<and> y\<noteq>0 then log a x - log a y else 0)"
   by (simp add: diff_divide_distrib ln_div log_def)
 
 lemma log_divide_pos:
@@ -2839,7 +2839,7 @@ lemma ln_root: "n > 0 \<Longrightarrow> ln (root n b) =  ln b / n"
   by (metis ln_powr mult_1 powr_inverse_root powr_one' times_divide_eq_left)
 
 lemma ln_sqrt: "0 \<le> x \<Longrightarrow> ln (sqrt x) = ln x / 2"
-  by (smt (verit) field_sum_of_halves ln_mult real_sqrt_mult_self)
+  by (metis (full_types) divide_inverse inverse_eq_divide ln_powr mult.commute of_nat_numeral pos2 root_powr_inverse sqrt_def)
 
 lemma log_root: "n > 0 \<Longrightarrow> a \<ge> 0 \<Longrightarrow> log b (root n a) =  log b a / n"
   by (simp add: log_def ln_root)
