@@ -265,6 +265,7 @@ lemma union_mset_add_mset_right [simp]:
   "A + add_mset a B = add_mset a (A + B)"
   by (auto simp: multiset_eq_iff)
 
+(* TODO: reverse arguments to prevent unfolding loop *)
 lemma add_mset_add_single: \<open>add_mset a A = A + {#a#}\<close>
   by (subst union_mset_add_mset_right, subst add.comm_neutral) standard
 
@@ -1731,6 +1732,66 @@ qed
 
 lemma minus_add_mset_if_not_in_lhs[simp]: "x \<notin># A \<Longrightarrow> A - add_mset x B = A - B"
   by (metis diff_intersect_left_idem inter_add_right1)
+
+lemma image_mset_diff_if_inj:
+  fixes f A B
+  assumes "inj f"
+  shows "image_mset f (A - B) = image_mset f A - image_mset f B"
+proof (induction B)
+  case empty
+  show ?case
+    by simp
+next
+  case (add x B)
+  show ?case
+  proof (cases "x \<in># A - B")
+    case True
+
+    have "image_mset f (A - add_mset x B) =
+        add_mset (f x) (image_mset f (A - add_mset x B)) - {#f x#}"
+      unfolding add_mset_remove_trivial ..
+
+    also have "\<dots> = image_mset f (add_mset x (A - add_mset x B)) - {#f x#}"
+      unfolding image_mset_add_mset ..
+
+    also have "\<dots> = image_mset f (add_mset x (A - B - {#x#})) - {#f x#}"
+      unfolding add_mset_add_single[symmetric] diff_diff_add_mset ..
+
+    also have "\<dots> = image_mset f (A - B) - {#f x#}"
+      unfolding insert_DiffM[OF \<open>x \<in># A - B\<close>] ..
+
+    also have "\<dots> = image_mset f A - image_mset f B - {#f x#}"
+      unfolding add.IH ..
+
+    also have "\<dots> = image_mset f A - image_mset f (add_mset x B)"
+      unfolding diff_diff_add_mset add_mset_add_single[symmetric] image_mset_add_mset ..
+
+    finally show ?thesis .
+  next
+    case False
+
+    hence "image_mset f (A - add_mset x B) = image_mset f (A - B)"
+      using diff_single_trivial by fastforce
+
+    also have "\<dots> = image_mset f A - image_mset f B - {#f x#}"
+    proof -
+      have "f x \<notin> f ` set_mset (A - B)"
+        using False[folded inj_image_mem_iff[OF \<open>inj f\<close>]] .
+
+      hence "f x \<notin># image_mset f (A - B)"
+        unfolding set_image_mset .
+
+      thus ?thesis
+        unfolding add.IH[symmetric]
+        by (metis diff_single_trivial)
+    qed
+
+    also have "\<dots> = image_mset f A - image_mset f (add_mset x B)"
+      by simp
+
+    finally show ?thesis .
+  qed
+qed
 
 lemma count_image_mset:
   \<open>count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)\<close>

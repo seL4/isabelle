@@ -39,6 +39,7 @@ New in this Isabelle version
       wfP_multp ~> wfp_multp
       wfP_subset_mset ~> wfp_subset_mset
   - Added lemmas.
+      image_mset_diff_if_inj
       minus_add_mset_if_not_in_lhs[simp]
 
 * Transitioinal theory "Divides" moved to "HOL-Library.Divides" and supposed to
