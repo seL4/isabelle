@@ -73,7 +73,7 @@ lemma hlog_powhr_cancel [simp]: "\<And>a y. 0 < a \<Longrightarrow> a \<noteq> 1
   by transfer simp
 
 lemma hlog_mult:
-  "\<And>a x y. 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> (x\<noteq>0 \<longleftrightarrow> y\<noteq>0) \<Longrightarrow> hlog a (x * y) = hlog a x + hlog a y"
+  "\<And>a x y. hlog a (x * y) = (if x\<noteq>0 \<and> y\<noteq>0 then hlog a x + hlog a y else 0)"
   by transfer (rule log_mult)
 
 lemma hlog_as_starfun: "\<And>a x. 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> hlog a x = ( *f* ln) x / ( *f* ln) a"
@@ -111,10 +111,10 @@ lemma hlog_one [simp]: "\<And>a. hlog a 1 = 0"
 lemma hlog_eq_one [simp]: "\<And>a. 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> hlog a a = 1"
   by transfer (rule log_eq_one)
 
-lemma hlog_inverse: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> hlog a (inverse x) = - hlog a x"
-  by (rule add_left_cancel [of "hlog a x", THEN iffD1]) (simp add: hlog_mult [symmetric])
+lemma hlog_inverse: "\<And>a x. hlog a (inverse x) = - hlog a x"
+  by transfer (simp add: log_inverse)
 
-lemma hlog_divide: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> hlog a (x / y) = hlog a x - hlog a y"
+lemma hlog_divide: "hlog a (x / y) = (if x\<noteq>0 \<and> y\<noteq>0 then hlog a x - hlog a y else 0)"
   by (simp add: hlog_mult hlog_inverse divide_inverse)
 
 lemma hlog_less_cancel_iff [simp]:

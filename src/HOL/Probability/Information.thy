@@ -10,15 +10,6 @@ imports
   Independent_Family
 begin
 
-
-lemma log_mult_nz:
-  "x\<noteq>0 \<Longrightarrow> y\<noteq>0 \<Longrightarrow> log a (x * y) = log a x + log a y"
-  by (simp add: log_def ln_mult divide_inverse distrib_right)
-
-lemma log_divide_nz:
-  "x\<noteq>0 \<Longrightarrow> y\<noteq>0 \<Longrightarrow> log a (x / y) = log a x - log a y"
-  by (simp add: diff_divide_distrib ln_div log_def)
-
 subsection "Information theory"
 
 locale information_space = prob_space +
@@ -554,11 +545,8 @@ proof -
     show "AE x in S \<Otimes>\<^sub>M
             T. Pxy x * log b (Pxy x) - Pxy x * log b (Px (fst x)) - Pxy x * log b (Py (snd x)) 
           = f x"
-      using A B unfolding f_def
-
-      apply  (auto simp: f_def field_simps space_pair_measure Px_nn Py_nn Pxy_nn
-          less_le )
-      by (smt (verit, del_insts) AE_I2 distrib_left log_divide log_mult mult_eq_0_iff)
+      using A B 
+      by (auto simp: f_def field_simps space_pair_measure log_mult log_divide)
   qed
 
   show "0 \<le> ?M" unfolding M
@@ -1097,9 +1085,7 @@ proof -
     have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
       using ae1 ae2 ae3 ae4 
-      apply (auto simp: log_divide log_mult zero_le_mult_iff zero_less_mult_iff zero_less_divide_iff field_simps
-          less_le space_pair_measure split: prod.split)
-      by (smt (verit, best) AE_I2 fst_conv log_divide mult_cancel_left mult_minus_right snd_conv)
+      by (auto simp: log_mult log_divide field_simps)
     then
     show "integrable ?P (\<lambda>x. - log b (?f x))"
       by (subst integrable_real_density) (auto simp: space_pair_measure) 
@@ -1112,9 +1098,7 @@ proof -
      apply simp
     apply (intro integral_cong_AE)
     using ae1 ae2 ae3 ae4
-      apply (auto simp: zero_less_mult_iff zero_less_divide_iff field_simps
-        space_pair_measure less_le split: prod.split)
-      by (smt (verit, best) AE_I2 fst_conv log_divide mult_eq_0_iff mult_minus_right snd_conv)
+    by (auto simp: field_simps log_divide)
   finally show ?nonneg
     by simp
 qed
@@ -1214,10 +1198,7 @@ proof -
   ultimately have I1: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Px x * Pyz (y, z))))"
     apply (rule integrable_cong_AE_imp)
     using ae1 ae4 Px_nn Pyz_nn Pxyz_nn 
-    apply (auto simp: log_divide log_mult field_simps zero_less_mult_iff space_pair_measure less_le
-         split: prod.split)
-    apply (intro AE_I2)
-    by (smt (verit, best) distrib_left divide_eq_0_iff fst_conv log_mult mult.commute nonzero_mult_div_cancel_left snd_conv times_divide_eq_right)
+    by (auto simp: log_divide log_mult field_simps)
   have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)
     (\<lambda>x. Pxyz x * log b (Pxz (fst x, snd (snd x))) - Pxyz x * log b (Px (fst x)) - Pxyz x * log b (Pz (snd (snd x))))"
     using finite_entropy_integrable_transform[OF Fxz Pxyz Pxyz_nn, of "\<lambda>x. (fst x, snd (snd x))"]
@@ -1230,42 +1211,8 @@ proof -
   ultimately have I2: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxz (x, z) / (Px x * Pz z)))"
     apply (rule integrable_cong_AE_imp)
     using ae1 ae2 ae3 ae4  Px_nn Pz_nn Pxz_nn Pyz_nn Pxyz_nn
-    apply(auto simp:   field_simps zero_less_mult_iff less_le space_pair_measure split: prod.split)
-    apply (intro AE_I2)
-    apply clarify
-  proof -
-    fix a :: 'c and aa :: 'd and ba :: 'e and x1 :: 'c and ab :: 'd and baa :: 'e
-    assume a1: "Pxz (fst (x1, ab, baa), snd (snd (x1, ab, baa))) = 0 \<longrightarrow> Pxyz (x1, ab, baa) = 0"
-    assume a2: "Pz (snd (snd (x1, ab, baa))) = 0 \<longrightarrow> Pxyz (x1, ab, baa) = 0"
-    assume a3: "Px (fst (x1, ab, baa)) = 0 \<longrightarrow> Pxyz (x1, ab, baa) = 0"
-    have f4: "\<forall>r ra rb. (ra::real) * (rb + r) = rb * ra + ra * r"
-      by (simp add: vector_space_over_itself.scale_right_distrib)
-    have f5: "0 \<noteq> Px x1 \<or> 0 = Pxyz (x1, ab, baa)"
-      using a3 by auto
-    have f6: "0 \<noteq> Pz baa \<or> 0 = Pxyz (x1, ab, baa)"
-      using a2 by force
-    have f7: "\<forall>r. (0::real) = 0 * r"
-      by simp
-    have "0 = Px x1 * Pz baa \<longrightarrow> Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = Pxyz (x1, ab, baa) * (log b (Px x1) + log b (Pz baa) + log b (Pxz (x1, baa) / (Px x1 * Pz baa)))"
-      using f6 f5 by simp
-    moreover
-    { assume "0 \<noteq> Px x1 * Pz baa"
-      moreover
-      { assume "0 \<noteq> Px x1 * Pz baa \<and> 0 \<noteq> Pxyz (x1, ab, baa)"
-        then have "Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = Pxyz (x1, ab, baa) * (log b (Px x1 * Pz baa) + log b (Pxz (x1, baa) / (Px x1 * Pz baa))) \<and> 0 \<noteq> Pxz (x1, baa) / (Px x1 * Pz baa)"
-          using a1 by (metis (no_types) divide_eq_0_iff fst_eqD log_mult_nz mult.commute nonzero_eq_divide_eq snd_eqD)
-        moreover
-        { assume "Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = Pxyz (x1, ab, baa) * (log b (Px x1) + (log b 0 + log b 0)) \<and> 0 \<noteq> Pxz (x1, baa) / (Px x1 * Pz baa) \<and> Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = log b (Px x1) * Pxyz (x1, ab, baa) + Pxyz (x1, ab, baa) * log b (Pz baa * (Pxz (x1, baa) / (Px x1 * Pz baa)))"
-          then have "Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = log b (Px x1) * Pxyz (x1, ab, baa) + (log b (Pz baa) * Pxyz (x1, ab, baa) + Pxyz (x1, ab, baa) * log b (Pxz (x1, baa) / (Px x1 * Pz baa)))"
-            using f7 f4 by (metis (no_types) divide_eq_0_iff log_mult_nz mult.commute) }
-        ultimately have "Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = Pxyz (x1, ab, baa) * (log b (Px x1) + log b (Pz baa) + log b (Pxz (x1, baa) / (Px x1 * Pz baa))) \<or> Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = log b (Px x1) * Pxyz (x1, ab, baa) + (log b (Pz baa) * Pxyz (x1, ab, baa) + Pxyz (x1, ab, baa) * log b (Pxz (x1, baa) / (Px x1 * Pz baa)))"
-          using f4 by (simp add: log_mult_nz) }
-      ultimately have "Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = Pxyz (x1, ab, baa) * (log b (Px x1) + log b (Pz baa) + log b (Pxz (x1, baa) / (Px x1 * Pz baa))) \<or> Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = Pxyz (x1, ab, baa) * (log b (Px x1) + log b (Pz baa)) + Pxyz (x1, ab, baa) * log b (Pxz (x1, baa) / (Px x1 * Pz baa)) \<or> Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = log b (Px x1) * Pxyz (x1, ab, baa) + (log b (Pz baa) * Pxyz (x1, ab, baa) + Pxyz (x1, ab, baa) * log b (Pxz (x1, baa) / (Px x1 * Pz baa)))"
-        using f7 by (metis (no_types)) }
-    ultimately show "Pxyz (x1, ab, baa) * log b (Pxz (x1, baa)) = log b (Px x1) * Pxyz (x1, ab, baa) + (log b (Pz baa) * Pxyz (x1, ab, baa) + Pxyz (x1, ab, baa) * log b (Pxz (x1, baa) / (Px x1 * Pz baa)))"
-      by argo
-  qed
-
+    apply(auto simp:  field_simps log_divide log_mult)
+    done
   from ae I1 I2 show ?eq
     unfolding conditional_mutual_information_def mi_eq
     apply (subst mutual_information_distr[OF S TP Px Px_nn Pyz Pyz_nn Pxyz Pxyz_nn]; simp add: space_pair_measure)
@@ -1372,14 +1319,8 @@ proof -
     have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
       using Pz_nn Pxz_nn Pyz_nn Pxyz_nn ae2 ae3 ae4 
-      apply (auto simp: log_divide_nz log_mult_nz zero_le_mult_iff zero_less_mult_iff
-          zero_less_divide_iff field_simps space_pair_measure less_le split: prod.split)
-    apply (intro AE_I2)
-      apply (auto simp: )
-      by (smt (verit, best) log_divide minus_mult_minus mult_minus_left no_zero_divisors)
-
-    then
-    show "integrable ?P (\<lambda>x. - log b (?f x))"
+      by (auto simp: log_divide field_simps)
+    then show "integrable ?P (\<lambda>x. - log b (?f x))"
       using Pxyz_nn by (auto simp: integrable_real_density)
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
@@ -1391,10 +1332,7 @@ proof -
     apply simp
     apply (intro integral_cong_AE)
     using ae1 ae2 ae3 ae4 
-    apply (auto simp: log_divide_pos zero_less_mult_iff zero_less_divide_iff
-                      field_simps space_pair_measure less_le integral_cong_AE split: prod.split)
-    apply (intro AE_I2)
-    by (metis divide_divide_eq_right log_recip mult_1 mult_minus_right)
+    by (auto simp: log_divide zero_less_mult_iff field_simps)
   finally show ?nonneg
     by simp
 qed

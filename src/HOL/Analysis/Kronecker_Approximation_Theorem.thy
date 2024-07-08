@@ -1157,7 +1157,7 @@ next
     have "ln (real (n + 1) / L) \<le> 0"
       using * eventually_at_top_dense by (intro tendsto_lowerbound [OF 0]) auto
     then have "n+1 \<le> L"
-      by (simp add: ln_div)
+      using \<open>0 < L\<close> by (simp add: ln_div)
     then show ?thesis
       using L_le by linarith
   qed
