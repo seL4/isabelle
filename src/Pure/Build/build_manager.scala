@@ -599,12 +599,16 @@ object Build_Manager {
   /** build reports **/
 
   object Report {
-    case class Data(build_log: String, component_diffs: List[(String, String)])
+    case class Data(
+      build_log: String,
+      component_logs: List[(String, String)],
+      component_diffs: List[(String, String)])
   }
 
   case class Report(kind: String, id: Long, dir: Path) {
     private val log_name = "build-manager"
     private val diff_ext = "diff"
+    private val log_ext = "log"
 
     private def log_file = dir + Path.basic(log_name).log
     private def log_file_gz = dir + Path.basic(log_name).log.gz
@@ -625,12 +629,17 @@ object Build_Manager {
 
       val component_diffs =
         File.read_dir(dir).flatMap(name => read_gz(dir + Path.basic(name), diff_ext))
+      val component_logs =
+        File.read_dir(dir).flatMap(name => read_gz(dir + Path.basic(name), log_ext))
 
-      Report.Data(build_log, component_diffs)
+      Report.Data(build_log, component_logs, component_diffs)
     }
 
     def write_component_diff(name: String, diff: String): Unit =
       if (diff.nonEmpty) File.write_gzip(dir + Path.basic(name).ext(diff_ext).gz, diff)
+
+    def write_component_log(name: String, log: String): Unit =
+      if (log.nonEmpty) File.write_gzip(dir + Path.basic(name).ext(log_ext).gz, log)
 
     def result(uuid: Option[UUID.T]): Result = {
       val End = """^Job ended at [^,]+, with status (\w+)$""".r
@@ -800,6 +809,14 @@ object Build_Manager {
         Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
       }
 
+    private def log(repository: Mercurial.Repository, rev0: String, rev: String): String =
+      if (rev0.isEmpty || rev.isEmpty) ""
+      else {
+        val log_opts = "--graph --color always"
+        val cmd = repository.command_line("log", Mercurial.opt_rev(rev0 + ":" + rev), log_opts)
+        Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
+      }
+
     private def start_next(): Option[Context] =
       synchronized_database("start_next") {
         for ((name, task) <- _state.pending if Exn.is_exn(Exn.capture(task.build_hosts))) {
@@ -855,6 +872,8 @@ object Build_Manager {
               val previous = _state.get_finished(task.kind).maxBy(_.id)
 
               for (isabelle_rev0 <- previous.isabelle_version) {
+                context.report.write_component_log("Isabelle",
+                  log(isabelle_repository, isabelle_rev0, isabelle_rev))
                 context.report.write_component_diff("Isabelle",
                   diff(isabelle_repository, isabelle_rev0, isabelle_rev))
               }
@@ -863,7 +882,10 @@ object Build_Manager {
                 afp_rev0 <- previous.afp_version
                 afp <- extra_components.find(_.name == Component.AFP)
                 sync_dir <- sync_dirs.find(_.name == afp.name)
-              } context.report.write_component_diff(afp.name, diff(sync_dir.hg, afp_rev0, afp.rev))
+              } {
+                context.report.write_component_log(afp.name, log(sync_dir.hg, afp_rev0, afp.rev))
+                context.report.write_component_diff(afp.name, diff(sync_dir.hg, afp_rev0, afp.rev))
+              }
             }
 
             Job(task.uuid, task.kind, id, task.build_cluster, hostnames,
