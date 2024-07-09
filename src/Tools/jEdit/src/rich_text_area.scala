@@ -145,8 +145,9 @@ class Rich_Text_Area(
   /* active areas within the text */
 
   private class Active_Area[A](
-    rendering: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
-    cursor: Option[Int]
+    render: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
+    val require_control: Boolean = false,
+    cursor: Int = -1
   ) {
     private var the_text_info: Option[(String, Text.Info[A])] = None
 
@@ -161,11 +162,11 @@ class Rich_Text_Area(
 
       if (new_text_info != old_text_info) {
         caret_update()
-        if (cursor.isDefined) {
-          if (new_text_info.isDefined)
-            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor.get))
-          else
-            text_area.getPainter.resetCursor()
+        if (cursor >= 0) {
+          if (new_text_info.isDefined) {
+            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor))
+          }
+          else text_area.getPainter.resetCursor()
         }
         for {
           r0 <- JEdit_Lib.visible_range(text_area)
@@ -177,8 +178,8 @@ class Rich_Text_Area(
       }
     }
 
-    def update_rendering(r: JEdit_Rendering, range: Text.Range): Unit =
-      update(rendering(r)(range))
+    def update_rendering(rendering: JEdit_Rendering, range: Text.Range): Unit =
+      update(render(rendering)(range))
 
     def reset(): Unit = update(None)
   }
@@ -186,23 +187,18 @@ class Rich_Text_Area(
   // owned by GUI thread
 
   private val highlight_area =
-    new Active_Area[Color](
-      (rendering: JEdit_Rendering) => rendering.highlight, None)
+    new Active_Area[Color](_.highlight, require_control = true)
 
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
-      (rendering: JEdit_Rendering) => rendering.hyperlink, Some(Cursor.HAND_CURSOR))
+      _.hyperlink, require_control = true, cursor = Cursor.HAND_CURSOR)
 
   private val active_area =
-    new Active_Area[XML.Elem](
-      (rendering: JEdit_Rendering) => rendering.active, Some(Cursor.DEFAULT_CURSOR))
+    new Active_Area[XML.Elem](_.active, cursor = Cursor.DEFAULT_CURSOR)
 
-  private val active_areas =
-    List((highlight_area, true), (hyperlink_area, true), (active_area, false))
-  def active_reset(): Unit = active_areas.foreach(_._1.reset())
-
-  private def area_active(): Boolean =
-    active_areas.exists({ case (area, _) => area.is_active })
+  private val active_areas = List(highlight_area, hyperlink_area, active_area)
+  private def active_exists(): Boolean = active_areas.exists(_.is_active)
+  def active_reset(): Unit = active_areas.foreach(_.reset())
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent): Unit = { robust_body(()) { active_reset() } }
@@ -270,9 +266,10 @@ class Rich_Text_Area(
               case None => active_reset()
               case Some(range) =>
                 val rendering = get_rendering()
-                for ((area, require_control) <- active_areas) {
-                  if (control == require_control && !rendering.snapshot.is_outdated)
+                for (area <- active_areas) {
+                  if (control == area.require_control && !rendering.snapshot.is_outdated) {
                     area.update_rendering(rendering, range)
+                  }
                   else area.reset()
                 }
             }
@@ -621,7 +618,7 @@ class Rich_Text_Area(
             }
 
             // entity def range
-            if (!area_active() && caret_visible) {
+            if (!active_exists() && caret_visible) {
               for {
                 Text.Info(range, color) <- rendering.entity_ref(line_range, caret_focus)
                 r <- JEdit_Lib.gfx_range(text_area, range)
@@ -632,7 +629,7 @@ class Rich_Text_Area(
             }
 
             // completion range
-            if (!area_active() && caret_visible) {
+            if (!active_exists() && caret_visible) {
               for {
                 completion <- Completion_Popup.Text_Area(text_area)
                 Text.Info(range, color) <- completion.rendering(rendering, line_range)
