@@ -1261,7 +1261,7 @@ object Build_Manager {
       def render_diff(build: Build, state: State): XML.Body = render_page("Diff: " + build.name) {
         def colored(s: String): XML.Body = {
           val Colored = "([^\u001b]*)\u001b\\[([0-9;]+)m(.*)\u001b\\[0m([^\u001b]*)".r
-          val colors = List("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")
+          val colors = List("black", "maroon", "green", "olive", "navy", "purple", "teal", "silver")
 
           val lines = split_lines(s).map {
             case Colored(pre, code, s, post) =>
