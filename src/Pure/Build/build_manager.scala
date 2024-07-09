@@ -1129,17 +1129,14 @@ object Build_Manager {
 
       def render_if(cond: Boolean, body: XML.Body): XML.Body = if (cond) body else Nil
 
-      def frontend_link(url: Url, xml: XML.Body): XML.Elem =
-        link(url.toString, xml) + ("target" -> "_parent")
+      def page_link(path: Path, s: String, props: Properties.T = Nil): XML.Elem =
+        link(paths.frontend_url(path, props).toString, text(s)) + ("target" -> "_parent")
 
-      def link_kind(kind: String): XML.Elem =
-        frontend_link(paths.frontend_url(Page.OVERVIEW, Markup.Kind(kind)), text(kind))
       def link_build(name: String, id: Long): XML.Elem =
-        frontend_link(paths.frontend_url(Page.BUILD, Markup.Name(name)), text("#" + id))
+        page_link(Page.BUILD, "#" + id, Markup.Name(name))
 
       private def render_page(name: String)(body: => XML.Body): XML.Body = {
-        def nav_link(path: Path, s: String): XML.Elem =
-          frontend_link(paths.frontend_url(Page.HOME), text("Home"))
+        def nav_link(path: Path, s: String): XML.Elem = page_link(Page.HOME, "Home")
 
         More_HTML.header(List(nav(List(nav_link(Page.HOME, "home"))))) ::
         main(chapter(name) :: body ::: Nil) :: Nil
@@ -1184,7 +1181,7 @@ object Build_Manager {
               render_previous(finished.tail))
 
           fieldset(
-            XML.elem("legend", List(link_kind(kind))) ::
+            XML.elem("legend", List(page_link(Page.OVERVIEW, kind, Markup.Kind(kind)))) ::
             (if (running.nonEmpty) render_job(running.head)
             else if (finished.nonEmpty) render_result(finished.head)
             else Nil))
@@ -1268,8 +1265,8 @@ object Build_Manager {
           }
         }
 
-      def render_cancelled: XML.Body = render_page("Build cancelled")(
-        List(frontend_link(paths.frontend_url(Page.HOME), text("Home"))))
+      def render_cancelled: XML.Body =
+        render_page("Build cancelled")(List(page_link(Page.HOME, "Home")))
 
       def parse_uuid(params: Params.Data): Option[UUID.T] =
         for {
