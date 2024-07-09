@@ -44,7 +44,7 @@ object Byte_Message {
           builder += c.toByte
         }
       }
-    if (c == -1 && line.size == 0) None else Some(line.trim_line)
+    if (c == -1 && line.is_empty) None else Some(line.trim_line)
   }
 
 
