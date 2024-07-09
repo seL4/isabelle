@@ -138,13 +138,10 @@ proof -
     show "{x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<in> sets M"
       using D(1) by (auto intro: sets.sets_Collect_conj)
 
-    show "AE t in M. t \<in> {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<longrightarrow>
-      D t - indicator ?D_set t \<noteq> D t * (ln b * log b (D t))"
-      using D(2)
-    proof (eventually_elim, safe)
-      fix t assume Dt: "t \<in> space M" "D t \<noteq> 1" "D t \<noteq> 0" "0 \<le> D t"
-        and eq: "D t - indicator ?D_set t = D t * (ln b * log b (D t))"
-
+    have False 
+      if Dt: "t \<in> space M" "D t \<noteq> 1" "D t \<noteq> 0" "0 \<le> D t"
+        and eq: "D t - indicator ?D_set t = D t * (ln b * log b (D t))" for t
+    proof -
       have "D t - 1 = D t - indicator ?D_set t"
         using Dt by simp
       also note eq
@@ -156,6 +153,10 @@ proof -
       from ln_eq_minus_one[OF _ this] \<open>D t \<noteq> 0\<close> \<open>0 \<le> D t\<close> \<open>D t \<noteq> 1\<close>
       show False by auto
     qed
+    with D(2)
+    show "AE t in M. t \<in> {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<longrightarrow>
+      D t - indicator ?D_set t \<noteq> D t * (ln b * log b (D t))"
+      by fastforce
 
     show "AE t in M. D t - indicator ?D_set t \<le> D t * (ln b * log b (D t))"
       using D(2) AE_space
@@ -1019,7 +1020,7 @@ proof -
       using that by (subst nn_integral_multc) (auto split: prod.split simp: ennreal_mult[symmetric])
     show ?thesis
       apply (rule nn_integral_cong_AE)
-      using aeX1 aeX2 aeX3 
+      using aeX1 aeX3 
       by (force simp add: space_pair_measure D)
   qed
   also have "\<dots> = 1"
@@ -1029,22 +1030,24 @@ proof -
   also have "\<dots> < \<infinity>" by simp
   finally have fin: "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>" by simp
 
-  have pos: "(\<integral>\<^sup>+x. ?f x \<partial>?P) \<noteq> 0"
-    apply (subst nn_integral_density)
-    apply (simp_all add: split_beta')
+  have "(\<integral>\<^sup>+ x. ennreal (Pxyz x) *
+               ennreal (Pxz (fst x, snd (snd x)) * Pyz (snd x) / (Pz (snd (snd x)) * Pxyz x))
+               \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) \<noteq> 0"
   proof
     let ?g = "\<lambda>x. ennreal (Pxyz x) * (Pxz (fst x, snd (snd x)) * Pyz (snd x) / (Pz (snd (snd x)) * Pxyz x))"
     assume "(\<integral>\<^sup>+x. ?g x \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) = 0"
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. ?g x = 0"
       by (intro nn_integral_0_iff_AE[THEN iffD1]) auto
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
-      using ae1 ae2 ae3 ae4 
+      using ae2 ae3 ae4 
       by (auto split: if_split_asm simp: mult_le_0_iff divide_le_0_iff space_pair_measure)
     then have "(\<integral>\<^sup>+ x. ennreal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
       by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
     with P.emeasure_space_1 show False
       by (subst (asm) emeasure_density) (auto cong: nn_integral_cong)
   qed
+  then have pos: "(\<integral>\<^sup>+x. ?f x \<partial>?P) \<noteq> 0"
+    by (subst nn_integral_density) (simp_all add: split_beta')
 
   have neg: "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) = 0"
     by (subst nn_integral_0_iff_AE) (auto simp: space_pair_measure ennreal_neg)
@@ -1084,7 +1087,6 @@ proof -
       using fin neg by (auto simp: split_beta')
     have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
-      using ae1 ae2 ae3 ae4 
       by (auto simp: log_mult log_divide field_simps)
     then
     show "integrable ?P (\<lambda>x. - log b (?f x))"
@@ -1097,7 +1099,6 @@ proof -
       apply (force simp: space_pair_measure) 
      apply simp
     apply (intro integral_cong_AE)
-    using ae1 ae2 ae3 ae4
     by (auto simp: field_simps log_divide)
   finally show ?nonneg
     by simp
