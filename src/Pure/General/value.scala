@@ -22,7 +22,7 @@ object Value {
 
   object Nat {
     def unapply(bs: Bytes): Option[scala.Int] =
-      if (bs.byte_iterator.forall(b => '0' <= b && b <= '9')) unapply(bs.text)
+      if (bs.byte_iterator.forall(Symbol.is_ascii_digit)) unapply(bs.text)
       else None
     def unapply(s: java.lang.String): Option[scala.Int] =
       s match {
