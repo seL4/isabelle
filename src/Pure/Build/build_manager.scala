@@ -1071,6 +1071,7 @@ object Build_Manager {
       val HOME = Path.basic("home")
       val OVERVIEW = Path.basic("overview")
       val BUILD = Path.basic("build")
+      val DIFF = Path.basic("diff")
     }
 
     def paths(store: Store): Web_App.Paths =
@@ -1121,6 +1122,7 @@ object Build_Manager {
       case Home(state: State) extends Model
       case Overview(kind: String, state: State) extends Model
       case Details(build: Build, state: State, public: Boolean = true) extends Model
+      case Diff(build: Build, state: State) extends Model
     }
 
     object View {
@@ -1216,31 +1218,22 @@ object Build_Manager {
               submit_form("", List(hidden(ID, uuid.toString),
                 api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
-          def render_diff(diff: String): XML.Body = {
-            val Colored = "\u001b\\[([0-9;]+)m(.*)\u001b\\[0m".r
-            val colors = List("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")
+          def non_local(components: List[Component]): List[Component] =
+            for (component <- components if !component.is_local) yield component
 
-            val lines = split_lines(diff).map {
-              case Colored(code, s) =>
-                val codes = space_explode(';', code.stripSuffix(";1")).map(Value.Int.parse)
-                val fg = codes match { case 0 :: i :: Nil => colors.unapply(i - 30) case _ => None }
+          def render_rev(components: List[Component], data: Report.Data): XML.Body = {
+            val relevant = non_local(components)
+            val hg_info = data.component_logs.map(_._1) ++ data.component_diffs.map(_._1)
+            val s = relevant.mkString(", ")
 
-                val sp = span(if (code.endsWith(";1")) List(bold(text(s))) else text(s))
-                List(fg.map(color => sp + ("style" -> ("color:" + color))).getOrElse(sp))
-              case line => text(Library.strip_ansi_color(line))
-            }
-
-            List(source(Library.separate(nl, lines).flatten))
+            if (!relevant.map(_.name).exists(hg_info.toSet)) text(s)
+            else List(page_link(Page.DIFF, s, Markup.Name(build.name)))
           }
-
-          def render_rev(components: List[Component], diffs: Map[String, String]): XML.Body =
-            for (component <- components if !component.is_local)
-            yield par(text(component.toString) ++ diffs.get(component.name).flatMap(render_diff))
 
           build match {
             case task: Task =>
               par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
-              render_rev(task.components, Map.empty) :::
+              par(text(non_local(task.components).mkString(", "))) ::
               render_cancel(task.uuid)
 
             case job: Job =>
@@ -1250,8 +1243,8 @@ object Build_Manager {
               par(
                 if (job.cancelled) text("Cancelling ...")
                 else text("Running ...") ::: render_cancel(job.uuid)) ::
-              render_rev(job.components, report_data.component_diffs.toMap) :::
-              par(text("Log") :+ source(report_data.build_log)) :: Nil
+              par(render_rev(job.components, report_data)) ::
+              par(List(source(report_data.build_log))) :: Nil
 
             case result: Result =>
               val report_data = cache.lookup(store.report(result.kind, result.id))
@@ -1260,10 +1253,47 @@ object Build_Manager {
                 if_proper(result.end_date,
                   ", took " + (result.end_date.get - result.start_date).message_hms))) ::
               par(text("Status: " + result.status)) ::
-              render_rev(result.components, report_data.component_diffs.toMap) :::
-              par(text("Log") :+ source(report_data.build_log)) :: Nil
+              par(render_rev(result.components, report_data)) ::
+              par(List(source(report_data.build_log))) :: Nil
           }
         }
+
+      def render_diff(build: Build, state: State): XML.Body = render_page("Diff: " + build.name) {
+        def colored(s: String): XML.Body = {
+          val Colored = "([^\u001b]*)\u001b\\[([0-9;]+)m(.*)\u001b\\[0m([^\u001b]*)".r
+          val colors = List("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")
+
+          val lines = split_lines(s).map {
+            case Colored(pre, code, s, post) =>
+              val codes = space_explode(';', code.stripSuffix(";1")).map(Value.Int.parse)
+              val fg = codes match { case 0 :: i :: Nil => colors.unapply(i - 30) case _ => None }
+
+              val sp = span(if (code.endsWith(";1")) List(bold(text(s))) else text(s))
+              val sp1 = fg.map(color => sp + ("style" -> ("color:" + color))).getOrElse(sp)
+              List(span(text(pre)), sp1, span(text(post)))
+            case line => text(Library.strip_ansi_color(line))
+          }
+
+          List(source(Library.separate(nl, lines).flatten))
+        }
+
+        def render_diff(data: Report.Data, components: List[Component]): XML.Body =
+          par(List(page_link(Page.BUILD, "back to build", Markup.Name(build.name)))) ::
+          (for (component <- components if !component.is_local) yield {
+            par(
+              text(component.name) :::
+              data.component_logs.toMap.get(component.name).toList.flatMap(colored) :::
+              data.component_diffs.toMap.get(component.name).toList.flatMap(colored))
+          })
+
+        build match {
+          case job: Job =>
+            render_diff(cache.lookup(store.report(job.kind, job.id)), job.components)
+          case result: Result =>
+            render_diff(cache.lookup(store.report(result.kind, result.id)), result.components)
+          case _ => Nil
+        }
+      }
 
       def render_cancelled: XML.Body =
         render_page("Build cancelled")(List(page_link(Page.HOME, "Home")))
@@ -1297,6 +1327,14 @@ object Build_Manager {
           case _ => None
         }
 
+      def get_diff(props: Properties.T): Option[Model.Diff] =
+        props match {
+          case Markup.Name(name) =>
+            val state = _state
+            state.get(name).map(Model.Diff(_, state))
+          case _ => None
+        }
+
       def cancel_build(params: Params.Data): Option[Model] =
         for {
           uuid <- View.parse_uuid(params)
@@ -1321,6 +1359,7 @@ object Build_Manager {
             case Model.Home(state) => View.render_home(state)
             case Model.Overview(kind, state) => View.render_overview(kind, state)
             case Model.Details(build, state, public) => View.render_details(build, state, public)
+            case Model.Diff(build, state) => View.render_diff(build, state)
             case Model.Cancelled => View.render_cancelled
           })
 
@@ -1329,6 +1368,7 @@ object Build_Manager {
         Get(Page.HOME, "home", _ => overview),
         Get(Page.OVERVIEW, "overview", get_overview),
         Get(Page.BUILD, "build", get_build),
+        Get(Page.DIFF, "diff", get_diff),
         Post(API.BUILD_CANCEL, "cancel build", cancel_build))
       val logo = Bytes.read(Path.explode("$ISABELLE_HOME/lib/logo/isabelle_transparent-48.gif"))
       val head =
