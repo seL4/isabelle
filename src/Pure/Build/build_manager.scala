@@ -1280,10 +1280,11 @@ object Build_Manager {
         def render_diff(data: Report.Data, components: List[Component]): XML.Body =
           par(List(page_link(Page.BUILD, "back to build", Markup.Name(build.name)))) ::
           (for (component <- components if !component.is_local) yield {
-            par(
-              text(component.name) :::
+            val infos = 
               data.component_logs.toMap.get(component.name).toList.flatMap(colored) :::
-              data.component_diffs.toMap.get(component.name).toList.flatMap(colored))
+              data.component_diffs.toMap.get(component.name).toList.flatMap(colored)
+
+            par(if (infos.isEmpty) text(component.toString) else text(component.name) ::: infos)
           })
 
         build match {
