@@ -599,7 +599,7 @@ object Build_Manager {
   /** build reports **/
 
   object Report {
-    case class Data(log: String, diffs: List[(String, String)])
+    case class Data(build_log: String, component_diffs: List[(String, String)])
   }
 
   case class Report(kind: String, id: Long, dir: Path) {
@@ -620,21 +620,22 @@ object Build_Manager {
       else Some(file.drop_ext.drop_ext.file_name -> File.read_gzip(file))
 
     def read: Report.Data = {
-      val log =
+      val build_log =
         if_proper(ok, if (log_file.is_file) File.read(log_file) else File.read_gzip(log_file_gz))
 
-      val diffs = File.read_dir(dir).flatMap(name => read_gz(dir + Path.basic(name), diff_ext))
+      val component_diffs =
+        File.read_dir(dir).flatMap(name => read_gz(dir + Path.basic(name), diff_ext))
 
-      Report.Data(log, diffs)
+      Report.Data(build_log, component_diffs)
     }
 
-    def write_diff(name: String, diff: String): Unit =
+    def write_component_diff(name: String, diff: String): Unit =
       if (diff.nonEmpty) File.write_gzip(dir + Path.basic(name).ext(diff_ext).gz, diff)
 
     def result(uuid: Option[UUID.T]): Result = {
       val End = """^Job ended at [^,]+, with status (\w+)$""".r
 
-      val build_log_file = Build_Log.Log_File(log_name, Library.trim_split_lines(read.log))
+      val build_log_file = Build_Log.Log_File(log_name, Library.trim_split_lines(read.build_log))
 
       val meta_info = build_log_file.parse_meta_info()
       val status =
@@ -854,7 +855,7 @@ object Build_Manager {
               val previous = _state.get_finished(task.kind).maxBy(_.id)
 
               for (isabelle_rev0 <- previous.isabelle_version) {
-                context.report.write_diff("Isabelle",
+                context.report.write_component_diff("Isabelle",
                   diff(isabelle_repository, isabelle_rev0, isabelle_rev))
               }
 
@@ -862,7 +863,7 @@ object Build_Manager {
                 afp_rev0 <- previous.afp_version
                 afp <- extra_components.find(_.name == Component.AFP)
                 sync_dir <- sync_dirs.find(_.name == afp.name)
-              } context.report.write_diff(afp.name, diff(sync_dir.hg, afp_rev0, afp.rev))
+              } context.report.write_component_diff(afp.name, diff(sync_dir.hg, afp_rev0, afp.rev))
             }
 
             Job(task.uuid, task.kind, id, task.build_cluster, hostnames,
@@ -1230,8 +1231,8 @@ object Build_Manager {
               par(
                 if (job.cancelled) text("Cancelling ...")
                 else text("Running ...") ::: render_cancel(job.uuid)) ::
-              render_rev(job.components, report_data.diffs.toMap) :::
-              par(text("Log") :+ source(report_data.log)) :: Nil
+              render_rev(job.components, report_data.component_diffs.toMap) :::
+              par(text("Log") :+ source(report_data.build_log)) :: Nil
 
             case result: Result =>
               val report_data = cache.lookup(store.report(result.kind, result.id))
@@ -1240,8 +1241,8 @@ object Build_Manager {
                 if_proper(result.end_date,
                   ", took " + (result.end_date.get - result.start_date).message_hms))) ::
               par(text("Status: " + result.status)) ::
-              render_rev(result.components, report_data.diffs.toMap) :::
-              par(text("Log") :+ source(report_data.log)) :: Nil
+              render_rev(result.components, report_data.component_diffs.toMap) :::
+              par(text("Log") :+ source(report_data.build_log)) :: Nil
           }
         }
 
