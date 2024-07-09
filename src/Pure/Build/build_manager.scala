@@ -604,6 +604,7 @@ object Build_Manager {
 
   case class Report(kind: String, id: Long, dir: Path) {
     private val log_name = "build-manager"
+    private val diff_ext = "diff"
 
     private def log_file = dir + Path.basic(log_name).log
     private def log_file_gz = dir + Path.basic(log_name).log.gz
@@ -614,20 +615,21 @@ object Build_Manager {
 
     def progress: Progress = new File_Progress(log_file)
 
+    private def read_gz(file: Path, ext: String): Option[(String, String)] =
+      if (!File.is_gz(file.file_name) || file.drop_ext.get_ext != ext) None
+      else Some(file.drop_ext.drop_ext.file_name -> File.read_gzip(file))
+
     def read: Report.Data = {
       val log =
         if_proper(ok, if (log_file.is_file) File.read(log_file) else File.read_gzip(log_file_gz))
-      val diffs =
-        for {
-          name <- File.read_dir(dir)
-          file = dir + Path.basic(name)
-          if file.get_ext == "gz" && file.drop_ext.get_ext == "diff"
-        } yield file.drop_ext.drop_ext.file_name -> File.read_gzip(file)
+
+      val diffs = File.read_dir(dir).flatMap(name => read_gz(dir + Path.basic(name), diff_ext))
+
       Report.Data(log, diffs)
     }
 
     def write_diff(name: String, diff: String): Unit =
-      if (diff.nonEmpty) File.write_gzip(dir + Path.basic(name + ".diff").gz, diff)
+      if (diff.nonEmpty) File.write_gzip(dir + Path.basic(name).ext(diff_ext).gz, diff)
 
     def result(uuid: Option[UUID.T]): Result = {
       val End = """^Job ended at [^,]+, with status (\w+)$""".r
