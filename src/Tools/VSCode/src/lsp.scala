@@ -668,7 +668,21 @@ object LSP {
 
       ResponseMessage(id, Some(symbols.entries.map(s => json(s))))
     }
+  }
+  
+  object Symbols_Convert_Request {
+    def unapply(json: JSON.T): Option[(Id, String, Boolean)] =
+      json match {
+        case RequestMessage(id, "PIDE/symbols_convert_request", Some(params)) =>
+          for {
+            s <- JSON.string(params, "text")
+            unicode <- JSON.bool(params, "unicode")
+          } yield (id, s, unicode)
+        case _ => None
+      }
 
+    def reply(id: Id, new_string: String): JSON.T =
+      ResponseMessage(id, Some(JSON.Object("text" -> new_string)))
   }
 
 
