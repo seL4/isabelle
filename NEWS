@@ -54,6 +54,17 @@ purposes.
 
 *** System ***
 
+* The Build_Manager module has replaced previous glue-code for Jenkins
+integration. The module contains a server that coordinates continuous
+integration jobs and user-submitted build tasks and displays them via
+web front-end. Users can submit tasks in the same manner as with the
+local build tool, for example:
+
+  isabelle build_task -o build_manager_ssh_user=huch -c -A: -a -X slow
+
+This requires SSH access to the server and membership in a common Unix
+group (same requirements as push access to the Isabelle repository).
+
 * The Isabelle/Scala type Bytes has become more scalable, with support
 for incremental construction via Bytes.Builder. There is no longer an
 artificial size limit, in contrast to Java byte arrays (max. 2 GiB).

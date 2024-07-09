@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* June - July 2024: Fabian Huch
+  New Build_Manager module to coordinate CI and user builds, replacing
+  the previous Jenkins integration.
+
 
 Contributions to Isabelle2024
 -----------------------------
