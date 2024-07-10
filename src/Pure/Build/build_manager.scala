@@ -1622,7 +1622,12 @@ Usage: isabelle build_manager [OPTIONS]
 
   /** restore build manager database **/
 
-  def build_manager_database(options: Options, progress: Progress = new Progress): Unit = {
+  def build_manager_database(
+    options: Options,
+    sync_dirs: List[Sync.Dir] = Sync.afp_dirs(),
+    update_reports: Boolean = false,
+    progress: Progress = new Progress
+  ): Unit = {
     val store = Store(options)
     using(store.open_database()) { db =>
       db.transaction {
@@ -1634,16 +1639,44 @@ Usage: isabelle build_manager [OPTIONS]
         }
       }
 
-      val results =
+      val reports =
         for {
           kind <- File.read_dir(store.finished)
           entry <- File.read_dir(store.finished + Path.basic(kind))
           id <- Value.Long.unapply(entry)
           report = store.report(kind, id)
           if report.ok
-        } yield report.result(None)
+        } yield report
 
-      val state = State(finished = results.map(result => result.name -> result).toMap)
+      val results = reports.map(report => report -> report.result(None))
+
+      if (update_reports) {
+        val isabelle_repository = Mercurial.self_repository()
+        val afp_repository =
+          sync_dirs.find(_.name == Component.AFP).getOrElse(error("Missing AFP for udpate")).hg
+
+        isabelle_repository.pull()
+        afp_repository.pull()
+
+        for ((kind, results0) <- results.groupBy(_._1.kind) if kind != User_Build.name) {
+          val results1 = results0.sortBy(_._1.id)
+          results1.foldLeft(("", "")) {
+            case ((isabelle_rev0, afp_rev0), (report, result)) =>
+              val isabelle_rev = result.isabelle_version.getOrElse("")
+              val afp_rev = result.afp_version.getOrElse("")
+
+              report.write_log(Component.Isabelle, isabelle_repository, isabelle_rev0, isabelle_rev)
+              report.write_log(Component.AFP, afp_repository, afp_rev0, afp_rev)
+              report.write_diff(
+                Component.Isabelle, isabelle_repository, isabelle_rev0, isabelle_rev)
+              report.write_diff(Component.AFP, afp_repository, afp_rev0, afp_rev)
+
+              (isabelle_rev, afp_rev)
+          }
+        }
+      }
+
+      val state = State(finished = results.map((_, result) => result.name -> result).toMap)
 
       Build_Manager.private_data.transaction_lock(db,
         create = true, label = "Build_Manager.build_manager_database") {
@@ -1661,24 +1694,31 @@ Usage: isabelle build_manager [OPTIONS]
     "restore build_manager database from log files",
     Scala_Project.here,
     { args =>
+      var afp_root: Option[Path] = None
       var options = Options.init()
+      var update_reports = false
 
       val getopts = Getopts("""
 Usage: isabelle build_manager_database [OPTIONS]
 
   Options are:
+    -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -u           update reports
 
   Restore build_manager database from log files.
 """,
-        "o:" -> (arg => options = options + arg))
+        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
+        "o:" -> (arg => options = options + arg),
+        "u" -> (_ => update_reports = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress()
 
-      build_manager_database(options, progress = progress)
+      build_manager_database(options, sync_dirs = Sync.afp_dirs(afp_root),
+        update_reports = update_reports, progress = progress)
     })
 
 
