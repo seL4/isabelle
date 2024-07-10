@@ -810,10 +810,11 @@ object Build_Manager {
       }
 
     private def log(repository: Mercurial.Repository, rev0: String, rev: String): String =
-      if (rev0.isEmpty || rev.isEmpty) ""
+      if (rev0.isEmpty || rev.isEmpty || rev0 == rev) ""
       else {
         val log_opts = "--graph --color always"
-        val cmd = repository.command_line("log", Mercurial.opt_rev(rev0 + ":" + rev), log_opts)
+        val rev1 = "children(" + rev0 + ")"
+        val cmd = repository.command_line("log", Mercurial.opt_rev(rev1 + ":" + rev), log_opts)
         Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
       }
 
