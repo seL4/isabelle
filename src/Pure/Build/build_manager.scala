@@ -1229,8 +1229,8 @@ object Build_Manager {
             val hg_info = data.component_logs.map(_._1) ++ data.component_diffs.map(_._1)
             val s = components.mkString(", ")
 
-            if (!components.map(_.name).exists(hg_info.toSet)) text(s)
-            else List(page_link(Page.DIFF, s, Markup.Name(build.name)))
+            if (!components.map(_.name).exists(hg_info.toSet)) text("Components: " + s)
+            else text("Components: ") :+ page_link(Page.DIFF, s, Markup.Name(build.name))
           }
 
           build match {
@@ -1287,7 +1287,8 @@ object Build_Manager {
               data.component_logs.toMap.get(component.name).toList.flatMap(colored) :::
               data.component_diffs.toMap.get(component.name).toList.flatMap(colored)
 
-            par(if (infos.isEmpty) text(component.toString) else text(component.name) ::: infos)
+            val header = if (infos.isEmpty) component.toString else component.name + ":"
+            par(subsubsection(header) :: infos)
           })
 
         build match {
