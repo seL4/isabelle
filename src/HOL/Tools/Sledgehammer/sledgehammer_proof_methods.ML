@@ -103,9 +103,11 @@ fun merge_indexed_facts (ss: string list) :string list =
   let
 
     fun split (s: string) : string * string =
-      case first_field "(" s of
-        NONE => (s,"")
-      | SOME (name,isp) => (name, String.substring (isp, 0, size isp - 1))
+      if String.isPrefix "\<open>" s then (s,"")
+      else
+        case first_field "(" s of
+          NONE => (s,"")
+        | SOME (name,isp) => (name, String.substring (isp, 0, size isp - 1))
 
     fun merge ((name1,is1) :: (name2,is2) :: zs) =
         if name1 = name2
