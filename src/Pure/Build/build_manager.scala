@@ -21,9 +21,10 @@ object Build_Manager {
         case _ => error("Malformed component: " + quote(s))
       }
 
+    val Isabelle = "Isabelle"
     val AFP = "AFP"
 
-    def isabelle(rev: String = "") = Component("Isabelle", rev)
+    def isabelle(rev: String = "") = Component(Isabelle, rev)
     def afp(rev: String = "") = Component(AFP, rev)
   }
 
@@ -873,9 +874,9 @@ object Build_Manager {
               val previous = _state.get_finished(task.kind).maxBy(_.id)
 
               for (isabelle_rev0 <- previous.isabelle_version) {
-                context.report.write_component_log("Isabelle",
+                context.report.write_component_log(Component.Isabelle,
                   log(isabelle_repository, isabelle_rev0, isabelle_rev))
-                context.report.write_component_diff("Isabelle",
+                context.report.write_component_diff(Component.Isabelle,
                   diff(isabelle_repository, isabelle_rev0, isabelle_rev))
               }
 
