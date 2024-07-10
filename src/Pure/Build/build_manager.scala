@@ -17,6 +17,7 @@ object Build_Manager {
   object Component {
     def parse(s: String): Component =
       space_explode('/', s) match {
+        case name :: Nil => Component(name)
         case name :: rev :: Nil => Component(name, rev)
         case _ => error("Malformed component: " + quote(s))
       }
