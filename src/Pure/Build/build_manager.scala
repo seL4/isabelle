@@ -636,11 +636,32 @@ object Build_Manager {
       Report.Data(build_log, component_logs, component_diffs)
     }
 
-    def write_component_diff(name: String, diff: String): Unit =
-      if (diff.nonEmpty) File.write_gzip(dir + Path.basic(name).ext(diff_ext).gz, diff)
+    def write_log(
+      component: String,
+      repository: Mercurial.Repository,
+      rev0: String,
+      rev: String
+    ): Unit =
+      if (rev0.nonEmpty && rev.nonEmpty && rev0 != rev) {
+        val log_opts = "--graph --color always"
+        val rev1 = "children(" + rev0 + ")"
+        val cmd = repository.command_line("log", Mercurial.opt_rev(rev1 + ":" + rev), log_opts)
+        val log = Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
+        if (log.nonEmpty) File.write_gzip(dir + Path.basic(component).ext(log_ext).gz, log)
+      }
 
-    def write_component_log(name: String, log: String): Unit =
-      if (log.nonEmpty) File.write_gzip(dir + Path.basic(name).ext(log_ext).gz, log)
+    def write_diff(
+      component: String,
+      repository: Mercurial.Repository,
+      rev0: String,
+      rev: String
+    ): Unit =
+      if (rev0.nonEmpty && rev.nonEmpty) {
+        val diff_opts = "--noprefix --nodates --ignore-all-space --color always"
+        val cmd = repository.command_line("diff", Mercurial.opt_rev(rev0 + ":" + rev), diff_opts)
+        val diff = Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
+        if (diff.nonEmpty) File.write_gzip(dir + Path.basic(component).ext(diff_ext).gz, diff)
+      }
 
     def result(uuid: Option[UUID.T]): Result = {
       val End = """^Job ended at [^,]+, with status (\w+)$""".r
@@ -802,23 +823,6 @@ object Build_Manager {
       }
     }
 
-    private def diff(repository: Mercurial.Repository, rev0: String, rev: String): String =
-      if (rev0.isEmpty || rev.isEmpty) ""
-      else {
-        val diff_opts = "--noprefix --nodates --ignore-all-space --color always"
-        val cmd = repository.command_line("diff", Mercurial.opt_rev(rev0 + ":" + rev), diff_opts)
-        Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
-      }
-
-    private def log(repository: Mercurial.Repository, rev0: String, rev: String): String =
-      if (rev0.isEmpty || rev.isEmpty || rev0 == rev) ""
-      else {
-        val log_opts = "--graph --color always"
-        val rev1 = "children(" + rev0 + ")"
-        val cmd = repository.command_line("log", Mercurial.opt_rev(rev1 + ":" + rev), log_opts)
-        Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
-      }
-
     private def start_next(): Option[Context] =
       synchronized_database("start_next") {
         for ((name, task) <- _state.pending if Exn.is_exn(Exn.capture(task.build_hosts))) {
@@ -874,10 +878,10 @@ object Build_Manager {
               val previous = _state.get_finished(task.kind).maxBy(_.id)
 
               for (isabelle_rev0 <- previous.isabelle_version) {
-                context.report.write_component_log(Component.Isabelle,
-                  log(isabelle_repository, isabelle_rev0, isabelle_rev))
-                context.report.write_component_diff(Component.Isabelle,
-                  diff(isabelle_repository, isabelle_rev0, isabelle_rev))
+                context.report.write_log(Component.Isabelle,
+                  isabelle_repository, isabelle_rev0, isabelle_rev)
+                context.report.write_diff(Component.Isabelle,
+                  isabelle_repository, isabelle_rev0, isabelle_rev)
               }
 
               for {
@@ -885,8 +889,8 @@ object Build_Manager {
                 afp <- extra_components.find(_.name == Component.AFP)
                 sync_dir <- sync_dirs.find(_.name == afp.name)
               } {
-                context.report.write_component_log(afp.name, log(sync_dir.hg, afp_rev0, afp.rev))
-                context.report.write_component_diff(afp.name, diff(sync_dir.hg, afp_rev0, afp.rev))
+                context.report.write_log(afp.name, sync_dir.hg, afp_rev0, afp.rev)
+                context.report.write_diff(afp.name, sync_dir.hg, afp_rev0, afp.rev)
               }
             }
 
