@@ -28,7 +28,7 @@ object Build_Manager {
   }
 
   case class Component(name: String, rev: String = "") {
-    override def toString: String = name + "/" + rev
+    override def toString: String = name + if_proper(rev, "/" + rev)
 
     def is_local: Boolean = rev.isEmpty
   }
@@ -895,7 +895,7 @@ object Build_Manager {
             case Exn.Res(job) =>
               _state = _state.add_running(job)
 
-              for (component <- job.components if !component.is_local)
+              for (component <- job.components)
                 context.report.progress.echo("Using " + component.toString)
 
               Some(context)
@@ -1219,22 +1219,18 @@ object Build_Manager {
               submit_form("", List(hidden(ID, uuid.toString),
                 api_button(paths.api_route(API.BUILD_CANCEL), "cancel build")))))
 
-          def non_local(components: List[Component]): List[Component] =
-            for (component <- components if !component.is_local) yield component
-
           def render_rev(components: List[Component], data: Report.Data): XML.Body = {
-            val relevant = non_local(components)
             val hg_info = data.component_logs.map(_._1) ++ data.component_diffs.map(_._1)
-            val s = relevant.mkString(", ")
+            val s = components.mkString(", ")
 
-            if (!relevant.map(_.name).exists(hg_info.toSet)) text(s)
+            if (!components.map(_.name).exists(hg_info.toSet)) text(s)
             else List(page_link(Page.DIFF, s, Markup.Name(build.name)))
           }
 
           build match {
             case task: Task =>
               par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
-              par(text(non_local(task.components).mkString(", "))) ::
+              par(text(task.components.mkString(", "))) ::
               render_cancel(task.uuid)
 
             case job: Job =>

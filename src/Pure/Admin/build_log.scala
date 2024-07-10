@@ -349,8 +349,8 @@ object Build_Log {
     val engine = "build_manager"
     val Start = new Regex("""^Starting job \S+ at ([^,]+), on (\S+)$""")
     val End = new Regex("""^Job ended at ([^,]+), with status \w+$""")
-    val Isabelle_Version = List(new Regex("""^Using Isabelle/(\w+)$"""))
-    val AFP_Version = List(new Regex("""^Using AFP/(\w+)$"""))
+    val Isabelle_Version = List(new Regex("""^Using Isabelle/?(\w*)$"""))
+    val AFP_Version = List(new Regex("""^Using AFP/?(\w*)$"""))
   }
 
   private def parse_meta_info(log_file: Log_File): Meta_Info = {
