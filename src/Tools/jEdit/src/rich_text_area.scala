@@ -21,7 +21,7 @@ import scala.util.matching.Regex
 
 import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.syntax.Chunk
+import org.gjt.sp.jedit.syntax.{Chunk => JEditChunk}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
 
@@ -410,10 +410,10 @@ class Rich_Text_Area(
     def get(codepoint: Int): Option[Font] =
       cache.getOrElse(codepoint,
         {
-          val field = classOf[Chunk].getDeclaredField("lastSubstFont")
+          val field = classOf[JEditChunk].getDeclaredField("lastSubstFont")
           field.setAccessible(true)
           field.set(null, null)
-          val res = Option(Chunk.getSubstFont(codepoint))
+          val res = Option(JEditChunk.getSubstFont(codepoint))
           cache += (codepoint -> res)
           res
         })
@@ -425,7 +425,7 @@ class Rich_Text_Area(
     gfx: Graphics2D,
     line_start: Text.Offset,
     caret_range: Text.Range,
-    head: Chunk,
+    chunk_list: JEditChunk,
     x0: Int,
     y0: Int
   ): Float = {
@@ -434,7 +434,7 @@ class Rich_Text_Area(
     val x = x0.toFloat
     val y = y0.toFloat
     var w = 0.0f
-    var chunk = head
+    var chunk = chunk_list
     while (chunk != null) {
       val chunk_offset = line_start + chunk.offset
       if (x + w + chunk.width > clip_rect.x &&
@@ -463,7 +463,7 @@ class Rich_Text_Area(
             subst_font <- font_subst.get(c)
           } {
             val r = Text.Range(i, i + Character.charCount(c)) + chunk_offset
-            val font = Chunk.deriveSubstFont(chunk_font, subst_font)
+            val font = JEditChunk.deriveSubstFont(chunk_font, subst_font)
             chunk_attrib(TextAttribute.FONT, font, r)
           }
         }
@@ -484,7 +484,7 @@ class Rich_Text_Area(
         gfx.drawString(chunk_text.getIterator, x + w, y)
       }
       w += chunk.width
-      chunk = chunk.next.asInstanceOf[Chunk]
+      chunk = chunk.next.asInstanceOf[JEditChunk]
     }
     w
   }
