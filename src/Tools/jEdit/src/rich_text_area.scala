@@ -424,16 +424,15 @@ class Rich_Text_Area(
     font_subst: Font_Subst,
     gfx: Graphics2D,
     line_start: Text.Offset,
+    caret_range: Text.Range,
     head: Chunk,
-    x: Float,
-    y: Float
-  ): Float = {
+    x0: Int,
+    y0: Int
+  ): Int = {
     val clip_rect = gfx.getClipBounds
 
-    val caret_range =
-      if (caret_enabled) JEdit_Lib.caret_range(text_area)
-      else Text.Range.offside
-
+    val x = x0.toFloat
+    val y = y0.toFloat
     var w = 0.0f
     var chunk = head
     while (chunk != null) {
@@ -487,7 +486,7 @@ class Rich_Text_Area(
       w += chunk.width
       chunk = chunk.next.asInstanceOf[Chunk]
     }
-    w
+    w.toInt
   }
 
   private val text_painter = new TextAreaExtension {
@@ -530,11 +529,14 @@ class Rich_Text_Area(
             if (chunks != null) {
               try {
                 val line_start = buffer.getLineStartOffset(line)
+                val caret_range =
+                  if (caret_enabled) JEdit_Lib.caret_range(text_area)
+                  else Text.Range.offside
                 gfx.clipRect(x0, y + line_height * i, Int.MaxValue, line_height)
                 val w =
                   paint_chunk_list(rendering, font_subst, gfx,
-                    line_start, chunks, x0.toFloat, y0.toFloat)
-                gfx.clipRect(x0 + w.toInt, 0, Int.MaxValue, Int.MaxValue)
+                    line_start, caret_range, chunks, x0, y0)
+                gfx.clipRect(x0 + w, 0, Int.MaxValue, Int.MaxValue)
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)
               } finally { gfx.setClip(clip) }
