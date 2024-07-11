@@ -196,7 +196,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
   private val delay_caret_update =
     Delay.last(PIDE.session.input_delay, gui = true) {
       session.caret_focus.post(Session.Caret_Focus)
-      JEdit_Lib.invalidate(text_area)
+      JEdit_Lib.invalidate_screen(text_area)
     }
 
   private val caret_listener = new CaretListener {
@@ -229,7 +229,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
                    changed.commands.exists(snapshot.node.commands.contains)))
                 text_overview.foreach(_.invoke())
 
-              JEdit_Lib.invalidate(text_area)
+              JEdit_Lib.invalidate_screen(text_area)
             }
           }
         }

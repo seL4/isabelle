@@ -205,9 +205,11 @@ object JEdit_Lib {
     }
   }
 
-  def invalidate(text_area: TextArea): Unit = {
+  def invalidate_screen(text_area: TextArea): Unit = {
     val visible_lines = text_area.getVisibleLines
-    if (visible_lines > 0) text_area.invalidateScreenLineRange(0, visible_lines)
+    if (visible_lines > 0) {
+      text_area.invalidateScreenLineRange(0, visible_lines)
+    }
   }
 
 
