@@ -13,7 +13,7 @@ import java.awt.event.{KeyAdapter, KeyEvent, ItemListener, ItemEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
-  JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
+  RootPaneContainer, JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
 
 import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Label, Separator,
   Orientation}
@@ -365,13 +365,11 @@ object GUI {
   }
 
   def parent_window(component: Component): Option[Window] =
-    ancestors(component).collectFirst({ case x: Window => x })
+    ancestors(component).collectFirst({ case c: Window => c })
 
   def layered_pane(component: Component): Option[JLayeredPane] =
     parent_window(component) match {
-      case Some(w: JWindow) => Some(w.getLayeredPane)
-      case Some(w: JFrame) => Some(w.getLayeredPane)
-      case Some(w: JDialog) => Some(w.getLayeredPane)
+      case Some(c: RootPaneContainer) => Some(c.getLayeredPane)
       case _ => None
     }
 

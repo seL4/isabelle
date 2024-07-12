@@ -44,7 +44,7 @@ object Byte_Message {
           builder += c.toByte
         }
       }
-    if (c == -1 && line.size == 0) None else Some(line.trim_line)
+    if (c == -1 && line.is_empty) None else Some(line.trim_line)
   }
 
 
@@ -82,7 +82,7 @@ object Byte_Message {
       Value.Long.unapply(str).isDefined
 
   private def is_length(msg: Bytes): Boolean =
-    !msg.is_empty && msg.byte_iterator.forall(b => Symbol.is_ascii_digit(b.toChar)) &&
+    !msg.is_empty && msg.byte_iterator.forall(Symbol.is_ascii_digit) &&
       Value.Long.unapply(msg.text).isDefined
 
   def write_line_message(stream: OutputStream, msg: Bytes): Unit = {

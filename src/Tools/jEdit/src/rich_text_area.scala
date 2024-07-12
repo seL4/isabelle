@@ -18,10 +18,11 @@ import javax.swing.SwingUtilities
 import java.text.AttributedString
 
 import scala.util.matching.Regex
+import scala.collection.mutable
 
 import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.syntax.Chunk
+import org.gjt.sp.jedit.syntax.{Chunk => JEditChunk, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
 
@@ -145,8 +146,9 @@ class Rich_Text_Area(
   /* active areas within the text */
 
   private class Active_Area[A](
-    rendering: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
-    cursor: Option[Int]
+    render: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
+    val require_control: Boolean = false,
+    cursor: Int = -1
   ) {
     private var the_text_info: Option[(String, Text.Info[A])] = None
 
@@ -161,11 +163,11 @@ class Rich_Text_Area(
 
       if (new_text_info != old_text_info) {
         caret_update()
-        if (cursor.isDefined) {
-          if (new_text_info.isDefined)
-            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor.get))
-          else
-            text_area.getPainter.resetCursor()
+        if (cursor >= 0) {
+          if (new_text_info.isDefined) {
+            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor))
+          }
+          else text_area.getPainter.resetCursor()
         }
         for {
           r0 <- JEdit_Lib.visible_range(text_area)
@@ -177,8 +179,8 @@ class Rich_Text_Area(
       }
     }
 
-    def update_rendering(r: JEdit_Rendering, range: Text.Range): Unit =
-      update(rendering(r)(range))
+    def update_rendering(rendering: JEdit_Rendering, range: Text.Range): Unit =
+      update(render(rendering)(range))
 
     def reset(): Unit = update(None)
   }
@@ -186,23 +188,18 @@ class Rich_Text_Area(
   // owned by GUI thread
 
   private val highlight_area =
-    new Active_Area[Color](
-      (rendering: JEdit_Rendering) => rendering.highlight, None)
+    new Active_Area[Color](_.highlight, require_control = true)
 
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
-      (rendering: JEdit_Rendering) => rendering.hyperlink, Some(Cursor.HAND_CURSOR))
+      _.hyperlink, require_control = true, cursor = Cursor.HAND_CURSOR)
 
   private val active_area =
-    new Active_Area[XML.Elem](
-      (rendering: JEdit_Rendering) => rendering.active, Some(Cursor.DEFAULT_CURSOR))
+    new Active_Area[XML.Elem](_.active, cursor = Cursor.DEFAULT_CURSOR)
 
-  private val active_areas =
-    List((highlight_area, true), (hyperlink_area, true), (active_area, false))
-  def active_reset(): Unit = active_areas.foreach(_._1.reset())
-
-  private def area_active(): Boolean =
-    active_areas.exists({ case (area, _) => area.is_active })
+  private val active_areas = List(highlight_area, hyperlink_area, active_area)
+  private def active_exists(): Boolean = active_areas.exists(_.is_active)
+  def active_reset(): Unit = active_areas.foreach(_.reset())
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent): Unit = { robust_body(()) { active_reset() } }
@@ -270,9 +267,10 @@ class Rich_Text_Area(
               case None => active_reset()
               case Some(range) =>
                 val rendering = get_rendering()
-                for ((area, require_control) <- active_areas) {
-                  if (control == require_control && !rendering.snapshot.is_outdated)
+                for (area <- active_areas) {
+                  if (control == area.require_control && !rendering.snapshot.is_outdated) {
                     area.update_rendering(rendering, range)
+                  }
                   else area.reset()
                 }
             }
@@ -413,13 +411,40 @@ class Rich_Text_Area(
     def get(codepoint: Int): Option[Font] =
       cache.getOrElse(codepoint,
         {
-          val field = classOf[Chunk].getDeclaredField("lastSubstFont")
+          val field = classOf[JEditChunk].getDeclaredField("lastSubstFont")
           field.setAccessible(true)
           field.set(null, null)
-          val res = Option(Chunk.getSubstFont(codepoint))
+          val res = Option(JEditChunk.getSubstFont(codepoint))
           cache += (codepoint -> res)
           res
         })
+  }
+
+  sealed case class Chunk(
+    id: Byte,
+    style: SyntaxStyle,
+    offset: Int,
+    length: Int,
+    width: Float,
+    font_subst: Boolean,
+    str: String
+  )
+
+  private def make_chunk_list(chunk_head: JEditChunk): List[Chunk] = {
+    val buf = new mutable.ListBuffer[Chunk]
+    var chunk = chunk_head
+    while (chunk != null) {
+      val str =
+        if (chunk.chars == null) Symbol.spaces(chunk.length)
+        else {
+          if (chunk.str == null) { chunk.str = new String(chunk.chars) }
+          chunk.str
+        }
+      buf += Chunk(chunk.id, chunk.style, chunk.offset, chunk.length, chunk.width,
+        chunk.usedFontSubstitution, str)
+      chunk = chunk.next.asInstanceOf[JEditChunk]
+    }
+    buf.toList
   }
 
   private def paint_chunk_list(
@@ -427,33 +452,23 @@ class Rich_Text_Area(
     font_subst: Font_Subst,
     gfx: Graphics2D,
     line_start: Text.Offset,
-    head: Chunk,
-    x: Float,
-    y: Float
+    caret_range: Text.Range,
+    chunk_list: List[Chunk],
+    x0: Int,
+    y0: Int
   ): Float = {
     val clip_rect = gfx.getClipBounds
 
-    val caret_range =
-      if (caret_enabled) JEdit_Lib.caret_range(text_area)
-      else Text.Range.offside
-
-    var w = 0.0f
-    var chunk = head
-    while (chunk != null) {
+    val x = x0.toFloat
+    val y = y0.toFloat
+    chunk_list.foldLeft(0.0f) { case (w, chunk) =>
       val chunk_offset = line_start + chunk.offset
       if (x + w + chunk.width > clip_rect.x &&
           x + w < clip_rect.x + clip_rect.width && chunk.length > 0) {
         val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk.length)
-        val chunk_str =
-          if (chunk.chars == null) Symbol.spaces(chunk.length)
-          else {
-            if (chunk.str == null) { chunk.str = new String(chunk.chars) }
-            chunk.str
-          }
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
-
-        val chunk_text = new AttributedString(chunk_str)
+        val chunk_text = new AttributedString(chunk.str)
 
         def chunk_attrib(attrib: TextAttribute, value: AnyRef, r: Text.Range): Unit =
           chunk_text.addAttribute(attrib, value, r.start - chunk_offset, r.stop - chunk_offset)
@@ -461,13 +476,13 @@ class Rich_Text_Area(
         // font
         chunk_text.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_LTR)
         chunk_text.addAttribute(TextAttribute.FONT, chunk_font)
-        if (chunk.usedFontSubstitution) {
+        if (chunk.font_subst) {
           for {
-            (c, i) <- Codepoint.iterator_offset(chunk_str) if !chunk_font.canDisplay(c)
+            (c, i) <- Codepoint.iterator_offset(chunk.str) if !chunk_font.canDisplay(c)
             subst_font <- font_subst.get(c)
           } {
             val r = Text.Range(i, i + Character.charCount(c)) + chunk_offset
-            val font = Chunk.deriveSubstFont(chunk_font, subst_font)
+            val font = JEditChunk.deriveSubstFont(chunk_font, subst_font)
             chunk_attrib(TextAttribute.FONT, font, r)
           }
         }
@@ -487,10 +502,8 @@ class Rich_Text_Area(
 
         gfx.drawString(chunk_text.getIterator, x + w, y)
       }
-      w += chunk.width
-      chunk = chunk.next.asInstanceOf[Chunk]
+      w + chunk.width
     }
-    w
   }
 
   private val text_painter = new TextAreaExtension {
@@ -529,14 +542,17 @@ class Rich_Text_Area(
 
             // text chunks
             val screen_line = first_line + i
-            val chunks = text_area.getChunksOfScreenLine(screen_line)
-            if (chunks != null) {
+            val chunk_list = make_chunk_list(text_area.getChunksOfScreenLine(screen_line))
+            if (chunk_list.nonEmpty) {
               try {
                 val line_start = buffer.getLineStartOffset(line)
+                val caret_range =
+                  if (caret_enabled) JEdit_Lib.caret_range(text_area)
+                  else Text.Range.offside
                 gfx.clipRect(x0, y + line_height * i, Int.MaxValue, line_height)
                 val w =
                   paint_chunk_list(rendering, font_subst, gfx,
-                    line_start, chunks, x0.toFloat, y0.toFloat)
+                    line_start, caret_range, chunk_list, x0, y0)
                 gfx.clipRect(x0 + w.toInt, 0, Int.MaxValue, Int.MaxValue)
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)
@@ -621,7 +637,7 @@ class Rich_Text_Area(
             }
 
             // entity def range
-            if (!area_active() && caret_visible) {
+            if (!active_exists() && caret_visible) {
               for {
                 Text.Info(range, color) <- rendering.entity_ref(line_range, caret_focus)
                 r <- JEdit_Lib.gfx_range(text_area, range)
@@ -632,7 +648,7 @@ class Rich_Text_Area(
             }
 
             // completion range
-            if (!area_active() && caret_visible) {
+            if (!active_exists() && caret_visible) {
               for {
                 completion <- Completion_Popup.Text_Area(text_area)
                 Text.Info(range, color) <- completion.rendering(rendering, line_range)

@@ -51,6 +51,7 @@ object Symbol {
   def is_ascii_letter(c: Char): Boolean = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
 
   def is_ascii_digit(c: Char): Boolean = '0' <= c && c <= '9'
+  def is_ascii_digit(b: Byte): Boolean = is_ascii_digit(b.toChar)
 
   def is_ascii_hex(c: Char): Boolean =
     '0' <= c && c <= '9' || 'A' <= c && c <= 'F' || 'a' <= c && c <= 'f'
