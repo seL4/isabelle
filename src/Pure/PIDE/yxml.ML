@@ -24,6 +24,8 @@ sig
   val body_size: XML.body -> int
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
+  val bytes_of_body: XML.body -> Bytes.T
+  val bytes_of: XML.tree -> Bytes.T
   val write_body: Path.T -> XML.body -> unit
   val output_markup: Markup.T -> string * string
   val output_markup_elem: Markup.T -> (string * string) * string
@@ -75,6 +77,9 @@ val body_size = Integer.build o fold (Integer.add o tree_size);
 
 val string_of_body = Buffer.build_content o fold (traverse Buffer.add);
 val string_of = string_of_body o single;
+
+val bytes_of_body = Bytes.build o fold (traverse Bytes.add);
+val bytes_of = bytes_of_body o single;
 
 fun write_body path body =
   path |> File_Stream.open_output (fn file =>
