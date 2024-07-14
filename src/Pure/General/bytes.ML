@@ -216,6 +216,8 @@ fun write path bytes = File_Stream.open_output (fn stream => write_stream stream
 
 val _ =
   ML_system_pp (fn _ => fn _ => fn bytes =>
-    PolyML.PrettyString ("Bytes {size = " ^ string_of_int (size bytes) ^ "}"))
+    PolyML.PrettyString
+     (if is_empty bytes then "Bytes.empty"
+      else "Bytes {size = " ^ string_of_int (size bytes) ^ "}"))
 
 end;
