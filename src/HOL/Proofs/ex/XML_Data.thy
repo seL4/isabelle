@@ -48,11 +48,11 @@ ML_val \<open>
 text \<open>Some fairly large proof:\<close>
 
 ML_val \<open>
-  val xml = export_proof thy1 @{thm abs_less_iff};
+  val xml = export_proof thy1 @{thm Int.times_int.abs_eq};
   val thm = import_proof thy1 xml;
 
-  val xml_size = size (YXML.string_of_body xml);
-  \<^assert> (xml_size > 100000);
+  val xml_size = Bytes.length (YXML.bytes_of_body xml);
+  \<^assert> (xml_size > 10000000);
 \<close>
 
 end
