@@ -2347,6 +2347,7 @@ data Term =
   | Bound Int
   | Abs (Name, Typ, Term)
   | App (Term, Term)
+  | OFCLASS (Typ, Name)
   deriving (Show, Eq, Ord)
 
 
@@ -2681,7 +2682,8 @@ term t =
     \case { Var (a, b) -> Just (indexname a, typ_body b); _ -> Nothing },
     \case { Bound a -> Just ([], int a); _ -> Nothing },
     \case { Abs (a, b, c) -> Just ([a], pair typ term (b, c)); _ -> Nothing },
-    \case { App a -> Just ([], pair term term a); _ -> Nothing }]
+    \case { App a -> Just ([], pair term term a); _ -> Nothing },
+    \case { OFCLASS (a, b) -> Just ([b], typ a); _ -> Nothing }]
 \<close>
 
 generate_file "Isabelle/Term_XML/Decode.hs" = \<open>
@@ -2730,7 +2732,8 @@ term t =
     \(a, b) -> Var (indexname a, typ_body b),
     \([], a) -> Bound (int a),
     \([a], b) -> let (c, d) = pair typ term b in Abs (a, c, d),
-    \([], a) -> App (pair term term a)]
+    \([], a) -> App (pair term term a),
+    \([a], b) -> OFCLASS (typ b, a)]
 \<close>
 
 generate_file "Isabelle/XML/Classes.hs" = \<open>
