@@ -757,7 +757,7 @@ fun make_deriv promises oracles thms zboxes zproof proof =
   make_deriv0 promises
     (PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof});
 
-val empty_deriv = make_deriv [] [] [] [] ZDummy MinProof;
+val empty_deriv = make_deriv [] [] [] [] ZNop MinProof;
 
 
 (* inference rules *)
@@ -778,7 +778,7 @@ fun deriv_rule2 zproof proof
     val zboxes' = ZTerm.union_zboxes zboxes1 zboxes2;
 
     val proofs = Proofterm.get_proofs_level ();
-    val zproof' = if Proofterm.zproof_enabled proofs then zproof zprf1 zprf2 else ZDummy;
+    val zproof' = if Proofterm.zproof_enabled proofs then zproof zprf1 zprf2 else ZNop;
     val proof' = if Proofterm.proof_enabled proofs then proof prf1 prf2 else MinProof;
   in make_deriv ps' oracles' thms' zboxes' zproof' proof' end;
 
@@ -788,7 +788,7 @@ fun deriv_rule0 zproof proof =
   let val proofs = Proofterm.get_proofs_level () in
     if Proofterm.proof_enabled proofs orelse Proofterm.zproof_enabled proofs then
       deriv_rule1 I I (make_deriv [] [] [] []
-       (if Proofterm.zproof_enabled proofs then zproof () else ZDummy)
+       (if Proofterm.zproof_enabled proofs then zproof () else ZNop)
        (if Proofterm.proof_enabled proofs then proof () else MinProof))
     else empty_deriv
   end;
@@ -853,7 +853,7 @@ fun future future_thm ct =
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv [(i, future)] [] [] [] ZDummy MinProof,
+    Thm (make_deriv [(i, future)] [] [] [] ZNop MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1203,7 +1203,7 @@ fun add_oracle (b, oracle_fn) thy1 =
                   val thy = Context.certificate_theory cert handle ERROR msg =>
                     raise CONTEXT (msg, [], [ct], [], NONE);
                 in ZTerm.oracle_proof thy name prop end
-              else ZDummy;
+              else ZNop;
           in
             Thm (make_deriv [] [oracle] [] [] zproof proof,
              {cert = cert,
@@ -2115,7 +2115,7 @@ fun store_zproof name thm thy =
       raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
 
     val ((i, (_, zproof1)), zproof2) = ZTerm.thm_proof thy name hyps prop zproof;
-    val der1 = if Options.default_bool "prune_proofs" then deriv [] ZDummy else deriv zboxes zproof1;
+    val der1 = if Options.default_bool "prune_proofs" then deriv [] ZNop else deriv zboxes zproof1;
     val der2 = deriv [] zproof2;
 
     val thm' = trim_context (Thm (der1, args));

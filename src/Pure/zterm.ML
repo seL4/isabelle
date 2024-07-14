@@ -200,7 +200,7 @@ datatype zproof_name =
 type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
 
 datatype zproof =
-    ZDummy                         (*dummy proof*)
+    ZNop
   | ZConstp of zproof_const
   | ZBoundp of int
   | ZAbst of string * ztyp * zproof
@@ -480,7 +480,7 @@ fun instantiate_term_same typ inst =
 
 fun fold_proof {hyps} typ term =
   let
-    fun proof ZDummy = I
+    fun proof ZNop = I
       | proof (ZConstp (_, (instT, inst))) =
           ZTVars.fold (typ o #2) instT #> ZVars.fold (term o #2) inst
       | proof (ZBoundp _) = I
@@ -538,7 +538,7 @@ fun map_insts_same typ term (instT, inst) =
 
 fun map_proof_same {hyps} typ term =
   let
-    fun proof ZDummy = raise Same.SAME
+    fun proof ZNop = raise Same.SAME
       | proof (ZConstp (a, (instT, inst))) =
           ZConstp (a, map_insts_same typ term (instT, inst))
       | proof (ZBoundp _) = raise Same.SAME

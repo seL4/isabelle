@@ -336,7 +336,7 @@ val unions_thms = Ord_List.unions thm_ord;
 
 fun no_proof_body zproof proof =
   PBody {oracles = [], thms = [], zboxes = [], zproof = zproof, proof = proof};
-val no_thm_body = thm_body (no_proof_body ZDummy MinProof);
+val no_thm_body = thm_body (no_proof_body ZNop MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
   | no_thm_names (AbsP (x, t, prf)) = AbsP (x, t, no_thm_names prf)
@@ -459,7 +459,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, zboxes = [], zproof = ZDummy, proof = c} end
+  in PBody {oracles = a, thms = b, zboxes = [], zproof = ZNop, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -2187,7 +2187,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
     val (zproof1, zboxes1) =
       if zproof_enabled proofs then
         ZTerm.add_box_proof {unconstrain = unconstrain} thy hyps concl zproof0 zboxes0
-      else (ZDummy, []);
+      else (ZNop, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
       else MinProof;
@@ -2198,7 +2198,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
         val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
-          {oracles = oracles0, thms = thms0, zboxes = [], zproof = ZDummy, proof = proof1};
+          {oracles = oracles0, thms = thms0, zboxes = [], zproof = ZNop, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =
