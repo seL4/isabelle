@@ -148,14 +148,16 @@ object YXML {
 
     /* parse chunks */
 
-    for (chunk <- source.iterator_X if !chunk.is_empty) {
-      if (chunk.is_Y) pop()
-      else {
-        chunk.iterator_Y.toList match {
-          case ch :: name :: atts if ch.is_empty =>
-            push(parse_string(name), atts.map(parse_attrib))
-          case txts =>
-            for (txt <- txts) add(cache.tree0(XML.Text(cache.string(parse_string(txt)))))
+    for (chunk <- source.iterator_X) {
+      if (!chunk.is_empty) {
+        if (chunk.is_Y) pop()
+        else {
+          chunk.iterator_Y.toList match {
+            case ch :: name :: atts if ch.is_empty =>
+              push(parse_string(name), atts.map(parse_attrib))
+            case txts =>
+              for (txt <- txts) add(cache.tree0(XML.Text(cache.string(parse_string(txt)))))
+          }
         }
       }
     }
