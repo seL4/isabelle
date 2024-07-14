@@ -109,8 +109,7 @@ val split_string =
 
 val split_bytes =
   Bytes.space_explode X
-  #> filter (fn "" => false | _ => true)
-  #> map (space_explode Y);
+  #> map_filter (fn "" => NONE | s => SOME (space_explode Y s));
 
 
 (* structural errors *)
