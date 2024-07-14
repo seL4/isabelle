@@ -13,7 +13,7 @@ sig
   val chunk_size: int
   type T
   val eq: T * T -> bool
-  val length: T -> int
+  val size: T -> int
   val contents: T -> string list
   val contents_blob: T -> XML.body
   val content: T -> string
@@ -54,7 +54,7 @@ abstype T = Bytes of
   {buffer: string list, chunks: string list, m: int (*buffer size*), n: int (*chunks size*)}
 with
 
-fun length (Bytes {m, n, ...}) = m + n;
+fun size (Bytes {m, n, ...}) = m + n;
 
 val compact = implode o rev;
 
@@ -69,7 +69,7 @@ val contents_blob = contents #> XML.blob;
 
 val content = implode o contents;
 
-fun is_empty bytes = length bytes = 0;
+fun is_empty bytes = size bytes = 0;
 
 val empty = Bytes {buffer = [], chunks = [], m = 0, n = 0};
 
@@ -132,10 +132,10 @@ end;
 fun beginning n bytes =
   let
     val dots = " ...";
-    val m = (String.maxSize - size dots) div chunk_size;
+    val m = (String.maxSize - String.size dots) div chunk_size;
     val a = implode (take m (contents bytes));
-    val b = String.substring (a, 0, Int.min (n, size a));
-  in if size b < length bytes then b ^ dots else b end;
+    val b = String.substring (a, 0, Int.min (n, String.size a));
+  in if String.size b < size bytes then b ^ dots else b end;
 
 fun append bytes1 bytes2 =  (*left-associative*)
   if is_empty bytes1 then bytes2
@@ -155,7 +155,7 @@ val buffer = build o fold add o Buffer.contents;
 
 fun space_explode sep bytes =
   if is_empty bytes then []
-  else if size sep <> 1 then [content bytes]
+  else if String.size sep <> 1 then [content bytes]
   else
     let
       val sep_char = String.nth sep 0;
@@ -199,7 +199,7 @@ fun read_block limit =
 fun read_stream limit stream =
   let
     fun read bytes =
-      (case read_block (limit - length bytes) stream of
+      (case read_block (limit - size bytes) stream of
         "" => bytes
       | s => read (add s bytes))
   in read empty end;
@@ -216,6 +216,6 @@ fun write path bytes = File_Stream.open_output (fn stream => write_stream stream
 
 val _ =
   ML_system_pp (fn _ => fn _ => fn bytes =>
-    PolyML.PrettyString ("Bytes {length = " ^ string_of_int (length bytes) ^ "}"))
+    PolyML.PrettyString ("Bytes {size = " ^ string_of_int (size bytes) ^ "}"))
 
 end;

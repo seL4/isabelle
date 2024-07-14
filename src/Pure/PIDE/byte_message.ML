@@ -44,7 +44,7 @@ fun read stream n = Bytes.read_stream n stream;
 fun read_block stream n =
   let
     val msg = read stream n;
-    val len = Bytes.length msg;
+    val len = Bytes.size msg;
   in (if len = n then SOME msg else NONE, len) end;
 
 fun read_line stream =
@@ -66,7 +66,7 @@ fun make_header ns =
   [Bytes.string (space_implode "," (map Value.print_int ns)), Bytes.newline];
 
 fun write_message stream chunks =
-  (write stream (make_header (map Bytes.length chunks) @ chunks); flush stream);
+  (write stream (make_header (map Bytes.size chunks) @ chunks); flush stream);
 
 fun write_message_string stream =
   write_message stream o map Bytes.string;
@@ -110,7 +110,7 @@ fun write_line_message stream msg =
   if is_length msg orelse is_terminated msg then
     error ("Bad content for line message:\n" ^ Bytes.beginning 100 msg)
   else
-    let val n = Bytes.length msg in
+    let val n = Bytes.size msg in
       write stream
         ((if n > 100 orelse Bytes.exists_string (fn s => s = "\n") msg
           then make_header [n + 1] else []) @ [msg, Bytes.newline]);

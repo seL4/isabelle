@@ -51,7 +51,7 @@ ML_val \<open>
   val xml = export_proof thy1 @{thm Int.times_int.abs_eq};
   val thm = import_proof thy1 xml;
 
-  val xml_size = Bytes.length (YXML.bytes_of_body xml);
+  val xml_size = Bytes.size (YXML.bytes_of_body xml);
   \<^assert> (xml_size > 10000000);
 \<close>
 
