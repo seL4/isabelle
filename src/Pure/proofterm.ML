@@ -405,7 +405,12 @@ fun standard_term consts t = t |> variant
   fn Var (a, _) => (indexname a, []),
   fn Bound a => ([], int a),
   fn Abs (a, b, c) => ([a], pair typ (standard_term consts) (b, c)),
-  fn op $ a => ([], pair (standard_term consts) (standard_term consts) a)];
+  fn t as op $ a =>
+    if can Logic.match_of_class t then raise Match
+    else ([], pair (standard_term consts) (standard_term consts) a),
+  fn t =>
+    let val (T, c) = Logic.match_of_class t
+    in ([c], typ T) end];
 
 fun standard_proof consts prf = prf |> variant
  [fn MinProof => ([], []),

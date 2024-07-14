@@ -55,7 +55,12 @@ fun term consts t = t |> variant
   fn Var (a, b) => (indexname a, typ_body b),
   fn Bound a => ([], int a),
   fn Abs (a, b, c) => ([a], pair typ (term consts) (b, c)),
-  fn op $ a => ([], pair (term consts) (term consts) a)];
+  fn t as op $ a =>
+    if can Logic.match_of_class t then raise Match
+    else ([], pair (term consts) (term consts) a),
+  fn t =>
+    let val (T, c) = Logic.match_of_class t
+    in ([c], typ T) end];
 
 end;
 
@@ -91,7 +96,8 @@ fun term consts body = body |> variant
   fn (a, b) => Var (indexname a, typ_body b),
   fn ([], a) => Bound (int a),
   fn ([a], b) => let val (c, d) = pair typ (term consts) b in Abs (a, c, d) end,
-  fn ([], a) => op $ (pair (term consts) (term consts) a)];
+  fn ([], a) => op $ (pair (term consts) (term consts) a),
+  fn ([a], b) => Logic.mk_of_class (typ b, a)];
 
 end;
 

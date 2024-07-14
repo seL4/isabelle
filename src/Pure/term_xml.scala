@@ -34,7 +34,8 @@ object Term_XML {
         { case Var(a, b) => (indexname(a), typ_body(b)) },
         { case Bound(a) => (Nil, int(a)) },
         { case Abs(a, b, c) => (List(a), pair(typ, term)(b, c)) },
-        { case App(a, b) => (Nil, pair(term, term)(a, b)) }))
+        { case App(a, b) => (Nil, pair(term, term)(a, b)) },
+        { case OFCLASS(a, b) => (List(b), typ(a)) }))
   }
 
   object Decode {
@@ -61,7 +62,8 @@ object Term_XML {
         { case (a, b) => Var(indexname(a), typ_body(b)) },
         { case (Nil, a) => Bound(int(a)) },
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
-        { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
+        { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) },
+        { case (List(a), b) => OFCLASS(typ(b), a) }))
 
     def term_env(env: Map[String, Typ]): T[Term] = {
       def env_type(x: String, t: Typ): Typ =
@@ -74,7 +76,8 @@ object Term_XML {
           { case (a, b) => Var(indexname(a), typ_body(b)) },
           { case (Nil, a) => Bound(int(a)) },
           { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
-          { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
+          { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) },
+          { case (List(a), b) => OFCLASS(typ(b), a) }))
       term
     }
 

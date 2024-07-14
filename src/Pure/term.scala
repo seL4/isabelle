@@ -96,16 +96,16 @@ object Term {
   case class App(fun: Term, arg: Term) extends Term {
     private lazy val hash: Int = ("App", fun, arg).hashCode()
     override def hashCode(): Int = hash
-
-    override def toString: String =
-      this match {
-        case OFCLASS(ty, c) => "OFCLASS(" + ty + "," + c + ")"
-        case _ => "App(" + fun + "," + arg + ")"
-      }
+  }
+  case class OFCLASS(typ: Typ, name: String) extends Term {
+    private lazy val hash: Int = ("OFCLASS", typ, name).hashCode()
+    override def hashCode(): Int = hash
   }
 
   def dummy_pattern(ty: Typ): Term = Const("Pure.dummy_pattern", List(ty))
   val dummy: Term = dummy_pattern(dummyT)
+
+  def mk_of_sort(typ: Typ, s: Sort): List[Term] = s.map(c => OFCLASS(typ, c))
 
   sealed abstract class Proof
   case object MinProof extends Proof
@@ -145,30 +145,6 @@ object Term {
   case class PThm(serial: Long, theory_name: String, thm_name: Thm_Name, types: List[Typ]) extends Proof {
     private lazy val hash: Int = ("PThm", serial, theory_name, thm_name, types).hashCode()
     override def hashCode(): Int = hash
-  }
-
-
-  /* type classes within the logic */
-
-  object Class_Const {
-    val suffix = "_class"
-    def apply(c: Class): String = c + suffix
-    def unapply(s: String): Option[Class] =
-      if (s.endsWith(suffix)) Some(s.substring(0, s.length - suffix.length)) else None
-  }
-
-  object OFCLASS {
-    def apply(ty: Typ, s: Sort): List[Term] = s.map(c => apply(ty, c))
-
-    def apply(ty: Typ, c: Class): Term =
-      App(Const(Class_Const(c), List(ty)), Const(Pure_Thy.TYPE, List(ty)))
-
-    def unapply(t: Term): Option[(Typ, String)] =
-      t match {
-        case App(Const(Class_Const(c), List(ty)), Const(Pure_Thy.TYPE, List(ty1)))
-        if ty == ty1 => Some((ty, c))
-        case _ => None
-      }
   }
 
 
@@ -230,6 +206,7 @@ object Term {
             case Abs(name, typ, body) =>
               store(Abs(cache_string(name), cache_typ(typ), cache_term(body)))
             case App(fun, arg) => store(App(cache_term(fun), cache_term(arg)))
+            case OFCLASS(typ, name) => store(OFCLASS(cache_typ(typ), cache_string(name)))
           }
       }
     }
