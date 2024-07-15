@@ -50,17 +50,17 @@ text \<open>terms\<close>
 
 nominal_datatype trm = 
     Ax   "name" "coname"
-  | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            ("Cut <_>._ (_)._" [100,100,100,100] 100)
-  | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 ("NotR (_)._ _" [100,100,100] 100)
-  | NotL "\<guillemotleft>coname\<guillemotright>trm" "name"                 ("NotL <_>._ _" [100,100,100] 100)
-  | AndR "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>coname\<guillemotright>trm" "coname" ("AndR <_>._ <_>._ _" [100,100,100,100,100] 100)
-  | AndL1 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL1 (_)._ _" [100,100,100] 100)
-  | AndL2 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL2 (_)._ _" [100,100,100] 100)
-  | OrR1 "\<guillemotleft>coname\<guillemotright>trm" "coname"               ("OrR1 <_>._ _" [100,100,100] 100)
-  | OrR2 "\<guillemotleft>coname\<guillemotright>trm" "coname"               ("OrR2 <_>._ _" [100,100,100] 100)
-  | OrL "\<guillemotleft>name\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"        ("OrL (_)._ (_)._ _" [100,100,100,100,100] 100)
-  | ImpR "\<guillemotleft>name\<guillemotright>(\<guillemotleft>coname\<guillemotright>trm)" "coname"       ("ImpR (_).<_>._ _" [100,100,100,100] 100)
-  | ImpL "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"     ("ImpL <_>._ (_)._ _" [100,100,100,100,100] 100)
+  | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            ("Cut <_>._ (_)._" [0,100,1000,100] 101)
+  | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 ("NotR (_)._ _" [100,100,100] 101)
+  | NotL "\<guillemotleft>coname\<guillemotright>trm" "name"                 ("NotL <_>._ _" [0,100,100] 101)
+  | AndR "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>coname\<guillemotright>trm" "coname" ("AndR <_>._ <_>._ _" [0,100,0,100,100] 101)
+  | AndL1 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL1 (_)._ _" [100,100,100] 101)
+  | AndL2 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL2 (_)._ _" [100,100,100] 101)
+  | OrR1 "\<guillemotleft>coname\<guillemotright>trm" "coname"               ("OrR1 <_>._ _" [100,100,100] 101)
+  | OrR2 "\<guillemotleft>coname\<guillemotright>trm" "coname"               ("OrR2 <_>._ _" [100,100,100] 101)
+  | OrL "\<guillemotleft>name\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"        ("OrL (_)._ (_)._ _" [100,100,100,100,100] 101)
+  | ImpR "\<guillemotleft>name\<guillemotright>(\<guillemotleft>coname\<guillemotright>trm)" "coname"       ("ImpR (_).<_>._ _" [100,100,100,100] 101)
+  | ImpL "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"     ("ImpL <_>._ (_)._ _" [100,100,100,100,100] 101)
 
 text \<open>named terms\<close>
 
@@ -1319,217 +1319,151 @@ qed
 lemma better_NotL_substn:
   assumes a: "y\<sharp>M"
   shows "(NotL <a>.M y){y:=<c>.P} = fresh_fun (\<lambda>x'. Cut <c>.P (x').NotL <a>.M x')"
-using a
-apply -
-apply(generate_fresh "coname")
-apply(subgoal_tac "NotL <a>.M y = NotL <ca>.([(ca,a)]\<bullet>M) y")
-apply(auto simp: fresh_left calc_atm forget)
-apply(generate_fresh "name")
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(perm_simp add: trm.inject alpha fresh_prod fresh_atm fresh_left, auto)
-done
+proof (generate_fresh "coname")
+  fix ca :: coname
+  assume d: "ca \<sharp> (M, P, a, c, y)"
+  then have "NotL <a>.M y = NotL <ca>.([(ca,a)]\<bullet>M) y"
+    by (metis alpha(2) fresh_prod perm_fresh_fresh(2) trm.inject(4))
+  with a d show ?thesis
+    apply(simp add: fresh_left calc_atm forget)
+    apply (metis trm.inject(4))
+    done
+qed
 
 lemma better_AndL1_substn:
   assumes a: "y\<sharp>[x].M"
   shows "(AndL1 (x).M y){y:=<c>.P} = fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL1 (x).M z')"
-using a
-apply -
-apply(generate_fresh "name")
-apply(subgoal_tac "AndL1 (x).M y = AndL1 (ca).([(ca,x)]\<bullet>M) y")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(generate_fresh "name")
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm)
-apply(auto)
-done
+proof (generate_fresh "name")
+  fix d:: name
+  assume d: "d \<sharp> (M, P, c, x, y)"
+  then have \<section>: "AndL1 (x).M y = AndL1 (d).([(d,x)]\<bullet>M) y"
+    by (metis alpha(1) fresh_prodD(1) perm_fresh_fresh(1) trm.inject(6))
+  with d have "(\<lambda>z'. Cut <c>.P (z').AndL1 (d).([(d, x)] \<bullet> M){x:=<c>.P} (z')) 
+             = (\<lambda>z'. Cut <c>.P (z').AndL1 (x).M (z'))"
+    by (metis forget(1) fresh_bij(1) fresh_prodD(1) swap_simps(1) trm.inject(6))
+  with d have "(\<lambda>z'. Cut <c>.P (z').AndL1 d.([(d, x)] \<bullet> M){y:=<c>.P} z')
+             = (\<lambda>z'. Cut <c>.P (z').AndL1 (x).M (z'))"
+    apply(simp add: trm.inject alpha fresh_prod fresh_atm)
+    by (metis abs_fresh(1) assms forget(1) fresh_atm(1) fresh_aux(1) nrename_nfresh nrename_swap)
+  with d \<section> show ?thesis
+    by (simp add: fresh_left calc_atm)
+qed
 
 lemma better_AndL2_substn:
   assumes a: "y\<sharp>[x].M"
   shows "(AndL2 (x).M y){y:=<c>.P} = fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL2 (x).M z')"
-using a
-apply -
-apply(generate_fresh "name")
-apply(subgoal_tac "AndL2 (x).M y = AndL2 (ca).([(ca,x)]\<bullet>M) y")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(generate_fresh "name")
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm)
-apply(auto)
-done
+proof (generate_fresh "name")
+  fix d:: name
+  assume d: "d \<sharp> (M, P, c, x, y)"
+  then have \<section>: "AndL2 (x).M y = AndL2 (d).([(d,x)]\<bullet>M) y"
+    by (metis alpha(1) fresh_prodD(1) perm_fresh_fresh(1) trm.inject(7))
+  with d have "(\<lambda>z'. Cut <c>.P (z').AndL2 (d).([(d, x)] \<bullet> M){x:=<c>.P} (z')) 
+             = (\<lambda>z'. Cut <c>.P (z').AndL2 (x).M (z'))"
+    by (metis forget(1) fresh_bij(1) fresh_prodD(1) swap_simps(1) trm.inject(7))
+  with d have "(\<lambda>z'. Cut <c>.P (z').AndL2 d.([(d, x)] \<bullet> M){y:=<c>.P} z')
+             = (\<lambda>z'. Cut <c>.P (z').AndL2 (x).M (z'))"
+    apply(simp add: trm.inject alpha fresh_prod fresh_atm)
+    by (metis abs_fresh(1) assms forget(1) fresh_atm(1) fresh_aux(1) nrename_nfresh nrename_swap)
+  with d \<section> show ?thesis
+    by (simp add: fresh_left calc_atm)
+qed
 
 lemma better_AndR_substc:
-  assumes a: "c\<sharp>([a].M,[b].N)"
+  assumes "c\<sharp>([a].M,[b].N)"
   shows "(AndR <a>.M <b>.N c){c:=(z).P} = fresh_fun (\<lambda>a'. Cut <a'>.(AndR <a>.M <b>.N a') (z).P)"
-using a
-apply -
-apply(generate_fresh "coname")
-apply(generate_fresh "coname")
-apply(subgoal_tac "AndR <a>.M <b>.N c = AndR <ca>.([(ca,a)]\<bullet>M) <caa>.([(caa,b)]\<bullet>N) c")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(rule trans)
-apply(rule substc.simps)
-apply(auto simp: fresh_left calc_atm fresh_prod fresh_atm)[1]
-apply(auto simp: fresh_left calc_atm fresh_prod fresh_atm)[1]
-apply(auto simp: fresh_prod fresh_atm)[1]
-apply(simp)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule conjI)
-apply(rule forget)
-apply(auto simp: fresh_left calc_atm abs_fresh)[1]
-apply(rule forget)
-apply(auto simp: fresh_left calc_atm abs_fresh)[1]
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm)
-apply(auto)
-done
+proof (generate_fresh "coname" , generate_fresh "coname")
+  fix d :: coname
+    and e :: coname
+  assume d: "d \<sharp> (M, N, P, a, b, c, z)"
+    and e: "e \<sharp> (M, N, P, a, b, c, z, d)"
+  then have "AndR <a>.M <b>.N c = AndR <d>.([(d,a)]\<bullet>M) <e>.([(e,b)]\<bullet>N) c"
+    by (perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm) auto
+  with assms d e show ?thesis
+    apply (auto simp: fresh_left calc_atm fresh_prod fresh_atm)
+    by (metis (no_types, opaque_lifting) abs_fresh(2) forget(2) trm.inject(5))
+qed
 
 lemma better_OrL_substn:
-  assumes a: "x\<sharp>([y].M,[z].N)"
+  assumes "x\<sharp>([y].M,[z].N)"
   shows "(OrL (y).M (z).N x){x:=<c>.P} = fresh_fun (\<lambda>z'. Cut <c>.P (z').OrL (y).M (z).N z')"
-using a
-apply -
-apply(generate_fresh "name")
-apply(generate_fresh "name")
-apply(subgoal_tac "OrL (y).M (z).N x = OrL (ca).([(ca,y)]\<bullet>M) (caa).([(caa,z)]\<bullet>N) x")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(rule trans)
-apply(rule substn.simps)
-apply(auto simp: fresh_left calc_atm fresh_prod fresh_atm)[1]
-apply(auto simp: fresh_left calc_atm fresh_prod fresh_atm)[1]
-apply(auto simp: fresh_prod fresh_atm)[1]
-apply(simp)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule conjI)
-apply(rule forget)
-apply(auto simp: fresh_left calc_atm abs_fresh)[1]
-apply(rule forget)
-apply(auto simp: fresh_left calc_atm abs_fresh)[1]
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm)
-apply(auto)
-done
+proof (generate_fresh "name" , generate_fresh "name")
+  fix d :: name
+    and e :: name
+  assume d: "d \<sharp> (M, N, P, c, x, y, z)"
+    and e: "e \<sharp> (M, N, P, c, x, y, z, d)"
+  with assms have "OrL (y).M (z).N x = OrL (d).([(d,y)]\<bullet>M) (e).([(e,z)]\<bullet>N) x"
+    by (perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm) auto
+  with assms d e show ?thesis
+    apply (auto simp: fresh_left calc_atm fresh_prod fresh_atm)
+    by (metis (no_types, lifting) abs_fresh(1) forget(1) trm.inject(10))
+qed
 
 lemma better_OrR1_substc:
   assumes a: "d\<sharp>[a].M"
   shows "(OrR1 <a>.M d){d:=(z).P} = fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <a>.M a' (z).P)"
-using a
-apply -
-apply(generate_fresh "coname")
-apply(subgoal_tac "OrR1 <a>.M d = OrR1 <c>.([(c,a)]\<bullet>M) d")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm)
-apply(auto)
-done
+proof (generate_fresh "coname")
+  fix c :: coname
+  assume c: "c \<sharp> (M, P, a, d, z)"
+  then have "OrR1 <a>.M d = OrR1 <c>.([(c,a)]\<bullet>M) d"
+    by (perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm) auto
+  with assms c show ?thesis
+    apply (auto simp: fresh_left calc_atm fresh_prod fresh_atm)
+    by (metis abs_fresh(2) forget(2) trm.inject(8))
+qed
 
 lemma better_OrR2_substc:
   assumes a: "d\<sharp>[a].M"
   shows "(OrR2 <a>.M d){d:=(z).P} = fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <a>.M a' (z).P)"
-using a
-apply -
-apply(generate_fresh "coname")
-apply(subgoal_tac "OrR2 <a>.M d = OrR2 <c>.([(c,a)]\<bullet>M) d")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm)
-apply(auto)
-done
+proof (generate_fresh "coname")
+  fix c :: coname
+  assume c: "c \<sharp> (M, P, a, d, z)"
+  then have "OrR2 <a>.M d = OrR2 <c>.([(c,a)]\<bullet>M) d"
+    by (perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm) auto
+  with assms c show ?thesis
+    apply (auto simp: fresh_left calc_atm fresh_prod fresh_atm)
+    by (metis abs_fresh(2) forget(2) trm.inject(9))
+qed
 
 lemma better_ImpR_substc:
-  assumes a: "d\<sharp>[a].M"
+  assumes "d\<sharp>[a].M"
   shows "(ImpR (x).<a>.M d){d:=(z).P} = fresh_fun (\<lambda>a'. Cut <a'>.ImpR (x).<a>.M a' (z).P)"
-using a
-apply -
-apply(generate_fresh "coname")
-apply(generate_fresh "name")
-apply(subgoal_tac "ImpR (x).<a>.M d = ImpR (ca).<c>.([(c,a)]\<bullet>[(ca,x)]\<bullet>M) d")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm abs_perm abs_fresh fresh_left calc_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm abs_perm fresh_left calc_atm abs_fresh)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(rule sym)
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm abs_fresh abs_perm)
-done
+proof (generate_fresh "coname" , generate_fresh "name")
+  fix c :: coname
+    and c' :: name
+  assume c: "c \<sharp> (M, P, a, d, x, z)"
+    and c': "c' \<sharp> (M, P, a, d, x, z, c)"
+  have \<dagger>: "ImpR (x).<a>.M d = ImpR (c').<c>.([(c,a)]\<bullet>[(c',x)]\<bullet>M) d"
+    apply (rule sym)
+    using c c'
+    apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm abs_fresh abs_perm)
+    done
+  with assms c c' have "fresh_fun
+        (\<lambda>a'. Cut <a'>.ImpR (c').<c>.(([(c, a)] \<bullet> [(c', x)] \<bullet> M)){d:=(z).P} a' (z).P)
+      = fresh_fun (\<lambda>a'. Cut <a'>.ImpR (x).<a>.M a' (z).P)"
+    apply(intro arg_cong [where f="fresh_fun"])
+    by(fastforce simp add: trm.inject alpha fresh_prod fresh_atm abs_perm fresh_left calc_atm abs_fresh forget)
+  with assms c c' \<dagger> show ?thesis
+    by (auto simp: fresh_left calc_atm forget abs_fresh)
+qed
 
 lemma better_ImpL_substn:
-  assumes a: "y\<sharp>(M,[x].N)"
+  assumes "y\<sharp>(M,[x].N)"
   shows "(ImpL <a>.M (x).N y){y:=<c>.P} = fresh_fun (\<lambda>z'. Cut <c>.P (z').ImpL <a>.M (x).N z')"
-using a
-apply -
-apply(generate_fresh "coname")
-apply(generate_fresh "name")
-apply(subgoal_tac "ImpL <a>.M (x).N y = ImpL <ca>.([(ca,a)]\<bullet>M) (caa).([(caa,x)]\<bullet>N) y")
-apply(auto simp: fresh_left calc_atm forget abs_fresh)[1]
-apply(rule_tac f="fresh_fun" in arg_cong)
-apply(simp add:  fun_eq_iff)
-apply(rule allI)
-apply(simp add: trm.inject alpha fresh_prod fresh_atm abs_perm abs_fresh fresh_left calc_atm)
-apply(rule forget)
-apply(simp add: fresh_left calc_atm)
-apply(auto)[1]
-apply(rule sym)
-apply(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm abs_fresh abs_perm)
-done
+proof (generate_fresh "coname" , generate_fresh "name")
+  fix ca :: coname
+    and caa :: name
+  assume d: "ca \<sharp> (M, N, P, a, c, x, y)"
+    and e: "caa \<sharp> (M, N, P, a, c, x, y, ca)"
+  have "ImpL <a>.M (x).N y = ImpL <ca>.([(ca,a)]\<bullet>M) (caa).([(caa,x)]\<bullet>N) y"
+    apply(rule sym)
+    using d e
+    by(perm_simp add: trm.inject alpha fresh_left calc_atm fresh_prod fresh_atm abs_fresh abs_perm)
+  with d e assms show ?thesis
+    apply(simp add: fresh_left calc_atm forget abs_fresh)
+    apply(intro arg_cong [where f="fresh_fun"] ext)
+    apply(simp add: trm.inject alpha fresh_prod fresh_atm abs_perm abs_fresh fresh_left calc_atm)
+    by (metis forget(1) fresh_aux(1) fresh_bij(1) swap_simps(1))
+qed
 
 lemma freshn_after_substc:
   fixes x::"name"
@@ -1556,170 +1490,124 @@ lemma freshc_after_substn:
   by (meson assms fresh_def subset_iff supp_subst6)
 
 lemma substn_crename_comm:
-  assumes a: "c\<noteq>a" "c\<noteq>b"
+  assumes "c\<noteq>a" "c\<noteq>b"
   shows "M{x:=<c>.P}[a\<turnstile>c>b] = M[a\<turnstile>c>b]{x:=<c>.(P[a\<turnstile>c>b])}"
-using a
-apply(nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
-apply(auto simp: subst_fresh rename_fresh trm.inject)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(P,x,c)")
-apply(erule exE)
-apply(subgoal_tac "Cut <c>.P (x).Ax x a = Cut <c>.P (x').Ax x' a")
-apply(simp)
-apply(rule trans)
-apply(rule crename.simps)
-apply(simp add: fresh_prod fresh_atm)
-apply(simp)
-apply(simp add: trm.inject)
-apply(simp add: alpha trm.inject calc_atm fresh_atm)
-apply(simp add: trm.inject)
-apply(simp add: alpha trm.inject calc_atm fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(simp add: crename_id)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(auto simp: fresh_atm)[1]
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm)
-apply(auto simp: fresh_atm)[1]
-apply(drule crename_ax)
-apply(simp add: fresh_atm)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P,P[a\<turnstile>c>b],x,trm[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotL)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P,P[a\<turnstile>c>b],name1,trm[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL1)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P,P[a\<turnstile>c>b],name1,trm[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL2)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{x:=<c>.P},trm2{x:=<c>.P},P,P[a\<turnstile>c>b],name1,name2,
-                                  trm1[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]},trm2[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrL)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh subst_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{name2:=<c>.P},trm2{name2:=<c>.P},P,P[a\<turnstile>c>b],name1,
-                                  trm1[a\<turnstile>c>b]{name2:=<c>.P[a\<turnstile>c>b]},trm2[a\<turnstile>c>b]{name2:=<c>.P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpL)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh subst_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-done
+using assms
+proof (nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    by(auto simp: subst_fresh rename_fresh trm.inject better_crename_Cut fresh_atm)
+next
+  case (Cut coname trm1 name trm2)
+  then show ?case
+    apply(simp add: rename_fresh better_crename_Cut fresh_atm)
+    by (meson crename_ax)
+next
+  case (NotL coname trm name)
+  obtain x'::name where "x'\<sharp>(trm{x:=<c>.P},P,P[a\<turnstile>c>b],x,trm[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})"
+    by (meson exists_fresh(1) fs_name1)
+  with NotL show ?case
+    apply (simp add: subst_fresh rename_fresh trm.inject)
+    by (force simp: fresh_prod fresh_fun_simp_NotL better_crename_Cut fresh_atm)
+next
+  case (AndL1 name1 trm name2)
+  obtain x'::name where "x'\<sharp>(trm{x:=<c>.P},P,P[a\<turnstile>c>b],name1,trm[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL1 show ?case
+    apply (simp add: subst_fresh rename_fresh trm.inject)
+    apply (force simp: fresh_prod fresh_fun_simp_AndL1 better_crename_Cut fresh_atm)
+    done
+next
+  case (AndL2 name1 trm name2)
+  obtain x'::name where x': "x'\<sharp>(trm{x:=<c>.P},P,P[a\<turnstile>c>b],name1,trm[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL2 show ?case
+    apply (simp add: subst_fresh rename_fresh trm.inject)
+    apply (auto simp: fresh_prod fresh_fun_simp_AndL2 better_crename_Cut fresh_atm)
+    done
+next
+  case (OrL name1 trm1 name2 trm2 name3)
+  obtain x'::name where x': "x'\<sharp>(trm1{x:=<c>.P},trm2{x:=<c>.P},P,P[a\<turnstile>c>b],name1,name2,
+                                  trm1[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]},trm2[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})"
+    by (meson exists_fresh(1) fs_name1)
+  with OrL show ?case
+    apply (simp add: subst_fresh rename_fresh trm.inject)
+    apply (auto simp: fresh_atm subst_fresh fresh_prod fresh_fun_simp_OrL better_crename_Cut)
+    done
+  next
+  case (ImpL coname trm1 name1 trm2 name2)
+  obtain x'::name where x': "x'\<sharp>(trm1{x:=<c>.P},trm2{x:=<c>.P},P,P[a\<turnstile>c>b],name1,name2,
+                                  trm1[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]},trm2[a\<turnstile>c>b]{x:=<c>.P[a\<turnstile>c>b]})"
+    by (meson exists_fresh(1) fs_name1)
+  with ImpL show ?case
+    apply (simp add: subst_fresh rename_fresh trm.inject)
+    apply (auto simp: fresh_atm subst_fresh fresh_prod fresh_fun_simp_ImpL better_crename_Cut)
+    done
+qed (auto simp: subst_fresh rename_fresh)
+
 
 lemma substc_crename_comm:
-  assumes a: "c\<noteq>a" "c\<noteq>b"
+  assumes "c\<noteq>a" "c\<noteq>b"
   shows "M{c:=(x).P}[a\<turnstile>c>b] = M[a\<turnstile>c>b]{c:=(x).(P[a\<turnstile>c>b])}"
-using a
-apply(nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
-apply(auto simp: subst_fresh rename_fresh trm.inject)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(drule crename_ax)
-apply(simp add: fresh_atm)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(a,b,trm{coname:=(x).P},P,P[a\<turnstile>c>b],x,trm[a\<turnstile>c>b]{coname:=(x).P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotR)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,coname2,a,b,trm1{coname3:=(x).P},trm2{coname3:=(x).P},
-                   P,P[a\<turnstile>c>b],x,trm1[a\<turnstile>c>b]{coname3:=(x).P[a\<turnstile>c>b]},trm2[a\<turnstile>c>b]{coname3:=(x).P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndR)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh subst_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b,
-                         trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR1)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b,
-                         trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR2)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b,
-                         trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpR)
-apply(rule trans)
-apply(rule better_crename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-done
+using assms
+proof (nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    by(auto simp: subst_fresh rename_fresh trm.inject better_crename_Cut fresh_atm)
+next
+  case (Cut coname trm1 name trm2)
+  then show ?case
+    apply(simp add: rename_fresh  better_crename_Cut)
+    by (meson crename_ax)
+next
+  case (NotR name trm coname)
+  obtain c'::coname where "c'\<sharp>(a,b,trm{coname:=(x).P},P,P[a\<turnstile>c>b],x,trm[a\<turnstile>c>b]{coname:=(x).P[a\<turnstile>c>b]})"
+    by (meson exists_fresh' fs_coname1)
+  with NotR show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    apply(clarsimp simp: fresh_prod)
+    apply(simp add: fresh_fun_simp_NotR)
+    by (simp add: better_crename_Cut fresh_atm(2))
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  obtain c'::coname where "c'\<sharp>(coname1,coname2,a,b,trm1{coname3:=(x).P},trm2{coname3:=(x).P},
+                   P,P[a\<turnstile>c>b],x,trm1[a\<turnstile>c>b]{coname3:=(x).P[a\<turnstile>c>b]},trm2[a\<turnstile>c>b]{coname3:=(x).P[a\<turnstile>c>b]})"
+    by (meson exists_fresh' fs_coname1)
+  with AndR show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    apply(clarsimp simp: fresh_prod)
+    apply(simp add: fresh_fun_simp_AndR)
+    by (simp add: better_crename_Cut subst_fresh fresh_atm(2))
+next
+  case (OrR1 coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b, trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})"
+    by (meson exists_fresh' fs_coname1)
+  with OrR1 show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    apply(clarsimp simp: fresh_prod)
+    apply(simp add: fresh_fun_simp_OrR1)
+    by (simp add: better_crename_Cut fresh_atm(2))
+next
+  case (OrR2 coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b, trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})"
+    by (meson exists_fresh' fs_coname1)
+  with OrR2 show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    apply(clarsimp simp: fresh_prod)
+    apply(simp add: fresh_fun_simp_OrR2)
+    by (simp add: better_crename_Cut fresh_atm(2))
+next
+  case (ImpR name coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b, trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})"
+    by (meson exists_fresh' fs_coname1)
+  with ImpR show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    apply(clarsimp simp: fresh_prod)
+    apply(simp add: fresh_fun_simp_ImpR)
+    by (simp add: better_crename_Cut fresh_atm(2))
+qed (auto simp: subst_fresh rename_fresh trm.inject)
+
+
 
 lemma substn_nrename_comm:
   assumes a: "x\<noteq>y" "x\<noteq>z"
@@ -2421,58 +2309,35 @@ where
 equivariance fic
 
 lemma fic_Ax_elim:
-  assumes a: "fic (Ax x a) b"
+  assumes "fic (Ax x a) b"
   shows "a=b"
-using a
-apply(erule_tac fic.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (auto simp: trm.inject elim!: fic.cases)
 
 lemma fic_NotR_elim:
-  assumes a: "fic (NotR (x).M a) b"
+  assumes "fic (NotR (x).M a) b"
   shows "a=b \<and> b\<sharp>M"
-using a
-apply(erule_tac fic.cases)
-apply(auto simp: trm.inject)
-apply(subgoal_tac "b\<sharp>[xa].Ma")
-apply(drule sym)
-apply(simp_all add: abs_fresh)
-done
+  using assms
+  by (auto simp: trm.inject elim!: fic.cases) (metis abs_fresh(6))
 
 lemma fic_OrR1_elim:
-  assumes a: "fic (OrR1 <a>.M b) c"
+  assumes "fic (OrR1 <a>.M b) c"
   shows "b=c \<and> c\<sharp>[a].M"
-using a
-apply(erule_tac fic.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (auto simp: trm.inject elim!: fic.cases)
 
 lemma fic_OrR2_elim:
-  assumes a: "fic (OrR2 <a>.M b) c"
+  assumes "fic (OrR2 <a>.M b) c"
   shows "b=c \<and> c\<sharp>[a].M"
-using a
-apply(erule_tac fic.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (auto simp: trm.inject elim!: fic.cases)
 
 lemma fic_AndR_elim:
-  assumes a: "fic (AndR <a>.M <b>.N c) d"
+  assumes "fic (AndR <a>.M <b>.N c) d"
   shows "c=d \<and> d\<sharp>[a].M \<and> d\<sharp>[b].N"
-using a
-apply(erule_tac fic.cases)
-apply(auto simp: trm.inject)
-done
+  using assms by (auto simp: trm.inject elim!: fic.cases)
 
 lemma fic_ImpR_elim:
   assumes a: "fic (ImpR (x).<a>.M b) c"
   shows "b=c \<and> b\<sharp>[a].M"
-using a
-apply(erule_tac fic.cases)
-apply(auto simp: trm.inject)
-apply(subgoal_tac "c\<sharp>[xa].[aa].Ma")
-apply(drule sym)
-apply(simp_all add: abs_fresh)
-done
+  using assms by (auto simp: trm.inject elim!: fic.cases) (metis abs_fresh(6))
 
 lemma fic_rest_elims:
   shows "fic (Cut <a>.M (x).N) d \<Longrightarrow> False"
