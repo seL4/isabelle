@@ -66,7 +66,8 @@ sig
   val insert_set: key -> set -> set
   val remove_set: key -> set -> set
   val make_set: key list -> set
-  val unsynchronized_cache: (key -> 'a) -> key -> 'a
+  type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit}
+  val unsynchronized_cache: (key -> 'a) -> 'a cache_ops
 end;
 
 functor Table(Key: KEY): TABLE =
@@ -591,12 +592,13 @@ fun make_set xs = build (fold insert_set xs);
 
 (* cache *)
 
+type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit};
+
 fun unsynchronized_cache f =
   let
     val cache1 = Unsynchronized.ref empty;
     val cache2 = Unsynchronized.ref empty;
-  in
-    fn x =>
+    fun apply x =
       (case lookup (! cache1) x of
         SOME y => y
       | NONE =>
@@ -605,8 +607,9 @@ fun unsynchronized_cache f =
           | NONE =>
               (case Exn.result f x of
                 Exn.Res y => (Unsynchronized.change cache1 (update (x, y)); y)
-              | Exn.Exn exn => (Unsynchronized.change cache2 (update (x, exn)); Exn.reraise exn))))
-  end;
+              | Exn.Exn exn => (Unsynchronized.change cache2 (update (x, exn)); Exn.reraise exn))));
+    fun reset () = (cache2 := empty; cache1 := empty);
+  in {apply = apply, reset = reset} end;
 
 
 (* ML pretty-printing *)
