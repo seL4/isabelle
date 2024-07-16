@@ -251,10 +251,10 @@ sig
   val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
   val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
   val ztyp_of: typ -> ztyp
-  val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
-  val zterm_of: theory -> term -> zterm
   val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
+  val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
+  val zterm_of: theory -> term -> zterm
   val term_of: theory -> zterm -> term
   val beta_norm_term_same: zterm Same.operation
   val beta_norm_proof_same: zproof Same.operation
@@ -577,7 +577,7 @@ fun map_class_proof class =
   in Same.commit proof end;
 
 
-(* convert ztyp / zterm vs. regular typ / term *)
+(* convert ztyp vs. regular typ *)
 
 fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (TVar v) = ZTVar v
@@ -587,7 +587,21 @@ fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (Type (c, [T])) = ZType1 (c, ztyp_of T)
   | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
 
+fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
+  | typ_of_tvar v = TVar v;
+
+fun typ_of (ZTVar v) = typ_of_tvar v
+  | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
+  | typ_of ZProp = propT
+  | typ_of (ZType0 c) = Type (c, [])
+  | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
+  | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
+
 fun ztyp_cache () = #apply (Typtab.unsynchronized_cache ztyp_of);
+fun typ_cache () = #apply (ZTypes.unsynchronized_cache typ_of);
+
+
+(* convert zterm vs. regular term *)
 
 fun zterm_cache thy =
   let
@@ -611,18 +625,6 @@ fun zterm_cache thy =
   in {ztyp = ztyp, zterm = zterm} end;
 
 val zterm_of = #zterm o zterm_cache;
-
-fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
-  | typ_of_tvar v = TVar v;
-
-fun typ_of (ZTVar v) = typ_of_tvar v
-  | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
-  | typ_of ZProp = propT
-  | typ_of (ZType0 c) = Type (c, [])
-  | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
-  | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
-
-fun typ_cache () = #apply (ZTypes.unsynchronized_cache typ_of);
 
 fun term_of thy =
   let
