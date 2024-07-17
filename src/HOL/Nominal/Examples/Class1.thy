@@ -1496,7 +1496,7 @@ using assms
 proof (nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
   case (Ax name coname)
   then show ?case
-    by(auto simp: subst_fresh rename_fresh trm.inject better_crename_Cut fresh_atm)
+    by(auto simp: better_crename_Cut fresh_atm)
 next
   case (Cut coname trm1 name trm2)
   then show ?case
@@ -1553,7 +1553,7 @@ using assms
 proof (nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
   case (Ax name coname)
   then show ?case
-    by(auto simp: subst_fresh rename_fresh trm.inject better_crename_Cut fresh_atm)
+    by(auto simp: better_crename_Cut fresh_atm)
 next
   case (Cut coname trm1 name trm2)
   then show ?case
@@ -1565,9 +1565,7 @@ next
     by (meson exists_fresh' fs_coname1)
   with NotR show ?case
     apply(simp add: subst_fresh rename_fresh trm.inject)
-    apply(clarsimp simp: fresh_prod)
-    apply(simp add: fresh_fun_simp_NotR)
-    by (simp add: better_crename_Cut fresh_atm(2))
+    by(auto simp: fresh_prod fresh_fun_simp_NotR better_crename_Cut fresh_atm)
 next
   case (AndR coname1 trm1 coname2 trm2 coname3)
   obtain c'::coname where "c'\<sharp>(coname1,coname2,a,b,trm1{coname3:=(x).P},trm2{coname3:=(x).P},
@@ -1575,201 +1573,139 @@ next
     by (meson exists_fresh' fs_coname1)
   with AndR show ?case
     apply(simp add: subst_fresh rename_fresh trm.inject)
-    apply(clarsimp simp: fresh_prod)
-    apply(simp add: fresh_fun_simp_AndR)
-    by (simp add: better_crename_Cut subst_fresh fresh_atm(2))
+    by (auto simp: fresh_prod fresh_fun_simp_AndR better_crename_Cut subst_fresh fresh_atm)
 next
   case (OrR1 coname1 trm coname2)
   obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b, trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})"
     by (meson exists_fresh' fs_coname1)
   with OrR1 show ?case
     apply(simp add: subst_fresh rename_fresh trm.inject)
-    apply(clarsimp simp: fresh_prod)
-    apply(simp add: fresh_fun_simp_OrR1)
-    by (simp add: better_crename_Cut fresh_atm(2))
+    by(auto simp: fresh_prod fresh_fun_simp_OrR1 better_crename_Cut fresh_atm)
 next
   case (OrR2 coname1 trm coname2)
   obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b, trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})"
     by (meson exists_fresh' fs_coname1)
   with OrR2 show ?case
     apply(simp add: subst_fresh rename_fresh trm.inject)
-    apply(clarsimp simp: fresh_prod)
-    apply(simp add: fresh_fun_simp_OrR2)
-    by (simp add: better_crename_Cut fresh_atm(2))
+    by(auto simp: fresh_prod fresh_fun_simp_OrR2 better_crename_Cut fresh_atm)
 next
   case (ImpR name coname1 trm coname2)
   obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[a\<turnstile>c>b],a,b, trm[a\<turnstile>c>b]{coname2:=(x).P[a\<turnstile>c>b]})"
     by (meson exists_fresh' fs_coname1)
   with ImpR show ?case
     apply(simp add: subst_fresh rename_fresh trm.inject)
-    apply(clarsimp simp: fresh_prod)
-    apply(simp add: fresh_fun_simp_ImpR)
-    by (simp add: better_crename_Cut fresh_atm(2))
+    by(auto simp: fresh_prod fresh_fun_simp_ImpR better_crename_Cut fresh_atm)
 qed (auto simp: subst_fresh rename_fresh trm.inject)
 
 
-
 lemma substn_nrename_comm:
-  assumes a: "x\<noteq>y" "x\<noteq>z"
+  assumes "x\<noteq>y" "x\<noteq>z"
   shows "M{x:=<c>.P}[y\<turnstile>n>z] = M[y\<turnstile>n>z]{x:=<c>.(P[y\<turnstile>n>z])}"
-using a
-apply(nominal_induct M avoiding: x c P y z rule: trm.strong_induct)
-apply(auto simp: subst_fresh rename_fresh trm.inject)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_prod fresh_atm)
-apply(simp add: trm.inject)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(drule nrename_ax)
-apply(simp add: fresh_atm)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(y,z,trm{x:=<c>.P},P,P[y\<turnstile>n>z],x,trm[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotL)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P,P[y\<turnstile>n>z],name1,trm[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]},y,z)")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL1)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(y,z,trm{x:=<c>.P},P,P[y\<turnstile>n>z],name1,trm[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL2)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{x:=<c>.P},trm2{x:=<c>.P},P,P[y\<turnstile>n>z],name1,name2,y,z,
-                                  trm1[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]},trm2[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrL)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh subst_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{name2:=<c>.P},trm2{name2:=<c>.P},P,P[y\<turnstile>n>z],y,z,name1,
-                                  trm1[y\<turnstile>n>z]{name2:=<c>.P[y\<turnstile>n>z]},trm2[y\<turnstile>n>z]{name2:=<c>.P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpL)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh subst_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-done
+using assms
+proof (nominal_induct M avoiding: x c P y z rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    by (auto simp: better_nrename_Cut fresh_atm)
+next
+  case (Cut coname trm1 name trm2)
+  then show ?case
+    apply(clarsimp simp: subst_fresh rename_fresh trm.inject better_nrename_Cut)
+    by (meson nrename_ax)
+next
+  case (NotL coname trm name)
+  obtain x'::name where "x'\<sharp>(y,z,trm{x:=<c>.P},P,P[y\<turnstile>n>z],x,trm[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_name1)
+  with NotL show ?case 
+    apply(clarsimp simp: rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_NotL better_nrename_Cut fresh_atm)
+next
+  case (AndL1 name1 trm name2)  
+  obtain x'::name where "x'\<sharp>(trm{x:=<c>.P},P,P[y\<turnstile>n>z],name1,trm[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]},y,z)"
+    by (meson exists_fresh' fs_name1)
+  with AndL1 show ?case
+    apply(clarsimp simp: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_AndL1 better_nrename_Cut fresh_atm)
+next
+  case (AndL2 name1 trm name2)
+  obtain x'::name where "x'\<sharp>(trm{x:=<c>.P},P,P[y\<turnstile>n>z],name1,trm[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]},y,z)"
+    by (meson exists_fresh' fs_name1)
+  with AndL2 show ?case
+    apply(clarsimp simp: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_AndL2 better_nrename_Cut fresh_atm)
+next
+  case (OrL name1 trm1 name2 trm2 name3)
+  obtain x'::name where "x'\<sharp>(trm1{x:=<c>.P},trm2{x:=<c>.P},P,P[y\<turnstile>n>z],name1,name2,y,z,
+                                  trm1[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]},trm2[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_name1)
+  with OrL show ?case
+    apply (clarsimp simp: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_OrL better_nrename_Cut subst_fresh fresh_atm)
+next
+  case (ImpL coname trm1 name1 trm2 name2)
+  obtain x'::name where "x'\<sharp>(trm1{x:=<c>.P},trm2{x:=<c>.P},P,P[y\<turnstile>n>z],name1,name2,y,z,
+                                  trm1[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]},trm2[y\<turnstile>n>z]{x:=<c>.P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_name1)
+  with ImpL show ?case
+    apply (clarsimp simp: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_ImpL better_nrename_Cut subst_fresh fresh_atm)
+qed (auto simp: subst_fresh rename_fresh trm.inject)
+ 
+
 
 lemma substc_nrename_comm:
-  assumes a: "x\<noteq>y" "x\<noteq>z"
+  assumes "x\<noteq>y" "x\<noteq>z"
   shows "M{c:=(x).P}[y\<turnstile>n>z] = M[y\<turnstile>n>z]{c:=(x).(P[y\<turnstile>n>z])}"
-using a
-apply(nominal_induct M avoiding: x c P y z rule: trm.strong_induct)
-apply(auto simp: subst_fresh rename_fresh trm.inject)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(drule nrename_ax)
-apply(simp add: fresh_atm)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(drule nrename_ax)
-apply(simp add: fresh_atm)
-apply(simp add: fresh_atm)
-apply(simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(y,z,trm{coname:=(x).P},P,P[y\<turnstile>n>z],x,trm[y\<turnstile>n>z]{coname:=(x).P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotR)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,coname2,y,z,trm1{coname3:=(x).P},trm2{coname3:=(x).P},
-                   P,P[y\<turnstile>n>z],x,trm1[y\<turnstile>n>z]{coname3:=(x).P[y\<turnstile>n>z]},trm2[y\<turnstile>n>z]{coname3:=(x).P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndR)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh subst_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[y\<turnstile>n>z],y,z,
-                         trm[y\<turnstile>n>z]{coname2:=(x).P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR1)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[y\<turnstile>n>z],y,z,
-                         trm[y\<turnstile>n>z]{coname2:=(x).P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR2)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[y\<turnstile>n>z],y,z,
-                         trm[y\<turnstile>n>z]{coname2:=(x).P[y\<turnstile>n>z]})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpR)
-apply(rule trans)
-apply(rule better_nrename_Cut)
-apply(simp add: fresh_atm fresh_prod)
-apply(simp add: rename_fresh fresh_atm)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-done
+using assms
+proof (nominal_induct M avoiding: x c P y z rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case 
+    by (auto simp: subst_fresh rename_fresh trm.inject better_nrename_Cut fresh_atm)
+next
+  case (Cut coname trm1 name trm2)
+  then show ?case
+    apply (clarsimp simp: subst_fresh rename_fresh trm.inject better_nrename_Cut fresh_atm)
+    by (metis nrename_ax)
+next
+  case (NotR name trm coname)
+  obtain c'::coname where "c'\<sharp>(y,z,trm{coname:=(x).P},P,P[y\<turnstile>n>z],x,trm[y\<turnstile>n>z]{coname:=(x).P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_coname1)
+  with NotR show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_NotR better_nrename_Cut fresh_atm)
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  obtain c'::coname where "c'\<sharp>(coname1,coname2,y,z,trm1{coname3:=(x).P},trm2{coname3:=(x).P},
+                   P,P[y\<turnstile>n>z],x,trm1[y\<turnstile>n>z]{coname3:=(x).P[y\<turnstile>n>z]},trm2[y\<turnstile>n>z]{coname3:=(x).P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_coname1)
+  with AndR show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_AndR better_nrename_Cut fresh_atm subst_fresh)
+next
+  case (OrR1 coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[y\<turnstile>n>z],y,z,
+                         trm[y\<turnstile>n>z]{coname2:=(x).P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_coname1)
+  with OrR1 show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_OrR1 better_nrename_Cut fresh_atm subst_fresh)
+next
+  case (OrR2 coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[y\<turnstile>n>z],y,z,
+                         trm[y\<turnstile>n>z]{coname2:=(x).P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_coname1)
+  with OrR2 show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_OrR2 better_nrename_Cut fresh_atm subst_fresh)
+next
+  case (ImpR name coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(coname1,trm{coname2:=(x).P},P,P[y\<turnstile>n>z],y,z,
+                         trm[y\<turnstile>n>z]{coname2:=(x).P[y\<turnstile>n>z]})"
+    by (meson exists_fresh' fs_coname1)
+  with ImpR show ?case
+    apply(simp add: subst_fresh rename_fresh trm.inject)
+    by (auto simp add: fresh_prod fresh_fun_simp_ImpR better_nrename_Cut fresh_atm subst_fresh)
+qed (auto simp: subst_fresh rename_fresh trm.inject)
+
 
 lemma substn_crename_comm':
   assumes "a\<noteq>c" "a\<sharp>P"
