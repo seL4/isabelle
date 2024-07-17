@@ -146,6 +146,7 @@ object VSCode_Main {
     "editor.fontSize": 18,
     "editor.lineNumbers": "off",
     "editor.renderIndentGuides": false,
+    "editor.renderWhitespace": "none",
     "editor.rulers": [80, 100],
     "editor.unicodeHighlight.ambiguousCharacters": false,
     "extensions.autoCheckUpdates": false,
