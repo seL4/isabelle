@@ -148,6 +148,7 @@ object VSCode_Main {
     "editor.renderIndentGuides": false,
     "editor.renderWhitespace": "none",
     "editor.rulers": [80, 100],
+    "editor.quickSuggestions": { "strings": "on" },
     "editor.unicodeHighlight.ambiguousCharacters": false,
     "extensions.autoCheckUpdates": false,
     "extensions.autoUpdate": false,
