@@ -13,8 +13,6 @@ media/ViewSource.svg
 media/vscode.css
 package.json
 README.md
-src/abbreviations.ts
-src/completion.ts
 src/decorations.ts
 src/extension.ts
 src/file.ts
@@ -22,11 +20,9 @@ src/library.ts
 src/lsp.ts
 src/output_view.ts
 src/platform.ts
-src/prefix_tree.ts
 src/preview_panel.ts
 src/script_decorations.ts
 src/state_panel.ts
-src/symbol.ts
 src/vscode_lib.ts
 test/extension.test.ts
 test/index.ts
