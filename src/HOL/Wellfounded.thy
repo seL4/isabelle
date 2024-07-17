@@ -309,18 +309,45 @@ lemmas wfp_eq_minimal = wf_eq_minimal [to_pred]
 
 subsubsection \<open>Antimonotonicity\<close>
 
+
+lemma wfp_on_antimono_stronger:
+  fixes
+    A :: "'a set" and B :: "'b set" and
+    f :: "'a \<Rightarrow> 'b" and
+    R :: "'b \<Rightarrow> 'b \<Rightarrow> bool" and Q :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes
+    wf: "wfp_on B R" and
+    sub: "f ` A \<subseteq> B" and
+    mono: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> Q x y \<Longrightarrow> R (f x) (f y)"
+  shows "wfp_on A Q"
+  unfolding wfp_on_iff_ex_minimal
+proof (intro allI impI)
+  fix A' :: "'a set"
+  assume "A' \<subseteq> A" and "A' \<noteq> {}"
+  have "f ` A' \<subseteq> B"
+    using \<open>A' \<subseteq> A\<close> sub by blast
+  moreover have "f ` A' \<noteq> {}"
+    using \<open>A' \<noteq> {}\<close> by blast
+  ultimately have "\<exists>z\<in>f ` A'. \<forall>y. R y z \<longrightarrow> y \<notin> f ` A'"
+    using wf wfp_on_iff_ex_minimal by blast
+  hence "\<exists>z\<in>A'. \<forall>y. R (f y) (f z) \<longrightarrow> y \<notin> A'"
+    by blast
+  thus "\<exists>z\<in>A'. \<forall>y. Q y z \<longrightarrow> y \<notin> A'"
+    using \<open>A' \<subseteq> A\<close> mono by blast
+qed
+
+lemma wf_on_antimono_stronger:
+  assumes
+    "wf_on B r" and
+    "f ` A \<subseteq> B" and
+    "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> q \<Longrightarrow> (f x, f y) \<in> r)"
+  shows "wf_on A q"
+  using assms wfp_on_antimono_stronger[to_set, of B r f A q] by blast
+
 lemma wf_on_antimono_strong:
   assumes "wf_on B r" and "A \<subseteq> B" and "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> q \<Longrightarrow> (x, y) \<in> r)"
   shows "wf_on A q"
-  unfolding wf_on_iff_ex_minimal
-proof (intro allI impI)
-  fix AA assume "AA \<subseteq> A" and "AA \<noteq> {}"
-  hence "\<exists>z\<in>AA. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> AA"
-    using \<open>wf_on B r\<close> \<open>A \<subseteq> B\<close>
-    by (simp add: wf_on_iff_ex_minimal)
-  then show "\<exists>z\<in>AA. \<forall>y. (y, z) \<in> q \<longrightarrow> y \<notin> AA"
-    using \<open>AA \<subseteq> A\<close> assms(3) by blast
-qed
+  using assms wf_on_antimono_stronger[of B r "\<lambda>x. x" A q] by blast
 
 lemma wfp_on_antimono_strong:
   "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> Q x y \<Longrightarrow> R x y) \<Longrightarrow> wfp_on A Q"

@@ -32,6 +32,9 @@ New in this Isabelle version
       wfP_trancl ~> wfp_tranclp
       wfP_wf_eq ~> wfp_wf_eq
       wf_acc_iff ~> wf_iff_acc
+  - Added lemmas.
+      wf_on_antimono_stronger
+      wfp_on_antimono_stronger
 
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
