@@ -66,7 +66,7 @@ sig
   val insert_set: key -> set -> set
   val remove_set: key -> set -> set
   val make_set: key list -> set
-  type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit}
+  type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit, size: unit -> int}
   val unsynchronized_cache: (key -> 'a) -> 'a cache_ops
 end;
 
@@ -592,7 +592,7 @@ fun make_set xs = build (fold insert_set xs);
 
 (* cache *)
 
-type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit};
+type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit, size: unit -> int};
 
 fun unsynchronized_cache f =
   let
@@ -609,7 +609,8 @@ fun unsynchronized_cache f =
                 Exn.Res y => (Unsynchronized.change cache1 (update (x, y)); y)
               | Exn.Exn exn => (Unsynchronized.change cache2 (update (x, exn)); Exn.reraise exn))));
     fun reset () = (cache2 := empty; cache1 := empty);
-  in {apply = apply, reset = reset} end;
+    fun total_size () = size (! cache1) + size (! cache2);
+  in {apply = apply, reset = reset, size = total_size} end;
 
 
 (* ML pretty-printing *)

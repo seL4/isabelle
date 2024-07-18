@@ -34,7 +34,7 @@ sig
   val make1: key * 'a -> 'a table
   val make2: key * 'a -> key * 'a -> 'a table
   val make3: key * 'a -> key * 'a -> key * 'a -> 'a table
-  type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit};
+  type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit, size: unit -> int};
   val unsynchronized_cache: (key -> 'a) -> 'a cache_ops
   type set = int table
   val add_set: key -> set -> set

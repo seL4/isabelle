@@ -254,6 +254,7 @@ sig
   val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
   val reset_cache: theory -> theory
+  val check_cache: theory -> {ztyp: int, typ: int} option
   val ztyp_cache: theory -> typ -> ztyp
   val typ_cache: theory -> ztyp -> typ
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
@@ -632,6 +633,10 @@ fun reset_cache thy =
   (case Data.get thy of
     SOME (cache1, cache2) => (#reset cache1 (); #reset cache2 (); thy)
   | NONE => thy);
+
+fun check_cache thy =
+  Data.get thy
+  |> Option.map (fn (cache1, cache2) => {ztyp = #size cache1 (), typ = #size cache2 ()});
 
 fun ztyp_cache thy =
   (case Data.get thy of
