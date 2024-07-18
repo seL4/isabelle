@@ -253,6 +253,9 @@ sig
   val ztyp_of: typ -> ztyp
   val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
+  val reset_cache: theory -> theory
+  val ztyp_cache: theory -> typ -> ztyp
+  val typ_cache: theory -> ztyp -> typ
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_of: theory -> term -> zterm
   val term_of: theory -> zterm -> term
@@ -262,7 +265,7 @@ sig
   val beta_norm_term: zterm -> zterm
   val beta_norm_proof: zproof -> zproof
   val beta_norm_prooft: zproof -> zproof
-  val norm_type: Type.tyenv -> ztyp -> ztyp
+  val norm_type: theory -> Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
   val zproof_const_typargs: zproof_const -> ((indexname * sort) * ztyp) list
@@ -597,8 +600,50 @@ fun typ_of (ZTVar v) = typ_of_tvar v
   | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
   | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
 
-fun ztyp_cache () = #apply (Typtab.unsynchronized_cache ztyp_of);
-fun typ_cache () = #apply (ZTypes.unsynchronized_cache typ_of);
+
+(* cache within theory context *)
+
+local
+
+structure Data = Theory_Data
+(
+  type T = (ztyp Typtab.cache_ops * typ ZTypes.cache_ops) option;
+  val empty = NONE;
+  val merge = K NONE;
+);
+
+fun make_ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
+fun make_typ_cache () = ZTypes.unsynchronized_cache typ_of;
+
+fun init_cache thy =
+  if is_some (Data.get thy) then NONE
+  else SOME (Data.put (SOME (make_ztyp_cache (), make_typ_cache ())) thy);
+
+fun exit_cache thy =
+  (case Data.get thy of
+    SOME (cache1, cache2) => (#reset cache1 (); #reset cache2 (); SOME (Data.put NONE thy))
+  | NONE => NONE);
+
+in
+
+val _ = Theory.setup (Theory.at_begin init_cache #> Theory.at_end exit_cache);
+
+fun reset_cache thy =
+  (case Data.get thy of
+    SOME (cache1, cache2) => (#reset cache1 (); #reset cache2 (); thy)
+  | NONE => thy);
+
+fun ztyp_cache thy =
+  (case Data.get thy of
+    SOME (cache, _) => cache
+  | NONE => make_ztyp_cache ()) |> #apply;
+
+fun typ_cache thy =
+  (case Data.get thy of
+    SOME (_, cache) => cache
+  | NONE => make_typ_cache ()) |> #apply;
+
+end;
 
 
 (* convert zterm vs. regular term *)
@@ -607,7 +652,7 @@ fun zterm_cache thy =
   let
     val typargs = Consts.typargs (Sign.consts_of thy);
 
-    val ztyp = ztyp_cache ();
+    val ztyp = ztyp_cache thy;
 
     fun zterm (Free (x, T)) = ZVar ((x, ~1), ztyp T)
       | zterm (Var (xi, T)) = ZVar (xi, ztyp T)
@@ -781,10 +826,10 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
 fun norm_cache thy =
   let
     val {ztyp, zterm} = zterm_cache thy;
-    val typ = typ_cache ();
+    val typ = typ_cache thy;
   in {ztyp = ztyp, zterm = zterm, typ = typ} end;
 
-fun norm_type tyenv = Same.commit (norm_type_same (ztyp_cache ()) tyenv);
+fun norm_type thy tyenv = Same.commit (norm_type_same (ztyp_cache thy) tyenv);
 fun norm_term thy envir = Same.commit (norm_term_same (norm_cache thy) envir);
 fun norm_proof thy envir = norm_proof_cache (norm_cache thy) envir;
 
