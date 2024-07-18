@@ -307,16 +307,30 @@ by(auto simp: rbt_def dest: rbt_height_bheight_if)
 lemma bheight_size_bound:  "invc t \<Longrightarrow> invh t \<Longrightarrow> 2 ^ (bheight t) \<le> size1 t"
 by (induction t) auto
 
+lemma bheight_le_min_height:  "invh t \<Longrightarrow> bheight t \<le> min_height t"
+by (induction t) auto
+
 lemma rbt_height_le: assumes "rbt t" shows "height t \<le> 2 * log 2 (size1 t)"
 proof -
   have "2 powr (height t / 2) \<le> 2 powr bheight t"
-    using rbt_height_bheight[OF assms] by (simp)
+    using rbt_height_bheight[OF assms] by simp
   also have "\<dots> \<le> size1 t" using assms
     by (simp add: powr_realpow bheight_size_bound rbt_def)
   finally have "2 powr (height t / 2) \<le> size1 t" .
   hence "height t / 2 \<le> log 2 (size1 t)"
     by (simp add: le_log_iff size1_size del: divide_le_eq_numeral1(1))
   thus ?thesis by simp
+qed
+
+lemma rbt_height_le2: assumes "rbt t" shows "height t \<le> 2 * log 2 (size1 t)"
+proof -
+  have "height t \<le> 2 * bheight t"
+    using rbt_height_bheight_if assms[simplified rbt_def] by fastforce
+  also have "\<dots> \<le> 2 * min_height t"
+    using bheight_le_min_height assms[simplified rbt_def] by auto
+  also have "\<dots> \<le> 2 * log 2 (size1 t)"
+    using le_log2_of_power min_height_size1 by auto
+  finally show ?thesis by simp
 qed
 
 end
