@@ -1007,14 +1007,23 @@ object Build_Manager {
     val init: Poller.State = Poller.State(current, poll)
 
     private def add_tasks(current: List[Component], next: List[Component]): Unit = {
-      val updated_components = next.zip(current).filter(_ != _).map(_._1.name).toSet
+      val next_rev = next.map(component => component.name -> component.rev).toMap
+
+      def is_unchanged(components: List[Component]): Boolean =
+        components.forall(component => next_rev.get(component.name).contains(component.rev))
+
+      def is_changed(component_names: List[String]): Boolean =
+        !is_unchanged(current.filter(component => component_names.contains(component.name)))
+
+      def is_current(job: Job): Boolean = is_unchanged(job.components)
 
       synchronized_database("add_tasks") {
         for {
           ci_job <- ci_jobs
           if ci_job.trigger == Build_CI.On_Commit
-          if (Component.Isabelle :: ci_job.components).exists(updated_components.contains)
+          if is_changed(Component.Isabelle :: ci_job.components)
           if !_state.pending.values.exists(_.kind == ci_job.name)
+          if !_state.running.values.filter(_.kind == ci_job.name).exists(is_current)
         } _state = _state.add_pending(CI_Build.task(ci_job))
       }
     }
