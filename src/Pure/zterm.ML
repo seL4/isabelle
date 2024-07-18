@@ -764,11 +764,13 @@ fun norm_type_same ztyp tyenv =
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
     in norm end;
 
-fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) =
+fun norm_term_same {ztyp, zterm} (envir as Envir.Envir {tyenv, tenv, ...}) =
   let
     val lookup =
       if Vartab.is_empty tenv then K NONE
-      else #apply (ZVars.unsynchronized_cache (apsnd typ #> Envir.lookup envir #> Option.map zterm));
+      else
+        #apply (ZVars.unsynchronized_cache
+          (apsnd typ_of #> Envir.lookup envir #> Option.map zterm));
 
     val normT = norm_type_same ztyp tyenv;
 
@@ -823,15 +825,9 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
         in beta_norm_prooft (map_proof {hyps = false} inst_typ norm_term prf) end
   end;
 
-fun norm_cache thy =
-  let
-    val {ztyp, zterm} = zterm_cache thy;
-    val typ = typ_cache thy;
-  in {ztyp = ztyp, zterm = zterm, typ = typ} end;
-
 fun norm_type thy tyenv = Same.commit (norm_type_same (ztyp_cache thy) tyenv);
-fun norm_term thy envir = Same.commit (norm_term_same (norm_cache thy) envir);
-fun norm_proof thy envir = norm_proof_cache (norm_cache thy) envir;
+fun norm_term thy envir = Same.commit (norm_term_same (zterm_cache thy) envir);
+fun norm_proof thy envir = norm_proof_cache (zterm_cache thy) envir;
 
 
 
@@ -1288,7 +1284,7 @@ fun mk_asm_prf C i m =
 
 fun assumption_proof thy envir Bs Bi n visible prf =
   let
-    val cache as {zterm, ...} = norm_cache thy;
+    val cache as {zterm, ...} = zterm_cache thy;
     val normt = zterm #> Same.commit (norm_term_same cache envir);
   in
     ZAbsps (map normt Bs)
@@ -1306,7 +1302,7 @@ fun flatten_params_proof i j n (ZApp (ZApp (ZConst0 "Pure.imp", A), B), k) =
 
 fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
   let
-    val cache as {zterm, ...} = norm_cache thy;
+    val cache as {zterm, ...} = zterm_cache thy;
     val normt = zterm #> Same.commit (norm_term_same cache env);
     val normp = norm_proof_cache cache env visible;
 
@@ -1340,7 +1336,8 @@ fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
 
 fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
   let
-    val cache = norm_cache thy;
+    val cache = zterm_cache thy;
+    val typ_cache = typ_cache thy;
     val algebra = Sign.classes_of thy;
 
     val typ =
@@ -1355,7 +1352,7 @@ fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
       | NONE => raise Fail "unconstrainT_proof: missing constraint");
 
     fun class (T, c) =
-      let val T' = Same.commit typ_sort (#typ cache T)
+      let val T' = Same.commit typ_sort (typ_cache T)
       in the_single (of_sort_proof algebra sorts_proof hyps (T', [c])) end;
   in
     map_proof_types {hyps = false} typ #> map_class_proof class #> beta_norm_prooft
