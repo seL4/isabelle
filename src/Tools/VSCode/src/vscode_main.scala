@@ -150,6 +150,7 @@ object VSCode_Main {
     "editor.rulers": [80, 100],
     "editor.quickSuggestions": { "strings": "on" },
     "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.wordBasedSuggestions": false,
     "extensions.autoCheckUpdates": false,
     "extensions.autoUpdate": false,
     "terminal.integrated.fontFamily": "monospace",
