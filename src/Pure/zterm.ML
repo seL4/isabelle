@@ -251,10 +251,15 @@ sig
   val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
   val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
   val ztyp_of: typ -> ztyp
-  val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
-  val zterm_of: theory -> term -> zterm
+  val ztyp_dummy: ztyp
   val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
+  val reset_cache: theory -> theory
+  val check_cache: theory -> {ztyp: int, typ: int} option
+  val ztyp_cache: theory -> typ -> ztyp
+  val typ_cache: theory -> ztyp -> typ
+  val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
+  val zterm_of: theory -> term -> zterm
   val term_of: theory -> zterm -> term
   val beta_norm_term_same: zterm Same.operation
   val beta_norm_proof_same: zproof Same.operation
@@ -262,7 +267,7 @@ sig
   val beta_norm_term: zterm -> zterm
   val beta_norm_proof: zproof -> zproof
   val beta_norm_prooft: zproof -> zproof
-  val norm_type: Type.tyenv -> ztyp -> ztyp
+  val norm_type: theory -> Type.tyenv -> ztyp -> ztyp
   val norm_term: theory -> Envir.env -> zterm -> zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
   val zproof_const_typargs: zproof_const -> ((indexname * sort) * ztyp) list
@@ -310,6 +315,9 @@ sig
   val of_sort_proof: Sorts.algebra -> sorts_proof -> (typ * class -> zproof) ->
     typ * sort -> zproof list
   val unconstrainT_proof: theory -> sorts_proof -> Logic.unconstrain_context -> zproof -> zproof
+  val encode_ztyp: ztyp XML.Encode.T
+  val encode_zterm: {typed_vars: bool} -> zterm XML.Encode.T
+  val encode_zproof: {typed_vars: bool} -> zproof XML.Encode.T
 end;
 
 structure ZTerm: ZTERM =
@@ -470,7 +478,7 @@ fun subst_term_same typ var =
 
 fun instantiate_type_same instT =
   if ZTVars.is_empty instT then Same.same
-  else ZTypes.unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT)));
+  else #apply (ZTypes.unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT))));
 
 fun instantiate_term_same typ inst =
   subst_term_same typ (Same.function (ZVars.lookup inst));
@@ -577,7 +585,7 @@ fun map_class_proof class =
   in Same.commit proof end;
 
 
-(* convert ztyp / zterm vs. regular typ / term *)
+(* convert ztyp vs. regular typ *)
 
 fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (TVar v) = ZTVar v
@@ -587,13 +595,75 @@ fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (Type (c, [T])) = ZType1 (c, ztyp_of T)
   | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
 
-fun ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
+val ztyp_dummy = ztyp_of dummyT;
+
+fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
+  | typ_of_tvar v = TVar v;
+
+fun typ_of (ZTVar v) = typ_of_tvar v
+  | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
+  | typ_of ZProp = propT
+  | typ_of (ZType0 c) = Type (c, [])
+  | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
+  | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
+
+
+(* cache within theory context *)
+
+local
+
+structure Data = Theory_Data
+(
+  type T = (ztyp Typtab.cache_ops * typ ZTypes.cache_ops) option;
+  val empty = NONE;
+  val merge = K NONE;
+);
+
+fun make_ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
+fun make_typ_cache () = ZTypes.unsynchronized_cache typ_of;
+
+fun init_cache thy =
+  if is_some (Data.get thy) then NONE
+  else SOME (Data.put (SOME (make_ztyp_cache (), make_typ_cache ())) thy);
+
+fun exit_cache thy =
+  (case Data.get thy of
+    SOME (cache1, cache2) => (#reset cache1 (); #reset cache2 (); SOME (Data.put NONE thy))
+  | NONE => NONE);
+
+in
+
+val _ = Theory.setup (Theory.at_begin init_cache #> Theory.at_end exit_cache);
+
+fun reset_cache thy =
+  (case Data.get thy of
+    SOME (cache1, cache2) => (#reset cache1 (); #reset cache2 (); thy)
+  | NONE => thy);
+
+fun check_cache thy =
+  Data.get thy
+  |> Option.map (fn (cache1, cache2) => {ztyp = #size cache1 (), typ = #size cache2 ()});
+
+fun ztyp_cache thy =
+  (case Data.get thy of
+    SOME (cache, _) => cache
+  | NONE => make_ztyp_cache ()) |> #apply;
+
+fun typ_cache thy =
+  (case Data.get thy of
+    SOME (_, cache) => cache
+  | NONE => make_typ_cache ()) |> #apply;
+
+end;
+
+
+(* convert zterm vs. regular term *)
 
 fun zterm_cache thy =
   let
     val typargs = Consts.typargs (Sign.consts_of thy);
 
-    val ztyp = ztyp_cache ();
+    val ztyp = ztyp_cache thy;
 
     fun zterm (Free (x, T)) = ZVar ((x, ~1), ztyp T)
       | zterm (Var (xi, T)) = ZVar (xi, ztyp T)
@@ -611,18 +681,6 @@ fun zterm_cache thy =
   in {ztyp = ztyp, zterm = zterm} end;
 
 val zterm_of = #zterm o zterm_cache;
-
-fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
-  | typ_of_tvar v = TVar v;
-
-fun typ_of (ZTVar v) = typ_of_tvar v
-  | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
-  | typ_of ZProp = propT
-  | typ_of (ZType0 c) = Type (c, [])
-  | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
-  | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
-
-fun typ_cache () = ZTypes.unsynchronized_cache typ_of;
 
 fun term_of thy =
   let
@@ -717,11 +775,13 @@ fun norm_type_same ztyp tyenv =
         | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
     in norm end;
 
-fun norm_term_same {ztyp, zterm, typ} (envir as Envir.Envir {tyenv, tenv, ...}) =
+fun norm_term_same {ztyp, zterm} (envir as Envir.Envir {tyenv, tenv, ...}) =
   let
     val lookup =
       if Vartab.is_empty tenv then K NONE
-      else ZVars.unsynchronized_cache (apsnd typ #> Envir.lookup envir #> Option.map zterm);
+      else
+        #apply (ZVars.unsynchronized_cache
+          (apsnd typ_of #> Envir.lookup envir #> Option.map zterm));
 
     val normT = norm_type_same ztyp tyenv;
 
@@ -776,15 +836,9 @@ fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) 
         in beta_norm_prooft (map_proof {hyps = false} inst_typ norm_term prf) end
   end;
 
-fun norm_cache thy =
-  let
-    val {ztyp, zterm} = zterm_cache thy;
-    val typ = typ_cache ();
-  in {ztyp = ztyp, zterm = zterm, typ = typ} end;
-
-fun norm_type tyenv = Same.commit (norm_type_same (ztyp_cache ()) tyenv);
-fun norm_term thy envir = Same.commit (norm_term_same (norm_cache thy) envir);
-fun norm_proof thy envir = norm_proof_cache (norm_cache thy) envir;
+fun norm_type thy tyenv = Same.commit (norm_type_same (ztyp_cache thy) tyenv);
+fun norm_term thy envir = Same.commit (norm_term_same (zterm_cache thy) envir);
+fun norm_proof thy envir = norm_proof_cache (zterm_cache thy) envir;
 
 
 
@@ -870,7 +924,8 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val typ_operation = #typ_operation ucontext {strip_sorts = true};
     val unconstrain_typ = Same.commit typ_operation;
     val unconstrain_ztyp =
-      ZTypes.unsynchronized_cache (Same.function_eq (op =) (typ_of #> unconstrain_typ #> ztyp_of));
+      #apply (ZTypes.unsynchronized_cache
+        (Same.function_eq (op =) (typ_of #> unconstrain_typ #> ztyp_of)));
     val unconstrain_zterm = zterm o Term.map_types typ_operation;
     val unconstrain_proof = Same.commit (map_proof_types {hyps = true} unconstrain_ztyp);
 
@@ -1087,10 +1142,10 @@ fun generalize_proof (tfrees, frees) idx prf =
     val typ =
       if Names.is_empty tfrees then Same.same
       else
-        ZTypes.unsynchronized_cache
+        #apply (ZTypes.unsynchronized_cache
           (subst_type_same (fn ((a, i), S) =>
             if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
-            else raise Same.SAME));
+            else raise Same.SAME)));
     val term =
       subst_term_same typ (fn ((x, i), T) =>
         if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
@@ -1112,10 +1167,10 @@ fun varifyT_proof names prf =
     let
       val tab = ZTVars.build (names |> fold (fn ((a, S), b) => ZTVars.add (((a, ~1), S), b)));
       val typ =
-        ZTypes.unsynchronized_cache (subst_type_same (fn v =>
+        #apply (ZTypes.unsynchronized_cache (subst_type_same (fn v =>
           (case ZTVars.lookup tab v of
             NONE => raise Same.SAME
-          | SOME w => ZTVar w)));
+          | SOME w => ZTVar w))));
     in map_proof_types {hyps = false} typ prf end;
 
 fun legacy_freezeT_proof t prf =
@@ -1124,7 +1179,7 @@ fun legacy_freezeT_proof t prf =
   | SOME f =>
       let
         val tvar = ztyp_of o Same.function f;
-        val typ = ZTypes.unsynchronized_cache (subst_type_same tvar);
+        val typ = #apply (ZTypes.unsynchronized_cache (subst_type_same tvar));
       in map_proof_types {hyps = false} typ prf end);
 
 
@@ -1158,7 +1213,7 @@ fun incr_tvar_same inc =
   if inc = 0 then Same.same
   else
     let fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME
-    in ZTypes.unsynchronized_cache (subst_type_same tvar) end;
+    in #apply (ZTypes.unsynchronized_cache (subst_type_same tvar)) end;
 
 fun incr_indexes_proof inc prf =
   let
@@ -1240,7 +1295,7 @@ fun mk_asm_prf C i m =
 
 fun assumption_proof thy envir Bs Bi n visible prf =
   let
-    val cache as {zterm, ...} = norm_cache thy;
+    val cache as {zterm, ...} = zterm_cache thy;
     val normt = zterm #> Same.commit (norm_term_same cache envir);
   in
     ZAbsps (map normt Bs)
@@ -1258,7 +1313,7 @@ fun flatten_params_proof i j n (ZApp (ZApp (ZConst0 "Pure.imp", A), B), k) =
 
 fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
   let
-    val cache as {zterm, ...} = norm_cache thy;
+    val cache as {zterm, ...} = zterm_cache thy;
     val normt = zterm #> Same.commit (norm_term_same cache env);
     val normp = norm_proof_cache cache env visible;
 
@@ -1292,12 +1347,14 @@ fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
 
 fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
   let
-    val cache = norm_cache thy;
     val algebra = Sign.classes_of thy;
 
+    val cache = zterm_cache thy;
+    val typ_cache = typ_cache thy;
+
     val typ =
-      ZTypes.unsynchronized_cache
-        (typ_of #> #typ_operation ucontext {strip_sorts = true} #> ztyp_of);
+      #apply (ZTypes.unsynchronized_cache
+        (typ_of #> #typ_operation ucontext {strip_sorts = true} #> ztyp_of));
 
     val typ_sort = #typ_operation ucontext {strip_sorts = false};
 
@@ -1307,11 +1364,67 @@ fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
       | NONE => raise Fail "unconstrainT_proof: missing constraint");
 
     fun class (T, c) =
-      let val T' = Same.commit typ_sort (#typ cache T)
+      let val T' = Same.commit typ_sort (typ_cache T)
       in the_single (of_sort_proof algebra sorts_proof hyps (T', [c])) end;
   in
     map_proof_types {hyps = false} typ #> map_class_proof class #> beta_norm_prooft
     #> fold_rev (implies_intr_proof' o #zterm cache o #2) (#constraints ucontext)
   end;
+
+
+
+(** XML data representation **)
+
+(* encode *)
+
+local
+
+open XML.Encode Term_XML.Encode;
+
+fun ztyp T = T |> variant
+ [fn ZFun args => (["fun"], pair ztyp ztyp args)
+   | ZProp => (["prop"], [])
+   | ZType0 a => ([a], [])
+   | ZType1 (a, b) => ([a], list ztyp [b])
+   | ZType (a, b) => ([a], list ztyp b),
+  fn ZTVar ((a, ~1), b) => ([a], sort b),
+  fn ZTVar (a, b) => (indexname a, sort b)];
+
+fun zvar_type {typed_vars} T =
+  if typed_vars andalso T <> ztyp_dummy then ztyp T else [];
+
+fun zterm flag t = t |> variant
+ [fn ZConst0 a => ([a], [])
+   | ZConst1 (a, b) => ([a], list ztyp [b])
+   | ZConst (a, b) => ([a], list ztyp b),
+  fn ZVar ((a, ~1), b) => ([a], zvar_type flag b),
+  fn ZVar (a, b) => (indexname a, zvar_type flag b),
+  fn ZBound a => ([], int a),
+  fn ZAbs (a, b, c) => ([a], pair ztyp (zterm flag) (b, c)),
+  fn ZApp a => ([], pair (zterm flag) (zterm flag) a),
+  fn OFCLASS (a, b) => ([b], ztyp a)];
+
+fun zproof flag prf = prf |> variant
+ [fn ZNop => ([], []),
+  fn ZBoundp a => ([], int a),
+  fn ZAbst (a, b, c) => ([a], pair ztyp (zproof flag) (b, c)),
+  fn ZAbsp (a, b, c) => ([a], pair (zterm flag) (zproof flag) (b, c)),
+  fn ZAppt a => ([], pair (zproof flag) (zterm flag) a),
+  fn ZAppp a => ([], pair (zproof flag) (zproof flag) a),
+  fn ZHyp a => ([], zterm flag a),
+  fn ZConstp (c as ((ZAxiom a, b), _)) => ([a], list (ztyp o #2) (zproof_const_typargs c)),
+  fn OFCLASSp (a, b) => ([b], ztyp a),
+  fn ZConstp (c as ((ZOracle a, b), _)) => ([a], list (ztyp o #2) (zproof_const_typargs c)),
+  fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
+    ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
+      list (ztyp o #2) (zproof_const_typargs c))];
+
+in
+
+val encode_ztyp = ztyp;
+val encode_zterm = zterm;
+val encode_zproof = zproof;
+
+end;
 
 end;

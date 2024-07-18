@@ -14,11 +14,11 @@ subsection \<open>Export and re-import of global proof terms\<close>
 ML \<open>
   fun export_proof thy thm = thm
     |> Proof_Syntax.standard_proof_of {full = true, expand_name = Thm.expand_name thm}
-    |> Proofterm.encode (Sign.consts_of thy);
+    |> Proofterm.encode thy;
 
   fun import_proof thy xml =
     let
-      val prf = Proofterm.decode (Sign.consts_of thy) xml;
+      val prf = Proofterm.decode thy xml;
       val (prf', _) = Proofterm.freeze_thaw_prf prf;
     in Drule.export_without_context (Proof_Checker.thm_of_proof thy prf') end;
 \<close>

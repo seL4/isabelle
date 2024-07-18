@@ -310,7 +310,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         (prop, deps, proof) |>
           let
             open XML.Encode Term_XML.Encode;
-            val encode_proof = Proofterm.encode_standard_proof consts;
+            val encode_proof = Proofterm.encode_standard_proof thy;
           in triple encode_prop (list Thm_Name.encode) encode_proof end
       end;
 
