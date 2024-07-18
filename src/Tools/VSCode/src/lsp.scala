@@ -156,7 +156,8 @@ object LSP {
         "completionProvider" -> JSON.Object(
           "resolveProvider" -> false,
           "triggerCharacters" ->
-            Symbol.symbols.entries.flatMap(_.abbrevs).flatMap(_.toList).map(_.toString).distinct
+            (Symbol.symbols.entries.flatMap(_.abbrevs).flatMap(_.toList).map(_.toString)
+            ++ Symbol.symbols.entries.map(_.name).flatMap(_.toList).map(_.toString)).distinct
         ),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
