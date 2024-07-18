@@ -1341,9 +1341,10 @@ fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
 
 fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
   let
+    val algebra = Sign.classes_of thy;
+
     val cache = zterm_cache thy;
     val typ_cache = typ_cache thy;
-    val algebra = Sign.classes_of thy;
 
     val typ =
       #apply (ZTypes.unsynchronized_cache
