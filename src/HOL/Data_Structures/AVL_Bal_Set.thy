@@ -67,13 +67,13 @@ fun insert :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal"
    GT \<Rightarrow> let r' = insert x r in if incr r r' then balR l a b r' else Node l (a,b) r')"
 
 fun decr where
-"decr t t' = (t \<noteq> Leaf \<and> (t' = Leaf \<or> \<not> is_bal t \<and> is_bal t'))"
+"decr t t' = (t \<noteq> Leaf \<and> incr t' t)"
 
 fun split_max :: "'a tree_bal \<Rightarrow> 'a tree_bal * 'a" where
 "split_max (Node l (a, ba) r) =
   (if r = Leaf then (l,a)
    else let (r',a') = split_max r;
-            t' = if decr r r' then balL l a ba r' else Node l (a,ba) r'
+            t' = if incr r' r then balL l a ba r' else Node l (a,ba) r'
         in (t', a'))"
 
 fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal" where
@@ -82,7 +82,7 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree_bal \<Rightarrow> 'a tree_bal"
   (case cmp x a of
      EQ \<Rightarrow> if l = Leaf then r
            else let (l', a') = split_max l in
-                if decr l l' then balR l' a' ba r else Node l' (a',ba) r |
+                if incr l' l then balR l' a' ba r else Node l' (a',ba) r |
      LT \<Rightarrow> let l' = delete x l in if decr l l' then balR l' a ba r else Node l' (a,ba) r |
      GT \<Rightarrow> let r' = delete x r in if decr r r' then balL l a ba r' else Node l (a,ba) r')"
 
@@ -136,7 +136,7 @@ by(cases t) (auto split: splits prod.splits)
 
 lemma avl_split_max:
   "\<lbrakk> split_max t = (t',a); avl t; t \<noteq> Leaf \<rbrakk> \<Longrightarrow>
-   avl t' \<and> height t = height t' + (if decr t t' then 1 else 0)"
+   avl t' \<and> height t = height t' + (if incr t' t then 1 else 0)"
 apply(induction t arbitrary: t' a rule: split_max_induct)
  apply(auto simp: max_absorb1 max_absorb2 height_1_iff split!: splits prod.splits)
 done
