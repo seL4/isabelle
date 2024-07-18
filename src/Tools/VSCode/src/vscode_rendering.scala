@@ -109,11 +109,23 @@ extends Rendering(snapshot, model.resources.options, model.session) {
             results match {
               case None => Nil
               case Some(result) =>
-                result.items.map(item =>
+                result.items.map(item => {
+                  val kind = item.description match {
+                    case _ :: "(keyword)" :: _ => LSP.CompletionItemKind.Keyword
+                    case _ => LSP.CompletionItemKind.Text
+                  }
+
                   LSP.CompletionItem(
-                    label = item.description.mkString(" "),
+                    label = item.replacement,
+                    kind = Some(kind),
+                    detail = Some(item.description.mkString(" ")),
+                    filter_text = Some(item.original),
+                    commit_characters =
+                      if (result.unique && item.immediate) Some(List(" ")) else None,
                     text = Some(item.replacement),
-                    range = Some(doc.range(item.range))))
+                    range = Some(doc.range(item.range)),
+                  )
+                })
             }
           items ::: VSCode_Spell_Checker.menu_items(rendering, caret)
         }

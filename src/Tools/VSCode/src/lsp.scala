@@ -354,12 +354,42 @@ object LSP {
 
 
   /* completion */
+  
+  object CompletionItemKind {
+    val Text = 1;
+    val Method = 2;
+    val Function = 3;
+    val Constructor = 4;
+    val Field = 5;
+    val Variable = 6;
+    val Class = 7;
+    val Interface = 8;
+    val Module = 9;
+    val Property = 10;
+    val Unit = 11;
+    val Value = 12;
+    val Enum = 13;
+    val Keyword = 14;
+    val Snippet = 15;
+    val Color = 16;
+    val File = 17;
+    val Reference = 18;
+    val Folder = 19;
+    val EnumMember = 20;
+    val Constant = 21;
+    val Struct = 22;
+    val Event = 23;
+    val Operator = 24;
+    val TypeParameter = 25;
+  }
 
   sealed case class CompletionItem(
     label: String,
     kind: Option[Int] = None,
     detail: Option[String] = None,
     documentation: Option[String] = None,
+    filter_text: Option[String] = None,
+    commit_characters: Option[List[String]] = None,
     text: Option[String] = None,
     range: Option[Line.Range] = None,
     command: Option[Command] = None
@@ -369,9 +399,9 @@ object LSP {
       JSON.optional("kind" -> kind) ++
       JSON.optional("detail" -> detail) ++
       JSON.optional("documentation" -> documentation) ++
-      JSON.optional("insertText" -> text) ++
-      JSON.optional("range" -> range.map(Range(_))) ++
-      JSON.optional("textEdit" -> range.map(r => TextEdit(r, text.getOrElse(label)).json)) ++
+      JSON.optional("filterText" -> filter_text) ++
+      JSON.optional("textEdit" -> range.map(r => TextEdit(range = r, new_text = text.getOrElse(label)).json)) ++
+      JSON.optional("commitCharacters" -> commit_characters) ++
       JSON.optional("command" -> command.map(_.json))
   }
 
