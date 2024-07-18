@@ -65,10 +65,11 @@ sig
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
 
-  val encode: theory -> proof XML.Encode.T
-  val encode_body: theory -> proof_body XML.Encode.T
+  val proof_to_zproof: theory -> proof -> zproof
   val encode_standard_term: theory -> term XML.Encode.T
   val encode_standard_proof: theory -> proof XML.Encode.T
+  val encode: theory -> proof XML.Encode.T
+  val encode_body: theory -> proof_body XML.Encode.T
   val decode: theory -> proof XML.Decode.T
   val decode_body: theory -> proof_body XML.Decode.T
 
@@ -369,6 +370,40 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 (** XML data representation **)
 
+(* encode as zterm/zproof *)
+
+fun proof_to_zproof thy =
+  let
+    val {ztyp, zterm} = ZTerm.zterm_cache thy;
+    val ztvar = ztyp #> (fn ZTVar v => v);
+
+    fun zproof_const name prop typargs =
+      let
+        val vs = rev ((fold_types o fold_atyps) (insert (op =) o ztvar) prop []);
+        val Ts = map ztyp typargs
+      in ZConstp ((name, zterm prop), (ZTVars.make (vs ~~ Ts), ZVars.empty)) end;
+
+    fun zproof MinProof = ZNop
+      | zproof (PBound i) = ZBoundp i
+      | zproof (Abst (a, SOME T, p)) = ZAbst (a, ztyp T, zproof p)
+      | zproof (AbsP (a, SOME t, p)) = ZAbsp (a, zterm t, zproof p)
+      | zproof (p % SOME t) = ZAppt (zproof p, zterm t)
+      | zproof (p %% q) = ZAppp (zproof p, zproof q)
+      | zproof (Hyp t) = ZHyp (zterm t)
+      | zproof (PAxm (a, prop, SOME Ts)) = zproof_const (ZAxiom a) prop Ts
+      | zproof (PClass (T, c)) = OFCLASSp (ztyp T, c)
+      | zproof (Oracle (a, prop, SOME Ts)) = zproof_const (ZOracle a) prop Ts
+      | zproof (PThm ({serial, pos, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
+          let
+            val name = (thm_name, try hd pos |> the_default Position.none);
+            val proof_name = ZThm {theory_name = theory_name, thm_name = name, serial = serial};
+          in zproof_const proof_name prop Ts end;
+  in zproof end;
+
+fun encode_standard_term thy = ZTerm.zterm_of thy #> ZTerm.encode_zterm {typed_vars = false};
+fun encode_standard_proof thy = proof_to_zproof thy #> ZTerm.encode_zproof {typed_vars = false};
+
+
 (* encode *)
 
 local
@@ -399,39 +434,10 @@ and thm consts (a, thm_node) =
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
       (Future.join (thm_node_body thm_node))))));
 
-fun standard_term consts t = t |> variant
- [fn Const (a, b) => ([a], list typ (Consts.typargs consts (a, b))),
-  fn Free (a, _) => ([a], []),
-  fn Var (a, _) => (indexname a, []),
-  fn Bound a => ([], int a),
-  fn Abs (a, b, c) => ([a], pair typ (standard_term consts) (b, c)),
-  fn t as op $ a =>
-    if can Logic.match_of_class t then raise Match
-    else ([], pair (standard_term consts) (standard_term consts) a),
-  fn t =>
-    let val (T, c) = Logic.match_of_class t
-    in ([c], typ T) end];
-
-fun standard_proof consts prf = prf |> variant
- [fn MinProof => ([], []),
-  fn PBound a => ([], int a),
-  fn Abst (a, SOME b, c) => ([a], pair typ (standard_proof consts) (b, c)),
-  fn AbsP (a, SOME b, c) => ([a], pair (standard_term consts) (standard_proof consts) (b, c)),
-  fn a % SOME b => ([], pair (standard_proof consts) (standard_term consts) (a, b)),
-  fn a %% b => ([], pair (standard_proof consts) (standard_proof consts) (a, b)),
-  fn Hyp a => ([], standard_term consts a),
-  fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
-  fn PClass (T, c) => ([c], typ T),
-  fn Oracle (name, prop, SOME Ts) => ([name], pair (standard_term consts) (list typ) (prop, Ts)),
-  fn PThm ({serial, theory_name, thm_name, types = SOME Ts, ...}, _) =>
-    ([int_atom serial, theory_name, #1 thm_name, int_atom (#2 thm_name)], list typ Ts)];
-
 in
 
 val encode = proof o Sign.consts_of;
 val encode_body = proof_body o Sign.consts_of;
-val encode_standard_term = standard_term o Sign.consts_of;
-val encode_standard_proof = standard_proof o Sign.consts_of;
 
 end;
 

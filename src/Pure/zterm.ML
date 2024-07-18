@@ -251,6 +251,7 @@ sig
   val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
   val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
   val ztyp_of: typ -> ztyp
+  val ztyp_dummy: ztyp
   val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
   val reset_cache: theory -> theory
@@ -314,6 +315,9 @@ sig
   val of_sort_proof: Sorts.algebra -> sorts_proof -> (typ * class -> zproof) ->
     typ * sort -> zproof list
   val unconstrainT_proof: theory -> sorts_proof -> Logic.unconstrain_context -> zproof -> zproof
+  val encode_ztyp: ztyp XML.Encode.T
+  val encode_zterm: {typed_vars: bool} -> zterm XML.Encode.T
+  val encode_zproof: {typed_vars: bool} -> zproof XML.Encode.T
 end;
 
 structure ZTerm: ZTERM =
@@ -590,6 +594,8 @@ fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
   | ztyp_of (Type (c, [])) = ZType0 c
   | ztyp_of (Type (c, [T])) = ZType1 (c, ztyp_of T)
   | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
+
+val ztyp_dummy = ztyp_of dummyT;
 
 fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
   | typ_of_tvar v = TVar v;
@@ -1364,5 +1370,61 @@ fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
     map_proof_types {hyps = false} typ #> map_class_proof class #> beta_norm_prooft
     #> fold_rev (implies_intr_proof' o #zterm cache o #2) (#constraints ucontext)
   end;
+
+
+
+(** XML data representation **)
+
+(* encode *)
+
+local
+
+open XML.Encode Term_XML.Encode;
+
+fun ztyp T = T |> variant
+ [fn ZFun args => (["fun"], pair ztyp ztyp args)
+   | ZProp => (["prop"], [])
+   | ZType0 a => ([a], [])
+   | ZType1 (a, b) => ([a], list ztyp [b])
+   | ZType (a, b) => ([a], list ztyp b),
+  fn ZTVar ((a, ~1), b) => ([a], sort b),
+  fn ZTVar (a, b) => (indexname a, sort b)];
+
+fun zvar_type {typed_vars} T =
+  if typed_vars andalso T <> ztyp_dummy then ztyp T else [];
+
+fun zterm flag t = t |> variant
+ [fn ZConst0 a => ([a], [])
+   | ZConst1 (a, b) => ([a], list ztyp [b])
+   | ZConst (a, b) => ([a], list ztyp b),
+  fn ZVar ((a, ~1), b) => ([a], zvar_type flag b),
+  fn ZVar (a, b) => (indexname a, zvar_type flag b),
+  fn ZBound a => ([], int a),
+  fn ZAbs (a, b, c) => ([a], pair ztyp (zterm flag) (b, c)),
+  fn ZApp a => ([], pair (zterm flag) (zterm flag) a),
+  fn OFCLASS (a, b) => ([b], ztyp a)];
+
+fun zproof flag prf = prf |> variant
+ [fn ZNop => ([], []),
+  fn ZBoundp a => ([], int a),
+  fn ZAbst (a, b, c) => ([a], pair ztyp (zproof flag) (b, c)),
+  fn ZAbsp (a, b, c) => ([a], pair (zterm flag) (zproof flag) (b, c)),
+  fn ZAppt a => ([], pair (zproof flag) (zterm flag) a),
+  fn ZAppp a => ([], pair (zproof flag) (zproof flag) a),
+  fn ZHyp a => ([], zterm flag a),
+  fn ZConstp (c as ((ZAxiom a, b), _)) => ([a], list (ztyp o #2) (zproof_const_typargs c)),
+  fn OFCLASSp (a, b) => ([b], ztyp a),
+  fn ZConstp (c as ((ZOracle a, b), _)) => ([a], list (ztyp o #2) (zproof_const_typargs c)),
+  fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
+    ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
+      list (ztyp o #2) (zproof_const_typargs c))];
+
+in
+
+val encode_ztyp = ztyp;
+val encode_zterm = zterm;
+val encode_zproof = zproof;
+
+end;
 
 end;
