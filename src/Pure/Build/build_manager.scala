@@ -980,8 +980,7 @@ object Build_Manager {
   /* repository poller */
 
   object Poller {
-    case class Versions(isabelle: String, components: List[Component])
-    case class State(current: Versions, next: Future[Versions])
+    case class State(current: List[Component], next: Future[List[Component]])
   }
 
   class Poller(
@@ -994,11 +993,11 @@ object Build_Manager {
 
     override def delay = options.seconds("build_manager_poll_delay")
 
-    private def current: Poller.Versions =
-      Poller.Versions(isabelle_repository.id("default"), sync_dirs.map(dir =>
-        Component(dir.name, dir.hg.id("default"))))
+    private def current: List[Component] =
+      Component.isabelle(isabelle_repository.id("default")) ::
+        sync_dirs.map(dir => Component(dir.name, dir.hg.id("default")))
 
-    private def poll: Future[Poller.Versions] = Future.fork {
+    private def poll: Future[List[Component]] = Future.fork {
       Par_List.map((repo: Mercurial.Repository) => repo.pull(),
         isabelle_repository :: sync_dirs.map(_.hg))
 
@@ -1007,16 +1006,14 @@ object Build_Manager {
 
     val init: Poller.State = Poller.State(current, poll)
 
-    private def add_tasks(current: Poller.Versions, next: Poller.Versions): Unit = {
-      val isabelle_updated = current.isabelle != next.isabelle
-      val updated_components =
-        next.components.zip(current.components).filter(_ != _).map(_._1.name).toSet
+    private def add_tasks(current: List[Component], next: List[Component]): Unit = {
+      val updated_components = next.zip(current).filter(_ != _).map(_._1.name).toSet
 
       synchronized_database("add_tasks") {
         for {
           ci_job <- ci_jobs
           if ci_job.trigger == Build_CI.On_Commit
-          if isabelle_updated || ci_job.components.exists(updated_components.contains)
+          if (Component.Isabelle :: ci_job.components).exists(updated_components.contains)
           if !_state.pending.values.exists(_.kind == ci_job.name)
         } _state = _state.add_pending(CI_Build.task(ci_job))
       }
