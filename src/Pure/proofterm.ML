@@ -65,12 +65,12 @@ sig
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
 
-  val encode: Consts.T -> proof XML.Encode.T
-  val encode_body: Consts.T -> proof_body XML.Encode.T
-  val encode_standard_term: Consts.T -> term XML.Encode.T
-  val encode_standard_proof: Consts.T -> proof XML.Encode.T
-  val decode: Consts.T -> proof XML.Decode.T
-  val decode_body: Consts.T -> proof_body XML.Decode.T
+  val encode: theory -> proof XML.Encode.T
+  val encode_body: theory -> proof_body XML.Encode.T
+  val encode_standard_term: theory -> term XML.Encode.T
+  val encode_standard_proof: theory -> proof XML.Encode.T
+  val decode: theory -> proof XML.Decode.T
+  val decode_body: theory -> proof_body XML.Decode.T
 
   val %> : proof * term -> proof
 
@@ -428,10 +428,10 @@ fun standard_proof consts prf = prf |> variant
 
 in
 
-val encode = proof;
-val encode_body = proof_body;
-val encode_standard_term = standard_term;
-val encode_standard_proof = standard_proof;
+val encode = proof o Sign.consts_of;
+val encode_body = proof_body o Sign.consts_of;
+val encode_standard_term = standard_term o Sign.consts_of;
+val encode_standard_proof = standard_proof o Sign.consts_of;
 
 end;
 
@@ -473,8 +473,8 @@ and thm consts x =
 
 in
 
-val decode = proof;
-val decode_body = proof_body;
+val decode = proof o Sign.consts_of;
+val decode_body = proof_body o Sign.consts_of;
 
 end;
 
@@ -2160,13 +2160,12 @@ fun export_proof thy i prop prf =
     val args = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
     val typargs = [] |> Term.add_tfrees prop' |> fold_proof_terms Term.add_tfrees prf' |> rev;
 
-    val consts = Sign.consts_of thy;
     val xml = (typargs, (args, (prop', no_thm_names prf'))) |>
       let
         open XML.Encode Term_XML.Encode;
         val encode_vars = list (pair string typ);
-        val encode_term = encode_standard_term consts;
-        val encode_proof = encode_standard_proof consts;
+        val encode_term = encode_standard_term thy;
+        val encode_proof = encode_standard_proof thy;
       in pair (list (pair string sort)) (pair encode_vars (pair encode_term encode_proof)) end;
   in
     Export.export_params (Context.Theory thy)
