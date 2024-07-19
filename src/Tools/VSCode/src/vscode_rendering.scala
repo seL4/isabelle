@@ -109,6 +109,8 @@ extends Rendering(snapshot, model.resources.options, model.session) {
             results match {
               case None => Nil
               case Some(result) =>
+                val commit_characters = (' ' to '~').toList.map(_.toString)
+
                 result.items.map(item => {
                   val kind = item.description match {
                     case _ :: "(keyword)" :: _ => LSP.CompletionItemKind.Keyword
@@ -121,7 +123,7 @@ extends Rendering(snapshot, model.resources.options, model.session) {
                     detail = Some(item.description.mkString(" ")),
                     filter_text = Some(item.original),
                     commit_characters =
-                      if (result.unique && item.immediate) Some(List(" ")) else None,
+                      if (result.unique && item.immediate) Some(commit_characters) else None,
                     text = Some(item.replacement),
                     range = Some(doc.range(item.range)),
                   )
