@@ -206,6 +206,8 @@ struct
 
 (** datatype proof **)
 
+val proof_serial = Counter.make ();
+
 type thm_header =
   {serial: serial, command_pos: Position.T, theory_name: string, thm_name: Thm_Name.P,
     prop: term, types: typ list option};
@@ -2210,7 +2212,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
 
     fun new_prf () =
       let
-        val i = serial ();
+        val i = proof_serial ();
         val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
@@ -2226,7 +2228,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
             if (#1 a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
               let
                 val Thm_Body {body = body', ...} = thm_body';
-                val i = if #1 a = "" andalso named then serial () else ser;
+                val i = if #1 a = "" andalso named then proof_serial () else ser;
               in (i, body' |> ser <> i ? Future.map (map_proof_of (rew_proof thy))) end
             else new_prf ()
         | _ => new_prf ());
