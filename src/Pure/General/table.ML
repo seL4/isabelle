@@ -606,8 +606,8 @@ fun unsynchronized_cache f =
             SOME exn => Exn.reraise exn
           | NONE =>
               (case Exn.result f x of
-                Exn.Res y => (Unsynchronized.change cache1 (update (x, y)); y)
-              | Exn.Exn exn => (Unsynchronized.change cache2 (update (x, exn)); Exn.reraise exn))));
+                Exn.Res y => (Unsynchronized.change cache1 (default (x, y)); y)
+              | Exn.Exn exn => (Unsynchronized.change cache2 (default (x, exn)); Exn.reraise exn))));
     fun reset () = (cache2 := empty; cache1 := empty);
     fun total_size () = size (! cache1) + size (! cache2);
   in {apply = apply, reset = reset, size = total_size} end;
