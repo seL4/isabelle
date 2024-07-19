@@ -88,7 +88,7 @@ fun thm_of_proof thy =
               (Thm.forall_intr_vars (Thm.forall_intr_frees thm'))
           end;
 
-        fun thm_of _ _ (PThm ({thm_name, prop = prop', types = SOME Ts, ...}, _)) =
+        fun thm_of _ _ (PThm ({thm_name = (thm_name, thm_pos), prop = prop', types = SOME Ts, ...}, _)) =
               let
                 val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup thm_name));
                 val prop = Thm.prop_of thm;
@@ -96,9 +96,9 @@ fun thm_of_proof thy =
                   if is_equal prop prop' then ()
                   else
                     error ("Duplicate use of theorem name " ^
-                      quote (Global_Theory.print_thm_name thy thm_name) ^ "\n" ^
-                      Syntax.string_of_term_global thy prop ^ "\n\n" ^
-                      Syntax.string_of_term_global thy prop');
+                      quote (Global_Theory.print_thm_name thy thm_name) ^ Position.here thm_pos
+                      ^ "\n" ^ Syntax.string_of_term_global thy prop
+                      ^ "\n\n" ^ Syntax.string_of_term_global thy prop');
               in thm_of_atom thm Ts end
 
           | thm_of _ _ (PAxm (name, _, SOME Ts)) =

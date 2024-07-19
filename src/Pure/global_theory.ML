@@ -13,13 +13,13 @@ sig
   val defined_fact: theory -> string -> bool
   val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
-  val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
+  val dest_thms: bool -> theory list -> theory -> (Thm_Name.P * thm) list
   val pretty_thm_name: theory -> Thm_Name.T -> Pretty.T
   val print_thm_name: theory -> Thm_Name.T -> string
-  val get_thm_names: theory -> Thm_Name.T Inttab.table
-  val dest_thm_names: theory -> (Proofterm.thm_id * Thm_Name.T) list
-  val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
-  val lookup_thm: theory -> thm -> (Proofterm.thm_id * Thm_Name.T) option
+  val get_thm_names: theory -> Thm_Name.P Inttab.table
+  val dest_thm_names: theory -> (Proofterm.thm_id * Thm_Name.P) list
+  val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.P option
+  val lookup_thm: theory -> thm -> (Proofterm.thm_id * Thm_Name.P) option
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
@@ -63,7 +63,7 @@ struct
 
 structure Data = Theory_Data
 (
-  type T = Facts.T * Thm_Name.T Inttab.table lazy option;
+  type T = Facts.T * Thm_Name.P Inttab.table lazy option;
   val empty: T = (Facts.empty, NONE);
   fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), NONE);
 );
@@ -86,7 +86,7 @@ fun hide_fact fully name = map_facts (Facts.hide fully name);
 
 fun dest_thms verbose prev_thys thy =
   Facts.dest_static verbose (map facts_of prev_thys) (facts_of thy)
-  |> maps (fn (name, thms) => Thm_Name.list (name, Position.none) thms |> map (apfst fst));
+  |> maps (fn (name, thms) => Thm_Name.list (name, Position.none) thms);
 
 fun pretty_thm_name thy = Facts.pretty_thm_name (Context.Theory thy) (facts_of thy);
 val print_thm_name = Pretty.string_of oo pretty_thm_name;
@@ -99,7 +99,7 @@ val map_thm_names = Data.map o apsnd;
 
 fun make_thm_names thy =
   (dest_thms true (Theory.parents_of thy) thy, Inttab.empty)
-  |-> fold (fn (thm_name, thm) => fn thm_names =>
+  |-> fold (fn ((thm_name, thm_pos), thm) => fn thm_names =>
     (case Thm.derivation_id (Thm.transfer thy thm) of
       NONE => thm_names
     | SOME {serial, theory_name} =>
@@ -107,11 +107,11 @@ fun make_thm_names thy =
           raise THM ("Bad theory name for derivation", 0, [thm])
         else
           (case Inttab.lookup thm_names serial of
-            SOME thm_name' =>
+            SOME (thm_name', thm_pos') =>
               raise THM ("Duplicate use of derivation identity for " ^
-                print_thm_name thy thm_name ^ " vs. " ^
-                print_thm_name thy thm_name', 0, [thm])
-          | NONE => Inttab.update (serial, thm_name) thm_names)));
+                print_thm_name thy thm_name ^ Position.here thm_pos ^ " vs. " ^
+                print_thm_name thy thm_name' ^ Position.here thm_pos', 0, [thm])
+          | NONE => Inttab.update (serial, (thm_name, thm_pos)) thm_names)));
 
 fun lazy_thm_names thy =
   (case thm_names_of thy of
@@ -256,7 +256,7 @@ fun name_thm name_flags (name, pos) =
       No_Name_Flags => thm
     | Name_Flags {post, official} =>
         thm
-        |> (official andalso (post orelse Thm_Name.is_empty (Thm.raw_derivation_name thm))) ?
+        |> (official andalso (post orelse Thm_Name.is_empty (#1 (Thm.raw_derivation_name thm)))) ?
             Thm.name_derivation (name, pos)
         |> (not (Thm_Name.is_empty name) andalso (post orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));

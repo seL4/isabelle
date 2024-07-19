@@ -283,8 +283,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
     fun expand_name thm_id (header: Proofterm.thm_header) =
-      if #serial header = #serial thm_id then Thm_Name.empty
-      else the_default Thm_Name.empty (lookup_thm_id (Proofterm.thm_header_id header));
+      if #serial header = #serial thm_id then Thm_Name.none
+      else the_default Thm_Name.none (lookup_thm_id (Proofterm.thm_header_id header));
 
     fun entity_markup_thm (serial, (name, i)) =
       let
@@ -314,7 +314,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
           in triple encode_prop (list Thm_Name.encode) encode_proof end
       end;
 
-    fun export_thm (thm_id, thm_name) =
+    fun export_thm (thm_id, (thm_name, _)) =
       let
         val markup = entity_markup_thm (#serial thm_id, thm_name);
         val body =

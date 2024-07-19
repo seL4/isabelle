@@ -16,7 +16,7 @@ struct
 fun thm_name_of thm =
   (case Proofterm.fold_proof_atoms false (fn PThm ({thm_name, ...}, _) => cons thm_name | _ => I)
       [Thm.proof_of thm] [] of
-    [thm_name] => thm_name
+    [(thm_name, _)] => thm_name
   | _ => raise THM ("thm_name_of: bad proof of theorem", 0, [thm]));
 
 val short_name_of = Thm_Name.short o thm_name_of;

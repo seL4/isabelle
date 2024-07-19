@@ -1293,7 +1293,7 @@ text %mlref \<open>
   @{define_ML Proofterm.reconstruct_proof:
   "theory -> term -> proof -> proof"} \\
   @{define_ML Proofterm.expand_proof: "theory ->
-  (Proofterm.thm_header -> Thm_Name.T option) -> proof -> proof"} \\
+  (Proofterm.thm_header -> Thm_Name.P option) -> proof -> proof"} \\
   @{define_ML Proof_Checker.thm_of_proof: "theory -> proof -> thm"} \\
   @{define_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
   @{define_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\

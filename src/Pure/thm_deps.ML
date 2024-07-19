@@ -59,7 +59,7 @@ fun thm_deps thy =
       else
         let val thm_id = Proofterm.thm_id (i, thm_node) in
           (case lookup thm_id of
-            SOME thm_name =>
+            SOME (thm_name, _) =>
               Inttab.update (i, SOME (thm_id, thm_name)) res
           | NONE =>
               Inttab.update (i, NONE) res

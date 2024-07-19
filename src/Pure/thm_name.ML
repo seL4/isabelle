@@ -26,9 +26,12 @@ sig
   val print_prefix: Context.generic -> Name_Space.T -> T -> Markup.T * string
   val print_suffix: T -> string
   val print: T -> string
+  val print_pos: P -> string
   val short: T -> string
   val encode: T XML.Encode.T
   val decode: T XML.Decode.T
+  val encode_pos: P XML.Encode.T
+  val decode_pos: P XML.Decode.T
 end;
 
 structure Thm_Name: THM_NAME =
@@ -106,6 +109,8 @@ fun print_suffix (name, index) =
 
 fun print (name, index) = name ^ print_suffix (name, index);
 
+fun print_pos (thm_name, pos) = print thm_name ^ Position.here pos;
+
 fun short (name, index) =
   if name = "" orelse index = 0 then name
   else name ^ "_" ^ string_of_int index;
@@ -115,5 +120,8 @@ fun short (name, index) =
 
 val encode = let open XML.Encode in pair string int end;
 val decode = let open XML.Decode in pair string int end;
+
+val encode_pos = let open XML.Encode in pair encode (properties o Position.properties_of) end;
+val decode_pos = let open XML.Decode in pair decode (Position.of_properties o properties) end;
 
 end;

@@ -511,9 +511,9 @@ fun extract thm_vss thy =
     val procs = maps (rev o fst o snd) types;
     val rtypes = map fst types;
     val typroc = typeof_proc [];
-    fun expand_name ({thm_name, ...}: Proofterm.thm_header) =
+    fun expand_name ({thm_name = (thm_name, _), ...}: Proofterm.thm_header) =
       if Thm_Name.is_empty thm_name orelse member (op =) expand thm_name
-      then SOME Thm_Name.empty else NONE;
+      then SOME Thm_Name.none else NONE;
     val prep = the_default (K I) prep thy' o
       Proof_Rewrite_Rules.elim_defs thy' false (map (Thm.transfer thy) defs) o
       Proofterm.expand_proof thy' expand_name;
@@ -623,7 +623,7 @@ fun extract thm_vss thy =
 
       | corr d vs ts Ts hs cs _ (prf0 as PThm (thm_header as {types = SOME Ts', ...}, thm_body)) _ defs =
           let
-            val {pos, theory_name, thm_name, prop, ...} = thm_header;
+            val {command_pos, theory_name, thm_name = (thm_name, thm_pos), prop, ...} = thm_header;
             val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
@@ -650,8 +650,8 @@ fun extract thm_vss thy =
                     val corr_prf = mkabsp shyps corr_prf0;
                     val corr_prop = Proofterm.prop_of corr_prf;
                     val corr_header =
-                      Proofterm.thm_header (serial ()) pos theory_name
-                        (corr_name thm_name vs', 0) corr_prop
+                      Proofterm.thm_header (serial ()) command_pos theory_name
+                        ((corr_name thm_name vs', 0), thm_pos) corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_prf' =
                       Proofterm.proof_combP
@@ -727,7 +727,7 @@ fun extract thm_vss thy =
 
       | extr d vs ts Ts hs (prf0 as PThm (thm_header as {types = SOME Ts', ...}, thm_body)) defs =
           let
-            val {pos, theory_name, thm_name, prop, ...} = thm_header;
+            val {command_pos, theory_name, thm_name = (thm_name, thm_pos), prop, ...} = thm_header;
             val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
@@ -772,8 +772,8 @@ fun extract thm_vss thy =
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Proofterm.prop_of corr_prf';
                     val corr_header =
-                      Proofterm.thm_header (serial ()) pos theory_name
-                        (corr_name thm_name vs', 0) corr_prop
+                      Proofterm.thm_header (serial ()) command_pos theory_name
+                        ((corr_name thm_name vs', 0), thm_pos) corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt

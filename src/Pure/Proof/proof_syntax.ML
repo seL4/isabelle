@@ -16,7 +16,7 @@ sig
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
   val pretty_proof_boxes_of: Proof.context ->
     {full: bool, preproc: theory -> proof -> proof} -> thm -> Pretty.T
-  val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> Thm_Name.T option} ->
+  val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> Thm_Name.P option} ->
     thm -> Proofterm.proof
   val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
@@ -104,7 +104,7 @@ fun PClasst (T, c) =
   let val U = Term.itselfT T --> propT
   in Const ("Pure.PClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
-fun term_of _ (PThm ({serial = i, thm_name = a, types = Ts, ...}, _)) =
+fun term_of _ (PThm ({serial = i, thm_name = (a, _), types = Ts, ...}, _)) =
       fold AppT (these Ts)
         (Const
           (Long_Name.append "thm"
@@ -227,7 +227,7 @@ fun read_proof thy topsort =
 fun proof_syntax prf =
   let
     val thm_names = Symset.dest (Proofterm.fold_proof_atoms true
-      (fn PThm ({thm_name, ...}, _) =>
+      (fn PThm ({thm_name = (thm_name, _), ...}, _) =>
           if Thm_Name.is_empty thm_name then I else Symset.insert (Thm_Name.short thm_name)
         | _ => I) [prf] Symset.empty);
     val axm_names = Symset.dest (Proofterm.fold_proof_atoms true
@@ -264,7 +264,7 @@ fun pretty_proof_boxes_of ctxt {full, preproc} thm =
        excluded = is_some o Global_Theory.lookup_thm_id thy}
   in
     Proofterm.proof_boxes selection [Thm.proof_of thm]
-    |> map (fn ({serial = i, pos, prop, ...}, proof) =>
+    |> map (fn ({serial = i, command_pos, prop, thm_name = (_, thm_pos), ...}, proof) =>
         let
           val proof' = proof
             |> Proofterm.reconstruct_proof thy prop
@@ -276,7 +276,7 @@ fun pretty_proof_boxes_of ctxt {full, preproc} thm =
           val name = Long_Name.append "thm" (string_of_int i);
         in
           Pretty.item
-           [Pretty.str (name ^ Position.here_list pos ^ ":"), Pretty.brk 1,
+           [Pretty.str (name ^ Position.here_list [command_pos, thm_pos] ^ ":"), Pretty.brk 1,
             Syntax.pretty_term ctxt prop', Pretty.fbrk, pretty_proof ctxt proof']
         end)
     |> Pretty.chunks

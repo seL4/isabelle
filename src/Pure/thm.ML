@@ -120,8 +120,8 @@ sig
   val derivation_closed: thm -> bool
   val derivation_name: thm -> Thm_Name.T
   val derivation_id: thm -> Proofterm.thm_id option
-  val raw_derivation_name: thm -> Thm_Name.T
-  val expand_name: thm -> Proofterm.thm_header -> Thm_Name.T option
+  val raw_derivation_name: thm -> Thm_Name.P
+  val expand_name: thm -> Proofterm.thm_header -> Thm_Name.P option
   val name_derivation: Thm_Name.P -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
@@ -1131,13 +1131,13 @@ fun expand_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
         NONE => K false
       | SOME {serial, ...} => fn (header: Proofterm.thm_header) => serial = #serial header);
     fun expand header =
-      if self_id header orelse Thm_Name.is_empty (#thm_name header)
-      then SOME Thm_Name.empty else NONE;
+      if self_id header orelse Thm_Name.is_empty (#1 (#thm_name header))
+      then SOME Thm_Name.none else NONE;
   in expand end;
 
 (*deterministic name of finished proof*)
 fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
-  Proofterm.get_approximative_name shyps hyps prop (proof_of thm);
+  #1 (Proofterm.get_approximative_name shyps hyps prop (proof_of thm));
 
 (*identified PThm node*)
 fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =

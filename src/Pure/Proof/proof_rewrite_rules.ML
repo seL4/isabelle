@@ -39,12 +39,12 @@ fun rew b _ _ =
     val equal_elim_axm = ax Proofterm.equal_elim_axm [];
     val symmetric_axm = ax Proofterm.symmetric_axm [propT];
 
-    fun rew' (PThm ({thm_name = ("Pure.protectD", 0), ...}, _) % _ %%
-        (PThm ({thm_name = ("Pure.protectI", 0), ...}, _) % _ %% prf)) = SOME prf
-      | rew' (PThm ({thm_name = ("Pure.conjunctionD1", 0), ...}, _) % _ % _ %%
-        (PThm ({thm_name = ("Pure.conjunctionI", 0), ...}, _) % _ % _ %% prf %% _)) = SOME prf
-      | rew' (PThm ({thm_name = ("Pure.conjunctionD2", 0), ...}, _) % _ % _ %%
-        (PThm ({thm_name = ("Pure.conjunctionI", 0), ...}, _) % _ % _ %% _ %% prf)) = SOME prf
+    fun rew' (PThm ({thm_name = (("Pure.protectD", 0), _), ...}, _) % _ %%
+        (PThm ({thm_name = (("Pure.protectI", 0), _), ...}, _) % _ %% prf)) = SOME prf
+      | rew' (PThm ({thm_name = (("Pure.conjunctionD1", 0), _), ...}, _) % _ % _ %%
+        (PThm ({thm_name = (("Pure.conjunctionI", 0), _), ...}, _) % _ % _ %% prf %% _)) = SOME prf
+      | rew' (PThm ({thm_name = (("Pure.conjunctionD2", 0), _), ...}, _) % _ % _ %%
+        (PThm ({thm_name = (("Pure.conjunctionI", 0), _), ...}, _) % _ % _ %% _ %% prf)) = SOME prf
       | rew' (PAxm ("Pure.equal_elim", _, _) % _ % _ %%
         (PAxm ("Pure.equal_intr", _, _) % _ % _ %% prf %% _)) = SOME prf
       | rew' (PAxm ("Pure.symmetric", _, _) % _ % _ %%
@@ -54,14 +54,14 @@ fun rew b _ _ =
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.prop", _)) %
           _ % _ % _ %% (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %%
-        ((tg as PThm ({thm_name = ("Pure.protectI", 0), ...}, _)) % _ %% prf2)) =
+        ((tg as PThm ({thm_name = (("Pure.protectI", 0), _), ...}, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %% prf1 %% prf2))
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("Pure.symmetric", _, _) % _ % _ %%
           (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.prop", _)) %
              _ % _ % _ %% (PAxm ("Pure.reflexive", _, _) % _) %% prf1)) %%
-        ((tg as PThm ({thm_name = ("Pure.protectI", 0), ...}, _)) % _ %% prf2)) =
+        ((tg as PThm ({thm_name = (("Pure.protectI", 0), _), ...}, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %%
           (symmetric_axm % ?? B % ?? A %% prf1) %% prf2))
 
@@ -245,7 +245,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
       (AbsP (s, t, fst (insert_refl defs Ts prf)), false)
   | insert_refl defs Ts prf =
       (case Proofterm.strip_combt prf of
-        (PThm ({thm_name, prop, types = SOME Ts, ...}, _), ts) =>
+        (PThm ({thm_name = (thm_name, _), prop, types = SOME Ts, ...}, _), ts) =>
           if member (op =) defs thm_name then
             let
               val vs = vars_of prop;
@@ -271,11 +271,11 @@ fun elim_defs thy r defs prf =
         let
           val cnames = map (fst o dest_Const o fst) defs';
           val expand = Proofterm.fold_proof_atoms true
-            (fn PThm ({serial, thm_name, prop, ...}, _) =>
+            (fn PThm ({serial, thm_name = (thm_name, _), prop, ...}, _) =>
                 if member (op =) defnames thm_name orelse
                   not (exists_Const (member (op =) cnames o #1) prop)
                 then I
-                else Inttab.update (serial, Thm_Name.empty)
+                else Inttab.update (serial, Thm_Name.none)
               | _ => I) [prf] Inttab.empty;
         in Proofterm.expand_proof thy (Inttab.lookup expand o #serial) prf end
       else prf;

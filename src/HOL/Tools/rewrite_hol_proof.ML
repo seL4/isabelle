@@ -305,9 +305,9 @@ val rews =
 
 (** Replace congruence rules by substitution rules **)
 
-fun strip_cong ps (PThm ({thm_name = ("HOL.cong", 0), ...}, _) % _ % _ % SOME x % SOME y %%
+fun strip_cong ps (PThm ({thm_name = (("HOL.cong", 0), _), ...}, _) % _ % _ % SOME x % SOME y %%
       prfa %% prfT %% prf1 %% prf2) = strip_cong (((x, y), (prf2, prfa)) :: ps) prf1
-  | strip_cong ps (PThm ({thm_name = ("HOL.refl", 0), ...}, _) % SOME f %% _) = SOME (f, ps)
+  | strip_cong ps (PThm ({thm_name = (("HOL.refl", 0), _), ...}, _) % SOME f %% _) = SOME (f, ps)
   | strip_cong _ _ = NONE;
 
 val subst_prf = Proofterm.any_head_of (Thm.proof_of @{thm subst});
@@ -330,15 +330,15 @@ fun make_sym Ts ((x, y), (prf, clprf)) =
 
 fun mk_AbsP P t = AbsP ("H", Option.map HOLogic.mk_Trueprop P, t);
 
-fun elim_cong_aux Ts (PThm ({thm_name = ("HOL.iffD1", 0), ...}, _) % _ % _ %% prf1 %% prf2) =
+fun elim_cong_aux Ts (PThm ({thm_name = (("HOL.iffD1", 0), _), ...}, _) % _ % _ %% prf1 %% prf2) =
       Option.map (make_subst Ts prf2 []) (strip_cong [] prf1)
-  | elim_cong_aux Ts (PThm ({thm_name = ("HOL.iffD1", 0), ...}, _) % P % _ %% prf) =
+  | elim_cong_aux Ts (PThm ({thm_name = (("HOL.iffD1", 0), _), ...}, _) % P % _ %% prf) =
       Option.map (mk_AbsP P o make_subst Ts (PBound 0) [])
         (strip_cong [] (Proofterm.incr_boundvars 1 0 prf))
-  | elim_cong_aux Ts (PThm ({thm_name = ("HOL.iffD2", 0), ...}, _) % _ % _ %% prf1 %% prf2) =
+  | elim_cong_aux Ts (PThm ({thm_name = (("HOL.iffD2", 0), _), ...}, _) % _ % _ %% prf1 %% prf2) =
       Option.map (make_subst Ts prf2 [] o
         apsnd (map (make_sym Ts))) (strip_cong [] prf1)
-  | elim_cong_aux Ts (PThm ({thm_name = ("HOL.iffD2", 0), ...}, _) % _ % P %% prf) =
+  | elim_cong_aux Ts (PThm ({thm_name = (("HOL.iffD2", 0), _), ...}, _) % _ % P %% prf) =
       Option.map (mk_AbsP P o make_subst Ts (PBound 0) [] o
         apsnd (map (make_sym Ts))) (strip_cong [] (Proofterm.incr_boundvars 1 0 prf))
   | elim_cong_aux _ _ = NONE;
