@@ -25,13 +25,13 @@ object Term_XML {
         { case TFree(a, b) => (List(a), sort(b)) },
         { case TVar(a, b) => (indexname(a), sort(b)) }))
 
-    val typ_body: T[Typ] = (t: Typ) => if (t == dummyT) Nil else typ(t)
+    private val var_type: T[Typ] = (t: Typ) => if (t == dummyT) Nil else typ(t)
 
     def term: T[Term] =
       variant[Term](List(
         { case Const(a, b) => (List(a), list(typ)(b)) },
-        { case Free(a, b) => (List(a), typ_body(b)) },
-        { case Var(a, b) => (indexname(a), typ_body(b)) },
+        { case Free(a, b) => (List(a), var_type(b)) },
+        { case Var(a, b) => (indexname(a), var_type(b)) },
         { case Bound(a) => (Nil, int(a)) },
         { case Abs(a, b, c) => (List(a), pair(typ, term)(b, c)) },
         { case App(a, b) => (Nil, pair(term, term)(a, b)) },
@@ -53,13 +53,13 @@ object Term_XML {
         { case (List(a), b) => TFree(a, sort(b)) },
         { case (a, b) => TVar(indexname(a), sort(b)) }))
 
-    val typ_body: T[Typ] = { case Nil => dummyT case body => typ(body) }
+    private val var_type: T[Typ] = { case Nil => dummyT case body => typ(body) }
 
     def term: T[Term] =
       variant[Term](List(
         { case (List(a), b) => Const(a, list(typ)(b)) },
-        { case (List(a), b) => Free(a, typ_body(b)) },
-        { case (a, b) => Var(indexname(a), typ_body(b)) },
+        { case (List(a), b) => Free(a, var_type(b)) },
+        { case (a, b) => Var(indexname(a), var_type(b)) },
         { case (Nil, a) => Bound(int(a)) },
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
         { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) },
@@ -72,8 +72,8 @@ object Term_XML {
       def term: T[Term] =
         variant[Term](List(
           { case (List(a), b) => Const(a, list(typ)(b)) },
-          { case (List(a), b) => Free(a, env_type(a, typ_body(b))) },
-          { case (a, b) => Var(indexname(a), typ_body(b)) },
+          { case (List(a), b) => Free(a, env_type(a, var_type(b))) },
+          { case (a, b) => Var(indexname(a), var_type(b)) },
           { case (Nil, a) => Bound(int(a)) },
           { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
           { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) },

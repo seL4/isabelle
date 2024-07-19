@@ -12,7 +12,6 @@ sig
   val sort: sort T
   val typ: typ T
   val term_raw: term T
-  val typ_body: typ T
   val term: Consts.T -> term T
 end
 
@@ -47,12 +46,12 @@ fun term_raw t = t |> variant
   fn Abs (a, b, c) => ([a], pair typ term_raw (b, c)),
   fn op $ a => ([], pair term_raw term_raw a)];
 
-fun typ_body T = if T = dummyT then [] else typ T;
+fun var_type T = if T = dummyT then [] else typ T;
 
 fun term consts t = t |> variant
  [fn Const (a, b) => ([a], list typ (Consts.typargs consts (a, b))),
-  fn Free (a, b) => ([a], typ_body b),
-  fn Var (a, b) => (indexname a, typ_body b),
+  fn Free (a, b) => ([a], var_type b),
+  fn Var (a, b) => (indexname a, var_type b),
   fn Bound a => ([], int a),
   fn Abs (a, b, c) => ([a], pair typ (term consts) (b, c)),
   fn t as op $ a =>
@@ -87,13 +86,13 @@ fun term_raw body = body |> variant
   fn ([a], b) => let val (c, d) = pair typ term_raw b in Abs (a, c, d) end,
   fn ([], a) => op $ (pair term_raw term_raw a)];
 
-fun typ_body [] = dummyT
-  | typ_body body = typ body;
+fun var_type [] = dummyT
+  | var_type body = typ body;
 
 fun term consts body = body |> variant
  [fn ([a], b) => Const (a, Consts.instance consts (a, list typ b)),
-  fn ([a], b) => Free (a, typ_body b),
-  fn (a, b) => Var (indexname a, typ_body b),
+  fn ([a], b) => Free (a, var_type b),
+  fn (a, b) => Var (indexname a, var_type b),
   fn ([], a) => Bound (int a),
   fn ([a], b) => let val (c, d) = pair typ (term consts) b in Abs (a, c, d) end,
   fn ([], a) => op $ (pair (term consts) (term consts) a),
