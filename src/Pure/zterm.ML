@@ -52,6 +52,50 @@ fun fold_types f (ZVar (_, T)) = f T
   | fold_types _ _ = I;
 
 
+(* map *)
+
+fun map_tvars_same f =
+  let
+    fun typ (ZTVar v) = f v
+      | typ (ZFun (T, U)) =
+          (ZFun (typ T, Same.commit typ U)
+            handle Same.SAME => ZFun (T, typ U))
+      | typ ZProp = raise Same.SAME
+      | typ (ZType0 _) = raise Same.SAME
+      | typ (ZType1 (a, T)) = ZType1 (a, typ T)
+      | typ (ZType (a, Ts)) = ZType (a, Same.map typ Ts);
+  in typ end;
+
+fun map_aterms_same f =
+  let
+    fun term (ZAbs (x, T, t)) = ZAbs (x, T, term t)
+      | term (ZApp (t, u)) =
+          (ZApp (term t, Same.commit term u)
+            handle Same.SAME => ZApp (t, term u))
+      | term a = f a;
+  in term end;
+
+fun map_types_same f =
+  let
+    fun term (ZVar (xi, T)) = ZVar (xi, f T)
+      | term (ZBound _) = raise Same.SAME
+      | term (ZConst0 _) = raise Same.SAME
+      | term (ZConst1 (c, T)) = ZConst1 (c, f T)
+      | term (ZConst (c, Ts)) = ZConst (c, Same.map f Ts)
+      | term (ZAbs (x, T, t)) =
+          (ZAbs (x, f T, Same.commit term t)
+            handle Same.SAME => ZAbs (x, T, term t))
+      | term (ZApp (t, u)) =
+          (ZApp (term t, Same.commit term u)
+            handle Same.SAME => ZApp (t, term u))
+      | term (OFCLASS (T, c)) = OFCLASS (f T, c);
+  in term end;
+
+val map_tvars = Same.commit o map_tvars_same;
+val map_aterms = Same.commit o map_aterms_same;
+val map_types = Same.commit o map_types_same;
+
+
 (* type ordering *)
 
 local
@@ -224,6 +268,9 @@ sig
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_vars: (indexname * ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val map_tvars: (indexname * sort -> ztyp) -> ztyp -> ztyp
+  val map_aterms: (zterm -> zterm) -> zterm -> zterm
+  val map_types: (ztyp -> ztyp) -> zterm -> zterm
   val ztyp_ord: ztyp ord
   val fast_zterm_ord: zterm ord
   val aconv_zterm: zterm * zterm -> bool
@@ -247,6 +294,8 @@ sig
   val subst_term_same:
     ztyp Same.operation -> (indexname * ztyp, zterm) Same.function -> zterm Same.operation
   exception BAD_INST of ((indexname * ztyp) * zterm) list
+  val fold_proof: {hyps: bool} -> (ztyp -> 'a -> 'a) -> (zterm -> 'a -> 'a) -> zproof -> 'a -> 'a
+  val fold_proof_types: {hyps: bool} -> (ztyp -> 'a -> 'a) -> zproof -> 'a -> 'a
   val map_proof: {hyps: bool} -> ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
   val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
   val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof

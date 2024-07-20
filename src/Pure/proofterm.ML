@@ -2038,31 +2038,28 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
 
 local
 
-val declare_names_term = Term.declare_term_frees;
-val declare_names_term' = fn SOME t => declare_names_term t | NONE => I;
-val declare_names_proof = fold_proof_terms declare_names_term;
-
-fun variant names bs x =
-  #1 (Name.variant x (fold Name.declare bs names));
+val declare_frees_term = Term.declare_term_frees;
+val declare_frees_term' = fn SOME t => declare_frees_term t | NONE => I;
+val declare_frees_proof = fold_proof_terms declare_frees_term;
 
 fun variant_term bs (Abs (x, T, t)) =
       let
-        val x' = variant (declare_names_term t Name.context) bs x;
-        val t' = variant_term (x' :: bs) t;
+        val x' = #1 (Name.variant x (declare_frees_term t bs));
+        val t' = variant_term (Name.declare x' bs) t;
       in Abs (x', T, t') end
   | variant_term bs (t $ u) = variant_term bs t $ variant_term bs u
   | variant_term _ t = t;
 
 fun variant_proof bs (Abst (x, T, prf)) =
       let
-        val x' = variant (declare_names_proof prf Name.context) bs x;
-        val prf' = variant_proof (x' :: bs) prf;
+        val x' = #1 (Name.variant x (declare_frees_proof prf bs));
+        val prf' = variant_proof (Name.declare x' bs) prf;
       in Abst (x', T, prf') end
   | variant_proof bs (AbsP (x, t, prf)) =
       let
-        val x' = variant (declare_names_term' t (declare_names_proof prf Name.context)) bs x;
+        val x' = #1 (Name.variant x (declare_frees_term' t (declare_frees_proof prf bs)));
         val t' = Option.map (variant_term bs) t;
-        val prf' = variant_proof (x' :: bs) prf;
+        val prf' = variant_proof (Name.declare x' bs) prf;
       in AbsP (x', t', prf') end
   | variant_proof bs (prf % t) = variant_proof bs prf % Option.map (variant_term bs) t
   | variant_proof bs (prf1 %% prf2) = variant_proof bs prf1 %% variant_proof bs prf2
@@ -2070,12 +2067,12 @@ fun variant_proof bs (Abst (x, T, prf)) =
   | variant_proof _ prf = prf;
 
 val used_frees_type = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
-fun used_frees_term t = fold_types used_frees_type t #> Term.declare_term_frees t;
+fun used_frees_term t = fold_types used_frees_type t #> declare_frees_term t;
 val used_frees_proof = fold_proof_terms_types used_frees_term used_frees_type;
 
-val unvarifyT = Term.map_atyps (fn TVar ((a, _), S) => TFree (a, S) | T => T);
-val unvarify = Term.map_aterms (fn Var ((x, _), T) => Free (x, T) | t => t) #> map_types unvarifyT;
-val unvarify_proof = map_proof_terms unvarify unvarifyT;
+val unvarify_type = Term.map_atyps (fn TVar ((a, _), S) => TFree (a, S) | T => T);
+val unvarify_term = map_types unvarify_type o Term.map_aterms (fn Var ((x, _), T) => Free (x, T) | t => t);
+val unvarify_proof = map_proof_terms unvarify_term unvarify_type;
 
 fun hidden_types prop proof =
   let
@@ -2083,10 +2080,10 @@ fun hidden_types prop proof =
     val add_hiddenT = fold_atyps (fn T => not (member (op =) visible T) ? insert (op =) T);
   in rev (fold_proof_terms_types (fold_types add_hiddenT) add_hiddenT proof []) end;
 
-fun standard_hidden_types term proof =
+fun standard_hidden_types prop proof =
   let
-    val hidden = hidden_types term proof;
-    val idx = Term.maxidx_term term (maxidx_proof proof ~1) + 1;
+    val hidden = hidden_types prop proof;
+    val idx = Term.maxidx_term prop (maxidx_proof proof ~1) + 1;
     fun smash T =
       if member (op =) hidden T then
         (case Type.sort_of_atyp T of
@@ -2096,11 +2093,11 @@ fun standard_hidden_types term proof =
     val smashT = map_atyps smash;
   in map_proof_terms (map_types smashT) smashT proof end;
 
-fun standard_hidden_terms term proof =
+fun standard_hidden_terms prop proof =
   let
     fun add_unless excluded x =
       ((is_Free x orelse is_Var x) andalso not (member (op =) excluded x)) ? insert (op =) x;
-    val visible = fold_aterms (add_unless []) term [];
+    val visible = fold_aterms (add_unless []) prop [];
     val hidden = fold_proof_terms (fold_aterms (add_unless visible)) proof [];
     val dummy_term = Term.map_aterms (fn x =>
       if member (op =) hidden x then Term.dummy_pattern (Term.fastype_of x) else x);
@@ -2113,12 +2110,12 @@ fun standard_vars used (term, opt_proof) =
     val proofs = opt_proof
       |> Option.map (standard_hidden_types term #> standard_hidden_terms term) |> the_list;
     val proof_terms = rev (fold (fold_proof_terms_types cons (cons o Logic.mk_type)) proofs []);
-    val used_frees = used
+    val used' = used
       |> used_frees_term term
       |> fold used_frees_proof proofs;
-    val inst = Term_Subst.zero_var_indexes_inst used_frees (term :: proof_terms);
-    val term' = term |> Term_Subst.instantiate inst |> unvarify |> variant_term [];
-    val proofs' = proofs |> map (instantiate inst #> unvarify_proof #> variant_proof []);
+    val inst = Term_Subst.zero_var_indexes_inst used' (term :: proof_terms);
+    val term' = term |> Term_Subst.instantiate inst |> unvarify_term |> variant_term Name.context;
+    val proofs' = proofs |> map (instantiate inst #> unvarify_proof #> variant_proof Name.context);
   in (term', try hd proofs') end;
 
 fun standard_vars_term used t = #1 (standard_vars used (t, NONE));
