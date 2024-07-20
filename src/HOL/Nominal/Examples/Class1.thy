@@ -1087,9 +1087,8 @@ lemma subst_fresh:
 lemma forget:
   shows "x\<sharp>M \<Longrightarrow> M{x:=<c>.P} = M"
   and   "c\<sharp>M \<Longrightarrow> M{c:=(x).P} = M"
-apply(nominal_induct M avoiding: x c P rule: trm.strong_induct)
-apply(auto simp: fresh_atm abs_fresh abs_supp fin_supp)
-done
+  by (nominal_induct M avoiding: x c P rule: trm.strong_induct)
+     (auto simp: fresh_atm abs_fresh abs_supp fin_supp)
 
 lemma substc_rename1:
   assumes a: "c\<sharp>(M,a)"
@@ -2119,108 +2118,51 @@ next
     by simp (metis abs_fresh(1) fin.intros(6) fin_ImpL_elim fresh_prod subst_fresh(5))
 qed (use fin_rest_elims in force)+
 
+
 lemma fin_substn_nrename:
-  assumes a: "fin M x" "x\<noteq>y" "x\<sharp>P"
+  assumes "fin M x" "x\<noteq>y" "x\<sharp>P"
   shows "M[x\<turnstile>n>y]{y:=<c>.P} = Cut <c>.P (x).(M{y:=<c>.P})"
-using a [[simproc del: defined_all]]
-apply(nominal_induct M avoiding: x y c P rule: trm.strong_induct)
-apply(drule fin_Ax_elim)
-apply(simp)
-apply(simp add: trm.inject)
-apply(simp add: alpha calc_atm fresh_atm)
-apply(simp)
-apply(drule fin_rest_elims)
-apply(simp)
-apply(drule fin_rest_elims)
-apply(simp)
-apply(drule fin_NotL_elim)
-apply(simp)
-apply(subgoal_tac "\<exists>z::name. z\<sharp>(trm,y,x,P,trm[x\<turnstile>n>y]{y:=<c>.P})")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotL)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh)
-apply(rule conjI)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(rule subst_fresh)
-apply(simp)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(drule fin_rest_elims)
-apply(simp)
-apply(drule fin_AndL1_elim)
-apply(simp)
-apply(subgoal_tac "\<exists>z::name. z\<sharp>(name2,name1,P,trm[name2\<turnstile>n>y]{y:=<c>.P},y,P,trm)")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL1)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh)
-apply(rule conjI)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(rule subst_fresh)
-apply(simp)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(drule fin_AndL2_elim)
-apply(simp)
-apply(subgoal_tac "\<exists>z::name. z\<sharp>(name2,name1,P,trm[name2\<turnstile>n>y]{y:=<c>.P},y,P,trm)")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL2)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh)
-apply(rule conjI)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(rule subst_fresh)
-apply(simp)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(drule fin_rest_elims)
-apply(simp)
-apply(drule fin_rest_elims)
-apply(simp)
-apply(drule fin_OrL_elim)
-apply(simp add: abs_fresh)
-apply(simp add: subst_fresh rename_fresh)
-apply(subgoal_tac "\<exists>z::name. z\<sharp>(name3,name2,name1,P,trm1[name3\<turnstile>n>y]{y:=<c>.P},trm2[name3\<turnstile>n>y]{y:=<c>.P},y,P,trm1,trm2)")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrL)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh)
-apply(rule conjI)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-apply(drule fin_rest_elims)
-apply(simp)
-apply(drule fin_ImpL_elim)
-apply(simp add: abs_fresh)
-apply(simp add: subst_fresh rename_fresh)
-apply(subgoal_tac "\<exists>z::name. z\<sharp>(name1,x,P,trm1[x\<turnstile>n>y]{y:=<c>.P},trm2[x\<turnstile>n>y]{y:=<c>.P},y,P,trm1,trm2)")
-apply(erule exE, simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpL)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh)
-apply(rule conjI)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(simp add: nsubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: nrename_fresh)
-apply(rule exists_fresh')
-apply(rule fin_supp)
-done
+using assms [[simproc del: defined_all]]
+proof (nominal_induct M avoiding: x y c P rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    by (metis fin_Ax_elim fresh_atm(1,3) fresh_prod nrename_swap subst_rename(3) substn.simps(1) trm.fresh(1))
+next
+  case (NotL coname trm name)
+  obtain z::name where "z \<sharp> (trm,y,x,P,trm[x\<turnstile>n>y]{y:=<c>.P})"
+    by (meson exists_fresh(1) fs_name1)
+  with NotL show ?case 
+    apply (clarsimp simp add: fresh_prod fresh_fun_simp_NotL trm.inject alpha fresh_atm calc_atm abs_fresh)
+    by (metis fin_NotL_elim nrename_fresh nrename_swap substn_nrename_comm')
+next
+  case (AndL1 name1 trm name2)
+  obtain z::name where "z \<sharp> (name2,name1,P,trm[name2\<turnstile>n>y]{y:=<c>.P},y,P,trm)"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL1 show ?case 
+    using fin_AndL1_elim[OF AndL1.prems(1)]
+    by simp (metis abs_fresh(1) fresh_atm(1) fresh_fun_simp_AndL1 fresh_prod nrename_fresh subst_fresh(3))
+next
+  case (AndL2 name1 trm name2)
+  obtain z::name where "z \<sharp> (name2,name1,P,trm[name2\<turnstile>n>y]{y:=<c>.P},y,P,trm)"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL2 show ?case 
+    using fin_AndL2_elim[OF AndL2.prems(1)]
+    by simp (metis abs_fresh(1) fresh_atm(1) fresh_fun_simp_AndL2 fresh_prod nrename_fresh subst_fresh(3))
+next
+  case (OrL name1 trm1 name2 trm2 name3)
+  obtain z::name where "z \<sharp> (name3,name2,name1,P,trm1[name3\<turnstile>n>y]{y:=<c>.P},trm2[name3\<turnstile>n>y]{y:=<c>.P},y,P,trm1,trm2)"
+    by (meson exists_fresh(1) fs_name1)
+  with OrL show ?case 
+    using fin_OrL_elim[OF OrL.prems(1)]
+    by (auto simp add: abs_fresh fresh_fun_simp_OrL fresh_atm(1) nrename_fresh subst_fresh(3))
+next
+  case (ImpL coname trm1 name1 trm2 name2)
+  obtain z::name where "z \<sharp> (name1,x,P,trm1[x\<turnstile>n>y]{y:=<c>.P},trm2[x\<turnstile>n>y]{y:=<c>.P},y,P,trm1,trm2)"
+    by (meson exists_fresh(1) fs_name1)
+  with ImpL show ?case 
+    using fin_ImpL_elim[OF ImpL.prems(1)]
+    by (auto simp add: abs_fresh fresh_fun_simp_ImpL fresh_atm(1) nrename_fresh subst_fresh(3))
+qed (use fin_rest_elims in force)+
 
 inductive
   fic :: "trm \<Rightarrow> coname \<Rightarrow> bool"
@@ -2283,157 +2225,110 @@ by (induct rule: fic.induct)
    (auto simp: calc_atm simp add: fresh_left abs_fresh)
 
 lemma not_fic_subst1:
-  assumes a: "\<not>(fic M a)" 
+  assumes "\<not>(fic M a)" 
   shows "\<not>(fic (M{y:=<c>.P}) a)"
-using a
-apply(nominal_induct M avoiding: a c y P rule: trm.strong_induct)
-apply(auto)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims)
-apply(auto)[1]
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{y:=<c>.P},P,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotL)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(drule fic_elims)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{y:=<c>.P},P,name1,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL1)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{y:=<c>.P},P,name1,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL2)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(drule fic_elims)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(drule fic_elims)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{y:=<c>.P},trm2{y:=<c>.P},P,name1,name2,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrL)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{name2:=<c>.P},trm2{name2:=<c>.P},P,name1,name2,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpL)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-done
+using assms
+proof (nominal_induct M avoiding: a c y P rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    using fic_rest_elims(1) substn.simps(1) by presburger
+next
+  case (Cut coname trm1 name trm2)
+  then show ?case
+    by (metis abs_fresh(2) better_Cut_substn fic_rest_elims(1) fresh_prod)
+next
+  case (NotR name trm coname)
+  then show ?case
+    by (metis fic.intros(2) fic_NotR_elim fresh_prod freshc_after_substn substn.simps(3))
+next
+  case (NotL coname trm name)
+  obtain x'::name where "x' \<sharp> (trm{y:=<c>.P},P,a)"
+    by (meson exists_fresh(1) fs_name1)
+  with NotL show ?case
+    by (simp add: fic.intros fresh_prod) (metis fic_rest_elims(1,2) fresh_fun_simp_NotL)
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  then show ?case
+    by simp (metis abs_fresh(2) fic.intros(3) fic_AndR_elim freshc_after_substn)
+next
+  case (AndL1 name1 trm name2)
+  obtain x'::name where "x' \<sharp> (trm{y:=<c>.P},P,name1,a)"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL1 fic_rest_elims show ?case
+    by (simp add: fic.intros fresh_prod)(metis fresh_fun_simp_AndL1)
+next
+  case (AndL2 name1 trm name2)
+  obtain x'::name where "x' \<sharp> (trm{y:=<c>.P},P,name1,a)"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL2 fic_rest_elims show ?case
+    by (simp add: fic.intros fresh_prod) (metis fresh_fun_simp_AndL2)
+next
+  case (OrR1 coname1 trm coname2)
+  then show ?case
+    by simp (metis abs_fresh(2) fic.simps fic_OrR1_elim freshc_after_substn)
+next
+  case (OrR2 coname1 trm coname2)
+  then show ?case
+    by simp (metis abs_fresh(2) fic.simps fic_OrR2_elim freshc_after_substn)
+next
+  case (OrL name1 trm1 name2 trm2 name3)
+  obtain x'::name where "x' \<sharp> (trm1{y:=<c>.P},trm2{y:=<c>.P},P,name1,name2,a)"
+    by (meson exists_fresh(1) fs_name1)
+  with OrL fic_rest_elims show ?case
+    by (simp add: fic.intros fresh_prod) (metis fresh_fun_simp_OrL)
+next
+  case (ImpR name coname1 trm coname2)
+  then show ?case 
+    by simp (metis abs_fresh(2) fic.intros(6) fic_ImpR_elim freshc_after_substn)
+next
+  case (ImpL coname trm1 name1 trm2 name2)
+  obtain x'::name where "x' \<sharp> (trm1{name2:=<c>.P},trm2{name2:=<c>.P},P,name1,name2,a)"
+    by (meson exists_fresh(1) fs_name1)
+  with ImpL fic_rest_elims fresh_fun_simp_ImpL show ?case
+    by (simp add: fresh_prod) fastforce
+qed
 
 lemma not_fic_subst2:
-  assumes a: "\<not>(fic M a)" 
+  assumes "\<not>(fic M a)" 
   shows "\<not>(fic (M{c:=(y).P}) a)"
-using a
-apply(nominal_induct M avoiding: a c y P rule: trm.strong_induct)
-apply(auto)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname:=(y).P},P,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotR)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fic_elims, simp)
-apply(drule freshc_after_substc)
-apply(simp)
-apply(simp add: fic.intros abs_fresh)
-apply(drule fic_elims, simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm1{coname3:=(y).P},trm2{coname3:=(y).P},P,coname1,coname2,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndR)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fic_elims, simp)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substc)
-apply(simp)
-apply(drule freshc_after_substc)
-apply(simp)
-apply(simp add: fic.intros abs_fresh)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname2:=(y).P},P,coname1,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR1)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substc)
-apply(simp)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname2:=(y).P},P,coname1,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR2)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substc)
-apply(simp)
-apply(simp add: fic.intros abs_fresh)
-apply(drule fic_elims, simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname2:=(y).P},P,coname1,a)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpR)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substc)
-apply(simp)
-apply(simp add: fic.intros abs_fresh)
-apply(drule fic_elims, simp)
-done
+using assms
+proof (nominal_induct M avoiding: a c y P rule: trm.strong_induct)
+  case (NotR name trm coname)
+  obtain c'::coname where "c'\<sharp>(trm{coname:=(y).P},P,a)"
+    by (meson exists_fresh'(2) fs_coname1)
+  with NotR fic_rest_elims show ?case
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_NotR)
+    by (metis fic.intros(2) fic_NotR_elim freshc_after_substc)
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  obtain c'::coname where "c'\<sharp>(trm1{coname3:=(y).P},trm2{coname3:=(y).P},P,coname1,coname2,a)"
+    by (meson exists_fresh'(2) fs_coname1)
+  with AndR fic_rest_elims show ?case
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_AndR)
+    by (metis abs_fresh(2) fic.intros(3) fic_AndR_elim freshc_after_substc)
+next
+  case (OrR1 coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(trm{coname2:=(y).P},P,coname1,a)"
+    by (meson exists_fresh'(2) fs_coname1)
+  with OrR1 fic_rest_elims show ?case
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_OrR1)
+    by (metis abs_fresh(2) fic.intros(4) fic_OrR1_elim freshc_after_substc)
+next
+  case (OrR2 coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(trm{coname2:=(y).P},P,coname1,a)"
+    by (meson exists_fresh'(2) fs_coname1)
+  with OrR2 fic_rest_elims show ?case
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_OrR2)
+    by (metis abs_fresh(2) fic.simps fic_OrR2_elim freshc_after_substc)
+next
+  case (ImpR name coname1 trm coname2)
+  obtain c'::coname where "c'\<sharp>(trm{coname2:=(y).P},P,coname1,a)"
+    by (meson exists_fresh'(2) fs_coname1)
+  with ImpR fic_rest_elims show ?case
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_ImpR)
+    by (metis abs_fresh(2) fic.intros(6) fic_ImpR_elim freshc_after_substc)
+qed (use fic_rest_elims in auto)
+
 
 lemma fic_subst1:
   assumes a: "fic M a" "a\<noteq>b" "a\<sharp>P"
