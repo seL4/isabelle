@@ -2042,27 +2042,24 @@ val declare_names_term = Term.declare_term_frees;
 val declare_names_term' = fn SOME t => declare_names_term t | NONE => I;
 val declare_names_proof = fold_proof_terms declare_names_term;
 
-fun variant names bs x =
-  #1 (Name.variant x (fold Name.declare bs names));
-
 fun variant_term bs (Abs (x, T, t)) =
       let
-        val x' = variant (declare_names_term t Name.context) bs x;
-        val t' = variant_term (x' :: bs) t;
+        val x' = #1 (Name.variant x (declare_names_term t bs));
+        val t' = variant_term (Name.declare x' bs) t;
       in Abs (x', T, t') end
   | variant_term bs (t $ u) = variant_term bs t $ variant_term bs u
   | variant_term _ t = t;
 
 fun variant_proof bs (Abst (x, T, prf)) =
       let
-        val x' = variant (declare_names_proof prf Name.context) bs x;
-        val prf' = variant_proof (x' :: bs) prf;
+        val x' = #1 (Name.variant x (declare_names_proof prf bs));
+        val prf' = variant_proof (Name.declare x' bs) prf;
       in Abst (x', T, prf') end
   | variant_proof bs (AbsP (x, t, prf)) =
       let
-        val x' = variant (declare_names_term' t (declare_names_proof prf Name.context)) bs x;
+        val x' = #1 (Name.variant x (declare_names_term' t (declare_names_proof prf bs)));
         val t' = Option.map (variant_term bs) t;
-        val prf' = variant_proof (x' :: bs) prf;
+        val prf' = variant_proof (Name.declare x' bs) prf;
       in AbsP (x', t', prf') end
   | variant_proof bs (prf % t) = variant_proof bs prf % Option.map (variant_term bs) t
   | variant_proof bs (prf1 %% prf2) = variant_proof bs prf1 %% variant_proof bs prf2
@@ -2117,8 +2114,8 @@ fun standard_vars used (term, opt_proof) =
       |> used_frees_term term
       |> fold used_frees_proof proofs;
     val inst = Term_Subst.zero_var_indexes_inst used_frees (term :: proof_terms);
-    val term' = term |> Term_Subst.instantiate inst |> unvarify |> variant_term [];
-    val proofs' = proofs |> map (instantiate inst #> unvarify_proof #> variant_proof []);
+    val term' = term |> Term_Subst.instantiate inst |> unvarify |> variant_term Name.context;
+    val proofs' = proofs |> map (instantiate inst #> unvarify_proof #> variant_proof Name.context);
   in (term', try hd proofs') end;
 
 fun standard_vars_term used t = #1 (standard_vars used (t, NONE));
