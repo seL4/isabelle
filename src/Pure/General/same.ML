@@ -12,6 +12,7 @@ sig
   type 'a operation = ('a, 'a) function  (*exception SAME*)
   val same: ('a, 'b) function
   val commit: 'a operation -> 'a -> 'a
+  val commit_if: bool -> 'a operation -> 'a -> 'a
   val commit_id: 'a operation -> 'a -> 'a * bool
   val catch: ('a, 'b) function -> 'a -> 'b option
   val compose: 'a operation -> 'a operation -> 'a operation
@@ -31,6 +32,7 @@ type 'a operation = ('a, 'a) function;
 
 fun same _ = raise SAME;
 fun commit f x = f x handle SAME => x;
+fun commit_if b f x = if b then commit f x else f x;
 fun commit_id f x = (f x, false) handle SAME => (x, true);
 
 fun catch f x = SOME (f x) handle SAME => NONE;
