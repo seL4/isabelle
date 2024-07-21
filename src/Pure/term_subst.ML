@@ -230,8 +230,10 @@ end;
 (* zero var indexes *)
 
 fun zero_var_inst ins mk (v as ((x, i), X)) (inst, used) =
-  let val (x', used') = Name.variant_bound x used
-  in if x = x' andalso i = 0 then (inst, used') else (ins (v, mk ((x', 0), X)) inst, used') end;
+  let
+    val (x', used') = Name.variant_bound x used;
+    val inst' = if x = x' andalso i = 0 then inst else ins (v, mk ((x', 0), X)) inst;
+  in (inst', used') end;
 
 fun zero_var_indexes_inst used ts =
   let
