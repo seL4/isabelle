@@ -397,7 +397,7 @@ fun proof_to_zproof thy =
       | zproof (PAxm (a, prop, SOME Ts)) = zproof_const (ZAxiom a) prop Ts
       | zproof (PClass (T, c)) = OFCLASSp (ztyp T, c)
       | zproof (Oracle (a, prop, SOME Ts)) = zproof_const (ZOracle a) prop Ts
-      | zproof (PThm ({serial, command_pos, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
+      | zproof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
           let val proof_name =
             ZThm {theory_name = theory_name, thm_name = thm_name, serial = serial};
           in zproof_const proof_name prop Ts end;
