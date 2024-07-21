@@ -2167,11 +2167,11 @@ local
 
 fun export_proof thy i prop prf =
   let
-    val (prop', SOME prf') = (prop, SOME prf) |> standard_vars Name.context;
+    val (prop', SOME prf') = standard_vars Name.context (prop, SOME (no_thm_names prf));
     val args = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
     val typargs = [] |> Term.add_tfrees prop' |> fold_proof_terms Term.add_tfrees prf' |> rev;
 
-    val xml = (typargs, (args, (prop', no_thm_names prf'))) |>
+    val xml = (typargs, (args, (prop', prf'))) |>
       let
         open XML.Encode Term_XML.Encode;
         val encode_vars = list (pair string typ);
