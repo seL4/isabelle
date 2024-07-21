@@ -2175,7 +2175,7 @@ module Isabelle.Name (
   Name,
   uu, uu_, aT,
   clean_index, clean, internal, skolem, is_internal, is_skolem, dest_internal, dest_skolem,
-  Context, declare, declare_renaming, is_declared, declared, context, make_context,
+  Context, declare, declare_renamed, is_declared, declared, context, make_context,
   variant, variant_list
 )
 where
@@ -2242,6 +2242,10 @@ declare_renaming :: (Name, Name) -> Context -> Context
 declare_renaming (x, x') (Context names) =
   Context (Map.insert (clean x) (Just (clean x')) names)
 
+declare_renamed :: (Name, Name) -> Context -> Context
+declare_renamed (x, x') =
+  (if clean x /= clean x' then declare_renaming (x, x') else id) #> declare x'
+
 is_declared :: Context -> Name -> Bool
 is_declared (Context names) x = Map.member x names
 
@@ -2289,9 +2293,7 @@ variant name ctxt =
         let
           x0 = bump_init x
           x' = vary x0
-          ctxt' = ctxt
-            |> (if x0 /= x' then declare_renaming (x0, x') else id)
-            |> declare x'
+          ctxt' = ctxt |> declare_renamed (x0, x')
         in (x', ctxt')
   in (x' <> Bytes.pack (replicate n underscore), ctxt')
 

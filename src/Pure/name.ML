@@ -26,6 +26,7 @@ sig
   val build_context: (context -> context) -> context
   val make_context: string list -> context
   val declare: string -> context -> context
+  val declare_renamed: string * string -> context -> context
   val is_declared: context -> string -> bool
   val invent: context -> string -> int -> string list
   val invent_names: context -> string -> 'a list -> (string * 'a) list
@@ -102,6 +103,9 @@ fun declare x (Context tab) =
 fun declare_renaming (x, x') (Context tab) =
   Context (Symtab.update (clean x, SOME (clean x')) tab);
 
+fun declare_renamed (x, x') =
+  clean x <> clean x' ? declare_renaming (x, x') #> declare x';
+
 fun is_declared (Context tab) = Symtab.defined tab;
 fun declared (Context tab) = Symtab.lookup tab;
 
@@ -145,9 +149,7 @@ fun variant name ctxt =
         let
           val x0 = Symbol.bump_init x;
           val x' = vary x0;
-          val ctxt' = ctxt
-            |> x0 <> x' ? declare_renaming (x0, x')
-            |> declare x';
+          val ctxt' = ctxt |> declare_renamed (x0, x');
         in (x', ctxt') end;
   in (x' ^ replicate_string n "_", ctxt') end;
 
