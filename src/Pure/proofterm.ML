@@ -174,11 +174,6 @@ sig
   val expand_name_empty: thm_header -> Thm_Name.P option
   val expand_proof: theory -> (thm_header -> Thm_Name.P option) -> proof -> proof
 
-  val standard_vars: Name.context -> term * proof option -> term * proof option
-  val standard_vars_term: Name.context -> term -> term
-  val add_standard_vars: proof -> (string * typ) list -> (string * typ) list
-  val add_standard_vars_term: term -> (string * typ) list -> (string * typ) list
-
   val export_enabled: unit -> bool
   val export_standard_enabled: unit -> bool
   val export_proof_boxes_required: theory -> bool
@@ -2034,107 +2029,6 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
 
 (** theorems **)
 
-(* standardization of variables for export: only frees and named bounds *)
-
-local
-
-val declare_frees_term = Term.declare_term_frees;
-val declare_frees_term' = fn SOME t => declare_frees_term t | NONE => I;
-val declare_frees_proof = fold_proof_terms declare_frees_term;
-
-fun variant_term bs (Abs (x, T, t)) =
-      let
-        val x' = #1 (Name.variant x (declare_frees_term t bs));
-        val t' = variant_term (Name.declare x' bs) t;
-      in Abs (x', T, t') end
-  | variant_term bs (t $ u) = variant_term bs t $ variant_term bs u
-  | variant_term _ t = t;
-
-fun variant_proof bs (Abst (x, T, prf)) =
-      let
-        val x' = #1 (Name.variant x (declare_frees_proof prf bs));
-        val prf' = variant_proof (Name.declare x' bs) prf;
-      in Abst (x', T, prf') end
-  | variant_proof bs (AbsP (x, t, prf)) =
-      let
-        val x' = #1 (Name.variant x (declare_frees_term' t (declare_frees_proof prf bs)));
-        val t' = Option.map (variant_term bs) t;
-        val prf' = variant_proof (Name.declare x' bs) prf;
-      in AbsP (x', t', prf') end
-  | variant_proof bs (prf % t) = variant_proof bs prf % Option.map (variant_term bs) t
-  | variant_proof bs (prf1 %% prf2) = variant_proof bs prf1 %% variant_proof bs prf2
-  | variant_proof bs (Hyp t) = Hyp (variant_term bs t)
-  | variant_proof _ prf = prf;
-
-val used_frees_type = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
-fun used_frees_term t = fold_types used_frees_type t #> declare_frees_term t;
-val used_frees_proof = fold_proof_terms_types used_frees_term used_frees_type;
-
-val unvarify_type = Term.map_atyps (fn TVar ((a, _), S) => TFree (a, S) | T => T);
-val unvarify_term = map_types unvarify_type o Term.map_aterms (fn Var ((x, _), T) => Free (x, T) | t => t);
-val unvarify_proof = map_proof_terms unvarify_term unvarify_type;
-
-fun hidden_types prop proof =
-  let
-    val visible = (fold_types o fold_atyps) (insert (op =)) prop [];
-    val add_hiddenT = fold_atyps (fn T => not (member (op =) visible T) ? insert (op =) T);
-  in rev (fold_proof_terms_types (fold_types add_hiddenT) add_hiddenT proof []) end;
-
-fun standard_hidden_types prop proof =
-  let
-    val hidden = hidden_types prop proof;
-    val idx = Term.maxidx_term prop (maxidx_proof proof ~1) + 1;
-    fun smash T =
-      if member (op =) hidden T then
-        (case Type.sort_of_atyp T of
-          [] => dummyT
-        | S => TVar (("'", idx), S))
-      else T;
-    val smashT = map_atyps smash;
-  in map_proof_terms (map_types smashT) smashT proof end;
-
-fun standard_hidden_terms prop proof =
-  let
-    fun add_unless excluded x =
-      ((is_Free x orelse is_Var x) andalso not (member (op =) excluded x)) ? insert (op =) x;
-    val visible = fold_aterms (add_unless []) prop [];
-    val hidden = fold_proof_terms (fold_aterms (add_unless visible)) proof [];
-    val dummy_term = Term.map_aterms (fn x =>
-      if member (op =) hidden x then Term.dummy_pattern (Term.fastype_of x) else x);
-  in proof |> not (null hidden) ? map_proof_terms dummy_term I end;
-
-in
-
-fun standard_vars used (term, opt_proof) =
-  let
-    val proofs = opt_proof
-      |> Option.map (standard_hidden_types term #> standard_hidden_terms term) |> the_list;
-    val proof_terms = rev (fold (fold_proof_terms_types cons (cons o Logic.mk_type)) proofs []);
-    val used' = used
-      |> used_frees_term term
-      |> fold used_frees_proof proofs;
-    val inst = Term_Subst.zero_var_indexes_inst used' (term :: proof_terms);
-    val term' = term |> Term_Subst.instantiate inst |> unvarify_term |> variant_term Name.context;
-    val proofs' = proofs |> map (instantiate inst #> unvarify_proof #> variant_proof Name.context);
-  in (term', try hd proofs') end;
-
-fun standard_vars_term used t = #1 (standard_vars used (t, NONE));
-
-val add_standard_vars_term = fold_aterms
-  (fn Free (x, T) =>
-    (fn env =>
-      (case AList.lookup (op =) env x of
-        NONE => (x, T) :: env
-      | SOME T' =>
-          if T = T' then env
-          else raise TYPE ("standard_vars_env: type conflict for variable " ^ quote x, [T, T'], [])))
-    | _ => I);
-
-val add_standard_vars = fold_proof_terms add_standard_vars_term;
-
-end;
-
-
 (* PThm nodes *)
 
 fun prune_body body =
@@ -2165,19 +2059,19 @@ fun export_proof_boxes bodies =
 
 local
 
-fun export_proof thy i prop prf =
+fun export_proof thy i prop0 proof0 =
   let
-    val (prop', SOME prf') = standard_vars Name.context (prop, SOME (no_thm_names prf));
-    val args = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
-    val typargs = [] |> Term.add_tfrees prop' |> fold_proof_terms Term.add_tfrees prf' |> rev;
-
-    val xml = (typargs, (args, (prop', prf'))) |>
+    val {typargs, args, prop, proof} =
+      ZTerm.standard_vars Name.context
+        (ZTerm.zterm_of thy prop0, SOME (proof_to_zproof thy (no_thm_names proof0)));
+    val xml = (typargs, (args, (prop, the proof))) |>
       let
         open XML.Encode Term_XML.Encode;
-        val encode_vars = list (pair string typ);
-        val encode_term = encode_standard_term thy;
-        val encode_proof = encode_standard_proof thy;
-      in pair (list (pair string sort)) (pair encode_vars (pair encode_term encode_proof)) end;
+        val encode_tfrees = list (pair string sort);
+        val encode_frees = list (pair string ZTerm.encode_ztyp);
+        val encode_term = ZTerm.encode_zterm {typed_vars = false};
+        val encode_proof = ZTerm.encode_zproof {typed_vars = false};
+      in pair encode_tfrees (pair encode_frees (pair encode_term encode_proof)) end;
   in
     Export.export_params (Context.Theory thy)
      {theory_name = Context.theory_long_name thy,

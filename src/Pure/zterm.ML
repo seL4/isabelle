@@ -312,12 +312,16 @@ sig
   val ztyp_dummy: ztyp
   val typ_of_tvar: indexname * sort -> typ
   val typ_of: ztyp -> typ
+  val init_cache: theory -> theory option
+  val exit_cache: theory -> theory option
   val reset_cache: theory -> theory
   val check_cache: theory -> {ztyp: int, typ: int} option
   val ztyp_cache: theory -> typ -> ztyp
   val typ_cache: theory -> ztyp -> typ
   val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
   val zterm_of: theory -> term -> zterm
+  val zterm_dummy_pattern: ztyp -> zterm
+  val zterm_type: ztyp -> zterm
   val term_of: theory -> zterm -> term
   val beta_norm_term_same: zterm Same.operation
   val beta_norm_proof_same: zproof Same.operation
@@ -376,6 +380,8 @@ sig
   val encode_ztyp: ztyp XML.Encode.T
   val encode_zterm: {typed_vars: bool} -> zterm XML.Encode.T
   val encode_zproof: {typed_vars: bool} -> zproof XML.Encode.T
+  val standard_vars: Name.context -> zterm * zproof option ->
+    {typargs: (string * sort) list, args: (string * ztyp) list, prop: zterm, proof: zproof option}
 end;
 
 structure ZTerm: ZTERM =
@@ -697,6 +703,8 @@ structure Data = Theory_Data
 fun make_ztyp_cache () = Typtab.unsynchronized_cache ztyp_of;
 fun make_typ_cache () = ZTypes.unsynchronized_cache typ_of;
 
+in
+
 fun init_cache thy =
   if is_some (Data.get thy) then NONE
   else SOME (Data.put (SOME (make_ztyp_cache (), make_typ_cache ())) thy);
@@ -705,8 +713,6 @@ fun exit_cache thy =
   (case Data.get thy of
     SOME (cache1, cache2) => (#reset cache1 (); #reset cache2 (); SOME (Data.put NONE thy))
   | NONE => NONE);
-
-in
 
 val _ = Theory.setup (Theory.at_begin init_cache #> Theory.at_end exit_cache);
 
@@ -756,6 +762,9 @@ fun zterm_cache thy =
   in {ztyp = ztyp, zterm = zterm} end;
 
 val zterm_of = #zterm o zterm_cache;
+
+fun zterm_dummy_pattern T = ZConst1 ("Pure.dummy_pattern", T);
+fun zterm_type T = ZConst1 ("Pure.type", T);
 
 fun term_of thy =
   let
@@ -1499,6 +1508,145 @@ in
 val encode_ztyp = ztyp;
 val encode_zterm = zterm;
 val encode_zproof = zproof;
+
+end;
+
+
+(* standardization of variables for export: only frees and named bounds *)
+
+local
+
+fun declare_frees_term t = fold_vars (fn ((x, ~1), _) => Name.declare x | _ => I) t;
+val declare_frees_proof = fold_proof {hyps = true} (K I) declare_frees_term;
+
+val (variant_abs_term, variant_abs_proof) =
+  let
+    fun term bs (ZAbs (x, T, t)) =
+          let
+            val x' = #1 (Name.variant x (declare_frees_term t bs));
+            val bs' = Name.declare x' bs;
+          in ZAbs (x', T, Same.commit_if (x <> x') (term bs') t) end
+      | term bs (ZApp (t, u)) =
+          (ZApp (term bs t, Same.commit (term bs) u)
+            handle Same.SAME => ZApp (t, term bs u))
+      | term _ _ = raise Same.SAME;
+
+    fun proof bs (ZAbst (x, T, p)) =
+          let
+            val x' = #1 (Name.variant x (declare_frees_proof p bs));
+            val bs' = Name.declare x' bs;
+          in ZAbst (x', T, Same.commit_if (x <> x') (proof bs') p) end
+      | proof bs (ZAbsp (x, t, p)) =
+          let
+            val x' = #1 (Name.variant x (declare_frees_term t (declare_frees_proof p bs)));
+            val (t', term_eq) = Same.commit_id (term bs) t;
+            val bs' = Name.declare x' bs;
+          in ZAbsp (x', t', Same.commit_if (x <> x' orelse not term_eq) (proof bs') p) end
+      | proof bs (ZAppt (p, t)) =
+          (ZAppt (proof bs p, Same.commit (term bs) t)
+            handle Same.SAME => ZAppt (p, term bs t))
+      | proof bs (ZAppp (p, q)) =
+          (ZAppp (proof bs p, Same.commit (proof bs) q)
+            handle Same.SAME => ZAppp (p, proof bs q))
+      | proof bs (ZHyp t) = ZHyp (term bs t)
+      | proof _ _ = raise Same.SAME;
+  in (term Name.context, proof Name.context) end;
+
+val used_frees_type = fold_tvars (fn ((a, ~1), _) => Name.declare a | _ => I);
+fun used_frees_term t = fold_types used_frees_type t #> declare_frees_term t;
+val used_frees_proof = fold_proof {hyps = true} used_frees_type used_frees_term;
+
+fun hidden_types prop proof =
+  let
+    val visible = (fold_types o fold_tvars) (insert (op =)) prop [];
+    val add_hiddenT = fold_tvars (fn v => not (member (op =) visible v) ? insert (op =) v);
+  in rev (fold_proof {hyps = true} add_hiddenT (fold_types add_hiddenT) proof []) end;
+
+fun standard_hidden_types prop proof =
+  let
+    val hidden = hidden_types prop proof;
+    val idx = maxidx_term prop (maxidx_proof proof ~1) + 1;
+    fun zvar (v as (_, S)) =
+      if not (member (op =) hidden v) then raise Same.SAME
+      else if null S then ztyp_dummy
+      else ZTVar (("'", idx), S);
+    val typ = map_tvars_same zvar;
+  in proof |> not (null hidden) ? map_proof {hyps = true} typ (map_types typ) end;
+
+fun standard_hidden_terms prop proof =
+  let
+    fun add_unless excluded (ZVar v) = not (member (op =) excluded v) ? insert (op =) v
+      | add_unless _ _ = I;
+    val visible = fold_aterms (add_unless []) prop [];
+    val hidden = fold_proof {hyps = true} (K I) (fold_aterms (add_unless visible)) proof [];
+    fun var (v as (_, T)) =
+      if member (op =) hidden v then zterm_dummy_pattern T else raise Same.SAME;
+    val term = map_vars_same var;
+  in proof |> not (null hidden) ? map_proof {hyps = true} Same.same term end;
+
+fun standard_inst add mk (v as ((x, i), T)) (inst, used) =
+  let
+    val (x', used') = Name.variant_bound x used;
+    val inst' = if x = x' andalso i = ~1 then inst else add (v, mk ((x', ~1), T)) inst;
+  in (inst', used') end;
+
+fun standard_inst_type used prf =
+  let
+    val add_tvars = fold_tvars (fn v => ZTVars.add (v, ()));
+    val (instT, _) =
+      (ZTVars.empty, used) |> ZTVars.fold (standard_inst ZTVars.add ZTVar o #1)
+        (TVars.build (prf |> fold_proof {hyps = true} add_tvars (fold_types add_tvars)));
+  in instantiate_type_same instT end;
+
+fun standard_inst_term used inst_type prf =
+  let
+    val add_vars = fold_vars (fn (x, T) => ZVars.add ((x, Same.commit inst_type T), ()));
+    val (inst, _) =
+      (ZVars.empty, used) |> ZVars.fold (standard_inst ZVars.add ZVar o #1)
+        (ZVars.build (prf |> fold_proof {hyps = true} (K I) add_vars));
+  in instantiate_term_same inst_type inst end;
+
+val typargs_type = fold_tvars (fn ((a, ~1), S) => TFrees.add_set (a, S) | _ => I);
+val typargs_term = fold_types typargs_type;
+val typargs_proof = fold_proof {hyps = true} typargs_type typargs_term;
+
+val add_standard_vars_term = fold_aterms
+  (fn ZVar ((x, ~1), T) =>
+      (fn env =>
+        (case AList.lookup (op =) env x of
+          NONE => (x, T) :: env
+        | SOME T' =>
+            if T = T' then env
+            else
+              raise TYPE ("standard_vars_env: type conflict for variable " ^ quote x,
+                [typ_of T, typ_of T'], [])))
+    | _ => I);
+
+val add_standard_vars = fold_proof {hyps = true} (K I) add_standard_vars_term;
+
+in
+
+fun standard_vars used (prop, opt_prf) =
+  let
+    val prf = the_default ZNop opt_prf
+      |> standard_hidden_types prop
+      |> standard_hidden_terms prop;
+    val prop_prf = ZAppp (ZHyp prop, prf);
+
+    val used' = used |> used_frees_proof prop_prf;
+    val inst_type = standard_inst_type used' prop_prf;
+    val inst_term = standard_inst_term used' inst_type prop_prf;
+    val inst_proof = map_proof_same {hyps = true} inst_type inst_term;
+
+    val prop' = prop |> Same.commit (Same.compose variant_abs_term inst_term);
+    val opt_proof' =
+      if is_none opt_prf then NONE
+      else SOME (prf |> Same.commit (Same.compose variant_abs_proof inst_proof));
+    val proofs' = the_list opt_proof';
+
+    val args = build_rev (add_standard_vars_term prop' #> fold add_standard_vars proofs');
+    val typargs = TFrees.list_set (TFrees.build (typargs_term prop' #> fold typargs_proof proofs'));
+  in {typargs = typargs, args = args, prop = prop', proof = opt_proof'} end;
 
 end;
 

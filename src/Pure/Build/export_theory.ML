@@ -65,17 +65,6 @@ val encode_syntax =
       in ([], triple int string int (ass, delim, pri)) end];
 
 
-(* free variables: not declared in the context *)
-
-val is_free = not oo Name.is_declared;
-
-fun add_frees used =
-  fold_aterms (fn Free (x, T) => is_free used x ? insert (op =) (x, T) | _ => I);
-
-fun add_tfrees used =
-  (fold_types o fold_atyps) (fn TFree (a, S) => is_free used a ? insert (op =) (a, S) | _ => I);
-
-
 (* locales *)
 
 fun locale_content thy loc =
@@ -147,6 +136,22 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     val pos_properties = Thy_Info.adjust_pos_properties context;
 
     val enabled = export_enabled context;
+
+
+    (* recode *)
+
+    val thy_cache = perhaps ZTerm.init_cache thy;
+
+    val ztyp_of = ZTerm.ztyp_cache thy_cache;
+    val zterm_of = ZTerm.zterm_of thy_cache;
+    val zproof_of = Proofterm.proof_to_zproof thy_cache;
+
+    val encode_ztyp = ZTerm.encode_ztyp;
+    val encode_zterm = ZTerm.encode_zterm {typed_vars = true};
+    val encode_term = encode_zterm o zterm_of;
+
+    val encode_standard_zterm = ZTerm.encode_zterm {typed_vars = false};
+    val encode_standard_zproof = ZTerm.encode_zproof {typed_vars = false};
 
 
     (* strict parents *)
@@ -228,11 +233,9 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
 
     (* consts *)
 
-    val encode_term = Term_XML.Encode.term consts;
-
     val encode_const =
       let open XML.Encode Term_XML.Encode
-      in pair encode_syntax (pair (list string) (pair typ (pair (option encode_term) bool))) end;
+      in pair encode_syntax (pair (list string) (pair typ (pair (option encode_zterm) bool))) end;
 
     val _ =
       export_entities "consts" Sign.const_space (#constants (Consts.dest consts))
@@ -242,7 +245,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
               val syntax = get_syntax_const thy_ctxt c;
               val U = Logic.unvarifyT_global T;
               val U0 = Term.strip_sortsT U;
-              val trim_abbrev = Proofterm.standard_vars_term Name.context #> Term.strip_sorts;
+              fun trim_abbrev t =
+                ZTerm.standard_vars Name.context (zterm_of t, NONE) |> #prop |> ZTerm.strip_sorts;
               val abbrev' = Option.map trim_abbrev abbrev;
               val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
               val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
@@ -253,19 +257,21 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
 
     fun standard_prop used extra_shyps raw_prop raw_proof =
       let
-        val (prop, proof) = Proofterm.standard_vars used (raw_prop, raw_proof);
-        val args = rev (add_frees used prop []);
-        val typargs = rev (add_tfrees used prop []);
-        val used_typargs = fold (Name.declare o #1) typargs used;
+        val {typargs, args, prop, proof} =
+          ZTerm.standard_vars used (zterm_of raw_prop, Option.map zproof_of raw_proof);
+        val is_free = not o Name.is_declared used;
+        val args' = args |> filter (is_free o #1);
+        val typargs' = typargs |> filter (is_free o #1);
+        val used_typargs = fold (Name.declare o #1) typargs' used;
         val sorts = Name.invent used_typargs Name.aT (length extra_shyps) ~~ extra_shyps;
-      in ((sorts @ typargs, args, prop), proof) end;
+      in ((sorts @ typargs', args', prop), proof) end;
 
     fun standard_prop_of thm =
       standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
 
     val encode_prop =
       let open XML.Encode Term_XML.Encode
-      in triple (list (pair string sort)) (list (pair string typ)) encode_term end;
+      in triple (list (pair string sort)) (list (pair string encode_ztyp)) encode_zterm end;
 
     fun encode_axiom used prop =
       encode_prop (#1 (standard_prop used [] prop NONE));
@@ -308,10 +314,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         val _ = Thm.expose_proofs thy [thm];
       in
         (prop, deps, proof) |>
-          let
-            open XML.Encode Term_XML.Encode;
-            val encode_proof = Proofterm.encode_standard_proof thy;
-          in triple encode_prop (list Thm_Name.encode) encode_proof end
+          let open XML.Encode Term_XML.Encode
+          in triple encode_prop (list Thm_Name.encode) encode_standard_zproof end
       end;
 
     fun export_thm (thm_id, (thm_name, _)) =
