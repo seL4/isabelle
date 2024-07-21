@@ -75,6 +75,8 @@ fun map_aterms_same f =
       | term a = f a;
   in term end;
 
+fun map_vars_same f = map_aterms_same (fn ZVar v => f v | _ => raise Same.SAME);
+
 fun map_types_same f =
   let
     fun term (ZVar (xi, T)) = ZVar (xi, f T)
@@ -93,6 +95,7 @@ fun map_types_same f =
 
 val map_tvars = Same.commit o map_tvars_same;
 val map_aterms = Same.commit o map_aterms_same;
+val map_vars = Same.commit o map_vars_same;
 val map_types = Same.commit o map_types_same;
 
 
@@ -270,6 +273,7 @@ sig
   val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
   val map_tvars: (indexname * sort -> ztyp) -> ztyp -> ztyp
   val map_aterms: (zterm -> zterm) -> zterm -> zterm
+  val map_vars: (indexname * ztyp -> zterm) -> zterm -> zterm
   val map_types: (ztyp -> ztyp) -> zterm -> zterm
   val ztyp_ord: ztyp ord
   val fast_zterm_ord: zterm ord
