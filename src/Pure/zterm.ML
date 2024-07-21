@@ -282,6 +282,8 @@ sig
   val ZAbsps: zterm list -> zproof -> zproof
   val ZAppts: zproof * zterm list -> zproof
   val ZAppps: zproof * zproof list -> zproof
+  val strip_sortsT: ztyp -> ztyp
+  val strip_sorts: zterm -> zterm
   val incr_bv_same: int -> int -> zterm Same.operation
   val incr_proof_bv_same: int -> int -> int -> int -> zproof Same.operation
   val incr_bv: int -> int -> zterm -> zterm
@@ -303,6 +305,9 @@ sig
   val map_proof: {hyps: bool} -> ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
   val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
   val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
+  val maxidx_type: ztyp -> int -> int
+  val maxidx_term: zterm -> int -> int
+  val maxidx_proof: zproof -> int -> int
   val ztyp_of: typ -> ztyp
   val ztyp_dummy: ztyp
   val typ_of_tvar: indexname * sort -> typ
@@ -397,6 +402,12 @@ val ZAppps = Library.foldl ZAppp;
 
 fun combound (t, n, k) =
   if k > 0 then ZApp (combound (t, n + 1, k - 1), ZBound n) else t;
+
+val strip_sortsT_same = map_tvars_same (fn (_, []) => raise Same.SAME | (a, _) => ZTVar (a, []));
+val strip_sorts_same = map_types_same strip_sortsT_same;
+
+val strip_sortsT = Same.commit strip_sortsT_same;
+val strip_sorts = Same.commit strip_sorts_same;
 
 
 (* increment bound variables *)
@@ -636,6 +647,17 @@ fun map_class_proof class =
             handle Same.SAME => ZAppp (p, proof q))
       | proof _ = raise Same.SAME;
   in Same.commit proof end;
+
+
+(* maximum index of variables *)
+
+val maxidx_type = fold_tvars (fn ((_, i), _) => Integer.max i);
+
+fun maxidx_term t =
+  fold_types maxidx_type t #>
+  fold_aterms (fn ZVar ((_, i), _) => Integer.max i | _ => I) t;
+
+val maxidx_proof = fold_proof {hyps = false} maxidx_type maxidx_term;
 
 
 (* convert ztyp vs. regular typ *)
