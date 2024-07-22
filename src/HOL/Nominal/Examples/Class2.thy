@@ -257,7 +257,7 @@ proof(nominal_induct M M' avoiding: y c P rule: l_redu.strong_induct)
     apply(auto)
     apply(rule aux4)
     apply(simp add: trm.inject alpha calc_atm fresh_atm)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule a_starI)
     apply(rule al_redu)
     apply(rule l_redu.intros)
@@ -339,7 +339,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutL)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_left)
@@ -414,7 +414,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutL)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_left)
@@ -490,7 +490,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutL)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_left)
@@ -566,7 +566,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutL)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_left)
@@ -642,7 +642,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutL)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_left)
@@ -723,7 +723,7 @@ next
           apply -
           apply(rule a_star_CutL)
           apply(rule a_star_CutL)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_left)
@@ -792,7 +792,7 @@ next
     apply(auto)
     apply(rule aux4)
     apply(simp add: trm.inject alpha calc_atm fresh_atm)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule a_starI)
     apply(rule al_redu)
     apply(rule l_redu.intros)
@@ -849,7 +849,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -924,7 +924,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1000,7 +1000,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1076,7 +1076,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1152,7 +1152,7 @@ next
         then show ?thesis
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1219,7 +1219,7 @@ next
           apply -
           apply(rule a_star_CutL)
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule al_redu)
           apply(rule better_LAxL_intro)
@@ -1233,7 +1233,7 @@ next
           apply -
           apply(rule a_star_CutL)
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1287,7 +1287,7 @@ next
         then show ?thesis using LImp
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1339,7 +1339,7 @@ next
         then show ?thesis using LImp
           apply -
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1367,7 +1367,7 @@ next
           apply -
           apply(rule a_star_CutL)
           apply(rule a_star_CutR)
-          apply(rule a_star_trans)
+          apply(rule rtranclp_trans)
           apply(rule a_starI)
           apply(rule ac_redu)
           apply(rule better_right)
@@ -1426,17 +1426,17 @@ next
     apply(drule_tac x="c" in meta_spec)
     apply(drule_tac x="P" in meta_spec)
     apply(simp)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule a_star_CutL)
     apply(assumption)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule_tac M'="P[c\<turnstile>c>a]" in a_star_CutL)
     apply(case_tac "fic P c")
     apply(rule a_starI)
     apply(rule al_redu)
     apply(rule better_LAxR_intro)
     apply(simp)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule a_starI)
     apply(rule ac_redu)
     apply(rule better_left)
@@ -1633,17 +1633,17 @@ next
     apply(drule_tac x="y" in meta_spec)
     apply(drule_tac x="P" in meta_spec)
     apply(simp)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule a_star_CutR)
     apply(assumption)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule_tac N'="P[y\<turnstile>n>x]" in a_star_CutR)
     apply(case_tac "fin P y")
     apply(rule a_starI)
     apply(rule al_redu)
     apply(rule better_LAxL_intro)
     apply(simp)
-    apply(rule a_star_trans)
+    apply(rule rtranclp_trans)
     apply(rule a_starI)
     apply(rule ac_redu)
     apply(rule better_right)

@@ -50,7 +50,7 @@ text \<open>terms\<close>
 
 nominal_datatype trm = 
     Ax   "name" "coname"
-  | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            ("Cut <_>._ (_)._" [0,100,1000,100] 101)
+  | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            ("Cut <_>._ ('(_'))._" [0,0,0,100] 101)
   | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 ("NotR (_)._ _" [100,100,100] 101)
   | NotL "\<guillemotleft>coname\<guillemotright>trm" "name"                 ("NotL <_>._ _" [0,100,100] 101)
   | AndR "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>coname\<guillemotright>trm" "coname" ("AndR <_>._ <_>._ _" [0,100,0,100,100] 101)
@@ -673,7 +673,7 @@ apply(fresh_guess)+
 done
 
 nominal_primrec (freshness_context: "(d::name,z::coname,P::trm)")
-  substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=(_)._}" [100,100,100,100] 100)
+  substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=('(_'))._}" [100,0,0,100] 100)
 where
   "(Ax x a){d:=(z).P} = (if d=a then Cut <a>.(Ax x a) (z).P else Ax x a)" 
 | "\<lbrakk>a\<sharp>(d,P,N);x\<sharp>(z,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){d:=(z).P} = 
@@ -2329,161 +2329,98 @@ next
     by (metis abs_fresh(2) fic.intros(6) fic_ImpR_elim freshc_after_substc)
 qed (use fic_rest_elims in auto)
 
-
 lemma fic_subst1:
-  assumes a: "fic M a" "a\<noteq>b" "a\<sharp>P"
+  assumes "fic M a" "a\<noteq>b" "a\<sharp>P"
   shows "fic (M{b:=(x).P}) a"
-using a
-apply(nominal_induct M avoiding: x b a P rule: trm.strong_induct)
-apply(drule fic_elims)
-apply(simp add: fic.intros)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(rule subst_fresh)
-apply(simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-done
+using assms
+proof (nominal_induct M avoiding: x b a P rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    using fic_Ax_elim by force
+next
+  case (NotR name trm coname)
+  with fic_NotR_elim show ?case
+    by (fastforce simp add: fresh_prod subst_fresh)
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  with fic_AndR_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+next
+  case (OrR1 coname1 trm coname2)
+  with fic_OrR1_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+next
+  case (OrR2 coname1 trm coname2)
+  with fic_OrR2_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+next
+  case (ImpR name coname1 trm coname2)
+  with fic_ImpR_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+qed (use fic_rest_elims in force)+
 
 lemma fic_subst2:
-  assumes a: "fic M a" "c\<noteq>a" "a\<sharp>P" "M\<noteq>Ax x a" 
+  assumes "fic M a" "c\<noteq>a" "a\<sharp>P" "M\<noteq>Ax x a" 
   shows "fic (M{x:=<c>.P}) a"
-using a
-apply(nominal_induct M avoiding: x a c P rule: trm.strong_induct)
-apply(drule fic_elims)
-apply(simp add: trm.inject)
-apply(rule fic.intros)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(rule subst_fresh)
-apply(simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(rule fic.intros)
-apply(simp add: abs_fresh fresh_atm)
-apply(rule subst_fresh)
-apply(auto)[1]
-apply(drule fic_elims, simp)
-done
+using assms
+proof (nominal_induct M avoiding: x a c P rule: trm.strong_induct)
+  case (Ax name coname)
+  then show ?case
+    using fic_Ax_elim by force
+next
+  case (NotR name trm coname)
+  with fic_NotR_elim show ?case
+    by (fastforce simp add: fresh_prod subst_fresh)
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  with fic_AndR_elim show ?case
+    by simp (metis abs_fresh(2) crename_cfresh crename_fresh fic.intros(3) fresh_atm(2) substn_crename_comm')
+next
+  case (OrR1 coname1 trm coname2)
+  with fic_OrR1_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+next
+  case (OrR2 coname1 trm coname2)
+  with fic_OrR2_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+next
+  case (ImpR name coname1 trm coname2)
+  with fic_ImpR_elim show ?case
+    by (fastforce simp add: abs_fresh fresh_prod subst_fresh)
+qed (use fic_rest_elims in force)+
 
 lemma fic_substc_crename:
-  assumes a: "fic M a" "a\<noteq>b" "a\<sharp>P"
+  assumes "fic M a" "a\<noteq>b" "a\<sharp>P"
   shows "M[a\<turnstile>c>b]{b:=(y).P} = Cut <a>.(M{b:=(y).P}) (y).P"
-using a
-apply(nominal_induct M avoiding: a b  y P rule: trm.strong_induct)
-apply(drule fic_Ax_elim)
-apply(simp)
-apply(simp add: trm.inject)
-apply(simp add: alpha calc_atm fresh_atm trm.inject)
-apply(simp)
-apply(drule fic_rest_elims)
-apply(simp)
-apply(drule fic_NotR_elim)
-apply(simp)
-apply(generate_fresh "coname")
-apply(fresh_fun_simp)
-apply(simp add: trm.inject alpha fresh_atm fresh_prod fresh_atm calc_atm abs_fresh)
-apply(rule conjI)
-apply(simp add: csubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: crename_fresh)
-apply(rule subst_fresh)
-apply(simp)
-apply(drule fic_rest_elims)
-apply(simp)
-apply(drule fic_AndR_elim)
-apply(simp add: abs_fresh fresh_atm subst_fresh rename_fresh)
-apply(generate_fresh "coname")
-apply(fresh_fun_simp)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh fresh_prod)
-apply(rule conjI)
-apply(simp add: csubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: csubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: subst_fresh)
-apply(drule fic_rest_elims)
-apply(simp)
-apply(drule fic_rest_elims)
-apply(simp)
-apply(drule fic_OrR1_elim)
-apply(simp)
-apply(generate_fresh "coname")
-apply(fresh_fun_simp)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh fresh_prod)
-apply(simp add: csubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: subst_fresh rename_fresh)
-apply(drule fic_OrR2_elim)
-apply(simp add: abs_fresh fresh_atm)
-apply(generate_fresh "coname")
-apply(fresh_fun_simp)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh fresh_prod)
-apply(simp add: csubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: subst_fresh rename_fresh)
-apply(drule fic_rest_elims)
-apply(simp)
-apply(drule fic_ImpR_elim)
-apply(simp add: abs_fresh fresh_atm)
-apply(generate_fresh "coname")
-apply(fresh_fun_simp)
-apply(simp add: trm.inject alpha fresh_atm calc_atm abs_fresh fresh_prod)
-apply(simp add: csubst_eqvt calc_atm)
-apply(simp add: perm_fresh_fresh)
-apply(simp add: subst_fresh rename_fresh)
-apply(drule fic_rest_elims)
-apply(simp)
-done
+using assms
+proof (nominal_induct M avoiding: a b  y P rule: trm.strong_induct)
+  case (Ax name coname)
+  with fic_Ax_elim show ?case
+    by(force simp add: trm.inject alpha(2) fresh_atm(2,4) swap_simps(4,8))
+next
+  case (Cut coname trm1 name trm2)
+  with fic_rest_elims show ?case by force
+next
+  case (NotR name trm coname)
+  with fic_NotR_elim[OF NotR.prems(1)] show ?case
+    by (simp add: trm.inject crename_fresh fresh_fun_simp_NotR subst_fresh(6))
+next
+  case (AndR coname1 trm1 coname2 trm2 coname3)
+  with AndR fic_AndR_elim[OF AndR.prems(1)] show ?case
+    by (simp add: abs_fresh rename_fresh fresh_fun_simp_AndR fresh_atm(2) subst_fresh(6))
+next
+  case (OrR1 coname1 trm coname2)
+  with fic_OrR1_elim[OF OrR1.prems(1)] show ?case
+    by (simp add: abs_fresh rename_fresh fresh_fun_simp_OrR1 fresh_atm(2) subst_fresh(6))
+next
+  case (OrR2 coname1 trm coname2)
+  with fic_OrR2_elim[OF OrR2.prems(1)] show ?case
+    by (simp add: abs_fresh rename_fresh fresh_fun_simp_OrR2 fresh_atm(2) subst_fresh(6))
+next
+  case (ImpR name coname1 trm coname2)
+  with fic_ImpR_elim[OF ImpR.prems(1)] crename_fresh show ?case
+    by (force simp add: abs_fresh fresh_fun_simp_ImpR fresh_atm(2) subst_fresh(6))
+qed (use fic_rest_elims in force)+
 
 inductive
   l_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>l _" [100,100] 100)
@@ -2511,37 +2448,42 @@ lemma l_redu_eqvt':
   and   pi2::"coname prm"
   shows "(pi1\<bullet>M) \<longrightarrow>\<^sub>l (pi1\<bullet>M') \<Longrightarrow> M \<longrightarrow>\<^sub>l M'"
   and   "(pi2\<bullet>M) \<longrightarrow>\<^sub>l (pi2\<bullet>M') \<Longrightarrow> M \<longrightarrow>\<^sub>l M'"
-apply -
-apply(drule_tac pi="rev pi1" in l_redu.eqvt(1))
-apply(perm_simp)
-apply(drule_tac pi="rev pi2" in l_redu.eqvt(2))
-apply(perm_simp)
-done
+  using l_redu.eqvt perm_pi_simp by metis+
 
 nominal_inductive l_redu
-  apply(simp_all add: abs_fresh fresh_atm rename_fresh fresh_prod abs_supp fin_supp)
-  apply(force)+
-  done
+  by (force simp add: abs_fresh fresh_atm rename_fresh fresh_prod abs_supp fin_supp)+
 
-lemma fresh_l_redu:
-  fixes x::"name"
-  and   a::"coname"
-  shows "M \<longrightarrow>\<^sub>l M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
-  and   "M \<longrightarrow>\<^sub>l M' \<Longrightarrow> a\<sharp>M \<Longrightarrow> a\<sharp>M'"
-apply -
-apply(induct rule: l_redu.induct)
-apply(auto simp: abs_fresh rename_fresh)
-apply(case_tac "xa=x")
-apply(simp add: rename_fresh)
-apply(simp add: rename_fresh fresh_atm)
-apply(simp add: fresh_prod abs_fresh abs_supp fin_supp)+
-apply(induct rule: l_redu.induct)
-apply(auto simp: abs_fresh rename_fresh)
-apply(case_tac "aa=a")
-apply(simp add: rename_fresh)
-apply(simp add: rename_fresh fresh_atm)
-apply(simp add: fresh_prod abs_fresh abs_supp fin_supp)+
-done
+
+lemma fresh_l_redu_x:
+  fixes z::"name"
+  shows "M \<longrightarrow>\<^sub>l M' \<Longrightarrow> z\<sharp>M \<Longrightarrow> z\<sharp>M'"
+proof (induct rule: l_redu.induct)
+  case (LAxL a M x y)
+  then show ?case
+    by (metis abs_fresh(1,5) nrename_nfresh nrename_rename trm.fresh(1,3))
+next
+  case (LImp z N y P x M b a c)
+  then show ?case
+    apply (simp add: abs_fresh fresh_prod)
+    by (metis abs_fresh(3,5) abs_supp(5) fs_name1)
+qed (auto simp add: abs_fresh fresh_prod crename_nfresh)
+
+lemma fresh_l_redu_a:
+  fixes c::"coname"
+  shows "M \<longrightarrow>\<^sub>l M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
+proof (induct rule: l_redu.induct)
+  case (LAxR x M a b)
+  then show ?case
+    apply (simp add: abs_fresh)
+    by (metis crename_cfresh crename_rename)
+next
+  case (LAxL a M x y)
+  with nrename_cfresh show ?case
+    by (simp add: abs_fresh)
+qed (auto simp add: abs_fresh fresh_prod crename_nfresh)
+
+
+lemmas fresh_l_redu = fresh_l_redu_x fresh_l_redu_a
 
 lemma better_LAxR_intro[intro]:
   shows "fic M a \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^sub>l M[a\<turnstile>c>b]"
@@ -2737,13 +2679,13 @@ lemma better_LImp_intro[intro]:
          \<Longrightarrow> Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z) \<longrightarrow>\<^sub>l Cut <a>.(Cut <c>.N (x).M) (y).P"
 proof -
   assume fs: "z\<sharp>(N,[y].P)" "b\<sharp>[a].M" "a\<sharp>N"
-  obtain y'::"name" where f1: "y'\<sharp>(y,M,N,P,z,x)" by (rule exists_fresh(1), rule fin_supp, blast)
-  obtain x'::"name" where f2: "x'\<sharp>(y,M,N,P,z,x,y')" by (rule exists_fresh(1), rule fin_supp, blast)
-  obtain z'::"name" where f3: "z'\<sharp>(y,M,N,P,z,x,y',x')" by (rule exists_fresh(1), rule fin_supp, blast)
-  obtain a'::"coname" where f4: "a'\<sharp>(a,N,P,M,b)" by (rule exists_fresh(2), rule fin_supp, blast)
-  obtain b'::"coname" where f5: "b'\<sharp>(a,N,P,M,b,c,a')" by (rule exists_fresh(2),rule fin_supp, blast)
-  obtain c'::"coname" where f6: "c'\<sharp>(a,N,P,M,b,c,a',b')" by (rule exists_fresh(2),rule fin_supp, blast)
-  have " Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z)
+  obtain y'::"name" and x'::"name" and z'::"name" 
+    where f1: "y'\<sharp>(y,M,N,P,z,x)" and f2: "x'\<sharp>(y,M,N,P,z,x,y')" and f3: "z'\<sharp>(y,M,N,P,z,x,y',x')"
+    by (meson exists_fresh(1) fs_name1)
+  obtain a'::"coname" and b'::"coname" and c'::"coname" 
+    where f4: "a'\<sharp>(a,N,P,M,b)" and f5: "b'\<sharp>(a,N,P,M,b,c,a')" and f6: "c'\<sharp>(a,N,P,M,b,c,a',b')"
+    by (meson exists_fresh(2) fs_coname1)
+  have "Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z)
                       =  Cut <b'>.(ImpR (x).<a>.M b') (z').(ImpL <c>.N (y).P z')"
     using f1 f2 f3 f4 f5 fs
     apply(rule_tac sym)
@@ -2754,16 +2696,7 @@ proof -
                            (z').(ImpL <c'>.([(c',c)]\<bullet>N) (y').([(y',y)]\<bullet>P) z')"
     using f1 f2 f3 f4 f5 f6 fs 
     apply(rule_tac sym)
-    apply(simp add: trm.inject)
-    apply(simp add: alpha)
-    apply(rule conjI)
-    apply(simp add: trm.inject)
-    apply(simp add: alpha fresh_prod fresh_atm abs_perm calc_atm fresh_left abs_fresh)
-    apply(simp add: trm.inject)
-    apply(simp add: alpha)
-    apply(rule conjI)
-    apply(simp add: alpha fresh_prod fresh_atm abs_perm calc_atm fresh_left abs_fresh)
-    apply(simp add: alpha fresh_prod fresh_atm abs_perm calc_atm fresh_left abs_fresh)
+    apply(simp add: trm.inject alpha fresh_prod fresh_atm abs_perm calc_atm fresh_left abs_fresh)
     done
   also have "\<dots> \<longrightarrow>\<^sub>l Cut <a'>.(Cut <c'>.([(c',c)]\<bullet>N) (x').([(a',a)]\<bullet>[(x',x)]\<bullet>M)) (y').([(y',y)]\<bullet>P)"
     using f1 f2 f3 f4 f5 f6 fs
@@ -2774,67 +2707,41 @@ proof -
   also have "\<dots> = Cut <a>.(Cut <c>.N (x).M) (y).P"
     using f1 f2 f3 f4 f5 f6 fs 
     apply(simp add: trm.inject)
-    apply(rule conjI)
-    apply(simp add: alpha)
-    apply(rule disjI2)
-    apply(simp add: trm.inject)
-    apply(rule conjI)
-    apply(simp add: fresh_prod fresh_atm)
-    apply(rule conjI)
-    apply(perm_simp add: calc_atm)
-    apply(auto simp: fresh_prod fresh_atm)[1]
-    apply(perm_simp add: alpha)
-    apply(perm_simp add: alpha)
-    apply(perm_simp add: alpha)
-    apply(rule conjI)
-    apply(perm_simp add: calc_atm)
-    apply(rule_tac pi="[(a',a)]" in pt_bij4[OF pt_coname_inst, OF at_coname_inst])
-    apply(perm_simp add: abs_perm calc_atm)
     apply(perm_simp add: alpha fresh_prod fresh_atm)
-    apply(simp add: abs_fresh)
-    apply(perm_simp add: alpha fresh_prod fresh_atm)
+    apply(simp add: trm.inject abs_fresh alpha(1) fresh_perm_app(4) perm_compose(4) perm_dj(4))
+    apply (metis alpha'(2) crename_fresh crename_swap swap_simps(2,4,6))
     done
   finally show ?thesis by simp
 qed 
 
 lemma alpha_coname:
   fixes M::"trm"
-  and   a::"coname"
-  assumes a: "[a].M = [b].N" "c\<sharp>(a,b,M,N)"
+    and   a::"coname"
+  assumes "[a].M = [b].N" "c\<sharp>(a,b,M,N)"
   shows "M = [(a,c)]\<bullet>[(b,c)]\<bullet>N"
-using a
-apply(auto simp: alpha_fresh fresh_prod fresh_atm)
-apply(drule sym)
-apply(perm_simp)
-done 
+  by (metis alpha_fresh'(2) assms fresh_atm(2) fresh_prod)
 
 lemma alpha_name:
   fixes M::"trm"
-  and   x::"name"
-  assumes a: "[x].M = [y].N" "z\<sharp>(x,y,M,N)"
+    and   x::"name"
+  assumes "[x].M = [y].N" "z\<sharp>(x,y,M,N)"
   shows "M = [(x,z)]\<bullet>[(y,z)]\<bullet>N"
-using a
-apply(auto simp: alpha_fresh fresh_prod fresh_atm)
-apply(drule sym)
-apply(perm_simp)
-done 
+  by (metis alpha_fresh'(1) assms fresh_atm(1) fresh_prod)
 
 lemma alpha_name_coname:
   fixes M::"trm"
   and   x::"name"
   and   a::"coname"
-  assumes a: "[x].[b].M = [y].[c].N" "z\<sharp>(x,y,M,N)" "a\<sharp>(b,c,M,N)"
+assumes "[x].[b].M = [y].[c].N" "z\<sharp>(x,y,M,N)" "a\<sharp>(b,c,M,N)"
   shows "M = [(x,z)]\<bullet>[(b,a)]\<bullet>[(c,a)]\<bullet>[(y,z)]\<bullet>N"
-using a
-apply(auto simp: alpha_fresh fresh_prod fresh_atm 
-                     abs_supp fin_supp abs_fresh abs_perm fresh_left calc_atm)
-apply(drule sym)
-apply(simp)
-apply(perm_simp)
-done 
+  using assms
+  apply(clarsimp simp: alpha_fresh fresh_prod fresh_atm 
+      abs_supp fin_supp abs_fresh abs_perm fresh_left calc_atm)
+  by (metis perm_swap(1,2))
+
 
 lemma Cut_l_redu_elim:
-  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^sub>l R"
+  assumes "Cut <a>.M (x).N \<longrightarrow>\<^sub>l R"
   shows "(\<exists>b. R = M[a\<turnstile>c>b]) \<or> (\<exists>y. R = N[x\<turnstile>n>y]) \<or>
   (\<exists>y M' b N'. M = NotR (y).M' a \<and> N = NotL <b>.N' x \<and> R = Cut <b>.N' (y).M' \<and> fic M a \<and> fin N x) \<or>
   (\<exists>b M1 c M2 y N'. M = AndR <b>.M1 <c>.M2 a \<and> N = AndL1 (y).N' x \<and> R = Cut <b>.M1 (y).N' 
@@ -2847,344 +2754,294 @@ lemma Cut_l_redu_elim:
                                                                             \<and> fic M a \<and> fin N x) \<or>
   (\<exists>z b M' c N1 y N2. M = ImpR (z).<b>.M' a \<and> N = ImpL <c>.N1 (y).N2 x \<and> 
             R = Cut <b>.(Cut <c>.N1 (z).M') (y).N2 \<and> b\<sharp>(c,N1) \<and> fic M a \<and> fin N x)"
-using a
-apply(erule_tac l_redu.cases)
-apply(rule disjI1)
-(* ax case *)
-apply(simp add: trm.inject)
-apply(rule_tac x="b" in exI)
-apply(erule conjE)
-apply(simp add: alpha)
-apply(erule disjE)
-apply(simp)
-apply(simp)
-apply(simp add: rename_fresh)
-apply(rule disjI2)
-apply(rule disjI1)
-(* ax case *)
-apply(simp add: trm.inject)
-apply(rule_tac x="y" in exI)
-apply(erule conjE)
-apply(thin_tac "[a].M = [aa].Ax y aa")
-apply(simp add: alpha)
-apply(erule disjE)
-apply(simp)
-apply(simp)
-apply(simp add: rename_fresh)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI1)
-(* not case *)
-apply(simp add: trm.inject)
-apply(erule conjE)+
-apply(generate_fresh "coname")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac c="c" in  alpha_coname)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp add: calc_atm)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule refl)
-apply(generate_fresh "name")
-apply(simp add: calc_atm abs_fresh fresh_prod fresh_atm fresh_left)
-apply(auto)[1]
-apply(drule_tac z="ca" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp add: calc_atm)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule refl)
-apply(auto simp: calc_atm abs_fresh fresh_left)[1]
-apply(case_tac "y=x")
-apply(perm_simp)
-apply(perm_simp)
-apply(case_tac "aa=a")
-apply(perm_simp)
-apply(perm_simp)
-(* and1 case *)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI1)
-apply(simp add: trm.inject)
-apply(erule conjE)+
-apply(generate_fresh "coname")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac c="c" in  alpha_coname)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule exI)+
-apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="ca" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,ca)]\<bullet>[(y,ca)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh split: if_splits)[1]
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-(* and2 case *)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI1)
-apply(simp add: trm.inject)
-apply(erule conjE)+
-apply(generate_fresh "coname")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac c="c" in  alpha_coname)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="ca" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,ca)]\<bullet>[(y,ca)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh split: if_splits)[1]
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-(* or1 case *)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI1)
-apply(simp add: trm.inject)
-apply(erule conjE)+
-apply(generate_fresh "coname")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac c="c" in  alpha_coname)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="ca" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule exI)+
-apply(rule_tac s="x" and t="[(x,ca)]\<bullet>[(y,ca)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule exI)+
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-(* or2 case *)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI1)
-apply(simp add: trm.inject)
-apply(erule conjE)+
-apply(generate_fresh "coname")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac c="c" in  alpha_coname)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="ca" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,ca)]\<bullet>[(y,ca)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-(* imp-case *)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(rule disjI2)
-apply(simp add: trm.inject)
-apply(erule conjE)+
-apply(generate_fresh "coname")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac c="ca" in  alpha_coname)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="a" and t="[(a,ca)]\<bullet>[(b,ca)]\<bullet>b" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cb" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(z,cb)]\<bullet>z" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-apply(generate_fresh "name")
-apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(auto)[1]
-apply(drule_tac z="cc" in  alpha_name)
-apply(simp add: fresh_prod fresh_atm abs_fresh)
-apply(simp)
-apply(rule exI)+
-apply(rule conjI)
-apply(rule_tac s="x" and t="[(x,cc)]\<bullet>[(z,cc)]\<bullet>z" in subst)
-apply(simp add: calc_atm)
-apply(rule refl)
-apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
-apply(perm_simp)+
-done
+using assms
+proof (cases rule: l_redu.cases)
+  case (LAxR x M a b)
+  then show ?thesis
+    apply(simp add: trm.inject)
+    by (metis alpha(2) crename_rename)
+next
+  case (LAxL a M x y)
+  then show ?thesis
+    apply(simp add: trm.inject)
+    by (metis alpha(1) nrename_rename)
+next
+  case (LNot y M N x a b)
+  then show ?thesis
+    apply(simp add: trm.inject)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI1)
+    apply(erule conjE)+
+    apply(generate_fresh "coname")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+    apply(drule_tac c="c" in  alpha_coname)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp add: calc_atm)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule refl)
+    apply(generate_fresh "name")
+    apply(simp add: calc_atm abs_fresh fresh_prod fresh_atm fresh_left)
+    apply(auto)[1]
+    apply(drule_tac z="ca" in  alpha_name)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp add: calc_atm)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule refl)
+    apply(auto simp: calc_atm abs_fresh fresh_left)[1]
+    using nrename_fresh nrename_swap apply presburger
+    using crename_fresh crename_swap by presburger
+next
+  case (LAnd1 b a1 M1 a2 M2 N y x)
+  then show ?thesis
+    apply -
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI1)
+    apply(clarsimp simp add: trm.inject)
+    apply(generate_fresh "coname")
+    apply(clarsimp simp add: abs_fresh fresh_prod fresh_atm)
+    apply(drule_tac c="c" in  alpha_coname)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule exI)+
+     apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+    apply(generate_fresh "name")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+       apply(drule_tac z="ca" in  alpha_name)
+        apply(simp add: fresh_prod fresh_atm abs_fresh)
+       apply(simp)
+       apply (metis swap_simps(6))
+      apply(generate_fresh "name")
+      apply(simp add: abs_fresh fresh_prod fresh_atm)
+      apply(auto)[1]
+      apply(drule_tac z="cb" in  alpha_name)
+       apply(simp add: fresh_prod fresh_atm abs_fresh)
+      apply(simp)
+      apply(perm_simp)
+      apply (smt (verit, del_insts) abs_fresh(1,2) abs_perm(1,2) fic.intros(3) fin.intros(3) fresh_bij(1) perm_fresh_fresh(1,2) swap_simps(1,6))
+     apply(perm_simp)+
+     apply(generate_fresh "name")
+     apply(simp add: abs_fresh fresh_prod fresh_atm)
+     apply(auto)[1]
+     apply(drule_tac z="cb" in  alpha_name)
+      apply(simp add: fresh_prod fresh_atm abs_fresh)
+     apply(perm_simp)
+     apply (smt (verit) abs_fresh(1,2) abs_perm(1,2) fic.intros(3) fin.intros(3) perm_fresh_fresh(1,2) perm_swap(3) swap_simps(1,6))
+    apply(perm_simp)+
+    apply(generate_fresh "name")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+    apply(drule_tac z="cb" in  alpha_name)
+     apply(simp add: fresh_prod fresh_atm abs_fresh cong: conj_cong)
+    apply(perm_simp)
+    by (smt (verit, best) abs_fresh(1,2) abs_perm(1) alpha(2) fic.intros(3) fin.intros(3) fresh_bij(1,2) perm_fresh_fresh(1,2) swap_simps(2,3))
+next
+  case (LAnd2 b a1 M1 a2 M2 N y x)
+  then show ?thesis
+    apply -
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI1)
+    apply(clarsimp simp add: trm.inject)
+    apply(generate_fresh "coname")
+    apply(clarsimp simp add: abs_fresh fresh_prod fresh_atm)
+    apply(drule_tac c="c" in  alpha_coname)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+    apply(generate_fresh "name")
+    apply(auto simp add: abs_fresh fresh_prod fresh_atm)
+       apply(drule_tac z="ca" in  alpha_name)
+        apply(simp add: fresh_prod fresh_atm abs_fresh)
+       apply (metis swap_simps(6))
+      apply(generate_fresh "name")
+      apply(simp add: abs_fresh fresh_prod fresh_atm)
+      apply(auto)[1]
+      apply(drule_tac z="cb" in  alpha_name)
+       apply(simp add: fresh_prod fresh_atm abs_fresh)
+      apply(perm_simp)
+      apply (smt (verit, ccfv_threshold) abs_fresh(1,2) abs_perm(1) fic.intros(3) fin.intros(4) fresh_bij(1,2) perm_fresh_fresh(1,2) swap_simps(1,4,6))
+     apply(generate_fresh "name")
+     apply(simp add: abs_fresh fresh_prod fresh_atm)
+     apply(auto)[1]
+     apply(drule_tac z="cb" in  alpha_name)
+      apply(simp add: fresh_prod fresh_atm abs_fresh)
+     apply(simp)
+     apply(perm_simp)
+     apply (smt (verit) abs_fresh(1,2) abs_perm(1,2) fic.intros(3) fin.intros(4) fresh_bij(1) perm_fresh_fresh(1,2) swap_simps(1,6))
+    apply(generate_fresh "name")
+    apply(clarsimp simp add: abs_fresh fresh_prod fresh_atm)
+    apply(drule_tac z="cb" in  alpha_name)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(perm_simp)
+    by (smt (verit, ccfv_SIG) abs_fresh(1,2) abs_perm(1) alpha(2) fic.intros(3) fin.intros(4) fresh_bij(1,2) perm_fresh_fresh(1,2) swap_simps(2,3))
+next
+  case (LOr1 b a M N1 N2 y x1 x2)
+  then show ?thesis
+    apply -
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI1)
+    apply(clarsimp simp add: trm.inject)
+    apply(generate_fresh "coname")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+    apply(drule_tac c="c" in  alpha_coname)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+    apply(perm_simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+    apply(generate_fresh "name")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+     apply(drule_tac z="ca" in  alpha_name)
+      apply(simp add: fresh_prod fresh_atm abs_fresh)
+     apply(simp)
+     apply(rule exI)+
+     apply(rule conjI)
+      apply(rule exI)+
+      apply(rule_tac s="x" and t="[(x,ca)]\<bullet>[(y,ca)]\<bullet>y" in subst)
+       apply(simp add: calc_atm)
+      apply(rule refl)
+     apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
+        apply(perm_simp)+
+    apply(generate_fresh "name")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+    apply(drule_tac z="cb" in  alpha_name)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule exI)+
+     apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+    apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
+     apply(perm_simp)+
+    done
+next
+  case (LOr2 b a M N1 N2 y x1 x2)
+  then show ?thesis
+    apply -
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI2)
+    apply(rule disjI1)
+    apply(simp add: trm.inject)
+    apply(erule conjE)+
+    apply(generate_fresh "coname")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+    apply(drule_tac c="c" in  alpha_coname)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+     apply(perm_simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule_tac s="a" and t="[(a,c)]\<bullet>[(b,c)]\<bullet>b" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+     apply(generate_fresh "name")
+     apply(simp add: abs_fresh fresh_prod fresh_atm)
+     apply(auto)[1]
+      apply(drule_tac z="ca" in  alpha_name)
+       apply(simp add: fresh_prod fresh_atm abs_fresh)
+      apply(simp)
+      apply(rule exI)+
+      apply(rule conjI)
+      apply(rule_tac s="x" and t="[(x,ca)]\<bullet>[(y,ca)]\<bullet>y" in subst)
+       apply(simp add: calc_atm)
+      apply(rule refl)
+      apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
+     apply(perm_simp)+
+     apply(generate_fresh "name")
+     apply(simp add: abs_fresh fresh_prod fresh_atm)
+     apply(auto)[1]
+     apply(drule_tac z="cb" in  alpha_name)
+      apply(simp add: fresh_prod fresh_atm abs_fresh)
+     apply(simp)
+     apply(rule exI)+
+     apply(rule conjI)
+     apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(y,cb)]\<bullet>y" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+     apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
+       apply(perm_simp)+
+    done
+next
+  case (LImp z N y P x M b a c)
+  then show ?thesis
+    apply(intro disjI2)
+    apply(clarsimp simp add: trm.inject)
+    apply(generate_fresh "coname")
+    apply(clarsimp simp add: abs_fresh fresh_prod fresh_atm)
+    apply(drule_tac c="ca" in  alpha_coname)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+    apply(perm_simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule_tac s="a" and t="[(a,ca)]\<bullet>[(b,ca)]\<bullet>b" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+    apply(generate_fresh "name")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+     apply(drule_tac z="caa" in  alpha_name)
+      apply(simp add: fresh_prod fresh_atm abs_fresh)
+     apply(simp)
+     apply(perm_simp)
+     apply(rule exI)+
+     apply(rule conjI)
+      apply(rule_tac s="x" and t="[(x,caa)]\<bullet>[(z,caa)]\<bullet>z" in subst)
+       apply(simp add: calc_atm)
+      apply(rule refl)
+     apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
+       apply(perm_simp)+
+    apply(generate_fresh "name")
+    apply(simp add: abs_fresh fresh_prod fresh_atm)
+    apply(auto)[1]
+    apply(drule_tac z="cb" in  alpha_name)
+     apply(simp add: fresh_prod fresh_atm abs_fresh)
+    apply(simp)
+    apply(perm_simp)
+    apply(rule exI)+
+    apply(rule conjI)
+     apply(rule_tac s="x" and t="[(x,cb)]\<bullet>[(z,cb)]\<bullet>z" in subst)
+      apply(simp add: calc_atm)
+     apply(rule refl)
+    apply(auto simp: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split: if_splits)[1]
+     apply(perm_simp)+
+    done
+qed
+
 
 inductive
   c_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>c _" [100,100] 100)
@@ -3637,44 +3494,20 @@ done
 lemma a_redu_AndL1_elim:
   assumes a: "AndL1 (x).M y \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = AndL1 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto)
-apply(rotate_tac 3)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto simp: alpha a_redu.eqvt)
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-done
+  using a
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+   apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  by (metis a_NotR a_redu_NotR_elim trm.inject(3))
 
 lemma a_redu_AndL2_elim:
   assumes a: "AndL2 (x).M y \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = AndL2 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto)
-apply(rotate_tac 3)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto simp: alpha a_redu.eqvt)
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-done
+  using a
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+   apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  by (metis a_NotR a_redu_NotR_elim trm.inject(3))
 
 lemma a_redu_OrL_elim:
   assumes a: "OrL (x).M (y).N z\<longrightarrow>\<^sub>a R"
@@ -3958,37 +3791,24 @@ abbreviation
 where
   "M \<longrightarrow>\<^sub>a* M' \<equiv> (a_redu)\<^sup>*\<^sup>* M M'"
 
-lemma a_starI:
-  assumes a: "M \<longrightarrow>\<^sub>a M'"
-  shows "M \<longrightarrow>\<^sub>a* M'"
-using a by blast
+lemmas a_starI = r_into_rtranclp
 
 lemma a_starE:
   assumes a: "M \<longrightarrow>\<^sub>a* M'"
   shows "M = M' \<or> (\<exists>N. M \<longrightarrow>\<^sub>a N \<and> N \<longrightarrow>\<^sub>a* M')"
-using a 
-by (induct) (auto)
+  using a  by (induct) (auto)
 
 lemma a_star_refl:
   shows "M \<longrightarrow>\<^sub>a* M"
   by blast
 
-lemma a_star_trans[trans]:
-  assumes a1: "M1\<longrightarrow>\<^sub>a* M2"
-  and     a2: "M2\<longrightarrow>\<^sub>a* M3"
-  shows "M1 \<longrightarrow>\<^sub>a* M3"
-using a2 a1
-by (induct) (auto)
+declare rtranclp_trans [trans]
 
 text \<open>congruence rules for \<open>\<longrightarrow>\<^sub>a*\<close>\<close>
 
 lemma ax_do_not_a_star_reduce:
   shows "Ax x a \<longrightarrow>\<^sub>a* M \<Longrightarrow> M = Ax x a"
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule  ax_do_not_a_reduce)
-apply(simp)
-done
+  using a_starE ax_do_not_a_reduce by blast
 
 
 lemma a_star_CutL:
