@@ -51,7 +51,7 @@ text \<open>terms\<close>
 nominal_datatype trm = 
     Ax   "name" "coname"
   | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            ("Cut <_>._ ('(_'))._" [0,0,0,100] 101)
-  | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 ("NotR (_)._ _" [100,100,100] 101)
+  | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 ("NotR ('(_'))._ _" [0,100,100] 101)
   | NotL "\<guillemotleft>coname\<guillemotright>trm" "name"                 ("NotL <_>._ _" [0,100,100] 101)
   | AndR "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>coname\<guillemotright>trm" "coname" ("AndR <_>._ <_>._ _" [0,100,0,100,100] 101)
   | AndL1 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL1 (_)._ _" [100,100,100] 101)
@@ -3063,11 +3063,8 @@ proof -
   have "Cut <a>.M (x).N =  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)"
     using fs1 fs2 by (rule_tac sym, auto simp: trm.inject alpha fresh_atm fresh_prod calc_atm)
   also have "\<dots> \<longrightarrow>\<^sub>c ([(a',a)]\<bullet>M){a':=(x').([(x',x)]\<bullet>N)}" using fs1 fs2 not_fic
-    apply -
-    apply(rule left)
-    apply(clarify)
-    apply(drule_tac a'="a" in fic_rename)
-    apply(simp add: perm_swap)
+    apply(intro left)
+    apply (metis fic_rename perm_swap(4))
     apply(simp add: fresh_left calc_atm)+
     done
   also have "\<dots> = M{a:=(x).N}" using fs1 fs2
@@ -3084,12 +3081,9 @@ proof -
   have "Cut <a>.M (x).N =  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)"
     using fs1 fs2 by (rule_tac sym, auto simp: trm.inject alpha fresh_atm fresh_prod calc_atm)
   also have "\<dots> \<longrightarrow>\<^sub>c ([(x',x)]\<bullet>N){x':=<a'>.([(a',a)]\<bullet>M)}" using fs1 fs2 not_fin
-    apply -
-    apply(rule right)
-    apply(clarify)
-    apply(drule_tac x'="x" in fin_rename)
-    apply(simp add: perm_swap)
-    apply(simp add: fresh_left calc_atm)+
+    apply (intro right)
+    apply (metis fin_rename perm_swap(3))
+    apply (simp add: fresh_left calc_atm)+
     done
   also have "\<dots> = N{x:=<a>.M}" using fs1 fs2
     by (simp add: subst_rename[symmetric] fresh_atm fresh_prod fresh_left calc_atm)
@@ -3101,12 +3095,7 @@ lemma fresh_c_redu:
   and   c::"coname"
   shows "M \<longrightarrow>\<^sub>c M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
   and   "M \<longrightarrow>\<^sub>c M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
-apply -
-apply(induct rule: c_redu.induct)
-apply(auto simp: abs_fresh rename_fresh subst_fresh)
-apply(induct rule: c_redu.induct)
-apply(auto simp: abs_fresh rename_fresh subst_fresh)
-done
+  by (induct rule: c_redu.induct) (auto simp: abs_fresh rename_fresh subst_fresh)+
 
 inductive
   a_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a _" [100,100] 100)
@@ -3129,21 +3118,17 @@ where
 | a_ImpL_r: "\<lbrakk>a\<sharp>N; x\<sharp>(M,y); N\<longrightarrow>\<^sub>a N'\<rbrakk> \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^sub>a ImpL <a>.M (x).N' y"
 | a_ImpR: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^sub>a ImpR (x).<a>.M' b"
 
-lemma fresh_a_redu:
+lemma fresh_a_redu1:
   fixes x::"name"
-  and   c::"coname"
   shows "M \<longrightarrow>\<^sub>a M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
-  and   "M \<longrightarrow>\<^sub>a M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
-apply -
-apply(induct rule: a_redu.induct)
-apply(simp add: fresh_l_redu)
-apply(simp add: fresh_c_redu)
-apply(auto simp: abs_fresh abs_supp fin_supp)
-apply(induct rule: a_redu.induct)
-apply(simp add: fresh_l_redu)
-apply(simp add: fresh_c_redu)
-apply(auto simp: abs_fresh abs_supp fin_supp)
-done
+  by (induct rule: a_redu.induct) (auto simp: fresh_l_redu fresh_c_redu abs_fresh abs_supp fin_supp)
+
+lemma fresh_a_redu2:
+  fixes c::"coname"
+  shows "M \<longrightarrow>\<^sub>a M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
+  by (induct rule: a_redu.induct) (auto simp: fresh_l_redu fresh_c_redu abs_fresh abs_supp fin_supp)
+
+lemmas fresh_a_redu = fresh_a_redu1 fresh_a_redu2
 
 equivariance a_redu
 
@@ -3353,148 +3338,43 @@ by (erule_tac c_redu.cases) (simp_all add: trm.inject)
 lemma ax_do_not_a_reduce:
   shows "Ax x a \<longrightarrow>\<^sub>a M \<Longrightarrow> False"
 apply(erule_tac a_redu.cases) 
-apply(auto simp: trm.inject)
-apply(drule ax_do_not_l_reduce)
-apply(simp)
-apply(drule ax_do_not_c_reduce)
-apply(simp)
-done
+apply(simp_all add: trm.inject)
+  using ax_do_not_l_reduce ax_do_not_c_reduce by blast+
 
 lemma a_redu_NotL_elim:
-  assumes a: "NotL <a>.M x \<longrightarrow>\<^sub>a R"
+  assumes "NotL <a>.M x \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = NotL <a>.M' x \<and> M\<longrightarrow>\<^sub>aM'"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto)
-apply(rotate_tac 2)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto simp: alpha a_redu.eqvt)
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-done
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+   apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  apply (smt (verit, best) a_redu.eqvt(2) alpha(2) fresh_a_redu2)+
+  done
 
 lemma a_redu_NotR_elim:
-  assumes a: "NotR (x).M a \<longrightarrow>\<^sub>a R"
+  assumes "NotR (x).M a \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = NotR (x).M' a \<and> M\<longrightarrow>\<^sub>aM'"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto)
-apply(rotate_tac 2)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto simp: alpha a_redu.eqvt)
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-done
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+   apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  apply (smt (verit, best) a_redu.eqvt(1) alpha(1) fresh_a_redu1)+
+  done
 
 lemma a_redu_AndR_elim:
-  assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a R"
+  assumes "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a R"
   shows "(\<exists>M'. R = AndR <a>.M' <b>.N c \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = AndR <a>.M <b>.N' c \<and> N\<longrightarrow>\<^sub>aN')"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rotate_tac 6)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rule disjI1)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule disjI2)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N')" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rotate_tac 6)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rule disjI1)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule disjI2)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N'a)" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,ba)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(b,baa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-done
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+     apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+   apply (smt (verit) a_redu.eqvt(2) alpha'(2) fresh_a_redu2)
+  by (metis a_NotL a_redu_NotL_elim trm.inject(4))
 
 lemma a_redu_AndL1_elim:
-  assumes a: "AndL1 (x).M y \<longrightarrow>\<^sub>a R"
+  assumes "AndL1 (x).M y \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = AndL1 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
-  using a
+  using assms
   apply(erule_tac a_redu.cases, simp_all add: trm.inject)
     apply(erule_tac l_redu.cases, simp_all add: trm.inject)
    apply(erule_tac c_redu.cases, simp_all add: trm.inject)
@@ -3505,229 +3385,47 @@ lemma a_redu_AndL2_elim:
   shows "\<exists>M'. R = AndL2 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
   using a
   apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+  apply(erule_tac l_redu.cases, simp_all add: trm.inject)
    apply(erule_tac c_redu.cases, simp_all add: trm.inject)
   by (metis a_NotR a_redu_NotR_elim trm.inject(3))
 
 lemma a_redu_OrL_elim:
-  assumes a: "OrL (x).M (y).N z\<longrightarrow>\<^sub>a R"
+  assumes "OrL (x).M (y).N z\<longrightarrow>\<^sub>a R"
   shows "(\<exists>M'. R = OrL (x).M' (y).N z \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = OrL (x).M (y).N' z \<and> N\<longrightarrow>\<^sub>aN')"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rotate_tac 6)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rule disjI1)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule disjI2)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N')" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rotate_tac 6)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rule disjI1)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M')" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(x,xaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule disjI2)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N'a)" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,ya)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,yaa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+     apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+   apply (metis a_NotR a_redu_NotR_elim trm.inject(3))+
 done
 
 lemma a_redu_OrR1_elim:
-  assumes a: "OrR1 <a>.M b \<longrightarrow>\<^sub>a R"
+  assumes "OrR1 <a>.M b \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = OrR1 <a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto)
-apply(rotate_tac 3)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto simp: alpha a_redu.eqvt)
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-done
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+   apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  by (metis a_NotL a_redu_NotL_elim trm.inject(4))
 
 lemma a_redu_OrR2_elim:
   assumes a: "OrR2 <a>.M b \<longrightarrow>\<^sub>a R"
   shows "\<exists>M'. R = OrR2 <a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto)
-apply(rotate_tac 3)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(auto simp: alpha a_redu.eqvt)
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)
-apply(simp add: perm_swap)
-done
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+   apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  by (metis a_redu_OrR1_elim better_OrR1_intro trm.inject(8))
 
 lemma a_redu_ImpL_elim:
   assumes a: "ImpL <a>.M (y).N z\<longrightarrow>\<^sub>a R"
   shows "(\<exists>M'. R = ImpL <a>.M' (y).N z \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = ImpL <a>.M (y).N' z \<and> N\<longrightarrow>\<^sub>aN')"
-using a [[simproc del: defined_all]]
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rotate_tac 5)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rule disjI1)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule disjI2)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rotate_tac 5)
-apply(erule_tac a_redu.cases, simp_all add: trm.inject)
-apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
-apply(rule disjI1)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(a,aaa)]\<bullet>M')" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule disjI2)
-apply(auto simp: alpha a_redu.eqvt)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI) 
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-apply(rule_tac x="([(y,xa)]\<bullet>N'a)" in exI)
-apply(auto simp: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu)[1]
-done
+  using assms
+  apply(erule_tac a_redu.cases, simp_all add: trm.inject)
+     apply(erule_tac l_redu.cases, simp_all add: trm.inject)
+    apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+   apply (smt (verit) a_redu.eqvt(2) alpha'(2) fresh_a_redu2)
+  by (metis a_NotR a_redu_NotR_elim trm.inject(3))
 
 lemma a_redu_ImpR_elim:
   assumes a: "ImpR (x).<a>.M b \<longrightarrow>\<^sub>a R"
@@ -3740,7 +3438,7 @@ apply(auto)
 apply(rotate_tac 3)
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
-apply(erule_tac c_redu.cases, simp_all add: trm.inject)
+  apply(erule_tac c_redu.cases, simp_all add: trm.inject)
 apply(auto simp: alpha a_redu.eqvt abs_perm abs_fresh)
 apply(rule_tac x="([(a,aa)]\<bullet>M'a)" in exI)
 apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap)
@@ -3772,17 +3470,9 @@ apply(rule_tac x="([(x,xaa)]\<bullet>M'a)" in exI)
 apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap)
 apply(rule_tac x="([(a,aa)]\<bullet>[(x,xaa)]\<bullet>M'a)" in exI)
 apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap)
-apply(rule sym)
-apply(rule trans)
-apply(rule perm_compose)
-apply(simp add: calc_atm perm_swap)
-apply(rule_tac x="([(a,aaa)]\<bullet>[(x,xaa)]\<bullet>M'a)" in exI)
-apply(auto simp: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap)
-apply(rule sym)
-apply(rule trans)
-apply(rule perm_compose)
-apply(simp add: calc_atm perm_swap)
-done
+  apply (simp add: cp_coname_name1 perm_dj(4) perm_swap(3,4))
+  apply(rule_tac x="([(a,aaa)]\<bullet>[(x,xaa)]\<bullet>M'a)" in exI)
+by(simp add: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap perm_compose(4) perm_dj(4))
 
 text \<open>Transitive Closure\<close>
 
