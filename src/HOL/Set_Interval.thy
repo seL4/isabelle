@@ -316,6 +316,71 @@ proof
   with * show "a = b \<and> b = c" by auto
 qed simp
 
+text \<open>The following results generalise their namesakes in @{theory HOL.Nat} to intervals\<close>
+
+lemma lift_Suc_mono_le_ivl:
+  assumes mono: "\<And>n. n\<in>N \<Longrightarrow> f n \<le> f (Suc n)"
+    and "n \<le> n'" and subN: "{n..<n'} \<subseteq> N"
+  shows "f n \<le> f n'"
+proof (cases "n < n'")
+  case True
+  then show ?thesis
+    using subN
+  proof (induction n n' rule: less_Suc_induct)
+    case (1 i)
+    then show ?case
+      by (simp add: mono subsetD) 
+  next
+    case (2 i j k)
+    have "f i \<le> f j" "f j \<le> f k"
+      using 2 by force+
+    then show ?case by auto 
+  qed
+next
+  case False
+  with \<open>n \<le> n'\<close> show ?thesis by auto
+qed
+
+lemma lift_Suc_antimono_le_ivl:
+  assumes mono: "\<And>n. n\<in>N \<Longrightarrow> f n \<ge> f (Suc n)"
+    and "n \<le> n'" and subN: "{n..<n'} \<subseteq> N"
+  shows "f n \<ge> f n'"
+proof (cases "n < n'")
+  case True
+  then show ?thesis
+    using subN
+  proof (induction n n' rule: less_Suc_induct)
+    case (1 i)
+    then show ?case
+      by (simp add: mono subsetD) 
+  next
+    case (2 i j k)
+    have "f i \<ge> f j" "f j \<ge> f k"
+      using 2 by force+
+    then show ?case by auto 
+  qed
+next
+  case False
+  with \<open>n \<le> n'\<close> show ?thesis by auto
+qed
+
+lemma lift_Suc_mono_less_ivl:
+  assumes mono: "\<And>n. n\<in>N \<Longrightarrow> f n < f (Suc n)"
+    and "n < n'" and subN: "{n..<n'} \<subseteq> N"
+  shows "f n < f n'"
+  using \<open>n < n'\<close>
+  using subN
+proof (induction n n' rule: less_Suc_induct)
+  case (1 i)
+  then show ?case
+    by (simp add: mono subsetD) 
+next
+  case (2 i j k)
+  have "f i < f j" "f j < f k"
+    using 2 by force+
+  then show ?case by auto 
+qed
+
 end
 
 context no_top
@@ -2247,6 +2312,30 @@ proof -
   finally show ?thesis by metis
 qed
 
+lemma prod_divide_nat_ivl:
+  fixes f :: "nat \<Rightarrow> 'a::idom_divide"
+  shows "\<lbrakk> m \<le> n; n \<le> p; prod f {m..<n} \<noteq> 0\<rbrakk> \<Longrightarrow> prod f {m..<p} div prod f {m..<n} = prod f {n..<p}"
+  using prod.atLeastLessThan_concat [of m n p f,symmetric]
+  by (simp add: ac_simps)
+
+lemma prod_divide_split: (*FIXME: why is \<Prod> syntax not available?*)
+  fixes f:: "nat \<Rightarrow> 'a::idom_divide"
+  assumes "m \<le> n" "prod f {..<m} \<noteq> 0"
+  shows "(prod f {..n}) div (prod f {..<m}) = prod (\<lambda>i. f(n - i)) {..n - m}"
+proof -
+  have "\<And>i. i \<le> n-m \<Longrightarrow> \<exists>k\<ge>m. k \<le> n \<and> i = n-k"
+    by (metis Nat.le_diff_conv2 add.commute \<open>m\<le>n\<close> diff_diff_cancel diff_le_self order.trans)
+  then have eq: "{..n-m} = (-)n ` {m..n}"
+    by force
+  have inj: "inj_on ((-)n) {m..n}"
+    by (auto simp: inj_on_def)
+  have "prod (\<lambda>i. f(n - i)) {..n - m} = prod f {m..n}"
+    by (simp add: eq prod.reindex_cong [OF inj])
+  also have "\<dots> = prod f {..n} div prod f {..<m}"
+    using prod_divide_nat_ivl[of 0 "m" "Suc n" f] assms
+    by (force simp: atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost)
+  finally show ?thesis by metis
+qed
 
 subsubsection \<open>Telescoping sums\<close>
 

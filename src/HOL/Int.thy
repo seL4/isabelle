@@ -198,7 +198,7 @@ proof
     then have \<open>int n \<ge> int 1\<close>
       by (rule of_nat_mono)
     with \<open>l - k = int n\<close> show ?Q
-      by simp
+      by (simp add: algebra_simps)
   qed
 qed
 

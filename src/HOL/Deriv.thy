@@ -1656,34 +1656,6 @@ proof -
     by (blast dest: DERIV_unique order_less_imp_le)
 qed
 
-lemma pos_deriv_imp_strict_mono:
-  assumes "\<And>x. (f has_real_derivative f' x) (at x)"
-  assumes "\<And>x. f' x > 0"
-  shows   "strict_mono f"
-proof (rule strict_monoI)
-  fix x y :: real assume xy: "x < y"
-  from assms and xy have "\<exists>z>x. z < y \<and> f y - f x = (y - x) * f' z"
-    by (intro MVT2) (auto dest: connectedD_interval)
-  then obtain z where z: "z > x" "z < y" "f y - f x = (y - x) * f' z" by blast
-  note \<open>f y - f x = (y - x) * f' z\<close>
-  also have "(y - x) * f' z > 0" using xy assms by (intro mult_pos_pos) auto
-  finally show "f x < f y" by simp
-qed
-
-proposition  deriv_nonneg_imp_mono:
-  assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
-  assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
-  assumes ab: "a \<le> b"
-  shows "g a \<le> g b"
-proof (cases "a < b")
-  assume "a < b"
-  from deriv have "\<And>x. \<lbrakk>x \<ge> a; x \<le> b\<rbrakk> \<Longrightarrow> (g has_real_derivative g' x) (at x)" by simp
-  with MVT2[OF \<open>a < b\<close>] and deriv
-    obtain \<xi> where \<xi>_ab: "\<xi> > a" "\<xi> < b" and g_ab: "g b - g a = (b - a) * g' \<xi>" by blast
-  from \<xi>_ab ab nonneg have "(b - a) * g' \<xi> \<ge> 0" by simp
-  with g_ab show ?thesis by simp
-qed (insert ab, simp)
-
 
 subsubsection \<open>A function is constant if its derivative is 0 over an interval.\<close>
 
@@ -1926,6 +1898,74 @@ lemma DERIV_neg_imp_decreasing_at_top:
    apply (metis DERIV_mirror der le_minus_iff neg_0_less_iff_less)
   apply (metis filterlim_at_top_mirror lim)
   done
+
+proposition deriv_nonpos_imp_antimono:
+  assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
+  assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<le> 0"
+  assumes "a \<le> b"
+  shows "g b \<le> g a"
+proof -
+  have "- g a \<le> - g b" 
+  proof (intro DERIV_nonneg_imp_nondecreasing [where f = "\<lambda>x. - g x"] conjI exI)
+    fix x
+    assume x: "a \<le> x" "x \<le> b"
+    show "((\<lambda>x. - g x) has_real_derivative - g' x) (at x)"
+      by (simp add: DERIV_minus deriv x)
+    show "0 \<le> - g' x"
+      by (simp add: nonneg x)
+  qed (rule \<open>a\<le>b\<close>)
+  then show ?thesis by simp
+qed
+
+lemma DERIV_nonneg_imp_increasing_open:
+  fixes a b :: real
+    and f :: "real \<Rightarrow> real"
+  assumes "a \<le> b"
+    and "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (\<exists>y. DERIV f x :> y \<and> y \<ge> 0)"
+    and con: "continuous_on {a..b} f"
+  shows "f a \<le> f b"
+proof (cases "a=b")
+  case False
+  with \<open>a\<le>b\<close> have "a<b" by simp
+  show ?thesis 
+  proof (rule ccontr)
+    assume f: "\<not> ?thesis"
+    have "\<exists>l z. a < z \<and> z < b \<and> DERIV f z :> l \<and> f b - f a = (b - a) * l"
+      by (rule MVT) (use assms \<open>a<b\<close> real_differentiable_def in \<open>force+\<close>)
+    then obtain l z where z: "a < z" "z < b" "DERIV f z :> l" and "f b - f a = (b - a) * l"
+      by auto
+    with assms z f show False
+      by (metis DERIV_unique diff_ge_0_iff_ge zero_le_mult_iff)
+  qed
+qed auto
+
+lemma DERIV_nonpos_imp_decreasing_open:
+  fixes a b :: real
+    and f :: "real \<Rightarrow> real"
+  assumes "a \<le> b"
+    and "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>y. DERIV f x :> y \<and> y \<le> 0"
+    and con: "continuous_on {a..b} f"
+  shows "f a \<ge> f b"
+proof -
+  have "(\<lambda>x. -f x) a \<le> (\<lambda>x. -f x) b"
+  proof (rule DERIV_nonneg_imp_increasing_open [of a b])
+    show "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> \<exists>y. ((\<lambda>x. - f x) has_real_derivative y) (at x) \<and> 0 \<le> y"
+      using assms
+      by (metis Deriv.field_differentiable_minus neg_0_le_iff_le)
+    show "continuous_on {a..b} (\<lambda>x. - f x)"
+      using con continuous_on_minus by blast
+  qed (use assms in auto)
+  then show ?thesis
+    by simp
+qed
+
+
+proposition  deriv_nonneg_imp_mono: (*DELETE*)
+  assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
+  assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
+  assumes ab: "a \<le> b"
+  shows "g a \<le> g b"
+  by (metis DERIV_nonneg_imp_nondecreasing atLeastAtMost_iff assms)
 
 text \<open>Derivative of inverse function\<close>
 

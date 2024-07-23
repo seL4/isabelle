@@ -677,6 +677,33 @@ lemma not_numeral_le_zero: "\<not> numeral n \<le> 0"
 lemma not_numeral_less_zero: "\<not> numeral n < 0"
   by (simp add: not_less zero_le_numeral)
 
+lemma one_of_nat_le_iff [simp]: "1 \<le> of_nat k \<longleftrightarrow> 1 \<le> k"
+  using of_nat_le_iff [of 1] by simp
+
+lemma numeral_nat_le_iff [simp]: "numeral n \<le> of_nat k \<longleftrightarrow> numeral n \<le> k"
+  using of_nat_le_iff [of "numeral n"] by simp
+
+lemma of_nat_le_1_iff [simp]: "of_nat k \<le> 1 \<longleftrightarrow> k \<le> 1"
+  using of_nat_le_iff [of _ 1] by simp
+
+lemma of_nat_le_numeral_iff [simp]: "of_nat k \<le> numeral n \<longleftrightarrow> k \<le> numeral n"
+  using of_nat_le_iff [of _ "numeral n"] by simp
+
+lemma one_of_nat_less_iff [simp]: "1 < of_nat k \<longleftrightarrow> 1 < k"
+  using of_nat_less_iff [of 1] by simp
+
+lemma numeral_nat_less_iff [simp]: "numeral n < of_nat k \<longleftrightarrow> numeral n < k"
+  using of_nat_less_iff [of "numeral n"] by simp
+
+lemma of_nat_less_1_iff [simp]: "of_nat k < 1 \<longleftrightarrow> k < 1"
+  using of_nat_less_iff [of _ 1] by simp
+
+lemma of_nat_less_numeral_iff [simp]: "of_nat k < numeral n \<longleftrightarrow> k < numeral n"
+  using of_nat_less_iff [of _ "numeral n"] by simp
+
+lemma of_nat_eq_numeral_iff [simp]: "of_nat k = numeral n \<longleftrightarrow> k = numeral n"
+  using of_nat_eq_iff [of _ "numeral n"] by simp
+
 lemmas le_numeral_extra =
   zero_le_one not_one_le_zero
   order_refl [of 0] order_refl [of 1]

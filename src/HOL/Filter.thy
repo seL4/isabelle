@@ -926,6 +926,10 @@ lemma eventually_sequentially:
   "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
   by (rule eventually_at_top_linorder)
 
+lemma frequently_sequentially:
+  "frequently P sequentially \<longleftrightarrow> (\<forall>N. \<exists>n\<ge>N. P n)"
+  by (simp add: frequently_def eventually_sequentially)
+
 lemma sequentially_bot [simp, intro]: "sequentially \<noteq> bot"
   unfolding filter_eq_iff eventually_sequentially by auto
 

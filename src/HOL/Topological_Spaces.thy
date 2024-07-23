@@ -893,6 +893,15 @@ lemma (in order_topology)
       simp: eventually_at_filter less_le
       elim: eventually_elim2)
 
+lemma (in order_topology)
+  shows at_within_Ici_at_right: "at a within {a..} = at_right a"
+    and at_within_Iic_at_left:  "at a within {..a} = at_left a"
+  using order_tendstoD(2)[OF tendsto_ident_at [where s = "{a<..}"]]
+  using order_tendstoD(1)[OF tendsto_ident_at[where s = "{..<a}"]]
+  by (auto intro!: order_class.order_antisym filter_leI
+      simp: eventually_at_filter less_le
+      elim: eventually_elim2)
+
 lemma (in order_topology) at_within_Icc_at: "a < x \<Longrightarrow> x < b \<Longrightarrow> at x within {a..b} = at x"
   by (rule at_within_open_subset[where S="{a<..<b}"]) auto
 
@@ -1237,7 +1246,7 @@ lemma strict_mono_id: "strict_mono id"
   by (simp add: strict_mono_def)
 
 lemma incseq_SucI: "(\<And>n. X n \<le> X (Suc n)) \<Longrightarrow> incseq X"
-  using lift_Suc_mono_le[of X] by (auto simp: incseq_def)
+  by (simp add: mono_iff_le_Suc)
 
 lemma incseqD: "incseq f \<Longrightarrow> i \<le> j \<Longrightarrow> f i \<le> f j"
   by (auto simp: incseq_def)
@@ -1252,7 +1261,7 @@ lemma incseq_const[simp, intro]: "incseq (\<lambda>x. k)"
   unfolding incseq_def by auto
 
 lemma decseq_SucI: "(\<And>n. X (Suc n) \<le> X n) \<Longrightarrow> decseq X"
-  using order.lift_Suc_mono_le[OF dual_order, of X] by (auto simp: decseq_def)
+  by (simp add: antimono_iff_le_Suc)
 
 lemma decseqD: "decseq f \<Longrightarrow> i \<le> j \<Longrightarrow> f j \<le> f i"
   by (auto simp: decseq_def)

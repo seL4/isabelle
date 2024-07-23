@@ -283,8 +283,10 @@ locale residues_prime =
   defines "R \<equiv> residue_ring (int p)"
 
 sublocale residues_prime < residues p
-  unfolding R_def residues_def
-  by (auto simp: p_prime prime_gt_1_int)
+proof
+  show "1 < int p"
+    using prime_gt_1_nat by auto
+qed
 
 context residues_prime
 begin

@@ -750,16 +750,10 @@ qed
 lemma less_RealD:
   assumes "cauchy Y"
   shows "x < Real Y \<Longrightarrow> \<exists>n. x < of_rat (Y n)"
-  apply (erule contrapos_pp)
-  apply (simp add: not_less)
-  apply (erule Real_leI [OF assms])
-  done
+  by (meson Real_leI assms leD leI)
 
 lemma of_nat_less_two_power [simp]: "of_nat n < (2::'a::linordered_idom) ^ n"
-  apply (induct n)
-   apply simp
-  apply (metis add_le_less_mono mult_2 of_nat_Suc one_le_numeral one_le_power power_Suc)
-  done
+  by auto
 
 lemma complete_real:
   fixes S :: "real set"
@@ -1619,6 +1613,18 @@ lemma Rats_no_top_le: "\<exists>q \<in> \<rat>. x \<le> q"
 
 lemma Rats_no_bot_less: "\<exists>q \<in> \<rat>. q < x" for x :: real
   by (auto intro!: bexI[of _ "of_int (\<lfloor>x\<rfloor> - 1)"]) linarith
+
+lemma floor_ceiling_diff_le: "0 \<le> r \<Longrightarrow> nat\<lfloor>real k - r\<rfloor> \<le> k - nat\<lceil>r\<rceil>"
+  by linarith
+
+lemma floor_ceiling_diff_le': "nat\<lfloor>r - real k\<rfloor> \<le> nat\<lceil>r\<rceil> - k"
+  by linarith
+
+lemma ceiling_floor_diff_ge: "nat\<lceil>r - real k\<rceil> \<ge> nat\<lfloor>r\<rfloor> - k"
+  by linarith
+
+lemma ceiling_floor_diff_ge': "r \<le> k \<Longrightarrow> nat\<lceil>r - real k\<rceil> \<le> k - nat\<lfloor>r\<rfloor>"
+  by linarith
 
 
 subsection \<open>Exponentiation with floor\<close>

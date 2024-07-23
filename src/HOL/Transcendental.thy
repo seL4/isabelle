@@ -6988,7 +6988,7 @@ lemma tanh_real_zero_iff [simp]: "tanh x = 0 \<longleftrightarrow> x = 0"
 end
   
 lemma sinh_real_strict_mono: "strict_mono (sinh :: real \<Rightarrow> real)"
-  by (rule pos_deriv_imp_strict_mono derivative_intros)+ auto
+  by (force intro: strict_monoI DERIV_pos_imp_increasing [where f=sinh] derivative_intros)
 
 lemma cosh_real_strict_mono:
   assumes "0 \<le> x" and "x < (y::real)"
@@ -7004,10 +7004,10 @@ qed
 
 lemma tanh_real_strict_mono: "strict_mono (tanh :: real \<Rightarrow> real)"
 proof -
-  have *: "tanh x ^ 2 < 1" for x :: real
+  have "tanh x ^ 2 < 1" for x :: real
     using tanh_real_bounds[of x] by (simp add: abs_square_less_1 abs_if)
-  show ?thesis
-    by (rule pos_deriv_imp_strict_mono) (insert *, auto intro!: derivative_intros)
+  then show ?thesis
+    by (force intro!: strict_monoI DERIV_pos_imp_increasing [where f=tanh] derivative_intros)
 qed
 
 lemma sinh_real_abs [simp]: "sinh (abs x :: real) = abs (sinh x)"
