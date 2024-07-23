@@ -140,7 +140,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
 
     (* recode *)
 
-    val thy_cache = perhaps ZTerm.init_cache thy;
+    val thy_cache = thy;  (* FIXME tmp *)
 
     val ztyp_of = ZTerm.ztyp_cache thy_cache;
     val zterm_of = ZTerm.zterm_of thy_cache;
