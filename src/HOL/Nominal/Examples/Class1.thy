@@ -73,7 +73,7 @@ nominal_datatype ctrm = Co "\<guillemotleft>coname\<guillemotright>trm" ("(<_>:_
 text \<open>renaming functions\<close>
 
 nominal_primrec (freshness_context: "(d::coname,e::coname)") 
-  crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  ("_[_\<turnstile>c>_]" [100,100,100] 100) 
+  crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  ("_[_\<turnstile>c>_]" [100,0,0] 100) 
 where
   "(Ax x a)[d\<turnstile>c>e] = (if a=d then Ax x e else Ax x a)" 
 | "\<lbrakk>a\<sharp>(d,e,N);x\<sharp>M\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[d\<turnstile>c>e] = Cut <a>.(M[d\<turnstile>c>e]) (x).(N[d\<turnstile>c>e])" 
@@ -92,7 +92,7 @@ where
   by(finite_guess | simp add: abs_fresh abs_supp fin_supp | fresh_guess)+
 
 nominal_primrec (freshness_context: "(u::name,v::name)") 
-  nrename :: "trm \<Rightarrow> name \<Rightarrow> name \<Rightarrow> trm"      ("_[_\<turnstile>n>_]" [100,100,100] 100) 
+  nrename :: "trm \<Rightarrow> name \<Rightarrow> name \<Rightarrow> trm"      ("_[_\<turnstile>n>_]" [100,0,0] 100) 
 where
   "(Ax x a)[u\<turnstile>n>v] = (if x=u then Ax v a else Ax x a)" 
 | "\<lbrakk>a\<sharp>N;x\<sharp>(u,v,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[u\<turnstile>n>v] = Cut <a>.(M[u\<turnstile>n>v]) (x).(N[u\<turnstile>n>v])" 
@@ -3477,7 +3477,7 @@ by(simp add: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap perm_c
 text \<open>Transitive Closure\<close>
 
 abbreviation
- a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a* _" [100,100] 100)
+ a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a* _" [80,80] 80)
 where
   "M \<longrightarrow>\<^sub>a* M' \<equiv> (a_redu)\<^sup>*\<^sup>* M M'"
 
@@ -3581,500 +3581,199 @@ lemmas a_star_congs = a_star_Cut a_star_NotR a_star_NotL a_star_AndR a_star_AndL
                       a_star_OrL a_star_OrR1 a_star_OrR2 a_star_ImpL a_star_ImpR
 
 lemma a_star_redu_NotL_elim:
-  assumes a: "NotL <a>.M x \<longrightarrow>\<^sub>a* R"
+  assumes "NotL <a>.M x \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = NotL <a>.M' x \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_NotL_elim)
-apply(auto)
-done
+  using assms by (induct set: rtranclp) (use a_redu_NotL_elim in force)+
 
 lemma a_star_redu_NotR_elim:
-  assumes a: "NotR (x).M a \<longrightarrow>\<^sub>a* R"
+  assumes "NotR (x).M a \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = NotR (x).M' a \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_NotR_elim)
-apply(auto)
-done
+  using assms by (induct set: rtranclp) (use a_redu_NotR_elim in force)+
 
 lemma a_star_redu_AndR_elim:
-  assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a* R"
+  assumes "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a* R"
   shows "(\<exists>M' N'. R = AndR <a>.M' <b>.N' c \<and> M \<longrightarrow>\<^sub>a* M' \<and> N \<longrightarrow>\<^sub>a* N')"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_AndR_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_AndR_elim in force)+
 
 lemma a_star_redu_AndL1_elim:
-  assumes a: "AndL1 (x).M y \<longrightarrow>\<^sub>a* R"
+  assumes "AndL1 (x).M y \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = AndL1 (x).M' y \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_AndL1_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_AndL1_elim in force)+
 
 lemma a_star_redu_AndL2_elim:
-  assumes a: "AndL2 (x).M y \<longrightarrow>\<^sub>a* R"
+  assumes "AndL2 (x).M y \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = AndL2 (x).M' y \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_AndL2_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_AndL2_elim in force)+
 
 lemma a_star_redu_OrL_elim:
-  assumes a: "OrL (x).M (y).N z \<longrightarrow>\<^sub>a* R"
+  assumes "OrL (x).M (y).N z \<longrightarrow>\<^sub>a* R"
   shows "(\<exists>M' N'. R = OrL (x).M' (y).N' z \<and> M \<longrightarrow>\<^sub>a* M' \<and> N \<longrightarrow>\<^sub>a* N')"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_OrL_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_OrL_elim in force)+
 
 lemma a_star_redu_OrR1_elim:
-  assumes a: "OrR1 <a>.M y \<longrightarrow>\<^sub>a* R"
+  assumes "OrR1 <a>.M y \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = OrR1 <a>.M' y \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_OrR1_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_OrR1_elim in force)+
 
 lemma a_star_redu_OrR2_elim:
-  assumes a: "OrR2 <a>.M y \<longrightarrow>\<^sub>a* R"
+  assumes "OrR2 <a>.M y \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = OrR2 <a>.M' y \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_OrR2_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_OrR2_elim in force)+
 
 lemma a_star_redu_ImpR_elim:
-  assumes a: "ImpR (x).<a>.M y \<longrightarrow>\<^sub>a* R"
+  assumes "ImpR (x).<a>.M y \<longrightarrow>\<^sub>a* R"
   shows "\<exists>M'. R = ImpR (x).<a>.M' y \<and> M \<longrightarrow>\<^sub>a* M'"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_ImpR_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_ImpR_elim in force)+
 
 lemma a_star_redu_ImpL_elim:
-  assumes a: "ImpL <a>.M (y).N z \<longrightarrow>\<^sub>a* R"
+  assumes "ImpL <a>.M (y).N z \<longrightarrow>\<^sub>a* R"
   shows "(\<exists>M' N'. R = ImpL <a>.M' (y).N' z \<and> M \<longrightarrow>\<^sub>a* M' \<and> N \<longrightarrow>\<^sub>a* N')"
-using a
-apply(induct set: rtranclp)
-apply(auto)
-apply(drule a_redu_ImpL_elim)
-apply(auto simp: alpha trm.inject)
-done
+  using assms by (induct set: rtranclp) (use a_redu_ImpL_elim in force)+
 
 text \<open>Substitution\<close>
 
 lemma subst_not_fin1:
   shows "\<not>fin(M{x:=<c>.P}) x"
-apply(nominal_induct M avoiding: x c P rule: trm.strong_induct)
-apply(auto)
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotL)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P,name1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL1)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<c>.P},P,name1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL2)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{x:=<c>.P},P,name1,trm2{x:=<c>.P},name2)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrL)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{name2:=<c>.P},P,name1,trm2{name2:=<c>.P})")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpL)
-apply(erule fin.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(erule fin.cases, simp_all add: trm.inject)
-done
+proof (nominal_induct M avoiding: x c P rule: trm.strong_induct)
+  case (Ax name coname)
+  with fin_rest_elims show ?case
+    by (auto simp: fin_Ax_elim)
+next
+  case (NotL coname trm name)
+  obtain x'::name where "x'\<sharp>(trm{x:=<c>.P},P)"
+    by (meson exists_fresh(1) fs_name1)
+  with NotL fin_NotL_elim fresh_fun_simp_NotL show ?case
+    by simp (metis fin_rest_elims(1) fresh_prod)
+next
+  case (AndL1 name1 trm name2)
+  obtain x'::name where "x' \<sharp> (trm{x:=<c>.P},P,name1)"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL1 fin_AndL1_elim fresh_fun_simp_AndL1 show ?case
+    by simp (metis fin_rest_elims(1) fresh_prod)
+next
+  case (AndL2 name2 trm name2)
+  obtain x'::name where "x' \<sharp> (trm{x:=<c>.P},P,name2)"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL2 fin_AndL2_elim fresh_fun_simp_AndL2 better_AndL2_substn show ?case
+    by (metis abs_fresh(1) fresh_atm(1) not_fin_subst2)
+next
+  case (OrL name1 trm1 name2 trm2 name3)
+  obtain x'::name where "x' \<sharp> (trm1{x:=<c>.P},P,name1,trm2{x:=<c>.P},name2)"
+    by (meson exists_fresh(1) fs_name1)
+  with OrL fin_OrL_elim fresh_fun_simp_OrL show ?case
+    by simp (metis fin_rest_elims(1) fresh_prod)
+next
+  case (ImpL coname trm1 name1 trm2 name2)
+  obtain x'::name where "x' \<sharp> (trm1{name2:=<c>.P},P,name1,trm2{name2:=<c>.P})"
+    by (meson exists_fresh(1) fs_name1)
+  with ImpL fin_ImpL_elim fresh_fun_simp_ImpL show ?case
+    by simp (metis fin_rest_elims(1) fresh_prod)
+qed (use fin_rest_elims not_fin_subst2 in auto)
 
-lemma subst_not_fin2:
-  assumes a: "\<not>fin M y"
-  shows "\<not>fin(M{c:=(x).P}) y" 
-using a
-apply(nominal_induct M avoiding: x c P y rule: trm.strong_induct)
-apply(auto)
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname:=(x).P},P)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotR)
-apply(drule fin_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(drule freshn_after_substc)
-apply(simp add: fin.intros)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm1{coname3:=(x).P},P,coname1,trm2{coname3:=(x).P},coname2)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndR)
-apply(drule fin_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshn_after_substc)
-apply(simp add: fin.intros abs_fresh)
-apply(drule fin_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshn_after_substc)
-apply(simp add: fin.intros abs_fresh)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname2:=(x).P},P,coname1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR1)
-apply(drule fin_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fin_elims, simp)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname2:=(x).P},P,coname1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR2)
-apply(drule fin_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshn_after_substc)
-apply(drule freshn_after_substc)
-apply(simp add: fin.intros abs_fresh)
-apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(trm{coname2:=(x).P},P,coname1,coname2)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpR)
-apply(drule fin_elims, simp)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(drule fin_elims, simp)
-apply(drule fin_elims, simp)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshn_after_substc)
-apply(drule freshn_after_substc)
-apply(simp add: fin.intros abs_fresh)
-done
-
-lemma subst_not_fic1:
-  shows "\<not>fic (M{a:=(x).P}) a"
-apply(nominal_induct M avoiding: a x P rule: trm.strong_induct)
-apply(auto)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(trm{coname:=(x).P},P)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotR)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(trm1{coname3:=(x).P},P,trm2{coname3:=(x).P},coname1,coname2)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndR)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(trm{coname2:=(x).P},P,coname1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR1)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(trm{coname2:=(x).P},P,coname1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrR2)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(trm{coname2:=(x).P},P,coname1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpR)
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(rule exists_fresh'(2)[OF fs_coname1])
-apply(erule fic.cases, simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)
-done
-
-lemma subst_not_fic2:
-  assumes a: "\<not>fic M a"
-  shows "\<not>fic(M{x:=<b>.P}) a" 
-using a
-apply(nominal_induct M avoiding: x a P b rule: trm.strong_induct)
-apply(auto)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<b>.P},P)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_NotL)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(auto)[1]
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<b>.P},P,name1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL1)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<b>.P},P,name1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_AndL2)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{x:=<b>.P},P,name1,trm2{x:=<b>.P},name2)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_OrL)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-apply(drule fic_elims, simp)
-apply(simp add: abs_fresh fresh_atm)
-apply(drule freshc_after_substn)
-apply(simp add: fic.intros abs_fresh)
-apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm1{name2:=<b>.P},trm2{name2:=<b>.P},P,name1)")
-apply(erule exE)
-apply(simp add: fresh_prod)
-apply(erule conjE)+
-apply(simp add: fresh_fun_simp_ImpL)
-apply(drule fic_elims, simp)
-apply(rule exists_fresh'(1)[OF fs_name1])
-apply(drule fic_elims, simp)
-done
+lemmas subst_not_fin2 = not_fin_subst1
 
 text \<open>Reductions\<close>
 
 lemma fin_l_reduce:
-  assumes  a: "fin M x"
-  and      b: "M \<longrightarrow>\<^sub>l M'"
+  assumes "fin M x" and "M \<longrightarrow>\<^sub>l M'"
   shows "fin M' x"
-using b a
-apply(induct)
-apply(erule fin.cases)
-apply(simp_all add: trm.inject)
-apply(rotate_tac 3)
-apply(erule fin.cases)
-apply(simp_all add: trm.inject)
-apply(erule fin.cases, simp_all add: trm.inject)+
-done
+  using assms fin_rest_elims(1) l_redu.simps by fastforce
 
 lemma fin_c_reduce:
-  assumes  a: "fin M x"
-  and      b: "M \<longrightarrow>\<^sub>c M'"
+  assumes "fin M x" and "M \<longrightarrow>\<^sub>c M'"
   shows "fin M' x"
-using b a
-apply(induct)
-apply(erule fin.cases, simp_all add: trm.inject)+
-done
+  using assms c_redu.simps fin_rest_elims(1) by fastforce
 
 lemma fin_a_reduce:
   assumes  a: "fin M x"
   and      b: "M \<longrightarrow>\<^sub>a M'"
   shows "fin M' x"
-using a b
-apply(induct)
-apply(drule ax_do_not_a_reduce)
-apply(simp)
-apply(drule a_redu_NotL_elim)
-apply(auto)
-apply(rule fin.intros)
-apply(simp add: fresh_a_redu)
-apply(drule a_redu_AndL1_elim)
-apply(auto)
-apply(rule fin.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(drule a_redu_AndL2_elim)
-apply(auto)
-apply(rule fin.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(drule a_redu_OrL_elim)
-apply(auto)
-apply(rule fin.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(rule fin.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(drule a_redu_ImpL_elim)
-apply(auto)
-apply(rule fin.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(rule fin.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(force simp add: abs_fresh fresh_a_redu)
-done
+using assms
+proof (induct)
+  case (1 x a)
+  then show ?case
+    using ax_do_not_a_reduce by auto
+next
+  case (2 x M a)
+  then show ?case
+    using a_redu_NotL_elim fresh_a_redu1 by blast
+next
+  case (3 y x M)
+  then show ?case
+    by (metis a_redu_AndL1_elim abs_fresh(1) fin.intros(3) fresh_a_redu1)
+next
+  case (4 y x M)
+  then show ?case
+    by (metis a_redu_AndL2_elim abs_fresh(1) fin.intros(4) fresh_a_redu1)
+next
+  case (5 z x M y N)
+  then show ?case
+    by (smt (verit) a_redu_OrL_elim abs_fresh(1) fin.intros(5) fresh_a_redu1)
+next
+  case (6 y M x N a)
+  then show ?case
+    by (smt (verit, best) a_redu_ImpL_elim abs_fresh(1) fin.simps fresh_a_redu1)
+qed
+
 
 lemma fin_a_star_reduce:
   assumes  a: "fin M x"
   and      b: "M \<longrightarrow>\<^sub>a* M'"
   shows "fin M' x"
-using b a
-apply(induct set: rtranclp)
-apply(auto simp: fin_a_reduce)
-done
+using b a by (induct set: rtranclp)(auto simp: fin_a_reduce)
 
 lemma fic_l_reduce:
   assumes  a: "fic M x"
   and      b: "M \<longrightarrow>\<^sub>l M'"
   shows "fic M' x"
-using b a
-apply(induct)
-apply(erule fic.cases)
-apply(simp_all add: trm.inject)
-apply(rotate_tac 3)
-apply(erule fic.cases)
-apply(simp_all add: trm.inject)
-apply(erule fic.cases, simp_all add: trm.inject)+
-done
+  using b a
+  by induction (use fic_rest_elims in force)+
 
 lemma fic_c_reduce:
   assumes a: "fic M x"
   and     b: "M \<longrightarrow>\<^sub>c M'"
   shows "fic M' x"
 using b a
-apply(induct)
-apply(erule fic.cases, simp_all add: trm.inject)+
-done
+  by induction (use fic_rest_elims in force)+
 
 lemma fic_a_reduce:
   assumes a: "fic M x"
   and     b: "M \<longrightarrow>\<^sub>a M'"
-  shows "fic M' x"
-using a b
-apply(induct)
-apply(drule ax_do_not_a_reduce)
-apply(simp)
-apply(drule a_redu_NotR_elim)
-apply(auto)
-apply(rule fic.intros)
-apply(simp add: fresh_a_redu)
-apply(drule a_redu_AndR_elim)
-apply(auto)
-apply(rule fic.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(rule fic.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(drule a_redu_OrR1_elim)
-apply(auto)
-apply(rule fic.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(drule a_redu_OrR2_elim)
-apply(auto)
-apply(rule fic.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-apply(drule a_redu_ImpR_elim)
-apply(auto)
-apply(rule fic.intros)
-apply(force simp add: abs_fresh fresh_a_redu)
-done
+shows "fic M' x"
+  using assms
+proof induction
+  case (1 x a)
+  then show ?case
+    using ax_do_not_a_reduce by fastforce
+next
+  case (2 a M x)
+  then show ?case
+    using a_redu_NotR_elim fresh_a_redu2 by blast
+next
+  case (3 c a M b N)
+  then show ?case
+    by (smt (verit) a_redu_AndR_elim abs_fresh(2) fic.intros(3) fresh_a_redu2)
+next
+  case (4 b a M)
+  then show ?case
+    by (metis a_redu_OrR1_elim abs_fresh(2) fic.intros(4) fresh_a_redu2)
+next
+  case (5 b a M)
+  then show ?case
+    by (metis a_redu_OrR2_elim abs_fresh(2) fic.simps fresh_a_redu2)
+next
+  case (6 b a M x)
+  then show ?case
+    by (metis a_redu_ImpR_elim abs_fresh(2) fic.simps fresh_a_redu2)
+qed
+
 
 lemma fic_a_star_reduce:
   assumes  a: "fic M x"
   and      b: "M \<longrightarrow>\<^sub>a* M'"
   shows "fic M' x"
 using b a
-apply(induct set: rtranclp)
-apply(auto simp: fic_a_reduce)
-done
+  by (induct set: rtranclp) (auto simp: fic_a_reduce)
 
 text \<open>substitution properties\<close>
 
