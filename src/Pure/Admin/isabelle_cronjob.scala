@@ -356,7 +356,7 @@ object Isabelle_Cronjob {
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
-        Remote_Build("AFP (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
+        Remote_Build("AFP macOS (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
           history_base = "build_history_base_arm",
           java_heap = "8g",
           options = "-m32 -M1x5 -p pide_session=false -t AFP" +
@@ -387,7 +387,7 @@ object Isabelle_Cronjob {
           args = "-a -d '~~/src/Benchmarks'",
           count = () => 3)),
       List(
-        Remote_Build("Windows/AFP", "windows2",
+        Remote_Build("AFP Windows", "windows2",
           java_heap = "8g",
           options = "-m32 -M1x6 -t AFP",
           args = "-a -X large -X slow",
