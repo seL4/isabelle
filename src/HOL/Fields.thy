@@ -1156,7 +1156,7 @@ lemma divide_right_mono:
 lemma divide_right_mono_neg: "a \<le> b \<Longrightarrow> c \<le> 0 \<Longrightarrow> b / c \<le> a / c"
   by (auto dest: divide_right_mono [of _ _ "- c"])
 
-lemma divide_left_mono_neg: "a \<le> b \<Longrightarrow> c \<le> 0 \<Longrightarrow> 0 < a * b \<Longrightarrow> c / a \<le> c / b"
+lemma divide_left_mono_neg: "a \<le> b \<Longrightarrow> c \<le> 0 \<Longrightarrow> 0 < a \<Longrightarrow> c / a \<le> c / b"
   by (auto simp add: mult.commute dest: divide_left_mono [of _ _ "- c"])
 
 lemma inverse_le_iff: "inverse a \<le> inverse b \<longleftrightarrow> (0 < a * b \<longrightarrow> b \<le> a) \<and> (a * b \<le> 0 \<longrightarrow> a \<le> b)"
