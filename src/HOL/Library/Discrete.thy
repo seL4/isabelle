@@ -63,7 +63,7 @@ next
   then show ?thesis by (simp add: log_rec)
 qed
 
-lemma log_exp [simp]: "log (2 ^ n) = n"
+lemma log_power [simp]: "log (2 ^ n) = n"
   by (induct n) simp_all
 
 lemma log_mono: "mono log"

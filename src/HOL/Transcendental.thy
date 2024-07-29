@@ -1494,6 +1494,16 @@ lemma exp_le_cancel_iff [iff]: "exp x \<le> exp y \<longleftrightarrow> x \<le> 
   for x y :: real
   by (auto simp: linorder_not_less [symmetric])
 
+lemma exp_mono:
+  fixes x y :: real
+  assumes "x \<le> y"
+  shows "exp x \<le> exp y"
+  using assms exp_le_cancel_iff by fastforce
+
+lemma exp_minus': "exp (-x) = 1 / (exp x)"
+  for x :: "'a::{real_normed_field,banach}"
+  by (simp add: exp_minus inverse_eq_divide)
+
 lemma exp_inj_iff [iff]: "exp x = exp y \<longleftrightarrow> x = y"
   for x y :: real
   by (simp add: order_eq_iff)
@@ -1668,8 +1678,11 @@ lemma ln_le_cancel_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> 
   for x :: real
   by (simp add: linorder_not_less [symmetric])
 
-lemma ln_mono: "\<And>x::real. \<lbrakk>x \<le> y; 0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x \<le> ln y"
-  using ln_le_cancel_iff by presburger
+lemma ln_mono: "\<And>x::real. \<lbrakk>x \<le> y; 0 < x\<rbrakk> \<Longrightarrow> ln x \<le> ln y"
+  by simp
+
+lemma ln_strict_mono: "\<And>x::real. \<lbrakk>x < y; 0 < x\<rbrakk> \<Longrightarrow> ln x < ln y"
+  by simp
 
 lemma ln_inj_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x = ln y \<longleftrightarrow> x = y"
   for x :: real
@@ -2326,6 +2339,9 @@ subsection\<open>The general logarithm\<close>
 definition log :: "real \<Rightarrow> real \<Rightarrow> real"
   \<comment> \<open>logarithm of \<^term>\<open>x\<close> to base \<^term>\<open>a\<close>\<close>
   where "log a x = ln x / ln a"
+
+lemma log_exp [simp]: "log b (exp x) = x / ln b"
+  by (simp add: log_def)
 
 lemma tendsto_log [tendsto_intros]:
   "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> 0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> b\<noteq>0 \<Longrightarrow>

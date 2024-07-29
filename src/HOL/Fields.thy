@@ -949,7 +949,7 @@ lemma divide_strict_left_mono:
   by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono)
 
 lemma divide_left_mono:
-  "\<lbrakk>b \<le> a; 0 \<le> c; 0 < a*b\<rbrakk> \<Longrightarrow> c / a \<le> c / b"
+  "\<lbrakk>b \<le> a; 0 \<le> c; 0 < b\<rbrakk> \<Longrightarrow> c / a \<le> c / b"
   by (auto simp: field_simps zero_less_mult_iff mult_right_mono)
 
 lemma divide_strict_left_mono_neg:
@@ -957,16 +957,16 @@ lemma divide_strict_left_mono_neg:
   by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono_neg)
 
 lemma mult_imp_div_pos_le: "0 < y \<Longrightarrow> x \<le> z * y \<Longrightarrow> x / y \<le> z"
-by (subst pos_divide_le_eq, assumption+)
+  by (subst pos_divide_le_eq, assumption+)
 
 lemma mult_imp_le_div_pos: "0 < y \<Longrightarrow> z * y \<le> x \<Longrightarrow> z \<le> x / y"
-by(simp add:field_simps)
+  by(simp add:field_simps)
 
 lemma mult_imp_div_pos_less: "0 < y \<Longrightarrow> x < z * y \<Longrightarrow> x / y < z"
-by(simp add:field_simps)
+  by(simp add:field_simps)
 
 lemma mult_imp_less_div_pos: "0 < y \<Longrightarrow> z * y < x \<Longrightarrow> z < x / y"
-by(simp add:field_simps)
+  by(simp add:field_simps)
 
 lemma frac_le:
   assumes "0 \<le> y" "x \<le> y" "0 < w" "w \<le> z"
@@ -1009,6 +1009,11 @@ proof (rule mult_imp_div_pos_less)
   show "x < y / w * z"
     using assms by (force intro: mult_imp_less_div_pos mult_le_less_imp_less)
 qed
+
+text \<open>As above, with a better name\<close>
+lemma divide_mono:
+  "\<lbrakk>b \<le> a; c \<le> d; 0 < b; 0 \<le> c\<rbrakk> \<Longrightarrow> c / a \<le> d / b"
+  by (simp add: frac_le)
 
 lemma less_half_sum: "a < b \<Longrightarrow> a < (a+b) / (1+1)"
   by (simp add: field_simps zero_less_two)

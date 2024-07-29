@@ -1303,6 +1303,8 @@ lemma real_0_le_add_iff: "0 \<le> x + y \<longleftrightarrow> - x \<le> y"
   for x y :: real
   by auto
 
+lemma mult_ge1_I: "\<lbrakk>x\<ge>1; y\<ge>1\<rbrakk> \<Longrightarrow> x*y \<ge> (1::real)"
+  using mult_mono by fastforce
 
 subsection \<open>Lemmas about powers\<close>
 
