@@ -956,14 +956,13 @@ proof -
       using bnds_sqrt'[of ?sxx prec] by auto
     finally
     have "sqrt (1 + x*x) \<le> ub_sqrt prec ?sxx" .
-    hence \<dagger>: "?R \<le> ?fR" by (auto simp: float_plus_up.rep_eq plus_up_def intro!: truncate_up_le)
+    hence "?R \<le> ?fR" by (auto simp: float_plus_up.rep_eq plus_up_def intro!: truncate_up_le)
     hence "0 < ?fR" and "0 < real_of_float ?fR" using \<open>0 < ?R\<close> by auto
 
     have monotone: "?DIV \<le> x / ?R"
     proof -
       have "?DIV \<le> real_of_float x / ?fR" by (rule float_divl)
-      also have "\<dots> \<le> x / ?R"
-        by (simp add: \<dagger> assms divide_left_mono divisor_gt0)
+      also have "\<dots> \<le> x / ?R" by (rule divide_left_mono[OF \<open>?R \<le> ?fR\<close> \<open>0 \<le> real_of_float x\<close> mult_pos_pos[OF order_less_le_trans[OF divisor_gt0 \<open>?R \<le> real_of_float ?fR\<close>] divisor_gt0]])
       finally show ?thesis .
     qed
 
@@ -1082,16 +1081,16 @@ proof -
     also have "\<dots> \<le> sqrt (1 + x*x)"
       by (auto simp: float_plus_down.rep_eq plus_down_def float_round_down.rep_eq truncate_down_le)
     finally have "lb_sqrt prec ?sxx \<le> sqrt (1 + x*x)" .
-    hence \<dagger>: "?fR \<le> ?R"
+    hence "?fR \<le> ?R"
       by (auto simp: float_plus_down.rep_eq plus_down_def truncate_down_le)
-    have monotone: "x / ?R \<le> (float_divr prec x ?fR)"
-    proof -
     have "0 < real_of_float ?fR"
       by (auto simp: float_plus_down.rep_eq plus_down_def float_round_down.rep_eq
         intro!: truncate_down_ge1 lb_sqrt_lower_bound order_less_le_trans[OF zero_less_one]
         truncate_down_nonneg add_nonneg_nonneg)
-      then have "x / ?R \<le> x / ?fR"
-        using \<dagger> assms divide_left_mono by blast 
+    have monotone: "x / ?R \<le> (float_divr prec x ?fR)"
+    proof -
+      from divide_left_mono[OF \<open>?fR \<le> ?R\<close> \<open>0 \<le> real_of_float x\<close> mult_pos_pos[OF divisor_gt0 \<open>0 < real_of_float ?fR\<close>]]
+      have "x / ?R \<le> x / ?fR" .
       also have "\<dots> \<le> ?DIV" by (rule float_divr)
       finally show ?thesis .
     qed
