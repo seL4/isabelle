@@ -23,10 +23,7 @@ lemma T_length_eq: "T_length xs = length xs + 1"
 
 lemmas [simp del] = T_length.simps
 
-
-fun T_map  :: "('a \<Rightarrow> nat) \<Rightarrow> 'a list \<Rightarrow> nat" where
-  "T_map T_f [] = 1"
-| "T_map T_f (x # xs) = T_f x + T_map T_f xs + 1"
+time_fun map
 
 lemma T_map_eq: "T_map T_f xs = (\<Sum>x\<leftarrow>xs. T_f x) + length xs + 1"
   by (induction xs) auto
