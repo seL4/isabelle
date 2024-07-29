@@ -959,9 +959,8 @@ next
               by (simp add: dist_norm norm_minus_commute)
             also have "... \<le> \<epsilon> * (b \<bullet> i - a \<bullet> i) / \<bar>v \<bullet> i - u \<bullet> i\<bar> / (4 * content (cbox a b))"
             proof (intro mult_right_mono divide_left_mono divide_right_mono uvi)
-              show "norm (v - u) * \<bar>v \<bullet> i - u \<bullet> i\<bar> > 0"
-                using u_less_v [OF \<open>i \<in> Basis\<close>] 
-                by (auto simp: less_eq_real_def zero_less_mult_iff that)
+              show "\<bar>v \<bullet> i - u \<bullet> i\<bar> > 0"
+                using u_less_v [OF \<open>i \<in> Basis\<close>] by force 
               show "\<epsilon> * (b \<bullet> i - a \<bullet> i) \<ge> 0"
                 using a_less_b \<open>0 < \<epsilon>\<close> \<open>i \<in> Basis\<close> by force
             qed auto
