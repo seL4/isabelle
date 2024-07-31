@@ -18,7 +18,7 @@ text \<open>Nonempty lists of 2-3 trees alternating with items, starting and end
 
 datatype 'a tree23s = T "'a tree23" | TTs "'a tree23" "'a" "'a tree23s"
 
-abbreviation "not_T ts == (\<forall>t. ts \<noteq> T t)"
+abbreviation "not_T ts == \<not>(\<exists>t. ts = T t)"
 
 fun len :: "'a tree23s \<Rightarrow> nat" where
 "len (T _) = 1" |
