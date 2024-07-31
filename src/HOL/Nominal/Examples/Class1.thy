@@ -4594,90 +4594,57 @@ next
   obtain x'::name where "x' \<sharp> (P,b,z,u,x,N,M'{y:=<b>.P},M'{y:=<b>.P}{a:=(x).N{y:=<b>.P}})"
     by (meson exists_fresh(1) fs_name1)
   with AndL1 show ?case  
-    apply(simp add: fresh_prod fresh_atm abs_fresh)
-    apply(auto simp only: fresh_fun_simp_AndL1)
-     apply (auto simp: subst_fresh abs_fresh fresh_atm forget)
-
-    apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(P,b,z,u,x,N,M'{y:=<b>.P},M'{y:=<b>.P}{a:=(x).N{y:=<b>.P}})")
-     apply(erule exE, simp add: fresh_prod)
-     apply(erule conjE)+
-     apply(simp add: fresh_fun_simp_AndL1)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+    by (force simp add: fresh_prod fresh_atm fresh_fun_simp_AndL1 subst_fresh abs_fresh forget)
 next
   case (AndL2 z M' u) 
-  then show ?case
-    apply(auto simp: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
-    apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(P,b,z,u,x,N,M'{y:=<b>.P},M'{y:=<b>.P}{a:=(x).N{y:=<b>.P}})")
-     apply(erule exE, simp add: fresh_prod)
-     apply(erule conjE)+
-     apply(simp add: fresh_fun_simp_AndL2)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+  obtain x'::name where "x' \<sharp> (P,b,z,u,x,N,M'{y:=<b>.P},M'{y:=<b>.P}{a:=(x).N{y:=<b>.P}})"
+    by (meson exists_fresh(1) fs_name1)
+  with AndL2 show ?case  
+    by (force simp add: fresh_prod fresh_atm fresh_fun_simp_AndL2 subst_fresh abs_fresh forget) 
 next
   case (OrL u M' v M'' w) 
-  then show ?case
-    apply(auto simp: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
-    apply(subgoal_tac "\<exists>z'::name. z'\<sharp>(P,b,u,w,v,N,N{y:=<b>.P},M'{y:=<b>.P},M''{y:=<b>.P},
-                  M'{y:=<b>.P}{a:=(x).N{y:=<b>.P}},M''{y:=<b>.P}{a:=(x).N{y:=<b>.P}})")
-     apply(erule exE, simp add: fresh_prod)
-     apply(erule conjE)+
-     apply(simp add: fresh_fun_simp_OrL)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+  obtain x'::name where "x' \<sharp> (P,b,u,w,v,N,N{y:=<b>.P},M'{y:=<b>.P},M''{y:=<b>.P},
+                  M'{y:=<b>.P}{a:=(x).N{y:=<b>.P}},M''{y:=<b>.P}{a:=(x).N{y:=<b>.P}})"
+    by (meson exists_fresh(1) fs_name1)
+  with OrL show ?case  
+    by (force simp add: fresh_prod fresh_atm fresh_fun_simp_OrL subst_fresh abs_fresh forget)
 next
   case (OrR1 e M' f) 
-  then show ?case
-    apply(auto simp: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
-    apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(P,b,e,f,x,N,N{y:=<b>.P},
-                                        M'{f:=(x).N},M'{y:=<b>.P}{f:=(x).N{y:=<b>.P}})")
-     apply(erule exE, simp add: fresh_prod)
-     apply(erule conjE)+
-     apply(simp add: fresh_fun_simp_OrR1)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
+  obtain c'::coname where c': "c' \<sharp> (P,b,e,f,x,N,N{y:=<b>.P},
+                                        M'{f:=(x).N},M'{y:=<b>.P}{f:=(x).N{y:=<b>.P}})"
+    by (meson exists_fresh(2) fs_coname1)
+  with OrR1 show ?case  
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_OrR1)
+    apply (clarsimp simp: subst_fresh abs_fresh fresh_atm)
+    using c' apply (auto simp: fresh_prod fresh_fun_simp_OrR1)
     done
 next
   case (OrR2 e M' f) 
-  then show ?case
-    apply(auto simp: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
-    apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(P,b,e,f,x,N,N{y:=<b>.P},
-                                        M'{f:=(x).N},M'{y:=<b>.P}{f:=(x).N{y:=<b>.P}})")
-     apply(erule exE, simp add: fresh_prod)
-     apply(erule conjE)+
-     apply(simp add: fresh_fun_simp_OrR2)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
+  obtain c'::coname where c': "c' \<sharp> (P,b,e,f,x,N,N{y:=<b>.P},
+                                        M'{f:=(x).N},M'{y:=<b>.P}{f:=(x).N{y:=<b>.P}})"
+    by (meson exists_fresh(2) fs_coname1)
+  with OrR2 show ?case  
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_OrR2)
+    apply (clarsimp simp: subst_fresh abs_fresh fresh_atm)
+    using c' apply (auto simp: fresh_prod fresh_fun_simp_OrR2)
     done
 next
   case (ImpR x e M' f) 
-  then show ?case
-    apply(auto simp: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
-     apply(subgoal_tac "\<exists>c'::coname. c'\<sharp>(P,b,e,f,x,N,N{y:=<b>.P},
-                                        M'{f:=(x).N},M'{y:=<b>.P}{f:=(x).N{y:=<b>.P}})")
-      apply(erule exE, simp add: fresh_prod)
-      apply(erule conjE)+
-      apply(simp add: fresh_fun_simp_ImpR)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-      apply(simp add: fresh_atm trm.inject alpha abs_fresh fin_supp abs_supp)
-     apply(rule exists_fresh'(2)[OF fs_coname1])
-    apply(simp add: fresh_atm trm.inject alpha abs_fresh fin_supp abs_supp)
+  obtain c'::coname where c': "c' \<sharp> (P,b,e,f,x,N,N{y:=<b>.P},
+                                     M'{f:=(x).N},M'{y:=<b>.P}{f:=(x).N{y:=<b>.P}})"
+    by (meson exists_fresh(2) fs_coname1)
+  with ImpR show ?case  
+    apply (clarsimp simp: fresh_prod fresh_fun_simp_ImpR)
+    apply (clarsimp simp: subst_fresh abs_fresh fresh_atm)
+    using c' apply (auto simp add: abs_fresh abs_supp fin_supp fresh_prod fresh_fun_simp_ImpR)
     done
 next
   case (ImpL e M' v M'' w) 
-  then show ?case
-    apply(auto simp: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
-    apply(subgoal_tac "\<exists>z'::name. z'\<sharp>(P,b,e,w,v,N,N{y:=<b>.P},M'{w:=<b>.P},M''{w:=<b>.P},
-                  M'{w:=<b>.P}{a:=(x).N{w:=<b>.P}},M''{w:=<b>.P}{a:=(x).N{w:=<b>.P}})")
-     apply(erule exE, simp add: fresh_prod)
-     apply(erule conjE)+
-     apply(simp add: fresh_fun_simp_ImpL)
-     apply (force simp add: trm.inject alpha forget fresh_prod fresh_atm subst_fresh abs_fresh abs_supp fin_supp)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+  obtain z'::name where z': "z' \<sharp> (P,b,e,w,v,N,N{y:=<b>.P},M'{w:=<b>.P},M''{w:=<b>.P},
+                  M'{w:=<b>.P}{a:=(x).N{w:=<b>.P}},M''{w:=<b>.P}{a:=(x).N{w:=<b>.P}})"
+    by (meson exists_fresh(1) fs_name1)
+  with ImpL show ?case  
+    by (force simp add: fresh_prod fresh_atm fresh_fun_simp_ImpL subst_fresh abs_fresh forget)
 qed
 
 lemma subst_subst3:
