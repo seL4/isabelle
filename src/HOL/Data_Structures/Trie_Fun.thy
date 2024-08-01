@@ -37,31 +37,31 @@ lemma isin_case: "isin (Nd b m) xs =
    x # ys \<Rightarrow> (case m x of None \<Rightarrow> False | Some t \<Rightarrow> isin t ys))"
 by(cases xs)auto
 
-definition set :: "'a trie \<Rightarrow> 'a list set" where
-[simp]: "set t = {xs. isin t xs}"
+definition set_trie :: "'a trie \<Rightarrow> 'a list set" where
+[simp]: "set_trie t = {xs. isin t xs}"
 
-lemma isin_set: "isin t xs = (xs \<in> set t)"
+lemma isin_set_trie: "isin t xs = (xs \<in> set_trie t)"
 by simp
 
-lemma set_insert: "set (insert xs t) = set t \<union> {xs}"
+lemma set_trie_insert: "set_trie (insert xs t) = set_trie t \<union> {xs}"
 by (induction xs t rule: insert.induct)
    (auto simp: isin_case split!: if_splits option.splits list.splits)
 
-lemma set_delete: "set (delete xs t) = set t - {xs}"
+lemma set_trie_delete: "set_trie (delete xs t) = set_trie t - {xs}"
 by (induction xs t rule: delete.induct)
    (auto simp: isin_case split!: if_splits option.splits list.splits)
 
 interpretation S: Set
 where empty = empty and isin = isin and insert = insert and delete = delete
-and set = set and invar = "\<lambda>_. True"
+and set = set_trie and invar = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 1 show ?case by (simp add: isin_case split: list.split)
 next
-  case 2 show ?case by(rule isin_set)
+  case 2 show ?case by(rule isin_set_trie)
 next
-  case 3 show ?case by(rule set_insert)
+  case 3 show ?case by(rule set_trie_insert)
 next
-  case 4 show ?case by(rule set_delete)
+  case 4 show ?case by(rule set_trie_delete)
 qed (rule TrueI)+
 
 end

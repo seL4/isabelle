@@ -103,15 +103,15 @@ text \<open>Overall correctness w.r.t. the \<open>Set\<close> ADT:\<close>
 
 interpretation S2: Set
 where empty = empty3 and isin = isin3 and insert = insert3 and delete = delete3
-and set = "set o abs3" and invar = invar3
+and set = "set_trie o abs3" and invar = invar3
 proof (standard, goal_cases)
   case 1 show ?case by (simp add: isin_case split: list.split)
 next
   case 2 thus ?case by (simp add: isin_abs3)
 next
-  case 3 thus ?case by (simp add: set_insert abs3_insert3 del: set_def)
+  case 3 thus ?case by (simp add: set_trie_insert abs3_insert3 del: set_trie_def)
 next
-  case 4 thus ?case by (simp add: set_delete abs3_delete3 del: set_def)
+  case 4 thus ?case by (simp add: set_trie_delete abs3_delete3 del: set_trie_def)
 next
   case 5 thus ?case by (simp add: M.map_specs Tree_Set.empty_def[symmetric])
 next
