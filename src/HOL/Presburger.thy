@@ -241,7 +241,7 @@ next
 next
   assume d: "d dvd D"
   {fix x assume H: "\<not>(d dvd x + t)" with d have "\<not>d dvd (x + D) + t"
-      by (clarsimp simp add: dvd_def,erule_tac x= "ka - k" in allE,simp add: algebra_simps)}
+      using dvd_add_left_iff[OF d, of "x+t"] by (simp add: algebra_simps)}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x + D) + t)" by auto
 qed blast
 

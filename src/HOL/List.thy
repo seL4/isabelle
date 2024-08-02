@@ -6629,14 +6629,33 @@ qed
 lemma lexn_conv:
   "lexn r n =
     {(xs,ys). length xs = n \<and> length ys = n \<and>
-    (\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y) \<in> r)}"
+    (\<exists>xys x y xs' ys'. xs = xys @ x#xs' \<and> ys = xys @ y # ys' \<and> (x, y) \<in> r)}"
+  (is "?L n = ?R n" is "_ = {(xs,ys). ?len n xs \<and> ?len n ys \<and> (\<exists>xys. ?P xs ys xys)}")
 proof (induction n)
   case (Suc n)
+(* A compact proof referring to a system-generated name:
   then show ?case
-    apply (simp add: image_Collect lex_prod_def, safe, blast)
-     apply (rule_tac x = "ab # xys" in exI, simp)
-    apply (case_tac xys; force)
+    apply (auto simp add: image_Collect lex_prod_def)
+    apply blast
+    apply (meson Cons_eq_appendI)
+    apply (case_tac xys; fastforce)
     done
+*)
+  have "(xs,ys) \<in> ?L (Suc n)" if r: "(xs,ys) \<in> ?R (Suc n)" for xs ys
+  proof -
+    from r obtain xys where r': "?len (Suc n) xs" "?len (Suc n) ys" "?P xs ys xys" by auto
+    then show ?thesis
+    proof (cases xys)
+      case Nil
+      thus ?thesis using r' by (auto simp: image_Collect lex_prod_def)
+    next
+      case Cons
+      thus ?thesis using r' Suc by (fastforce simp: image_Collect lex_prod_def)
+    qed
+  qed
+  moreover have "(xs,ys) \<in> ?L (Suc n) \<Longrightarrow> (xs,ys) \<in> ?R (Suc n)" for xs ys
+    using Suc by (auto simp add: image_Collect lex_prod_def)(blast, meson Cons_eq_appendI)
+  ultimately show ?case by (meson pred_equals_eq2)
 qed auto
 
 text\<open>By Mathias Fleury:\<close>
