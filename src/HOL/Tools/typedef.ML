@@ -100,16 +100,12 @@ fun interpretation f =
 
 val typedef_overloaded = Attrib.setup_config_bool \<^binding>\<open>typedef_overloaded\<close> (K false);
 
-fun mk_inhabited A =
-  let val T = HOLogic.dest_setT (Term.fastype_of A)
-  in HOLogic.mk_Trueprop (HOLogic.exists_const T $ Abs ("x", T, HOLogic.mk_mem (Bound 0, A))) end;
+fun mk_inhabited T A =
+  HOLogic.mk_Trueprop (\<^Const>\<open>Ex T for \<open>Abs ("x", T, \<^Const>\<open>Set.member T for \<open>Bound 0\<close> A\<close>)\<close>\<close>);
 
 fun mk_typedef newT oldT RepC AbsC A =
-  let
-    val typedefC =
-      Const (\<^const_name>\<open>type_definition\<close>,
-        (newT --> oldT) --> (oldT --> newT) --> HOLogic.mk_setT oldT --> HOLogic.boolT);
-  in Logic.mk_implies (mk_inhabited A, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ A)) end;
+  let val type_definition = \<^Const>\<open>type_definition newT oldT for RepC AbsC A\<close>
+  in Logic.mk_implies (mk_inhabited oldT A, HOLogic.mk_Trueprop type_definition) end;
 
 fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_name A lthy =
   let
@@ -210,8 +206,9 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
       error ("Not a set type: " ^ quote (Syntax.string_of_typ lthy setT));
 
     val bname = Binding.name_of name;
-    val goal = mk_inhabited set;
-    val goal_pat = mk_inhabited (Var (the_default (bname, 0) (Lexicon.read_variable bname), setT));
+    val goal = mk_inhabited oldT set;
+    val goal_pat =
+      mk_inhabited oldT (Var (the_default (bname, 0) (Lexicon.read_variable bname), setT));
 
 
     (* lhs *)
