@@ -47,6 +47,8 @@ sig
   val is_Free: term -> bool
   val is_Var: term -> bool
   val dest_Const: term -> string * typ
+  val dest_Const_name: term -> string
+  val dest_Const_type: term -> typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
   val dest_comb: term -> term * term
@@ -313,6 +315,9 @@ fun is_Var (Var _) = true
 
 fun dest_Const (Const x) =  x
   | dest_Const t = raise TERM("dest_Const", [t]);
+
+val dest_Const_name = #1 o dest_Const;
+val dest_Const_type = #2 o dest_Const;
 
 fun dest_Free (Free x) =  x
   | dest_Free t = raise TERM("dest_Free", [t]);

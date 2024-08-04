@@ -269,7 +269,7 @@ fun elim_defs thy r defs prf =
     val prf' =
       if r then
         let
-          val cnames = map (fst o dest_Const o fst) defs';
+          val cnames = map (dest_Const_name o fst) defs';
           val expand = Proofterm.fold_proof_atoms true
             (fn PThm ({serial, thm_name = (thm_name, _), prop, ...}, _) =>
                 if member (op =) defnames thm_name orelse

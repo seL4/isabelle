@@ -609,7 +609,7 @@ val _ =
 
 val _ =
   hide_names \<^command_keyword>\<open>hide_const\<close> "consts" Sign.hide_const Parse.const
-    ((#1 o dest_Const) oo Proof_Context.read_const {proper = true, strict = false});
+    (dest_Const_name oo Proof_Context.read_const {proper = true, strict = false});
 
 val _ =
   hide_names \<^command_keyword>\<open>hide_fact\<close> "facts" Global_Theory.hide_fact
