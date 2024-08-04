@@ -447,17 +447,15 @@ fun make_cnfx_thm ctxt t =
     val simp_thm = simp_True_False_thm ctxt nnf
     val simp = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) simp_thm
     (* initialize var_id, in case the term already contains variables of the form "cnfx_<int>" *)
-    val _ = (var_id := fold (fn free => fn max =>
+    val _ = (var_id := Frees.fold (fn ((name, _), _) => fn max =>
       let
-        val (name, _) = dest_Free free
         val idx =
-          if String.isPrefix "cnfx_" name then
-            (Int.fromString o String.extract) (name, String.size "cnfx_", NONE)
-          else
-            NONE
+          (case try (unprefix "cnfx_") name of
+            SOME s => Int.fromString s
+          | NONE => NONE)
       in
         Int.max (max, the_default 0 idx)
-      end) (Misc_Legacy.term_frees simp) 0)
+      end) (Frees.build (Frees.add_frees simp)) 0)
     (* finally, convert to definitional CNF (this should preserve the simplification) *)
     val cnfx_thm = make_under_quantifiers ctxt make_cnfx_thm_from_nnf simp
 (*###
