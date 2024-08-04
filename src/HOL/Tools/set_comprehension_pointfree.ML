@@ -62,7 +62,7 @@ fun mk_vimage f s =
     val T as Type (\<^type_name>\<open>fun\<close>, [T1, T2]) = fastype_of f
   in
     Const (\<^const_name>\<open>vimage\<close>, T --> HOLogic.mk_setT T2 --> HOLogic.mk_setT T1) $ f $ s
-  end; 
+  end;
 
 fun dest_Collect (Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (x, T, t)) = ((x, T), t)
   | dest_Collect t = raise TERM ("dest_Collect", [t])
@@ -164,7 +164,7 @@ fun mk_atom vs (t as Const (\<^const_name>\<open>Set.member\<close>, _) $ x $ s)
       SOME pat => (Pattern pat, Atom (Pattern pat, s))
     | NONE =>
         let
-          val (tuple, (vs', x')) = mk_term vs x 
+          val (tuple, (vs', x')) = mk_term vs x
           val rT = HOLogic.dest_setT (fastype_of s)
           val s = mk_vimage (snd (mk_case_prod rT vs' x')) s
         in (tuple, Atom (tuple, s)) end)
@@ -204,7 +204,7 @@ fun restricted_merge ([], pats) = pats
       else error "restricted merge: two patterns require relational join"
     | _ => error "restricted merge: multiple patterns overlap"
   end;
-  
+
 fun map_atoms f (Atom a) = Atom (f a)
   | map_atoms f (Un (fm1, fm2)) = Un (apply2 (map_atoms f) (fm1, fm2))
   | map_atoms f (Int (fm1, fm2)) = Int (apply2 (map_atoms f) (fm1, fm2))
@@ -236,13 +236,13 @@ fun adjust_atoms vs pats fm = map_atoms (adjust vs pats) fm
 
 fun merge_inter vs (pats1, fm1) (pats2, fm2) =
   let
-    val pats = restricted_merge (map dest_Pattern pats1, map dest_Pattern pats2) 
+    val pats = restricted_merge (map dest_Pattern pats1, map dest_Pattern pats2)
     val (fm1', fm2') = apply2 (adjust_atoms vs pats) (fm1, fm2)
   in
     (map Pattern pats, Int (fm1', fm2'))
   end;
 
-fun merge_union vs (pats1, fm1) (pats2, fm2) = 
+fun merge_union vs (pats1, fm1) (pats2, fm2) =
   let
     val pats = merge (map dest_Pattern pats1, map dest_Pattern pats2)
     val (fm1', fm2') = apply2 (adjust_atoms vs pats) (fm1, fm2)
@@ -254,7 +254,7 @@ fun mk_formula vs \<^Const_>\<open>conj for t1 t2\<close> = merge_inter vs (mk_f
   | mk_formula vs \<^Const_>\<open>disj for t1 t2\<close> = merge_union vs (mk_formula vs t1) (mk_formula vs t2)
   | mk_formula vs t = apfst single (mk_atom vs t)
 
-fun strip_Int (Int (fm1, fm2)) = fm1 :: (strip_Int fm2) 
+fun strip_Int (Int (fm1, fm2)) = fm1 :: (strip_Int fm2)
   | strip_Int fm = [fm]
 
 (* term construction *)
@@ -296,7 +296,7 @@ fun mk_pointfree_expr t =
     val t = mk_split_abs (rev ((x, T) :: vs)) pat (reorder_bounds pats f)
   in
     if the_default false (try is_reordering t) andalso is_collect_atom fm then
-      error "mk_pointfree_expr: trivial case" 
+      error "mk_pointfree_expr: trivial case"
     else (fm, mk_image t (mk_set fm))
   end;
 
@@ -305,14 +305,14 @@ val rewrite_term = try mk_pointfree_expr
 
 (* proof tactic *)
 
-val case_prod_beta = @{lemma "case_prod g x z = case_prod (\<lambda>x y. (g x y) z) x" by (simp add: case_prod_beta)}
+val case_prod_beta =
+  @{lemma "case_prod g x z = case_prod (\<lambda>x y. (g x y) z) x" by (simp add: case_prod_beta)}
 
-val vimageI2' = @{lemma "f a \<notin> A ==> a \<notin> f -` A" by simp}
-val vimageE' =
-  @{lemma "a \<notin> f -` B ==> (\<And> x. f a = x ==> x \<notin> B ==> P) ==> P" by simp}
+val vimageI2' = @{lemma "f a \<notin> A \<Longrightarrow> a \<notin> f -` A" by simp}
+val vimageE' = @{lemma "a \<notin> f -` B \<Longrightarrow> (\<And> x. f a = x ==> x \<notin> B \<Longrightarrow> P) \<Longrightarrow> P" by simp}
 
-val collectI' = @{lemma "\<not> P a ==> a \<notin> {x. P x}" by auto}
-val collectE' = @{lemma "a \<notin> {x. P x} ==> (\<not> P a ==> Q) ==> Q" by auto}
+val collectI' = @{lemma "\<not> P a \<Longrightarrow> a \<notin> {x. P x}" by auto}
+val collectE' = @{lemma "a \<notin> {x. P x} \<Longrightarrow> (\<not> P a \<Longrightarrow> Q) \<Longrightarrow> Q" by auto}
 
 fun elim_Collect_tac ctxt =
   dresolve_tac ctxt @{thms iffD1 [OF mem_Collect_eq]}
@@ -432,7 +432,7 @@ fun comprehension_conv ctxt ct =
       end;
     fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (Thm.prop_of th))
     val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.case}
-    fun tac ctxt = 
+    fun tac ctxt =
       resolve_tac ctxt @{thms set_eqI}
       THEN' simp_tac (put_simpset HOL_basic_ss ctxt addsimps unfold_thms)
       THEN' resolve_tac ctxt @{thms iffI}
