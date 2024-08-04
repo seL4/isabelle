@@ -488,7 +488,7 @@ in
             in
               if same_type_constrs (rty', qty) then
                 let
-                  val distr_rules = get_rel_distr_rules ctxt0 ((fst o dest_Type) rty') (head_of tm)
+                  val distr_rules = get_rel_distr_rules ctxt0 (dest_Type_name rty') (head_of tm)
                   val distr_rule = get_first (prove_extra_assms ctxt0 ctm) distr_rules
                 in
                   case distr_rule of
@@ -499,7 +499,7 @@ in
                 end
               else
                 let 
-                  val pcrel_def = get_pcrel_def quotients ctxt0 ((fst o dest_Type) qty)
+                  val pcrel_def = get_pcrel_def quotients ctxt0 (dest_Type_name qty)
                   val pcrel_const = (head_of o fst o Logic.dest_equals o Thm.prop_of) pcrel_def
                 in
                   if same_constants pcrel_const (head_of trans_rel) then
@@ -548,7 +548,7 @@ fun gen_parametrize_transfer_rule quotients ctxt thm =
         else
           if is_Type qty then
             let
-              val q = (fst o dest_Type) qty
+              val q = dest_Type_name qty
             in
               let
                 val (rty', rtyq) = gen_instantiate_rtys quotients ctxt (rty, qty)

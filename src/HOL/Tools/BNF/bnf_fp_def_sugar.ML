@@ -2694,7 +2694,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         |> Local_Theory.notes (common_notes @ notes)
         (* for "datatype_realizer.ML": *)
         |>> name_noted_thms
-          (fst (dest_Type (hd fpTs)) ^ implode (map (prefix "_") (tl fp_b_names))) inductN
+          (dest_Type_name (hd fpTs) ^ implode (map (prefix "_") (tl fp_b_names))) inductN
         |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Least_FP pre_bnfs absT_infos
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctor_iff_dtors ctr_defss ctr_sugars
           recs rec_defs map_thmss [induct_thm] (map single induct_thms) rec_thmss (replicate nn [])

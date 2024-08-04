@@ -42,7 +42,7 @@ fun define_crel (config: config) rep_fun lthy =
     val (qty, rty) = (dest_funT o fastype_of) rep_fun
     val rep_fun_graph = (HOLogic.eq_const rty) $ Bound 1 $ (rep_fun $ Bound 0)
     val def_term = Abs ("x", rty, Abs ("y", qty, rep_fun_graph))
-    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
+    val qty_name = Binding.name (Long_Name.base_name (dest_Type_name qty))
     val crel_name = Binding.prefix_name "cr_" qty_name
     val (fixed_def_term, lthy1) = lthy |> yield_singleton (Variable.importT_terms) def_term
     val ((_, (_ , def_thm)), lthy2) =
@@ -85,7 +85,7 @@ fun define_pcrel (config: config) crel lthy0 =
           (rty --> rty' --> HOLogic.boolT) --> 
           (rty' --> qty --> HOLogic.boolT) --> 
           rty --> qty --> HOLogic.boolT)
-    val qty_name = (fst o dest_Type) qty
+    val qty_name = dest_Type_name qty
     val pcrel_name = Binding.prefix_name "pcr_" ((Binding.name o Long_Name.base_name) qty_name)
     val relator_type = foldr1 (op -->) ((map type_of args_fixed) @ [rty, qty, HOLogic.boolT])
     val lhs = Library.foldl (op $) ((Free (Binding.name_of pcrel_name, relator_type)), args_fixed)
@@ -131,8 +131,8 @@ in
     let
       val lhs = (Thm.term_of o Thm.lhs_of) pcr_rel_def
       val qty_name =
-        (Binding.name o Long_Name.base_name o fst o dest_Type o
-          List.last o binder_types o fastype_of) lhs
+        Binding.name
+          (Long_Name.base_name (dest_Type_name (List.last (binder_types (fastype_of lhs)))))
       val args = (snd o strip_comb) lhs
       
       fun make_inst var ctxt = 
@@ -270,7 +270,7 @@ fun setup_lifting_infr config quot_thm opt_reflp_thm lthy =
       SOME pcrel_def => SOME { pcrel_def = pcrel_def, pcr_cr_eq = the pcr_cr_eq }
       | NONE => NONE
     val quotients = { quot_thm = quot_thm, pcr_info = pcr_info }
-    val qty_full_name = (fst o dest_Type) qty
+    val qty_full_name = dest_Type_name qty
     fun quot_info phi = Lifting_Info.transform_quotient phi quotients
     val reflexivity_rule_attr = Attrib.internal \<^here> (K Lifting_Info.add_reflexivity_rule_attribute)
     val lthy3 =
@@ -520,9 +520,9 @@ fun setup_by_quotient (config: config) quot_thm opt_reflp_thm opt_par_thm lthy0 
     val quot_thm = Morphism.thm (Local_Theory.target_morphism lthy0) quot_thm
     (**)
     val (rty, qty) = quot_thm_rty_qty quot_thm
-    val induct_attr = Attrib.internal \<^here> (K (Induct.induct_type (fst (dest_Type qty))))
-    val qty_full_name = (fst o dest_Type) qty
-    val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
+    val induct_attr = Attrib.internal \<^here> (K (Induct.induct_type (dest_Type_name qty)))
+    val qty_full_name = dest_Type_name qty
+    val qty_name = Binding.name (Long_Name.base_name qty_full_name)
     val qualify = Binding.qualify_name true qty_name
     val notes1 = case opt_reflp_thm of
       SOME reflp_thm =>
@@ -649,8 +649,8 @@ fun setup_by_typedef_thm config typedef_thm lthy0 =
       | _ => 
         [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
     val (rty, qty) = quot_thm_rty_qty quot_thm
-    val qty_full_name = (fst o dest_Type) qty
-    val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
+    val qty_full_name = dest_Type_name qty
+    val qty_name = Binding.name (Long_Name.base_name qty_full_name)
     val qualify = Binding.qualify_name true qty_name
     val opt_reflp_thm = 
       case typedef_set of
@@ -881,7 +881,7 @@ fun lifting_restore qinfo ctxt =
   let
     val _ = lifting_restore_sanity_check (Context.proof_of ctxt) qinfo
     val (_, qty) = quot_thm_rty_qty (#quot_thm qinfo)
-    val qty_full_name = (fst o dest_Type) qty
+    val qty_full_name = dest_Type_name qty
     val stored_qinfo = Lifting_Info.lookup_quotients (Context.proof_of ctxt) qty_full_name
   in
     if is_some (stored_qinfo) andalso not (Lifting_Info.quotient_eq (qinfo, (the stored_qinfo)))

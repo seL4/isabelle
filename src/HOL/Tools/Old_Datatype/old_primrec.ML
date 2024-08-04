@@ -60,7 +60,7 @@ fun process_eqn is_fixed spec rec_fns =
       else strip_comb (hd middle);
     val (cname, T) = dest_Const constr
       handle TERM _ => primrec_error "ill-formed constructor";
-    val (tname, _) = dest_Type (body_type T) handle TYPE _ =>
+    val tname = dest_Type_name (body_type T) handle TYPE _ =>
       primrec_error "cannot determine datatype associated with function"
 
     val (ls, cargs, rs) =

@@ -615,7 +615,7 @@ fun primrec_simple0 int plugins nonexhaustive transfer fixes ts lthy =
         val ((jss, simpss), lthy) = prove lthy defs;
         val res =
           {prefix = (names, qualifys),
-           types = map (#1 o dest_Type) arg_Ts,
+           types = map dest_Type_name arg_Ts,
            result = (map fst defs, map (snd o snd) defs, (jss, simpss))};
       in (res, lthy) end)
   end;

@@ -670,7 +670,7 @@ fun tac ctxt [] =
   | tac ctxt (Case (T, i) :: cont) =
       let
         val SOME {injects, distincts, case_thms, split, ...} =
-          Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
+          Ctr_Sugar.ctr_sugar_of ctxt (dest_Type_name T)
       in
         (* do case distinction *)
         Splitter.split_tac ctxt [split] 1

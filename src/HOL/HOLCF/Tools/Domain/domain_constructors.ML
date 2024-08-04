@@ -930,7 +930,7 @@ fun add_domain_constructors
       let
         fun qualified name = Binding.qualify_name true dbind name
         val names = "bottom" :: map (fn (b,_,_) => Binding.name_of b) spec
-        val dname = fst (dest_Type lhsT)
+        val dname = dest_Type_name lhsT
         val simp = Simplifier.simp_add
         val case_names = Rule_Cases.case_names names
         val cases_type = Induct.cases_type dname

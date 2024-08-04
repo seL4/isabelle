@@ -256,9 +256,9 @@ fun define_map_functions
       fun unprime a = Library.unprefix "'" a
       fun mapvar T = Free (unprime (fst (dest_TFree T)), T ->> T)
       fun map_lhs (map_const, lhsT) =
-          (lhsT, list_ccomb (map_const, map mapvar (filter (is_cpo thy) (snd (dest_Type lhsT)))))
+        (lhsT, list_ccomb (map_const, map mapvar (filter (is_cpo thy) (dest_Type_args lhsT))))
       val tab1 = map map_lhs (map_consts ~~ map fst dom_eqns)
-      val Ts = (snd o dest_Type o fst o hd) dom_eqns
+      val Ts = dest_Type_args (fst (hd dom_eqns))
       val tab = (Ts ~~ map mapvar Ts) @ tab1
       fun mk_map_spec (((rep_const, abs_const), _), (lhsT, rhsT)) =
         let
@@ -285,10 +285,10 @@ fun define_map_functions
         fun mk_assm T = mk_trp (mk_deflation (mk_f T))
         fun mk_goal (map_const, (lhsT, _)) =
           let
-            val (_, Ts) = dest_Type lhsT
+            val Ts = dest_Type_args lhsT
             val map_term = list_ccomb (map_const, map mk_f (filter (is_cpo thy) Ts))
           in mk_deflation map_term end
-        val assms = (map mk_assm o filter (is_cpo thy) o snd o dest_Type o fst o hd) dom_eqns
+        val assms = map mk_assm (filter (is_cpo thy) (dest_Type_args (fst (hd dom_eqns))))
         val goals = map mk_goal (map_consts ~~ dom_eqns)
         val goal = mk_trp (foldr1 HOLogic.mk_conj goals)
         val adm_rules =
@@ -329,7 +329,7 @@ fun define_map_functions
     local
       fun register_map (dname, args) =
         Domain_Take_Proofs.add_rec_type (dname, args)
-      val dnames = map (fst o dest_Type o fst) dom_eqns
+      val dnames = map (dest_Type_name o fst) dom_eqns
       fun args (T, _) = case T of Type (_, Ts) => map (is_cpo thy) Ts | _ => []
       val argss = map args dom_eqns
     in
@@ -596,7 +596,7 @@ fun gen_domain_isomorphism
             in mk_trp (isodefl_const T $ mk_f T $ mk_d T) end
         fun mk_goal (map_const, (T, _)) =
           let
-            val (_, Ts) = dest_Type T
+            val Ts = dest_Type_args T
             val map_term = list_ccomb (map_const, map mk_f (filter (is_cpo thy) Ts))
             val defl_term = defl_of_typ thy (Ts ~~ map mk_d Ts) (Ts ~~ map mk_p Ts) T
           in isodefl_const T $ map_term $ defl_term end
@@ -645,7 +645,7 @@ fun gen_domain_isomorphism
     fun prove_map_ID_thm
         (((map_const, (lhsT, _)), DEFL_thm), isodefl_thm) =
       let
-        val Ts = snd (dest_Type lhsT)
+        val Ts = dest_Type_args lhsT
         fun is_cpo T = Sign.of_sort thy (T, \<^sort>\<open>cpo\<close>)
         val lhs = list_ccomb (map_const, map mk_ID (filter is_cpo Ts))
         val goal = mk_eqs (lhs, mk_ID lhsT)
@@ -678,7 +678,7 @@ fun gen_domain_isomorphism
         val lhs = mk_tuple (map mk_lub take_consts)
         fun is_cpo T = Sign.of_sort thy (T, \<^sort>\<open>cpo\<close>)
         fun mk_map_ID (map_const, (lhsT, _)) =
-          list_ccomb (map_const, map mk_ID (filter is_cpo (snd (dest_Type lhsT))))
+          list_ccomb (map_const, map mk_ID (filter is_cpo (dest_Type_args lhsT)))
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns))
         val goal = mk_trp (mk_eq (lhs, rhs))
         val map_ID_thms = Domain_Take_Proofs.get_map_ID_thms thy

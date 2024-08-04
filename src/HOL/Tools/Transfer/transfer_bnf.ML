@@ -36,7 +36,7 @@ fun mk_Domainp P =
     Const (\<^const_name>\<open>Domainp\<close>, PT --> argT --> HOLogic.boolT) $ P
   end
 
-fun type_name_of_bnf bnf = T_of_bnf bnf |> dest_Type |> fst
+fun type_name_of_bnf bnf = dest_Type_name (T_of_bnf bnf)
 
 fun bnf_only_type_ctr f bnf = if is_Type (T_of_bnf bnf) then f bnf else I
 

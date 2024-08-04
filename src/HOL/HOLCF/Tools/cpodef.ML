@@ -170,7 +170,7 @@ fun add_podef typ set opt_bindings tac thy =
            (Typedef.add_typedef {overloaded = false} typ set opt_bindings tac)
     val oldT = #rep_type (#1 info)
     val newT = #abs_type (#1 info)
-    val lhs_tfrees = map dest_TFree (snd (dest_Type newT))
+    val lhs_tfrees = map dest_TFree (dest_Type_args newT)
 
     val RepC = Const (Rep_name, newT --> oldT)
     val below_eqn = Logic.mk_equals (below_const newT,

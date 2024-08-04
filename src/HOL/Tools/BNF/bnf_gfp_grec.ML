@@ -2114,8 +2114,8 @@ fun derive_corecUU_base fpT_name lthy =
     val sig_ctr_sugar = #ctr_sugar sig_fp_ctr_sugar;
     val ssig_ctr_sugar = #ctr_sugar ssig_fp_ctr_sugar;
 
-    val sig_T_name = fst (dest_Type (#T sig_fp_sugar));
-    val ssig_T_name = fst (dest_Type (#T ssig_fp_sugar));
+    val sig_T_name = dest_Type_name (#T sig_fp_sugar);
+    val ssig_T_name = dest_Type_name (#T ssig_fp_sugar);
 
     val sig_T = Type (sig_T_name, As);
     val ssig_T = Type (ssig_T_name, As);
@@ -2337,10 +2337,10 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val sig_ctr_sugar = #ctr_sugar sig_fp_ctr_sugar;
     val ssig_ctr_sugar = #ctr_sugar ssig_fp_ctr_sugar;
 
-    val old_sig_T_name = fst (dest_Type (#T old_sig_fp_sugar));
-    val old_ssig_T_name = fst (dest_Type (#T old_ssig_fp_sugar));
-    val sig_T_name = fst (dest_Type (#T sig_fp_sugar));
-    val ssig_T_name = fst (dest_Type (#T ssig_fp_sugar));
+    val old_sig_T_name = dest_Type_name (#T old_sig_fp_sugar);
+    val old_ssig_T_name = dest_Type_name (#T old_ssig_fp_sugar);
+    val sig_T_name = dest_Type_name (#T sig_fp_sugar);
+    val ssig_T_name = dest_Type_name (#T ssig_fp_sugar);
 
     val res_As = res_Ds @ [Y];
     val res_Bs = res_Ds @ [Z];
@@ -2618,10 +2618,10 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
     val ctor = mk_ctor res_Ds (the_single (#ctors fp_res));
     val dtor = mk_dtor res_Ds (the_single (#dtors fp_res));
 
-    val old1_sig_T_name = fst (dest_Type (#T old1_sig_fp_sugar));
-    val old2_sig_T_name = fst (dest_Type (#T old2_sig_fp_sugar));
-    val old1_ssig_T_name = fst (dest_Type (#T old1_ssig_fp_sugar));
-    val old2_ssig_T_name = fst (dest_Type (#T old2_ssig_fp_sugar));
+    val old1_sig_T_name = dest_Type_name (#T old1_sig_fp_sugar);
+    val old2_sig_T_name = dest_Type_name (#T old2_sig_fp_sugar);
+    val old1_ssig_T_name = dest_Type_name (#T old1_ssig_fp_sugar);
+    val old2_ssig_T_name = dest_Type_name (#T old2_ssig_fp_sugar);
 
     val fp_alives = map (K false) live_fp_alives;
 
@@ -2648,8 +2648,8 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
       |> define_sig_type fp_b version fp_alives Ds Y (mk_sumT (old1_sig_T0, old2_sig_T0))
       ||>> define_ssig_type fp_b version fp_alives Ds Y fpT0;
 
-    val sig_T_name = fst (dest_Type (#T sig_fp_sugar));
-    val ssig_T_name = fst (dest_Type (#T ssig_fp_sugar));
+    val sig_T_name = dest_Type_name (#T sig_fp_sugar);
+    val ssig_T_name = dest_Type_name (#T ssig_fp_sugar);
 
     val old1_sig_bnf = #fp_bnf old1_sig_fp_sugar;
     val old2_sig_bnf = #fp_bnf old2_sig_fp_sugar;
@@ -2848,7 +2848,7 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
        Symtab.map (K (apsnd embed_Sig_inr)) (#friends old2_buffer));
 
     val old_fp_sugars =
-      merge_lists (op = o apply2 (fst o dest_Type o #T)) old1_sig_fp_sugars old2_sig_fp_sugars;
+      merge_lists (op = o apply2 (dest_Type_name o #T)) old1_sig_fp_sugars old2_sig_fp_sugars;
 
     val ((dtor_coinduct_info, all_dead_k_bnfs, friend_names), lthy) = lthy
       |> derive_cong_merge fp_b version fpT old1_friend_names old2_friend_names dead_ssig_bnf
@@ -3078,7 +3078,7 @@ fun prepare_friend_corec friend_name friend_T lthy =
     val (old_info as {friend_names = old_friend_names, sig_fp_sugars = old_sig_fp_sugar :: _,
            buffer = old_buffer, ...}, lthy) =
       corec_info_of res_T lthy;
-    val old_sig_T_name = fst (dest_Type (#T old_sig_fp_sugar));
+    val old_sig_T_name = dest_Type_name (#T old_sig_fp_sugar);
     val old_sig_alives = liveness_of_fp_bnf (num_fp_tyargs + 1) (#fp_bnf old_sig_fp_sugar);
 
     (* FIXME: later *)
@@ -3137,7 +3137,7 @@ fun prepare_friend_corec friend_name friend_T lthy =
     val sig_ctr_sugar = #ctr_sugar sig_fp_ctr_sugar;
     val ssig_ctr_sugar = #ctr_sugar ssig_fp_ctr_sugar;
 
-    val ssig_T_name = fst (dest_Type (#T ssig_fp_sugar));
+    val ssig_T_name = dest_Type_name (#T ssig_fp_sugar);
 
     val preT = pre_type_of_ctor Y ctor;
     val old_sig_T = substDT old_sig_T0;

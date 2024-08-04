@@ -103,7 +103,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val data = Data.get (Context.Proof lthy0);
 
       val Ts = map #T fp_sugars
-      val T_names = map (fst o dest_Type) Ts;
+      val T_names = map dest_Type_name Ts;
       val nn = length Ts;
 
       val B_ify = Term.typ_subst_atomic (As ~~ Bs);

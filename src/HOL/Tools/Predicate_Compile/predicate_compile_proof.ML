@@ -130,7 +130,7 @@ fun prove_match options ctxt nargs out_ts =
     fun get_case_rewrite t =
       if is_constructor ctxt t then
         let
-          val SOME {case_thms, ...} = Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type (fastype_of t)))
+          val SOME {case_thms, ...} = Ctr_Sugar.ctr_sugar_of ctxt (dest_Type_name (fastype_of t))
         in
           fold (union Thm.eq_thm) (case_thms :: map get_case_rewrite (snd (strip_comb t))) []
         end
@@ -303,7 +303,7 @@ fun prove_match2 options ctxt out_ts =
         if is_constructor ctxt t then
           let
             val SOME {case_thms, split_asm, ...} =
-              Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type (fastype_of t)))
+              Ctr_Sugar.ctr_sugar_of ctxt (dest_Type_name (fastype_of t))
             val num_of_constrs = length case_thms
             val (_, ts) = strip_comb t
           in

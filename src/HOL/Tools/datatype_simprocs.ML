@@ -59,7 +59,7 @@ fun get_mutuals (sugar : BNF_FP_Def_Sugar.fp_sugar) =
   sugar
   |> #fp_res
   |> #Ts
-  |> map (dest_Type #> fst)
+  |> map dest_Type_name
 
 fun get_ctors_mutuals ctxt sugar =
   let
@@ -79,7 +79,7 @@ fun is_comb (_ $ _) = true
 (* simproc will not be used for these types *)
 val forbidden_types =
   ([@{typ "bool"}, @{typ "nat"}, @{typ "'a \<times> 'b"}, @{typ "'a + 'b"}]
-   |> map (dest_Type #> fst))
+   |> map dest_Type_name)
   @ ["List.list", "Option.option"]
 
 (* FIXME: possible improvements:
@@ -92,7 +92,7 @@ fun no_proper_subterm_proc ctxt ct =
     val (lhs, rhs) = apply2 Thm.term_of (clhs, crhs)
     val cT = Thm.ctyp_of_cterm clhs    
     val T = Thm.typ_of cT
-    val (T_name, T_args) = T |> dest_Type
+    val (T_name, T_args) = dest_Type T
 
     val _ = if member op= forbidden_types T_name then raise NOT_APPLICABLE else ()
     val _ = if lhs aconv rhs then raise NOT_APPLICABLE else ()

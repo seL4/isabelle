@@ -411,8 +411,8 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
     val typ_Abs_G = dest_funT (fastype_of Abs_G);
     val RepT = fst typ_Abs_G; (* F *)
     val AbsT = snd typ_Abs_G; (* G *)
-    val AbsT_name = fst (dest_Type AbsT);
-    val tvs = AbsT |> dest_Type |> snd |> map (fst o dest_TVar);
+    val AbsT_name = dest_Type_name AbsT;
+    val tvs = AbsT |> dest_Type_args |> map (fst o dest_TVar);
     val alpha0s = map (TFree o snd) specs;
 
     val _ = length tvs = length alpha0s orelse
@@ -833,9 +833,9 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
     (* extract rep_G and abs_G *)
     val (equiv_rel, abs_G, rep_G) = strip3 quot_thm;
     val (repT, absT) = dest_funT (fastype_of abs_G); (* ("?'a F", "?'a G") *)
-    val absT_name = fst (dest_Type absT);
+    val absT_name = dest_Type_name absT;
 
-    val tvs = map (fst o dest_TVar) (snd (dest_Type absT));
+    val tvs = map (fst o dest_TVar) (dest_Type_args absT);
     val _ = length tvs = length specs orelse
       error ("Expected " ^ string_of_int (length tvs) ^
         " type argument" ^ (if (length tvs) = 1 then "" else "s") ^ " to " ^ quote absT_name);
@@ -2052,7 +2052,7 @@ in
 
 val lift_bnf_cmd =
   prepare_lift_bnf
-    (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
+    (dest_Type_name oo Proof_Context.read_type_name {proper = true, strict = false})
     Syntax.read_sort Syntax.read_term Attrib.eval_thms;
 
 fun lift_bnf args tacs =
@@ -2071,7 +2071,7 @@ val copy_bnf_cmd =
   apfst (apfst (rpair NONE))
   #> apfst (apsnd (Option.map single))
   #> prepare_solve
-    (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
+    (dest_Type_name oo Proof_Context.read_type_name {proper = true, strict = false})
     Syntax.read_sort Syntax.read_term Attrib.eval_thms
     (fn n => replicate n copy_bnf_tac);
 

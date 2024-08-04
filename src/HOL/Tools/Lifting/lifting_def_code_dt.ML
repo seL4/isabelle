@@ -353,7 +353,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
     (* in order to make the qty qty_isom isomorphism executable we have to define discriminators 
       and selectors for qty_isom *)
     val (rty_name, typs) = dest_Type rty
-    val (_, qty_typs) = dest_Type qty
+    val qty_typs = dest_Type_args qty
     val fp = BNF_FP_Def_Sugar.fp_sugar_of lthy3 rty_name
     val fp = if is_some fp then the fp
       else error ("code_dt: " ^ quote rty_name ^ " is not a datatype.")

@@ -52,7 +52,7 @@ fun get_typedef_decl (({Abs_name, Rep_name, abs_type, rep_type, ...}, {Abs_inver
     : Typedef.info) T Ts =
   if can (curry (op RS) @{thm UNIV_I}) Abs_inverse then
     let
-      val env = snd (Term.dest_Type abs_type) ~~ Ts
+      val env = Term.dest_Type_args abs_type ~~ Ts
       val instT = Term.map_atyps (perhaps (AList.lookup (op =) env))
 
       val constr = Const (Abs_name, instT (rep_type --> abs_type))
@@ -77,7 +77,7 @@ fun get_decls fps T n Ts ctxt =
       SOME {fp, fp_res = {Ts = fp_Ts, ...}, fp_ctr_sugar = {ctr_sugar, ...}, ...} =>
       if member (op =) fps fp then
         let
-          val ns = map (fst o dest_Type) fp_Ts
+          val ns = map dest_Type_name fp_Ts
           val mutual_fp_sugars = map_filter (BNF_FP_Def_Sugar.fp_sugar_of ctxt) ns
           val Xs = map #X mutual_fp_sugars
           val ctrXs_Tsss = map (#ctrXs_Tss o #fp_ctr_sugar) mutual_fp_sugars

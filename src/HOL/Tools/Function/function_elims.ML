@@ -109,7 +109,7 @@ fun mk_partial_elim_rules ctxt result =
 
         val (rhs_var, arg_vars, prop) = mk_funeq arity (fastype_of f) ([], f);
         val args = HOLogic.mk_tuple arg_vars;
-        val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
+        val domT = hd (dest_Type_args (snd (dest_Free R)));
 
         val P = Thm.cterm_of ctxt (variant_free prop ("P", \<^typ>\<open>bool\<close>));
         val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx + 1) args;

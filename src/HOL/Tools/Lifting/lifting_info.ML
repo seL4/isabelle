@@ -184,7 +184,7 @@ fun add_quot_map rel_quot_thm context =
     val _ = Context.cases (K ()) (quot_map_thm_sanity_check rel_quot_thm) context
     val rel_quot_thm_concl = Logic.strip_imp_concl (Thm.prop_of rel_quot_thm)
     val (_, abs, _, _) = dest_Quotient (HOLogic.dest_Trueprop rel_quot_thm_concl)
-    val relatorT_name = fst (dest_Type (fst (dest_funT (fastype_of abs))))
+    val relatorT_name = dest_Type_name (fst (dest_funT (fastype_of abs)))
     val minfo = {rel_quot_thm = Thm.trim_context rel_quot_thm}
   in (Data.map o map_quot_maps) (Symtab.update (relatorT_name, minfo)) context end
 
@@ -223,7 +223,7 @@ fun lookup_quotients ctxt type_name =
 fun lookup_quot_thm_quotients ctxt quot_thm =
   let
     val (_, qtyp) = quot_thm_rty_qty quot_thm
-    val qty_full_name = fst (dest_Type qtyp)
+    val qty_full_name = dest_Type_name qtyp
     fun compare_data (data:quotient) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
   in
     case lookup_quotients ctxt qty_full_name of
@@ -238,7 +238,7 @@ fun update_quotients type_name qinfo context =
 fun delete_quotients quot_thm context =
   let
     val (_, qtyp) = quot_thm_rty_qty quot_thm
-    val qty_full_name = fst (dest_Type qtyp)
+    val qty_full_name = dest_Type_name qtyp
   in
     if is_some (lookup_quot_thm_quotients (Context.proof_of context) quot_thm)
     then (Data.map o map_quotients) (Symtab.delete qty_full_name) context
@@ -391,8 +391,8 @@ fun add_mono_rule mono_rule context =
   let
     val pol_mono_rule = introduce_polarities mono_rule
     val mono_ruleT_name =
-      fst (dest_Type (fst (relation_types (fst (relation_types
-        (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of pol_mono_rule))))))))))
+      dest_Type_name (fst (relation_types (fst (relation_types
+        (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of pol_mono_rule)))))))))
   in
     if Symtab.defined (get_relator_distr_data' context) mono_ruleT_name
     then
@@ -418,8 +418,8 @@ local
   fun add_distr_rule update_entry distr_rule context =
     let
       val distr_ruleT_name =
-        fst (dest_Type (fst (relation_types (fst (relation_types
-          (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of distr_rule))))))))))
+        dest_Type_name (fst (relation_types (fst (relation_types
+          (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of distr_rule)))))))))
     in
       if Symtab.defined (get_relator_distr_data' context) distr_ruleT_name then
         (Data.map o map_relator_distr_data)

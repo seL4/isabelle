@@ -800,7 +800,7 @@ fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
         | \<^Const_>\<open>Trueprop for \<^Const_>\<open>part_equivp _ for _\<close>\<close> => true
         | _ => raise NOT_SUPPORTED "Ill-formed quotient type equivalence \
                                    \relation theorem"
-      val Ts' = qtyp |> dest_Type |> snd
+      val Ts' = dest_Type_args qtyp
     in (subst_atomic_types (Ts' ~~ Ts) equiv_rel, partial) end
   | equiv_relation_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
@@ -853,7 +853,7 @@ fun is_stale_constr ctxt (x as (s, T)) =
 
 fun is_constr ctxt (x as (_, T)) =
   is_nonfree_constr ctxt x andalso
-  not (is_interpreted_type (fst (dest_Type (unarize_type (body_type T))))) andalso
+  not (is_interpreted_type (dest_Type_name (unarize_type (body_type T)))) andalso
   not (is_stale_constr ctxt x)
 
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
@@ -1643,7 +1643,7 @@ fun optimized_record_update (hol_ctxt as {thy, ctxt, ...}) s rec_T fun_t rec_t =
                    s_betapply [] (fun_t, t)
                  else if j = n - 1 andalso special_j = ~1 then
                    optimized_record_update hol_ctxt s
-                       (rec_T |> dest_Type |> snd |> List.last) fun_t t
+                       (List.last (dest_Type_args rec_T)) fun_t t
                  else
                    t
                end) (index_seq 0 n) Ts
@@ -1965,7 +1965,7 @@ fun inverse_axioms_for_rep_fun ctxt (x as (_, T)) =
     val thy = Proof_Context.theory_of ctxt
     val abs_T = domain_type T
   in
-    typedef_info ctxt (fst (dest_Type abs_T)) |> the
+    typedef_info ctxt (dest_Type_name abs_T) |> the
     |> pairf #Abs_inverse #Rep_inverse
     |> apply2 (specialize_type thy x o Thm.prop_of o the)
     ||> single |> op ::

@@ -85,7 +85,7 @@ fun T_of_data (comb, constrs : term list) =
   |> funpow (length constrs) range_type
   |> domain_type;
 
-val Tname_of_data = fst o dest_Type o T_of_data;
+val Tname_of_data = dest_Type_name o T_of_data;
 
 val constrs_of = #constrs o rep_data;
 val cases_of = #cases o rep_data;

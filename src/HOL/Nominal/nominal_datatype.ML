@@ -485,7 +485,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
 
     val dt_atomTs = distinct op = (map (Old_Datatype_Aux.typ_of_dtyp descr)
       (maps (fn (_, (_, _, cs)) => maps (maps (fst o strip_option) o snd) cs) descr));
-    val dt_atoms = map (fst o dest_Type) dt_atomTs;
+    val dt_atoms = map dest_Type_name dt_atomTs;
 
     fun make_intr s T (cname, cargs) =
       let
@@ -1578,7 +1578,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
 
     val rec_fin_supp_thms = map (fn aT =>
       let
-        val name = Long_Name.base_name (fst (dest_Type aT));
+        val name = Long_Name.base_name (dest_Type_name aT);
         val fs_name = Global_Theory.get_thm thy11 ("fs_" ^ name ^ "1");
         val aset = HOLogic.mk_setT aT;
         val finite = Const (\<^const_name>\<open>finite\<close>, aset --> HOLogic.boolT);
@@ -1617,7 +1617,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
 
     val rec_fresh_thms = map (fn ((aT, eqvt_ths), finite_prems) =>
       let
-        val name = Long_Name.base_name (fst (dest_Type aT));
+        val name = Long_Name.base_name (dest_Type_name aT);
         val fs_name = Global_Theory.get_thm thy11 ("fs_" ^ name ^ "1");
         val a = Free ("a", aT);
         val freshs = map (fn (f, fT) => HOLogic.mk_Trueprop

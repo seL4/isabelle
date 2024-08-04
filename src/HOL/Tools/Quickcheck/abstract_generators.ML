@@ -33,7 +33,7 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_r
     val opt_pred = Option.map (prep_term ctxt) opt_pred_raw
     val constrs = map (prep_term ctxt) constrs_raw
     val _ = check_constrs ctxt tyco constrs
-    val vs = map dest_TFree (snd (dest_Type (body_type (fastype_of (hd constrs)))))
+    val vs = map dest_TFree (dest_Type_args (body_type (fastype_of (hd constrs))))
     val name = Long_Name.base_name tyco
     fun mk_dconstrs (Const (s, T)) =
           (s, map (Old_Datatype_Aux.dtyp_of_typ [(tyco, vs)]) (binder_types T))
@@ -61,7 +61,7 @@ val quickcheck_generator = gen_quickcheck_generator (K I) (K I)
 
 val quickcheck_generator_cmd =
   gen_quickcheck_generator
-    ((#1 o dest_Type) oo Proof_Context.read_type_name {proper = true, strict = true})
+    (dest_Type_name oo Proof_Context.read_type_name {proper = true, strict = true})
     Syntax.read_term
 
 val _ =

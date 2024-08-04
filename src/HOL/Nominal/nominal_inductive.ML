@@ -204,7 +204,7 @@ fun prove_strong_ind s avoids lthy =
     val atomTs = distinct op = (maps (map snd o #2) prems);
     val ind_sort = if null atomTs then \<^sort>\<open>type\<close>
       else Sign.minimize_sort thy (Sign.certify_sort thy (map (fn T => Sign.intern_class thy
-        ("fs_" ^ Long_Name.base_name (fst (dest_Type T)))) atomTs));
+        ("fs_" ^ Long_Name.base_name (dest_Type_name T))) atomTs));
     val (fs_ctxt_tyname, _) = Name.variant "'n" (Variable.names_of ctxt');
     val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
@@ -276,7 +276,7 @@ fun prove_strong_ind s avoids lthy =
 
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn aT => Global_Theory.get_thm thy
-      ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
+      ("pt_" ^ Long_Name.base_name (dest_Type_name aT) ^ "2")) atomTs;
     fun eqvt_ss ctxt =
       put_simpset HOL_basic_ss ctxt
         addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
@@ -285,7 +285,7 @@ fun prove_strong_ind s avoids lthy =
     val fresh_bij = Global_Theory.get_thms thy "fresh_bij";
     val perm_bij = Global_Theory.get_thms thy "perm_bij";
     val fs_atoms = map (fn aT => Global_Theory.get_thm thy
-      ("fs_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "1")) atomTs;
+      ("fs_" ^ Long_Name.base_name (dest_Type_name aT) ^ "1")) atomTs;
     val exists_fresh' = Global_Theory.get_thms thy "exists_fresh'";
     val fresh_atm = Global_Theory.get_thms thy "fresh_atm";
     val swap_simps = Global_Theory.get_thms thy "swap_simps";

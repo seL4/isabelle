@@ -296,7 +296,7 @@ fun mk_case Ts T t =
   end;
 
 fun mk_disc_or_sel Ts t =
-  subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
+  subst_nonatomic_types (Term.dest_Type_args (domain_type (fastype_of t)) ~~ Ts) t;
 
 val name_of_ctr = name_of_const "constructor" body_type;
 

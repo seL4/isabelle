@@ -332,7 +332,7 @@ fun derive_code ctxt inner_fp_simps goal
 
     val fp_map_ident = map_ident_of_bnf fp_bnf;
     val fpsig_nesting_bnfs = fp_nesting_bnfs @ maps #live_nesting_bnfs sig_fp_sugars;
-    val fpsig_nesting_T_names = map (fst o dest_Type o T_of_bnf) fpsig_nesting_bnfs;
+    val fpsig_nesting_T_names = map (dest_Type_name o T_of_bnf) fpsig_nesting_bnfs;
     val fpsig_nesting_fp_sugars = map_filter (fp_sugar_of ctxt) fpsig_nesting_T_names;
     val fpsig_nesting_fp_bnf_sugars = map #fp_bnf_sugar fpsig_nesting_fp_sugars;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;
@@ -373,7 +373,7 @@ fun derive_unique ctxt phi code_goal
 
     val fp_map_ident = map_ident_of_bnf fp_bnf;
     val fpsig_nesting_bnfs = fp_nesting_bnfs @ maps #live_nesting_bnfs sig_fp_sugars;
-    val fpsig_nesting_T_names = map (fst o dest_Type o T_of_bnf) fpsig_nesting_bnfs;
+    val fpsig_nesting_T_names = map (dest_Type_name o T_of_bnf) fpsig_nesting_bnfs;
     val fpsig_nesting_fp_sugars = map_filter (fp_sugar_of ctxt) fpsig_nesting_T_names;
     val fpsig_nesting_fp_bnf_sugars = map #fp_bnf_sugar fpsig_nesting_fp_sugars;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;
@@ -492,7 +492,7 @@ fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_a
 
     val fp_map_ident = map_ident_of_bnf fp_bnf;
     val fpsig_nesting_bnfs = fp_nesting_bnfs @ maps #live_nesting_bnfs sig_fp_sugars;
-    val fpsig_nesting_T_names = map (fst o dest_Type o T_of_bnf) fpsig_nesting_bnfs;
+    val fpsig_nesting_T_names = map (dest_Type_name o T_of_bnf) fpsig_nesting_bnfs;
     val fpsig_nesting_fp_sugars = map_filter (fp_sugar_of ctxt) fpsig_nesting_T_names;
     val fpsig_nesting_fp_bnf_sugars = map #fp_bnf_sugar fpsig_nesting_fp_sugars;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;
@@ -986,7 +986,7 @@ fun extract_rho_from_equation
 
     fun has_res_T bound_Ts t = fastype_of1 (bound_Ts, t) = res_T;
 
-    fun contains_res_T (Type (s, Ts)) = s = fst (dest_Type res_T) orelse exists contains_res_T Ts
+    fun contains_res_T (Type (s, Ts)) = s = dest_Type_name res_T orelse exists contains_res_T Ts
       | contains_res_T _ = false;
 
     val res_T_lhs_args = filter (exists_type contains_res_T) lhs_args;
@@ -1217,7 +1217,7 @@ fun extract_rho_from_equation
         ((fun_t, arg :: []), true) =>
         let val arg_T = fastype_of1 (bound_Ts, arg) in
           if arg_T <> res_T then
-            (case arg_T |> try (fst o dest_Type) |> Option.mapPartial (ctr_sugar_of lthy) of
+            (case arg_T |> try dest_Type_name |> Option.mapPartial (ctr_sugar_of lthy) of
               SOME {discs, T = Type (_, Ts), ...} =>
               (case const_of discs fun_t of
                 SOME disc =>
@@ -1241,7 +1241,7 @@ fun extract_rho_from_equation
           explore params t
         else
           let val T = fastype_of1 (bound_Ts, hd args) in
-            (case (Option.mapPartial (ctr_sugar_of lthy) (try (fst o dest_Type) T), T <> res_T) of
+            (case (Option.mapPartial (ctr_sugar_of lthy) (try dest_Type_name T), T <> res_T) of
               (SOME {selss, T = Type (_, Ts), ...}, true) =>
               (case const_of (flat selss) fun_t of
                 SOME sel =>
@@ -1486,7 +1486,7 @@ fun extract_rho_from_equation
                       error (quote (Syntax.string_of_term lthy (hd obj_leftovers)) ^
                         " is not a valid case argument");
 
-                    val Us = obj_leftoverUs |> hd |> dest_Type |> snd;
+                    val Us = dest_Type_args (hd obj_leftoverUs);
 
                     val branche_binderUss =
                       (if hd obj_leftoverUs = YpreT then mk_case HOLogic.boolT
@@ -1895,7 +1895,7 @@ fun derive_eq_corecUU ctxt {sig_fp_sugars, ssig_fp_sugar, eval, corecUU, eval_si
 
     val fp_map_ident = map_ident_of_bnf fp_bnf;
     val fpsig_nesting_bnfs = fp_nesting_bnfs @ maps #live_nesting_bnfs sig_fp_sugars;
-    val fpsig_nesting_T_names = map (fst o dest_Type o T_of_bnf) fpsig_nesting_bnfs;
+    val fpsig_nesting_T_names = map (dest_Type_name o T_of_bnf) fpsig_nesting_bnfs;
     val fpsig_nesting_fp_sugars = map_filter (fp_sugar_of ctxt) fpsig_nesting_T_names;
     val fpsig_nesting_fp_bnf_sugars = map #fp_bnf_sugar fpsig_nesting_fp_sugars;
     val ssig_fp_bnf_sugar = #fp_bnf_sugar ssig_fp_sugar;

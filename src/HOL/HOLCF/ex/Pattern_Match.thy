@@ -461,7 +461,7 @@ fun add_pattern_combinators
 
     (* define pattern combinators *)
     local
-      val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
+      val tns = map (fst o dest_TFree) (dest_Type_args lhsT);
 
       fun pat_eqn (i, (bind, (con, args))) : binding * term * mixfix =
         let
@@ -527,7 +527,7 @@ fun add_pattern_combinators
 
     (* prove strictness and reduction rules of pattern combinators *)
     local
-      val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
+      val tns = map (fst o dest_TFree) (dest_Type_args lhsT);
       val rn = singleton (Name.variant_list tns) "'r";
       val R = TFree (rn, \<^sort>\<open>pcpo\<close>);
       fun pat_lhs (pat, args) =

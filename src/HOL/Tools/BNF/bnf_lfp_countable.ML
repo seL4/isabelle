@@ -137,8 +137,8 @@ fun derive_encode_injectives_thms _ [] = []
         | _ => not_datatype_name s);
 
       val fpTs0 as Type (_, var_As) :: _ =
-        map (#T o lfp_sugar_of o fst o dest_Type) (#Ts (#fp_res (lfp_sugar_of (hd fpT_names0))));
-      val fpT_names = map (fst o dest_Type) fpTs0;
+        map (#T o lfp_sugar_of o dest_Type_name) (#Ts (#fp_res (lfp_sugar_of (hd fpT_names0))));
+      val fpT_names = map dest_Type_name fpTs0;
 
       val (As_names, _) = Variable.variant_fixes (map (fn TVar ((s, _), _) => s) var_As) ctxt;
       val As =
@@ -156,7 +156,7 @@ fun derive_encode_injectives_thms _ [] = []
       val fp_sugars as
           {fp_nesting_bnfs, fp_co_induct_sugar = SOME {common_co_inducts = induct :: _, ...},
            ...} :: _ =
-        map (the o fp_sugar_of ctxt o fst o dest_Type) fpTs0;
+        map (the o fp_sugar_of ctxt o dest_Type_name) fpTs0;
       val ctr_sugars = map (#ctr_sugar o #fp_ctr_sugar) fp_sugars;
 
       val ctrss0 = map #ctrs ctr_sugars;

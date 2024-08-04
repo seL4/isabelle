@@ -817,7 +817,7 @@ fun mk_repT absT repT absU =
 fun mk_abs_or_rep _ absU (Const (\<^const_name>\<open>id_bnf\<close>, _)) =
     Const (\<^const_name>\<open>id_bnf\<close>, absU --> absU)
   | mk_abs_or_rep getT (Type (_, Us)) abs =
-    let val Ts = snd (dest_Type (getT (fastype_of abs)))
+    let val Ts = dest_Type_args (getT (fastype_of abs))
     in Term.subst_atomic_types (Ts ~~ Us) abs end;
 
 val mk_abs = mk_abs_or_rep range_type;
@@ -993,7 +993,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
 
     val (noted, lthy'') = lthy'
       |> Local_Theory.notes notes
-      ||> (if repTA = TA then I else register_bnf_raw (fst (dest_Type TA)) bnf'')
+      ||> (if repTA = TA then I else register_bnf_raw (dest_Type_name TA) bnf'')
   in
     ((morph_bnf (substitute_noted_thm noted) bnf'', (all_deads, absT_info)), lthy'')
   end;
@@ -1037,7 +1037,7 @@ fun bnf_of_typ _ _ _ _ _ Ds0 (T as TFree T') accum =
             val odead = dead_of_bnf bnf;
             val olive = live_of_bnf bnf;
             val Ds = map (fn i => TFree (string_of_int i, [])) (1 upto odead);
-            val Us = snd (Term.dest_Type (mk_T_of_bnf Ds (replicate olive dummyT) bnf));
+            val Us = Term.dest_Type_args (mk_T_of_bnf Ds (replicate olive dummyT) bnf);
             val oDs_pos = map (fn x => find_index (fn y => x = y) Us) Ds
               |> filter (fn x => x >= 0);
             val oDs = map (nth Ts) oDs_pos;

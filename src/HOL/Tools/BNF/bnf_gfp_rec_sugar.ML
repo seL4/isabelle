@@ -1059,7 +1059,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
   let
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> mk_tupleT_balanced) fixes |> split_list;
-    val primcorec_types = map (#1 o dest_Type) res_Ts;
+    val primcorec_types = map dest_Type_name res_Ts;
 
     val _ = check_duplicate_const_names bs;
     val _ = List.app (uncurry (check_top_sort lthy)) (bs ~~ arg_Ts);

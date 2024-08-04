@@ -2271,7 +2271,7 @@ fun line_of_tcon_clause generate_isabelle_info type_enc (name, prems, (cl, T)) =
     Formula ((tcon_clause_prefix ^ name, ""), Axiom,
              mk_ahorn (maps (class_atoms type_enc) prems)
                       (class_atom type_enc (cl, T))
-             |> bound_tvars type_enc true (snd (dest_Type T)),
+             |> bound_tvars type_enc true (dest_Type_args T),
              NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
 
 fun line_of_conjecture ctxt mono type_enc ({name, role, iformula, atomic_types, ...} : ifact) =

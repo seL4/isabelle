@@ -543,7 +543,7 @@ fun transform_code_eqs _ [] = NONE
       val table = Laziness_Data.get thy
       fun num_consts_fun (_, T) =
         let
-          val s = body_type T |> dest_Type |> fst
+          val s = dest_Type_name (body_type T)
         in
           if Symtab.defined table s
           then Ctr_Sugar.ctr_sugar_of ctxt s |> the |> #ctrs |> length

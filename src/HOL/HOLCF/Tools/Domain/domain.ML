@@ -182,7 +182,7 @@ fun gen_add_domain
 fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
   let
     fun prep (dbind, mx, (lhsT, rhsT)) =
-      let val (_, vs) = dest_Type lhsT
+      let val vs = dest_Type_args lhsT
       in (map (fst o dest_TFree) vs, dbind, mx, rhsT, NONE) end
   in
     Domain_Isomorphism.domain_isomorphism (map prep spec)

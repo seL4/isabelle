@@ -212,7 +212,7 @@ let
     in Goal.prove_global thy [] (adms @ assms) goal tacf end
 
   (* case names for induction rules *)
-  val dnames = map (fst o dest_Type) newTs
+  val dnames = map dest_Type_name newTs
   val case_ns =
     let
       val adms =

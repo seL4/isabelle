@@ -46,7 +46,7 @@ fun to_case ctxt ths =
   let
     fun ctr_count (ctr, T) = 
       let
-        val tyco = body_type T |> dest_Type |> fst
+        val tyco = dest_Type_name (body_type T)
         val info = Ctr_Sugar.ctr_sugar_of ctxt tyco
         val _ = if is_none info then error ("Pattern match on non-constructor constant " ^ ctr) else ()
       in

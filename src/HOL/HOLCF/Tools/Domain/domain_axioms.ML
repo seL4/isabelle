@@ -97,7 +97,7 @@ fun add_axioms
 
     (* declare new types *)
     fun thy_type (dbind, mx, (lhsT, _)) =
-        (dbind, (length o snd o dest_Type) lhsT, mx)
+        (dbind, length (dest_Type_args lhsT), mx)
     val thy = Sign.add_types_global (map thy_type dom_eqns) thy
 
     (* axiomatize type constructor arities *)

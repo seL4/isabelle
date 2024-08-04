@@ -479,7 +479,7 @@ fun lookup_constr ctxt =
   let
     val tab = Ctr_Sugar.ctr_sugars_of ctxt
       |> maps (map_filter (try dest_Const) o #ctrs)
-      |> map (fn (c, T) => ((c, (fst o dest_Type o body_type) T), BNF_Util.num_binder_types T))
+      |> map (fn (c, T) => ((c, dest_Type_name (body_type T)), BNF_Util.num_binder_types T))
   in fn (c, T) =>
     case body_type T of
       Type (Tname, _) => AList.lookup (op =) tab (c, Tname)
@@ -890,7 +890,7 @@ fun expand_tuples thy intro =
 
 fun datatype_name_of_case_name thy =
   Ctr_Sugar.ctr_sugar_of_case (Proof_Context.init_global thy)
-  #> the #> #ctrs #> hd #> fastype_of #> body_type #> dest_Type #> fst
+  #> the #> #ctrs #> hd #> fastype_of #> body_type #> dest_Type_name
 
 fun make_case_comb thy Tcon =
   let

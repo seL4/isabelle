@@ -949,7 +949,7 @@ fun transitive_coercion ctxt tab G (a, b) =
     val coercions = map (fst o the o Symreltab.lookup tab) path';
     val trans_co = singleton (Variable.polymorphic ctxt)
       (fold safe_app coercions (mk_identity dummyT));
-    val (Ts, Us) = apply2 (snd o Term.dest_Type) (Term.dest_funT (type_of trans_co));
+    val (Ts, Us) = apply2 dest_Type_args (Term.dest_funT (type_of trans_co));
   in
     (trans_co, ((Ts, Us), coercions))
   end;
@@ -967,10 +967,10 @@ fun add_coercion raw_t context =
     val (T1, T2) = Term.dest_funT (fastype_of t)
       handle TYPE _ => err_coercion ();
 
-    val (a, Ts) = Term.dest_Type T1
+    val (a, Ts) = dest_Type T1
       handle TYPE _ => err_coercion ();
 
-    val (b, Us) = Term.dest_Type T2
+    val (b, Us) = dest_Type T2
       handle TYPE _ => err_coercion ();
 
     fun coercion_data_update (tab, G, _) =

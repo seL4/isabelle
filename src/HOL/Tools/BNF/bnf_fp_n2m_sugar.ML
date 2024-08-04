@@ -499,7 +499,7 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
     val perm_callers = permute callers;
     val perm_kks = permute kks;
     val perm_callssss0 = permute callssss0;
-    val perm_fp_sugars0 = map (the o fp_sugar_of lthy o fst o dest_Type) perm_Ts;
+    val perm_fp_sugars0 = map (the o fp_sugar_of lthy o dest_Type_name) perm_Ts;
 
     val perm_callssss =
       map2 (indexify_callsss o #ctrs o #ctr_sugar o #fp_ctr_sugar) perm_fp_sugars0 perm_callssss0;

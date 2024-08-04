@@ -243,11 +243,7 @@ fun record_fields_tr ctxt t =
   let
     val assns = map (apfst (read_const ctxt)) (fields_tr t)
 
-    val typ_name =
-      snd (fst (hd assns))
-      |> domain_type
-      |> dest_Type
-      |> fst
+    val typ_name = dest_Type_name (domain_type (snd (fst (hd assns))))
 
     val assns' = map (apfst fst) assns
 

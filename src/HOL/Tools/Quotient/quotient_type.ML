@@ -104,7 +104,7 @@ fun define_cr_rel equiv_thm abs_fun lthy =
       | _ => error "unsupported equivalence theorem"
       )
     val def_term = Abs ("x", rty, Abs ("y", qty, Abs_body));
-    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
+    val qty_name = Binding.name (Long_Name.base_name (dest_Type_name qty))
     val cr_rel_name = Binding.prefix_name "cr_" qty_name
     val (fixed_def_term, lthy') = yield_singleton (Variable.importT_terms) def_term lthy
     val ((_, (_ , def_thm)), lthy'') =
@@ -118,7 +118,7 @@ fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
     val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o Thm.prop_of) quot3_thm
     val (T_def, lthy') = define_cr_rel equiv_thm abs_fun lthy
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
-    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
+    val qty_name = Binding.name (Long_Name.base_name (dest_Type_name qty))
     val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
     val (reflp_thm, quot_thm) =
       (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
@@ -140,7 +140,7 @@ fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
   let
     val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o Thm.prop_of) quot_thm
     val (qtyp, rtyp) = (dest_funT o fastype_of) rep
-    val qty_full_name = (fst o dest_Type) qtyp
+    val qty_full_name = dest_Type_name qtyp
     fun quotients phi =
       Quotient_Info.transform_quotients phi
         {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm,

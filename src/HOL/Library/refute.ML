@@ -2180,7 +2180,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                                 | Old_Datatype_Aux.DtRec i =>
                                     let
                                       val (_, ds, _) = the (AList.lookup (op =) descr i)
-                                      val (_, Ts)    = dest_Type T
+                                      val Ts = dest_Type_args T
                                     in
                                       rec_typ_assoc ((d, T)::acc) ((ds ~~ Ts) @ xs)
                                     end)
@@ -2195,7 +2195,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                       val typ_assoc = filter
                         (fn (Old_Datatype_Aux.DtTFree _, _) => true | (_, _) => false)
                         (rec_typ_assoc []
-                          (#2 (the (AList.lookup (op =) descr idt_index)) ~~ (snd o dest_Type) IDT))
+                          (#2 (the (AList.lookup (op =) descr idt_index)) ~~ dest_Type_args IDT))
                       (* sanity check: typ_assoc must associate types to the   *)
                       (*               elements of 'dtyps' (and only to those) *)
                       val _ =

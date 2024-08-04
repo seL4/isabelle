@@ -78,7 +78,7 @@ fun replace_by_type replace_ctr ctxt pats =
         val (ctr, args) = strip_comb term
       in
         case ctr of Const (s, T) =>
-          if P (body_type T |> dest_Type |> fst, s)
+          if P (dest_Type_name (body_type T), s)
           then SOME (End (body_type T))
           else
             let
@@ -103,7 +103,7 @@ fun keep_constructor_context ctxt pats =
           val f = hd fs
           fun is_single_ctr (Const (name, T)) = 
               let
-                val tyco = body_type T |> dest_Type |> fst
+                val tyco = dest_Type_name (body_type T)
                 val _ = Ctr_Sugar.ctr_sugar_of ctxt tyco |> the |> #ctrs
               in
                 case Ctr_Sugar.ctr_sugar_of ctxt tyco of

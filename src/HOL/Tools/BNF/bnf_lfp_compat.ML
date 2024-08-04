@@ -221,9 +221,9 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
       | _ => not_datatype_name s);
 
     val fpTs0 as Type (_, var_As) :: _ =
-      map (#T o checked_fp_sugar_of o fst o dest_Type)
+      map (#T o checked_fp_sugar_of o dest_Type_name)
         (#Ts (#fp_res (checked_fp_sugar_of (hd fpT_names0))));
-    val fpT_names as fpT_name1 :: _ = map (fst o dest_Type) fpTs0;
+    val fpT_names as fpT_name1 :: _ = map (dest_Type_name) fpTs0;
 
     val _ = check_names (op =) (fpT_names0, fpT_names) orelse not_mutually_recursive fpT_names0;
 
@@ -272,7 +272,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val fpTs' = Old_Datatype_Aux.get_rec_types descr;
     val nn = length fpTs';
 
-    val fp_sugars = map (checked_fp_sugar_of o fst o dest_Type) fpTs';
+    val fp_sugars = map (checked_fp_sugar_of o dest_Type_name) fpTs';
     val ctr_Tsss = map (map (map (Old_Datatype_Aux.typ_of_dtyp descr) o snd) o #3 o snd) descr;
     val kkssss = map (map (map body_rec_indices o snd) o #3 o snd) descr;
 
@@ -447,7 +447,7 @@ fun old_interpretation_of prefs f config T_names thy =
     thy;
 
 fun new_interpretation_of prefs f (fp_sugars : fp_sugar list) thy =
-  let val T_names = map (fst o dest_Type o #T) fp_sugars in
+  let val T_names = map (dest_Type_name o #T) fp_sugars in
     if (member (op =) prefs Include_GFPs orelse forall (curry (op =) Least_FP o #fp) fp_sugars)
        andalso (member (op =) prefs Keep_Nesting orelse
          exists (is_none o Old_Datatype_Data.get_info thy) T_names) then
@@ -511,7 +511,7 @@ val datatype_compat_global = Named_Target.theory_map o datatype_compat;
 fun datatype_compat_cmd raw_fpT_names lthy =
   let
     val fpT_names =
-      map (fst o dest_Type o Proof_Context.read_type_name {proper = true, strict = false} lthy)
+      map (dest_Type_name o Proof_Context.read_type_name {proper = true, strict = false} lthy)
         raw_fpT_names;
   in
     datatype_compat fpT_names lthy

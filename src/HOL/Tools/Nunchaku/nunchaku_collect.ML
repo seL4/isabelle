@@ -249,7 +249,7 @@ fun mutual_co_datatypes_of ctxt (T_name, Ts) =
            (fp,
             (case Ts of
               [_] => [fp_sugar]
-            | _ => map (the o BNF_FP_Def_Sugar.fp_sugar_of ctxt o fst o dest_Type) Ts)
+            | _ => map (the o BNF_FP_Def_Sugar.fp_sugar_of ctxt o dest_Type_name) Ts)
             |> map (#ctr_sugar o #fp_ctr_sugar))
          | NONE =>
            (case Ctr_Sugar.ctr_sugar_of ctxt T_name of

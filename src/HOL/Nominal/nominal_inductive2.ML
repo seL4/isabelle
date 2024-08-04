@@ -227,7 +227,7 @@ fun prove_strong_ind s alt_name avoids lthy =
       end) (Logic.strip_imp_prems raw_induct' ~~ induct_cases');
 
     val atomTs = distinct op = (maps (map snd o #2) prems);
-    val atoms = map (fst o dest_Type) atomTs;
+    val atoms = map dest_Type_name atomTs;
     val ind_sort = if null atomTs then \<^sort>\<open>type\<close>
       else Sign.minimize_sort thy (Sign.certify_sort thy (map (fn a => Sign.intern_class thy
         ("fs_" ^ Long_Name.base_name a)) atoms));
@@ -321,7 +321,7 @@ fun prove_strong_ind s alt_name avoids lthy =
         fun protect t =
           let val T = fastype_of t in Const (\<^const_name>\<open>Fun.id\<close>, T --> T) $ t end;
         val p = foldr1 HOLogic.mk_prod (map protect ts);
-        val atom = fst (dest_Type T);
+        val atom = dest_Type_name T;
         val {at_inst, ...} = NominalAtoms.the_atom_info thy atom;
         val fs_atom = Global_Theory.get_thm thy
           ("fs_" ^ Long_Name.base_name atom ^ "1");

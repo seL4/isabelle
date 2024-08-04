@@ -209,10 +209,10 @@ fun analyze_variances ctxt tyco T =
     val (Ts, T1, T2) = split_mapper_typ tyco T
       handle List.Empty => bad_typ ();
     val _ =
-      apply2 ((fn tyco' => if tyco' = tyco then () else bad_typ ()) o fst o dest_Type) (T1, T2)
+      apply2 ((fn tyco' => if tyco' = tyco then () else bad_typ ()) o dest_Type_name) (T1, T2)
         handle TYPE _ => bad_typ ();
     val (vs1, vs2) =
-      apply2 (map dest_TFree o snd o dest_Type) (T1, T2)
+      apply2 (map dest_TFree o dest_Type_args) (T1, T2)
         handle TYPE _ => bad_typ ();
     val _ = if has_duplicates (eq_fst (op =)) (vs1 @ vs2)
       then bad_typ () else ();
