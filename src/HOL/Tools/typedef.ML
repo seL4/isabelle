@@ -218,7 +218,7 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
       |> Typedecl.typedecl {final = false} (name, args, mx)
       ||> Variable.declare_term set;
 
-    val Type (full_name, _) = newT;
+    val full_name = dest_Type_name newT;
 
 
     (* axiomatization *)
