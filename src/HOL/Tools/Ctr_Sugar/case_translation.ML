@@ -122,7 +122,7 @@ val lookup_by_case = Symtab.lookup o cases_of;
 
 fun case_error s = error ("Error in case expression:\n" ^ s);
 
-val name_of = try (dest_Const #> fst);
+val name_of = try dest_Const_name;
 
 
 (* parse translation *)
@@ -217,8 +217,8 @@ fun register raw_case_comb raw_constrs context =
     val ctxt = Context.proof_of context;
     val case_comb = singleton (Variable.polymorphic ctxt) raw_case_comb;
     val constrs = Variable.polymorphic ctxt raw_constrs;
-    val case_key = case_comb |> dest_Const |> fst;
-    val constr_keys = map (fst o dest_Const) constrs;
+    val case_key = dest_Const_name case_comb;
+    val constr_keys = map dest_Const_name constrs;
     val data = (case_comb, constrs);
     val Tname = Tname_of_data data;
     val update_constrs = fold (fn key => Symtab.cons_list (key, (Tname, data))) constr_keys;
@@ -258,7 +258,7 @@ fun default_name "" (Free (name', _)) = name'
 (*Produce an instance of a constructor, plus fresh variables for its arguments.*)
 fun fresh_constr colty used c =
   let
-    val (_, T) = dest_Const c;
+    val T = dest_Const_type c;
     val Ts = binder_types T;
     val (names, _) = fold_map Name.variant (make_tnames Ts) used;
     val ty = body_type T;

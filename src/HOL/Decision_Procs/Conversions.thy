@@ -24,7 +24,7 @@ attribute_setup meta =
   \<open>convert equality to meta equality\<close>
 
 ML \<open>
-fun strip_app ct = ct |> Drule.strip_comb |>> Thm.term_of |>> dest_Const |>> fst;
+fun strip_app ct = ct |> Drule.strip_comb |>> Thm.term_of |>> dest_Const_name;
 
 fun inst cTs cts th =
   Thm.instantiate' (map SOME cTs) (map SOME cts) th;

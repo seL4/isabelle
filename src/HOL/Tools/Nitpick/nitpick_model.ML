@@ -90,28 +90,27 @@ fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range)
 
 fun add_wacky_syntax ctxt =
   let
-    val name_of = fst o dest_Const
     val thy = Proof_Context.theory_of ctxt
     val (unrep_s, thy) = thy
       |> Sign.declare_const_global ((\<^binding>\<open>nitpick_unrep\<close>, \<^typ>\<open>'a\<close>),
         mixfix (unrep_mixfix (), [], 1000))
-      |>> name_of
+      |>> dest_Const_name
     val (maybe_s, thy) = thy
       |> Sign.declare_const_global ((\<^binding>\<open>nitpick_maybe\<close>, \<^typ>\<open>'a => 'a\<close>),
         mixfix (maybe_mixfix (), [1000], 1000))
-      |>> name_of
+      |>> dest_Const_name
     val (abs_s, thy) = thy
       |> Sign.declare_const_global ((\<^binding>\<open>nitpick_abs\<close>, \<^typ>\<open>'a => 'b\<close>),
         mixfix (abs_mixfix (), [40], 40))
-      |>> name_of
+      |>> dest_Const_name
     val (base_s, thy) = thy
       |> Sign.declare_const_global ((\<^binding>\<open>nitpick_base\<close>, \<^typ>\<open>'a => 'a\<close>),
         mixfix (base_mixfix (), [1000], 1000))
-      |>> name_of
+      |>> dest_Const_name
     val (step_s, thy) = thy
       |> Sign.declare_const_global ((\<^binding>\<open>nitpick_step\<close>, \<^typ>\<open>'a => 'a\<close>),
         mixfix (step_mixfix (), [1000], 1000))
-      |>> name_of
+      |>> dest_Const_name
   in
     (((unrep_s, maybe_s, abs_s), (base_s, step_s)),
      Proof_Context.transfer thy ctxt)

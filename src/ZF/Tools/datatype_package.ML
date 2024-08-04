@@ -55,7 +55,7 @@ fun data_domain co (rec_tms, con_ty_lists) =
           error ("Datatype set not previously declared as constant: " ^
                    Syntax.string_of_term_global \<^theory>\<open>IFOL\<close> t));
         val rec_names = (*nat doesn't have to be added*)
-            \<^const_name>\<open>nat\<close> :: map (#1 o dest_Const) rec_hds
+            \<^const_name>\<open>nat\<close> :: map dest_Const_name rec_hds
         val u = if co then \<^Const>\<open>QUniv.quniv\<close> else \<^Const>\<open>Univ.univ\<close>
         val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
           (fn t as Const (a, _) => if member (op =) rec_names a then I else insert (op =) t
@@ -70,7 +70,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           error ("Datatype set not previously declared as constant: " ^
                    Syntax.string_of_term_global thy t));
 
-  val rec_names = map (#1 o dest_Const) rec_hds
+  val rec_names = map dest_Const_name rec_hds
   val rec_base_names = map Long_Name.base_name rec_names
   val big_rec_base_name = space_implode "_" rec_base_names
 
@@ -384,7 +384,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           |> map Thm.trim_context};
 
   (*associate with each constructor the datatype name and rewrites*)
-  val con_pairs = map (fn c => (#1 (dest_Const c), con_info)) constructors
+  val con_pairs = map (fn c => (dest_Const_name c, con_info)) constructors
 
  in
   (*Updating theory components: simprules and datatype info*)

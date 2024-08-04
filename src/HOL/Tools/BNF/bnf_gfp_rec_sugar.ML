@@ -921,7 +921,7 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
               let val (u, vs) = strip_comb t in
                 if is_Free u andalso has_call u then
                   Inr_const T U2 $ mk_tuple1_balanced bound_Ts vs
-                else if try (fst o dest_Const) u = SOME \<^const_name>\<open>case_prod\<close> then
+                else if try dest_Const_name u = SOME \<^const_name>\<open>case_prod\<close> then
                   map (rewrite bound_Ts) vs |> chop 1
                   |>> HOLogic.mk_case_prod o the_single
                   |> Term.list_comb

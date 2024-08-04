@@ -283,8 +283,8 @@ fun rev_option_ord ord (NONE, NONE) = EQUAL
   | rev_option_ord ord (SOME x, SOME y) = ord (x, y)
 
 fun random_mode_in_deriv modes t deriv =
-  case try dest_Const (fst (strip_comb t)) of
-    SOME (s, _) =>
+  case try dest_Const_name (fst (strip_comb t)) of
+    SOME s =>
       (case AList.lookup (op =) modes s of
         SOME ms =>
           (case AList.lookup (op =) (map (fn ((_, m), r) => (m, r)) ms) (head_mode_of deriv) of
@@ -316,7 +316,7 @@ fun deriv_ord' ctxt _ pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
     fun fun_ord ((t1, deriv1, _), (t2, deriv2, _)) =
       let
         fun is_functional t mode =
-          case try (fst o dest_Const o fst o strip_comb) t of
+          case try (dest_Const_name o fst o strip_comb) t of
             NONE => false
           | SOME c => is_some (Core_Data.alternative_compilation_of ctxt c mode)
       in

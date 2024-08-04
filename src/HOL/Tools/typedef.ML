@@ -229,8 +229,8 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
       |> primitive_typedef overloaded type_definition_name newT oldT Rep_name Abs_name set;
 
     val alias_lthy = typedef_lthy
-      |> Local_Theory.const_alias Rep_name (#1 (Term.dest_Const RepC))
-      |> Local_Theory.const_alias Abs_name (#1 (Term.dest_Const AbsC));
+      |> Local_Theory.const_alias Rep_name (Term.dest_Const_name RepC)
+      |> Local_Theory.const_alias Abs_name (Term.dest_Const_name AbsC);
 
 
     (* result *)
@@ -272,8 +272,8 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
               make @{thm type_definition.Abs_induct});
 
         val info =
-          ({rep_type = oldT, abs_type = newT, Rep_name = #1 (Term.dest_Const RepC),
-            Abs_name = #1 (Term.dest_Const AbsC), axiom_name = axiom_name},
+          ({rep_type = oldT, abs_type = newT, Rep_name = dest_Const_name RepC,
+            Abs_name = dest_Const_name AbsC, axiom_name = axiom_name},
            {inhabited = inhabited, type_definition = type_definition,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,

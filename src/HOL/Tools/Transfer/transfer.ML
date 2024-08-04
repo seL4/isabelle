@@ -238,7 +238,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
       | is_eq _ = false
     val add_eqs = Term.fold_aterms (fn t => if is_eq t then insert (op =) t else I)
     val eq_consts = rev (add_eqs t [])
-    val eqTs = map (snd o dest_Const) eq_consts
+    val eqTs = map dest_Const_type eq_consts
     val used = Term.add_free_names prop []
     val names = map (K "") eqTs |> Name.variant_list used
     val frees = map Free (names ~~ eqTs)
@@ -322,7 +322,7 @@ fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
     val Domainp_tms = rev (fold_Domainp (fn t => insert op= t) t [])
-    val Domainp_Ts = map (snd o dest_funT o snd o dest_Const o fst o dest_comb) Domainp_tms
+    val Domainp_Ts = map (snd o dest_funT o dest_Const_type o fst o dest_comb) Domainp_tms
     val used = Term.add_free_names t []
     val rels = map (snd o dest_comb) Domainp_tms
     val rel_names = map (fst o fst o dest_Var) rels

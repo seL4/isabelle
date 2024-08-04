@@ -37,7 +37,7 @@ fun contains_datatypes T_names =
 
 fun mk_ctor T_names t =
   let
-    val name = t |> dest_Const |> fst
+    val name = dest_Const_name t
     val (argTs, _) = strip_type (fastype_of t)
     val active_poss = map (contains_datatypes T_names) argTs
   in

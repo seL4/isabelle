@@ -951,7 +951,7 @@ fun instantiated_case_rewrite thy Tcon =
 
 fun case_betapply thy t =
   let
-    val case_name = fst (dest_Const (fst (strip_comb t)))
+    val case_name = dest_Const_name (fst (strip_comb t))
     val Tcon = datatype_name_of_case_name thy case_name
     val th = instantiated_case_rewrite thy Tcon
   in
@@ -1068,7 +1068,7 @@ fun import_intros inp_pred [] ctxt =
           let
             val subst = Sign.typ_match thy (fastype_of pred', fastype_of pred) Vartab.empty
               handle Type.TYPE_MATCH =>
-                error ("Type mismatch of predicate " ^ fst (dest_Const pred) ^
+                error ("Type mismatch of predicate " ^ dest_Const_name pred ^
                   " (trying to match " ^ Syntax.string_of_typ ctxt' (fastype_of pred') ^
                   " and " ^ Syntax.string_of_typ ctxt' (fastype_of pred) ^ ")" ^
                   " in " ^ Thm.string_of_thm ctxt' th)
@@ -1077,7 +1077,7 @@ fun import_intros inp_pred [] ctxt =
           let
             val (pred', _) = strip_intro_concl th
             val _ =
-              if not (fst (dest_Const pred) = fst (dest_Const pred')) then
+              if not (dest_Const_name pred = dest_Const_name pred') then
                 raise Fail "Trying to instantiate another predicate"
               else ()
             val instT =

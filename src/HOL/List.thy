@@ -639,7 +639,7 @@ fun dest_case ctxt case_term =
             (case possible_index_of_singleton_case (fst (split_last args)) of
               SOME i =>
                 let
-                  val constr_names = map (fst o dest_Const) ctrs
+                  val constr_names = map dest_Const_name ctrs
                   val (Ts, _) = strip_type T
                   val T' = List.last Ts
                 in SOME (List.last args, T', i, nth args i, nth constr_names i) end

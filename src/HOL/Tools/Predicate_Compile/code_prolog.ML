@@ -446,7 +446,7 @@ fun mk_program ctxt moded_gr moded_preds (prog, (moded_pred_table, constant_tabl
       let
         val (p, args) = strip_comb t
         val mode = Predicate_Compile_Core.head_mode_of derivation
-        val name = fst (dest_Const p)
+        val name = dest_Const_name p
 
         val p' = the (AList.lookup (op =) moded_pred_table' (name, (pol, mode)))
         val args' = map (translate_term ctxt constant_table') args

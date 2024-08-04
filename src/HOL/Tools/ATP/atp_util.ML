@@ -181,7 +181,7 @@ val type_equiv = Sign.typ_equiv
 
 fun varify_type ctxt T =
   Variable.polymorphic_types ctxt [Const (\<^const_name>\<open>undefined\<close>, T)]
-  |> snd |> the_single |> dest_Const |> snd
+  |> snd |> the_single |> dest_Const_type
 
 (* TODO: use "Term_Subst.instantiateT" instead? *)
 fun instantiate_type thy T1 T1' T2 =

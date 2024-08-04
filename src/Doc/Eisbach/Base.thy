@@ -12,7 +12,7 @@ ML\<open>
 fun get_split_rule ctxt target =
   let
     val (head, args) = strip_comb (Envir.eta_contract target);
-    val (const_name, _) = dest_Const head;
+    val const_name = dest_Const_name head;
     val const_name_components = Long_Name.explode const_name;
 
     val _ =

@@ -223,7 +223,7 @@ let
           if length dnames = 1 then ["bottom"] else
           map (fn s => "bottom_" ^ Long_Name.base_name s) dnames
       fun one_eq bot (constr_info : Domain_Constructors.constr_info) =
-        let fun name_of (c, _) = Long_Name.base_name (fst (dest_Const c))
+        let fun name_of (c, _) = Long_Name.base_name (dest_Const_name c)
         in bot :: map name_of (#con_specs constr_info) end
     in adms @ flat (map2 one_eq bottoms constr_infos) end
 

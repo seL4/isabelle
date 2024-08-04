@@ -1001,7 +1001,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
 fun note_bnf_defs bnf lthy =
   let
     fun mk_def_binding cst_of =
-      Thm.def_binding (Binding.qualified_name (dest_Const (cst_of bnf) |> fst));
+      Thm.def_binding (Binding.qualified_name (dest_Const_name (cst_of bnf)));
     val notes =
       [(mk_def_binding map_of_bnf, map_def_of_bnf bnf),
        (mk_def_binding rel_of_bnf, rel_def_of_bnf bnf),

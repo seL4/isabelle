@@ -1259,7 +1259,7 @@ fun prepare_intrs options ctxt prednames intros =
       | (intr :: _) =>
           let
             val (p, args) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl intr))
-            val one_mode = hd (the (AList.lookup (op =) all_modes (fst (dest_Const p))))
+            val one_mode = hd (the (AList.lookup (op =) all_modes (dest_Const_name p)))
           in
             ho_args_of one_mode args
           end)
@@ -1287,7 +1287,7 @@ fun check_format_of_intro_rule thy intro =
   let
     val concl = Logic.strip_imp_concl (prop_of intro)
     val (p, args) = strip_comb (HOLogic.dest_Trueprop concl)
-    val params = fst (chop (nparams_of thy (fst (dest_Const p))) args)
+    val params = fst (chop (nparams_of thy (dest_Const_name p)) args)
     fun check_arg arg = case HOLogic.strip_tupleT (fastype_of arg) of
       (Ts as _ :: _ :: _) =>
         if length (HOLogic.strip_tuple arg) = length Ts then

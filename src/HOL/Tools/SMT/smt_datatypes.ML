@@ -140,7 +140,7 @@ fun add_decls fps T (declss, ctxt) =
               ([], _) => (dss, ctxt1)
             | (ds, ctxt2) =>
                 let
-                  val constrTs = maps (map (snd o Term.dest_Const o fst) o snd o snd) ds
+                  val constrTs = maps (map (dest_Const_type o fst) o snd o snd) ds
                   val Us = fold (union (op =) o Term.binder_types) constrTs []
 
                   fun ins [] = [(Us, ds)]

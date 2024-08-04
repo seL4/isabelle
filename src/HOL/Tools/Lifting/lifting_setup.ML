@@ -338,9 +338,8 @@ in
       
       fun make_goal pcr_def constr =
         let 
-          val pred_name =
-            (fst o dest_Const o strip_args 1 o HOLogic.dest_Trueprop o Thm.prop_of) constr
-          val arg = (fst o Logic.dest_equals o Thm.prop_of) pcr_def
+          val pred_name = dest_Const_name (strip_args 1 (HOLogic.dest_Trueprop (Thm.prop_of constr)))
+          val arg = fst (Logic.dest_equals (Thm.prop_of pcr_def))
         in
           HOLogic.mk_Trueprop ((Const (pred_name, (fastype_of arg) --> HOLogic.boolT)) $ arg)
         end
@@ -360,7 +359,8 @@ in
             let
               val prems = map HOLogic.dest_Trueprop (Thm.prems_of thm)
               val thm_name =
-                (Long_Name.base_name o fst o dest_Const o strip_args 1 o HOLogic.dest_Trueprop o Thm.concl_of) thm
+                Long_Name.base_name
+                  (dest_Const_name (strip_args 1 (HOLogic.dest_Trueprop (Thm.concl_of thm))))
               val non_trivial_assms = filter_out is_trivial_assm prems
             in
               if null non_trivial_assms then ()
@@ -941,7 +941,7 @@ fun fold_transfer_rel f (Const (\<^const_name>\<open>Transfer.Rel\<close>, _) $ 
 
 fun filter_transfer_rules_by_rel transfer_rel transfer_rules =
   let
-    val transfer_rel_name = transfer_rel |> dest_Const |> fst;
+    val transfer_rel_name = dest_Const_name transfer_rel;
     fun has_transfer_rel thm = 
       let
         val concl = thm |> Thm.concl_of |> HOLogic.dest_Trueprop

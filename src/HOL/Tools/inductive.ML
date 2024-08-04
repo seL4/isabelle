@@ -1237,7 +1237,7 @@ val add_inductive_cmd = gen_add_inductive_cmd add_ind_def;
 (* read off arities of inductive predicates from raw induction rule *)
 fun arities_of induct =
   map (fn (_ $ t $ u) =>
-      (fst (dest_Const (head_of t)), length (snd (strip_comb u))))
+      (dest_Const_name (head_of t), length (snd (strip_comb u))))
     (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct)));
 
 (* read off parameters of inductive predicate from raw induction rule *)
@@ -1251,7 +1251,7 @@ fun params_of induct =
   end;
 
 val pname_of_intr =
-  Thm.concl_of #> HOLogic.dest_Trueprop #> head_of #> dest_Const #> fst;
+  Thm.concl_of #> HOLogic.dest_Trueprop #> head_of #> dest_Const_name;
 
 (* partition introduction rules according to predicate name *)
 fun gen_partition_rules f induct intros =

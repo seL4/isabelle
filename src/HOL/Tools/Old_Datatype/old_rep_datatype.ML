@@ -359,7 +359,7 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
       map2 prove_cases newTs (Old_Datatype_Prop.make_cases case_names0 descr thy2);
 
     fun case_name_of (th :: _) =
-      fst (dest_Const (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th))))));
+      dest_Const_name (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th)))));
 
     val case_names = map case_name_of case_thms;
   in

@@ -199,10 +199,10 @@ fun mk_assign ctxt f =
 
 fun com_tr' ctxt (t,a) =
   let
-    val (head, args) = apfst (try (#1 o Term.dest_Const)) (Term.strip_comb t);
+    val (head, args) = apfst (try Term.dest_Const_name) (Term.strip_comb t);
     fun arg k = nth args (k - 1);
     val n = length args;
-    val (_, args_a) = apfst (try (#1 o Term.dest_Const)) (Term.strip_comb a);
+    val (_, args_a) = apfst (try Term.dest_Const_name) (Term.strip_comb a);
     fun arg_a k = nth args_a (k - 1)
   in
     case head of

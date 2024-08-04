@@ -55,7 +55,7 @@ fun mk_update_defs typ_name lthy =
     val simp_thms = flat sel_thmss @ injects
 
     fun mk_name sel =
-      Binding.name ("update_" ^ Long_Name.base_name (fst (dest_Const sel)))
+      Binding.name ("update_" ^ Long_Name.base_name (dest_Const_name sel))
 
     val thms_binding = (Binding.name "record_simps", @{attributes [simp]})
 
@@ -193,7 +193,7 @@ fun mk_update_defs typ_name lthy =
     val thms = flat (map (prove lthy'' update_defs update_ts) (0 upto len-1))
 
     fun insert sel =
-      Symtab.insert op = (fst (dest_Const sel), Local_Theory.full_name lthy' (mk_name sel))
+      Symtab.insert op = (dest_Const_name sel, Local_Theory.full_name lthy' (mk_name sel))
   in
     lthy''
     |> Local_Theory.map_background_naming (Name_Space.mandatory_path short_name)
@@ -250,7 +250,7 @@ fun record_fields_tr ctxt t =
     val {ctrs, selss, ...} = the (Ctr_Sugar.ctr_sugar_of ctxt typ_name)
     val ctr = case ctrs of [ctr] => ctr | _ => error "BNF_Record.record_fields_tr: expected only single constructor"
     val sels = case selss of [sels] => sels | _ => error "BNF_Record.record_fields_tr: expected selectors"
-    val ctr_dummy = Const (fst (dest_Const ctr), dummyT)
+    val ctr_dummy = Const (dest_Const_name ctr, dummyT)
 
     fun mk_arg name =
       case AList.lookup op = assns' name of
@@ -258,7 +258,7 @@ fun record_fields_tr ctxt t =
       | SOME t => t
   in
     if length assns = length sels then
-      list_comb (ctr_dummy, map (mk_arg o fst o dest_Const) sels)
+      list_comb (ctr_dummy, map (mk_arg o dest_Const_name) sels)
     else
       error ("BNF_Record.record_fields_tr: expected " ^ Value.print_int (length sels) ^ " field(s)")
   end

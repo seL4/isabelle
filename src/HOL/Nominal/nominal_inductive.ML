@@ -46,7 +46,7 @@ fun mk_perm_bool_simproc names =
     proc = fn _ => fn _ => fn ct =>
       (case Thm.term_of ct of
         Const (\<^const_name>\<open>Nominal.perm\<close>, _) $ _ $ t =>
-          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
+          if member (op =) names (the_default "" (try (dest_Const_name o head_of) t))
           then SOME perm_bool else NONE
       | _ => NONE),
     identifier = []};

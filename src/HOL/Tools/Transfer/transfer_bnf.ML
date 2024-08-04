@@ -70,7 +70,7 @@ fun generate_relation_constraint_goal ctxt bnf constraint_def =
   let
     val constr_name =
       constraint_def |> Thm.prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
-      |> head_of |> fst o dest_Const
+      |> head_of |> dest_Const_name
     val live = live_of_bnf bnf
     val (((As, Bs), Ds), ctxt') = ctxt
       |> mk_TFrees live

@@ -46,7 +46,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
     val (constr, cargs_frees) =
       if null middle then raise RecError "constructor missing"
       else strip_comb (hd middle);
-    val (cname, _) = dest_Const constr
+    val cname = dest_Const_name constr
       handle TERM _ => raise RecError "ill-formed constructor";
     val con_info = the (Symtab.lookup (ConstructorsData.get thy) cname)
       handle Option.Option =>
@@ -102,7 +102,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     fun use_fabs (_ $ t) = subst_bound (t, fabs)
       | use_fabs t       = t
 
-    val cnames         = map (#1 o dest_Const) constructors
+    val cnames = map dest_Const_name constructors
     and recursor_pairs = map (dest_eqn o Thm.concl_of) rec_rewrites
 
     fun absterm (Free x, body) = absfree x body

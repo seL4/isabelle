@@ -785,7 +785,7 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
       ||> `Local_Theory.end_nested;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
-    val co_rec_names = map (fst o dest_Const o Morphism.term phi) co_rec_frees;
+    val co_rec_names = map (dest_Const_name o Morphism.term phi) co_rec_frees;
     val co_recs = @{map 2} (fn name => fn resT =>
       Const (name, co_rec_argTs ---> resT)) co_rec_names co_rec_resTs;
     val co_rec_defs = map (fn def =>

@@ -73,7 +73,7 @@ let
                    Syntax.string_of_term ctxt0 t));
 
   (*Now we know they are all Consts, so get their names, type and params*)
-  val rec_names = map (#1 o dest_Const) rec_hds
+  val rec_names = map dest_Const_name rec_hds
   and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
   val rec_base_names = map Long_Name.base_name rec_names;
@@ -387,7 +387,7 @@ let
        a summand 'domt' was also an argument, but this required the domain of
        mutual recursion to invariably be a disjoint sum.*)
      fun mk_predpair rec_tm =
-       let val rec_name = (#1 o dest_Const o head_of) rec_tm
+       let val rec_name = dest_Const_name (head_of rec_tm)
            val pfree = Free(pred_name ^ "_" ^ Long_Name.base_name rec_name,
                             elem_factors ---> \<^Type>\<open>o\<close>)
            val qconcl =

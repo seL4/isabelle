@@ -128,11 +128,11 @@ fun process_spec cos alt_props thy =
     fun mk_exist c prop =
       let
         val T = type_of c
-        val cname = Long_Name.base_name (fst (dest_Const c))
+        val cname = Long_Name.base_name (dest_Const_name c)
         val vname = if Symbol_Pos.is_identifier cname then cname else "x"
       in HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c, prop)) end
     val ex_prop = fold_rev mk_exist proc_consts prop
-    val cnames = map (fst o dest_Const) proc_consts
+    val cnames = map dest_Const_name proc_consts
     fun post_process (arg as (thy,thm)) =
       let
         fun inst_all thy v thm =

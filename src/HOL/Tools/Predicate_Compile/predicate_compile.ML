@@ -86,7 +86,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
     let
       fun get_specs ts = map_filter (fn t =>
         Term_Graph.get_node gr t |>
-        (fn ths => if null ths then NONE else SOME (fst (dest_Const t), ths)))
+        (fn ths => if null ths then NONE else SOME (dest_Const_name t, ths)))
         ts
       val _ = print_step options ("Preprocessing scc of " ^
         commas (map (Syntax.string_of_term_global thy) ts))

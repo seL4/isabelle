@@ -989,24 +989,23 @@ fun get_updupd_simp ctxt defset u u' comp =
 
 fun gen_get_updupd_simps ctxt upd_funs defset =
   let
-    val cname = fst o dest_Const;
-    fun getswap u u' = get_updupd_simp ctxt defset u u' (cname u = cname u');
+    fun getswap u u' = get_updupd_simp ctxt defset u u' (dest_Const_name u = dest_Const_name u');
     fun build_swaps_to_eq _ [] swaps = swaps
       | build_swaps_to_eq upd (u :: us) swaps =
           let
-            val key = (cname u, cname upd);
+            val key = (dest_Const_name u, dest_Const_name upd);
             val newswaps =
               if Symreltab.defined swaps key then swaps
               else Symreltab.insert (K true) (key, getswap u upd) swaps;
           in
-            if cname u = cname upd then newswaps
+            if dest_Const_name u = dest_Const_name upd then newswaps
             else build_swaps_to_eq upd us newswaps
           end;
     fun swaps_needed [] _ _ swaps = map snd (Symreltab.dest swaps)
       | swaps_needed (u :: us) prev seen swaps =
-          if Symtab.defined seen (cname u)
+          if Symtab.defined seen (dest_Const_name u)
           then swaps_needed us prev seen (build_swaps_to_eq u prev swaps)
-          else swaps_needed us (u :: prev) (Symtab.insert (K true) (cname u, ()) seen) swaps;
+          else swaps_needed us (u :: prev) (Symtab.insert (K true) (dest_Const_name u, ()) seen) swaps;
   in swaps_needed upd_funs [] Symtab.empty Symreltab.empty end;
 
 fun get_updupd_simps ctxt term defset = gen_get_updupd_simps ctxt (get_upd_funs term) defset;

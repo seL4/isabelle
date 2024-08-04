@@ -494,7 +494,7 @@ fun add_pattern_combinators
 
     (* syntax translations for pattern combinators *)
     local
-      fun syntax c = Lexicon.mark_const (fst (dest_Const c));
+      fun syntax c = Lexicon.mark_const (dest_Const_name c);
       fun app s (l, r) = Ast.mk_appl (Ast.Constant s) [l, r];
       val capp = app \<^const_syntax>\<open>Rep_cfun\<close>;
       val capps = Library.foldl capp

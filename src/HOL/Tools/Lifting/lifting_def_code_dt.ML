@@ -276,7 +276,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val qty_code_dt_bundle_name = bundle_name_of_rep_isom_data rep_isom_data
             val rep_isom = mk_rep_isom_of_code_dt qty_ret code_dt |> the
             val lthy3 = if quot_active then lthy2 else Bundle.includes [qty_code_dt_bundle_name] lthy2
-            fun qty_isom_of_rep_isom rep = rep |> dest_Const |> snd |> domain_type
+            fun qty_isom_of_rep_isom rep = domain_type (dest_Const_type rep)
             val qty_isom = qty_isom_of_rep_isom rep_isom
             val f'_var = (Binding.suffix_name "_aux" (fst var), NoSyn);
             val f'_qty = strip_type qty |> fst |> rpair qty_isom |> op --->
@@ -360,8 +360,8 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
     val ctr_sugar = fp |> #fp_ctr_sugar |> #ctr_sugar
     val ctrs = map (Ctr_Sugar.mk_ctr typs) (#ctrs ctr_sugar);
     val qty_ctrs = map (Ctr_Sugar.mk_ctr qty_typs) (#ctrs ctr_sugar);
-    val ctr_Tss = map (dest_Const #> snd #> binder_types) ctrs;
-    val qty_ctr_Tss = map (dest_Const #> snd #> binder_types) qty_ctrs;
+    val ctr_Tss = map (binder_types o dest_Const_type) ctrs;
+    val qty_ctr_Tss = map (binder_types o dest_Const_type) qty_ctrs;
 
     val n = length ctrs;
     val ks = 1 upto n;
@@ -478,14 +478,14 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
 
     fun mk_ctr ctr ctr_Ts sels =
       let
-        val sel_ret_Ts = map (dest_Const #> snd #> body_type) sels;
+        val sel_ret_Ts = map (body_type o dest_Const_type) sels;
 
         fun rep_isom lthy t (rty, qty) =
           let
             val rep = quot_isom_rep lthy (rty, qty)
           in
-            if is_Const rep andalso (rep |> dest_Const |> fst) = \<^const_name>\<open>id\<close> then
-              t else rep $ t
+            if is_Const rep andalso dest_Const_name rep = \<^const_name>\<open>id\<close>
+            then t else rep $ t
           end;
       in
         @{fold 3} (fn sel => fn ctr_T => fn sel_ret_T => fn ctr =>

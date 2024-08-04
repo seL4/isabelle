@@ -274,7 +274,7 @@ fun fetch_pred_data ctxt name =
         fun is_intro_of intro =
           let
             val (const, _) = strip_comb (HOLogic.dest_Trueprop (Thm.concl_of intro))
-          in (fst (dest_Const const) = name) end;
+          in dest_Const_name const = name end;
         val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result))
         val index = find_index (fn s => s = name) (#names (fst info))
         val pre_elim = nth (#elims result) index
@@ -310,7 +310,7 @@ fun depending_preds_of ctxt (key, value) =
 
 fun add_intro (opt_case_name, thm) thy =
   let
-    val (name, _) = dest_Const (fst (strip_intro_concl thm))
+    val name = dest_Const_name (fst (strip_intro_concl thm))
     fun cons_intro gr =
       (case try (Graph.get_node gr) name of
         SOME _ =>
@@ -325,8 +325,7 @@ fun add_intro (opt_case_name, thm) thy =
 
 fun set_elim thm =
   let
-    val (name, _) =
-      dest_Const (fst (strip_comb (HOLogic.dest_Trueprop (hd (Thm.prems_of thm)))))
+    val name = dest_Const_name (fst (strip_comb (HOLogic.dest_Trueprop (hd (Thm.prems_of thm)))))
   in
     PredData.map (Graph.map_node name (map_pred_data (apsnd (apfst (apfst (apsnd (K (SOME thm))))))))
   end
@@ -346,7 +345,7 @@ fun register_predicate (constname, intros, elim) thy =
 fun register_intros (constname, pre_intros) thy =
   let
     val T = Sign.the_const_type thy constname
-    fun constname_of_intro intr = fst (dest_Const (fst (strip_intro_concl intr)))
+    fun constname_of_intro intr = dest_Const_name (fst (strip_intro_concl intr))
     val _ = if not (forall (fn intr => constname_of_intro intr = constname) pre_intros) then
       error ("register_intros: Introduction rules of different constants are used\n" ^
         "expected rules for " ^ constname ^ ", but received rules for " ^

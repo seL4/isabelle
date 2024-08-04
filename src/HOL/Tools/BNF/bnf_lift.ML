@@ -921,7 +921,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
         |> fst;
 
     (* create local definitions `b = tm` with n arguments *)
-    fun suffix tm s = (dest_Const tm |> fst |> Long_Name.base_name) ^ s;
+    fun suffix tm s = Long_Name.base_name (dest_Const_name tm) ^ s;
     fun define lthy b n tm =
       let
         val b = Binding.qualify true absT_name (Binding.qualified_name b);

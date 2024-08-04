@@ -279,7 +279,7 @@ fun code_lazy_type eager_type_string thy =
         val (caseT', lthy') = substitute_ctr (to_destr_eagerT caseT, eagerT) caseT lthy3
       in (Const (eager_case, caseT'), lthy') end
 
-    val ctr_names = map (Long_Name.base_name o fst o dest_Const) ctrs
+    val ctr_names = map (Long_Name.base_name o dest_Const_name) ctrs
     val ((((lazy_ctr_name, lazy_sel_name), lazy_ctrs_name), lazy_case_name), ctxt) = lthy4
       |> mk_name "Lazy_" "" short_type_name
       ||>> mk_name "unlazy_" "" short_type_name
@@ -320,7 +320,7 @@ fun code_lazy_type eager_type_string thy =
 
     fun mk_lazy_ctr (name, eager_ctr) =
       let
-        val (_, ctrT) = dest_Const eager_ctr
+        val ctrT = dest_Const_type eager_ctr
         fun to_lazy_ctrT (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) = T1 --> to_lazy_ctrT T2
           | to_lazy_ctrT T = if T = eagerT then lazy_type else raise Match
         val lazy_ctrT = to_lazy_ctrT ctrT
@@ -334,7 +334,7 @@ fun code_lazy_type eager_type_string thy =
 
     val (lazy_case_def, lthy8) =
       let
-        val (_, caseT) = dest_Const case'
+        val caseT = dest_Const_type case'
         fun to_lazy_caseT (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
             if T1 = eagerT then lazy_type --> T2 else T1 --> to_lazy_caseT T2
         val lazy_caseT = to_lazy_caseT caseT
@@ -385,7 +385,7 @@ fun code_lazy_type eager_type_string thy =
 
     fun mk_lazy_ctr_eq (eager_ctr, lazy_ctr) =
       let
-        val (_, ctrT) = dest_Const eager_ctr
+        val ctrT = dest_Const_type eager_ctr
         val argsT = binder_types ctrT
         val args = length argsT
       in
@@ -401,7 +401,7 @@ fun code_lazy_type eager_type_string thy =
 
     fun mk_ctrs_lazy_eq (eager_ctr, lazy_ctr) =
       let
-        val argsT = dest_Const eager_ctr |> snd |> binder_types
+        val argsT =  binder_types (dest_Const_type eager_ctr)
         val n = length argsT
         val lhs = apply_bounds 0 n eager_ctr
         val rhs = #const lazy_ctr_def $ 
@@ -423,7 +423,7 @@ fun code_lazy_type eager_type_string thy =
 
     val case_lazy_eq = 
       let
-        val (_, caseT) = case' |> dest_Const
+        val caseT = dest_Const_type case'
         val argsT = binder_types caseT
         val n = length argsT
         val lhs = apply_bounds 0 n case'
@@ -447,10 +447,10 @@ fun code_lazy_type eager_type_string thy =
     fun mk_case_ctrs_eq (i, lazy_ctr) =
       let
         val lazy_case = #const lazy_case_def
-        val (_, ctrT) = dest_Const lazy_ctr
+        val ctrT = dest_Const_type lazy_ctr
         val ctr_argsT = binder_types ctrT
         val ctr_args_n = length ctr_argsT
-        val (_, caseT) = dest_Const lazy_case
+        val caseT = dest_Const_type lazy_case
         val case_argsT = binder_types caseT
 
         fun n_bounds_from m n t =
@@ -537,7 +537,7 @@ fun transform_code_eqs _ [] = NONE
           val table = Laziness_Data.get thy
         in fn (s1, s2) => case Symtab.lookup table s1 of
             NONE => false
-          | SOME x => #active x andalso s2 <> (#ctr x |> dest_Const |> fst)
+          | SOME x => #active x andalso s2 <> dest_Const_name (#ctr x)
         end
       val thy = Proof_Context.theory_of ctxt
       val table = Laziness_Data.get thy
@@ -577,7 +577,7 @@ fun print_lazy_type thy (name, info : lazy_info) =
     val ctxt = Proof_Context.init_global thy
     fun pretty_ctr ctr = 
       let
-        val argsT = dest_Const ctr |> snd |> binder_types
+        val argsT = binder_types (dest_Const_type ctr)
       in
         Pretty.block [
           Syntax.pretty_term ctxt ctr,

@@ -53,7 +53,7 @@ fun prove_eventually_at_top ectxt p =
 fun prove_landau ectxt l f g =
   let
     val ctxt = get_ctxt ectxt
-    val l' = l |> dest_Const |> fst
+    val l' = dest_Const_name l
     val basis = Asymptotic_Basis.default_basis
     val ([thm1, thm2], basis) = Exp.expand_terms ectxt [f, g] basis
     val prover =

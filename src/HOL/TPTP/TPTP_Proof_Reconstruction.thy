@@ -555,13 +555,12 @@ fun conc_is_skolem_def t =
         val (h, args) =
           strip_comb t'
           |> apfst (strip_abs #> snd #> strip_comb #> fst)
-        val get_const_name = dest_Const #> fst
         val h_property =
           is_Free h orelse
           is_Var h orelse
           (is_Const h
-           andalso (get_const_name h <> get_const_name \<^term>\<open>HOL.Ex\<close>)
-           andalso (get_const_name h <> get_const_name \<^term>\<open>HOL.All\<close>)
+           andalso (dest_Const_name h <> dest_Const_name \<^term>\<open>HOL.Ex\<close>)
+           andalso (dest_Const_name h <> dest_Const_name \<^term>\<open>HOL.All\<close>)
            andalso (h <> \<^term>\<open>Hilbert_Choice.Eps\<close>)
            andalso (h <> \<^term>\<open>HOL.conj\<close>)
            andalso (h <> \<^term>\<open>HOL.disj\<close>)
@@ -588,11 +587,10 @@ fun conc_is_bad_skolem_def t =
       Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ (Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ _) =>
       let
         val (h, args) = strip_comb t'
-        val get_const_name = dest_Const #> fst
         val const_h_test =
           if is_Const h then
-            (get_const_name h = get_const_name \<^term>\<open>HOL.Ex\<close>)
-             orelse (get_const_name h = get_const_name \<^term>\<open>HOL.All\<close>)
+            (dest_Const_name h = dest_Const_name \<^term>\<open>HOL.Ex\<close>)
+             orelse (dest_Const_name h = dest_Const_name \<^term>\<open>HOL.All\<close>)
              orelse (h = \<^term>\<open>Hilbert_Choice.Eps\<close>)
              orelse (h = \<^term>\<open>HOL.conj\<close>)
              orelse (h = \<^term>\<open>HOL.disj\<close>)
@@ -898,9 +896,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
 *)
 
     val filtered_candidates =
-      map (dest_Const
-           #> snd
-           #> use_candidate skolem_const_ty params' [])
+      map (dest_Const_type #> use_candidate skolem_const_ty params' [])
        consts_candidates (* prefiltered_candidates *)
       |> pair consts_candidates (* prefiltered_candidates *)
       |> ListPair.zip
@@ -1076,8 +1072,7 @@ fun find_dec_arity i = fn st =>
           #> HOLogic.dest_eq (*the unification constraint's "="*)
           #> fst
           #> head_of
-          #> dest_Const
-          #> snd
+          #> dest_Const_type
 
        fun arity_of ty =
          let

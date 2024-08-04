@@ -1557,7 +1557,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                * term "f v1..vn" which is a pattern that any full application
                * of "f" will match.
                *-------------------------------------------------------------*)
-              val func_name = #1(dest_Const func)
+              val func_name = dest_Const_name func
               fun is_func (Const (name,_)) = (name = func_name)
                 | is_func _                = false
               val rcontext = rev cntxt
@@ -1730,7 +1730,7 @@ fun ipartition gv (constructors,rows) =
                fold_rev (fn (row as (p::rst, rhs)) =>
                          fn (in_group,not_in_group) =>
                   let val (pc,args) = USyntax.strip_comb p
-                  in if (#1(dest_Const pc) = c)
+                  in if (dest_Const_name pc = c)
                      then ((args@rst, rhs)::in_group, not_in_group)
                      else (in_group, row::not_in_group)
                   end)      rows ([],[])
@@ -1768,7 +1768,7 @@ fun given x = snd (snd x);
  * Produce an instance of a constructor, plus genvars for its arguments.
  *---------------------------------------------------------------------------*)
 fun fresh_constr ty_match colty gv c =
-  let val (_,Ty) = dest_Const c
+  let val Ty = dest_Const_type c
       val L = binder_types Ty
       and ty = body_type Ty
       val ty_theta = ty_match ty colty
@@ -1786,7 +1786,7 @@ fun mk_group name rows =
   fold_rev (fn (row as ((prfx, p::rst), rhs)) =>
             fn (in_group,not_in_group) =>
                let val (pc,args) = USyntax.strip_comb p
-               in if ((#1 (Term.dest_Const pc) = name) handle TERM _ => false)
+               in if ((dest_Const_name pc = name) handle TERM _ => false)
                   then (((prfx,args@rst), rhs)::in_group, not_in_group)
                   else (in_group, row::not_in_group) end)
       rows ([],[]);
@@ -1801,7 +1801,7 @@ let val fresh = fresh_constr ty_match colty gv
      fun part {constrs = [],      rows, A} = rev A
        | part {constrs = c::crst, rows, A} =
          let val (c',gvars) = fresh c
-             val (in_group, not_in_group) = mk_group (#1 (dest_Const c')) rows
+             val (in_group, not_in_group) = mk_group (dest_Const_name c') rows
              val in_group' =
                  if (null in_group)  (* Constructor not given *)
                  then [((prfx, #2(fresh c)), (USyntax.ARB res_ty, (~1,false)))]
@@ -1884,7 +1884,7 @@ fun mk_case ty_info ty_match usednames range_ty =
      of NONE => mk_case_fail("Not a known datatype: "^ty_name)
       | SOME{case_const,constructors} =>
         let
-            val case_const_name = #1(dest_Const case_const)
+            val case_const_name = dest_Const_name case_const
             val nrows = maps (expand constructors pty) rows
             val subproblems = divide(constructors, pty, range_ty, nrows)
             val groups      = map #group subproblems
@@ -2701,7 +2701,7 @@ fun map_wfs f = map_hints (fn (simps, congs, wfs) => (simps, congs, f wfs));
 local
 
 val cong_head =
-  fst o Term.dest_Const o Term.head_of o fst o Logic.dest_equals o Thm.concl_of;
+  dest_Const_name o Term.head_of o fst o Logic.dest_equals o Thm.concl_of;
 
 fun prep_cong raw_thm =
   let val thm = safe_mk_meta_eq raw_thm in (cong_head thm, thm) end;

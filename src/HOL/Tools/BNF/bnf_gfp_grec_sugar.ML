@@ -176,7 +176,7 @@ fun all_friend_extras_of ctxt =
 
 fun coinduct_extras_of_generic context =
   corec_infos_of_generic context
-  #> map (#corecUU #> dest_Const #> fst #> Symtab.lookup (#2 (Data.get context)) #> the
+  #> map (#corecUU #> dest_Const_name #> Symtab.lookup (#2 (Data.get context)) #> the
     #> transfer_coinduct_extra (Context.theory_of context));
 
 fun get_coinduct_uptos fpT_name context =
@@ -628,7 +628,7 @@ fun derive_cong_friend_intro ctxt cong_algrho_intro =
     val fpT as Type (_, fp_argTs) = range_type (fastype_of algrho);
 
     fun has_algrho (\<^Const_>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ rhs)) =
-      fst (dest_Const (head_of (strip_abs_body rhs))) = algrho_name;
+      dest_Const_name (head_of (strip_abs_body rhs)) = algrho_name;
 
     val eq_algrho :: _ =
       maps (filter (has_algrho o Thm.prop_of) o #eq_algrhos o snd) (all_friend_extras_of ctxt);
@@ -955,7 +955,7 @@ fun find_all_associated_types [] _ = []
   | find_all_associated_types ((T1, T2) :: TTs) T =
     find_all_associated_types TTs T |> T1 = T ? cons T2;
 
-fun as_member_of tab = try dest_Const #> Option.mapPartial (fst #> Symtab.lookup tab);
+fun as_member_of tab = try dest_Const_name #> Option.mapPartial (Symtab.lookup tab);
 
 fun extract_rho_from_equation
     ({ctr_guards, inner_buffer = {Oper, VLeaf, CLeaf, ctr_wrapper, friends}, ...},

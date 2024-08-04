@@ -392,7 +392,7 @@ fun add_mono_rule mono_rule context =
     val pol_mono_rule = introduce_polarities mono_rule
     val mono_ruleT_name =
       dest_Type_name (fst (relation_types (fst (relation_types
-        (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of pol_mono_rule)))))))))
+        (dest_Const_type (head_of (HOLogic.dest_Trueprop (Thm.concl_of pol_mono_rule))))))))
   in
     if Symtab.defined (get_relator_distr_data' context) mono_ruleT_name
     then
@@ -419,7 +419,7 @@ local
     let
       val distr_ruleT_name =
         dest_Type_name (fst (relation_types (fst (relation_types
-          (snd (dest_Const (head_of (HOLogic.dest_Trueprop (Thm.concl_of distr_rule)))))))))
+          (dest_Const_type (head_of (HOLogic.dest_Trueprop (Thm.concl_of distr_rule))))))))
     in
       if Symtab.defined (get_relator_distr_data' context) distr_ruleT_name then
         (Data.map o map_relator_distr_data)

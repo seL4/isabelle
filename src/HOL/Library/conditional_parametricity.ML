@@ -57,7 +57,7 @@ fun strip_imp_prems_concl (Const("Pure.imp", _) $ A $ B) = A :: strip_imp_prems_
 fun strip_prop_safe t = Logic.unprotect t handle TERM _ => t;
 
 fun get_class_of ctxt t =
-  Axclass.class_of_param (Proof_Context.theory_of ctxt) (fst (dest_Const t));
+  Axclass.class_of_param (Proof_Context.theory_of ctxt) (dest_Const_name t);
 
 fun is_class_op ctxt t =
   let
@@ -347,7 +347,7 @@ fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
     val Domainp_ts = rev (fold_Domainp (fn t => insert op= t) t [])
-    val Domainp_Ts = map (snd o dest_funT o snd o dest_Const o fst o dest_comb) Domainp_ts
+    val Domainp_Ts = map (snd o dest_funT o dest_Const_type o fst o dest_comb) Domainp_ts
     val used = Term.add_free_names t []
     val rels = map (snd o dest_comb) Domainp_ts
     val rel_names = map (fst o fst o dest_Var) rels
@@ -404,7 +404,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
       | is_eq _ = false
     val add_eqs = Term.fold_aterms (fn t => if is_eq t then insert (op =) t else I)
     val eq_consts = rev (add_eqs t [])
-    val eqTs = map (snd o dest_Const) eq_consts
+    val eqTs = map dest_Const_type eq_consts
     val used = Term.add_free_names prop []
     val names = map (K "") eqTs |> Name.variant_list used
     val frees = map Free (names ~~ eqTs)

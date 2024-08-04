@@ -177,7 +177,7 @@ let
             (SOME s', SOME t') => SOME (mC $ s' $ t')
           | (SOME s', NONE) => SOME s'
           | (NONE, SOME t') =>
-               SOME (mC $ Const (\<^const_name>\<open>Groups.one\<close>, domain_type (snd (dest_Const mC))) $ t')
+               SOME (mC $ Const (\<^const_name>\<open>Groups.one\<close>, domain_type (dest_Const_type mC)) $ t')
           | (NONE, NONE) => NONE,
           Rat.mult m' (Rat.inv p))
         end

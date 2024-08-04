@@ -293,8 +293,7 @@ fun fixrec_simp_tac ctxt =
     val concl = HOLogic.dest_Trueprop o Logic.strip_imp_concl o strip_alls
     fun tac (t, i) =
       let
-        val (c, _) =
-            (dest_Const o head_of o chead_of o fst o HOLogic.dest_eq o concl) t
+        val c = dest_Const_name (head_of (chead_of (fst (HOLogic.dest_eq (concl t)))))
         val unfold_thm = the (Symtab.lookup tab c)
         val rule = unfold_thm RS @{thm ssubst_lhs}
       in

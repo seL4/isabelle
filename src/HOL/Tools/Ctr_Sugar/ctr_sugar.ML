@@ -362,7 +362,7 @@ fun extract_sel_default ctxt t =
       |> HOLogic.dest_eq
       |>> (Term.dest_comb
         #>> const_or_free_name
-        ##> (Term.strip_comb #>> (Term.dest_Const #> fst)))
+        ##> (Term.strip_comb #>> dest_Const_name))
       handle TERM _ => malformed ();
   in
     if forall (is_Free orf is_Var) vars andalso not (has_duplicates (op aconv) vars) then

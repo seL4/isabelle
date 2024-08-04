@@ -321,7 +321,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
       else
         not_datatype_name fpT_name1;
 
-    val rec'_names = map (fst o dest_Const) recs';
+    val rec'_names = map dest_Const_name recs';
     val rec'_thms = flat rec'_thmss;
 
     fun mk_info (kk, {T = Type (T_name0, _), fp_ctr_sugar = {ctr_sugar = {casex, exhaust, nchotomy,
@@ -330,7 +330,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
       (T_name0,
        {index = kk, descr = descr, inject = injects, distinct = distincts, induct = induct',
         inducts = inducts', exhaust = exhaust, nchotomy = nchotomy, rec_names = rec'_names,
-        rec_rewrites = rec'_thms, case_name = fst (dest_Const casex), case_rewrites = case_thms,
+        rec_rewrites = rec'_thms, case_name = dest_Const_name casex, case_rewrites = case_thms,
         case_cong = case_cong, case_cong_weak = case_cong_weak, split = split,
         split_asm = split_asm});
 

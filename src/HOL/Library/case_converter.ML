@@ -121,7 +121,7 @@ fun keep_constructor_context ctxt pats =
               val coords = map_filter I (map_index recurse patss)
             in
               if null coords then NONE
-              else SOME (Coordinate (map (pair (dest_Const f |> fst)) coords))
+              else SOME (Coordinate (map (pair (dest_Const_name f)) coords))
             end
           else SOME (End (body_type (fastype_of f)))
           end
@@ -133,8 +133,7 @@ fun keep_constructor_context ctxt pats =
 (* AL: TODO: change from term to const_name *)
 fun find_ctr ctr1 xs =
   let
-    val const_name = fst o dest_Const
-    fun const_equal (ctr1, ctr2) = const_name ctr1 = const_name ctr2
+    fun const_equal (ctr1, ctr2) = dest_Const_name ctr1 = dest_Const_name ctr2
   in
     lookup_remove const_equal ctr1 xs
   end;
@@ -190,7 +189,7 @@ fun pattern_lookup _ Wildcard = Wildcard
     val (ctr, args) = strip_comb term
     fun map_ctr (term, pat) =
       let
-        val args = term |> dest_Const |> snd |> binder_types |> map (fn T => Free ("x", T))
+        val args = term |> dest_Const_type |> binder_types |> map (fn T => Free ("x", T))
       in
         pattern_lookup args pat
       end
@@ -347,7 +346,7 @@ fun terms_to_case_at ctr_count ctxt (fun_t : term) (default_lhs : term list)
   let
     fun abort t =
       let
-        val fun_name = head_of t |> dest_Const |> fst
+        val fun_name = dest_Const_name (head_of t)
         val msg = "Missing pattern in " ^ fun_name ^ "."
       in
         mk_abort msg t

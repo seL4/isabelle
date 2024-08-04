@@ -446,8 +446,8 @@ fun add_case_combinator
     (* define syntax for case combinator *)
     (* TODO: re-implement case syntax using a parse translation *)
     local
-      fun syntax c = Lexicon.mark_const (fst (dest_Const c))
-      fun xconst c = Long_Name.base_name (fst (dest_Const c))
+      fun syntax c = Lexicon.mark_const (dest_Const_name c)
+      fun xconst c = Long_Name.base_name (dest_Const_name c)
       fun c_ast authentic con = Ast.Constant (if authentic then syntax con else xconst con)
       fun showint n = string_of_int (n+1)
       fun expvar n = Ast.Variable ("e" ^ showint n)
@@ -803,8 +803,8 @@ fun add_match_combinators
 
     (* register match combinators with fixrec package *)
     local
-      val con_names = map (fst o dest_Const o fst) spec
-      val mat_names = map (fst o dest_Const) match_consts
+      val con_names = map (dest_Const_name o fst) spec
+      val mat_names = map dest_Const_name match_consts
     in
       val thy = Fixrec.add_matchers (con_names ~~ mat_names) thy
     end

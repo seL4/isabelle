@@ -270,8 +270,8 @@ fun flat_higher_order_arguments (intross, thy) =
       end
     fun flat_intro intro (new_defs, thy) =
       let
-        val constname = fst (dest_Const (fst (strip_comb
-          (HOLogic.dest_Trueprop (Logic.strip_imp_concl (Thm.prop_of intro))))))
+        val constname = dest_Const_name (fst (strip_comb
+          (HOLogic.dest_Trueprop (Logic.strip_imp_concl (Thm.prop_of intro)))))
         val (intro_ts, (new_defs, thy)) =
           fold_map_atoms (process constname) (Thm.prop_of intro) (new_defs, thy)
         val th = Skip_Proof.make_thm thy intro_ts

@@ -408,7 +408,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
     val xtor_un_fold_defs = map (Drule.abs_def o Morphism.thm phi) un_fold_defs;
     val xtor_cache_defs = map (Drule.abs_def o Morphism.thm phi) cache_defs;
     val xtor_un_folds' = map2 (fn raw => fn t =>
-        Const (fst (dest_Const t), fold_strTs ---> fastype_of raw))
+        Const (dest_Const_name t, fold_strTs ---> fastype_of raw))
       un_folds xtor_un_folds;
 
     val fp_un_fold_o_maps = of_fp_res #xtor_un_fold_o_maps

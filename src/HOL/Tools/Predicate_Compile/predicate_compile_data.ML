@@ -198,10 +198,10 @@ fun get_specification options thy t =
     val ctxt = Proof_Context.init_global thy
     fun filtering th =
       if is_equationlike th andalso
-        defining_const_of_equation (normalize_equation thy th) = fst (dest_Const t) then
+        defining_const_of_equation (normalize_equation thy th) = dest_Const_name t then
         SOME (normalize_equation thy th)
       else
-        if is_introlike th andalso defining_const_of_introrule th = fst (dest_Const t) then
+        if is_introlike th andalso defining_const_of_introrule th = dest_Const_name t then
           SOME th
         else
           NONE

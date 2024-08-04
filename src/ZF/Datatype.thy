@@ -86,8 +86,8 @@ fun proc ctxt ct =
     val (lhs,rhs) = FOLogic.dest_eq old
     val (lhead, largs) = strip_comb lhs
     and (rhead, rargs) = strip_comb rhs
-    val lname = #1 (dest_Const lhead) handle TERM _ => raise Match;
-    val rname = #1 (dest_Const rhead) handle TERM _ => raise Match;
+    val lname = dest_Const_name lhead handle TERM _ => raise Match;
+    val rname = dest_Const_name rhead handle TERM _ => raise Match;
     val lcon_info = the (Symtab.lookup (ConstructorsData.get thy) lname)
       handle Option.Option => raise Match;
     val rcon_info = the (Symtab.lookup (ConstructorsData.get thy) rname)

@@ -39,7 +39,7 @@ fun lookup thy net t =
 fun pred_of_function thy name =
   (case Item_Net.retrieve (Fun_Pred.get thy) (Const (name, dummyT)) of
     [] => NONE
-  | [(_, p)] => SOME (fst (dest_Const p))
+  | [(_, p)] => SOME (dest_Const_name p)
   | _ => error ("Multiple matches possible for lookup of constant " ^ name))
 
 fun defined_const thy name = is_some (pred_of_function thy name)
@@ -87,8 +87,8 @@ fun folds_map f xs y =
     end;
 
 fun keep_functions thy t =
-  (case try dest_Const (fst (strip_comb t)) of
-    SOME (c, _) => Predicate_Compile_Data.keep_function thy c
+  (case try dest_Const_name (fst (strip_comb t)) of
+    SOME c => Predicate_Compile_Data.keep_function thy c
   | _ => false)
 
 fun flatten thy lookup_pred t (names, prems) =

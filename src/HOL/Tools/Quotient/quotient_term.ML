@@ -67,8 +67,8 @@ fun mk_fun_compose flag (trm1, trm2) =
 
 fun get_mapfun_data ctxt s =
   (case Symtab.lookup (Functor.entries ctxt) s of
-    SOME [map_data] => (case try dest_Const (#mapper map_data) of
-      SOME (c, _) => (Const (c, dummyT), #variances map_data)
+    SOME [map_data] => (case try dest_Const_name (#mapper map_data) of
+      SOME c => (Const (c, dummyT), #variances map_data)
     | NONE => raise LIFT_MATCH ("map function for type " ^ quote s ^ " is not a constant."))
   | SOME _ => raise LIFT_MATCH ("map function for type " ^ quote s ^ " is non-singleton entry.")
   | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")) 

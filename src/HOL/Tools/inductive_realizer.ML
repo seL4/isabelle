@@ -31,7 +31,7 @@ fun subsets [] = [[]]
       let val ys = subsets xs
       in ys @ map (cons x) ys end;
 
-val pred_of = fst o dest_Const o head_of;
+val pred_of = dest_Const_name o head_of;
 
 fun strip_all' used names (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (s, T, t)) =
       let val (s', names') = (case names of
@@ -316,7 +316,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     val rec_thms =
       if null dt_names then []
       else #rec_rewrites (BNF_LFP_Compat.the_info thy2 [] (hd dt_names));
-    val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
+    val rec_names = distinct (op =) (map (dest_Const_name o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) rec_thms);
     val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>
       if member (op =) rsets s then
@@ -422,7 +422,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     (** realizer for elimination rules **)
 
-    val case_names = map (fst o dest_Const o head_of o fst o HOLogic.dest_eq o
+    val case_names = map (dest_Const_name o head_of o fst o HOLogic.dest_eq o
       HOLogic.dest_Trueprop o Thm.prop_of o hd) case_thms;
 
     fun add_elim_realizer Ps

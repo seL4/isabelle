@@ -68,7 +68,7 @@ fun datatype_info thy name =
 exception Find_tname of string
 
 fun find_tname ctxt var As =
-  let fun mk_pair \<^Const_>\<open>mem for \<open>Free (v,_)\<close> A\<close> = (v, #1 (dest_Const (head_of A)))
+  let fun mk_pair \<^Const_>\<open>mem for \<open>Free (v,_)\<close> A\<close> = (v, dest_Const_name (head_of A))
         | mk_pair _ = raise Match
       val pairs = map_filter (try (mk_pair o \<^dest_judgment>)) As
       val x =
@@ -151,7 +151,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
             |> map Thm.trim_context};
 
     (*associate with each constructor the datatype name and rewrites*)
-    val con_pairs = map (fn c => (#1 (dest_Const c), con_info)) constructors
+    val con_pairs = map (fn c => (dest_Const_name c, con_info)) constructors
 
   in
     thy

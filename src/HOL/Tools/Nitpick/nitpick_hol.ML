@@ -601,7 +601,7 @@ val is_interpreted_type =
                  \<^type_name>\<open>integer\<close>]
 
 fun repair_constr_type (Type (_, Ts)) T =
-  snd (dest_Const (Ctr_Sugar.mk_ctr Ts (Const (Name.uu, T))))
+  dest_Const_type (Ctr_Sugar.mk_ctr Ts (Const (Name.uu, T)))
 
 fun register_frac_type_generic frac_s ersaetze generic =
   let

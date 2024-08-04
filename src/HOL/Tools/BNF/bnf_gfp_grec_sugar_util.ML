@@ -394,7 +394,7 @@ fun generic_spec_of friend ctxt arg_Ts res_T (raw_buffer0 as {VLeaf = VLeaf0, ..
               |> perhaps (try HOLogic.dest_Trueprop)
               |> HOLogic.dest_eq
               |>> fst o strip_comb
-              |>> fst o dest_Const
+              |>> dest_Const_name
               ||> fst o dest_comb
               ||> snd o strip_comb
               ||> map (map_types (XifyT o substAT));
@@ -429,9 +429,9 @@ fun generic_spec_of friend ctxt arg_Ts res_T (raw_buffer0 as {VLeaf = VLeaf0, ..
           if forall is_some sels then SOME (disc, map the sels) else NONE;
 
         val pattern_ctrs = (ctrs0, selss0)
-          ||> map (map (try dest_Const #> Option.mapPartial (fst #> Symtab.lookup sels)))
+          ||> map (map (try dest_Const_name #> Option.mapPartial (Symtab.lookup sels)))
           ||> @{map 2} mk_disc_sels_pair all_discs
-          |>> map (dest_Const #> fst)
+          |>> map dest_Const_name
           |> op ~~
           |> map_filter (fn (s, opt) => if is_some opt then SOME (s, the opt) else NONE)
           |> Symtab.make;
