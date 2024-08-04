@@ -608,7 +608,7 @@ fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
 in
 
 val read_arity =
-  prep_arity ((#1 o dest_Type) oo read_type_name {proper = true, strict = true}) Syntax.read_sort;
+  prep_arity (dest_Type_name oo read_type_name {proper = true, strict = true}) Syntax.read_sort;
 
 val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 

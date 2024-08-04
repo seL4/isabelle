@@ -50,7 +50,7 @@ fun global_type lthy (b, raw_args) =
     val T = Type (Local_Theory.full_name lthy b, args);
 
     val bad_args =
-      #2 (Term.dest_Type (Logic.type_map (singleton (Variable.polymorphic lthy)) T))
+      Term.dest_Type_args (Logic.type_map (singleton (Variable.polymorphic lthy)) T)
       |> filter_out Term.is_TVar;
     val _ = null bad_args orelse
       err ("Locally fixed type arguments " ^

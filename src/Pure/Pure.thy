@@ -605,7 +605,7 @@ val _ =
 
 val _ =
   hide_names \<^command_keyword>\<open>hide_type\<close> "types" Sign.hide_type Parse.type_const
-    ((#1 o dest_Type) oo Proof_Context.read_type_name {proper = true, strict = false});
+    (dest_Type_name oo Proof_Context.read_type_name {proper = true, strict = false});
 
 val _ =
   hide_names \<^command_keyword>\<open>hide_const\<close> "consts" Sign.hide_const Parse.const

@@ -38,6 +38,8 @@ sig
   val is_TFree: typ -> bool
   val is_TVar: typ -> bool
   val dest_Type: typ -> string * typ list
+  val dest_Type_name: typ -> string
+  val dest_Type_args: typ -> typ list
   val dest_TFree: typ -> string * sort
   val dest_TVar: typ -> indexname * sort
   val is_Bound: term -> bool
@@ -281,6 +283,9 @@ fun is_TVar (TVar _) = true
 
 fun dest_Type (Type x) = x
   | dest_Type T = raise TYPE ("dest_Type", [T], []);
+
+val dest_Type_name = #1 o dest_Type;
+val dest_Type_args = #2 o dest_Type;
 
 fun dest_TFree (TFree x) = x
   | dest_TFree T = raise TYPE ("dest_TFree", [T], []);

@@ -164,7 +164,7 @@ fun inst_thms ctxt =
     (Symtab.fold (cons o #2 o #2) o #2) (#1 (inst_params_of (Proof_Context.theory_of ctxt))) []
   |> map (Thm.transfer' ctxt);
 
-fun get_inst_tyco consts = try (#1 o dest_Type o the_single o Consts.typargs consts);
+fun get_inst_tyco consts = try (dest_Type_name o the_single o Consts.typargs consts);
 
 fun unoverload ctxt = rewrite_rule ctxt (inst_thms ctxt);
 fun overload ctxt = rewrite_rule ctxt (map Thm.symmetric (inst_thms ctxt));
