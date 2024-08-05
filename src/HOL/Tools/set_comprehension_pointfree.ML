@@ -79,9 +79,6 @@ datatype pattern = Pattern of int list
 
 fun dest_Pattern (Pattern bs) = bs
 
-fun dest_bound (Bound i) = i
-  | dest_bound t = raise TERM("dest_bound", [t]);
-
 fun type_of_pattern Ts (Pattern bs) = HOLogic.mk_tupleT (map (nth Ts) bs)
 
 fun term_of_pattern Ts (Pattern bs) =
@@ -106,7 +103,7 @@ fun mk_case_prod _ [(x, T)] t = (T, Abs (x, T, t))
   | mk_case_prod rT ((x, T) :: vs) t =
     let
       val (T', t') = mk_case_prod rT vs t
-      val t'' = HOLogic.case_prod_const (T, T', rT) $ (Abs (x, T, t'))
+      val t'' = \<^Const>\<open>case_prod T T' rT for \<open>Abs (x, T, t')\<close>\<close>
     in (domain_type (fastype_of t''), t'') end
 
 fun mk_term vs t =
@@ -133,7 +130,7 @@ fun mk_atom vs (t as \<^Const_>\<open>Set.member _ for x s\<close>) =
     if not (null (loose_bnos s)) then
       default_atom vs t
     else
-      (case try ((map dest_bound) o HOLogic.strip_tuple) x of
+      (case try (map (fn Bound i => i) o HOLogic.strip_tuple) x of
       SOME pat => (Pattern pat, Atom (Pattern pat, s))
     | NONE =>
         let
@@ -252,7 +249,7 @@ fun mk_pointfree_expr t =
     fun mk_mem_UNIV n = HOLogic.mk_mem (Bound n, HOLogic.mk_UNIV (nth Ts n))
     fun lookup (pat', t) pat = if pat = pat' then t else HOLogic.mk_UNIV (type_of_pattern Ts pat)
     val conjs = HOLogic.dest_conj t''
-    val refl = HOLogic.eq_const T $ Bound (length vs) $ Bound (length vs)
+    val refl = \<^Const>\<open>HOL.eq T for \<open>Bound (length vs)\<close> \<open>Bound (length vs)\<close>\<close>
     val is_the_eq =
       the_default false o (try (fn eq => fst (HOLogic.dest_eq eq) = Bound (length vs)))
     val eq = the_default refl (find_first is_the_eq conjs)
@@ -388,18 +385,17 @@ fun tac ctxt fm =
 
 fun comprehension_conv ctxt ct =
   let
-    fun dest_Collect \<^Const_>\<open>Collect A for t\<close> = (A, t)
-      | dest_Collect t = raise TERM ("dest_Collect", [t])
-    fun list_ex vs t = fold_rev (fn (x, T) => fn t => HOLogic.exists_const T $ Abs (x, T, t)) vs t
+    fun list_ex vs t = fold_rev (fn (x, T) => fn t => \<^Const>\<open>Ex T for \<open>Abs (x, T, t)\<close>\<close>) vs t
     fun mk_term t =
       let
-        val (T, t') = dest_Collect t
+        val \<^Const_>\<open>Collect T for t'\<close> = t
         val (t'', vs, fp) = case strip_ptupleabs t' of
             (_, [_], _) => raise TERM("mk_term", [t'])
           | (t'', vs, fp) => (t'', vs, fp)
         val Ts = map snd vs
-        val eq = HOLogic.eq_const T $ Bound (length Ts) $
-          (HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (fn (i, _) => Bound i) Ts)))
+        val eq =
+          \<^Const>\<open>HOL.eq T for \<open>Bound (length Ts)\<close>
+            \<open>HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (Bound o #1) Ts))\<close>\<close>
       in
         \<^Const>\<open>Collect T for \<open>absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))\<close>\<close>
       end;
