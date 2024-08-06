@@ -219,12 +219,12 @@ fun fixTypes (TVar ((t, _), T)) = TFree (t, T)
   | fixTypes t = t
 
 fun noFun (Type ("fun", _)) = error "Functions in datatypes are not allowed in case constructions"
-  | noFun _ = ()
+  | noFun T = T
 fun casecBuildBounds n t = if n > 0 then casecBuildBounds (n-1) (t $ (Bound (n-1))) else t
-fun casecAbs ctxt f n (Type (_,[T,Tr])) (Abs (v,Ta,t)) = (noFun T; Abs (v,Ta,casecAbs ctxt f n Tr t))
-  | casecAbs ctxt f n (Type (Tn,[T,Tr])) t =
-    (noFun T; case Variable.variant_fixes ["x"] ctxt of ([v],ctxt) =>
-    (if Tn = "fun" then Abs (v,T,casecAbs ctxt f (n + 1) Tr t) else f t)
+fun casecAbs ctxt f n (Type ("fun",[T,Tr])) (Abs (v,Ta,t)) = ( map_atyps noFun T; Abs (v,Ta,casecAbs ctxt f n Tr t))
+  | casecAbs ctxt f n (Type ("fun",[T,Tr])) t =
+    (map_atyps noFun T; case Variable.variant_fixes ["x"] ctxt of ([v],ctxt) =>
+    (Abs (v,T,casecAbs ctxt f (n + 1) Tr t))
     | _ => error "Internal error: could not fix variable")
   | casecAbs _ f n _ t = f (casecBuildBounds n (Term.incr_bv n 0 t))
 fun fixCasecCases _ _ _ [t] = [t]
@@ -543,9 +543,9 @@ and reg_time_func (theory: theory) (term: term list) (terms: term list) print =
     (* Print result if print *)
     val _ = if not print then () else
         let
-          val nms = map dest_Const_name term
+          val nms = map (fst o dest_Const) term
           val used = map (used_for_const orig_used) term
-          val typs = map dest_Const_type term
+          val typs = map (snd o dest_Const) term
         in
           print_timing' print_ctxt { names=nms, terms=terms, typs=typs } { names=timing_names, terms=T_terms, typs=map (fn (used, typ) => change_typ' used 0 typ) (zip used typs) }
         end
@@ -610,8 +610,8 @@ and proove_termination (term: term list) terms print (theory: theory) =
     (* Print result if print *)
     val _ = if not print then () else
         let
-          val nms = map dest_Const_name term
-          val typs = map dest_Const_type term
+          val nms = map (fst o dest_Const) term
+          val typs = map (snd o dest_Const) term
         in
           print_timing' print_ctxt { names=nms, terms=terms, typs=typs } (info_pfunc time_info)
         end
