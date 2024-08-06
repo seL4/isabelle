@@ -135,6 +135,10 @@ object Build_Manager {
     def build_cluster = build_config.build_cluster
     def build_hosts: List[Build_Cluster.Host] =
       Build_Cluster.Host.parse(Registry.global, hosts_spec)
+
+    def >(t: Task): Boolean =
+      priority.ordinal > t.priority.ordinal ||
+        (priority == t.priority && submit_date.time < t.submit_date.time)
   }
 
   sealed case class Job(
@@ -1169,8 +1173,12 @@ object Build_Manager {
     }
   }
 
-  class Web_Server(port: Int, store: Store, progress: Progress)
-    extends Loop_Process[Unit]("Web_Server", store, progress) {
+  class Web_Server(
+    port: Int,
+    store: Store,
+    build_hosts: List[Build_Cluster.Host],
+    progress: Progress
+  ) extends Loop_Process[Unit]("Web_Server", store, progress) {
     import Web_App.*
     import Web_Server.*
 
@@ -1247,8 +1255,28 @@ object Build_Manager {
             else Nil))
         }
 
-        text("Queue: " + state.pending.size + " tasks waiting") :::
-        section("Builds") :: par(text("Total: " + state.num_builds + " builds")) ::
+        val running = state.running.values.toList
+        val idle = (build_hosts.map(_.hostname).toSet -- running.flatMap(_.hostnames).toSet).toList
+
+        def render_rows(hostnames: List[String], body: XML.Body): XML.Body =
+          hostnames match {
+            case Nil => Nil
+            case hostname :: Nil => List(tr(List(td(text(hostname)), td(body))))
+            case hostname :: hostnames1 =>
+              tr(List(td(text(hostname)), td.apply(rowspan(hostnames.length), body))) ::
+              hostnames1.map(hostname => tr(List(td(text(hostname)))))
+          }
+
+        def render_job(job: Job): XML.Body =
+          render_rows(job.hostnames,
+            page_link(Page.BUILD, job.name, Markup.Name(job.name)) :: summary(job.start_date))
+
+        par(text("Queue: " + state.pending.size + " tasks waiting")) ::
+        table(tr(List(th(text("Host")), th(text("Activity")))) ::
+          running.sortBy(_.name).flatMap(render_job) :::
+          idle.sorted.map(List(_)).flatMap(render_rows(_, text("idle")))) ::
+        section("Builds") ::
+        par(text("Total: " + state.num_builds + " builds")) ::
         state.kinds.sorted.map(render_kind)
       }
 
@@ -1284,16 +1312,40 @@ object Build_Manager {
             else text("Components: ") :+ page_link(Page.DIFF, s, Markup.Name(build.name))
           }
 
+          def waiting_for(host: Build_Cluster.Host): XML.Body =
+            build_hosts.find(_.hostname == host.hostname) match {
+              case None => break ::: text(quote(host.hostname) + " is not a build host")
+              case Some(host) =>
+                val active = state.running.values.filter(_.hostnames.contains(host.hostname))
+                if (active.isEmpty) Nil
+                else break :::
+                  text(host.hostname + " is busy with " + active.map(_.name).mkString(" and "))
+            }
+
+          def waiting(task: Task): XML.Body = {
+            val num_before = state.pending.values.count(_ > task)
+
+            if (num_before > 0) text("Waiting for " + num_before + " tasks to complete")
+            else Exn.capture(task.build_hosts) match {
+              case Exn.Res(hosts) => text("Hosts not ready:") ::: hosts.flatMap(waiting_for)
+              case _ => text("Unkown host spec")
+            }
+          }
+
+          def started(user: Option[String], date: Date): String =
+            "Started" + if_proper(user, " by " + user.get) + " on " + Build_Log.print_date(date)
+
           build match {
             case task: Task =>
               par(text("Task from " + Build_Log.print_date(task.submit_date) + ". ")) ::
-              par(text(task.components.mkString(", "))) ::
+              par(text("Components: " + task.components.mkString(", "))) ::
+              par(List(bold(waiting(task)))) ::
               render_cancel(task.uuid)
 
             case job: Job =>
               val report_data = cache.lookup(store.report(job.kind, job.id))
 
-              par(text("Start: " + Build_Log.print_date(job.start_date))) ::
+              par(text(started(job.user, job.start_date))) ::
               par(
                 if (job.cancelled) text("Cancelling ...")
                 else text("Running ...") ::: render_cancel(job.uuid)) ::
@@ -1303,7 +1355,7 @@ object Build_Manager {
             case result: Result =>
               val report_data = cache.lookup(store.report(result.kind, result.id))
 
-              par(text("Start: " + Build_Log.print_date(result.start_date) +
+              par(text(started(result.user, result.start_date) +
                 if_proper(result.end_date,
                   ", took " + (result.end_date.get - result.start_date).message_hms))) ::
               par(text("Status: " + result.status)) ::
@@ -1604,7 +1656,7 @@ object Build_Manager {
       new Runner(store, build_hosts, isabelle_repository, sync_dirs, progress),
       new Poller(ci_jobs, store, isabelle_repository, sync_dirs, progress),
       new Timer(ci_jobs, store, progress),
-      new Web_Server(port, store, progress))
+      new Web_Server(port, store, build_hosts, progress))
 
     val threads = processes.map(Isabelle_Thread.create(_))
     POSIX_Interrupt.handler {
