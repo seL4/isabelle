@@ -252,6 +252,9 @@ option build_manager_cluster : string = "cluster.default"
 option build_manager_timeout : real = 28800
   -- "timeout for user-submitted tasks (seconds > 0)"
 
+option build_manager_cancel_timeout : real = 180.0
+  -- "timeout for graceful cancelling (seconds > 0)"
+
 option build_manager_delay : real = 1.0
   -- "delay build manager loop"
 

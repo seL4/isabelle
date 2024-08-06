@@ -753,13 +753,22 @@ object Build_Manager {
 
   object Runner {
     object State {
-      def empty: State = new State(Map.empty, Map.empty)
+      def init(options: Options): State =
+        new State(Map.empty, Map.empty, Map.empty, options.seconds("build_manager_cancel_timeout"))
     }
 
     class State private(
       process_futures: Map[String, Future[Build_Process]],
-      result_futures: Map[String, Future[Process_Result]]
+      result_futures: Map[String, Future[Process_Result]],
+      cancelling_until: Map[String, Time],
+      cancel_timeout: Time
     ) {
+      private def copy(
+        process_futures: Map[String, Future[Build_Process]] = process_futures,
+        result_futures: Map[String, Future[Process_Result]] = result_futures,
+        cancelling_until: Map[String, Time] = cancelling_until,
+      ): State = new State(process_futures, result_futures, cancelling_until, cancel_timeout)
+
       def is_empty = process_futures.isEmpty && result_futures.isEmpty
 
       def init(context: Context): State = {
@@ -770,12 +779,20 @@ object Build_Manager {
               case Exn.Res(process) => process.run()
               case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
             })
-        new State(
+
+        copy(
           process_futures + (context.name -> process_future),
           result_futures + (context.name -> result_future))
       }
 
       def running: List[String] = process_futures.keys.toList
+
+      private def do_terminate(name: String): Boolean =
+        if (cancelling_until(name) <= Time.now()) true
+        else {
+          process_futures(name).join.terminate()
+          false
+        }
 
       def update: (State, Map[String, Process_Result]) = {
         val finished =
@@ -786,21 +803,32 @@ object Build_Manager {
               case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
             })
 
-        val process_futures1 = process_futures.filterNot((name, _) => finished.contains(name))
-        val result_futures1 = result_futures.filterNot((name, _) => finished.contains(name))
-
-        (new State(process_futures1, result_futures1), finished)
+        val state1 =
+          copy(
+            process_futures.filterNot((name, _) => finished.contains(name)),
+            result_futures.filterNot((name, _) => finished.contains(name)),
+            cancelling_until.filterNot((name, _) => finished.contains(name) && !do_terminate(name)))
+        (state1, finished)
       }
 
-      def cancel(cancelled: List[String]): State = {
-        for (name <- cancelled) {
-          val process_future = process_futures(name)
-          if (process_future.is_finished) process_future.join.cancel()
-          else process_future.cancel()
+      private def do_cancel(name: String): Boolean = 
+        process_futures.get(name) match {
+          case Some(process_future) =>
+            if (process_future.is_finished) {
+              process_future.join.cancel()
+              true
+            } else {
+              process_future.cancel()
+              false
+            }
+          case None => false
         }
 
-        new State(process_futures.filterNot((name, _) => cancelled.contains(name)), result_futures)
-      }
+      def cancel(cancelled: List[String]): State =
+        copy(
+          process_futures.filterNot((name, _) => cancelled.contains(name)),
+          cancelling_until = cancelling_until ++
+            cancelled.filter(do_cancel).map(_ -> (Time.now() + cancel_timeout)))
     }
   }
 
@@ -966,7 +994,7 @@ object Build_Manager {
 
     override def stopped(state: Runner.State): Boolean = progress.stopped && state.is_empty
 
-    def init: Runner.State = Runner.State.empty
+    def init: Runner.State = Runner.State.init(store.options)
     def loop_body(state: Runner.State): Runner.State = {
       val state1 =
         if (progress.stopped) state
@@ -1472,6 +1500,7 @@ object Build_Manager {
       catch { case exn: Throwable => close(); throw exn }
 
     def cancel(): Unit = Option(_process).foreach(_.interrupt())
+    def terminate(): Unit = Option(_process).foreach(_.terminate())
 
     def close(): Unit = {
       Option(_dir).foreach(ssh.rm_tree)
