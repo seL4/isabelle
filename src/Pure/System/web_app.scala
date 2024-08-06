@@ -20,6 +20,7 @@ object Web_App {
     def name(n: String): Attribute = new Attribute("name", n)
     def value(v: String): Attribute = new Attribute("value", v)
     def placeholder(p: String): Attribute = new Attribute("placeholder", p)
+    def rowspan(n: Int): Attribute = new Attribute("rowspan", n.toString)
 
     val nav = new Operator("nav")
     val header = new Operator("header")
@@ -27,6 +28,11 @@ object Web_App {
     val main = new Operator("main")
     val fieldset = new Operator("fieldset")
     val button = new Operator("button")
+
+    val table = new Operator("table")
+    val th = new Operator("th")
+    val tr = new Operator("tr")
+    val td = new Operator("td")
 
     def icon(href: String): XML.Elem =
       XML.Elem(Markup("link", List("rel" -> "icon", "type" -> "image/x-icon", "href" -> href)), Nil)
