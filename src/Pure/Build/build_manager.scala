@@ -933,8 +933,15 @@ object Build_Manager {
           echo(job.name + ": " + timeout_msg)
         }
 
-        val cancelled = for (name <- state.running if _state.running(name).cancelled) yield name
-        state.cancel(cancelled)
+        val cancelled =
+          for {
+            name <- state.running
+            job = _state.running(name)
+            if job.cancelled
+          } yield job
+
+        cancelled.foreach(job => store.report(job.kind, job.id).progress.echo("Cancelling ..."))
+        state.cancel(cancelled.map(_.name))
       }
 
     private def finish_job(name: String, process_result: Process_Result): Unit =
